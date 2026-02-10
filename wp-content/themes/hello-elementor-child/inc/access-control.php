@@ -39,19 +39,27 @@ if ( ! function_exists( 'pera_is_frontend_admin_equivalent' ) ) {
   }
 }
 
+if ( ! function_exists( 'pera_should_show_admin_bar' ) ) {
+  /**
+   * Show admin bar in wp-admin, and on front-end for administrators/employees.
+   */
+  function pera_should_show_admin_bar(): bool {
+    if ( is_admin() ) {
+      return true;
+    }
+
+    if ( ! is_user_logged_in() ) {
+      return false;
+    }
+
+    return pera_is_frontend_admin_equivalent();
+  }
+}
+
 add_filter( 'show_admin_bar', function ( bool $show ): bool {
-  if ( ! pera_is_employee() ) {
+  if ( is_admin() ) {
     return $show;
   }
 
-  $user = wp_get_current_user();
-  if ( ! $user || ! $user->exists() ) {
-    return $show;
-  }
-
-  if ( in_array( 'administrator', (array) $user->roles, true ) ) {
-    return $show;
-  }
-
-  return false;
+  return pera_should_show_admin_bar();
 }, 20 );
