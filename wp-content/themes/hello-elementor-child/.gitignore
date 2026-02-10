@@ -1,0 +1,20 @@
+# OS / editor junk
+.DS_Store
+Thumbs.db
+*.swp
+*.swo
+.idea/
+.vscode/
+
+# Logs
+*.log
+error_log
+
+# Build / tooling
+node_modules/
+dist/
+.cache/
+
+# Temporary / backups
+*.tmp
+*.bak

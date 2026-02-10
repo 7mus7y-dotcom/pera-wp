@@ -1,0 +1,153 @@
+.peracrm-metabox .peracrm-list {
+    margin: 0 0 1rem;
+    padding-left: 1.2rem;
+}
+
+.peracrm-metabox .peracrm-list__meta {
+    color: #646970;
+    font-size: 12px;
+    margin-bottom: 4px;
+}
+
+.peracrm-metabox .peracrm-list__body {
+    margin-bottom: 8px;
+}
+
+.peracrm-metabox .peracrm-empty {
+    color: #646970;
+}
+
+.peracrm-inline-form {
+    margin-top: 6px;
+}
+
+.peracrm-property-group {
+    margin-bottom: 1rem;
+}
+
+.peracrm-health-badge {
+    display: inline-block;
+    padding: 2px 8px;
+    border-radius: 999px;
+    font-size: 12px;
+    font-weight: 600;
+    background: #f0f0f1;
+    color: #1d2327;
+}
+
+.peracrm-health-badge--good {
+    background: #e5f5e5;
+    color: #1f6f2c;
+}
+
+.peracrm-health-badge--warn {
+    background: #fff4d8;
+    color: #8a5a00;
+}
+
+.peracrm-health-badge--bad {
+    background: #fbeaea;
+    color: #a30000;
+}
+
+.peracrm-health-badge--neutral {
+    background: #f0f0f1;
+    color: #1d2327;
+}
+
+.peracrm-pipeline .peracrm-filters {
+    margin: 12px 0 20px;
+}
+
+.peracrm-pipeline-views {
+    align-items: center;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin: 12px 0;
+}
+
+.peracrm-pipeline-views__form {
+    align-items: center;
+    display: flex;
+    gap: 6px;
+    margin: 0;
+}
+
+.peracrm-pipeline-views__label {
+    font-weight: 600;
+}
+
+.peracrm-pipeline-hide-empty {
+    align-items: center;
+    display: inline-flex;
+    gap: 4px;
+    margin-left: 12px;
+}
+
+.peracrm-pipeline-board {
+    display: grid;
+    gap: 16px;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+.peracrm-pipeline-column__header {
+    font-weight: 600;
+    margin-bottom: 8px;
+}
+
+.peracrm-pipeline-card {
+    background: #fff;
+    border: 1px solid #dcdcde;
+    border-radius: 6px;
+    padding: 12px;
+    margin-bottom: 12px;
+}
+
+.peracrm-pipeline-card__title {
+    font-weight: 600;
+    margin-bottom: 8px;
+}
+
+.peracrm-pipeline-card__hints {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin-bottom: 8px;
+}
+
+.peracrm-pipeline-hint {
+    background: #f0f0f1;
+    border-radius: 999px;
+    color: #1d2327;
+    font-size: 11px;
+    font-weight: 600;
+    padding: 2px 8px;
+}
+
+.peracrm-pipeline-hint--overdue {
+    background: #f8d7da;
+    color: #842029;
+}
+
+.peracrm-pipeline-hint--due-soon {
+    background: #fff3cd;
+    color: #664d03;
+}
+
+.peracrm-pipeline-hint--no-activity {
+    background: #e2e3e5;
+    color: #41464b;
+}
+
+.peracrm-pipeline-hint--new-enquiry {
+    background: #d1e7dd;
+    color: #0f5132;
+}
+
+.peracrm-pipeline-card__meta {
+    color: #646970;
+    display: grid;
+    gap: 4px;
+    font-size: 12px;
+}

@@ -1,0 +1,15 @@
+# OS / editor
+.DS_Store
+Thumbs.db
+*.log
+
+# WordPress content you never want in git
+wp-content/uploads/
+wp-content/cache/
+wp-content/upgrade/
+wp-content/backup*/
+wp-content/wflogs/
+wp-content/ai1wm-backups/
+wp-content/et-cache/
+wp-content/litespeed/
+wp-content/debug.log
