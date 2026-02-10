@@ -41,22 +41,25 @@ function peracrm_sync_client_contact_meta($client_id, $email, $phone = '')
     }
 }
 
-function peracrm_find_or_create_client_by_email($email, array $data = [])
+
+function peracrm_find_existing_client_id_by_email($email)
 {
     $email = sanitize_email($email);
     if ($email === '') {
         return 0;
     }
 
-    if (function_exists('peracrm_find_client_by_email')) {
-        $existing_id = (int) peracrm_find_client_by_email($email);
-        if ($existing_id > 0) {
-            $phone = isset($data['phone']) ? sanitize_text_field($data['phone']) : '';
-            peracrm_sync_client_contact_meta($existing_id, $email, $phone);
+    $normalized_email = function_exists('peracrm_normalize_email')
+        ? peracrm_normalize_email($email)
+        : strtolower(trim((string) $email));
 
-            return $existing_id;
-        }
-    } else {
+    $meta_keys = [
+        '_peracrm_email',
+        'crm_primary_email',
+        'primary_email',
+    ];
+
+    foreach ($meta_keys as $meta_key) {
         $existing = get_posts([
             'post_type' => 'crm_client',
             'posts_per_page' => 1,
@@ -64,20 +67,69 @@ function peracrm_find_or_create_client_by_email($email, array $data = [])
             'fields' => 'ids',
             'meta_query' => [
                 [
-                    'key' => 'crm_primary_email',
-                    'value' => $email,
-                    'compare' => '=',
+                    'key' => $meta_key,
+                    'value' => [$email, $normalized_email],
+                    'compare' => 'IN',
                 ],
             ],
         ]);
 
         if (!empty($existing)) {
-            $existing_id = (int) $existing[0];
-            $phone = isset($data['phone']) ? sanitize_text_field($data['phone']) : '';
-            peracrm_sync_client_contact_meta($existing_id, $email, $phone);
-
-            return $existing_id;
+            return (int) $existing[0];
         }
+    }
+
+    if ($normalized_email !== '') {
+        $normalized_keys = [
+            'crm_primary_email_normalized',
+            'primary_email_normalized',
+        ];
+
+        foreach ($normalized_keys as $meta_key) {
+            $existing = get_posts([
+                'post_type' => 'crm_client',
+                'posts_per_page' => 1,
+                'post_status' => 'any',
+                'fields' => 'ids',
+                'meta_query' => [
+                    [
+                        'key' => $meta_key,
+                        'value' => $normalized_email,
+                        'compare' => '=',
+                    ],
+                ],
+            ]);
+
+            if (!empty($existing)) {
+                return (int) $existing[0];
+            }
+        }
+    }
+
+    return 0;
+}
+
+function peracrm_find_or_create_client_by_email($email, array $data = [])
+{
+    $email = sanitize_email($email);
+    if ($email === '') {
+        return 0;
+    }
+
+    $existing_id = 0;
+    if (function_exists('peracrm_find_client_by_email')) {
+        $existing_id = (int) peracrm_find_client_by_email($email);
+    }
+
+    if ($existing_id <= 0) {
+        $existing_id = (int) peracrm_find_existing_client_id_by_email($email);
+    }
+
+    if ($existing_id > 0) {
+        $phone = isset($data['phone']) ? sanitize_text_field($data['phone']) : '';
+        peracrm_sync_client_contact_meta($existing_id, $email, $phone);
+
+        return $existing_id;
     }
 
     $first_name = isset($data['first_name']) ? sanitize_text_field($data['first_name']) : '';

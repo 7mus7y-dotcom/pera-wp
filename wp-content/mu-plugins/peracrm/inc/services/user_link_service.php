@@ -85,6 +85,32 @@ function peracrm_update_client_linked_user_id($client_id, $user_id)
     return true;
 }
 
+
+function peracrm_userlink_debug_enabled()
+{
+    return defined('WP_DEBUG') && WP_DEBUG && defined('PERACRM_DEBUG_USERLINK') && PERACRM_DEBUG_USERLINK;
+}
+
+function peracrm_userlink_debug_log($message, array $context = [])
+{
+    if (!peracrm_userlink_debug_enabled()) {
+        return;
+    }
+
+    $pairs = [];
+    foreach ($context as $key => $value) {
+        if (is_bool($value)) {
+            $value = $value ? '1' : '0';
+        } elseif (is_array($value) || is_object($value)) {
+            $value = wp_json_encode($value);
+        }
+
+        $pairs[] = sanitize_key((string) $key) . '=' . sanitize_text_field((string) $value);
+    }
+
+    error_log('[peracrm userlink] ' . $message . (empty($pairs) ? '' : ' ' . implode(' ', $pairs)));
+}
+
 function peracrm_sync_theme_favourites_to_client($user_id, $client_id, $max_ids = 50)
 {
     // One-way sync only for now: usermeta -> CRM relation.
@@ -121,18 +147,31 @@ function peracrm_sync_theme_favourites_to_client($user_id, $client_id, $max_ids 
 function peracrm_autolink_user_to_client($user)
 {
     if (!$user instanceof WP_User) {
+        peracrm_userlink_debug_log('autolink_skipped_invalid_user');
         return 0;
     }
 
-    // Do not auto-link staff accounts.
-    if (user_can($user, 'manage_options') || user_can($user, 'edit_crm_clients')) {
+    $is_staff = user_can($user, 'manage_options') || user_can($user, 'edit_crm_clients');
+    if ($is_staff) {
+        peracrm_userlink_debug_log('autolink_skipped_staff_user', [
+            'user_id' => (int) $user->ID,
+        ]);
         return 0;
     }
 
     $email = sanitize_email($user->user_email);
     if ($email === '') {
+        peracrm_userlink_debug_log('autolink_skipped_empty_email', [
+            'user_id' => (int) $user->ID,
+        ]);
         return 0;
     }
+
+    $email_hash = sha1(strtolower(trim((string) $email)));
+    peracrm_userlink_debug_log('autolink_start', [
+        'user_id' => (int) $user->ID,
+        'email_hash' => $email_hash,
+    ]);
 
     $client_id = (int) peracrm_find_or_create_client_by_email($email, [
         'first_name' => get_user_meta($user->ID, 'first_name', true),
@@ -143,12 +182,29 @@ function peracrm_autolink_user_to_client($user)
     ]);
 
     if ($client_id <= 0) {
+        peracrm_userlink_debug_log('autolink_no_client_match', [
+            'user_id' => (int) $user->ID,
+            'email_hash' => $email_hash,
+        ]);
         return 0;
     }
+
+    peracrm_userlink_debug_log('autolink_client_candidate', [
+        'user_id' => (int) $user->ID,
+        'client_id' => $client_id,
+        'email_hash' => $email_hash,
+    ]);
 
     $linked_user_id = peracrm_get_client_linked_user_id($client_id);
 
     if ($linked_user_id > 0 && $linked_user_id !== (int) $user->ID) {
+        peracrm_userlink_debug_log('autolink_conflict_existing_link', [
+            'user_id' => (int) $user->ID,
+            'client_id' => $client_id,
+            'linked_user_id' => $linked_user_id,
+            'email_hash' => $email_hash,
+        ]);
+
         delete_user_meta($user->ID, 'crm_client_id');
 
         if (function_exists('peracrm_log_event')) {
@@ -163,6 +219,12 @@ function peracrm_autolink_user_to_client($user)
 
     update_user_meta($user->ID, 'crm_client_id', $client_id);
     peracrm_update_client_linked_user_id($client_id, (int) $user->ID);
+
+    peracrm_userlink_debug_log('autolink_linked', [
+        'user_id' => (int) $user->ID,
+        'client_id' => $client_id,
+        'email_hash' => $email_hash,
+    ]);
 
     peracrm_sync_theme_favourites_to_client((int) $user->ID, $client_id, 50);
 

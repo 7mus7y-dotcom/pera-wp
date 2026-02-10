@@ -36,9 +36,34 @@ function pera_register_client_portal_page() {
 }
 add_action( 'after_switch_theme', 'pera_register_client_portal_page' );
 
+function pera_client_portal_get_login_redirect_target() {
+    $request_uri = isset( $_SERVER['REQUEST_URI'] ) ? wp_unslash( $_SERVER['REQUEST_URI'] ) : '/client-portal/';
+    $request_uri = is_string( $request_uri ) ? trim( $request_uri ) : '/client-portal/';
+
+    if ( '' === $request_uri || '/' !== substr( $request_uri, 0, 1 ) ) {
+        $request_uri = '/client-portal/';
+    }
+
+    $current_url = home_url( $request_uri );
+    $login_url   = add_query_arg( 'redirect_to', $current_url, home_url( '/client-login/' ) );
+
+    return wp_validate_redirect( $login_url, home_url( '/client-login/' ) );
+}
+
+function pera_client_portal_enforce_login_redirect() {
+    if ( is_user_logged_in() || ! is_page( 'client-portal' ) ) {
+        return;
+    }
+
+    wp_safe_redirect( pera_client_portal_get_login_redirect_target() );
+    exit;
+}
+add_action( 'template_redirect', 'pera_client_portal_enforce_login_redirect', 0 );
+
 function pera_handle_client_portal_profile_update() {
     if ( ! is_user_logged_in() ) {
-        wp_safe_redirect( home_url( '/client-login/' ) );
+        $target = wp_validate_redirect( home_url( '/client-login/' ), home_url( '/client-login/' ) );
+        wp_safe_redirect( $target );
         exit;
     }
 
@@ -137,6 +162,8 @@ function pera_handle_client_portal_profile_update() {
 
     $redirect_url = remove_query_arg( array( 'updated' ), $redirect_url );
     $redirect_url = add_query_arg( 'updated', 1, $redirect_url );
+
+    $redirect_url = wp_validate_redirect( $redirect_url, home_url( '/client-portal/' ) );
 
     wp_safe_redirect( $redirect_url );
     exit;
