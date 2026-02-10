@@ -357,8 +357,29 @@ function peracrm_admin_parse_datetime($raw_datetime)
 function peracrm_admin_redirect_with_notice($url, $notice)
 {
     $url = add_query_arg('peracrm_notice', $notice, $url);
+    $url = wp_validate_redirect($url, admin_url('edit.php?post_type=crm_client'));
     wp_safe_redirect($url);
     exit;
+}
+
+function peracrm_admin_client_screen_url($client_id)
+{
+    $client_id = (int) $client_id;
+    if ($client_id <= 0) {
+        return admin_url('edit.php?post_type=crm_client');
+    }
+
+    if (get_post_type($client_id) === 'crm_client') {
+        return wp_validate_redirect(
+            admin_url('post.php?post=' . $client_id . '&action=edit'),
+            admin_url('edit.php?post_type=crm_client')
+        );
+    }
+
+    return wp_validate_redirect(
+        admin_url('admin.php?page=peracrm-client-view&client_id=' . $client_id),
+        admin_url('edit.php?post_type=crm_client')
+    );
 }
 
 function peracrm_admin_search_user_for_link($search_term, $client_id = 0)
@@ -1052,27 +1073,27 @@ function peracrm_handle_link_user()
     $search_term = isset($_POST['peracrm_user_search']) ? wp_unslash($_POST['peracrm_user_search']) : '';
     $users = peracrm_admin_search_user_for_link($search_term, $client_id);
     if (empty($users)) {
-        peracrm_admin_redirect_with_notice(get_edit_post_link($client_id, 'raw'), 'user_missing');
+        peracrm_admin_redirect_with_notice(peracrm_admin_client_screen_url($client_id), 'user_missing');
     }
 
     if (count($users) > 1) {
-        peracrm_admin_redirect_with_notice(get_edit_post_link($client_id, 'raw'), 'user_ambiguous');
+        peracrm_admin_redirect_with_notice(peracrm_admin_client_screen_url($client_id), 'user_ambiguous');
     }
 
     $user = $users[0];
     $user_id = (int) $user->ID;
     if ($user_id <= 0) {
-        peracrm_admin_redirect_with_notice(get_edit_post_link($client_id, 'raw'), 'user_missing');
+        peracrm_admin_redirect_with_notice(peracrm_admin_client_screen_url($client_id), 'user_missing');
     }
 
     $existing_client_id = (int) get_user_meta($user_id, 'crm_client_id', true);
     if ($existing_client_id > 0 && $existing_client_id !== $client_id) {
-        peracrm_admin_redirect_with_notice(get_edit_post_link($client_id, 'raw'), 'user_already_linked');
+        peracrm_admin_redirect_with_notice(peracrm_admin_client_screen_url($client_id), 'user_already_linked');
     }
 
     $existing_user_id = peracrm_admin_find_linked_user_id($client_id);
     if ($existing_user_id > 0 && $existing_user_id !== $user_id) {
-        peracrm_admin_redirect_with_notice(get_edit_post_link($client_id, 'raw'), 'client_already_linked');
+        peracrm_admin_redirect_with_notice(peracrm_admin_client_screen_url($client_id), 'client_already_linked');
     }
 
     update_user_meta($user_id, 'crm_client_id', $client_id);
@@ -1084,10 +1105,10 @@ function peracrm_handle_link_user()
         } else {
             delete_user_meta($user_id, 'crm_client_id');
         }
-        peracrm_admin_redirect_with_notice(get_edit_post_link($client_id, 'raw'), 'link_failed');
+        peracrm_admin_redirect_with_notice(peracrm_admin_client_screen_url($client_id), 'link_failed');
     }
 
-    peracrm_admin_redirect_with_notice(get_edit_post_link($client_id, 'raw'), 'link_success');
+    peracrm_admin_redirect_with_notice(peracrm_admin_client_screen_url($client_id), 'link_success');
 }
 
 function peracrm_handle_unlink_user()
@@ -1106,12 +1127,12 @@ function peracrm_handle_unlink_user()
 
     $linked_user_id = peracrm_admin_find_linked_user_id($client_id);
     if ($linked_user_id <= 0) {
-        peracrm_admin_redirect_with_notice(get_edit_post_link($client_id, 'raw'), 'unlink_missing');
+        peracrm_admin_redirect_with_notice(peracrm_admin_client_screen_url($client_id), 'unlink_missing');
     }
 
     $updated = peracrm_admin_update_client_linked_user_id($client_id, 0);
     if (!$updated) {
-        peracrm_admin_redirect_with_notice(get_edit_post_link($client_id, 'raw'), 'unlink_failed');
+        peracrm_admin_redirect_with_notice(peracrm_admin_client_screen_url($client_id), 'unlink_failed');
     }
 
     $current_client_id = (int) get_user_meta($linked_user_id, 'crm_client_id', true);
@@ -1119,11 +1140,11 @@ function peracrm_handle_unlink_user()
         $deleted = delete_user_meta($linked_user_id, 'crm_client_id');
         if (!$deleted) {
             peracrm_admin_update_client_linked_user_id($client_id, $linked_user_id);
-            peracrm_admin_redirect_with_notice(get_edit_post_link($client_id, 'raw'), 'unlink_failed');
+            peracrm_admin_redirect_with_notice(peracrm_admin_client_screen_url($client_id), 'unlink_failed');
         }
     }
 
-    peracrm_admin_redirect_with_notice(get_edit_post_link($client_id, 'raw'), 'unlink_success');
+    peracrm_admin_redirect_with_notice(peracrm_admin_client_screen_url($client_id), 'unlink_success');
 }
 
 function peracrm_admin_user_can_reassign()
@@ -1416,6 +1437,18 @@ function peracrm_admin_notices()
         return;
     }
 
+    $is_crm_edit_screen = isset($_GET['post'])
+        && get_post_type((int) $_GET['post']) === 'crm_client'
+        && isset($_GET['action'])
+        && sanitize_key(wp_unslash($_GET['action'])) === 'edit';
+
+    $is_crm_client_view = isset($_GET['page'])
+        && sanitize_key(wp_unslash($_GET['page'])) === 'peracrm-client-view';
+
+    if (!$is_crm_edit_screen && !$is_crm_client_view) {
+        return;
+    }
+
     $notice = sanitize_key(wp_unslash($_GET['peracrm_notice']));
     $messages = [
         'note_added' => ['success', 'CRM note added.'],
@@ -1436,6 +1469,7 @@ function peracrm_admin_notices()
         'user_ambiguous' => ['error', 'Multiple users matched. Please use a more specific search.'],
         'user_already_linked' => ['error', 'That user is already linked to another CRM client.'],
         'client_already_linked' => ['error', 'This CRM client is already linked to another user.'],
+        'conflict' => ['error', 'This CRM client is already linked to another user.'],
         'unlink_missing' => ['error', 'This CRM client does not have a linked user.'],
         'profile_saved' => ['success', 'Client profile updated.'],
         'profile_failed' => ['error', 'Unable to update client profile.'],

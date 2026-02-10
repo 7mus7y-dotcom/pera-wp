@@ -8,9 +8,10 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 if ( ! is_user_logged_in() ) {
-    $request_uri = isset( $_SERVER['REQUEST_URI'] ) ? wp_unslash( $_SERVER['REQUEST_URI'] ) : '/client-portal/';
-    $target      = home_url( '/client-login/' );
-    $target      = add_query_arg( 'redirect_to', home_url( $request_uri ), $target );
+    $target = function_exists( 'pera_client_portal_get_login_redirect_target' )
+        ? pera_client_portal_get_login_redirect_target()
+        : wp_validate_redirect( home_url( '/client-login/' ), home_url( '/client-login/' ) );
+
     wp_safe_redirect( $target );
     exit;
 }
