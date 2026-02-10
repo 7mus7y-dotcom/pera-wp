@@ -4,6 +4,43 @@ if (!defined('ABSPATH')) {
     exit;
 }
 
+
+function peracrm_sync_client_contact_meta($client_id, $email, $phone = '')
+{
+    $client_id = (int) $client_id;
+    $email = sanitize_email($email);
+    $phone = sanitize_text_field((string) $phone);
+
+    if ($client_id <= 0 || $email === '') {
+        return;
+    }
+
+    if ($phone !== '') {
+        $current_phone = (string) get_post_meta($client_id, '_peracrm_phone', true);
+        if ($current_phone !== $phone) {
+            update_post_meta($client_id, '_peracrm_phone', $phone);
+        }
+
+        $legacy_phone = (string) get_post_meta($client_id, 'crm_phone', true);
+        if ($legacy_phone !== $phone) {
+            update_post_meta($client_id, 'crm_phone', $phone);
+        }
+    }
+
+    $normalized_email = function_exists('peracrm_normalize_email')
+        ? peracrm_normalize_email($email)
+        : strtolower(trim((string) $email));
+
+    update_post_meta($client_id, '_peracrm_email', $email);
+    update_post_meta($client_id, 'crm_primary_email', $email);
+    update_post_meta($client_id, 'primary_email', $email);
+
+    if ($normalized_email !== '') {
+        update_post_meta($client_id, 'crm_primary_email_normalized', $normalized_email);
+        update_post_meta($client_id, 'primary_email_normalized', $normalized_email);
+    }
+}
+
 function peracrm_find_or_create_client_by_email($email, array $data = [])
 {
     $email = sanitize_email($email);
@@ -14,6 +51,9 @@ function peracrm_find_or_create_client_by_email($email, array $data = [])
     if (function_exists('peracrm_find_client_by_email')) {
         $existing_id = (int) peracrm_find_client_by_email($email);
         if ($existing_id > 0) {
+            $phone = isset($data['phone']) ? sanitize_text_field($data['phone']) : '';
+            peracrm_sync_client_contact_meta($existing_id, $email, $phone);
+
             return $existing_id;
         }
     } else {
@@ -32,7 +72,11 @@ function peracrm_find_or_create_client_by_email($email, array $data = [])
         ]);
 
         if (!empty($existing)) {
-            return (int) $existing[0];
+            $existing_id = (int) $existing[0];
+            $phone = isset($data['phone']) ? sanitize_text_field($data['phone']) : '';
+            peracrm_sync_client_contact_meta($existing_id, $email, $phone);
+
+            return $existing_id;
         }
     }
 
@@ -80,6 +124,8 @@ function peracrm_find_or_create_client_by_email($email, array $data = [])
     if ($assigned_advisor > 0) {
         update_post_meta($post_id, 'crm_assigned_advisor', $assigned_advisor);
     }
+
+    peracrm_sync_client_contact_meta($post_id, $email, $phone);
 
     peracrm_log_event($post_id, 'client_created', [
         'email' => $email,

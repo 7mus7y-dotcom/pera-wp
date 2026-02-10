@@ -399,25 +399,68 @@ function peracrm_timeline_normalize_activity(array $event, array $user_map)
     $meta = [];
     if (!empty($event['event_payload'])) {
         $payload = peracrm_json_decode($event['event_payload']);
-        if (is_array($payload) && !empty($payload['property_id'])) {
-            $property_id = absint($payload['property_id']);
-            if ($property_id > 0) {
-                $property_title = get_the_title($property_id);
-                if (!$property_title) {
-                    $property_title = 'Property #' . $property_id;
-                }
-                $detail = peracrm_timeline_excerpt('Property: ' . $property_title);
-            }
-        }
 
-        $actor_id = 0;
-        if (!empty($payload['actor_user_id'])) {
-            $actor_id = (int) $payload['actor_user_id'];
-        } elseif (!empty($payload['advisor_user_id'])) {
-            $actor_id = (int) $payload['advisor_user_id'];
-        }
-        if ($actor_id && isset($user_map[$actor_id])) {
-            $meta['by'] = $user_map[$actor_id];
+        if (is_array($payload)) {
+            if ($event_type === 'enquiry') {
+                $detail_parts = [];
+
+                if (!empty($payload['message'])) {
+                    $detail_parts[] = peracrm_timeline_excerpt((string) $payload['message']);
+                }
+
+                if (!empty($payload['page_url'])) {
+                    $detail_parts[] = 'Page: ' . preg_replace('#^https?://#', '', (string) $payload['page_url']);
+                }
+
+                if (!empty($payload['property_ids']) && is_array($payload['property_ids'])) {
+                    $detail_parts[] = 'Properties: ' . implode(', ', array_map('absint', $payload['property_ids']));
+                }
+
+                if (!empty($payload['raw_fields']) && is_array($payload['raw_fields'])) {
+                    $raw_pairs = [];
+                    foreach ($payload['raw_fields'] as $raw_key => $raw_value) {
+                        if (is_array($raw_value)) {
+                            $raw_value = implode(', ', array_map('strval', $raw_value));
+                        }
+
+                        $raw_value = trim((string) $raw_value);
+                        if ($raw_value === '') {
+                            continue;
+                        }
+
+                        $raw_pairs[] = sanitize_key((string) $raw_key) . ': ' . $raw_value;
+                    }
+
+                    if (!empty($raw_pairs)) {
+                        $detail_parts[] = 'Fields: ' . implode(' | ', $raw_pairs);
+                    }
+                }
+
+                if (!empty($detail_parts)) {
+                    $detail = peracrm_timeline_excerpt(implode(' · ', $detail_parts), 36);
+                }
+            }
+
+            if ($detail === '' && !empty($payload['property_id'])) {
+                $property_id = absint($payload['property_id']);
+                if ($property_id > 0) {
+                    $property_title = get_the_title($property_id);
+                    if (!$property_title) {
+                        $property_title = 'Property #' . $property_id;
+                    }
+                    $detail = peracrm_timeline_excerpt('Property: ' . $property_title);
+                }
+            }
+
+            $actor_id = 0;
+            if (!empty($payload['actor_user_id'])) {
+                $actor_id = (int) $payload['actor_user_id'];
+            } elseif (!empty($payload['advisor_user_id'])) {
+                $actor_id = (int) $payload['advisor_user_id'];
+            }
+            if ($actor_id && isset($user_map[$actor_id])) {
+                $meta['by'] = $user_map[$actor_id];
+            }
         }
     }
 
