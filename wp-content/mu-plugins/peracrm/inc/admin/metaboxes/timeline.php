@@ -116,6 +116,9 @@ function peracrm_render_timeline_metabox($post)
             if ($detail !== '') {
                 echo '<div class="peracrm-timeline-detail">' . esc_html($detail) . '</div>';
             }
+            if (!empty($item['details_html'])) {
+                echo '<div class="peracrm-timeline-detail peracrm-timeline-detail--structured">' . $item['details_html'] . '</div>';
+            }
             if ($meta_line !== '') {
                 echo '<div class="peracrm-timeline-meta">' . esc_html($meta_line) . '</div>';
             }
@@ -396,6 +399,7 @@ function peracrm_timeline_normalize_activity(array $event, array $user_map)
         : ($event_type !== '' ? ucfirst($event_type) : 'Activity');
 
     $detail = '';
+    $enquiry_details_html = '';
     $meta = [];
     if (!empty($event['event_payload'])) {
         $payload = peracrm_json_decode($event['event_payload']);
@@ -416,29 +420,11 @@ function peracrm_timeline_normalize_activity(array $event, array $user_map)
                     $detail_parts[] = 'Properties: ' . implode(', ', array_map('absint', $payload['property_ids']));
                 }
 
-                if (!empty($payload['raw_fields']) && is_array($payload['raw_fields'])) {
-                    $raw_pairs = [];
-                    foreach ($payload['raw_fields'] as $raw_key => $raw_value) {
-                        if (is_array($raw_value)) {
-                            $raw_value = implode(', ', array_map('strval', $raw_value));
-                        }
-
-                        $raw_value = trim((string) $raw_value);
-                        if ($raw_value === '') {
-                            continue;
-                        }
-
-                        $raw_pairs[] = sanitize_key((string) $raw_key) . ': ' . $raw_value;
-                    }
-
-                    if (!empty($raw_pairs)) {
-                        $detail_parts[] = 'Fields: ' . implode(' | ', $raw_pairs);
-                    }
-                }
-
                 if (!empty($detail_parts)) {
                     $detail = peracrm_timeline_excerpt(implode(' · ', $detail_parts), 36);
                 }
+
+                $enquiry_details_html = peracrm_timeline_render_enquiry_details($payload);
             }
 
             if ($detail === '' && !empty($payload['property_id'])) {
@@ -464,7 +450,7 @@ function peracrm_timeline_normalize_activity(array $event, array $user_map)
         }
     }
 
-    return [
+    $item = [
         'type' => 'activity',
         'ts' => $timestamp,
         'title' => $title,
@@ -472,6 +458,224 @@ function peracrm_timeline_normalize_activity(array $event, array $user_map)
         'meta' => $meta,
         'icon' => 'activity',
     ];
+
+    if (!empty($enquiry_details_html)) {
+        $item['details_html'] = $enquiry_details_html;
+    }
+
+    return $item;
+}
+
+function peracrm_timeline_is_internal_raw_field($key)
+{
+    $key = sanitize_key((string) $key);
+    if ($key === '') {
+        return true;
+    }
+
+    $exact = [
+        'sr_nonce',
+        'fav_nonce',
+        'pera_citizenship_nonce',
+        'sr_company',
+        'fav_company',
+        'sr_action',
+        'fav_enquiry_action',
+        'pera_citizenship_action',
+    ];
+
+    if (in_array($key, $exact, true)) {
+        return true;
+    }
+
+    return (substr($key, -6) === '_nonce') || (substr($key, -7) === '_action') || (substr($key, -8) === '_company');
+}
+
+function peracrm_timeline_normalize_enquiry_key($key)
+{
+    $key = sanitize_key((string) $key);
+
+    if ($key === 'sr_email' || $key === 'fav_email') {
+        return 'email';
+    }
+
+    if ($key === 'sr_phone' || $key === 'fav_phone') {
+        return 'phone';
+    }
+
+    return $key;
+}
+
+function peracrm_timeline_enquiry_field_label($key)
+{
+    $key = sanitize_key((string) $key);
+    $labels = [
+        'email' => 'Email',
+        'phone' => 'Phone',
+        'message' => 'Message',
+        'contact_method' => 'Contact method',
+        'property_ids' => 'Properties',
+        'property_id' => 'Property',
+        'source_page' => 'Source page',
+        'form_context' => 'Context',
+    ];
+
+    if (isset($labels[$key])) {
+        return $labels[$key];
+    }
+
+    if (strpos($key, 'sr_') === 0 || strpos($key, 'fav_') === 0) {
+        $key = preg_replace('/^(sr_|fav_)/', '', $key);
+    }
+
+    return ucwords(str_replace('_', ' ', $key));
+}
+
+function peracrm_timeline_format_enquiry_field_value($value)
+{
+    if (is_array($value)) {
+        $parts = [];
+        foreach ($value as $item) {
+            $formatted = peracrm_timeline_format_enquiry_field_value($item);
+            if ($formatted !== '') {
+                $parts[] = $formatted;
+            }
+        }
+
+        return implode(', ', $parts);
+    }
+
+    if (is_bool($value)) {
+        return $value ? 'Yes' : 'No';
+    }
+
+    if (!is_scalar($value) || $value === null) {
+        return '';
+    }
+
+    $raw = trim((string) $value);
+    $normalized = strtolower($raw);
+    $yes_values = ['1', 'yes', 'true', 'on'];
+    $no_values = ['0', 'no', 'false', 'off'];
+
+    if (in_array($normalized, $yes_values, true)) {
+        return 'Yes';
+    }
+
+    if (in_array($normalized, $no_values, true)) {
+        return 'No';
+    }
+
+    return $raw;
+}
+
+function peracrm_timeline_collect_enquiry_fields(array $payload)
+{
+    $fields = [];
+    $excluded_payload_keys = [
+        'submitted_at',
+        'raw_fields',
+        'page_url',
+        'form',
+        'form_context',
+        'actor_user_id',
+        'advisor_user_id',
+        'property_ids',
+        'property_id',
+    ];
+
+    foreach ($payload as $key => $value) {
+        $normalized_key = peracrm_timeline_normalize_enquiry_key($key);
+        if ($normalized_key === '' || in_array($normalized_key, $excluded_payload_keys, true)) {
+            continue;
+        }
+        if (peracrm_timeline_is_internal_raw_field($normalized_key)) {
+            continue;
+        }
+
+        $formatted = peracrm_timeline_format_enquiry_field_value($value);
+        if ($formatted === '') {
+            continue;
+        }
+
+        if (!isset($fields[$normalized_key])) {
+            $fields[$normalized_key] = $formatted;
+        }
+    }
+
+    if (!empty($payload['raw_fields']) && is_array($payload['raw_fields'])) {
+        foreach ($payload['raw_fields'] as $key => $value) {
+            $normalized_key = peracrm_timeline_normalize_enquiry_key($key);
+            if ($normalized_key === '' || peracrm_timeline_is_internal_raw_field($normalized_key)) {
+                continue;
+            }
+
+            $formatted = peracrm_timeline_format_enquiry_field_value($value);
+            if ($formatted === '') {
+                continue;
+            }
+
+            if (!isset($fields[$normalized_key])) {
+                $fields[$normalized_key] = $formatted;
+            }
+        }
+    }
+
+    return $fields;
+}
+
+function peracrm_timeline_render_enquiry_details(array $payload)
+{
+    $rows = [];
+    $fields = peracrm_timeline_collect_enquiry_fields($payload);
+
+    $property_title = isset($payload['sr_property_title']) ? trim((string) $payload['sr_property_title']) : '';
+    $property_url = isset($payload['sr_property_url']) ? esc_url_raw((string) $payload['sr_property_url']) : '';
+    if (isset($fields['sr_property_title'])) {
+        unset($fields['sr_property_title']);
+    }
+    if (isset($fields['sr_property_url'])) {
+        unset($fields['sr_property_url']);
+    }
+
+    if ($property_title !== '' && $property_url !== '') {
+        $rows[] = '<tr><th>Property</th><td><a href="' . esc_url($property_url) . '" target="_blank" rel="noopener">' . esc_html($property_title) . '</a></td></tr>';
+    }
+
+    $property_ids = [];
+    if (!empty($payload['property_ids']) && is_array($payload['property_ids'])) {
+        $property_ids = array_values(array_filter(array_map('absint', $payload['property_ids'])));
+    }
+    if (!empty($property_ids)) {
+        $property_links = [];
+        foreach ($property_ids as $property_id) {
+            $property_links[] = sprintf(
+                '<a href="%1$s">Property #%2$d</a>',
+                esc_url(add_query_arg(['post' => $property_id, 'action' => 'edit'], admin_url('post.php'))),
+                $property_id
+            );
+        }
+
+        $rows[] = '<tr><th>Properties count</th><td>' . esc_html((string) count($property_ids)) . '</td></tr>';
+        $rows[] = '<tr><th>Properties</th><td>' . implode(', ', $property_links) . '</td></tr>';
+    }
+
+    foreach ($fields as $key => $value) {
+        $label = peracrm_timeline_enquiry_field_label($key);
+        if (filter_var($value, FILTER_VALIDATE_URL)) {
+            $value_html = '<a href="' . esc_url($value) . '" target="_blank" rel="noopener">' . esc_html($value) . '</a>';
+        } else {
+            $value_html = esc_html($value);
+        }
+
+        $rows[] = '<tr><th>' . esc_html($label) . '</th><td>' . $value_html . '</td></tr>';
+    }
+
+    if (empty($rows)) {
+        return '';
+    }
+
+    return '<details class="peracrm-enquiry-details"><summary>View details</summary><div class="peracrm-enquiry-details__body"><table class="peracrm-enquiry-details__table"><tbody>' . implode('', $rows) . '</tbody></table></div></details>';
 }
 
 function peracrm_timeline_type_label($type)
