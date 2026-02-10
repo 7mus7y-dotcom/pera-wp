@@ -109,6 +109,48 @@ function peracrm_ingest_sanitize_raw_fields($value)
     return '';
 }
 
+function peracrm_ingest_collect_prefixed_post_fields($prefix, array $exclude = [])
+{
+    $fields = [];
+    $exclude_lookup = array_fill_keys($exclude, true);
+
+    foreach ($_POST as $key => $value) {
+        $key = (string) $key;
+        if (strpos($key, $prefix) !== 0) {
+            continue;
+        }
+
+        if (isset($exclude_lookup[$key])) {
+            continue;
+        }
+
+        $fields[$key] = wp_unslash($value);
+    }
+
+    return $fields;
+}
+
+function peracrm_ingest_normalize_sr_form_context($form_context, $sr_context, $intent)
+{
+    $form_context = sanitize_key((string) $form_context);
+    $sr_context = sanitize_key((string) $sr_context);
+    $intent = sanitize_key((string) $intent);
+
+    if ($form_context === 'property' || $sr_context === 'bodrum_property') {
+        return 'property_enquiry';
+    }
+
+    if ($form_context === 'sell' || $form_context === 'sell-page' || $intent === 'sell') {
+        return 'sell';
+    }
+
+    if ($form_context === 'rent' || $form_context === 'rent-page' || $intent === 'rent' || $intent === 'short-term') {
+        return 'rent';
+    }
+
+    return $form_context;
+}
+
 function peracrm_ingest_log_submission(array $payload)
 {
     $email = isset($payload['email']) ? sanitize_email($payload['email']) : '';
@@ -151,11 +193,30 @@ function peracrm_ingest_log_submission(array $payload)
         $event_payload['raw_fields'] = peracrm_ingest_sanitize_raw_fields($payload['raw_fields']);
     }
 
+    if (!empty($payload['property_ids']) && is_array($payload['property_ids'])) {
+        $property_ids = array_values(array_filter(array_map('absint', $payload['property_ids'])));
+        if (!empty($property_ids)) {
+            $event_payload['property_ids'] = $property_ids;
+            $event_payload['properties_count'] = count($property_ids);
+        }
+    }
+
     peracrm_log_event($client_id, 'enquiry', $event_payload);
 
     $property_id = isset($payload['property_id']) ? absint($payload['property_id']) : 0;
     if ($property_id > 0 && function_exists('peracrm_client_property_link')) {
         peracrm_client_property_link($client_id, $property_id, 'enquiry');
+    }
+
+    if (!empty($payload['property_ids']) && is_array($payload['property_ids']) && function_exists('peracrm_client_property_link')) {
+        foreach ($payload['property_ids'] as $property_id_item) {
+            $property_id_item = absint($property_id_item);
+            if ($property_id_item <= 0) {
+                continue;
+            }
+
+            peracrm_client_property_link($client_id, $property_id_item, 'enquiry');
+        }
     }
 
     peracrm_ingest_debug_log('Captured submission', [
@@ -269,13 +330,32 @@ function peracrm_ingest_theme_enquiry_forms()
             $name = isset($_POST['sr_name']) ? sanitize_text_field(wp_unslash($_POST['sr_name'])) : '';
             [$first_name, $last_name] = peracrm_ingest_split_name($name);
 
+            $sr_intent = isset($_POST['sr_intent']) ? sanitize_text_field(wp_unslash($_POST['sr_intent'])) : '';
+            $sr_context = isset($_POST['sr_context']) ? sanitize_text_field(wp_unslash($_POST['sr_context'])) : '';
+            $raw_form_context = isset($_POST['form_context']) ? sanitize_text_field(wp_unslash($_POST['form_context'])) : '';
+            $normalized_form_context = peracrm_ingest_normalize_sr_form_context($raw_form_context, $sr_context, $sr_intent);
+
             $page_url = peracrm_ingest_source_url();
             $post_id = peracrm_ingest_source_post_id($page_url);
             $meta = peracrm_ingest_request_meta();
 
+            $sr_raw_fields = peracrm_ingest_collect_prefixed_post_fields('sr_', [
+                'sr_action',
+                'sr_nonce',
+                'sr_company',
+                'sr_name',
+                'sr_email',
+                'sr_phone',
+            ]);
+            $sr_raw_fields['form_context'] = $raw_form_context;
+            $sr_raw_fields['form_context_normalized'] = $normalized_form_context;
+            $sr_raw_fields['sr_context'] = $sr_context;
+            $sr_raw_fields['intent'] = $sr_intent;
+            $sr_raw_fields['consent'] = !empty($_POST['sr_consent']) ? 'yes' : 'no';
+
             peracrm_ingest_log_submission([
                 'form' => 'sr_enquiry',
-                'form_context' => isset($_POST['form_context']) ? sanitize_text_field(wp_unslash($_POST['form_context'])) : '',
+                'form_context' => $normalized_form_context,
                 'email' => isset($_POST['sr_email']) ? sanitize_email(wp_unslash($_POST['sr_email'])) : '',
                 'first_name' => $first_name,
                 'last_name' => $last_name,
@@ -286,14 +366,7 @@ function peracrm_ingest_theme_enquiry_forms()
                 'message' => isset($_POST['sr_message']) ? sanitize_textarea_field(wp_unslash($_POST['sr_message'])) : '',
                 'user_agent' => $meta['user_agent'],
                 'ip' => $meta['ip'],
-                'raw_fields' => [
-                    'intent' => isset($_POST['sr_intent']) ? wp_unslash($_POST['sr_intent']) : '',
-                    'location' => isset($_POST['sr_location']) ? wp_unslash($_POST['sr_location']) : '',
-                    'details' => isset($_POST['sr_details']) ? wp_unslash($_POST['sr_details']) : '',
-                    'expectations' => isset($_POST['sr_expectations']) ? wp_unslash($_POST['sr_expectations']) : '',
-                    'consent' => !empty($_POST['sr_consent']) ? 'yes' : 'no',
-                    'sr_context' => isset($_POST['sr_context']) ? wp_unslash($_POST['sr_context']) : '',
-                ],
+                'raw_fields' => $sr_raw_fields,
             ]);
 
             return;
@@ -317,6 +390,26 @@ function peracrm_ingest_theme_enquiry_forms()
                 $property_ids = preg_split('/[,\s]+/', (string) $property_ids);
             }
             $property_ids = array_values(array_filter(array_map('absint', (array) $property_ids)));
+            // Cap at 200 IDs to avoid oversized payload abuse while preserving normal user behaviour.
+            $property_ids = array_slice(array_values(array_unique($property_ids)), 0, 200);
+
+            $message = isset($_POST['fav_message']) ? sanitize_textarea_field(wp_unslash($_POST['fav_message'])) : '';
+            if ($message === '' && !empty($property_ids)) {
+                $message = sprintf('Favourites enquiry for %d properties.', count($property_ids));
+            }
+
+            $fav_raw_fields = peracrm_ingest_collect_prefixed_post_fields('fav_', [
+                'fav_enquiry_action',
+                'fav_nonce',
+                'fav_company',
+                'fav_first_name',
+                'fav_last_name',
+                'fav_email',
+                'fav_phone',
+                'fav_message',
+            ]);
+            $fav_raw_fields['property_ids'] = $property_ids;
+            $fav_raw_fields['properties_count'] = count($property_ids);
 
             peracrm_ingest_log_submission([
                 'form' => 'favourites_enquiry',
@@ -327,14 +420,12 @@ function peracrm_ingest_theme_enquiry_forms()
                 'phone' => isset($_POST['fav_phone']) ? sanitize_text_field(wp_unslash($_POST['fav_phone'])) : '',
                 'page_url' => $page_url,
                 'post_id' => $post_id,
-                'property_id' => !empty($property_ids) ? (int) $property_ids[0] : 0,
-                'message' => isset($_POST['fav_message']) ? sanitize_textarea_field(wp_unslash($_POST['fav_message'])) : '',
+                'property_id' => 0,
+                'property_ids' => $property_ids,
+                'message' => $message,
                 'user_agent' => $meta['user_agent'],
                 'ip' => $meta['ip'],
-                'raw_fields' => [
-                    'property_ids' => $property_ids,
-                    'properties_count' => count($property_ids),
-                ],
+                'raw_fields' => $fav_raw_fields,
             ]);
 
             return;
@@ -353,6 +444,13 @@ function peracrm_ingest_theme_enquiry_forms()
                 $contact_methods = array_map('sanitize_text_field', wp_unslash($_POST['contact_method']));
             }
 
+            $citizenship_raw_fields = [
+                'enquiry_type' => isset($_POST['enquiry_type']) ? wp_unslash($_POST['enquiry_type']) : '',
+                'family' => isset($_POST['family']) ? wp_unslash($_POST['family']) : '',
+                'contact_method' => $contact_methods,
+                'policy' => !empty($_POST['policy']) ? 'yes' : 'no',
+            ];
+
             peracrm_ingest_log_submission([
                 'form' => 'citizenship_enquiry',
                 'form_context' => 'citizenship',
@@ -366,11 +464,7 @@ function peracrm_ingest_theme_enquiry_forms()
                 'message' => isset($_POST['message']) ? sanitize_textarea_field(wp_unslash($_POST['message'])) : '',
                 'user_agent' => $meta['user_agent'],
                 'ip' => $meta['ip'],
-                'raw_fields' => [
-                    'enquiry_type' => isset($_POST['enquiry_type']) ? wp_unslash($_POST['enquiry_type']) : '',
-                    'family' => isset($_POST['family']) ? wp_unslash($_POST['family']) : '',
-                    'contact_method' => $contact_methods,
-                ],
+                'raw_fields' => $citizenship_raw_fields,
             ]);
         }
     } catch (Throwable $e) {
