@@ -58,6 +58,17 @@ function peracrm_ingest_source_url()
         $source_url = esc_url_raw(wp_unslash($_SERVER['HTTP_REFERER']));
     }
 
+    if ($source_url === '' && !empty($_POST['sr_property_url'])) {
+        $source_url = esc_url_raw(wp_unslash($_POST['sr_property_url']));
+    }
+
+    if ($source_url === '' && !empty($_SERVER['REQUEST_URI'])) {
+        $request_uri = sanitize_text_field(wp_unslash($_SERVER['REQUEST_URI']));
+        if ($request_uri !== '') {
+            $source_url = esc_url_raw(home_url($request_uri));
+        }
+    }
+
     return $source_url;
 }
 
@@ -198,8 +209,18 @@ function peracrm_ingest_log_submission(array $payload)
         if (!empty($property_ids)) {
             $event_payload['property_ids'] = $property_ids;
             $event_payload['properties_count'] = count($property_ids);
+            if (empty($event_payload['property_id'])) {
+                $event_payload['property_id'] = (int) $property_ids[0];
+            }
         }
     }
+
+    peracrm_ingest_debug_log('Submitting event payload', [
+        'form' => isset($event_payload['form']) ? (string) $event_payload['form'] : 'unknown',
+        'client_id' => (int) $client_id,
+        'has_page_url' => !empty($event_payload['page_url']) ? 1 : 0,
+        'payload_keys' => implode(',', array_keys($event_payload)),
+    ]);
 
     peracrm_log_event($client_id, 'enquiry', $event_payload);
 

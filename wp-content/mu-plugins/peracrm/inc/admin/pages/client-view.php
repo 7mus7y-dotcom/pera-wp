@@ -4,6 +4,87 @@ if (!defined('ABSPATH')) {
     exit;
 }
 
+
+if (!defined('PERACRM_CLIENT_VIEW_SUBMISSIONS_LIMIT')) {
+    define('PERACRM_CLIENT_VIEW_SUBMISSIONS_LIMIT', 50);
+}
+
+function peracrm_client_view_form_label($form, $context)
+{
+    $form = sanitize_key((string) $form);
+    $context = sanitize_key((string) $context);
+
+    $form_labels = [
+        'sr_enquiry' => 'Seller/Landlord enquiry',
+        'favourites_enquiry' => 'Favourites enquiry',
+        'citizenship_enquiry' => 'Citizenship enquiry',
+    ];
+
+    $context_labels = [
+        'property_enquiry' => 'Property',
+        'sell' => 'Sell',
+        'rent' => 'Rent',
+        'favourites' => 'Favourites',
+        'citizenship' => 'Citizenship',
+    ];
+
+    $form_label = isset($form_labels[$form]) ? $form_labels[$form] : ($form !== '' ? ucfirst(str_replace('_', ' ', $form)) : 'Enquiry');
+    $context_label = isset($context_labels[$context]) ? $context_labels[$context] : ($context !== '' ? ucfirst(str_replace('_', ' ', $context)) : '');
+
+    if ($context_label === '') {
+        return $form_label;
+    }
+
+    return $form_label . ' · ' . $context_label;
+}
+
+function peracrm_client_view_is_internal_raw_field($key)
+{
+    $key = sanitize_key((string) $key);
+    if ($key === '') {
+        return true;
+    }
+
+    $exact = [
+        'sr_nonce',
+        'fav_nonce',
+        'pera_citizenship_nonce',
+        'sr_company',
+        'fav_company',
+        'sr_action',
+        'fav_enquiry_action',
+        'pera_citizenship_action',
+    ];
+
+    if (in_array($key, $exact, true)) {
+        return true;
+    }
+
+    return (substr($key, -6) === '_nonce') || (substr($key, -7) === '_action') || (substr($key, -8) === '_company');
+}
+
+function peracrm_client_view_format_raw_field_value($value)
+{
+    if (is_array($value)) {
+        $parts = [];
+        foreach ($value as $item) {
+            $parts[] = peracrm_client_view_format_raw_field_value($item);
+        }
+
+        $parts = array_values(array_filter(array_map('trim', $parts), static function ($item) {
+            return $item !== '';
+        }));
+
+        return implode(', ', $parts);
+    }
+
+    if (!is_scalar($value) || $value === null) {
+        return '';
+    }
+
+    return trim((string) $value);
+}
+
 function peracrm_render_client_view_page()
 {
     if (!peracrm_admin_user_can_manage()) {
@@ -137,6 +218,10 @@ function peracrm_render_client_view_page()
 
     $notes = function_exists('peracrm_notes_list') ? peracrm_notes_list($client_id, 10, 0) : [];
 
+    $form_submissions = function_exists('peracrm_activity_list')
+        ? peracrm_activity_list($client_id, (int) PERACRM_CLIENT_VIEW_SUBMISSIONS_LIMIT, 0, 'enquiry')
+        : [];
+
     $timeline_filter = function_exists('peracrm_timeline_get_filter') ? peracrm_timeline_get_filter() : 'all';
     $timeline_items = function_exists('peracrm_timeline_get_items')
         ? peracrm_timeline_get_items($client_id, 50, $timeline_filter)
@@ -224,6 +309,122 @@ function peracrm_render_client_view_page()
         echo '<p><textarea name="peracrm_note_body" id="peracrm_note_body" rows="4" class="widefat"></textarea></p>';
         echo '<p><button type="submit" class="button button-primary">Add Note</button></p>';
         echo '</form>';
+    }
+
+
+    echo '<h2>Form Submissions</h2>';
+    if (empty($form_submissions)) {
+        echo '<p class="peracrm-empty">No form submissions yet.</p>';
+    } else {
+        echo '<ul class="peracrm-list peracrm-form-submissions">';
+        foreach ($form_submissions as $submission) {
+            $payload = [];
+            if (!empty($submission['event_payload'])) {
+                $payload = peracrm_json_decode($submission['event_payload']);
+            }
+            if (!is_array($payload)) {
+                $payload = [];
+            }
+
+            $submitted_at = isset($payload['submitted_at']) ? (string) $payload['submitted_at'] : '';
+            if ($submitted_at === '') {
+                $submitted_at = isset($submission['created_at']) ? (string) $submission['created_at'] : '';
+            }
+
+            $submitted_label = $submitted_at !== '' ? mysql2date('Y-m-d H:i', $submitted_at) : 'Unknown time';
+            $form_label = peracrm_client_view_form_label($payload['form'] ?? '', $payload['form_context'] ?? '');
+
+            $page_url = isset($payload['page_url']) ? esc_url_raw((string) $payload['page_url']) : '';
+            $property_summary = '';
+            $property_links = [];
+
+            $property_ids = [];
+            if (!empty($payload['property_ids']) && is_array($payload['property_ids'])) {
+                $property_ids = array_values(array_filter(array_map('absint', $payload['property_ids'])));
+            }
+
+            if (!empty($property_ids)) {
+                $property_summary = sprintf('Favourites enquiry (%d properties)', count($property_ids));
+                foreach ($property_ids as $property_id) {
+                    $property_links[] = sprintf(
+                        '<a href="%1$s">Property #%2$d</a>',
+                        esc_url(add_query_arg(['post' => $property_id, 'action' => 'edit'], admin_url('post.php'))),
+                        $property_id
+                    );
+                }
+            } else {
+                $property_id = isset($payload['property_id']) ? absint($payload['property_id']) : 0;
+                if ($property_id > 0) {
+                    $property_summary = 'Property #' . $property_id;
+                    $property_links[] = sprintf(
+                        '<a href="%1$s">Property #%2$d</a>',
+                        esc_url(add_query_arg(['post' => $property_id, 'action' => 'edit'], admin_url('post.php'))),
+                        $property_id
+                    );
+                }
+            }
+
+            $message = isset($payload['message']) ? trim((string) $payload['message']) : '';
+            $raw_fields = [];
+            if (!empty($payload['raw_fields']) && is_array($payload['raw_fields'])) {
+                foreach ($payload['raw_fields'] as $raw_key => $raw_value) {
+                    if (peracrm_client_view_is_internal_raw_field($raw_key)) {
+                        continue;
+                    }
+
+                    $formatted = peracrm_client_view_format_raw_field_value($raw_value);
+                    if ($formatted === '') {
+                        continue;
+                    }
+
+                    $raw_fields[(string) $raw_key] = $formatted;
+                }
+            }
+
+            echo '<li class="peracrm-timeline-item">';
+            echo '<details>';
+            echo '<summary>';
+            echo '<strong>' . esc_html($submitted_label) . '</strong>';
+            echo ' · ' . esc_html($form_label);
+            if ($page_url !== '') {
+                echo ' · <a href="' . esc_url($page_url) . '" target="_blank" rel="noopener">Source page</a>';
+            }
+            if ($property_summary !== '') {
+                echo ' · ' . esc_html($property_summary);
+            }
+            echo ' · <span>' . esc_html__('View', 'peracrm') . '</span>';
+            echo '</summary>';
+
+            echo '<div class="peracrm-timeline-detail" style="margin-top:8px;">';
+            if ($message !== '') {
+                echo '<p><strong>Message:</strong> ' . esc_html($message) . '</p>';
+            }
+
+            if ($page_url !== '') {
+                echo '<p><strong>Page URL:</strong> <a href="' . esc_url($page_url) . '" target="_blank" rel="noopener">' . esc_html($page_url) . '</a></p>';
+            }
+
+            if (!empty($property_links)) {
+                echo '<p><strong>Properties:</strong> ' . implode(', ', $property_links) . '</p>';
+            }
+
+            if (!empty($raw_fields)) {
+                echo '<dl>';
+                foreach ($raw_fields as $raw_key => $raw_value) {
+                    echo '<dt><strong>' . esc_html(ucwords(str_replace('_', ' ', (string) $raw_key))) . '</strong></dt>';
+                    echo '<dd>' . esc_html($raw_value) . '</dd>';
+                }
+                echo '</dl>';
+            }
+
+            if ($message === '' && $page_url === '' && empty($property_links) && empty($raw_fields)) {
+                echo '<p class="peracrm-empty">No additional payload details captured.</p>';
+            }
+            echo '</div>';
+            echo '</details>';
+            echo '</li>';
+        }
+        echo '</ul>';
     }
 
     echo '<h2>Timeline</h2>';
