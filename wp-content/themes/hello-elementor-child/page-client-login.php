@@ -77,9 +77,13 @@ get_header();
 
                     <?php
                     // WP core login form, styled by .client-login-container inputs & .button-primary
+                    $requested_redirect = isset( $_GET['redirect_to'] ) ? esc_url_raw( wp_unslash( $_GET['redirect_to'] ) ) : '';
+                    $default_redirect   = home_url( '/client-portal/' );
+                    $redirect_target    = $requested_redirect ? $requested_redirect : $default_redirect;
+
                     $login_args = array(
                         'echo'           => true,
-                        'redirect'       => home_url( '/client-portal/' ), // where to send after login
+                        'redirect'       => $redirect_target, // where to send after login
                         'form_id'        => 'pera-client-login-form',
                         'label_username' => __( 'Email or Username', 'pera' ),
                         'label_password' => __( 'Password', 'pera' ),

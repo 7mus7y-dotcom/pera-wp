@@ -30,6 +30,7 @@ require_once get_stylesheet_directory() . '/inc/district-ancestors.php';
 require_once get_stylesheet_directory() . '/inc/favourites.php';
 require_once get_stylesheet_directory() . '/inc/property-pagination.php';
 require_once get_stylesheet_directory() . '/inc/property-card-helpers.php';
+require_once get_stylesheet_directory() . '/inc/client-portal.php';
 require_once get_stylesheet_directory() . '/inc/disable-hello-parent-loads.php';
 
 
@@ -646,6 +647,14 @@ add_filter( 'login_redirect', function ( $redirect_to, $requested_redirect_to, $
     }
 
     return admin_url();
+  }
+
+  if ( ! empty( $requested_redirect_to ) ) {
+    return $requested_redirect_to;
+  }
+
+  if ( ! empty( $redirect_to ) ) {
+    return $redirect_to;
   }
 
   return home_url( '/my-favourites/' );
