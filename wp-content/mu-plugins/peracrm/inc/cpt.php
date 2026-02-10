@@ -8,7 +8,10 @@ function peracrm_register_cpt_crm_client()
 {
     $labels = [
         'name' => 'CRM Clients',
-        'singular_name' => 'CRM Client',
+        'singular_name' => 'CRM Lead',
+        'add_new' => 'Add lead',
+        'add_new_item' => 'Add lead',
+        'edit_item' => 'Lead information',
     ];
 
     register_post_type('crm_client', [

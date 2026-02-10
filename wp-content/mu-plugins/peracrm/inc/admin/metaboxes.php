@@ -109,7 +109,7 @@ function peracrm_register_metaboxes($post_type, $post)
     if (!peracrm_admin_is_metabox_disabled('PERACRM_DISABLE_ACCOUNT_METABOX')) {
         add_meta_box(
             'peracrm_account_link',
-            'Account',
+            'CRM lead',
             'peracrm_render_account_metabox',
             'crm_client',
             'side',
@@ -989,7 +989,7 @@ function peracrm_render_account_metabox($post)
         echo '<p>Username: ' . esc_html($linked_user->user_login) . '</p>';
     } else {
         echo '<p><strong>Not linked</strong></p>';
-        echo '<p>No user account is linked to this CRM client.</p>';
+        echo '<p>No WordPress user account is linked to this lead.</p>';
     }
 
     echo '<form method="post" action="' . esc_url(admin_url('admin-post.php')) . '" class="peracrm-form">';
