@@ -683,6 +683,9 @@ function peracrm_render_client_view_page()
             if ($detail !== '') {
                 echo '<div class="peracrm-timeline-detail">' . esc_html($detail) . '</div>';
             }
+            if (!empty($item['details_html'])) {
+                echo '<div class="peracrm-timeline-detail peracrm-timeline-detail--structured">' . $item['details_html'] . '</div>';
+            }
             if ($meta_line !== '') {
                 echo '<div class="peracrm-timeline-meta">' . esc_html($meta_line) . '</div>';
             }
