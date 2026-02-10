@@ -17,6 +17,36 @@
     color: #646970;
 }
 
+
+.peracrm-form-submissions .peracrm-enquiry-detail {
+    margin-top: 8px;
+}
+
+.peracrm-form-submissions .peracrm-enquiry-contact {
+    margin-bottom: 12px;
+}
+
+.peracrm-form-submissions .peracrm-enquiry-contact h4 {
+    margin: 0 0 6px;
+}
+
+.peracrm-form-submissions .peracrm-enquiry-table th {
+    color: #646970;
+    font-weight: 600;
+    width: 180px;
+}
+
+.peracrm-form-submissions .peracrm-enquiry-table td {
+    overflow-wrap: anywhere;
+    word-break: break-word;
+}
+
+@media (max-width: 782px) {
+    .peracrm-form-submissions .peracrm-enquiry-table th {
+        width: 38%;
+    }
+}
+
 .peracrm-inline-form {
     margin-top: 6px;
 }
