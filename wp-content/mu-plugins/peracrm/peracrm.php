@@ -11,6 +11,10 @@ if (!defined('ABSPATH')) {
 define('PERACRM_VERSION', '0.1.0');
 define('PERACRM_SCHEMA_VERSION', 1);
 
+if (!defined('PERACRM_MAIN_FILE')) {
+    define('PERACRM_MAIN_FILE', __FILE__);
+}
+
 define('PERACRM_PATH', __DIR__);
 define('PERACRM_INC', __DIR__ . '/inc');
 
