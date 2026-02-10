@@ -1071,16 +1071,26 @@ function peracrm_handle_link_user()
     check_admin_referer('peracrm_link_user');
 
     $search_term = isset($_POST['peracrm_user_search']) ? wp_unslash($_POST['peracrm_user_search']) : '';
-    $users = peracrm_admin_search_user_for_link($search_term, $client_id);
-    if (empty($users)) {
-        peracrm_admin_redirect_with_notice(peracrm_admin_client_screen_url($client_id), 'user_missing');
+    $search_term = sanitize_text_field($search_term);
+    $search_term = trim($search_term);
+
+    $user = null;
+    if ($search_term !== '' && is_email($search_term)) {
+        $user = get_user_by('email', $search_term);
     }
 
-    if (count($users) > 1) {
-        peracrm_admin_redirect_with_notice(peracrm_admin_client_screen_url($client_id), 'user_ambiguous');
-    }
+    if (!$user) {
+        $users = peracrm_admin_search_user_for_link($search_term, $client_id);
+        if (empty($users)) {
+            peracrm_admin_redirect_with_notice(peracrm_admin_client_screen_url($client_id), 'user_missing');
+        }
 
-    $user = $users[0];
+        if (count($users) > 1) {
+            peracrm_admin_redirect_with_notice(peracrm_admin_client_screen_url($client_id), 'user_ambiguous');
+        }
+
+        $user = $users[0];
+    }
     $user_id = (int) $user->ID;
     if ($user_id <= 0) {
         peracrm_admin_redirect_with_notice(peracrm_admin_client_screen_url($client_id), 'user_missing');

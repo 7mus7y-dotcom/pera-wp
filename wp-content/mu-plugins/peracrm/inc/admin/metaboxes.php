@@ -992,22 +992,21 @@ function peracrm_render_account_metabox($post)
         echo '<p>No WordPress user account is linked to this lead.</p>';
     }
 
-    echo '<form method="post" action="' . esc_url(admin_url('admin-post.php')) . '" class="peracrm-form">';
-    wp_nonce_field('peracrm_link_user');
+    echo '<div class="peracrm-form">';
     echo '<input type="hidden" name="action" value="peracrm_link_user" />';
+    echo '<input type="hidden" name="_wpnonce" value="' . esc_attr(wp_create_nonce('peracrm_link_user')) . '" />';
     echo '<input type="hidden" name="peracrm_client_id" value="' . esc_attr($post->ID) . '" />';
     echo '<p><label for="peracrm_user_search">Search user (email or username)</label></p>';
     echo '<p><input type="text" name="peracrm_user_search" id="peracrm_user_search" class="widefat" /></p>';
-    echo '<p><button type="submit" class="button button-primary">Link user</button></p>';
-    echo '</form>';
+    echo '<p><button type="submit" class="button button-primary" formmethod="post" formaction="' . esc_url(admin_url('admin-post.php')) . '">Link user</button></p>';
+    echo '</div>';
 
     if ($linked_user) {
-        echo '<form method="post" action="' . esc_url(admin_url('admin-post.php')) . '" class="peracrm-form">';
-        wp_nonce_field('peracrm_unlink_user');
-        echo '<input type="hidden" name="action" value="peracrm_unlink_user" />';
-        echo '<input type="hidden" name="peracrm_client_id" value="' . esc_attr($post->ID) . '" />';
-        echo '<p><button type="submit" class="button">Unlink</button></p>';
-        echo '</form>';
+        $unlink_url = add_query_arg([
+            'action' => 'peracrm_unlink_user',
+            '_wpnonce' => wp_create_nonce('peracrm_unlink_user'),
+        ], admin_url('admin-post.php'));
+        echo '<p><button type="submit" class="button" formmethod="post" formaction="' . esc_url($unlink_url) . '">Unlink</button></p>';
     }
 
     echo '</div>';
