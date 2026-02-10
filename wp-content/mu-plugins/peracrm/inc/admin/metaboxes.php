@@ -327,10 +327,14 @@ function peracrm_render_assigned_advisor_metabox($post)
     $advisor_id = (int) peracrm_client_get_assigned_advisor_id($post->ID);
 
     $advisor_name = 'Unassigned';
+    $advisor_is_eligible = true;
     if ($advisor_id > 0) {
         $advisor_user = get_userdata($advisor_id);
         if ($advisor_user) {
             $advisor_name = $advisor_user->display_name;
+        }
+        if (function_exists('peracrm_user_is_employee_advisor')) {
+            $advisor_is_eligible = peracrm_user_is_employee_advisor($advisor_id);
         }
     }
 
@@ -338,6 +342,9 @@ function peracrm_render_assigned_advisor_metabox($post)
         && (current_user_can('manage_options') || current_user_can('peracrm_manage_assignments'));
 
     echo '<div class="peracrm-metabox">';
+    if ($advisor_id > 0 && !$advisor_is_eligible) {
+        $advisor_name .= ' (not eligible)';
+    }
     echo '<p><strong>Current advisor:</strong> ' . esc_html($advisor_name) . '</p>';
 
     if (!$can_reassign) {
@@ -349,12 +356,9 @@ function peracrm_render_assigned_advisor_metabox($post)
         return;
     }
 
-    $advisor_options = get_users([
-        'fields' => ['ID', 'display_name'],
-        'capability' => 'edit_crm_clients',
-        'orderby' => 'display_name',
-        'order' => 'ASC',
-    ]);
+    $advisor_options = function_exists('peracrm_get_advisor_users')
+        ? peracrm_get_advisor_users()
+        : [];
 
     echo '<form method="post" action="' . esc_url(admin_url('admin-post.php')) . '" class="peracrm-form">';
     wp_nonce_field('peracrm_reassign_client_advisor');
@@ -367,6 +371,9 @@ function peracrm_render_assigned_advisor_metabox($post)
         selected($advisor_id, 0, false),
         esc_html('Unassigned')
     );
+    if (empty($advisor_options)) {
+        echo '<option value="" disabled>' . esc_html('No employees found') . '</option>';
+    }
     foreach ($advisor_options as $advisor) {
         printf(
             '<option value="%1$d"%2$s>%3$s</option>',

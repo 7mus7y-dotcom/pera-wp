@@ -217,3 +217,36 @@ function peracrm_user_is_valid_advisor($user_id)
 
     return user_can($user, 'manage_options') || user_can($user, 'edit_crm_clients');
 }
+
+function peracrm_get_advisor_users()
+{
+    $users = get_users([
+        'role' => 'employee',
+        'orderby' => 'display_name',
+        'order' => 'ASC',
+    ]);
+
+    if (!is_array($users) || empty($users)) {
+        return [];
+    }
+
+    return array_values(array_filter($users, static function ($user) {
+        return $user instanceof WP_User
+            && in_array('employee', (array) $user->roles, true);
+    }));
+}
+
+function peracrm_user_is_employee_advisor($user_id)
+{
+    $user_id = (int) $user_id;
+    if ($user_id <= 0) {
+        return false;
+    }
+
+    $user = get_userdata($user_id);
+    if (!$user instanceof WP_User) {
+        return false;
+    }
+
+    return in_array('employee', (array) $user->roles, true);
+}

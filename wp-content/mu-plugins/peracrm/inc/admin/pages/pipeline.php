@@ -80,12 +80,9 @@ function peracrm_render_pipeline_page()
     $advisor_options = [];
     $advisor_map = [];
     if ($is_admin || $can_reassign) {
-        $advisor_options = get_users([
-            'fields' => ['ID', 'display_name'],
-            'capability' => 'edit_crm_clients',
-            'orderby' => 'display_name',
-            'order' => 'ASC',
-        ]);
+        $advisor_options = function_exists('peracrm_get_advisor_users')
+            ? peracrm_get_advisor_users()
+            : [];
         foreach ($advisor_options as $advisor) {
             $advisor_map[(int) $advisor->ID] = $advisor->display_name;
         }
@@ -376,6 +373,9 @@ function peracrm_render_pipeline_page()
             selected($advisor_id, 0, false),
             esc_html('All advisors')
         );
+        if (empty($advisor_options)) {
+            echo '<option value="" disabled>' . esc_html('No employees found') . '</option>';
+        }
         foreach ($advisor_options as $advisor) {
             printf(
                 '<option value="%1$d"%2$s>%3$s</option>',
@@ -585,6 +585,9 @@ function peracrm_render_pipeline_page()
         echo '<label for="peracrm-bulk-advisor" class="screen-reader-text">Advisor</label>';
         echo '<select name="advisor_user_id" id="peracrm-bulk-advisor">';
         echo '<option value="0">' . esc_html('Select advisor') . '</option>';
+        if (empty($advisor_options)) {
+            echo '<option value="" disabled>' . esc_html('No employees found') . '</option>';
+        }
         foreach ($advisor_options as $advisor) {
             printf(
                 '<option value="%1$d">%2$s</option>',
@@ -603,6 +606,9 @@ function peracrm_render_pipeline_page()
         echo '<label for="peracrm-bulk-reminder-advisor" class="screen-reader-text">Reminder advisor</label>';
         echo '<select name="reminder_advisor_user_id" id="peracrm-bulk-reminder-advisor">';
         echo '<option value="0">' . esc_html('Assign to me') . '</option>';
+        if (empty($advisor_options)) {
+            echo '<option value="" disabled>' . esc_html('No employees found') . '</option>';
+        }
         foreach ($advisor_options as $advisor) {
             printf(
                 '<option value="%1$d">%2$s</option>',

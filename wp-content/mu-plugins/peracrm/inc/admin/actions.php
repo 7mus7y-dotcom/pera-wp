@@ -670,7 +670,7 @@ function peracrm_handle_pipeline_bulk_action()
             peracrm_pipeline_bulk_redirect($redirect, $action_key, 0, $total_client_ids, $capped);
         }
         $new_advisor = isset($_POST['advisor_user_id']) ? absint($_POST['advisor_user_id']) : 0;
-        if ($new_advisor > 0 && !peracrm_user_is_valid_advisor($new_advisor)) {
+        if ($new_advisor > 0 && !peracrm_user_is_employee_advisor($new_advisor)) {
             peracrm_pipeline_bulk_redirect($redirect, $action_key, 0, $total_client_ids, $capped);
         }
     }
@@ -1228,7 +1228,7 @@ function peracrm_handle_reassign_client_advisor()
     }
 
     $new_advisor = isset($_POST['peracrm_assigned_advisor']) ? absint($_POST['peracrm_assigned_advisor']) : 0;
-    if ($new_advisor > 0 && !peracrm_user_is_valid_advisor($new_advisor)) {
+    if ($new_advisor > 0 && !peracrm_user_is_employee_advisor($new_advisor)) {
         wp_die('Invalid advisor selection.');
     }
 
