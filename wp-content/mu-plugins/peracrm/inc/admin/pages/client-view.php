@@ -459,7 +459,7 @@ function peracrm_render_client_view_page()
 
     if (peracrm_admin_user_can_manage()) {
         echo '<form method="post" action="' . esc_url(admin_url('admin-post.php')) . '" class="peracrm-form">';
-        wp_nonce_field('peracrm_add_note');
+        wp_nonce_field('peracrm_add_note', 'peracrm_add_note_nonce');
         echo '<input type="hidden" name="action" value="peracrm_add_note" />';
         echo '<input type="hidden" name="peracrm_client_id" value="' . esc_attr($client_id) . '" />';
         echo '<p><label for="peracrm_note_body">Add note</label></p>';
