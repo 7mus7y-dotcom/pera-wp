@@ -655,14 +655,14 @@ function peracrm_register_optional_form_integrations()
     if (class_exists('ElementorPro\\Plugin')) {
         add_action('elementor_pro/forms/new_record', 'peracrm_ingest_elementor_enquiry', 10, 2);
         peracrm_ingest_debug_log('registered elementor enquiry hook');
-    } else {
+    } elseif (peracrm_ingest_debug_enabled()) {
         peracrm_ingest_debug_log('elementor enquiry hook skipped; plugin missing');
     }
 
     if (defined('WPCF7_VERSION')) {
         add_action('wpcf7_mail_sent', 'peracrm_ingest_cf7_enquiry', 10, 1);
         peracrm_ingest_debug_log('registered cf7 enquiry hook');
-    } else {
+    } elseif (peracrm_ingest_debug_enabled()) {
         peracrm_ingest_debug_log('cf7 enquiry hook skipped; plugin missing');
     }
 }
