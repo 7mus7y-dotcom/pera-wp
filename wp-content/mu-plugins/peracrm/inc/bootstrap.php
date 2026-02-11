@@ -22,6 +22,7 @@ require_once PERACRM_INC . '/repositories/client_property.php';
 require_once PERACRM_INC . '/services/client_service.php';
 require_once PERACRM_INC . '/services/activity_service.php';
 require_once PERACRM_INC . '/services/user_link_service.php';
+require_once PERACRM_INC . '/services/user_membership_service.php';
 
 if (is_admin()) {
     $admin_dir = __DIR__ . '/admin';
