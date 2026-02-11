@@ -902,6 +902,8 @@ function peracrm_render_activity_timeline_metabox($post)
     $activity = peracrm_activity_list($post->ID, $limit, $offset, $activity_type ?: null);
     $total = peracrm_activity_count($post->ID, $activity_type ?: null);
 
+    $edit_url = admin_url('post.php?post=' . (int) $post->ID . '&action=edit');
+
     $base_args = [
         'post' => $post->ID,
         'action' => 'edit',
@@ -915,7 +917,7 @@ function peracrm_render_activity_timeline_metabox($post)
 
     $form_selector = '#peracrm-activity-filter-' . (int) $post->ID;
 
-    echo '<div id="' . esc_attr(ltrim($form_selector, '#')) . '" class="peracrm-inline-form">';
+    echo '<form method="get" action="' . esc_url($edit_url) . '" id="' . esc_attr(ltrim($form_selector, '#')) . '" class="peracrm-inline-form">';
     echo '<label for="peracrm_activity_type" class="screen-reader-text">Filter activity</label>';
     echo '<select name="activity_type" id="peracrm_activity_type">';
     echo '<option value="">All activity</option>';
@@ -928,18 +930,8 @@ function peracrm_render_activity_timeline_metabox($post)
         );
     }
     echo '</select> ';
-    peracrm_render_metabox_action_button('Filter', '', [
-        'class' => 'button',
-        'method' => 'get',
-        'action_url' => add_query_arg(['action' => 'edit'], admin_url('post.php')),
-        'container' => $form_selector,
-        'fields' => [
-            'post' => (int) $post->ID,
-        ],
-    ]);
-    echo '</div>';
-
-    peracrm_render_metabox_action_helper_script();
+    echo '<button type="submit" class="button">Filter</button>';
+    echo '</form>';
 
     if (empty($activity)) {
         echo '<p class="peracrm-empty">No activity recorded yet.</p>';
