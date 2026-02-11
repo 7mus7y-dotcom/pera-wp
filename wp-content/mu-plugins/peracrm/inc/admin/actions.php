@@ -459,7 +459,7 @@ function peracrm_handle_add_note()
         wp_die('Unauthorized');
     }
 
-    check_admin_referer('peracrm_add_note');
+    check_admin_referer('peracrm_add_note', 'peracrm_add_note_nonce');
 
     $client_id = isset($_POST['peracrm_client_id']) ? (int) $_POST['peracrm_client_id'] : 0;
     $client = peracrm_admin_get_client($client_id);
@@ -1178,7 +1178,10 @@ function peracrm_handle_link_user()
         wp_die('Unauthorized');
     }
 
-    check_admin_referer('peracrm_link_user');
+    $link_user_nonce = isset($_POST['peracrm_link_user_nonce']) ? sanitize_text_field(wp_unslash($_POST['peracrm_link_user_nonce'])) : '';
+    if ($link_user_nonce === '' || !wp_verify_nonce($link_user_nonce, 'peracrm_link_user')) {
+        wp_die('Invalid nonce');
+    }
 
     $search_term = isset($_POST['peracrm_user_search']) ? wp_unslash($_POST['peracrm_user_search']) : '';
     $search_term = sanitize_text_field($search_term);
@@ -1243,7 +1246,10 @@ function peracrm_handle_unlink_user()
         wp_die('Unauthorized');
     }
 
-    check_admin_referer('peracrm_unlink_user');
+    $unlink_nonce = isset($_REQUEST['peracrm_unlink_user_nonce']) ? sanitize_text_field(wp_unslash($_REQUEST['peracrm_unlink_user_nonce'])) : '';
+    if ($unlink_nonce === '' || !wp_verify_nonce($unlink_nonce, 'peracrm_unlink_user')) {
+        wp_die('Invalid nonce');
+    }
 
     $linked_user_id = peracrm_admin_find_linked_user_id($client_id);
     if ($linked_user_id <= 0) {
@@ -1283,7 +1289,7 @@ function peracrm_handle_save_client_profile()
         wp_die('Invalid client.');
     }
 
-    check_admin_referer('peracrm_save_client_profile');
+    check_admin_referer('peracrm_save_client_profile', 'peracrm_save_client_profile_nonce');
 
     $post_type = get_post_type($client_id);
     if ($post_type !== 'crm_client') {
@@ -1366,7 +1372,7 @@ function peracrm_handle_reassign_client_advisor()
         wp_die('Invalid client.');
     }
 
-    check_admin_referer('peracrm_reassign_client_advisor');
+    check_admin_referer('peracrm_reassign_client_advisor', 'peracrm_reassign_client_advisor_nonce');
 
     if (!current_user_can('edit_post', $client_id) || !peracrm_admin_user_can_reassign()) {
         wp_die('You do not have permission to reassign this client.');
@@ -1420,7 +1426,7 @@ function peracrm_handle_add_reminder()
         wp_die('Unauthorized');
     }
 
-    check_admin_referer('peracrm_add_reminder');
+    check_admin_referer('peracrm_add_reminder', 'peracrm_add_reminder_nonce');
 
     $client_id = isset($_POST['peracrm_client_id']) ? (int) $_POST['peracrm_client_id'] : 0;
     $client = peracrm_admin_get_client($client_id);
@@ -1507,7 +1513,7 @@ function peracrm_handle_update_reminder_status()
         wp_die('Unauthorized');
     }
 
-    check_admin_referer('peracrm_update_reminder_status');
+    check_admin_referer('peracrm_update_reminder_status', 'peracrm_update_reminder_status_nonce');
 
     $reminder_id = isset($_POST['peracrm_reminder_id']) ? (int) $_POST['peracrm_reminder_id'] : 0;
     $reminder = peracrm_admin_get_reminder($reminder_id);
@@ -2201,21 +2207,69 @@ function peracrm_handle_save_party_status_on_post_save($post_id, $post, $update)
 
     $allowed_stage_values = function_exists('peracrm_pipeline_allowed_stage_values')
         ? peracrm_pipeline_allowed_stage_values()
-        : array_map('sanitize_key', array_keys((array) peracrm_party_stage_options()));
+        : (function_exists('peracrm_party_stage_options')
+            ? array_map('sanitize_key', array_keys((array) peracrm_party_stage_options()))
+            : ['new_enquiry']);
 
     $lead_pipeline_stage = isset($_POST['lead_pipeline_stage']) ? sanitize_key(wp_unslash($_POST['lead_pipeline_stage'])) : '';
+    $engagement_state = isset($_POST['engagement_state']) ? sanitize_key(wp_unslash($_POST['engagement_state'])) : '';
+    $disposition = isset($_POST['disposition']) ? sanitize_key(wp_unslash($_POST['disposition'])) : '';
     if ($lead_pipeline_stage === '' || !in_array($lead_pipeline_stage, $allowed_stage_values, true)) {
         $lead_pipeline_stage = function_exists('peracrm_party_default_status')
             ? (string) (peracrm_party_default_status()['lead_pipeline_stage'] ?? 'new_enquiry')
             : 'new_enquiry';
     }
 
-    peracrm_party_upsert_status($post_id, [
+    $saved = peracrm_party_upsert_status($post_id, [
         'lead_pipeline_stage' => $lead_pipeline_stage,
-        'engagement_state' => $_POST['engagement_state'] ?? '',
-        'disposition' => $_POST['disposition'] ?? '',
+        'engagement_state' => $engagement_state,
+        'disposition' => $disposition,
         'lead_stage_updated_at' => peracrm_now_mysql(),
     ]);
+
+    $status_saved = (bool) $saved;
+    if ($status_saved && function_exists('peracrm_party_get')) {
+        $party = peracrm_party_get($post_id);
+        $status_saved = sanitize_key((string) ($party['lead_pipeline_stage'] ?? '')) === $lead_pipeline_stage
+            && sanitize_key((string) ($party['engagement_state'] ?? '')) === $engagement_state
+            && sanitize_key((string) ($party['disposition'] ?? '')) === $disposition;
+    }
+
+    if (!isset($GLOBALS['peracrm_party_status_save_ok']) || !is_array($GLOBALS['peracrm_party_status_save_ok'])) {
+        $GLOBALS['peracrm_party_status_save_ok'] = [];
+    }
+
+    $GLOBALS['peracrm_party_status_save_ok'][(int) $post_id] = $status_saved;
+}
+
+function peracrm_admin_fix_crm_client_post_update_redirect($location, $post_id)
+{
+    $post_id = (int) $post_id;
+    if ($post_id <= 0 || get_post_type($post_id) !== 'crm_client') {
+        return $location;
+    }
+
+    $nonce = isset($_POST['peracrm_save_party_status_nonce'])
+        ? sanitize_text_field(wp_unslash($_POST['peracrm_save_party_status_nonce']))
+        : '';
+    if ($nonce === '' || !wp_verify_nonce($nonce, 'peracrm_save_party_status')) {
+        return $location;
+    }
+
+    $path = wp_parse_url($location, PHP_URL_PATH);
+    if ($path && basename($path) === 'edit.php') {
+        $location = add_query_arg('post_type', 'crm_client', $location);
+    }
+
+    $save_status_map = isset($GLOBALS['peracrm_party_status_save_ok']) && is_array($GLOBALS['peracrm_party_status_save_ok'])
+        ? $GLOBALS['peracrm_party_status_save_ok']
+        : [];
+
+    if (array_key_exists($post_id, $save_status_map) && !$save_status_map[$post_id]) {
+        $location = add_query_arg('peracrm_notice', 'profile_failed', $location);
+    }
+
+    return $location;
 }
 
 function peracrm_handle_save_party_status()
@@ -2253,7 +2307,7 @@ function peracrm_handle_create_deal()
         wp_die('Unauthorized', 403);
     }
 
-    check_admin_referer('peracrm_create_deal');
+    check_admin_referer('peracrm_create_deal', 'peracrm_deal_nonce');
     $client_id = isset($_POST['peracrm_client_id']) ? (int) $_POST['peracrm_client_id'] : 0;
     if ($client_id <= 0 || !current_user_can('edit_post', $client_id)) {
         wp_die('Invalid client', 400);
@@ -2301,7 +2355,7 @@ function peracrm_handle_update_deal()
         wp_die('Unauthorized', 403);
     }
 
-    check_admin_referer('peracrm_update_deal');
+    check_admin_referer('peracrm_update_deal', 'peracrm_deal_nonce');
     $client_id = isset($_POST['peracrm_client_id']) ? (int) $_POST['peracrm_client_id'] : 0;
     $deal_id = isset($_POST['deal_id']) ? (int) $_POST['deal_id'] : 0;
 
