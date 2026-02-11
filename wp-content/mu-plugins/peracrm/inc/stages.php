@@ -12,7 +12,8 @@ function peracrm_lead_stage_options()
         'qualified' => 'Qualified',
         'viewing_arranged' => 'Viewing arranged',
         'offer_made' => 'Offer made',
-        'negotiation' => 'Negotiation',
+        'deal_closed' => 'Deal closed',
+        'deal_lost' => 'Deal lost',
     ];
 }
 
@@ -54,7 +55,9 @@ function peracrm_map_legacy_lead_stage($legacy_stage)
         'contacted' => 'contacted',
         'viewing_arranged' => 'viewing_arranged',
         'offer_made' => 'offer_made',
-        'negotiation' => 'negotiation',
+        'negotiation' => 'offer_made',
+        'deal_closed' => 'deal_closed',
+        'deal_lost' => 'deal_lost',
     ];
 
     return $mapping[$legacy_stage] ?? 'new_enquiry';

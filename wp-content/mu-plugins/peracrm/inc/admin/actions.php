@@ -579,12 +579,9 @@ function peracrm_handle_pipeline_delete_view()
 
 function peracrm_pipeline_allowed_stage_values()
 {
-    $allowed = array_map('sanitize_key', array_keys(peracrm_pipeline_stage_options()));
-    $legacy = ['enquiry', 'active', 'dormant', 'closed'];
-
-    return array_values(array_unique(array_filter(array_merge($allowed, $legacy), static function ($stage) {
+    return array_values(array_filter(array_map('sanitize_key', array_keys(peracrm_pipeline_stage_options())), static function ($stage) {
         return $stage !== '';
-    })));
+    }));
 }
 
 function peracrm_pipeline_default_stage_key()
@@ -1605,6 +1602,7 @@ function peracrm_admin_notices()
         'profile_failed' => ['error', 'Unable to update client profile.'],
         'deal_saved' => ['success', 'Deal saved.'],
         'deal_failed' => ['error', 'Unable to save deal.'],
+        'deal_validation_failed' => ['error', 'Deal validation failed.'],
         'advisor_reassigned' => ['success', 'Advisor reassigned.'],
         'pipeline_view_saved' => ['success', 'Pipeline view saved.'],
         'pipeline_view_deleted' => ['success', 'Pipeline view deleted.'],
@@ -1617,6 +1615,13 @@ function peracrm_admin_notices()
     }
 
     [$class, $message] = $messages[$notice];
+
+    if ($notice === 'deal_validation_failed' && isset($_GET['peracrm_deal_error'])) {
+        $custom_message = sanitize_text_field(rawurldecode(wp_unslash($_GET['peracrm_deal_error'])));
+        if ($custom_message !== '') {
+            $message = $custom_message;
+        }
+    }
 
     printf(
         '<div class="notice notice-%1$s is-dismissible"><p>%2$s</p></div>',
@@ -2307,10 +2312,24 @@ function peracrm_handle_create_deal()
         wp_die('Unauthorized', 403);
     }
 
-    check_admin_referer('peracrm_create_deal', 'peracrm_deal_nonce');
+    if (!peracrm_is_valid_deal_submission_request('peracrm_create_deal')) {
+        wp_die('Invalid deal request', 400);
+    }
+
     $client_id = isset($_POST['peracrm_client_id']) ? (int) $_POST['peracrm_client_id'] : 0;
     if ($client_id <= 0 || !current_user_can('edit_post', $client_id)) {
         wp_die('Invalid client', 400);
+    }
+
+    $validation_error = peracrm_validate_deal_submission($client_id, $_POST);
+    if ($validation_error !== '') {
+        wp_safe_redirect(add_query_arg([
+            'post' => $client_id,
+            'action' => 'edit',
+            'peracrm_notice' => 'deal_validation_failed',
+            'peracrm_deal_error' => rawurlencode($validation_error),
+        ], admin_url('post.php')));
+        exit;
     }
 
     $party = peracrm_party_get($client_id);
@@ -2355,12 +2374,27 @@ function peracrm_handle_update_deal()
         wp_die('Unauthorized', 403);
     }
 
-    check_admin_referer('peracrm_update_deal', 'peracrm_deal_nonce');
+    if (!peracrm_is_valid_deal_submission_request('peracrm_update_deal')) {
+        wp_die('Invalid deal request', 400);
+    }
+
     $client_id = isset($_POST['peracrm_client_id']) ? (int) $_POST['peracrm_client_id'] : 0;
     $deal_id = isset($_POST['deal_id']) ? (int) $_POST['deal_id'] : 0;
 
     if ($client_id <= 0 || $deal_id <= 0 || !current_user_can('edit_post', $client_id)) {
         wp_die('Invalid deal', 400);
+    }
+
+    $validation_error = peracrm_validate_deal_submission($client_id, $_POST);
+    if ($validation_error !== '') {
+        wp_safe_redirect(add_query_arg([
+            'post' => $client_id,
+            'action' => 'edit',
+            'peracrm_notice' => 'deal_validation_failed',
+            'peracrm_deal_error' => rawurlencode($validation_error),
+            'peracrm_deal_id' => $deal_id,
+        ], admin_url('post.php')));
+        exit;
     }
 
     $updated = peracrm_deals_update($deal_id, [
@@ -2388,6 +2422,81 @@ function peracrm_handle_update_deal()
         'peracrm_notice' => $updated ? 'deal_saved' : 'deal_failed',
     ], admin_url('post.php')));
     exit;
+}
+
+function peracrm_is_valid_deal_submission_request($action)
+{
+    $expected_action = sanitize_key((string) $action);
+    if ($expected_action === '') {
+        return false;
+    }
+
+    $request_action = isset($_REQUEST['action']) ? sanitize_key(wp_unslash($_REQUEST['action'])) : '';
+    if ($request_action !== $expected_action) {
+        return false;
+    }
+
+    $nonce = isset($_POST['peracrm_deal_nonce']) ? sanitize_text_field(wp_unslash($_POST['peracrm_deal_nonce'])) : '';
+    if ($nonce === '' || !wp_verify_nonce($nonce, $expected_action)) {
+        return false;
+    }
+
+    $submit_marker = isset($_POST['peracrm_deal_submit']) ? (int) $_POST['peracrm_deal_submit'] : 0;
+    if ($submit_marker !== 1 && $request_action !== $expected_action) {
+        return false;
+    }
+
+    return true;
+}
+
+function peracrm_deal_requires_offer_made_fields($client_id)
+{
+    $client_id = (int) $client_id;
+    $stage = '';
+
+    if ($client_id > 0 && function_exists('peracrm_party_get')) {
+        $party = peracrm_party_get($client_id);
+        $stage = sanitize_key((string) ($party['lead_pipeline_stage'] ?? ''));
+    }
+
+    if ($stage === '' && isset($_POST['peracrm_save_party_status_nonce'])) {
+        $status_nonce = sanitize_text_field(wp_unslash($_POST['peracrm_save_party_status_nonce']));
+        if ($status_nonce !== '' && wp_verify_nonce($status_nonce, 'peracrm_save_party_status')) {
+            $posted_stage = isset($_POST['lead_pipeline_stage']) ? sanitize_key(wp_unslash($_POST['lead_pipeline_stage'])) : '';
+            $stage = function_exists('peracrm_map_legacy_lead_stage')
+                ? peracrm_map_legacy_lead_stage($posted_stage)
+                : $posted_stage;
+        }
+    }
+
+    return $stage === 'offer_made';
+}
+
+function peracrm_validate_deal_submission($client_id, $raw_data)
+{
+    if (!peracrm_deal_requires_offer_made_fields($client_id)) {
+        return '';
+    }
+
+    $raw_data = is_array($raw_data) ? $raw_data : [];
+
+    $title = isset($raw_data['title']) ? trim((string) wp_unslash($raw_data['title'])) : '';
+    $primary_property_id = isset($raw_data['primary_property_id']) ? absint($raw_data['primary_property_id']) : 0;
+    $deal_value = isset($raw_data['deal_value']) ? trim((string) wp_unslash($raw_data['deal_value'])) : '';
+
+    if ($title === '') {
+        return 'Deal title is mandatory when Lead Pipeline Stage is Offer made.';
+    }
+
+    if ($primary_property_id <= 0) {
+        return 'Primary property is mandatory when Lead Pipeline Stage is Offer made.';
+    }
+
+    if ($deal_value === '' || !is_numeric($deal_value) || (float) $deal_value <= 0) {
+        return 'Deal value is mandatory when Lead Pipeline Stage is Offer made.';
+    }
+
+    return '';
 }
 
 function peracrm_register_dashboard_widget()

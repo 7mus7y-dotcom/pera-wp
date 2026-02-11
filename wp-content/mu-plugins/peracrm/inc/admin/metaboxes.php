@@ -1231,12 +1231,13 @@ function peracrm_render_deals_metabox($post)
     $form_selector = '#peracrm-deal-form-' . (int) $post->ID;
     echo '<div id="' . esc_attr(ltrim($form_selector, '#')) . '">';
     echo '<input type="hidden" name="peracrm_deal_nonce" value="' . esc_attr(wp_create_nonce($nonce)) . '" />';
+    echo '<input type="hidden" name="peracrm_deal_submit" value="1" />';
     echo '<input type="hidden" name="peracrm_client_id" value="' . esc_attr((int) $post->ID) . '" />';
     if ($editing_deal) {
         echo '<input type="hidden" name="deal_id" value="' . esc_attr((int) $editing_deal['id']) . '" />';
     }
 
-    echo '<p><input type="text" class="widefat" name="title" placeholder="Deal title" value="' . esc_attr($editing_deal['title'] ?? '') . '" required /></p>';
+    echo '<p><input type="text" class="widefat" name="title" placeholder="Deal title" value="' . esc_attr($editing_deal['title'] ?? '') . '" /></p>';
 
     echo '<p><select class="widefat" name="stage">';
     $selected_stage = $editing_deal['stage'] ?? 'reservation_taken';
