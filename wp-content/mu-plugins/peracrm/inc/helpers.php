@@ -250,3 +250,43 @@ function peracrm_user_is_employee_advisor($user_id)
 
     return in_array('employee', (array) $user->roles, true);
 }
+
+function peracrm_get_target_blog_id()
+{
+    if (!is_multisite()) {
+        return 0;
+    }
+
+    if (function_exists('peracrm_membership_get_target_blog_id')) {
+        return (int) peracrm_membership_get_target_blog_id();
+    }
+
+    if (defined('PERACRM_TARGET_BLOG_ID')) {
+        return max(0, (int) PERACRM_TARGET_BLOG_ID);
+    }
+
+    return 0;
+}
+
+function peracrm_switch_to_target_blog_if_needed()
+{
+    $target_blog_id = peracrm_get_target_blog_id();
+    if (!is_multisite() || $target_blog_id <= 0 || get_current_blog_id() === $target_blog_id) {
+        return false;
+    }
+
+    switch_to_blog($target_blog_id);
+    return true;
+}
+
+function peracrm_with_target_blog(callable $callback)
+{
+    $switched = peracrm_switch_to_target_blog_if_needed();
+    try {
+        return $callback();
+    } finally {
+        if ($switched) {
+            restore_current_blog();
+        }
+    }
+}

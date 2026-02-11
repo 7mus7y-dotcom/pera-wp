@@ -19,6 +19,9 @@ add_action('admin_post_peracrm_update_reminder_status', 'peracrm_handle_update_r
 add_action('admin_post_peracrm_link_user', 'peracrm_handle_link_user');
 add_action('admin_post_peracrm_unlink_user', 'peracrm_handle_unlink_user');
 add_action('admin_post_peracrm_save_client_profile', 'peracrm_handle_save_client_profile');
+add_action('admin_post_peracrm_save_party_status', 'peracrm_handle_save_party_status');
+add_action('admin_post_peracrm_create_deal', 'peracrm_handle_create_deal');
+add_action('admin_post_peracrm_update_deal', 'peracrm_handle_update_deal');
 add_action('admin_post_peracrm_reassign_client_advisor', 'peracrm_handle_reassign_client_advisor');
 add_action('admin_post_peracrm_pipeline_save_view', 'peracrm_handle_pipeline_save_view');
 add_action('admin_post_peracrm_pipeline_delete_view', 'peracrm_handle_pipeline_delete_view');
@@ -36,3 +39,5 @@ add_action('restrict_manage_posts', 'peracrm_admin_client_filters');
 add_action('pre_get_posts', 'peracrm_admin_client_list_query');
 add_filter('posts_clauses', 'peracrm_admin_client_list_clauses', 10, 2);
 add_filter('posts_results', 'peracrm_admin_prime_client_health_cache', 10, 2);
+
+add_action('wp_dashboard_setup', 'peracrm_register_dashboard_widget');

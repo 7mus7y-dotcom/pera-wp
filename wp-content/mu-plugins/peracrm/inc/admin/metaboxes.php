@@ -128,6 +128,24 @@ function peracrm_register_metaboxes($post_type, $post)
         );
     }
 
+    add_meta_box(
+        'peracrm_crm_status',
+        'CRM Status',
+        'peracrm_render_crm_status_metabox',
+        'crm_client',
+        'side',
+        'high'
+    );
+
+    add_meta_box(
+        'peracrm_deals',
+        'Deals',
+        'peracrm_render_deals_metabox',
+        'crm_client',
+        'normal',
+        'default'
+    );
+
     if (!peracrm_admin_is_metabox_disabled('PERACRM_DISABLE_ASSIGNED_ADVISOR_METABOX')) {
         add_meta_box(
             'peracrm_assigned_advisor',
@@ -1014,4 +1032,130 @@ function peracrm_render_account_metabox($post)
     if ($should_log) {
         error_log(sprintf('[peracrm] metabox account end client=%d', $post_id));
     }
+}
+
+function peracrm_render_crm_status_metabox($post)
+{
+    if (!$post || empty($post->ID) || ($post->post_type ?? '') !== 'crm_client') {
+        return;
+    }
+
+    $party = function_exists('peracrm_party_get') ? peracrm_party_get($post->ID) : peracrm_party_default_status();
+    $is_client = function_exists('peracrm_party_is_client') ? peracrm_party_is_client($post->ID) : false;
+
+    echo '<p><strong>Derived type:</strong> ' . ($is_client ? '<span class="dashicons-before dashicons-yes-alt">Client</span>' : 'Lead') . '</p>';
+
+    echo '<form method="post" action="' . esc_url(admin_url('admin-post.php')) . '">';
+    wp_nonce_field('peracrm_save_party_status');
+    echo '<input type="hidden" name="action" value="peracrm_save_party_status" />';
+    echo '<input type="hidden" name="peracrm_client_id" value="' . esc_attr((int) $post->ID) . '" />';
+
+    echo '<p><label for="peracrm-lead-stage">Lead Pipeline Stage</label></p>';
+    echo '<select name="lead_pipeline_stage" id="peracrm-lead-stage" class="widefat">';
+    foreach (peracrm_party_stage_options() as $value => $label) {
+        echo '<option value="' . esc_attr($value) . '"' . selected($party['lead_pipeline_stage'], $value, false) . '>' . esc_html($label) . '</option>';
+    }
+    echo '</select>';
+
+    echo '<p><label for="peracrm-engagement-state">Engagement State</label></p>';
+    echo '<select name="engagement_state" id="peracrm-engagement-state" class="widefat">';
+    foreach (peracrm_party_engagement_options() as $value => $label) {
+        echo '<option value="' . esc_attr($value) . '"' . selected($party['engagement_state'], $value, false) . '>' . esc_html($label) . '</option>';
+    }
+    echo '</select>';
+
+    echo '<p><label for="peracrm-disposition">Disposition</label></p>';
+    echo '<select name="disposition" id="peracrm-disposition" class="widefat">';
+    foreach (peracrm_party_disposition_options() as $value => $label) {
+        echo '<option value="' . esc_attr($value) . '"' . selected($party['disposition'], $value, false) . '>' . esc_html($label) . '</option>';
+    }
+    echo '</select>';
+
+    submit_button('Save CRM status', 'secondary', 'submit', false);
+    echo '</form>';
+}
+
+function peracrm_render_deals_metabox($post)
+{
+    if (!$post || empty($post->ID) || ($post->post_type ?? '') !== 'crm_client') {
+        return;
+    }
+
+    $party = peracrm_party_get($post->ID);
+    $deals = peracrm_deals_get_by_party($post->ID);
+    $editing_deal = null;
+
+    if (!empty($_GET['peracrm_deal_id'])) {
+        $editing_deal = peracrm_deals_get((int) $_GET['peracrm_deal_id']);
+        if ($editing_deal && (int) $editing_deal['party_id'] !== (int) $post->ID) {
+            $editing_deal = null;
+        }
+    }
+
+    if (!empty($deals)) {
+        echo '<table class="widefat striped"><thead><tr><th>Title</th><th>Stage</th><th>Owner</th><th>Value</th><th></th></tr></thead><tbody>';
+        foreach ($deals as $deal) {
+            $owner = $deal['owner_user_id'] > 0 ? get_userdata($deal['owner_user_id']) : null;
+            $edit_link = add_query_arg([
+                'post' => (int) $post->ID,
+                'action' => 'edit',
+                'peracrm_deal_id' => (int) $deal['id'],
+            ], admin_url('post.php'));
+
+            echo '<tr>';
+            echo '<td>' . esc_html($deal['title']) . '</td>';
+            echo '<td>' . esc_html(peracrm_deal_stage_options()[$deal['stage']] ?? ucfirst($deal['stage'])) . '</td>';
+            echo '<td>' . esc_html($owner ? $owner->display_name : '—') . '</td>';
+            echo '<td>' . esc_html($deal['deal_value'] !== null ? number_format((float) $deal['deal_value'], 2) . ' ' . $deal['currency'] : '—') . '</td>';
+            echo '<td><a href="' . esc_url($edit_link) . '">Edit</a></td>';
+            echo '</tr>';
+        }
+        echo '</tbody></table>';
+    } else {
+        echo '<p>No deals yet.</p>';
+    }
+
+    $is_junk = ($party['disposition'] ?? 'none') === 'junk';
+    if ($is_junk) {
+        echo '<p><em>This party is marked as Junk. Deal creation is disabled unless override is checked.</em></p>';
+    }
+
+    $action = $editing_deal ? 'peracrm_update_deal' : 'peracrm_create_deal';
+    $nonce = $editing_deal ? 'peracrm_update_deal' : 'peracrm_create_deal';
+
+    echo '<hr/><h4>' . esc_html($editing_deal ? 'Edit Deal' : 'Create Deal') . '</h4>';
+    echo '<form method="post" action="' . esc_url(admin_url('admin-post.php')) . '">';
+    wp_nonce_field($nonce);
+    echo '<input type="hidden" name="action" value="' . esc_attr($action) . '" />';
+    echo '<input type="hidden" name="peracrm_client_id" value="' . esc_attr((int) $post->ID) . '" />';
+    if ($editing_deal) {
+        echo '<input type="hidden" name="deal_id" value="' . esc_attr((int) $editing_deal['id']) . '" />';
+    }
+
+    echo '<p><input type="text" class="widefat" name="title" placeholder="Deal title" value="' . esc_attr($editing_deal['title'] ?? '') . '" required /></p>';
+
+    echo '<p><select class="widefat" name="stage">';
+    $selected_stage = $editing_deal['stage'] ?? 'qualified';
+    foreach (peracrm_deal_stage_options() as $value => $label) {
+        echo '<option value="' . esc_attr($value) . '"' . selected($selected_stage, $value, false) . '>' . esc_html($label) . '</option>';
+    }
+    echo '</select></p>';
+
+    echo '<p><input type="number" class="widefat" name="primary_property_id" placeholder="Primary Property ID" value="' . esc_attr($editing_deal['primary_property_id'] ?? '') . '" /></p>';
+    echo '<p><input type="number" class="widefat" step="0.01" name="deal_value" placeholder="Deal Value" value="' . esc_attr($editing_deal['deal_value'] ?? '') . '" /></p>';
+    echo '<p><input type="text" class="widefat" name="currency" maxlength="3" placeholder="USD" value="' . esc_attr($editing_deal['currency'] ?? 'USD') . '" /></p>';
+    echo '<p><input type="date" class="widefat" name="expected_close_date" value="' . esc_attr($editing_deal['expected_close_date'] ?? '') . '" /></p>';
+
+    echo '<p><select class="widefat" name="owner_user_id"><option value="0">No owner</option>';
+    foreach (peracrm_get_advisor_users() as $advisor) {
+        echo '<option value="' . esc_attr((int) $advisor->ID) . '"' . selected((int) ($editing_deal['owner_user_id'] ?? 0), (int) $advisor->ID, false) . '>' . esc_html($advisor->display_name) . '</option>';
+    }
+    echo '</select></p>';
+
+    if ($is_junk) {
+        echo '<p><label><input type="checkbox" name="override_junk" value="1" /> Override: create anyway</label></p>';
+    }
+
+    submit_button($editing_deal ? 'Update Deal' : 'Create Deal', 'secondary', 'submit', false);
+    echo '</form>';
 }
