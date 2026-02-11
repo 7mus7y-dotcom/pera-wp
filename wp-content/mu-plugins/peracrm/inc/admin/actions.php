@@ -2191,6 +2191,68 @@ function peracrm_admin_get_derived_type_filter()
     return in_array($value, ['lead', 'client'], true) ? $value : '';
 }
 
+function peracrm_admin_should_debug_crm_client_update($post_id)
+{
+    if (!is_admin() || !current_user_can('manage_options')) {
+        return false;
+    }
+
+    global $pagenow;
+    if ($pagenow !== 'post.php') {
+        return false;
+    }
+
+    $post_id = (int) $post_id;
+    if ($post_id <= 0 || get_post_type($post_id) !== 'crm_client') {
+        return false;
+    }
+
+    return defined('PERACRM_DEBUG_CRM_CLIENT_UPDATE') && PERACRM_DEBUG_CRM_CLIENT_UPDATE;
+}
+
+function peracrm_admin_audit_crm_client_update_request()
+{
+    if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+        return;
+    }
+
+    $post_id = isset($_POST['post_ID']) ? (int) $_POST['post_ID'] : 0;
+    if ($post_id <= 0 && isset($_REQUEST['post'])) {
+        $post_id = (int) $_REQUEST['post'];
+    }
+
+    $action = isset($_REQUEST['action']) ? sanitize_key((string) wp_unslash($_REQUEST['action'])) : '';
+    $is_update_attempt = $action === 'editpost' || isset($_POST['save']) || isset($_POST['publish']);
+    if (!$is_update_attempt || get_post_type($post_id) !== 'crm_client') {
+        return;
+    }
+
+    if (peracrm_admin_should_debug_crm_client_update($post_id)) {
+        $post_keys = array_keys($_POST);
+        error_log(sprintf(
+            '[peracrm][crm_client update audit] method=%s request_action=%s post_action_key=%s has__wpnonce=%s has_post_action=%s post_keys=[%s] post_id=%d',
+            sanitize_text_field((string) $_SERVER['REQUEST_METHOD']),
+            $action,
+            isset($_POST['action']) ? sanitize_key((string) wp_unslash($_POST['action'])) : '(missing)',
+            isset($_POST['_wpnonce']) ? 'yes' : 'no',
+            isset($_POST['action']) ? 'yes' : 'no',
+            implode(',', array_map('sanitize_key', $post_keys)),
+            $post_id
+        ));
+    }
+
+    $nonce = isset($_POST['_wpnonce']) ? sanitize_text_field(wp_unslash($_POST['_wpnonce'])) : '';
+    $is_core_update_nonce = $nonce !== '' && wp_verify_nonce($nonce, 'update-post_' . $post_id);
+    if (!$is_core_update_nonce) {
+        return;
+    }
+
+    if ($action !== 'editpost') {
+        $_POST['action'] = 'editpost';
+        $_REQUEST['action'] = 'editpost';
+    }
+}
+
 
 function peracrm_handle_save_party_status_on_post_save($post_id, $post, $update)
 {
