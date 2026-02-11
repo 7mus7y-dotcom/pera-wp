@@ -162,6 +162,57 @@ function peracrm_register_metaboxes($post_type, $post)
     }
 }
 
+function peracrm_render_metabox_action_button($label, $action, array $args = [])
+{
+    $class = isset($args['class']) ? (string) $args['class'] : 'button';
+    $container = isset($args['container']) ? (string) $args['container'] : '';
+    $method = isset($args['method']) ? strtolower((string) $args['method']) : 'post';
+    $action_url = isset($args['action_url']) ? (string) $args['action_url'] : admin_url('admin-post.php');
+    $fields = isset($args['fields']) && is_array($args['fields']) ? $args['fields'] : [];
+
+    $attrs = [
+        'type="button"',
+        'class="' . esc_attr(trim('peracrm-action-submit ' . $class)) . '"',
+        'data-method="' . esc_attr($method === 'get' ? 'get' : 'post') . '"',
+        'data-action-url="' . esc_url($action_url) . '"',
+    ];
+
+    if ($action !== '') {
+        $attrs[] = 'data-action="' . esc_attr($action) . '"';
+    }
+    if ($container !== '') {
+        $attrs[] = 'data-container="' . esc_attr($container) . '"';
+    }
+    if (!empty($fields)) {
+        $attrs[] = 'data-fields="' . esc_attr(wp_json_encode($fields)) . '"';
+    }
+
+    echo '<button ' . implode(' ', $attrs) . '>' . esc_html($label) . '</button>';
+}
+
+function peracrm_render_metabox_action_helper_script()
+{
+    static $printed = false;
+    if ($printed) {
+        return;
+    }
+    $printed = true;
+
+    echo '<script>';
+    echo '(function(){';
+    echo 'if(window.peracrmMetaboxSubmitHelperBound){return;}window.peracrmMetaboxSubmitHelperBound=true;';
+    echo 'function appendField(form,name,value){if(!name){return;}var input=document.createElement("input");input.type="hidden";input.name=name;input.value=value;form.appendChild(input);}';
+    echo 'document.addEventListener("click",function(event){var button=event.target.closest(".peracrm-action-submit");if(!button){return;}event.preventDefault();';
+    echo 'var method=(button.getAttribute("data-method")||"post").toLowerCase();var actionUrl=button.getAttribute("data-action-url")||"";if(!actionUrl){return;}';
+    echo 'var form=document.createElement("form");form.method=(method==="get")?"get":"post";form.action=actionUrl;form.style.display="none";';
+    echo 'var action=button.getAttribute("data-action")||"";if(action&&method!=="get"){appendField(form,"action",action);}';
+    echo 'var encodedFields=button.getAttribute("data-fields")||"";if(encodedFields){try{var fields=JSON.parse(encodedFields);if(fields&&typeof fields==="object"){Object.keys(fields).forEach(function(key){appendField(form,key,fields[key]);});}}catch(error){}}';
+    echo 'var containerSelector=button.getAttribute("data-container")||"";if(containerSelector){var container=document.querySelector(containerSelector);if(container){container.querySelectorAll("input[name],select[name],textarea[name]").forEach(function(field){if(field.disabled){return;}if((field.type==="checkbox"||field.type==="radio")&&!field.checked){return;}appendField(form,field.name,field.value);});}}';
+    echo 'document.body.appendChild(form);form.submit();});';
+    echo '})();';
+    echo '</script>';
+}
+
 function peracrm_render_client_profile_metabox($post)
 {
     if (!$post || empty($post->ID) || ($post->post_type ?? '') !== 'crm_client') {
@@ -227,11 +278,11 @@ function peracrm_render_client_profile_metabox($post)
         }
     }
 
-    $save_profile_action_url = add_query_arg(['action' => 'peracrm_save_client_profile'], admin_url('admin-post.php'));
+    $form_selector = '#peracrm-client-profile-form-' . (int) $post->ID;
 
     echo '<div class="peracrm-metabox">';
-    echo '<form method="post" action="' . esc_url(admin_url('admin-post.php')) . '" class="peracrm-form">';
-    wp_nonce_field('peracrm_save_client_profile');
+    echo '<div id="' . esc_attr(ltrim($form_selector, '#')) . '" class="peracrm-form">';
+    echo '<input type="hidden" name="peracrm_save_client_profile_nonce" value="' . esc_attr(wp_create_nonce('peracrm_save_client_profile')) . '" />';
     echo '<input type="hidden" name="peracrm_client_id" value="' . esc_attr($post->ID) . '" />';
 
     echo '<p><label for="peracrm-status">Status</label></p>';
@@ -285,8 +336,13 @@ function peracrm_render_client_profile_metabox($post)
     echo '<p><label for="peracrm-email">Email</label></p>';
     echo '<p><input type="email" name="peracrm_email" id="peracrm-email" class="widefat" value="' . esc_attr($email) . '" /></p>';
 
-    echo '<p><button type="submit" class="button button-primary" formmethod="post" formaction="' . esc_url($save_profile_action_url) . '">Save Profile</button></p>';
-    echo '</form>';
+    echo '<p>';
+    peracrm_render_metabox_action_button('Save Profile', 'peracrm_save_client_profile', [
+        'class' => 'button button-primary',
+        'container' => $form_selector,
+    ]);
+    echo '</p>';
+    echo '</div>';
 
     echo '<hr />';
     echo '<div class="peracrm-quick-actions">';
@@ -306,6 +362,7 @@ function peracrm_render_client_profile_metabox($post)
         echo '<p class="peracrm-empty">' . esc_html('Add a phone or email to enable quick actions.') . '</p>';
     }
     echo '</div>';
+    peracrm_render_metabox_action_helper_script();
 
     echo '</div>';
 
@@ -379,10 +436,10 @@ function peracrm_render_assigned_advisor_metabox($post)
         ? peracrm_get_staff_users()
         : [];
 
-    $reassign_advisor_action_url = add_query_arg(['action' => 'peracrm_reassign_client_advisor'], admin_url('admin-post.php'));
+    $form_selector = '#peracrm-reassign-advisor-form-' . (int) $post->ID;
 
-    echo '<form method="post" action="' . esc_url(admin_url('admin-post.php')) . '" class="peracrm-form">';
-    wp_nonce_field('peracrm_reassign_client_advisor');
+    echo '<div id="' . esc_attr(ltrim($form_selector, '#')) . '" class="peracrm-form">';
+    echo '<input type="hidden" name="peracrm_reassign_client_advisor_nonce" value="' . esc_attr(wp_create_nonce('peracrm_reassign_client_advisor')) . '" />';
     echo '<input type="hidden" name="peracrm_client_id" value="' . esc_attr($post->ID) . '" />';
     echo '<p><label for="peracrm-assigned-advisor">Advisor</label></p>';
     echo '<p><select name="peracrm_assigned_advisor" id="peracrm-assigned-advisor" class="widefat">';
@@ -403,9 +460,15 @@ function peracrm_render_assigned_advisor_metabox($post)
         );
     }
     echo '</select></p>';
-    echo '<p><button type="submit" class="button" formmethod="post" formaction="' . esc_url($reassign_advisor_action_url) . '">Reassign</button></p>';
-    echo '</form>';
+    echo '<p>';
+    peracrm_render_metabox_action_button('Reassign', 'peracrm_reassign_client_advisor', [
+        'class' => 'button',
+        'container' => $form_selector,
+    ]);
+    echo '</p>';
     echo '</div>';
+
+    peracrm_render_metabox_action_helper_script();
 
     if ($should_log) {
         error_log(sprintf('[peracrm] metabox assigned_advisor end client=%d', $post_id));
@@ -503,15 +566,22 @@ function peracrm_render_notes_metabox($post)
         echo '<p class="peracrm-pagination">' . implode(' | ', $pagination) . '</p>';
     }
 
-    $add_note_action_url = add_query_arg(['action' => 'peracrm_add_note'], admin_url('admin-post.php'));
+    $form_selector = '#peracrm-add-note-form-' . (int) $post->ID;
 
-    echo '<form method="post" action="' . esc_url(admin_url('admin-post.php')) . '" class="peracrm-form">';
-    wp_nonce_field('peracrm_add_note');
+    echo '<div id="' . esc_attr(ltrim($form_selector, '#')) . '" class="peracrm-form">';
+    echo '<input type="hidden" name="peracrm_add_note_nonce" value="' . esc_attr(wp_create_nonce('peracrm_add_note')) . '" />';
     echo '<input type="hidden" name="peracrm_client_id" value="' . esc_attr($post->ID) . '" />';
     echo '<p><label for="peracrm_note_body">Add note</label></p>';
     echo '<p><textarea name="peracrm_note_body" id="peracrm_note_body" rows="4" class="widefat"></textarea></p>';
-    echo '<p><button type="submit" class="button button-primary" formmethod="post" formaction="' . esc_url($add_note_action_url) . '">Add Note</button></p>';
-    echo '</form>';
+    echo '<p>';
+    peracrm_render_metabox_action_button('Add Note', 'peracrm_add_note', [
+        'class' => 'button button-primary',
+        'container' => $form_selector,
+    ]);
+    echo '</p>';
+    echo '</div>';
+
+    peracrm_render_metabox_action_helper_script();
 
     echo '</div>';
 
@@ -617,21 +687,23 @@ function peracrm_render_reminders_metabox($post)
             }
 
             if ($status === 'pending') {
-                $update_reminder_status_action_url = add_query_arg(['action' => 'peracrm_update_reminder_status'], admin_url('admin-post.php'));
-
                 echo '<div class="peracrm-list__actions">';
-                echo '<form method="post" action="' . esc_url(admin_url('admin-post.php')) . '" class="peracrm-inline-form">';
-                wp_nonce_field('peracrm_update_reminder_status');
-                echo '<input type="hidden" name="peracrm_reminder_id" value="' . esc_attr($reminder['id']) . '" />';
-                echo '<input type="hidden" name="peracrm_status" value="done" />';
-                echo '<button type="submit" class="button" formmethod="post" formaction="' . esc_url($update_reminder_status_action_url) . '">Mark done</button>';
-                echo '</form>';
-                echo '<form method="post" action="' . esc_url(admin_url('admin-post.php')) . '" class="peracrm-inline-form">';
-                wp_nonce_field('peracrm_update_reminder_status');
-                echo '<input type="hidden" name="peracrm_reminder_id" value="' . esc_attr($reminder['id']) . '" />';
-                echo '<input type="hidden" name="peracrm_status" value="dismissed" />';
-                echo '<button type="submit" class="button" formmethod="post" formaction="' . esc_url($update_reminder_status_action_url) . '">Dismiss</button>';
-                echo '</form>';
+                peracrm_render_metabox_action_button('Mark done', 'peracrm_update_reminder_status', [
+                    'class' => 'button',
+                    'fields' => [
+                        'peracrm_update_reminder_status_nonce' => wp_create_nonce('peracrm_update_reminder_status'),
+                        'peracrm_reminder_id' => (int) $reminder['id'],
+                        'peracrm_status' => 'done',
+                    ],
+                ]);
+                peracrm_render_metabox_action_button('Dismiss', 'peracrm_update_reminder_status', [
+                    'class' => 'button',
+                    'fields' => [
+                        'peracrm_update_reminder_status_nonce' => wp_create_nonce('peracrm_update_reminder_status'),
+                        'peracrm_reminder_id' => (int) $reminder['id'],
+                        'peracrm_status' => 'dismissed',
+                    ],
+                ]);
                 echo '</div>';
             }
 
@@ -653,17 +725,24 @@ function peracrm_render_reminders_metabox($post)
         echo '<p class="peracrm-pagination">' . implode(' | ', $pagination) . '</p>';
     }
 
-    $add_reminder_action_url = add_query_arg(['action' => 'peracrm_add_reminder'], admin_url('admin-post.php'));
+    $form_selector = '#peracrm-add-reminder-form-' . (int) $post->ID;
 
-    echo '<form method="post" action="' . esc_url(admin_url('admin-post.php')) . '" class="peracrm-form">';
-    wp_nonce_field('peracrm_add_reminder');
+    echo '<div id="' . esc_attr(ltrim($form_selector, '#')) . '" class="peracrm-form">';
+    echo '<input type="hidden" name="peracrm_add_reminder_nonce" value="' . esc_attr(wp_create_nonce('peracrm_add_reminder')) . '" />';
     echo '<input type="hidden" name="peracrm_client_id" value="' . esc_attr($post->ID) . '" />';
     echo '<p><label for="peracrm_due_at">Due date</label></p>';
     echo '<p><input type="datetime-local" name="peracrm_due_at" id="peracrm_due_at" class="widefat" /></p>';
     echo '<p><label for="peracrm_reminder_note">Note</label></p>';
     echo '<p><textarea name="peracrm_reminder_note" id="peracrm_reminder_note" rows="3" class="widefat"></textarea></p>';
-    echo '<p><button type="submit" class="button button-primary" formmethod="post" formaction="' . esc_url($add_reminder_action_url) . '">Add Reminder</button></p>';
-    echo '</form>';
+    echo '<p>';
+    peracrm_render_metabox_action_button('Add Reminder', 'peracrm_add_reminder', [
+        'class' => 'button button-primary',
+        'container' => $form_selector,
+    ]);
+    echo '</p>';
+    echo '</div>';
+
+    peracrm_render_metabox_action_helper_script();
 
     echo '</div>';
 
@@ -834,10 +913,9 @@ function peracrm_render_activity_timeline_metabox($post)
 
     echo '<div class="peracrm-metabox">';
 
-    $activity_filter_action_url = add_query_arg(['action' => 'edit'], admin_url('post.php'));
+    $form_selector = '#peracrm-activity-filter-' . (int) $post->ID;
 
-    echo '<form method="get" action="' . esc_url($activity_filter_action_url) . '" class="peracrm-inline-form">';
-    echo '<input type="hidden" name="post" value="' . esc_attr($post->ID) . '" />';
+    echo '<div id="' . esc_attr(ltrim($form_selector, '#')) . '" class="peracrm-inline-form">';
     echo '<label for="peracrm_activity_type" class="screen-reader-text">Filter activity</label>';
     echo '<select name="activity_type" id="peracrm_activity_type">';
     echo '<option value="">All activity</option>';
@@ -850,8 +928,18 @@ function peracrm_render_activity_timeline_metabox($post)
         );
     }
     echo '</select> ';
-    echo '<button type="submit" class="button">Filter</button>';
-    echo '</form>';
+    peracrm_render_metabox_action_button('Filter', '', [
+        'class' => 'button',
+        'method' => 'get',
+        'action_url' => add_query_arg(['action' => 'edit'], admin_url('post.php')),
+        'container' => $form_selector,
+        'fields' => [
+            'post' => (int) $post->ID,
+        ],
+    ]);
+    echo '</div>';
+
+    peracrm_render_metabox_action_helper_script();
 
     if (empty($activity)) {
         echo '<p class="peracrm-empty">No activity recorded yet.</p>';
@@ -1015,25 +1103,34 @@ function peracrm_render_account_metabox($post)
         echo '<p>No WordPress user account is linked to this lead.</p>';
     }
 
-    $link_user_action = add_query_arg([
-        'action' => 'peracrm_link_user',
-    ], admin_url('admin-post.php'));
+    $form_selector = '#peracrm-link-user-form-' . (int) $post->ID;
 
-    echo '<div class="peracrm-form">';
+    echo '<div id="' . esc_attr(ltrim($form_selector, '#')) . '" class="peracrm-form">';
     echo '<input type="hidden" name="peracrm_link_user_nonce" value="' . esc_attr(wp_create_nonce('peracrm_link_user')) . '" />';
     echo '<input type="hidden" name="peracrm_client_id" value="' . esc_attr($post->ID) . '" />';
     echo '<p><label for="peracrm_user_search">Search user (email or username)</label></p>';
     echo '<p><input type="text" name="peracrm_user_search" id="peracrm_user_search" class="widefat" /></p>';
-    echo '<p><button type="submit" class="button button-primary" formmethod="post" formaction="' . esc_url($link_user_action) . '">Link user</button></p>';
+    echo '<p>';
+    peracrm_render_metabox_action_button('Link user', 'peracrm_link_user', [
+        'class' => 'button button-primary',
+        'container' => $form_selector,
+    ]);
+    echo '</p>';
     echo '</div>';
 
     if ($linked_user) {
-        $unlink_url = add_query_arg([
-            'action' => 'peracrm_unlink_user',
-            '_wpnonce' => wp_create_nonce('peracrm_unlink_user'),
-        ], admin_url('admin-post.php'));
-        echo '<p><button type="submit" class="button" formmethod="post" formaction="' . esc_url($unlink_url) . '">Unlink</button></p>';
+        echo '<p>';
+        peracrm_render_metabox_action_button('Unlink', 'peracrm_unlink_user', [
+            'class' => 'button',
+            'fields' => [
+                'peracrm_unlink_user_nonce' => wp_create_nonce('peracrm_unlink_user'),
+                'peracrm_client_id' => (int) $post->ID,
+            ],
+        ]);
+        echo '</p>';
     }
+
+    peracrm_render_metabox_action_helper_script();
 
     echo '</div>';
 
@@ -1125,15 +1222,15 @@ function peracrm_render_deals_metabox($post)
     }
 
     $action = $editing_deal ? 'peracrm_update_deal' : 'peracrm_create_deal';
-    $deal_action_url = add_query_arg(['action' => $action], admin_url('admin-post.php'));
     $nonce = $editing_deal ? 'peracrm_update_deal' : 'peracrm_create_deal';
 
     $commission_type = $editing_deal['commission_type'] ?? 'percent';
     $commission_status = $editing_deal['commission_status'] ?? 'expected';
 
     echo '<hr/><h4>' . esc_html($editing_deal ? 'Edit Deal' : 'Create Deal') . '</h4>';
-    echo '<form method="post" action="' . esc_url(admin_url('admin-post.php')) . '">';
-    wp_nonce_field($nonce);
+    $form_selector = '#peracrm-deal-form-' . (int) $post->ID;
+    echo '<div id="' . esc_attr(ltrim($form_selector, '#')) . '">';
+    echo '<input type="hidden" name="peracrm_deal_nonce" value="' . esc_attr(wp_create_nonce($nonce)) . '" />';
     echo '<input type="hidden" name="peracrm_client_id" value="' . esc_attr((int) $post->ID) . '" />';
     if ($editing_deal) {
         echo '<input type="hidden" name="deal_id" value="' . esc_attr((int) $editing_deal['id']) . '" />';
@@ -1228,8 +1325,15 @@ function peracrm_render_deals_metabox($post)
         echo '<p><label><input type="checkbox" name="override_junk" value="1" /> Override: create anyway</label></p>';
     }
 
-    echo '<p><button type="submit" class="button button-secondary" formmethod="post" formaction="' . esc_url($deal_action_url) . '">' . esc_html($editing_deal ? 'Update Deal' : 'Create Deal') . '</button></p>';
-    echo '</form>';
+    echo '<p>';
+    peracrm_render_metabox_action_button($editing_deal ? 'Update Deal' : 'Create Deal', $action, [
+        'class' => 'button button-secondary',
+        'container' => $form_selector,
+    ]);
+    echo '</p>';
+    echo '</div>';
+
+    peracrm_render_metabox_action_helper_script();
 
     echo '<script>';
     echo '(function(){';
