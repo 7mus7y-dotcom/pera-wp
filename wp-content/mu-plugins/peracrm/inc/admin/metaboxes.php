@@ -1123,6 +1123,9 @@ function peracrm_render_deals_metabox($post)
     $action = $editing_deal ? 'peracrm_update_deal' : 'peracrm_create_deal';
     $nonce = $editing_deal ? 'peracrm_update_deal' : 'peracrm_create_deal';
 
+    $commission_type = $editing_deal['commission_type'] ?? 'percent';
+    $commission_status = $editing_deal['commission_status'] ?? 'expected';
+
     echo '<hr/><h4>' . esc_html($editing_deal ? 'Edit Deal' : 'Create Deal') . '</h4>';
     echo '<form method="post" action="' . esc_url(admin_url('admin-post.php')) . '">';
     wp_nonce_field($nonce);
@@ -1152,10 +1155,73 @@ function peracrm_render_deals_metabox($post)
     }
     echo '</select></p>';
 
+    echo '<hr/><h4>Commission</h4>';
+
+    echo '<p><label for="peracrm-commission-type">Commission Type</label></p>';
+    echo '<p><select id="peracrm-commission-type" class="widefat" name="commission_type">';
+    echo '<option value="percent"' . selected($commission_type, 'percent', false) . '>Percent</option>';
+    echo '<option value="fixed"' . selected($commission_type, 'fixed', false) . '>Fixed</option>';
+    echo '</select></p>';
+
+    $rate_style = $commission_type === 'percent' ? '' : ' style="display:none"';
+    echo '<div id="peracrm-commission-rate-row"' . $rate_style . '>';
+    $commission_rate_percent = '';
+    if (isset($editing_deal['commission_rate']) && $editing_deal['commission_rate'] !== '' && $editing_deal['commission_rate'] !== null) {
+        $commission_rate_percent = rtrim(rtrim(number_format(((float) $editing_deal['commission_rate']) * 100, 4, '.', ''), '0'), '.');
+    }
+    echo '<p><label for="peracrm-commission-rate">Commission Rate (%)</label></p>';
+    echo '<p><input type="number" class="widefat" step="0.0001" min="0" max="100" id="peracrm-commission-rate" name="commission_rate" placeholder="2 = 2%" value="' . esc_attr($commission_rate_percent) . '" /></p>';
+    echo '</div>';
+
+    echo '<p><label for="peracrm-commission-amount">Commission Amount</label></p>';
+    echo '<p><input type="number" class="widefat" step="0.01" min="0" id="peracrm-commission-amount" name="commission_amount" value="' . esc_attr($editing_deal['commission_amount'] ?? '') . '" /></p>';
+
+    echo '<p><label for="peracrm-commission-currency">Commission Currency</label></p>';
+    echo '<p><select id="peracrm-commission-currency" class="widefat" name="commission_currency">';
+    foreach (['USD', 'EUR', 'TRY', 'GBP'] as $currency) {
+        echo '<option value="' . esc_attr($currency) . '"' . selected(($editing_deal['commission_currency'] ?? 'USD'), $currency, false) . '>' . esc_html($currency) . '</option>';
+    }
+    echo '</select></p>';
+
+    echo '<p><label for="peracrm-commission-status">Commission Status</label></p>';
+    echo '<p><select id="peracrm-commission-status" class="widefat" name="commission_status">';
+    foreach (['expected', 'invoiced', 'received', 'void'] as $status) {
+        echo '<option value="' . esc_attr($status) . '"' . selected($commission_status, $status, false) . '>' . esc_html(ucfirst($status)) . '</option>';
+    }
+    echo '</select></p>';
+
+    echo '<p><label for="peracrm-commission-due-date">Due Date</label></p>';
+    echo '<p><input type="date" class="widefat" id="peracrm-commission-due-date" name="commission_due_date" value="' . esc_attr($editing_deal['commission_due_date'] ?? '') . '" /></p>';
+
+    $paid_style = $commission_status === 'received' ? '' : ' style="display:none"';
+    $paid_at = $editing_deal['commission_paid_at'] ?? '';
+    if ($paid_at !== '') {
+        $paid_at = date('Y-m-d\TH:i', strtotime($paid_at));
+    }
+    echo '<div id="peracrm-commission-paid-row"' . $paid_style . '>';
+    echo '<p><label for="peracrm-commission-paid-at">Paid At</label></p>';
+    echo '<p><input type="datetime-local" class="widefat" id="peracrm-commission-paid-at" name="commission_paid_at" value="' . esc_attr($paid_at) . '" /></p>';
+    echo '</div>';
+
+    echo '<p><label for="peracrm-commission-notes">Commission Notes</label></p>';
+    echo '<p><textarea class="widefat" rows="3" id="peracrm-commission-notes" name="commission_notes">' . esc_textarea($editing_deal['commission_notes'] ?? '') . '</textarea></p>';
+
     if ($is_junk) {
         echo '<p><label><input type="checkbox" name="override_junk" value="1" /> Override: create anyway</label></p>';
     }
 
     submit_button($editing_deal ? 'Update Deal' : 'Create Deal', 'secondary', 'submit', false);
     echo '</form>';
+
+    echo '<script>';
+    echo '(function(){';
+    echo 'var type=document.getElementById("peracrm-commission-type");';
+    echo 'var rateRow=document.getElementById("peracrm-commission-rate-row");';
+    echo 'var status=document.getElementById("peracrm-commission-status");';
+    echo 'var paidRow=document.getElementById("peracrm-commission-paid-row");';
+    echo 'if(type&&rateRow){type.addEventListener("change",function(){rateRow.style.display=(type.value==="percent")?"":"none";});}';
+    echo 'if(status&&paidRow){status.addEventListener("change",function(){paidRow.style.display=(status.value==="received")?"":"none";});}';
+    echo '})();';
+    echo '</script>';
 }
+
