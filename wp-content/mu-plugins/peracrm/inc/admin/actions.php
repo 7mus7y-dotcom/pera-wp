@@ -1216,6 +1216,10 @@ function peracrm_handle_save_client_profile()
         ? peracrm_client_update_profile($client_id, $data)
         : false;
 
+    if ($success && function_exists('peracrm_map_legacy_status_to_party_fields') && function_exists('peracrm_party_upsert_status')) {
+        peracrm_party_upsert_status($client_id, peracrm_map_legacy_status_to_party_fields($status));
+    }
+
     $redirect = wp_get_referer();
     if (!$redirect) {
         $redirect = add_query_arg(
@@ -1505,6 +1509,10 @@ function peracrm_admin_notices()
 
 function peracrm_admin_add_client_columns($columns)
 {
+    $columns['peracrm_type'] = 'Type';
+    $columns['peracrm_pipeline_stage'] = 'Pipeline Stage';
+    $columns['peracrm_engagement_state'] = 'Engagement';
+    $columns['peracrm_disposition'] = 'Disposition';
     $columns['peracrm_account'] = 'Account';
     $columns['peracrm_health'] = 'Health';
     $columns['last_activity'] = 'Last activity';
@@ -1524,47 +1532,36 @@ function peracrm_admin_client_filters()
         return;
     }
 
-    $selected = peracrm_admin_get_engagement_filter();
-    $options = [
-        '' => 'All',
-        'hot' => 'Hot',
-        'warm' => 'Warm',
-        'cold' => 'Cold',
-        'none' => 'None',
-    ];
-
-    echo '<label for="peracrm-engagement-filter" class="screen-reader-text">Engagement</label>';
-    echo '<select name="engagement" id="peracrm-engagement-filter">';
-    foreach ($options as $value => $label) {
-        printf(
-            '<option value="%1$s"%2$s>%3$s</option>',
-            esc_attr($value),
-            selected($selected, $value, false),
-            esc_html($label)
-        );
+    echo '<label for="peracrm-party-stage" class="screen-reader-text">Pipeline Stage</label>';
+    echo '<select name="lead_pipeline_stage" id="peracrm-party-stage"><option value="">All pipeline stages</option>';
+    $selected_stage = peracrm_admin_get_party_stage_filter();
+    foreach (peracrm_party_stage_options() as $value => $label) {
+        echo '<option value="' . esc_attr($value) . '"' . selected($selected_stage, $value, false) . '>' . esc_html($label) . '</option>';
     }
     echo '</select>';
 
-    $health_selected = peracrm_admin_get_health_filter();
-    $health_options = [
-        '' => 'All health',
-        'hot' => 'Hot',
-        'warm' => 'Warm',
-        'cold' => 'Cold',
-        'at_risk' => 'At risk',
-        'none' => 'None',
-    ];
-
-    echo '<label for="peracrm-health-filter" class="screen-reader-text">Health</label>';
-    echo '<select name="peracrm_health" id="peracrm-health-filter">';
-    foreach ($health_options as $value => $label) {
-        printf(
-            '<option value="%1$s"%2$s>%3$s</option>',
-            esc_attr($value),
-            selected($health_selected, $value, false),
-            esc_html($label)
-        );
+    echo '<label for="peracrm-party-engagement" class="screen-reader-text">Engagement</label>';
+    echo '<select name="engagement_state" id="peracrm-party-engagement"><option value="">All engagement</option>';
+    $selected_engagement = peracrm_admin_get_party_engagement_filter();
+    foreach (peracrm_party_engagement_options() as $value => $label) {
+        echo '<option value="' . esc_attr($value) . '"' . selected($selected_engagement, $value, false) . '>' . esc_html($label) . '</option>';
     }
+    echo '</select>';
+
+    echo '<label for="peracrm-party-disposition" class="screen-reader-text">Disposition</label>';
+    echo '<select name="disposition" id="peracrm-party-disposition"><option value="">All disposition</option>';
+    $selected_disposition = peracrm_admin_get_party_disposition_filter();
+    foreach (peracrm_party_disposition_options() as $value => $label) {
+        echo '<option value="' . esc_attr($value) . '"' . selected($selected_disposition, $value, false) . '>' . esc_html($label) . '</option>';
+    }
+    echo '</select>';
+
+    $type = peracrm_admin_get_derived_type_filter();
+    echo '<label for="peracrm-party-type" class="screen-reader-text">Type</label>';
+    echo '<select name="peracrm_type" id="peracrm-party-type">';
+    echo '<option value="">All types</option>';
+    echo '<option value="lead"' . selected($type, 'lead', false) . '>Lead</option>';
+    echo '<option value="client"' . selected($type, 'client', false) . '>Client</option>';
     echo '</select>';
 }
 
@@ -1706,6 +1703,38 @@ function peracrm_admin_client_list_clauses($clauses, $query)
         $clauses['having'] = $existing_having === '' ? $append_having : "{$existing_having} AND {$append_having}";
     }
 
+    if (function_exists('peracrm_party_table_exists') && peracrm_party_table_exists()) {
+        $party_table = peracrm_table('peracrm_party');
+        if (false === strpos($clauses['join'], " {$party_table} ")) {
+            $clauses['join'] .= " LEFT JOIN {$party_table} AS peracrm_party ON {$wpdb->posts}.ID = peracrm_party.party_id";
+        }
+
+        if ($context['lead_pipeline_stage'] !== '') {
+            $clauses['where'] .= $wpdb->prepare(' AND peracrm_party.lead_pipeline_stage = %s', $context['lead_pipeline_stage']);
+        }
+        if ($context['engagement_state'] !== '') {
+            $clauses['where'] .= $wpdb->prepare(' AND peracrm_party.engagement_state = %s', $context['engagement_state']);
+        }
+        if ($context['disposition'] !== '') {
+            $clauses['where'] .= $wpdb->prepare(' AND peracrm_party.disposition = %s', $context['disposition']);
+        }
+    }
+
+    if ($context['derived_type'] !== '' && function_exists('peracrm_deals_table_exists') && peracrm_deals_table_exists()) {
+        $deals_table = peracrm_table('peracrm_deals');
+        $client_sub = "(SELECT DISTINCT party_id FROM {$deals_table} WHERE stage = 'closed_won') AS peracrm_client_parties";
+        if (false === strpos($clauses['join'], 'peracrm_client_parties')) {
+            $clauses['join'] .= " LEFT JOIN {$client_sub} ON {$wpdb->posts}.ID = peracrm_client_parties.party_id";
+        }
+
+        if ($context['derived_type'] === 'client') {
+            $clauses['where'] .= ' AND peracrm_client_parties.party_id IS NOT NULL';
+        }
+        if ($context['derived_type'] === 'lead') {
+            $clauses['where'] .= ' AND peracrm_client_parties.party_id IS NULL';
+        }
+    }
+
     if ('last_activity' === $context['orderby'] && $context['has_activity_table']) {
         $clauses['orderby'] = 'peracrm_last_activity_at IS NULL, peracrm_last_activity_at DESC';
     }
@@ -1771,6 +1800,10 @@ function peracrm_admin_client_list_context($query)
         'orderby' => $orderby,
         'engagement' => peracrm_admin_get_engagement_filter(),
         'health' => peracrm_admin_get_health_filter(),
+        'lead_pipeline_stage' => peracrm_admin_get_party_stage_filter(),
+        'engagement_state' => peracrm_admin_get_party_engagement_filter(),
+        'disposition' => peracrm_admin_get_party_disposition_filter(),
+        'derived_type' => peracrm_admin_get_derived_type_filter(),
     ];
 
     return $cache[$key];
@@ -1812,6 +1845,50 @@ function peracrm_admin_get_health_filter()
 
 function peracrm_admin_render_client_columns($column, $post_id)
 {
+    static $party_status_cache = null;
+    static $client_ids_cache = null;
+
+    if (null === $party_status_cache || null === $client_ids_cache) {
+        $ids = [];
+        $query = $GLOBALS['wp_query'] ?? null;
+        if ($query instanceof WP_Query && !empty($query->posts)) {
+            foreach ($query->posts as $post_obj) {
+                if ($post_obj instanceof WP_Post) {
+                    $ids[] = (int) $post_obj->ID;
+                }
+            }
+        }
+
+        $party_status_cache = function_exists('peracrm_party_get_status_by_ids') ? peracrm_party_get_status_by_ids($ids) : [];
+        $client_ids_cache = function_exists('peracrm_party_batch_get_closed_won_client_ids') ? array_flip(peracrm_party_batch_get_closed_won_client_ids($ids)) : [];
+    }
+
+    if ('peracrm_type' === $column) {
+        echo isset($client_ids_cache[(int) $post_id]) ? 'Client' : 'Lead';
+        return;
+    }
+
+    if ('peracrm_pipeline_stage' === $column) {
+        $stage = isset($party_status_cache[(int) $post_id]['lead_pipeline_stage']) ? $party_status_cache[(int) $post_id]['lead_pipeline_stage'] : 'new_enquiry';
+        $labels = function_exists('peracrm_party_stage_options') ? peracrm_party_stage_options() : [];
+        echo esc_html($labels[$stage] ?? $stage);
+        return;
+    }
+
+    if ('peracrm_engagement_state' === $column) {
+        $value = isset($party_status_cache[(int) $post_id]['engagement_state']) ? $party_status_cache[(int) $post_id]['engagement_state'] : 'engaged';
+        $labels = function_exists('peracrm_party_engagement_options') ? peracrm_party_engagement_options() : [];
+        echo esc_html($labels[$value] ?? $value);
+        return;
+    }
+
+    if ('peracrm_disposition' === $column) {
+        $value = isset($party_status_cache[(int) $post_id]['disposition']) ? $party_status_cache[(int) $post_id]['disposition'] : 'none';
+        $labels = function_exists('peracrm_party_disposition_options') ? peracrm_party_disposition_options() : [];
+        echo esc_html($labels[$value] ?? $value);
+        return;
+    }
+
     if ('peracrm_account' === $column) {
         static $linked_user_cache = [];
         static $user_cache = [];
@@ -1953,4 +2030,162 @@ function peracrm_admin_activity_badge($bucket)
         '<span aria-hidden="true" style="display:inline-block;width:8px;height:8px;border-radius:50%%;background:%1$s;margin-right:6px;vertical-align:middle;"></span>',
         esc_attr($color)
     );
+}
+
+function peracrm_admin_get_party_stage_filter()
+{
+    $value = isset($_GET['lead_pipeline_stage']) ? sanitize_key(wp_unslash($_GET['lead_pipeline_stage'])) : '';
+    if ($value === '') {
+        return '';
+    }
+
+    return isset(peracrm_party_stage_options()[$value]) ? $value : '';
+}
+
+function peracrm_admin_get_party_engagement_filter()
+{
+    $value = isset($_GET['engagement_state']) ? sanitize_key(wp_unslash($_GET['engagement_state'])) : '';
+    if ($value === '') {
+        return '';
+    }
+
+    return isset(peracrm_party_engagement_options()[$value]) ? $value : '';
+}
+
+function peracrm_admin_get_party_disposition_filter()
+{
+    $value = isset($_GET['disposition']) ? sanitize_key(wp_unslash($_GET['disposition'])) : '';
+    if ($value === '') {
+        return '';
+    }
+
+    return isset(peracrm_party_disposition_options()[$value]) ? $value : '';
+}
+
+function peracrm_admin_get_derived_type_filter()
+{
+    $value = isset($_GET['peracrm_type']) ? sanitize_key(wp_unslash($_GET['peracrm_type'])) : '';
+    return in_array($value, ['lead', 'client'], true) ? $value : '';
+}
+
+function peracrm_handle_save_party_status()
+{
+    if (!peracrm_admin_user_can_manage()) {
+        wp_die('Unauthorized', 403);
+    }
+
+    check_admin_referer('peracrm_save_party_status');
+
+    $client_id = isset($_POST['peracrm_client_id']) ? (int) $_POST['peracrm_client_id'] : 0;
+    if ($client_id <= 0 || !current_user_can('edit_post', $client_id)) {
+        wp_safe_redirect(add_query_arg(['post' => $client_id, 'action' => 'edit', 'peracrm_notice' => 'profile_failed'], admin_url('post.php')));
+        exit;
+    }
+
+    $saved = peracrm_party_upsert_status($client_id, [
+        'lead_pipeline_stage' => $_POST['lead_pipeline_stage'] ?? '',
+        'engagement_state' => $_POST['engagement_state'] ?? '',
+        'disposition' => $_POST['disposition'] ?? '',
+        'lead_stage_updated_at' => peracrm_now_mysql(),
+    ]);
+
+    wp_safe_redirect(add_query_arg([
+        'post' => $client_id,
+        'action' => 'edit',
+        'peracrm_notice' => $saved ? 'profile_saved' : 'profile_failed',
+    ], admin_url('post.php')));
+    exit;
+}
+
+function peracrm_handle_create_deal()
+{
+    if (!peracrm_admin_user_can_manage()) {
+        wp_die('Unauthorized', 403);
+    }
+
+    check_admin_referer('peracrm_create_deal');
+    $client_id = isset($_POST['peracrm_client_id']) ? (int) $_POST['peracrm_client_id'] : 0;
+    if ($client_id <= 0 || !current_user_can('edit_post', $client_id)) {
+        wp_die('Invalid client', 400);
+    }
+
+    $party = peracrm_party_get($client_id);
+    $is_junk = ($party['disposition'] ?? 'none') === 'junk';
+    $override = !empty($_POST['override_junk']);
+    if ($is_junk && !$override) {
+        wp_safe_redirect(add_query_arg(['post' => $client_id, 'action' => 'edit', 'peracrm_notice' => 'profile_failed'], admin_url('post.php')));
+        exit;
+    }
+
+    peracrm_deals_create([
+        'party_id' => $client_id,
+        'title' => $_POST['title'] ?? '',
+        'stage' => $_POST['stage'] ?? 'qualified',
+        'primary_property_id' => $_POST['primary_property_id'] ?? null,
+        'deal_value' => $_POST['deal_value'] ?? null,
+        'currency' => $_POST['currency'] ?? 'USD',
+        'expected_close_date' => $_POST['expected_close_date'] ?? null,
+        'owner_user_id' => $_POST['owner_user_id'] ?? null,
+    ]);
+
+    wp_safe_redirect(add_query_arg(['post' => $client_id, 'action' => 'edit'], admin_url('post.php')));
+    exit;
+}
+
+function peracrm_handle_update_deal()
+{
+    if (!peracrm_admin_user_can_manage()) {
+        wp_die('Unauthorized', 403);
+    }
+
+    check_admin_referer('peracrm_update_deal');
+    $client_id = isset($_POST['peracrm_client_id']) ? (int) $_POST['peracrm_client_id'] : 0;
+    $deal_id = isset($_POST['deal_id']) ? (int) $_POST['deal_id'] : 0;
+
+    if ($client_id <= 0 || $deal_id <= 0 || !current_user_can('edit_post', $client_id)) {
+        wp_die('Invalid deal', 400);
+    }
+
+    peracrm_deals_update($deal_id, [
+        'title' => $_POST['title'] ?? '',
+        'stage' => $_POST['stage'] ?? 'qualified',
+        'primary_property_id' => $_POST['primary_property_id'] ?? null,
+        'deal_value' => $_POST['deal_value'] ?? null,
+        'currency' => $_POST['currency'] ?? 'USD',
+        'expected_close_date' => $_POST['expected_close_date'] ?? null,
+        'owner_user_id' => $_POST['owner_user_id'] ?? null,
+    ]);
+
+    wp_safe_redirect(add_query_arg(['post' => $client_id, 'action' => 'edit'], admin_url('post.php')));
+    exit;
+}
+
+function peracrm_register_dashboard_widget()
+{
+    if (!peracrm_admin_user_can_manage()) {
+        return;
+    }
+
+    wp_add_dashboard_widget('peracrm_analytics', 'PeraCRM Analytics', 'peracrm_render_dashboard_widget');
+}
+
+function peracrm_render_dashboard_widget()
+{
+    $party_stage_counts = peracrm_parties_count_by_stage(true);
+    $deal_stage_counts = peracrm_deals_count_by_stage();
+    $client_count = peracrm_count_distinct_clients_from_deals();
+
+    echo '<p><strong>Lead pipeline stages (non-junk):</strong></p><ul>';
+    foreach ($party_stage_counts as $stage => $count) {
+        echo '<li>' . esc_html($stage) . ': ' . esc_html((string) $count) . '</li>';
+    }
+    echo '</ul>';
+
+    echo '<p><strong>Deals by stage:</strong></p><ul>';
+    foreach ($deal_stage_counts as $stage => $count) {
+        echo '<li>' . esc_html($stage) . ': ' . esc_html((string) $count) . '</li>';
+    }
+    echo '</ul>';
+
+    echo '<p><strong>Derived clients:</strong> ' . esc_html((string) $client_count) . '</p>';
 }

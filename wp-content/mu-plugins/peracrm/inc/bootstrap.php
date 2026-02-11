@@ -18,6 +18,8 @@ require_once PERACRM_INC . '/repositories/notes.php';
 require_once PERACRM_INC . '/repositories/reminders.php';
 require_once PERACRM_INC . '/repositories/activity.php';
 require_once PERACRM_INC . '/repositories/client_property.php';
+require_once PERACRM_INC . '/repositories/party.php';
+require_once PERACRM_INC . '/repositories/deals.php';
 
 require_once PERACRM_INC . '/services/client_service.php';
 require_once PERACRM_INC . '/services/activity_service.php';
