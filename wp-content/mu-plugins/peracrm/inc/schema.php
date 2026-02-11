@@ -110,6 +110,14 @@ function peracrm_upgrade_schema_to($target_version, $installed_version = 0)
             stage VARCHAR(24) NOT NULL,
             deal_value DECIMAL(18,2) NULL,
             currency CHAR(3) NOT NULL DEFAULT 'USD',
+            commission_type VARCHAR(12) NOT NULL DEFAULT 'percent',
+            commission_rate DECIMAL(7,4) NULL,
+            commission_amount DECIMAL(18,2) NULL,
+            commission_currency CHAR(3) NOT NULL DEFAULT 'USD',
+            commission_status VARCHAR(16) NOT NULL DEFAULT 'expected',
+            commission_due_date DATE NULL,
+            commission_paid_at DATETIME NULL,
+            commission_notes TEXT NULL,
             expected_close_date DATE NULL,
             closed_at DATETIME NULL,
             owner_user_id BIGINT UNSIGNED NULL,
@@ -119,7 +127,10 @@ function peracrm_upgrade_schema_to($target_version, $installed_version = 0)
             KEY party_id (party_id),
             KEY stage (stage),
             KEY owner_user_id (owner_user_id),
-            KEY party_stage (party_id, stage)
+            KEY party_stage (party_id, stage),
+            KEY commission_status (commission_status),
+            KEY commission_due_date (commission_due_date),
+            KEY owner_commission_status (owner_user_id, commission_status)
         ) {$charset_collate};";
 
         dbDelta($sql_notes);

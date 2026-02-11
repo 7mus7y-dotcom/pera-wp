@@ -1487,6 +1487,8 @@ function peracrm_admin_notices()
         'unlink_missing' => ['error', 'This CRM client does not have a linked user.'],
         'profile_saved' => ['success', 'Client profile updated.'],
         'profile_failed' => ['error', 'Unable to update client profile.'],
+        'deal_saved' => ['success', 'Deal saved.'],
+        'deal_failed' => ['error', 'Unable to save deal.'],
         'advisor_reassigned' => ['success', 'Advisor reassigned.'],
         'pipeline_view_saved' => ['success', 'Pipeline view saved.'],
         'pipeline_view_deleted' => ['success', 'Pipeline view deleted.'],
@@ -2117,7 +2119,7 @@ function peracrm_handle_create_deal()
         exit;
     }
 
-    peracrm_deals_create([
+    $created = peracrm_deals_create([
         'party_id' => $client_id,
         'title' => $_POST['title'] ?? '',
         'stage' => $_POST['stage'] ?? 'qualified',
@@ -2126,9 +2128,21 @@ function peracrm_handle_create_deal()
         'currency' => $_POST['currency'] ?? 'USD',
         'expected_close_date' => $_POST['expected_close_date'] ?? null,
         'owner_user_id' => $_POST['owner_user_id'] ?? null,
+        'commission_type' => $_POST['commission_type'] ?? 'percent',
+        'commission_rate' => $_POST['commission_rate'] ?? null,
+        'commission_amount' => $_POST['commission_amount'] ?? null,
+        'commission_currency' => $_POST['commission_currency'] ?? 'USD',
+        'commission_status' => $_POST['commission_status'] ?? 'expected',
+        'commission_due_date' => $_POST['commission_due_date'] ?? null,
+        'commission_paid_at' => $_POST['commission_paid_at'] ?? null,
+        'commission_notes' => $_POST['commission_notes'] ?? '',
     ]);
 
-    wp_safe_redirect(add_query_arg(['post' => $client_id, 'action' => 'edit'], admin_url('post.php')));
+    wp_safe_redirect(add_query_arg([
+        'post' => $client_id,
+        'action' => 'edit',
+        'peracrm_notice' => $created > 0 ? 'deal_saved' : 'deal_failed',
+    ], admin_url('post.php')));
     exit;
 }
 
@@ -2146,7 +2160,7 @@ function peracrm_handle_update_deal()
         wp_die('Invalid deal', 400);
     }
 
-    peracrm_deals_update($deal_id, [
+    $updated = peracrm_deals_update($deal_id, [
         'title' => $_POST['title'] ?? '',
         'stage' => $_POST['stage'] ?? 'qualified',
         'primary_property_id' => $_POST['primary_property_id'] ?? null,
@@ -2154,9 +2168,21 @@ function peracrm_handle_update_deal()
         'currency' => $_POST['currency'] ?? 'USD',
         'expected_close_date' => $_POST['expected_close_date'] ?? null,
         'owner_user_id' => $_POST['owner_user_id'] ?? null,
+        'commission_type' => $_POST['commission_type'] ?? 'percent',
+        'commission_rate' => $_POST['commission_rate'] ?? null,
+        'commission_amount' => $_POST['commission_amount'] ?? null,
+        'commission_currency' => $_POST['commission_currency'] ?? 'USD',
+        'commission_status' => $_POST['commission_status'] ?? 'expected',
+        'commission_due_date' => $_POST['commission_due_date'] ?? null,
+        'commission_paid_at' => $_POST['commission_paid_at'] ?? null,
+        'commission_notes' => $_POST['commission_notes'] ?? '',
     ]);
 
-    wp_safe_redirect(add_query_arg(['post' => $client_id, 'action' => 'edit'], admin_url('post.php')));
+    wp_safe_redirect(add_query_arg([
+        'post' => $client_id,
+        'action' => 'edit',
+        'peracrm_notice' => $updated ? 'deal_saved' : 'deal_failed',
+    ], admin_url('post.php')));
     exit;
 }
 
@@ -2167,6 +2193,7 @@ function peracrm_register_dashboard_widget()
     }
 
     wp_add_dashboard_widget('peracrm_analytics', 'PeraCRM Analytics', 'peracrm_render_dashboard_widget');
+    wp_add_dashboard_widget('peracrm_commission_totals', 'Commission Totals', 'peracrm_render_commission_dashboard_widget');
 }
 
 function peracrm_render_dashboard_widget()
@@ -2188,4 +2215,86 @@ function peracrm_render_dashboard_widget()
     echo '</ul>';
 
     echo '<p><strong>Derived clients:</strong> ' . esc_html((string) $client_count) . '</p>';
+}
+
+
+function peracrm_render_commission_dashboard_widget()
+{
+    $totals = peracrm_deals_get_commission_totals();
+
+    echo '<table class="widefat striped"><thead><tr><th>Currency</th><th>Expected</th><th>Invoiced</th><th>Received (MTD)</th><th>Received (YTD)</th></tr></thead><tbody>';
+
+    $currencies = array_unique(array_merge(
+        array_keys($totals['expected_total']),
+        array_keys($totals['invoiced_total']),
+        array_keys($totals['received_mtd_total']),
+        array_keys($totals['received_ytd_total'])
+    ));
+
+    sort($currencies);
+
+    if (empty($currencies)) {
+        echo '<tr><td colspan="5">No commission data yet.</td></tr>';
+    } else {
+        foreach ($currencies as $currency) {
+            echo '<tr>';
+            echo '<td>' . esc_html($currency) . '</td>';
+            echo '<td>' . esc_html(number_format((float) ($totals['expected_total'][$currency] ?? 0), 2)) . '</td>';
+            echo '<td>' . esc_html(number_format((float) ($totals['invoiced_total'][$currency] ?? 0), 2)) . '</td>';
+            echo '<td>' . esc_html(number_format((float) ($totals['received_mtd_total'][$currency] ?? 0), 2)) . '</td>';
+            echo '<td>' . esc_html(number_format((float) ($totals['received_ytd_total'][$currency] ?? 0), 2)) . '</td>';
+            echo '</tr>';
+        }
+    }
+
+    echo '</tbody></table>';
+
+    $advisors = peracrm_get_advisor_users();
+    $advisor_map = [];
+    foreach ($advisors as $advisor) {
+        $advisor_map[(int) $advisor->ID] = $advisor;
+    }
+
+    $received_ytd_by_advisor = peracrm_deals_get_received_ytd_by_advisor();
+    $advisor_totals = [];
+
+    foreach ($received_ytd_by_advisor as $owner_user_id => $received_ytd) {
+        $owner_user_id = (int) $owner_user_id;
+        if ($owner_user_id <= 0 || !isset($advisor_map[$owner_user_id])) {
+            continue;
+        }
+
+        $sortable_total = array_sum(array_map('floatval', $received_ytd));
+        if ($sortable_total <= 0) {
+            continue;
+        }
+
+        $advisor_totals[] = [
+            'advisor' => $advisor_map[$owner_user_id],
+            'totals' => $received_ytd,
+            'sort_total' => $sortable_total,
+        ];
+    }
+
+    usort($advisor_totals, static function ($a, $b) {
+        return $b['sort_total'] <=> $a['sort_total'];
+    });
+
+    $advisor_totals = array_slice($advisor_totals, 0, 5);
+    echo '<p><strong>Top 5 advisors by received YTD:</strong></p>';
+
+    if (empty($advisor_totals)) {
+        echo '<p>—</p>';
+        return;
+    }
+
+    echo '<ol>';
+    foreach ($advisor_totals as $row) {
+        $parts = [];
+        foreach ($row['totals'] as $currency => $amount) {
+            $parts[] = sprintf('%s %s', number_format((float) $amount, 2), $currency);
+        }
+        echo '<li>' . esc_html($row['advisor']->display_name . ': ' . implode(', ', $parts)) . '</li>';
+    }
+    echo '</ol>';
 }
