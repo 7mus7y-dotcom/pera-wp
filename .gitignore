@@ -13,3 +13,5 @@ wp-content/ai1wm-backups/
 wp-content/et-cache/
 wp-content/litespeed/
 wp-content/debug.log
+deploy.sh
+error_log
