@@ -1010,13 +1010,16 @@ function peracrm_render_account_metabox($post)
         echo '<p>No WordPress user account is linked to this lead.</p>';
     }
 
+    $link_user_action = add_query_arg([
+        'action' => 'peracrm_link_user',
+    ], admin_url('admin-post.php'));
+
     echo '<div class="peracrm-form">';
-    echo '<input type="hidden" name="action" value="peracrm_link_user" />';
-    echo '<input type="hidden" name="_wpnonce" value="' . esc_attr(wp_create_nonce('peracrm_link_user')) . '" />';
+    echo '<input type="hidden" name="peracrm_link_user_nonce" value="' . esc_attr(wp_create_nonce('peracrm_link_user')) . '" />';
     echo '<input type="hidden" name="peracrm_client_id" value="' . esc_attr($post->ID) . '" />';
     echo '<p><label for="peracrm_user_search">Search user (email or username)</label></p>';
     echo '<p><input type="text" name="peracrm_user_search" id="peracrm_user_search" class="widefat" /></p>';
-    echo '<p><button type="submit" class="button button-primary" formmethod="post" formaction="' . esc_url(admin_url('admin-post.php')) . '">Link user</button></p>';
+    echo '<p><button type="submit" class="button button-primary" formmethod="post" formaction="' . esc_url($link_user_action) . '">Link user</button></p>';
     echo '</div>';
 
     if ($linked_user) {
