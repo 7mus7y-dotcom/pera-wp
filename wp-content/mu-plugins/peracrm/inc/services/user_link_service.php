@@ -236,3 +236,51 @@ function peracrm_autolink_user_on_login($user_login, $user)
     peracrm_autolink_user_to_client($user);
 }
 add_action('wp_login', 'peracrm_autolink_user_on_login', 20, 2);
+
+
+function peracrm_unlink_user_meta_for_client($post_id, $reason = '')
+{
+    $post_id = (int) $post_id;
+    $reason = sanitize_key((string) $reason);
+
+    if ($post_id <= 0 || get_post_type($post_id) !== 'crm_client') {
+        return;
+    }
+
+    $linked_user_id = function_exists('peracrm_get_client_linked_user_id')
+        ? (int) peracrm_get_client_linked_user_id($post_id)
+        : (int) get_post_meta($post_id, 'linked_user_id', true);
+
+    if ($linked_user_id <= 0) {
+        return;
+    }
+
+    $linked_client_id = (int) get_user_meta($linked_user_id, 'crm_client_id', true);
+    if ($linked_client_id !== $post_id) {
+        return;
+    }
+
+    delete_user_meta($linked_user_id, 'crm_client_id');
+
+    if (function_exists('peracrm_client_ingest_debug_log')) {
+        peracrm_client_ingest_debug_log('unlinked user meta due to client ' . $reason, [
+            'client_id' => $post_id,
+            'user_id' => $linked_user_id,
+            'reason' => $reason,
+            'current_blog_id' => (int) get_current_blog_id(),
+            'target_blog_id' => (int) peracrm_get_target_blog_id(),
+        ]);
+    }
+}
+
+function peracrm_unlink_user_meta_on_client_delete($post_id)
+{
+    peracrm_unlink_user_meta_for_client($post_id, 'delete');
+}
+add_action('before_delete_post', 'peracrm_unlink_user_meta_on_client_delete', 10);
+
+function peracrm_unlink_user_meta_on_client_trash($post_id)
+{
+    peracrm_unlink_user_meta_for_client($post_id, 'trash');
+}
+add_action('trashed_post', 'peracrm_unlink_user_meta_on_client_trash', 10, 1);

@@ -293,6 +293,83 @@ function peracrm_membership_assign_lead_if_needed($user_id, $source)
     }
 }
 
+function peracrm_membership_ensure_lead_on_target_blog($user_id, $source = '')
+{
+    $user_id = (int) $user_id;
+    $source = sanitize_key((string) $source);
+    $current_blog_id = (int) get_current_blog_id();
+    $target_blog_id = (int) peracrm_membership_get_target_blog_id();
+
+    $result = [
+        'ok' => false,
+        'user_id' => $user_id,
+        'source' => $source,
+        'current_blog_id' => $current_blog_id,
+        'target_blog_id' => $target_blog_id,
+        'is_member' => false,
+        'role_assigned' => false,
+        'membership_error' => '',
+    ];
+
+    if (!is_multisite() || $user_id <= 0 || $target_blog_id <= 0) {
+        return $result;
+    }
+
+    $user = get_user_by('id', $user_id);
+    if (!$user instanceof WP_User) {
+        return $result;
+    }
+
+    if (peracrm_membership_user_is_staff($user)) {
+        $result['ok'] = true;
+        $result['is_member'] = (bool) is_user_member_of_blog($user_id, $target_blog_id);
+        return $result;
+    }
+
+    $role_created = false;
+    if (!peracrm_membership_ensure_lead_role_for_blog($target_blog_id, $role_created)) {
+        $result['membership_error'] = 'lead_role_missing';
+        return $result;
+    }
+
+    $result['is_member'] = (bool) is_user_member_of_blog($user_id, $target_blog_id);
+    if (!$result['is_member']) {
+        $added = add_user_to_blog($target_blog_id, $user_id, 'lead');
+        if (is_wp_error($added)) {
+            $result['membership_error'] = $added->get_error_message();
+            peracrm_membership_debug_log('membership_add_user_failed', $result + ['role_created' => $role_created]);
+            return $result;
+        }
+
+        $result['is_member'] = (bool) is_user_member_of_blog($user_id, $target_blog_id);
+    }
+
+    $switched = false;
+    if ($current_blog_id !== $target_blog_id) {
+        switch_to_blog($target_blog_id);
+        $switched = true;
+    }
+
+    try {
+        $target_user = new WP_User($user_id);
+        $target_roles = array_map('strval', (array) $target_user->roles);
+        if (!in_array('lead', $target_roles, true)) {
+            $target_user->set_role('lead');
+        }
+
+        $target_roles = array_map('strval', (array) $target_user->roles);
+        $result['role_assigned'] = in_array('lead', $target_roles, true);
+    } finally {
+        if ($switched) {
+            restore_current_blog();
+        }
+    }
+
+    $result['ok'] = $result['is_member'] && $result['role_assigned'];
+
+    return $result;
+}
+
 function peracrm_membership_on_user_register($user_id)
 {
     peracrm_membership_assign_lead_if_needed((int) $user_id, 'user_register');
