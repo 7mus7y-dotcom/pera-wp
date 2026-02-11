@@ -14,7 +14,8 @@ function peracrm_party_stage_options()
             'qualified' => 'Qualified',
             'viewing_arranged' => 'Viewing arranged',
             'offer_made' => 'Offer made',
-            'negotiation' => 'Negotiation',
+            'deal_closed' => 'Deal closed',
+            'deal_lost' => 'Deal lost',
         ];
 }
 
