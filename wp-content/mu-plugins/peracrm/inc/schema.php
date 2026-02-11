@@ -93,7 +93,7 @@ function peracrm_upgrade_schema_to($target_version, $installed_version = 0)
             party_id BIGINT UNSIGNED NOT NULL,
             lead_pipeline_stage VARCHAR(32) NOT NULL DEFAULT 'new_enquiry',
             engagement_state VARCHAR(16) NOT NULL DEFAULT 'engaged',
-            disposition VARCHAR(16) NOT NULL DEFAULT 'none',
+            disposition VARCHAR(32) NOT NULL DEFAULT 'none',
             lead_stage_updated_at DATETIME NULL,
             updated_at DATETIME NOT NULL,
             PRIMARY KEY (party_id),
@@ -108,6 +108,7 @@ function peracrm_upgrade_schema_to($target_version, $installed_version = 0)
             title VARCHAR(255) NOT NULL,
             primary_property_id BIGINT UNSIGNED NULL,
             stage VARCHAR(24) NOT NULL,
+            closed_reason VARCHAR(32) NOT NULL DEFAULT 'none',
             deal_value DECIMAL(18,2) NULL,
             currency CHAR(3) NOT NULL DEFAULT 'USD',
             commission_type VARCHAR(12) NOT NULL DEFAULT 'percent',
@@ -126,6 +127,7 @@ function peracrm_upgrade_schema_to($target_version, $installed_version = 0)
             PRIMARY KEY (id),
             KEY party_id (party_id),
             KEY stage (stage),
+            KEY closed_reason (closed_reason),
             KEY owner_user_id (owner_user_id),
             KEY party_stage (party_id, stage),
             KEY commission_status (commission_status),
@@ -140,8 +142,19 @@ function peracrm_upgrade_schema_to($target_version, $installed_version = 0)
         dbDelta($sql_party);
         dbDelta($sql_deals);
 
+        $closed_reason_exists = $wpdb->get_var($wpdb->prepare("SHOW COLUMNS FROM {$deals_table} LIKE %s", 'closed_reason'));
+        if (!$closed_reason_exists) {
+            $wpdb->query("ALTER TABLE {$deals_table} ADD COLUMN closed_reason VARCHAR(32) NOT NULL DEFAULT 'none' AFTER stage");
+        }
+
         if ($installed_version < 2 && $target_version >= 2) {
             peracrm_migrate_legacy_status_to_party_table();
+        }
+
+        $v4_done = (int) get_option('peracrm_migration_v4_done', 0);
+        if ($target_version >= 4 && ($installed_version < 4 || $v4_done !== 1)) {
+            peracrm_migrate_stage_taxonomy_v4();
+            update_option('peracrm_migration_v4_done', 1);
         }
     });
 }
@@ -193,26 +206,187 @@ function peracrm_map_legacy_status_to_party_fields($legacy_status)
         'lead_stage_updated_at' => peracrm_now_mysql(),
     ];
 
-    if (in_array($status, ['enquiry', 'new_enquiry'], true)) {
-        return $base;
-    }
-
-    if ($status === 'active') {
-        $base['lead_pipeline_stage'] = 'qualified';
-        return $base;
+    if ($status !== 'closed') {
+        $base['lead_pipeline_stage'] = function_exists('peracrm_map_legacy_lead_stage')
+            ? peracrm_map_legacy_lead_stage($status)
+            : 'new_enquiry';
     }
 
     if ($status === 'dormant') {
-        $base['lead_pipeline_stage'] = 'qualified';
         $base['engagement_state'] = 'dormant';
-        return $base;
     }
 
     if ($status === 'closed') {
-        $base['lead_pipeline_stage'] = 'qualified';
-        $base['engagement_state'] = 'dormant';
-        return $base;
+        $base['engagement_state'] = 'closed';
+    }
+
+    if ($status === 'junk') {
+        $base['engagement_state'] = 'closed';
+        $base['disposition'] = 'junk_lead';
     }
 
     return $base;
 }
+
+
+function peracrm_migrate_legacy_party_closed_reason_to_deal($party_id, $legacy_closed_reason, $deals_table)
+{
+    global $wpdb;
+
+    $party_id = (int) $party_id;
+    $legacy_closed_reason = sanitize_key((string) $legacy_closed_reason);
+    if ($party_id <= 0 || !in_array($legacy_closed_reason, ['lost_price', 'lost_finance', 'lost_competitor'], true)) {
+        return;
+    }
+
+    $deal = $wpdb->get_row(
+        $wpdb->prepare(
+            "SELECT id, stage, closed_reason FROM {$deals_table} WHERE party_id = %d ORDER BY updated_at DESC, id DESC LIMIT 1",
+            $party_id
+        ),
+        ARRAY_A
+    );
+
+    if (is_array($deal) && !empty($deal['id'])) {
+        $deal_stage = sanitize_key((string) ($deal['stage'] ?? ''));
+        $is_closed_stage = in_array($deal_stage, ['lost', 'completed', 'closed_won', 'closed_lost'], true)
+            || (function_exists('peracrm_deal_is_closed_stage') && peracrm_deal_is_closed_stage($deal_stage));
+
+        $existing_reason = sanitize_key((string) ($deal['closed_reason'] ?? 'none'));
+        if ($is_closed_stage && ($existing_reason === '' || $existing_reason === 'none')) {
+            $wpdb->update(
+                $deals_table,
+                [
+                    'closed_reason' => $legacy_closed_reason,
+                    'updated_at' => peracrm_now_mysql(),
+                ],
+                ['id' => (int) $deal['id']],
+                ['%s', '%s'],
+                ['%d']
+            );
+        }
+
+        return;
+    }
+
+    if (function_exists('update_post_meta')) {
+        $existing_meta = (string) get_post_meta($party_id, '_peracrm_migrated_closed_reason', true);
+        if ($existing_meta === '' || $existing_meta === 'none') {
+            update_post_meta($party_id, '_peracrm_migrated_closed_reason', $legacy_closed_reason);
+        }
+    }
+}
+
+function peracrm_migrate_stage_taxonomy_v4()
+{
+    peracrm_with_target_blog(static function () {
+        global $wpdb;
+
+        $party_table = peracrm_table('peracrm_party');
+        $deals_table = peracrm_table('peracrm_deals');
+
+        if ($wpdb->get_var($wpdb->prepare('SHOW TABLES LIKE %s', $party_table)) !== $party_table) {
+            return;
+        }
+
+        if ($wpdb->get_var($wpdb->prepare('SHOW TABLES LIKE %s', $deals_table)) !== $deals_table) {
+            return;
+        }
+
+    $legacy_party_stages = ['enquiry', 'active', 'active_search', 'deal_created', 'dormant', 'closed'];
+    $legacy_deal_stages = ['qualified', 'reserved', 'closed_won', 'closed_lost'];
+
+    $party_where = "lead_pipeline_stage IN ('" . implode("','", array_map('esc_sql', $legacy_party_stages)) . "')"
+        . " OR disposition = 'junk'"
+        . " OR disposition IN ('lost_price','lost_finance','lost_competitor')";
+
+    $party_rows = $wpdb->get_results(
+        "SELECT party_id, lead_pipeline_stage, engagement_state, disposition FROM {$party_table} WHERE {$party_where}",
+        ARRAY_A
+    );
+
+    foreach ((array) $party_rows as $row) {
+        $party_id = (int) ($row['party_id'] ?? 0);
+        if ($party_id <= 0) {
+            continue;
+        }
+
+        $legacy_stage_raw = (string) ($row['lead_pipeline_stage'] ?? '');
+        $legacy_stage = sanitize_key($legacy_stage_raw);
+
+        if ($legacy_stage === '' || $legacy_stage === 'closed') {
+            $new_stage = 'qualified';
+        } else {
+            $mapped_stage = peracrm_map_legacy_lead_stage($legacy_stage);
+            $stage_options = function_exists('peracrm_party_stage_options') ? peracrm_party_stage_options() : [];
+            $new_stage = isset($stage_options[$mapped_stage]) ? $mapped_stage : 'qualified';
+        }
+
+        $legacy_disposition = sanitize_key((string) ($row['disposition'] ?? 'none'));
+        if ($legacy_disposition === 'junk') {
+            $new_disposition = 'junk_lead';
+        } elseif (in_array($legacy_disposition, ['junk_lead', 'duplicate', 'none'], true)) {
+            $new_disposition = $legacy_disposition;
+        } elseif (in_array($legacy_disposition, ['lost_price', 'lost_finance', 'lost_competitor'], true)) {
+            $new_disposition = 'none';
+            peracrm_migrate_legacy_party_closed_reason_to_deal($party_id, $legacy_disposition, $deals_table);
+        } else {
+            $new_disposition = 'none';
+        }
+
+        $engagement = sanitize_key((string) ($row['engagement_state'] ?? 'engaged'));
+        if ($legacy_stage === 'closed') {
+            $engagement = 'closed';
+        }
+        if ($new_disposition !== 'none' && $engagement !== 'closed') {
+            $engagement = 'closed';
+        }
+
+        $current_stage = sanitize_key((string) ($row['lead_pipeline_stage'] ?? ''));
+        $current_engagement = sanitize_key((string) ($row['engagement_state'] ?? 'engaged'));
+        $current_disposition = sanitize_key((string) ($row['disposition'] ?? 'none'));
+
+        if ($current_stage !== $new_stage || $current_engagement !== $engagement || $current_disposition !== $new_disposition) {
+            $wpdb->update(
+                $party_table,
+                [
+                    'lead_pipeline_stage' => $new_stage,
+                    'engagement_state' => $engagement,
+                    'disposition' => $new_disposition,
+                    'updated_at' => peracrm_now_mysql(),
+                ],
+                ['party_id' => $party_id],
+                ['%s', '%s', '%s', '%s'],
+                ['%d']
+            );
+        }
+    }
+
+    $deal_where = "stage IN ('" . implode("','", array_map('esc_sql', $legacy_deal_stages)) . "')";
+    $deal_rows = $wpdb->get_results("SELECT id, stage FROM {$deals_table} WHERE {$deal_where}", ARRAY_A);
+    foreach ((array) $deal_rows as $row) {
+        $deal_id = (int) ($row['id'] ?? 0);
+        if ($deal_id <= 0) {
+            continue;
+        }
+
+        $mapped_stage = peracrm_map_legacy_deal_stage($row['stage'] ?? 'reservation_taken');
+        $current_stage = sanitize_key((string) ($row['stage'] ?? ''));
+
+        if ($current_stage !== $mapped_stage) {
+            $wpdb->update(
+                $deals_table,
+                [
+                    'stage' => $mapped_stage,
+                    'updated_at' => peracrm_now_mysql(),
+                ],
+                ['id' => $deal_id],
+                ['%s', '%s'],
+                ['%d']
+            );
+        }
+    }
+    });
+}
+
+

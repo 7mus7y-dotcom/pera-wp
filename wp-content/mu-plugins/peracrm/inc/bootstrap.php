@@ -5,6 +5,7 @@ if (!defined('ABSPATH')) {
 }
 
 require_once PERACRM_INC . '/helpers.php';
+require_once PERACRM_INC . '/stages.php';
 require_once PERACRM_INC . '/schema.php';
 require_once PERACRM_INC . '/roles.php';
 require_once PERACRM_INC . '/cpt.php';
@@ -25,6 +26,7 @@ require_once PERACRM_INC . '/services/client_service.php';
 require_once PERACRM_INC . '/services/activity_service.php';
 require_once PERACRM_INC . '/services/user_link_service.php';
 require_once PERACRM_INC . '/services/user_membership_service.php';
+require_once PERACRM_INC . '/rest.php';
 
 if (is_admin()) {
     $admin_dir = __DIR__ . '/admin';

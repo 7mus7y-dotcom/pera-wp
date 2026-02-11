@@ -12,7 +12,13 @@ function peracrm_render_pipeline_page()
 
     $is_admin = current_user_can('manage_options');
     $can_reassign = function_exists('peracrm_admin_user_can_reassign') && peracrm_admin_user_can_reassign();
-    $statuses = peracrm_pipeline_status_labels();
+    $statuses = function_exists('peracrm_pipeline_stage_options') ? peracrm_pipeline_stage_options() : peracrm_pipeline_status_labels();
+    $default_stage = function_exists('peracrm_pipeline_default_stage_key')
+        ? peracrm_pipeline_default_stage_key()
+        : 'enquiry';
+    if (!isset($statuses[$default_stage])) {
+        $statuses = [$default_stage => ucwords(str_replace('_', ' ', $default_stage))] + (array) $statuses;
+    }
     $client_type_options = peracrm_pipeline_client_type_options();
     $health_options = peracrm_pipeline_health_options();
 
@@ -48,7 +54,7 @@ function peracrm_render_pipeline_page()
 
         if ($is_admin) {
             $view_filters['advisor_id'] = isset($view_filters['advisor_id']) ? absint($view_filters['advisor_id']) : 0;
-            if ($view_filters['advisor_id'] > 0 && !peracrm_user_is_valid_advisor($view_filters['advisor_id'])) {
+            if ($view_filters['advisor_id'] > 0 && !peracrm_user_is_staff($view_filters['advisor_id'])) {
                 $view_filters['advisor_id'] = 0;
             }
         } else {
@@ -80,8 +86,8 @@ function peracrm_render_pipeline_page()
     $advisor_options = [];
     $advisor_map = [];
     if ($is_admin || $can_reassign) {
-        $advisor_options = function_exists('peracrm_get_advisor_users')
-            ? peracrm_get_advisor_users()
+        $advisor_options = function_exists('peracrm_get_staff_users')
+            ? peracrm_get_staff_users()
             : [];
         foreach ($advisor_options as $advisor) {
             $advisor_map[(int) $advisor->ID] = $advisor->display_name;
@@ -176,6 +182,7 @@ function peracrm_render_pipeline_page()
             'stage_moved' => ['success', 'Client stage updated.'],
             'stage_denied' => ['error', 'You are not allowed to move this client.'],
             'stage_invalid' => ['error', 'Please choose a valid pipeline stage.'],
+            'stage_failed' => ['error', 'Could not update client stage. Please try again.'],
         ];
         if (isset($notice_messages[$notice])) {
             [$class, $message] = $notice_messages[$notice];
@@ -434,29 +441,53 @@ function peracrm_render_pipeline_page()
     $columns = [];
     $all_query_ids = [];
 
+    $base_meta_query = peracrm_pipeline_build_base_meta_query($client_type, $scope_advisor_id);
+    $base_query = new WP_Query([
+        'post_type' => 'crm_client',
+        'post_status' => 'any',
+        'fields' => 'ids',
+        'posts_per_page' => -1,
+        'no_found_rows' => true,
+        'orderby' => 'title',
+        'order' => 'ASC',
+        'meta_query' => $base_meta_query,
+    ]);
+
+    $all_matching_ids = array_values(array_map('intval', (array) $base_query->posts));
+    $bucket_ids = [];
+    foreach (array_keys($statuses) as $status_key) {
+        $bucket_ids[$status_key] = [];
+    }
+
+    $party_status_map = function_exists('peracrm_party_get_status_by_ids')
+        ? peracrm_party_get_status_by_ids($all_matching_ids)
+        : [];
+
+    foreach ($all_matching_ids as $client_id) {
+        $party_stage = isset($party_status_map[$client_id]['lead_pipeline_stage'])
+            ? sanitize_key((string) $party_status_map[$client_id]['lead_pipeline_stage'])
+            : '';
+
+        $stage = isset($bucket_ids[$party_stage]) ? $party_stage : $default_stage;
+        if (!isset($bucket_ids[$stage])) {
+            continue;
+        }
+
+        $bucket_ids[$stage][] = $client_id;
+    }
+
     foreach ($statuses as $status_key => $status_label) {
         $paged_param = 'paged_' . $status_key;
         $paged = isset($_GET[$paged_param]) ? max(1, absint($_GET[$paged_param])) : 1;
 
-        $meta_query = peracrm_pipeline_build_base_meta_query($client_type, $scope_advisor_id);
-        $meta_query[] = [
-            'key' => '_peracrm_status',
-            'value' => $status_key,
-            'compare' => '=',
-        ];
+        $all_stage_ids = isset($bucket_ids[$status_key]) ? $bucket_ids[$status_key] : [];
+        $offset = ($paged - 1) * $per_page;
+        $ids = array_slice($all_stage_ids, $offset, $per_page);
 
-        $query = new WP_Query([
-            'post_type' => 'crm_client',
-            'post_status' => 'any',
-            'fields' => 'ids',
-            'posts_per_page' => $per_page,
-            'paged' => $paged,
-            'orderby' => 'title',
-            'order' => 'ASC',
-            'meta_query' => $meta_query,
-        ]);
+        $query = new stdClass();
+        $query->max_num_pages = max(1, (int) ceil(count($all_stage_ids) / $per_page));
+        $query->found_posts = count($all_stage_ids);
 
-        $ids = array_values(array_map('intval', $query->posts));
         $columns[$status_key] = [
             'label' => $status_label,
             'query' => $query,
@@ -695,7 +726,7 @@ function peracrm_render_pipeline_page()
                 if ($has_activity_table && $last_activity_ts > 0 && $last_activity_ts < ($now_ts - (30 * DAY_IN_SECONDS))) {
                     $hints[] = ['label' => 'No activity', 'class' => 'no-activity'];
                 }
-                if ($has_activity_table && $status_key === 'enquiry' && $last_activity_ts === 0 && $open === 0 && $overdue === 0) {
+                if ($has_activity_table && $status_key === $default_stage && $last_activity_ts === 0 && $open === 0 && $overdue === 0) {
                     $hints[] = ['label' => 'New enquiry', 'class' => 'new-enquiry'];
                 }
 
