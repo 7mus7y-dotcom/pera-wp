@@ -351,8 +351,8 @@ function peracrm_render_assigned_advisor_metabox($post)
         if ($advisor_user) {
             $advisor_name = $advisor_user->display_name;
         }
-        if (function_exists('peracrm_user_is_employee_advisor')) {
-            $advisor_is_eligible = peracrm_user_is_employee_advisor($advisor_id);
+        if (function_exists('peracrm_user_is_staff')) {
+            $advisor_is_eligible = peracrm_user_is_staff($advisor_id);
         }
     }
 
@@ -374,8 +374,8 @@ function peracrm_render_assigned_advisor_metabox($post)
         return;
     }
 
-    $advisor_options = function_exists('peracrm_get_advisor_users')
-        ? peracrm_get_advisor_users()
+    $advisor_options = function_exists('peracrm_get_staff_users')
+        ? peracrm_get_staff_users()
         : [];
 
     echo '<form method="post" action="' . esc_url(admin_url('admin-post.php')) . '" class="peracrm-form">';
@@ -1115,9 +1115,9 @@ function peracrm_render_deals_metabox($post)
         echo '<p>No deals yet.</p>';
     }
 
-    $is_junk = ($party['disposition'] ?? 'none') === 'junk';
+    $is_junk = ($party['disposition'] ?? 'none') === 'junk_lead';
     if ($is_junk) {
-        echo '<p><em>This party is marked as Junk. Deal creation is disabled unless override is checked.</em></p>';
+        echo '<p><em>This party is marked as Junk lead. Deal creation is disabled unless override is checked.</em></p>';
     }
 
     $action = $editing_deal ? 'peracrm_update_deal' : 'peracrm_create_deal';
@@ -1138,9 +1138,23 @@ function peracrm_render_deals_metabox($post)
     echo '<p><input type="text" class="widefat" name="title" placeholder="Deal title" value="' . esc_attr($editing_deal['title'] ?? '') . '" required /></p>';
 
     echo '<p><select class="widefat" name="stage">';
-    $selected_stage = $editing_deal['stage'] ?? 'qualified';
+    $selected_stage = $editing_deal['stage'] ?? 'reservation_taken';
     foreach (peracrm_deal_stage_options() as $value => $label) {
         echo '<option value="' . esc_attr($value) . '"' . selected($selected_stage, $value, false) . '>' . esc_html($label) . '</option>';
+    }
+    echo '</select></p>';
+
+    $selected_closed_reason = function_exists('peracrm_deal_sanitize_closed_reason')
+        ? peracrm_deal_sanitize_closed_reason($editing_deal['closed_reason'] ?? 'none')
+        : (string) ($editing_deal['closed_reason'] ?? 'none');
+    $closed_reason_options = function_exists('peracrm_closed_reason_options')
+        ? peracrm_closed_reason_options()
+        : ['none' => 'None'];
+
+    echo '<p><label for="peracrm-deal-closed-reason">Closed reason</label></p>';
+    echo '<p><select id="peracrm-deal-closed-reason" class="widefat" name="closed_reason">';
+    foreach ($closed_reason_options as $value => $label) {
+        echo '<option value="' . esc_attr($value) . '"' . selected($selected_closed_reason, (string) $value, false) . '>' . esc_html($label) . '</option>';
     }
     echo '</select></p>';
 
@@ -1150,7 +1164,7 @@ function peracrm_render_deals_metabox($post)
     echo '<p><input type="date" class="widefat" name="expected_close_date" value="' . esc_attr($editing_deal['expected_close_date'] ?? '') . '" /></p>';
 
     echo '<p><select class="widefat" name="owner_user_id"><option value="0">No owner</option>';
-    foreach (peracrm_get_advisor_users() as $advisor) {
+    foreach (peracrm_get_staff_users() as $advisor) {
         echo '<option value="' . esc_attr((int) $advisor->ID) . '"' . selected((int) ($editing_deal['owner_user_id'] ?? 0), (int) $advisor->ID, false) . '>' . esc_html($advisor->display_name) . '</option>';
     }
     echo '</select></p>';

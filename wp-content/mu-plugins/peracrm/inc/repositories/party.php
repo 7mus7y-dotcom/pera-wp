@@ -6,12 +6,16 @@ if (!defined('ABSPATH')) {
 
 function peracrm_party_stage_options()
 {
-    return [
-        'new_enquiry' => 'New enquiry',
-        'qualified' => 'Qualified',
-        'active_search' => 'Active search',
-        'deal_created' => 'Deal created',
-    ];
+    return function_exists('peracrm_lead_stage_options')
+        ? peracrm_lead_stage_options()
+        : [
+            'new_enquiry' => 'New enquiry',
+            'contacted' => 'Contacted',
+            'qualified' => 'Qualified',
+            'viewing_arranged' => 'Viewing arranged',
+            'offer_made' => 'Offer made',
+            'negotiation' => 'Negotiation',
+        ];
 }
 
 function peracrm_party_engagement_options()
@@ -19,6 +23,7 @@ function peracrm_party_engagement_options()
     return [
         'engaged' => 'Engaged',
         'dormant' => 'Dormant',
+        'closed' => 'Closed',
     ];
 }
 
@@ -26,7 +31,8 @@ function peracrm_party_disposition_options()
 {
     return [
         'none' => 'None',
-        'junk' => 'Junk',
+        'junk_lead' => 'Junk lead',
+        'duplicate' => 'Duplicate',
     ];
 }
 
@@ -50,7 +56,9 @@ function peracrm_party_table_exists()
 
 function peracrm_party_sanitize_stage($value)
 {
-    $value = sanitize_key((string) $value);
+    $value = function_exists('peracrm_map_legacy_lead_stage')
+        ? peracrm_map_legacy_lead_stage($value)
+        : sanitize_key((string) $value);
     $allowed = peracrm_party_stage_options();
 
     return isset($allowed[$value]) ? $value : 'new_enquiry';
@@ -61,12 +69,20 @@ function peracrm_party_sanitize_engagement($value)
     $value = sanitize_key((string) $value);
     $allowed = peracrm_party_engagement_options();
 
+    if ($value === 'closed') {
+        return 'closed';
+    }
+
     return isset($allowed[$value]) ? $value : 'engaged';
 }
 
 function peracrm_party_sanitize_disposition($value)
 {
     $value = sanitize_key((string) $value);
+    if ($value === 'junk') {
+        $value = 'junk_lead';
+    }
+
     $allowed = peracrm_party_disposition_options();
 
     return isset($allowed[$value]) ? $value : 'none';
@@ -181,7 +197,7 @@ function peracrm_party_batch_get_closed_won_client_ids(array $party_ids)
     return peracrm_with_target_blog(static function () use ($wpdb, $party_ids) {
         $table = peracrm_table('peracrm_deals');
         $placeholders = implode(', ', array_fill(0, count($party_ids), '%d'));
-        $params = array_merge(['closed_won'], $party_ids);
+        $params = array_merge(['completed'], $party_ids);
         $query = $wpdb->prepare(
             "SELECT DISTINCT party_id
              FROM {$table}
@@ -242,7 +258,7 @@ function peracrm_parties_count_by_stage($exclude_junk = true)
 
     return peracrm_with_target_blog(static function () use ($wpdb, $exclude_junk) {
         $table = peracrm_table('peracrm_party');
-        $where = $exclude_junk ? $wpdb->prepare('WHERE disposition != %s', 'junk') : '';
+        $where = $exclude_junk ? $wpdb->prepare('WHERE disposition != %s', 'junk_lead') : '';
         $rows = $wpdb->get_results(
             "SELECT lead_pipeline_stage, COUNT(*) AS total
              FROM {$table}

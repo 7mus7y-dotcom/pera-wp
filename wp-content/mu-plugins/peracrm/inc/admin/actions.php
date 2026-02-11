@@ -6,17 +6,51 @@ if (!defined('ABSPATH')) {
 
 function peracrm_admin_user_can_manage()
 {
-    return current_user_can('manage_options') || current_user_can('edit_crm_clients');
+    return function_exists('peracrm_user_can_access_crm')
+        ? peracrm_user_can_access_crm()
+        : (current_user_can('manage_options') || current_user_can('edit_crm_clients'));
 }
 
-function peracrm_pipeline_status_labels()
+
+function peracrm_pipeline_stage_options()
 {
-    return [
+    if (function_exists('peracrm_lead_stage_options')) {
+        $options = (array) peracrm_lead_stage_options();
+        if (!empty($options)) {
+            return $options;
+        }
+    }
+
+    if (function_exists('peracrm_party_stage_options')) {
+        $options = (array) peracrm_party_stage_options();
+        if (!empty($options)) {
+            return $options;
+        }
+    }
+
+    $options = [
         'enquiry' => 'Enquiry',
         'active' => 'Active',
         'dormant' => 'Dormant',
         'closed' => 'Closed',
     ];
+
+    if (function_exists('peracrm_parties_count_by_stage')) {
+        foreach ((array) peracrm_parties_count_by_stage(false) as $stage_key => $count) {
+            $stage_key = sanitize_key((string) $stage_key);
+            if ($stage_key === '' || isset($options[$stage_key])) {
+                continue;
+            }
+            $options[$stage_key] = ucwords(str_replace('_', ' ', $stage_key));
+        }
+    }
+
+    return $options;
+}
+
+function peracrm_pipeline_status_labels()
+{
+    return peracrm_pipeline_stage_options();
 }
 
 function peracrm_pipeline_client_type_options()
@@ -107,7 +141,7 @@ function peracrm_pipeline_sanitize_view_filters($raw_filters, $is_admin)
 
     if ($is_admin) {
         $advisor_id = isset($raw_filters['advisor']) ? absint($raw_filters['advisor']) : 0;
-        if ($advisor_id > 0 && !peracrm_user_is_valid_advisor($advisor_id)) {
+        if ($advisor_id > 0 && !peracrm_user_is_staff($advisor_id)) {
             $advisor_id = 0;
         }
         $filters['advisor_id'] = $advisor_id;
@@ -542,6 +576,36 @@ function peracrm_handle_pipeline_delete_view()
     peracrm_admin_redirect_with_notice($redirect, 'pipeline_view_deleted');
 }
 
+
+function peracrm_pipeline_allowed_stage_values()
+{
+    $allowed = array_map('sanitize_key', array_keys(peracrm_pipeline_stage_options()));
+    $legacy = ['enquiry', 'active', 'dormant', 'closed'];
+
+    return array_values(array_unique(array_filter(array_merge($allowed, $legacy), static function ($stage) {
+        return $stage !== '';
+    })));
+}
+
+function peracrm_pipeline_default_stage_key()
+{
+    $options = peracrm_pipeline_stage_options();
+    if (isset($options['new_enquiry'])) {
+        return 'new_enquiry';
+    }
+
+    if (isset($options['enquiry'])) {
+        return 'enquiry';
+    }
+
+    $keys = array_keys($options);
+    if (!empty($keys)) {
+        return sanitize_key((string) $keys[0]);
+    }
+
+    return 'enquiry';
+}
+
 function peracrm_handle_pipeline_move_stage()
 {
     if (!is_user_logged_in()) {
@@ -567,7 +631,7 @@ function peracrm_handle_pipeline_move_stage()
         peracrm_admin_redirect_with_notice($redirect, 'stage_denied');
     }
 
-    $allowed_statuses = ['enquiry', 'active', 'dormant', 'closed'];
+    $allowed_statuses = peracrm_pipeline_allowed_stage_values();
     $to_status = isset($_POST['to_status']) ? sanitize_key(wp_unslash($_POST['to_status'])) : '';
     if (!in_array($to_status, $allowed_statuses, true)) {
         peracrm_admin_redirect_with_notice($redirect, 'stage_invalid');
@@ -584,15 +648,37 @@ function peracrm_handle_pipeline_move_stage()
         }
     }
 
-    $from_status = sanitize_key(get_post_meta($client_id, '_peracrm_status', true));
+    $party = function_exists('peracrm_party_get') ? peracrm_party_get($client_id) : [];
+    $from_status = sanitize_key((string) ($party['lead_pipeline_stage'] ?? ''));
     if (!in_array($from_status, $allowed_statuses, true)) {
-        $from_status = 'unknown';
+        $from_status = peracrm_pipeline_default_stage_key();
     }
     if ($from_status === $to_status) {
         peracrm_admin_redirect_with_notice($redirect, 'stage_invalid');
     }
 
-    update_post_meta($client_id, '_peracrm_status', $to_status);
+    if (!function_exists('peracrm_party_upsert_status')) {
+        peracrm_admin_redirect_with_notice($redirect, 'stage_failed');
+    }
+
+    $stage_saved = peracrm_party_upsert_status($client_id, [
+        'lead_pipeline_stage' => $to_status,
+        'engagement_state' => $party['engagement_state'] ?? 'engaged',
+        'disposition' => $party['disposition'] ?? 'none',
+        'lead_stage_updated_at' => peracrm_now_mysql(),
+    ]);
+
+    if (function_exists('peracrm_party_get')) {
+        $updated_party = peracrm_party_get($client_id);
+        $updated_stage = sanitize_key((string) ($updated_party['lead_pipeline_stage'] ?? ''));
+        $stage_verified = ($updated_stage === $to_status);
+    } else {
+        $stage_verified = (true === $stage_saved);
+    }
+
+    if (!$stage_verified) {
+        peracrm_admin_redirect_with_notice($redirect, 'stage_failed');
+    }
 
     $can_log = function_exists('peracrm_activity_table_exists') && peracrm_activity_table_exists();
     if ($can_log && function_exists('peracrm_activity_insert')) {
@@ -672,7 +758,7 @@ function peracrm_handle_pipeline_bulk_action()
     $can_reassign = peracrm_admin_user_can_reassign();
     $can_override = $is_admin || ($action_key === 'reassign_advisor' && $can_reassign);
 
-    $allowed_statuses = ['enquiry', 'active', 'dormant', 'closed'];
+    $allowed_statuses = peracrm_pipeline_allowed_stage_values();
     $to_status = '';
     $new_advisor = 0;
     $due_at_mysql = '';
@@ -691,7 +777,7 @@ function peracrm_handle_pipeline_bulk_action()
             peracrm_pipeline_bulk_redirect($redirect, $action_key, 0, $total_client_ids, $capped);
         }
         $new_advisor = isset($_POST['advisor_user_id']) ? absint($_POST['advisor_user_id']) : 0;
-        if ($new_advisor > 0 && !peracrm_user_is_employee_advisor($new_advisor)) {
+        if ($new_advisor > 0 && !peracrm_user_is_staff($new_advisor)) {
             peracrm_pipeline_bulk_redirect($redirect, $action_key, 0, $total_client_ids, $capped);
         }
     }
@@ -713,7 +799,7 @@ function peracrm_handle_pipeline_bulk_action()
         }
         if ($is_admin) {
             $reminder_advisor_id = isset($_POST['reminder_advisor_user_id']) ? absint($_POST['reminder_advisor_user_id']) : 0;
-            if ($reminder_advisor_id > 0 && !peracrm_user_is_valid_advisor($reminder_advisor_id)) {
+            if ($reminder_advisor_id > 0 && !peracrm_user_is_staff($reminder_advisor_id)) {
                 peracrm_pipeline_bulk_redirect($redirect, $action_key, 0, $total_client_ids, $capped);
             }
             if ($reminder_advisor_id <= 0) {
@@ -743,16 +829,40 @@ function peracrm_handle_pipeline_bulk_action()
         }
 
         if ('move_stage' === $action_key) {
-            $from_status = sanitize_key(get_post_meta($client_id, '_peracrm_status', true));
+            $party = function_exists('peracrm_party_get') ? peracrm_party_get($client_id) : [];
+            $from_status = sanitize_key((string) ($party['lead_pipeline_stage'] ?? ''));
             if (!in_array($from_status, $allowed_statuses, true)) {
-                $from_status = 'unknown';
+                $from_status = peracrm_pipeline_default_stage_key();
             }
             if ($from_status === $to_status) {
                 $failed++;
                 continue;
             }
 
-            update_post_meta($client_id, '_peracrm_status', $to_status);
+            if (!function_exists('peracrm_party_upsert_status')) {
+                $failed++;
+                continue;
+            }
+
+            $stage_saved = peracrm_party_upsert_status($client_id, [
+                'lead_pipeline_stage' => $to_status,
+                'engagement_state' => $party['engagement_state'] ?? 'engaged',
+                'disposition' => $party['disposition'] ?? 'none',
+                'lead_stage_updated_at' => peracrm_now_mysql(),
+            ]);
+
+            if (function_exists('peracrm_party_get')) {
+                $updated_party = peracrm_party_get($client_id);
+                $updated_stage = sanitize_key((string) ($updated_party['lead_pipeline_stage'] ?? ''));
+                $stage_verified = ($updated_stage === $to_status);
+            } else {
+                $stage_verified = (true === $stage_saved);
+            }
+
+            if (!$stage_verified) {
+                $failed++;
+                continue;
+            }
 
             $can_log = function_exists('peracrm_activity_table_exists') && peracrm_activity_table_exists();
             if ($can_log && function_exists('peracrm_activity_insert')) {
@@ -860,7 +970,7 @@ function peracrm_handle_pipeline_export_csv()
     $advisor_id = isset($_POST['advisor_id']) ? absint($_POST['advisor_id']) : 0;
     if (!$can_manage_all) {
         $advisor_id = get_current_user_id();
-    } elseif ($advisor_id > 0 && !peracrm_user_is_valid_advisor($advisor_id)) {
+    } elseif ($advisor_id > 0 && !peracrm_user_is_staff($advisor_id)) {
         $advisor_id = 0;
     }
 
@@ -1263,7 +1373,7 @@ function peracrm_handle_reassign_client_advisor()
     }
 
     $new_advisor = isset($_POST['peracrm_assigned_advisor']) ? absint($_POST['peracrm_assigned_advisor']) : 0;
-    if ($new_advisor > 0 && !peracrm_user_is_employee_advisor($new_advisor)) {
+    if ($new_advisor > 0 && !peracrm_user_is_staff($new_advisor)) {
         wp_die('Invalid advisor selection.');
     }
 
@@ -1724,7 +1834,7 @@ function peracrm_admin_client_list_clauses($clauses, $query)
 
     if ($context['derived_type'] !== '' && function_exists('peracrm_deals_table_exists') && peracrm_deals_table_exists()) {
         $deals_table = peracrm_table('peracrm_deals');
-        $client_sub = "(SELECT DISTINCT party_id FROM {$deals_table} WHERE stage = 'closed_won') AS peracrm_client_parties";
+        $client_sub = "(SELECT DISTINCT party_id FROM {$deals_table} WHERE stage = 'completed') AS peracrm_client_parties";
         if (false === strpos($clauses['join'], 'peracrm_client_parties')) {
             $clauses['join'] .= " LEFT JOIN {$client_sub} ON {$wpdb->posts}.ID = peracrm_client_parties.party_id";
         }
@@ -2112,7 +2222,7 @@ function peracrm_handle_create_deal()
     }
 
     $party = peracrm_party_get($client_id);
-    $is_junk = ($party['disposition'] ?? 'none') === 'junk';
+    $is_junk = ($party['disposition'] ?? 'none') === 'junk_lead';
     $override = !empty($_POST['override_junk']);
     if ($is_junk && !$override) {
         wp_safe_redirect(add_query_arg(['post' => $client_id, 'action' => 'edit', 'peracrm_notice' => 'profile_failed'], admin_url('post.php')));
@@ -2122,7 +2232,7 @@ function peracrm_handle_create_deal()
     $created = peracrm_deals_create([
         'party_id' => $client_id,
         'title' => $_POST['title'] ?? '',
-        'stage' => $_POST['stage'] ?? 'qualified',
+        'stage' => $_POST['stage'] ?? 'reservation_taken',
         'primary_property_id' => $_POST['primary_property_id'] ?? null,
         'deal_value' => $_POST['deal_value'] ?? null,
         'currency' => $_POST['currency'] ?? 'USD',
@@ -2136,6 +2246,7 @@ function peracrm_handle_create_deal()
         'commission_due_date' => $_POST['commission_due_date'] ?? null,
         'commission_paid_at' => $_POST['commission_paid_at'] ?? null,
         'commission_notes' => $_POST['commission_notes'] ?? '',
+        'closed_reason' => function_exists('peracrm_deal_sanitize_closed_reason') ? peracrm_deal_sanitize_closed_reason($_POST['closed_reason'] ?? 'none') : ($_POST['closed_reason'] ?? 'none'),
     ]);
 
     wp_safe_redirect(add_query_arg([
@@ -2162,7 +2273,7 @@ function peracrm_handle_update_deal()
 
     $updated = peracrm_deals_update($deal_id, [
         'title' => $_POST['title'] ?? '',
-        'stage' => $_POST['stage'] ?? 'qualified',
+        'stage' => $_POST['stage'] ?? 'reservation_taken',
         'primary_property_id' => $_POST['primary_property_id'] ?? null,
         'deal_value' => $_POST['deal_value'] ?? null,
         'currency' => $_POST['currency'] ?? 'USD',
@@ -2176,6 +2287,7 @@ function peracrm_handle_update_deal()
         'commission_due_date' => $_POST['commission_due_date'] ?? null,
         'commission_paid_at' => $_POST['commission_paid_at'] ?? null,
         'commission_notes' => $_POST['commission_notes'] ?? '',
+        'closed_reason' => function_exists('peracrm_deal_sanitize_closed_reason') ? peracrm_deal_sanitize_closed_reason($_POST['closed_reason'] ?? 'none') : ($_POST['closed_reason'] ?? 'none'),
     ]);
 
     wp_safe_redirect(add_query_arg([
@@ -2249,7 +2361,7 @@ function peracrm_render_commission_dashboard_widget()
 
     echo '</tbody></table>';
 
-    $advisors = peracrm_get_advisor_users();
+    $advisors = peracrm_get_staff_users();
     $advisor_map = [];
     foreach ($advisors as $advisor) {
         $advisor_map[(int) $advisor->ID] = $advisor;

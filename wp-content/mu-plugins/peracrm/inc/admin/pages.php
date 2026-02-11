@@ -34,7 +34,7 @@ function peracrm_register_admin_menu()
         $parent_slug,
         'Work Queue',
         'Work Queue',
-        'edit_crm_clients',
+        $capability,
         'peracrm-work-queue',
         'peracrm_render_work_queue_page'
     );
@@ -43,7 +43,7 @@ function peracrm_register_admin_menu()
         $parent_slug,
         'Pipeline',
         'Pipeline',
-        'edit_crm_clients',
+        $capability,
         'peracrm-pipeline',
         'peracrm_render_pipeline_page'
     );
@@ -56,7 +56,7 @@ function peracrm_register_admin_menu()
         $parent_slug,
         'Client View',
         'Client View',
-        'edit_crm_clients',
+        $capability,
         'peracrm-client-view',
         'peracrm_render_client_view_page'
     );
@@ -64,7 +64,19 @@ function peracrm_register_admin_menu()
 
 function peracrm_admin_required_capability()
 {
-    return current_user_can('manage_options') ? 'manage_options' : 'edit_crm_clients';
+    if (current_user_can('manage_options')) {
+        return 'manage_options';
+    }
+
+    if (current_user_can('edit_crm_leads')) {
+        return 'edit_crm_leads';
+    }
+
+    if (current_user_can('edit_crm_deals')) {
+        return 'edit_crm_deals';
+    }
+
+    return 'edit_crm_clients';
 }
 
 function peracrm_admin_is_my_reminders_screen($hook)

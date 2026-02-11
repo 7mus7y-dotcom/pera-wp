@@ -215,13 +215,17 @@ function peracrm_user_is_valid_advisor($user_id)
         return false;
     }
 
-    return user_can($user, 'manage_options') || user_can($user, 'edit_crm_clients');
+    if (function_exists('peracrm_user_is_staff') && peracrm_user_is_staff($user_id)) {
+        return true;
+    }
+
+    return user_can($user, 'manage_options');
 }
 
-function peracrm_get_advisor_users()
+function peracrm_get_staff_users()
 {
     $users = get_users([
-        'role' => 'employee',
+        'role__in' => ['employee', 'manager', 'administrator'],
         'orderby' => 'display_name',
         'order' => 'ASC',
     ]);
@@ -231,11 +235,36 @@ function peracrm_get_advisor_users()
     }
 
     return array_values(array_filter($users, static function ($user) {
-        return $user instanceof WP_User
-            && in_array('employee', (array) $user->roles, true);
+        if (!$user instanceof WP_User) {
+            return false;
+        }
+
+        return function_exists('peracrm_user_is_staff') && peracrm_user_is_staff((int) $user->ID);
     }));
 }
 
+
+function peracrm_user_is_staff($user_id)
+{
+    $user_id = (int) $user_id;
+    if ($user_id <= 0) {
+        return false;
+    }
+
+    $user = get_userdata($user_id);
+    if (!$user instanceof WP_User) {
+        return false;
+    }
+
+    $roles = (array) $user->roles;
+    return in_array('employee', $roles, true)
+        || in_array('manager', $roles, true)
+        || in_array('administrator', $roles, true);
+}
+
+/**
+ * @deprecated Use peracrm_user_is_staff() for eligibility checks.
+ */
 function peracrm_user_is_employee_advisor($user_id)
 {
     $user_id = (int) $user_id;
@@ -289,4 +318,32 @@ function peracrm_with_target_blog(callable $callback)
             restore_current_blog();
         }
     }
+}
+
+/**
+ * @deprecated Use peracrm_get_staff_users().
+ */
+function peracrm_get_advisor_users()
+{
+    return function_exists('peracrm_get_staff_users') ? peracrm_get_staff_users() : [];
+}
+
+function peracrm_user_can_access_crm($user_id = 0)
+{
+    if ($user_id > 0) {
+        $user = get_userdata((int) $user_id);
+        if (!$user instanceof WP_User) {
+            return false;
+        }
+
+        return user_can($user, 'manage_options')
+            || user_can($user, 'edit_crm_clients')
+            || user_can($user, 'edit_crm_leads')
+            || user_can($user, 'edit_crm_deals');
+    }
+
+    return current_user_can('manage_options')
+        || current_user_can('edit_crm_clients')
+        || current_user_can('edit_crm_leads')
+        || current_user_can('edit_crm_deals');
 }

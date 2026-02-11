@@ -6,13 +6,15 @@ if (!defined('ABSPATH')) {
 
 function peracrm_deal_stage_options()
 {
-    return [
-        'qualified' => 'Qualified',
-        'reserved' => 'Reserved',
-        'contract_signed' => 'Contract signed',
-        'closed_won' => 'Closed won',
-        'closed_lost' => 'Closed lost',
-    ];
+    return function_exists('peracrm_deal_stage_options_map')
+        ? peracrm_deal_stage_options_map()
+        : [
+            'reservation_taken' => 'Reservation taken',
+            'contract_signed' => 'Contract signed',
+            'payment_in_progress' => 'Payment in progress',
+            'completed' => 'Completed',
+            'lost' => 'Lost',
+        ];
 }
 
 function peracrm_deals_commission_type_options()
@@ -174,15 +176,27 @@ function peracrm_deals_table_exists()
 
 function peracrm_deal_sanitize_stage($stage)
 {
-    $stage = sanitize_key((string) $stage);
+    $stage = function_exists('peracrm_map_legacy_deal_stage')
+        ? peracrm_map_legacy_deal_stage($stage)
+        : sanitize_key((string) $stage);
     $allowed = peracrm_deal_stage_options();
 
-    return isset($allowed[$stage]) ? $stage : 'qualified';
+    return isset($allowed[$stage]) ? $stage : 'reservation_taken';
 }
 
 function peracrm_deal_is_closed_stage($stage)
 {
-    return in_array($stage, ['closed_won', 'closed_lost'], true);
+    return in_array($stage, ['completed', 'lost'], true);
+}
+
+
+function peracrm_deal_sanitize_closed_reason($reason)
+{
+    if (function_exists('peracrm_normalize_closed_reason')) {
+        return peracrm_normalize_closed_reason($reason);
+    }
+
+    return 'none';
 }
 
 function peracrm_deals_create(array $data)
@@ -203,7 +217,7 @@ function peracrm_deals_create(array $data)
         return 0;
     }
 
-    $stage = peracrm_deal_sanitize_stage($data['stage'] ?? 'qualified');
+    $stage = peracrm_deal_sanitize_stage($data['stage'] ?? 'reservation_taken');
     $now = peracrm_now_mysql();
     $closed_at = !empty($data['closed_at']) ? sanitize_text_field((string) $data['closed_at']) : null;
     if (null === $closed_at && peracrm_deal_is_closed_stage($stage)) {
@@ -215,7 +229,9 @@ function peracrm_deals_create(array $data)
         $commission['commission_paid_at'] = current_time('mysql');
     }
 
-    $result = peracrm_with_target_blog(static function () use ($wpdb, $party_id, $title, $stage, $data, $now, $closed_at, $commission) {
+    $closed_reason = peracrm_deal_sanitize_closed_reason($data['closed_reason'] ?? 'none');
+
+    $result = peracrm_with_target_blog(static function () use ($wpdb, $party_id, $title, $stage, $closed_reason, $data, $now, $closed_at, $commission) {
         $table = peracrm_table('peracrm_deals');
         $inserted = $wpdb->insert(
             $table,
@@ -224,6 +240,7 @@ function peracrm_deals_create(array $data)
                 'title' => $title,
                 'primary_property_id' => !empty($data['primary_property_id']) ? (int) $data['primary_property_id'] : null,
                 'stage' => $stage,
+                'closed_reason' => $closed_reason,
                 'deal_value' => isset($data['deal_value']) && $data['deal_value'] !== '' ? (float) $data['deal_value'] : null,
                 'currency' => peracrm_deals_sanitize_currency($data['currency'] ?? 'USD'),
                 'commission_type' => $commission['commission_type'],
@@ -241,7 +258,7 @@ function peracrm_deals_create(array $data)
                 'updated_at' => $now,
             ],
             [
-                '%d', '%s', '%d', '%s', '%f', '%s',
+                '%d', '%s', '%d', '%s', '%s', '%f', '%s',
                 '%s', '%f', '%f', '%s', '%s', '%s', '%s', '%s',
                 '%s', '%s', '%d', '%s', '%s',
             ]
@@ -289,13 +306,18 @@ function peracrm_deals_update($deal_id, array $data)
         $commission['commission_paid_at'] = current_time('mysql');
     }
 
-    $updated = peracrm_with_target_blog(static function () use ($wpdb, $deal_id, $title, $stage, $data, $closed_at, $now, $commission) {
+    $closed_reason = isset($data['closed_reason'])
+        ? peracrm_deal_sanitize_closed_reason($data['closed_reason'])
+        : peracrm_deal_sanitize_closed_reason($deal['closed_reason'] ?? 'none');
+
+    $updated = peracrm_with_target_blog(static function () use ($wpdb, $deal_id, $title, $stage, $closed_reason, $data, $closed_at, $now, $commission) {
         $table = peracrm_table('peracrm_deals');
         return $wpdb->update(
             $table,
             [
                 'title' => $title,
                 'stage' => $stage,
+                'closed_reason' => $closed_reason,
                 'primary_property_id' => isset($data['primary_property_id']) ? (int) $data['primary_property_id'] : null,
                 'deal_value' => isset($data['deal_value']) && $data['deal_value'] !== '' ? (float) $data['deal_value'] : null,
                 'currency' => isset($data['currency']) ? peracrm_deals_sanitize_currency($data['currency']) : 'USD',
@@ -313,7 +335,7 @@ function peracrm_deals_update($deal_id, array $data)
                 'updated_at' => $now,
             ],
             ['id' => $deal_id],
-            ['%s', '%s', '%d', '%f', '%s', '%s', '%f', '%f', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%d', '%s'],
+            ['%s', '%s', '%s', '%d', '%f', '%s', '%s', '%f', '%f', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%d', '%s'],
             ['%d']
         );
     });
@@ -373,6 +395,7 @@ function peracrm_deal_normalize_row(array $row)
         'title' => (string) $row['title'],
         'primary_property_id' => isset($row['primary_property_id']) ? (int) $row['primary_property_id'] : 0,
         'stage' => peracrm_deal_sanitize_stage($row['stage']),
+        'closed_reason' => peracrm_deal_sanitize_closed_reason($row['closed_reason'] ?? 'none'),
         'deal_value' => isset($row['deal_value']) && $row['deal_value'] !== null ? (float) $row['deal_value'] : null,
         'currency' => isset($row['currency']) ? (string) $row['currency'] : 'USD',
         'commission_type' => peracrm_deals_sanitize_commission_type($row['commission_type'] ?? 'percent'),
@@ -583,6 +606,28 @@ function peracrm_deals_get_received_ytd_by_advisor(array $args = [])
     });
 }
 
+
+function peracrm_party_completed_deal_count($party_id)
+{
+    $party_id = (int) $party_id;
+    if ($party_id <= 0 || !peracrm_deals_table_exists()) {
+        return 0;
+    }
+
+    global $wpdb;
+
+    return (int) peracrm_with_target_blog(static function () use ($wpdb, $party_id) {
+        $table = peracrm_table('peracrm_deals');
+        $query = $wpdb->prepare(
+            "SELECT COUNT(*) FROM {$table} WHERE party_id = %d AND stage = %s",
+            $party_id,
+            'completed'
+        );
+
+        return (int) $wpdb->get_var($query);
+    });
+}
+
 function peracrm_party_is_client($party_id)
 {
     $party_id = (int) $party_id;
@@ -590,20 +635,7 @@ function peracrm_party_is_client($party_id)
         return false;
     }
 
-    global $wpdb;
-
-    $count = peracrm_with_target_blog(static function () use ($wpdb, $party_id) {
-        $table = peracrm_table('peracrm_deals');
-        $query = $wpdb->prepare(
-            "SELECT party_id FROM {$table} WHERE party_id = %d AND stage = %s LIMIT 1",
-            $party_id,
-            'closed_won'
-        );
-
-        return $wpdb->get_var($query);
-    });
-
-    return !empty($count);
+    return peracrm_party_completed_deal_count($party_id) > 0;
 }
 
 function peracrm_deals_count_by_stage()
@@ -642,7 +674,7 @@ function peracrm_count_distinct_clients_from_deals()
         $table = peracrm_table('peracrm_deals');
         $query = $wpdb->prepare(
             "SELECT COUNT(DISTINCT party_id) FROM {$table} WHERE stage = %s",
-            'closed_won'
+            'completed'
         );
 
         return (int) $wpdb->get_var($query);
