@@ -10,6 +10,7 @@ require_once PERACRM_INC . '/admin/pages.php';
 require_once PERACRM_INC . '/admin/assets.php';
 
 add_action('admin_menu', 'peracrm_register_admin_menu');
+add_action('load-post.php', 'peracrm_admin_audit_crm_client_update_request', 1);
 add_action('add_meta_boxes', 'peracrm_register_metaboxes', 10, 2);
 add_action('save_post_crm_client', 'peracrm_handle_save_party_status_on_post_save', 10, 3);
 add_filter('redirect_post_location', 'peracrm_admin_fix_crm_client_post_update_redirect', 10, 2);
