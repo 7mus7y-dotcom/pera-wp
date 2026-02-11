@@ -12,7 +12,7 @@ require_once PERACRM_INC . '/favourites.php';
 require_once PERACRM_INC . '/activity.php';
 require_once PERACRM_INC . '/activity-capture.php';
 require_once PERACRM_INC . '/health.php';
-require_once PERACRM_INC . '/enquiry-ingest.php';
+require_once PERACRM_INC . '/integrations/enquiries.php';
 
 require_once PERACRM_INC . '/repositories/notes.php';
 require_once PERACRM_INC . '/repositories/reminders.php';
