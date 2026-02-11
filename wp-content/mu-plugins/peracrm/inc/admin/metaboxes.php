@@ -1045,10 +1045,7 @@ function peracrm_render_crm_status_metabox($post)
 
     echo '<p><strong>Derived type:</strong> ' . ($is_client ? '<span class="dashicons-before dashicons-yes-alt">Client</span>' : 'Lead') . '</p>';
 
-    echo '<form method="post" action="' . esc_url(admin_url('admin-post.php')) . '">';
-    wp_nonce_field('peracrm_save_party_status');
-    echo '<input type="hidden" name="action" value="peracrm_save_party_status" />';
-    echo '<input type="hidden" name="peracrm_client_id" value="' . esc_attr((int) $post->ID) . '" />';
+    wp_nonce_field('peracrm_save_party_status', 'peracrm_save_party_status_nonce');
 
     echo '<p><label for="peracrm-lead-stage">Lead Pipeline Stage</label></p>';
     echo '<select name="lead_pipeline_stage" id="peracrm-lead-stage" class="widefat">';
@@ -1071,8 +1068,7 @@ function peracrm_render_crm_status_metabox($post)
     }
     echo '</select>';
 
-    submit_button('Save CRM status', 'secondary', 'submit', false);
-    echo '</form>';
+    echo '<p><em>Lead status changes are saved when you click Update.</em></p>';
 }
 
 function peracrm_render_deals_metabox($post)
@@ -1238,4 +1234,3 @@ function peracrm_render_deals_metabox($post)
     echo '})();';
     echo '</script>';
 }
-

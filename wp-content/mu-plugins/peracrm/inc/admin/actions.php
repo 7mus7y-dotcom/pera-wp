@@ -2180,6 +2180,44 @@ function peracrm_admin_get_derived_type_filter()
     return in_array($value, ['lead', 'client'], true) ? $value : '';
 }
 
+
+function peracrm_handle_save_party_status_on_post_save($post_id, $post, $update)
+{
+    if (!$update || !$post instanceof WP_Post || $post->post_type !== 'crm_client') {
+        return;
+    }
+
+    if (wp_is_post_revision($post_id) || wp_is_post_autosave($post_id)) {
+        return;
+    }
+
+    if (!isset($_POST['peracrm_save_party_status_nonce']) || !wp_verify_nonce(sanitize_text_field(wp_unslash($_POST['peracrm_save_party_status_nonce'])), 'peracrm_save_party_status')) {
+        return;
+    }
+
+    if (!current_user_can('edit_post', $post_id)) {
+        return;
+    }
+
+    $allowed_stage_values = function_exists('peracrm_pipeline_allowed_stage_values')
+        ? peracrm_pipeline_allowed_stage_values()
+        : array_map('sanitize_key', array_keys((array) peracrm_party_stage_options()));
+
+    $lead_pipeline_stage = isset($_POST['lead_pipeline_stage']) ? sanitize_key(wp_unslash($_POST['lead_pipeline_stage'])) : '';
+    if ($lead_pipeline_stage === '' || !in_array($lead_pipeline_stage, $allowed_stage_values, true)) {
+        $lead_pipeline_stage = function_exists('peracrm_party_default_status')
+            ? (string) (peracrm_party_default_status()['lead_pipeline_stage'] ?? 'new_enquiry')
+            : 'new_enquiry';
+    }
+
+    peracrm_party_upsert_status($post_id, [
+        'lead_pipeline_stage' => $lead_pipeline_stage,
+        'engagement_state' => $_POST['engagement_state'] ?? '',
+        'disposition' => $_POST['disposition'] ?? '',
+        'lead_stage_updated_at' => peracrm_now_mysql(),
+    ]);
+}
+
 function peracrm_handle_save_party_status()
 {
     if (!peracrm_admin_user_can_manage()) {
