@@ -459,7 +459,7 @@ function peracrm_handle_add_note()
         wp_die('Unauthorized');
     }
 
-    check_admin_referer('peracrm_add_note');
+    check_admin_referer('peracrm_add_note', 'peracrm_add_note_nonce');
 
     $client_id = isset($_POST['peracrm_client_id']) ? (int) $_POST['peracrm_client_id'] : 0;
     $client = peracrm_admin_get_client($client_id);
@@ -1246,7 +1246,10 @@ function peracrm_handle_unlink_user()
         wp_die('Unauthorized');
     }
 
-    check_admin_referer('peracrm_unlink_user');
+    $unlink_nonce = isset($_REQUEST['peracrm_unlink_user_nonce']) ? sanitize_text_field(wp_unslash($_REQUEST['peracrm_unlink_user_nonce'])) : '';
+    if ($unlink_nonce === '' || !wp_verify_nonce($unlink_nonce, 'peracrm_unlink_user')) {
+        wp_die('Invalid nonce');
+    }
 
     $linked_user_id = peracrm_admin_find_linked_user_id($client_id);
     if ($linked_user_id <= 0) {
@@ -1286,7 +1289,7 @@ function peracrm_handle_save_client_profile()
         wp_die('Invalid client.');
     }
 
-    check_admin_referer('peracrm_save_client_profile');
+    check_admin_referer('peracrm_save_client_profile', 'peracrm_save_client_profile_nonce');
 
     $post_type = get_post_type($client_id);
     if ($post_type !== 'crm_client') {
@@ -1369,7 +1372,7 @@ function peracrm_handle_reassign_client_advisor()
         wp_die('Invalid client.');
     }
 
-    check_admin_referer('peracrm_reassign_client_advisor');
+    check_admin_referer('peracrm_reassign_client_advisor', 'peracrm_reassign_client_advisor_nonce');
 
     if (!current_user_can('edit_post', $client_id) || !peracrm_admin_user_can_reassign()) {
         wp_die('You do not have permission to reassign this client.');
@@ -1423,7 +1426,7 @@ function peracrm_handle_add_reminder()
         wp_die('Unauthorized');
     }
 
-    check_admin_referer('peracrm_add_reminder');
+    check_admin_referer('peracrm_add_reminder', 'peracrm_add_reminder_nonce');
 
     $client_id = isset($_POST['peracrm_client_id']) ? (int) $_POST['peracrm_client_id'] : 0;
     $client = peracrm_admin_get_client($client_id);
@@ -1510,7 +1513,7 @@ function peracrm_handle_update_reminder_status()
         wp_die('Unauthorized');
     }
 
-    check_admin_referer('peracrm_update_reminder_status');
+    check_admin_referer('peracrm_update_reminder_status', 'peracrm_update_reminder_status_nonce');
 
     $reminder_id = isset($_POST['peracrm_reminder_id']) ? (int) $_POST['peracrm_reminder_id'] : 0;
     $reminder = peracrm_admin_get_reminder($reminder_id);
@@ -2304,7 +2307,7 @@ function peracrm_handle_create_deal()
         wp_die('Unauthorized', 403);
     }
 
-    check_admin_referer('peracrm_create_deal');
+    check_admin_referer('peracrm_create_deal', 'peracrm_deal_nonce');
     $client_id = isset($_POST['peracrm_client_id']) ? (int) $_POST['peracrm_client_id'] : 0;
     if ($client_id <= 0 || !current_user_can('edit_post', $client_id)) {
         wp_die('Invalid client', 400);
@@ -2352,7 +2355,7 @@ function peracrm_handle_update_deal()
         wp_die('Unauthorized', 403);
     }
 
-    check_admin_referer('peracrm_update_deal');
+    check_admin_referer('peracrm_update_deal', 'peracrm_deal_nonce');
     $client_id = isset($_POST['peracrm_client_id']) ? (int) $_POST['peracrm_client_id'] : 0;
     $deal_id = isset($_POST['deal_id']) ? (int) $_POST['deal_id'] : 0;
 
