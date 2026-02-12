@@ -84,3 +84,6 @@ User GET /crm/new/
   -> rewrite ^crm/client/([0-9]+)/?$
   -> template_include => page-crm-client.php
 ```
+
+## Host/cookie note for front-end `admin-post.php` submissions
+When `WP_HOME` and `WP_SITEURL` differ by host (for example `www.example.com` vs `example.com`), front-end CRM forms must post to `home_url('/wp-admin/admin-post.php')` so browser auth cookies are sent on submit. Using `admin_url('admin-post.php')` on front-end templates can target the `WP_SITEURL` host and cause `is_user_logged_in()` to fail during `admin_post_*` handling.

@@ -115,7 +115,7 @@ get_header();
           <div>
             <article class="card-shell crm-client-section">
               <h3><?php esc_html_e( 'CRM Status', 'hello-elementor-child' ); ?></h3>
-              <form method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>" class="crm-form-stack">
+              <form method="post" action="<?php echo esc_url( home_url( '/wp-admin/admin-post.php' ) ); ?>" class="crm-form-stack">
 					<?php wp_nonce_field( 'peracrm_save_party_status' ); ?>
                 <input type="hidden" name="action" value="peracrm_save_party_status" />
                 <input type="hidden" name="peracrm_client_id" value="<?php echo esc_attr( (string) $client_id ); ?>" />
@@ -150,7 +150,7 @@ get_header();
 
             <article class="card-shell crm-client-section">
               <h3><?php esc_html_e( 'Assigned Advisor', 'hello-elementor-child' ); ?></h3>
-              <form method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>" class="crm-form-stack">
+              <form method="post" action="<?php echo esc_url( home_url( '/wp-admin/admin-post.php' ) ); ?>" class="crm-form-stack">
 					<?php wp_nonce_field( 'peracrm_reassign_client_advisor', 'peracrm_reassign_client_advisor_nonce' ); ?>
                 <input type="hidden" name="action" value="peracrm_reassign_client_advisor" />
                 <input type="hidden" name="peracrm_client_id" value="<?php echo esc_attr( (string) $client_id ); ?>" />
@@ -167,7 +167,7 @@ get_header();
 
             <article class="card-shell crm-client-section">
               <h3><?php esc_html_e( 'Client Profile', 'hello-elementor-child' ); ?></h3>
-              <form method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>" class="crm-form-stack">
+              <form method="post" action="<?php echo esc_url( home_url( '/wp-admin/admin-post.php' ) ); ?>" class="crm-form-stack">
 					<?php wp_nonce_field( 'peracrm_save_client_profile', 'peracrm_save_client_profile_nonce' ); ?>
                 <input type="hidden" name="action" value="peracrm_save_client_profile" />
                 <input type="hidden" name="peracrm_client_id" value="<?php echo esc_attr( (string) $client_id ); ?>" />
@@ -229,7 +229,7 @@ get_header();
           <div>
             <article class="card-shell crm-client-section">
               <h3><?php esc_html_e( 'Reminders', 'hello-elementor-child' ); ?></h3>
-              <form method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>" class="crm-form-stack">
+              <form method="post" action="<?php echo esc_url( home_url( '/wp-admin/admin-post.php' ) ); ?>" class="crm-form-stack">
 					<?php wp_nonce_field( 'peracrm_add_reminder', 'peracrm_add_reminder_nonce' ); ?>
                 <input type="hidden" name="action" value="peracrm_add_reminder" />
                 <input type="hidden" name="peracrm_client_id" value="<?php echo esc_attr( (string) $client_id ); ?>" />
@@ -244,7 +244,7 @@ get_header();
                   <li>
                     <strong><?php echo esc_html( (string) ( $reminder['due_at'] ?? '' ) ); ?></strong>
                     <span><?php echo esc_html( (string) ( $reminder['note'] ?? '' ) ); ?></span>
-                    <form method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>">
+                    <form method="post" action="<?php echo esc_url( home_url( '/wp-admin/admin-post.php' ) ); ?>">
 							<?php wp_nonce_field( 'peracrm_update_reminder_status', 'peracrm_update_reminder_status_nonce' ); ?>
                       <input type="hidden" name="action" value="peracrm_update_reminder_status" />
                       <input type="hidden" name="peracrm_reminder_id" value="<?php echo esc_attr( (string) ( (int) ( $reminder['id'] ?? 0 ) ) ); ?>" />
@@ -259,7 +259,7 @@ get_header();
 
             <article class="card-shell crm-client-section">
               <h3><?php esc_html_e( 'Notes', 'hello-elementor-child' ); ?></h3>
-              <form method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>" class="crm-form-stack">
+              <form method="post" action="<?php echo esc_url( home_url( '/wp-admin/admin-post.php' ) ); ?>" class="crm-form-stack">
 					<?php wp_nonce_field( 'peracrm_add_note', 'peracrm_add_note_nonce' ); ?>
                 <input type="hidden" name="action" value="peracrm_add_note" />
                 <input type="hidden" name="peracrm_client_id" value="<?php echo esc_attr( (string) $client_id ); ?>" />
@@ -288,7 +288,7 @@ get_header();
                   </li>
 					<?php endforeach; ?>
               </ul>
-              <form method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>" class="crm-form-stack">
+              <form method="post" action="<?php echo esc_url( home_url( '/wp-admin/admin-post.php' ) ); ?>" class="crm-form-stack">
                 <input type="hidden" name="action" value="<?php echo esc_attr( 'update' === $deal_form_mode ? 'peracrm_update_deal' : 'peracrm_create_deal' ); ?>" />
                 <input type="hidden" name="peracrm_deal_nonce" value="<?php echo esc_attr( wp_create_nonce( 'update' === $deal_form_mode ? 'peracrm_update_deal' : 'peracrm_create_deal' ) ); ?>" />
                 <input type="hidden" name="peracrm_deal_submit" value="1" />
