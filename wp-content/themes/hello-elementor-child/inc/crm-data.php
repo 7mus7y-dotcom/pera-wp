@@ -793,6 +793,68 @@ if ( ! function_exists( 'pera_crm_get_leads_view_data' ) ) {
 
 if ( ! function_exists( 'pera_crm_get_pipeline_view_data' ) ) {
 	/**
+	 * Fetch advisor filter options in CRM target blog context.
+	 *
+	 * @return array<int,array{id:int,label:string}>
+	 */
+	function pera_crm_get_pipeline_advisor_options(): array {
+		$target_blog_id = get_current_blog_id();
+		if ( function_exists( 'peracrm_get_target_blog_id' ) ) {
+			$resolved_blog_id = (int) peracrm_get_target_blog_id();
+			if ( $resolved_blog_id > 0 ) {
+				$target_blog_id = $resolved_blog_id;
+			}
+		}
+
+		$load_users = static function (): array {
+			$users = get_users(
+				array(
+					'role__in' => array( 'employee', 'manager', 'administrator' ),
+					'orderby'  => 'display_name',
+					'order'    => 'ASC',
+					'fields'   => array( 'ID', 'display_name' ),
+				)
+			);
+
+			$options = array();
+			foreach ( $users as $user ) {
+				if ( ! ( $user instanceof WP_User ) ) {
+					continue;
+				}
+
+				$user_id = (int) $user->ID;
+				$label   = trim( (string) $user->display_name );
+				if ( $user_id <= 0 || '' === $label ) {
+					continue;
+				}
+
+				$options[] = array(
+					'id'    => $user_id,
+					'label' => $label,
+				);
+			}
+
+			return $options;
+		};
+
+		if ( function_exists( 'peracrm_with_target_blog' ) ) {
+			$result = peracrm_with_target_blog( $load_users );
+			return is_array( $result ) ? $result : array();
+		}
+
+		if ( is_multisite() && $target_blog_id > 0 && get_current_blog_id() !== $target_blog_id && function_exists( 'switch_to_blog' ) && function_exists( 'restore_current_blog' ) ) {
+			switch_to_blog( $target_blog_id );
+			try {
+				return $load_users();
+			} finally {
+				restore_current_blog();
+			}
+		}
+
+		return $load_users();
+	}
+
+	/**
 	 * Build grouped pipeline board data using the existing CRM scope resolver.
 	 *
 	 * @return array<string,mixed>
@@ -1008,39 +1070,7 @@ if ( ! function_exists( 'pera_crm_get_pipeline_view_data' ) ) {
 
 		$advisor_options = array();
 		if ( $can_manage_all ) {
-			$advisor_users = get_users(
-				array(
-					'role__in' => array( 'employee', 'manager', 'administrator' ),
-					'orderby'  => 'display_name',
-					'order'    => 'ASC',
-					'fields'   => array( 'ID', 'display_name' ),
-				)
-			);
-
-			foreach ( $advisor_users as $advisor_user ) {
-				if ( ! ( $advisor_user instanceof WP_User ) ) {
-					continue;
-				}
-
-				$advisor_id = (int) $advisor_user->ID;
-				if ( $advisor_id <= 0 ) {
-					continue;
-				}
-
-				if ( function_exists( 'peracrm_user_can_access_crm' ) && ! peracrm_user_can_access_crm( $advisor_id ) ) {
-					continue;
-				}
-
-				$label = trim( (string) $advisor_user->display_name );
-				if ( '' === $label ) {
-					continue;
-				}
-
-				$advisor_options[] = array(
-					'id'    => $advisor_id,
-					'label' => $label,
-				);
-			}
+			$advisor_options = pera_crm_get_pipeline_advisor_options();
 		}
 
 		if ( ! empty( $advisor_options ) && function_exists( 'wp_list_sort' ) ) {
