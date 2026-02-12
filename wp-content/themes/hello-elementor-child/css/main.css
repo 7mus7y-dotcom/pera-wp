@@ -1548,6 +1548,21 @@ button.pill:focus-visible {
   transition: color 0.35s ease, opacity 0.2s ease;
 }
 
+#site-header .header-icons .header-crm-toggle {
+  position: relative;
+}
+
+#site-header .header-icons .header-icon-dot {
+  position: absolute;
+  top: -2px;
+  right: -2px;
+  width: 8px;
+  height: 8px;
+  border-radius: 999px;
+  background: var(--pill-red);
+  box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.85);
+}
+
 /* -------------------------------------------------------
    Scrolled state (light mode default)
    ------------------------------------------------------- */

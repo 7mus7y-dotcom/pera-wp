@@ -177,6 +177,27 @@ if ( ! function_exists( 'pera_crm_fetch_overdue_reminders_count' ) ) {
 	}
 }
 
+if ( ! function_exists( 'pera_crm_get_overdue_reminders_count_for_current_user' ) ) {
+	/**
+	 * Fetch overdue reminders count in the same scope as the CRM dashboard tasks.
+	 */
+	function pera_crm_get_overdue_reminders_count_for_current_user(): int {
+		if ( ! is_user_logged_in() || ! function_exists( 'pera_crm_user_can_access' ) || ! pera_crm_user_can_access() ) {
+			return 0;
+		}
+
+		$current_user_id = get_current_user_id();
+		$is_employee     = function_exists( 'pera_crm_user_is_employee' ) && pera_crm_user_is_employee( $current_user_id );
+
+		if ( $is_employee && function_exists( 'peracrm_reminders_count_for_advisor' ) ) {
+			return max( 0, (int) peracrm_reminders_count_for_advisor( $current_user_id, pera_crm_reminders_open_status(), 'overdue' ) );
+		}
+
+		$count = pera_crm_fetch_overdue_reminders_count();
+		return null === $count ? 0 : max( 0, (int) $count );
+	}
+}
+
 if ( ! function_exists( 'pera_crm_reminders_open_status' ) ) {
 	/**
 	 * Resolve status value used for open reminders.

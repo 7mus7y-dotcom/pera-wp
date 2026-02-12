@@ -39,6 +39,13 @@ if ( ! defined( 'ABSPATH' ) ) {
 
 <?php
 $logo_path = get_stylesheet_directory() . '/logos-icons/pera-logo.svg';
+$show_crm_header_button = is_user_logged_in() && function_exists( 'pera_crm_user_can_access' ) && pera_crm_user_can_access() && current_user_can( 'edit_crm_clients' );
+$crm_overdue_count      = $show_crm_header_button && function_exists( 'pera_crm_get_overdue_reminders_count_for_current_user' )
+  ? (int) pera_crm_get_overdue_reminders_count_for_current_user()
+  : 0;
+$crm_label              = $crm_overdue_count > 0
+  ? sprintf( 'CRM (%d overdue reminders)', $crm_overdue_count )
+  : 'CRM';
 ?>
 
 <header id="site-header" class="site-header">
@@ -67,6 +74,19 @@ $logo_path = get_stylesheet_directory() . '/logos-icons/pera-logo.svg';
 
     <!-- RIGHT: ICONS -->
     <div class="header-icons">
+
+      <?php if ( $show_crm_header_button ) : ?>
+        <a href="<?php echo esc_url( home_url( '/crm' ) ); ?>"
+           class="header-crm-toggle"
+           aria-label="<?php echo esc_attr( $crm_label ); ?>">
+          <svg class="icon" aria-hidden="true">
+            <use href="<?php echo esc_url( get_stylesheet_directory_uri() . '/logos-icons/icons.svg#icon-users-group' ); ?>"></use>
+          </svg>
+          <?php if ( $crm_overdue_count > 0 ) : ?>
+            <span class="header-icon-dot" aria-hidden="true"></span>
+          <?php endif; ?>
+        </a>
+      <?php endif; ?>
 
       <a href="<?php echo esc_url( get_post_type_archive_link( 'property' ) ); ?>"
          class="header-search-toggle"
