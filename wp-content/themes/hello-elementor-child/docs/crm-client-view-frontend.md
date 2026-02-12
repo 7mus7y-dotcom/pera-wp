@@ -2,6 +2,7 @@
 
 ## Route
 - Pretty URL: `/crm/client/<id>/`
+- Legacy client view route is removed (no redirect).
 - Rewrite resolves to query vars:
   - `pera_crm=1`
   - `pera_crm_view=client`
@@ -19,3 +20,4 @@ The page enforces the same runtime checks as WP-Admin client view logic:
 - Open `/crm/client/<id>/` as an allowed CRM user.
 - Forms post to `admin-post.php` actions used by existing MU plugin handlers.
 - On deploys with rewrite changes, flush permalinks once (Settings → Permalinks → Save, or `wp rewrite flush --hard`).
+- Do not flush rewrites per request (`flush_rewrite_rules()` is expensive).

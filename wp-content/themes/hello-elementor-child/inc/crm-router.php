@@ -36,7 +36,6 @@ if ( ! function_exists( 'pera_crm_register_route' ) ) {
 	function pera_crm_register_route(): void {
 		add_rewrite_rule( '^crm/?$', 'index.php?pera_crm=1', 'top' );
 		add_rewrite_rule( '^crm/new/?$', 'index.php?pera_crm=1&pera_crm_action=new', 'top' );
-		add_rewrite_rule( '^crm/view/([0-9]+)/?$', 'index.php?pera_crm=1&pera_crm_action=view&pera_crm_id=$matches[1]', 'top' );
 		add_rewrite_rule( '^crm/client/([0-9]+)/?$', 'index.php?pera_crm=1&pera_crm_view=client&pera_crm_client_id=$matches[1]&client_id=$matches[1]', 'top' );
 		add_rewrite_rule( '^crm/leads/?$', 'index.php?pera_crm=1&pera_crm_view=leads&paged=1', 'top' );
 		add_rewrite_rule( '^crm/leads/page/([0-9]+)/?$', 'index.php?pera_crm=1&pera_crm_view=leads&paged=$matches[1]', 'top' );
@@ -66,7 +65,6 @@ if ( ! function_exists( 'pera_crm_register_query_var' ) ) {
 		$vars[] = 'pera_crm_view';
 		$vars[] = 'pera_crm_client_id';
 		$vars[] = 'client_id';
-		$vars[] = 'pera_crm_id';
 		$vars[] = 'crm_error';
 		$vars[] = 'crm_notice';
 		return $vars;
@@ -103,15 +101,11 @@ if ( ! function_exists( 'pera_crm_build_create_lead_redirect_url' ) ) {
 
 if ( ! function_exists( 'pera_crm_get_client_view_url' ) ) {
 	/**
-	 * Resolve CRM client detail URL while allowing fallback when /crm/view is unavailable.
+	 * Resolve CRM client detail URL.
 	 */
 	function pera_crm_get_client_view_url( int $client_id, array $args = array() ): string {
 		$client_id  = max( 0, $client_id );
 		$client_url = home_url( '/crm/client/' . $client_id . '/' );
-
-		if ( function_exists( 'pera_crm_route_has_view' ) && pera_crm_route_has_view() ) {
-			$client_url = home_url( '/crm/view/' . $client_id . '/' );
-		}
 
 		if ( empty( $args ) ) {
 			return $client_url;
@@ -120,16 +114,6 @@ if ( ! function_exists( 'pera_crm_get_client_view_url' ) ) {
 		return add_query_arg( $args, $client_url );
 	}
 }
-
-if ( ! function_exists( 'pera_crm_route_has_view' ) ) {
-	/**
-	 * Whether CRM /crm/view/{id} routing is available.
-	 */
-	function pera_crm_route_has_view(): bool {
-		return true;
-	}
-}
-
 if ( ! function_exists( 'pera_crm_set_flash_message' ) ) {
 	/**
 	 * Store one-time CRM notice for the current user.
@@ -322,7 +306,7 @@ if ( ! function_exists( 'pera_crm_handle_new_lead' ) ) {
 			}
 		}
 
-		$success_url = home_url( '/crm/view/' . $post_id . '/' );
+		$success_url = home_url( '/crm/client/' . $post_id . '/' );
 
 		wp_safe_redirect( $success_url );
 		exit;
@@ -375,14 +359,6 @@ if ( ! function_exists( 'pera_crm_maybe_load_template' ) ) {
 			if ( file_exists( $new_template ) ) {
 				status_header( 200 );
 				return $new_template;
-			}
-		}
-
-		if ( 'view' === $action ) {
-			$view_template = get_stylesheet_directory() . '/page-crm-view.php';
-			if ( file_exists( $view_template ) ) {
-				status_header( 200 );
-				return $view_template;
 			}
 		}
 
