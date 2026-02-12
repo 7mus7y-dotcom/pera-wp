@@ -31,6 +31,7 @@ require_once get_stylesheet_directory() . '/inc/favourites.php';
 require_once get_stylesheet_directory() . '/inc/property-pagination.php';
 require_once get_stylesheet_directory() . '/inc/property-card-helpers.php';
 require_once get_stylesheet_directory() . '/inc/client-portal.php';
+require_once get_stylesheet_directory() . '/inc/crm-router.php';
 require_once get_stylesheet_directory() . '/inc/disable-hello-parent-loads.php';
 
 
