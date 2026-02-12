@@ -139,11 +139,7 @@ if ( ! function_exists( 'pera_crm_fetch_overdue_reminders_count' ) ) {
 			return null;
 		}
 
-		$table_candidates = array(
-			$wpdb->prefix . 'peracrm_reminders',
-			$wpdb->prefix . 'crm_reminders',
-			$wpdb->prefix . 'peracrm_activity_reminders',
-		);
+		$table_candidates = array( $wpdb->prefix . 'crm_reminders' );
 
 		$reminders_table = '';
 		foreach ( $table_candidates as $table ) {
@@ -159,9 +155,9 @@ if ( ! function_exists( 'pera_crm_fetch_overdue_reminders_count' ) ) {
 		}
 
 		$callbacks = array(
-			'peracrm_party_count_overdue_reminders',
-			'peracrm_activity_count_overdue_reminders',
+			'peracrm_reminders_count_overdue',
 			'peracrm_reminder_count_overdue',
+			'peracrm_activity_count_overdue_reminders',
 		);
 
 		foreach ( $callbacks as $callback ) {
@@ -173,11 +169,87 @@ if ( ! function_exists( 'pera_crm_fetch_overdue_reminders_count' ) ) {
 			}
 		}
 
-		$today = gmdate( 'Y-m-d H:i:s' );
-		$sql   = $wpdb->prepare( "SELECT COUNT(*) FROM {$reminders_table} WHERE due_at < %s AND (completed_at IS NULL OR completed_at = '0000-00-00 00:00:00')", $today ); // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+		$now = current_time( 'mysql' );
+		$sql = $wpdb->prepare( "SELECT COUNT(*) FROM {$reminders_table} WHERE due_at < %s AND status = %s", $now, pera_crm_reminders_open_status() ); // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
 
 		$count = $wpdb->get_var( $sql ); // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery
 		return is_numeric( $count ) ? max( 0, (int) $count ) : 0;
+	}
+}
+
+if ( ! function_exists( 'pera_crm_reminders_open_status' ) ) {
+	/**
+	 * Resolve status value used for open reminders.
+	 */
+	function pera_crm_reminders_open_status(): string {
+		if ( function_exists( 'peracrm_reminders_allowed_statuses' ) ) {
+			$statuses = peracrm_reminders_allowed_statuses();
+			if ( is_array( $statuses ) ) {
+				if ( in_array( 'open', $statuses, true ) ) {
+					return 'open';
+				}
+				if ( in_array( 'pending', $statuses, true ) ) {
+					return 'pending';
+				}
+			}
+		}
+
+		return 'open';
+	}
+}
+
+if ( ! function_exists( 'pera_crm_debug_tasks_log' ) ) {
+	/**
+	 * Log dashboard task data path diagnostics.
+	 *
+	 * @param string   $scope Task scope.
+	 * @param string   $path  Data source path.
+	 * @param string[] $ids   Reminder IDs.
+	 * @param int      $count Row count.
+	 */
+	function pera_crm_debug_tasks_log( string $scope, string $path, array $ids, int $count ): void {
+		if ( ! defined( 'PERA_CRM_DEBUG_TASKS' ) || ! PERA_CRM_DEBUG_TASKS || ! current_user_can( 'manage_options' ) ) {
+			return;
+		}
+
+		error_log(
+			sprintf(
+				'[PERA CRM tasks] %s path=%s count=%d first_ids=%s',
+				$scope,
+				$path,
+				$count,
+				implode( ',', array_slice( $ids, 0, 3 ) )
+			)
+		);
+	}
+}
+
+if ( ! function_exists( 'pera_crm_get_lead_name' ) ) {
+	/**
+	 * Resolve lead name for dashboard task rows.
+	 */
+	function pera_crm_get_lead_name( int $lead_id ): string {
+		if ( $lead_id <= 0 ) {
+			return '';
+		}
+
+		$lead_name = get_the_title( $lead_id );
+		if ( '' !== $lead_name ) {
+			return $lead_name;
+		}
+
+		if ( function_exists( 'peracrm_party_get' ) ) {
+			$party = peracrm_party_get( $lead_id );
+			if ( is_array( $party ) ) {
+				foreach ( array( 'post_title', 'title', 'name' ) as $key ) {
+					if ( ! empty( $party[ $key ] ) ) {
+						return (string) $party[ $key ];
+					}
+				}
+			}
+		}
+
+		return '';
 	}
 }
 
@@ -337,47 +409,42 @@ if ( ! function_exists( 'pera_crm_get_task_rows' ) ) {
 	function pera_crm_get_task_rows( bool $overdue = false ): array {
 		$current_user_id = get_current_user_id();
 		$is_employee     = pera_crm_user_is_employee( $current_user_id );
-		$allowed_ids     = $is_employee ? pera_crm_get_allowed_client_ids_for_user( $current_user_id ) : array();
-		$today           = wp_date( 'Y-m-d' );
+		$open_status     = pera_crm_reminders_open_status();
+		$now             = current_time( 'mysql' );
+		$today_ts        = current_time( 'timestamp' );
+		$today_start     = date( 'Y-m-d 00:00:00', $today_ts );
+		$today_end       = date( 'Y-m-d 23:59:59', $today_ts );
+		$rows            = array();
+		$debug_ids       = array();
 
-		if ( function_exists( 'peracrm_reminders_list' ) ) {
-			$args = array(
-				'limit'  => 200,
-				'status' => 'open',
-				'order'  => 'ASC',
-			);
-			if ( $is_employee ) {
-				if ( empty( $allowed_ids ) ) {
-					return array();
-				}
-				$args['party_ids'] = $allowed_ids;
-			}
-			$raw_rows = peracrm_reminders_list( $args );
-			if ( is_array( $raw_rows ) ) {
-				$rows = array();
-				foreach ( $raw_rows as $row ) {
+		if ( $is_employee && function_exists( 'peracrm_reminders_list_for_advisor' ) ) {
+			$range = $overdue ? 'overdue' : 'all';
+			$raw   = peracrm_reminders_list_for_advisor( $current_user_id, 200, 0, $open_status, $range, 'asc' );
+			if ( is_array( $raw ) ) {
+				foreach ( $raw as $row ) {
 					if ( ! is_array( $row ) ) {
 						continue;
 					}
-					$lead_id = (int) ( $row['party_id'] ?? $row['client_id'] ?? $row['lead_id'] ?? $row['post_id'] ?? 0 );
-					if ( $is_employee && ! in_array( $lead_id, $allowed_ids, true ) ) {
+					$due_at = (string) ( $row['due_at'] ?? '' );
+					if ( '' === $due_at ) {
 						continue;
 					}
-					$due_raw = (string) ( $row['due_at'] ?? $row['due_date'] ?? '' );
-					$due_key = '' !== $due_raw ? wp_date( 'Y-m-d', strtotime( $due_raw ) ) : '';
-					if ( '' === $due_key ) {
+					if ( ! $overdue && ( $due_at < $today_start || $due_at > $today_end ) ) {
 						continue;
 					}
-					if ( $overdue ? ( $due_key >= $today ) : ( $due_key !== $today ) ) {
+					if ( $overdue && $due_at >= $now ) {
 						continue;
 					}
-					$rows[] = array(
+					$lead_id     = (int) ( $row['client_id'] ?? 0 );
+					$debug_ids[] = (string) ( $row['id'] ?? 0 );
+					$rows[]      = array(
 						'lead_id'       => $lead_id,
-						'lead_name'     => $lead_id > 0 ? get_the_title( $lead_id ) : '',
-						'due_date'      => $due_key,
-						'reminder_note' => wp_strip_all_tags( (string) ( $row['note'] ?? $row['reminder_note'] ?? $row['message'] ?? '' ) ),
+						'lead_name'     => pera_crm_get_lead_name( $lead_id ),
+						'due_date'      => $due_at,
+						'reminder_note' => wp_strip_all_tags( (string) ( $row['note'] ?? '' ) ),
 					);
 				}
+				pera_crm_debug_tasks_log( $overdue ? 'overdue' : 'today', 'mu_advisor', $debug_ids, count( $rows ) );
 				return $rows;
 			}
 		}
@@ -386,7 +453,7 @@ if ( ! function_exists( 'pera_crm_get_task_rows' ) ) {
 		if ( ! isset( $wpdb ) ) {
 			return array();
 		}
-		$table_candidates = array( $wpdb->prefix . 'peracrm_reminders', $wpdb->prefix . 'crm_reminders', $wpdb->prefix . 'peracrm_activity_reminders' );
+		$table_candidates = array( $wpdb->prefix . 'crm_reminders' );
 		$table = '';
 		foreach ( $table_candidates as $candidate ) {
 			$exists = $wpdb->get_var( $wpdb->prepare( 'SHOW TABLES LIKE %s', $candidate ) ); // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery
@@ -399,22 +466,24 @@ if ( ! function_exists( 'pera_crm_get_task_rows' ) ) {
 			return array();
 		}
 
-		$where = $overdue ? 'DATE(due_at) < %s' : 'DATE(due_at) = %s';
-		$sql   = $wpdb->prepare( "SELECT party_id, due_at, note FROM {$table} WHERE {$where} AND (status = 'open' OR status IS NULL OR status = '') ORDER BY due_at ASC LIMIT 200", $today ); // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+		if ( $overdue ) {
+			$sql = $wpdb->prepare( "SELECT id, client_id, due_at, note FROM {$table} WHERE status = %s AND due_at < %s ORDER BY due_at ASC LIMIT 200", $open_status, $now ); // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+		} else {
+			$sql = $wpdb->prepare( "SELECT id, client_id, due_at, note FROM {$table} WHERE status = %s AND due_at BETWEEN %s AND %s ORDER BY due_at ASC LIMIT 200", $open_status, $today_start, $today_end ); // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+		}
 		$raw   = $wpdb->get_results( $sql, ARRAY_A ); // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery
 		$rows  = array();
 		foreach ( (array) $raw as $row ) {
-			$lead_id = (int) ( $row['party_id'] ?? 0 );
-			if ( $is_employee && ! in_array( $lead_id, $allowed_ids, true ) ) {
-				continue;
-			}
+			$lead_id     = (int) ( $row['client_id'] ?? 0 );
+			$debug_ids[] = (string) ( $row['id'] ?? 0 );
 			$rows[] = array(
 				'lead_id'       => $lead_id,
-				'lead_name'     => $lead_id > 0 ? get_the_title( $lead_id ) : '',
-				'due_date'      => wp_date( 'Y-m-d', strtotime( (string) ( $row['due_at'] ?? '' ) ) ),
+				'lead_name'     => pera_crm_get_lead_name( $lead_id ),
+				'due_date'      => (string) ( $row['due_at'] ?? '' ),
 				'reminder_note' => wp_strip_all_tags( (string) ( $row['note'] ?? '' ) ),
 			);
 		}
+		pera_crm_debug_tasks_log( $overdue ? 'overdue' : 'today', 'sql_all', $debug_ids, count( $rows ) );
 		return $rows;
 	}
 }
