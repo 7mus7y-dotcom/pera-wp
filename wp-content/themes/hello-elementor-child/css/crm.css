@@ -88,3 +88,14 @@
     width: 100%;
   }
 }
+
+.crm-form-stack select,
+.crm-form-stack textarea {
+  width: 100%;
+  max-width: 560px;
+}
+
+.crm-form-stack textarea {
+  resize: vertical;
+  min-height: 120px;
+}

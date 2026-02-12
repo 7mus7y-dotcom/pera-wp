@@ -35,7 +35,7 @@ if ( ! function_exists( 'pera_crm_register_route' ) ) {
 	 */
 	function pera_crm_register_route(): void {
 		add_rewrite_rule( '^crm/?$', 'index.php?pera_crm=1', 'top' );
-		add_rewrite_rule( '^crm/new/?$', 'index.php?pera_crm=1&pera_crm_view=new', 'top' );
+		add_rewrite_rule( '^crm/new/?$', 'index.php?pera_crm=1&pera_crm_action=new', 'top' );
 		add_rewrite_rule( '^crm/client/([0-9]+)/?$', 'index.php?pera_crm=1&pera_crm_view=client&pera_crm_client_id=$matches[1]', 'top' );
 		add_rewrite_rule( '^crm/leads/?$', 'index.php?pera_crm=1&pera_crm_view=leads&paged=1', 'top' );
 		add_rewrite_rule( '^crm/leads/page/([0-9]+)/?$', 'index.php?pera_crm=1&pera_crm_view=leads&paged=$matches[1]', 'top' );
@@ -61,6 +61,7 @@ if ( ! function_exists( 'pera_crm_register_query_var' ) ) {
 	 */
 	function pera_crm_register_query_var( array $vars ): array {
 		$vars[] = 'pera_crm';
+		$vars[] = 'pera_crm_action';
 		$vars[] = 'pera_crm_view';
 		$vars[] = 'pera_crm_client_id';
 		$vars[] = 'crm_error';
@@ -76,10 +77,12 @@ if ( ! function_exists( 'pera_crm_build_create_lead_redirect_url' ) ) {
 	 */
 	function pera_crm_build_create_lead_redirect_url( string $error_code ): string {
 		$fields = array(
-			'lead_title'     => isset( $_POST['lead_title'] ) ? sanitize_text_field( wp_unslash( (string) $_POST['lead_title'] ) ) : '',
+			'first_name'     => isset( $_POST['first_name'] ) ? sanitize_text_field( wp_unslash( (string) $_POST['first_name'] ) ) : '',
+			'last_name'      => isset( $_POST['last_name'] ) ? sanitize_text_field( wp_unslash( (string) $_POST['last_name'] ) ) : '',
 			'email'          => isset( $_POST['email'] ) ? sanitize_email( wp_unslash( (string) $_POST['email'] ) ) : '',
 			'phone'          => isset( $_POST['phone'] ) ? preg_replace( '/[^0-9+\-\s()]/', '', wp_unslash( (string) $_POST['phone'] ) ) : '',
-			'pipeline_stage' => isset( $_POST['pipeline_stage'] ) ? sanitize_key( wp_unslash( (string) $_POST['pipeline_stage'] ) ) : '',
+			'source'         => isset( $_POST['source'] ) ? sanitize_key( wp_unslash( (string) $_POST['source'] ) ) : '',
+			'notes'          => isset( $_POST['notes'] ) ? sanitize_textarea_field( wp_unslash( (string) $_POST['notes'] ) ) : '',
 		);
 
 		$args = array(
@@ -95,48 +98,171 @@ if ( ! function_exists( 'pera_crm_build_create_lead_redirect_url' ) ) {
 	}
 }
 
-if ( ! function_exists( 'pera_crm_handle_front_create_lead' ) ) {
+if ( ! function_exists( 'pera_crm_get_client_view_url' ) ) {
+	/**
+	 * Resolve CRM client detail URL while allowing fallback when /crm/view is unavailable.
+	 */
+	function pera_crm_get_client_view_url( int $client_id, array $args = array() ): string {
+		$client_id  = max( 0, $client_id );
+		$client_url = home_url( '/crm/client/' . $client_id . '/' );
+
+		if ( function_exists( 'pera_crm_route_has_view' ) && pera_crm_route_has_view() ) {
+			$client_url = home_url( '/crm/view/' . $client_id . '/' );
+		}
+
+		if ( empty( $args ) ) {
+			return $client_url;
+		}
+
+		return add_query_arg( $args, $client_url );
+	}
+}
+
+if ( ! function_exists( 'pera_crm_route_has_view' ) ) {
+	/**
+	 * Whether CRM /crm/view/{id} routing is available.
+	 */
+	function pera_crm_route_has_view(): bool {
+		return false;
+	}
+}
+
+if ( ! function_exists( 'pera_crm_set_flash_message' ) ) {
+	/**
+	 * Store one-time CRM notice for the current user.
+	 */
+	function pera_crm_set_flash_message( string $message, string $type = 'info' ): void {
+		$user_id = get_current_user_id();
+		if ( $user_id <= 0 ) {
+			return;
+		}
+
+		set_transient(
+			'pera_crm_flash_' . $user_id,
+			array(
+				'message' => sanitize_text_field( $message ),
+				'type'    => sanitize_key( $type ),
+			),
+			2 * MINUTE_IN_SECONDS
+		);
+	}
+}
+
+if ( ! function_exists( 'pera_crm_handle_new_lead' ) ) {
 	/**
 	 * Handle front-end lead creation from /crm/new form submit.
+	 *
+	 * Audit findings:
+	 * - Email is stored in CRM client post meta, canonical keys are _peracrm_email + crm_primary_email (+ normalized variants).
+	 * - Advisor assignment is stored in client post meta using assigned_advisor_user_id and crm_assigned_advisor.
+	 * - Source currently exists as post meta crm_source (no source taxonomy registration found), so this route writes crm_source.
 	 */
-	function pera_crm_handle_front_create_lead(): void {
+	function pera_crm_handle_new_lead(): void {
+		if ( ! pera_is_crm_route() ) {
+			return;
+		}
+
+		if ( 'new' !== sanitize_key( (string) get_query_var( 'pera_crm_action', '' ) ) ) {
+			return;
+		}
+
+		if ( 'POST' !== strtoupper( (string) ( $_SERVER['REQUEST_METHOD'] ?? '' ) ) ) {
+			return;
+		}
+
 		if ( ! is_user_logged_in() ) {
 			wp_safe_redirect( wp_login_url( home_url( '/crm/new/' ) ) );
 			exit;
 		}
 
-		if ( ! pera_crm_user_can_access() || ! current_user_can( 'edit_crm_clients' ) ) {
+		$mu_can_access = function_exists( 'peracrm_user_can_access_crm' ) ? (bool) peracrm_user_can_access_crm() : true;
+
+		if ( ! pera_crm_user_can_access() || ! $mu_can_access || ! current_user_can( 'edit_crm_clients' ) ) {
 			wp_die( esc_html__( 'You are not allowed to create CRM leads.', 'hello-elementor-child' ), 'Forbidden', array( 'response' => 403 ) );
 		}
 
-		check_admin_referer( 'pera_crm_create_lead', 'pera_crm_create_lead_nonce' );
-
-		$lead_title     = isset( $_POST['lead_title'] ) ? sanitize_text_field( wp_unslash( (string) $_POST['lead_title'] ) ) : '';
-		$email          = isset( $_POST['email'] ) ? sanitize_email( wp_unslash( (string) $_POST['email'] ) ) : '';
-		$phone          = isset( $_POST['phone'] ) ? preg_replace( '/[^0-9+\-\s()]/', '', wp_unslash( (string) $_POST['phone'] ) ) : '';
-		$pipeline_stage = isset( $_POST['pipeline_stage'] ) ? sanitize_key( wp_unslash( (string) $_POST['pipeline_stage'] ) ) : 'new_enquiry';
-
-		if ( '' === $lead_title ) {
-			wp_safe_redirect( pera_crm_build_create_lead_redirect_url( 'missing_title' ) );
+		$nonce = isset( $_POST['pera_crm_create_lead_nonce'] ) ? sanitize_text_field( wp_unslash( (string) $_POST['pera_crm_create_lead_nonce'] ) ) : '';
+		if ( '' === $nonce || ! wp_verify_nonce( $nonce, 'pera_crm_create_lead' ) ) {
+			wp_safe_redirect( pera_crm_build_create_lead_redirect_url( 'invalid_nonce' ) );
 			exit;
 		}
 
-		if ( '' !== $email && ! is_email( $email ) ) {
+		$first_name = isset( $_POST['first_name'] ) ? sanitize_text_field( wp_unslash( (string) $_POST['first_name'] ) ) : '';
+		$last_name  = isset( $_POST['last_name'] ) ? sanitize_text_field( wp_unslash( (string) $_POST['last_name'] ) ) : '';
+		$email      = isset( $_POST['email'] ) ? sanitize_email( wp_unslash( (string) $_POST['email'] ) ) : '';
+		$phone      = isset( $_POST['phone'] ) ? sanitize_text_field( wp_unslash( (string) $_POST['phone'] ) ) : '';
+		$source     = isset( $_POST['source'] ) ? sanitize_key( wp_unslash( (string) $_POST['source'] ) ) : '';
+		$notes      = isset( $_POST['notes'] ) ? sanitize_textarea_field( wp_unslash( (string) $_POST['notes'] ) ) : '';
+
+		$allowed_sources = array(
+			'meta_ads',
+			'instagram_dm',
+			'whatsapp_dm',
+			'website',
+			'referral',
+			'other',
+		);
+
+		if ( '' === $first_name || '' === $last_name || '' === $email || '' === $source ) {
+			wp_safe_redirect( pera_crm_build_create_lead_redirect_url( 'missing_required' ) );
+			exit;
+		}
+
+		if ( ! is_email( $email ) ) {
 			wp_safe_redirect( pera_crm_build_create_lead_redirect_url( 'invalid_email' ) );
 			exit;
 		}
 
-		$stages = function_exists( 'pera_crm_get_pipeline_stages' ) ? pera_crm_get_pipeline_stages() : array();
-		if ( '' === $pipeline_stage || ! isset( $stages[ $pipeline_stage ] ) ) {
-			$pipeline_stage = 'new_enquiry';
+		if ( ! in_array( $source, $allowed_sources, true ) ) {
+			wp_safe_redirect( pera_crm_build_create_lead_redirect_url( 'invalid_source' ) );
+			exit;
 		}
+
+		$existing_client_id = 0;
+		if ( function_exists( 'peracrm_find_existing_client_id_by_email' ) ) {
+			$existing_client_id = (int) peracrm_find_existing_client_id_by_email( $email );
+		}
+
+		if ( $existing_client_id <= 0 ) {
+			$existing = get_posts(
+				array(
+					'post_type'      => 'crm_client',
+					'post_status'    => 'any',
+					'posts_per_page' => 1,
+					'fields'         => 'ids',
+					'meta_query'     => array(
+						'relation' => 'OR',
+						array(
+							'key'   => '_peracrm_email',
+							'value' => $email,
+						),
+						array(
+							'key'   => 'crm_primary_email',
+							'value' => $email,
+						),
+					),
+				)
+			);
+
+			if ( ! empty( $existing ) ) {
+				$existing_client_id = (int) $existing[0];
+			}
+		}
+
+		if ( $existing_client_id > 0 ) {
+			pera_crm_set_flash_message( __( 'A lead with this email already exists.', 'hello-elementor-child' ), 'warning' );
+			wp_safe_redirect( pera_crm_get_client_view_url( $existing_client_id, array( 'duplicate' => 1 ) ) );
+			exit;
+		}
+
+		$lead_title = trim( $first_name . ' ' . $last_name );
 
 		$current_user = get_current_user_id();
 		$post_id      = wp_insert_post(
 			array(
 				'post_type'   => 'crm_client',
 				'post_status' => 'publish',
-				'post_title'  => $lead_title,
+				'post_title'  => '' !== $lead_title ? $lead_title : $email,
 				'post_author' => $current_user,
 			),
 			true
@@ -148,13 +274,17 @@ if ( ! function_exists( 'pera_crm_handle_front_create_lead' ) ) {
 		}
 
 		$post_id = (int) $post_id;
+		update_post_meta( $post_id, 'crm_first_name', $first_name );
+		update_post_meta( $post_id, 'crm_last_name', $last_name );
+		update_post_meta( $post_id, 'crm_source', $source );
 
-		if ( '' !== $email ) {
+		if ( function_exists( 'peracrm_sync_client_contact_meta' ) ) {
+			peracrm_sync_client_contact_meta( $post_id, $email, $phone );
+		} else {
 			update_post_meta( $post_id, '_peracrm_email', $email );
-		}
-
-		if ( '' !== $phone ) {
-			update_post_meta( $post_id, '_peracrm_phone', $phone );
+			if ( '' !== $phone ) {
+				update_post_meta( $post_id, '_peracrm_phone', $phone );
+			}
 		}
 
 		update_post_meta( $post_id, '_peracrm_owner_user_id', $current_user );
@@ -165,7 +295,7 @@ if ( ! function_exists( 'pera_crm_handle_front_create_lead' ) ) {
 			peracrm_party_upsert_status(
 				$post_id,
 				array(
-					'lead_pipeline_stage'   => $pipeline_stage,
+					'lead_pipeline_stage'   => 'new_enquiry',
 					'engagement_state'      => 'engaged',
 					'disposition'           => 'none',
 					'lead_stage_updated_at' => function_exists( 'peracrm_now_mysql' ) ? peracrm_now_mysql() : current_time( 'mysql' ),
@@ -173,11 +303,31 @@ if ( ! function_exists( 'pera_crm_handle_front_create_lead' ) ) {
 			);
 		}
 
-		wp_safe_redirect( add_query_arg( 'crm_notice', 'created', home_url( '/crm/client/' . $post_id . '/' ) ) );
+		if ( '' !== $notes ) {
+			if ( function_exists( 'peracrm_note_add' ) ) {
+				peracrm_note_add( $post_id, $current_user, $notes );
+			} elseif ( function_exists( 'peracrm_notes_create' ) ) {
+				peracrm_notes_create( $post_id, $current_user, $notes, 'internal' );
+			} elseif ( function_exists( 'peracrm_log_event' ) ) {
+				peracrm_log_event(
+					$post_id,
+					'note_added',
+					array(
+						'note' => $notes,
+					)
+				);
+			}
+		}
+
+		$success_url = pera_crm_route_has_view()
+			? pera_crm_get_client_view_url( $post_id )
+			: add_query_arg( 'created', $post_id, home_url( '/crm/' ) );
+
+		wp_safe_redirect( $success_url );
 		exit;
 	}
 }
-add_action( 'admin_post_peracrm_front_create_lead', 'pera_crm_handle_front_create_lead' );
+add_action( 'template_redirect', 'pera_crm_handle_new_lead' );
 
 if ( ! function_exists( 'pera_crm_gate_or_redirect' ) ) {
 	/**
@@ -216,9 +366,10 @@ if ( ! function_exists( 'pera_crm_maybe_load_template' ) ) {
 		}
 
 		pera_crm_gate_or_redirect();
+		$action = sanitize_key( (string) get_query_var( 'pera_crm_action', '' ) );
 		$view = sanitize_key( (string) get_query_var( 'pera_crm_view', 'overview' ) );
 
-		if ( 'new' === $view ) {
+		if ( 'new' === $action ) {
 			$new_template = get_stylesheet_directory() . '/page-crm-new.php';
 			if ( file_exists( $new_template ) ) {
 				status_header( 200 );
