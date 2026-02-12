@@ -37,6 +37,8 @@ if ( ! function_exists( 'pera_crm_register_route' ) ) {
 		add_rewrite_rule( '^crm/?$', 'index.php?pera_crm=1', 'top' );
 		add_rewrite_rule( '^crm/new/?$', 'index.php?pera_crm=1&pera_crm_action=new', 'top' );
 		add_rewrite_rule( '^crm/client/([0-9]+)/?$', 'index.php?pera_crm=1&pera_crm_view=client&pera_crm_client_id=$matches[1]&client_id=$matches[1]', 'top' );
+		add_rewrite_rule( '^crm/clients/?$', 'index.php?pera_crm=1&pera_crm_view=leads&paged=1', 'top' );
+		add_rewrite_rule( '^crm/clients/page/([0-9]+)/?$', 'index.php?pera_crm=1&pera_crm_view=leads&paged=$matches[1]', 'top' );
 		add_rewrite_rule( '^crm/leads/?$', 'index.php?pera_crm=1&pera_crm_view=leads&paged=1', 'top' );
 		add_rewrite_rule( '^crm/leads/page/([0-9]+)/?$', 'index.php?pera_crm=1&pera_crm_view=leads&paged=$matches[1]', 'top' );
 		add_rewrite_rule( '^crm/pipeline/?$', 'index.php?pera_crm=1&pera_crm_view=pipeline', 'top' );
