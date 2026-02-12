@@ -393,7 +393,7 @@ if ( ! function_exists( 'pera_crm_get_recent_leads' ) ) {
 			$rows[] = array(
 				'id'   => $lead_id,
 				'name' => get_the_title( $lead_id ),
-				'url'  => function_exists( 'pera_crm_get_client_view_url' ) ? pera_crm_get_client_view_url( $lead_id ) : home_url( '/crm/view/' . $lead_id . '/' ),
+				'url'  => function_exists( 'pera_crm_get_client_view_url' ) ? pera_crm_get_client_view_url( $lead_id ) : home_url( '/crm/client/' . $lead_id . '/' ),
 			);
 		}
 		return $rows;
@@ -743,7 +743,7 @@ if ( ! function_exists( 'pera_crm_get_leads_view_data' ) ) {
 				'disposition'      => (string) ( $party['disposition'] ?? '' ),
 				'last_activity'    => $last_date,
 				'last_activity_ts' => $last_ts,
-				'crm_url'          => function_exists( 'pera_crm_get_client_view_url' ) ? pera_crm_get_client_view_url( $lead_id ) : home_url( '/crm/view/' . $lead_id . '/' ),
+				'crm_url'          => function_exists( 'pera_crm_get_client_view_url' ) ? pera_crm_get_client_view_url( $lead_id ) : home_url( '/crm/client/' . $lead_id . '/' ),
 				'edit_url'         => admin_url( 'post.php?post=' . $lead_id . '&action=edit' ),
 			);
 		}

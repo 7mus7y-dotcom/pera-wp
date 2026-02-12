@@ -103,7 +103,7 @@ get_header();
             <ul class="crm-list">
             <?php foreach ( $today_tasks as $task ) : ?>
               <li>
-                <a class="btn btn--ghost btn--blue" href="<?php echo esc_url( home_url( '/crm/view/' . (int) $task['lead_id'] . '/' ) ); ?>"><?php echo esc_html( (string) ( $task['lead_name'] ?: __( 'Untitled lead', 'hello-elementor-child' ) ) ); ?></a>
+                <a class="btn btn--ghost btn--blue" href="<?php echo esc_url( home_url( '/crm/client/' . (int) $task['lead_id'] . '/' ) ); ?>"><?php echo esc_html( (string) ( $task['lead_name'] ?: __( 'Untitled lead', 'hello-elementor-child' ) ) ); ?></a>
                 <span class="pill pill--outline"><?php echo esc_html( (string) $task['due_date'] ); ?></span>
                 <span><?php echo esc_html( (string) $task['reminder_note'] ); ?></span>
                 <?php $task_status = sanitize_key( (string) ( $task['status'] ?? 'pending' ) ); ?>
@@ -144,7 +144,7 @@ get_header();
             <ul class="crm-list">
             <?php foreach ( $overdue_page_rows as $task ) : ?>
               <li>
-                <a class="btn btn--ghost btn--red" href="<?php echo esc_url( home_url( '/crm/view/' . (int) $task['lead_id'] . '/' ) ); ?>"><?php echo esc_html( (string) ( $task['lead_name'] ?: __( 'Untitled lead', 'hello-elementor-child' ) ) ); ?></a>
+                <a class="btn btn--ghost btn--red" href="<?php echo esc_url( home_url( '/crm/client/' . (int) $task['lead_id'] . '/' ) ); ?>"><?php echo esc_html( (string) ( $task['lead_name'] ?: __( 'Untitled lead', 'hello-elementor-child' ) ) ); ?></a>
                 <span class="pill pill--red"><?php echo esc_html( (string) $task['due_date'] ); ?></span>
                 <span><?php echo esc_html( (string) $task['reminder_note'] ); ?></span>
                 <?php $task_status = sanitize_key( (string) ( $task['status'] ?? 'pending' ) ); ?>
