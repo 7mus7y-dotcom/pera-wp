@@ -7,18 +7,59 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
+$crm_dashboard = function_exists( 'pera_crm_get_dashboard_data' )
+	? pera_crm_get_dashboard_data()
+	: array(
+		'kpis'     => array(),
+		'pipeline' => array(),
+		'activity' => array(),
+		'notices'  => array( __( 'CRM data unavailable.', 'hello-elementor-child' ) ),
+	);
+
+$kpis     = is_array( $crm_dashboard['kpis'] ?? null ) ? $crm_dashboard['kpis'] : array();
+$pipeline = is_array( $crm_dashboard['pipeline'] ?? null ) ? $crm_dashboard['pipeline'] : array();
+$activity = is_array( $crm_dashboard['activity'] ?? null ) ? $crm_dashboard['activity'] : array();
+$notices  = is_array( $crm_dashboard['notices'] ?? null ) ? $crm_dashboard['notices'] : array();
+
+$kpi_tiles = array(
+	array(
+		'label' => __( 'Total open leads', 'hello-elementor-child' ),
+		'key'   => 'total_open_leads',
+	),
+	array(
+		'label' => __( 'New enquiries', 'hello-elementor-child' ),
+		'key'   => 'new_enquiries',
+	),
+	array(
+		'label' => __( 'Qualified', 'hello-elementor-child' ),
+		'key'   => 'qualified',
+	),
+	array(
+		'label' => __( 'Viewing arranged', 'hello-elementor-child' ),
+		'key'   => 'viewing_arranged',
+	),
+	array(
+		'label' => __( 'Offer made', 'hello-elementor-child' ),
+		'key'   => 'offer_made',
+	),
+	array(
+		'label' => __( 'Overdue reminders', 'hello-elementor-child' ),
+		'key'   => 'overdue_reminders',
+	),
+);
+
 get_header();
 ?>
 
 <main id="primary" class="site-main crm-page">
   <section class="hero hero--left hero--fit" id="crm-hero">
     <div class="hero-content container">
-      <h1>CRM</h1>
-      <p class="lead">Staff workspace for daily pipeline, workload, and account visibility.</p>
-      <div class="hero-actions hero-pills" aria-label="CRM quick statuses">
-        <span class="pill pill--brand">Live</span>
-        <span class="pill pill--outline">Internal</span>
-        <span class="pill pill--outline">Placeholder data</span>
+      <h1><?php echo esc_html__( 'CRM', 'hello-elementor-child' ); ?></h1>
+      <p class="lead"><?php echo esc_html__( 'Staff workspace for daily pipeline, workload, and account visibility.', 'hello-elementor-child' ); ?></p>
+      <div class="hero-actions hero-pills" aria-label="<?php echo esc_attr__( 'CRM quick statuses', 'hello-elementor-child' ); ?>">
+        <span class="pill pill--brand"><?php echo esc_html__( 'Live', 'hello-elementor-child' ); ?></span>
+        <span class="pill pill--outline"><?php echo esc_html__( 'Internal', 'hello-elementor-child' ); ?></span>
+        <span class="pill pill--outline"><?php echo esc_html__( 'Read only', 'hello-elementor-child' ); ?></span>
       </div>
     </div>
   </section>
@@ -26,98 +67,82 @@ get_header();
   <section class="content-panel content-panel--overlap-hero">
     <div class="content-panel-box border-dm">
       <div class="section-header">
-        <h2>Overview</h2>
-        <p>Initial CRM scaffold using existing theme cards, grids, and panel wrappers.</p>
+        <h2><?php echo esc_html__( 'Overview', 'hello-elementor-child' ); ?></h2>
+        <p><?php echo esc_html__( 'Live CRM dashboard data loaded from available CRM helper functions.', 'hello-elementor-child' ); ?></p>
       </div>
+
+		<?php if ( ! empty( $notices ) ) : ?>
+		  <section class="section" aria-label="<?php echo esc_attr__( 'CRM notices', 'hello-elementor-child' ); ?>">
+			<?php foreach ( $notices as $notice ) : ?>
+			  <article class="card-shell">
+				<p class="pill pill--outline"><?php echo esc_html__( 'Notice', 'hello-elementor-child' ); ?></p>
+				<p><?php echo esc_html( (string) $notice ); ?></p>
+			  </article>
+			<?php endforeach; ?>
+		  </section>
+		<?php endif; ?>
 
       <section class="section" aria-labelledby="crm-kpi-heading">
         <header class="section-header">
-          <h2 id="crm-kpi-heading">KPI Snapshot</h2>
+          <h2 id="crm-kpi-heading"><?php echo esc_html__( 'KPI Snapshot', 'hello-elementor-child' ); ?></h2>
         </header>
 
         <div class="grid-3 crm-kpi-grid">
-          <article class="card-shell">
-            <p class="pill pill--outline">Leads</p>
-            <h3>124</h3>
-            <p class="text-soft">Open this week</p>
-          </article>
-          <article class="card-shell">
-            <p class="pill pill--outline">Qualified</p>
-            <h3>38</h3>
-            <p class="text-soft">Ready for follow-up</p>
-          </article>
-          <article class="card-shell">
-            <p class="pill pill--outline">Viewings</p>
-            <h3>16</h3>
-            <p class="text-soft">Booked next 7 days</p>
-          </article>
-          <article class="card-shell">
-            <p class="pill pill--outline">Offers</p>
-            <h3>9</h3>
-            <p class="text-soft">Pending review</p>
-          </article>
-          <article class="card-shell">
-            <p class="pill pill--outline">Won</p>
-            <h3>4</h3>
-            <p class="text-soft">Closed this month</p>
-          </article>
-          <article class="card-shell">
-            <p class="pill pill--outline">Tasks</p>
-            <h3>27</h3>
-            <p class="text-soft">Due today</p>
-          </article>
+			<?php foreach ( $kpi_tiles as $tile ) : ?>
+			  <article class="card-shell">
+				<p class="pill pill--outline"><?php echo esc_html( $tile['label'] ); ?></p>
+				<h3><?php echo esc_html( (string) ( (int) ( $kpis[ $tile['key'] ] ?? 0 ) ) ); ?></h3>
+			  </article>
+			<?php endforeach; ?>
         </div>
       </section>
 
       <section class="section" aria-labelledby="crm-work-heading">
-        <div class="grid-2 crm-work-grid">
-          <article class="card-shell">
-            <header class="section-header">
-              <h2 id="crm-work-heading">Pipeline Preview</h2>
-              <p>At-a-glance movement across sales stages.</p>
-            </header>
-            <ul>
-              <li><strong>New enquiry:</strong> 42 contacts awaiting first call.</li>
-              <li><strong>Discovery:</strong> 21 active conversations.</li>
-              <li><strong>Tour planning:</strong> 11 viewings being scheduled.</li>
-              <li><strong>Negotiation:</strong> 7 opportunities in pricing stage.</li>
-            </ul>
-          </article>
-
-          <article class="card-shell">
-            <header class="section-header">
-              <h2>Work Queue</h2>
-              <p>Priority tasks grouped for team handoff.</p>
-            </header>
-            <ul>
-              <li><span class="pill pill--red">High</span> Follow up on delayed documentation (3)</li>
-              <li><span class="pill pill--brand">Today</span> Confirm viewing itineraries (8)</li>
-              <li><span class="pill pill--green">Done soon</span> Update buyer preference notes (5)</li>
-              <li><span class="pill pill--outline">Backlog</span> Archive stale prospects (11)</li>
-            </ul>
-          </article>
-        </div>
+        <article class="card-shell">
+          <header class="section-header">
+            <h2 id="crm-work-heading"><?php echo esc_html__( 'Pipeline Preview', 'hello-elementor-child' ); ?></h2>
+            <p><?php echo esc_html__( 'Count of leads in each canonical pipeline stage.', 'hello-elementor-child' ); ?></p>
+          </header>
+		  <div class="grid-3 crm-kpi-grid">
+			<?php foreach ( $pipeline as $stage ) : ?>
+			  <article class="card-shell">
+				<p class="pill pill--outline"><?php echo esc_html( (string) ( $stage['label'] ?? '' ) ); ?></p>
+				<h3><?php echo esc_html( (string) ( (int) ( $stage['count'] ?? 0 ) ) ); ?></h3>
+			  </article>
+			<?php endforeach; ?>
+		  </div>
+        </article>
       </section>
 
       <section class="section" aria-labelledby="crm-activity-heading">
         <article class="card-shell crm-activity-card">
           <header class="section-header">
-            <h2 id="crm-activity-heading">Recent Activity</h2>
-            <p>Latest timeline events from the CRM feed.</p>
+            <h2 id="crm-activity-heading"><?php echo esc_html__( 'Recent Activity', 'hello-elementor-child' ); ?></h2>
+            <p><?php echo esc_html__( 'Latest 20 CRM activity entries.', 'hello-elementor-child' ); ?></p>
           </header>
 
-          <div class="grid-2--tight">
-            <div>
-              <p><strong>10:24</strong> — New inbound lead assigned to Istanbul central team.</p>
-              <p><strong>09:58</strong> — Offer packet sent for Waterfront Residence Unit 11A.</p>
-              <p><strong>09:15</strong> — Client preferences updated: budget and district shortlist.</p>
-            </div>
-            <div>
-              <p><strong>08:43</strong> — Viewing confirmed for Saturday, coordinator notified.</p>
-              <p><strong>08:10</strong> — Internal note added after legal pre-screen call.</p>
-              <p><strong>07:52</strong> — Stale task reminders auto-generated for account owners.</p>
-            </div>
-          </div>
+		  <?php if ( empty( $activity ) ) : ?>
+			<p><?php echo esc_html__( 'CRM data unavailable.', 'hello-elementor-child' ); ?></p>
+		  <?php else : ?>
+			<ul>
+			  <?php foreach ( $activity as $item ) : ?>
+				<li>
+				  <strong><?php echo esc_html( (string) ( $item['time'] ?? '' ) ); ?></strong>
+				  —
+				  <span class="pill pill--outline"><?php echo esc_html( (string) ( $item['type'] ?? '' ) ); ?></span>
+				  <?php
+				  $summary = (string) ( $item['summary'] ?? '' );
+				  $edit    = (string) ( $item['edit_url'] ?? '' );
+				  ?>
+				  <?php if ( '' !== $edit ) : ?>
+					<a href="<?php echo esc_url( $edit ); ?>"><?php echo esc_html( $summary ); ?></a>
+				  <?php else : ?>
+					<?php echo esc_html( $summary ); ?>
+				  <?php endif; ?>
+				</li>
+			  <?php endforeach; ?>
+			</ul>
+		  <?php endif; ?>
         </article>
       </section>
     </div>
