@@ -404,7 +404,7 @@ if ( ! function_exists( 'pera_crm_get_task_rows' ) ) {
 	/**
 	 * Resolve reminder/task rows from helpers or SQL fallback.
 	 *
-	 * @return array<int,array{lead_id:int,lead_name:string,due_date:string,reminder_note:string}>
+	 * @return array<int,array{reminder_id:int,lead_id:int,lead_name:string,due_date:string,reminder_note:string,status:string}>
 	 */
 	function pera_crm_get_task_rows( bool $overdue = false ): array {
 		$current_user_id = get_current_user_id();
@@ -438,10 +438,12 @@ if ( ! function_exists( 'pera_crm_get_task_rows' ) ) {
 					$lead_id     = (int) ( $row['client_id'] ?? 0 );
 					$debug_ids[] = (string) ( $row['id'] ?? 0 );
 					$rows[]      = array(
+						'reminder_id'   => (int) ( $row['id'] ?? 0 ),
 						'lead_id'       => $lead_id,
 						'lead_name'     => pera_crm_get_lead_name( $lead_id ),
 						'due_date'      => $due_at,
 						'reminder_note' => wp_strip_all_tags( (string) ( $row['note'] ?? '' ) ),
+						'status'        => sanitize_key( (string) ( $row['status'] ?? $open_status ) ),
 					);
 				}
 				pera_crm_debug_tasks_log( $overdue ? 'overdue' : 'today', 'mu_advisor', $debug_ids, count( $rows ) );
@@ -477,10 +479,12 @@ if ( ! function_exists( 'pera_crm_get_task_rows' ) ) {
 			$lead_id     = (int) ( $row['client_id'] ?? 0 );
 			$debug_ids[] = (string) ( $row['id'] ?? 0 );
 			$rows[] = array(
+				'reminder_id'   => (int) ( $row['id'] ?? 0 ),
 				'lead_id'       => $lead_id,
 				'lead_name'     => pera_crm_get_lead_name( $lead_id ),
 				'due_date'      => (string) ( $row['due_at'] ?? '' ),
 				'reminder_note' => wp_strip_all_tags( (string) ( $row['note'] ?? '' ) ),
+				'status'        => $open_status,
 			);
 		}
 		pera_crm_debug_tasks_log( $overdue ? 'overdue' : 'today', 'sql_all', $debug_ids, count( $rows ) );
@@ -671,6 +675,19 @@ if ( ! function_exists( 'pera_crm_get_allowed_client_ids_for_user' ) ) {
 		return array_values( array_unique( array_filter( array_map( 'intval', (array) $ids ) ) ) );
 	}
 }
+
+add_filter(
+	'peracrm_allowed_client_ids_for_user',
+	static function ( $ids, $user_id ) {
+		if ( ! function_exists( 'pera_crm_get_allowed_client_ids_for_user' ) ) {
+			return $ids;
+		}
+
+		return pera_crm_get_allowed_client_ids_for_user( (int) $user_id );
+	},
+	10,
+	2
+);
 
 if ( ! function_exists( 'pera_crm_get_leads_view_data' ) ) {
 	/**
