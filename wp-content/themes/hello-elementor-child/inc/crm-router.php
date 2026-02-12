@@ -39,6 +39,7 @@ if ( ! function_exists( 'pera_crm_register_route' ) ) {
 		add_rewrite_rule( '^crm/client/([0-9]+)/?$', 'index.php?pera_crm=1&pera_crm_view=client&pera_crm_client_id=$matches[1]&client_id=$matches[1]', 'top' );
 		add_rewrite_rule( '^crm/leads/?$', 'index.php?pera_crm=1&pera_crm_view=leads&paged=1', 'top' );
 		add_rewrite_rule( '^crm/leads/page/([0-9]+)/?$', 'index.php?pera_crm=1&pera_crm_view=leads&paged=$matches[1]', 'top' );
+		add_rewrite_rule( '^crm/pipeline/?$', 'index.php?pera_crm=1&pera_crm_view=pipeline', 'top' );
 	}
 }
 add_action( 'init', 'pera_crm_register_route' );
@@ -367,6 +368,14 @@ if ( ! function_exists( 'pera_crm_maybe_load_template' ) ) {
 			if ( file_exists( $client_template ) ) {
 				status_header( 200 );
 				return $client_template;
+			}
+		}
+
+		if ( 'pipeline' === $view ) {
+			$pipeline_template = get_stylesheet_directory() . '/page-crm-pipeline.php';
+			if ( file_exists( $pipeline_template ) ) {
+				status_header( 200 );
+				return $pipeline_template;
 			}
 		}
 
