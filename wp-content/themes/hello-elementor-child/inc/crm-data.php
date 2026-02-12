@@ -800,6 +800,9 @@ if ( ! function_exists( 'pera_crm_get_pipeline_view_data' ) ) {
 	function pera_crm_get_pipeline_view_data(): array {
 		$current_user_id = get_current_user_id();
 		$allowed_ids     = pera_crm_get_allowed_client_ids_for_user( $current_user_id );
+		$q               = sanitize_text_field( $_GET['q'] ?? '' );
+		$stage           = sanitize_key( $_GET['stage'] ?? '' );
+		$advisor         = absint( $_GET['advisor'] ?? 0 );
 
 		$stages = pera_crm_get_pipeline_stages();
 		if ( empty( $stages ) ) {
@@ -816,6 +819,10 @@ if ( ! function_exists( 'pera_crm_get_pipeline_view_data' ) ) {
 		$fallback_stage_key = 'unassigned_new';
 		$stages[ $fallback_stage_key ] = __( 'Unassigned / New', 'hello-elementor-child' );
 
+		if ( '' !== $stage && ! isset( $stages[ $stage ] ) ) {
+			$stage = '';
+		}
+
 		$query_args = array(
 			'post_type'      => 'crm_client',
 			'post_status'    => array( 'publish', 'private', 'draft', 'pending', 'future' ),
@@ -828,6 +835,26 @@ if ( ! function_exists( 'pera_crm_get_pipeline_view_data' ) ) {
 		$can_manage_all = current_user_can( 'manage_options' ) || current_user_can( 'peracrm_manage_all_clients' );
 		if ( ! $can_manage_all ) {
 			$query_args['post__in'] = empty( $allowed_ids ) ? array( 0 ) : $allowed_ids;
+		}
+
+		if ( '' !== $q ) {
+			$query_args['s'] = $q;
+		}
+
+		if ( $advisor > 0 ) {
+			$query_args['meta_query'] = array(
+				'relation' => 'OR',
+				array(
+					'key'     => 'assigned_advisor_user_id',
+					'value'   => $advisor,
+					'compare' => '=',
+				),
+				array(
+					'key'     => 'crm_assigned_advisor',
+					'value'   => $advisor,
+					'compare' => '=',
+				),
+			);
 		}
 
 		$clients = get_posts( $query_args );
@@ -851,6 +878,7 @@ if ( ! function_exists( 'pera_crm_get_pipeline_view_data' ) ) {
 		}
 
 		$advisor_names = array();
+		$advisor_ids   = array();
 
 		foreach ( $clients as $client ) {
 			if ( ! ( $client instanceof WP_Post ) ) {
@@ -870,8 +898,13 @@ if ( ! function_exists( 'pera_crm_get_pipeline_view_data' ) ) {
 				$stage_key = $fallback_stage_key;
 			}
 
+			if ( '' !== $stage && $stage_key !== $stage ) {
+				continue;
+			}
+
 			$advisor_label = '';
 			if ( $assigned > 0 ) {
+				$advisor_ids[ $assigned ] = $assigned;
 				if ( ! isset( $advisor_names[ $assigned ] ) ) {
 					$user                     = get_userdata( $assigned );
 					$advisor_names[ $assigned ] = $user instanceof WP_User ? (string) $user->display_name : '';
@@ -897,12 +930,36 @@ if ( ! function_exists( 'pera_crm_get_pipeline_view_data' ) ) {
 			$board[ $stage_key ]['count'] = count( $stage_data['items'] );
 		}
 
+		$advisor_options = array();
+		foreach ( $advisor_ids as $advisor_id ) {
+			$label = $advisor_names[ $advisor_id ] ?? '';
+			if ( '' === $label ) {
+				continue;
+			}
+
+			$advisor_options[] = array(
+				'id'    => (int) $advisor_id,
+				'label' => (string) $label,
+			);
+		}
+
+		if ( ! empty( $advisor_options ) && function_exists( 'wp_list_sort' ) ) {
+			$advisor_options = wp_list_sort( $advisor_options, 'label', 'ASC', true );
+		}
+
 		return array(
 			'columns'       => $board,
 			'is_employee'   => pera_crm_user_is_employee( $current_user_id ),
 			'scoped_ids'    => $allowed_ids,
 			'current_user'  => $current_user_id,
 			'can_view_all'  => $can_manage_all,
+			'filters'       => array(
+				'q'               => $q,
+				'stage'           => $stage,
+				'advisor'         => $advisor,
+				'advisor_options' => $advisor_options,
+				'stage_options'   => $stages,
+			),
 		);
 	}
 }
