@@ -69,6 +69,7 @@ get_header();
       <nav class="crm-subnav" aria-label="<?php echo esc_attr__( 'CRM sections', 'hello-elementor-child' ); ?>">
         <a class="btn <?php echo esc_attr( $is_leads ? 'btn--ghost' : 'btn--solid' ); ?> btn--blue" href="<?php echo esc_url( home_url( '/crm/' ) ); ?>"><?php echo esc_html__( 'Overview', 'hello-elementor-child' ); ?></a>
         <a class="btn <?php echo esc_attr( $is_leads ? 'btn--solid' : 'btn--ghost' ); ?> btn--blue" href="<?php echo esc_url( home_url( '/crm/leads/' ) ); ?>"><?php echo esc_html__( 'Leads', 'hello-elementor-child' ); ?></a>
+        <a class="btn btn--ghost btn--blue" href="<?php echo esc_url( home_url( '/crm/pipeline/' ) ); ?>"><?php echo esc_html__( 'Pipeline', 'hello-elementor-child' ); ?></a>
       </nav>
     </div>
   </section>

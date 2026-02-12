@@ -165,3 +165,63 @@
     grid-template-columns: 1fr;
   }
 }
+
+.crm-pipeline-filters {
+  margin-bottom: 16px;
+}
+
+.crm-pipeline-filters-grid {
+  gap: 10px;
+}
+
+.crm-pipeline-filters-grid input,
+.crm-pipeline-filters-grid select {
+  width: 100%;
+}
+
+.crm-pipeline-board-wrap {
+  overflow-x: auto;
+}
+
+.crm-pipeline-board {
+  display: flex;
+  gap: 14px;
+  align-items: flex-start;
+  min-width: max-content;
+  padding-bottom: 6px;
+}
+
+.crm-pipeline-column {
+  width: 320px;
+  flex: 0 0 320px;
+}
+
+.crm-pipeline-column-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 10px;
+}
+
+.crm-pipeline-items {
+  display: grid;
+  gap: 10px;
+}
+
+.crm-page .crm-pipeline-item {
+  border: 1px solid var(--border, #e8ecf2);
+  border-radius: 10px;
+  padding: 10px;
+}
+
+.crm-page .crm-pipeline-empty {
+  color: var(--text-soft, #5f6a7d);
+  margin: 4px 0;
+}
+
+@media (max-width: 1024px) {
+  .crm-pipeline-column {
+    width: 280px;
+    flex-basis: 280px;
+  }
+}
