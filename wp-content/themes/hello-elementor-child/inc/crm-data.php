@@ -500,6 +500,7 @@ if ( ! function_exists( 'pera_crm_get_leads_view_data' ) ) {
 				'disposition'      => (string) ( $party['disposition'] ?? '' ),
 				'last_activity'    => $last_date,
 				'last_activity_ts' => $last_ts,
+				'crm_url'          => home_url( '/crm/client/' . $lead_id . '/' ),
 				'edit_url'         => admin_url( 'post.php?post=' . $lead_id . '&action=edit' ),
 			);
 		}
