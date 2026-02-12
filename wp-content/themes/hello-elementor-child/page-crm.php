@@ -108,7 +108,7 @@ get_header();
                 <span><?php echo esc_html( (string) $task['reminder_note'] ); ?></span>
                 <?php $task_status = sanitize_key( (string) ( $task['status'] ?? 'pending' ) ); ?>
                 <?php if ( ! empty( $task['reminder_id'] ) && 'pending' === $task_status ) : ?>
-                <form method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>">
+                <form method="post" action="<?php echo esc_url( home_url( '/wp-admin/admin-post.php' ) ); ?>">
                   <input type="hidden" name="action" value="peracrm_update_reminder_status">
                   <input type="hidden" name="peracrm_reminder_id" value="<?php echo esc_attr( (string) absint( $task['reminder_id'] ) ); ?>">
                   <input type="hidden" name="peracrm_status" value="done">
@@ -149,7 +149,7 @@ get_header();
                 <span><?php echo esc_html( (string) $task['reminder_note'] ); ?></span>
                 <?php $task_status = sanitize_key( (string) ( $task['status'] ?? 'pending' ) ); ?>
                 <?php if ( ! empty( $task['reminder_id'] ) && 'pending' === $task_status ) : ?>
-                <form method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>">
+                <form method="post" action="<?php echo esc_url( home_url( '/wp-admin/admin-post.php' ) ); ?>">
                   <input type="hidden" name="action" value="peracrm_update_reminder_status">
                   <input type="hidden" name="peracrm_reminder_id" value="<?php echo esc_attr( (string) absint( $task['reminder_id'] ) ); ?>">
                   <input type="hidden" name="peracrm_status" value="done">
