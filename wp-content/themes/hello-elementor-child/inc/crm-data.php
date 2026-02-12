@@ -354,3 +354,169 @@ if ( ! function_exists( 'pera_crm_get_dashboard_data' ) ) {
 		);
 	}
 }
+
+
+if ( ! function_exists( 'pera_crm_user_is_employee' ) ) {
+	/**
+	 * Is the user an employee (non-manager scope).
+	 */
+	function pera_crm_user_is_employee( int $user_id ): bool {
+		$user = get_userdata( $user_id );
+		if ( ! ( $user instanceof WP_User ) ) {
+			return false;
+		}
+
+		$roles = (array) $user->roles;
+		return in_array( 'employee', $roles, true ) && ! in_array( 'manager', $roles, true ) && ! in_array( 'administrator', $roles, true );
+	}
+}
+
+if ( ! function_exists( 'pera_crm_get_allowed_client_ids_for_user' ) ) {
+	/**
+	 * Resolve CRM client IDs visible to the current user.
+	 *
+	 * @return int[]
+	 */
+	function pera_crm_get_allowed_client_ids_for_user( int $user_id ): array {
+		$user_id = absint( $user_id );
+		if ( $user_id <= 0 ) {
+			return array();
+		}
+
+		if ( ! pera_crm_user_is_employee( $user_id ) ) {
+			return array();
+		}
+
+		if ( function_exists( 'peracrm_with_target_blog' ) ) {
+			return peracrm_with_target_blog(
+				static function () use ( $user_id ): array {
+					global $wpdb;
+
+					$meta_keys = function_exists( 'peracrm_pipeline_assigned_meta_keys' )
+						? (array) peracrm_pipeline_assigned_meta_keys()
+						: array( 'assigned_advisor_user_id', 'crm_assigned_advisor' );
+					$meta_keys = array_values( array_filter( array_map( 'sanitize_key', $meta_keys ) ) );
+					if ( empty( $meta_keys ) ) {
+						return array();
+					}
+
+					$placeholders = implode( ',', array_fill( 0, count( $meta_keys ), '%s' ) );
+					$params       = array_merge( $meta_keys, array( (string) $user_id ) );
+					$query        = $wpdb->prepare(
+						"SELECT DISTINCT pm.post_id
+						 FROM {$wpdb->postmeta} pm
+						 INNER JOIN {$wpdb->posts} p ON p.ID = pm.post_id
+						 WHERE p.post_type = 'crm_client'
+						   AND p.post_status IN ('publish', 'private', 'draft', 'pending', 'future')
+						   AND pm.meta_key IN ({$placeholders})
+						   AND pm.meta_value = %s",
+						$params
+					);
+
+					$ids = $wpdb->get_col( $query );
+					return array_values( array_unique( array_filter( array_map( 'intval', (array) $ids ) ) ) );
+				}
+			);
+		}
+
+		$ids = get_posts(
+			array(
+				'post_type'      => 'crm_client',
+				'post_status'    => array( 'publish', 'private', 'draft', 'pending', 'future' ),
+				'posts_per_page' => -1,
+				'fields'         => 'ids',
+				'no_found_rows'  => true,
+				'meta_query'     => array(
+					'relation' => 'OR',
+					array(
+						'key'     => 'assigned_advisor_user_id',
+						'value'   => $user_id,
+						'compare' => '=',
+					),
+					array(
+						'key'     => 'crm_assigned_advisor',
+						'value'   => $user_id,
+						'compare' => '=',
+					),
+				),
+			)
+		);
+
+		return array_values( array_unique( array_filter( array_map( 'intval', (array) $ids ) ) ) );
+	}
+}
+
+if ( ! function_exists( 'pera_crm_get_leads_view_data' ) ) {
+	/**
+	 * Build paginated leads data for the CRM leads view.
+	 *
+	 * @return array<string,mixed>
+	 */
+	function pera_crm_get_leads_view_data( int $page = 1, int $per_page = 20 ): array {
+		$current_user_id = get_current_user_id();
+		$page            = max( 1, absint( $page ) );
+		$per_page        = max( 1, absint( $per_page ) );
+		$allowed_ids     = pera_crm_get_allowed_client_ids_for_user( $current_user_id );
+
+		$query_args = array(
+			'post_type'      => 'crm_client',
+			'post_status'    => array( 'publish', 'private', 'draft', 'pending', 'future' ),
+			'posts_per_page' => $per_page,
+			'paged'          => $page,
+			'orderby'        => 'modified',
+			'order'          => 'DESC',
+		);
+
+		if ( pera_crm_user_is_employee( $current_user_id ) ) {
+			if ( empty( $allowed_ids ) ) {
+				$query_args['post__in'] = array( 0 );
+			} else {
+				$query_args['post__in'] = $allowed_ids;
+			}
+		}
+
+		$leads_query = new WP_Query( $query_args );
+		$post_ids    = array_map( 'intval', wp_list_pluck( (array) $leads_query->posts, 'ID' ) );
+
+		$party_map = function_exists( 'peracrm_party_get_status_by_ids' ) ? peracrm_party_get_status_by_ids( $post_ids ) : array();
+
+		if ( function_exists( 'peracrm_client_health_prime_cache' ) ) {
+			peracrm_client_health_prime_cache( $post_ids );
+		}
+
+		$items = array();
+		foreach ( $leads_query->posts as $post ) {
+			$lead_id   = (int) $post->ID;
+			$party     = isset( $party_map[ $lead_id ] ) && is_array( $party_map[ $lead_id ] ) ? $party_map[ $lead_id ] : array();
+			$health    = function_exists( 'peracrm_client_health_get' ) ? peracrm_client_health_get( $lead_id ) : array();
+			$last_ts   = isset( $health['last_activity_ts'] ) ? (int) $health['last_activity_ts'] : 0;
+			$last_date = $last_ts > 0 ? wp_date( get_option( 'date_format' ), $last_ts ) : '';
+
+			$items[] = array(
+				'id'               => $lead_id,
+				'title'            => get_the_title( $lead_id ),
+				'stage'            => (string) ( $party['lead_pipeline_stage'] ?? 'new_enquiry' ),
+				'engagement_state' => (string) ( $party['engagement_state'] ?? '' ),
+				'disposition'      => (string) ( $party['disposition'] ?? '' ),
+				'last_activity'    => $last_date,
+				'last_activity_ts' => $last_ts,
+				'edit_url'         => admin_url( 'post.php?post=' . $lead_id . '&action=edit' ),
+			);
+		}
+
+		if ( function_exists( 'wp_list_sort' ) ) {
+			$items = wp_list_sort( $items, 'last_activity_ts', 'DESC', true );
+		}
+
+		return array(
+			'items'         => $items,
+			'query'         => $leads_query,
+			'total'         => (int) $leads_query->found_posts,
+			'total_pages'   => max( 1, (int) $leads_query->max_num_pages ),
+			'current_page'  => $page,
+			'per_page'      => $per_page,
+			'is_employee'   => pera_crm_user_is_employee( $current_user_id ),
+			'scoped_ids'    => $allowed_ids,
+		);
+	}
+}

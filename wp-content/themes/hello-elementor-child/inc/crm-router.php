@@ -31,10 +31,12 @@ if ( ! function_exists( 'pera_crm_user_can_access' ) ) {
 
 if ( ! function_exists( 'pera_crm_register_route' ) ) {
 	/**
-	 * Register rewrite rule for /crm/.
+	 * Register rewrite rules for /crm/*.
 	 */
 	function pera_crm_register_route(): void {
-		add_rewrite_rule( '^crm/?$', 'index.php?pera_crm=1', 'top' );
+		add_rewrite_rule( '^crm/?$', 'index.php?pera_crm=1&pera_crm_view=overview', 'top' );
+		add_rewrite_rule( '^crm/leads/?$', 'index.php?pera_crm=1&pera_crm_view=leads&paged=1', 'top' );
+		add_rewrite_rule( '^crm/leads/page/([0-9]+)/?$', 'index.php?pera_crm=1&pera_crm_view=leads&paged=$matches[1]', 'top' );
 	}
 }
 add_action( 'init', 'pera_crm_register_route' );
@@ -48,6 +50,7 @@ if ( ! function_exists( 'pera_crm_register_query_var' ) ) {
 	 */
 	function pera_crm_register_query_var( array $vars ): array {
 		$vars[] = 'pera_crm';
+		$vars[] = 'pera_crm_view';
 		return $vars;
 	}
 }
@@ -101,6 +104,41 @@ if ( ! function_exists( 'pera_crm_maybe_load_template' ) ) {
 	}
 }
 add_filter( 'template_include', 'pera_crm_maybe_load_template', 30 );
+
+if ( ! function_exists( 'pera_crm_enqueue_assets' ) ) {
+	/**
+	 * Enqueue CRM-only assets.
+	 */
+	function pera_crm_enqueue_assets(): void {
+		if ( '1' !== (string) get_query_var( 'pera_crm' ) ) {
+			return;
+		}
+
+		$css_rel_path = '/css/crm.css';
+		$css_abs_path = get_stylesheet_directory() . $css_rel_path;
+		$css_version  = file_exists( $css_abs_path ) ? (string) filemtime( $css_abs_path ) : wp_get_theme()->get( 'Version' );
+
+		wp_enqueue_style(
+			'pera-crm-css',
+			get_stylesheet_directory_uri() . $css_rel_path,
+			array( 'pera-main-css' ),
+			$css_version
+		);
+
+		$js_rel_path = '/js/crm.js';
+		$js_abs_path = get_stylesheet_directory() . $js_rel_path;
+		if ( file_exists( $js_abs_path ) ) {
+			wp_enqueue_script(
+				'pera-crm-js',
+				get_stylesheet_directory_uri() . $js_rel_path,
+				array(),
+				(string) filemtime( $js_abs_path ),
+				true
+			);
+		}
+	}
+}
+add_action( 'wp_enqueue_scripts', 'pera_crm_enqueue_assets', 40 );
 
 if ( ! function_exists( 'pera_crm_flush_rewrite_on_activation' ) ) {
 	/**
