@@ -97,6 +97,7 @@ if ( ! function_exists( 'pera_crm_fetch_stage_counts' ) ) {
 			'peracrm_party_get_counts_by_stage',
 			'peracrm_party_get_stage_counts',
 			'peracrm_party_counts_by_stage',
+			'peracrm_parties_count_by_stage',
 		);
 
 		foreach ( $callbacks as $callback ) {
