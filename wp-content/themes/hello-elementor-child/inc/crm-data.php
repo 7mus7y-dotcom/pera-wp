@@ -472,6 +472,11 @@ if ( ! function_exists( 'pera_crm_get_task_rows' ) ) {
 			}
 		}
 
+		if ( $is_employee ) {
+			pera_crm_debug_tasks_log( $overdue ? 'overdue' : 'today', 'no_employee_source', $debug_ids, 0 );
+			return array();
+		}
+
 		global $wpdb;
 		if ( ! isset( $wpdb ) ) {
 			return array();
