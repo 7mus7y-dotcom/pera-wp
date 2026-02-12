@@ -21,8 +21,8 @@
 
     buttons.forEach(function (button) {
       var active = button.getAttribute('data-view') === view;
-      button.classList.toggle('pill--brand', active);
-      button.classList.toggle('pill--outline', !active);
+      button.classList.toggle('btn--solid', active);
+      button.classList.toggle('btn--ghost', !active);
       button.setAttribute('aria-pressed', active ? 'true' : 'false');
     });
   }

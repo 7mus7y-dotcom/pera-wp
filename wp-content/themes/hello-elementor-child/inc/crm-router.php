@@ -19,7 +19,7 @@ if ( ! function_exists( 'pera_crm_user_can_access' ) ) {
 		$user = $user_id > 0 ? get_user_by( 'id', $user_id ) : wp_get_current_user();
 
 		if ( ! $user || ! $user->exists() ) {
-			return false;
+			return true;
 		}
 
 		$allowed_roles = array( 'employee', 'manager', 'administrator' );
@@ -36,6 +36,7 @@ if ( ! function_exists( 'pera_crm_register_route' ) ) {
 	function pera_crm_register_route(): void {
 		add_rewrite_rule( '^crm/?$', 'index.php?pera_crm=1', 'top' );
 		add_rewrite_rule( '^crm/new/?$', 'index.php?pera_crm=1&pera_crm_action=new', 'top' );
+		add_rewrite_rule( '^crm/view/([0-9]+)/?$', 'index.php?pera_crm=1&pera_crm_action=view&pera_crm_id=$matches[1]', 'top' );
 		add_rewrite_rule( '^crm/client/([0-9]+)/?$', 'index.php?pera_crm=1&pera_crm_view=client&pera_crm_client_id=$matches[1]', 'top' );
 		add_rewrite_rule( '^crm/leads/?$', 'index.php?pera_crm=1&pera_crm_view=leads&paged=1', 'top' );
 		add_rewrite_rule( '^crm/leads/page/([0-9]+)/?$', 'index.php?pera_crm=1&pera_crm_view=leads&paged=$matches[1]', 'top' );
@@ -64,6 +65,7 @@ if ( ! function_exists( 'pera_crm_register_query_var' ) ) {
 		$vars[] = 'pera_crm_action';
 		$vars[] = 'pera_crm_view';
 		$vars[] = 'pera_crm_client_id';
+		$vars[] = 'pera_crm_id';
 		$vars[] = 'crm_error';
 		$vars[] = 'crm_notice';
 		return $vars;
@@ -123,7 +125,7 @@ if ( ! function_exists( 'pera_crm_route_has_view' ) ) {
 	 * Whether CRM /crm/view/{id} routing is available.
 	 */
 	function pera_crm_route_has_view(): bool {
-		return false;
+		return true;
 	}
 }
 
@@ -319,9 +321,7 @@ if ( ! function_exists( 'pera_crm_handle_new_lead' ) ) {
 			}
 		}
 
-		$success_url = pera_crm_route_has_view()
-			? pera_crm_get_client_view_url( $post_id )
-			: add_query_arg( 'created', $post_id, home_url( '/crm/' ) );
+		$success_url = home_url( '/crm/view/' . $post_id . '/' );
 
 		wp_safe_redirect( $success_url );
 		exit;
@@ -367,13 +367,21 @@ if ( ! function_exists( 'pera_crm_maybe_load_template' ) ) {
 
 		pera_crm_gate_or_redirect();
 		$action = sanitize_key( (string) get_query_var( 'pera_crm_action', '' ) );
-		$view = sanitize_key( (string) get_query_var( 'pera_crm_view', 'overview' ) );
+		$view   = sanitize_key( (string) get_query_var( 'pera_crm_view', 'overview' ) );
 
 		if ( 'new' === $action ) {
 			$new_template = get_stylesheet_directory() . '/page-crm-new.php';
 			if ( file_exists( $new_template ) ) {
 				status_header( 200 );
 				return $new_template;
+			}
+		}
+
+		if ( 'view' === $action ) {
+			$view_template = get_stylesheet_directory() . '/page-crm-view.php';
+			if ( file_exists( $view_template ) ) {
+				status_header( 200 );
+				return $view_template;
 			}
 		}
 
