@@ -273,8 +273,78 @@ function peracrm_client_view_render_notice($message, $type = 'error')
 
     echo '<div class="wrap peracrm-client-view">';
     echo '<h1>Client View</h1>';
+    peracrm_client_view_render_selector();
     echo '<div class="notice notice-' . esc_attr($type) . ' inline"><p>' . esc_html($message) . '</p></div>';
     echo '</div>';
+}
+
+function peracrm_client_view_selectable_clients($selected_client_id = 0)
+{
+    $selected_client_id = (int) $selected_client_id;
+
+    $clients = get_posts([
+        'post_type' => 'crm_client',
+        'post_status' => ['publish', 'private'],
+        'posts_per_page' => 200,
+        'orderby' => 'title',
+        'order' => 'ASC',
+        'suppress_filters' => false,
+    ]);
+
+    if ($selected_client_id > 0) {
+        $selected_found = false;
+        foreach ($clients as $client_post) {
+            if ((int) $client_post->ID === $selected_client_id) {
+                $selected_found = true;
+                break;
+            }
+        }
+
+        if (!$selected_found) {
+            $selected_client = get_post($selected_client_id);
+            if ($selected_client instanceof WP_Post && $selected_client->post_type === 'crm_client') {
+                $clients[] = $selected_client;
+            }
+        }
+    }
+
+    return $clients;
+}
+
+function peracrm_client_view_render_selector($selected_client_id = 0)
+{
+    $selected_client_id = (int) $selected_client_id;
+    $clients = peracrm_client_view_selectable_clients($selected_client_id);
+
+    echo '<form method="get" class="peracrm-client-view__selector">';
+    echo '<input type="hidden" name="post_type" value="crm_client" />';
+    echo '<input type="hidden" name="page" value="peracrm-client-view" />';
+    echo '<label for="peracrm-client-view-client-id"><strong>Client selector:</strong></label> ';
+    echo '<select id="peracrm-client-view-client-id" name="client_id">';
+    echo '<option value="">Select a client…</option>';
+
+    foreach ($clients as $client_post) {
+        $client_post_id = (int) $client_post->ID;
+        if (!current_user_can('edit_post', $client_post_id)) {
+            continue;
+        }
+
+        $title = get_the_title($client_post_id);
+        if ($title === '') {
+            $title = '(no title)';
+        }
+
+        printf(
+            '<option value="%1$d"%2$s>%3$s (#%1$d)</option>',
+            $client_post_id,
+            selected($selected_client_id, $client_post_id, false),
+            esc_html($title)
+        );
+    }
+
+    echo '</select> ';
+    submit_button('View Client', 'secondary', '', false);
+    echo '</form>';
 }
 
 function peracrm_render_client_view_page()
@@ -458,6 +528,7 @@ function peracrm_render_client_view_page()
     if ($edit_link) {
         echo ' <a class="page-title-action" href="' . esc_url($edit_link) . '">Edit</a>';
     }
+    peracrm_client_view_render_selector($client_id);
 
     echo '<div class="peracrm-client-view__meta">';
     echo '<p><strong>Health:</strong> ' . $badge . ' <span class="description">Last activity ' . esc_html($last_activity) . '</span></p>';
