@@ -23,6 +23,7 @@ require_once PERACRM_INC . '/repositories/party.php';
 require_once PERACRM_INC . '/repositories/deals.php';
 
 require_once PERACRM_INC . '/services/client_service.php';
+require_once PERACRM_INC . '/services/client_scope_service.php';
 require_once PERACRM_INC . '/services/activity_service.php';
 require_once PERACRM_INC . '/services/reminder_service.php';
 require_once PERACRM_INC . '/services/user_link_service.php';

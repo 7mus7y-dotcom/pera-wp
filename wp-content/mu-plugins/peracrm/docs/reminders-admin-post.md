@@ -21,7 +21,7 @@ Use the existing admin-post handler instead of adding new front-end endpoints.
 ## Front-end example form
 
 ```php
-<form method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>">
+<form method="post" action="<?php echo esc_url( home_url( '/wp-admin/admin-post.php' ) ); ?>">
 	<input type="hidden" name="action" value="peracrm_update_reminder_status">
 	<input type="hidden" name="peracrm_reminder_id" value="<?php echo esc_attr( (string) absint( $reminder_id ) ); ?>">
 	<input type="hidden" name="peracrm_status" value="done">
@@ -31,6 +31,8 @@ Use the existing admin-post handler instead of adding new front-end endpoints.
 	<button type="submit">Mark done</button>
 </form>
 ```
+
+For front-end CRM forms, prefer `home_url('/wp-admin/admin-post.php')` to keep cookies on the `WP_HOME` host; `admin_url()` can point at `WP_SITEURL`.
 
 ## `peracrm_allowed_client_ids_for_user` filter
 
@@ -43,6 +45,8 @@ apply_filters( 'peracrm_allowed_client_ids_for_user', null, $actor_user_id )
 ```
 
 Theme code should provide the allowed client IDs for the current CRM user via this filter.
+
+MU plugin now registers a default fallback for this filter that resolves assigned `crm_client` IDs from `assigned_advisor_user_id` and `crm_assigned_advisor`, so front-end scope enforcement works during `admin-post.php` even if theme files are not loaded.
 
 ## Manual test checklist
 
