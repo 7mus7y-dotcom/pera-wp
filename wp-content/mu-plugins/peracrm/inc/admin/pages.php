@@ -52,7 +52,7 @@ function peracrm_register_admin_menu()
         $GLOBALS['peracrm_pipeline_hook'] = $pipeline_hook;
     }
 
-    add_submenu_page(
+    $client_view_hook = add_submenu_page(
         $parent_slug,
         'Client View',
         'Client View',
@@ -60,6 +60,10 @@ function peracrm_register_admin_menu()
         'peracrm-client-view',
         'peracrm_render_client_view_page'
     );
+
+    if ($client_view_hook) {
+        $GLOBALS['peracrm_client_view_hook'] = $client_view_hook;
+    }
 }
 
 function peracrm_admin_required_capability()
@@ -89,6 +93,13 @@ function peracrm_admin_is_my_reminders_screen($hook)
 function peracrm_admin_is_pipeline_screen($hook)
 {
     $stored = isset($GLOBALS['peracrm_pipeline_hook']) ? $GLOBALS['peracrm_pipeline_hook'] : '';
+
+    return $stored !== '' && $hook === $stored;
+}
+
+function peracrm_admin_is_client_view_screen($hook)
+{
+    $stored = isset($GLOBALS['peracrm_client_view_hook']) ? $GLOBALS['peracrm_client_view_hook'] : '';
 
     return $stored !== '' && $hook === $stored;
 }

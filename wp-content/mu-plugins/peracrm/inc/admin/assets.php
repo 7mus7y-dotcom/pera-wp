@@ -23,6 +23,7 @@ function peracrm_admin_enqueue_assets($hook)
     if (!peracrm_admin_is_crm_client_screen($hook)
         && !peracrm_admin_is_my_reminders_screen($hook)
         && !peracrm_admin_is_pipeline_screen($hook)
+        && !peracrm_admin_is_client_view_screen($hook)
     ) {
         return;
     }

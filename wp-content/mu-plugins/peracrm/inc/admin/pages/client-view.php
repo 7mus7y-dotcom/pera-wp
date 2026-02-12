@@ -242,21 +242,78 @@ function peracrm_client_view_collect_enquiry_fields(array $payload)
     return $fields;
 }
 
+
+function peracrm_client_view_debug_enabled()
+{
+    return defined('WP_DEBUG')
+        && WP_DEBUG
+        && defined('WP_DEBUG_LOG')
+        && WP_DEBUG_LOG;
+}
+
+function peracrm_client_view_debug_log($message, array $context = [])
+{
+    if (!peracrm_client_view_debug_enabled()) {
+        return;
+    }
+
+    if (!empty($context)) {
+        $message .= ' ' . wp_json_encode($context);
+    }
+
+    error_log('[peracrm][client-view] ' . $message);
+}
+
+function peracrm_client_view_render_notice($message, $type = 'error')
+{
+    $allowed = ['error', 'warning', 'success', 'info'];
+    if (!in_array($type, $allowed, true)) {
+        $type = 'error';
+    }
+
+    echo '<div class="wrap peracrm-client-view">';
+    echo '<h1>Client View</h1>';
+    echo '<div class="notice notice-' . esc_attr($type) . ' inline"><p>' . esc_html($message) . '</p></div>';
+    echo '</div>';
+}
+
 function peracrm_render_client_view_page()
 {
+    $caps = [
+        'manage_options' => current_user_can('manage_options'),
+        'edit_crm_clients' => current_user_can('edit_crm_clients'),
+        'edit_crm_leads' => current_user_can('edit_crm_leads'),
+        'edit_crm_deals' => current_user_can('edit_crm_deals'),
+        'peracrm_manage_all_clients' => current_user_can('peracrm_manage_all_clients'),
+    ];
+
+    peracrm_client_view_debug_log('render_enter', [
+        'get' => isset($_GET) ? wp_unslash($_GET) : [],
+        'caps' => $caps,
+    ]);
+
     if (!peracrm_admin_user_can_manage()) {
-        wp_die('Unauthorized');
+        peracrm_client_view_debug_log('render_unauthorized_manage_check_failed');
+        peracrm_client_view_render_notice('You do not have permission to access Client View.');
+
+        return;
     }
 
     $client_id = isset($_GET['client_id']) ? absint($_GET['client_id']) : 0;
     $client = $client_id ? get_post($client_id) : null;
 
     if (!$client_id || !$client || $client->post_type !== 'crm_client') {
-        wp_die('Client not found.');
+        peracrm_client_view_debug_log('render_missing_or_invalid_client', ['client_id' => $client_id]);
+        peracrm_client_view_render_notice('Select a client first, then open Client View from that client context.', 'warning');
+
+        return;
     }
 
     if (!current_user_can('edit_post', $client_id)) {
-        wp_die('You do not have permission to view this client.');
+        peracrm_client_view_debug_log('render_edit_post_cap_failed', ['client_id' => $client_id]);
+        peracrm_client_view_render_notice('You do not have permission to view this client.');
+
+        return;
     }
 
     $can_manage_all = current_user_can('manage_options') || current_user_can('peracrm_manage_all_clients');
@@ -265,7 +322,14 @@ function peracrm_render_client_view_page()
             ? (int) peracrm_client_get_assigned_advisor_id($client_id)
             : 0;
         if ($assigned_id !== get_current_user_id()) {
-            wp_die('You are not assigned to this client.');
+            peracrm_client_view_debug_log('render_assignment_check_failed', [
+                'client_id' => $client_id,
+                'assigned_id' => $assigned_id,
+                'current_user_id' => get_current_user_id(),
+            ]);
+            peracrm_client_view_render_notice('You are not assigned to this client.');
+
+            return;
         }
     }
 
@@ -693,6 +757,22 @@ function peracrm_render_client_view_page()
         }
         echo '</ul>';
     }
+
+    global $wpdb;
+    if (isset($wpdb->last_error) && $wpdb->last_error !== '') {
+        peracrm_client_view_debug_log('wpdb_last_error', [
+            'client_id' => $client_id,
+            'error' => $wpdb->last_error,
+            'query' => isset($wpdb->last_query) ? $wpdb->last_query : '',
+        ]);
+    }
+
+    peracrm_client_view_debug_log('render_exit', [
+        'client_id' => $client_id,
+        'notes_count' => is_array($notes) ? count($notes) : 0,
+        'form_submissions_count' => is_array($form_submissions) ? count($form_submissions) : 0,
+        'timeline_items_count' => is_array($timeline_items) ? count($timeline_items) : 0,
+    ]);
 
     echo '</div>';
 }
