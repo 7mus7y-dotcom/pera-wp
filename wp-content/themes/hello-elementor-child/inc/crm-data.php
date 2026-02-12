@@ -823,9 +823,11 @@ if ( ! function_exists( 'pera_crm_get_pipeline_view_data' ) ) {
 			$stage = '';
 		}
 
+		$post_statuses = array( 'publish', 'private', 'draft', 'pending', 'future' );
+
 		$query_args = array(
 			'post_type'      => 'crm_client',
-			'post_status'    => array( 'publish', 'private', 'draft', 'pending', 'future' ),
+			'post_status'    => $post_statuses,
 			'posts_per_page' => 250,
 			'orderby'        => 'modified',
 			'order'          => 'DESC',
@@ -838,7 +840,81 @@ if ( ! function_exists( 'pera_crm_get_pipeline_view_data' ) ) {
 		}
 
 		if ( '' !== $q ) {
-			$query_args['s'] = $q;
+			$search_limit = 500;
+			$scoped_post__in = array();
+
+			if ( ! $can_manage_all ) {
+				$scoped_post__in = empty( $allowed_ids ) ? array( 0 ) : $allowed_ids;
+			}
+
+			$title_query_args = array(
+				'post_type'      => 'crm_client',
+				'post_status'    => $post_statuses,
+				'posts_per_page' => $search_limit,
+				'fields'         => 'ids',
+				'no_found_rows'  => true,
+				's'              => $q,
+			);
+
+			if ( ! empty( $scoped_post__in ) ) {
+				$title_query_args['post__in'] = $scoped_post__in;
+			}
+
+			$meta_query_args = array(
+				'post_type'      => 'crm_client',
+				'post_status'    => $post_statuses,
+				'posts_per_page' => $search_limit,
+				'fields'         => 'ids',
+				'no_found_rows'  => true,
+				'meta_query'     => array(
+					'relation' => 'OR',
+					array(
+						'key'     => '_peracrm_email',
+						'value'   => $q,
+						'compare' => 'LIKE',
+					),
+					array(
+						'key'     => 'crm_primary_email',
+						'value'   => $q,
+						'compare' => 'LIKE',
+					),
+					array(
+						'key'     => 'primary_email',
+						'value'   => $q,
+						'compare' => 'LIKE',
+					),
+					array(
+						'key'     => '_peracrm_phone',
+						'value'   => $q,
+						'compare' => 'LIKE',
+					),
+					array(
+						'key'     => 'crm_phone',
+						'value'   => $q,
+						'compare' => 'LIKE',
+					),
+				),
+			);
+
+			if ( ! empty( $scoped_post__in ) ) {
+				$meta_query_args['post__in'] = $scoped_post__in;
+			}
+
+			$title_matches = get_posts( $title_query_args );
+			$meta_matches  = get_posts( $meta_query_args );
+
+			$search_ids = array_values(
+				array_unique(
+					array_filter(
+						array_map(
+							'intval',
+							array_merge( (array) $title_matches, (array) $meta_matches )
+						)
+					)
+				)
+			);
+
+			$query_args['post__in'] = empty( $search_ids ) ? array( 0 ) : $search_ids;
 		}
 
 		if ( $advisor > 0 ) {
@@ -931,16 +1007,40 @@ if ( ! function_exists( 'pera_crm_get_pipeline_view_data' ) ) {
 		}
 
 		$advisor_options = array();
-		foreach ( $advisor_ids as $advisor_id ) {
-			$label = $advisor_names[ $advisor_id ] ?? '';
-			if ( '' === $label ) {
-				continue;
-			}
-
-			$advisor_options[] = array(
-				'id'    => (int) $advisor_id,
-				'label' => (string) $label,
+		if ( $can_manage_all ) {
+			$advisor_users = get_users(
+				array(
+					'role__in' => array( 'employee', 'manager', 'administrator' ),
+					'orderby'  => 'display_name',
+					'order'    => 'ASC',
+					'fields'   => array( 'ID', 'display_name' ),
+				)
 			);
+
+			foreach ( $advisor_users as $advisor_user ) {
+				if ( ! ( $advisor_user instanceof WP_User ) ) {
+					continue;
+				}
+
+				$advisor_id = (int) $advisor_user->ID;
+				if ( $advisor_id <= 0 ) {
+					continue;
+				}
+
+				if ( function_exists( 'peracrm_user_can_access_crm' ) && ! peracrm_user_can_access_crm( $advisor_id ) ) {
+					continue;
+				}
+
+				$label = trim( (string) $advisor_user->display_name );
+				if ( '' === $label ) {
+					continue;
+				}
+
+				$advisor_options[] = array(
+					'id'    => $advisor_id,
+					'label' => $label,
+				);
+			}
 		}
 
 		if ( ! empty( $advisor_options ) && function_exists( 'wp_list_sort' ) ) {
