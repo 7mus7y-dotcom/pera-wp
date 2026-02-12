@@ -453,6 +453,29 @@ function peracrm_admin_get_assigned_advisor_id_for_client($client_id)
     return 0;
 }
 
+function peracrm_admin_preferred_redirect_url($fallback, $require_crm_hint = false)
+{
+    $fallback = (string) $fallback;
+    $candidate = isset($_POST['peracrm_redirect']) ? esc_url_raw(wp_unslash($_POST['peracrm_redirect'])) : '';
+
+    if ($candidate === '') {
+        $candidate = wp_get_referer();
+    }
+
+    if (!is_string($candidate) || $candidate === '') {
+        return $fallback;
+    }
+
+    if ($require_crm_hint) {
+        $has_crm_hint = strpos($candidate, '/crm/') !== false || strpos($candidate, 'page=peracrm-client-view') !== false;
+        if (!$has_crm_hint) {
+            return $fallback;
+        }
+    }
+
+    return wp_validate_redirect($candidate, $fallback);
+}
+
 function peracrm_handle_add_note()
 {
     if (!is_user_logged_in()) {
@@ -479,16 +502,19 @@ function peracrm_handle_add_note()
     if (strlen($note_body) > 5000) {
         $note_body = substr($note_body, 0, 5000);
     }
+    $fallback_redirect = get_edit_post_link($client_id, 'raw');
+    $redirect = peracrm_admin_preferred_redirect_url($fallback_redirect, true);
+
     if ($note_body === '') {
-        peracrm_admin_redirect_with_notice(get_edit_post_link($client_id, 'raw'), 'note_missing');
+        peracrm_admin_redirect_with_notice($redirect, 'note_missing');
     }
 
     $note_id = peracrm_note_add($client_id, get_current_user_id(), $note_body);
     if (!$note_id) {
-        peracrm_admin_redirect_with_notice(get_edit_post_link($client_id, 'raw'), 'note_failed');
+        peracrm_admin_redirect_with_notice($redirect, 'note_failed');
     }
 
-    peracrm_admin_redirect_with_notice(get_edit_post_link($client_id, 'raw'), 'note_added');
+    peracrm_admin_redirect_with_notice($redirect, 'note_added');
 }
 
 function peracrm_handle_pipeline_save_view()
@@ -1167,6 +1193,9 @@ function peracrm_handle_link_user()
 {
     $client_id = isset($_POST['peracrm_client_id']) ? (int) $_POST['peracrm_client_id'] : 0;
     $client = peracrm_admin_get_client($client_id);
+    $fallback_redirect = peracrm_admin_client_screen_url($client_id);
+    $redirect = peracrm_admin_preferred_redirect_url($fallback_redirect);
+
     if (!$client) {
         wp_die('Invalid client');
     }
@@ -1192,28 +1221,28 @@ function peracrm_handle_link_user()
     if (!$user) {
         $users = peracrm_admin_search_user_for_link($search_term, $client_id);
         if (empty($users)) {
-            peracrm_admin_redirect_with_notice(peracrm_admin_client_screen_url($client_id), 'user_missing');
+            peracrm_admin_redirect_with_notice($redirect, 'user_missing');
         }
 
         if (count($users) > 1) {
-            peracrm_admin_redirect_with_notice(peracrm_admin_client_screen_url($client_id), 'user_ambiguous');
+            peracrm_admin_redirect_with_notice($redirect, 'user_ambiguous');
         }
 
         $user = $users[0];
     }
     $user_id = (int) $user->ID;
     if ($user_id <= 0) {
-        peracrm_admin_redirect_with_notice(peracrm_admin_client_screen_url($client_id), 'user_missing');
+        peracrm_admin_redirect_with_notice($redirect, 'user_missing');
     }
 
     $existing_client_id = (int) get_user_meta($user_id, 'crm_client_id', true);
     if ($existing_client_id > 0 && $existing_client_id !== $client_id) {
-        peracrm_admin_redirect_with_notice(peracrm_admin_client_screen_url($client_id), 'user_already_linked');
+        peracrm_admin_redirect_with_notice($redirect, 'user_already_linked');
     }
 
     $existing_user_id = peracrm_admin_find_linked_user_id($client_id);
     if ($existing_user_id > 0 && $existing_user_id !== $user_id) {
-        peracrm_admin_redirect_with_notice(peracrm_admin_client_screen_url($client_id), 'client_already_linked');
+        peracrm_admin_redirect_with_notice($redirect, 'client_already_linked');
     }
 
     update_user_meta($user_id, 'crm_client_id', $client_id);
@@ -1225,16 +1254,19 @@ function peracrm_handle_link_user()
         } else {
             delete_user_meta($user_id, 'crm_client_id');
         }
-        peracrm_admin_redirect_with_notice(peracrm_admin_client_screen_url($client_id), 'link_failed');
+        peracrm_admin_redirect_with_notice($redirect, 'link_failed');
     }
 
-    peracrm_admin_redirect_with_notice(peracrm_admin_client_screen_url($client_id), 'link_success');
+    peracrm_admin_redirect_with_notice($redirect, 'link_success');
 }
 
 function peracrm_handle_unlink_user()
 {
     $client_id = isset($_POST['peracrm_client_id']) ? (int) $_POST['peracrm_client_id'] : 0;
     $client = peracrm_admin_get_client($client_id);
+    $fallback_redirect = peracrm_admin_client_screen_url($client_id);
+    $redirect = peracrm_admin_preferred_redirect_url($fallback_redirect);
+
     if (!$client) {
         wp_die('Invalid client');
     }
@@ -1250,12 +1282,12 @@ function peracrm_handle_unlink_user()
 
     $linked_user_id = peracrm_admin_find_linked_user_id($client_id);
     if ($linked_user_id <= 0) {
-        peracrm_admin_redirect_with_notice(peracrm_admin_client_screen_url($client_id), 'unlink_missing');
+        peracrm_admin_redirect_with_notice($redirect, 'unlink_missing');
     }
 
     $updated = peracrm_admin_update_client_linked_user_id($client_id, 0);
     if (!$updated) {
-        peracrm_admin_redirect_with_notice(peracrm_admin_client_screen_url($client_id), 'unlink_failed');
+        peracrm_admin_redirect_with_notice($redirect, 'unlink_failed');
     }
 
     $current_client_id = (int) get_user_meta($linked_user_id, 'crm_client_id', true);
@@ -1263,11 +1295,11 @@ function peracrm_handle_unlink_user()
         $deleted = delete_user_meta($linked_user_id, 'crm_client_id');
         if (!$deleted) {
             peracrm_admin_update_client_linked_user_id($client_id, $linked_user_id);
-            peracrm_admin_redirect_with_notice(peracrm_admin_client_screen_url($client_id), 'unlink_failed');
+            peracrm_admin_redirect_with_notice($redirect, 'unlink_failed');
         }
     }
 
-    peracrm_admin_redirect_with_notice(peracrm_admin_client_screen_url($client_id), 'unlink_success');
+    peracrm_admin_redirect_with_notice($redirect, 'unlink_success');
 }
 
 function peracrm_admin_user_can_reassign()
@@ -1333,16 +1365,15 @@ function peracrm_handle_save_client_profile()
         peracrm_party_upsert_status($client_id, peracrm_map_legacy_status_to_party_fields($status));
     }
 
-    $redirect = wp_get_referer();
-    if (!$redirect) {
-        $redirect = add_query_arg(
+    $fallback_redirect = add_query_arg(
             [
                 'post' => $client_id,
                 'action' => 'edit',
             ],
             admin_url('post.php')
         );
-    }
+
+    $redirect = peracrm_admin_preferred_redirect_url($fallback_redirect);
 
     if (!$success) {
         if ($should_log) {
@@ -1442,8 +1473,10 @@ function peracrm_handle_add_reminder()
 
     $due_at_raw = isset($_POST['peracrm_due_at']) ? wp_unslash($_POST['peracrm_due_at']) : '';
     $due_at_mysql = peracrm_admin_parse_datetime($due_at_raw);
+    $fallback_redirect = get_edit_post_link($client_id, 'raw');
+    $redirect = peracrm_admin_preferred_redirect_url($fallback_redirect);
     if ($due_at_mysql === '') {
-        peracrm_admin_redirect_with_notice(get_edit_post_link($client_id, 'raw'), 'reminder_missing');
+        peracrm_admin_redirect_with_notice($redirect, 'reminder_missing');
     }
 
     $note = isset($_POST['peracrm_reminder_note']) ? sanitize_textarea_field(wp_unslash($_POST['peracrm_reminder_note'])) : '';
@@ -1458,10 +1491,10 @@ function peracrm_handle_add_reminder()
 
     $reminder_id = peracrm_reminder_add($client_id, $assigned_advisor, $due_at_mysql, $note);
     if (!$reminder_id) {
-        peracrm_admin_redirect_with_notice(get_edit_post_link($client_id, 'raw'), 'reminder_failed');
+        peracrm_admin_redirect_with_notice($redirect, 'reminder_failed');
     }
 
-    peracrm_admin_redirect_with_notice(get_edit_post_link($client_id, 'raw'), 'reminder_added');
+    peracrm_admin_redirect_with_notice($redirect, 'reminder_added');
 }
 
 function peracrm_handle_mark_reminder_done()
@@ -2405,11 +2438,13 @@ function peracrm_handle_create_deal()
         'closed_reason' => function_exists('peracrm_deal_sanitize_closed_reason') ? peracrm_deal_sanitize_closed_reason($_POST['closed_reason'] ?? 'none') : ($_POST['closed_reason'] ?? 'none'),
     ]);
 
-    wp_safe_redirect(add_query_arg([
+    $fallback_redirect = add_query_arg([
         'post' => $client_id,
         'action' => 'edit',
         'peracrm_notice' => $created > 0 ? 'deal_saved' : 'deal_failed',
-    ], admin_url('post.php')));
+    ], admin_url('post.php'));
+    $redirect = peracrm_admin_preferred_redirect_url($fallback_redirect);
+    wp_safe_redirect($redirect);
     exit;
 }
 
@@ -2461,11 +2496,13 @@ function peracrm_handle_update_deal()
         'closed_reason' => function_exists('peracrm_deal_sanitize_closed_reason') ? peracrm_deal_sanitize_closed_reason($_POST['closed_reason'] ?? 'none') : ($_POST['closed_reason'] ?? 'none'),
     ]);
 
-    wp_safe_redirect(add_query_arg([
+    $fallback_redirect = add_query_arg([
         'post' => $client_id,
         'action' => 'edit',
         'peracrm_notice' => $updated ? 'deal_saved' : 'deal_failed',
-    ], admin_url('post.php')));
+    ], admin_url('post.php'));
+    $redirect = peracrm_admin_preferred_redirect_url($fallback_redirect);
+    wp_safe_redirect($redirect);
     exit;
 }
 

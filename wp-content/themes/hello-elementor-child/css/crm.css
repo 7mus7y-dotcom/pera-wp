@@ -118,3 +118,50 @@
 .crm-list li:last-child {
   border-bottom: 0;
 }
+
+.crm-client-header-strip,
+.crm-client-section,
+.crm-client-notice {
+  margin-bottom: 16px;
+}
+
+.crm-client-kpis {
+  margin-bottom: 18px;
+  gap: 12px;
+}
+
+.crm-client-columns {
+  gap: 16px;
+  margin-bottom: 16px;
+}
+
+.crm-client-columns .card-shell {
+  padding: 16px;
+}
+
+.crm-client-timeline .hero-pills {
+  margin-bottom: 12px;
+}
+
+.crm-client-section form {
+  margin-bottom: 12px;
+}
+
+.crm-client-section h4 {
+  margin-top: 12px;
+}
+
+.crm-client-notice--success {
+  border-left: 4px solid #2a9d62;
+}
+
+.crm-client-notice--warning {
+  border-left: 4px solid #f4a261;
+}
+
+@media (max-width: 1024px) {
+  .crm-client-columns,
+  .crm-client-kpis {
+    grid-template-columns: 1fr;
+  }
+}

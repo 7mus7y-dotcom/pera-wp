@@ -37,7 +37,7 @@ if ( ! function_exists( 'pera_crm_register_route' ) ) {
 		add_rewrite_rule( '^crm/?$', 'index.php?pera_crm=1', 'top' );
 		add_rewrite_rule( '^crm/new/?$', 'index.php?pera_crm=1&pera_crm_action=new', 'top' );
 		add_rewrite_rule( '^crm/view/([0-9]+)/?$', 'index.php?pera_crm=1&pera_crm_action=view&pera_crm_id=$matches[1]', 'top' );
-		add_rewrite_rule( '^crm/client/([0-9]+)/?$', 'index.php?pera_crm=1&pera_crm_view=client&pera_crm_client_id=$matches[1]', 'top' );
+		add_rewrite_rule( '^crm/client/([0-9]+)/?$', 'index.php?pera_crm=1&pera_crm_view=client&pera_crm_client_id=$matches[1]&client_id=$matches[1]', 'top' );
 		add_rewrite_rule( '^crm/leads/?$', 'index.php?pera_crm=1&pera_crm_view=leads&paged=1', 'top' );
 		add_rewrite_rule( '^crm/leads/page/([0-9]+)/?$', 'index.php?pera_crm=1&pera_crm_view=leads&paged=$matches[1]', 'top' );
 	}
@@ -65,6 +65,7 @@ if ( ! function_exists( 'pera_crm_register_query_var' ) ) {
 		$vars[] = 'pera_crm_action';
 		$vars[] = 'pera_crm_view';
 		$vars[] = 'pera_crm_client_id';
+		$vars[] = 'client_id';
 		$vars[] = 'pera_crm_id';
 		$vars[] = 'crm_error';
 		$vars[] = 'crm_notice';
@@ -449,6 +450,27 @@ if ( ! function_exists( 'pera_crm_flush_rewrite_on_activation' ) ) {
 	}
 }
 add_action( 'after_switch_theme', 'pera_crm_flush_rewrite_on_activation' );
+
+if ( ! function_exists( 'pera_crm_rewrite_notice' ) ) {
+	/**
+	 * Remind admins where to flush rewrites after deploys that change CRM routes.
+	 */
+	function pera_crm_rewrite_notice(): void {
+		if ( ! current_user_can( 'manage_options' ) || ! is_admin() ) {
+			return;
+		}
+
+		$screen = function_exists( 'get_current_screen' ) ? get_current_screen() : null;
+		if ( ! $screen || 'options-permalink' !== $screen->id ) {
+			return;
+		}
+
+		echo '<div class="notice notice-info"><p>';
+		echo esc_html__( 'CRM routes changed? Save Permalinks once (or run wp rewrite flush --hard) to refresh /crm/* rewrites. This is not auto-flushed per request.', 'hello-elementor-child' );
+		echo '</p></div>';
+	}
+}
+add_action( 'admin_notices', 'pera_crm_rewrite_notice' );
 
 if ( ! function_exists( 'pera_crm_add_header_nav_item' ) ) {
 	/**
