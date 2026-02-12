@@ -17,6 +17,18 @@
   gap: 10px;
 }
 
+.crm-toolbar-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.crm-leads-table-header-action {
+  display: flex;
+  justify-content: flex-end;
+  margin-bottom: 10px;
+}
+
 .crm-leads-table-wrap {
   overflow-x: auto;
   margin-bottom: 24px;
@@ -39,6 +51,21 @@
   gap: 16px;
 }
 
+.crm-form-stack {
+  display: grid;
+  gap: 14px;
+}
+
+.crm-form-stack label {
+  display: block;
+  margin-bottom: 6px;
+}
+
+.crm-form-stack input {
+  width: 100%;
+  max-width: 560px;
+}
+
 @media (max-width: 1024px) {
   .crm-leads-toolbar {
     flex-direction: column;
@@ -49,7 +76,15 @@
     display: none;
   }
 
+  .crm-leads-table-header-action {
+    display: none;
+  }
+
   .crm-leads-table-wrap {
     display: none;
+  }
+
+  .crm-toolbar-actions {
+    width: 100%;
   }
 }

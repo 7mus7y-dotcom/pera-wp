@@ -39,6 +39,7 @@ $kpi_tiles = array(
 );
 
 $stages = function_exists( 'pera_crm_get_pipeline_stages' ) ? pera_crm_get_pipeline_stages() : array();
+$new_lead_url = home_url( '/crm/new/' );
 
 get_header();
 ?>
@@ -52,6 +53,7 @@ get_header();
         <span class="pill pill--brand"><?php echo esc_html__( 'Live', 'hello-elementor-child' ); ?></span>
         <span class="pill pill--outline"><?php echo esc_html__( 'Internal', 'hello-elementor-child' ); ?></span>
         <span class="pill pill--outline"><?php echo esc_html__( 'Read only', 'hello-elementor-child' ); ?></span>
+        <a class="pill pill--brand" href="<?php echo esc_url( $new_lead_url ); ?>"><?php echo esc_html__( 'Add new lead', 'hello-elementor-child' ); ?></a>
       </div>
       <nav class="crm-subnav" aria-label="<?php echo esc_attr__( 'CRM sections', 'hello-elementor-child' ); ?>">
         <a class="pill <?php echo esc_attr( $is_leads ? 'pill--outline' : 'pill--brand' ); ?>" href="<?php echo esc_url( home_url( '/crm/' ) ); ?>"><?php echo esc_html__( 'Overview', 'hello-elementor-child' ); ?></a>
@@ -154,13 +156,19 @@ get_header();
           <h2><?php echo esc_html__( 'Leads', 'hello-elementor-child' ); ?></h2>
           <p><?php echo esc_html( sprintf( __( 'Showing %1$d–%2$d of %3$d leads', 'hello-elementor-child' ), $from, $to, $total ) ); ?></p>
         </div>
-        <div class="crm-view-toggle" data-crm-view-toggle>
-          <button type="button" class="pill pill--brand" data-view="table"><?php echo esc_html__( 'Table', 'hello-elementor-child' ); ?></button>
-          <button type="button" class="pill pill--outline" data-view="cards"><?php echo esc_html__( 'Cards', 'hello-elementor-child' ); ?></button>
+        <div class="crm-toolbar-actions">
+          <a class="pill pill--brand" href="<?php echo esc_url( $new_lead_url ); ?>"><?php echo esc_html__( 'Add new lead', 'hello-elementor-child' ); ?></a>
+          <div class="crm-view-toggle" data-crm-view-toggle>
+            <button type="button" class="pill pill--brand" data-view="table"><?php echo esc_html__( 'Table', 'hello-elementor-child' ); ?></button>
+            <button type="button" class="pill pill--outline" data-view="cards"><?php echo esc_html__( 'Cards', 'hello-elementor-child' ); ?></button>
+          </div>
         </div>
       </div>
 
       <div class="crm-leads-table-wrap" data-crm-view="table">
+        <div class="crm-leads-table-header-action">
+          <a class="pill pill--brand" href="<?php echo esc_url( $new_lead_url ); ?>"><?php echo esc_html__( 'Add new lead', 'hello-elementor-child' ); ?></a>
+        </div>
         <table class="crm-leads-table">
           <thead>
             <tr>
@@ -185,7 +193,7 @@ get_header();
               <td><?php echo esc_html( (string) $lead['engagement_state'] ); ?></td>
               <td><?php echo esc_html( (string) $lead['disposition'] ); ?></td>
               <td><?php echo esc_html( '' !== $lead['last_activity'] ? (string) $lead['last_activity'] : '—' ); ?></td>
-              <td><a href="<?php echo esc_url( (string) $lead['edit_url'] ); ?>"><?php echo esc_html__( 'Open', 'hello-elementor-child' ); ?></a></td>
+              <td><a href="<?php echo esc_url( (string) $lead['crm_url'] ); ?>"><?php echo esc_html__( 'Open', 'hello-elementor-child' ); ?></a></td>
             </tr>
 					<?php endforeach; ?>
 				<?php endif; ?>
@@ -201,7 +209,7 @@ get_header();
           <p><strong><?php echo esc_html__( 'Engagement:', 'hello-elementor-child' ); ?></strong> <?php echo esc_html( (string) $lead['engagement_state'] ); ?></p>
           <p><strong><?php echo esc_html__( 'Disposition:', 'hello-elementor-child' ); ?></strong> <?php echo esc_html( (string) $lead['disposition'] ); ?></p>
           <p><strong><?php echo esc_html__( 'Last activity:', 'hello-elementor-child' ); ?></strong> <?php echo esc_html( '' !== $lead['last_activity'] ? (string) $lead['last_activity'] : '—' ); ?></p>
-          <p><a href="<?php echo esc_url( (string) $lead['edit_url'] ); ?>"><?php echo esc_html__( 'Open', 'hello-elementor-child' ); ?></a></p>
+          <p><a href="<?php echo esc_url( (string) $lead['crm_url'] ); ?>"><?php echo esc_html__( 'Open', 'hello-elementor-child' ); ?></a></p>
         </article>
 				<?php endforeach; ?>
       </div>
