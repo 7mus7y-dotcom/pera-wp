@@ -1511,25 +1511,44 @@ function peracrm_handle_update_reminder_status()
     }
 
     $client_id = isset($reminder['client_id']) ? absint($reminder['client_id']) : 0;
-    $fallback_redirect = get_edit_post_link($client_id, 'raw');
-    $redirect = isset($_POST['peracrm_redirect']) ? esc_url_raw(wp_unslash($_POST['peracrm_redirect'])) : '';
-    $redirect = $redirect !== '' ? wp_validate_redirect($redirect, $fallback_redirect) : $fallback_redirect;
+    $redirect_raw = isset($_POST['peracrm_redirect']) ? wp_unslash($_POST['peracrm_redirect']) : '';
+    $redirect = $redirect_raw ? wp_validate_redirect($redirect_raw, '') : '';
+    if ($redirect === '') {
+        if ($client_id > 0) {
+            $redirect = get_edit_post_link($client_id, 'raw');
+        }
 
-    $status = isset($_POST['peracrm_status']) ? wp_unslash($_POST['peracrm_status']) : '';
-    $result = peracrm_reminders_update_status_authorized($reminder_id, $status, get_current_user_id());
+        if ($redirect === '') {
+            $redirect = admin_url('edit.php?post_type=crm_client');
+        }
+    }
+
+    $status = isset($_POST['peracrm_status']) ? sanitize_key(wp_unslash($_POST['peracrm_status'])) : '';
+    $context = isset($_POST['peracrm_context']) ? sanitize_key(wp_unslash($_POST['peracrm_context'])) : '';
+    $args = array(
+        'enforce_client_scope' => $context === 'frontend',
+    );
+
+    $result = peracrm_reminders_update_status_authorized($reminder_id, $status, get_current_user_id(), $args);
     if (is_wp_error($result)) {
-        if ($result->get_error_code() === 'unauthorized') {
+        $code = $result->get_error_code();
+
+        if ($code === 'invalid_status') {
+            peracrm_admin_redirect_with_notice($redirect, 'reminder_invalid_status');
+        }
+
+        if ($code === 'unauthorized' || $code === 'out_of_scope') {
             wp_die('Unauthorized');
         }
 
-        if ($result->get_error_code() === 'invalid_status') {
-            peracrm_admin_redirect_with_notice($redirect, 'reminder_invalid_status');
+        if (in_array($code, array('invalid_args', 'invalid_reminder', 'invalid_client', 'update_failed'), true)) {
+            peracrm_admin_redirect_with_notice($redirect, 'reminder_failed');
         }
 
         peracrm_admin_redirect_with_notice($redirect, 'reminder_failed');
     }
 
-    $status = peracrm_reminders_sanitize_status(sanitize_key($status));
+    $status = peracrm_reminders_sanitize_status($status);
     if ($status === 'done') {
         peracrm_admin_redirect_with_notice($redirect, 'reminder_done');
     }

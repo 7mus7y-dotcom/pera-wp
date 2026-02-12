@@ -45,6 +45,7 @@ $stages = function_exists( 'pera_crm_get_pipeline_stages' ) ? pera_crm_get_pipel
 
 $activity_rows = function_exists( 'peracrm_activity_list' ) ? peracrm_activity_list( array( 'party_ids' => array( $lead_id ), 'limit' => 20 ) ) : array();
 $task_rows     = function_exists( 'peracrm_reminders_list' ) ? peracrm_reminders_list( array( 'party_ids' => array( $lead_id ), 'limit' => 50 ) ) : array();
+$crm_current_url = home_url( (string) ( $_SERVER['REQUEST_URI'] ?? '/crm/' ) );
 
 get_header();
 ?>
@@ -100,6 +101,19 @@ get_header();
             <li>
               <span class="pill pill--outline"><?php echo esc_html( (string) ( $task['due_at'] ?? $task['due_date'] ?? '' ) ); ?></span>
               <span><?php echo esc_html( wp_strip_all_tags( (string) ( $task['note'] ?? $task['reminder_note'] ?? $task['message'] ?? '' ) ) ); ?></span>
+              <?php $task_status = sanitize_key( (string) ( $task['status'] ?? 'pending' ) ); ?>
+              <?php $reminder_id = absint( $task['reminder_id'] ?? $task['id'] ?? 0 ); ?>
+              <?php if ( $reminder_id > 0 && 'pending' === $task_status ) : ?>
+              <form method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>">
+                <input type="hidden" name="action" value="peracrm_update_reminder_status">
+                <input type="hidden" name="peracrm_reminder_id" value="<?php echo esc_attr( (string) $reminder_id ); ?>">
+                <input type="hidden" name="peracrm_status" value="done">
+                <input type="hidden" name="peracrm_redirect" value="<?php echo esc_url( $crm_current_url ); ?>">
+                <input type="hidden" name="peracrm_context" value="frontend">
+                <?php wp_nonce_field( 'peracrm_update_reminder_status', 'peracrm_update_reminder_status_nonce' ); ?>
+                <button type="submit" class="btn btn--ghost btn--blue"><?php echo esc_html__( 'Mark done', 'hello-elementor-child' ); ?></button>
+              </form>
+              <?php endif; ?>
             </li>
           <?php endforeach; ?>
         </ul>

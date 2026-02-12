@@ -38,6 +38,7 @@ $notices       = is_array( $crm_dashboard['notices'] ?? null ) ? $crm_dashboard[
 $today_tasks_page   = max( 1, isset( $_GET['today_page'] ) ? absint( wp_unslash( (string) $_GET['today_page'] ) ) : 1 ); // phpcs:ignore WordPress.Security.NonceVerification.Recommended
 $overdue_tasks_page = max( 1, isset( $_GET['overdue_page'] ) ? absint( wp_unslash( (string) $_GET['overdue_page'] ) ) : 1 ); // phpcs:ignore WordPress.Security.NonceVerification.Recommended
 $tasks_per_page     = 20;
+$crm_current_url    = home_url( wp_unslash( (string) ( $_SERVER['REQUEST_URI'] ?? '/crm/' ) ) );
 
 $kpi_tiles = array(
 	array( 'label' => __( 'Total open leads', 'hello-elementor-child' ), 'key' => 'total_open_leads' ),
@@ -105,6 +106,18 @@ get_header();
                 <a class="btn btn--ghost btn--blue" href="<?php echo esc_url( home_url( '/crm/view/' . (int) $task['lead_id'] . '/' ) ); ?>"><?php echo esc_html( (string) ( $task['lead_name'] ?: __( 'Untitled lead', 'hello-elementor-child' ) ) ); ?></a>
                 <span class="pill pill--outline"><?php echo esc_html( (string) $task['due_date'] ); ?></span>
                 <span><?php echo esc_html( (string) $task['reminder_note'] ); ?></span>
+                <?php $task_status = sanitize_key( (string) ( $task['status'] ?? 'pending' ) ); ?>
+                <?php if ( ! empty( $task['reminder_id'] ) && 'pending' === $task_status ) : ?>
+                <form method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>">
+                  <input type="hidden" name="action" value="peracrm_update_reminder_status">
+                  <input type="hidden" name="peracrm_reminder_id" value="<?php echo esc_attr( (string) absint( $task['reminder_id'] ) ); ?>">
+                  <input type="hidden" name="peracrm_status" value="done">
+                  <input type="hidden" name="peracrm_redirect" value="<?php echo esc_url( $crm_current_url ); ?>">
+                  <input type="hidden" name="peracrm_context" value="frontend">
+                  <?php wp_nonce_field( 'peracrm_update_reminder_status', 'peracrm_update_reminder_status_nonce' ); ?>
+                  <button type="submit" class="btn btn--ghost btn--blue"><?php echo esc_html__( 'Mark done', 'hello-elementor-child' ); ?></button>
+                </form>
+                <?php endif; ?>
               </li>
             <?php endforeach; ?>
             </ul>
@@ -134,6 +147,18 @@ get_header();
                 <a class="btn btn--ghost btn--red" href="<?php echo esc_url( home_url( '/crm/view/' . (int) $task['lead_id'] . '/' ) ); ?>"><?php echo esc_html( (string) ( $task['lead_name'] ?: __( 'Untitled lead', 'hello-elementor-child' ) ) ); ?></a>
                 <span class="pill pill--red"><?php echo esc_html( (string) $task['due_date'] ); ?></span>
                 <span><?php echo esc_html( (string) $task['reminder_note'] ); ?></span>
+                <?php $task_status = sanitize_key( (string) ( $task['status'] ?? 'pending' ) ); ?>
+                <?php if ( ! empty( $task['reminder_id'] ) && 'pending' === $task_status ) : ?>
+                <form method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>">
+                  <input type="hidden" name="action" value="peracrm_update_reminder_status">
+                  <input type="hidden" name="peracrm_reminder_id" value="<?php echo esc_attr( (string) absint( $task['reminder_id'] ) ); ?>">
+                  <input type="hidden" name="peracrm_status" value="done">
+                  <input type="hidden" name="peracrm_redirect" value="<?php echo esc_url( $crm_current_url ); ?>">
+                  <input type="hidden" name="peracrm_context" value="frontend">
+                  <?php wp_nonce_field( 'peracrm_update_reminder_status', 'peracrm_update_reminder_status_nonce' ); ?>
+                  <button type="submit" class="btn btn--ghost btn--blue"><?php echo esc_html__( 'Mark done', 'hello-elementor-child' ); ?></button>
+                </form>
+                <?php endif; ?>
               </li>
             <?php endforeach; ?>
             </ul>
