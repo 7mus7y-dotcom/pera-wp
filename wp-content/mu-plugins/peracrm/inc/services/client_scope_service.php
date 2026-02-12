@@ -11,6 +11,29 @@ function peracrm_resolve_allowed_client_ids_for_user($user_id)
         return [];
     }
 
+    if (function_exists('peracrm_pipeline_assigned_meta_keys')) {
+        $meta_keys = (array) peracrm_pipeline_assigned_meta_keys();
+    } else {
+        $meta_keys = [];
+    }
+
+    $meta_keys = array_values(array_unique(array_filter($meta_keys, static function ($key) {
+        return is_string($key) && '' !== trim($key);
+    })));
+
+    if (empty($meta_keys)) {
+        $meta_keys = ['assigned_advisor_user_id', 'crm_assigned_advisor'];
+    }
+
+    $meta_query = ['relation' => 'OR'];
+    foreach ($meta_keys as $meta_key) {
+        $meta_query[] = [
+            'key' => $meta_key,
+            'value' => $user_id,
+            'compare' => '=',
+        ];
+    }
+
     $query_args = [
         'post_type' => 'crm_client',
         'post_status' => 'any',
@@ -18,19 +41,7 @@ function peracrm_resolve_allowed_client_ids_for_user($user_id)
         'fields' => 'ids',
         'no_found_rows' => true,
         'suppress_filters' => true,
-        'meta_query' => [
-            'relation' => 'OR',
-            [
-                'key' => 'assigned_advisor_user_id',
-                'value' => $user_id,
-                'compare' => '=',
-            ],
-            [
-                'key' => 'crm_assigned_advisor',
-                'value' => $user_id,
-                'compare' => '=',
-            ],
-        ],
+        'meta_query' => $meta_query,
     ];
 
     $ids = [];

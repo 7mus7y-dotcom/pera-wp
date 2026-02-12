@@ -247,6 +247,7 @@ get_header();
                     <form method="post" action="<?php echo esc_url( home_url( '/wp-admin/admin-post.php' ) ); ?>">
 							<?php wp_nonce_field( 'peracrm_update_reminder_status', 'peracrm_update_reminder_status_nonce' ); ?>
                       <input type="hidden" name="action" value="peracrm_update_reminder_status" />
+                      <input type="hidden" name="peracrm_context" value="frontend" />
                       <input type="hidden" name="peracrm_reminder_id" value="<?php echo esc_attr( (string) ( (int) ( $reminder['id'] ?? 0 ) ) ); ?>" />
                       <input type="hidden" name="peracrm_status" value="done" />
                       <input type="hidden" name="peracrm_redirect" value="<?php echo esc_url( $frontend_url ); ?>" />
