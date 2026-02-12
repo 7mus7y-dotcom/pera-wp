@@ -14,20 +14,30 @@ $is_leads     = 'leads' === $view;
 $crm_dashboard = function_exists( 'pera_crm_get_dashboard_data' )
 	? pera_crm_get_dashboard_data()
 	: array(
-		'kpis'     => array(),
-		'pipeline' => array(),
-		'activity' => array(),
-		'notices'  => array( __( 'CRM data unavailable.', 'hello-elementor-child' ) ),
+		'kpis'          => array(),
+		'pipeline'      => array(),
+		'activity'      => array(),
+		'todays_tasks'  => array(),
+		'overdue_tasks' => array(),
+		'new_leads'     => array(),
+		'notices'       => array( __( 'CRM data unavailable.', 'hello-elementor-child' ) ),
 	);
 
 $leads_data = $is_leads && function_exists( 'pera_crm_get_leads_view_data' )
 	? pera_crm_get_leads_view_data( $current_page, 20 )
 	: array();
 
-$kpis     = is_array( $crm_dashboard['kpis'] ?? null ) ? $crm_dashboard['kpis'] : array();
-$pipeline = is_array( $crm_dashboard['pipeline'] ?? null ) ? $crm_dashboard['pipeline'] : array();
-$activity = is_array( $crm_dashboard['activity'] ?? null ) ? $crm_dashboard['activity'] : array();
-$notices  = is_array( $crm_dashboard['notices'] ?? null ) ? $crm_dashboard['notices'] : array();
+$kpis          = is_array( $crm_dashboard['kpis'] ?? null ) ? $crm_dashboard['kpis'] : array();
+$pipeline      = is_array( $crm_dashboard['pipeline'] ?? null ) ? $crm_dashboard['pipeline'] : array();
+$activity      = is_array( $crm_dashboard['activity'] ?? null ) ? $crm_dashboard['activity'] : array();
+$todays_tasks  = is_array( $crm_dashboard['todays_tasks'] ?? null ) ? $crm_dashboard['todays_tasks'] : array();
+$overdue_tasks = is_array( $crm_dashboard['overdue_tasks'] ?? null ) ? $crm_dashboard['overdue_tasks'] : array();
+$new_leads     = is_array( $crm_dashboard['new_leads'] ?? null ) ? $crm_dashboard['new_leads'] : array();
+$notices       = is_array( $crm_dashboard['notices'] ?? null ) ? $crm_dashboard['notices'] : array();
+
+$today_tasks_page   = max( 1, isset( $_GET['today_page'] ) ? absint( wp_unslash( (string) $_GET['today_page'] ) ) : 1 ); // phpcs:ignore WordPress.Security.NonceVerification.Recommended
+$overdue_tasks_page = max( 1, isset( $_GET['overdue_page'] ) ? absint( wp_unslash( (string) $_GET['overdue_page'] ) ) : 1 ); // phpcs:ignore WordPress.Security.NonceVerification.Recommended
+$tasks_per_page     = 20;
 
 $kpi_tiles = array(
 	array( 'label' => __( 'Total open leads', 'hello-elementor-child' ), 'key' => 'total_open_leads' ),
@@ -38,7 +48,7 @@ $kpi_tiles = array(
 	array( 'label' => __( 'Overdue reminders', 'hello-elementor-child' ), 'key' => 'overdue_reminders' ),
 );
 
-$stages = function_exists( 'pera_crm_get_pipeline_stages' ) ? pera_crm_get_pipeline_stages() : array();
+$stages       = function_exists( 'pera_crm_get_pipeline_stages' ) ? pera_crm_get_pipeline_stages() : array();
 $new_lead_url = home_url( '/crm/new/' );
 
 get_header();
@@ -53,11 +63,11 @@ get_header();
         <span class="pill pill--brand"><?php echo esc_html__( 'Live', 'hello-elementor-child' ); ?></span>
         <span class="pill pill--outline"><?php echo esc_html__( 'Internal', 'hello-elementor-child' ); ?></span>
         <span class="pill pill--outline"><?php echo esc_html__( 'Read only', 'hello-elementor-child' ); ?></span>
-        <a class="pill pill--brand" href="<?php echo esc_url( $new_lead_url ); ?>"><?php echo esc_html__( 'Add new lead', 'hello-elementor-child' ); ?></a>
+        <a class="btn btn--solid btn--blue" href="<?php echo esc_url( $new_lead_url ); ?>"><?php echo esc_html__( 'Add new lead', 'hello-elementor-child' ); ?></a>
       </div>
       <nav class="crm-subnav" aria-label="<?php echo esc_attr__( 'CRM sections', 'hello-elementor-child' ); ?>">
-        <a class="pill <?php echo esc_attr( $is_leads ? 'pill--outline' : 'pill--brand' ); ?>" href="<?php echo esc_url( home_url( '/crm/' ) ); ?>"><?php echo esc_html__( 'Overview', 'hello-elementor-child' ); ?></a>
-        <a class="pill <?php echo esc_attr( $is_leads ? 'pill--brand' : 'pill--outline' ); ?>" href="<?php echo esc_url( home_url( '/crm/leads/' ) ); ?>"><?php echo esc_html__( 'Leads', 'hello-elementor-child' ); ?></a>
+        <a class="btn <?php echo esc_attr( $is_leads ? 'btn--ghost' : 'btn--solid' ); ?> btn--blue" href="<?php echo esc_url( home_url( '/crm/' ) ); ?>"><?php echo esc_html__( 'Overview', 'hello-elementor-child' ); ?></a>
+        <a class="btn <?php echo esc_attr( $is_leads ? 'btn--solid' : 'btn--ghost' ); ?> btn--blue" href="<?php echo esc_url( home_url( '/crm/leads/' ) ); ?>"><?php echo esc_html__( 'Leads', 'hello-elementor-child' ); ?></a>
       </nav>
     </div>
   </section>
@@ -65,12 +75,7 @@ get_header();
   <section class="content-panel content-panel--overlap-hero">
     <div class="content-panel-box border-dm">
 		<?php if ( ! $is_leads ) : ?>
-      <div class="section-header">
-        <h2><?php echo esc_html__( 'Overview', 'hello-elementor-child' ); ?></h2>
-        <p><?php echo esc_html__( 'Live CRM dashboard data loaded from available CRM helper functions.', 'hello-elementor-child' ); ?></p>
-      </div>
-
-			<?php if ( ! empty( $notices ) ) : ?>
+      <?php if ( ! empty( $notices ) ) : ?>
       <section class="section" aria-label="<?php echo esc_attr__( 'CRM notices', 'hello-elementor-child' ); ?>">
 				<?php foreach ( $notices as $notice ) : ?>
         <article class="card-shell">
@@ -79,7 +84,103 @@ get_header();
         </article>
 				<?php endforeach; ?>
       </section>
-			<?php endif; ?>
+      <?php endif; ?>
+
+      <section class="section" aria-labelledby="crm-today-tasks-heading">
+        <article class="card-shell">
+          <header class="section-header">
+            <h2 id="crm-today-tasks-heading"><?php echo esc_html__( "Today's Tasks", 'hello-elementor-child' ); ?></h2>
+          </header>
+          <?php if ( empty( $todays_tasks ) ) : ?>
+            <p><?php echo esc_html__( 'No tasks due today.', 'hello-elementor-child' ); ?></p>
+          <?php else : ?>
+            <?php
+            $today_total      = count( $todays_tasks );
+            $today_total_page = max( 1, (int) ceil( $today_total / $tasks_per_page ) );
+            $today_tasks      = array_slice( $todays_tasks, ( $today_tasks_page - 1 ) * $tasks_per_page, $tasks_per_page );
+            ?>
+            <ul class="crm-list">
+            <?php foreach ( $today_tasks as $task ) : ?>
+              <li>
+                <a class="btn btn--ghost btn--blue" href="<?php echo esc_url( home_url( '/crm/view/' . (int) $task['lead_id'] . '/' ) ); ?>"><?php echo esc_html( (string) ( $task['lead_name'] ?: __( 'Untitled lead', 'hello-elementor-child' ) ) ); ?></a>
+                <span class="pill pill--outline"><?php echo esc_html( (string) $task['due_date'] ); ?></span>
+                <span><?php echo esc_html( (string) $task['reminder_note'] ); ?></span>
+              </li>
+            <?php endforeach; ?>
+            </ul>
+            <?php if ( $today_total_page > 1 ) : ?>
+              <?php echo wp_kses_post( paginate_links( array( 'base' => add_query_arg( 'today_page', '%#%', home_url( '/crm/' ) ), 'format' => '', 'current' => $today_tasks_page, 'total' => $today_total_page, 'type' => 'list', 'prev_text' => __( 'Previous', 'hello-elementor-child' ), 'next_text' => __( 'Next', 'hello-elementor-child' ) ) ) ); ?>
+            <?php endif; ?>
+          <?php endif; ?>
+        </article>
+      </section>
+
+      <section class="section" aria-labelledby="crm-overdue-tasks-heading">
+        <article class="card-shell">
+          <header class="section-header">
+            <h2 id="crm-overdue-tasks-heading"><?php echo esc_html__( 'Overdue Tasks', 'hello-elementor-child' ); ?></h2>
+          </header>
+          <?php if ( empty( $overdue_tasks ) ) : ?>
+            <p><?php echo esc_html__( 'No overdue tasks.', 'hello-elementor-child' ); ?></p>
+          <?php else : ?>
+            <?php
+            $overdue_total      = count( $overdue_tasks );
+            $overdue_total_page = max( 1, (int) ceil( $overdue_total / $tasks_per_page ) );
+            $overdue_page_rows  = array_slice( $overdue_tasks, ( $overdue_tasks_page - 1 ) * $tasks_per_page, $tasks_per_page );
+            ?>
+            <ul class="crm-list">
+            <?php foreach ( $overdue_page_rows as $task ) : ?>
+              <li>
+                <a class="btn btn--ghost btn--red" href="<?php echo esc_url( home_url( '/crm/view/' . (int) $task['lead_id'] . '/' ) ); ?>"><?php echo esc_html( (string) ( $task['lead_name'] ?: __( 'Untitled lead', 'hello-elementor-child' ) ) ); ?></a>
+                <span class="pill pill--red"><?php echo esc_html( (string) $task['due_date'] ); ?></span>
+                <span><?php echo esc_html( (string) $task['reminder_note'] ); ?></span>
+              </li>
+            <?php endforeach; ?>
+            </ul>
+            <?php if ( $overdue_total_page > 1 ) : ?>
+              <?php echo wp_kses_post( paginate_links( array( 'base' => add_query_arg( 'overdue_page', '%#%', home_url( '/crm/' ) ), 'format' => '', 'current' => $overdue_tasks_page, 'total' => $overdue_total_page, 'type' => 'list', 'prev_text' => __( 'Previous', 'hello-elementor-child' ), 'next_text' => __( 'Next', 'hello-elementor-child' ) ) ) ); ?>
+            <?php endif; ?>
+          <?php endif; ?>
+        </article>
+      </section>
+
+      <section class="section" aria-labelledby="crm-new-leads-heading">
+        <article class="card-shell">
+          <header class="section-header">
+            <h2 id="crm-new-leads-heading"><?php echo esc_html__( 'New Leads', 'hello-elementor-child' ); ?></h2>
+          </header>
+          <?php if ( empty( $new_leads ) ) : ?>
+            <p><?php echo esc_html__( 'No new leads found.', 'hello-elementor-child' ); ?></p>
+          <?php else : ?>
+            <ul class="crm-list">
+            <?php foreach ( $new_leads as $lead ) : ?>
+              <li><a class="btn btn--ghost btn--blue" href="<?php echo esc_url( (string) $lead['url'] ); ?>"><?php echo esc_html( (string) $lead['name'] ); ?></a></li>
+            <?php endforeach; ?>
+            </ul>
+          <?php endif; ?>
+        </article>
+      </section>
+
+      <section class="section" aria-labelledby="crm-activity-heading">
+        <article class="card-shell">
+          <header class="section-header">
+            <h2 id="crm-activity-heading"><?php echo esc_html__( 'Latest Activity', 'hello-elementor-child' ); ?></h2>
+          </header>
+          <?php if ( empty( $activity ) ) : ?>
+            <p><?php echo esc_html__( 'No activity available.', 'hello-elementor-child' ); ?></p>
+          <?php else : ?>
+          <ul class="crm-list">
+            <?php foreach ( $activity as $item ) : ?>
+              <li>
+                <span class="pill pill--outline"><?php echo esc_html( (string) ( $item['type'] ?? '' ) ); ?></span>
+                <strong><?php echo esc_html( (string) ( $item['time'] ?? '' ) ); ?></strong>
+                <span><?php echo esc_html( (string) ( $item['summary'] ?? '' ) ); ?></span>
+              </li>
+            <?php endforeach; ?>
+          </ul>
+          <?php endif; ?>
+        </article>
+      </section>
 
       <section class="section" aria-labelledby="crm-kpi-heading">
         <header class="section-header">
@@ -95,11 +196,10 @@ get_header();
         </div>
       </section>
 
-      <section class="section" aria-labelledby="crm-work-heading">
+      <section class="section" aria-labelledby="crm-pipeline-heading">
         <article class="card-shell">
           <header class="section-header">
-            <h2 id="crm-work-heading"><?php echo esc_html__( 'Pipeline Preview', 'hello-elementor-child' ); ?></h2>
-            <p><?php echo esc_html__( 'Count of leads in each canonical pipeline stage.', 'hello-elementor-child' ); ?></p>
+            <h2 id="crm-pipeline-heading"><?php echo esc_html__( 'Pipeline View', 'hello-elementor-child' ); ?></h2>
           </header>
           <div class="grid-3 crm-kpi-grid">
 				<?php foreach ( $pipeline as $stage ) : ?>
@@ -109,35 +209,6 @@ get_header();
             </article>
 				<?php endforeach; ?>
           </div>
-        </article>
-      </section>
-
-      <section class="section" aria-labelledby="crm-activity-heading">
-        <article class="card-shell crm-activity-card">
-          <header class="section-header">
-            <h2 id="crm-activity-heading"><?php echo esc_html__( 'Recent Activity', 'hello-elementor-child' ); ?></h2>
-            <p><?php echo esc_html__( 'Latest 20 CRM activity entries.', 'hello-elementor-child' ); ?></p>
-          </header>
-				<?php if ( empty( $activity ) ) : ?>
-          <p><?php echo esc_html__( 'CRM data unavailable.', 'hello-elementor-child' ); ?></p>
-				<?php else : ?>
-          <ul>
-					<?php foreach ( $activity as $item ) : ?>
-            <li>
-              <strong><?php echo esc_html( (string) ( $item['time'] ?? '' ) ); ?></strong>
-              —
-              <span class="pill pill--outline"><?php echo esc_html( (string) ( $item['type'] ?? '' ) ); ?></span>
-						<?php $summary = (string) ( $item['summary'] ?? '' ); ?>
-						<?php $edit = (string) ( $item['edit_url'] ?? '' ); ?>
-						<?php if ( '' !== $edit ) : ?>
-              <a href="<?php echo esc_url( $edit ); ?>"><?php echo esc_html( $summary ); ?></a>
-						<?php else : ?>
-							<?php echo esc_html( $summary ); ?>
-						<?php endif; ?>
-            </li>
-					<?php endforeach; ?>
-          </ul>
-				<?php endif; ?>
         </article>
       </section>
 
@@ -157,18 +228,15 @@ get_header();
           <p><?php echo esc_html( sprintf( __( 'Showing %1$d–%2$d of %3$d leads', 'hello-elementor-child' ), $from, $to, $total ) ); ?></p>
         </div>
         <div class="crm-toolbar-actions">
-          <a class="pill pill--brand" href="<?php echo esc_url( $new_lead_url ); ?>"><?php echo esc_html__( 'Add new lead', 'hello-elementor-child' ); ?></a>
+          <a class="btn btn--solid btn--blue" href="<?php echo esc_url( $new_lead_url ); ?>"><?php echo esc_html__( 'Add new lead', 'hello-elementor-child' ); ?></a>
           <div class="crm-view-toggle" data-crm-view-toggle>
-            <button type="button" class="pill pill--brand" data-view="table"><?php echo esc_html__( 'Table', 'hello-elementor-child' ); ?></button>
-            <button type="button" class="pill pill--outline" data-view="cards"><?php echo esc_html__( 'Cards', 'hello-elementor-child' ); ?></button>
+            <button type="button" class="btn btn--solid btn--blue" data-view="table"><?php echo esc_html__( 'Table', 'hello-elementor-child' ); ?></button>
+            <button type="button" class="btn btn--ghost btn--blue" data-view="cards"><?php echo esc_html__( 'Cards', 'hello-elementor-child' ); ?></button>
           </div>
         </div>
       </div>
 
       <div class="crm-leads-table-wrap" data-crm-view="table">
-        <div class="crm-leads-table-header-action">
-          <a class="pill pill--brand" href="<?php echo esc_url( $new_lead_url ); ?>"><?php echo esc_html__( 'Add new lead', 'hello-elementor-child' ); ?></a>
-        </div>
         <table class="crm-leads-table">
           <thead>
             <tr>
@@ -193,7 +261,7 @@ get_header();
               <td><?php echo esc_html( (string) $lead['engagement_state'] ); ?></td>
               <td><?php echo esc_html( (string) $lead['disposition'] ); ?></td>
               <td><?php echo esc_html( '' !== $lead['last_activity'] ? (string) $lead['last_activity'] : '—' ); ?></td>
-              <td><a href="<?php echo esc_url( (string) $lead['crm_url'] ); ?>"><?php echo esc_html__( 'Open', 'hello-elementor-child' ); ?></a></td>
+              <td><a class="btn btn--ghost btn--blue" href="<?php echo esc_url( (string) $lead['crm_url'] ); ?>"><?php echo esc_html__( 'View Lead', 'hello-elementor-child' ); ?></a></td>
             </tr>
 					<?php endforeach; ?>
 				<?php endif; ?>
@@ -209,7 +277,7 @@ get_header();
           <p><strong><?php echo esc_html__( 'Engagement:', 'hello-elementor-child' ); ?></strong> <?php echo esc_html( (string) $lead['engagement_state'] ); ?></p>
           <p><strong><?php echo esc_html__( 'Disposition:', 'hello-elementor-child' ); ?></strong> <?php echo esc_html( (string) $lead['disposition'] ); ?></p>
           <p><strong><?php echo esc_html__( 'Last activity:', 'hello-elementor-child' ); ?></strong> <?php echo esc_html( '' !== $lead['last_activity'] ? (string) $lead['last_activity'] : '—' ); ?></p>
-          <p><a href="<?php echo esc_url( (string) $lead['crm_url'] ); ?>"><?php echo esc_html__( 'Open', 'hello-elementor-child' ); ?></a></p>
+          <p><a class="btn btn--ghost btn--blue" href="<?php echo esc_url( (string) $lead['crm_url'] ); ?>"><?php echo esc_html__( 'View Lead', 'hello-elementor-child' ); ?></a></p>
         </article>
 				<?php endforeach; ?>
       </div>

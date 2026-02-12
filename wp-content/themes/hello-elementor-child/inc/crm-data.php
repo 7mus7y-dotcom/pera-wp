@@ -247,43 +247,192 @@ if ( ! function_exists( 'pera_crm_fetch_recent_activity' ) ) {
 	/**
 	 * Fetch last 20 activity records.
 	 *
-	 * @return array{items:array<int,array{time:string,type:string,summary:string,client_id:int}>,available:bool}
+	 * @return array{available:bool,rows:array<int,array{time:string,type:string,summary:string,client_id:int}>}
 	 */
 	function pera_crm_fetch_recent_activity(): array {
-		$callbacks = array(
-			'peracrm_activity_get_recent',
-			'peracrm_activity_list_recent',
-			'peracrm_activity_recent',
-		);
+		$current_user_id = get_current_user_id();
+		$is_employee     = pera_crm_user_is_employee( $current_user_id );
+		$allowed_ids     = $is_employee ? pera_crm_get_allowed_client_ids_for_user( $current_user_id ) : array();
 
+		if ( function_exists( 'peracrm_activity_list' ) ) {
+			$args = array(
+				'limit'   => 20,
+				'orderby' => 'created_at',
+				'order'   => 'DESC',
+			);
+			if ( $is_employee ) {
+				if ( empty( $allowed_ids ) ) {
+					return array( 'available' => true, 'rows' => array() );
+				}
+				$args['party_ids'] = $allowed_ids;
+			}
+			$items = pera_crm_normalize_activities( peracrm_activity_list( $args ) );
+			if ( ! empty( $items ) || $is_employee ) {
+				return array( 'available' => true, 'rows' => $items );
+			}
+			$items = pera_crm_normalize_activities( peracrm_activity_list( array( 'limit' => 20 ) ) );
+			return array( 'available' => true, 'rows' => $items );
+		}
+
+		$callbacks = array( 'peracrm_activity_get_recent', 'peracrm_activity_list_recent', 'peracrm_activity_recent' );
 		foreach ( $callbacks as $callback ) {
 			if ( ! function_exists( $callback ) ) {
 				continue;
 			}
-
-			$rows  = call_user_func( $callback, 20 );
-			$items = pera_crm_normalize_activities( $rows );
-			if ( empty( $items ) ) {
-				$rows  = call_user_func( $callback );
-				$items = pera_crm_normalize_activities( $rows );
+			$items = pera_crm_normalize_activities( call_user_func( $callback, 20 ) );
+			if ( $is_employee && ! empty( $allowed_ids ) ) {
+				$items = array_values( array_filter( $items, static function ( array $item ) use ( $allowed_ids ): bool {
+					return in_array( (int) $item['client_id'], $allowed_ids, true );
+				} ) );
 			}
+			return array( 'available' => true, 'rows' => array_slice( $items, 0, 20 ) );
+		}
 
-			if ( ! empty( $items ) ) {
-				return array(
-					'items'     => $items,
-					'available' => true,
-				);
+		return array( 'available' => false, 'rows' => array() );
+	}
+}
+
+if ( ! function_exists( 'pera_crm_get_recent_leads' ) ) {
+	/**
+	 * Fetch latest leads for dashboard.
+	 *
+	 * @return array<int,array{id:int,name:string,url:string}>
+	 */
+	function pera_crm_get_recent_leads( int $limit = 20 ): array {
+		$current_user_id = get_current_user_id();
+		$is_employee     = pera_crm_user_is_employee( $current_user_id );
+		$allowed_ids     = $is_employee ? pera_crm_get_allowed_client_ids_for_user( $current_user_id ) : array();
+		$args = array(
+			'post_type'      => 'crm_client',
+			'post_status'    => array( 'publish', 'private', 'draft', 'pending', 'future' ),
+			'posts_per_page' => max( 1, $limit ),
+			'orderby'        => 'date',
+			'order'          => 'DESC',
+			'fields'         => 'ids',
+			'no_found_rows'  => true,
+		);
+		if ( $is_employee ) {
+			$args['post__in'] = empty( $allowed_ids ) ? array( 0 ) : $allowed_ids;
+		}
+		$ids = get_posts( $args );
+		$rows = array();
+		foreach ( (array) $ids as $lead_id ) {
+			$lead_id = (int) $lead_id;
+			$rows[] = array(
+				'id'   => $lead_id,
+				'name' => get_the_title( $lead_id ),
+				'url'  => function_exists( 'pera_crm_get_client_view_url' ) ? pera_crm_get_client_view_url( $lead_id ) : home_url( '/crm/view/' . $lead_id . '/' ),
+			);
+		}
+		return $rows;
+	}
+}
+
+if ( ! function_exists( 'pera_crm_get_task_rows' ) ) {
+	/**
+	 * Resolve reminder/task rows from helpers or SQL fallback.
+	 *
+	 * @return array<int,array{lead_id:int,lead_name:string,due_date:string,reminder_note:string}>
+	 */
+	function pera_crm_get_task_rows( bool $overdue = false ): array {
+		$current_user_id = get_current_user_id();
+		$is_employee     = pera_crm_user_is_employee( $current_user_id );
+		$allowed_ids     = $is_employee ? pera_crm_get_allowed_client_ids_for_user( $current_user_id ) : array();
+		$today           = wp_date( 'Y-m-d' );
+
+		if ( function_exists( 'peracrm_reminders_list' ) ) {
+			$args = array(
+				'limit'  => 200,
+				'status' => 'open',
+				'order'  => 'ASC',
+			);
+			if ( $is_employee ) {
+				if ( empty( $allowed_ids ) ) {
+					return array();
+				}
+				$args['party_ids'] = $allowed_ids;
+			}
+			$raw_rows = peracrm_reminders_list( $args );
+			if ( is_array( $raw_rows ) ) {
+				$rows = array();
+				foreach ( $raw_rows as $row ) {
+					if ( ! is_array( $row ) ) {
+						continue;
+					}
+					$lead_id = (int) ( $row['party_id'] ?? $row['client_id'] ?? $row['lead_id'] ?? $row['post_id'] ?? 0 );
+					if ( $is_employee && ! in_array( $lead_id, $allowed_ids, true ) ) {
+						continue;
+					}
+					$due_raw = (string) ( $row['due_at'] ?? $row['due_date'] ?? '' );
+					$due_key = '' !== $due_raw ? wp_date( 'Y-m-d', strtotime( $due_raw ) ) : '';
+					if ( '' === $due_key ) {
+						continue;
+					}
+					if ( $overdue ? ( $due_key >= $today ) : ( $due_key !== $today ) ) {
+						continue;
+					}
+					$rows[] = array(
+						'lead_id'       => $lead_id,
+						'lead_name'     => $lead_id > 0 ? get_the_title( $lead_id ) : '',
+						'due_date'      => $due_key,
+						'reminder_note' => wp_strip_all_tags( (string) ( $row['note'] ?? $row['reminder_note'] ?? $row['message'] ?? '' ) ),
+					);
+				}
+				return $rows;
 			}
 		}
 
-		return array(
-			'items'     => array(),
-			'available' => false,
-		);
+		global $wpdb;
+		if ( ! isset( $wpdb ) ) {
+			return array();
+		}
+		$table_candidates = array( $wpdb->prefix . 'peracrm_reminders', $wpdb->prefix . 'crm_reminders', $wpdb->prefix . 'peracrm_activity_reminders' );
+		$table = '';
+		foreach ( $table_candidates as $candidate ) {
+			$exists = $wpdb->get_var( $wpdb->prepare( 'SHOW TABLES LIKE %s', $candidate ) ); // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery
+			if ( $exists === $candidate ) {
+				$table = $candidate;
+				break;
+			}
+		}
+		if ( '' === $table ) {
+			return array();
+		}
+
+		$where = $overdue ? 'DATE(due_at) < %s' : 'DATE(due_at) = %s';
+		$sql   = $wpdb->prepare( "SELECT party_id, due_at, note FROM {$table} WHERE {$where} AND (status = 'open' OR status IS NULL OR status = '') ORDER BY due_at ASC LIMIT 200", $today ); // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+		$raw   = $wpdb->get_results( $sql, ARRAY_A ); // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery
+		$rows  = array();
+		foreach ( (array) $raw as $row ) {
+			$lead_id = (int) ( $row['party_id'] ?? 0 );
+			if ( $is_employee && ! in_array( $lead_id, $allowed_ids, true ) ) {
+				continue;
+			}
+			$rows[] = array(
+				'lead_id'       => $lead_id,
+				'lead_name'     => $lead_id > 0 ? get_the_title( $lead_id ) : '',
+				'due_date'      => wp_date( 'Y-m-d', strtotime( (string) ( $row['due_at'] ?? '' ) ) ),
+				'reminder_note' => wp_strip_all_tags( (string) ( $row['note'] ?? '' ) ),
+			);
+		}
+		return $rows;
+	}
+}
+
+if ( ! function_exists( 'pera_crm_get_todays_tasks' ) ) {
+	function pera_crm_get_todays_tasks(): array {
+		return pera_crm_get_task_rows( false );
+	}
+}
+
+if ( ! function_exists( 'pera_crm_get_overdue_tasks' ) ) {
+	function pera_crm_get_overdue_tasks(): array {
+		return pera_crm_get_task_rows( true );
 	}
 }
 
 if ( ! function_exists( 'pera_crm_get_dashboard_data' ) ) {
+
 	/**
 	 * Build CRM dashboard view model.
 	 *
@@ -319,6 +468,10 @@ if ( ! function_exists( 'pera_crm_get_dashboard_data' ) ) {
 			$notices[] = __( 'CRM data unavailable: recent activity feed could not be loaded.', 'hello-elementor-child' );
 		}
 
+		$todays_tasks  = pera_crm_get_todays_tasks();
+		$overdue_tasks = pera_crm_get_overdue_tasks();
+		$new_leads     = pera_crm_get_recent_leads( 20 );
+
 		$kpis = array(
 			'total_open_leads'   => $open_leads,
 			'new_enquiries'      => (int) ( $stage_counts['new_enquiry'] ?? 0 ),
@@ -344,14 +497,17 @@ if ( ! function_exists( 'pera_crm_get_dashboard_data' ) ) {
 					: '';
 				return $item;
 			},
-			$activity_data['items']
+			$activity_data['rows']
 		);
 
 		return array(
-			'kpis'     => $kpis,
-			'pipeline' => $pipeline,
-			'activity' => $activity,
-			'notices'  => array_values( array_unique( $notices ) ),
+			'kpis'          => $kpis,
+			'pipeline'      => $pipeline,
+			'activity'      => $activity,
+			'todays_tasks'  => $todays_tasks,
+			'overdue_tasks' => $overdue_tasks,
+			'new_leads'     => $new_leads,
+			'notices'       => array_values( array_unique( $notices ) ),
 		);
 	}
 }
@@ -501,7 +657,7 @@ if ( ! function_exists( 'pera_crm_get_leads_view_data' ) ) {
 				'disposition'      => (string) ( $party['disposition'] ?? '' ),
 				'last_activity'    => $last_date,
 				'last_activity_ts' => $last_ts,
-				'crm_url'          => home_url( '/crm/client/' . $lead_id . '/' ),
+				'crm_url'          => function_exists( 'pera_crm_get_client_view_url' ) ? pera_crm_get_client_view_url( $lead_id ) : home_url( '/crm/view/' . $lead_id . '/' ),
 				'edit_url'         => admin_url( 'post.php?post=' . $lead_id . '&action=edit' ),
 			);
 		}
