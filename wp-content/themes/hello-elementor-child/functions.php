@@ -33,6 +33,7 @@ require_once get_stylesheet_directory() . '/inc/property-card-helpers.php';
 require_once get_stylesheet_directory() . '/inc/client-portal.php';
 require_once get_stylesheet_directory() . '/inc/crm-data.php';
 require_once get_stylesheet_directory() . '/inc/crm-router.php';
+require_once get_stylesheet_directory() . '/inc/crm-client-view.php';
 require_once get_stylesheet_directory() . '/inc/disable-hello-parent-loads.php';
 
 
