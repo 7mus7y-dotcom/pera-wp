@@ -25,6 +25,8 @@ $owner_name = $owner_user_id > 0 ? (string) get_the_author_meta( 'display_name',
 $party      = $client_id > 0 && function_exists( 'peracrm_party_get_status' ) ? peracrm_party_get_status( $client_id ) : array();
 $stage      = sanitize_key( (string) ( $party['lead_pipeline_stage'] ?? 'new_enquiry' ) );
 $stages     = function_exists( 'pera_crm_get_pipeline_stages' ) ? pera_crm_get_pipeline_stages() : array();
+$notice_raw = isset( $_GET['crm_notice'] ) ? wp_unslash( (string) $_GET['crm_notice'] ) : ''; // phpcs:ignore WordPress.Security.NonceVerification.Recommended
+$notice     = sanitize_key( $notice_raw );
 
 get_header();
 ?>
@@ -42,6 +44,9 @@ get_header();
   <section class="content-panel content-panel--overlap-hero">
     <div class="content-panel-box border-dm">
       <?php if ( $client instanceof WP_Post ) : ?>
+        <?php if ( 'created' === $notice ) : ?>
+          <p class="pill pill--brand"><?php echo esc_html__( 'Lead created successfully.', 'hello-elementor-child' ); ?></p>
+        <?php endif; ?>
         <article class="card-shell crm-client-summary">
           <p><strong><?php echo esc_html__( 'Title:', 'hello-elementor-child' ); ?></strong> <?php echo esc_html( get_the_title( $client ) ); ?></p>
           <p><strong><?php echo esc_html__( 'Assigned owner:', 'hello-elementor-child' ); ?></strong> <?php echo esc_html( '' !== $owner_name ? $owner_name : __( 'Unassigned', 'hello-elementor-child' ) ); ?></p>
