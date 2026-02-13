@@ -51,9 +51,9 @@ $deal_stage_options = function_exists( 'peracrm_deal_stage_options' ) ? (array) 
 $source_pills       = function_exists( 'pera_crm_client_view_source_pills' ) ? (array) pera_crm_client_view_source_pills( $client_id, $data['activity'] ?? array() ) : array();
 
 $can_manage_assignments = function_exists( 'peracrm_admin_user_can_reassign' ) && peracrm_admin_user_can_reassign();
-$can_reassign_advisor   = $can_manage_assignments && current_user_can( 'edit_post', $client_id );
-$can_delete_client      = $can_reassign_advisor;
-$can_set_dormant      = $can_delete_client;
+$can_reassign_advisor   = $can_manage_assignments;
+$can_delete_client      = $can_manage_assignments;
+$can_set_dormant        = $can_manage_assignments;
 
 $frontend_url = function_exists( 'pera_crm_client_view_url' ) ? pera_crm_client_view_url( $client_id ) : home_url( '/crm/client/' . $client_id . '/' );
 $clients_url  = home_url( '/crm/clients/' );
