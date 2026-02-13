@@ -250,14 +250,14 @@ get_header();
 			?>
       <div class="crm-leads-toolbar">
         <div>
-          <h2><?php echo esc_html__( 'Leads', 'hello-elementor-child' ); ?></h2>
+          <h2><?php echo esc_html__( 'Clients', 'hello-elementor-child' ); ?></h2>
           <p><?php echo esc_html( sprintf( __( 'Showing %1$d–%2$d of %3$d leads', 'hello-elementor-child' ), $from, $to, $total ) ); ?></p>
         </div>
         <div class="crm-toolbar-actions">
           <a class="btn btn--solid btn--blue" href="<?php echo esc_url( $new_lead_url ); ?>"><?php echo esc_html__( 'Add new lead', 'hello-elementor-child' ); ?></a>
           <div class="crm-view-toggle" data-crm-view-toggle>
-            <button type="button" class="btn btn--solid btn--blue" data-view="table"><?php echo esc_html__( 'Table', 'hello-elementor-child' ); ?></button>
-            <button type="button" class="btn btn--ghost btn--blue" data-view="cards"><?php echo esc_html__( 'Cards', 'hello-elementor-child' ); ?></button>
+            <button type="button" class="btn btn--solid btn--blue" data-view="cards" aria-pressed="true"><?php echo esc_html__( 'Cards', 'hello-elementor-child' ); ?></button>
+            <button type="button" class="btn btn--ghost btn--blue" data-view="table" aria-pressed="false"><?php echo esc_html__( 'Table', 'hello-elementor-child' ); ?></button>
           </div>
         </div>
       </div>
@@ -266,12 +266,12 @@ get_header();
         <table class="crm-leads-table">
           <thead>
             <tr>
-              <th><?php echo esc_html__( 'Name', 'hello-elementor-child' ); ?></th>
-              <th><?php echo esc_html__( 'Stage', 'hello-elementor-child' ); ?></th>
-              <th><?php echo esc_html__( 'Engagement', 'hello-elementor-child' ); ?></th>
-              <th><?php echo esc_html__( 'Disposition', 'hello-elementor-child' ); ?></th>
-              <th><?php echo esc_html__( 'Last activity', 'hello-elementor-child' ); ?></th>
-              <th><?php echo esc_html__( 'Actions', 'hello-elementor-child' ); ?></th>
+              <th aria-sort="none"><button type="button" class="crm-table-sort" data-sort="name"><?php echo esc_html__( 'Name', 'hello-elementor-child' ); ?> <span class="peracrm-sort-indicator" aria-hidden="true"></span></button></th>
+              <th aria-sort="none"><button type="button" class="crm-table-sort" data-sort="status"><?php echo esc_html__( 'Status', 'hello-elementor-child' ); ?> <span class="peracrm-sort-indicator" aria-hidden="true"></span></button></th>
+              <th aria-sort="none"><button type="button" class="crm-table-sort" data-sort="source"><?php echo esc_html__( 'Source', 'hello-elementor-child' ); ?> <span class="peracrm-sort-indicator" aria-hidden="true"></span></button></th>
+              <th aria-sort="none"><button type="button" class="crm-table-sort" data-sort="assigned"><?php echo esc_html__( 'Assigned to', 'hello-elementor-child' ); ?> <span class="peracrm-sort-indicator" aria-hidden="true"></span></button></th>
+              <th aria-sort="none"><button type="button" class="crm-table-sort" data-sort="updated"><?php echo esc_html__( 'Last activity', 'hello-elementor-child' ); ?> <span class="peracrm-sort-indicator" aria-hidden="true"></span></button></th>
+              <th aria-sort="none"><button type="button" class="crm-table-sort" data-sort="created"><?php echo esc_html__( 'Created', 'hello-elementor-child' ); ?> <span class="peracrm-sort-indicator" aria-hidden="true"></span></button></th>
             </tr>
           </thead>
           <tbody>
@@ -281,13 +281,13 @@ get_header();
             </tr>
 				<?php else : ?>
 					<?php foreach ( $items as $lead ) : ?>
-            <tr>
-              <td><?php echo esc_html( (string) $lead['title'] ); ?></td>
+            <tr data-row-url="<?php echo esc_url( (string) $lead['crm_url'] ); ?>" data-name="<?php echo esc_attr( strtolower( (string) $lead['title'] ) ); ?>" data-status="<?php echo esc_attr( strtolower( (string) ( $stages[ $lead['stage'] ] ?? $lead['stage'] ) ) ); ?>" data-source="<?php echo esc_attr( strtolower( (string) ( $lead['source'] ?? '' ) ) ); ?>" data-assigned="<?php echo esc_attr( strtolower( (string) ( $lead['assigned_to'] ?? '' ) ) ); ?>" data-updated="<?php echo esc_attr( (string) ( $lead['updated_ts'] ?? 0 ) ); ?>" data-created="<?php echo esc_attr( (string) ( $lead['created_ts'] ?? 0 ) ); ?>">
+              <td><a href="<?php echo esc_url( (string) $lead['crm_url'] ); ?>"><?php echo esc_html( (string) $lead['title'] ); ?></a></td>
               <td><span class="pill pill--outline"><?php echo esc_html( (string) ( $stages[ $lead['stage'] ] ?? $lead['stage'] ) ); ?></span></td>
-              <td><?php echo esc_html( (string) $lead['engagement_state'] ); ?></td>
-              <td><?php echo esc_html( (string) $lead['disposition'] ); ?></td>
-              <td><?php echo esc_html( '' !== $lead['last_activity'] ? (string) $lead['last_activity'] : '—' ); ?></td>
-              <td><a class="btn btn--ghost btn--blue" href="<?php echo esc_url( (string) $lead['crm_url'] ); ?>"><?php echo esc_html__( 'View Lead', 'hello-elementor-child' ); ?></a></td>
+              <td><?php echo esc_html( '' !== (string) ( $lead['source'] ?? '' ) ? (string) $lead['source'] : '—' ); ?></td>
+              <td><?php echo esc_html( '' !== (string) ( $lead['assigned_to'] ?? '' ) ? (string) $lead['assigned_to'] : '—' ); ?></td>
+              <td><?php echo esc_html( '' !== $lead['last_activity'] ? (string) $lead['last_activity'] : ( '' !== (string) ( $lead['updated'] ?? '' ) ? (string) $lead['updated'] : '—' ) ); ?></td>
+              <td><?php echo esc_html( '' !== (string) ( $lead['created'] ?? '' ) ? (string) $lead['created'] : '—' ); ?></td>
             </tr>
 					<?php endforeach; ?>
 				<?php endif; ?>
