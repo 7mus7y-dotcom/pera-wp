@@ -406,10 +406,23 @@ if ( ! function_exists( 'pera_crm_enqueue_assets' ) ) {
 		$css_abs_path = get_stylesheet_directory() . $css_rel_path;
 		$css_version  = file_exists( $css_abs_path ) ? (string) filemtime( $css_abs_path ) : wp_get_theme()->get( 'Version' );
 
+		$crm_css_deps    = array( 'pera-main-css' );
+		$slider_rel_path = '/css/slider.css';
+		$slider_abs_path = get_stylesheet_directory() . $slider_rel_path;
+		if ( file_exists( $slider_abs_path ) ) {
+			wp_enqueue_style(
+				'pera-slider-css',
+				get_stylesheet_directory_uri() . $slider_rel_path,
+				array( 'pera-main-css' ),
+				(string) filemtime( $slider_abs_path )
+			);
+			$crm_css_deps[] = 'pera-slider-css';
+		}
+
 		wp_enqueue_style(
 			'pera-crm-css',
 			get_stylesheet_directory_uri() . $css_rel_path,
-			array( 'pera-main-css' ),
+			$crm_css_deps,
 			$css_version
 		);
 
@@ -427,6 +440,24 @@ if ( ! function_exists( 'pera_crm_enqueue_assets' ) ) {
 	}
 }
 add_action( 'wp_enqueue_scripts', 'pera_crm_enqueue_assets', 40 );
+
+
+if ( ! function_exists( 'pera_crm_add_body_class' ) ) {
+	/**
+	 * Add a CRM route body class for scoped styling.
+	 *
+	 * @param string[] $classes Existing body classes.
+	 * @return string[]
+	 */
+	function pera_crm_add_body_class( array $classes ): array {
+		if ( pera_is_crm_route() ) {
+			$classes[] = 'crm-route';
+		}
+
+		return $classes;
+	}
+}
+add_filter( 'body_class', 'pera_crm_add_body_class' );
 
 if ( ! function_exists( 'pera_crm_flush_rewrite_on_activation' ) ) {
 	/**

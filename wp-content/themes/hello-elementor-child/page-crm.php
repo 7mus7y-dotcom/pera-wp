@@ -40,10 +40,8 @@ $overdue_tasks = is_array( $crm_dashboard['overdue_tasks'] ?? null ) ? $crm_dash
 $new_leads     = is_array( $crm_dashboard['new_leads'] ?? null ) ? $crm_dashboard['new_leads'] : array();
 $notices       = is_array( $crm_dashboard['notices'] ?? null ) ? $crm_dashboard['notices'] : array();
 
-$today_tasks_page   = max( 1, isset( $_GET['today_page'] ) ? absint( wp_unslash( (string) $_GET['today_page'] ) ) : 1 ); // phpcs:ignore WordPress.Security.NonceVerification.Recommended
-$overdue_tasks_page = max( 1, isset( $_GET['overdue_page'] ) ? absint( wp_unslash( (string) $_GET['overdue_page'] ) ) : 1 ); // phpcs:ignore WordPress.Security.NonceVerification.Recommended
-$tasks_per_page     = 20;
 $crm_current_url    = home_url( wp_unslash( (string) ( $_SERVER['REQUEST_URI'] ?? '/crm/' ) ) );
+$overview_task_cap  = 8;
 
 $kpi_tiles = array(
 	array( 'label' => __( 'Total open leads', 'hello-elementor-child' ), 'key' => 'total_open_leads' ),
@@ -57,6 +55,20 @@ $kpi_tiles = array(
 $stages = function_exists( 'pera_crm_get_pipeline_stages' ) ? pera_crm_get_pipeline_stages() : array();
 
 $crm_active_view = ! $is_leads && ! $is_tasks ? 'overview' : ( $is_leads ? 'clients' : 'tasks' );
+
+$build_overview_task_cards = static function ( array $tasks, int $cap ) {
+	$has_more = count( $tasks ) > $cap;
+	if ( $has_more ) {
+		$tasks = array_slice( $tasks, 0, $cap - 1 );
+	} else {
+		$tasks = array_slice( $tasks, 0, $cap );
+	}
+
+	return array(
+		'tasks'    => $tasks,
+		'has_more' => $has_more,
+	);
+};
 
 get_header();
 ?>
@@ -96,35 +108,35 @@ get_header();
           <?php if ( empty( $todays_tasks ) ) : ?>
             <p><?php echo esc_html__( 'No tasks due today.', 'hello-elementor-child' ); ?></p>
           <?php else : ?>
-            <?php
-            $today_total      = count( $todays_tasks );
-            $today_total_page = max( 1, (int) ceil( $today_total / $tasks_per_page ) );
-            $today_tasks      = array_slice( $todays_tasks, ( $today_tasks_page - 1 ) * $tasks_per_page, $tasks_per_page );
-            ?>
-            <ul class="crm-list">
-            <?php foreach ( $today_tasks as $task ) : ?>
-              <li>
-                <a class="btn btn--ghost btn--blue" href="<?php echo esc_url( home_url( '/crm/client/' . (int) $task['lead_id'] . '/' ) ); ?>"><?php echo esc_html( (string) ( $task['lead_name'] ?: __( 'Untitled lead', 'hello-elementor-child' ) ) ); ?></a>
+            <?php $today_cards = $build_overview_task_cards( $todays_tasks, $overview_task_cap ); ?>
+            <div class="crm-overview-task-grid">
+            <?php foreach ( $today_cards['tasks'] as $task ) : ?>
+              <article class="card-shell crm-task-card">
+                <a class="btn btn--ghost btn--blue crm-task-client-btn" href="<?php echo esc_url( home_url( '/crm/client/' . (int) $task['lead_id'] . '/' ) ); ?>"><?php echo esc_html( (string) ( $task['lead_name'] ?: __( 'Untitled lead', 'hello-elementor-child' ) ) ); ?></a>
                 <span class="pill pill--outline"><?php echo esc_html( (string) $task['due_date'] ); ?></span>
-                <span><?php echo esc_html( (string) $task['reminder_note'] ); ?></span>
+                <p class="crm-task-note"><?php echo esc_html( (string) $task['reminder_note'] ); ?></p>
+                <p class="text-sm crm-task-last-note"><?php echo esc_html( (string) ( $task['last_note'] ?? __( 'No recent notes yet.', 'hello-elementor-child' ) ) ); ?></p>
                 <?php $task_status = sanitize_key( (string) ( $task['status'] ?? 'pending' ) ); ?>
                 <?php if ( ! empty( $task['reminder_id'] ) && 'pending' === $task_status ) : ?>
-                <form method="post" action="<?php echo esc_url( home_url( '/wp-admin/admin-post.php' ) ); ?>">
+                <form class="crm-task-action" method="post" action="<?php echo esc_url( home_url( '/wp-admin/admin-post.php' ) ); ?>">
                   <input type="hidden" name="action" value="peracrm_update_reminder_status">
                   <input type="hidden" name="peracrm_reminder_id" value="<?php echo esc_attr( (string) absint( $task['reminder_id'] ) ); ?>">
                   <input type="hidden" name="peracrm_status" value="done">
                   <input type="hidden" name="peracrm_redirect" value="<?php echo esc_url( $crm_current_url ); ?>">
                   <input type="hidden" name="peracrm_context" value="frontend">
                   <?php wp_nonce_field( 'peracrm_update_reminder_status', 'peracrm_update_reminder_status_nonce' ); ?>
-                  <button type="submit" class="btn btn--ghost btn--blue"><?php echo esc_html__( 'Mark done', 'hello-elementor-child' ); ?></button>
+                  <button type="submit" class="btn btn--ghost btn--blue crm-task-done-btn"><?php echo esc_html__( 'Mark done', 'hello-elementor-child' ); ?></button>
                 </form>
                 <?php endif; ?>
-              </li>
+              </article>
             <?php endforeach; ?>
-            </ul>
-            <?php if ( $today_total_page > 1 ) : ?>
-              <?php echo wp_kses_post( paginate_links( array( 'base' => add_query_arg( 'today_page', '%#%', home_url( '/crm/' ) ), 'format' => '', 'current' => $today_tasks_page, 'total' => $today_total_page, 'type' => 'list', 'prev_text' => __( 'Previous', 'hello-elementor-child' ), 'next_text' => __( 'Next', 'hello-elementor-child' ) ) ) ); ?>
+            <?php if ( $today_cards['has_more'] ) : ?>
+              <article class="card-shell crm-task-card crm-task-card--more">
+                <p><?php echo esc_html__( 'You have more tasks. Click see all to view them.', 'hello-elementor-child' ); ?></p>
+                <a class="btn btn--ghost btn--blue" href="<?php echo esc_url( home_url( '/crm/tasks/' ) ); ?>"><?php echo esc_html__( 'See all tasks', 'hello-elementor-child' ); ?></a>
+              </article>
             <?php endif; ?>
+            </div>
           <?php endif; ?>
         </article>
       </section>
@@ -137,35 +149,35 @@ get_header();
           <?php if ( empty( $overdue_tasks ) ) : ?>
             <p><?php echo esc_html__( 'No overdue tasks.', 'hello-elementor-child' ); ?></p>
           <?php else : ?>
-            <?php
-            $overdue_total      = count( $overdue_tasks );
-            $overdue_total_page = max( 1, (int) ceil( $overdue_total / $tasks_per_page ) );
-            $overdue_page_rows  = array_slice( $overdue_tasks, ( $overdue_tasks_page - 1 ) * $tasks_per_page, $tasks_per_page );
-            ?>
-            <ul class="crm-list">
-            <?php foreach ( $overdue_page_rows as $task ) : ?>
-              <li>
-                <a class="btn btn--ghost btn--red" href="<?php echo esc_url( home_url( '/crm/client/' . (int) $task['lead_id'] . '/' ) ); ?>"><?php echo esc_html( (string) ( $task['lead_name'] ?: __( 'Untitled lead', 'hello-elementor-child' ) ) ); ?></a>
+            <?php $overdue_cards = $build_overview_task_cards( $overdue_tasks, $overview_task_cap ); ?>
+            <div class="crm-overview-task-grid">
+            <?php foreach ( $overdue_cards['tasks'] as $task ) : ?>
+              <article class="card-shell crm-task-card">
+                <a class="btn btn--ghost btn--red crm-task-client-btn" href="<?php echo esc_url( home_url( '/crm/client/' . (int) $task['lead_id'] . '/' ) ); ?>"><?php echo esc_html( (string) ( $task['lead_name'] ?: __( 'Untitled lead', 'hello-elementor-child' ) ) ); ?></a>
                 <span class="pill pill--red"><?php echo esc_html( (string) $task['due_date'] ); ?></span>
-                <span><?php echo esc_html( (string) $task['reminder_note'] ); ?></span>
+                <p class="crm-task-note"><?php echo esc_html( (string) $task['reminder_note'] ); ?></p>
+                <p class="text-sm crm-task-last-note"><?php echo esc_html( (string) ( $task['last_note'] ?? __( 'No recent notes yet.', 'hello-elementor-child' ) ) ); ?></p>
                 <?php $task_status = sanitize_key( (string) ( $task['status'] ?? 'pending' ) ); ?>
                 <?php if ( ! empty( $task['reminder_id'] ) && 'pending' === $task_status ) : ?>
-                <form method="post" action="<?php echo esc_url( home_url( '/wp-admin/admin-post.php' ) ); ?>">
+                <form class="crm-task-action" method="post" action="<?php echo esc_url( home_url( '/wp-admin/admin-post.php' ) ); ?>">
                   <input type="hidden" name="action" value="peracrm_update_reminder_status">
                   <input type="hidden" name="peracrm_reminder_id" value="<?php echo esc_attr( (string) absint( $task['reminder_id'] ) ); ?>">
                   <input type="hidden" name="peracrm_status" value="done">
                   <input type="hidden" name="peracrm_redirect" value="<?php echo esc_url( $crm_current_url ); ?>">
                   <input type="hidden" name="peracrm_context" value="frontend">
                   <?php wp_nonce_field( 'peracrm_update_reminder_status', 'peracrm_update_reminder_status_nonce' ); ?>
-                  <button type="submit" class="btn btn--ghost btn--blue"><?php echo esc_html__( 'Mark done', 'hello-elementor-child' ); ?></button>
+                  <button type="submit" class="btn btn--ghost btn--blue crm-task-done-btn"><?php echo esc_html__( 'Mark done', 'hello-elementor-child' ); ?></button>
                 </form>
                 <?php endif; ?>
-              </li>
+              </article>
             <?php endforeach; ?>
-            </ul>
-            <?php if ( $overdue_total_page > 1 ) : ?>
-              <?php echo wp_kses_post( paginate_links( array( 'base' => add_query_arg( 'overdue_page', '%#%', home_url( '/crm/' ) ), 'format' => '', 'current' => $overdue_tasks_page, 'total' => $overdue_total_page, 'type' => 'list', 'prev_text' => __( 'Previous', 'hello-elementor-child' ), 'next_text' => __( 'Next', 'hello-elementor-child' ) ) ) ); ?>
+            <?php if ( $overdue_cards['has_more'] ) : ?>
+              <article class="card-shell crm-task-card crm-task-card--more">
+                <p><?php echo esc_html__( 'You have more tasks. Click see all to view them.', 'hello-elementor-child' ); ?></p>
+                <a class="btn btn--ghost btn--blue" href="<?php echo esc_url( home_url( '/crm/tasks/' ) ); ?>"><?php echo esc_html__( 'See all tasks', 'hello-elementor-child' ); ?></a>
+              </article>
             <?php endif; ?>
+            </div>
           <?php endif; ?>
         </article>
       </section>
@@ -212,9 +224,9 @@ get_header();
         <header class="section-header">
           <h2 id="crm-kpi-heading"><?php echo esc_html__( 'KPI Snapshot', 'hello-elementor-child' ); ?></h2>
         </header>
-        <div class="grid-3 crm-kpi-grid">
+		<div class="grid-3 crm-kpi-grid cards-slider cards-slider--snap cards-slider--grid-lg" aria-label="<?php echo esc_attr__( 'CRM KPI Snapshot', 'hello-elementor-child' ); ?>">
 				<?php foreach ( $kpi_tiles as $tile ) : ?>
-          <article class="card-shell">
+          <article class="card-shell slider-card crm-kpi-card">
             <p class="pill pill--outline"><?php echo esc_html( $tile['label'] ); ?></p>
             <h3><?php echo esc_html( (string) ( (int) ( $kpis[ $tile['key'] ] ?? 0 ) ) ); ?></h3>
           </article>
@@ -223,19 +235,17 @@ get_header();
       </section>
 
       <section class="section" aria-labelledby="crm-pipeline-heading">
-        <article class="card-shell">
-          <header class="section-header">
-            <h2 id="crm-pipeline-heading"><?php echo esc_html__( 'Pipeline View', 'hello-elementor-child' ); ?></h2>
-          </header>
-          <div class="grid-3 crm-kpi-grid">
+        <header class="section-header">
+          <h2 id="crm-pipeline-heading"><?php echo esc_html__( 'Pipeline Overview', 'hello-elementor-child' ); ?></h2>
+        </header>
+        <div class="grid-3 crm-kpi-grid cards-slider cards-slider--snap cards-slider--grid-lg" aria-label="<?php echo esc_attr__( 'CRM Pipeline Overview', 'hello-elementor-child' ); ?>">
 				<?php foreach ( $pipeline as $stage ) : ?>
-            <article class="card-shell">
+            <article class="card-shell slider-card crm-kpi-card">
               <p class="pill pill--outline"><?php echo esc_html( (string) ( $stage['label'] ?? '' ) ); ?></p>
               <h3><?php echo esc_html( (string) ( (int) ( $stage['count'] ?? 0 ) ) ); ?></h3>
             </article>
 				<?php endforeach; ?>
-          </div>
-        </article>
+        </div>
       </section>
 
 

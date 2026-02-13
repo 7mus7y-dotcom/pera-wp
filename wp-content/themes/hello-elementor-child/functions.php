@@ -734,6 +734,30 @@ function pera_floating_whatsapp_button() {
         return;
     }
 
+    $is_crm_route = function_exists( 'pera_is_crm_route' ) && pera_is_crm_route();
+
+    if ( $is_crm_route && is_user_logged_in() && function_exists( 'pera_crm_user_can_access' ) && pera_crm_user_can_access() ) {
+        $crm_overdue_count = function_exists( 'pera_crm_get_overdue_reminders_count_for_current_user' )
+            ? (int) pera_crm_get_overdue_reminders_count_for_current_user()
+            : 0;
+        $crm_label = $crm_overdue_count > 0
+            ? sprintf( 'CRM (%d overdue reminders)', $crm_overdue_count )
+            : 'CRM';
+        ?>
+        <a href="<?php echo esc_url( home_url( '/crm' ) ); ?>"
+           class="header-crm-toggle crm-floating-toggle"
+           aria-label="<?php echo esc_attr( $crm_label ); ?>">
+            <svg class="icon" aria-hidden="true">
+                <use href="<?php echo esc_url( get_stylesheet_directory_uri() . '/logos-icons/icons.svg#icon-users-group' ); ?>"></use>
+            </svg>
+            <?php if ( $crm_overdue_count > 0 ) : ?>
+                <span class="header-icon-dot" aria-hidden="true"></span>
+            <?php endif; ?>
+        </a>
+        <?php
+        return;
+    }
+
     ?>
     <a href="https://wa.me/905452054356?text=Hello%20Pera%20Property%2C%20I%27d%20like%20to%20learn%20more%20about%20your%20Istanbul%20properties."
        class="floating-whatsapp"

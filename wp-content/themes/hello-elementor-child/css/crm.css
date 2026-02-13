@@ -351,3 +351,128 @@
     flex-basis: 280px;
   }
 }
+
+.crm-page .crm-kpi-grid {
+  gap: 12px;
+}
+
+.crm-page .crm-kpi-card {
+  padding: 14px;
+}
+
+.crm-page .crm-kpi-card h3 {
+  margin: 4px 0 0;
+}
+
+.crm-overview-task-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.crm-task-card {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 12px;
+}
+
+.crm-page .crm-task-client-btn,
+.crm-page .crm-task-done-btn,
+.crm-page .crm-task-card--more .btn {
+  width: fit-content;
+  max-width: 100%;
+  text-decoration: none;
+}
+
+.crm-task-note {
+  margin: 0;
+}
+
+.crm-task-last-note {
+  margin: 0;
+  color: var(--text-soft, #5f6a7d);
+}
+
+.crm-task-action {
+  margin-top: auto;
+}
+
+.crm-task-card--more {
+  justify-content: center;
+}
+
+.crm-route .floating-whatsapp {
+  display: none !important;
+}
+
+.crm-floating-toggle {
+  position: fixed;
+  right: 20px;
+  bottom: 20px;
+  width: 58px;
+  height: 58px;
+  border-radius: 999px;
+  border: 1px solid rgba(11, 12, 14, 0.08);
+  background: #ffffff;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 10px 22px rgba(0, 0, 0, 0.16);
+  z-index: 9999;
+  text-decoration: none;
+}
+
+.crm-floating-toggle .icon {
+  width: 22px;
+  height: 22px;
+}
+
+.crm-floating-toggle .header-icon-dot {
+  position: absolute;
+  top: 11px;
+  right: 11px;
+}
+
+@media (max-width: 1024px) {
+  .crm-overview-task-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 767px) {
+  .crm-page .crm-kpi-grid {
+    gap: 10px;
+  }
+
+  .crm-page .crm-kpi-grid.cards-slider {
+    padding-bottom: 2px;
+  }
+
+  .crm-page .crm-kpi-grid .slider-card {
+    flex-basis: 220px;
+  }
+
+  .crm-page .crm-kpi-card {
+    padding: 10px;
+  }
+
+  .crm-page .crm-kpi-card .pill {
+    font-size: 0.72rem;
+  }
+
+  .crm-page .crm-kpi-card h3 {
+    font-size: 1.35rem;
+  }
+
+  .crm-overview-task-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .crm-floating-toggle {
+    right: 16px;
+    bottom: 16px;
+    width: 54px;
+    height: 54px;
+  }
+}
