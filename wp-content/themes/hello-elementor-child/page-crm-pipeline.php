@@ -32,9 +32,12 @@ get_header();
     <div class="hero-content container">
       <h1><?php echo esc_html__( 'Pipeline', 'hello-elementor-child' ); ?></h1>
       <p class="lead"><?php echo esc_html__( 'Manage leads and clients by stage', 'hello-elementor-child' ); ?></p>
-      <div class="hero-actions hero-pills">
-        <a class="pill pill--outline" href="<?php echo esc_url( home_url( '/crm/' ) ); ?>"><?php echo esc_html__( 'Back to CRM', 'hello-elementor-child' ); ?></a>
-      </div>
+      <nav class="crm-subnav" aria-label="<?php echo esc_attr__( 'CRM sections', 'hello-elementor-child' ); ?>">
+        <a class="btn btn--ghost btn--blue" href="<?php echo esc_url( home_url( '/crm/' ) ); ?>"><?php echo esc_html__( 'Overview', 'hello-elementor-child' ); ?></a>
+        <a class="btn btn--ghost btn--blue" href="<?php echo esc_url( home_url( '/crm/clients/' ) ); ?>"><?php echo esc_html__( 'Clients', 'hello-elementor-child' ); ?></a>
+        <a class="btn btn--ghost btn--blue" href="<?php echo esc_url( home_url( '/crm/tasks/' ) ); ?>"><?php echo esc_html__( 'Tasks', 'hello-elementor-child' ); ?></a>
+        <a class="btn btn--solid btn--blue" href="<?php echo esc_url( home_url( '/crm/pipeline/' ) ); ?>"><?php echo esc_html__( 'Pipeline', 'hello-elementor-child' ); ?></a>
+      </nav>
     </div>
   </section>
 
