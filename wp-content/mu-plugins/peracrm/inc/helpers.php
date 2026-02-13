@@ -265,23 +265,44 @@ function peracrm_user_is_valid_advisor($user_id)
 
 function peracrm_get_staff_users()
 {
-    $users = get_users([
-        'role__in' => ['employee', 'manager', 'administrator'],
-        'orderby' => 'display_name',
-        'order' => 'ASC',
-    ]);
+    $load_users = static function () {
+        $users = get_users([
+            'role__in' => ['employee', 'manager', 'administrator'],
+            'orderby' => 'display_name',
+            'order' => 'ASC',
+        ]);
 
-    if (!is_array($users) || empty($users)) {
-        return [];
-    }
-
-    return array_values(array_filter($users, static function ($user) {
-        if (!$user instanceof WP_User) {
-            return false;
+        if (!is_array($users) || empty($users)) {
+            return [];
         }
 
-        return function_exists('peracrm_user_is_staff') && peracrm_user_is_staff((int) $user->ID);
-    }));
+        return array_values(array_filter($users, static function ($user) {
+            if (!$user instanceof WP_User) {
+                return false;
+            }
+
+            return function_exists('peracrm_user_is_staff') && peracrm_user_is_staff((int) $user->ID);
+        }));
+    };
+
+    if (function_exists('peracrm_with_target_blog')) {
+        return (array) peracrm_with_target_blog($load_users);
+    }
+
+    if (is_multisite() && function_exists('switch_to_blog') && function_exists('restore_current_blog')) {
+        $target_blog_id = function_exists('peracrm_get_target_blog_id') ? (int) peracrm_get_target_blog_id() : 0;
+        $current_blog_id = function_exists('get_current_blog_id') ? (int) get_current_blog_id() : 0;
+        if ($target_blog_id > 0 && $target_blog_id !== $current_blog_id) {
+            switch_to_blog($target_blog_id);
+            try {
+                return (array) $load_users();
+            } finally {
+                restore_current_blog();
+            }
+        }
+    }
+
+    return (array) $load_users();
 }
 
 

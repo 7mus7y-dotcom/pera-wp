@@ -51,7 +51,7 @@ $deal_stage_options = function_exists( 'peracrm_deal_stage_options' ) ? (array) 
 $source_pills       = function_exists( 'pera_crm_client_view_source_pills' ) ? (array) pera_crm_client_view_source_pills( $client_id, $data['activity'] ?? array() ) : array();
 
 $can_manage_assignments = function_exists( 'peracrm_admin_user_can_reassign' ) && peracrm_admin_user_can_reassign();
-$can_reassign_advisor   = $can_manage_assignments;
+$can_reassign_advisor   = $can_manage_assignments && current_user_can( 'edit_post', $client_id );
 $can_delete_client      = $can_manage_assignments;
 $can_set_dormant        = $can_manage_assignments;
 
@@ -388,6 +388,9 @@ get_header();
           <article class="card-shell crm-client-section crm-client-panel--full">
             <h3><?php esc_html_e( 'Assigned Advisor', 'hello-elementor-child' ); ?></h3>
             <p class="text-sm"><strong><?php esc_html_e( 'Current advisor:', 'hello-elementor-child' ); ?></strong> <?php echo esc_html( $advisor_label ); ?></p>
+            <?php if ( $assigned_id > 0 && ! ( $assigned_user instanceof WP_User ) ) : ?>
+            <p class="text-sm"><?php esc_html_e( 'Warning: the assigned advisor account no longer exists.', 'hello-elementor-child' ); ?></p>
+            <?php endif; ?>
             <?php if ( $can_reassign_advisor ) : ?>
             <form method="post" action="<?php echo esc_url( home_url( '/wp-admin/admin-post.php' ) ); ?>" class="crm-form-stack">
 					<?php wp_nonce_field( 'peracrm_reassign_client_advisor', 'peracrm_reassign_client_advisor_nonce' ); ?>
