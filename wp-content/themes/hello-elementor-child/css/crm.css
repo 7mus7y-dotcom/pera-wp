@@ -729,60 +729,49 @@
   right: max(16px, calc((100vw - var(--container)) / 2 + 16px));
 }
 
-[data-theme="dark"] .crm-floating-toggle,
-.dark .crm-floating-toggle {
-  background: #0d0d0d;
-  border-color: #333333;
-  color: #e2e8f0;
-  box-shadow: 0 10px 22px rgba(2, 6, 23, 0.6);
-}
+@media (prefers-color-scheme: dark) {
+  .crm-floating-toggle {
+    background: #0d0d0d;
+    border-color: #333333;
+    color: #e2e8f0;
+    box-shadow: 0 10px 22px rgba(2, 6, 23, 0.6);
+  }
 
-[data-theme="dark"] .crm-floating-toggle:hover,
-[data-theme="dark"] .crm-floating-toggle:focus-visible,
-.dark .crm-floating-toggle:hover,
-.dark .crm-floating-toggle:focus-visible {
-  background: #111827;
-  border-color: rgba(148, 163, 184, 0.7);
-  color: #f8fafc;
-}
+  .crm-floating-toggle:hover,
+  .crm-floating-toggle:focus-visible {
+    background: #111827;
+    border-color: rgba(148, 163, 184, 0.7);
+    color: #f8fafc;
+  }
 
-[data-theme="dark"] .crm-floating-toggle .header-icon-dot,
-.dark .crm-floating-toggle .header-icon-dot {
-  box-shadow: 0 0 0 1px rgba(2, 6, 23, 0.9);
-}
+  .crm-floating-toggle .header-icon-dot {
+    box-shadow: 0 0 0 1px rgba(2, 6, 23, 0.9);
+  }
 
-[data-theme="dark"] .crm-page--client-view .crm-form-stack input:not([type="hidden"]),
-[data-theme="dark"] .crm-page--client-view .crm-form-stack select,
-[data-theme="dark"] .crm-page--client-view .crm-form-stack textarea,
-.dark .crm-page--client-view .crm-form-stack input:not([type="hidden"]),
-.dark .crm-page--client-view .crm-form-stack select,
-.dark .crm-page--client-view .crm-form-stack textarea {
-  background-color: #020617;
-  border-color: rgba(148, 163, 184, 0.5);
-  color: var(--text, #e5e7eb);
-}
+  .crm-page--client-view .crm-form-stack input:not([type="hidden"]),
+  .crm-page--client-view .crm-form-stack select,
+  .crm-page--client-view .crm-form-stack textarea {
+    background-color: #020617;
+    border-color: rgba(148, 163, 184, 0.5);
+    color: var(--text, #e5e7eb);
+  }
 
-[data-theme="dark"] .crm-page--client-view .crm-form-stack input:not([type="hidden"])::placeholder,
-[data-theme="dark"] .crm-page--client-view .crm-form-stack textarea::placeholder,
-.dark .crm-page--client-view .crm-form-stack input:not([type="hidden"])::placeholder,
-.dark .crm-page--client-view .crm-form-stack textarea::placeholder {
-  color: #6b7280;
-}
+  .crm-page--client-view .crm-form-stack input:not([type="hidden"])::placeholder,
+  .crm-page--client-view .crm-form-stack textarea::placeholder {
+    color: #6b7280;
+  }
 
-[data-theme="dark"] .crm-page--client-view .crm-form-stack input:not([type="hidden"]):focus,
-[data-theme="dark"] .crm-page--client-view .crm-form-stack select:focus,
-[data-theme="dark"] .crm-page--client-view .crm-form-stack textarea:focus,
-.dark .crm-page--client-view .crm-form-stack input:not([type="hidden"]):focus,
-.dark .crm-page--client-view .crm-form-stack select:focus,
-.dark .crm-page--client-view .crm-form-stack textarea:focus {
-  border-color: var(--accent, #0056b3);
-  box-shadow: 0 0 0 1px rgba(59, 130, 246, 0.35);
-}
+  .crm-page--client-view .crm-form-stack input:not([type="hidden"]):focus,
+  .crm-page--client-view .crm-form-stack select:focus,
+  .crm-page--client-view .crm-form-stack textarea:focus {
+    border-color: var(--accent, #0056b3);
+    box-shadow: 0 0 0 1px rgba(59, 130, 246, 0.35);
+  }
 
-[data-theme="dark"] .crm-page--client-view .crm-form-stack select option,
-.dark .crm-page--client-view .crm-form-stack select option {
-  color: #e5e7eb;
-  background-color: #020617;
+  .crm-page--client-view .crm-form-stack select option {
+    color: #e5e7eb;
+    background-color: #020617;
+  }
 }
 
 @media (max-width: 1024px) {
