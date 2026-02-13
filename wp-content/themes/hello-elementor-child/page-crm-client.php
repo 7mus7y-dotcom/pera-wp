@@ -50,8 +50,9 @@ $staff_users        = function_exists( 'peracrm_get_staff_users' ) ? (array) per
 $deal_stage_options = function_exists( 'peracrm_deal_stage_options' ) ? (array) peracrm_deal_stage_options() : array();
 $source_pills       = function_exists( 'pera_crm_client_view_source_pills' ) ? (array) pera_crm_client_view_source_pills( $client_id, $data['activity'] ?? array() ) : array();
 
-$can_reassign_advisor = function_exists( 'peracrm_admin_user_can_reassign' ) && peracrm_admin_user_can_reassign() && current_user_can( 'edit_post', $client_id );
-$can_delete_client    = $can_reassign_advisor;
+$can_manage_assignments = function_exists( 'peracrm_admin_user_can_reassign' ) && peracrm_admin_user_can_reassign();
+$can_reassign_advisor   = $can_manage_assignments && current_user_can( 'edit_post', $client_id );
+$can_delete_client      = $can_reassign_advisor;
 $can_set_dormant      = $can_delete_client;
 
 $frontend_url = function_exists( 'pera_crm_client_view_url' ) ? pera_crm_client_view_url( $client_id ) : home_url( '/crm/client/' . $client_id . '/' );
@@ -179,8 +180,9 @@ get_header();
             </form>
           </article>
 
-          <article class="card-shell crm-client-section">
+          <article class="card-shell crm-client-section crm-status-panel">
             <h3><?php esc_html_e( 'CRM Status', 'hello-elementor-child' ); ?></h3>
+            <span class="crm-derived-badge crm-derived-badge--<?php echo esc_attr( $derived_type ); ?>"><?php echo esc_html( $derived_type_label ); ?></span>
             <form method="post" action="<?php echo esc_url( home_url( '/wp-admin/admin-post.php' ) ); ?>" class="crm-form-stack">
 					<?php wp_nonce_field( 'peracrm_save_party_status' ); ?>
               <input type="hidden" name="action" value="peracrm_save_party_status" />
@@ -202,7 +204,6 @@ get_header();
 							<?php endforeach; ?>
                   </select>
                 </label>
-                <p class="text-sm"><strong><?php esc_html_e( 'Derived type:', 'hello-elementor-child' ); ?></strong> <?php echo esc_html( $derived_type_label ); ?></p>
                 <label>
                   <?php esc_html_e( 'Client type', 'hello-elementor-child' ); ?>
                   <select name="peracrm_client_type">

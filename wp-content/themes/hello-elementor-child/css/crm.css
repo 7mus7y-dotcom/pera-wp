@@ -739,21 +739,49 @@
 
 
 .crm-page--overview .crm-new-lead-card {
-  gap: 6px;
+  gap: 4px;
 }
 
 .crm-page--overview .crm-new-lead-card h3 {
   margin: 0;
-  line-height: 1.25;
+  line-height: 1.2;
 }
 
 .crm-page--overview .crm-new-lead-card p {
   margin: 0;
-  line-height: 1.35;
+  line-height: 1.25;
 }
 
 .crm-page--overview .crm-new-lead-card .btn {
-  margin-top: 4px;
+  margin-top: 2px;
+}
+
+.crm-status-panel {
+  position: relative;
+}
+
+.crm-derived-badge {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  border-radius: 999px;
+  padding: 4px 10px;
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 1;
+  border: 1px solid transparent;
+}
+
+.crm-derived-badge--lead {
+  background: #eef4ff;
+  border-color: #c5d7ff;
+  color: #164a9f;
+}
+
+.crm-derived-badge--client {
+  background: #ecfaf2;
+  border-color: #bfe8cf;
+  color: #1f6a3e;
 }
 
 .crm-danger-zone {
@@ -789,4 +817,11 @@
   flex-wrap: wrap;
   gap: 8px;
   margin-top: 14px;
+}
+
+@media (max-width: 767px) {
+  .crm-derived-badge {
+    top: 10px;
+    right: 10px;
+  }
 }
