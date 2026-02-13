@@ -736,3 +736,57 @@
 
 @media (max-width: 1024px) { .crm-page--tasks [data-crm-view="cards"] .crm-list { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
 @media (max-width: 767px) { .crm-page--tasks [data-crm-view="cards"] .crm-list { grid-template-columns: 1fr; } }
+
+
+.crm-page--overview .crm-new-lead-card {
+  gap: 6px;
+}
+
+.crm-page--overview .crm-new-lead-card h3 {
+  margin: 0;
+  line-height: 1.25;
+}
+
+.crm-page--overview .crm-new-lead-card p {
+  margin: 0;
+  line-height: 1.35;
+}
+
+.crm-page--overview .crm-new-lead-card .btn {
+  margin-top: 4px;
+}
+
+.crm-danger-zone {
+  border: 1px solid #d94b4b;
+  background: #fff3f3;
+}
+
+.crm-danger-zone__trigger {
+  margin-top: 8px;
+}
+
+.crm-danger-dialog {
+  width: min(540px, calc(100vw - 32px));
+  border: 1px solid #d94b4b;
+  border-radius: 12px;
+  padding: 18px;
+}
+
+.crm-danger-dialog::backdrop {
+  background: rgba(8, 18, 33, 0.45);
+}
+
+.crm-danger-dialog h4 {
+  margin: 0 0 8px;
+}
+
+.crm-danger-dialog p {
+  margin: 0;
+}
+
+.crm-danger-dialog__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 14px;
+}

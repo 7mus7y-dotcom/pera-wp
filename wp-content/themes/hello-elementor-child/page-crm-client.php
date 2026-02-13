@@ -50,7 +50,12 @@ $staff_users        = function_exists( 'peracrm_get_staff_users' ) ? (array) per
 $deal_stage_options = function_exists( 'peracrm_deal_stage_options' ) ? (array) peracrm_deal_stage_options() : array();
 $source_pills       = function_exists( 'pera_crm_client_view_source_pills' ) ? (array) pera_crm_client_view_source_pills( $client_id, $data['activity'] ?? array() ) : array();
 
+$can_reassign_advisor = function_exists( 'peracrm_admin_user_can_reassign' ) && peracrm_admin_user_can_reassign() && current_user_can( 'edit_post', $client_id );
+$can_delete_client    = $can_reassign_advisor;
+$can_set_dormant      = $can_delete_client;
+
 $frontend_url = function_exists( 'pera_crm_client_view_url' ) ? pera_crm_client_view_url( $client_id ) : home_url( '/crm/client/' . $client_id . '/' );
+$clients_url  = home_url( '/crm/clients/' );
 $notice_key   = isset( $_GET['peracrm_notice'] ) ? sanitize_key( wp_unslash( (string) $_GET['peracrm_notice'] ) ) : ''; // phpcs:ignore WordPress.Security.NonceVerification.Recommended
 $notice_data  = function_exists( 'pera_crm_client_view_notice_message' ) ? pera_crm_client_view_notice_message( $notice_key ) : array( '', '' );
 
@@ -228,35 +233,6 @@ get_header();
               <?php endif; ?>
             </article>
 
-            <article class="card-shell crm-client-section">
-              <h3><?php esc_html_e( 'Assigned Advisor', 'hello-elementor-child' ); ?></h3>
-              <form method="post" action="<?php echo esc_url( home_url( '/wp-admin/admin-post.php' ) ); ?>" class="crm-form-stack">
-					<?php wp_nonce_field( 'peracrm_reassign_client_advisor', 'peracrm_reassign_client_advisor_nonce' ); ?>
-                <input type="hidden" name="action" value="peracrm_reassign_client_advisor" />
-                <input type="hidden" name="peracrm_client_id" value="<?php echo esc_attr( (string) $client_id ); ?>" />
-                <input type="hidden" name="peracrm_redirect" value="<?php echo esc_url( $frontend_url ); ?>" />
-                <select name="peracrm_assigned_advisor">
-                  <option value="0"><?php esc_html_e( 'Unassigned', 'hello-elementor-child' ); ?></option>
-						<?php foreach ( $staff_users as $staff_user ) : ?>
-                    <option value="<?php echo esc_attr( (string) $staff_user->ID ); ?>" <?php selected( $assigned_id, (int) $staff_user->ID ); ?>><?php echo esc_html( (string) $staff_user->display_name ); ?></option>
-						<?php endforeach; ?>
-                </select>
-              </label>
-              <button type="submit" class="btn btn--solid btn--blue"><?php esc_html_e( 'Save status', 'hello-elementor-child' ); ?></button>
-            </form>
-            <?php if ( 'lead' === $derived_type ) : ?>
-            <form method="post" action="<?php echo esc_url( home_url( '/wp-admin/admin-post.php' ) ); ?>" class="crm-inline-form">
-              <?php wp_nonce_field( 'peracrm_convert_to_client', 'peracrm_convert_to_client_nonce' ); ?>
-              <input type="hidden" name="action" value="peracrm_convert_to_client" />
-              <input type="hidden" name="peracrm_client_id" value="<?php echo esc_attr( (string) $client_id ); ?>" />
-              <input type="hidden" name="peracrm_redirect" value="<?php echo esc_url( $frontend_url ); ?>" />
-              <button type="submit" class="btn btn--ghost btn--blue"><?php esc_html_e( 'Convert to client', 'hello-elementor-child' ); ?></button>
-            </form>
-            <?php endif; ?>
-          </article>
-
-
-
           <section class="card-shell crm-client-section crm-client-timeline">
             <h3><?php esc_html_e( 'Timeline', 'hello-elementor-child' ); ?></h3>
             <div class="hero-pills">
@@ -410,6 +386,8 @@ get_header();
 
           <article class="card-shell crm-client-section crm-client-panel--full">
             <h3><?php esc_html_e( 'Assigned Advisor', 'hello-elementor-child' ); ?></h3>
+            <p class="text-sm"><strong><?php esc_html_e( 'Current advisor:', 'hello-elementor-child' ); ?></strong> <?php echo esc_html( $advisor_label ); ?></p>
+            <?php if ( $can_reassign_advisor ) : ?>
             <form method="post" action="<?php echo esc_url( home_url( '/wp-admin/admin-post.php' ) ); ?>" class="crm-form-stack">
 					<?php wp_nonce_field( 'peracrm_reassign_client_advisor', 'peracrm_reassign_client_advisor_nonce' ); ?>
               <input type="hidden" name="action" value="peracrm_reassign_client_advisor" />
@@ -423,7 +401,51 @@ get_header();
               </select>
               <button type="submit" class="btn btn--ghost btn--blue"><?php esc_html_e( 'Reassign advisor', 'hello-elementor-child' ); ?></button>
             </form>
+            <?php endif; ?>
           </article>
+
+          <?php if ( $can_delete_client ) : ?>
+          <article class="card-shell crm-client-section crm-client-panel--full crm-danger-zone">
+            <h3><?php esc_html_e( 'Danger zone', 'hello-elementor-child' ); ?></h3>
+            <p><?php esc_html_e( 'Delete this client permanently, or set it to dormant.', 'hello-elementor-child' ); ?></p>
+            <?php if ( $can_delete_client ) : ?>
+            <button type="button" class="btn btn--ghost btn--red crm-danger-zone__trigger" data-crm-danger-open="crm-client-danger-dialog"><?php esc_html_e( 'Delete client', 'hello-elementor-child' ); ?></button>
+            <?php endif; ?>
+
+            <dialog class="crm-danger-dialog" id="crm-client-danger-dialog" aria-labelledby="crm-danger-title-<?php echo esc_attr( (string) $client_id ); ?>">
+              <h4 id="crm-danger-title-<?php echo esc_attr( (string) $client_id ); ?>"><?php esc_html_e( 'Delete client', 'hello-elementor-child' ); ?></h4>
+              <p><?php esc_html_e( 'Are you sure you want to delete this user? You can alternatively make it dormant.', 'hello-elementor-child' ); ?></p>
+              <div class="crm-danger-dialog__actions">
+                <?php if ( $can_delete_client ) : ?>
+                <form method="post" action="<?php echo esc_url( home_url( '/wp-admin/admin-post.php' ) ); ?>">
+                  <?php wp_nonce_field( 'peracrm_delete_client', 'peracrm_delete_client_nonce' ); ?>
+                  <input type="hidden" name="action" value="peracrm_delete_client" />
+                  <input type="hidden" name="peracrm_client_id" value="<?php echo esc_attr( (string) $client_id ); ?>" />
+                  <input type="hidden" name="peracrm_redirect" value="<?php echo esc_url( $clients_url ); ?>" />
+                  <button type="submit" class="btn btn--solid btn--red"><?php esc_html_e( 'Yes (Delete)', 'hello-elementor-child' ); ?></button>
+                </form>
+                <?php endif; ?>
+                <?php if ( $can_set_dormant ) : ?>
+                <form method="post" action="<?php echo esc_url( home_url( '/wp-admin/admin-post.php' ) ); ?>">
+                  <?php wp_nonce_field( 'peracrm_save_client_profile', 'peracrm_save_client_profile_nonce' ); ?>
+                  <input type="hidden" name="action" value="peracrm_save_client_profile" />
+                  <input type="hidden" name="peracrm_client_id" value="<?php echo esc_attr( (string) $client_id ); ?>" />
+                  <input type="hidden" name="peracrm_redirect" value="<?php echo esc_url( $frontend_url ); ?>" />
+                  <input type="hidden" name="peracrm_status" value="dormant" />
+                  <input type="hidden" name="peracrm_client_type" value="<?php echo esc_attr( (string) ( $profile['client_type'] ?? '' ) ); ?>" />
+                  <input type="hidden" name="peracrm_preferred_contact" value="<?php echo esc_attr( (string) ( $profile['preferred_contact'] ?? '' ) ); ?>" />
+                  <input type="hidden" name="peracrm_phone" value="<?php echo esc_attr( (string) ( $profile['phone'] ?? '' ) ); ?>" />
+                  <input type="hidden" name="peracrm_email" value="<?php echo esc_attr( (string) ( $profile['email'] ?? '' ) ); ?>" />
+                  <input type="hidden" name="peracrm_budget_min_usd" value="<?php echo esc_attr( (string) ( $profile['budget_min_usd'] ?? '' ) ); ?>" />
+                  <input type="hidden" name="peracrm_budget_max_usd" value="<?php echo esc_attr( (string) ( $profile['budget_max_usd'] ?? '' ) ); ?>" />
+                  <button type="submit" class="btn btn--ghost btn--blue"><?php esc_html_e( 'Make it dormant', 'hello-elementor-child' ); ?></button>
+                </form>
+                <?php endif; ?>
+                <button type="button" class="btn btn--ghost btn--blue" data-crm-danger-close="crm-client-danger-dialog"><?php esc_html_e( 'No (Close)', 'hello-elementor-child' ); ?></button>
+              </div>
+            </dialog>
+          </article>
+          <?php endif; ?>
         </div>
 
 	  <?php endif; ?>

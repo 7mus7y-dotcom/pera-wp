@@ -1720,6 +1720,8 @@ function peracrm_admin_notices()
         'deal_failed' => ['error', 'Unable to save deal.'],
         'deal_validation_failed' => ['error', 'Deal validation failed.'],
         'advisor_reassigned' => ['success', 'Advisor reassigned.'],
+        'client_deleted' => ['success', 'Client deleted.'],
+        'client_delete_failed' => ['error', 'Unable to delete client.'],
         'pipeline_view_saved' => ['success', 'Pipeline view saved.'],
         'pipeline_view_deleted' => ['success', 'Pipeline view deleted.'],
         'pipeline_view_missing' => ['error', 'Pipeline view not found.'],
@@ -2692,6 +2694,74 @@ function peracrm_handle_delete_deal()
     $redirect = peracrm_admin_preferred_redirect_url($fallback_redirect);
 
     wp_safe_redirect($redirect);
+    exit;
+}
+
+function peracrm_delete_client_related_records($client_id)
+{
+    global $wpdb;
+
+    $client_id = (int) $client_id;
+    if ($client_id <= 0) {
+        return;
+    }
+
+    peracrm_with_target_blog(static function () use ($wpdb, $client_id) {
+        if (function_exists('peracrm_notes_table_exists') && peracrm_notes_table_exists()) {
+            $wpdb->delete(peracrm_table('crm_notes'), ['client_id' => $client_id], ['%d']);
+        }
+
+        if (function_exists('peracrm_reminders_table_exists') && peracrm_reminders_table_exists()) {
+            $wpdb->delete(peracrm_table('crm_reminders'), ['client_id' => $client_id], ['%d']);
+        }
+
+        if (function_exists('peracrm_activity_table_exists') && peracrm_activity_table_exists()) {
+            $wpdb->delete(peracrm_table('crm_activity'), ['client_id' => $client_id], ['%d']);
+        }
+
+        if (function_exists('peracrm_client_property_table_exists') && peracrm_client_property_table_exists()) {
+            $wpdb->delete(peracrm_table('crm_client_property'), ['client_id' => $client_id], ['%d']);
+        }
+
+        if (function_exists('peracrm_deals_table_exists') && peracrm_deals_table_exists()) {
+            $wpdb->delete(peracrm_table('peracrm_deals'), ['party_id' => $client_id], ['%d']);
+        }
+
+        if (function_exists('peracrm_party_table_exists') && peracrm_party_table_exists()) {
+            $wpdb->delete(peracrm_table('peracrm_party'), ['party_id' => $client_id], ['%d']);
+        }
+    });
+}
+
+function peracrm_handle_delete_client()
+{
+    if (!is_user_logged_in() || !peracrm_admin_user_can_reassign()) {
+        wp_die('Unauthorized', 403);
+    }
+
+    check_admin_referer('peracrm_delete_client', 'peracrm_delete_client_nonce');
+
+    $client_id = isset($_POST['peracrm_client_id']) ? (int) $_POST['peracrm_client_id'] : 0;
+    $fallback_redirect = home_url('/crm/clients/');
+    $redirect = peracrm_admin_preferred_redirect_url($fallback_redirect, true);
+
+    if ($client_id <= 0 || get_post_type($client_id) !== 'crm_client' || !current_user_can('delete_post', $client_id)) {
+        wp_safe_redirect(add_query_arg('peracrm_notice', 'client_delete_failed', $redirect));
+        exit;
+    }
+
+    $linked_user_id = (int) get_post_meta($client_id, 'linked_user_id', true);
+    if ($linked_user_id > 0) {
+        $current_linked_client = (int) get_user_meta($linked_user_id, 'crm_client_id', true);
+        if ($current_linked_client === $client_id) {
+            delete_user_meta($linked_user_id, 'crm_client_id');
+        }
+    }
+
+    peracrm_delete_client_related_records($client_id);
+
+    $deleted = wp_delete_post($client_id, true);
+    wp_safe_redirect(add_query_arg('peracrm_notice', $deleted ? 'client_deleted' : 'client_delete_failed', $redirect));
     exit;
 }
 

@@ -149,6 +149,66 @@
 })();
 
 (function () {
+  var openButtons = Array.prototype.slice.call(document.querySelectorAll('[data-crm-danger-open]'));
+  if (!openButtons.length) {
+    return;
+  }
+
+  function closeDialog(dialog) {
+    if (!dialog) {
+      return;
+    }
+
+    if (typeof dialog.close === 'function') {
+      dialog.close();
+      return;
+    }
+
+    dialog.removeAttribute('open');
+  }
+
+  openButtons.forEach(function (button) {
+    button.addEventListener('click', function () {
+      var targetId = button.getAttribute('data-crm-danger-open');
+      if (!targetId) {
+        return;
+      }
+
+      var dialog = document.getElementById(targetId);
+      if (!dialog) {
+        return;
+      }
+
+      if (typeof dialog.showModal === 'function') {
+        dialog.showModal();
+      } else {
+        dialog.setAttribute('open', 'open');
+      }
+    });
+  });
+
+  var closeButtons = Array.prototype.slice.call(document.querySelectorAll('[data-crm-danger-close]'));
+  closeButtons.forEach(function (button) {
+    button.addEventListener('click', function () {
+      var targetId = button.getAttribute('data-crm-danger-close');
+      if (!targetId) {
+        return;
+      }
+
+      closeDialog(document.getElementById(targetId));
+    });
+  });
+
+  Array.prototype.slice.call(document.querySelectorAll('.crm-danger-dialog')).forEach(function (dialog) {
+    dialog.addEventListener('click', function (event) {
+      if (event.target === dialog) {
+        closeDialog(dialog);
+      }
+    });
+  });
+})();
+
+(function () {
   var widgets = Array.prototype.slice.call(document.querySelectorAll('[data-crm-property-search]'));
   if (!widgets.length) {
     return;
