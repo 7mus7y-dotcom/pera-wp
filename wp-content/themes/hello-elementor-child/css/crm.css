@@ -31,6 +31,59 @@
   background-color: transparent;
 }
 
+/* =======================================================
+   CRM TYPOGRAPHY NORMALIZATION (scoped)
+   ======================================================= */
+
+.crm-page {
+  --crm-text-base: 1rem;
+  --crm-text-small: 0.9rem;
+  --crm-meta-size: 0.8rem;
+  --crm-line-base: 1.6;
+  --crm-line-tight: 1.4;
+  --crm-weight-regular: 400;
+  --crm-weight-semibold: 600;
+}
+
+.crm-page p,
+.crm-page li,
+.crm-page td,
+.crm-page label,
+.crm-page input,
+.crm-page select,
+.crm-page textarea {
+  font-size: var(--crm-text-base);
+  font-weight: var(--crm-weight-regular);
+  line-height: var(--crm-line-base);
+}
+
+.crm-page .crm-leads-table {
+  font-size: var(--crm-text-base);
+  line-height: var(--crm-line-tight);
+}
+
+.crm-page .crm-leads-table th,
+.crm-page .crm-leads-table thead td {
+  font-weight: var(--crm-weight-semibold);
+}
+
+.crm-page .crm-table-sort {
+  font-weight: inherit;
+  line-height: inherit;
+}
+
+.crm-page .pill {
+  font-size: var(--crm-meta-size);
+  letter-spacing: 0.06em;
+}
+
+.crm-page .crm-pipeline-empty,
+.crm-page .text-sm,
+.crm-page small {
+  font-size: var(--crm-text-small);
+  line-height: 1.45;
+}
+
 .crm-leads-toolbar {
   display: flex;
   align-items: center;
@@ -115,6 +168,10 @@
 .crm-form-stack label {
   display: block;
   margin-bottom: 6px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
 }
 
 .crm-form-stack input {
@@ -137,6 +194,31 @@
 .crm-form-stack textarea {
   width: 100%;
   max-width: 560px;
+}
+
+.crm-form-stack input,
+.crm-form-stack select,
+.crm-form-stack textarea {
+  display: block;
+  width: 100%;
+  padding: 0.7rem 0.9rem;
+  border-radius: 10px;
+  border: 1px solid #e1e1e1;
+  background-color: #ffffff;
+  font-size: 0.95rem;
+}
+
+.crm-form-stack input::placeholder,
+.crm-form-stack textarea::placeholder {
+  color: #aaaaaa;
+}
+
+.crm-form-stack input:focus,
+.crm-form-stack select:focus,
+.crm-form-stack textarea:focus {
+  outline: none;
+  border-color: #002d72;
+  box-shadow: 0 0 0 1px rgba(0, 45, 114, 0.12);
 }
 
 .crm-form-stack textarea {
