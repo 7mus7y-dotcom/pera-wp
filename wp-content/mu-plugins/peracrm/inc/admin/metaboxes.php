@@ -398,83 +398,11 @@ function peracrm_render_assigned_advisor_metabox($post)
         return;
     }
 
-    if (!function_exists('peracrm_client_get_assigned_advisor_id')) {
-        echo '<p class="peracrm-empty">Unavailable (missing helper).</p>';
-        if ($should_log) {
-            error_log(sprintf('[peracrm] metabox assigned_advisor end client=%d', $post_id));
-        }
-        return;
+    if (function_exists('peracrm_render_assigned_advisor_box')) {
+        peracrm_render_assigned_advisor_box((int) $post->ID, ['context' => 'admin']);
+    } else {
+        echo '<p class="peracrm-empty">Unavailable (missing renderer).</p>';
     }
-
-    $advisor_id = (int) peracrm_client_get_assigned_advisor_id($post->ID);
-
-    $advisor_name = 'Unassigned';
-    $advisor_is_eligible = true;
-    if ($advisor_id > 0) {
-        $advisor_user = get_userdata($advisor_id);
-        if ($advisor_user) {
-            $advisor_name = $advisor_user->display_name;
-        }
-        if (function_exists('peracrm_user_is_staff')) {
-            $advisor_is_eligible = peracrm_user_is_staff($advisor_id);
-        }
-    }
-
-    $can_reassign = current_user_can('edit_post', $post->ID)
-        && (current_user_can('manage_options') || current_user_can('peracrm_manage_assignments'));
-
-    echo '<div class="peracrm-metabox">';
-    if ($advisor_id > 0 && !$advisor_is_eligible) {
-        $advisor_name .= ' (not eligible)';
-    }
-    echo '<p><strong>Current advisor:</strong> ' . esc_html($advisor_name) . '</p>';
-
-    if (!$can_reassign) {
-        echo '<p>You do not have permission to reassign advisors.</p>';
-        echo '</div>';
-        if ($should_log) {
-            error_log(sprintf('[peracrm] metabox assigned_advisor end client=%d', $post_id));
-        }
-        return;
-    }
-
-    $advisor_options = function_exists('peracrm_get_staff_users')
-        ? peracrm_get_staff_users()
-        : [];
-
-    $form_selector = '#peracrm-reassign-advisor-form-' . (int) $post->ID;
-
-    echo '<div id="' . esc_attr(ltrim($form_selector, '#')) . '" class="peracrm-form">';
-    echo '<input type="hidden" name="peracrm_reassign_client_advisor_nonce" value="' . esc_attr(wp_create_nonce('peracrm_reassign_client_advisor')) . '" />';
-    echo '<input type="hidden" name="peracrm_client_id" value="' . esc_attr($post->ID) . '" />';
-    echo '<p><label for="peracrm-assigned-advisor">Advisor</label></p>';
-    echo '<p><select name="peracrm_assigned_advisor" id="peracrm-assigned-advisor" class="widefat">';
-    printf(
-        '<option value="0"%s>%s</option>',
-        selected($advisor_id, 0, false),
-        esc_html('Unassigned')
-    );
-    if (empty($advisor_options)) {
-        echo '<option value="" disabled>' . esc_html('No employees found') . '</option>';
-    }
-    foreach ($advisor_options as $advisor) {
-        printf(
-            '<option value="%1$d"%2$s>%3$s</option>',
-            (int) $advisor->ID,
-            selected($advisor_id, (int) $advisor->ID, false),
-            esc_html($advisor->display_name)
-        );
-    }
-    echo '</select></p>';
-    echo '<p>';
-    peracrm_render_metabox_action_button('Reassign', 'peracrm_reassign_client_advisor', [
-        'class' => 'button',
-        'container' => $form_selector,
-    ]);
-    echo '</p>';
-    echo '</div>';
-
-    peracrm_render_metabox_action_helper_script();
 
     if ($should_log) {
         error_log(sprintf('[peracrm] metabox assigned_advisor end client=%d', $post_id));
