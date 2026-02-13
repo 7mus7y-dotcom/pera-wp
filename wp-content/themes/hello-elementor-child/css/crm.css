@@ -277,13 +277,51 @@
   gap: 12px;
 }
 
-.crm-client-columns {
-  gap: 16px;
+.crm-page--client-view .crm-client-kpis {
   margin-bottom: 16px;
 }
 
-.crm-client-columns .card-shell {
+.crm-page--client-view .crm-client-kpi-card {
+  gap: 6px;
+  padding: 12px;
+  min-height: 0;
+}
+
+.crm-page--client-view .crm-client-kpi-card .pill {
+  font-size: 0.7rem;
+}
+
+.crm-page--client-view .crm-client-kpi-card h3 {
+  margin: 0;
+  font-size: 1.2rem;
+  line-height: 1.2;
+}
+
+.crm-client-panels-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 16px;
+  margin-bottom: 16px;
+  align-items: start;
+}
+
+.crm-client-panels-grid .card-shell {
   padding: 16px;
+}
+
+.crm-client-panel--full {
+  grid-column: 1 / -1;
+}
+
+.crm-client-quick-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.crm-linked-property-link {
+  font-weight: 600;
+  text-decoration: underline;
 }
 
 .crm-client-timeline .hero-pills {
@@ -307,9 +345,44 @@
 }
 
 @media (max-width: 1024px) {
-  .crm-client-columns,
   .crm-client-kpis {
     grid-template-columns: 1fr;
+  }
+}
+
+@media (min-width: 1025px) {
+  .crm-client-panels-grid {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  }
+}
+
+@media (min-width: 768px) {
+  .crm-page--client-view .crm-client-kpis.cards-slider--grid-lg {
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 12px;
+    padding-bottom: 0;
+  }
+}
+
+@media (max-width: 767px) {
+  .crm-page--client-view .crm-client-kpis.cards-slider {
+    gap: 10px;
+    padding-bottom: 2px;
+    margin-inline: -2px;
+    padding-inline: 2px;
+  }
+
+  .crm-page--client-view .crm-client-kpis .slider-card {
+    flex-basis: 78vw;
+    max-width: 82vw;
+  }
+
+  .crm-page--client-view .crm-client-kpi-card {
+    padding: 10px;
+  }
+
+  .crm-page--client-view .crm-client-kpi-card h3 {
+    font-size: 1.05rem;
   }
 }
 

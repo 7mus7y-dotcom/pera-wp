@@ -365,6 +365,23 @@ function peracrm_deals_get($deal_id)
     return peracrm_deal_normalize_row($row);
 }
 
+function peracrm_deals_delete($deal_id)
+{
+    $deal_id = (int) $deal_id;
+    if ($deal_id <= 0 || !peracrm_deals_table_exists()) {
+        return false;
+    }
+
+    global $wpdb;
+
+    return (bool) peracrm_with_target_blog(static function () use ($wpdb, $deal_id) {
+        $table = peracrm_table('peracrm_deals');
+        $deleted = $wpdb->delete($table, ['id' => $deal_id], ['%d']);
+
+        return $deleted !== false && $deleted > 0;
+    });
+}
+
 function peracrm_deals_get_by_party($party_id)
 {
     $party_id = (int) $party_id;
