@@ -298,15 +298,15 @@
 }
 
 .crm-client-panels-grid {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr);
-  gap: 16px;
+  columns: 1;
+  column-gap: 16px;
   margin-bottom: 16px;
-  align-items: start;
 }
 
 .crm-client-panels-grid .card-shell {
   padding: 16px;
+  break-inside: avoid;
+  margin: 0 0 16px;
 }
 
 .crm-client-panel--full {
@@ -314,9 +314,21 @@
 }
 
 .crm-client-quick-actions {
-  display: flex;
+  display: inline-flex;
   flex-wrap: wrap;
   gap: 8px;
+}
+
+.crm-form-row-2 {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+@media (max-width: 767px) {
+  .crm-form-row-2 {
+    grid-template-columns: 1fr;
+  }
 }
 
 .crm-linked-property-link {
@@ -352,7 +364,7 @@
 
 @media (min-width: 1025px) {
   .crm-client-panels-grid {
-    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    columns: 2;
   }
 }
 

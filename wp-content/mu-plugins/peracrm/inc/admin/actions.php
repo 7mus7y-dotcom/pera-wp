@@ -90,12 +90,8 @@ function peracrm_pipeline_status_labels()
 
 function peracrm_pipeline_client_type_options()
 {
-    return [
-        'all' => 'All types',
-        'citizenship' => 'Citizenship',
-        'investor' => 'Investor',
-        'lifestyle' => 'Lifestyle',
-    ];
+    $options = function_exists('peracrm_client_type_options') ? (array) peracrm_client_type_options() : [];
+    return ['all' => 'All types'] + $options;
 }
 
 function peracrm_pipeline_health_options()

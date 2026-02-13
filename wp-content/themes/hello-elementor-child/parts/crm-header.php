@@ -39,7 +39,7 @@ $sections = array(
       <p class="lead"><?php echo esc_html( $description ); ?></p>
     <?php endif; ?>
     <div class="hero-actions">
-      <a class="btn btn--solid btn--white" href="<?php echo esc_url( home_url( '/crm/new/' ) ); ?>"><?php echo esc_html__( 'Create lead', 'hello-elementor-child' ); ?></a>
+      <a class="btn btn--solid btn--green" href="<?php echo esc_url( home_url( '/crm/new/' ) ); ?>"><?php echo esc_html__( 'Create lead', 'hello-elementor-child' ); ?></a>
     </div>
     <nav class="crm-subnav" aria-label="<?php echo esc_attr__( 'CRM sections', 'hello-elementor-child' ); ?>">
       <?php foreach ( $sections as $section_key => $section ) : ?>

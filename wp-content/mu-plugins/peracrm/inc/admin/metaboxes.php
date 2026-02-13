@@ -246,18 +246,24 @@ function peracrm_render_client_profile_metabox($post)
             'email' => '',
         ];
 
-    $status_options = [
-        'enquiry' => 'Enquiry',
-        'active' => 'Active',
-        'dormant' => 'Dormant',
-        'closed' => 'Closed',
-    ];
+    $status_options = function_exists('peracrm_status_options')
+        ? (array) peracrm_status_options()
+        : [
+            'enquiry' => 'Enquiry',
+            'active' => 'Active',
+            'dormant' => 'Dormant',
+            'closed' => 'Closed',
+        ];
 
-    $type_options = [
-        'citizenship' => 'Citizenship',
-        'investor' => 'Investor',
-        'lifestyle' => 'Lifestyle',
-    ];
+    $type_options = function_exists('peracrm_client_type_options')
+        ? (array) peracrm_client_type_options()
+        : [
+            'citizenship' => 'Citizenship',
+            'investor' => 'Investor',
+            'lifestyle' => 'Lifestyle',
+            'seller' => 'Seller',
+            'landlord' => 'Landlord',
+        ];
 
     $contact_options = [
         '' => 'No preference',

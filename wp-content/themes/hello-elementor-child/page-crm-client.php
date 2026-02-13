@@ -57,7 +57,8 @@ $notice_data  = function_exists( 'pera_crm_client_view_notice_message' ) ? pera_
 $derived_type      = sanitize_key( (string) ( $data['derived_type'] ?? 'lead' ) );
 $derived_type      = in_array( $derived_type, array( 'lead', 'client' ), true ) ? $derived_type : 'lead';
 $derived_type_label = 'client' === $derived_type ? __( 'Client', 'hello-elementor-child' ) : __( 'Lead', 'hello-elementor-child' );
-$client_type_options = is_array( $data['client_type_options'] ?? null ) ? $data['client_type_options'] : array( 'seller' => 'Seller', 'landlord' => 'Landlord' );
+$client_type_options = is_array( $data['client_type_options'] ?? null ) ? $data['client_type_options'] : array( 'citizenship' => 'Citizenship', 'investor' => 'Investor', 'lifestyle' => 'Lifestyle', 'seller' => 'Seller', 'landlord' => 'Landlord' );
+$status_options      = function_exists( 'peracrm_status_options' ) ? (array) peracrm_status_options() : array( 'enquiry' => 'Enquiry', 'active' => 'Active', 'dormant' => 'Dormant', 'closed' => 'Closed' );
 $client_type_value = sanitize_key( (string) ( $profile['client_type'] ?? '' ) );
 
 $deal_edit_id   = isset( $_GET['deal_id'] ) ? absint( wp_unslash( (string) $_GET['deal_id'] ) ) : 0; // phpcs:ignore WordPress.Security.NonceVerification.Recommended
@@ -137,38 +138,38 @@ get_header();
         <div class="crm-client-panels-grid">
           <article class="card-shell crm-client-section">
             <h3><?php esc_html_e( 'Client Profile', 'hello-elementor-child' ); ?></h3>
-            <?php if ( '' !== $call_link || '' !== $whatsapp_link || '' !== $email_link ) : ?>
-            <div class="crm-client-quick-actions">
-              <?php if ( '' !== $call_link ) : ?>
-              <a class="btn btn--ghost btn--blue" href="<?php echo esc_url( $call_link ); ?>"><?php esc_html_e( 'Call', 'hello-elementor-child' ); ?></a>
-              <?php endif; ?>
-              <?php if ( '' !== $whatsapp_link ) : ?>
-              <a class="btn btn--ghost btn--green" href="<?php echo esc_url( $whatsapp_link ); ?>" target="_blank" rel="noopener noreferrer"><?php esc_html_e( 'WhatsApp', 'hello-elementor-child' ); ?></a>
-              <?php endif; ?>
-              <?php if ( '' !== $email_link ) : ?>
-              <a class="btn btn--ghost btn--blue" href="<?php echo esc_url( $email_link ); ?>"><?php esc_html_e( 'Email', 'hello-elementor-child' ); ?></a>
-              <?php endif; ?>
-            </div>
-            <?php endif; ?>
             <form method="post" action="<?php echo esc_url( home_url( '/wp-admin/admin-post.php' ) ); ?>" class="crm-form-stack">
-					<?php wp_nonce_field( 'peracrm_save_client_profile', 'peracrm_save_client_profile_nonce' ); ?>
+						<?php wp_nonce_field( 'peracrm_save_client_profile', 'peracrm_save_client_profile_nonce' ); ?>
               <input type="hidden" name="action" value="peracrm_save_client_profile" />
               <input type="hidden" name="peracrm_client_id" value="<?php echo esc_attr( (string) $client_id ); ?>" />
               <input type="hidden" name="peracrm_redirect" value="<?php echo esc_url( $frontend_url ); ?>" />
-              <label><?php esc_html_e( 'Status', 'hello-elementor-child' ); ?><input type="text" name="peracrm_status" value="<?php echo esc_attr( (string) ( $profile['status'] ?? '' ) ); ?>" /></label>
-              <label><?php esc_html_e( 'Client type', 'hello-elementor-child' ); ?>
-                <select name="peracrm_client_type">
-                  <option value=""><?php esc_html_e( 'Select type', 'hello-elementor-child' ); ?></option>
-                  <?php foreach ( $client_type_options as $type_key => $type_label ) : ?>
-                    <option value="<?php echo esc_attr( (string) $type_key ); ?>" <?php selected( $client_type_value, (string) $type_key ); ?>><?php echo esc_html( (string) $type_label ); ?></option>
+              <label><?php esc_html_e( 'Status', 'hello-elementor-child' ); ?>
+                <select name="peracrm_status" id="peracrm-status" class="widefat">
+                  <?php foreach ( $status_options as $status_key => $status_text ) : ?>
+                    <option value="<?php echo esc_attr( (string) $status_key ); ?>" <?php selected( (string) ( $profile['status'] ?? '' ), (string) $status_key ); ?>><?php echo esc_html( (string) $status_text ); ?></option>
                   <?php endforeach; ?>
                 </select>
               </label>
-              <label><?php esc_html_e( 'Preferred contact', 'hello-elementor-child' ); ?><input type="text" name="peracrm_preferred_contact" value="<?php echo esc_attr( (string) ( $profile['preferred_contact'] ?? '' ) ); ?>" /></label>
-              <label><?php esc_html_e( 'Budget min (USD)', 'hello-elementor-child' ); ?><input type="number" min="0" name="peracrm_budget_min_usd" value="<?php echo esc_attr( (string) ( $profile['budget_min_usd'] ?? '' ) ); ?>" /></label>
-              <label><?php esc_html_e( 'Budget max (USD)', 'hello-elementor-child' ); ?><input type="number" min="0" name="peracrm_budget_max_usd" value="<?php echo esc_attr( (string) ( $profile['budget_max_usd'] ?? '' ) ); ?>" /></label>
               <label><?php esc_html_e( 'Phone', 'hello-elementor-child' ); ?><input type="text" name="peracrm_phone" value="<?php echo esc_attr( (string) ( $profile['phone'] ?? '' ) ); ?>" /></label>
               <label><?php esc_html_e( 'Email', 'hello-elementor-child' ); ?><input type="email" name="peracrm_email" value="<?php echo esc_attr( (string) ( $profile['email'] ?? '' ) ); ?>" /></label>
+              <?php if ( '' !== $call_link || '' !== $whatsapp_link || '' !== $email_link ) : ?>
+              <div class="crm-client-quick-actions">
+                <?php if ( '' !== $call_link ) : ?>
+                <a class="btn btn--ghost btn--blue" href="<?php echo esc_url( $call_link ); ?>"><?php esc_html_e( 'Call', 'hello-elementor-child' ); ?></a>
+                <?php endif; ?>
+                <?php if ( '' !== $whatsapp_link ) : ?>
+                <a class="btn btn--ghost btn--green" href="<?php echo esc_url( $whatsapp_link ); ?>" target="_blank" rel="noopener noreferrer"><?php esc_html_e( 'WhatsApp', 'hello-elementor-child' ); ?></a>
+                <?php endif; ?>
+                <?php if ( '' !== $email_link ) : ?>
+                <a class="btn btn--ghost btn--blue" href="<?php echo esc_url( $email_link ); ?>"><?php esc_html_e( 'Email', 'hello-elementor-child' ); ?></a>
+                <?php endif; ?>
+              </div>
+              <?php endif; ?>
+              <label><?php esc_html_e( 'Preferred contact', 'hello-elementor-child' ); ?><input type="text" name="peracrm_preferred_contact" value="<?php echo esc_attr( (string) ( $profile['preferred_contact'] ?? '' ) ); ?>" /></label>
+              <div class="crm-form-row-2">
+                <label><?php esc_html_e( 'Budget min (USD)', 'hello-elementor-child' ); ?><input type="number" min="0" name="peracrm_budget_min_usd" value="<?php echo esc_attr( (string) ( $profile['budget_min_usd'] ?? '' ) ); ?>" /></label>
+                <label><?php esc_html_e( 'Budget max (USD)', 'hello-elementor-child' ); ?><input type="number" min="0" name="peracrm_budget_max_usd" value="<?php echo esc_attr( (string) ( $profile['budget_max_usd'] ?? '' ) ); ?>" /></label>
+              </div>
               <button type="submit" class="btn btn--solid btn--blue"><?php esc_html_e( 'Save profile', 'hello-elementor-child' ); ?></button>
             </form>
           </article>
@@ -254,30 +255,7 @@ get_header();
             <?php endif; ?>
           </article>
 
-            <article class="card-shell crm-client-section">
-              <h3><?php esc_html_e( 'Client Profile', 'hello-elementor-child' ); ?></h3>
-              <form method="post" action="<?php echo esc_url( home_url( '/wp-admin/admin-post.php' ) ); ?>" class="crm-form-stack">
-					<?php wp_nonce_field( 'peracrm_save_client_profile', 'peracrm_save_client_profile_nonce' ); ?>
-                <input type="hidden" name="action" value="peracrm_save_client_profile" />
-                <input type="hidden" name="peracrm_client_id" value="<?php echo esc_attr( (string) $client_id ); ?>" />
-                <input type="hidden" name="peracrm_redirect" value="<?php echo esc_url( $frontend_url ); ?>" />
-                <label><?php esc_html_e( 'Status', 'hello-elementor-child' ); ?><input type="text" name="peracrm_status" value="<?php echo esc_attr( (string) ( $profile['status'] ?? '' ) ); ?>" /></label>
-                <label><?php esc_html_e( 'Client type', 'hello-elementor-child' ); ?>
-                  <select name="peracrm_client_type">
-                    <option value=""><?php esc_html_e( 'Select type', 'hello-elementor-child' ); ?></option>
-                    <?php foreach ( $client_type_options as $type_key => $type_label ) : ?>
-                      <option value="<?php echo esc_attr( (string) $type_key ); ?>" <?php selected( $client_type_value, (string) $type_key ); ?>><?php echo esc_html( (string) $type_label ); ?></option>
-                    <?php endforeach; ?>
-                  </select>
-                </label>
-                <label><?php esc_html_e( 'Preferred contact', 'hello-elementor-child' ); ?><input type="text" name="peracrm_preferred_contact" value="<?php echo esc_attr( (string) ( $profile['preferred_contact'] ?? '' ) ); ?>" /></label>
-                <label><?php esc_html_e( 'Budget min (USD)', 'hello-elementor-child' ); ?><input type="number" min="0" name="peracrm_budget_min_usd" value="<?php echo esc_attr( (string) ( $profile['budget_min_usd'] ?? '' ) ); ?>" /></label>
-                <label><?php esc_html_e( 'Budget max (USD)', 'hello-elementor-child' ); ?><input type="number" min="0" name="peracrm_budget_max_usd" value="<?php echo esc_attr( (string) ( $profile['budget_max_usd'] ?? '' ) ); ?>" /></label>
-                <label><?php esc_html_e( 'Phone', 'hello-elementor-child' ); ?><input type="text" name="peracrm_phone" value="<?php echo esc_attr( (string) ( $profile['phone'] ?? '' ) ); ?>" /></label>
-                <label><?php esc_html_e( 'Email', 'hello-elementor-child' ); ?><input type="email" name="peracrm_email" value="<?php echo esc_attr( (string) ( $profile['email'] ?? '' ) ); ?>" /></label>
-                <button type="submit" class="btn btn--solid btn--blue"><?php esc_html_e( 'Save profile', 'hello-elementor-child' ); ?></button>
-              </form>
-            </article>
+
 
           <section class="card-shell crm-client-section crm-client-timeline">
             <h3><?php esc_html_e( 'Timeline', 'hello-elementor-child' ); ?></h3>

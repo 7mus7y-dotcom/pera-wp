@@ -106,7 +106,9 @@ function peracrm_client_update_profile($client_id, $data)
         return false;
     }
 
-    $allowed_status = ['enquiry', 'active', 'dormant', 'closed'];
+    $allowed_status = function_exists('peracrm_status_options')
+        ? array_keys((array) peracrm_status_options())
+        : ['enquiry', 'active', 'dormant', 'closed'];
     $allowed_types = function_exists('peracrm_client_type_options')
         ? array_keys((array) peracrm_client_type_options())
         : ['citizenship', 'investor', 'lifestyle', 'seller', 'landlord'];
@@ -194,8 +196,21 @@ function peracrm_client_update_profile($client_id, $data)
 function peracrm_client_type_options()
 {
     return [
+        'citizenship' => 'Citizenship',
+        'investor' => 'Investor',
+        'lifestyle' => 'Lifestyle',
         'seller' => 'Seller',
         'landlord' => 'Landlord',
+    ];
+}
+
+function peracrm_status_options()
+{
+    return [
+        'enquiry' => 'Enquiry',
+        'active' => 'Active',
+        'dormant' => 'Dormant',
+        'closed' => 'Closed',
     ];
 }
 
