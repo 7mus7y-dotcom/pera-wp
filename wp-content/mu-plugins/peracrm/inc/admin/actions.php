@@ -2745,7 +2745,7 @@ function peracrm_delete_client_related_records($client_id)
 
 function peracrm_handle_delete_client()
 {
-    if (!is_user_logged_in() || !peracrm_admin_user_can_reassign()) {
+    if (!is_user_logged_in() || $_SERVER['REQUEST_METHOD'] !== 'POST') {
         wp_die('Unauthorized', 403);
     }
 
@@ -2755,23 +2755,39 @@ function peracrm_handle_delete_client()
     $fallback_redirect = home_url('/crm/clients/');
     $redirect = peracrm_admin_preferred_redirect_url($fallback_redirect, true);
 
-    if ($client_id <= 0 || get_post_type($client_id) !== 'crm_client' || !current_user_can('delete_post', $client_id)) {
-        wp_safe_redirect(add_query_arg('peracrm_notice', 'client_delete_failed', $redirect));
-        exit;
-    }
-
-    $linked_user_id = (int) get_post_meta($client_id, 'linked_user_id', true);
-    if ($linked_user_id > 0) {
-        $current_linked_client = (int) get_user_meta($linked_user_id, 'crm_client_id', true);
-        if ($current_linked_client === $client_id) {
-            delete_user_meta($linked_user_id, 'crm_client_id');
+    $delete_callback = static function () use ($client_id) {
+        $passes_safety_gate = true;
+        if (function_exists('peracrm_admin_user_can_reassign')) {
+            $passes_safety_gate = peracrm_admin_user_can_reassign() || current_user_can('manage_options');
         }
-    }
 
-    peracrm_delete_client_related_records($client_id);
+        if (
+            !$passes_safety_gate
+            || $client_id <= 0
+            || get_post_type($client_id) !== 'crm_client'
+            || !current_user_can('delete_post', $client_id)
+        ) {
+            return false;
+        }
 
-    $deleted = wp_delete_post($client_id, true);
-    wp_safe_redirect(add_query_arg('peracrm_notice', $deleted ? 'client_deleted' : 'client_delete_failed', $redirect));
+        $linked_user_id = (int) get_post_meta($client_id, 'linked_user_id', true);
+        if ($linked_user_id > 0) {
+            $current_linked_client = (int) get_user_meta($linked_user_id, 'crm_client_id', true);
+            if ($current_linked_client === $client_id) {
+                delete_user_meta($linked_user_id, 'crm_client_id');
+            }
+        }
+
+        peracrm_delete_client_related_records($client_id);
+
+        return (bool) wp_delete_post($client_id, true);
+    };
+
+    $delete_result = function_exists('peracrm_with_target_blog')
+        ? (bool) peracrm_with_target_blog($delete_callback)
+        : (bool) $delete_callback();
+
+    wp_safe_redirect(add_query_arg('peracrm_notice', $delete_result ? 'client_deleted' : 'client_delete_failed', $redirect));
     exit;
 }
 

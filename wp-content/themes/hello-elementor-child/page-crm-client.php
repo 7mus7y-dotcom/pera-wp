@@ -50,17 +50,37 @@ $deal_stage_options = function_exists( 'peracrm_deal_stage_options' ) ? (array) 
 $source_pills       = function_exists( 'pera_crm_client_view_source_pills' ) ? (array) pera_crm_client_view_source_pills( $client_id, $data['activity'] ?? array() ) : array();
 
 $can_manage_assignments = function_exists( 'peracrm_admin_user_can_reassign' ) && peracrm_admin_user_can_reassign();
-$can_delete_client      = $can_manage_assignments;
+$can_delete_client      = false;
+$delete_cap_check       = static function () use ( $client_id ) {
+	if ( $client_id <= 0 ) {
+		return false;
+	}
+
+	return current_user_can( 'delete_post', $client_id );
+};
+
+if ( function_exists( 'peracrm_with_target_blog' ) ) {
+	$can_delete_client = (bool) peracrm_with_target_blog( $delete_cap_check );
+} else {
+	$can_delete_client = (bool) $delete_cap_check();
+}
+
+if ( function_exists( 'peracrm_admin_user_can_reassign' ) ) {
+	$can_delete_client = $can_delete_client && ( peracrm_admin_user_can_reassign() || current_user_can( 'manage_options' ) );
+}
+
 $can_set_dormant        = $can_manage_assignments;
 
 $frontend_url = function_exists( 'pera_crm_client_view_url' ) ? pera_crm_client_view_url( $client_id ) : home_url( '/crm/client/' . $client_id . '/' );
 $clients_url  = home_url( '/crm/clients/' );
+$leads_url    = home_url( '/crm/leads/' );
 $notice_key   = isset( $_GET['peracrm_notice'] ) ? sanitize_key( wp_unslash( (string) $_GET['peracrm_notice'] ) ) : ''; // phpcs:ignore WordPress.Security.NonceVerification.Recommended
 $notice_data  = function_exists( 'pera_crm_client_view_notice_message' ) ? pera_crm_client_view_notice_message( $notice_key ) : array( '', '' );
 
 $derived_type      = sanitize_key( (string) ( $data['derived_type'] ?? 'lead' ) );
 $derived_type      = in_array( $derived_type, array( 'lead', 'client' ), true ) ? $derived_type : 'lead';
 $derived_type_label = 'client' === $derived_type ? __( 'Client', 'hello-elementor-child' ) : __( 'Lead', 'hello-elementor-child' );
+$delete_redirect_url = 'lead' === $derived_type ? $leads_url : $clients_url;
 $client_type_options = is_array( $data['client_type_options'] ?? null ) ? $data['client_type_options'] : array( 'citizenship' => 'Citizenship', 'investor' => 'Investor', 'lifestyle' => 'Lifestyle', 'seller' => 'Seller', 'landlord' => 'Landlord' );
 $status_options      = function_exists( 'peracrm_status_options' ) ? (array) peracrm_status_options() : array( 'enquiry' => 'Enquiry', 'active' => 'Active', 'dormant' => 'Dormant', 'closed' => 'Closed' );
 $client_type_value = sanitize_key( (string) ( $profile['client_type'] ?? '' ) );
@@ -400,14 +420,14 @@ get_header();
 
             <dialog class="crm-danger-dialog" id="crm-client-danger-dialog" aria-labelledby="crm-danger-title-<?php echo esc_attr( (string) $client_id ); ?>">
               <h4 id="crm-danger-title-<?php echo esc_attr( (string) $client_id ); ?>"><?php esc_html_e( 'Delete client', 'hello-elementor-child' ); ?></h4>
-              <p><?php esc_html_e( 'Are you sure you want to delete this user? You can alternatively make it dormant.', 'hello-elementor-child' ); ?></p>
+              <p><?php esc_html_e( 'Are you sure you want to delete this client? This cannot be undone. You can alternatively make it dormant.', 'hello-elementor-child' ); ?></p>
               <div class="crm-danger-dialog__actions">
                 <?php if ( $can_delete_client ) : ?>
-                <form method="post" action="<?php echo esc_url( home_url( '/wp-admin/admin-post.php' ) ); ?>">
+                <form method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>">
                   <?php wp_nonce_field( 'peracrm_delete_client', 'peracrm_delete_client_nonce' ); ?>
                   <input type="hidden" name="action" value="peracrm_delete_client" />
                   <input type="hidden" name="peracrm_client_id" value="<?php echo esc_attr( (string) $client_id ); ?>" />
-                  <input type="hidden" name="peracrm_redirect" value="<?php echo esc_url( $clients_url ); ?>" />
+                  <input type="hidden" name="peracrm_redirect" value="<?php echo esc_url( $delete_redirect_url ); ?>" />
                   <button type="submit" class="btn btn--solid btn--red"><?php esc_html_e( 'Yes (Delete)', 'hello-elementor-child' ); ?></button>
                 </form>
                 <?php endif; ?>
