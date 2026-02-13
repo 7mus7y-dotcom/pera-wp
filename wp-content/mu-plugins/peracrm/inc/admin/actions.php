@@ -1350,13 +1350,16 @@ function peracrm_handle_unlink_user()
 
 function peracrm_admin_user_can_reassign()
 {
-    $can_manage_assignments = current_user_can('manage_options')
-        || current_user_can('peracrm_manage_assignments');
+    $callback = static function () {
+        return current_user_can('manage_options')
+            || current_user_can('peracrm_manage_assignments');
+    };
 
-    $can_manager_level_access = current_user_can('edit_crm_clients')
-        && current_user_can('view_crm_reports');
+    if (function_exists('peracrm_with_target_blog')) {
+        return (bool) peracrm_with_target_blog($callback);
+    }
 
-    return $can_manage_assignments || $can_manager_level_access;
+    return (bool) $callback();
 }
 
 function peracrm_handle_save_client_profile()
