@@ -27,6 +27,7 @@ add_action('admin_post_peracrm_convert_to_client', 'peracrm_handle_convert_to_cl
 add_action('admin_post_peracrm_create_deal', 'peracrm_handle_create_deal');
 add_action('admin_post_peracrm_update_deal', 'peracrm_handle_update_deal');
 add_action('admin_post_peracrm_delete_deal', 'peracrm_handle_delete_deal');
+add_action('admin_post_peracrm_delete_client', 'peracrm_handle_delete_client');
 add_action('admin_post_peracrm_reassign_client_advisor', 'peracrm_handle_reassign_client_advisor');
 add_action('admin_post_peracrm_pipeline_save_view', 'peracrm_handle_pipeline_save_view');
 add_action('admin_post_peracrm_pipeline_delete_view', 'peracrm_handle_pipeline_delete_view');

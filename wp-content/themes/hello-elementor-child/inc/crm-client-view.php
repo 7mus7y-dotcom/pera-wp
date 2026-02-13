@@ -100,6 +100,8 @@ if ( ! function_exists( 'pera_crm_client_view_notice_message' ) ) {
 			'property_link_failed' => array( 'warning', __( 'Unable to link property.', 'hello-elementor-child' ) ),
 			'converted_to_client'  => array( 'success', __( 'Lead converted to client.', 'hello-elementor-child' ) ),
 			'convert_failed'       => array( 'warning', __( 'Unable to convert this lead.', 'hello-elementor-child' ) ),
+			'client_deleted'       => array( 'success', __( 'Client deleted.', 'hello-elementor-child' ) ),
+			'client_delete_failed' => array( 'warning', __( 'Unable to delete this client.', 'hello-elementor-child' ) ),
 		);
 
 		return $map[ $notice ] ?? array( '', '' );
