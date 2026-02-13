@@ -47,11 +47,11 @@ get_header();
           <div class="crm-pipeline-filters-grid grid-3">
             <label>
               <span class="screen-reader-text"><?php esc_html_e( 'Search clients', 'hello-elementor-child' ); ?></span>
-              <input type="search" name="q" value="<?php echo esc_attr( $filter_q ); ?>" placeholder="<?php echo esc_attr__( 'Search clients', 'hello-elementor-child' ); ?>">
+              <input class="cta-control" type="search" name="q" value="<?php echo esc_attr( $filter_q ); ?>" placeholder="<?php echo esc_attr__( 'Search clients', 'hello-elementor-child' ); ?>">
             </label>
             <label>
               <span class="screen-reader-text"><?php esc_html_e( 'Stage', 'hello-elementor-child' ); ?></span>
-              <select name="stage">
+              <select class="cta-control" name="stage">
                 <option value=""><?php esc_html_e( 'All stages', 'hello-elementor-child' ); ?></option>
                 <?php foreach ( $stage_options as $stage_key => $stage_label ) : ?>
                   <option value="<?php echo esc_attr( (string) $stage_key ); ?>" <?php selected( (string) $stage_key, $filter_stage ); ?>><?php echo esc_html( (string) $stage_label ); ?></option>
@@ -61,7 +61,7 @@ get_header();
             <?php if ( $can_view_all ) : ?>
             <label>
               <span class="screen-reader-text"><?php esc_html_e( 'Advisor', 'hello-elementor-child' ); ?></span>
-              <select name="advisor">
+              <select class="cta-control" name="advisor">
                 <option value="0"><?php esc_html_e( 'All advisors', 'hello-elementor-child' ); ?></option>
                 <?php foreach ( $advisor_options as $advisor_option ) : ?>
                   <?php
@@ -108,11 +108,32 @@ get_header();
                     $url     = (string) ( $item['client_url'] ?? '' );
                     $advisor = (string) ( $item['advisor_label'] ?? '' );
                     $last    = (string) ( $item['last_activity'] ?? '' );
+                    $lead_source = (string) ( $item['lead_source'] ?? '' );
                     $min     = (int) ( $item['budget_min'] ?? 0 );
                     $max     = (int) ( $item['budget_max'] ?? 0 );
                     ?>
                     <article class="crm-pipeline-item">
                       <h3><a href="<?php echo esc_url( $url ); ?>"><?php echo esc_html( $title !== '' ? $title : __( '(no title)', 'hello-elementor-child' ) ); ?></a></h3>
+
+                      <div class="crm-pipeline-item-meta" aria-label="<?php echo esc_attr__( 'Lead details', 'hello-elementor-child' ); ?>">
+                        <?php if ( $lead_source !== '' ) : ?>
+                          <span class="pill pill--outline"><?php echo esc_html( sprintf( __( 'Source: %s', 'hello-elementor-child' ), $lead_source ) ); ?></span>
+                        <?php endif; ?>
+
+                        <?php if ( $min > 0 || $max > 0 ) : ?>
+                          <span class="pill pill--outline">
+                            <?php
+                            if ( $min > 0 && $max > 0 ) {
+                              echo esc_html( sprintf( __( 'Budget: $%1$s – $%2$s', 'hello-elementor-child' ), number_format_i18n( $min ), number_format_i18n( $max ) ) );
+                            } elseif ( $min > 0 ) {
+                              echo esc_html( sprintf( __( 'Budget: from $%s', 'hello-elementor-child' ), number_format_i18n( $min ) ) );
+                            } else {
+                              echo esc_html( sprintf( __( 'Budget: up to $%s', 'hello-elementor-child' ), number_format_i18n( $max ) ) );
+                            }
+                            ?>
+                          </span>
+                        <?php endif; ?>
+                      </div>
 
                       <div class="hero-pills">
                         <?php if ( $advisor !== '' ) : ?>
@@ -122,20 +143,6 @@ get_header();
                           <span class="pill pill--outline"><?php echo esc_html( sprintf( __( 'Last activity: %s', 'hello-elementor-child' ), $last ) ); ?></span>
                         <?php endif; ?>
                       </div>
-
-                      <?php if ( $min > 0 || $max > 0 ) : ?>
-                        <p>
-                          <?php
-                          if ( $min > 0 && $max > 0 ) {
-                            echo esc_html( sprintf( __( 'Budget: $%1$s – $%2$s', 'hello-elementor-child' ), number_format_i18n( $min ), number_format_i18n( $max ) ) );
-                          } elseif ( $min > 0 ) {
-                            echo esc_html( sprintf( __( 'Budget: from $%s', 'hello-elementor-child' ), number_format_i18n( $min ) ) );
-                          } else {
-                            echo esc_html( sprintf( __( 'Budget: up to $%s', 'hello-elementor-child' ), number_format_i18n( $max ) ) );
-                          }
-                          ?>
-                        </p>
-                      <?php endif; ?>
                     </article>
                   <?php endforeach; ?>
                 <?php endif; ?>

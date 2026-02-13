@@ -1298,6 +1298,25 @@ if ( ! function_exists( 'pera_crm_get_pipeline_view_data' ) ) {
 
 			$budget_min = isset( $profile['budget_min_usd'] ) ? absint( $profile['budget_min_usd'] ) : 0;
 			$budget_max = isset( $profile['budget_max_usd'] ) ? absint( $profile['budget_max_usd'] ) : 0;
+			$lead_source = '';
+
+			$lead_source_candidates = array(
+				$party['lead_source'] ?? '',
+				$party['source'] ?? '',
+				$profile['lead_source'] ?? '',
+				$profile['source'] ?? '',
+				get_post_meta( $client_id, 'crm_source', true ),
+			);
+
+			foreach ( $lead_source_candidates as $lead_source_candidate ) {
+				$lead_source_candidate = sanitize_text_field( (string) $lead_source_candidate );
+				if ( '' === $lead_source_candidate ) {
+					continue;
+				}
+
+				$lead_source = ucwords( str_replace( '_', ' ', $lead_source_candidate ) );
+				break;
+			}
 
 			$board[ $stage_key ]['items'][] = array(
 				'id'            => $client_id,
@@ -1305,6 +1324,7 @@ if ( ! function_exists( 'pera_crm_get_pipeline_view_data' ) ) {
 				'client_url'    => function_exists( 'pera_crm_get_client_view_url' ) ? pera_crm_get_client_view_url( $client_id ) : home_url( '/crm/client/' . $client_id . '/' ),
 				'advisor_label' => $advisor_label,
 				'last_activity' => $last_label,
+				'lead_source'   => $lead_source,
 				'budget_min'    => $budget_min,
 				'budget_max'    => $budget_max,
 			);
