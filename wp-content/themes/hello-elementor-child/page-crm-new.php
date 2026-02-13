@@ -34,15 +34,16 @@ get_header();
 ?>
 
 <main id="primary" class="site-main crm-page crm-page--new">
-  <section class="hero hero--left hero--fit" id="crm-hero">
-    <div class="hero-content container">
-      <h1><?php echo esc_html__( 'Create new lead', 'hello-elementor-child' ); ?></h1>
-      <p class="lead"><?php echo esc_html__( 'Add a lead directly from the front-end CRM workspace.', 'hello-elementor-child' ); ?></p>
-      <div class="hero-actions hero-pills">
-        <a class="pill pill--outline" href="<?php echo esc_url( home_url( '/crm/' ) ); ?>"><?php echo esc_html__( 'Back to CRM', 'hello-elementor-child' ); ?></a>
-      </div>
-    </div>
-  </section>
+  <?php
+  get_template_part(
+	  'parts/crm-header',
+	  null,
+	  array(
+		  'title'       => __( 'Create new lead', 'hello-elementor-child' ),
+		  'description' => __( 'Add a lead directly from the front-end CRM workspace.', 'hello-elementor-child' ),
+	  )
+  );
+  ?>
 
   <section class="content-panel content-panel--overlap-hero">
     <div class="content-panel-box border-dm container">

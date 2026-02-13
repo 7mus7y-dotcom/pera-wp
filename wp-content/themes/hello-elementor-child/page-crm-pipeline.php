@@ -28,18 +28,17 @@ get_header();
 ?>
 
 <main id="primary" class="site-main crm-page crm-page--pipeline">
-  <section class="hero hero--left hero--fit" id="crm-hero">
-    <div class="hero-content container">
-      <h1><?php echo esc_html__( 'Pipeline', 'hello-elementor-child' ); ?></h1>
-      <p class="lead"><?php echo esc_html__( 'Manage leads and clients by stage', 'hello-elementor-child' ); ?></p>
-      <nav class="crm-subnav" aria-label="<?php echo esc_attr__( 'CRM sections', 'hello-elementor-child' ); ?>">
-        <a class="btn btn--ghost btn--blue" href="<?php echo esc_url( home_url( '/crm/' ) ); ?>"><?php echo esc_html__( 'Overview', 'hello-elementor-child' ); ?></a>
-        <a class="btn btn--ghost btn--blue" href="<?php echo esc_url( home_url( '/crm/clients/' ) ); ?>"><?php echo esc_html__( 'Clients', 'hello-elementor-child' ); ?></a>
-        <a class="btn btn--ghost btn--blue" href="<?php echo esc_url( home_url( '/crm/tasks/' ) ); ?>"><?php echo esc_html__( 'Tasks', 'hello-elementor-child' ); ?></a>
-        <a class="btn btn--solid btn--blue" href="<?php echo esc_url( home_url( '/crm/pipeline/' ) ); ?>"><?php echo esc_html__( 'Pipeline', 'hello-elementor-child' ); ?></a>
-      </nav>
-    </div>
-  </section>
+  <?php
+  get_template_part(
+	  'parts/crm-header',
+	  null,
+	  array(
+		  'title'       => __( 'Pipeline', 'hello-elementor-child' ),
+		  'description' => __( 'Manage leads and clients by stage', 'hello-elementor-child' ),
+		  'active_view' => 'pipeline',
+	  )
+  );
+  ?>
 
   <section class="content-panel content-panel--overlap-hero">
     <div class="content-panel-box border-dm">

@@ -4,6 +4,33 @@
   margin-top: 16px;
 }
 
+.crm-subnav .btn,
+.crm-subnav .btn:visited,
+.crm-subnav .btn:hover,
+.crm-subnav .btn:focus,
+.crm-subnav .btn:active,
+#crm-hero .hero-actions .btn,
+#crm-hero .hero-actions .btn:visited,
+#crm-hero .hero-actions .btn:hover,
+#crm-hero .hero-actions .btn:focus,
+#crm-hero .hero-actions .btn:active {
+  text-decoration: none;
+}
+
+.crm-subnav .btn.is-active {
+  border-color: #000000;
+  color: #000000;
+  background-color: transparent;
+}
+
+.crm-subnav .btn.is-active:hover,
+.crm-subnav .btn.is-active:focus,
+.crm-subnav .btn.is-active:active {
+  border-color: #000000;
+  color: #000000;
+  background-color: transparent;
+}
+
 .crm-leads-toolbar {
   display: flex;
   align-items: center;

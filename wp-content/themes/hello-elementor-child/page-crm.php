@@ -54,31 +54,25 @@ $kpi_tiles = array(
 	array( 'label' => __( 'Overdue reminders', 'hello-elementor-child' ), 'key' => 'overdue_reminders' ),
 );
 
-$stages       = function_exists( 'pera_crm_get_pipeline_stages' ) ? pera_crm_get_pipeline_stages() : array();
-$new_lead_url = home_url( '/crm/new/' );
+$stages = function_exists( 'pera_crm_get_pipeline_stages' ) ? pera_crm_get_pipeline_stages() : array();
+
+$crm_active_view = ! $is_leads && ! $is_tasks ? 'overview' : ( $is_leads ? 'clients' : 'tasks' );
 
 get_header();
 ?>
 
 <main id="primary" class="site-main crm-page crm-page--<?php echo esc_attr( $is_leads ? 'leads' : ( $is_tasks ? 'tasks' : 'overview' ) ); ?>">
-  <section class="hero hero--left hero--fit" id="crm-hero">
-    <div class="hero-content container">
-      <h1><?php echo esc_html__( 'CRM', 'hello-elementor-child' ); ?></h1>
-      <p class="lead"><?php echo esc_html__( 'Staff workspace for daily pipeline, workload, and account visibility.', 'hello-elementor-child' ); ?></p>
-      <div class="hero-actions hero-pills" aria-label="<?php echo esc_attr__( 'CRM quick statuses', 'hello-elementor-child' ); ?>">
-        <span class="pill pill--brand"><?php echo esc_html__( 'Live', 'hello-elementor-child' ); ?></span>
-        <span class="pill pill--outline"><?php echo esc_html__( 'Internal', 'hello-elementor-child' ); ?></span>
-        <span class="pill pill--outline"><?php echo esc_html__( 'Read only', 'hello-elementor-child' ); ?></span>
-        <a class="btn btn--solid btn--blue" href="<?php echo esc_url( $new_lead_url ); ?>"><?php echo esc_html__( 'Add new lead', 'hello-elementor-child' ); ?></a>
-      </div>
-      <nav class="crm-subnav" aria-label="<?php echo esc_attr__( 'CRM sections', 'hello-elementor-child' ); ?>">
-        <a class="btn <?php echo esc_attr( ( ! $is_leads && ! $is_tasks ) ? 'btn--solid' : 'btn--ghost' ); ?> btn--blue" href="<?php echo esc_url( home_url( '/crm/' ) ); ?>"><?php echo esc_html__( 'Overview', 'hello-elementor-child' ); ?></a>
-	        <a class="btn <?php echo esc_attr( $is_leads ? 'btn--solid' : 'btn--ghost' ); ?> btn--blue" href="<?php echo esc_url( home_url( '/crm/clients/' ) ); ?>"><?php echo esc_html__( 'Clients', 'hello-elementor-child' ); ?></a>
-        <a class="btn <?php echo esc_attr( $is_tasks ? 'btn--solid' : 'btn--ghost' ); ?> btn--blue" href="<?php echo esc_url( home_url( '/crm/tasks/' ) ); ?>"><?php echo esc_html__( 'Tasks', 'hello-elementor-child' ); ?></a>
-        <a class="btn btn--ghost btn--blue" href="<?php echo esc_url( home_url( '/crm/pipeline/' ) ); ?>"><?php echo esc_html__( 'Pipeline', 'hello-elementor-child' ); ?></a>
-      </nav>
-    </div>
-  </section>
+  <?php
+  get_template_part(
+	  'parts/crm-header',
+	  null,
+	  array(
+		  'title'       => __( 'CRM', 'hello-elementor-child' ),
+		  'description' => __( 'Staff workspace for daily pipeline, workload, and account visibility.', 'hello-elementor-child' ),
+		  'active_view' => $crm_active_view,
+	  )
+  );
+  ?>
 
   <section class="content-panel content-panel--overlap-hero">
     <div class="content-panel-box border-dm">
