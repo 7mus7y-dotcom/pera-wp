@@ -91,6 +91,7 @@ if ( ! function_exists( 'pera_crm_client_view_notice_message' ) ) {
 			'profile_failed'       => array( 'warning', __( 'Unable to save profile.', 'hello-elementor-child' ) ),
 			'advisor_reassigned'   => array( 'success', __( 'Advisor reassigned.', 'hello-elementor-child' ) ),
 			'deal_saved'           => array( 'success', __( 'Deal saved.', 'hello-elementor-child' ) ),
+			'deal_deleted'         => array( 'success', __( 'Deal deleted.', 'hello-elementor-child' ) ),
 			'deal_failed'          => array( 'warning', __( 'Unable to save deal.', 'hello-elementor-child' ) ),
 			'link_success'         => array( 'success', __( 'User linked successfully.', 'hello-elementor-child' ) ),
 			'unlink_success'       => array( 'success', __( 'User unlinked successfully.', 'hello-elementor-child' ) ),
