@@ -2656,6 +2656,49 @@ function peracrm_handle_update_deal()
     exit;
 }
 
+function peracrm_handle_delete_deal()
+{
+    if (!peracrm_admin_user_can_manage()) {
+        wp_die('Unauthorized', 403);
+    }
+
+    if (!current_user_can('manage_options') && !current_user_can('view_crm_reports')) {
+        wp_die('Unauthorized', 403);
+    }
+
+    if (!peracrm_is_valid_deal_submission_request('peracrm_delete_deal')) {
+        wp_die('Invalid deal request', 400);
+    }
+
+    $client_id = isset($_POST['peracrm_client_id']) ? (int) $_POST['peracrm_client_id'] : 0;
+    $deal_id = isset($_POST['deal_id']) ? (int) $_POST['deal_id'] : 0;
+
+    if ($client_id <= 0 || $deal_id <= 0 || !current_user_can('edit_post', $client_id)) {
+        wp_die('Invalid deal', 400);
+    }
+
+    if (!function_exists('peracrm_deals_get') || !function_exists('peracrm_deals_delete')) {
+        wp_die('Deal helpers unavailable', 500);
+    }
+
+    $deal = peracrm_deals_get($deal_id);
+    if (!is_array($deal) || (int) ($deal['party_id'] ?? 0) !== $client_id) {
+        wp_die('Invalid deal', 400);
+    }
+
+    $deleted = peracrm_deals_delete($deal_id);
+
+    $fallback_redirect = add_query_arg([
+        'post' => $client_id,
+        'action' => 'edit',
+        'peracrm_notice' => $deleted ? 'deal_deleted' : 'deal_failed',
+    ], admin_url('post.php'));
+    $redirect = peracrm_admin_preferred_redirect_url($fallback_redirect);
+
+    wp_safe_redirect($redirect);
+    exit;
+}
+
 function peracrm_is_valid_deal_submission_request($action)
 {
     $expected_action = sanitize_key((string) $action);
