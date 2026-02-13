@@ -1350,7 +1350,9 @@ function peracrm_handle_unlink_user()
 
 function peracrm_admin_user_can_reassign()
 {
-    return current_user_can('manage_options') || current_user_can('peracrm_manage_assignments');
+    return current_user_can('manage_options')
+        || current_user_can('edit_crm_clients')
+        || current_user_can('peracrm_manage_assignments');
 }
 
 function peracrm_handle_save_client_profile()
