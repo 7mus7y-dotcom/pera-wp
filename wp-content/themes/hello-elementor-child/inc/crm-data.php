@@ -530,6 +530,134 @@ if ( ! function_exists( 'pera_crm_get_overdue_tasks' ) ) {
 	}
 }
 
+if ( ! function_exists( 'pera_crm_get_tasks_view_data' ) ) {
+	/**
+	 * Build /crm/tasks view model from open reminders.
+	 *
+	 * Uses a fixed 200-row cap (same cap currently used by dashboard task helpers)
+	 * to keep rendering predictable until a shared front-end CRM pagination pattern exists.
+	 *
+	 * @return array<string,mixed>
+	 */
+	function pera_crm_get_tasks_view_data(): array {
+		$current_user_id = get_current_user_id();
+		$is_employee     = pera_crm_user_is_employee( $current_user_id );
+		$open_status     = pera_crm_reminders_open_status();
+		$timezone        = wp_timezone();
+		$today_ts        = current_time( 'timestamp' );
+		$today_start_ts  = strtotime( wp_date( 'Y-m-d 00:00:00', $today_ts, $timezone ) );
+		$today_end_ts    = strtotime( wp_date( 'Y-m-d 23:59:59', $today_ts, $timezone ) );
+		$raw_rows        = array();
+
+		if ( function_exists( 'peracrm_reminders_list_for_advisor' ) && $is_employee ) {
+			$raw = peracrm_reminders_list_for_advisor( $current_user_id, 200, 0, $open_status, 'all', 'asc' );
+			if ( is_array( $raw ) ) {
+				$raw_rows = $raw;
+			}
+		} else {
+			global $wpdb;
+			if ( isset( $wpdb ) ) {
+				$table_candidates = array( $wpdb->prefix . 'crm_reminders' );
+				$table            = '';
+				foreach ( $table_candidates as $candidate ) {
+					$exists = $wpdb->get_var( $wpdb->prepare( 'SHOW TABLES LIKE %s', $candidate ) ); // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery
+					if ( $exists === $candidate ) {
+						$table = $candidate;
+						break;
+					}
+				}
+
+				if ( '' !== $table ) {
+					$sql      = $wpdb->prepare( "SELECT id, client_id, advisor_user_id, due_at, status, note FROM {$table} WHERE status = %s ORDER BY due_at ASC, id ASC LIMIT 200", $open_status ); // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+					$raw_rows = (array) $wpdb->get_results( $sql, ARRAY_A ); // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery
+				}
+			}
+		}
+
+		$advisor_ids = array_values(
+			array_unique(
+				array_filter(
+					array_map(
+						static function ( $row ): int {
+							return (int) ( $row['advisor_user_id'] ?? 0 );
+						},
+						$raw_rows
+					)
+				)
+			)
+		);
+
+		$advisor_map = array();
+		if ( ! empty( $advisor_ids ) ) {
+			$users = get_users(
+				array(
+					'include' => $advisor_ids,
+					'fields'  => array( 'ID', 'display_name' ),
+				)
+			);
+			foreach ( $users as $user ) {
+				$advisor_map[ (int) $user->ID ] = (string) $user->display_name;
+			}
+		}
+
+		$all_rows     = array();
+		$today_rows   = array();
+		$overdue_rows = array();
+		$future_rows  = array();
+
+		foreach ( $raw_rows as $row ) {
+			if ( ! is_array( $row ) ) {
+				continue;
+			}
+
+			$due_at = (string) ( $row['due_at'] ?? '' );
+			$due_ts = '' !== $due_at ? strtotime( $due_at ) : 0;
+			if ( $due_ts <= 0 ) {
+				continue;
+			}
+
+			$client_id   = (int) ( $row['client_id'] ?? 0 );
+			$advisor_id  = (int) ( $row['advisor_user_id'] ?? 0 );
+			$is_overdue  = $due_ts < $today_start_ts;
+			$client_name = $client_id > 0 ? get_the_title( $client_id ) : '';
+			if ( '' === $client_name ) {
+				$client_name = $client_id > 0 ? sprintf( __( 'Client #%d', 'hello-elementor-child' ), $client_id ) : __( 'Unknown client', 'hello-elementor-child' );
+			}
+
+			$view_row = array(
+				'reminder_id'   => (int) ( $row['id'] ?? 0 ),
+				'client_id'     => $client_id,
+				'client_name'   => $client_name,
+				'client_url'    => function_exists( 'pera_crm_get_client_view_url' ) ? pera_crm_get_client_view_url( $client_id ) : home_url( '/crm/client/' . $client_id . '/' ),
+				'due_at'        => $due_at,
+				'due_ts'        => $due_ts,
+				'due_display'   => wp_date( get_option( 'date_format' ) . ' ' . get_option( 'time_format' ), $due_ts, $timezone ),
+				'note'          => wp_strip_all_tags( (string) ( $row['note'] ?? '' ) ),
+				'assigned_to'   => $advisor_id > 0 ? ( $advisor_map[ $advisor_id ] ?? sprintf( __( 'User #%d', 'hello-elementor-child' ), $advisor_id ) ) : '',
+				'is_overdue'    => $is_overdue,
+				'status_label'  => $is_overdue ? __( 'Overdue', 'hello-elementor-child' ) : __( 'Open', 'hello-elementor-child' ),
+			);
+
+			$all_rows[] = $view_row;
+			if ( $due_ts >= $today_start_ts && $due_ts <= $today_end_ts ) {
+				$today_rows[] = $view_row;
+			} elseif ( $due_ts < $today_start_ts ) {
+				$overdue_rows[] = $view_row;
+			} elseif ( $due_ts > $today_end_ts ) {
+				$future_rows[] = $view_row;
+			}
+		}
+
+		return array(
+			'is_employee' => $is_employee,
+			'all'         => $all_rows,
+			'today'       => $today_rows,
+			'outstanding' => $overdue_rows,
+			'upcoming'    => $future_rows,
+		);
+	}
+}
+
 if ( ! function_exists( 'pera_crm_get_dashboard_data' ) ) {
 
 	/**

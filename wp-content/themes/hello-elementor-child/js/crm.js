@@ -1,6 +1,6 @@
 (function () {
-  var storageKey = 'peracrm_clients_view';
   var root = document.querySelector('[data-crm-view-toggle]');
+  var storageKey = root && root.getAttribute('data-storage-key') ? root.getAttribute('data-storage-key') : 'peracrm_clients_view';
   if (!root) {
     return;
   }
@@ -47,7 +47,7 @@
     });
   });
 
-  var table = document.querySelector('.crm-leads-table');
+  var table = document.querySelector('[data-crm-sort-table]') || document.querySelector('.crm-leads-table');
   if (!table) {
     return;
   }
@@ -109,7 +109,7 @@
     var dir = state.key === key && state.dir === 'asc' ? 'desc' : 'asc';
     state = { key: key, dir: dir };
 
-    var rows = Array.prototype.slice.call(tbody.querySelectorAll('tr[data-name]'));
+    var rows = Array.prototype.slice.call(tbody.querySelectorAll('tr[data-sort-row], tr[data-name]'));
     rows.sort(function (a, b) {
       return compare(a, b, key, dir);
     });
