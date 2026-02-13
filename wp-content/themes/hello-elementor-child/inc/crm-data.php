@@ -754,12 +754,28 @@ if ( ! function_exists( 'pera_crm_get_leads_view_data' ) ) {
 		}
 
 		$items = array();
+		$advisor_name_cache = array();
 		foreach ( $leads_query->posts as $post ) {
 			$lead_id   = (int) $post->ID;
 			$party     = isset( $party_map[ $lead_id ] ) && is_array( $party_map[ $lead_id ] ) ? $party_map[ $lead_id ] : array();
 			$health    = function_exists( 'peracrm_client_health_get' ) ? peracrm_client_health_get( $lead_id ) : array();
 			$last_ts   = isset( $health['last_activity_ts'] ) ? (int) $health['last_activity_ts'] : 0;
 			$last_date = $last_ts > 0 ? wp_date( get_option( 'date_format' ), $last_ts ) : '';
+			$source    = sanitize_key( (string) get_post_meta( $lead_id, 'crm_source', true ) );
+			$source    = '' !== $source ? str_replace( '_', ' ', $source ) : '';
+
+			$assigned_id = function_exists( 'peracrm_client_get_assigned_advisor_id' ) ? (int) peracrm_client_get_assigned_advisor_id( $lead_id ) : 0;
+			$assigned    = '';
+			if ( $assigned_id > 0 ) {
+				if ( ! isset( $advisor_name_cache[ $assigned_id ] ) ) {
+					$user                             = get_userdata( $assigned_id );
+					$advisor_name_cache[ $assigned_id ] = $user instanceof WP_User ? (string) $user->display_name : '';
+				}
+				$assigned = (string) $advisor_name_cache[ $assigned_id ];
+			}
+
+			$created_ts = (int) get_post_time( 'U', true, $lead_id );
+			$updated_ts = (int) get_post_modified_time( 'U', true, $lead_id );
 
 			$items[] = array(
 				'id'               => $lead_id,
@@ -769,6 +785,12 @@ if ( ! function_exists( 'pera_crm_get_leads_view_data' ) ) {
 				'disposition'      => (string) ( $party['disposition'] ?? '' ),
 				'last_activity'    => $last_date,
 				'last_activity_ts' => $last_ts,
+				'source'           => ucwords( $source ),
+				'assigned_to'      => $assigned,
+				'created'          => $created_ts > 0 ? wp_date( get_option( 'date_format' ), $created_ts ) : '',
+				'created_ts'       => $created_ts,
+				'updated'          => $updated_ts > 0 ? wp_date( get_option( 'date_format' ), $updated_ts ) : '',
+				'updated_ts'       => $updated_ts,
 				'crm_url'          => function_exists( 'pera_crm_get_client_view_url' ) ? pera_crm_get_client_view_url( $lead_id ) : home_url( '/crm/client/' . $lead_id . '/' ),
 				'edit_url'         => admin_url( 'post.php?post=' . $lead_id . '&action=edit' ),
 			);
