@@ -114,8 +114,8 @@ get_header();
               <article class="card-shell crm-task-card">
                 <a class="btn btn--ghost btn--blue crm-task-client-btn" href="<?php echo esc_url( home_url( '/crm/client/' . (int) $task['lead_id'] . '/' ) ); ?>"><?php echo esc_html( (string) ( $task['lead_name'] ?: __( 'Untitled lead', 'hello-elementor-child' ) ) ); ?></a>
                 <span class="pill pill--outline"><?php echo esc_html( (string) $task['due_date'] ); ?></span>
-                <p class="crm-task-note"><?php echo esc_html( (string) $task['reminder_note'] ); ?></p>
-                <p class="text-sm crm-task-last-note"><?php echo esc_html( (string) ( $task['last_note'] ?? __( 'No recent notes yet.', 'hello-elementor-child' ) ) ); ?></p>
+                <p class="crm-task-note"><strong><?php esc_html_e( 'Task:', 'hello-elementor-child' ); ?></strong> <?php echo esc_html( (string) $task['reminder_note'] ); ?></p>
+                <p class="text-sm crm-task-last-note"><strong><?php esc_html_e( 'Latest note:', 'hello-elementor-child' ); ?></strong> <?php echo esc_html( (string) ( $task['last_note'] ?? __( 'No recent notes yet.', 'hello-elementor-child' ) ) ); ?></p>
                 <?php $task_status = sanitize_key( (string) ( $task['status'] ?? 'pending' ) ); ?>
                 <?php if ( ! empty( $task['reminder_id'] ) && 'pending' === $task_status ) : ?>
                 <form class="crm-task-action" method="post" action="<?php echo esc_url( home_url( '/wp-admin/admin-post.php' ) ); ?>">
@@ -155,8 +155,8 @@ get_header();
               <article class="card-shell crm-task-card">
                 <a class="btn btn--ghost btn--red crm-task-client-btn" href="<?php echo esc_url( home_url( '/crm/client/' . (int) $task['lead_id'] . '/' ) ); ?>"><?php echo esc_html( (string) ( $task['lead_name'] ?: __( 'Untitled lead', 'hello-elementor-child' ) ) ); ?></a>
                 <span class="pill pill--red"><?php echo esc_html( (string) $task['due_date'] ); ?></span>
-                <p class="crm-task-note"><?php echo esc_html( (string) $task['reminder_note'] ); ?></p>
-                <p class="text-sm crm-task-last-note"><?php echo esc_html( (string) ( $task['last_note'] ?? __( 'No recent notes yet.', 'hello-elementor-child' ) ) ); ?></p>
+                <p class="crm-task-note"><strong><?php esc_html_e( 'Task:', 'hello-elementor-child' ); ?></strong> <?php echo esc_html( (string) $task['reminder_note'] ); ?></p>
+                <p class="text-sm crm-task-last-note"><strong><?php esc_html_e( 'Latest note:', 'hello-elementor-child' ); ?></strong> <?php echo esc_html( (string) ( $task['last_note'] ?? __( 'No recent notes yet.', 'hello-elementor-child' ) ) ); ?></p>
                 <?php $task_status = sanitize_key( (string) ( $task['status'] ?? 'pending' ) ); ?>
                 <?php if ( ! empty( $task['reminder_id'] ) && 'pending' === $task_status ) : ?>
                 <form class="crm-task-action" method="post" action="<?php echo esc_url( home_url( '/wp-admin/admin-post.php' ) ); ?>">

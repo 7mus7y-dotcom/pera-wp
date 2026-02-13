@@ -436,6 +436,15 @@ if ( ! function_exists( 'pera_crm_enqueue_assets' ) ) {
 				(string) filemtime( $js_abs_path ),
 				true
 			);
+
+			wp_localize_script(
+				'pera-crm-js',
+				'peraCrmData',
+				array(
+					'ajaxUrl'             => admin_url( 'admin-ajax.php' ),
+					'propertySearchNonce' => wp_create_nonce( 'pera_crm_property_search' ),
+				)
+			);
 		}
 	}
 }

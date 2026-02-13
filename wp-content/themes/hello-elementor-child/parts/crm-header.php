@@ -43,7 +43,7 @@ $sections = array(
     </div>
     <nav class="crm-subnav" aria-label="<?php echo esc_attr__( 'CRM sections', 'hello-elementor-child' ); ?>">
       <?php foreach ( $sections as $section_key => $section ) : ?>
-        <a class="btn btn--ghost btn--white<?php echo esc_attr( $section_key === $active_view ? ' is-active' : '' ); ?>" href="<?php echo esc_url( (string) $section['url'] ); ?>"><?php echo esc_html( (string) $section['label'] ); ?></a>
+        <a class="btn btn--ghost <?php echo esc_attr( $section_key === $active_view ? 'btn--red is-active' : 'btn--white' ); ?>" href="<?php echo esc_url( (string) $section['url'] ); ?>"><?php echo esc_html( (string) $section['label'] ); ?></a>
       <?php endforeach; ?>
     </nav>
   </div>

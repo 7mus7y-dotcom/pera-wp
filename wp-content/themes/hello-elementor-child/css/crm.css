@@ -2,6 +2,7 @@
   display: flex;
   gap: 10px;
   margin-top: 16px;
+  flex-wrap: wrap;
 }
 
 .crm-subnav .btn,
@@ -18,17 +19,26 @@
 }
 
 .crm-subnav .btn.is-active {
-  border-color: #000000;
-  color: #000000;
+  border-color: var(--pill-red);
+  color: var(--pill-red);
   background-color: transparent;
 }
 
 .crm-subnav .btn.is-active:hover,
 .crm-subnav .btn.is-active:focus,
 .crm-subnav .btn.is-active:active {
-  border-color: #000000;
-  color: #000000;
-  background-color: transparent;
+  border-color: var(--pill-red);
+  color: #ffffff;
+  background-color: var(--pill-red);
+}
+
+#crm-hero .hero-actions .btn--white:hover,
+#crm-hero .hero-actions .btn--white:focus,
+#crm-hero .hero-actions .btn--white:active,
+#crm-hero .crm-subnav .btn--white:hover,
+#crm-hero .crm-subnav .btn--white:focus,
+#crm-hero .crm-subnav .btn--white:active {
+  color: #111111;
 }
 
 /* =======================================================
@@ -251,6 +261,17 @@
   margin-bottom: 16px;
 }
 
+.crm-source-row {
+  margin-top: 10px;
+}
+
+.crm-source-label {
+  display: inline-block;
+  margin-bottom: 6px;
+  font-size: 0.85rem;
+  font-weight: 600;
+}
+
 .crm-client-kpis {
   margin-bottom: 18px;
   gap: 12px;
@@ -338,6 +359,20 @@
   border: 1px solid var(--border, #e8ecf2);
   border-radius: 10px;
   padding: 10px;
+  min-width: 0;
+}
+
+.crm-page--pipeline .crm-pipeline-column-header h2 {
+  font-size: 1.05rem;
+}
+
+.crm-page--pipeline .crm-pipeline-item h3,
+.crm-page--pipeline .crm-pipeline-item h3 a {
+  font-size: 0.92rem;
+  line-height: 1.35;
+  min-width: 0;
+  overflow-wrap: anywhere;
+  word-break: break-word;
 }
 
 .crm-page .crm-pipeline-empty {
@@ -400,6 +435,72 @@
 
 .crm-task-card--more {
   justify-content: center;
+}
+
+.crm-page .hero-actions,
+.crm-page .hero-pills,
+.crm-page .crm-toolbar-actions,
+.crm-page .crm-leads-table-header-action,
+.crm-page .crm-task-action,
+.crm-page .crm-list li form {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.crm-page .btn,
+.crm-page button.btn {
+  display: inline-flex;
+  width: auto;
+  max-width: 100%;
+}
+
+.crm-page .crm-form-stack > .btn,
+.crm-page .crm-form-stack > button.btn {
+  justify-self: start;
+}
+
+.crm-property-search {
+  position: relative;
+}
+
+.crm-property-search-results {
+  position: absolute;
+  z-index: 20;
+  top: calc(100% - 6px);
+  left: 0;
+  right: 0;
+  background: #ffffff;
+  border: 1px solid #d6dbe3;
+  border-radius: 10px;
+  max-height: 220px;
+  overflow: auto;
+  padding: 6px;
+}
+
+.crm-property-search-item {
+  display: block;
+  width: 100%;
+  text-align: left;
+  border: 0;
+  background: transparent;
+  padding: 8px;
+  border-radius: 8px;
+}
+
+.crm-property-search-item:hover,
+.crm-property-search-item:focus {
+  background: #f1f4f8;
+}
+
+.crm-page--overview .section-header {
+  text-align: left;
+}
+
+@media (max-width: 767px) {
+  .crm-page--overview .section-header {
+    text-align: center;
+  }
 }
 
 .crm-route .floating-whatsapp {

@@ -48,6 +48,7 @@ $engagement_options = function_exists( 'peracrm_party_engagement_options' ) ? (a
 $disposition_opts   = function_exists( 'peracrm_party_disposition_options' ) ? (array) peracrm_party_disposition_options() : array();
 $staff_users        = function_exists( 'peracrm_get_staff_users' ) ? (array) peracrm_get_staff_users() : array();
 $deal_stage_options = function_exists( 'peracrm_deal_stage_options' ) ? (array) peracrm_deal_stage_options() : array();
+$source_pills       = function_exists( 'pera_crm_client_view_source_pills' ) ? (array) pera_crm_client_view_source_pills( $client_id, $data['activity'] ?? array() ) : array();
 
 $frontend_url = function_exists( 'pera_crm_client_view_url' ) ? pera_crm_client_view_url( $client_id ) : home_url( '/crm/client/' . $client_id . '/' );
 $notice_key   = isset( $_GET['peracrm_notice'] ) ? sanitize_key( wp_unslash( (string) $_GET['peracrm_notice'] ) ) : ''; // phpcs:ignore WordPress.Security.NonceVerification.Recommended
@@ -102,6 +103,17 @@ get_header();
             <span class="pill pill--outline"><?php echo esc_html( sprintf( __( 'Advisor: %s', 'hello-elementor-child' ), $advisor_label ) ); ?></span>
             <span class="pill pill--outline"><?php echo esc_html( $link_label ); ?></span>
           </div>
+          <?php if ( ! empty( $source_pills ) ) : ?>
+          <div class="crm-source-row">
+            <span class="crm-source-label"><?php esc_html_e( 'Source', 'hello-elementor-child' ); ?></span>
+            <div class="hero-pills">
+              <?php foreach ( $source_pills as $source_pill ) : ?>
+                <?php if ( '' === (string) $source_pill ) { continue; } ?>
+                <span class="pill pill--outline"><?php echo esc_html( (string) $source_pill ); ?></span>
+              <?php endforeach; ?>
+            </div>
+          </div>
+          <?php endif; ?>
         </section>
 
         <section class="grid-3 crm-client-kpis">
@@ -190,7 +202,12 @@ get_header();
 					<?php wp_nonce_field( 'pera_crm_property_action', 'pera_crm_property_nonce' ); ?>
                 <input type="hidden" name="pera_crm_property_action" value="link" />
                 <input type="hidden" name="peracrm_client_id" value="<?php echo esc_attr( (string) $client_id ); ?>" />
-                <label><?php esc_html_e( 'Property ID', 'hello-elementor-child' ); ?><input type="number" min="1" name="property_id" required /></label>
+                <div class="crm-property-search" data-crm-property-search>
+                  <label><?php esc_html_e( 'Project', 'hello-elementor-child' ); ?><input type="text" data-crm-property-query placeholder="<?php echo esc_attr__( 'Search project name', 'hello-elementor-child' ); ?>" autocomplete="off" /></label>
+                  <input type="hidden" name="property_id" data-crm-property-id required />
+                  <div class="crm-property-search-results" data-crm-property-results hidden></div>
+                  <p class="text-sm" data-crm-property-feedback><?php esc_html_e( 'Type at least 2 letters and choose a project.', 'hello-elementor-child' ); ?></p>
+                </div>
                 <label><?php esc_html_e( 'Relation type', 'hello-elementor-child' ); ?>
                   <select name="relation_type">
                     <option value="favourite">Favourite</option>
