@@ -60,21 +60,6 @@ $derived_type_label = 'client' === $derived_type ? __( 'Client', 'hello-elemento
 $client_type_options = is_array( $data['client_type_options'] ?? null ) ? $data['client_type_options'] : array( 'seller' => 'Seller', 'landlord' => 'Landlord' );
 $client_type_value = sanitize_key( (string) ( $profile['client_type'] ?? '' ) );
 
-$profile_phone_raw   = trim( (string) ( $profile['phone'] ?? '' ) );
-$profile_phone_digits = preg_replace( '/\D+/', '', $profile_phone_raw );
-$profile_phone_digits = is_string( $profile_phone_digits ) ? $profile_phone_digits : '';
-
-$profile_email = sanitize_email( (string) ( $profile['email'] ?? '' ) );
-if ( '' !== $profile_email && ! is_email( $profile_email ) ) {
-	$profile_email = '';
-}
-
-$call_link     = '' !== $profile_phone_digits ? 'tel:' . $profile_phone_digits : '';
-$whatsapp_link = '' !== $profile_phone_digits ? 'https://wa.me/' . $profile_phone_digits : '';
-$email_link    = '' !== $profile_email ? 'mailto:' . rawurlencode( $profile_email ) : '';
-
-$can_delete_deals = current_user_can( 'manage_options' ) || current_user_can( 'view_crm_reports' );
-
 $deal_edit_id   = isset( $_GET['deal_id'] ) ? absint( wp_unslash( (string) $_GET['deal_id'] ) ) : 0; // phpcs:ignore WordPress.Security.NonceVerification.Recommended
 $editing_deal   = null;
 $deal_form_mode = 'create';
@@ -209,24 +194,51 @@ get_header();
 							<?php foreach ( $engagement_options as $value => $label ) : ?>
                     <option value="<?php echo esc_attr( (string) $value ); ?>" <?php selected( (string) ( $party['engagement_state'] ?? '' ), (string) $value ); ?>><?php echo esc_html( (string) $label ); ?></option>
 							<?php endforeach; ?>
-                </select>
-              </label>
-              <p class="text-sm"><strong><?php esc_html_e( 'Derived type:', 'hello-elementor-child' ); ?></strong> <?php echo esc_html( $derived_type_label ); ?></p>
-              <label>
-                <?php esc_html_e( 'Client type', 'hello-elementor-child' ); ?>
-                <select name="peracrm_client_type">
-                  <option value=""><?php esc_html_e( 'Select type', 'hello-elementor-child' ); ?></option>
-                  <?php foreach ( $client_type_options as $type_key => $type_label ) : ?>
-                    <option value="<?php echo esc_attr( (string) $type_key ); ?>" <?php selected( $client_type_value, (string) $type_key ); ?>><?php echo esc_html( (string) $type_label ); ?></option>
-                  <?php endforeach; ?>
-                </select>
-              </label>
-              <label>
+                  </select>
+                </label>
+                <p class="text-sm"><strong><?php esc_html_e( 'Derived type:', 'hello-elementor-child' ); ?></strong> <?php echo esc_html( $derived_type_label ); ?></p>
+                <label>
+                  <?php esc_html_e( 'Client type', 'hello-elementor-child' ); ?>
+                  <select name="peracrm_client_type">
+                    <option value=""><?php esc_html_e( 'Select type', 'hello-elementor-child' ); ?></option>
+                    <?php foreach ( $client_type_options as $type_key => $type_label ) : ?>
+                      <option value="<?php echo esc_attr( (string) $type_key ); ?>" <?php selected( $client_type_value, (string) $type_key ); ?>><?php echo esc_html( (string) $type_label ); ?></option>
+                    <?php endforeach; ?>
+                  </select>
+                </label>
+                <label>
 						<?php esc_html_e( 'Disposition', 'hello-elementor-child' ); ?>
                 <select name="disposition">
 							<?php foreach ( $disposition_opts as $value => $label ) : ?>
                     <option value="<?php echo esc_attr( (string) $value ); ?>" <?php selected( (string) ( $party['disposition'] ?? '' ), (string) $value ); ?>><?php echo esc_html( (string) $label ); ?></option>
 							<?php endforeach; ?>
+                  </select>
+                </label>
+                <button type="submit" class="btn btn--solid btn--blue"><?php esc_html_e( 'Save status', 'hello-elementor-child' ); ?></button>
+              </form>
+              <?php if ( 'lead' === $derived_type ) : ?>
+              <form method="post" action="<?php echo esc_url( home_url( '/wp-admin/admin-post.php' ) ); ?>" class="crm-inline-form">
+                <?php wp_nonce_field( 'peracrm_convert_to_client', 'peracrm_convert_to_client_nonce' ); ?>
+                <input type="hidden" name="action" value="peracrm_convert_to_client" />
+                <input type="hidden" name="peracrm_client_id" value="<?php echo esc_attr( (string) $client_id ); ?>" />
+                <input type="hidden" name="peracrm_redirect" value="<?php echo esc_url( $frontend_url ); ?>" />
+                <button type="submit" class="btn btn--ghost btn--blue"><?php esc_html_e( 'Convert to client', 'hello-elementor-child' ); ?></button>
+              </form>
+              <?php endif; ?>
+            </article>
+
+            <article class="card-shell crm-client-section">
+              <h3><?php esc_html_e( 'Assigned Advisor', 'hello-elementor-child' ); ?></h3>
+              <form method="post" action="<?php echo esc_url( home_url( '/wp-admin/admin-post.php' ) ); ?>" class="crm-form-stack">
+					<?php wp_nonce_field( 'peracrm_reassign_client_advisor', 'peracrm_reassign_client_advisor_nonce' ); ?>
+                <input type="hidden" name="action" value="peracrm_reassign_client_advisor" />
+                <input type="hidden" name="peracrm_client_id" value="<?php echo esc_attr( (string) $client_id ); ?>" />
+                <input type="hidden" name="peracrm_redirect" value="<?php echo esc_url( $frontend_url ); ?>" />
+                <select name="peracrm_assigned_advisor">
+                  <option value="0"><?php esc_html_e( 'Unassigned', 'hello-elementor-child' ); ?></option>
+						<?php foreach ( $staff_users as $staff_user ) : ?>
+                    <option value="<?php echo esc_attr( (string) $staff_user->ID ); ?>" <?php selected( $assigned_id, (int) $staff_user->ID ); ?>><?php echo esc_html( (string) $staff_user->display_name ); ?></option>
+						<?php endforeach; ?>
                 </select>
               </label>
               <button type="submit" class="btn btn--solid btn--blue"><?php esc_html_e( 'Save status', 'hello-elementor-child' ); ?></button>
@@ -242,56 +254,30 @@ get_header();
             <?php endif; ?>
           </article>
 
-          <article class="card-shell crm-client-section">
-            <h3><?php esc_html_e( 'Notes', 'hello-elementor-child' ); ?></h3>
-            <form method="post" action="<?php echo esc_url( home_url( '/wp-admin/admin-post.php' ) ); ?>" class="crm-form-stack">
-					<?php wp_nonce_field( 'peracrm_add_note', 'peracrm_add_note_nonce' ); ?>
-              <input type="hidden" name="action" value="peracrm_add_note" />
-              <input type="hidden" name="peracrm_client_id" value="<?php echo esc_attr( (string) $client_id ); ?>" />
-              <input type="hidden" name="peracrm_redirect" value="<?php echo esc_url( $frontend_url ); ?>" />
-              <label><?php esc_html_e( 'Add note', 'hello-elementor-child' ); ?><textarea name="peracrm_note_body" required></textarea></label>
-              <button type="submit" class="btn btn--solid btn--blue"><?php esc_html_e( 'Add note', 'hello-elementor-child' ); ?></button>
-            </form>
-            <ul class="crm-list">
-					<?php foreach ( $notes as $note ) : ?>
-                <li>
-                  <strong><?php echo esc_html( (string) ( $note['created_at'] ?? '' ) ); ?></strong>
-                  <span><?php echo esc_html( (string) ( $note['note_body'] ?? '' ) ); ?></span>
-                </li>
-					<?php endforeach; ?>
-            </ul>
-          </article>
-
-          <article class="card-shell crm-client-section">
-            <h3><?php esc_html_e( 'Reminders', 'hello-elementor-child' ); ?></h3>
-            <form method="post" action="<?php echo esc_url( home_url( '/wp-admin/admin-post.php' ) ); ?>" class="crm-form-stack">
-					<?php wp_nonce_field( 'peracrm_add_reminder', 'peracrm_add_reminder_nonce' ); ?>
-              <input type="hidden" name="action" value="peracrm_add_reminder" />
-              <input type="hidden" name="peracrm_client_id" value="<?php echo esc_attr( (string) $client_id ); ?>" />
-              <input type="hidden" name="peracrm_redirect" value="<?php echo esc_url( $frontend_url ); ?>" />
-              <label><?php esc_html_e( 'Due at', 'hello-elementor-child' ); ?><input type="datetime-local" name="peracrm_due_at" required /></label>
-              <label><?php esc_html_e( 'Note', 'hello-elementor-child' ); ?><textarea name="peracrm_reminder_note"></textarea></label>
-              <button type="submit" class="btn btn--solid btn--blue"><?php esc_html_e( 'Add reminder', 'hello-elementor-child' ); ?></button>
-            </form>
-            <ul class="crm-list">
-					<?php foreach ( $reminders as $reminder ) : ?>
-						<?php if ( 'pending' !== (string) ( $reminder['status'] ?? '' ) ) { continue; } ?>
-                <li>
-                  <strong><?php echo esc_html( (string) ( $reminder['due_at'] ?? '' ) ); ?></strong>
-                  <span><?php echo esc_html( (string) ( $reminder['note'] ?? '' ) ); ?></span>
-                  <form method="post" action="<?php echo esc_url( home_url( '/wp-admin/admin-post.php' ) ); ?>">
-							<?php wp_nonce_field( 'peracrm_update_reminder_status', 'peracrm_update_reminder_status_nonce' ); ?>
-                    <input type="hidden" name="action" value="peracrm_update_reminder_status" />
-                    <input type="hidden" name="peracrm_context" value="frontend" />
-                    <input type="hidden" name="peracrm_reminder_id" value="<?php echo esc_attr( (string) ( (int) ( $reminder['id'] ?? 0 ) ) ); ?>" />
-                    <input type="hidden" name="peracrm_status" value="done" />
-                    <input type="hidden" name="peracrm_redirect" value="<?php echo esc_url( $frontend_url ); ?>" />
-                    <button type="submit" class="btn btn--ghost btn--blue"><?php esc_html_e( 'Mark done', 'hello-elementor-child' ); ?></button>
-                  </form>
-                </li>
-					<?php endforeach; ?>
-            </ul>
-          </article>
+            <article class="card-shell crm-client-section">
+              <h3><?php esc_html_e( 'Client Profile', 'hello-elementor-child' ); ?></h3>
+              <form method="post" action="<?php echo esc_url( home_url( '/wp-admin/admin-post.php' ) ); ?>" class="crm-form-stack">
+					<?php wp_nonce_field( 'peracrm_save_client_profile', 'peracrm_save_client_profile_nonce' ); ?>
+                <input type="hidden" name="action" value="peracrm_save_client_profile" />
+                <input type="hidden" name="peracrm_client_id" value="<?php echo esc_attr( (string) $client_id ); ?>" />
+                <input type="hidden" name="peracrm_redirect" value="<?php echo esc_url( $frontend_url ); ?>" />
+                <label><?php esc_html_e( 'Status', 'hello-elementor-child' ); ?><input type="text" name="peracrm_status" value="<?php echo esc_attr( (string) ( $profile['status'] ?? '' ) ); ?>" /></label>
+                <label><?php esc_html_e( 'Client type', 'hello-elementor-child' ); ?>
+                  <select name="peracrm_client_type">
+                    <option value=""><?php esc_html_e( 'Select type', 'hello-elementor-child' ); ?></option>
+                    <?php foreach ( $client_type_options as $type_key => $type_label ) : ?>
+                      <option value="<?php echo esc_attr( (string) $type_key ); ?>" <?php selected( $client_type_value, (string) $type_key ); ?>><?php echo esc_html( (string) $type_label ); ?></option>
+                    <?php endforeach; ?>
+                  </select>
+                </label>
+                <label><?php esc_html_e( 'Preferred contact', 'hello-elementor-child' ); ?><input type="text" name="peracrm_preferred_contact" value="<?php echo esc_attr( (string) ( $profile['preferred_contact'] ?? '' ) ); ?>" /></label>
+                <label><?php esc_html_e( 'Budget min (USD)', 'hello-elementor-child' ); ?><input type="number" min="0" name="peracrm_budget_min_usd" value="<?php echo esc_attr( (string) ( $profile['budget_min_usd'] ?? '' ) ); ?>" /></label>
+                <label><?php esc_html_e( 'Budget max (USD)', 'hello-elementor-child' ); ?><input type="number" min="0" name="peracrm_budget_max_usd" value="<?php echo esc_attr( (string) ( $profile['budget_max_usd'] ?? '' ) ); ?>" /></label>
+                <label><?php esc_html_e( 'Phone', 'hello-elementor-child' ); ?><input type="text" name="peracrm_phone" value="<?php echo esc_attr( (string) ( $profile['phone'] ?? '' ) ); ?>" /></label>
+                <label><?php esc_html_e( 'Email', 'hello-elementor-child' ); ?><input type="email" name="peracrm_email" value="<?php echo esc_attr( (string) ( $profile['email'] ?? '' ) ); ?>" /></label>
+                <button type="submit" class="btn btn--solid btn--blue"><?php esc_html_e( 'Save profile', 'hello-elementor-child' ); ?></button>
+              </form>
+            </article>
 
           <section class="card-shell crm-client-section crm-client-timeline">
             <h3><?php esc_html_e( 'Timeline', 'hello-elementor-child' ); ?></h3>
