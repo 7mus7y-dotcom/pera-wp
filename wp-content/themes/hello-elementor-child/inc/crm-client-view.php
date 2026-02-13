@@ -246,7 +246,7 @@ if ( ! function_exists( 'pera_crm_client_view_load_data' ) ) {
 					'timeline'         => $timeline,
 					'last_activity'    => $last_activity,
 					'derived_type'     => function_exists( 'peracrm_party_get_derived_type' ) ? peracrm_party_get_derived_type( $client_id ) : 'lead',
-					'client_type_options' => function_exists( 'peracrm_client_type_options' ) ? (array) peracrm_client_type_options() : array( 'seller' => 'Seller', 'landlord' => 'Landlord' ),
+					'client_type_options' => function_exists( 'peracrm_client_type_options' ) ? (array) peracrm_client_type_options() : array( 'citizenship' => 'Citizenship', 'investor' => 'Investor', 'lifestyle' => 'Lifestyle', 'seller' => 'Seller', 'landlord' => 'Landlord' ),
 				);
 			}
 		);
