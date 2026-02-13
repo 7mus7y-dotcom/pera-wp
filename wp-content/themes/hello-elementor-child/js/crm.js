@@ -147,3 +147,109 @@
     }
   });
 })();
+
+(function () {
+  var widgets = Array.prototype.slice.call(document.querySelectorAll('[data-crm-property-search]'));
+  if (!widgets.length) {
+    return;
+  }
+
+  var ajaxUrl = window.peraCrmData && window.peraCrmData.ajaxUrl ? window.peraCrmData.ajaxUrl : '';
+  var nonce = window.peraCrmData && window.peraCrmData.propertySearchNonce ? window.peraCrmData.propertySearchNonce : '';
+  if (!ajaxUrl || !nonce) {
+    return;
+  }
+
+  widgets.forEach(function (widget) {
+    var queryInput = widget.querySelector('[data-crm-property-query]');
+    var idInput = widget.querySelector('[data-crm-property-id]');
+    var results = widget.querySelector('[data-crm-property-results]');
+    var feedback = widget.querySelector('[data-crm-property-feedback]');
+
+    if (!queryInput || !idInput || !results) {
+      return;
+    }
+
+    var timer = null;
+
+    function renderItems(items) {
+      results.innerHTML = '';
+      if (!items.length) {
+        results.hidden = true;
+        return;
+      }
+
+      items.forEach(function (item) {
+        var button = document.createElement('button');
+        button.type = 'button';
+        button.className = 'crm-property-search-item';
+        button.textContent = item.project_name + (item.district ? ' · ' + item.district : '') + ' (#' + item.property_id + ')';
+        button.addEventListener('click', function () {
+          queryInput.value = item.project_name;
+          idInput.value = String(item.property_id || '');
+          results.hidden = true;
+          if (feedback) {
+            feedback.textContent = 'Selected property #' + item.property_id;
+          }
+        });
+        results.appendChild(button);
+      });
+
+      results.hidden = false;
+    }
+
+    function runSearch() {
+      var term = (queryInput.value || '').trim();
+      idInput.value = '';
+
+      if (term.length < 2) {
+        results.hidden = true;
+        if (feedback) {
+          feedback.textContent = 'Type at least 2 letters and choose a project.';
+        }
+        return;
+      }
+
+      if (feedback) {
+        feedback.textContent = 'Searching…';
+      }
+
+      fetch(ajaxUrl + '?action=pera_crm_property_search&nonce=' + encodeURIComponent(nonce) + '&q=' + encodeURIComponent(term), {
+        credentials: 'same-origin'
+      })
+        .then(function (response) { return response.json(); })
+        .then(function (payload) {
+          var items = payload && payload.success && payload.data && Array.isArray(payload.data.items) ? payload.data.items : [];
+          renderItems(items);
+          if (feedback) {
+            feedback.textContent = items.length ? 'Select a project from the list.' : 'No matching projects found.';
+          }
+        })
+        .catch(function () {
+          results.hidden = true;
+          if (feedback) {
+            feedback.textContent = 'Search unavailable right now.';
+          }
+        });
+    }
+
+    queryInput.addEventListener('input', function () {
+      if (timer) {
+        clearTimeout(timer);
+      }
+      timer = setTimeout(runSearch, 250);
+    });
+
+    queryInput.addEventListener('blur', function () {
+      setTimeout(function () {
+        results.hidden = true;
+      }, 120);
+    });
+
+    queryInput.addEventListener('focus', function () {
+      if (results.children.length > 0) {
+        results.hidden = false;
+      }
+    });
+  });
+})();

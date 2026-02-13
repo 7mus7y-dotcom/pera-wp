@@ -248,6 +248,112 @@ if ( ! function_exists( 'pera_crm_client_view_load_data' ) ) {
 	}
 }
 
+if ( ! function_exists( 'pera_crm_client_view_decode_payload' ) ) {
+	function pera_crm_client_view_decode_payload( $raw ): array {
+		if ( is_array( $raw ) ) {
+			return $raw;
+		}
+
+		if ( is_string( $raw ) && '' !== $raw ) {
+			$decoded = json_decode( $raw, true );
+			if ( is_array( $decoded ) ) {
+				return $decoded;
+			}
+		}
+
+		return array();
+	}
+}
+
+if ( ! function_exists( 'pera_crm_client_view_property_project_name' ) ) {
+	function pera_crm_client_view_property_project_name( int $property_id ): string {
+		if ( $property_id <= 0 ) {
+			return '';
+		}
+
+		$project_name = '';
+		if ( function_exists( 'get_field' ) ) {
+			$project_name = (string) get_field( 'project_name', $property_id );
+		}
+
+		if ( '' === $project_name ) {
+			$project_name = (string) get_post_meta( $property_id, 'project_name', true );
+		}
+
+		return '' !== $project_name ? $project_name : (string) get_the_title( $property_id );
+	}
+}
+
+if ( ! function_exists( 'pera_crm_client_view_source_pills' ) ) {
+	function pera_crm_client_view_source_pills( int $client_id, array $activity = array() ): array {
+		$source_key = sanitize_key( (string) get_post_meta( $client_id, 'crm_source', true ) );
+		$pills      = array();
+
+		if ( false !== strpos( $source_key, 'instagram' ) ) {
+			$pills[] = __( 'Instagram', 'hello-elementor-child' );
+			return $pills;
+		}
+
+		if ( false !== strpos( $source_key, 'meta' ) ) {
+			$pills[] = __( 'Meta Ads', 'hello-elementor-child' );
+			$pills[] = __( 'Ad: (TBD)', 'hello-elementor-child' );
+			return $pills;
+		}
+
+		$is_website = in_array( $source_key, array( 'website', 'website_form' ), true ) || '' === $source_key || false !== strpos( $source_key, 'form' );
+		if ( ! $is_website ) {
+			$pills[] = '' !== $source_key ? ucwords( str_replace( '_', ' ', $source_key ) ) : __( 'Website', 'hello-elementor-child' );
+			return $pills;
+		}
+
+		$pills[] = __( 'Website', 'hello-elementor-child' );
+
+		$property_name = '';
+		if ( function_exists( 'peracrm_client_property_list' ) ) {
+			$enquiry_links = (array) peracrm_client_property_list( $client_id, 'enquiry', 1 );
+			if ( ! empty( $enquiry_links[0]['property_id'] ) ) {
+				$property_name = pera_crm_client_view_property_project_name( (int) $enquiry_links[0]['property_id'] );
+			}
+		}
+
+		$form_hint = '';
+		foreach ( $activity as $row ) {
+			if ( ! is_array( $row ) || 'enquiry' !== (string) ( $row['event_type'] ?? '' ) ) {
+				continue;
+			}
+
+			$payload   = pera_crm_client_view_decode_payload( $row['event_payload'] ?? array() );
+			$form_blob = strtolower( trim( implode( ' ', array_filter( array(
+				(string) ( $payload['form'] ?? '' ),
+				(string) ( $payload['form_name'] ?? '' ),
+				(string) ( $payload['form_context'] ?? '' ),
+				(string) ( $payload['form_id'] ?? '' ),
+			) ) ) ) );
+
+			if ( '' === $property_name && ! empty( $payload['property_id'] ) ) {
+				$property_name = pera_crm_client_view_property_project_name( (int) $payload['property_id'] );
+			}
+
+			if ( '' !== $form_blob ) {
+				$form_hint = $form_blob;
+				break;
+			}
+		}
+
+		if ( '' !== $property_name ) {
+			$pills[] = $property_name;
+		} elseif ( false !== strpos( $form_hint, 'rent' ) ) {
+			$pills[] = __( 'Rent', 'hello-elementor-child' );
+		} elseif ( false !== strpos( $form_hint, 'sell' ) ) {
+			$pills[] = __( 'Sell', 'hello-elementor-child' );
+		} elseif ( false !== strpos( $form_hint, 'citizen' ) ) {
+			$pills[] = __( 'Citizenship', 'hello-elementor-child' );
+		}
+
+		return $pills;
+	}
+}
+
 if ( ! function_exists( 'pera_crm_client_view_handle_property_actions' ) ) {
 	function pera_crm_client_view_handle_property_actions(): void {
 		if ( is_admin() || ! pera_is_crm_route() || 'client' !== sanitize_key( (string) get_query_var( 'pera_crm_view', '' ) ) ) {
@@ -308,3 +414,71 @@ if ( ! function_exists( 'pera_crm_client_view_handle_property_actions' ) ) {
 	}
 }
 add_action( 'template_redirect', 'pera_crm_client_view_handle_property_actions', 20 );
+
+if ( ! function_exists( 'pera_crm_property_search_ajax' ) ) {
+	function pera_crm_property_search_ajax(): void {
+		if ( ! is_user_logged_in() || ! pera_crm_client_view_can_manage() ) {
+			wp_send_json_error( array( 'message' => __( 'Forbidden', 'hello-elementor-child' ) ), 403 );
+		}
+
+		$nonce = isset( $_GET['nonce'] ) ? sanitize_text_field( wp_unslash( (string) $_GET['nonce'] ) ) : '';
+		if ( '' === $nonce || ! wp_verify_nonce( $nonce, 'pera_crm_property_search' ) ) {
+			wp_send_json_error( array( 'message' => __( 'Invalid nonce', 'hello-elementor-child' ) ), 403 );
+		}
+
+		$term = isset( $_GET['q'] ) ? sanitize_text_field( wp_unslash( (string) $_GET['q'] ) ) : '';
+		if ( strlen( $term ) < 2 ) {
+			wp_send_json_success( array( 'items' => array() ) );
+		}
+
+		$items = pera_crm_client_view_with_target_blog(
+			static function () use ( $term ): array {
+				$base_args = array(
+					'post_type'           => array( 'property', 'bodrum-property' ),
+					'post_status'         => 'publish',
+					'posts_per_page'      => 10,
+					'no_found_rows'       => true,
+					'ignore_sticky_posts' => true,
+					'fields'              => 'ids',
+				);
+
+				$meta_query = new WP_Query(
+					$base_args + array(
+						'meta_query' => array( // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_query
+							array(
+								'key'     => 'project_name',
+								'value'   => $term,
+								'compare' => 'LIKE',
+							),
+						),
+					)
+				);
+
+				$title_query = new WP_Query(
+					$base_args + array(
+						's' => $term,
+					)
+				);
+
+				$ids = array_values( array_unique( array_merge( array_map( 'intval', (array) $meta_query->posts ), array_map( 'intval', (array) $title_query->posts ) ) ) );
+				$ids = array_slice( $ids, 0, 10 );
+
+				$results = array();
+				foreach ( $ids as $property_id ) {
+					$project_name  = pera_crm_client_view_property_project_name( $property_id );
+					$district_list = wp_get_post_terms( $property_id, 'district', array( 'fields' => 'names' ) );
+					$results[]     = array(
+						'property_id'  => $property_id,
+						'project_name' => $project_name,
+						'district'     => ! empty( $district_list ) ? (string) $district_list[0] : '',
+					);
+				}
+
+				return $results;
+			}
+		);
+
+		wp_send_json_success( array( 'items' => $items ) );
+	}
+}
+add_action( 'wp_ajax_pera_crm_property_search', 'pera_crm_property_search_ajax' );
