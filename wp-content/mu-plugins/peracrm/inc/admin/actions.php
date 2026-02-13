@@ -1381,6 +1381,10 @@ function peracrm_handle_save_client_profile()
     }
 
     $status = isset($_POST['peracrm_status']) ? sanitize_key(wp_unslash($_POST['peracrm_status'])) : '';
+    if ($status === 'dormant' && !peracrm_admin_user_can_reassign()) {
+        wp_die('You do not have permission to set this client dormant.');
+    }
+
     $client_type = isset($_POST['peracrm_client_type']) ? sanitize_key(wp_unslash($_POST['peracrm_client_type'])) : '';
     $preferred_contact = isset($_POST['peracrm_preferred_contact']) ? sanitize_key(wp_unslash($_POST['peracrm_preferred_contact'])) : '';
 
@@ -1448,7 +1452,7 @@ function peracrm_handle_reassign_client_advisor()
 
     check_admin_referer('peracrm_reassign_client_advisor', 'peracrm_reassign_client_advisor_nonce');
 
-    if (!current_user_can('edit_post', $client_id) || !peracrm_admin_user_can_reassign()) {
+    if (!peracrm_admin_user_can_reassign()) {
         wp_die('You do not have permission to reassign this client.');
     }
 
