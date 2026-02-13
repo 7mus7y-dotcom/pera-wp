@@ -1058,7 +1058,7 @@ if ( ! function_exists( 'pera_crm_get_pipeline_view_data' ) ) {
 					'role__in' => array( 'employee', 'manager', 'administrator' ),
 					'orderby'  => 'display_name',
 					'order'    => 'ASC',
-					'fields'   => array( 'ID', 'display_name' ),
+					'number'   => 200,
 				)
 			);
 

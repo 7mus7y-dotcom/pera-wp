@@ -1350,9 +1350,13 @@ function peracrm_handle_unlink_user()
 
 function peracrm_admin_user_can_reassign()
 {
-    return current_user_can('manage_options')
-        || current_user_can('edit_crm_clients')
+    $can_manage_assignments = current_user_can('manage_options')
         || current_user_can('peracrm_manage_assignments');
+
+    $can_manager_level_access = current_user_can('edit_crm_clients')
+        && current_user_can('view_crm_reports');
+
+    return $can_manage_assignments || $can_manager_level_access;
 }
 
 function peracrm_handle_save_client_profile()
@@ -1486,16 +1490,11 @@ function peracrm_handle_reassign_client_advisor()
         }
     }
 
-    $redirect = wp_get_referer();
-    if (!$redirect) {
-        $redirect = add_query_arg(
-            [
-                'post' => $client_id,
-                'action' => 'edit',
-            ],
-            admin_url('post.php')
-        );
-    }
+    $fallback_redirect = function_exists('pera_crm_client_view_url')
+        ? pera_crm_client_view_url($client_id)
+        : home_url('/crm/client/' . $client_id . '/');
+
+    $redirect = peracrm_admin_preferred_redirect_url($fallback_redirect, true);
 
     peracrm_admin_redirect_with_notice($redirect, 'advisor_reassigned');
 }
