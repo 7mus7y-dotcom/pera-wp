@@ -107,7 +107,9 @@ function peracrm_client_update_profile($client_id, $data)
     }
 
     $allowed_status = ['enquiry', 'active', 'dormant', 'closed'];
-    $allowed_types = ['citizenship', 'investor', 'lifestyle'];
+    $allowed_types = function_exists('peracrm_client_type_options')
+        ? array_keys((array) peracrm_client_type_options())
+        : ['citizenship', 'investor', 'lifestyle', 'seller', 'landlord'];
     $allowed_contact = ['phone', 'whatsapp', 'email'];
 
     $status = isset($data['status']) ? sanitize_key($data['status']) : '';
@@ -187,6 +189,30 @@ function peracrm_client_update_profile($client_id, $data)
     }
 
     return true;
+}
+
+function peracrm_client_type_options()
+{
+    return [
+        'seller' => 'Seller',
+        'landlord' => 'Landlord',
+    ];
+}
+
+function peracrm_party_get_derived_type($party_id)
+{
+    $party_id = (int) $party_id;
+    if ($party_id <= 0) {
+        return 'lead';
+    }
+
+    if (!function_exists('peracrm_party_batch_get_closed_won_client_ids')) {
+        return 'lead';
+    }
+
+    $client_ids = peracrm_party_batch_get_closed_won_client_ids([$party_id]);
+
+    return in_array($party_id, array_map('intval', (array) $client_ids), true) ? 'client' : 'lead';
 }
 
 function peracrm_client_profile_sanitize_budget($value)
