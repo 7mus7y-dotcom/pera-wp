@@ -577,3 +577,77 @@
     height: 54px;
   }
 }
+
+
+.crm-page .btn,
+.crm-page button.btn,
+.crm-page a.btn {
+  display: inline-flex;
+  width: auto;
+  max-width: fit-content;
+}
+
+.crm-page .crm-toolbar-actions,
+.crm-page .crm-view-toggle,
+.crm-page .crm-type-toggle,
+.crm-page .hero-actions,
+.crm-page .hero-pills,
+.crm-page .crm-task-action,
+.crm-page .crm-inline-form {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.crm-page .crm-form-stack > button.btn,
+.crm-page .crm-form-stack > .btn {
+  justify-self: start;
+}
+
+.crm-new-leads-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.crm-new-lead-card {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.crm-floating-toggle {
+  right: max(16px, calc((100vw - var(--container)) / 2 + 16px));
+}
+
+@media (max-width: 1024px) {
+  .crm-new-leads-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 767px) {
+  .crm-new-leads-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .crm-floating-toggle {
+    right: 16px;
+  }
+}
+
+
+.crm-page--tasks [data-crm-view="cards"] .crm-list {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.crm-page--tasks [data-crm-view="cards"] .crm-list li {
+  border: 1px solid var(--border, #e8ecf2);
+  border-radius: 10px;
+  padding: 12px;
+}
+
+@media (max-width: 1024px) { .crm-page--tasks [data-crm-view="cards"] .crm-list { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+@media (max-width: 767px) { .crm-page--tasks [data-crm-view="cards"] .crm-list { grid-template-columns: 1fr; } }

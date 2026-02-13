@@ -395,10 +395,10 @@ if ( ! function_exists( 'pera_crm_get_recent_leads' ) ) {
 		$current_user_id = get_current_user_id();
 		$is_employee     = pera_crm_user_is_employee( $current_user_id );
 		$allowed_ids     = $is_employee ? pera_crm_get_allowed_client_ids_for_user( $current_user_id ) : array();
-		$args = array(
+		$args            = array(
 			'post_type'      => 'crm_client',
 			'post_status'    => array( 'publish', 'private', 'draft', 'pending', 'future' ),
-			'posts_per_page' => max( 1, $limit ),
+			'posts_per_page' => max( 1, $limit * 3 ),
 			'orderby'        => 'date',
 			'order'          => 'DESC',
 			'fields'         => 'ids',
@@ -407,18 +407,39 @@ if ( ! function_exists( 'pera_crm_get_recent_leads' ) ) {
 		if ( $is_employee ) {
 			$args['post__in'] = empty( $allowed_ids ) ? array( 0 ) : $allowed_ids;
 		}
-		$ids = get_posts( $args );
+
+		$ids = array_values( array_map( 'intval', (array) get_posts( $args ) ) );
+		$client_ids = function_exists( 'peracrm_party_batch_get_closed_won_client_ids' )
+			? array_map( 'intval', peracrm_party_batch_get_closed_won_client_ids( $ids ) )
+			: array();
+		$client_lookup = array_flip( $client_ids );
+
 		$rows = array();
-		foreach ( (array) $ids as $lead_id ) {
-			$lead_id = (int) $lead_id;
-			$rows[] = array(
-				'id'   => $lead_id,
-				'name' => get_the_title( $lead_id ),
-				'url'  => function_exists( 'pera_crm_get_client_view_url' ) ? pera_crm_get_client_view_url( $lead_id ) : home_url( '/crm/client/' . $lead_id . '/' ),
+		foreach ( $ids as $lead_id ) {
+			if ( isset( $client_lookup[ $lead_id ] ) ) {
+				continue;
+			}
+
+			$source_key = sanitize_key( (string) get_post_meta( $lead_id, 'crm_source', true ) );
+			$source     = '' !== $source_key ? ucwords( str_replace( '_', ' ', $source_key ) ) : __( 'Website', 'hello-elementor-child' );
+			$created_ts = (int) get_post_time( 'U', true, $lead_id );
+			$rows[]     = array(
+				'id'         => $lead_id,
+				'name'       => get_the_title( $lead_id ),
+				'phone'      => (string) get_post_meta( $lead_id, '_peracrm_phone', true ),
+				'source'     => $source,
+				'enquiry_at' => $created_ts > 0 ? wp_date( get_option( 'date_format' ) . ' ' . get_option( 'time_format' ), $created_ts ) : '',
+				'url'        => function_exists( 'pera_crm_get_client_view_url' ) ? pera_crm_get_client_view_url( $lead_id ) : home_url( '/crm/client/' . $lead_id . '/' ),
 			);
+
+			if ( count( $rows ) >= $limit ) {
+				break;
+			}
 		}
+
 		return $rows;
 	}
+
 }
 
 if ( ! function_exists( 'pera_crm_get_task_rows' ) ) {
@@ -895,42 +916,68 @@ if ( ! function_exists( 'pera_crm_get_leads_view_data' ) ) {
 	 *
 	 * @return array<string,mixed>
 	 */
-	function pera_crm_get_leads_view_data( int $page = 1, int $per_page = 20 ): array {
+	function pera_crm_get_leads_view_data( int $page = 1, int $per_page = 20, string $derived_type = 'lead' ): array {
 		$current_user_id = get_current_user_id();
 		$page            = max( 1, absint( $page ) );
 		$per_page        = max( 1, absint( $per_page ) );
 		$allowed_ids     = pera_crm_get_allowed_client_ids_for_user( $current_user_id );
+		$derived_type    = in_array( $derived_type, array( 'lead', 'client' ), true ) ? $derived_type : 'lead';
 
 		$query_args = array(
 			'post_type'      => 'crm_client',
 			'post_status'    => array( 'publish', 'private', 'draft', 'pending', 'future' ),
-			'posts_per_page' => $per_page,
-			'paged'          => $page,
+			'posts_per_page' => -1,
 			'orderby'        => 'modified',
 			'order'          => 'DESC',
+			'fields'         => 'ids',
+			'no_found_rows'  => true,
 		);
 
 		if ( pera_crm_user_is_employee( $current_user_id ) ) {
-			if ( empty( $allowed_ids ) ) {
-				$query_args['post__in'] = array( 0 );
-			} else {
-				$query_args['post__in'] = $allowed_ids;
-			}
+			$query_args['post__in'] = empty( $allowed_ids ) ? array( 0 ) : $allowed_ids;
 		}
 
-		$leads_query = new WP_Query( $query_args );
-		$post_ids    = array_map( 'intval', wp_list_pluck( (array) $leads_query->posts, 'ID' ) );
+		$post_ids = array_values( array_map( 'intval', get_posts( $query_args ) ) );
+		if ( empty( $post_ids ) ) {
+			return array(
+				'items'         => array(),
+				'query'         => null,
+				'total'         => 0,
+				'total_pages'   => 1,
+				'current_page'  => $page,
+				'per_page'      => $per_page,
+				'derived_type'  => $derived_type,
+				'is_employee'   => pera_crm_user_is_employee( $current_user_id ),
+				'scoped_ids'    => $allowed_ids,
+			);
+		}
 
-		$party_map = function_exists( 'peracrm_party_get_status_by_ids' ) ? peracrm_party_get_status_by_ids( $post_ids ) : array();
+		$client_ids = function_exists( 'peracrm_party_batch_get_closed_won_client_ids' )
+			? array_map( 'intval', peracrm_party_batch_get_closed_won_client_ids( $post_ids ) )
+			: array();
+		$client_lookup = array_flip( $client_ids );
+		$filtered_ids  = array_values(
+			array_filter(
+				$post_ids,
+				static function ( int $lead_id ) use ( $derived_type, $client_lookup ): bool {
+					$is_client = isset( $client_lookup[ $lead_id ] );
+					return 'client' === $derived_type ? $is_client : ! $is_client;
+				}
+			)
+		);
 
+		$total = count( $filtered_ids );
+		$total_pages = max( 1, (int) ceil( $total / $per_page ) );
+		$offset_ids = array_slice( $filtered_ids, ( $page - 1 ) * $per_page, $per_page );
+
+		$party_map = function_exists( 'peracrm_party_get_status_by_ids' ) ? peracrm_party_get_status_by_ids( $offset_ids ) : array();
 		if ( function_exists( 'peracrm_client_health_prime_cache' ) ) {
-			peracrm_client_health_prime_cache( $post_ids );
+			peracrm_client_health_prime_cache( $offset_ids );
 		}
 
 		$items = array();
 		$advisor_name_cache = array();
-		foreach ( $leads_query->posts as $post ) {
-			$lead_id   = (int) $post->ID;
+		foreach ( $offset_ids as $lead_id ) {
 			$party     = isset( $party_map[ $lead_id ] ) && is_array( $party_map[ $lead_id ] ) ? $party_map[ $lead_id ] : array();
 			$health    = function_exists( 'peracrm_client_health_get' ) ? peracrm_client_health_get( $lead_id ) : array();
 			$last_ts   = isset( $health['last_activity_ts'] ) ? (int) $health['last_activity_ts'] : 0;
@@ -942,7 +989,7 @@ if ( ! function_exists( 'pera_crm_get_leads_view_data' ) ) {
 			$assigned    = '';
 			if ( $assigned_id > 0 ) {
 				if ( ! isset( $advisor_name_cache[ $assigned_id ] ) ) {
-					$user                             = get_userdata( $assigned_id );
+					$user                               = get_userdata( $assigned_id );
 					$advisor_name_cache[ $assigned_id ] = $user instanceof WP_User ? (string) $user->display_name : '';
 				}
 				$assigned = (string) $advisor_name_cache[ $assigned_id ];
@@ -965,6 +1012,7 @@ if ( ! function_exists( 'pera_crm_get_leads_view_data' ) ) {
 				'created_ts'       => $created_ts,
 				'updated'          => $updated_ts > 0 ? wp_date( get_option( 'date_format' ), $updated_ts ) : '',
 				'updated_ts'       => $updated_ts,
+				'derived_type'     => isset( $client_lookup[ $lead_id ] ) ? 'client' : 'lead',
 				'crm_url'          => function_exists( 'pera_crm_get_client_view_url' ) ? pera_crm_get_client_view_url( $lead_id ) : home_url( '/crm/client/' . $lead_id . '/' ),
 				'edit_url'         => admin_url( 'post.php?post=' . $lead_id . '&action=edit' ),
 			);
@@ -976,15 +1024,17 @@ if ( ! function_exists( 'pera_crm_get_leads_view_data' ) ) {
 
 		return array(
 			'items'         => $items,
-			'query'         => $leads_query,
-			'total'         => (int) $leads_query->found_posts,
-			'total_pages'   => max( 1, (int) $leads_query->max_num_pages ),
-			'current_page'  => $page,
+			'query'         => null,
+			'total'         => $total,
+			'total_pages'   => $total_pages,
+			'current_page'  => min( $page, $total_pages ),
 			'per_page'      => $per_page,
+			'derived_type'  => $derived_type,
 			'is_employee'   => pera_crm_user_is_employee( $current_user_id ),
 			'scoped_ids'    => $allowed_ids,
 		);
 	}
+
 }
 
 if ( ! function_exists( 'pera_crm_get_pipeline_view_data' ) ) {
