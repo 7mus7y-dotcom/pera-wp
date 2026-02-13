@@ -97,6 +97,8 @@ if ( ! function_exists( 'pera_crm_client_view_notice_message' ) ) {
 			'property_linked'      => array( 'success', __( 'Property linked.', 'hello-elementor-child' ) ),
 			'property_unlinked'    => array( 'success', __( 'Property unlinked.', 'hello-elementor-child' ) ),
 			'property_link_failed' => array( 'warning', __( 'Unable to link property.', 'hello-elementor-child' ) ),
+			'converted_to_client'  => array( 'success', __( 'Lead converted to client.', 'hello-elementor-child' ) ),
+			'convert_failed'       => array( 'warning', __( 'Unable to convert this lead.', 'hello-elementor-child' ) ),
 		);
 
 		return $map[ $notice ] ?? array( '', '' );
@@ -242,6 +244,8 @@ if ( ! function_exists( 'pera_crm_client_view_load_data' ) ) {
 					'timeline_filter'  => $timeline_filter,
 					'timeline'         => $timeline,
 					'last_activity'    => $last_activity,
+					'derived_type'     => function_exists( 'peracrm_party_get_derived_type' ) ? peracrm_party_get_derived_type( $client_id ) : 'lead',
+					'client_type_options' => function_exists( 'peracrm_client_type_options' ) ? (array) peracrm_client_type_options() : array( 'seller' => 'Seller', 'landlord' => 'Landlord' ),
 				);
 			}
 		);

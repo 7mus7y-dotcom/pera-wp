@@ -54,6 +54,12 @@ $frontend_url = function_exists( 'pera_crm_client_view_url' ) ? pera_crm_client_
 $notice_key   = isset( $_GET['peracrm_notice'] ) ? sanitize_key( wp_unslash( (string) $_GET['peracrm_notice'] ) ) : ''; // phpcs:ignore WordPress.Security.NonceVerification.Recommended
 $notice_data  = function_exists( 'pera_crm_client_view_notice_message' ) ? pera_crm_client_view_notice_message( $notice_key ) : array( '', '' );
 
+$derived_type      = sanitize_key( (string) ( $data['derived_type'] ?? 'lead' ) );
+$derived_type      = in_array( $derived_type, array( 'lead', 'client' ), true ) ? $derived_type : 'lead';
+$derived_type_label = 'client' === $derived_type ? __( 'Client', 'hello-elementor-child' ) : __( 'Lead', 'hello-elementor-child' );
+$client_type_options = is_array( $data['client_type_options'] ?? null ) ? $data['client_type_options'] : array( 'seller' => 'Seller', 'landlord' => 'Landlord' );
+$client_type_value = sanitize_key( (string) ( $profile['client_type'] ?? '' ) );
+
 $deal_edit_id   = isset( $_GET['deal_id'] ) ? absint( wp_unslash( (string) $_GET['deal_id'] ) ) : 0; // phpcs:ignore WordPress.Security.NonceVerification.Recommended
 $editing_deal   = null;
 $deal_form_mode = 'create';
@@ -101,6 +107,10 @@ get_header();
             <span class="pill pill--outline"><?php echo esc_html( sprintf( __( 'Status: %s', 'hello-elementor-child' ), $status_label ) ); ?></span>
             <span class="pill pill--outline"><?php echo esc_html( sprintf( __( 'Health: %s', 'hello-elementor-child' ), $health_label ) ); ?></span>
             <span class="pill pill--outline"><?php echo esc_html( sprintf( __( 'Advisor: %s', 'hello-elementor-child' ), $advisor_label ) ); ?></span>
+            <span class="pill pill--outline"><?php echo esc_html( sprintf( __( 'Derived type: %s', 'hello-elementor-child' ), $derived_type_label ) ); ?></span>
+            <?php if ( '' !== $client_type_value ) : ?>
+            <span class="pill pill--outline"><?php echo esc_html( sprintf( __( 'Client type: %s', 'hello-elementor-child' ), ucfirst( str_replace( '_', ' ', $client_type_value ) ) ) ); ?></span>
+            <?php endif; ?>
             <span class="pill pill--outline"><?php echo esc_html( $link_label ); ?></span>
           </div>
           <?php if ( ! empty( $source_pills ) ) : ?>
@@ -149,6 +159,16 @@ get_header();
 							<?php endforeach; ?>
                   </select>
                 </label>
+                <p class="text-sm"><strong><?php esc_html_e( 'Derived type:', 'hello-elementor-child' ); ?></strong> <?php echo esc_html( $derived_type_label ); ?></p>
+                <label>
+                  <?php esc_html_e( 'Client type', 'hello-elementor-child' ); ?>
+                  <select name="peracrm_client_type">
+                    <option value=""><?php esc_html_e( 'Select type', 'hello-elementor-child' ); ?></option>
+                    <?php foreach ( $client_type_options as $type_key => $type_label ) : ?>
+                      <option value="<?php echo esc_attr( (string) $type_key ); ?>" <?php selected( $client_type_value, (string) $type_key ); ?>><?php echo esc_html( (string) $type_label ); ?></option>
+                    <?php endforeach; ?>
+                  </select>
+                </label>
                 <label>
 						<?php esc_html_e( 'Disposition', 'hello-elementor-child' ); ?>
                   <select name="disposition">
@@ -159,6 +179,15 @@ get_header();
                 </label>
                 <button type="submit" class="btn btn--solid btn--blue"><?php esc_html_e( 'Save status', 'hello-elementor-child' ); ?></button>
               </form>
+              <?php if ( 'lead' === $derived_type ) : ?>
+              <form method="post" action="<?php echo esc_url( home_url( '/wp-admin/admin-post.php' ) ); ?>" class="crm-inline-form">
+                <?php wp_nonce_field( 'peracrm_convert_to_client', 'peracrm_convert_to_client_nonce' ); ?>
+                <input type="hidden" name="action" value="peracrm_convert_to_client" />
+                <input type="hidden" name="peracrm_client_id" value="<?php echo esc_attr( (string) $client_id ); ?>" />
+                <input type="hidden" name="peracrm_redirect" value="<?php echo esc_url( $frontend_url ); ?>" />
+                <button type="submit" class="btn btn--ghost btn--blue"><?php esc_html_e( 'Convert to client', 'hello-elementor-child' ); ?></button>
+              </form>
+              <?php endif; ?>
             </article>
 
             <article class="card-shell crm-client-section">
@@ -186,7 +215,14 @@ get_header();
                 <input type="hidden" name="peracrm_client_id" value="<?php echo esc_attr( (string) $client_id ); ?>" />
                 <input type="hidden" name="peracrm_redirect" value="<?php echo esc_url( $frontend_url ); ?>" />
                 <label><?php esc_html_e( 'Status', 'hello-elementor-child' ); ?><input type="text" name="peracrm_status" value="<?php echo esc_attr( (string) ( $profile['status'] ?? '' ) ); ?>" /></label>
-                <label><?php esc_html_e( 'Client type', 'hello-elementor-child' ); ?><input type="text" name="peracrm_client_type" value="<?php echo esc_attr( (string) ( $profile['client_type'] ?? '' ) ); ?>" /></label>
+                <label><?php esc_html_e( 'Client type', 'hello-elementor-child' ); ?>
+                  <select name="peracrm_client_type">
+                    <option value=""><?php esc_html_e( 'Select type', 'hello-elementor-child' ); ?></option>
+                    <?php foreach ( $client_type_options as $type_key => $type_label ) : ?>
+                      <option value="<?php echo esc_attr( (string) $type_key ); ?>" <?php selected( $client_type_value, (string) $type_key ); ?>><?php echo esc_html( (string) $type_label ); ?></option>
+                    <?php endforeach; ?>
+                  </select>
+                </label>
                 <label><?php esc_html_e( 'Preferred contact', 'hello-elementor-child' ); ?><input type="text" name="peracrm_preferred_contact" value="<?php echo esc_attr( (string) ( $profile['preferred_contact'] ?? '' ) ); ?>" /></label>
                 <label><?php esc_html_e( 'Budget min (USD)', 'hello-elementor-child' ); ?><input type="number" min="0" name="peracrm_budget_min_usd" value="<?php echo esc_attr( (string) ( $profile['budget_min_usd'] ?? '' ) ); ?>" /></label>
                 <label><?php esc_html_e( 'Budget max (USD)', 'hello-elementor-child' ); ?><input type="number" min="0" name="peracrm_budget_max_usd" value="<?php echo esc_attr( (string) ( $profile['budget_max_usd'] ?? '' ) ); ?>" /></label>
