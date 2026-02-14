@@ -935,3 +935,33 @@ add_filter( 'login_display_language_dropdown', '__return_false' );
 add_action( 'init', function () {
   add_post_type_support( 'page', 'excerpt' );
 }, 20 );
+
+
+
+add_action( 'wp_enqueue_scripts', function () {
+  if ( ! is_user_logged_in() || ! function_exists( 'pera_is_crm_route' ) || ! pera_is_crm_route() ) {
+    return;
+  }
+
+  wp_enqueue_script(
+    'pera-crm-push',
+    get_stylesheet_directory_uri() . '/js/crm-push.js',
+    array(),
+    pera_get_asset_version( '/js/crm-push.js' ),
+    true
+  );
+
+  $public_key = function_exists( 'peracrm_push_get_public_config' ) ? peracrm_push_get_public_config() : array();
+
+  wp_localize_script(
+    'pera-crm-push',
+    'peraCrmPush',
+    array(
+      'swUrl'          => esc_url_raw( home_url( '/peracrm-sw.js' ) ),
+      'vapidPublicKey' => (string) ( $public_key['public_key'] ?? '' ),
+      'subscribeUrl'   => esc_url_raw( rest_url( 'peracrm/v1/push/subscribe' ) ),
+      'unsubscribeUrl' => esc_url_raw( rest_url( 'peracrm/v1/push/unsubscribe' ) ),
+      'nonce'          => wp_create_nonce( 'wp_rest' ),
+    )
+  );
+}, 45 );

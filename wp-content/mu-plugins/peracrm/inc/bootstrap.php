@@ -14,6 +14,7 @@ require_once PERACRM_INC . '/activity.php';
 require_once PERACRM_INC . '/activity-capture.php';
 require_once PERACRM_INC . '/health.php';
 require_once PERACRM_INC . '/integrations/enquiries.php';
+require_once PERACRM_INC . '/db/push_log_table.php';
 
 require_once PERACRM_INC . '/repositories/notes.php';
 require_once PERACRM_INC . '/repositories/reminders.php';
@@ -28,6 +29,9 @@ require_once PERACRM_INC . '/services/activity_service.php';
 require_once PERACRM_INC . '/services/reminder_service.php';
 require_once PERACRM_INC . '/services/user_link_service.php';
 require_once PERACRM_INC . '/services/user_membership_service.php';
+require_once PERACRM_INC . '/services/push_service.php';
+require_once PERACRM_INC . '/cron/push_cron.php';
+require_once PERACRM_INC . '/rest/push.php';
 require_once PERACRM_INC . '/rest.php';
 
 if (is_admin()) {

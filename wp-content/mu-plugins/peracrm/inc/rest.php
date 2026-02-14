@@ -47,6 +47,10 @@ function peracrm_register_rest_routes()
         'permission_callback' => 'peracrm_rest_can_access',
         'args' => peracrm_rest_collection_args(),
     ]);
+
+    if (function_exists('peracrm_rest_register_push_routes')) {
+        peracrm_rest_register_push_routes();
+    }
 }
 
 function peracrm_rest_can_access(WP_REST_Request $request)
