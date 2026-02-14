@@ -6,6 +6,12 @@ if (!defined('ABSPATH')) {
 
 function peracrm_rest_register_push_routes()
 {
+    static $registered = false;
+    if ($registered) {
+        return;
+    }
+    $registered = true;
+
     register_rest_route('peracrm/v1', '/push/config', [
         'methods' => WP_REST_Server::READABLE,
         'callback' => 'peracrm_rest_get_push_config',
@@ -21,6 +27,12 @@ function peracrm_rest_register_push_routes()
     register_rest_route('peracrm/v1', '/push/unsubscribe', [
         'methods' => WP_REST_Server::CREATABLE,
         'callback' => 'peracrm_rest_push_unsubscribe',
+        'permission_callback' => 'peracrm_rest_can_access_push',
+    ]);
+
+    register_rest_route('peracrm/v1', '/push/debug', [
+        'methods' => WP_REST_Server::READABLE,
+        'callback' => 'peracrm_rest_push_debug',
         'permission_callback' => 'peracrm_rest_can_access_push',
     ]);
 
@@ -90,6 +102,42 @@ function peracrm_rest_push_unsubscribe(WP_REST_Request $request)
     ]);
 }
 
+function peracrm_rest_push_debug(WP_REST_Request $request)
+{
+    $acting_user_id = get_current_user_id();
+    $is_manager = function_exists('peracrm_push_user_can_run_digest')
+        ? peracrm_push_user_can_run_digest($acting_user_id)
+        : false;
+
+    $requested_user_id = absint($request->get_param('user_id'));
+    $target_user_id = $acting_user_id;
+    $ignored_user_id = false;
+    if ($is_manager && $requested_user_id > 0) {
+        $target_user_id = $requested_user_id;
+    } elseif (!$is_manager && $requested_user_id > 0 && $requested_user_id !== $acting_user_id) {
+        $ignored_user_id = true;
+    }
+
+    $debug = function_exists('peracrm_push_get_debug_data')
+        ? peracrm_push_get_debug_data($acting_user_id, $target_user_id)
+        : [];
+
+    return new WP_REST_Response([
+        'ok' => true,
+        'acting_user_id' => $acting_user_id,
+        'target_user_id' => $target_user_id,
+        'can_impersonate' => (bool) $is_manager,
+        'ignored_user_id_param' => $ignored_user_id,
+        'debug' => is_array($debug) ? $debug : [],
+        'self_check' => [
+            'has_get_debug_data' => function_exists('peracrm_push_get_debug_data'),
+            'has_get_public_config' => function_exists('peracrm_push_get_public_config'),
+            'has_run_digest' => function_exists('peracrm_push_run_digest_for_current_window'),
+            'is_manager' => (bool) $is_manager,
+        ],
+    ]);
+}
+
 function peracrm_rest_push_digest_run(WP_REST_Request $request)
 {
     $summary = function_exists('peracrm_push_run_digest_for_current_window')
@@ -140,3 +188,6 @@ function peracrm_rest_can_run_digest(WP_REST_Request $request)
 
     return true;
 }
+
+
+add_action('rest_api_init', 'peracrm_rest_register_push_routes');
