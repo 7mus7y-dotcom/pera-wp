@@ -245,6 +245,29 @@ if ( ! function_exists( 'pera_crm_debug_tasks_log' ) ) {
 	}
 }
 
+if ( ! function_exists( 'pera_crm_parse_local_mysql_datetime_to_ts' ) ) {
+	/**
+	 * Parse DATETIME values stored in WP local timezone into timestamps.
+	 */
+	function pera_crm_parse_local_mysql_datetime_to_ts( string $datetime, ?DateTimeZone $timezone = null ): int {
+		$datetime = trim( $datetime );
+		if ( '' === $datetime ) {
+			return 0;
+		}
+
+		$timezone = $timezone instanceof DateTimeZone ? $timezone : wp_timezone();
+		$formats  = array( 'Y-m-d H:i:s', 'Y-m-d H:i' );
+		foreach ( $formats as $format ) {
+			$parsed = DateTimeImmutable::createFromFormat( $format, $datetime, $timezone );
+			if ( $parsed instanceof DateTimeImmutable ) {
+				return $parsed->getTimestamp();
+			}
+		}
+
+		return 0;
+	}
+}
+
 if ( ! function_exists( 'pera_crm_get_lead_name' ) ) {
 	/**
 	 * Resolve lead name for dashboard task rows.
@@ -481,8 +504,9 @@ if ( ! function_exists( 'pera_crm_get_task_rows' ) ) {
 		$open_status     = pera_crm_reminders_open_status();
 		$now             = current_time( 'mysql' );
 		$today_ts        = current_time( 'timestamp' );
-		$today_start     = date( 'Y-m-d 00:00:00', $today_ts );
-		$today_end       = date( 'Y-m-d 23:59:59', $today_ts );
+		$timezone        = wp_timezone();
+		$today_start     = wp_date( 'Y-m-d 00:00:00', $today_ts, $timezone );
+		$today_end       = wp_date( 'Y-m-d 23:59:59', $today_ts, $timezone );
 		$rows            = array();
 		$debug_ids       = array();
 
@@ -611,9 +635,9 @@ if ( ! function_exists( 'pera_crm_get_tasks_view_data' ) ) {
 		$is_employee     = pera_crm_user_is_employee( $current_user_id );
 		$open_status     = pera_crm_reminders_open_status();
 		$timezone        = wp_timezone();
-		$today_ts        = current_time( 'timestamp' );
-		$today_start_ts  = strtotime( wp_date( 'Y-m-d 00:00:00', $today_ts, $timezone ) );
-		$today_end_ts    = strtotime( wp_date( 'Y-m-d 23:59:59', $today_ts, $timezone ) );
+		$today           = current_datetime();
+		$today_start_ts  = $today->setTime( 0, 0, 0 )->getTimestamp();
+		$today_end_ts    = $today->setTime( 23, 59, 59 )->getTimestamp();
 		$raw_rows        = array();
 
 		if ( function_exists( 'peracrm_reminders_list_for_advisor' ) && $is_employee ) {
@@ -678,7 +702,7 @@ if ( ! function_exists( 'pera_crm_get_tasks_view_data' ) ) {
 			}
 
 			$due_at = (string) ( $row['due_at'] ?? '' );
-			$due_ts = '' !== $due_at ? strtotime( $due_at ) : 0;
+			$due_ts = pera_crm_parse_local_mysql_datetime_to_ts( $due_at, $timezone );
 			if ( $due_ts <= 0 ) {
 				continue;
 			}

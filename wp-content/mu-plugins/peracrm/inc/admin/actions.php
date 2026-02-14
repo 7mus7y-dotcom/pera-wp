@@ -411,12 +411,25 @@ function peracrm_admin_parse_datetime($raw_datetime)
         }
     }
 
-    $timestamp = strtotime($raw_datetime);
-    if ($timestamp) {
-        return wp_date('Y-m-d H:i:s', $timestamp, $timezone);
+    return '';
+}
+
+function peracrm_admin_debug_timezone_log($raw_datetime, $parsed_datetime)
+{
+    if (!defined('PERA_CRM_DEBUG_TASKS') || !PERA_CRM_DEBUG_TASKS || !current_user_can('manage_options')) {
+        return;
     }
 
-    return '';
+    error_log(
+        sprintf(
+            '[PERA CRM reminder timezone] raw=%s parsed=%s wp_tz=%s now_local=%s now_utc=%s',
+            sanitize_text_field((string) $raw_datetime),
+            sanitize_text_field((string) $parsed_datetime),
+            wp_timezone_string(),
+            current_time('mysql'),
+            current_time('mysql', true)
+        )
+    );
 }
 
 function peracrm_admin_redirect_with_notice($url, $notice)
@@ -858,6 +871,7 @@ function peracrm_handle_pipeline_bulk_action()
         }
         $due_at_raw = isset($_POST['bulk_due_at']) ? wp_unslash($_POST['bulk_due_at']) : '';
         $due_at_mysql = peracrm_admin_parse_datetime($due_at_raw);
+        peracrm_admin_debug_timezone_log($due_at_raw, $due_at_mysql);
         if ($due_at_mysql === '') {
             peracrm_pipeline_bulk_redirect($redirect, $action_key, 0, $total_client_ids, $capped);
         }
@@ -1542,6 +1556,7 @@ function peracrm_handle_add_reminder()
 
     $due_at_raw = isset($_POST['peracrm_due_at']) ? wp_unslash($_POST['peracrm_due_at']) : '';
     $due_at_mysql = peracrm_admin_parse_datetime($due_at_raw);
+    peracrm_admin_debug_timezone_log($due_at_raw, $due_at_mysql);
     $fallback_redirect = get_edit_post_link($client_id, 'raw');
     $redirect = peracrm_admin_preferred_redirect_url($fallback_redirect);
     if ($due_at_mysql === '') {
