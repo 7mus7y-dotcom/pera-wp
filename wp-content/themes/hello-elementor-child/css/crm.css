@@ -726,19 +726,32 @@
     gap: 8px;
   }
 
-  .crm-page--client-view .crm-client-reminders-grid .crm-list {
+  .crm-page--client-view .crm-client-reminders .crm-client-reminders-grid > section > p {
+    margin: 0 0 4px;
+  }
+
+  .crm-page--client-view .crm-client-reminders .crm-client-reminders-grid .crm-list {
     gap: 6px;
   }
 
-  .crm-page--client-view .crm-client-reminders-grid .crm-list li {
-    padding: 6px 0;
+  .crm-page--client-view .crm-client-reminders .crm-client-reminders-grid .crm-list li {
+    gap: 4px;
+    padding: 7px 0;
   }
 
-  .crm-page--client-view .crm-client-reminders-grid .crm-list li p {
-    margin: 0;
+  .crm-page--client-view .crm-client-reminders .crm-client-reminders-grid .crm-list li p,
+  .crm-page--client-view .crm-client-reminders .crm-client-reminders-grid .crm-list li h1,
+  .crm-page--client-view .crm-client-reminders .crm-client-reminders-grid .crm-list li h2,
+  .crm-page--client-view .crm-client-reminders .crm-client-reminders-grid .crm-list li h3,
+  .crm-page--client-view .crm-client-reminders .crm-client-reminders-grid .crm-list li h4,
+  .crm-page--client-view .crm-client-reminders .crm-client-reminders-grid .crm-list li h5,
+  .crm-page--client-view .crm-client-reminders .crm-client-reminders-grid .crm-list li h6,
+  .crm-page--client-view .crm-client-reminders .crm-client-reminders-grid .crm-list li small {
+    margin-block: 0;
   }
 
-  .crm-page--client-view .crm-client-reminders-grid .crm-list li .hero-pills {
+  .crm-page--client-view .crm-client-reminders .crm-client-reminders-grid .crm-list li .hero-pills,
+  .crm-page--client-view .crm-client-reminders .crm-client-reminders-grid .crm-list li .crm-task-action {
     margin-top: 4px;
     gap: 6px;
   }
