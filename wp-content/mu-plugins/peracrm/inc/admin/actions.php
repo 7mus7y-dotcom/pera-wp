@@ -396,19 +396,8 @@ function peracrm_admin_update_client_linked_user_id($client_id, $user_id)
 
 function peracrm_admin_parse_datetime($raw_datetime)
 {
-    $raw_datetime = sanitize_text_field($raw_datetime);
-    if ($raw_datetime === '') {
-        return '';
-    }
-
-    $timezone = wp_timezone();
-    $formats = ['Y-m-d\TH:i', 'Y-m-d H:i'];
-
-    foreach ($formats as $format) {
-        $date = date_create_from_format($format, $raw_datetime, $timezone);
-        if ($date instanceof DateTimeInterface) {
-            return $date->format('Y-m-d H:i:s');
-        }
+    if (function_exists('peracrm_parse_due_at_input')) {
+        return peracrm_parse_due_at_input($raw_datetime);
     }
 
     return '';
@@ -416,20 +405,11 @@ function peracrm_admin_parse_datetime($raw_datetime)
 
 function peracrm_admin_debug_timezone_log($raw_datetime, $parsed_datetime)
 {
-    if (!defined('PERA_CRM_DEBUG_TASKS') || !PERA_CRM_DEBUG_TASKS || !current_user_can('manage_options')) {
+    if (!function_exists('peracrm_debug_reminders_tz_log')) {
         return;
     }
 
-    error_log(
-        sprintf(
-            '[PERA CRM reminder timezone] raw=%s parsed=%s wp_tz=%s now_local=%s now_utc=%s',
-            sanitize_text_field((string) $raw_datetime),
-            sanitize_text_field((string) $parsed_datetime),
-            wp_timezone_string(),
-            current_time('mysql'),
-            current_time('mysql', true)
-        )
-    );
+    peracrm_debug_reminders_tz_log($raw_datetime, 'admin_post', null, $parsed_datetime);
 }
 
 function peracrm_admin_redirect_with_notice($url, $notice)
