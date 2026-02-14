@@ -109,9 +109,13 @@ get_header();
             <p class="pill pill--outline"><?php echo esc_html( $push_notice_text ); ?></p>
           <?php endif; ?>
           <p data-crm-push-status><?php echo esc_html__( 'Checking push notification status…', 'hello-elementor-child' ); ?></p>
+          <p class="text-sm" data-crm-push-sw-status><?php echo esc_html__( 'Service worker status: checking…', 'hello-elementor-child' ); ?></p>
+          <p class="text-sm" data-crm-push-cron-health><?php echo esc_html__( 'Digest cron health: checking…', 'hello-elementor-child' ); ?></p>
+          <p class="text-sm" data-crm-push-digest-result hidden></p>
           <div class="crm-task-action" style="display:flex;gap:8px;flex-wrap:wrap;">
             <button type="button" class="btn btn--ghost btn--blue" data-crm-push-enable><?php echo esc_html__( 'Enable Push Notifications', 'hello-elementor-child' ); ?></button>
             <button type="button" class="btn btn--ghost" data-crm-push-disable disabled><?php echo esc_html__( 'Disable on this device', 'hello-elementor-child' ); ?></button>
+            <button type="button" class="btn btn--ghost" data-crm-push-run-digest hidden><?php echo esc_html__( 'Run digest now', 'hello-elementor-child' ); ?></button>
             <?php if ( function_exists( 'peracrm_push_is_configured' ) && peracrm_push_is_configured() ) : ?>
             <form method="post" action="<?php echo esc_url( home_url( '/wp-admin/admin-post.php' ) ); ?>">
               <input type="hidden" name="action" value="peracrm_send_test_push">

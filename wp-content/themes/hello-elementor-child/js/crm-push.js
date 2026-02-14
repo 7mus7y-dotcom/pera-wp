@@ -12,8 +12,12 @@
   }
 
   const statusEl = card.querySelector('[data-crm-push-status]');
+  const swStatusEl = card.querySelector('[data-crm-push-sw-status]');
+  const cronHealthEl = card.querySelector('[data-crm-push-cron-health]');
+  const digestResultEl = card.querySelector('[data-crm-push-digest-result]');
   const enableBtn = card.querySelector('[data-crm-push-enable]');
   const disableBtn = card.querySelector('[data-crm-push-disable]');
+  const runDigestBtn = card.querySelector('[data-crm-push-run-digest]');
 
   const STATUS_VARIANTS = ['pill--outline', 'pill--green', 'pill--red'];
 
@@ -70,13 +74,70 @@
     return 'serviceWorker' in navigator && 'PushManager' in window && 'Notification' in window;
   }
 
+  async function getRegistration() {
+    return navigator.serviceWorker.register(config.swUrl || '/peracrm-sw.js');
+  }
+
   async function getCurrentSubscription() {
     if (!supportsPushSetup()) {
       return null;
     }
 
-    const registration = await navigator.serviceWorker.register(config.swUrl || '/peracrm-sw.js');
+    const registration = await getRegistration();
     return registration.pushManager.getSubscription();
+  }
+
+  function renderCronHealth() {
+    if (!cronHealthEl) {
+      return;
+    }
+
+    const cron = config.debug && config.debug.cron ? config.debug.cron : {};
+    const next = cron.next_scheduled_local || 'not scheduled';
+    const wpCronState = cron.disable_wp_cron ? 'disabled' : 'enabled';
+    cronHealthEl.textContent = 'Digest cron: next ' + next + ' · DISABLE_WP_CRON is ' + wpCronState + '.';
+  }
+
+  async function renderServiceWorkerStatus() {
+    if (!swStatusEl || !('serviceWorker' in navigator)) {
+      return;
+    }
+
+    const registration = await navigator.serviceWorker.getRegistration(config.swUrl || '/peracrm-sw.js');
+    const controller = navigator.serviceWorker.controller;
+    const scope = registration && registration.scope ? registration.scope : 'none';
+    const active = registration && registration.active ? 'yes' : 'no';
+    swStatusEl.textContent = 'Service worker: registered ' + (registration ? 'yes' : 'no') + ', active ' + active + ', controlled ' + (controller ? 'yes' : 'no') + ', scope ' + scope + '.';
+  }
+
+  function showDigestButton() {
+    if (!runDigestBtn) {
+      return;
+    }
+
+    if (config.canRunDigest) {
+      runDigestBtn.hidden = false;
+    }
+  }
+
+  async function runDigestNow() {
+    if (!runDigestBtn || !digestResultEl) {
+      return;
+    }
+
+    runDigestBtn.disabled = true;
+    digestResultEl.hidden = false;
+    digestResultEl.textContent = 'Running digest…';
+
+    try {
+      const response = await postJson(config.digestRunUrl, {});
+      const summary = response.summary || {};
+      digestResultEl.textContent = 'Digest window ' + (summary.window_key || 'n/a') + ': attempted ' + (summary.pushes_attempted || 0) + ', sent ' + (summary.pushes_sent || 0) + ', rows ' + (summary.rows_considered || 0) + '.';
+    } catch (error) {
+      digestResultEl.textContent = 'Unable to run digest right now.';
+    } finally {
+      runDigestBtn.disabled = false;
+    }
   }
 
   async function refreshState() {
@@ -87,12 +148,14 @@
       if (!supportsPushSetup()) {
         setStatus('Push is not supported in this browser on this device.', 'pill--red');
         setButtons(false);
+        renderCronHealth();
         return;
       }
 
       if (permission === 'denied') {
         setStatus('Notifications blocked – enable in site settings.', 'pill--red');
         setButtons(false);
+        renderCronHealth();
         return;
       }
 
@@ -103,9 +166,13 @@
         setStatus('Push notifications are currently disabled on this device.', 'pill--outline');
         setButtons(false);
       }
+
+      renderCronHealth();
+      await renderServiceWorkerStatus();
     } catch (error) {
       setStatus('Push setup is unavailable in this browser session.', 'pill--red');
       setButtons(false);
+      renderCronHealth();
     }
   }
 
@@ -126,7 +193,7 @@
       return;
     }
 
-    const registration = await navigator.serviceWorker.register(config.swUrl || '/peracrm-sw.js');
+    const registration = await getRegistration();
     await navigator.serviceWorker.ready;
 
     if (!config.vapidPublicKey) {
@@ -145,6 +212,7 @@
     await postJson(config.subscribeUrl, subscription.toJSON());
     setStatus('Push notifications enabled on this device.', 'pill--green');
     setButtons(true);
+    await renderServiceWorkerStatus();
   }
 
   async function disablePush() {
@@ -153,7 +221,7 @@
       return;
     }
 
-    const registration = await navigator.serviceWorker.register(config.swUrl || '/peracrm-sw.js');
+    const registration = await getRegistration();
     const subscription = await registration.pushManager.getSubscription();
 
     if (!subscription) {
@@ -167,6 +235,7 @@
 
     setStatus('Push notifications disabled on this device.', 'pill--outline');
     setButtons(false);
+    await renderServiceWorkerStatus();
   }
 
   if (enableBtn) {
@@ -185,5 +254,12 @@
     });
   }
 
+  if (runDigestBtn) {
+    runDigestBtn.addEventListener('click', function () {
+      runDigestNow();
+    });
+  }
+
+  showDigestButton();
   refreshState();
 })();
