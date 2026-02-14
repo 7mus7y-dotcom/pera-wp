@@ -48,6 +48,7 @@ $new_lead_url       = home_url( '/crm/new/' );
 $overview_task_cap  = 8;
 $push_notice_key    = isset( $_GET['peracrm_push_notice'] ) ? sanitize_key( wp_unslash( (string) $_GET['peracrm_push_notice'] ) ) : '';
 $push_notice_text   = '';
+$push_error_text    = isset( $_GET['peracrm_push_error'] ) ? sanitize_text_field( rawurldecode( (string) wp_unslash( $_GET['peracrm_push_error'] ) ) ) : '';
 
 if ( 'test_push_sent' === $push_notice_key ) {
 	$push_notice_text = __( 'Test push notification sent.', 'hello-elementor-child' );
@@ -108,16 +109,23 @@ get_header();
           <?php if ( '' !== $push_notice_text ) : ?>
             <p class="pill pill--outline"><?php echo esc_html( $push_notice_text ); ?></p>
           <?php endif; ?>
+          <?php if ( '' !== $push_error_text ) : ?>
+            <p class="pill pill--red"><?php echo esc_html( $push_error_text ); ?></p>
+          <?php endif; ?>
           <p data-crm-push-status><?php echo esc_html__( 'Checking push notification status…', 'hello-elementor-child' ); ?></p>
+          <p class="text-sm" data-crm-push-sw-status><?php echo esc_html__( 'Service worker status: checking…', 'hello-elementor-child' ); ?></p>
+          <p class="text-sm" data-crm-push-cron-health><?php echo esc_html__( 'Digest cron health: checking…', 'hello-elementor-child' ); ?></p>
+          <p class="text-sm" data-crm-push-digest-result hidden></p>
           <div class="crm-task-action" style="display:flex;gap:8px;flex-wrap:wrap;">
             <button type="button" class="btn btn--ghost btn--blue" data-crm-push-enable><?php echo esc_html__( 'Enable Push Notifications', 'hello-elementor-child' ); ?></button>
             <button type="button" class="btn btn--ghost" data-crm-push-disable disabled><?php echo esc_html__( 'Disable on this device', 'hello-elementor-child' ); ?></button>
+            <button type="button" class="btn btn--ghost" data-crm-push-run-digest hidden><?php echo esc_html__( 'Run digest now', 'hello-elementor-child' ); ?></button>
             <?php if ( function_exists( 'peracrm_push_is_configured' ) && peracrm_push_is_configured() ) : ?>
             <form method="post" action="<?php echo esc_url( home_url( '/wp-admin/admin-post.php' ) ); ?>">
               <input type="hidden" name="action" value="peracrm_send_test_push">
               <input type="hidden" name="peracrm_redirect" value="<?php echo esc_url( home_url( '/crm/' ) ); ?>">
               <?php wp_nonce_field( 'peracrm_send_test_push', 'peracrm_send_test_push_nonce' ); ?>
-              <button type="submit" class="btn btn--ghost"><?php echo esc_html__( 'Send test notification', 'hello-elementor-child' ); ?></button>
+              <button type="submit" class="btn btn--ghost" data-crm-push-send-test><?php echo esc_html__( 'Send test notification', 'hello-elementor-child' ); ?></button>
             </form>
             <?php endif; ?>
           </div>

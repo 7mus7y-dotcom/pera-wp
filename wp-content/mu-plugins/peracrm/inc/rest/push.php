@@ -23,6 +23,24 @@ function peracrm_rest_register_push_routes()
         'callback' => 'peracrm_rest_push_unsubscribe',
         'permission_callback' => 'peracrm_rest_can_access_push',
     ]);
+
+    register_rest_route('peracrm/v1', '/push/test', [
+        'methods' => WP_REST_Server::CREATABLE,
+        'callback' => 'peracrm_rest_push_test_send',
+        'permission_callback' => 'peracrm_rest_can_access_push',
+    ]);
+
+    register_rest_route('peracrm/v1', '/push/digest/run', [
+        'methods' => WP_REST_Server::CREATABLE,
+        'callback' => 'peracrm_rest_push_digest_run',
+        'permission_callback' => 'peracrm_rest_can_run_digest',
+    ]);
+
+    register_rest_route('peracrm/v1', '/push/debug', [
+        'methods' => WP_REST_Server::READABLE,
+        'callback' => 'peracrm_rest_push_debug_status',
+        'permission_callback' => 'peracrm_rest_can_run_digest',
+    ]);
 }
 
 function peracrm_rest_get_push_config(WP_REST_Request $request)
@@ -84,6 +102,50 @@ function peracrm_rest_push_unsubscribe(WP_REST_Request $request)
     ]);
 }
 
+function peracrm_rest_push_test_send(WP_REST_Request $request)
+{
+    $result = peracrm_push_in_target_blog(static function () {
+        return peracrm_push_send_test_for_user(get_current_user_id());
+    });
+
+    $status = !empty($result['ok']) ? 200 : 500;
+
+    return new WP_REST_Response([
+        'ok' => !empty($result['ok']),
+        'subscriptions' => (int) ($result['subscriptions'] ?? 0),
+        'error' => (string) ($result['error'] ?? ''),
+        'results' => (array) ($result['results'] ?? []),
+    ], $status);
+}
+
+function peracrm_rest_push_digest_run(WP_REST_Request $request)
+{
+    $summary = function_exists('peracrm_push_run_digest_for_current_window')
+        ? peracrm_push_run_digest_for_current_window()
+        : [];
+
+    return new WP_REST_Response([
+        'ok' => true,
+        'summary' => is_array($summary) ? $summary : [],
+        'cron' => function_exists('peracrm_push_get_cron_health') ? peracrm_push_get_cron_health() : [],
+    ]);
+}
+
+function peracrm_rest_push_debug_status(WP_REST_Request $request)
+{
+    $user_id = get_current_user_id();
+
+    $debug = peracrm_push_in_target_blog(static function () use ($user_id) {
+        return function_exists('peracrm_push_get_debug_snapshot') ? peracrm_push_get_debug_snapshot($user_id) : [];
+    });
+
+    return new WP_REST_Response([
+        'ok' => true,
+        'debug' => is_array($debug) ? $debug : [],
+        'cron' => function_exists('peracrm_push_get_cron_health') ? peracrm_push_get_cron_health() : [],
+    ]);
+}
+
 
 function peracrm_rest_can_access_push(WP_REST_Request $request)
 {
@@ -103,6 +165,20 @@ function peracrm_rest_can_access_push(WP_REST_Request $request)
 
     if ($nonce === '' || !wp_verify_nonce($nonce, 'wp_rest')) {
         return new WP_Error('peracrm_invalid_nonce', 'Invalid REST nonce.', ['status' => 403]);
+    }
+
+    return true;
+}
+
+function peracrm_rest_can_run_digest(WP_REST_Request $request)
+{
+    $access = peracrm_rest_can_access_push($request);
+    if (is_wp_error($access)) {
+        return $access;
+    }
+
+    if (!function_exists('peracrm_push_user_can_run_digest') || !peracrm_push_user_can_run_digest(get_current_user_id())) {
+        return new WP_Error('peracrm_forbidden', 'Digest trigger requires manager/admin access.', ['status' => 403]);
     }
 
     return true;

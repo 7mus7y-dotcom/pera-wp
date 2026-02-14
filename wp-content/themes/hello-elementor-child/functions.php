@@ -961,6 +961,11 @@ add_action( 'wp_enqueue_scripts', function () {
       'vapidPublicKey' => defined( 'PERACRM_VAPID_PUBLIC_KEY' ) ? (string) PERACRM_VAPID_PUBLIC_KEY : (string) ( $public_key['public_key'] ?? '' ),
       'subscribeUrl'   => esc_url_raw( rest_url( 'peracrm/v1/push/subscribe' ) ),
       'unsubscribeUrl' => esc_url_raw( rest_url( 'peracrm/v1/push/unsubscribe' ) ),
+      'testSendUrl'    => esc_url_raw( rest_url( 'peracrm/v1/push/test' ) ),
+      'digestRunUrl'   => esc_url_raw( rest_url( 'peracrm/v1/push/digest/run' ) ),
+      'debugUrl'       => esc_url_raw( rest_url( 'peracrm/v1/push/debug' ) ),
+      'canRunDigest'   => function_exists( 'peracrm_push_user_can_run_digest' ) ? (bool) peracrm_push_user_can_run_digest( get_current_user_id() ) : false,
+      'debug'          => function_exists( 'peracrm_push_debug_snapshot' ) ? peracrm_push_debug_snapshot( get_current_user_id() ) : array(),
       'nonce'          => wp_create_nonce( 'wp_rest' ),
     )
   );

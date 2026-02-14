@@ -34,6 +34,10 @@ require_once PERACRM_INC . '/cron/push_cron.php';
 require_once PERACRM_INC . '/rest/push.php';
 require_once PERACRM_INC . '/rest.php';
 
+if (defined('WP_CLI') && WP_CLI) {
+    require_once PERACRM_INC . '/cli/push_cli.php';
+}
+
 if (is_admin()) {
     $admin_dir = __DIR__ . '/admin';
     $admin_files = [
