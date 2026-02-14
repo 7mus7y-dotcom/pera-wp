@@ -144,12 +144,18 @@ if ( ! function_exists( 'pera_crm_client_view_timeline_items' ) ) {
 		}
 
 		if ( ( 'all' === $filter || 'reminders' === $filter ) && function_exists( 'peracrm_reminders_list_for_client' ) ) {
+			$timezone = wp_timezone();
 			foreach ( (array) peracrm_reminders_list_for_client( $client_id, $limit, 0, null ) as $reminder ) {
+				$due_at = (string) ( $reminder['due_at'] ?? '' );
+				$due_ts = function_exists( 'pera_crm_parse_local_mysql_datetime_to_ts' )
+					? pera_crm_parse_local_mysql_datetime_to_ts( $due_at, $timezone )
+					: 0;
+
 				$items[] = array(
 					'type'   => 'reminders',
 					'title'  => __( 'Reminder', 'hello-elementor-child' ),
 					'detail' => (string) ( $reminder['note'] ?? '' ),
-					'ts'     => strtotime( (string) ( $reminder['due_at'] ?? '' ) ),
+					'ts'     => $due_ts,
 					'meta'   => array( 'status' => (string) ( $reminder['status'] ?? 'pending' ) ),
 				);
 			}

@@ -502,11 +502,11 @@ if ( ! function_exists( 'pera_crm_get_task_rows' ) ) {
 		$current_user_id = get_current_user_id();
 		$is_employee     = pera_crm_user_is_employee( $current_user_id );
 		$open_status     = pera_crm_reminders_open_status();
-		$now             = current_time( 'mysql' );
-		$today_ts        = current_time( 'timestamp' );
 		$timezone        = wp_timezone();
-		$today_start     = wp_date( 'Y-m-d 00:00:00', $today_ts, $timezone );
-		$today_end       = wp_date( 'Y-m-d 23:59:59', $today_ts, $timezone );
+		$current_dt      = current_datetime();
+		$today_start_ts  = $current_dt->setTime( 0, 0, 0 )->getTimestamp();
+		$today_end_ts    = $current_dt->setTime( 23, 59, 59 )->getTimestamp();
+		$now_ts          = $current_dt->getTimestamp();
 		$rows            = array();
 		$debug_ids       = array();
 
@@ -520,13 +520,14 @@ if ( ! function_exists( 'pera_crm_get_task_rows' ) ) {
 						continue;
 					}
 					$due_at = (string) ( $row['due_at'] ?? '' );
-					if ( '' === $due_at ) {
+					$due_ts = pera_crm_parse_local_mysql_datetime_to_ts( $due_at, $timezone );
+					if ( $due_ts <= 0 ) {
 						continue;
 					}
-					if ( ! $overdue && ( $due_at < $today_start || $due_at > $today_end ) ) {
+					if ( ! $overdue && ( $due_ts < $today_start_ts || $due_ts > $today_end_ts ) ) {
 						continue;
 					}
-					if ( $overdue && $due_at >= $now ) {
+					if ( $overdue && $due_ts >= $now_ts ) {
 						continue;
 					}
 					$lead_id     = (int) ( $row['client_id'] ?? 0 );
@@ -575,8 +576,12 @@ if ( ! function_exists( 'pera_crm_get_task_rows' ) ) {
 			return array();
 		}
 
+		$now_mysql     = wp_date( 'Y-m-d H:i:s', $now_ts, $timezone );
+		$today_start   = wp_date( 'Y-m-d H:i:s', $today_start_ts, $timezone );
+		$today_end     = wp_date( 'Y-m-d H:i:s', $today_end_ts, $timezone );
+
 		if ( $overdue ) {
-			$sql = $wpdb->prepare( "SELECT id, client_id, due_at, note FROM {$table} WHERE status = %s AND due_at < %s ORDER BY due_at ASC LIMIT 200", $open_status, $now ); // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+			$sql = $wpdb->prepare( "SELECT id, client_id, due_at, note FROM {$table} WHERE status = %s AND due_at < %s ORDER BY due_at ASC LIMIT 200", $open_status, $now_mysql ); // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
 		} else {
 			$sql = $wpdb->prepare( "SELECT id, client_id, due_at, note FROM {$table} WHERE status = %s AND due_at BETWEEN %s AND %s ORDER BY due_at ASC LIMIT 200", $open_status, $today_start, $today_end ); // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
 		}
