@@ -1,7 +1,7 @@
 (function () {
   'use strict';
 
-  if (!window.peraCrmPush || !('serviceWorker' in navigator) || !('PushManager' in window)) {
+  if (!window.peraCrmPush) {
     return;
   }
 
@@ -15,6 +15,8 @@
   const enableBtn = card.querySelector('[data-crm-push-enable]');
   const disableBtn = card.querySelector('[data-crm-push-disable]');
 
+  const STATUS_VARIANTS = ['pill--outline', 'pill--green', 'pill--red'];
+
   function urlBase64ToUint8Array(base64String) {
     const padding = '='.repeat((4 - (base64String.length % 4)) % 4);
     const base64 = (base64String + padding).replace(/-/g, '+').replace(/_/g, '/');
@@ -26,9 +28,14 @@
     return outputArray;
   }
 
-  function setStatus(text) {
+  function setStatus(text, tone) {
     if (statusEl) {
       statusEl.textContent = text;
+      statusEl.classList.add('pill');
+      STATUS_VARIANTS.forEach(function (variant) {
+        statusEl.classList.remove(variant);
+      });
+      statusEl.classList.add(tone || 'pill--outline');
     }
   }
 
@@ -59,7 +66,15 @@
     return response.json();
   }
 
+  function supportsPushSetup() {
+    return 'serviceWorker' in navigator && 'PushManager' in window && 'Notification' in window;
+  }
+
   async function getCurrentSubscription() {
+    if (!supportsPushSetup()) {
+      return null;
+    }
+
     const registration = await navigator.serviceWorker.register(config.swUrl || '/peracrm-sw.js');
     return registration.pushManager.getSubscription();
   }
@@ -67,41 +82,59 @@
   async function refreshState() {
     try {
       const subscription = await getCurrentSubscription();
-      const permission = Notification.permission;
+      const permission = 'Notification' in window ? Notification.permission : 'default';
+
+      if (!supportsPushSetup()) {
+        setStatus('Push is not supported in this browser on this device.', 'pill--red');
+        setButtons(false);
+        return;
+      }
+
       if (permission === 'denied') {
-        setStatus('Push permission is blocked in your browser settings.');
+        setStatus('Notifications blocked – enable in site settings.', 'pill--red');
         setButtons(false);
         return;
       }
 
       if (subscription) {
-        setStatus('Push notifications are enabled on this device.');
+        setStatus('Push notifications are enabled on this device.', 'pill--green');
         setButtons(true);
       } else {
-        setStatus('Push notifications are currently disabled on this device.');
+        setStatus('Push notifications are currently disabled on this device.', 'pill--outline');
         setButtons(false);
       }
     } catch (error) {
-      setStatus('Push setup is unavailable in this browser session.');
+      setStatus('Push setup is unavailable in this browser session.', 'pill--red');
       setButtons(false);
     }
   }
 
   async function enablePush() {
-    if (!config.vapidPublicKey) {
-      setStatus('Push keys are not configured. Please contact an administrator.');
+    if (!supportsPushSetup()) {
+      setStatus('Push is not supported in this browser on this device.', 'pill--red');
       return;
     }
 
     const permission = await Notification.requestPermission();
+    if (permission === 'denied') {
+      setStatus('Notifications blocked – enable in site settings.', 'pill--red');
+      return;
+    }
+
     if (permission !== 'granted') {
-      setStatus('Push permission was not granted.');
+      setStatus('Notification permission was dismissed. Tap enable to try again.', 'pill--outline');
       return;
     }
 
     const registration = await navigator.serviceWorker.register(config.swUrl || '/peracrm-sw.js');
-    let subscription = await registration.pushManager.getSubscription();
+    await navigator.serviceWorker.ready;
 
+    if (!config.vapidPublicKey) {
+      setStatus('Push keys are not configured. Please contact an administrator.', 'pill--red');
+      return;
+    }
+
+    let subscription = await registration.pushManager.getSubscription();
     if (!subscription) {
       subscription = await registration.pushManager.subscribe({
         userVisibleOnly: true,
@@ -110,32 +143,36 @@
     }
 
     await postJson(config.subscribeUrl, subscription.toJSON());
-    setStatus('Push notifications enabled on this device.');
+    setStatus('Push notifications enabled on this device.', 'pill--green');
     setButtons(true);
   }
 
   async function disablePush() {
+    if (!supportsPushSetup()) {
+      setStatus('Push is not supported in this browser on this device.', 'pill--red');
+      return;
+    }
+
     const registration = await navigator.serviceWorker.register(config.swUrl || '/peracrm-sw.js');
     const subscription = await registration.pushManager.getSubscription();
 
     if (!subscription) {
-      setStatus('No active push subscription on this device.');
+      setStatus('No active push subscription on this device.', 'pill--outline');
       setButtons(false);
       return;
     }
 
-    const endpoint = subscription.endpoint;
+    await postJson(config.unsubscribeUrl, { endpoint: subscription.endpoint });
     await subscription.unsubscribe();
-    await postJson(config.unsubscribeUrl, { endpoint: endpoint });
 
-    setStatus('Push notifications disabled on this device.');
+    setStatus('Push notifications disabled on this device.', 'pill--outline');
     setButtons(false);
   }
 
   if (enableBtn) {
     enableBtn.addEventListener('click', function () {
       enablePush().catch(function () {
-        setStatus('Unable to enable push notifications right now.');
+        setStatus('Unable to enable push notifications right now.', 'pill--red');
       });
     });
   }
@@ -143,7 +180,7 @@
   if (disableBtn) {
     disableBtn.addEventListener('click', function () {
       disablePush().catch(function () {
-        setStatus('Unable to disable push notifications right now.');
+        setStatus('Unable to disable push notifications right now.', 'pill--red');
       });
     });
   }
