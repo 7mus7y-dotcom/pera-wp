@@ -4,7 +4,6 @@ if (!defined('ABSPATH')) {
     exit;
 }
 
-
 $peracrm_push_vendor_autoload = defined('PERACRM_PATH') ? PERACRM_PATH . '/vendor-webpush/vendor/autoload.php' : '';
 if ($peracrm_push_vendor_autoload && file_exists($peracrm_push_vendor_autoload)) {
     require_once $peracrm_push_vendor_autoload;
@@ -15,26 +14,31 @@ function peracrm_push_meta_key()
     return 'peracrm_push_subscriptions';
 }
 
+function peracrm_push_in_target_blog(callable $callback)
+{
+    if (function_exists('peracrm_with_target_blog')) {
+        return peracrm_with_target_blog($callback);
+    }
+
+    return $callback();
+}
+
+function peracrm_push_is_configured()
+{
+    return defined('PERACRM_VAPID_PUBLIC_KEY')
+        && defined('PERACRM_VAPID_PRIVATE_KEY')
+        && defined('PERACRM_VAPID_SUBJECT')
+        && trim((string) PERACRM_VAPID_PUBLIC_KEY) !== ''
+        && trim((string) PERACRM_VAPID_PRIVATE_KEY) !== ''
+        && trim((string) PERACRM_VAPID_SUBJECT) !== '';
+}
+
 function peracrm_push_get_vapid_config()
 {
-    $public = defined('PERACRM_VAPID_PUBLIC_KEY') ? (string) PERACRM_VAPID_PUBLIC_KEY : '';
-    $private = defined('PERACRM_VAPID_PRIVATE_KEY') ? (string) PERACRM_VAPID_PRIVATE_KEY : '';
-    $subject = defined('PERACRM_VAPID_SUBJECT') ? (string) PERACRM_VAPID_SUBJECT : '';
-
-    if ($public === '') {
-        $public = (string) get_option('peracrm_vapid_public_key', '');
-    }
-    if ($private === '') {
-        $private = (string) get_option('peracrm_vapid_private_key', '');
-    }
-    if ($subject === '') {
-        $subject = (string) get_option('peracrm_vapid_subject', '');
-    }
-
     return [
-        'public_key' => trim($public),
-        'private_key' => trim($private),
-        'subject' => trim($subject),
+        'public_key' => defined('PERACRM_VAPID_PUBLIC_KEY') ? trim((string) PERACRM_VAPID_PUBLIC_KEY) : '',
+        'private_key' => defined('PERACRM_VAPID_PRIVATE_KEY') ? trim((string) PERACRM_VAPID_PRIVATE_KEY) : '',
+        'subject' => defined('PERACRM_VAPID_SUBJECT') ? trim((string) PERACRM_VAPID_SUBJECT) : '',
     ];
 }
 
@@ -78,7 +82,7 @@ function peracrm_push_normalize_subscription($subscription, $user_agent = '')
     ];
 }
 
-function peracrm_push_get_subscriptions($user_id)
+function peracrm_push_list_user_subscriptions($user_id)
 {
     $user_id = absint($user_id);
     if ($user_id <= 0) {
@@ -102,6 +106,11 @@ function peracrm_push_get_subscriptions($user_id)
     return array_values($normalized);
 }
 
+function peracrm_push_get_subscriptions($user_id)
+{
+    return peracrm_push_list_user_subscriptions($user_id);
+}
+
 function peracrm_push_save_subscription($user_id, $subscription, $user_agent = '')
 {
     $user_id = absint($user_id);
@@ -114,7 +123,7 @@ function peracrm_push_save_subscription($user_id, $subscription, $user_agent = '
         return new WP_Error('invalid_subscription', 'Invalid push subscription payload.');
     }
 
-    $subscriptions = peracrm_push_get_subscriptions($user_id);
+    $subscriptions = peracrm_push_list_user_subscriptions($user_id);
     $deduped = [];
     foreach ($subscriptions as $item) {
         $deduped[(string) $item['endpoint']] = $item;
@@ -138,7 +147,7 @@ function peracrm_push_remove_subscription($user_id, $endpoint)
         return false;
     }
 
-    $subscriptions = peracrm_push_get_subscriptions($user_id);
+    $subscriptions = peracrm_push_list_user_subscriptions($user_id);
     $kept = [];
     $removed = false;
 
@@ -155,170 +164,239 @@ function peracrm_push_remove_subscription($user_id, $endpoint)
     return $removed;
 }
 
-function peracrm_push_round_window_end($timestamp = null)
+function peracrm_push_send_to_subscription($subscription, $payload)
 {
-    $timestamp = $timestamp === null ? current_time('timestamp') : (int) $timestamp;
-    $bucket = 300;
-    $window_end = (int) (ceil($timestamp / $bucket) * $bucket);
+    $subscription = peracrm_push_normalize_subscription((array) $subscription);
+    if (!$subscription) {
+        return [
+            'ok' => false,
+            'status' => 0,
+            'body' => 'Invalid subscription payload.',
+        ];
+    }
 
-    return wp_date('Y-m-d H:i:s', $window_end, wp_timezone());
-}
+    if (!peracrm_push_is_configured()) {
+        return [
+            'ok' => false,
+            'status' => 0,
+            'body' => 'VAPID constants are not configured.',
+        ];
+    }
 
-function peracrm_push_log_has_event($event_key)
-{
-    global $wpdb;
+    if (!class_exists('Minishlink\\WebPush\\WebPush') || !class_exists('Minishlink\\WebPush\\Subscription')) {
+        return [
+            'ok' => false,
+            'status' => 0,
+            'body' => 'Web Push sender library missing. Expected vendor-webpush dependencies.',
+        ];
+    }
 
-    $table = peracrm_push_log_table_name();
-    $query = $wpdb->prepare("SELECT id FROM {$table} WHERE event_key = %s LIMIT 1", $event_key);
-
-    return (bool) $wpdb->get_var($query);
-}
-
-function peracrm_push_log_insert($advisor_user_id, $window_end, $event_key)
-{
-    global $wpdb;
-
-    $table = peracrm_push_log_table_name();
-    $result = $wpdb->insert(
-        $table,
-        [
-            'advisor_user_id' => (int) $advisor_user_id,
-            'window_end' => (string) $window_end,
-            'event_key' => (string) $event_key,
-            'created_at' => current_time('mysql'),
+    $vapid = peracrm_push_get_vapid_config();
+    $auth = [
+        'VAPID' => [
+            'subject' => (string) $vapid['subject'],
+            'publicKey' => (string) $vapid['public_key'],
+            'privateKey' => (string) $vapid['private_key'],
         ],
-        ['%d', '%s', '%s', '%s']
-    );
+    ];
 
-    return $result !== false;
+    try {
+        $webPush = new Minishlink\WebPush\WebPush($auth, ['TTL' => 300]);
+        $subscription_obj = Minishlink\WebPush\Subscription::create([
+            'endpoint' => (string) $subscription['endpoint'],
+            'publicKey' => (string) ($subscription['keys']['p256dh'] ?? ''),
+            'authToken' => (string) ($subscription['keys']['auth'] ?? ''),
+            'contentEncoding' => 'aes128gcm',
+        ]);
+
+        $report = $webPush->sendOneNotification($subscription_obj, wp_json_encode((array) $payload), [
+            'TTL' => 300,
+            'urgency' => 'normal',
+            'topic' => 'peracrm-reminders',
+        ]);
+
+        $response = method_exists($report, 'getResponse') ? $report->getResponse() : null;
+        $status = $response && method_exists($response, 'getStatusCode') ? (int) $response->getStatusCode() : 0;
+        $body = '';
+        if ($response && method_exists($response, 'getBody')) {
+            $body = (string) $response->getBody();
+        }
+
+        return [
+            'ok' => (bool) $report->isSuccess(),
+            'status' => $status,
+            'body' => $body !== '' ? $body : (method_exists($report, 'getReason') ? (string) $report->getReason() : ''),
+        ];
+    } catch (Throwable $e) {
+        return [
+            'ok' => false,
+            'status' => 0,
+            'body' => $e->getMessage(),
+        ];
+    }
 }
 
 function peracrm_push_send_subscription($subscription, array $payload)
 {
-    $vapid = peracrm_push_get_vapid_config();
+    $result = peracrm_push_send_to_subscription($subscription, $payload);
 
-    if (
-        class_exists('Minishlink\WebPush\WebPush')
-        && class_exists('Minishlink\WebPush\Subscription')
-        && $vapid['public_key'] !== ''
-        && $vapid['private_key'] !== ''
-        && $vapid['subject'] !== ''
-    ) {
-        $auth = [
-            'VAPID' => [
-                'subject' => (string) $vapid['subject'],
-                'publicKey' => (string) $vapid['public_key'],
-                'privateKey' => (string) $vapid['private_key'],
-            ],
-        ];
-
-        try {
-            $webPush = new Minishlink\WebPush\WebPush($auth);
-            $subscription_obj = Minishlink\WebPush\Subscription::create([
-                'endpoint' => (string) ($subscription['endpoint'] ?? ''),
-                'publicKey' => (string) ($subscription['keys']['p256dh'] ?? ''),
-                'authToken' => (string) ($subscription['keys']['auth'] ?? ''),
-            ]);
-
-            $report = $webPush->sendOneNotification($subscription_obj, wp_json_encode($payload));
-            $response = method_exists($report, 'getResponse') ? $report->getResponse() : null;
-            $status_code = $response && method_exists($response, 'getStatusCode') ? (int) $response->getStatusCode() : 0;
-
-            return [
-                'ok' => (bool) $report->isSuccess(),
-                'status_code' => $status_code,
-                'reason' => method_exists($report, 'getReason') ? (string) $report->getReason() : '',
-            ];
-        } catch (Throwable $e) {
-            return new WP_Error('push_send_exception', $e->getMessage());
-        }
-    }
-
-    return apply_filters('peracrm_push_send_subscription', new WP_Error('push_sender_not_configured', 'Web Push sender not configured.'), $subscription, $payload);
+    return [
+        'ok' => (bool) ($result['ok'] ?? false),
+        'status_code' => (int) ($result['status'] ?? 0),
+        'reason' => (string) ($result['body'] ?? ''),
+    ];
 }
 
-function peracrm_push_run_tick()
+function peracrm_push_send_to_user($user_id, $payload)
 {
-    if (!function_exists('peracrm_with_target_blog')) {
+    $user_id = absint($user_id);
+    if ($user_id <= 0) {
+        return [];
+    }
+
+    $subscriptions = peracrm_push_list_user_subscriptions($user_id);
+    $results = [];
+
+    foreach ($subscriptions as $subscription) {
+        $result = peracrm_push_send_to_subscription($subscription, $payload);
+        if (in_array((int) ($result['status'] ?? 0), [404, 410], true)) {
+            peracrm_push_remove_subscription($user_id, (string) ($subscription['endpoint'] ?? ''));
+        }
+
+        $results[] = [
+            'endpoint' => (string) ($subscription['endpoint'] ?? ''),
+            'ok' => (bool) ($result['ok'] ?? false),
+            'status' => (int) ($result['status'] ?? 0),
+            'body' => (string) ($result['body'] ?? ''),
+        ];
+    }
+
+    return $results;
+}
+
+function peracrm_push_digest_window_key($timestamp)
+{
+    return wp_date('YmdHi', (int) $timestamp, wp_timezone());
+}
+
+function peracrm_push_run_digest()
+{
+    if (!peracrm_push_is_configured()) {
         return;
     }
 
-    peracrm_with_target_blog(static function () {
+    peracrm_push_in_target_blog(static function () {
         global $wpdb;
 
         if (!function_exists('peracrm_reminders_table_exists') || !peracrm_reminders_table_exists()) {
             return;
         }
 
-        if (function_exists('peracrm_push_log_create_table')) {
-            peracrm_push_log_create_table();
-        }
-
         $table = peracrm_table('crm_reminders');
         $now = current_time('mysql');
-        $window_end = peracrm_push_round_window_end();
+        $window_start = floor((int) current_time('timestamp') / (15 * MINUTE_IN_SECONDS)) * (15 * MINUTE_IN_SECONDS);
+        $window_key = peracrm_push_digest_window_key($window_start);
 
-        $query = $wpdb->prepare(
-            "SELECT advisor_user_id, COUNT(*) AS overdue_count
-             FROM {$table}
-             WHERE status = %s AND due_at < %s
-             GROUP BY advisor_user_id",
-            'pending',
-            $now
+        $rows = (array) $wpdb->get_results(
+            $wpdb->prepare(
+                "SELECT advisor_user_id,
+                        COUNT(*) AS pending_count,
+                        SUM(CASE WHEN due_at < %s THEN 1 ELSE 0 END) AS overdue_count
+                 FROM {$table}
+                 WHERE status = %s
+                 GROUP BY advisor_user_id",
+                $now,
+                'pending'
+            ),
+            ARRAY_A
         );
-
-        $rows = (array) $wpdb->get_results($query, ARRAY_A);
 
         foreach ($rows as $row) {
             $advisor_user_id = isset($row['advisor_user_id']) ? (int) $row['advisor_user_id'] : 0;
+            $pending_count = isset($row['pending_count']) ? (int) $row['pending_count'] : 0;
             $overdue_count = isset($row['overdue_count']) ? (int) $row['overdue_count'] : 0;
-            if ($advisor_user_id <= 0 || $overdue_count <= 0) {
+
+            if ($advisor_user_id <= 0 || ($pending_count + $overdue_count) <= 0) {
                 continue;
             }
 
-            $subscriptions = peracrm_push_get_subscriptions($advisor_user_id);
+            $subscriptions = peracrm_push_list_user_subscriptions($advisor_user_id);
             if (empty($subscriptions)) {
                 continue;
             }
 
-            $event_key = $advisor_user_id . ':' . $window_end;
-            if (peracrm_push_log_has_event($event_key)) {
+            $digest_hash = md5(implode('|', [$window_key, $pending_count, $overdue_count]));
+            $last_hash = (string) get_user_meta($advisor_user_id, 'peracrm_push_last_digest_' . $window_key, true);
+            if ($last_hash !== '' && hash_equals($last_hash, $digest_hash)) {
                 continue;
             }
 
             $payload = [
-                'pending_count' => $overdue_count,
+                'type' => 'crm_reminder_digest',
+                'title' => 'PeraCRM',
+                'body' => sprintf('You have %d pending reminders (%d overdue).', $pending_count, $overdue_count),
+                'pending_count' => $pending_count,
                 'overdue_count' => $overdue_count,
                 'click_url' => '/crm/tasks/',
-                'window_end' => $window_end,
-                'event_key' => $event_key,
             ];
 
-            $success_count = 0;
-            foreach ($subscriptions as $subscription) {
-                $result = peracrm_push_send_subscription($subscription, $payload);
-
-                if (is_wp_error($result)) {
-                    continue;
-                }
-
-                $status_code = isset($result['status_code']) ? (int) $result['status_code'] : 0;
-                if ($status_code === 404 || $status_code === 410) {
-                    peracrm_push_remove_subscription($advisor_user_id, (string) ($subscription['endpoint'] ?? ''));
-                    continue;
-                }
-
-                if ($status_code >= 200 && $status_code < 300) {
-                    $success_count++;
+            $results = peracrm_push_send_to_user($advisor_user_id, $payload);
+            $has_success = false;
+            foreach ($results as $result) {
+                if (!empty($result['ok'])) {
+                    $has_success = true;
+                    break;
                 }
             }
 
-            if ($success_count > 0) {
-                peracrm_push_log_insert($advisor_user_id, $window_end, $event_key);
+            if ($has_success) {
+                update_user_meta($advisor_user_id, 'peracrm_push_last_digest_' . $window_key, $digest_hash);
             }
         }
     });
 }
+
+function peracrm_push_handle_send_test()
+{
+    if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+        return;
+    }
+
+    $can_access = current_user_can('manage_options') || (function_exists('peracrm_user_can_access_crm') && peracrm_user_can_access_crm(get_current_user_id()));
+    if (!is_user_logged_in() || !$can_access) {
+        wp_die(esc_html__('You are not allowed to do this.', 'peracrm'), 403);
+    }
+
+    check_admin_referer('peracrm_send_test_push', 'peracrm_send_test_push_nonce');
+
+    $redirect = isset($_POST['peracrm_redirect']) ? esc_url_raw(wp_unslash($_POST['peracrm_redirect'])) : home_url('/crm/');
+    if (!$redirect) {
+        $redirect = home_url('/crm/');
+    }
+
+    $payload = [
+        'type' => 'crm_test',
+        'title' => 'PeraCRM',
+        'body' => 'Test notification',
+        'click_url' => '/crm/tasks/',
+    ];
+
+    $results = peracrm_push_in_target_blog(static function () use ($payload) {
+        return peracrm_push_send_to_user(get_current_user_id(), $payload);
+    });
+
+    $ok_count = 0;
+    foreach ((array) $results as $result) {
+        if (!empty($result['ok'])) {
+            $ok_count++;
+        }
+    }
+
+    $notice = $ok_count > 0 ? 'test_push_sent' : 'test_push_failed';
+    wp_safe_redirect(add_query_arg('peracrm_push_notice', $notice, $redirect));
+    exit;
+}
+add_action('admin_post_peracrm_send_test_push', 'peracrm_push_handle_send_test');
 
 function peracrm_push_render_service_worker()
 {
@@ -335,13 +413,15 @@ function peracrm_push_render_service_worker()
     echo "self.addEventListener('push', function(event) {\n";
     echo "  var payload = {};\n";
     echo "  try { payload = event.data ? event.data.json() : {}; } catch (e) { payload = {}; }\n";
-    echo "  var overdue = Number(payload.overdue_count || 0);\n";
-    echo "  var pending = Number(payload.pending_count || 0);\n";
-    echo "  var body = overdue > 0\n";
-    echo "    ? 'You have ' + overdue + ' overdue reminders. Tap to view.'\n";
-    echo "    : 'You have ' + pending + ' reminders due. Tap to view.';\n";
+    echo "  var title = payload.title || 'PeraCRM';\n";
+    echo "  var body = payload.body || '';\n";
+    echo "  if (!body) {\n";
+    echo "    var overdue = Number(payload.overdue_count || 0);\n";
+    echo "    var pending = Number(payload.pending_count || 0);\n";
+    echo "    body = overdue > 0 ? 'You have ' + overdue + ' overdue reminders.' : 'You have ' + pending + ' pending reminders.';\n";
+    echo "  }\n";
     echo "  var clickUrl = payload.click_url || '/crm/tasks/';\n";
-    echo "  event.waitUntil(self.registration.showNotification('CRM Reminder Due', { body: body, data: { click_url: clickUrl } }));\n";
+    echo "  event.waitUntil(self.registration.showNotification(title, { body: body, data: { click_url: clickUrl } }));\n";
     echo "});\n";
     echo "self.addEventListener('notificationclick', function(event) {\n";
     echo "  event.notification.close();\n";
