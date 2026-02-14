@@ -88,6 +88,52 @@ $client_type_value = sanitize_key( (string) ( $profile['client_type'] ?? '' ) );
 $deal_edit_id   = isset( $_GET['deal_id'] ) ? absint( wp_unslash( (string) $_GET['deal_id'] ) ) : 0; // phpcs:ignore WordPress.Security.NonceVerification.Recommended
 $editing_deal   = null;
 $deal_form_mode = 'create';
+
+$today_reminders   = array();
+$overdue_task_rows = array();
+$now_timestamp     = current_time( 'timestamp' );
+$today_start_ts    = strtotime( date( 'Y-m-d 00:00:00', $now_timestamp ) );
+$today_end_ts      = strtotime( date( 'Y-m-d 23:59:59', $now_timestamp ) );
+
+foreach ( $reminders as $reminder_row ) {
+	if ( ! is_array( $reminder_row ) ) {
+		continue;
+	}
+
+	$status = sanitize_key( (string) ( $reminder_row['status'] ?? '' ) );
+	if ( 'pending' !== $status ) {
+		continue;
+	}
+
+	$due_at = (string) ( $reminder_row['due_at'] ?? '' );
+	$due_ts = '' !== $due_at ? strtotime( $due_at ) : 0;
+	if ( $due_ts <= 0 ) {
+		continue;
+	}
+
+	if ( $due_ts >= $today_start_ts && $due_ts <= $today_end_ts ) {
+		$today_reminders[] = $reminder_row;
+		continue;
+	}
+
+	if ( $due_ts < $today_start_ts ) {
+		$overdue_task_rows[] = $reminder_row;
+	}
+}
+
+usort(
+	$today_reminders,
+	static function ( $left, $right ) {
+		return strcmp( (string) ( $left['due_at'] ?? '' ), (string) ( $right['due_at'] ?? '' ) );
+	}
+);
+
+usort(
+	$overdue_task_rows,
+	static function ( $left, $right ) {
+		return strcmp( (string) ( $left['due_at'] ?? '' ), (string) ( $right['due_at'] ?? '' ) );
+	}
+);
 if ( $deal_edit_id > 0 ) {
 	foreach ( $deals as $deal_row ) {
 		if ( (int) ( $deal_row['id'] ?? 0 ) === $deal_edit_id ) {
@@ -158,6 +204,92 @@ get_header();
           <article class="card-shell slider-card crm-client-kpi-card"><p class="pill pill--outline"><?php esc_html_e( 'Deals', 'hello-elementor-child' ); ?></p><h3><?php echo esc_html( (string) $deals_count ); ?></h3></article>
           <article class="card-shell slider-card crm-client-kpi-card"><p class="pill pill--outline"><?php esc_html_e( 'Last activity', 'hello-elementor-child' ); ?></p><h3><?php echo esc_html( $last_activity ); ?></h3></article>
         </div>
+
+        <article class="card-shell crm-client-section crm-client-panel--full">
+          <header class="section-header">
+            <h3><?php esc_html_e( 'Tasks / Reminders', 'hello-elementor-child' ); ?></h3>
+          </header>
+          <div class="crm-client-reminders-grid">
+            <section>
+              <p class="pill pill--outline"><?php esc_html_e( 'Today', 'hello-elementor-child' ); ?></p>
+              <ul class="crm-list">
+                <?php if ( empty( $today_reminders ) ) : ?>
+                <li><?php esc_html_e( 'No reminders due today.', 'hello-elementor-child' ); ?></li>
+                <?php else : ?>
+                  <?php foreach ( $today_reminders as $reminder_row ) : ?>
+                    <?php
+                    $due_label = (string) ( $reminder_row['due_at'] ?? '' );
+                    $due_ts    = '' !== $due_label ? strtotime( $due_label ) : 0;
+                    if ( $due_ts > 0 ) {
+						$due_label = wp_date( get_option( 'date_format' ) . ' ' . get_option( 'time_format' ), $due_ts );
+                    }
+                    ?>
+                  <li>
+                    <span class="pill pill--outline"><?php echo esc_html( $due_label ); ?></span>
+                    <p><?php echo esc_html( (string) ( $reminder_row['note'] ?? '' ) ); ?></p>
+                    <?php if ( ! empty( $reminder_row['id'] ) ) : ?>
+                    <form class="crm-task-action" method="post" action="<?php echo esc_url( home_url( '/wp-admin/admin-post.php' ) ); ?>">
+                      <input type="hidden" name="action" value="peracrm_update_reminder_status">
+                      <input type="hidden" name="peracrm_reminder_id" value="<?php echo esc_attr( (string) absint( $reminder_row['id'] ) ); ?>">
+                      <input type="hidden" name="peracrm_status" value="done">
+                      <input type="hidden" name="peracrm_redirect" value="<?php echo esc_url( $frontend_url ); ?>">
+                      <input type="hidden" name="peracrm_context" value="frontend">
+                      <?php wp_nonce_field( 'peracrm_update_reminder_status', 'peracrm_update_reminder_status_nonce' ); ?>
+                      <button type="submit" class="btn btn--ghost btn--blue crm-task-done-btn"><?php esc_html_e( 'Done', 'hello-elementor-child' ); ?></button>
+                    </form>
+                    <?php endif; ?>
+                  </li>
+                  <?php endforeach; ?>
+                <?php endif; ?>
+              </ul>
+            </section>
+
+            <section>
+              <p class="pill pill--red"><?php esc_html_e( 'Overdue', 'hello-elementor-child' ); ?></p>
+              <ul class="crm-list">
+                <?php if ( empty( $overdue_task_rows ) ) : ?>
+                <li><?php esc_html_e( 'No overdue reminders.', 'hello-elementor-child' ); ?></li>
+                <?php else : ?>
+                  <?php foreach ( $overdue_task_rows as $reminder_row ) : ?>
+                    <?php
+                    $due_label = (string) ( $reminder_row['due_at'] ?? '' );
+                    $due_ts    = '' !== $due_label ? strtotime( $due_label ) : 0;
+                    if ( $due_ts > 0 ) {
+						$due_label = wp_date( get_option( 'date_format' ) . ' ' . get_option( 'time_format' ), $due_ts );
+                    }
+                    ?>
+                  <li>
+                    <span class="pill pill--red"><?php echo esc_html( $due_label ); ?></span>
+                    <p><?php echo esc_html( (string) ( $reminder_row['note'] ?? '' ) ); ?></p>
+                    <?php if ( ! empty( $reminder_row['id'] ) ) : ?>
+                    <form class="crm-task-action" method="post" action="<?php echo esc_url( home_url( '/wp-admin/admin-post.php' ) ); ?>">
+                      <input type="hidden" name="action" value="peracrm_update_reminder_status">
+                      <input type="hidden" name="peracrm_reminder_id" value="<?php echo esc_attr( (string) absint( $reminder_row['id'] ) ); ?>">
+                      <input type="hidden" name="peracrm_status" value="done">
+                      <input type="hidden" name="peracrm_redirect" value="<?php echo esc_url( $frontend_url ); ?>">
+                      <input type="hidden" name="peracrm_context" value="frontend">
+                      <?php wp_nonce_field( 'peracrm_update_reminder_status', 'peracrm_update_reminder_status_nonce' ); ?>
+                      <button type="submit" class="btn btn--ghost btn--blue crm-task-done-btn"><?php esc_html_e( 'Done', 'hello-elementor-child' ); ?></button>
+                    </form>
+                    <?php endif; ?>
+                  </li>
+                  <?php endforeach; ?>
+                <?php endif; ?>
+              </ul>
+            </section>
+          </div>
+          <form id="crm-add-reminder" method="post" action="<?php echo esc_url( home_url( '/wp-admin/admin-post.php' ) ); ?>" class="crm-form-stack">
+            <?php wp_nonce_field( 'peracrm_add_reminder', 'peracrm_add_reminder_nonce' ); ?>
+            <input type="hidden" name="action" value="peracrm_add_reminder" />
+            <input type="hidden" name="peracrm_client_id" value="<?php echo esc_attr( (string) $client_id ); ?>" />
+            <input type="hidden" name="peracrm_redirect" value="<?php echo esc_url( $frontend_url ); ?>" />
+            <div class="crm-form-row-2">
+              <label><?php esc_html_e( 'Due date & time', 'hello-elementor-child' ); ?><input type="datetime-local" name="peracrm_due_at" required /></label>
+              <label><?php esc_html_e( 'Reminder note', 'hello-elementor-child' ); ?><textarea name="peracrm_reminder_note" rows="2" maxlength="5000" placeholder="<?php echo esc_attr__( 'Add a reminder note…', 'hello-elementor-child' ); ?>"></textarea></label>
+            </div>
+            <button type="submit" class="btn btn--solid btn--blue"><?php esc_html_e( 'Add reminder', 'hello-elementor-child' ); ?></button>
+          </form>
+        </article>
 
         <div class="crm-client-panels-grid">
           <article class="card-shell crm-client-section">
@@ -455,8 +587,16 @@ get_header();
         </div>
 
 	  <?php endif; ?>
-    </div>
-  </section>
+	    </div>
+	  </section>
+
+	  <?php if ( ! empty( $access['allowed'] ) ) : ?>
+	  <a href="#crm-add-reminder" class="crm-floating-add-task" aria-label="<?php esc_attr_e( 'Add task', 'hello-elementor-child' ); ?>">
+		<svg class="icon" aria-hidden="true">
+		  <use href="<?php echo esc_url( get_stylesheet_directory_uri() . '/logos-icons/icons.svg#icon-check' ); ?>"></use>
+		</svg>
+	  </a>
+	  <?php endif; ?>
 </main>
 
 <?php get_footer(); ?>
