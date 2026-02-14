@@ -142,6 +142,10 @@ function peracrm_upgrade_schema_to($target_version, $installed_version = 0)
         dbDelta($sql_party);
         dbDelta($sql_deals);
 
+        if (function_exists('peracrm_push_log_create_table')) {
+            peracrm_push_log_create_table();
+        }
+
         $closed_reason_exists = $wpdb->get_var($wpdb->prepare("SHOW COLUMNS FROM {$deals_table} LIKE %s", 'closed_reason'));
         if (!$closed_reason_exists) {
             $wpdb->query("ALTER TABLE {$deals_table} ADD COLUMN closed_reason VARCHAR(32) NOT NULL DEFAULT 'none' AFTER stage");

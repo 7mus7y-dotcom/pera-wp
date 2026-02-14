@@ -9,7 +9,7 @@ if (!defined('ABSPATH')) {
 }
 
 define('PERACRM_VERSION', '0.1.0');
-define('PERACRM_SCHEMA_VERSION', 4);
+define('PERACRM_SCHEMA_VERSION', 5);
 
 if (!defined('PERACRM_MAIN_FILE')) {
     define('PERACRM_MAIN_FILE', __FILE__);

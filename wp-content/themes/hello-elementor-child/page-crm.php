@@ -92,6 +92,19 @@ get_header();
 
   <section class="content-panel content-panel--overlap-hero">
     <div class="content-panel-box border-dm">
+      <?php if ( is_user_logged_in() ) : ?>
+      <section class="section" aria-label="<?php echo esc_attr__( 'Push notifications', 'hello-elementor-child' ); ?>">
+        <article class="card-shell" data-crm-push-card>
+          <p class="pill pill--outline"><?php echo esc_html__( 'Notifications', 'hello-elementor-child' ); ?></p>
+          <h2><?php echo esc_html__( 'Reminder Push Notifications', 'hello-elementor-child' ); ?></h2>
+          <p data-crm-push-status><?php echo esc_html__( 'Checking push notification status…', 'hello-elementor-child' ); ?></p>
+          <div class="crm-task-action" style="display:flex;gap:8px;flex-wrap:wrap;">
+            <button type="button" class="btn btn--ghost btn--blue" data-crm-push-enable><?php echo esc_html__( 'Enable Push Notifications', 'hello-elementor-child' ); ?></button>
+            <button type="button" class="btn btn--ghost" data-crm-push-disable disabled><?php echo esc_html__( 'Disable on this device', 'hello-elementor-child' ); ?></button>
+          </div>
+        </article>
+      </section>
+      <?php endif; ?>
 		<?php if ( ! $is_leads && ! $is_tasks ) : ?>
       <?php if ( ! empty( $notices ) ) : ?>
       <section class="section" aria-label="<?php echo esc_attr__( 'CRM notices', 'hello-elementor-child' ); ?>">
