@@ -43,6 +43,71 @@ function peracrm_reminder_add($client_id, $advisor_user_id, $due_at, $note)
     return peracrm_reminders_insert_fallback($client_id, $advisor_user_id, $due_at, $note);
 }
 
+function peracrm_debug_reminders_tz_log($raw_input, $detected_format, $parsed_datetime, $stored_datetime)
+{
+    if (!defined('PERA_CRM_DEBUG_REMINDERS_TZ') || !PERA_CRM_DEBUG_REMINDERS_TZ || !current_user_can('manage_options')) {
+        return;
+    }
+
+    $timezone = wp_timezone();
+    $parsed_tz = $parsed_datetime instanceof DateTimeInterface ? $parsed_datetime->getTimezone()->getName() : '';
+
+    error_log(
+        sprintf(
+            '[PERA CRM reminders tz] raw=%s format=%s parsed=%s parsed_tz=%s stored=%s wp_tz=%s now_local=%s now_utc=%s',
+            sanitize_text_field((string) $raw_input),
+            sanitize_key((string) $detected_format),
+            $parsed_datetime instanceof DateTimeInterface ? $parsed_datetime->format(DateTimeInterface::ATOM) : '',
+            sanitize_text_field($parsed_tz),
+            sanitize_text_field((string) $stored_datetime),
+            sanitize_text_field($timezone->getName()),
+            current_time('mysql'),
+            current_time('mysql', true)
+        )
+    );
+}
+
+function peracrm_parse_due_at_input($raw)
+{
+    $raw = sanitize_text_field((string) $raw);
+    $raw = trim($raw);
+    if ($raw === '') {
+        return '';
+    }
+
+    $timezone = wp_timezone();
+    $detected_format = '';
+    $parsed = false;
+
+    if (preg_match('/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}$/', $raw) === 1) {
+        $detected_format = 'datetime_local';
+        $parsed = DateTimeImmutable::createFromFormat('Y-m-d\TH:i', $raw, $timezone);
+    } elseif (preg_match('/^\d{4}-\d{2}-\d{2} \d{2}:\d{2}$/', $raw) === 1) {
+        $detected_format = 'mysql_minutes';
+        $parsed = DateTimeImmutable::createFromFormat('Y-m-d H:i', $raw, $timezone);
+    } elseif (preg_match('/^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}$/', $raw) === 1) {
+        $detected_format = 'mysql_seconds';
+        $parsed = DateTimeImmutable::createFromFormat('Y-m-d H:i:s', $raw, $timezone);
+    } elseif (preg_match('/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}(:\d{2})?(\.\d+)?([+-]\d{2}:?\d{2}|Z)$/', $raw) === 1) {
+        $detected_format = 'iso8601_tz';
+        try {
+            $parsed = new DateTimeImmutable($raw);
+        } catch (Exception $e) {
+            $parsed = false;
+        }
+    }
+
+    if (!$parsed instanceof DateTimeImmutable) {
+        peracrm_debug_reminders_tz_log($raw, $detected_format !== '' ? $detected_format : 'invalid', null, '');
+        return '';
+    }
+
+    $stored = $parsed->setTimezone($timezone)->format('Y-m-d H:i:s');
+    peracrm_debug_reminders_tz_log($raw, $detected_format, $parsed, $stored);
+
+    return $stored;
+}
+
 function peracrm_reminder_update_status($reminder_id, $status, $actor_user_id)
 {
     $reminder_id = (int) $reminder_id;
@@ -427,12 +492,7 @@ function peracrm_reminders_sanitize_status($status)
 
 function peracrm_reminders_sanitize_due_at($due_at)
 {
-    $due_at = sanitize_text_field($due_at);
-    if ($due_at === '') {
-        return '';
-    }
-
-    return $due_at;
+    return peracrm_parse_due_at_input($due_at);
 }
 
 function peracrm_reminders_sanitize_note($note, $max_length)
