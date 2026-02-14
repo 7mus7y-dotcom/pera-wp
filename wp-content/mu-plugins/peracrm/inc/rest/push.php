@@ -91,6 +91,11 @@ function peracrm_rest_can_access_push(WP_REST_Request $request)
         return new WP_Error('peracrm_forbidden', 'Authentication required.', ['status' => 401]);
     }
 
+    $user_id = get_current_user_id();
+    if ($user_id <= 0 || !function_exists('peracrm_user_can_access_crm') || !peracrm_user_can_access_crm($user_id)) {
+        return new WP_Error('peracrm_forbidden', 'CRM access required.', ['status' => 403]);
+    }
+
     $nonce = (string) $request->get_header('X-WP-Nonce');
     if ($nonce === '') {
         $nonce = (string) $request->get_param('_wpnonce');

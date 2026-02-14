@@ -958,7 +958,7 @@ add_action( 'wp_enqueue_scripts', function () {
     'peraCrmPush',
     array(
       'swUrl'          => esc_url_raw( home_url( '/peracrm-sw.js' ) ),
-      'vapidPublicKey' => (string) ( $public_key['public_key'] ?? '' ),
+      'vapidPublicKey' => defined( 'PERACRM_VAPID_PUBLIC_KEY' ) ? (string) PERACRM_VAPID_PUBLIC_KEY : (string) ( $public_key['public_key'] ?? '' ),
       'subscribeUrl'   => esc_url_raw( rest_url( 'peracrm/v1/push/subscribe' ) ),
       'unsubscribeUrl' => esc_url_raw( rest_url( 'peracrm/v1/push/unsubscribe' ) ),
       'nonce'          => wp_create_nonce( 'wp_rest' ),
