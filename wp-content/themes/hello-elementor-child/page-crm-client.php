@@ -205,7 +205,7 @@ get_header();
           <article class="card-shell slider-card crm-client-kpi-card"><p class="pill pill--outline"><?php esc_html_e( 'Last activity', 'hello-elementor-child' ); ?></p><h3><?php echo esc_html( $last_activity ); ?></h3></article>
         </div>
 
-        <article class="card-shell crm-client-section crm-client-panel--full">
+        <article class="card-shell crm-client-section crm-client-panel--full crm-client-reminders">
           <header class="section-header">
             <h3><?php esc_html_e( 'Tasks / Reminders', 'hello-elementor-child' ); ?></h3>
           </header>
