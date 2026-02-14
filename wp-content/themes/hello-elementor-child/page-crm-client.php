@@ -91,9 +91,10 @@ $deal_form_mode = 'create';
 
 $today_reminders   = array();
 $overdue_task_rows = array();
-$now_timestamp     = current_time( 'timestamp' );
-$today_start_ts    = strtotime( date( 'Y-m-d 00:00:00', $now_timestamp ) );
-$today_end_ts      = strtotime( date( 'Y-m-d 23:59:59', $now_timestamp ) );
+$timezone          = wp_timezone();
+$now_local         = current_datetime();
+$today_start_ts    = $now_local->setTime( 0, 0, 0 )->getTimestamp();
+$today_end_ts      = $now_local->setTime( 23, 59, 59 )->getTimestamp();
 
 foreach ( $reminders as $reminder_row ) {
 	if ( ! is_array( $reminder_row ) ) {
@@ -106,7 +107,11 @@ foreach ( $reminders as $reminder_row ) {
 	}
 
 	$due_at = (string) ( $reminder_row['due_at'] ?? '' );
-	$due_ts = '' !== $due_at ? strtotime( $due_at ) : 0;
+	$due_dt = DateTimeImmutable::createFromFormat( 'Y-m-d H:i:s', $due_at, $timezone );
+	if ( false === $due_dt ) {
+		$due_dt = DateTimeImmutable::createFromFormat( 'Y-m-d H:i', $due_at, $timezone );
+	}
+	$due_ts = $due_dt instanceof DateTimeImmutable ? $due_dt->getTimestamp() : 0;
 	if ( $due_ts <= 0 ) {
 		continue;
 	}
@@ -219,7 +224,11 @@ get_header();
                   <?php foreach ( $today_reminders as $reminder_row ) : ?>
                     <?php
                     $due_label = (string) ( $reminder_row['due_at'] ?? '' );
-                    $due_ts    = '' !== $due_label ? strtotime( $due_label ) : 0;
+					$due_dt    = DateTimeImmutable::createFromFormat( 'Y-m-d H:i:s', $due_label, $timezone );
+					if ( false === $due_dt ) {
+						$due_dt = DateTimeImmutable::createFromFormat( 'Y-m-d H:i', $due_label, $timezone );
+					}
+					$due_ts = $due_dt instanceof DateTimeImmutable ? $due_dt->getTimestamp() : 0;
                     if ( $due_ts > 0 ) {
 						$due_label = wp_date( get_option( 'date_format' ) . ' ' . get_option( 'time_format' ), $due_ts );
                     }
@@ -253,7 +262,11 @@ get_header();
                   <?php foreach ( $overdue_task_rows as $reminder_row ) : ?>
                     <?php
                     $due_label = (string) ( $reminder_row['due_at'] ?? '' );
-                    $due_ts    = '' !== $due_label ? strtotime( $due_label ) : 0;
+					$due_dt    = DateTimeImmutable::createFromFormat( 'Y-m-d H:i:s', $due_label, $timezone );
+					if ( false === $due_dt ) {
+						$due_dt = DateTimeImmutable::createFromFormat( 'Y-m-d H:i', $due_label, $timezone );
+					}
+					$due_ts = $due_dt instanceof DateTimeImmutable ? $due_dt->getTimestamp() : 0;
                     if ( $due_ts > 0 ) {
 						$due_label = wp_date( get_option( 'date_format' ) . ' ' . get_option( 'time_format' ), $due_ts );
                     }

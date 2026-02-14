@@ -158,7 +158,7 @@ function peracrm_reminders_count_overdue_by_client($client_id)
             continue;
         }
         $due_at = isset($reminder['due_at']) ? $reminder['due_at'] : '';
-        $due_ts = $due_at ? strtotime($due_at) : 0;
+        $due_ts = peracrm_reminders_local_datetime_to_ts($due_at);
         if ($due_ts && $due_ts < $now) {
             $count++;
         }
@@ -166,6 +166,25 @@ function peracrm_reminders_count_overdue_by_client($client_id)
 
     $cache[$client_id] = $count;
     return $count;
+}
+
+function peracrm_reminders_local_datetime_to_ts($due_at)
+{
+    $due_at = sanitize_text_field((string) $due_at);
+    if ($due_at === '') {
+        return 0;
+    }
+
+    $timezone = wp_timezone();
+    $formats = ['Y-m-d H:i:s', 'Y-m-d H:i'];
+    foreach ($formats as $format) {
+        $date = date_create_from_format($format, $due_at, $timezone);
+        if ($date instanceof DateTimeInterface) {
+            return $date->getTimestamp();
+        }
+    }
+
+    return 0;
 }
 
 function peracrm_reminders_count_open_by_client_ids($client_ids, $advisor_user_id = null)
