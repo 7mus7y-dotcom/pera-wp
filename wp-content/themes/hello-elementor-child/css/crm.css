@@ -723,6 +723,24 @@
 
   .crm-client-reminders-grid {
     grid-template-columns: 1fr;
+    gap: 8px;
+  }
+
+  .crm-page--client-view .crm-client-reminders-grid .crm-list {
+    gap: 6px;
+  }
+
+  .crm-page--client-view .crm-client-reminders-grid .crm-list li {
+    padding: 6px 0;
+  }
+
+  .crm-page--client-view .crm-client-reminders-grid .crm-list li p {
+    margin: 0;
+  }
+
+  .crm-page--client-view .crm-client-reminders-grid .crm-list li .hero-pills {
+    margin-top: 4px;
+    gap: 6px;
   }
 }
 
