@@ -957,14 +957,18 @@ add_action( 'wp_enqueue_scripts', function () {
     'pera-crm-push',
     'peraCrmPush',
     array(
-      'swUrl'          => esc_url_raw( home_url( '/peracrm-sw.js' ) ),
-      'vapidPublicKey' => defined( 'PERACRM_VAPID_PUBLIC_KEY' ) ? (string) PERACRM_VAPID_PUBLIC_KEY : (string) ( $public_key['public_key'] ?? '' ),
-      'subscribeUrl'   => esc_url_raw( rest_url( 'peracrm/v1/push/subscribe' ) ),
-      'unsubscribeUrl' => esc_url_raw( rest_url( 'peracrm/v1/push/unsubscribe' ) ),
-      'digestRunUrl'   => esc_url_raw( rest_url( 'peracrm/v1/push/digest/run' ) ),
-      'canRunDigest'   => function_exists( 'peracrm_push_user_can_run_digest' ) ? (bool) peracrm_push_user_can_run_digest( get_current_user_id() ) : false,
+      'swUrl'          => esc_url_raw( (string) ( $public_key['swUrl'] ?? home_url( '/peracrm-sw.js' ) ) ),
+      'publicKey'      => (string) ( $public_key['publicKey'] ?? ( defined( 'PERACRM_VAPID_PUBLIC_KEY' ) ? (string) PERACRM_VAPID_PUBLIC_KEY : '' ) ),
+      'subscribeUrl'   => esc_url_raw( (string) ( $public_key['subscribeUrl'] ?? rest_url( 'peracrm/v1/push/subscribe' ) ) ),
+      'unsubscribeUrl' => esc_url_raw( (string) ( $public_key['unsubscribeUrl'] ?? rest_url( 'peracrm/v1/push/unsubscribe' ) ) ),
+      'digestRunUrl'   => esc_url_raw( (string) ( $public_key['digestRunUrl'] ?? rest_url( 'peracrm/v1/push/digest/run' ) ) ),
+      'debugUrl'       => esc_url_raw( (string) ( $public_key['debugUrl'] ?? rest_url( 'peracrm/v1/push/debug' ) ) ),
+      'canRunDigest'   => isset( $public_key['canRunDigest'] ) ? (bool) $public_key['canRunDigest'] : ( function_exists( 'peracrm_push_user_can_run_digest' ) ? (bool) peracrm_push_user_can_run_digest( get_current_user_id() ) : false ),
+      'isConfigured'   => isset( $public_key['isConfigured'] ) ? (bool) $public_key['isConfigured'] : false,
+      'missingReasons' => isset( $public_key['missingReasons'] ) && is_array( $public_key['missingReasons'] ) ? $public_key['missingReasons'] : array(),
       'debug'          => function_exists( 'peracrm_push_debug_snapshot' ) ? peracrm_push_debug_snapshot( get_current_user_id() ) : array(),
-      'nonce'          => wp_create_nonce( 'wp_rest' ),
+      'clickUrl'       => (string) ( $public_key['clickUrl'] ?? '/crm/tasks/' ),
+      'restNonce'      => wp_create_nonce( 'wp_rest' ),
     )
   );
 }, 45 );

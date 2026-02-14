@@ -6,6 +6,7 @@
   }
 
   const config = window.peraCrmPush;
+  const SW_URL = config.swUrl || '/peracrm-sw.js';
   const card = document.querySelector('[data-crm-push-card]');
   if (!card) {
     return;
@@ -15,9 +16,11 @@
   const swStatusEl = card.querySelector('[data-crm-push-sw-status]');
   const cronHealthEl = card.querySelector('[data-crm-push-cron-health]');
   const digestResultEl = card.querySelector('[data-crm-push-digest-result]');
+  const diagnosticsEl = card.querySelector('[data-crm-push-diagnostics]');
   const enableBtn = card.querySelector('[data-crm-push-enable]');
   const disableBtn = card.querySelector('[data-crm-push-disable]');
   const runDigestBtn = card.querySelector('[data-crm-push-run-digest]');
+  const refreshDiagnosticsBtn = card.querySelector('[data-crm-push-refresh-diagnostics]');
 
   const STATUS_VARIANTS = ['pill--outline', 'pill--green', 'pill--red'];
 
@@ -52,16 +55,13 @@
     }
   }
 
-  async function postJson(url, body) {
-    const response = await fetch(url, {
-      method: 'POST',
+  async function requestJson(url, options) {
+    const response = await fetch(url, Object.assign({
       headers: {
-        'Content-Type': 'application/json',
-        'X-WP-Nonce': config.nonce || ''
+        'X-WP-Nonce': config.restNonce || ''
       },
-      credentials: 'same-origin',
-      body: JSON.stringify(body || {})
-    });
+      credentials: 'same-origin'
+    }, options || {}));
 
     if (!response.ok) {
       throw new Error('Request failed: ' + response.status);
@@ -70,12 +70,24 @@
     return response.json();
   }
 
+  async function postJson(url, body) {
+    return requestJson(url, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-WP-Nonce': config.restNonce || ''
+      },
+      credentials: 'same-origin',
+      body: JSON.stringify(body || {})
+    });
+  }
+
   function supportsPushSetup() {
     return 'serviceWorker' in navigator && 'PushManager' in window && 'Notification' in window;
   }
 
   async function getRegistration() {
-    return navigator.serviceWorker.register(config.swUrl || '/peracrm-sw.js');
+    return navigator.serviceWorker.register(SW_URL);
   }
 
   async function getCurrentSubscription() {
@@ -103,11 +115,77 @@
       return;
     }
 
-    const registration = await navigator.serviceWorker.getRegistration(config.swUrl || '/peracrm-sw.js');
+    const targetSwPath = SW_URL.replace(window.location.origin, '');
+    let registration = null;
+
+    if (navigator.serviceWorker.getRegistrations) {
+      const registrations = await navigator.serviceWorker.getRegistrations();
+      registration = registrations.find(function (item) {
+        return item && item.active && item.active.scriptURL && item.active.scriptURL.indexOf(targetSwPath) !== -1;
+      }) || null;
+    }
+
+    if (!registration) {
+      registration = await navigator.serviceWorker.getRegistration();
+    }
+
     const controller = navigator.serviceWorker.controller;
     const scope = registration && registration.scope ? registration.scope : 'none';
     const active = registration && registration.active ? 'yes' : 'no';
-    swStatusEl.textContent = 'Service worker: registered ' + (registration ? 'yes' : 'no') + ', active ' + active + ', controlled ' + (controller ? 'yes' : 'no') + ', scope ' + scope + '.';
+    const controlled = controller ? 'yes' : 'no';
+    let hint = '';
+    if (registration && !controller) {
+      hint = ' Reload once to activate within scope (/).';
+    }
+
+    swStatusEl.textContent = 'Service worker: registered ' + (registration ? 'yes' : 'no') + ', active ' + active + ', controlled ' + controlled + ', scope ' + scope + '.' + hint;
+  }
+
+  function renderDiagnosticsSummary(debug) {
+    if (!diagnosticsEl) {
+      return;
+    }
+
+    const subs = debug && typeof debug.subs_count !== 'undefined' ? debug.subs_count : 'n/a';
+    const lastDigest = debug && debug.last_digest_meta ? debug.last_digest_meta : 'none';
+    const missingReasons = Array.isArray(debug && debug.missingReasons) ? debug.missingReasons : [];
+    const missingText = missingReasons.length > 0 ? ' missing(' + missingReasons.join('; ') + ')' : '';
+    const cron = debug && debug.cron ? debug.cron : {};
+    const next = cron.next_scheduled_local || 'not scheduled';
+    const logs = Array.isArray(debug && debug.push_log_recent) ? debug.push_log_recent : [];
+    const statuses = logs.map(function (row) {
+      return String(row.status_code || 0);
+    });
+    diagnosticsEl.hidden = false;
+    diagnosticsEl.textContent = 'Diagnostics: subs ' + subs + ', last digest meta ' + lastDigest + ', cron next ' + next + ', last status codes [' + statuses.join(', ') + '].' + missingText;
+  }
+
+  async function refreshDiagnostics() {
+    if (!refreshDiagnosticsBtn || !config.debugUrl) {
+      return;
+    }
+
+    refreshDiagnosticsBtn.disabled = true;
+    if (diagnosticsEl) {
+      diagnosticsEl.hidden = false;
+      diagnosticsEl.textContent = 'Refreshing diagnostics…';
+    }
+
+    try {
+      const response = await requestJson(config.debugUrl, { method: 'GET' });
+      const debug = response.debug || {};
+      config.debug = config.debug || {};
+      config.debug.cron = debug.cron || {};
+      renderCronHealth();
+      renderDiagnosticsSummary(debug);
+    } catch (error) {
+      if (diagnosticsEl) {
+        diagnosticsEl.hidden = false;
+        diagnosticsEl.textContent = 'Unable to load push diagnostics right now.';
+      }
+    } finally {
+      refreshDiagnosticsBtn.disabled = false;
+    }
   }
 
   function showDigestButton() {
@@ -117,6 +195,9 @@
 
     if (config.canRunDigest) {
       runDigestBtn.hidden = false;
+    }
+    if (refreshDiagnosticsBtn) {
+      refreshDiagnosticsBtn.hidden = false;
     }
   }
 
@@ -132,9 +213,18 @@
     try {
       const response = await postJson(config.digestRunUrl, {});
       const summary = response.summary || {};
-      digestResultEl.textContent = 'Digest window ' + (summary.window_key || 'n/a') + ': attempted ' + (summary.pushes_attempted || 0) + ', sent ' + (summary.pushes_sent || 0) + ', rows ' + (summary.rows_considered || 0) + '.';
+      const skipped = summary.skipped || {};
+      const sendReason = summary.last_send_error_reason ? ' Reason: ' + summary.last_send_error_reason : '';
+      digestResultEl.textContent = 'Digest window ' + (summary.window_key || 'n/a') + ': attempted ' + (summary.pushes_attempted || 0) + ', sent ' + (summary.pushes_sent || 0) + ', rows ' + (summary.rows_considered || 0) + ', skipped(no subs ' + (skipped.no_subs || 0) + ', deduped ' + (skipped.deduped || 0) + ', send error ' + (skipped.send_error || 0) + ', table missing ' + (skipped.table_missing || 0) + ').' + sendReason;
+      if (response.cron) {
+        config.debug = config.debug || {};
+        config.debug.cron = response.cron;
+        renderCronHealth();
+      }
+      await refreshDiagnostics();
     } catch (error) {
-      digestResultEl.textContent = 'Unable to run digest right now.';
+      const missing = Array.isArray(config.missingReasons) && config.missingReasons.length > 0 ? ' Missing: ' + config.missingReasons.join(', ') + '.' : '';
+      digestResultEl.textContent = 'Unable to run digest right now.' + missing;
     } finally {
       runDigestBtn.disabled = false;
     }
@@ -167,8 +257,14 @@
         setButtons(false);
       }
 
+      if (config.isConfigured === false && Array.isArray(config.missingReasons) && config.missingReasons.length > 0) {
+        setStatus('Push server config missing: ' + config.missingReasons.join(', ') + '.', 'pill--red');
+        if (diagnosticsEl) { diagnosticsEl.hidden = false; diagnosticsEl.textContent = 'Missing configuration: ' + config.missingReasons.join(', ') + '.'; }
+      }
+
       renderCronHealth();
       await renderServiceWorkerStatus();
+      await refreshDiagnostics();
     } catch (error) {
       setStatus('Push setup is unavailable in this browser session.', 'pill--red');
       setButtons(false);
@@ -196,7 +292,7 @@
     const registration = await getRegistration();
     await navigator.serviceWorker.ready;
 
-    if (!config.vapidPublicKey) {
+    if (!config.publicKey) {
       setStatus('Push keys are not configured. Please contact an administrator.', 'pill--red');
       return;
     }
@@ -205,7 +301,7 @@
     if (!subscription) {
       subscription = await registration.pushManager.subscribe({
         userVisibleOnly: true,
-        applicationServerKey: urlBase64ToUint8Array(config.vapidPublicKey)
+        applicationServerKey: urlBase64ToUint8Array(config.publicKey)
       });
     }
 
@@ -213,6 +309,7 @@
     setStatus('Push notifications enabled on this device.', 'pill--green');
     setButtons(true);
     await renderServiceWorkerStatus();
+    await refreshDiagnostics();
   }
 
   async function disablePush() {
@@ -236,6 +333,7 @@
     setStatus('Push notifications disabled on this device.', 'pill--outline');
     setButtons(false);
     await renderServiceWorkerStatus();
+    await refreshDiagnostics();
   }
 
   if (enableBtn) {
@@ -257,6 +355,12 @@
   if (runDigestBtn) {
     runDigestBtn.addEventListener('click', function () {
       runDigestNow();
+    });
+  }
+
+  if (refreshDiagnosticsBtn) {
+    refreshDiagnosticsBtn.addEventListener('click', function () {
+      refreshDiagnostics();
     });
   }
 
