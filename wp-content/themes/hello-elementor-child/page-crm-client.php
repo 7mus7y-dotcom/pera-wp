@@ -431,13 +431,6 @@ get_header();
                         <?php if ( ! empty( $item['details_html'] ) ) : ?>
                           <div class="crm-client-timeline__details peracrm-timeline-detail peracrm-timeline-detail--structured"><?php echo wp_kses_post( (string) $item['details_html'] ); ?></div>
                         <?php endif; ?>
-                        <?php if ( current_user_can( 'manage_options' ) ) : ?>
-                          <?php
-                          $event_payload_count = is_array( $item['event_payload'] ?? null ) ? count( (array) $item['event_payload'] ) : 0;
-                          $details_html_length = isset( $item['details_html'] ) ? strlen( trim( wp_strip_all_tags( (string) $item['details_html'] ) ) ) : 0;
-                          ?>
-                          <span class="crm-client-timeline__debug"><?php echo esc_html( sprintf( 'DEBUG payload_fields=%d details_chars=%d', $event_payload_count, $details_html_length ) ); ?></span>
-                        <?php endif; ?>
                         <?php if ( '' !== $item_meta_line ) : ?>
                           <span class="crm-client-timeline__meta"><?php echo esc_html( $item_meta_line ); ?></span>
                         <?php endif; ?>
