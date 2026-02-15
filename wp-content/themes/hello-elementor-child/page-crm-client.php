@@ -573,7 +573,7 @@ get_header();
               <p><?php esc_html_e( 'Are you sure you want to delete this client? This cannot be undone. You can alternatively make it dormant.', 'hello-elementor-child' ); ?></p>
               <div class="crm-danger-dialog__actions">
                 <?php if ( $can_delete_client ) : ?>
-                <form method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>">
+                <form method="post" action="<?php echo esc_url( home_url( '/wp-admin/admin-post.php' ) ); ?>">
                   <?php wp_nonce_field( 'peracrm_delete_client', 'peracrm_delete_client_nonce' ); ?>
                   <input type="hidden" name="action" value="peracrm_delete_client" />
                   <input type="hidden" name="peracrm_client_id" value="<?php echo esc_attr( (string) $client_id ); ?>" />
