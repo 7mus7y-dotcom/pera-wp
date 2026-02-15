@@ -1137,45 +1137,58 @@
 }
 
 /* =========================================================
-   CRM TABLE AUTO WIDTH + NO WRAP FIX
-   Applies only inside CRM views
+   CRM TABLE FIX: NO WRAP + AUTO WIDTH + HORIZONTAL SCROLL
+   (Flat CSS: no SCSS nesting)
    ========================================================= */
 
-.crm-content .crm-table-wrap,
+/* Scope to CRM pages/app wrapper */
+body.page-template-page-crm #crm-app,
+body.page-template-page-crm,
+#crm-app,
+.crm-page {
+  /* scope anchor */
+}
+
+/* Ensure there is a scroll container */
 #crm-app .crm-table-wrap,
-body.page-template-page-crm .crm-table-wrap {
+body.page-template-page-crm .crm-table-wrap,
+.crm-page .crm-table-wrap,
+#crm-app .table-wrap,
+body.page-template-page-crm .table-wrap,
+.crm-page .table-wrap {
   width: 100%;
   overflow-x: auto;
   -webkit-overflow-scrolling: touch;
 }
 
-.crm-content .crm-table-wrap table,
-.crm-content table.crm-table,
-#crm-app .crm-table-wrap table,
-#crm-app table.crm-table,
-body.page-template-page-crm .crm-table-wrap table,
-body.page-template-page-crm table.crm-table {
+/* Make tables grow naturally */
+#crm-app table,
+body.page-template-page-crm table,
+.crm-page table {
   table-layout: auto !important;
-  width: max-content;
-  min-width: 100%;
-  border-collapse: collapse;
+  width: max-content !important;
+  min-width: 100% !important;
 }
 
-.crm-content .crm-table-wrap th,
-.crm-content .crm-table-wrap td,
-.crm-content table.crm-table th,
-.crm-content table.crm-table td,
-#crm-app .crm-table-wrap th,
-#crm-app .crm-table-wrap td,
-#crm-app table.crm-table th,
-#crm-app table.crm-table td,
-body.page-template-page-crm .crm-table-wrap th,
-body.page-template-page-crm .crm-table-wrap td,
-body.page-template-page-crm table.crm-table th,
-body.page-template-page-crm table.crm-table td {
+/* Apply to ALL headers/cells (every column) */
+#crm-app table th,
+#crm-app table td,
+body.page-template-page-crm table th,
+body.page-template-page-crm table td,
+.crm-page table th,
+.crm-page table td {
   white-space: nowrap !important;
-  word-break: normal !important;
   overflow-wrap: normal !important;
+  word-break: normal !important;
+
   width: auto !important;
   max-width: none !important;
+  min-width: 0 !important;
+}
+
+/* If any column sizing is forced via colgroup */
+#crm-app table col,
+body.page-template-page-crm table col,
+.crm-page table col {
+  width: auto !important;
 }

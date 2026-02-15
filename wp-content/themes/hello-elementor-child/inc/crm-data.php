@@ -7,6 +7,47 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
+
+if ( ! function_exists( 'pera_crm_format_date_dmy' ) ) {
+	/**
+	 * Format a timestamp as DD/MM/YY.
+	 */
+	function pera_crm_format_date_dmy( int $timestamp, ?DateTimeZone $timezone = null ): string {
+		if ( $timestamp <= 0 ) {
+			return '';
+		}
+
+		return wp_date( 'd/m/y', $timestamp, $timezone ?: wp_timezone() );
+	}
+}
+
+if ( ! function_exists( 'pera_crm_format_time_hm' ) ) {
+	/**
+	 * Format a timestamp as HH:MM (24-hour).
+	 */
+	function pera_crm_format_time_hm( int $timestamp, ?DateTimeZone $timezone = null ): string {
+		if ( $timestamp <= 0 ) {
+			return '';
+		}
+
+		return wp_date( 'H:i', $timestamp, $timezone ?: wp_timezone() );
+	}
+}
+
+if ( ! function_exists( 'pera_crm_format_datetime_dmy_hm' ) ) {
+	/**
+	 * Format a timestamp as DD/MM/YY HH:MM.
+	 */
+	function pera_crm_format_datetime_dmy_hm( int $timestamp, ?DateTimeZone $timezone = null ): string {
+		if ( $timestamp <= 0 ) {
+			return '';
+		}
+
+		$zone = $timezone ?: wp_timezone();
+		return pera_crm_format_date_dmy( $timestamp, $zone ) . ' ' . pera_crm_format_time_hm( $timestamp, $zone );
+	}
+}
+
 if ( ! function_exists( 'pera_crm_get_pipeline_stages' ) ) {
 	/**
 	 * Get canonical lead pipeline stages.
@@ -451,7 +492,7 @@ if ( ! function_exists( 'pera_crm_get_recent_leads' ) ) {
 				'name'       => get_the_title( $lead_id ),
 				'phone'      => (string) get_post_meta( $lead_id, '_peracrm_phone', true ),
 				'source'     => $source,
-				'enquiry_at' => $created_ts > 0 ? wp_date( get_option( 'date_format' ) . ' ' . get_option( 'time_format' ), $created_ts ) : '',
+				'enquiry_at' => $created_ts > 0 ? pera_crm_format_datetime_dmy_hm( $created_ts ) : '',
 				'url'        => function_exists( 'pera_crm_get_client_view_url' ) ? pera_crm_get_client_view_url( $lead_id ) : home_url( '/crm/client/' . $lead_id . '/' ),
 			);
 
@@ -536,7 +577,7 @@ if ( ! function_exists( 'pera_crm_get_task_rows' ) ) {
 						'reminder_id'   => (int) ( $row['id'] ?? 0 ),
 						'lead_id'       => $lead_id,
 						'lead_name'     => pera_crm_get_lead_name( $lead_id ),
-						'due_date'      => $due_at,
+						'due_date'      => pera_crm_format_datetime_dmy_hm( $due_ts, $timezone ),
 						'reminder_note' => wp_strip_all_tags( (string) ( $row['note'] ?? '' ) ),
 						'last_note'     => '',
 						'status'        => sanitize_key( (string) ( $row['status'] ?? $open_status ) ),
@@ -595,7 +636,7 @@ if ( ! function_exists( 'pera_crm_get_task_rows' ) ) {
 				'reminder_id'   => (int) ( $row['id'] ?? 0 ),
 				'lead_id'       => $lead_id,
 				'lead_name'     => pera_crm_get_lead_name( $lead_id ),
-				'due_date'      => (string) ( $row['due_at'] ?? '' ),
+				'due_date'      => pera_crm_format_datetime_dmy_hm( pera_crm_parse_local_mysql_datetime_to_ts( (string) ( $row['due_at'] ?? '' ), $timezone ), $timezone ),
 				'reminder_note' => wp_strip_all_tags( (string) ( $row['note'] ?? '' ) ),
 				'last_note'     => '',
 				'status'        => $open_status,
@@ -727,7 +768,7 @@ if ( ! function_exists( 'pera_crm_get_tasks_view_data' ) ) {
 				'client_url'    => function_exists( 'pera_crm_get_client_view_url' ) ? pera_crm_get_client_view_url( $client_id ) : home_url( '/crm/client/' . $client_id . '/' ),
 				'due_at'        => $due_at,
 				'due_ts'        => $due_ts,
-				'due_display'   => wp_date( get_option( 'date_format' ) . ' ' . get_option( 'time_format' ), $due_ts, $timezone ),
+				'due_display'   => pera_crm_format_datetime_dmy_hm( $due_ts, $timezone ),
 				'note'          => wp_strip_all_tags( (string) ( $row['note'] ?? '' ) ),
 				'assigned_to'   => $advisor_id > 0 ? ( $advisor_map[ $advisor_id ] ?? sprintf( __( 'User #%d', 'hello-elementor-child' ), $advisor_id ) ) : '',
 				'is_overdue'    => $is_overdue,
@@ -1010,7 +1051,7 @@ if ( ! function_exists( 'pera_crm_get_leads_view_data' ) ) {
 			$party     = isset( $party_map[ $lead_id ] ) && is_array( $party_map[ $lead_id ] ) ? $party_map[ $lead_id ] : array();
 			$health    = function_exists( 'peracrm_client_health_get' ) ? peracrm_client_health_get( $lead_id ) : array();
 			$last_ts   = isset( $health['last_activity_ts'] ) ? (int) $health['last_activity_ts'] : 0;
-			$last_date = $last_ts > 0 ? wp_date( get_option( 'date_format' ), $last_ts ) : '';
+			$last_date = $last_ts > 0 ? pera_crm_format_datetime_dmy_hm( $last_ts ) : '';
 			$source    = sanitize_key( (string) get_post_meta( $lead_id, 'crm_source', true ) );
 			$source    = '' !== $source ? str_replace( '_', ' ', $source ) : '';
 
@@ -1037,9 +1078,9 @@ if ( ! function_exists( 'pera_crm_get_leads_view_data' ) ) {
 				'last_activity_ts' => $last_ts,
 				'source'           => ucwords( $source ),
 				'assigned_to'      => $assigned,
-				'created'          => $created_ts > 0 ? wp_date( get_option( 'date_format' ), $created_ts ) : '',
+				'created'          => $created_ts > 0 ? pera_crm_format_datetime_dmy_hm( $created_ts ) : '',
 				'created_ts'       => $created_ts,
-				'updated'          => $updated_ts > 0 ? wp_date( get_option( 'date_format' ), $updated_ts ) : '',
+				'updated'          => $updated_ts > 0 ? pera_crm_format_datetime_dmy_hm( $updated_ts ) : '',
 				'updated_ts'       => $updated_ts,
 				'derived_type'     => isset( $client_lookup[ $lead_id ] ) ? 'client' : 'lead',
 				'crm_url'          => function_exists( 'pera_crm_get_client_view_url' ) ? pera_crm_get_client_view_url( $lead_id ) : home_url( '/crm/client/' . $lead_id . '/' ),
@@ -1305,7 +1346,7 @@ if ( ! function_exists( 'pera_crm_get_pipeline_view_data' ) ) {
 			$assigned   = function_exists( 'peracrm_client_get_assigned_advisor_id' ) ? (int) peracrm_client_get_assigned_advisor_id( $client_id ) : 0;
 			$health     = function_exists( 'peracrm_client_health_get' ) ? (array) peracrm_client_health_get( $client_id ) : array();
 			$last_ts    = isset( $health['last_activity_ts'] ) ? (int) $health['last_activity_ts'] : 0;
-			$last_label = $last_ts > 0 ? wp_date( get_option( 'date_format' ), $last_ts ) : '';
+			$last_label = $last_ts > 0 ? pera_crm_format_datetime_dmy_hm( $last_ts ) : '';
 
 			if ( '' === $stage_key || ! isset( $board[ $stage_key ] ) ) {
 				$stage_key = $fallback_stage_key;
