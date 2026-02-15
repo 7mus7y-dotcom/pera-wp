@@ -498,6 +498,37 @@ function peracrm_push_get_digest_meta_key($window_key)
     return 'peracrm_push_last_digest_' . sanitize_key((string) $window_key);
 }
 
+function peracrm_push_digest_status_filters($live_statuses = [])
+{
+    $live_statuses = is_array($live_statuses) ? $live_statuses : [];
+    $normalized_live_statuses = [];
+    foreach ($live_statuses as $live_status) {
+        $status_key = sanitize_key((string) $live_status);
+        if ($status_key === '') {
+            continue;
+        }
+        $normalized_live_statuses[] = $status_key;
+    }
+
+    $status_filters = ['pending', 'open'];
+    if (in_array('overdue', $normalized_live_statuses, true)) {
+        $status_filters[] = 'overdue';
+    }
+
+    $status_filters = (array) apply_filters('peracrm_push_digest_status_filters', $status_filters, $normalized_live_statuses);
+
+    $sanitized_filters = [];
+    foreach ($status_filters as $status_filter) {
+        $status_key = sanitize_key((string) $status_filter);
+        if ($status_key === '') {
+            continue;
+        }
+        $sanitized_filters[] = $status_key;
+    }
+
+    return array_values(array_unique($sanitized_filters));
+}
+
 function peracrm_push_build_digest_hash($window_key, $pending_count, $overdue_count, $advisor_user_id, $window_start)
 {
     return md5(implode('|', [
@@ -620,6 +651,7 @@ function peracrm_push_run_digest($args = [])
             ARRAY_A
         );
         $status_by_advisor = [];
+        $live_statuses = [];
         foreach ($status_rows as $status_row) {
             $status_advisor_id = isset($status_row['advisor_user_id']) ? (int) $status_row['advisor_user_id'] : 0;
             $status_key = isset($status_row['status']) ? sanitize_key((string) $status_row['status']) : '';
@@ -627,14 +659,39 @@ function peracrm_push_run_digest($args = [])
             if ($status_advisor_id <= 0 || $status_key === '' || $status_count <= 0) {
                 continue;
             }
+
+            if (!in_array($status_key, $live_statuses, true)) {
+                $live_statuses[] = $status_key;
+            }
+
             if (!isset($status_by_advisor[$status_advisor_id])) {
                 $status_by_advisor[$status_advisor_id] = [];
             }
             $status_by_advisor[$status_advisor_id][$status_key] = $status_count;
         }
 
+        $status_filters = peracrm_push_digest_status_filters($live_statuses);
+        peracrm_push_digest_debug_log('status_filters', [
+            'status_filters' => $status_filters,
+        ]);
+
+        $histogram_logged = 0;
         foreach ($status_by_advisor as $status_advisor_id => $status_counts) {
-            $pending_in_statuses = isset($status_counts['pending']) ? (int) $status_counts['pending'] : 0;
+            if ($histogram_logged >= 3) {
+                break;
+            }
+            peracrm_push_digest_debug_log('status_counts_histogram', [
+                'advisor_user_id' => $status_advisor_id,
+                'status_counts' => $status_counts,
+            ]);
+            $histogram_logged++;
+        }
+
+        foreach ($status_by_advisor as $status_advisor_id => $status_counts) {
+            $pending_in_statuses = 0;
+            foreach ($status_filters as $status_filter) {
+                $pending_in_statuses += isset($status_counts[$status_filter]) ? (int) $status_counts[$status_filter] : 0;
+            }
             if ($pending_in_statuses > 0) {
                 continue;
             }
@@ -651,19 +708,22 @@ function peracrm_push_run_digest($args = [])
             ]);
         }
 
-        $rows = (array) $wpdb->get_results(
-            $wpdb->prepare(
+        $rows = [];
+        if (!empty($status_filters)) {
+            $status_placeholders = implode(', ', array_fill(0, count($status_filters), '%s'));
+            $rows_query = $wpdb->prepare(
                 "SELECT advisor_user_id,
                         COUNT(*) AS pending_count,
                         SUM(CASE WHEN due_at < %s THEN 1 ELSE 0 END) AS overdue_count
                  FROM {$table}
-                 WHERE status = %s
+                 WHERE status IN ({$status_placeholders})
                  GROUP BY advisor_user_id",
-                $now,
-                'pending'
-            ),
-            ARRAY_A
-        );
+                array_merge([$now], $status_filters)
+            );
+            if (is_string($rows_query) && $rows_query !== '') {
+                $rows = (array) $wpdb->get_results($rows_query, ARRAY_A);
+            }
+        }
 
         $summary['rows_considered'] = count($rows);
 
