@@ -140,12 +140,14 @@ function peracrm_rest_push_debug(WP_REST_Request $request)
 
 function peracrm_rest_push_digest_run(WP_REST_Request $request)
 {
+    $force = rest_sanitize_boolean($request->get_param('force'));
     $summary = function_exists('peracrm_push_run_digest_for_current_window')
-        ? peracrm_push_run_digest_for_current_window()
+        ? peracrm_push_run_digest_for_current_window($force)
         : [];
 
     return new WP_REST_Response([
         'ok' => true,
+        'force' => (bool) $force,
         'summary' => is_array($summary) ? $summary : [],
         'cron' => function_exists('peracrm_push_get_cron_health') ? peracrm_push_get_cron_health() : [],
     ]);
