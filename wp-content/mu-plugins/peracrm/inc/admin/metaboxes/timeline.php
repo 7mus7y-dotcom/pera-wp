@@ -401,10 +401,13 @@ function peracrm_timeline_normalize_activity(array $event, array $user_map)
     $detail = '';
     $enquiry_details_html = '';
     $meta = [];
+    $payload_for_context = [];
+
     if (!empty($event['event_payload'])) {
         $payload = peracrm_json_decode($event['event_payload']);
 
         if (is_array($payload)) {
+            $payload_for_context = $payload;
             if ($event_type === 'enquiry') {
                 $detail_parts = [];
 
@@ -458,6 +461,10 @@ function peracrm_timeline_normalize_activity(array $event, array $user_map)
         'meta' => $meta,
         'icon' => 'activity',
     ];
+
+    if (!empty($payload_for_context)) {
+        $item['event_payload'] = $payload_for_context;
+    }
 
     if (!empty($enquiry_details_html)) {
         $item['details_html'] = $enquiry_details_html;
