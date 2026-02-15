@@ -98,39 +98,9 @@ get_header();
   );
   ?>
 
-  <section class="content-panel content-panel--overlap-hero">
-    <div class="content-panel-box border-dm">
-      <?php if ( is_user_logged_in() ) : ?>
-      <section class="section" aria-label="<?php echo esc_attr__( 'Push notifications', 'hello-elementor-child' ); ?>">
-        <article class="card-shell" data-crm-push-card>
-          <p class="pill pill--outline"><?php echo esc_html__( 'Notifications', 'hello-elementor-child' ); ?></p>
-          <h2><?php echo esc_html__( 'Reminder Push Notifications', 'hello-elementor-child' ); ?></h2>
-          <?php if ( '' !== $push_notice_text ) : ?>
-            <p class="pill pill--outline"><?php echo esc_html( $push_notice_text ); ?></p>
-          <?php endif; ?>
-          <p data-crm-push-status><?php echo esc_html__( 'Checking push notification status…', 'hello-elementor-child' ); ?></p>
-          <p class="text-sm" data-crm-push-sw-status><?php echo esc_html__( 'Service worker status: checking…', 'hello-elementor-child' ); ?></p>
-          <p class="text-sm" data-crm-push-cron-health><?php echo esc_html__( 'Digest cron health: checking…', 'hello-elementor-child' ); ?></p>
-          <p class="text-sm" data-crm-push-diagnostics hidden></p>
-          <p class="text-sm" data-crm-push-digest-result hidden></p>
-          <div class="crm-task-action" style="display:flex;gap:8px;flex-wrap:wrap;">
-            <button type="button" class="btn btn--ghost btn--blue" data-crm-push-enable><?php echo esc_html__( 'Enable Push Notifications', 'hello-elementor-child' ); ?></button>
-            <button type="button" class="btn btn--ghost" data-crm-push-disable disabled><?php echo esc_html__( 'Disable on this device', 'hello-elementor-child' ); ?></button>
-            <button type="button" class="btn btn--ghost" data-crm-push-run-digest hidden><?php echo esc_html__( 'Run digest now', 'hello-elementor-child' ); ?></button>
-            <button type="button" class="btn btn--ghost" data-crm-push-refresh-diagnostics hidden><?php echo esc_html__( 'Refresh diagnostics', 'hello-elementor-child' ); ?></button>
-            <?php if ( function_exists( 'peracrm_push_is_configured' ) && peracrm_push_is_configured() ) : ?>
-            <form method="post" action="<?php echo esc_url( home_url( '/wp-admin/admin-post.php' ) ); ?>">
-              <input type="hidden" name="action" value="peracrm_send_test_push">
-              <input type="hidden" name="peracrm_redirect" value="<?php echo esc_url( home_url( '/crm/' ) ); ?>">
-              <?php wp_nonce_field( 'peracrm_send_test_push', 'peracrm_send_test_push_nonce' ); ?>
-              <button type="submit" class="btn btn--ghost"><?php echo esc_html__( 'Send test notification', 'hello-elementor-child' ); ?></button>
-            </form>
-            <?php endif; ?>
-          </div>
-        </article>
-      </section>
-      <?php endif; ?>
-		<?php if ( ! $is_leads && ! $is_tasks ) : ?>
+	  <section class="content-panel content-panel--overlap-hero">
+	    <div class="content-panel-box border-dm">
+			<?php if ( ! $is_leads && ! $is_tasks ) : ?>
       <?php if ( ! empty( $notices ) ) : ?>
       <section class="section" aria-label="<?php echo esc_attr__( 'CRM notices', 'hello-elementor-child' ); ?>">
 				<?php foreach ( $notices as $notice ) : ?>
@@ -282,10 +252,10 @@ get_header();
         </div>
       </section>
 
-      <section class="section" aria-labelledby="crm-pipeline-heading">
-        <header class="section-header">
-          <h2 id="crm-pipeline-heading"><?php echo esc_html__( 'Pipeline Overview', 'hello-elementor-child' ); ?></h2>
-        </header>
+	      <section class="section" aria-labelledby="crm-pipeline-heading">
+	        <header class="section-header">
+	          <h2 id="crm-pipeline-heading"><?php echo esc_html__( 'Pipeline Overview', 'hello-elementor-child' ); ?></h2>
+	        </header>
         <div class="grid-3 crm-kpi-grid cards-slider cards-slider--snap cards-slider--grid-lg" aria-label="<?php echo esc_attr__( 'CRM Pipeline Overview', 'hello-elementor-child' ); ?>">
 				<?php foreach ( $pipeline as $stage ) : ?>
             <article class="card-shell slider-card crm-kpi-card">
@@ -293,11 +263,42 @@ get_header();
               <h3><?php echo esc_html( (string) ( (int) ( $stage['count'] ?? 0 ) ) ); ?></h3>
             </article>
 				<?php endforeach; ?>
-        </div>
-      </section>
+	        </div>
+	      </section>
+
+			<?php if ( is_user_logged_in() ) : ?>
+	      <section class="section" aria-label="<?php echo esc_attr__( 'Push notifications', 'hello-elementor-child' ); ?>">
+	        <article class="card-shell" data-crm-push-card>
+	          <p class="pill pill--outline"><?php echo esc_html__( 'Notifications', 'hello-elementor-child' ); ?></p>
+	          <h2><?php echo esc_html__( 'Reminder Push Notifications', 'hello-elementor-child' ); ?></h2>
+	          <?php if ( '' !== $push_notice_text ) : ?>
+	            <p class="pill pill--outline"><?php echo esc_html( $push_notice_text ); ?></p>
+	          <?php endif; ?>
+	          <p data-crm-push-status><?php echo esc_html__( 'Checking push notification status…', 'hello-elementor-child' ); ?></p>
+	          <p class="text-sm" data-crm-push-sw-status><?php echo esc_html__( 'Service worker status: checking…', 'hello-elementor-child' ); ?></p>
+	          <p class="text-sm" data-crm-push-cron-health><?php echo esc_html__( 'Digest cron health: checking…', 'hello-elementor-child' ); ?></p>
+	          <p class="text-sm" data-crm-push-diagnostics hidden></p>
+	          <p class="text-sm" data-crm-push-digest-result hidden></p>
+	          <div class="crm-task-action" style="display:flex;gap:8px;flex-wrap:wrap;">
+	            <button type="button" class="btn btn--ghost btn--blue" data-crm-push-enable><?php echo esc_html__( 'Enable Push Notifications', 'hello-elementor-child' ); ?></button>
+	            <button type="button" class="btn btn--ghost" data-crm-push-disable disabled><?php echo esc_html__( 'Disable on this device', 'hello-elementor-child' ); ?></button>
+	            <button type="button" class="btn btn--ghost" data-crm-push-run-digest hidden><?php echo esc_html__( 'Run digest now', 'hello-elementor-child' ); ?></button>
+	            <button type="button" class="btn btn--ghost" data-crm-push-refresh-diagnostics hidden><?php echo esc_html__( 'Refresh diagnostics', 'hello-elementor-child' ); ?></button>
+	            <?php if ( function_exists( 'peracrm_push_is_configured' ) && peracrm_push_is_configured() ) : ?>
+	            <form method="post" action="<?php echo esc_url( home_url( '/wp-admin/admin-post.php' ) ); ?>">
+	              <input type="hidden" name="action" value="peracrm_send_test_push">
+	              <input type="hidden" name="peracrm_redirect" value="<?php echo esc_url( home_url( '/crm/' ) ); ?>">
+	              <?php wp_nonce_field( 'peracrm_send_test_push', 'peracrm_send_test_push_nonce' ); ?>
+	              <button type="submit" class="btn btn--ghost"><?php echo esc_html__( 'Send test notification', 'hello-elementor-child' ); ?></button>
+	            </form>
+	            <?php endif; ?>
+	          </div>
+	        </article>
+	      </section>
+	      <?php endif; ?>
 
 
-		<?php elseif ( $is_tasks ) : ?>
+			<?php elseif ( $is_tasks ) : ?>
 			<?php
 			$task_rows      = is_array( $tasks_data['all'] ?? null ) ? $tasks_data['all'] : array();
 			$today_rows     = is_array( $tasks_data['today'] ?? null ) ? $tasks_data['today'] : array();
