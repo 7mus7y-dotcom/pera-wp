@@ -1135,3 +1135,47 @@
     right: 10px;
   }
 }
+
+/* =========================================================
+   CRM TABLE AUTO WIDTH + NO WRAP FIX
+   Applies only inside CRM views
+   ========================================================= */
+
+.crm-content .crm-table-wrap,
+#crm-app .crm-table-wrap,
+body.page-template-page-crm .crm-table-wrap {
+  width: 100%;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+.crm-content .crm-table-wrap table,
+.crm-content table.crm-table,
+#crm-app .crm-table-wrap table,
+#crm-app table.crm-table,
+body.page-template-page-crm .crm-table-wrap table,
+body.page-template-page-crm table.crm-table {
+  table-layout: auto !important;
+  width: max-content;
+  min-width: 100%;
+  border-collapse: collapse;
+}
+
+.crm-content .crm-table-wrap th,
+.crm-content .crm-table-wrap td,
+.crm-content table.crm-table th,
+.crm-content table.crm-table td,
+#crm-app .crm-table-wrap th,
+#crm-app .crm-table-wrap td,
+#crm-app table.crm-table th,
+#crm-app table.crm-table td,
+body.page-template-page-crm .crm-table-wrap th,
+body.page-template-page-crm .crm-table-wrap td,
+body.page-template-page-crm table.crm-table th,
+body.page-template-page-crm table.crm-table td {
+  white-space: nowrap !important;
+  word-break: normal !important;
+  overflow-wrap: normal !important;
+  width: auto !important;
+  max-width: none !important;
+}
