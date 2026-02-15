@@ -154,14 +154,14 @@ get_header();
 
 <main id="primary" class="site-main crm-page crm-page--client-view">
   <?php
-  get_template_part(
-	  'parts/crm-header',
-	  null,
-	  array(
-		  'title' => $client instanceof WP_Post ? get_the_title( $client ) : __( 'Client View', 'hello-elementor-child' ),
-	  )
-  );
-  ?>
+	  get_template_part(
+		  'parts/crm-header',
+		  null,
+		  array(
+			  'title' => __( 'Client View', 'hello-elementor-child' ),
+		  )
+	  );
+	  ?>
 
   <section class="content-panel content-panel--overlap-hero">
     <div class="content-panel-box border-dm">
