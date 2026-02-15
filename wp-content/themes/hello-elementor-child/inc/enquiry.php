@@ -10,6 +10,102 @@ if ( ! defined( 'ABSPATH' ) ) {
   exit;
 }
 
+if ( ! defined( 'PERA_CRM_DEBUG_FORMS' ) ) {
+  define( 'PERA_CRM_DEBUG_FORMS', false );
+}
+
+function pera_forms_get_request_id() {
+  static $request_id = null;
+
+  if ( null !== $request_id ) {
+    return $request_id;
+  }
+
+  if ( function_exists( 'wp_generate_uuid4' ) ) {
+    $request_id = sanitize_key( wp_generate_uuid4() );
+  }
+
+  if ( empty( $request_id ) ) {
+    $request_id = sanitize_key( uniqid( 'pera_forms_', true ) );
+  }
+
+  return $request_id;
+}
+
+function pera_forms_debug_log( $message, array $context = array() ) {
+  if ( ! ( defined( 'PERA_CRM_DEBUG_FORMS' ) && PERA_CRM_DEBUG_FORMS ) ) {
+    return;
+  }
+
+  $context['rid'] = pera_forms_get_request_id();
+
+  $safe_context = array();
+  foreach ( $context as $key => $value ) {
+    $safe_key = sanitize_key( (string) $key );
+    if ( is_scalar( $value ) || null === $value ) {
+      $safe_context[ $safe_key ] = $value;
+    }
+  }
+
+  $line = '[Pera forms] ' . sanitize_text_field( (string) $message ) . ' ' . wp_json_encode( $safe_context );
+
+  $upload_dir = wp_get_upload_dir();
+  $log_dir    = isset( $upload_dir['basedir'] ) ? trailingslashit( $upload_dir['basedir'] ) : '';
+  $log_file   = $log_dir ? $log_dir . 'pera-forms.log' : '';
+
+  if ( $log_dir && ( is_dir( $log_dir ) || wp_mkdir_p( $log_dir ) ) && is_writable( $log_dir ) ) {
+    $can_write_target = ( ! file_exists( $log_file ) && is_writable( $log_dir ) ) || ( file_exists( $log_file ) && is_writable( $log_file ) );
+
+    if ( $can_write_target ) {
+      clearstatcache( true, $log_file );
+      if ( file_exists( $log_file ) && filesize( $log_file ) > 5 * 1024 * 1024 ) {
+        $rotated = $log_dir . 'pera-forms.log.1';
+        if ( file_exists( $rotated ) && is_writable( $rotated ) ) {
+          @unlink( $rotated );
+        }
+        @rename( $log_file, $rotated );
+      }
+
+      @file_put_contents( $log_file, gmdate( 'c' ) . ' ' . $line . PHP_EOL, FILE_APPEND );
+      return;
+    }
+  }
+
+  error_log( $line );
+}
+
+function pera_forms_nonce_failure_redirect( $form_key, $fallback_url, $query_arg, $anchor = '' ) {
+  $redirect = ! empty( $_POST['_wp_http_referer'] )
+    ? esc_url_raw( wp_unslash( $_POST['_wp_http_referer'] ) )
+    : home_url( $fallback_url );
+
+  $redirect = preg_replace( '/#.*$/', '', $redirect );
+  $redirect = add_query_arg(
+    array(
+      $query_arg => 'failed',
+      'reason'   => 'nonce',
+    ),
+    $redirect
+  );
+
+  if ( $anchor ) {
+    $redirect .= $anchor;
+  }
+
+  pera_forms_debug_log(
+    'nonce_redirect',
+    array(
+      'form_key'     => $form_key,
+      'handler'      => __FUNCTION__,
+      'nonce_status' => 'fail',
+      'redirect'     => $redirect,
+    )
+  );
+
+  wp_safe_redirect( $redirect );
+  exit;
+}
+
 /**
  * Auto-reply helpers.
  */
@@ -75,29 +171,54 @@ function pera_send_enquiry_autoreply( $context, $to_email, $subject, array $line
  * Master handler for both Citizenship and Sell/Rent/Property enquiries.
  */
 function pera_handle_citizenship_enquiry() {
+  static $handled = false;
 
   if ( $_SERVER['REQUEST_METHOD'] !== 'POST' ) {
     return;
   }
+
+  $has_enquiry_key = isset( $_POST['sr_action'] ) || isset( $_POST['pera_citizenship_action'] ) || isset( $_POST['fav_enquiry_action'] );
+  if ( ! $has_enquiry_key ) {
+    return;
+  }
+
+  if ( $handled ) {
+    pera_forms_debug_log( 'double_process_guard', array( 'handler' => __FUNCTION__ ) );
+    return;
+  }
+
+  $handled = true;
 
   /* =========================================
    * A) SELL / RENT / PROPERTY ENQUIRY BRANCH
    * Trigger: <input type="hidden" name="sr_action" value="1">
    * ========================================= */
   if ( isset( $_POST['sr_action'] ) ) {
+    pera_forms_debug_log(
+      'handler_hit',
+      array(
+        'form_key' => 'sr_action',
+        'route'    => 'init',
+        'handler'  => __FUNCTION__,
+      )
+    );
 
     // Security: SR nonce
-    if (
-      ! isset( $_POST['sr_nonce'] ) ||
-      ! wp_verify_nonce( $_POST['sr_nonce'], 'pera_seller_landlord_enquiry' )
-    ) {
-      wp_die( 'Security check failed', 'Error', array( 'response' => 403 ) );
+    $sr_nonce = isset( $_POST['sr_nonce'] ) ? sanitize_text_field( wp_unslash( $_POST['sr_nonce'] ) ) : '';
+    if ( '' === $sr_nonce || ! wp_verify_nonce( $sr_nonce, 'pera_seller_landlord_enquiry' ) ) {
+      $failed_context = isset( $_POST['form_context'] ) ? sanitize_text_field( wp_unslash( $_POST['form_context'] ) ) : '';
+      $failed_anchor  = ( 'property' === $failed_context ) ? '#contact-form' : '#contact';
+      pera_forms_debug_log( 'nonce_fail', array( 'form_key' => 'sr_action', 'handler' => __FUNCTION__, 'nonce_status' => '' === $sr_nonce ? 'missing' : 'invalid' ) );
+      pera_forms_nonce_failure_redirect( 'sr_action', '/', 'sr_status', $failed_anchor );
     }
+    pera_forms_debug_log( 'nonce_pass', array( 'form_key' => 'sr_action', 'handler' => __FUNCTION__, 'nonce_status' => 'pass' ) );
 
     // Honeypot check – bots fill this, humans don't
     if ( ! empty( $_POST['sr_company'] ?? '' ) ) {
-      // Fail silently or hard-stop
-      wp_die( 'Spam detected', 403 );
+      pera_forms_debug_log( 'spam_trap', array( 'form_key' => 'sr_action', 'handler' => __FUNCTION__, 'spam_trap' => 'triggered' ) );
+      $redirect = add_query_arg( 'sr_status', 'failed', home_url( '/' ) ) . '#contact';
+      wp_safe_redirect( $redirect );
+      exit;
     }
 
 
@@ -197,6 +318,7 @@ function pera_handle_citizenship_enquiry() {
 
 
     $sent = wp_mail( $to, $subject, $body, $headers );
+    pera_forms_debug_log( 'mail_result', array( 'form_key' => 'sr_action', 'handler' => __FUNCTION__, 'wp_mail' => $sent ? '1' : '0' ) );
 
     if ( $sent && $form_context === 'property' && is_email( $email ) ) {
       $first_name = pera_enquiry_autoreply_first_name( $name );
@@ -225,7 +347,7 @@ function pera_handle_citizenship_enquiry() {
       pera_send_enquiry_autoreply( $auto_context, $email, $auto_subject, $auto_lines );
     }
 
-    // Redirect: base (referer), add sr_success, then force the correct fragment by context.
+    // Redirect: base (referer), add sr_status, then force the correct fragment by context.
     $redirect = ! empty( $_POST['_wp_http_referer'] )
       ? esc_url_raw( wp_unslash( $_POST['_wp_http_referer'] ) )
       : home_url( '/' );
@@ -234,7 +356,7 @@ function pera_handle_citizenship_enquiry() {
     $redirect = preg_replace( '/#.*$/', '', $redirect );
 
     // Append success flag
-    $redirect = add_query_arg( 'sr_success', $sent ? '1' : '0', $redirect );
+    $redirect = add_query_arg( 'sr_status', $sent ? 'sent' : 'failed', $redirect );
 
     // Append fragment
     if ( $form_context === 'property' ) {
@@ -244,6 +366,7 @@ function pera_handle_citizenship_enquiry() {
       $redirect .= '#contact';
     }
 
+    pera_forms_debug_log( 'redirect', array( 'form_key' => 'sr_action', 'handler' => __FUNCTION__, 'redirect' => $redirect ) );
     wp_safe_redirect( $redirect );
     exit;
   }
@@ -253,16 +376,20 @@ function pera_handle_citizenship_enquiry() {
    * Trigger: <input type="hidden" name="fav_enquiry_action" value="1">
    * ============================== */
   if ( isset( $_POST['fav_enquiry_action'] ) ) {
+    pera_forms_debug_log( 'handler_hit', array( 'form_key' => 'fav_enquiry_action', 'route' => 'init', 'handler' => __FUNCTION__ ) );
 
-    if (
-      ! isset( $_POST['fav_nonce'] ) ||
-      ! wp_verify_nonce( $_POST['fav_nonce'], 'pera_favourites_enquiry' )
-    ) {
-      wp_die( 'Security check failed', 'Error', array( 'response' => 403 ) );
+    $fav_nonce = isset( $_POST['fav_nonce'] ) ? sanitize_text_field( wp_unslash( $_POST['fav_nonce'] ) ) : '';
+    if ( '' === $fav_nonce || ! wp_verify_nonce( $fav_nonce, 'pera_favourites_enquiry' ) ) {
+      pera_forms_debug_log( 'nonce_fail', array( 'form_key' => 'fav_enquiry_action', 'handler' => __FUNCTION__, 'nonce_status' => '' === $fav_nonce ? 'missing' : 'invalid' ) );
+      pera_forms_nonce_failure_redirect( 'fav_enquiry_action', '/my-favourites/', 'enquiry', '#favourites-enquiry' );
     }
+    pera_forms_debug_log( 'nonce_pass', array( 'form_key' => 'fav_enquiry_action', 'handler' => __FUNCTION__, 'nonce_status' => 'pass' ) );
 
     if ( ! empty( $_POST['fav_company'] ?? '' ) ) {
-      wp_die( 'Spam detected', 403 );
+      pera_forms_debug_log( 'spam_trap', array( 'form_key' => 'fav_enquiry_action', 'handler' => __FUNCTION__, 'spam_trap' => 'triggered' ) );
+      $redirect = add_query_arg( 'enquiry', 'failed', home_url( '/my-favourites/' ) ) . '#favourites-enquiry';
+      wp_safe_redirect( $redirect );
+      exit;
     }
 
     $raw_ids = $_POST['fav_post_ids'] ?? '';
@@ -365,6 +492,7 @@ function pera_handle_citizenship_enquiry() {
     }
 
     $sent = wp_mail( $to, $subject, $body, $headers );
+    pera_forms_debug_log( 'mail_result', array( 'form_key' => 'fav_enquiry_action', 'handler' => __FUNCTION__, 'wp_mail' => $sent ? '1' : '0' ) );
 
     if ( $sent && is_email( $email ) ) {
       $first = pera_enquiry_autoreply_first_name( $full_name );
@@ -409,6 +537,7 @@ function pera_handle_citizenship_enquiry() {
     $redirect = add_query_arg( 'enquiry', $sent ? 'sent' : 'failed', $redirect );
     $redirect .= '#favourites-enquiry';
 
+    pera_forms_debug_log( 'redirect', array( 'form_key' => 'fav_enquiry_action', 'handler' => __FUNCTION__, 'redirect' => $redirect ) );
     wp_safe_redirect( $redirect );
     exit;
   }
@@ -418,13 +547,14 @@ function pera_handle_citizenship_enquiry() {
    * Trigger: <input type="hidden" name="pera_citizenship_action" value="1">
    * ============================== */
   if ( isset( $_POST['pera_citizenship_action'] ) ) {
+    pera_forms_debug_log( 'handler_hit', array( 'form_key' => 'pera_citizenship_action', 'route' => 'init', 'handler' => __FUNCTION__ ) );
 
-    if (
-      ! isset( $_POST['pera_citizenship_nonce'] ) ||
-      ! wp_verify_nonce( $_POST['pera_citizenship_nonce'], 'pera_citizenship_enquiry' )
-    ) {
-      wp_die( 'Security check failed', 'Error', array( 'response' => 403 ) );
+    $cit_nonce = isset( $_POST['pera_citizenship_nonce'] ) ? sanitize_text_field( wp_unslash( $_POST['pera_citizenship_nonce'] ) ) : '';
+    if ( '' === $cit_nonce || ! wp_verify_nonce( $cit_nonce, 'pera_citizenship_enquiry' ) ) {
+      pera_forms_debug_log( 'nonce_fail', array( 'form_key' => 'pera_citizenship_action', 'handler' => __FUNCTION__, 'nonce_status' => '' === $cit_nonce ? 'missing' : 'invalid' ) );
+      pera_forms_nonce_failure_redirect( 'pera_citizenship_action', '/citizenship-by-investment/', 'enquiry', '#citizenship-form' );
     }
+    pera_forms_debug_log( 'nonce_pass', array( 'form_key' => 'pera_citizenship_action', 'handler' => __FUNCTION__, 'nonce_status' => 'pass' ) );
 
     $name  = isset( $_POST['name'] )  ? sanitize_text_field( wp_unslash( $_POST['name'] ) )  : '';
     $phone = isset( $_POST['phone'] ) ? sanitize_text_field( wp_unslash( $_POST['phone'] ) ) : '';
@@ -458,6 +588,7 @@ function pera_handle_citizenship_enquiry() {
     }
 
     $sent = wp_mail( $to, $subject, $body, $headers );
+    pera_forms_debug_log( 'mail_result', array( 'form_key' => 'pera_citizenship_action', 'handler' => __FUNCTION__, 'wp_mail' => $sent ? '1' : '0' ) );
 
     if ( $sent && is_email( $email ) ) {
       $first_name = pera_enquiry_autoreply_first_name( $name );
@@ -484,6 +615,7 @@ function pera_handle_citizenship_enquiry() {
     $status   = $sent ? 'ok' : 'mail-failed';
     $redirect = home_url( '/citizenship-by-investment/?enquiry=' . $status . '#citizenship-form' );
 
+    pera_forms_debug_log( 'redirect', array( 'form_key' => 'pera_citizenship_action', 'handler' => __FUNCTION__, 'redirect' => $redirect ) );
     wp_safe_redirect( $redirect );
     exit;
   }
@@ -506,3 +638,33 @@ function pera_maybe_handle_citizenship_enquiry() {
   }
 }
 add_action( 'init', 'pera_maybe_handle_citizenship_enquiry' );
+
+function pera_ajax_get_enquiry_nonces() {
+  $ip = '';
+  if ( ! empty( $_SERVER['HTTP_X_FORWARDED_FOR'] ) ) {
+    $parts = explode( ',', sanitize_text_field( wp_unslash( $_SERVER['HTTP_X_FORWARDED_FOR'] ) ) );
+    $ip    = trim( $parts[0] );
+  } elseif ( ! empty( $_SERVER['REMOTE_ADDR'] ) ) {
+    $ip = sanitize_text_field( wp_unslash( $_SERVER['REMOTE_ADDR'] ) );
+  }
+
+  $rate_key = 'pera_enquiry_nonce_refresh_' . md5( $ip );
+  if ( get_transient( $rate_key ) ) {
+    pera_forms_debug_log( 'nonce_refresh_rate_limited', array( 'form_key' => 'public_enquiry_nonce_refresh', 'handler' => __FUNCTION__ ) );
+    wp_send_json_error( array( 'message' => 'Too many requests.' ), 429 );
+  }
+
+  set_transient( $rate_key, 1, 30 );
+
+  $payload = array(
+    'sr_nonce'               => wp_create_nonce( 'pera_seller_landlord_enquiry' ),
+    'fav_nonce'              => wp_create_nonce( 'pera_favourites_enquiry' ),
+    'pera_citizenship_nonce' => wp_create_nonce( 'pera_citizenship_enquiry' ),
+    'generated_at'           => time(),
+  );
+
+  pera_forms_debug_log( 'nonce_refresh', array( 'form_key' => 'public_enquiry_nonce_refresh', 'handler' => __FUNCTION__, 'nonce_status' => 'refresh' ) );
+  wp_send_json_success( $payload );
+}
+add_action( 'wp_ajax_pera_get_enquiry_nonces', 'pera_ajax_get_enquiry_nonces' );
+add_action( 'wp_ajax_nopriv_pera_get_enquiry_nonces', 'pera_ajax_get_enquiry_nonces' );

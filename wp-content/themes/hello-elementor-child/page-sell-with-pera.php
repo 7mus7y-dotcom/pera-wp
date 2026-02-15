@@ -477,7 +477,7 @@ get_header();
 
             <div>
     
-                <?php if ( isset( $_GET['sr_success'] ) && $_GET['sr_success'] === '1' ) : ?>
+                <?php if ( isset( $_GET['sr_status'] ) && $_GET['sr_status'] === 'sent' ) : ?>
                     <div class="form-success">
                         Thank you – we have received your details. A Pera consultant will contact you shortly.
                     </div>

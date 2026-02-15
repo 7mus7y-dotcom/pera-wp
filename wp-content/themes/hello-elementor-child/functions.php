@@ -289,6 +289,13 @@ add_action( 'wp_enqueue_scripts', function () {
   $is_about_new    = is_page_template( 'page-about-new.php' );
   $is_favourites_page = is_page_template( 'page-favourites.php' );
   $is_property_map = is_page_template( 'page-property-map.php' );
+  $is_enquiry_page = is_page_template( 'page-citizenship.php' ) ||
+    is_page_template( 'page-rent-with-pera.php' ) ||
+    is_page_template( 'page-sell-with-pera.php' ) ||
+    is_page_template( 'page-book-a-consultancy.php' ) ||
+    $is_favourites_page ||
+    is_singular( 'property' ) ||
+    is_singular( 'bodrum-property' );
 
 /* =========================
    2) slider.css
@@ -412,6 +419,27 @@ if ( $needs_slider ) {
         'ajax_url'     => admin_url( 'admin-ajax.php' ),
         'nonce'        => wp_create_nonce( 'pera_favourites' ),
         'is_logged_in' => is_user_logged_in(),
+      )
+    );
+  }
+
+  if ( $is_enquiry_page ) {
+    wp_enqueue_script(
+      'pera-enquiry-nonce',
+      get_stylesheet_directory_uri() . '/js/enquiry-nonce.js',
+      array(),
+      pera_get_asset_version( '/js/enquiry-nonce.js' ),
+      true
+    );
+
+    wp_localize_script(
+      'pera-enquiry-nonce',
+      'peraEnquiryNonce',
+      array(
+        'ajax_url'          => admin_url( 'admin-ajax.php' ),
+        'action'            => 'pera_get_enquiry_nonces',
+        'issued_at'         => time(),
+        'max_age_seconds'   => 900,
       )
     );
   }
@@ -871,6 +899,11 @@ if ( is_admin() ) {
  * Location: functions.php
  */
 add_action( 'init', function () {
+
+  if ( wp_doing_ajax() && isset( $_REQUEST['action'] ) && sanitize_key( (string) wp_unslash( $_REQUEST['action'] ) ) === 'pera_get_enquiry_nonces' ) {
+    require_once get_stylesheet_directory() . '/inc/enquiry.php';
+    return;
+  }
 
   // Always load if this is a relevant POST (so submissions work even if template checks fail)
   if ( $_SERVER['REQUEST_METHOD'] === 'POST' && ( isset( $_POST['sr_action'] ) || isset( $_POST['pera_citizenship_action'] ) || isset( $_POST['fav_enquiry_action'] ) ) ) {

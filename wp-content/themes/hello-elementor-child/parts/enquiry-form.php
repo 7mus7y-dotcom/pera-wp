@@ -30,6 +30,7 @@ $property_title = isset( $args['property_title'] ) ? (string) $args['property_ti
 $property_url   = isset( $args['property_url'] ) ? (string) $args['property_url'] : '';
 $sr_context     = isset( $args['sr_context'] ) ? (string) $args['sr_context'] : '';
 $show_header    = isset( $args['show_header'] ) ? (bool) $args['show_header'] : true;
+$sr_status      = isset( $_GET['sr_status'] ) ? sanitize_key( (string) wp_unslash( $_GET['sr_status'] ) ) : '';
 
 // For tracking/logging in email body (and your existing redirect logic)
 $form_context = ( $context === 'property' )
@@ -37,6 +38,12 @@ $form_context = ( $context === 'property' )
   : ( isset( $args['form_context'] ) ? (string) $args['form_context'] : $context );
 ?>
 
+
+  <?php if ( $sr_status === 'failed' ) : ?>
+    <div class="citizenship-alert citizenship-alert--error">
+      <p><?php esc_html_e( 'Sorry, your enquiry could not be submitted. Please try again.', 'hello-elementor-child' ); ?></p>
+    </div>
+  <?php endif; ?>
 
   <?php if ( $show_header ) : ?>
     <div class="enquiry-cta-header m-sm">

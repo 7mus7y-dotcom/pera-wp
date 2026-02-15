@@ -74,6 +74,7 @@ $email      = trim( (string) $email );
 $phone      = trim( (string) $phone );
 
 $favourites_success = isset( $_GET['enquiry'] ) && $_GET['enquiry'] === 'sent';
+$favourites_failed  = isset( $_GET['enquiry'] ) && $_GET['enquiry'] === 'failed';
 
 get_header();
 ?>
@@ -155,6 +156,12 @@ get_header();
       <?php if ( $favourites_success ) : ?>
         <div class="form-success">
           Thank you – we have received your favourites enquiry. A Pera consultant will contact you shortly.
+        </div>
+      <?php endif; ?>
+
+      <?php if ( $favourites_failed ) : ?>
+        <div class="citizenship-alert citizenship-alert--error">
+          <p><?php esc_html_e( 'Sorry, your enquiry could not be submitted. Please try again.', 'hello-elementor-child' ); ?></p>
         </div>
       <?php endif; ?>
 

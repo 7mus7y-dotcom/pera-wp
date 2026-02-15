@@ -50,7 +50,7 @@ get_header();
       <div class="form-success">Your profile has been updated.</div>
     <?php endif; ?>
 
-    <form method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>" class="enquiry-cta-form">
+    <form method="post" action="<?php echo esc_url( home_url( '/wp-admin/admin-post.php' ) ); ?>" class="enquiry-cta-form">
       <input type="hidden" name="action" value="pera_client_portal_update_profile">
       <?php wp_nonce_field( 'pera_client_portal_update', 'pera_client_portal_nonce' ); ?>
 
