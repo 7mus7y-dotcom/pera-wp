@@ -49,7 +49,7 @@
 
 ## Top 3 failure modes from inspection and instrumentation added
 1. **No active subscriptions / stale dedupe state**
-   - Digest summary now reports `rows_considered`, `pushes_attempted`, `pushes_sent`, and skipped reason counters (`no_subs`, `deduped`, etc.).
+   - Digest summary now reports `rows_considered`, `pushes_attempted`, `pushes_sent`, and skipped reason counters (`no_subs`, `deduped`, `zero_pending`, `status_mismatch`, etc.).
    - Debug endpoint returns `subs_count`, current `window_key`, dedupe meta key, and last dedupe value.
 
 2. **Service worker registered but page not controlled (common Android/Chrome issue)**
@@ -70,19 +70,24 @@
   - Existing behavior for a real hash match in-window still applies (`decision=deduped`).
 
 ## New digest instrumentation and debug signals
+- Optional server-side debug logging can be enabled with `PERA_CRM_DEBUG_PUSH_DIGEST` (default false).
+  - Logs include digest start context (`window_key`, `now_local`, `blog_id`, reminders table), per-advisor decision data, dedupe comparisons, send attempt outcomes, and final summary.
+  - Response bodies are only logged when `peracrm_push_should_log_payload_bodies()` is enabled.
 - Digest summary now includes `advisor_decisions` (first 5 advisors):
   - `advisor_user_id`, `pending_count`, `overdue_count`, `subs_count`
   - `dedupe_meta_key`, `last_hash`, `new_hash`
   - `decision` and `reason` (`sent`, `deduped`, `no_subs`, `send_error`, etc.)
 - `/peracrm/v1/push/debug` now also includes:
   - `digest_window_key`
-  - computed `digest_hash` for target user
-  - `last_digest_meta`
+  - `dedupe_meta_key`
+  - `last_dedupe_hash`
+  - `expected_digest_hash`
+  - `recent_reminders` (last 5 reminders: `id`, `status`, `due_at`) for manager/admin or self scope
   - `digest_dedupe` object with `would_dedupe`, `decision`, and `reason`
 
 ## Force-run options (manager/admin)
 - REST force run: `POST /peracrm/v1/push/digest/run?force=1`
-- WP-CLI force run: `wp peracrm push digest --force`
+- WP-CLI force run: `wp peracrm push digest --force=1` (or `--force`)
 - Force bypasses dedupe checks for that run, but still does **not** write dedupe unless at least one send succeeds.
 
 ## Dead-subscription self-healing
@@ -94,7 +99,7 @@
 3. Run digest: `wp peracrm push digest`
    - Confirm `pushes_attempted > 0`, `pushes_sent = 0`, and no dedupe lockout on next run.
 4. Restore library/config and run digest again (or force):
-   - `wp peracrm push digest` or `wp peracrm push digest --force`
+   - `wp peracrm push digest` or `wp peracrm push digest --force=1`
    - Confirm sends succeed and dedupe meta writes only after success.
 5. Inspect dedupe meta/debug:
    - Meta key pattern: `peracrm_push_last_digest_<window_key>`
