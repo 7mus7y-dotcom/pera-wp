@@ -1,4 +1,50 @@
 (function () {
+  var blocks = Array.prototype.slice.call(document.querySelectorAll('.archive-hero-desc'));
+  if (!blocks.length) {
+    return;
+  }
+
+  function updateButtonState(block, button, isCollapsed) {
+    var moreLabel = button.getAttribute('data-label-more') || 'Read more';
+    var lessLabel = button.getAttribute('data-label-less') || 'Read less';
+    block.setAttribute('data-collapsed', isCollapsed ? 'true' : 'false');
+    button.setAttribute('aria-expanded', isCollapsed ? 'false' : 'true');
+    button.textContent = isCollapsed ? moreLabel : lessLabel;
+  }
+
+  blocks.forEach(function (block) {
+    var content = block.querySelector('.archive-hero-desc__content');
+    var button = block.querySelector('.archive-hero-desc__toggle');
+    if (!content || !button) {
+      return;
+    }
+
+    var startCollapsed = block.getAttribute('data-collapsed') !== 'false';
+    updateButtonState(block, button, startCollapsed);
+
+    window.requestAnimationFrame(function () {
+      var needsToggle = content.scrollHeight > content.clientHeight + 8;
+      button.style.display = needsToggle ? '' : 'none';
+    });
+  });
+
+  document.addEventListener('click', function (event) {
+    var button = event.target.closest('.archive-hero-desc__toggle');
+    if (!button) {
+      return;
+    }
+
+    var block = button.closest('.archive-hero-desc');
+    if (!block) {
+      return;
+    }
+
+    var isCollapsed = block.getAttribute('data-collapsed') !== 'false';
+    updateButtonState(block, button, !isCollapsed);
+  });
+})();
+
+(function () {
   var root = document.querySelector('[data-crm-view-toggle]');
   var storageKey = root && root.getAttribute('data-storage-key') ? root.getAttribute('data-storage-key') : 'peracrm_clients_view';
   if (!root) {

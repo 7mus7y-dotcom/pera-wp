@@ -405,24 +405,26 @@ get_header();
 						<a class="pill <?php echo esc_attr( $timeline_filter === $key ? 'pill--brand' : 'pill--outline' ); ?>" href="<?php echo esc_url( $url ); ?>"><?php echo esc_html( $label ); ?></a>
 					<?php endforeach; ?>
             </div>
-            <div class="crm-client-timeline__list-wrap" data-crm-timeline-wrap>
-            <ul class="crm-list crm-client-timeline__list" data-crm-timeline-list>
-					<?php if ( empty( $timeline_items ) ) : ?>
-                <li><?php esc_html_e( 'No timeline items yet.', 'hello-elementor-child' ); ?></li>
-					<?php else : ?>
-						<?php foreach ( $timeline_items as $item ) : ?>
-                  <li>
-                    <span class="pill pill--outline"><?php echo esc_html( (string) ( $item['type'] ?? '' ) ); ?></span>
-                    <strong><?php echo esc_html( (string) ( $item['title'] ?? '' ) ); ?></strong>
-							<?php if ( ! empty( $item['detail'] ) ) : ?>
-                      <span><?php echo esc_html( (string) $item['detail'] ); ?></span>
-							<?php endif; ?>
-                  </li>
-						<?php endforeach; ?>
-					<?php endif; ?>
-            </ul>
+            <div class="archive-hero-desc" data-collapsed="true">
+              <div id="crm-client-timeline-content" class="archive-hero-desc__content">
+                <ul class="crm-list crm-client-timeline__list">
+						<?php if ( empty( $timeline_items ) ) : ?>
+                    <li><?php esc_html_e( 'No timeline items yet.', 'hello-elementor-child' ); ?></li>
+						<?php else : ?>
+							<?php foreach ( $timeline_items as $item ) : ?>
+                      <li>
+                        <span class="pill pill--outline"><?php echo esc_html( (string) ( $item['type'] ?? '' ) ); ?></span>
+                        <strong><?php echo esc_html( (string) ( $item['title'] ?? '' ) ); ?></strong>
+								<?php if ( ! empty( $item['detail'] ) ) : ?>
+                          <span><?php echo esc_html( (string) $item['detail'] ); ?></span>
+								<?php endif; ?>
+                      </li>
+							<?php endforeach; ?>
+						<?php endif; ?>
+                </ul>
+              </div>
+              <button type="button" class="pill pill--green archive-hero-desc__toggle" aria-expanded="false" aria-controls="crm-client-timeline-content" data-label-more="<?php echo esc_attr__( 'See more', 'hello-elementor-child' ); ?>" data-label-less="<?php echo esc_attr__( 'See less', 'hello-elementor-child' ); ?>"><?php esc_html_e( 'See more', 'hello-elementor-child' ); ?></button>
             </div>
-            <button type="button" class="btn btn--ghost btn--blue crm-timeline-toggle" data-crm-timeline-toggle aria-expanded="false" hidden><?php esc_html_e( 'See more', 'hello-elementor-child' ); ?></button>
           </section>
 
           <article class="card-shell crm-client-section">
@@ -614,38 +616,4 @@ get_header();
 	  </a>
 	  <?php endif; ?>
 </main>
-<script>
-// Tiny client-view timeline clamp toggle.
-document.addEventListener('DOMContentLoaded', function () {
-  var timelineList = document.querySelector('[data-crm-timeline-list]');
-  var timelineToggle = document.querySelector('[data-crm-timeline-toggle]');
-
-  if (!timelineList || !timelineToggle) {
-    return;
-  }
-
-  var updateTimelineToggle = function () {
-    var canExpand = timelineList.scrollHeight > timelineList.clientHeight + 4;
-    timelineToggle.hidden = !canExpand && !timelineList.classList.contains('is-expanded');
-    if (!timelineList.classList.contains('is-expanded')) {
-      timelineToggle.textContent = 'See more';
-      timelineToggle.setAttribute('aria-expanded', 'false');
-    }
-  };
-
-  timelineToggle.addEventListener('click', function () {
-    var isExpanded = timelineList.classList.toggle('is-expanded');
-    timelineToggle.textContent = isExpanded ? 'See less' : 'See more';
-    timelineToggle.setAttribute('aria-expanded', isExpanded ? 'true' : 'false');
-    if (!isExpanded) {
-      timelineList.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-    }
-    updateTimelineToggle();
-  });
-
-  updateTimelineToggle();
-  window.addEventListener('resize', updateTimelineToggle);
-});
-</script>
-
 <?php get_footer(); ?>
