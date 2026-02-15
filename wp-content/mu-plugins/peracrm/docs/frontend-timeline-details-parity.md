@@ -37,3 +37,12 @@ Difference retained by permission design:
    - structured "View details" accordion,
    - meta line.
 4. Added minimal front-end timeline CSS for accordion/table styling, matching admin visual behaviour.
+
+
+5. Root cause + fix follow-up:
+   - `peracrm_timeline_get_items()` and enquiry detail helpers lived in an admin-only include, so front-end requests often fell back to a reduced timeline dataset with no `event_payload`/`details_html`.
+   - Bootstrapping now loads timeline helpers for front-end requests so detail rendering functions are available outside wp-admin.
+6. Enquiry detection in `peracrm_timeline_normalize_activity()` now treats activity as enquiry when:
+   - `event_type` contains `enquiry`, **or**
+   - payload keys indicate enquiry context (`message`, `page_url`, `form`, `utm*`, `referrer*`, `property*`).
+7. Added a temporary admin-only front-end debug line per timeline row to report payload/detail preparation counts (`payload_fields`, `details_chars`) without exposing personal data.

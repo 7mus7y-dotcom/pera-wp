@@ -408,7 +408,7 @@ function peracrm_timeline_normalize_activity(array $event, array $user_map)
 
         if (is_array($payload)) {
             $payload_for_context = $payload;
-            if ($event_type === 'enquiry') {
+            if (peracrm_timeline_is_enquiry_activity($event_type, $payload)) {
                 $detail_parts = [];
 
                 if (!empty($payload['message'])) {
@@ -471,6 +471,49 @@ function peracrm_timeline_normalize_activity(array $event, array $user_map)
     }
 
     return $item;
+}
+
+function peracrm_timeline_is_enquiry_activity($event_type, array $payload)
+{
+    $event_type = strtolower((string) $event_type);
+    if ($event_type !== '' && strpos($event_type, 'enquiry') !== false) {
+        return true;
+    }
+
+    $enquiry_keys = [
+        'message',
+        'page_url',
+        'form',
+        'utm',
+        'referrer',
+        'property',
+    ];
+
+    foreach ($payload as $key => $value) {
+        $normalized_key = strtolower((string) $key);
+        if ($normalized_key === '') {
+            continue;
+        }
+
+        foreach ($enquiry_keys as $needle) {
+            if (strpos($normalized_key, $needle) !== false) {
+                return true;
+            }
+        }
+
+        if (is_array($value)) {
+            foreach (array_keys($value) as $nested_key) {
+                $nested_key = strtolower((string) $nested_key);
+                foreach ($enquiry_keys as $needle) {
+                    if (strpos($nested_key, $needle) !== false) {
+                        return true;
+                    }
+                }
+            }
+        }
+    }
+
+    return false;
 }
 
 function peracrm_timeline_is_internal_raw_field($key)

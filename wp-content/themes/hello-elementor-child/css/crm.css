@@ -378,6 +378,16 @@
   color: #1c1c1c;
 }
 
+.crm-client-timeline__details {
+  margin-top: 6px;
+}
+
+.crm-client-timeline__debug {
+  color: #646970;
+  display: block;
+  font-size: 11px;
+}
+
 .crm-client-timeline .peracrm-enquiry-details {
   margin-top: 6px;
 }
