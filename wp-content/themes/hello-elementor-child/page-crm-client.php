@@ -210,6 +210,99 @@ get_header();
           <article class="card-shell slider-card crm-client-kpi-card"><p class="pill pill--outline"><?php esc_html_e( 'Last activity', 'hello-elementor-child' ); ?></p><h3><?php echo esc_html( $last_activity ); ?></h3></article>
         </div>
 
+        <div class="crm-client-panels-grid">
+          <article class="card-shell crm-client-section">
+            <h3><?php esc_html_e( 'Client Profile', 'hello-elementor-child' ); ?></h3>
+            <form method="post" action="<?php echo esc_url( home_url( '/wp-admin/admin-post.php' ) ); ?>" class="crm-form-stack">
+						<?php wp_nonce_field( 'peracrm_save_client_profile', 'peracrm_save_client_profile_nonce' ); ?>
+              <input type="hidden" name="action" value="peracrm_save_client_profile" />
+              <input type="hidden" name="peracrm_client_id" value="<?php echo esc_attr( (string) $client_id ); ?>" />
+              <input type="hidden" name="peracrm_redirect" value="<?php echo esc_url( $frontend_url ); ?>" />
+              <label><?php esc_html_e( 'Status', 'hello-elementor-child' ); ?>
+                <select name="peracrm_status" id="peracrm-status" class="widefat">
+                  <?php foreach ( $status_options as $status_key => $status_text ) : ?>
+                    <option value="<?php echo esc_attr( (string) $status_key ); ?>" <?php selected( (string) ( $profile['status'] ?? '' ), (string) $status_key ); ?>><?php echo esc_html( (string) $status_text ); ?></option>
+                  <?php endforeach; ?>
+                </select>
+              </label>
+              <label><?php esc_html_e( 'Phone', 'hello-elementor-child' ); ?><input type="text" name="peracrm_phone" value="<?php echo esc_attr( (string) ( $profile['phone'] ?? '' ) ); ?>" /></label>
+              <label><?php esc_html_e( 'Email', 'hello-elementor-child' ); ?><input type="email" name="peracrm_email" value="<?php echo esc_attr( (string) ( $profile['email'] ?? '' ) ); ?>" /></label>
+              <?php if ( '' !== $call_link || '' !== $whatsapp_link || '' !== $email_link ) : ?>
+              <div class="crm-client-quick-actions">
+                <?php if ( '' !== $call_link ) : ?>
+                <a class="btn btn--ghost btn--blue" href="<?php echo esc_url( $call_link ); ?>"><?php esc_html_e( 'Call', 'hello-elementor-child' ); ?></a>
+                <?php endif; ?>
+                <?php if ( '' !== $whatsapp_link ) : ?>
+                <a class="btn btn--ghost btn--green" href="<?php echo esc_url( $whatsapp_link ); ?>" target="_blank" rel="noopener noreferrer"><?php esc_html_e( 'WhatsApp', 'hello-elementor-child' ); ?></a>
+                <?php endif; ?>
+                <?php if ( '' !== $email_link ) : ?>
+                <a class="btn btn--ghost btn--blue" href="<?php echo esc_url( $email_link ); ?>"><?php esc_html_e( 'Email', 'hello-elementor-child' ); ?></a>
+                <?php endif; ?>
+              </div>
+              <?php endif; ?>
+              <label><?php esc_html_e( 'Preferred contact', 'hello-elementor-child' ); ?><input type="text" name="peracrm_preferred_contact" value="<?php echo esc_attr( (string) ( $profile['preferred_contact'] ?? '' ) ); ?>" /></label>
+              <div class="crm-form-row-2">
+                <label><?php esc_html_e( 'Budget min (USD)', 'hello-elementor-child' ); ?><input type="number" min="0" name="peracrm_budget_min_usd" value="<?php echo esc_attr( (string) ( $profile['budget_min_usd'] ?? '' ) ); ?>" /></label>
+                <label><?php esc_html_e( 'Budget max (USD)', 'hello-elementor-child' ); ?><input type="number" min="0" name="peracrm_budget_max_usd" value="<?php echo esc_attr( (string) ( $profile['budget_max_usd'] ?? '' ) ); ?>" /></label>
+              </div>
+              <button type="submit" class="btn btn--solid btn--blue"><?php esc_html_e( 'Save profile', 'hello-elementor-child' ); ?></button>
+            </form>
+          </article>
+
+          <article class="card-shell crm-client-section crm-status-panel">
+            <h3><?php esc_html_e( 'CRM Status', 'hello-elementor-child' ); ?></h3>
+            <span class="crm-derived-badge crm-derived-badge--<?php echo esc_attr( $derived_type ); ?>"><?php echo esc_html( $derived_type_label ); ?></span>
+            <form method="post" action="<?php echo esc_url( home_url( '/wp-admin/admin-post.php' ) ); ?>" class="crm-form-stack">
+					<?php wp_nonce_field( 'peracrm_save_party_status' ); ?>
+              <input type="hidden" name="action" value="peracrm_save_party_status" />
+              <input type="hidden" name="peracrm_client_id" value="<?php echo esc_attr( (string) $client_id ); ?>" />
+              <input type="hidden" name="peracrm_redirect" value="<?php echo esc_url( $frontend_url ); ?>" />
+              <label>
+						<?php esc_html_e( 'Lead pipeline stage', 'hello-elementor-child' ); ?>
+                <select name="lead_pipeline_stage">
+							<?php foreach ( $party_stages as $value => $label ) : ?>
+                    <option value="<?php echo esc_attr( (string) $value ); ?>" <?php selected( (string) ( $party['lead_pipeline_stage'] ?? '' ), (string) $value ); ?>><?php echo esc_html( (string) $label ); ?></option>
+							<?php endforeach; ?>
+                </select>
+              </label>
+              <label>
+						<?php esc_html_e( 'Engagement', 'hello-elementor-child' ); ?>
+                <select name="engagement_state">
+							<?php foreach ( $engagement_options as $value => $label ) : ?>
+                    <option value="<?php echo esc_attr( (string) $value ); ?>" <?php selected( (string) ( $party['engagement_state'] ?? '' ), (string) $value ); ?>><?php echo esc_html( (string) $label ); ?></option>
+							<?php endforeach; ?>
+                  </select>
+                </label>
+                <label>
+                  <?php esc_html_e( 'Client type', 'hello-elementor-child' ); ?>
+                  <select name="peracrm_client_type">
+                    <option value=""><?php esc_html_e( 'Select type', 'hello-elementor-child' ); ?></option>
+                    <?php foreach ( $client_type_options as $type_key => $type_label ) : ?>
+                      <option value="<?php echo esc_attr( (string) $type_key ); ?>" <?php selected( $client_type_value, (string) $type_key ); ?>><?php echo esc_html( (string) $type_label ); ?></option>
+                    <?php endforeach; ?>
+                  </select>
+                </label>
+                <label>
+						<?php esc_html_e( 'Disposition', 'hello-elementor-child' ); ?>
+                <select name="disposition">
+							<?php foreach ( $disposition_opts as $value => $label ) : ?>
+                    <option value="<?php echo esc_attr( (string) $value ); ?>" <?php selected( (string) ( $party['disposition'] ?? '' ), (string) $value ); ?>><?php echo esc_html( (string) $label ); ?></option>
+							<?php endforeach; ?>
+                  </select>
+                </label>
+                <button type="submit" class="btn btn--solid btn--blue"><?php esc_html_e( 'Save status', 'hello-elementor-child' ); ?></button>
+              </form>
+              <?php if ( 'lead' === $derived_type ) : ?>
+              <form method="post" action="<?php echo esc_url( home_url( '/wp-admin/admin-post.php' ) ); ?>" class="crm-inline-form">
+                <?php wp_nonce_field( 'peracrm_convert_to_client', 'peracrm_convert_to_client_nonce' ); ?>
+                <input type="hidden" name="action" value="peracrm_convert_to_client" />
+                <input type="hidden" name="peracrm_client_id" value="<?php echo esc_attr( (string) $client_id ); ?>" />
+                <input type="hidden" name="peracrm_redirect" value="<?php echo esc_url( $frontend_url ); ?>" />
+                <button type="submit" class="btn btn--ghost btn--blue"><?php esc_html_e( 'Convert to client', 'hello-elementor-child' ); ?></button>
+              </form>
+              <?php endif; ?>
+            </article>
+
         <article class="card-shell crm-client-section crm-client-panel--full crm-client-reminders">
           <header class="section-header">
             <h3><?php esc_html_e( 'Tasks / Reminders', 'hello-elementor-child' ); ?></h3>
@@ -304,99 +397,6 @@ get_header();
           </form>
         </article>
 
-        <div class="crm-client-panels-grid">
-          <article class="card-shell crm-client-section">
-            <h3><?php esc_html_e( 'Client Profile', 'hello-elementor-child' ); ?></h3>
-            <form method="post" action="<?php echo esc_url( home_url( '/wp-admin/admin-post.php' ) ); ?>" class="crm-form-stack">
-						<?php wp_nonce_field( 'peracrm_save_client_profile', 'peracrm_save_client_profile_nonce' ); ?>
-              <input type="hidden" name="action" value="peracrm_save_client_profile" />
-              <input type="hidden" name="peracrm_client_id" value="<?php echo esc_attr( (string) $client_id ); ?>" />
-              <input type="hidden" name="peracrm_redirect" value="<?php echo esc_url( $frontend_url ); ?>" />
-              <label><?php esc_html_e( 'Status', 'hello-elementor-child' ); ?>
-                <select name="peracrm_status" id="peracrm-status" class="widefat">
-                  <?php foreach ( $status_options as $status_key => $status_text ) : ?>
-                    <option value="<?php echo esc_attr( (string) $status_key ); ?>" <?php selected( (string) ( $profile['status'] ?? '' ), (string) $status_key ); ?>><?php echo esc_html( (string) $status_text ); ?></option>
-                  <?php endforeach; ?>
-                </select>
-              </label>
-              <label><?php esc_html_e( 'Phone', 'hello-elementor-child' ); ?><input type="text" name="peracrm_phone" value="<?php echo esc_attr( (string) ( $profile['phone'] ?? '' ) ); ?>" /></label>
-              <label><?php esc_html_e( 'Email', 'hello-elementor-child' ); ?><input type="email" name="peracrm_email" value="<?php echo esc_attr( (string) ( $profile['email'] ?? '' ) ); ?>" /></label>
-              <?php if ( '' !== $call_link || '' !== $whatsapp_link || '' !== $email_link ) : ?>
-              <div class="crm-client-quick-actions">
-                <?php if ( '' !== $call_link ) : ?>
-                <a class="btn btn--ghost btn--blue" href="<?php echo esc_url( $call_link ); ?>"><?php esc_html_e( 'Call', 'hello-elementor-child' ); ?></a>
-                <?php endif; ?>
-                <?php if ( '' !== $whatsapp_link ) : ?>
-                <a class="btn btn--ghost btn--green" href="<?php echo esc_url( $whatsapp_link ); ?>" target="_blank" rel="noopener noreferrer"><?php esc_html_e( 'WhatsApp', 'hello-elementor-child' ); ?></a>
-                <?php endif; ?>
-                <?php if ( '' !== $email_link ) : ?>
-                <a class="btn btn--ghost btn--blue" href="<?php echo esc_url( $email_link ); ?>"><?php esc_html_e( 'Email', 'hello-elementor-child' ); ?></a>
-                <?php endif; ?>
-              </div>
-              <?php endif; ?>
-              <label><?php esc_html_e( 'Preferred contact', 'hello-elementor-child' ); ?><input type="text" name="peracrm_preferred_contact" value="<?php echo esc_attr( (string) ( $profile['preferred_contact'] ?? '' ) ); ?>" /></label>
-              <div class="crm-form-row-2">
-                <label><?php esc_html_e( 'Budget min (USD)', 'hello-elementor-child' ); ?><input type="number" min="0" name="peracrm_budget_min_usd" value="<?php echo esc_attr( (string) ( $profile['budget_min_usd'] ?? '' ) ); ?>" /></label>
-                <label><?php esc_html_e( 'Budget max (USD)', 'hello-elementor-child' ); ?><input type="number" min="0" name="peracrm_budget_max_usd" value="<?php echo esc_attr( (string) ( $profile['budget_max_usd'] ?? '' ) ); ?>" /></label>
-              </div>
-              <button type="submit" class="btn btn--solid btn--blue"><?php esc_html_e( 'Save profile', 'hello-elementor-child' ); ?></button>
-            </form>
-          </article>
-
-          <article class="card-shell crm-client-section crm-status-panel">
-            <h3><?php esc_html_e( 'CRM Status', 'hello-elementor-child' ); ?></h3>
-            <span class="crm-derived-badge crm-derived-badge--<?php echo esc_attr( $derived_type ); ?>"><?php echo esc_html( $derived_type_label ); ?></span>
-            <form method="post" action="<?php echo esc_url( home_url( '/wp-admin/admin-post.php' ) ); ?>" class="crm-form-stack">
-					<?php wp_nonce_field( 'peracrm_save_party_status' ); ?>
-              <input type="hidden" name="action" value="peracrm_save_party_status" />
-              <input type="hidden" name="peracrm_client_id" value="<?php echo esc_attr( (string) $client_id ); ?>" />
-              <input type="hidden" name="peracrm_redirect" value="<?php echo esc_url( $frontend_url ); ?>" />
-              <label>
-						<?php esc_html_e( 'Lead pipeline stage', 'hello-elementor-child' ); ?>
-                <select name="lead_pipeline_stage">
-							<?php foreach ( $party_stages as $value => $label ) : ?>
-                    <option value="<?php echo esc_attr( (string) $value ); ?>" <?php selected( (string) ( $party['lead_pipeline_stage'] ?? '' ), (string) $value ); ?>><?php echo esc_html( (string) $label ); ?></option>
-							<?php endforeach; ?>
-                </select>
-              </label>
-              <label>
-						<?php esc_html_e( 'Engagement', 'hello-elementor-child' ); ?>
-                <select name="engagement_state">
-							<?php foreach ( $engagement_options as $value => $label ) : ?>
-                    <option value="<?php echo esc_attr( (string) $value ); ?>" <?php selected( (string) ( $party['engagement_state'] ?? '' ), (string) $value ); ?>><?php echo esc_html( (string) $label ); ?></option>
-							<?php endforeach; ?>
-                  </select>
-                </label>
-                <label>
-                  <?php esc_html_e( 'Client type', 'hello-elementor-child' ); ?>
-                  <select name="peracrm_client_type">
-                    <option value=""><?php esc_html_e( 'Select type', 'hello-elementor-child' ); ?></option>
-                    <?php foreach ( $client_type_options as $type_key => $type_label ) : ?>
-                      <option value="<?php echo esc_attr( (string) $type_key ); ?>" <?php selected( $client_type_value, (string) $type_key ); ?>><?php echo esc_html( (string) $type_label ); ?></option>
-                    <?php endforeach; ?>
-                  </select>
-                </label>
-                <label>
-						<?php esc_html_e( 'Disposition', 'hello-elementor-child' ); ?>
-                <select name="disposition">
-							<?php foreach ( $disposition_opts as $value => $label ) : ?>
-                    <option value="<?php echo esc_attr( (string) $value ); ?>" <?php selected( (string) ( $party['disposition'] ?? '' ), (string) $value ); ?>><?php echo esc_html( (string) $label ); ?></option>
-							<?php endforeach; ?>
-                  </select>
-                </label>
-                <button type="submit" class="btn btn--solid btn--blue"><?php esc_html_e( 'Save status', 'hello-elementor-child' ); ?></button>
-              </form>
-              <?php if ( 'lead' === $derived_type ) : ?>
-              <form method="post" action="<?php echo esc_url( home_url( '/wp-admin/admin-post.php' ) ); ?>" class="crm-inline-form">
-                <?php wp_nonce_field( 'peracrm_convert_to_client', 'peracrm_convert_to_client_nonce' ); ?>
-                <input type="hidden" name="action" value="peracrm_convert_to_client" />
-                <input type="hidden" name="peracrm_client_id" value="<?php echo esc_attr( (string) $client_id ); ?>" />
-                <input type="hidden" name="peracrm_redirect" value="<?php echo esc_url( $frontend_url ); ?>" />
-                <button type="submit" class="btn btn--ghost btn--blue"><?php esc_html_e( 'Convert to client', 'hello-elementor-child' ); ?></button>
-              </form>
-              <?php endif; ?>
-            </article>
-
           <section class="card-shell crm-client-section crm-client-timeline">
             <h3><?php esc_html_e( 'Timeline', 'hello-elementor-child' ); ?></h3>
             <div class="hero-pills">
@@ -405,7 +405,8 @@ get_header();
 						<a class="pill <?php echo esc_attr( $timeline_filter === $key ? 'pill--brand' : 'pill--outline' ); ?>" href="<?php echo esc_url( $url ); ?>"><?php echo esc_html( $label ); ?></a>
 					<?php endforeach; ?>
             </div>
-            <ul class="crm-list">
+            <div class="crm-client-timeline__list-wrap" data-crm-timeline-wrap>
+            <ul class="crm-list crm-client-timeline__list" data-crm-timeline-list>
 					<?php if ( empty( $timeline_items ) ) : ?>
                 <li><?php esc_html_e( 'No timeline items yet.', 'hello-elementor-child' ); ?></li>
 					<?php else : ?>
@@ -420,6 +421,8 @@ get_header();
 						<?php endforeach; ?>
 					<?php endif; ?>
             </ul>
+            </div>
+            <button type="button" class="btn btn--ghost btn--blue crm-timeline-toggle" data-crm-timeline-toggle aria-expanded="false" hidden><?php esc_html_e( 'See more', 'hello-elementor-child' ); ?></button>
           </section>
 
           <article class="card-shell crm-client-section">
@@ -611,5 +614,38 @@ get_header();
 	  </a>
 	  <?php endif; ?>
 </main>
+<script>
+// Tiny client-view timeline clamp toggle.
+document.addEventListener('DOMContentLoaded', function () {
+  var timelineList = document.querySelector('[data-crm-timeline-list]');
+  var timelineToggle = document.querySelector('[data-crm-timeline-toggle]');
+
+  if (!timelineList || !timelineToggle) {
+    return;
+  }
+
+  var updateTimelineToggle = function () {
+    var canExpand = timelineList.scrollHeight > timelineList.clientHeight + 4;
+    timelineToggle.hidden = !canExpand && !timelineList.classList.contains('is-expanded');
+    if (!timelineList.classList.contains('is-expanded')) {
+      timelineToggle.textContent = 'See more';
+      timelineToggle.setAttribute('aria-expanded', 'false');
+    }
+  };
+
+  timelineToggle.addEventListener('click', function () {
+    var isExpanded = timelineList.classList.toggle('is-expanded');
+    timelineToggle.textContent = isExpanded ? 'See less' : 'See more';
+    timelineToggle.setAttribute('aria-expanded', isExpanded ? 'true' : 'false');
+    if (!isExpanded) {
+      timelineList.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    }
+    updateTimelineToggle();
+  });
+
+  updateTimelineToggle();
+  window.addEventListener('resize', updateTimelineToggle);
+});
+</script>
 
 <?php get_footer(); ?>

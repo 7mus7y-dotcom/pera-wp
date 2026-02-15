@@ -352,6 +352,19 @@
   margin-bottom: 12px;
 }
 
+.crm-client-timeline__list {
+  max-height: 320px;
+  overflow: hidden;
+}
+
+.crm-client-timeline__list.is-expanded {
+  max-height: none;
+}
+
+.crm-timeline-toggle {
+  margin-top: 10px;
+}
+
 .crm-client-section form {
   margin-bottom: 12px;
 }
@@ -645,6 +658,14 @@
   margin-bottom: 12px;
 }
 
+.crm-page--client-view .crm-client-reminders .crm-client-reminders-grid > section {
+  margin: 0;
+}
+
+.crm-page--client-view .crm-client-reminders .crm-client-reminders-grid > section > .pill {
+  margin: 0 0 6px;
+}
+
 .crm-floating-add-task {
   position: fixed;
   right: max(16px, calc((100vw - var(--container)) / 2 + 16px));
@@ -723,7 +744,19 @@
 
   .crm-client-reminders-grid {
     grid-template-columns: 1fr;
-    gap: 8px;
+    gap: 4px;
+  }
+
+  .crm-page--client-view .crm-client-reminders .crm-client-reminders-grid > section + section {
+    margin-top: 2px;
+  }
+
+  .crm-page--client-view .crm-client-reminders {
+    margin-bottom: 10px;
+  }
+
+  .crm-page--client-view .crm-client-timeline__list {
+    max-height: 220px;
   }
 
   .crm-page--client-view .crm-client-reminders .crm-client-reminders-grid > section > p {
@@ -1009,6 +1042,98 @@
   flex-wrap: wrap;
   gap: 8px;
   margin-top: 14px;
+}
+
+.crm-page--client-view .peracrm-metabox > p {
+  margin: 0 0 10px;
+}
+
+.crm-page--client-view .peracrm-form {
+  display: grid;
+  gap: 12px;
+}
+
+.crm-page--client-view .peracrm-form > p {
+  margin: 0;
+}
+
+.crm-page--client-view .peracrm-form p label {
+  display: block;
+  margin-bottom: 6px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+.crm-page--client-view .peracrm-form .widefat {
+  display: block;
+  width: 100%;
+  max-width: 560px;
+  padding: 0.7rem 0.9rem;
+  border-radius: 10px;
+  border: 1px solid #e1e1e1;
+  background-color: #ffffff;
+  color: var(--text, #222222);
+  font-size: 0.95rem;
+}
+
+.crm-page--client-view .peracrm-form .widefat:focus {
+  outline: none;
+  border-color: #002d72;
+  box-shadow: 0 0 0 1px rgba(0, 45, 114, 0.12);
+}
+
+.crm-page--client-view .peracrm-form .button {
+  border: 1px solid var(--brand, #002d72);
+  border-radius: 999px;
+  background: transparent;
+  color: var(--brand, #002d72);
+  padding: 0.55rem 1rem;
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+}
+
+.crm-page--client-view .peracrm-form .button:hover,
+.crm-page--client-view .peracrm-form .button:focus-visible {
+  background: color-mix(in oklab, var(--brand, #002d72) 10%, transparent);
+}
+
+@media (prefers-color-scheme: dark) {
+  .crm-danger-zone {
+    background: #2a1215;
+    border-color: #f87171;
+    color: #fecaca;
+  }
+
+  .crm-danger-zone p,
+  .crm-danger-zone h3 {
+    color: #fee2e2;
+  }
+
+  .crm-danger-dialog {
+    background: #19090b;
+    border-color: #ef4444;
+    color: #fee2e2;
+  }
+
+  .crm-page--client-view .peracrm-form .widefat {
+    background-color: #020617;
+    border-color: rgba(148, 163, 184, 0.5);
+    color: var(--text, #e5e7eb);
+  }
+
+  .crm-page--client-view .peracrm-form .widefat:focus {
+    border-color: var(--accent, #0056b3);
+    box-shadow: 0 0 0 1px rgba(59, 130, 246, 0.35);
+  }
+
+  .crm-page--client-view .peracrm-form .button {
+    border-color: #93c5fd;
+    color: #bfdbfe;
+  }
 }
 
 @media (max-width: 767px) {
