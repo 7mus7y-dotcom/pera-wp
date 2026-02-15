@@ -398,8 +398,8 @@ get_header();
         </section>
       </div>
 
-      <div class="crm-leads-table-wrap is-hidden" data-crm-view="table">
-        <table class="crm-leads-table" data-crm-sort-table>
+      <div class="crm-leads-table-wrap crm-table-wrap is-hidden" data-crm-view="table">
+        <table class="crm-leads-table crm-table" data-crm-sort-table>
           <thead>
             <tr>
               <th aria-sort="none"><button type="button" class="crm-table-sort" data-sort="due"><?php echo esc_html__( 'Due', 'hello-elementor-child' ); ?> <span class="peracrm-sort-indicator" aria-hidden="true"></span></button></th>
@@ -455,8 +455,8 @@ get_header();
         </div>
       </div>
 
-      <div class="crm-leads-table-wrap" data-crm-view="table">
-        <table class="crm-leads-table" data-crm-sort-table>
+      <div class="crm-leads-table-wrap crm-table-wrap" data-crm-view="table">
+        <table class="crm-leads-table crm-table" data-crm-sort-table>
           <thead>
             <tr>
               <th aria-sort="none"><button type="button" class="crm-table-sort" data-sort="name"><?php echo esc_html__( 'Name', 'hello-elementor-child' ); ?> <span class="peracrm-sort-indicator" aria-hidden="true"></span></button></th>
