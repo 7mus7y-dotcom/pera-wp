@@ -356,6 +356,65 @@
   margin-top: 10px;
 }
 
+.crm-client-timeline__item {
+  display: grid;
+  gap: 6px;
+}
+
+.crm-client-timeline__header {
+  align-items: center;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.crm-client-timeline__time,
+.crm-client-timeline__meta {
+  color: #6d6d6d;
+  font-size: 12px;
+}
+
+.crm-client-timeline__detail {
+  color: #1c1c1c;
+}
+
+.crm-client-timeline .peracrm-enquiry-details {
+  margin-top: 6px;
+}
+
+.crm-client-timeline .peracrm-enquiry-details summary {
+  color: #2271b1;
+  cursor: pointer;
+}
+
+.crm-client-timeline .peracrm-enquiry-details__body {
+  margin-top: 8px;
+}
+
+.crm-client-timeline .peracrm-enquiry-details__table {
+  border-collapse: collapse;
+  width: 100%;
+}
+
+.crm-client-timeline .peracrm-enquiry-details__table th,
+.crm-client-timeline .peracrm-enquiry-details__table td {
+  border-bottom: 1px solid #dcdcde;
+  padding: 6px 8px;
+  text-align: left;
+  vertical-align: top;
+}
+
+.crm-client-timeline .peracrm-enquiry-details__table th {
+  color: #646970;
+  font-weight: 600;
+  width: 160px;
+}
+
+.crm-client-timeline .peracrm-enquiry-details__table td {
+  overflow-wrap: anywhere;
+  word-break: break-word;
+}
+
 .crm-client-section form {
   margin-bottom: 12px;
 }

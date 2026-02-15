@@ -412,12 +412,28 @@ get_header();
                     <li><?php esc_html_e( 'No timeline items yet.', 'hello-elementor-child' ); ?></li>
 						<?php else : ?>
 							<?php foreach ( $timeline_items as $item ) : ?>
-                      <li>
-                        <span class="pill pill--outline"><?php echo esc_html( (string) ( $item['type'] ?? '' ) ); ?></span>
+                      <?php
+                      $item_type_label = (string) ( $item['type_label'] ?? ( $item['type'] ?? '' ) );
+                      $item_time       = is_array( $item['time'] ?? null ) ? (array) $item['time'] : array( 'relative' => '', 'title' => '' );
+                      $item_meta_line  = (string) ( $item['meta_line'] ?? '' );
+                      ?>
+                      <li class="crm-client-timeline__item">
+                        <div class="crm-client-timeline__header">
+                          <span class="pill pill--outline"><?php echo esc_html( $item_type_label ); ?></span>
+                          <?php if ( ! empty( $item_time['relative'] ) ) : ?>
+                            <span class="crm-client-timeline__time" title="<?php echo esc_attr( (string) ( $item_time['title'] ?? '' ) ); ?>"><?php echo esc_html( (string) $item_time['relative'] ); ?></span>
+                          <?php endif; ?>
+                        </div>
                         <strong><?php echo esc_html( (string) ( $item['title'] ?? '' ) ); ?></strong>
 								<?php if ( ! empty( $item['detail'] ) ) : ?>
-                          <span><?php echo esc_html( (string) $item['detail'] ); ?></span>
+                          <span class="crm-client-timeline__detail"><?php echo esc_html( (string) $item['detail'] ); ?></span>
 								<?php endif; ?>
+                        <?php if ( ! empty( $item['details_html'] ) ) : ?>
+                          <div class="crm-client-timeline__details"><?php echo wp_kses_post( (string) $item['details_html'] ); ?></div>
+                        <?php endif; ?>
+                        <?php if ( '' !== $item_meta_line ) : ?>
+                          <span class="crm-client-timeline__meta"><?php echo esc_html( $item_meta_line ); ?></span>
+                        <?php endif; ?>
                       </li>
 							<?php endforeach; ?>
 						<?php endif; ?>

@@ -116,6 +116,119 @@ if ( ! function_exists( 'pera_crm_client_view_url' ) ) {
 	}
 }
 
+if ( ! function_exists( 'pera_crm_client_view_has_full_timeline_details_access' ) ) {
+	function pera_crm_client_view_has_full_timeline_details_access(): bool {
+		if ( current_user_can( 'manage_options' ) || current_user_can( 'peracrm_manage_all_clients' ) ) {
+			return true;
+		}
+
+		if ( function_exists( 'peracrm_admin_user_can_reassign' ) && peracrm_admin_user_can_reassign() ) {
+			return true;
+		}
+
+		return false;
+	}
+}
+
+if ( ! function_exists( 'pera_crm_client_view_render_enquiry_details' ) ) {
+	function pera_crm_client_view_render_enquiry_details( array $payload, bool $full_access = false ): string {
+		if ( $full_access && function_exists( 'peracrm_timeline_render_enquiry_details' ) ) {
+			return (string) peracrm_timeline_render_enquiry_details( $payload );
+		}
+
+		if ( ! function_exists( 'peracrm_timeline_collect_enquiry_fields' ) || ! function_exists( 'peracrm_timeline_enquiry_field_label' ) ) {
+			return '';
+		}
+
+		$rows   = array();
+		$fields = peracrm_timeline_collect_enquiry_fields( $payload );
+		$employee_safe_keys = array(
+			'message',
+			'contact_method',
+			'source_page',
+			'form_context',
+			'form',
+			'property_id',
+			'property_ids',
+			'sr_property_title',
+			'sr_property_url',
+			'utm_source',
+			'utm_medium',
+			'utm_campaign',
+			'referrer',
+			'page_url',
+		);
+
+		foreach ( array_keys( $fields ) as $field_key ) {
+			if ( ! in_array( (string) $field_key, $employee_safe_keys, true ) ) {
+				unset( $fields[ $field_key ] );
+			}
+		}
+
+		$property_title = isset( $payload['sr_property_title'] ) ? trim( (string) $payload['sr_property_title'] ) : '';
+		$property_url   = isset( $payload['sr_property_url'] ) ? esc_url_raw( (string) $payload['sr_property_url'] ) : '';
+		unset( $fields['sr_property_title'], $fields['sr_property_url'] );
+
+		if ( '' !== $property_title && '' !== $property_url ) {
+			$rows[] = '<tr><th>Property</th><td><a href="' . esc_url( $property_url ) . '" target="_blank" rel="noopener">' . esc_html( $property_title ) . '</a></td></tr>';
+		}
+
+		$property_ids = array();
+		if ( ! empty( $payload['property_ids'] ) && is_array( $payload['property_ids'] ) ) {
+			$property_ids = array_values( array_filter( array_map( 'absint', $payload['property_ids'] ) ) );
+		}
+		if ( ! empty( $property_ids ) ) {
+			$rows[] = '<tr><th>Properties count</th><td>' . esc_html( (string) count( $property_ids ) ) . '</td></tr>';
+			$rows[] = '<tr><th>Properties</th><td>' . esc_html( implode( ', ', array_map( 'strval', $property_ids ) ) ) . '</td></tr>';
+		}
+
+		foreach ( $fields as $key => $value ) {
+			$label = peracrm_timeline_enquiry_field_label( (string) $key );
+			if ( filter_var( $value, FILTER_VALIDATE_URL ) ) {
+				$value_html = '<a href="' . esc_url( (string) $value ) . '" target="_blank" rel="noopener">' . esc_html( (string) $value ) . '</a>';
+			} else {
+				$value_html = esc_html( (string) $value );
+			}
+			$rows[] = '<tr><th>' . esc_html( $label ) . '</th><td>' . $value_html . '</td></tr>';
+		}
+
+		if ( empty( $rows ) ) {
+			return '';
+		}
+
+		return '<details class="peracrm-enquiry-details"><summary>View details</summary><div class="peracrm-enquiry-details__body"><table class="peracrm-enquiry-details__table"><tbody>' . implode( '', $rows ) . '</tbody></table></div></details>';
+	}
+}
+
+if ( ! function_exists( 'pera_crm_client_view_prepare_timeline_items' ) ) {
+	function pera_crm_client_view_prepare_timeline_items( array $items ): array {
+		$full_details_access = pera_crm_client_view_has_full_timeline_details_access();
+
+		foreach ( $items as $index => $item ) {
+			if ( ! is_array( $item ) ) {
+				continue;
+			}
+
+			$type = isset( $item['type'] ) ? sanitize_key( (string) $item['type'] ) : '';
+			$items[ $index ]['type_label'] = function_exists( 'peracrm_timeline_type_label' ) ? peracrm_timeline_type_label( $type ) : ucfirst( $type );
+			$items[ $index ]['time'] = function_exists( 'peracrm_timeline_time_display' ) ? peracrm_timeline_time_display( (int) ( $item['ts'] ?? 0 ) ) : array( 'relative' => '', 'title' => '' );
+			$items[ $index ]['meta_line'] = function_exists( 'peracrm_timeline_meta_line' ) ? peracrm_timeline_meta_line( (array) ( $item['meta'] ?? array() ) ) : '';
+
+			$payload = is_array( $item['event_payload'] ?? null ) ? (array) $item['event_payload'] : array();
+			if ( ! empty( $payload ) ) {
+				$details_html = pera_crm_client_view_render_enquiry_details( $payload, $full_details_access );
+				if ( '' !== $details_html ) {
+					$items[ $index ]['details_html'] = $details_html;
+				} elseif ( isset( $items[ $index ]['details_html'] ) ) {
+					unset( $items[ $index ]['details_html'] );
+				}
+			}
+		}
+
+		return $items;
+	}
+}
+
 if ( ! function_exists( 'pera_crm_client_view_timeline_items' ) ) {
 	function pera_crm_client_view_timeline_items( int $client_id, string $filter = 'all', int $limit = 50 ): array {
 		$filter = sanitize_key( $filter );
@@ -125,7 +238,7 @@ if ( ! function_exists( 'pera_crm_client_view_timeline_items' ) ) {
 
 		if ( function_exists( 'peracrm_timeline_get_items' ) ) {
 			$items = peracrm_timeline_get_items( $client_id, $limit, $filter );
-			return is_array( $items ) ? $items : array();
+			return is_array( $items ) ? pera_crm_client_view_prepare_timeline_items( $items ) : array();
 		}
 
 		$items = array();
@@ -134,7 +247,7 @@ if ( ! function_exists( 'pera_crm_client_view_timeline_items' ) ) {
 			foreach ( (array) peracrm_notes_list( $client_id, $limit, 0 ) as $note ) {
 				$author = get_userdata( (int) ( $note['advisor_user_id'] ?? 0 ) );
 				$items[] = array(
-					'type'   => 'notes',
+					'type'   => 'note',
 					'title'  => __( 'Note added', 'hello-elementor-child' ),
 					'detail' => (string) ( $note['note_body'] ?? '' ),
 					'ts'     => strtotime( (string) ( $note['created_at'] ?? '' ) ),
@@ -152,7 +265,7 @@ if ( ! function_exists( 'pera_crm_client_view_timeline_items' ) ) {
 					: 0;
 
 				$items[] = array(
-					'type'   => 'reminders',
+					'type'   => 'reminder',
 					'title'  => __( 'Reminder', 'hello-elementor-child' ),
 					'detail' => (string) ( $reminder['note'] ?? '' ),
 					'ts'     => $due_ts,
@@ -180,7 +293,7 @@ if ( ! function_exists( 'pera_crm_client_view_timeline_items' ) ) {
 			}
 		);
 
-		return array_slice( $items, 0, $limit );
+		return pera_crm_client_view_prepare_timeline_items( array_slice( $items, 0, $limit ) );
 	}
 }
 
