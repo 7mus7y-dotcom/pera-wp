@@ -352,16 +352,7 @@
   margin-bottom: 12px;
 }
 
-.crm-client-timeline__list {
-  max-height: 320px;
-  overflow: hidden;
-}
-
-.crm-client-timeline__list.is-expanded {
-  max-height: none;
-}
-
-.crm-timeline-toggle {
+.crm-client-timeline .archive-hero-desc__toggle {
   margin-top: 10px;
 }
 
@@ -744,27 +735,29 @@
 
   .crm-client-reminders-grid {
     grid-template-columns: 1fr;
-    gap: 4px;
+    gap: 2px;
   }
 
   .crm-page--client-view .crm-client-reminders .crm-client-reminders-grid > section + section {
-    margin-top: 2px;
+    margin-top: 0;
   }
 
   .crm-page--client-view .crm-client-reminders {
     margin-bottom: 10px;
   }
 
-  .crm-page--client-view .crm-client-timeline__list {
-    max-height: 220px;
+  .crm-page--client-view .crm-client-reminders .crm-client-reminders-grid > section {
+    margin: 0;
+    min-height: 0;
   }
 
   .crm-page--client-view .crm-client-reminders .crm-client-reminders-grid > section > p {
-    margin: 0 0 4px;
+    margin: 0 0 2px;
   }
 
-  .crm-page--client-view .crm-client-reminders .crm-client-reminders-grid .crm-list {
-    gap: 6px;
+  .crm-page--client-view .crm-client-reminders .crm-client-reminders-grid > section > .crm-list {
+    margin: 0;
+    gap: 4px;
   }
 
   .crm-page--client-view .crm-client-reminders .crm-client-reminders-grid .crm-list li {

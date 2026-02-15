@@ -404,7 +404,7 @@ if ( ! function_exists( 'pera_crm_enqueue_assets' ) ) {
 
 		$css_rel_path = '/css/crm.css';
 		$css_abs_path = get_stylesheet_directory() . $css_rel_path;
-		$css_version  = file_exists( $css_abs_path ) ? (string) filemtime( $css_abs_path ) : wp_get_theme()->get( 'Version' );
+		$css_version  = function_exists( 'pera_get_asset_version' ) ? pera_get_asset_version( $css_rel_path ) : ( file_exists( $css_abs_path ) ? (string) filemtime( $css_abs_path ) : wp_get_theme()->get( 'Version' ) );
 
 		$crm_css_deps    = array( 'pera-main-css' );
 		$slider_rel_path = '/css/slider.css';
@@ -433,7 +433,7 @@ if ( ! function_exists( 'pera_crm_enqueue_assets' ) ) {
 				'pera-crm-js',
 				get_stylesheet_directory_uri() . $js_rel_path,
 				array(),
-				(string) filemtime( $js_abs_path ),
+				function_exists( 'pera_get_asset_version' ) ? pera_get_asset_version( $js_rel_path ) : (string) filemtime( $js_abs_path ),
 				true
 			);
 
