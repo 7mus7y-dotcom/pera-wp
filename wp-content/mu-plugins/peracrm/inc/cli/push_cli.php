@@ -28,7 +28,8 @@ WP_CLI::add_command('peracrm push test', function ($args, $assoc_args) {
     ], JSON_PRETTY_PRINT));
 });
 
-WP_CLI::add_command('peracrm push digest', function () {
-    $summary = peracrm_push_run_digest_for_current_window();
+WP_CLI::add_command('peracrm push digest', function ($args, $assoc_args) {
+    $force = !empty($assoc_args['force']);
+    $summary = peracrm_push_run_digest_for_current_window($force);
     WP_CLI::line(wp_json_encode($summary, JSON_PRETTY_PRINT));
 });

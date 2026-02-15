@@ -452,7 +452,9 @@ function peracrm_push_send_to_user($user_id, $payload, $context = [])
         ]);
 
         if (in_array((int) ($result['status'] ?? 0), [404, 410], true)) {
-            peracrm_push_remove_subscription($user_id, (string) ($subscription['endpoint'] ?? ''));
+            peracrm_push_in_target_blog(static function () use ($user_id, $subscription) {
+                peracrm_push_remove_subscription($user_id, (string) ($subscription['endpoint'] ?? ''));
+            });
         }
 
         $results[] = [
@@ -471,17 +473,86 @@ function peracrm_push_digest_window_key($timestamp)
     return wp_date('YmdHi', (int) $timestamp, wp_timezone());
 }
 
-function peracrm_push_run_digest()
+function peracrm_push_get_digest_meta_key($window_key)
 {
+    return 'peracrm_push_last_digest_' . sanitize_key((string) $window_key);
+}
+
+function peracrm_push_build_digest_hash($window_key, $pending_count, $overdue_count, $advisor_user_id, $window_start)
+{
+    return md5(implode('|', [
+        (string) $window_key,
+        (int) $pending_count,
+        (int) $overdue_count,
+        (int) $advisor_user_id,
+        wp_date('P', (int) $window_start, wp_timezone()),
+    ]));
+}
+
+function peracrm_push_get_digest_decision($advisor_user_id, $pending_count, $overdue_count, $window_key, $window_start, $force = false)
+{
+    $advisor_user_id = absint($advisor_user_id);
+    $pending_count = (int) $pending_count;
+    $overdue_count = (int) $overdue_count;
+    $window_key = (string) $window_key;
+    $window_start = (int) $window_start;
+    $force = (bool) $force;
+
+    $meta_key = peracrm_push_get_digest_meta_key($window_key);
+    $last_hash = $advisor_user_id > 0 ? (string) get_user_meta($advisor_user_id, $meta_key, true) : '';
+    $new_hash = peracrm_push_build_digest_hash($window_key, $pending_count, $overdue_count, $advisor_user_id, $window_start);
+    $subscriptions = $advisor_user_id > 0 ? peracrm_push_list_user_subscriptions($advisor_user_id) : [];
+
+    $decision = 'send';
+    $reason = 'eligible';
+    if (!peracrm_push_is_configured()) {
+        $decision = 'not_configured';
+        $reason = 'push_not_configured';
+    } elseif ($advisor_user_id <= 0) {
+        $decision = 'invalid_user';
+        $reason = 'advisor_user_id_invalid';
+    } elseif ($pending_count <= 0) {
+        $decision = 'zero_pending';
+        $reason = 'no_pending_rows';
+    } elseif (empty($subscriptions)) {
+        $decision = 'no_subs';
+        $reason = 'no_subscriptions';
+    } elseif (!$force && $last_hash !== '' && hash_equals($last_hash, $new_hash)) {
+        $decision = 'deduped';
+        $reason = 'hash_matches_last_digest';
+    }
+
+    if ($force && $decision === 'send' && $last_hash !== '' && hash_equals($last_hash, $new_hash)) {
+        $reason = 'forced_bypass_dedupe';
+    }
+
+    return [
+        'decision' => $decision,
+        'reason' => $reason,
+        'force' => $force,
+        'subs_count' => count($subscriptions),
+        'dedupe_meta_key' => $meta_key,
+        'last_hash' => $last_hash,
+        'new_hash' => $new_hash,
+    ];
+}
+
+function peracrm_push_run_digest($args = [])
+{
+    $args = is_array($args) ? $args : [];
+    $force = !empty($args['force']);
+
     $summary = [
         'window_start' => '',
         'window_key' => '',
+        'force' => $force,
         'now_local' => current_time('mysql'),
         'now_utc' => gmdate('Y-m-d H:i:s'),
         'rows_considered' => 0,
         'pushes_attempted' => 0,
         'pushes_sent' => 0,
         'last_send_error_reason' => '',
+        'advisor_decisions' => [],
         'skipped' => [
             'invalid_user' => 0,
             'zero_pending' => 0,
@@ -498,7 +569,7 @@ function peracrm_push_run_digest()
         return $summary;
     }
 
-    return peracrm_push_in_target_blog(static function () use ($summary) {
+    return peracrm_push_in_target_blog(static function () use ($summary, $force) {
         global $wpdb;
 
         if (!function_exists('peracrm_reminders_table_exists') || !peracrm_reminders_table_exists()) {
@@ -544,16 +615,29 @@ function peracrm_push_run_digest()
                 continue;
             }
 
-            $subscriptions = peracrm_push_list_user_subscriptions($advisor_user_id);
-            if (empty($subscriptions)) {
+            $decision = peracrm_push_get_digest_decision($advisor_user_id, $pending_count, $overdue_count, $window_key, $window_start, $force);
+            $decision_index = -1;
+            if (count($summary['advisor_decisions']) < 5) {
+                $decision_index = count($summary['advisor_decisions']);
+                $summary['advisor_decisions'][] = [
+                    'advisor_user_id' => $advisor_user_id,
+                    'pending_count' => $pending_count,
+                    'overdue_count' => $overdue_count,
+                    'subs_count' => (int) ($decision['subs_count'] ?? 0),
+                    'dedupe_meta_key' => (string) ($decision['dedupe_meta_key'] ?? ''),
+                    'last_hash' => (string) ($decision['last_hash'] ?? ''),
+                    'new_hash' => (string) ($decision['new_hash'] ?? ''),
+                    'decision' => (string) ($decision['decision'] ?? 'send'),
+                    'reason' => (string) ($decision['reason'] ?? ''),
+                ];
+            }
+
+            if (($decision['decision'] ?? '') === 'no_subs') {
                 $summary['skipped']['no_subs']++;
                 continue;
             }
 
-            $digest_hash = md5(implode('|', [$window_key, $pending_count, $overdue_count, $advisor_user_id, wp_date('P', $window_start, wp_timezone())]));
-            $meta_key = 'peracrm_push_last_digest_' . $window_key;
-            $last_hash = (string) get_user_meta($advisor_user_id, $meta_key, true);
-            if ($last_hash !== '' && hash_equals($last_hash, $digest_hash)) {
+            if (($decision['decision'] ?? '') === 'deduped') {
                 $summary['skipped']['deduped']++;
                 continue;
             }
@@ -574,8 +658,10 @@ function peracrm_push_run_digest()
 
             $summary['pushes_attempted'] += count($results);
             $has_send_error = false;
+            $has_success = false;
             foreach ($results as $result) {
                 if (!empty($result['ok'])) {
+                    $has_success = true;
                     $summary['pushes_sent']++;
                     continue;
                 }
@@ -593,10 +679,18 @@ function peracrm_push_run_digest()
                 $summary['skipped']['send_error']++;
             }
 
-            if (count($results) > 0) {
-                update_user_meta($advisor_user_id, $meta_key, $digest_hash);
+            if ($has_success) {
+                update_user_meta($advisor_user_id, (string) ($decision['dedupe_meta_key'] ?? ''), (string) ($decision['new_hash'] ?? ''));
+                if ($decision_index >= 0) {
+                    $summary['advisor_decisions'][$decision_index]['decision'] = 'sent';
+                }
             } else {
-                $summary['skipped']['no_subs']++;
+                if (count($results) === 0) {
+                    $summary['skipped']['no_subs']++;
+                }
+                if ($decision_index >= 0) {
+                    $summary['advisor_decisions'][$decision_index]['decision'] = count($results) > 0 ? 'send_error' : 'no_subs';
+                }
             }
         }
 
@@ -650,7 +744,7 @@ function peracrm_push_get_debug_data($acting_user_id = null, $target_user_id = n
 
     $window_start_ts = floor((int) current_time('timestamp') / (15 * MINUTE_IN_SECONDS)) * (15 * MINUTE_IN_SECONDS);
     $window_key = peracrm_push_digest_window_key($window_start_ts);
-    $meta_key = 'peracrm_push_last_digest_' . $window_key;
+    $meta_key = peracrm_push_get_digest_meta_key($window_key);
 
     $subscriptions = [];
     if (function_exists('peracrm_push_list_user_subscriptions')) {
@@ -691,6 +785,8 @@ function peracrm_push_get_debug_data($acting_user_id = null, $target_user_id = n
     $cron_health = function_exists('peracrm_push_get_cron_health') ? peracrm_push_get_cron_health() : [];
     $recent_logs = function_exists('peracrm_push_get_recent_log_rows') ? peracrm_push_get_recent_log_rows(10) : [];
 
+    $digest_decision = peracrm_push_get_digest_decision($target_user_id, $pending_count, $overdue_count, $window_key, $window_start_ts, false);
+
     return [
         'now_local' => current_time('mysql'),
         'now_utc' => gmdate('Y-m-d H:i:s'),
@@ -714,8 +810,15 @@ function peracrm_push_get_debug_data($acting_user_id = null, $target_user_id = n
         'cron' => is_array($cron_health) ? $cron_health : [],
         'digest_window_start' => wp_date('Y-m-d H:i:s', $window_start_ts, wp_timezone()),
         'digest_window_key' => $window_key,
+        'digest_hash' => (string) ($digest_decision['new_hash'] ?? ''),
         'last_digest_meta_key' => $meta_key,
-        'last_digest_meta' => (string) get_user_meta($target_user_id, $meta_key, true),
+        'last_digest_meta' => (string) ($digest_decision['last_hash'] ?? ''),
+        'digest_dedupe' => [
+            'would_dedupe' => (string) ($digest_decision['decision'] ?? '') === 'deduped',
+            'decision' => (string) ($digest_decision['decision'] ?? ''),
+            'reason' => (string) ($digest_decision['reason'] ?? ''),
+            'subs_count' => (int) ($digest_decision['subs_count'] ?? 0),
+        ],
         'push_log_recent' => is_array($recent_logs) ? $recent_logs : [],
         'self_check' => [
             'has_push_log_reader' => function_exists('peracrm_push_get_recent_log_rows'),
@@ -739,9 +842,9 @@ function peracrm_push_debug_snapshot($user_id = null)
     ];
 }
 
-function peracrm_push_run_digest_for_current_window()
+function peracrm_push_run_digest_for_current_window($force = false)
 {
-    return peracrm_push_run_digest();
+    return peracrm_push_run_digest(['force' => (bool) $force]);
 }
 
 function peracrm_push_handle_send_test()
