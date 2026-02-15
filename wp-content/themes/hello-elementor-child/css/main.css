@@ -1552,6 +1552,12 @@ button.pill:focus-visible {
   position: relative;
 }
 
+/* Keep CRM glyph visually aligned with stroke-based search/menu icons. */
+#site-header .header-icons .header-crm-toggle .icon {
+  width: 16px;
+  height: 16px;
+}
+
 #site-header .header-icons .header-icon-dot {
   position: absolute;
   top: -2px;
@@ -1617,6 +1623,10 @@ button.pill:focus-visible {
   #site-header .header-icons .icon {
     width: 22px;
     height: 22px;
+  }
+  #site-header .header-icons .header-crm-toggle .icon {
+    width: 12px;
+    height: 12px;
   }
   #site-header .site-logo.logo-pera svg {
     width: 150px;
@@ -4207,4 +4217,3 @@ body:not(.single-post) tr:nth-child(even) {
 
   
 }
-
