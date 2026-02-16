@@ -3379,31 +3379,21 @@ body:not(.single-post) tr:nth-child(even) {
 .sr-phone-row {
   display: flex;
   gap: 10px;
+  align-items: stretch;
+  flex-wrap: nowrap;
 }
 
 .cta-phone-row .cta-control--phone-country,
 .sr-phone-row .cta-control--phone-country {
-  width: 110px;
-  flex: 0 0 110px;
+  width: auto;
+  max-width: 120px;
+  flex: 0 0 auto;
 }
 
 .cta-phone-row input,
 .sr-phone-row input {
   flex: 1;
   min-width: 0;
-}
-
-@media (max-width: 767px) {
-  .cta-phone-row,
-  .sr-phone-row {
-    flex-direction: column;
-  }
-
-  .cta-phone-row .cta-control--phone-country,
-  .sr-phone-row .cta-control--phone-country {
-    width: 100%;
-    flex-basis: auto;
-  }
 }
 
 /* checkboxes & options */

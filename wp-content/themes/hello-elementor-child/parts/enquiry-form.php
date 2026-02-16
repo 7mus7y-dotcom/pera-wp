@@ -170,7 +170,6 @@ $form_context = ( $context === 'property' )
       <div class="cta-field">
         <span class="cta-label">Mobile / WhatsApp</span>
         <div class="cta-phone-row sr-phone-row">
-          <label class="screen-reader-text" for="sr_phone_country">Country code</label>
           <select id="sr_phone_country" name="sr_phone_country" class="cta-control cta-control--phone-country" required aria-label="Country code">
             <?php
             foreach ( $preferred_phone_countries as $country_value => $country_label ) :
@@ -189,7 +188,6 @@ $form_context = ( $context === 'property' )
             <?php endforeach; ?>
           </select>
 
-          <label class="screen-reader-text" for="sr_phone_national">Phone number</label>
           <input
             type="text"
             id="sr_phone_national"
