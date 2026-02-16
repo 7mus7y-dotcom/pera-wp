@@ -354,6 +354,7 @@
   flex: 0 0 120px;
   width: 120px;
   max-width: 120px;
+  min-width: 0;
 }
 
 .crm-phone-row input[type="tel"],
@@ -363,9 +364,45 @@
   min-width: 0;
 }
 
+.crm-client-profile-panel,
+.crm-client-profile-panel .crm-form-stack,
+.crm-client-profile-panel .crm-phone-row,
+.crm-client-profile-panel .crm-form-row-2,
+.crm-client-profile-panel label {
+  min-width: 0;
+  max-width: 100%;
+}
+
+.crm-client-profile-panel input,
+.crm-client-profile-panel select,
+.crm-client-profile-panel textarea {
+  max-width: 100%;
+}
+
+.crm-client-profile-panel .crm-client-quick-actions {
+  max-width: 100%;
+}
+
+.crm-client-profile-panel .crm-client-quick-actions a {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.crm-client-notes-list__meta {
+  color: #6d6d6d;
+  font-size: 12px;
+  margin: 6px 0;
+}
+
 @media (max-width: 767px) {
   .crm-form-row-2 {
     grid-template-columns: 1fr;
+  }
+
+  .crm-client-profile-panel .crm-phone-row .crm-phone-country {
+    flex-basis: 88px;
+    width: 88px;
+    max-width: 88px;
   }
 }
 
