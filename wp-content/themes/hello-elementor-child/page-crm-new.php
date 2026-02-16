@@ -30,6 +30,71 @@ if ( ! isset( $source_options[ $prefill_source ] ) ) {
 	$prefill_source = 'website';
 }
 
+$default_phone_country = '+90';
+$preferred_phone_countries = array(
+	'+90'  => 'TR +90',
+	'+44'  => 'UK +44',
+	'+971' => 'UAE +971',
+	'+974' => 'Qatar +974',
+	'+966' => 'Saudi +966',
+	'+965' => 'Kuwait +965',
+	'+973' => 'Bahrain +973',
+	'+968' => 'Oman +968',
+	'+1'   => 'USA/Canada +1',
+	'+49'  => 'Germany +49',
+	'+31'  => 'Netherlands +31',
+	'+33'  => 'France +33',
+);
+$other_phone_countries = array(
+	'+34'  => 'Spain +34',
+	'+39'  => 'Italy +39',
+	'+41'  => 'Switzerland +41',
+	'+46'  => 'Sweden +46',
+	'+47'  => 'Norway +47',
+	'+45'  => 'Denmark +45',
+	'+353' => 'Ireland +353',
+	'+32'  => 'Belgium +32',
+	'+43'  => 'Austria +43',
+	'+30'  => 'Greece +30',
+);
+$available_phone_countries = $preferred_phone_countries + $other_phone_countries;
+
+$prefill_phone_country  = $default_phone_country;
+$prefill_phone_national = '';
+$prefill_phone_trimmed  = ltrim( $prefill_phone );
+
+if ( '' !== $prefill_phone_trimmed && '+' === substr( $prefill_phone_trimmed, 0, 1 ) ) {
+	$phone_digits  = preg_replace( '/\D+/', '', $prefill_phone_trimmed );
+	$sorted_codes  = array_keys( $available_phone_countries );
+	usort(
+		$sorted_codes,
+		static function ( $left, $right ) {
+			return strlen( (string) $right ) <=> strlen( (string) $left );
+		}
+	);
+
+	foreach ( $sorted_codes as $country_code ) {
+		$country_digits = preg_replace( '/\D+/', '', (string) $country_code );
+		if ( '' === $country_digits ) {
+			continue;
+		}
+
+		if ( strpos( $phone_digits, $country_digits ) === 0 ) {
+			$prefill_phone_country  = (string) $country_code;
+			$prefill_phone_national = substr( $phone_digits, strlen( $country_digits ) );
+			break;
+		}
+	}
+}
+
+if ( '' === $prefill_phone_national && '' !== $prefill_phone ) {
+	$prefill_phone_national = preg_replace( '/\D+/', '', $prefill_phone );
+}
+
+if ( ! isset( $available_phone_countries[ $prefill_phone_country ] ) ) {
+	$prefill_phone_country = $default_phone_country;
+}
+
 get_header();
 ?>
 
@@ -78,10 +143,21 @@ get_header();
             <input id="crm-email" name="email" type="email" required value="<?php echo esc_attr( $prefill_email ); ?>" />
           </p>
 
-          <p>
-            <label for="crm-phone"><?php echo esc_html__( 'Phone', 'hello-elementor-child' ); ?></label>
-            <input id="crm-phone" name="phone" type="text" value="<?php echo esc_attr( $prefill_phone ); ?>" />
-          </p>
+          <div class="crm-phone-field">
+            <div class="crm-field-label"><?php echo esc_html__( 'Mobile / WhatsApp', 'hello-elementor-child' ); ?></div>
+            <div class="crm-phone-row">
+              <select name="peracrm_phone_country" class="crm-phone-country" aria-label="<?php echo esc_attr__( 'Country code', 'hello-elementor-child' ); ?>">
+                <?php foreach ( $preferred_phone_countries as $country_value => $country_label ) : ?>
+                  <option value="<?php echo esc_attr( (string) $country_value ); ?>" <?php selected( $prefill_phone_country, (string) $country_value ); ?>><?php echo esc_html( (string) $country_label ); ?></option>
+                <?php endforeach; ?>
+                <option value="" disabled>────────</option>
+                <?php foreach ( $other_phone_countries as $country_value => $country_label ) : ?>
+                  <option value="<?php echo esc_attr( (string) $country_value ); ?>" <?php selected( $prefill_phone_country, (string) $country_value ); ?>><?php echo esc_html( (string) $country_label ); ?></option>
+                <?php endforeach; ?>
+              </select>
+              <input type="tel" name="peracrm_phone_national" value="<?php echo esc_attr( (string) $prefill_phone_national ); ?>" inputmode="tel" autocomplete="tel-national" placeholder="<?php echo esc_attr__( 'Phone number', 'hello-elementor-child' ); ?>" aria-label="<?php echo esc_attr__( 'Phone number', 'hello-elementor-child' ); ?>" />
+            </div>
+          </div>
 
           <p>
             <label for="crm-source"><?php echo esc_html__( 'Source *', 'hello-elementor-child' ); ?></label>
