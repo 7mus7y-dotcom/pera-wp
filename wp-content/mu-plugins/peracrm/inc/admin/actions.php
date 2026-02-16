@@ -1394,8 +1394,9 @@ function peracrm_handle_save_client_profile()
     $budget_min = isset($_POST['peracrm_budget_min_usd']) ? wp_unslash($_POST['peracrm_budget_min_usd']) : '';
     $budget_max = isset($_POST['peracrm_budget_max_usd']) ? wp_unslash($_POST['peracrm_budget_max_usd']) : '';
 
-    $phone_raw = isset($_POST['peracrm_phone']) ? sanitize_text_field(wp_unslash($_POST['peracrm_phone'])) : '';
-    $phone = preg_replace('/[^0-9+]/', '', $phone_raw);
+    $phone = function_exists('peracrm_phone_canonical_from_source')
+        ? peracrm_phone_canonical_from_source($_POST, 'peracrm_phone_country', 'peracrm_phone_national', 'peracrm_phone')
+        : (isset($_POST['peracrm_phone']) ? preg_replace('/[^0-9+]/', '', sanitize_text_field(wp_unslash($_POST['peracrm_phone']))) : '');
 
     $email_raw = isset($_POST['peracrm_email']) ? sanitize_text_field(wp_unslash($_POST['peracrm_email'])) : '';
     $email = sanitize_email($email_raw);

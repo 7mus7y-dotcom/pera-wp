@@ -265,13 +265,16 @@ function peracrm_ingest_enquiry(array $payload, array $context = [])
         $raw_fields = peracrm_ingest_sanitize_raw_fields($payload['raw_fields']);
     }
 
-    $result = (int) peracrm_with_target_blog(static function () use ($email, $first_name, $last_name, $payload, $context, $property_id, $page_url, $post_id, $raw_fields, $message) {
+    $phone = isset($payload['phone']) ? sanitize_text_field((string) $payload['phone']) : '';
+    $phone = preg_replace('/[^0-9+]/', '', $phone);
+
+    $result = (int) peracrm_with_target_blog(static function () use ($email, $first_name, $last_name, $payload, $context, $property_id, $page_url, $post_id, $raw_fields, $message, $phone) {
         global $wpdb;
 
         $client_id = (int) peracrm_find_or_create_client_by_email($email, [
             'first_name' => $first_name,
             'last_name' => $last_name,
-            'phone' => isset($payload['phone']) ? sanitize_text_field((string) $payload['phone']) : '',
+            'phone' => $phone,
             'source' => !empty($context['handler']) ? sanitize_key((string) $context['handler']) : 'website_form',
             'status' => 'enquiry',
         ]);
@@ -465,13 +468,18 @@ function peracrm_ingest_theme_enquiries($trigger = 'init')
         $sr_context = isset($_POST['sr_context']) ? sanitize_text_field(wp_unslash($_POST['sr_context'])) : '';
         $raw_form_context = isset($_POST['form_context']) ? sanitize_text_field(wp_unslash($_POST['form_context'])) : '';
         $normalized_form_context = peracrm_ingest_normalize_sr_form_context($raw_form_context, $sr_context, $sr_intent);
+        $sr_phone = function_exists('peracrm_phone_canonical_from_source')
+            ? peracrm_phone_canonical_from_source($_POST, 'sr_phone_country', 'sr_phone_national', 'sr_phone')
+            : (isset($_POST['sr_phone']) ? sanitize_text_field(wp_unslash($_POST['sr_phone'])) : '');
+
+        $_POST['sr_phone'] = $sr_phone;
 
         peracrm_ingest_enquiry([
             'form_context' => $normalized_form_context,
             'email' => isset($_POST['sr_email']) ? sanitize_email(wp_unslash($_POST['sr_email'])) : '',
             'first_name' => $first_name,
             'last_name' => $last_name,
-            'phone' => isset($_POST['sr_phone']) ? sanitize_text_field(wp_unslash($_POST['sr_phone'])) : '',
+            'phone' => $sr_phone,
             'message' => isset($_POST['sr_message']) ? sanitize_textarea_field(wp_unslash($_POST['sr_message'])) : '',
             'property_id' => isset($_POST['sr_property_id']) ? absint($_POST['sr_property_id']) : 0,
             'page_url' => !empty($_POST['_wp_http_referer']) ? esc_url_raw(wp_unslash($_POST['_wp_http_referer'])) : '',

@@ -114,6 +114,10 @@ function pera_forms_nonce_failure_redirect( $form_key, $fallback_url, $query_arg
 function pera_enquiry_canonical_sr_phone( $source = null ) {
   $source = is_array( $source ) ? $source : $_POST;
 
+  if ( function_exists( 'peracrm_phone_canonical_from_source' ) ) {
+    return peracrm_phone_canonical_from_source( $source, 'sr_phone_country', 'sr_phone_national', 'sr_phone' );
+  }
+
   $country_raw = isset( $source['sr_phone_country'] ) ? sanitize_text_field( wp_unslash( (string) $source['sr_phone_country'] ) ) : '';
   $national_raw = isset( $source['sr_phone_national'] ) ? sanitize_text_field( wp_unslash( (string) $source['sr_phone_national'] ) ) : '';
   $legacy_raw = isset( $source['sr_phone'] ) ? sanitize_text_field( wp_unslash( (string) $source['sr_phone'] ) ) : '';
@@ -129,9 +133,7 @@ function pera_enquiry_canonical_sr_phone( $source = null ) {
   }
 
   if ( $legacy_raw !== '' ) {
-    $legacy = preg_replace( '/[^0-9+\s]/', '', $legacy_raw );
-    $legacy = preg_replace( '/\s+/', ' ', (string) $legacy );
-    return trim( (string) $legacy );
+    return preg_replace( '/[^0-9+]/', '', $legacy_raw );
   }
 
   return '';
@@ -150,15 +152,13 @@ function pera_enquiry_email_sr_phone( $source = null ) {
     return $canonical;
   }
 
-  $country_raw = isset( $source['sr_phone_country'] ) ? sanitize_text_field( wp_unslash( (string) $source['sr_phone_country'] ) ) : '';
-  $country_digits = preg_replace( '/\D+/', '', $country_raw );
-  $country_code = $country_digits !== '' ? '+' . $country_digits : '';
+  $country_raw   = isset( $source['sr_phone_country'] ) ? sanitize_text_field( wp_unslash( (string) $source['sr_phone_country'] ) ) : '';
+  $national_raw  = isset( $source['sr_phone_national'] ) ? sanitize_text_field( wp_unslash( (string) $source['sr_phone_national'] ) ) : '';
+  $country_value = preg_replace( '/\D+/', '', $country_raw );
+  $number_value  = preg_replace( '/\D+/', '', $national_raw );
+  $number_value  = ltrim( (string) $number_value, '0' );
 
-  $national_raw = isset( $source['sr_phone_national'] ) ? sanitize_text_field( wp_unslash( (string) $source['sr_phone_national'] ) ) : '';
-  $national = preg_replace( '/\s+/', ' ', trim( $national_raw ) );
-  $national = preg_replace( '/[^0-9\s]/', '', (string) $national );
-
-  return trim( $country_code . ' ' . $national );
+  return trim( ( $country_value ? '+' . $country_value : '' ) . $number_value );
 }
 
 /**

@@ -337,6 +337,30 @@
   gap: 12px;
 }
 
+
+.crm-phone-field {
+  display: grid;
+  gap: 8px;
+}
+
+.crm-phone-row {
+  display: flex;
+  flex-wrap: nowrap;
+  align-items: stretch;
+  gap: 10px;
+}
+
+.crm-phone-country {
+  width: auto;
+  max-width: 140px;
+  flex: 0 0 auto;
+}
+
+.crm-phone-row input {
+  flex: 1;
+  min-width: 0;
+}
+
 @media (max-width: 767px) {
   .crm-form-row-2 {
     grid-template-columns: 1fr;
