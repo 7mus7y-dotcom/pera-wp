@@ -87,28 +87,28 @@ $client_type_value = sanitize_key( (string) ( $profile['client_type'] ?? '' ) );
 
 $profile_phone_value = isset( $profile['phone'] ) ? trim( (string) $profile['phone'] ) : '';
 $crm_phone_country_options = array(
-  '+90'  => 'TR +90',
-  '+44'  => 'UK +44',
-  '+971' => 'UAE +971',
-  '+974' => 'Qatar +974',
-  '+966' => 'Saudi +966',
-  '+965' => 'Kuwait +965',
-  '+973' => 'Bahrain +973',
-  '+968' => 'Oman +968',
-  '+1'   => 'USA/Canada +1',
-  '+49'  => 'Germany +49',
-  '+31'  => 'Netherlands +31',
-  '+33'  => 'France +33',
-  '+34'  => 'Spain +34',
-  '+39'  => 'Italy +39',
-  '+41'  => 'Switzerland +41',
-  '+46'  => 'Sweden +46',
-  '+47'  => 'Norway +47',
-  '+45'  => 'Denmark +45',
-  '+353' => 'Ireland +353',
-  '+32'  => 'Belgium +32',
-  '+43'  => 'Austria +43',
-  '+30'  => 'Greece +30',
+  '+90'  => '+90',
+  '+44'  => '+44',
+  '+971' => '+971',
+  '+974' => '+974',
+  '+966' => '+966',
+  '+965' => '+965',
+  '+973' => '+973',
+  '+968' => '+968',
+  '+1'   => '+1',
+  '+49'  => '+49',
+  '+31'  => '+31',
+  '+33'  => '+33',
+  '+34'  => '+34',
+  '+39'  => '+39',
+  '+41'  => '+41',
+  '+46'  => '+46',
+  '+47'  => '+47',
+  '+45'  => '+45',
+  '+353' => '+353',
+  '+32'  => '+32',
+  '+43'  => '+43',
+  '+30'  => '+30',
 );
 
 $crm_phone_country_value  = '+90';
@@ -274,7 +274,7 @@ get_header();
         </div>
 
         <div class="crm-client-panels-grid">
-          <article class="card-shell crm-client-section">
+          <article class="card-shell crm-client-section crm-client-profile-panel">
             <h3><?php esc_html_e( 'Client Profile', 'hello-elementor-child' ); ?></h3>
             <form method="post" action="<?php echo esc_url( home_url( '/wp-admin/admin-post.php' ) ); ?>" class="crm-form-stack">
 						<?php wp_nonce_field( 'peracrm_save_client_profile', 'peracrm_save_client_profile_nonce' ); ?>
@@ -320,6 +320,39 @@ get_header();
                 <label><?php esc_html_e( 'Budget max (USD)', 'hello-elementor-child' ); ?><input type="number" min="0" name="peracrm_budget_max_usd" value="<?php echo esc_attr( (string) ( $profile['budget_max_usd'] ?? '' ) ); ?>" /></label>
               </div>
               <button type="submit" class="btn btn--solid btn--blue"><?php esc_html_e( 'Save profile', 'hello-elementor-child' ); ?></button>
+            </form>
+          </article>
+
+          <article class="card-shell crm-client-section">
+            <h3><?php esc_html_e( 'Advisor Notes', 'hello-elementor-child' ); ?></h3>
+            <?php if ( empty( $notes ) ) : ?>
+              <p><?php esc_html_e( 'No notes yet.', 'hello-elementor-child' ); ?></p>
+            <?php else : ?>
+              <ul class="crm-list crm-client-notes-list">
+                <?php foreach ( $notes as $note ) : ?>
+                  <?php
+                  $note_author      = isset( $note['advisor_user_id'] ) ? get_userdata( (int) $note['advisor_user_id'] ) : false;
+                  $note_author_name = $note_author instanceof WP_User ? $note_author->display_name : __( 'Advisor', 'hello-elementor-child' );
+                  $note_created_at  = isset( $note['created_at'] ) ? (string) $note['created_at'] : '';
+                  $note_created_at  = '' !== $note_created_at ? mysql2date( 'Y-m-d H:i', $note_created_at ) : __( 'Unknown time', 'hello-elementor-child' );
+                  ?>
+                  <li>
+                    <span class="pill pill--outline"><?php echo esc_html( (string) $note_created_at ); ?></span>
+                    <p class="crm-client-notes-list__meta"><?php echo esc_html( (string) $note_author_name ); ?></p>
+                    <p><?php echo esc_html( (string) ( $note['note_body'] ?? '' ) ); ?></p>
+                  </li>
+                <?php endforeach; ?>
+              </ul>
+            <?php endif; ?>
+
+            <form method="post" action="<?php echo esc_url( home_url( '/wp-admin/admin-post.php' ) ); ?>" class="crm-form-stack">
+              <?php wp_nonce_field( 'peracrm_add_note', 'peracrm_add_note_nonce' ); ?>
+              <input type="hidden" name="action" value="peracrm_add_note" />
+              <input type="hidden" name="peracrm_client_id" value="<?php echo esc_attr( (string) $client_id ); ?>" />
+              <input type="hidden" name="peracrm_redirect" value="<?php echo esc_url( $frontend_url ); ?>" />
+              <label for="peracrm_note_body_frontend"><?php esc_html_e( 'Add note', 'hello-elementor-child' ); ?></label>
+              <textarea name="peracrm_note_body" id="peracrm_note_body_frontend" rows="4"></textarea>
+              <button type="submit" class="btn btn--solid btn--blue"><?php esc_html_e( 'Add note', 'hello-elementor-child' ); ?></button>
             </form>
           </article>
 
