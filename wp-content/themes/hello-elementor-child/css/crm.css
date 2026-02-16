@@ -345,19 +345,21 @@
 
 .crm-phone-row {
   display: flex;
-  flex-wrap: nowrap;
   align-items: stretch;
   gap: 10px;
+  flex-wrap: nowrap;
 }
 
-.crm-phone-country {
+.crm-phone-row .crm-phone-country {
+  flex: 0 0 120px;
+  width: 120px;
+  max-width: 120px;
+}
+
+.crm-phone-row input[type="tel"],
+.crm-phone-row input[type="text"] {
+  flex: 1 1 auto;
   width: auto;
-  max-width: 140px;
-  flex: 0 0 auto;
-}
-
-.crm-phone-row input {
-  flex: 1;
   min-width: 0;
 }
 
