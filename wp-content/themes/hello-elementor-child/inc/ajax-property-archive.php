@@ -220,7 +220,11 @@ if ( ! function_exists( 'pera_ajax_filter_properties_v2' ) ) {
         if ( isset( $_POST['s'] ) ) {
           $keyword = trim( (string) wp_unslash( $_POST['s'] ) );
           $keyword = sanitize_text_field( $keyword );
+          $keyword = trim( $keyword );
         }
+
+        $keyword_is_post_id = ( $keyword !== '' ) && preg_match( '/^\d+$/', $keyword );
+        $keyword_post_id    = $keyword_is_post_id ? absint( $keyword ) : 0;
 
         $archive_taxonomy = '';
         $archive_term_id  = 0;
@@ -411,8 +415,14 @@ if ( ! function_exists( 'pera_ajax_filter_properties_v2' ) ) {
         }
       
         if ( $keyword !== '' ) {
-          $args['s'] = $keyword;
-          $args['pera_kw_project'] = 1;
+          if ( $keyword_is_post_id ) {
+            $args['p'] = $keyword_post_id;
+          } else {
+            $args['s'] = $keyword;
+            if ( function_exists( 'pera_is_frontend_admin_equivalent' ) && pera_is_frontend_admin_equivalent() ) {
+              $args['pera_kw_project'] = 1;
+            }
+          }
         }
 
 

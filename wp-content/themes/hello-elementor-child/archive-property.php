@@ -73,6 +73,10 @@ $selected_beds = isset($_GET['v2_beds'])
 $current_keyword = isset( $_GET['s'] )
   ? sanitize_text_field( wp_unslash( (string) $_GET['s'] ) )
   : '';
+$current_keyword = trim( $current_keyword );
+
+$current_keyword_is_post_id = ( $current_keyword !== '' ) && preg_match( '/^\d+$/', $current_keyword );
+$current_keyword_post_id    = $current_keyword_is_post_id ? absint( $current_keyword ) : 0;
 
 // Taxonomy archive context (property tax term archives).
 $taxonomy_context = function_exists( 'pera_get_property_tax_archive_context' )
@@ -266,8 +270,14 @@ if ( ! empty( $meta_query ) ) {
 // KEYWORD
 // ------------------------------------------------------------
 if ( $current_keyword !== '' ) {
-  $args['s'] = $current_keyword;
-  $args['pera_kw_project'] = 1;
+  if ( $current_keyword_is_post_id ) {
+    $args['p'] = $current_keyword_post_id;
+  } else {
+    $args['s'] = $current_keyword;
+    if ( function_exists( 'pera_is_frontend_admin_equivalent' ) && pera_is_frontend_admin_equivalent() ) {
+      $args['pera_kw_project'] = 1;
+    }
+  }
 }
 
 
