@@ -32,6 +32,21 @@ $sr_context     = isset( $args['sr_context'] ) ? (string) $args['sr_context'] : 
 $show_header    = isset( $args['show_header'] ) ? (bool) $args['show_header'] : true;
 $sr_status      = isset( $_GET['sr_status'] ) ? sanitize_key( (string) wp_unslash( $_GET['sr_status'] ) ) : '';
 
+$locale = function_exists( 'determine_locale' ) ? determine_locale() : get_locale();
+$default_phone_country = '+90';
+if ( strpos( (string) $locale, 'en_GB' ) === 0 ) {
+  $default_phone_country = '+44';
+} elseif ( strpos( (string) $locale, 'ar' ) === 0 ) {
+  $default_phone_country = '+971';
+}
+
+$phone_country_value = isset( $_POST['sr_phone_country'] )
+  ? sanitize_text_field( wp_unslash( (string) $_POST['sr_phone_country'] ) )
+  : $default_phone_country;
+$phone_national_value = isset( $_POST['sr_phone_national'] )
+  ? sanitize_text_field( wp_unslash( (string) $_POST['sr_phone_national'] ) )
+  : '';
+
 // For tracking/logging in email body (and your existing redirect logic)
 $form_context = ( $context === 'property' )
   ? 'property'
@@ -118,8 +133,47 @@ $form_context = ( $context === 'property' )
       </div>
 
       <div class="cta-field">
-        <label class="cta-label">Mobile / WhatsApp</label>
-        <input type="text" name="sr_phone" class="cta-control" required placeholder="+90 … or your international number">
+        <span class="cta-label">Mobile / WhatsApp</span>
+        <div class="cta-phone-row">
+          <label class="screen-reader-text" for="sr_phone_country"><?php esc_html_e( 'Country code', 'hello-elementor-child' ); ?></label>
+          <select id="sr_phone_country" name="sr_phone_country" class="cta-control cta-control--phone-country" required aria-label="Country code">
+            <?php
+            $phone_country_options = array(
+              '+90'  => 'Turkey (+90)',
+              '+44'  => 'United Kingdom (+44)',
+              '+971' => 'United Arab Emirates (+971)',
+              '+49'  => 'Germany (+49)',
+              '+33'  => 'France (+33)',
+              '+39'  => 'Italy (+39)',
+              '+34'  => 'Spain (+34)',
+              '+31'  => 'Netherlands (+31)',
+              '+7'   => 'Russia (+7)',
+              '+1'   => 'United States / Canada (+1)',
+              '+966' => 'Saudi Arabia (+966)',
+              '+974' => 'Qatar (+974)',
+            );
+            foreach ( $phone_country_options as $country_value => $country_label ) :
+              ?>
+              <option value="<?php echo esc_attr( $country_value ); ?>" <?php selected( $phone_country_value, $country_value ); ?>>
+                <?php echo esc_html( $country_label ); ?>
+              </option>
+            <?php endforeach; ?>
+          </select>
+
+          <label class="screen-reader-text" for="sr_phone_national"><?php esc_html_e( 'Phone number', 'hello-elementor-child' ); ?></label>
+          <input
+            type="text"
+            id="sr_phone_national"
+            name="sr_phone_national"
+            class="cta-control"
+            required
+            inputmode="tel"
+            autocomplete="tel-national"
+            placeholder="532 123 45 67"
+            aria-label="Phone number"
+            value="<?php echo esc_attr( $phone_national_value ); ?>"
+          >
+        </div>
       </div>
 
       <?php if ( $context === 'rent' ) : ?>
