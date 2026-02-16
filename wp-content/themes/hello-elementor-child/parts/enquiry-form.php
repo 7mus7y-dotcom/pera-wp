@@ -47,6 +47,41 @@ $phone_national_value = isset( $_POST['sr_phone_national'] )
   ? sanitize_text_field( wp_unslash( (string) $_POST['sr_phone_national'] ) )
   : '';
 
+$preferred_phone_countries = array(
+  '+90'  => 'TR +90',
+  '+44'  => 'UK +44',
+  '+971' => 'UAE +971',
+  '+974' => 'Qatar +974',
+  '+966' => 'Saudi +966',
+  '+965' => 'Kuwait +965',
+  '+973' => 'Bahrain +973',
+  '+968' => 'Oman +968',
+  '+1'   => 'USA/Canada +1',
+  '+49'  => 'Germany +49',
+  '+31'  => 'Netherlands +31',
+  '+33'  => 'France +33',
+);
+
+$other_phone_countries = array(
+  '+34'  => 'Spain +34',
+  '+39'  => 'Italy +39',
+  '+41'  => 'Switzerland +41',
+  '+46'  => 'Sweden +46',
+  '+47'  => 'Norway +47',
+  '+45'  => 'Denmark +45',
+  '+353' => 'Ireland +353',
+  '+32'  => 'Belgium +32',
+  '+43'  => 'Austria +43',
+  '+30'  => 'Greece +30',
+);
+
+$available_phone_countries = $preferred_phone_countries + $other_phone_countries;
+if ( ! isset( $available_phone_countries[ $phone_country_value ] ) ) {
+  $phone_country_value = isset( $available_phone_countries[ $default_phone_country ] )
+    ? $default_phone_country
+    : '+90';
+}
+
 // For tracking/logging in email body (and your existing redirect logic)
 $form_context = ( $context === 'property' )
   ? 'property'
@@ -134,26 +169,20 @@ $form_context = ( $context === 'property' )
 
       <div class="cta-field">
         <span class="cta-label">Mobile / WhatsApp</span>
-        <div class="cta-phone-row">
+        <div class="cta-phone-row sr-phone-row">
           <label class="screen-reader-text" for="sr_phone_country"><?php esc_html_e( 'Country code', 'hello-elementor-child' ); ?></label>
           <select id="sr_phone_country" name="sr_phone_country" class="cta-control cta-control--phone-country" required aria-label="Country code">
             <?php
-            $phone_country_options = array(
-              '+90'  => 'Turkey (+90)',
-              '+44'  => 'United Kingdom (+44)',
-              '+971' => 'United Arab Emirates (+971)',
-              '+49'  => 'Germany (+49)',
-              '+33'  => 'France (+33)',
-              '+39'  => 'Italy (+39)',
-              '+34'  => 'Spain (+34)',
-              '+31'  => 'Netherlands (+31)',
-              '+7'   => 'Russia (+7)',
-              '+1'   => 'United States / Canada (+1)',
-              '+966' => 'Saudi Arabia (+966)',
-              '+974' => 'Qatar (+974)',
-            );
-            foreach ( $phone_country_options as $country_value => $country_label ) :
+            foreach ( $preferred_phone_countries as $country_value => $country_label ) :
               ?>
+              <option value="<?php echo esc_attr( $country_value ); ?>" <?php selected( $phone_country_value, $country_value ); ?>>
+                <?php echo esc_html( $country_label ); ?>
+              </option>
+            <?php endforeach; ?>
+
+            <option value="" disabled>──────────</option>
+
+            <?php foreach ( $other_phone_countries as $country_value => $country_label ) : ?>
               <option value="<?php echo esc_attr( $country_value ); ?>" <?php selected( $phone_country_value, $country_value ); ?>>
                 <?php echo esc_html( $country_label ); ?>
               </option>
@@ -169,7 +198,7 @@ $form_context = ( $context === 'property' )
             required
             inputmode="tel"
             autocomplete="tel-national"
-            placeholder="532 123 45 67"
+            placeholder="Phone number"
             aria-label="Phone number"
             value="<?php echo esc_attr( $phone_national_value ); ?>"
           >

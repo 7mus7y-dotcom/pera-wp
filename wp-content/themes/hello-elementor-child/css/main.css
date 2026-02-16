@@ -3375,15 +3375,34 @@ body:not(.single-post) tr:nth-child(even) {
   color: #aaaaaa;
 }
 
-.cta-phone-row {
-  display: grid;
-  grid-template-columns: minmax(120px, 0.36fr) minmax(0, 1fr);
-  gap: 0.5rem;
+.cta-phone-row,
+.sr-phone-row {
+  display: flex;
+  gap: 10px;
+}
+
+.cta-phone-row .cta-control--phone-country,
+.sr-phone-row .cta-control--phone-country {
+  width: 110px;
+  flex: 0 0 110px;
+}
+
+.cta-phone-row input,
+.sr-phone-row input {
+  flex: 1;
+  min-width: 0;
 }
 
 @media (max-width: 767px) {
-  .cta-phone-row {
-    grid-template-columns: 1fr;
+  .cta-phone-row,
+  .sr-phone-row {
+    flex-direction: column;
+  }
+
+  .cta-phone-row .cta-control--phone-country,
+  .sr-phone-row .cta-control--phone-country {
+    width: 100%;
+    flex-basis: auto;
   }
 }
 
