@@ -34,6 +34,7 @@ $default_phone_country = '+90';
 $preferred_phone_countries = array(
 	'+90'  => 'TR +90',
 	'+44'  => 'UK +44',
+	'+27'  => 'South Africa +27',
 	'+971' => 'UAE +971',
 	'+974' => 'Qatar +974',
 	'+966' => 'Saudi +966',

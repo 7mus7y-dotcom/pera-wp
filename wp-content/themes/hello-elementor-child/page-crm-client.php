@@ -89,6 +89,7 @@ $profile_phone_value = isset( $profile['phone'] ) ? trim( (string) $profile['pho
 $crm_phone_country_options = array(
   '+90'  => '+90',
   '+44'  => '+44',
+  '+27'  => 'South Africa +27',
   '+971' => '+971',
   '+974' => '+974',
   '+966' => '+966',
