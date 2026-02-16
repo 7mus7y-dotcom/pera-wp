@@ -132,6 +132,21 @@ function peracrm_phone_canonical_from_source(array $source, $country_key = 'phon
     return preg_replace('/[^0-9+]/', '', $legacy_raw);
 }
 
+function peracrm_phone_digits_only($phone)
+{
+    return preg_replace('/\D+/', '', (string) $phone);
+}
+
+function peracrm_whatsapp_url_from_phone($phone)
+{
+    $digits = peracrm_phone_digits_only($phone);
+    if ($digits === '') {
+        return '';
+    }
+
+    return 'https://wa.me/' . $digits;
+}
+
 function peracrm_client_update_profile($client_id, $data)
 {
     $client_id = (int) $client_id;

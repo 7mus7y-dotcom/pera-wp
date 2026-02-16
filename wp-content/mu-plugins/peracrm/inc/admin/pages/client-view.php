@@ -432,14 +432,9 @@ function peracrm_render_client_view_page()
     }
 
     $tel_link = $phone !== '' ? 'tel:' . rawurlencode($phone) : '';
-    $wa_link = '';
-    $phone_trimmed = ltrim($phone);
-    if ($phone_trimmed !== '' && strpos($phone_trimmed, '+') === 0) {
-        $wa_digits = preg_replace('/\D+/', '', $phone_trimmed);
-        if ($wa_digits !== '') {
-            $wa_link = 'https://wa.me/' . $wa_digits;
-        }
-    }
+    $wa_link = function_exists('peracrm_whatsapp_url_from_phone')
+        ? peracrm_whatsapp_url_from_phone($phone)
+        : '';
     $mailto_link = $email !== '' ? 'mailto:' . rawurlencode($email) : '';
 
     $status_labels = [

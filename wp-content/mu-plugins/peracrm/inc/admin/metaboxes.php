@@ -276,14 +276,9 @@ function peracrm_render_client_profile_metabox($post)
     $phone = isset($profile['phone']) ? (string) $profile['phone'] : '';
     $email = isset($profile['email']) ? (string) $profile['email'] : '';
 
-    $wa_link = '';
-    $phone_trimmed = ltrim($phone);
-    if ($phone_trimmed !== '' && strpos($phone_trimmed, '+') === 0) {
-        $wa_digits = preg_replace('/\D+/', '', $phone_trimmed);
-        if ($wa_digits !== '') {
-            $wa_link = 'https://wa.me/' . $wa_digits;
-        }
-    }
+    $wa_link = function_exists('peracrm_whatsapp_url_from_phone')
+        ? peracrm_whatsapp_url_from_phone($phone)
+        : '';
 
     $form_selector = '#peracrm-client-profile-form-' . (int) $post->ID;
 
