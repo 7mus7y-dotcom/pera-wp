@@ -81,11 +81,19 @@ if ( ! function_exists( 'pera_crm_build_create_lead_redirect_url' ) ) {
 	 * Build /crm/new redirect URL while preserving user-entered fields.
 	 */
 	function pera_crm_build_create_lead_redirect_url( string $error_code ): string {
+		$phone = function_exists( 'peracrm_phone_canonical_from_source' )
+			? peracrm_phone_canonical_from_source( $_POST, 'peracrm_phone_country', 'peracrm_phone_national', 'peracrm_phone' )
+			: ( isset( $_POST['peracrm_phone'] ) ? preg_replace( '/[^0-9+]/', '', sanitize_text_field( wp_unslash( (string) $_POST['peracrm_phone'] ) ) ) : '' );
+
+		if ( '' === $phone && isset( $_POST['phone'] ) ) {
+			$phone = preg_replace( '/[^0-9+]/', '', sanitize_text_field( wp_unslash( (string) $_POST['phone'] ) ) );
+		}
+
 		$fields = array(
 			'first_name'     => isset( $_POST['first_name'] ) ? sanitize_text_field( wp_unslash( (string) $_POST['first_name'] ) ) : '',
 			'last_name'      => isset( $_POST['last_name'] ) ? sanitize_text_field( wp_unslash( (string) $_POST['last_name'] ) ) : '',
 			'email'          => isset( $_POST['email'] ) ? sanitize_email( wp_unslash( (string) $_POST['email'] ) ) : '',
-			'phone'          => isset( $_POST['phone'] ) ? preg_replace( '/[^0-9+\-\s()]/', '', wp_unslash( (string) $_POST['phone'] ) ) : '',
+			'phone'          => $phone,
 			'source'         => isset( $_POST['source'] ) ? sanitize_key( wp_unslash( (string) $_POST['source'] ) ) : '',
 			'notes'          => isset( $_POST['notes'] ) ? sanitize_textarea_field( wp_unslash( (string) $_POST['notes'] ) ) : '',
 		);
@@ -181,7 +189,16 @@ if ( ! function_exists( 'pera_crm_handle_new_lead' ) ) {
 		$first_name = isset( $_POST['first_name'] ) ? sanitize_text_field( wp_unslash( (string) $_POST['first_name'] ) ) : '';
 		$last_name  = isset( $_POST['last_name'] ) ? sanitize_text_field( wp_unslash( (string) $_POST['last_name'] ) ) : '';
 		$email      = isset( $_POST['email'] ) ? sanitize_email( wp_unslash( (string) $_POST['email'] ) ) : '';
-		$phone      = isset( $_POST['phone'] ) ? sanitize_text_field( wp_unslash( (string) $_POST['phone'] ) ) : '';
+		$phone      = function_exists( 'peracrm_phone_canonical_from_source' )
+			? peracrm_phone_canonical_from_source( $_POST, 'peracrm_phone_country', 'peracrm_phone_national', 'peracrm_phone' )
+			: ( isset( $_POST['peracrm_phone'] ) ? preg_replace( '/[^0-9+]/', '', sanitize_text_field( wp_unslash( (string) $_POST['peracrm_phone'] ) ) ) : '' );
+
+		if ( '' === $phone && isset( $_POST['phone'] ) ) {
+			$phone = preg_replace( '/[^0-9+]/', '', sanitize_text_field( wp_unslash( (string) $_POST['phone'] ) ) );
+		}
+
+		$_POST['peracrm_phone'] = $phone;
+		$_POST['phone']         = $phone;
 		$source     = isset( $_POST['source'] ) ? sanitize_key( wp_unslash( (string) $_POST['source'] ) ) : '';
 		$notes      = isset( $_POST['notes'] ) ? sanitize_textarea_field( wp_unslash( (string) $_POST['notes'] ) ) : '';
 
