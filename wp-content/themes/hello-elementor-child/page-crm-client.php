@@ -149,6 +149,17 @@ if ( isset( $_POST['peracrm_phone_country'] ) ) {
   }
 }
 
+$call_link = '' !== $profile_phone_value ? 'tel:' . rawurlencode( $profile_phone_value ) : '';
+$whatsapp_link = function_exists( 'peracrm_whatsapp_url_from_phone' )
+  ? peracrm_whatsapp_url_from_phone( $profile_phone_value )
+  : '';
+$email_value_raw = isset( $profile['email'] ) ? (string) $profile['email'] : '';
+$email_value = '' !== $email_value_raw ? sanitize_email( $email_value_raw ) : '';
+if ( '' !== $email_value && ! is_email( $email_value ) ) {
+  $email_value = '';
+}
+$email_link = '' !== $email_value ? 'mailto:' . rawurlencode( $email_value ) : '';
+
 $deal_edit_id   = isset( $_GET['deal_id'] ) ? absint( wp_unslash( (string) $_GET['deal_id'] ) ) : 0; // phpcs:ignore WordPress.Security.NonceVerification.Recommended
 $editing_deal   = null;
 $deal_form_mode = 'create';
