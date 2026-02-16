@@ -1393,6 +1393,7 @@ function peracrm_handle_save_client_profile()
 
     $budget_min = isset($_POST['peracrm_budget_min_usd']) ? wp_unslash($_POST['peracrm_budget_min_usd']) : '';
     $budget_max = isset($_POST['peracrm_budget_max_usd']) ? wp_unslash($_POST['peracrm_budget_max_usd']) : '';
+    $bedrooms = isset($_POST['peracrm_bedrooms']) ? wp_unslash($_POST['peracrm_bedrooms']) : '';
 
     $phone = function_exists('peracrm_phone_canonical_from_source')
         ? peracrm_phone_canonical_from_source($_POST, 'peracrm_phone_country', 'peracrm_phone_national', 'peracrm_phone')
@@ -1407,6 +1408,7 @@ function peracrm_handle_save_client_profile()
         'preferred_contact' => $preferred_contact,
         'budget_min_usd' => $budget_min,
         'budget_max_usd' => $budget_max,
+        'bedrooms' => $bedrooms,
         'phone' => $phone,
         'email' => $email,
     ];

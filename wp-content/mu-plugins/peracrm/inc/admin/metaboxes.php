@@ -242,6 +242,7 @@ function peracrm_render_client_profile_metabox($post)
             'preferred_contact' => '',
             'budget_min_usd' => '',
             'budget_max_usd' => '',
+            'bedrooms' => '',
             'phone' => '',
             'email' => '',
         ];
@@ -335,6 +336,11 @@ function peracrm_render_client_profile_metabox($post)
 
     echo '<p><label for="peracrm-budget-max">Budget max (USD)</label></p>';
     echo '<p><input type="number" min="0" step="1" name="peracrm_budget_max_usd" id="peracrm-budget-max" class="widefat" value="' . esc_attr($budget_max) . '" /></p>';
+
+    $bedrooms = isset($profile['bedrooms']) ? $profile['bedrooms'] : '';
+
+    echo '<p><label for="peracrm-bedrooms">Bedrooms</label></p>';
+    echo '<p><input type="number" min="0" step="1" name="peracrm_bedrooms" id="peracrm-bedrooms" class="widefat" value="' . esc_attr($bedrooms) . '" /></p>';
 
     echo '<p><label for="peracrm-phone">Phone</label></p>';
     echo '<p><input type="text" name="peracrm_phone" id="peracrm-phone" class="widefat" value="' . esc_attr($phone) . '" /></p>';

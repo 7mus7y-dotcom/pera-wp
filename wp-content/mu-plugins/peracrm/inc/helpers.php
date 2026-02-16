@@ -83,6 +83,7 @@ function peracrm_client_get_profile($client_id)
             'preferred_contact' => '',
             'budget_min_usd' => '',
             'budget_max_usd' => '',
+            'bedrooms' => '',
             'phone' => '',
             'email' => '',
         ];
@@ -94,6 +95,7 @@ function peracrm_client_get_profile($client_id)
         'preferred_contact' => get_post_meta($client_id, '_peracrm_preferred_contact', true),
         'budget_min_usd' => get_post_meta($client_id, '_peracrm_budget_min_usd', true),
         'budget_max_usd' => get_post_meta($client_id, '_peracrm_budget_max_usd', true),
+        'bedrooms' => get_post_meta($client_id, '_peracrm_bedrooms', true),
         'phone' => get_post_meta($client_id, '_peracrm_phone', true),
         'email' => get_post_meta($client_id, '_peracrm_email', true),
     ];
@@ -197,6 +199,11 @@ function peracrm_client_update_profile($client_id, $data)
         $max = $swap;
     }
 
+    $bedrooms = null;
+    if (array_key_exists('bedrooms', $data)) {
+        $bedrooms = peracrm_client_profile_sanitize_integer_field($data['bedrooms'], 0);
+    }
+
     $fields = [
         '_peracrm_status' => $status,
         '_peracrm_client_type' => $client_type,
@@ -223,6 +230,12 @@ function peracrm_client_update_profile($client_id, $data)
         update_post_meta($client_id, '_peracrm_budget_max_usd', (int) $max);
     } else {
         delete_post_meta($client_id, '_peracrm_budget_max_usd');
+    }
+
+    if (null !== $bedrooms) {
+        update_post_meta($client_id, '_peracrm_bedrooms', (int) $bedrooms);
+    } else {
+        delete_post_meta($client_id, '_peracrm_bedrooms');
     }
 
     return true;
@@ -267,13 +280,19 @@ function peracrm_party_get_derived_type($party_id)
 
 function peracrm_client_profile_sanitize_budget($value)
 {
+    return peracrm_client_profile_sanitize_integer_field($value, 0);
+}
+
+function peracrm_client_profile_sanitize_integer_field($value, $min = 0)
+{
     if ($value === '' || $value === null) {
         return null;
     }
 
     $value = (int) $value;
-    if ($value < 0) {
-        $value = 0;
+    $minimum = (int) $min;
+    if ($value < $minimum) {
+        $value = $minimum;
     }
 
     return $value;
