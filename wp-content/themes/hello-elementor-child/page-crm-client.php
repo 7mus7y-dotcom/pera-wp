@@ -85,6 +85,69 @@ $client_type_options = is_array( $data['client_type_options'] ?? null ) ? $data[
 $status_options      = function_exists( 'peracrm_status_options' ) ? (array) peracrm_status_options() : array( 'enquiry' => 'Enquiry', 'active' => 'Active', 'dormant' => 'Dormant', 'closed' => 'Closed' );
 $client_type_value = sanitize_key( (string) ( $profile['client_type'] ?? '' ) );
 
+$profile_phone_value = isset( $profile['phone'] ) ? trim( (string) $profile['phone'] ) : '';
+$crm_phone_country_options = array(
+  '+90'  => 'TR +90',
+  '+44'  => 'UK +44',
+  '+971' => 'UAE +971',
+  '+974' => 'Qatar +974',
+  '+966' => 'Saudi +966',
+  '+965' => 'Kuwait +965',
+  '+973' => 'Bahrain +973',
+  '+968' => 'Oman +968',
+  '+1'   => 'USA/Canada +1',
+  '+49'  => 'Germany +49',
+  '+31'  => 'Netherlands +31',
+  '+33'  => 'France +33',
+  '+34'  => 'Spain +34',
+  '+39'  => 'Italy +39',
+  '+41'  => 'Switzerland +41',
+  '+46'  => 'Sweden +46',
+  '+47'  => 'Norway +47',
+  '+45'  => 'Denmark +45',
+  '+353' => 'Ireland +353',
+  '+32'  => 'Belgium +32',
+  '+43'  => 'Austria +43',
+  '+30'  => 'Greece +30',
+);
+
+$crm_phone_country_value  = '+90';
+$crm_phone_national_value = '';
+$profile_phone_trimmed = ltrim( $profile_phone_value );
+if ( '' !== $profile_phone_trimmed && '+' === substr( $profile_phone_trimmed, 0, 1 ) ) {
+  $digits = preg_replace( '/\D+/', '', $profile_phone_trimmed );
+  $sorted_codes = array_keys( $crm_phone_country_options );
+  usort(
+    $sorted_codes,
+    static function ( $left, $right ) {
+      return strlen( (string) $right ) <=> strlen( (string) $left );
+    }
+  );
+
+  foreach ( $sorted_codes as $country_code ) {
+    $country_digits = preg_replace( '/\D+/', '', (string) $country_code );
+    if ( '' === $country_digits ) {
+      continue;
+    }
+
+    if ( strpos( $digits, $country_digits ) === 0 ) {
+      $crm_phone_country_value  = (string) $country_code;
+      $crm_phone_national_value = substr( $digits, strlen( $country_digits ) );
+      break;
+    }
+  }
+}
+
+if ( '' === $crm_phone_national_value && isset( $_POST['peracrm_phone_national'] ) ) {
+  $crm_phone_national_value = sanitize_text_field( wp_unslash( (string) $_POST['peracrm_phone_national'] ) );
+}
+if ( isset( $_POST['peracrm_phone_country'] ) ) {
+  $posted_country = sanitize_text_field( wp_unslash( (string) $_POST['peracrm_phone_country'] ) );
+  if ( isset( $crm_phone_country_options[ $posted_country ] ) ) {
+    $crm_phone_country_value = $posted_country;
+  }
+}
+
 $deal_edit_id   = isset( $_GET['deal_id'] ) ? absint( wp_unslash( (string) $_GET['deal_id'] ) ) : 0; // phpcs:ignore WordPress.Security.NonceVerification.Recommended
 $editing_deal   = null;
 $deal_form_mode = 'create';
@@ -225,7 +288,18 @@ get_header();
                   <?php endforeach; ?>
                 </select>
               </label>
-              <label><?php esc_html_e( 'Phone', 'hello-elementor-child' ); ?><input type="text" name="peracrm_phone" value="<?php echo esc_attr( (string) ( $profile['phone'] ?? '' ) ); ?>" /></label>
+              <div class="crm-phone-field">
+                <span><?php esc_html_e( 'Mobile / WhatsApp', 'hello-elementor-child' ); ?></span>
+                <div class="crm-phone-row">
+                  <select name="peracrm_phone_country" class="crm-phone-country" aria-label="Country code">
+                    <?php foreach ( $crm_phone_country_options as $country_value => $country_label ) : ?>
+                      <option value="<?php echo esc_attr( (string) $country_value ); ?>" <?php selected( $crm_phone_country_value, (string) $country_value ); ?>><?php echo esc_html( (string) $country_label ); ?></option>
+                    <?php endforeach; ?>
+                  </select>
+                  <input type="text" name="peracrm_phone_national" value="<?php echo esc_attr( (string) $crm_phone_national_value ); ?>" inputmode="tel" autocomplete="tel-national" placeholder="Phone number" aria-label="Phone number" />
+                </div>
+                <input type="hidden" name="peracrm_phone" value="<?php echo esc_attr( $profile_phone_value ); ?>" />
+              </div>
               <label><?php esc_html_e( 'Email', 'hello-elementor-child' ); ?><input type="email" name="peracrm_email" value="<?php echo esc_attr( (string) ( $profile['email'] ?? '' ) ); ?>" /></label>
               <?php if ( '' !== $call_link || '' !== $whatsapp_link || '' !== $email_link ) : ?>
               <div class="crm-client-quick-actions">
@@ -606,7 +680,9 @@ get_header();
                   <input type="hidden" name="peracrm_status" value="dormant" />
                   <input type="hidden" name="peracrm_client_type" value="<?php echo esc_attr( (string) ( $profile['client_type'] ?? '' ) ); ?>" />
                   <input type="hidden" name="peracrm_preferred_contact" value="<?php echo esc_attr( (string) ( $profile['preferred_contact'] ?? '' ) ); ?>" />
-                  <input type="hidden" name="peracrm_phone" value="<?php echo esc_attr( (string) ( $profile['phone'] ?? '' ) ); ?>" />
+                  <input type="hidden" name="peracrm_phone_country" value="<?php echo esc_attr( (string) $crm_phone_country_value ); ?>" />
+                  <input type="hidden" name="peracrm_phone_national" value="<?php echo esc_attr( (string) $crm_phone_national_value ); ?>" />
+                  <input type="hidden" name="peracrm_phone" value="<?php echo esc_attr( $profile_phone_value ); ?>" />
                   <input type="hidden" name="peracrm_email" value="<?php echo esc_attr( (string) ( $profile['email'] ?? '' ) ); ?>" />
                   <input type="hidden" name="peracrm_budget_min_usd" value="<?php echo esc_attr( (string) ( $profile['budget_min_usd'] ?? '' ) ); ?>" />
                   <input type="hidden" name="peracrm_budget_max_usd" value="<?php echo esc_attr( (string) ( $profile['budget_max_usd'] ?? '' ) ); ?>" />

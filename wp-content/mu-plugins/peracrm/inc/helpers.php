@@ -99,6 +99,37 @@ function peracrm_client_get_profile($client_id)
     ];
 }
 
+function peracrm_phone_canonical_from_components($country_raw, $national_raw)
+{
+    $country_digits = preg_replace('/\D+/', '', sanitize_text_field((string) $country_raw));
+    $national_digits = preg_replace('/\D+/', '', sanitize_text_field((string) $national_raw));
+    $national_digits = ltrim((string) $national_digits, '0');
+
+    if ($country_digits === '' || $national_digits === '') {
+        return '';
+    }
+
+    return '+' . $country_digits . $national_digits;
+}
+
+function peracrm_phone_canonical_from_source(array $source, $country_key = 'phone_country', $national_key = 'phone_national', $legacy_key = 'phone')
+{
+    $country_raw = isset($source[$country_key]) ? wp_unslash((string) $source[$country_key]) : '';
+    $national_raw = isset($source[$national_key]) ? wp_unslash((string) $source[$national_key]) : '';
+
+    $canonical = peracrm_phone_canonical_from_components($country_raw, $national_raw);
+    if ($canonical !== '') {
+        return $canonical;
+    }
+
+    $legacy_raw = isset($source[$legacy_key]) ? sanitize_text_field(wp_unslash((string) $source[$legacy_key])) : '';
+    if ($legacy_raw === '') {
+        return '';
+    }
+
+    return preg_replace('/[^0-9+]/', '', $legacy_raw);
+}
+
 function peracrm_client_update_profile($client_id, $data)
 {
     $client_id = (int) $client_id;
@@ -129,7 +160,11 @@ function peracrm_client_update_profile($client_id, $data)
         $preferred_contact = '';
     }
 
-    $phone = isset($data['phone']) ? preg_replace('/[^0-9+]/', '', $data['phone']) : '';
+    $phone = '';
+    if (is_array($data)) {
+        $phone = peracrm_phone_canonical_from_source($data, 'phone_country', 'phone_national', 'phone');
+    }
+
     if (strlen($phone) > 30) {
         $phone = substr($phone, 0, 30);
     }
