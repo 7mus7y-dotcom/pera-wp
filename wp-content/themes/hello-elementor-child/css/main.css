@@ -3375,6 +3375,18 @@ body:not(.single-post) tr:nth-child(even) {
   color: #aaaaaa;
 }
 
+.cta-phone-row {
+  display: grid;
+  grid-template-columns: minmax(120px, 0.36fr) minmax(0, 1fr);
+  gap: 0.5rem;
+}
+
+@media (max-width: 767px) {
+  .cta-phone-row {
+    grid-template-columns: 1fr;
+  }
+}
+
 /* checkboxes & options */
 .cta-options {
   display: flex;

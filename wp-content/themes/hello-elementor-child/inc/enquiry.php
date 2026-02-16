@@ -107,6 +107,61 @@ function pera_forms_nonce_failure_redirect( $form_key, $fallback_url, $query_arg
 }
 
 /**
+ * Build canonical sr_phone value from new split fields or legacy field.
+ *
+ * @param array<string,mixed>|null $source Optional source array (defaults to $_POST).
+ */
+function pera_enquiry_canonical_sr_phone( $source = null ) {
+  $source = is_array( $source ) ? $source : $_POST;
+
+  $country_raw = isset( $source['sr_phone_country'] ) ? sanitize_text_field( wp_unslash( (string) $source['sr_phone_country'] ) ) : '';
+  $national_raw = isset( $source['sr_phone_national'] ) ? sanitize_text_field( wp_unslash( (string) $source['sr_phone_national'] ) ) : '';
+  $legacy_raw = isset( $source['sr_phone'] ) ? sanitize_text_field( wp_unslash( (string) $source['sr_phone'] ) ) : '';
+
+  $country_digits = preg_replace( '/\D+/', '', $country_raw );
+  $country_code = $country_digits !== '' ? '+' . $country_digits : '';
+
+  $national_digits = preg_replace( '/\D+/', '', $national_raw );
+  $national_digits = ltrim( (string) $national_digits, '0' );
+
+  if ( $country_code !== '' && $national_digits !== '' ) {
+    return $country_code . $national_digits;
+  }
+
+  if ( $legacy_raw !== '' ) {
+    $legacy = preg_replace( '/[^0-9+\s]/', '', $legacy_raw );
+    $legacy = preg_replace( '/\s+/', ' ', (string) $legacy );
+    return trim( (string) $legacy );
+  }
+
+  return '';
+}
+
+/**
+ * Phone value for human-readable email output.
+ *
+ * @param array<string,mixed>|null $source Optional source array (defaults to $_POST).
+ */
+function pera_enquiry_email_sr_phone( $source = null ) {
+  $source = is_array( $source ) ? $source : $_POST;
+
+  $canonical = pera_enquiry_canonical_sr_phone( $source );
+  if ( $canonical !== '' ) {
+    return $canonical;
+  }
+
+  $country_raw = isset( $source['sr_phone_country'] ) ? sanitize_text_field( wp_unslash( (string) $source['sr_phone_country'] ) ) : '';
+  $country_digits = preg_replace( '/\D+/', '', $country_raw );
+  $country_code = $country_digits !== '' ? '+' . $country_digits : '';
+
+  $national_raw = isset( $source['sr_phone_national'] ) ? sanitize_text_field( wp_unslash( (string) $source['sr_phone_national'] ) ) : '';
+  $national = preg_replace( '/\s+/', ' ', trim( $national_raw ) );
+  $national = preg_replace( '/[^0-9\s]/', '', (string) $national );
+
+  return trim( $country_code . ' ' . $national );
+}
+
+/**
  * Auto-reply helpers.
  */
 function pera_enquiry_autoreply_is_rate_limited( $context, $email ) {
@@ -232,7 +287,13 @@ function pera_handle_citizenship_enquiry() {
     // Core fields
     $name    = isset( $_POST['sr_name'] )  ? sanitize_text_field( wp_unslash( $_POST['sr_name'] ) )  : '';
     $email   = isset( $_POST['sr_email'] ) ? sanitize_email( wp_unslash( $_POST['sr_email'] ) )      : '';
-    $phone   = isset( $_POST['sr_phone'] ) ? sanitize_text_field( wp_unslash( $_POST['sr_phone'] ) ) : '';
+    $phone   = pera_enquiry_canonical_sr_phone( $_POST );
+    if ( $phone === '' ) {
+      $phone = pera_enquiry_email_sr_phone( $_POST );
+    }
+
+    // Keep canonical sr_phone available for downstream handlers expecting legacy field.
+    $_POST['sr_phone'] = $phone;
     $consent = ! empty( $_POST['sr_consent'] ) ? 'Yes' : 'No';
 
     // Optional message
