@@ -202,124 +202,108 @@
 }
 
 /* =======================================================
-   Property Gallery: 2-row native-aspect horizontal strip
+   Property Gallery: shared shell + scoped masonry thumbs
    ======================================================= */
 
-.property-gallery-strip{
-  overflow-x: auto;
-  overflow-y: hidden;
-  -webkit-overflow-scrolling: touch;
-  display: flex;
-  flex-direction: column;
-  gap: 10px;               /* gap between the two rows */
-  scroll-snap-type: x proximity;
-  padding-bottom: 2px;
-  cursor: grab;
-  touch-action: pan-y;
-}
-
-.property-gallery-strip.is-dragging {
-  cursor: grabbing;
-}
-
-/* Prevent native image dragging */
-.property-gallery-strip img {
-  -webkit-user-drag: none;
-  user-select: none;
-}
-
-.property-gallery-strip__row{
-  display: flex;
-  gap: 10px;               /* gap between images */
-  width: max-content;      /* ensures horizontal overflow */
-}
-
-.property-gallery-strip__item{
-  display: block;
-  padding: 0;
-  border-radius: 0;
-  overflow: visible;       /* no “frame” crop */
-  scroll-snap-align: start;
-}
-
-.property-gallery-strip__item img{
-  display: block;          /* removes baseline gap */
-  width: auto;
-  height: auto;
-  max-height: 220px;       /* controls row height without forcing frames */
-  max-width: 80vw;         /* prevents huge images on mobile */
-  border-radius:var(--radius-lg);
-}
-
-.property-gallery-strip__row {
-  scroll-snap-align: start;
-}
-
-.property-gallery-strip__row{
-  align-items: flex-start; /* stop stretching items to the tallest height */
-}
-
-/* Shell so nav buttons can overlay */
-.property-gallery-shell{
+.property-gallery .property-gallery-shell{
   position: relative;
 }
 
-/* Keep strip scrollable but hide scrollbar */
-.property-gallery-strip{
+.property-gallery .property-gallery-strip{
   overflow-x: auto;
   overflow-y: hidden;
   -webkit-overflow-scrolling: touch;
-
-  /* hide scrollbar */
-  scrollbar-width: none;            /* Firefox */
-}
-.property-gallery-strip::-webkit-scrollbar{
-  display: none;                    /* WebKit */
+  padding-bottom: 2px;
+  scrollbar-width: none;
 }
 
-/* Two rows: prevent item stretching (removes “blank frame” below images) */
-.property-gallery-strip__row{
+.property-gallery .property-gallery-strip::-webkit-scrollbar{
+  display: none;
+}
+
+/* Legacy two-row strip templates (single-bodrum + archive/single-property-v2) */
+.property-gallery .property-gallery-strip__row{
   display: flex;
   gap: 10px;
   width: max-content;
   align-items: flex-start;
 }
 
-/* Tiles: no padding “frame”, no forced crop */
-.property-gallery-strip__item{
+.property-gallery .property-gallery-strip__item{
   display: block;
   padding: 0;
   border-radius: 0;
   overflow: visible;
 }
 
-/* Images keep aspect ratio; row height controlled by a single value */
-.property-gallery-strip__item img{
+.property-gallery .property-gallery-strip__item img{
   display: block;
   height: var(--gallery-row-h, 220px);
   width: auto;
   max-width: 80vw;
+  border-radius: var(--radius-lg);
 }
 
-/* Nav chevrons */
-.property-gallery-nav{
+/* Masonry thumbs are only used in single-property.php */
+.property-gallery .property-gallery-thumbs .property-gallery-masonry{
+  --gallery-thumb-row-h: 132px;
+  display: grid;
+  grid-auto-flow: column;
+  grid-template-rows: repeat(2, var(--gallery-thumb-row-h));
+  grid-auto-columns: minmax(160px, 210px);
+  gap: 10px;
+  width: max-content;
+}
+
+.property-gallery .property-gallery-thumbs .property-gallery-masonry__item{
+  min-width: 0;
+}
+
+.property-gallery .property-gallery-thumbs .property-gallery-thumb{
+  display: block;
+  width: 100%;
+  height: 100%;
+  padding: 0;
+  border: 2px solid transparent;
+  border-radius: var(--radius-lg);
+  background: transparent;
+  cursor: pointer;
+  overflow: hidden;
+  transition: border-color 0.2s ease;
+}
+
+.property-gallery .property-gallery-thumbs .property-gallery-thumb img{
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.property-gallery .property-gallery-thumbs .property-gallery-thumb.is-active{
+  border-color: var(--brand);
+}
+
+.property-gallery .property-gallery-thumbs .property-gallery-thumb:focus-visible{
+  outline: 2px solid var(--brand-blue, #2563eb);
+  outline-offset: 2px;
+}
+
+.property-gallery .property-gallery-thumbs .property-gallery-masonry__item:nth-child(4n + 1){ grid-column: span 2; }
+.property-gallery .property-gallery-thumbs .property-gallery-masonry__item:nth-child(6n + 3){ grid-column: span 2; }
+
+.property-gallery .property-gallery-nav{
   position: absolute;
   top: 50%;
   transform: translateY(-50%);
   z-index: 5;
-
   display: inline-flex;
   align-items: center;
   justify-content: center;
-
   width: 44px;
   height: 44px;
-
   border: 0;
   border-radius: 999px;
   cursor: pointer;
-
-  /* Keep styling minimal; inherits your theme if you’ve got button vars */
   background: rgba(255,255,255,0.9);
   box-shadow: 0 8px 20px rgba(0,0,0,0.12);
 }
@@ -331,13 +315,17 @@
   stroke: currentColor;
 }
 
-.property-gallery-nav--prev{ left: 8px; }
-.property-gallery-nav--next{ right: 8px; }
+.property-gallery .property-gallery-nav--prev{ left: 8px; }
+.property-gallery .property-gallery-nav--next{ right: 8px; }
 
+@media (max-width: 767px) {
+  .property-gallery .property-gallery-thumbs .property-gallery-masonry{
+    --gallery-thumb-row-h: 110px;
+    grid-template-rows: var(--gallery-thumb-row-h);
+  }
 
-@media (min-width: 768px) {
-  .property-gallery-strip {
-    overflow-x: visible;
+  .property-gallery .property-gallery-thumbs .property-gallery-masonry__item{
+    grid-column: span 1 !important;
   }
 }
 
