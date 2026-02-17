@@ -246,11 +246,11 @@
 
 /* Masonry thumbs are only used in single-property.php */
 .property-gallery .property-gallery-thumbs .property-gallery-masonry{
-  --gallery-thumb-row-h: 132px;
+  --gallery-thumb-max-h: 200px;
   display: grid;
   grid-auto-flow: column;
-  grid-template-rows: repeat(2, var(--gallery-thumb-row-h));
-  grid-auto-columns: minmax(160px, 210px);
+  grid-template-rows: auto auto;
+  grid-auto-columns: max-content;
   gap: 10px;
   width: max-content;
 }
@@ -260,9 +260,7 @@
 }
 
 .property-gallery .property-gallery-thumbs .property-gallery-thumb{
-  display: block;
-  width: 100%;
-  height: 100%;
+  display: inline-flex;
   padding: 0;
   border: 2px solid transparent;
   border-radius: var(--radius-lg);
@@ -274,9 +272,10 @@
 
 .property-gallery .property-gallery-thumbs .property-gallery-thumb img{
   display: block;
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
+  width: auto;
+  height: auto;
+  max-height: var(--gallery-thumb-max-h, 180px);
+  max-width: 70vw;
 }
 
 .property-gallery .property-gallery-thumbs .property-gallery-thumb.is-active{
@@ -287,9 +286,6 @@
   outline: 2px solid var(--brand-blue, #2563eb);
   outline-offset: 2px;
 }
-
-.property-gallery .property-gallery-thumbs .property-gallery-masonry__item:nth-child(4n + 1){ grid-column: span 2; }
-.property-gallery .property-gallery-thumbs .property-gallery-masonry__item:nth-child(6n + 3){ grid-column: span 2; }
 
 .property-gallery .property-gallery-nav{
   position: absolute;
@@ -320,8 +316,8 @@
 
 @media (max-width: 767px) {
   .property-gallery .property-gallery-thumbs .property-gallery-masonry{
-    --gallery-thumb-row-h: 110px;
-    grid-template-rows: var(--gallery-thumb-row-h);
+    --gallery-thumb-max-h: 140px;
+    grid-template-rows: auto;
   }
 
   .property-gallery .property-gallery-thumbs .property-gallery-masonry__item{
