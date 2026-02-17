@@ -372,27 +372,28 @@ get_header();
           <article class="card-shell crm-client-section crm-status-panel">
             <h3><?php esc_html_e( 'CRM Status', 'hello-elementor-child' ); ?></h3>
             <span class="crm-derived-badge crm-derived-badge--<?php echo esc_attr( $derived_type ); ?>"><?php echo esc_html( $derived_type_label ); ?></span>
-            <form method="post" action="<?php echo esc_url( home_url( '/wp-admin/admin-post.php' ) ); ?>" class="crm-form-stack">
+            <form method="post" action="<?php echo esc_url( home_url( '/wp-admin/admin-post.php' ) ); ?>" class="crm-form-stack crm-status-form" id="crm-status-form">
 					<?php wp_nonce_field( 'peracrm_save_party_status' ); ?>
               <input type="hidden" name="action" value="peracrm_save_party_status" />
               <input type="hidden" name="peracrm_client_id" value="<?php echo esc_attr( (string) $client_id ); ?>" />
               <input type="hidden" name="peracrm_redirect" value="<?php echo esc_url( $frontend_url ); ?>" />
-              <label>
-						<?php esc_html_e( 'Lead pipeline stage', 'hello-elementor-child' ); ?>
-                <select name="lead_pipeline_stage">
-							<?php foreach ( $party_stages as $value => $label ) : ?>
-                    <option value="<?php echo esc_attr( (string) $value ); ?>" <?php selected( (string) ( $party['lead_pipeline_stage'] ?? '' ), (string) $value ); ?>><?php echo esc_html( (string) $label ); ?></option>
-							<?php endforeach; ?>
-                </select>
-              </label>
-              <label>
-						<?php esc_html_e( 'Engagement', 'hello-elementor-child' ); ?>
-                <select name="engagement_state">
-							<?php foreach ( $engagement_options as $value => $label ) : ?>
-                    <option value="<?php echo esc_attr( (string) $value ); ?>" <?php selected( (string) ( $party['engagement_state'] ?? '' ), (string) $value ); ?>><?php echo esc_html( (string) $label ); ?></option>
-							<?php endforeach; ?>
+              <div class="crm-status-grid">
+                <label>
+						  <?php esc_html_e( 'Lead pipeline stage', 'hello-elementor-child' ); ?>
+                  <select name="lead_pipeline_stage">
+							  <?php foreach ( $party_stages as $value => $label ) : ?>
+                      <option value="<?php echo esc_attr( (string) $value ); ?>" <?php selected( (string) ( $party['lead_pipeline_stage'] ?? '' ), (string) $value ); ?>><?php echo esc_html( (string) $label ); ?></option>
+							  <?php endforeach; ?>
                   </select>
                 </label>
+                <label>
+						  <?php esc_html_e( 'Engagement', 'hello-elementor-child' ); ?>
+                  <select name="engagement_state">
+							  <?php foreach ( $engagement_options as $value => $label ) : ?>
+                      <option value="<?php echo esc_attr( (string) $value ); ?>" <?php selected( (string) ( $party['engagement_state'] ?? '' ), (string) $value ); ?>><?php echo esc_html( (string) $label ); ?></option>
+							  <?php endforeach; ?>
+                    </select>
+                  </label>
                 <label>
                   <?php esc_html_e( 'Client type', 'hello-elementor-child' ); ?>
                   <select name="peracrm_client_type">
@@ -410,17 +411,20 @@ get_header();
 							<?php endforeach; ?>
                   </select>
                 </label>
-                <button type="submit" class="btn btn--solid btn--blue"><?php esc_html_e( 'Save status', 'hello-elementor-child' ); ?></button>
+              </div>
               </form>
-              <?php if ( 'lead' === $derived_type ) : ?>
-              <form method="post" action="<?php echo esc_url( home_url( '/wp-admin/admin-post.php' ) ); ?>" class="crm-inline-form">
-                <?php wp_nonce_field( 'peracrm_convert_to_client', 'peracrm_convert_to_client_nonce' ); ?>
-                <input type="hidden" name="action" value="peracrm_convert_to_client" />
-                <input type="hidden" name="peracrm_client_id" value="<?php echo esc_attr( (string) $client_id ); ?>" />
-                <input type="hidden" name="peracrm_redirect" value="<?php echo esc_url( $frontend_url ); ?>" />
-                <button type="submit" class="btn btn--ghost btn--blue"><?php esc_html_e( 'Convert to client', 'hello-elementor-child' ); ?></button>
-              </form>
-              <?php endif; ?>
+              <div class="crm-status-actions">
+                <button type="submit" form="crm-status-form" class="btn btn--solid btn--blue"><?php esc_html_e( 'Save status', 'hello-elementor-child' ); ?></button>
+                <?php if ( 'lead' === $derived_type ) : ?>
+                <form method="post" action="<?php echo esc_url( home_url( '/wp-admin/admin-post.php' ) ); ?>" class="crm-inline-form">
+                  <?php wp_nonce_field( 'peracrm_convert_to_client', 'peracrm_convert_to_client_nonce' ); ?>
+                  <input type="hidden" name="action" value="peracrm_convert_to_client" />
+                  <input type="hidden" name="peracrm_client_id" value="<?php echo esc_attr( (string) $client_id ); ?>" />
+                  <input type="hidden" name="peracrm_redirect" value="<?php echo esc_url( $frontend_url ); ?>" />
+                  <button type="submit" class="btn btn--ghost btn--blue"><?php esc_html_e( 'Convert to client', 'hello-elementor-child' ); ?></button>
+                </form>
+                <?php endif; ?>
+              </div>
             </article>
 
         <article class="card-shell crm-client-section crm-client-panel--full crm-client-reminders">
