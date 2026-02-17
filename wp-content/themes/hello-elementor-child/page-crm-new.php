@@ -173,7 +173,7 @@ get_header();
           </p>
 
           <p>
-            <button type="submit" class="pill pill--brand"><?php echo esc_html__( 'Create lead', 'hello-elementor-child' ); ?></button>
+            <button type="submit" class="btn btn--solid btn--green"><?php echo esc_html__( 'Create lead', 'hello-elementor-child' ); ?></button>
           </p>
         </form>
       </article>
