@@ -1554,8 +1554,8 @@ button.pill:focus-visible {
 
 /* Keep CRM glyph visually aligned with stroke-based search/menu icons. */
 #site-header .header-icons .header-crm-toggle .icon {
-  width: 16px;
-  height: 16px;
+  width: 30px;
+  height: 30px;
 }
 
 #site-header .header-icons .header-icon-dot {
@@ -1625,8 +1625,8 @@ button.pill:focus-visible {
     height: 22px;
   }
   #site-header .header-icons .header-crm-toggle .icon {
-    width: 12px;
-    height: 12px;
+    width: 16px;
+    height: 16px;
   }
   #site-header .site-logo.logo-pera svg {
     width: 150px;
