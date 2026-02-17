@@ -31,34 +31,36 @@ if ( ! isset( $source_options[ $prefill_source ] ) ) {
 }
 
 $default_phone_country = '+90';
-$preferred_phone_countries = array(
-	'+90'  => 'TR +90',
-	'+44'  => 'UK +44',
-	'+27'  => 'South Africa +27',
-	'+971' => 'UAE +971',
-	'+974' => 'Qatar +974',
-	'+966' => 'Saudi +966',
-	'+965' => 'Kuwait +965',
-	'+973' => 'Bahrain +973',
-	'+968' => 'Oman +968',
-	'+1'   => 'USA/Canada +1',
-	'+49'  => 'Germany +49',
-	'+31'  => 'Netherlands +31',
-	'+33'  => 'France +33',
+$crm_phone_country_options = array(
+	'+1'   => '+1',
+	'+27'  => '+27',
+	'+30'  => '+30',
+	'+31'  => '+31',
+	'+32'  => '+32',
+	'+33'  => '+33',
+	'+34'  => '+34',
+	'+39'  => '+39',
+	'+41'  => '+41',
+	'+43'  => '+43',
+	'+44'  => '+44',
+	'+45'  => '+45',
+	'+46'  => '+46',
+	'+47'  => '+47',
+	'+49'  => '+49',
+	'+65'  => '+65',
+	'+86'  => '+86',
+	'+90'  => '+90',
+	'+353' => '+353',
+	'+852' => '+852',
+	'+880' => '+880',
+	'+966' => '+966',
+	'+968' => '+968',
+	'+971' => '+971',
+	'+973' => '+973',
+	'+974' => '+974',
+	'+965' => '+965',
 );
-$other_phone_countries = array(
-	'+34'  => 'Spain +34',
-	'+39'  => 'Italy +39',
-	'+41'  => 'Switzerland +41',
-	'+46'  => 'Sweden +46',
-	'+47'  => 'Norway +47',
-	'+45'  => 'Denmark +45',
-	'+353' => 'Ireland +353',
-	'+32'  => 'Belgium +32',
-	'+43'  => 'Austria +43',
-	'+30'  => 'Greece +30',
-);
-$available_phone_countries = $preferred_phone_countries + $other_phone_countries;
+$available_phone_countries = $crm_phone_country_options;
 
 $prefill_phone_country  = $default_phone_country;
 $prefill_phone_national = '';
@@ -92,7 +94,7 @@ if ( '' === $prefill_phone_national && '' !== $prefill_phone ) {
 	$prefill_phone_national = preg_replace( '/\D+/', '', $prefill_phone );
 }
 
-if ( ! isset( $available_phone_countries[ $prefill_phone_country ] ) ) {
+if ( ! isset( $crm_phone_country_options[ $prefill_phone_country ] ) ) {
 	$prefill_phone_country = $default_phone_country;
 }
 
@@ -148,11 +150,7 @@ get_header();
             <div class="crm-field-label"><?php echo esc_html__( 'Mobile / WhatsApp', 'hello-elementor-child' ); ?></div>
             <div class="crm-phone-row">
               <select name="peracrm_phone_country" class="crm-phone-country" aria-label="<?php echo esc_attr__( 'Country code', 'hello-elementor-child' ); ?>">
-                <?php foreach ( $preferred_phone_countries as $country_value => $country_label ) : ?>
-                  <option value="<?php echo esc_attr( (string) $country_value ); ?>" <?php selected( $prefill_phone_country, (string) $country_value ); ?>><?php echo esc_html( (string) $country_label ); ?></option>
-                <?php endforeach; ?>
-                <option value="" disabled>────────</option>
-                <?php foreach ( $other_phone_countries as $country_value => $country_label ) : ?>
+                <?php foreach ( $crm_phone_country_options as $country_value => $country_label ) : ?>
                   <option value="<?php echo esc_attr( (string) $country_value ); ?>" <?php selected( $prefill_phone_country, (string) $country_value ); ?>><?php echo esc_html( (string) $country_label ); ?></option>
                 <?php endforeach; ?>
               </select>
