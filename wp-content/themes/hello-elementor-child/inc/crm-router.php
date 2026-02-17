@@ -410,6 +410,34 @@ if ( ! function_exists( 'pera_crm_maybe_load_template' ) ) {
 }
 add_filter( 'template_include', 'pera_crm_maybe_load_template', 30 );
 
+if ( ! function_exists( 'pera_crm_filter_client_document_title' ) ) {
+	/**
+	 * Set CRM client view title to the current client name.
+	 */
+	function pera_crm_filter_client_document_title( string $title ): string {
+		if ( is_admin() || ! pera_is_crm_route() ) {
+			return $title;
+		}
+
+		if ( 'client' !== sanitize_key( (string) get_query_var( 'pera_crm_view', '' ) ) ) {
+			return $title;
+		}
+
+		$client_id = function_exists( 'pera_crm_client_view_get_client_id' )
+			? pera_crm_client_view_get_client_id()
+			: (int) get_query_var( 'pera_crm_client_id', 0 );
+
+		if ( $client_id <= 0 || 'crm_client' !== get_post_type( $client_id ) ) {
+			return $title;
+		}
+
+		$client_title = get_the_title( $client_id );
+
+		return '' !== $client_title ? $client_title : $title;
+	}
+}
+add_filter( 'pre_get_document_title', 'pera_crm_filter_client_document_title' );
+
 if ( ! function_exists( 'pera_crm_enqueue_assets' ) ) {
 	/**
 	 * Enqueue CRM-only assets.
