@@ -345,7 +345,7 @@ get_header();
             <?php if ( empty( $notes ) ) : ?>
               <p><?php esc_html_e( 'No notes yet.', 'hello-elementor-child' ); ?></p>
             <?php else : ?>
-              <div class="archive-hero-desc" data-collapsed="true">
+              <div class="archive-hero-desc crm-client-notes-truncate" data-collapsed="true">
                 <div id="crm-client-notes-content" class="archive-hero-desc__content">
                   <ul class="crm-list crm-client-notes-list">
                     <?php foreach ( $notes as $note ) : ?>
@@ -362,8 +362,9 @@ get_header();
                       </li>
                     <?php endforeach; ?>
                   </ul>
+                  <button type="button" class="pill pill--green archive-hero-desc__toggle archive-hero-desc__toggle--bottom" aria-expanded="false" aria-controls="crm-client-notes-content" data-label-more="<?php echo esc_attr__( 'See more', 'hello-elementor-child' ); ?>" data-label-less="<?php echo esc_attr__( 'See less', 'hello-elementor-child' ); ?>" hidden><?php esc_html_e( 'See more', 'hello-elementor-child' ); ?></button>
                 </div>
-                <button type="button" class="pill pill--green archive-hero-desc__toggle" aria-expanded="false" aria-controls="crm-client-notes-content" data-label-more="<?php echo esc_attr__( 'See more', 'hello-elementor-child' ); ?>" data-label-less="<?php echo esc_attr__( 'See less', 'hello-elementor-child' ); ?>"><?php esc_html_e( 'See more', 'hello-elementor-child' ); ?></button>
+                <button type="button" class="pill pill--green archive-hero-desc__toggle archive-hero-desc__toggle--top" aria-expanded="false" aria-controls="crm-client-notes-content" data-label-more="<?php echo esc_attr__( 'See more', 'hello-elementor-child' ); ?>" data-label-less="<?php echo esc_attr__( 'See less', 'hello-elementor-child' ); ?>" hidden><?php esc_html_e( 'See more', 'hello-elementor-child' ); ?></button>
               </div>
             <?php endif; ?>
 

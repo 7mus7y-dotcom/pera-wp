@@ -4,27 +4,54 @@
     return;
   }
 
-  function updateButtonState(block, button, isCollapsed) {
-    var moreLabel = button.getAttribute('data-label-more') || 'Read more';
-    var lessLabel = button.getAttribute('data-label-less') || 'Read less';
+  function updateButtonState(block, buttons, isCollapsed) {
+    var sampleButton = buttons.length ? buttons[0] : null;
+    if (!sampleButton) {
+      return;
+    }
+
+    var moreLabel = sampleButton.getAttribute('data-label-more') || 'Read more';
+    var lessLabel = sampleButton.getAttribute('data-label-less') || 'Read less';
     block.setAttribute('data-collapsed', isCollapsed ? 'true' : 'false');
-    button.setAttribute('aria-expanded', isCollapsed ? 'false' : 'true');
-    button.textContent = isCollapsed ? moreLabel : lessLabel;
+
+    buttons.forEach(function (button) {
+      button.setAttribute('aria-expanded', isCollapsed ? 'false' : 'true');
+      button.textContent = isCollapsed ? moreLabel : lessLabel;
+    });
+  }
+
+  function updateToggleVisibility(block, content, buttons) {
+    var needsToggle = content.scrollHeight > content.clientHeight + 8;
+    var isCollapsed = block.getAttribute('data-collapsed') !== 'false';
+
+    buttons.forEach(function (button) {
+      var isBottomToggle = button.classList.contains('archive-hero-desc__toggle--bottom');
+      if (!needsToggle) {
+        button.hidden = true;
+        return;
+      }
+
+      if (isBottomToggle) {
+        button.hidden = isCollapsed;
+        return;
+      }
+
+      button.hidden = false;
+    });
   }
 
   blocks.forEach(function (block) {
     var content = block.querySelector('.archive-hero-desc__content');
-    var button = block.querySelector('.archive-hero-desc__toggle');
-    if (!content || !button) {
+    var buttons = Array.prototype.slice.call(block.querySelectorAll('.archive-hero-desc__toggle'));
+    if (!content || !buttons.length) {
       return;
     }
 
     var startCollapsed = block.getAttribute('data-collapsed') !== 'false';
-    updateButtonState(block, button, startCollapsed);
+    updateButtonState(block, buttons, startCollapsed);
 
     window.requestAnimationFrame(function () {
-      var needsToggle = content.scrollHeight > content.clientHeight + 8;
-      button.style.display = needsToggle ? '' : 'none';
+      updateToggleVisibility(block, content, buttons);
     });
   });
 
@@ -34,13 +61,23 @@
       return;
     }
 
+    event.preventDefault();
+    event.stopPropagation();
+
     var block = button.closest('.archive-hero-desc');
     if (!block) {
       return;
     }
 
+    var content = block.querySelector('.archive-hero-desc__content');
+    var buttons = Array.prototype.slice.call(block.querySelectorAll('.archive-hero-desc__toggle'));
+    if (!content || !buttons.length) {
+      return;
+    }
+
     var isCollapsed = block.getAttribute('data-collapsed') !== 'false';
-    updateButtonState(block, button, !isCollapsed);
+    updateButtonState(block, buttons, !isCollapsed);
+    updateToggleVisibility(block, content, buttons);
   });
 })();
 
