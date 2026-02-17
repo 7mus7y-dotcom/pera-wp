@@ -1110,6 +1110,42 @@
   position: relative;
 }
 
+.crm-status-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.crm-status-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-top: 12px;
+}
+
+.crm-status-actions > * {
+  flex: 1 1 220px;
+}
+
+.crm-status-actions .crm-inline-form {
+  margin: 0;
+}
+
+.crm-status-actions .btn {
+  width: 100%;
+  justify-content: center;
+}
+
+@media (max-width: 767px) {
+  .crm-status-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .crm-status-actions > * {
+    flex-basis: 100%;
+  }
+}
+
 .crm-derived-badge {
   position: absolute;
   top: 12px;
