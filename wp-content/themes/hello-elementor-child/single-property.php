@@ -1066,21 +1066,18 @@ $custom_video_text = $custom_video_text ? wp_kses_post( wpautop( $custom_video_t
 
     if ( $has_gallery ) :
 
-      // Split into two rows (alternating), only keep valid attachment IDs.
-      $row1 = array();
-      $row2 = array();
+      $valid_gallery_ids = array();
 
-      foreach ( $gallery_ids as $i => $img_id ) {
+      foreach ( $gallery_ids as $img_id ) {
         $img_id = absint( $img_id );
         if ( ! $img_id ) { continue; }
 
-        if ( $i % 2 === 0 ) { $row1[] = $img_id; }
-        else { $row2[] = $img_id; }
+        if ( ! wp_get_attachment_image_url( $img_id, 'full' ) ) { continue; }
+
+        $valid_gallery_ids[] = $img_id;
       }
 
-      $has_rows = ( ! empty( $row1 ) || ! empty( $row2 ) );
-
-      if ( $has_rows ) :
+      if ( ! empty( $valid_gallery_ids ) ) :
     ?>
 
       <div class="property-gallery-shell" aria-label="Property photos">
@@ -1105,54 +1102,37 @@ $custom_video_text = $custom_video_text ? wp_kses_post( wpautop( $custom_video_t
           </svg>
         </button>
 
-        <div class="property-gallery-strip" aria-label="Gallery photos">
-
-          <?php
-          /**
-           * Render one row of gallery items (no lightbox, no JS hooks).
-           *
-           * @param int[] $row_ids
-           */
-          $render_gallery_row = function( array $row_ids ) use ( $title ) {
-
-            if ( empty( $row_ids ) ) { return; }
-
-            echo '<div class="property-gallery-strip__row" role="list">';
-
-            foreach ( $row_ids as $img_id ) {
-
-              $img_id = absint( $img_id );
-              if ( ! $img_id ) { continue; }
-
-              // Skip if attachment is missing
-              if ( ! wp_get_attachment_image_url( $img_id, 'full' ) ) { continue; }
-
+        <div class="property-gallery-strip property-gallery-thumbs" aria-label="Gallery photos">
+          <div class="property-gallery-masonry" role="list">
+            <?php foreach ( $valid_gallery_ids as $i => $img_id ) : ?>
+              <?php
               $alt_meta  = trim( (string) get_post_meta( $img_id, '_wp_attachment_image_alt', true ) );
               $alt_label = $alt_meta !== '' ? $alt_meta : $title;
-
-              echo '<div class="property-gallery-strip__item" role="listitem" aria-label="' . esc_attr( $alt_label ) . '">';
-
-              echo wp_get_attachment_image(
-                $img_id,
-                'pera-card',
-                false,
-                array(
-                  'loading'  => 'lazy',
-                  'decoding' => 'async',
-                  'alt'      => $alt_label,
-                )
-              );
-
-              echo '</div>';
-            }
-
-            echo '</div>';
-          };
-
-          $render_gallery_row( $row1 );
-          $render_gallery_row( $row2 );
-          ?>
-
+              ?>
+              <div class="property-gallery-masonry__item" role="listitem">
+                <button
+                  class="property-gallery-thumb<?php echo 0 === $i ? ' is-active' : ''; ?>"
+                  type="button"
+                  data-slide-index="<?php echo esc_attr( $i ); ?>"
+                  aria-label="<?php echo esc_attr( sprintf( 'Show photo %1$d of %2$d', $i + 1, count( $valid_gallery_ids ) ) ); ?>"
+                  aria-pressed="<?php echo 0 === $i ? 'true' : 'false'; ?>"
+                >
+                  <?php
+                  echo wp_get_attachment_image(
+                    $img_id,
+                    'pera-card',
+                    false,
+                    array(
+                      'loading'  => 'lazy',
+                      'decoding' => 'async',
+                      'alt'      => $alt_label,
+                    )
+                  );
+                  ?>
+                </button>
+              </div>
+            <?php endforeach; ?>
+          </div>
         </div><!-- /.property-gallery-strip -->
       </div><!-- /.property-gallery-shell -->
 
@@ -1651,12 +1631,14 @@ document.addEventListener('DOMContentLoaded', function () {
      ========================================================== */
   function initGalleryChevronScroll() {
     const shell = document.querySelector('.property-gallery-shell');
-    if (!shell) return;
+    if (!shell || shell.dataset.galleryInit === '1') return;
 
-    // No more data-gallery-* hooks — use existing classes only
-    const strip  = shell.querySelector('.property-gallery-strip');
+    shell.dataset.galleryInit = '1';
+
+    const strip = shell.querySelector('.property-gallery-strip');
     const btnPrev = shell.querySelector('.property-gallery-nav--prev');
     const btnNext = shell.querySelector('.property-gallery-nav--next');
+    const thumbs = Array.from(shell.querySelectorAll('.property-gallery-thumb[data-slide-index]'));
 
     if (!strip) return;
 
@@ -1664,6 +1646,105 @@ document.addEventListener('DOMContentLoaded', function () {
       const amount = Math.max(240, Math.round(strip.clientWidth * 0.8));
       strip.scrollBy({ left: dir * amount, behavior: 'smooth' });
     }
+
+    function setActiveThumb(index) {
+      thumbs.forEach(function (thumb, thumbIndex) {
+        const isActive = thumbIndex === index;
+        thumb.classList.toggle('is-active', isActive);
+        thumb.setAttribute('aria-pressed', isActive ? 'true' : 'false');
+      });
+    }
+
+    function getSliderController() {
+      const scopeRoot = shell.closest('main') || shell.closest('.pera-single-property') || document;
+      const candidates = Array.from(scopeRoot.querySelectorAll('.swiper, .splide, .slick-slider, .property-slider, [data-property-slider]'));
+      const shellRectTop = shell.getBoundingClientRect().top;
+
+      const roots = candidates.sort(function (a, b) {
+        const aRectTop = a.getBoundingClientRect().top;
+        const bRectTop = b.getBoundingClientRect().top;
+
+        const aBeforeShell = aRectTop <= shellRectTop;
+        const bBeforeShell = bRectTop <= shellRectTop;
+
+        if (aBeforeShell !== bBeforeShell) {
+          return aBeforeShell ? -1 : 1;
+        }
+
+        const aDistance = Math.abs(shellRectTop - aRectTop);
+        const bDistance = Math.abs(shellRectTop - bRectTop);
+        return aDistance - bDistance;
+      });
+
+      for (const root of roots) {
+        if (root && root.swiper && typeof root.swiper.slideTo === 'function') {
+          const swiper = root.swiper;
+          return {
+            goTo: function (index) {
+              if (typeof swiper.slideToLoop === 'function' && swiper.params && swiper.params.loop) {
+                swiper.slideToLoop(index);
+              } else {
+                swiper.slideTo(index);
+              }
+            },
+            onChange: function (cb) {
+              if (typeof swiper.on === 'function') {
+                swiper.on('slideChange', function () {
+                  const nextIndex = typeof swiper.realIndex === 'number' ? swiper.realIndex : swiper.activeIndex;
+                  cb(nextIndex || 0);
+                });
+              }
+            }
+          };
+        }
+
+        if (root && root.splide && typeof root.splide.go === 'function') {
+          const splide = root.splide;
+          return {
+            goTo: function (index) { splide.go(index); },
+            onChange: function (cb) {
+              if (typeof splide.on === 'function') {
+                splide.on('moved', function (newIndex) { cb(newIndex || 0); });
+              }
+            }
+          };
+        }
+
+        if (window.jQuery && window.jQuery.fn && window.jQuery.fn.slick) {
+          const $root = window.jQuery(root);
+          if ($root.hasClass('slick-initialized')) {
+            return {
+              goTo: function (index) { $root.slick('slickGoTo', index); },
+              onChange: function (cb) {
+                $root.on('afterChange.peraGalleryThumbs', function (_event, _slick, currentSlide) {
+                  cb(currentSlide || 0);
+                });
+              }
+            };
+          }
+        }
+      }
+
+      return null;
+    }
+
+    const sliderController = getSliderController();
+    if (sliderController && typeof sliderController.onChange === 'function') {
+      sliderController.onChange(setActiveThumb);
+    }
+
+    thumbs.forEach(function (thumb) {
+      thumb.addEventListener('click', function () {
+        const index = Number.parseInt(thumb.getAttribute('data-slide-index') || '0', 10) || 0;
+        setActiveThumb(index);
+
+        if (sliderController && typeof sliderController.goTo === 'function') {
+          sliderController.goTo(index);
+        } else {
+          document.dispatchEvent(new CustomEvent('pera:galleryThumbSelect', { detail: { index: index } }));
+        }
+      });
+    });
 
     if (btnPrev) btnPrev.addEventListener('click', function (e) {
       e.preventDefault();
