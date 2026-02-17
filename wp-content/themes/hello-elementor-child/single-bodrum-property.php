@@ -827,7 +827,7 @@ get_header();
                     $has_interior_rows = ( ! empty( $interior_row1 ) || ! empty( $interior_row2 ) );
                     if ( $has_interior_rows ) :
                         ?>
-                        <div class="section property-gallery" id="property-interior-gallery">
+                        <div class="section" id="property-interior-gallery">
                             <header class="section-header">
                                 <h2><?php echo esc_html__( 'Interior gallery', 'hello-elementor-child' ); ?></h2>
                             </header>
@@ -1120,11 +1120,6 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 
     shells.forEach(function (shell) {
-        if (shell.dataset.galleryInit === '1') {
-            return;
-        }
-        shell.dataset.galleryInit = '1';
-
         const strip = shell.querySelector('.property-gallery-strip');
         if (!strip) {
             return;
