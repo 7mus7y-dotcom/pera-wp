@@ -394,6 +394,10 @@
   margin: 6px 0;
 }
 
+.crm-client-notes-truncate .archive-hero-desc__toggle--bottom {
+  margin-top: 10px;
+}
+
 @media (max-width: 767px) {
   .crm-form-row-2 {
     grid-template-columns: 1fr;
