@@ -1136,8 +1136,42 @@
   justify-content: center;
 }
 
+.crm-deals-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.crm-deal-value-row {
+  display: flex;
+  gap: 8px;
+  align-items: flex-end;
+  width: 100%;
+  min-width: 0;
+}
+
+.crm-deal-value-row .crm-deal-value-input {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.crm-deal-value-row .crm-deal-currency {
+  flex: 0 0 auto;
+}
+
+.crm-deal-value-row .crm-deal-currency select {
+  width: 50px;
+  max-width: 50px;
+  padding-left: 6px;
+  padding-right: 6px;
+}
+
 @media (max-width: 767px) {
   .crm-status-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .crm-deals-grid {
     grid-template-columns: 1fr;
   }
 

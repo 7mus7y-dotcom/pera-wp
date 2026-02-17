@@ -669,7 +669,7 @@ get_header();
                 </li>
 					<?php endforeach; ?>
             </ul>
-            <form method="post" action="<?php echo esc_url( home_url( '/wp-admin/admin-post.php' ) ); ?>" class="crm-form-stack">
+            <form method="post" action="<?php echo esc_url( home_url( '/wp-admin/admin-post.php' ) ); ?>" class="crm-form-stack crm-deals-form">
               <input type="hidden" name="action" value="<?php echo esc_attr( 'update' === $deal_form_mode ? 'peracrm_update_deal' : 'peracrm_create_deal' ); ?>" />
               <input type="hidden" name="peracrm_deal_nonce" value="<?php echo esc_attr( wp_create_nonce( 'update' === $deal_form_mode ? 'peracrm_update_deal' : 'peracrm_create_deal' ) ); ?>" />
               <input type="hidden" name="peracrm_deal_submit" value="1" />
@@ -678,18 +678,32 @@ get_header();
 					<?php if ( 'update' === $deal_form_mode && is_array( $editing_deal ) ) : ?>
                 <input type="hidden" name="deal_id" value="<?php echo esc_attr( (string) ( (int) ( $editing_deal['id'] ?? 0 ) ) ); ?>" />
 					<?php endif; ?>
-              <label><?php esc_html_e( 'Title', 'hello-elementor-child' ); ?><input type="text" name="title" value="<?php echo esc_attr( (string) ( $editing_deal['title'] ?? '' ) ); ?>" required /></label>
-              <label><?php esc_html_e( 'Stage', 'hello-elementor-child' ); ?>
-                <select name="stage">
-						<?php foreach ( $deal_stage_options as $value => $label ) : ?>
-                    <option value="<?php echo esc_attr( (string) $value ); ?>" <?php selected( (string) ( $editing_deal['stage'] ?? 'reservation_taken' ), (string) $value ); ?>><?php echo esc_html( (string) $label ); ?></option>
-						<?php endforeach; ?>
-                </select>
-              </label>
-              <label><?php esc_html_e( 'Primary property ID', 'hello-elementor-child' ); ?><input type="number" min="0" name="primary_property_id" value="<?php echo esc_attr( (string) ( $editing_deal['primary_property_id'] ?? '' ) ); ?>" /></label>
-              <label><?php esc_html_e( 'Deal value', 'hello-elementor-child' ); ?><input type="number" step="0.01" min="0" name="deal_value" value="<?php echo esc_attr( (string) ( $editing_deal['deal_value'] ?? '' ) ); ?>" /></label>
-              <label><?php esc_html_e( 'Currency', 'hello-elementor-child' ); ?><input type="text" maxlength="3" name="currency" value="<?php echo esc_attr( (string) ( $editing_deal['currency'] ?? 'USD' ) ); ?>" /></label>
-              <button type="submit" class="btn btn--solid btn--blue"><?php echo esc_html( 'update' === $deal_form_mode ? __( 'Update deal', 'hello-elementor-child' ) : __( 'Create deal', 'hello-elementor-child' ) ); ?></button>
+	              <div class="crm-deals-grid">
+	                <label><?php esc_html_e( 'Title', 'hello-elementor-child' ); ?><input type="text" name="title" value="<?php echo esc_attr( (string) ( $editing_deal['title'] ?? '' ) ); ?>" required /></label>
+	                <label><?php esc_html_e( 'Stage', 'hello-elementor-child' ); ?>
+	                  <select name="stage">
+						  <?php foreach ( $deal_stage_options as $value => $label ) : ?>
+	                    <option value="<?php echo esc_attr( (string) $value ); ?>" <?php selected( (string) ( $editing_deal['stage'] ?? 'reservation_taken' ), (string) $value ); ?>><?php echo esc_html( (string) $label ); ?></option>
+						  <?php endforeach; ?>
+	                  </select>
+	                </label>
+	                <label><?php esc_html_e( 'Primary property ID', 'hello-elementor-child' ); ?><input type="number" min="0" name="primary_property_id" value="<?php echo esc_attr( (string) ( $editing_deal['primary_property_id'] ?? '' ) ); ?>" /></label>
+	                <label><?php esc_html_e( 'Deal value', 'hello-elementor-child' ); ?>
+	                  <div class="crm-deal-value-row">
+	                    <div class="crm-deal-value-input">
+	                      <input type="number" step="0.01" min="0" name="deal_value" value="<?php echo esc_attr( (string) ( $editing_deal['deal_value'] ?? '' ) ); ?>" />
+	                    </div>
+	                    <div class="crm-deal-currency">
+	                      <select name="currency" aria-label="<?php esc_attr_e( 'Currency', 'hello-elementor-child' ); ?>">
+	                        <?php foreach ( array( 'USD', 'EUR', 'GBP', 'TRY' ) as $currency_option ) : ?>
+	                          <option value="<?php echo esc_attr( $currency_option ); ?>" <?php selected( strtoupper( (string) ( $editing_deal['currency'] ?? 'USD' ) ), $currency_option ); ?>><?php echo esc_html( $currency_option ); ?></option>
+	                        <?php endforeach; ?>
+	                      </select>
+	                    </div>
+	                  </div>
+	                </label>
+	              </div>
+	              <button type="submit" class="btn btn--solid btn--blue"><?php echo esc_html( 'update' === $deal_form_mode ? __( 'Update deal', 'hello-elementor-child' ) : __( 'Create deal', 'hello-elementor-child' ) ); ?></button>
             </form>
           </article>
 
