@@ -297,6 +297,77 @@ if ( ! function_exists( 'pera_crm_client_view_timeline_items' ) ) {
 	}
 }
 
+if ( ! function_exists( 'pera_crm_client_view_bucket_reminders' ) ) {
+	/**
+	 * Bucket client reminders into today/overdue/upcoming sections.
+	 *
+	 * @param array<int,array<string,mixed>> $reminders Raw reminders list.
+	 * @return array<string,array<int,array<string,mixed>>>
+	 */
+	function pera_crm_client_view_bucket_reminders( array $reminders ): array {
+		$timezone      = wp_timezone();
+		$now_mysql     = current_time( 'mysql' );
+		$now_ts        = function_exists( 'pera_crm_parse_local_mysql_datetime_to_ts' )
+			? pera_crm_parse_local_mysql_datetime_to_ts( $now_mysql, $timezone )
+			: strtotime( $now_mysql );
+		$now_ts        = $now_ts > 0 ? $now_ts : current_time( 'timestamp' );
+		$today_local   = current_datetime();
+		$today_start   = $today_local->setTime( 0, 0, 0 )->getTimestamp();
+		$today_end     = $today_local->setTime( 23, 59, 59 )->getTimestamp();
+		$open_status   = function_exists( 'pera_crm_reminders_open_status' ) ? pera_crm_reminders_open_status() : 'pending';
+		$open_statuses = array_values( array_unique( array_filter( array( 'pending', 'open', $open_status ) ) ) );
+
+		$buckets = array(
+			'today'    => array(),
+			'overdue'  => array(),
+			'upcoming' => array(),
+		);
+
+		foreach ( $reminders as $row ) {
+			if ( ! is_array( $row ) ) {
+				continue;
+			}
+
+			$status = sanitize_key( (string) ( $row['status'] ?? '' ) );
+			if ( ! in_array( $status, $open_statuses, true ) ) {
+				continue;
+			}
+
+			$due_at = (string) ( $row['due_at'] ?? '' );
+			$due_ts = function_exists( 'pera_crm_parse_local_mysql_datetime_to_ts' )
+				? pera_crm_parse_local_mysql_datetime_to_ts( $due_at, $timezone )
+				: strtotime( $due_at );
+
+			if ( $due_ts <= 0 ) {
+				continue;
+			}
+
+			$row['due_ts']      = $due_ts;
+			$row['due_display'] = function_exists( 'pera_crm_format_datetime_dmy_hm' )
+				? pera_crm_format_datetime_dmy_hm( $due_ts, $timezone )
+				: wp_date( 'd/m/y H:i', $due_ts, $timezone );
+
+			if ( $due_ts >= $today_start && $due_ts <= $today_end ) {
+				$buckets['today'][] = $row;
+			} elseif ( $due_ts < $now_ts ) {
+				$buckets['overdue'][] = $row;
+			} elseif ( $due_ts > $now_ts ) {
+				$buckets['upcoming'][] = $row;
+			}
+		}
+
+		$sort_due_asc = static function ( array $left, array $right ): int {
+			return (int) ( $left['due_ts'] ?? 0 ) <=> (int) ( $right['due_ts'] ?? 0 );
+		};
+
+		usort( $buckets['today'], $sort_due_asc );
+		usort( $buckets['overdue'], $sort_due_asc );
+		usort( $buckets['upcoming'], $sort_due_asc );
+
+		return $buckets;
+	}
+}
+
 if ( ! function_exists( 'pera_crm_client_view_load_data' ) ) {
 	function pera_crm_client_view_load_data( int $client_id ): array {
 		return (array) pera_crm_client_view_with_target_blog(

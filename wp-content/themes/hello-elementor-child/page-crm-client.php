@@ -168,56 +168,12 @@ $deal_edit_id   = isset( $_GET['deal_id'] ) ? absint( wp_unslash( (string) $_GET
 $editing_deal   = null;
 $deal_form_mode = 'create';
 
-$today_reminders   = array();
-$overdue_task_rows = array();
-$timezone          = wp_timezone();
-$now_local         = current_datetime();
-$today_start_ts    = $now_local->setTime( 0, 0, 0 )->getTimestamp();
-$today_end_ts      = $now_local->setTime( 23, 59, 59 )->getTimestamp();
-
-foreach ( $reminders as $reminder_row ) {
-	if ( ! is_array( $reminder_row ) ) {
-		continue;
-	}
-
-	$status = sanitize_key( (string) ( $reminder_row['status'] ?? '' ) );
-	if ( 'pending' !== $status ) {
-		continue;
-	}
-
-	$due_at = (string) ( $reminder_row['due_at'] ?? '' );
-	$due_dt = DateTimeImmutable::createFromFormat( 'Y-m-d H:i:s', $due_at, $timezone );
-	if ( false === $due_dt ) {
-		$due_dt = DateTimeImmutable::createFromFormat( 'Y-m-d H:i', $due_at, $timezone );
-	}
-	$due_ts = $due_dt instanceof DateTimeImmutable ? $due_dt->getTimestamp() : 0;
-	if ( $due_ts <= 0 ) {
-		continue;
-	}
-
-	if ( $due_ts >= $today_start_ts && $due_ts <= $today_end_ts ) {
-		$today_reminders[] = $reminder_row;
-		continue;
-	}
-
-	if ( $due_ts < $today_start_ts ) {
-		$overdue_task_rows[] = $reminder_row;
-	}
-}
-
-usort(
-	$today_reminders,
-	static function ( $left, $right ) {
-		return strcmp( (string) ( $left['due_at'] ?? '' ), (string) ( $right['due_at'] ?? '' ) );
-	}
-);
-
-usort(
-	$overdue_task_rows,
-	static function ( $left, $right ) {
-		return strcmp( (string) ( $left['due_at'] ?? '' ), (string) ( $right['due_at'] ?? '' ) );
-	}
-);
+$reminder_buckets  = function_exists( 'pera_crm_client_view_bucket_reminders' )
+	? (array) pera_crm_client_view_bucket_reminders( $reminders )
+	: array();
+$today_reminders   = is_array( $reminder_buckets['today'] ?? null ) ? $reminder_buckets['today'] : array();
+$overdue_task_rows = is_array( $reminder_buckets['overdue'] ?? null ) ? $reminder_buckets['overdue'] : array();
+$upcoming_rows     = is_array( $reminder_buckets['upcoming'] ?? null ) ? $reminder_buckets['upcoming'] : array();
 if ( $deal_edit_id > 0 ) {
 	foreach ( $deals as $deal_row ) {
 		if ( (int) ( $deal_row['id'] ?? 0 ) === $deal_edit_id ) {
@@ -444,25 +400,14 @@ get_header();
           </header>
           <div class="crm-client-reminders-grid">
             <section>
-              <p class="pill pill--outline"><?php esc_html_e( 'Today', 'hello-elementor-child' ); ?></p>
+              <p class="pill pill--outline"><?php echo esc_html( sprintf( __( 'Today (%d)', 'hello-elementor-child' ), count( $today_reminders ) ) ); ?></p>
               <ul class="crm-list">
                 <?php if ( empty( $today_reminders ) ) : ?>
                 <li><?php esc_html_e( 'No reminders due today.', 'hello-elementor-child' ); ?></li>
                 <?php else : ?>
                   <?php foreach ( $today_reminders as $reminder_row ) : ?>
-                    <?php
-                    $due_label = (string) ( $reminder_row['due_at'] ?? '' );
-					$due_dt    = DateTimeImmutable::createFromFormat( 'Y-m-d H:i:s', $due_label, $timezone );
-					if ( false === $due_dt ) {
-						$due_dt = DateTimeImmutable::createFromFormat( 'Y-m-d H:i', $due_label, $timezone );
-					}
-					$due_ts = $due_dt instanceof DateTimeImmutable ? $due_dt->getTimestamp() : 0;
-                    if ( $due_ts > 0 ) {
-						$due_label = wp_date( get_option( 'date_format' ) . ' ' . get_option( 'time_format' ), $due_ts );
-                    }
-                    ?>
                   <li>
-                    <span class="pill pill--outline"><?php echo esc_html( $due_label ); ?></span>
+                    <span class="pill pill--outline"><?php echo esc_html( (string) ( $reminder_row['due_display'] ?? '' ) ); ?></span>
                     <p><?php echo esc_html( (string) ( $reminder_row['note'] ?? '' ) ); ?></p>
                     <?php if ( ! empty( $reminder_row['id'] ) ) : ?>
                     <form class="crm-task-action" method="post" action="<?php echo esc_url( home_url( '/wp-admin/admin-post.php' ) ); ?>">
@@ -482,25 +427,41 @@ get_header();
             </section>
 
             <section>
-              <p class="pill pill--red"><?php esc_html_e( 'Overdue', 'hello-elementor-child' ); ?></p>
+              <p class="pill pill--red"><?php echo esc_html( sprintf( __( 'Overdue (%d)', 'hello-elementor-child' ), count( $overdue_task_rows ) ) ); ?></p>
               <ul class="crm-list">
                 <?php if ( empty( $overdue_task_rows ) ) : ?>
                 <li><?php esc_html_e( 'No overdue reminders.', 'hello-elementor-child' ); ?></li>
                 <?php else : ?>
                   <?php foreach ( $overdue_task_rows as $reminder_row ) : ?>
-                    <?php
-                    $due_label = (string) ( $reminder_row['due_at'] ?? '' );
-					$due_dt    = DateTimeImmutable::createFromFormat( 'Y-m-d H:i:s', $due_label, $timezone );
-					if ( false === $due_dt ) {
-						$due_dt = DateTimeImmutable::createFromFormat( 'Y-m-d H:i', $due_label, $timezone );
-					}
-					$due_ts = $due_dt instanceof DateTimeImmutable ? $due_dt->getTimestamp() : 0;
-                    if ( $due_ts > 0 ) {
-						$due_label = wp_date( get_option( 'date_format' ) . ' ' . get_option( 'time_format' ), $due_ts );
-                    }
-                    ?>
                   <li>
-                    <span class="pill pill--red"><?php echo esc_html( $due_label ); ?></span>
+                    <span class="pill pill--red"><?php echo esc_html( (string) ( $reminder_row['due_display'] ?? '' ) ); ?></span>
+                    <p><?php echo esc_html( (string) ( $reminder_row['note'] ?? '' ) ); ?></p>
+                    <?php if ( ! empty( $reminder_row['id'] ) ) : ?>
+                    <form class="crm-task-action" method="post" action="<?php echo esc_url( home_url( '/wp-admin/admin-post.php' ) ); ?>">
+                      <input type="hidden" name="action" value="peracrm_update_reminder_status">
+                      <input type="hidden" name="peracrm_reminder_id" value="<?php echo esc_attr( (string) absint( $reminder_row['id'] ) ); ?>">
+                      <input type="hidden" name="peracrm_status" value="done">
+                      <input type="hidden" name="peracrm_redirect" value="<?php echo esc_url( $frontend_url ); ?>">
+                      <input type="hidden" name="peracrm_context" value="frontend">
+                      <?php wp_nonce_field( 'peracrm_update_reminder_status', 'peracrm_update_reminder_status_nonce' ); ?>
+                      <button type="submit" class="btn btn--ghost btn--blue crm-task-done-btn"><?php esc_html_e( 'Done', 'hello-elementor-child' ); ?></button>
+                    </form>
+                    <?php endif; ?>
+                  </li>
+                  <?php endforeach; ?>
+                <?php endif; ?>
+              </ul>
+            </section>
+
+            <section>
+              <p class="pill pill--outline"><?php echo esc_html( sprintf( __( 'Upcoming (%d)', 'hello-elementor-child' ), count( $upcoming_rows ) ) ); ?></p>
+              <ul class="crm-list">
+                <?php if ( empty( $upcoming_rows ) ) : ?>
+                <li><?php esc_html_e( 'No upcoming reminders.', 'hello-elementor-child' ); ?></li>
+                <?php else : ?>
+                  <?php foreach ( $upcoming_rows as $reminder_row ) : ?>
+                  <li>
+                    <span class="pill pill--outline"><?php echo esc_html( (string) ( $reminder_row['due_display'] ?? '' ) ); ?></span>
                     <p><?php echo esc_html( (string) ( $reminder_row['note'] ?? '' ) ); ?></p>
                     <?php if ( ! empty( $reminder_row['id'] ) ) : ?>
                     <form class="crm-task-action" method="post" action="<?php echo esc_url( home_url( '/wp-admin/admin-post.php' ) ); ?>">
