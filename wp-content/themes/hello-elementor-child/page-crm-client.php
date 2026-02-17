@@ -345,24 +345,30 @@ get_header();
             <?php if ( empty( $notes ) ) : ?>
               <p><?php esc_html_e( 'No notes yet.', 'hello-elementor-child' ); ?></p>
             <?php else : ?>
-              <ul class="crm-list crm-client-notes-list">
-                <?php foreach ( $notes as $note ) : ?>
-                  <?php
-                  $note_author      = isset( $note['advisor_user_id'] ) ? get_userdata( (int) $note['advisor_user_id'] ) : false;
-                  $note_author_name = $note_author instanceof WP_User ? $note_author->display_name : __( 'Advisor', 'hello-elementor-child' );
-                  $note_created_at  = isset( $note['created_at'] ) ? (string) $note['created_at'] : '';
-                  $note_created_at  = '' !== $note_created_at ? mysql2date( 'Y-m-d H:i', $note_created_at ) : __( 'Unknown time', 'hello-elementor-child' );
-                  ?>
-                  <li>
-                    <span class="pill pill--outline"><?php echo esc_html( (string) $note_created_at ); ?></span>
-                    <p class="crm-client-notes-list__meta"><?php echo esc_html( (string) $note_author_name ); ?></p>
-                    <p><?php echo esc_html( (string) ( $note['note_body'] ?? '' ) ); ?></p>
-                  </li>
-                <?php endforeach; ?>
-              </ul>
+              <div class="archive-hero-desc" data-collapsed="true">
+                <div id="crm-client-notes-content" class="archive-hero-desc__content">
+                  <ul class="crm-list crm-client-notes-list">
+                    <?php foreach ( $notes as $note ) : ?>
+                      <?php
+                      $note_author      = isset( $note['advisor_user_id'] ) ? get_userdata( (int) $note['advisor_user_id'] ) : false;
+                      $note_author_name = $note_author instanceof WP_User ? $note_author->display_name : __( 'Advisor', 'hello-elementor-child' );
+                      $note_created_at  = isset( $note['created_at'] ) ? (string) $note['created_at'] : '';
+                      $note_created_at  = '' !== $note_created_at ? mysql2date( 'Y-m-d H:i', $note_created_at ) : __( 'Unknown time', 'hello-elementor-child' );
+                      ?>
+                      <li>
+                        <span class="pill pill--outline"><?php echo esc_html( (string) $note_created_at ); ?></span>
+                        <p class="crm-client-notes-list__meta"><?php echo esc_html( (string) $note_author_name ); ?></p>
+                        <p><?php echo esc_html( (string) ( $note['note_body'] ?? '' ) ); ?></p>
+                      </li>
+                    <?php endforeach; ?>
+                  </ul>
+                </div>
+                <button type="button" class="pill pill--green archive-hero-desc__toggle" aria-expanded="false" aria-controls="crm-client-notes-content" data-label-more="<?php echo esc_attr__( 'See more', 'hello-elementor-child' ); ?>" data-label-less="<?php echo esc_attr__( 'See less', 'hello-elementor-child' ); ?>"><?php esc_html_e( 'See more', 'hello-elementor-child' ); ?></button>
+              </div>
             <?php endif; ?>
 
-            <form method="post" action="<?php echo esc_url( home_url( '/wp-admin/admin-post.php' ) ); ?>" class="crm-form-stack">
+            <div class="crm-add-note">
+              <form method="post" action="<?php echo esc_url( home_url( '/wp-admin/admin-post.php' ) ); ?>" class="crm-form-stack">
               <?php wp_nonce_field( 'peracrm_add_note', 'peracrm_add_note_nonce' ); ?>
               <input type="hidden" name="action" value="peracrm_add_note" />
               <input type="hidden" name="peracrm_client_id" value="<?php echo esc_attr( (string) $client_id ); ?>" />
@@ -370,7 +376,8 @@ get_header();
               <label for="peracrm_note_body_frontend"><?php esc_html_e( 'Add note', 'hello-elementor-child' ); ?></label>
               <textarea name="peracrm_note_body" id="peracrm_note_body_frontend" rows="4"></textarea>
               <button type="submit" class="btn btn--solid btn--blue"><?php esc_html_e( 'Add note', 'hello-elementor-child' ); ?></button>
-            </form>
+              </form>
+            </div>
           </article>
 
           <article class="card-shell crm-client-section crm-status-panel">
