@@ -615,6 +615,36 @@ get_header();
 				<?php endforeach; ?>
           </article>
 
+          <article class="card-shell crm-client-section" data-crm-portfolio-panel data-client-id="<?php echo esc_attr( (string) $client_id ); ?>">
+            <h3><?php esc_html_e( 'Portfolio', 'hello-elementor-child' ); ?></h3>
+            <div class="crm-form-stack">
+              <button type="button" class="btn btn--ghost btn--blue" data-crm-portfolio-open="crm-client-portfolio-dialog"><?php esc_html_e( 'Create portfolio', 'hello-elementor-child' ); ?></button>
+              <div class="crm-inline-form" data-crm-portfolio-output hidden>
+                <label><?php esc_html_e( 'Portfolio link:', 'hello-elementor-child' ); ?>
+                  <input type="text" readonly data-crm-portfolio-url value="" />
+                </label>
+                <button type="button" class="btn btn--ghost btn--blue" data-crm-portfolio-copy><?php esc_html_e( 'Copy', 'hello-elementor-child' ); ?></button>
+              </div>
+            </div>
+
+            <dialog class="crm-danger-dialog" id="crm-client-portfolio-dialog" aria-labelledby="crm-client-portfolio-dialog-title">
+              <h4 id="crm-client-portfolio-dialog-title"><?php esc_html_e( 'Create portfolio', 'hello-elementor-child' ); ?></h4>
+              <form class="crm-form-stack" data-crm-portfolio-form>
+                <label><?php esc_html_e( 'Property IDs', 'hello-elementor-child' ); ?>
+                  <input type="text" name="property_ids" placeholder="<?php echo esc_attr__( 'e.g. 56426,12345,67890', 'hello-elementor-child' ); ?>" required />
+                </label>
+                <label><?php esc_html_e( 'Expiry', 'hello-elementor-child' ); ?>
+                  <input type="text" name="expiry" value="+30 days" />
+                </label>
+                <div class="crm-danger-dialog__actions">
+                  <button type="submit" class="btn btn--solid btn--blue" data-crm-portfolio-submit><?php esc_html_e( 'Generate link', 'hello-elementor-child' ); ?></button>
+                  <button type="button" class="btn btn--ghost btn--blue" data-crm-portfolio-close="crm-client-portfolio-dialog"><?php esc_html_e( 'Close', 'hello-elementor-child' ); ?></button>
+                </div>
+                <p class="text-sm" data-crm-portfolio-feedback></p>
+              </form>
+            </dialog>
+          </article>
+
           <article class="card-shell crm-client-section">
             <h3><?php esc_html_e( 'Deals', 'hello-elementor-child' ); ?></h3>
             <ul class="crm-list crm-deals-list">
