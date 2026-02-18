@@ -31,12 +31,31 @@ if ( ! defined( 'ABSPATH' ) ) {
 if ( ! function_exists( 'pera_v2_filter_array_of_slugs' ) ) {
   function pera_v2_filter_array_of_slugs( $raw ): array {
     if ( ! is_array( $raw ) ) {
-      $raw = ( $raw === null || $raw === '' ) ? array() : array( $raw );
+      $raw = ( $raw === null || $raw === '' ) ? array() : explode( ',', (string) $raw );
     }
-    $raw = array_map( 'wp_unslash', $raw );
-    $raw = array_map( 'sanitize_title', $raw );
-    $raw = array_values( array_filter( $raw ) );
-    return $raw;
+
+    $flattened = array();
+    foreach ( $raw as $item ) {
+      $item = wp_unslash( (string) $item );
+      if ( strpos( $item, ',' ) !== false ) {
+        foreach ( explode( ',', $item ) as $piece ) {
+          $flattened[] = $piece;
+        }
+      } else {
+        $flattened[] = $item;
+      }
+    }
+
+    $out = array();
+    foreach ( $flattened as $slug ) {
+      $slug = sanitize_title( trim( (string) $slug ) );
+      if ( $slug === '' || isset( $out[ $slug ] ) ) {
+        continue;
+      }
+      $out[ $slug ] = true;
+    }
+
+    return array_keys( $out );
   }
 }
 
