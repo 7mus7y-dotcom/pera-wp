@@ -32,19 +32,19 @@ if ( ! function_exists( 'pera_property_archive_build_args_from_context' ) ) {
 		}
 
 		$normalize_taxonomy_slugs = static function ( $raw ): array {
-			if ( ! is_array( $raw ) ) {
-				$raw = ( $raw === null || $raw === '' ) ? array() : explode( ',', (string) $raw );
+			$decoded = array();
+			if ( is_array( $raw ) ) {
+				foreach ( $raw as $item ) {
+					$decoded[] = rawurldecode( wp_unslash( (string) $item ) );
+				}
+			} elseif ( $raw !== null && $raw !== '' ) {
+				$decoded[] = rawurldecode( wp_unslash( (string) $raw ) );
 			}
 
 			$flattened = array();
-			foreach ( $raw as $item ) {
-				$item = (string) $item;
-				if ( strpos( $item, ',' ) !== false ) {
-					foreach ( explode( ',', $item ) as $piece ) {
-						$flattened[] = $piece;
-					}
-				} else {
-					$flattened[] = $item;
+			foreach ( $decoded as $item ) {
+				foreach ( explode( ',', (string) $item ) as $piece ) {
+					$flattened[] = $piece;
 				}
 			}
 
