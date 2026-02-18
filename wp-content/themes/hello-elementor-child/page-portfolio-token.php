@@ -16,6 +16,7 @@ $context = function_exists( 'pera_portfolio_token_get_request_context' )
 		'portfolio_id' => 0,
 		'property_ids' => array(),
 		'client_name'  => '',
+		'advisor_name' => '',
 		'expires_at'   => 0,
 	);
 
@@ -32,15 +33,29 @@ get_header();
 ?>
 
 <main id="primary" class="site-main content-rail">
-	<section class="hero hero--left">
-		<h1 class="hero__title">Property Portfolio</h1>
-		<?php if ( ! empty( $context['is_valid'] ) ) : ?>
-			<?php if ( ! empty( $context['client_name'] ) ) : ?>
-				<p class="hero__sub"><?php echo esc_html( $context['client_name'] ); ?></p>
+	<section class="hero hero--left hero--fit" id="crm-hero">
+		<div class="hero-content container">
+			<h1>A Custom Portfolio</h1>
+			<?php if ( ! empty( $context['is_valid'] ) ) : ?>
+				<?php
+				$client_name  = isset( $context['client_name'] ) ? trim( (string) $context['client_name'] ) : '';
+				$advisor_name = isset( $context['advisor_name'] ) ? trim( (string) $context['advisor_name'] ) : '';
+
+				$prepared_for = '';
+				if ( '' !== $client_name ) {
+					$prepared_for = ' for ' . $client_name;
+				}
+
+				$advisor_byline = '';
+				if ( '' !== $advisor_name ) {
+					$advisor_byline = ' by your advisor ' . $advisor_name;
+				}
+				?>
+				<p class="lead">
+					<?php echo esc_html( 'A custom portfolio prepared' . $prepared_for . $advisor_byline . '. Let us know what you think!' ); ?>
+				</p>
 			<?php endif; ?>
-		<?php else : ?>
-			<p class="hero__sub">This portfolio link is unavailable.</p>
-		<?php endif; ?>
+		</div>
 	</section>
 
 	<?php if ( ! empty( $context['is_valid'] ) ) : ?>
