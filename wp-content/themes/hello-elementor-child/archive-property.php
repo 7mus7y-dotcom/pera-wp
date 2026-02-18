@@ -6,6 +6,64 @@
 
 if ( ! defined( 'ABSPATH' ) ) exit;
 
+$archive_base_candidate = function_exists( 'pera_property_archive_base_url' )
+  ? (string) pera_property_archive_base_url()
+  : '';
+
+// Do not use get_permalink() on archive templates: it can resolve to the loop's global $post URL.
+$archive_base_url = trim( $archive_base_candidate ) !== ''
+  ? trailingslashit( $archive_base_candidate )
+  : trailingslashit( home_url( '/property/' ) );
+
+// Canonicalize legacy array-style taxonomy filters (district[] / property_tags[] => CSV).
+$request_path = wp_parse_url( isset( $_SERVER['REQUEST_URI'] ) ? (string) $_SERVER['REQUEST_URI'] : '', PHP_URL_PATH );
+$is_property_archive_request = is_post_type_archive( 'property' )
+  || ( is_string( $request_path ) && trailingslashit( $request_path ) === trailingslashit( wp_parse_url( home_url( '/property/' ), PHP_URL_PATH ) ) );
+
+if ( $is_property_archive_request && ! empty( $_GET ) ) {
+  $property_taxonomies = get_object_taxonomies( 'property', 'names' );
+  $property_taxonomies = is_array( $property_taxonomies ) ? $property_taxonomies : array();
+
+  $canonical_query = array();
+  $needs_redirect = false;
+
+  foreach ( $_GET as $query_key => $query_value ) {
+    if ( is_array( $query_value ) ) {
+      continue;
+    }
+
+    $canonical_query[ $query_key ] = $query_value;
+  }
+
+  foreach ( $property_taxonomies as $taxonomy_key ) {
+    if ( ! isset( $_GET[ $taxonomy_key ] ) || ! is_array( $_GET[ $taxonomy_key ] ) ) {
+      continue;
+    }
+
+    $normalized_values = array();
+
+    foreach ( $_GET[ $taxonomy_key ] as $raw_value ) {
+      $sanitized_value = sanitize_title( wp_unslash( (string) $raw_value ) );
+      if ( $sanitized_value !== '' && ! in_array( $sanitized_value, $normalized_values, true ) ) {
+        $normalized_values[] = $sanitized_value;
+      }
+    }
+
+    if ( ! empty( $normalized_values ) ) {
+      $canonical_query[ $taxonomy_key ] = implode( ',', $normalized_values );
+    } else {
+      unset( $canonical_query[ $taxonomy_key ] );
+    }
+
+    $needs_redirect = true;
+  }
+
+  if ( $needs_redirect ) {
+    wp_safe_redirect( add_query_arg( $canonical_query, $archive_base_url ), 301 );
+    exit;
+  }
+}
+
 get_header();
 
 /* ------------------------------------------------------------
@@ -14,51 +72,6 @@ get_header();
 ------------------------------------------------------------ */
 $archive_title       = 'Property for sale in Istanbul';
 $archive_description = 'We’ve got dozens of pages covering hundreds of options across almost all 48 districts of Istanbul. If you are looking for something more specific, be sure to contact us with your details, requirements, budget, etc. – take it easy and leave the rest to us.';
-$archive_base_url = function_exists( 'pera_property_archive_base_url' )
-  ? trailingslashit( pera_property_archive_base_url() )
-  : trailingslashit( get_permalink() );
-
-// Canonicalize legacy array-style taxonomy filters (district[] / property_tags[] => CSV).
-$request_path = wp_parse_url( isset( $_SERVER['REQUEST_URI'] ) ? (string) $_SERVER['REQUEST_URI'] : '', PHP_URL_PATH );
-$is_property_archive_request = is_post_type_archive( 'property' )
-  || ( is_string( $request_path ) && trailingslashit( $request_path ) === trailingslashit( wp_parse_url( home_url( '/property/' ), PHP_URL_PATH ) ) );
-
-if ( $is_property_archive_request && ! empty( $_GET ) ) {
-  $taxonomy_keys = array( 'district', 'property_tags' );
-  $property_taxonomies = get_object_taxonomies( 'property', 'names' );
-  if ( is_array( $property_taxonomies ) ) {
-    $taxonomy_keys = array_values( array_unique( array_merge( $taxonomy_keys, $property_taxonomies ) ) );
-  }
-
-  $canonical_query = $_GET;
-  $needs_redirect = false;
-
-  foreach ( $taxonomy_keys as $taxonomy_key ) {
-    if ( isset( $_GET[ $taxonomy_key ] ) && is_array( $_GET[ $taxonomy_key ] ) ) {
-      $normalized_values = array();
-
-      foreach ( $_GET[ $taxonomy_key ] as $raw_value ) {
-        $sanitized_value = sanitize_title( wp_unslash( (string) $raw_value ) );
-        if ( $sanitized_value !== '' && ! in_array( $sanitized_value, $normalized_values, true ) ) {
-          $normalized_values[] = $sanitized_value;
-        }
-      }
-
-      if ( ! empty( $normalized_values ) ) {
-        $canonical_query[ $taxonomy_key ] = implode( ',', $normalized_values );
-      } else {
-        unset( $canonical_query[ $taxonomy_key ] );
-      }
-
-      $needs_redirect = true;
-    }
-  }
-
-  if ( $needs_redirect ) {
-    wp_safe_redirect( add_query_arg( $canonical_query, $archive_base_url ), 301 );
-    exit;
-  }
-}
 
 // ------------------------------------------------------------
 // 1) PAGED RESOLUTION (robust for /page/N/ and ?paged=N)
