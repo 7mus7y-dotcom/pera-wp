@@ -237,6 +237,32 @@ function pera_is_property_archive() {
 }
 
 /**
+ * Enqueue the shared V2 property archive CSS bundle.
+ *
+ * @param bool $needs_slider Whether slider.css should be added as a dependency.
+ */
+function pera_enqueue_property_archive_assets( bool $needs_slider = false ): void {
+  wp_enqueue_style(
+    'pera-property-css',
+    get_stylesheet_directory_uri() . '/css/property.css',
+    array( 'pera-main-css' ),
+    pera_get_asset_version( '/css/property.css' )
+  );
+
+  $deps = array( 'pera-main-css' );
+  if ( $needs_slider ) {
+    $deps[] = 'pera-slider-css';
+  }
+
+  wp_enqueue_style(
+    'pera-property-card',
+    get_stylesheet_directory_uri() . '/css/property-card.css',
+    $deps,
+    pera_get_asset_version( '/css/property-card.css' )
+  );
+}
+
+/**
  * Get the current taxonomy archive context (taxonomy + term ID).
  *
  * @param array $allowed_taxonomies Optional allowlist of taxonomies.
@@ -373,6 +399,7 @@ add_action( 'wp_enqueue_scripts', function () {
     ) );
 
   $is_single_property = is_singular( 'property' );
+  $is_portfolio_token = function_exists( 'pera_portfolio_token_is_request' ) && pera_portfolio_token_is_request();
 
   $is_blog_page    = is_page_template( 'page-posts.php' ) || is_page( 'blog' );
   $is_single_post  = is_singular( 'post' );
@@ -423,7 +450,11 @@ if ( $needs_slider ) {
      Rule: property archive OR single property OR home
   ========================= */
 
-  if ( $is_property_archive || $is_single_property || $is_single_bodrum_property || $is_home ) {
+  if ( $is_property_archive || $is_portfolio_token ) {
+    pera_enqueue_property_archive_assets( $needs_slider );
+  }
+
+  if ( $is_single_property || $is_single_bodrum_property || $is_home ) {
     wp_enqueue_style(
       'pera-property-css',
       get_stylesheet_directory_uri() . '/css/property.css',
@@ -437,7 +468,7 @@ if ( $needs_slider ) {
      Rule: home OR property archive OR single property OR single post
   ========================= */
 
-  if ( $is_home || $is_property_archive || $is_single_property || $is_single_post || $is_favourites_page || $is_property_map ) {
+  if ( $is_home || $is_single_property || $is_single_post || $is_favourites_page || $is_property_map ) {
 
     $deps = array( 'pera-main-css' );
     if ( $needs_slider ) {
