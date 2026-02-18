@@ -304,6 +304,7 @@
   var outputRow = section.querySelector('[data-crm-portfolio-output]');
   var urlInput = section.querySelector('[data-crm-portfolio-url]');
   var copyButton = section.querySelector('[data-crm-portfolio-copy]');
+  var expiresNote = section.querySelector('[data-crm-portfolio-expires]');
 
   if (!ajaxUrl || !nonce || !clientId || !openButton) {
     return;
@@ -393,6 +394,9 @@
           }
           if (outputRow) {
             outputRow.hidden = false;
+          }
+          if (expiresNote) {
+            expiresNote.textContent = json.data.expires_label ? 'Expires: ' + String(json.data.expires_label) : '';
           }
 
           if (feedback) {

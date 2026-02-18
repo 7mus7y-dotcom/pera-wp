@@ -741,12 +741,29 @@ if ( ! function_exists( 'pera_crm_create_portfolio_token_ajax' ) ) {
 			wp_send_json_error( array( 'message' => $result->get_error_message() ), 400 );
 		}
 
+		$portfolio_url   = isset( $result['url'] ) ? esc_url_raw( (string) $result['url'] ) : '';
+		$portfolio_token = isset( $result['token'] ) ? sanitize_text_field( (string) $result['token'] ) : '';
+		$portfolio_post  = isset( $result['post_id'] ) ? (int) $result['post_id'] : 0;
+		$created_at      = time();
+
+		pera_crm_client_view_with_target_blog(
+			static function () use ( $client_id, $portfolio_url, $portfolio_token, $portfolio_post, $expires_at, $created_at ): void {
+				update_post_meta( $client_id, '_peracrm_portfolio_url', $portfolio_url );
+				update_post_meta( $client_id, '_peracrm_portfolio_token', $portfolio_token );
+				update_post_meta( $client_id, '_peracrm_portfolio_post_id', $portfolio_post );
+				update_post_meta( $client_id, '_peracrm_portfolio_expires_at', (int) $expires_at );
+				update_post_meta( $client_id, '_peracrm_portfolio_created_at', (int) $created_at );
+			}
+		);
+
 		wp_send_json_success(
 			array(
-				'url'    => isset( $result['url'] ) ? esc_url_raw( (string) $result['url'] ) : '',
-				'token'  => isset( $result['token'] ) ? sanitize_text_field( (string) $result['token'] ) : '',
-				'post_id' => isset( $result['post_id'] ) ? (int) $result['post_id'] : 0,
-				'count'  => count( $property_ids ),
+				'url'           => $portfolio_url,
+				'token'         => $portfolio_token,
+				'post_id'       => $portfolio_post,
+				'expires_at'    => (int) $expires_at,
+				'expires_label' => wp_date( get_option( 'date_format' ) . ' ' . get_option( 'time_format' ), (int) $expires_at ),
+				'count'         => count( $property_ids ),
 			)
 		);
 	}
