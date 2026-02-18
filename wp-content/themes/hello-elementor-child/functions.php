@@ -46,9 +46,14 @@ require_once get_stylesheet_directory() . '/inc/disable-hello-parent-loads.php';
  * without affecting template/AJAX filtering that reads from $_GET.
  */
 add_filter( 'request', function ( $vars ) {
-  foreach ( array( 'district', 'property_tags' ) as $taxonomy_query_var ) {
-    if ( isset( $vars[ $taxonomy_query_var ] ) && is_array( $vars[ $taxonomy_query_var ] ) ) {
-      unset( $vars[ $taxonomy_query_var ] );
+  // Strip any array-valued taxonomy query-vars for the "property" object type.
+  // Prevents WP core parse_tax_query() from fatalling when it encounters array-shaped vars.
+  foreach ( $vars as $k => $v ) {
+    if ( ! is_array( $v ) ) {
+      continue;
+    }
+    if ( taxonomy_exists( $k ) && is_object_in_taxonomy( 'property', $k ) ) {
+      unset( $vars[ $k ] );
     }
   }
 
