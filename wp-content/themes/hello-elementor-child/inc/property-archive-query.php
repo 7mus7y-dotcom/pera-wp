@@ -31,8 +31,37 @@ if ( ! function_exists( 'pera_property_archive_build_args_from_context' ) ) {
 			}
 		}
 
-		$current_district = isset($current_district) && is_array($current_district) ? $current_district : array();
-		$current_tag      = isset($current_tag) && is_array($current_tag) ? $current_tag : array();
+		$normalize_taxonomy_slugs = static function ( $raw ): array {
+			if ( ! is_array( $raw ) ) {
+				$raw = ( $raw === null || $raw === '' ) ? array() : explode( ',', (string) $raw );
+			}
+
+			$flattened = array();
+			foreach ( $raw as $item ) {
+				$item = (string) $item;
+				if ( strpos( $item, ',' ) !== false ) {
+					foreach ( explode( ',', $item ) as $piece ) {
+						$flattened[] = $piece;
+					}
+				} else {
+					$flattened[] = $item;
+				}
+			}
+
+			$out = array();
+			foreach ( $flattened as $slug ) {
+				$slug = sanitize_title( trim( (string) $slug ) );
+				if ( $slug === '' || isset( $out[ $slug ] ) ) {
+					continue;
+				}
+				$out[ $slug ] = true;
+			}
+
+			return array_keys( $out );
+		};
+
+		$current_district = $normalize_taxonomy_slugs( $current_district );
+		$current_tag      = $normalize_taxonomy_slugs( $current_tag );
 		$current_type     = isset($current_type) ? (string) $current_type : '';
 		$selected_beds    = isset($selected_beds) ? (string) $selected_beds : '';
 		$current_keyword  = isset($current_keyword) ? (string) $current_keyword : '';
