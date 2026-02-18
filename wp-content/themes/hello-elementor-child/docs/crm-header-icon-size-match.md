@@ -54,3 +54,7 @@ This keeps the same wrapper element (`.header-crm-toggle`) layout/click area whi
 
 - `wp-content/themes/hello-elementor-child/css/main.css`
 - `wp-content/themes/hello-elementor-child/docs/crm-header-icon-size-match.md`
+
+## Mobile CRM header icon size update
+
+Mobile CRM header icon size updated from 16px to 24px to match visual weight of other header icons. Selector scoped to #site-header .header-icons .header-crm-toggle .icon to avoid affecting floating CRM icon.
