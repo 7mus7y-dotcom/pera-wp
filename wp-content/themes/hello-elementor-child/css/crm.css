@@ -413,11 +413,49 @@
     width: 88px;
     max-width: 88px;
   }
+
+  .peracrm-linked-properties-grid {
+    grid-template-columns: 1fr;
+  }
 }
 
 .crm-linked-property-link {
   font-weight: 600;
   text-decoration: underline;
+}
+
+.peracrm-linked-properties-grid {
+  display: grid;
+  gap: 12px;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+.peracrm-linked-properties-grid .peracrm-linked-properties-grid__item {
+  display: grid;
+  gap: 8px;
+  margin: 0;
+  min-width: 0;
+  padding: 10px;
+  border: 1px solid #e8ecf2;
+  border-radius: 10px;
+}
+
+.peracrm-linked-property-unlink-form {
+  margin-bottom: 0;
+}
+
+.peracrm-linked-property-unlink-btn {
+  align-items: center;
+  justify-content: center;
+  min-height: 34px;
+  min-width: 34px;
+  padding: 6px;
+}
+
+.peracrm-linked-property-unlink-btn svg {
+  display: block;
+  width: 16px;
+  height: 16px;
 }
 
 .crm-client-timeline .hero-pills {
@@ -516,6 +554,10 @@
 @media (max-width: 1024px) {
   .crm-client-kpis {
     grid-template-columns: 1fr;
+  }
+
+  .peracrm-linked-properties-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }
 

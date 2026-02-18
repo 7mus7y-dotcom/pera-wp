@@ -571,7 +571,7 @@ get_header();
 					<?php if ( empty( $items ) ) : ?>
                 <p><?php esc_html_e( 'No properties.', 'hello-elementor-child' ); ?></p>
 					<?php else : ?>
-                <ul class="crm-list">
+                <ul class="crm-list peracrm-linked-properties-grid">
 						<?php foreach ( $items as $item ) : ?>
 							<?php
 							$property_id = (int) ( $item['property_id'] ?? 0 );
@@ -590,19 +590,23 @@ get_header();
 								);
 							}
 							?>
-                    <li>
+                    <li class="peracrm-linked-properties-grid__item">
 								<?php if ( '' !== $property_url ) : ?>
                         <a class="crm-linked-property-link" href="<?php echo esc_url( $property_url ); ?>" target="_blank" rel="noopener noreferrer"><?php echo esc_html( $property_label ); ?></a>
 								<?php else : ?>
                         <span><?php echo esc_html( $property_label ); ?></span>
 								<?php endif; ?>
-                      <form method="post">
+                      <form method="post" class="peracrm-linked-property-unlink-form">
 									<?php wp_nonce_field( 'pera_crm_property_action', 'pera_crm_property_nonce' ); ?>
                         <input type="hidden" name="pera_crm_property_action" value="unlink" />
                         <input type="hidden" name="peracrm_client_id" value="<?php echo esc_attr( (string) $client_id ); ?>" />
                         <input type="hidden" name="property_id" value="<?php echo esc_attr( (string) $property_id ); ?>" />
                         <input type="hidden" name="relation_type" value="<?php echo esc_attr( (string) $relation ); ?>" />
-                        <button type="submit" class="btn btn--ghost btn--blue"><?php esc_html_e( 'Unlink', 'hello-elementor-child' ); ?></button>
+                        <button type="submit" class="btn btn--ghost btn--blue peracrm-linked-property-unlink-btn" aria-label="<?php esc_attr_e( 'Unlink property', 'hello-elementor-child' ); ?>">
+                          <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+                            <use href="#icon-broken-chain"></use>
+                          </svg>
+                        </button>
                       </form>
                     </li>
 						<?php endforeach; ?>
