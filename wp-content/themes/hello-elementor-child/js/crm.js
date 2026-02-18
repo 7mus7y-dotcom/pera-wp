@@ -292,18 +292,18 @@
 })();
 
 (function () {
-  var panel = document.querySelector('[data-crm-portfolio-panel]');
-  if (!panel) {
+  var section = document.querySelector('[data-crm-linked-properties]');
+  if (!section) {
     return;
   }
 
   var ajaxUrl = window.peraCrmData && window.peraCrmData.ajaxUrl ? window.peraCrmData.ajaxUrl : '';
   var nonce = window.peraCrmData && window.peraCrmData.createPortfolioNonce ? window.peraCrmData.createPortfolioNonce : '';
-  var clientId = panel.getAttribute('data-client-id') || '';
-  var openButton = panel.querySelector('[data-crm-portfolio-open]');
-  var outputRow = panel.querySelector('[data-crm-portfolio-output]');
-  var urlInput = panel.querySelector('[data-crm-portfolio-url]');
-  var copyButton = panel.querySelector('[data-crm-portfolio-copy]');
+  var clientId = section.getAttribute('data-client-id') || '';
+  var openButton = section.querySelector('[data-crm-portfolio-open]');
+  var outputRow = section.querySelector('[data-crm-portfolio-output]');
+  var urlInput = section.querySelector('[data-crm-portfolio-url]');
+  var copyButton = section.querySelector('[data-crm-portfolio-copy]');
 
   if (!ajaxUrl || !nonce || !clientId || !openButton) {
     return;
@@ -329,6 +329,10 @@
   }
 
   function openDialog() {
+    if (feedback) {
+      feedback.textContent = '';
+    }
+
     if (typeof dialog.showModal === 'function') {
       dialog.showModal();
     } else {
@@ -357,21 +361,12 @@
       event.preventDefault();
 
       var formData = new window.FormData(form);
-      var propertyIds = String(formData.get('property_ids') || '').trim();
       var expiry = String(formData.get('expiry') || '').trim();
-
-      if (!propertyIds) {
-        if (feedback) {
-          feedback.textContent = 'Property IDs are required.';
-        }
-        return;
-      }
 
       var payload = new window.FormData();
       payload.append('action', 'peracrm_create_portfolio_token');
       payload.append('nonce', nonce);
       payload.append('client_id', clientId);
-      payload.append('property_ids', propertyIds);
       payload.append('expiry', expiry);
 
       submitButton.disabled = true;
@@ -403,8 +398,9 @@
           if (feedback) {
             feedback.textContent = 'Portfolio link generated.';
           }
-          window.alert('Portfolio link generated.');
-          closeDialog();
+          window.setTimeout(function () {
+            closeDialog();
+          }, 350);
         })
         .catch(function (error) {
           if (feedback) {
@@ -427,14 +423,11 @@
 
       if (navigator.clipboard && typeof navigator.clipboard.writeText === 'function') {
         navigator.clipboard.writeText(value)
-          .then(function () {
-            window.alert('Portfolio link copied.');
-          })
+          .then(function () {})
           .catch(function () {
             urlInput.focus();
             urlInput.select();
             document.execCommand('copy');
-            window.alert('Portfolio link copied.');
           });
         return;
       }
@@ -442,7 +435,6 @@
       urlInput.focus();
       urlInput.select();
       document.execCommand('copy');
-      window.alert('Portfolio link copied.');
     });
   }
 })();

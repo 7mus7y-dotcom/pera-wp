@@ -642,6 +642,45 @@ if ( ! function_exists( 'pera_crm_client_view_parse_property_ids_csv' ) ) {
 	}
 }
 
+if ( ! function_exists( 'pera_crm_client_view_get_portfolio_property_ids' ) ) {
+	/**
+	 * Fetch ordered, valid portfolio-linked property IDs for a client.
+	 *
+	 * @param int $client_id CRM client ID.
+	 * @return int[]
+	 */
+	function pera_crm_client_view_get_portfolio_property_ids( int $client_id ): array {
+		return (array) pera_crm_client_view_with_target_blog(
+			static function () use ( $client_id ): array {
+				if ( ! function_exists( 'peracrm_client_property_list' ) ) {
+					return array();
+				}
+
+				$list = (array) peracrm_client_property_list( $client_id, 'portfolio', 500 );
+				$ids  = array();
+				$seen = array();
+
+				foreach ( $list as $row ) {
+					$property_id = absint( $row['property_id'] ?? 0 );
+					if ( $property_id <= 0 || isset( $seen[ $property_id ] ) ) {
+						continue;
+					}
+
+					$post = get_post( $property_id );
+					if ( ! ( $post instanceof WP_Post ) || 'property' !== $post->post_type || 'publish' !== $post->post_status ) {
+						continue;
+					}
+
+					$seen[ $property_id ] = true;
+					$ids[]                = $property_id;
+				}
+
+				return $ids;
+			}
+		);
+	}
+}
+
 if ( ! function_exists( 'pera_crm_create_portfolio_token_ajax' ) ) {
 	/**
 	 * Create a token portfolio from CRM client view.
@@ -676,35 +715,9 @@ if ( ! function_exists( 'pera_crm_create_portfolio_token_ajax' ) ) {
 			wp_send_json_error( array( 'message' => __( 'Client not found.', 'hello-elementor-child' ) ), 404 );
 		}
 
-		$property_ids_raw = isset( $_POST['property_ids'] ) ? sanitize_text_field( wp_unslash( (string) $_POST['property_ids'] ) ) : '';
-		$property_ids     = pera_crm_client_view_parse_property_ids_csv( $property_ids_raw );
+		$property_ids = pera_crm_client_view_get_portfolio_property_ids( $client_id );
 		if ( empty( $property_ids ) ) {
-			wp_send_json_error( array( 'message' => __( 'Please provide at least one property ID.', 'hello-elementor-child' ) ), 400 );
-		}
-
-		$property_ids = (array) pera_crm_client_view_with_target_blog(
-			static function () use ( $property_ids ): array {
-				$valid = array();
-
-				foreach ( $property_ids as $property_id ) {
-					$post = get_post( $property_id );
-					if ( ! ( $post instanceof WP_Post ) ) {
-						continue;
-					}
-
-					if ( 'property' !== $post->post_type || 'publish' !== $post->post_status ) {
-						continue;
-					}
-
-					$valid[] = $property_id;
-				}
-
-				return $valid;
-			}
-		);
-
-		if ( empty( $property_ids ) ) {
-			wp_send_json_error( array( 'message' => __( 'No valid published properties found for the provided IDs.', 'hello-elementor-child' ) ), 400 );
+			wp_send_json_error( array( 'message' => __( 'No portfolio-linked properties found for this client.', 'hello-elementor-child' ) ), 400 );
 		}
 
 		$expires_raw = isset( $_POST['expiry'] ) ? sanitize_text_field( wp_unslash( (string) $_POST['expiry'] ) ) : '';
