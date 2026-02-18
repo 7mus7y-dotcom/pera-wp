@@ -12,7 +12,9 @@ if ( ! function_exists( 'pera_portfolio_token_register_post_type' ) ) {
 	 * Register the portfolio post type used to store token portfolios.
 	 */
 	function pera_portfolio_token_register_post_type(): void {
-		$show_ui = current_user_can( 'manage_options' );
+		$show_ui = function_exists( 'pera_is_frontend_admin_equivalent' )
+			? pera_is_frontend_admin_equivalent()
+			: current_user_can( 'manage_options' );
 
 		register_post_type(
 			'portfolio',
