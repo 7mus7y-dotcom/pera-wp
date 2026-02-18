@@ -229,10 +229,18 @@ if ( ! function_exists( 'pera_ajax_filter_properties_v2' ) ) {
         $archive_taxonomy = '';
         $archive_term_id  = 0;
         if ( isset( $_POST['archive_taxonomy'] ) ) {
-          $archive_taxonomy = sanitize_key( wp_unslash( (string) $_POST['archive_taxonomy'] ) );
+          $raw_archive_taxonomy = wp_unslash( $_POST['archive_taxonomy'] );
+          if ( is_array( $raw_archive_taxonomy ) ) {
+            $raw_archive_taxonomy = reset( $raw_archive_taxonomy );
+          }
+          $archive_taxonomy = sanitize_key( (string) $raw_archive_taxonomy );
         }
         if ( isset( $_POST['archive_term_id'] ) ) {
-          $archive_term_id = absint( wp_unslash( (string) $_POST['archive_term_id'] ) );
+          $raw_archive_term_id = wp_unslash( $_POST['archive_term_id'] );
+          if ( is_array( $raw_archive_term_id ) ) {
+            $raw_archive_term_id = reset( $raw_archive_term_id );
+          }
+          $archive_term_id = absint( (string) $raw_archive_term_id );
         }
 
         $archive_context = array();
@@ -243,8 +251,8 @@ if ( ! function_exists( 'pera_ajax_filter_properties_v2' ) ) {
           && is_object_in_taxonomy( 'property', $archive_taxonomy )
         ) {
           $archive_context = array(
-            'taxonomy' => $archive_taxonomy,
-            'term_id'  => $archive_term_id,
+            'taxonomy' => (string) $archive_taxonomy,
+            'term_id'  => (int) $archive_term_id,
           );
         }
 
