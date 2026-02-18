@@ -486,8 +486,9 @@ if ( ! function_exists( 'pera_crm_enqueue_assets' ) ) {
 				'pera-crm-js',
 				'peraCrmData',
 				array(
-					'ajaxUrl'             => admin_url( 'admin-ajax.php' ),
-					'propertySearchNonce' => wp_create_nonce( 'pera_crm_property_search' ),
+					'ajaxUrl'                => admin_url( 'admin-ajax.php' ),
+					'propertySearchNonce'    => wp_create_nonce( 'pera_crm_property_search' ),
+					'createPortfolioNonce'   => wp_create_nonce( 'pera_crm_create_portfolio_token' ),
 				)
 			);
 		}

@@ -292,6 +292,162 @@
 })();
 
 (function () {
+  var panel = document.querySelector('[data-crm-portfolio-panel]');
+  if (!panel) {
+    return;
+  }
+
+  var ajaxUrl = window.peraCrmData && window.peraCrmData.ajaxUrl ? window.peraCrmData.ajaxUrl : '';
+  var nonce = window.peraCrmData && window.peraCrmData.createPortfolioNonce ? window.peraCrmData.createPortfolioNonce : '';
+  var clientId = panel.getAttribute('data-client-id') || '';
+  var openButton = panel.querySelector('[data-crm-portfolio-open]');
+  var outputRow = panel.querySelector('[data-crm-portfolio-output]');
+  var urlInput = panel.querySelector('[data-crm-portfolio-url]');
+  var copyButton = panel.querySelector('[data-crm-portfolio-copy]');
+
+  if (!ajaxUrl || !nonce || !clientId || !openButton) {
+    return;
+  }
+
+  var dialogId = openButton.getAttribute('data-crm-portfolio-open');
+  var dialog = dialogId ? document.getElementById(dialogId) : null;
+  if (!dialog) {
+    return;
+  }
+
+  var form = dialog.querySelector('[data-crm-portfolio-form]');
+  var submitButton = dialog.querySelector('[data-crm-portfolio-submit]');
+  var feedback = dialog.querySelector('[data-crm-portfolio-feedback]');
+  var closeButtons = Array.prototype.slice.call(dialog.querySelectorAll('[data-crm-portfolio-close]'));
+
+  function closeDialog() {
+    if (typeof dialog.close === 'function') {
+      dialog.close();
+    } else {
+      dialog.removeAttribute('open');
+    }
+  }
+
+  function openDialog() {
+    if (typeof dialog.showModal === 'function') {
+      dialog.showModal();
+    } else {
+      dialog.setAttribute('open', 'open');
+    }
+  }
+
+  openButton.addEventListener('click', function () {
+    openDialog();
+  });
+
+  closeButtons.forEach(function (button) {
+    button.addEventListener('click', function () {
+      closeDialog();
+    });
+  });
+
+  dialog.addEventListener('click', function (event) {
+    if (event.target === dialog) {
+      closeDialog();
+    }
+  });
+
+  if (form && submitButton) {
+    form.addEventListener('submit', function (event) {
+      event.preventDefault();
+
+      var formData = new window.FormData(form);
+      var propertyIds = String(formData.get('property_ids') || '').trim();
+      var expiry = String(formData.get('expiry') || '').trim();
+
+      if (!propertyIds) {
+        if (feedback) {
+          feedback.textContent = 'Property IDs are required.';
+        }
+        return;
+      }
+
+      var payload = new window.FormData();
+      payload.append('action', 'peracrm_create_portfolio_token');
+      payload.append('nonce', nonce);
+      payload.append('client_id', clientId);
+      payload.append('property_ids', propertyIds);
+      payload.append('expiry', expiry);
+
+      submitButton.disabled = true;
+      var originalLabel = submitButton.textContent;
+      submitButton.textContent = 'Generating…';
+      if (feedback) {
+        feedback.textContent = '';
+      }
+
+      fetch(ajaxUrl, {
+        method: 'POST',
+        body: payload,
+        credentials: 'same-origin'
+      })
+        .then(function (response) { return response.json(); })
+        .then(function (json) {
+          if (!json || !json.success || !json.data || !json.data.url) {
+            var errorMessage = json && json.data && json.data.message ? String(json.data.message) : 'Unable to generate portfolio link.';
+            throw new Error(errorMessage);
+          }
+
+          if (urlInput) {
+            urlInput.value = String(json.data.url);
+          }
+          if (outputRow) {
+            outputRow.hidden = false;
+          }
+
+          if (feedback) {
+            feedback.textContent = 'Portfolio link generated.';
+          }
+          window.alert('Portfolio link generated.');
+          closeDialog();
+        })
+        .catch(function (error) {
+          if (feedback) {
+            feedback.textContent = error && error.message ? error.message : 'Unable to generate portfolio link.';
+          }
+        })
+        .finally(function () {
+          submitButton.disabled = false;
+          submitButton.textContent = originalLabel;
+        });
+    });
+  }
+
+  if (copyButton && urlInput) {
+    copyButton.addEventListener('click', function () {
+      var value = String(urlInput.value || '').trim();
+      if (!value) {
+        return;
+      }
+
+      if (navigator.clipboard && typeof navigator.clipboard.writeText === 'function') {
+        navigator.clipboard.writeText(value)
+          .then(function () {
+            window.alert('Portfolio link copied.');
+          })
+          .catch(function () {
+            urlInput.focus();
+            urlInput.select();
+            document.execCommand('copy');
+            window.alert('Portfolio link copied.');
+          });
+        return;
+      }
+
+      urlInput.focus();
+      urlInput.select();
+      document.execCommand('copy');
+      window.alert('Portfolio link copied.');
+    });
+  }
+})();
+
+(function () {
   var widgets = Array.prototype.slice.call(document.querySelectorAll('[data-crm-property-search]'));
   if (!widgets.length) {
     return;
