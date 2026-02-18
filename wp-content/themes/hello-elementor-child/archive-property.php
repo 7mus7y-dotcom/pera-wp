@@ -42,25 +42,36 @@ $current_type = isset( $_GET['property_type'] )
   : '';
 
 // District (multi-select)
+$normalize_tax_slugs = static function ( $raw ) {
+  $values = array();
+
+  if ( is_array( $raw ) ) {
+    $values = wp_unslash( $raw );
+  } elseif ( is_string( $raw ) ) {
+    $values = explode( ',', wp_unslash( $raw ) );
+  }
+
+  $values = array_map(
+    static function ( $value ) {
+      return sanitize_title( trim( (string) $value ) );
+    },
+    $values
+  );
+
+  $values = array_values( array_unique( array_filter( $values ) ) );
+
+  return $values;
+};
+
 $current_district = array();
 if ( isset( $_GET['district'] ) ) {
-  $raw = $_GET['district'];
-  if ( is_array( $raw ) ) {
-    $current_district = array_map( 'sanitize_title', wp_unslash( $raw ) );
-  } elseif ( $raw !== '' ) {
-    $current_district = array( sanitize_title( wp_unslash( $raw ) ) );
-  }
+  $current_district = $normalize_tax_slugs( $_GET['district'] );
 }
 
 // Tags (multi-select)
 $current_tag = array();
 if ( isset( $_GET['property_tags'] ) ) {
-  $raw = $_GET['property_tags'];
-  if ( is_array( $raw ) ) {
-    $current_tag = array_map( 'sanitize_title', wp_unslash( $raw ) );
-  } elseif ( $raw !== '' ) {
-    $current_tag = array( sanitize_title( wp_unslash( $raw ) ) );
-  }
+  $current_tag = $normalize_tax_slugs( $_GET['property_tags'] );
 }
 
 // Bedrooms (V2 single radio)
@@ -449,6 +460,8 @@ if ( ! $is_filtered_search && ( $qo instanceof WP_Term ) && ! is_wp_error( $qo )
                           value="<?php echo esc_attr( trailingslashit( wp_parse_url( $archive_base_url, PHP_URL_PATH ) ?: '/' ) ); ?>"
                         >
                         <input type="hidden" name="sort" id="sort-input" value="<?php echo esc_attr( $sort ); ?>">
+                        <input type="hidden" name="district" id="district-csv" value="<?php echo esc_attr( implode( ',', $current_district ) ); ?>">
+                        <input type="hidden" name="property_tags" id="property-tags-csv" value="<?php echo esc_attr( implode( ',', $current_tag ) ); ?>">
                         <?php if ( ! empty( $taxonomy_context ) ) : ?>
                           <?php $archive_tax = ( isset( $taxonomy_context['taxonomy'] ) && is_string( $taxonomy_context['taxonomy'] ) ) ? $taxonomy_context['taxonomy'] : ''; ?>
                           <input type="hidden" name="archive_taxonomy" value="<?php echo esc_attr( $archive_tax ); ?>">
@@ -624,7 +637,7 @@ if ( ! $is_filtered_search && ( $qo instanceof WP_Term ) && ! is_wp_error( $qo )
                                         <label class="pill pill--outline filter-pill <?php echo $is_active ? 'pill--active' : ''; ?>">
                                             <input
                                                 type="checkbox"
-                                                name="district[]"
+                                                data-tax-filter="district"
                                                 value="<?php echo esc_attr( $district->slug ); ?>"
                                                 <?php checked( $is_active ); ?>
                                             >
@@ -662,7 +675,7 @@ if ( ! $is_filtered_search && ( $qo instanceof WP_Term ) && ! is_wp_error( $qo )
                                         <label class="pill pill--outline filter-pill <?php echo $is_active ? 'pill--active' : ''; ?>">
                                             <input
                                                 type="checkbox"
-                                                name="property_tags[]"
+                                                data-tax-filter="property_tags"
                                                 value="<?php echo esc_attr( $tag->slug ); ?>"
                                                 <?php checked( $is_active ); ?>
                                             >
@@ -855,6 +868,8 @@ $pagination_html = function_exists( 'pera_render_property_pagination' )
   const priceMinHidden = document.getElementById('price-min-hidden');
   const priceMaxHidden = document.getElementById('price-max-hidden');
   const priceSummary   = document.getElementById('price-summary-text');
+  const districtCsvInput = document.getElementById('district-csv');
+  const propertyTagsCsvInput = document.getElementById('property-tags-csv');
 
   // Sort bits (Step 6)
   const sortInput  = document.getElementById('sort-input');         // hidden input name="sort"
@@ -964,6 +979,21 @@ $pagination_html = function_exists( 'pera_render_property_pagination' )
     return v || DEFAULT_SORT;
   }
 
+  function getCheckedTaxSlugs(taxonomy) {
+    return Array.from(form.querySelectorAll('input[type="checkbox"][data-tax-filter="' + taxonomy + '"]:checked'))
+      .map(el => String(el.value || '').trim())
+      .filter(Boolean);
+  }
+
+  function syncTaxCsvInputs() {
+    if (districtCsvInput) {
+      districtCsvInput.value = getCheckedTaxSlugs('district').join(',');
+    }
+    if (propertyTagsCsvInput) {
+      propertyTagsCsvInput.value = getCheckedTaxSlugs('property_tags').join(',');
+    }
+  }
+
   // ---------------------------
   // PRICE UI SYNC
   // ---------------------------
@@ -1014,6 +1044,7 @@ $pagination_html = function_exists( 'pera_render_property_pagination' )
   function buildPayload(paged) {
     // IMPORTANT: do price sync first so hidden inputs are correct before FormData reads them
     syncPriceUi(false);
+    syncTaxCsvInputs();
 
     const fd = new FormData(form);
     fd.set('action', 'pera_filter_properties_v2');
@@ -1077,13 +1108,12 @@ $pagination_html = function_exists( 'pera_render_property_pagination' )
           const pType = getSelectedPropertyType();
           if (pType !== '') params.set('property_type', pType);
         
-          // District[] / Tags[]
-          form.querySelectorAll('input[name="district[]"]:checked').forEach(el => {
-            params.append('district[]', String(el.value || ''));
-          });
-          form.querySelectorAll('input[name="property_tags[]"]:checked').forEach(el => {
-            params.append('property_tags[]', String(el.value || ''));
-          });
+          // District / tags (CSV scalar)
+          syncTaxCsvInputs();
+          const districtCsv = districtCsvInput ? String(districtCsvInput.value || '').trim() : '';
+          const tagsCsv = propertyTagsCsvInput ? String(propertyTagsCsvInput.value || '').trim() : '';
+          if (districtCsv !== '') params.set('district', districtCsv);
+          if (tagsCsv !== '') params.set('property_tags', tagsCsv);
         
           // Keyword
           const keywordEl = form.querySelector('input[name="s"]');
@@ -1457,6 +1487,7 @@ $pagination_html = function_exists( 'pera_render_property_pagination' )
 
   // Initial UI sync: if URL had price params, hidden inputs should be populated
   syncPriceUi(false);
+  syncTaxCsvInputs();
 
   // Decide whether to run initial AJAX refresh (keep SSR for empty state)
   const keywordEl  = form.querySelector('input[name="s"]');
@@ -1466,8 +1497,8 @@ $pagination_html = function_exists( 'pera_render_property_pagination' )
     (getSelectedV2Bed() !== '') ||
     (getSelectedPropertyType() !== '') ||
     (keywordVal !== '') ||
-    !!form.querySelector('input[name="district[]"]:checked') ||
-    !!form.querySelector('input[name="property_tags[]"]:checked') ||
+    !!form.querySelector('input[type="checkbox"][data-tax-filter="district"]:checked') ||
+    !!form.querySelector('input[type="checkbox"][data-tax-filter="property_tags"]:checked') ||
     (sortInput && String(sortInput.value || '') !== '' && String(sortInput.value) !== DEFAULT_SORT) ||
     ((priceMinHidden && String(priceMinHidden.value || '').trim() !== '') ||
      (priceMaxHidden && String(priceMaxHidden.value || '').trim() !== ''));
