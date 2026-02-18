@@ -12,7 +12,7 @@ $current_page = max( 1, (int) get_query_var( 'paged', 1 ) );
 $is_leads     = 'leads' === $view;
 $is_tasks     = 'tasks' === $view;
 $clients_type_view = isset( $_GET['type'] ) ? sanitize_key( wp_unslash( (string) $_GET['type'] ) ) : 'leads'; // phpcs:ignore WordPress.Security.NonceVerification.Recommended
-$clients_type_view = 'clients' === $clients_type_view ? 'clients' : 'leads';
+$clients_type_view = in_array( $clients_type_view, array( 'leads', 'clients', 'inactive' ), true ) ? $clients_type_view : 'leads';
 $derived_type_filter = 'clients' === $clients_type_view ? 'client' : 'lead';
 
 $crm_dashboard = function_exists( 'pera_crm_get_dashboard_data' )
@@ -28,7 +28,7 @@ $crm_dashboard = function_exists( 'pera_crm_get_dashboard_data' )
 	);
 
 $leads_data = $is_leads && function_exists( 'pera_crm_get_leads_view_data' )
-	? pera_crm_get_leads_view_data( $current_page, 20, $derived_type_filter )
+	? pera_crm_get_leads_view_data( $current_page, 20, $derived_type_filter, $clients_type_view )
 	: array();
 
 $tasks_data = $is_tasks && function_exists( 'pera_crm_get_tasks_view_data' )
@@ -436,10 +436,15 @@ get_header();
 			$current_page = max( 1, (int) ( $leads_data['current_page'] ?? 1 ) );
 			$from         = $total > 0 ? ( ( $current_page - 1 ) * $per_page ) + 1 : 0;
 			$to           = min( $current_page * $per_page, $total );
+			$is_inactive  = 'inactive' === $clients_type_view;
+			$status_labels = array(
+				'closed'  => __( 'Closed', 'hello-elementor-child' ),
+				'dormant' => __( 'Dormant', 'hello-elementor-child' ),
+			);
 			?>
       <div class="crm-leads-toolbar">
         <div>
-          <h2><?php echo esc_html( 'clients' === $clients_type_view ? __( 'Clients', 'hello-elementor-child' ) : __( 'Leads', 'hello-elementor-child' ) ); ?></h2>
+          <h2><?php echo esc_html( $is_inactive ? __( 'Inactive', 'hello-elementor-child' ) : ( 'clients' === $clients_type_view ? __( 'Clients', 'hello-elementor-child' ) : __( 'Leads', 'hello-elementor-child' ) ) ); ?></h2>
           <p><?php echo esc_html__( 'Leads are those who have not invested with us. Clients are those who have invested with us or have property that they wish to sell or rent.', 'hello-elementor-child' ); ?></p>
           <p><?php echo esc_html( sprintf( __( 'Showing %1$d–%2$d of %3$d', 'hello-elementor-child' ), $from, $to, $total ) ); ?></p>
         </div>
@@ -447,6 +452,7 @@ get_header();
           <div class="crm-type-toggle" role="group" aria-label="<?php echo esc_attr__( 'Lead or client listing', 'hello-elementor-child' ); ?>">
             <a class="btn <?php echo esc_attr( 'leads' === $clients_type_view ? 'btn--solid' : 'btn--ghost' ); ?> btn--blue" href="<?php echo esc_url( add_query_arg( 'type', 'leads', home_url( '/crm/clients/' ) ) ); ?>"><?php esc_html_e( 'Leads', 'hello-elementor-child' ); ?></a>
             <a class="btn <?php echo esc_attr( 'clients' === $clients_type_view ? 'btn--solid' : 'btn--ghost' ); ?> btn--blue" href="<?php echo esc_url( add_query_arg( 'type', 'clients', home_url( '/crm/clients/' ) ) ); ?>"><?php esc_html_e( 'Clients', 'hello-elementor-child' ); ?></a>
+            <a class="btn <?php echo esc_attr( $is_inactive ? 'btn--solid' : 'btn--ghost' ); ?> btn--blue" href="<?php echo esc_url( add_query_arg( 'type', 'inactive', home_url( '/crm/clients/' ) ) ); ?>"><?php esc_html_e( 'Inactive', 'hello-elementor-child' ); ?></a>
           </div>
           <a class="btn btn--solid btn--blue" href="<?php echo esc_url( $new_lead_url ); ?>"><?php echo esc_html__( 'Create lead', 'hello-elementor-child' ); ?></a>
           <div class="crm-view-toggle" data-crm-view-toggle data-storage-key="peracrm_clients_view">
@@ -474,10 +480,14 @@ get_header();
               <td colspan="6"><?php echo esc_html__( 'No leads found for this scope.', 'hello-elementor-child' ); ?></td>
             </tr>
 				<?php else : ?>
-					<?php foreach ( $items as $lead ) : ?>
-            <tr data-sort-row data-row-url="<?php echo esc_url( (string) $lead['crm_url'] ); ?>" data-name="<?php echo esc_attr( strtolower( (string) $lead['title'] ) ); ?>" data-status="<?php echo esc_attr( strtolower( (string) ( $stages[ $lead['stage'] ] ?? $lead['stage'] ) ) ); ?>" data-source="<?php echo esc_attr( strtolower( (string) ( $lead['source'] ?? '' ) ) ); ?>" data-assigned="<?php echo esc_attr( strtolower( (string) ( $lead['assigned_to'] ?? '' ) ) ); ?>" data-updated="<?php echo esc_attr( (string) ( $lead['updated_ts'] ?? 0 ) ); ?>" data-created="<?php echo esc_attr( (string) ( $lead['created_ts'] ?? 0 ) ); ?>">
+				<?php foreach ( $items as $lead ) : ?>
+					<?php
+					$engagement_key = sanitize_key( (string) ( $lead['engagement_state'] ?? '' ) );
+					$status_label   = isset( $status_labels[ $engagement_key ] ) ? $status_labels[ $engagement_key ] : (string) ( $stages[ $lead['stage'] ] ?? $lead['stage'] );
+					?>
+            <tr data-sort-row data-row-url="<?php echo esc_url( (string) $lead['crm_url'] ); ?>" data-name="<?php echo esc_attr( strtolower( (string) $lead['title'] ) ); ?>" data-status="<?php echo esc_attr( strtolower( (string) $status_label ) ); ?>" data-source="<?php echo esc_attr( strtolower( (string) ( $lead['source'] ?? '' ) ) ); ?>" data-assigned="<?php echo esc_attr( strtolower( (string) ( $lead['assigned_to'] ?? '' ) ) ); ?>" data-updated="<?php echo esc_attr( (string) ( $lead['updated_ts'] ?? 0 ) ); ?>" data-created="<?php echo esc_attr( (string) ( $lead['created_ts'] ?? 0 ) ); ?>">
               <td><a href="<?php echo esc_url( (string) $lead['crm_url'] ); ?>"><?php echo esc_html( (string) $lead['title'] ); ?></a></td>
-              <td><span class="pill pill--outline"><?php echo esc_html( (string) ( $stages[ $lead['stage'] ] ?? $lead['stage'] ) ); ?></span></td>
+              <td><span class="pill pill--outline"><?php echo esc_html( (string) $status_label ); ?></span></td>
               <td><?php echo esc_html( '' !== (string) ( $lead['source'] ?? '' ) ? (string) $lead['source'] : '—' ); ?></td>
               <td><?php echo esc_html( '' !== (string) ( $lead['assigned_to'] ?? '' ) ? (string) $lead['assigned_to'] : '—' ); ?></td>
               <td><?php echo esc_html( '' !== $lead['last_activity'] ? (string) $lead['last_activity'] : ( '' !== (string) ( $lead['updated'] ?? '' ) ? (string) $lead['updated'] : '—' ) ); ?></td>
@@ -490,10 +500,14 @@ get_header();
       </div>
 
       <div class="grid-3 crm-lead-cards" data-crm-view="cards">
-				<?php foreach ( $items as $lead ) : ?>
+			<?php foreach ( $items as $lead ) : ?>
+				<?php
+				$engagement_key = sanitize_key( (string) ( $lead['engagement_state'] ?? '' ) );
+				$status_label   = isset( $status_labels[ $engagement_key ] ) ? $status_labels[ $engagement_key ] : (string) ( $stages[ $lead['stage'] ] ?? $lead['stage'] );
+				?>
         <article class="card-shell">
           <h3><?php echo esc_html( (string) $lead['title'] ); ?></h3>
-          <p><span class="pill pill--outline"><?php echo esc_html( (string) ( $stages[ $lead['stage'] ] ?? $lead['stage'] ) ); ?></span></p>
+          <p><span class="pill pill--outline"><?php echo esc_html( (string) $status_label ); ?></span></p>
           <p><strong><?php echo esc_html__( 'Engagement:', 'hello-elementor-child' ); ?></strong> <?php echo esc_html( (string) $lead['engagement_state'] ); ?></p>
           <p><strong><?php echo esc_html__( 'Disposition:', 'hello-elementor-child' ); ?></strong> <?php echo esc_html( (string) $lead['disposition'] ); ?></p>
           <p><strong><?php echo esc_html__( 'Last activity:', 'hello-elementor-child' ); ?></strong> <?php echo esc_html( '' !== $lead['last_activity'] ? (string) $lead['last_activity'] : '—' ); ?></p>

@@ -1383,43 +1383,52 @@ function peracrm_handle_save_client_profile()
         error_log('[peracrm] peracrm_handle_save_client_profile start post_id=' . $client_id);
     }
 
+    $form_context = isset($_POST['form_context']) ? sanitize_key(wp_unslash($_POST['form_context'])) : 'profile';
+    if ($form_context !== 'profile') {
+        wp_die('Invalid profile form context.');
+    }
+
     $status = isset($_POST['peracrm_status']) ? sanitize_key(wp_unslash($_POST['peracrm_status'])) : '';
     if ($status === 'dormant' && !peracrm_admin_user_can_reassign()) {
         wp_die('You do not have permission to set this client dormant.');
     }
 
-    $client_type = isset($_POST['peracrm_client_type']) ? sanitize_key(wp_unslash($_POST['peracrm_client_type'])) : '';
-    $preferred_contact = isset($_POST['peracrm_preferred_contact']) ? sanitize_key(wp_unslash($_POST['peracrm_preferred_contact'])) : '';
+    // Profile saves should only update profile fields and never touch party status fields.
+    $data = [];
 
-    $budget_min = isset($_POST['peracrm_budget_min_usd']) ? wp_unslash($_POST['peracrm_budget_min_usd']) : '';
-    $budget_max = isset($_POST['peracrm_budget_max_usd']) ? wp_unslash($_POST['peracrm_budget_max_usd']) : '';
-    $bedrooms = isset($_POST['peracrm_bedrooms']) ? wp_unslash($_POST['peracrm_bedrooms']) : '';
+    if (isset($_POST['peracrm_status'])) {
+        $data['status'] = $status;
+    }
+    if (isset($_POST['peracrm_client_type'])) {
+        $data['client_type'] = sanitize_key(wp_unslash($_POST['peracrm_client_type']));
+    }
+    if (isset($_POST['peracrm_preferred_contact'])) {
+        $data['preferred_contact'] = sanitize_key(wp_unslash($_POST['peracrm_preferred_contact']));
+    }
+    if (isset($_POST['peracrm_budget_min_usd'])) {
+        $data['budget_min_usd'] = wp_unslash($_POST['peracrm_budget_min_usd']);
+    }
+    if (isset($_POST['peracrm_budget_max_usd'])) {
+        $data['budget_max_usd'] = wp_unslash($_POST['peracrm_budget_max_usd']);
+    }
+    if (isset($_POST['peracrm_bedrooms'])) {
+        $data['bedrooms'] = wp_unslash($_POST['peracrm_bedrooms']);
+    }
 
-    $phone = function_exists('peracrm_phone_canonical_from_source')
-        ? peracrm_phone_canonical_from_source($_POST, 'peracrm_phone_country', 'peracrm_phone_national', 'peracrm_phone')
-        : (isset($_POST['peracrm_phone']) ? preg_replace('/[^0-9+]/', '', sanitize_text_field(wp_unslash($_POST['peracrm_phone']))) : '');
+    if (isset($_POST['peracrm_phone']) || isset($_POST['peracrm_phone_country']) || isset($_POST['peracrm_phone_national'])) {
+        $data['phone'] = function_exists('peracrm_phone_canonical_from_source')
+            ? peracrm_phone_canonical_from_source($_POST, 'peracrm_phone_country', 'peracrm_phone_national', 'peracrm_phone')
+            : (isset($_POST['peracrm_phone']) ? preg_replace('/[^0-9+]/', '', sanitize_text_field(wp_unslash($_POST['peracrm_phone']))) : '');
+    }
 
-    $email_raw = isset($_POST['peracrm_email']) ? sanitize_text_field(wp_unslash($_POST['peracrm_email'])) : '';
-    $email = sanitize_email($email_raw);
-
-    $data = [
-        'status' => $status,
-        'client_type' => $client_type,
-        'preferred_contact' => $preferred_contact,
-        'budget_min_usd' => $budget_min,
-        'budget_max_usd' => $budget_max,
-        'bedrooms' => $bedrooms,
-        'phone' => $phone,
-        'email' => $email,
-    ];
+    if (isset($_POST['peracrm_email'])) {
+        $email_raw = sanitize_text_field(wp_unslash($_POST['peracrm_email']));
+        $data['email'] = sanitize_email($email_raw);
+    }
 
     $success = function_exists('peracrm_client_update_profile')
         ? peracrm_client_update_profile($client_id, $data)
         : false;
-
-    if ($success && function_exists('peracrm_map_legacy_status_to_party_fields') && function_exists('peracrm_party_upsert_status')) {
-        peracrm_party_upsert_status($client_id, peracrm_map_legacy_status_to_party_fields($status));
-    }
 
     $fallback_redirect = add_query_arg(
             [
@@ -2484,12 +2493,26 @@ function peracrm_handle_save_party_status()
         exit;
     }
 
-    $saved = peracrm_party_upsert_status($client_id, [
-        'lead_pipeline_stage' => $_POST['lead_pipeline_stage'] ?? '',
-        'engagement_state' => $_POST['engagement_state'] ?? '',
-        'disposition' => $_POST['disposition'] ?? '',
+    $form_context = isset($_POST['form_context']) ? sanitize_key(wp_unslash($_POST['form_context'])) : 'status';
+    if ($form_context !== 'status') {
+        wp_safe_redirect(add_query_arg(['peracrm_notice' => 'profile_failed'], $redirect));
+        exit;
+    }
+
+    $status_payload = [
         'lead_stage_updated_at' => peracrm_now_mysql(),
-    ]);
+    ];
+    if (isset($_POST['lead_pipeline_stage'])) {
+        $status_payload['lead_pipeline_stage'] = wp_unslash($_POST['lead_pipeline_stage']);
+    }
+    if (isset($_POST['engagement_state'])) {
+        $status_payload['engagement_state'] = wp_unslash($_POST['engagement_state']);
+    }
+    if (isset($_POST['disposition'])) {
+        $status_payload['disposition'] = wp_unslash($_POST['disposition']);
+    }
+
+    $saved = peracrm_party_upsert_status($client_id, $status_payload);
 
     $client_type_options = function_exists('peracrm_client_type_options') ? (array) peracrm_client_type_options() : [];
     $client_type = isset($_POST['peracrm_client_type']) ? sanitize_key(wp_unslash($_POST['peracrm_client_type'])) : '';
