@@ -46,9 +46,15 @@ $normalize_tax_slugs = static function ( $raw ) {
   $values = array();
 
   if ( is_array( $raw ) ) {
-    $values = wp_unslash( $raw );
+    foreach ( $raw as $item ) {
+      $decoded_item = rawurldecode( wp_unslash( (string) $item ) );
+      foreach ( explode( ',', $decoded_item ) as $piece ) {
+        $values[] = $piece;
+      }
+    }
   } elseif ( is_string( $raw ) ) {
-    $values = explode( ',', wp_unslash( $raw ) );
+    $decoded_raw = rawurldecode( wp_unslash( $raw ) );
+    $values      = explode( ',', $decoded_raw );
   }
 
   $values = array_map(
