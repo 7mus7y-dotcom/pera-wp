@@ -18,6 +18,48 @@ $archive_base_url = function_exists( 'pera_property_archive_base_url' )
   ? trailingslashit( pera_property_archive_base_url() )
   : trailingslashit( get_permalink() );
 
+// Canonicalize legacy array-style taxonomy filters (district[] / property_tags[] => CSV).
+$request_path = wp_parse_url( isset( $_SERVER['REQUEST_URI'] ) ? (string) $_SERVER['REQUEST_URI'] : '', PHP_URL_PATH );
+$is_property_archive_request = is_post_type_archive( 'property' )
+  || ( is_string( $request_path ) && trailingslashit( $request_path ) === trailingslashit( wp_parse_url( home_url( '/property/' ), PHP_URL_PATH ) ) );
+
+if ( $is_property_archive_request && ! empty( $_GET ) ) {
+  $taxonomy_keys = array( 'district', 'property_tags' );
+  $property_taxonomies = get_object_taxonomies( 'property', 'names' );
+  if ( is_array( $property_taxonomies ) ) {
+    $taxonomy_keys = array_values( array_unique( array_merge( $taxonomy_keys, $property_taxonomies ) ) );
+  }
+
+  $canonical_query = $_GET;
+  $needs_redirect = false;
+
+  foreach ( $taxonomy_keys as $taxonomy_key ) {
+    if ( isset( $_GET[ $taxonomy_key ] ) && is_array( $_GET[ $taxonomy_key ] ) ) {
+      $normalized_values = array();
+
+      foreach ( $_GET[ $taxonomy_key ] as $raw_value ) {
+        $sanitized_value = sanitize_title( wp_unslash( (string) $raw_value ) );
+        if ( $sanitized_value !== '' && ! in_array( $sanitized_value, $normalized_values, true ) ) {
+          $normalized_values[] = $sanitized_value;
+        }
+      }
+
+      if ( ! empty( $normalized_values ) ) {
+        $canonical_query[ $taxonomy_key ] = implode( ',', $normalized_values );
+      } else {
+        unset( $canonical_query[ $taxonomy_key ] );
+      }
+
+      $needs_redirect = true;
+    }
+  }
+
+  if ( $needs_redirect ) {
+    wp_safe_redirect( add_query_arg( $canonical_query, $archive_base_url ), 301 );
+    exit;
+  }
+}
+
 // ------------------------------------------------------------
 // 1) PAGED RESOLUTION (robust for /page/N/ and ?paged=N)
 // ------------------------------------------------------------
