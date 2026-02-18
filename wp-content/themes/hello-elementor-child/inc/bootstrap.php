@@ -57,6 +57,6 @@ if ( $is_crm_route || $is_crm_ajax ) {
 
 require_once get_stylesheet_directory() . '/inc/disable-hello-parent-loads.php';
 
-if ( $is_portfolio_route ) {
+if ( $is_portfolio_route || $is_crm_route || $is_crm_ajax ) {
 	require_once get_stylesheet_directory() . '/inc/portfolio-token.php';
 }

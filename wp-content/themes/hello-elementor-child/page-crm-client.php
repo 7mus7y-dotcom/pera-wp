@@ -32,6 +32,36 @@ $property_groups = is_array( $data['property_groups'] ?? null ) ? $data['propert
 $timeline_items  = is_array( $data['timeline'] ?? null ) ? $data['timeline'] : array();
 $timeline_filter = sanitize_key( (string) ( $data['timeline_filter'] ?? 'all' ) );
 
+$portfolio_link_state = function_exists( 'pera_crm_client_view_with_target_blog' ) ? (array) pera_crm_client_view_with_target_blog(
+	static function () use ( $client_id ): array {
+		$url        = esc_url_raw( (string) get_post_meta( $client_id, '_peracrm_portfolio_url', true ) );
+		$token      = sanitize_text_field( (string) get_post_meta( $client_id, '_peracrm_portfolio_token', true ) );
+		$post_id    = (int) get_post_meta( $client_id, '_peracrm_portfolio_post_id', true );
+		$expires_at = (int) get_post_meta( $client_id, '_peracrm_portfolio_expires_at', true );
+		$revoked    = false;
+
+		if ( $post_id > 0 ) {
+			$revoked = (int) get_post_meta( $post_id, '_portfolio_revoked', true ) === 1;
+		}
+
+		return array(
+			'url'        => $url,
+			'token'      => $token,
+			'post_id'    => $post_id,
+			'expires_at' => $expires_at,
+			'revoked'    => $revoked,
+		);
+	}
+) : array();
+
+$portfolio_saved_url         = (string) ( $portfolio_link_state['url'] ?? '' );
+$portfolio_saved_expires_at  = (int) ( $portfolio_link_state['expires_at'] ?? 0 );
+$portfolio_saved_is_revoked  = ! empty( $portfolio_link_state['revoked'] );
+$portfolio_saved_is_active   = '' !== $portfolio_saved_url && $portfolio_saved_expires_at > time() && ! $portfolio_saved_is_revoked;
+$portfolio_saved_expires_txt = $portfolio_saved_expires_at > 0
+	? wp_date( get_option( 'date_format' ) . ' ' . get_option( 'time_format' ), $portfolio_saved_expires_at )
+	: '';
+
 $open_reminders    = (int) ( $data['open_reminders'] ?? 0 );
 $overdue_reminders = (int) ( $data['overdue_reminders'] ?? 0 );
 $property_total    = (int) ( $data['property_total'] ?? 0 );
@@ -575,11 +605,12 @@ get_header();
                 <?php endif; ?>
               </div>
 					<?php if ( 'portfolio' === (string) $relation && ! empty( $portfolio_items ) ) : ?>
-              <div class="crm-inline-form" data-crm-portfolio-output hidden>
+              <div class="crm-inline-form" data-crm-portfolio-output <?php echo $portfolio_saved_is_active ? '' : 'hidden'; ?>>
                 <label><?php esc_html_e( 'Portfolio link:', 'hello-elementor-child' ); ?>
-                  <input type="text" readonly data-crm-portfolio-url value="" />
+                  <input type="text" readonly data-crm-portfolio-url value="<?php echo esc_attr( $portfolio_saved_is_active ? $portfolio_saved_url : '' ); ?>" />
                 </label>
                 <button type="button" class="btn btn--ghost btn--blue" data-crm-portfolio-copy><?php esc_html_e( 'Copy', 'hello-elementor-child' ); ?></button>
+                <small class="text-sm" data-crm-portfolio-expires><?php echo esc_html( $portfolio_saved_is_active && '' !== $portfolio_saved_expires_txt ? sprintf( __( 'Expires: %s', 'hello-elementor-child' ), $portfolio_saved_expires_txt ) : '' ); ?></small>
               </div>
 					<?php endif; ?>
 					<?php if ( empty( $items ) ) : ?>
