@@ -12,9 +12,7 @@ if ( ! function_exists( 'pera_portfolio_token_register_post_type' ) ) {
 	 * Register the portfolio post type used to store token portfolios.
 	 */
 	function pera_portfolio_token_register_post_type(): void {
-		$show_ui = function_exists( 'pera_is_frontend_admin_equivalent' )
-			? pera_is_frontend_admin_equivalent()
-			: current_user_can( 'manage_options' );
+		$show_ui = current_user_can( 'manage_options' );
 
 		register_post_type(
 			'portfolio',
@@ -37,6 +35,23 @@ if ( ! function_exists( 'pera_portfolio_token_register_post_type' ) ) {
 	}
 }
 add_action( 'init', 'pera_portfolio_token_register_post_type' );
+
+if ( ! function_exists( 'pera_portfolio_user_can_manage' ) ) {
+	/**
+	 * Check whether current user can manage portfolio creation for CRM flows.
+	 */
+	function pera_portfolio_user_can_manage(): bool {
+		if ( current_user_can( 'manage_options' ) || current_user_can( 'edit_crm_clients' ) ) {
+			return true;
+		}
+
+		if ( function_exists( 'pera_is_frontend_admin_equivalent' ) && pera_is_frontend_admin_equivalent() ) {
+			return true;
+		}
+
+		return false;
+	}
+}
 
 if ( ! function_exists( 'pera_portfolio_token_add_rewrite_rule' ) ) {
 	/**
@@ -162,7 +177,7 @@ if ( ! function_exists( 'pera_portfolio_token_get_request_context' ) ) {
 	/**
 	 * Resolve the current portfolio token request.
 	 *
-	 * @return array{is_request:bool,is_valid:bool,status:int,portfolio_id:int,property_ids:array<int>,client_name:string}
+	 * @return array{is_request:bool,is_valid:bool,status:int,portfolio_id:int,property_ids:array<int>,client_name:string,expires_at:int}
 	 */
 	function pera_portfolio_token_get_request_context(): array {
 		static $context = null;
@@ -178,6 +193,7 @@ if ( ! function_exists( 'pera_portfolio_token_get_request_context' ) ) {
 			'portfolio_id' => 0,
 			'property_ids' => array(),
 			'client_name'  => '',
+			'expires_at'   => 0,
 		);
 
 		$token = pera_portfolio_token_get_request_token();
@@ -232,6 +248,7 @@ if ( ! function_exists( 'pera_portfolio_token_get_request_context' ) ) {
 		$context['portfolio_id'] = $portfolio_id;
 		$context['property_ids'] = $property_ids;
 		$context['client_name']  = $client_name;
+		$context['expires_at']   = max( 0, $expires_at );
 
 		return $context;
 	}

@@ -16,6 +16,7 @@ $context = function_exists( 'pera_portfolio_token_get_request_context' )
 		'portfolio_id' => 0,
 		'property_ids' => array(),
 		'client_name'  => '',
+		'expires_at'   => 0,
 	);
 
 $status_code = (int) ( $context['status'] ?? 404 );
@@ -47,6 +48,7 @@ get_header();
 		$property_ids = isset( $context['property_ids'] ) && is_array( $context['property_ids'] )
 			? array_values( array_filter( array_map( 'absint', $context['property_ids'] ) ) )
 			: array();
+		$expires_at = isset( $context['expires_at'] ) ? (int) $context['expires_at'] : 0;
 
 		$properties_query = new WP_Query(
 			array(
@@ -62,23 +64,32 @@ get_header();
 		);
 		?>
 
-		<p class="results-count">
-			<?php echo esc_html( sprintf( '%d properties', (int) $properties_query->post_count ) ); ?>
-		</p>
+		<section class="section section-soft">
+			<div class="container">
+				<div class="pb-md">
+					<p class="text-light">
+						<?php echo esc_html( sprintf( '%d properties', (int) $properties_query->post_count ) ); ?>
+						<?php if ( $expires_at > 0 ) : ?>
+							<span> · <?php echo esc_html( sprintf( 'Valid until %s', wp_date( get_option( 'date_format' ), $expires_at ) ) ); ?></span>
+						<?php endif; ?>
+					</p>
+				</div>
 
-		<div class="cards-grid">
-			<?php if ( $properties_query->have_posts() ) : ?>
-				<?php while ( $properties_query->have_posts() ) : $properties_query->the_post(); ?>
-					<?php
-					if ( function_exists( 'pera_render_property_card' ) ) {
-						pera_render_property_card( array( 'variant' => 'archive' ) );
-					}
-					?>
-				<?php endwhile; ?>
-			<?php else : ?>
-				<p class="no-results">No properties available in this portfolio right now.</p>
-			<?php endif; ?>
-		</div>
+				<div id="property-grid" class="cards-grid">
+					<?php if ( $properties_query->have_posts() ) : ?>
+						<?php while ( $properties_query->have_posts() ) : $properties_query->the_post(); ?>
+							<?php
+							if ( function_exists( 'pera_render_property_card' ) ) {
+								pera_render_property_card( array( 'variant' => 'archive' ) );
+							}
+							?>
+						<?php endwhile; ?>
+					<?php else : ?>
+						<p class="no-results">No properties available in this portfolio right now.</p>
+					<?php endif; ?>
+				</div>
+			</div>
+		</section>
 
 		<?php wp_reset_postdata(); ?>
 	<?php else : ?>
