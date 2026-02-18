@@ -450,7 +450,8 @@ if ( ! $is_filtered_search && ( $qo instanceof WP_Term ) && ! is_wp_error( $qo )
                         >
                         <input type="hidden" name="sort" id="sort-input" value="<?php echo esc_attr( $sort ); ?>">
                         <?php if ( ! empty( $taxonomy_context ) ) : ?>
-                          <input type="hidden" name="archive_taxonomy" value="<?php echo esc_attr( $taxonomy_context['taxonomy'] ); ?>">
+                          <?php $archive_tax = ( isset( $taxonomy_context['taxonomy'] ) && is_string( $taxonomy_context['taxonomy'] ) ) ? $taxonomy_context['taxonomy'] : ''; ?>
+                          <input type="hidden" name="archive_taxonomy" value="<?php echo esc_attr( $archive_tax ); ?>">
                           <input type="hidden" name="archive_term_id" value="<?php echo esc_attr( (int) $taxonomy_context['term_id'] ); ?>">
                         <?php endif; ?>
 

@@ -37,6 +37,11 @@ if ( ! function_exists( 'pera_property_archive_build_args_from_context' ) ) {
 		$selected_beds    = isset($selected_beds) ? (string) $selected_beds : '';
 		$current_keyword  = isset($current_keyword) ? (string) $current_keyword : '';
 		$taxonomy_context = isset( $taxonomy_context ) && is_array( $taxonomy_context ) ? $taxonomy_context : array();
+		if ( isset( $taxonomy_context['taxonomy'] ) && is_array( $taxonomy_context['taxonomy'] ) ) {
+			$taxonomy_context['taxonomy'] = (string) reset( $taxonomy_context['taxonomy'] );
+		}
+		$taxonomy_context['taxonomy'] = isset( $taxonomy_context['taxonomy'] ) ? (string) $taxonomy_context['taxonomy'] : '';
+		$taxonomy_context['term_id']  = isset( $taxonomy_context['term_id'] ) ? (int) $taxonomy_context['term_id'] : 0;
 
 		$has_price_qs = isset($has_price_qs) ? (bool) $has_price_qs : false;
 		$qs_min       = isset($qs_min) ? (int) $qs_min : 0;
