@@ -219,13 +219,22 @@ function peracrm_client_update_profile($client_id, $data)
         $bedrooms = peracrm_client_profile_sanitize_integer_field($data['bedrooms'], 0);
     }
 
-    $fields = [
-        '_peracrm_status' => $status,
-        '_peracrm_client_type' => $client_type,
-        '_peracrm_preferred_contact' => $preferred_contact,
-        '_peracrm_phone' => $phone,
-        '_peracrm_email' => $email,
-    ];
+    $fields = [];
+    if (array_key_exists('status', $data)) {
+        $fields['_peracrm_status'] = $status;
+    }
+    if (array_key_exists('client_type', $data)) {
+        $fields['_peracrm_client_type'] = $client_type;
+    }
+    if (array_key_exists('preferred_contact', $data)) {
+        $fields['_peracrm_preferred_contact'] = $preferred_contact;
+    }
+    if (array_key_exists('phone', $data) || array_key_exists('phone_country', $data) || array_key_exists('phone_national', $data)) {
+        $fields['_peracrm_phone'] = $phone;
+    }
+    if (array_key_exists('email', $data)) {
+        $fields['_peracrm_email'] = $email;
+    }
 
     foreach ($fields as $meta_key => $value) {
         if ($value === '' || null === $value) {
@@ -235,22 +244,28 @@ function peracrm_client_update_profile($client_id, $data)
         }
     }
 
-    if (null !== $min) {
-        update_post_meta($client_id, '_peracrm_budget_min_usd', (int) $min);
-    } else {
-        delete_post_meta($client_id, '_peracrm_budget_min_usd');
+    if (array_key_exists('budget_min_usd', $data)) {
+        if (null !== $min) {
+            update_post_meta($client_id, '_peracrm_budget_min_usd', (int) $min);
+        } else {
+            delete_post_meta($client_id, '_peracrm_budget_min_usd');
+        }
     }
 
-    if (null !== $max) {
-        update_post_meta($client_id, '_peracrm_budget_max_usd', (int) $max);
-    } else {
-        delete_post_meta($client_id, '_peracrm_budget_max_usd');
+    if (array_key_exists('budget_max_usd', $data)) {
+        if (null !== $max) {
+            update_post_meta($client_id, '_peracrm_budget_max_usd', (int) $max);
+        } else {
+            delete_post_meta($client_id, '_peracrm_budget_max_usd');
+        }
     }
 
-    if (null !== $bedrooms) {
-        update_post_meta($client_id, '_peracrm_bedrooms', (int) $bedrooms);
-    } else {
-        delete_post_meta($client_id, '_peracrm_bedrooms');
+    if (array_key_exists('bedrooms', $data)) {
+        if (null !== $bedrooms) {
+            update_post_meta($client_id, '_peracrm_bedrooms', (int) $bedrooms);
+        } else {
+            delete_post_meta($client_id, '_peracrm_bedrooms');
+        }
     }
 
     return true;

@@ -986,12 +986,13 @@ if ( ! function_exists( 'pera_crm_get_leads_view_data' ) ) {
 	 *
 	 * @return array<string,mixed>
 	 */
-	function pera_crm_get_leads_view_data( int $page = 1, int $per_page = 20, string $derived_type = 'lead' ): array {
+	function pera_crm_get_leads_view_data( int $page = 1, int $per_page = 20, string $derived_type = 'lead', string $list_view = 'leads' ): array {
 		$current_user_id = get_current_user_id();
 		$page            = max( 1, absint( $page ) );
 		$per_page        = max( 1, absint( $per_page ) );
 		$allowed_ids     = pera_crm_get_allowed_client_ids_for_user( $current_user_id );
 		$derived_type    = in_array( $derived_type, array( 'lead', 'client' ), true ) ? $derived_type : 'lead';
+		$list_view       = in_array( $list_view, array( 'leads', 'clients', 'inactive' ), true ) ? $list_view : 'leads';
 
 		$query_args = array(
 			'post_type'      => 'crm_client',
@@ -1026,12 +1027,30 @@ if ( ! function_exists( 'pera_crm_get_leads_view_data' ) ) {
 			? array_map( 'intval', peracrm_party_batch_get_closed_won_client_ids( $post_ids ) )
 			: array();
 		$client_lookup = array_flip( $client_ids );
-		$filtered_ids  = array_values(
+		$base_ids = array_values(
 			array_filter(
 				$post_ids,
-				static function ( int $lead_id ) use ( $derived_type, $client_lookup ): bool {
+				static function ( int $lead_id ) use ( $derived_type, $client_lookup, $list_view ): bool {
+					if ( 'inactive' === $list_view ) {
+						return true;
+					}
+
 					$is_client = isset( $client_lookup[ $lead_id ] );
 					return 'client' === $derived_type ? $is_client : ! $is_client;
+				}
+			)
+		);
+
+		$party_map_full = function_exists( 'peracrm_party_get_status_by_ids' ) ? peracrm_party_get_status_by_ids( $base_ids ) : array();
+		$filtered_ids   = array_values(
+			array_filter(
+				$base_ids,
+				static function ( int $lead_id ) use ( $list_view, $party_map_full ): bool {
+					$party      = isset( $party_map_full[ $lead_id ] ) && is_array( $party_map_full[ $lead_id ] ) ? $party_map_full[ $lead_id ] : array();
+					$engagement = sanitize_key( (string) ( $party['engagement_state'] ?? '' ) );
+					$inactive   = in_array( $engagement, array( 'closed', 'dormant' ), true );
+
+					return 'inactive' === $list_view ? $inactive : ! $inactive;
 				}
 			)
 		);
@@ -1040,7 +1059,12 @@ if ( ! function_exists( 'pera_crm_get_leads_view_data' ) ) {
 		$total_pages = max( 1, (int) ceil( $total / $per_page ) );
 		$offset_ids = array_slice( $filtered_ids, ( $page - 1 ) * $per_page, $per_page );
 
-		$party_map = function_exists( 'peracrm_party_get_status_by_ids' ) ? peracrm_party_get_status_by_ids( $offset_ids ) : array();
+		$party_map = array();
+		foreach ( $offset_ids as $offset_id ) {
+			if ( isset( $party_map_full[ $offset_id ] ) ) {
+				$party_map[ $offset_id ] = $party_map_full[ $offset_id ];
+			}
+		}
 		if ( function_exists( 'peracrm_client_health_prime_cache' ) ) {
 			peracrm_client_health_prime_cache( $offset_ids );
 		}

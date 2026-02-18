@@ -255,6 +255,7 @@ get_header();
               <input type="hidden" name="action" value="peracrm_save_client_profile" />
               <input type="hidden" name="peracrm_client_id" value="<?php echo esc_attr( (string) $client_id ); ?>" />
               <input type="hidden" name="peracrm_redirect" value="<?php echo esc_url( $frontend_url ); ?>" />
+              <input type="hidden" name="form_context" value="profile" />
               <label><?php esc_html_e( 'Status', 'hello-elementor-child' ); ?>
                 <select name="peracrm_status" id="peracrm-status" class="widefat">
                   <?php foreach ( $status_options as $status_key => $status_text ) : ?>
@@ -306,6 +307,7 @@ get_header();
               <input type="hidden" name="action" value="peracrm_save_party_status" />
               <input type="hidden" name="peracrm_client_id" value="<?php echo esc_attr( (string) $client_id ); ?>" />
               <input type="hidden" name="peracrm_redirect" value="<?php echo esc_url( $frontend_url ); ?>" />
+              <input type="hidden" name="form_context" value="status" />
               <div class="crm-status-grid">
                 <label>
 						  <?php esc_html_e( 'Lead pipeline stage', 'hello-elementor-child' ); ?>
@@ -719,6 +721,7 @@ get_header();
                   <input type="hidden" name="action" value="peracrm_save_client_profile" />
                   <input type="hidden" name="peracrm_client_id" value="<?php echo esc_attr( (string) $client_id ); ?>" />
                   <input type="hidden" name="peracrm_redirect" value="<?php echo esc_url( $frontend_url ); ?>" />
+                  <input type="hidden" name="form_context" value="profile" />
                   <input type="hidden" name="peracrm_status" value="dormant" />
                   <input type="hidden" name="peracrm_client_type" value="<?php echo esc_attr( (string) ( $profile['client_type'] ?? '' ) ); ?>" />
                   <input type="hidden" name="peracrm_preferred_contact" value="<?php echo esc_attr( (string) ( $profile['preferred_contact'] ?? '' ) ); ?>" />
