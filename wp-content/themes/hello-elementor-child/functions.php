@@ -37,6 +37,24 @@ require_once get_stylesheet_directory() . '/inc/crm-router.php';
 require_once get_stylesheet_directory() . '/inc/crm-client-view.php';
 require_once get_stylesheet_directory() . '/inc/disable-hello-parent-loads.php';
 
+/**
+ * Hotfix: prevent taxonomy query vars from arriving as arrays in WP core.
+ *
+ * Multi-select filters may submit district[] / property_tags[] in the URL.
+ * Those names match taxonomy query vars, and WP core expects scalar strings
+ * while parsing the main query. Unsetting array values here prevents fatals
+ * without affecting template/AJAX filtering that reads from $_GET.
+ */
+add_filter( 'request', function ( $vars ) {
+  foreach ( array( 'district', 'property_tags' ) as $taxonomy_query_var ) {
+    if ( isset( $vars[ $taxonomy_query_var ] ) && is_array( $vars[ $taxonomy_query_var ] ) ) {
+      unset( $vars[ $taxonomy_query_var ] );
+    }
+  }
+
+  return $vars;
+}, 1 );
+
 
 
 /**
