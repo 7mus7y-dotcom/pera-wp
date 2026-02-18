@@ -30,7 +30,9 @@ if ( ! defined( 'ABSPATH' ) ) {
 
 if ( ! function_exists( 'pera_v2_filter_array_of_slugs' ) ) {
   function pera_v2_filter_array_of_slugs( $raw ): array {
-    if ( ! is_array( $raw ) ) $raw = array();
+    if ( ! is_array( $raw ) ) {
+      $raw = ( $raw === null || $raw === '' ) ? array() : array( $raw );
+    }
     $raw = array_map( 'wp_unslash', $raw );
     $raw = array_map( 'sanitize_title', $raw );
     $raw = array_values( array_filter( $raw ) );
@@ -181,7 +183,11 @@ if ( ! function_exists( 'pera_ajax_filter_properties_v2' ) ) {
         // Property type: single slug (or empty)
         $property_type_slug = '';
         if ( isset( $_POST['property_type'] ) ) {
-          $property_type_slug = sanitize_title( wp_unslash( (string) $_POST['property_type'] ) );
+          $raw_property_type = wp_unslash( $_POST['property_type'] );
+          if ( is_array( $raw_property_type ) ) {
+            $raw_property_type = reset( $raw_property_type );
+          }
+          $property_type_slug = sanitize_title( (string) $raw_property_type );
         }
         
         // Sort: use your v1 keys for consistency with SSR + UI
@@ -302,136 +308,36 @@ if ( ! function_exists( 'pera_ajax_filter_properties_v2' ) ) {
       // -----------------------------
       // 2) Base query args (paged)
       // -----------------------------
-      $args = array(
-        'post_type'      => 'property',
-        'post_status'    => 'publish',
-        'posts_per_page' => 12,
-        'paged'          => $paged,
+      $ctx = array(
+        'paged'                    => $paged,
+        'current_district'         => $district_slugs,
+        'current_tag'              => $tag_slugs,
+        'current_type'             => $property_type_slug,
+        'selected_beds'            => $v2_beds > 0 ? (string) $v2_beds : '',
+        'current_keyword'          => $keyword,
+        'current_keyword_is_post_id' => (bool) $keyword_is_post_id,
+        'current_keyword_post_id'  => (int) $keyword_post_id,
+        'taxonomy_context'         => $archive_context,
+        'has_price_qs'             => ( $min_price > 0 || $max_price > 0 ),
+        'qs_min'                   => $min_price > 0 ? (int) $min_price : 0,
+        'qs_max'                   => $max_price > 0 ? (int) $max_price : 0,
+        'sort'                     => $sort,
       );
 
-     
-
-      // tax_query
-      $tax_query = array( 'relation' => 'AND' );
-
-      if ( ! empty( $district_slugs ) ) {
-        $tax_query[] = array(
-          'taxonomy' => 'district',
-          'field'    => 'slug',
-          'terms'    => $district_slugs,
-        );
-      }
-
-      if ( ! empty( $archive_context ) ) {
-        $tax_query[] = array(
-          'taxonomy' => $archive_context['taxonomy'],
-          'field'    => 'term_id',
-          'terms'    => array( (int) $archive_context['term_id'] ),
-        );
-      }
-
-      if ( ! empty( $tag_slugs ) ) {
-        $tax_query[] = array(
-          'taxonomy' => 'property_tags',
-          'field'    => 'slug',
-          'terms'    => $tag_slugs,
-        );
-      }
-
-      if ( $property_type_slug !== '' ) {
-        $tax_query[] = array(
-          'taxonomy' => 'property_type',
-          'field'    => 'slug',
-          'terms'    => array( $property_type_slug ),
-        );
-      }
-
-      if ( count( $tax_query ) > 1 ) {
-        $args['tax_query'] = $tax_query;
-      }
-
-      // meta_query (V2 bedrooms + price range)
-      $meta_query = array();
-
-      // Bedrooms (fast LIKE on v2_index_flat)
-      if ( $v2_beds > 0 ) {
-        $meta_query[] = array(
-          'key'     => 'v2_index_flat',
-          'value'   => '|' . $v2_beds . '|',
-          'compare' => 'LIKE',
-        );
-      }
-      
-
-      // -----------------------------
-        // SORTING (V2)
-        // -----------------------------
-        switch ( $sort ) {
-          case 'price_asc':
-            $args['meta_key'] = 'v2_price_usd_min';
-            $args['orderby']  = 'meta_value_num';
-            $args['order']    = 'ASC';
-            break;
-        
-          case 'price_desc':
-            $args['meta_key'] = 'v2_price_usd_min';
-            $args['orderby']  = 'meta_value_num';
-            $args['order']    = 'DESC';
-            break;
-        
-          case 'date_asc':
-            $args['orderby'] = 'date';
-            $args['order']   = 'ASC';
-            break;
-        
-          case 'date_desc':
-          default:
-            $args['orderby'] = 'date';
-            $args['order']   = 'DESC';
-            break;
+      $overrides = array();
+      if ( isset( $_POST['portfolio_post__in'] ) ) {
+        $raw_post_in = wp_unslash( $_POST['portfolio_post__in'] );
+        if ( ! is_array( $raw_post_in ) ) {
+          $raw_post_in = array( $raw_post_in );
         }
-
-
-        // Price filter: overlap logic using v2_price_usd_min/max
-        // A property matches if:
-        // - v2_price_usd_max >= min (when min provided)
-        // - v2_price_usd_min <= max (when max provided)
-        if ( $min_price > 0 || $max_price > 0 ) {
-        
-          if ( $min_price > 0 ) {
-            $meta_query[] = array(
-              'key'     => 'v2_price_usd_max',
-              'value'   => (int) $min_price,
-              'type'    => 'NUMERIC',
-              'compare' => '>=',
-            );
-          }
-        
-          if ( $max_price > 0 ) {
-            $meta_query[] = array(
-              'key'     => 'v2_price_usd_min',
-              'value'   => (int) $max_price,
-              'type'    => 'NUMERIC',
-              'compare' => '<=',
-            );
-          }
+        $raw_post_in = array_map( 'absint', array_map( 'strval', $raw_post_in ) );
+        $raw_post_in = array_values( array_unique( array_filter( $raw_post_in ) ) );
+        if ( ! empty( $raw_post_in ) ) {
+          $overrides['post__in'] = $raw_post_in;
         }
+      }
 
-
-        if ( ! empty( $meta_query ) ) {
-            $args['meta_query'] = array_merge( array( 'relation' => 'AND' ), $meta_query );
-        }
-      
-        if ( $keyword !== '' ) {
-          if ( $keyword_is_post_id ) {
-            $args['p'] = $keyword_post_id;
-          } else {
-            $args['s'] = $keyword;
-            if ( function_exists( 'pera_is_frontend_admin_equivalent' ) && pera_is_frontend_admin_equivalent() ) {
-              $args['pera_kw_project'] = 1;
-            }
-          }
-        }
+      $args = pera_property_archive_build_args_from_context( $ctx, $overrides );
 
 
       // -----------------------------
@@ -484,6 +390,10 @@ if ( ! function_exists( 'pera_ajax_filter_properties_v2' ) ) {
           return (int) $a <=> (int) $b;
         } );
       }
+
+      $district_counts      = pera_v2_add_term_counts_for_posts( $post_ids, 'district' );
+      $tag_counts           = pera_v2_add_term_counts_for_posts( $post_ids, 'property_tags' );
+      $property_type_counts = pera_v2_add_term_counts_for_posts( $post_ids, 'property_type' );
 
       // -----------------------------
       // 4) Grid query + render cards
