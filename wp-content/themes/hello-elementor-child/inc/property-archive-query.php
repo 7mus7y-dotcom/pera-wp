@@ -38,9 +38,12 @@ if ( ! function_exists( 'pera_property_archive_build_args_from_context' ) ) {
 		$current_keyword  = isset($current_keyword) ? (string) $current_keyword : '';
 		$taxonomy_context = isset( $taxonomy_context ) && is_array( $taxonomy_context ) ? $taxonomy_context : array();
 		if ( isset( $taxonomy_context['taxonomy'] ) && is_array( $taxonomy_context['taxonomy'] ) ) {
-			$taxonomy_context['taxonomy'] = (string) reset( $taxonomy_context['taxonomy'] );
+			$taxonomy_context['taxonomy'] = reset( $taxonomy_context['taxonomy'] );
 		}
-		$taxonomy_context['taxonomy'] = isset( $taxonomy_context['taxonomy'] ) ? (string) $taxonomy_context['taxonomy'] : '';
+		if ( ! isset( $taxonomy_context['taxonomy'] ) || is_array( $taxonomy_context['taxonomy'] ) ) {
+			$taxonomy_context['taxonomy'] = '';
+		}
+		$taxonomy_context['taxonomy'] = (string) $taxonomy_context['taxonomy'];
 		$taxonomy_context['term_id']  = isset( $taxonomy_context['term_id'] ) ? (int) $taxonomy_context['term_id'] : 0;
 
 		$has_price_qs = isset($has_price_qs) ? (bool) $has_price_qs : false;
@@ -65,7 +68,7 @@ if ( ! function_exists( 'pera_property_archive_build_args_from_context' ) ) {
 		$tax_query = array();
 
 		// Taxonomy context (property term archives)
-		if ( ! empty( $taxonomy_context['taxonomy'] ) && ! empty( $taxonomy_context['term_id'] ) ) {
+		if ( $taxonomy_context['taxonomy'] !== '' && $taxonomy_context['term_id'] > 0 ) {
 			$tax_query[] = array(
 				'taxonomy' => $taxonomy_context['taxonomy'],
 				'field'    => 'term_id',
