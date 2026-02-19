@@ -226,6 +226,69 @@ if ( $is_filtered_search ) {
 
 $qo = get_queried_object();
 
+
+$related_taxonomy_groups = array();
+$related_taxonomy_total  = 0;
+
+if ( ( is_tax( 'district' ) || ( $qo instanceof WP_Term && $qo->taxonomy === 'district' ) ) && ( $qo instanceof WP_Term ) ) {
+  $normalize_related_terms = static function ( $raw, string $taxonomy ): array {
+    if ( ! is_array( $raw ) ) {
+      $raw = empty( $raw ) ? array() : array( $raw );
+    }
+
+    $terms = array();
+
+    foreach ( $raw as $item ) {
+      $term = null;
+
+      if ( $item instanceof WP_Term ) {
+        $term = $item;
+      } elseif ( is_numeric( $item ) ) {
+        $fetched = get_term( (int) $item, $taxonomy );
+        if ( $fetched instanceof WP_Term && ! is_wp_error( $fetched ) ) {
+          $term = $fetched;
+        }
+      }
+
+      if ( ! ( $term instanceof WP_Term ) || is_wp_error( $term ) || $term->taxonomy !== $taxonomy ) {
+        continue;
+      }
+
+      $terms[ $term->term_id ] = $term;
+    }
+
+    return array_values( $terms );
+  };
+
+  $acf_object_ref = $qo->taxonomy . '_' . $qo->term_id;
+
+  $related_districts_raw = function_exists( 'get_field' ) ? get_field( 'related_districts', $acf_object_ref ) : array();
+  $related_regions_raw   = function_exists( 'get_field' ) ? get_field( 'related_regions', $acf_object_ref ) : array();
+  $related_tags_raw      = function_exists( 'get_field' ) ? get_field( 'related_tags', $acf_object_ref ) : array();
+
+  $related_taxonomy_groups = array(
+    'district' => array(
+      'heading' => 'Related districts',
+      'label'   => 'district',
+      'terms'   => $normalize_related_terms( $related_districts_raw, 'district' ),
+    ),
+    'region' => array(
+      'heading' => 'Related regions',
+      'label'   => 'region',
+      'terms'   => $normalize_related_terms( $related_regions_raw, 'region' ),
+    ),
+    'property_tags' => array(
+      'heading' => 'Related tags',
+      'label'   => 'tag',
+      'terms'   => $normalize_related_terms( $related_tags_raw, 'property_tags' ),
+    ),
+  );
+
+  foreach ( $related_taxonomy_groups as $group ) {
+    $related_taxonomy_total += count( $group['terms'] );
+  }
+}
+
 if ( ! $is_filtered_search && ( $qo instanceof WP_Term ) && ! is_wp_error( $qo ) ) {
 
   if ( $qo->taxonomy === 'district' && function_exists( 'pera_get_district_archive_heading' ) ) {
@@ -752,6 +815,34 @@ if ( ! $is_filtered_search && ( $qo instanceof WP_Term ) && ! is_wp_error( $qo )
 
 
 
+
+
+<?php if ( $related_taxonomy_total > 0 ) : ?>
+  <section class="related-taxonomy section">
+    <div class="section-header">
+      <h2>Related areas</h2>
+    </div>
+
+    <?php foreach ( $related_taxonomy_groups as $taxonomy_group ) : ?>
+      <?php if ( empty( $taxonomy_group['terms'] ) ) continue; ?>
+      <div class="related-taxonomy__group pb-md">
+        <h3 class="filter-group__label"><?php echo esc_html( $taxonomy_group['heading'] ); ?></h3>
+        <div class="cards-grid">
+          <?php foreach ( $taxonomy_group['terms'] as $related_term ) : ?>
+            <?php
+              set_query_var( 'pera_related_taxonomy_card_args', array(
+                'term'              => $related_term,
+                'context_tax_label' => $taxonomy_group['label'],
+              ) );
+              get_template_part( 'parts/related-taxonomy-card' );
+            ?>
+          <?php endforeach; ?>
+          <?php set_query_var( 'pera_related_taxonomy_card_args', null ); ?>
+        </div>
+      </div>
+    <?php endforeach; ?>
+  </section>
+<?php endif; ?>
 
 <!-- Results Grid (SSR baseline; AJAX will replace/append) -->
 <div id="property-grid" class="cards-grid">
