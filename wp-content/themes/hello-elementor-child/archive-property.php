@@ -1334,7 +1334,7 @@ $pagination_html = function_exists( 'pera_render_property_pagination' )
       if (loadMoreWrap && loadMoreWrap.parentNode) {
         loadMoreWrap.parentNode.insertBefore(paginationNav, loadMoreWrap);
       } else if (grid && grid.parentNode) {
-        grid.parentNode.appendChild(paginationNav);
+        grid.insertAdjacentElement('afterend', paginationNav);
       }
     }
 
