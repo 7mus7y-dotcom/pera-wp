@@ -993,6 +993,9 @@ if ( ! function_exists( 'pera_crm_get_leads_view_data' ) ) {
 		$allowed_ids     = pera_crm_get_allowed_client_ids_for_user( $current_user_id );
 		$derived_type    = in_array( $derived_type, array( 'lead', 'client' ), true ) ? $derived_type : 'lead';
 		$list_view       = in_array( $list_view, array( 'leads', 'clients', 'inactive' ), true ) ? $list_view : 'leads';
+		$q               = isset( $_GET['q'] ) ? sanitize_text_field( wp_unslash( (string) $_GET['q'] ) ) : '';
+		$stage           = isset( $_GET['stage'] ) ? sanitize_key( wp_unslash( (string) $_GET['stage'] ) ) : '';
+		$advisor         = isset( $_GET['advisor'] ) ? absint( wp_unslash( (string) $_GET['advisor'] ) ) : 0;
 
 		$query_args = array(
 			'post_type'      => 'crm_client',
@@ -1054,6 +1057,56 @@ if ( ! function_exists( 'pera_crm_get_leads_view_data' ) ) {
 				}
 			)
 		);
+
+		if ( '' !== $stage ) {
+			$filtered_ids = array_values(
+				array_filter(
+					$filtered_ids,
+					static function ( int $lead_id ) use ( $stage, $party_map_full ): bool {
+						$party = isset( $party_map_full[ $lead_id ] ) && is_array( $party_map_full[ $lead_id ] ) ? $party_map_full[ $lead_id ] : array();
+						return sanitize_key( (string) ( $party['lead_pipeline_stage'] ?? '' ) ) === $stage;
+					}
+				)
+			);
+		}
+
+		if ( $advisor > 0 ) {
+			$filtered_ids = array_values(
+				array_filter(
+					$filtered_ids,
+					static function ( int $lead_id ) use ( $advisor ): bool {
+						$assigned_id = function_exists( 'peracrm_client_get_assigned_advisor_id' ) ? (int) peracrm_client_get_assigned_advisor_id( $lead_id ) : 0;
+						return $assigned_id === $advisor;
+					}
+				)
+			);
+		}
+
+		if ( '' !== $q ) {
+			$term = function_exists( 'mb_strtolower' ) ? mb_strtolower( $q ) : strtolower( $q );
+			$filtered_ids = array_values(
+				array_filter(
+					$filtered_ids,
+					static function ( int $lead_id ) use ( $term ): bool {
+						$title = function_exists( 'mb_strtolower' ) ? mb_strtolower( get_the_title( $lead_id ) ) : strtolower( get_the_title( $lead_id ) );
+						if ( false !== strpos( $title, $term ) ) {
+							return true;
+						}
+
+						$email_fields = array( '_peracrm_email', 'crm_primary_email', 'primary_email' );
+						foreach ( $email_fields as $field_key ) {
+							$email_value = (string) get_post_meta( $lead_id, $field_key, true );
+							$email_value = function_exists( 'mb_strtolower' ) ? mb_strtolower( $email_value ) : strtolower( $email_value );
+							if ( '' !== $email_value && false !== strpos( $email_value, $term ) ) {
+								return true;
+							}
+						}
+
+						return false;
+					}
+				)
+			);
+		}
 
 		$total = count( $filtered_ids );
 		$total_pages = max( 1, (int) ceil( $total / $per_page ) );
