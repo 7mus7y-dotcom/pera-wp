@@ -229,6 +229,7 @@ $qo = get_queried_object();
 
 $related_taxonomy_groups = array();
 $related_taxonomy_total  = 0;
+$related_terms_flat      = array();
 $related_regional_guides = array();
 
 if ( ( is_tax( 'district' ) || ( $qo instanceof WP_Term && $qo->taxonomy === 'district' ) ) && ( $qo instanceof WP_Term ) ) {
@@ -313,6 +314,13 @@ if ( ( is_tax( 'district' ) || ( $qo instanceof WP_Term && $qo->taxonomy === 'di
 
   foreach ( $related_taxonomy_groups as $group ) {
     $related_taxonomy_total += count( $group['terms'] );
+
+    foreach ( $group['terms'] as $related_term ) {
+      $related_terms_flat[] = array(
+        'term'  => $related_term,
+        'label' => $group['label'],
+      );
+    }
   }
 }
 
@@ -863,51 +871,6 @@ if ( ! $is_filtered_search && ( $qo instanceof WP_Term ) && ! is_wp_error( $qo )
 
 <?php wp_reset_postdata(); ?>
 
-<?php if ( ! empty( $related_regional_guides ) ) : ?>
-  <section class="section">
-    <div class="section-header">
-      <h2><?php echo count( $related_regional_guides ) === 1 ? esc_html( get_the_title( $related_regional_guides[0] ) ) : 'Regional guide'; ?></h2>
-    </div>
-    <div class="entry-content">
-      <?php foreach ( $related_regional_guides as $guide_post ) : ?>
-        <?php setup_postdata( $guide_post ); ?>
-        <?php if ( count( $related_regional_guides ) > 1 ) : ?>
-          <h3><?php echo esc_html( get_the_title( $guide_post ) ); ?></h3>
-        <?php endif; ?>
-        <?php echo apply_filters( 'the_content', $guide_post->post_content ); ?>
-      <?php endforeach; ?>
-      <?php wp_reset_postdata(); ?>
-    </div>
-  </section>
-<?php endif; ?>
-
-<?php if ( $related_taxonomy_total > 0 ) : ?>
-  <section class="related-taxonomy section">
-    <div class="section-header">
-      <h2>Related areas</h2>
-    </div>
-
-    <?php foreach ( $related_taxonomy_groups as $taxonomy_group ) : ?>
-      <?php if ( empty( $taxonomy_group['terms'] ) ) continue; ?>
-      <div class="related-taxonomy__group pb-md">
-        <h3 class="filter-group__label"><?php echo esc_html( $taxonomy_group['heading'] ); ?></h3>
-        <div class="cards-grid">
-          <?php foreach ( $taxonomy_group['terms'] as $related_term ) : ?>
-            <?php
-              set_query_var( 'pera_related_taxonomy_card_args', array(
-                'term'              => $related_term,
-                'context_tax_label' => $taxonomy_group['label'],
-              ) );
-              get_template_part( 'parts/related-taxonomy-card' );
-            ?>
-          <?php endforeach; ?>
-          <?php set_query_var( 'pera_related_taxonomy_card_args', null ); ?>
-        </div>
-      </div>
-    <?php endforeach; ?>
-  </section>
-<?php endif; ?>
-
 <?php
 // ------------------------------------------------------------
 // Pagination: preserve active filters in querystring
@@ -986,6 +949,71 @@ $pagination_html = function_exists( 'pera_render_property_pagination' )
     <?php endif; ?>
 
 </div>
+
+<?php if ( ! empty( $related_regional_guides ) ) : ?>
+  <section class="section">
+    <div class="section-header">
+      <h2><?php echo count( $related_regional_guides ) === 1 ? esc_html( get_the_title( $related_regional_guides[0] ) ) : 'Regional guide'; ?></h2>
+    </div>
+    <div class="entry-content">
+      <?php foreach ( $related_regional_guides as $guide_post ) : ?>
+        <?php setup_postdata( $guide_post ); ?>
+        <?php if ( count( $related_regional_guides ) > 1 ) : ?>
+          <h3><?php echo esc_html( get_the_title( $guide_post ) ); ?></h3>
+        <?php endif; ?>
+        <?php echo apply_filters( 'the_content', $guide_post->post_content ); ?>
+      <?php endforeach; ?>
+      <?php wp_reset_postdata(); ?>
+    </div>
+  </section>
+<?php endif; ?>
+
+<?php if ( $related_taxonomy_total > 0 ) : ?>
+  <?php
+    $is_single_row_related = ( $related_taxonomy_total > 0 && $related_taxonomy_total <= 4 );
+  ?>
+  <section class="related-taxonomy section <?php echo $is_single_row_related ? 'related-taxonomy--single-row' : ''; ?>">
+    <div class="section-header">
+      <h2>Related areas</h2>
+    </div>
+
+    <?php if ( $is_single_row_related ) : ?>
+      <div class="related-taxonomy__group pb-md">
+        <div class="cards-grid" style="--related-taxonomy-cols: <?php echo esc_attr( (string) $related_taxonomy_total ); ?>;">
+          <?php foreach ( $related_terms_flat as $related_item ) : ?>
+            <?php
+              set_query_var( 'pera_related_taxonomy_card_args', array(
+                'term'              => $related_item['term'],
+                'context_tax_label' => $related_item['label'],
+              ) );
+              get_template_part( 'parts/related-taxonomy-card' );
+            ?>
+          <?php endforeach; ?>
+          <?php set_query_var( 'pera_related_taxonomy_card_args', null ); ?>
+        </div>
+      </div>
+    <?php else : ?>
+      <?php foreach ( $related_taxonomy_groups as $taxonomy_group ) : ?>
+        <?php if ( empty( $taxonomy_group['terms'] ) ) continue; ?>
+        <div class="related-taxonomy__group pb-md">
+          <h3 class="filter-group__label"><?php echo esc_html( $taxonomy_group['heading'] ); ?></h3>
+          <div class="cards-grid">
+            <?php foreach ( $taxonomy_group['terms'] as $related_term ) : ?>
+              <?php
+                set_query_var( 'pera_related_taxonomy_card_args', array(
+                  'term'              => $related_term,
+                  'context_tax_label' => $taxonomy_group['label'],
+                ) );
+                get_template_part( 'parts/related-taxonomy-card' );
+              ?>
+            <?php endforeach; ?>
+            <?php set_query_var( 'pera_related_taxonomy_card_args', null ); ?>
+          </div>
+        </div>
+      <?php endforeach; ?>
+    <?php endif; ?>
+  </section>
+<?php endif; ?>
 
 
             
