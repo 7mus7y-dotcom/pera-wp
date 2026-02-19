@@ -2095,6 +2095,18 @@ body.is-nav-open .offcanvas-backdrop {
   justify-content: start;
 }
 
+@media (max-width: 767px){
+  .related-taxonomy--single-row .cards-grid{
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (min-width: 768px){
+  .related-taxonomy--single-row .cards-grid{
+    grid-template-columns: repeat(var(--related-taxonomy-cols, 1), minmax(0, 1fr));
+  }
+}
+
 
 /* Masonry columns (posts masonry, gallery masonry) */
 .cards-masonry{
