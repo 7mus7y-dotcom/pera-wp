@@ -331,7 +331,12 @@ if ( ! $is_filtered_search && ( $qo instanceof WP_Term ) && ! is_wp_error( $qo )
   }
 
   if ( trim( wp_strip_all_tags( $term_excerpt ) ) !== '' ) {
-    $hero_desc_html = '<div class="text-light">' . wpautop( wp_kses_post( $term_excerpt ) ) . '</div>';
+    $excerpt_html = wpautop( wp_kses_post( $term_excerpt ) );
+
+    // Ensure paragraphs get text-light class
+    $excerpt_html = str_replace('<p>', '<p class="text-light">', $excerpt_html);
+
+    $hero_desc_html = $excerpt_html;
   } else {
     $term_desc_raw      = term_description( $qo->term_id, $qo->taxonomy );
     $term_desc_fallback = wp_trim_words( wp_strip_all_tags( (string) $term_desc_raw ), 35, '…' );
