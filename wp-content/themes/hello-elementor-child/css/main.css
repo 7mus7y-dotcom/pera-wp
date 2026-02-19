@@ -4257,4 +4257,8 @@ body:not(.single-post) tr:nth-child(even) {
   body.admin-bar #wpadminbar #wp-admin-bar-top-secondary {
     float: right;
   }
+
+  body.admin-bar #wpadminbar #wp-admin-bar-peracrm_clients {
+    display: block !important;
+  }
 }
