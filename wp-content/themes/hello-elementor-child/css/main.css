@@ -4238,3 +4238,23 @@ body:not(.single-post) tr:nth-child(even) {
 
   
 }
+
+/* =======================================================
+   WordPress admin bar mobile layout guard
+   Keeps top-secondary (My Account) on the first row.
+   ======================================================= */
+@media screen and (max-width: 782px) {
+  body.admin-bar #wpadminbar .quicklinks {
+    white-space: nowrap;
+  }
+
+  body.admin-bar #wpadminbar .quicklinks > ul#wp-admin-bar-root-default {
+    display: block !important;
+    float: left;
+    white-space: nowrap;
+  }
+
+  body.admin-bar #wpadminbar #wp-admin-bar-top-secondary {
+    float: right;
+  }
+}
