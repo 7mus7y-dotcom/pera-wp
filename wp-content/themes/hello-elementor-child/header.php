@@ -39,7 +39,17 @@ if ( ! defined( 'ABSPATH' ) ) {
 
 <?php
 $logo_path = get_stylesheet_directory() . '/logos-icons/pera-logo.svg';
-$show_crm_header_button = is_user_logged_in() && function_exists( 'pera_crm_user_can_access' ) && pera_crm_user_can_access() && current_user_can( 'edit_crm_clients' );
+
+// Do not depend on crm-router.php load timing: it is route-gated to /crm/* requests.
+if ( function_exists( 'peracrm_user_can_access_crm' ) ) {
+  $crm_header_access_allowed = (bool) peracrm_user_can_access_crm();
+} elseif ( function_exists( 'pera_crm_user_can_access' ) ) {
+  $crm_header_access_allowed = (bool) pera_crm_user_can_access();
+} else {
+  $crm_header_access_allowed = current_user_can( 'manage_options' ) || current_user_can( 'edit_crm_clients' );
+}
+
+$show_crm_header_button = is_user_logged_in() && $crm_header_access_allowed && current_user_can( 'edit_crm_clients' );
 $crm_overdue_count      = $show_crm_header_button && function_exists( 'pera_crm_get_overdue_reminders_count_for_current_user' )
   ? (int) pera_crm_get_overdue_reminders_count_for_current_user()
   : 0;
