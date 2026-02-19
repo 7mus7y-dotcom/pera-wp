@@ -224,6 +224,12 @@ if ( $is_filtered_search ) {
   $hero_desc  = $archive_description;
 }
 
+$hero_desc_html = '';
+
+if ( trim( wp_strip_all_tags( (string) $hero_desc ) ) !== '' ) {
+  $hero_desc_html = '<p class="text-light">' . esc_html( wp_strip_all_tags( (string) $hero_desc ) ) . '</p>';
+}
+
 $qo = get_queried_object();
 
 
@@ -318,16 +324,19 @@ if ( ! $is_filtered_search && ( $qo instanceof WP_Term ) && ! is_wp_error( $qo )
     $hero_title = $qo->name;
   }
 
-  // Prefer term excerpt stored in term meta if you have it:
-  // Change 'term_excerpt' if your actual meta key differs.
-  $term_excerpt = get_term_meta( $qo->term_id, 'term_excerpt', true );
+  $term_excerpt = (string) get_term_meta( $qo->term_id, 'term_excerpt', true );
 
-  if ( ! $term_excerpt ) {
-    $term_excerpt = term_description( $qo->term_id, $qo->taxonomy );
-  }
+  if ( trim( wp_strip_all_tags( $term_excerpt ) ) !== '' ) {
+    $hero_desc_html = '<div class="text-light">' . wpautop( wp_kses_post( $term_excerpt ) ) . '</div>';
+  } else {
+    $term_desc_raw      = term_description( $qo->term_id, $qo->taxonomy );
+    $term_desc_fallback = wp_trim_words( wp_strip_all_tags( (string) $term_desc_raw ), 35, '…' );
 
-  if ( $term_excerpt ) {
-    $hero_desc = $term_excerpt;
+    if ( trim( $term_desc_fallback ) !== '' ) {
+      $hero_desc_html = '<p class="text-light">' . esc_html( $term_desc_fallback ) . '</p>';
+    } else {
+      $hero_desc_html = '';
+    }
   }
 }
 
@@ -387,10 +396,8 @@ if ( ! $is_filtered_search && ( $qo instanceof WP_Term ) && ! is_wp_error( $qo )
         
             <h1><?php echo esc_html( $hero_title ); ?></h1>
         
-                <?php if ( ! empty( $hero_desc ) ) : ?>
-                  <p class="text-light">
-                    <?php echo esc_html( wp_strip_all_tags( $hero_desc ) ); ?>
-                  </p>
+                <?php if ( $hero_desc_html !== '' ) : ?>
+                  <?php echo $hero_desc_html; ?>
                 <?php endif; ?>
 
         
