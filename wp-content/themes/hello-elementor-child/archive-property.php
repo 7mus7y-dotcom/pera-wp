@@ -326,6 +326,10 @@ if ( ! $is_filtered_search && ( $qo instanceof WP_Term ) && ! is_wp_error( $qo )
 
   $term_excerpt = (string) get_term_meta( $qo->term_id, 'term_excerpt', true );
 
+  if ( trim( wp_strip_all_tags( $term_excerpt ) ) === '' ) {
+    $term_excerpt = (string) get_term_meta( $qo->term_id, 'pera_term_excerpt', true );
+  }
+
   if ( trim( wp_strip_all_tags( $term_excerpt ) ) !== '' ) {
     $hero_desc_html = '<div class="text-light">' . wpautop( wp_kses_post( $term_excerpt ) ) . '</div>';
   } else {
