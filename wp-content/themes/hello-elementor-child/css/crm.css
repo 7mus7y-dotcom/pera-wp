@@ -1447,3 +1447,20 @@ body.page-template-page-crm table col,
 .crm-page table col {
   width: auto !important;
 }
+
+.crm-client-hero-filters {
+  margin-top: 20px;
+}
+
+.crm-client-hero-filters-grid {
+  display: grid;
+  gap: 12px;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  align-items: end;
+}
+
+.crm-client-hero-filter-actions {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}

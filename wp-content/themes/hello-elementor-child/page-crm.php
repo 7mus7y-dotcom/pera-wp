@@ -65,6 +65,7 @@ $kpi_tiles = array(
 );
 
 $stages = function_exists( 'pera_crm_get_pipeline_stages' ) ? pera_crm_get_pipeline_stages() : array();
+$advisors = function_exists( 'pera_crm_get_pipeline_advisor_options' ) ? pera_crm_get_pipeline_advisor_options() : array();
 
 $crm_active_view = ! $is_leads && ! $is_tasks ? 'overview' : ( $is_leads ? 'clients' : 'tasks' );
 
@@ -94,6 +95,10 @@ get_header();
 		  'title'       => __( 'CRM', 'hello-elementor-child' ),
 		  'description' => __( 'Staff workspace for daily pipeline, workload, and account visibility.', 'hello-elementor-child' ),
 		  'active_view' => $crm_active_view,
+		  'show_client_filters' => $is_leads,
+		  'stages'      => $stages,
+		  'advisors'    => $advisors,
+		  'clients_type_view' => $clients_type_view,
 	  )
   );
   ?>
