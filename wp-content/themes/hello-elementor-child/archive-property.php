@@ -229,6 +229,7 @@ $qo = get_queried_object();
 
 $related_taxonomy_groups = array();
 $related_taxonomy_total  = 0;
+$related_regional_guides = array();
 
 if ( ( is_tax( 'district' ) || ( $qo instanceof WP_Term && $qo->taxonomy === 'district' ) ) && ( $qo instanceof WP_Term ) ) {
   $normalize_related_terms = static function ( $raw, string $taxonomy ): array {
@@ -265,6 +266,32 @@ if ( ( is_tax( 'district' ) || ( $qo instanceof WP_Term && $qo->taxonomy === 'di
   $related_districts_raw = function_exists( 'get_field' ) ? get_field( 'related_districts', $acf_object_ref ) : array();
   $related_regions_raw   = function_exists( 'get_field' ) ? get_field( 'related_regions', $acf_object_ref ) : array();
   $related_tags_raw      = function_exists( 'get_field' ) ? get_field( 'related_tags', $acf_object_ref ) : array();
+  $related_guide_raw     = function_exists( 'get_field' ) ? get_field( 'related_regional_guide', $acf_object_ref ) : null;
+
+  if ( ! is_array( $related_guide_raw ) ) {
+    $related_guide_raw = empty( $related_guide_raw ) ? array() : array( $related_guide_raw );
+  }
+
+  foreach ( $related_guide_raw as $guide_item ) {
+    $guide_post = null;
+
+    if ( $guide_item instanceof WP_Post ) {
+      $guide_post = $guide_item;
+    } elseif ( is_numeric( $guide_item ) ) {
+      $fetched_post = get_post( (int) $guide_item );
+      if ( $fetched_post instanceof WP_Post ) {
+        $guide_post = $fetched_post;
+      }
+    }
+
+    if ( ! ( $guide_post instanceof WP_Post ) || $guide_post->post_status !== 'publish' ) {
+      continue;
+    }
+
+    $related_regional_guides[ $guide_post->ID ] = $guide_post;
+  }
+
+  $related_regional_guides = array_values( $related_regional_guides );
 
   $related_taxonomy_groups = array(
     'district' => array(
@@ -817,6 +844,43 @@ if ( ! $is_filtered_search && ( $qo instanceof WP_Term ) && ! is_wp_error( $qo )
 
 
 
+<!-- Results Grid (SSR baseline; AJAX will replace/append) -->
+<div id="property-grid" class="cards-grid">
+  <?php if ( $property_query->have_posts() ) : ?>
+    <?php while ( $property_query->have_posts() ) : $property_query->the_post(); ?>
+
+      <?php
+        pera_render_property_card( array(
+          'variant' => 'archive',
+        ) );
+      ?>
+
+    <?php endwhile; ?>
+  <?php else : ?>
+    <p class="no-results">No properties found.</p>
+  <?php endif; ?>
+</div>
+
+<?php wp_reset_postdata(); ?>
+
+<?php if ( ! empty( $related_regional_guides ) ) : ?>
+  <section class="section">
+    <div class="section-header">
+      <h2><?php echo count( $related_regional_guides ) === 1 ? esc_html( get_the_title( $related_regional_guides[0] ) ) : 'Regional guide'; ?></h2>
+    </div>
+    <div class="entry-content">
+      <?php foreach ( $related_regional_guides as $guide_post ) : ?>
+        <?php setup_postdata( $guide_post ); ?>
+        <?php if ( count( $related_regional_guides ) > 1 ) : ?>
+          <h3><?php echo esc_html( get_the_title( $guide_post ) ); ?></h3>
+        <?php endif; ?>
+        <?php echo apply_filters( 'the_content', $guide_post->post_content ); ?>
+      <?php endforeach; ?>
+      <?php wp_reset_postdata(); ?>
+    </div>
+  </section>
+<?php endif; ?>
+
 <?php if ( $related_taxonomy_total > 0 ) : ?>
   <section class="related-taxonomy section">
     <div class="section-header">
@@ -843,25 +907,6 @@ if ( ! $is_filtered_search && ( $qo instanceof WP_Term ) && ! is_wp_error( $qo )
     <?php endforeach; ?>
   </section>
 <?php endif; ?>
-
-<!-- Results Grid (SSR baseline; AJAX will replace/append) -->
-<div id="property-grid" class="cards-grid">
-  <?php if ( $property_query->have_posts() ) : ?>
-    <?php while ( $property_query->have_posts() ) : $property_query->the_post(); ?>
-
-      <?php
-        pera_render_property_card( array(
-          'variant' => 'archive',
-        ) );
-      ?>
-
-    <?php endwhile; ?>
-  <?php else : ?>
-    <p class="no-results">No properties found.</p>
-  <?php endif; ?>
-</div>
-
-<?php wp_reset_postdata(); ?>
 
 <?php
 // ------------------------------------------------------------
