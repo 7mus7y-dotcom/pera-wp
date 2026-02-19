@@ -896,6 +896,7 @@ if ( ! empty( $sort ) && $sort !== 'date_desc' ) {
 }
 
 $total_pages = (int) $property_query->max_num_pages;
+$load_more_done_label = 'That’s it for now, folks.';
 $pagination_html = function_exists( 'pera_render_property_pagination' )
   ? pera_render_property_pagination( $property_query, (int) $paged, $add_args )
   : '';
@@ -921,6 +922,19 @@ $pagination_html = function_exists( 'pera_render_property_pagination' )
           data-next-page="<?php echo esc_attr( $paged + 1 ); ?>"
         >
           Load more
+        </button>
+      </div>
+    <?php elseif ( $total_pages <= 1 ) : ?>
+      <div class="property-load-more-wrap text-center">
+        <button
+          type="button"
+          class="btn btn--solid btn--green"
+          id="load-more-btn"
+          data-next-page="2"
+          disabled
+          aria-disabled="true"
+        >
+          <?php echo esc_html( $load_more_done_label ); ?>
         </button>
       </div>
     <?php else : ?>
@@ -1032,6 +1046,7 @@ $pagination_html = function_exists( 'pera_render_property_pagination' )
   const sortTrigger = sortMenu ? sortMenu.querySelector('[data-sort-trigger]') : null;
   const sortDropdown = sortMenu ? sortMenu.querySelector('[data-sort-dropdown]') : null;
   const sortOptions = sortMenu ? Array.from(sortMenu.querySelectorAll('[data-sort-option]')) : [];
+  const LOAD_MORE_DONE_LABEL = <?php echo wp_json_encode( $load_more_done_label ); ?>;
 
   // Global bounds from PHP
   const GLOBAL_MIN_PRICE = <?php echo (int) $global_min_price; ?>;
@@ -1104,6 +1119,21 @@ $pagination_html = function_exists( 'pera_render_property_pagination' )
     if (on && !append) {
       grid.innerHTML = '<p class="text-soft">Loading…</p>';
     }
+  }
+
+  function setLoadMoreDoneState() {
+    if (!loadMoreBtn) return;
+    loadMoreBtn.textContent = LOAD_MORE_DONE_LABEL;
+    loadMoreBtn.disabled = true;
+    loadMoreBtn.setAttribute('aria-disabled', 'true');
+    loadMoreBtn.classList.remove('is-hidden');
+  }
+
+  function setLoadMoreDefaultState() {
+    if (!loadMoreBtn) return;
+    loadMoreBtn.textContent = 'Load more';
+    loadMoreBtn.disabled = false;
+    loadMoreBtn.removeAttribute('aria-disabled');
   }
 
   function formatUsd(n) {
@@ -1317,10 +1347,11 @@ $pagination_html = function_exists( 'pera_render_property_pagination' )
 
     if (loadMoreBtn) {
       if (d.has_more) {
+        setLoadMoreDefaultState();
         loadMoreBtn.dataset.nextPage = String(d.next_page || (paged + 1));
         loadMoreBtn.classList.remove('is-hidden');
       } else {
-        loadMoreBtn.classList.add('is-hidden');
+        setLoadMoreDoneState();
       }
     }
 
@@ -1378,7 +1409,7 @@ $pagination_html = function_exists( 'pera_render_property_pagination' )
       if (!resp || !resp.success || !resp.data) {
         if (!append) grid.innerHTML = '<p class="text-soft">No results.</p>';
         if (countEl) countEl.textContent = '';
-        if (loadMoreBtn) loadMoreBtn.classList.add('is-hidden');
+        if (loadMoreBtn) setLoadMoreDoneState();
         return;
       }
 
@@ -1389,7 +1420,7 @@ $pagination_html = function_exists( 'pera_render_property_pagination' )
 
       setLoading(false, append);
       if (!append) grid.innerHTML = '<p class="text-soft">Error loading results.</p>';
-      if (loadMoreBtn) loadMoreBtn.classList.add('is-hidden');
+      if (loadMoreBtn) setLoadMoreDoneState();
       console.error('V2 AJAX error', err);
     });
   }
