@@ -591,7 +591,6 @@ get_header();
                 <select name="relation_type">
                   <option value="favourite">Favourite</option>
                   <option value="enquiry">Enquiry</option>
-                  <option value="viewed">Viewed</option>
                   <option value="portfolio">Portfolio</option>
                 </select>
               </label>
