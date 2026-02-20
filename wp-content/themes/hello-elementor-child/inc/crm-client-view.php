@@ -586,7 +586,10 @@ if ( ! function_exists( 'pera_crm_client_view_handle_property_actions' ) ) {
 		}
 
 		$property_id   = isset( $_POST['property_id'] ) ? absint( wp_unslash( (string) $_POST['property_id'] ) ) : 0;
-		$relation_type = isset( $_POST['relation_type'] ) ? sanitize_key( wp_unslash( (string) $_POST['relation_type'] ) ) : 'enquiry';
+		$relation_type = isset( $_POST['relation_type'] ) ? sanitize_key( wp_unslash( (string) $_POST['relation_type'] ) ) : '';
+		if ( 'link' === $action ) {
+			$relation_type = 'portfolio';
+		}
 		$ok            = false;
 
 		if ( $property_id > 0 ) {

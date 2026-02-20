@@ -646,13 +646,7 @@ get_header();
                 <div class="crm-property-search-results" data-crm-property-results hidden></div>
                 <p class="text-sm" data-crm-property-feedback><?php esc_html_e( 'Type at least 2 letters and choose a project.', 'hello-elementor-child' ); ?></p>
               </div>
-              <label><?php esc_html_e( 'Relation type', 'hello-elementor-child' ); ?>
-                <select name="relation_type">
-                  <option value="favourite">Favourite</option>
-                  <option value="enquiry">Enquiry</option>
-                  <option value="portfolio">Portfolio</option>
-                </select>
-              </label>
+              <input type="hidden" name="relation_type" value="portfolio" />
               <button type="submit" class="btn btn--ghost btn--blue"><?php esc_html_e( 'Link property', 'hello-elementor-child' ); ?></button>
             </form>
 				<?php foreach ( $property_groups as $relation => $items ) : ?>
