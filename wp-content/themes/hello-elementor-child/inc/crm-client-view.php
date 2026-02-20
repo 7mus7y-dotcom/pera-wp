@@ -399,7 +399,7 @@ if ( ! function_exists( 'pera_crm_client_view_load_data' ) ) {
 				$activity  = function_exists( 'peracrm_activity_list' ) ? (array) peracrm_activity_list( $client_id, 20, 0, null ) : array();
 				$deals     = function_exists( 'peracrm_deals_get_by_party' ) ? (array) peracrm_deals_get_by_party( $client_id ) : array();
 
-				$relation_types  = array( 'favourite', 'enquiry', 'viewed', 'portfolio' );
+				$relation_types  = array( 'favourite', 'enquiry', 'portfolio' );
 				$property_groups = array();
 				$property_total  = 0;
 				if ( function_exists( 'peracrm_client_property_list' ) ) {
