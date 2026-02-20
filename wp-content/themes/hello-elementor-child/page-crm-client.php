@@ -574,7 +574,66 @@ get_header();
             </div>
           </section>
 
-          <?php $portfolio_items = is_array( $property_groups['portfolio'] ?? null ) ? $property_groups['portfolio'] : array(); ?>
+          <?php
+          $portfolio_items   = is_array( $property_groups['portfolio'] ?? null ) ? $property_groups['portfolio'] : array();
+          $enquiry_relations = array( 'favourite', 'enquiry' );
+          ?>
+          <article class="card-shell crm-client-section" data-client-id="<?php echo esc_attr( (string) $client_id ); ?>">
+            <h3><?php esc_html_e( 'Client enquiries', 'hello-elementor-child' ); ?></h3>
+            <?php foreach ( $property_groups as $relation => $items ) : ?>
+              <?php if ( ! in_array( (string) $relation, $enquiry_relations, true ) ) : ?>
+                <?php continue; ?>
+              <?php endif; ?>
+              <div class="crm-inline-form">
+                <h4><?php echo esc_html( ucfirst( (string) $relation ) ); ?></h4>
+              </div>
+              <?php if ( empty( $items ) ) : ?>
+                <p><?php esc_html_e( 'No properties.', 'hello-elementor-child' ); ?></p>
+              <?php else : ?>
+                <ul class="crm-list peracrm-linked-properties-grid">
+                  <?php foreach ( $items as $item ) : ?>
+                    <?php
+                    $property_id = (int) ( $item['property_id'] ?? 0 );
+                    $property_label = '';
+                    $property_url = '';
+                    if ( $property_id > 0 ) {
+                      $property_label = pera_crm_client_view_with_target_blog(
+                        static function () use ( $property_id ): string {
+                          return function_exists( 'pera_crm_client_view_property_project_name' ) ? (string) pera_crm_client_view_property_project_name( $property_id ) : (string) get_the_title( $property_id );
+                        }
+                      );
+                      $property_url = pera_crm_client_view_with_target_blog(
+                        static function () use ( $property_id ): string {
+                          return (string) get_permalink( $property_id );
+                        }
+                      );
+                    }
+                    ?>
+                    <li class="peracrm-linked-properties-grid__item">
+                      <?php if ( '' !== $property_url ) : ?>
+                        <a class="crm-linked-property-link" href="<?php echo esc_url( $property_url ); ?>" target="_blank" rel="noopener noreferrer"><?php echo esc_html( $property_label ); ?></a>
+                      <?php else : ?>
+                        <span><?php echo esc_html( $property_label ); ?></span>
+                      <?php endif; ?>
+                      <form method="post" class="peracrm-linked-property-unlink-form">
+                        <?php wp_nonce_field( 'pera_crm_property_action', 'pera_crm_property_nonce' ); ?>
+                        <input type="hidden" name="pera_crm_property_action" value="unlink" />
+                        <input type="hidden" name="peracrm_client_id" value="<?php echo esc_attr( (string) $client_id ); ?>" />
+                        <input type="hidden" name="property_id" value="<?php echo esc_attr( (string) $property_id ); ?>" />
+                        <input type="hidden" name="relation_type" value="<?php echo esc_attr( (string) $relation ); ?>" />
+                        <button type="submit" class="btn btn--ghost btn--blue peracrm-linked-property-unlink-btn" aria-label="<?php esc_attr_e( 'Unlink property', 'hello-elementor-child' ); ?>">
+                          <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+                            <use href="#icon-broken-chain"></use>
+                          </svg>
+                        </button>
+                      </form>
+                    </li>
+                  <?php endforeach; ?>
+                </ul>
+              <?php endif; ?>
+            <?php endforeach; ?>
+          </article>
+
           <article class="card-shell crm-client-section" data-crm-linked-properties data-client-id="<?php echo esc_attr( (string) $client_id ); ?>">
             <h3><?php esc_html_e( 'Linked Properties', 'hello-elementor-child' ); ?></h3>
             <form method="post" class="crm-form-stack">
@@ -597,6 +656,9 @@ get_header();
               <button type="submit" class="btn btn--ghost btn--blue"><?php esc_html_e( 'Link property', 'hello-elementor-child' ); ?></button>
             </form>
 				<?php foreach ( $property_groups as $relation => $items ) : ?>
+              <?php if ( in_array( (string) $relation, $enquiry_relations, true ) ) : ?>
+                <?php continue; ?>
+              <?php endif; ?>
               <div class="crm-inline-form">
                 <h4><?php echo esc_html( ucfirst( (string) $relation ) ); ?></h4>
                 <?php if ( 'portfolio' === (string) $relation && ! empty( $portfolio_items ) ) : ?>
