@@ -27,3 +27,14 @@
 5. Try invalid nonce (e.g. alter request nonce) and confirm API returns 403.
 6. Unlink a portfolio row, then attempt save on that property/client relation and confirm API returns 404.
 7. Verify link/unlink behavior and portfolio token generation still work as before.
+
+## Mobile overflow fix (portfolio fields editor)
+- Added a late-file mobile override in `css/crm.css` to resolve a cascade conflict where a later `@media (max-width: 1024px)` rule forced `.peracrm-linked-properties-grid` back to 2 columns after an earlier `@media (max-width: 767px)` rule set 1 column.
+- On phones (`<=767px`), linked property cards are now forced to a single-column grid so each portfolio card has full width.
+- Added feature-scoped mobile rules under `.crm-route` for `[data-crm-portfolio-row]` / `[data-crm-portfolio-fields]`:
+  - `min-width: 0` on nested containers/items,
+  - compact 2-column field layout,
+  - `input` width constraints (`width/max-width/min-width`) to prevent overflow,
+  - last field spanning full width for 5-field balance.
+- Added an extra narrow breakpoint (`<=420px`) to collapse the portfolio fields editor to one column.
+- Desktop and tablet behavior remain unchanged except intended tablet 2-column linked-property grid behavior is preserved.

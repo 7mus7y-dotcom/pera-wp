@@ -1464,3 +1464,50 @@ body.page-template-page-crm table col,
   gap: 10px;
   flex-wrap: wrap;
 }
+
+@media (max-width: 767px) {
+  .peracrm-linked-properties-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .crm-route [data-crm-portfolio-row] {
+    min-width: 0;
+  }
+
+  .crm-route [data-crm-portfolio-fields] {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+    min-width: 0;
+  }
+
+  .crm-route [data-crm-portfolio-fields] > label {
+    display: block;
+    min-width: 0;
+  }
+
+  .crm-route [data-crm-portfolio-fields] input {
+    width: 100%;
+    max-width: 100%;
+    min-width: 0;
+    box-sizing: border-box;
+  }
+
+  .crm-route [data-crm-portfolio-fields] > label:last-child {
+    grid-column: 1 / -1;
+  }
+
+  .crm-route [data-crm-portfolio-row] .crm-inline-form {
+    align-items: center;
+  }
+}
+
+@media (max-width: 420px) {
+  .crm-route [data-crm-portfolio-fields] {
+    grid-template-columns: 1fr;
+  }
+
+  .crm-route [data-crm-portfolio-fields] > label:last-child {
+    grid-column: auto;
+  }
+}
