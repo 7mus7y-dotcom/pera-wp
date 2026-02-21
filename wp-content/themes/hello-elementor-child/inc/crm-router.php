@@ -489,6 +489,7 @@ if ( ! function_exists( 'pera_crm_enqueue_assets' ) ) {
 					'ajaxUrl'                => admin_url( 'admin-ajax.php' ),
 					'propertySearchNonce'    => wp_create_nonce( 'pera_crm_property_search' ),
 					'createPortfolioNonce'   => wp_create_nonce( 'pera_crm_create_portfolio_token' ),
+					'portfolioFieldsNonce'  => wp_create_nonce( 'pera_crm_save_portfolio_property_fields' ),
 				)
 			);
 		}

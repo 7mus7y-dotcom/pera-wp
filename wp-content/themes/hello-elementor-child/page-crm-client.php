@@ -691,13 +691,38 @@ get_header();
 							}
 							?>
                     <li class="peracrm-linked-properties-grid__item">
-								<?php if ( '' !== $property_url ) : ?>
+									<?php if ( '' !== $property_url ) : ?>
                         <a class="crm-linked-property-link" href="<?php echo esc_url( $property_url ); ?>" target="_blank" rel="noopener noreferrer"><?php echo esc_html( $property_label ); ?></a>
-								<?php else : ?>
+									<?php else : ?>
                         <span><?php echo esc_html( $property_label ); ?></span>
-								<?php endif; ?>
+									<?php endif; ?>
+                      <?php if ( 'portfolio' === (string) $relation ) : ?>
+                        <div data-crm-portfolio-row data-client-id="<?php echo esc_attr( (string) $client_id ); ?>" data-property-id="<?php echo esc_attr( (string) $property_id ); ?>">
+                        <div class="crm-form-row-2" data-crm-portfolio-fields>
+                          <label><?php esc_html_e( 'Floor', 'hello-elementor-child' ); ?>
+                            <input type="text" name="floor_number" data-field="floor_number" value="<?php echo esc_attr( (string) ( $item['floor_number'] ?? '' ) ); ?>" />
+                          </label>
+                          <label><?php esc_html_e( 'Net (m²)', 'hello-elementor-child' ); ?>
+                            <input type="text" name="net_size" data-field="net_size" value="<?php echo esc_attr( (string) ( $item['net_size'] ?? '' ) ); ?>" />
+                          </label>
+                          <label><?php esc_html_e( 'Gross (m²)', 'hello-elementor-child' ); ?>
+                            <input type="text" name="gross_size" data-field="gross_size" value="<?php echo esc_attr( (string) ( $item['gross_size'] ?? '' ) ); ?>" />
+                          </label>
+                          <label><?php esc_html_e( 'List ($)', 'hello-elementor-child' ); ?>
+                            <input type="text" name="list_price" data-field="list_price" value="<?php echo esc_attr( (string) ( $item['list_price'] ?? '' ) ); ?>" />
+                          </label>
+                          <label><?php esc_html_e( 'Cash ($)', 'hello-elementor-child' ); ?>
+                            <input type="text" name="cash_price" data-field="cash_price" value="<?php echo esc_attr( (string) ( $item['cash_price'] ?? '' ) ); ?>" />
+                          </label>
+                        </div>
+                        <div class="crm-inline-form">
+                          <button type="button" class="btn btn--solid btn--green" data-action="save-portfolio-fields"><?php esc_html_e( 'Save', 'hello-elementor-child' ); ?></button>
+                          <span class="crm-inline-status" data-crm-portfolio-status aria-live="polite"></span>
+                        </div>
+                        </div>
+                      <?php endif; ?>
                       <form method="post" class="peracrm-linked-property-unlink-form">
-									<?php wp_nonce_field( 'pera_crm_property_action', 'pera_crm_property_nonce' ); ?>
+										<?php wp_nonce_field( 'pera_crm_property_action', 'pera_crm_property_nonce' ); ?>
                         <input type="hidden" name="pera_crm_property_action" value="unlink" />
                         <input type="hidden" name="peracrm_client_id" value="<?php echo esc_attr( (string) $client_id ); ?>" />
                         <input type="hidden" name="property_id" value="<?php echo esc_attr( (string) $property_id ); ?>" />
