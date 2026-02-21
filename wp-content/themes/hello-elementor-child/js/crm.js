@@ -548,3 +548,86 @@
     });
   });
 })();
+
+(function () {
+  var rows = Array.prototype.slice.call(document.querySelectorAll('[data-crm-portfolio-row]'));
+  if (!rows.length) {
+    return;
+  }
+
+  var ajaxUrl = window.peraCrmData && window.peraCrmData.ajaxUrl ? window.peraCrmData.ajaxUrl : '';
+  var nonce = window.peraCrmData && window.peraCrmData.portfolioFieldsNonce ? window.peraCrmData.portfolioFieldsNonce : '';
+  if (!ajaxUrl || !nonce) {
+    return;
+  }
+
+  rows.forEach(function (row) {
+    var saveButton = row.querySelector('[data-action="save-portfolio-fields"]');
+    var statusEl = row.querySelector('[data-crm-portfolio-status]');
+    if (!saveButton) {
+      return;
+    }
+
+    saveButton.addEventListener('click', function (event) {
+      event.preventDefault();
+
+      var clientId = row.getAttribute('data-client-id') || '';
+      var propertyId = row.getAttribute('data-property-id') || '';
+      if (!clientId || !propertyId) {
+        if (statusEl) {
+          statusEl.textContent = 'Missing client or property.';
+        }
+        return;
+      }
+
+      var payload = new window.FormData();
+      payload.append('action', 'pera_crm_save_portfolio_property_fields');
+      payload.append('nonce', nonce);
+      payload.append('client_id', clientId);
+      payload.append('property_id', propertyId);
+
+      ['floor_number', 'net_size', 'gross_size', 'list_price', 'cash_price'].forEach(function (fieldName) {
+        var input = row.querySelector('[data-field="' + fieldName + '"]');
+        payload.append('fields[' + fieldName + ']', input ? String(input.value || '') : '');
+      });
+
+      saveButton.disabled = true;
+      if (statusEl) {
+        statusEl.textContent = 'Saving…';
+      }
+
+      fetch(ajaxUrl, {
+        method: 'POST',
+        body: payload,
+        credentials: 'same-origin'
+      })
+        .then(function (response) { return response.json(); })
+        .then(function (json) {
+          if (!json || !json.success || !json.data || !json.data.fields) {
+            var message = json && json.data && json.data.message ? String(json.data.message) : 'Unable to save.';
+            throw new Error(message);
+          }
+
+          Object.keys(json.data.fields).forEach(function (key) {
+            var input = row.querySelector('[data-field="' + key + '"]');
+            if (!input) {
+              return;
+            }
+            input.value = json.data.fields[key] === null ? '' : String(json.data.fields[key]);
+          });
+
+          if (statusEl) {
+            statusEl.textContent = 'Saved';
+          }
+        })
+        .catch(function (error) {
+          if (statusEl) {
+            statusEl.textContent = error && error.message ? error.message : 'Unable to save.';
+          }
+        })
+        .finally(function () {
+          saveButton.disabled = false;
+        });
+    });
+  });
+})();

@@ -82,6 +82,11 @@ function peracrm_upgrade_schema_to($target_version, $installed_version = 0)
             client_id BIGINT UNSIGNED NOT NULL,
             property_id BIGINT UNSIGNED NOT NULL,
             relation_type VARCHAR(30) NOT NULL,
+            floor_number VARCHAR(20) NULL,
+            net_size DECIMAL(10,2) NULL,
+            gross_size DECIMAL(10,2) NULL,
+            list_price DECIMAL(14,2) NULL,
+            cash_price DECIMAL(14,2) NULL,
             created_at DATETIME NOT NULL,
             PRIMARY KEY  (id),
             UNIQUE KEY uniq_client_property_type (client_id, property_id, relation_type),
@@ -392,5 +397,4 @@ function peracrm_migrate_stage_taxonomy_v4()
     }
     });
 }
-
 

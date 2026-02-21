@@ -773,6 +773,149 @@ if ( ! function_exists( 'pera_crm_create_portfolio_token_ajax' ) ) {
 }
 add_action( 'wp_ajax_peracrm_create_portfolio_token', 'pera_crm_create_portfolio_token_ajax' );
 
+if ( ! function_exists( 'pera_crm_client_view_normalize_decimal_input' ) ) {
+	/**
+	 * Normalize decimal user input for DB writes.
+	 *
+	 * @param mixed $value Raw input.
+	 * @return string|null
+	 */
+	function pera_crm_client_view_normalize_decimal_input( $value ) {
+		$raw = is_scalar( $value ) ? (string) $value : '';
+		$raw = trim( str_replace( ' ', '', $raw ) );
+		if ( false !== strpos( $raw, ',' ) ) {
+			return null;
+		}
+
+		if ( '' === $raw ) {
+			return null;
+		}
+
+		if ( ! preg_match( '/^\d+(?:\.\d+)?$/', $raw ) ) {
+			return null;
+		}
+
+		$number = (float) $raw;
+
+		return rtrim( rtrim( sprintf( '%.2f', $number ), '0' ), '.' );
+	}
+}
+
+if ( ! function_exists( 'pera_crm_save_portfolio_property_fields_ajax' ) ) {
+	/**
+	 * Save advisor-editable portfolio fields for a linked property.
+	 */
+	function pera_crm_save_portfolio_property_fields_ajax(): void {
+		if ( ! is_user_logged_in() ) {
+			wp_send_json_error( array( 'message' => __( 'Forbidden', 'hello-elementor-child' ) ), 403 );
+		}
+
+		$nonce = isset( $_POST['nonce'] ) ? sanitize_text_field( wp_unslash( (string) $_POST['nonce'] ) ) : '';
+		if ( '' === $nonce || ! wp_verify_nonce( $nonce, 'pera_crm_save_portfolio_property_fields' ) ) {
+			wp_send_json_error( array( 'message' => __( 'Invalid nonce', 'hello-elementor-child' ) ), 403 );
+		}
+
+		$client_id   = isset( $_POST['client_id'] ) ? absint( wp_unslash( (string) $_POST['client_id'] ) ) : 0;
+		$property_id = isset( $_POST['property_id'] ) ? absint( wp_unslash( (string) $_POST['property_id'] ) ) : 0;
+		$raw_fields  = isset( $_POST['fields'] ) && is_array( $_POST['fields'] ) ? (array) wp_unslash( $_POST['fields'] ) : array();
+
+		if ( $client_id <= 0 || $property_id <= 0 || empty( $raw_fields ) ) {
+			wp_send_json_error( array( 'message' => __( 'Invalid input.', 'hello-elementor-child' ) ), 400 );
+		}
+
+		$access = pera_crm_client_view_access_state( $client_id );
+		$can_view = isset( $access['can_view'] ) ? ! empty( $access['can_view'] ) : ! empty( $access['allowed'] );
+		$can_edit = isset( $access['can_edit'] ) ? ! empty( $access['can_edit'] ) : $can_view;
+		if ( ! $can_view || ! $can_edit ) {
+			wp_send_json_error( array( 'message' => __( 'Access denied.', 'hello-elementor-child' ) ), 403 );
+		}
+
+		$exists = (bool) pera_crm_client_view_with_target_blog(
+			static function () use ( $client_id ) {
+				$client = get_post( $client_id );
+				return ( $client instanceof WP_Post ) && 'crm_client' === $client->post_type;
+			}
+		);
+		if ( ! $exists ) {
+			wp_send_json_error( array( 'message' => __( 'Client not found.', 'hello-elementor-child' ) ), 404 );
+		}
+
+		$relation_row = pera_crm_client_view_with_target_blog(
+			static function () use ( $client_id, $property_id ) {
+				if ( function_exists( 'peracrm_client_property_get_row' ) ) {
+					return peracrm_client_property_get_row( $client_id, $property_id, 'portfolio' );
+				}
+
+				if ( ! function_exists( 'peracrm_client_property_list' ) ) {
+					return null;
+				}
+
+				$rows = (array) peracrm_client_property_list( $client_id, 'portfolio', 500 );
+				foreach ( $rows as $row ) {
+					if ( (int) ( $row['property_id'] ?? 0 ) === $property_id ) {
+						return $row;
+					}
+				}
+
+				return null;
+			}
+		);
+		if ( ! is_array( $relation_row ) ) {
+			wp_send_json_error( array( 'message' => __( 'Portfolio relation not found for this property.', 'hello-elementor-child' ) ), 404 );
+		}
+
+		$allowed = array( 'floor_number', 'net_size', 'gross_size', 'list_price', 'cash_price' );
+		$sanitized = array();
+
+		foreach ( $allowed as $key ) {
+			if ( ! array_key_exists( $key, $raw_fields ) ) {
+				continue;
+			}
+
+			if ( 'floor_number' === $key ) {
+				$sanitized[ $key ] = sanitize_text_field( (string) $raw_fields[ $key ] );
+				continue;
+			}
+
+			$normalized = pera_crm_client_view_normalize_decimal_input( $raw_fields[ $key ] );
+			if ( null === $normalized ) {
+				$candidate = is_scalar( $raw_fields[ $key ] ) ? trim( (string) $raw_fields[ $key ] ) : '';
+				if ( '' !== $candidate ) {
+					wp_send_json_error( array( 'message' => sprintf( __( 'Invalid value for %s.', 'hello-elementor-child' ), $key ) ), 400 );
+				}
+			}
+			$sanitized[ $key ] = $normalized;
+		}
+
+		if ( empty( $sanitized ) ) {
+			wp_send_json_error( array( 'message' => __( 'No valid fields were provided.', 'hello-elementor-child' ) ), 400 );
+		}
+
+		$updated = (bool) pera_crm_client_view_with_target_blog(
+			static function () use ( $client_id, $property_id, $sanitized ) {
+				if ( ! function_exists( 'peracrm_client_property_update_portfolio_fields' ) ) {
+					return false;
+				}
+
+				return peracrm_client_property_update_portfolio_fields( $client_id, $property_id, $sanitized );
+			}
+		);
+
+		if ( ! $updated ) {
+			wp_send_json_error( array( 'message' => __( 'Unable to save portfolio fields.', 'hello-elementor-child' ) ), 400 );
+		}
+
+		wp_send_json_success(
+			array(
+				'client_id'   => $client_id,
+				'property_id' => $property_id,
+				'fields'      => $sanitized,
+			)
+		);
+	}
+}
+add_action( 'wp_ajax_pera_crm_save_portfolio_property_fields', 'pera_crm_save_portfolio_property_fields_ajax' );
+
 if ( ! function_exists( 'pera_crm_property_search_ajax' ) ) {
 	function pera_crm_property_search_ajax(): void {
 		if ( ! is_user_logged_in() || ! pera_crm_client_view_can_manage() ) {
