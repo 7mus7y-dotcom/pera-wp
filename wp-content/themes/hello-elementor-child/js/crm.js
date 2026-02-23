@@ -586,7 +586,7 @@
       payload.append('client_id', clientId);
       payload.append('property_id', propertyId);
 
-      ['floor_number', 'net_size', 'gross_size', 'list_price', 'cash_price'].forEach(function (fieldName) {
+      ['unit_type', 'floor_number', 'net_size', 'gross_size', 'list_price', 'cash_price'].forEach(function (fieldName) {
         var input = row.querySelector('[data-field="' + fieldName + '"]');
         payload.append('fields[' + fieldName + ']', input ? String(input.value || '') : '');
       });

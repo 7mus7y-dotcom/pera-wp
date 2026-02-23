@@ -82,6 +82,7 @@ function peracrm_upgrade_schema_to($target_version, $installed_version = 0)
             client_id BIGINT UNSIGNED NOT NULL,
             property_id BIGINT UNSIGNED NOT NULL,
             relation_type VARCHAR(30) NOT NULL,
+            unit_type VARCHAR(50) NULL,
             floor_number VARCHAR(20) NULL,
             net_size DECIMAL(10,2) NULL,
             gross_size DECIMAL(10,2) NULL,
@@ -397,4 +398,3 @@ function peracrm_migrate_stage_taxonomy_v4()
     }
     });
 }
-

@@ -864,7 +864,7 @@ if ( ! function_exists( 'pera_crm_save_portfolio_property_fields_ajax' ) ) {
 			wp_send_json_error( array( 'message' => __( 'Portfolio relation not found for this property.', 'hello-elementor-child' ) ), 404 );
 		}
 
-		$allowed = array( 'floor_number', 'net_size', 'gross_size', 'list_price', 'cash_price' );
+		$allowed = array( 'unit_type', 'floor_number', 'net_size', 'gross_size', 'list_price', 'cash_price' );
 		$sanitized = array();
 
 		foreach ( $allowed as $key ) {
@@ -872,8 +872,9 @@ if ( ! function_exists( 'pera_crm_save_portfolio_property_fields_ajax' ) ) {
 				continue;
 			}
 
-			if ( 'floor_number' === $key ) {
-				$sanitized[ $key ] = sanitize_text_field( (string) $raw_fields[ $key ] );
+			if ( 'unit_type' === $key || 'floor_number' === $key ) {
+				$value = sanitize_text_field( (string) $raw_fields[ $key ] );
+				$sanitized[ $key ] = '' === $value ? null : $value;
 				continue;
 			}
 

@@ -1,8 +1,9 @@
 # Portfolio Fields Implementation (Option A)
 
 ## What changed
-- Bumped `PERACRM_SCHEMA_VERSION` from `5` to `6`.
+- Bumped `PERACRM_SCHEMA_VERSION` from `6` to `7`.
 - Added nullable portfolio custom-field columns to `{$wpdb->prefix}crm_client_property` schema:
+  - `unit_type VARCHAR(50) NULL`
   - `floor_number VARCHAR(20) NULL`
   - `net_size DECIMAL(10,2) NULL`
   - `gross_size DECIMAL(10,2) NULL`
@@ -24,9 +25,12 @@
 2. In Linked Properties → Portfolio row, edit one or more fields (Floor, Net, Gross, List, Cash).
 3. Click **Save** and confirm inline status shows `Saved`.
 4. Refresh page and verify values persist.
-5. Try invalid nonce (e.g. alter request nonce) and confirm API returns 403.
-6. Unlink a portfolio row, then attempt save on that property/client relation and confirm API returns 404.
-7. Verify link/unlink behavior and portfolio token generation still work as before.
+5. Set **Type** to `1+1` and **Floor** to `5`, click **Save**, refresh, and verify both persist.
+6. Clear **Type** (empty input), click **Save**, refresh, and verify Type is blank (stored as `NULL`).
+7. Try invalid nonce (e.g. alter request nonce) and confirm API returns 403.
+8. Unlink a portfolio row, then attempt save on that property/client relation and confirm API returns 404.
+9. Verify non-portfolio relations remain unchanged.
+10. Verify link/unlink behavior and portfolio token generation still work as before.
 
 ## Mobile overflow fix (portfolio fields editor)
 - Added a late-file mobile override in `css/crm.css` to resolve a cascade conflict where a later `@media (max-width: 1024px)` rule forced `.peracrm-linked-properties-grid` back to 2 columns after an earlier `@media (max-width: 767px)` rule set 1 column.
