@@ -2947,6 +2947,13 @@ body:not(.single-post) tr:nth-child(even) {
 .content-panel--overlap-hero {
   margin-top: calc(var(--header-height) * -0.35);
 }
+@media (min-width: 1024px) {
+  .overlap-hero-archive {
+    margin-top: -200px;
+    position: relative;
+    z-index: 3;
+  }
+}
 @media (max-width: 900px) {
   .content-panel--overlap-hero {
     margin-top: -40px;

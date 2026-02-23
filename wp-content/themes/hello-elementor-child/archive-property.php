@@ -415,7 +415,7 @@ if ( ! $is_filtered_search && ( $qo instanceof WP_Term ) && ! is_wp_error( $qo )
 
     <!-- FILTER BAR + RESULTS WRAPPER -->
     <section class="section section-soft property-archive-intro-panel">
-        <div class="container">
+        <div class="container overlap-hero-archive">
             <div class="property-filters-wrapper">
                 <header class="section-header">
                             <h2>Available properties</h2>
