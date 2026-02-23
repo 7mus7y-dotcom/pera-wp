@@ -699,6 +699,9 @@ get_header();
                       <?php if ( 'portfolio' === (string) $relation ) : ?>
                         <div data-crm-portfolio-row data-client-id="<?php echo esc_attr( (string) $client_id ); ?>" data-property-id="<?php echo esc_attr( (string) $property_id ); ?>">
                         <div class="crm-form-row-2" data-crm-portfolio-fields>
+                          <label><?php esc_html_e( 'Type', 'hello-elementor-child' ); ?>
+                            <input type="text" name="unit_type" data-field="unit_type" value="<?php echo esc_attr( (string) ( $item['unit_type'] ?? '' ) ); ?>" />
+                          </label>
                           <label><?php esc_html_e( 'Floor', 'hello-elementor-child' ); ?>
                             <input type="text" name="floor_number" data-field="floor_number" value="<?php echo esc_attr( (string) ( $item['floor_number'] ?? '' ) ); ?>" />
                           </label>

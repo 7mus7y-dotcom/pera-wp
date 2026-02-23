@@ -113,6 +113,7 @@ function peracrm_client_property_update_portfolio_fields($client_id, $property_i
     }
 
     $allowed_keys = [
+        'unit_type',
         'floor_number',
         'net_size',
         'gross_size',
