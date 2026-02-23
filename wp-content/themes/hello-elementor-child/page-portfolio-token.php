@@ -164,8 +164,22 @@ get_header();
 											<td><?php echo esc_html( $field_or_dash( $row_data, 'floor_number' ) ); ?></td>
 											<td><?php echo esc_html( $field_or_dash( $row_data, 'net_size' ) ); ?></td>
 											<td><?php echo esc_html( $field_or_dash( $row_data, 'gross_size' ) ); ?></td>
-											<td><?php echo esc_html( $field_or_dash( $row_data, 'list_price' ) ); ?></td>
-											<td><?php echo esc_html( $field_or_dash( $row_data, 'cash_price' ) ); ?></td>
+											<td>
+												<?php
+												$list = $row_data['list_price'] ?? null;
+												echo null !== $list && '' !== $list
+													? esc_html( number_format( (float) $list, 0, '.', ',' ) )
+													: '—';
+												?>
+											</td>
+											<td>
+												<?php
+												$cash = $row_data['cash_price'] ?? null;
+												echo null !== $cash && '' !== $cash
+													? esc_html( number_format( (float) $cash, 0, '.', ',' ) )
+													: '—';
+												?>
+											</td>
 										</tr>
 									<?php endwhile; ?>
 								<?php else : ?>
