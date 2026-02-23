@@ -715,24 +715,41 @@ get_header();
                             <input type="text" name="cash_price" data-field="cash_price" value="<?php echo esc_attr( (string) ( $item['cash_price'] ?? '' ) ); ?>" />
                           </label>
                         </div>
-                        <div class="crm-inline-form">
-                          <button type="button" class="btn btn--solid btn--green" data-action="save-portfolio-fields"><?php esc_html_e( 'Save', 'hello-elementor-child' ); ?></button>
+                        <div class="peracrm-portfolio-actions">
+                          <button type="button" class="btn btn--ghost btn--blue peracrm-portfolio-action-btn peracrm-portfolio-save-btn" data-action="save-portfolio-fields" aria-label="<?php esc_attr_e( 'Save portfolio fields', 'hello-elementor-child' ); ?>">
+                            <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+                              <use href="#icon-floppy"></use>
+                            </svg>
+                          </button>
                           <span class="crm-inline-status" data-crm-portfolio-status aria-live="polite"></span>
-                        </div>
-                        </div>
-                      <?php endif; ?>
-                      <form method="post" class="peracrm-linked-property-unlink-form">
+                          <form method="post" class="peracrm-linked-property-unlink-form peracrm-portfolio-unlink-form">
 										<?php wp_nonce_field( 'pera_crm_property_action', 'pera_crm_property_nonce' ); ?>
-                        <input type="hidden" name="pera_crm_property_action" value="unlink" />
-                        <input type="hidden" name="peracrm_client_id" value="<?php echo esc_attr( (string) $client_id ); ?>" />
-                        <input type="hidden" name="property_id" value="<?php echo esc_attr( (string) $property_id ); ?>" />
-                        <input type="hidden" name="relation_type" value="<?php echo esc_attr( (string) $relation ); ?>" />
-                        <button type="submit" class="btn btn--ghost btn--blue peracrm-linked-property-unlink-btn" aria-label="<?php esc_attr_e( 'Unlink property', 'hello-elementor-child' ); ?>">
-                          <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
-                            <use href="#icon-broken-chain"></use>
-                          </svg>
-                        </button>
-                      </form>
+                            <input type="hidden" name="pera_crm_property_action" value="unlink" />
+                            <input type="hidden" name="peracrm_client_id" value="<?php echo esc_attr( (string) $client_id ); ?>" />
+                            <input type="hidden" name="property_id" value="<?php echo esc_attr( (string) $property_id ); ?>" />
+                            <input type="hidden" name="relation_type" value="<?php echo esc_attr( (string) $relation ); ?>" />
+                            <button type="submit" class="btn btn--ghost btn--blue peracrm-linked-property-unlink-btn peracrm-portfolio-action-btn" aria-label="<?php esc_attr_e( 'Unlink property', 'hello-elementor-child' ); ?>">
+                              <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+                                <use href="#icon-broken-chain"></use>
+                              </svg>
+                            </button>
+                          </form>
+                        </div>
+                        </div>
+                      <?php else : ?>
+                        <form method="post" class="peracrm-linked-property-unlink-form">
+								<?php wp_nonce_field( 'pera_crm_property_action', 'pera_crm_property_nonce' ); ?>
+                          <input type="hidden" name="pera_crm_property_action" value="unlink" />
+                          <input type="hidden" name="peracrm_client_id" value="<?php echo esc_attr( (string) $client_id ); ?>" />
+                          <input type="hidden" name="property_id" value="<?php echo esc_attr( (string) $property_id ); ?>" />
+                          <input type="hidden" name="relation_type" value="<?php echo esc_attr( (string) $relation ); ?>" />
+                          <button type="submit" class="btn btn--ghost btn--blue peracrm-linked-property-unlink-btn" aria-label="<?php esc_attr_e( 'Unlink property', 'hello-elementor-child' ); ?>">
+                            <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+                              <use href="#icon-broken-chain"></use>
+                            </svg>
+                          </button>
+                        </form>
+                      <?php endif; ?>
                     </li>
 						<?php endforeach; ?>
                 </ul>
