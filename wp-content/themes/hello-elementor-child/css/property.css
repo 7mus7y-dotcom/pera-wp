@@ -1375,3 +1375,30 @@ body.is-lightbox-open{ overflow: hidden; }
         }
 
 }
+
+/* Portfolio token: card/table view toggle */
+.portfolio-token-page .portfolio-token-summary {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-sm);
+}
+
+.portfolio-token-page .portfolio-view-toggle {
+  display: inline-flex;
+  gap: 8px;
+}
+
+.portfolio-token-page .portfolio-view-toggle .btn.is-active {
+  background-color: var(--brand, #38bdf8);
+  color: #fff;
+}
+
+.portfolio-token-page .portfolio-table-wrap {
+  overflow-x: auto;
+}
+
+.portfolio-token-page .portfolio-table {
+  min-width: 760px;
+}
