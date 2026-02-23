@@ -38,3 +38,13 @@
   - last field spanning full width for 5-field balance.
 - Added an extra narrow breakpoint (`<=420px`) to collapse the portfolio fields editor to one column.
 - Desktop and tablet behavior remain unchanged except intended tablet 2-column linked-property grid behavior is preserved.
+
+## UI fixes (Portfolio panel overflow)
+- Added portfolio-scoped containment rules in `css/crm.css` for the client-view Portfolio grid using the existing portfolio anchor selector chain: `body.crm-route .crm-page--client-view [data-crm-portfolio-output] ~ .peracrm-linked-properties-grid ...`.
+- Added desktop/all-width shrink guards for `[data-crm-portfolio-row]`, `[data-crm-portfolio-fields]`, field labels, and portfolio field inputs (`min-width: 0`, `width/max-width: 100%`, `box-sizing: border-box`) to prevent nested-grid overflow.
+- Added portfolio-card title wrapping hardening for `.crm-linked-property-link` (`display: block`, `overflow-wrap: anywhere`, `word-break: break-word`) so long property names cannot spill outside cards.
+- Updated portfolio editor grid tracks to `repeat(2, minmax(0, 1fr))` for `[data-crm-portfolio-fields].crm-form-row-2` to reduce min-content sizing pressure.
+- Added desktop-only portfolio grid density override:
+  - `>=1025px`: 2 columns for portfolio cards.
+  - `>=1400px`: 3 columns for portfolio cards.
+- Kept global linked-properties behavior intact for non-portfolio sections and preserved existing mobile breakpoints.
