@@ -353,7 +353,7 @@ if ( ! $is_filtered_search && ( $qo instanceof WP_Term ) && ! is_wp_error( $qo )
 ?>
 
     <!-- HERO -->
-    <section class="hero hero--left">
+    <section class="hero hero--left property-archive-hero">
 
           <?php
             // Taxonomy hero image (ACF term field). Expected: image array or ID.
@@ -410,31 +410,11 @@ if ( ! $is_filtered_search && ( $qo instanceof WP_Term ) && ! is_wp_error( $qo )
                 <?php endif; ?>
 
         
-            <div class="hero-actions">
-              <?php
-                $whatsapp_number = '905452054356'; // international format, no "+"
-                $wa_text         = 'Hello Pera Property, I would like to discuss my property needs in Istanbul';
-                $wa_url          = 'https://wa.me/' . $whatsapp_number . '?text=' . rawurlencode( $wa_text );
-              ?>
-        
-              <a
-                class="btn btn--solid btn--green"
-                href="<?php echo esc_url( $wa_url ); ?>"
-                target="_blank"
-                rel="noopener"
-              >
-                <svg class="icon" aria-hidden="true" width="18" height="18">
-                  <use href="<?php echo esc_url( get_stylesheet_directory_uri() . '/logos-icons/icons.svg#icon-whatsapp' ); ?>"></use>
-                </svg>
-                WhatsApp
-              </a>
-            </div>
-        
           </div>
         </section>
 
     <!-- FILTER BAR + RESULTS WRAPPER -->
-    <section class="section section-soft">
+    <section class="section section-soft property-archive-intro-panel">
         <div class="container">
             <div class="property-filters-wrapper">
                 <header class="section-header">

@@ -24,6 +24,48 @@
   margin: 0 auto;
 }
 
+.pera-v2-archive .property-archive-hero{
+  min-height: calc(52vh + var(--header-height));
+}
+
+.pera-v2-archive .property-archive-hero .hero-content{
+  padding: 108px 20px 52px;
+}
+
+.pera-v2-archive .property-archive-intro-panel{
+  position: relative;
+  z-index: 2;
+  margin-top: -28px;
+}
+
+@media (max-width: 1024px){
+  .pera-v2-archive .property-archive-hero{
+    min-height: calc(50vh + var(--header-height));
+  }
+
+  .pera-v2-archive .property-archive-hero .hero-content{
+    padding: 100px 18px 48px;
+  }
+
+  .pera-v2-archive .property-archive-intro-panel{
+    margin-top: -22px;
+  }
+}
+
+@media (max-width: 768px){
+  .pera-v2-archive .property-archive-hero{
+    min-height: 46vh;
+  }
+
+  .pera-v2-archive .property-archive-hero .hero-content{
+    padding: 130px 16px 42px;
+  }
+
+  .pera-v2-archive .property-archive-intro-panel{
+    margin-top: -14px;
+  }
+}
+
 
 /* =======================================================
    PROPERTY MAP – Read more / less button override
