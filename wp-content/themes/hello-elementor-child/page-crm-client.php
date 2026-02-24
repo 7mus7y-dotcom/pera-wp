@@ -727,7 +727,8 @@ get_header();
                             <input type="text" name="cash_price" data-field="cash_price" value="<?php echo esc_attr( (string) ( $item['cash_price'] ?? '' ) ); ?>" />
                           </label>
                           <label class="peracrm-portfolio-floor-plan-field"><?php esc_html_e( 'Floor plan (JPG)', 'hello-elementor-child' ); ?>
-                            <input type="file" name="floor_plan" accept="image/jpeg" data-field="floor_plan" />
+                            <input type="file" name="floor_plan" accept="image/jpeg" data-field="floor_plan_file" />
+                            <input type="hidden" name="floor_plan_attachment_id" data-field="floor_plan_attachment_id" value="<?php echo esc_attr( (string) $floor_plan_attachment_id ); ?>" />
                           </label>
                         </div>
                         <?php if ( '' !== $floor_plan_url ) : ?>
@@ -736,6 +737,7 @@ get_header();
                         <a class="peracrm-floor-plan-link" href="#" target="_blank" rel="noopener noreferrer" data-crm-floor-plan-link hidden><?php esc_html_e( 'View floor plan', 'hello-elementor-child' ); ?></a>
                         <?php endif; ?>
                         <div class="peracrm-portfolio-actions">
+                          <button type="button" class="btn btn--ghost btn--blue peracrm-portfolio-action-btn" data-action="upload-floor-plan"><?php esc_html_e( 'Upload', 'hello-elementor-child' ); ?></button>
                           <button type="button" class="btn btn--ghost btn--blue peracrm-portfolio-action-btn peracrm-portfolio-save-btn" data-action="save-portfolio-fields" aria-label="<?php esc_attr_e( 'Save portfolio fields', 'hello-elementor-child' ); ?>">
                             <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
                               <use href="#icon-floppy"></use>
