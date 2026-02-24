@@ -727,15 +727,15 @@ get_header();
                             <input type="text" name="cash_price" data-field="cash_price" value="<?php echo esc_attr( (string) ( $item['cash_price'] ?? '' ) ); ?>" />
                           </label>
                           <label class="peracrm-portfolio-floor-plan-field"><?php esc_html_e( 'Floor plan (JPG)', 'hello-elementor-child' ); ?>
-                            <input type="file" name="floor_plan" accept="image/jpeg" data-field="floor_plan_file" />
+                            <input type="file" name="floor_plan" accept="image/jpeg" data-field="floor_plan_file" data-floorplan-input id="crm-floorplan-<?php echo esc_attr( (string) $client_id ); ?>-<?php echo esc_attr( (string) $property_id ); ?>" />
                             <input type="hidden" name="floor_plan_attachment_id" data-field="floor_plan_attachment_id" value="<?php echo esc_attr( (string) $floor_plan_attachment_id ); ?>" />
                           </label>
                         </div>
                         <?php if ( '' !== $floor_plan_url ) : ?>
                         <a class="peracrm-floor-plan-link" href="<?php echo esc_url( $floor_plan_url ); ?>" target="_blank" rel="noopener noreferrer" data-crm-floor-plan-link><?php esc_html_e( 'View floor plan', 'hello-elementor-child' ); ?></a>
                         <?php endif; ?>
-                        <div class="peracrm-portfolio-actions">
-                          <button type="button" class="btn btn--ghost btn--blue peracrm-portfolio-action-btn crm-icon-btn" data-action="upload-floorplan" aria-label="<?php esc_attr_e( 'Upload floor plan', 'hello-elementor-child' ); ?>">
+                        <div class="crm-portfolio-actions peracrm-portfolio-actions">
+                          <button type="button" class="btn btn--ghost btn--blue peracrm-portfolio-action-btn crm-icon-btn" data-action="pick-floorplan" aria-label="<?php esc_attr_e( 'Choose floor plan', 'hello-elementor-child' ); ?>">
                             <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
                               <use href="#icon-upload"></use>
                             </svg>

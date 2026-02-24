@@ -564,8 +564,8 @@
 
   rows.forEach(function (row) {
     var saveButton = row.querySelector('[data-action="save-portfolio-fields"]');
-    var uploadButton = row.querySelector('[data-action="upload-floorplan"]');
-    var floorPlanInput = row.querySelector('[data-field="floor_plan_file"]');
+    var pickButton = row.querySelector('[data-action="pick-floorplan"]');
+    var floorPlanInput = row.querySelector('[data-floorplan-input]');
     var floorPlanAttachmentInput = row.querySelector('[data-field="floor_plan_attachment_id"]');
     var floorPlanLink = row.querySelector('[data-crm-floor-plan-link]');
     var statusEl = row.querySelector('[data-crm-portfolio-status]');
@@ -659,20 +659,18 @@
       });
     }
 
-    if (uploadButton) {
-      uploadButton.addEventListener('click', function (event) {
+    if (pickButton && floorPlanInput) {
+      pickButton.addEventListener('click', function (event) {
         event.preventDefault();
-        uploadButton.disabled = true;
-        uploadFloorPlan().catch(function (error) {
-          setStatus(error && error.message ? error.message : 'Upload failed.');
-        }).finally(function () {
-          uploadButton.disabled = false;
-        });
+        floorPlanInput.click();
       });
     }
 
     if (floorPlanInput) {
       floorPlanInput.addEventListener('change', function () {
+        if (floorPlanInput.files && floorPlanInput.files[0]) {
+          setStatus('Ready to upload');
+        }
         uploadFloorPlan().catch(function (error) {
           setStatus(error && error.message ? error.message : 'Upload failed.');
         });
