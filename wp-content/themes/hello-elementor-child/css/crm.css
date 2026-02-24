@@ -499,23 +499,37 @@ body.crm-route .crm-page--client-view [data-crm-portfolio-output] ~ .peracrm-lin
   grid-column: 1 / -1;
 }
 
+body.crm-route .crm-page--client-view [data-crm-portfolio-row] [data-floorplan-input] {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
 body.crm-route .crm-page--client-view [data-crm-portfolio-output] ~ .peracrm-linked-properties-grid .peracrm-floor-plan-link {
   display: inline-block;
   margin-top: 8px;
 }
+body.crm-route .crm-page--client-view [data-crm-portfolio-row] .crm-portfolio-actions,
 body.crm-route .crm-page--client-view [data-crm-portfolio-output] ~ .peracrm-linked-properties-grid .peracrm-portfolio-actions {
   display: flex;
   align-items: center;
   gap: 10px;
   margin-top: 10px;
-  flex-wrap: wrap;
 }
 
+body.crm-route .crm-page--client-view [data-crm-portfolio-row] .crm-portfolio-actions .crm-inline-status,
 body.crm-route .crm-page--client-view [data-crm-portfolio-output] ~ .peracrm-linked-properties-grid .peracrm-portfolio-actions .crm-inline-status {
-  flex: 0 0 auto;
-  min-width: 0;
+  margin-left: 4px;
 }
 
+body.crm-route .crm-page--client-view .crm-icon-btn,
+body.crm-route .crm-page--client-view .peracrm-linked-property-unlink-btn,
 body.crm-route .crm-page--client-view [data-crm-portfolio-output] ~ .peracrm-linked-properties-grid .crm-icon-btn,
 body.crm-route .crm-page--client-view [data-crm-portfolio-output] ~ .peracrm-linked-properties-grid .peracrm-linked-property-unlink-btn.peracrm-portfolio-action-btn {
   width: 40px;
@@ -535,6 +549,11 @@ body.crm-route .crm-page--client-view [data-crm-portfolio-output] ~ .peracrm-lin
   width: 18px;
   height: 18px;
   display: block;
+}
+
+body.crm-route .crm-page--client-view .crm-portfolio-actions .peracrm-linked-property-unlink-form {
+  margin: 0;
+  display: contents;
 }
 
 .crm-client-timeline .hero-pills {
