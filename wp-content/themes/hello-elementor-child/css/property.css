@@ -1440,3 +1440,23 @@ body.is-lightbox-open{ overflow: hidden; }
 .portfolio-token-page .portfolio-table {
   min-width: 760px;
 }
+
+.portfolio-token-page .portfolio-floor-plan-action {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  margin: 8px 0 20px;
+}
+
+.portfolio-token-page .portfolio-floor-plan-thumb-link {
+  display: inline-flex;
+  border-radius: 6px;
+  overflow: hidden;
+}
+
+.portfolio-token-page .portfolio-floor-plan-thumb {
+  display: block;
+  width: 42px;
+  height: 42px;
+  object-fit: cover;
+}
