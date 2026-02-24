@@ -773,6 +773,95 @@ if ( ! function_exists( 'pera_crm_create_portfolio_token_ajax' ) ) {
 }
 add_action( 'wp_ajax_peracrm_create_portfolio_token', 'pera_crm_create_portfolio_token_ajax' );
 
+if ( ! function_exists( 'pera_crm_upload_portfolio_floor_plan_ajax' ) ) {
+	/**
+	 * Upload a portfolio floor plan JPEG and return attachment details.
+	 */
+	function pera_crm_upload_portfolio_floor_plan_ajax(): void {
+		if ( ! is_user_logged_in() ) {
+			wp_send_json_error( array( 'message' => __( 'Forbidden', 'hello-elementor-child' ) ), 403 );
+		}
+
+		$nonce = isset( $_POST['nonce'] ) ? sanitize_text_field( wp_unslash( (string) $_POST['nonce'] ) ) : '';
+		if ( '' === $nonce || ! wp_verify_nonce( $nonce, 'pera_crm_upload_portfolio_floor_plan' ) ) {
+			wp_send_json_error( array( 'message' => __( 'Invalid nonce', 'hello-elementor-child' ) ), 403 );
+		}
+
+		$client_id   = isset( $_POST['client_id'] ) ? absint( wp_unslash( (string) $_POST['client_id'] ) ) : 0;
+		$property_id = isset( $_POST['property_id'] ) ? absint( wp_unslash( (string) $_POST['property_id'] ) ) : 0;
+
+		if ( $client_id <= 0 || $property_id <= 0 || ! isset( $_FILES['floor_plan'] ) || ! is_array( $_FILES['floor_plan'] ) ) {
+			wp_send_json_error( array( 'message' => __( 'Invalid input.', 'hello-elementor-child' ) ), 400 );
+		}
+
+		$access   = pera_crm_client_view_access_state( $client_id );
+		$can_view = isset( $access['can_view'] ) ? ! empty( $access['can_view'] ) : ! empty( $access['allowed'] );
+		$can_edit = isset( $access['can_edit'] ) ? ! empty( $access['can_edit'] ) : $can_view;
+		if ( ! $can_view || ! $can_edit ) {
+			wp_send_json_error( array( 'message' => __( 'Access denied.', 'hello-elementor-child' ) ), 403 );
+		}
+
+		$relation_row = pera_crm_client_view_with_target_blog(
+			static function () use ( $client_id, $property_id ) {
+				if ( function_exists( 'peracrm_client_property_get_row' ) ) {
+					return peracrm_client_property_get_row( $client_id, $property_id, 'portfolio' );
+				}
+
+				if ( ! function_exists( 'peracrm_client_property_list' ) ) {
+					return null;
+				}
+
+				$rows = (array) peracrm_client_property_list( $client_id, 'portfolio', 500 );
+				foreach ( $rows as $row ) {
+					if ( (int) ( $row['property_id'] ?? 0 ) === $property_id ) {
+						return $row;
+					}
+				}
+
+				return null;
+			}
+		);
+		if ( ! is_array( $relation_row ) ) {
+			wp_send_json_error( array( 'message' => __( 'Portfolio relation not found for this property.', 'hello-elementor-child' ) ), 404 );
+		}
+
+		$upload = $_FILES['floor_plan'];
+		if ( empty( $upload['name'] ) || ! isset( $upload['error'] ) || (int) $upload['error'] !== UPLOAD_ERR_OK ) {
+			wp_send_json_error( array( 'message' => __( 'Floor plan upload failed.', 'hello-elementor-child' ) ), 400 );
+		}
+
+		$filename   = isset( $upload['name'] ) ? (string) $upload['name'] : '';
+		$tmp_name   = isset( $upload['tmp_name'] ) ? (string) $upload['tmp_name'] : '';
+		$file_check = wp_check_filetype_and_ext( $tmp_name, $filename );
+		$ext        = isset( $file_check['ext'] ) ? strtolower( (string) $file_check['ext'] ) : '';
+		$type       = isset( $file_check['type'] ) ? strtolower( (string) $file_check['type'] ) : '';
+
+		if ( ! in_array( $ext, array( 'jpg', 'jpeg' ), true ) || ! in_array( $type, array( 'image/jpeg', 'image/jpg' ), true ) ) {
+			wp_send_json_error( array( 'message' => __( 'Floor plan must be a JPG/JPEG file.', 'hello-elementor-child' ) ), 400 );
+		}
+
+		require_once ABSPATH . 'wp-admin/includes/file.php';
+		require_once ABSPATH . 'wp-admin/includes/media.php';
+		require_once ABSPATH . 'wp-admin/includes/image.php';
+
+		$attachment = media_handle_upload( 'floor_plan', 0 );
+		if ( is_wp_error( $attachment ) ) {
+			wp_send_json_error( array( 'message' => $attachment->get_error_message() ), 400 );
+		}
+
+		$attachment_id = (int) $attachment;
+		$url           = (string) wp_get_attachment_url( $attachment_id );
+
+		wp_send_json_success(
+			array(
+				'attachment_id' => $attachment_id,
+				'url'           => $url,
+			)
+		);
+	}
+}
+add_action( 'wp_ajax_pera_crm_upload_portfolio_floor_plan', 'pera_crm_upload_portfolio_floor_plan_ajax' );
+
 if ( ! function_exists( 'pera_crm_client_view_normalize_decimal_input' ) ) {
 	/**
 	 * Normalize decimal user input for DB writes.
@@ -818,9 +907,8 @@ if ( ! function_exists( 'pera_crm_save_portfolio_property_fields_ajax' ) ) {
 		$client_id   = isset( $_POST['client_id'] ) ? absint( wp_unslash( (string) $_POST['client_id'] ) ) : 0;
 		$property_id = isset( $_POST['property_id'] ) ? absint( wp_unslash( (string) $_POST['property_id'] ) ) : 0;
 		$raw_fields   = isset( $_POST['fields'] ) && is_array( $_POST['fields'] ) ? (array) wp_unslash( $_POST['fields'] ) : array();
-		$has_upload   = isset( $_FILES['floor_plan'] ) && is_array( $_FILES['floor_plan'] );
 
-		if ( $client_id <= 0 || $property_id <= 0 || ( empty( $raw_fields ) && ! $has_upload ) ) {
+		if ( $client_id <= 0 || $property_id <= 0 || empty( $raw_fields ) ) {
 			wp_send_json_error( array( 'message' => __( 'Invalid input.', 'hello-elementor-child' ) ), 400 );
 		}
 
@@ -865,52 +953,19 @@ if ( ! function_exists( 'pera_crm_save_portfolio_property_fields_ajax' ) ) {
 			wp_send_json_error( array( 'message' => __( 'Portfolio relation not found for this property.', 'hello-elementor-child' ) ), 404 );
 		}
 
-		$allowed = array( 'unit_type', 'floor_number', 'net_size', 'gross_size', 'list_price', 'cash_price' );
+		$allowed = array( 'unit_type', 'floor_number', 'net_size', 'gross_size', 'list_price', 'cash_price', 'floor_plan_attachment_id' );
 		$sanitized = array();
 
 		$floor_plan_url = '';
-		if ( $has_upload ) {
-			$upload = $_FILES['floor_plan'];
-
-			if ( empty( $upload['name'] ) || ! isset( $upload['error'] ) ) {
-				wp_send_json_error( array( 'message' => __( 'Invalid floor plan upload.', 'hello-elementor-child' ) ), 400 );
-			}
-
-			if ( (int) $upload['error'] !== UPLOAD_ERR_OK ) {
-				wp_send_json_error( array( 'message' => __( 'Floor plan upload failed.', 'hello-elementor-child' ) ), 400 );
-			}
-
-			$max_size = 5 * MB_IN_BYTES;
-			if ( isset( $upload['size'] ) && (int) $upload['size'] > $max_size ) {
-				wp_send_json_error( array( 'message' => __( 'Floor plan must be 5MB or smaller.', 'hello-elementor-child' ) ), 400 );
-			}
-
-			$filename   = isset( $upload['name'] ) ? (string) $upload['name'] : '';
-			$tmp_name   = isset( $upload['tmp_name'] ) ? (string) $upload['tmp_name'] : '';
-			$file_check = wp_check_filetype_and_ext( $tmp_name, $filename );
-			$ext        = isset( $file_check['ext'] ) ? strtolower( (string) $file_check['ext'] ) : '';
-			$type       = isset( $file_check['type'] ) ? strtolower( (string) $file_check['type'] ) : '';
-
-			if ( ! in_array( $ext, array( 'jpg', 'jpeg' ), true ) || ! in_array( $type, array( 'image/jpeg', 'image/jpg' ), true ) ) {
-				wp_send_json_error( array( 'message' => __( 'Floor plan must be a JPG/JPEG file.', 'hello-elementor-child' ) ), 400 );
-			}
-
-			require_once ABSPATH . 'wp-admin/includes/file.php';
-			require_once ABSPATH . 'wp-admin/includes/media.php';
-			require_once ABSPATH . 'wp-admin/includes/image.php';
-
-			$attachment = media_handle_upload( 'floor_plan', 0 );
-			if ( is_wp_error( $attachment ) ) {
-				wp_send_json_error( array( 'message' => $attachment->get_error_message() ), 400 );
-			}
-
-			$attachment_id = (int) $attachment;
-			$sanitized['floor_plan_attachment_id'] = $attachment_id;
-			$floor_plan_url = (string) wp_get_attachment_url( $attachment_id );
-		}
 
 		foreach ( $allowed as $key ) {
 			if ( ! array_key_exists( $key, $raw_fields ) ) {
+				continue;
+			}
+
+			if ( 'floor_plan_attachment_id' === $key ) {
+				$value = absint( $raw_fields[ $key ] );
+				$sanitized[ $key ] = $value > 0 ? $value : null;
 				continue;
 			}
 

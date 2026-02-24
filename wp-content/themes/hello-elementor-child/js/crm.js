@@ -556,50 +556,126 @@
   }
 
   var ajaxUrl = window.peraCrmData && window.peraCrmData.ajaxUrl ? window.peraCrmData.ajaxUrl : '';
-  var nonce = window.peraCrmData && window.peraCrmData.portfolioFieldsNonce ? window.peraCrmData.portfolioFieldsNonce : '';
-  if (!ajaxUrl || !nonce) {
+  var fieldsNonce = window.peraCrmData && window.peraCrmData.portfolioFieldsNonce ? window.peraCrmData.portfolioFieldsNonce : '';
+  var uploadNonce = window.peraCrmData && window.peraCrmData.portfolioFloorPlanNonce ? window.peraCrmData.portfolioFloorPlanNonce : '';
+  if (!ajaxUrl || !fieldsNonce || !uploadNonce) {
     return;
   }
 
   rows.forEach(function (row) {
     var saveButton = row.querySelector('[data-action="save-portfolio-fields"]');
+    var uploadButton = row.querySelector('[data-action="upload-floor-plan"]');
+    var floorPlanInput = row.querySelector('[data-field="floor_plan_file"]');
+    var floorPlanAttachmentInput = row.querySelector('[data-field="floor_plan_attachment_id"]');
+    var floorPlanLink = row.querySelector('[data-crm-floor-plan-link]');
     var statusEl = row.querySelector('[data-crm-portfolio-status]');
     if (!saveButton) {
       return;
     }
 
+    var clientId = row.getAttribute('data-client-id') || '';
+    var propertyId = row.getAttribute('data-property-id') || '';
+
+    function setStatus(message) {
+      if (statusEl) {
+        statusEl.textContent = message;
+      }
+    }
+
+    function uploadFloorPlan() {
+      return new Promise(function (resolve, reject) {
+        if (!floorPlanInput || !floorPlanInput.files || !floorPlanInput.files[0]) {
+          resolve(null);
+          return;
+        }
+
+        if (!clientId || !propertyId) {
+          reject(new Error('Missing client or property.'));
+          return;
+        }
+
+        var payload = new window.FormData();
+        payload.append('action', 'pera_crm_upload_portfolio_floor_plan');
+        payload.append('nonce', uploadNonce);
+        payload.append('client_id', clientId);
+        payload.append('property_id', propertyId);
+        payload.append('floor_plan', floorPlanInput.files[0]);
+
+        setStatus('Uploading…');
+
+        fetch(ajaxUrl, {
+          method: 'POST',
+          body: payload,
+          credentials: 'same-origin'
+        })
+          .then(function (response) { return response.json(); })
+          .then(function (json) {
+            if (!json || !json.success || !json.data) {
+              var message = json && json.data && json.data.message ? String(json.data.message) : 'Upload failed.';
+              throw new Error(message);
+            }
+
+            var attachmentId = json.data.attachment_id ? String(json.data.attachment_id) : '';
+            if (floorPlanAttachmentInput) {
+              floorPlanAttachmentInput.value = attachmentId;
+            }
+
+            if (json.data.url && floorPlanLink) {
+              floorPlanLink.href = String(json.data.url);
+              floorPlanLink.hidden = false;
+            }
+
+            floorPlanInput.value = '';
+            setStatus('Uploaded');
+            resolve(json.data);
+          })
+          .catch(function (error) {
+            reject(error);
+          });
+      });
+    }
+
+    if (uploadButton) {
+      uploadButton.addEventListener('click', function (event) {
+        event.preventDefault();
+        uploadButton.disabled = true;
+        uploadFloorPlan().catch(function (error) {
+          setStatus(error && error.message ? error.message : 'Upload failed.');
+        }).finally(function () {
+          uploadButton.disabled = false;
+        });
+      });
+    }
+
+    if (floorPlanInput) {
+      floorPlanInput.addEventListener('change', function () {
+        uploadFloorPlan().catch(function (error) {
+          setStatus(error && error.message ? error.message : 'Upload failed.');
+        });
+      });
+    }
+
     saveButton.addEventListener('click', function (event) {
       event.preventDefault();
 
-      var clientId = row.getAttribute('data-client-id') || '';
-      var propertyId = row.getAttribute('data-property-id') || '';
       if (!clientId || !propertyId) {
-        if (statusEl) {
-          statusEl.textContent = 'Missing client or property.';
-        }
+        setStatus('Missing client or property.');
         return;
       }
 
       var payload = new window.FormData();
       payload.append('action', 'pera_crm_save_portfolio_property_fields');
-      payload.append('nonce', nonce);
+      payload.append('nonce', fieldsNonce);
       payload.append('client_id', clientId);
       payload.append('property_id', propertyId);
 
-      ['unit_type', 'floor_number', 'net_size', 'gross_size', 'list_price', 'cash_price'].forEach(function (fieldName) {
+      ['unit_type', 'floor_number', 'net_size', 'gross_size', 'list_price', 'cash_price', 'floor_plan_attachment_id'].forEach(function (fieldName) {
         var input = row.querySelector('[data-field="' + fieldName + '"]');
         payload.append('fields[' + fieldName + ']', input ? String(input.value || '') : '');
       });
 
-      var floorPlanInput = row.querySelector('[data-field="floor_plan"]');
-      if (floorPlanInput && floorPlanInput.files && floorPlanInput.files[0]) {
-        payload.append('floor_plan', floorPlanInput.files[0]);
-      }
-
       saveButton.disabled = true;
-      if (statusEl) {
-        statusEl.textContent = 'Saving…';
-      }
+      setStatus('Saving…');
 
       fetch(ajaxUrl, {
         method: 'POST',
@@ -621,26 +697,15 @@
             input.value = json.data.fields[key] === null ? '' : String(json.data.fields[key]);
           });
 
-          if (json.data.floor_plan_url) {
-            var floorPlanLink = row.querySelector('[data-crm-floor-plan-link]');
-            if (floorPlanLink) {
-              floorPlanLink.href = String(json.data.floor_plan_url);
-              floorPlanLink.hidden = false;
-            }
+          if (json.data.floor_plan_url && floorPlanLink) {
+            floorPlanLink.href = String(json.data.floor_plan_url);
+            floorPlanLink.hidden = false;
           }
 
-          if (floorPlanInput) {
-            floorPlanInput.value = '';
-          }
-
-          if (statusEl) {
-            statusEl.textContent = 'Saved';
-          }
+          setStatus('Saved');
         })
         .catch(function (error) {
-          if (statusEl) {
-            statusEl.textContent = error && error.message ? error.message : 'Unable to save.';
-          }
+          setStatus(error && error.message ? error.message : 'Unable to save.');
         })
         .finally(function () {
           saveButton.disabled = false;
