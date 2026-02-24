@@ -733,12 +733,14 @@ get_header();
                         </div>
                         <?php if ( '' !== $floor_plan_url ) : ?>
                         <a class="peracrm-floor-plan-link" href="<?php echo esc_url( $floor_plan_url ); ?>" target="_blank" rel="noopener noreferrer" data-crm-floor-plan-link><?php esc_html_e( 'View floor plan', 'hello-elementor-child' ); ?></a>
-                        <?php else : ?>
-                        <a class="peracrm-floor-plan-link" href="#" target="_blank" rel="noopener noreferrer" data-crm-floor-plan-link hidden><?php esc_html_e( 'View floor plan', 'hello-elementor-child' ); ?></a>
                         <?php endif; ?>
                         <div class="peracrm-portfolio-actions">
-                          <button type="button" class="btn btn--ghost btn--blue peracrm-portfolio-action-btn" data-action="upload-floor-plan"><?php esc_html_e( 'Upload', 'hello-elementor-child' ); ?></button>
-                          <button type="button" class="btn btn--ghost btn--blue peracrm-portfolio-action-btn peracrm-portfolio-save-btn" data-action="save-portfolio-fields" aria-label="<?php esc_attr_e( 'Save portfolio fields', 'hello-elementor-child' ); ?>">
+                          <button type="button" class="btn btn--ghost btn--blue peracrm-portfolio-action-btn crm-icon-btn" data-action="upload-floorplan" aria-label="<?php esc_attr_e( 'Upload floor plan', 'hello-elementor-child' ); ?>">
+                            <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+                              <use href="#icon-upload"></use>
+                            </svg>
+                          </button>
+                          <button type="button" class="btn btn--ghost btn--blue peracrm-portfolio-action-btn peracrm-portfolio-save-btn crm-icon-btn" data-action="save-portfolio-fields" aria-label="<?php esc_attr_e( 'Save portfolio fields', 'hello-elementor-child' ); ?>">
                             <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
                               <use href="#icon-floppy"></use>
                             </svg>
@@ -750,7 +752,7 @@ get_header();
                             <input type="hidden" name="peracrm_client_id" value="<?php echo esc_attr( (string) $client_id ); ?>" />
                             <input type="hidden" name="property_id" value="<?php echo esc_attr( (string) $property_id ); ?>" />
                             <input type="hidden" name="relation_type" value="<?php echo esc_attr( (string) $relation ); ?>" />
-                            <button type="submit" class="btn btn--ghost btn--blue peracrm-linked-property-unlink-btn peracrm-portfolio-action-btn" aria-label="<?php esc_attr_e( 'Unlink property', 'hello-elementor-child' ); ?>">
+                            <button type="submit" class="btn btn--ghost btn--blue peracrm-linked-property-unlink-btn peracrm-portfolio-action-btn crm-icon-btn" aria-label="<?php esc_attr_e( 'Unlink property', 'hello-elementor-child' ); ?>">
                               <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
                                 <use href="#icon-broken-chain"></use>
                               </svg>
