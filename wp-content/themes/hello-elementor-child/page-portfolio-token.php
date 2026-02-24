@@ -68,6 +68,7 @@ get_header();
 		$client_id    = $portfolio_id > 0 ? (int) get_post_meta( $portfolio_id, '_portfolio_client_id', true ) : 0;
 
 		$portfolio_rows_by_property = array();
+		$floor_plan_urls_by_property = array();
 		if ( $client_id > 0 && function_exists( 'peracrm_client_property_list' ) ) {
 			$portfolio_rows = (array) peracrm_client_property_list( $client_id, 'portfolio', 500 );
 			foreach ( $portfolio_rows as $portfolio_row ) {
@@ -78,6 +79,14 @@ get_header();
 				$linked_property_id = isset( $portfolio_row['property_id'] ) ? (int) $portfolio_row['property_id'] : 0;
 				if ( $linked_property_id > 0 ) {
 					$portfolio_rows_by_property[ $linked_property_id ] = $portfolio_row;
+
+					$floor_plan_attachment_id = isset( $portfolio_row['floor_plan_attachment_id'] ) ? (int) $portfolio_row['floor_plan_attachment_id'] : 0;
+					if ( $floor_plan_attachment_id > 0 ) {
+						$floor_plan_url = wp_get_attachment_url( $floor_plan_attachment_id );
+						if ( is_string( $floor_plan_url ) && '' !== $floor_plan_url ) {
+							$floor_plan_urls_by_property[ $linked_property_id ] = $floor_plan_url;
+						}
+					}
 				}
 			}
 		}
@@ -117,10 +126,36 @@ get_header();
 						<?php if ( $properties_query->have_posts() ) : ?>
 							<?php while ( $properties_query->have_posts() ) : $properties_query->the_post(); ?>
 								<?php
+								$property_id      = (int) get_the_ID();
+								$floor_plan_url   = isset( $floor_plan_urls_by_property[ $property_id ] ) ? (string) $floor_plan_urls_by_property[ $property_id ] : '';
+								$has_floor_plan   = '' !== $floor_plan_url;
+								$floor_plan_thumb = '';
+
+								if ( $has_floor_plan && ! empty( $portfolio_rows_by_property[ $property_id ]['floor_plan_attachment_id'] ) ) {
+									$floor_plan_thumb = wp_get_attachment_image(
+										(int) $portfolio_rows_by_property[ $property_id ]['floor_plan_attachment_id'],
+										'thumbnail',
+										false,
+										array(
+											'class'   => 'portfolio-floor-plan-thumb',
+											'loading' => 'lazy',
+											'alt'     => esc_attr__( 'Floor plan thumbnail', 'hello-elementor-child' ),
+										)
+									);
+								}
+
 								if ( function_exists( 'pera_render_property_card' ) ) {
 									pera_render_property_card( array( 'variant' => 'archive' ) );
 								}
 								?>
+								<?php if ( $has_floor_plan ) : ?>
+									<div class="portfolio-floor-plan-action">
+										<a class="btn btn--ghost btn--blue" href="<?php echo esc_url( $floor_plan_url ); ?>" target="_blank" rel="noopener noreferrer"><?php esc_html_e( 'Floor plan', 'hello-elementor-child' ); ?></a>
+										<?php if ( '' !== $floor_plan_thumb ) : ?>
+											<a class="portfolio-floor-plan-thumb-link" href="<?php echo esc_url( $floor_plan_url ); ?>" target="_blank" rel="noopener noreferrer" aria-label="<?php esc_attr_e( 'Open floor plan image', 'hello-elementor-child' ); ?>"><?php echo $floor_plan_thumb; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?></a>
+										<?php endif; ?>
+									</div>
+								<?php endif; ?>
 							<?php endwhile; ?>
 						<?php else : ?>
 							<p class="no-results">No properties available in this portfolio right now.</p>
@@ -142,6 +177,7 @@ get_header();
 									<th scope="col"><?php esc_html_e( 'Gross (m²)', 'hello-elementor-child' ); ?></th>
 									<th scope="col"><?php esc_html_e( 'List ($)', 'hello-elementor-child' ); ?></th>
 									<th scope="col"><?php esc_html_e( 'Cash ($)', 'hello-elementor-child' ); ?></th>
+									<th scope="col"><?php esc_html_e( 'Floor plan', 'hello-elementor-child' ); ?></th>
 								</tr>
 							</thead>
 							<tbody>
@@ -152,6 +188,7 @@ get_header();
 										$row_data    = isset( $portfolio_rows_by_property[ $property_id ] ) && is_array( $portfolio_rows_by_property[ $property_id ] )
 											? $portfolio_rows_by_property[ $property_id ]
 											: array();
+										$floor_plan_url = isset( $floor_plan_urls_by_property[ $property_id ] ) ? (string) $floor_plan_urls_by_property[ $property_id ] : '';
 
 										$field_or_dash = static function ( array $row, string $key ): string {
 											$value = isset( $row[ $key ] ) ? trim( (string) $row[ $key ] ) : '';
@@ -180,11 +217,18 @@ get_header();
 													: '—';
 												?>
 											</td>
+											<td>
+												<?php if ( '' !== $floor_plan_url ) : ?>
+													<a href="<?php echo esc_url( $floor_plan_url ); ?>" target="_blank" rel="noopener noreferrer"><?php esc_html_e( 'View', 'hello-elementor-child' ); ?></a>
+												<?php else : ?>
+													—
+												<?php endif; ?>
+											</td>
 										</tr>
 									<?php endwhile; ?>
 								<?php else : ?>
 									<tr>
-										<td colspan="7"><?php esc_html_e( 'No properties available in this portfolio right now.', 'hello-elementor-child' ); ?></td>
+										<td colspan="8"><?php esc_html_e( 'No properties available in this portfolio right now.', 'hello-elementor-child' ); ?></td>
 									</tr>
 								<?php endif; ?>
 							</tbody>
