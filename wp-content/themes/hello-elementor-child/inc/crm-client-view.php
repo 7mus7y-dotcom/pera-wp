@@ -817,9 +817,10 @@ if ( ! function_exists( 'pera_crm_save_portfolio_property_fields_ajax' ) ) {
 
 		$client_id   = isset( $_POST['client_id'] ) ? absint( wp_unslash( (string) $_POST['client_id'] ) ) : 0;
 		$property_id = isset( $_POST['property_id'] ) ? absint( wp_unslash( (string) $_POST['property_id'] ) ) : 0;
-		$raw_fields  = isset( $_POST['fields'] ) && is_array( $_POST['fields'] ) ? (array) wp_unslash( $_POST['fields'] ) : array();
+		$raw_fields   = isset( $_POST['fields'] ) && is_array( $_POST['fields'] ) ? (array) wp_unslash( $_POST['fields'] ) : array();
+		$has_upload   = isset( $_FILES['floor_plan'] ) && is_array( $_FILES['floor_plan'] );
 
-		if ( $client_id <= 0 || $property_id <= 0 || empty( $raw_fields ) ) {
+		if ( $client_id <= 0 || $property_id <= 0 || ( empty( $raw_fields ) && ! $has_upload ) ) {
 			wp_send_json_error( array( 'message' => __( 'Invalid input.', 'hello-elementor-child' ) ), 400 );
 		}
 
@@ -867,6 +868,47 @@ if ( ! function_exists( 'pera_crm_save_portfolio_property_fields_ajax' ) ) {
 		$allowed = array( 'unit_type', 'floor_number', 'net_size', 'gross_size', 'list_price', 'cash_price' );
 		$sanitized = array();
 
+		$floor_plan_url = '';
+		if ( $has_upload ) {
+			$upload = $_FILES['floor_plan'];
+
+			if ( empty( $upload['name'] ) || ! isset( $upload['error'] ) ) {
+				wp_send_json_error( array( 'message' => __( 'Invalid floor plan upload.', 'hello-elementor-child' ) ), 400 );
+			}
+
+			if ( (int) $upload['error'] !== UPLOAD_ERR_OK ) {
+				wp_send_json_error( array( 'message' => __( 'Floor plan upload failed.', 'hello-elementor-child' ) ), 400 );
+			}
+
+			$max_size = 5 * MB_IN_BYTES;
+			if ( isset( $upload['size'] ) && (int) $upload['size'] > $max_size ) {
+				wp_send_json_error( array( 'message' => __( 'Floor plan must be 5MB or smaller.', 'hello-elementor-child' ) ), 400 );
+			}
+
+			$filename   = isset( $upload['name'] ) ? (string) $upload['name'] : '';
+			$tmp_name   = isset( $upload['tmp_name'] ) ? (string) $upload['tmp_name'] : '';
+			$file_check = wp_check_filetype_and_ext( $tmp_name, $filename );
+			$ext        = isset( $file_check['ext'] ) ? strtolower( (string) $file_check['ext'] ) : '';
+			$type       = isset( $file_check['type'] ) ? strtolower( (string) $file_check['type'] ) : '';
+
+			if ( ! in_array( $ext, array( 'jpg', 'jpeg' ), true ) || ! in_array( $type, array( 'image/jpeg', 'image/jpg' ), true ) ) {
+				wp_send_json_error( array( 'message' => __( 'Floor plan must be a JPG/JPEG file.', 'hello-elementor-child' ) ), 400 );
+			}
+
+			require_once ABSPATH . 'wp-admin/includes/file.php';
+			require_once ABSPATH . 'wp-admin/includes/media.php';
+			require_once ABSPATH . 'wp-admin/includes/image.php';
+
+			$attachment = media_handle_upload( 'floor_plan', 0 );
+			if ( is_wp_error( $attachment ) ) {
+				wp_send_json_error( array( 'message' => $attachment->get_error_message() ), 400 );
+			}
+
+			$attachment_id = (int) $attachment;
+			$sanitized['floor_plan_attachment_id'] = $attachment_id;
+			$floor_plan_url = (string) wp_get_attachment_url( $attachment_id );
+		}
+
 		foreach ( $allowed as $key ) {
 			if ( ! array_key_exists( $key, $raw_fields ) ) {
 				continue;
@@ -906,11 +948,19 @@ if ( ! function_exists( 'pera_crm_save_portfolio_property_fields_ajax' ) ) {
 			wp_send_json_error( array( 'message' => __( 'Unable to save portfolio fields.', 'hello-elementor-child' ) ), 400 );
 		}
 
+		$floor_plan_attachment_id = isset( $sanitized['floor_plan_attachment_id'] ) ? (int) $sanitized['floor_plan_attachment_id'] : (int) ( $relation_row['floor_plan_attachment_id'] ?? 0 );
+
+		if ( $floor_plan_attachment_id > 0 && '' === $floor_plan_url ) {
+			$floor_plan_url = (string) wp_get_attachment_url( $floor_plan_attachment_id );
+		}
+
 		wp_send_json_success(
 			array(
-				'client_id'   => $client_id,
-				'property_id' => $property_id,
-				'fields'      => $sanitized,
+				'client_id'                 => $client_id,
+				'property_id'               => $property_id,
+				'fields'                    => $sanitized,
+				'floor_plan_attachment_id'  => $floor_plan_attachment_id,
+				'floor_plan_url'            => $floor_plan_url,
 			)
 		);
 	}

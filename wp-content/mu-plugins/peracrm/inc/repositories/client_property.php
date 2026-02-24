@@ -119,6 +119,7 @@ function peracrm_client_property_update_portfolio_fields($client_id, $property_i
         'gross_size',
         'list_price',
         'cash_price',
+        'floor_plan_attachment_id',
     ];
 
     $set_parts = [];
@@ -131,6 +132,12 @@ function peracrm_client_property_update_portfolio_fields($client_id, $property_i
 
         if ($fields[$key] === null) {
             $set_parts[] = "{$key} = NULL";
+            continue;
+        }
+
+        if ('floor_plan_attachment_id' === $key) {
+            $set_parts[] = "{$key} = %d";
+            $params[] = (int) $fields[$key];
             continue;
         }
 

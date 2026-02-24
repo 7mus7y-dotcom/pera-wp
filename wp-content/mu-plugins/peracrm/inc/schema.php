@@ -88,6 +88,7 @@ function peracrm_upgrade_schema_to($target_version, $installed_version = 0)
             gross_size DECIMAL(10,2) NULL,
             list_price DECIMAL(14,2) NULL,
             cash_price DECIMAL(14,2) NULL,
+            floor_plan_attachment_id BIGINT UNSIGNED NULL,
             created_at DATETIME NOT NULL,
             PRIMARY KEY  (id),
             UNIQUE KEY uniq_client_property_type (client_id, property_id, relation_type),
