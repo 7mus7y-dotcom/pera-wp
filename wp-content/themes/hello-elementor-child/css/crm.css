@@ -508,18 +508,20 @@ body.crm-route .crm-page--client-view [data-crm-portfolio-output] ~ .peracrm-lin
   align-items: center;
   gap: 10px;
   margin-top: 10px;
+  flex-wrap: wrap;
 }
 
 body.crm-route .crm-page--client-view [data-crm-portfolio-output] ~ .peracrm-linked-properties-grid .peracrm-portfolio-actions .crm-inline-status {
-  flex: 1 1 auto;
+  flex: 0 0 auto;
   min-width: 0;
 }
 
-body.crm-route .crm-page--client-view [data-crm-portfolio-output] ~ .peracrm-linked-properties-grid .peracrm-portfolio-action-btn {
-  width: 34px;
-  height: 34px;
-  min-width: 34px;
-  min-height: 34px;
+body.crm-route .crm-page--client-view [data-crm-portfolio-output] ~ .peracrm-linked-properties-grid .crm-icon-btn,
+body.crm-route .crm-page--client-view [data-crm-portfolio-output] ~ .peracrm-linked-properties-grid .peracrm-linked-property-unlink-btn.peracrm-portfolio-action-btn {
+  width: 40px;
+  height: 40px;
+  min-width: 40px;
+  min-height: 40px;
   padding: 0;
   border-radius: 999px;
   display: inline-flex;
@@ -528,9 +530,10 @@ body.crm-route .crm-page--client-view [data-crm-portfolio-output] ~ .peracrm-lin
   line-height: 1;
 }
 
-body.crm-route .crm-page--client-view [data-crm-portfolio-output] ~ .peracrm-linked-properties-grid .peracrm-portfolio-action-btn svg {
-  width: 16px;
-  height: 16px;
+body.crm-route .crm-page--client-view [data-crm-portfolio-output] ~ .peracrm-linked-properties-grid .crm-icon-btn svg,
+body.crm-route .crm-page--client-view [data-crm-portfolio-output] ~ .peracrm-linked-properties-grid .peracrm-linked-property-unlink-btn.peracrm-portfolio-action-btn svg {
+  width: 18px;
+  height: 18px;
   display: block;
 }
 

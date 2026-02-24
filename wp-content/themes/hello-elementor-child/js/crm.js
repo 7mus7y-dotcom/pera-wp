@@ -564,11 +564,36 @@
 
   rows.forEach(function (row) {
     var saveButton = row.querySelector('[data-action="save-portfolio-fields"]');
-    var uploadButton = row.querySelector('[data-action="upload-floor-plan"]');
+    var uploadButton = row.querySelector('[data-action="upload-floorplan"]');
     var floorPlanInput = row.querySelector('[data-field="floor_plan_file"]');
     var floorPlanAttachmentInput = row.querySelector('[data-field="floor_plan_attachment_id"]');
     var floorPlanLink = row.querySelector('[data-crm-floor-plan-link]');
     var statusEl = row.querySelector('[data-crm-portfolio-status]');
+    var fieldsWrap = row.querySelector('[data-crm-portfolio-fields]');
+
+    function ensureFloorPlanLink(url) {
+      if (!url) {
+        return null;
+      }
+
+      if (!floorPlanLink) {
+        floorPlanLink = document.createElement('a');
+        floorPlanLink.className = 'peracrm-floor-plan-link';
+        floorPlanLink.setAttribute('target', '_blank');
+        floorPlanLink.setAttribute('rel', 'noopener noreferrer');
+        floorPlanLink.setAttribute('data-crm-floor-plan-link', '');
+        floorPlanLink.textContent = 'View floor plan';
+        if (fieldsWrap && fieldsWrap.parentNode) {
+          fieldsWrap.parentNode.insertBefore(floorPlanLink, fieldsWrap.nextSibling);
+        } else {
+          row.appendChild(floorPlanLink);
+        }
+      }
+
+      floorPlanLink.href = String(url);
+      floorPlanLink.hidden = false;
+      return floorPlanLink;
+    }
     if (!saveButton) {
       return;
     }
@@ -620,9 +645,8 @@
               floorPlanAttachmentInput.value = attachmentId;
             }
 
-            if (json.data.url && floorPlanLink) {
-              floorPlanLink.href = String(json.data.url);
-              floorPlanLink.hidden = false;
+            if (json.data.url) {
+              ensureFloorPlanLink(json.data.url);
             }
 
             floorPlanInput.value = '';
@@ -697,9 +721,8 @@
             input.value = json.data.fields[key] === null ? '' : String(json.data.fields[key]);
           });
 
-          if (json.data.floor_plan_url && floorPlanLink) {
-            floorPlanLink.href = String(json.data.floor_plan_url);
-            floorPlanLink.hidden = false;
+          if (json.data.floor_plan_url) {
+            ensureFloorPlanLink(json.data.floor_plan_url);
           }
 
           setStatus('Saved');
