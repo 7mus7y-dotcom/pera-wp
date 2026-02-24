@@ -494,6 +494,15 @@ body.crm-route .crm-page--client-view [data-crm-portfolio-output] ~ .peracrm-lin
   height: 16px;
 }
 
+
+body.crm-route .crm-page--client-view [data-crm-portfolio-output] ~ .peracrm-linked-properties-grid .peracrm-portfolio-floor-plan-field {
+  grid-column: 1 / -1;
+}
+
+body.crm-route .crm-page--client-view [data-crm-portfolio-output] ~ .peracrm-linked-properties-grid .peracrm-floor-plan-link {
+  display: inline-block;
+  margin-top: 8px;
+}
 body.crm-route .crm-page--client-view [data-crm-portfolio-output] ~ .peracrm-linked-properties-grid .peracrm-portfolio-actions {
   display: flex;
   align-items: center;

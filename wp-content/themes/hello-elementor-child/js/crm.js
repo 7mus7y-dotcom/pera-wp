@@ -591,6 +591,11 @@
         payload.append('fields[' + fieldName + ']', input ? String(input.value || '') : '');
       });
 
+      var floorPlanInput = row.querySelector('[data-field="floor_plan"]');
+      if (floorPlanInput && floorPlanInput.files && floorPlanInput.files[0]) {
+        payload.append('floor_plan', floorPlanInput.files[0]);
+      }
+
       saveButton.disabled = true;
       if (statusEl) {
         statusEl.textContent = 'Saving…';
@@ -615,6 +620,18 @@
             }
             input.value = json.data.fields[key] === null ? '' : String(json.data.fields[key]);
           });
+
+          if (json.data.floor_plan_url) {
+            var floorPlanLink = row.querySelector('[data-crm-floor-plan-link]');
+            if (floorPlanLink) {
+              floorPlanLink.href = String(json.data.floor_plan_url);
+              floorPlanLink.hidden = false;
+            }
+          }
+
+          if (floorPlanInput) {
+            floorPlanInput.value = '';
+          }
 
           if (statusEl) {
             statusEl.textContent = 'Saved';

@@ -596,7 +596,7 @@ get_header();
                     $property_id = (int) ( $item['property_id'] ?? 0 );
                     $property_label = '';
                     $property_url = '';
-                    if ( $property_id > 0 ) {
+	                    if ( $property_id > 0 ) {
                       $property_label = pera_crm_client_view_with_target_blog(
                         static function () use ( $property_id ): string {
                           return function_exists( 'pera_crm_client_view_property_project_name' ) ? (string) pera_crm_client_view_property_project_name( $property_id ) : (string) get_the_title( $property_id );
@@ -677,6 +677,15 @@ get_header();
 							$property_id = (int) ( $item['property_id'] ?? 0 );
 							$property_label = '';
 							$property_url = '';
+								$floor_plan_attachment_id = (int) ( $item['floor_plan_attachment_id'] ?? 0 );
+								$floor_plan_url = '';
+								if ( $floor_plan_attachment_id > 0 ) {
+									$floor_plan_url = pera_crm_client_view_with_target_blog(
+										static function () use ( $floor_plan_attachment_id ): string {
+											return (string) wp_get_attachment_url( $floor_plan_attachment_id );
+										}
+									);
+								}
 							if ( $property_id > 0 ) {
 								$property_label = pera_crm_client_view_with_target_blog(
 									static function () use ( $property_id ): string {
@@ -717,7 +726,15 @@ get_header();
                           <label><?php esc_html_e( 'Cash ($)', 'hello-elementor-child' ); ?>
                             <input type="text" name="cash_price" data-field="cash_price" value="<?php echo esc_attr( (string) ( $item['cash_price'] ?? '' ) ); ?>" />
                           </label>
+                          <label class="peracrm-portfolio-floor-plan-field"><?php esc_html_e( 'Floor plan (JPG)', 'hello-elementor-child' ); ?>
+                            <input type="file" name="floor_plan" accept="image/jpeg" data-field="floor_plan" />
+                          </label>
                         </div>
+                        <?php if ( '' !== $floor_plan_url ) : ?>
+                        <a class="peracrm-floor-plan-link" href="<?php echo esc_url( $floor_plan_url ); ?>" target="_blank" rel="noopener noreferrer" data-crm-floor-plan-link><?php esc_html_e( 'View floor plan', 'hello-elementor-child' ); ?></a>
+                        <?php else : ?>
+                        <a class="peracrm-floor-plan-link" href="#" target="_blank" rel="noopener noreferrer" data-crm-floor-plan-link hidden><?php esc_html_e( 'View floor plan', 'hello-elementor-child' ); ?></a>
+                        <?php endif; ?>
                         <div class="peracrm-portfolio-actions">
                           <button type="button" class="btn btn--ghost btn--blue peracrm-portfolio-action-btn peracrm-portfolio-save-btn" data-action="save-portfolio-fields" aria-label="<?php esc_attr_e( 'Save portfolio fields', 'hello-elementor-child' ); ?>">
                             <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
