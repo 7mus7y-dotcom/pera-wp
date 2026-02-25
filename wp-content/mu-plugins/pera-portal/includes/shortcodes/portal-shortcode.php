@@ -6,7 +6,12 @@ if (!defined('ABSPATH')) {
 
 function pera_portal_render_shortcode($atts = [])
 {
-    if (!function_exists('pera_portal_user_can_access') || !pera_portal_user_can_access()) {
+    // Do not include theme CRM router; access check must stay pure.
+    $can_access = function_exists('pera_portal_current_user_can_access')
+        ? (bool) pera_portal_current_user_can_access()
+        : (function_exists('pera_portal_user_can_access') && (bool) pera_portal_user_can_access());
+
+    if (!$can_access) {
         return '<p class="pera-portal-access-denied">' . esc_html__('Access denied.', 'pera-portal') . '</p>';
     }
 
