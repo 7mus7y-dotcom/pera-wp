@@ -16,10 +16,26 @@ if (!function_exists('pera_portal_user_can_access')) {
                     return false;
                 }
 
-                return user_can($user, 'manage_options') || user_can($user, $access_cap);
+                if (user_can($user, 'manage_options') || user_can($user, $access_cap)) {
+                    return true;
+                }
+
+                if (function_exists('peracrm_user_can_access_crm')) {
+                    return peracrm_user_can_access_crm($user_id);
+                }
+
+                return false;
             }
 
-            return current_user_can('manage_options') || current_user_can($access_cap);
+            if (current_user_can('manage_options') || current_user_can($access_cap)) {
+                return true;
+            }
+
+            if (function_exists('peracrm_user_can_access_crm')) {
+                return peracrm_user_can_access_crm(0);
+            }
+
+            return false;
         }
 
         if (function_exists('peracrm_user_can_access_crm')) {
