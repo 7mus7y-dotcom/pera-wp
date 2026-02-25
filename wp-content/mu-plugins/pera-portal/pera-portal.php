@@ -13,7 +13,7 @@ if (!defined('PERA_PORTAL_PATH')) {
 }
 
 if (!defined('PERA_PORTAL_URL')) {
-    define('PERA_PORTAL_URL', content_url('mu-plugins/pera-portal'));
+    define('PERA_PORTAL_URL', content_url('/mu-plugins/pera-portal'));
 }
 
 if (!defined('PERA_PORTAL_VERSION')) {
