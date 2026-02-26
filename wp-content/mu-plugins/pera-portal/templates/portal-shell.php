@@ -36,7 +36,6 @@ if (!defined('ABSPATH')) {
                     <div class="pera-portal-details-placeholder"><?php echo esc_html__('Unit details placeholder', 'pera-portal'); ?></div>
                 </aside>
             </div>
-        <?php endif; ?>
     </div>
 </section>
 
