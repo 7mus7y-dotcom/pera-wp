@@ -23,7 +23,6 @@ function pera_portal_acf_load_json_paths($paths)
     return $paths;
 }
 
-if (function_exists('acf') || class_exists('ACF')) {
-    add_filter('acf/settings/save_json', 'pera_portal_acf_save_json_path');
-    add_filter('acf/settings/load_json', 'pera_portal_acf_load_json_paths');
-}
+// Register ACF JSON path filters in MU context before ACF itself is loaded.
+add_filter('acf/settings/save_json', 'pera_portal_acf_save_json_path', 20);
+add_filter('acf/settings/load_json', 'pera_portal_acf_load_json_paths', 20);
