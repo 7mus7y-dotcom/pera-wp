@@ -3,8 +3,13 @@
 if (!defined('ABSPATH')) {
     exit;
 }
+
+$wrap_main = !isset($GLOBALS['pera_portal_wrap_main']) || (bool) $GLOBALS['pera_portal_wrap_main'];
+$post_classes = implode(' ', get_post_class('', get_queried_object_id()));
 ?>
-<div class="pera-portal-page">
+<?php if ($wrap_main) : ?>
+<main id="content" class="site-main <?php echo esc_attr($post_classes); ?>">
+<?php endif; ?>
     <section class="hero hero--left hero--fit" id="pera-portal-hero">
         <div class="hero-content container">
             <h1><?php echo esc_html__('Pera Portal', 'pera-portal'); ?></h1>
@@ -38,4 +43,6 @@ if (!defined('ABSPATH')) {
             </div>
         </div>
     </section>
-</div>
+<?php if ($wrap_main) : ?>
+</main>
+<?php endif; ?>
