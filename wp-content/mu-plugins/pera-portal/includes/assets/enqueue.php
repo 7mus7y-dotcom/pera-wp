@@ -17,6 +17,21 @@ function pera_portal_set_script_config(array $config)
 function pera_portal_enqueue_assets()
 {
     if (empty($GLOBALS['pera_portal_enqueue_assets'])) {
+        if (function_exists('pera_portal_current_user_can_access') && !pera_portal_current_user_can_access()) {
+            return;
+        }
+
+        if (is_singular()) {
+            $post_id = get_queried_object_id();
+            $post = get_post($post_id);
+
+            if ($post instanceof WP_Post && has_shortcode($post->post_content, PERA_PORTAL_SHORTCODE_TAG)) {
+                $GLOBALS['pera_portal_enqueue_assets'] = true;
+            }
+        }
+    }
+
+    if (empty($GLOBALS['pera_portal_enqueue_assets'])) {
         return;
     }
 
@@ -41,9 +56,18 @@ function pera_portal_enqueue_assets()
     if (!empty($GLOBALS['pera_portal_script_config']) && is_array($GLOBALS['pera_portal_script_config'])) {
         wp_localize_script('pera-portal-viewer', 'PeraPortalConfig', $GLOBALS['pera_portal_script_config']);
     }
+
+    if (!is_admin() && current_user_can('manage_options')) {
+        add_action('wp_head', 'pera_portal_enqueue_debug_comment', 99);
+    }
 }
 
 add_action('wp_enqueue_scripts', 'pera_portal_enqueue_assets');
+
+function pera_portal_enqueue_debug_comment()
+{
+    echo "<!-- Pera Portal assets enqueued -->\n";
+}
 
 function pera_portal_enqueue_admin_assets($hook)
 {
