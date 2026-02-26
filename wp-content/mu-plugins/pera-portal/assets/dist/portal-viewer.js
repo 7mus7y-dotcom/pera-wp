@@ -22,6 +22,21 @@
             return;
         }
 
+        const detailPlanUrl = unit && typeof unit.detail_plan_url === 'string' ? unit.detail_plan_url : '';
+        const detailPlanMime = unit && typeof unit.detail_plan_mime === 'string' ? unit.detail_plan_mime.toLowerCase() : '';
+        const imageExtensionPattern = /\.(jpg|jpeg|png)(?:$|[?#])/i;
+        const isImagePlan = detailPlanMime.indexOf('image/') === 0 || imageExtensionPattern.test(detailPlanUrl);
+
+        const planHtml = detailPlanUrl
+            ? [
+                '<div class="pera-portal-unit-plan">',
+                '<p><strong>Plan:</strong></p>',
+                '<a href="' + detailPlanUrl + '" target="_blank" rel="noopener noreferrer" class="button-like">View unit plan</a>',
+                isImagePlan ? '<img src="' + detailPlanUrl + '" alt="Unit detail plan preview" loading="lazy" />' : '',
+                '</div>',
+            ].join('')
+            : '<div class="pera-portal-unit-plan"><p><strong>Plan:</strong> -</p></div>';
+
         detailsContainer.innerHTML = [
             '<div class="pera-portal-unit-card">',
             '<p><strong>Code:</strong> ' + (unit.unit_code || '-') + '</p>',
@@ -30,6 +45,7 @@
             '<p><strong>Gross:</strong> ' + (unit.gross_size ?? '-') + '</p>',
             '<p><strong>Price:</strong> ' + (unit.price ?? '-') + ' ' + (unit.currency || '') + '</p>',
             '<p><strong>Status:</strong> ' + (unit.status || '-') + '</p>',
+            planHtml,
             '</div>',
         ].join('');
     }
