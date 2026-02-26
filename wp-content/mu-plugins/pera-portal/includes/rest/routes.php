@@ -80,6 +80,17 @@ function pera_portal_rest_get_units(WP_REST_Request $request)
         $price = function_exists('get_field') ? get_field('price', $unit_id) : get_post_meta($unit_id, 'price', true);
         $currency = function_exists('get_field') ? get_field('currency', $unit_id) : get_post_meta($unit_id, 'currency', true);
         $status = function_exists('get_field') ? get_field('status', $unit_id) : get_post_meta($unit_id, 'status', true);
+        $plan = function_exists('get_field') ? get_field('unit_detail_plan', $unit_id) : null;
+
+        $plan_url = '';
+        $plan_filename = '';
+        $plan_mime = '';
+
+        if (is_array($plan)) {
+            $plan_url = isset($plan['url']) ? (string) $plan['url'] : '';
+            $plan_filename = isset($plan['filename']) ? (string) $plan['filename'] : '';
+            $plan_mime = isset($plan['mime_type']) ? (string) $plan['mime_type'] : '';
+        }
 
         $currency = is_string($currency) ? trim($currency) : $currency;
         $status = is_string($status) ? trim($status) : $status;
@@ -102,6 +113,9 @@ function pera_portal_rest_get_units(WP_REST_Request $request)
             'price' => is_numeric($price) ? (float) $price : null,
             'currency' => sanitize_text_field((string) $currency),
             'status' => $status,
+            'detail_plan_url' => esc_url_raw($plan_url),
+            'detail_plan_filename' => $plan_filename,
+            'detail_plan_mime' => $plan_mime,
         ];
     }
 

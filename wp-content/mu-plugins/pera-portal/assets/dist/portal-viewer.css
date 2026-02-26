@@ -71,3 +71,21 @@ body.pera-portal-page .page-content {
 body.pera-portal-page .page-content > :first-child {
     margin-top: 0;
 }
+
+
+.pera-portal-unit-plan {
+    margin-top: 12px;
+}
+
+.pera-portal-unit-plan img {
+    width: 100%;
+    height: auto;
+    border: 1px solid #d5d9dd;
+    border-radius: 6px;
+    margin-top: 8px;
+}
+
+.pera-portal-unit-plan a.button-like {
+    display: inline-block;
+    margin-top: 8px;
+}
