@@ -17,7 +17,7 @@ $post_classes = implode(' ', get_post_class('', get_queried_object_id()));
 
             <?php if (current_user_can('manage_options')) : ?>
                 <div class="hero-actions">
-                    <a class="btn btn--ghost btn--white" href="<?php echo esc_url(admin_url('admin.php?page=pera-portal')); ?>">
+                    <a class="btn btn--ghost btn--green" href="<?php echo esc_url(admin_url('admin.php?page=pera-portal')); ?>">
                         <?php echo esc_html__('Manage Portal Data', 'pera-portal'); ?>
                     </a>
                 </div>
