@@ -4,9 +4,140 @@ if (!defined('ABSPATH')) {
     exit;
 }
 
+function pera_portal_rest_get_floor(WP_REST_Request $request)
+{
+    $floor_id = absint($request->get_param('floor_id'));
+    $floor = get_post($floor_id);
+
+    if (!$floor || $floor->post_type !== 'pera_floor') {
+        return new WP_Error('pera_portal_floor_not_found', __('Floor not found.', 'pera-portal'), ['status' => 404]);
+    }
+
+    $floor_number = '';
+    if (function_exists('get_field')) {
+        $floor_number = get_field('floor_number', $floor_id);
+    } else {
+        $floor_number = get_post_meta($floor_id, 'floor_number', true);
+    }
+
+    $svg_url = '';
+    if (function_exists('get_field')) {
+        $file = get_field('floor_svg', $floor_id);
+
+        if (is_array($file) && !empty($file['url'])) {
+            $svg_url = (string) $file['url'];
+        } elseif (is_numeric($file)) {
+            $attachment_url = wp_get_attachment_url((int) $file);
+            if (is_string($attachment_url) && $attachment_url !== '') {
+                $svg_url = $attachment_url;
+            }
+        }
+    }
+
+    if ($svg_url === '') {
+        $svg_url = PERA_PORTAL_URL . '/data/fixtures/demo-floor.svg';
+    }
+
+    return rest_ensure_response([
+        'floor_id' => $floor_id,
+        'floor_number' => $floor_number === null ? '' : $floor_number,
+        'svg_url' => esc_url_raw($svg_url),
+    ]);
+}
+
+function pera_portal_rest_get_units(WP_REST_Request $request)
+{
+    $floor_id = absint($request->get_param('floor_id'));
+
+    if ($floor_id <= 0) {
+        return rest_ensure_response([]);
+    }
+
+    $query = new WP_Query([
+        'post_type' => 'pera_unit',
+        'post_status' => ['publish', 'draft', 'private'],
+        'posts_per_page' => -1,
+        'orderby' => 'title',
+        'order' => 'ASC',
+        'meta_query' => [
+            [
+                'key' => 'floor',
+                'value' => (string) $floor_id,
+                'compare' => '=',
+            ],
+        ],
+    ]);
+
+    $units = [];
+
+    foreach ($query->posts as $unit_post) {
+        $unit_id = (int) $unit_post->ID;
+
+        $unit_code = function_exists('get_field') ? get_field('unit_code', $unit_id) : get_post_meta($unit_id, 'unit_code', true);
+        $unit_type = function_exists('get_field') ? get_field('unit_type', $unit_id) : get_post_meta($unit_id, 'unit_type', true);
+        $net_size = function_exists('get_field') ? get_field('net_size', $unit_id) : get_post_meta($unit_id, 'net_size', true);
+        $gross_size = function_exists('get_field') ? get_field('gross_size', $unit_id) : get_post_meta($unit_id, 'gross_size', true);
+        $price = function_exists('get_field') ? get_field('price', $unit_id) : get_post_meta($unit_id, 'price', true);
+        $currency = function_exists('get_field') ? get_field('currency', $unit_id) : get_post_meta($unit_id, 'currency', true);
+        $status = function_exists('get_field') ? get_field('status', $unit_id) : get_post_meta($unit_id, 'status', true);
+
+        $currency = $currency ? $currency : 'GBP';
+        $status = $status ? $status : 'available';
+        $status = sanitize_key((string) $status);
+
+        if (!in_array($status, ['available', 'reserved', 'sold'], true)) {
+            $status = 'available';
+        }
+
+        $units[] = [
+            'id' => $unit_id,
+            'title' => get_the_title($unit_id),
+            'unit_code' => (string) $unit_code,
+            'unit_type' => sanitize_text_field((string) $unit_type),
+            'net_size' => is_numeric($net_size) ? (float) $net_size : null,
+            'gross_size' => is_numeric($gross_size) ? (float) $gross_size : null,
+            'price' => is_numeric($price) ? (float) $price : null,
+            'currency' => sanitize_text_field((string) $currency),
+            'status' => $status,
+        ];
+    }
+
+    return rest_ensure_response($units);
+}
+
 function pera_portal_register_rest_routes()
 {
-    // Scaffold placeholder for future portal REST routes.
+    register_rest_route(PERA_PORTAL_REST_NAMESPACE, '/floor', [
+        'methods' => WP_REST_Server::READABLE,
+        'callback' => 'pera_portal_rest_get_floor',
+        'permission_callback' => 'pera_portal_current_user_can_access',
+        'args' => [
+            'floor_id' => [
+                'required' => true,
+                'type' => 'integer',
+                'sanitize_callback' => 'absint',
+                'validate_callback' => static function ($value) {
+                    return absint($value) > 0;
+                },
+            ],
+        ],
+    ]);
+
+    register_rest_route(PERA_PORTAL_REST_NAMESPACE, '/units', [
+        'methods' => WP_REST_Server::READABLE,
+        'callback' => 'pera_portal_rest_get_units',
+        'permission_callback' => 'pera_portal_current_user_can_access',
+        'args' => [
+            'floor_id' => [
+                'required' => true,
+                'type' => 'integer',
+                'sanitize_callback' => 'absint',
+                'validate_callback' => static function ($value) {
+                    return absint($value) > 0;
+                },
+            ],
+        ],
+    ]);
 }
 
 add_action('rest_api_init', 'pera_portal_register_rest_routes');
