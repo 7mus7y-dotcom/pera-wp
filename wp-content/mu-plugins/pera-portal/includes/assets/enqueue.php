@@ -124,7 +124,9 @@ function pera_portal_enqueue_admin_assets($hook)
 {
     unset($hook);
 
-    if (empty($_GET['page']) || wp_unslash($_GET['page']) !== 'pera-portal') {
+    $page = isset($_GET['page']) ? wp_unslash($_GET['page']) : '';
+
+    if ($page !== 'pera-portal' && $page !== 'pera-portal-viewer') {
         return;
     }
 
