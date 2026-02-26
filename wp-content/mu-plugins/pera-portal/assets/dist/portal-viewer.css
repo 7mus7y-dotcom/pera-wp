@@ -26,9 +26,73 @@
     height: auto;
 }
 
+.pera-portal-legend,
+.pera-portal-filters,
+.pera-portal-counts {
+    margin-bottom: 10px;
+}
+
+.pera-portal-legend,
+.pera-portal-filters {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+.pera-portal-legend__item {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 13px;
+}
+
+.pera-portal-legend__swatch {
+    width: 12px;
+    height: 12px;
+    border-radius: 999px;
+    border: 2px solid transparent;
+}
+
+.pera-portal-legend__swatch--available {
+    border-color: #15803d;
+}
+
+.pera-portal-legend__swatch--reserved {
+    border-color: #a16207;
+}
+
+.pera-portal-legend__swatch--sold {
+    border-color: #b91c1c;
+}
+
+.pera-portal-filter-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    border: 1px solid #d5d9dd;
+    border-radius: 999px;
+    padding: 3px 10px;
+    font-size: 13px;
+}
+
+.pera-portal-counts {
+    font-size: 13px;
+    color: #374151;
+}
+
 .unit {
     cursor: pointer;
     transition: opacity 0.2s ease, stroke-width 0.2s ease;
+    pointer-events: all;
+}
+
+/* Invisible hit-fill support
+   Works whether .has-hitfill is on the unit element
+   or on a child shape inside a <g> */
+.unit.has-hitfill,
+.unit .has-hitfill {
+    fill: #000;
+    fill-opacity: 0.02;
 }
 
 .status-available {
@@ -52,6 +116,11 @@
     stroke: #2563eb;
     stroke-width: 3;
     opacity: 1;
+}
+
+.unit.is-hidden {
+    opacity: 0.08;
+    pointer-events: none;
 }
 
 @media (max-width: 900px) {
