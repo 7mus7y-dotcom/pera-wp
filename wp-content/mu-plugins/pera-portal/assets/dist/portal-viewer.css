@@ -4,18 +4,6 @@
     gap: 1rem;
 }
 
-.pera-portal-hero {
-    border-bottom: 1px solid rgba(0, 0, 0, 0.06);
-}
-
-.pera-portal-hero p {
-    margin-bottom: 0.5rem;
-}
-
-.pera-portal-section {
-    padding-top: 24px;
-    padding-bottom: 48px;
-}
 
 .pera-portal-panel {
     border: 1px solid #d5d9dd;
@@ -29,7 +17,7 @@
     margin-bottom: 12px;
 }
 
-.pera-portal-panel__head h3 {
+.pera-portal-panel h3 {
     margin: 0;
 }
 

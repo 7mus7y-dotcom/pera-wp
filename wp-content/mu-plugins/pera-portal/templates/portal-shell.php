@@ -5,15 +5,22 @@ if (!defined('ABSPATH')) {
 }
 ?>
 <div class="pera-portal-page">
-    <header class="pera-portal-hero section section-soft">
-        <div class="container">
-            <p class="text-upper text-xs"><?php echo esc_html__('Pera Portal', 'pera-portal'); ?></p>
-            <h1><?php echo esc_html__('Floor Plan Viewer', 'pera-portal'); ?></h1>
-            <p class="muted"><?php echo esc_html__('Select a unit on the plan to view details.', 'pera-portal'); ?></p>
-        </div>
-    </header>
+    <section class="hero hero--left hero--fit" id="pera-portal-hero">
+        <div class="hero-content container">
+            <h1><?php echo esc_html__('Pera Portal', 'pera-portal'); ?></h1>
+            <p class="lead"><?php echo esc_html__('Interactive floor plan viewer for units and availability.', 'pera-portal'); ?></p>
 
-    <section class="pera-portal-section section">
+            <?php if (current_user_can('manage_options')) : ?>
+                <div class="hero-actions">
+                    <a class="btn btn--ghost btn--white" href="<?php echo esc_url(admin_url('admin.php?page=pera-portal')); ?>">
+                        <?php echo esc_html__('Manage Portal Data', 'pera-portal'); ?>
+                    </a>
+                </div>
+            <?php endif; ?>
+        </div>
+    </section>
+
+    <section class="section section-soft pera-portal-viewer-wrap">
         <div class="container">
             <div id="pera-portal-root" class="pera-portal-shell">
                 <section class="pera-portal-panel pera-portal-panel--svg" aria-label="Floor plan viewer">
