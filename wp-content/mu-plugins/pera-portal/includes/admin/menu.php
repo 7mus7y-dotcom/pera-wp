@@ -89,3 +89,4 @@ function pera_portal_render_admin_page()
 }
 
 add_action('admin_menu', 'pera_portal_register_admin_menu');
+add_action('network_admin_menu', 'pera_portal_register_admin_menu');
