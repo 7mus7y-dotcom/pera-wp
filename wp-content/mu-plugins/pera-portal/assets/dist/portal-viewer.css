@@ -11,3 +11,36 @@
     background: #fff;
     min-height: 320px;
 }
+
+.pera-portal-panel--svg svg {
+    width: 100%;
+    height: auto;
+}
+
+.unit {
+    cursor: pointer;
+    transition: opacity 0.2s ease, stroke-width 0.2s ease;
+}
+
+.status-available {
+    stroke: #15803d;
+    stroke-width: 2;
+}
+
+.status-reserved {
+    stroke: #a16207;
+    stroke-width: 2;
+    opacity: 0.9;
+}
+
+.status-sold {
+    stroke: #b91c1c;
+    stroke-width: 2;
+    opacity: 0.65;
+}
+
+.unit.is-selected {
+    stroke: #2563eb;
+    stroke-width: 3;
+    opacity: 1;
+}

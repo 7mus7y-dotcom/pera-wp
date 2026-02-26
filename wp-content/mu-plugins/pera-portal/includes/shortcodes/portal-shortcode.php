@@ -17,9 +17,11 @@ function pera_portal_render_shortcode($atts = [])
 
     $atts = shortcode_atts([
         'building' => '',
+        'floor' => '',
     ], $atts, PERA_PORTAL_SHORTCODE_TAG);
 
     $building_id = absint($atts['building']);
+    $floor_id = absint($atts['floor']);
 
     if (function_exists('pera_portal_mark_assets_needed')) {
         pera_portal_mark_assets_needed();
@@ -30,6 +32,7 @@ function pera_portal_render_shortcode($atts = [])
             'rest_url' => esc_url_raw(rest_url(PERA_PORTAL_REST_NAMESPACE . '/')),
             'nonce' => wp_create_nonce('wp_rest'),
             'building_id' => $building_id,
+            'floor_id' => $floor_id,
         ]);
     }
 

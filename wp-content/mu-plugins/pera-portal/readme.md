@@ -5,9 +5,9 @@ This scaffold adds a staff-only portal shell under a dedicated MU-plugin, follow
 ## Structure
 - `pera-portal.php` bootstraps constants and includes.
 - `includes/` contains capability wrapper, ACF JSON wiring, CPT/REST placeholders, shortcode, enqueue logic, services, and helpers.
-- `assets/src/` holds future source assets, while `assets/dist/` holds currently enqueued placeholders.
+- `assets/src/` holds future source assets, while `assets/dist/` holds currently enqueued viewer assets.
 - `templates/portal-shell.php` renders a simple two-column shell for SVG + unit details.
-- `acf-json/` is reserved for ACF Local JSON field groups for portal entities.
+- `acf-json/` stores ACF Local JSON field groups for building/floor/unit.
 
 ## Security model
 Portal access checks stay **pure capability checks** and never include theme CRM routing/bootstrap files.
@@ -18,7 +18,23 @@ Portal access checks stay **pure capability checks** and never include theme CRM
 
 This keeps default behavior unchanged while allowing future decoupling from CRM access.
 
-## Next steps
-1. Define ACF field groups for building/floor/unit and save into `acf-json/`.
-2. Implement CPT registration details and REST routes.
-3. Replace placeholder JS/CSS with interactive viewer bundle.
+## 2D MVP setup
+1. Create a **Building** (`pera_building`) post and fill optional building fields.
+2. Create a **Floor** (`pera_floor`) post:
+   - Fill `floor_number`.
+   - Select related `building` (optional for MVP).
+   - Upload `floor_svg` (SVG file). If omitted, the plugin uses `data/fixtures/demo-floor.svg`.
+3. Create **Unit** (`pera_unit`) posts:
+   - Set `floor` to the related floor.
+   - Fill `unit_code`, `unit_type`, `net_size`, `gross_size`, `price`, `currency`, `status`.
+   - `unit_code` **must exactly match** an SVG element `id` (for example: `UNIT_A0101`).
+
+## Shortcode usage
+- Floor-specific view:
+  - `[pera_portal floor="123"]`
+- Legacy building attribute remains available:
+  - `[pera_portal building="10" floor="123"]`
+
+The front-end fetches:
+- `GET /wp-json/pera-portal/v1/floor?floor_id=123`
+- `GET /wp-json/pera-portal/v1/units?floor_id=123`
