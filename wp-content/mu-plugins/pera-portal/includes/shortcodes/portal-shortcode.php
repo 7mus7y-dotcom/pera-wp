@@ -36,6 +36,10 @@ function pera_portal_render_shortcode($atts = [])
         ]);
     }
 
+    if (function_exists('pera_portal_enqueue_assets')) {
+        pera_portal_enqueue_assets();
+    }
+
     ob_start();
     $template_path = PERA_PORTAL_PATH . '/templates/portal-shell.php';
     if (file_exists($template_path)) {
