@@ -7,6 +7,30 @@ if (!defined('ABSPATH')) {
 if (!function_exists('pera_portal_user_can_access')) {
     function pera_portal_user_can_access($user_id = 0)
     {
+        if (is_multisite()) {
+            if ((int) $user_id > 0) {
+                if (is_super_admin((int) $user_id)) {
+                    return true;
+                }
+
+                $user = get_userdata((int) $user_id);
+                if ($user instanceof WP_User && (
+                    user_can($user, 'manage_network')
+                    || user_can($user, 'manage_network_options')
+                )) {
+                    return true;
+                }
+            } else {
+                if (is_super_admin()) {
+                    return true;
+                }
+
+                if (current_user_can('manage_network') || current_user_can('manage_network_options')) {
+                    return true;
+                }
+            }
+        }
+
         if (defined('PERA_PORTAL_ACCESS_MODE') && PERA_PORTAL_ACCESS_MODE === 'dedicated_cap') {
             $access_cap = defined('PERA_PORTAL_ACCESS_CAP') ? (string) PERA_PORTAL_ACCESS_CAP : 'access_pera_portal';
 
