@@ -81,6 +81,9 @@ function pera_portal_rest_get_units(WP_REST_Request $request)
         $currency = function_exists('get_field') ? get_field('currency', $unit_id) : get_post_meta($unit_id, 'currency', true);
         $status = function_exists('get_field') ? get_field('status', $unit_id) : get_post_meta($unit_id, 'status', true);
 
+        $currency = is_string($currency) ? trim($currency) : $currency;
+        $status = is_string($status) ? trim($status) : $status;
+
         $currency = $currency ? $currency : 'GBP';
         $status = $status ? $status : 'available';
         $status = sanitize_key((string) $status);
