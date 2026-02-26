@@ -85,6 +85,18 @@ function pera_portal_enqueue_assets()
 
 add_action('wp_enqueue_scripts', 'pera_portal_enqueue_assets');
 
+
+function pera_portal_add_body_class($classes)
+{
+    if (!empty($GLOBALS['pera_portal_is_page'])) {
+        $classes[] = 'pera-portal-page';
+    }
+
+    return $classes;
+}
+
+add_filter('body_class', 'pera_portal_add_body_class');
+
 function pera_portal_enqueue_assets_late()
 {
     if (empty($GLOBALS['pera_portal_enqueue_assets'])) {
