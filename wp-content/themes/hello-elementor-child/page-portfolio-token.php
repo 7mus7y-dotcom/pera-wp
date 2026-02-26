@@ -126,36 +126,10 @@ get_header();
 						<?php if ( $properties_query->have_posts() ) : ?>
 							<?php while ( $properties_query->have_posts() ) : $properties_query->the_post(); ?>
 								<?php
-								$property_id      = (int) get_the_ID();
-								$floor_plan_url   = isset( $floor_plan_urls_by_property[ $property_id ] ) ? (string) $floor_plan_urls_by_property[ $property_id ] : '';
-								$has_floor_plan   = '' !== $floor_plan_url;
-								$floor_plan_thumb = '';
-
-								if ( $has_floor_plan && ! empty( $portfolio_rows_by_property[ $property_id ]['floor_plan_attachment_id'] ) ) {
-									$floor_plan_thumb = wp_get_attachment_image(
-										(int) $portfolio_rows_by_property[ $property_id ]['floor_plan_attachment_id'],
-										'thumbnail',
-										false,
-										array(
-											'class'   => 'portfolio-floor-plan-thumb',
-											'loading' => 'lazy',
-											'alt'     => esc_attr__( 'Floor plan thumbnail', 'hello-elementor-child' ),
-										)
-									);
-								}
-
 								if ( function_exists( 'pera_render_property_card' ) ) {
 									pera_render_property_card( array( 'variant' => 'archive' ) );
 								}
 								?>
-								<?php if ( $has_floor_plan ) : ?>
-									<div class="portfolio-floor-plan-action">
-										<a class="btn btn--ghost btn--blue" href="<?php echo esc_url( $floor_plan_url ); ?>" target="_blank" rel="noopener noreferrer"><?php esc_html_e( 'Floor plan', 'hello-elementor-child' ); ?></a>
-										<?php if ( '' !== $floor_plan_thumb ) : ?>
-											<a class="portfolio-floor-plan-thumb-link" href="<?php echo esc_url( $floor_plan_url ); ?>" target="_blank" rel="noopener noreferrer" aria-label="<?php esc_attr_e( 'Open floor plan image', 'hello-elementor-child' ); ?>"><?php echo $floor_plan_thumb; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?></a>
-										<?php endif; ?>
-									</div>
-								<?php endif; ?>
 							<?php endwhile; ?>
 						<?php else : ?>
 							<p class="no-results">No properties available in this portfolio right now.</p>
