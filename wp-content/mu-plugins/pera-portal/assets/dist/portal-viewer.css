@@ -181,3 +181,31 @@ body.pera-portal-page .page-content > :first-child {
         min-width: 0;
     }
 }
+
+.pera-portal-panel--svg svg .unit {
+    transition: fill 0.25s ease, fill-opacity 0.25s ease, stroke-width 0.2s ease;
+    cursor: pointer;
+}
+
+.pera-portal-panel--svg svg .unit.status-available,
+.pera-portal-panel--svg svg .status-available {
+    fill: #86efac;
+    fill-opacity: 0.45;
+}
+
+.pera-portal-panel--svg svg .unit.status-reserved,
+.pera-portal-panel--svg svg .status-reserved {
+    fill: #fdba74;
+    fill-opacity: 0.45;
+}
+
+.pera-portal-panel--svg svg .unit.status-sold,
+.pera-portal-panel--svg svg .status-sold {
+    fill: #fca5a5;
+    fill-opacity: 0.45;
+}
+
+.pera-portal-panel--svg svg .unit.is-selected {
+    fill-opacity: 0.75;
+    stroke-width: 3;
+}
