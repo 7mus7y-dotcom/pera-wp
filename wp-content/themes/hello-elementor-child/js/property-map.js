@@ -41,51 +41,21 @@
     let markerCount = 0;
     let lastPosition = null;
 
-    const renderSelectedCard = (markerData) => {
-      if (!selectedPanel) {
+    const selectResultCard = (markerData) => {
+      if (!selectedPanel || !markerData || !markerData.id) {
         return;
       }
 
-      selectedPanel.innerHTML = '';
+      const cardWrappers = selectedPanel.querySelectorAll('[data-property-id]');
+      cardWrappers.forEach((cardWrapper) => cardWrapper.classList.remove('is-active'));
 
-      const wrapper = document.createElement('div');
-      wrapper.className = 'content-panel-box';
-
-      if (markerData.thumb) {
-        const image = document.createElement('img');
-        image.src = markerData.thumb;
-        image.alt = markerData.title ? `${markerData.title} thumbnail` : 'Property thumbnail';
-        image.loading = 'lazy';
-        image.style.width = '100%';
-        image.style.height = 'auto';
-        image.style.borderRadius = '12px';
-        image.style.display = 'block';
-        image.style.marginBottom = '12px';
-        wrapper.appendChild(image);
+      const target = selectedPanel.querySelector(`[data-property-id="${String(markerData.id)}"]`);
+      if (!target) {
+        return;
       }
 
-      const title = document.createElement('h3');
-      title.className = 'text-lg';
-      const titleLink = document.createElement('a');
-      titleLink.href = markerData.url || '#';
-      titleLink.textContent = markerData.title || 'View listing';
-      title.appendChild(titleLink);
-      wrapper.appendChild(title);
-
-      if (markerData.price_text) {
-        const price = document.createElement('p');
-        price.className = 'text-sm muted';
-        price.textContent = markerData.price_text;
-        wrapper.appendChild(price);
-      }
-
-      const button = document.createElement('a');
-      button.href = markerData.url || '#';
-      button.className = 'btn btn--solid btn--green';
-      button.textContent = 'View listing';
-      wrapper.appendChild(button);
-
-      selectedPanel.appendChild(wrapper);
+      target.classList.add('is-active');
+      target.scrollIntoView({ behavior: 'smooth', block: 'center' });
     };
 
     markersData.forEach((markerData) => {
@@ -109,7 +79,7 @@
       lastPosition = position;
 
       marker.addListener('click', () => {
-        renderSelectedCard(markerData);
+        selectResultCard(markerData);
         if (markerData.title && markerData.url) {
           infoWindow.setContent(
             `<div class="property-map__info"><strong>${markerData.title}</strong><br><a href="${markerData.url}">View</a></div>`

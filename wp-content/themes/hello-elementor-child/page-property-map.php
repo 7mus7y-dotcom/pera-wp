@@ -10,8 +10,9 @@ if ( ! defined( 'ABSPATH' ) ) {
 
 get_header();
 
-$markers = array();
-$acf_loaded = function_exists( 'get_field' );
+$markers         = array();
+$acf_loaded      = function_exists( 'get_field' );
+$property_query  = null;
 
 if ( $acf_loaded ) {
     $property_query = new WP_Query(
@@ -19,12 +20,14 @@ if ( $acf_loaded ) {
             'post_type'      => 'property',
             'post_status'    => 'publish',
             'posts_per_page' => -1,
-            'fields'         => 'ids',
         )
     );
 
     if ( $property_query->have_posts() ) {
-        foreach ( $property_query->posts as $property_id ) {
+        while ( $property_query->have_posts() ) {
+            $property_query->the_post();
+
+            $property_id = get_the_ID();
             $map = get_field( 'map', $property_id );
             if ( ! is_array( $map ) ) {
                 continue;
@@ -90,9 +93,9 @@ if ( $acf_loaded ) {
                 'price_text' => $price_text,
             );
         }
-    }
 
-    wp_reset_postdata();
+        $property_query->rewind_posts();
+    }
 }
 
 echo "\n<!-- property-map debug: markers=" . count( $markers ) . " acf=" . ( $acf_loaded ? 'yes' : 'no' ) . " -->\n";
@@ -137,8 +140,33 @@ if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
           <script type="application/json" id="property-map-data"><?php echo wp_json_encode( $markers ); ?></script>
 
           <div class="property-map__selected" aria-live="polite">
-            <div class="content-panel-box">
-              <p class="text-sm muted">Click a marker to view the listing.</p>
+            <div id="property-map-results" class="cards-grid">
+              <?php if ( $property_query instanceof WP_Query && $property_query->have_posts() ) : ?>
+                <?php while ( $property_query->have_posts() ) : $property_query->the_post(); ?>
+                  <div data-property-id="<?php echo esc_attr( get_the_ID() ); ?>">
+                    <?php
+                      if ( function_exists( 'pera_render_property_card' ) ) {
+                          pera_render_property_card(
+                              array(
+                                  'variant' => 'archive',
+                              )
+                          );
+                      } else {
+                          set_query_var(
+                              'pera_property_card_args',
+                              array(
+                                  'variant' => 'archive',
+                              )
+                          );
+                          get_template_part( 'parts/property-card-v2' );
+                          set_query_var( 'pera_property_card_args', null );
+                      }
+                    ?>
+                  </div>
+                <?php endwhile; ?>
+              <?php else : ?>
+                <p class="no-results">No properties are available on the map right now.</p>
+              <?php endif; ?>
             </div>
           </div>
         </div>
@@ -146,5 +174,7 @@ if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
     </section>
 
 </main>
+
+<?php wp_reset_postdata(); ?>
 
 <?php get_footer(); ?>
