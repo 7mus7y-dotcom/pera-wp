@@ -823,6 +823,136 @@ if ( ! function_exists( 'pera_crm_create_portfolio_token_ajax' ) ) {
 }
 add_action( 'wp_ajax_peracrm_create_portfolio_token', 'pera_crm_create_portfolio_token_ajax' );
 
+
+if ( ! function_exists( 'pera_crm_update_portfolio_token_ajax' ) ) {
+	/**
+	 * Update an existing token portfolio from CRM client view.
+	 */
+	function pera_crm_update_portfolio_token_ajax(): void {
+		if ( ! pera_crm_ajax_is_expected_action( 'peracrm_update_portfolio_token' ) ) {
+			pera_crm_ajax_error( 'invalid_action', __( 'Invalid action', 'hello-elementor-child' ), 400 );
+		}
+		if ( ! is_user_logged_in() ) {
+			pera_crm_ajax_error( 'forbidden', __( 'Forbidden', 'hello-elementor-child' ), 403, array( 'user_id' => get_current_user_id() ) );
+		}
+
+		$nonce = isset( $_POST['nonce'] ) ? sanitize_text_field( wp_unslash( (string) $_POST['nonce'] ) ) : '';
+		if ( '' === $nonce || ! wp_verify_nonce( $nonce, 'pera_crm_update_portfolio_token' ) ) {
+			pera_crm_ajax_error( 'invalid_nonce', __( 'Invalid nonce', 'hello-elementor-child' ), 403, array( 'user_id' => get_current_user_id(), 'has_nonce' => '' !== $nonce ) );
+		}
+
+		$client_id = isset( $_POST['client_id'] ) ? absint( wp_unslash( (string) $_POST['client_id'] ) ) : 0;
+		if ( $client_id <= 0 ) {
+			pera_crm_ajax_error( 'invalid_client', __( 'Invalid client.', 'hello-elementor-child' ), 400 );
+		}
+
+		$access = pera_crm_client_view_access_state( $client_id );
+		if ( empty( $access['allowed'] ) ) {
+			pera_crm_ajax_error( 'access_denied', __( 'Access denied.', 'hello-elementor-child' ), 403, array( 'user_id' => get_current_user_id() ) );
+		}
+
+		$property_ids = pera_crm_client_view_get_portfolio_property_ids( $client_id );
+		if ( empty( $property_ids ) ) {
+			pera_crm_ajax_error( 'portfolio_empty', __( 'No portfolio properties linked.', 'hello-elementor-child' ), 400 );
+		}
+
+		$portfolio_post_id = isset( $_POST['portfolio_post_id'] ) ? absint( wp_unslash( (string) $_POST['portfolio_post_id'] ) ) : 0;
+		$portfolio_state   = (array) pera_crm_client_view_with_target_blog(
+			static function () use ( $client_id, $portfolio_post_id, $property_ids ): array {
+				$post = $portfolio_post_id > 0 ? get_post( $portfolio_post_id ) : null;
+				if ( ! ( $post instanceof WP_Post ) || 'portfolio' !== $post->post_type ) {
+					return array( 'valid' => false );
+				}
+
+				$portfolio_client_id = (int) get_post_meta( $portfolio_post_id, '_portfolio_client_id', true );
+				$mapped_portfolio_id = (int) get_post_meta( $client_id, '_peracrm_portfolio_post_id', true );
+				$belongs             = ( $portfolio_client_id === $client_id ) || ( $portfolio_client_id <= 0 && $mapped_portfolio_id === $portfolio_post_id );
+				if ( ! $belongs ) {
+					return array( 'valid' => false );
+				}
+
+				update_post_meta( $portfolio_post_id, '_portfolio_property_ids', $property_ids );
+				update_post_meta( $portfolio_post_id, '_portfolio_updated_at', time() );
+
+				$token      = sanitize_text_field( (string) get_post_meta( $portfolio_post_id, '_portfolio_token', true ) );
+				$expires_at = (int) get_post_meta( $portfolio_post_id, '_portfolio_expires_at', true );
+				if ( '' === $token ) {
+					return array( 'valid' => false );
+				}
+
+				$url = trailingslashit( home_url( '/portfolio/' . $token ) );
+
+				update_post_meta( $client_id, '_peracrm_portfolio_url', $url );
+				update_post_meta( $client_id, '_peracrm_portfolio_token', $token );
+				update_post_meta( $client_id, '_peracrm_portfolio_post_id', $portfolio_post_id );
+				update_post_meta( $client_id, '_peracrm_portfolio_expires_at', $expires_at );
+				if ( (int) get_post_meta( $client_id, '_peracrm_portfolio_created_at', true ) <= 0 ) {
+					update_post_meta( $client_id, '_peracrm_portfolio_created_at', time() );
+				}
+				update_post_meta( $client_id, '_peracrm_portfolio_updated_at', time() );
+
+				return array(
+					'valid'      => true,
+					'url'        => $url,
+					'token'      => $token,
+					'post_id'    => $portfolio_post_id,
+					'expires_at' => $expires_at,
+				);
+			}
+		);
+
+		if ( empty( $portfolio_state['valid'] ) ) {
+			if ( ! function_exists( 'pera_portfolio_token_create_portfolio' ) ) {
+				pera_crm_ajax_error( 'portfolio_create_unavailable', __( 'Portfolio creation is unavailable.', 'hello-elementor-child' ), 500 );
+			}
+
+			$expires_at = strtotime( '+30 days' );
+			$result     = pera_crm_client_view_with_target_blog(
+				static function () use ( $property_ids, $client_id, $expires_at ) {
+					return pera_portfolio_token_create_portfolio( $property_ids, $client_id, $expires_at );
+				}
+			);
+			if ( is_wp_error( $result ) ) {
+				pera_crm_ajax_error( 'portfolio_create_failed', $result->get_error_message(), 400 );
+			}
+
+			$created_at      = time();
+			$portfolio_state = array(
+				'valid'      => true,
+				'url'        => isset( $result['url'] ) ? esc_url_raw( (string) $result['url'] ) : '',
+				'token'      => isset( $result['token'] ) ? sanitize_text_field( (string) $result['token'] ) : '',
+				'post_id'    => isset( $result['post_id'] ) ? (int) $result['post_id'] : 0,
+				'expires_at' => (int) $expires_at,
+			);
+
+			pera_crm_client_view_with_target_blog(
+				static function () use ( $client_id, $portfolio_state, $expires_at, $created_at ): void {
+					update_post_meta( $client_id, '_peracrm_portfolio_url', $portfolio_state['url'] );
+					update_post_meta( $client_id, '_peracrm_portfolio_token', $portfolio_state['token'] );
+					update_post_meta( $client_id, '_peracrm_portfolio_post_id', (int) $portfolio_state['post_id'] );
+					update_post_meta( $client_id, '_peracrm_portfolio_expires_at', (int) $expires_at );
+					update_post_meta( $client_id, '_peracrm_portfolio_created_at', (int) $created_at );
+					update_post_meta( $client_id, '_peracrm_portfolio_updated_at', (int) $created_at );
+				}
+			);
+		}
+
+		$expires_at = (int) ( $portfolio_state['expires_at'] ?? 0 );
+		pera_crm_ajax_success(
+			array(
+				'code'          => 'portfolio_token_updated',
+				'url'           => (string) ( $portfolio_state['url'] ?? '' ),
+				'token'         => (string) ( $portfolio_state['token'] ?? '' ),
+				'post_id'       => (int) ( $portfolio_state['post_id'] ?? 0 ),
+				'expires_at'    => $expires_at,
+				'expires_label' => $expires_at > 0 ? wp_date( get_option( 'date_format' ) . ' ' . get_option( 'time_format' ), $expires_at ) : '',
+			)
+		);
+	}
+}
+add_action( 'wp_ajax_peracrm_update_portfolio_token', 'pera_crm_update_portfolio_token_ajax' );
+
+
 if ( ! function_exists( 'pera_crm_upload_portfolio_floor_plan_ajax' ) ) {
 	/**
 	 * Upload a portfolio floor plan JPEG and return attachment details.
