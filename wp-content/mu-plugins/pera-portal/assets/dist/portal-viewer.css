@@ -124,14 +124,6 @@ body.pera-portal-page .page-header {
     display: none;
 }
 
-body.pera-portal-page .page-content {
-    padding-top: 0;
-}
-
-body.pera-portal-page .page-content > :first-child {
-    margin-top: 0;
-}
-
 
 .pera-portal-unit-plan {
     margin-top: 12px;
