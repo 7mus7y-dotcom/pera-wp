@@ -93,7 +93,7 @@ if ( $needs_slider ) {
      Rule: property archive OR single property OR home
   ========================= */
 
-  if ( $is_property_archive || $is_portfolio_token ) {
+  if ( $is_property_archive || $is_portfolio_token || $is_property_map ) {
     pera_enqueue_property_archive_assets( $needs_slider );
   }
 
@@ -111,7 +111,7 @@ if ( $needs_slider ) {
      Rule: home OR property archive OR single property OR single post
   ========================= */
 
-  if ( $is_home || $is_single_property || $is_single_post || $is_favourites_page || $is_property_map ) {
+  if ( $is_home || $is_single_property || $is_single_post || $is_favourites_page ) {
 
     $deps = array( 'pera-main-css' );
     if ( $needs_slider ) {
