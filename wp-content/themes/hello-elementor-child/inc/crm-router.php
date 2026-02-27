@@ -47,6 +47,18 @@ if ( ! function_exists( 'pera_crm_register_route' ) ) {
 }
 add_action( 'init', 'pera_crm_register_route' );
 
+
+if ( ! function_exists( 'pera_crm_router_hooks_registered' ) ) {
+	/**
+	 * Whether CRM router hooks were registered for this request.
+	 */
+	function pera_crm_router_hooks_registered(): bool {
+		return ! empty( $GLOBALS['pera_crm_router_hooks_registered'] );
+	}
+}
+
+
+
 if ( ! function_exists( 'pera_is_crm_route' ) ) {
 	/**
 	 * Whether current request resolved to the CRM virtual route.
@@ -75,6 +87,7 @@ if ( ! function_exists( 'pera_crm_register_query_var' ) ) {
 	}
 }
 add_filter( 'query_vars', 'pera_crm_register_query_var' );
+$GLOBALS['pera_crm_router_hooks_registered'] = true;
 
 if ( ! function_exists( 'pera_crm_build_create_lead_redirect_url' ) ) {
 	/**
