@@ -38,8 +38,39 @@ if (!defined('ABSPATH')) {
                     </div>
 
                     <div class="pera-portal-shortlistbar" aria-label="Shortlist controls">
-                        <span class="pera-portal-shortlistcount">Shortlist: <strong data-shortlist-count>0</strong></span>
-                        <button type="button" class="pera-portal-shortlistclear" data-shortlist-clear disabled>Clear</button>
+                        <span class="pera-portal-shortlistcount">
+                            <?php echo esc_html__('Shortlist:', 'pera-portal'); ?>
+                            <strong data-shortlist-count>0</strong>
+                        </span>
+
+                        <div class="pera-portal-shortlist-actions">
+                            <button type="button"
+                                    class="pera-portal-iconbtn"
+                                    data-copy-link
+                                    aria-label="<?php echo esc_attr__('Copy shortlist link', 'pera-portal'); ?>">
+                                <svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true">
+                                    <path fill="currentColor"
+                                          d="M3.9 12a5 5 0 0 1 5-5h3v2h-3a3 3 0 0 0 0 6h3v2h-3a5 5 0 0 1-5-5Zm6-1h4v2h-4v-2Zm5-4h3a5 5 0 1 1 0 10h-3v-2h3a3 3 0 1 0 0-6h-3V7Z"/>
+                                </svg>
+                            </button>
+
+                            <button type="button"
+                                    class="pera-portal-iconbtn"
+                                    data-open-window
+                                    aria-label="<?php echo esc_attr__('Open in new window', 'pera-portal'); ?>">
+                                <svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true">
+                                    <path fill="currentColor"
+                                          d="M14 3h7v7h-2V6.41l-9.29 9.3-1.42-1.42 9.3-9.29H14V3ZM5 5h6v2H7v10h10v-4h2v6H5V5Z"/>
+                                </svg>
+                            </button>
+                        </div>
+
+                        <button type="button"
+                                class="pera-portal-shortlistclear"
+                                data-shortlist-clear
+                                disabled>
+                            <?php echo esc_html__('Clear', 'pera-portal'); ?>
+                        </button>
                     </div>
                 </div>
                 <div class="pera-portal-svg-placeholder"><?php echo esc_html__('SVG plan placeholder', 'pera-portal'); ?></div>
@@ -59,6 +90,14 @@ if (!defined('ABSPATH')) {
                     <label class="pera-portal-filter-pill"><input type="checkbox" data-status-filter="sold" checked> <?php echo esc_html__('Sold', 'pera-portal'); ?></label>
                 </div>
                 <div class="pera-portal-counts" aria-live="polite"></div>
+                <div class="pera-portal-summary" hidden>
+                    <div class="pera-portal-summary__grid">
+                        <div><strong><?php echo esc_html__('Total Value', 'pera-portal'); ?></strong><br><span data-summary-total>—</span></div>
+                        <div><strong><?php echo esc_html__('Average PPSQM', 'pera-portal'); ?></strong><br><span data-summary-pps>—</span></div>
+                        <div><strong><?php echo esc_html__('Total Gross m²', 'pera-portal'); ?></strong><br><span data-summary-size>—</span></div>
+                        <div><strong><?php echo esc_html__('Units Selected', 'pera-portal'); ?></strong><br><span data-summary-count>0</span></div>
+                    </div>
+                </div>
                 <div class="pera-portal-compare" hidden>
                     <div class="pera-portal-compare__head">
                         <h4><?php echo esc_html__('Shortlist comparison', 'pera-portal'); ?></h4>
