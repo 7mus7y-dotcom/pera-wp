@@ -208,19 +208,26 @@
         summaryContainer.hidden = false;
     }
 
-    function copyCurrentLink() {
+    function copyCurrentLinkToClipboard() {
         const url = window.location.href;
 
-        if (navigator.clipboard && navigator.clipboard.writeText) {
-            navigator.clipboard.writeText(url).catch(function () {});
-        } else {
+        if (navigator.clipboard && typeof navigator.clipboard.writeText === 'function') {
+            return navigator.clipboard.writeText(url);
+        }
+
+        try {
             const temp = document.createElement('input');
             temp.value = url;
+            temp.setAttribute('readonly', 'readonly');
+            temp.style.position = 'absolute';
+            temp.style.left = '-9999px';
             document.body.appendChild(temp);
             temp.select();
             document.execCommand('copy');
             document.body.removeChild(temp);
-        }
+        } catch (e) {}
+
+        return Promise.resolve();
     }
 
     function toggleShortlist(unit, element) {
@@ -742,7 +749,7 @@
 
         if (copyBtn) {
             copyBtn.addEventListener('click', function () {
-                copyCurrentLink();
+                copyCurrentLinkToClipboard().catch(function () {});
             });
         }
 
