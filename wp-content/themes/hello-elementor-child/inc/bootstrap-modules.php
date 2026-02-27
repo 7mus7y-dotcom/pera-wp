@@ -141,6 +141,4 @@ if ( $is_frontend ) {
 	require_once get_stylesheet_directory() . '/inc/bootstrap/frontend.php';
 }
 
-if ( $is_portfolio_route || $load_crm_integration ) {
-	require_once get_stylesheet_directory() . '/inc/bootstrap/portfolio-token.php';
-}
+require_once get_stylesheet_directory() . '/inc/bootstrap/portfolio-token.php';
