@@ -92,6 +92,16 @@ function pera_portal_rest_get_units(WP_REST_Request $request)
             $plan_mime = isset($plan['mime_type']) ? (string) $plan['mime_type'] : '';
         }
 
+        $price_value = is_numeric($price) ? (float) $price : null;
+        $gross_size_value = is_numeric($gross_size) ? (float) $gross_size : null;
+        $net_size_value = is_numeric($net_size) ? (float) $net_size : null;
+        $size_for_ppsqm = $gross_size_value !== null ? $gross_size_value : $net_size_value;
+        $price_per_sqm = null;
+
+        if ($price_value !== null && $size_for_ppsqm !== null && $size_for_ppsqm > 0) {
+            $price_per_sqm = $price_value / $size_for_ppsqm;
+        }
+
         $currency = is_string($currency) ? trim($currency) : $currency;
         $status = is_string($status) ? trim($status) : $status;
 
@@ -108,9 +118,10 @@ function pera_portal_rest_get_units(WP_REST_Request $request)
             'title' => get_the_title($unit_id),
             'unit_code' => (string) $unit_code,
             'unit_type' => sanitize_text_field((string) $unit_type),
-            'net_size' => is_numeric($net_size) ? (float) $net_size : null,
-            'gross_size' => is_numeric($gross_size) ? (float) $gross_size : null,
-            'price' => is_numeric($price) ? (float) $price : null,
+            'net_size' => $net_size_value,
+            'gross_size' => $gross_size_value,
+            'price' => $price_value,
+            'price_per_sqm' => $price_per_sqm,
             'currency' => sanitize_text_field((string) $currency),
             'status' => $status,
             'detail_plan_url' => esc_url_raw($plan_url),

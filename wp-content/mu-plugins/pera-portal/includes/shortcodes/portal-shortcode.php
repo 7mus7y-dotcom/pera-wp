@@ -18,10 +18,17 @@ function pera_portal_render_shortcode($atts = [])
     $atts = shortcode_atts([
         'building' => '',
         'floor' => '',
+        'mode' => 'external',
     ], $atts, PERA_PORTAL_SHORTCODE_TAG);
 
     $building_id = absint($atts['building']);
     $floor_id = absint($atts['floor']);
+    $allowed_modes = ['internal', 'external', 'investor'];
+    $mode = sanitize_key((string) $atts['mode']);
+
+    if (!in_array($mode, $allowed_modes, true)) {
+        $mode = 'external';
+    }
 
     if ($building_id > 0 && $floor_id <= 0) {
         $query = new WP_Query([
@@ -86,6 +93,7 @@ function pera_portal_render_shortcode($atts = [])
             'nonce' => wp_create_nonce('wp_rest'),
             'building_id' => $building_id,
             'floor_id' => $floor_id,
+            'mode' => $mode,
         ]);
     }
 

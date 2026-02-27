@@ -6,12 +6,23 @@
         return;
     }
 
+    const mode = ['internal', 'external', 'investor'].indexOf(String(config.mode || '').toLowerCase()) >= 0
+        ? String(config.mode || '').toLowerCase()
+        : 'external';
+
+    root.classList.add('mode-' + mode);
+
     const svgPanel = root.querySelector('.pera-portal-panel--svg');
     const svgContainer = root.querySelector('.pera-portal-svg-placeholder');
     const detailsContainer = root.querySelector('.pera-portal-details-placeholder');
     const filtersContainer = root.querySelector('.pera-portal-filters');
     const countsContainer = root.querySelector('.pera-portal-counts');
     const floorSelect = root.querySelector('.pera-portal-floor-select');
+    const shortlistCountEl = root.querySelector('[data-shortlist-count]');
+    const shortlistClearBtn = root.querySelector('[data-shortlist-clear]');
+    const compareContainer = root.querySelector('.pera-portal-compare');
+    const compareBody = root.querySelector('[data-compare-body]');
+    const colorModeButtons = root.querySelectorAll('[data-color-mode]');
     const restBase = String(config.rest_url || '');
     const headers = {
         'X-WP-Nonce': String(config.nonce || ''),
@@ -24,6 +35,7 @@
         buildingId: Number(urlParams.get('building_id') || config.building_id || 0),
         floorId: Number(urlParams.get('floor_id') || config.floor_id || 0),
         selectedUnitCode: String(urlParams.get('unit') || ''),
+        colorMode: mode === 'investor' ? 'price' : 'availability',
     };
 
     let selectedElement = null;
@@ -31,10 +43,190 @@
     let unitsData = [];
     let svgUnits = [];
     let floorsData = [];
+    const shortlist = new Map();
+    const tooltip = document.createElement('div');
+    tooltip.className = 'pera-portal-tooltip';
+    tooltip.hidden = true;
+    root.appendChild(tooltip);
 
     function normalizeStatus(status) {
         const normalized = String(status || '').toLowerCase();
         return statusKeys.indexOf(normalized) >= 0 ? normalized : 'available';
+    }
+
+    function shouldShowPrice() {
+        return true;
+    }
+
+    function formatValue(value) {
+        return value ?? '—';
+    }
+
+    function formatPrice(unit) {
+        const price = unit && typeof unit.price === 'number' ? unit.price : null;
+        if (price === null) {
+            return '—';
+        }
+        return String(price) + ' ' + (unit.currency || '');
+    }
+
+    function getHeatMetric(unit) {
+        if (unit && typeof unit.price_per_sqm === 'number') {
+            return unit.price_per_sqm;
+        }
+
+        return unit && typeof unit.price === 'number' ? unit.price : null;
+    }
+
+    function setShortlistCount() {
+        if (shortlistCountEl) {
+            shortlistCountEl.textContent = String(shortlist.size);
+        }
+        if (shortlistClearBtn) {
+            shortlistClearBtn.disabled = shortlist.size < 1;
+        }
+    }
+
+    function renderCompareTable() {
+        if (!compareContainer || !compareBody) {
+            return;
+        }
+
+        const rows = [];
+        shortlist.forEach(function (unit, key) {
+            const viewPlan = unit.detail_plan_url
+                ? '<a href="' + unit.detail_plan_url + '" target="_blank" rel="noopener">View plan</a>'
+                : '—';
+
+            rows.push([
+                '<tr>',
+                '<td>' + (unit.unit_code || '—') + '</td>',
+                '<td>' + (unit.unit_type || '—') + '</td>',
+                '<td>' + formatValue(unit.net_size) + '</td>',
+                '<td>' + formatValue(unit.gross_size) + '</td>',
+                '<td>' + (shouldShowPrice() ? formatPrice(unit) : '—') + '</td>',
+                '<td>' + (unit.status || '—') + '</td>',
+                '<td>' + viewPlan + '</td>',
+                '<td><button type="button" class="pera-portal-compare__remove" data-remove-unit="' + key + '" aria-label="Remove ' + key + '">×</button></td>',
+                '</tr>',
+            ].join(''));
+        });
+
+        compareBody.innerHTML = rows.join('');
+        compareContainer.hidden = shortlist.size < 1;
+    }
+
+    function toggleShortlist(unit, element) {
+        if (!unit || !unit.unit_code || !element) {
+            return;
+        }
+
+        const key = String(unit.unit_code);
+        if (shortlist.has(key)) {
+            shortlist.delete(key);
+            element.classList.remove('is-shortlisted');
+        } else {
+            shortlist.set(key, unit);
+            element.classList.add('is-shortlisted');
+        }
+
+        setShortlistCount();
+        renderCompareTable();
+    }
+
+    function clearShortlist() {
+        shortlist.clear();
+        svgUnits.forEach(function (entry) {
+            entry.element.classList.remove('is-shortlisted');
+        });
+        setShortlistCount();
+        renderCompareTable();
+    }
+
+    function showTooltip(unit, event) {
+        if (!unit || !event) {
+            tooltip.hidden = true;
+            return;
+        }
+
+        const lines = [
+            '<strong>' + (unit.unit_code || '—') + '</strong>',
+            '<div>Type: ' + (unit.unit_type || '—') + '</div>',
+            '<div>Status: ' + (unit.status || '—') + '</div>',
+        ];
+
+        if (shouldShowPrice()) {
+            lines.push('<div>Price: ' + formatPrice(unit) + '</div>');
+
+            if (state.colorMode === 'price' && typeof unit.price_per_sqm === 'number') {
+                lines.push('<div>PPSQM: ' + String(unit.price_per_sqm) + ' ' + (unit.currency || '') + ' / m²</div>');
+            }
+        }
+
+        tooltip.innerHTML = lines.join('');
+        tooltip.hidden = false;
+        tooltip.style.visibility = 'hidden';
+
+        const padding = 12;
+        const rect = tooltip.getBoundingClientRect();
+        const maxLeft = Math.max(padding, window.innerWidth - rect.width - padding);
+        const maxTop = Math.max(padding, window.innerHeight - rect.height - padding);
+        const left = Math.min(Math.max(event.clientX + 16, padding), maxLeft);
+        const top = Math.min(Math.max(event.clientY + 16, padding), maxTop);
+
+        tooltip.style.left = left + 'px';
+        tooltip.style.top = top + 'px';
+        tooltip.style.visibility = '';
+    }
+
+    function updateColorModeButtons() {
+        colorModeButtons.forEach(function (button) {
+            const isActive = button.getAttribute('data-color-mode') === state.colorMode;
+            button.classList.toggle('is-active', isActive);
+        });
+    }
+
+    function heatColorFromRatio(ratio) {
+        const hue = 120 - Math.round(ratio * 120);
+        return 'hsl(' + hue + ' 75% 78%)';
+    }
+
+    function applyColorMode() {
+        root.classList.toggle('is-color-price', state.colorMode === 'price');
+
+        if (state.colorMode !== 'price') {
+            svgUnits.forEach(function (entry) {
+                entry.element.style.removeProperty('--unit-heat-fill');
+                entry.element.style.removeProperty('--unit-heat-opacity');
+            });
+            updateColorModeButtons();
+            return;
+        }
+
+        const priced = unitsData.map(function (unit) {
+            return getHeatMetric(unit);
+        }).filter(function (value) {
+            return value !== null;
+        });
+
+        const min = priced.length ? Math.min.apply(Math, priced) : 0;
+        const max = priced.length ? Math.max.apply(Math, priced) : 0;
+        const spread = max - min;
+
+        svgUnits.forEach(function (entry) {
+            const metricValue = getHeatMetric(entry.unit);
+            if (metricValue === null) {
+                entry.element.style.setProperty('--unit-heat-fill', '#e5e7eb');
+                entry.element.style.setProperty('--unit-heat-opacity', '0.35');
+                return;
+            }
+
+            const ratio = spread > 0 ? (metricValue - min) / spread : 0.5;
+            entry.element.style.setProperty('--unit-heat-fill', heatColorFromRatio(ratio));
+            entry.element.style.setProperty('--unit-heat-opacity', '0.55');
+        });
+
+        updateColorModeButtons();
     }
 
     function getEnabledStatuses() {
@@ -254,6 +446,7 @@
         }
 
         clearSelection('Loading floor data...');
+        clearShortlist();
 
         try {
             const floor = await fetchJson('floor?floor_id=' + encodeURIComponent(String(state.floorId)));
@@ -338,6 +531,11 @@
 
                 event.preventDefault();
 
+                if (event.shiftKey === true) {
+                    toggleShortlist(match.unit, target);
+                    return;
+                }
+
                 if (selectedElement) {
                     selectedElement.classList.remove('is-selected');
                 }
@@ -350,7 +548,33 @@
                 renderDetails(match.unit);
             });
 
+            svg.addEventListener('mousemove', function (event) {
+                const target = findUnitElement(event.target);
+                if (!target || target.classList.contains('is-hidden')) {
+                    tooltip.hidden = true;
+                    return;
+                }
+
+                const match = svgUnits.find(function (entry) {
+                    return entry.element === target;
+                });
+
+                if (!match) {
+                    tooltip.hidden = true;
+                    return;
+                }
+
+                showTooltip(match.unit, event);
+            });
+
+            if (svgPanel) {
+                svgPanel.addEventListener('mouseleave', function () {
+                    tooltip.hidden = true;
+                });
+            }
+
             applyFilters();
+            applyColorMode();
             if (state.selectedUnitCode) {
                 selectUnit(state.selectedUnitCode);
             }
@@ -378,6 +602,48 @@
                 input.addEventListener('change', applyFilters);
             });
         }
+
+        if (shortlistClearBtn) {
+            shortlistClearBtn.addEventListener('click', clearShortlist);
+        }
+
+        if (compareBody) {
+            compareBody.addEventListener('click', function (event) {
+                const button = event.target && event.target.closest ? event.target.closest('[data-remove-unit]') : null;
+                if (!button) {
+                    return;
+                }
+
+                const unitCode = String(button.getAttribute('data-remove-unit') || '');
+                shortlist.delete(unitCode);
+                const match = svgUnits.find(function (entry) {
+                    return String(entry.unit.unit_code || '') === unitCode;
+                });
+                if (match) {
+                    match.element.classList.remove('is-shortlisted');
+                }
+
+                setShortlistCount();
+                renderCompareTable();
+            });
+        }
+
+        colorModeButtons.forEach(function (button) {
+            button.addEventListener('click', function () {
+                const value = button.getAttribute('data-color-mode');
+                if (value !== 'availability' && value !== 'price') {
+                    return;
+                }
+
+                state.colorMode = value;
+                applyColorMode();
+            });
+        });
+
+        setShortlistCount();
+        renderCompareTable();
+        root.classList.toggle('is-color-price', state.colorMode === 'price');
+        updateColorModeButtons();
 
         if (!restBase) {
             setMessage(svgContainer, 'Portal configuration is missing.');
