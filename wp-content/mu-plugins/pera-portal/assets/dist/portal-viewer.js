@@ -18,7 +18,6 @@
     };
 
     const statusKeys = ['available', 'reserved', 'sold'];
-    const shapeTags = ['path', 'polygon', 'rect', 'circle', 'ellipse', 'polyline'];
 
     let selectedElement = null;
     let selectedUnit = null;
@@ -154,23 +153,6 @@
         return null;
     }
 
-    function getHitfillTarget(target) {
-        if (!target || !target.tagName) {
-            return null;
-        }
-
-        const tagName = String(target.tagName).toLowerCase();
-        if (shapeTags.indexOf(tagName) >= 0) {
-            return target;
-        }
-
-        if (tagName !== 'g') {
-            return null;
-        }
-
-        return target.querySelector(shapeTags.join(','));
-    }
-
     async function fetchJson(path) {
         const response = await fetch(restBase + path, {
             headers: headers,
@@ -249,14 +231,6 @@
                 target.dataset.status = unitStatus;
                 target.style.pointerEvents = 'all';
 
-                const hitfillTarget = getHitfillTarget(target);
-                if (hitfillTarget && hitfillTarget.classList) {
-                    const fillAttr = hitfillTarget.getAttribute('fill');
-                    if (!fillAttr || String(fillAttr).trim().toLowerCase() === 'none') {
-                        hitfillTarget.classList.add('has-hitfill');
-                    }
-                }
-
                 matchedSvgUnits.push({
                     unit: unit,
                     element: target,
@@ -268,7 +242,7 @@
             svgUnits = matchedSvgUnits;
 
             if (!svgUnits.length) {
-                setMessage(detailsContainer, 'No SVG IDs matched unit codes. Check unit_code vs SVG element id.');
+                setMessage(detailsContainer, 'No SVG IDs matched unit codes. Check unit_code vs SVG element id. Your SVG unit shapes must be closed and filled (can be transparent). Stroke-only outlines won’t be easy to click.');
                 renderCounts();
                 return;
             }
@@ -305,7 +279,7 @@
             }
 
             applyFilters();
-            setMessage(detailsContainer, 'Click a highlighted unit to see details.');
+            setMessage(detailsContainer, 'Click a highlighted unit to see details. Your SVG unit shapes must be closed and filled (can be transparent). Stroke-only outlines won’t be easy to click.');
         } catch (error) {
             const message = error && error.message ? error.message : 'Unknown error';
 

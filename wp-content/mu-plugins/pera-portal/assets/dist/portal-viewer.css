@@ -86,15 +86,6 @@
     pointer-events: all;
 }
 
-/* Invisible hit-fill support
-   Works whether .has-hitfill is on the unit element
-   or on a child shape inside a <g> */
-.unit.has-hitfill,
-.unit .has-hitfill {
-    fill: #000;
-    fill-opacity: 0.02;
-}
-
 .status-available {
     stroke: #15803d;
     stroke-width: 2;
