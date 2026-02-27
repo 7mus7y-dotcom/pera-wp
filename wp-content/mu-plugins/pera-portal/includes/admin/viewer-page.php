@@ -14,10 +14,15 @@ function pera_portal_register_viewer_submenu()
         'pera-portal-viewer',
         'pera_portal_render_viewer_page'
     );
+}
 
-    if (function_exists('pera_portal_current_user_can_access') && !pera_portal_current_user_can_access()) {
-        remove_submenu_page('pera-portal', 'pera-portal-viewer');
+function pera_portal_hide_disallowed_viewer_submenu()
+{
+    if (function_exists('pera_portal_user_is_allowed_for_admin_ui') && pera_portal_user_is_allowed_for_admin_ui()) {
+        return;
     }
+
+    remove_submenu_page('pera-portal', 'pera-portal-viewer');
 }
 
 function pera_portal_render_viewer_page()
@@ -163,3 +168,5 @@ function pera_portal_render_viewer_page()
 
 add_action('admin_menu', 'pera_portal_register_viewer_submenu');
 add_action('network_admin_menu', 'pera_portal_register_viewer_submenu');
+add_action('admin_menu', 'pera_portal_hide_disallowed_viewer_submenu', 99);
+add_action('network_admin_menu', 'pera_portal_hide_disallowed_viewer_submenu', 99);

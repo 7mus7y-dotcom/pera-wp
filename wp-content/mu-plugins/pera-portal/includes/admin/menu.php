@@ -24,7 +24,7 @@ function pera_portal_user_is_allowed_for_admin_ui()
         return false;
     }
 
-    return pera_portal_current_user_can_access();
+    return (bool) pera_portal_current_user_can_access();
 }
 
 function pera_portal_hide_disallowed_admin_menus()
