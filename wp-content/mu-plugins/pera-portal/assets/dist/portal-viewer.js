@@ -582,7 +582,7 @@
                 svgContainer.innerHTML = await svgResponse.text();
             }
 
-            const svg = svgPanel ? svgPanel.querySelector('svg') : null;
+            const svg = svgContainer ? svgContainer.querySelector('svg') : null;
             if (!svg) {
                 setMessage(detailsContainer, 'SVG loaded but no root <svg> found.');
                 return;
