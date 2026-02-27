@@ -31,6 +31,17 @@ if (!defined('ABSPATH')) {
                     <label for="pera-portal-floor-select"><?php echo esc_html__('Floor', 'pera-portal'); ?></label>
                     <select id="pera-portal-floor-select" class="pera-portal-floor-select"><option value=""><?php echo esc_html__('Select a building in shortcode.', 'pera-portal'); ?></option></select>
                 </div>
+                <div class="pera-portal-topbar">
+                    <div class="pera-portal-colormode" role="group" aria-label="Color mode">
+                        <button type="button" class="pera-portal-colormode-btn is-active" data-color-mode="availability">Availability</button>
+                        <button type="button" class="pera-portal-colormode-btn" data-color-mode="price">Price</button>
+                    </div>
+
+                    <div class="pera-portal-shortlistbar" aria-label="Shortlist controls">
+                        <span class="pera-portal-shortlistcount">Shortlist: <strong data-shortlist-count>0</strong></span>
+                        <button type="button" class="pera-portal-shortlistclear" data-shortlist-clear disabled>Clear</button>
+                    </div>
+                </div>
                 <div class="pera-portal-svg-placeholder"><?php echo esc_html__('SVG plan placeholder', 'pera-portal'); ?></div>
             </section>
             <aside class="pera-portal-panel pera-portal-panel--details" aria-label="Unit details">
@@ -48,6 +59,29 @@ if (!defined('ABSPATH')) {
                     <label class="pera-portal-filter-pill"><input type="checkbox" data-status-filter="sold" checked> <?php echo esc_html__('Sold', 'pera-portal'); ?></label>
                 </div>
                 <div class="pera-portal-counts" aria-live="polite"></div>
+                <div class="pera-portal-compare" hidden>
+                    <div class="pera-portal-compare__head">
+                        <h4><?php echo esc_html__('Shortlist comparison', 'pera-portal'); ?></h4>
+                        <p class="pera-portal-compare__hint"><?php echo esc_html__('Tip: Shift+Click units to shortlist them.', 'pera-portal'); ?></p>
+                    </div>
+                    <div class="pera-portal-compare__wrap">
+                        <table class="pera-portal-compare__table">
+                            <thead>
+                                <tr>
+                                    <th><?php echo esc_html__('Code', 'pera-portal'); ?></th>
+                                    <th><?php echo esc_html__('Type', 'pera-portal'); ?></th>
+                                    <th><?php echo esc_html__('Net', 'pera-portal'); ?></th>
+                                    <th><?php echo esc_html__('Gross', 'pera-portal'); ?></th>
+                                    <th><?php echo esc_html__('Price', 'pera-portal'); ?></th>
+                                    <th><?php echo esc_html__('Status', 'pera-portal'); ?></th>
+                                    <th><?php echo esc_html__('View plan', 'pera-portal'); ?></th>
+                                    <th aria-label="Remove"></th>
+                                </tr>
+                            </thead>
+                            <tbody data-compare-body></tbody>
+                        </table>
+                    </div>
+                </div>
                 <div class="pera-portal-details-placeholder"><?php echo esc_html__('Unit details placeholder', 'pera-portal'); ?></div>
             </aside>
         </div>
