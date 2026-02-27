@@ -24,6 +24,67 @@ if ( ! is_admin() ) {
 }
 
 if ( ! function_exists( 'pera_block_employee_admin_access' ) ) {
+  function pera_debug_employee_admin_block_log( string $reason ): void {
+    if ( ! ( defined( 'WP_DEBUG' ) && WP_DEBUG && defined( 'PERA_CRM_DEBUG_ADMIN_BLOCK' ) && PERA_CRM_DEBUG_ADMIN_BLOCK ) ) {
+      return;
+    }
+
+    $throttle_key = 'pera_crm_admin_block_log_' . get_current_user_id() . '_' . md5( $reason );
+    if ( get_transient( $throttle_key ) ) {
+      return;
+    }
+    set_transient( $throttle_key, 1, 10 );
+
+    $request_uri = isset( $_SERVER['REQUEST_URI'] ) ? sanitize_text_field( wp_unslash( (string) $_SERVER['REQUEST_URI'] ) ) : '';
+    $action      = isset( $_POST['action'] ) ? sanitize_key( wp_unslash( (string) $_POST['action'] ) ) : '';
+    error_log( '[PERA CRM admin block] reason=' . $reason . ' uri=' . $request_uri . ' action=' . $action );
+  }
+
+  function pera_employee_is_allowed_admin_post_crm_action(): bool {
+    global $pagenow;
+
+    $request_uri  = isset( $_SERVER['REQUEST_URI'] ) ? (string) $_SERVER['REQUEST_URI'] : '';
+    $request_path = $request_uri !== '' ? (string) parse_url( $request_uri, PHP_URL_PATH ) : '';
+    $is_admin_post = ( isset( $pagenow ) && 'admin-post.php' === $pagenow )
+      || false !== strpos( $request_path, 'admin-post.php' );
+
+    if ( ! $is_admin_post ) {
+      return false;
+    }
+
+    $method = isset( $_SERVER['REQUEST_METHOD'] ) ? strtoupper( sanitize_text_field( wp_unslash( (string) $_SERVER['REQUEST_METHOD'] ) ) ) : '';
+    if ( 'POST' !== $method ) {
+      return false;
+    }
+
+    $action = isset( $_POST['action'] ) ? sanitize_key( wp_unslash( (string) $_POST['action'] ) ) : '';
+    if ( '' === $action ) {
+      return false;
+    }
+
+    $allowed_actions = array(
+      'peracrm_add_note',
+      'peracrm_add_reminder',
+      'peracrm_mark_reminder_done',
+      'peracrm_update_reminder_status',
+      'peracrm_save_client_profile',
+      'peracrm_save_party_status',
+      'peracrm_convert_to_client',
+      'peracrm_create_deal',
+      'peracrm_update_deal',
+      'peracrm_delete_deal',
+      'peracrm_delete_client',
+      'peracrm_reassign_client_advisor',
+      'peracrm_pipeline_move_stage',
+      'peracrm_pipeline_bulk_action',
+      'peracrm_pipeline_export_csv',
+      'peracrm_toggle_favourite',
+      'peracrm_front_create_lead',
+    );
+
+    return in_array( $action, $allowed_actions, true );
+  }
+
   function pera_block_employee_admin_access(): void {
     if ( ! is_user_logged_in() ) {
       return;
@@ -53,6 +114,12 @@ if ( ! function_exists( 'pera_block_employee_admin_access' ) ) {
     if ( function_exists( 'wp_is_json_request' ) && wp_is_json_request() ) {
       return;
     }
+
+    if ( pera_employee_is_allowed_admin_post_crm_action() ) {
+      return;
+    }
+
+    pera_debug_employee_admin_block_log( 'employee_admin_blocked' );
 
     wp_safe_redirect( home_url( '/' ) );
     exit;

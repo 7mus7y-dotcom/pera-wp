@@ -148,6 +148,7 @@
 
     const subs = debug && typeof debug.subs_count !== 'undefined' ? debug.subs_count : 'n/a';
     const lastDigest = debug && debug.last_digest_meta ? debug.last_digest_meta : 'none';
+    const configured = config.isConfigured === false ? 'no' : 'yes';
     const missingReasons = Array.isArray(debug && debug.missingReasons) ? debug.missingReasons : [];
     const missingText = missingReasons.length > 0 ? ' missing(' + missingReasons.join('; ') + ')' : '';
     const cron = debug && debug.cron ? debug.cron : {};
@@ -157,7 +158,7 @@
       return String(row.status_code || 0);
     });
     diagnosticsEl.hidden = false;
-    diagnosticsEl.textContent = 'Diagnostics: subs ' + subs + ', last digest meta ' + lastDigest + ', cron next ' + next + ', last status codes [' + statuses.join(', ') + '].' + missingText;
+    diagnosticsEl.textContent = 'Diagnostics: configured ' + configured + ', subs ' + subs + ', last digest meta ' + lastDigest + ', cron next ' + next + ', last status codes [' + statuses.join(', ') + '].' + missingText;
   }
 
   async function refreshDiagnostics() {
