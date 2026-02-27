@@ -22,6 +22,13 @@
     const shortlistClearBtn = root.querySelector('[data-shortlist-clear]');
     const compareContainer = root.querySelector('.pera-portal-compare');
     const compareBody = root.querySelector('[data-compare-body]');
+    const copyBtn = root.querySelector('[data-copy-link]');
+    const openBtn = root.querySelector('[data-open-window]');
+    const summaryContainer = root.querySelector('.pera-portal-summary');
+    const summaryTotalEl = root.querySelector('[data-summary-total]');
+    const summaryPpsEl = root.querySelector('[data-summary-pps]');
+    const summarySizeEl = root.querySelector('[data-summary-size]');
+    const summaryCountEl = root.querySelector('[data-summary-count]');
     const colorModeButtons = root.querySelectorAll('[data-color-mode]');
     const restBase = String(config.rest_url || '');
     const headers = {
@@ -29,7 +36,23 @@
     };
 
     const urlParams = new URLSearchParams(window.location.search || '');
+    const initialUnitsParam = String(urlParams.get('units') || '');
     const statusKeys = ['available', 'reserved', 'sold'];
+
+    function parseUnitsParam(value) {
+        if (!value) return [];
+
+        return value
+            .split(',')
+            .map(function (v) {
+                return v.trim();
+            })
+            .filter(function (v) {
+                return v.length > 0;
+            });
+    }
+
+    const initialShortlistCodes = parseUnitsParam(initialUnitsParam);
 
     const state = {
         buildingId: Number(urlParams.get('building_id') || config.building_id || 0),
@@ -85,6 +108,12 @@
         if (shortlistClearBtn) {
             shortlistClearBtn.disabled = shortlist.size < 1;
         }
+        if (copyBtn) {
+            copyBtn.disabled = shortlist.size < 1;
+        }
+        if (openBtn) {
+            openBtn.disabled = shortlist.size < 1;
+        }
     }
 
     function renderCompareTable() {
@@ -116,6 +145,84 @@
         compareContainer.hidden = shortlist.size < 1;
     }
 
+    function updateShortlistUrl() {
+        const params = new URLSearchParams(window.location.search || '');
+
+        if (shortlist.size > 0) {
+            const codes = Array.from(shortlist.keys());
+            params.set('units', codes.join(','));
+        } else {
+            params.delete('units');
+        }
+
+        const query = params.toString();
+        const newUrl = window.location.pathname + (query ? '?' + query : '') + window.location.hash;
+        window.history.replaceState({}, '', newUrl);
+    }
+
+    function updateSummary() {
+        if (!summaryContainer) {
+            return;
+        }
+
+        if (shortlist.size === 0) {
+            summaryContainer.hidden = true;
+            return;
+        }
+
+        let totalValue = 0;
+        let totalSize = 0;
+        let ppsqmSum = 0;
+        let ppsqmCount = 0;
+
+        shortlist.forEach(function (unit) {
+            if (typeof unit.price === 'number') {
+                totalValue += unit.price;
+            }
+
+            if (typeof unit.gross_size === 'number') {
+                totalSize += unit.gross_size;
+            }
+
+            if (typeof unit.price_per_sqm === 'number') {
+                ppsqmSum += unit.price_per_sqm;
+                ppsqmCount += 1;
+            }
+        });
+
+        const avgPps = ppsqmCount > 0 ? (ppsqmSum / ppsqmCount) : null;
+
+        if (summaryTotalEl) {
+            summaryTotalEl.textContent = totalValue ? totalValue.toLocaleString() : '—';
+        }
+        if (summaryPpsEl) {
+            summaryPpsEl.textContent = avgPps ? avgPps.toFixed(0) : '—';
+        }
+        if (summarySizeEl) {
+            summarySizeEl.textContent = totalSize ? totalSize.toFixed(1) : '—';
+        }
+        if (summaryCountEl) {
+            summaryCountEl.textContent = String(shortlist.size);
+        }
+
+        summaryContainer.hidden = false;
+    }
+
+    function copyCurrentLink() {
+        const url = window.location.href;
+
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+            navigator.clipboard.writeText(url).catch(function () {});
+        } else {
+            const temp = document.createElement('input');
+            temp.value = url;
+            document.body.appendChild(temp);
+            temp.select();
+            document.execCommand('copy');
+            document.body.removeChild(temp);
+        }
+    }
+
     function toggleShortlist(unit, element) {
         if (!unit || !unit.unit_code || !element) {
             return;
@@ -132,6 +239,8 @@
 
         setShortlistCount();
         renderCompareTable();
+        updateSummary();
+        updateShortlistUrl();
     }
 
     function clearShortlist() {
@@ -141,6 +250,8 @@
         });
         setShortlistCount();
         renderCompareTable();
+        updateSummary();
+        updateShortlistUrl();
     }
 
     function showTooltip(unit, event) {
@@ -510,6 +621,28 @@
             unitsData = normalizedUnits;
             svgUnits = matchedSvgUnits;
 
+            if (initialShortlistCodes.length) {
+                initialShortlistCodes.forEach(function (code) {
+                    const match = svgUnits.find(function (entry) {
+                        return String(entry.unit.unit_code || '') === code;
+                    });
+
+                    if (match) {
+                        shortlist.set(code, match.unit);
+                        match.element.classList.add('is-shortlisted');
+                    }
+                });
+
+                setShortlistCount();
+                renderCompareTable();
+                updateSummary();
+                updateShortlistUrl();
+
+                if (shortlist.size > 0 && compareContainer) {
+                    compareContainer.hidden = false;
+                }
+            }
+
             if (!svgUnits.length) {
                 setMessage(detailsContainer, 'No SVG IDs matched unit codes. Check unit_code vs SVG element id. Your SVG unit shapes must be closed and filled (can be transparent). Stroke-only outlines won’t be easy to click.');
                 renderCounts();
@@ -607,6 +740,18 @@
             shortlistClearBtn.addEventListener('click', clearShortlist);
         }
 
+        if (copyBtn) {
+            copyBtn.addEventListener('click', function () {
+                copyCurrentLink();
+            });
+        }
+
+        if (openBtn) {
+            openBtn.addEventListener('click', function () {
+                window.open(window.location.href, '_blank', 'noopener');
+            });
+        }
+
         if (compareBody) {
             compareBody.addEventListener('click', function (event) {
                 const button = event.target && event.target.closest ? event.target.closest('[data-remove-unit]') : null;
@@ -625,6 +770,8 @@
 
                 setShortlistCount();
                 renderCompareTable();
+                updateSummary();
+                updateShortlistUrl();
             });
         }
 
@@ -642,6 +789,7 @@
 
         setShortlistCount();
         renderCompareTable();
+        updateSummary();
         root.classList.toggle('is-color-price', state.colorMode === 'price');
         updateColorModeButtons();
 
