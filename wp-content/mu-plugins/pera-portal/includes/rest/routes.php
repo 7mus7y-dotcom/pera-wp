@@ -122,6 +122,79 @@ function pera_portal_rest_get_units(WP_REST_Request $request)
     return rest_ensure_response($units);
 }
 
+function pera_portal_rest_get_floors(WP_REST_Request $request)
+{
+    $building_id = absint($request->get_param('building_id'));
+
+    if ($building_id <= 0) {
+        return new WP_Error('pera_portal_invalid_building', __('Invalid building ID.', 'pera-portal'), ['status' => 400]);
+    }
+
+    $query = new WP_Query([
+        'post_type' => 'pera_floor',
+        'post_status' => 'publish',
+        'posts_per_page' => -1,
+        'orderby' => 'title',
+        'order' => 'ASC',
+        'meta_query' => [
+            [
+                'key' => 'building',
+                'value' => (string) $building_id,
+                'compare' => '=',
+            ],
+        ],
+    ]);
+
+    $floors = [];
+
+    foreach ($query->posts as $floor_post) {
+        $floor_id = (int) $floor_post->ID;
+        $floor_number = function_exists('get_field') ? get_field('floor_number', $floor_id) : get_post_meta($floor_id, 'floor_number', true);
+        $file = function_exists('get_field') ? get_field('floor_svg', $floor_id) : null;
+
+        $svg_url = '';
+        if (is_array($file) && !empty($file['url'])) {
+            $svg_url = (string) $file['url'];
+        } elseif (is_numeric($file)) {
+            $attachment_url = wp_get_attachment_url((int) $file);
+            if (is_string($attachment_url) && $attachment_url !== '') {
+                $svg_url = $attachment_url;
+            }
+        }
+
+        $floors[] = [
+            'id' => $floor_id,
+            'title' => get_the_title($floor_id),
+            'floor_number' => $floor_number === null ? '' : (string) $floor_number,
+            'has_svg' => $svg_url !== '',
+            'svg_url' => $svg_url !== '' ? esc_url_raw($svg_url) : '',
+        ];
+    }
+
+    usort($floors, static function ($a, $b) {
+        $a_number = isset($a['floor_number']) ? trim((string) $a['floor_number']) : '';
+        $b_number = isset($b['floor_number']) ? trim((string) $b['floor_number']) : '';
+        $a_numeric = $a_number !== '' && is_numeric($a_number);
+        $b_numeric = $b_number !== '' && is_numeric($b_number);
+
+        if ($a_numeric && $b_numeric) {
+            return (float) $a_number <=> (float) $b_number;
+        }
+
+        if ($a_numeric) {
+            return -1;
+        }
+
+        if ($b_numeric) {
+            return 1;
+        }
+
+        return strcasecmp((string) ($a['title'] ?? ''), (string) ($b['title'] ?? ''));
+    });
+
+    return rest_ensure_response($floors);
+}
+
 function pera_portal_register_rest_routes()
 {
     register_rest_route(PERA_PORTAL_REST_NAMESPACE, '/floor', [
@@ -146,6 +219,22 @@ function pera_portal_register_rest_routes()
         'permission_callback' => 'pera_portal_current_user_can_access',
         'args' => [
             'floor_id' => [
+                'required' => true,
+                'type' => 'integer',
+                'sanitize_callback' => 'absint',
+                'validate_callback' => static function ($value) {
+                    return absint($value) > 0;
+                },
+            ],
+        ],
+    ]);
+
+    register_rest_route(PERA_PORTAL_REST_NAMESPACE, '/floors', [
+        'methods' => WP_REST_Server::READABLE,
+        'callback' => 'pera_portal_rest_get_floors',
+        'permission_callback' => 'pera_portal_current_user_can_access',
+        'args' => [
+            'building_id' => [
                 'required' => true,
                 'type' => 'integer',
                 'sanitize_callback' => 'absint',

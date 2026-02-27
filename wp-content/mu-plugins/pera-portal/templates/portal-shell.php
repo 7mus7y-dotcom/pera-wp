@@ -27,6 +27,10 @@ if (!defined('ABSPATH')) {
                 <div class="pera-portal-panel__head">
                     <h3><?php echo esc_html__('Floor Plan', 'pera-portal'); ?></h3>
                 </div>
+                <div class="pera-portal-floorbar">
+                    <label for="pera-portal-floor-select"><?php echo esc_html__('Floor', 'pera-portal'); ?></label>
+                    <select id="pera-portal-floor-select" class="pera-portal-floor-select"><option value=""><?php echo esc_html__('Select a building in shortcode.', 'pera-portal'); ?></option></select>
+                </div>
                 <div class="pera-portal-svg-placeholder"><?php echo esc_html__('SVG plan placeholder', 'pera-portal'); ?></div>
             </section>
             <aside class="pera-portal-panel pera-portal-panel--details" aria-label="Unit details">
