@@ -55,6 +55,7 @@ $portfolio_link_state = function_exists( 'pera_crm_client_view_with_target_blog'
 ) : array();
 
 $portfolio_saved_url         = (string) ( $portfolio_link_state['url'] ?? '' );
+$portfolio_saved_post_id     = (int) ( $portfolio_link_state['post_id'] ?? 0 );
 $portfolio_saved_expires_at  = (int) ( $portfolio_link_state['expires_at'] ?? 0 );
 $portfolio_saved_is_revoked  = ! empty( $portfolio_link_state['revoked'] );
 $portfolio_saved_is_active   = '' !== $portfolio_saved_url && $portfolio_saved_expires_at > time() && ! $portfolio_saved_is_revoked;
@@ -665,6 +666,9 @@ get_header();
                   <input type="text" readonly data-crm-portfolio-url value="<?php echo esc_attr( $portfolio_saved_is_active ? $portfolio_saved_url : '' ); ?>" />
                 </label>
                 <button type="button" class="btn btn--ghost btn--blue" data-crm-portfolio-copy><?php esc_html_e( 'Copy', 'hello-elementor-child' ); ?></button>
+                <?php if ( $portfolio_saved_is_active && $portfolio_saved_post_id > 0 ) : ?>
+                <button type="button" class="btn btn--ghost btn--blue" data-crm-portfolio-update data-client-id="<?php echo esc_attr( (string) $client_id ); ?>" data-portfolio-post-id="<?php echo esc_attr( (string) $portfolio_saved_post_id ); ?>"><?php esc_html_e( 'Update', 'hello-elementor-child' ); ?></button>
+                <?php endif; ?>
                 <small class="text-sm" data-crm-portfolio-expires><?php echo esc_html( $portfolio_saved_is_active && '' !== $portfolio_saved_expires_txt ? sprintf( __( 'Expires: %s', 'hello-elementor-child' ), $portfolio_saved_expires_txt ) : '' ); ?></small>
               </div>
 					<?php endif; ?>
