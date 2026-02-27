@@ -16,10 +16,33 @@ function pera_portal_register_admin_menu()
         3
     );
 
-    if (function_exists('pera_portal_current_user_can_access') && !pera_portal_current_user_can_access()) {
-        remove_menu_page('pera-portal');
-        remove_submenu_page('pera-portal', 'pera-portal');
+}
+
+function pera_portal_user_is_allowed_for_admin_ui()
+{
+    if (!function_exists('pera_portal_current_user_can_access')) {
+        return false;
     }
+
+    return pera_portal_current_user_can_access();
+}
+
+function pera_portal_hide_disallowed_admin_menus()
+{
+    if (pera_portal_user_is_allowed_for_admin_ui()) {
+        return;
+    }
+
+    remove_menu_page('pera-portal');
+    remove_submenu_page('pera-portal', 'pera-portal');
+
+    remove_menu_page('edit.php?post_type=pera_building');
+    remove_menu_page('edit.php?post_type=pera_floor');
+    remove_menu_page('edit.php?post_type=pera_unit');
+
+    remove_submenu_page('edit.php?post_type=pera_building', 'post-new.php?post_type=pera_building');
+    remove_submenu_page('edit.php?post_type=pera_floor', 'post-new.php?post_type=pera_floor');
+    remove_submenu_page('edit.php?post_type=pera_unit', 'post-new.php?post_type=pera_unit');
 }
 
 function pera_portal_render_admin_page()
@@ -95,3 +118,5 @@ function pera_portal_render_admin_page()
 
 add_action('admin_menu', 'pera_portal_register_admin_menu');
 add_action('network_admin_menu', 'pera_portal_register_admin_menu');
+add_action('admin_menu', 'pera_portal_hide_disallowed_admin_menus', 99);
+add_action('network_admin_menu', 'pera_portal_hide_disallowed_admin_menus', 99);
