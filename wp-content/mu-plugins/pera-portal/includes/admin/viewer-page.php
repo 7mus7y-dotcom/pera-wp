@@ -14,6 +14,10 @@ function pera_portal_register_viewer_submenu()
         'pera-portal-viewer',
         'pera_portal_render_viewer_page'
     );
+
+    if (function_exists('pera_portal_current_user_can_access') && !pera_portal_current_user_can_access()) {
+        remove_submenu_page('pera-portal', 'pera-portal-viewer');
+    }
 }
 
 function pera_portal_render_viewer_page()

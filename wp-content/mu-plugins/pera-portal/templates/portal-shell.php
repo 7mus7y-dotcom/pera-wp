@@ -10,7 +10,7 @@ if (!defined('ABSPATH')) {
         <h1><?php echo esc_html__('Pera Portal', 'pera-portal'); ?></h1>
         <p class="lead"><?php echo esc_html__('Interactive floor plan viewer for units and availability.', 'pera-portal'); ?></p>
 
-        <?php if (current_user_can('manage_options')) : ?>
+        <?php if (function_exists('pera_portal_current_user_can_access') && pera_portal_current_user_can_access()) : ?>
             <div class="hero-actions">
                 <a class="btn btn--ghost btn--green" href="<?php echo esc_url(admin_url('admin.php?page=pera-portal')); ?>">
                     <?php echo esc_html__('Manage Portal Data', 'pera-portal'); ?>

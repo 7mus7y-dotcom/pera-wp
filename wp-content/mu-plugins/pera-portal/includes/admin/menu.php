@@ -15,6 +15,11 @@ function pera_portal_register_admin_menu()
         'dashicons-admin-multisite',
         3
     );
+
+    if (function_exists('pera_portal_current_user_can_access') && !pera_portal_current_user_can_access()) {
+        remove_menu_page('pera-portal');
+        remove_submenu_page('pera-portal', 'pera-portal');
+    }
 }
 
 function pera_portal_render_admin_page()
