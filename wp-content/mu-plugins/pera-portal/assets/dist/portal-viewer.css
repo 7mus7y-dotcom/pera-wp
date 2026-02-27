@@ -149,3 +149,35 @@ body.pera-portal-page .page-content > :first-child {
     display: inline-block;
     margin-top: 8px;
 }
+
+.pera-portal-floorbar {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 12px;
+}
+
+.pera-portal-floorbar label {
+    font-size: 13px;
+    color: #374151;
+}
+
+.pera-portal-floor-select {
+    min-width: 180px;
+    border: 1px solid #d5d9dd;
+    border-radius: 4px;
+    padding: 6px 8px;
+    background: #fff;
+}
+
+@media (max-width: 640px) {
+    .pera-portal-floorbar {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
+    .pera-portal-floor-select {
+        width: 100%;
+        min-width: 0;
+    }
+}

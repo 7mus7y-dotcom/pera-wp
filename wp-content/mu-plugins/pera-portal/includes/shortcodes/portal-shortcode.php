@@ -22,6 +22,60 @@ function pera_portal_render_shortcode($atts = [])
 
     $building_id = absint($atts['building']);
     $floor_id = absint($atts['floor']);
+
+    if ($building_id > 0 && $floor_id <= 0) {
+        $query = new WP_Query([
+            'post_type' => 'pera_floor',
+            'post_status' => 'publish',
+            'posts_per_page' => -1,
+            'orderby' => 'title',
+            'order' => 'ASC',
+            'meta_query' => [
+                [
+                    'key' => 'building',
+                    'value' => (string) $building_id,
+                    'compare' => '=',
+                ],
+            ],
+        ]);
+
+        $floors = [];
+        foreach ($query->posts as $floor_post) {
+            $candidate_id = (int) $floor_post->ID;
+            $floor_number = function_exists('get_field') ? get_field('floor_number', $candidate_id) : get_post_meta($candidate_id, 'floor_number', true);
+            $floors[] = [
+                'id' => $candidate_id,
+                'title' => (string) get_the_title($candidate_id),
+                'floor_number' => $floor_number === null ? '' : (string) $floor_number,
+            ];
+        }
+
+        usort($floors, static function ($a, $b) {
+            $a_number = trim((string) ($a['floor_number'] ?? ''));
+            $b_number = trim((string) ($b['floor_number'] ?? ''));
+            $a_numeric = $a_number !== '' && is_numeric($a_number);
+            $b_numeric = $b_number !== '' && is_numeric($b_number);
+
+            if ($a_numeric && $b_numeric) {
+                return (float) $a_number <=> (float) $b_number;
+            }
+
+            if ($a_numeric) {
+                return -1;
+            }
+
+            if ($b_numeric) {
+                return 1;
+            }
+
+            return strcasecmp((string) ($a['title'] ?? ''), (string) ($b['title'] ?? ''));
+        });
+
+        if (!empty($floors[0]['id'])) {
+            $floor_id = (int) $floors[0]['id'];
+        }
+    }
+
     if (function_exists('pera_portal_mark_assets_needed')) {
         pera_portal_mark_assets_needed();
     }
