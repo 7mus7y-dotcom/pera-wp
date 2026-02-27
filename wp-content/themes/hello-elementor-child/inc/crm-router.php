@@ -29,6 +29,47 @@ if ( ! function_exists( 'pera_crm_user_can_access' ) ) {
 	}
 }
 
+
+if ( ! function_exists( 'pera_crm_debug_log_gate' ) ) {
+	/**
+	 * Emit CRM routing/gating diagnostics only in debug mode.
+	 *
+	 * @param string $reason Debug reason key.
+	 * @param array<string,mixed> $extra Extra context.
+	 */
+	function pera_crm_debug_log_gate( string $reason, array $extra = array() ): void {
+		if ( ! defined( 'WP_DEBUG' ) || ! WP_DEBUG ) {
+			return;
+		}
+
+		$request_uri = isset( $_SERVER['REQUEST_URI'] ) ? (string) wp_unslash( $_SERVER['REQUEST_URI'] ) : '';
+		$request_path = wp_parse_url( $request_uri, PHP_URL_PATH );
+		$request_path = is_string( $request_path ) ? $request_path : '';
+		if ( 0 !== strpos( trailingslashit( $request_path ), '/crm/' ) ) {
+			return;
+		}
+
+		$user                = wp_get_current_user();
+		$is_manage_options   = current_user_can( 'manage_options' );
+		$has_peracrm_access  = current_user_can( 'peracrm_access' );
+		$has_edit_crm_clients = current_user_can( 'edit_crm_clients' );
+
+		$payload = array(
+			'reason'               => $reason,
+			'uri'                  => $request_uri,
+			'user_id'              => get_current_user_id(),
+			'roles'                => ( $user instanceof WP_User ) ? (array) $user->roles : array(),
+			'manage_options'       => $is_manage_options,
+			'peracrm_access'       => $has_peracrm_access,
+			'edit_crm_clients'     => $has_edit_crm_clients,
+			'peracrm_user_access'  => function_exists( 'peracrm_user_can_access_crm' ) ? (bool) peracrm_user_can_access_crm() : null,
+			'pera_crm_route_qv'    => (string) get_query_var( 'pera_crm' ),
+		);
+
+		error_log( '[pera_crm] ' . wp_json_encode( array_merge( $payload, $extra ) ) );
+	}
+}
+
 if ( ! function_exists( 'pera_crm_register_route' ) ) {
 	/**
 	 * Register rewrite rules for /crm/*.
@@ -363,6 +404,7 @@ if ( ! function_exists( 'pera_crm_gate_or_redirect' ) ) {
 		}
 
 		if ( ! pera_crm_user_can_access() ) {
+			pera_crm_debug_log_gate( 'gate_denied' );
 			wp_die( esc_html__( 'You are not allowed to access this page.', 'hello-elementor-child' ), 'Forbidden', array( 'response' => 403 ) );
 		}
 	}
@@ -381,6 +423,12 @@ if ( ! function_exists( 'pera_crm_maybe_load_template' ) ) {
 		}
 
 		if ( ! pera_is_crm_route() ) {
+			$request_uri  = isset( $_SERVER['REQUEST_URI'] ) ? (string) wp_unslash( $_SERVER['REQUEST_URI'] ) : '';
+			$request_path = wp_parse_url( $request_uri, PHP_URL_PATH );
+			$request_path = is_string( $request_path ) ? $request_path : '';
+			if ( 0 === strpos( trailingslashit( $request_path ), '/crm/' ) ) {
+				pera_crm_debug_log_gate( 'rewrite_or_query_var_miss' );
+			}
 			return $template;
 		}
 
