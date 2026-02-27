@@ -396,14 +396,14 @@ body.pera-portal-page .page-header {
 .pera-portal-iconbtn {
   width: 32px;
   height: 32px;
-  border-radius: 50%;
+  border-radius: 999px;
   border: 1px solid #d1d5db;
   background: #ffffff;
   display: inline-flex;
   align-items: center;
   justify-content: center;
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition: background 0.2s ease, border-color 0.2s ease, color 0.2s ease, transform 0.12s ease;
   padding: 0;
 }
 
