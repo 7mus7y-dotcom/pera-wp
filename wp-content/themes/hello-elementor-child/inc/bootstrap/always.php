@@ -31,3 +31,9 @@ require_once get_stylesheet_directory() . '/inc/favourites.php';
 
 require_once get_stylesheet_directory() . '/inc/property-card-helpers.php';
 require_once get_stylesheet_directory() . '/inc/client-portal.php';
+
+/**
+ * CRM router hooks (rewrite/query vars/template resolver) must always be
+ * registered so permalink flushes retain /crm/* rules.
+ */
+require_once get_stylesheet_directory() . '/inc/crm-router.php';
