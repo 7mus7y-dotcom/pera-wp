@@ -1517,7 +1517,7 @@ body.page-template-page-crm .table-wrap,
 /* Make tables grow naturally */
 #crm-app table,
 body.page-template-page-crm table,
-.crm-page table {
+.crm-page:not(.crm-page--client-view) table {
   table-layout: auto !important;
   width: max-content !important;
   min-width: 100% !important;
@@ -1528,8 +1528,8 @@ body.page-template-page-crm table,
 #crm-app table td,
 body.page-template-page-crm table th,
 body.page-template-page-crm table td,
-.crm-page table th,
-.crm-page table td {
+.crm-page:not(.crm-page--client-view) table th,
+.crm-page:not(.crm-page--client-view) table td {
   white-space: nowrap !important;
   overflow-wrap: normal !important;
   word-break: normal !important;
@@ -1542,8 +1542,20 @@ body.page-template-page-crm table td,
 /* If any column sizing is forced via colgroup */
 #crm-app table col,
 body.page-template-page-crm table col,
-.crm-page table col {
+.crm-page:not(.crm-page--client-view) table col {
   width: auto !important;
+}
+
+.crm-page--client-view table {
+  width: 100% !important;
+  table-layout: fixed;
+}
+
+.crm-page--client-view table th,
+.crm-page--client-view table td {
+  white-space: normal !important;
+  overflow-wrap: anywhere !important;
+  word-break: break-word !important;
 }
 
 .crm-client-hero-filters {
