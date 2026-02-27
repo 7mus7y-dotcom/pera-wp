@@ -183,29 +183,58 @@ body.pera-portal-page .page-content > :first-child {
 }
 
 .pera-portal-panel--svg svg .unit {
-    transition: fill 0.25s ease, fill-opacity 0.25s ease, stroke-width 0.2s ease;
-    cursor: pointer;
+  cursor: pointer;
+  transition: fill 0.25s ease, fill-opacity 0.25s ease, stroke-width 0.2s ease;
 }
 
+/* === Portal status fills (override inline SVG styles) === */
+/* Available */
 .pera-portal-panel--svg svg .unit.status-available,
-.pera-portal-panel--svg svg .status-available {
-    fill: #86efac;
-    fill-opacity: 0.45;
+.pera-portal-panel--svg svg .status-available,
+.pera-portal-panel--svg svg .unit.status-available path,
+.pera-portal-panel--svg svg .unit.status-available polygon,
+.pera-portal-panel--svg svg .unit.status-available rect,
+.pera-portal-panel--svg svg .unit.status-available circle,
+.pera-portal-panel--svg svg .unit.status-available ellipse,
+.pera-portal-panel--svg svg .unit.status-available polyline {
+  fill: #86efac !important;
+  fill-opacity: 0.45 !important;
 }
 
+/* Reserved */
 .pera-portal-panel--svg svg .unit.status-reserved,
-.pera-portal-panel--svg svg .status-reserved {
-    fill: #fdba74;
-    fill-opacity: 0.45;
+.pera-portal-panel--svg svg .status-reserved,
+.pera-portal-panel--svg svg .unit.status-reserved path,
+.pera-portal-panel--svg svg .unit.status-reserved polygon,
+.pera-portal-panel--svg svg .unit.status-reserved rect,
+.pera-portal-panel--svg svg .unit.status-reserved circle,
+.pera-portal-panel--svg svg .unit.status-reserved ellipse,
+.pera-portal-panel--svg svg .unit.status-reserved polyline {
+  fill: #fdba74 !important;
+  fill-opacity: 0.45 !important;
 }
 
+/* Sold */
 .pera-portal-panel--svg svg .unit.status-sold,
-.pera-portal-panel--svg svg .status-sold {
-    fill: #fca5a5;
-    fill-opacity: 0.45;
+.pera-portal-panel--svg svg .status-sold,
+.pera-portal-panel--svg svg .unit.status-sold path,
+.pera-portal-panel--svg svg .unit.status-sold polygon,
+.pera-portal-panel--svg svg .unit.status-sold rect,
+.pera-portal-panel--svg svg .unit.status-sold circle,
+.pera-portal-panel--svg svg .unit.status-sold ellipse,
+.pera-portal-panel--svg svg .unit.status-sold polyline {
+  fill: #fca5a5 !important;
+  fill-opacity: 0.45 !important;
 }
 
-.pera-portal-panel--svg svg .unit.is-selected {
-    fill-opacity: 0.75;
-    stroke-width: 3;
+/* Selected */
+.pera-portal-panel--svg svg .unit.is-selected,
+.pera-portal-panel--svg svg .unit.is-selected path,
+.pera-portal-panel--svg svg .unit.is-selected polygon,
+.pera-portal-panel--svg svg .unit.is-selected rect,
+.pera-portal-panel--svg svg .unit.is-selected circle,
+.pera-portal-panel--svg svg .unit.is-selected ellipse,
+.pera-portal-panel--svg svg .unit.is-selected polyline {
+  fill-opacity: 0.75 !important;
+  stroke-width: 3 !important;
 }
