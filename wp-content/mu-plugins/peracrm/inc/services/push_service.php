@@ -526,7 +526,12 @@ function peracrm_push_digest_status_filters($live_statuses = [])
         $sanitized_filters[] = $status_key;
     }
 
-    return array_values(array_unique($sanitized_filters));
+    $sanitized_filters = array_values(array_unique($sanitized_filters));
+    if (!in_array('pending', $sanitized_filters, true)) {
+        array_unshift($sanitized_filters, 'pending');
+    }
+
+    return $sanitized_filters;
 }
 
 function peracrm_push_build_digest_hash($window_key, $pending_count, $overdue_count, $advisor_user_id, $window_start)
