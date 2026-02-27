@@ -36,6 +36,52 @@ if ( ! function_exists( 'pera_crm_client_view_can_manage' ) ) {
 	}
 }
 
+
+if ( ! function_exists( 'pera_crm_ajax_debug_enabled' ) ) {
+	function pera_crm_ajax_debug_enabled(): bool {
+		return defined( 'WP_DEBUG' )
+			&& WP_DEBUG
+			&& defined( 'PERA_CRM_DEBUG_AJAX' )
+			&& PERA_CRM_DEBUG_AJAX;
+	}
+}
+
+if ( ! function_exists( 'pera_crm_ajax_is_expected_action' ) ) {
+	function pera_crm_ajax_is_expected_action( string $expected_action ): bool {
+		if ( ! defined( 'DOING_AJAX' ) || ! DOING_AJAX ) {
+			return false;
+		}
+
+		$action = isset( $_REQUEST['action'] ) ? sanitize_key( wp_unslash( (string) $_REQUEST['action'] ) ) : '';
+		return $action === sanitize_key( $expected_action );
+	}
+}
+
+if ( ! function_exists( 'pera_crm_ajax_error' ) ) {
+	function pera_crm_ajax_error( string $code, string $message, int $status = 400, array $context = array() ): void {
+		$payload = array(
+			'ok'      => false,
+			'code'    => sanitize_key( $code ),
+			'message' => $message,
+		);
+
+		if ( pera_crm_ajax_debug_enabled() ) {
+			$payload['context'] = $context;
+			error_log( 'PeraCRM AJAX rejected [' . sanitize_key( $code ) . ']: ' . $message );
+		}
+
+		wp_send_json_error( $payload, $status );
+		exit;
+	}
+}
+
+if ( ! function_exists( 'pera_crm_ajax_success' ) ) {
+	function pera_crm_ajax_success( array $data = array() ): void {
+		wp_send_json_success( array_merge( array( 'ok' => true ), $data ) );
+		exit;
+	}
+}
+
 if ( ! function_exists( 'pera_crm_client_view_access_state' ) ) {
 	function pera_crm_client_view_access_state( int $client_id ): array {
 		if ( ! pera_crm_client_view_can_manage() ) {
@@ -689,23 +735,26 @@ if ( ! function_exists( 'pera_crm_create_portfolio_token_ajax' ) ) {
 	 * Create a token portfolio from CRM client view.
 	 */
 	function pera_crm_create_portfolio_token_ajax(): void {
+		if ( ! pera_crm_ajax_is_expected_action( 'peracrm_create_portfolio_token' ) ) {
+			pera_crm_ajax_error( 'invalid_action', __( 'Invalid action', 'hello-elementor-child' ), 400 );
+		}
 		if ( ! is_user_logged_in() ) {
-			wp_send_json_error( array( 'message' => __( 'Forbidden', 'hello-elementor-child' ) ), 403 );
+			pera_crm_ajax_error( 'forbidden', __( 'Forbidden', 'hello-elementor-child' ), 403, array( 'user_id' => get_current_user_id() ) );
 		}
 
 		$nonce = isset( $_POST['nonce'] ) ? sanitize_text_field( wp_unslash( (string) $_POST['nonce'] ) ) : '';
 		if ( '' === $nonce || ! wp_verify_nonce( $nonce, 'pera_crm_create_portfolio_token' ) ) {
-			wp_send_json_error( array( 'message' => __( 'Invalid nonce', 'hello-elementor-child' ) ), 403 );
+			pera_crm_ajax_error( 'invalid_nonce', __( 'Invalid nonce', 'hello-elementor-child' ), 403, array( 'user_id' => get_current_user_id(), 'has_nonce' => '' !== $nonce ) );
 		}
 
 		$client_id = isset( $_POST['client_id'] ) ? absint( wp_unslash( (string) $_POST['client_id'] ) ) : 0;
 		if ( $client_id <= 0 ) {
-			wp_send_json_error( array( 'message' => __( 'Invalid client.', 'hello-elementor-child' ) ), 400 );
+			pera_crm_ajax_error( 'invalid_client', __( 'Invalid client.', 'hello-elementor-child' ), 400 );
 		}
 
 		$access = pera_crm_client_view_access_state( $client_id );
 		if ( empty( $access['allowed'] ) ) {
-			wp_send_json_error( array( 'message' => __( 'Access denied.', 'hello-elementor-child' ) ), 403 );
+			pera_crm_ajax_error( 'access_denied', __( 'Access denied.', 'hello-elementor-child' ), 403, array( 'user_id' => get_current_user_id() ) );
 		}
 
 		$exists = (bool) pera_crm_client_view_with_target_blog(
@@ -715,23 +764,23 @@ if ( ! function_exists( 'pera_crm_create_portfolio_token_ajax' ) ) {
 			}
 		);
 		if ( ! $exists ) {
-			wp_send_json_error( array( 'message' => __( 'Client not found.', 'hello-elementor-child' ) ), 404 );
+			pera_crm_ajax_error( 'client_not_found', __( 'Client not found.', 'hello-elementor-child' ), 404 );
 		}
 
 		$property_ids = pera_crm_client_view_get_portfolio_property_ids( $client_id );
 		if ( empty( $property_ids ) ) {
-			wp_send_json_error( array( 'message' => __( 'No portfolio-linked properties found for this client.', 'hello-elementor-child' ) ), 400 );
+			pera_crm_ajax_error( 'portfolio_empty', __( 'No portfolio-linked properties found for this client.', 'hello-elementor-child' ), 400 );
 		}
 
 		$expires_raw = isset( $_POST['expiry'] ) ? sanitize_text_field( wp_unslash( (string) $_POST['expiry'] ) ) : '';
 		$expires_raw = '' !== $expires_raw ? $expires_raw : '+30 days';
 		$expires_at  = strtotime( $expires_raw );
 		if ( false === $expires_at || $expires_at <= 0 ) {
-			wp_send_json_error( array( 'message' => __( 'Invalid expiry format.', 'hello-elementor-child' ) ), 400 );
+			pera_crm_ajax_error( 'invalid_expiry', __( 'Invalid expiry format.', 'hello-elementor-child' ), 400 );
 		}
 
 		if ( ! function_exists( 'pera_portfolio_token_create_portfolio' ) ) {
-			wp_send_json_error( array( 'message' => __( 'Portfolio creation is unavailable.', 'hello-elementor-child' ) ), 500 );
+			pera_crm_ajax_error( 'portfolio_create_unavailable', __( 'Portfolio creation is unavailable.', 'hello-elementor-child' ), 500 );
 		}
 
 		$result = pera_crm_client_view_with_target_blog(
@@ -741,7 +790,7 @@ if ( ! function_exists( 'pera_crm_create_portfolio_token_ajax' ) ) {
 		);
 
 		if ( is_wp_error( $result ) ) {
-			wp_send_json_error( array( 'message' => $result->get_error_message() ), 400 );
+			pera_crm_ajax_error( 'portfolio_create_failed', $result->get_error_message(), 400 );
 		}
 
 		$portfolio_url   = isset( $result['url'] ) ? esc_url_raw( (string) $result['url'] ) : '';
@@ -759,8 +808,9 @@ if ( ! function_exists( 'pera_crm_create_portfolio_token_ajax' ) ) {
 			}
 		);
 
-		wp_send_json_success(
+		pera_crm_ajax_success(
 			array(
+				'code'          => 'portfolio_token_created',
 				'url'           => $portfolio_url,
 				'token'         => $portfolio_token,
 				'post_id'       => $portfolio_post,
@@ -778,27 +828,30 @@ if ( ! function_exists( 'pera_crm_upload_portfolio_floor_plan_ajax' ) ) {
 	 * Upload a portfolio floor plan JPEG and return attachment details.
 	 */
 	function pera_crm_upload_portfolio_floor_plan_ajax(): void {
+		if ( ! pera_crm_ajax_is_expected_action( 'pera_crm_upload_portfolio_floor_plan' ) ) {
+			pera_crm_ajax_error( 'invalid_action', __( 'Invalid action', 'hello-elementor-child' ), 400 );
+		}
 		if ( ! is_user_logged_in() ) {
-			wp_send_json_error( array( 'message' => __( 'Forbidden', 'hello-elementor-child' ) ), 403 );
+			pera_crm_ajax_error( 'forbidden', __( 'Forbidden', 'hello-elementor-child' ), 403, array( 'user_id' => get_current_user_id() ) );
 		}
 
 		$nonce = isset( $_POST['nonce'] ) ? sanitize_text_field( wp_unslash( (string) $_POST['nonce'] ) ) : '';
 		if ( '' === $nonce || ! wp_verify_nonce( $nonce, 'pera_crm_upload_portfolio_floor_plan' ) ) {
-			wp_send_json_error( array( 'message' => __( 'Invalid nonce', 'hello-elementor-child' ) ), 403 );
+			pera_crm_ajax_error( 'invalid_nonce', __( 'Invalid nonce', 'hello-elementor-child' ), 403, array( 'user_id' => get_current_user_id(), 'has_nonce' => '' !== $nonce ) );
 		}
 
 		$client_id   = isset( $_POST['client_id'] ) ? absint( wp_unslash( (string) $_POST['client_id'] ) ) : 0;
 		$property_id = isset( $_POST['property_id'] ) ? absint( wp_unslash( (string) $_POST['property_id'] ) ) : 0;
 
 		if ( $client_id <= 0 || $property_id <= 0 || ! isset( $_FILES['floor_plan'] ) || ! is_array( $_FILES['floor_plan'] ) ) {
-			wp_send_json_error( array( 'message' => __( 'Invalid input.', 'hello-elementor-child' ) ), 400 );
+			pera_crm_ajax_error( 'invalid_input', __( 'Invalid input.', 'hello-elementor-child' ), 400 );
 		}
 
 		$access   = pera_crm_client_view_access_state( $client_id );
 		$can_view = isset( $access['can_view'] ) ? ! empty( $access['can_view'] ) : ! empty( $access['allowed'] );
 		$can_edit = isset( $access['can_edit'] ) ? ! empty( $access['can_edit'] ) : $can_view;
 		if ( ! $can_view || ! $can_edit ) {
-			wp_send_json_error( array( 'message' => __( 'Access denied.', 'hello-elementor-child' ) ), 403 );
+			pera_crm_ajax_error( 'access_denied', __( 'Access denied.', 'hello-elementor-child' ), 403, array( 'user_id' => get_current_user_id() ) );
 		}
 
 		$relation_row = pera_crm_client_view_with_target_blog(
@@ -822,12 +875,12 @@ if ( ! function_exists( 'pera_crm_upload_portfolio_floor_plan_ajax' ) ) {
 			}
 		);
 		if ( ! is_array( $relation_row ) ) {
-			wp_send_json_error( array( 'message' => __( 'Portfolio relation not found for this property.', 'hello-elementor-child' ) ), 404 );
+			pera_crm_ajax_error( 'portfolio_relation_not_found', __( 'Portfolio relation not found for this property.', 'hello-elementor-child' ), 404 );
 		}
 
 		$upload = $_FILES['floor_plan'];
 		if ( empty( $upload['name'] ) || ! isset( $upload['error'] ) || (int) $upload['error'] !== UPLOAD_ERR_OK ) {
-			wp_send_json_error( array( 'message' => __( 'Floor plan upload failed.', 'hello-elementor-child' ) ), 400 );
+			pera_crm_ajax_error( 'upload_failed', __( 'Floor plan upload failed.', 'hello-elementor-child' ), 400 );
 		}
 
 		$filename   = isset( $upload['name'] ) ? (string) $upload['name'] : '';
@@ -837,7 +890,7 @@ if ( ! function_exists( 'pera_crm_upload_portfolio_floor_plan_ajax' ) ) {
 		$type       = isset( $file_check['type'] ) ? strtolower( (string) $file_check['type'] ) : '';
 
 		if ( ! in_array( $ext, array( 'jpg', 'jpeg' ), true ) || ! in_array( $type, array( 'image/jpeg', 'image/jpg' ), true ) ) {
-			wp_send_json_error( array( 'message' => __( 'Floor plan must be a JPG/JPEG file.', 'hello-elementor-child' ) ), 400 );
+			pera_crm_ajax_error( 'invalid_file_type', __( 'Floor plan must be a JPG/JPEG file.', 'hello-elementor-child' ), 400 );
 		}
 
 		require_once ABSPATH . 'wp-admin/includes/file.php';
@@ -846,14 +899,15 @@ if ( ! function_exists( 'pera_crm_upload_portfolio_floor_plan_ajax' ) ) {
 
 		$attachment = media_handle_upload( 'floor_plan', 0 );
 		if ( is_wp_error( $attachment ) ) {
-			wp_send_json_error( array( 'message' => $attachment->get_error_message() ), 400 );
+			pera_crm_ajax_error( 'upload_store_failed', $attachment->get_error_message(), 400 );
 		}
 
 		$attachment_id = (int) $attachment;
 		$url           = (string) wp_get_attachment_url( $attachment_id );
 
-		wp_send_json_success(
+		pera_crm_ajax_success(
 			array(
+				'code'          => 'upload_ok',
 				'attachment_id' => $attachment_id,
 				'url'           => $url,
 			)
@@ -895,13 +949,16 @@ if ( ! function_exists( 'pera_crm_save_portfolio_property_fields_ajax' ) ) {
 	 * Save advisor-editable portfolio fields for a linked property.
 	 */
 	function pera_crm_save_portfolio_property_fields_ajax(): void {
+		if ( ! pera_crm_ajax_is_expected_action( 'pera_crm_save_portfolio_property_fields' ) ) {
+			pera_crm_ajax_error( 'invalid_action', __( 'Invalid action', 'hello-elementor-child' ), 400 );
+		}
 		if ( ! is_user_logged_in() ) {
-			wp_send_json_error( array( 'message' => __( 'Forbidden', 'hello-elementor-child' ) ), 403 );
+			pera_crm_ajax_error( 'forbidden', __( 'Forbidden', 'hello-elementor-child' ), 403, array( 'user_id' => get_current_user_id() ) );
 		}
 
 		$nonce = isset( $_POST['nonce'] ) ? sanitize_text_field( wp_unslash( (string) $_POST['nonce'] ) ) : '';
 		if ( '' === $nonce || ! wp_verify_nonce( $nonce, 'pera_crm_save_portfolio_property_fields' ) ) {
-			wp_send_json_error( array( 'message' => __( 'Invalid nonce', 'hello-elementor-child' ) ), 403 );
+			pera_crm_ajax_error( 'invalid_nonce', __( 'Invalid nonce', 'hello-elementor-child' ), 403, array( 'user_id' => get_current_user_id(), 'has_nonce' => '' !== $nonce ) );
 		}
 
 		$client_id   = isset( $_POST['client_id'] ) ? absint( wp_unslash( (string) $_POST['client_id'] ) ) : 0;
@@ -909,14 +966,14 @@ if ( ! function_exists( 'pera_crm_save_portfolio_property_fields_ajax' ) ) {
 		$raw_fields   = isset( $_POST['fields'] ) && is_array( $_POST['fields'] ) ? (array) wp_unslash( $_POST['fields'] ) : array();
 
 		if ( $client_id <= 0 || $property_id <= 0 || empty( $raw_fields ) ) {
-			wp_send_json_error( array( 'message' => __( 'Invalid input.', 'hello-elementor-child' ) ), 400 );
+			pera_crm_ajax_error( 'invalid_input', __( 'Invalid input.', 'hello-elementor-child' ), 400 );
 		}
 
 		$access = pera_crm_client_view_access_state( $client_id );
 		$can_view = isset( $access['can_view'] ) ? ! empty( $access['can_view'] ) : ! empty( $access['allowed'] );
 		$can_edit = isset( $access['can_edit'] ) ? ! empty( $access['can_edit'] ) : $can_view;
 		if ( ! $can_view || ! $can_edit ) {
-			wp_send_json_error( array( 'message' => __( 'Access denied.', 'hello-elementor-child' ) ), 403 );
+			pera_crm_ajax_error( 'access_denied', __( 'Access denied.', 'hello-elementor-child' ), 403, array( 'user_id' => get_current_user_id() ) );
 		}
 
 		$exists = (bool) pera_crm_client_view_with_target_blog(
@@ -926,7 +983,7 @@ if ( ! function_exists( 'pera_crm_save_portfolio_property_fields_ajax' ) ) {
 			}
 		);
 		if ( ! $exists ) {
-			wp_send_json_error( array( 'message' => __( 'Client not found.', 'hello-elementor-child' ) ), 404 );
+			pera_crm_ajax_error( 'client_not_found', __( 'Client not found.', 'hello-elementor-child' ), 404 );
 		}
 
 		$relation_row = pera_crm_client_view_with_target_blog(
@@ -950,7 +1007,7 @@ if ( ! function_exists( 'pera_crm_save_portfolio_property_fields_ajax' ) ) {
 			}
 		);
 		if ( ! is_array( $relation_row ) ) {
-			wp_send_json_error( array( 'message' => __( 'Portfolio relation not found for this property.', 'hello-elementor-child' ) ), 404 );
+			pera_crm_ajax_error( 'portfolio_relation_not_found', __( 'Portfolio relation not found for this property.', 'hello-elementor-child' ), 404 );
 		}
 
 		$allowed = array( 'unit_type', 'floor_number', 'net_size', 'gross_size', 'list_price', 'cash_price', 'floor_plan_attachment_id' );
@@ -979,14 +1036,14 @@ if ( ! function_exists( 'pera_crm_save_portfolio_property_fields_ajax' ) ) {
 			if ( null === $normalized ) {
 				$candidate = is_scalar( $raw_fields[ $key ] ) ? trim( (string) $raw_fields[ $key ] ) : '';
 				if ( '' !== $candidate ) {
-					wp_send_json_error( array( 'message' => sprintf( __( 'Invalid value for %s.', 'hello-elementor-child' ), $key ) ), 400 );
+					pera_crm_ajax_error( 'invalid_field_value', sprintf( __( 'Invalid value for %s.', 'hello-elementor-child' ), $key ), 400 );
 				}
 			}
 			$sanitized[ $key ] = $normalized;
 		}
 
 		if ( empty( $sanitized ) ) {
-			wp_send_json_error( array( 'message' => __( 'No valid fields were provided.', 'hello-elementor-child' ) ), 400 );
+			pera_crm_ajax_error( 'no_valid_fields', __( 'No valid fields were provided.', 'hello-elementor-child' ), 400 );
 		}
 
 		$updated = (bool) pera_crm_client_view_with_target_blog(
@@ -1000,7 +1057,7 @@ if ( ! function_exists( 'pera_crm_save_portfolio_property_fields_ajax' ) ) {
 		);
 
 		if ( ! $updated ) {
-			wp_send_json_error( array( 'message' => __( 'Unable to save portfolio fields.', 'hello-elementor-child' ) ), 400 );
+			pera_crm_ajax_error( 'save_failed', __( 'Unable to save portfolio fields.', 'hello-elementor-child' ), 400 );
 		}
 
 		$floor_plan_attachment_id = isset( $sanitized['floor_plan_attachment_id'] ) ? (int) $sanitized['floor_plan_attachment_id'] : (int) ( $relation_row['floor_plan_attachment_id'] ?? 0 );
@@ -1009,8 +1066,9 @@ if ( ! function_exists( 'pera_crm_save_portfolio_property_fields_ajax' ) ) {
 			$floor_plan_url = (string) wp_get_attachment_url( $floor_plan_attachment_id );
 		}
 
-		wp_send_json_success(
+		pera_crm_ajax_success(
 			array(
+				'code'                      => 'portfolio_fields_saved',
 				'client_id'                 => $client_id,
 				'property_id'               => $property_id,
 				'fields'                    => $sanitized,
@@ -1024,18 +1082,21 @@ add_action( 'wp_ajax_pera_crm_save_portfolio_property_fields', 'pera_crm_save_po
 
 if ( ! function_exists( 'pera_crm_property_search_ajax' ) ) {
 	function pera_crm_property_search_ajax(): void {
+		if ( ! pera_crm_ajax_is_expected_action( 'pera_crm_property_search' ) ) {
+			pera_crm_ajax_error( 'invalid_action', __( 'Invalid action', 'hello-elementor-child' ), 400 );
+		}
 		if ( ! is_user_logged_in() || ! pera_crm_client_view_can_manage() ) {
-			wp_send_json_error( array( 'message' => __( 'Forbidden', 'hello-elementor-child' ) ), 403 );
+			pera_crm_ajax_error( 'forbidden', __( 'Forbidden', 'hello-elementor-child' ), 403, array( 'user_id' => get_current_user_id() ) );
 		}
 
 		$nonce = isset( $_GET['nonce'] ) ? sanitize_text_field( wp_unslash( (string) $_GET['nonce'] ) ) : '';
 		if ( '' === $nonce || ! wp_verify_nonce( $nonce, 'pera_crm_property_search' ) ) {
-			wp_send_json_error( array( 'message' => __( 'Invalid nonce', 'hello-elementor-child' ) ), 403 );
+			pera_crm_ajax_error( 'invalid_nonce', __( 'Invalid nonce', 'hello-elementor-child' ), 403, array( 'user_id' => get_current_user_id(), 'has_nonce' => '' !== $nonce ) );
 		}
 
 		$term = isset( $_GET['q'] ) ? sanitize_text_field( wp_unslash( (string) $_GET['q'] ) ) : '';
 		if ( strlen( $term ) < 2 ) {
-			wp_send_json_success( array( 'items' => array() ) );
+			pera_crm_ajax_success( array( 'code' => 'search_empty', 'items' => array() ) );
 		}
 
 		$items = pera_crm_client_view_with_target_blog(
@@ -1085,7 +1146,7 @@ if ( ! function_exists( 'pera_crm_property_search_ajax' ) ) {
 			}
 		);
 
-		wp_send_json_success( array( 'items' => $items ) );
+		pera_crm_ajax_success( array( 'code' => 'search_ok', 'items' => $items ) );
 	}
 }
 add_action( 'wp_ajax_pera_crm_property_search', 'pera_crm_property_search_ajax' );

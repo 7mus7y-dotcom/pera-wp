@@ -3,6 +3,43 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
+
+if ( ! function_exists( 'pera_crm_should_load_integration' ) ) {
+	/**
+	 * Evaluate CRM bootstrap load gating in a side-effect free way.
+	 *
+	 * @param array<string,mixed> $context Request context.
+	 */
+	function pera_crm_should_load_integration( array $context ): bool {
+		$is_wp_admin          = ! empty( $context['is_wp_admin'] );
+		$is_crm_route         = ! empty( $context['is_crm_route'] );
+		$is_crm_ajax          = ! empty( $context['is_crm_ajax'] );
+		$is_allowed_admin_crm = ! empty( $context['is_allowed_admin_crm'] );
+
+		return $is_crm_route
+			|| $is_crm_ajax
+			|| ( $is_wp_admin && $is_allowed_admin_crm );
+	}
+}
+if ( ! function_exists( 'pera_crm_is_allowed_admin_screen' ) ) {
+	/**
+	 * Guard CRM admin includes to an explicit allowlist.
+	 */
+	function pera_crm_is_allowed_admin_screen(): bool {
+		$page = isset( $_GET['page'] ) ? sanitize_key( wp_unslash( (string) $_GET['page'] ) ) : '';
+
+		if ( '' === $page ) {
+			return false;
+		}
+
+		if ( 'peracrm_diagnostics' === $page ) {
+			return true;
+		}
+
+		return 0 === strpos( $page, 'peracrm_' );
+	}
+}
+
 $request_uri  = $_SERVER['REQUEST_URI'] ?? '';
 $request_path = wp_parse_url( $request_uri, PHP_URL_PATH );
 $request_path = is_string( $request_path ) ? $request_path : '';
@@ -72,7 +109,15 @@ $is_crm_capable_user = is_user_logged_in()
 	&& function_exists( 'peracrm_user_can_access_crm' )
 	&& (bool) peracrm_user_can_access_crm();
 
-$load_crm_integration = $is_crm_route || $is_crm_ajax || $is_crm_capable_user;
+$load_crm_integration = pera_crm_should_load_integration(
+	array(
+		'is_wp_admin'          => $is_wp_admin,
+		'is_crm_route'         => $is_crm_route,
+		'is_crm_ajax'          => $is_crm_ajax,
+		'is_crm_capable_user'  => $is_crm_capable_user,
+		'is_allowed_admin_crm' => $is_wp_admin && pera_crm_is_allowed_admin_screen(),
+	)
+);
 
 $token_qv = function_exists( 'get_query_var' ) ? (string) get_query_var( 'portfolio_token' ) : '';
 $is_portfolio_route = ( $token_qv !== '' )
