@@ -2,14 +2,30 @@
     display: grid;
     grid-template-columns: minmax(0, 2fr) minmax(280px, 1fr);
     gap: 1rem;
+    --portal-bg: #f3f4f6;
+    --portal-surface: #ffffff;
+    --portal-surface-2: #f8fafc;
+    --portal-border: #d5d9dd;
+    --portal-text: #111827;
+    --portal-text-muted: #4b5563;
+    --portal-link: #1d4ed8;
+    --portal-accent: #1f2937;
+    --portal-focus: rgba(37, 99, 235, 0.36);
+    --portal-shadow: 0 12px 24px rgba(15, 23, 42, 0.08);
+    color: var(--portal-text);
+}
+
+body.pera-portal-page .pera-portal-viewer-wrap {
+    background: var(--portal-bg);
 }
 
 
 .pera-portal-panel {
-    border: 1px solid #d5d9dd;
+    border: 1px solid var(--portal-border);
     border-radius: 6px;
     padding: 1rem;
-    background: #fff;
+    background: var(--portal-surface);
+    box-shadow: var(--portal-shadow);
     min-height: 320px;
 }
 
@@ -19,6 +35,7 @@
 
 .pera-portal-panel h3 {
     margin: 0;
+    color: var(--portal-text);
 }
 
 .pera-portal-panel--svg svg {
@@ -44,6 +61,7 @@
     align-items: center;
     gap: 6px;
     font-size: 13px;
+    color: var(--portal-text-muted);
 }
 
 .pera-portal-legend__swatch {
@@ -69,15 +87,17 @@
     display: inline-flex;
     align-items: center;
     gap: 4px;
-    border: 1px solid #d5d9dd;
+    border: 1px solid var(--portal-border);
     border-radius: 999px;
     padding: 3px 10px;
     font-size: 13px;
+    background: var(--portal-surface-2);
+    color: var(--portal-text);
 }
 
 .pera-portal-counts {
     font-size: 13px;
-    color: #374151;
+    color: var(--portal-text-muted);
 }
 
 .unit {
@@ -132,7 +152,7 @@ body.pera-portal-page .page-header {
 .pera-portal-unit-plan img {
     width: 100%;
     height: auto;
-    border: 1px solid #d5d9dd;
+    border: 1px solid var(--portal-border);
     border-radius: 6px;
     margin-top: 8px;
 }
@@ -151,15 +171,30 @@ body.pera-portal-page .page-header {
 
 .pera-portal-floorbar label {
     font-size: 13px;
-    color: #374151;
+    color: var(--portal-text-muted);
 }
 
 .pera-portal-floor-select {
     min-width: 180px;
-    border: 1px solid #d5d9dd;
+    border: 1px solid var(--portal-border);
     border-radius: 4px;
     padding: 6px 8px;
-    background: #fff;
+    background: var(--portal-surface-2);
+    color: var(--portal-text);
+}
+
+.pera-portal-floor-select::placeholder {
+    color: var(--portal-text-muted);
+}
+
+.pera-portal-floor-select:focus-visible,
+.pera-portal-colormode-btn:focus-visible,
+.pera-portal-shortlistclear:focus-visible,
+.pera-portal-iconbtn:focus-visible,
+.pera-portal-compare__remove:focus-visible,
+.pera-portal-compare__table a:focus-visible {
+    outline: 2px solid var(--portal-focus);
+    outline-offset: 2px;
 }
 
 @media (max-width: 640px) {
@@ -257,19 +292,20 @@ body.pera-portal-page .page-header {
 }
 
 .pera-portal-colormode-btn {
-  border: 1px solid #d1d5db;
-  background: #f8fafc;
+  border: 1px solid var(--portal-border);
+  background: var(--portal-surface-2);
   border-radius: 999px;
   padding: 4px 10px;
   font-size: 12px;
   line-height: 1.2;
   cursor: pointer;
+  color: var(--portal-text);
 }
 
 .pera-portal-colormode-btn.is-active {
-  background: #1f2937;
-  border-color: #1f2937;
-  color: #fff;
+  background: var(--portal-accent);
+  border-color: var(--portal-accent);
+  color: #ffffff;
 }
 
 .pera-portal-shortlistbar {
@@ -277,11 +313,13 @@ body.pera-portal-page .page-header {
   align-items: center;
   gap: 10px;
   font-size: 13px;
+  color: var(--portal-text-muted);
 }
 
 .pera-portal-shortlistclear {
-  border: 1px solid #d1d5db;
-  background: #fff;
+  border: 1px solid var(--portal-border);
+  background: var(--portal-surface);
+  color: var(--portal-text);
   border-radius: 4px;
   padding: 4px 8px;
   cursor: pointer;
@@ -295,8 +333,8 @@ body.pera-portal-page .page-header {
 .pera-portal-tooltip {
   position: fixed;
   z-index: 9999;
-  background: rgba(17, 24, 39, 0.96);
-  color: #fff;
+  background: rgba(15, 23, 42, 0.94);
+  color: #f8fafc;
   border-radius: 6px;
   padding: 8px 10px;
   font-size: 12px;
@@ -318,11 +356,11 @@ body.pera-portal-page .page-header {
 
 
 .pera-portal-summary {
-  border: 1px solid #e5e7eb;
+  border: 1px solid var(--portal-border);
   border-radius: 6px;
   padding: 12px;
   margin-bottom: 12px;
-  background: #f9fafb;
+  background: var(--portal-surface-2);
 }
 
 .pera-portal-summary__grid {
@@ -334,9 +372,10 @@ body.pera-portal-page .page-header {
 
 .pera-portal-compare {
   margin-bottom: 12px;
-  border: 1px solid #e5e7eb;
+  border: 1px solid var(--portal-border);
   border-radius: 6px;
   padding: 10px;
+  background: var(--portal-surface);
 }
 
 .pera-portal-compare__head h4 {
@@ -347,7 +386,11 @@ body.pera-portal-page .page-header {
 .pera-portal-compare__hint {
   margin: 0 0 8px;
   font-size: 12px;
-  color: #6b7280;
+  color: var(--portal-text-muted);
+}
+
+.pera-portal-compare__table a {
+  color: var(--portal-link);
 }
 
 .pera-portal-compare__wrap {
@@ -362,19 +405,24 @@ body.pera-portal-page .page-header {
 
 .pera-portal-compare__table th,
 .pera-portal-compare__table td {
-  border-bottom: 1px solid #e5e7eb;
+  border-bottom: 1px solid var(--portal-border);
   padding: 6px 8px;
   text-align: left;
   white-space: nowrap;
 }
 
 .pera-portal-compare__table tbody tr:nth-child(odd) {
-  background: #f9fafb;
+  background: var(--portal-surface-2);
+}
+
+.pera-portal-compare__table tbody tr:hover {
+  background: color-mix(in srgb, var(--portal-surface-2) 75%, var(--portal-accent) 25%);
 }
 
 .pera-portal-compare__remove {
-  border: 1px solid #d1d5db;
-  background: #fff;
+  border: 1px solid var(--portal-border);
+  background: var(--portal-surface);
+  color: var(--portal-text);
   border-radius: 999px;
   width: 22px;
   height: 22px;
@@ -397,14 +445,15 @@ body.pera-portal-page .page-header {
   width: 32px;
   height: 32px;
   border-radius: 999px;
-  border: 1px solid #d1d5db;
-  background: #ffffff;
+  border: 1px solid var(--portal-border);
+  background: var(--portal-surface);
   display: inline-flex;
   align-items: center;
   justify-content: center;
   cursor: pointer;
   transition: background 0.2s ease, border-color 0.2s ease, color 0.2s ease, transform 0.12s ease;
   padding: 0;
+  color: var(--portal-text);
 }
 
 .pera-portal-iconbtn svg {
@@ -414,9 +463,9 @@ body.pera-portal-page .page-header {
 }
 
 .pera-portal-iconbtn:hover {
-  background: #1f2937;
+  background: var(--portal-accent);
   color: #ffffff;
-  border-color: #1f2937;
+  border-color: var(--portal-accent);
 }
 
 .pera-portal-iconbtn:active {
@@ -426,4 +475,52 @@ body.pera-portal-page .page-header {
 .pera-portal-iconbtn:disabled {
   opacity: 0.4;
   cursor: not-allowed;
+}
+
+@media (prefers-color-scheme: dark) {
+  body.pera-portal-page #pera-portal-root {
+    --portal-bg: #0f141c;
+    --portal-surface: #161d28;
+    --portal-surface-2: #1b2431;
+    --portal-border: #2c3645;
+    --portal-text: #e5e7eb;
+    --portal-text-muted: #9ca3af;
+    --portal-link: #93c5fd;
+    --portal-accent: #334155;
+    --portal-focus: rgba(147, 197, 253, 0.45);
+    --portal-shadow: 0 14px 30px rgba(2, 6, 23, 0.46);
+  }
+
+  body.pera-portal-page #pera-portal-root .pera-portal-tooltip {
+    background: rgba(2, 6, 23, 0.95);
+    color: var(--portal-text);
+  }
+
+  body.pera-portal-page #pera-portal-root .pera-portal-compare__table tbody tr:hover {
+    background: #253246;
+  }
+}
+
+html[data-theme="dark"] body.pera-portal-page #pera-portal-root,
+body[data-theme="dark"].pera-portal-page #pera-portal-root,
+body.dark.pera-portal-page #pera-portal-root,
+body.is-dark.pera-portal-page #pera-portal-root {
+  --portal-bg: #0f141c;
+  --portal-surface: #161d28;
+  --portal-surface-2: #1b2431;
+  --portal-border: #2c3645;
+  --portal-text: #e5e7eb;
+  --portal-text-muted: #9ca3af;
+  --portal-link: #93c5fd;
+  --portal-accent: #334155;
+  --portal-focus: rgba(147, 197, 253, 0.45);
+  --portal-shadow: 0 14px 30px rgba(2, 6, 23, 0.46);
+}
+
+html[data-theme="dark"] body.pera-portal-page #pera-portal-root .pera-portal-tooltip,
+body[data-theme="dark"].pera-portal-page #pera-portal-root .pera-portal-tooltip,
+body.dark.pera-portal-page #pera-portal-root .pera-portal-tooltip,
+body.is-dark.pera-portal-page #pera-portal-root .pera-portal-tooltip {
+  background: rgba(2, 6, 23, 0.95);
+  color: var(--portal-text);
 }
