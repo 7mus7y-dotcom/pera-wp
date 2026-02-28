@@ -14,9 +14,9 @@
       markersData = [];
     }
 
-    console.log('[PropertyMap] markers:', markersData.length);
-
     const selectedPanel = document.querySelector('.property-map__selected');
+    const resultsEl = document.getElementById('property-map-results');
+    const mapConfig = window.peraPropertyMap || {};
     const defaultCenter = { lat: 41.0082, lng: 28.9784 };
     const map = new window.google.maps.Map(mapEl, {
       center: defaultCenter,
@@ -25,14 +25,83 @@
       streetViewControl: false,
     });
 
-    if (!markersData.length) {
-      if (selectedPanel) {
-        selectedPanel.innerHTML = `
-          <div class="content-panel-box">
-            <p class="text-sm muted">No properties are available on the map right now.</p>
-          </div>
-        `;
+    const setResultsHtml = (html) => {
+      if (resultsEl) {
+        resultsEl.innerHTML = html;
       }
+    };
+
+    const showMessage = (message) => {
+      setResultsHtml(`<p class="no-results">${message}</p>`);
+    };
+
+    const escapeHtml = (value) => {
+      const div = document.createElement('div');
+      div.textContent = value == null ? '' : String(value);
+      return div.innerHTML;
+    };
+
+    let activeController = null;
+
+    const loadMarkerCard = (propertyId) => {
+      if (!propertyId || !mapConfig.ajax_url || !mapConfig.action || !mapConfig.nonce) {
+        showMessage('Unable to load listing details right now.');
+        return;
+      }
+
+      if (activeController) {
+        activeController.abort();
+      }
+
+      const controller = new AbortController();
+      activeController = controller;
+
+      const body = new URLSearchParams({
+        action: mapConfig.action,
+        nonce: mapConfig.nonce,
+        property_id: String(propertyId),
+      });
+
+      showMessage('Loading listing…');
+
+      fetch(mapConfig.ajax_url, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8',
+        },
+        body: body.toString(),
+        credentials: 'same-origin',
+        signal: controller.signal,
+      })
+        .then((response) => {
+          if (!response.ok) {
+            throw new Error(`HTTP ${response.status}`);
+          }
+          return response.json();
+        })
+        .then((payload) => {
+          if (!payload || !payload.success || !payload.data || !payload.data.card_html) {
+            showMessage('No listing is available for this marker.');
+            return;
+          }
+          setResultsHtml(payload.data.card_html);
+        })
+        .catch((error) => {
+          if (error && error.name === 'AbortError') {
+            return;
+          }
+          console.error('[PropertyMap] Failed to load marker card.', error);
+          showMessage('Unable to load listing details right now.');
+        })
+        .finally(() => {
+          if (activeController === controller) {
+            activeController = null;
+          }
+        });
+    };
+
+    if (!markersData.length) {
+      showMessage('No properties are available on the map right now.');
       return;
     }
 
@@ -40,23 +109,6 @@
     const infoWindow = new window.google.maps.InfoWindow();
     let markerCount = 0;
     let lastPosition = null;
-
-    const selectResultCard = (markerData) => {
-      if (!selectedPanel || !markerData || !markerData.id) {
-        return;
-      }
-
-      const cardWrappers = selectedPanel.querySelectorAll('[data-property-id]');
-      cardWrappers.forEach((cardWrapper) => cardWrapper.classList.remove('is-active'));
-
-      const target = selectedPanel.querySelector(`[data-property-id="${String(markerData.id)}"]`);
-      if (!target) {
-        return;
-      }
-
-      target.classList.add('is-active');
-      target.scrollIntoView({ behavior: 'smooth', block: 'center' });
-    };
 
     markersData.forEach((markerData) => {
       const position = {
@@ -79,10 +131,10 @@
       lastPosition = position;
 
       marker.addListener('click', () => {
-        selectResultCard(markerData);
+        loadMarkerCard(markerData.id);
         if (markerData.title && markerData.url) {
           infoWindow.setContent(
-            `<div class="property-map__info"><strong>${markerData.title}</strong><br><a href="${markerData.url}">View</a></div>`
+            `<div class="property-map__info"><strong>${escapeHtml(markerData.title)}</strong><br><a href="${escapeHtml(markerData.url)}">View</a></div>`
           );
           infoWindow.open(map, marker);
         }
@@ -94,13 +146,7 @@
     });
 
     if (markerCount === 0) {
-      if (selectedPanel) {
-        selectedPanel.innerHTML = `
-          <div class="content-panel-box">
-            <p class="text-sm muted">No properties are available on the map right now.</p>
-          </div>
-        `;
-      }
+      showMessage('No properties are available on the map right now.');
       return;
     }
 
