@@ -10,6 +10,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 
 get_header();
 
+$page_id         = get_queried_object_id();
 $markers         = array();
 $acf_loaded      = function_exists( 'get_field' );
 $property_query  = null;
@@ -96,6 +97,8 @@ if ( $acf_loaded ) {
 
         $property_query->rewind_posts();
     }
+
+    wp_reset_postdata();
 }
 
 echo "\n<!-- property-map debug: markers=" . count( $markers ) . " acf=" . ( $acf_loaded ? 'yes' : 'no' ) . " -->\n";
@@ -118,10 +121,10 @@ if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
      ====================================================== -->
     <section class="hero" id="property-map-hero">
       <div class="hero-content">
-        <h1><?php the_title(); ?></h1>
+        <h1><?php echo esc_html( get_the_title( $page_id ) ); ?></h1>
 
-        <?php if ( has_excerpt() ) : ?>
-          <p class="lead"><?php echo get_the_excerpt(); ?></p>
+        <?php if ( get_the_excerpt( $page_id ) ) : ?>
+          <p class="lead"><?php echo esc_html( get_the_excerpt( $page_id ) ); ?></p>
         <?php else : ?>
           <p class="lead">
             Explore every listing on the map and click a marker to preview the property.
@@ -141,32 +144,7 @@ if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
 
           <div class="property-map__selected" aria-live="polite">
             <div id="property-map-results" class="cards-grid">
-              <?php if ( $property_query instanceof WP_Query && $property_query->have_posts() ) : ?>
-                <?php while ( $property_query->have_posts() ) : $property_query->the_post(); ?>
-                  <div data-property-id="<?php echo esc_attr( get_the_ID() ); ?>">
-                    <?php
-                      if ( function_exists( 'pera_render_property_card' ) ) {
-                          pera_render_property_card(
-                              array(
-                                  'variant' => 'archive',
-                              )
-                          );
-                      } else {
-                          set_query_var(
-                              'pera_property_card_args',
-                              array(
-                                  'variant' => 'archive',
-                              )
-                          );
-                          get_template_part( 'parts/property-card-v2' );
-                          set_query_var( 'pera_property_card_args', null );
-                      }
-                    ?>
-                  </div>
-                <?php endwhile; ?>
-              <?php else : ?>
-                <p class="no-results">No properties are available on the map right now.</p>
-              <?php endif; ?>
+              <p class="no-results">Click a marker to view the listing.</p>
             </div>
           </div>
         </div>

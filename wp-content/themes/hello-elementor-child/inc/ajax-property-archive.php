@@ -562,3 +562,55 @@ if ( ! function_exists( 'pera_ajax_filter_properties_v2' ) ) {
 
 add_action( 'wp_ajax_pera_filter_properties_v2', 'pera_ajax_filter_properties_v2' );
 add_action( 'wp_ajax_nopriv_pera_filter_properties_v2', 'pera_ajax_filter_properties_v2' );
+
+if ( ! function_exists( 'pera_ajax_get_map_property_card' ) ) {
+  function pera_ajax_get_map_property_card() {
+    check_ajax_referer( 'pera_map_property_card', 'nonce' );
+
+    $property_id = isset( $_POST['property_id'] ) ? absint( wp_unslash( $_POST['property_id'] ) ) : 0;
+    if ( $property_id <= 0 || 'property' !== get_post_type( $property_id ) || 'publish' !== get_post_status( $property_id ) ) {
+      wp_send_json_error( array( 'message' => 'Property not found.' ), 404 );
+    }
+
+    $post = get_post( $property_id );
+    if ( ! $post instanceof WP_Post ) {
+      wp_send_json_error( array( 'message' => 'Property not found.' ), 404 );
+    }
+
+    setup_postdata( $post );
+    ob_start();
+
+    if ( function_exists( 'pera_render_property_card' ) ) {
+      pera_render_property_card(
+        array(
+          'variant' => 'archive',
+        )
+      );
+    } else {
+      set_query_var(
+        'pera_property_card_args',
+        array(
+          'variant' => 'archive',
+        )
+      );
+      get_template_part( 'parts/property-card-v2' );
+      set_query_var( 'pera_property_card_args', null );
+    }
+
+    $card_html = trim( ob_get_clean() );
+    wp_reset_postdata();
+
+    if ( '' === $card_html ) {
+      wp_send_json_error( array( 'message' => 'Property card unavailable.' ), 404 );
+    }
+
+    wp_send_json_success(
+      array(
+        'card_html' => $card_html,
+      )
+    );
+  }
+}
+
+add_action( 'wp_ajax_pera_get_map_property_card', 'pera_ajax_get_map_property_card' );
+add_action( 'wp_ajax_nopriv_pera_get_map_property_card', 'pera_ajax_get_map_property_card' );

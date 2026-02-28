@@ -240,6 +240,16 @@ if ( $needs_slider ) {
       pera_get_asset_version( '/js/property-map.js' ),
       true
     );
+
+    wp_localize_script(
+      'pera-property-map',
+      'peraPropertyMap',
+      array(
+        'ajax_url' => admin_url( 'admin-ajax.php' ),
+        'action'   => 'pera_get_map_property_card',
+        'nonce'    => wp_create_nonce( 'pera_map_property_card' ),
+      )
+    );
   }
 
 }, 20 );
