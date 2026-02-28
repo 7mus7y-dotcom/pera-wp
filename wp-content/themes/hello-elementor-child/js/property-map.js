@@ -105,8 +105,88 @@
       return;
     }
 
+    class CardOverlay extends window.google.maps.OverlayView {
+      constructor(mapInstance, latLng, data, onClose) {
+        super();
+        this.map = mapInstance;
+        this.latLng = latLng;
+        this.data = data || {};
+        this.onClose = onClose;
+        this.div = document.createElement('div');
+        this.div.style.position = 'absolute';
+        this.div.style.zIndex = '9999';
+        this.div.style.transform = 'translate(-50%, -110%)';
+        this.div.style.pointerEvents = 'auto';
+        this.div.style.maxWidth = '280px';
+      }
+
+      onAdd() {
+        this.div.innerHTML = `
+          <div class="content-panel-box">
+            <div style="display:flex; justify-content:space-between; gap:12px; align-items:flex-start;">
+              <div>
+                <p class="text-xs muted text-upper" style="margin:0 0 6px;">Property</p>
+                <h3 class="text-base" style="margin:0; line-height:1.2;">${escapeHtml(this.data.title || '')}</h3>
+              </div>
+              <button type="button" class="btn btn--ghost" aria-label="Close" style="padding:6px 10px; line-height:1;">×</button>
+            </div>
+            <div style="margin-top:10px;">
+              <a class="btn btn--ghost btn--green" href="${escapeHtml(this.data.url || '#')}">View listing</a>
+            </div>
+          </div>
+        `;
+
+        const closeButton = this.div.querySelector('button');
+        if (closeButton) {
+          closeButton.addEventListener('click', () => {
+            if (typeof this.onClose === 'function') {
+              this.onClose();
+            }
+          });
+        }
+
+        const panes = this.getPanes();
+        if (panes && panes.floatPane) {
+          panes.floatPane.appendChild(this.div);
+        }
+      }
+
+      draw() {
+        const projection = this.getProjection();
+        if (!projection) {
+          return;
+        }
+
+        const position = projection.fromLatLngToDivPixel(this.latLng);
+        if (!position) {
+          return;
+        }
+
+        this.div.style.left = `${position.x}px`;
+        this.div.style.top = `${position.y}px`;
+      }
+
+      onRemove() {
+        if (this.div && this.div.parentNode) {
+          this.div.parentNode.removeChild(this.div);
+        }
+      }
+    }
+
     const bounds = new window.google.maps.LatLngBounds();
-    const infoWindow = new window.google.maps.InfoWindow();
+    let activeOverlay = null;
+
+    const closeActiveOverlay = () => {
+      if (activeOverlay) {
+        activeOverlay.setMap(null);
+        activeOverlay = null;
+      }
+    };
+
+    window.google.maps.event.addListener(map, 'click', () => {
+      closeActiveOverlay();
+    });
+
     let markerCount = 0;
     let lastPosition = null;
 
@@ -131,13 +211,14 @@
       lastPosition = position;
 
       marker.addListener('click', () => {
-        loadMarkerCard(markerData.id);
+        closeActiveOverlay();
+
         if (markerData.title && markerData.url) {
-          infoWindow.setContent(
-            `<div class="property-map__info"><strong>${escapeHtml(markerData.title)}</strong><br><a href="${escapeHtml(markerData.url)}">View</a></div>`
-          );
-          infoWindow.open(map, marker);
+          activeOverlay = new CardOverlay(map, marker.getPosition(), markerData, closeActiveOverlay);
+          activeOverlay.setMap(map);
         }
+
+        loadMarkerCard(markerData.id);
 
         if (selectedPanel && window.innerWidth < 768) {
           selectedPanel.scrollIntoView({ behavior: 'smooth', block: 'start' });
