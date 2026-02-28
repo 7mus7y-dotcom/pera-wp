@@ -129,16 +129,12 @@
         this.div.style.zIndex = '9999';
         this.div.style.transform = 'translate(-50%, -110%)';
         this.div.style.pointerEvents = 'auto';
-        this.div.style.maxWidth = '280px';
-        this.div.style.padding = '20px 22px';
-        this.div.style.minWidth = '240px';
-        this.div.style.boxShadow = '0 14px 40px rgba(0,0,0,0.18)';
         this.div.style.animation = 'peraMapFadeIn .18s ease-out';
       }
 
       onAdd() {
         this.div.innerHTML = `
-          <div class="content-panel-box">
+          <div class="content-panel-box" data-map-bubble="1">
             <div style="display:flex; justify-content:space-between; gap:12px; align-items:flex-start;">
               <div>
                 <p class="text-xs muted text-upper" style="margin:0 0 6px;">Property</p>
@@ -156,12 +152,21 @@
             bottom:-8px;
             width:16px;
             height:16px;
-            background:#fff;
+            background:inherit;
             transform:translateX(-50%) rotate(45deg);
             box-shadow: 4px 4px 10px rgba(0,0,0,0.08);
             pointer-events:none;
           "></div>
         `;
+
+        const bubble = this.div.querySelector('[data-map-bubble="1"]');
+        if (bubble) {
+          bubble.style.backgroundColor = 'var(--panel-bg, #fff)';
+          bubble.style.padding = '18px 20px';
+          bubble.style.width = 'min(320px, calc(100vw - 48px))';
+          bubble.style.boxShadow = '0 14px 40px rgba(0,0,0,0.18)';
+          bubble.style.animation = 'peraMapFadeIn .18s ease-out';
+        }
 
         const closeButton = this.div.querySelector('button');
         if (closeButton) {
@@ -189,7 +194,13 @@
           return;
         }
 
-        this.div.style.left = `${position.x}px`;
+        const mapRectW = mapEl.clientWidth;
+        const bubbleW = this.div.offsetWidth || 280;
+        const margin = 16;
+        const half = bubbleW / 2;
+        const clampedX = Math.min(Math.max(position.x, margin + half), mapRectW - margin - half);
+
+        this.div.style.left = `${clampedX}px`;
         this.div.style.top = `${position.y}px`;
       }
 
