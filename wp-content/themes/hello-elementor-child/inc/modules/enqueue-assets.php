@@ -245,9 +245,10 @@ if ( $needs_slider ) {
       'pera-property-map',
       'peraPropertyMap',
       array(
-        'ajax_url' => admin_url( 'admin-ajax.php' ),
-        'action'   => 'pera_get_map_property_card',
-        'nonce'    => wp_create_nonce( 'pera_map_property_card' ),
+        'ajax_url'    => admin_url( 'admin-ajax.php' ),
+        'action'      => 'pera_get_map_property_card',
+        'nonce'       => wp_create_nonce( 'pera_map_property_card' ),
+        'marker_icon' => wp_get_attachment_image_url( 55483, 'full' ),
       )
     );
   }
