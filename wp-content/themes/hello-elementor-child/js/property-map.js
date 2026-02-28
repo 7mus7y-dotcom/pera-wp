@@ -5,6 +5,18 @@
       return;
     }
 
+    if (!document.getElementById('pera-map-overlay-style')) {
+      const overlayStyle = document.createElement('style');
+      overlayStyle.id = 'pera-map-overlay-style';
+      overlayStyle.textContent = `
+        @keyframes peraMapFadeIn {
+          from { opacity: 0; transform: translate(-50%, -100%) scale(0.96); }
+          to { opacity: 1; transform: translate(-50%, -110%) scale(1); }
+        }
+      `;
+      document.head.appendChild(overlayStyle);
+    }
+
     let markersData = [];
     const markersRawEl = document.getElementById('property-map-data');
     try {
@@ -118,6 +130,10 @@
         this.div.style.transform = 'translate(-50%, -110%)';
         this.div.style.pointerEvents = 'auto';
         this.div.style.maxWidth = '280px';
+        this.div.style.padding = '20px 22px';
+        this.div.style.minWidth = '240px';
+        this.div.style.boxShadow = '0 14px 40px rgba(0,0,0,0.18)';
+        this.div.style.animation = 'peraMapFadeIn .18s ease-out';
       }
 
       onAdd() {
@@ -134,6 +150,17 @@
               <a class="btn btn--ghost btn--green" href="${escapeHtml(this.data.url || '#')}">View listing</a>
             </div>
           </div>
+          <div style="
+            position:absolute;
+            left:50%;
+            bottom:-8px;
+            width:16px;
+            height:16px;
+            background:#fff;
+            transform:translateX(-50%) rotate(45deg);
+            box-shadow: 4px 4px 10px rgba(0,0,0,0.08);
+            pointer-events:none;
+          "></div>
         `;
 
         const closeButton = this.div.querySelector('button');
