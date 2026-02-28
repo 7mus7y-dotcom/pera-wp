@@ -22,8 +22,9 @@
     const shortlistClearBtn = root.querySelector('[data-shortlist-clear]');
     const compareContainer = root.querySelector('.pera-portal-compare');
     const compareBody = root.querySelector('[data-compare-body]');
-    const copyBtn = root.querySelector('[data-copy-link]');
-    const openBtn = root.querySelector('[data-open-window]');
+    const shareContainer = root.querySelector('.pera-portal-share');
+    const toastEl = root.querySelector('[data-share-toast]');
+    const newWinLink = root.querySelector('[data-share="newwin"]');
     const summaryContainer = root.querySelector('.pera-portal-summary');
     const summaryTotalEl = root.querySelector('[data-summary-total]');
     const summaryPpsEl = root.querySelector('[data-summary-pps]');
@@ -108,12 +109,6 @@
         if (shortlistClearBtn) {
             shortlistClearBtn.disabled = shortlist.size < 1;
         }
-        if (copyBtn) {
-            copyBtn.disabled = shortlist.size < 1;
-        }
-        if (openBtn) {
-            openBtn.disabled = shortlist.size < 1;
-        }
     }
 
     function renderCompareTable() {
@@ -158,6 +153,7 @@
         const query = params.toString();
         const newUrl = window.location.pathname + (query ? '?' + query : '') + window.location.hash;
         window.history.replaceState({}, '', newUrl);
+        syncShareLinks();
     }
 
     function updateSummary() {
@@ -208,15 +204,39 @@
         summaryContainer.hidden = false;
     }
 
+    function getCurrentShareUrl() {
+        return window.location.href;
+    }
+
+    function syncShareLinks() {
+        if (newWinLink) {
+            newWinLink.href = getCurrentShareUrl();
+        }
+    }
+
+    function showShareToast(message) {
+        if (!toastEl) {
+            return;
+        }
+
+        toastEl.textContent = message;
+        toastEl.hidden = false;
+
+        window.clearTimeout(showShareToast.timeoutId);
+        showShareToast.timeoutId = window.setTimeout(function () {
+            toastEl.hidden = true;
+        }, 1500);
+    }
+
     function copyCurrentLinkToClipboard() {
-        const url = window.location.href;
+        const url = getCurrentShareUrl();
 
         if (navigator.clipboard && typeof navigator.clipboard.writeText === 'function') {
             return navigator.clipboard.writeText(url);
         }
 
         try {
-            const temp = document.createElement('input');
+            const temp = document.createElement('textarea');
             temp.value = url;
             temp.setAttribute('readonly', 'readonly');
             temp.style.position = 'absolute';
@@ -497,6 +517,7 @@
 
         const next = window.location.pathname + (params.toString() ? '?' + params.toString() : '') + window.location.hash;
         window.history.replaceState({}, '', next);
+        syncShareLinks();
     }
 
     async function fetchJson(path) {
@@ -747,15 +768,40 @@
             shortlistClearBtn.addEventListener('click', clearShortlist);
         }
 
-        if (copyBtn) {
-            copyBtn.addEventListener('click', function () {
-                copyCurrentLinkToClipboard().catch(function () {});
-            });
-        }
+        if (shareContainer) {
+            shareContainer.addEventListener('click', function (event) {
+                const trigger = event.target && event.target.closest ? event.target.closest('[data-share]') : null;
+                if (!trigger) {
+                    return;
+                }
 
-        if (openBtn) {
-            openBtn.addEventListener('click', function () {
-                window.open(window.location.href, '_blank', 'noopener');
+                const action = String(trigger.getAttribute('data-share') || '');
+
+                if (action === 'whatsapp') {
+                    const shareUrl = 'https://wa.me/?text=' + encodeURIComponent(getCurrentShareUrl());
+                    window.open(shareUrl, '_blank', 'noopener');
+                    return;
+                }
+
+                if (action === 'copy') {
+                    event.preventDefault();
+                    copyCurrentLinkToClipboard().then(function () {
+                        showShareToast('Copied');
+                    }).catch(function () {
+                        showShareToast('Copy failed');
+                    });
+                    return;
+                }
+
+                if (action === 'print') {
+                    event.preventDefault();
+                    window.print();
+                    return;
+                }
+
+                if (action === 'newwin') {
+                    syncShareLinks();
+                }
             });
         }
 
@@ -799,6 +845,7 @@
         updateSummary();
         root.classList.toggle('is-color-price', state.colorMode === 'price');
         updateColorModeButtons();
+        syncShareLinks();
 
         if (!restBase) {
             setMessage(svgContainer, 'Portal configuration is missing.');
