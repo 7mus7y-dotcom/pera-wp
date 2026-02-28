@@ -14,6 +14,27 @@ function pera_portal_set_script_config(array $config)
     $GLOBALS['pera_portal_script_config'] = $config;
 }
 
+function pera_portal_get_dist_asset_path($asset)
+{
+    return PERA_PORTAL_PATH . '/assets/dist/' . ltrim($asset, '/');
+}
+
+function pera_portal_get_dist_asset_url($asset)
+{
+    return PERA_PORTAL_URL . '/assets/dist/' . ltrim($asset, '/');
+}
+
+function pera_portal_get_dist_asset_version($asset)
+{
+    $asset_path = pera_portal_get_dist_asset_path($asset);
+
+    if (file_exists($asset_path)) {
+        return (string) filemtime($asset_path);
+    }
+
+    return '1.0.0';
+}
+
 function pera_portal_enqueue_assets()
 {
     if (empty($GLOBALS['pera_portal_enqueue_assets'])) {
@@ -40,18 +61,21 @@ function pera_portal_enqueue_assets()
     static $did_localize = false;
 
     if (!$did_register) {
+        $portal_css_asset = 'portal-viewer.css';
+        $portal_js_asset = 'portal-viewer.js';
+
         wp_register_style(
             'pera-portal-viewer',
-            PERA_PORTAL_URL . '/assets/dist/portal-viewer.css',
+            pera_portal_get_dist_asset_url($portal_css_asset),
             [],
-            PERA_PORTAL_VERSION
+            pera_portal_get_dist_asset_version($portal_css_asset)
         );
 
         wp_register_script(
             'pera-portal-viewer',
-            PERA_PORTAL_URL . '/assets/dist/portal-viewer.js',
+            pera_portal_get_dist_asset_url($portal_js_asset),
             [],
-            PERA_PORTAL_VERSION,
+            pera_portal_get_dist_asset_version($portal_js_asset),
             true
         );
 
@@ -130,18 +154,21 @@ function pera_portal_enqueue_admin_assets($hook)
         return;
     }
 
+    $portal_css_asset = 'portal-viewer.css';
+    $portal_js_asset = 'portal-viewer.js';
+
     wp_register_style(
         'pera-portal-viewer',
-        PERA_PORTAL_URL . '/assets/dist/portal-viewer.css',
+        pera_portal_get_dist_asset_url($portal_css_asset),
         [],
-        PERA_PORTAL_VERSION
+        pera_portal_get_dist_asset_version($portal_css_asset)
     );
 
     wp_register_script(
         'pera-portal-viewer',
-        PERA_PORTAL_URL . '/assets/dist/portal-viewer.js',
+        pera_portal_get_dist_asset_url($portal_js_asset),
         [],
-        PERA_PORTAL_VERSION,
+        pera_portal_get_dist_asset_version($portal_js_asset),
         true
     );
 
