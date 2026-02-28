@@ -29,6 +29,7 @@
     const selectedPanel = document.querySelector('.property-map__selected');
     const resultsEl = document.getElementById('property-map-results');
     const mapConfig = window.peraPropertyMap || {};
+    const markerIconUrl = mapConfig.marker_icon || null;
     const defaultCenter = { lat: 41.0082, lng: 28.9784 };
     const map = new window.google.maps.Map(mapEl, {
       center: defaultCenter,
@@ -127,6 +128,7 @@
         this.div = document.createElement('div');
         this.div.style.position = 'absolute';
         this.div.style.zIndex = '9999';
+        this.div.style.display = 'block';
         this.div.style.transform = 'translate(-50%, -110%)';
         this.div.style.pointerEvents = 'auto';
         this.div.style.animation = 'peraMapFadeIn .18s ease-out';
@@ -189,19 +191,24 @@
           return;
         }
 
-        const position = projection.fromLatLngToDivPixel(this.latLng);
-        if (!position) {
+        const pixel = projection.fromLatLngToDivPixel(this.latLng);
+        if (!pixel) {
           return;
         }
 
-        const mapRectW = mapEl.clientWidth;
-        const bubbleW = this.div.offsetWidth || 280;
+        const mapDiv = this.getMap().getDiv();
+        const mapRect = mapDiv.getBoundingClientRect();
+        const mapW = mapRect.width;
+        const bubbleRect = this.div.getBoundingClientRect();
+        const bubbleW = bubbleRect.width || 280;
         const margin = 16;
         const half = bubbleW / 2;
-        const clampedX = Math.min(Math.max(position.x, margin + half), mapRectW - margin - half);
+        const x = pixel.x;
+
+        const clampedX = Math.min(Math.max(x, margin + half), mapW - margin - half);
 
         this.div.style.left = `${clampedX}px`;
-        this.div.style.top = `${position.y}px`;
+        this.div.style.top = `${pixel.y}px`;
       }
 
       onRemove() {
@@ -238,11 +245,21 @@
         return;
       }
 
-      const marker = new window.google.maps.Marker({
+      const markerOptions = {
         position,
         map,
         title: markerData.title || '',
-      });
+      };
+
+      if (markerIconUrl) {
+        markerOptions.icon = {
+          url: markerIconUrl,
+          scaledSize: new window.google.maps.Size(40, 40),
+          anchor: new window.google.maps.Point(20, 40),
+        };
+      }
+
+      const marker = new window.google.maps.Marker(markerOptions);
 
       bounds.extend(position);
       markerCount += 1;
