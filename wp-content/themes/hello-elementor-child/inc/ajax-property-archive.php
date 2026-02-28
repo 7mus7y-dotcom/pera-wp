@@ -577,6 +577,7 @@ if ( ! function_exists( 'pera_ajax_get_map_property_card' ) ) {
       wp_send_json_error( array( 'message' => 'Property not found.' ), 404 );
     }
 
+    $GLOBALS['post'] = $post;
     setup_postdata( $post );
     ob_start();
 
@@ -584,6 +585,7 @@ if ( ! function_exists( 'pera_ajax_get_map_property_card' ) ) {
       pera_render_property_card(
         array(
           'variant' => 'archive',
+          'post_id' => $property_id,
         )
       );
     } else {
@@ -591,6 +593,7 @@ if ( ! function_exists( 'pera_ajax_get_map_property_card' ) ) {
         'pera_property_card_args',
         array(
           'variant' => 'archive',
+          'post_id' => $property_id,
         )
       );
       get_template_part( 'parts/property-card-v2' );
@@ -604,11 +607,16 @@ if ( ! function_exists( 'pera_ajax_get_map_property_card' ) ) {
       wp_send_json_error( array( 'message' => 'Property card unavailable.' ), 404 );
     }
 
-    wp_send_json_success(
-      array(
-        'card_html' => $card_html,
-      )
+    $response = array(
+      'card_html' => $card_html,
     );
+
+    if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
+      $response['debug_post_id'] = $property_id;
+      $response['debug_title']   = get_the_title( $property_id );
+    }
+
+    wp_send_json_success( $response );
   }
 }
 
