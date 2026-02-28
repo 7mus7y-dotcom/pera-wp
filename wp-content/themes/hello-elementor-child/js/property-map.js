@@ -197,12 +197,13 @@
         }
 
         const mapDiv = this.getMap().getDiv();
-        const mapRect = mapDiv.getBoundingClientRect();
-        const mapW = mapRect.width;
-        const bubbleRect = this.div.getBoundingClientRect();
-        const bubbleW = bubbleRect.width || 280;
+        const bubbleEl = this.div.querySelector('[data-map-bubble="1"]');
+        const bubbleW = bubbleEl ? bubbleEl.getBoundingClientRect().width : 0;
+        const wrapW = this.div.getBoundingClientRect().width;
+        const finalW = (bubbleW && bubbleW > 50) ? bubbleW : (wrapW || 280);
+        const mapW = mapDiv.clientWidth || mapDiv.getBoundingClientRect().width;
         const margin = 16;
-        const half = bubbleW / 2;
+        const half = finalW / 2;
         const x = pixel.x;
 
         const clampedX = Math.min(Math.max(x, margin + half), mapW - margin - half);
