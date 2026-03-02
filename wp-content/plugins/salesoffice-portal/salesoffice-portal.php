@@ -83,27 +83,21 @@ if (!function_exists('salesoffice_portal_render_app')) {
             return;
         }
 
+        $buildings = get_posts([
+            'post_type' => 'pera_building',
+            'post_status' => 'publish',
+            'posts_per_page' => -1,
+            'orderby' => 'title',
+            'order' => 'ASC',
+            'fields' => 'ids',
+        ]);
+
         $building_id = isset($_GET['building_id']) ? absint(wp_unslash($_GET['building_id'])) : 0; // phpcs:ignore WordPress.Security.NonceVerification.Recommended
-        $floor_id = isset($_GET['floor_id']) ? absint(wp_unslash($_GET['floor_id'])) : 0; // phpcs:ignore WordPress.Security.NonceVerification.Recommended
-
-        if ($building_id <= 0) {
-            $building_query = new WP_Query([
-                'post_type' => 'pera_building',
-                'post_status' => 'publish',
-                'posts_per_page' => 1,
-                'orderby' => 'title',
-                'order' => 'ASC',
-                'fields' => 'ids',
-                'no_found_rows' => true,
-            ]);
-
-            if (!empty($building_query->posts)) {
-                $building_id = (int) $building_query->posts[0];
-            }
-
-            wp_reset_postdata();
-
+        if ($building_id <= 0 && !empty($buildings)) {
+            $building_id = (int) $buildings[0];
         }
+
+        $floor_id = isset($_GET['floor_id']) ? absint(wp_unslash($_GET['floor_id'])) : 0; // phpcs:ignore WordPress.Security.NonceVerification.Recommended
 
         if ($building_id > 0 && $floor_id <= 0) {
             $floor_query = new WP_Query([
@@ -131,6 +125,24 @@ if (!function_exists('salesoffice_portal_render_app')) {
 
         }
 
+        if (!empty($buildings)) {
+            echo '<section class="container" style="padding:16px 0;">';
+            echo '<article class="card-shell">';
+            echo '<p class="pill pill--outline">Portal</p>';
+            echo '<form method="get" action="' . esc_url(home_url('/so/portal/')) . '" style="display:flex;gap:12px;align-items:center;flex-wrap:wrap;">';
+            echo '<label for="so-portal-building" style="font-weight:600;">Building</label>';
+            echo '<select id="so-portal-building" name="building_id" class="btn btn--white" onchange="this.form.submit()">';
+
+            foreach ($buildings as $bid) {
+                echo '<option value="' . esc_attr((string) $bid) . '"' . selected($building_id, (int) $bid, false) . '>' . esc_html(get_the_title($bid)) . '</option>';
+            }
+
+            echo '</select>';
+            echo '</form>';
+            echo '</article>';
+            echo '</section>';
+        }
+
         if ($building_id <= 0) {
             echo '<section class="container"><article class="card-shell"><p class="pill pill--outline">No buildings found</p></article></section>';
 
@@ -141,6 +153,10 @@ if (!function_exists('salesoffice_portal_render_app')) {
         $shortcode_atts = ' building="' . esc_attr((string) $building_id) . '" mode="external"';
         if ($floor_id > 0) {
             $shortcode_atts .= ' floor="' . esc_attr((string) $floor_id) . '"';
+        }
+
+        if (function_exists('pera_portal_mark_assets_needed')) {
+            pera_portal_mark_assets_needed();
         }
 
         $out = do_shortcode('[' . $shortcode_tag . $shortcode_atts . ']');
