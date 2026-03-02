@@ -75,13 +75,6 @@ if (!function_exists('salesoffice_portal_render_app')) {
 
         echo "\n<!-- so-portal:handler-loaded -->\n";
 
-        $shortcode_tag = defined('PERA_PORTAL_SHORTCODE_TAG') ? (string) PERA_PORTAL_SHORTCODE_TAG : '';
-        if ('' === $shortcode_tag) {
-            echo '<section class="container"><article class="card-shell"><p class="pill pill--outline">Portal shortcode tag not defined</p></article></section>';
-
-            return;
-        }
-
         $default_building_id = 56499;
         $default_floor_primary = 56523;
         $default_floor_fallback = 56500;
@@ -125,18 +118,11 @@ if (!function_exists('salesoffice_portal_render_app')) {
             pera_portal_mark_assets_needed();
         }
 
-        $shortcode_parts = [
-            $shortcode_tag,
-            'building="' . esc_attr((string) $building_id) . '"',
-        ];
-
         if ($floor_id > 0) {
-            $shortcode_parts[] = 'floor="' . esc_attr((string) $floor_id) . '"';
+            $out = do_shortcode('[pera_portal building="' . $building_id . '" floor="' . $floor_id . '" mode="external"]');
+        } else {
+            $out = do_shortcode('[pera_portal building="' . $building_id . '" mode="external"]');
         }
-
-        $shortcode_parts[] = 'mode="external"';
-
-        $out = do_shortcode('[' . implode(' ', $shortcode_parts) . ']');
         $out = trim((string) $out);
 
         if ('' === $out) {
