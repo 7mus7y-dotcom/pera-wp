@@ -33,4 +33,5 @@ if (!defined('SALESOFFICE_PORTAL_VERSION')) {
     define('SALESOFFICE_PORTAL_VERSION', PERA_PORTAL_VERSION);
 }
 
+require_once PERA_PORTAL_PATH . '/includes/frontend/template-routing.php';
 require_once PERA_PORTAL_PATH . '/includes/bootstrap.php';
