@@ -1,5 +1,5 @@
 (function () {
-    const config = window.PeraPortalConfig || {};
+    const config = window.SoPortalConfig || {};
     const root = document.getElementById('pera-portal-root');
 
     if (!root) {

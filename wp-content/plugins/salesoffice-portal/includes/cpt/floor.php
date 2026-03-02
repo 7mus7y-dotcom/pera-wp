@@ -4,7 +4,7 @@ if (!defined('ABSPATH')) {
     exit;
 }
 
-function pera_portal_register_cpt_floor()
+function so_portal_register_cpt_floor()
 {
     $labels = [
         'name' => __('Floors', 'pera-portal'),
@@ -29,4 +29,4 @@ function pera_portal_register_cpt_floor()
     ]);
 }
 
-add_action('init', 'pera_portal_register_cpt_floor', 15);
+add_action('init', 'so_portal_register_cpt_floor', 15);

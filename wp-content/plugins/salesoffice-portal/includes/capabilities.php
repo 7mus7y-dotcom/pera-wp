@@ -4,86 +4,55 @@ if (!defined('ABSPATH')) {
     exit;
 }
 
-if (!function_exists('pera_portal_user_can_access')) {
-    function pera_portal_user_can_access($user_id = 0)
+if (!function_exists('so_portal_user_can_access')) {
+    function so_portal_user_can_access($user_id = 0)
     {
+        $user_id = (int) $user_id;
+
         if (is_multisite()) {
-            if ((int) $user_id > 0) {
-                if (is_super_admin((int) $user_id)) {
-                    return true;
-                }
-
-                $user = get_userdata((int) $user_id);
-                if ($user instanceof WP_User && (
-                    user_can($user, 'manage_network')
-                    || user_can($user, 'manage_network_options')
-                )) {
-                    return true;
-                }
-            } else {
-                if (is_super_admin()) {
-                    return true;
-                }
-
-                if (current_user_can('manage_network') || current_user_can('manage_network_options')) {
-                    return true;
-                }
-            }
-        }
-
-        if (defined('PERA_PORTAL_ACCESS_MODE') && PERA_PORTAL_ACCESS_MODE === 'dedicated_cap') {
-            $access_cap = defined('PERA_PORTAL_ACCESS_CAP') ? (string) PERA_PORTAL_ACCESS_CAP : 'access_pera_portal';
-
-            if ((int) $user_id > 0) {
-                $user = get_userdata((int) $user_id);
-                if (!$user instanceof WP_User) {
-                    return false;
-                }
-
-                if (user_can($user, 'manage_options') || user_can($user, $access_cap)) {
-                    return true;
-                }
-
-                if (function_exists('peracrm_user_can_access_crm')) {
-                    return peracrm_user_can_access_crm($user_id);
-                }
-
-                return false;
-            }
-
-            if (current_user_can('manage_options') || current_user_can($access_cap)) {
+            if ($user_id > 0 && is_super_admin($user_id)) {
                 return true;
             }
 
-            if (function_exists('peracrm_user_can_access_crm')) {
-                return peracrm_user_can_access_crm(0);
+            if ($user_id === 0 && is_super_admin()) {
+                return true;
+            }
+        }
+
+        $access_cap = defined('SO_PORTAL_ACCESS_CAP') ? (string) SO_PORTAL_ACCESS_CAP : 'access_salesoffice_portal';
+
+        if ($user_id > 0) {
+            $user = get_userdata($user_id);
+            if (!$user instanceof WP_User) {
+                return false;
+            }
+
+            if (user_can($user, 'manage_options')) {
+                return true;
+            }
+
+            if (defined('SO_PORTAL_ACCESS_MODE') && SO_PORTAL_ACCESS_MODE === 'dedicated_cap') {
+                return user_can($user, $access_cap);
             }
 
             return false;
         }
 
-        if (function_exists('peracrm_user_can_access_crm')) {
-            return peracrm_user_can_access_crm($user_id);
+        if (current_user_can('manage_options')) {
+            return true;
         }
 
-        if ((int) $user_id > 0) {
-            $user = get_userdata((int) $user_id);
-            if (!$user instanceof WP_User) {
-                return false;
-            }
-
-            return user_can($user, 'manage_options');
+        if (defined('SO_PORTAL_ACCESS_MODE') && SO_PORTAL_ACCESS_MODE === 'dedicated_cap') {
+            return current_user_can($access_cap);
         }
 
-        return current_user_can('manage_options');
+        return false;
     }
 }
 
-if (!function_exists('pera_portal_current_user_can_access')) {
-    function pera_portal_current_user_can_access()
+if (!function_exists('so_portal_current_user_can_access')) {
+    function so_portal_current_user_can_access()
     {
-        return function_exists('pera_portal_user_can_access')
-            ? (bool) pera_portal_user_can_access(0)
-            : current_user_can('manage_options');
+        return so_portal_user_can_access(0);
     }
 }

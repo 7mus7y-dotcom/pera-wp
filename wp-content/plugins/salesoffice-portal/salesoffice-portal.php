@@ -9,14 +9,19 @@ if (!defined('ABSPATH')) {
     exit;
 }
 
-define('SO_PORTAL_VERSION', '0.1.0');
-define('SO_PORTAL_PATH', plugin_dir_path(__FILE__));
-define('SO_PORTAL_URL', plugin_dir_url(__FILE__));
+if (!defined('SO_PORTAL_VERSION')) {
+    define('SO_PORTAL_VERSION', '0.1.0');
+}
 
-require_once SO_PORTAL_PATH . 'includes/config.php';
-require_once SO_PORTAL_PATH . 'includes/assets/enqueue.php';
-require_once SO_PORTAL_PATH . 'includes/rest/routes.php';
-require_once SO_PORTAL_PATH . 'includes/shortcodes/portal-shortcode.php';
+if (!defined('SO_PORTAL_PATH')) {
+    define('SO_PORTAL_PATH', plugin_dir_path(__FILE__));
+}
+
+if (!defined('SO_PORTAL_URL')) {
+    define('SO_PORTAL_URL', plugin_dir_url(__FILE__));
+}
+
+require_once SO_PORTAL_PATH . 'includes/bootstrap.php';
 
 /**
  * Optional: integrate with salesoffice-core router if present.

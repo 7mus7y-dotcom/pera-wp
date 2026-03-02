@@ -4,44 +4,45 @@ if (!defined('ABSPATH')) {
     exit;
 }
 
-$pera_portal_frontend_core_files = [
-    PERA_PORTAL_PATH . '/includes/config.php',
-    PERA_PORTAL_PATH . '/includes/capabilities.php',
-    PERA_PORTAL_PATH . '/includes/helpers/format.php',
-    PERA_PORTAL_PATH . '/includes/helpers/sanitize.php',
-    PERA_PORTAL_PATH . '/includes/services/AccessService.php',
-    PERA_PORTAL_PATH . '/includes/services/UnitLookupService.php',
-    PERA_PORTAL_PATH . '/includes/services/SvgPlanService.php',
-    PERA_PORTAL_PATH . '/includes/cpt/building.php',
-    PERA_PORTAL_PATH . '/includes/cpt/floor.php',
-    PERA_PORTAL_PATH . '/includes/cpt/unit.php',
-    PERA_PORTAL_PATH . '/includes/rest/routes.php',
-    PERA_PORTAL_PATH . '/includes/assets/enqueue.php',
-    PERA_PORTAL_PATH . '/includes/shortcodes/portal-shortcode.php',
+$so_portal_core_files = [
+    SO_PORTAL_PATH . 'includes/config.php',
+    SO_PORTAL_PATH . 'includes/capabilities.php',
+    SO_PORTAL_PATH . 'includes/helpers/format.php',
+    SO_PORTAL_PATH . 'includes/helpers/sanitize.php',
+    SO_PORTAL_PATH . 'includes/services/AccessService.php',
+    SO_PORTAL_PATH . 'includes/services/UnitLookupService.php',
+    SO_PORTAL_PATH . 'includes/services/SvgPlanService.php',
+    SO_PORTAL_PATH . 'includes/cpt/building.php',
+    SO_PORTAL_PATH . 'includes/cpt/floor.php',
+    SO_PORTAL_PATH . 'includes/cpt/unit.php',
+    SO_PORTAL_PATH . 'includes/rest/routes.php',
+    SO_PORTAL_PATH . 'includes/assets/enqueue.php',
+    SO_PORTAL_PATH . 'includes/shortcodes/portal-shortcode.php',
+    SO_PORTAL_PATH . 'includes/frontend/template-routing.php',
 ];
 
-foreach ($pera_portal_frontend_core_files as $pera_portal_bootstrap_file) {
-    if (file_exists($pera_portal_bootstrap_file)) {
-        require_once $pera_portal_bootstrap_file;
+foreach ($so_portal_core_files as $so_portal_bootstrap_file) {
+    if (file_exists($so_portal_bootstrap_file)) {
+        require_once $so_portal_bootstrap_file;
     }
 }
 
-if (function_exists('acf_add_local_field_group')) {
-    $pera_portal_acf_fields_file = PERA_PORTAL_PATH . '/includes/acf/fields.php';
-    if (file_exists($pera_portal_acf_fields_file)) {
-        require_once $pera_portal_acf_fields_file;
+if (function_exists('acf_add_local_field_group') || function_exists('get_field')) {
+    $so_portal_acf_fields_file = SO_PORTAL_PATH . 'includes/acf/fields.php';
+    if (file_exists($so_portal_acf_fields_file)) {
+        require_once $so_portal_acf_fields_file;
     }
 }
 
 if (is_admin()) {
-    $pera_portal_admin_files = [
-        PERA_PORTAL_PATH . '/includes/admin/menu.php',
-        PERA_PORTAL_PATH . '/includes/admin/viewer-page.php',
+    $so_portal_admin_files = [
+        SO_PORTAL_PATH . 'includes/admin/menu.php',
+        SO_PORTAL_PATH . 'includes/admin/viewer-page.php',
     ];
 
-    foreach ($pera_portal_admin_files as $pera_portal_bootstrap_file) {
-        if (file_exists($pera_portal_bootstrap_file)) {
-            require_once $pera_portal_bootstrap_file;
+    foreach ($so_portal_admin_files as $so_portal_bootstrap_file) {
+        if (file_exists($so_portal_bootstrap_file)) {
+            require_once $so_portal_bootstrap_file;
         }
     }
 }

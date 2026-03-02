@@ -4,7 +4,7 @@ if (!defined('ABSPATH')) {
     exit;
 }
 
-function pera_portal_register_cpt_building()
+function so_portal_register_cpt_building()
 {
     $labels = [
         'name' => __('Buildings', 'pera-portal'),
@@ -29,4 +29,4 @@ function pera_portal_register_cpt_building()
     ]);
 }
 
-add_action('init', 'pera_portal_register_cpt_building', 15);
+add_action('init', 'so_portal_register_cpt_building', 15);

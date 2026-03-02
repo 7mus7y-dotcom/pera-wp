@@ -202,7 +202,7 @@ function so_portal_register_rest_routes()
     register_rest_route(SO_PORTAL_REST_NAMESPACE, '/floor', [
         'methods' => WP_REST_Server::READABLE,
         'callback' => 'so_portal_rest_get_floor',
-        'permission_callback' => 'so_portal_can_read',
+        'permission_callback' => 'so_portal_current_user_can_access',
         'args' => [
             'floor_id' => [
                 'required' => true,
@@ -216,7 +216,7 @@ function so_portal_register_rest_routes()
     register_rest_route(SO_PORTAL_REST_NAMESPACE, '/units', [
         'methods' => WP_REST_Server::READABLE,
         'callback' => 'so_portal_rest_get_units',
-        'permission_callback' => 'so_portal_can_read',
+        'permission_callback' => 'so_portal_current_user_can_access',
         'args' => [
             'floor_id' => [
                 'required' => true,
@@ -230,7 +230,7 @@ function so_portal_register_rest_routes()
     register_rest_route(SO_PORTAL_REST_NAMESPACE, '/floors', [
         'methods' => WP_REST_Server::READABLE,
         'callback' => 'so_portal_rest_get_floors',
-        'permission_callback' => 'so_portal_can_read',
+        'permission_callback' => 'so_portal_current_user_can_access',
         'args' => [
             'building_id' => [
                 'required' => true,

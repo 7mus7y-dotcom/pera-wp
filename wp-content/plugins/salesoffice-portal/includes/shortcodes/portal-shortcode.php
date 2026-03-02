@@ -102,7 +102,7 @@ function so_portal_render_shortcode($atts = [])
         echo '<div><strong>Resolved IDs:</strong> building_id=' . esc_html((string) $building_id) . ', floor_id=' . esc_html((string) $floor_id) . '</div>';
         echo '<div style="margin-top:8px"><strong>Final JS config:</strong></div>';
         echo '<pre style="white-space:pre-wrap;word-break:break-word;margin:6px 0 10px">' . esc_html(wp_json_encode($script_config, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES)) . '</pre>';
-        echo '<div><strong>REST probes:</strong></div>';
+        echo '<div><strong>REST probes:</strong> anonymous requests may return 401 for protected routes and that is expected.</div>';
 
         foreach ($probes as $label => $probe_result) {
             echo '<div style="margin-top:8px"><strong>' . esc_html($label) . '</strong> ' . esc_html($probe_urls[$label]) . ' — status ' . esc_html((string) $probe_result['status']) . '</div>';

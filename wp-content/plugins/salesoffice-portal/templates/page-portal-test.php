@@ -7,7 +7,7 @@ if (!defined('ABSPATH')) {
 get_header();
 ?>
 <main id="content" class="site-main">
-    <?php echo do_shortcode('[' . PERA_PORTAL_SHORTCODE_TAG . ']'); ?>
+    <?php echo do_shortcode('[' . SO_PORTAL_SHORTCODE_TAG . ']'); ?>
 </main>
 <?php
 get_footer();

@@ -4,14 +4,18 @@ if (!defined('ABSPATH')) {
     exit;
 }
 
-define('SO_PORTAL_SHORTCODE_TAG', 'so_portal');
-define('SO_PORTAL_REST_NAMESPACE', 'salesoffice-portal/v1');
+if (!defined('SO_PORTAL_SHORTCODE_TAG')) {
+    define('SO_PORTAL_SHORTCODE_TAG', 'so_portal');
+}
 
-/**
- * Public read by default. If later you want token-gated read,
- * change this to a stricter callback.
- */
-function so_portal_can_read()
-{
-    return true;
+if (!defined('SO_PORTAL_REST_NAMESPACE')) {
+    define('SO_PORTAL_REST_NAMESPACE', 'salesoffice-portal/v1');
+}
+
+if (!defined('SO_PORTAL_ACCESS_MODE')) {
+    define('SO_PORTAL_ACCESS_MODE', 'dedicated_cap');
+}
+
+if (!defined('SO_PORTAL_ACCESS_CAP')) {
+    define('SO_PORTAL_ACCESS_CAP', 'access_salesoffice_portal');
 }

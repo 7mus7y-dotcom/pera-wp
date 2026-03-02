@@ -4,7 +4,7 @@ if (!defined('ABSPATH')) {
     exit;
 }
 
-function pera_portal_register_cpt_unit()
+function so_portal_register_cpt_unit()
 {
     $labels = [
         'name' => __('Units', 'pera-portal'),
@@ -29,4 +29,4 @@ function pera_portal_register_cpt_unit()
     ]);
 }
 
-add_action('init', 'pera_portal_register_cpt_unit', 15);
+add_action('init', 'so_portal_register_cpt_unit', 15);

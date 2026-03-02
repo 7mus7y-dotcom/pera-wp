@@ -4,7 +4,7 @@ if (!defined('ABSPATH')) {
     exit;
 }
 
-function pera_portal_template_include($template)
+function so_portal_template_include($template)
 {
     if (is_admin()) {
         return $template;
@@ -14,24 +14,19 @@ function pera_portal_template_include($template)
         return $template;
     }
 
-    $is_legacy_portal_test = is_page('portal-test');
-
-    if (!$is_legacy_portal_test) {
+    if (!is_page('portal-test')) {
         return $template;
     }
 
-    $portal_template = PERA_PORTAL_PATH . '/templates/page-portal-test.php';
+    $portal_template = SO_PORTAL_PATH . 'templates/page-portal-test.php';
 
     if (!file_exists($portal_template)) {
         return $template;
     }
 
-    $GLOBALS['pera_portal_is_page'] = true;
-    $GLOBALS['pera_portal_enqueue_assets'] = true;
+    so_portal_mark_assets_needed();
 
     return $portal_template;
 }
 
-add_filter('template_include', 'pera_portal_template_include', 99);
-
-// Render hook registration is owned by salesoffice-portal.php entrypoint.
+add_filter('template_include', 'so_portal_template_include', 99);

@@ -4,12 +4,25 @@ if (!defined('ABSPATH')) {
     exit;
 }
 
-function so_portal_enqueue_assets()
+function so_portal_get_script_config()
 {
-    if (empty($GLOBALS['so_portal_assets_needed'])) {
-        return;
+    $default = [
+        'rest_url' => esc_url_raw(rest_url(SO_PORTAL_REST_NAMESPACE . '/')),
+        'nonce' => '',
+        'building_id' => 0,
+        'floor_id' => 0,
+        'mode' => 'external',
+    ];
+
+    if (!empty($GLOBALS['so_portal_script_config']) && is_array($GLOBALS['so_portal_script_config'])) {
+        return array_merge($default, $GLOBALS['so_portal_script_config']);
     }
 
+    return $default;
+}
+
+function so_portal_enqueue_viewer_assets()
+{
     wp_enqueue_style(
         'so-portal-viewer',
         SO_PORTAL_URL . 'assets/dist/portal-viewer.css',
@@ -25,19 +38,20 @@ function so_portal_enqueue_assets()
         true
     );
 
-    $config = $GLOBALS['so_portal_script_config'] ?? [
-        'rest_url' => esc_url_raw(rest_url(SO_PORTAL_REST_NAMESPACE . '/')),
-        'nonce' => '',
-        'building_id' => 0,
-        'floor_id' => 0,
-        'mode' => 'external',
-    ];
-
     wp_add_inline_script(
         'so-portal-viewer',
-        'window.PeraPortalConfig = ' . wp_json_encode($config) . ';',
+        'window.SoPortalConfig = ' . wp_json_encode(so_portal_get_script_config()) . ';',
         'before'
     );
+}
+
+function so_portal_enqueue_assets()
+{
+    if (empty($GLOBALS['so_portal_assets_needed'])) {
+        return;
+    }
+
+    so_portal_enqueue_viewer_assets();
 }
 
 add_action('wp_enqueue_scripts', 'so_portal_enqueue_assets', 20);
