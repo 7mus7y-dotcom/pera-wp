@@ -39,6 +39,15 @@ function salesoffice_portal_render_app($module, $view)
         return;
     }
 
-    echo do_shortcode('[' . PERA_PORTAL_SHORTCODE_TAG . ']');
+    $out = defined('PERA_PORTAL_SHORTCODE_TAG') ? do_shortcode('[' . PERA_PORTAL_SHORTCODE_TAG . ']') : '';
+    $out = trim((string) $out);
+
+    if ($out === '') {
+        echo '<section class="container"><article class="card-shell"><p class="pill pill--outline">Portal rendered empty</p></article></section>';
+
+        return;
+    }
+
+    echo $out; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
 }
 add_action('salesoffice_render_app', 'salesoffice_portal_render_app', 10, 2);
