@@ -38,21 +38,23 @@ function pera_portal_get_dist_asset_version($asset)
 function pera_portal_enqueue_assets()
 {
     if (!is_admin()) {
-        $is_salesoffice_portal_route = function_exists('salesoffice_is_portal_route') && salesoffice_is_portal_route();
+        if (empty($GLOBALS['pera_portal_enqueue_assets'])) {
+            $is_salesoffice_portal_route = function_exists('salesoffice_is_portal_route') && salesoffice_is_portal_route();
 
-        if ($is_salesoffice_portal_route) {
-            $GLOBALS['pera_portal_enqueue_assets'] = true;
-        } elseif (empty($GLOBALS['pera_portal_enqueue_assets'])) {
-            if (function_exists('pera_portal_current_user_can_access') && !pera_portal_current_user_can_access()) {
-                return;
-            }
+            if ($is_salesoffice_portal_route) {
+                $GLOBALS['pera_portal_enqueue_assets'] = true;
+            } else {
+                if (function_exists('pera_portal_current_user_can_access') && !pera_portal_current_user_can_access()) {
+                    return;
+                }
 
-            if (is_singular()) {
-                $post_id = get_queried_object_id();
-                $post = get_post($post_id);
+                if (is_singular()) {
+                    $post_id = get_queried_object_id();
+                    $post = get_post($post_id);
 
-                if ($post instanceof WP_Post && has_shortcode($post->post_content, PERA_PORTAL_SHORTCODE_TAG)) {
-                    $GLOBALS['pera_portal_enqueue_assets'] = true;
+                    if ($post instanceof WP_Post && has_shortcode($post->post_content, PERA_PORTAL_SHORTCODE_TAG)) {
+                        $GLOBALS['pera_portal_enqueue_assets'] = true;
+                    }
                 }
             }
         }
