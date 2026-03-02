@@ -93,73 +93,60 @@ if (!function_exists('salesoffice_portal_render_app')) {
         ]);
 
         $building_id = isset($_GET['building_id']) ? absint(wp_unslash($_GET['building_id'])) : 0; // phpcs:ignore WordPress.Security.NonceVerification.Recommended
-        if ($building_id <= 0 && !empty($buildings)) {
-            $building_id = (int) $buildings[0];
-        }
 
-        $floor_id = isset($_GET['floor_id']) ? absint(wp_unslash($_GET['floor_id'])) : 0; // phpcs:ignore WordPress.Security.NonceVerification.Recommended
-
-        if ($building_id > 0 && $floor_id <= 0) {
-            $floor_query = new WP_Query([
-                'post_type' => 'pera_floor',
-                'post_status' => 'publish',
-                'posts_per_page' => 1,
-                'orderby' => 'title',
-                'order' => 'ASC',
-                'fields' => 'ids',
-                'no_found_rows' => true,
-                'meta_query' => [
-                    [
-                        'key' => 'building',
-                        'value' => (string) $building_id,
-                        'compare' => '=',
-                    ],
-                ],
-            ]);
-
-            if (!empty($floor_query->posts)) {
-                $floor_id = (int) $floor_query->posts[0];
-            }
-
-            wp_reset_postdata();
-
-        }
-
+        $building_ids_int = [];
         if (!empty($buildings)) {
+            $building_ids_int = array_map('intval', $buildings);
+        }
+
+        // If building_id is missing/invalid, show building picker UI (NO VIEWER).
+        if ($building_id <= 0 || (!empty($building_ids_int) && !in_array((int) $building_id, $building_ids_int, true))) {
             echo '<section class="container" style="padding:16px 0;">';
             echo '<article class="card-shell">';
             echo '<p class="pill pill--outline">Portal</p>';
-            echo '<form method="get" action="' . esc_url(home_url('/so/portal/')) . '" style="display:flex;gap:12px;align-items:center;flex-wrap:wrap;">';
-            echo '<label for="so-portal-building" style="font-weight:600;">Building</label>';
-            echo '<select id="so-portal-building" name="building_id" class="btn btn--white" onchange="this.form.submit()">';
+            echo '<h2 style="margin:8px 0 4px;">Select a building</h2>';
 
-            foreach ($buildings as $bid) {
-                echo '<option value="' . esc_attr((string) $bid) . '"' . selected($building_id, (int) $bid, false) . '>' . esc_html(get_the_title($bid)) . '</option>';
+            if (empty($building_ids_int)) {
+                echo '<p>No buildings found in pera_building.</p>';
+                echo '</article></section>';
+
+                return;
             }
 
-            echo '</select>';
-            echo '</form>';
+            echo '<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:12px;margin-top:12px;">';
+            foreach ($building_ids_int as $bid) {
+                $url = add_query_arg(['building_id' => (int) $bid], home_url('/so/portal/'));
+                echo '<a class="card-shell" href="' . esc_url($url) . '" style="display:block;text-decoration:none;color:inherit;">';
+                echo '<p class="pill pill--outline" style="margin-bottom:8px;">Building</p>';
+                echo '<h3 style="margin:0 0 6px;">' . esc_html(get_the_title($bid)) . '</h3>';
+                echo '<p class="text-sm" style="margin:0;opacity:.8;">Open viewer</p>';
+                echo '</a>';
+            }
+            echo '</div>';
+
             echo '</article>';
             echo '</section>';
-        }
-
-        if ($building_id <= 0) {
-            echo '<section class="container"><article class="card-shell"><p class="pill pill--outline">No buildings found</p></article></section>';
 
             return;
-
         }
 
-        $shortcode_atts = ' building="' . esc_attr((string) $building_id) . '" mode="external"';
-        if ($floor_id > 0) {
-            $shortcode_atts .= ' floor="' . esc_attr((string) $floor_id) . '"';
-        }
+        // Inside a building context.
+        echo '<section class="container" style="padding:16px 0;">';
+        echo '<article class="card-shell" style="display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;">';
+        echo '<div>';
+        echo '<p class="pill pill--outline">Building</p>';
+        echo '<h2 style="margin:6px 0 0;">' . esc_html(get_the_title($building_id)) . '</h2>';
+        echo '</div>';
+        echo '<a class="btn btn--ghost btn--blue" href="' . esc_url(home_url('/so/portal/')) . '">Change building</a>';
+        echo '</article>';
+        echo '</section>';
 
+        // Ensure portal assets flag is set (defensive).
         if (function_exists('pera_portal_mark_assets_needed')) {
             pera_portal_mark_assets_needed();
         }
 
-        $out = do_shortcode('[' . $shortcode_tag . $shortcode_atts . ']');
+        $out = do_shortcode('[' . $shortcode_tag . ' building="' . esc_attr((string) $building_id) . '" mode="external"]');
         $out = trim((string) $out);
 
         if ('' === $out) {
