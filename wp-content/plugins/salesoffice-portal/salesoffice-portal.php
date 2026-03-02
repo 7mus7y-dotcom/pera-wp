@@ -33,5 +33,40 @@ if (!defined('SALESOFFICE_PORTAL_VERSION')) {
     define('SALESOFFICE_PORTAL_VERSION', PERA_PORTAL_VERSION);
 }
 
-require_once PERA_PORTAL_PATH . '/includes/frontend/template-routing.php';
 require_once PERA_PORTAL_PATH . '/includes/bootstrap.php';
+require_once PERA_PORTAL_PATH . '/includes/frontend/template-routing.php';
+
+if (!function_exists('salesoffice_portal_render_app')) {
+    function salesoffice_portal_render_app($module, $view)
+    {
+        unset($view);
+
+        if ('portal' !== (string) $module) {
+            return;
+        }
+
+        // Marker so app-shell fallback cannot trigger if handler is registered.
+        echo "\n<!-- salesoffice-portal:handler-loaded -->\n";
+
+        $shortcode_tag = defined('PERA_PORTAL_SHORTCODE_TAG') ? (string) PERA_PORTAL_SHORTCODE_TAG : '';
+        if ('' === $shortcode_tag) {
+            echo '<section class="container"><article class="card-shell"><p class="pill pill--outline">Portal shortcode tag not defined</p></article></section>';
+
+            return;
+        }
+
+        $out = do_shortcode('[' . $shortcode_tag . ']');
+        $out = trim((string) $out);
+
+        if ('' === $out) {
+            echo '<section class="container"><article class="card-shell"><p class="pill pill--outline">Portal rendered empty</p></article></section>';
+
+            return;
+        }
+
+        echo $out; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
+    }
+}
+
+// Force registration even if template routing changes.
+add_action('salesoffice_render_app', 'salesoffice_portal_render_app', 10, 2);
