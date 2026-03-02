@@ -101,6 +101,8 @@ if (!function_exists('salesoffice_portal_render_app')) {
                 $building_id = (int) $building_query->posts[0];
             }
 
+            wp_reset_postdata();
+
         }
 
         if ($building_id > 0 && $floor_id <= 0) {
@@ -124,6 +126,15 @@ if (!function_exists('salesoffice_portal_render_app')) {
             if (!empty($floor_query->posts)) {
                 $floor_id = (int) $floor_query->posts[0];
             }
+
+            wp_reset_postdata();
+
+        }
+
+        if ($building_id <= 0) {
+            echo '<section class="container"><article class="card-shell"><p class="pill pill--outline">No buildings found</p></article></section>';
+
+            return;
 
         }
 
