@@ -10,10 +10,13 @@ function pera_portal_template_include($template)
         return $template;
     }
 
-    $is_salesoffice_portal = function_exists('salesoffice_is_portal_route') && salesoffice_is_portal_route();
+    if (function_exists('salesoffice_is_route') && salesoffice_is_route()) {
+        return $template;
+    }
+
     $is_legacy_portal_test = is_page('portal-test');
 
-    if (!$is_salesoffice_portal && !$is_legacy_portal_test) {
+    if (!$is_legacy_portal_test) {
         return $template;
     }
 
