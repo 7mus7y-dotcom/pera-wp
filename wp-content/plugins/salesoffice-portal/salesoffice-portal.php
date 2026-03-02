@@ -36,6 +36,34 @@ if (!defined('SALESOFFICE_PORTAL_VERSION')) {
 require_once PERA_PORTAL_PATH . '/includes/bootstrap.php';
 require_once PERA_PORTAL_PATH . '/includes/frontend/template-routing.php';
 
+if (!function_exists('pera_portal_prepare_portal_route_assets')) {
+    function pera_portal_prepare_portal_route_assets()
+    {
+        if (!function_exists('salesoffice_is_portal_route') || !salesoffice_is_portal_route()) {
+            return;
+        }
+
+        $GLOBALS['pera_portal_is_page'] = true;
+        $GLOBALS['pera_portal_enqueue_assets'] = true;
+
+        if (function_exists('pera_portal_mark_assets_needed')) {
+            pera_portal_mark_assets_needed();
+        }
+
+        if (function_exists('pera_portal_set_script_config') && defined('PERA_PORTAL_REST_NAMESPACE')) {
+            pera_portal_set_script_config([
+                'rest_url' => esc_url_raw(rest_url(PERA_PORTAL_REST_NAMESPACE . '/')),
+                'nonce' => wp_create_nonce('wp_rest'),
+                'building_id' => 0,
+                'floor_id' => 0,
+                'mode' => 'external',
+            ]);
+        }
+    }
+}
+
+add_action('wp', 'pera_portal_prepare_portal_route_assets', 0);
+
 if (!function_exists('salesoffice_portal_render_app')) {
     function salesoffice_portal_render_app($module, $view)
     {
