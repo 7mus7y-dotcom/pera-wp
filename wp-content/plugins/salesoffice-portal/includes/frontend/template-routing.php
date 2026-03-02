@@ -31,23 +31,4 @@ function pera_portal_template_include($template)
 
 add_filter('template_include', 'pera_portal_template_include', 99);
 
-function salesoffice_portal_render_app($module, $view)
-{
-    unset($view);
-
-    if ('portal' !== $module) {
-        return;
-    }
-
-    $out = defined('PERA_PORTAL_SHORTCODE_TAG') ? do_shortcode('[' . PERA_PORTAL_SHORTCODE_TAG . ']') : '';
-    $out = trim((string) $out);
-
-    if ($out === '') {
-        echo '<section class="container"><article class="card-shell"><p class="pill pill--outline">Portal rendered empty</p></article></section>';
-
-        return;
-    }
-
-    echo $out; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
-}
-add_action('salesoffice_render_app', 'salesoffice_portal_render_app', 10, 2);
+// Render hook registration is owned by salesoffice-portal.php entrypoint.
