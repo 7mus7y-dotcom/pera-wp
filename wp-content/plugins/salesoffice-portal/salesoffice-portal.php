@@ -83,7 +83,58 @@ if (!function_exists('salesoffice_portal_render_app')) {
             return;
         }
 
-        $out = do_shortcode('[' . $shortcode_tag . ']');
+        $building_id = isset($_GET['building_id']) ? absint(wp_unslash($_GET['building_id'])) : 0;
+        $floor_id = isset($_GET['floor_id']) ? absint(wp_unslash($_GET['floor_id'])) : 0;
+
+        if ($building_id <= 0) {
+            $building_query = new WP_Query([
+                'post_type' => 'pera_building',
+                'post_status' => 'publish',
+                'posts_per_page' => 1,
+                'orderby' => 'title',
+                'order' => 'ASC',
+                'fields' => 'ids',
+                'no_found_rows' => true,
+            ]);
+
+            if (!empty($building_query->posts)) {
+                $building_id = (int) $building_query->posts[0];
+            }
+
+            wp_reset_postdata();
+        }
+
+        if ($building_id > 0 && $floor_id <= 0) {
+            $floor_query = new WP_Query([
+                'post_type' => 'pera_floor',
+                'post_status' => 'publish',
+                'posts_per_page' => 1,
+                'orderby' => 'title',
+                'order' => 'ASC',
+                'fields' => 'ids',
+                'no_found_rows' => true,
+                'meta_query' => [
+                    [
+                        'key' => 'building',
+                        'value' => (string) $building_id,
+                        'compare' => '=',
+                    ],
+                ],
+            ]);
+
+            if (!empty($floor_query->posts)) {
+                $floor_id = (int) $floor_query->posts[0];
+            }
+
+            wp_reset_postdata();
+        }
+
+        $shortcode_atts = ' building="' . $building_id . '" mode="external"';
+        if ($floor_id > 0) {
+            $shortcode_atts .= ' floor="' . $floor_id . '"';
+        }
+
+        $out = do_shortcode('[' . $shortcode_tag . $shortcode_atts . ']');
         $out = trim((string) $out);
 
         if ('' === $out) {
