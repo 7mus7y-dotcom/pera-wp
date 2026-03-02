@@ -83,8 +83,8 @@ if (!function_exists('salesoffice_portal_render_app')) {
             return;
         }
 
-        $building_id = isset($_GET['building_id']) ? absint(wp_unslash($_GET['building_id'])) : 0;
-        $floor_id = isset($_GET['floor_id']) ? absint(wp_unslash($_GET['floor_id'])) : 0;
+        $building_id = isset($_GET['building_id']) ? absint(wp_unslash($_GET['building_id'])) : 0; // phpcs:ignore WordPress.Security.NonceVerification.Recommended
+        $floor_id = isset($_GET['floor_id']) ? absint(wp_unslash($_GET['floor_id'])) : 0; // phpcs:ignore WordPress.Security.NonceVerification.Recommended
 
         if ($building_id <= 0) {
             $building_query = new WP_Query([
@@ -101,7 +101,6 @@ if (!function_exists('salesoffice_portal_render_app')) {
                 $building_id = (int) $building_query->posts[0];
             }
 
-            wp_reset_postdata();
         }
 
         if ($building_id > 0 && $floor_id <= 0) {
@@ -126,12 +125,11 @@ if (!function_exists('salesoffice_portal_render_app')) {
                 $floor_id = (int) $floor_query->posts[0];
             }
 
-            wp_reset_postdata();
         }
 
-        $shortcode_atts = ' building="' . $building_id . '" mode="external"';
+        $shortcode_atts = ' building="' . esc_attr((string) $building_id) . '" mode="external"';
         if ($floor_id > 0) {
-            $shortcode_atts .= ' floor="' . $floor_id . '"';
+            $shortcode_atts .= ' floor="' . esc_attr((string) $floor_id) . '"';
         }
 
         $out = do_shortcode('[' . $shortcode_tag . $shortcode_atts . ']');
