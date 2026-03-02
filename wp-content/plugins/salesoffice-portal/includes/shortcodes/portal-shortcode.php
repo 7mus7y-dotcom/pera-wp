@@ -17,10 +17,11 @@ function pera_portal_diag_probe($url)
     if (is_wp_error($response)) {
         return [
             'status' => 0,
-            'body' => $response->get_error_message(),
-            'json_ok' => false,
-            'json_summary' => 'WP_Error',
-            'decoded' => null,
+            'body' => mb_substr((string) $response->get_error_message(), 0, 400),
+            'json_type' => 'error',
+            'json_meta' => [
+                'message' => 'WP_Error',
+            ],
         ];
     }
 
@@ -28,27 +29,31 @@ function pera_portal_diag_probe($url)
     $body = (string) wp_remote_retrieve_body($response);
     $decoded = json_decode($body, true);
     $json_ok = json_last_error() === JSON_ERROR_NONE;
-    $json_summary = 'Not JSON';
+    $json_type = 'invalid_json';
+    $json_meta = [];
 
-    if ($json_ok) {
-        if (is_array($decoded)) {
-            if (wp_is_numeric_array($decoded)) {
-                $sample = array_slice($decoded, 0, 2);
-                $json_summary = 'Array count: ' . count($decoded) . '; sample: ' . wp_json_encode($sample);
-            } else {
-                $json_summary = 'Object keys: ' . implode(', ', array_keys($decoded));
-            }
+    if ($json_ok && is_array($decoded)) {
+        if (wp_is_numeric_array($decoded)) {
+            $json_type = 'array';
+            $json_meta = [
+                'count' => count($decoded),
+                'first_rows' => array_slice($decoded, 0, 2),
+            ];
         } else {
-            $json_summary = 'JSON scalar';
+            $json_type = 'object';
+            $json_meta = [
+                'keys' => array_keys($decoded),
+            ];
         }
+    } elseif ($json_ok) {
+        $json_type = 'scalar';
     }
 
     return [
         'status' => $status,
-        'body' => mb_substr($body, 0, 300),
-        'json_ok' => $json_ok,
-        'json_summary' => $json_summary,
-        'decoded' => $decoded,
+        'body' => mb_substr($body, 0, 400),
+        'json_type' => $json_type,
+        'json_meta' => $json_meta,
     ];
 }
 
@@ -171,51 +176,35 @@ function pera_portal_render_shortcode($atts = [])
         foreach ($probe_urls as $label => $probe_url) {
             $probes[$label] = pera_portal_diag_probe($probe_url);
         }
-
-        $public_mode_enabled = false;
-        if (function_exists('pera_portal_rest_is_public_read_enabled')) {
-            $public_mode_enabled = (bool) pera_portal_rest_is_public_read_enabled();
-        } elseif (defined('PERA_PORTAL_EXTERNAL_PUBLIC')) {
-            $public_mode_enabled = (bool) PERA_PORTAL_EXTERNAL_PUBLIC;
-        }
-
-        $units_has_non_publish = false;
-        $units_decoded = isset($probes['units']['decoded']) ? $probes['units']['decoded'] : null;
-        if (is_array($units_decoded) && wp_is_numeric_array($units_decoded)) {
-            foreach ($units_decoded as $unit_item) {
-                if (!is_array($unit_item) || empty($unit_item['id'])) {
-                    continue;
-                }
-
-                $unit_status = get_post_status((int) $unit_item['id']);
-                if ($unit_status && $unit_status !== 'publish') {
-                    $units_has_non_publish = true;
-                    break;
-                }
-            }
-        }
+        $current_user_id = get_current_user_id();
+        $is_logged_in = is_user_logged_in();
 
         echo '<section class="pera-portal-diagnostics" style="border:1px solid #d0d7de;border-radius:8px;padding:12px;margin:0 0 12px;background:#fff;font-size:13px;line-height:1.4">';
         echo '<h3 style="margin:0 0 10px;font-size:16px">Portal diagnostics</h3>';
-        echo '<div><strong>Shortcode attrs:</strong> building=' . esc_html((string) $atts['building']) . ', floor=' . esc_html((string) $atts['floor']) . ', mode=' . esc_html((string) $atts['mode']) . '</div>';
-        echo '<div><strong>Resolved:</strong> building_id=' . esc_html((string) $building_id) . ', floor_id=' . esc_html((string) $floor_id) . ', mode=' . esc_html((string) $mode) . '</div>';
-        echo '<div><strong>Access gate:</strong> can_access=' . ($can_access ? 'true' : 'false') . '</div>';
-        echo '<div style="margin-top:8px"><strong>Script config passed to pera_portal_set_script_config():</strong></div>';
+        if ($building_id <= 0) {
+            echo '<div style="margin:0 0 10px;padding:10px;border:2px solid #b42318;background:#fef3f2;color:#b42318;font-weight:700">building_id is empty — shortcode missing building attr OR wrapper not injecting it.</div>';
+        }
+
+        echo '<div><strong>Raw shortcode atts:</strong> building=' . esc_html((string) $atts['building']) . ', floor=' . esc_html((string) $atts['floor']) . ', mode=' . esc_html((string) $atts['mode']) . '</div>';
+        echo '<div><strong>Resolved:</strong> building_id=' . esc_html((string) $building_id) . ', floor_id=' . esc_html((string) $floor_id) . '</div>';
+        echo '<div><strong>Mode + can_access:</strong> mode=' . esc_html((string) $mode) . ', can_access=' . ($can_access ? 'true' : 'false') . '</div>';
+        echo '<div><strong>rest_url:</strong> ' . esc_html((string) $script_config['rest_url']) . '</div>';
+        echo '<div><strong>Nonce (masked):</strong> ' . esc_html((string) $diag_config['nonce']) . '</div>';
+        echo '<div><strong>Current user:</strong> logged_in=' . ($is_logged_in ? 'true' : 'false') . ', user_id=' . esc_html((string) $current_user_id) . ', caps_check=' . ($can_access ? 'true' : 'false') . '</div>';
+        echo '<div style="margin-top:8px"><strong>Config passed to JS:</strong></div>';
         echo '<pre style="white-space:pre-wrap;word-break:break-word;margin:6px 0 10px">' . esc_html(wp_json_encode($diag_config, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES)) . '</pre>';
 
         echo '<div><strong>REST probes (anonymous):</strong></div>';
         foreach ($probes as $label => $probe_result) {
             echo '<div style="margin-top:8px"><strong>' . esc_html($label) . '</strong> ' . esc_html($probe_urls[$label]) . '</div>';
-            echo '<pre style="white-space:pre-wrap;word-break:break-word;margin:4px 0">'
-                . esc_html('status=' . $probe_result['status'] . "\n"
-                . 'body=' . $probe_result['body'] . "\n"
-                . 'json_ok=' . ($probe_result['json_ok'] ? 'true' : 'false') . "\n"
-                . 'json_summary=' . $probe_result['json_summary'])
-                . '</pre>';
-        }
+            $probe_dump = [
+                'status' => $probe_result['status'],
+                'body_first_400_chars' => $probe_result['body'],
+                'json_type' => $probe_result['json_type'],
+                'json_meta' => $probe_result['json_meta'],
+            ];
 
-        if ($public_mode_enabled && $units_has_non_publish) {
-            echo '<p style="margin:10px 0 0;color:#b42318"><strong>WARNING:</strong> public mode enabled; units endpoint should be publish-only.</p>';
+            echo '<pre style="white-space:pre-wrap;word-break:break-word;margin:4px 0">' . esc_html(wp_json_encode($probe_dump, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES)) . '</pre>';
         }
 
         echo '</section>';
