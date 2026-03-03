@@ -7,20 +7,9 @@ if (!defined('ABSPATH')) {
 function pera_portal_rest_get_floor(WP_REST_Request $request)
 {
     $floor_id = absint($request->get_param('floor_id'));
-    $floor = get_post($floor_id);
-
-    if (!$floor || $floor->post_type !== 'pera_floor') {
-        return new WP_Error('pera_portal_floor_not_found', __('Floor not found.', 'pera-portal'), ['status' => 404]);
-    }
-
-    $floor_number = '';
-    if (function_exists('get_field')) {
-        $floor_number = get_field('floor_number', $floor_id);
-    } else {
-        $floor_number = get_post_meta($floor_id, 'floor_number', true);
-    }
-
+    $svg_path = '';
     $svg_url = '';
+
     if (function_exists('get_field')) {
         $file = get_field('floor_svg', $floor_id);
 
@@ -32,17 +21,93 @@ function pera_portal_rest_get_floor(WP_REST_Request $request)
                 $svg_url = $attachment_url;
             }
         }
+
+        if (is_array($file) && !empty($file['ID']) && is_numeric($file['ID'])) {
+            $attached_file = get_attached_file((int) $file['ID']);
+            if (is_string($attached_file) && $attached_file !== '') {
+                $svg_path = $attached_file;
+            }
+        } elseif (is_numeric($file)) {
+            $attached_file = get_attached_file((int) $file);
+            if (is_string($attached_file) && $attached_file !== '') {
+                $svg_path = $attached_file;
+            }
+        }
     }
 
-    if ($svg_url === '') {
-        $svg_url = PERA_PORTAL_URL . '/data/fixtures/demo-floor.svg';
+    if ($svg_path === '' && $svg_url !== '') {
+        $attachment_id = attachment_url_to_postid($svg_url);
+        if ($attachment_id > 0) {
+            $attached_file = get_attached_file($attachment_id);
+            if (is_string($attached_file) && $attached_file !== '') {
+                $svg_path = $attached_file;
+            }
+        }
     }
 
-    return rest_ensure_response([
-        'floor_id' => $floor_id,
-        'floor_number' => $floor_number === null ? '' : $floor_number,
-        'svg_url' => esc_url_raw($svg_url),
-    ]);
+    if ($svg_path === '') {
+        $svg_path = PERA_PORTAL_PATH . '/data/fixtures/demo-floor.svg';
+    }
+
+    $svg_markup = '';
+    if ($svg_path !== '' && file_exists($svg_path)) {
+        $svg_markup = (string) file_get_contents($svg_path);
+    } elseif ($svg_url !== '') {
+        $remote_svg = wp_remote_get($svg_url, ['timeout' => 10]);
+        if (!is_wp_error($remote_svg) && (int) wp_remote_retrieve_response_code($remote_svg) === 200) {
+            $svg_markup = (string) wp_remote_retrieve_body($remote_svg);
+        }
+    }
+
+    if ($svg_markup === '') {
+        return new WP_Error('pera_portal_floor_svg_missing', __('Floor SVG not found.', 'pera-portal'), ['status' => 404]);
+    }
+
+    $response = new WP_REST_Response($svg_markup, 200);
+    $response->header('Content-Type', 'image/svg+xml; charset=' . get_option('blog_charset'));
+
+    return $response;
+}
+
+function pera_portal_rest_permission_public_floor(WP_REST_Request $request)
+{
+    $floor_id = absint($request->get_param('floor_id'));
+    $floor = get_post($floor_id);
+
+    if (!$floor || $floor->post_type !== 'pera_floor') {
+        return new WP_Error('pera_portal_floor_not_found', __('Floor not found.', 'pera-portal'), ['status' => 404]);
+    }
+
+    if ($floor->post_status === 'publish') {
+        return true;
+    }
+
+    if ($floor->post_status === 'private') {
+        return new WP_Error('pera_portal_floor_forbidden', __('Floor is private.', 'pera-portal'), ['status' => 403]);
+    }
+
+    return new WP_Error('pera_portal_floor_not_found', __('Floor not found.', 'pera-portal'), ['status' => 404]);
+}
+
+function pera_portal_rest_serve_raw_floor_svg($served, $result, $request, $server)
+{
+    if ($request->get_route() !== '/' . PERA_PORTAL_REST_NAMESPACE . '/floor') {
+        return $served;
+    }
+
+    if (!($result instanceof WP_REST_Response)) {
+        return $served;
+    }
+
+    $data = $result->get_data();
+    if (!is_string($data)) {
+        return $served;
+    }
+
+    $server->send_header('Content-Type', 'image/svg+xml; charset=' . get_option('blog_charset'));
+    echo $data;
+
+    return true;
 }
 
 function pera_portal_rest_get_units(WP_REST_Request $request)
@@ -211,7 +276,7 @@ function pera_portal_register_rest_routes()
     register_rest_route(PERA_PORTAL_REST_NAMESPACE, '/floor', [
         'methods' => WP_REST_Server::READABLE,
         'callback' => 'pera_portal_rest_get_floor',
-        'permission_callback' => 'pera_portal_current_user_can_access',
+        'permission_callback' => 'pera_portal_rest_permission_public_floor',
         'args' => [
             'floor_id' => [
                 'required' => true,
@@ -258,3 +323,4 @@ function pera_portal_register_rest_routes()
 }
 
 add_action('rest_api_init', 'pera_portal_register_rest_routes');
+add_filter('rest_pre_serve_request', 'pera_portal_rest_serve_raw_floor_svg', 10, 4);

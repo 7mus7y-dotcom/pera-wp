@@ -710,24 +710,8 @@
         clearShortlist();
 
         try {
-            const floor = await fetchJson('floor?floor_id=' + encodeURIComponent(String(state.floorId)));
-            const svgUrl = floor && typeof floor.svg_url === 'string' ? floor.svg_url.trim() : '';
-            const safeSvgUrl = safeUrl(svgUrl);
-
-            if (!svgUrl) {
-                setMessage(svgContainer, 'No SVG found for this floor.');
-                setMessage(detailsContainer, 'Please upload a floor SVG in floor settings.');
-                return;
-            }
-
-            if (!safeSvgUrl) {
-                setMessage(svgContainer, 'Invalid SVG URL.');
-                setMessage(detailsContainer, 'Invalid SVG URL.');
-                return;
-            }
-
             const units = await fetchJson('units?floor_id=' + encodeURIComponent(String(state.floorId)));
-            const svgResponse = await fetch(safeSvgUrl, {
+            const svgResponse = await fetch(restBase + 'floor?floor_id=' + encodeURIComponent(String(state.floorId)), {
                 credentials: 'same-origin',
             });
 
