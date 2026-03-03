@@ -89,6 +89,46 @@ function pera_portal_rest_permission_public_floor(WP_REST_Request $request)
     return new WP_Error('pera_portal_floor_not_found', __('Floor not found.', 'pera-portal'), ['status' => 404]);
 }
 
+function pera_portal_rest_permission_public_building_floors(WP_REST_Request $request)
+{
+    $building_id = absint($request->get_param('building_id'));
+    $building = get_post($building_id);
+
+    if (!$building || $building->post_type !== 'pera_building') {
+        return new WP_Error('pera_portal_building_not_found', __('Building not found.', 'pera-portal'), ['status' => 404]);
+    }
+
+    if ($building->post_status === 'publish') {
+        return true;
+    }
+
+    if ($building->post_status === 'private') {
+        return new WP_Error('pera_portal_building_forbidden', __('Building is private.', 'pera-portal'), ['status' => 403]);
+    }
+
+    return new WP_Error('pera_portal_building_not_found', __('Building not found.', 'pera-portal'), ['status' => 404]);
+}
+
+function pera_portal_rest_permission_public_floor_units(WP_REST_Request $request)
+{
+    $floor_id = absint($request->get_param('floor_id'));
+    $floor = get_post($floor_id);
+
+    if (!$floor || $floor->post_type !== 'pera_floor') {
+        return new WP_Error('pera_portal_floor_not_found', __('Floor not found.', 'pera-portal'), ['status' => 404]);
+    }
+
+    if ($floor->post_status === 'publish') {
+        return true;
+    }
+
+    if ($floor->post_status === 'private') {
+        return new WP_Error('pera_portal_floor_forbidden', __('Floor is private.', 'pera-portal'), ['status' => 403]);
+    }
+
+    return new WP_Error('pera_portal_floor_not_found', __('Floor not found.', 'pera-portal'), ['status' => 404]);
+}
+
 function pera_portal_rest_serve_raw_floor_svg($served, $result, $request, $server)
 {
     if ($request->get_route() !== '/' . PERA_PORTAL_REST_NAMESPACE . '/floor') {
@@ -120,7 +160,8 @@ function pera_portal_rest_get_units(WP_REST_Request $request)
 
     $query = new WP_Query([
         'post_type' => 'pera_unit',
-        'post_status' => ['publish', 'draft', 'private'],
+        // External viewer mode depends on public REST access, so only published content is exposed.
+        'post_status' => ['publish'],
         'posts_per_page' => -1,
         'orderby' => 'title',
         'order' => 'ASC',
@@ -208,7 +249,8 @@ function pera_portal_rest_get_floors(WP_REST_Request $request)
 
     $query = new WP_Query([
         'post_type' => 'pera_floor',
-        'post_status' => 'publish',
+        // External viewer mode depends on public REST access, so only published content is exposed.
+        'post_status' => ['publish'],
         'posts_per_page' => -1,
         'orderby' => 'title',
         'order' => 'ASC',
@@ -292,7 +334,7 @@ function pera_portal_register_rest_routes()
     register_rest_route(PERA_PORTAL_REST_NAMESPACE, '/units', [
         'methods' => WP_REST_Server::READABLE,
         'callback' => 'pera_portal_rest_get_units',
-        'permission_callback' => 'pera_portal_current_user_can_access',
+        'permission_callback' => 'pera_portal_rest_permission_public_floor_units',
         'args' => [
             'floor_id' => [
                 'required' => true,
@@ -308,7 +350,7 @@ function pera_portal_register_rest_routes()
     register_rest_route(PERA_PORTAL_REST_NAMESPACE, '/floors', [
         'methods' => WP_REST_Server::READABLE,
         'callback' => 'pera_portal_rest_get_floors',
-        'permission_callback' => 'pera_portal_current_user_can_access',
+        'permission_callback' => 'pera_portal_rest_permission_public_building_floors',
         'args' => [
             'building_id' => [
                 'required' => true,
