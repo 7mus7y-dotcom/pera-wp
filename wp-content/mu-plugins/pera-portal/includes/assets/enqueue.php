@@ -75,8 +75,10 @@ function pera_portal_enqueue_assets()
 
     if (!$did_register) {
         $portal_css_asset = 'portal-viewer.css';
+        $portal_compat_css_asset = 'portal-compat.css';
         $portal_js_asset = 'portal-viewer.js';
         $portal_css_version = pera_portal_get_dist_asset_version($portal_css_asset);
+        $portal_compat_css_version = pera_portal_get_dist_asset_version($portal_compat_css_asset);
         $portal_js_version = pera_portal_get_dist_asset_version($portal_js_asset);
 
         $GLOBALS['pera_portal_asset_versions'] = [
@@ -91,6 +93,13 @@ function pera_portal_enqueue_assets()
             $portal_css_version
         );
 
+        wp_register_style(
+            'pera-portal-compat',
+            pera_portal_get_dist_asset_url($portal_compat_css_asset),
+            [],
+            $portal_compat_css_version
+        );
+
         wp_register_script(
             'pera-portal-viewer',
             pera_portal_get_dist_asset_url($portal_js_asset),
@@ -103,6 +112,7 @@ function pera_portal_enqueue_assets()
     }
 
     if (!$did_enqueue) {
+        wp_enqueue_style('pera-portal-compat');
         wp_enqueue_style('pera-portal-viewer');
         wp_enqueue_script('pera-portal-viewer');
         $did_enqueue = true;
