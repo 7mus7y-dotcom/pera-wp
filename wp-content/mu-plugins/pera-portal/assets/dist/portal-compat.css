@@ -1,0 +1,69 @@
+body.pera-portal-page .container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 16px;
+}
+
+body.pera-portal-page .site-main {
+    display: block;
+    padding: 32px 0;
+}
+
+body.pera-portal-page .hero {
+    padding: 48px 0;
+    background: #f7f8fa;
+    border-bottom: 1px solid #e4e7ec;
+}
+
+body.pera-portal-page .hero-content {
+    max-width: 760px;
+}
+
+body.pera-portal-page .hero-actions {
+    margin-top: 20px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+}
+
+body.pera-portal-page .lead {
+    max-width: 68ch;
+    color: #5f6673;
+}
+
+body.pera-portal-page .section {
+    padding: 40px 0;
+}
+
+body.pera-portal-page .section-soft {
+    background: #f7f8fa;
+}
+
+body.pera-portal-page .btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.35em;
+    padding: 0.625rem 1rem;
+    border: 1px solid #c9cdd4;
+    border-radius: 0.5rem;
+    cursor: pointer;
+    text-decoration: none;
+    line-height: 1.2;
+}
+
+body.pera-portal-page .btn:focus-visible {
+    outline: 2px solid #1f7a3f;
+    outline-offset: 2px;
+}
+
+body.pera-portal-page .btn--ghost {
+    background: transparent;
+    color: inherit;
+}
+
+body.pera-portal-page .btn--green {
+    background: #1f7a3f;
+    border-color: #1f7a3f;
+    color: #fff;
+}
