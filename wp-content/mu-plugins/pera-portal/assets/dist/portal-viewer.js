@@ -731,7 +731,10 @@
             const svgEl = svgDoc.documentElement;
 
             if (!svgEl || safeText(svgEl.nodeName).toLowerCase() !== 'svg') {
-                throw new Error('SVG response did not contain a valid <svg> root element.');
+                const pe = svgDoc.querySelector && svgDoc.querySelector('parsererror');
+                const detail = pe ? safeText(pe.textContent).trim().slice(0, 300) : svgText.slice(0, 300);
+                throw new Error('SVG parse failed (root=' + safeText(svgEl && svgEl.nodeName) + '): ' + detail);
+            }
             }
 
             stripSvgDangerous(svgEl);
