@@ -150,9 +150,58 @@ function pera_portal_rest_serve_raw_floor_svg($served, $result, $request, $serve
     return true;
 }
 
+function pera_portal_rest_sanitize_mode($value)
+{
+    $mode = sanitize_key((string) $value);
+
+    if (!in_array($mode, ['internal', 'external', 'investor'], true)) {
+        return 'external';
+    }
+
+    return $mode;
+}
+
+function pera_portal_rest_post_statuses_for_mode($mode)
+{
+    if ($mode === 'internal') {
+        return ['publish', 'private', 'draft'];
+    }
+
+    return ['publish'];
+}
+
+function pera_portal_rest_floor_belongs_to_building($floor_id, $building_id)
+{
+    $floor_building = function_exists('get_field') ? get_field('building', $floor_id) : get_post_meta($floor_id, 'building', true);
+
+    if (is_array($floor_building) && isset($floor_building['ID'])) {
+        $floor_building = (int) $floor_building['ID'];
+    }
+
+    if (is_object($floor_building) && isset($floor_building->ID)) {
+        $floor_building = (int) $floor_building->ID;
+    }
+
+    if (is_numeric($floor_building)) {
+        return (int) $floor_building === (int) $building_id;
+    }
+
+    return false;
+}
+
 function pera_portal_rest_get_units(WP_REST_Request $request)
 {
     $floor_id = absint($request->get_param('floor_id'));
+    $building_id = absint($request->get_param('building_id'));
+    $mode = pera_portal_rest_sanitize_mode($request->get_param('mode'));
+
+    if ($building_id > 0 && $floor_id <= 0) {
+        return new WP_Error('floor_required_with_building', __('floor_id is required when building_id is provided.', 'pera-portal'), ['status' => 400]);
+    }
+
+    if ($building_id > 0 && $floor_id > 0 && !pera_portal_rest_floor_belongs_to_building($floor_id, $building_id)) {
+        return new WP_Error('floor_not_in_building', __('The requested floor_id does not belong to the provided building_id.', 'pera-portal'), ['status' => 400]);
+    }
 
     if ($floor_id <= 0) {
         return rest_ensure_response([]);
@@ -160,8 +209,7 @@ function pera_portal_rest_get_units(WP_REST_Request $request)
 
     $query = new WP_Query([
         'post_type' => 'pera_unit',
-        // External viewer mode depends on public REST access, so only published content is exposed.
-        'post_status' => ['publish'],
+        'post_status' => pera_portal_rest_post_statuses_for_mode($mode),
         'posts_per_page' => -1,
         'orderby' => 'title',
         'order' => 'ASC',
@@ -221,8 +269,8 @@ function pera_portal_rest_get_units(WP_REST_Request $request)
 
         $units[] = [
             'id' => $unit_id,
-            'title' => get_the_title($unit_id),
-            'unit_code' => (string) $unit_code,
+            'title' => sanitize_text_field(wp_strip_all_tags((string) get_the_title($unit_id))),
+            'unit_code' => sanitize_text_field(wp_strip_all_tags((string) $unit_code)),
             'unit_type' => sanitize_text_field((string) $unit_type),
             'net_size' => $net_size_value,
             'gross_size' => $gross_size_value,
@@ -231,8 +279,8 @@ function pera_portal_rest_get_units(WP_REST_Request $request)
             'currency' => sanitize_text_field((string) $currency),
             'status' => $status,
             'detail_plan_url' => esc_url_raw($plan_url),
-            'detail_plan_filename' => $plan_filename,
-            'detail_plan_mime' => $plan_mime,
+            'detail_plan_filename' => sanitize_text_field(wp_strip_all_tags($plan_filename)),
+            'detail_plan_mime' => sanitize_text_field(wp_strip_all_tags($plan_mime)),
         ];
     }
 
@@ -282,8 +330,8 @@ function pera_portal_rest_get_floors(WP_REST_Request $request)
 
         $floors[] = [
             'id' => $floor_id,
-            'title' => get_the_title($floor_id),
-            'floor_number' => $floor_number === null ? '' : (string) $floor_number,
+            'title' => sanitize_text_field(wp_strip_all_tags((string) get_the_title($floor_id))),
+            'floor_number' => $floor_number === null ? '' : sanitize_text_field(wp_strip_all_tags((string) $floor_number)),
             'has_svg' => $svg_url !== '',
             'svg_url' => $svg_url !== '' ? esc_url_raw($svg_url) : '',
         ];
@@ -334,15 +382,32 @@ function pera_portal_register_rest_routes()
     register_rest_route(PERA_PORTAL_REST_NAMESPACE, '/units', [
         'methods' => WP_REST_Server::READABLE,
         'callback' => 'pera_portal_rest_get_units',
-        'permission_callback' => 'pera_portal_rest_permission_public_floor_units',
+        'permission_callback' => '__return_true',
         'args' => [
             'floor_id' => [
-                'required' => true,
+                'required' => false,
                 'type' => 'integer',
                 'sanitize_callback' => 'absint',
                 'validate_callback' => static function ($value) {
-                    return absint($value) > 0;
+                    return absint($value) >= 0;
                 },
+            ],
+            'building_id' => [
+                'required' => false,
+                'type' => 'integer',
+                'sanitize_callback' => 'absint',
+                'validate_callback' => static function ($value) {
+                    return absint($value) >= 0;
+                },
+            ],
+            'mode' => [
+                'required' => false,
+                'type' => 'string',
+                'sanitize_callback' => 'pera_portal_rest_sanitize_mode',
+                'validate_callback' => static function ($value) {
+                    return in_array(pera_portal_rest_sanitize_mode($value), ['internal', 'external', 'investor'], true);
+                },
+                'default' => 'external',
             ],
         ],
     ]);
