@@ -735,7 +735,6 @@
                 const detail = pe ? safeText(pe.textContent).trim().slice(0, 300) : svgText.slice(0, 300);
                 throw new Error('SVG parse failed (root=' + safeText(svgEl && svgEl.nodeName) + '): ' + detail);
             }
-            }
 
             stripSvgDangerous(svgEl);
 
