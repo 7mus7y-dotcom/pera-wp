@@ -20,6 +20,15 @@ body.pera-portal-page {
      * Fallback to 88px (sane sticky header default).
      */
     --pera-portal-header-offset: var(--header-height, var(--site-header-height, 88px));
+
+    /* --------------------------------------------
+       Portal brand tokens (theme-independent)
+    --------------------------------------------- */
+    --pera-portal-brand: var(--brand, #1f7a3f);
+    --pera-portal-brand-contrast: var(--brand-contrast, #ffffff);
+
+    --pera-portal-hero-bg: var(--pera-portal-brand);
+    --pera-portal-hero-text: var(--pera-portal-brand-contrast);
 }
 
 /* Admin bar adjustments */
@@ -44,8 +53,26 @@ body.pera-portal-page .hero {
 
 body.pera-portal-page .hero {
     padding-bottom: 48px;
-    background: #f7f8fa;
-    border-bottom: 1px solid #e4e7ec;
+    background: var(--pera-portal-hero-bg);
+    color: var(--pera-portal-hero-text);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.14);
+}
+
+body.pera-portal-page .hero .lead {
+    color: rgba(255, 255, 255, 0.85);
+}
+
+body.pera-portal-page .hero a {
+    color: inherit;
+}
+
+body.pera-portal-page .hero .btn--ghost {
+    border-color: rgba(255, 255, 255, 0.55);
+    color: rgba(255, 255, 255, 0.95);
+}
+
+body.pera-portal-page .hero .btn--ghost:hover {
+    background: rgba(255, 255, 255, 0.12);
 }
 
 body.pera-portal-page .hero-content {
