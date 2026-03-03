@@ -22,6 +22,7 @@ $pera_portal_bootstrap_files = [
     PERA_PORTAL_PATH . '/includes/assets/enqueue.php',
     PERA_PORTAL_PATH . '/includes/shortcodes/portal-shortcode.php',
     PERA_PORTAL_PATH . '/includes/frontend/template-routing.php',
+    PERA_PORTAL_PATH . '/includes/routing/portal-pages.php',
 ];
 
 foreach ($pera_portal_bootstrap_files as $pera_portal_bootstrap_file) {
