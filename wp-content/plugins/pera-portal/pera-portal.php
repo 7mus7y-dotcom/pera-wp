@@ -8,16 +8,16 @@ if (!defined('ABSPATH')) {
     exit;
 }
 
+if (!defined('PERA_PORTAL_VERSION')) {
+    define('PERA_PORTAL_VERSION', '1.0.0');
+}
+
 if (!defined('PERA_PORTAL_PATH')) {
-    define('PERA_PORTAL_PATH', __DIR__);
+    define('PERA_PORTAL_PATH', plugin_dir_path(__FILE__));
 }
 
 if (!defined('PERA_PORTAL_URL')) {
-    define('PERA_PORTAL_URL', content_url('/mu-plugins/pera-portal'));
-}
-
-if (!defined('PERA_PORTAL_VERSION')) {
-    define('PERA_PORTAL_VERSION', '0.1.0');
+    define('PERA_PORTAL_URL', plugin_dir_url(__FILE__));
 }
 
 require_once PERA_PORTAL_PATH . '/includes/bootstrap.php';
