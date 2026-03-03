@@ -40,6 +40,64 @@
     const initialUnitsParam = String(urlParams.get('units') || '');
     const statusKeys = ['available', 'reserved', 'sold'];
 
+    function safeText(v) {
+        return (v == null) ? '' : String(v);
+    }
+
+    function isSafeHttpUrl(u) {
+        const value = safeText(u).trim();
+        if (!value) {
+            return false;
+        }
+
+        try {
+            const parsed = new URL(value, window.location.origin);
+            return parsed.protocol === 'http:' || parsed.protocol === 'https:';
+        } catch (e) {
+            return false;
+        }
+    }
+
+    function safeUrl(u) {
+        return isSafeHttpUrl(u) ? new URL(safeText(u).trim(), window.location.origin).toString() : '';
+    }
+
+    function stripSvgDangerous(svgEl) {
+        if (!svgEl || !svgEl.querySelectorAll) {
+            return;
+        }
+
+        svgEl.querySelectorAll('script, foreignObject').forEach(function (node) {
+            if (node.parentNode) {
+                node.parentNode.removeChild(node);
+            }
+        });
+
+        const allNodes = [svgEl].concat(Array.from(svgEl.querySelectorAll('*')));
+
+        allNodes.forEach(function (node) {
+            Array.from(node.attributes || []).forEach(function (attr) {
+                const attrName = safeText(attr.name).toLowerCase();
+                const attrValue = safeText(attr.value).trim();
+
+                if (attrName.indexOf('on') === 0) {
+                    node.removeAttribute(attr.name);
+                    return;
+                }
+
+                if (attrName === 'href' || attrName === 'xlink:href' || attrName === 'src') {
+                    if (/^\s*javascript:/i.test(attrValue)) {
+                        node.removeAttribute(attr.name);
+                    }
+                }
+
+                if (attrName === 'style') {
+                    node.removeAttribute(attr.name);
+                }
+            });
+        });
+    }
+
     function parseUnitsParam(value) {
         if (!value) return [];
 
@@ -116,27 +174,50 @@
             return;
         }
 
-        const rows = [];
+        compareBody.textContent = '';
+
         shortlist.forEach(function (unit, key) {
-            const viewPlan = unit.detail_plan_url
-                ? '<a href="' + unit.detail_plan_url + '" target="_blank" rel="noopener">View plan</a>'
-                : '—';
+            const tr = document.createElement('tr');
 
-            rows.push([
-                '<tr>',
-                '<td>' + (unit.unit_code || '—') + '</td>',
-                '<td>' + (unit.unit_type || '—') + '</td>',
-                '<td>' + formatValue(unit.net_size) + '</td>',
-                '<td>' + formatValue(unit.gross_size) + '</td>',
-                '<td>' + (shouldShowPrice() ? formatPrice(unit) : '—') + '</td>',
-                '<td>' + (unit.status || '—') + '</td>',
-                '<td>' + viewPlan + '</td>',
-                '<td><button type="button" class="pera-portal-compare__remove" data-remove-unit="' + key + '" aria-label="Remove ' + key + '">×</button></td>',
-                '</tr>',
-            ].join(''));
+            [
+                safeText(unit.unit_code || '—'),
+                safeText(unit.unit_type || '—'),
+                safeText(formatValue(unit.net_size)),
+                safeText(formatValue(unit.gross_size)),
+                safeText(shouldShowPrice() ? formatPrice(unit) : '—'),
+                safeText(unit.status || '—'),
+            ].forEach(function (value) {
+                const td = document.createElement('td');
+                td.textContent = value;
+                tr.appendChild(td);
+            });
+
+            const planTd = document.createElement('td');
+            const planUrl = safeUrl(unit.detail_plan_url);
+            if (planUrl) {
+                const link = document.createElement('a');
+                link.href = planUrl;
+                link.target = '_blank';
+                link.rel = 'noopener noreferrer';
+                link.textContent = 'View plan';
+                planTd.appendChild(link);
+            } else {
+                planTd.textContent = '—';
+            }
+            tr.appendChild(planTd);
+
+            const actionTd = document.createElement('td');
+            const removeBtn = document.createElement('button');
+            removeBtn.type = 'button';
+            removeBtn.className = 'pera-portal-compare__remove';
+            removeBtn.setAttribute('data-remove-unit', safeText(key));
+            removeBtn.setAttribute('aria-label', 'Remove ' + safeText(key));
+            removeBtn.textContent = '×';
+            actionTd.appendChild(removeBtn);
+            tr.appendChild(actionTd);
+
+            compareBody.appendChild(tr);
         });
-
-        compareBody.innerHTML = rows.join('');
         compareContainer.hidden = shortlist.size < 1;
     }
 
@@ -287,21 +368,30 @@
             return;
         }
 
+        const firstLine = safeText(unit.unit_code || '—');
         const lines = [
-            '<strong>' + (unit.unit_code || '—') + '</strong>',
-            '<div>Type: ' + (unit.unit_type || '—') + '</div>',
-            '<div>Status: ' + (unit.status || '—') + '</div>',
+            'Type: ' + safeText(unit.unit_type || '—'),
+            'Status: ' + safeText(unit.status || '—'),
         ];
 
         if (shouldShowPrice()) {
-            lines.push('<div>Price: ' + formatPrice(unit) + '</div>');
+            lines.push('Price: ' + safeText(formatPrice(unit)));
 
             if (state.colorMode === 'price' && typeof unit.price_per_sqm === 'number') {
-                lines.push('<div>PPSQM: ' + String(unit.price_per_sqm) + ' ' + (unit.currency || '') + ' / m²</div>');
+                lines.push('PPSQM: ' + safeText(unit.price_per_sqm) + ' ' + safeText(unit.currency || '') + ' / m²');
             }
         }
 
-        tooltip.innerHTML = lines.join('');
+        tooltip.textContent = '';
+        const firstLineEl = document.createElement('strong');
+        firstLineEl.textContent = firstLine;
+        tooltip.appendChild(firstLineEl);
+
+        lines.forEach(function (line) {
+            const lineEl = document.createElement('div');
+            lineEl.textContent = line;
+            tooltip.appendChild(lineEl);
+        });
         tooltip.hidden = false;
         tooltip.style.visibility = 'hidden';
 
@@ -413,32 +503,64 @@
             return;
         }
 
+        detailsContainer.textContent = '';
+
+        const card = document.createElement('div');
+        card.className = 'pera-portal-unit-card';
+
+        function appendDetailRow(label, value) {
+            const row = document.createElement('p');
+            const labelEl = document.createElement('strong');
+            labelEl.textContent = label + ':';
+            row.appendChild(labelEl);
+            row.appendChild(document.createTextNode(' ' + safeText(value == null || value === '' ? '-' : value)));
+            card.appendChild(row);
+        }
+
+        appendDetailRow('Code', unit && unit.unit_code ? unit.unit_code : '-');
+        appendDetailRow('Type', unit && unit.unit_type ? unit.unit_type : '-');
+        appendDetailRow('Net', unit && unit.net_size != null ? unit.net_size : '-');
+        appendDetailRow('Gross', unit && unit.gross_size != null ? unit.gross_size : '-');
+        appendDetailRow('Price', (unit && unit.price != null ? unit.price : '-') + ' ' + safeText(unit && unit.currency ? unit.currency : ''));
+        appendDetailRow('Status', unit && unit.status ? unit.status : '-');
+
         const detailPlanUrl = unit && typeof unit.detail_plan_url === 'string' ? unit.detail_plan_url : '';
         const detailPlanMime = unit && typeof unit.detail_plan_mime === 'string' ? unit.detail_plan_mime.toLowerCase() : '';
         const imageExtensionPattern = /\.(jpg|jpeg|png)(?:$|[?#])/i;
         const isImagePlan = detailPlanMime.indexOf('image/') === 0 || imageExtensionPattern.test(detailPlanUrl);
+        const safePlanUrl = safeUrl(detailPlanUrl);
 
-        const planHtml = detailPlanUrl
-            ? [
-                '<div class="pera-portal-unit-plan">',
-                '<p><strong>Plan:</strong></p>',
-                '<a href="' + detailPlanUrl + '" target="_blank" rel="noopener noreferrer" class="button-like">View unit plan</a>',
-                isImagePlan ? '<img src="' + detailPlanUrl + '" alt="Unit detail plan preview" loading="lazy" />' : '',
-                '</div>',
-            ].join('')
-            : '<div class="pera-portal-unit-plan"><p><strong>Plan:</strong> -</p></div>';
+        const planWrap = document.createElement('div');
+        planWrap.className = 'pera-portal-unit-plan';
 
-        detailsContainer.innerHTML = [
-            '<div class="pera-portal-unit-card">',
-            '<p><strong>Code:</strong> ' + (unit.unit_code || '-') + '</p>',
-            '<p><strong>Type:</strong> ' + (unit.unit_type || '-') + '</p>',
-            '<p><strong>Net:</strong> ' + (unit.net_size ?? '-') + '</p>',
-            '<p><strong>Gross:</strong> ' + (unit.gross_size ?? '-') + '</p>',
-            '<p><strong>Price:</strong> ' + (unit.price ?? '-') + ' ' + (unit.currency || '') + '</p>',
-            '<p><strong>Status:</strong> ' + (unit.status || '-') + '</p>',
-            planHtml,
-            '</div>',
-        ].join('');
+        const planHeading = document.createElement('p');
+        const planStrong = document.createElement('strong');
+        planStrong.textContent = 'Plan:';
+        planHeading.appendChild(planStrong);
+        planWrap.appendChild(planHeading);
+
+        if (safePlanUrl) {
+            const planLink = document.createElement('a');
+            planLink.href = safePlanUrl;
+            planLink.target = '_blank';
+            planLink.rel = 'noopener noreferrer';
+            planLink.className = 'button-like';
+            planLink.textContent = 'View unit plan';
+            planWrap.appendChild(planLink);
+
+            if (isImagePlan) {
+                const preview = document.createElement('img');
+                preview.src = safePlanUrl;
+                preview.alt = 'Unit detail plan preview';
+                preview.loading = 'lazy';
+                planWrap.appendChild(preview);
+            }
+        } else {
+            planHeading.appendChild(document.createTextNode(' -'));
+        }
+
+        card.appendChild(planWrap);
+        detailsContainer.appendChild(card);
     }
 
     function setMessage(target, message) {
@@ -540,7 +662,7 @@
             return;
         }
 
-        floorSelect.innerHTML = '';
+        floorSelect.textContent = '';
 
         floorsData.forEach(function (floor) {
             const option = document.createElement('option');
@@ -590,6 +712,7 @@
         try {
             const floor = await fetchJson('floor?floor_id=' + encodeURIComponent(String(state.floorId)));
             const svgUrl = floor && typeof floor.svg_url === 'string' ? floor.svg_url.trim() : '';
+            const safeSvgUrl = safeUrl(svgUrl);
 
             if (!svgUrl) {
                 setMessage(svgContainer, 'No SVG found for this floor.');
@@ -597,8 +720,14 @@
                 return;
             }
 
+            if (!safeSvgUrl) {
+                setMessage(svgContainer, 'Invalid SVG URL.');
+                setMessage(detailsContainer, 'Invalid SVG URL.');
+                return;
+            }
+
             const units = await fetchJson('units?floor_id=' + encodeURIComponent(String(state.floorId)));
-            const svgResponse = await fetch(svgUrl, {
+            const svgResponse = await fetch(safeSvgUrl, {
                 credentials: 'same-origin',
             });
 
@@ -606,8 +735,20 @@
                 throw new Error('SVG request failed: HTTP ' + svgResponse.status);
             }
 
+            const svgText = await svgResponse.text();
+            const parser = new DOMParser();
+            const svgDoc = parser.parseFromString(svgText, 'image/svg+xml');
+            const svgEl = svgDoc.documentElement;
+
+            if (!svgEl || safeText(svgEl.nodeName).toLowerCase() !== 'svg') {
+                throw new Error('SVG response did not contain a valid <svg> root element.');
+            }
+
+            stripSvgDangerous(svgEl);
+
             if (svgContainer) {
-                svgContainer.innerHTML = await svgResponse.text();
+                svgContainer.textContent = '';
+                svgContainer.appendChild(document.importNode(svgEl, true));
             }
 
             const svg = svgContainer ? svgContainer.querySelector('svg') : null;
