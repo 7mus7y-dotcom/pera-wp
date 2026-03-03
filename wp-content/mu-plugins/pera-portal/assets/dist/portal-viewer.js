@@ -716,7 +716,7 @@
         clearShortlist();
 
         try {
-            const units = await fetchJson('units?floor_id=' + encodeURIComponent(String(state.floorId)));
+            const units = await fetchJson('units?floor_id=' + encodeURIComponent(String(state.floorId)) + (state.buildingId > 0 ? '&building_id=' + encodeURIComponent(String(state.buildingId)) : '') + '&mode=' + encodeURIComponent(mode));
             const svgResponse = await fetch(restBase + 'floor?floor_id=' + encodeURIComponent(String(state.floorId)), {
                 credentials: 'same-origin',
             });
@@ -988,7 +988,7 @@
 
         if (state.buildingId > 0) {
             try {
-                floorsData = await fetchJson('floors?building_id=' + encodeURIComponent(String(state.buildingId)));
+                floorsData = await fetchJson('floors?building_id=' + encodeURIComponent(String(state.buildingId)) + '&mode=' + encodeURIComponent(mode));
                 floorsData = Array.isArray(floorsData) ? floorsData : [];
                 if (!state.floorId && floorsData.length) {
                     state.floorId = Number(floorsData[0].id || 0);

@@ -71,6 +71,7 @@ function pera_portal_render_admin_page()
             'nonce' => wp_create_nonce('wp_rest'),
             'building_id' => 0,
             'floor_id' => $floor_id,
+            'mode' => 'internal',
         ]);
     }
 
