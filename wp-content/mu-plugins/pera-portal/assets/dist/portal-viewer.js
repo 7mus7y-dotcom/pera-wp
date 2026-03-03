@@ -31,7 +31,7 @@
     const summarySizeEl = root.querySelector('[data-summary-size]');
     const summaryCountEl = root.querySelector('[data-summary-count]');
     const colorModeButtons = root.querySelectorAll('[data-color-mode]');
-    const restBase = String(config.rest_url || '');
+    const restBase = typeof config.rest_url === 'string' ? config.rest_url : '';
     const headers = {
         'X-WP-Nonce': String(config.nonce || ''),
     };
@@ -700,7 +700,13 @@
     }
 
     async function loadFloor() {
-        if (!state.floorId || !restBase) {
+        if (!restBase) {
+            setMessage(svgContainer, 'Portal configuration is missing.');
+            setMessage(detailsContainer, 'Unable to load portal data.');
+            return;
+        }
+
+        if (!state.floorId) {
             setMessage(svgContainer, 'Floor not selected.');
             setMessage(detailsContainer, state.buildingId ? 'No floor found for this building.' : 'Select a building in shortcode.');
             return;
