@@ -9,8 +9,41 @@ body.pera-portal-page .site-main {
     padding: 32px 0;
 }
 
+/* --------------------------------------------
+   Header offset handling for sticky themes
+   Scoped only to portal pages
+--------------------------------------------- */
+
+body.pera-portal-page {
+    /*
+     * Attempt to reuse theme header tokens if present.
+     * Fallback to 88px (sane sticky header default).
+     */
+    --pera-portal-header-offset: var(--header-height, var(--site-header-height, 88px));
+}
+
+/* Admin bar adjustments */
+body.admin-bar.pera-portal-page {
+    --pera-portal-adminbar-offset: 32px;
+}
+
+@media (max-width: 782px) {
+    body.admin-bar.pera-portal-page {
+        --pera-portal-adminbar-offset: 46px;
+    }
+}
+
+/* Apply offset to hero only */
 body.pera-portal-page .hero {
-    padding: 48px 0;
+    padding-top: calc(
+        48px
+        + var(--pera-portal-header-offset)
+        + var(--pera-portal-adminbar-offset, 0px)
+    );
+}
+
+body.pera-portal-page .hero {
+    padding-bottom: 48px;
     background: #f7f8fa;
     border-bottom: 1px solid #e4e7ec;
 }
