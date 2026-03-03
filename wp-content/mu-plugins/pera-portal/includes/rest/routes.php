@@ -365,6 +365,115 @@ function pera_portal_rest_get_floors(WP_REST_Request $request)
     return rest_ensure_response($floors);
 }
 
+function pera_portal_rest_permission_diag()
+{
+    $can_access = function_exists('pera_portal_current_user_can_access')
+        ? (bool) pera_portal_current_user_can_access()
+        : current_user_can('manage_options');
+
+    if ($can_access) {
+        return true;
+    }
+
+    $status = is_user_logged_in() ? 403 : 401;
+
+    return new WP_Error('pera_portal_forbidden', __('Portal access required.', 'pera-portal'), ['status' => $status]);
+}
+
+function pera_portal_rest_get_asset_details($type)
+{
+    $asset = [
+        'src' => '',
+        'version' => '',
+    ];
+
+    if ($type === 'script') {
+        $scripts = wp_scripts();
+        if ($scripts instanceof WP_Scripts && isset($scripts->registered['pera-portal-viewer'])) {
+            $registered = $scripts->registered['pera-portal-viewer'];
+            $asset['src'] = is_string($registered->src) ? $registered->src : '';
+            $asset['version'] = is_scalar($registered->ver) ? (string) $registered->ver : '';
+            return $asset;
+        }
+
+        $asset['src'] = pera_portal_get_dist_asset_url('portal-viewer.js');
+        $asset['version'] = pera_portal_get_dist_asset_version('portal-viewer.js');
+        return $asset;
+    }
+
+    $styles = wp_styles();
+    if ($styles instanceof WP_Styles && isset($styles->registered['pera-portal-viewer'])) {
+        $registered = $styles->registered['pera-portal-viewer'];
+        $asset['src'] = is_string($registered->src) ? $registered->src : '';
+        $asset['version'] = is_scalar($registered->ver) ? (string) $registered->ver : '';
+        return $asset;
+    }
+
+    $asset['src'] = pera_portal_get_dist_asset_url('portal-viewer.css');
+    $asset['version'] = pera_portal_get_dist_asset_version('portal-viewer.css');
+    return $asset;
+}
+
+function pera_portal_rest_get_diag()
+{
+    $config = isset($GLOBALS['pera_portal_script_config']) && is_array($GLOBALS['pera_portal_script_config'])
+        ? $GLOBALS['pera_portal_script_config']
+        : [];
+
+    $queried_object_id = get_queried_object_id();
+    $post = $queried_object_id > 0 ? get_post($queried_object_id) : null;
+
+    $shortcode_probe = function_exists('pera_portal_get_shortcode_probe')
+        ? pera_portal_get_shortcode_probe(true)
+        : [
+            'executed' => false,
+            'substring_matched' => false,
+            'has_shortcode_executed' => false,
+            'has_shortcode_matched' => null,
+        ];
+
+    $template = '';
+    if ($post instanceof WP_Post) {
+        $template = get_page_template_slug($post);
+        if (!is_string($template)) {
+            $template = '';
+        }
+    }
+
+    return rest_ensure_response([
+        'assets_needed' => !empty($GLOBALS['pera_portal_enqueue_assets']),
+        'script_config' => [
+            'building_id' => isset($config['building_id']) ? absint($config['building_id']) : 0,
+            'floor_id' => isset($config['floor_id']) ? absint($config['floor_id']) : 0,
+            'mode' => isset($config['mode']) ? sanitize_key((string) $config['mode']) : 'external',
+            'rest_url' => isset($config['rest_url']) ? esc_url_raw((string) $config['rest_url']) : esc_url_raw(rest_url(PERA_PORTAL_REST_NAMESPACE . '/')),
+            'has_nonce' => !empty($config['nonce']),
+        ],
+        'request' => [
+            'request_uri' => function_exists('pera_portal_request_uri') ? pera_portal_request_uri() : (isset($_SERVER['REQUEST_URI']) ? (string) wp_unslash($_SERVER['REQUEST_URI']) : ''),
+            'is_admin' => is_admin(),
+            'is_singular' => is_singular(),
+            'queried_object_id' => $queried_object_id,
+            'template' => $template,
+            'rest_request' => defined('REST_REQUEST') && REST_REQUEST,
+            'ajax' => wp_doing_ajax(),
+            'shortcode_probe' => [
+                'substring_matched' => !empty($shortcode_probe['substring_matched']),
+                'has_shortcode_executed' => !empty($shortcode_probe['has_shortcode_executed']),
+                'has_shortcode_matched' => array_key_exists('has_shortcode_matched', $shortcode_probe)
+                    ? $shortcode_probe['has_shortcode_matched']
+                    : null,
+            ],
+        ],
+        'assets' => [
+            'css_enqueued' => wp_style_is('pera-portal-viewer', 'enqueued'),
+            'js_enqueued' => wp_script_is('pera-portal-viewer', 'enqueued'),
+            'portal_viewer_css' => pera_portal_rest_get_asset_details('style'),
+            'portal_viewer_js' => pera_portal_rest_get_asset_details('script'),
+        ],
+    ]);
+}
+
 function pera_portal_register_rest_routes()
 {
     register_rest_route(PERA_PORTAL_REST_NAMESPACE, '/floor', [
@@ -430,6 +539,12 @@ function pera_portal_register_rest_routes()
                 },
             ],
         ],
+    ]);
+
+    register_rest_route(PERA_PORTAL_REST_NAMESPACE, '/diag', [
+        'methods' => WP_REST_Server::READABLE,
+        'callback' => 'pera_portal_rest_get_diag',
+        'permission_callback' => 'pera_portal_rest_permission_diag',
     ]);
 }
 
