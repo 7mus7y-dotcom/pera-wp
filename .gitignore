@@ -15,3 +15,8 @@ wp-content/litespeed/
 wp-content/debug.log
 deploy.sh
 error_log
+
+# Local-only MU utilities (must remain on live, not tracked)
+wp-content/mu-plugins/add-webp-conv-to-medialibrary.php
+wp-content/mu-plugins/disable-comments.php
+wp-content/mu-plugins/modify-admin-panel-code.php
