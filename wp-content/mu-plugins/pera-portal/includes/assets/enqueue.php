@@ -39,14 +39,6 @@ function pera_portal_get_dist_asset_version($asset)
     return defined('PERA_PORTAL_VERSION') ? (string) PERA_PORTAL_VERSION : '1.0.0';
 }
 
-function pera_portal_should_output_assets_debug_comment()
-{
-    return isset($_GET['portal_debug'])
-        && wp_unslash($_GET['portal_debug']) === '1'
-        && function_exists('pera_portal_current_user_can_access')
-        && pera_portal_current_user_can_access();
-}
-
 function pera_portal_enqueue_assets()
 {
     if (empty($GLOBALS['pera_portal_enqueue_assets'])) {
