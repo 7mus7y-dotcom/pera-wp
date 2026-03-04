@@ -177,6 +177,94 @@ body.pera-portal-page .portal-selector-card {
     box-shadow: 0 10px 25px rgba(0, 0, 0, 0.08);
 }
 
+body.pera-portal-page .pera-portal-building-list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: grid;
+    gap: 12px;
+}
+
+body.pera-portal-page .pera-portal-building-list__item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    padding: 16px;
+    border-radius: 14px;
+    border: 1px solid rgba(15, 23, 42, 0.1);
+    background: rgba(255, 255, 255, 0.92);
+}
+
+body.pera-portal-page .pera-portal-building-list__title {
+    color: #111827;
+    font-weight: 600;
+    line-height: 1.35;
+}
+
+body.pera-portal-page .pera-portal-building-list__item .button {
+    min-height: 44px;
+    padding: 10px 18px;
+    border-radius: 10px;
+}
+
+html[data-theme="dark"] body.pera-portal-page .portal-selector-card,
+body[data-theme="dark"].pera-portal-page .portal-selector-card,
+body.dark.pera-portal-page .portal-selector-card,
+body.is-dark.pera-portal-page .portal-selector-card {
+    background: rgba(17, 24, 39, 0.74);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    box-shadow: 0 18px 40px rgba(0, 0, 0, 0.4);
+    backdrop-filter: blur(10px);
+}
+
+html[data-theme="dark"] body.pera-portal-page .pera-portal-building-list__item,
+body[data-theme="dark"].pera-portal-page .pera-portal-building-list__item,
+body.dark.pera-portal-page .pera-portal-building-list__item,
+body.is-dark.pera-portal-page .pera-portal-building-list__item {
+    background: rgba(255, 255, 255, 0.06);
+    border-color: rgba(255, 255, 255, 0.12);
+    box-shadow: 0 10px 26px rgba(0, 0, 0, 0.28);
+    opacity: 1;
+    filter: none;
+}
+
+html[data-theme="dark"] body.pera-portal-page .pera-portal-building-list__title,
+body[data-theme="dark"].pera-portal-page .pera-portal-building-list__title,
+body.dark.pera-portal-page .pera-portal-building-list__title,
+body.is-dark.pera-portal-page .pera-portal-building-list__title {
+    color: rgba(255, 255, 255, 0.95);
+}
+
+html[data-theme="dark"] body.pera-portal-page .pera-portal-building-list__item .button,
+body[data-theme="dark"].pera-portal-page .pera-portal-building-list__item .button,
+body.dark.pera-portal-page .pera-portal-building-list__item .button,
+body.is-dark.pera-portal-page .pera-portal-building-list__item .button {
+    opacity: 1;
+    filter: none;
+    cursor: pointer;
+    pointer-events: auto;
+    border-color: rgba(255, 255, 255, 0.24);
+    background: rgba(255, 255, 255, 0.1);
+    color: rgba(255, 255, 255, 0.95);
+}
+
+html[data-theme="dark"] body.pera-portal-page .pera-portal-building-list__item .button:hover,
+html[data-theme="dark"] body.pera-portal-page .pera-portal-building-list__item .button:focus-visible,
+body[data-theme="dark"].pera-portal-page .pera-portal-building-list__item .button:hover,
+body[data-theme="dark"].pera-portal-page .pera-portal-building-list__item .button:focus-visible,
+body.dark.pera-portal-page .pera-portal-building-list__item .button:hover,
+body.dark.pera-portal-page .pera-portal-building-list__item .button:focus-visible,
+body.is-dark.pera-portal-page .pera-portal-building-list__item .button:hover,
+body.is-dark.pera-portal-page .pera-portal-building-list__item .button:focus-visible {
+    transform: translateY(-2px);
+    border-color: rgba(255, 255, 255, 0.4);
+    background: rgba(255, 255, 255, 0.17);
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.35);
+    outline: 2px solid rgba(255, 255, 255, 0.38);
+    outline-offset: 2px;
+}
+
 @media (max-width: 767px) {
     body.pera-portal-page .portal-hero {
         padding: 150px 20px 80px;
@@ -192,5 +280,9 @@ body.pera-portal-page .portal-selector-card {
 
     body.pera-portal-page .portal-selector-card {
         padding: 22px;
+    }
+
+    body.pera-portal-page .pera-portal-building-list__item {
+        padding: 14px;
     }
 }
