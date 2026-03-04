@@ -16,27 +16,65 @@ function pera_portal_set_script_config(array $config)
 
 function pera_portal_get_dist_asset_path($asset)
 {
-    return PERA_PORTAL_PATH . '/assets/dist/' . ltrim($asset, '/');
+    return trailingslashit(untrailingslashit(PERA_PORTAL_PATH) . '/assets/dist') . ltrim($asset, '/');
 }
 
 function pera_portal_get_dist_asset_url($asset)
 {
-    return PERA_PORTAL_URL . '/assets/dist/' . ltrim($asset, '/');
+    return trailingslashit(untrailingslashit(PERA_PORTAL_URL) . '/assets/dist') . ltrim($asset, '/');
+}
+
+function pera_portal_get_dist_build_file_path()
+{
+    return pera_portal_get_dist_asset_path('.build');
+}
+
+function pera_portal_get_build_version_int(): int
+{
+    $build_file_path = pera_portal_get_dist_build_file_path();
+
+    if (is_readable($build_file_path)) {
+        $build_mtime = @filemtime($build_file_path);
+        if ($build_mtime !== false) {
+            return (int) $build_mtime;
+        }
+    }
+
+    return 0;
 }
 
 function pera_portal_get_dist_asset_version($asset)
 {
+    $build_version = pera_portal_get_build_version_int();
     $asset_path = pera_portal_get_dist_asset_path($asset);
+    $asset_mtime = 0;
 
-    if (file_exists($asset_path)) {
-        $asset_hash = md5_file($asset_path);
-
-        if ($asset_hash !== false) {
-            return $asset_hash;
+    // Cache-busting: prefer per-file mtime, but never go below the deploy build stamp mtime.
+    if (is_readable($asset_path)) {
+        $asset_file_mtime = @filemtime($asset_path);
+        if ($asset_file_mtime !== false) {
+            $asset_mtime = (int) $asset_file_mtime;
         }
     }
 
+    if ($asset_mtime > 0 && $build_version > 0) {
+        return (string) max($asset_mtime, $build_version);
+    }
+
+    if ($asset_mtime > 0) {
+        return (string) $asset_mtime;
+    }
+
+    if ($build_version > 0) {
+        return (string) $build_version;
+    }
+
     return defined('PERA_PORTAL_VERSION') ? (string) PERA_PORTAL_VERSION : '1.0.0';
+}
+
+function pera_portal_get_asset_version($asset)
+{
+    return pera_portal_get_dist_asset_version($asset);
 }
 
 function pera_portal_enqueue_assets()
@@ -77,9 +115,9 @@ function pera_portal_enqueue_assets()
         $portal_css_asset = 'portal-viewer.css';
         $portal_compat_css_asset = 'portal-compat.css';
         $portal_js_asset = 'portal-viewer.js';
-        $portal_css_version = pera_portal_get_dist_asset_version($portal_css_asset);
-        $portal_compat_css_version = pera_portal_get_dist_asset_version($portal_compat_css_asset);
-        $portal_js_version = pera_portal_get_dist_asset_version($portal_js_asset);
+        $portal_css_version = pera_portal_get_asset_version($portal_css_asset);
+        $portal_compat_css_version = pera_portal_get_asset_version($portal_compat_css_asset);
+        $portal_js_version = pera_portal_get_asset_version($portal_js_asset);
 
         $GLOBALS['pera_portal_asset_versions'] = [
             'css' => $portal_css_version,
@@ -281,14 +319,14 @@ function pera_portal_enqueue_admin_assets($hook)
         'pera-portal-viewer',
         pera_portal_get_dist_asset_url($portal_css_asset),
         [],
-        pera_portal_get_dist_asset_version($portal_css_asset)
+        pera_portal_get_asset_version($portal_css_asset)
     );
 
     wp_register_script(
         'pera-portal-viewer',
         pera_portal_get_dist_asset_url($portal_js_asset),
         [],
-        pera_portal_get_dist_asset_version($portal_js_asset),
+        pera_portal_get_asset_version($portal_js_asset),
         true
     );
 
