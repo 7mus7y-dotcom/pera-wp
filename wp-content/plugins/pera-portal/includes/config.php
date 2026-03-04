@@ -19,3 +19,7 @@ if (!defined('PERA_PORTAL_ACCESS_MODE')) {
 if (!defined('PERA_PORTAL_ACCESS_CAP')) {
     define('PERA_PORTAL_ACCESS_CAP', 'access_pera_portal');
 }
+
+if (!defined('PERA_PORTAL_DIAG_HEADERS')) {
+    define('PERA_PORTAL_DIAG_HEADERS', false);
+}

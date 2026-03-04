@@ -55,6 +55,12 @@ wp-content/plugins/pera-portal/tools/stamp-dist-build.sh
 > If portal assets still appear stale after deploy, the issue is usually HTML/page cache (plugin cache, server cache, or CDN) serving old markup with old `?ver=` values.
 > Purge the HTML cache layer (or exclude portal routes) so the new asset URLs are emitted.
 
+### Portal HTML is no-cache
+
+Portal front-end routes under `/portal` and `/portal/*` are explicitly excluded from HTML caching by the plugin. For matched requests, the plugin sets cache-bypass constants and sends no-cache response headers (`no-store, no-cache, private`) so page markup is always freshly rendered.
+
+This ensures each request emits current JS/CSS URLs with the latest `?ver=` generated from asset/build mtimes after `stamp-dist-build.sh` or `deploy-stamp-build.sh` runs.
+
 ### Deploy integration
 
 After deploying the plugin files run:
