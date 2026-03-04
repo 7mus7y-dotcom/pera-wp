@@ -23,24 +23,33 @@ $building_query = new WP_Query([
 get_header();
 ?>
 <main id="content" class="site-main pera-portal-landing">
-    <div class="container">
-        <h1><?php echo esc_html__('Portal', 'pera-portal'); ?></h1>
+    <section class="portal-hero" aria-labelledby="portal-hero-title">
+        <div class="portal-hero__inner">
+            <h1 class="portal-hero__title" id="portal-hero-title"><?php echo esc_html__('Interactive Property Portal', 'pera-portal'); ?></h1>
+            <p class="portal-hero__subtitle"><?php echo esc_html__('Select a development to explore available apartments, floor plans and availability.', 'pera-portal'); ?></p>
+        </div>
+    </section>
 
-        <?php if ($building_query->have_posts()) : ?>
-            <ul class="pera-portal-building-list">
-                <?php while ($building_query->have_posts()) : $building_query->the_post(); ?>
-                    <li class="pera-portal-building-list__item">
-                        <span class="pera-portal-building-list__title"><?php the_title(); ?></span>
-                        <a class="button button-primary" href="<?php echo esc_url(home_url('/portal/building/' . get_the_ID() . '/')); ?>">
-                            <?php echo esc_html__('Open', 'pera-portal'); ?>
-                        </a>
-                    </li>
-                <?php endwhile; ?>
-            </ul>
-        <?php else : ?>
-            <p><?php echo esc_html__('No buildings found.', 'pera-portal'); ?></p>
-        <?php endif; ?>
-    </div>
+    <section class="portal-selector" aria-label="<?php echo esc_attr__('Project selector', 'pera-portal'); ?>">
+        <div class="portal-shell">
+            <div class="portal-selector-card">
+                <?php if ($building_query->have_posts()) : ?>
+                    <ul class="pera-portal-building-list">
+                        <?php while ($building_query->have_posts()) : $building_query->the_post(); ?>
+                            <li class="pera-portal-building-list__item">
+                                <span class="pera-portal-building-list__title"><?php the_title(); ?></span>
+                                <a class="button button-primary" href="<?php echo esc_url(home_url('/portal/building/' . get_the_ID() . '/')); ?>">
+                                    <?php echo esc_html__('Open', 'pera-portal'); ?>
+                                </a>
+                            </li>
+                        <?php endwhile; ?>
+                    </ul>
+                <?php else : ?>
+                    <p><?php echo esc_html__('No buildings found.', 'pera-portal'); ?></p>
+                <?php endif; ?>
+            </div>
+        </div>
+    </section>
 </main>
 <?php
 wp_reset_postdata();
