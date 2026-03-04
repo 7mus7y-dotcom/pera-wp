@@ -38,3 +38,32 @@ This keeps default behavior unchanged while allowing future decoupling from CRM 
 The front-end fetches:
 - `GET /wp-json/pera-portal/v1/floor?floor_id=123`
 - `GET /wp-json/pera-portal/v1/units?floor_id=123`
+
+## Asset cache-busting (deploy-proof)
+Portal JS/CSS assets in `assets/dist/` are enqueued with a version string derived from numeric mtimes when available.
+
+- Primary version source: the asset file mtime (`filemtime`) for `portal-viewer.js`, `portal-viewer.css`, and `portal-compat.css`.
+- Deploy/build guard: `assets/dist/.build` mtime is used as a numeric minimum build floor so URLs still change on deploys where mtimes may be preserved.
+- Last-resort fallback: plugin version constant (`PERA_PORTAL_VERSION`, then `1.0.0`) only when neither asset nor build mtimes are available.
+
+To stamp a new deploy/build version, run:
+
+```bash
+wp-content/plugins/pera-portal/tools/stamp-dist-build.sh
+```
+
+> If portal assets still appear stale after deploy, the issue is usually HTML/page cache (plugin cache, server cache, or CDN) serving old markup with old `?ver=` values.
+> Purge the HTML cache layer (or exclude portal routes) so the new asset URLs are emitted.
+
+### Deploy integration
+
+After deploying the plugin files run:
+
+`wp-content/plugins/pera-portal/tools/stamp-dist-build.sh`
+
+or
+
+`wp-content/plugins/pera-portal/tools/deploy-stamp-build.sh`
+
+This ensures the `.build` mtime changes so asset URLs refresh even if deploy tools preserve mtimes.
+

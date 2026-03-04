@@ -382,6 +382,7 @@ function pera_portal_rest_permission_diag()
 
 function pera_portal_rest_get_asset_details($type)
 {
+    $asset_filename = $type === 'script' ? 'portal-viewer.js' : 'portal-viewer.css';
     $asset = [
         'src' => '',
         'version' => '',
@@ -393,24 +394,59 @@ function pera_portal_rest_get_asset_details($type)
             $registered = $scripts->registered['pera-portal-viewer'];
             $asset['src'] = is_string($registered->src) ? $registered->src : '';
             $asset['version'] = is_scalar($registered->ver) ? (string) $registered->ver : '';
-            return $asset;
+        } else {
+            $asset['src'] = pera_portal_get_dist_asset_url($asset_filename);
+            $asset['version'] = pera_portal_get_asset_version($asset_filename);
         }
-
-        $asset['src'] = pera_portal_get_dist_asset_url('portal-viewer.js');
-        $asset['version'] = pera_portal_get_dist_asset_version('portal-viewer.js');
-        return $asset;
+    } else {
+        $styles = wp_styles();
+        if ($styles instanceof WP_Styles && isset($styles->registered['pera-portal-viewer'])) {
+            $registered = $styles->registered['pera-portal-viewer'];
+            $asset['src'] = is_string($registered->src) ? $registered->src : '';
+            $asset['version'] = is_scalar($registered->ver) ? (string) $registered->ver : '';
+        } else {
+            $asset['src'] = pera_portal_get_dist_asset_url($asset_filename);
+            $asset['version'] = pera_portal_get_asset_version($asset_filename);
+        }
     }
 
-    $styles = wp_styles();
-    if ($styles instanceof WP_Styles && isset($styles->registered['pera-portal-viewer'])) {
-        $registered = $styles->registered['pera-portal-viewer'];
-        $asset['src'] = is_string($registered->src) ? $registered->src : '';
-        $asset['version'] = is_scalar($registered->ver) ? (string) $registered->ver : '';
-        return $asset;
+    $build_mtime = function_exists('pera_portal_get_build_version_int')
+        ? (int) pera_portal_get_build_version_int()
+        : 0;
+
+    $build_file = function_exists('pera_portal_get_dist_build_file_path')
+        ? (string) pera_portal_get_dist_build_file_path()
+        : '';
+
+    $asset_mtime = 0;
+    if (function_exists('pera_portal_get_dist_asset_path')) {
+        $asset_path = pera_portal_get_dist_asset_path($asset_filename);
+        if (is_readable($asset_path)) {
+            $asset_file_mtime = @filemtime($asset_path);
+            if ($asset_file_mtime !== false) {
+                $asset_mtime = (int) $asset_file_mtime;
+            }
+        }
     }
 
-    $asset['src'] = pera_portal_get_dist_asset_url('portal-viewer.css');
-    $asset['version'] = pera_portal_get_dist_asset_version('portal-viewer.css');
+    $build_version = $build_mtime > 0
+        ? (string) $build_mtime
+        : (defined('PERA_PORTAL_VERSION') ? (string) PERA_PORTAL_VERSION : '1.0.0');
+
+    $resolved_version = function_exists('pera_portal_get_asset_version')
+        ? (string) pera_portal_get_asset_version($asset_filename)
+        : ($asset['version'] !== '' ? (string) $asset['version'] : $build_version);
+
+    $asset['build_version'] = $build_version;
+    $asset['build_file'] = $build_file;
+    $asset['build_mtime'] = $build_mtime;
+    $asset['asset_mtime'] = $asset_mtime;
+    $asset['resolved_version'] = $resolved_version;
+
+    if ($asset['version'] === '') {
+        $asset['version'] = $resolved_version;
+    }
+
     return $asset;
 }
 
