@@ -15,6 +15,7 @@
     const svgPanel = root.querySelector('.pera-portal-panel--svg');
     const svgContainer = root.querySelector('.pera-portal-svg-placeholder');
     const detailsContainer = root.querySelector('.pera-portal-details-placeholder');
+    const planContainer = root.querySelector('.pera-portal-plan-placeholder');
     const filtersContainer = root.querySelector('.pera-portal-filters');
     const countsContainer = root.querySelector('.pera-portal-counts');
     const floorSelect = root.querySelector('.pera-portal-floor-select');
@@ -39,6 +40,43 @@
     const urlParams = new URLSearchParams(window.location.search || '');
     const initialUnitsParam = String(urlParams.get('units') || '');
     const statusKeys = ['available', 'reserved', 'sold'];
+
+    function preparePrintPlanFallback() {
+        const printScope = document.getElementById('portal-print-scope');
+        const scope = printScope || root;
+        if (!scope || !scope.querySelector) {
+            return;
+        }
+
+        const canvas = scope.querySelector('.portal-print-section--plan canvas');
+        if (!canvas || scope.querySelector('img[data-print-temp="1"]')) {
+            return;
+        }
+
+        try {
+            const dataUrl = canvas.toDataURL('image/png');
+            if (!dataUrl) {
+                return;
+            }
+
+            const img = document.createElement('img');
+            img.src = dataUrl;
+            img.alt = 'Apartment plan print preview';
+            img.className = 'portal-print-canvas-fallback';
+            img.dataset.printTemp = '1';
+            canvas.insertAdjacentElement('afterend', img);
+        } catch (error) {
+            return;
+        }
+    }
+
+    window.addEventListener('afterprint', function () {
+        document.querySelectorAll('img[data-print-temp="1"]').forEach(function (node) {
+            if (node && node.parentNode) {
+                node.parentNode.removeChild(node);
+            }
+        });
+    });
 
     function safeText(v) {
         return (v == null) ? '' : String(v);
@@ -504,6 +542,9 @@
         }
 
         detailsContainer.textContent = '';
+        if (planContainer) {
+            planContainer.textContent = '';
+        }
 
         const card = document.createElement('div');
         card.className = 'pera-portal-unit-card';
@@ -559,8 +600,13 @@
             planHeading.appendChild(document.createTextNode(' -'));
         }
 
-        card.appendChild(planWrap);
         detailsContainer.appendChild(card);
+
+        if (planContainer) {
+            planContainer.appendChild(planWrap);
+        } else {
+            detailsContainer.appendChild(planWrap);
+        }
     }
 
     function setMessage(target, message) {
@@ -576,6 +622,10 @@
 
         selectedElement = null;
         selectedUnit = null;
+
+        if (planContainer) {
+            planContainer.textContent = '';
+        }
 
         if (message) {
             setMessage(detailsContainer, message);
@@ -928,6 +978,7 @@
 
                 if (action === 'print') {
                     event.preventDefault();
+                    preparePrintPlanFallback();
                     window.print();
                     return;
                 }

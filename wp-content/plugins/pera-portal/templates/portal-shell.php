@@ -23,11 +23,12 @@ if (!defined('ABSPATH')) {
 <section class="section section-soft pera-portal-viewer-wrap">
     <div class="container">
         <div id="pera-portal-root" class="pera-portal-shell">
+            <div id="portal-print-scope" class="portal-print-scope">
             <section class="pera-portal-panel pera-portal-panel--svg" aria-label="Floor plan viewer">
                 <div class="pera-portal-panel__head">
                     <h3><?php echo esc_html__('Floor Plan', 'pera-portal'); ?></h3>
                 </div>
-                <div class="pera-portal-floorbar">
+                <div class="pera-portal-floorbar portal-print-section portal-print-section--selector">
                     <label for="pera-portal-floor-select"><?php echo esc_html__('Floor', 'pera-portal'); ?></label>
                     <select id="pera-portal-floor-select" class="pera-portal-floor-select"><option value=""><?php echo esc_html__('Select a building in shortcode.', 'pera-portal'); ?></option></select>
                 </div>
@@ -123,8 +124,14 @@ if (!defined('ABSPATH')) {
                         </table>
                     </div>
                 </div>
-                <div class="pera-portal-details-placeholder"><?php echo esc_html__('Unit details placeholder', 'pera-portal'); ?></div>
+                <div class="portal-print-section portal-print-section--details">
+                    <div class="pera-portal-details-placeholder"><?php echo esc_html__('Unit details placeholder', 'pera-portal'); ?></div>
+                </div>
+                <div class="portal-print-section portal-print-section--plan">
+                    <div class="pera-portal-plan-placeholder"></div>
+                </div>
             </aside>
+            </div>
         </div>
     </div>
 </section>
