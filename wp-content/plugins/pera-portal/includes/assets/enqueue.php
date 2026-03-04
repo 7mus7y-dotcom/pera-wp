@@ -41,6 +41,13 @@ function pera_portal_get_dist_asset_version($asset)
 
 function pera_portal_enqueue_assets()
 {
+    $portal_page = sanitize_key((string) get_query_var('pera_portal_page'));
+    $is_portal_rewrite = in_array($portal_page, ['landing', 'building'], true);
+
+    if ($is_portal_rewrite) {
+        $GLOBALS['pera_portal_is_page'] = true;
+    }
+
     if (empty($GLOBALS['pera_portal_enqueue_assets'])) {
         if (is_admin()) {
             return;
@@ -51,26 +58,37 @@ function pera_portal_enqueue_assets()
             return;
         }
 
-        $is_singular_request = is_singular();
-        if (!$is_singular_request) {
-            return;
-        }
-        if (function_exists('pera_portal_current_user_can_access') && !pera_portal_current_user_can_access()) {
-            return;
+        if ($is_portal_rewrite) {
+            $GLOBALS['pera_portal_enqueue_compat'] = true;
         }
 
-        $probe = pera_portal_get_shortcode_probe(true);
-        if (!empty($probe['has_shortcode_matched'])) {
-            $GLOBALS['pera_portal_enqueue_assets'] = true;
+        $is_singular_request = is_singular();
+        if (!$is_singular_request) {
+            if (empty($GLOBALS['pera_portal_enqueue_compat'])) {
+                return;
+            }
+        } else {
+            if (function_exists('pera_portal_current_user_can_access') && !pera_portal_current_user_can_access()) {
+                return;
+            }
+
+            $probe = pera_portal_get_shortcode_probe(true);
+            if (!empty($probe['has_shortcode_matched'])) {
+                $GLOBALS['pera_portal_enqueue_assets'] = true;
+                $GLOBALS['pera_portal_enqueue_compat'] = true;
+            }
         }
     }
 
-    if (empty($GLOBALS['pera_portal_enqueue_assets'])) {
+    $should_enqueue_compat = !empty($GLOBALS['pera_portal_enqueue_compat']) || !empty($GLOBALS['pera_portal_enqueue_assets']);
+
+    if (!$should_enqueue_compat && empty($GLOBALS['pera_portal_enqueue_assets'])) {
         return;
     }
 
     static $did_register = false;
-    static $did_enqueue = false;
+    static $did_enqueue_compat = false;
+    static $did_enqueue_viewer = false;
     static $did_localize = false;
 
     if (!$did_register) {
@@ -111,11 +129,15 @@ function pera_portal_enqueue_assets()
         $did_register = true;
     }
 
-    if (!$did_enqueue) {
+    if ($should_enqueue_compat && !$did_enqueue_compat) {
         wp_enqueue_style('pera-portal-compat');
+        $did_enqueue_compat = true;
+    }
+
+    if (!empty($GLOBALS['pera_portal_enqueue_assets']) && !$did_enqueue_viewer) {
         wp_enqueue_style('pera-portal-viewer');
         wp_enqueue_script('pera-portal-viewer');
-        $did_enqueue = true;
+        $did_enqueue_viewer = true;
     }
 
     if (
