@@ -5,6 +5,7 @@ if (!defined('ABSPATH')) {
 }
 
 $pera_portal_bootstrap_files = [
+    PERA_PORTAL_PATH . '/includes/cache/nocache.php',
     PERA_PORTAL_PATH . '/includes/config.php',
     PERA_PORTAL_PATH . '/includes/capabilities.php',
     PERA_PORTAL_PATH . '/includes/admin/menu.php',
