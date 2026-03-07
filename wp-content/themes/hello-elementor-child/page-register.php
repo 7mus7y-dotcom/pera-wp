@@ -18,6 +18,7 @@ $error_messages = array(
     'invalid_request'  => __( 'Invalid request. Please try again.', 'hello-elementor-child' ),
     'invalid_nonce'    => __( 'Your session expired. Please submit the form again.', 'hello-elementor-child' ),
     'validation'       => __( 'Please complete all required fields correctly.', 'hello-elementor-child' ),
+    'weak_password'    => __( 'Please use a password with at least 8 characters.', 'hello-elementor-child' ),
     'email_exists'     => __( 'An account with this email already exists. Please sign in.', 'hello-elementor-child' ),
     'create_failed'    => __( 'We could not create your account right now. Please try again.', 'hello-elementor-child' ),
     'membership_failed'=> __( 'Your account was created, but site access could not be completed. Please contact support.', 'hello-elementor-child' ),
@@ -91,4 +92,3 @@ get_header();
 
 <?php
 get_footer();
-
