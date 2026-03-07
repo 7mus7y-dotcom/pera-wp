@@ -43,6 +43,27 @@ body.pera-portal-page .pera-portal-viewer-wrap {
     height: auto;
 }
 
+
+.pera-portal-svg-warning {
+    margin: 0 0 12px;
+    padding: 10px 12px;
+    border-radius: 8px;
+    border: 1px solid #f59e0b;
+    background: #fffbeb;
+    color: #92400e;
+    font-size: 14px;
+}
+
+
+html[data-theme="dark"] body.pera-portal-page #pera-portal-root .pera-portal-svg-warning,
+body[data-theme="dark"].pera-portal-page #pera-portal-root .pera-portal-svg-warning,
+body.dark.pera-portal-page #pera-portal-root .pera-portal-svg-warning,
+body.is-dark.pera-portal-page #pera-portal-root .pera-portal-svg-warning {
+    border-color: #b45309;
+    background: rgba(120, 53, 15, 0.24);
+    color: #fcd34d;
+}
+
 .pera-portal-legend,
 .pera-portal-filters,
 .pera-portal-counts {
@@ -613,7 +634,9 @@ body.is-dark.pera-portal-page #pera-portal-root .pera-portal-tooltip {
         display: none !important;
     }
 
-    #portal-print-scope .portal-print-section {
+    #portal-print-scope .portal-print-section--selector,
+    #portal-print-scope .portal-print-section--details,
+    #portal-print-scope .portal-print-section--plan {
         display: block !important;
         margin: 0 0 16px !important;
         padding: 0 !important;

@@ -9,6 +9,7 @@ function pera_portal_rest_get_floor(WP_REST_Request $request)
     $floor_id = absint($request->get_param('floor_id'));
     $svg_path = '';
     $svg_url = '';
+    $svg_source = 'upload';
 
     if (function_exists('get_field')) {
         $file = get_field('floor_svg', $floor_id);
@@ -45,10 +46,6 @@ function pera_portal_rest_get_floor(WP_REST_Request $request)
         }
     }
 
-    if ($svg_path === '') {
-        $svg_path = PERA_PORTAL_PATH . '/data/fixtures/demo-floor.svg';
-    }
-
     $svg_markup = '';
     if ($svg_path !== '' && file_exists($svg_path)) {
         $svg_markup = (string) file_get_contents($svg_path);
@@ -60,11 +57,31 @@ function pera_portal_rest_get_floor(WP_REST_Request $request)
     }
 
     if ($svg_markup === '') {
-        return new WP_Error('pera_portal_floor_svg_missing', __('Floor SVG not found.', 'pera-portal'), ['status' => 404]);
+        $default_allow_fixture_fallback = wp_get_environment_type() !== 'production';
+        $allow_fixture_fallback = (bool) apply_filters('pera_portal_allow_floor_fixture_fallback', $default_allow_fixture_fallback, $floor_id);
+
+        if (!$allow_fixture_fallback) {
+            return new WP_Error('pera_portal_floor_svg_missing', __('Floor SVG is missing.', 'pera-portal'), ['status' => 404]);
+        }
+
+        $fixture_path = PERA_PORTAL_PATH . '/data/fixtures/demo-floor.svg';
+        if (file_exists($fixture_path)) {
+            $svg_markup = (string) file_get_contents($fixture_path);
+            $svg_source = 'fixture';
+        }
+    }
+
+    if ($svg_markup === '') {
+        return new WP_Error('pera_portal_floor_svg_missing', __('Floor SVG is missing.', 'pera-portal'), ['status' => 404]);
     }
 
     $response = new WP_REST_Response($svg_markup, 200);
     $response->header('Content-Type', 'image/svg+xml; charset=' . get_option('blog_charset'));
+    $response->header('X-Pera-Portal-SVG-Source', $svg_source);
+
+    if ($svg_source === 'fixture') {
+        $response->header('X-Pera-Portal-Warning', 'floor_svg_missing_using_fixture');
+    }
 
     return $response;
 }
@@ -144,7 +161,15 @@ function pera_portal_rest_serve_raw_floor_svg($served, $result, $request, $serve
         return $served;
     }
 
-    $server->send_header('Content-Type', 'image/svg+xml; charset=' . get_option('blog_charset'));
+    $headers = $result->get_headers();
+    foreach ($headers as $header_name => $header_value) {
+        $server->send_header($header_name, $header_value);
+    }
+
+    if (!isset($headers['Content-Type'])) {
+        $server->send_header('Content-Type', 'image/svg+xml; charset=' . get_option('blog_charset'));
+    }
+
     echo $data;
 
     return true;
