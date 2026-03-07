@@ -75,6 +75,12 @@ get_header();
                         Access your reserved project documents and reports.
                     </p>
 
+                    <?php if ( isset( $_GET['registered'] ) && '1' === sanitize_key( wp_unslash( $_GET['registered'] ) ) ) : ?>
+                        <div class="client-login-success" role="status">
+                            <?php esc_html_e( 'Your account has been created. Please sign in.', 'hello-elementor-child' ); ?>
+                        </div>
+                    <?php endif; ?>
+
                     <?php
                     // WP core login form, styled by .client-login-container inputs & .button-primary
                     $requested_redirect = isset( $_GET['redirect_to'] ) ? esc_url_raw( wp_unslash( $_GET['redirect_to'] ) ) : '';
