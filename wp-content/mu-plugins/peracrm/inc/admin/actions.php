@@ -2259,6 +2259,7 @@ function peracrm_admin_activity_label($event_type)
         'login' => 'Logged in',
         'account_visit' => 'Visited account',
         'enquiry' => 'Submitted enquiry',
+        'registration' => 'Website registration',
     ];
 
     if (isset($labels[$event_type])) {

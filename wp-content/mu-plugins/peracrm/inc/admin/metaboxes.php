@@ -823,6 +823,7 @@ function peracrm_render_activity_timeline_metabox($post)
         'login' => 'Logged in',
         'account_visit' => 'Visited account area',
         'enquiry' => 'Submitted enquiry',
+        'registration' => 'Website registration',
     ];
 
     $allowed_filters = array_keys($event_labels);
