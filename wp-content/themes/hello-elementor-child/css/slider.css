@@ -115,7 +115,7 @@
 
 .cards-slider::-webkit-scrollbar-thumb {
   background: rgba(148, 163, 184, 0.45); /* slate-ish */
-  border-radius: 999px;
+  border-radius: var(--pill-radius, 999px);
 }
 
 .cards-slider::-webkit-scrollbar-thumb:hover {
@@ -285,14 +285,6 @@
   align-items: flex-start;
 }
 
-/* Tiles: no padding “frame”, no forced crop */
-.property-gallery-strip__item{
-  display: block;
-  padding: 0;
-  border-radius: 0;
-  overflow: visible;
-}
-
 /* Images keep aspect ratio; row height controlled by a single value */
 .property-gallery-strip__item img{
   display: block;
@@ -316,7 +308,7 @@
   height: 44px;
 
   border: 0;
-  border-radius: 999px;
+  border-radius: var(--pill-radius, 999px);
   cursor: pointer;
 
   /* Keep styling minimal; inherits your theme if you’ve got button vars */
