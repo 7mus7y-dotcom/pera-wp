@@ -76,8 +76,13 @@ get_header();
                     </p>
 
                     <?php if ( isset( $_GET['registered'] ) && '1' === sanitize_key( wp_unslash( $_GET['registered'] ) ) ) : ?>
+                        <?php $crm_sync = isset( $_GET['crm_sync'] ) ? sanitize_key( wp_unslash( $_GET['crm_sync'] ) ) : 'ok'; ?>
                         <div class="client-login-success" role="status">
-                            <?php esc_html_e( 'Your account has been created. Please sign in.', 'hello-elementor-child' ); ?>
+                            <?php if ( 'pending' === $crm_sync ) : ?>
+                                <?php esc_html_e( 'Your account has been created. Please sign in. If account linking is still processing, our team will complete it shortly.', 'hello-elementor-child' ); ?>
+                            <?php else : ?>
+                                <?php esc_html_e( 'Your account has been created. Please sign in.', 'hello-elementor-child' ); ?>
+                            <?php endif; ?>
                         </div>
                     <?php endif; ?>
 
