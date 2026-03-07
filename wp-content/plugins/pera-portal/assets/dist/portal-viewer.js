@@ -784,6 +784,7 @@
 
         clearSelection('Loading floor data...');
         clearShortlist();
+        renderSvgWarning('');
 
         try {
             const units = await fetchJson('units?floor_id=' + encodeURIComponent(String(state.floorId)) + (state.buildingId > 0 ? '&building_id=' + encodeURIComponent(String(state.buildingId)) : '') + '&mode=' + encodeURIComponent(mode));

@@ -53,6 +53,17 @@ body.pera-portal-page .pera-portal-viewer-wrap {
     color: #92400e;
     font-size: 14px;
 }
+
+
+html[data-theme="dark"] body.pera-portal-page #pera-portal-root .pera-portal-svg-warning,
+body[data-theme="dark"].pera-portal-page #pera-portal-root .pera-portal-svg-warning,
+body.dark.pera-portal-page #pera-portal-root .pera-portal-svg-warning,
+body.is-dark.pera-portal-page #pera-portal-root .pera-portal-svg-warning {
+    border-color: #b45309;
+    background: rgba(120, 53, 15, 0.24);
+    color: #fcd34d;
+}
+
 .pera-portal-legend,
 .pera-portal-filters,
 .pera-portal-counts {

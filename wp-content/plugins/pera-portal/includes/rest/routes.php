@@ -57,7 +57,8 @@ function pera_portal_rest_get_floor(WP_REST_Request $request)
     }
 
     if ($svg_markup === '') {
-        $allow_fixture_fallback = (bool) apply_filters('pera_portal_allow_floor_fixture_fallback', true, $floor_id);
+        $default_allow_fixture_fallback = wp_get_environment_type() !== 'production';
+        $allow_fixture_fallback = (bool) apply_filters('pera_portal_allow_floor_fixture_fallback', $default_allow_fixture_fallback, $floor_id);
 
         if (!$allow_fixture_fallback) {
             return new WP_Error('pera_portal_floor_svg_missing', __('Floor SVG is missing.', 'pera-portal'), ['status' => 404]);
