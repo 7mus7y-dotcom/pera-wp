@@ -3,10 +3,14 @@ if ( ! defined( 'ABSPATH' ) ) {
     exit;
 }
 
-function pera_register_client_portal_page() {
-    $page_slug     = 'client-portal';
-    $page_title    = 'Client Portal';
-    $template_file = 'page-client-portal.php';
+function pera_ensure_client_page( $page_slug, $page_title, $template_file ) {
+    $page_slug     = sanitize_title( (string) $page_slug );
+    $page_title    = sanitize_text_field( (string) $page_title );
+    $template_file = sanitize_file_name( (string) $template_file );
+
+    if ( '' === $page_slug || '' === $page_title || '' === $template_file ) {
+        return;
+    }
 
     $existing_page = get_page_by_path( $page_slug );
 
@@ -34,41 +38,15 @@ function pera_register_client_portal_page() {
         ) );
     }
 }
-add_action( 'after_switch_theme', 'pera_register_client_portal_page' );
 
-
-function pera_register_public_register_page() {
-    $page_slug     = 'register';
-    $page_title    = 'Register';
-    $template_file = 'page-register.php';
-
-    $existing_page = get_page_by_path( $page_slug );
-
-    if ( ! $existing_page ) {
-        $page_id = wp_insert_post( array(
-            'post_title'  => $page_title,
-            'post_name'   => $page_slug,
-            'post_status' => 'publish',
-            'post_type'   => 'page',
-        ) );
-
-        if ( ! is_wp_error( $page_id ) ) {
-            update_post_meta( $page_id, '_wp_page_template', $template_file );
-        }
-
-        return;
-    }
-
-    update_post_meta( $existing_page->ID, '_wp_page_template', $template_file );
-
-    if ( $existing_page->post_name !== $page_slug ) {
-        wp_update_post( array(
-            'ID'        => $existing_page->ID,
-            'post_name' => $page_slug,
-        ) );
-    }
+function pera_register_core_client_pages() {
+    pera_ensure_client_page( 'register', 'Register', 'page-register.php' );
+    pera_ensure_client_page( 'client-portal', 'Client Portal', 'page-client-portal.php' );
+    pera_ensure_client_page( 'client-login', 'Client Login', 'page-client-login.php' );
+    pera_ensure_client_page( 'client-forgot-password', 'Forgot Password', 'page-client-forgot-password.php' );
 }
-add_action( 'after_switch_theme', 'pera_register_public_register_page' );
+add_action( 'after_switch_theme', 'pera_register_core_client_pages', 5 );
+
 
 function pera_public_register_get_redirect( $path, $args = array() ) {
     $url = home_url( $path );
@@ -110,6 +88,11 @@ function pera_public_register_handle_submission() {
 
     if ( ! is_email( $email ) || $password !== $password_confirm ) {
         wp_safe_redirect( pera_public_register_get_redirect( '/register/', array( 'register_error' => 'validation' ) ) );
+        exit;
+    }
+
+    if ( strlen( $password ) < 8 ) {
+        wp_safe_redirect( pera_public_register_get_redirect( '/register/', array( 'register_error' => 'weak_password' ) ) );
         exit;
     }
 
@@ -162,16 +145,16 @@ function pera_public_register_handle_submission() {
     $membership_ok = true;
 
     if ( is_multisite() ) {
-        $target_blog_id = function_exists( 'peracrm_get_target_blog_id' ) ? (int) peracrm_get_target_blog_id() : (int) get_current_blog_id();
+        $target_blog_id = function_exists( 'peracrm_get_target_blog_id' ) ? (int) peracrm_get_target_blog_id() : 0;
 
         if ( $target_blog_id <= 0 ) {
-            $target_blog_id = (int) get_current_blog_id();
+            $membership_ok = false;
         }
 
-        if ( function_exists( 'peracrm_membership_ensure_lead_on_target_blog' ) ) {
+        if ( $membership_ok && function_exists( 'peracrm_membership_ensure_lead_on_target_blog' ) ) {
             $membership = peracrm_membership_ensure_lead_on_target_blog( (int) $user_id, 'public_register' );
             $membership_ok = ! empty( $membership['ok'] );
-        } else {
+        } elseif ( $membership_ok ) {
             $is_member = is_user_member_of_blog( $user_id, $target_blog_id );
             if ( ! $is_member ) {
                 $added = add_user_to_blog( $target_blog_id, $user_id, 'lead' );
@@ -218,7 +201,7 @@ function pera_public_register_handle_submission() {
             'source_url' => home_url( '/register/' ),
         ) );
 
-        $crm_synced = ! empty( $crm_sync['ok'] );
+        $crm_synced = ! empty( $crm_sync['ok'] ) && ( ! array_key_exists( 'event_logged', $crm_sync ) || ! empty( $crm_sync['event_logged'] ) );
     }
 
     wp_safe_redirect( pera_public_register_get_redirect( '/client-login/', array(
