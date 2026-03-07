@@ -209,7 +209,22 @@ function pera_public_register_handle_submission() {
         exit;
     }
 
-    wp_safe_redirect( pera_public_register_get_redirect( '/client-login/', array( 'registered' => 1 ) ) );
+    $crm_synced = true;
+
+    if ( function_exists( 'peracrm_sync_public_registration_to_client' ) ) {
+        $crm_sync = peracrm_sync_public_registration_to_client( (int) $user_id, array(
+            'first_name' => $first_name,
+            'last_name'  => $last_name,
+            'source_url' => home_url( '/register/' ),
+        ) );
+
+        $crm_synced = ! empty( $crm_sync['ok'] );
+    }
+
+    wp_safe_redirect( pera_public_register_get_redirect( '/client-login/', array(
+        'registered' => 1,
+        'crm_sync'   => $crm_synced ? 'ok' : 'pending',
+    ) ) );
     exit;
 }
 add_action( 'admin_post_nopriv_pera_public_register', 'pera_public_register_handle_submission' );

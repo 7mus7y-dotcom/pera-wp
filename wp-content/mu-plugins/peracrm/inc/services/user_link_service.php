@@ -237,6 +237,123 @@ function peracrm_autolink_user_on_login($user_login, $user)
 }
 add_action('wp_login', 'peracrm_autolink_user_on_login', 20, 2);
 
+function peracrm_sync_public_registration_to_client($user_id, array $context = [])
+{
+    $user_id = (int) $user_id;
+    if ($user_id <= 0) {
+        return [
+            'ok' => false,
+            'client_id' => 0,
+            'error' => 'invalid_user',
+        ];
+    }
+
+    if (!function_exists('peracrm_find_or_create_client_by_email') || !function_exists('peracrm_log_event')) {
+        return [
+            'ok' => false,
+            'client_id' => 0,
+            'error' => 'crm_api_unavailable',
+        ];
+    }
+
+    $user = get_userdata($user_id);
+    if (!$user instanceof WP_User) {
+        return [
+            'ok' => false,
+            'client_id' => 0,
+            'error' => 'user_not_found',
+        ];
+    }
+
+    $email = sanitize_email((string) $user->user_email);
+    if (!is_email($email)) {
+        return [
+            'ok' => false,
+            'client_id' => 0,
+            'error' => 'invalid_email',
+        ];
+    }
+
+    $first_name = isset($context['first_name'])
+        ? sanitize_text_field((string) $context['first_name'])
+        : sanitize_text_field((string) get_user_meta($user_id, 'first_name', true));
+    $last_name = isset($context['last_name'])
+        ? sanitize_text_field((string) $context['last_name'])
+        : sanitize_text_field((string) get_user_meta($user_id, 'last_name', true));
+    $source_url = isset($context['source_url']) ? esc_url_raw((string) $context['source_url']) : '';
+
+    $result = peracrm_with_target_blog(static function () use ($user_id, $email, $first_name, $last_name, $source_url) {
+        $client_id = (int) peracrm_find_or_create_client_by_email($email, [
+            'first_name' => $first_name,
+            'last_name' => $last_name,
+            'source' => 'website_registration',
+            'status' => 'enquiry',
+        ]);
+
+        if ($client_id <= 0) {
+            return [
+                'ok' => false,
+                'client_id' => 0,
+                'error' => 'client_upsert_failed',
+            ];
+        }
+
+        $linked_user_id = function_exists('peracrm_get_client_linked_user_id')
+            ? (int) peracrm_get_client_linked_user_id($client_id)
+            : 0;
+
+        if ($linked_user_id > 0 && $linked_user_id !== $user_id) {
+            if (function_exists('peracrm_log_event')) {
+                peracrm_log_event($client_id, 'security', [
+                    'context' => 'public_registration_link_conflict',
+                    'user_id' => $user_id,
+                    'linked_user_id' => $linked_user_id,
+                    'source' => 'website_registration',
+                    'form' => 'public_register',
+                    'email' => $email,
+                ]);
+            }
+
+            return [
+                'ok' => false,
+                'client_id' => $client_id,
+                'error' => 'link_conflict',
+            ];
+        }
+
+        update_user_meta($user_id, 'crm_client_id', $client_id);
+        peracrm_update_client_linked_user_id($client_id, $user_id);
+
+        $event_payload = [
+            'user_id' => $user_id,
+            'source' => 'website_registration',
+            'form' => 'public_register',
+            'email' => $email,
+        ];
+
+        if ($source_url !== '') {
+            $event_payload['source_url'] = $source_url;
+        }
+
+        $event_logged = (bool) peracrm_log_event($client_id, 'registration', $event_payload);
+
+        return [
+            'ok' => true,
+            'client_id' => $client_id,
+            'event_logged' => $event_logged,
+            'error' => $event_logged ? '' : 'event_log_failed',
+        ];
+    });
+
+    return is_array($result)
+        ? $result
+        : [
+            'ok' => false,
+            'client_id' => 0,
+            'error' => 'unexpected_result',
+        ];
+}
+
 
 function peracrm_unlink_user_meta_for_client($post_id, $reason = '')
 {
