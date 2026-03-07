@@ -43,6 +43,16 @@ body.pera-portal-page .pera-portal-viewer-wrap {
     height: auto;
 }
 
+
+.pera-portal-svg-warning {
+    margin: 0 0 12px;
+    padding: 10px 12px;
+    border-radius: 8px;
+    border: 1px solid #f59e0b;
+    background: #fffbeb;
+    color: #92400e;
+    font-size: 14px;
+}
 .pera-portal-legend,
 .pera-portal-filters,
 .pera-portal-counts {
@@ -613,7 +623,9 @@ body.is-dark.pera-portal-page #pera-portal-root .pera-portal-tooltip {
         display: none !important;
     }
 
-    #portal-print-scope .portal-print-section {
+    #portal-print-scope .portal-print-section--selector,
+    #portal-print-scope .portal-print-section--details,
+    #portal-print-scope .portal-print-section--plan {
         display: block !important;
         margin: 0 0 16px !important;
         padding: 0 !important;

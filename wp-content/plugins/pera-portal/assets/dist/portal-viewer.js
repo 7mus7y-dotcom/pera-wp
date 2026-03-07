@@ -615,6 +615,26 @@
         }
     }
 
+    function renderSvgWarning(message) {
+        if (!svgContainer) {
+            return;
+        }
+
+        const existing = svgContainer.querySelector('.pera-portal-svg-warning');
+        if (existing && existing.parentNode) {
+            existing.parentNode.removeChild(existing);
+        }
+
+        if (!message) {
+            return;
+        }
+
+        const warning = document.createElement('p');
+        warning.className = 'pera-portal-svg-warning';
+        warning.textContent = message;
+        svgContainer.insertAdjacentElement('afterbegin', warning);
+    }
+
     function clearSelection(message) {
         if (selectedElement) {
             selectedElement.classList.remove('is-selected');
@@ -772,9 +792,14 @@
             });
 
             if (!svgResponse.ok) {
-                throw new Error('SVG request failed: HTTP ' + svgResponse.status);
+                const svgError = new Error('SVG request failed: HTTP ' + svgResponse.status);
+                svgError.status = svgResponse.status;
+                svgError.isSvgRequest = true;
+                throw svgError;
             }
 
+            const svgSource = safeText(svgResponse.headers.get('X-Pera-Portal-SVG-Source')).toLowerCase();
+            const svgWarningCode = safeText(svgResponse.headers.get('X-Pera-Portal-Warning')).toLowerCase();
             const svgText = await svgResponse.text();
             const parser = new DOMParser();
             const svgDoc = parser.parseFromString(svgText, 'image/svg+xml');
@@ -791,6 +816,9 @@
             if (svgContainer) {
                 svgContainer.textContent = '';
                 svgContainer.appendChild(document.importNode(svgEl, true));
+                if (svgSource === 'fixture' || svgWarningCode === 'floor_svg_missing_using_fixture') {
+                    renderSvgWarning('Showing fallback floor plan. Uploaded floor SVG is missing.');
+                }
             }
 
             const svg = svgContainer ? svgContainer.querySelector('svg') : null;
@@ -932,6 +960,18 @@
             if (error && (error.status === 401 || error.status === 403)) {
                 setMessage(detailsContainer, 'Not authorized. Ensure you are logged in and have portal access.');
                 setMessage(svgContainer, 'Unable to load floor plan. ' + message);
+                return;
+            }
+
+            if (error && error.isSvgRequest === true && error.status === 404) {
+                setMessage(svgContainer, 'Floor plan data is missing for this floor.');
+                setMessage(detailsContainer, 'Unable to load floor plan for the selected floor.');
+                return;
+            }
+
+            if (error && error.isSvgRequest === true && safeText(error.message).indexOf('SVG request failed') === 0) {
+                setMessage(svgContainer, 'Unable to load floor plan. ' + message);
+                setMessage(detailsContainer, 'Units loaded, but floor plan failed to load.');
                 return;
             }
 
