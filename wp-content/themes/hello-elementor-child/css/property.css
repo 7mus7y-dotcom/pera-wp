@@ -1164,6 +1164,9 @@ body.is-lightbox-open{ overflow: hidden; }
 
 .property-pagination {
     margin:20px 0;
+    width: 100%;
+    display: flex;
+    justify-content: center;
 }
 
 .property-pagination .page-numbers {
@@ -1234,14 +1237,6 @@ body.is-lightbox-open{ overflow: hidden; }
   align-items: center;
   gap: var(--space-sm);
 }
-
-/* Ensure nav doesn’t stretch weirdly */
-.property-pagination{
-  width: 100%;
-  display: flex;
-  justify-content: center;
-}
-
 
 /* Ensure the wrapper itself centers its contents */
 .property-results-actions .property-load-more-wrap{

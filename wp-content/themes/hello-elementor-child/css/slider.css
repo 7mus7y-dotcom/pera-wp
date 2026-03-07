@@ -216,6 +216,13 @@
   padding-bottom: 2px;
   cursor: grab;
   touch-action: pan-y;
+
+  /* hide scrollbar */
+  scrollbar-width: none;            /* Firefox */
+}
+
+.property-gallery-strip::-webkit-scrollbar{
+  display: none;                    /* WebKit */
 }
 
 .property-gallery-strip.is-dragging {
@@ -232,6 +239,7 @@
   display: flex;
   gap: 10px;               /* gap between images */
   width: max-content;      /* ensures horizontal overflow */
+  align-items: flex-start; /* stop stretching items to the tallest height */
 }
 
 .property-gallery-strip__item{
@@ -245,8 +253,7 @@
 .property-gallery-strip__item img{
   display: block;          /* removes baseline gap */
   width: auto;
-  height: auto;
-  max-height: 220px;       /* controls row height without forcing frames */
+  height: var(--gallery-row-h, 220px);
   max-width: 80vw;         /* prevents huge images on mobile */
   border-radius:var(--radius-lg);
 }
@@ -255,42 +262,9 @@
   scroll-snap-align: start;
 }
 
-.property-gallery-strip__row{
-  align-items: flex-start; /* stop stretching items to the tallest height */
-}
-
 /* Shell so nav buttons can overlay */
 .property-gallery-shell{
   position: relative;
-}
-
-/* Keep strip scrollable but hide scrollbar */
-.property-gallery-strip{
-  overflow-x: auto;
-  overflow-y: hidden;
-  -webkit-overflow-scrolling: touch;
-
-  /* hide scrollbar */
-  scrollbar-width: none;            /* Firefox */
-}
-.property-gallery-strip::-webkit-scrollbar{
-  display: none;                    /* WebKit */
-}
-
-/* Two rows: prevent item stretching (removes “blank frame” below images) */
-.property-gallery-strip__row{
-  display: flex;
-  gap: 10px;
-  width: max-content;
-  align-items: flex-start;
-}
-
-/* Images keep aspect ratio; row height controlled by a single value */
-.property-gallery-strip__item img{
-  display: block;
-  height: var(--gallery-row-h, 220px);
-  width: auto;
-  max-width: 80vw;
 }
 
 /* Nav chevrons */
@@ -337,7 +311,6 @@
    Slider card buttons — mobile sizing tweak
    ======================================================= */
 @media (max-width: 640px) {
-
   .cards-slider .slider-card .btn {
     padding: 8px 12px;          /* tighter vertical + horizontal */
     font-size: 0.875rem;        /* ~14px */
@@ -348,18 +321,10 @@
     gap: 8px;                   /* reduce spacing between buttons */
   }
 
-}
-
-/* =======================================================
-   Featured district cards — wider on mobile
-   ======================================================= */
-@media (max-width: 640px) {
-
   .cards-slider--wide .slider-card {
     flex-basis: 75vw;           /* feels premium, swipe-friendly */
     max-width: 75vw;
   }
-
 }
 
 
