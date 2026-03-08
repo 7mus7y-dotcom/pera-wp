@@ -630,7 +630,11 @@ body.is-dark.pera-portal-page #pera-portal-root .pera-portal-tooltip {
         margin: 0 !important;
     }
 
-    #portal-print-scope > * {
+    #portal-print-scope .pera-portal-panel--svg > * {
+        display: none !important;
+    }
+
+    #portal-print-scope .pera-portal-panel--details > * {
         display: none !important;
     }
 
