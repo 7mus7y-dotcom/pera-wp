@@ -8,6 +8,7 @@ function pera_portal_register_page_rewrites()
 {
     add_rewrite_rule('^portal/?$', 'index.php?pera_portal_page=landing', 'top');
     add_rewrite_rule('^portal/building/([0-9]+)/?$', 'index.php?pera_portal_page=building&pera_building_id=$matches[1]', 'top');
+    add_rewrite_rule('^portal/quote/([^/]+)/?$', 'index.php?pera_portal_page=quote&pera_quote_token=$matches[1]', 'top');
 }
 
 add_action('init', 'pera_portal_register_page_rewrites');
@@ -16,6 +17,7 @@ function pera_portal_register_page_query_vars($vars)
 {
     $vars[] = 'pera_portal_page';
     $vars[] = 'pera_building_id';
+    $vars[] = 'pera_quote_token';
 
     return $vars;
 }
@@ -34,6 +36,8 @@ function pera_portal_maybe_override_page_template($template)
         $portal_template = PERA_PORTAL_PATH . '/templates/portal-landing.php';
     } elseif ($portal_page === 'building') {
         $portal_template = PERA_PORTAL_PATH . '/templates/portal-building.php';
+    } elseif ($portal_page === 'quote') {
+        $portal_template = PERA_PORTAL_PATH . '/templates/portal-quote.php';
     } else {
         return $template;
     }
@@ -76,3 +80,14 @@ function pera_portal_render_rewrite_notice()
 }
 
 add_action('admin_notices', 'pera_portal_render_rewrite_notice');
+
+function pera_portal_output_quote_noindex_meta()
+{
+    if (sanitize_key((string) get_query_var('pera_portal_page')) !== 'quote') {
+        return;
+    }
+
+    echo "\n" . '<meta name="robots" content="noindex, nofollow" />' . "\n";
+}
+
+add_action('wp_head', 'pera_portal_output_quote_noindex_meta', 1);
