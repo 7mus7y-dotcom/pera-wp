@@ -639,6 +639,7 @@ body.is-dark.pera-portal-page #pera-portal-root .pera-portal-tooltip {
     }
 
     #portal-print-scope .portal-print-section--selector,
+    #portal-print-scope .pera-portal-svg-placeholder,
     #portal-print-scope .portal-print-section--details,
     #portal-print-scope .portal-print-section--plan {
         display: block !important;
@@ -656,6 +657,13 @@ body.is-dark.pera-portal-page #pera-portal-root .pera-portal-tooltip {
     #portal-print-scope .portal-print-section--plan img,
     #portal-print-scope .portal-print-section--plan svg,
     #portal-print-scope .portal-print-section--plan canvas {
+        max-width: 100% !important;
+        height: auto !important;
+    }
+
+    #portal-print-scope .pera-portal-svg-placeholder img,
+    #portal-print-scope .pera-portal-svg-placeholder svg,
+    #portal-print-scope .pera-portal-svg-placeholder canvas {
         max-width: 100% !important;
         height: auto !important;
     }
