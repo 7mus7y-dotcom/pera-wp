@@ -52,7 +52,7 @@ nocache_headers();
         .pera-quote-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
         .pera-quote-status{padding:12px;border-radius:8px;font-weight:600}.status-active{background:#ecfdf5;color:#166534}.status-expired{background:#fff7ed;color:#9a3412}.status-revoked{background:#fef2f2;color:#991b1b}
         .pera-quote-price{font-size:30px;font-weight:700}
-        .pera-quote-plan img,.pera-quote-plan svg{max-width:100%;height:auto;border:1px solid #ddd;border-radius:4px}
+        .pera-quote-plan img{max-width:100%;height:auto;border:1px solid #ddd;border-radius:4px}.pera-quote-plan svg{width:100%;max-width:100%;height:auto;border:1px solid #ddd;border-radius:4px}
         @media print {.pera-quote-page{padding:0}.pera-quote-header,.pera-quote-section{page-break-inside:avoid;box-shadow:none}}
     </style>
 </head>
