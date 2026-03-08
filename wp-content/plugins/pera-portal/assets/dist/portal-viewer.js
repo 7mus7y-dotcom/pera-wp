@@ -31,6 +31,7 @@
     const summaryPpsEl = root.querySelector('[data-summary-pps]');
     const summarySizeEl = root.querySelector('[data-summary-size]');
     const summaryCountEl = root.querySelector('[data-summary-count]');
+    const quoteToolsContainer = root.querySelector('[data-quote-tools]');
     const colorModeButtons = root.querySelectorAll('[data-color-mode]');
     const restBase = typeof config.rest_url === 'string' ? config.rest_url : '';
     const headers = {
@@ -536,6 +537,114 @@
         countsContainer.textContent = 'Total: ' + unitsData.length + ' (Visible: ' + visibleTotal + ') | Available: ' + totals.available + ' | Reserved: ' + totals.reserved + ' | Sold: ' + totals.sold;
     }
 
+    async function createQuote(payload) {
+        const response = await fetch(restBase + 'quotes', {
+            method: 'POST',
+            headers: Object.assign({'Content-Type': 'application/json'}, headers),
+            credentials: 'same-origin',
+            body: JSON.stringify(payload),
+        });
+
+        const data = await response.json();
+
+        if (!response.ok) {
+            throw new Error(data && data.message ? data.message : 'Unable to create quote.');
+        }
+
+        return data;
+    }
+
+    function renderQuoteTools(unit) {
+        if (!quoteToolsContainer) {
+            return;
+        }
+
+        if (!unit || !unit.id) {
+            quoteToolsContainer.hidden = true;
+            quoteToolsContainer.textContent = '';
+            return;
+        }
+
+        quoteToolsContainer.hidden = false;
+        quoteToolsContainer.innerHTML = '';
+
+        const wrap = document.createElement('div');
+        wrap.className = 'pera-portal-quote-box';
+
+        const heading = document.createElement('h4');
+        heading.textContent = 'Create Client Quote';
+        wrap.appendChild(heading);
+
+        const form = document.createElement('form');
+        form.className = 'pera-portal-quote-form';
+        form.innerHTML = ''
+            + '<label>Quoted Price <input name="quoted_price" type="number" step="0.01" required></label>'
+            + '<label>Currency <input name="currency" type="text" required></label>'
+            + '<label>Expiry <input name="expires_at" type="datetime-local" required></label>'
+            + '<label>Consultant Note <textarea name="consultant_note" rows="2"></textarea></label>'
+            + '<label>Client Name <input name="client_name" type="text"></label>'
+            + '<label>Client Email <input name="client_email" type="email"></label>'
+            + '<label>Client Phone <input name="client_phone" type="text"></label>'
+            + '<button type="submit" class="button-like">Create Client Quote</button>';
+
+        const priceInput = form.querySelector('input[name="quoted_price"]');
+        const currencyInput = form.querySelector('input[name="currency"]');
+        if (priceInput && unit.price != null) {
+            priceInput.value = String(unit.price);
+        }
+        if (currencyInput && unit.currency) {
+            currencyInput.value = String(unit.currency);
+        }
+
+        const result = document.createElement('div');
+        result.className = 'pera-portal-quote-result';
+
+        form.addEventListener('submit', async function (event) {
+            event.preventDefault();
+            result.textContent = 'Creating quote…';
+
+            const fd = new FormData(form);
+            const payload = {
+                unit_id: unit.id,
+                quoted_price: Number(fd.get('quoted_price') || 0),
+                currency: String(fd.get('currency') || ''),
+                expires_at: String(fd.get('expires_at') || ''),
+                consultant_note: String(fd.get('consultant_note') || ''),
+                client_name: String(fd.get('client_name') || ''),
+                client_email: String(fd.get('client_email') || ''),
+                client_phone: String(fd.get('client_phone') || ''),
+                source_context: 'portal',
+            };
+
+            try {
+                const created = await createQuote(payload);
+                result.innerHTML = ''
+                    + '<p><strong>Reference:</strong> ' + safeText(created.quote_reference || '') + '</p>'
+                    + '<p><a href="' + safeText(created.public_url || '#') + '" target="_blank" rel="noopener noreferrer">Open Quote</a></p>'
+                    + '<p><button type="button" data-copy-quote="1">Copy Link</button></p>'
+                    + (created.warning ? '<p>' + safeText(created.warning) + '</p>' : '');
+
+                const copyBtn = result.querySelector('[data-copy-quote="1"]');
+                if (copyBtn) {
+                    copyBtn.addEventListener('click', async function () {
+                        try {
+                            await navigator.clipboard.writeText(String(created.public_url || ''));
+                            copyBtn.textContent = 'Copied';
+                        } catch (error) {
+                            copyBtn.textContent = 'Copy failed';
+                        }
+                    });
+                }
+            } catch (error) {
+                result.textContent = String(error && error.message ? error.message : 'Unable to create quote.');
+            }
+        });
+
+        wrap.appendChild(form);
+        wrap.appendChild(result);
+        quoteToolsContainer.appendChild(wrap);
+    }
+
     function renderDetails(unit) {
         if (!detailsContainer) {
             return;
@@ -607,6 +716,8 @@
         } else {
             detailsContainer.appendChild(planWrap);
         }
+
+        renderQuoteTools(unit);
     }
 
     function setMessage(target, message) {
@@ -650,6 +761,8 @@
         if (message) {
             setMessage(detailsContainer, message);
         }
+
+        renderQuoteTools(null);
     }
 
     function applyFilters() {

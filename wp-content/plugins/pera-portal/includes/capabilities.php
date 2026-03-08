@@ -87,3 +87,36 @@ if (!function_exists('pera_portal_current_user_can_access')) {
             : current_user_can('manage_options');
     }
 }
+
+if (!function_exists('pera_portal_current_user_can_create_quotes')) {
+    function pera_portal_current_user_can_create_quotes()
+    {
+        if (!pera_portal_current_user_can_access()) {
+            return false;
+        }
+
+        return current_user_can('manage_options') || current_user_can('pera_portal_create_quotes') || pera_portal_current_user_can_access();
+    }
+}
+
+if (!function_exists('pera_portal_current_user_can_manage_quotes')) {
+    function pera_portal_current_user_can_manage_quotes()
+    {
+        if (!pera_portal_current_user_can_access()) {
+            return false;
+        }
+
+        return current_user_can('manage_options') || current_user_can('pera_portal_manage_quotes') || pera_portal_current_user_can_access();
+    }
+}
+
+if (!function_exists('pera_portal_current_user_can_revoke_quotes')) {
+    function pera_portal_current_user_can_revoke_quotes()
+    {
+        if (!pera_portal_current_user_can_access()) {
+            return false;
+        }
+
+        return current_user_can('manage_options') || current_user_can('pera_portal_revoke_quotes') || pera_portal_current_user_can_access();
+    }
+}

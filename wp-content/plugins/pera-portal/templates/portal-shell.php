@@ -126,6 +126,7 @@ if (!defined('ABSPATH')) {
                 </div>
                 <div class="portal-print-section portal-print-section--details">
                     <div class="pera-portal-details-placeholder"><?php echo esc_html__('Unit details placeholder', 'pera-portal'); ?></div>
+                    <div class="pera-portal-quote-tools" data-quote-tools hidden></div>
                 </div>
                 <div class="portal-print-section portal-print-section--plan">
                     <div class="pera-portal-plan-placeholder"></div>

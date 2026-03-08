@@ -697,3 +697,35 @@ body.is-dark.pera-portal-page #pera-portal-root .pera-portal-tooltip {
         background: #fff !important;
     }
 }
+
+.pera-portal-quote-tools {
+    margin-top: 16px;
+    border-top: 1px solid var(--portal-border);
+    padding-top: 12px;
+}
+
+.pera-portal-quote-form {
+    display: grid;
+    gap: 8px;
+}
+
+.pera-portal-quote-form label {
+    display: grid;
+    gap: 4px;
+    font-size: 13px;
+    color: var(--portal-text-muted);
+}
+
+.pera-portal-quote-form input,
+.pera-portal-quote-form textarea {
+    border: 1px solid var(--portal-border);
+    border-radius: 4px;
+    padding: 6px 8px;
+    background: var(--portal-surface-2);
+    color: var(--portal-text);
+}
+
+.pera-portal-quote-result {
+    margin-top: 10px;
+    font-size: 13px;
+}
