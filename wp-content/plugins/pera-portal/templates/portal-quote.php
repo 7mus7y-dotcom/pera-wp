@@ -25,6 +25,9 @@ $status = pera_portal_quote_get_business_status($quote->ID);
 $payload = json_decode((string) get_post_meta($quote->ID, '_pera_quote_payload_v1', true), true);
 $payload = is_array($payload) ? $payload : [];
 $floor_svg = (string) get_post_meta($quote->ID, '_pera_quote_floor_plan_svg', true);
+$floor_svg_renderable = function_exists('pera_portal_quote_sanitize_svg_markup')
+    ? pera_portal_quote_sanitize_svg_markup($floor_svg)
+    : '';
 $apartment_plan_id = absint(get_post_meta($quote->ID, '_pera_quote_apartment_plan_attachment_id', true));
 $apartment_plan_url = $apartment_plan_id > 0 ? wp_get_attachment_url($apartment_plan_id) : '';
 
@@ -80,7 +83,7 @@ nocache_headers();
 
         <section class="pera-quote-section pera-quote-plan">
             <h3><?php esc_html_e('Frozen Floor Plan', 'pera-portal'); ?></h3>
-            <?php echo $floor_svg !== '' ? wp_kses_post($floor_svg) : '<p>' . esc_html__('No floor plan available.', 'pera-portal') . '</p>'; ?>
+            <?php echo $floor_svg_renderable !== '' ? $floor_svg_renderable : '<p>' . esc_html__('No floor plan available.', 'pera-portal') . '</p>'; ?>
         </section>
 
         <section class="pera-quote-section pera-quote-plan">
