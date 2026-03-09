@@ -11,6 +11,7 @@ $pera_portal_bootstrap_files = [
     PERA_PORTAL_PATH . '/includes/admin/menu.php',
     PERA_PORTAL_PATH . '/includes/admin/viewer-page.php',
     PERA_PORTAL_PATH . '/includes/admin/diagnostics-page.php',
+    PERA_PORTAL_PATH . '/includes/admin/units-manager-page.php',
     PERA_PORTAL_PATH . '/includes/helpers/format.php',
     PERA_PORTAL_PATH . '/includes/helpers/sanitize.php',
     PERA_PORTAL_PATH . '/includes/services/AccessService.php',
