@@ -34,6 +34,44 @@ function pera_portal_quote_resolve_floor_svg_markup($floor_id)
     return $sanitized;
 }
 
+function pera_portal_quote_get_floor_unit_codes($floor_id)
+{
+    $floor_id = absint($floor_id);
+    if ($floor_id <= 0) {
+        return [];
+    }
+
+    $query = new WP_Query([
+        'post_type' => 'pera_unit',
+        'post_status' => ['publish', 'private'],
+        'posts_per_page' => -1,
+        'fields' => 'ids',
+        'orderby' => 'title',
+        'order' => 'ASC',
+        'meta_query' => [
+            [
+                'key' => 'floor',
+                'value' => (string) $floor_id,
+                'compare' => '=',
+            ],
+        ],
+    ]);
+
+    $codes = [];
+
+    foreach ($query->posts as $unit_id) {
+        $raw_code = pera_portal_quote_get_field('unit_code', $unit_id);
+        $code = sanitize_text_field((string) $raw_code);
+        if ($code === '') {
+            continue;
+        }
+
+        $codes[$code] = $code;
+    }
+
+    return array_values($codes);
+}
+
 function pera_portal_quote_build_snapshot($unit_id, array $request)
 {
     $unit = get_post($unit_id);
@@ -77,6 +115,8 @@ function pera_portal_quote_build_snapshot($unit_id, array $request)
         return $floor_svg;
     }
 
+    $floor_unit_codes = pera_portal_quote_get_floor_unit_codes($floor_id);
+
     $plan = pera_portal_quote_get_field('unit_detail_plan', $unit_id);
     $source_attachment_id = is_array($plan) && !empty($plan['ID']) ? (int) $plan['ID'] : (is_numeric($plan) ? (int) $plan : 0);
     $copied_attachment_id = pera_portal_quote_copy_attachment($source_attachment_id, 'quote-apartment-plan');
@@ -88,6 +128,7 @@ function pera_portal_quote_build_snapshot($unit_id, array $request)
         'floor_label' => sanitize_text_field((string) pera_portal_quote_get_field('floor_number', $floor_id)),
         'unit_code' => sanitize_text_field((string) pera_portal_quote_get_field('unit_code', $unit_id)),
         'unit_type' => sanitize_text_field((string) pera_portal_quote_get_field('unit_type', $unit_id)),
+        'floor_unit_codes' => $floor_unit_codes,
         'net_size' => pera_portal_quote_get_field('net_size', $unit_id),
         'gross_size' => pera_portal_quote_get_field('gross_size', $unit_id),
         'price' => $price,
