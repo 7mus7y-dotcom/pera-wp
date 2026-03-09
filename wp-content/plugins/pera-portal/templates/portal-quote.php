@@ -40,6 +40,19 @@ $banner = $status === 'revoked'
     : ($status === 'expired'
         ? __('This quote has expired. Please contact your consultant for a refreshed quote.', 'pera-portal')
         : __('Quote is active and valid until the expiry date below.', 'pera-portal'));
+$status_label = $status === 'revoked'
+    ? __('Revoked', 'pera-portal')
+    : ($status === 'expired'
+        ? __('Expired', 'pera-portal')
+        : __('Active', 'pera-portal'));
+$quote_reference = (string) ($payload['reference'] ?? get_post_meta($quote->ID, '_pera_quote_reference', true));
+$issued_gmt = trim((string) ($payload['issued_gmt'] ?? ''));
+$expires_gmt = trim((string) ($payload['expires_gmt'] ?? ''));
+$price_raw = $payload['price'] ?? null;
+$price_currency = trim((string) ($payload['currency'] ?? ''));
+$price_display = is_numeric($price_raw)
+    ? trim(number_format((float) $price_raw, 2) . ' ' . $price_currency)
+    : __('—', 'pera-portal');
 
 status_header(200);
 nocache_headers();
@@ -53,9 +66,20 @@ nocache_headers();
     <style>
         .pera-quote-page{font-family:Arial,sans-serif;max-width:1000px;margin:0 auto;padding:24px;color:#111}
         .pera-quote-header,.pera-quote-section{border:1px solid #ddd;border-radius:8px;padding:16px;margin-bottom:16px}
+        .pera-quote-header{padding:24px;border-color:#cfd6df;background:#f8fafc;margin-bottom:22px}
+        .pera-quote-header h1{margin:0 0 14px;font-size:32px;line-height:1.15;letter-spacing:-0.02em}
+        .pera-quote-meta{display:flex;flex-wrap:wrap;gap:8px 14px;align-items:center;color:#475569;font-size:13px}
+        .pera-quote-meta-item{display:inline-flex;gap:6px;align-items:center}
+        .pera-quote-meta-item strong{color:#334155;font-size:12px;letter-spacing:0.04em;text-transform:uppercase}
+        .pera-quote-status-inline{display:inline-flex;align-items:center;padding:3px 10px;border-radius:999px;font-weight:600;font-size:12px;line-height:1.2}
+        .pera-quote-status{margin-top:12px;padding:10px 12px;border-radius:8px;font-weight:600;font-size:14px}
         .pera-quote-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
         .pera-quote-status{padding:12px;border-radius:8px;font-weight:600}.status-active{background:#ecfdf5;color:#166534}.status-expired{background:#fff7ed;color:#9a3412}.status-revoked{background:#fef2f2;color:#991b1b}
-        .pera-quote-price{font-size:30px;font-weight:700}
+        .pera-quote-section--price{padding:22px;margin-bottom:22px}
+        .pera-quote-price-label{margin:0 0 6px;font-size:12px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:#64748b}
+        .pera-quote-price{font-size:42px;line-height:1.1;font-weight:700;letter-spacing:-0.02em;margin-bottom:12px}
+        .pera-quote-validity{margin:0;font-size:13px;color:#475569}
+        .pera-quote-validity strong{font-size:12px;letter-spacing:0.04em;text-transform:uppercase;color:#334155}
         .pera-quote-plan img{max-width:100%;height:auto;border:1px solid #ddd;border-radius:4px}.pera-quote-plan svg{width:100%;max-width:100%;height:auto;border:1px solid #ddd;border-radius:4px}
         body.pera-quote-public-page .pera-quote-plan[data-quoted-unit-code].has-quoted-unit svg .is-quoted-unit,
         body.pera-quote-public-page .pera-quote-plan[data-quoted-unit-code].has-quoted-unit svg .is-quoted-unit path,
@@ -84,6 +108,7 @@ nocache_headers();
             opacity: 0.9 !important;
         }
         @media print {.pera-quote-page{padding:0}.pera-quote-header,.pera-quote-section{page-break-inside:avoid;box-shadow:none}}
+        @media (max-width: 640px) {.pera-quote-header h1{font-size:28px}.pera-quote-price{font-size:34px}}
     </style>
 </head>
 <body <?php body_class('pera-quote-public-page'); ?>>
@@ -91,16 +116,20 @@ nocache_headers();
     <main class="pera-quote-page">
         <section class="pera-quote-header">
             <h1><?php echo esc_html($payload['building_title'] ?? get_bloginfo('name')); ?></h1>
-            <p><strong><?php esc_html_e('Quote Reference:', 'pera-portal'); ?></strong> <?php echo esc_html((string) ($payload['reference'] ?? get_post_meta($quote->ID, '_pera_quote_reference', true))); ?></p>
+            <div class="pera-quote-meta">
+                <span class="pera-quote-meta-item"><strong><?php esc_html_e('Reference', 'pera-portal'); ?></strong> <span><?php echo esc_html($quote_reference !== '' ? $quote_reference : '—'); ?></span></span>
+                <span class="pera-quote-meta-item"><strong><?php esc_html_e('Status', 'pera-portal'); ?></strong> <span class="pera-quote-status-inline status-<?php echo esc_attr($status); ?>"><?php echo esc_html($status_label); ?></span></span>
+                <?php if ($issued_gmt !== '') : ?>
+                    <span class="pera-quote-meta-item"><strong><?php esc_html_e('Issued', 'pera-portal'); ?></strong> <span><?php echo esc_html($issued_gmt); ?> GMT</span></span>
+                <?php endif; ?>
+            </div>
             <div class="pera-quote-status status-<?php echo esc_attr($status); ?>"><?php echo esc_html($banner); ?></div>
         </section>
 
-        <section class="pera-quote-section">
-            <div class="pera-quote-price"><?php echo esc_html(number_format((float) ($payload['price'] ?? 0), 2) . ' ' . ($payload['currency'] ?? '')); ?></div>
-            <p>
-                <strong><?php esc_html_e('Issued:', 'pera-portal'); ?></strong> <?php echo esc_html((string) ($payload['issued_gmt'] ?? '')); ?> GMT<br>
-                <strong><?php esc_html_e('Valid Until:', 'pera-portal'); ?></strong> <?php echo esc_html((string) ($payload['expires_gmt'] ?? '')); ?> GMT
-            </p>
+        <section class="pera-quote-section pera-quote-section--price">
+            <p class="pera-quote-price-label"><?php esc_html_e('Price', 'pera-portal'); ?></p>
+            <div class="pera-quote-price"><?php echo esc_html($price_display); ?></div>
+            <p class="pera-quote-validity"><strong><?php esc_html_e('Valid Until', 'pera-portal'); ?></strong> <?php echo esc_html($expires_gmt !== '' ? $expires_gmt . ' GMT' : '—'); ?></p>
         </section>
 
         <section class="pera-quote-section pera-quote-grid">
