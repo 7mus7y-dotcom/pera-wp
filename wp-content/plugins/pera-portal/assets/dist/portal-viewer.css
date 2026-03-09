@@ -1202,3 +1202,184 @@ body.is-dark.pera-portal-page #pera-portal-root .pera-portal-tooltip {
         width: 100%;
     }
 }
+
+/* Dark mode polish refinements */
+@media (prefers-color-scheme: dark) {
+    body.pera-portal-page #pera-portal-root .pera-portal-panel,
+    body.pera-portal-page #pera-portal-root .pera-portal-summary,
+    body.pera-portal-page #pera-portal-root .pera-portal-compare,
+    body.pera-portal-page #pera-portal-root .pera-portal-topbar {
+        border-color: color-mix(in srgb, var(--portal-border) 88%, #64748b 12%);
+    }
+
+    body.pera-portal-page #pera-portal-root .pera-portal-panel--svg {
+        background: linear-gradient(180deg, color-mix(in srgb, var(--portal-surface-2) 84%, #0b1220 16%) 0%, var(--portal-surface) 100%);
+    }
+
+    body.pera-portal-page #pera-portal-root .pera-portal-legend__item,
+    body.pera-portal-page #pera-portal-root .pera-portal-counts,
+    body.pera-portal-page #pera-portal-root .pera-portal-floorbar label,
+    body.pera-portal-page #pera-portal-root .pera-portal-shortlistbar,
+    body.pera-portal-page #pera-portal-root .pera-portal-unit-card__type,
+    body.pera-portal-page #pera-portal-root .pera-portal-unit-card__eyebrow,
+    body.pera-portal-page #pera-portal-root .pera-portal-unit-plan__context {
+        color: color-mix(in srgb, var(--portal-text-muted) 72%, #e2e8f0 28%);
+    }
+
+    body.pera-portal-page #pera-portal-root .pera-portal-filter-pill {
+        border-color: color-mix(in srgb, var(--portal-border) 76%, #94a3b8 24%);
+        background: color-mix(in srgb, var(--portal-surface-2) 82%, #0f172a 18%);
+    }
+
+    body.pera-portal-page #pera-portal-root .pera-portal-filter-pill input {
+        accent-color: #60a5fa;
+    }
+
+    body.pera-portal-page #pera-portal-root .pera-portal-filter-pill:hover {
+        border-color: color-mix(in srgb, var(--portal-accent) 52%, var(--portal-border));
+        background: color-mix(in srgb, var(--portal-accent) 20%, var(--portal-surface-2));
+    }
+
+    body.pera-portal-page #pera-portal-root .pera-portal-filter-pill:focus-within {
+        box-shadow: 0 0 0 2px color-mix(in srgb, var(--portal-focus) 82%, transparent);
+    }
+
+    body.pera-portal-page #pera-portal-root .pera-portal-panel--svg svg {
+        background: color-mix(in srgb, var(--portal-surface-2) 78%, #0b1220 22%);
+        border-radius: 8px;
+    }
+
+    body.pera-portal-page #pera-portal-root .pera-portal-panel--svg svg .unit:hover {
+        filter: brightness(1.12) saturate(1.06);
+    }
+
+    body.pera-portal-page #pera-portal-root .pera-portal-panel--svg svg .unit.is-selected,
+    body.pera-portal-page #pera-portal-root .unit.is-selected {
+        stroke: #60a5fa !important;
+        filter: brightness(1.08) drop-shadow(0 0 4px rgba(96, 165, 250, 0.45));
+    }
+
+    body.pera-portal-page #pera-portal-root .pera-portal-unit-card,
+    body.pera-portal-page #pera-portal-root .pera-portal-unit-plan,
+    body.pera-portal-page #pera-portal-root .pera-portal-unit-plan__preview,
+    body.pera-portal-page #pera-portal-root .pera-portal-plan-state,
+    body.pera-portal-page #pera-portal-root .pera-portal-unit-plan__empty,
+    body.pera-portal-page #pera-portal-root .pera-portal-quote-box {
+        border-color: color-mix(in srgb, var(--portal-border) 82%, #94a3b8 18%);
+    }
+
+    body.pera-portal-page #pera-portal-root .pera-portal-unit-card__facts,
+    body.pera-portal-page #pera-portal-root .pera-portal-unit-card__status,
+    body.pera-portal-page #pera-portal-root .pera-portal-floor-select,
+    body.pera-portal-page #pera-portal-root .pera-portal-quote-form input,
+    body.pera-portal-page #pera-portal-root .pera-portal-quote-form textarea {
+        background: color-mix(in srgb, var(--portal-surface) 70%, #0b1220 30%);
+        border-color: color-mix(in srgb, var(--portal-border) 74%, #94a3b8 26%);
+    }
+
+    body.pera-portal-page #pera-portal-root .pera-portal-unit-card__price {
+        border-top-color: color-mix(in srgb, var(--portal-border) 80%, #94a3b8 20%);
+    }
+
+    body.pera-portal-page #pera-portal-root .pera-portal-compare__table th,
+    body.pera-portal-page #pera-portal-root .pera-portal-compare__table td {
+        border-bottom-color: color-mix(in srgb, var(--portal-border) 78%, #94a3b8 22%);
+    }
+
+    body.pera-portal-page #pera-portal-root .pera-portal-compare__table tbody tr:hover {
+        background: color-mix(in srgb, var(--portal-accent) 30%, var(--portal-surface-2));
+    }
+
+    body.pera-portal-page #pera-portal-root .pera-portal-compare__remove,
+    body.pera-portal-page #pera-portal-root .pera-portal-shortlistclear,
+    body.pera-portal-page #pera-portal-root .pera-portal-iconbtn {
+        border-color: color-mix(in srgb, var(--portal-border) 74%, #94a3b8 26%);
+        color: color-mix(in srgb, var(--portal-text) 82%, #ffffff 18%);
+    }
+
+    body.pera-portal-page #pera-portal-root .pera-portal-compare__remove:hover,
+    body.pera-portal-page #pera-portal-root .pera-portal-shortlistclear:hover,
+    body.pera-portal-page #pera-portal-root .pera-portal-iconbtn:hover {
+        border-color: color-mix(in srgb, var(--portal-accent) 62%, #93c5fd 38%);
+        background: color-mix(in srgb, var(--portal-accent) 30%, var(--portal-surface));
+    }
+
+    body.pera-portal-page #pera-portal-root .pera-portal-iconbtn:active {
+        background: color-mix(in srgb, var(--portal-accent) 44%, var(--portal-surface));
+    }
+
+    body.pera-portal-page #pera-portal-root .pera-portal-tooltip,
+    body.pera-portal-page #pera-portal-root .pera-portal-share-toast {
+        border: 1px solid color-mix(in srgb, var(--portal-border) 72%, #94a3b8 28%);
+        box-shadow: 0 10px 24px rgba(2, 6, 23, 0.45);
+    }
+
+    body.pera-portal-page #pera-portal-root .pera-portal-share-toast {
+        background: color-mix(in srgb, var(--portal-surface-2) 78%, #0b1220 22%);
+        color: color-mix(in srgb, var(--portal-text) 88%, #ffffff 12%);
+    }
+}
+
+html[data-theme="dark"] body.pera-portal-page #pera-portal-root .pera-portal-panel,
+html[data-theme="dark"] body.pera-portal-page #pera-portal-root .pera-portal-summary,
+html[data-theme="dark"] body.pera-portal-page #pera-portal-root .pera-portal-compare,
+html[data-theme="dark"] body.pera-portal-page #pera-portal-root .pera-portal-topbar,
+body[data-theme="dark"].pera-portal-page #pera-portal-root .pera-portal-panel,
+body[data-theme="dark"].pera-portal-page #pera-portal-root .pera-portal-summary,
+body[data-theme="dark"].pera-portal-page #pera-portal-root .pera-portal-compare,
+body[data-theme="dark"].pera-portal-page #pera-portal-root .pera-portal-topbar,
+body.dark.pera-portal-page #pera-portal-root .pera-portal-panel,
+body.dark.pera-portal-page #pera-portal-root .pera-portal-summary,
+body.dark.pera-portal-page #pera-portal-root .pera-portal-compare,
+body.dark.pera-portal-page #pera-portal-root .pera-portal-topbar,
+body.is-dark.pera-portal-page #pera-portal-root .pera-portal-panel,
+body.is-dark.pera-portal-page #pera-portal-root .pera-portal-summary,
+body.is-dark.pera-portal-page #pera-portal-root .pera-portal-compare,
+body.is-dark.pera-portal-page #pera-portal-root .pera-portal-topbar {
+    border-color: color-mix(in srgb, var(--portal-border) 88%, #64748b 12%);
+}
+
+:is(html[data-theme="dark"] body.pera-portal-page, body[data-theme="dark"].pera-portal-page, body.dark.pera-portal-page, body.is-dark.pera-portal-page) #pera-portal-root .pera-portal-panel--svg {
+    background: linear-gradient(180deg, color-mix(in srgb, var(--portal-surface-2) 84%, #0b1220 16%) 0%, var(--portal-surface) 100%);
+}
+
+:is(html[data-theme="dark"] body.pera-portal-page, body[data-theme="dark"].pera-portal-page, body.dark.pera-portal-page, body.is-dark.pera-portal-page) #pera-portal-root .pera-portal-filter-pill {
+    border-color: color-mix(in srgb, var(--portal-border) 76%, #94a3b8 24%);
+    background: color-mix(in srgb, var(--portal-surface-2) 82%, #0f172a 18%);
+}
+
+:is(html[data-theme="dark"] body.pera-portal-page, body[data-theme="dark"].pera-portal-page, body.dark.pera-portal-page, body.is-dark.pera-portal-page) #pera-portal-root .pera-portal-filter-pill:hover {
+    border-color: color-mix(in srgb, var(--portal-accent) 52%, var(--portal-border));
+    background: color-mix(in srgb, var(--portal-accent) 20%, var(--portal-surface-2));
+}
+
+:is(html[data-theme="dark"] body.pera-portal-page, body[data-theme="dark"].pera-portal-page, body.dark.pera-portal-page, body.is-dark.pera-portal-page) #pera-portal-root .pera-portal-filter-pill:focus-within {
+    box-shadow: 0 0 0 2px color-mix(in srgb, var(--portal-focus) 82%, transparent);
+}
+
+:is(html[data-theme="dark"] body.pera-portal-page, body[data-theme="dark"].pera-portal-page, body.dark.pera-portal-page, body.is-dark.pera-portal-page) #pera-portal-root .pera-portal-panel--svg svg {
+    background: color-mix(in srgb, var(--portal-surface-2) 78%, #0b1220 22%);
+    border-radius: 8px;
+}
+
+:is(html[data-theme="dark"] body.pera-portal-page, body[data-theme="dark"].pera-portal-page, body.dark.pera-portal-page, body.is-dark.pera-portal-page) #pera-portal-root .pera-portal-panel--svg svg .unit:hover {
+    filter: brightness(1.12) saturate(1.06);
+}
+
+:is(html[data-theme="dark"] body.pera-portal-page, body[data-theme="dark"].pera-portal-page, body.dark.pera-portal-page, body.is-dark.pera-portal-page) #pera-portal-root .unit.is-selected {
+    stroke: #60a5fa !important;
+    filter: brightness(1.08) drop-shadow(0 0 4px rgba(96, 165, 250, 0.45));
+}
+
+:is(html[data-theme="dark"] body.pera-portal-page, body[data-theme="dark"].pera-portal-page, body.dark.pera-portal-page, body.is-dark.pera-portal-page) #pera-portal-root .pera-portal-quote-form input,
+:is(html[data-theme="dark"] body.pera-portal-page, body[data-theme="dark"].pera-portal-page, body.dark.pera-portal-page, body.is-dark.pera-portal-page) #pera-portal-root .pera-portal-quote-form textarea {
+    background: color-mix(in srgb, var(--portal-surface) 70%, #0b1220 30%);
+    border-color: color-mix(in srgb, var(--portal-border) 74%, #94a3b8 26%);
+}
+
+:is(html[data-theme="dark"] body.pera-portal-page, body[data-theme="dark"].pera-portal-page, body.dark.pera-portal-page, body.is-dark.pera-portal-page) #pera-portal-root .pera-portal-share-toast {
+    border: 1px solid color-mix(in srgb, var(--portal-border) 72%, #94a3b8 28%);
+    background: color-mix(in srgb, var(--portal-surface-2) 78%, #0b1220 22%);
+    color: color-mix(in srgb, var(--portal-text) 88%, #ffffff 12%);
+    box-shadow: 0 10px 24px rgba(2, 6, 23, 0.45);
+}
