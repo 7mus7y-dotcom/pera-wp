@@ -238,7 +238,7 @@
                 link.href = planUrl;
                 link.target = '_blank';
                 link.rel = 'noopener noreferrer';
-                link.textContent = 'View plan';
+                link.textContent = 'Open plan';
                 planTd.appendChild(link);
             } else {
                 planTd.textContent = '—';
@@ -409,15 +409,15 @@
 
         const firstLine = safeText(unit.unit_code || '—');
         const lines = [
-            'Type: ' + safeText(unit.unit_type || '—'),
-            'Status: ' + safeText(unit.status || '—'),
+            'Unit type: ' + safeText(unit.unit_type || '—'),
+            'Availability: ' + safeText(unit.status || '—'),
         ];
 
         if (shouldShowPrice()) {
             lines.push('Price: ' + safeText(formatPrice(unit)));
 
             if (state.colorMode === 'price' && typeof unit.price_per_sqm === 'number') {
-                lines.push('PPSQM: ' + safeText(unit.price_per_sqm) + ' ' + safeText(unit.currency || '') + ' / m²');
+                lines.push('Price per m²: ' + safeText(unit.price_per_sqm) + ' ' + safeText(unit.currency || '') + ' / m²');
             }
         }
 
@@ -534,7 +534,7 @@
             }
         });
 
-        countsContainer.textContent = 'Total: ' + unitsData.length + ' (Visible: ' + visibleTotal + ') | Available: ' + totals.available + ' | Reserved: ' + totals.reserved + ' | Sold: ' + totals.sold;
+        countsContainer.textContent = 'Total units: ' + unitsData.length + ' (Visible: ' + visibleTotal + ') · Available: ' + totals.available + ' · Reserved: ' + totals.reserved + ' · Sold: ' + totals.sold;
     }
 
     async function createQuote(payload) {
@@ -548,7 +548,7 @@
         const data = await response.json();
 
         if (!response.ok) {
-            throw new Error(data && data.message ? data.message : 'Unable to create quote.');
+            throw new Error(data && data.message ? data.message : 'Unable to create quote at this time.');
         }
 
         return data;
@@ -581,7 +581,7 @@
             + '<label>Quoted Price <input name="quoted_price" type="number" step="0.01" required></label>'
             + '<label>Currency <input name="currency" type="text" required></label>'
             + '<label>Expiry <input name="expires_at" type="datetime-local" required></label>'
-            + '<label>Consultant Note <textarea name="consultant_note" rows="2"></textarea></label>'
+            + '<label>Advisor Note <textarea name="consultant_note" rows="2"></textarea></label>'
             + '<label>Client Name <input name="client_name" type="text"></label>'
             + '<label>Client Email <input name="client_email" type="email"></label>'
             + '<label>Client Phone <input name="client_phone" type="text"></label>'
@@ -629,14 +629,14 @@
                     copyBtn.addEventListener('click', async function () {
                         try {
                             await navigator.clipboard.writeText(String(created.public_url || ''));
-                            copyBtn.textContent = 'Copied';
+                            copyBtn.textContent = 'Link copied';
                         } catch (error) {
-                            copyBtn.textContent = 'Copy failed';
+                            copyBtn.textContent = 'Copy unavailable';
                         }
                     });
                 }
             } catch (error) {
-                result.textContent = String(error && error.message ? error.message : 'Unable to create quote.');
+                result.textContent = String(error && error.message ? error.message : 'Unable to create quote at this time.');
             }
         });
 
@@ -708,7 +708,7 @@
         const pricing = document.createElement('div');
         pricing.className = 'pera-portal-unit-card__price';
         const priceLabel = document.createElement('p');
-        priceLabel.textContent = 'Price';
+        priceLabel.textContent = 'Guide Price';
         const priceText = document.createElement('p');
         priceText.className = 'pera-portal-unit-card__price-value';
         priceText.textContent = safeText(priceValue);
@@ -749,7 +749,7 @@
 
         const planHeading = document.createElement('p');
         planHeading.className = 'pera-portal-unit-plan__title';
-        planHeading.textContent = 'Plan preview';
+        planHeading.textContent = 'Plan Preview';
 
         const planContext = document.createElement('p');
         planContext.className = 'pera-portal-unit-plan__context';
@@ -764,7 +764,7 @@
             planLink.target = '_blank';
             planLink.rel = 'noopener noreferrer';
             planLink.className = 'button-like pera-portal-unit-plan__action';
-            planLink.textContent = 'Open full plan';
+            planLink.textContent = 'Open Full Plan';
             planHeader.appendChild(planLink);
 
             if (isImagePlan) {
@@ -780,7 +780,7 @@
         } else {
             const empty = document.createElement('p');
             empty.className = 'pera-portal-unit-plan__empty';
-            empty.textContent = 'No plan file is currently attached for this selected unit.';
+            empty.textContent = 'No plan is currently available for this unit.';
             planWrap.appendChild(empty);
         }
 
@@ -967,12 +967,12 @@
         }
 
         if (!state.floorId) {
-            setMessage(svgContainer, 'Select a floor to load the plan.');
-            setMessage(detailsContainer, state.buildingId ? 'No floors are currently available for this building.' : 'Select a building to begin.');
+            setMessage(svgContainer, 'Select a floor to view the plan.');
+            setMessage(detailsContainer, state.buildingId ? 'No floors are currently available for this building.' : 'Select a building to continue.');
             return;
         }
 
-        clearSelection('Loading floor and unit availability...');
+        clearSelection('Loading floor plan and unit availability...');
         clearShortlist();
         renderSvgWarning('');
 
@@ -1013,13 +1013,13 @@
                 svgContainer.textContent = '';
                 svgContainer.appendChild(document.importNode(svgEl, true));
                 if (svgSource === 'fixture' || svgWarningCode === 'floor_svg_missing_using_fixture') {
-                    renderSvgWarning('Showing fallback floor plan while the main plan is being prepared.');
+                    renderSvgWarning('Showing a fallback floor plan while the main plan is being prepared.');
                 }
             }
 
             const svg = svgContainer ? svgContainer.querySelector('svg') : null;
             if (!svg) {
-                setMessage(detailsContainer, 'The floor plan could not be displayed at this time.');
+                setMessage(detailsContainer, 'The floor plan is currently unavailable.');
                 return;
             }
 
@@ -1154,20 +1154,20 @@
             const message = error && error.message ? error.message : 'Unknown error';
 
             if (error && (error.status === 401 || error.status === 403)) {
-                setMessage(detailsContainer, 'Not authorized. Ensure you are logged in and have portal access.');
+                setMessage(detailsContainer, 'Access unavailable. Please sign in with portal access.');
                 setMessage(svgContainer, 'Unable to load floor plan. ' + message);
                 return;
             }
 
             if (error && error.isSvgRequest === true && error.status === 404) {
                 setMessage(svgContainer, 'Floor plan data is missing for this floor.');
-                setMessage(detailsContainer, 'Unable to load floor plan for the selected floor.');
+                setMessage(detailsContainer, 'Unable to load the floor plan for the selected floor.');
                 return;
             }
 
             if (error && error.isSvgRequest === true && safeText(error.message).indexOf('SVG request failed') === 0) {
                 setMessage(svgContainer, 'Unable to load floor plan. ' + message);
-                setMessage(detailsContainer, 'Units loaded, but floor plan failed to load.');
+                setMessage(detailsContainer, 'Units loaded, but the floor plan failed to load.');
                 return;
             }
 
@@ -1207,9 +1207,9 @@
                 if (action === 'copy') {
                     event.preventDefault();
                     copyCurrentLinkToClipboard().then(function () {
-                        showShareToast('Copied');
+                        showShareToast('Link copied');
                     }).catch(function () {
-                        showShareToast('Copy failed');
+                        showShareToast('Copy unavailable');
                     });
                     return;
                 }
@@ -1286,12 +1286,12 @@
             } catch (error) {
                 const message = error && error.message ? error.message : 'Unknown error';
                 if (error && (error.status === 401 || error.status === 403)) {
-                    setMessage(detailsContainer, 'Not authorized. Ensure you are logged in and have portal access.');
+                    setMessage(detailsContainer, 'Access unavailable. Please sign in with portal access.');
                     setMessage(svgContainer, 'Unable to load floors. ' + message);
                     return;
                 }
                 setMessage(svgContainer, 'Unable to load floors. ' + message);
-                setMessage(detailsContainer, 'Unable to load floor list. ' + message);
+                setMessage(detailsContainer, 'Unable to load floor options. ' + message);
                 return;
             }
 
@@ -1307,8 +1307,8 @@
                 floorSelect.disabled = true;
             }
             if (!state.floorId) {
-                setMessage(svgContainer, 'Select a floor to load the plan.');
-                setMessage(detailsContainer, 'Select a building to begin.');
+                setMessage(svgContainer, 'Select a floor to view the plan.');
+                setMessage(detailsContainer, 'Select a building to continue.');
                 return;
             }
         }
