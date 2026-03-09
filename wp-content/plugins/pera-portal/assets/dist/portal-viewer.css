@@ -182,6 +182,119 @@ body.pera-portal-page .page-header {
 }
 
 
+.pera-portal-unit-card {
+    border: 1px solid var(--portal-border);
+    border-radius: 12px;
+    padding: 14px;
+    background: var(--portal-surface-2);
+}
+
+.pera-portal-unit-card__summary {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 10px;
+}
+
+.pera-portal-unit-card__eyebrow {
+    margin: 0;
+    font-size: 11px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--portal-text-muted);
+}
+
+.pera-portal-unit-card__code {
+    margin: 4px 0 0;
+    font-size: 24px;
+    line-height: 1.15;
+}
+
+.pera-portal-unit-card__type {
+    margin: 6px 0 0;
+    color: var(--portal-text-muted);
+    font-size: 14px;
+}
+
+.pera-portal-unit-card__status {
+    display: inline-flex;
+    align-items: center;
+    border: 1px solid var(--portal-border);
+    border-radius: 999px;
+    padding: 4px 10px;
+    font-size: 12px;
+    font-weight: 600;
+    text-transform: capitalize;
+    background: var(--portal-surface);
+}
+
+.pera-portal-unit-card__status--available {
+    color: #166534;
+    border-color: color-mix(in srgb, #166534 35%, var(--portal-border));
+    background: color-mix(in srgb, #166534 12%, var(--portal-surface));
+}
+
+.pera-portal-unit-card__status--reserved {
+    color: #92400e;
+    border-color: color-mix(in srgb, #92400e 35%, var(--portal-border));
+    background: color-mix(in srgb, #92400e 12%, var(--portal-surface));
+}
+
+.pera-portal-unit-card__status--sold {
+    color: #991b1b;
+    border-color: color-mix(in srgb, #991b1b 35%, var(--portal-border));
+    background: color-mix(in srgb, #991b1b 12%, var(--portal-surface));
+}
+
+.pera-portal-unit-card__price {
+    margin-top: 12px;
+    border-top: 1px solid var(--portal-border);
+    padding-top: 10px;
+}
+
+.pera-portal-unit-card__price p {
+    margin: 0;
+}
+
+.pera-portal-unit-card__price-value {
+    margin-top: 3px !important;
+    font-size: 26px;
+    font-weight: 700;
+    line-height: 1.15;
+}
+
+.pera-portal-unit-card__facts {
+    margin: 12px 0 0;
+    padding: 10px;
+    border-radius: 8px;
+    background: var(--portal-surface);
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 2px 14px;
+}
+
+.pera-portal-unit-card__facts dt {
+    margin: 0;
+    font-size: 12px;
+    color: var(--portal-text-muted);
+}
+
+.pera-portal-unit-card__facts dd {
+    margin: 0 0 8px;
+    font-size: 14px;
+    font-weight: 600;
+}
+
+@media (max-width: 640px) {
+    .pera-portal-unit-card__summary {
+        flex-direction: column;
+    }
+
+    .pera-portal-unit-card__facts {
+        grid-template-columns: 1fr;
+    }
+}
+
 .pera-portal-unit-plan {
     margin-top: 12px;
 }

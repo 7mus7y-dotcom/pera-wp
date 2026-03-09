@@ -655,24 +655,72 @@
             planContainer.textContent = '';
         }
 
-        const card = document.createElement('div');
+        const card = document.createElement('section');
         card.className = 'pera-portal-unit-card';
 
-        function appendDetailRow(label, value) {
-            const row = document.createElement('p');
-            const labelEl = document.createElement('strong');
-            labelEl.textContent = label + ':';
-            row.appendChild(labelEl);
-            row.appendChild(document.createTextNode(' ' + safeText(value == null || value === '' ? '-' : value)));
-            card.appendChild(row);
+        const codeValue = unit && unit.unit_code ? unit.unit_code : '-';
+        const typeValue = unit && unit.unit_type ? unit.unit_type : '-';
+        const netValue = unit && unit.net_size != null ? unit.net_size : '-';
+        const grossValue = unit && unit.gross_size != null ? unit.gross_size : '-';
+        const statusValue = unit && unit.status ? unit.status : '-';
+        const priceValue = (unit && unit.price != null ? unit.price : '-') + ' ' + safeText(unit && unit.currency ? unit.currency : '');
+
+        const summary = document.createElement('div');
+        summary.className = 'pera-portal-unit-card__summary';
+
+        const identity = document.createElement('div');
+        identity.className = 'pera-portal-unit-card__identity';
+        const codeLabel = document.createElement('p');
+        codeLabel.className = 'pera-portal-unit-card__eyebrow';
+        codeLabel.textContent = 'Selected Unit';
+        const codeText = document.createElement('h4');
+        codeText.className = 'pera-portal-unit-card__code';
+        codeText.textContent = safeText(codeValue);
+        const typeText = document.createElement('p');
+        typeText.className = 'pera-portal-unit-card__type';
+        typeText.textContent = 'Type: ' + safeText(typeValue);
+        identity.appendChild(codeLabel);
+        identity.appendChild(codeText);
+        identity.appendChild(typeText);
+
+        const statusBadge = document.createElement('span');
+        const normalizedStatus = normalizeStatus(statusValue);
+        statusBadge.className = 'pera-portal-unit-card__status pera-portal-unit-card__status--' + normalizedStatus;
+        statusBadge.textContent = safeText(statusValue);
+
+        summary.appendChild(identity);
+        summary.appendChild(statusBadge);
+        card.appendChild(summary);
+
+        const pricing = document.createElement('div');
+        pricing.className = 'pera-portal-unit-card__price';
+        const priceLabel = document.createElement('p');
+        priceLabel.textContent = 'Price';
+        const priceText = document.createElement('p');
+        priceText.className = 'pera-portal-unit-card__price-value';
+        priceText.textContent = safeText(priceValue);
+        pricing.appendChild(priceLabel);
+        pricing.appendChild(priceText);
+        card.appendChild(pricing);
+
+        const facts = document.createElement('dl');
+        facts.className = 'pera-portal-unit-card__facts';
+
+        function appendFact(label, value) {
+            const term = document.createElement('dt');
+            term.textContent = label;
+            const desc = document.createElement('dd');
+            desc.textContent = safeText(value == null || value === '' ? '-' : value);
+            facts.appendChild(term);
+            facts.appendChild(desc);
         }
 
-        appendDetailRow('Code', unit && unit.unit_code ? unit.unit_code : '-');
-        appendDetailRow('Type', unit && unit.unit_type ? unit.unit_type : '-');
-        appendDetailRow('Net', unit && unit.net_size != null ? unit.net_size : '-');
-        appendDetailRow('Gross', unit && unit.gross_size != null ? unit.gross_size : '-');
-        appendDetailRow('Price', (unit && unit.price != null ? unit.price : '-') + ' ' + safeText(unit && unit.currency ? unit.currency : ''));
-        appendDetailRow('Status', unit && unit.status ? unit.status : '-');
+        appendFact('Net m²', netValue);
+        appendFact('Gross m²', grossValue);
+        appendFact('Code', codeValue);
+        appendFact('Type', typeValue);
+
+        card.appendChild(facts);
 
         const detailPlanUrl = unit && typeof unit.detail_plan_url === 'string' ? unit.detail_plan_url : '';
         const detailPlanMime = unit && typeof unit.detail_plan_mime === 'string' ? unit.detail_plan_mime.toLowerCase() : '';
