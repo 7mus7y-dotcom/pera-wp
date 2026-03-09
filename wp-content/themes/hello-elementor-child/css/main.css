@@ -1443,6 +1443,7 @@ button.pill:focus-visible {
   top: 0;
   left: 0;
   width: 100%;
+  overflow: visible;
   z-index: 1000;
   background: transparent;
   box-shadow: none;
@@ -1456,7 +1457,7 @@ button.pill:focus-visible {
   margin: 0 auto;
   padding: 18px 20px;
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   justify-content: space-between;
 }
 
@@ -1474,6 +1475,10 @@ button.pill:focus-visible {
 
 /* LOGO container — no glass until scroll */
 #site-header .site-branding {
+  display: flex;
+  align-items: flex-start;
+  align-self: flex-start;
+  overflow: visible;
   padding: 5px 8px;
   border-radius: var(--radius-md);
   background: transparent;
@@ -1488,9 +1493,12 @@ button.pill:focus-visible {
 }
 
 /* SVG must inherit (do NOT hard-force white here) */
-.site-logo.logo-pera svg {
+.site-logo.logo-pera svg,
+#site-header .site-logo.logo-pera img.custom-logo,
+#site-header .site-logo.logo-pera .pera-site-logo-image {
   display: block;
   width: 200px;
+  max-width: 100%;
   height: auto;
   color: inherit; /* critical */
   transition: color 0.35s ease;
@@ -1499,7 +1507,8 @@ button.pill:focus-visible {
 /* Icons cluster — no glass until scroll */
 #site-header .header-icons {
   display: flex;
-  align-items: center;
+  align-items: flex-start;
+  align-self: flex-start;
   gap: 8px;
   padding: 5px 12px; /* keep constant to avoid layout changes */
   border-radius: 999px;
@@ -1628,7 +1637,9 @@ button.pill:focus-visible {
     width: 24px;
     height: 24px;
   }
-  #site-header .site-logo.logo-pera svg {
+  #site-header .site-logo.logo-pera svg,
+  #site-header .site-logo.logo-pera img.custom-logo,
+  #site-header .site-logo.logo-pera .pera-site-logo-image {
     width: 150px;
   }
 }
@@ -1818,6 +1829,14 @@ body.is-nav-open .offcanvas-backdrop {
   justify-content: space-between;
   align-items: center;
   margin-bottom: 30px;
+}
+.offcanvas-top .site-logo.logo-pera svg,
+.offcanvas-top .site-logo.logo-pera img.custom-logo,
+.offcanvas-top .site-logo.logo-pera .pera-site-logo-image {
+  width: 140px;
+  max-width: 100%;
+  height: auto;
+  display: block;
 }
 .offcanvas-logo img {
   width: 140px;
