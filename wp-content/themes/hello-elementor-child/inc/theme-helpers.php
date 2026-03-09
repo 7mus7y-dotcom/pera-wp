@@ -46,7 +46,7 @@ if ( ! function_exists( 'pera_get_site_logo_markup' ) ) {
     $logo_width = $fallback_width > 0 ? $fallback_width : 120;
 
     if ( $logo_id > 0 ) {
-      $image_classes = trim( 'custom-logo ' . $img_class );
+      $image_classes = trim( 'custom-logo pera-site-logo-image ' . $img_class );
       $image_html    = wp_get_attachment_image(
         $logo_id,
         'full',
@@ -54,8 +54,6 @@ if ( ! function_exists( 'pera_get_site_logo_markup' ) ) {
         array(
           'class'   => $image_classes,
           'loading' => 'eager',
-          'width'   => $logo_width,
-          'style'   => sprintf( 'width:%1$dpx;max-width:%1$dpx;height:auto;', $logo_width ),
         )
       );
 
