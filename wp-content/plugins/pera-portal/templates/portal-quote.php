@@ -24,6 +24,7 @@ if (!($quote instanceof WP_Post) || $quote->post_type !== 'pera_quote') {
 $status = pera_portal_quote_get_business_status($quote->ID);
 $payload = json_decode((string) get_post_meta($quote->ID, '_pera_quote_payload_v1', true), true);
 $payload = is_array($payload) ? $payload : [];
+$quoted_unit_code = sanitize_text_field((string) ($payload['unit_code'] ?? ''));
 $floor_svg = (string) get_post_meta($quote->ID, '_pera_quote_floor_plan_svg', true);
 $floor_svg_renderable = function_exists('pera_portal_quote_sanitize_svg_markup')
     ? pera_portal_quote_sanitize_svg_markup($floor_svg)
@@ -53,6 +54,19 @@ nocache_headers();
         .pera-quote-status{padding:12px;border-radius:8px;font-weight:600}.status-active{background:#ecfdf5;color:#166534}.status-expired{background:#fff7ed;color:#9a3412}.status-revoked{background:#fef2f2;color:#991b1b}
         .pera-quote-price{font-size:30px;font-weight:700}
         .pera-quote-plan img{max-width:100%;height:auto;border:1px solid #ddd;border-radius:4px}.pera-quote-plan svg{width:100%;max-width:100%;height:auto;border:1px solid #ddd;border-radius:4px}
+        body.pera-quote-public-page .pera-quote-plan[data-quoted-unit-code].has-quoted-unit svg .is-quoted-unit,
+        body.pera-quote-public-page .pera-quote-plan[data-quoted-unit-code].has-quoted-unit svg .is-quoted-unit path,
+        body.pera-quote-public-page .pera-quote-plan[data-quoted-unit-code].has-quoted-unit svg .is-quoted-unit polygon,
+        body.pera-quote-public-page .pera-quote-plan[data-quoted-unit-code].has-quoted-unit svg .is-quoted-unit rect,
+        body.pera-quote-public-page .pera-quote-plan[data-quoted-unit-code].has-quoted-unit svg .is-quoted-unit circle,
+        body.pera-quote-public-page .pera-quote-plan[data-quoted-unit-code].has-quoted-unit svg .is-quoted-unit ellipse,
+        body.pera-quote-public-page .pera-quote-plan[data-quoted-unit-code].has-quoted-unit svg .is-quoted-unit polyline {
+            fill: rgba(37, 99, 235, 0.34) !important;
+            fill-opacity: 0.55 !important;
+            stroke: #1d4ed8 !important;
+            stroke-width: 2.5 !important;
+            opacity: 1 !important;
+        }
         @media print {.pera-quote-page{padding:0}.pera-quote-header,.pera-quote-section{page-break-inside:avoid;box-shadow:none}}
     </style>
 </head>
@@ -81,7 +95,7 @@ nocache_headers();
             <p><strong><?php esc_html_e('Issued By', 'pera-portal'); ?>:</strong> <?php echo esc_html((string) ($payload['issued_by'] ?? '-')); ?></p>
         </section>
 
-        <section class="pera-quote-section pera-quote-plan">
+        <section class="pera-quote-section pera-quote-plan" data-quoted-unit-code="<?php echo esc_attr($quoted_unit_code); ?>">
             <h3><?php esc_html_e('Frozen Floor Plan', 'pera-portal'); ?></h3>
             <?php echo $floor_svg_renderable !== '' ? $floor_svg_renderable : '<p>' . esc_html__('No floor plan available.', 'pera-portal') . '</p>'; ?>
         </section>
@@ -107,6 +121,48 @@ nocache_headers();
             <p><?php echo esc_html((string) ($payload['disclaimer'] ?? '')); ?></p>
         </section>
     </main>
+    <script>
+        (function () {
+            function onReady(fn) {
+                if (document.readyState === 'loading') {
+                    document.addEventListener('DOMContentLoaded', fn);
+                    return;
+                }
+
+                fn();
+            }
+
+            onReady(function () {
+                var section = document.querySelector('.pera-quote-plan[data-quoted-unit-code]');
+                if (!section) {
+                    return;
+                }
+
+                var unitCode = String(section.getAttribute('data-quoted-unit-code') || '').trim();
+                if (!unitCode) {
+                    return;
+                }
+
+                var svg = section.querySelector('svg');
+                if (!svg || !svg.querySelector) {
+                    return;
+                }
+
+                var escaped = (window.CSS && typeof window.CSS.escape === 'function')
+                    ? window.CSS.escape(unitCode)
+                    : unitCode.replace(/[^a-zA-Z0-9_\-]/g, '\\$&');
+
+                var quoted = svg.querySelector('#' + escaped);
+                if (!quoted || !quoted.classList) {
+                    return;
+                }
+
+                quoted.classList.add('is-quoted-unit');
+                section.classList.add('has-quoted-unit');
+
+            });
+        })();
+    </script>
     <?php wp_footer(); ?>
 </body>
 </html>
