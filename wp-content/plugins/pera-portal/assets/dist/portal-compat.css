@@ -391,3 +391,67 @@ body.is-dark.pera-portal-page .pera-portal-landing .pera-portal-building-list__i
     background: rgba(30, 64, 175, 0.58);
     color: #ffffff;
 }
+
+/* Dark mode hero polish */
+@media (prefers-color-scheme: dark) {
+    body.pera-portal-page .hero {
+        background: linear-gradient(180deg, rgba(255, 255, 255, 0.07) 0%, rgba(255, 255, 255, 0.01) 100%),
+            linear-gradient(180deg, rgba(2, 6, 23, 0.12) 0%, rgba(2, 6, 23, 0.22) 100%),
+            var(--pera-portal-hero-bg);
+        border-bottom-color: rgba(148, 163, 184, 0.28);
+    }
+
+    body.pera-portal-page .hero .lead {
+        color: rgba(248, 250, 252, 0.88);
+    }
+
+    body.pera-portal-page .hero-actions__admin-link {
+        border-color: rgba(226, 232, 240, 0.44);
+        color: rgba(248, 250, 252, 0.96);
+        background: rgba(15, 23, 42, 0.18);
+    }
+
+    body.pera-portal-page .hero-actions__admin-link:hover,
+    body.pera-portal-page .hero-actions__admin-link:focus-visible {
+        background: rgba(148, 163, 184, 0.2);
+        border-color: rgba(226, 232, 240, 0.7);
+    }
+}
+
+html[data-theme="dark"] body.pera-portal-page .hero,
+body[data-theme="dark"].pera-portal-page .hero,
+body.dark.pera-portal-page .hero,
+body.is-dark.pera-portal-page .hero {
+    background: linear-gradient(180deg, rgba(255, 255, 255, 0.07) 0%, rgba(255, 255, 255, 0.01) 100%),
+        linear-gradient(180deg, rgba(2, 6, 23, 0.12) 0%, rgba(2, 6, 23, 0.22) 100%),
+        var(--pera-portal-hero-bg);
+    border-bottom-color: rgba(148, 163, 184, 0.28);
+}
+
+html[data-theme="dark"] body.pera-portal-page .hero .lead,
+body[data-theme="dark"].pera-portal-page .hero .lead,
+body.dark.pera-portal-page .hero .lead,
+body.is-dark.pera-portal-page .hero .lead {
+    color: rgba(248, 250, 252, 0.88);
+}
+
+html[data-theme="dark"] body.pera-portal-page .hero-actions__admin-link,
+body[data-theme="dark"].pera-portal-page .hero-actions__admin-link,
+body.dark.pera-portal-page .hero-actions__admin-link,
+body.is-dark.pera-portal-page .hero-actions__admin-link {
+    border-color: rgba(226, 232, 240, 0.44);
+    color: rgba(248, 250, 252, 0.96);
+    background: rgba(15, 23, 42, 0.18);
+}
+
+html[data-theme="dark"] body.pera-portal-page .hero-actions__admin-link:hover,
+html[data-theme="dark"] body.pera-portal-page .hero-actions__admin-link:focus-visible,
+body[data-theme="dark"].pera-portal-page .hero-actions__admin-link:hover,
+body[data-theme="dark"].pera-portal-page .hero-actions__admin-link:focus-visible,
+body.dark.pera-portal-page .hero-actions__admin-link:hover,
+body.dark.pera-portal-page .hero-actions__admin-link:focus-visible,
+body.is-dark.pera-portal-page .hero-actions__admin-link:hover,
+body.is-dark.pera-portal-page .hero-actions__admin-link:focus-visible {
+    background: rgba(148, 163, 184, 0.2);
+    border-color: rgba(226, 232, 240, 0.7);
+}
