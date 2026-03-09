@@ -42,7 +42,8 @@ if ( ! function_exists( 'pera_get_site_logo_markup' ) ) {
     $home_url      = (string) $args['home_url'];
     $fallback_width = (int) $args['fallback_width'];
 
-    $logo_id = (int) get_theme_mod( 'custom_logo' );
+    $logo_id    = (int) get_theme_mod( 'custom_logo' );
+    $logo_width = $fallback_width > 0 ? $fallback_width : 120;
 
     if ( $logo_id > 0 ) {
       $image_classes = trim( 'custom-logo ' . $img_class );
@@ -53,6 +54,8 @@ if ( ! function_exists( 'pera_get_site_logo_markup' ) ) {
         array(
           'class'   => $image_classes,
           'loading' => 'eager',
+          'width'   => $logo_width,
+          'style'   => sprintf( 'width:%1$dpx;max-width:%1$dpx;height:auto;', $logo_width ),
         )
       );
 
@@ -89,7 +92,7 @@ if ( ! function_exists( 'pera_get_site_logo_markup' ) ) {
       esc_attr( $title ),
       esc_url( get_stylesheet_directory_uri() . '/logos-icons/logo-white.svg' ),
       esc_attr( get_bloginfo( 'name' ) ),
-      $fallback_width > 0 ? $fallback_width : 120,
+      $logo_width,
       esc_attr( $img_class )
     );
   }
