@@ -84,6 +84,19 @@ if (!defined('ABSPATH')) {
                         </div>
                     </div>
                 </div>
+                <div class="pera-portal-viewer-context" aria-label="Floor plan legend and filters">
+                    <div class="pera-portal-legend" aria-label="Unit status legend">
+                        <span class="pera-portal-legend__item"><span class="pera-portal-legend__swatch pera-portal-legend__swatch--available"></span><?php echo esc_html__('Available', 'pera-portal'); ?></span>
+                        <span class="pera-portal-legend__item"><span class="pera-portal-legend__swatch pera-portal-legend__swatch--reserved"></span><?php echo esc_html__('Reserved', 'pera-portal'); ?></span>
+                        <span class="pera-portal-legend__item"><span class="pera-portal-legend__swatch pera-portal-legend__swatch--sold"></span><?php echo esc_html__('Sold', 'pera-portal'); ?></span>
+                    </div>
+                    <div class="pera-portal-filters" aria-label="Filter units by status">
+                        <label class="pera-portal-filter-pill"><input type="checkbox" data-status-filter="available" checked> <?php echo esc_html__('Available', 'pera-portal'); ?></label>
+                        <label class="pera-portal-filter-pill"><input type="checkbox" data-status-filter="reserved" checked> <?php echo esc_html__('Reserved', 'pera-portal'); ?></label>
+                        <label class="pera-portal-filter-pill"><input type="checkbox" data-status-filter="sold" checked> <?php echo esc_html__('Sold', 'pera-portal'); ?></label>
+                    </div>
+                    <div class="pera-portal-counts" aria-live="polite"></div>
+                </div>
                 <div class="pera-portal-svg-placeholder"><?php echo esc_html__('Select a floor to view the plan.', 'pera-portal'); ?></div>
             </section>
             <aside class="pera-portal-panel pera-portal-panel--details" aria-label="Unit details">
@@ -91,17 +104,6 @@ if (!defined('ABSPATH')) {
                     <h3><?php echo esc_html__('Unit Details', 'pera-portal'); ?></h3>
                     <p class="pera-portal-panel__subtitle"><?php echo esc_html__('Step 2: Details update as you select a unit.', 'pera-portal'); ?></p>
                 </div>
-                <div class="pera-portal-legend" aria-label="Unit status legend">
-                    <span class="pera-portal-legend__item"><span class="pera-portal-legend__swatch pera-portal-legend__swatch--available"></span><?php echo esc_html__('Available', 'pera-portal'); ?></span>
-                    <span class="pera-portal-legend__item"><span class="pera-portal-legend__swatch pera-portal-legend__swatch--reserved"></span><?php echo esc_html__('Reserved', 'pera-portal'); ?></span>
-                    <span class="pera-portal-legend__item"><span class="pera-portal-legend__swatch pera-portal-legend__swatch--sold"></span><?php echo esc_html__('Sold', 'pera-portal'); ?></span>
-                </div>
-                <div class="pera-portal-filters" aria-label="Filter units by status">
-                    <label class="pera-portal-filter-pill"><input type="checkbox" data-status-filter="available" checked> <?php echo esc_html__('Available', 'pera-portal'); ?></label>
-                    <label class="pera-portal-filter-pill"><input type="checkbox" data-status-filter="reserved" checked> <?php echo esc_html__('Reserved', 'pera-portal'); ?></label>
-                    <label class="pera-portal-filter-pill"><input type="checkbox" data-status-filter="sold" checked> <?php echo esc_html__('Sold', 'pera-portal'); ?></label>
-                </div>
-                <div class="pera-portal-counts" aria-live="polite"></div>
                 <div class="pera-portal-summary" hidden>
                     <div class="pera-portal-summary__grid">
                         <div><strong><?php echo esc_html__('Total Value', 'pera-portal'); ?></strong><br><span data-summary-total>—</span></div>
