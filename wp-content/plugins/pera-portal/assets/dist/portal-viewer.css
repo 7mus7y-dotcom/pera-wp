@@ -184,10 +184,10 @@ body.pera-portal-page .page-header {
 }
 
 .pera-portal-floorbar {
-    display: flex;
+    display: inline-flex;
     align-items: center;
     gap: 8px;
-    margin-bottom: 12px;
+    margin-bottom: 0;
 }
 
 .pera-portal-floorbar label {
@@ -196,7 +196,7 @@ body.pera-portal-page .page-header {
 }
 
 .pera-portal-floor-select {
-    min-width: 180px;
+    min-width: 210px;
     border: 1px solid var(--portal-border);
     border-radius: 4px;
     padding: 6px 8px;
@@ -300,21 +300,52 @@ body.pera-portal-page .page-header {
 
 .pera-portal-topbar {
   display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 10px;
+  align-items: stretch;
+  gap: 14px;
   flex-wrap: wrap;
   margin: 0 0 12px;
+  padding: 10px 12px;
+  border: 1px solid var(--portal-border);
+  border-radius: 8px;
+  background: var(--portal-surface-2);
+}
+
+.pera-portal-topbar-group {
+  display: inline-flex;
+  align-items: center;
+  min-height: 38px;
+}
+
+.pera-portal-topbar-group--primary {
+  gap: 10px;
+  flex: 1 1 420px;
+}
+
+.pera-portal-topbar-group--status {
+  padding: 0 0 0 14px;
+  border-left: 1px solid var(--portal-border);
+  flex: 0 0 auto;
+}
+
+.pera-portal-topbar-group--actions {
+  padding: 0 0 0 14px;
+  border-left: 1px solid var(--portal-border);
+  margin-left: auto;
+  flex: 0 0 auto;
 }
 
 .pera-portal-colormode {
   display: inline-flex;
   gap: 6px;
+  border: 1px solid var(--portal-border);
+  border-radius: 999px;
+  padding: 3px;
+  background: var(--portal-surface);
 }
 
 .pera-portal-colormode-btn {
-  border: 1px solid var(--portal-border);
-  background: var(--portal-surface-2);
+  border: 1px solid transparent;
+  background: transparent;
   border-radius: 999px;
   padding: 4px 10px;
   font-size: 12px;
@@ -333,14 +364,18 @@ body.pera-portal-page .page-header {
   display: inline-flex;
   align-items: center;
   flex-wrap: wrap;
-  gap: 10px;
+  gap: 8px;
   font-size: 13px;
   color: var(--portal-text-muted);
 }
 
+.pera-portal-shortlistcount strong {
+  color: var(--portal-text);
+}
+
 .pera-portal-share {
   display: inline-flex;
-  gap: 8px;
+  gap: 6px;
   align-items: center;
   position: relative;
   flex-wrap: wrap;
@@ -348,7 +383,7 @@ body.pera-portal-page .page-header {
 
 .pera-portal-shortlistclear {
   border: 1px solid var(--portal-border);
-  background: var(--portal-surface);
+  background: var(--portal-surface-2);
   color: var(--portal-text);
   border-radius: 4px;
   padding: 4px 8px;
@@ -472,24 +507,24 @@ body.pera-portal-page .page-header {
 }
 
 .pera-portal-iconbtn {
-  width: 34px;
-  height: 34px;
+  width: 32px;
+  height: 32px;
   border-radius: 999px;
   border: 1px solid var(--portal-border);
-  background: var(--portal-surface);
+  background: color-mix(in srgb, var(--portal-surface) 82%, transparent);
   display: inline-flex;
   align-items: center;
   justify-content: center;
   cursor: pointer;
   transition: background 0.2s ease, border-color 0.2s ease, color 0.2s ease, transform 0.12s ease;
   padding: 0;
-  color: var(--portal-text);
+  color: color-mix(in srgb, var(--portal-text) 76%, transparent);
   text-decoration: none;
 }
 
 .pera-portal-iconbtn svg {
-  width: 18px;
-  height: 18px;
+  width: 16px;
+  height: 16px;
   pointer-events: none;
   fill: currentColor;
   stroke: currentColor;
@@ -530,13 +565,41 @@ body.pera-portal-page .page-header {
 
 @media (max-width: 640px) {
   .pera-portal-topbar {
+    padding: 10px;
+    gap: 10px;
+  }
+
+  .pera-portal-topbar {
     align-items: flex-start;
   }
 
+  .pera-portal-topbar-group {
+    width: 100%;
+    min-height: 0;
+  }
+
+  .pera-portal-topbar-group--primary {
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+
+  .pera-portal-topbar-group--status,
+  .pera-portal-topbar-group--actions {
+    padding: 0;
+    border-left: 0;
+    margin-left: 0;
+  }
+
+  .pera-portal-floorbar,
   .pera-portal-colormode,
   .pera-portal-shortlistbar,
   .pera-portal-share {
     width: 100%;
+  }
+
+  .pera-portal-floorbar {
+    flex-direction: column;
+    align-items: flex-start;
   }
 
   .pera-portal-share {
