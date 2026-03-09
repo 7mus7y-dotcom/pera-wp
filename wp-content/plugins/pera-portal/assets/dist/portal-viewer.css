@@ -385,6 +385,12 @@ body.pera-portal-page .page-header {
     background: color-mix(in srgb, var(--portal-surface-2) 75%, transparent);
 }
 
+.pera-portal-details-placeholder:has(.pera-portal-unit-card) {
+    border: none;
+    background: transparent;
+    padding: 0;
+}
+
 .portal-print-section--details,
 .portal-print-section--plan {
     margin-top: 16px;
@@ -449,7 +455,12 @@ body.pera-portal-page .page-header {
 
 .pera-portal-panel--svg svg .unit {
   cursor: pointer;
-  transition: fill 0.25s ease, fill-opacity 0.25s ease, stroke-width 0.2s ease;
+  transition: fill 0.25s ease, fill-opacity 0.25s ease, stroke 0.2s ease, stroke-width 0.2s ease, filter 0.2s ease;
+}
+
+.pera-portal-panel--svg svg .unit:hover {
+  stroke-width: 3;
+  filter: brightness(1.05);
 }
 
 .pera-portal-panel--svg svg .unit.is-shortlisted {
@@ -458,7 +469,9 @@ body.pera-portal-page .page-header {
 }
 
 .pera-portal-panel--svg svg .unit.is-selected {
-  stroke-width: 3 !important;
+  stroke: #2563eb !important;
+  stroke-width: 4 !important;
+  fill-opacity: 0.85 !important;
   stroke-dasharray: none;
 }
 
@@ -511,8 +524,8 @@ body.pera-portal-page .page-header {
 .pera-portal-panel--svg svg .unit.is-selected circle,
 .pera-portal-panel--svg svg .unit.is-selected ellipse,
 .pera-portal-panel--svg svg .unit.is-selected polyline {
-  fill-opacity: 0.75 !important;
-  stroke-width: 3 !important;
+  fill-opacity: 0.85 !important;
+  stroke-width: 4 !important;
 }
 
 .pera-portal-topbar {
