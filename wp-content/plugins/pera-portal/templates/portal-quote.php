@@ -25,6 +25,9 @@ $status = pera_portal_quote_get_business_status($quote->ID);
 $payload = json_decode((string) get_post_meta($quote->ID, '_pera_quote_payload_v1', true), true);
 $payload = is_array($payload) ? $payload : [];
 $quoted_unit_code = sanitize_text_field((string) ($payload['unit_code'] ?? ''));
+$floor_unit_codes = isset($payload['floor_unit_codes']) && is_array($payload['floor_unit_codes']) ? array_values(array_filter(array_map('sanitize_text_field', $payload['floor_unit_codes']), static function ($code) {
+    return $code !== '';
+})) : [];
 $floor_svg = (string) get_post_meta($quote->ID, '_pera_quote_floor_plan_svg', true);
 $floor_svg_renderable = function_exists('pera_portal_quote_sanitize_svg_markup')
     ? pera_portal_quote_sanitize_svg_markup($floor_svg)
@@ -67,10 +70,24 @@ nocache_headers();
             stroke-width: 2.5 !important;
             opacity: 1 !important;
         }
+        body.pera-quote-public-page .pera-quote-plan[data-quoted-unit-code] svg .is-other-unit,
+        body.pera-quote-public-page .pera-quote-plan[data-quoted-unit-code] svg .is-other-unit path,
+        body.pera-quote-public-page .pera-quote-plan[data-quoted-unit-code] svg .is-other-unit polygon,
+        body.pera-quote-public-page .pera-quote-plan[data-quoted-unit-code] svg .is-other-unit rect,
+        body.pera-quote-public-page .pera-quote-plan[data-quoted-unit-code] svg .is-other-unit circle,
+        body.pera-quote-public-page .pera-quote-plan[data-quoted-unit-code] svg .is-other-unit ellipse,
+        body.pera-quote-public-page .pera-quote-plan[data-quoted-unit-code] svg .is-other-unit polyline {
+            fill: transparent !important;
+            fill-opacity: 0 !important;
+            stroke: #94a3b8 !important;
+            stroke-width: 1.25 !important;
+            opacity: 0.9 !important;
+        }
         @media print {.pera-quote-page{padding:0}.pera-quote-header,.pera-quote-section{page-break-inside:avoid;box-shadow:none}}
     </style>
 </head>
 <body <?php body_class('pera-quote-public-page'); ?>>
+    <script id="pera-quote-floor-unit-codes" type="application/json"><?php echo wp_json_encode($floor_unit_codes); ?></script>
     <main class="pera-quote-page">
         <section class="pera-quote-header">
             <h1><?php echo esc_html($payload['building_title'] ?? get_bloginfo('name')); ?></h1>
@@ -138,27 +155,74 @@ nocache_headers();
                     return;
                 }
 
-                var unitCode = String(section.getAttribute('data-quoted-unit-code') || '').trim();
-                if (!unitCode) {
-                    return;
-                }
-
                 var svg = section.querySelector('svg');
                 if (!svg || !svg.querySelector) {
                     return;
                 }
 
-                var escaped = (window.CSS && typeof window.CSS.escape === 'function')
-                    ? window.CSS.escape(unitCode)
-                    : unitCode.replace(/[^a-zA-Z0-9_\-]/g, '\\$&');
+                var selectedUnitCode = String(section.getAttribute('data-quoted-unit-code') || '').trim();
+                var floorUnitCodes = [];
+                var floorUnitCodesScript = document.getElementById('pera-quote-floor-unit-codes');
 
-                var quoted = svg.querySelector('#' + escaped);
-                if (!quoted || !quoted.classList) {
-                    return;
+                if (floorUnitCodesScript && floorUnitCodesScript.textContent) {
+                    try {
+                        var parsedCodes = JSON.parse(floorUnitCodesScript.textContent);
+                        if (Array.isArray(parsedCodes)) {
+                            floorUnitCodes = parsedCodes
+                                .map(function (code) {
+                                    return String(code || '').trim();
+                                })
+                                .filter(function (code) {
+                                    return code.length > 0;
+                                });
+                        }
+                    } catch (error) {
+                        floorUnitCodes = [];
+                    }
                 }
 
-                quoted.classList.add('is-quoted-unit');
-                section.classList.add('has-quoted-unit');
+                var hasSelectedUnit = false;
+                var seen = {};
+
+                floorUnitCodes.forEach(function (code) {
+                    if (seen[code]) {
+                        return;
+                    }
+                    seen[code] = true;
+
+                    var escaped = (window.CSS && typeof window.CSS.escape === 'function')
+                        ? window.CSS.escape(code)
+                        : code.replace(/[^a-zA-Z0-9_\-]/g, '\\$&');
+
+                    var node = svg.querySelector('#' + escaped);
+                    if (!node || !node.classList) {
+                        return;
+                    }
+
+                    if (selectedUnitCode !== '' && code === selectedUnitCode) {
+                        node.classList.add('is-quoted-unit');
+                        hasSelectedUnit = true;
+                        return;
+                    }
+
+                    node.classList.add('is-other-unit');
+                });
+
+                if (!hasSelectedUnit && selectedUnitCode !== '') {
+                    var escapedSelected = (window.CSS && typeof window.CSS.escape === 'function')
+                        ? window.CSS.escape(selectedUnitCode)
+                        : selectedUnitCode.replace(/[^a-zA-Z0-9_\-]/g, '\\$&');
+
+                    var selectedNode = svg.querySelector('#' + escapedSelected);
+                    if (selectedNode && selectedNode.classList) {
+                        selectedNode.classList.add('is-quoted-unit');
+                        hasSelectedUnit = true;
+                    }
+                }
+
+                if (hasSelectedUnit) {
+                    section.classList.add('has-quoted-unit');
+                }
 
             });
         })();
