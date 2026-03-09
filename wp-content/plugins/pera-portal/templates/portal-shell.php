@@ -8,7 +8,7 @@ if (!defined('ABSPATH')) {
 <section class="hero hero--left hero--fit" id="pera-portal-hero">
     <div class="hero-content container">
         <h1><?php echo esc_html__('Pera Portal', 'pera-portal'); ?></h1>
-        <p class="lead"><?php echo esc_html__('Explore available homes by floor, compare options, and review plans with confidence.', 'pera-portal'); ?></p>
+        <p class="lead"><?php echo esc_html__('Explore available residences by floor, compare options, and review plans with confidence.', 'pera-portal'); ?></p>
 
         <?php if (function_exists('pera_portal_current_user_can_access') && pera_portal_current_user_can_access()) : ?>
             <div class="hero-actions">
@@ -33,7 +33,7 @@ if (!defined('ABSPATH')) {
                     <div class="pera-portal-topbar-group pera-portal-topbar-group--primary" aria-label="Primary selection controls">
                         <div class="pera-portal-floorbar portal-print-section portal-print-section--selector">
                             <label for="pera-portal-floor-select"><?php echo esc_html__('Floor', 'pera-portal'); ?></label>
-                            <select id="pera-portal-floor-select" class="pera-portal-floor-select"><option value=""><?php echo esc_html__('Select a floor to begin.', 'pera-portal'); ?></option></select>
+                            <select id="pera-portal-floor-select" class="pera-portal-floor-select"><option value=""><?php echo esc_html__('Select a floor to continue.', 'pera-portal'); ?></option></select>
                         </div>
 
                         <div class="pera-portal-colormode" role="group" aria-label="Color mode">
@@ -45,7 +45,7 @@ if (!defined('ABSPATH')) {
                     <div class="pera-portal-topbar-group pera-portal-topbar-group--status">
                         <div class="pera-portal-shortlistbar" aria-label="Shortlist controls">
                             <span class="pera-portal-shortlistcount">
-                                <?php echo esc_html__('Shortlist:', 'pera-portal'); ?>
+                                <?php echo esc_html__('Shortlist', 'pera-portal'); ?>
                                 <strong data-shortlist-count>0</strong>
                             </span>
 
@@ -80,11 +80,11 @@ if (!defined('ABSPATH')) {
                                     <path fill="currentColor" d="M6 8V3h12v5H6Zm10-2V5H8v1h8Zm2 4h1a3 3 0 0 1 3 3v4h-4v4H6v-4H2v-4a3 3 0 0 1 3-3h1v2H5a1 1 0 0 0-1 1v2h2v-2h12v2h2v-2a1 1 0 0 0-1-1h-1v-2Zm-2 9v-5H8v5h8Z"/>
                                 </svg>
                             </button>
-                            <span class="pera-portal-share-toast" data-share-toast hidden><?php echo esc_html__('Copied', 'pera-portal'); ?></span>
+                            <span class="pera-portal-share-toast" data-share-toast hidden><?php echo esc_html__('Link copied', 'pera-portal'); ?></span>
                         </div>
                     </div>
                 </div>
-                <div class="pera-portal-svg-placeholder"><?php echo esc_html__('Select a floor to load the plan.', 'pera-portal'); ?></div>
+                <div class="pera-portal-svg-placeholder"><?php echo esc_html__('Select a floor to view the plan.', 'pera-portal'); ?></div>
             </section>
             <aside class="pera-portal-panel pera-portal-panel--details" aria-label="Unit details">
                 <div class="pera-portal-panel__head">
@@ -112,8 +112,8 @@ if (!defined('ABSPATH')) {
                 </div>
                 <div class="pera-portal-compare" hidden>
                     <div class="pera-portal-compare__head">
-                        <h4><?php echo esc_html__('Shortlist comparison', 'pera-portal'); ?></h4>
-                        <p class="pera-portal-compare__hint"><?php echo esc_html__('Tip: Shift+Click units to shortlist them.', 'pera-portal'); ?></p>
+                        <h4><?php echo esc_html__('Shortlist Comparison', 'pera-portal'); ?></h4>
+                        <p class="pera-portal-compare__hint"><?php echo esc_html__('Tip: Shift+click units to add them to your shortlist.', 'pera-portal'); ?></p>
                     </div>
                     <div class="pera-portal-compare__wrap">
                         <table class="pera-portal-compare__table">
@@ -125,7 +125,7 @@ if (!defined('ABSPATH')) {
                                     <th><?php echo esc_html__('Gross', 'pera-portal'); ?></th>
                                     <th><?php echo esc_html__('Price', 'pera-portal'); ?></th>
                                     <th><?php echo esc_html__('Status', 'pera-portal'); ?></th>
-                                    <th><?php echo esc_html__('View plan', 'pera-portal'); ?></th>
+                                    <th><?php echo esc_html__('Open plan', 'pera-portal'); ?></th>
                                     <th aria-label="Remove"></th>
                                 </tr>
                             </thead>
@@ -134,7 +134,7 @@ if (!defined('ABSPATH')) {
                     </div>
                 </div>
                 <div class="portal-print-section portal-print-section--details">
-                    <div class="pera-portal-details-placeholder"><?php echo esc_html__('Select a unit to view its key details.', 'pera-portal'); ?></div>
+                    <div class="pera-portal-details-placeholder"><?php echo esc_html__('Select a unit to view key details.', 'pera-portal'); ?></div>
                     <div class="pera-portal-quote-tools" data-quote-tools hidden></div>
                 </div>
                 <div class="portal-print-section portal-print-section--plan">
