@@ -7,7 +7,7 @@ if (!defined('ABSPATH')) {
 ?>
 <section class="hero hero--left hero--fit" id="pera-portal-hero">
     <div class="hero-content container">
-        <h1><?php echo esc_html__('Building Portal', 'pera-portal'); ?></h1>
+        <h1><?php echo esc_html__('Pera Portal', 'pera-portal'); ?></h1>
         <p class="lead"><?php echo esc_html__('Browse current availability by floor, compare residences, and review each layout in one streamlined view.', 'pera-portal'); ?></p>
 
         <?php if (function_exists('pera_portal_current_user_can_access') && pera_portal_current_user_can_access()) : ?>
