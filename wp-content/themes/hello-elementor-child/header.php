@@ -38,8 +38,6 @@ if ( ! defined( 'ABSPATH' ) ) {
 <input type="checkbox" id="nav-toggle" class="nav-toggle" hidden>
 
 <?php
-$logo_path = get_stylesheet_directory() . '/logos-icons/pera-logo.svg';
-
 // Do not depend on crm-router.php load timing: it is route-gated to /crm/* requests.
 if ( function_exists( 'peracrm_user_can_access_crm' ) ) {
   $crm_header_access_allowed = (bool) peracrm_user_can_access_crm();
@@ -63,23 +61,13 @@ $crm_label              = $crm_overdue_count > 0
 
     <!-- LEFT: LOGO -->
     <div class="site-branding">
-      <a href="<?php echo esc_url( home_url('/') ); ?>"
-         class="site-logo logo-pera"
-         aria-label="Pera Property">
-
-        <?php
-        if ( file_exists( $logo_path ) ) {
-          echo file_get_contents( $logo_path );
-        } else {
-          ?>
-          <img
-            src="<?php echo esc_url( get_stylesheet_directory_uri() . '/logos-icons/logo-white.svg' ); ?>"
-            alt="Pera Property Logo"
-            width="120"
-          />
-        <?php } ?>
-
-      </a>
+      <?php
+      echo pera_get_site_logo_markup( array(
+        'link_class' => 'site-logo logo-pera',
+        'aria_label' => 'Pera Property',
+        'title'      => 'Pera Property',
+      ) );
+      ?>
     </div>
 
     <!-- RIGHT: ICONS -->
@@ -124,23 +112,14 @@ $crm_label              = $crm_overdue_count > 0
   <div class="offcanvas-inner">
 
     <div class="offcanvas-top">
-      <a href="<?php echo esc_url( home_url('/') ); ?>"
-         class="site-logo logo-pera"
-         aria-label="Pera Property">
-
-        <?php
-        if ( file_exists( $logo_path ) ) {
-          echo file_get_contents( $logo_path );
-        } else {
-          ?>
-          <img
-            src="<?php echo esc_url( get_stylesheet_directory_uri() . '/logos-icons/logo-white.svg' ); ?>"
-            alt="Pera Property Logo"
-            width="250"
-          />
-        <?php } ?>
-
-      </a>
+      <?php
+      echo pera_get_site_logo_markup( array(
+        'link_class'     => 'site-logo logo-pera',
+        'aria_label'     => 'Pera Property',
+        'title'          => 'Pera Property',
+        'fallback_width' => 250,
+      ) );
+      ?>
 
       <label for="nav-toggle"
              class="offcanvas-close"

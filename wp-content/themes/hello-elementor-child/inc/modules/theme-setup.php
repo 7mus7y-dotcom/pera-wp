@@ -8,6 +8,7 @@ if ( ! defined( 'ABSPATH' ) ) exit;
 
 add_action( 'after_setup_theme', function () {
   add_image_size( 'pera-card', 800, 450, true ); // 16:9 crop, good for cards
+  add_theme_support( 'custom-logo' );
 });
 
 
