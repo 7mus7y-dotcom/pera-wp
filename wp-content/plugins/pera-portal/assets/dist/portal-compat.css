@@ -45,21 +45,30 @@ body.admin-bar.pera-portal-page {
 /* Apply offset to hero only */
 body.pera-portal-page .hero {
     padding-top: calc(
-        48px
+        36px
         + var(--pera-portal-header-offset)
         + var(--pera-portal-adminbar-offset, 0px)
     );
-}
-
-body.pera-portal-page .hero {
-    padding-bottom: 48px;
-    background: var(--pera-portal-hero-bg);
+    padding-bottom: 30px;
+    background: linear-gradient(
+            180deg,
+            rgba(255, 255, 255, 0.06) 0%,
+            rgba(255, 255, 255, 0) 100%
+        ),
+        var(--pera-portal-hero-bg);
     color: var(--pera-portal-hero-text);
-    border-bottom: 1px solid rgba(255, 255, 255, 0.14);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.12);
 }
 
 body.pera-portal-page .hero .lead {
-    color: rgba(255, 255, 255, 0.85);
+    margin: 8px 0 0;
+    color: rgba(255, 255, 255, 0.83);
+}
+
+body.pera-portal-page .hero h1 {
+    margin: 0;
+    font-size: clamp(1.8rem, 2.6vw, 2.2rem);
+    letter-spacing: -0.01em;
 }
 
 body.pera-portal-page .hero a {
@@ -80,10 +89,34 @@ body.pera-portal-page .hero-content {
 }
 
 body.pera-portal-page .hero-actions {
-    margin-top: 20px;
-    display: flex;
+    margin-top: 14px;
+    display: inline-flex;
+    align-items: center;
     flex-wrap: wrap;
-    gap: 12px;
+    gap: 10px;
+}
+
+body.pera-portal-page .hero-actions__label {
+    font-size: 0.75rem;
+    font-weight: 600;
+    line-height: 1;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    opacity: 0.72;
+}
+
+body.pera-portal-page .hero-actions__admin-link {
+    font-size: 0.875rem;
+    padding: 0.5rem 0.875rem;
+    border-color: rgba(255, 255, 255, 0.4);
+    color: rgba(255, 255, 255, 0.92);
+    background: rgba(255, 255, 255, 0.04);
+}
+
+body.pera-portal-page .hero-actions__admin-link:hover,
+body.pera-portal-page .hero-actions__admin-link:focus-visible {
+    background: rgba(255, 255, 255, 0.12);
+    border-color: rgba(255, 255, 255, 0.58);
 }
 
 body.pera-portal-page .lead {
@@ -92,7 +125,7 @@ body.pera-portal-page .lead {
 }
 
 body.pera-portal-page .section {
-    padding: 40px 0;
+    padding: 34px 0 40px;
 }
 
 body.pera-portal-page .section-soft {
@@ -266,6 +299,24 @@ body.is-dark.pera-portal-page .pera-portal-building-list__item .button:focus-vis
 }
 
 @media (max-width: 767px) {
+    body.pera-portal-page .hero {
+        padding-top: calc(
+            24px
+            + var(--pera-portal-header-offset)
+            + var(--pera-portal-adminbar-offset, 0px)
+        );
+        padding-bottom: 22px;
+    }
+
+    body.pera-portal-page .hero-actions {
+        margin-top: 12px;
+        gap: 8px;
+    }
+
+    body.pera-portal-page .hero-actions__label {
+        flex-basis: 100%;
+    }
+
     body.pera-portal-page .portal-hero {
         padding: 150px 20px 80px;
     }
