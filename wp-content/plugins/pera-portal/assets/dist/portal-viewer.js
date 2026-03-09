@@ -901,7 +901,12 @@
 
         try {
             const units = await fetchJson('units?floor_id=' + encodeURIComponent(String(state.floorId)) + (state.buildingId > 0 ? '&building_id=' + encodeURIComponent(String(state.buildingId)) : '') + '&mode=' + encodeURIComponent(mode));
-            const svgResponse = await fetch(restBase + 'floor?floor_id=' + encodeURIComponent(String(state.floorId)), {
+            const selectedFloor = floorsData.find(function (floor) {
+                return Number(floor && floor.id) === state.floorId;
+            }) || null;
+            const svgVersion = selectedFloor && selectedFloor.svg_version ? String(selectedFloor.svg_version) : '';
+            const svgRequestPath = 'floor?floor_id=' + encodeURIComponent(String(state.floorId)) + (svgVersion ? '&ver=' + encodeURIComponent(svgVersion) : '');
+            const svgResponse = await fetch(restBase + svgRequestPath, {
                 credentials: 'same-origin',
             });
 
