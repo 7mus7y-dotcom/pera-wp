@@ -1034,9 +1034,23 @@ body.is-dark.pera-portal-page #pera-portal-root .pera-portal-tooltip {
     padding-top: 12px;
 }
 
+.pera-portal-quote-box {
+    border: 1px solid color-mix(in srgb, var(--portal-border) 92%, transparent);
+    border-radius: 10px;
+    padding: 12px;
+    background: linear-gradient(180deg, color-mix(in srgb, var(--portal-surface-2) 86%, transparent) 0%, var(--portal-surface) 100%);
+}
+
+.pera-portal-quote-box h4 {
+    margin: 0 0 10px;
+    font-size: 0.9375rem;
+    line-height: 1.35;
+    color: var(--portal-text);
+}
+
 .pera-portal-quote-form {
     display: grid;
-    gap: 8px;
+    gap: 10px;
 }
 
 .pera-portal-quote-form label {
@@ -1049,13 +1063,117 @@ body.is-dark.pera-portal-page #pera-portal-root .pera-portal-tooltip {
 .pera-portal-quote-form input,
 .pera-portal-quote-form textarea {
     border: 1px solid var(--portal-border);
-    border-radius: 4px;
-    padding: 6px 8px;
+    border-radius: 8px;
+    padding: 8px 10px;
     background: var(--portal-surface-2);
     color: var(--portal-text);
+}
+
+.pera-portal-quote-form .button-like,
+.pera-portal-quote-result [data-copy-quote="1"] {
+    appearance: none;
+    border: 1px solid color-mix(in srgb, var(--portal-accent) 36%, var(--portal-border));
+    border-radius: 999px;
+    background: color-mix(in srgb, var(--portal-accent) 16%, var(--portal-surface));
+    color: var(--portal-text);
+    min-height: 38px;
+    padding: 0 15px;
+    font-size: 0.875rem;
+    font-weight: 600;
+    line-height: 1;
+    letter-spacing: 0.01em;
+    cursor: pointer;
+    transition: background 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease, transform 0.1s ease;
+}
+
+.pera-portal-quote-form .button-like:hover,
+.pera-portal-quote-result [data-copy-quote="1"]:hover {
+    border-color: color-mix(in srgb, var(--portal-accent) 52%, var(--portal-border));
+    background: color-mix(in srgb, var(--portal-accent) 22%, var(--portal-surface));
+}
+
+.pera-portal-quote-form .button-like:active,
+.pera-portal-quote-result [data-copy-quote="1"]:active {
+    transform: translateY(1px);
+}
+
+.pera-portal-quote-form .button-like:focus-visible,
+.pera-portal-quote-result [data-copy-quote="1"]:focus-visible,
+.pera-portal-quote-form input:focus-visible,
+.pera-portal-quote-form textarea:focus-visible {
+    outline: 2px solid var(--portal-focus);
+    outline-offset: 2px;
 }
 
 .pera-portal-quote-result {
     margin-top: 10px;
     font-size: 13px;
+}
+
+@media (max-width: 640px) {
+    .pera-portal-panel {
+        border-radius: 8px;
+        padding: 0.95rem;
+    }
+
+    .pera-portal-panel__head,
+    .pera-portal-plan-head {
+        margin-bottom: 12px;
+    }
+
+    .pera-portal-panel__subtitle {
+        margin-top: 8px;
+        line-height: 1.5;
+    }
+
+    .pera-portal-topbar {
+        border-radius: 10px;
+        padding: 10px;
+        gap: 10px;
+    }
+
+    .pera-portal-floorbar,
+    .pera-portal-shortlistbar,
+    .pera-portal-share {
+        gap: 6px;
+    }
+
+    .pera-portal-legend,
+    .pera-portal-filters {
+        gap: 8px;
+    }
+
+    .pera-portal-filter-pill {
+        padding: 4px 9px;
+    }
+
+    .pera-portal-summary,
+    .pera-portal-compare {
+        padding: 12px;
+        border-radius: 8px;
+    }
+
+    .pera-portal-unit-card {
+        padding: 14px;
+    }
+
+    .pera-portal-svg-placeholder,
+    .pera-portal-details-placeholder,
+    .pera-portal-unit-plan,
+    .pera-portal-quote-box {
+        border-radius: 8px;
+    }
+
+    .pera-portal-quote-tools {
+        margin-top: 14px;
+        padding-top: 10px;
+    }
+
+    .pera-portal-quote-form {
+        gap: 9px;
+    }
+
+    .pera-portal-quote-form .button-like {
+        width: 100%;
+    }
 }
