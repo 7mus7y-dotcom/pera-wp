@@ -7,12 +7,13 @@ if (!defined('ABSPATH')) {
 ?>
 <section class="hero hero--left hero--fit" id="pera-portal-hero">
     <div class="hero-content container">
-        <h1><?php echo esc_html__('Pera Portal', 'pera-portal'); ?></h1>
-        <p class="lead"><?php echo esc_html__('Explore available residences by floor, compare options, and review plans with confidence.', 'pera-portal'); ?></p>
+        <h1><?php echo esc_html__('Building Portal', 'pera-portal'); ?></h1>
+        <p class="lead"><?php echo esc_html__('Browse current availability by floor, compare residences, and review each layout in one streamlined view.', 'pera-portal'); ?></p>
 
         <?php if (function_exists('pera_portal_current_user_can_access') && pera_portal_current_user_can_access()) : ?>
             <div class="hero-actions">
-                <a class="btn btn--ghost btn--green" href="<?php echo esc_url(admin_url('admin.php?page=pera-portal')); ?>">
+                <span class="hero-actions__label"><?php echo esc_html__('Admin tools', 'pera-portal'); ?></span>
+                <a class="btn btn--ghost hero-actions__admin-link" href="<?php echo esc_url(admin_url('admin.php?page=pera-portal')); ?>">
                     <?php echo esc_html__('Manage Portal Data', 'pera-portal'); ?>
                 </a>
             </div>
