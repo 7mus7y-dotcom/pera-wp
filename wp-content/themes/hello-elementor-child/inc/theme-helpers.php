@@ -15,6 +15,85 @@ function pera_get_asset_version( string $relative_path ): string {
   return wp_get_theme()->get( 'Version' );
 }
 
+
+
+if ( ! function_exists( 'pera_get_site_logo_markup' ) ) {
+  /**
+   * Build site logo markup with custom logo as primary source.
+   *
+   * @param array $args Optional overrides.
+   */
+  function pera_get_site_logo_markup( array $args = array() ): string {
+    $defaults = array(
+      'link_class'  => 'site-logo logo-pera',
+      'img_class'   => '',
+      'aria_label'  => get_bloginfo( 'name' ),
+      'title'       => get_bloginfo( 'name' ),
+      'home_url'      => home_url( '/' ),
+      'fallback_width' => 120,
+    );
+
+    $args = wp_parse_args( $args, $defaults );
+
+    $link_class = trim( (string) $args['link_class'] );
+    $img_class  = trim( (string) $args['img_class'] );
+    $aria_label = (string) $args['aria_label'];
+    $title      = (string) $args['title'];
+    $home_url      = (string) $args['home_url'];
+    $fallback_width = (int) $args['fallback_width'];
+
+    $logo_id = (int) get_theme_mod( 'custom_logo' );
+
+    if ( $logo_id > 0 ) {
+      $image_classes = trim( 'custom-logo ' . $img_class );
+      $image_html    = wp_get_attachment_image(
+        $logo_id,
+        'full',
+        false,
+        array(
+          'class'   => $image_classes,
+          'loading' => 'eager',
+        )
+      );
+
+      if ( $image_html ) {
+        return sprintf(
+          '<a href="%1$s" class="%2$s" aria-label="%3$s" title="%4$s">%5$s</a>',
+          esc_url( $home_url ),
+          esc_attr( $link_class ),
+          esc_attr( $aria_label ),
+          esc_attr( $title ),
+          $image_html
+        );
+      }
+    }
+
+    $logo_path = get_stylesheet_directory() . '/logos-icons/pera-logo.svg';
+
+    if ( file_exists( $logo_path ) ) {
+      return sprintf(
+        '<a href="%1$s" class="%2$s" aria-label="%3$s" title="%4$s">%5$s</a>',
+        esc_url( $home_url ),
+        esc_attr( $link_class ),
+        esc_attr( $aria_label ),
+        esc_attr( $title ),
+        file_get_contents( $logo_path )
+      );
+    }
+
+    return sprintf(
+      '<a href="%1$s" class="%2$s" aria-label="%3$s" title="%4$s"><img src="%5$s" alt="%6$s" width="%7$d" class="%8$s" /></a>',
+      esc_url( $home_url ),
+      esc_attr( $link_class ),
+      esc_attr( $aria_label ),
+      esc_attr( $title ),
+      esc_url( get_stylesheet_directory_uri() . '/logos-icons/logo-white.svg' ),
+      esc_attr( get_bloginfo( 'name' ) ),
+      $fallback_width > 0 ? $fallback_width : 120,
+      esc_attr( $img_class )
+    );
+  }
+}
 /**
  * Helper: are we on a BLOG archive (not property archives)?
  * - Category / Tag / Author / Date archives for posts
