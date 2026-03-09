@@ -685,7 +685,7 @@
 
         const planHeading = document.createElement('p');
         const planStrong = document.createElement('strong');
-        planStrong.textContent = 'Plan:';
+        planStrong.textContent = 'Selected plan';
         planHeading.appendChild(planStrong);
         planWrap.appendChild(planHeading);
 
@@ -695,7 +695,7 @@
             planLink.target = '_blank';
             planLink.rel = 'noopener noreferrer';
             planLink.className = 'button-like';
-            planLink.textContent = 'View unit plan';
+            planLink.textContent = 'Open full plan';
             planWrap.appendChild(planLink);
 
             if (isImagePlan) {
@@ -774,7 +774,7 @@
         });
 
         if (selectedElement && selectedUnit && !enabledStatuses.has(selectedUnit.status)) {
-            clearSelection('Select a highlighted unit to see details.');
+            clearSelection('Select a visible unit to update details.');
         }
 
         renderCounts();
@@ -890,12 +890,12 @@
         }
 
         if (!state.floorId) {
-            setMessage(svgContainer, 'Floor not selected.');
-            setMessage(detailsContainer, state.buildingId ? 'No floor found for this building.' : 'Select a building in shortcode.');
+            setMessage(svgContainer, 'Select a floor to load the plan.');
+            setMessage(detailsContainer, state.buildingId ? 'No floors are currently available for this building.' : 'Select a building to begin.');
             return;
         }
 
-        clearSelection('Loading floor data...');
+        clearSelection('Loading floor and unit availability...');
         clearShortlist();
         renderSvgWarning('');
 
@@ -936,13 +936,13 @@
                 svgContainer.textContent = '';
                 svgContainer.appendChild(document.importNode(svgEl, true));
                 if (svgSource === 'fixture' || svgWarningCode === 'floor_svg_missing_using_fixture') {
-                    renderSvgWarning('Showing fallback floor plan. Uploaded floor SVG is missing.');
+                    renderSvgWarning('Showing fallback floor plan while the main plan is being prepared.');
                 }
             }
 
             const svg = svgContainer ? svgContainer.querySelector('svg') : null;
             if (!svg) {
-                setMessage(detailsContainer, 'SVG loaded but no root <svg> found.');
+                setMessage(detailsContainer, 'The floor plan could not be displayed at this time.');
                 return;
             }
 
@@ -1002,7 +1002,7 @@
             }
 
             if (!svgUnits.length) {
-                setMessage(detailsContainer, 'No SVG IDs matched unit codes. Check unit_code vs SVG element id. Your SVG unit shapes must be closed and filled (can be transparent). Stroke-only outlines won’t be easy to click.');
+                setMessage(detailsContainer, 'Unit details are currently unavailable for this floor. Please try another floor.');
                 renderCounts();
                 return;
             }
@@ -1071,7 +1071,7 @@
             }
 
             if (!selectedUnit) {
-                setMessage(detailsContainer, 'Click a highlighted unit to see details. Your SVG unit shapes must be closed and filled (can be transparent). Stroke-only outlines won’t be easy to click.');
+                setMessage(detailsContainer, 'Step 2: Select any highlighted unit to view details and plan options.');
             }
         } catch (error) {
             const message = error && error.message ? error.message : 'Unknown error';
@@ -1228,8 +1228,8 @@
                 floorSelect.disabled = true;
             }
             if (!state.floorId) {
-                setMessage(svgContainer, 'Floor not selected.');
-                setMessage(detailsContainer, 'Select a building in shortcode.');
+                setMessage(svgContainer, 'Select a floor to load the plan.');
+                setMessage(detailsContainer, 'Select a building to begin.');
                 return;
             }
         }

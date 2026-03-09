@@ -8,7 +8,7 @@ if (!defined('ABSPATH')) {
 <section class="hero hero--left hero--fit" id="pera-portal-hero">
     <div class="hero-content container">
         <h1><?php echo esc_html__('Pera Portal', 'pera-portal'); ?></h1>
-        <p class="lead"><?php echo esc_html__('Interactive floor plan viewer for units and availability.', 'pera-portal'); ?></p>
+        <p class="lead"><?php echo esc_html__('Explore available homes by floor, compare options, and review plans with confidence.', 'pera-portal'); ?></p>
 
         <?php if (function_exists('pera_portal_current_user_can_access') && pera_portal_current_user_can_access()) : ?>
             <div class="hero-actions">
@@ -27,12 +27,13 @@ if (!defined('ABSPATH')) {
             <section class="pera-portal-panel pera-portal-panel--svg" aria-label="Floor plan viewer">
                 <div class="pera-portal-panel__head">
                     <h3><?php echo esc_html__('Floor Plan', 'pera-portal'); ?></h3>
+                    <p class="pera-portal-panel__subtitle"><?php echo esc_html__('Step 1: Choose a floor, then select a unit on the plan.', 'pera-portal'); ?></p>
                 </div>
                 <div class="pera-portal-topbar">
                     <div class="pera-portal-topbar-group pera-portal-topbar-group--primary" aria-label="Primary selection controls">
                         <div class="pera-portal-floorbar portal-print-section portal-print-section--selector">
                             <label for="pera-portal-floor-select"><?php echo esc_html__('Floor', 'pera-portal'); ?></label>
-                            <select id="pera-portal-floor-select" class="pera-portal-floor-select"><option value=""><?php echo esc_html__('Select a building in shortcode.', 'pera-portal'); ?></option></select>
+                            <select id="pera-portal-floor-select" class="pera-portal-floor-select"><option value=""><?php echo esc_html__('Select a floor to begin.', 'pera-portal'); ?></option></select>
                         </div>
 
                         <div class="pera-portal-colormode" role="group" aria-label="Color mode">
@@ -83,11 +84,12 @@ if (!defined('ABSPATH')) {
                         </div>
                     </div>
                 </div>
-                <div class="pera-portal-svg-placeholder"><?php echo esc_html__('SVG plan placeholder', 'pera-portal'); ?></div>
+                <div class="pera-portal-svg-placeholder"><?php echo esc_html__('Select a floor to load the plan.', 'pera-portal'); ?></div>
             </section>
             <aside class="pera-portal-panel pera-portal-panel--details" aria-label="Unit details">
                 <div class="pera-portal-panel__head">
                     <h3><?php echo esc_html__('Unit Details', 'pera-portal'); ?></h3>
+                    <p class="pera-portal-panel__subtitle"><?php echo esc_html__('Step 2: Details update as you select a unit.', 'pera-portal'); ?></p>
                 </div>
                 <div class="pera-portal-legend" aria-label="Unit status legend">
                     <span class="pera-portal-legend__item"><span class="pera-portal-legend__swatch pera-portal-legend__swatch--available"></span><?php echo esc_html__('Available', 'pera-portal'); ?></span>
@@ -132,10 +134,14 @@ if (!defined('ABSPATH')) {
                     </div>
                 </div>
                 <div class="portal-print-section portal-print-section--details">
-                    <div class="pera-portal-details-placeholder"><?php echo esc_html__('Unit details placeholder', 'pera-portal'); ?></div>
+                    <div class="pera-portal-details-placeholder"><?php echo esc_html__('Select a unit to view its key details.', 'pera-portal'); ?></div>
                     <div class="pera-portal-quote-tools" data-quote-tools hidden></div>
                 </div>
                 <div class="portal-print-section portal-print-section--plan">
+                    <div class="pera-portal-plan-head">
+                        <h4><?php echo esc_html__('Selected Unit Plan', 'pera-portal'); ?></h4>
+                        <p class="pera-portal-panel__subtitle"><?php echo esc_html__('Step 3: Review the selected layout and open the full plan.', 'pera-portal'); ?></p>
+                    </div>
                     <div class="pera-portal-plan-placeholder"></div>
                 </div>
             </aside>
