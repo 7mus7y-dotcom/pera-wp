@@ -295,21 +295,84 @@ body.pera-portal-page .page-header {
     }
 }
 
+.pera-portal-plan-placeholder {
+    min-height: 72px;
+}
+
+.pera-portal-plan-state {
+    border: 1px dashed var(--portal-border);
+    border-radius: 10px;
+    background: var(--portal-surface-2);
+    color: var(--portal-text-muted);
+    padding: 12px;
+    font-size: 13px;
+    line-height: 1.5;
+}
+
 .pera-portal-unit-plan {
     margin-top: 12px;
+    border: 1px solid var(--portal-border);
+    border-radius: 10px;
+    background: linear-gradient(180deg, var(--portal-surface-2) 0%, var(--portal-surface) 100%);
+    padding: 12px;
+}
+
+.pera-portal-unit-plan__header {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    gap: 8px 12px;
+    align-items: center;
+}
+
+.pera-portal-unit-plan__title {
+    margin: 0;
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--portal-text);
+}
+
+.pera-portal-unit-plan__context {
+    margin: 0;
+    grid-column: 1 / 2;
+    font-size: 12px;
+    color: var(--portal-text-muted);
+}
+
+.pera-portal-unit-plan__action.button-like {
+    margin: 0;
+}
+
+.pera-portal-unit-plan__preview {
+    margin-top: 10px;
+    border: 1px solid var(--portal-border);
+    border-radius: 8px;
+    background: var(--portal-surface);
+    overflow: hidden;
 }
 
 .pera-portal-unit-plan img {
     width: 100%;
     height: auto;
-    border: 1px solid var(--portal-border);
-    border-radius: 6px;
-    margin-top: 8px;
+    display: block;
 }
 
-.pera-portal-unit-plan a.button-like {
-    display: inline-block;
-    margin-top: 8px;
+.pera-portal-unit-plan__empty {
+    margin: 10px 0 0;
+    padding: 10px;
+    border-radius: 8px;
+    background: var(--portal-surface);
+    color: var(--portal-text-muted);
+    font-size: 13px;
+}
+
+@media (max-width: 640px) {
+    .pera-portal-unit-plan__header {
+        grid-template-columns: 1fr;
+    }
+
+    .pera-portal-unit-plan__context {
+        grid-column: auto;
+    }
 }
 
 .pera-portal-floorbar {
