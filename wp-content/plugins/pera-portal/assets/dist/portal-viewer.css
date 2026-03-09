@@ -38,6 +38,22 @@ body.pera-portal-page .pera-portal-viewer-wrap {
     color: var(--portal-text);
 }
 
+.pera-portal-panel__subtitle {
+    margin: 6px 0 0;
+    font-size: 13px;
+    line-height: 1.4;
+    color: var(--portal-text-muted);
+}
+
+.pera-portal-plan-head {
+    margin-bottom: 10px;
+}
+
+.pera-portal-plan-head h4 {
+    margin: 0;
+    color: var(--portal-text);
+}
+
 .pera-portal-panel--svg svg {
     width: 100%;
     height: auto;
