@@ -2968,7 +2968,7 @@ body:not(.single-post) tr:nth-child(even) {
 }
 @media (min-width: 1024px) {
   .overlap-hero-archive {
-    margin-top: -200px;
+    margin-top: -150px;
     position: relative;
     z-index: 3;
   }
