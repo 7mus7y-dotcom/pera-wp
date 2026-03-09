@@ -749,11 +749,11 @@
 
         const planHeading = document.createElement('p');
         planHeading.className = 'pera-portal-unit-plan__title';
-        planHeading.textContent = 'Plan asset ready';
+        planHeading.textContent = 'Plan preview';
 
         const planContext = document.createElement('p');
         planContext.className = 'pera-portal-unit-plan__context';
-        planContext.textContent = 'Prepared for unit ' + safeText(codeValue) + '.';
+        planContext.textContent = 'Unit ' + safeText(codeValue);
 
         planHeader.appendChild(planHeading);
         planHeader.appendChild(planContext);
