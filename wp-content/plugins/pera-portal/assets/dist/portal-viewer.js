@@ -645,6 +645,19 @@
         quoteToolsContainer.appendChild(wrap);
     }
 
+    function renderPlanPlaceholder(message) {
+        if (!planContainer) {
+            return;
+        }
+
+        planContainer.textContent = '';
+
+        const emptyState = document.createElement('div');
+        emptyState.className = 'pera-portal-plan-state';
+        emptyState.textContent = message;
+        planContainer.appendChild(emptyState);
+    }
+
     function renderDetails(unit) {
         if (!detailsContainer) {
             return;
@@ -731,31 +744,47 @@
         const planWrap = document.createElement('div');
         planWrap.className = 'pera-portal-unit-plan';
 
+        const planHeader = document.createElement('div');
+        planHeader.className = 'pera-portal-unit-plan__header';
+
         const planHeading = document.createElement('p');
-        const planStrong = document.createElement('strong');
-        planStrong.textContent = 'Selected plan';
-        planHeading.appendChild(planStrong);
-        planWrap.appendChild(planHeading);
+        planHeading.className = 'pera-portal-unit-plan__title';
+        planHeading.textContent = 'Plan asset ready';
+
+        const planContext = document.createElement('p');
+        planContext.className = 'pera-portal-unit-plan__context';
+        planContext.textContent = 'Prepared for unit ' + safeText(codeValue) + '.';
+
+        planHeader.appendChild(planHeading);
+        planHeader.appendChild(planContext);
 
         if (safePlanUrl) {
             const planLink = document.createElement('a');
             planLink.href = safePlanUrl;
             planLink.target = '_blank';
             planLink.rel = 'noopener noreferrer';
-            planLink.className = 'button-like';
+            planLink.className = 'button-like pera-portal-unit-plan__action';
             planLink.textContent = 'Open full plan';
-            planWrap.appendChild(planLink);
+            planHeader.appendChild(planLink);
 
             if (isImagePlan) {
+                const previewWrap = document.createElement('div');
+                previewWrap.className = 'pera-portal-unit-plan__preview';
                 const preview = document.createElement('img');
                 preview.src = safePlanUrl;
                 preview.alt = 'Unit detail plan preview';
                 preview.loading = 'lazy';
-                planWrap.appendChild(preview);
+                previewWrap.appendChild(preview);
+                planWrap.appendChild(previewWrap);
             }
         } else {
-            planHeading.appendChild(document.createTextNode(' -'));
+            const empty = document.createElement('p');
+            empty.className = 'pera-portal-unit-plan__empty';
+            empty.textContent = 'No plan file is currently attached for this selected unit.';
+            planWrap.appendChild(empty);
         }
+
+        planWrap.insertAdjacentElement('afterbegin', planHeader);
 
         detailsContainer.appendChild(card);
 
@@ -803,7 +832,7 @@
         selectedUnit = null;
 
         if (planContainer) {
-            planContainer.textContent = '';
+            renderPlanPlaceholder('Select a unit to review its plan and open the full layout.');
         }
 
         if (message) {
@@ -1146,6 +1175,8 @@
             setMessage(detailsContainer, 'Unable to load units. ' + message);
         }
     }
+
+    renderPlanPlaceholder('Select a unit to review its plan and open the full layout.');
 
     async function init() {
         if (filtersContainer) {
