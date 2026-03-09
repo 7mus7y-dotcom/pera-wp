@@ -528,6 +528,21 @@ body.pera-portal-page .page-header {
   stroke-width: 4 !important;
 }
 
+
+.pera-portal-viewer-context {
+  margin: 0 0 14px;
+}
+
+.pera-portal-viewer-context .pera-portal-legend,
+.pera-portal-viewer-context .pera-portal-filters,
+.pera-portal-viewer-context .pera-portal-counts {
+  margin-bottom: 10px;
+}
+
+.pera-portal-viewer-context .pera-portal-counts {
+  margin-bottom: 0;
+}
+
 .pera-portal-topbar {
   display: flex;
   align-items: stretch;
@@ -822,6 +837,16 @@ body.pera-portal-page .page-header {
   .pera-portal-summary,
   .pera-portal-compare {
     margin-bottom: 12px;
+  }
+
+  .pera-portal-viewer-context {
+    margin-bottom: 12px;
+  }
+
+  .pera-portal-viewer-context .pera-portal-legend,
+  .pera-portal-viewer-context .pera-portal-filters,
+  .pera-portal-viewer-context .pera-portal-counts {
+    margin-bottom: 8px;
   }
 
   .pera-portal-topbar {
