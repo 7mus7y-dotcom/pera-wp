@@ -429,6 +429,141 @@ function peracrm_ingest_should_capture_favourites()
     return true;
 }
 
+function peracrm_ingest_client_ip()
+{
+    if (!empty($_SERVER['HTTP_X_FORWARDED_FOR'])) {
+        $parts = explode(',', sanitize_text_field(wp_unslash($_SERVER['HTTP_X_FORWARDED_FOR'])));
+        return trim($parts[0]);
+    }
+
+    if (!empty($_SERVER['REMOTE_ADDR'])) {
+        return sanitize_text_field(wp_unslash($_SERVER['REMOTE_ADDR']));
+    }
+
+    return '';
+}
+
+function peracrm_citizenship_turnstile_secret_key()
+{
+    return defined('PERA_TURNSTILE_SECRET_KEY') ? sanitize_text_field((string) PERA_TURNSTILE_SECRET_KEY) : '';
+}
+
+function peracrm_citizenship_has_url_like_content($value)
+{
+    $value = strtolower(trim((string) $value));
+    if ($value === '') {
+        return false;
+    }
+
+    if (preg_match('/(?:https?:\/\/|www\.)/i', $value)) {
+        return true;
+    }
+
+    return (bool) preg_match('/\b[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?\.(?:com|net|org|info|biz|co|io|ru|cn|xyz|top)\b/i', $value);
+}
+
+function peracrm_citizenship_is_obvious_spam_payload($name, $message)
+{
+    $joined = strtolower(trim((string) $name) . ' ' . trim((string) $message));
+
+    if (preg_match('/(.)\1{6,}/u', $joined)) {
+        return true;
+    }
+
+    if (preg_match('/\b(?:seo services|guest post|backlink(?:s)?|casino|forex signals|crypto pump|telegram channel)\b/i', $joined)) {
+        return true;
+    }
+
+    if (trim((string) $message) !== '' && preg_match_all('/(?:https?:\/\/|www\.)/i', (string) $message) >= 2) {
+        return true;
+    }
+
+    return false;
+}
+
+function peracrm_citizenship_is_too_fast($submitted_start)
+{
+    $started_at = absint($submitted_start);
+    if ($started_at <= 0) {
+        return true;
+    }
+
+    return (time() - $started_at) < 5;
+}
+
+function peracrm_citizenship_is_rate_limited()
+{
+    if (isset($_POST['_pera_citizenship_rate_limited'])) {
+        return $_POST['_pera_citizenship_rate_limited'] === '1';
+    }
+
+    $ip = peracrm_ingest_client_ip();
+    $ua = isset($_SERVER['HTTP_USER_AGENT']) ? sanitize_text_field(wp_unslash($_SERVER['HTTP_USER_AGENT'])) : '';
+    $fingerprint = md5($ip . '|' . $ua);
+
+    $blocked_key = 'pera_citizenship_block_' . $fingerprint;
+    if (get_transient($blocked_key)) {
+        $_POST['_pera_citizenship_rate_limited'] = '1';
+        return true;
+    }
+
+    $count_key = 'pera_citizenship_count_' . $fingerprint;
+    $count = (int) get_transient($count_key);
+    $count++;
+    set_transient($count_key, $count, 5 * MINUTE_IN_SECONDS);
+
+    if ($count > 2) {
+        set_transient($blocked_key, 1, 15 * MINUTE_IN_SECONDS);
+        $_POST['_pera_citizenship_rate_limited'] = '1';
+        return true;
+    }
+
+    $_POST['_pera_citizenship_rate_limited'] = '0';
+    return false;
+}
+
+function peracrm_citizenship_verify_turnstile($token)
+{
+    if (isset($_POST['_pera_citizenship_turnstile_valid'])) {
+        return $_POST['_pera_citizenship_turnstile_valid'] === '1';
+    }
+
+    $secret = peracrm_citizenship_turnstile_secret_key();
+    if ($secret === '') {
+        $_POST['_pera_citizenship_turnstile_valid'] = '0';
+        return false;
+    }
+
+    $token = sanitize_text_field((string) $token);
+    if ($token === '') {
+        $_POST['_pera_citizenship_turnstile_valid'] = '0';
+        return false;
+    }
+
+    $response = wp_remote_post(
+        'https://challenges.cloudflare.com/turnstile/v0/siteverify',
+        [
+            'timeout' => 10,
+            'body' => [
+                'secret' => $secret,
+                'response' => $token,
+                'remoteip' => peracrm_ingest_client_ip(),
+            ],
+        ]
+    );
+
+    if (is_wp_error($response)) {
+        $_POST['_pera_citizenship_turnstile_valid'] = '0';
+        return false;
+    }
+
+    $body = json_decode((string) wp_remote_retrieve_body($response), true);
+    $is_valid = is_array($body) && !empty($body['success']);
+    $_POST['_pera_citizenship_turnstile_valid'] = $is_valid ? '1' : '0';
+
+    return $is_valid;
+}
+
 function peracrm_ingest_should_capture_citizenship()
 {
     $seen = isset($_POST['pera_citizenship_action']);
@@ -447,6 +582,42 @@ function peracrm_ingest_should_capture_citizenship()
     }
 
     peracrm_ingest_debug_log('detector pera_citizenship_action nonce pass');
+
+    // Anti-spam parity: require policy consent before CRM capture.
+    if (empty($_POST['policy'])) {
+        return false;
+    }
+
+    // Anti-spam parity: reject if citizenship honeypot is filled.
+    $citizenship_company = isset($_POST['citizenship_company']) ? sanitize_text_field(wp_unslash($_POST['citizenship_company'])) : '';
+    if ($citizenship_company !== '') {
+        return false;
+    }
+
+    // Anti-spam parity: reject too-fast form completion.
+    if (peracrm_citizenship_is_too_fast(isset($_POST['form_start']) ? wp_unslash($_POST['form_start']) : '')) {
+        return false;
+    }
+
+    $name = isset($_POST['name']) ? sanitize_text_field(wp_unslash($_POST['name'])) : '';
+    $message = isset($_POST['message']) ? wp_kses_post(wp_unslash($_POST['message'])) : '';
+
+    // Anti-spam parity: reject URL-like names and obvious promo/junk payloads.
+    if (peracrm_citizenship_has_url_like_content($name) || peracrm_citizenship_is_obvious_spam_payload($name, wp_strip_all_tags($message))) {
+        return false;
+    }
+
+    // Anti-spam parity: request throttle by IP/user-agent fingerprint.
+    if (peracrm_citizenship_is_rate_limited()) {
+        return false;
+    }
+
+    // Anti-spam parity: require valid Turnstile token.
+    $turnstile_token = isset($_POST['cf-turnstile-response']) ? wp_unslash($_POST['cf-turnstile-response']) : '';
+    if (!peracrm_citizenship_verify_turnstile($turnstile_token)) {
+        return false;
+    }
+
     return true;
 }
 
