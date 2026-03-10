@@ -316,6 +316,290 @@ function pera_portal_units_manager_apply_filters(array $units, $status_filter, $
     return $units;
 }
 
+function pera_portal_units_manager_get_import_preview_meta_key()
+{
+    return '_pera_portal_units_manager_import_preview_' . get_current_user_id();
+}
+
+function pera_portal_units_manager_clear_import_preview_state()
+{
+    delete_user_meta(get_current_user_id(), pera_portal_units_manager_get_import_preview_meta_key());
+}
+
+function pera_portal_units_manager_store_import_preview_state(array $state)
+{
+    update_user_meta(get_current_user_id(), pera_portal_units_manager_get_import_preview_meta_key(), $state);
+}
+
+function pera_portal_units_manager_get_import_preview_state()
+{
+    $value = get_user_meta(get_current_user_id(), pera_portal_units_manager_get_import_preview_meta_key(), true);
+    return is_array($value) ? $value : null;
+}
+
+function pera_portal_units_manager_get_csv_import_allowed_headers()
+{
+    return [
+        'unit_code',
+        'currency',
+        'status',
+        'unit_type',
+        'net_size',
+        'gross_size',
+        'price',
+        'sort_order',
+        'unit_id',
+        'building_id',
+        'building_title',
+        'floor_id',
+        'floor_title',
+        'detail_plan_url',
+    ];
+}
+
+function pera_portal_units_manager_normalize_import_row(array $raw_row)
+{
+    return [
+        'unit_code' => trim(sanitize_text_field((string) ($raw_row['unit_code'] ?? ''))),
+        'unit_type' => sanitize_text_field((string) ($raw_row['unit_type'] ?? '')),
+        'net_size' => trim((string) ($raw_row['net_size'] ?? '')),
+        'gross_size' => trim((string) ($raw_row['gross_size'] ?? '')),
+        'price' => trim((string) ($raw_row['price'] ?? '')),
+        'currency' => strtoupper(trim(sanitize_text_field((string) ($raw_row['currency'] ?? '')))),
+        'status' => strtolower(trim(sanitize_key((string) ($raw_row['status'] ?? '')))),
+        'sort_order' => trim((string) ($raw_row['sort_order'] ?? '')),
+    ];
+}
+
+function pera_portal_units_manager_parse_csv_file($tmp_name)
+{
+    $rows = [];
+    $headers = [];
+
+    $file = new SplFileObject($tmp_name);
+    $file->setFlags(SplFileObject::READ_CSV);
+    $file->setCsvControl(',');
+
+    foreach ($file as $index => $csv_row) {
+        if (!is_array($csv_row)) {
+            continue;
+        }
+
+        if ($index === 0) {
+            foreach ($csv_row as $header_index => $header_value) {
+                if ($header_index === 0) {
+                    $header_value = preg_replace('/^\xEF\xBB\xBF/', '', (string) $header_value);
+                }
+
+                $header_key = sanitize_key((string) $header_value);
+                if ($header_key !== '') {
+                    $headers[] = $header_key;
+                }
+            }
+            continue;
+        }
+
+        if (count($csv_row) === 1 && trim((string) $csv_row[0]) === '') {
+            continue;
+        }
+
+        $assoc = [];
+        foreach ($headers as $header_index => $header_name) {
+            $assoc[$header_name] = isset($csv_row[$header_index]) ? wp_unslash((string) $csv_row[$header_index]) : '';
+        }
+
+        $rows[] = [
+            'row_number' => $index + 1,
+            'raw' => $assoc,
+        ];
+    }
+
+    return [
+        'headers' => $headers,
+        'rows' => $rows,
+    ];
+}
+
+function pera_portal_units_manager_build_existing_unit_index($floor_id)
+{
+    $index = [];
+    $existing_units = get_posts([
+        'post_type' => 'pera_unit',
+        'post_status' => ['publish', 'private', 'draft'],
+        'posts_per_page' => -1,
+        'fields' => 'ids',
+        'meta_query' => [
+            [
+                'key' => 'floor',
+                'value' => (string) absint($floor_id),
+                'compare' => '=',
+            ],
+        ],
+    ]);
+
+    foreach ($existing_units as $existing_unit_id) {
+        $existing_unit_id = absint($existing_unit_id);
+        if ($existing_unit_id <= 0) {
+            continue;
+        }
+
+        $unit_code = trim((string) pera_portal_units_manager_get_field('unit_code', $existing_unit_id));
+        if ($unit_code === '') {
+            continue;
+        }
+
+        $key = strtolower($unit_code);
+        if (!isset($index[$key])) {
+            $index[$key] = [];
+        }
+
+        $index[$key][] = $existing_unit_id;
+    }
+
+    return $index;
+}
+
+function pera_portal_units_manager_build_import_preview($floor_id, $building_id, array $parsed)
+{
+    $allowed_headers = pera_portal_units_manager_get_csv_import_allowed_headers();
+    $required_headers = ['unit_code', 'currency', 'status'];
+    $numeric_fields = ['net_size', 'gross_size', 'price', 'sort_order'];
+
+    $rows = [];
+    $summary = [
+        'total_rows' => 0,
+        'create_count' => 0,
+        'update_count' => 0,
+        'error_count' => 0,
+        'warning_count' => 0,
+    ];
+
+    $global_messages = [
+        'warnings' => [],
+        'errors' => [],
+    ];
+
+    foreach ($required_headers as $required_header) {
+        if (!in_array($required_header, $parsed['headers'], true)) {
+            $global_messages['errors'][] = sprintf(
+                /* translators: %s: required header key */
+                __('Missing required CSV column: %s.', 'pera-portal'),
+                $required_header
+            );
+        }
+    }
+
+    $ignored_headers = array_values(array_diff($parsed['headers'], $allowed_headers));
+    if (!empty($ignored_headers)) {
+        $global_messages['warnings'][] = sprintf(
+            /* translators: %s: comma separated list of ignored headers */
+            __('Ignored unknown CSV columns: %s.', 'pera-portal'),
+            implode(', ', $ignored_headers)
+        );
+    }
+
+    $existing_index = pera_portal_units_manager_build_existing_unit_index($floor_id);
+    $file_seen_codes = [];
+
+    foreach ($parsed['rows'] as $parsed_row) {
+        $summary['total_rows']++;
+        $row = [
+            'row_number' => (int) $parsed_row['row_number'],
+            'payload' => pera_portal_units_manager_normalize_import_row($parsed_row['raw']),
+            'action' => 'error',
+            'messages' => [
+                'errors' => [],
+                'warnings' => [],
+            ],
+            'target_unit_id' => 0,
+        ];
+
+        $code_key = strtolower((string) $row['payload']['unit_code']);
+        if ($row['payload']['unit_code'] === '') {
+            $row['messages']['errors'][] = __('Unit code is required.', 'pera-portal');
+        }
+
+        if (!in_array($row['payload']['currency'], pera_portal_units_manager_get_allowed_currencies(), true)) {
+            $row['messages']['errors'][] = __('Currency must be one of EUR, GBP, USD, TRY.', 'pera-portal');
+        }
+
+        if (!in_array($row['payload']['status'], pera_portal_units_manager_get_allowed_statuses(), true)) {
+            $row['messages']['errors'][] = __('Status must be available, reserved, or sold.', 'pera-portal');
+        }
+
+        foreach ($numeric_fields as $numeric_field) {
+            if ($row['payload'][$numeric_field] !== '' && !is_numeric($row['payload'][$numeric_field])) {
+                $row['messages']['errors'][] = sprintf(
+                    /* translators: %s: field label */
+                    __('%s must be numeric or blank.', 'pera-portal'),
+                    ucwords(str_replace('_', ' ', $numeric_field))
+                );
+            }
+        }
+
+        if ($code_key !== '') {
+            if (!isset($file_seen_codes[$code_key])) {
+                $file_seen_codes[$code_key] = [];
+            }
+
+            $file_seen_codes[$code_key][] = $row['row_number'];
+
+            if (count($file_seen_codes[$code_key]) > 1) {
+                $row['messages']['errors'][] = __('Duplicate unit_code found in CSV file.', 'pera-portal');
+            }
+
+            if (isset($existing_index[$code_key]) && count($existing_index[$code_key]) > 1) {
+                $row['messages']['errors'][] = __('Ambiguous existing unit_code on selected floor; multiple existing units match.', 'pera-portal');
+            }
+        }
+
+        if (isset($parsed_row['raw']['building_id']) && trim((string) $parsed_row['raw']['building_id']) !== '' && absint($parsed_row['raw']['building_id']) !== absint($building_id)) {
+            $row['messages']['warnings'][] = __('CSV building_id differs from selected context and will be ignored.', 'pera-portal');
+        }
+
+        if (isset($parsed_row['raw']['floor_id']) && trim((string) $parsed_row['raw']['floor_id']) !== '' && absint($parsed_row['raw']['floor_id']) !== absint($floor_id)) {
+            $row['messages']['warnings'][] = __('CSV floor_id differs from selected context and will be ignored.', 'pera-portal');
+        }
+
+        if (isset($parsed_row['raw']['detail_plan_url']) && trim((string) $parsed_row['raw']['detail_plan_url']) !== '') {
+            $row['messages']['warnings'][] = __('detail_plan_url is ignored in this import phase.', 'pera-portal');
+        }
+
+        if (empty($row['messages']['errors'])) {
+            if ($code_key !== '' && isset($existing_index[$code_key]) && count($existing_index[$code_key]) === 1) {
+                $row['action'] = 'update';
+                $row['target_unit_id'] = (int) $existing_index[$code_key][0];
+                $row['messages']['warnings'][] = __('Row will update an existing unit.', 'pera-portal');
+                $summary['update_count']++;
+            } else {
+                $row['action'] = 'create';
+                $row['messages']['warnings'][] = __('Row will create a new unit.', 'pera-portal');
+                $summary['create_count']++;
+            }
+        }
+
+        if (!empty($row['messages']['errors'])) {
+            $summary['error_count']++;
+        }
+
+        if (!empty($row['messages']['warnings'])) {
+            $summary['warning_count']++;
+        }
+
+        $rows[] = $row;
+    }
+
+    if (!empty($global_messages['errors'])) {
+        $summary['error_count'] += count($global_messages['errors']);
+    }
+
+    return [
+        'summary' => $summary,
+        'rows' => $rows,
+        'global_messages' => $global_messages,
+    ];
+}
+
 function pera_portal_units_manager_redirect_with_notice($type, array $messages, array $base_args, array $row_state = [], array $new_row_state = [])
 {
     $key = '_pera_portal_units_manager_flash_' . get_current_user_id();
@@ -710,6 +994,156 @@ function pera_portal_units_manager_handle_export_csv_action()
     exit;
 }
 
+function pera_portal_units_manager_handle_import_preview_action()
+{
+    if (!function_exists('pera_portal_current_user_can_access') || !pera_portal_current_user_can_access()) {
+        wp_die(esc_html__('Access denied.', 'pera-portal'));
+    }
+
+    check_admin_referer('pera_portal_units_manager_import_preview');
+
+    $base_args = pera_portal_units_manager_get_base_args_from_request();
+    $building_id = absint($base_args['building_id']);
+    $floor_id = absint($base_args['floor_id']);
+
+    if (!pera_portal_units_manager_floor_matches_context($floor_id, $building_id)) {
+        pera_portal_units_manager_clear_import_preview_state();
+        pera_portal_units_manager_redirect_with_notice('error', [__('Invalid floor selected.', 'pera-portal')], $base_args);
+    }
+
+    if (!isset($_FILES['units_import_csv']) || !is_array($_FILES['units_import_csv']) || (int) ($_FILES['units_import_csv']['size'] ?? 0) <= 0) {
+        pera_portal_units_manager_clear_import_preview_state();
+        pera_portal_units_manager_redirect_with_notice('error', [__('Please upload a CSV file for import preview.', 'pera-portal')], $base_args);
+    }
+
+    $file_name = sanitize_file_name((string) ($_FILES['units_import_csv']['name'] ?? ''));
+    $file_ext = strtolower((string) pathinfo($file_name, PATHINFO_EXTENSION));
+    $file_type = wp_check_filetype($file_name, ['csv' => 'text/csv']);
+    if ($file_ext !== 'csv' && (string) ($file_type['ext'] ?? '') !== 'csv') {
+        pera_portal_units_manager_clear_import_preview_state();
+        pera_portal_units_manager_redirect_with_notice('error', [__('Import file must be a CSV.', 'pera-portal')], $base_args);
+    }
+
+    $tmp_name = isset($_FILES['units_import_csv']['tmp_name']) ? (string) $_FILES['units_import_csv']['tmp_name'] : '';
+    if ($tmp_name === '' || !is_uploaded_file($tmp_name)) {
+        pera_portal_units_manager_clear_import_preview_state();
+        pera_portal_units_manager_redirect_with_notice('error', [__('Uploaded CSV file could not be processed.', 'pera-portal')], $base_args);
+    }
+
+    $parsed = pera_portal_units_manager_parse_csv_file($tmp_name);
+    $preview = pera_portal_units_manager_build_import_preview($floor_id, $building_id, $parsed);
+    $preview['token'] = wp_generate_password(20, false, false);
+    $preview['building_id'] = $building_id;
+    $preview['floor_id'] = $floor_id;
+
+    pera_portal_units_manager_store_import_preview_state($preview);
+
+    wp_safe_redirect(add_query_arg(array_merge($base_args, ['import_preview' => 1]), admin_url('admin.php')));
+    exit;
+}
+
+function pera_portal_units_manager_persist_unit_without_plan_changes($unit_id, $floor_id, array $payload)
+{
+    wp_update_post([
+        'ID' => $unit_id,
+        'post_title' => $payload['unit_code'],
+    ]);
+
+    pera_portal_units_manager_update_field('floor', (string) $floor_id, $unit_id);
+    pera_portal_units_manager_update_field('unit_code', $payload['unit_code'], $unit_id);
+    pera_portal_units_manager_update_field('unit_type', $payload['unit_type'], $unit_id);
+    pera_portal_units_manager_update_field('net_size', $payload['net_size'], $unit_id);
+    pera_portal_units_manager_update_field('gross_size', $payload['gross_size'], $unit_id);
+    pera_portal_units_manager_update_field('price', $payload['price'], $unit_id);
+    pera_portal_units_manager_update_field('currency', $payload['currency'], $unit_id);
+    pera_portal_units_manager_update_field('status', $payload['status'], $unit_id);
+    pera_portal_units_manager_update_field('sort_order', $payload['sort_order'], $unit_id);
+}
+
+function pera_portal_units_manager_handle_import_commit_action()
+{
+    if (!function_exists('pera_portal_current_user_can_access') || !pera_portal_current_user_can_access()) {
+        wp_die(esc_html__('Access denied.', 'pera-portal'));
+    }
+
+    check_admin_referer('pera_portal_units_manager_import_commit');
+
+    $base_args = pera_portal_units_manager_get_base_args_from_request();
+    $building_id = absint($base_args['building_id']);
+    $floor_id = absint($base_args['floor_id']);
+    $token = isset($_POST['import_token']) ? sanitize_text_field((string) wp_unslash($_POST['import_token'])) : '';
+    $preview = pera_portal_units_manager_get_import_preview_state();
+
+    if (!is_array($preview)
+        || absint($preview['building_id'] ?? 0) !== $building_id
+        || absint($preview['floor_id'] ?? 0) !== $floor_id
+        || !hash_equals((string) ($preview['token'] ?? ''), $token)) {
+        pera_portal_units_manager_redirect_with_notice('error', [__('Import preview has expired. Please run preview again.', 'pera-portal')], $base_args);
+    }
+
+    if (!pera_portal_units_manager_floor_matches_context($floor_id, $building_id)) {
+        pera_portal_units_manager_clear_import_preview_state();
+        pera_portal_units_manager_redirect_with_notice('error', [__('Invalid floor selected.', 'pera-portal')], $base_args);
+    }
+
+    if ((int) ($preview['summary']['error_count'] ?? 0) > 0 || !empty($preview['global_messages']['errors'])) {
+        pera_portal_units_manager_redirect_with_notice('error', [__('Import preview contains blocking errors. Resolve and preview again.', 'pera-portal')], $base_args);
+    }
+
+    $created_count = 0;
+    $updated_count = 0;
+    $failed_count = 0;
+
+    foreach ($preview['rows'] as $row) {
+        if (!is_array($row) || !empty($row['messages']['errors']) || !in_array($row['action'], ['create', 'update'], true)) {
+            continue;
+        }
+
+        $payload = isset($row['payload']) && is_array($row['payload']) ? $row['payload'] : [];
+        if ($row['action'] === 'update') {
+            $unit_id = absint($row['target_unit_id'] ?? 0);
+            if ($unit_id <= 0 || get_post_type($unit_id) !== 'pera_unit') {
+                $failed_count++;
+                continue;
+            }
+
+            pera_portal_units_manager_persist_unit_without_plan_changes($unit_id, $floor_id, $payload);
+            $updated_count++;
+            continue;
+        }
+
+        $unit_id = wp_insert_post([
+            'post_type' => 'pera_unit',
+            'post_status' => 'publish',
+            'post_title' => (string) $payload['unit_code'],
+        ], true);
+
+        if (is_wp_error($unit_id)) {
+            $failed_count++;
+            continue;
+        }
+
+        pera_portal_units_manager_persist_unit_without_plan_changes((int) $unit_id, $floor_id, $payload);
+        $created_count++;
+    }
+
+    pera_portal_units_manager_clear_import_preview_state();
+
+    pera_portal_units_manager_redirect_with_notice(
+        $failed_count > 0 ? 'error' : 'success',
+        [
+            sprintf(
+                /* translators: 1: created count, 2: updated count, 3: failed count */
+                __('Import finished. Created: %1$d, Updated: %2$d, Failed: %3$d.', 'pera-portal'),
+                $created_count,
+                $updated_count,
+                $failed_count
+            ),
+        ],
+        $base_args
+    );
+}
+
 function pera_portal_render_units_manager_page()
 {
     if (!function_exists('pera_portal_current_user_can_access') || !pera_portal_current_user_can_access()) {
@@ -721,6 +1155,7 @@ function pera_portal_render_units_manager_page()
     $status_filter = isset($_GET['status']) ? sanitize_key((string) wp_unslash($_GET['status'])) : 'all';
     $unit_code_search = isset($_GET['unit_code']) ? sanitize_text_field((string) wp_unslash($_GET['unit_code'])) : '';
     $flash_notice = pera_portal_units_manager_get_flash_notice();
+    $import_preview = null;
 
     if (!in_array($status_filter, ['all', 'available', 'reserved', 'sold'], true)) {
         $status_filter = 'all';
@@ -732,6 +1167,16 @@ function pera_portal_render_units_manager_page()
     $valid_floor_ids = array_map('absint', wp_list_pluck($floors, 'ID'));
     if ($floor_id > 0 && !in_array($floor_id, $valid_floor_ids, true)) {
         $floor_id = 0;
+        pera_portal_units_manager_clear_import_preview_state();
+    }
+
+    if ($floor_id > 0 && isset($_GET['import_preview']) && absint(wp_unslash($_GET['import_preview'])) === 1) {
+        $candidate_preview = pera_portal_units_manager_get_import_preview_state();
+        if (is_array($candidate_preview)
+            && absint($candidate_preview['floor_id'] ?? 0) === $floor_id
+            && absint($candidate_preview['building_id'] ?? 0) === $building_id) {
+            $import_preview = $candidate_preview;
+        }
     }
 
     $diagnostics_report = null;
@@ -867,6 +1312,79 @@ function pera_portal_render_units_manager_page()
                 <?php endif; ?>
             </p>
         </form>
+
+        <h2><?php echo esc_html__('Import CSV', 'pera-portal'); ?></h2>
+        <form method="post" action="<?php echo esc_url(admin_url('admin-post.php')); ?>" enctype="multipart/form-data" style="margin-bottom:12px;">
+            <input type="hidden" name="action" value="pera_portal_units_manager_import_preview" />
+            <?php wp_nonce_field('pera_portal_units_manager_import_preview'); ?>
+            <input type="hidden" name="building_id" value="<?php echo esc_attr((string) $building_id); ?>" />
+            <input type="hidden" name="floor_id" value="<?php echo esc_attr((string) $floor_id); ?>" />
+            <input type="hidden" name="status" value="<?php echo esc_attr($status_filter); ?>" />
+            <input type="hidden" name="unit_code" value="<?php echo esc_attr($unit_code_search); ?>" />
+            <input type="file" name="units_import_csv" accept=".csv,text/csv" <?php disabled($floor_id <= 0); ?> />
+            <button type="submit" class="button" <?php disabled($floor_id <= 0); ?>><?php echo esc_html__('Preview Import', 'pera-portal'); ?></button>
+        </form>
+
+        <?php if ($import_preview !== null) : ?>
+            <div class="notice notice-info inline">
+                <p>
+                    <?php
+                    echo esc_html(sprintf(
+                        __('Import preview: %1$d rows parsed, %2$d create, %3$d update, %4$d blocking errors, %5$d warning rows.', 'pera-portal'),
+                        (int) ($import_preview['summary']['total_rows'] ?? 0),
+                        (int) ($import_preview['summary']['create_count'] ?? 0),
+                        (int) ($import_preview['summary']['update_count'] ?? 0),
+                        (int) ($import_preview['summary']['error_count'] ?? 0),
+                        (int) ($import_preview['summary']['warning_count'] ?? 0)
+                    ));
+                    ?>
+                </p>
+            </div>
+            <?php if (!empty($import_preview['global_messages']['warnings'])) : ?>
+                <div class="notice notice-warning inline"><p><?php echo esc_html(implode(' ', $import_preview['global_messages']['warnings'])); ?></p></div>
+            <?php endif; ?>
+            <?php if (!empty($import_preview['global_messages']['errors'])) : ?>
+                <div class="notice notice-error inline"><p><?php echo esc_html(implode(' ', $import_preview['global_messages']['errors'])); ?></p></div>
+            <?php endif; ?>
+
+            <?php if ((int) ($import_preview['summary']['error_count'] ?? 0) === 0 && empty($import_preview['global_messages']['errors'])) : ?>
+                <form method="post" action="<?php echo esc_url(admin_url('admin-post.php')); ?>" style="margin:12px 0;">
+                    <input type="hidden" name="action" value="pera_portal_units_manager_import_commit" />
+                    <?php wp_nonce_field('pera_portal_units_manager_import_commit'); ?>
+                    <input type="hidden" name="import_token" value="<?php echo esc_attr((string) ($import_preview['token'] ?? '')); ?>" />
+                    <input type="hidden" name="building_id" value="<?php echo esc_attr((string) $building_id); ?>" />
+                    <input type="hidden" name="floor_id" value="<?php echo esc_attr((string) $floor_id); ?>" />
+                    <input type="hidden" name="status" value="<?php echo esc_attr($status_filter); ?>" />
+                    <input type="hidden" name="unit_code" value="<?php echo esc_attr($unit_code_search); ?>" />
+                    <button type="submit" class="button button-primary" onclick="return window.confirm('<?php echo esc_js(__('Confirm CSV import for selected floor?', 'pera-portal')); ?>');"><?php echo esc_html__('Confirm Import', 'pera-portal'); ?></button>
+                </form>
+            <?php endif; ?>
+
+            <table class="widefat striped fixed" style="margin-bottom:16px;">
+                <thead>
+                    <tr>
+                        <th><?php echo esc_html__('Row', 'pera-portal'); ?></th>
+                        <th><?php echo esc_html__('Unit Code', 'pera-portal'); ?></th>
+                        <th><?php echo esc_html__('Action', 'pera-portal'); ?></th>
+                        <th><?php echo esc_html__('Validation Messages', 'pera-portal'); ?></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <?php foreach ((array) ($import_preview['rows'] ?? []) as $import_row) : ?>
+                        <?php
+                        $messages = array_merge((array) ($import_row['messages']['errors'] ?? []), (array) ($import_row['messages']['warnings'] ?? []));
+                        $action_label = isset($import_row['action']) ? (string) $import_row['action'] : 'error';
+                        ?>
+                        <tr>
+                            <td><?php echo esc_html((string) ($import_row['row_number'] ?? '')); ?></td>
+                            <td><?php echo esc_html((string) ($import_row['payload']['unit_code'] ?? '')); ?></td>
+                            <td><?php echo esc_html(ucfirst($action_label)); ?></td>
+                            <td><?php echo esc_html(empty($messages) ? __('None', 'pera-portal') : implode(' ', $messages)); ?></td>
+                        </tr>
+                    <?php endforeach; ?>
+                </tbody>
+            </table>
+        <?php endif; ?>
 
         <?php if (is_array($flash_notice) && !empty($flash_notice['messages']) && is_array($flash_notice['messages'])) : ?>
             <div class="notice notice-<?php echo esc_attr($flash_notice['type'] === 'success' ? 'success' : 'error'); ?>"><p><?php echo esc_html(implode(' ', $flash_notice['messages'])); ?></p></div>
@@ -1047,6 +1565,8 @@ add_action('admin_post_pera_portal_units_manager_save_row', 'pera_portal_units_m
 add_action('admin_post_pera_portal_units_manager_create_row', 'pera_portal_units_manager_handle_create_row_action');
 add_action('admin_post_pera_portal_units_manager_delete_row', 'pera_portal_units_manager_handle_delete_row_action');
 add_action('admin_post_pera_portal_units_manager_export_csv', 'pera_portal_units_manager_handle_export_csv_action');
+add_action('admin_post_pera_portal_units_manager_import_preview', 'pera_portal_units_manager_handle_import_preview_action');
+add_action('admin_post_pera_portal_units_manager_import_commit', 'pera_portal_units_manager_handle_import_commit_action');
 add_action('admin_menu', 'pera_portal_register_units_manager_submenu');
 add_action('network_admin_menu', 'pera_portal_register_units_manager_submenu');
 add_action('admin_menu', 'pera_portal_hide_disallowed_units_manager_submenu', 99);
