@@ -266,20 +266,43 @@ function pera_citizenship_log_blocked_attempt( $reason ) {
 
 
 function pera_citizenship_turnstile_check( $token ) {
+  $cached_status = isset( $_POST['_pera_citizenship_turnstile_status'] ) ? sanitize_key( (string) wp_unslash( $_POST['_pera_citizenship_turnstile_status'] ) ) : '';
+  if ( in_array( $cached_status, array( 'ok', 'turnstile_missing_token', 'turnstile_invalid', 'turnstile_api_error' ), true ) ) {
+    pera_forms_debug_log(
+      'turnstile_check_reused_cached_result',
+      array_merge(
+        pera_citizenship_turnstile_log_context( $token, $cached_status ),
+        array( 'verification_source' => 'reused_cached_result' )
+      )
+    );
+
+    return $cached_status;
+  }
+
   $secret = pera_citizenship_turnstile_secret_key();
   if ( $secret === '' ) {
+    $_POST['_pera_citizenship_turnstile_status'] = 'turnstile_api_error';
+    $_POST['_pera_citizenship_turnstile_valid']  = '0';
     pera_forms_debug_log(
       'turnstile_check_api_error',
-      pera_citizenship_turnstile_log_context( $token, 'turnstile_api_error' )
+      array_merge(
+        pera_citizenship_turnstile_log_context( $token, 'turnstile_api_error' ),
+        array( 'verification_source' => 'remote_checked' )
+      )
     );
     return 'turnstile_api_error';
   }
 
   $token = sanitize_text_field( (string) $token );
   if ( $token === '' ) {
+    $_POST['_pera_citizenship_turnstile_status'] = 'turnstile_missing_token';
+    $_POST['_pera_citizenship_turnstile_valid']  = '0';
     pera_forms_debug_log(
       'turnstile_check_missing_token',
-      pera_citizenship_turnstile_log_context( $token, 'turnstile_missing_token' )
+      array_merge(
+        pera_citizenship_turnstile_log_context( $token, 'turnstile_missing_token' ),
+        array( 'verification_source' => 'remote_checked' )
+      )
     );
     return 'turnstile_missing_token';
   }
@@ -297,9 +320,14 @@ function pera_citizenship_turnstile_check( $token ) {
   );
 
   if ( is_wp_error( $response ) ) {
+    $_POST['_pera_citizenship_turnstile_status'] = 'turnstile_api_error';
+    $_POST['_pera_citizenship_turnstile_valid']  = '0';
     pera_forms_debug_log(
       'turnstile_check_api_error',
-      pera_citizenship_turnstile_log_context( $token, 'turnstile_api_error' )
+      array_merge(
+        pera_citizenship_turnstile_log_context( $token, 'turnstile_api_error' ),
+        array( 'verification_source' => 'remote_checked' )
+      )
     );
     return 'turnstile_api_error';
   }
@@ -307,20 +335,30 @@ function pera_citizenship_turnstile_check( $token ) {
   $http_code = wp_remote_retrieve_response_code( $response );
   $body      = json_decode( (string) wp_remote_retrieve_body( $response ), true );
   $is_valid  = is_array( $body ) && ! empty( $body['success'] );
+  $status    = $is_valid ? 'ok' : 'turnstile_invalid';
+
+  $_POST['_pera_citizenship_turnstile_status'] = $status;
+  $_POST['_pera_citizenship_turnstile_valid']  = $is_valid ? '1' : '0';
 
   if ( ! $is_valid ) {
     pera_forms_debug_log(
       'turnstile_check_invalid',
-      pera_citizenship_turnstile_log_context( $token, 'turnstile_invalid', $http_code, is_array( $body ) ? $body : array() )
+      array_merge(
+        pera_citizenship_turnstile_log_context( $token, 'turnstile_invalid', $http_code, is_array( $body ) ? $body : array() ),
+        array( 'verification_source' => 'remote_checked' )
+      )
     );
   } else {
     pera_forms_debug_log(
       'turnstile_check_ok',
-      pera_citizenship_turnstile_log_context( $token, 'ok', $http_code, $body )
+      array_merge(
+        pera_citizenship_turnstile_log_context( $token, 'ok', $http_code, $body ),
+        array( 'verification_source' => 'remote_checked' )
+      )
     );
   }
 
-  return $is_valid ? 'ok' : 'turnstile_invalid';
+  return $status;
 }
 
 function pera_citizenship_failed_redirect( $reason = 'blocked' ) {

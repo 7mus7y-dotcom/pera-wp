@@ -524,19 +524,35 @@ function peracrm_citizenship_is_rate_limited()
 
 function peracrm_citizenship_verify_turnstile($token)
 {
-    if (isset($_POST['_pera_citizenship_turnstile_valid'])) {
-        return $_POST['_pera_citizenship_turnstile_valid'] === '1';
+    $cached_status = isset($_POST['_pera_citizenship_turnstile_status']) ? sanitize_key((string) wp_unslash($_POST['_pera_citizenship_turnstile_status'])) : '';
+    if (in_array($cached_status, ['ok', 'turnstile_missing_token', 'turnstile_invalid', 'turnstile_api_error'], true)) {
+        peracrm_ingest_debug_log('citizenship turnstile reused_cached_result', [
+            'status' => $cached_status,
+            'verification_source' => 'reused_cached_result',
+        ]);
+
+        return $cached_status === 'ok';
     }
 
     $secret = peracrm_citizenship_turnstile_secret_key();
     if ($secret === '') {
+        $_POST['_pera_citizenship_turnstile_status'] = 'turnstile_api_error';
         $_POST['_pera_citizenship_turnstile_valid'] = '0';
+        peracrm_ingest_debug_log('citizenship turnstile remote_checked', [
+            'status' => 'turnstile_api_error',
+            'verification_source' => 'remote_checked',
+        ]);
         return false;
     }
 
     $token = sanitize_text_field((string) $token);
     if ($token === '') {
+        $_POST['_pera_citizenship_turnstile_status'] = 'turnstile_missing_token';
         $_POST['_pera_citizenship_turnstile_valid'] = '0';
+        peracrm_ingest_debug_log('citizenship turnstile remote_checked', [
+            'status' => 'turnstile_missing_token',
+            'verification_source' => 'remote_checked',
+        ]);
         return false;
     }
 
@@ -553,13 +569,26 @@ function peracrm_citizenship_verify_turnstile($token)
     );
 
     if (is_wp_error($response)) {
+        $_POST['_pera_citizenship_turnstile_status'] = 'turnstile_api_error';
         $_POST['_pera_citizenship_turnstile_valid'] = '0';
+        peracrm_ingest_debug_log('citizenship turnstile remote_checked', [
+            'status' => 'turnstile_api_error',
+            'verification_source' => 'remote_checked',
+        ]);
         return false;
     }
 
     $body = json_decode((string) wp_remote_retrieve_body($response), true);
     $is_valid = is_array($body) && !empty($body['success']);
+    $status = $is_valid ? 'ok' : 'turnstile_invalid';
+
+    $_POST['_pera_citizenship_turnstile_status'] = $status;
     $_POST['_pera_citizenship_turnstile_valid'] = $is_valid ? '1' : '0';
+
+    peracrm_ingest_debug_log('citizenship turnstile remote_checked', [
+        'status' => $status,
+        'verification_source' => 'remote_checked',
+    ]);
 
     return $is_valid;
 }
