@@ -110,6 +110,31 @@ function pera_forms_nonce_failure_redirect( $form_key, $fallback_url, $query_arg
   exit;
 }
 
+function pera_forms_failed_submission_redirect_url() {
+  $redirect = ! empty( $_POST['_wp_http_referer'] )
+    ? esc_url_raw( wp_unslash( $_POST['_wp_http_referer'] ) )
+    : home_url();
+
+  $redirect = preg_replace( '/#.*$/', '', $redirect );
+  $anchor   = '';
+
+  if ( isset( $_POST['sr_action'] ) ) {
+    $redirect     = add_query_arg( 'sr_status', 'failed', $redirect );
+    $form_context = isset( $_POST['form_context'] ) ? sanitize_text_field( wp_unslash( $_POST['form_context'] ) ) : '';
+    $anchor       = ( 'property' === $form_context ) ? '#contact-form' : '#contact';
+  } elseif ( isset( $_POST['fav_enquiry_action'] ) ) {
+    $redirect = add_query_arg( 'enquiry', 'failed', $redirect );
+    $anchor   = '#favourites-enquiry';
+  } elseif ( isset( $_POST['pera_citizenship_action'] ) ) {
+    $redirect = add_query_arg( 'enquiry', 'failed', $redirect );
+    $anchor   = '#citizenship-form';
+  } else {
+    $redirect = add_query_arg( 'enquiry', 'failed', $redirect );
+  }
+
+  return $redirect . $anchor;
+}
+
 /**
  * Shared request IP helper.
  */
@@ -142,14 +167,14 @@ function pera_forms_global_rate_limit() {
 
   set_transient( $key, $count, DAY_IN_SECONDS );
 
-  if ( $count > 2 ) {
+  if ( $count > 5 ) {
     pera_forms_debug_log(
       'rate_limit_blocked',
       array(
         'handler' => __FUNCTION__,
       )
     );
-    wp_safe_redirect( home_url( '/?enquiry=failed' ) );
+    wp_safe_redirect( pera_forms_failed_submission_redirect_url() );
     exit;
   }
 }
@@ -454,6 +479,11 @@ function pera_handle_citizenship_enquiry() {
     return;
   }
 
+  $has_enquiry_key = isset( $_POST['sr_action'] ) || isset( $_POST['pera_citizenship_action'] ) || isset( $_POST['fav_enquiry_action'] );
+  if ( ! $has_enquiry_key ) {
+    return;
+  }
+
   if ( pera_forms_honeypot_triggered() ) {
     pera_forms_debug_log(
       'honeypot_triggered',
@@ -462,16 +492,11 @@ function pera_handle_citizenship_enquiry() {
       )
     );
 
-    wp_safe_redirect( home_url( '/?enquiry=failed' ) );
+    wp_safe_redirect( pera_forms_failed_submission_redirect_url() );
     exit;
   }
 
   pera_forms_global_rate_limit();
-
-  $has_enquiry_key = isset( $_POST['sr_action'] ) || isset( $_POST['pera_citizenship_action'] ) || isset( $_POST['fav_enquiry_action'] );
-  if ( ! $has_enquiry_key ) {
-    return;
-  }
 
   if ( $handled ) {
     pera_forms_debug_log( 'double_process_guard', array( 'handler' => __FUNCTION__ ) );
