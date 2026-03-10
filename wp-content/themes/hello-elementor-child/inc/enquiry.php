@@ -126,6 +126,42 @@ function pera_forms_client_ip() {
   return '';
 }
 
+function pera_forms_global_rate_limit() {
+  $ip = pera_forms_client_ip();
+
+  if ( $ip === '' ) {
+    return;
+  }
+
+  $ua = $_SERVER['HTTP_USER_AGENT'] ?? '';
+
+  $key = 'pera_forms_daily_' . md5( $ip . '|' . $ua );
+
+  $count = (int) get_transient( $key );
+  $count++;
+
+  set_transient( $key, $count, DAY_IN_SECONDS );
+
+  if ( $count > 2 ) {
+    pera_forms_debug_log(
+      'rate_limit_blocked',
+      array(
+        'handler' => __FUNCTION__,
+      )
+    );
+    wp_safe_redirect( home_url( '/?enquiry=failed' ) );
+    exit;
+  }
+}
+
+function pera_forms_honeypot_triggered() {
+  if ( isset( $_POST['pera_hp'] ) && trim( (string) $_POST['pera_hp'] ) !== '' ) {
+    return true;
+  }
+
+  return false;
+}
+
 function pera_citizenship_turnstile_site_key() {
   return defined( 'PERA_TURNSTILE_SITE_KEY' ) ? sanitize_text_field( (string) PERA_TURNSTILE_SITE_KEY ) : '';
 }
@@ -387,7 +423,19 @@ function pera_send_enquiry_autoreply( $context, $to_email, $subject, array $line
   );
 
   $body = implode( "\n", array_filter( $lines, 'strlen' ) );
-  $sent = wp_mail( $to_email, $subject, $body, $headers );
+  $sent = true;
+
+  if ( ! defined( 'PERA_DISABLE_ENQUIRY_EMAIL' ) || ! PERA_DISABLE_ENQUIRY_EMAIL ) {
+    $sent = wp_mail( $to_email, $subject, $body, $headers );
+  } else {
+    pera_forms_debug_log(
+      'mail_skipped',
+      array(
+        'form_key' => sanitize_key( (string) $context ),
+        'reason'   => 'email_disabled',
+      )
+    );
+  }
 
   if ( ! $sent ) {
     error_log( 'Auto-reply failed for ' . $context . ' enquiry.' );
@@ -405,6 +453,20 @@ function pera_handle_citizenship_enquiry() {
   if ( $_SERVER['REQUEST_METHOD'] !== 'POST' ) {
     return;
   }
+
+  if ( pera_forms_honeypot_triggered() ) {
+    pera_forms_debug_log(
+      'honeypot_triggered',
+      array(
+        'handler' => __FUNCTION__,
+      )
+    );
+
+    wp_safe_redirect( home_url( '/?enquiry=failed' ) );
+    exit;
+  }
+
+  pera_forms_global_rate_limit();
 
   $has_enquiry_key = isset( $_POST['sr_action'] ) || isset( $_POST['pera_citizenship_action'] ) || isset( $_POST['fav_enquiry_action'] );
   if ( ! $has_enquiry_key ) {
@@ -554,7 +616,18 @@ function pera_handle_citizenship_enquiry() {
 
 
     pera_forms_debug_log( 'mail_attempt', array( 'form_key' => 'sr_action', 'handler' => __FUNCTION__, 'form_context' => $form_context, 'sr_context' => $sr_context, 'recipient' => $to ) );
-    $sent = wp_mail( $to, $subject, $body, $headers );
+    $sent = true;
+    if ( ! defined( 'PERA_DISABLE_ENQUIRY_EMAIL' ) || ! PERA_DISABLE_ENQUIRY_EMAIL ) {
+      $sent = wp_mail( $to, $subject, $body, $headers );
+    } else {
+      pera_forms_debug_log(
+        'mail_skipped',
+        array(
+          'form_key' => 'sr_action',
+          'reason'   => 'email_disabled',
+        )
+      );
+    }
     pera_forms_debug_log( 'mail_result', array( 'form_key' => 'sr_action', 'handler' => __FUNCTION__, 'wp_mail' => $sent ? '1' : '0' ) );
 
     if ( $sent && $form_context === 'property' && is_email( $email ) ) {
@@ -730,7 +803,18 @@ function pera_handle_citizenship_enquiry() {
     }
 
     pera_forms_debug_log( 'mail_attempt', array( 'form_key' => 'fav_enquiry_action', 'handler' => __FUNCTION__, 'recipient' => $to, 'fav_count' => count( $ids ) ) );
-    $sent = wp_mail( $to, $subject, $body, $headers );
+    $sent = true;
+    if ( ! defined( 'PERA_DISABLE_ENQUIRY_EMAIL' ) || ! PERA_DISABLE_ENQUIRY_EMAIL ) {
+      $sent = wp_mail( $to, $subject, $body, $headers );
+    } else {
+      pera_forms_debug_log(
+        'mail_skipped',
+        array(
+          'form_key' => 'fav_enquiry_action',
+          'reason'   => 'email_disabled',
+        )
+      );
+    }
     pera_forms_debug_log( 'mail_result', array( 'form_key' => 'fav_enquiry_action', 'handler' => __FUNCTION__, 'wp_mail' => $sent ? '1' : '0' ) );
 
     if ( $sent && is_email( $email ) ) {
@@ -758,7 +842,7 @@ function pera_handle_citizenship_enquiry() {
       pera_send_enquiry_autoreply( 'favourites', $email, $auto_subject, $auto_lines );
     }
 
-    if ( $sent && is_user_logged_in() && ! empty( $ids ) ) {
+    if ( is_user_logged_in() && ! empty( $ids ) ) {
       update_user_meta(
         get_current_user_id(),
         'pera_last_fav_enquiry',
@@ -867,7 +951,18 @@ function pera_handle_citizenship_enquiry() {
     }
 
     pera_forms_debug_log( 'mail_attempt', array( 'form_key' => 'pera_citizenship_action', 'handler' => __FUNCTION__, 'recipient' => $to, 'turnstile' => $turnstile_check ) );
-    $sent = wp_mail( $to, $subject, $body, $headers );
+    $sent = true;
+    if ( ! defined( 'PERA_DISABLE_ENQUIRY_EMAIL' ) || ! PERA_DISABLE_ENQUIRY_EMAIL ) {
+      $sent = wp_mail( $to, $subject, $body, $headers );
+    } else {
+      pera_forms_debug_log(
+        'mail_skipped',
+        array(
+          'form_key' => 'pera_citizenship_action',
+          'reason'   => 'email_disabled',
+        )
+      );
+    }
     pera_forms_debug_log( 'mail_result', array( 'form_key' => 'pera_citizenship_action', 'handler' => __FUNCTION__, 'wp_mail' => $sent ? '1' : '0' ) );
 
     if ( $sent && is_email( $email ) ) {
