@@ -184,8 +184,18 @@ function pera_citizenship_turnstile_check( $token ) {
   return $is_valid ? 'ok' : 'turnstile_invalid';
 }
 
-function pera_citizenship_failed_redirect() {
+function pera_citizenship_failed_redirect( $reason = 'blocked' ) {
   $redirect = home_url( '/citizenship-by-investment/?enquiry=failed#citizenship-form' );
+  pera_forms_debug_log(
+    'redirect',
+    array(
+      'form_key'        => 'pera_citizenship_action',
+      'handler'         => __FUNCTION__,
+      'redirect_status' => 'failed',
+      'reason'          => sanitize_key( (string) $reason ),
+      'redirect'        => $redirect,
+    )
+  );
   wp_safe_redirect( $redirect );
   exit;
 }
@@ -436,6 +446,7 @@ function pera_handle_citizenship_enquiry() {
     if ( ! empty( $_POST['sr_company'] ?? '' ) ) {
       pera_forms_debug_log( 'spam_trap', array( 'form_key' => 'sr_action', 'handler' => __FUNCTION__, 'spam_trap' => 'triggered' ) );
       $redirect = add_query_arg( 'sr_status', 'failed', home_url( '/' ) ) . '#contact';
+      pera_forms_debug_log( 'redirect', array( 'form_key' => 'sr_action', 'handler' => __FUNCTION__, 'redirect_status' => 'failed', 'reason' => 'honeypot', 'redirect' => $redirect ) );
       wp_safe_redirect( $redirect );
       exit;
     }
@@ -542,6 +553,7 @@ function pera_handle_citizenship_enquiry() {
     }
 
 
+    pera_forms_debug_log( 'mail_attempt', array( 'form_key' => 'sr_action', 'handler' => __FUNCTION__, 'form_context' => $form_context, 'sr_context' => $sr_context, 'recipient' => $to ) );
     $sent = wp_mail( $to, $subject, $body, $headers );
     pera_forms_debug_log( 'mail_result', array( 'form_key' => 'sr_action', 'handler' => __FUNCTION__, 'wp_mail' => $sent ? '1' : '0' ) );
 
@@ -613,6 +625,7 @@ function pera_handle_citizenship_enquiry() {
     if ( ! empty( $_POST['fav_company'] ?? '' ) ) {
       pera_forms_debug_log( 'spam_trap', array( 'form_key' => 'fav_enquiry_action', 'handler' => __FUNCTION__, 'spam_trap' => 'triggered' ) );
       $redirect = add_query_arg( 'enquiry', 'failed', home_url( '/my-favourites/' ) ) . '#favourites-enquiry';
+      pera_forms_debug_log( 'redirect', array( 'form_key' => 'fav_enquiry_action', 'handler' => __FUNCTION__, 'redirect_status' => 'failed', 'reason' => 'honeypot', 'redirect' => $redirect ) );
       wp_safe_redirect( $redirect );
       exit;
     }
@@ -716,6 +729,7 @@ function pera_handle_citizenship_enquiry() {
       $headers[] = 'Reply-To: ' . $full_name . ' <' . $email . '>';
     }
 
+    pera_forms_debug_log( 'mail_attempt', array( 'form_key' => 'fav_enquiry_action', 'handler' => __FUNCTION__, 'recipient' => $to, 'fav_count' => count( $ids ) ) );
     $sent = wp_mail( $to, $subject, $body, $headers );
     pera_forms_debug_log( 'mail_result', array( 'form_key' => 'fav_enquiry_action', 'handler' => __FUNCTION__, 'wp_mail' => $sent ? '1' : '0' ) );
 
@@ -784,21 +798,21 @@ function pera_handle_citizenship_enquiry() {
     // Anti-spam gate: policy consent must be explicitly provided.
     if ( empty( $_POST['policy'] ) ) {
       pera_citizenship_log_blocked_attempt( 'policy_missing' );
-      pera_citizenship_failed_redirect();
+      pera_citizenship_failed_redirect( 'policy_missing' );
     }
 
     // Anti-spam gate: citizenship honeypot must remain empty.
     $citizenship_company = isset( $_POST['citizenship_company'] ) ? sanitize_text_field( wp_unslash( $_POST['citizenship_company'] ) ) : '';
     if ( $citizenship_company !== '' ) {
       pera_citizenship_log_blocked_attempt( 'honeypot' );
-      pera_citizenship_failed_redirect();
+      pera_citizenship_failed_redirect( 'honeypot' );
     }
 
     // Anti-spam gate: reject forms submitted too quickly.
     $form_start = isset( $_POST['form_start'] ) ? wp_unslash( $_POST['form_start'] ) : '';
     if ( pera_citizenship_is_too_fast( $form_start ) ) {
       pera_citizenship_log_blocked_attempt( 'too_fast' );
-      pera_citizenship_failed_redirect();
+      pera_citizenship_failed_redirect( 'too_fast' );
     }
 
     $name  = isset( $_POST['name'] )  ? sanitize_text_field( wp_unslash( $_POST['name'] ) )  : '';
@@ -812,13 +826,13 @@ function pera_handle_citizenship_enquiry() {
     // Anti-spam gate: conservative validation on name/message payloads.
     if ( pera_citizenship_has_url_like_content( $name ) || pera_citizenship_is_obvious_spam_payload( $name, wp_strip_all_tags( $message ) ) ) {
       pera_citizenship_log_blocked_attempt( 'spam_content' );
-      pera_citizenship_failed_redirect();
+      pera_citizenship_failed_redirect( 'spam_content' );
     }
 
     // Anti-spam gate: form-level rate limit by IP + user agent.
     if ( pera_citizenship_is_rate_limited() ) {
       pera_citizenship_log_blocked_attempt( 'throttled' );
-      pera_citizenship_failed_redirect();
+      pera_citizenship_failed_redirect( 'throttled' );
     }
 
     // Anti-spam gate: Turnstile token must validate server-side.
@@ -826,7 +840,7 @@ function pera_handle_citizenship_enquiry() {
     $turnstile_check = pera_citizenship_turnstile_check( $turnstile_token );
     if ( $turnstile_check !== 'ok' ) {
       pera_citizenship_log_blocked_attempt( $turnstile_check );
-      pera_citizenship_failed_redirect();
+      pera_citizenship_failed_redirect( $turnstile_check );
     }
 
     $contact_methods = array();
@@ -852,6 +866,7 @@ function pera_handle_citizenship_enquiry() {
       $headers[] = 'Reply-To: ' . $name . ' <' . $email . '>';
     }
 
+    pera_forms_debug_log( 'mail_attempt', array( 'form_key' => 'pera_citizenship_action', 'handler' => __FUNCTION__, 'recipient' => $to, 'turnstile' => $turnstile_check ) );
     $sent = wp_mail( $to, $subject, $body, $headers );
     pera_forms_debug_log( 'mail_result', array( 'form_key' => 'pera_citizenship_action', 'handler' => __FUNCTION__, 'wp_mail' => $sent ? '1' : '0' ) );
 
