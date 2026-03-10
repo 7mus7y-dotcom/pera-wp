@@ -585,17 +585,20 @@ function peracrm_ingest_should_capture_citizenship()
 
     // Anti-spam parity: require policy consent before CRM capture.
     if (empty($_POST['policy'])) {
+        peracrm_ingest_debug_log('detector pera_citizenship_action blocked', ['reason' => 'policy_missing']);
         return false;
     }
 
     // Anti-spam parity: reject if citizenship honeypot is filled.
     $citizenship_company = isset($_POST['citizenship_company']) ? sanitize_text_field(wp_unslash($_POST['citizenship_company'])) : '';
     if ($citizenship_company !== '') {
+        peracrm_ingest_debug_log('detector pera_citizenship_action blocked', ['reason' => 'honeypot']);
         return false;
     }
 
     // Anti-spam parity: reject too-fast form completion.
     if (peracrm_citizenship_is_too_fast(isset($_POST['form_start']) ? wp_unslash($_POST['form_start']) : '')) {
+        peracrm_ingest_debug_log('detector pera_citizenship_action blocked', ['reason' => 'too_fast']);
         return false;
     }
 
@@ -604,17 +607,21 @@ function peracrm_ingest_should_capture_citizenship()
 
     // Anti-spam parity: reject URL-like names and obvious promo/junk payloads.
     if (peracrm_citizenship_has_url_like_content($name) || peracrm_citizenship_is_obvious_spam_payload($name, wp_strip_all_tags($message))) {
+        peracrm_ingest_debug_log('detector pera_citizenship_action blocked', ['reason' => 'spam_content']);
         return false;
     }
 
     // Anti-spam parity: request throttle by IP/user-agent fingerprint.
     if (peracrm_citizenship_is_rate_limited()) {
+        peracrm_ingest_debug_log('detector pera_citizenship_action blocked', ['reason' => 'throttled']);
         return false;
     }
 
     // Anti-spam parity: require valid Turnstile token.
     $turnstile_token = isset($_POST['cf-turnstile-response']) ? wp_unslash($_POST['cf-turnstile-response']) : '';
     if (!peracrm_citizenship_verify_turnstile($turnstile_token)) {
+        $reason = $turnstile_token === '' ? 'turnstile_missing_token' : 'turnstile_invalid_or_api_error';
+        peracrm_ingest_debug_log('detector pera_citizenship_action blocked', ['reason' => $reason]);
         return false;
     }
 

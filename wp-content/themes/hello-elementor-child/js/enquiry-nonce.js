@@ -5,6 +5,7 @@
   var issuedAt = parseInt(config.issued_at || '0', 10);
   var maxAge = parseInt(config.max_age_seconds || '900', 10);
   var refreshing = false;
+  var bypassAttr = 'data-pera-nonce-resubmit';
 
   function formNeedsRefresh(form) {
     if (!form) return false;
@@ -63,6 +64,11 @@
       return;
     }
 
+    if (form.hasAttribute(bypassAttr)) {
+      form.removeAttribute(bypassAttr);
+      return;
+    }
+
     if (!formNeedsRefresh(form) || !pageIsStale() || refreshing) {
       return;
     }
@@ -84,6 +90,13 @@
       })
       .finally(function () {
         refreshing = false;
+
+        if (typeof form.requestSubmit === 'function') {
+          form.setAttribute(bypassAttr, '1');
+          form.requestSubmit();
+          return;
+        }
+
         form.submit();
       });
   }, true);
