@@ -14,6 +14,10 @@ if ( ! defined( 'PERA_CRM_DEBUG_FORMS' ) ) {
   define( 'PERA_CRM_DEBUG_FORMS', false );
 }
 
+if ( ! defined( 'PERA_CITIZENSHIP_SPAM_LOG' ) ) {
+  define( 'PERA_CITIZENSHIP_SPAM_LOG', false );
+}
+
 function pera_forms_get_request_id() {
   static $request_id = null;
 
@@ -104,6 +108,168 @@ function pera_forms_nonce_failure_redirect( $form_key, $fallback_url, $query_arg
 
   wp_safe_redirect( $redirect );
   exit;
+}
+
+/**
+ * Shared request IP helper.
+ */
+function pera_forms_client_ip() {
+  if ( ! empty( $_SERVER['HTTP_X_FORWARDED_FOR'] ) ) {
+    $parts = explode( ',', sanitize_text_field( wp_unslash( $_SERVER['HTTP_X_FORWARDED_FOR'] ) ) );
+    return trim( $parts[0] );
+  }
+
+  if ( ! empty( $_SERVER['REMOTE_ADDR'] ) ) {
+    return sanitize_text_field( wp_unslash( $_SERVER['REMOTE_ADDR'] ) );
+  }
+
+  return '';
+}
+
+function pera_citizenship_turnstile_site_key() {
+  return defined( 'PERA_TURNSTILE_SITE_KEY' ) ? sanitize_text_field( (string) PERA_TURNSTILE_SITE_KEY ) : '';
+}
+
+function pera_citizenship_turnstile_secret_key() {
+  return defined( 'PERA_TURNSTILE_SECRET_KEY' ) ? sanitize_text_field( (string) PERA_TURNSTILE_SECRET_KEY ) : '';
+}
+
+function pera_citizenship_log_blocked_attempt( $reason ) {
+  if ( ! ( defined( 'PERA_CITIZENSHIP_SPAM_LOG' ) && PERA_CITIZENSHIP_SPAM_LOG ) ) {
+    return;
+  }
+
+  $ip = pera_forms_client_ip();
+  $ua = isset( $_SERVER['HTTP_USER_AGENT'] ) ? sanitize_text_field( wp_unslash( $_SERVER['HTTP_USER_AGENT'] ) ) : '';
+
+  error_log( '[Pera citizenship spam] ' . wp_json_encode( array(
+    'reason'    => sanitize_key( (string) $reason ),
+    'timestamp' => time(),
+    'ip_hash'   => $ip !== '' ? md5( $ip ) : '',
+    'ua'        => $ua,
+  ) ) );
+}
+
+function pera_citizenship_failed_redirect() {
+  $redirect = home_url( '/citizenship-by-investment/?enquiry=failed#citizenship-form' );
+  wp_safe_redirect( $redirect );
+  exit;
+}
+
+/**
+ * Conservative URL-like detector for spam payloads.
+ */
+function pera_citizenship_has_url_like_content( $value ) {
+  $value = strtolower( trim( (string) $value ) );
+  if ( $value === '' ) {
+    return false;
+  }
+
+  if ( preg_match( '/(?:https?:\/\/|www\.)/i', $value ) ) {
+    return true;
+  }
+
+  return (bool) preg_match( '/\b[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?\.(?:com|net|org|info|biz|co|io|ru|cn|xyz|top)\b/i', $value );
+}
+
+function pera_citizenship_is_obvious_spam_payload( $name, $message ) {
+  $name    = trim( (string) $name );
+  $message = trim( (string) $message );
+  $joined  = strtolower( $name . ' ' . $message );
+
+  if ( preg_match( '/(.)\1{6,}/u', $joined ) ) {
+    return true;
+  }
+
+  if ( preg_match( '/\b(?:seo services|guest post|backlink(?:s)?|casino|forex signals|crypto pump|telegram channel)\b/i', $joined ) ) {
+    return true;
+  }
+
+  if ( $message !== '' && preg_match_all( '/(?:https?:\/\/|www\.)/i', $message ) >= 2 ) {
+    return true;
+  }
+
+  return false;
+}
+
+function pera_citizenship_is_too_fast( $submitted_start ) {
+  $started_at = absint( $submitted_start );
+  if ( $started_at <= 0 ) {
+    return true;
+  }
+
+  return ( time() - $started_at ) < 5;
+}
+
+function pera_citizenship_is_rate_limited() {
+  if ( isset( $_POST['_pera_citizenship_rate_limited'] ) ) {
+    return $_POST['_pera_citizenship_rate_limited'] === '1';
+  }
+
+  $ip = pera_forms_client_ip();
+  $ua = isset( $_SERVER['HTTP_USER_AGENT'] ) ? sanitize_text_field( wp_unslash( $_SERVER['HTTP_USER_AGENT'] ) ) : '';
+  $fingerprint = md5( $ip . '|' . $ua );
+
+  $blocked_key = 'pera_citizenship_block_' . $fingerprint;
+  if ( get_transient( $blocked_key ) ) {
+    $_POST['_pera_citizenship_rate_limited'] = '1';
+    return true;
+  }
+
+  $count_key = 'pera_citizenship_count_' . $fingerprint;
+  $count     = (int) get_transient( $count_key );
+  $count++;
+  set_transient( $count_key, $count, 5 * MINUTE_IN_SECONDS );
+
+  if ( $count > 2 ) {
+    set_transient( $blocked_key, 1, 15 * MINUTE_IN_SECONDS );
+    $_POST['_pera_citizenship_rate_limited'] = '1';
+    return true;
+  }
+
+  $_POST['_pera_citizenship_rate_limited'] = '0';
+
+  return false;
+}
+
+function pera_citizenship_verify_turnstile( $token ) {
+  if ( isset( $_POST['_pera_citizenship_turnstile_valid'] ) ) {
+    return $_POST['_pera_citizenship_turnstile_valid'] === '1';
+  }
+
+  $secret = pera_citizenship_turnstile_secret_key();
+  if ( $secret === '' ) {
+    $_POST['_pera_citizenship_turnstile_valid'] = '0';
+    return false;
+  }
+
+  $token = sanitize_text_field( (string) $token );
+  if ( $token === '' ) {
+    $_POST['_pera_citizenship_turnstile_valid'] = '0';
+    return false;
+  }
+
+  $response = wp_remote_post(
+    'https://challenges.cloudflare.com/turnstile/v0/siteverify',
+    array(
+      'timeout' => 10,
+      'body'    => array(
+        'secret'   => $secret,
+        'response' => $token,
+        'remoteip' => pera_forms_client_ip(),
+      ),
+    )
+  );
+
+  if ( is_wp_error( $response ) ) {
+    $_POST['_pera_citizenship_turnstile_valid'] = '0';
+    return false;
+  }
+
+  $body = json_decode( (string) wp_remote_retrieve_body( $response ), true );
+  $is_valid = is_array( $body ) && ! empty( $body['success'] );
+  $_POST['_pera_citizenship_turnstile_valid'] = $is_valid ? '1' : '0';
+  return $is_valid;
 }
 
 /**
@@ -617,6 +783,26 @@ function pera_handle_citizenship_enquiry() {
     }
     pera_forms_debug_log( 'nonce_pass', array( 'form_key' => 'pera_citizenship_action', 'handler' => __FUNCTION__, 'nonce_status' => 'pass' ) );
 
+    // Anti-spam gate: policy consent must be explicitly provided.
+    if ( empty( $_POST['policy'] ) ) {
+      pera_citizenship_log_blocked_attempt( 'policy_missing' );
+      pera_citizenship_failed_redirect();
+    }
+
+    // Anti-spam gate: citizenship honeypot must remain empty.
+    $citizenship_company = isset( $_POST['citizenship_company'] ) ? sanitize_text_field( wp_unslash( $_POST['citizenship_company'] ) ) : '';
+    if ( $citizenship_company !== '' ) {
+      pera_citizenship_log_blocked_attempt( 'honeypot' );
+      pera_citizenship_failed_redirect();
+    }
+
+    // Anti-spam gate: reject forms submitted too quickly.
+    $form_start = isset( $_POST['form_start'] ) ? wp_unslash( $_POST['form_start'] ) : '';
+    if ( pera_citizenship_is_too_fast( $form_start ) ) {
+      pera_citizenship_log_blocked_attempt( 'too_fast' );
+      pera_citizenship_failed_redirect();
+    }
+
     $name  = isset( $_POST['name'] )  ? sanitize_text_field( wp_unslash( $_POST['name'] ) )  : '';
     $phone = isset( $_POST['phone'] ) ? sanitize_text_field( wp_unslash( $_POST['phone'] ) ) : '';
     $email = isset( $_POST['email'] ) ? sanitize_email( wp_unslash( $_POST['email'] ) )      : '';
@@ -624,6 +810,25 @@ function pera_handle_citizenship_enquiry() {
     $enquiry_type = isset( $_POST['enquiry_type'] ) ? sanitize_text_field( wp_unslash( $_POST['enquiry_type'] ) ) : '';
     $family       = isset( $_POST['family'] )       ? sanitize_text_field( wp_unslash( $_POST['family'] ) )       : '';
     $message      = isset( $_POST['message'] )      ? wp_kses_post( wp_unslash( $_POST['message'] ) )             : '';
+
+    // Anti-spam gate: conservative validation on name/message payloads.
+    if ( pera_citizenship_has_url_like_content( $name ) || pera_citizenship_is_obvious_spam_payload( $name, wp_strip_all_tags( $message ) ) ) {
+      pera_citizenship_log_blocked_attempt( 'spam_content' );
+      pera_citizenship_failed_redirect();
+    }
+
+    // Anti-spam gate: form-level rate limit by IP + user agent.
+    if ( pera_citizenship_is_rate_limited() ) {
+      pera_citizenship_log_blocked_attempt( 'throttled' );
+      pera_citizenship_failed_redirect();
+    }
+
+    // Anti-spam gate: Turnstile token must validate server-side.
+    $turnstile_token = isset( $_POST['cf-turnstile-response'] ) ? wp_unslash( $_POST['cf-turnstile-response'] ) : '';
+    if ( ! pera_citizenship_verify_turnstile( $turnstile_token ) ) {
+      pera_citizenship_log_blocked_attempt( 'turnstile' );
+      pera_citizenship_failed_redirect();
+    }
 
     $contact_methods = array();
     if ( ! empty( $_POST['contact_method'] ) && is_array( $_POST['contact_method'] ) ) {
