@@ -816,7 +816,7 @@ get_header();
               </span>
             </label>
 
-            <?php $turnstile_site_key = function_exists( 'pera_citizenship_turnstile_site_key' ) ? pera_citizenship_turnstile_site_key() : ''; ?>
+            <?php $turnstile_site_key = defined( 'PERA_TURNSTILE_SITE_KEY' ) ? sanitize_text_field( (string) PERA_TURNSTILE_SITE_KEY ) : ''; ?>
             <?php if ( $turnstile_site_key !== '' ) : ?>
               <script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>
               <div class="cf-turnstile" data-sitekey="<?php echo esc_attr( $turnstile_site_key ); ?>"></div>
