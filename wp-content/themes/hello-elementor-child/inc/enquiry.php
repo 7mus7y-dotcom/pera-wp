@@ -150,6 +150,40 @@ function pera_citizenship_log_blocked_attempt( $reason ) {
   ) ) );
 }
 
+
+function pera_citizenship_turnstile_check( $token ) {
+  $secret = pera_citizenship_turnstile_secret_key();
+  if ( $secret === '' ) {
+    return 'turnstile_api_error';
+  }
+
+  $token = sanitize_text_field( (string) $token );
+  if ( $token === '' ) {
+    return 'turnstile_missing_token';
+  }
+
+  $response = wp_remote_post(
+    'https://challenges.cloudflare.com/turnstile/v0/siteverify',
+    array(
+      'timeout' => 10,
+      'body'    => array(
+        'secret'   => $secret,
+        'response' => $token,
+        'remoteip' => pera_forms_client_ip(),
+      ),
+    )
+  );
+
+  if ( is_wp_error( $response ) ) {
+    return 'turnstile_api_error';
+  }
+
+  $body     = json_decode( (string) wp_remote_retrieve_body( $response ), true );
+  $is_valid = is_array( $body ) && ! empty( $body['success'] );
+
+  return $is_valid ? 'ok' : 'turnstile_invalid';
+}
+
 function pera_citizenship_failed_redirect() {
   $redirect = home_url( '/citizenship-by-investment/?enquiry=failed#citizenship-form' );
   wp_safe_redirect( $redirect );
@@ -233,43 +267,7 @@ function pera_citizenship_is_rate_limited() {
 }
 
 function pera_citizenship_verify_turnstile( $token ) {
-  if ( isset( $_POST['_pera_citizenship_turnstile_valid'] ) ) {
-    return $_POST['_pera_citizenship_turnstile_valid'] === '1';
-  }
-
-  $secret = pera_citizenship_turnstile_secret_key();
-  if ( $secret === '' ) {
-    $_POST['_pera_citizenship_turnstile_valid'] = '0';
-    return false;
-  }
-
-  $token = sanitize_text_field( (string) $token );
-  if ( $token === '' ) {
-    $_POST['_pera_citizenship_turnstile_valid'] = '0';
-    return false;
-  }
-
-  $response = wp_remote_post(
-    'https://challenges.cloudflare.com/turnstile/v0/siteverify',
-    array(
-      'timeout' => 10,
-      'body'    => array(
-        'secret'   => $secret,
-        'response' => $token,
-        'remoteip' => pera_forms_client_ip(),
-      ),
-    )
-  );
-
-  if ( is_wp_error( $response ) ) {
-    $_POST['_pera_citizenship_turnstile_valid'] = '0';
-    return false;
-  }
-
-  $body = json_decode( (string) wp_remote_retrieve_body( $response ), true );
-  $is_valid = is_array( $body ) && ! empty( $body['success'] );
-  $_POST['_pera_citizenship_turnstile_valid'] = $is_valid ? '1' : '0';
-  return $is_valid;
+  return pera_citizenship_turnstile_check( $token ) === 'ok';
 }
 
 /**
@@ -825,8 +823,9 @@ function pera_handle_citizenship_enquiry() {
 
     // Anti-spam gate: Turnstile token must validate server-side.
     $turnstile_token = isset( $_POST['cf-turnstile-response'] ) ? wp_unslash( $_POST['cf-turnstile-response'] ) : '';
-    if ( ! pera_citizenship_verify_turnstile( $turnstile_token ) ) {
-      pera_citizenship_log_blocked_attempt( 'turnstile' );
+    $turnstile_check = pera_citizenship_turnstile_check( $turnstile_token );
+    if ( $turnstile_check !== 'ok' ) {
+      pera_citizenship_log_blocked_attempt( $turnstile_check );
       pera_citizenship_failed_redirect();
     }
 
