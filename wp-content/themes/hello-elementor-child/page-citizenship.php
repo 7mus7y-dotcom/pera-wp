@@ -699,6 +699,12 @@ get_header();
         >
           <?php wp_nonce_field( 'pera_citizenship_enquiry', 'pera_citizenship_nonce'); ?>
           <input type="hidden" name="pera_citizenship_action" value="1">
+          <input type="hidden" name="form_start" value="<?php echo esc_attr( time() ); ?>">
+
+          <div style="position:absolute;left:-9999px;top:auto;width:1px;height:1px;overflow:hidden;" aria-hidden="true">
+            <label for="citizenship-company">Company</label>
+            <input type="text" id="citizenship-company" name="citizenship_company" value="" tabindex="-1" autocomplete="off">
+          </div>
 
       
           <div class="enquiry-cta-grid">
@@ -809,6 +815,12 @@ get_header();
                 <a href="/privacy-policy/" target="_blank" rel="noopener">Privacy Policy</a>.
               </span>
             </label>
+
+            <?php $turnstile_site_key = function_exists( 'pera_citizenship_turnstile_site_key' ) ? pera_citizenship_turnstile_site_key() : ''; ?>
+            <?php if ( $turnstile_site_key !== '' ) : ?>
+              <script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>
+              <div class="cf-turnstile" data-sitekey="<?php echo esc_attr( $turnstile_site_key ); ?>"></div>
+            <?php endif; ?>
 
             <button type="submit" class="btn btn--ghost btn--green">
               Request a call back
