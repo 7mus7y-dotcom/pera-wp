@@ -195,6 +195,59 @@ function pera_citizenship_turnstile_secret_key() {
   return defined( 'PERA_TURNSTILE_SECRET_KEY' ) ? sanitize_text_field( (string) PERA_TURNSTILE_SECRET_KEY ) : '';
 }
 
+function pera_forms_ip_hash() {
+  $ip = pera_forms_client_ip();
+
+  return $ip !== '' ? md5( $ip ) : '';
+}
+
+function pera_citizenship_turnstile_log_context( $token, $status, $http_code = null, array $siteverify = array() ) {
+  $home_host = wp_parse_url( home_url(), PHP_URL_HOST );
+  $token     = sanitize_text_field( (string) $token );
+
+  $context = array(
+    'handler'        => __FUNCTION__,
+    'status'         => sanitize_key( (string) $status ),
+    'request_host'   => is_string( $home_host ) ? sanitize_text_field( $home_host ) : '',
+    'remote_ip_hash' => pera_forms_ip_hash(),
+    'token_present'  => $token !== '' ? 1 : 0,
+    'token_len'      => strlen( $token ),
+    'http_code'      => is_numeric( $http_code ) ? (int) $http_code : 0,
+    'cf_success'     => isset( $siteverify['success'] ) ? (int) (bool) $siteverify['success'] : 0,
+    'cf_errors'      => '',
+    'cf_action'      => '',
+    'cf_cdata'       => '',
+    'cf_hostname'    => '',
+    'cf_challenge_ts'=> '',
+  );
+
+  if ( ! empty( $siteverify['error-codes'] ) && is_array( $siteverify['error-codes'] ) ) {
+    $errors = array_map( 'sanitize_key', array_map( 'strval', $siteverify['error-codes'] ) );
+    $errors = array_filter( $errors, 'strlen' );
+    if ( ! empty( $errors ) ) {
+      $context['cf_errors'] = implode( ',', $errors );
+    }
+  }
+
+  if ( isset( $siteverify['action'] ) ) {
+    $context['cf_action'] = sanitize_text_field( (string) $siteverify['action'] );
+  }
+
+  if ( isset( $siteverify['cdata'] ) ) {
+    $context['cf_cdata'] = sanitize_text_field( (string) $siteverify['cdata'] );
+  }
+
+  if ( isset( $siteverify['hostname'] ) ) {
+    $context['cf_hostname'] = sanitize_text_field( (string) $siteverify['hostname'] );
+  }
+
+  if ( isset( $siteverify['challenge_ts'] ) ) {
+    $context['cf_challenge_ts'] = sanitize_text_field( (string) $siteverify['challenge_ts'] );
+  }
+
+  return $context;
+}
+
 function pera_citizenship_log_blocked_attempt( $reason ) {
   if ( ! ( defined( 'PERA_CITIZENSHIP_SPAM_LOG' ) && PERA_CITIZENSHIP_SPAM_LOG ) ) {
     return;
@@ -215,11 +268,19 @@ function pera_citizenship_log_blocked_attempt( $reason ) {
 function pera_citizenship_turnstile_check( $token ) {
   $secret = pera_citizenship_turnstile_secret_key();
   if ( $secret === '' ) {
+    pera_forms_debug_log(
+      'turnstile_check_api_error',
+      pera_citizenship_turnstile_log_context( $token, 'turnstile_api_error' )
+    );
     return 'turnstile_api_error';
   }
 
   $token = sanitize_text_field( (string) $token );
   if ( $token === '' ) {
+    pera_forms_debug_log(
+      'turnstile_check_missing_token',
+      pera_citizenship_turnstile_log_context( $token, 'turnstile_missing_token' )
+    );
     return 'turnstile_missing_token';
   }
 
@@ -236,11 +297,28 @@ function pera_citizenship_turnstile_check( $token ) {
   );
 
   if ( is_wp_error( $response ) ) {
+    pera_forms_debug_log(
+      'turnstile_check_api_error',
+      pera_citizenship_turnstile_log_context( $token, 'turnstile_api_error' )
+    );
     return 'turnstile_api_error';
   }
 
-  $body     = json_decode( (string) wp_remote_retrieve_body( $response ), true );
-  $is_valid = is_array( $body ) && ! empty( $body['success'] );
+  $http_code = wp_remote_retrieve_response_code( $response );
+  $body      = json_decode( (string) wp_remote_retrieve_body( $response ), true );
+  $is_valid  = is_array( $body ) && ! empty( $body['success'] );
+
+  if ( ! $is_valid ) {
+    pera_forms_debug_log(
+      'turnstile_check_invalid',
+      pera_citizenship_turnstile_log_context( $token, 'turnstile_invalid', $http_code, is_array( $body ) ? $body : array() )
+    );
+  } else {
+    pera_forms_debug_log(
+      'turnstile_check_ok',
+      pera_citizenship_turnstile_log_context( $token, 'ok', $http_code, $body )
+    );
+  }
 
   return $is_valid ? 'ok' : 'turnstile_invalid';
 }
