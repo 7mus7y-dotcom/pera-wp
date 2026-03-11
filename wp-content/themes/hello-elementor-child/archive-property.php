@@ -429,6 +429,7 @@ if ( ! $is_filtered_search && ( $qo instanceof WP_Term ) && ! is_wp_error( $qo )
                     class="btn btn--solid btn--black property-filters-trigger"
                     aria-haspopup="dialog"
                     aria-controls="property-filter-dialog"
+                    aria-expanded="false"
                   >
                     <svg class="icon" aria-hidden="true" width="18" height="18" viewBox="0 0 24 24" focusable="false">
                       <path d="M3 5h18l-7 8v5l-4 1v-6L3 5z" fill="currentColor"></path>
@@ -1055,6 +1056,7 @@ $pagination_html = function_exists( 'pera_render_property_pagination' )
       lastFocused = document.activeElement;
       dialog.classList.add('is-open');
       dialog.setAttribute('aria-hidden', 'false');
+      dialogTrigger.setAttribute('aria-expanded', 'true');
       document.body.classList.add('has-open-dialog');
       previousBodyOverflow = document.body.style.overflow;
       document.body.style.overflow = 'hidden';
@@ -1068,6 +1070,7 @@ $pagination_html = function_exists( 'pera_render_property_pagination' )
     closeDialog = () => {
       dialog.classList.remove('is-open');
       dialog.setAttribute('aria-hidden', 'true');
+      dialogTrigger.setAttribute('aria-expanded', 'false');
       document.body.classList.remove('has-open-dialog');
       document.body.style.overflow = previousBodyOverflow;
 
