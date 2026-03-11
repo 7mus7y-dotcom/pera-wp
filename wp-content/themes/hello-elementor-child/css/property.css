@@ -254,6 +254,11 @@
   overflow: visible;
 }
 
+@media (max-width: 1199px){
+  .filters-enhanced .property-filter-dialog__content{
+    padding-top: var(--filters-header-offset, 0px);
+  }
+}
 
 .filters-enhanced .property-filter-dialog__header{
   position: sticky;
