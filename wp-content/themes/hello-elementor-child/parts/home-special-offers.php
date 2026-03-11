@@ -78,10 +78,10 @@ if ( $offers_query->have_posts() ) {
   while ( $offers_query->have_posts() ) {
     $offers_query->the_post();
 
-    $property_id    = get_the_ID();
-    $special_offer  = function_exists( 'get_field' ) ? get_field( 'so_image', $property_id ) : get_post_meta( $property_id, 'so_image', true );
-    $resolved_media = $resolve_special_offer_media( $special_offer );
-
+    $property_id  = get_the_ID();
+    $offer_image  = function_exists( 'get_field' ) ? get_field( 'so_image', $property_id ) : get_post_meta( $property_id, 'so_image', true );
+    $resolved_media = $resolve_special_offer_media( $offer_image );
+    
     if ( empty( $resolved_media ) ) {
       continue;
     }
