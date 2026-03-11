@@ -206,11 +206,8 @@ $featured_query = new WP_Query( array(
 <?php
 /* ======================================================
    SPECIAL OFFERS (HOME)
-   TEMP: Preview gate for admin-equivalent users before public release.
    ====================================================== */
-if ( function_exists( 'pera_is_frontend_admin_equivalent' ) && pera_is_frontend_admin_equivalent() ) {
-  get_template_part( 'parts/home-special-offers' );
-}
+get_template_part( 'parts/home-special-offers' );
 ?>
 
 
