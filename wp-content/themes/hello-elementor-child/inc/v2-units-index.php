@@ -991,7 +991,20 @@ if ( ! function_exists( 'pera_v2_render_units_price_table' ) ) {
                     ) )
                   : '';
             
-                $closing_txt = __( 'Contact us for full details on closing costs.', 'hello-elementor-child' );
+                $updated_ts       = (int) get_post_modified_time( 'U', true, $post_id );
+                $updated_date_txt = get_the_modified_date( 'j F Y', $post_id );
+                $now_ts           = (int) current_time( 'timestamp', true );
+                $is_older_than_month = ( $updated_ts > 0 ) && ( ( $now_ts - $updated_ts ) > ( 30 * DAY_IN_SECONDS ) );
+
+                $closing_txt = sprintf(
+                  /* translators: %s: listing last updated date. */
+                  __( 'This price range was last updated on %s.', 'hello-elementor-child' ),
+                  $updated_date_txt
+                );
+
+                if ( $is_older_than_month ) {
+                  $closing_txt .= ' ' . __( 'As this price range is more than a month old, please contact us for latest prices.', 'hello-elementor-child' );
+                }
             
                 $project_txt = __( 'This is a project with multiple options. Please contact us for specific pricing, images, and floor plans.', 'hello-elementor-child' );
               ?>
