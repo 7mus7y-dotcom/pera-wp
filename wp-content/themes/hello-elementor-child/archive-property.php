@@ -1045,14 +1045,46 @@ $pagination_html = function_exists( 'pera_render_property_pagination' )
   // If URL had min_price/max_price initially
   const HAS_PRICE_QS = <?php echo $has_price_qs ? 'true' : 'false'; ?>;
 
-  if (dialog && dialogTrigger) {
+    if (dialog && dialogTrigger) {
     document.documentElement.classList.add('filters-enhanced');
 
     const focusableSelector = 'a[href], button:not([disabled]), input, select, textarea, [tabindex]:not([tabindex="-1"])';
+    const dialogPanel = dialog.querySelector('.property-filter-dialog__panel');
+    const mobileBreakpoint = window.matchMedia('(max-width: 1199px)');
+
+    const getLiveHeaderHeight = () => {
+      if (!mobileBreakpoint.matches) return 0;
+
+      const header = document.querySelector('#site-header')
+        || document.querySelector('header.site-header')
+        || document.querySelector('.site-header');
+
+      if (!header) return 0;
+
+      const rect = header.getBoundingClientRect();
+      const style = window.getComputedStyle(header);
+      const isVisible = style.display !== 'none' && style.visibility !== 'hidden';
+
+      if (!isVisible) return 0;
+
+      return Math.max(0, Math.round(rect.height || header.offsetHeight || 0));
+    };
+
+    const setDrawerHeaderOffset = () => {
+      if (!dialogPanel) return;
+      const offset = getLiveHeaderHeight();
+      dialogPanel.style.setProperty('--filters-header-offset', `${offset}px`);
+    };
+
+    setDrawerHeaderOffset();
+    window.addEventListener('resize', setDrawerHeaderOffset, { passive: true });
+    window.addEventListener('orientationchange', setDrawerHeaderOffset, { passive: true });
+
     let lastFocused = null;
     let previousBodyOverflow = '';
 
     const openDialog = () => {
+      setDrawerHeaderOffset();
       lastFocused = document.activeElement;
       dialog.classList.add('is-open');
       dialog.setAttribute('aria-hidden', 'false');
@@ -1066,7 +1098,7 @@ $pagination_html = function_exists( 'pera_render_property_pagination' )
         focusTarget.focus();
       }
     };
-
+      
     closeDialog = () => {
       dialog.classList.remove('is-open');
       dialog.setAttribute('aria-hidden', 'true');
