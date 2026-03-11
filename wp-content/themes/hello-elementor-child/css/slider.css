@@ -366,3 +366,67 @@
 .dark .property-gallery .property-gallery-nav svg{
   color: #f8fafc;
 }
+
+/* =======================================================
+   Home: Special Offers (portrait scroller)
+   ======================================================= */
+.home-special-offers .cards-slider {
+  gap: 16px;
+}
+
+.home-special-offers .slider-card {
+  flex: 0 0 calc((100% - 16px) / 2);
+  max-width: calc((100% - 16px) / 2);
+}
+
+.home-special-offers .special-offers-card {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.home-special-offers .special-offers-card__media {
+  display: block;
+  overflow: hidden;
+  border-radius: var(--radius-lg);
+  aspect-ratio: 9 / 16;
+  background: #e2e8f0;
+}
+
+.home-special-offers .special-offers-card__media img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.home-special-offers .special-offers-card__location {
+  margin: 0;
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--text-soft);
+}
+
+.home-special-offers .special-offers-card__title {
+  margin: 0;
+  font-size: 1rem;
+  line-height: 1.35;
+}
+
+.home-special-offers .special-offers-card__title a {
+  color: inherit;
+  text-decoration: none;
+}
+
+.home-special-offers .special-offers-card__title a:hover,
+.home-special-offers .special-offers-card__title a:focus-visible {
+  text-decoration: underline;
+}
+
+@media (min-width: 1024px) {
+  .home-special-offers .slider-card {
+    flex-basis: calc((100% - 48px) / 4);
+    max-width: calc((100% - 48px) / 4);
+  }
+}

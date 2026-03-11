@@ -141,6 +141,7 @@ $beds_options = array( 1, 2, 3, 4, 5, 6 );
     </div>
   </section>
 
+
 <?php
 /* ======================================================
    FEATURED OPPORTUNITIES (HOME)
@@ -201,6 +202,17 @@ $featured_query = new WP_Query( array(
 </section>
 
 <?php wp_reset_postdata(); ?>
+
+<?php
+/* ======================================================
+   SPECIAL OFFERS (HOME)
+   TEMP: Preview gate for admin-equivalent users before public release.
+   ====================================================== */
+if ( function_exists( 'pera_is_frontend_admin_equivalent' ) && pera_is_frontend_admin_equivalent() ) {
+  get_template_part( 'parts/home-special-offers' );
+}
+?>
+
 
 <?php
 /* ======================================================
