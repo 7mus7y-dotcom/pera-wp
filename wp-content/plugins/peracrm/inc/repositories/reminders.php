@@ -13,9 +13,11 @@ function peracrm_reminders_table_exists()
         return $exists;
     }
 
-    $table = peracrm_table('crm_reminders');
-    $query = $wpdb->prepare('SHOW TABLES LIKE %s', $table);
-    $exists = $wpdb->get_var($query) === $table;
+    $exists = peracrm_with_target_blog(static function () use ($wpdb) {
+        $table = peracrm_table('crm_reminders');
+        $query = $wpdb->prepare('SHOW TABLES LIKE %s', $table);
+        return $wpdb->get_var($query) === $table;
+    });
 
     return $exists;
 }

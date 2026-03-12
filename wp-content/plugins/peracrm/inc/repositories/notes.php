@@ -18,9 +18,11 @@ function peracrm_notes_table_exists()
         return $exists;
     }
 
-    $table = peracrm_table('crm_notes');
-    $query = $wpdb->prepare('SHOW TABLES LIKE %s', $table);
-    $exists = $wpdb->get_var($query) === $table;
+    $exists = peracrm_with_target_blog(static function () use ($wpdb) {
+        $table = peracrm_table('crm_notes');
+        $query = $wpdb->prepare('SHOW TABLES LIKE %s', $table);
+        return $wpdb->get_var($query) === $table;
+    });
 
     return $exists;
 }
@@ -92,9 +94,11 @@ function peracrm_notes_table_has_visibility_column()
         return $has_column;
     }
 
-    $table = peracrm_table('crm_notes');
-    $query = $wpdb->prepare("SHOW COLUMNS FROM {$table} LIKE %s", 'visibility');
-    $has_column = !empty($wpdb->get_var($query));
+    $has_column = peracrm_with_target_blog(static function () use ($wpdb) {
+        $table = peracrm_table('crm_notes');
+        $query = $wpdb->prepare("SHOW COLUMNS FROM {$table} LIKE %s", 'visibility');
+        return !empty($wpdb->get_var($query));
+    });
 
     return $has_column;
 }

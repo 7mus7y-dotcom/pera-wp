@@ -318,19 +318,22 @@ function peracrm_push_get_log_table_columns()
         return $cache;
     }
 
-    $cache = [];
-    $table = function_exists('peracrm_push_log_table_name') ? peracrm_push_log_table_name() : peracrm_table('crm_push_log');
-    if ($table === '' || $wpdb->get_var($wpdb->prepare('SHOW TABLES LIKE %s', $table)) !== $table) {
-        return $cache;
-    }
-
-    $rows = (array) $wpdb->get_results("SHOW COLUMNS FROM {$table}", ARRAY_A);
-    foreach ($rows as $row) {
-        $field = isset($row['Field']) ? sanitize_key((string) $row['Field']) : '';
-        if ($field !== '') {
-            $cache[$field] = true;
+    $cache = peracrm_with_target_blog(static function () use ($wpdb) {
+        $columns = [];
+        $table = function_exists('peracrm_push_log_table_name') ? peracrm_push_log_table_name() : peracrm_table('crm_push_log');
+        if ($table === '' || $wpdb->get_var($wpdb->prepare('SHOW TABLES LIKE %s', $table)) !== $table) {
+            return $columns;
         }
-    }
+
+        $rows = (array) $wpdb->get_results("SHOW COLUMNS FROM {$table}", ARRAY_A);
+        foreach ($rows as $row) {
+            $field = isset($row['Field']) ? sanitize_key((string) $row['Field']) : '';
+            if ($field !== '') {
+                $columns[$field] = true;
+            }
+        }
+        return $columns;
+    });
 
     return $cache;
 }
