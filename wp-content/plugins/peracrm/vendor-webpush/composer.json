@@ -1,0 +1,13 @@
+{
+  "name": "peraproperty/peracrm-webpush",
+  "description": "Vendor deps for PeraCRM push notifications",
+  "type": "project",
+  "require": {
+    "minishlink/web-push": "^8.0"
+  },
+  "config": {
+    "optimize-autoloader": true,
+    "preferred-install": "dist",
+    "sort-packages": true
+  }
+}
