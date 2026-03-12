@@ -7,6 +7,10 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
+if ( function_exists( 'pera_crm_gate_or_redirect' ) ) {
+	pera_crm_gate_or_redirect();
+}
+
 $view         = sanitize_key( (string) get_query_var( 'pera_crm_view', 'overview' ) );
 $current_page = max( 1, (int) get_query_var( 'paged', 1 ) );
 $is_leads     = 'leads' === $view;
