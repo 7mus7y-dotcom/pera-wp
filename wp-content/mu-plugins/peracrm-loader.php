@@ -1,11 +1,15 @@
 <?php
 /**
  * Plugin Name: PeraCRM MU Loader
- * Description: Loads the nested PeraCRM MU-plugin entrypoint.
+ * Description: Loads the PeraCRM MU shim entrypoint.
  */
 
 if (!defined('ABSPATH')) {
     exit;
 }
 
-require_once __DIR__ . '/peracrm/peracrm.php';
+if (defined('PERA_CRM_DISABLED') && PERA_CRM_DISABLED) {
+    return;
+}
+
+require_once __DIR__ . '/peracrm.php';
