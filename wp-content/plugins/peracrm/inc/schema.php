@@ -12,8 +12,10 @@ function peracrm_maybe_upgrade_schema()
             return;
         }
 
-        peracrm_upgrade_schema_to(PERACRM_SCHEMA_VERSION, $installed);
-        update_option('peracrm_schema_version', PERACRM_SCHEMA_VERSION);
+        $upgraded = peracrm_upgrade_schema_to(PERACRM_SCHEMA_VERSION, $installed);
+        if ($upgraded) {
+            update_option('peracrm_schema_version', PERACRM_SCHEMA_VERSION);
+        }
     });
 }
 
@@ -23,10 +25,10 @@ function peracrm_upgrade_schema_to($target_version, $installed_version = 0)
     $installed_version = (int) $installed_version;
 
     if ($target_version < 1) {
-        return;
+        return false;
     }
 
-    peracrm_with_target_blog(static function () use ($target_version, $installed_version) {
+    return (bool) peracrm_with_target_blog(static function () use ($target_version, $installed_version) {
         global $wpdb;
 
         $charset_collate = $wpdb->get_charset_collate();
@@ -149,13 +151,39 @@ function peracrm_upgrade_schema_to($target_version, $installed_version = 0)
         dbDelta($sql_party);
         dbDelta($sql_deals);
 
+        $required_tables = [
+            $notes_table,
+            $reminders_table,
+            $activity_table,
+            $client_property_table,
+            $party_table,
+            $deals_table,
+        ];
+
+        foreach ($required_tables as $required_table) {
+            $exists = $wpdb->get_var($wpdb->prepare('SHOW TABLES LIKE %s', $required_table));
+            if ($exists !== $required_table) {
+                return false;
+            }
+        }
+
         if (function_exists('peracrm_push_log_create_table')) {
             peracrm_push_log_create_table();
+
+            if (function_exists('peracrm_push_log_table_name')) {
+                $push_log_table = peracrm_push_log_table_name();
+                if ($push_log_table !== '' && $wpdb->get_var($wpdb->prepare('SHOW TABLES LIKE %s', $push_log_table)) !== $push_log_table) {
+                    return false;
+                }
+            }
         }
 
         $closed_reason_exists = $wpdb->get_var($wpdb->prepare("SHOW COLUMNS FROM {$deals_table} LIKE %s", 'closed_reason'));
         if (!$closed_reason_exists) {
-            $wpdb->query("ALTER TABLE {$deals_table} ADD COLUMN closed_reason VARCHAR(32) NOT NULL DEFAULT 'none' AFTER stage");
+            $altered = $wpdb->query("ALTER TABLE {$deals_table} ADD COLUMN closed_reason VARCHAR(32) NOT NULL DEFAULT 'none' AFTER stage");
+            if ($altered === false) {
+                return false;
+            }
         }
 
         if ($installed_version < 2 && $target_version >= 2) {
@@ -167,6 +195,8 @@ function peracrm_upgrade_schema_to($target_version, $installed_version = 0)
             peracrm_migrate_stage_taxonomy_v4();
             update_option('peracrm_migration_v4_done', 1);
         }
+
+        return true;
     });
 }
 

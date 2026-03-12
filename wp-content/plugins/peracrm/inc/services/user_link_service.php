@@ -13,9 +13,16 @@ function peracrm_client_table_has_linked_user_column()
         return $has_column;
     }
 
-    $table = peracrm_table('crm_client');
-    $column = $wpdb->get_col("SHOW COLUMNS FROM {$table} LIKE 'linked_user_id'");
-    $has_column = !empty($column);
+    $has_column = peracrm_with_target_blog(static function () use ($wpdb) {
+        $table = peracrm_table('crm_client');
+        $table_exists = $wpdb->get_var($wpdb->prepare('SHOW TABLES LIKE %s', $table)) === $table;
+        if (!$table_exists) {
+            return false;
+        }
+
+        $column = $wpdb->get_col("SHOW COLUMNS FROM {$table} LIKE 'linked_user_id'");
+        return !empty($column);
+    });
 
     return $has_column;
 }
@@ -30,10 +37,12 @@ function peracrm_get_client_linked_user_id($client_id)
     }
 
     if (peracrm_client_table_has_linked_user_column()) {
-        $table = peracrm_table('crm_client');
-        $row = $wpdb->get_row(
-            $wpdb->prepare("SELECT linked_user_id FROM {$table} WHERE id = %d", $client_id)
-        );
+        $row = peracrm_with_target_blog(static function () use ($wpdb, $client_id) {
+            $table = peracrm_table('crm_client');
+            return $wpdb->get_row(
+                $wpdb->prepare("SELECT linked_user_id FROM {$table} WHERE id = %d", $client_id)
+            );
+        });
 
         if ($row) {
             return (int) $row->linked_user_id;
@@ -55,15 +64,16 @@ function peracrm_update_client_linked_user_id($client_id, $user_id)
     }
 
     if (peracrm_client_table_has_linked_user_column()) {
-        $table = peracrm_table('crm_client');
-
-        $updated = $wpdb->update(
-            $table,
-            ['linked_user_id' => $user_id > 0 ? $user_id : null],
-            ['id' => $client_id],
-            ['%d'],
-            ['%d']
-        );
+        $updated = peracrm_with_target_blog(static function () use ($wpdb, $client_id, $user_id) {
+            $table = peracrm_table('crm_client');
+            return $wpdb->update(
+                $table,
+                ['linked_user_id' => $user_id > 0 ? $user_id : null],
+                ['id' => $client_id],
+                ['%d'],
+                ['%d']
+            );
+        });
 
         if (false === $updated) {
             return false;

@@ -9,6 +9,8 @@ if (!defined('ABSPATH')) {
     exit;
 }
 
+$peracrm_plugin_file = __FILE__;
+
 if (!defined('PERACRM_VERSION')) {
     define('PERACRM_VERSION', '0.1.0');
 }
@@ -36,17 +38,17 @@ if (!defined('PERACRM_INCLUDES')) {
 }
 
 if (!defined('PERACRM_URL')) {
-    define('PERACRM_URL', plugins_url('', PERACRM_MAIN_FILE));
+    define('PERACRM_URL', plugins_url('', $peracrm_plugin_file));
 }
 
 require_once PERACRM_INCLUDES . '/install.php';
 
 add_action('plugins_loaded', static function () {
-    load_plugin_textdomain('peracrm', false, dirname(plugin_basename(PERACRM_MAIN_FILE)) . '/languages');
+    load_plugin_textdomain('peracrm', false, dirname(plugin_basename(__FILE__)) . '/languages');
 });
 
-register_activation_hook(PERACRM_MAIN_FILE, 'peracrm_activate');
-register_deactivation_hook(PERACRM_MAIN_FILE, 'peracrm_deactivate');
+register_activation_hook(__FILE__, 'peracrm_activate');
+register_deactivation_hook(__FILE__, 'peracrm_deactivate');
 
 require_once PERACRM_INC . '/bootstrap.php';
 

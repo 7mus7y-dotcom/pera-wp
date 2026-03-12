@@ -13,11 +13,11 @@ function peracrm_favourites_table_exists()
         return $exists;
     }
 
-    $table = peracrm_table('crm_client_property');
-
-    $query = $wpdb->prepare('SHOW TABLES LIKE %s', $table);
-
-    $exists = $wpdb->get_var($query) === $table;
+    $exists = peracrm_with_target_blog(static function () use ($wpdb) {
+        $table = peracrm_table('crm_client_property');
+        $query = $wpdb->prepare('SHOW TABLES LIKE %s', $table);
+        return $wpdb->get_var($query) === $table;
+    });
 
     return $exists;
 }
@@ -35,14 +35,15 @@ function peracrm_favourites_unique_key_exists()
         return false;
     }
 
-    $table = peracrm_table('crm_client_property');
+    $exists = peracrm_with_target_blog(static function () use ($wpdb) {
+        $table = peracrm_table('crm_client_property');
+        $query = $wpdb->prepare(
+            "SHOW INDEX FROM {$table} WHERE Key_name = %s AND Non_unique = 0",
+            'uniq_client_property_type'
+        );
 
-    $query = $wpdb->prepare(
-        "SHOW INDEX FROM {$table} WHERE Key_name = %s AND Non_unique = 0",
-        'uniq_client_property_type'
-    );
-
-    $exists = !empty($wpdb->get_var($query));
+        return !empty($wpdb->get_var($query));
+    });
 
     return $exists;
 }
@@ -182,11 +183,11 @@ function peracrm_activity_table_exists()
         return $exists;
     }
 
-    $table = peracrm_table('crm_activity');
-
-    $query = $wpdb->prepare('SHOW TABLES LIKE %s', $table);
-
-    $exists = $wpdb->get_var($query) === $table;
+    $exists = peracrm_with_target_blog(static function () use ($wpdb) {
+        $table = peracrm_table('crm_activity');
+        $query = $wpdb->prepare('SHOW TABLES LIKE %s', $table);
+        return $wpdb->get_var($query) === $table;
+    });
 
     return $exists;
 }

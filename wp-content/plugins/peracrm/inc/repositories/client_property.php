@@ -180,9 +180,11 @@ function peracrm_client_property_table_exists()
         return $exists;
     }
 
-    $table = peracrm_table('crm_client_property');
-    $query = $wpdb->prepare('SHOW TABLES LIKE %s', $table);
-    $exists = $wpdb->get_var($query) === $table;
+    $exists = peracrm_with_target_blog(static function () use ($wpdb) {
+        $table = peracrm_table('crm_client_property');
+        $query = $wpdb->prepare('SHOW TABLES LIKE %s', $table);
+        return $wpdb->get_var($query) === $table;
+    });
 
     return $exists;
 }
