@@ -7,6 +7,10 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
+if ( function_exists( 'pera_crm_gate_or_redirect' ) ) {
+	pera_crm_gate_or_redirect();
+}
+
 $error_raw = isset( $_GET['crm_error'] ) ? wp_unslash( (string) $_GET['crm_error'] ) : ''; // phpcs:ignore WordPress.Security.NonceVerification.Recommended
 $error     = sanitize_key( $error_raw );
 

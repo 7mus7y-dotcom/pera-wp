@@ -1302,6 +1302,11 @@ function peracrm_handle_link_user()
 
 function peracrm_handle_unlink_user()
 {
+    $request_method = isset($_SERVER['REQUEST_METHOD']) ? strtoupper((string) $_SERVER['REQUEST_METHOD']) : '';
+    if ($request_method !== 'POST') {
+        wp_die('Method not allowed', 405);
+    }
+
     $client_id = isset($_POST['peracrm_client_id']) ? (int) $_POST['peracrm_client_id'] : 0;
     $client = peracrm_admin_get_client($client_id);
     $fallback_redirect = peracrm_admin_client_screen_url($client_id);
@@ -1315,7 +1320,7 @@ function peracrm_handle_unlink_user()
         wp_die('Unauthorized');
     }
 
-    $unlink_nonce = isset($_REQUEST['peracrm_unlink_user_nonce']) ? sanitize_text_field(wp_unslash($_REQUEST['peracrm_unlink_user_nonce'])) : '';
+    $unlink_nonce = isset($_POST['peracrm_unlink_user_nonce']) ? sanitize_text_field(wp_unslash($_POST['peracrm_unlink_user_nonce'])) : '';
     if ($unlink_nonce === '' || !wp_verify_nonce($unlink_nonce, 'peracrm_unlink_user')) {
         wp_die('Invalid nonce');
     }
@@ -1466,6 +1471,10 @@ function peracrm_handle_reassign_client_advisor()
     }
 
     check_admin_referer('peracrm_reassign_client_advisor', 'peracrm_reassign_client_advisor_nonce');
+
+    if (!current_user_can('edit_post', $client_id)) {
+        wp_die('You do not have permission to edit this client.');
+    }
 
     if (!peracrm_admin_user_can_reassign()) {
         wp_die('You do not have permission to reassign this client.');
