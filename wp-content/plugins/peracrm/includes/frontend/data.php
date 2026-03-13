@@ -882,6 +882,10 @@ if ( ! function_exists( 'pera_crm_user_is_employee' ) ) {
 	 * Is the user an employee (non-manager scope).
 	 */
 	function pera_crm_user_is_employee( int $user_id ): bool {
+		if ( function_exists( 'peracrm_user_is_employee' ) ) {
+			return (bool) peracrm_user_is_employee( $user_id );
+		}
+
 		$user = get_userdata( $user_id );
 		if ( ! ( $user instanceof WP_User ) ) {
 			return false;
@@ -971,6 +975,10 @@ add_filter(
 	'peracrm_allowed_client_ids_for_user',
 	static function ( $ids, $user_id ) {
 		if ( ! function_exists( 'pera_crm_get_allowed_client_ids_for_user' ) ) {
+			return $ids;
+		}
+
+		if ( ! function_exists( 'pera_crm_user_is_employee' ) || ! pera_crm_user_is_employee( (int) $user_id ) ) {
 			return $ids;
 		}
 

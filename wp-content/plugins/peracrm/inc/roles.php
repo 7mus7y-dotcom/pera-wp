@@ -26,6 +26,15 @@ function peracrm_ensure_roles_and_caps()
 
         $caps_reports = ['view_crm_reports'];
 
+        // Account-role/capability axis:
+        // - CRM staff scope is controlled with explicit peracrm_* caps.
+        // - CRM business lead/client state remains deal-derived and is not a role signal.
+        $caps_scope_management = [
+            'peracrm_manage_all_clients',
+            'peracrm_manage_assignments',
+            'peracrm_manage_all_reminders',
+        ];
+
         $caps_cpt_admin = [
             'edit_crm_client',
             'read_crm_client',
@@ -58,7 +67,7 @@ function peracrm_ensure_roles_and_caps()
 
         $manager_role = get_role('manager');
         if ($manager_role) {
-            foreach (array_merge($caps_common, $caps_reports, $caps_cpt_employee) as $cap) {
+            foreach (array_merge($caps_common, $caps_reports, $caps_scope_management, $caps_cpt_admin) as $cap) {
                 $manager_role->add_cap($cap);
             }
         }
@@ -69,6 +78,9 @@ function peracrm_ensure_roles_and_caps()
                 $employee_role->add_cap($cap);
             }
             $employee_role->remove_cap('view_crm_reports');
+            foreach ($caps_scope_management as $cap) {
+                $employee_role->remove_cap($cap);
+            }
         }
     });
 }

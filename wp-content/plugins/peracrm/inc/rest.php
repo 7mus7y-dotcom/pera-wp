@@ -90,7 +90,9 @@ function peracrm_rest_get_pagination(WP_REST_Request $request)
 function peracrm_rest_current_user_can_manage_all_clients()
 {
     $callback = static function () {
-        return current_user_can('manage_options') || current_user_can('peracrm_manage_all_clients');
+        return function_exists('peracrm_user_can_manage_all_clients')
+            ? peracrm_user_can_manage_all_clients()
+            : (current_user_can('manage_options') || current_user_can('peracrm_manage_all_clients'));
     };
 
     if (function_exists('peracrm_with_target_blog')) {
