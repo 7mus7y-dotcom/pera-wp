@@ -87,7 +87,7 @@ function peracrm_register_metaboxes($post_type, $post)
 
     if (
         $post
-        && current_user_can('edit_post', $post->ID)
+        && peracrm_user_can_access_client($post->ID)
         && !peracrm_admin_is_metabox_disabled('PERACRM_DISABLE_ACTIVITY_METABOX')
     ) {
         add_meta_box(
