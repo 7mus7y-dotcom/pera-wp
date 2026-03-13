@@ -86,8 +86,16 @@ if ( $offers_query->have_posts() ) {
       continue;
     }
 
-    $district_terms = get_the_terms( $property_id, 'district' );
-    $district_term  = ( ! empty( $district_terms ) && ! is_wp_error( $district_terms ) ) ? $district_terms[0] : null;
+    $district_term = null;
+
+    if ( function_exists( 'pera_get_deepest_term' ) ) {
+      $district_term = pera_get_deepest_term( $property_id, 'district' );
+    }
+
+    if ( ! $district_term ) {
+      $district_terms = get_the_terms( $property_id, 'district' );
+      $district_term  = ( ! empty( $district_terms ) && ! is_wp_error( $district_terms ) ) ? $district_terms[0] : null;
+    }
 
     $offers[] = array(
       'post_id'        => $property_id,
@@ -165,4 +173,3 @@ if ( empty( $offers ) ) {
 
   </div>
 </section>
-
