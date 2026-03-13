@@ -443,7 +443,7 @@ function peracrm_admin_client_screen_url($client_id)
 function peracrm_admin_search_user_for_link($search_term, $client_id = 0)
 {
     $client_id = (int) $client_id;
-    if ($client_id > 0 && !current_user_can('edit_post', $client_id)) {
+    if ($client_id > 0 && (!function_exists('peracrm_user_can_access_client') || !peracrm_user_can_access_client($client_id))) {
         return [];
     }
 
@@ -689,7 +689,7 @@ function peracrm_handle_pipeline_move_stage()
     }
     $redirect = peracrm_pipeline_build_base_url($filters);
 
-    if (!current_user_can('edit_post', $client_id)) {
+    if (!function_exists('peracrm_user_can_access_client') || !peracrm_user_can_access_client($client_id)) {
         peracrm_admin_redirect_with_notice($redirect, 'stage_denied');
     }
 
@@ -878,7 +878,7 @@ function peracrm_handle_pipeline_bulk_action()
             continue;
         }
 
-        if (!current_user_can('edit_post', $client_id)) {
+        if (!function_exists('peracrm_user_can_access_client') || !peracrm_user_can_access_client($client_id)) {
             $failed++;
             continue;
         }
@@ -1240,7 +1240,7 @@ function peracrm_handle_link_user()
         wp_die('Invalid client');
     }
 
-    if (!current_user_can('edit_post', $client_id)) {
+    if (!function_exists('peracrm_user_can_access_client') || !peracrm_user_can_access_client($client_id)) {
         wp_die('Unauthorized');
     }
 
@@ -1316,7 +1316,7 @@ function peracrm_handle_unlink_user()
         wp_die('Invalid client');
     }
 
-    if (!current_user_can('edit_post', $client_id)) {
+    if (!function_exists('peracrm_user_can_access_client') || !peracrm_user_can_access_client($client_id)) {
         wp_die('Unauthorized');
     }
 
@@ -1350,7 +1350,7 @@ function peracrm_handle_unlink_user()
 function peracrm_admin_user_can_reassign()
 {
     $callback = static function () {
-        return current_user_can('manage_options')
+        return peracrm_user_can_manage_all_clients()
             || current_user_can('peracrm_manage_assignments');
     };
 
@@ -1379,7 +1379,7 @@ function peracrm_handle_save_client_profile()
         wp_die('Invalid client.');
     }
 
-    if (!current_user_can('edit_post', $client_id)) {
+    if (!function_exists('peracrm_user_can_access_client') || !peracrm_user_can_access_client($client_id)) {
         wp_die('You do not have permission to edit this client.');
     }
 
@@ -1472,7 +1472,7 @@ function peracrm_handle_reassign_client_advisor()
 
     check_admin_referer('peracrm_reassign_client_advisor', 'peracrm_reassign_client_advisor_nonce');
 
-    if (!current_user_can('edit_post', $client_id)) {
+    if (!function_exists('peracrm_user_can_access_client') || !peracrm_user_can_access_client($client_id)) {
         wp_die('You do not have permission to edit this client.');
     }
 
@@ -2497,7 +2497,7 @@ function peracrm_handle_save_party_status()
         : home_url('/crm/client/' . $client_id . '/');
     $redirect = peracrm_admin_preferred_redirect_url($frontend_fallback, true);
 
-    if ($client_id <= 0 || !current_user_can('edit_post', $client_id)) {
+    if ($client_id <= 0 || !function_exists('peracrm_user_can_access_client') || !peracrm_user_can_access_client($client_id)) {
         wp_safe_redirect(add_query_arg(['peracrm_notice' => 'profile_failed'], $redirect));
         exit;
     }
@@ -2546,7 +2546,7 @@ function peracrm_handle_convert_to_client()
     check_admin_referer('peracrm_convert_to_client', 'peracrm_convert_to_client_nonce');
 
     $client_id = isset($_POST['peracrm_client_id']) ? (int) $_POST['peracrm_client_id'] : 0;
-    if ($client_id <= 0 || !current_user_can('edit_post', $client_id)) {
+    if ($client_id <= 0 || !function_exists('peracrm_user_can_access_client') || !peracrm_user_can_access_client($client_id)) {
         wp_die('Invalid client.', 400);
     }
 
@@ -2583,7 +2583,7 @@ function peracrm_handle_create_deal()
     }
 
     $client_id = isset($_POST['peracrm_client_id']) ? (int) $_POST['peracrm_client_id'] : 0;
-    if ($client_id <= 0 || !current_user_can('edit_post', $client_id)) {
+    if ($client_id <= 0 || !function_exists('peracrm_user_can_access_client') || !peracrm_user_can_access_client($client_id)) {
         wp_die('Invalid client', 400);
     }
 
@@ -2649,7 +2649,7 @@ function peracrm_handle_update_deal()
     $client_id = isset($_POST['peracrm_client_id']) ? (int) $_POST['peracrm_client_id'] : 0;
     $deal_id = isset($_POST['deal_id']) ? (int) $_POST['deal_id'] : 0;
 
-    if ($client_id <= 0 || $deal_id <= 0 || !current_user_can('edit_post', $client_id)) {
+    if ($client_id <= 0 || $deal_id <= 0 || !function_exists('peracrm_user_can_access_client') || !peracrm_user_can_access_client($client_id)) {
         wp_die('Invalid deal', 400);
     }
 
@@ -2711,7 +2711,7 @@ function peracrm_handle_delete_deal()
     $client_id = isset($_POST['peracrm_client_id']) ? (int) $_POST['peracrm_client_id'] : 0;
     $deal_id = isset($_POST['deal_id']) ? (int) $_POST['deal_id'] : 0;
 
-    if ($client_id <= 0 || $deal_id <= 0 || !current_user_can('edit_post', $client_id)) {
+    if ($client_id <= 0 || $deal_id <= 0 || !function_exists('peracrm_user_can_access_client') || !peracrm_user_can_access_client($client_id)) {
         wp_die('Invalid deal', 400);
     }
 
@@ -2795,7 +2795,8 @@ function peracrm_handle_delete_client()
             !$passes_safety_gate
             || $client_id <= 0
             || get_post_type($client_id) !== 'crm_client'
-            || !current_user_can('delete_post', $client_id)
+            || !function_exists('peracrm_user_can_access_client')
+            || !peracrm_user_can_access_client($client_id)
         ) {
             return false;
         }

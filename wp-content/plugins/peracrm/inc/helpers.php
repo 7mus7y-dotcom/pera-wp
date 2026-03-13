@@ -421,7 +421,7 @@ function peracrm_render_assigned_advisor_box($client_id, array $args = [])
         }
     }
 
-    $can_reassign = current_user_can('edit_post', $client_id)
+    $can_reassign = peracrm_user_can_access_client($client_id)
         && (current_user_can('manage_options') || current_user_can('peracrm_manage_assignments'));
 
     $redirect_url = isset($args['redirect']) ? (string) $args['redirect'] : '';
@@ -583,4 +583,83 @@ function peracrm_user_can_access_crm($user_id = 0)
         || current_user_can('edit_crm_clients')
         || current_user_can('edit_crm_leads')
         || current_user_can('edit_crm_deals');
+}
+
+function peracrm_user_is_membership_lead($user_id = 0)
+{
+    $user = $user_id > 0 ? get_userdata((int) $user_id) : wp_get_current_user();
+    if (!$user instanceof WP_User || !$user->exists()) {
+        return false;
+    }
+
+    return in_array('lead', (array) $user->roles, true);
+}
+
+function peracrm_user_is_manager($user_id = 0)
+{
+    $user = $user_id > 0 ? get_userdata((int) $user_id) : wp_get_current_user();
+    if (!$user instanceof WP_User || !$user->exists()) {
+        return false;
+    }
+
+    return in_array('manager', (array) $user->roles, true);
+}
+
+function peracrm_user_is_employee($user_id = 0)
+{
+    $user = $user_id > 0 ? get_userdata((int) $user_id) : wp_get_current_user();
+    if (!$user instanceof WP_User || !$user->exists()) {
+        return false;
+    }
+
+    $roles = (array) $user->roles;
+
+    return in_array('employee', $roles, true)
+        && !in_array('manager', $roles, true)
+        && !in_array('administrator', $roles, true);
+}
+
+function peracrm_user_can_manage_all_clients($user_id = 0)
+{
+    if ($user_id > 0) {
+        $user = get_userdata((int) $user_id);
+        if (!$user instanceof WP_User) {
+            return false;
+        }
+
+        return user_can($user, 'manage_options') || user_can($user, 'peracrm_manage_all_clients');
+    }
+
+    return current_user_can('manage_options') || current_user_can('peracrm_manage_all_clients');
+}
+
+function peracrm_user_can_access_client($client_id, $user_id = 0)
+{
+    $client_id = (int) $client_id;
+    if ($client_id <= 0 || get_post_type($client_id) !== 'crm_client') {
+        return false;
+    }
+
+    $user_id = $user_id > 0 ? (int) $user_id : get_current_user_id();
+    if ($user_id <= 0) {
+        return false;
+    }
+
+    if (!peracrm_user_can_access_crm($user_id)) {
+        return false;
+    }
+
+    if (peracrm_user_can_manage_all_clients($user_id)) {
+        return true;
+    }
+
+    if (!peracrm_user_is_employee($user_id)) {
+        return false;
+    }
+
+    if (!function_exists('peracrm_client_get_assigned_advisor_id')) {
+        return false;
+    }
+
+    return (int) peracrm_client_get_assigned_advisor_id($client_id) === $user_id;
 }
