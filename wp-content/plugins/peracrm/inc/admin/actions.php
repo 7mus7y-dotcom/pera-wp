@@ -2412,7 +2412,7 @@ function peracrm_handle_save_party_status_on_post_save($post_id, $post, $update)
         return;
     }
 
-    if (!current_user_can('edit_post', $post_id)) {
+    if (!peracrm_user_can_access_client($post_id)) {
         return;
     }
 

@@ -773,7 +773,7 @@ function peracrm_render_pipeline_page()
                     ? (int) peracrm_client_get_assigned_advisor_id($client_id)
                     : 0;
                 $is_assigned_advisor = $assigned_id > 0 && $assigned_id === get_current_user_id();
-                $can_move = current_user_can('edit_post', $client_id) && ($can_override || $is_assigned_advisor);
+                $can_move = peracrm_user_can_access_client($client_id) && ($can_override || $is_assigned_advisor);
                 if ($can_move) {
                     echo '<form method="post" action="' . esc_url(admin_url('admin-post.php')) . '" class="peracrm-pipeline-card__move">';
                     echo '<input type="hidden" name="action" value="peracrm_pipeline_move_stage" />';

@@ -325,7 +325,7 @@ function peracrm_client_view_render_selector($selected_client_id = 0)
 
     foreach ($clients as $client_post) {
         $client_post_id = (int) $client_post->ID;
-        if (!current_user_can('edit_post', $client_post_id)) {
+        if (!peracrm_user_can_access_client($client_post_id)) {
             continue;
         }
 
@@ -379,8 +379,8 @@ function peracrm_render_client_view_page()
         return;
     }
 
-    if (!current_user_can('edit_post', $client_id)) {
-        peracrm_client_view_debug_log('render_edit_post_cap_failed', ['client_id' => $client_id]);
+    if (!peracrm_user_can_access_client($client_id)) {
+        peracrm_client_view_debug_log('render_client_access_failed', ['client_id' => $client_id]);
         peracrm_client_view_render_notice('You do not have permission to view this client.');
 
         return;
