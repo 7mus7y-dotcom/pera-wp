@@ -31,6 +31,7 @@ $property_url   = isset( $args['property_url'] ) ? (string) $args['property_url'
 $sr_context     = isset( $args['sr_context'] ) ? (string) $args['sr_context'] : '';
 $show_header    = isset( $args['show_header'] ) ? (bool) $args['show_header'] : true;
 $sr_status      = isset( $_GET['sr_status'] ) ? sanitize_key( (string) wp_unslash( $_GET['sr_status'] ) ) : '';
+$sr_reason      = isset( $_GET['reason'] ) ? sanitize_key( (string) wp_unslash( $_GET['reason'] ) ) : '';
 
 $locale = function_exists( 'determine_locale' ) ? determine_locale() : get_locale();
 $default_phone_country = '+90';
@@ -95,10 +96,20 @@ $form_context = ( $context === 'property' )
 
 
   <?php if ( $sr_status === 'failed' ) : ?>
+    <?php
+    $sr_error_message = __( 'Sorry, your enquiry could not be submitted. Please try again.', 'hello-elementor-child' );
+    if ( $sr_reason === 'nonce' ) {
+      $sr_error_message = __( 'This page has expired. Please refresh the page and try again.', 'hello-elementor-child' );
+    } elseif ( $sr_reason === 'rate_limit' ) {
+      $sr_error_message = __( 'Too many attempts right now. Please wait a moment and try again.', 'hello-elementor-child' );
+    }
+    ?>
     <div class="citizenship-alert citizenship-alert--error">
-      <p><?php esc_html_e( 'Sorry, your enquiry could not be submitted. Please try again.', 'hello-elementor-child' ); ?></p>
+      <p><?php echo esc_html( $sr_error_message ); ?></p>
     </div>
   <?php endif; ?>
+
+  <div class="citizenship-alert citizenship-alert--error" data-sr-js-error hidden></div>
 
   <?php if ( $show_header ) : ?>
     <div class="enquiry-cta-header m-sm">
