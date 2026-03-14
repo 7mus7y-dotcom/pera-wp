@@ -1,0 +1,65 @@
+.pera-enquiry-email-log-admin .pera-enquiry-email-log-table {
+	table-layout: fixed;
+	width: 100%;
+}
+
+.pera-enquiry-email-log-admin .pera-enquiry-email-log-table th,
+.pera-enquiry-email-log-admin .pera-enquiry-email-log-table td {
+	vertical-align: top;
+	word-break: break-word;
+	overflow-wrap: anywhere;
+}
+
+.pera-enquiry-email-log-admin .pera-enquiry-email-log-table code {
+	display: block;
+	white-space: pre-wrap;
+	word-break: break-word;
+	overflow-wrap: anywhere;
+}
+
+@media screen and (max-width: 782px) {
+	.pera-enquiry-email-log-admin .pera-enquiry-email-log-table {
+		border: 0;
+	}
+
+	.pera-enquiry-email-log-admin .pera-enquiry-email-log-table thead {
+		display: none;
+	}
+
+	.pera-enquiry-email-log-admin .pera-enquiry-email-log-table tbody tr {
+		display: block;
+		margin-bottom: 12px;
+		border: 1px solid #dcdcde;
+		background: #fff;
+	}
+
+	.pera-enquiry-email-log-admin .pera-enquiry-email-log-table tbody td {
+		display: flex;
+		gap: 12px;
+		padding: 8px 12px;
+		border: 0;
+		line-height: 1.4;
+	}
+
+	.pera-enquiry-email-log-admin .pera-enquiry-email-log-table tbody td::before {
+		content: attr(data-label);
+		flex: 0 0 110px;
+		font-weight: 600;
+		color: #1d2327;
+	}
+
+	.pera-enquiry-email-log-admin .pera-enquiry-email-log-table .pera-enquiry-email-log-meta-row td {
+		display: block;
+		padding-top: 0;
+	}
+
+	.pera-enquiry-email-log-admin .pera-enquiry-email-log-table .pera-enquiry-email-log-meta-row td::before {
+		display: block;
+		margin-bottom: 6px;
+	}
+
+	.pera-enquiry-email-log-admin .tablenav .tablenav-pages {
+		float: none;
+		margin: 0;
+	}
+}

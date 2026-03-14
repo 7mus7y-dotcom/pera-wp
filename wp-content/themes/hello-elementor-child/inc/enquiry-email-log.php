@@ -99,16 +99,39 @@ if ( ! function_exists( 'pera_enquiry_email_log_event' ) ) {
 
 if ( ! function_exists( 'pera_enquiry_email_log_admin_menu' ) ) {
 	function pera_enquiry_email_log_admin_menu() {
-		add_management_page(
+		add_menu_page(
 			__( 'Enquiry Email Log', 'hello-elementor-child' ),
-			__( 'Enquiry Email Log', 'hello-elementor-child' ),
+			__( 'Email Log', 'hello-elementor-child' ),
 			'manage_options',
 			'pera-enquiry-email-log',
-			'pera_enquiry_email_log_render_admin_page'
+			'pera_enquiry_email_log_render_admin_page',
+			'dashicons-email-alt',
+			58
 		);
 	}
 }
 add_action( 'admin_menu', 'pera_enquiry_email_log_admin_menu' );
+
+if ( ! function_exists( 'pera_enquiry_email_log_admin_assets' ) ) {
+	function pera_enquiry_email_log_admin_assets( $hook_suffix ) {
+		if ( 'toplevel_page_pera-enquiry-email-log' !== $hook_suffix ) {
+			return;
+		}
+
+		$path = get_stylesheet_directory() . '/inc/admin/enquiry-email-log-admin.css';
+		$url  = get_stylesheet_directory_uri() . '/inc/admin/enquiry-email-log-admin.css';
+
+		if ( file_exists( $path ) ) {
+			wp_enqueue_style(
+				'pera-enquiry-email-log-admin',
+				$url,
+				array(),
+				filemtime( $path )
+			);
+		}
+	}
+}
+add_action( 'admin_enqueue_scripts', 'pera_enquiry_email_log_admin_assets' );
 
 if ( ! function_exists( 'pera_enquiry_email_log_render_admin_page' ) ) {
 	function pera_enquiry_email_log_render_admin_page() {
@@ -118,6 +141,26 @@ if ( ! function_exists( 'pera_enquiry_email_log_render_admin_page' ) ) {
 
 		global $wpdb;
 		$table_name = pera_enquiry_email_log_table_name();
+
+		$exists = $wpdb->get_var(
+			$wpdb->prepare(
+				"SHOW TABLES LIKE %s",
+				$table_name
+			)
+		);
+
+		if ( $table_name !== $exists ) {
+			?>
+			<div class="wrap pera-enquiry-email-log-admin">
+				<h1><?php esc_html_e( 'Enquiry Email Log', 'hello-elementor-child' ); ?></h1>
+				<div class="notice notice-warning">
+					<p><?php esc_html_e( 'Enquiry email log table has not been created yet.', 'hello-elementor-child' ); ?></p>
+				</div>
+			</div>
+			<?php
+
+			return;
+		}
 
 		$page     = isset( $_GET['paged'] ) ? max( 1, absint( $_GET['paged'] ) ) : 1;
 		$per_page = 50;
@@ -135,10 +178,10 @@ if ( ! function_exists( 'pera_enquiry_email_log_render_admin_page' ) ) {
 
 		$total_pages = max( 1, (int) ceil( $total / $per_page ) );
 		?>
-		<div class="wrap">
+		<div class="wrap pera-enquiry-email-log-admin">
 			<h1><?php esc_html_e( 'Enquiry Email Log', 'hello-elementor-child' ); ?></h1>
 			<p><?php esc_html_e( 'Recent enquiry email attempts from theme handlers.', 'hello-elementor-child' ); ?></p>
-			<table class="widefat striped">
+			<table class="widefat striped pera-enquiry-email-log-table">
 				<thead>
 					<tr>
 						<th><?php esc_html_e( 'Time', 'hello-elementor-child' ); ?></th>
@@ -156,17 +199,17 @@ if ( ! function_exists( 'pera_enquiry_email_log_render_admin_page' ) ) {
 					<?php else : ?>
 						<?php foreach ( $rows as $row ) : ?>
 							<tr>
-								<td><?php echo esc_html( (string) $row['created_at'] ); ?></td>
-								<td><?php echo esc_html( (string) $row['form_key'] ); ?></td>
-								<td><?php echo esc_html( (string) $row['mail_context'] ); ?></td>
-								<td><?php echo esc_html( (string) $row['recipient'] ); ?></td>
-								<td><?php echo esc_html( (string) $row['subject'] ); ?></td>
-								<td><?php echo esc_html( (string) $row['status'] ); ?></td>
-								<td><?php echo esc_html( (string) $row['request_id'] ); ?></td>
+								<td data-label="<?php esc_attr_e( 'Time', 'hello-elementor-child' ); ?>"><?php echo esc_html( (string) $row['created_at'] ); ?></td>
+								<td data-label="<?php esc_attr_e( 'Form', 'hello-elementor-child' ); ?>"><?php echo esc_html( (string) $row['form_key'] ); ?></td>
+								<td data-label="<?php esc_attr_e( 'Context', 'hello-elementor-child' ); ?>"><?php echo esc_html( (string) $row['mail_context'] ); ?></td>
+								<td data-label="<?php esc_attr_e( 'Recipient', 'hello-elementor-child' ); ?>"><?php echo esc_html( (string) $row['recipient'] ); ?></td>
+								<td data-label="<?php esc_attr_e( 'Subject', 'hello-elementor-child' ); ?>"><?php echo esc_html( (string) $row['subject'] ); ?></td>
+								<td data-label="<?php esc_attr_e( 'Status', 'hello-elementor-child' ); ?>"><?php echo esc_html( (string) $row['status'] ); ?></td>
+								<td data-label="<?php esc_attr_e( 'Request ID', 'hello-elementor-child' ); ?>"><?php echo esc_html( (string) $row['request_id'] ); ?></td>
 							</tr>
 							<?php if ( ! empty( $row['meta'] ) ) : ?>
-								<tr>
-									<td colspan="7"><code><?php echo esc_html( (string) $row['meta'] ); ?></code></td>
+								<tr class="pera-enquiry-email-log-meta-row">
+									<td colspan="7" data-label="<?php esc_attr_e( 'Meta', 'hello-elementor-child' ); ?>"><code><?php echo esc_html( (string) $row['meta'] ); ?></code></td>
 								</tr>
 							<?php endif; ?>
 						<?php endforeach; ?>
@@ -194,4 +237,3 @@ if ( ! function_exists( 'pera_enquiry_email_log_render_admin_page' ) ) {
 		<?php
 	}
 }
-
