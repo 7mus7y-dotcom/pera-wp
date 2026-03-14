@@ -11,6 +11,37 @@ if ( ! function_exists( 'pera_enquiry_email_log_table_name' ) ) {
 	}
 }
 
+if ( ! function_exists( 'pera_enquiry_email_last_failure_get' ) ) {
+	function pera_enquiry_email_last_failure_get() {
+		return isset( $GLOBALS['pera_enquiry_email_last_failure'] )
+			? sanitize_text_field( (string) $GLOBALS['pera_enquiry_email_last_failure'] )
+			: '';
+	}
+}
+
+if ( ! function_exists( 'pera_enquiry_email_last_failure_set' ) ) {
+	function pera_enquiry_email_last_failure_set( $message ) {
+		$GLOBALS['pera_enquiry_email_last_failure'] = sanitize_text_field( (string) $message );
+	}
+}
+
+if ( ! function_exists( 'pera_enquiry_email_last_failure_clear' ) ) {
+	function pera_enquiry_email_last_failure_clear() {
+		unset( $GLOBALS['pera_enquiry_email_last_failure'] );
+	}
+}
+
+add_action(
+	'wp_mail_failed',
+	function ( $error ) {
+		if ( ! is_wp_error( $error ) ) {
+			return;
+		}
+
+		pera_enquiry_email_last_failure_set( $error->get_error_message() );
+	}
+);
+
 if ( ! function_exists( 'pera_enquiry_email_log_install' ) ) {
 	function pera_enquiry_email_log_install() {
 		global $wpdb;

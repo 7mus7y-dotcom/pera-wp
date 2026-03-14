@@ -560,8 +560,19 @@ function pera_enquiry_send_logged_mail( $form_key, $mail_context, $to, $subject,
   $status = 'sent';
 
   if ( ! defined( 'PERA_DISABLE_ENQUIRY_EMAIL' ) || ! PERA_DISABLE_ENQUIRY_EMAIL ) {
+    if ( function_exists( 'pera_enquiry_email_last_failure_clear' ) ) {
+      pera_enquiry_email_last_failure_clear();
+    }
+
     $sent   = wp_mail( $to, $subject, $body, $headers );
     $status = $sent ? 'sent' : 'failed';
+
+    if ( ! $sent && function_exists( 'pera_enquiry_email_last_failure_get' ) ) {
+      $wp_mail_error = trim( (string) pera_enquiry_email_last_failure_get() );
+      if ( $wp_mail_error !== '' ) {
+        $meta['wp_mail_error'] = $wp_mail_error;
+      }
+    }
   } else {
     $status = 'skipped';
     pera_forms_debug_log(
