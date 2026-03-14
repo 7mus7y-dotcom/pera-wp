@@ -546,6 +546,10 @@ function pera_enquiry_autoreply_first_name( $name ) {
 }
 
 function pera_send_enquiry_autoreply( $context, $to_email, $subject, array $lines ) {
+  if ( function_exists( 'pera_client_autoreply_enabled' ) && ! pera_client_autoreply_enabled() ) {
+    return false;
+  }
+
   if ( ! is_email( $to_email ) ) {
     return false;
   }
