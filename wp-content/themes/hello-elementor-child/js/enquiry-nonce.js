@@ -6,7 +6,6 @@
   var maxAge = parseInt(config.max_age_seconds || '900', 10);
   var refreshing = false;
   var bypassAttr = 'data-pera-nonce-resubmit';
-  var refreshErrorText = 'This page has expired. Please refresh and try again.';
 
   function formNeedsRefresh(form) {
     if (!form) return false;
@@ -59,27 +58,6 @@
     return json.data;
   }
 
-  function showRefreshError(form) {
-    if (!form) return;
-
-    var errorBox = form.querySelector('[data-sr-js-error]');
-    if (!errorBox) {
-      errorBox = document.createElement('div');
-      errorBox.className = 'citizenship-alert citizenship-alert--error';
-      errorBox.setAttribute('data-sr-js-error', '1');
-
-      var footer = form.querySelector('.enquiry-cta-footer');
-      if (footer && footer.parentNode) {
-        footer.parentNode.insertBefore(errorBox, footer);
-      } else {
-        form.appendChild(errorBox);
-      }
-    }
-
-    errorBox.textContent = refreshErrorText;
-    errorBox.hidden = false;
-  }
-
   document.addEventListener('submit', function (event) {
     var form = event.target;
     if (!(form instanceof HTMLFormElement)) {
@@ -97,7 +75,6 @@
 
     event.preventDefault();
     refreshing = true;
-    var refreshSucceeded = false;
 
     refreshNonces()
       .then(function (data) {
@@ -106,21 +83,13 @@
           applyNonce(form, 'fav_nonce', data.fav_nonce || '');
           applyNonce(form, 'pera_citizenship_nonce', data.pera_citizenship_nonce || '');
           issuedAt = parseInt(data.generated_at || issuedAt, 10);
-          refreshSucceeded = true;
-          return;
         }
-
-        showRefreshError(form);
       })
       .catch(function () {
-        showRefreshError(form);
+        // silent fallback to normal submit
       })
       .finally(function () {
         refreshing = false;
-
-        if (!refreshSucceeded) {
-          return;
-        }
 
         if (typeof form.requestSubmit === 'function') {
           form.setAttribute(bypassAttr, '1');

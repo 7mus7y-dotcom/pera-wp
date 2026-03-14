@@ -110,7 +110,7 @@ function pera_forms_nonce_failure_redirect( $form_key, $fallback_url, $query_arg
   exit;
 }
 
-function pera_forms_failed_submission_redirect_url( $reason = '' ) {
+function pera_forms_failed_submission_redirect_url() {
   $redirect = ! empty( $_POST['_wp_http_referer'] )
     ? esc_url_raw( wp_unslash( $_POST['_wp_http_referer'] ) )
     : home_url();
@@ -119,11 +119,7 @@ function pera_forms_failed_submission_redirect_url( $reason = '' ) {
   $anchor   = '';
 
   if ( isset( $_POST['sr_action'] ) ) {
-    $args = array( 'sr_status' => 'failed' );
-    if ( $reason !== '' ) {
-      $args['reason'] = sanitize_key( (string) $reason );
-    }
-    $redirect     = add_query_arg( $args, $redirect );
+    $redirect     = add_query_arg( 'sr_status', 'failed', $redirect );
     $form_context = isset( $_POST['form_context'] ) ? sanitize_text_field( wp_unslash( $_POST['form_context'] ) ) : '';
     $anchor       = ( 'property' === $form_context ) ? '#contact-form' : '#contact';
   } elseif ( isset( $_POST['fav_enquiry_action'] ) ) {
@@ -178,7 +174,7 @@ function pera_forms_global_rate_limit() {
         'handler' => __FUNCTION__,
       )
     );
-    wp_safe_redirect( pera_forms_failed_submission_redirect_url( 'rate_limit' ) );
+    wp_safe_redirect( pera_forms_failed_submission_redirect_url() );
     exit;
   }
 }
@@ -716,7 +712,7 @@ function pera_handle_citizenship_enquiry() {
     // Honeypot check – bots fill this, humans don't
     if ( ! empty( $_POST['sr_company'] ?? '' ) ) {
       pera_forms_debug_log( 'spam_trap', array( 'form_key' => 'sr_action', 'handler' => __FUNCTION__, 'spam_trap' => 'triggered' ) );
-      $redirect = pera_forms_failed_submission_redirect_url( 'honeypot' );
+      $redirect = add_query_arg( 'sr_status', 'failed', home_url( '/' ) ) . '#contact';
       pera_forms_debug_log( 'redirect', array( 'form_key' => 'sr_action', 'handler' => __FUNCTION__, 'redirect_status' => 'failed', 'reason' => 'honeypot', 'redirect' => $redirect ) );
       wp_safe_redirect( $redirect );
       exit;
