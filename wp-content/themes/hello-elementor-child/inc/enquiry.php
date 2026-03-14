@@ -545,6 +545,60 @@ function pera_enquiry_autoreply_first_name( $name ) {
   return $parts ? $parts[0] : '';
 }
 
+function pera_enquiry_send_logged_mail( $form_key, $mail_context, $to, $subject, $body, array $headers = array(), array $meta = array() ) {
+  pera_forms_debug_log(
+    'mail_attempt',
+    array(
+      'form_key' => $form_key,
+      'handler'  => __FUNCTION__,
+      'context'  => $mail_context,
+      'recipient'=> is_array( $to ) ? implode( ',', $to ) : (string) $to,
+    )
+  );
+
+  $sent   = true;
+  $status = 'sent';
+
+  if ( ! defined( 'PERA_DISABLE_ENQUIRY_EMAIL' ) || ! PERA_DISABLE_ENQUIRY_EMAIL ) {
+    $sent   = wp_mail( $to, $subject, $body, $headers );
+    $status = $sent ? 'sent' : 'failed';
+  } else {
+    $status = 'skipped';
+    pera_forms_debug_log(
+      'mail_skipped',
+      array(
+        'form_key' => $form_key,
+        'reason'   => 'email_disabled',
+      )
+    );
+  }
+
+  if ( function_exists( 'pera_enquiry_email_log_event' ) ) {
+    pera_enquiry_email_log_event(
+      array(
+        'form_key'     => $form_key,
+        'mail_context' => $mail_context,
+        'recipient'    => $to,
+        'subject'      => $subject,
+        'status'       => $status,
+        'meta'         => $meta,
+      )
+    );
+  }
+
+  pera_forms_debug_log(
+    'mail_result',
+    array(
+      'form_key' => $form_key,
+      'handler'  => __FUNCTION__,
+      'context'  => $mail_context,
+      'wp_mail'  => $sent ? '1' : '0',
+    )
+  );
+
+  return $sent;
+}
+
 function pera_send_enquiry_autoreply( $context, $to_email, $subject, array $lines ) {
   if ( function_exists( 'pera_client_autoreply_enabled' ) && ! pera_client_autoreply_enabled() ) {
     return false;
@@ -568,19 +622,14 @@ function pera_send_enquiry_autoreply( $context, $to_email, $subject, array $line
   );
 
   $body = implode( "\n", array_filter( $lines, 'strlen' ) );
-  $sent = true;
-
-  if ( ! defined( 'PERA_DISABLE_ENQUIRY_EMAIL' ) || ! PERA_DISABLE_ENQUIRY_EMAIL ) {
-    $sent = wp_mail( $to_email, $subject, $body, $headers );
-  } else {
-    pera_forms_debug_log(
-      'mail_skipped',
-      array(
-        'form_key' => sanitize_key( (string) $context ),
-        'reason'   => 'email_disabled',
-      )
-    );
-  }
+  $sent = pera_enquiry_send_logged_mail(
+    'enquiry_autoreply',
+    sanitize_key( (string) $context ),
+    $to_email,
+    $subject,
+    $body,
+    $headers
+  );
 
   if ( ! $sent ) {
     error_log( 'Auto-reply failed for ' . $context . ' enquiry.' );
@@ -760,20 +809,19 @@ function pera_handle_citizenship_enquiry() {
     }
 
 
-    pera_forms_debug_log( 'mail_attempt', array( 'form_key' => 'sr_action', 'handler' => __FUNCTION__, 'form_context' => $form_context, 'sr_context' => $sr_context, 'recipient' => $to ) );
-    $sent = true;
-    if ( ! defined( 'PERA_DISABLE_ENQUIRY_EMAIL' ) || ! PERA_DISABLE_ENQUIRY_EMAIL ) {
-      $sent = wp_mail( $to, $subject, $body, $headers );
-    } else {
-      pera_forms_debug_log(
-        'mail_skipped',
-        array(
-          'form_key' => 'sr_action',
-          'reason'   => 'email_disabled',
-        )
-      );
-    }
-    pera_forms_debug_log( 'mail_result', array( 'form_key' => 'sr_action', 'handler' => __FUNCTION__, 'wp_mail' => $sent ? '1' : '0' ) );
+    $sent = pera_enquiry_send_logged_mail(
+      'sr_action',
+      $sr_context !== '' ? $sr_context : $form_context,
+      $to,
+      $subject,
+      $body,
+      $headers,
+      array(
+        'handler'      => __FUNCTION__,
+        'form_context' => $form_context,
+        'sr_context'   => $sr_context,
+      )
+    );
 
     if ( $sent && $form_context === 'property' && is_email( $email ) ) {
       $first_name = pera_enquiry_autoreply_first_name( $name );
@@ -947,20 +995,18 @@ function pera_handle_citizenship_enquiry() {
       $headers[] = 'Reply-To: ' . $full_name . ' <' . $email . '>';
     }
 
-    pera_forms_debug_log( 'mail_attempt', array( 'form_key' => 'fav_enquiry_action', 'handler' => __FUNCTION__, 'recipient' => $to, 'fav_count' => count( $ids ) ) );
-    $sent = true;
-    if ( ! defined( 'PERA_DISABLE_ENQUIRY_EMAIL' ) || ! PERA_DISABLE_ENQUIRY_EMAIL ) {
-      $sent = wp_mail( $to, $subject, $body, $headers );
-    } else {
-      pera_forms_debug_log(
-        'mail_skipped',
-        array(
-          'form_key' => 'fav_enquiry_action',
-          'reason'   => 'email_disabled',
-        )
-      );
-    }
-    pera_forms_debug_log( 'mail_result', array( 'form_key' => 'fav_enquiry_action', 'handler' => __FUNCTION__, 'wp_mail' => $sent ? '1' : '0' ) );
+    $sent = pera_enquiry_send_logged_mail(
+      'fav_enquiry_action',
+      'favourites',
+      $to,
+      $subject,
+      $body,
+      $headers,
+      array(
+        'handler'   => __FUNCTION__,
+        'fav_count' => count( $ids ),
+      )
+    );
 
     if ( $sent && is_email( $email ) ) {
       $first = pera_enquiry_autoreply_first_name( $full_name );
@@ -1095,20 +1141,18 @@ function pera_handle_citizenship_enquiry() {
       $headers[] = 'Reply-To: ' . $name . ' <' . $email . '>';
     }
 
-    pera_forms_debug_log( 'mail_attempt', array( 'form_key' => 'pera_citizenship_action', 'handler' => __FUNCTION__, 'recipient' => $to, 'turnstile' => $turnstile_check ) );
-    $sent = true;
-    if ( ! defined( 'PERA_DISABLE_ENQUIRY_EMAIL' ) || ! PERA_DISABLE_ENQUIRY_EMAIL ) {
-      $sent = wp_mail( $to, $subject, $body, $headers );
-    } else {
-      pera_forms_debug_log(
-        'mail_skipped',
-        array(
-          'form_key' => 'pera_citizenship_action',
-          'reason'   => 'email_disabled',
-        )
-      );
-    }
-    pera_forms_debug_log( 'mail_result', array( 'form_key' => 'pera_citizenship_action', 'handler' => __FUNCTION__, 'wp_mail' => $sent ? '1' : '0' ) );
+    $sent = pera_enquiry_send_logged_mail(
+      'pera_citizenship_action',
+      'citizenship',
+      $to,
+      $subject,
+      $body,
+      $headers,
+      array(
+        'handler'   => __FUNCTION__,
+        'turnstile' => $turnstile_check,
+      )
+    );
 
     if ( $sent && is_email( $email ) ) {
       $first_name = pera_enquiry_autoreply_first_name( $name );
