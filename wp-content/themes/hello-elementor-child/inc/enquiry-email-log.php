@@ -132,7 +132,7 @@ if ( ! function_exists( 'pera_enquiry_email_log_admin_menu' ) ) {
 	function pera_enquiry_email_log_admin_menu() {
 		add_menu_page(
 			__( 'Enquiry Email Log', 'hello-elementor-child' ),
-			__( 'Email Log', 'hello-elementor-child' ),
+			__( 'Emails', 'hello-elementor-child' ),
 			'manage_options',
 			'pera-enquiry-email-log',
 			'pera_enquiry_email_log_render_admin_page',
@@ -184,6 +184,18 @@ if ( ! function_exists( 'pera_enquiry_email_log_render_admin_page' ) ) {
 			?>
 			<div class="wrap pera-enquiry-email-log-admin">
 				<h1><?php esc_html_e( 'Enquiry Email Log', 'hello-elementor-child' ); ?></h1>
+				<form action="options.php" method="post">
+					<?php settings_fields( 'pera_theme_settings' ); ?>
+					<p>
+						<label for="pera_enable_client_autoreply">
+							<input type="hidden" name="pera_enable_client_autoreply" value="0">
+							<input type="checkbox" id="pera_enable_client_autoreply" name="pera_enable_client_autoreply" value="1" <?php checked( (string) get_option( 'pera_enable_client_autoreply', '1' ), '1' ); ?>>
+							<?php esc_html_e( 'Enable client auto-reply emails', 'hello-elementor-child' ); ?>
+						</label>
+					</p>
+					<p class="description"><?php esc_html_e( 'When enabled, enquiry forms send an automatic confirmation email to the client. Admin notification emails are not affected.', 'hello-elementor-child' ); ?></p>
+					<?php submit_button( __( 'Save Settings', 'hello-elementor-child' ), 'secondary', 'submit', false ); ?>
+				</form>
 				<div class="notice notice-warning">
 					<p><?php esc_html_e( 'Enquiry email log table has not been created yet.', 'hello-elementor-child' ); ?></p>
 				</div>
@@ -211,6 +223,18 @@ if ( ! function_exists( 'pera_enquiry_email_log_render_admin_page' ) ) {
 		?>
 		<div class="wrap pera-enquiry-email-log-admin">
 			<h1><?php esc_html_e( 'Enquiry Email Log', 'hello-elementor-child' ); ?></h1>
+			<form action="options.php" method="post">
+				<?php settings_fields( 'pera_theme_settings' ); ?>
+				<p>
+					<label for="pera_enable_client_autoreply">
+						<input type="hidden" name="pera_enable_client_autoreply" value="0">
+						<input type="checkbox" id="pera_enable_client_autoreply" name="pera_enable_client_autoreply" value="1" <?php checked( (string) get_option( 'pera_enable_client_autoreply', '1' ), '1' ); ?>>
+						<?php esc_html_e( 'Enable client auto-reply emails', 'hello-elementor-child' ); ?>
+					</label>
+				</p>
+				<p class="description"><?php esc_html_e( 'When enabled, enquiry forms send an automatic confirmation email to the client. Admin notification emails are not affected.', 'hello-elementor-child' ); ?></p>
+				<?php submit_button( __( 'Save Settings', 'hello-elementor-child' ), 'secondary', 'submit', false ); ?>
+			</form>
 			<p><?php esc_html_e( 'Recent enquiry email attempts from theme handlers.', 'hello-elementor-child' ); ?></p>
 			<table class="widefat striped pera-enquiry-email-log-table">
 				<thead>
