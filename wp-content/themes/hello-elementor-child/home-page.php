@@ -554,8 +554,12 @@ if ( current_user_can( 'manage_options' ) ) :
         </div>
 
         <p class="muted" style="margin-top: 10px; margin-bottom: 0;">
-          If you already have a property in mind, <a href="/contact/">request a valuation</a>.
+          If you already have a property in mind, <a href="<?php echo esc_url( home_url( '/sell-with-pera/' ) ); ?>">request a valuation</a>.
         </p>
+
+        <div class="hero-actions flex-center">
+          <a class="btn btn--solid btn--green" href="<?php echo esc_url( home_url( '/sell-with-pera/' ) ); ?>">Get a Free Valuation</a>
+        </div>
       </div>
 
     </div>
