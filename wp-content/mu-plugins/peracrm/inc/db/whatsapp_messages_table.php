@@ -35,7 +35,7 @@ function peracrm_whatsapp_messages_create_table()
         PRIMARY KEY (id),
         KEY client_id (client_id),
         KEY phone_e164 (phone_e164),
-        KEY whatsapp_message_id (whatsapp_message_id),
+        UNIQUE KEY whatsapp_message_id (whatsapp_message_id),
         KEY created_at (created_at)
     ) {$charset_collate};";
 

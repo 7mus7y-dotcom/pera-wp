@@ -148,10 +148,32 @@ function peracrm_whatsapp_normalize_phone($phone_raw)
     return '+' . $digits;
 }
 
+function peracrm_whatsapp_phone_match_candidates($phone_raw)
+{
+    $normalized = peracrm_whatsapp_normalize_phone($phone_raw);
+    if ($normalized === '') {
+        return [];
+    }
+
+    $candidates = [$normalized];
+    $digits = preg_replace('/\D+/', '', $normalized);
+    if ($digits !== '') {
+        $candidates[] = $digits;
+
+        if (strpos($digits, '90') === 0 && strlen($digits) === 12) {
+            $candidates[] = '0' . substr($digits, 2);
+            $candidates[] = substr($digits, 2);
+        }
+    }
+
+    $candidates = array_values(array_unique(array_filter(array_map('strval', $candidates))));
+    return $candidates;
+}
+
 function peracrm_whatsapp_find_client_by_phone($phone_e164)
 {
-    $phone_e164 = peracrm_whatsapp_normalize_phone($phone_e164);
-    if ($phone_e164 === '') {
+    $candidates = peracrm_whatsapp_phone_match_candidates($phone_e164);
+    if (empty($candidates)) {
         return 0;
     }
 
@@ -165,8 +187,8 @@ function peracrm_whatsapp_find_client_by_phone($phone_e164)
             'posts_per_page' => 1,
             'meta_query' => [[
                 'key' => $meta_key,
-                'value' => $phone_e164,
-                'compare' => '=',
+                'value' => $candidates,
+                'compare' => 'IN',
             ]],
         ]);
 
@@ -228,11 +250,36 @@ function peracrm_whatsapp_create_client_from_inbound($phone_e164, $contact_name 
     return $post_id;
 }
 
+function peracrm_whatsapp_find_message_row_id_by_message_id($whatsapp_message_id)
+{
+    global $wpdb;
+
+    $whatsapp_message_id = sanitize_text_field((string) $whatsapp_message_id);
+    if ($whatsapp_message_id === '') {
+        return 0;
+    }
+
+    $table = peracrm_whatsapp_messages_table_name();
+
+    return (int) $wpdb->get_var($wpdb->prepare(
+        "SELECT id FROM {$table} WHERE whatsapp_message_id = %s ORDER BY id DESC LIMIT 1",
+        $whatsapp_message_id
+    ));
+}
+
 function peracrm_whatsapp_store_message(array $record)
 {
     global $wpdb;
 
     $table = peracrm_whatsapp_messages_table_name();
+    $whatsapp_message_id = sanitize_text_field((string) ($record['whatsapp_message_id'] ?? ''));
+
+    if ($whatsapp_message_id !== '') {
+        $existing_id = peracrm_whatsapp_find_message_row_id_by_message_id($whatsapp_message_id);
+        if ($existing_id > 0) {
+            return $existing_id;
+        }
+    }
 
     $inserted = $wpdb->insert($table, [
         'client_id' => !empty($record['client_id']) ? (int) $record['client_id'] : null,
@@ -241,8 +288,8 @@ function peracrm_whatsapp_store_message(array $record)
         'direction' => sanitize_key((string) ($record['direction'] ?? 'inbound')),
         'message_type' => sanitize_key((string) ($record['message_type'] ?? 'text')),
         'message_body' => isset($record['message_body']) ? sanitize_textarea_field((string) $record['message_body']) : null,
-        'media_url' => isset($record['media_url']) ? esc_url_raw((string) $record['media_url']) : null,
-        'whatsapp_message_id' => sanitize_text_field((string) ($record['whatsapp_message_id'] ?? '')),
+        'media_url' => isset($record['media_url']) ? esc_url_raw((string) ($record['media_url'] ?? '')) : null,
+        'whatsapp_message_id' => $whatsapp_message_id,
         'raw_payload_json' => isset($record['raw_payload_json']) ? (string) $record['raw_payload_json'] : '{}',
         'source' => sanitize_key((string) ($record['source'] ?? 'whatsapp')),
         'linked_by' => sanitize_key((string) ($record['linked_by'] ?? 'phone')),
@@ -250,6 +297,13 @@ function peracrm_whatsapp_store_message(array $record)
     ], [
         '%d', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s',
     ]);
+
+    if (!$inserted && $whatsapp_message_id !== '') {
+        $existing_id = peracrm_whatsapp_find_message_row_id_by_message_id($whatsapp_message_id);
+        if ($existing_id > 0) {
+            return $existing_id;
+        }
+    }
 
     if (!$inserted) {
         return 0;
@@ -299,6 +353,11 @@ function peracrm_whatsapp_process_inbound_payload(array $payload)
                     $message_body = '[' . $message_type . ']';
                 }
 
+                $message_id = isset($message['id']) ? sanitize_text_field((string) $message['id']) : '';
+                if ($message_id !== '' && peracrm_whatsapp_find_message_row_id_by_message_id($message_id) > 0) {
+                    continue;
+                }
+
                 $client_id = peracrm_whatsapp_find_client_by_phone($phone_e164);
                 $was_created = false;
                 if ($client_id <= 0) {
@@ -306,7 +365,6 @@ function peracrm_whatsapp_process_inbound_payload(array $payload)
                     $was_created = $client_id > 0;
                 }
 
-                $message_id = isset($message['id']) ? sanitize_text_field((string) $message['id']) : '';
                 $message_row_id = peracrm_whatsapp_store_message([
                     'client_id' => $client_id,
                     'phone_e164' => $phone_e164,
@@ -316,7 +374,11 @@ function peracrm_whatsapp_process_inbound_payload(array $payload)
                     'message_body' => $message_body,
                     'media_url' => $media_url,
                     'whatsapp_message_id' => $message_id,
-                    'raw_payload_json' => peracrm_json_encode($message),
+                    'raw_payload_json' => peracrm_json_encode([
+                        'entry' => $entry,
+                        'change' => $change,
+                        'message' => $message,
+                    ]),
                     'source' => 'whatsapp',
                     'linked_by' => 'phone',
                 ]);

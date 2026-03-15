@@ -47,6 +47,29 @@ function peracrm_admin_user_can_manage()
 }
 
 
+
+function peracrm_handle_whatsapp_settings_save()
+{
+    if (!peracrm_admin_user_can_manage()) {
+        wp_die('Unauthorized');
+    }
+
+    check_admin_referer('peracrm_whatsapp_settings');
+
+    $raw = isset($_POST['peracrm_whatsapp']) && is_array($_POST['peracrm_whatsapp'])
+        ? wp_unslash($_POST['peracrm_whatsapp'])
+        : [];
+
+    peracrm_whatsapp_save_settings($raw);
+
+    wp_safe_redirect(add_query_arg([
+        'post_type' => 'crm_client',
+        'page' => 'peracrm-whatsapp',
+        'updated' => '1',
+    ], admin_url('edit.php')));
+    exit;
+}
+
 function peracrm_pipeline_stage_options()
 {
     if (function_exists('peracrm_lead_stage_options')) {

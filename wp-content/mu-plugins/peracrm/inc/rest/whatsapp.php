@@ -58,7 +58,9 @@ function peracrm_rest_whatsapp_verify_webhook(WP_REST_Request $request)
 
     peracrm_whatsapp_set_diagnostic('verify_ok', 'webhook verified');
 
-    return new WP_REST_Response($challenge, 200);
+    return new WP_REST_Response([
+        'challenge' => $challenge,
+    ], 200);
 }
 
 function peracrm_rest_whatsapp_receive_webhook(WP_REST_Request $request)
@@ -94,5 +96,42 @@ function peracrm_rest_whatsapp_receive_webhook(WP_REST_Request $request)
         return new WP_REST_Response(['ok' => false], 500);
     }
 }
+
+
+function peracrm_rest_whatsapp_serve_verify_challenge($served, $result, $request, $server)
+{
+    if ($served) {
+        return $served;
+    }
+
+    if (!$request instanceof WP_REST_Request) {
+        return $served;
+    }
+
+    if ($request->get_method() !== 'GET' || $request->get_route() !== '/peracrm/v1/whatsapp/webhook') {
+        return $served;
+    }
+
+    if (!$result instanceof WP_HTTP_Response || (int) $result->get_status() !== 200) {
+        return $served;
+    }
+
+    $data = $result->get_data();
+    if (!is_array($data) || !isset($data['challenge'])) {
+        return $served;
+    }
+
+    $challenge = (string) $data['challenge'];
+    if ($challenge === '') {
+        return $served;
+    }
+
+    header('Content-Type: text/plain; charset=' . get_option('blog_charset'));
+    echo $challenge;
+
+    return true;
+}
+
+add_filter('rest_pre_serve_request', 'peracrm_rest_whatsapp_serve_verify_challenge', 10, 4);
 
 add_action('rest_api_init', 'peracrm_rest_register_whatsapp_routes');
