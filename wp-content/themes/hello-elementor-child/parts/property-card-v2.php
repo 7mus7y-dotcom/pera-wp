@@ -55,12 +55,18 @@ $project_name = function_exists( 'get_field' ) ? (string) get_field( 'project_na
 $units = function_exists( 'get_field' ) ? get_field( 'v2_units', $post_id ) : array();
 $units = is_array( $units ) ? $units : array();
 
-// District / Region (kept)
-$district_terms = get_the_terms( $post_id, 'district' );
-$region_terms   = get_the_terms( $post_id, 'region' );
+// District / Region
+if ( function_exists( 'pera_get_property_card_location_terms' ) ) {
+  $location_terms = pera_get_property_card_location_terms( $post_id );
+  $district_term  = isset( $location_terms['district_term'] ) ? $location_terms['district_term'] : null;
+  $region_term    = isset( $location_terms['region_term'] ) ? $location_terms['region_term'] : null;
+} else {
+  $district_terms = get_the_terms( $post_id, 'district' );
+  $region_terms   = get_the_terms( $post_id, 'region' );
 
-$district_term = ( ! empty( $district_terms ) && ! is_wp_error( $district_terms ) ) ? $district_terms[0] : null;
-$region_term   = ( ! empty( $region_terms ) && ! is_wp_error( $region_terms ) ) ? $region_terms[0] : null;
+  $district_term = ( ! empty( $district_terms ) && ! is_wp_error( $district_terms ) ) ? $district_terms[0] : null;
+  $region_term   = ( ! empty( $region_terms ) && ! is_wp_error( $region_terms ) ) ? $region_terms[0] : null;
+}
 
 // Specials (optional pill + tooltip, kept)
 $specials_terms = get_the_terms( $post_id, 'special' );
