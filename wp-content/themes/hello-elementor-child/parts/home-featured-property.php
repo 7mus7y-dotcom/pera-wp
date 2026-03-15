@@ -109,10 +109,16 @@ if ( function_exists( 'pera_units_get_display_data' ) ) {
 }
 
 /* Taxonomies (optional output) */
-$district_terms = get_the_terms( $property_id, 'district' );
-$region_terms   = get_the_terms( $property_id, 'region' );
-$district = ( ! empty($district_terms) && ! is_wp_error($district_terms) ) ? $district_terms[0] : null;
-$region   = ( ! empty($region_terms) && ! is_wp_error($region_terms) ) ? $region_terms[0] : null;
+if ( function_exists( 'pera_get_property_card_location_terms' ) ) {
+  $location = pera_get_property_card_location_terms( $property_id );
+  $district = isset( $location['district_term'] ) ? $location['district_term'] : null;
+  $region   = isset( $location['region_term'] ) ? $location['region_term'] : null;
+} else {
+  $district_terms = get_the_terms( $property_id, 'district' );
+  $region_terms   = get_the_terms( $property_id, 'region' );
+  $district = ( ! empty($district_terms) && ! is_wp_error($district_terms) ) ? $district_terms[0] : null;
+  $region   = ( ! empty($region_terms) && ! is_wp_error($region_terms) ) ? $region_terms[0] : null;
+}
 
 $bed_terms = get_the_terms( $property_id, 'bedrooms' );
 $beds      = ( ! empty($bed_terms) && ! is_wp_error($bed_terms) ) ? $bed_terms[0]->name : '';

@@ -103,6 +103,7 @@ function pera_get_deepest_term( int $post_id, string $taxonomy ): ?WP_Term {
       $best_depth = $depth;
       $pick_term  = $term;
     }
+    // Equal depth keeps the first term encountered from wp_get_post_terms().
   }
 
   if ( $pick_term ) {
