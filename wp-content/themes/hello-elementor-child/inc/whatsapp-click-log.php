@@ -216,6 +216,93 @@ if ( ! function_exists( 'pera_whatsapp_logs_admin_menu' ) ) {
 }
 add_action( 'admin_menu', 'pera_whatsapp_logs_admin_menu' );
 
+if ( ! function_exists( 'pera_whatsapp_logs_page_type_label' ) ) {
+	function pera_whatsapp_logs_page_type_label( string $page_type ): string {
+		$labels = array(
+			'single-property'           => __( 'Single Property', 'hello-elementor-child' ),
+			'sell-with-pera'            => __( 'Sell With Pera', 'hello-elementor-child' ),
+			'rent-with-pera'            => __( 'Rent With Pera', 'hello-elementor-child' ),
+			'citizenship-by-investment' => __( 'Citizenship by Investment', 'hello-elementor-child' ),
+			'generic'                   => __( 'Generic Page', 'hello-elementor-child' ),
+		);
+
+		if ( isset( $labels[ $page_type ] ) ) {
+			return $labels[ $page_type ];
+		}
+
+		if ( '' === $page_type ) {
+			return __( 'Unknown', 'hello-elementor-child' );
+		}
+
+		return ucwords( str_replace( '-', ' ', $page_type ) );
+	}
+}
+
+if ( ! function_exists( 'pera_whatsapp_logs_truncate' ) ) {
+	function pera_whatsapp_logs_truncate( string $text, int $length = 80 ): string {
+		$text = trim( $text );
+
+		if ( '' === $text ) {
+			return '';
+		}
+
+		if ( mb_strlen( $text ) <= $length ) {
+			return $text;
+		}
+
+		return rtrim( mb_substr( $text, 0, $length - 1 ) ) . '…';
+	}
+}
+
+if ( ! function_exists( 'pera_whatsapp_logs_url_label' ) ) {
+	function pera_whatsapp_logs_url_label( string $url, int $length = 56 ): string {
+		$parts = wp_parse_url( $url );
+
+		if ( ! is_array( $parts ) || empty( $parts['host'] ) ) {
+			return pera_whatsapp_logs_truncate( $url, $length );
+		}
+
+		$label = $parts['host'];
+
+		if ( isset( $parts['path'] ) && '' !== $parts['path'] ) {
+			$label .= $parts['path'];
+		}
+
+		if ( isset( $parts['query'] ) && '' !== $parts['query'] ) {
+			$label .= '?' . $parts['query'];
+		}
+
+		return pera_whatsapp_logs_truncate( $label, $length );
+	}
+}
+
+if ( ! function_exists( 'pera_whatsapp_logs_stats' ) ) {
+	function pera_whatsapp_logs_stats( string $table_name ): array {
+		global $wpdb;
+
+		$total = (int) $wpdb->get_var( "SELECT COUNT(*) FROM {$table_name}" );
+
+		$counts_rows = $wpdb->get_results(
+			"SELECT page_type, COUNT(*) AS count FROM {$table_name} GROUP BY page_type",
+			ARRAY_A
+		);
+
+		$counts = array();
+		foreach ( (array) $counts_rows as $row ) {
+			$type            = sanitize_key( (string) ( $row['page_type'] ?? '' ) );
+			$counts[ $type ] = (int) ( $row['count'] ?? 0 );
+		}
+
+		return array(
+			'total'                     => $total,
+			'single-property'           => $counts['single-property'] ?? 0,
+			'sell-with-pera'            => $counts['sell-with-pera'] ?? 0,
+			'rent-with-pera'            => $counts['rent-with-pera'] ?? 0,
+			'citizenship-by-investment' => $counts['citizenship-by-investment'] ?? 0,
+		);
+	}
+}
+
 if ( ! function_exists( 'pera_whatsapp_logs_render_admin_page' ) ) {
 	function pera_whatsapp_logs_render_admin_page() {
 		if ( ! current_user_can( 'manage_options' ) ) {
@@ -264,55 +351,120 @@ if ( ! function_exists( 'pera_whatsapp_logs_render_admin_page' ) ) {
 
 		$page_types  = $wpdb->get_col( "SELECT DISTINCT page_type FROM {$table_name} ORDER BY page_type ASC" );
 		$total_pages = max( 1, (int) ceil( $total / $per_page ) );
+		$stats       = pera_whatsapp_logs_stats( $table_name );
+
+		$base_query_args = array(
+			'page' => 'pera-whatsapp-logs',
+		);
+
+		if ( '' !== $page_type ) {
+			$base_query_args['page_type'] = $page_type;
+		}
+
+		if ( '' !== $search ) {
+			$base_query_args['s'] = $search;
+		}
 		?>
 		<div class="wrap">
 			<h1><?php esc_html_e( 'WhatsApp Click Logs', 'hello-elementor-child' ); ?></h1>
 
-			<form method="get" class="tablenav top" style="margin:12px 0;display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
+			<div class="pera-whatsapp-logs-summary">
+				<div class="pera-whatsapp-logs-summary-card">
+					<span class="pera-whatsapp-logs-summary-label"><?php esc_html_e( 'Total Logs', 'hello-elementor-child' ); ?></span>
+					<strong><?php echo esc_html( number_format_i18n( (int) $stats['total'] ) ); ?></strong>
+				</div>
+				<div class="pera-whatsapp-logs-summary-card">
+					<span class="pera-whatsapp-logs-summary-label"><?php esc_html_e( 'Property Page Clicks', 'hello-elementor-child' ); ?></span>
+					<strong><?php echo esc_html( number_format_i18n( (int) $stats['single-property'] ) ); ?></strong>
+				</div>
+				<div class="pera-whatsapp-logs-summary-card">
+					<span class="pera-whatsapp-logs-summary-label"><?php esc_html_e( 'Sell With Pera', 'hello-elementor-child' ); ?></span>
+					<strong><?php echo esc_html( number_format_i18n( (int) $stats['sell-with-pera'] ) ); ?></strong>
+				</div>
+				<div class="pera-whatsapp-logs-summary-card">
+					<span class="pera-whatsapp-logs-summary-label"><?php esc_html_e( 'Rent With Pera', 'hello-elementor-child' ); ?></span>
+					<strong><?php echo esc_html( number_format_i18n( (int) $stats['rent-with-pera'] ) ); ?></strong>
+				</div>
+				<div class="pera-whatsapp-logs-summary-card">
+					<span class="pera-whatsapp-logs-summary-label"><?php esc_html_e( 'Citizenship Clicks', 'hello-elementor-child' ); ?></span>
+					<strong><?php echo esc_html( number_format_i18n( (int) $stats['citizenship-by-investment'] ) ); ?></strong>
+				</div>
+			</div>
+
+			<form method="get" class="tablenav top pera-whatsapp-logs-toolbar">
 				<input type="hidden" name="page" value="pera-whatsapp-logs" />
 				<label for="pera-whatsapp-page-type" class="screen-reader-text"><?php esc_html_e( 'Filter by page type', 'hello-elementor-child' ); ?></label>
 				<select name="page_type" id="pera-whatsapp-page-type">
 					<option value=""><?php esc_html_e( 'All page types', 'hello-elementor-child' ); ?></option>
 					<?php foreach ( $page_types as $type ) : ?>
-						<option value="<?php echo esc_attr( (string) $type ); ?>" <?php selected( $page_type, $type ); ?>><?php echo esc_html( (string) $type ); ?></option>
+						<option value="<?php echo esc_attr( (string) $type ); ?>" <?php selected( $page_type, $type ); ?>><?php echo esc_html( pera_whatsapp_logs_page_type_label( (string) $type ) ); ?></option>
 					<?php endforeach; ?>
 				</select>
 				<label for="pera-whatsapp-search" class="screen-reader-text"><?php esc_html_e( 'Search', 'hello-elementor-child' ); ?></label>
 				<input type="search" id="pera-whatsapp-search" name="s" value="<?php echo esc_attr( $search ); ?>" placeholder="<?php esc_attr_e( 'Search title, URL or post ID', 'hello-elementor-child' ); ?>" />
-				<button class="button"><?php esc_html_e( 'Filter', 'hello-elementor-child' ); ?></button>
+				<button class="button button-primary"><?php esc_html_e( 'Apply Filters', 'hello-elementor-child' ); ?></button>
+				<?php if ( '' !== $page_type || '' !== $search ) : ?>
+					<a class="button" href="<?php echo esc_url( admin_url( 'admin.php?page=pera-whatsapp-logs' ) ); ?>"><?php esc_html_e( 'Clear', 'hello-elementor-child' ); ?></a>
+				<?php endif; ?>
+				<span class="pera-whatsapp-logs-result-count">
+					<?php
+					printf(
+						esc_html__( 'Showing %1$s of %2$s logs', 'hello-elementor-child' ),
+						esc_html( number_format_i18n( count( $rows ) ) ),
+						esc_html( number_format_i18n( $total ) )
+					);
+					?>
+				</span>
 			</form>
 
 			<?php if ( empty( $rows ) ) : ?>
-				<p><?php esc_html_e( 'No WhatsApp click logs found.', 'hello-elementor-child' ); ?></p>
+				<div class="notice notice-info inline pera-whatsapp-logs-empty-state">
+					<p>
+						<?php
+						echo ( '' !== $page_type || '' !== $search )
+							? esc_html__( 'No logs match your current filters. Try clearing filters or broadening your search.', 'hello-elementor-child' )
+							: esc_html__( 'No WhatsApp click logs found yet. Logged clicks will appear here for daily review.', 'hello-elementor-child' );
+						?>
+					</p>
+				</div>
 			<?php else : ?>
 				<table class="wp-list-table widefat fixed striped table-view-list pera-whatsapp-logs-table">
 					<thead>
 						<tr>
 							<th style="width:140px;"><?php esc_html_e( 'Date', 'hello-elementor-child' ); ?></th>
-							<th style="width:130px;"><?php esc_html_e( 'Page Type', 'hello-elementor-child' ); ?></th>
+							<th style="width:145px;"><?php esc_html_e( 'Page Type', 'hello-elementor-child' ); ?></th>
 							<th><?php esc_html_e( 'Property / Title', 'hello-elementor-child' ); ?></th>
-							<th style="width:80px;"><?php esc_html_e( 'Post ID', 'hello-elementor-child' ); ?></th>
-							<th><?php esc_html_e( 'Page URL', 'hello-elementor-child' ); ?></th>
-							<th><?php esc_html_e( 'Message', 'hello-elementor-child' ); ?></th>
-							<th><?php esc_html_e( 'Referrer', 'hello-elementor-child' ); ?></th>
-							<th style="width:120px;"><?php esc_html_e( 'IP', 'hello-elementor-child' ); ?></th>
+							<th style="width:75px;"><?php esc_html_e( 'Post ID', 'hello-elementor-child' ); ?></th>
+							<th style="width:200px;"><?php esc_html_e( 'Page URL', 'hello-elementor-child' ); ?></th>
+							<th style="width:270px;"><?php esc_html_e( 'Message', 'hello-elementor-child' ); ?></th>
+							<th style="width:190px;"><?php esc_html_e( 'Referrer', 'hello-elementor-child' ); ?></th>
+							<th style="width:110px;"><?php esc_html_e( 'IP', 'hello-elementor-child' ); ?></th>
 						</tr>
 					</thead>
 					<tbody>
 						<?php foreach ( $rows as $row ) : ?>
 							<tr>
-								<td><?php echo esc_html( mysql2date( 'Y-m-d H:i:s', (string) $row->created_at ) ); ?></td>
-								<td><?php echo esc_html( (string) $row->page_type ); ?></td>
-								<td style="word-break:break-word;"><?php echo esc_html( (string) $row->post_title ); ?></td>
-								<td><?php echo esc_html( (string) $row->post_id ); ?></td>
-								<td style="word-break:break-word;">
+								<td title="<?php echo esc_attr( (string) $row->created_at ); ?>"><?php echo esc_html( mysql2date( 'M j, Y g:i:s a', (string) $row->created_at ) ); ?></td>
+								<td>
+									<span class="pera-whatsapp-type-badge"><?php echo esc_html( pera_whatsapp_logs_page_type_label( (string) $row->page_type ) ); ?></span>
+								</td>
+								<td class="pera-whatsapp-logs-title" title="<?php echo esc_attr( (string) $row->post_title ); ?>"><?php echo esc_html( pera_whatsapp_logs_truncate( (string) $row->post_title, 80 ) ); ?></td>
+								<td class="column-postid"><?php echo esc_html( (string) $row->post_id ); ?></td>
+								<td>
 									<?php if ( ! empty( $row->page_url ) ) : ?>
-										<a href="<?php echo esc_url( (string) $row->page_url ); ?>" target="_blank" rel="noopener noreferrer"><?php echo esc_html( (string) $row->page_url ); ?></a>
+										<a href="<?php echo esc_url( (string) $row->page_url ); ?>" target="_blank" rel="noopener noreferrer" title="<?php echo esc_attr( (string) $row->page_url ); ?>"><?php echo esc_html( pera_whatsapp_logs_url_label( (string) $row->page_url ) ); ?></a>
 									<?php endif; ?>
 								</td>
-								<td style="word-break:break-word;"><?php echo esc_html( (string) $row->message_text ); ?></td>
-								<td style="word-break:break-word;"><?php echo esc_html( (string) $row->referrer ); ?></td>
-								<td><?php echo esc_html( (string) $row->ip_address ); ?></td>
+								<td>
+									<div class="pera-whatsapp-logs-message" title="<?php echo esc_attr( (string) $row->message_text ); ?>">
+										<?php echo esc_html( pera_whatsapp_logs_truncate( (string) $row->message_text, 130 ) ); ?>
+									</div>
+									<?php if ( '' !== (string) $row->message_text ) : ?>
+										<button type="button" class="button-link pera-whatsapp-copy-message" data-message="<?php echo esc_attr( (string) $row->message_text ); ?>"><?php esc_html_e( 'Copy', 'hello-elementor-child' ); ?></button>
+									<?php endif; ?>
+								</td>
+								<td title="<?php echo esc_attr( (string) $row->referrer ); ?>"><?php echo esc_html( pera_whatsapp_logs_url_label( (string) $row->referrer ) ); ?></td>
+								<td class="column-ip"><?php echo esc_html( (string) $row->ip_address ); ?></td>
 							</tr>
 						<?php endforeach; ?>
 					</tbody>
@@ -321,20 +473,111 @@ if ( ! function_exists( 'pera_whatsapp_logs_render_admin_page' ) ) {
 
 			<?php
 			echo '<div class="tablenav"><div class="tablenav-pages">';
-			echo wp_kses_post(
-				paginate_links(
-					array(
-						'base'      => add_query_arg( 'paged', '%#%' ),
-						'format'    => '',
-						'current'   => $paged,
-						'total'     => $total_pages,
-						'prev_text' => __( '&laquo;', 'hello-elementor-child' ),
-						'next_text' => __( '&raquo;', 'hello-elementor-child' ),
+				echo wp_kses_post(
+					paginate_links(
+						array(
+							'base'      => add_query_arg( 'paged', '%#%', admin_url( 'admin.php' ) ),
+							'format'    => '',
+							'current'   => $paged,
+							'total'     => $total_pages,
+							'add_args'  => $base_query_args,
+							'prev_text' => __( '&laquo;', 'hello-elementor-child' ),
+							'next_text' => __( '&raquo;', 'hello-elementor-child' ),
+						)
 					)
-				)
-			);
-			echo '</div></div>';
+				);
+				echo '</div></div>';
 			?>
+
+			<style>
+				.pera-whatsapp-logs-summary {
+					display: grid;
+					grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+					gap: 10px;
+					margin: 14px 0;
+				}
+				.pera-whatsapp-logs-summary-card {
+					background: #fff;
+					border: 1px solid #dcdcde;
+					border-radius: 4px;
+					padding: 10px 12px;
+					display: flex;
+					flex-direction: column;
+					gap: 6px;
+				}
+				.pera-whatsapp-logs-summary-label {
+					color: #50575e;
+					font-size: 12px;
+				}
+				.pera-whatsapp-logs-toolbar {
+					margin: 12px 0;
+					display: flex;
+					gap: 8px;
+					align-items: center;
+					flex-wrap: wrap;
+				}
+				.pera-whatsapp-logs-result-count {
+					margin-left: auto;
+					color: #50575e;
+				}
+				.pera-whatsapp-type-badge {
+					display: inline-block;
+					padding: 2px 8px;
+					background: #f0f6fc;
+					border: 1px solid #c5d9ed;
+					border-radius: 999px;
+					font-size: 12px;
+					line-height: 1.6;
+				}
+				.pera-whatsapp-logs-table .column-postid,
+				.pera-whatsapp-logs-table .column-ip {
+					color: #646970;
+				}
+				.pera-whatsapp-logs-table td {
+					vertical-align: top;
+				}
+				.pera-whatsapp-logs-title,
+				.pera-whatsapp-logs-message {
+					word-break: break-word;
+				}
+				.pera-whatsapp-copy-message {
+					font-size: 12px;
+				}
+				.pera-whatsapp-logs-empty-state {
+					margin-top: 10px;
+				}
+				@media (max-width: 900px) {
+					.pera-whatsapp-logs-result-count {
+						width: 100%;
+						margin-left: 0;
+					}
+				}
+			</style>
+
+			<script>
+				document.addEventListener('DOMContentLoaded', function () {
+					var buttons = document.querySelectorAll('.pera-whatsapp-copy-message');
+
+					buttons.forEach(function (button) {
+						button.addEventListener('click', function () {
+							var message = button.getAttribute('data-message') || '';
+
+							if (!message || !navigator.clipboard || !navigator.clipboard.writeText) {
+								return;
+							}
+
+							navigator.clipboard.writeText(message).then(function () {
+								var originalText = button.textContent;
+								button.textContent = '<?php echo esc_js( __( 'Copied!', 'hello-elementor-child' ) ); ?>';
+
+								window.setTimeout(function () {
+									button.textContent = originalText;
+								}, 1500);
+							});
+						});
+					});
+				});
+			</script>
 		</div>
 		<?php
 	}
