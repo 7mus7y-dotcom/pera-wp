@@ -27,6 +27,24 @@ add_action( 'wp_enqueue_scripts', function () {
     true
   );
 
+  wp_enqueue_script(
+    'pera-whatsapp-click-log',
+    get_stylesheet_directory_uri() . '/js/whatsapp-click-log.js',
+    array(),
+    pera_get_asset_version( '/js/whatsapp-click-log.js' ),
+    true
+  );
+
+  wp_localize_script(
+    'pera-whatsapp-click-log',
+    'peraWhatsappLog',
+    array(
+      'ajax_url' => admin_url( 'admin-ajax.php' ),
+      'action'   => 'pera_log_whatsapp_click',
+      'nonce'    => wp_create_nonce( 'pera_whatsapp_click' ),
+    )
+  );
+
   /* =========================
      1) VIEW FLAGS
   ========================= */
