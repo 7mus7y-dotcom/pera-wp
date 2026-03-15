@@ -84,10 +84,10 @@ if ( ! function_exists( 'pera_get_whatsapp_context' ) ) {
 		} elseif ( is_page( 'citizenship-by-investment' ) ) {
 			$context['page_type']    = 'citizenship-by-investment';
 			$context['message_text'] = "Hi, I'd like more info on citizenship by investment.";
-		} elseif ( is_page( 'sell-with-pera' ) ) {
+		} elseif ( is_page( 'sell-with-pera' ) || is_page_template( 'page-sell-with-pera.php' ) ) {
 			$context['page_type']    = 'sell-with-pera';
 			$context['message_text'] = "Hi, I'm interested in selling my property in Istanbul with Pera Property. Can you provide more information about your sales service?";
-		} elseif ( is_page( 'rent-with-pera' ) ) {
+		} elseif ( is_page( 'rent-with-pera' ) || is_page_template( 'page-rent-with-pera.php' ) ) {
 			$context['page_type']    = 'rent-with-pera';
 			$context['message_text'] = "Hi, I'm interested in renting out my property in Istanbul with Pera Property. Can you provide more information about your rental service?";
 		}
