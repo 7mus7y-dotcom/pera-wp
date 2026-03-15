@@ -88,6 +88,48 @@ function peracrm_whatsapp_message_lock_option_name($message_id)
     return 'peracrm_wa_msg_lock_' . md5($message_id);
 }
 
+function peracrm_whatsapp_message_lock_ttl()
+{
+    return 120;
+}
+
+function peracrm_whatsapp_message_lock_value()
+{
+    return [
+        'created_at' => time(),
+        'request_marker' => sanitize_text_field((string) wp_generate_uuid4()),
+    ];
+}
+
+function peracrm_whatsapp_extract_message_lock_created_at($lock_value)
+{
+    if (is_numeric($lock_value)) {
+        return (int) $lock_value;
+    }
+
+    if (!is_array($lock_value)) {
+        return 0;
+    }
+
+    $created_at = $lock_value['created_at'] ?? 0;
+    if (!is_numeric($created_at)) {
+        return 0;
+    }
+
+    return (int) $created_at;
+}
+
+function peracrm_whatsapp_is_message_lock_stale($lock_value)
+{
+    $created_at = peracrm_whatsapp_extract_message_lock_created_at($lock_value);
+    if ($created_at <= 0) {
+        return true;
+    }
+
+    $ttl = max(1, (int) peracrm_whatsapp_message_lock_ttl());
+    return (time() - $created_at) > $ttl;
+}
+
 function peracrm_whatsapp_acquire_message_lock($message_id)
 {
     $lock_name = peracrm_whatsapp_message_lock_option_name($message_id);
@@ -95,7 +137,18 @@ function peracrm_whatsapp_acquire_message_lock($message_id)
         return false;
     }
 
-    return (bool) add_option($lock_name, time(), '', false);
+    $lock_value = peracrm_whatsapp_message_lock_value();
+    if (add_option($lock_name, $lock_value, '', false)) {
+        return true;
+    }
+
+    $existing_lock_value = get_option($lock_name, null);
+    if (!peracrm_whatsapp_is_message_lock_stale($existing_lock_value)) {
+        return false;
+    }
+
+    delete_option($lock_name);
+    return (bool) add_option($lock_name, $lock_value, '', false);
 }
 
 function peracrm_whatsapp_release_message_lock($message_id)
