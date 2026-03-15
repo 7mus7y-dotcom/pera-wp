@@ -52,7 +52,6 @@ if ( ! function_exists( 'pera_get_property_reference' ) ) {
 
 if ( ! function_exists( 'pera_get_whatsapp_context' ) ) {
 	function pera_get_whatsapp_context(): array {
-		$phone    = '905452054356';
 		$page_url = pera_get_current_request_url();
 
 		$context = array(
@@ -68,41 +67,63 @@ if ( ! function_exists( 'pera_get_whatsapp_context' ) ) {
 			$post_id    = (int) get_queried_object_id();
 			$post_title = $post_id > 0 ? (string) get_the_title( $post_id ) : '';
 			$page_url   = $post_id > 0 ? (string) get_permalink( $post_id ) : $page_url;
-			$reference  = pera_get_property_reference( $post_id );
 
 			$context['page_type']  = 'single-property';
 			$context['post_id']    = $post_id;
 			$context['post_title'] = $post_title;
 			$context['page_url']   = esc_url_raw( $page_url );
-
-			$context['message_text'] = sprintf(
-				'Hi, I\'d like more info on property called "%s" with reference %s. %s',
-				$post_title,
-				$reference !== '' ? $reference : (string) $post_id,
-				$context['page_url']
-			);
 		} elseif ( is_page( 'citizenship-by-investment' ) ) {
 			$context['page_type']    = 'citizenship-by-investment';
-			$context['message_text'] = "Hi, I'd like more info on citizenship by investment.";
 		} elseif ( is_page( 'sell-with-pera' ) ) {
 			$context['page_type']    = 'sell-with-pera';
-			$context['message_text'] = "Hi, I'm interested in selling my property in Istanbul with Pera Property. Can you provide more information about your sales service?";
 		} elseif ( is_page( 'rent-with-pera' ) ) {
 			$context['page_type']    = 'rent-with-pera';
-			$context['message_text'] = "Hi, I'm interested in renting out my property in Istanbul with Pera Property. Can you provide more information about your rental service?";
 		}
 
-		$context['whatsapp_url'] = 'https://wa.me/' . $phone . '?text=' . rawurlencode( $context['message_text'] );
+		$context['message_text'] = pera_get_whatsapp_message();
+		$context['whatsapp_url'] = pera_get_whatsapp_url();
 
 		return $context;
 	}
 }
 
+if ( ! function_exists( 'pera_get_whatsapp_message' ) ) {
+	function pera_get_whatsapp_message(): string {
+		if ( is_singular( 'property' ) ) {
+			$post_id    = (int) get_queried_object_id();
+			$post_title = $post_id > 0 ? (string) get_the_title( $post_id ) : '';
+			$page_url   = $post_id > 0 ? (string) get_permalink( $post_id ) : pera_get_current_request_url();
+			$reference  = function_exists( 'pera_get_property_reference' ) ? pera_get_property_reference( $post_id ) : '';
+
+			return sprintf(
+				'Hi, I\'d like more info on property called "%s" with reference %s. %s',
+				$post_title,
+				$reference !== '' ? $reference : (string) $post_id,
+				esc_url_raw( $page_url )
+			);
+		}
+
+		if ( is_page( 'citizenship-by-investment' ) ) {
+			return "Hi, I'd like more info on citizenship by investment.";
+		}
+
+		if ( is_page( 'sell-with-pera' ) ) {
+			return "Hi, I'm interested in selling my property in Istanbul. Can you provide more information?";
+		}
+
+		if ( is_page( 'rent-with-pera' ) ) {
+			return "Hi, I'm interested in renting out my property in Istanbul. Can you provide more information?";
+		}
+
+		return "Hi, I'd like more information about property in Istanbul.";
+	}
+}
+
 if ( ! function_exists( 'pera_get_whatsapp_url' ) ) {
 	function pera_get_whatsapp_url(): string {
-		$context = pera_get_whatsapp_context();
+		$phone = '905452054356';
 
-		return (string) ( $context['whatsapp_url'] ?? '' );
+		return 'https://wa.me/' . $phone . '?text=' . rawurlencode( pera_get_whatsapp_message() );
 	}
 }
 
