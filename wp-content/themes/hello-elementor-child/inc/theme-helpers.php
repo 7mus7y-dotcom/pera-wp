@@ -283,6 +283,29 @@ function pera_preload_fonts() {
    (currently disabled by comment)
    ======================================================= */
 
+function pera_get_whatsapp_url() {
+    $phone = '905452054356';
+
+    if ( is_singular( 'property' ) ) {
+        $message = sprintf(
+            'Hi, I\'d like more info on property called "%s" with reference %d. %s',
+            get_the_title(),
+            get_the_ID(),
+            get_permalink()
+        );
+    } elseif ( is_page( 'citizenship-by-investment' ) ) {
+        $message = "Hi, I'd like more info on citizenship by investment.";
+    } elseif ( is_page( 'sell-with-pera' ) ) {
+        $message = "Hi, I'm interested in selling my property in Istanbul. Can you provide more information?";
+    } elseif ( is_page( 'rent-with-pera' ) ) {
+        $message = "Hi, I'm interested in renting out my property in Istanbul. Can you provide more information?";
+    } else {
+        $message = "Hi, I'd like more information about property in Istanbul.";
+    }
+
+    return 'https://wa.me/' . $phone . '?text=' . rawurlencode( $message );
+}
+
 function pera_floating_whatsapp_button() {
 
     // Do not output on wp-login.php
@@ -315,7 +338,7 @@ function pera_floating_whatsapp_button() {
     }
 
     ?>
-    <a href="https://wa.me/905452054356?text=Hello%20Pera%20Property%2C%20I%27d%20like%20to%20learn%20more%20about%20your%20Istanbul%20properties."
+    <a href="<?php echo esc_url( pera_get_whatsapp_url() ); ?>"
        class="floating-whatsapp"
        id="floating-whatsapp"
        aria-label="Chat on WhatsApp"
