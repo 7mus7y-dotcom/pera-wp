@@ -32,6 +32,8 @@ require_once get_stylesheet_directory() . '/inc/favourites.php';
 require_once get_stylesheet_directory() . '/inc/property-card-helpers.php';
 require_once get_stylesheet_directory() . '/inc/client-portal.php';
 require_once get_stylesheet_directory() . '/inc/enquiry-email-log.php';
+require_once get_stylesheet_directory() . '/inc/whatsapp.php';
+require_once get_stylesheet_directory() . '/inc/whatsapp-click-log.php';
 
 /**
  * CRM router hooks (rewrite/query vars/template resolver) must always be
