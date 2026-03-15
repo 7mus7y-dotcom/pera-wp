@@ -7,6 +7,7 @@ if (!defined('ABSPATH')) {
 require_once PERACRM_INC . '/admin/pages/work-queue.php';
 require_once PERACRM_INC . '/admin/pages/client-view.php';
 require_once PERACRM_INC . '/admin/pages/pipeline.php';
+require_once PERACRM_INC . '/admin/pages/whatsapp.php';
 
 function peracrm_register_admin_menu()
 {
@@ -64,7 +65,17 @@ function peracrm_register_admin_menu()
     if ($client_view_hook) {
         $GLOBALS['peracrm_client_view_hook'] = $client_view_hook;
     }
+
+    add_submenu_page(
+        $parent_slug,
+        'WhatsApp',
+        'WhatsApp',
+        $capability,
+        'peracrm-whatsapp',
+        'peracrm_render_whatsapp_page'
+    );
 }
+
 
 function peracrm_admin_required_capability()
 {

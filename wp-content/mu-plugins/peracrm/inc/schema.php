@@ -39,6 +39,7 @@ function peracrm_upgrade_schema_to($target_version, $installed_version = 0)
         $client_property_table = peracrm_table('crm_client_property');
         $party_table = peracrm_table('peracrm_party');
         $deals_table = peracrm_table('peracrm_deals');
+        $whatsapp_messages_table = peracrm_table('peracrm_whatsapp_messages');
 
         $sql_notes = "CREATE TABLE {$notes_table} (
             id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
@@ -142,15 +143,42 @@ function peracrm_upgrade_schema_to($target_version, $installed_version = 0)
             KEY owner_commission_status (owner_user_id, commission_status)
         ) {$charset_collate};";
 
+
+        $sql_whatsapp_messages = "CREATE TABLE {$whatsapp_messages_table} (
+            id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+            client_id BIGINT UNSIGNED NULL,
+            phone_e164 VARCHAR(32) NOT NULL,
+            whatsapp_contact_name VARCHAR(191) NULL,
+            direction VARCHAR(16) NOT NULL DEFAULT 'inbound',
+            message_type VARCHAR(32) NOT NULL DEFAULT 'text',
+            message_body LONGTEXT NULL,
+            media_url TEXT NULL,
+            whatsapp_message_id VARCHAR(191) NULL,
+            raw_payload_json LONGTEXT NULL,
+            source VARCHAR(32) NOT NULL DEFAULT 'whatsapp',
+            linked_by VARCHAR(32) NOT NULL DEFAULT 'phone',
+            created_at DATETIME NOT NULL,
+            PRIMARY KEY (id),
+            KEY client_id (client_id),
+            KEY phone_e164 (phone_e164),
+            KEY whatsapp_message_id (whatsapp_message_id),
+            KEY created_at (created_at)
+        ) {$charset_collate};";
+
         dbDelta($sql_notes);
         dbDelta($sql_reminders);
         dbDelta($sql_activity);
         dbDelta($sql_client_property);
         dbDelta($sql_party);
         dbDelta($sql_deals);
+        dbDelta($sql_whatsapp_messages);
 
         if (function_exists('peracrm_push_log_create_table')) {
             peracrm_push_log_create_table();
+        }
+
+        if (function_exists('peracrm_whatsapp_messages_create_table')) {
+            peracrm_whatsapp_messages_create_table();
         }
 
         $closed_reason_exists = $wpdb->get_var($wpdb->prepare("SHOW COLUMNS FROM {$deals_table} LIKE %s", 'closed_reason'));
@@ -295,6 +323,7 @@ function peracrm_migrate_stage_taxonomy_v4()
 
         $party_table = peracrm_table('peracrm_party');
         $deals_table = peracrm_table('peracrm_deals');
+        $whatsapp_messages_table = peracrm_table('peracrm_whatsapp_messages');
 
         if ($wpdb->get_var($wpdb->prepare('SHOW TABLES LIKE %s', $party_table)) !== $party_table) {
             return;

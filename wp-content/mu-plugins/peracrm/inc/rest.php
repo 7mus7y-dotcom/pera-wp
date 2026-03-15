@@ -51,6 +51,10 @@ function peracrm_register_rest_routes()
     if (function_exists('peracrm_rest_register_push_routes')) {
         peracrm_rest_register_push_routes();
     }
+
+    if (function_exists('peracrm_rest_register_whatsapp_routes')) {
+        peracrm_rest_register_whatsapp_routes();
+    }
 }
 
 function peracrm_rest_can_access(WP_REST_Request $request)
