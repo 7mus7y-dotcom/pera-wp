@@ -54,7 +54,7 @@ function peracrm_whatsapp_save_settings(array $input)
     $settings = [
         'enabled' => !empty($input['enabled']) ? 1 : 0,
         'phone_number_id' => sanitize_text_field((string) ($input['phone_number_id'] ?? '')),
-        'verify_token' => sanitize_text_field((string) ($input['verify_token'] ?? '')),
+        'verify_token' => $existing['verify_token'],
         'test_mode' => !empty($input['test_mode']) ? 1 : 0,
         'access_token' => $existing['access_token'],
     ];
@@ -66,9 +66,46 @@ function peracrm_whatsapp_save_settings(array $input)
         }
     }
 
+    if (isset($input['verify_token'])) {
+        $candidate = trim((string) $input['verify_token']);
+        if ($candidate !== '') {
+            $settings['verify_token'] = sanitize_text_field($candidate);
+        }
+    }
+
     update_option('peracrm_whatsapp_settings', $settings, false);
 
     return $settings;
+}
+
+function peracrm_whatsapp_message_lock_option_name($message_id)
+{
+    $message_id = sanitize_text_field((string) $message_id);
+    if ($message_id === '') {
+        return '';
+    }
+
+    return 'peracrm_wa_msg_lock_' . md5($message_id);
+}
+
+function peracrm_whatsapp_acquire_message_lock($message_id)
+{
+    $lock_name = peracrm_whatsapp_message_lock_option_name($message_id);
+    if ($lock_name === '') {
+        return false;
+    }
+
+    return (bool) add_option($lock_name, time(), '', false);
+}
+
+function peracrm_whatsapp_release_message_lock($message_id)
+{
+    $lock_name = peracrm_whatsapp_message_lock_option_name($message_id);
+    if ($lock_name === '') {
+        return;
+    }
+
+    delete_option($lock_name);
 }
 
 function peracrm_whatsapp_log($message, array $context = [])
@@ -269,6 +306,13 @@ function peracrm_whatsapp_find_message_row_id_by_message_id($whatsapp_message_id
 
 function peracrm_whatsapp_store_message(array $record)
 {
+    $result = peracrm_whatsapp_store_message_result($record);
+
+    return (int) ($result['row_id'] ?? 0);
+}
+
+function peracrm_whatsapp_store_message_result(array $record)
+{
     global $wpdb;
 
     $table = peracrm_whatsapp_messages_table_name();
@@ -277,7 +321,10 @@ function peracrm_whatsapp_store_message(array $record)
     if ($whatsapp_message_id !== '') {
         $existing_id = peracrm_whatsapp_find_message_row_id_by_message_id($whatsapp_message_id);
         if ($existing_id > 0) {
-            return $existing_id;
+            return [
+                'row_id' => (int) $existing_id,
+                'inserted' => false,
+            ];
         }
     }
 
@@ -301,15 +348,24 @@ function peracrm_whatsapp_store_message(array $record)
     if (!$inserted && $whatsapp_message_id !== '') {
         $existing_id = peracrm_whatsapp_find_message_row_id_by_message_id($whatsapp_message_id);
         if ($existing_id > 0) {
-            return $existing_id;
+            return [
+                'row_id' => (int) $existing_id,
+                'inserted' => false,
+            ];
         }
     }
 
     if (!$inserted) {
-        return 0;
+        return [
+            'row_id' => 0,
+            'inserted' => false,
+        ];
     }
 
-    return (int) $wpdb->insert_id;
+    return [
+        'row_id' => (int) $wpdb->insert_id,
+        'inserted' => true,
+    ];
 }
 
 function peracrm_whatsapp_count_messages()
@@ -358,49 +414,70 @@ function peracrm_whatsapp_process_inbound_payload(array $payload)
                     continue;
                 }
 
-                $client_id = peracrm_whatsapp_find_client_by_phone($phone_e164);
-                $was_created = false;
-                if ($client_id <= 0) {
-                    $client_id = peracrm_whatsapp_create_client_from_inbound($phone_e164, $contact_name);
-                    $was_created = $client_id > 0;
+                $lock_acquired = $message_id !== '' ? peracrm_whatsapp_acquire_message_lock($message_id) : true;
+                if (!$lock_acquired) {
+                    continue;
                 }
 
-                $message_row_id = peracrm_whatsapp_store_message([
-                    'client_id' => $client_id,
-                    'phone_e164' => $phone_e164,
-                    'whatsapp_contact_name' => $contact_name,
-                    'direction' => 'inbound',
-                    'message_type' => $message_type,
-                    'message_body' => $message_body,
-                    'media_url' => $media_url,
-                    'whatsapp_message_id' => $message_id,
-                    'raw_payload_json' => peracrm_json_encode([
-                        'entry' => $entry,
-                        'change' => $change,
-                        'message' => $message,
-                    ]),
-                    'source' => 'whatsapp',
-                    'linked_by' => 'phone',
-                ]);
+                try {
+                    if ($message_id !== '' && peracrm_whatsapp_find_message_row_id_by_message_id($message_id) > 0) {
+                        continue;
+                    }
 
-                if ($client_id > 0 && function_exists('peracrm_log_event')) {
-                    peracrm_log_event($client_id, 'whatsapp_inbound', [
-                        'message_id' => $message_id,
+                    $client_id = peracrm_whatsapp_find_client_by_phone($phone_e164);
+                    $was_created = false;
+                    if ($client_id <= 0) {
+                        $client_id = peracrm_whatsapp_create_client_from_inbound($phone_e164, $contact_name);
+                        $was_created = $client_id > 0;
+                    }
+
+                    $message_write = peracrm_whatsapp_store_message_result([
+                        'client_id' => $client_id,
+                        'phone_e164' => $phone_e164,
+                        'whatsapp_contact_name' => $contact_name,
+                        'direction' => 'inbound',
                         'message_type' => $message_type,
-                        'message_preview' => mb_substr((string) $message_body, 0, 120),
-                        'phone' => $phone_e164,
-                        'row_id' => $message_row_id,
+                        'message_body' => $message_body,
+                        'media_url' => $media_url,
+                        'whatsapp_message_id' => $message_id,
+                        'raw_payload_json' => peracrm_json_encode([
+                            'entry' => $entry,
+                            'change' => $change,
+                            'message' => $message,
+                        ]),
+                        'source' => 'whatsapp',
+                        'linked_by' => 'phone',
                     ]);
 
-                    if ($was_created) {
-                        peracrm_log_event($client_id, 'lead_created', [
-                            'source' => 'whatsapp_inbound',
+                    $message_row_id = (int) ($message_write['row_id'] ?? 0);
+                    $message_inserted = !empty($message_write['inserted']);
+                    if (!$message_inserted) {
+                        continue;
+                    }
+
+                    if ($client_id > 0 && function_exists('peracrm_log_event')) {
+                        peracrm_log_event($client_id, 'whatsapp_inbound', [
+                            'message_id' => $message_id,
+                            'message_type' => $message_type,
+                            'message_preview' => mb_substr((string) $message_body, 0, 120),
                             'phone' => $phone_e164,
+                            'row_id' => $message_row_id,
                         ]);
+
+                        if ($was_created) {
+                            peracrm_log_event($client_id, 'lead_created', [
+                                'source' => 'whatsapp_inbound',
+                                'phone' => $phone_e164,
+                            ]);
+                        }
+                    }
+
+                    $processed++;
+                } finally {
+                    if ($message_id !== '') {
+                        peracrm_whatsapp_release_message_lock($message_id);
                     }
                 }
-
-                $processed++;
             }
         }
     }
