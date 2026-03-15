@@ -14,6 +14,8 @@ require_once PERACRM_INC . '/favourites.php';
 require_once PERACRM_INC . '/activity.php';
 require_once PERACRM_INC . '/activity-capture.php';
 require_once PERACRM_INC . '/health.php';
+require_once PERACRM_INC . '/whatsapp.php';
+require_once PERACRM_INC . '/db/whatsapp_messages_table.php';
 require_once PERACRM_INC . '/integrations/enquiries.php';
 require_once PERACRM_INC . '/db/push_log_table.php';
 
@@ -33,6 +35,7 @@ require_once PERACRM_INC . '/services/user_membership_service.php';
 require_once PERACRM_INC . '/services/push_service.php';
 require_once PERACRM_INC . '/cron/push_cron.php';
 require_once PERACRM_INC . '/rest/push.php';
+require_once PERACRM_INC . '/rest/whatsapp.php';
 require_once PERACRM_INC . '/rest.php';
 require_once PERACRM_INC . '/admin/metaboxes/timeline.php';
 
