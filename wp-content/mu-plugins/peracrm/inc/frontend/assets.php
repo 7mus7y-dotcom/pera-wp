@@ -36,15 +36,15 @@ if (!function_exists('pera_crm_enqueue_assets')) {
             return;
         }
 
-        $crm_css = peracrm_frontend_get_asset_file('assets/frontend/crm.css', 'css/crm.css');
-        $slider_css = peracrm_frontend_get_asset_file('assets/frontend/slider.css', 'css/slider.css');
+        $crm_css = peracrm_frontend_get_asset_file('assets/frontend/crm.css');
+        $slider_css = peracrm_frontend_get_asset_file('assets/frontend/slider.css');
 
-        $crm_css_deps = ['pera-main-css'];
+        $crm_css_deps = array();
         if (!empty($slider_css)) {
             wp_enqueue_style(
                 'pera-slider-css',
                 $slider_css['url'],
-                ['pera-main-css'],
+                array(),
                 (string) filemtime($slider_css['path'])
             );
             $crm_css_deps[] = 'pera-slider-css';
