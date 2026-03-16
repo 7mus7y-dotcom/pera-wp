@@ -217,7 +217,7 @@ if ( $deal_edit_id > 0 ) {
 	}
 }
 
-get_header();
+peracrm_frontend_render_shell_header();
 ?>
 
 <main id="primary" class="site-main crm-page crm-page--client-view">
@@ -938,9 +938,11 @@ get_header();
 	  <?php if ( ! empty( $access['allowed'] ) ) : ?>
 	  <a href="#crm-add-reminder" class="crm-floating-add-task" aria-label="<?php esc_attr_e( 'Add task', 'hello-elementor-child' ); ?>">
 		<svg class="icon" aria-hidden="true">
-		  <use href="<?php echo esc_url( get_stylesheet_directory_uri() . '/logos-icons/icons.svg#icon-check' ); ?>"></use>
+		  <use href="<?php echo esc_url( trailingslashit( PERACRM_URL ) . 'assets/frontend/icons.svg#icon-check' ); ?>"></use>
 		</svg>
 	  </a>
 	  <?php endif; ?>
 </main>
-<?php get_footer(); ?>
+
+<?php
+peracrm_frontend_render_shell_footer();
