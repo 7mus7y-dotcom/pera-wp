@@ -137,6 +137,10 @@ if ( ! function_exists( 'pera_admin_bootstrap' ) ) {
     add_action( 'manage_property_posts_custom_column', 'pera_admin_property_column_content', 10, 2 );
     add_filter( 'manage_edit-property_sortable_columns', 'pera_admin_property_sortable_columns' );
     add_action( 'pre_get_posts', 'pera_admin_property_sortable_orderby' );
+    add_action( 'pre_get_posts', 'pera_admin_property_search_flag_query', 20 );
+    add_filter( 'posts_join', 'pera_admin_property_search_posts_join', 10, 2 );
+    add_filter( 'posts_search', 'pera_admin_property_search_posts_search', 10, 2 );
+    add_filter( 'posts_distinct', 'pera_admin_property_search_posts_distinct', 10, 2 );
     add_filter( 'post_row_actions', 'pera_admin_property_row_actions', 10, 2 );
 
     /* ==============================
@@ -267,6 +271,120 @@ if ( ! function_exists( 'pera_admin_property_row_actions' ) ) {
     }
 
     return $actions;
+  }
+}
+
+/* ==============================
+ * Property Admin Search (project_name)
+ * ============================== */
+
+if ( ! function_exists( 'pera_is_property_admin_search_query' ) ) {
+  function pera_is_property_admin_search_query( WP_Query $query ): bool {
+    global $pagenow;
+
+    if ( ! is_admin() || ! $query->is_main_query() ) {
+      return false;
+    }
+
+    if ( wp_doing_ajax() ) {
+      return false;
+    }
+
+    $screen_post_type = '';
+    if ( isset( $_GET['post_type'] ) ) {
+      $screen_post_type = sanitize_key( wp_unslash( (string) $_GET['post_type'] ) );
+    }
+
+    $query_post_type = $query->get( 'post_type' );
+    if ( is_array( $query_post_type ) ) {
+      $query_post_type = reset( $query_post_type );
+    }
+    $query_post_type = sanitize_key( (string) $query_post_type );
+
+    if ( $query_post_type !== 'property' && $screen_post_type !== 'property' ) {
+      return false;
+    }
+
+    if ( $pagenow !== 'edit.php' ) {
+      return false;
+    }
+
+    $search_term = (string) $query->get( 's' );
+    if ( trim( $search_term ) === '' ) {
+      return false;
+    }
+
+    return true;
+  }
+}
+
+if ( ! function_exists( 'pera_admin_property_search_flag_query' ) ) {
+  function pera_admin_property_search_flag_query( WP_Query $query ): void {
+    if ( ! pera_is_property_admin_search_query( $query ) ) {
+      return;
+    }
+
+    $query->set( 'pera_admin_project_name_search', 1 );
+  }
+}
+
+if ( ! function_exists( 'pera_admin_property_search_posts_join' ) ) {
+  function pera_admin_property_search_posts_join( string $join, WP_Query $query ): string {
+    if ( ! $query->get( 'pera_admin_project_name_search' ) ) {
+      return $join;
+    }
+
+    if ( strpos( $join, 'pera_admin_pm_project_name' ) !== false ) {
+      return $join;
+    }
+
+    global $wpdb;
+    $join .= " LEFT JOIN {$wpdb->postmeta} AS pera_admin_pm_project_name
+               ON ({$wpdb->posts}.ID = pera_admin_pm_project_name.post_id
+               AND pera_admin_pm_project_name.meta_key = 'project_name') ";
+
+    return $join;
+  }
+}
+
+if ( ! function_exists( 'pera_admin_property_search_posts_search' ) ) {
+  function pera_admin_property_search_posts_search( string $search, WP_Query $query ): string {
+    if ( ! $query->get( 'pera_admin_project_name_search' ) ) {
+      return $search;
+    }
+
+    $search_term = trim( (string) $query->get( 's' ) );
+    if ( $search_term === '' || $search === '' ) {
+      return $search;
+    }
+
+    global $wpdb;
+
+    $like         = '%' . $wpdb->esc_like( $search_term ) . '%';
+    $project_like = $wpdb->prepare( 'pera_admin_pm_project_name.meta_value LIKE %s', $like );
+
+    // Core sends a leading "AND" search fragment. Remove that prefix once,
+    // then safely wrap the original core search + project_name condition.
+    $core_search = ltrim( $search );
+    if ( stripos( $core_search, 'AND ' ) === 0 ) {
+      $core_search = ltrim( substr( $core_search, 4 ) );
+    }
+
+    if ( $core_search === '' ) {
+      return $search;
+    }
+
+    return " AND ( {$core_search} OR ({$project_like}) ) ";
+  }
+}
+
+if ( ! function_exists( 'pera_admin_property_search_posts_distinct' ) ) {
+  function pera_admin_property_search_posts_distinct( string $distinct, WP_Query $query ): string {
+    if ( ! $query->get( 'pera_admin_project_name_search' ) ) {
+      return $distinct;
+    }
+
+    return 'DISTINCT';
   }
 }
 
