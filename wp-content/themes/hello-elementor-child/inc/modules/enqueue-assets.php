@@ -10,40 +10,44 @@ add_action( 'wp_enqueue_scripts', function () {
      0) ALWAYS
   ========================= */
 
-  // main.css everywhere
-  wp_enqueue_style(
-    'pera-main-css',
-    get_stylesheet_directory_uri() . '/css/main.css',
-    array(),
-    pera_get_asset_version( '/css/main.css' )
-  );
+  $is_crm_route = function_exists( 'pera_is_crm_route' ) && pera_is_crm_route();
 
-  // main.js everywhere
-  wp_enqueue_script(
-    'pera-main-js',
-    get_stylesheet_directory_uri() . '/js/main.js',
-    array(),
-    pera_get_asset_version( '/js/main.js' ),
-    true
-  );
+  if ( ! $is_crm_route ) {
+    // main.css everywhere except plugin-owned CRM shell routes.
+    wp_enqueue_style(
+      'pera-main-css',
+      get_stylesheet_directory_uri() . '/css/main.css',
+      array(),
+      pera_get_asset_version( '/css/main.css' )
+    );
 
-  wp_enqueue_script(
-    'pera-whatsapp-click-log',
-    get_stylesheet_directory_uri() . '/js/whatsapp-click-log.js',
-    array(),
-    pera_get_asset_version( '/js/whatsapp-click-log.js' ),
-    true
-  );
+    // main.js everywhere except plugin-owned CRM shell routes.
+    wp_enqueue_script(
+      'pera-main-js',
+      get_stylesheet_directory_uri() . '/js/main.js',
+      array(),
+      pera_get_asset_version( '/js/main.js' ),
+      true
+    );
 
-  wp_localize_script(
-    'pera-whatsapp-click-log',
-    'peraWhatsappLog',
-    array(
-      'ajax_url' => admin_url( 'admin-ajax.php' ),
-      'action'   => 'pera_log_whatsapp_click',
-      'nonce'    => wp_create_nonce( 'pera_whatsapp_click' ),
-    )
-  );
+    wp_enqueue_script(
+      'pera-whatsapp-click-log',
+      get_stylesheet_directory_uri() . '/js/whatsapp-click-log.js',
+      array(),
+      pera_get_asset_version( '/js/whatsapp-click-log.js' ),
+      true
+    );
+
+    wp_localize_script(
+      'pera-whatsapp-click-log',
+      'peraWhatsappLog',
+      array(
+        'ajax_url' => admin_url( 'admin-ajax.php' ),
+        'action'   => 'pera_log_whatsapp_click',
+        'nonce'    => wp_create_nonce( 'pera_whatsapp_click' ),
+      )
+    );
+  }
 
   /* =========================
      1) VIEW FLAGS

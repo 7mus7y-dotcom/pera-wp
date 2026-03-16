@@ -30,6 +30,8 @@ if (!function_exists('peracrm_frontend_dequeue_theme_assets')) {
         // Theme global presentation bundle is not required for plugin-owned CRM shell.
         wp_dequeue_style('pera-main-css');
         wp_dequeue_script('pera-main-js');
+        wp_dequeue_script('pera-whatsapp-click-log');
+        wp_dequeue_script('pera-crm-push');
     }
 }
 add_action('wp_enqueue_scripts', 'peracrm_frontend_dequeue_theme_assets', 41);
@@ -88,6 +90,44 @@ if (!function_exists('pera_crm_enqueue_assets')) {
                 'portfolioFieldsNonce' => wp_create_nonce('pera_crm_save_portfolio_property_fields'),
                 'portfolioFloorPlanNonce' => wp_create_nonce('pera_crm_upload_portfolio_floor_plan'),
             ]
+        );
+
+        if (!is_user_logged_in()) {
+            return;
+        }
+
+        $crm_push_js = peracrm_frontend_get_asset_file('assets/frontend/crm-push.js');
+        if (empty($crm_push_js)) {
+            return;
+        }
+
+        wp_enqueue_script(
+            'pera-crm-push',
+            $crm_push_js['url'],
+            array(),
+            (string) filemtime($crm_push_js['path']),
+            true
+        );
+
+        $public_key = function_exists('peracrm_push_get_public_config') ? peracrm_push_get_public_config() : array();
+
+        wp_localize_script(
+            'pera-crm-push',
+            'peraCrmPush',
+            array(
+                'swUrl' => esc_url_raw((string)($public_key['swUrl'] ?? home_url('/peracrm-sw.js'))),
+                'publicKey' => (string)($public_key['publicKey'] ?? (defined('PERACRM_VAPID_PUBLIC_KEY') ? (string) PERACRM_VAPID_PUBLIC_KEY : '')),
+                'subscribeUrl' => esc_url_raw((string)($public_key['subscribeUrl'] ?? rest_url('peracrm/v1/push/subscribe'))),
+                'unsubscribeUrl' => esc_url_raw((string)($public_key['unsubscribeUrl'] ?? rest_url('peracrm/v1/push/unsubscribe'))),
+                'digestRunUrl' => esc_url_raw((string)($public_key['digestRunUrl'] ?? rest_url('peracrm/v1/push/digest/run'))),
+                'debugUrl' => esc_url_raw((string)($public_key['debugUrl'] ?? rest_url('peracrm/v1/push/debug'))),
+                'canRunDigest' => isset($public_key['canRunDigest']) ? (bool) $public_key['canRunDigest'] : (function_exists('peracrm_push_user_can_run_digest') ? (bool) peracrm_push_user_can_run_digest(get_current_user_id()) : false),
+                'isConfigured' => isset($public_key['isConfigured']) ? (bool) $public_key['isConfigured'] : false,
+                'missingReasons' => isset($public_key['missingReasons']) && is_array($public_key['missingReasons']) ? $public_key['missingReasons'] : array(),
+                'debug' => function_exists('peracrm_push_debug_snapshot') ? peracrm_push_debug_snapshot(get_current_user_id()) : array(),
+                'clickUrl' => (string)($public_key['clickUrl'] ?? '/crm/tasks/'),
+                'restNonce' => wp_create_nonce('wp_rest'),
+            )
         );
     }
 }
