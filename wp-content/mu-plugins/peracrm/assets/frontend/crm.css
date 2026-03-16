@@ -1699,6 +1699,8 @@ body.crm-route .crm-page--client-view .crm-portfolio-actions .peracrm-linked-pro
 /* Scope to CRM pages/app wrapper */
 body.page-template-page-crm #crm-app,
 body.page-template-page-crm,
+body.crm-route #crm-app,
+body.crm-route,
 #crm-app,
 .crm-page {
   /* scope anchor */
@@ -1707,9 +1709,11 @@ body.page-template-page-crm,
 /* Ensure there is a scroll container */
 #crm-app .crm-table-wrap,
 body.page-template-page-crm .crm-table-wrap,
+body.crm-route .crm-table-wrap,
 .crm-page .crm-table-wrap,
 #crm-app .table-wrap,
 body.page-template-page-crm .table-wrap,
+body.crm-route .table-wrap,
 .crm-page .table-wrap {
   width: 100%;
   overflow-x: auto;
@@ -1719,6 +1723,7 @@ body.page-template-page-crm .table-wrap,
 /* Make tables grow naturally */
 #crm-app table,
 body.page-template-page-crm table,
+body.crm-route table,
 .crm-page:not(.crm-page--client-view) table {
   table-layout: auto !important;
   width: max-content !important;
@@ -1730,6 +1735,8 @@ body.page-template-page-crm table,
 #crm-app table td,
 body.page-template-page-crm table th,
 body.page-template-page-crm table td,
+body.crm-route table th,
+body.crm-route table td,
 .crm-page:not(.crm-page--client-view) table th,
 .crm-page:not(.crm-page--client-view) table td {
   white-space: nowrap !important;
@@ -1744,6 +1751,7 @@ body.page-template-page-crm table td,
 /* If any column sizing is forced via colgroup */
 #crm-app table col,
 body.page-template-page-crm table col,
+body.crm-route table col,
 .crm-page:not(.crm-page--client-view) table col {
   width: auto !important;
 }

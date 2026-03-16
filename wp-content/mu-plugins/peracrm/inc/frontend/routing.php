@@ -481,10 +481,19 @@ if (!function_exists('pera_crm_rewrite_notice')) {
 }
 add_action('admin_notices', 'pera_crm_rewrite_notice');
 
+if (!function_exists('pera_crm_nav_theme_location')) {
+    function pera_crm_nav_theme_location(): string
+    {
+        return (string) apply_filters('peracrm_frontend_nav_theme_location', 'main_menu_v1');
+    }
+}
+
 if (!function_exists('pera_crm_add_header_nav_item')) {
     function pera_crm_add_header_nav_item(string $items, $args): string
     {
-        if (empty($args->theme_location) || 'main_menu_v1' !== $args->theme_location) {
+        $menu_location = pera_crm_nav_theme_location();
+
+        if ($menu_location === '' || empty($args->theme_location) || $menu_location !== $args->theme_location) {
             return $items;
         }
 
