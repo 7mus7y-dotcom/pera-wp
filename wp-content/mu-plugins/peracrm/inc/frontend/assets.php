@@ -19,6 +19,21 @@ if (!function_exists('peracrm_frontend_get_asset_file')) {
     }
 }
 
+
+if (!function_exists('peracrm_frontend_dequeue_theme_assets')) {
+    function peracrm_frontend_dequeue_theme_assets(): void
+    {
+        if (!function_exists('pera_is_crm_route') || !pera_is_crm_route()) {
+            return;
+        }
+
+        // Theme global presentation bundle is not required for plugin-owned CRM shell.
+        wp_dequeue_style('pera-main-css');
+        wp_dequeue_script('pera-main-js');
+    }
+}
+add_action('wp_enqueue_scripts', 'peracrm_frontend_dequeue_theme_assets', 41);
+
 if (!function_exists('pera_crm_enqueue_assets')) {
     function pera_crm_enqueue_assets(): void
     {

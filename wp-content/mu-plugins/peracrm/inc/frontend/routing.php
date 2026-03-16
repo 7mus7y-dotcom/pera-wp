@@ -353,18 +353,18 @@ if (!function_exists('peracrm_frontend_resolve_crm_template')) {
     function peracrm_frontend_resolve_crm_template(string $action, string $view): string
     {
         if ($action === 'new') {
-            return peracrm_frontend_view_path('pages/crm-new.php', 'page-crm-new.php');
+            return peracrm_frontend_view_path('pages/crm-new.php');
         }
 
         if ($view === 'client') {
-            return peracrm_frontend_view_path('pages/crm-client.php', 'page-crm-client.php');
+            return peracrm_frontend_view_path('pages/crm-client.php');
         }
 
         if ($view === 'pipeline') {
-            return peracrm_frontend_view_path('pages/crm-pipeline.php', 'page-crm-pipeline.php');
+            return peracrm_frontend_view_path('pages/crm-pipeline.php');
         }
 
-        return peracrm_frontend_view_path('pages/crm-overview.php', 'page-crm.php');
+        return peracrm_frontend_view_path('pages/crm-overview.php');
     }
 }
 

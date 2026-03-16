@@ -98,10 +98,8 @@ peracrm_frontend_render_shell_header();
 	  'clients_type_view' => $clients_type_view,
   );
 
-  if ( function_exists( 'peracrm_frontend_render_partial' ) && peracrm_frontend_render_partial( 'crm-header', $header_args ) ) {
-	  // Rendered by plugin partial loader.
-  } else {
-	  get_template_part( 'parts/crm-header', null, $header_args );
+  if ( function_exists( 'peracrm_frontend_render_partial' ) ) {
+	  peracrm_frontend_render_partial( 'crm-header', $header_args );
   }
   ?>
 
