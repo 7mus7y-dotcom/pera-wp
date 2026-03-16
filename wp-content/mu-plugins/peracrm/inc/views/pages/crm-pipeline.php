@@ -31,16 +31,6 @@ peracrm_frontend_render_shell_header();
 			  'active_view' => 'pipeline',
 		  )
 	  );
-  } else {
-	  get_template_part(
-		  'parts/crm-header',
-		  null,
-		  array(
-			  'title'       => __( 'Pipeline', 'hello-elementor-child' ),
-			  'description' => __( 'Manage leads and clients by stage', 'hello-elementor-child' ),
-			  'active_view' => 'pipeline',
-		  )
-	  );
   }
   ?>
 

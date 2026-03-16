@@ -117,15 +117,6 @@ peracrm_frontend_render_shell_header();
 			  'description' => __( 'Add a lead directly from the front-end CRM workspace.', 'hello-elementor-child' ),
 		  )
 	  );
-  } else {
-	  get_template_part(
-		  'parts/crm-header',
-		  null,
-		  array(
-			  'title'       => __( 'Create new lead', 'hello-elementor-child' ),
-			  'description' => __( 'Add a lead directly from the front-end CRM workspace.', 'hello-elementor-child' ),
-		  )
-	  );
   }
   ?>
 
