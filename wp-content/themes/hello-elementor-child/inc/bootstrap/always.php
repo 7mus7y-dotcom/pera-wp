@@ -38,5 +38,9 @@ require_once get_stylesheet_directory() . '/inc/whatsapp-click-log.php';
 /**
  * CRM router hooks (rewrite/query vars/template resolver) must always be
  * registered so permalink flushes retain /crm/* rules.
+ *
+ * Plugin runtime is authoritative when available.
  */
-require_once get_stylesheet_directory() . '/inc/crm-router.php';
+if ( ! function_exists( 'pera_crm_register_route' ) ) {
+	require_once get_stylesheet_directory() . '/inc/crm-router.php';
+}

@@ -3,5 +3,10 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-require_once get_stylesheet_directory() . '/inc/crm-data.php';
-require_once get_stylesheet_directory() . '/inc/crm-client-view.php';
+if ( ! function_exists( 'pera_crm_get_dashboard_data' ) ) {
+	require_once get_stylesheet_directory() . '/inc/crm-data.php';
+}
+
+if ( ! function_exists( 'pera_crm_client_view_get_client_id' ) ) {
+	require_once get_stylesheet_directory() . '/inc/crm-client-view.php';
+}
