@@ -104,7 +104,7 @@ if ( ! isset( $crm_phone_country_options[ $prefill_phone_country ] ) ) {
 	$prefill_phone_country = $default_phone_country;
 }
 
-get_header();
+peracrm_frontend_render_shell_header();
 ?>
 
 <main id="primary" class="site-main crm-page crm-page--new">
@@ -205,4 +205,4 @@ get_header();
 </main>
 
 <?php
-get_footer();
+peracrm_frontend_render_shell_footer();

@@ -5,7 +5,7 @@ if (!defined('ABSPATH')) {
 }
 
 if (!function_exists('peracrm_frontend_get_asset_file')) {
-    function peracrm_frontend_get_asset_file(string $relative_plugin_path, string $theme_fallback_relative = ''): array
+    function peracrm_frontend_get_asset_file(string $relative_plugin_path): array
     {
         $plugin_file = trailingslashit(PERACRM_PATH) . ltrim($relative_plugin_path, '/');
         if (file_exists($plugin_file)) {
@@ -13,16 +13,6 @@ if (!function_exists('peracrm_frontend_get_asset_file')) {
                 'path' => $plugin_file,
                 'url' => trailingslashit(PERACRM_URL) . ltrim($relative_plugin_path, '/'),
             ];
-        }
-
-        if ($theme_fallback_relative !== '') {
-            $theme_path = trailingslashit(get_stylesheet_directory()) . ltrim($theme_fallback_relative, '/');
-            if (file_exists($theme_path)) {
-                return [
-                    'path' => $theme_path,
-                    'url' => trailingslashit(get_stylesheet_directory_uri()) . ltrim($theme_fallback_relative, '/'),
-                ];
-            }
         }
 
         return [];
@@ -59,7 +49,7 @@ if (!function_exists('pera_crm_enqueue_assets')) {
             );
         }
 
-        $crm_js = peracrm_frontend_get_asset_file('assets/frontend/crm.js', 'js/crm.js');
+        $crm_js = peracrm_frontend_get_asset_file('assets/frontend/crm.js');
         if (empty($crm_js)) {
             return;
         }

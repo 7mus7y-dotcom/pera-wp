@@ -83,7 +83,7 @@ $build_overview_task_cards = static function ( array $tasks, int $cap ) {
 	);
 };
 
-get_header();
+peracrm_frontend_render_shell_header();
 ?>
 
 <main id="primary" class="site-main crm-page crm-page--<?php echo esc_attr( $is_leads ? 'leads' : ( $is_tasks ? 'tasks' : 'overview' ) ); ?>">
@@ -552,4 +552,4 @@ get_header();
 </main>
 
 <?php
-get_footer();
+peracrm_frontend_render_shell_footer();

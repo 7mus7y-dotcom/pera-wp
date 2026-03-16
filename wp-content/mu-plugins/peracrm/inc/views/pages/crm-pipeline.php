@@ -17,7 +17,7 @@ $pipeline = function_exists( 'pera_crm_get_pipeline_view_data' )
 
 $columns      = is_array( $pipeline['columns'] ?? null ) ? $pipeline['columns'] : array();
 
-get_header();
+peracrm_frontend_render_shell_header();
 ?>
 
 <main id="primary" class="site-main crm-page crm-page--pipeline">
@@ -118,4 +118,4 @@ get_header();
 </main>
 
 <?php
-get_footer();
+peracrm_frontend_render_shell_footer();
