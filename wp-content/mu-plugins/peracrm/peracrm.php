@@ -16,6 +16,7 @@ if (!defined('PERACRM_MAIN_FILE')) {
 }
 
 define('PERACRM_PATH', __DIR__);
+define('PERACRM_URL', content_url('/mu-plugins/peracrm'));
 define('PERACRM_INC', __DIR__ . '/inc');
 
 require_once PERACRM_INC . '/bootstrap.php';
