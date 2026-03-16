@@ -10,6 +10,10 @@ if ( ! defined( 'ABSPATH' ) ) {
 $error_raw = isset( $_GET['crm_error'] ) ? wp_unslash( (string) $_GET['crm_error'] ) : ''; // phpcs:ignore WordPress.Security.NonceVerification.Recommended
 $error     = sanitize_key( $error_raw );
 
+$existing_client_id_raw = isset( $_GET['existing_client_id'] ) ? wp_unslash( (string) $_GET['existing_client_id'] ) : ''; // phpcs:ignore WordPress.Security.NonceVerification.Recommended
+$existing_client_id     = absint( $existing_client_id_raw );
+$existing_client_url    = $existing_client_id > 0 ? home_url( '/crm/client/' . $existing_client_id . '/' ) : '';
+
 $prefill_first_name = isset( $_GET['first_name'] ) ? sanitize_text_field( wp_unslash( (string) $_GET['first_name'] ) ) : ''; // phpcs:ignore WordPress.Security.NonceVerification.Recommended
 $prefill_last_name  = isset( $_GET['last_name'] ) ? sanitize_text_field( wp_unslash( (string) $_GET['last_name'] ) ) : ''; // phpcs:ignore WordPress.Security.NonceVerification.Recommended
 $prefill_email      = isset( $_GET['email'] ) ? sanitize_email( wp_unslash( (string) $_GET['email'] ) ) : ''; // phpcs:ignore WordPress.Security.NonceVerification.Recommended
@@ -138,6 +142,13 @@ get_header();
           <p class="pill pill--outline"><?php echo esc_html__( 'Please choose a valid lead source.', 'hello-elementor-child' ); ?></p>
         <?php elseif ( 'create_failed' === $error ) : ?>
           <p class="pill pill--outline"><?php echo esc_html__( 'Could not create lead. Please try again.', 'hello-elementor-child' ); ?></p>
+        <?php elseif ( 'duplicate_email' === $error ) : ?>
+          <p class="pill pill--outline">
+            <?php echo esc_html__( 'A lead with this email already exists. No duplicate record was created.', 'hello-elementor-child' ); ?>
+            <?php if ( $existing_client_url ) : ?>
+              <a href="<?php echo esc_url( $existing_client_url ); ?>"><?php echo esc_html__( 'Open existing client', 'hello-elementor-child' ); ?></a>
+            <?php endif; ?>
+          </p>
         <?php endif; ?>
 
         <form method="post" action="<?php echo esc_url( home_url( '/crm/new/' ) ); ?>" class="crm-form-stack">

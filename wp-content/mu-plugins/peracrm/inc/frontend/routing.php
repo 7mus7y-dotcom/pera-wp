@@ -136,6 +136,19 @@ if (!function_exists('pera_crm_build_create_lead_redirect_url')) {
     }
 }
 
+if (!function_exists('pera_crm_build_duplicate_lead_redirect_url')) {
+    function pera_crm_build_duplicate_lead_redirect_url(int $existing_client_id): string
+    {
+        $existing_client_id = max(0, $existing_client_id);
+        $args = [
+            'crm_error' => 'duplicate_email',
+            'existing_client_id' => $existing_client_id,
+        ];
+
+        return add_query_arg($args, pera_crm_build_create_lead_redirect_url('duplicate_email'));
+    }
+}
+
 if (!function_exists('pera_crm_get_client_view_url')) {
     function pera_crm_get_client_view_url(int $client_id, array $args = []): string
     {
@@ -256,8 +269,7 @@ if (!function_exists('pera_crm_handle_new_lead')) {
         }
 
         if ($existing_client_id > 0) {
-            pera_crm_set_flash_message(__('A lead with this email already exists.', 'hello-elementor-child'), 'warning');
-            wp_safe_redirect(pera_crm_get_client_view_url($existing_client_id, ['duplicate' => 1]));
+            wp_safe_redirect(pera_crm_build_duplicate_lead_redirect_url($existing_client_id));
             exit;
         }
 
