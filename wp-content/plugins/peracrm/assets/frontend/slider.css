@@ -1,0 +1,80 @@
+/* CRM slider/grid utilities copied from theme slider.css for CRM views. */
+.cards-slider {
+  position: relative;
+  display: flex;
+  flex-wrap: nowrap;
+  gap: 16px;
+  overflow-x: auto;
+  overflow-y: hidden;
+  padding-bottom: 8px;
+  margin: 0;
+  -webkit-overflow-scrolling: touch;
+  scroll-behavior: smooth;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(148, 163, 184, 0.55) transparent;
+}
+.cards-slider .slider-track {
+  display: flex;
+  flex-wrap: nowrap;
+  gap: 16px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.slider-card {
+  flex: 0 0 360px;
+  max-width: 100%;
+}
+.cards-slider,
+.cards-slider .slider-track { max-width: 100%; }
+
+@media (min-width: 640px) {
+  .slider-card { flex-basis: 275px; }
+}
+
+.cards-slider--snap { scroll-snap-type: x mandatory; }
+.cards-slider--snap > .slider-card,
+.cards-slider--snap .slider-track > .slider-card { scroll-snap-align: start; }
+
+.cards-slider::-webkit-scrollbar { height: 6px; }
+.cards-slider::-webkit-scrollbar-track { background: transparent; }
+.cards-slider::-webkit-scrollbar-thumb {
+  background: rgba(148, 163, 184, 0.45);
+  border-radius: var(--pill-radius, 999px);
+}
+.cards-slider::-webkit-scrollbar-thumb:hover { background: rgba(148, 163, 184, 0.7); }
+
+@media (min-width: 768px) {
+  .cards-slider--grid-lg {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 24px;
+    overflow: visible;
+    scroll-snap-type: none;
+  }
+  .cards-slider--grid-lg .slider-track { display: contents; }
+  .cards-slider--grid-lg .slider-card {
+    flex: none;
+    max-width: 100%;
+    scroll-snap-align: none;
+  }
+}
+
+@media (min-width: 1100px) {
+  .cards-slider--grid-lg { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+}
+
+@media (max-width: 640px) {
+  .cards-slider .slider-card .btn {
+    padding: 8px 12px;
+    font-size: 0.875rem;
+    line-height: 1.2;
+  }
+  .cards-slider .slider-card .hero-actions { gap: 8px; }
+}
+
+@media (prefers-color-scheme: dark) {
+  .cards-slider { scrollbar-color: rgba(148, 163, 184, 0.6) transparent; }
+  .cards-slider::-webkit-scrollbar-thumb { background: rgba(148, 163, 184, 0.65); }
+  .cards-slider::-webkit-scrollbar-thumb:hover { background: rgba(148, 163, 184, 0.9); }
+}
