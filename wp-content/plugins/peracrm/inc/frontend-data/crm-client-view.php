@@ -85,7 +85,7 @@ if ( ! function_exists( 'pera_crm_ajax_success' ) ) {
 if ( ! function_exists( 'pera_crm_client_view_access_state' ) ) {
 	function pera_crm_client_view_access_state( int $client_id ): array {
 		if ( ! pera_crm_client_view_can_manage() ) {
-			return array( 'allowed' => false, 'message' => __( 'You do not have permission to access Client View.', 'hello-elementor-child' ) );
+			return array( 'allowed' => false, 'message' => __( 'You do not have permission to access Client View.', 'peracrm' ) );
 		}
 
 		$client = pera_crm_client_view_with_target_blog(
@@ -95,11 +95,11 @@ if ( ! function_exists( 'pera_crm_client_view_access_state' ) ) {
 		);
 
 		if ( ! ( $client instanceof WP_Post ) || 'crm_client' !== $client->post_type ) {
-			return array( 'allowed' => false, 'message' => __( 'Client not found.', 'hello-elementor-child' ) );
+			return array( 'allowed' => false, 'message' => __( 'Client not found.', 'peracrm' ) );
 		}
 
 		if ( ! current_user_can( 'edit_post', $client_id ) ) {
-			return array( 'allowed' => false, 'message' => __( 'You do not have permission to view this client.', 'hello-elementor-child' ) );
+			return array( 'allowed' => false, 'message' => __( 'You do not have permission to view this client.', 'peracrm' ) );
 		}
 
 		$can_manage_all = current_user_can( 'manage_options' ) || current_user_can( 'peracrm_manage_all_clients' );
@@ -115,7 +115,7 @@ if ( ! function_exists( 'pera_crm_client_view_access_state' ) ) {
 			);
 
 			if ( $assigned_id !== get_current_user_id() ) {
-				return array( 'allowed' => false, 'message' => __( 'Access denied. You are not assigned to this client.', 'hello-elementor-child' ) );
+				return array( 'allowed' => false, 'message' => __( 'Access denied. You are not assigned to this client.', 'peracrm' ) );
 			}
 		}
 
@@ -126,28 +126,28 @@ if ( ! function_exists( 'pera_crm_client_view_access_state' ) ) {
 if ( ! function_exists( 'pera_crm_client_view_notice_message' ) ) {
 	function pera_crm_client_view_notice_message( string $notice ): array {
 		$map = array(
-			'note_added'           => array( 'success', __( 'CRM note added.', 'hello-elementor-child' ) ),
-			'note_missing'         => array( 'warning', __( 'Please add a note before saving.', 'hello-elementor-child' ) ),
-			'note_failed'          => array( 'warning', __( 'Unable to save CRM note.', 'hello-elementor-child' ) ),
-			'reminder_added'       => array( 'success', __( 'CRM reminder created.', 'hello-elementor-child' ) ),
-			'reminder_done'        => array( 'success', __( 'Reminder marked done.', 'hello-elementor-child' ) ),
-			'reminder_dismissed'   => array( 'success', __( 'Reminder dismissed.', 'hello-elementor-child' ) ),
-			'reminder_failed'      => array( 'warning', __( 'Unable to update reminder.', 'hello-elementor-child' ) ),
-			'profile_saved'        => array( 'success', __( 'Profile saved.', 'hello-elementor-child' ) ),
-			'profile_failed'       => array( 'warning', __( 'Unable to save profile.', 'hello-elementor-child' ) ),
-			'advisor_reassigned'   => array( 'success', __( 'Advisor reassigned.', 'hello-elementor-child' ) ),
-			'deal_saved'           => array( 'success', __( 'Deal saved.', 'hello-elementor-child' ) ),
-			'deal_deleted'         => array( 'success', __( 'Deal deleted.', 'hello-elementor-child' ) ),
-			'deal_failed'          => array( 'warning', __( 'Unable to save deal.', 'hello-elementor-child' ) ),
-			'link_success'         => array( 'success', __( 'User linked successfully.', 'hello-elementor-child' ) ),
-			'unlink_success'       => array( 'success', __( 'User unlinked successfully.', 'hello-elementor-child' ) ),
-			'property_linked'      => array( 'success', __( 'Property linked.', 'hello-elementor-child' ) ),
-			'property_unlinked'    => array( 'success', __( 'Property unlinked.', 'hello-elementor-child' ) ),
-			'property_link_failed' => array( 'warning', __( 'Unable to link property.', 'hello-elementor-child' ) ),
-			'converted_to_client'  => array( 'success', __( 'Lead converted to client.', 'hello-elementor-child' ) ),
-			'convert_failed'       => array( 'warning', __( 'Unable to convert this lead.', 'hello-elementor-child' ) ),
-			'client_deleted'       => array( 'success', __( 'Client deleted.', 'hello-elementor-child' ) ),
-			'client_delete_failed' => array( 'warning', __( 'Unable to delete this client.', 'hello-elementor-child' ) ),
+			'note_added'           => array( 'success', __( 'CRM note added.', 'peracrm' ) ),
+			'note_missing'         => array( 'warning', __( 'Please add a note before saving.', 'peracrm' ) ),
+			'note_failed'          => array( 'warning', __( 'Unable to save CRM note.', 'peracrm' ) ),
+			'reminder_added'       => array( 'success', __( 'CRM reminder created.', 'peracrm' ) ),
+			'reminder_done'        => array( 'success', __( 'Reminder marked done.', 'peracrm' ) ),
+			'reminder_dismissed'   => array( 'success', __( 'Reminder dismissed.', 'peracrm' ) ),
+			'reminder_failed'      => array( 'warning', __( 'Unable to update reminder.', 'peracrm' ) ),
+			'profile_saved'        => array( 'success', __( 'Profile saved.', 'peracrm' ) ),
+			'profile_failed'       => array( 'warning', __( 'Unable to save profile.', 'peracrm' ) ),
+			'advisor_reassigned'   => array( 'success', __( 'Advisor reassigned.', 'peracrm' ) ),
+			'deal_saved'           => array( 'success', __( 'Deal saved.', 'peracrm' ) ),
+			'deal_deleted'         => array( 'success', __( 'Deal deleted.', 'peracrm' ) ),
+			'deal_failed'          => array( 'warning', __( 'Unable to save deal.', 'peracrm' ) ),
+			'link_success'         => array( 'success', __( 'User linked successfully.', 'peracrm' ) ),
+			'unlink_success'       => array( 'success', __( 'User unlinked successfully.', 'peracrm' ) ),
+			'property_linked'      => array( 'success', __( 'Property linked.', 'peracrm' ) ),
+			'property_unlinked'    => array( 'success', __( 'Property unlinked.', 'peracrm' ) ),
+			'property_link_failed' => array( 'warning', __( 'Unable to link property.', 'peracrm' ) ),
+			'converted_to_client'  => array( 'success', __( 'Lead converted to client.', 'peracrm' ) ),
+			'convert_failed'       => array( 'warning', __( 'Unable to convert this lead.', 'peracrm' ) ),
+			'client_deleted'       => array( 'success', __( 'Client deleted.', 'peracrm' ) ),
+			'client_delete_failed' => array( 'warning', __( 'Unable to delete this client.', 'peracrm' ) ),
 		);
 
 		return $map[ $notice ] ?? array( '', '' );
@@ -294,7 +294,7 @@ if ( ! function_exists( 'pera_crm_client_view_timeline_items' ) ) {
 				$author = get_userdata( (int) ( $note['advisor_user_id'] ?? 0 ) );
 				$items[] = array(
 					'type'   => 'note',
-					'title'  => __( 'Note added', 'hello-elementor-child' ),
+					'title'  => __( 'Note added', 'peracrm' ),
 					'detail' => (string) ( $note['note_body'] ?? '' ),
 					'ts'     => strtotime( (string) ( $note['created_at'] ?? '' ) ),
 					'meta'   => array( 'author' => $author ? $author->display_name : '' ),
@@ -312,7 +312,7 @@ if ( ! function_exists( 'pera_crm_client_view_timeline_items' ) ) {
 
 				$items[] = array(
 					'type'   => 'reminder',
-					'title'  => __( 'Reminder', 'hello-elementor-child' ),
+					'title'  => __( 'Reminder', 'peracrm' ),
 					'detail' => (string) ( $reminder['note'] ?? '' ),
 					'ts'     => $due_ts,
 					'meta'   => array( 'status' => (string) ( $reminder['status'] ?? 'pending' ) ),
@@ -324,7 +324,7 @@ if ( ! function_exists( 'pera_crm_client_view_timeline_items' ) ) {
 			foreach ( (array) peracrm_activity_list( $client_id, $limit, 0, null ) as $activity ) {
 				$items[] = array(
 					'type'   => 'activity',
-					'title'  => (string) ( $activity['event_type'] ?? __( 'Activity', 'hello-elementor-child' ) ),
+					'title'  => (string) ( $activity['event_type'] ?? __( 'Activity', 'peracrm' ) ),
 					'detail' => '',
 					'ts'     => strtotime( (string) ( $activity['created_at'] ?? '' ) ),
 					'meta'   => array(),
@@ -462,7 +462,7 @@ if ( ! function_exists( 'pera_crm_client_view_load_data' ) ) {
 				$timeline = pera_crm_client_view_timeline_items( $client_id, $timeline_filter, 50 );
 
 				$last_activity_ts = isset( $health['last_activity_ts'] ) ? (int) $health['last_activity_ts'] : 0;
-				$last_activity    = $last_activity_ts > 0 ? human_time_diff( $last_activity_ts, current_time( 'timestamp' ) ) . ' ' . __( 'ago', 'hello-elementor-child' ) : '—';
+				$last_activity    = $last_activity_ts > 0 ? human_time_diff( $last_activity_ts, current_time( 'timestamp' ) ) . ' ' . __( 'ago', 'peracrm' ) : '—';
 
 				return array(
 					'client'           => $client,
@@ -533,23 +533,23 @@ if ( ! function_exists( 'pera_crm_client_view_source_pills' ) ) {
 		$pills      = array();
 
 		if ( false !== strpos( $source_key, 'instagram' ) ) {
-			$pills[] = __( 'Instagram', 'hello-elementor-child' );
+			$pills[] = __( 'Instagram', 'peracrm' );
 			return $pills;
 		}
 
 		if ( false !== strpos( $source_key, 'meta' ) ) {
-			$pills[] = __( 'Meta Ads', 'hello-elementor-child' );
-			$pills[] = __( 'Ad: (TBD)', 'hello-elementor-child' );
+			$pills[] = __( 'Meta Ads', 'peracrm' );
+			$pills[] = __( 'Ad: (TBD)', 'peracrm' );
 			return $pills;
 		}
 
 		$is_website = in_array( $source_key, array( 'website', 'website_form' ), true ) || '' === $source_key || false !== strpos( $source_key, 'form' );
 		if ( ! $is_website ) {
-			$pills[] = '' !== $source_key ? ucwords( str_replace( '_', ' ', $source_key ) ) : __( 'Website', 'hello-elementor-child' );
+			$pills[] = '' !== $source_key ? ucwords( str_replace( '_', ' ', $source_key ) ) : __( 'Website', 'peracrm' );
 			return $pills;
 		}
 
-		$pills[] = __( 'Website', 'hello-elementor-child' );
+		$pills[] = __( 'Website', 'peracrm' );
 
 		$property_name = '';
 		if ( function_exists( 'peracrm_client_property_list' ) ) {
@@ -586,11 +586,11 @@ if ( ! function_exists( 'pera_crm_client_view_source_pills' ) ) {
 		if ( '' !== $property_name ) {
 			$pills[] = $property_name;
 		} elseif ( false !== strpos( $form_hint, 'rent' ) ) {
-			$pills[] = __( 'Rent', 'hello-elementor-child' );
+			$pills[] = __( 'Rent', 'peracrm' );
 		} elseif ( false !== strpos( $form_hint, 'sell' ) ) {
-			$pills[] = __( 'Sell', 'hello-elementor-child' );
+			$pills[] = __( 'Sell', 'peracrm' );
 		} elseif ( false !== strpos( $form_hint, 'citizen' ) ) {
-			$pills[] = __( 'Citizenship', 'hello-elementor-child' );
+			$pills[] = __( 'Citizenship', 'peracrm' );
 		}
 
 		return $pills;
@@ -736,25 +736,25 @@ if ( ! function_exists( 'pera_crm_create_portfolio_token_ajax' ) ) {
 	 */
 	function pera_crm_create_portfolio_token_ajax(): void {
 		if ( ! pera_crm_ajax_is_expected_action( 'peracrm_create_portfolio_token' ) ) {
-			pera_crm_ajax_error( 'invalid_action', __( 'Invalid action', 'hello-elementor-child' ), 400 );
+			pera_crm_ajax_error( 'invalid_action', __( 'Invalid action', 'peracrm' ), 400 );
 		}
 		if ( ! is_user_logged_in() ) {
-			pera_crm_ajax_error( 'forbidden', __( 'Forbidden', 'hello-elementor-child' ), 403, array( 'user_id' => get_current_user_id() ) );
+			pera_crm_ajax_error( 'forbidden', __( 'Forbidden', 'peracrm' ), 403, array( 'user_id' => get_current_user_id() ) );
 		}
 
 		$nonce = isset( $_POST['nonce'] ) ? sanitize_text_field( wp_unslash( (string) $_POST['nonce'] ) ) : '';
 		if ( '' === $nonce || ! wp_verify_nonce( $nonce, 'pera_crm_create_portfolio_token' ) ) {
-			pera_crm_ajax_error( 'invalid_nonce', __( 'Invalid nonce', 'hello-elementor-child' ), 403, array( 'user_id' => get_current_user_id(), 'has_nonce' => '' !== $nonce ) );
+			pera_crm_ajax_error( 'invalid_nonce', __( 'Invalid nonce', 'peracrm' ), 403, array( 'user_id' => get_current_user_id(), 'has_nonce' => '' !== $nonce ) );
 		}
 
 		$client_id = isset( $_POST['client_id'] ) ? absint( wp_unslash( (string) $_POST['client_id'] ) ) : 0;
 		if ( $client_id <= 0 ) {
-			pera_crm_ajax_error( 'invalid_client', __( 'Invalid client.', 'hello-elementor-child' ), 400 );
+			pera_crm_ajax_error( 'invalid_client', __( 'Invalid client.', 'peracrm' ), 400 );
 		}
 
 		$access = pera_crm_client_view_access_state( $client_id );
 		if ( empty( $access['allowed'] ) ) {
-			pera_crm_ajax_error( 'access_denied', __( 'Access denied.', 'hello-elementor-child' ), 403, array( 'user_id' => get_current_user_id() ) );
+			pera_crm_ajax_error( 'access_denied', __( 'Access denied.', 'peracrm' ), 403, array( 'user_id' => get_current_user_id() ) );
 		}
 
 		$exists = (bool) pera_crm_client_view_with_target_blog(
@@ -764,23 +764,23 @@ if ( ! function_exists( 'pera_crm_create_portfolio_token_ajax' ) ) {
 			}
 		);
 		if ( ! $exists ) {
-			pera_crm_ajax_error( 'client_not_found', __( 'Client not found.', 'hello-elementor-child' ), 404 );
+			pera_crm_ajax_error( 'client_not_found', __( 'Client not found.', 'peracrm' ), 404 );
 		}
 
 		$property_ids = pera_crm_client_view_get_portfolio_property_ids( $client_id );
 		if ( empty( $property_ids ) ) {
-			pera_crm_ajax_error( 'portfolio_empty', __( 'No portfolio-linked properties found for this client.', 'hello-elementor-child' ), 400 );
+			pera_crm_ajax_error( 'portfolio_empty', __( 'No portfolio-linked properties found for this client.', 'peracrm' ), 400 );
 		}
 
 		$expires_raw = isset( $_POST['expiry'] ) ? sanitize_text_field( wp_unslash( (string) $_POST['expiry'] ) ) : '';
 		$expires_raw = '' !== $expires_raw ? $expires_raw : '+30 days';
 		$expires_at  = strtotime( $expires_raw );
 		if ( false === $expires_at || $expires_at <= 0 ) {
-			pera_crm_ajax_error( 'invalid_expiry', __( 'Invalid expiry format.', 'hello-elementor-child' ), 400 );
+			pera_crm_ajax_error( 'invalid_expiry', __( 'Invalid expiry format.', 'peracrm' ), 400 );
 		}
 
 		if ( ! function_exists( 'pera_portfolio_token_create_portfolio' ) ) {
-			pera_crm_ajax_error( 'portfolio_create_unavailable', __( 'Portfolio creation is unavailable.', 'hello-elementor-child' ), 500 );
+			pera_crm_ajax_error( 'portfolio_create_unavailable', __( 'Portfolio creation is unavailable.', 'peracrm' ), 500 );
 		}
 
 		$result = pera_crm_client_view_with_target_blog(
@@ -830,30 +830,30 @@ if ( ! function_exists( 'pera_crm_update_portfolio_token_ajax' ) ) {
 	 */
 	function pera_crm_update_portfolio_token_ajax(): void {
 		if ( ! pera_crm_ajax_is_expected_action( 'peracrm_update_portfolio_token' ) ) {
-			pera_crm_ajax_error( 'invalid_action', __( 'Invalid action', 'hello-elementor-child' ), 400 );
+			pera_crm_ajax_error( 'invalid_action', __( 'Invalid action', 'peracrm' ), 400 );
 		}
 		if ( ! is_user_logged_in() ) {
-			pera_crm_ajax_error( 'forbidden', __( 'Forbidden', 'hello-elementor-child' ), 403, array( 'user_id' => get_current_user_id() ) );
+			pera_crm_ajax_error( 'forbidden', __( 'Forbidden', 'peracrm' ), 403, array( 'user_id' => get_current_user_id() ) );
 		}
 
 		$nonce = isset( $_POST['nonce'] ) ? sanitize_text_field( wp_unslash( (string) $_POST['nonce'] ) ) : '';
 		if ( '' === $nonce || ! wp_verify_nonce( $nonce, 'pera_crm_update_portfolio_token' ) ) {
-			pera_crm_ajax_error( 'invalid_nonce', __( 'Invalid nonce', 'hello-elementor-child' ), 403, array( 'user_id' => get_current_user_id(), 'has_nonce' => '' !== $nonce ) );
+			pera_crm_ajax_error( 'invalid_nonce', __( 'Invalid nonce', 'peracrm' ), 403, array( 'user_id' => get_current_user_id(), 'has_nonce' => '' !== $nonce ) );
 		}
 
 		$client_id = isset( $_POST['client_id'] ) ? absint( wp_unslash( (string) $_POST['client_id'] ) ) : 0;
 		if ( $client_id <= 0 ) {
-			pera_crm_ajax_error( 'invalid_client', __( 'Invalid client.', 'hello-elementor-child' ), 400 );
+			pera_crm_ajax_error( 'invalid_client', __( 'Invalid client.', 'peracrm' ), 400 );
 		}
 
 		$access = pera_crm_client_view_access_state( $client_id );
 		if ( empty( $access['allowed'] ) ) {
-			pera_crm_ajax_error( 'access_denied', __( 'Access denied.', 'hello-elementor-child' ), 403, array( 'user_id' => get_current_user_id() ) );
+			pera_crm_ajax_error( 'access_denied', __( 'Access denied.', 'peracrm' ), 403, array( 'user_id' => get_current_user_id() ) );
 		}
 
 		$property_ids = pera_crm_client_view_get_portfolio_property_ids( $client_id );
 		if ( empty( $property_ids ) ) {
-			pera_crm_ajax_error( 'portfolio_empty', __( 'No portfolio properties linked.', 'hello-elementor-child' ), 400 );
+			pera_crm_ajax_error( 'portfolio_empty', __( 'No portfolio properties linked.', 'peracrm' ), 400 );
 		}
 
 		$portfolio_post_id = isset( $_POST['portfolio_post_id'] ) ? absint( wp_unslash( (string) $_POST['portfolio_post_id'] ) ) : 0;
@@ -903,7 +903,7 @@ if ( ! function_exists( 'pera_crm_update_portfolio_token_ajax' ) ) {
 
 		if ( empty( $portfolio_state['valid'] ) ) {
 			if ( ! function_exists( 'pera_portfolio_token_create_portfolio' ) ) {
-				pera_crm_ajax_error( 'portfolio_create_unavailable', __( 'Portfolio creation is unavailable.', 'hello-elementor-child' ), 500 );
+				pera_crm_ajax_error( 'portfolio_create_unavailable', __( 'Portfolio creation is unavailable.', 'peracrm' ), 500 );
 			}
 
 			$expires_at = strtotime( '+30 days' );
@@ -959,29 +959,29 @@ if ( ! function_exists( 'pera_crm_upload_portfolio_floor_plan_ajax' ) ) {
 	 */
 	function pera_crm_upload_portfolio_floor_plan_ajax(): void {
 		if ( ! pera_crm_ajax_is_expected_action( 'pera_crm_upload_portfolio_floor_plan' ) ) {
-			pera_crm_ajax_error( 'invalid_action', __( 'Invalid action', 'hello-elementor-child' ), 400 );
+			pera_crm_ajax_error( 'invalid_action', __( 'Invalid action', 'peracrm' ), 400 );
 		}
 		if ( ! is_user_logged_in() ) {
-			pera_crm_ajax_error( 'forbidden', __( 'Forbidden', 'hello-elementor-child' ), 403, array( 'user_id' => get_current_user_id() ) );
+			pera_crm_ajax_error( 'forbidden', __( 'Forbidden', 'peracrm' ), 403, array( 'user_id' => get_current_user_id() ) );
 		}
 
 		$nonce = isset( $_POST['nonce'] ) ? sanitize_text_field( wp_unslash( (string) $_POST['nonce'] ) ) : '';
 		if ( '' === $nonce || ! wp_verify_nonce( $nonce, 'pera_crm_upload_portfolio_floor_plan' ) ) {
-			pera_crm_ajax_error( 'invalid_nonce', __( 'Invalid nonce', 'hello-elementor-child' ), 403, array( 'user_id' => get_current_user_id(), 'has_nonce' => '' !== $nonce ) );
+			pera_crm_ajax_error( 'invalid_nonce', __( 'Invalid nonce', 'peracrm' ), 403, array( 'user_id' => get_current_user_id(), 'has_nonce' => '' !== $nonce ) );
 		}
 
 		$client_id   = isset( $_POST['client_id'] ) ? absint( wp_unslash( (string) $_POST['client_id'] ) ) : 0;
 		$property_id = isset( $_POST['property_id'] ) ? absint( wp_unslash( (string) $_POST['property_id'] ) ) : 0;
 
 		if ( $client_id <= 0 || $property_id <= 0 || ! isset( $_FILES['floor_plan'] ) || ! is_array( $_FILES['floor_plan'] ) ) {
-			pera_crm_ajax_error( 'invalid_input', __( 'Invalid input.', 'hello-elementor-child' ), 400 );
+			pera_crm_ajax_error( 'invalid_input', __( 'Invalid input.', 'peracrm' ), 400 );
 		}
 
 		$access   = pera_crm_client_view_access_state( $client_id );
 		$can_view = isset( $access['can_view'] ) ? ! empty( $access['can_view'] ) : ! empty( $access['allowed'] );
 		$can_edit = isset( $access['can_edit'] ) ? ! empty( $access['can_edit'] ) : $can_view;
 		if ( ! $can_view || ! $can_edit ) {
-			pera_crm_ajax_error( 'access_denied', __( 'Access denied.', 'hello-elementor-child' ), 403, array( 'user_id' => get_current_user_id() ) );
+			pera_crm_ajax_error( 'access_denied', __( 'Access denied.', 'peracrm' ), 403, array( 'user_id' => get_current_user_id() ) );
 		}
 
 		$relation_row = pera_crm_client_view_with_target_blog(
@@ -1005,12 +1005,12 @@ if ( ! function_exists( 'pera_crm_upload_portfolio_floor_plan_ajax' ) ) {
 			}
 		);
 		if ( ! is_array( $relation_row ) ) {
-			pera_crm_ajax_error( 'portfolio_relation_not_found', __( 'Portfolio relation not found for this property.', 'hello-elementor-child' ), 404 );
+			pera_crm_ajax_error( 'portfolio_relation_not_found', __( 'Portfolio relation not found for this property.', 'peracrm' ), 404 );
 		}
 
 		$upload = $_FILES['floor_plan'];
 		if ( empty( $upload['name'] ) || ! isset( $upload['error'] ) || (int) $upload['error'] !== UPLOAD_ERR_OK ) {
-			pera_crm_ajax_error( 'upload_failed', __( 'Floor plan upload failed.', 'hello-elementor-child' ), 400 );
+			pera_crm_ajax_error( 'upload_failed', __( 'Floor plan upload failed.', 'peracrm' ), 400 );
 		}
 
 		$filename   = isset( $upload['name'] ) ? (string) $upload['name'] : '';
@@ -1020,7 +1020,7 @@ if ( ! function_exists( 'pera_crm_upload_portfolio_floor_plan_ajax' ) ) {
 		$type       = isset( $file_check['type'] ) ? strtolower( (string) $file_check['type'] ) : '';
 
 		if ( ! in_array( $ext, array( 'jpg', 'jpeg' ), true ) || ! in_array( $type, array( 'image/jpeg', 'image/jpg' ), true ) ) {
-			pera_crm_ajax_error( 'invalid_file_type', __( 'Floor plan must be a JPG/JPEG file.', 'hello-elementor-child' ), 400 );
+			pera_crm_ajax_error( 'invalid_file_type', __( 'Floor plan must be a JPG/JPEG file.', 'peracrm' ), 400 );
 		}
 
 		require_once ABSPATH . 'wp-admin/includes/file.php';
@@ -1080,15 +1080,15 @@ if ( ! function_exists( 'pera_crm_save_portfolio_property_fields_ajax' ) ) {
 	 */
 	function pera_crm_save_portfolio_property_fields_ajax(): void {
 		if ( ! pera_crm_ajax_is_expected_action( 'pera_crm_save_portfolio_property_fields' ) ) {
-			pera_crm_ajax_error( 'invalid_action', __( 'Invalid action', 'hello-elementor-child' ), 400 );
+			pera_crm_ajax_error( 'invalid_action', __( 'Invalid action', 'peracrm' ), 400 );
 		}
 		if ( ! is_user_logged_in() ) {
-			pera_crm_ajax_error( 'forbidden', __( 'Forbidden', 'hello-elementor-child' ), 403, array( 'user_id' => get_current_user_id() ) );
+			pera_crm_ajax_error( 'forbidden', __( 'Forbidden', 'peracrm' ), 403, array( 'user_id' => get_current_user_id() ) );
 		}
 
 		$nonce = isset( $_POST['nonce'] ) ? sanitize_text_field( wp_unslash( (string) $_POST['nonce'] ) ) : '';
 		if ( '' === $nonce || ! wp_verify_nonce( $nonce, 'pera_crm_save_portfolio_property_fields' ) ) {
-			pera_crm_ajax_error( 'invalid_nonce', __( 'Invalid nonce', 'hello-elementor-child' ), 403, array( 'user_id' => get_current_user_id(), 'has_nonce' => '' !== $nonce ) );
+			pera_crm_ajax_error( 'invalid_nonce', __( 'Invalid nonce', 'peracrm' ), 403, array( 'user_id' => get_current_user_id(), 'has_nonce' => '' !== $nonce ) );
 		}
 
 		$client_id   = isset( $_POST['client_id'] ) ? absint( wp_unslash( (string) $_POST['client_id'] ) ) : 0;
@@ -1096,14 +1096,14 @@ if ( ! function_exists( 'pera_crm_save_portfolio_property_fields_ajax' ) ) {
 		$raw_fields   = isset( $_POST['fields'] ) && is_array( $_POST['fields'] ) ? (array) wp_unslash( $_POST['fields'] ) : array();
 
 		if ( $client_id <= 0 || $property_id <= 0 || empty( $raw_fields ) ) {
-			pera_crm_ajax_error( 'invalid_input', __( 'Invalid input.', 'hello-elementor-child' ), 400 );
+			pera_crm_ajax_error( 'invalid_input', __( 'Invalid input.', 'peracrm' ), 400 );
 		}
 
 		$access = pera_crm_client_view_access_state( $client_id );
 		$can_view = isset( $access['can_view'] ) ? ! empty( $access['can_view'] ) : ! empty( $access['allowed'] );
 		$can_edit = isset( $access['can_edit'] ) ? ! empty( $access['can_edit'] ) : $can_view;
 		if ( ! $can_view || ! $can_edit ) {
-			pera_crm_ajax_error( 'access_denied', __( 'Access denied.', 'hello-elementor-child' ), 403, array( 'user_id' => get_current_user_id() ) );
+			pera_crm_ajax_error( 'access_denied', __( 'Access denied.', 'peracrm' ), 403, array( 'user_id' => get_current_user_id() ) );
 		}
 
 		$exists = (bool) pera_crm_client_view_with_target_blog(
@@ -1113,7 +1113,7 @@ if ( ! function_exists( 'pera_crm_save_portfolio_property_fields_ajax' ) ) {
 			}
 		);
 		if ( ! $exists ) {
-			pera_crm_ajax_error( 'client_not_found', __( 'Client not found.', 'hello-elementor-child' ), 404 );
+			pera_crm_ajax_error( 'client_not_found', __( 'Client not found.', 'peracrm' ), 404 );
 		}
 
 		$relation_row = pera_crm_client_view_with_target_blog(
@@ -1137,7 +1137,7 @@ if ( ! function_exists( 'pera_crm_save_portfolio_property_fields_ajax' ) ) {
 			}
 		);
 		if ( ! is_array( $relation_row ) ) {
-			pera_crm_ajax_error( 'portfolio_relation_not_found', __( 'Portfolio relation not found for this property.', 'hello-elementor-child' ), 404 );
+			pera_crm_ajax_error( 'portfolio_relation_not_found', __( 'Portfolio relation not found for this property.', 'peracrm' ), 404 );
 		}
 
 		$allowed = array( 'unit_type', 'floor_number', 'net_size', 'gross_size', 'list_price', 'cash_price', 'floor_plan_attachment_id' );
@@ -1166,14 +1166,14 @@ if ( ! function_exists( 'pera_crm_save_portfolio_property_fields_ajax' ) ) {
 			if ( null === $normalized ) {
 				$candidate = is_scalar( $raw_fields[ $key ] ) ? trim( (string) $raw_fields[ $key ] ) : '';
 				if ( '' !== $candidate ) {
-					pera_crm_ajax_error( 'invalid_field_value', sprintf( __( 'Invalid value for %s.', 'hello-elementor-child' ), $key ), 400 );
+					pera_crm_ajax_error( 'invalid_field_value', sprintf( __( 'Invalid value for %s.', 'peracrm' ), $key ), 400 );
 				}
 			}
 			$sanitized[ $key ] = $normalized;
 		}
 
 		if ( empty( $sanitized ) ) {
-			pera_crm_ajax_error( 'no_valid_fields', __( 'No valid fields were provided.', 'hello-elementor-child' ), 400 );
+			pera_crm_ajax_error( 'no_valid_fields', __( 'No valid fields were provided.', 'peracrm' ), 400 );
 		}
 
 		$updated = (bool) pera_crm_client_view_with_target_blog(
@@ -1187,7 +1187,7 @@ if ( ! function_exists( 'pera_crm_save_portfolio_property_fields_ajax' ) ) {
 		);
 
 		if ( ! $updated ) {
-			pera_crm_ajax_error( 'save_failed', __( 'Unable to save portfolio fields.', 'hello-elementor-child' ), 400 );
+			pera_crm_ajax_error( 'save_failed', __( 'Unable to save portfolio fields.', 'peracrm' ), 400 );
 		}
 
 		$floor_plan_attachment_id = isset( $sanitized['floor_plan_attachment_id'] ) ? (int) $sanitized['floor_plan_attachment_id'] : (int) ( $relation_row['floor_plan_attachment_id'] ?? 0 );
@@ -1213,15 +1213,15 @@ add_action( 'wp_ajax_pera_crm_save_portfolio_property_fields', 'pera_crm_save_po
 if ( ! function_exists( 'pera_crm_property_search_ajax' ) ) {
 	function pera_crm_property_search_ajax(): void {
 		if ( ! pera_crm_ajax_is_expected_action( 'pera_crm_property_search' ) ) {
-			pera_crm_ajax_error( 'invalid_action', __( 'Invalid action', 'hello-elementor-child' ), 400 );
+			pera_crm_ajax_error( 'invalid_action', __( 'Invalid action', 'peracrm' ), 400 );
 		}
 		if ( ! is_user_logged_in() || ! pera_crm_client_view_can_manage() ) {
-			pera_crm_ajax_error( 'forbidden', __( 'Forbidden', 'hello-elementor-child' ), 403, array( 'user_id' => get_current_user_id() ) );
+			pera_crm_ajax_error( 'forbidden', __( 'Forbidden', 'peracrm' ), 403, array( 'user_id' => get_current_user_id() ) );
 		}
 
 		$nonce = isset( $_GET['nonce'] ) ? sanitize_text_field( wp_unslash( (string) $_GET['nonce'] ) ) : '';
 		if ( '' === $nonce || ! wp_verify_nonce( $nonce, 'pera_crm_property_search' ) ) {
-			pera_crm_ajax_error( 'invalid_nonce', __( 'Invalid nonce', 'hello-elementor-child' ), 403, array( 'user_id' => get_current_user_id(), 'has_nonce' => '' !== $nonce ) );
+			pera_crm_ajax_error( 'invalid_nonce', __( 'Invalid nonce', 'peracrm' ), 403, array( 'user_id' => get_current_user_id(), 'has_nonce' => '' !== $nonce ) );
 		}
 
 		$term = isset( $_GET['q'] ) ? sanitize_text_field( wp_unslash( (string) $_GET['q'] ) ) : '';

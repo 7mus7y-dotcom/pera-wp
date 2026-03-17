@@ -22,12 +22,12 @@ $prefill_source     = isset( $_GET['source'] ) ? sanitize_key( wp_unslash( (stri
 $prefill_notes      = isset( $_GET['notes'] ) ? sanitize_textarea_field( wp_unslash( (string) $_GET['notes'] ) ) : ''; // phpcs:ignore WordPress.Security.NonceVerification.Recommended
 
 $source_options = array(
-	'meta_ads'     => __( 'Meta Ads', 'hello-elementor-child' ),
-	'instagram_dm' => __( 'Instagram DM', 'hello-elementor-child' ),
-	'whatsapp_dm'  => __( 'WhatsApp DM', 'hello-elementor-child' ),
-	'website'      => __( 'Website', 'hello-elementor-child' ),
-	'referral'     => __( 'Referral', 'hello-elementor-child' ),
-	'other'        => __( 'Other', 'hello-elementor-child' ),
+	'meta_ads'     => __( 'Meta Ads', 'peracrm' ),
+	'instagram_dm' => __( 'Instagram DM', 'peracrm' ),
+	'whatsapp_dm'  => __( 'WhatsApp DM', 'peracrm' ),
+	'website'      => __( 'Website', 'peracrm' ),
+	'referral'     => __( 'Referral', 'peracrm' ),
+	'other'        => __( 'Other', 'peracrm' ),
 );
 
 if ( ! isset( $source_options[ $prefill_source ] ) ) {
@@ -113,8 +113,8 @@ peracrm_frontend_render_shell_header();
 	  peracrm_frontend_render_partial(
 		  'crm-header',
 		  array(
-			  'title'       => __( 'Create new lead', 'hello-elementor-child' ),
-			  'description' => __( 'Add a lead directly from the front-end CRM workspace.', 'hello-elementor-child' ),
+			  'title'       => __( 'Create new lead', 'peracrm' ),
+			  'description' => __( 'Add a lead directly from the front-end CRM workspace.', 'peracrm' ),
 		  )
 	  );
   }
@@ -124,20 +124,20 @@ peracrm_frontend_render_shell_header();
     <div class="content-panel-box border-dm container">
       <article class="card-shell crm-form-card">
         <?php if ( 'invalid_nonce' === $error ) : ?>
-          <p class="pill pill--outline"><?php echo esc_html__( 'Security check failed. Please try again.', 'hello-elementor-child' ); ?></p>
+          <p class="pill pill--outline"><?php echo esc_html__( 'Security check failed. Please try again.', 'peracrm' ); ?></p>
         <?php elseif ( 'missing_required' === $error ) : ?>
-          <p class="pill pill--outline"><?php echo esc_html__( 'First name, last name, email, and source are required.', 'hello-elementor-child' ); ?></p>
+          <p class="pill pill--outline"><?php echo esc_html__( 'First name, last name, email, and source are required.', 'peracrm' ); ?></p>
         <?php elseif ( 'invalid_email' === $error ) : ?>
-          <p class="pill pill--outline"><?php echo esc_html__( 'Please enter a valid email address.', 'hello-elementor-child' ); ?></p>
+          <p class="pill pill--outline"><?php echo esc_html__( 'Please enter a valid email address.', 'peracrm' ); ?></p>
         <?php elseif ( 'invalid_source' === $error ) : ?>
-          <p class="pill pill--outline"><?php echo esc_html__( 'Please choose a valid lead source.', 'hello-elementor-child' ); ?></p>
+          <p class="pill pill--outline"><?php echo esc_html__( 'Please choose a valid lead source.', 'peracrm' ); ?></p>
         <?php elseif ( 'create_failed' === $error ) : ?>
-          <p class="pill pill--outline"><?php echo esc_html__( 'Could not create lead. Please try again.', 'hello-elementor-child' ); ?></p>
+          <p class="pill pill--outline"><?php echo esc_html__( 'Could not create lead. Please try again.', 'peracrm' ); ?></p>
         <?php elseif ( 'duplicate_email' === $error ) : ?>
           <p class="pill pill--outline">
-            <?php echo esc_html__( 'A lead with this email already exists. No duplicate record was created.', 'hello-elementor-child' ); ?>
+            <?php echo esc_html__( 'A lead with this email already exists. No duplicate record was created.', 'peracrm' ); ?>
             <?php if ( $existing_client_url ) : ?>
-              <a href="<?php echo esc_url( $existing_client_url ); ?>"><?php echo esc_html__( 'Open existing client', 'hello-elementor-child' ); ?></a>
+              <a href="<?php echo esc_url( $existing_client_url ); ?>"><?php echo esc_html__( 'Open existing client', 'peracrm' ); ?></a>
             <?php endif; ?>
           </p>
         <?php endif; ?>
@@ -146,34 +146,34 @@ peracrm_frontend_render_shell_header();
           <?php wp_nonce_field( 'pera_crm_create_lead', 'pera_crm_create_lead_nonce' ); ?>
 
           <p>
-            <label for="crm-first-name"><?php echo esc_html__( 'First name *', 'hello-elementor-child' ); ?></label>
+            <label for="crm-first-name"><?php echo esc_html__( 'First name *', 'peracrm' ); ?></label>
             <input id="crm-first-name" name="first_name" type="text" required value="<?php echo esc_attr( $prefill_first_name ); ?>" />
           </p>
 
           <p>
-            <label for="crm-last-name"><?php echo esc_html__( 'Last name *', 'hello-elementor-child' ); ?></label>
+            <label for="crm-last-name"><?php echo esc_html__( 'Last name *', 'peracrm' ); ?></label>
             <input id="crm-last-name" name="last_name" type="text" required value="<?php echo esc_attr( $prefill_last_name ); ?>" />
           </p>
 
           <p>
-            <label for="crm-email"><?php echo esc_html__( 'Email *', 'hello-elementor-child' ); ?></label>
+            <label for="crm-email"><?php echo esc_html__( 'Email *', 'peracrm' ); ?></label>
             <input id="crm-email" name="email" type="email" required value="<?php echo esc_attr( $prefill_email ); ?>" />
           </p>
 
           <div class="crm-phone-field">
-            <div class="crm-field-label"><?php echo esc_html__( 'Mobile / WhatsApp', 'hello-elementor-child' ); ?></div>
+            <div class="crm-field-label"><?php echo esc_html__( 'Mobile / WhatsApp', 'peracrm' ); ?></div>
             <div class="crm-phone-row">
-              <select name="peracrm_phone_country" class="crm-phone-country" aria-label="<?php echo esc_attr__( 'Country code', 'hello-elementor-child' ); ?>">
+              <select name="peracrm_phone_country" class="crm-phone-country" aria-label="<?php echo esc_attr__( 'Country code', 'peracrm' ); ?>">
                 <?php foreach ( $crm_phone_country_options as $country_value => $country_label ) : ?>
                   <option value="<?php echo esc_attr( (string) $country_value ); ?>" <?php selected( $prefill_phone_country, (string) $country_value ); ?>><?php echo esc_html( (string) $country_label ); ?></option>
                 <?php endforeach; ?>
               </select>
-              <input type="tel" name="peracrm_phone_national" value="<?php echo esc_attr( (string) $prefill_phone_national ); ?>" inputmode="tel" autocomplete="tel-national" placeholder="<?php echo esc_attr__( 'Phone number', 'hello-elementor-child' ); ?>" aria-label="<?php echo esc_attr__( 'Phone number', 'hello-elementor-child' ); ?>" />
+              <input type="tel" name="peracrm_phone_national" value="<?php echo esc_attr( (string) $prefill_phone_national ); ?>" inputmode="tel" autocomplete="tel-national" placeholder="<?php echo esc_attr__( 'Phone number', 'peracrm' ); ?>" aria-label="<?php echo esc_attr__( 'Phone number', 'peracrm' ); ?>" />
             </div>
           </div>
 
           <p>
-            <label for="crm-source"><?php echo esc_html__( 'Source *', 'hello-elementor-child' ); ?></label>
+            <label for="crm-source"><?php echo esc_html__( 'Source *', 'peracrm' ); ?></label>
             <select id="crm-source" name="source" required>
               <?php foreach ( $source_options as $source_key => $source_label ) : ?>
                 <option value="<?php echo esc_attr( (string) $source_key ); ?>" <?php selected( $prefill_source, (string) $source_key ); ?>><?php echo esc_html( (string) $source_label ); ?></option>
@@ -182,12 +182,12 @@ peracrm_frontend_render_shell_header();
           </p>
 
           <p>
-            <label for="crm-notes"><?php echo esc_html__( 'Notes', 'hello-elementor-child' ); ?></label>
+            <label for="crm-notes"><?php echo esc_html__( 'Notes', 'peracrm' ); ?></label>
             <textarea id="crm-notes" name="notes" rows="4"><?php echo esc_textarea( $prefill_notes ); ?></textarea>
           </p>
 
           <p>
-            <button type="submit" class="btn btn--solid btn--green"><?php echo esc_html__( 'Create lead', 'hello-elementor-child' ); ?></button>
+            <button type="submit" class="btn btn--solid btn--green"><?php echo esc_html__( 'Create lead', 'peracrm' ); ?></button>
           </p>
         </form>
       </article>
