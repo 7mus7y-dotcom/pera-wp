@@ -831,6 +831,9 @@
   }
 
   function setFeedback(form, message, ok) {
+    if (!form) {
+      return;
+    }
     var box = ensureStatusNode(form);
     box.textContent = message || '';
     box.classList.toggle('is-success', !!ok);
@@ -844,6 +847,7 @@
         var currentLabel = button.tagName.toLowerCase() === 'input' ? (button.value || '') : (button.textContent || '');
         button.setAttribute('data-crm-original-label', currentLabel);
         button.disabled = true;
+        button.setAttribute('aria-busy', 'true');
         if (button.tagName.toLowerCase() === 'input') {
           button.value = 'Saving…';
         } else {
@@ -851,6 +855,7 @@
         }
       } else {
         button.disabled = false;
+        button.removeAttribute('aria-busy');
         var label = button.getAttribute('data-crm-original-label') || '';
         if (!label) {
           return;
@@ -866,7 +871,7 @@
 
   function replacePanel(panelName, panelHtml) {
     if (!panelName || !panelHtml) {
-      return;
+      return false;
     }
 
     var parser = new window.DOMParser();
@@ -875,7 +880,10 @@
     var current = document.querySelector('[data-crm-panel="' + panelName + '"]');
     if (incoming && current) {
       current.replaceWith(incoming);
+      return true;
     }
+
+    return false;
   }
 
   function resolveLiveForm(panelName, formType, fallbackForm) {
@@ -907,12 +915,14 @@
     dialog.id = 'crm-advisor-confirm-dialog';
     dialog.className = 'crm-danger-dialog crm-confirm-dialog';
     dialog.innerHTML = '' +
-      '<h4>Confirm advisor reassignment</h4>' +
-      '<p>You are about to change the assigned advisor for this client.</p>' +
+      '<h4 id="crm-advisor-confirm-title">Confirm advisor reassignment</h4>' +
+      '<p id="crm-advisor-confirm-desc">You are about to change the assigned advisor for this client.</p>' +
       '<div class="crm-danger-dialog__actions">' +
       '<button type="button" class="btn btn--solid btn--blue" data-crm-confirm-yes>Yes, I’m sure</button>' +
       '<button type="button" class="btn btn--ghost btn--blue" data-crm-confirm-no>No, I made a mistake</button>' +
       '</div>';
+    dialog.setAttribute('aria-labelledby', 'crm-advisor-confirm-title');
+    dialog.setAttribute('aria-describedby', 'crm-advisor-confirm-desc');
     document.body.appendChild(dialog);
     return dialog;
   }
@@ -984,23 +994,36 @@
         credentials: 'same-origin',
         body: payload
       })
-        .then(function (response) { return response.json(); })
-        .then(function (json) {
+        .then(function (response) {
+          return response.text().then(function (body) {
+            var json = null;
+            try {
+              json = body ? JSON.parse(body) : null;
+            } catch (e) {
+              throw new Error('Unable to save.');
+            }
+            return { json: json, status: response.status };
+          });
+        })
+        .then(function (result) {
+          var json = result && result.json ? result.json : null;
           var success = !!(json && json.success);
           var data = json && json.data ? json.data : {};
-          var message = data.message || (success ? 'Saved.' : 'Unable to save.');
+          var message = data && data.message ? data.message : (success ? 'Saved.' : 'Unable to save.');
 
+          if (data.panel) {
+            activePanel = data.panel;
+          }
           if (data.panel && data.panel_html) {
             replacePanel(data.panel, data.panel_html);
-            activePanel = data.panel;
-            activeForm = resolveLiveForm(activePanel, type, form);
           }
 
+          activeForm = resolveLiveForm(activePanel, type, form);
           setFeedback(activeForm, message, success);
         })
         .catch(function () {
           activeForm = resolveLiveForm(activePanel, type, form);
-          setFeedback(activeForm, 'Unable to save.', false);
+          setFeedback(activeForm, 'Unable to save. Please refresh and try again.', false);
         })
         .finally(function () {
           activeForm = resolveLiveForm(activePanel, type, form);
