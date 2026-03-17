@@ -35,7 +35,8 @@ peracrm_frontend_render_shell_header();
   ?>
 
   <section class="content-panel content-panel--overlap-hero">
-    <div class="content-panel-box border-dm">
+    <div class="content-panel-box border-dm crm-layout">
+      <div class="crm-layout__main">
       <section class="crm-pipeline-board-wrap" aria-label="<?php echo esc_attr__( 'Pipeline board', 'peracrm' ); ?>">
         <div class="crm-pipeline-board">
           <?php foreach ( $columns as $column ) : ?>
@@ -103,6 +104,8 @@ peracrm_frontend_render_shell_header();
           <?php endforeach; ?>
         </div>
       </section>
+      </div>
+      <?php if ( function_exists( 'peracrm_frontend_render_partial' ) ) { peracrm_frontend_render_partial( 'crm-side-nav', array( 'active_view' => 'pipeline' ) ); } ?>
     </div>
   </section>
 </main>

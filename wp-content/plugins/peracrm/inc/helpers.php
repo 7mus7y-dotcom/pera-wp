@@ -445,7 +445,7 @@ function peracrm_render_assigned_advisor_box($client_id, array $args = [])
         ? peracrm_get_staff_users()
         : [];
 
-    echo '<form method="post" action="' . esc_url(admin_url('admin-post.php')) . '" class="peracrm-form">';
+    echo '<form method="post" action="' . esc_url(admin_url('admin-post.php')) . '" class="peracrm-form" data-crm-ajax-form="advisor">';
     echo '<input type="hidden" name="action" value="peracrm_reassign_client_advisor" />';
     echo '<input type="hidden" name="peracrm_reassign_client_advisor_nonce" value="' . esc_attr(wp_create_nonce('peracrm_reassign_client_advisor')) . '" />';
     echo '<input type="hidden" name="peracrm_client_id" value="' . esc_attr($client_id) . '" />';

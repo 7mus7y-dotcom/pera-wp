@@ -61,12 +61,12 @@ $sections = array(
       <div class="crm-client-hero-filters-grid">
         <label>
           <span class="screen-reader-text"><?php esc_html_e( 'Search clients', 'peracrm' ); ?></span>
-          <input class="cta-control" type="search" name="q" value="<?php echo esc_attr( $filter_q ); ?>" placeholder="<?php echo esc_attr__( 'Search clients', 'peracrm' ); ?>">
+          <input class="crm-search-control" type="search" name="q" value="<?php echo esc_attr( $filter_q ); ?>" placeholder="<?php echo esc_attr__( 'Search clients', 'peracrm' ); ?>">
         </label>
 
         <label>
           <span class="screen-reader-text"><?php esc_html_e( 'Stage', 'peracrm' ); ?></span>
-          <select class="cta-control" name="stage">
+          <select class="crm-search-control" name="stage">
             <option value=""><?php esc_html_e( 'All stages', 'peracrm' ); ?></option>
             <?php foreach ( $stages as $stage_key => $stage_label ) : ?>
               <option value="<?php echo esc_attr( (string) $stage_key ); ?>" <?php selected( $filter_stage, $stage_key ); ?>>
@@ -78,7 +78,7 @@ $sections = array(
 
         <label>
           <span class="screen-reader-text"><?php esc_html_e( 'Advisor', 'peracrm' ); ?></span>
-          <select class="cta-control" name="advisor">
+          <select class="crm-search-control" name="advisor">
             <option value="0"><?php esc_html_e( 'All advisors', 'peracrm' ); ?></option>
             <?php foreach ( $advisors as $advisor ) : ?>
               <?php

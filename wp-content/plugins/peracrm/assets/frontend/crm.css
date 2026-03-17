@@ -1147,28 +1147,9 @@ body.crm-route .crm-page--client-view .crm-portfolio-actions .peracrm-linked-pro
   margin: 0 0 6px;
 }
 
-.crm-floating-add-task {
-  position: fixed;
-  right: max(16px, calc((100vw - var(--container)) / 2 + 16px));
-  bottom: 88px;
-  width: 28px;
-  height: 28px;
-  border-radius: 999px;
-  border: 1px solid rgba(11, 12, 14, 0.08);
-  background: #ffffff;
-  color: inherit;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.16);
-  z-index: 10000;
-  text-decoration: none;
-}
 
-.crm-floating-add-task .icon {
-  width: 14px;
-  height: 14px;
-}
+
+
 
 .crm-floating-toggle .header-icon-dot {
   position: absolute;
@@ -1218,10 +1199,7 @@ body.crm-route .crm-page--client-view .crm-portfolio-actions .peracrm-linked-pro
     height: 54px;
   }
 
-  .crm-floating-add-task {
-    right: 16px;
-    bottom: 81px;
-  }
+  
 
   .crm-client-reminders-grid {
     grid-template-columns: 1fr;
@@ -1335,19 +1313,9 @@ body.crm-route .crm-page--client-view .crm-portfolio-actions .peracrm-linked-pro
     box-shadow: 0 0 0 1px rgba(2, 6, 23, 0.9);
   }
 
-  .crm-floating-add-task {
-    background: #0d0d0d;
-    border-color: #333333;
-    color: #e2e8f0;
-    box-shadow: 0 8px 18px rgba(2, 6, 23, 0.6);
-  }
+  
 
-  .crm-floating-add-task:hover,
-  .crm-floating-add-task:focus-visible {
-    background: #111827;
-    border-color: rgba(148, 163, 184, 0.7);
-    color: #f8fafc;
-  }
+
 
   .crm-page--client-view .crm-form-stack input:not([type="hidden"]),
   .crm-page--client-view .crm-form-stack select,
@@ -1403,9 +1371,7 @@ body.crm-route .crm-page--client-view .crm-portfolio-actions .peracrm-linked-pro
     right: 16px;
   }
 
-  .crm-floating-add-task {
-    right: 16px;
-  }
+  
 
   .crm-page--overview .crm-kpi-grid.cards-slider,
   .crm-page--overview .cards-slider--snap {
@@ -2016,4 +1982,44 @@ body.crm-route #site-header.peracrm-shell-header .peracrm-shell-logo-text {
   body.crm-route #site-header.peracrm-shell-header .peracrm-shell-logo-text {
     color: #ffffff;
   }
+}
+
+.crm-layout { display: grid; grid-template-columns: minmax(0,1fr) 240px; gap: 16px; align-items: start; }
+.crm-layout__main { min-width: 0; }
+.crm-side-nav { position: sticky; top: 90px; background: #fff; border: 1px solid #e8ecf2; border-radius: 12px; padding: 12px; }
+.crm-side-nav__title { display: flex; align-items: center; gap: 8px; font-weight: 700; margin: 0 0 8px; }
+.crm-side-nav__title .icon { width: 18px; height: 18px; }
+.crm-side-nav__list { list-style: none; margin: 0; padding: 0; display: grid; gap: 6px; }
+.crm-side-nav__list a { display: block; padding: 8px 10px; border-radius: 8px; text-decoration: none; color: inherit; overflow-wrap: anywhere; }
+.crm-side-nav__list a.is-active { background: #eef4ff; color: var(--brand); font-weight: 600; }
+
+.crm-form-stack input,
+.crm-form-stack select,
+.crm-form-stack textarea { box-sizing: border-box; min-width: 0; max-width: 100%; }
+.crm-page .card-shell,
+.crm-page .crm-list li,
+.crm-client-panels-grid .card-shell,
+.crm-client-reminders-grid > section,
+.crm-deals-grid > label { min-width: 0; }
+.crm-page p, .crm-page span, .crm-page a, .crm-page label { overflow-wrap: anywhere; }
+.crm-inline-form, .crm-status-actions, .crm-task-action, .crm-client-quick-actions { flex-wrap: wrap; }
+
+.crm-client-hero-filters .crm-search-control { width: 100%; }
+.crm-search-control { display: block; width: 100%; padding: 0.7rem 0.9rem; border: 1px solid #e1e1e1; border-radius: 10px; background: #fff; }
+
+.crm-log-table { width: 100%; border-collapse: collapse; table-layout: fixed; }
+.crm-log-table th, .crm-log-table td { padding: 10px; border-bottom: 1px solid #e8ecf2; text-align: left; vertical-align: top; overflow-wrap: anywhere; }
+
+@media (max-width: 1024px) { .crm-layout { grid-template-columns: 1fr; } .crm-side-nav { position: static; order: -1; } }
+
+.crm-inline-status.is-success { color: #0a7a3b; }
+.crm-inline-status.is-error { color: #a11; }
+
+.crm-page--client-view .crm-portfolio-create-btn {
+  padding-inline: 14px;
+  min-height: 38px;
+}
+
+.crm-confirm-dialog::backdrop {
+  background: rgba(10, 18, 32, 0.35);
 }

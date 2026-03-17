@@ -71,6 +71,8 @@ if (!function_exists('pera_crm_register_route')) {
         add_rewrite_rule('^crm/leads/page/([0-9]+)/?$', 'index.php?pera_crm=1&pera_crm_view=leads&paged=$matches[1]', 'top');
         add_rewrite_rule('^crm/tasks/?$', 'index.php?pera_crm=1&pera_crm_view=tasks', 'top');
         add_rewrite_rule('^crm/pipeline/?$', 'index.php?pera_crm=1&pera_crm_view=pipeline', 'top');
+        add_rewrite_rule('^crm/whatsapp-logs/?$', 'index.php?pera_crm=1&pera_crm_view=whatsapp_logs', 'top');
+        add_rewrite_rule('^crm/email-logs/?$', 'index.php?pera_crm=1&pera_crm_view=email_logs', 'top');
     }
 }
 add_action('init', 'pera_crm_register_route');
@@ -362,6 +364,10 @@ if (!function_exists('peracrm_frontend_resolve_crm_template')) {
 
         if ($view === 'pipeline') {
             return peracrm_frontend_view_path('pages/crm-pipeline.php');
+        }
+
+        if ($view === 'whatsapp_logs' || $view === 'email_logs') {
+            return peracrm_frontend_view_path('pages/crm-logs.php');
         }
 
         return peracrm_frontend_view_path('pages/crm-overview.php');
