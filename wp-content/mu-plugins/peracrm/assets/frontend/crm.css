@@ -5,10 +5,14 @@
   --bg: #ffffff;
   --text: #000000;
   --text-soft: #4b5563;
+  --color-white: #ffffff;
   --brand: #002d72;
   --accent: #0056b3;
   --inverse: #f8fafc;
+  --surface-soft: #f8fafc;
+  --border: #e8ecf2;
   --pill-green: #16a34a;
+  --pill-green-hover: #1f7f4a;
   --pill-red: #dc2626;
   --pill-bg: #002d72;
   --pill-text: #ffffff;
@@ -168,7 +172,7 @@
 
 .crm-page .section-header { max-width: var(--container); margin: 0 auto; }
 .crm-page .content-panel { position: relative; z-index: 3; padding: 0 10px 60px; margin-top: 0; }
-.crm-page .content-panel--overlap-hero { margin-top: calc(var(--header-height) * -0.35); }
+.crm-page .content-panel--overlap-hero { margin-top: 0; }
 .crm-page .content-panel-box {
   max-width: var(--container);
   margin: 0 auto;
@@ -179,7 +183,7 @@
 }
 
 @media (max-width: 900px) {
-  .crm-page .content-panel--overlap-hero { margin-top: -40px; }
+  .crm-page .content-panel--overlap-hero { margin-top: 0; }
 }
 @media (max-width: 768px) {
   .crm-page .section { padding: 40px 10px; }
@@ -1837,10 +1841,14 @@ body.crm-route table col,
     --bg: #020617;
     --text: #e5e7eb;
     --text-soft: #94a3b8;
+    --color-white: #0f172a;
+    --surface-soft: #1e293b;
+    --border: rgba(148, 163, 184, 0.35);
     --border-muted: rgba(148, 163, 184, 0.4);
     --pill-outline-bg: #0f172a;
     --pill-outline-bg-hover: #1e293b;
     --pill-outline-text: #e2e8f0;
+    --pill-green-hover: #15803d;
   }
 
   .crm-page,
@@ -1899,6 +1907,46 @@ body.crm-route table col,
 }
 
 /* CRM plugin-owned shell header (minimal: logo only). */
+body.crm-route,
+body.crm-route #site-header,
+body.crm-route .site-main,
+body.crm-route .crm-page {
+  font-family: "Montserrat", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+}
+
+body.crm-route .screen-reader-text {
+  position: absolute !important;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  clip-path: inset(50%);
+  white-space: nowrap;
+  border: 0;
+}
+
+body.crm-route .screen-reader-text:focus {
+  clip: auto;
+  clip-path: none;
+  height: auto;
+  width: auto;
+  margin: 0;
+  overflow: visible;
+  position: static !important;
+  white-space: normal;
+}
+
+body.crm-route .crm-page .crm-field-label {
+  display: block;
+  margin-bottom: 6px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
 body.crm-route .skip-link {
   position: absolute;
   top: -1000px;
