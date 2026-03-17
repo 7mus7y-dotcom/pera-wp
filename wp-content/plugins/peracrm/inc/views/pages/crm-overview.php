@@ -104,7 +104,8 @@ peracrm_frontend_render_shell_header();
   ?>
 
 	  <section class="content-panel content-panel--overlap-hero">
-	    <div class="content-panel-box border-dm">
+	    <div class="content-panel-box border-dm crm-layout">
+      <div class="crm-layout__main">
 			<?php if ( ! $is_leads && ! $is_tasks ) : ?>
       <?php if ( ! empty( $notices ) ) : ?>
       <section class="section" aria-label="<?php echo esc_attr__( 'CRM notices', 'peracrm' ); ?>">
@@ -116,6 +117,29 @@ peracrm_frontend_render_shell_header();
 				<?php endforeach; ?>
       </section>
       <?php endif; ?>
+
+      <section class="section" aria-labelledby="crm-new-leads-heading">
+        <article class="card-shell">
+          <header class="section-header">
+            <h2 id="crm-new-leads-heading"><?php echo esc_html__( 'New Leads', 'peracrm' ); ?></h2>
+          </header>
+          <?php if ( empty( $new_leads ) ) : ?>
+            <p><?php echo esc_html__( 'No new leads found.', 'peracrm' ); ?></p>
+          <?php else : ?>
+            <div class="crm-new-leads-grid">
+            <?php foreach ( $new_leads as $lead ) : ?>
+              <article class="card-shell crm-new-lead-card">
+                <h3><?php echo esc_html( (string) ( $lead['name'] ?? '' ) ); ?></h3>
+                <p><strong><?php esc_html_e( 'Phone:', 'peracrm' ); ?></strong> <?php echo esc_html( (string) ( $lead['phone'] ?? '—' ) ); ?></p>
+                <p><strong><?php esc_html_e( 'Source:', 'peracrm' ); ?></strong> <?php echo esc_html( (string) ( $lead['source'] ?? '—' ) ); ?></p>
+                <p><strong><?php esc_html_e( 'Enquiry:', 'peracrm' ); ?></strong> <?php echo esc_html( (string) ( $lead['enquiry_at'] ?? '—' ) ); ?></p>
+                <a class="btn btn--ghost btn--blue" href="<?php echo esc_url( (string) ( $lead['url'] ?? '' ) ); ?>"><?php echo esc_html__( 'View lead', 'peracrm' ); ?></a>
+              </article>
+            <?php endforeach; ?>
+            </div>
+          <?php endif; ?>
+        </article>
+      </section>
 
       <section class="section" aria-labelledby="crm-today-tasks-heading">
         <article class="card-shell">
@@ -194,29 +218,6 @@ peracrm_frontend_render_shell_header();
                 <a class="btn btn--ghost btn--blue" href="<?php echo esc_url( home_url( '/crm/tasks/' ) ); ?>"><?php echo esc_html__( 'See all tasks', 'peracrm' ); ?></a>
               </article>
             <?php endif; ?>
-            </div>
-          <?php endif; ?>
-        </article>
-      </section>
-
-      <section class="section" aria-labelledby="crm-new-leads-heading">
-        <article class="card-shell">
-          <header class="section-header">
-            <h2 id="crm-new-leads-heading"><?php echo esc_html__( 'New Leads', 'peracrm' ); ?></h2>
-          </header>
-          <?php if ( empty( $new_leads ) ) : ?>
-            <p><?php echo esc_html__( 'No new leads found.', 'peracrm' ); ?></p>
-          <?php else : ?>
-            <div class="crm-new-leads-grid">
-            <?php foreach ( $new_leads as $lead ) : ?>
-              <article class="card-shell crm-new-lead-card">
-                <h3><?php echo esc_html( (string) ( $lead['name'] ?? '' ) ); ?></h3>
-                <p><strong><?php esc_html_e( 'Phone:', 'peracrm' ); ?></strong> <?php echo esc_html( (string) ( $lead['phone'] ?? '—' ) ); ?></p>
-                <p><strong><?php esc_html_e( 'Source:', 'peracrm' ); ?></strong> <?php echo esc_html( (string) ( $lead['source'] ?? '—' ) ); ?></p>
-                <p><strong><?php esc_html_e( 'Enquiry:', 'peracrm' ); ?></strong> <?php echo esc_html( (string) ( $lead['enquiry_at'] ?? '—' ) ); ?></p>
-                <a class="btn btn--ghost btn--blue" href="<?php echo esc_url( (string) ( $lead['url'] ?? '' ) ); ?>"><?php echo esc_html__( 'View lead', 'peracrm' ); ?></a>
-              </article>
-            <?php endforeach; ?>
             </div>
           <?php endif; ?>
         </article>
@@ -545,6 +546,8 @@ peracrm_frontend_render_shell_header();
 			}
 			?>
 		<?php endif; ?>
+      </div>
+      <?php if ( function_exists( 'peracrm_frontend_render_partial' ) ) { peracrm_frontend_render_partial( 'crm-side-nav', array( 'active_view' => $crm_active_view ) ); } ?>
     </div>
   </section>
 </main>

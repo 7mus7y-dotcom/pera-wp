@@ -811,3 +811,201 @@
     });
   });
 })();
+
+(function () {
+  var ajaxUrl = window.peraCrmData && window.peraCrmData.ajaxUrl ? window.peraCrmData.ajaxUrl : '';
+  if (!ajaxUrl) {
+    return;
+  }
+
+  function ensureStatusNode(form) {
+    var box = form.querySelector('[data-crm-form-status]');
+    if (!box) {
+      box = document.createElement('p');
+      box.className = 'crm-inline-status';
+      box.setAttribute('aria-live', 'polite');
+      box.setAttribute('data-crm-form-status', '');
+      form.appendChild(box);
+    }
+    return box;
+  }
+
+  function setFeedback(form, message, ok) {
+    var box = ensureStatusNode(form);
+    box.textContent = message || '';
+    box.classList.toggle('is-success', !!ok);
+    box.classList.toggle('is-error', !ok);
+  }
+
+  function setLoading(form, loading) {
+    var buttons = Array.prototype.slice.call(form.querySelectorAll('button[type="submit"], input[type="submit"]'));
+    buttons.forEach(function (button) {
+      if (loading) {
+        var currentLabel = button.tagName.toLowerCase() === 'input' ? (button.value || '') : (button.textContent || '');
+        button.setAttribute('data-crm-original-label', currentLabel);
+        button.disabled = true;
+        if (button.tagName.toLowerCase() === 'input') {
+          button.value = 'Saving…';
+        } else {
+          button.textContent = 'Saving…';
+        }
+      } else {
+        button.disabled = false;
+        var label = button.getAttribute('data-crm-original-label') || '';
+        if (!label) {
+          return;
+        }
+        if (button.tagName.toLowerCase() === 'input') {
+          button.value = label;
+        } else {
+          button.textContent = label;
+        }
+      }
+    });
+  }
+
+  function replacePanel(panelName, panelHtml) {
+    if (!panelName || !panelHtml) {
+      return;
+    }
+
+    var parser = new window.DOMParser();
+    var parsed = parser.parseFromString(panelHtml, 'text/html');
+    var incoming = parsed.querySelector('[data-crm-panel="' + panelName + '"]');
+    var current = document.querySelector('[data-crm-panel="' + panelName + '"]');
+    if (incoming && current) {
+      current.replaceWith(incoming);
+    }
+  }
+
+  function resolveLiveForm(panelName, formType, fallbackForm) {
+    if (panelName) {
+      var livePanel = document.querySelector('[data-crm-panel="' + panelName + '"]');
+      if (livePanel) {
+        var panelForm = livePanel.querySelector('form[data-crm-ajax-form="' + formType + '"]');
+        if (panelForm) {
+          return panelForm;
+        }
+      }
+    }
+
+    var firstMatch = document.querySelector('form[data-crm-ajax-form="' + formType + '"]');
+    if (firstMatch) {
+      return firstMatch;
+    }
+
+    return fallbackForm;
+  }
+
+  function ensureAdvisorDialog() {
+    var dialog = document.getElementById('crm-advisor-confirm-dialog');
+    if (dialog) {
+      return dialog;
+    }
+
+    dialog = document.createElement('dialog');
+    dialog.id = 'crm-advisor-confirm-dialog';
+    dialog.className = 'crm-danger-dialog crm-confirm-dialog';
+    dialog.innerHTML = '' +
+      '<h4>Confirm advisor reassignment</h4>' +
+      '<p>You are about to change the assigned advisor for this client.</p>' +
+      '<div class="crm-danger-dialog__actions">' +
+      '<button type="button" class="btn btn--solid btn--blue" data-crm-confirm-yes>Yes, I’m sure</button>' +
+      '<button type="button" class="btn btn--ghost btn--blue" data-crm-confirm-no>No, I made a mistake</button>' +
+      '</div>';
+    document.body.appendChild(dialog);
+    return dialog;
+  }
+
+  function confirmAdvisorSubmit() {
+    return new Promise(function (resolve) {
+      var dialog = ensureAdvisorDialog();
+      var yes = dialog.querySelector('[data-crm-confirm-yes]');
+      var no = dialog.querySelector('[data-crm-confirm-no]');
+
+      function cleanup(value) {
+        yes.removeEventListener('click', onYes);
+        no.removeEventListener('click', onNo);
+        if (typeof dialog.close === 'function') {
+          dialog.close();
+        } else {
+          dialog.removeAttribute('open');
+        }
+        resolve(value);
+      }
+
+      function onYes() { cleanup(true); }
+      function onNo() { cleanup(false); }
+      yes.addEventListener('click', onYes);
+      no.addEventListener('click', onNo);
+
+      if (typeof dialog.showModal === 'function') {
+        dialog.showModal();
+      } else {
+        dialog.setAttribute('open', 'open');
+      }
+    });
+  }
+
+  document.addEventListener('submit', function (event) {
+    var form = event.target.closest('form[data-crm-ajax-form]');
+    if (!form) {
+      return;
+    }
+
+    var type = form.getAttribute('data-crm-ajax-form') || '';
+    if (!type) {
+      return;
+    }
+
+    event.preventDefault();
+
+    var proceed = Promise.resolve(true);
+    if (type === 'advisor') {
+      proceed = confirmAdvisorSubmit();
+    }
+
+    proceed.then(function (okToContinue) {
+      if (!okToContinue) {
+        return;
+      }
+
+      var payload = new window.FormData(form);
+      payload.append('action', 'pera_crm_client_action');
+      payload.append('form_type', type);
+
+      var activeForm = form;
+      var activePanel = '';
+
+      setLoading(form, true);
+
+      fetch(ajaxUrl, {
+        method: 'POST',
+        credentials: 'same-origin',
+        body: payload
+      })
+        .then(function (response) { return response.json(); })
+        .then(function (json) {
+          var success = !!(json && json.success);
+          var data = json && json.data ? json.data : {};
+          var message = data.message || (success ? 'Saved.' : 'Unable to save.');
+
+          if (data.panel && data.panel_html) {
+            replacePanel(data.panel, data.panel_html);
+            activePanel = data.panel;
+            activeForm = resolveLiveForm(activePanel, type, form);
+          }
+
+          setFeedback(activeForm, message, success);
+        })
+        .catch(function () {
+          activeForm = resolveLiveForm(activePanel, type, form);
+          setFeedback(activeForm, 'Unable to save.', false);
+        })
+        .finally(function () {
+          activeForm = resolveLiveForm(activePanel, type, form);
+          setLoading(activeForm, false);
+        });
+    });
+  });
+})();

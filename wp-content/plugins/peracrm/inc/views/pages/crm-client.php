@@ -224,6 +224,7 @@ peracrm_frontend_render_shell_header();
   <?php
   $header_args = array(
 	  'title' => __( 'Client View', 'peracrm' ),
+	  'active_view' => 'clients',
   );
 
   if ( function_exists( 'peracrm_frontend_render_partial' ) ) {
@@ -232,7 +233,8 @@ peracrm_frontend_render_shell_header();
   ?>
 
   <section class="content-panel content-panel--overlap-hero">
-    <div class="content-panel-box border-dm">
+    <div class="content-panel-box border-dm crm-layout">
+	  <div class="crm-layout__main">
 	  <?php if ( empty( $access['allowed'] ) ) : ?>
         <article class="card-shell">
           <p class="pill pill--outline"><?php echo esc_html__( 'Access denied', 'peracrm' ); ?></p>
@@ -279,9 +281,9 @@ peracrm_frontend_render_shell_header();
         </div>
 
         <div class="crm-client-panels-grid">
-          <article class="card-shell crm-client-section crm-client-profile-panel">
+          <article class="card-shell crm-client-section crm-client-profile-panel" data-crm-panel="profile">
             <h3><?php esc_html_e( 'Client Profile', 'peracrm' ); ?></h3>
-            <form method="post" action="<?php echo esc_url( home_url( '/wp-admin/admin-post.php' ) ); ?>" class="crm-form-stack">
+            <form method="post" action="<?php echo esc_url( home_url( '/wp-admin/admin-post.php' ) ); ?>" class="crm-form-stack" data-crm-ajax-form="profile">
 						<?php wp_nonce_field( 'peracrm_save_client_profile', 'peracrm_save_client_profile_nonce' ); ?>
               <input type="hidden" name="action" value="peracrm_save_client_profile" />
               <input type="hidden" name="peracrm_client_id" value="<?php echo esc_attr( (string) $client_id ); ?>" />
@@ -330,10 +332,10 @@ peracrm_frontend_render_shell_header();
             </form>
           </article>
 
-          <article class="card-shell crm-client-section crm-status-panel">
+          <article class="card-shell crm-client-section crm-status-panel" data-crm-panel="status">
             <h3><?php esc_html_e( 'CRM Status', 'peracrm' ); ?></h3>
             <span class="crm-derived-badge crm-derived-badge--<?php echo esc_attr( $derived_type ); ?>"><?php echo esc_html( $derived_type_label ); ?></span>
-            <form method="post" action="<?php echo esc_url( home_url( '/wp-admin/admin-post.php' ) ); ?>" class="crm-form-stack crm-status-form" id="crm-status-form">
+            <form method="post" action="<?php echo esc_url( home_url( '/wp-admin/admin-post.php' ) ); ?>" class="crm-form-stack crm-status-form" id="crm-status-form" data-crm-ajax-form="status">
 					<?php wp_nonce_field( 'peracrm_save_party_status' ); ?>
               <input type="hidden" name="action" value="peracrm_save_party_status" />
               <input type="hidden" name="peracrm_client_id" value="<?php echo esc_attr( (string) $client_id ); ?>" />
@@ -389,7 +391,7 @@ peracrm_frontend_render_shell_header();
               </div>
             </article>
 
-          <article class="card-shell crm-client-section">
+          <article class="card-shell crm-client-section" data-crm-panel="notes">
             <h3><?php esc_html_e( 'Advisor Notes', 'peracrm' ); ?></h3>
             <?php if ( empty( $notes ) ) : ?>
               <p><?php esc_html_e( 'No notes yet.', 'peracrm' ); ?></p>
@@ -418,7 +420,7 @@ peracrm_frontend_render_shell_header();
             <?php endif; ?>
 
             <div class="crm-add-note">
-              <form method="post" action="<?php echo esc_url( home_url( '/wp-admin/admin-post.php' ) ); ?>" class="crm-form-stack">
+              <form method="post" action="<?php echo esc_url( home_url( '/wp-admin/admin-post.php' ) ); ?>" class="crm-form-stack" data-crm-ajax-form="note">
               <?php wp_nonce_field( 'peracrm_add_note', 'peracrm_add_note_nonce' ); ?>
               <input type="hidden" name="action" value="peracrm_add_note" />
               <input type="hidden" name="peracrm_client_id" value="<?php echo esc_attr( (string) $client_id ); ?>" />
@@ -430,7 +432,7 @@ peracrm_frontend_render_shell_header();
             </div>
           </article>
 
-        <article class="card-shell crm-client-section crm-client-reminders">
+        <article class="card-shell crm-client-section crm-client-reminders" data-crm-panel="reminders">
           <header class="section-header">
             <h3><?php esc_html_e( 'Tasks / Reminders', 'peracrm' ); ?></h3>
           </header>
@@ -516,7 +518,7 @@ peracrm_frontend_render_shell_header();
               </ul>
             </section>
           </div>
-          <form id="crm-add-reminder" method="post" action="<?php echo esc_url( home_url( '/wp-admin/admin-post.php' ) ); ?>" class="crm-form-stack">
+          <form id="crm-add-reminder" method="post" action="<?php echo esc_url( home_url( '/wp-admin/admin-post.php' ) ); ?>" class="crm-form-stack" data-crm-ajax-form="reminder">
             <?php wp_nonce_field( 'peracrm_add_reminder', 'peracrm_add_reminder_nonce' ); ?>
             <input type="hidden" name="action" value="peracrm_add_reminder" />
             <input type="hidden" name="peracrm_client_id" value="<?php echo esc_attr( (string) $client_id ); ?>" />
@@ -635,9 +637,9 @@ peracrm_frontend_render_shell_header();
             <?php endforeach; ?>
           </article>
 
-          <article class="card-shell crm-client-section" data-crm-linked-properties data-client-id="<?php echo esc_attr( (string) $client_id ); ?>">
+          <article class="card-shell crm-client-section" data-crm-linked-properties data-client-id="<?php echo esc_attr( (string) $client_id ); ?>" data-crm-panel="properties">
             <h3><?php esc_html_e( 'Linked Properties', 'peracrm' ); ?></h3>
-            <form method="post" class="crm-form-stack">
+            <form method="post" class="crm-form-stack" data-crm-ajax-form="property-link">
 					<?php wp_nonce_field( 'pera_crm_property_action', 'pera_crm_property_nonce' ); ?>
               <input type="hidden" name="pera_crm_property_action" value="link" />
               <input type="hidden" name="peracrm_client_id" value="<?php echo esc_attr( (string) $client_id ); ?>" />
@@ -657,7 +659,7 @@ peracrm_frontend_render_shell_header();
               <div class="crm-inline-form">
                 <h4><?php echo esc_html( ucfirst( (string) $relation ) ); ?></h4>
                 <?php if ( 'portfolio' === (string) $relation && ! empty( $portfolio_items ) ) : ?>
-                <button type="button" class="btn btn--ghost btn--blue" data-crm-portfolio-open="crm-client-portfolio-dialog"><?php esc_html_e( 'Create portfolio', 'peracrm' ); ?></button>
+                <button type="button" class="btn btn--ghost btn--blue crm-portfolio-create-btn" data-crm-portfolio-open="crm-client-portfolio-dialog"><?php esc_html_e( 'Create portfolio', 'peracrm' ); ?></button>
                 <?php endif; ?>
               </div>
 					<?php if ( 'portfolio' === (string) $relation && ! empty( $portfolio_items ) ) : ?>
@@ -799,7 +801,7 @@ peracrm_frontend_render_shell_header();
             </dialog>
           </article>
 
-          <article class="card-shell crm-client-section">
+          <article class="card-shell crm-client-section" data-crm-panel="deals">
             <h3><?php esc_html_e( 'Deals', 'peracrm' ); ?></h3>
             <ul class="crm-list crm-deals-list">
 					<?php foreach ( $deals as $deal ) : ?>
@@ -834,7 +836,7 @@ peracrm_frontend_render_shell_header();
                 </li>
 					<?php endforeach; ?>
             </ul>
-            <form method="post" action="<?php echo esc_url( home_url( '/wp-admin/admin-post.php' ) ); ?>" class="crm-form-stack crm-deals-form">
+            <form method="post" action="<?php echo esc_url( home_url( '/wp-admin/admin-post.php' ) ); ?>" class="crm-form-stack crm-deals-form" data-crm-ajax-form="deal">
               <input type="hidden" name="action" value="<?php echo esc_attr( 'update' === $deal_form_mode ? 'peracrm_update_deal' : 'peracrm_create_deal' ); ?>" />
               <input type="hidden" name="peracrm_deal_nonce" value="<?php echo esc_attr( wp_create_nonce( 'update' === $deal_form_mode ? 'peracrm_update_deal' : 'peracrm_create_deal' ) ); ?>" />
               <input type="hidden" name="peracrm_deal_submit" value="1" />
@@ -872,7 +874,7 @@ peracrm_frontend_render_shell_header();
             </form>
           </article>
 
-          <article class="card-shell crm-client-section">
+          <article class="card-shell crm-client-section" data-crm-panel="advisor">
             <h3><?php esc_html_e( 'Assigned Advisor', 'peracrm' ); ?></h3>
             <?php if ( function_exists( 'peracrm_render_assigned_advisor_box' ) ) : ?>
               <?php peracrm_render_assigned_advisor_box( $client_id, array( 'context' => 'frontend', 'redirect' => $frontend_url ) ); ?>
@@ -930,16 +932,10 @@ peracrm_frontend_render_shell_header();
         <?php endif; ?>
 
 	  <?php endif; ?>
+      </div>
+      <?php if ( function_exists( 'peracrm_frontend_render_partial' ) ) { peracrm_frontend_render_partial( 'crm-side-nav', array( 'active_view' => 'clients' ) ); } ?>
 	    </div>
 	  </section>
-
-	  <?php if ( ! empty( $access['allowed'] ) ) : ?>
-	  <a href="#crm-add-reminder" class="crm-floating-add-task" aria-label="<?php esc_attr_e( 'Add task', 'peracrm' ); ?>">
-		<svg class="icon" aria-hidden="true">
-		  <use href="<?php echo esc_url( trailingslashit( PERACRM_URL ) . 'assets/frontend/icons.svg#icon-check' ); ?>"></use>
-		</svg>
-	  </a>
-	  <?php endif; ?>
 </main>
 
 <?php
