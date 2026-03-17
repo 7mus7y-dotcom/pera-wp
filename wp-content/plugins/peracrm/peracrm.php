@@ -2,6 +2,8 @@
 /**
  * Plugin Name: PeraCRM
  * Description: WordPress-native CRM framework.
+ * Text Domain: peracrm
+ * Domain Path: /languages
  */
 
 if (!defined('ABSPATH')) {
@@ -32,6 +34,10 @@ if (!defined('PERACRM_URL')) {
 if (!defined('PERACRM_INC')) {
     define('PERACRM_INC', PERACRM_PATH . '/inc');
 }
+
+add_action('plugins_loaded', function () {
+    load_plugin_textdomain('peracrm', false, dirname(plugin_basename(PERACRM_MAIN_FILE)) . '/languages');
+});
 
 require_once PERACRM_INC . '/bootstrap.php';
 

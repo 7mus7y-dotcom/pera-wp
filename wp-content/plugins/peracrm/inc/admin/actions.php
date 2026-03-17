@@ -2577,7 +2577,7 @@ function peracrm_handle_convert_to_client()
 
     $created = peracrm_deals_create([
         'party_id' => $client_id,
-        'title' => __('Converted to client', 'hello-elementor-child'),
+        'title' => __('Converted to client', 'peracrm'),
         'stage' => 'completed',
         'owner_user_id' => get_current_user_id(),
         'currency' => 'USD',

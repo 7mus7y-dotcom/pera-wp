@@ -204,7 +204,7 @@ if (!function_exists('pera_crm_handle_new_lead')) {
 
         $mu_can_access = function_exists('peracrm_user_can_access_crm') ? (bool) peracrm_user_can_access_crm() : true;
         if (!pera_crm_user_can_access() || !$mu_can_access || !current_user_can('edit_crm_clients')) {
-            wp_die(esc_html__('You are not allowed to create CRM leads.', 'hello-elementor-child'), 'Forbidden', ['response' => 403]);
+            wp_die(esc_html__('You are not allowed to create CRM leads.', 'peracrm'), 'Forbidden', ['response' => 403]);
         }
 
         $nonce = isset($_POST['pera_crm_create_lead_nonce']) ? sanitize_text_field(wp_unslash((string) $_POST['pera_crm_create_lead_nonce'])) : '';
@@ -344,7 +344,7 @@ if (!function_exists('pera_crm_gate_or_redirect')) {
 
         if (!pera_crm_user_can_access()) {
             pera_crm_debug_log_gate('gate_denied');
-            wp_die(esc_html__('You are not allowed to access this page.', 'hello-elementor-child'), 'Forbidden', ['response' => 403]);
+            wp_die(esc_html__('You are not allowed to access this page.', 'peracrm'), 'Forbidden', ['response' => 403]);
         }
     }
 }
@@ -475,7 +475,7 @@ if (!function_exists('pera_crm_rewrite_notice')) {
         }
 
         echo '<div class="notice notice-info"><p>';
-        echo esc_html__('PeraCRM manages /crm/* rewrites automatically by version. If routes fail after deploy, save Permalinks or run wp rewrite flush --hard.', 'hello-elementor-child');
+        echo esc_html__('PeraCRM manages /crm/* rewrites automatically by version. If routes fail after deploy, save Permalinks or run wp rewrite flush --hard.', 'peracrm');
         echo '</p></div>';
     }
 }
@@ -504,7 +504,7 @@ if (!function_exists('pera_crm_add_header_nav_item')) {
         $items .= sprintf(
             '<li class="menu-item menu-item-crm"><a href="%s">%s</a></li>',
             esc_url(home_url('/crm/')),
-            esc_html__('CRM', 'hello-elementor-child')
+            esc_html__('CRM', 'peracrm')
         );
 
         return $items;

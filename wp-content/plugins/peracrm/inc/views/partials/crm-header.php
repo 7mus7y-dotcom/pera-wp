@@ -9,7 +9,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-$title       = isset( $args['title'] ) ? (string) $args['title'] : __( 'CRM', 'hello-elementor-child' );
+$title       = isset( $args['title'] ) ? (string) $args['title'] : __( 'CRM', 'peracrm' );
 $description = isset( $args['description'] ) ? (string) $args['description'] : '';
 $active_view = isset( $args['active_view'] ) ? sanitize_key( (string) $args['active_view'] ) : '';
 
@@ -24,19 +24,19 @@ $filter_advisor      = isset( $_GET['advisor'] ) ? absint( wp_unslash( (string) 
 
 $sections = array(
 	'overview' => array(
-		'label' => __( 'Overview', 'hello-elementor-child' ),
+		'label' => __( 'Overview', 'peracrm' ),
 		'url'   => home_url( '/crm/' ),
 	),
 	'clients'  => array(
-		'label' => __( 'Clients', 'hello-elementor-child' ),
+		'label' => __( 'Clients', 'peracrm' ),
 		'url'   => home_url( '/crm/clients/' ),
 	),
 	'tasks'    => array(
-		'label' => __( 'Tasks', 'hello-elementor-child' ),
+		'label' => __( 'Tasks', 'peracrm' ),
 		'url'   => home_url( '/crm/tasks/' ),
 	),
 	'pipeline' => array(
-		'label' => __( 'Pipeline', 'hello-elementor-child' ),
+		'label' => __( 'Pipeline', 'peracrm' ),
 		'url'   => home_url( '/crm/pipeline/' ),
 	),
 );
@@ -48,9 +48,9 @@ $sections = array(
       <p class="lead"><?php echo esc_html( $description ); ?></p>
     <?php endif; ?>
     <div class="hero-actions">
-      <a class="btn btn--solid btn--green" href="<?php echo esc_url( home_url( '/crm/new/' ) ); ?>"><?php echo esc_html__( 'Create lead', 'hello-elementor-child' ); ?></a>
+      <a class="btn btn--solid btn--green" href="<?php echo esc_url( home_url( '/crm/new/' ) ); ?>"><?php echo esc_html__( 'Create lead', 'peracrm' ); ?></a>
     </div>
-    <nav class="crm-subnav" aria-label="<?php echo esc_attr__( 'CRM sections', 'hello-elementor-child' ); ?>">
+    <nav class="crm-subnav" aria-label="<?php echo esc_attr__( 'CRM sections', 'peracrm' ); ?>">
       <?php foreach ( $sections as $section_key => $section ) : ?>
         <a class="btn btn--ghost <?php echo esc_attr( $section_key === $active_view ? 'btn--red is-active' : 'btn--white' ); ?>" href="<?php echo esc_url( (string) $section['url'] ); ?>"><?php echo esc_html( (string) $section['label'] ); ?></a>
       <?php endforeach; ?>
@@ -60,14 +60,14 @@ $sections = array(
       <input type="hidden" name="type" value="<?php echo esc_attr( $clients_type_view ); ?>">
       <div class="crm-client-hero-filters-grid">
         <label>
-          <span class="screen-reader-text"><?php esc_html_e( 'Search clients', 'hello-elementor-child' ); ?></span>
-          <input class="cta-control" type="search" name="q" value="<?php echo esc_attr( $filter_q ); ?>" placeholder="<?php echo esc_attr__( 'Search clients', 'hello-elementor-child' ); ?>">
+          <span class="screen-reader-text"><?php esc_html_e( 'Search clients', 'peracrm' ); ?></span>
+          <input class="cta-control" type="search" name="q" value="<?php echo esc_attr( $filter_q ); ?>" placeholder="<?php echo esc_attr__( 'Search clients', 'peracrm' ); ?>">
         </label>
 
         <label>
-          <span class="screen-reader-text"><?php esc_html_e( 'Stage', 'hello-elementor-child' ); ?></span>
+          <span class="screen-reader-text"><?php esc_html_e( 'Stage', 'peracrm' ); ?></span>
           <select class="cta-control" name="stage">
-            <option value=""><?php esc_html_e( 'All stages', 'hello-elementor-child' ); ?></option>
+            <option value=""><?php esc_html_e( 'All stages', 'peracrm' ); ?></option>
             <?php foreach ( $stages as $stage_key => $stage_label ) : ?>
               <option value="<?php echo esc_attr( (string) $stage_key ); ?>" <?php selected( $filter_stage, $stage_key ); ?>>
                 <?php echo esc_html( (string) $stage_label ); ?>
@@ -77,9 +77,9 @@ $sections = array(
         </label>
 
         <label>
-          <span class="screen-reader-text"><?php esc_html_e( 'Advisor', 'hello-elementor-child' ); ?></span>
+          <span class="screen-reader-text"><?php esc_html_e( 'Advisor', 'peracrm' ); ?></span>
           <select class="cta-control" name="advisor">
-            <option value="0"><?php esc_html_e( 'All advisors', 'hello-elementor-child' ); ?></option>
+            <option value="0"><?php esc_html_e( 'All advisors', 'peracrm' ); ?></option>
             <?php foreach ( $advisors as $advisor ) : ?>
               <?php
               $advisor_id    = isset( $advisor['id'] ) ? (int) $advisor['id'] : 0;
@@ -96,8 +96,8 @@ $sections = array(
         </label>
 
         <div class="crm-client-hero-filter-actions">
-          <button type="submit" class="btn btn--solid btn--green"><?php esc_html_e( 'Apply filters', 'hello-elementor-child' ); ?></button>
-          <a class="btn btn--ghost btn--white" href="<?php echo esc_url( home_url( '/crm/clients/' ) ); ?>"><?php esc_html_e( 'Clear', 'hello-elementor-child' ); ?></a>
+          <button type="submit" class="btn btn--solid btn--green"><?php esc_html_e( 'Apply filters', 'peracrm' ); ?></button>
+          <a class="btn btn--ghost btn--white" href="<?php echo esc_url( home_url( '/crm/clients/' ) ); ?>"><?php esc_html_e( 'Clear', 'peracrm' ); ?></a>
         </div>
       </div>
     </form>

@@ -26,8 +26,8 @@ peracrm_frontend_render_shell_header();
 	  peracrm_frontend_render_partial(
 		  'crm-header',
 		  array(
-			  'title'       => __( 'Pipeline', 'hello-elementor-child' ),
-			  'description' => __( 'Manage leads and clients by stage', 'hello-elementor-child' ),
+			  'title'       => __( 'Pipeline', 'peracrm' ),
+			  'description' => __( 'Manage leads and clients by stage', 'peracrm' ),
 			  'active_view' => 'pipeline',
 		  )
 	  );
@@ -36,7 +36,7 @@ peracrm_frontend_render_shell_header();
 
   <section class="content-panel content-panel--overlap-hero">
     <div class="content-panel-box border-dm">
-      <section class="crm-pipeline-board-wrap" aria-label="<?php echo esc_attr__( 'Pipeline board', 'hello-elementor-child' ); ?>">
+      <section class="crm-pipeline-board-wrap" aria-label="<?php echo esc_attr__( 'Pipeline board', 'peracrm' ); ?>">
         <div class="crm-pipeline-board">
           <?php foreach ( $columns as $column ) : ?>
             <?php
@@ -52,7 +52,7 @@ peracrm_frontend_render_shell_header();
 
               <div class="crm-pipeline-items">
                 <?php if ( empty( $items ) ) : ?>
-                  <p class="crm-pipeline-empty"><?php esc_html_e( 'No clients in this stage.', 'hello-elementor-child' ); ?></p>
+                  <p class="crm-pipeline-empty"><?php esc_html_e( 'No clients in this stage.', 'peracrm' ); ?></p>
                 <?php else : ?>
                   <?php foreach ( $items as $item ) : ?>
                     <?php
@@ -65,22 +65,22 @@ peracrm_frontend_render_shell_header();
                     $max     = (int) ( $item['budget_max'] ?? 0 );
                     ?>
                     <article class="crm-pipeline-item">
-                      <h3><a href="<?php echo esc_url( $url ); ?>"><?php echo esc_html( $title !== '' ? $title : __( '(no title)', 'hello-elementor-child' ) ); ?></a></h3>
+                      <h3><a href="<?php echo esc_url( $url ); ?>"><?php echo esc_html( $title !== '' ? $title : __( '(no title)', 'peracrm' ) ); ?></a></h3>
 
-                      <div class="crm-pipeline-item-meta" aria-label="<?php echo esc_attr__( 'Lead details', 'hello-elementor-child' ); ?>">
+                      <div class="crm-pipeline-item-meta" aria-label="<?php echo esc_attr__( 'Lead details', 'peracrm' ); ?>">
                         <?php if ( $lead_source !== '' ) : ?>
-                          <span class="pill pill--outline"><?php echo esc_html( sprintf( __( 'Source: %s', 'hello-elementor-child' ), $lead_source ) ); ?></span>
+                          <span class="pill pill--outline"><?php echo esc_html( sprintf( __( 'Source: %s', 'peracrm' ), $lead_source ) ); ?></span>
                         <?php endif; ?>
 
                         <?php if ( $min > 0 || $max > 0 ) : ?>
                           <span class="pill pill--outline">
                             <?php
                             if ( $min > 0 && $max > 0 ) {
-                              echo esc_html( sprintf( __( 'Budget: $%1$s – $%2$s', 'hello-elementor-child' ), number_format_i18n( $min ), number_format_i18n( $max ) ) );
+                              echo esc_html( sprintf( __( 'Budget: $%1$s – $%2$s', 'peracrm' ), number_format_i18n( $min ), number_format_i18n( $max ) ) );
                             } elseif ( $min > 0 ) {
-                              echo esc_html( sprintf( __( 'Budget: from $%s', 'hello-elementor-child' ), number_format_i18n( $min ) ) );
+                              echo esc_html( sprintf( __( 'Budget: from $%s', 'peracrm' ), number_format_i18n( $min ) ) );
                             } else {
-                              echo esc_html( sprintf( __( 'Budget: up to $%s', 'hello-elementor-child' ), number_format_i18n( $max ) ) );
+                              echo esc_html( sprintf( __( 'Budget: up to $%s', 'peracrm' ), number_format_i18n( $max ) ) );
                             }
                             ?>
                           </span>
@@ -89,10 +89,10 @@ peracrm_frontend_render_shell_header();
 
                       <div class="hero-pills">
                         <?php if ( $advisor !== '' ) : ?>
-                          <span class="pill pill--outline"><?php echo esc_html( sprintf( __( 'Advisor: %s', 'hello-elementor-child' ), $advisor ) ); ?></span>
+                          <span class="pill pill--outline"><?php echo esc_html( sprintf( __( 'Advisor: %s', 'peracrm' ), $advisor ) ); ?></span>
                         <?php endif; ?>
                         <?php if ( $last !== '' ) : ?>
-                          <span class="pill pill--outline"><?php echo esc_html( sprintf( __( 'Last activity: %s', 'hello-elementor-child' ), $last ) ); ?></span>
+                          <span class="pill pill--outline"><?php echo esc_html( sprintf( __( 'Last activity: %s', 'peracrm' ), $last ) ); ?></span>
                         <?php endif; ?>
                       </div>
                     </article>

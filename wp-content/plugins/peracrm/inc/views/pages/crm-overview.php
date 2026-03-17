@@ -24,7 +24,7 @@ $crm_dashboard = function_exists( 'pera_crm_get_dashboard_data' )
 		'todays_tasks'  => array(),
 		'overdue_tasks' => array(),
 		'new_leads'     => array(),
-		'notices'       => array( __( 'CRM data unavailable.', 'hello-elementor-child' ) ),
+		'notices'       => array( __( 'CRM data unavailable.', 'peracrm' ) ),
 	);
 
 $leads_data = $is_leads && function_exists( 'pera_crm_get_leads_view_data' )
@@ -50,18 +50,18 @@ $push_notice_key    = isset( $_GET['peracrm_push_notice'] ) ? sanitize_key( wp_u
 $push_notice_text   = '';
 
 if ( 'test_push_sent' === $push_notice_key ) {
-	$push_notice_text = __( 'Test push notification sent.', 'hello-elementor-child' );
+	$push_notice_text = __( 'Test push notification sent.', 'peracrm' );
 } elseif ( 'test_push_failed' === $push_notice_key ) {
-	$push_notice_text = __( 'Unable to send test push. Make sure push is enabled on this device.', 'hello-elementor-child' );
+	$push_notice_text = __( 'Unable to send test push. Make sure push is enabled on this device.', 'peracrm' );
 }
 
 $kpi_tiles = array(
-	array( 'label' => __( 'Total open leads', 'hello-elementor-child' ), 'key' => 'total_open_leads' ),
-	array( 'label' => __( 'New enquiries', 'hello-elementor-child' ), 'key' => 'new_enquiries' ),
-	array( 'label' => __( 'Qualified', 'hello-elementor-child' ), 'key' => 'qualified' ),
-	array( 'label' => __( 'Viewing arranged', 'hello-elementor-child' ), 'key' => 'viewing_arranged' ),
-	array( 'label' => __( 'Offer made', 'hello-elementor-child' ), 'key' => 'offer_made' ),
-	array( 'label' => __( 'Overdue reminders', 'hello-elementor-child' ), 'key' => 'overdue_reminders' ),
+	array( 'label' => __( 'Total open leads', 'peracrm' ), 'key' => 'total_open_leads' ),
+	array( 'label' => __( 'New enquiries', 'peracrm' ), 'key' => 'new_enquiries' ),
+	array( 'label' => __( 'Qualified', 'peracrm' ), 'key' => 'qualified' ),
+	array( 'label' => __( 'Viewing arranged', 'peracrm' ), 'key' => 'viewing_arranged' ),
+	array( 'label' => __( 'Offer made', 'peracrm' ), 'key' => 'offer_made' ),
+	array( 'label' => __( 'Overdue reminders', 'peracrm' ), 'key' => 'overdue_reminders' ),
 );
 
 $stages = function_exists( 'pera_crm_get_pipeline_stages' ) ? pera_crm_get_pipeline_stages() : array();
@@ -89,8 +89,8 @@ peracrm_frontend_render_shell_header();
 <main id="primary" class="site-main crm-page crm-page--<?php echo esc_attr( $is_leads ? 'leads' : ( $is_tasks ? 'tasks' : 'overview' ) ); ?>">
   <?php
   $header_args = array(
-	  'title'       => __( 'CRM', 'hello-elementor-child' ),
-	  'description' => __( 'Staff workspace for daily pipeline, workload, and account visibility.', 'hello-elementor-child' ),
+	  'title'       => __( 'CRM', 'peracrm' ),
+	  'description' => __( 'Staff workspace for daily pipeline, workload, and account visibility.', 'peracrm' ),
 	  'active_view' => $crm_active_view,
 	  'show_client_filters' => $is_leads,
 	  'stages'      => $stages,
@@ -107,10 +107,10 @@ peracrm_frontend_render_shell_header();
 	    <div class="content-panel-box border-dm">
 			<?php if ( ! $is_leads && ! $is_tasks ) : ?>
       <?php if ( ! empty( $notices ) ) : ?>
-      <section class="section" aria-label="<?php echo esc_attr__( 'CRM notices', 'hello-elementor-child' ); ?>">
+      <section class="section" aria-label="<?php echo esc_attr__( 'CRM notices', 'peracrm' ); ?>">
 				<?php foreach ( $notices as $notice ) : ?>
         <article class="card-shell">
-          <p class="pill pill--outline"><?php echo esc_html__( 'Notice', 'hello-elementor-child' ); ?></p>
+          <p class="pill pill--outline"><?php echo esc_html__( 'Notice', 'peracrm' ); ?></p>
           <p><?php echo esc_html( (string) $notice ); ?></p>
         </article>
 				<?php endforeach; ?>
@@ -120,19 +120,19 @@ peracrm_frontend_render_shell_header();
       <section class="section" aria-labelledby="crm-today-tasks-heading">
         <article class="card-shell">
           <header class="section-header">
-            <h2 id="crm-today-tasks-heading"><?php echo esc_html__( "Today's Tasks", 'hello-elementor-child' ); ?></h2>
+            <h2 id="crm-today-tasks-heading"><?php echo esc_html__( "Today's Tasks", 'peracrm' ); ?></h2>
           </header>
           <?php if ( empty( $todays_tasks ) ) : ?>
-            <p><?php echo esc_html__( 'No tasks due today.', 'hello-elementor-child' ); ?></p>
+            <p><?php echo esc_html__( 'No tasks due today.', 'peracrm' ); ?></p>
           <?php else : ?>
             <?php $today_cards = $build_overview_task_cards( $todays_tasks, $overview_task_cap ); ?>
             <div class="crm-overview-task-grid">
             <?php foreach ( $today_cards['tasks'] as $task ) : ?>
               <article class="card-shell crm-task-card">
-                <a class="btn btn--ghost btn--blue crm-task-client-btn" href="<?php echo esc_url( home_url( '/crm/client/' . (int) $task['lead_id'] . '/' ) ); ?>"><?php echo esc_html( (string) ( $task['lead_name'] ?: __( 'Untitled lead', 'hello-elementor-child' ) ) ); ?></a>
+                <a class="btn btn--ghost btn--blue crm-task-client-btn" href="<?php echo esc_url( home_url( '/crm/client/' . (int) $task['lead_id'] . '/' ) ); ?>"><?php echo esc_html( (string) ( $task['lead_name'] ?: __( 'Untitled lead', 'peracrm' ) ) ); ?></a>
                 <span class="pill pill--outline"><?php echo esc_html( (string) $task['due_date'] ); ?></span>
-                <p class="crm-task-note"><strong><?php esc_html_e( 'Task:', 'hello-elementor-child' ); ?></strong> <?php echo esc_html( (string) $task['reminder_note'] ); ?></p>
-                <p class="text-sm crm-task-last-note"><strong><?php esc_html_e( 'Latest note:', 'hello-elementor-child' ); ?></strong> <?php echo esc_html( (string) ( $task['last_note'] ?? __( 'No recent notes yet.', 'hello-elementor-child' ) ) ); ?></p>
+                <p class="crm-task-note"><strong><?php esc_html_e( 'Task:', 'peracrm' ); ?></strong> <?php echo esc_html( (string) $task['reminder_note'] ); ?></p>
+                <p class="text-sm crm-task-last-note"><strong><?php esc_html_e( 'Latest note:', 'peracrm' ); ?></strong> <?php echo esc_html( (string) ( $task['last_note'] ?? __( 'No recent notes yet.', 'peracrm' ) ) ); ?></p>
                 <?php $task_status = sanitize_key( (string) ( $task['status'] ?? 'pending' ) ); ?>
                 <?php if ( ! empty( $task['reminder_id'] ) && 'pending' === $task_status ) : ?>
                 <form class="crm-task-action" method="post" action="<?php echo esc_url( home_url( '/wp-admin/admin-post.php' ) ); ?>">
@@ -142,15 +142,15 @@ peracrm_frontend_render_shell_header();
                   <input type="hidden" name="peracrm_redirect" value="<?php echo esc_url( $crm_current_url ); ?>">
                   <input type="hidden" name="peracrm_context" value="frontend">
                   <?php wp_nonce_field( 'peracrm_update_reminder_status', 'peracrm_update_reminder_status_nonce' ); ?>
-                  <button type="submit" class="btn btn--ghost btn--blue crm-task-done-btn"><?php echo esc_html__( 'Mark done', 'hello-elementor-child' ); ?></button>
+                  <button type="submit" class="btn btn--ghost btn--blue crm-task-done-btn"><?php echo esc_html__( 'Mark done', 'peracrm' ); ?></button>
                 </form>
                 <?php endif; ?>
               </article>
             <?php endforeach; ?>
             <?php if ( $today_cards['has_more'] ) : ?>
               <article class="card-shell crm-task-card crm-task-card--more">
-                <p><?php echo esc_html__( 'You have more tasks. Click see all to view them.', 'hello-elementor-child' ); ?></p>
-                <a class="btn btn--ghost btn--blue" href="<?php echo esc_url( home_url( '/crm/tasks/' ) ); ?>"><?php echo esc_html__( 'See all tasks', 'hello-elementor-child' ); ?></a>
+                <p><?php echo esc_html__( 'You have more tasks. Click see all to view them.', 'peracrm' ); ?></p>
+                <a class="btn btn--ghost btn--blue" href="<?php echo esc_url( home_url( '/crm/tasks/' ) ); ?>"><?php echo esc_html__( 'See all tasks', 'peracrm' ); ?></a>
               </article>
             <?php endif; ?>
             </div>
@@ -161,19 +161,19 @@ peracrm_frontend_render_shell_header();
       <section class="section" aria-labelledby="crm-overdue-tasks-heading">
         <article class="card-shell">
           <header class="section-header">
-            <h2 id="crm-overdue-tasks-heading"><?php echo esc_html__( 'Overdue Tasks', 'hello-elementor-child' ); ?></h2>
+            <h2 id="crm-overdue-tasks-heading"><?php echo esc_html__( 'Overdue Tasks', 'peracrm' ); ?></h2>
           </header>
           <?php if ( empty( $overdue_tasks ) ) : ?>
-            <p><?php echo esc_html__( 'No overdue tasks.', 'hello-elementor-child' ); ?></p>
+            <p><?php echo esc_html__( 'No overdue tasks.', 'peracrm' ); ?></p>
           <?php else : ?>
             <?php $overdue_cards = $build_overview_task_cards( $overdue_tasks, $overview_task_cap ); ?>
             <div class="crm-overview-task-grid">
             <?php foreach ( $overdue_cards['tasks'] as $task ) : ?>
               <article class="card-shell crm-task-card">
-                <a class="btn btn--ghost btn--red crm-task-client-btn" href="<?php echo esc_url( home_url( '/crm/client/' . (int) $task['lead_id'] . '/' ) ); ?>"><?php echo esc_html( (string) ( $task['lead_name'] ?: __( 'Untitled lead', 'hello-elementor-child' ) ) ); ?></a>
+                <a class="btn btn--ghost btn--red crm-task-client-btn" href="<?php echo esc_url( home_url( '/crm/client/' . (int) $task['lead_id'] . '/' ) ); ?>"><?php echo esc_html( (string) ( $task['lead_name'] ?: __( 'Untitled lead', 'peracrm' ) ) ); ?></a>
                 <span class="pill pill--red"><?php echo esc_html( (string) $task['due_date'] ); ?></span>
-                <p class="crm-task-note"><strong><?php esc_html_e( 'Task:', 'hello-elementor-child' ); ?></strong> <?php echo esc_html( (string) $task['reminder_note'] ); ?></p>
-                <p class="text-sm crm-task-last-note"><strong><?php esc_html_e( 'Latest note:', 'hello-elementor-child' ); ?></strong> <?php echo esc_html( (string) ( $task['last_note'] ?? __( 'No recent notes yet.', 'hello-elementor-child' ) ) ); ?></p>
+                <p class="crm-task-note"><strong><?php esc_html_e( 'Task:', 'peracrm' ); ?></strong> <?php echo esc_html( (string) $task['reminder_note'] ); ?></p>
+                <p class="text-sm crm-task-last-note"><strong><?php esc_html_e( 'Latest note:', 'peracrm' ); ?></strong> <?php echo esc_html( (string) ( $task['last_note'] ?? __( 'No recent notes yet.', 'peracrm' ) ) ); ?></p>
                 <?php $task_status = sanitize_key( (string) ( $task['status'] ?? 'pending' ) ); ?>
                 <?php if ( ! empty( $task['reminder_id'] ) && 'pending' === $task_status ) : ?>
                 <form class="crm-task-action" method="post" action="<?php echo esc_url( home_url( '/wp-admin/admin-post.php' ) ); ?>">
@@ -183,15 +183,15 @@ peracrm_frontend_render_shell_header();
                   <input type="hidden" name="peracrm_redirect" value="<?php echo esc_url( $crm_current_url ); ?>">
                   <input type="hidden" name="peracrm_context" value="frontend">
                   <?php wp_nonce_field( 'peracrm_update_reminder_status', 'peracrm_update_reminder_status_nonce' ); ?>
-                  <button type="submit" class="btn btn--ghost btn--blue crm-task-done-btn"><?php echo esc_html__( 'Mark done', 'hello-elementor-child' ); ?></button>
+                  <button type="submit" class="btn btn--ghost btn--blue crm-task-done-btn"><?php echo esc_html__( 'Mark done', 'peracrm' ); ?></button>
                 </form>
                 <?php endif; ?>
               </article>
             <?php endforeach; ?>
             <?php if ( $overdue_cards['has_more'] ) : ?>
               <article class="card-shell crm-task-card crm-task-card--more">
-                <p><?php echo esc_html__( 'You have more tasks. Click see all to view them.', 'hello-elementor-child' ); ?></p>
-                <a class="btn btn--ghost btn--blue" href="<?php echo esc_url( home_url( '/crm/tasks/' ) ); ?>"><?php echo esc_html__( 'See all tasks', 'hello-elementor-child' ); ?></a>
+                <p><?php echo esc_html__( 'You have more tasks. Click see all to view them.', 'peracrm' ); ?></p>
+                <a class="btn btn--ghost btn--blue" href="<?php echo esc_url( home_url( '/crm/tasks/' ) ); ?>"><?php echo esc_html__( 'See all tasks', 'peracrm' ); ?></a>
               </article>
             <?php endif; ?>
             </div>
@@ -202,19 +202,19 @@ peracrm_frontend_render_shell_header();
       <section class="section" aria-labelledby="crm-new-leads-heading">
         <article class="card-shell">
           <header class="section-header">
-            <h2 id="crm-new-leads-heading"><?php echo esc_html__( 'New Leads', 'hello-elementor-child' ); ?></h2>
+            <h2 id="crm-new-leads-heading"><?php echo esc_html__( 'New Leads', 'peracrm' ); ?></h2>
           </header>
           <?php if ( empty( $new_leads ) ) : ?>
-            <p><?php echo esc_html__( 'No new leads found.', 'hello-elementor-child' ); ?></p>
+            <p><?php echo esc_html__( 'No new leads found.', 'peracrm' ); ?></p>
           <?php else : ?>
             <div class="crm-new-leads-grid">
             <?php foreach ( $new_leads as $lead ) : ?>
               <article class="card-shell crm-new-lead-card">
                 <h3><?php echo esc_html( (string) ( $lead['name'] ?? '' ) ); ?></h3>
-                <p><strong><?php esc_html_e( 'Phone:', 'hello-elementor-child' ); ?></strong> <?php echo esc_html( (string) ( $lead['phone'] ?? '—' ) ); ?></p>
-                <p><strong><?php esc_html_e( 'Source:', 'hello-elementor-child' ); ?></strong> <?php echo esc_html( (string) ( $lead['source'] ?? '—' ) ); ?></p>
-                <p><strong><?php esc_html_e( 'Enquiry:', 'hello-elementor-child' ); ?></strong> <?php echo esc_html( (string) ( $lead['enquiry_at'] ?? '—' ) ); ?></p>
-                <a class="btn btn--ghost btn--blue" href="<?php echo esc_url( (string) ( $lead['url'] ?? '' ) ); ?>"><?php echo esc_html__( 'View lead', 'hello-elementor-child' ); ?></a>
+                <p><strong><?php esc_html_e( 'Phone:', 'peracrm' ); ?></strong> <?php echo esc_html( (string) ( $lead['phone'] ?? '—' ) ); ?></p>
+                <p><strong><?php esc_html_e( 'Source:', 'peracrm' ); ?></strong> <?php echo esc_html( (string) ( $lead['source'] ?? '—' ) ); ?></p>
+                <p><strong><?php esc_html_e( 'Enquiry:', 'peracrm' ); ?></strong> <?php echo esc_html( (string) ( $lead['enquiry_at'] ?? '—' ) ); ?></p>
+                <a class="btn btn--ghost btn--blue" href="<?php echo esc_url( (string) ( $lead['url'] ?? '' ) ); ?>"><?php echo esc_html__( 'View lead', 'peracrm' ); ?></a>
               </article>
             <?php endforeach; ?>
             </div>
@@ -225,10 +225,10 @@ peracrm_frontend_render_shell_header();
       <section class="section" aria-labelledby="crm-activity-heading">
         <article class="card-shell">
           <header class="section-header">
-            <h2 id="crm-activity-heading"><?php echo esc_html__( 'Latest Activity', 'hello-elementor-child' ); ?></h2>
+            <h2 id="crm-activity-heading"><?php echo esc_html__( 'Latest Activity', 'peracrm' ); ?></h2>
           </header>
           <?php if ( empty( $activity ) ) : ?>
-            <p><?php echo esc_html__( 'No activity available.', 'hello-elementor-child' ); ?></p>
+            <p><?php echo esc_html__( 'No activity available.', 'peracrm' ); ?></p>
           <?php else : ?>
           <ul class="crm-list">
             <?php foreach ( $activity as $item ) : ?>
@@ -245,9 +245,9 @@ peracrm_frontend_render_shell_header();
 
       <section class="section" aria-labelledby="crm-kpi-heading">
         <header class="section-header">
-          <h2 id="crm-kpi-heading"><?php echo esc_html__( 'KPI Snapshot', 'hello-elementor-child' ); ?></h2>
+          <h2 id="crm-kpi-heading"><?php echo esc_html__( 'KPI Snapshot', 'peracrm' ); ?></h2>
         </header>
-		<div class="grid-3 crm-kpi-grid cards-slider cards-slider--snap cards-slider--grid-lg" aria-label="<?php echo esc_attr__( 'CRM KPI Snapshot', 'hello-elementor-child' ); ?>">
+		<div class="grid-3 crm-kpi-grid cards-slider cards-slider--snap cards-slider--grid-lg" aria-label="<?php echo esc_attr__( 'CRM KPI Snapshot', 'peracrm' ); ?>">
 				<?php foreach ( $kpi_tiles as $tile ) : ?>
           <article class="card-shell slider-card crm-kpi-card">
             <p class="pill pill--outline"><?php echo esc_html( $tile['label'] ); ?></p>
@@ -259,9 +259,9 @@ peracrm_frontend_render_shell_header();
 
 	      <section class="section" aria-labelledby="crm-pipeline-heading">
 	        <header class="section-header">
-	          <h2 id="crm-pipeline-heading"><?php echo esc_html__( 'Pipeline Overview', 'hello-elementor-child' ); ?></h2>
+	          <h2 id="crm-pipeline-heading"><?php echo esc_html__( 'Pipeline Overview', 'peracrm' ); ?></h2>
 	        </header>
-        <div class="grid-3 crm-kpi-grid cards-slider cards-slider--snap cards-slider--grid-lg" aria-label="<?php echo esc_attr__( 'CRM Pipeline Overview', 'hello-elementor-child' ); ?>">
+        <div class="grid-3 crm-kpi-grid cards-slider cards-slider--snap cards-slider--grid-lg" aria-label="<?php echo esc_attr__( 'CRM Pipeline Overview', 'peracrm' ); ?>">
 				<?php foreach ( $pipeline as $stage ) : ?>
             <article class="card-shell slider-card crm-kpi-card">
               <p class="pill pill--outline"><?php echo esc_html( (string) ( $stage['label'] ?? '' ) ); ?></p>
@@ -272,29 +272,29 @@ peracrm_frontend_render_shell_header();
 	      </section>
 
 			<?php if ( is_user_logged_in() ) : ?>
-	      <section class="section" aria-label="<?php echo esc_attr__( 'Push notifications', 'hello-elementor-child' ); ?>">
+	      <section class="section" aria-label="<?php echo esc_attr__( 'Push notifications', 'peracrm' ); ?>">
 	        <article class="card-shell" data-crm-push-card>
-	          <p class="pill pill--outline"><?php echo esc_html__( 'Notifications', 'hello-elementor-child' ); ?></p>
-	          <h2><?php echo esc_html__( 'Reminder Push Notifications', 'hello-elementor-child' ); ?></h2>
+	          <p class="pill pill--outline"><?php echo esc_html__( 'Notifications', 'peracrm' ); ?></p>
+	          <h2><?php echo esc_html__( 'Reminder Push Notifications', 'peracrm' ); ?></h2>
 	          <?php if ( '' !== $push_notice_text ) : ?>
 	            <p class="pill pill--outline"><?php echo esc_html( $push_notice_text ); ?></p>
 	          <?php endif; ?>
-	          <p data-crm-push-status><?php echo esc_html__( 'Checking push notification status…', 'hello-elementor-child' ); ?></p>
-	          <p class="text-sm" data-crm-push-sw-status><?php echo esc_html__( 'Service worker status: checking…', 'hello-elementor-child' ); ?></p>
-	          <p class="text-sm" data-crm-push-cron-health><?php echo esc_html__( 'Digest cron health: checking…', 'hello-elementor-child' ); ?></p>
+	          <p data-crm-push-status><?php echo esc_html__( 'Checking push notification status…', 'peracrm' ); ?></p>
+	          <p class="text-sm" data-crm-push-sw-status><?php echo esc_html__( 'Service worker status: checking…', 'peracrm' ); ?></p>
+	          <p class="text-sm" data-crm-push-cron-health><?php echo esc_html__( 'Digest cron health: checking…', 'peracrm' ); ?></p>
 	          <p class="text-sm" data-crm-push-diagnostics hidden></p>
 	          <p class="text-sm" data-crm-push-digest-result hidden></p>
 	          <div class="crm-task-action" style="display:flex;gap:8px;flex-wrap:wrap;">
-	            <button type="button" class="btn btn--ghost btn--blue" data-crm-push-enable><?php echo esc_html__( 'Enable Push Notifications', 'hello-elementor-child' ); ?></button>
-	            <button type="button" class="btn btn--ghost" data-crm-push-disable disabled><?php echo esc_html__( 'Disable on this device', 'hello-elementor-child' ); ?></button>
-	            <button type="button" class="btn btn--ghost" data-crm-push-run-digest hidden><?php echo esc_html__( 'Run digest now', 'hello-elementor-child' ); ?></button>
-	            <button type="button" class="btn btn--ghost" data-crm-push-refresh-diagnostics hidden><?php echo esc_html__( 'Refresh diagnostics', 'hello-elementor-child' ); ?></button>
+	            <button type="button" class="btn btn--ghost btn--blue" data-crm-push-enable><?php echo esc_html__( 'Enable Push Notifications', 'peracrm' ); ?></button>
+	            <button type="button" class="btn btn--ghost" data-crm-push-disable disabled><?php echo esc_html__( 'Disable on this device', 'peracrm' ); ?></button>
+	            <button type="button" class="btn btn--ghost" data-crm-push-run-digest hidden><?php echo esc_html__( 'Run digest now', 'peracrm' ); ?></button>
+	            <button type="button" class="btn btn--ghost" data-crm-push-refresh-diagnostics hidden><?php echo esc_html__( 'Refresh diagnostics', 'peracrm' ); ?></button>
 	            <?php if ( function_exists( 'peracrm_push_is_configured' ) && peracrm_push_is_configured() ) : ?>
 	            <form method="post" action="<?php echo esc_url( home_url( '/wp-admin/admin-post.php' ) ); ?>">
 	              <input type="hidden" name="action" value="peracrm_send_test_push">
 	              <input type="hidden" name="peracrm_redirect" value="<?php echo esc_url( home_url( '/crm/' ) ); ?>">
 	              <?php wp_nonce_field( 'peracrm_send_test_push', 'peracrm_send_test_push_nonce' ); ?>
-	              <button type="submit" class="btn btn--ghost"><?php echo esc_html__( 'Send test notification', 'hello-elementor-child' ); ?></button>
+	              <button type="submit" class="btn btn--ghost"><?php echo esc_html__( 'Send test notification', 'peracrm' ); ?></button>
 	            </form>
 	            <?php endif; ?>
 	          </div>
@@ -314,13 +314,13 @@ peracrm_frontend_render_shell_header();
 			?>
       <div class="crm-leads-toolbar">
         <div>
-          <h2><?php echo esc_html__( 'Tasks', 'hello-elementor-child' ); ?></h2>
-          <p><?php echo esc_html( sprintf( __( '%d open tasks (reminders)', 'hello-elementor-child' ), count( $task_rows ) ) ); ?></p>
+          <h2><?php echo esc_html__( 'Tasks', 'peracrm' ); ?></h2>
+          <p><?php echo esc_html( sprintf( __( '%d open tasks (reminders)', 'peracrm' ), count( $task_rows ) ) ); ?></p>
         </div>
         <div class="crm-toolbar-actions">
           <div class="crm-view-toggle" data-crm-view-toggle data-storage-key="peracrm_tasks_view">
-            <button type="button" class="btn btn--solid btn--blue" data-view="cards" aria-pressed="true"><?php echo esc_html__( 'Cards', 'hello-elementor-child' ); ?></button>
-            <button type="button" class="btn btn--ghost btn--blue" data-view="table" aria-pressed="false"><?php echo esc_html__( 'Table', 'hello-elementor-child' ); ?></button>
+            <button type="button" class="btn btn--solid btn--blue" data-view="cards" aria-pressed="true"><?php echo esc_html__( 'Cards', 'peracrm' ); ?></button>
+            <button type="button" class="btn btn--ghost btn--blue" data-view="table" aria-pressed="false"><?php echo esc_html__( 'Table', 'peracrm' ); ?></button>
           </div>
         </div>
       </div>
@@ -328,18 +328,18 @@ peracrm_frontend_render_shell_header();
       <div class="crm-lead-cards" data-crm-view="cards">
         <section class="section" aria-labelledby="crm-tasks-today-heading">
           <article class="card-shell">
-            <header class="section-header"><h3 id="crm-tasks-today-heading"><?php echo esc_html__( "Today's Tasks", 'hello-elementor-child' ); ?></h3></header>
+            <header class="section-header"><h3 id="crm-tasks-today-heading"><?php echo esc_html__( "Today's Tasks", 'peracrm' ); ?></h3></header>
             <?php if ( empty( $today_rows ) ) : ?>
-              <p><?php echo esc_html__( 'No tasks due today.', 'hello-elementor-child' ); ?></p>
+              <p><?php echo esc_html__( 'No tasks due today.', 'peracrm' ); ?></p>
             <?php else : ?>
               <ul class="crm-list">
                 <?php foreach ( $today_rows as $task ) : ?>
                   <li>
                     <a class="btn btn--ghost btn--blue crm-task-client-btn" href="<?php echo esc_url( (string) $task['client_url'] ); ?>"><?php echo esc_html( (string) $task['client_name'] ); ?></a>
                     <span class="pill pill--outline"><?php echo esc_html( (string) $task['due_display'] ); ?></span>
-                    <p class="crm-task-note"><strong><?php esc_html_e( 'Task:', 'hello-elementor-child' ); ?></strong> <?php echo esc_html( (string) $task['note'] ); ?></p>
-                    <?php if ( $show_assigned ) : ?><span><strong><?php echo esc_html__( 'Assigned:', 'hello-elementor-child' ); ?></strong> <?php echo esc_html( '' !== (string) $task['assigned_to'] ? (string) $task['assigned_to'] : '—' ); ?></span><?php endif; ?>
-                    <p class="text-sm crm-task-last-note"><strong><?php esc_html_e( 'Task note:', 'hello-elementor-child' ); ?></strong> <?php echo esc_html( (string) ( $task['note'] ?? __( 'No task note yet.', 'hello-elementor-child' ) ) ); ?></p>
+                    <p class="crm-task-note"><strong><?php esc_html_e( 'Task:', 'peracrm' ); ?></strong> <?php echo esc_html( (string) $task['note'] ); ?></p>
+                    <?php if ( $show_assigned ) : ?><span><strong><?php echo esc_html__( 'Assigned:', 'peracrm' ); ?></strong> <?php echo esc_html( '' !== (string) $task['assigned_to'] ? (string) $task['assigned_to'] : '—' ); ?></span><?php endif; ?>
+                    <p class="text-sm crm-task-last-note"><strong><?php esc_html_e( 'Task note:', 'peracrm' ); ?></strong> <?php echo esc_html( (string) ( $task['note'] ?? __( 'No task note yet.', 'peracrm' ) ) ); ?></p>
                     <span class="pill pill--outline"><?php echo esc_html( (string) $task['status_label'] ); ?></span>
                     <?php if ( ! empty( $task['reminder_id'] ) ) : ?>
                     <form method="post" action="<?php echo esc_url( home_url( '/wp-admin/admin-post.php' ) ); ?>">
@@ -349,7 +349,7 @@ peracrm_frontend_render_shell_header();
                       <input type="hidden" name="peracrm_redirect" value="<?php echo esc_url( $tasks_page_url ); ?>">
                       <input type="hidden" name="peracrm_context" value="frontend">
                       <?php wp_nonce_field( 'peracrm_update_reminder_status', 'peracrm_update_reminder_status_nonce' ); ?>
-                      <button type="submit" class="btn btn--ghost btn--blue crm-task-done-btn"><?php echo esc_html__( 'Mark done', 'hello-elementor-child' ); ?></button>
+                      <button type="submit" class="btn btn--ghost btn--blue crm-task-done-btn"><?php echo esc_html__( 'Mark done', 'peracrm' ); ?></button>
                     </form>
                     <?php endif; ?>
                   </li>
@@ -361,18 +361,18 @@ peracrm_frontend_render_shell_header();
 
         <section class="section" aria-labelledby="crm-tasks-outstanding-heading">
           <article class="card-shell">
-            <header class="section-header"><h3 id="crm-tasks-outstanding-heading"><?php echo esc_html__( 'Outstanding Tasks', 'hello-elementor-child' ); ?></h3></header>
+            <header class="section-header"><h3 id="crm-tasks-outstanding-heading"><?php echo esc_html__( 'Outstanding Tasks', 'peracrm' ); ?></h3></header>
             <?php if ( empty( $outstanding ) ) : ?>
-              <p><?php echo esc_html__( 'No outstanding tasks.', 'hello-elementor-child' ); ?></p>
+              <p><?php echo esc_html__( 'No outstanding tasks.', 'peracrm' ); ?></p>
             <?php else : ?>
               <ul class="crm-list">
                 <?php foreach ( $outstanding as $task ) : ?>
                   <li>
                     <a class="btn btn--ghost btn--red crm-task-client-btn" href="<?php echo esc_url( (string) $task['client_url'] ); ?>"><?php echo esc_html( (string) $task['client_name'] ); ?></a>
                     <span class="pill pill--red"><?php echo esc_html( (string) $task['due_display'] ); ?></span>
-                    <p class="crm-task-note"><strong><?php esc_html_e( 'Task:', 'hello-elementor-child' ); ?></strong> <?php echo esc_html( (string) $task['note'] ); ?></p>
-                    <?php if ( $show_assigned ) : ?><span><strong><?php echo esc_html__( 'Assigned:', 'hello-elementor-child' ); ?></strong> <?php echo esc_html( '' !== (string) $task['assigned_to'] ? (string) $task['assigned_to'] : '—' ); ?></span><?php endif; ?>
-                    <p class="text-sm crm-task-last-note"><strong><?php esc_html_e( 'Task note:', 'hello-elementor-child' ); ?></strong> <?php echo esc_html( (string) ( $task['note'] ?? __( 'No task note yet.', 'hello-elementor-child' ) ) ); ?></p>
+                    <p class="crm-task-note"><strong><?php esc_html_e( 'Task:', 'peracrm' ); ?></strong> <?php echo esc_html( (string) $task['note'] ); ?></p>
+                    <?php if ( $show_assigned ) : ?><span><strong><?php echo esc_html__( 'Assigned:', 'peracrm' ); ?></strong> <?php echo esc_html( '' !== (string) $task['assigned_to'] ? (string) $task['assigned_to'] : '—' ); ?></span><?php endif; ?>
+                    <p class="text-sm crm-task-last-note"><strong><?php esc_html_e( 'Task note:', 'peracrm' ); ?></strong> <?php echo esc_html( (string) ( $task['note'] ?? __( 'No task note yet.', 'peracrm' ) ) ); ?></p>
                     <span class="pill pill--red"><?php echo esc_html( (string) $task['status_label'] ); ?></span>
                   </li>
                 <?php endforeach; ?>
@@ -383,18 +383,18 @@ peracrm_frontend_render_shell_header();
 
         <section class="section" aria-labelledby="crm-tasks-upcoming-heading">
           <article class="card-shell">
-            <header class="section-header"><h3 id="crm-tasks-upcoming-heading"><?php echo esc_html__( 'Upcoming Tasks', 'hello-elementor-child' ); ?></h3></header>
+            <header class="section-header"><h3 id="crm-tasks-upcoming-heading"><?php echo esc_html__( 'Upcoming Tasks', 'peracrm' ); ?></h3></header>
             <?php if ( empty( $upcoming ) ) : ?>
-              <p><?php echo esc_html__( 'No upcoming tasks.', 'hello-elementor-child' ); ?></p>
+              <p><?php echo esc_html__( 'No upcoming tasks.', 'peracrm' ); ?></p>
             <?php else : ?>
               <ul class="crm-list">
                 <?php foreach ( $upcoming as $task ) : ?>
                   <li>
                     <a class="btn btn--ghost btn--blue crm-task-client-btn" href="<?php echo esc_url( (string) $task['client_url'] ); ?>"><?php echo esc_html( (string) $task['client_name'] ); ?></a>
                     <span class="pill pill--outline"><?php echo esc_html( (string) $task['due_display'] ); ?></span>
-                    <p class="crm-task-note"><strong><?php esc_html_e( 'Task:', 'hello-elementor-child' ); ?></strong> <?php echo esc_html( (string) $task['note'] ); ?></p>
-                    <?php if ( $show_assigned ) : ?><span><strong><?php echo esc_html__( 'Assigned:', 'hello-elementor-child' ); ?></strong> <?php echo esc_html( '' !== (string) $task['assigned_to'] ? (string) $task['assigned_to'] : '—' ); ?></span><?php endif; ?>
-                    <p class="text-sm crm-task-last-note"><strong><?php esc_html_e( 'Task note:', 'hello-elementor-child' ); ?></strong> <?php echo esc_html( (string) ( $task['note'] ?? __( 'No task note yet.', 'hello-elementor-child' ) ) ); ?></p>
+                    <p class="crm-task-note"><strong><?php esc_html_e( 'Task:', 'peracrm' ); ?></strong> <?php echo esc_html( (string) $task['note'] ); ?></p>
+                    <?php if ( $show_assigned ) : ?><span><strong><?php echo esc_html__( 'Assigned:', 'peracrm' ); ?></strong> <?php echo esc_html( '' !== (string) $task['assigned_to'] ? (string) $task['assigned_to'] : '—' ); ?></span><?php endif; ?>
+                    <p class="text-sm crm-task-last-note"><strong><?php esc_html_e( 'Task note:', 'peracrm' ); ?></strong> <?php echo esc_html( (string) ( $task['note'] ?? __( 'No task note yet.', 'peracrm' ) ) ); ?></p>
                     <span class="pill pill--outline"><?php echo esc_html( (string) $task['status_label'] ); ?></span>
                   </li>
                 <?php endforeach; ?>
@@ -408,16 +408,16 @@ peracrm_frontend_render_shell_header();
         <table class="crm-leads-table crm-table" data-crm-sort-table>
           <thead>
             <tr>
-              <th aria-sort="none"><button type="button" class="crm-table-sort" data-sort="due"><?php echo esc_html__( 'Due', 'hello-elementor-child' ); ?> <span class="peracrm-sort-indicator" aria-hidden="true"></span></button></th>
-              <th aria-sort="none"><button type="button" class="crm-table-sort" data-sort="client"><?php echo esc_html__( 'Client', 'hello-elementor-child' ); ?> <span class="peracrm-sort-indicator" aria-hidden="true"></span></button></th>
-              <th aria-sort="none"><button type="button" class="crm-table-sort" data-sort="note"><?php echo esc_html__( 'Note', 'hello-elementor-child' ); ?> <span class="peracrm-sort-indicator" aria-hidden="true"></span></button></th>
-              <th aria-sort="none"><button type="button" class="crm-table-sort" data-sort="assigned"><?php echo esc_html__( 'Assigned', 'hello-elementor-child' ); ?> <span class="peracrm-sort-indicator" aria-hidden="true"></span></button></th>
-              <th aria-sort="none"><button type="button" class="crm-table-sort" data-sort="status"><?php echo esc_html__( 'Status', 'hello-elementor-child' ); ?> <span class="peracrm-sort-indicator" aria-hidden="true"></span></button></th>
+              <th aria-sort="none"><button type="button" class="crm-table-sort" data-sort="due"><?php echo esc_html__( 'Due', 'peracrm' ); ?> <span class="peracrm-sort-indicator" aria-hidden="true"></span></button></th>
+              <th aria-sort="none"><button type="button" class="crm-table-sort" data-sort="client"><?php echo esc_html__( 'Client', 'peracrm' ); ?> <span class="peracrm-sort-indicator" aria-hidden="true"></span></button></th>
+              <th aria-sort="none"><button type="button" class="crm-table-sort" data-sort="note"><?php echo esc_html__( 'Note', 'peracrm' ); ?> <span class="peracrm-sort-indicator" aria-hidden="true"></span></button></th>
+              <th aria-sort="none"><button type="button" class="crm-table-sort" data-sort="assigned"><?php echo esc_html__( 'Assigned', 'peracrm' ); ?> <span class="peracrm-sort-indicator" aria-hidden="true"></span></button></th>
+              <th aria-sort="none"><button type="button" class="crm-table-sort" data-sort="status"><?php echo esc_html__( 'Status', 'peracrm' ); ?> <span class="peracrm-sort-indicator" aria-hidden="true"></span></button></th>
             </tr>
           </thead>
           <tbody>
             <?php if ( empty( $task_rows ) ) : ?>
-            <tr><td colspan="5"><?php echo esc_html__( 'No open tasks found.', 'hello-elementor-child' ); ?></td></tr>
+            <tr><td colspan="5"><?php echo esc_html__( 'No open tasks found.', 'peracrm' ); ?></td></tr>
             <?php else : ?>
               <?php foreach ( $task_rows as $task ) : ?>
               <tr data-sort-row data-row-url="<?php echo esc_url( (string) $task['client_url'] ); ?>" data-due="<?php echo esc_attr( (string) ( $task['due_ts'] ?? 0 ) ); ?>" data-client="<?php echo esc_attr( strtolower( (string) $task['client_name'] ) ); ?>" data-note="<?php echo esc_attr( strtolower( (string) $task['note'] ) ); ?>" data-assigned="<?php echo esc_attr( strtolower( (string) $task['assigned_to'] ) ); ?>" data-status="<?php echo esc_attr( strtolower( (string) $task['status_label'] ) ); ?>">
@@ -443,26 +443,26 @@ peracrm_frontend_render_shell_header();
 			$to           = min( $current_page * $per_page, $total );
 			$is_inactive  = 'inactive' === $clients_type_view;
 			$status_labels = array(
-				'closed'  => __( 'Closed', 'hello-elementor-child' ),
-				'dormant' => __( 'Dormant', 'hello-elementor-child' ),
+				'closed'  => __( 'Closed', 'peracrm' ),
+				'dormant' => __( 'Dormant', 'peracrm' ),
 			);
 			?>
       <div class="crm-leads-toolbar">
         <div>
-          <h2><?php echo esc_html( $is_inactive ? __( 'Inactive', 'hello-elementor-child' ) : ( 'clients' === $clients_type_view ? __( 'Clients', 'hello-elementor-child' ) : __( 'Leads', 'hello-elementor-child' ) ) ); ?></h2>
-          <p><?php echo esc_html__( 'Leads are those who have not invested with us. Clients are those who have invested with us or have property that they wish to sell or rent.', 'hello-elementor-child' ); ?></p>
-          <p><?php echo esc_html( sprintf( __( 'Showing %1$d–%2$d of %3$d', 'hello-elementor-child' ), $from, $to, $total ) ); ?></p>
+          <h2><?php echo esc_html( $is_inactive ? __( 'Inactive', 'peracrm' ) : ( 'clients' === $clients_type_view ? __( 'Clients', 'peracrm' ) : __( 'Leads', 'peracrm' ) ) ); ?></h2>
+          <p><?php echo esc_html__( 'Leads are those who have not invested with us. Clients are those who have invested with us or have property that they wish to sell or rent.', 'peracrm' ); ?></p>
+          <p><?php echo esc_html( sprintf( __( 'Showing %1$d–%2$d of %3$d', 'peracrm' ), $from, $to, $total ) ); ?></p>
         </div>
         <div class="crm-toolbar-actions">
-          <div class="crm-type-toggle" role="group" aria-label="<?php echo esc_attr__( 'Lead or client listing', 'hello-elementor-child' ); ?>">
-            <a class="btn <?php echo esc_attr( 'leads' === $clients_type_view ? 'btn--solid' : 'btn--ghost' ); ?> btn--blue" href="<?php echo esc_url( add_query_arg( 'type', 'leads', home_url( '/crm/clients/' ) ) ); ?>"><?php esc_html_e( 'Leads', 'hello-elementor-child' ); ?></a>
-            <a class="btn <?php echo esc_attr( 'clients' === $clients_type_view ? 'btn--solid' : 'btn--ghost' ); ?> btn--blue" href="<?php echo esc_url( add_query_arg( 'type', 'clients', home_url( '/crm/clients/' ) ) ); ?>"><?php esc_html_e( 'Clients', 'hello-elementor-child' ); ?></a>
-            <a class="btn <?php echo esc_attr( $is_inactive ? 'btn--solid' : 'btn--ghost' ); ?> btn--blue" href="<?php echo esc_url( add_query_arg( 'type', 'inactive', home_url( '/crm/clients/' ) ) ); ?>"><?php esc_html_e( 'Inactive', 'hello-elementor-child' ); ?></a>
+          <div class="crm-type-toggle" role="group" aria-label="<?php echo esc_attr__( 'Lead or client listing', 'peracrm' ); ?>">
+            <a class="btn <?php echo esc_attr( 'leads' === $clients_type_view ? 'btn--solid' : 'btn--ghost' ); ?> btn--blue" href="<?php echo esc_url( add_query_arg( 'type', 'leads', home_url( '/crm/clients/' ) ) ); ?>"><?php esc_html_e( 'Leads', 'peracrm' ); ?></a>
+            <a class="btn <?php echo esc_attr( 'clients' === $clients_type_view ? 'btn--solid' : 'btn--ghost' ); ?> btn--blue" href="<?php echo esc_url( add_query_arg( 'type', 'clients', home_url( '/crm/clients/' ) ) ); ?>"><?php esc_html_e( 'Clients', 'peracrm' ); ?></a>
+            <a class="btn <?php echo esc_attr( $is_inactive ? 'btn--solid' : 'btn--ghost' ); ?> btn--blue" href="<?php echo esc_url( add_query_arg( 'type', 'inactive', home_url( '/crm/clients/' ) ) ); ?>"><?php esc_html_e( 'Inactive', 'peracrm' ); ?></a>
           </div>
-          <a class="btn btn--solid btn--blue" href="<?php echo esc_url( $new_lead_url ); ?>"><?php echo esc_html__( 'Create lead', 'hello-elementor-child' ); ?></a>
+          <a class="btn btn--solid btn--blue" href="<?php echo esc_url( $new_lead_url ); ?>"><?php echo esc_html__( 'Create lead', 'peracrm' ); ?></a>
           <div class="crm-view-toggle" data-crm-view-toggle data-storage-key="peracrm_clients_view">
-            <button type="button" class="btn btn--solid btn--blue" data-view="cards" aria-pressed="true"><?php echo esc_html__( 'Cards', 'hello-elementor-child' ); ?></button>
-            <button type="button" class="btn btn--ghost btn--blue" data-view="table" aria-pressed="false"><?php echo esc_html__( 'Table', 'hello-elementor-child' ); ?></button>
+            <button type="button" class="btn btn--solid btn--blue" data-view="cards" aria-pressed="true"><?php echo esc_html__( 'Cards', 'peracrm' ); ?></button>
+            <button type="button" class="btn btn--ghost btn--blue" data-view="table" aria-pressed="false"><?php echo esc_html__( 'Table', 'peracrm' ); ?></button>
           </div>
         </div>
       </div>
@@ -471,18 +471,18 @@ peracrm_frontend_render_shell_header();
         <table class="crm-leads-table crm-table" data-crm-sort-table>
           <thead>
             <tr>
-              <th aria-sort="none"><button type="button" class="crm-table-sort" data-sort="name"><?php echo esc_html__( 'Name', 'hello-elementor-child' ); ?> <span class="peracrm-sort-indicator" aria-hidden="true"></span></button></th>
-              <th aria-sort="none"><button type="button" class="crm-table-sort" data-sort="status"><?php echo esc_html__( 'Status', 'hello-elementor-child' ); ?> <span class="peracrm-sort-indicator" aria-hidden="true"></span></button></th>
-              <th aria-sort="none"><button type="button" class="crm-table-sort" data-sort="source"><?php echo esc_html__( 'Source', 'hello-elementor-child' ); ?> <span class="peracrm-sort-indicator" aria-hidden="true"></span></button></th>
-              <th aria-sort="none"><button type="button" class="crm-table-sort" data-sort="assigned"><?php echo esc_html__( 'Assigned to', 'hello-elementor-child' ); ?> <span class="peracrm-sort-indicator" aria-hidden="true"></span></button></th>
-              <th aria-sort="none"><button type="button" class="crm-table-sort" data-sort="updated"><?php echo esc_html__( 'Last activity', 'hello-elementor-child' ); ?> <span class="peracrm-sort-indicator" aria-hidden="true"></span></button></th>
-              <th aria-sort="none"><button type="button" class="crm-table-sort" data-sort="created"><?php echo esc_html__( 'Created', 'hello-elementor-child' ); ?> <span class="peracrm-sort-indicator" aria-hidden="true"></span></button></th>
+              <th aria-sort="none"><button type="button" class="crm-table-sort" data-sort="name"><?php echo esc_html__( 'Name', 'peracrm' ); ?> <span class="peracrm-sort-indicator" aria-hidden="true"></span></button></th>
+              <th aria-sort="none"><button type="button" class="crm-table-sort" data-sort="status"><?php echo esc_html__( 'Status', 'peracrm' ); ?> <span class="peracrm-sort-indicator" aria-hidden="true"></span></button></th>
+              <th aria-sort="none"><button type="button" class="crm-table-sort" data-sort="source"><?php echo esc_html__( 'Source', 'peracrm' ); ?> <span class="peracrm-sort-indicator" aria-hidden="true"></span></button></th>
+              <th aria-sort="none"><button type="button" class="crm-table-sort" data-sort="assigned"><?php echo esc_html__( 'Assigned to', 'peracrm' ); ?> <span class="peracrm-sort-indicator" aria-hidden="true"></span></button></th>
+              <th aria-sort="none"><button type="button" class="crm-table-sort" data-sort="updated"><?php echo esc_html__( 'Last activity', 'peracrm' ); ?> <span class="peracrm-sort-indicator" aria-hidden="true"></span></button></th>
+              <th aria-sort="none"><button type="button" class="crm-table-sort" data-sort="created"><?php echo esc_html__( 'Created', 'peracrm' ); ?> <span class="peracrm-sort-indicator" aria-hidden="true"></span></button></th>
             </tr>
           </thead>
           <tbody>
 				<?php if ( empty( $items ) ) : ?>
             <tr>
-              <td colspan="6"><?php echo esc_html__( 'No leads found for this scope.', 'hello-elementor-child' ); ?></td>
+              <td colspan="6"><?php echo esc_html__( 'No leads found for this scope.', 'peracrm' ); ?></td>
             </tr>
 				<?php else : ?>
 				<?php foreach ( $items as $lead ) : ?>
@@ -509,14 +509,14 @@ peracrm_frontend_render_shell_header();
 				<?php
 				$engagement_key = sanitize_key( (string) ( $lead['engagement_state'] ?? '' ) );
 				$status_label   = isset( $status_labels[ $engagement_key ] ) ? $status_labels[ $engagement_key ] : (string) ( $stages[ $lead['stage'] ] ?? $lead['stage'] );
-				$view_label     = 'clients' === $clients_type_view || $is_inactive ? __( 'View Client', 'hello-elementor-child' ) : __( 'View Lead', 'hello-elementor-child' );
+				$view_label     = 'clients' === $clients_type_view || $is_inactive ? __( 'View Client', 'peracrm' ) : __( 'View Lead', 'peracrm' );
 				?>
 	        <article class="card-shell">
           <h3><?php echo esc_html( (string) $lead['title'] ); ?></h3>
           <p><span class="pill pill--outline"><?php echo esc_html( (string) $status_label ); ?></span></p>
-          <p><strong><?php echo esc_html__( 'Engagement:', 'hello-elementor-child' ); ?></strong> <?php echo esc_html( (string) $lead['engagement_state'] ); ?></p>
-          <p><strong><?php echo esc_html__( 'Disposition:', 'hello-elementor-child' ); ?></strong> <?php echo esc_html( (string) $lead['disposition'] ); ?></p>
-          <p><strong><?php echo esc_html__( 'Last activity:', 'hello-elementor-child' ); ?></strong> <?php echo esc_html( '' !== $lead['last_activity'] ? (string) $lead['last_activity'] : '—' ); ?></p>
+          <p><strong><?php echo esc_html__( 'Engagement:', 'peracrm' ); ?></strong> <?php echo esc_html( (string) $lead['engagement_state'] ); ?></p>
+          <p><strong><?php echo esc_html__( 'Disposition:', 'peracrm' ); ?></strong> <?php echo esc_html( (string) $lead['disposition'] ); ?></p>
+          <p><strong><?php echo esc_html__( 'Last activity:', 'peracrm' ); ?></strong> <?php echo esc_html( '' !== $lead['last_activity'] ? (string) $lead['last_activity'] : '—' ); ?></p>
 	          <p><a class="btn btn--ghost btn--blue" href="<?php echo esc_url( (string) $lead['crm_url'] ); ?>"><?php echo esc_html( $view_label ); ?></a></p>
 	        </article>
 				<?php endforeach; ?>
@@ -534,8 +534,8 @@ peracrm_frontend_render_shell_header();
 					'current'   => $current_page,
 					'total'     => $total_pages,
 					'type'      => 'list',
-					'prev_text' => __( 'Previous', 'hello-elementor-child' ),
-					'next_text' => __( 'Next', 'hello-elementor-child' ),
+					'prev_text' => __( 'Previous', 'peracrm' ),
+					'next_text' => __( 'Next', 'peracrm' ),
 					'add_args'  => array( 'type' => $clients_type_view ),
 				)
 			);

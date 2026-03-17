@@ -485,7 +485,7 @@ if ( ! function_exists( 'pera_crm_get_recent_leads' ) ) {
 			}
 
 			$source_key = sanitize_key( (string) get_post_meta( $lead_id, 'crm_source', true ) );
-			$source     = '' !== $source_key ? ucwords( str_replace( '_', ' ', $source_key ) ) : __( 'Website', 'hello-elementor-child' );
+			$source     = '' !== $source_key ? ucwords( str_replace( '_', ' ', $source_key ) ) : __( 'Website', 'peracrm' );
 			$created_ts = (int) get_post_time( 'U', true, $lead_id );
 			$rows[]     = array(
 				'id'         => $lead_id,
@@ -758,7 +758,7 @@ if ( ! function_exists( 'pera_crm_get_tasks_view_data' ) ) {
 			$is_overdue  = $due_ts < $today_start_ts;
 			$client_name = $client_id > 0 ? get_the_title( $client_id ) : '';
 			if ( '' === $client_name ) {
-				$client_name = $client_id > 0 ? sprintf( __( 'Client #%d', 'hello-elementor-child' ), $client_id ) : __( 'Unknown client', 'hello-elementor-child' );
+				$client_name = $client_id > 0 ? sprintf( __( 'Client #%d', 'peracrm' ), $client_id ) : __( 'Unknown client', 'peracrm' );
 			}
 
 			$view_row = array(
@@ -770,9 +770,9 @@ if ( ! function_exists( 'pera_crm_get_tasks_view_data' ) ) {
 				'due_ts'        => $due_ts,
 				'due_display'   => pera_crm_format_datetime_dmy_hm( $due_ts, $timezone ),
 				'note'          => wp_strip_all_tags( (string) ( $row['note'] ?? '' ) ),
-				'assigned_to'   => $advisor_id > 0 ? ( $advisor_map[ $advisor_id ] ?? sprintf( __( 'User #%d', 'hello-elementor-child' ), $advisor_id ) ) : '',
+				'assigned_to'   => $advisor_id > 0 ? ( $advisor_map[ $advisor_id ] ?? sprintf( __( 'User #%d', 'peracrm' ), $advisor_id ) ) : '',
 				'is_overdue'    => $is_overdue,
-				'status_label'  => $is_overdue ? __( 'Overdue', 'hello-elementor-child' ) : __( 'Open', 'hello-elementor-child' ),
+				'status_label'  => $is_overdue ? __( 'Overdue', 'peracrm' ) : __( 'Open', 'peracrm' ),
 			);
 
 			$all_rows[] = $view_row;
@@ -810,7 +810,7 @@ if ( ! function_exists( 'pera_crm_get_dashboard_data' ) ) {
 		$notices      = array();
 
 		if ( ! $counts_data['available'] ) {
-			$notices[] = __( 'CRM data unavailable: pipeline and KPI counts could not be loaded.', 'hello-elementor-child' );
+			$notices[] = __( 'CRM data unavailable: pipeline and KPI counts could not be loaded.', 'peracrm' );
 		}
 
 		$open_leads = 0;
@@ -825,7 +825,7 @@ if ( ! function_exists( 'pera_crm_get_dashboard_data' ) ) {
 
 		$activity_data = pera_crm_fetch_recent_activity();
 		if ( ! $activity_data['available'] ) {
-			$notices[] = __( 'CRM data unavailable: recent activity feed could not be loaded.', 'hello-elementor-child' );
+			$notices[] = __( 'CRM data unavailable: recent activity feed could not be loaded.', 'peracrm' );
 		}
 
 		$todays_tasks  = pera_crm_get_todays_tasks();
@@ -1270,7 +1270,7 @@ if ( ! function_exists( 'pera_crm_get_pipeline_view_data' ) ) {
 		}
 
 		$fallback_stage_key = 'unassigned_new';
-		$stages[ $fallback_stage_key ] = __( 'Unassigned / New', 'hello-elementor-child' );
+		$stages[ $fallback_stage_key ] = __( 'Unassigned / New', 'peracrm' );
 
 		if ( '' !== $stage && ! isset( $stages[ $stage ] ) ) {
 			$stage = '';
