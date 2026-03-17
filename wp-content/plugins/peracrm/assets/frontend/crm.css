@@ -60,7 +60,7 @@
   flex-wrap: wrap;
 }
 
-#crm-hero .lead { font-size: 1rem; color: var(--color-white); }
+#crm-hero .lead { color: var(--color-white); }
 .crm-page .text-sm { font-size: 0.9rem; line-height: 1.45; }
 #crm-hero .container,
 .crm-page .container { max-width: var(--container); margin-inline: auto; }
