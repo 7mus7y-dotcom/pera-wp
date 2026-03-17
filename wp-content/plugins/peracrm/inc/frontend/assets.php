@@ -43,10 +43,21 @@ if (!function_exists('pera_crm_enqueue_assets')) {
             return;
         }
 
+        $fonts_css = peracrm_frontend_get_asset_file('assets/frontend/fonts.css');
         $crm_css = peracrm_frontend_get_asset_file('assets/frontend/crm.css');
         $slider_css = peracrm_frontend_get_asset_file('assets/frontend/slider.css');
 
         $crm_css_deps = array();
+        if (!empty($fonts_css)) {
+            wp_enqueue_style(
+                'pera-crm-fonts-css',
+                $fonts_css['url'],
+                array(),
+                (string) filemtime($fonts_css['path'])
+            );
+            $crm_css_deps[] = 'pera-crm-fonts-css';
+        }
+
         if (!empty($slider_css)) {
             wp_enqueue_style(
                 'pera-slider-css',
