@@ -1984,7 +1984,7 @@ body.crm-route #site-header.peracrm-shell-header .peracrm-shell-logo-text {
   }
 }
 
-.crm-layout { display: grid; grid-template-columns: minmax(0,1fr) 240px; gap: 16px; align-items: start; }
+.crm-layout { display: grid; grid-template-columns: minmax(0, 1fr) 240px; gap: 16px; align-items: start; max-width: 100%; }
 .crm-layout__main { min-width: 0; }
 .crm-side-nav { position: sticky; top: 90px; background: #fff; border: 1px solid #e8ecf2; border-radius: 12px; padding: 12px; }
 .crm-side-nav__title { display: flex; align-items: center; gap: 8px; font-weight: 700; margin: 0 0 8px; }
@@ -2012,12 +2012,18 @@ body.crm-route #site-header.peracrm-shell-header .peracrm-shell-logo-text {
 
 @media (max-width: 1024px) { .crm-layout { grid-template-columns: 1fr; } .crm-side-nav { position: static; order: -1; } }
 
+.crm-inline-status { margin-top: 8px; font-size: 0.85rem; font-weight: 600; min-height: 1.2em; }
 .crm-inline-status.is-success { color: #0a7a3b; }
 .crm-inline-status.is-error { color: #a11; }
 
 .crm-page--client-view .crm-portfolio-create-btn {
   padding-inline: 14px;
   min-height: 38px;
+}
+
+.crm-confirm-dialog {
+  border-color: #2c4f96;
+  background: #fff;
 }
 
 .crm-confirm-dialog::backdrop {

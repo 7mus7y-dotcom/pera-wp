@@ -11,20 +11,28 @@ $view        = sanitize_key( (string) get_query_var( 'pera_crm_view', '' ) );
 $is_whatsapp = 'whatsapp_logs' === $view;
 $is_email    = 'email_logs' === $view;
 
-// Reuse existing assignment-management helper as the closest existing log visibility gate.
-$can_manage_options = current_user_can( 'manage_options' );
-$can_manage_crm_logs = function_exists( 'peracrm_admin_user_can_reassign' ) && peracrm_admin_user_can_reassign();
-$allowed             = $can_manage_options || $can_manage_crm_logs;
+$allowed = function_exists( 'peracrm_can_view_operational_logs' )
+	? peracrm_can_view_operational_logs()
+	: ( current_user_can( 'manage_options' ) || ( function_exists( 'peracrm_admin_user_can_reassign' ) && peracrm_admin_user_can_reassign() ) );
 
-$read_whatsapp_logs = static function (): array {
+$table_exists = static function ( string $table_name ): bool {
+	if ( '' === $table_name ) {
+		return false;
+	}
+
+	global $wpdb;
+	$table = $wpdb->get_var( $wpdb->prepare( 'SHOW TABLES LIKE %s', $table_name ) ); // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery
+	return $table_name === $table;
+};
+
+$read_whatsapp_logs = static function () use ( $table_exists ): array {
 	if ( ! function_exists( 'pera_whatsapp_clicks_table_name' ) ) {
 		return array();
 	}
 
 	global $wpdb;
 	$table_name = (string) pera_whatsapp_clicks_table_name();
-	$table      = $wpdb->get_var( $wpdb->prepare( 'SHOW TABLES LIKE %s', $table_name ) ); // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery
-	if ( $table_name !== $table ) {
+	if ( ! $table_exists( $table_name ) ) {
 		return array();
 	}
 
@@ -34,15 +42,14 @@ $read_whatsapp_logs = static function (): array {
 	); // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.PreparedSQL.InterpolatedNotPrepared
 };
 
-$read_email_logs = static function (): array {
+$read_email_logs = static function () use ( $table_exists ): array {
 	if ( ! function_exists( 'pera_enquiry_email_log_table_name' ) ) {
 		return array();
 	}
 
 	global $wpdb;
 	$table_name = (string) pera_enquiry_email_log_table_name();
-	$table      = $wpdb->get_var( $wpdb->prepare( 'SHOW TABLES LIKE %s', $table_name ) ); // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery
-	if ( $table_name !== $table ) {
+	if ( ! $table_exists( $table_name ) ) {
 		return array();
 	}
 

@@ -4,7 +4,9 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 $active_view = isset( $args['active_view'] ) ? sanitize_key( (string) $args['active_view'] ) : '';
-$can_view_logs = current_user_can( 'manage_options' ) || ( function_exists( 'peracrm_admin_user_can_reassign' ) && peracrm_admin_user_can_reassign() );
+$can_view_logs = function_exists( 'peracrm_can_view_operational_logs' )
+	? peracrm_can_view_operational_logs()
+	: ( current_user_can( 'manage_options' ) || ( function_exists( 'peracrm_admin_user_can_reassign' ) && peracrm_admin_user_can_reassign() ) );
 $theme_icons = trailingslashit( get_stylesheet_directory_uri() ) . 'logos-icons/icons.svg';
 
 $items = array(

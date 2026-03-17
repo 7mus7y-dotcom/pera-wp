@@ -389,6 +389,18 @@ function peracrm_get_staff_users()
     return (array) $load_users();
 }
 
+
+
+if (!function_exists('peracrm_can_view_operational_logs')) {
+    function peracrm_can_view_operational_logs($user_id = 0)
+    {
+        if ($user_id > 0) {
+            return user_can($user_id, 'manage_options') || user_can($user_id, 'peracrm_manage_assignments');
+        }
+
+        return current_user_can('manage_options') || current_user_can('peracrm_manage_assignments');
+    }
+}
 function peracrm_render_assigned_advisor_box($client_id, array $args = [])
 {
     $client_id = (int) $client_id;
