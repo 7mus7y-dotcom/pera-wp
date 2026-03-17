@@ -19,7 +19,7 @@ $logo_id = (int) get_theme_mod('custom_logo');
 <body <?php body_class('crm-route'); ?>>
 <?php wp_body_open(); ?>
 
-<a href="#primary" class="skip-link"><?php esc_html_e('Skip to content', 'hello-elementor-child'); ?></a>
+<a href="#primary" class="skip-link"><?php esc_html_e('Skip to content', 'peracrm'); ?></a>
 
 <header id="site-header" class="site-header peracrm-shell-header" role="banner">
   <div class="container header-inner">
