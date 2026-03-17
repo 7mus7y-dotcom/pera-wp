@@ -3,17 +3,13 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-if ( function_exists( 'peracrm_frontend_bridge_include' ) ) {
-	// MU plugin owns CRM helper loading; keep theme side-effect free when bridge exists.
+if ( function_exists( 'peracrm_frontend_bridge_include' ) || defined( 'PERACRM_BOOTSTRAPPED' ) ) {
+	// PeraCRM plugin owns CRM helper loading.
 	return;
 }
 
-$crm_data = get_stylesheet_directory() . '/inc/crm-data.php';
-if ( file_exists( $crm_data ) ) {
-	require_once $crm_data;
-}
-
-$crm_client_view = get_stylesheet_directory() . '/inc/crm-client-view.php';
-if ( file_exists( $crm_client_view ) ) {
-	require_once $crm_client_view;
-}
+/*
+ * Legacy fallback removed for multisite migration:
+ * do not load theme CRM helpers when plugin is not bootstrapped,
+ * otherwise CRM code continues to run even after plugin deactivation.
+ */
