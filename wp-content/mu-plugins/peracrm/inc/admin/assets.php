@@ -33,7 +33,7 @@ function peracrm_admin_enqueue_assets($hook)
 
     wp_enqueue_style(
         'peracrm-admin',
-        plugins_url('peracrm/assets/admin.css', PERACRM_MAIN_FILE),
+        PERACRM_URL . '/assets/admin.css',
         [],
         $version
     );

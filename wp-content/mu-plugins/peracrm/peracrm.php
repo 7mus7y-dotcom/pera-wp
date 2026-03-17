@@ -15,11 +15,23 @@ if (!defined('PERACRM_MAIN_FILE')) {
     define('PERACRM_MAIN_FILE', __FILE__);
 }
 
-define('PERACRM_PATH', __DIR__);
-define('PERACRM_URL', content_url('/mu-plugins/peracrm'));
-define('PERACRM_INC', __DIR__ . '/inc');
+if (!defined('PERACRM_PATH')) {
+    define('PERACRM_PATH', __DIR__);
+}
+
+if (!defined('PERACRM_URL')) {
+    define('PERACRM_URL', untrailingslashit(plugin_dir_url(PERACRM_MAIN_FILE)));
+}
+
+if (!defined('PERACRM_INC')) {
+    define('PERACRM_INC', PERACRM_PATH . '/inc');
+}
 
 require_once PERACRM_INC . '/bootstrap.php';
+
+if (function_exists('peracrm_register_lifecycle_hooks')) {
+    peracrm_register_lifecycle_hooks();
+}
 
 /**
  * Integration snippet for enquiry handlers:
