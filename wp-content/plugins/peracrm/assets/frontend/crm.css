@@ -1894,7 +1894,7 @@ body.crm-route #site-header.peracrm-shell-header {
   background: transparent;
 }
 
-body.admin-bar.crm-route #site-header.peracrm-shell-header {
+#wpadminbar ~ #site-header.peracrm-shell-header {
   top: 32px;
 }
 
@@ -2062,7 +2062,7 @@ body.crm-route #site-header.peracrm-shell-header.is-scrolled .peracrm-header-act
   box-shadow: 0 14px 34px rgba(15, 23, 42, 0.06);
 }
 
-body.admin-bar.crm-route .crm-side-nav {
+#wpadminbar ~ #primary .crm-side-nav {
   top: calc(90px + 32px);
 }
 .crm-side-nav__title {
@@ -2139,7 +2139,7 @@ body.admin-bar.crm-route .crm-side-nav {
   transition: transform 220ms ease;
 }
 
-body.admin-bar.crm-route .crm-side-nav--drawer {
+#wpadminbar ~ #primary .crm-side-nav--drawer {
   top: 32px;
   height: calc(100vh - 32px);
 }
@@ -2308,15 +2308,15 @@ body.admin-bar.crm-route .crm-side-nav--drawer {
 }
 
 @media screen and (max-width: 782px) {
-  body.admin-bar.crm-route #site-header.peracrm-shell-header {
+  #wpadminbar ~ #site-header.peracrm-shell-header {
     top: 46px;
   }
 
-  body.admin-bar.crm-route .crm-side-nav {
+  #wpadminbar ~ #primary .crm-side-nav {
     top: calc(90px + 46px);
   }
 
-  body.admin-bar.crm-route .crm-side-nav--drawer {
+  #wpadminbar ~ #primary .crm-side-nav--drawer {
     top: 46px;
     height: calc(100vh - 46px);
   }
