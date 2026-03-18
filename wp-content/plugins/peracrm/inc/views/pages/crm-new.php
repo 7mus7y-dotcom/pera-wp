@@ -104,7 +104,7 @@ if ( ! isset( $crm_phone_country_options[ $prefill_phone_country ] ) ) {
 	$prefill_phone_country = $default_phone_country;
 }
 
-peracrm_frontend_render_shell_header();
+peracrm_frontend_render_shell_header( array( 'show_crm_nav_toggle' => false ) );
 ?>
 
 <main id="primary" class="site-main crm-page crm-page--new">
@@ -124,22 +124,22 @@ peracrm_frontend_render_shell_header();
     <div class="content-panel-box border-dm container">
       <article class="card-shell crm-form-card">
         <?php if ( 'invalid_nonce' === $error ) : ?>
-          <p class="pill pill--outline"><?php echo esc_html__( 'Security check failed. Please try again.', 'peracrm' ); ?></p>
+          <div class="crm-inline-notice crm-inline-notice--error" role="alert"><?php echo esc_html__( 'Security check failed. Please try again.', 'peracrm' ); ?></div>
         <?php elseif ( 'missing_required' === $error ) : ?>
-          <p class="pill pill--outline"><?php echo esc_html__( 'First name, last name, email, and source are required.', 'peracrm' ); ?></p>
+          <div class="crm-inline-notice crm-inline-notice--error" role="alert"><?php echo esc_html__( 'First name, last name, email, and source are required.', 'peracrm' ); ?></div>
         <?php elseif ( 'invalid_email' === $error ) : ?>
-          <p class="pill pill--outline"><?php echo esc_html__( 'Please enter a valid email address.', 'peracrm' ); ?></p>
+          <div class="crm-inline-notice crm-inline-notice--error" role="alert"><?php echo esc_html__( 'Please enter a valid email address.', 'peracrm' ); ?></div>
         <?php elseif ( 'invalid_source' === $error ) : ?>
-          <p class="pill pill--outline"><?php echo esc_html__( 'Please choose a valid lead source.', 'peracrm' ); ?></p>
+          <div class="crm-inline-notice crm-inline-notice--error" role="alert"><?php echo esc_html__( 'Please choose a valid lead source.', 'peracrm' ); ?></div>
         <?php elseif ( 'create_failed' === $error ) : ?>
-          <p class="pill pill--outline"><?php echo esc_html__( 'Could not create lead. Please try again.', 'peracrm' ); ?></p>
+          <div class="crm-inline-notice crm-inline-notice--error" role="alert"><?php echo esc_html__( 'Could not create lead. Please try again.', 'peracrm' ); ?></div>
         <?php elseif ( 'duplicate_email' === $error ) : ?>
-          <p class="pill pill--outline">
+          <div class="crm-inline-notice crm-inline-notice--error" role="alert">
             <?php echo esc_html__( 'A lead with this email already exists. No duplicate record was created.', 'peracrm' ); ?>
             <?php if ( $existing_client_url ) : ?>
               <a href="<?php echo esc_url( $existing_client_url ); ?>"><?php echo esc_html__( 'Open existing client', 'peracrm' ); ?></a>
             <?php endif; ?>
-          </p>
+          </div>
         <?php endif; ?>
 
         <form method="post" action="<?php echo esc_url( home_url( '/crm/new/' ) ); ?>" class="crm-form-stack">

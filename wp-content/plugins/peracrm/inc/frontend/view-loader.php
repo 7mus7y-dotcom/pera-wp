@@ -49,7 +49,7 @@ if (!function_exists('peracrm_frontend_render_partial')) {
 
 
 if (!function_exists('peracrm_frontend_render_shell_header')) {
-    function peracrm_frontend_render_shell_header(): void
+    function peracrm_frontend_render_shell_header(array $args = []): void
     {
         $shell_header = peracrm_frontend_view_path('shell/header.php');
         if ($shell_header !== '') {
