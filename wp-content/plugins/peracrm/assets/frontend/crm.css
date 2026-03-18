@@ -1953,6 +1953,8 @@ body.crm-route #site-header.peracrm-shell-header .peracrm-shell-logo-text {
 .crm-side-nav__toggle { display: none; align-items: center; justify-content: center; gap: 8px; margin: 0; white-space: nowrap; }
 .crm-side-nav__toggle .icon { width: 18px; height: 18px; }
 .crm-side-nav__toggle--hero { min-width: 118px; }
+.crm-side-nav__toggle--header {  border: 1px solid rgba(255,255,255,0.6);  color: #fff;}
+.crm-side-nav__toggle--header:hover {  background: #fff;  color: var(--brand);  border-color: #fff;}
 .peracrm-header-actions {margin-left: auto;  display: flex;  align-items: center;}
 /* Hide by default (desktop) */.crm-side-nav__toggle--header {display: none;}
 /* Show only on mobile/tablet */
