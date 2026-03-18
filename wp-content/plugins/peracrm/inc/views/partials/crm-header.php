@@ -18,14 +18,36 @@ $clients_type_view   = isset( $args['clients_type_view'] ) ? sanitize_key( (stri
 $filter_q            = isset( $_GET['q'] ) ? sanitize_text_field( wp_unslash( (string) $_GET['q'] ) ) : '';
 $filter_stage        = isset( $_GET['stage'] ) ? sanitize_key( wp_unslash( (string) $_GET['stage'] ) ) : '';
 $filter_advisor      = isset( $_GET['advisor'] ) ? absint( wp_unslash( (string) $_GET['advisor'] ) ) : 0;
+$active_view         = isset( $args['active_view'] ) ? sanitize_key( (string) $args['active_view'] ) : '';
+$theme_icons         = trailingslashit( get_stylesheet_directory_uri() ) . 'logos-icons/icons.svg';
 
 ?>
 <section class="hero hero--left hero--fit" id="crm-hero">
   <div class="hero-content container">
-    <h1><?php echo esc_html( $title ); ?></h1>
-    <?php if ( '' !== $description ) : ?>
-      <p class="lead"><?php echo esc_html( $description ); ?></p>
-    <?php endif; ?>
+    <div class="crm-hero__body">
+      <div class="crm-hero__copy">
+        <h1><?php echo esc_html( $title ); ?></h1>
+        <?php if ( '' !== $description ) : ?>
+          <p class="lead"><?php echo esc_html( $description ); ?></p>
+        <?php endif; ?>
+      </div>
+
+      <div class="crm-hero__actions">
+        <?php if ( '' !== $active_view ) : ?>
+          <button
+            type="button"
+            class="btn btn--ghost btn--white crm-side-nav__toggle crm-side-nav__toggle--hero"
+            data-crm-nav-toggle
+            aria-expanded="false"
+            aria-controls="crm-side-nav-drawer"
+            aria-label="<?php esc_attr_e( 'Open CRM menu', 'peracrm' ); ?>"
+          >
+            <svg class="icon" aria-hidden="true"><use href="<?php echo esc_url( $theme_icons . '#icon-bars' ); ?>"></use></svg>
+            <?php esc_html_e( 'Menu', 'peracrm' ); ?>
+          </button>
+        <?php endif; ?>
+      </div>
+    </div>
     <?php if ( $show_client_filters ) : ?>
     <form method="get" action="<?php echo esc_url( home_url( '/crm/clients/' ) ); ?>" class="crm-client-hero-filters">
       <input type="hidden" name="type" value="<?php echo esc_attr( $clients_type_view ); ?>">
