@@ -31,22 +31,6 @@ $theme_icons         = trailingslashit( get_stylesheet_directory_uri() ) . 'logo
           <p class="lead"><?php echo esc_html( $description ); ?></p>
         <?php endif; ?>
       </div>
-
-      <div class="crm-hero__actions">
-        <?php if ( '' !== $active_view ) : ?>
-          <button
-            type="button"
-            class="btn btn--ghost btn--white crm-side-nav__toggle crm-side-nav__toggle--hero"
-            data-crm-nav-toggle
-            aria-expanded="false"
-            aria-controls="crm-side-nav-drawer"
-            aria-label="<?php esc_attr_e( 'Open CRM menu', 'peracrm' ); ?>"
-          >
-            <svg class="icon" aria-hidden="true"><use href="<?php echo esc_url( $theme_icons . '#icon-bars' ); ?>"></use></svg>
-            <?php esc_html_e( 'Menu', 'peracrm' ); ?>
-          </button>
-        <?php endif; ?>
-      </div>
     </div>
     <?php if ( $show_client_filters ) : ?>
     <form method="get" action="<?php echo esc_url( home_url( '/crm/clients/' ) ); ?>" class="crm-client-hero-filters">
