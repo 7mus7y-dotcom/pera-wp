@@ -149,6 +149,9 @@
   margin-inline: auto;
   padding: 120px 20px 60px;
 }
+#crm-hero .crm-hero__body { display: flex; align-items: flex-end; justify-content: space-between; gap: 20px; }
+#crm-hero .crm-hero__copy { min-width: 0; flex: 1 1 auto; }
+#crm-hero .crm-hero__actions { display: flex; justify-content: flex-end; align-items: flex-end; flex: 0 0 auto; }
 #crm-hero.hero--left { text-align: left; }
 #crm-hero.hero--left .hero-actions { justify-content: flex-start; }
 #crm-hero .hero-actions { display: inline-flex; gap: 12px; flex-wrap: wrap; justify-content: center; }
@@ -190,6 +193,7 @@
 @media (max-width: 768px) {
   .crm-page .section { padding: 40px 10px; }
   #crm-hero .hero-content { padding: 150px 16px 50px; }
+  #crm-hero .crm-hero__body { flex-direction: column; align-items: stretch; }
   #crm-hero.hero--fit .hero-content { padding-bottom: var(--space-md); }
 }
 @media (max-width: 640px) {
@@ -1913,7 +1917,8 @@ body.crm-route #site-header.peracrm-shell-header .site-logo.logo-pera {
 }
 
 body.crm-route #site-header.peracrm-shell-header .site-logo.logo-pera img.custom-logo,
-body.crm-route #site-header.peracrm-shell-header .site-logo.logo-pera .pera-site-logo-image {
+body.crm-route #site-header.peracrm-shell-header .site-logo.logo-pera .pera-site-logo-image,
+body.crm-route #site-header.peracrm-shell-header .site-logo.logo-pera svg {
   display: block;
   width: 200px;
   max-width: 100%;
@@ -1928,7 +1933,8 @@ body.crm-route #site-header.peracrm-shell-header .peracrm-shell-logo-text {
 
 @media (max-width: 640px) {
   body.crm-route #site-header.peracrm-shell-header .site-logo.logo-pera img.custom-logo,
-  body.crm-route #site-header.peracrm-shell-header .site-logo.logo-pera .pera-site-logo-image {
+  body.crm-route #site-header.peracrm-shell-header .site-logo.logo-pera .pera-site-logo-image,
+  body.crm-route #site-header.peracrm-shell-header .site-logo.logo-pera svg {
     width: 150px;
   }
 }
@@ -1944,16 +1950,17 @@ body.crm-route #site-header.peracrm-shell-header .peracrm-shell-logo-text {
 .crm-layout { display: grid; grid-template-columns: minmax(0, 1fr) 240px; gap: 16px; align-items: start; max-width: 100%; }
 .crm-layout__main { min-width: 0; }
 .crm-nav-shell { position: relative; }
-.crm-side-nav__toggle { display: none; width: 100%; gap: 8px; margin-bottom: 12px; }
+.crm-side-nav__toggle { display: none; align-items: center; justify-content: center; gap: 8px; margin: 0; white-space: nowrap; }
 .crm-side-nav__toggle .icon { width: 18px; height: 18px; }
+.crm-side-nav__toggle--hero { min-width: 118px; }
 .crm-side-nav { position: sticky; top: 90px; background: #fff; border: 1px solid #e8ecf2; border-radius: 12px; padding: 12px; }
 .crm-side-nav__title { display: flex; align-items: center; gap: 8px; font-weight: 700; margin: 0 0 8px; }
 .crm-side-nav__title .icon { width: 18px; height: 18px; }
 .crm-side-nav__list { list-style: none; margin: 0; padding: 0; display: grid; gap: 6px; }
 .crm-side-nav__list a { display: block; padding: 8px 10px; border-radius: 8px; text-decoration: none; color: inherit; overflow-wrap: anywhere; }
 .crm-side-nav__list a.is-active { background: #eef4ff; color: var(--brand); font-weight: 600; }
-.crm-side-nav__overlay { position: fixed; inset: 0; background: rgba(15, 23, 42, 0.45); z-index: 99; }
-.crm-side-nav--drawer { position: fixed; top: 0; right: 0; z-index: 100; width: min(360px, calc(100vw - 32px)); height: 100vh; border-radius: 0; overflow-y: auto; transform: translateX(100%); transition: transform 180ms ease; }
+.crm-side-nav__overlay { position: fixed; inset: 0; background: rgba(15, 23, 42, 0.45); z-index: 1098; }
+.crm-side-nav--drawer { position: fixed; top: 0; right: 0; z-index: 1099; width: min(360px, calc(100vw - 32px)); height: 100vh; border-radius: 0; overflow-y: auto; transform: translateX(100%); transition: transform 180ms ease; }
 .crm-nav-shell.is-open .crm-side-nav--drawer { transform: translateX(0); }
 .crm-side-nav__drawer-header { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 8px; }
 .crm-side-nav__close { min-width: 42px; min-height: 42px; padding: 0; }

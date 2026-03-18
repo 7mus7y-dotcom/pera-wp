@@ -22,17 +22,6 @@ if ( $can_view_logs ) {
 }
 ?>
 <div class="crm-nav-shell" data-crm-nav>
-  <button
-    type="button"
-    class="btn btn--ghost btn--blue crm-side-nav__toggle"
-    data-crm-nav-toggle
-    aria-expanded="false"
-    aria-controls="crm-side-nav-drawer"
-  >
-    <svg class="icon" aria-hidden="true"><use href="<?php echo esc_url( $theme_icons . '#icon-bars' ); ?>"></use></svg>
-    <?php esc_html_e( 'Menu', 'peracrm' ); ?>
-  </button>
-
   <div class="crm-side-nav__overlay" data-crm-nav-overlay hidden></div>
 
   <aside class="crm-side-nav" aria-label="<?php echo esc_attr__( 'CRM navigation', 'peracrm' ); ?>">
