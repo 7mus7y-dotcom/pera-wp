@@ -1901,24 +1901,43 @@ body.crm-route #site-header.peracrm-shell-header .header-inner {
   display: flex;
   align-items: center;
   justify-content: space-between;
+  gap: 16px;
 }
 
-body.crm-route #site-header.peracrm-shell-header .site-branding {
+body.crm-route #site-header.peracrm-shell-header .peracrm-shell-branding {
   display: flex;
-  align-items: flex-start;
-  color: #ffffff;
-  padding: 5px 8px;
+  align-items: center;
+  flex: 0 0 auto;
+  min-width: 0;
 }
 
-body.crm-route #site-header.peracrm-shell-header .site-logo.logo-pera {
+body.crm-route #site-header.peracrm-shell-header .peracrm-shell-logo-block {
   display: inline-flex;
-  text-decoration: none;
-  color: inherit;
+  align-items: center;
+  padding: 5px 8px;
+  border-radius: 18px;
+  background: transparent;
+  border: 1px solid transparent;
+  transition: background-color 180ms ease, border-color 180ms ease, box-shadow 180ms ease, backdrop-filter 180ms ease, -webkit-backdrop-filter 180ms ease;
 }
 
-body.crm-route #site-header.peracrm-shell-header .site-logo.logo-pera img.custom-logo,
-body.crm-route #site-header.peracrm-shell-header .site-logo.logo-pera .pera-site-logo-image,
-body.crm-route #site-header.peracrm-shell-header .site-logo.logo-pera svg {
+body.crm-route #site-header.peracrm-shell-header.is-scrolled .peracrm-shell-logo-block {
+  background: rgba(255, 255, 255, 0.14);
+  border-color: rgba(255, 255, 255, 0.28);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  box-shadow: 0 10px 24px rgba(15, 23, 42, 0.14);
+}
+
+body.crm-route #site-header.peracrm-shell-header .peracrm-shell-logo-link {
+  display: inline-flex;
+  align-items: center;
+  text-decoration: none;
+  color: #ffffff;
+}
+
+body.crm-route #site-header.peracrm-shell-header .peracrm-shell-logo-image,
+body.crm-route #site-header.peracrm-shell-header .peracrm-shell-logo-link svg {
   display: block;
   width: 200px;
   max-width: 100%;
@@ -1929,19 +1948,28 @@ body.crm-route #site-header.peracrm-shell-header .peracrm-shell-logo-text {
   color: inherit;
   font-weight: 700;
   font-size: 1.1rem;
+  line-height: 1.2;
 }
 
 @media (max-width: 640px) {
-  body.crm-route #site-header.peracrm-shell-header .site-logo.logo-pera img.custom-logo,
-  body.crm-route #site-header.peracrm-shell-header .site-logo.logo-pera .pera-site-logo-image,
-  body.crm-route #site-header.peracrm-shell-header .site-logo.logo-pera svg {
+  body.crm-route #site-header.peracrm-shell-header .header-inner {
+    padding: 14px 16px;
+  }
+
+  body.crm-route #site-header.peracrm-shell-header .peracrm-shell-logo-image,
+  body.crm-route #site-header.peracrm-shell-header .peracrm-shell-logo-link svg {
     width: 150px;
   }
 }
 
 @media (prefers-color-scheme: dark) {
-  body.crm-route #site-header.peracrm-shell-header .site-branding,
-  body.crm-route #site-header.peracrm-shell-header .site-logo.logo-pera,
+  body.crm-route #site-header.peracrm-shell-header.is-scrolled .peracrm-shell-logo-block {
+    background: rgba(15, 23, 42, 0.55);
+    border-color: rgba(148, 163, 184, 0.32);
+    box-shadow: 0 16px 32px rgba(2, 6, 23, 0.4);
+  }
+
+  body.crm-route #site-header.peracrm-shell-header .peracrm-shell-logo-link,
   body.crm-route #site-header.peracrm-shell-header .peracrm-shell-logo-text {
     color: #ffffff;
   }

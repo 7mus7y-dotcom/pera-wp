@@ -1,4 +1,18 @@
 (function () {
+  var header = document.querySelector('#site-header.peracrm-shell-header');
+  if (!header) {
+    return;
+  }
+
+  function syncScrolledState() {
+    header.classList.toggle('is-scrolled', window.scrollY > 8);
+  }
+
+  syncScrolledState();
+  window.addEventListener('scroll', syncScrolledState, { passive: true });
+})();
+
+(function () {
   var navRoot = document.querySelector('[data-crm-nav]');
   if (!navRoot) {
     return;
