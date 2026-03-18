@@ -22,6 +22,7 @@
   var drawer = navRoot.querySelector('[data-crm-nav-drawer]');
   var overlay = navRoot.querySelector('[data-crm-nav-overlay]');
   var close = navRoot.querySelector('[data-crm-nav-close]');
+  var lastTrigger = null;
 
   if (!toggles.length || !drawer || !overlay) {
     return;
@@ -39,10 +40,24 @@
     overlay.hidden = !open;
     syncExpanded(open);
     document.body.classList.toggle('crm-nav-open', open);
+
+    if (open) {
+      window.requestAnimationFrame(function () {
+        drawer.focus();
+      });
+      return;
+    }
+
+    if (lastTrigger && typeof lastTrigger.focus === 'function') {
+      window.requestAnimationFrame(function () {
+        lastTrigger.focus();
+      });
+    }
   }
 
   toggles.forEach(function (toggle) {
     toggle.addEventListener('click', function () {
+      lastTrigger = toggle;
       setOpen(!navRoot.classList.contains('is-open'));
     });
   });
@@ -55,6 +70,13 @@
 
   overlay.addEventListener('click', function () {
     setOpen(false);
+  });
+
+  drawer.addEventListener('click', function (event) {
+    var target = event.target.closest('a[href]');
+    if (target) {
+      setOpen(false);
+    }
   });
 
   document.addEventListener('keydown', function (event) {

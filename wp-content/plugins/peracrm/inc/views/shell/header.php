@@ -46,20 +46,24 @@ $has_plugin_logo = file_exists($plugin_logo_path);
       </div>
     </div>
 
-    <div class="peracrm-header-actions">
-      <button
-        type="button"
-        class="btn btn--ghost btn--white crm-side-nav__toggle crm-side-nav__toggle--header"
-        data-crm-nav-toggle
-        aria-expanded="false"
-        aria-controls="crm-side-nav-drawer"
-        aria-label="<?php esc_attr_e( 'Open CRM menu', 'peracrm' ); ?>"
-      >
-        <svg class="icon" aria-hidden="true">
-          <use href="<?php echo esc_url( get_stylesheet_directory_uri() . '/logos-icons/icons.svg#icon-bars' ); ?>"></use>
-        </svg>
-        <?php esc_html_e( 'Menu', 'peracrm' ); ?>
-      </button>
+    <div class="peracrm-header-actions" data-peracrm-header-actions>
+      <div class="peracrm-header-actions__cluster">
+        <button
+          type="button"
+          class="btn btn--ghost btn--white crm-side-nav__toggle crm-side-nav__toggle--header"
+          data-crm-nav-toggle
+          aria-expanded="false"
+          aria-controls="crm-side-nav-drawer"
+          aria-label="<?php esc_attr_e('Open CRM menu', 'peracrm'); ?>"
+        >
+          <span class="crm-side-nav__toggle-icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24" focusable="false" aria-hidden="true">
+              <path d="M4 7h16M4 12h16M4 17h16" fill="none" stroke="currentColor" stroke-linecap="round" stroke-width="1.9"></path>
+            </svg>
+          </span>
+          <span class="crm-side-nav__toggle-label"><?php esc_html_e('Menu', 'peracrm'); ?></span>
+        </button>
+      </div>
     </div>
 
   </div>
