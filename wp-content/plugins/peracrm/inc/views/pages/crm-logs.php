@@ -85,58 +85,62 @@ if ( function_exists( 'peracrm_frontend_render_partial' ) ) {
         <?php if ( empty( $rows ) ) : ?>
           <p><?php esc_html_e( 'No WhatsApp logs found.', 'peracrm' ); ?></p>
         <?php else : ?>
-          <table class="crm-log-table">
-            <thead>
-              <tr>
-                <th><?php esc_html_e( 'Time', 'peracrm' ); ?></th>
-                <th><?php esc_html_e( 'Type', 'peracrm' ); ?></th>
-                <th><?php esc_html_e( 'Title', 'peracrm' ); ?></th>
-                <th><?php esc_html_e( 'Message', 'peracrm' ); ?></th>
-                <th><?php esc_html_e( 'IP', 'peracrm' ); ?></th>
-              </tr>
-            </thead>
-            <tbody>
-            <?php foreach ( (array) $rows as $row ) : ?>
-              <tr>
-                <td><?php echo esc_html( (string) $row['created_at'] ); ?></td>
-                <td><?php echo esc_html( (string) $row['page_type'] ); ?></td>
-                <td><?php echo esc_html( (string) $row['post_title'] ); ?></td>
-                <td><?php echo esc_html( (string) $row['message_text'] ); ?></td>
-                <td><?php echo esc_html( (string) $row['ip_address'] ); ?></td>
-              </tr>
-            <?php endforeach; ?>
-            </tbody>
-          </table>
+          <div class="crm-log-table-wrap">
+            <table class="crm-log-table">
+              <thead>
+                <tr>
+                  <th><?php esc_html_e( 'Time', 'peracrm' ); ?></th>
+                  <th><?php esc_html_e( 'Type', 'peracrm' ); ?></th>
+                  <th><?php esc_html_e( 'Title', 'peracrm' ); ?></th>
+                  <th><?php esc_html_e( 'Message', 'peracrm' ); ?></th>
+                  <th><?php esc_html_e( 'IP', 'peracrm' ); ?></th>
+                </tr>
+              </thead>
+              <tbody>
+              <?php foreach ( (array) $rows as $row ) : ?>
+                <tr>
+                  <td><?php echo esc_html( (string) $row['created_at'] ); ?></td>
+                  <td><?php echo esc_html( (string) $row['page_type'] ); ?></td>
+                  <td><?php echo esc_html( (string) $row['post_title'] ); ?></td>
+                  <td><?php echo esc_html( (string) $row['message_text'] ); ?></td>
+                  <td><?php echo esc_html( (string) $row['ip_address'] ); ?></td>
+                </tr>
+              <?php endforeach; ?>
+              </tbody>
+            </table>
+          </div>
         <?php endif; ?>
       <?php elseif ( $is_email ) : ?>
         <?php $rows = $read_email_logs(); ?>
         <?php if ( empty( $rows ) ) : ?>
           <p><?php esc_html_e( 'No email logs found.', 'peracrm' ); ?></p>
         <?php else : ?>
-          <table class="crm-log-table">
-            <thead>
-              <tr>
-                <th><?php esc_html_e( 'Time', 'peracrm' ); ?></th>
-                <th><?php esc_html_e( 'Form', 'peracrm' ); ?></th>
-                <th><?php esc_html_e( 'Context', 'peracrm' ); ?></th>
-                <th><?php esc_html_e( 'Recipient', 'peracrm' ); ?></th>
-                <th><?php esc_html_e( 'Subject', 'peracrm' ); ?></th>
-                <th><?php esc_html_e( 'Status', 'peracrm' ); ?></th>
-              </tr>
-            </thead>
-            <tbody>
-            <?php foreach ( (array) $rows as $row ) : ?>
-              <tr>
-                <td><?php echo esc_html( (string) $row['created_at'] ); ?></td>
-                <td><?php echo esc_html( (string) $row['form_key'] ); ?></td>
-                <td><?php echo esc_html( (string) $row['mail_context'] ); ?></td>
-                <td><?php echo esc_html( (string) $row['recipient'] ); ?></td>
-                <td><?php echo esc_html( (string) $row['subject'] ); ?></td>
-                <td><?php echo esc_html( (string) $row['status'] ); ?></td>
-              </tr>
-            <?php endforeach; ?>
-            </tbody>
-          </table>
+          <div class="crm-log-table-wrap">
+            <table class="crm-log-table">
+              <thead>
+                <tr>
+                  <th><?php esc_html_e( 'Time', 'peracrm' ); ?></th>
+                  <th><?php esc_html_e( 'Form', 'peracrm' ); ?></th>
+                  <th><?php esc_html_e( 'Context', 'peracrm' ); ?></th>
+                  <th><?php esc_html_e( 'Recipient', 'peracrm' ); ?></th>
+                  <th><?php esc_html_e( 'Subject', 'peracrm' ); ?></th>
+                  <th><?php esc_html_e( 'Status', 'peracrm' ); ?></th>
+                </tr>
+              </thead>
+              <tbody>
+              <?php foreach ( (array) $rows as $row ) : ?>
+                <tr>
+                  <td><?php echo esc_html( (string) $row['created_at'] ); ?></td>
+                  <td><?php echo esc_html( (string) $row['form_key'] ); ?></td>
+                  <td><?php echo esc_html( (string) $row['mail_context'] ); ?></td>
+                  <td><?php echo esc_html( (string) $row['recipient'] ); ?></td>
+                  <td><?php echo esc_html( (string) $row['subject'] ); ?></td>
+                  <td><?php echo esc_html( (string) $row['status'] ); ?></td>
+                </tr>
+              <?php endforeach; ?>
+              </tbody>
+            </table>
+          </div>
         <?php endif; ?>
       <?php else : ?>
         <p><?php esc_html_e( 'Log source is unavailable in this environment.', 'peracrm' ); ?></p>
