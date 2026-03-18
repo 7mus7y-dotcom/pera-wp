@@ -61,7 +61,6 @@ $has_plugin_logo = file_exists($plugin_logo_path);
               <path d="M4 7h16M4 12h16M4 17h16" fill="none" stroke="currentColor" stroke-linecap="round" stroke-width="1.9"></path>
             </svg>
           </span>
-          <span class="crm-side-nav__toggle-label"><?php esc_html_e('Menu', 'peracrm'); ?></span>
         </button>
       </div>
     </div>
