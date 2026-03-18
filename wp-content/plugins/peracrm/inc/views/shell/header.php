@@ -32,6 +32,7 @@ $has_plugin_fallback = file_exists($plugin_fallback_path);
 
 <header id="site-header" class="site-header peracrm-shell-header" role="banner">
   <div class="container header-inner">
+    
     <div class="site-branding">
       <a class="site-logo logo-pera" href="<?php echo esc_url(home_url('/')); ?>" rel="home" aria-label="<?php echo esc_attr($site_name); ?>">
         <?php if ('' !== $theme_logo_html) : ?>
@@ -43,5 +44,22 @@ $has_plugin_fallback = file_exists($plugin_fallback_path);
         <?php endif; ?>
       </a>
     </div>
+
+    <div class="peracrm-header-actions">
+      <button
+        type="button"
+        class="btn btn--ghost btn--white crm-side-nav__toggle crm-side-nav__toggle--header"
+        data-crm-nav-toggle
+        aria-expanded="false"
+        aria-controls="crm-side-nav-drawer"
+        aria-label="<?php esc_attr_e( 'Open CRM menu', 'peracrm' ); ?>"
+      >
+        <svg class="icon" aria-hidden="true">
+          <use href="<?php echo esc_url( get_stylesheet_directory_uri() . '/logos-icons/icons.svg#icon-bars' ); ?>"></use>
+        </svg>
+        <?php esc_html_e( 'Menu', 'peracrm' ); ?>
+      </button>
+    </div>
+
   </div>
 </header>
