@@ -17,6 +17,7 @@ if ($logo_id > 0) {
 $plugin_logo_path = trailingslashit(PERACRM_PATH) . 'logos-icons/pera-logo.svg';
 $plugin_logo_url = trailingslashit(PERACRM_URL) . 'logos-icons/pera-logo.svg';
 $has_plugin_logo = file_exists($plugin_logo_path);
+$show_crm_nav_toggle = isset($args['show_crm_nav_toggle']) ? (bool) $args['show_crm_nav_toggle'] : true;
 ?>
 <!doctype html>
 <html <?php language_attributes(); ?>>
@@ -46,6 +47,7 @@ $has_plugin_logo = file_exists($plugin_logo_path);
       </div>
     </div>
 
+    <?php if ($show_crm_nav_toggle) : ?>
     <div class="peracrm-header-actions" data-peracrm-header-actions>
       <div class="peracrm-header-actions__cluster">
         <button
@@ -64,6 +66,7 @@ $has_plugin_logo = file_exists($plugin_logo_path);
         </button>
       </div>
     </div>
+    <?php endif; ?>
 
   </div>
 </header>
