@@ -1426,7 +1426,7 @@ function peracrm_handle_save_client_profile()
         $data['client_type'] = sanitize_key(wp_unslash($_POST['peracrm_client_type']));
     }
     if (isset($_POST['peracrm_preferred_contact'])) {
-        $data['preferred_contact'] = sanitize_key(wp_unslash($_POST['peracrm_preferred_contact']));
+        $data['preferred_contact'] = wp_unslash($_POST['peracrm_preferred_contact']);
     }
     if (isset($_POST['peracrm_budget_min_usd'])) {
         $data['budget_min_usd'] = wp_unslash($_POST['peracrm_budget_min_usd']);

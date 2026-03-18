@@ -115,6 +115,8 @@ $delete_redirect_url = 'lead' === $derived_type ? $leads_url : $clients_url;
 $client_type_options = is_array( $data['client_type_options'] ?? null ) ? $data['client_type_options'] : array( 'citizenship' => 'Citizenship', 'investor' => 'Investor', 'lifestyle' => 'Lifestyle', 'seller' => 'Seller', 'landlord' => 'Landlord' );
 $status_options      = function_exists( 'peracrm_status_options' ) ? (array) peracrm_status_options() : array( 'enquiry' => 'Enquiry', 'active' => 'Active', 'dormant' => 'Dormant', 'closed' => 'Closed' );
 $client_type_value = sanitize_key( (string) ( $profile['client_type'] ?? '' ) );
+$preferred_contact_options = function_exists( 'peracrm_preferred_contact_options' ) ? (array) peracrm_preferred_contact_options() : array( 'call' => 'Call', 'whatsapp' => 'WhatsApp', 'email' => 'Email' );
+$preferred_contact_values  = function_exists( 'peracrm_normalize_preferred_contact' ) ? (array) peracrm_normalize_preferred_contact( $profile['preferred_contact'] ?? '', 'array' ) : array();
 
 $profile_phone_value = isset( $profile['phone'] ) ? trim( (string) $profile['phone'] ) : '';
 $crm_phone_country_options = array(
@@ -322,7 +324,17 @@ peracrm_frontend_render_shell_header();
                 <?php endif; ?>
               </div>
               <?php endif; ?>
-              <label><?php esc_html_e( 'Preferred contact', 'peracrm' ); ?><input type="text" name="peracrm_preferred_contact" value="<?php echo esc_attr( (string) ( $profile['preferred_contact'] ?? '' ) ); ?>" /></label>
+              <fieldset class="crm-checkbox-group">
+                <legend><?php esc_html_e( 'Preferred contact', 'peracrm' ); ?></legend>
+                <div class="crm-checkbox-group__options">
+                  <?php foreach ( $preferred_contact_options as $contact_key => $contact_label ) : ?>
+                  <label class="crm-checkbox-option">
+                    <input type="checkbox" name="peracrm_preferred_contact[]" value="<?php echo esc_attr( (string) $contact_key ); ?>" <?php checked( in_array( (string) $contact_key, $preferred_contact_values, true ) ); ?> />
+                    <span><?php echo esc_html( (string) $contact_label ); ?></span>
+                  </label>
+                  <?php endforeach; ?>
+                </div>
+              </fieldset>
               <div class="crm-form-row-2">
                 <label><?php esc_html_e( 'Budget min (USD)', 'peracrm' ); ?><input type="number" min="0" name="peracrm_budget_min_usd" value="<?php echo esc_attr( (string) ( $profile['budget_min_usd'] ?? '' ) ); ?>" /></label>
                 <label><?php esc_html_e( 'Budget max (USD)', 'peracrm' ); ?><input type="number" min="0" name="peracrm_budget_max_usd" value="<?php echo esc_attr( (string) ( $profile['budget_max_usd'] ?? '' ) ); ?>" /></label>
@@ -410,6 +422,14 @@ peracrm_frontend_render_shell_header();
                         <span class="pill pill--outline"><?php echo esc_html( (string) $note_created_at ); ?></span>
                         <p class="crm-client-notes-list__meta"><?php echo esc_html( (string) $note_author_name ); ?></p>
                         <p><?php echo esc_html( (string) ( $note['note_body'] ?? '' ) ); ?></p>
+                        <?php if ( ! empty( $note['id'] ) ) : ?>
+                        <form method="post" action="<?php echo esc_url( home_url( '/wp-admin/admin-post.php' ) ); ?>" class="crm-note-delete-form" data-crm-ajax-form="note-delete">
+                          <?php wp_nonce_field( 'peracrm_delete_note', 'peracrm_delete_note_nonce' ); ?>
+                          <input type="hidden" name="peracrm_client_id" value="<?php echo esc_attr( (string) $client_id ); ?>" />
+                          <input type="hidden" name="peracrm_note_id" value="<?php echo esc_attr( (string) absint( $note['id'] ) ); ?>" />
+                          <button type="submit" class="btn btn--ghost btn--red" data-crm-confirm-text="<?php echo esc_attr__( 'Delete this note?', 'peracrm' ); ?>"><?php esc_html_e( 'Delete', 'peracrm' ); ?></button>
+                        </form>
+                        <?php endif; ?>
                       </li>
                     <?php endforeach; ?>
                   </ul>
@@ -448,8 +468,9 @@ peracrm_frontend_render_shell_header();
                     <span class="pill pill--outline"><?php echo esc_html( (string) ( $reminder_row['due_display'] ?? '' ) ); ?></span>
                     <p><?php echo esc_html( (string) ( $reminder_row['note'] ?? '' ) ); ?></p>
                     <?php if ( ! empty( $reminder_row['id'] ) ) : ?>
-                    <form class="crm-task-action" method="post" action="<?php echo esc_url( home_url( '/wp-admin/admin-post.php' ) ); ?>">
+                    <form class="crm-task-action" method="post" action="<?php echo esc_url( home_url( '/wp-admin/admin-post.php' ) ); ?>" data-crm-ajax-form="reminder-status">
                       <input type="hidden" name="action" value="peracrm_update_reminder_status">
+                      <input type="hidden" name="peracrm_client_id" value="<?php echo esc_attr( (string) $client_id ); ?>" />
                       <input type="hidden" name="peracrm_reminder_id" value="<?php echo esc_attr( (string) absint( $reminder_row['id'] ) ); ?>">
                       <input type="hidden" name="peracrm_status" value="done">
                       <input type="hidden" name="peracrm_redirect" value="<?php echo esc_url( $frontend_url ); ?>">
@@ -475,8 +496,9 @@ peracrm_frontend_render_shell_header();
                     <span class="pill pill--red"><?php echo esc_html( (string) ( $reminder_row['due_display'] ?? '' ) ); ?></span>
                     <p><?php echo esc_html( (string) ( $reminder_row['note'] ?? '' ) ); ?></p>
                     <?php if ( ! empty( $reminder_row['id'] ) ) : ?>
-                    <form class="crm-task-action" method="post" action="<?php echo esc_url( home_url( '/wp-admin/admin-post.php' ) ); ?>">
+                    <form class="crm-task-action" method="post" action="<?php echo esc_url( home_url( '/wp-admin/admin-post.php' ) ); ?>" data-crm-ajax-form="reminder-status">
                       <input type="hidden" name="action" value="peracrm_update_reminder_status">
+                      <input type="hidden" name="peracrm_client_id" value="<?php echo esc_attr( (string) $client_id ); ?>" />
                       <input type="hidden" name="peracrm_reminder_id" value="<?php echo esc_attr( (string) absint( $reminder_row['id'] ) ); ?>">
                       <input type="hidden" name="peracrm_status" value="done">
                       <input type="hidden" name="peracrm_redirect" value="<?php echo esc_url( $frontend_url ); ?>">
@@ -502,8 +524,9 @@ peracrm_frontend_render_shell_header();
                     <span class="pill pill--outline"><?php echo esc_html( (string) ( $reminder_row['due_display'] ?? '' ) ); ?></span>
                     <p><?php echo esc_html( (string) ( $reminder_row['note'] ?? '' ) ); ?></p>
                     <?php if ( ! empty( $reminder_row['id'] ) ) : ?>
-                    <form class="crm-task-action" method="post" action="<?php echo esc_url( home_url( '/wp-admin/admin-post.php' ) ); ?>">
+                    <form class="crm-task-action" method="post" action="<?php echo esc_url( home_url( '/wp-admin/admin-post.php' ) ); ?>" data-crm-ajax-form="reminder-status">
                       <input type="hidden" name="action" value="peracrm_update_reminder_status">
+                      <input type="hidden" name="peracrm_client_id" value="<?php echo esc_attr( (string) $client_id ); ?>" />
                       <input type="hidden" name="peracrm_reminder_id" value="<?php echo esc_attr( (string) absint( $reminder_row['id'] ) ); ?>">
                       <input type="hidden" name="peracrm_status" value="done">
                       <input type="hidden" name="peracrm_redirect" value="<?php echo esc_url( $frontend_url ); ?>">
@@ -668,9 +691,7 @@ peracrm_frontend_render_shell_header();
                   <input type="text" readonly data-crm-portfolio-url value="<?php echo esc_attr( $portfolio_saved_is_active ? $portfolio_saved_url : '' ); ?>" />
                 </label>
                 <button type="button" class="btn btn--ghost btn--blue" data-crm-portfolio-copy><?php esc_html_e( 'Copy', 'peracrm' ); ?></button>
-                <?php if ( $portfolio_saved_is_active && $portfolio_saved_post_id > 0 ) : ?>
-                <button type="button" class="btn btn--ghost btn--blue" data-crm-portfolio-update data-client-id="<?php echo esc_attr( (string) $client_id ); ?>" data-portfolio-post-id="<?php echo esc_attr( (string) $portfolio_saved_post_id ); ?>"><?php esc_html_e( 'Update', 'peracrm' ); ?></button>
-                <?php endif; ?>
+                <button type="button" class="btn btn--ghost btn--blue" data-crm-portfolio-update data-client-id="<?php echo esc_attr( (string) $client_id ); ?>" data-portfolio-post-id="<?php echo esc_attr( (string) $portfolio_saved_post_id ); ?>" <?php echo $portfolio_saved_is_active && $portfolio_saved_post_id > 0 ? '' : 'hidden'; ?>><?php esc_html_e( 'Update', 'peracrm' ); ?></button>
                 <small class="text-sm" data-crm-portfolio-expires><?php echo esc_html( $portfolio_saved_is_active && '' !== $portfolio_saved_expires_txt ? sprintf( __( 'Expires: %s', 'peracrm' ), $portfolio_saved_expires_txt ) : '' ); ?></small>
               </div>
 					<?php endif; ?>
@@ -922,7 +943,7 @@ peracrm_frontend_render_shell_header();
                   <input type="hidden" name="form_context" value="profile" />
                   <input type="hidden" name="peracrm_status" value="dormant" />
                   <input type="hidden" name="peracrm_client_type" value="<?php echo esc_attr( (string) ( $profile['client_type'] ?? '' ) ); ?>" />
-                  <input type="hidden" name="peracrm_preferred_contact" value="<?php echo esc_attr( (string) ( $profile['preferred_contact'] ?? '' ) ); ?>" />
+                  <input type="hidden" name="peracrm_preferred_contact" value="<?php echo esc_attr( function_exists( 'peracrm_normalize_preferred_contact' ) ? peracrm_normalize_preferred_contact( $profile['preferred_contact'] ?? '' ) : (string) ( $profile['preferred_contact'] ?? '' ) ); ?>" />
                   <input type="hidden" name="peracrm_phone_country" value="<?php echo esc_attr( (string) $crm_phone_country_value ); ?>" />
                   <input type="hidden" name="peracrm_phone_national" value="<?php echo esc_attr( (string) $crm_phone_national_value ); ?>" />
                   <input type="hidden" name="peracrm_phone" value="<?php echo esc_attr( $profile_phone_value ); ?>" />
