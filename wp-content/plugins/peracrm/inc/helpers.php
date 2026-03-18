@@ -101,6 +101,51 @@ function peracrm_client_get_profile($client_id)
     ];
 }
 
+function peracrm_preferred_contact_options()
+{
+    return [
+        'call' => 'Call',
+        'whatsapp' => 'WhatsApp',
+        'email' => 'Email',
+    ];
+}
+
+function peracrm_normalize_preferred_contact($value, $format = 'string')
+{
+    $allowed = array_keys(peracrm_preferred_contact_options());
+    $aliases = [
+        'phone' => 'call',
+    ];
+
+    $tokens = [];
+    if (is_array($value)) {
+        $tokens = $value;
+    } elseif (is_string($value) && $value !== '') {
+        $tokens = preg_split('/[\s,|;]+/', $value);
+    }
+
+    $normalized = [];
+    foreach ((array) $tokens as $token) {
+        $token = sanitize_key((string) $token);
+        if (isset($aliases[$token])) {
+            $token = $aliases[$token];
+        }
+
+        if ($token === '' || !in_array($token, $allowed, true)) {
+            continue;
+        }
+
+        $normalized[$token] = $token;
+    }
+
+    $values = array_values($normalized);
+    if ($format === 'array') {
+        return $values;
+    }
+
+    return implode(',', $values);
+}
+
 function peracrm_phone_canonical_from_components($country_raw, $national_raw)
 {
     $country_digits = preg_replace('/\D+/', '', sanitize_text_field((string) $country_raw));
@@ -160,8 +205,6 @@ function peracrm_client_update_profile($client_id, $data)
     $allowed_types = function_exists('peracrm_client_type_options')
         ? array_keys((array) peracrm_client_type_options())
         : ['citizenship', 'investor', 'lifestyle', 'seller', 'landlord'];
-    $allowed_contact = ['phone', 'whatsapp', 'email'];
-
     $status = isset($data['status']) ? sanitize_key($data['status']) : '';
     if (!in_array($status, $allowed_status, true)) {
         $status = '';
@@ -172,10 +215,9 @@ function peracrm_client_update_profile($client_id, $data)
         $client_type = '';
     }
 
-    $preferred_contact = isset($data['preferred_contact']) ? sanitize_key($data['preferred_contact']) : '';
-    if (!in_array($preferred_contact, $allowed_contact, true)) {
-        $preferred_contact = '';
-    }
+    $preferred_contact = array_key_exists('preferred_contact', $data)
+        ? peracrm_normalize_preferred_contact($data['preferred_contact'])
+        : '';
 
     $phone = '';
     if (is_array($data)) {

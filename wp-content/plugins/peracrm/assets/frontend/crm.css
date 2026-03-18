@@ -203,49 +203,6 @@
   #crm-hero .btn--solid:focus-visible,
   #crm-hero .btn--ghost:focus-visible { box-shadow: 0 0 0 3px rgba(255,255,255,0.18); }
 }
-.crm-subnav {
-  display: flex;
-  gap: 10px;
-  margin-top: 16px;
-  flex-wrap: wrap;
-}
-
-.crm-subnav .btn,
-.crm-subnav .btn:visited,
-.crm-subnav .btn:hover,
-.crm-subnav .btn:focus,
-.crm-subnav .btn:active,
-#crm-hero .hero-actions .btn,
-#crm-hero .hero-actions .btn:visited,
-#crm-hero .hero-actions .btn:hover,
-#crm-hero .hero-actions .btn:focus,
-#crm-hero .hero-actions .btn:active {
-  text-decoration: none;
-}
-
-.crm-subnav .btn.is-active {
-  border-color: var(--pill-red);
-  color: var(--pill-red);
-  background-color: transparent;
-}
-
-.crm-subnav .btn.is-active:hover,
-.crm-subnav .btn.is-active:focus,
-.crm-subnav .btn.is-active:active {
-  border-color: var(--pill-red);
-  color: #ffffff;
-  background-color: var(--pill-red);
-}
-
-#crm-hero .hero-actions .btn--white:hover,
-#crm-hero .hero-actions .btn--white:focus,
-#crm-hero .hero-actions .btn--white:active,
-#crm-hero .crm-subnav .btn--white:hover,
-#crm-hero .crm-subnav .btn--white:focus,
-#crm-hero .crm-subnav .btn--white:active {
-  color: #111111;
-}
-
 /* =======================================================
    CRM TYPOGRAPHY NORMALIZATION (scoped)
    ======================================================= */
@@ -1986,12 +1943,20 @@ body.crm-route #site-header.peracrm-shell-header .peracrm-shell-logo-text {
 
 .crm-layout { display: grid; grid-template-columns: minmax(0, 1fr) 240px; gap: 16px; align-items: start; max-width: 100%; }
 .crm-layout__main { min-width: 0; }
+.crm-nav-shell { position: relative; }
+.crm-side-nav__toggle { display: none; width: 100%; gap: 8px; margin-bottom: 12px; }
+.crm-side-nav__toggle .icon { width: 18px; height: 18px; }
 .crm-side-nav { position: sticky; top: 90px; background: #fff; border: 1px solid #e8ecf2; border-radius: 12px; padding: 12px; }
 .crm-side-nav__title { display: flex; align-items: center; gap: 8px; font-weight: 700; margin: 0 0 8px; }
 .crm-side-nav__title .icon { width: 18px; height: 18px; }
 .crm-side-nav__list { list-style: none; margin: 0; padding: 0; display: grid; gap: 6px; }
 .crm-side-nav__list a { display: block; padding: 8px 10px; border-radius: 8px; text-decoration: none; color: inherit; overflow-wrap: anywhere; }
 .crm-side-nav__list a.is-active { background: #eef4ff; color: var(--brand); font-weight: 600; }
+.crm-side-nav__overlay { position: fixed; inset: 0; background: rgba(15, 23, 42, 0.45); z-index: 99; }
+.crm-side-nav--drawer { position: fixed; top: 0; right: 0; z-index: 100; width: min(360px, calc(100vw - 32px)); height: 100vh; border-radius: 0; overflow-y: auto; transform: translateX(100%); transition: transform 180ms ease; }
+.crm-nav-shell.is-open .crm-side-nav--drawer { transform: translateX(0); }
+.crm-side-nav__drawer-header { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 8px; }
+.crm-side-nav__close { min-width: 42px; min-height: 42px; padding: 0; }
 
 .crm-form-stack input,
 .crm-form-stack select,
@@ -2006,11 +1971,21 @@ body.crm-route #site-header.peracrm-shell-header .peracrm-shell-logo-text {
 
 .crm-client-hero-filters .crm-search-control { width: 100%; }
 .crm-search-control { display: block; width: 100%; padding: 0.7rem 0.9rem; border: 1px solid #e1e1e1; border-radius: 10px; background: #fff; }
+.crm-checkbox-group { border: 0; margin: 0; padding: 0; min-width: 0; }
+.crm-checkbox-group__options { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 8px; }
+.crm-checkbox-option { display: inline-flex; align-items: center; gap: 8px; padding: 8px 12px; border: 1px solid var(--border, #e8ecf2); border-radius: 999px; background: var(--surface-soft, #f8fafc); }
+.crm-note-delete-form { margin-top: 6px; }
 
 .crm-log-table { width: 100%; border-collapse: collapse; table-layout: fixed; }
 .crm-log-table th, .crm-log-table td { padding: 10px; border-bottom: 1px solid #e8ecf2; text-align: left; vertical-align: top; overflow-wrap: anywhere; }
 
-@media (max-width: 1024px) { .crm-layout { grid-template-columns: 1fr; } .crm-side-nav { position: static; order: -1; } }
+@media (max-width: 1024px) {
+  body.crm-nav-open { overflow: hidden; }
+  .crm-layout { grid-template-columns: 1fr; }
+  .crm-side-nav { display: none; }
+  .crm-side-nav--drawer { display: block; }
+  .crm-side-nav__toggle { display: inline-flex; }
+}
 
 .crm-inline-status { margin-top: 8px; font-size: 0.85rem; font-weight: 600; min-height: 1.2em; }
 .crm-inline-status.is-success { color: #0a7a3b; }

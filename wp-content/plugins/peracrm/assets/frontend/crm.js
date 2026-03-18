@@ -1,4 +1,48 @@
 (function () {
+  var navRoot = document.querySelector('[data-crm-nav]');
+  if (!navRoot) {
+    return;
+  }
+
+  var toggle = navRoot.querySelector('[data-crm-nav-toggle]');
+  var drawer = navRoot.querySelector('[data-crm-nav-drawer]');
+  var overlay = navRoot.querySelector('[data-crm-nav-overlay]');
+  var close = navRoot.querySelector('[data-crm-nav-close]');
+
+  if (!toggle || !drawer || !overlay) {
+    return;
+  }
+
+  function setOpen(open) {
+    navRoot.classList.toggle('is-open', open);
+    drawer.hidden = !open;
+    overlay.hidden = !open;
+    toggle.setAttribute('aria-expanded', open ? 'true' : 'false');
+    document.body.classList.toggle('crm-nav-open', open);
+  }
+
+  toggle.addEventListener('click', function () {
+    setOpen(!navRoot.classList.contains('is-open'));
+  });
+
+  if (close) {
+    close.addEventListener('click', function () {
+      setOpen(false);
+    });
+  }
+
+  overlay.addEventListener('click', function () {
+    setOpen(false);
+  });
+
+  document.addEventListener('keydown', function (event) {
+    if (event.key === 'Escape' && navRoot.classList.contains('is-open')) {
+      setOpen(false);
+    }
+  });
+})();
+
+(function () {
   var blocks = Array.prototype.slice.call(document.querySelectorAll('.archive-hero-desc'));
   if (!blocks.length) {
     return;
@@ -410,6 +454,10 @@
           }
           if (expiresNote) {
             expiresNote.textContent = json.data.expires_label ? 'Expires: ' + String(json.data.expires_label) : '';
+          }
+          if (updateButton && json.data.post_id) {
+            updateButton.hidden = false;
+            updateButton.setAttribute('data-portfolio-post-id', String(json.data.post_id));
           }
 
           if (feedback) {
@@ -965,6 +1013,16 @@
 
     var type = form.getAttribute('data-crm-ajax-form') || '';
     if (!type) {
+      return;
+    }
+
+    var confirmText = '';
+    var submitter = event.submitter;
+    if (submitter && submitter.getAttribute) {
+      confirmText = submitter.getAttribute('data-crm-confirm-text') || '';
+    }
+    if (confirmText && !window.confirm(confirmText)) {
+      event.preventDefault();
       return;
     }
 
