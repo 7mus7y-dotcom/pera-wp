@@ -1978,6 +1978,7 @@ body.crm-route #site-header.peracrm-shell-header .peracrm-shell-logo-text {
 .crm-layout { display: grid; grid-template-columns: minmax(0, 1fr) 240px; gap: 16px; align-items: start; max-width: 100%; }
 .crm-layout__main { min-width: 0; }
 .crm-nav-shell { position: relative; }
+.crm-nav-shell.is-open { z-index: 1200; }
 .peracrm-header-actions {
   margin-left: auto;
   display: flex;
