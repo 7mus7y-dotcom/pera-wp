@@ -1899,8 +1899,8 @@ body.crm-route #site-header.peracrm-shell-header .header-inner {
   margin: 0 auto;
   padding: 18px 20px;
   display: flex;
-  align-items: flex-start;
-  justify-content: flex-start;
+  align-items: center;
+  justify-content: space-between;
 }
 
 body.crm-route #site-header.peracrm-shell-header .site-branding {
