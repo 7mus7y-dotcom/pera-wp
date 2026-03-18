@@ -48,6 +48,15 @@ function peracrm_notes_count($client_id)
     return peracrm_notes_count_fallback($client_id);
 }
 
+function peracrm_notes_delete($client_id, $note_id)
+{
+    if (peracrm_notes_table_exists()) {
+        return peracrm_notes_delete_table($client_id, $note_id);
+    }
+
+    return peracrm_notes_delete_fallback($client_id, $note_id);
+}
+
 function peracrm_notes_insert($client_id, $advisor_user_id, $note_body, $visibility)
 {
     $client_id = (int) $client_id;
@@ -195,6 +204,39 @@ function peracrm_notes_count_table($client_id)
     return (int) $wpdb->get_var($query);
 }
 
+function peracrm_notes_delete_table($client_id, $note_id)
+{
+    global $wpdb;
+
+    $client_id = (int) $client_id;
+    $note_id = (int) $note_id;
+    if ($client_id <= 0 || $note_id <= 0) {
+        return false;
+    }
+
+    $table = peracrm_table('crm_notes');
+    $where = [
+        'id' => $note_id,
+        'client_id' => $client_id,
+    ];
+
+    if (peracrm_notes_table_has_visibility_column()) {
+        $where['visibility'] = 'internal';
+    }
+
+    $formats = [
+        '%d',
+        '%d',
+    ];
+    if (isset($where['visibility'])) {
+        $formats[] = '%s';
+    }
+
+    $deleted = $wpdb->delete($table, $where, $formats);
+
+    return !empty($deleted);
+}
+
 function peracrm_notes_insert_fallback($client_id, $advisor_user_id, $note_body)
 {
     $note_body = peracrm_notes_truncate_fallback($note_body);
@@ -255,7 +297,42 @@ function peracrm_notes_fallback_get($client_id)
         return [];
     }
 
-    return $notes;
+    foreach ($notes as $index => $note) {
+        if (!is_array($note)) {
+            unset($notes[$index]);
+            continue;
+        }
+
+        if (empty($note['id'])) {
+            $note['id'] = $index + 1;
+        }
+
+        $notes[$index] = $note;
+    }
+
+    return array_values($notes);
+}
+
+function peracrm_notes_delete_fallback($client_id, $note_id)
+{
+    $client_id = (int) $client_id;
+    $note_id = (int) $note_id;
+    if ($client_id <= 0 || $note_id <= 0) {
+        return false;
+    }
+
+    $notes = peracrm_notes_fallback_get($client_id);
+    if (empty($notes) || !isset($notes[$note_id - 1])) {
+        return false;
+    }
+
+    array_splice($notes, $note_id - 1, 1);
+
+    if (empty($notes)) {
+        return delete_post_meta($client_id, '_peracrm_notes_fallback');
+    }
+
+    return (bool) update_post_meta($client_id, '_peracrm_notes_fallback', array_values($notes));
 }
 
 function peracrm_notes_truncate_fallback($note_body)
