@@ -788,7 +788,7 @@ peracrm_frontend_render_shell_header();
 
             <dialog class="crm-danger-dialog" id="crm-client-portfolio-dialog" aria-labelledby="crm-client-portfolio-dialog-title">
               <h4 id="crm-client-portfolio-dialog-title"><?php esc_html_e( 'Create portfolio', 'peracrm' ); ?></h4>
-              <form method="post" class="crm-form-stack" data-crm-portfolio-form>
+              <form class="crm-form-stack" data-crm-portfolio-form>
                 <label><?php esc_html_e( 'Expiry', 'peracrm' ); ?>
                   <input type="text" name="expiry" value="+30 days" />
                 </label>
@@ -877,15 +877,7 @@ peracrm_frontend_render_shell_header();
           <article class="card-shell crm-client-section" data-crm-panel="advisor">
             <h3><?php esc_html_e( 'Assigned Advisor', 'peracrm' ); ?></h3>
             <?php if ( function_exists( 'peracrm_render_assigned_advisor_box' ) ) : ?>
-              <?php
-              ob_start();
-              peracrm_render_assigned_advisor_box( $client_id, array( 'context' => 'frontend', 'redirect' => $frontend_url ) );
-              $advisor_box_html = (string) ob_get_clean();
-              if ( false === strpos( $advisor_box_html, 'data-crm-ajax-form="advisor"' ) ) {
-                $advisor_box_html = (string) preg_replace( '/<form\b/', '<form data-crm-ajax-form="advisor"', $advisor_box_html, 1 );
-              }
-              echo $advisor_box_html; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
-              ?>
+              <?php peracrm_render_assigned_advisor_box( $client_id, array( 'context' => 'frontend', 'redirect' => $frontend_url ) ); ?>
             <?php endif; ?>
           </article>
 
