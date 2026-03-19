@@ -172,9 +172,59 @@ function peracrm_whatsapp_logs_is_frontend_screen()
         && sanitize_key((string) get_query_var('pera_crm_view', '')) === 'whatsapp_logs';
 }
 
-function peracrm_whatsapp_logs_get_fetch_result(array $state)
+function peracrm_whatsapp_logs_build_debug_context(array $state, $context, array $result = [], array $runtime = [])
 {
-    $callback = static function () use ($state) {
+    $pagination = isset($result['pagination']) && is_array($result['pagination']) ? $result['pagination'] : [];
+    $rows = isset($result['rows']) && is_array($result['rows']) ? $result['rows'] : [];
+
+    return [
+        'context' => $context === 'frontend' ? 'frontend' : 'admin',
+        'multisite' => is_multisite() ? 'yes' : 'no',
+        'current_blog_id' => function_exists('get_current_blog_id') ? (int) get_current_blog_id() : 0,
+        'resolved_blog_id' => peracrm_get_whatsapp_logs_blog_id(),
+        'table_name' => isset($runtime['table_name']) ? (string) $runtime['table_name'] : '',
+        'rows_returned' => count($rows),
+        'per_page' => isset($pagination['per_page']) ? (int) $pagination['per_page'] : (int) $state['per_page'],
+        'paged' => isset($pagination['paged']) ? (int) $pagination['paged'] : (int) $state['paged'],
+    ];
+}
+
+function peracrm_whatsapp_logs_render_debug_panel(array $debug)
+{
+    $items = [
+        __('Context', 'peracrm') => isset($debug['context']) ? (string) $debug['context'] : '',
+        __('Multisite', 'peracrm') => isset($debug['multisite']) ? (string) $debug['multisite'] : '',
+        __('Current blog ID', 'peracrm') => isset($debug['current_blog_id']) ? (string) $debug['current_blog_id'] : '0',
+        __('Resolved logs blog ID', 'peracrm') => isset($debug['resolved_blog_id']) ? (string) $debug['resolved_blog_id'] : '0',
+        __('Effective table name', 'peracrm') => isset($debug['table_name']) && $debug['table_name'] !== '' ? (string) $debug['table_name'] : '—',
+        __('Rows returned', 'peracrm') => isset($debug['rows_returned']) ? (string) $debug['rows_returned'] : '0',
+        __('Current page / per_page', 'peracrm') => sprintf('%d / %d', isset($debug['paged']) ? (int) $debug['paged'] : 1, isset($debug['per_page']) ? (int) $debug['per_page'] : 20),
+    ];
+
+    ob_start();
+    echo '<div class="notice notice-warning inline peracrm-whatsapp-logs-debug" style="display:block;margin:0 0 16px;padding:12px;">';
+    echo '<p><strong>' . esc_html__('Temporary diagnostic debug', 'peracrm') . '</strong><br />' . esc_html__('Runtime WhatsApp logs query context for troubleshooting only.', 'peracrm') . '</p>';
+    echo '<ul style="margin:0;padding-left:18px;">';
+    foreach ($items as $label => $value) {
+        echo '<li><strong>' . esc_html($label) . ':</strong> ' . esc_html($value) . '</li>';
+    }
+    echo '</ul>';
+    echo '</div>';
+
+    return ob_get_clean();
+}
+
+function peracrm_whatsapp_logs_get_fetch_result(array $state, $context = 'admin')
+{
+    $runtime = [
+        'table_name' => '',
+    ];
+
+    $callback = static function () use ($state, &$runtime) {
+        if (function_exists('peracrm_whatsapp_messages_table_name')) {
+            $runtime['table_name'] = (string) peracrm_whatsapp_messages_table_name();
+        }
+
         return peracrm_whatsapp_get_messages([
             'per_page' => $state['per_page'],
             'paged' => $state['paged'],
@@ -183,15 +233,19 @@ function peracrm_whatsapp_logs_get_fetch_result(array $state)
 
     $result = peracrm_whatsapp_logs_with_target_blog($callback);
     if (is_wp_error($result)) {
-        return peracrm_whatsapp_logs_empty_fetch_result($state, $result->get_error_message());
+        $result = peracrm_whatsapp_logs_empty_fetch_result($state, $result->get_error_message());
+    } elseif (!is_array($result)) {
+        $result = peracrm_whatsapp_logs_empty_fetch_result($state);
     }
 
-    return is_array($result) ? $result : peracrm_whatsapp_logs_empty_fetch_result($state);
+    $result['debug'] = peracrm_whatsapp_logs_build_debug_context($state, $context, $result, $runtime);
+
+    return $result;
 }
 
 function peracrm_whatsapp_render_logs_table(array $state, $context = 'admin')
 {
-    $result = peracrm_whatsapp_logs_get_fetch_result($state);
+    $result = peracrm_whatsapp_logs_get_fetch_result($state, $context);
     $rows = isset($result['rows']) && is_array($result['rows']) ? $result['rows'] : [];
     $pagination = isset($result['pagination']) && is_array($result['pagination']) ? $result['pagination'] : [];
     $current_page = isset($pagination['paged']) ? (int) $pagination['paged'] : 1;
@@ -201,6 +255,9 @@ function peracrm_whatsapp_render_logs_table(array $state, $context = 'admin')
     $context = $context === 'frontend' ? 'frontend' : 'admin';
 
     ob_start();
+    if (peracrm_whatsapp_logs_user_can_access()) {
+        echo peracrm_whatsapp_logs_render_debug_panel(isset($result['debug']) && is_array($result['debug']) ? $result['debug'] : []);
+    }
     echo '<div class="peracrm-whatsapp-log-controls">';
     echo '<div class="peracrm-whatsapp-log-bulk">';
     echo '<button type="button" class="button button-secondary" data-peracrm-delete-selected disabled>' . esc_html__('Delete selected', 'peracrm') . '</button>';
