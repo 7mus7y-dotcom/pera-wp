@@ -90,16 +90,12 @@ if ( ! function_exists( 'pera_block_employee_admin_access' ) ) {
       return;
     }
 
-    if ( ! pera_is_employee() ) {
+    if ( pera_current_user_can_access_wp_admin() ) {
       return;
     }
 
     $user = wp_get_current_user();
     if ( ! $user || ! $user->exists() ) {
-      return;
-    }
-
-    if ( in_array( 'administrator', (array) $user->roles, true ) ) {
       return;
     }
 
@@ -119,9 +115,19 @@ if ( ! function_exists( 'pera_block_employee_admin_access' ) ) {
       return;
     }
 
-    pera_debug_employee_admin_block_log( 'employee_admin_blocked' );
+    pera_debug_employee_admin_block_log( 'non_admin_wp_admin_blocked' );
 
-    wp_safe_redirect( home_url( '/' ) );
+    $redirect_url = home_url( '/' );
+
+    if (
+      ( function_exists( 'peracrm_user_can_access_crm' ) && peracrm_user_can_access_crm() )
+      || current_user_can( 'edit_crm_clients' )
+      || pera_is_employee()
+    ) {
+      $redirect_url = home_url( '/crm/' );
+    }
+
+    wp_safe_redirect( $redirect_url );
     exit;
   }
 }
