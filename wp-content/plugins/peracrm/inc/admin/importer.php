@@ -8,6 +8,7 @@ const PERACRM_IMPORT_MAX_FILESIZE = 5242880;
 const PERACRM_IMPORT_BATCH_SIZE = 50;
 const PERACRM_IMPORT_STATE_TTL = 21600;
 
+
 function peracrm_import_record_type_options()
 {
     return [

@@ -268,3 +268,31 @@
     white-space: pre-wrap;
     word-break: break-word;
 }
+
+.peracrm-whatsapp-logs.is-loading {
+  opacity: 0.6;
+  pointer-events: none;
+}
+
+.peracrm-whatsapp-log-controls {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  margin: 12px 0;
+}
+
+.peracrm-whatsapp-log-page-size {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.peracrm-whatsapp-logs-table .check-column {
+  width: 2.2em;
+}
+
+.peracrm-whatsapp-log-message {
+  white-space: normal;
+  word-break: break-word;
+}
