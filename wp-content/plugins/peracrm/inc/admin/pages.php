@@ -68,6 +68,19 @@ function peracrm_register_admin_menu()
     }
 
 
+    $whatsapp_hook = add_submenu_page(
+        $parent_slug,
+        'WhatsApp',
+        'WhatsApp',
+        $capability,
+        'peracrm-whatsapp',
+        'peracrm_render_whatsapp_page'
+    );
+
+    if ($whatsapp_hook) {
+        $GLOBALS['peracrm_whatsapp_hook'] = $whatsapp_hook;
+    }
+
     $import_hook = add_submenu_page(
         $parent_slug,
         'Import Data',
@@ -121,6 +134,13 @@ function peracrm_admin_is_client_view_screen($hook)
     return $stored !== '' && $hook === $stored;
 }
 
+
+function peracrm_admin_is_whatsapp_settings_screen($hook)
+{
+    $stored = isset($GLOBALS['peracrm_whatsapp_hook']) ? $GLOBALS['peracrm_whatsapp_hook'] : '';
+
+    return $stored !== '' && $hook === $stored;
+}
 
 function peracrm_admin_is_import_data_screen($hook)
 {
