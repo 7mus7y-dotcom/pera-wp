@@ -28,6 +28,7 @@ require_once get_stylesheet_directory() . '/inc/district-ancestors.php';
  * Favourites (property)
  */
 require_once get_stylesheet_directory() . '/inc/favourites.php';
+require_once get_stylesheet_directory() . '/inc/form-spam-guard.php';
 
 require_once get_stylesheet_directory() . '/inc/property-card-helpers.php';
 require_once get_stylesheet_directory() . '/inc/client-portal.php';
