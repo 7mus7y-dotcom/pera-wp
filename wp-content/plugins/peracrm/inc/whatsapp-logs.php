@@ -46,6 +46,124 @@ function peracrm_whatsapp_logs_user_can_access()
     return function_exists('peracrm_admin_user_can_manage') && peracrm_admin_user_can_manage();
 }
 
+
+function peracrm_whatsapp_logs_debug_log($message, array $context = [])
+{
+    if (function_exists('peracrm_membership_debug_log')) {
+        peracrm_membership_debug_log($message, $context);
+        return;
+    }
+
+    if (!defined('WP_DEBUG') || !WP_DEBUG) {
+        return;
+    }
+
+    $pairs = [];
+    foreach ($context as $key => $value) {
+        if (is_bool($value)) {
+            $value = $value ? '1' : '0';
+        } elseif (is_array($value) || is_object($value)) {
+            $value = wp_json_encode($value);
+        }
+
+        $pairs[] = sanitize_key((string) $key) . '=' . sanitize_text_field((string) $value);
+    }
+
+    error_log('[peracrm whatsapp logs] ' . $message . (empty($pairs) ? '' : ' ' . implode(' ', $pairs)));
+}
+
+function peracrm_whatsapp_logs_validate_blog_id($blog_id)
+{
+    $blog_id = (int) $blog_id;
+    if ($blog_id <= 0 || !is_multisite()) {
+        return 0;
+    }
+
+    return get_blog_details($blog_id) ? $blog_id : 0;
+}
+
+function peracrm_get_whatsapp_logs_blog_id()
+{
+    if (!is_multisite()) {
+        return 0;
+    }
+
+    $configured_blog_id = defined('PERACRM_WHATSAPP_LOGS_BLOG_ID') ? peracrm_whatsapp_logs_validate_blog_id(PERACRM_WHATSAPP_LOGS_BLOG_ID) : 0;
+    if ($configured_blog_id > 0) {
+        return $configured_blog_id;
+    }
+
+    $target_blog_id = defined('PERACRM_TARGET_BLOG_ID') ? peracrm_whatsapp_logs_validate_blog_id(PERACRM_TARGET_BLOG_ID) : 0;
+    if ($target_blog_id > 0) {
+        return $target_blog_id;
+    }
+
+    if (function_exists('peracrm_membership_is_target_site_url')) {
+        $sites = get_sites([
+            'number' => 0,
+            'fields' => 'ids',
+        ]);
+
+        foreach ($sites as $site_id) {
+            $site_id = (int) $site_id;
+            if ($site_id > 0 && peracrm_membership_is_target_site_url($site_id)) {
+                return $site_id;
+            }
+        }
+    }
+
+    return 0;
+}
+
+function peracrm_whatsapp_logs_resolution_error($message = '')
+{
+    $message = is_string($message) && $message !== '' ? $message : __('WhatsApp logs data source is unavailable.', 'peracrm');
+
+    return new WP_Error('peracrm_whatsapp_logs_target_blog_unresolved', $message);
+}
+
+function peracrm_whatsapp_logs_empty_fetch_result(array $state, $message = '')
+{
+    return [
+        'rows' => [],
+        'pagination' => [
+            'total' => 0,
+            'total_pages' => 1,
+            'per_page' => isset($state['per_page']) ? max(1, (int) $state['per_page']) : 20,
+            'paged' => isset($state['paged']) ? max(1, (int) $state['paged']) : 1,
+        ],
+        'diagnostic' => $message !== '' ? $message : __('WhatsApp logs data source is unavailable.', 'peracrm'),
+    ];
+}
+
+function peracrm_whatsapp_logs_with_target_blog(callable $callback)
+{
+    if (!is_multisite()) {
+        return $callback();
+    }
+
+    $target_blog_id = peracrm_get_whatsapp_logs_blog_id();
+    if ($target_blog_id <= 0) {
+        peracrm_whatsapp_logs_debug_log('target_blog_unresolved', [
+            'current_blog_id' => function_exists('get_current_blog_id') ? (int) get_current_blog_id() : 0,
+            'target_blog_id' => $target_blog_id,
+        ]);
+
+        return peracrm_whatsapp_logs_resolution_error();
+    }
+
+    if ((int) get_current_blog_id() === $target_blog_id) {
+        return $callback();
+    }
+
+    switch_to_blog($target_blog_id);
+    try {
+        return $callback();
+    } finally {
+        restore_current_blog();
+    }
+}
+
 function peracrm_whatsapp_logs_is_frontend_screen()
 {
     return !is_admin()
@@ -63,14 +181,12 @@ function peracrm_whatsapp_logs_get_fetch_result(array $state)
         ]);
     };
 
-    if (function_exists('peracrm_with_target_blog')) {
-        $result = peracrm_with_target_blog($callback);
-        if (is_array($result)) {
-            return $result;
-        }
+    $result = peracrm_whatsapp_logs_with_target_blog($callback);
+    if (is_wp_error($result)) {
+        return peracrm_whatsapp_logs_empty_fetch_result($state, $result->get_error_message());
     }
 
-    return $callback();
+    return is_array($result) ? $result : peracrm_whatsapp_logs_empty_fetch_result($state);
 }
 
 function peracrm_whatsapp_render_logs_table(array $state, $context = 'admin')
@@ -472,7 +588,11 @@ function peracrm_ajax_whatsapp_delete_logs()
     $delete_callback = static function () use ($ids) {
         return peracrm_whatsapp_delete_messages_by_ids($ids);
     };
-    $delete_result = function_exists('peracrm_with_target_blog') ? peracrm_with_target_blog($delete_callback) : $delete_callback();
+    $delete_result = peracrm_whatsapp_logs_with_target_blog($delete_callback);
+
+    if (is_wp_error($delete_result)) {
+        wp_send_json_error(['message' => $delete_result->get_error_message()], 500);
+    }
 
     if (empty($delete_result['deleted'])) {
         wp_send_json_error(['message' => __('No log entries were deleted.', 'peracrm')], 500);
