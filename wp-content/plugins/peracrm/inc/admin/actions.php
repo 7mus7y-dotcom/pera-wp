@@ -544,19 +544,16 @@ function peracrm_handle_import_validate_csv()
 
     $parsed = peracrm_import_parse_csv($upload['file_path'], $upload['delimiter'] ?? ',');
     if (is_wp_error($parsed)) {
+        peracrm_import_clear_state(true);
         peracrm_admin_redirect_with_notice(peracrm_import_redirect_url(), 'import_parse_failed');
     }
 
     $validation = peracrm_import_validate_rows($parsed['rows'], $mapping, $upload['record_type'], $upload['mode']);
     peracrm_import_set_validation_state([
-        'file_name' => $upload['file_name'],
-        'file_path' => $upload['file_path'],
-        'delimiter' => $upload['delimiter'],
-        'mapping' => $mapping,
-        'record_type' => $upload['record_type'],
-        'mode' => $upload['mode'],
         'summary' => $validation['summary'],
         'preview_rows' => peracrm_import_build_preview_rows($validation['results'], 20),
+        'record_type' => $upload['record_type'],
+        'mode' => $upload['mode'],
     ]);
 
     peracrm_admin_redirect_with_notice(peracrm_import_redirect_url(), 'import_validated');
@@ -572,20 +569,21 @@ function peracrm_handle_import_commit_csv()
 
     $upload = peracrm_import_get_upload_state();
     $validation_state = peracrm_import_get_validation_state();
-    if (empty($upload['file_path']) || empty($validation_state['mapping'])) {
+    if (empty($upload['file_path']) || empty($upload['mapping']) || empty($validation_state['summary'])) {
         peracrm_admin_redirect_with_notice(peracrm_import_redirect_url(), 'import_session_missing');
     }
 
     $parsed = peracrm_import_parse_csv($upload['file_path'], $upload['delimiter'] ?? ',');
     if (is_wp_error($parsed)) {
+        peracrm_import_clear_state(true);
         peracrm_admin_redirect_with_notice(peracrm_import_redirect_url(), 'import_parse_failed');
     }
 
     $validation = peracrm_import_validate_rows(
         $parsed['rows'],
-        (array) $validation_state['mapping'],
-        $validation_state['record_type'] ?? 'lead',
-        $validation_state['mode'] ?? 'create_only'
+        (array) ($upload['mapping'] ?? []),
+        $upload['record_type'] ?? 'lead',
+        $upload['mode'] ?? 'create_only'
     );
 
     $created = 0;
@@ -602,8 +600,8 @@ function peracrm_handle_import_commit_csv()
 
             $result = peracrm_import_apply_row(
                 $row,
-                $validation_state['record_type'] ?? 'lead',
-                $validation_state['mode'] ?? 'create_only'
+                $upload['record_type'] ?? 'lead',
+                $upload['mode'] ?? 'create_only'
             );
             if (is_wp_error($result) || !$result) {
                 $failed++;
@@ -620,15 +618,27 @@ function peracrm_handle_import_commit_csv()
 
     peracrm_import_log_batch([
         'file_name' => $upload['file_name'] ?? '',
-        'record_type' => $validation_state['record_type'] ?? 'lead',
-        'mode' => $validation_state['mode'] ?? 'create_only',
+        'record_type' => $upload['record_type'] ?? 'lead',
+        'mode' => $upload['mode'] ?? 'create_only',
         'imported_by' => get_current_user_id(),
         'total_rows' => $validation['summary']['total_rows'] ?? 0,
         'created_count' => $created,
         'updated_count' => $updated,
         'skipped_count' => $skipped,
         'failed_count' => $failed,
-        'mapping' => $validation_state['mapping'] ?? [],
+        'mapping' => $upload['mapping'] ?? [],
+    ]);
+
+    peracrm_import_set_last_batch_summary([
+        'file_name' => $upload['file_name'] ?? '',
+        'record_type' => $upload['record_type'] ?? 'lead',
+        'mode' => $upload['mode'] ?? 'create_only',
+        'total_rows' => $validation['summary']['total_rows'] ?? 0,
+        'created_count' => $created,
+        'updated_count' => $updated,
+        'skipped_count' => $skipped,
+        'failed_count' => $failed,
+        'created_at' => current_time('mysql'),
     ]);
 
     peracrm_import_clear_state(true);

@@ -211,8 +211,8 @@ function peracrm_import_default_mapping(array $headers)
 
 function peracrm_import_normalize_email($email)
 {
-    $email = strtolower(trim((string) $email));
-    return is_email($email) ? $email : $email;
+    // Normalizes email shape only; validity is checked separately during validation.
+    return strtolower(trim((string) $email));
 }
 
 function peracrm_import_normalize_phone($phone)
@@ -310,6 +310,25 @@ function peracrm_import_build_mapped_row(array $csv_row, array $mapping)
     }
 
     return $mapped;
+}
+
+function peracrm_import_row_identity_keys(array $mapped)
+{
+    $keys = [];
+
+    $email = peracrm_import_normalize_email($mapped['email'] ?? '');
+    if ($email !== '') {
+        $keys['email:' . $email] = 'email:' . $email;
+    }
+
+    foreach (['phone', 'secondary_phone', 'whatsapp'] as $field) {
+        $phone = peracrm_import_normalize_phone($mapped[$field] ?? '');
+        if ($phone !== '') {
+            $keys['phone:' . $phone] = 'phone:' . $phone;
+        }
+    }
+
+    return array_values($keys);
 }
 
 function peracrm_import_match_existing_record(array $mapped)
@@ -410,32 +429,34 @@ function peracrm_import_validate_rows(array $rows, array $mapping, $record_type,
     $results = [];
     foreach ($rows as $index => $row) {
         $mapped = peracrm_import_build_mapped_row($row, $mapping);
-        $email = peracrm_import_normalize_email($mapped['email'] ?? '');
-        $phone = peracrm_import_normalize_phone($mapped['phone'] ?? '');
-        $secondary_phone = peracrm_import_normalize_phone($mapped['secondary_phone'] ?? '');
-        $whatsapp = peracrm_import_normalize_phone($mapped['whatsapp'] ?? '');
-        $identity = $email !== '' ? 'email:' . $email : ($phone !== '' ? 'phone:' . $phone : ($secondary_phone !== '' ? 'phone:' . $secondary_phone : ($whatsapp !== '' ? 'phone:' . $whatsapp : '')));
+        $identity_keys = peracrm_import_row_identity_keys($mapped);
         $first_name = trim((string) ($mapped['first_name'] ?? ''));
         $last_name = trim((string) ($mapped['last_name'] ?? ''));
         $has_name = $first_name !== '' || $last_name !== '' || trim((string) ($mapped['full_name'] ?? '')) !== '';
         $errors = [];
 
-        if (($mapped['email'] ?? '') !== '' && !is_email($email)) {
+        if (($mapped['email'] ?? '') !== '' && !is_email(peracrm_import_normalize_email($mapped['email'] ?? ''))) {
             $errors[] = 'Invalid email';
             $summary['rows_invalid_email']++;
         }
 
-        if ($identity === '' && !$has_name) {
+        if (empty($identity_keys) && !$has_name) {
             $errors[] = 'Missing email/phone and name';
             $summary['rows_missing_identity']++;
         }
 
-        if ($identity !== '') {
-            if (isset($seen[$identity])) {
-                $errors[] = 'Duplicate identity in CSV';
-                $summary['duplicate_rows']++;
+        $has_duplicate_identity = false;
+        foreach ($identity_keys as $identity_key) {
+            if (isset($seen[$identity_key])) {
+                $has_duplicate_identity = true;
             }
-            $seen[$identity] = true;
+        }
+        if ($has_duplicate_identity) {
+            $errors[] = 'Duplicate identity in CSV';
+            $summary['duplicate_rows']++;
+        }
+        foreach ($identity_keys as $identity_key) {
+            $seen[$identity_key] = true;
         }
 
         $existing_id = peracrm_import_match_existing_record($mapped);
@@ -450,7 +471,7 @@ function peracrm_import_validate_rows(array $rows, array $mapping, $record_type,
             if ($mode === 'update_only') {
                 $errors[] = 'No existing record matched in update only mode';
             }
-            if ($identity === '' && !$has_name) {
+            if (empty($identity_keys) && !$has_name) {
                 $errors[] = 'Row cannot be created without identity or name';
             }
         }
@@ -467,7 +488,6 @@ function peracrm_import_validate_rows(array $rows, array $mapping, $record_type,
 
         $results[] = [
             'row_number' => $index + 2,
-            'raw' => $row,
             'mapped' => $mapped,
             'existing_id' => $existing_id,
             'action' => $action,
@@ -640,6 +660,22 @@ function peracrm_import_apply_row(array $validated_row, $record_type, $mode)
     }
 
     return $post_id;
+}
+
+function peracrm_import_last_batch_state_key()
+{
+    return peracrm_import_state_key('last_batch');
+}
+
+function peracrm_import_get_last_batch_summary()
+{
+    $state = get_transient(peracrm_import_last_batch_state_key());
+    return is_array($state) ? $state : [];
+}
+
+function peracrm_import_set_last_batch_summary(array $state)
+{
+    set_transient(peracrm_import_last_batch_state_key(), $state, PERACRM_IMPORT_STATE_TTL);
 }
 
 function peracrm_import_batches_table_exists()
