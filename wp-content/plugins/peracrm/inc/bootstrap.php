@@ -16,6 +16,7 @@ require_once PERACRM_INC . '/activity.php';
 require_once PERACRM_INC . '/activity-capture.php';
 require_once PERACRM_INC . '/health.php';
 require_once PERACRM_INC . '/whatsapp.php';
+require_once PERACRM_INC . '/whatsapp-logs.php';
 require_once PERACRM_INC . '/db/whatsapp_messages_table.php';
 require_once PERACRM_INC . '/integrations/enquiries.php';
 require_once PERACRM_INC . '/db/push_log_table.php';
