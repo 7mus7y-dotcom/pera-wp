@@ -46,32 +46,6 @@ function peracrm_whatsapp_logs_user_can_access()
     return function_exists('peracrm_admin_user_can_manage') && peracrm_admin_user_can_manage();
 }
 
-
-function peracrm_whatsapp_logs_debug_log($message, array $context = [])
-{
-    if (function_exists('peracrm_membership_debug_log')) {
-        peracrm_membership_debug_log($message, $context);
-        return;
-    }
-
-    if (!defined('WP_DEBUG') || !WP_DEBUG) {
-        return;
-    }
-
-    $pairs = [];
-    foreach ($context as $key => $value) {
-        if (is_bool($value)) {
-            $value = $value ? '1' : '0';
-        } elseif (is_array($value) || is_object($value)) {
-            $value = wp_json_encode($value);
-        }
-
-        $pairs[] = sanitize_key((string) $key) . '=' . sanitize_text_field((string) $value);
-    }
-
-    error_log('[peracrm whatsapp logs] ' . $message . (empty($pairs) ? '' : ' ' . implode(' ', $pairs)));
-}
-
 function peracrm_whatsapp_logs_validate_blog_id($blog_id)
 {
     $blog_id = (int) $blog_id;
@@ -117,23 +91,9 @@ function peracrm_get_whatsapp_logs_blog_id()
 
 function peracrm_whatsapp_logs_resolution_error($message = '')
 {
-    $message = is_string($message) && $message !== '' ? $message : __('WhatsApp logs data source is unavailable.', 'peracrm');
+    $message = is_string($message) && $message !== '' ? $message : __('WhatsApp click logs data source is unavailable.', 'peracrm');
 
     return new WP_Error('peracrm_whatsapp_logs_target_blog_unresolved', $message);
-}
-
-function peracrm_whatsapp_logs_empty_fetch_result(array $state, $message = '')
-{
-    return [
-        'rows' => [],
-        'pagination' => [
-            'total' => 0,
-            'total_pages' => 1,
-            'per_page' => isset($state['per_page']) ? max(1, (int) $state['per_page']) : 20,
-            'paged' => isset($state['paged']) ? max(1, (int) $state['paged']) : 1,
-        ],
-        'diagnostic' => $message !== '' ? $message : __('WhatsApp logs data source is unavailable.', 'peracrm'),
-    ];
 }
 
 function peracrm_whatsapp_logs_with_target_blog(callable $callback)
@@ -144,11 +104,6 @@ function peracrm_whatsapp_logs_with_target_blog(callable $callback)
 
     $target_blog_id = peracrm_get_whatsapp_logs_blog_id();
     if ($target_blog_id <= 0) {
-        peracrm_whatsapp_logs_debug_log('target_blog_unresolved', [
-            'current_blog_id' => function_exists('get_current_blog_id') ? (int) get_current_blog_id() : 0,
-            'target_blog_id' => $target_blog_id,
-        ]);
-
         return peracrm_whatsapp_logs_resolution_error();
     }
 
@@ -172,75 +127,172 @@ function peracrm_whatsapp_logs_is_frontend_screen()
         && sanitize_key((string) get_query_var('pera_crm_view', '')) === 'whatsapp_logs';
 }
 
-function peracrm_whatsapp_logs_build_debug_context(array $state, $context, array $result = [], array $runtime = [])
+function peracrm_whatsapp_click_logs_table_name()
 {
-    $pagination = isset($result['pagination']) && is_array($result['pagination']) ? $result['pagination'] : [];
-    $rows = isset($result['rows']) && is_array($result['rows']) ? $result['rows'] : [];
+    return function_exists('pera_whatsapp_clicks_table_name') ? (string) pera_whatsapp_clicks_table_name() : '';
+}
 
+function peracrm_whatsapp_click_logs_table_exists($table_name = '')
+{
+    global $wpdb;
+
+    $table_name = $table_name !== '' ? $table_name : peracrm_whatsapp_click_logs_table_name();
+    if ($table_name === '') {
+        return false;
+    }
+
+    $table = $wpdb->get_var($wpdb->prepare('SHOW TABLES LIKE %s', $table_name)); // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery
+
+    return $table_name === $table;
+}
+
+function peracrm_whatsapp_click_log_empty_result(array $state, $message = '')
+{
     return [
-        'context' => $context === 'frontend' ? 'frontend' : 'admin',
-        'multisite' => is_multisite() ? 'yes' : 'no',
-        'current_blog_id' => function_exists('get_current_blog_id') ? (int) get_current_blog_id() : 0,
-        'resolved_blog_id' => peracrm_get_whatsapp_logs_blog_id(),
-        'table_name' => isset($runtime['table_name']) ? (string) $runtime['table_name'] : '',
-        'rows_returned' => count($rows),
-        'per_page' => isset($pagination['per_page']) ? (int) $pagination['per_page'] : (int) $state['per_page'],
-        'paged' => isset($pagination['paged']) ? (int) $pagination['paged'] : (int) $state['paged'],
+        'rows' => [],
+        'pagination' => [
+            'total' => 0,
+            'total_pages' => 1,
+            'per_page' => isset($state['per_page']) ? max(1, (int) $state['per_page']) : 20,
+            'paged' => isset($state['paged']) ? max(1, (int) $state['paged']) : 1,
+        ],
+        'message' => $message !== '' ? $message : __('WhatsApp click logs data source is unavailable.', 'peracrm'),
+        'table_name' => peracrm_whatsapp_click_logs_table_name(),
     ];
 }
 
-function peracrm_whatsapp_logs_render_debug_panel(array $debug)
+function peracrm_whatsapp_click_logs_count()
 {
-    $items = [
-        __('Context', 'peracrm') => isset($debug['context']) ? (string) $debug['context'] : '',
-        __('Multisite', 'peracrm') => isset($debug['multisite']) ? (string) $debug['multisite'] : '',
-        __('Current blog ID', 'peracrm') => isset($debug['current_blog_id']) ? (string) $debug['current_blog_id'] : '0',
-        __('Resolved logs blog ID', 'peracrm') => isset($debug['resolved_blog_id']) ? (string) $debug['resolved_blog_id'] : '0',
-        __('Effective table name', 'peracrm') => isset($debug['table_name']) && $debug['table_name'] !== '' ? (string) $debug['table_name'] : '—',
-        __('Rows returned', 'peracrm') => isset($debug['rows_returned']) ? (string) $debug['rows_returned'] : '0',
-        __('Current page / per_page', 'peracrm') => sprintf('%d / %d', isset($debug['paged']) ? (int) $debug['paged'] : 1, isset($debug['per_page']) ? (int) $debug['per_page'] : 20),
-    ];
+    global $wpdb;
 
-    ob_start();
-    echo '<div class="notice notice-warning inline peracrm-whatsapp-logs-debug" style="display:block;margin:0 0 16px;padding:12px;">';
-    echo '<p><strong>' . esc_html__('Temporary diagnostic debug', 'peracrm') . '</strong><br />' . esc_html__('Runtime WhatsApp logs query context for troubleshooting only.', 'peracrm') . '</p>';
-    echo '<ul style="margin:0;padding-left:18px;">';
-    foreach ($items as $label => $value) {
-        echo '<li><strong>' . esc_html($label) . ':</strong> ' . esc_html($value) . '</li>';
+    $table_name = peracrm_whatsapp_click_logs_table_name();
+    if (!peracrm_whatsapp_click_logs_table_exists($table_name)) {
+        return 0;
     }
-    echo '</ul>';
-    echo '</div>';
 
-    return ob_get_clean();
+    return (int) $wpdb->get_var("SELECT COUNT(*) FROM {$table_name}"); // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+}
+
+function peracrm_whatsapp_click_logs_list(array $state)
+{
+    global $wpdb;
+
+    $table_name = peracrm_whatsapp_click_logs_table_name();
+    if (!peracrm_whatsapp_click_logs_table_exists($table_name)) {
+        return peracrm_whatsapp_click_log_empty_result($state);
+    }
+
+    $per_page = peracrm_whatsapp_sanitize_page_size($state['per_page'] ?? 20);
+    $requested_page = peracrm_whatsapp_sanitize_page_number($state['paged'] ?? 1);
+    $total = (int) $wpdb->get_var("SELECT COUNT(*) FROM {$table_name}"); // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+    $total_pages = max(1, (int) ceil($total / $per_page));
+    $paged = min($requested_page, $total_pages);
+    $offset = ($paged - 1) * $per_page;
+
+    $sql = $wpdb->prepare(
+        "SELECT id, created_at, page_type, page_url, post_id, post_title, message_text, referrer, user_agent, ip_address
+        FROM {$table_name}
+        ORDER BY id DESC
+        LIMIT %d OFFSET %d",
+        $per_page,
+        $offset
+    );
+
+    $rows = (array) $wpdb->get_results($sql, ARRAY_A); // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery
+
+    return [
+        'rows' => $rows,
+        'pagination' => [
+            'total' => $total,
+            'total_pages' => $total_pages,
+            'per_page' => $per_page,
+            'paged' => $paged,
+        ],
+        'message' => '',
+        'table_name' => $table_name,
+    ];
+}
+
+function peracrm_whatsapp_delete_click_logs_by_ids(array $ids)
+{
+    global $wpdb;
+
+    $table_name = peracrm_whatsapp_click_logs_table_name();
+    if (!peracrm_whatsapp_click_logs_table_exists($table_name)) {
+        return [
+            'deleted' => 0,
+            'table_name' => $table_name,
+        ];
+    }
+
+    $ids = array_values(array_unique(array_filter(array_map('absint', $ids))));
+    if (empty($ids)) {
+        return [
+            'deleted' => 0,
+            'table_name' => $table_name,
+        ];
+    }
+
+    $placeholders = implode(', ', array_fill(0, count($ids), '%d'));
+    $sql = $wpdb->prepare("DELETE FROM {$table_name} WHERE id IN ({$placeholders})", $ids);
+    $deleted = $wpdb->query($sql); // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery
+
+    return [
+        'deleted' => max(0, (int) $deleted),
+        'table_name' => $table_name,
+    ];
 }
 
 function peracrm_whatsapp_logs_get_fetch_result(array $state, $context = 'admin')
 {
-    $runtime = [
-        'table_name' => '',
-    ];
-
-    $callback = static function () use ($state, &$runtime) {
-        if (function_exists('peracrm_whatsapp_messages_table_name')) {
-            $runtime['table_name'] = (string) peracrm_whatsapp_messages_table_name();
-        }
-
-        return peracrm_whatsapp_get_messages([
-            'per_page' => $state['per_page'],
-            'paged' => $state['paged'],
-        ]);
+    $callback = static function () use ($state) {
+        return peracrm_whatsapp_click_logs_list($state);
     };
 
     $result = peracrm_whatsapp_logs_with_target_blog($callback);
     if (is_wp_error($result)) {
-        $result = peracrm_whatsapp_logs_empty_fetch_result($state, $result->get_error_message());
-    } elseif (!is_array($result)) {
-        $result = peracrm_whatsapp_logs_empty_fetch_result($state);
+        return peracrm_whatsapp_click_log_empty_result($state, $result->get_error_message());
     }
 
-    $result['debug'] = peracrm_whatsapp_logs_build_debug_context($state, $context, $result, $runtime);
+    return is_array($result) ? $result : peracrm_whatsapp_click_log_empty_result($state);
+}
 
-    return $result;
+function peracrm_whatsapp_click_log_page_type_label($page_type)
+{
+    if (function_exists('pera_whatsapp_logs_page_type_label')) {
+        return pera_whatsapp_logs_page_type_label((string) $page_type);
+    }
+
+    $page_type = sanitize_key((string) $page_type);
+    if ($page_type === '') {
+        return __('Unknown', 'peracrm');
+    }
+
+    return ucwords(str_replace('-', ' ', $page_type));
+}
+
+function peracrm_whatsapp_click_log_url_label($url, $length = 56)
+{
+    if (function_exists('pera_whatsapp_logs_url_label')) {
+        return pera_whatsapp_logs_url_label((string) $url, (int) $length);
+    }
+
+    $url = (string) $url;
+    if ($url === '') {
+        return '';
+    }
+
+    return wp_html_excerpt($url, (int) $length, '…');
+}
+
+function peracrm_whatsapp_click_log_message_label($message_text, $length = 24)
+{
+    $message_text = trim((string) $message_text);
+    if ($message_text === '') {
+        return '—';
+    }
+
+    return esc_html(wp_trim_words($message_text, $length, '…'));
 }
 
 function peracrm_whatsapp_render_logs_table(array $state, $context = 'admin')
@@ -255,9 +307,11 @@ function peracrm_whatsapp_render_logs_table(array $state, $context = 'admin')
     $context = $context === 'frontend' ? 'frontend' : 'admin';
 
     ob_start();
-    if (peracrm_whatsapp_logs_user_can_access()) {
-        echo peracrm_whatsapp_logs_render_debug_panel(isset($result['debug']) && is_array($result['debug']) ? $result['debug'] : []);
+
+    if (!empty($result['message']) && empty($rows)) {
+        echo '<p class="description">' . esc_html((string) $result['message']) . '</p>';
     }
+
     echo '<div class="peracrm-whatsapp-log-controls">';
     echo '<div class="peracrm-whatsapp-log-bulk">';
     echo '<button type="button" class="button button-secondary" data-peracrm-delete-selected disabled>' . esc_html__('Delete selected', 'peracrm') . '</button>';
@@ -282,63 +336,66 @@ function peracrm_whatsapp_render_logs_table(array $state, $context = 'admin')
 
     echo '<table class="' . esc_attr($table_class) . '">';
     echo '<thead><tr>';
-    echo '<td class="check-column"><input type="checkbox" data-peracrm-select-all aria-label="' . esc_attr__('Select all visible WhatsApp logs', 'peracrm') . '" /></td>';
+    echo '<td class="check-column"><input type="checkbox" data-peracrm-select-all aria-label="' . esc_attr__('Select all visible WhatsApp click logs', 'peracrm') . '" /></td>';
     echo '<th scope="col">' . esc_html__('Created', 'peracrm') . '</th>';
-    echo '<th scope="col">' . esc_html__('Direction', 'peracrm') . '</th>';
-    echo '<th scope="col">' . esc_html__('Client', 'peracrm') . '</th>';
-    echo '<th scope="col">' . esc_html__('Contact', 'peracrm') . '</th>';
-    echo '<th scope="col">' . esc_html__('Phone', 'peracrm') . '</th>';
+    echo '<th scope="col">' . esc_html__('Page type', 'peracrm') . '</th>';
+    echo '<th scope="col">' . esc_html__('Page', 'peracrm') . '</th>';
+    echo '<th scope="col">' . esc_html__('Post', 'peracrm') . '</th>';
     echo '<th scope="col">' . esc_html__('Message', 'peracrm') . '</th>';
+    echo '<th scope="col">' . esc_html__('Referrer', 'peracrm') . '</th>';
+    echo '<th scope="col">' . esc_html__('IP', 'peracrm') . '</th>';
     echo '</tr></thead>';
     echo '<tbody>';
 
     if (empty($rows)) {
-        echo '<tr><td colspan="7">' . esc_html__('No WhatsApp logs found.', 'peracrm') . '</td></tr>';
+        echo '<tr><td colspan="8">' . esc_html__('No WhatsApp click logs found.', 'peracrm') . '</td></tr>';
     } else {
         foreach ($rows as $row) {
-            $client_id = isset($row['client_id']) ? (int) $row['client_id'] : 0;
-            $client_label = '—';
-            if ($client_id > 0) {
-                $client_label = get_the_title($client_id);
-                if ($client_label === '') {
-                    $client_label = 'Client #' . $client_id;
-                }
-
-                $client_url = $context === 'frontend'
-                    ? (function_exists('pera_crm_get_client_view_url') ? pera_crm_get_client_view_url($client_id) : home_url('/crm/client/' . $client_id . '/'))
-                    : get_edit_post_link($client_id);
-
-                if ($client_url) {
-                    $client_label = '<a href="' . esc_url($client_url) . '">' . esc_html($client_label) . '</a>';
-                } else {
-                    $client_label = esc_html($client_label);
-                }
+            $log_id = isset($row['id']) ? (int) $row['id'] : 0;
+            $post_id = isset($row['post_id']) ? (int) $row['post_id'] : 0;
+            $post_title = trim((string) ($row['post_title'] ?? ''));
+            if ($post_title === '' && $post_id > 0) {
+                $post_title = get_the_title($post_id);
+            }
+            if ($post_title === '') {
+                $post_title = '—';
             }
 
-            $contact_parts = [];
-            if (!empty($row['whatsapp_contact_name'])) {
-                $contact_parts[] = esc_html((string) $row['whatsapp_contact_name']);
-            }
-            if (!empty($row['message_type'])) {
-                $contact_parts[] = '<span class="description">' . esc_html(ucfirst((string) $row['message_type'])) . '</span>';
+            $post_url = $post_id > 0 ? get_permalink($post_id) : '';
+            if (!is_string($post_url)) {
+                $post_url = '';
             }
 
-            echo '<tr data-log-id="' . esc_attr((string) $row['id']) . '">';
-            echo '<th scope="row" class="check-column"><input type="checkbox" value="' . esc_attr((string) $row['id']) . '" data-peracrm-log-checkbox /></th>';
+            $page_url = (string) ($row['page_url'] ?? '');
+            $referrer = (string) ($row['referrer'] ?? '');
+
+            echo '<tr data-log-id="' . esc_attr((string) $log_id) . '">';
+            echo '<th scope="row" class="check-column"><input type="checkbox" value="' . esc_attr((string) $log_id) . '" data-peracrm-log-checkbox /></th>';
             echo '<td>' . esc_html((string) ($row['created_at'] ?? '')) . '</td>';
-            echo '<td>' . esc_html(ucfirst((string) ($row['direction'] ?? ''))) . '</td>';
-            echo '<td>' . $client_label . '</td>';
-            echo '<td>' . (!empty($contact_parts) ? implode('<br />', $contact_parts) : '—') . '</td>';
-            echo '<td><code>' . esc_html((string) ($row['phone_e164'] ?? '')) . '</code></td>';
+            echo '<td>' . esc_html(peracrm_whatsapp_click_log_page_type_label((string) ($row['page_type'] ?? ''))) . '</td>';
             echo '<td>';
-            if (!empty($row['message_body'])) {
-                echo '<div class="peracrm-whatsapp-log-message">' . esc_html(wp_trim_words((string) $row['message_body'], 30, '…')) . '</div>';
-            } elseif (!empty($row['media_url'])) {
-                echo '<a href="' . esc_url((string) $row['media_url']) . '" target="_blank" rel="noopener">' . esc_html__('Media attachment', 'peracrm') . '</a>';
+            if ($page_url !== '') {
+                echo '<a href="' . esc_url($page_url) . '" target="_blank" rel="noopener">' . esc_html(peracrm_whatsapp_click_log_url_label($page_url)) . '</a>';
             } else {
                 echo '—';
             }
             echo '</td>';
+            echo '<td>';
+            if ($post_id > 0 && $post_url !== '') {
+                echo '<a href="' . esc_url($post_url) . '" target="_blank" rel="noopener">' . esc_html($post_title) . '</a>';
+            } else {
+                echo esc_html($post_title);
+            }
+            echo '</td>';
+            echo '<td><div class="peracrm-whatsapp-log-message">' . peracrm_whatsapp_click_log_message_label((string) ($row['message_text'] ?? '')) . '</div></td>';
+            echo '<td>';
+            if ($referrer !== '') {
+                echo '<a href="' . esc_url($referrer) . '" target="_blank" rel="noopener">' . esc_html(peracrm_whatsapp_click_log_url_label($referrer)) . '</a>';
+            } else {
+                echo '—';
+            }
+            echo '</td>';
+            echo '<td><code>' . esc_html((string) ($row['ip_address'] ?? '')) . '</code></td>';
             echo '</tr>';
         }
     }
@@ -595,10 +652,10 @@ function peracrm_whatsapp_enqueue_logs_assets($context = 'admin', $version = nul
         'nonce' => wp_create_nonce('peracrm_whatsapp_logs'),
         'pageSizeOptions' => peracrm_whatsapp_allowed_page_sizes(),
         'strings' => [
-            'deleteConfirm' => __('Delete selected logs?', 'peracrm'),
-            'deleteSuccess' => __('Selected logs deleted.', 'peracrm'),
-            'deleteError' => __('Unable to delete selected logs.', 'peracrm'),
-            'loadError' => __('Unable to load WhatsApp logs.', 'peracrm'),
+            'deleteConfirm' => __('Delete selected click logs?', 'peracrm'),
+            'deleteSuccess' => __('Selected click logs deleted.', 'peracrm'),
+            'deleteError' => __('Unable to delete selected click logs.', 'peracrm'),
+            'loadError' => __('Unable to load WhatsApp click logs.', 'peracrm'),
         ],
     ]);
     wp_add_inline_script($handle, peracrm_whatsapp_admin_inline_script());
@@ -643,7 +700,7 @@ function peracrm_ajax_whatsapp_delete_logs()
 
     $state = peracrm_whatsapp_get_logs_view_state($_POST);
     $delete_callback = static function () use ($ids) {
-        return peracrm_whatsapp_delete_messages_by_ids($ids);
+        return peracrm_whatsapp_delete_click_logs_by_ids($ids);
     };
     $delete_result = peracrm_whatsapp_logs_with_target_blog($delete_callback);
 
@@ -658,7 +715,7 @@ function peracrm_ajax_whatsapp_delete_logs()
     $logs = peracrm_whatsapp_logs_get_fetch_result($state);
 
     wp_send_json_success([
-        'message' => sprintf(_n('%d log deleted.', '%d logs deleted.', (int) $delete_result['deleted'], 'peracrm'), (int) $delete_result['deleted']),
+        'message' => sprintf(_n('%d click log deleted.', '%d click logs deleted.', (int) $delete_result['deleted'], 'peracrm'), (int) $delete_result['deleted']),
         'deleted' => (int) $delete_result['deleted'],
         'pagination' => isset($logs['pagination']) ? $logs['pagination'] : ['per_page' => $state['per_page'], 'paged' => 1],
     ]);
