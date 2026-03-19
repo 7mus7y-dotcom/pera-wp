@@ -24,6 +24,7 @@ function peracrm_admin_enqueue_assets($hook)
         && !peracrm_admin_is_my_reminders_screen($hook)
         && !peracrm_admin_is_pipeline_screen($hook)
         && !peracrm_admin_is_client_view_screen($hook)
+        && !peracrm_admin_is_import_data_screen($hook)
     ) {
         return;
     }

@@ -17,7 +17,7 @@ if (defined('PERACRM_BOOTSTRAPPED') && PERACRM_BOOTSTRAPPED) {
 define('PERACRM_BOOTSTRAPPED', true);
 
 define('PERACRM_VERSION', '0.1.0');
-define('PERACRM_SCHEMA_VERSION', 10);
+define('PERACRM_SCHEMA_VERSION', 11);
 
 if (!defined('PERACRM_MAIN_FILE')) {
     define('PERACRM_MAIN_FILE', __FILE__);
