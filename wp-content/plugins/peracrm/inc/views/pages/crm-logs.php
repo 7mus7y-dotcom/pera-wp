@@ -81,34 +81,17 @@ if ( function_exists( 'peracrm_frontend_render_partial' ) ) {
       <?php if ( ! $allowed ) : ?>
         <p><?php esc_html_e( 'You are not allowed to view this page.', 'peracrm' ); ?></p>
       <?php elseif ( $is_whatsapp ) : ?>
-        <?php $rows = $read_whatsapp_logs(); ?>
-        <?php if ( empty( $rows ) ) : ?>
-          <p><?php esc_html_e( 'No WhatsApp logs found.', 'peracrm' ); ?></p>
+        <?php if ( function_exists( 'peracrm_whatsapp_logs_user_can_access' ) && ! peracrm_whatsapp_logs_user_can_access() ) : ?>
+          <p><?php esc_html_e( 'You are not allowed to view this page.', 'peracrm' ); ?></p>
+        <?php elseif ( function_exists( 'peracrm_whatsapp_render_logs_panel' ) ) : ?>
+          <?php
+          $state = function_exists( 'peracrm_whatsapp_get_logs_view_state' )
+            ? peracrm_whatsapp_get_logs_view_state( $_GET )
+            : array( 'per_page' => 20, 'paged' => 1 );
+          echo peracrm_whatsapp_render_logs_panel( $state, 'frontend' );
+          ?>
         <?php else : ?>
-          <div class="crm-log-table-wrap">
-            <table class="crm-log-table">
-              <thead>
-                <tr>
-                  <th><?php esc_html_e( 'Time', 'peracrm' ); ?></th>
-                  <th><?php esc_html_e( 'Type', 'peracrm' ); ?></th>
-                  <th><?php esc_html_e( 'Title', 'peracrm' ); ?></th>
-                  <th><?php esc_html_e( 'Message', 'peracrm' ); ?></th>
-                  <th><?php esc_html_e( 'IP', 'peracrm' ); ?></th>
-                </tr>
-              </thead>
-              <tbody>
-              <?php foreach ( (array) $rows as $row ) : ?>
-                <tr>
-                  <td><?php echo esc_html( (string) $row['created_at'] ); ?></td>
-                  <td><?php echo esc_html( (string) $row['page_type'] ); ?></td>
-                  <td><?php echo esc_html( (string) $row['post_title'] ); ?></td>
-                  <td><?php echo esc_html( (string) $row['message_text'] ); ?></td>
-                  <td><?php echo esc_html( (string) $row['ip_address'] ); ?></td>
-                </tr>
-              <?php endforeach; ?>
-              </tbody>
-            </table>
-          </div>
+          <p><?php esc_html_e( 'WhatsApp logs UI is unavailable in this environment.', 'peracrm' ); ?></p>
         <?php endif; ?>
       <?php elseif ( $is_email ) : ?>
         <?php $rows = $read_email_logs(); ?>

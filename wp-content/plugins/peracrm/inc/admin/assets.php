@@ -24,8 +24,8 @@ function peracrm_admin_enqueue_assets($hook)
         && !peracrm_admin_is_my_reminders_screen($hook)
         && !peracrm_admin_is_pipeline_screen($hook)
         && !peracrm_admin_is_client_view_screen($hook)
-        && !peracrm_admin_is_whatsapp_screen($hook)
         && !peracrm_admin_is_import_data_screen($hook)
+        && !peracrm_admin_is_real_whatsapp_logs_screen($hook)
     ) {
         return;
     }
@@ -41,21 +41,8 @@ function peracrm_admin_enqueue_assets($hook)
     );
 
 
-    if (peracrm_admin_is_whatsapp_screen($hook)) {
-        wp_register_script('peracrm-admin', false, [], $version, true);
-        wp_enqueue_script('peracrm-admin');
-        wp_localize_script('peracrm-admin', 'peracrmWhatsAppAdmin', [
-            'ajaxUrl' => admin_url('admin-ajax.php'),
-            'nonce' => wp_create_nonce('peracrm_whatsapp_logs'),
-            'pageSizeOptions' => peracrm_whatsapp_allowed_page_sizes(),
-            'strings' => [
-                'deleteConfirm' => __('Delete selected logs?', 'peracrm'),
-                'deleteSuccess' => __('Selected logs deleted.', 'peracrm'),
-                'deleteError' => __('Unable to delete selected logs.', 'peracrm'),
-                'loadError' => __('Unable to load WhatsApp logs.', 'peracrm'),
-            ],
-        ]);
-        wp_add_inline_script('peracrm-admin', peracrm_whatsapp_admin_inline_script());
+    if (peracrm_admin_is_real_whatsapp_logs_screen($hook)) {
+        peracrm_whatsapp_enqueue_logs_assets('admin', $version);
     }
 
 }

@@ -2415,3 +2415,26 @@ body.crm-route #site-header.peracrm-shell-header.is-scrolled .peracrm-header-act
 .crm-confirm-dialog::backdrop {
   background: rgba(10, 18, 32, 0.35);
 }
+
+
+.crm-page--logs [data-peracrm-whatsapp-feedback] { margin-bottom: 16px; }
+.crm-page--logs .peracrm-whatsapp-log-controls {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  align-items: center;
+  margin-bottom: 16px;
+  flex-wrap: wrap;
+}
+.crm-page--logs .peracrm-whatsapp-log-page-size {
+  display: inline-flex;
+  gap: 8px;
+  align-items: center;
+}
+.crm-page--logs .peracrm-whatsapp-logs.is-loading { opacity: 0.55; pointer-events: none; }
+.crm-page--logs .peracrm-whatsapp-logs-table .check-column { width: 42px; }
+.crm-page--logs .peracrm-whatsapp-log-message { min-width: 220px; }
+@media (max-width: 767px) {
+  .crm-page--logs .peracrm-whatsapp-log-controls { align-items: stretch; }
+  .crm-page--logs .peracrm-whatsapp-log-page-size { justify-content: space-between; width: 100%; }
+}
