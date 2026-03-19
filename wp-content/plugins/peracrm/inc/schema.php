@@ -39,6 +39,7 @@ function peracrm_upgrade_schema_to($target_version, $installed_version = 0)
         $client_property_table = peracrm_table('crm_client_property');
         $party_table = peracrm_table('peracrm_party');
         $deals_table = peracrm_table('peracrm_deals');
+        $import_batches_table = peracrm_table('peracrm_import_batches');
 
         $sql_notes = "CREATE TABLE {$notes_table} (
             id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
@@ -142,6 +143,24 @@ function peracrm_upgrade_schema_to($target_version, $installed_version = 0)
             KEY owner_commission_status (owner_user_id, commission_status)
         ) {$charset_collate};";
 
+        $sql_import_batches = "CREATE TABLE {$import_batches_table} (
+            id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+            file_name VARCHAR(255) NOT NULL,
+            record_type VARCHAR(20) NOT NULL,
+            mode VARCHAR(30) NOT NULL,
+            imported_by BIGINT UNSIGNED NOT NULL,
+            total_rows INT UNSIGNED NOT NULL DEFAULT 0,
+            created_count INT UNSIGNED NOT NULL DEFAULT 0,
+            updated_count INT UNSIGNED NOT NULL DEFAULT 0,
+            skipped_count INT UNSIGNED NOT NULL DEFAULT 0,
+            failed_count INT UNSIGNED NOT NULL DEFAULT 0,
+            mapping_json LONGTEXT NULL,
+            created_at DATETIME NOT NULL,
+            PRIMARY KEY (id),
+            KEY created_at (created_at),
+            KEY imported_by (imported_by)
+        ) {$charset_collate};";
+
 
         dbDelta($sql_notes);
         dbDelta($sql_reminders);
@@ -149,6 +168,7 @@ function peracrm_upgrade_schema_to($target_version, $installed_version = 0)
         dbDelta($sql_client_property);
         dbDelta($sql_party);
         dbDelta($sql_deals);
+        dbDelta($sql_import_batches);
 
         if (function_exists('peracrm_push_log_create_table')) {
             peracrm_push_log_create_table();

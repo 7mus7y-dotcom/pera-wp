@@ -52,6 +52,7 @@ if (defined('WP_CLI') && WP_CLI) {
 if (is_admin()) {
     $admin_dir = __DIR__ . '/admin';
     $admin_files = [
+        'importer.php',
         'admin.php',
         'metaboxes.php',
         'pages.php',

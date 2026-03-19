@@ -8,6 +8,7 @@ require_once PERACRM_INC . '/admin/pages/work-queue.php';
 require_once PERACRM_INC . '/admin/pages/client-view.php';
 require_once PERACRM_INC . '/admin/pages/pipeline.php';
 require_once PERACRM_INC . '/admin/pages/whatsapp.php';
+require_once PERACRM_INC . '/admin/pages/import-data.php';
 
 function peracrm_register_admin_menu()
 {
@@ -74,6 +75,19 @@ function peracrm_register_admin_menu()
         'peracrm-whatsapp',
         'peracrm_render_whatsapp_page'
     );
+
+    $import_hook = add_submenu_page(
+        $parent_slug,
+        'Import Data',
+        'Import Data',
+        $capability,
+        'peracrm-import-data',
+        'peracrm_render_import_data_page'
+    );
+
+    if ($import_hook) {
+        $GLOBALS['peracrm_import_data_hook'] = $import_hook;
+    }
 }
 
 
@@ -111,6 +125,13 @@ function peracrm_admin_is_pipeline_screen($hook)
 function peracrm_admin_is_client_view_screen($hook)
 {
     $stored = isset($GLOBALS['peracrm_client_view_hook']) ? $GLOBALS['peracrm_client_view_hook'] : '';
+
+    return $stored !== '' && $hook === $stored;
+}
+
+function peracrm_admin_is_import_data_screen($hook)
+{
+    $stored = isset($GLOBALS['peracrm_import_data_hook']) ? $GLOBALS['peracrm_import_data_hook'] : '';
 
     return $stored !== '' && $hook === $stored;
 }

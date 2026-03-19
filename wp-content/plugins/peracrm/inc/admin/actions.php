@@ -443,6 +443,198 @@ function peracrm_admin_redirect_with_notice($url, $notice)
     exit;
 }
 
+function peracrm_import_redirect_url()
+{
+    return add_query_arg([
+        'post_type' => 'crm_client',
+        'page' => 'peracrm-import-data',
+    ], admin_url('edit.php'));
+}
+
+function peracrm_handle_import_reset()
+{
+    if (!peracrm_import_user_can_manage()) {
+        wp_die('Unauthorized');
+    }
+
+    check_admin_referer('peracrm_import_reset');
+    peracrm_import_clear_state(true);
+    peracrm_admin_redirect_with_notice(peracrm_import_redirect_url(), 'import_reset');
+}
+
+function peracrm_handle_import_upload_csv()
+{
+    if (!peracrm_import_user_can_manage()) {
+        wp_die('Unauthorized');
+    }
+
+    check_admin_referer('peracrm_import_upload');
+
+    if (empty($_FILES['peracrm_import_file']['name'])) {
+        peracrm_admin_redirect_with_notice(peracrm_import_redirect_url(), 'import_upload_failed');
+    }
+
+    $file = $_FILES['peracrm_import_file'];
+    $name = sanitize_file_name((string) $file['name']);
+    $ext = strtolower(pathinfo($name, PATHINFO_EXTENSION));
+
+    if ($ext !== 'csv') {
+        peracrm_admin_redirect_with_notice(peracrm_import_redirect_url(), 'import_invalid_file');
+    }
+
+    if ((int) $file['size'] > PERACRM_IMPORT_MAX_FILESIZE) {
+        peracrm_admin_redirect_with_notice(peracrm_import_redirect_url(), 'import_too_large');
+    }
+
+    require_once ABSPATH . 'wp-admin/includes/file.php';
+
+    $moved = wp_handle_upload($file, [
+        'test_form' => false,
+        'mimes' => ['csv' => 'text/csv'],
+    ]);
+
+    if (!empty($moved['error']) || empty($moved['file'])) {
+        peracrm_admin_redirect_with_notice(peracrm_import_redirect_url(), 'import_upload_failed');
+    }
+
+    $parsed = peracrm_import_parse_csv($moved['file']);
+    if (is_wp_error($parsed)) {
+        wp_delete_file($moved['file']);
+        peracrm_admin_redirect_with_notice(peracrm_import_redirect_url(), 'import_parse_failed');
+    }
+
+    peracrm_import_clear_state(true);
+    peracrm_import_set_upload_state([
+        'file_name' => $name,
+        'file_path' => $moved['file'],
+        'delimiter' => $parsed['delimiter'],
+        'headers' => $parsed['headers'],
+        'sample_rows' => array_slice($parsed['rows'], 0, 5),
+        'mapping' => peracrm_import_default_mapping($parsed['headers']),
+        'record_type' => 'lead',
+        'mode' => 'create_only',
+    ]);
+
+    peracrm_admin_redirect_with_notice(peracrm_import_redirect_url(), 'import_uploaded');
+}
+
+function peracrm_handle_import_validate_csv()
+{
+    if (!peracrm_import_user_can_manage()) {
+        wp_die('Unauthorized');
+    }
+
+    check_admin_referer('peracrm_import_validate');
+
+    $upload = peracrm_import_get_upload_state();
+    if (empty($upload['file_path'])) {
+        peracrm_admin_redirect_with_notice(peracrm_import_redirect_url(), 'import_session_missing');
+    }
+
+    $mapping = isset($_POST['mapping']) && is_array($_POST['mapping']) ? array_map('sanitize_key', wp_unslash($_POST['mapping'])) : [];
+    $record_type = isset($_POST['record_type']) ? sanitize_key(wp_unslash($_POST['record_type'])) : 'lead';
+    $mode = isset($_POST['mode']) ? sanitize_key(wp_unslash($_POST['mode'])) : 'create_only';
+    $type_options = peracrm_import_record_type_options();
+    $mode_options = peracrm_import_mode_options();
+
+    $upload['mapping'] = $mapping;
+    $upload['record_type'] = isset($type_options[$record_type]) ? $record_type : 'lead';
+    $upload['mode'] = isset($mode_options[$mode]) ? $mode : 'create_only';
+    peracrm_import_set_upload_state($upload);
+
+    $parsed = peracrm_import_parse_csv($upload['file_path'], $upload['delimiter'] ?? ',');
+    if (is_wp_error($parsed)) {
+        peracrm_admin_redirect_with_notice(peracrm_import_redirect_url(), 'import_parse_failed');
+    }
+
+    $validation = peracrm_import_validate_rows($parsed['rows'], $mapping, $upload['record_type'], $upload['mode']);
+    peracrm_import_set_validation_state([
+        'file_name' => $upload['file_name'],
+        'file_path' => $upload['file_path'],
+        'delimiter' => $upload['delimiter'],
+        'mapping' => $mapping,
+        'record_type' => $upload['record_type'],
+        'mode' => $upload['mode'],
+        'summary' => $validation['summary'],
+        'preview_rows' => peracrm_import_build_preview_rows($validation['results'], 20),
+    ]);
+
+    peracrm_admin_redirect_with_notice(peracrm_import_redirect_url(), 'import_validated');
+}
+
+function peracrm_handle_import_commit_csv()
+{
+    if (!peracrm_import_user_can_manage()) {
+        wp_die('Unauthorized');
+    }
+
+    check_admin_referer('peracrm_import_commit');
+
+    $upload = peracrm_import_get_upload_state();
+    $validation_state = peracrm_import_get_validation_state();
+    if (empty($upload['file_path']) || empty($validation_state['mapping'])) {
+        peracrm_admin_redirect_with_notice(peracrm_import_redirect_url(), 'import_session_missing');
+    }
+
+    $parsed = peracrm_import_parse_csv($upload['file_path'], $upload['delimiter'] ?? ',');
+    if (is_wp_error($parsed)) {
+        peracrm_admin_redirect_with_notice(peracrm_import_redirect_url(), 'import_parse_failed');
+    }
+
+    $validation = peracrm_import_validate_rows(
+        $parsed['rows'],
+        (array) $validation_state['mapping'],
+        $validation_state['record_type'] ?? 'lead',
+        $validation_state['mode'] ?? 'create_only'
+    );
+
+    $created = 0;
+    $updated = 0;
+    $skipped = 0;
+    $failed = 0;
+
+    foreach (array_chunk((array) $validation['results'], PERACRM_IMPORT_BATCH_SIZE) as $batch) {
+        foreach ($batch as $row) {
+            if (!empty($row['errors'])) {
+                $skipped++;
+                continue;
+            }
+
+            $result = peracrm_import_apply_row(
+                $row,
+                $validation_state['record_type'] ?? 'lead',
+                $validation_state['mode'] ?? 'create_only'
+            );
+            if (is_wp_error($result) || !$result) {
+                $failed++;
+                continue;
+            }
+
+            if ((int) ($row['existing_id'] ?? 0) > 0) {
+                $updated++;
+            } else {
+                $created++;
+            }
+        }
+    }
+
+    peracrm_import_log_batch([
+        'file_name' => $upload['file_name'] ?? '',
+        'record_type' => $validation_state['record_type'] ?? 'lead',
+        'mode' => $validation_state['mode'] ?? 'create_only',
+        'imported_by' => get_current_user_id(),
+        'total_rows' => $validation['summary']['total_rows'] ?? 0,
+        'created_count' => $created,
+        'updated_count' => $updated,
+        'skipped_count' => $skipped,
+        'failed_count' => $failed,
+        'mapping' => $validation_state['mapping'] ?? [],
+    ]);
+
+    peracrm_import_clear_state(true);
+    peracrm_admin_redirect_with_notice(peracrm_import_redirect_url(), 'import_committed');
+}
+
 function peracrm_admin_client_screen_url($client_id)
 {
     $client_id = (int) $client_id;
@@ -1728,7 +1920,10 @@ function peracrm_admin_notices()
     $is_crm_client_view = isset($_GET['page'])
         && sanitize_key(wp_unslash($_GET['page'])) === 'peracrm-client-view';
 
-    if (!$is_crm_edit_screen && !$is_crm_client_view) {
+    $is_import_page = isset($_GET['page'])
+        && sanitize_key(wp_unslash($_GET['page'])) === 'peracrm-import-data';
+
+    if (!$is_crm_edit_screen && !$is_crm_client_view && !$is_import_page) {
         return;
     }
 
@@ -1766,6 +1961,15 @@ function peracrm_admin_notices()
         'pipeline_view_deleted' => ['success', 'Pipeline view deleted.'],
         'pipeline_view_missing' => ['error', 'Pipeline view not found.'],
         'pipeline_view_name_missing' => ['error', 'Please enter a view name.'],
+        'import_uploaded' => ['success', 'CSV uploaded and headers parsed.'],
+        'import_validated' => ['success', 'Dry run complete. Review the validation summary before committing.'],
+        'import_committed' => ['success', 'Import completed and batch log recorded.'],
+        'import_reset' => ['success', 'Import session cleared.'],
+        'import_invalid_file' => ['error', 'Please upload a valid CSV file.'],
+        'import_too_large' => ['error', 'The CSV file is larger than the allowed upload limit.'],
+        'import_upload_failed' => ['error', 'Unable to upload the CSV file.'],
+        'import_parse_failed' => ['error', 'Unable to parse the CSV file.'],
+        'import_session_missing' => ['error', 'Your import session has expired. Please upload the CSV again.'],
     ];
 
     if (!isset($messages[$notice])) {
