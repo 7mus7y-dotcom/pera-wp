@@ -12,12 +12,38 @@ function peracrm_render_import_data_page()
 
     $upload = peracrm_import_get_upload_state();
     $validation = peracrm_import_get_validation_state();
+    $last_batch = peracrm_import_get_last_batch_summary();
     $step = !empty($validation) ? 3 : (!empty($upload) ? 2 : 1);
     $field_options = peracrm_import_destination_fields();
 
     echo '<div class="wrap peracrm-import-page">';
     echo '<h1>Import Data</h1>';
     echo '<p>Import basic Zoho-exported leads or clients via a safe three-step CSV workflow.</p>';
+
+    if (!empty($last_batch)) {
+        echo '<div class="peracrm-import-card">';
+        echo '<h2>Last import batch</h2>';
+        echo '<ul class="peracrm-import-summary">';
+        foreach ([
+            'file_name' => 'File name',
+            'record_type' => 'Record type',
+            'mode' => 'Mode',
+            'total_rows' => 'Total rows',
+            'created_count' => 'Created',
+            'updated_count' => 'Updated',
+            'skipped_count' => 'Skipped',
+            'failed_count' => 'Failed',
+            'created_at' => 'Created at',
+        ] as $key => $label) {
+            $value = isset($last_batch[$key]) ? $last_batch[$key] : '';
+            if (in_array($key, ['record_type', 'mode'], true)) {
+                $value = str_replace('_', ' ', (string) $value);
+            }
+            echo '<li><strong>' . esc_html($label) . ':</strong> ' . esc_html((string) $value) . '</li>';
+        }
+        echo '</ul>';
+        echo '</div>';
+    }
 
     echo '<ol class="peracrm-import-steps">';
     foreach ([1 => 'Upload CSV', 2 => 'Map + dry run', 3 => 'Commit import'] as $number => $label) {
