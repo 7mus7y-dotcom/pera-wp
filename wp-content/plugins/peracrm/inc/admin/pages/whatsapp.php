@@ -35,7 +35,8 @@ function peracrm_render_whatsapp_page()
     $count_callback = static function () {
         return function_exists('peracrm_whatsapp_count_messages') ? (int) peracrm_whatsapp_count_messages() : 0;
     };
-    $count = function_exists('peracrm_with_target_blog') ? (int) peracrm_with_target_blog($count_callback) : (int) $count_callback();
+    $count_result = function_exists('peracrm_whatsapp_logs_with_target_blog') ? peracrm_whatsapp_logs_with_target_blog($count_callback) : $count_callback();
+    $count = is_wp_error($count_result) ? 0 : (int) $count_result;
     $endpoint = esc_url_raw(rest_url('peracrm/v1/whatsapp/webhook'));
 
     echo '<div class="wrap">';
