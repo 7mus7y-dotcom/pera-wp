@@ -67,7 +67,7 @@ function peracrm_register_admin_menu()
         $GLOBALS['peracrm_client_view_hook'] = $client_view_hook;
     }
 
-    add_submenu_page(
+    $whatsapp_hook = add_submenu_page(
         $parent_slug,
         'WhatsApp',
         'WhatsApp',
@@ -75,6 +75,10 @@ function peracrm_register_admin_menu()
         'peracrm-whatsapp',
         'peracrm_render_whatsapp_page'
     );
+
+    if ($whatsapp_hook) {
+        $GLOBALS['peracrm_whatsapp_hook'] = $whatsapp_hook;
+    }
 
     $import_hook = add_submenu_page(
         $parent_slug,
@@ -125,6 +129,13 @@ function peracrm_admin_is_pipeline_screen($hook)
 function peracrm_admin_is_client_view_screen($hook)
 {
     $stored = isset($GLOBALS['peracrm_client_view_hook']) ? $GLOBALS['peracrm_client_view_hook'] : '';
+
+    return $stored !== '' && $hook === $stored;
+}
+
+function peracrm_admin_is_whatsapp_screen($hook)
+{
+    $stored = isset($GLOBALS['peracrm_whatsapp_hook']) ? $GLOBALS['peracrm_whatsapp_hook'] : '';
 
     return $stored !== '' && $hook === $stored;
 }

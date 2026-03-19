@@ -42,6 +42,8 @@ add_action('admin_post_peracrm_import_reset', 'peracrm_handle_import_reset');
 
 add_action('admin_notices', 'peracrm_admin_notices');
 add_action('admin_enqueue_scripts', 'peracrm_admin_enqueue_assets');
+add_action('wp_ajax_peracrm_whatsapp_logs_table', 'peracrm_ajax_whatsapp_logs_table');
+add_action('wp_ajax_peracrm_whatsapp_delete_logs', 'peracrm_ajax_whatsapp_delete_logs');
 
 add_filter('manage_crm_client_posts_columns', 'peracrm_admin_add_client_columns');
 add_action('manage_crm_client_posts_custom_column', 'peracrm_admin_render_client_columns', 10, 2);

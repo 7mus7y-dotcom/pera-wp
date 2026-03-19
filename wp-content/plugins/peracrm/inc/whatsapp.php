@@ -429,6 +429,57 @@ function peracrm_whatsapp_count_messages()
     return (int) $wpdb->get_var("SELECT COUNT(*) FROM {$table}");
 }
 
+function peracrm_whatsapp_get_messages(array $args = [])
+{
+    global $wpdb;
+
+    $per_page = isset($args['per_page']) ? max(1, (int) $args['per_page']) : 20;
+    $paged = isset($args['paged']) ? max(1, (int) $args['paged']) : 1;
+    $table = peracrm_whatsapp_messages_table_name();
+    $total = (int) $wpdb->get_var("SELECT COUNT(*) FROM {$table}");
+    $total_pages = max(1, (int) ceil($total / $per_page));
+    $paged = min($paged, $total_pages);
+    $offset = ($paged - 1) * $per_page;
+
+    $rows = $wpdb->get_results(
+        $wpdb->prepare(
+            "SELECT id, client_id, phone_e164, whatsapp_contact_name, direction, message_type, message_body, media_url, created_at FROM {$table} ORDER BY created_at DESC, id DESC LIMIT %d OFFSET %d",
+            $per_page,
+            $offset
+        ),
+        ARRAY_A
+    );
+
+    return [
+        'rows' => is_array($rows) ? $rows : [],
+        'pagination' => [
+            'total' => $total,
+            'total_pages' => $total_pages,
+            'per_page' => $per_page,
+            'paged' => $paged,
+        ],
+    ];
+}
+
+function peracrm_whatsapp_delete_messages_by_ids(array $ids)
+{
+    global $wpdb;
+
+    $ids = array_values(array_unique(array_filter(array_map('absint', $ids))));
+    if (empty($ids)) {
+        return ['deleted' => 0];
+    }
+
+    $table = peracrm_whatsapp_messages_table_name();
+    $placeholders = implode(', ', array_fill(0, count($ids), '%d'));
+    $query = $wpdb->prepare("DELETE FROM {$table} WHERE id IN ({$placeholders})", $ids);
+    $deleted = $wpdb->query($query);
+
+    return [
+        'deleted' => max(0, (int) $deleted),
+    ];
+}
+
 function peracrm_whatsapp_process_inbound_payload(array $payload)
 {
     $entries = isset($payload['entry']) && is_array($payload['entry']) ? $payload['entry'] : [];
