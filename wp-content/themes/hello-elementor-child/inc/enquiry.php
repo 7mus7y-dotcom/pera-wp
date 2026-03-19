@@ -110,6 +110,29 @@ function pera_forms_nonce_failure_redirect( $form_key, $fallback_url, $query_arg
   exit;
 }
 
+
+function pera_forms_log_keyword_block( $form_key, $context = '' ) {
+  $form_key = sanitize_key( (string) $form_key );
+  $context  = sanitize_key( (string) $context );
+
+  pera_forms_debug_log(
+    'keyword_blocked',
+    array(
+      'form_key' => $form_key,
+      'handler'  => __FUNCTION__,
+      'context'  => $context,
+    )
+  );
+
+  error_log( '[Pera forms] blocked keyword spam ' . wp_json_encode( array( 'form_key' => $form_key, 'context' => $context ) ) );
+}
+
+function pera_forms_blocked_submission_exit( $form_key, $context = '' ) {
+  pera_forms_log_keyword_block( $form_key, $context );
+  wp_safe_redirect( pera_forms_failed_submission_redirect_url() );
+  exit;
+}
+
 function pera_forms_failed_submission_redirect_url() {
   $redirect = ! empty( $_POST['_wp_http_referer'] )
     ? esc_url_raw( wp_unslash( $_POST['_wp_http_referer'] ) )
@@ -754,6 +777,29 @@ function pera_handle_citizenship_enquiry() {
     $property_title = isset( $_POST['sr_property_title'] ) ? sanitize_text_field( wp_unslash( $_POST['sr_property_title'] ) ) : '';
     $property_url   = isset( $_POST['sr_property_url'] )   ? esc_url_raw( wp_unslash( $_POST['sr_property_url'] ) ) : '';
 
+    $spam_text = implode(
+      "\n",
+      array_filter(
+        array(
+          $name,
+          $email,
+          $phone,
+          $message,
+          $intent,
+          $location,
+          $details,
+          $expectations,
+          $property_title,
+          $property_url,
+        ),
+        'strlen'
+      )
+    );
+
+    if ( pera_contains_blocked_keywords( $spam_text ) ) {
+      pera_forms_blocked_submission_exit( 'sr_action', $sr_context !== '' ? $sr_context : $form_context );
+    }
+
     $to = 'info@peraproperty.com';
 
     if ( $form_context === 'property' ) {
@@ -964,6 +1010,25 @@ function pera_handle_citizenship_enquiry() {
       ? sanitize_textarea_field( wp_unslash( $_POST['fav_message'] ) )
       : '';
 
+
+    $spam_text = implode(
+      "\n",
+      array_filter(
+        array(
+          $first_name,
+          $last_name,
+          $email,
+          $phone,
+          $message,
+        ),
+        'strlen'
+      )
+    );
+
+    if ( pera_contains_blocked_keywords( $spam_text ) ) {
+      pera_forms_blocked_submission_exit( 'fav_enquiry_action', 'favourites' );
+    }
+
     if ( ! $first_name || ! $last_name || ! $phone || ! is_email( $email ) ) {
       wp_die( 'Required fields missing', 'Error', array( 'response' => 400 ) );
     }
@@ -1108,6 +1173,27 @@ function pera_handle_citizenship_enquiry() {
     $enquiry_type = isset( $_POST['enquiry_type'] ) ? sanitize_text_field( wp_unslash( $_POST['enquiry_type'] ) ) : '';
     $family       = isset( $_POST['family'] )       ? sanitize_text_field( wp_unslash( $_POST['family'] ) )       : '';
     $message      = isset( $_POST['message'] )      ? wp_kses_post( wp_unslash( $_POST['message'] ) )             : '';
+
+
+    $spam_text = implode(
+      "\n",
+      array_filter(
+        array(
+          $name,
+          $phone,
+          $email,
+          $enquiry_type,
+          $family,
+          wp_strip_all_tags( $message ),
+        ),
+        'strlen'
+      )
+    );
+
+    if ( pera_contains_blocked_keywords( $spam_text ) ) {
+      pera_citizenship_log_blocked_attempt( 'keyword_spam' );
+      pera_forms_blocked_submission_exit( 'pera_citizenship_action', 'citizenship' );
+    }
 
     // Anti-spam gate: conservative validation on name/message payloads.
     if ( pera_citizenship_has_url_like_content( $name ) || pera_citizenship_is_obvious_spam_payload( $name, wp_strip_all_tags( $message ) ) ) {
