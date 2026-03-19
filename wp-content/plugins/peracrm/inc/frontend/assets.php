@@ -102,6 +102,10 @@ if (!function_exists('pera_crm_enqueue_assets')) {
             ]
         );
 
+        if (function_exists('peracrm_whatsapp_logs_is_frontend_screen') && peracrm_whatsapp_logs_is_frontend_screen()) {
+            peracrm_whatsapp_enqueue_logs_assets('frontend', (string) filemtime($crm_js['path']));
+        }
+
         if (!is_user_logged_in()) {
             return;
         }

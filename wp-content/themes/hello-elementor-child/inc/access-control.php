@@ -39,6 +39,20 @@ if ( ! function_exists( 'pera_is_frontend_admin_equivalent' ) ) {
   }
 }
 
+if ( ! function_exists( 'pera_is_crm_frontend_request_path' ) ) {
+  function pera_is_crm_frontend_request_path(): bool {
+    if ( is_admin() || wp_doing_ajax() || ( defined( 'REST_REQUEST' ) && REST_REQUEST ) ) {
+      return false;
+    }
+
+    $request_uri = isset( $_SERVER['REQUEST_URI'] ) ? wp_unslash( (string) $_SERVER['REQUEST_URI'] ) : '';
+    $request_path = wp_parse_url( $request_uri, PHP_URL_PATH );
+    $request_path = is_string( $request_path ) ? $request_path : '';
+
+    return $request_path === '/crm' || strpos( trailingslashit( $request_path ), '/crm/' ) === 0;
+  }
+}
+
 if ( ! function_exists( 'pera_should_show_admin_bar' ) ) {
   /**
    * Show admin bar in wp-admin, and on front-end for administrators/employees.
@@ -46,6 +60,10 @@ if ( ! function_exists( 'pera_should_show_admin_bar' ) ) {
   function pera_should_show_admin_bar(): bool {
     if ( is_admin() ) {
       return true;
+    }
+
+    if ( pera_is_crm_frontend_request_path() ) {
+      return false;
     }
 
     if ( ! is_user_logged_in() ) {
@@ -59,6 +77,10 @@ if ( ! function_exists( 'pera_should_show_admin_bar' ) ) {
 add_filter( 'show_admin_bar', function ( bool $show ): bool {
   if ( is_admin() ) {
     return $show;
+  }
+
+  if ( pera_is_crm_frontend_request_path() ) {
+    return false;
   }
 
   return pera_should_show_admin_bar();
