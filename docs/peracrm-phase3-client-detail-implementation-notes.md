@@ -95,3 +95,34 @@ No. `wp-content/plugins/peracrm/assets/frontend/crm.js` was intentionally left u
 - Confirm property link/unlink and portfolio actions still render correctly.
 - Confirm there are no regressions to the Phase 1 shell/page-header or Phase 2 section/list/chip primitives.
 - Confirm no unrelated CRM screens were changed as part of this pass.
+
+## Phase 3.2 polish pass
+Phase 3.2 is a minor refinement pass on the already-refactored client detail page. It does **not** restructure the route, reorder sections, expand into other CRM screens, or introduce a new UI system.
+
+### What was polished
+- flattened the client summary header surface so it reads as a quieter primary CRM container rather than a decorative banner;
+- tightened vertical spacing across the summary title row, meta row, fact chips, KPI strip, and adjacent section stack so the top of the page reads faster;
+- adjusted summary meta wrapping so tablet/mobile can break onto cleaner multi-line rows instead of cramped inline overflow;
+- shortened the summary/header and next-actions “Next step” copy to workflow-first reminder labels, with reminder notes trimmed to a short supporting form when present;
+- slightly compressed KPI card density so the operational counts support the summary instead of visually outweighing it;
+- softened remaining legacy green pill/toggle styling so those controls sit closer to the calmer CRM system language without changing behavior;
+- kept the right support rail visually secondary and avoided adding any new emphasis there.
+
+### What was intentionally not changed
+- no section reordering;
+- no new primitives, components, or interaction systems;
+- no dashboard, list/table, pipeline, or other CRM screen changes;
+- no backend/business-logic changes;
+- no `crm.js` changes.
+
+### Structural confirmation
+The client detail page keeps the exact same Phase 3.1 structure and workflow order:
+1. shared CRM page header;
+2. client summary header;
+3. next actions and reminders;
+4. profile and key facts;
+5. advisor notes;
+6. activity and timeline;
+7. related records and secondary modules.
+
+This pass only polishes density, wrapping, and visual calm within that existing structure.
