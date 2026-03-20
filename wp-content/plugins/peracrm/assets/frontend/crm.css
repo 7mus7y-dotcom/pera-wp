@@ -919,69 +919,148 @@ body.crm-route .crm-page--client-view .crm-portfolio-actions .peracrm-linked-pro
 
 .crm-pipeline-board-wrap {
   overflow-x: auto;
+  margin-inline: -2px;
+  padding-inline: 2px;
+  scrollbar-gutter: stable both-edges;
 }
 
 .crm-pipeline-board {
-  display: flex;
-  gap: 14px;
-  align-items: flex-start;
+  display: grid;
+  grid-auto-flow: column;
+  grid-auto-columns: minmax(272px, 292px);
+  gap: 12px;
+  align-items: start;
   min-width: max-content;
   padding-bottom: 6px;
 }
 
 .crm-pipeline-column {
-  width: 320px;
-  flex: 0 0 320px;
+  display: grid;
+  gap: 10px;
+  min-width: 0;
+  padding: 10px;
+  border: 1px solid rgba(15, 23, 42, 0.08);
+  border-radius: 12px;
+  background: linear-gradient(180deg, #f8fafc 0%, #ffffff 100%);
+  box-shadow: none;
 }
 
 .crm-pipeline-column-header {
   display: flex;
   justify-content: space-between;
-  align-items: center;
-  margin-bottom: 10px;
+  align-items: flex-start;
+  gap: 10px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid rgba(15, 23, 42, 0.08);
+}
+
+.crm-page--pipeline .crm-pipeline-column-header__identity {
+  min-width: 0;
+  display: grid;
+  gap: 2px;
+}
+
+.crm-page--pipeline .crm-pipeline-column-header h2 {
+  margin: 0;
+  font-size: 0.98rem;
+  line-height: 1.25;
+}
+
+.crm-page--pipeline .crm-pipeline-column-header__meta {
+  margin: 0;
+  color: var(--text-soft, #64748b);
+  font-size: 0.75rem;
+  line-height: 1.35;
 }
 
 .crm-pipeline-items {
   display: grid;
-  gap: 10px;
+  gap: 8px;
 }
 
 .crm-page .crm-pipeline-item {
+  display: grid;
+  gap: 8px;
   border: 1px solid var(--border, #e8ecf2);
   border-radius: 10px;
   padding: 10px;
   min-width: 0;
+  background: #ffffff;
+  box-shadow: none;
 }
 
-.crm-page--pipeline .crm-pipeline-column-header h2 {
-  font-size: 1.05rem;
+.crm-page--pipeline .crm-pipeline-item__topline {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.crm-page--pipeline .crm-pipeline-item h3 {
+  margin: 0;
+  min-width: 0;
 }
 
 .crm-page--pipeline .crm-pipeline-item h3,
 .crm-page--pipeline .crm-pipeline-item h3 a {
-  font-size: 1.02rem;
+  font-size: 0.95rem;
+  font-weight: 700;
   line-height: 1.35;
   min-width: 0;
   overflow-wrap: anywhere;
   word-break: break-word;
 }
 
-.crm-page--pipeline .crm-pipeline-item-meta,
-.crm-page--pipeline .crm-pipeline-item .hero-pills {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 6px;
+.crm-page--pipeline .crm-pipeline-item__context {
+  display: grid;
+  gap: 3px;
+}
+
+.crm-page--pipeline .crm-pipeline-item__context-line,
+.crm-page--pipeline .crm-pipeline-item__next-step {
+  margin: 0;
+  font-size: 0.84rem;
+  line-height: 1.45;
+}
+
+.crm-page--pipeline .crm-pipeline-item__context-line {
+  color: var(--text, #0f172a);
+}
+
+.crm-page--pipeline .crm-pipeline-item-meta {
+  display: grid;
+  gap: 4px;
+}
+
+.crm-page--pipeline .crm-pipeline-item-meta .crm-meta-line {
+  gap: 6px 10px;
+  font-size: 0.8rem;
+}
+
+.crm-page--pipeline .crm-pipeline-item-meta .crm-meta-line strong {
+  color: var(--text-soft, #475569);
+  font-weight: 600;
+}
+
+.crm-page--pipeline .crm-pipeline-item__next-step {
+  padding-top: 8px;
+  border-top: 1px solid rgba(15, 23, 42, 0.08);
+  color: var(--text-soft, #334155);
 }
 
 .crm-page .crm-pipeline-empty {
+  margin: 0;
+  padding: 12px 10px;
   color: var(--text-soft, #5f6a7d);
-  margin: 4px 0;
+  font-size: 0.85rem;
+  border: 1px dashed rgba(148, 163, 184, 0.45);
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.78);
 }
 
 @media (max-width: 1024px) {
-  .crm-pipeline-column {
-    width: 280px;
-    flex-basis: 280px;
+  .crm-pipeline-board {
+    grid-auto-columns: minmax(248px, 272px);
   }
 }
 
@@ -1537,9 +1616,12 @@ body.crm-route .crm-page--client-view .crm-portfolio-actions .peracrm-linked-pro
     padding: 9px;
   }
 
+  .crm-page--pipeline .crm-pipeline-board {
+    grid-auto-columns: minmax(236px, 252px);
+  }
+
   .crm-page--pipeline .crm-pipeline-column {
-    width: 260px;
-    flex-basis: 260px;
+    padding: 9px;
   }
 
   .crm-page--pipeline .crm-pipeline-filters {
