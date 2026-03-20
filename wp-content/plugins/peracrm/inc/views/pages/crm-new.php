@@ -249,7 +249,7 @@ peracrm_frontend_render_shell_header( array( 'show_crm_nav_toggle' => false ) );
             </div>
             <div class="crm-action-group crm-action-group--form">
               <a class="btn btn--ghost btn--blue crm-action-group__item crm-action-group__item--secondary" href="<?php echo esc_url( $cancel_url ); ?>"><?php esc_html_e( 'Cancel', 'peracrm' ); ?></a>
-              <button type="submit" class="btn btn--solid btn--green crm-action-group__item crm-action-group__item--primary"><?php echo esc_html__( 'Create lead', 'peracrm' ); ?></button>
+              <button type="submit" class="btn btn--solid btn--blue crm-action-group__item crm-action-group__item--primary"><?php echo esc_html__( 'Create lead', 'peracrm' ); ?></button>
             </div>
           </footer>
         </form>
