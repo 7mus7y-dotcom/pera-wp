@@ -83,6 +83,64 @@ $build_overview_task_cards = static function ( array $tasks, int $cap ) {
 	);
 };
 
+$render_overview_task_rows = static function ( array $tasks, string $empty_message, string $crm_current_url, string $variant = 'today' ) use ( $build_overview_task_cards, $overview_task_cap ) {
+	$task_set = $build_overview_task_cards( $tasks, $overview_task_cap );
+	$is_urgent = 'overdue' === $variant;
+	$due_chip_class = $is_urgent ? 'crm-chip crm-chip--urgent' : 'crm-chip crm-chip--status';
+	$row_class      = $is_urgent ? 'crm-row-list__item crm-row-list__item--urgent' : 'crm-row-list__item';
+
+	if ( empty( $task_set['tasks'] ) ) {
+		?>
+		<p class="crm-overview-empty"><?php echo esc_html( $empty_message ); ?></p>
+		<?php
+		return;
+	}
+	?>
+	<ul class="crm-row-list crm-overview-task-list">
+		<?php foreach ( $task_set['tasks'] as $task ) : ?>
+			<?php $task_status = sanitize_key( (string) ( $task['status'] ?? 'pending' ) ); ?>
+			<li class="<?php echo esc_attr( $row_class ); ?>">
+				<div class="crm-row-list__content">
+					<div class="crm-row-list__header">
+						<h3 class="crm-row-list__title"><a href="<?php echo esc_url( home_url( '/crm/client/' . (int) $task['lead_id'] . '/' ) ); ?>"><?php echo esc_html( (string) ( $task['lead_name'] ?: __( 'Untitled lead', 'peracrm' ) ) ); ?></a></h3>
+						<span class="<?php echo esc_attr( $due_chip_class ); ?>"><?php echo esc_html( (string) ( $task['due_date'] ?? '' ) ); ?></span>
+					</div>
+					<p class="crm-row-list__summary"><?php echo esc_html( (string) ( $task['reminder_note'] ?? '' ) ); ?></p>
+					<div class="crm-meta-line">
+						<span><strong><?php esc_html_e( 'Latest note:', 'peracrm' ); ?></strong> <?php echo esc_html( (string) ( $task['last_note'] ?? __( 'No recent notes yet.', 'peracrm' ) ) ); ?></span>
+					</div>
+				</div>
+				<div class="crm-row-list__aside">
+					<a class="btn btn--ghost <?php echo esc_attr( $is_urgent ? 'btn--red' : 'btn--blue' ); ?>" href="<?php echo esc_url( home_url( '/crm/client/' . (int) $task['lead_id'] . '/' ) ); ?>"><?php echo esc_html__( 'Open client', 'peracrm' ); ?></a>
+					<?php if ( ! empty( $task['reminder_id'] ) && 'pending' === $task_status ) : ?>
+						<form class="crm-task-action" method="post" action="<?php echo esc_url( home_url( '/wp-admin/admin-post.php' ) ); ?>">
+							<input type="hidden" name="action" value="peracrm_update_reminder_status">
+							<input type="hidden" name="peracrm_reminder_id" value="<?php echo esc_attr( (string) absint( $task['reminder_id'] ) ); ?>">
+							<input type="hidden" name="peracrm_status" value="done">
+							<input type="hidden" name="peracrm_redirect" value="<?php echo esc_url( $crm_current_url ); ?>">
+							<input type="hidden" name="peracrm_context" value="frontend">
+							<?php wp_nonce_field( 'peracrm_update_reminder_status', 'peracrm_update_reminder_status_nonce' ); ?>
+							<button type="submit" class="btn btn--ghost btn--blue crm-task-done-btn"><?php echo esc_html__( 'Mark done', 'peracrm' ); ?></button>
+						</form>
+					<?php endif; ?>
+				</div>
+			</li>
+		<?php endforeach; ?>
+		<?php if ( $task_set['has_more'] ) : ?>
+			<li class="crm-row-list__item crm-row-list__item--more">
+				<div class="crm-row-list__content">
+					<h3 class="crm-row-list__title"><?php echo esc_html__( 'More work waiting', 'peracrm' ); ?></h3>
+					<p class="crm-row-list__summary"><?php echo esc_html__( 'Open the full task workspace to review the remaining reminders and assignments.', 'peracrm' ); ?></p>
+				</div>
+				<div class="crm-row-list__aside">
+					<a class="btn btn--ghost btn--blue" href="<?php echo esc_url( home_url( '/crm/tasks/' ) ); ?>"><?php echo esc_html__( 'See all tasks', 'peracrm' ); ?></a>
+				</div>
+			</li>
+		<?php endif; ?>
+	</ul>
+	<?php
+};
+
 peracrm_frontend_render_shell_header();
 ?>
 
@@ -122,22 +180,51 @@ peracrm_frontend_render_shell_header();
 	    <div class="content-panel-box border-dm crm-layout">
       <div class="crm-layout__main">
 			<?php if ( ! $is_leads && ! $is_tasks ) : ?>
-      <?php if ( ! empty( $notices ) ) : ?>
-      <section class="section" aria-label="<?php echo esc_attr__( 'CRM notices', 'peracrm' ); ?>">
-				<?php foreach ( $notices as $notice ) : ?>
-        <article class="card-shell">
-          <p class="pill pill--outline"><?php echo esc_html__( 'Notice', 'peracrm' ); ?></p>
-          <p><?php echo esc_html( (string) $notice ); ?></p>
-        </article>
-				<?php endforeach; ?>
-      </section>
-      <?php endif; ?>
-
-      <section class="section" aria-labelledby="crm-new-leads-heading">
-        <article class="crm-section crm-section--flush">
+      <section class="section crm-overview-band crm-overview-band--primary" aria-labelledby="crm-priority-work-heading">
+        <article class="crm-section crm-section--flush crm-overview-priority">
           <header class="crm-section__header">
             <div class="crm-section__heading-group">
-              <h2 id="crm-new-leads-heading" class="crm-section__title"><?php echo esc_html__( 'New Leads', 'peracrm' ); ?></h2>
+              <h2 id="crm-priority-work-heading" class="crm-section__title"><?php echo esc_html__( 'Priority work', 'peracrm' ); ?></h2>
+              <p class="crm-section__description"><?php echo esc_html__( 'Start here: overdue follow-up first, then anything due today.', 'peracrm' ); ?></p>
+            </div>
+            <div class="crm-section__actions">
+              <a class="btn btn--ghost btn--blue" href="<?php echo esc_url( home_url( '/crm/tasks/' ) ); ?>"><?php echo esc_html__( 'Open task workspace', 'peracrm' ); ?></a>
+            </div>
+          </header>
+          <div class="crm-section__body crm-overview-priority__body">
+            <section class="crm-overview-priority-card crm-overview-priority-card--urgent" aria-labelledby="crm-overdue-tasks-heading">
+              <header class="crm-overview-priority-card__header">
+                <div>
+                  <p class="crm-overview-eyebrow"><?php echo esc_html__( 'Urgent', 'peracrm' ); ?></p>
+                  <h3 id="crm-overdue-tasks-heading" class="crm-section__title"><?php echo esc_html__( 'Overdue tasks', 'peracrm' ); ?></h3>
+                </div>
+                <span class="crm-chip crm-chip--urgent"><?php echo esc_html( sprintf( _n( '%d overdue', '%d overdue', count( $overdue_tasks ), 'peracrm' ), count( $overdue_tasks ) ) ); ?></span>
+              </header>
+              <?php $render_overview_task_rows( $overdue_tasks, __( 'No overdue tasks.', 'peracrm' ), $crm_current_url, 'overdue' ); ?>
+            </section>
+            <section class="crm-overview-priority-card" aria-labelledby="crm-today-tasks-heading">
+              <header class="crm-overview-priority-card__header">
+                <div>
+                  <p class="crm-overview-eyebrow"><?php echo esc_html__( 'Due now', 'peracrm' ); ?></p>
+                  <h3 id="crm-today-tasks-heading" class="crm-section__title"><?php echo esc_html__( "Today's tasks", 'peracrm' ); ?></h3>
+                </div>
+                <span class="crm-chip crm-chip--status"><?php echo esc_html( sprintf( _n( '%d due today', '%d due today', count( $todays_tasks ), 'peracrm' ), count( $todays_tasks ) ) ); ?></span>
+              </header>
+              <?php $render_overview_task_rows( $todays_tasks, __( 'No tasks due today.', 'peracrm' ), $crm_current_url ); ?>
+            </section>
+          </div>
+        </article>
+      </section>
+
+      <section class="section crm-overview-band crm-overview-band--queue" aria-labelledby="crm-new-leads-heading">
+        <article class="crm-section crm-section--flush crm-overview-queue">
+          <header class="crm-section__header">
+            <div class="crm-section__heading-group">
+              <h2 id="crm-new-leads-heading" class="crm-section__title"><?php echo esc_html__( 'New leads queue', 'peracrm' ); ?></h2>
+              <p class="crm-section__description"><?php echo esc_html__( 'Fresh enquiries that still need first-touch review or assignment.', 'peracrm' ); ?></p>
+            </div>
+            <div class="crm-section__actions">
+              <a class="btn btn--ghost btn--blue" href="<?php echo esc_url( home_url( '/crm/clients/?type=leads' ) ); ?>"><?php echo esc_html__( 'View all leads', 'peracrm' ); ?></a>
             </div>
           </header>
           <div class="crm-section__body">
@@ -170,93 +257,36 @@ peracrm_frontend_render_shell_header();
         </article>
       </section>
 
-      <section class="section" aria-labelledby="crm-today-tasks-heading">
-        <article class="card-shell">
-          <header class="section-header">
-            <h2 id="crm-today-tasks-heading"><?php echo esc_html__( "Today's Tasks", 'peracrm' ); ?></h2>
-          </header>
-          <?php if ( empty( $todays_tasks ) ) : ?>
-            <p><?php echo esc_html__( 'No tasks due today.', 'peracrm' ); ?></p>
-          <?php else : ?>
-            <?php $today_cards = $build_overview_task_cards( $todays_tasks, $overview_task_cap ); ?>
-            <div class="crm-overview-task-grid">
-            <?php foreach ( $today_cards['tasks'] as $task ) : ?>
-              <article class="card-shell crm-task-card">
-                <a class="btn btn--ghost btn--blue crm-task-client-btn" href="<?php echo esc_url( home_url( '/crm/client/' . (int) $task['lead_id'] . '/' ) ); ?>"><?php echo esc_html( (string) ( $task['lead_name'] ?: __( 'Untitled lead', 'peracrm' ) ) ); ?></a>
-                <span class="pill pill--outline"><?php echo esc_html( (string) $task['due_date'] ); ?></span>
-                <p class="crm-task-note"><strong><?php esc_html_e( 'Task:', 'peracrm' ); ?></strong> <?php echo esc_html( (string) $task['reminder_note'] ); ?></p>
-                <p class="text-sm crm-task-last-note"><strong><?php esc_html_e( 'Latest note:', 'peracrm' ); ?></strong> <?php echo esc_html( (string) ( $task['last_note'] ?? __( 'No recent notes yet.', 'peracrm' ) ) ); ?></p>
-                <?php $task_status = sanitize_key( (string) ( $task['status'] ?? 'pending' ) ); ?>
-                <?php if ( ! empty( $task['reminder_id'] ) && 'pending' === $task_status ) : ?>
-                <form class="crm-task-action" method="post" action="<?php echo esc_url( home_url( '/wp-admin/admin-post.php' ) ); ?>">
-                  <input type="hidden" name="action" value="peracrm_update_reminder_status">
-                  <input type="hidden" name="peracrm_reminder_id" value="<?php echo esc_attr( (string) absint( $task['reminder_id'] ) ); ?>">
-                  <input type="hidden" name="peracrm_status" value="done">
-                  <input type="hidden" name="peracrm_redirect" value="<?php echo esc_url( $crm_current_url ); ?>">
-                  <input type="hidden" name="peracrm_context" value="frontend">
-                  <?php wp_nonce_field( 'peracrm_update_reminder_status', 'peracrm_update_reminder_status_nonce' ); ?>
-                  <button type="submit" class="btn btn--ghost btn--blue crm-task-done-btn"><?php echo esc_html__( 'Mark done', 'peracrm' ); ?></button>
-                </form>
-                <?php endif; ?>
-              </article>
-            <?php endforeach; ?>
-            <?php if ( $today_cards['has_more'] ) : ?>
-              <article class="card-shell crm-task-card crm-task-card--more">
-                <p><?php echo esc_html__( 'You have more tasks. Click see all to view them.', 'peracrm' ); ?></p>
-                <a class="btn btn--ghost btn--blue" href="<?php echo esc_url( home_url( '/crm/tasks/' ) ); ?>"><?php echo esc_html__( 'See all tasks', 'peracrm' ); ?></a>
-              </article>
-            <?php endif; ?>
-            </div>
-          <?php endif; ?>
-        </article>
-      </section>
-
-      <section class="section" aria-labelledby="crm-overdue-tasks-heading">
-        <article class="card-shell">
-          <header class="section-header">
-            <h2 id="crm-overdue-tasks-heading"><?php echo esc_html__( 'Overdue Tasks', 'peracrm' ); ?></h2>
-          </header>
-          <?php if ( empty( $overdue_tasks ) ) : ?>
-            <p><?php echo esc_html__( 'No overdue tasks.', 'peracrm' ); ?></p>
-          <?php else : ?>
-            <?php $overdue_cards = $build_overview_task_cards( $overdue_tasks, $overview_task_cap ); ?>
-            <div class="crm-overview-task-grid">
-            <?php foreach ( $overdue_cards['tasks'] as $task ) : ?>
-              <article class="card-shell crm-task-card">
-                <a class="btn btn--ghost btn--red crm-task-client-btn" href="<?php echo esc_url( home_url( '/crm/client/' . (int) $task['lead_id'] . '/' ) ); ?>"><?php echo esc_html( (string) ( $task['lead_name'] ?: __( 'Untitled lead', 'peracrm' ) ) ); ?></a>
-                <span class="pill pill--red"><?php echo esc_html( (string) $task['due_date'] ); ?></span>
-                <p class="crm-task-note"><strong><?php esc_html_e( 'Task:', 'peracrm' ); ?></strong> <?php echo esc_html( (string) $task['reminder_note'] ); ?></p>
-                <p class="text-sm crm-task-last-note"><strong><?php esc_html_e( 'Latest note:', 'peracrm' ); ?></strong> <?php echo esc_html( (string) ( $task['last_note'] ?? __( 'No recent notes yet.', 'peracrm' ) ) ); ?></p>
-                <?php $task_status = sanitize_key( (string) ( $task['status'] ?? 'pending' ) ); ?>
-                <?php if ( ! empty( $task['reminder_id'] ) && 'pending' === $task_status ) : ?>
-                <form class="crm-task-action" method="post" action="<?php echo esc_url( home_url( '/wp-admin/admin-post.php' ) ); ?>">
-                  <input type="hidden" name="action" value="peracrm_update_reminder_status">
-                  <input type="hidden" name="peracrm_reminder_id" value="<?php echo esc_attr( (string) absint( $task['reminder_id'] ) ); ?>">
-                  <input type="hidden" name="peracrm_status" value="done">
-                  <input type="hidden" name="peracrm_redirect" value="<?php echo esc_url( $crm_current_url ); ?>">
-                  <input type="hidden" name="peracrm_context" value="frontend">
-                  <?php wp_nonce_field( 'peracrm_update_reminder_status', 'peracrm_update_reminder_status_nonce' ); ?>
-                  <button type="submit" class="btn btn--ghost btn--blue crm-task-done-btn"><?php echo esc_html__( 'Mark done', 'peracrm' ); ?></button>
-                </form>
-                <?php endif; ?>
-              </article>
-            <?php endforeach; ?>
-            <?php if ( $overdue_cards['has_more'] ) : ?>
-              <article class="card-shell crm-task-card crm-task-card--more">
-                <p><?php echo esc_html__( 'You have more tasks. Click see all to view them.', 'peracrm' ); ?></p>
-                <a class="btn btn--ghost btn--blue" href="<?php echo esc_url( home_url( '/crm/tasks/' ) ); ?>"><?php echo esc_html__( 'See all tasks', 'peracrm' ); ?></a>
-              </article>
-            <?php endif; ?>
-            </div>
-          <?php endif; ?>
-        </article>
-      </section>
-
-      <section class="section" aria-labelledby="crm-activity-heading">
+      <section class="section crm-overview-band" aria-labelledby="crm-task-focus-heading">
         <article class="crm-section crm-section--flush">
           <header class="crm-section__header">
             <div class="crm-section__heading-group">
+              <h2 id="crm-task-focus-heading" class="crm-section__title"><?php echo esc_html__( 'Task focus', 'peracrm' ); ?></h2>
+              <p class="crm-section__description"><?php echo esc_html__( 'Use the task workspace for the full queue, sorting, and table view.', 'peracrm' ); ?></p>
+            </div>
+            <div class="crm-section__actions">
+              <a class="btn btn--ghost btn--blue" href="<?php echo esc_url( home_url( '/crm/tasks/' ) ); ?>"><?php echo esc_html__( 'Go to tasks', 'peracrm' ); ?></a>
+            </div>
+          </header>
+          <div class="crm-section__body crm-overview-task-summary">
+            <div class="crm-overview-task-summary__item">
+              <span class="crm-chip crm-chip--urgent"><?php echo esc_html( sprintf( _n( '%d overdue', '%d overdue', count( $overdue_tasks ), 'peracrm' ), count( $overdue_tasks ) ) ); ?></span>
+              <p><?php echo esc_html__( 'Overdue follow-up remains the first priority every time the dashboard loads.', 'peracrm' ); ?></p>
+            </div>
+            <div class="crm-overview-task-summary__item">
+              <span class="crm-chip crm-chip--status"><?php echo esc_html( sprintf( _n( '%d due today', '%d due today', count( $todays_tasks ), 'peracrm' ), count( $todays_tasks ) ) ); ?></span>
+              <p><?php echo esc_html__( 'Today’s reminders stay close to the urgent queue so the next click is obvious.', 'peracrm' ); ?></p>
+            </div>
+          </div>
+        </article>
+      </section>
+
+      <section class="section crm-overview-band crm-overview-band--secondary" aria-labelledby="crm-activity-heading">
+        <article class="crm-section crm-section--flush crm-overview-activity">
+          <header class="crm-section__header">
+            <div class="crm-section__heading-group">
               <h2 id="crm-activity-heading" class="crm-section__title"><?php echo esc_html__( 'Latest Activity', 'peracrm' ); ?></h2>
+              <p class="crm-section__description"><?php echo esc_html__( 'Recent history and context, kept quieter than the live queues above.', 'peracrm' ); ?></p>
             </div>
           </header>
           <div class="crm-section__body">
@@ -279,33 +309,67 @@ peracrm_frontend_render_shell_header();
         </article>
       </section>
 
-      <section class="section" aria-labelledby="crm-kpi-heading">
-        <header class="section-header">
-          <h2 id="crm-kpi-heading"><?php echo esc_html__( 'KPI Snapshot', 'peracrm' ); ?></h2>
-        </header>
-		<div class="grid-3 crm-kpi-grid cards-slider cards-slider--snap cards-slider--grid-lg" aria-label="<?php echo esc_attr__( 'CRM KPI Snapshot', 'peracrm' ); ?>">
-				<?php foreach ( $kpi_tiles as $tile ) : ?>
-          <article class="card-shell slider-card crm-kpi-card">
-            <p class="pill pill--outline"><?php echo esc_html( $tile['label'] ); ?></p>
-            <h3><?php echo esc_html( (string) ( (int) ( $kpis[ $tile['key'] ] ?? 0 ) ) ); ?></h3>
-          </article>
-				<?php endforeach; ?>
-        </div>
+      <section class="section crm-overview-band crm-overview-band--tertiary" aria-labelledby="crm-kpi-heading">
+        <article class="crm-section crm-section--flush crm-overview-metrics">
+          <header class="crm-section__header">
+            <div class="crm-section__heading-group">
+              <h2 id="crm-kpi-heading" class="crm-section__title"><?php echo esc_html__( 'KPI Snapshot', 'peracrm' ); ?></h2>
+              <p class="crm-section__description"><?php echo esc_html__( 'Broad counts stay available below the action queues for quick health checks.', 'peracrm' ); ?></p>
+            </div>
+          </header>
+		  <div class="crm-section__body">
+		    <div class="grid-3 crm-kpi-grid cards-slider cards-slider--snap cards-slider--grid-lg" aria-label="<?php echo esc_attr__( 'CRM KPI Snapshot', 'peracrm' ); ?>">
+					<?php foreach ( $kpi_tiles as $tile ) : ?>
+            <article class="card-shell slider-card crm-kpi-card">
+              <p class="crm-chip crm-chip--neutral"><?php echo esc_html( $tile['label'] ); ?></p>
+              <h3><?php echo esc_html( (string) ( (int) ( $kpis[ $tile['key'] ] ?? 0 ) ) ); ?></h3>
+            </article>
+					<?php endforeach; ?>
+          </div>
+		  </div>
+        </article>
       </section>
 
-	      <section class="section" aria-labelledby="crm-pipeline-heading">
-	        <header class="section-header">
-	          <h2 id="crm-pipeline-heading"><?php echo esc_html__( 'Pipeline Overview', 'peracrm' ); ?></h2>
-	        </header>
-        <div class="grid-3 crm-kpi-grid cards-slider cards-slider--snap cards-slider--grid-lg" aria-label="<?php echo esc_attr__( 'CRM Pipeline Overview', 'peracrm' ); ?>">
-				<?php foreach ( $pipeline as $stage ) : ?>
-            <article class="card-shell slider-card crm-kpi-card">
-              <p class="pill pill--outline"><?php echo esc_html( (string) ( $stage['label'] ?? '' ) ); ?></p>
-              <h3><?php echo esc_html( (string) ( (int) ( $stage['count'] ?? 0 ) ) ); ?></h3>
+	      <section class="section crm-overview-band crm-overview-band--tertiary" aria-labelledby="crm-pipeline-heading">
+	        <article class="crm-section crm-section--flush crm-overview-metrics">
+	          <header class="crm-section__header">
+	            <div class="crm-section__heading-group">
+	              <h2 id="crm-pipeline-heading" class="crm-section__title"><?php echo esc_html__( 'Pipeline Overview', 'peracrm' ); ?></h2>
+	              <p class="crm-section__description"><?php echo esc_html__( 'Stage totals remain visible, but do not outrank current work queues.', 'peracrm' ); ?></p>
+	            </div>
+	          </header>
+          <div class="crm-section__body">
+            <div class="grid-3 crm-kpi-grid cards-slider cards-slider--snap cards-slider--grid-lg" aria-label="<?php echo esc_attr__( 'CRM Pipeline Overview', 'peracrm' ); ?>">
+					<?php foreach ( $pipeline as $stage ) : ?>
+              <article class="card-shell slider-card crm-kpi-card">
+                <p class="crm-chip crm-chip--neutral"><?php echo esc_html( (string) ( $stage['label'] ?? '' ) ); ?></p>
+                <h3><?php echo esc_html( (string) ( (int) ( $stage['count'] ?? 0 ) ) ); ?></h3>
+              </article>
+					<?php endforeach; ?>
+	          </div>
+          </div>
+	        </article>
+	      </section>
+
+      <?php if ( ! empty( $notices ) ) : ?>
+      <section class="section crm-overview-band crm-overview-band--secondary" aria-label="<?php echo esc_attr__( 'CRM notices', 'peracrm' ); ?>">
+        <article class="crm-section crm-section--flush">
+          <header class="crm-section__header">
+            <div class="crm-section__heading-group">
+              <h2 class="crm-section__title"><?php echo esc_html__( 'Workspace notices', 'peracrm' ); ?></h2>
+            </div>
+          </header>
+          <div class="crm-section__body">
+				<?php foreach ( $notices as $notice ) : ?>
+            <article class="crm-overview-note">
+              <span class="crm-chip crm-chip--neutral"><?php echo esc_html__( 'Notice', 'peracrm' ); ?></span>
+              <p><?php echo esc_html( (string) $notice ); ?></p>
             </article>
 				<?php endforeach; ?>
-	        </div>
-	      </section>
+          </div>
+        </article>
+      </section>
+      <?php endif; ?>
 
 			<?php if ( is_user_logged_in() ) : ?>
 	      <section class="section" aria-label="<?php echo esc_attr__( 'Push notifications', 'peracrm' ); ?>">
