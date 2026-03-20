@@ -133,7 +133,7 @@ $render_overview_task_rows = static function ( array $tasks, string $empty_messa
 					<p class="crm-row-list__summary"><?php echo esc_html__( 'Open the full task workspace to review the remaining reminders and assignments.', 'peracrm' ); ?></p>
 				</div>
 				<div class="crm-row-list__aside">
-					<a class="btn btn--ghost btn--blue" href="<?php echo esc_url( home_url( '/crm/tasks/' ) ); ?>"><?php echo esc_html__( 'See all tasks', 'peracrm' ); ?></a>
+					<a class="btn btn--ghost btn--blue" href="<?php echo esc_url( home_url( '/crm/tasks/' ) ); ?>"><?php echo esc_html__( 'Open task workspace', 'peracrm' ); ?></a>
 				</div>
 			</li>
 		<?php endif; ?>
@@ -224,7 +224,7 @@ peracrm_frontend_render_shell_header();
               <p class="crm-section__description"><?php echo esc_html__( 'Fresh enquiries that still need first-touch review or assignment.', 'peracrm' ); ?></p>
             </div>
             <div class="crm-section__actions">
-              <a class="btn btn--ghost btn--blue" href="<?php echo esc_url( home_url( '/crm/clients/?type=leads' ) ); ?>"><?php echo esc_html__( 'View all leads', 'peracrm' ); ?></a>
+              <a class="btn btn--ghost btn--blue" href="<?php echo esc_url( home_url( '/crm/clients/?type=leads' ) ); ?>"><?php echo esc_html__( 'Open leads workspace', 'peracrm' ); ?></a>
             </div>
           </header>
           <div class="crm-section__body">
@@ -247,7 +247,7 @@ peracrm_frontend_render_shell_header();
                   </div>
                 </div>
                 <div class="crm-row-list__aside">
-                  <a class="btn btn--ghost btn--blue" href="<?php echo esc_url( (string) ( $lead['url'] ?? '' ) ); ?>"><?php echo esc_html__( 'View lead', 'peracrm' ); ?></a>
+                  <a class="btn btn--ghost btn--blue" href="<?php echo esc_url( (string) ( $lead['url'] ?? '' ) ); ?>"><?php echo esc_html__( 'Open lead', 'peracrm' ); ?></a>
                 </div>
               </li>
             <?php endforeach; ?>
@@ -265,7 +265,7 @@ peracrm_frontend_render_shell_header();
               <p class="crm-section__description"><?php echo esc_html__( 'Use the task workspace for the full queue, sorting, and table view.', 'peracrm' ); ?></p>
             </div>
             <div class="crm-section__actions">
-              <a class="btn btn--ghost btn--blue" href="<?php echo esc_url( home_url( '/crm/tasks/' ) ); ?>"><?php echo esc_html__( 'Go to tasks', 'peracrm' ); ?></a>
+              <a class="btn btn--ghost btn--blue" href="<?php echo esc_url( home_url( '/crm/tasks/' ) ); ?>"><?php echo esc_html__( 'Open task workspace', 'peracrm' ); ?></a>
             </div>
           </header>
           <div class="crm-section__body crm-overview-task-summary">
@@ -373,11 +373,16 @@ peracrm_frontend_render_shell_header();
 
 			<?php if ( is_user_logged_in() ) : ?>
 	      <section class="section" aria-label="<?php echo esc_attr__( 'Push notifications', 'peracrm' ); ?>">
-	        <article class="card-shell" data-crm-push-card>
-	          <p class="pill pill--outline"><?php echo esc_html__( 'Notifications', 'peracrm' ); ?></p>
-	          <h2><?php echo esc_html__( 'Reminder Push Notifications', 'peracrm' ); ?></h2>
+	        <article class="crm-section crm-section--flush crm-push-panel" data-crm-push-card>
+	          <header class="crm-section__header">
+            <div class="crm-section__heading-group">
+              <span class="crm-chip crm-chip--neutral"><?php echo esc_html__( 'Notifications', 'peracrm' ); ?></span>
+              <h2 class="crm-section__title"><?php echo esc_html__( 'Reminder Push Notifications', 'peracrm' ); ?></h2>
+            </div>
+          </header>
+          <div class="crm-section__body">
 	          <?php if ( '' !== $push_notice_text ) : ?>
-	            <p class="pill pill--outline"><?php echo esc_html( $push_notice_text ); ?></p>
+	            <span class="crm-chip crm-chip--neutral"><?php echo esc_html( $push_notice_text ); ?></span>
 	          <?php endif; ?>
 	          <p data-crm-push-status><?php echo esc_html__( 'Checking push notification status…', 'peracrm' ); ?></p>
 	          <p class="text-sm" data-crm-push-sw-status><?php echo esc_html__( 'Service worker status: checking…', 'peracrm' ); ?></p>
@@ -386,19 +391,20 @@ peracrm_frontend_render_shell_header();
 	          <p class="text-sm" data-crm-push-digest-result hidden></p>
 	          <div class="crm-task-action" style="display:flex;gap:8px;flex-wrap:wrap;">
 	            <button type="button" class="btn btn--ghost btn--blue" data-crm-push-enable><?php echo esc_html__( 'Enable Push Notifications', 'peracrm' ); ?></button>
-	            <button type="button" class="btn btn--ghost" data-crm-push-disable disabled><?php echo esc_html__( 'Disable on this device', 'peracrm' ); ?></button>
-	            <button type="button" class="btn btn--ghost" data-crm-push-run-digest hidden><?php echo esc_html__( 'Run digest now', 'peracrm' ); ?></button>
-	            <button type="button" class="btn btn--ghost" data-crm-push-refresh-diagnostics hidden><?php echo esc_html__( 'Refresh diagnostics', 'peracrm' ); ?></button>
+	            <button type="button" class="btn btn--ghost btn--blue" data-crm-push-disable disabled><?php echo esc_html__( 'Disable on this device', 'peracrm' ); ?></button>
+	            <button type="button" class="btn btn--ghost btn--blue" data-crm-push-run-digest hidden><?php echo esc_html__( 'Run digest now', 'peracrm' ); ?></button>
+	            <button type="button" class="btn btn--ghost btn--blue" data-crm-push-refresh-diagnostics hidden><?php echo esc_html__( 'Refresh diagnostics', 'peracrm' ); ?></button>
 	            <?php if ( function_exists( 'peracrm_push_is_configured' ) && peracrm_push_is_configured() ) : ?>
 	            <form method="post" action="<?php echo esc_url( home_url( '/wp-admin/admin-post.php' ) ); ?>">
 	              <input type="hidden" name="action" value="peracrm_send_test_push">
 	              <input type="hidden" name="peracrm_redirect" value="<?php echo esc_url( home_url( '/crm/' ) ); ?>">
 	              <?php wp_nonce_field( 'peracrm_send_test_push', 'peracrm_send_test_push_nonce' ); ?>
-	              <button type="submit" class="btn btn--ghost"><?php echo esc_html__( 'Send test notification', 'peracrm' ); ?></button>
+	              <button type="submit" class="btn btn--ghost btn--blue"><?php echo esc_html__( 'Send test notification', 'peracrm' ); ?></button>
 	            </form>
 	            <?php endif; ?>
 	          </div>
-	        </article>
+          </div>
+        </article>
 	      </section>
 	      <?php endif; ?>
 

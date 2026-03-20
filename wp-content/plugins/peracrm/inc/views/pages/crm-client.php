@@ -249,14 +249,23 @@ peracrm_frontend_render_shell_header();
     <div class="content-panel-box border-dm crm-layout">
 	  <div class="crm-layout__main">
 	  <?php if ( empty( $access['allowed'] ) ) : ?>
-        <article class="card-shell">
-          <p class="pill pill--outline"><?php echo esc_html__( 'Access denied', 'peracrm' ); ?></p>
-          <p><?php echo esc_html( (string) ( $access['message'] ?? __( 'You do not have access to this client.', 'peracrm' ) ) ); ?></p>
+        <article class="crm-section crm-section--flush crm-client-state-panel crm-client-state-panel--locked">
+          <header class="crm-section__header">
+            <div class="crm-section__heading-group">
+              <span class="crm-chip crm-chip--neutral"><?php echo esc_html__( 'Access denied', 'peracrm' ); ?></span>
+              <h2 class="crm-section__title"><?php echo esc_html__( 'Client access is restricted', 'peracrm' ); ?></h2>
+            </div>
+          </header>
+          <div class="crm-section__body">
+            <p><?php echo esc_html( (string) ( $access['message'] ?? __( 'You do not have access to this client.', 'peracrm' ) ) ); ?></p>
+          </div>
         </article>
 	  <?php else : ?>
 		<?php if ( ! empty( $notice_data[0] ) && ! empty( $notice_data[1] ) ) : ?>
-          <article class="card-shell crm-client-notice crm-client-notice--<?php echo esc_attr( (string) $notice_data[0] ); ?>">
-            <p><?php echo esc_html( (string) $notice_data[1] ); ?></p>
+          <article class="crm-section crm-section--flush crm-client-notice crm-client-notice--<?php echo esc_attr( (string) $notice_data[0] ); ?>">
+            <div class="crm-section__body">
+              <p><?php echo esc_html( (string) $notice_data[1] ); ?></p>
+            </div>
           </article>
 		<?php endif; ?>
 
@@ -600,9 +609,9 @@ peracrm_frontend_render_shell_header();
                           </li>
                         <?php endforeach; ?>
                       </ul>
-                      <button type="button" class="pill pill--green archive-hero-desc__toggle archive-hero-desc__toggle--bottom" aria-expanded="false" aria-controls="crm-client-notes-content" data-label-more="<?php echo esc_attr__( 'See more', 'peracrm' ); ?>" data-label-less="<?php echo esc_attr__( 'See less', 'peracrm' ); ?>" hidden><?php esc_html_e( 'See more', 'peracrm' ); ?></button>
+                      <button type="button" class="btn btn--ghost btn--blue archive-hero-desc__toggle archive-hero-desc__toggle--bottom" aria-expanded="false" aria-controls="crm-client-notes-content" data-label-more="<?php echo esc_attr__( 'See more', 'peracrm' ); ?>" data-label-less="<?php echo esc_attr__( 'See less', 'peracrm' ); ?>" hidden><?php esc_html_e( 'See more', 'peracrm' ); ?></button>
                     </div>
-                    <button type="button" class="pill pill--green archive-hero-desc__toggle archive-hero-desc__toggle--top" aria-expanded="false" aria-controls="crm-client-notes-content" data-label-more="<?php echo esc_attr__( 'See more', 'peracrm' ); ?>" data-label-less="<?php echo esc_attr__( 'See less', 'peracrm' ); ?>" hidden><?php esc_html_e( 'See more', 'peracrm' ); ?></button>
+                    <button type="button" class="btn btn--ghost btn--blue archive-hero-desc__toggle archive-hero-desc__toggle--top" aria-expanded="false" aria-controls="crm-client-notes-content" data-label-more="<?php echo esc_attr__( 'See more', 'peracrm' ); ?>" data-label-less="<?php echo esc_attr__( 'See less', 'peracrm' ); ?>" hidden><?php esc_html_e( 'See more', 'peracrm' ); ?></button>
                   </div>
                 <?php endif; ?>
               </div>
@@ -650,7 +659,7 @@ peracrm_frontend_render_shell_header();
                     <?php endforeach; endif; ?>
                     </ul>
                   </div>
-                  <button type="button" class="pill pill--green archive-hero-desc__toggle" aria-expanded="false" aria-controls="crm-client-timeline-content" data-label-more="<?php echo esc_attr__( 'See more', 'peracrm' ); ?>" data-label-less="<?php echo esc_attr__( 'See less', 'peracrm' ); ?>"><?php esc_html_e( 'See more', 'peracrm' ); ?></button>
+                  <button type="button" class="btn btn--ghost btn--blue archive-hero-desc__toggle" aria-expanded="false" aria-controls="crm-client-timeline-content" data-label-more="<?php echo esc_attr__( 'See more', 'peracrm' ); ?>" data-label-less="<?php echo esc_attr__( 'See less', 'peracrm' ); ?>"><?php esc_html_e( 'See more', 'peracrm' ); ?></button>
                 </div>
               </div>
             </section>
