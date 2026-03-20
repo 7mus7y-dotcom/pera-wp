@@ -1286,6 +1286,14 @@ body.crm-route .crm-page--client-view .crm-portfolio-actions .peracrm-linked-pro
   gap: 8px;
 }
 
+.crm-page--new .crm-form-stack > p,
+.crm-page--new .crm-phone-field,
+.crm-page--new .crm-phone-row,
+.crm-page--new .crm-phone-row > * {
+  min-width: 0;
+  max-width: 100%;
+}
+
 .crm-floating-toggle {
   right: max(16px, calc((100vw - var(--container)) / 2 + 16px));
 }
@@ -1361,6 +1369,18 @@ body.crm-route .crm-page--client-view .crm-portfolio-actions .peracrm-linked-pro
 
   .crm-new-leads-grid {
     grid-template-columns: 1fr;
+  }
+
+  .crm-page--new .crm-phone-row {
+    flex-wrap: wrap;
+  }
+
+  .crm-page--new .crm-phone-row .crm-phone-country,
+  .crm-page--new .crm-phone-row input[type="tel"],
+  .crm-page--new .crm-phone-row input[type="text"] {
+    flex: 1 1 100%;
+    width: 100%;
+    max-width: 100%;
   }
 
   .crm-floating-toggle {
