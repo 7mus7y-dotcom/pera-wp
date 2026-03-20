@@ -211,7 +211,11 @@
     stored = '';
   }
 
-  var initial = stored === 'table' ? 'table' : 'cards';
+  var defaultDesktop = root.getAttribute('data-default-desktop') === 'cards' ? 'cards' : 'table';
+  var defaultMobile = root.getAttribute('data-default-mobile') === 'table' ? 'table' : 'cards';
+  var prefersMobileDefault = window.matchMedia && window.matchMedia('(max-width: 767px)').matches;
+  var fallbackView = prefersMobileDefault ? defaultMobile : defaultDesktop;
+  var initial = stored === 'table' || stored === 'cards' ? stored : fallbackView;
   applyView(initial);
 
   buttons.forEach(function (button) {
