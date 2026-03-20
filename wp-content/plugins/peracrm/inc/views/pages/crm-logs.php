@@ -78,7 +78,7 @@ if ( function_exists( 'peracrm_frontend_render_partial' ) ) {
 <section class="content-panel content-panel--overlap-hero">
   <div class="content-panel-box border-dm crm-layout">
     <div class="crm-layout__main">
-      <article class="card-shell crm-client-section">
+      <article class="crm-section crm-section--flush crm-client-section">
       <?php if ( ! $allowed ) : ?>
         <p><?php esc_html_e( 'You are not allowed to view this page.', 'peracrm' ); ?></p>
       <?php elseif ( $is_whatsapp ) : ?>
@@ -99,8 +99,8 @@ if ( function_exists( 'peracrm_frontend_render_partial' ) ) {
         <?php if ( empty( $rows ) ) : ?>
           <p><?php esc_html_e( 'No email logs found.', 'peracrm' ); ?></p>
         <?php else : ?>
-          <div class="crm-log-table-wrap">
-            <table class="crm-log-table">
+          <div class="crm-log-table-wrap crm-table-wrap crm-table-wrap--primitive">
+            <table class="crm-log-table crm-table">
               <thead>
                 <tr>
                   <th><?php esc_html_e( 'Time', 'peracrm' ); ?></th>
@@ -115,11 +115,11 @@ if ( function_exists( 'peracrm_frontend_render_partial' ) ) {
               <?php foreach ( (array) $rows as $row ) : ?>
                 <tr>
                   <td><?php echo esc_html( (string) $row['created_at'] ); ?></td>
-                  <td><?php echo esc_html( (string) $row['form_key'] ); ?></td>
+                  <td class="crm-table__cell--primary"><?php echo esc_html( (string) $row['form_key'] ); ?></td>
                   <td><?php echo esc_html( (string) $row['mail_context'] ); ?></td>
                   <td><?php echo esc_html( (string) $row['recipient'] ); ?></td>
                   <td><?php echo esc_html( (string) $row['subject'] ); ?></td>
-                  <td><?php echo esc_html( (string) $row['status'] ); ?></td>
+                  <td><span class="crm-chip crm-chip--status"><?php echo esc_html( (string) $row['status'] ); ?></span></td>
                 </tr>
               <?php endforeach; ?>
               </tbody>

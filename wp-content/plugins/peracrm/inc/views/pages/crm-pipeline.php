@@ -57,7 +57,7 @@ peracrm_frontend_render_shell_header();
             <article class="card-shell crm-pipeline-column">
               <header class="crm-pipeline-column-header">
                 <h2><?php echo esc_html( $label ); ?></h2>
-                <span class="pill pill--outline"><?php echo esc_html( (string) $count ); ?></span>
+                <span class="crm-chip crm-chip--neutral"><?php echo esc_html( (string) $count ); ?></span>
               </header>
 
               <div class="crm-pipeline-items">
@@ -79,30 +79,30 @@ peracrm_frontend_render_shell_header();
 
                       <div class="crm-pipeline-item-meta" aria-label="<?php echo esc_attr__( 'Lead details', 'peracrm' ); ?>">
                         <?php if ( $lead_source !== '' ) : ?>
-                          <span class="pill pill--outline"><?php echo esc_html( sprintf( __( 'Source: %s', 'peracrm' ), $lead_source ) ); ?></span>
+                          <p class="crm-meta-line"><strong><?php esc_html_e( 'Source:', 'peracrm' ); ?></strong> <span><?php echo esc_html( $lead_source ); ?></span></p>
                         <?php endif; ?>
 
                         <?php if ( $min > 0 || $max > 0 ) : ?>
-                          <span class="pill pill--outline">
+                          <p class="crm-meta-line">
+                            <strong><?php esc_html_e( 'Budget:', 'peracrm' ); ?></strong>
+                            <span>
                             <?php
                             if ( $min > 0 && $max > 0 ) {
-                              echo esc_html( sprintf( __( 'Budget: $%1$s – $%2$s', 'peracrm' ), number_format_i18n( $min ), number_format_i18n( $max ) ) );
+                              echo esc_html( sprintf( __( '$%1$s – $%2$s', 'peracrm' ), number_format_i18n( $min ), number_format_i18n( $max ) ) );
                             } elseif ( $min > 0 ) {
-                              echo esc_html( sprintf( __( 'Budget: from $%s', 'peracrm' ), number_format_i18n( $min ) ) );
+                              echo esc_html( sprintf( __( 'from $%s', 'peracrm' ), number_format_i18n( $min ) ) );
                             } else {
-                              echo esc_html( sprintf( __( 'Budget: up to $%s', 'peracrm' ), number_format_i18n( $max ) ) );
+                              echo esc_html( sprintf( __( 'up to $%s', 'peracrm' ), number_format_i18n( $max ) ) );
                             }
                             ?>
-                          </span>
+                            </span>
+                          </p>
                         <?php endif; ?>
-                      </div>
-
-                      <div class="hero-pills">
                         <?php if ( $advisor !== '' ) : ?>
-                          <span class="pill pill--outline"><?php echo esc_html( sprintf( __( 'Advisor: %s', 'peracrm' ), $advisor ) ); ?></span>
+                          <p class="crm-meta-line"><strong><?php esc_html_e( 'Advisor:', 'peracrm' ); ?></strong> <span><?php echo esc_html( $advisor ); ?></span></p>
                         <?php endif; ?>
                         <?php if ( $last !== '' ) : ?>
-                          <span class="pill pill--outline"><?php echo esc_html( sprintf( __( 'Last activity: %s', 'peracrm' ), $last ) ); ?></span>
+                          <p class="crm-meta-line"><strong><?php esc_html_e( 'Last activity:', 'peracrm' ); ?></strong> <span><?php echo esc_html( $last ); ?></span></p>
                         <?php endif; ?>
                       </div>
                     </article>

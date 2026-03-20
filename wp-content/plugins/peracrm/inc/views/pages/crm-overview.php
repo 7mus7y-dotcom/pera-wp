@@ -134,25 +134,39 @@ peracrm_frontend_render_shell_header();
       <?php endif; ?>
 
       <section class="section" aria-labelledby="crm-new-leads-heading">
-        <article class="card-shell">
-          <header class="section-header">
-            <h2 id="crm-new-leads-heading"><?php echo esc_html__( 'New Leads', 'peracrm' ); ?></h2>
+        <article class="crm-section crm-section--flush">
+          <header class="crm-section__header">
+            <div class="crm-section__heading-group">
+              <h2 id="crm-new-leads-heading" class="crm-section__title"><?php echo esc_html__( 'New Leads', 'peracrm' ); ?></h2>
+            </div>
           </header>
+          <div class="crm-section__body">
           <?php if ( empty( $new_leads ) ) : ?>
             <p><?php echo esc_html__( 'No new leads found.', 'peracrm' ); ?></p>
           <?php else : ?>
-            <div class="crm-new-leads-grid">
+            <ul class="crm-row-list">
             <?php foreach ( $new_leads as $lead ) : ?>
-              <article class="card-shell crm-new-lead-card">
-                <h3><?php echo esc_html( (string) ( $lead['name'] ?? '' ) ); ?></h3>
-                <p><strong><?php esc_html_e( 'Phone:', 'peracrm' ); ?></strong> <?php echo esc_html( (string) ( $lead['phone'] ?? '—' ) ); ?></p>
-                <p><strong><?php esc_html_e( 'Source:', 'peracrm' ); ?></strong> <?php echo esc_html( (string) ( $lead['source'] ?? '—' ) ); ?></p>
-                <p><strong><?php esc_html_e( 'Enquiry:', 'peracrm' ); ?></strong> <?php echo esc_html( (string) ( $lead['enquiry_at'] ?? '—' ) ); ?></p>
-                <a class="btn btn--ghost btn--blue" href="<?php echo esc_url( (string) ( $lead['url'] ?? '' ) ); ?>"><?php echo esc_html__( 'View lead', 'peracrm' ); ?></a>
-              </article>
+              <li class="crm-row-list__item">
+                <div class="crm-row-list__content">
+                  <div class="crm-row-list__header">
+                    <h3 class="crm-row-list__title"><a href="<?php echo esc_url( (string) ( $lead['url'] ?? '' ) ); ?>"><?php echo esc_html( (string) ( $lead['name'] ?? '' ) ); ?></a></h3>
+                    <?php if ( ! empty( $lead['source'] ) ) : ?>
+                      <span class="crm-chip crm-chip--neutral"><?php echo esc_html( (string) $lead['source'] ); ?></span>
+                    <?php endif; ?>
+                  </div>
+                  <div class="crm-row-list__meta">
+                    <span><strong><?php esc_html_e( 'Phone:', 'peracrm' ); ?></strong> <?php echo esc_html( (string) ( $lead['phone'] ?? '—' ) ); ?></span>
+                    <span><strong><?php esc_html_e( 'Enquiry:', 'peracrm' ); ?></strong> <?php echo esc_html( (string) ( $lead['enquiry_at'] ?? '—' ) ); ?></span>
+                  </div>
+                </div>
+                <div class="crm-row-list__aside">
+                  <a class="btn btn--ghost btn--blue" href="<?php echo esc_url( (string) ( $lead['url'] ?? '' ) ); ?>"><?php echo esc_html__( 'View lead', 'peracrm' ); ?></a>
+                </div>
+              </li>
             <?php endforeach; ?>
-            </div>
+            </ul>
           <?php endif; ?>
+          </div>
         </article>
       </section>
 
@@ -239,23 +253,29 @@ peracrm_frontend_render_shell_header();
       </section>
 
       <section class="section" aria-labelledby="crm-activity-heading">
-        <article class="card-shell">
-          <header class="section-header">
-            <h2 id="crm-activity-heading"><?php echo esc_html__( 'Latest Activity', 'peracrm' ); ?></h2>
+        <article class="crm-section crm-section--flush">
+          <header class="crm-section__header">
+            <div class="crm-section__heading-group">
+              <h2 id="crm-activity-heading" class="crm-section__title"><?php echo esc_html__( 'Latest Activity', 'peracrm' ); ?></h2>
+            </div>
           </header>
+          <div class="crm-section__body">
           <?php if ( empty( $activity ) ) : ?>
             <p><?php echo esc_html__( 'No activity available.', 'peracrm' ); ?></p>
           <?php else : ?>
-          <ul class="crm-list">
+          <ul class="crm-activity-list">
             <?php foreach ( $activity as $item ) : ?>
-              <li>
-                <span class="pill pill--outline"><?php echo esc_html( (string) ( $item['type'] ?? '' ) ); ?></span>
-                <strong><?php echo esc_html( (string) ( $item['time'] ?? '' ) ); ?></strong>
-                <span><?php echo esc_html( (string) ( $item['summary'] ?? '' ) ); ?></span>
+              <li class="crm-activity-list__item">
+                <div class="crm-activity-list__meta">
+                  <?php if ( ! empty( $item['type'] ) ) : ?><span class="crm-chip crm-chip--neutral"><?php echo esc_html( (string) $item['type'] ); ?></span><?php endif; ?>
+                  <strong><?php echo esc_html( (string) ( $item['time'] ?? '' ) ); ?></strong>
+                </div>
+                <p class="crm-activity-list__summary"><?php echo esc_html( (string) ( $item['summary'] ?? '' ) ); ?></p>
               </li>
             <?php endforeach; ?>
           </ul>
           <?php endif; ?>
+          </div>
         </article>
       </section>
 
@@ -420,7 +440,7 @@ peracrm_frontend_render_shell_header();
         </section>
       </div>
 
-      <div class="crm-leads-table-wrap crm-table-wrap is-hidden" data-crm-view="table">
+      <div class="crm-leads-table-wrap crm-table-wrap crm-table-wrap--primitive is-hidden" data-crm-view="table">
         <table class="crm-leads-table crm-table" data-crm-sort-table>
           <thead>
             <tr>
@@ -433,15 +453,15 @@ peracrm_frontend_render_shell_header();
           </thead>
           <tbody>
             <?php if ( empty( $task_rows ) ) : ?>
-            <tr><td colspan="5"><?php echo esc_html__( 'No open tasks found.', 'peracrm' ); ?></td></tr>
+            <tr class="crm-table__empty"><td colspan="5"><?php echo esc_html__( 'No open tasks found.', 'peracrm' ); ?></td></tr>
             <?php else : ?>
               <?php foreach ( $task_rows as $task ) : ?>
               <tr data-sort-row data-row-url="<?php echo esc_url( (string) $task['client_url'] ); ?>" data-due="<?php echo esc_attr( (string) ( $task['due_ts'] ?? 0 ) ); ?>" data-client="<?php echo esc_attr( strtolower( (string) $task['client_name'] ) ); ?>" data-note="<?php echo esc_attr( strtolower( (string) $task['note'] ) ); ?>" data-assigned="<?php echo esc_attr( strtolower( (string) $task['assigned_to'] ) ); ?>" data-status="<?php echo esc_attr( strtolower( (string) $task['status_label'] ) ); ?>">
                 <td><?php echo esc_html( (string) $task['due_display'] ); ?></td>
-                <td><a href="<?php echo esc_url( (string) $task['client_url'] ); ?>"><?php echo esc_html( (string) $task['client_name'] ); ?></a></td>
+                <td class="crm-table__cell--primary"><div class="crm-table__primary"><a href="<?php echo esc_url( (string) $task['client_url'] ); ?>"><?php echo esc_html( (string) $task['client_name'] ); ?></a></div></td>
                 <td><?php echo esc_html( '' !== (string) $task['note'] ? (string) $task['note'] : '—' ); ?></td>
                 <td><?php echo esc_html( '' !== (string) $task['assigned_to'] ? (string) $task['assigned_to'] : '—' ); ?></td>
-                <td><span class="pill <?php echo esc_attr( ! empty( $task['is_overdue'] ) ? 'pill--red' : 'pill--outline' ); ?>"><?php echo esc_html( (string) $task['status_label'] ); ?></span></td>
+                <td><span class="crm-chip <?php echo esc_attr( ! empty( $task['is_overdue'] ) ? 'crm-chip--urgent' : 'crm-chip--status' ); ?>"><?php echo esc_html( (string) $task['status_label'] ); ?></span></td>
               </tr>
               <?php endforeach; ?>
             <?php endif; ?>
@@ -482,7 +502,7 @@ peracrm_frontend_render_shell_header();
         </div>
       </div></div>
 
-      <div class="crm-leads-table-wrap crm-table-wrap is-hidden" data-crm-view="table">
+      <div class="crm-leads-table-wrap crm-table-wrap crm-table-wrap--primitive is-hidden" data-crm-view="table">
         <table class="crm-leads-table crm-table" data-crm-sort-table>
           <thead>
             <tr>
@@ -497,7 +517,7 @@ peracrm_frontend_render_shell_header();
           <tbody>
 				<?php if ( empty( $items ) ) : ?>
             <tr>
-              <td colspan="6"><?php echo esc_html__( 'No leads found for this scope.', 'peracrm' ); ?></td>
+              <td class="crm-table__empty" colspan="6"><?php echo esc_html__( 'No leads found for this scope.', 'peracrm' ); ?></td>
             </tr>
 				<?php else : ?>
 				<?php foreach ( $items as $lead ) : ?>
@@ -506,8 +526,8 @@ peracrm_frontend_render_shell_header();
 					$status_label   = isset( $status_labels[ $engagement_key ] ) ? $status_labels[ $engagement_key ] : (string) ( $stages[ $lead['stage'] ] ?? $lead['stage'] );
 					?>
             <tr data-sort-row data-row-url="<?php echo esc_url( (string) $lead['crm_url'] ); ?>" data-name="<?php echo esc_attr( strtolower( (string) $lead['title'] ) ); ?>" data-status="<?php echo esc_attr( strtolower( (string) $status_label ) ); ?>" data-source="<?php echo esc_attr( strtolower( (string) ( $lead['source'] ?? '' ) ) ); ?>" data-assigned="<?php echo esc_attr( strtolower( (string) ( $lead['assigned_to'] ?? '' ) ) ); ?>" data-updated="<?php echo esc_attr( (string) ( $lead['updated_ts'] ?? 0 ) ); ?>" data-created="<?php echo esc_attr( (string) ( $lead['created_ts'] ?? 0 ) ); ?>">
-              <td><a href="<?php echo esc_url( (string) $lead['crm_url'] ); ?>"><?php echo esc_html( (string) $lead['title'] ); ?></a></td>
-              <td><span class="pill pill--outline"><?php echo esc_html( (string) $status_label ); ?></span></td>
+              <td class="crm-table__cell--primary"><div class="crm-table__primary"><a href="<?php echo esc_url( (string) $lead['crm_url'] ); ?>"><?php echo esc_html( (string) $lead['title'] ); ?></a><span class="crm-table__subtext"><?php echo esc_html( (string) $lead['engagement_state'] ); ?></span></div></td>
+              <td><span class="crm-chip crm-chip--status"><?php echo esc_html( (string) $status_label ); ?></span></td>
               <td><?php echo esc_html( '' !== (string) ( $lead['source'] ?? '' ) ? (string) $lead['source'] : '—' ); ?></td>
               <td><?php echo esc_html( '' !== (string) ( $lead['assigned_to'] ?? '' ) ? (string) $lead['assigned_to'] : '—' ); ?></td>
               <td><?php echo esc_html( '' !== $lead['last_activity'] ? (string) $lead['last_activity'] : ( '' !== (string) ( $lead['updated'] ?? '' ) ? (string) $lead['updated'] : '—' ) ); ?></td>
