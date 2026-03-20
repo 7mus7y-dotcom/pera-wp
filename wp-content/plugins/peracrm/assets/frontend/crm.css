@@ -4,7 +4,10 @@
   --header-height: 171px;
   --crm-font-family: "Montserrat", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
   --bg: #ffffff;
+  --surface: #ffffff;
   --surface-soft: #f8fafc;
+  --surface-muted: #eef4ff;
+  --surface-raised: #fcfdff;
   --text: #000000;
   --text-soft: #4b5563;
   --brand: #002d72;
@@ -181,7 +184,7 @@
 .crm-page .content-panel-box {
   max-width: var(--container);
   margin: 0 auto;
-  background: var(--bg);
+  background: var(--surface, var(--bg));
   border-radius: 32px;
   box-shadow: 0 18px 45px rgba(15, 23, 42, 0.18);
   padding: var(--space-xs);
@@ -2182,11 +2185,14 @@ body.crm-route table col,
 @media (prefers-color-scheme: dark) {
   .crm-page {
     --bg: #020617;
-    --surface-soft: #1e293b;
+    --surface: #0f172a;
+    --surface-soft: #162033;
+    --surface-muted: #1e293b;
+    --surface-raised: #111c2e;
     --text: #e5e7eb;
     --text-soft: #94a3b8;
-    --border: rgba(148, 163, 184, 0.35);
-    --border-muted: rgba(148, 163, 184, 0.4);
+    --border: rgba(148, 163, 184, 0.42);
+    --border-muted: rgba(148, 163, 184, 0.48);
     --color-white: #0f172a;
     --pill-green-hover: #22a85a;
     --pill-outline-bg: #0f172a;
@@ -2838,7 +2844,7 @@ body.crm-route #site-header.peracrm-shell-header .crm-side-nav__toggle--header:f
   --crm-section-gap: 12px;
   --crm-section-header-gap: 12px;
   --crm-row-gap: 8px;
-  --crm-chip-bg: #f8fafc;
+  --crm-chip-bg: var(--surface-soft, #f8fafc);
   --crm-chip-border: #d7dee8;
   --crm-chip-text: #334155;
   --crm-chip-status-bg: #eef4ff;
@@ -2858,7 +2864,7 @@ body.crm-route #site-header.peracrm-shell-header .crm-side-nav__toggle--header:f
   padding: var(--crm-section-padding);
   border: 1px solid var(--border, #e8ecf2);
   border-radius: 12px;
-  background: var(--color-white, #ffffff);
+  background: var(--surface, var(--color-white, #ffffff));
   box-shadow: none;
 }
 
@@ -4180,5 +4186,334 @@ body.crm-route #site-header.peracrm-shell-header.is-scrolled .peracrm-header-act
   .crm-page .crm-list-workspace-toolbar {
     padding: 12px;
     margin-bottom: 14px;
+  }
+}
+
+@media (prefers-color-scheme: dark) {
+  .crm-page {
+    --crm-chip-bg: var(--surface-soft);
+    --crm-chip-border: rgba(148, 163, 184, 0.4);
+    --crm-chip-text: #dbe7f5;
+    --crm-chip-status-bg: rgba(37, 99, 235, 0.16);
+    --crm-chip-status-border: rgba(96, 165, 250, 0.38);
+    --crm-chip-status-text: #bfdbfe;
+    --crm-chip-urgent-bg: rgba(153, 27, 27, 0.22);
+    --crm-chip-urgent-border: rgba(248, 113, 113, 0.42);
+    --crm-chip-urgent-text: #fecaca;
+    --crm-chip-selected-bg: #1d4ed8;
+    --crm-chip-selected-border: rgba(96, 165, 250, 0.48);
+    --crm-chip-selected-text: #eff6ff;
+    --shadow-soft: 0 12px 28px rgba(2, 6, 23, 0.34);
+  }
+
+  .crm-page .content-panel-box,
+  .crm-page .card-shell,
+  .crm-page .crm-section,
+  .crm-page .crm-table-wrap.crm-table-wrap--primitive,
+  .crm-page .crm-table-wrap,
+  .crm-page .crm-list-workspace-toolbar,
+  .crm-page .crm-list-workspace__group,
+  .crm-page .crm-toolbar,
+  .crm-page .crm-push-panel,
+  .crm-page--client-view .crm-client-summary,
+  .crm-page--client-view .crm-client-kpi-card,
+  .crm-page--client-view .crm-client-task-group,
+  .crm-page--client-view .crm-client-subsection,
+  .crm-page--client-view .crm-client-related,
+  .crm-page--client-view .crm-client-related .crm-client-subsection,
+  .crm-page--client-view .crm-client-timeline,
+  .crm-page--pipeline .crm-pipeline-column,
+  .crm-page .crm-pipeline-item,
+  .crm-page .crm-property-search-results,
+  .crm-page .crm-property-search-item,
+  .crm-page dialog,
+  .crm-confirm-dialog {
+    background: var(--surface);
+    border-color: var(--border);
+    color: var(--text);
+    box-shadow: var(--shadow-soft);
+  }
+
+  .crm-page .content-panel-box {
+    background: var(--surface-raised);
+    box-shadow: 0 24px 56px rgba(2, 6, 23, 0.42);
+  }
+
+  .crm-page-header__main {
+    background: rgba(15, 23, 42, 0.88);
+    border-color: rgba(148, 163, 184, 0.34);
+    box-shadow: 0 16px 36px rgba(2, 6, 23, 0.34);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+  }
+
+  .crm-page-header__title,
+  .crm-page-header__context,
+  .crm-page-header__subtitle,
+  .crm-page .crm-list-workspace-toolbar__summary h2,
+  .crm-page .crm-row-list__summary,
+  .crm-page .crm-section__title,
+  .crm-page--pipeline .crm-pipeline-item__context-line,
+  .crm-page--client-view .crm-summary-header__context-item dd {
+    color: var(--text);
+  }
+
+  .crm-page .crm-section__description,
+  .crm-page .crm-list-workspace-toolbar__summary p,
+  .crm-page .crm-list-workspace__table .crm-table__subtext,
+  .crm-page .crm-row-list__meta,
+  .crm-page .crm-row-list__meta-line,
+  .crm-page .crm-meta-line,
+  .crm-page .crm-activity-list__meta,
+  .crm-page--pipeline .crm-pipeline-column-header__meta,
+  .crm-page--pipeline .crm-pipeline-item__next-step,
+  .crm-page--client-view .crm-summary-header__meta,
+  .crm-page--client-view .crm-client-kpi-card__label,
+  .crm-page--client-view .crm-summary-header__eyebrow,
+  .crm-page--client-view .crm-summary-header__fact-label,
+  .crm-page--client-view .crm-summary-header__context-item dt,
+  .crm-page--client-view .crm-client-next-step__label,
+  .crm-page--client-view .crm-summary-header__sources-label,
+  .crm-page .crm-pipeline-empty {
+    color: var(--text-soft);
+  }
+
+  .crm-page .crm-table thead th,
+  .crm-page .crm-leads-table th,
+  .crm-page .crm-view-toggle,
+  .crm-page .crm-type-toggle,
+  .crm-page .crm-view-toggle--secondary,
+  .crm-page--client-view .crm-summary-header__context-list,
+  .crm-page--client-view .crm-client-next-step__item,
+  .crm-page--client-view .crm-client-next-step__item--focus,
+  .crm-page--overview .crm-overview-priority,
+  .crm-page--overview .crm-overview-priority-card,
+  .crm-page--overview .crm-overview-priority-card--urgent,
+  .crm-page--overview .crm-overview-task-summary__item,
+  .crm-page--overview .crm-overview-activity,
+  .crm-page--overview .crm-overview-metrics,
+  .crm-page--pipeline .crm-pipeline-empty {
+    background: var(--surface-soft);
+    border-color: var(--border);
+    color: var(--text);
+  }
+
+  .crm-page--overview .crm-overview-priority,
+  .crm-page--overview .crm-overview-priority-card--urgent,
+  .crm-page--client-view .crm-client-next-step__item--focus {
+    background: var(--surface-muted);
+  }
+
+  .crm-page .crm-table tbody tr:hover,
+  .crm-page .crm-leads-table tbody tr:hover,
+  .crm-page--leads .crm-leads-table tbody tr:hover,
+  .crm-page--tasks .crm-leads-table tbody tr:hover,
+  .crm-page .crm-property-search-item:hover,
+  .crm-page .crm-property-search-item:focus,
+  .crm-side-nav__list a:hover,
+  .crm-side-nav__list a:focus-visible {
+    background: rgba(51, 65, 85, 0.62);
+  }
+
+  .crm-page .btn--solid:hover,
+  .crm-page .btn--ghost:hover,
+  #crm-hero .btn--solid:hover,
+  #crm-hero .btn--ghost:hover {
+    border-color: var(--btn-color);
+  }
+
+  .crm-page .btn--ghost {
+    background-color: transparent;
+  }
+
+  .crm-page .btn--ghost.btn--blue,
+  .crm-page .btn--ghost.btn--red,
+  .crm-page .btn--ghost.btn--green {
+    background-color: rgba(15, 23, 42, 0.32);
+  }
+
+  .crm-page .btn--ghost.btn--blue {
+    border-color: rgba(96, 165, 250, 0.44);
+  }
+
+  .crm-page .btn--ghost.btn--red {
+    border-color: rgba(248, 113, 113, 0.44);
+  }
+
+  .crm-page .btn--ghost.btn--green {
+    border-color: rgba(74, 222, 128, 0.38);
+  }
+
+  .crm-page .btn--ghost.btn--blue:hover,
+  .crm-page .btn--ghost.btn--blue:focus-visible {
+    background-color: rgba(0, 86, 179, 0.18);
+    color: #dbeafe;
+  }
+
+  .crm-page .btn--ghost.btn--red:hover,
+  .crm-page .btn--ghost.btn--red:focus-visible {
+    background-color: rgba(220, 38, 38, 0.18);
+    color: #fecaca;
+  }
+
+  .crm-page .btn--ghost.btn--green:hover,
+  .crm-page .btn--ghost.btn--green:focus-visible {
+    background-color: rgba(34, 197, 94, 0.16);
+    color: #dcfce7;
+  }
+
+  .crm-page .btn--solid.btn--blue {
+    color: #eff6ff;
+  }
+
+  .crm-page .btn--solid.btn--green {
+    color: #f0fdf4;
+  }
+
+  .crm-page .btn--solid.btn--red {
+    color: #fff1f2;
+  }
+
+  .crm-page input:not([type="hidden"]),
+  .crm-page select,
+  .crm-page textarea,
+  .crm-page .cta-control,
+  .crm-page .crm-search-control {
+    background-color: #0b1220;
+    border-color: rgba(148, 163, 184, 0.46);
+    color: var(--text);
+    box-shadow: none;
+  }
+
+  .crm-page select option,
+  .crm-page--new .crm-form-stack select option {
+    background-color: #0b1220;
+    color: var(--text);
+  }
+
+  .crm-page input::placeholder,
+  .crm-page textarea::placeholder {
+    color: #7b8aa0;
+  }
+
+  .crm-page input:focus,
+  .crm-page select:focus,
+  .crm-page textarea:focus,
+  .crm-page .crm-search-control:focus {
+    border-color: rgba(96, 165, 250, 0.62);
+    box-shadow: 0 0 0 1px rgba(96, 165, 250, 0.32);
+  }
+
+  .crm-page .crm-table thead th,
+  .crm-page .crm-leads-table th,
+  .crm-page .crm-list li,
+  .crm-page .crm-row-list__item,
+  .crm-page .crm-activity-list__item,
+  .crm-page .crm-pipeline-column-header,
+  .crm-page--pipeline .crm-pipeline-item__next-step,
+  .crm-page--client-view .crm-client-timeline .crm-activity-list__item,
+  .crm-side-nav__list li,
+  .crm-page--client-view .crm-summary-header__context-list,
+  .crm-page--client-view .crm-client-kpi-card,
+  .crm-page--client-view .crm-client-task-group,
+  .crm-page--client-view .crm-client-subsection,
+  .crm-page--client-view .crm-client-related,
+  .crm-page--client-view .crm-client-related .crm-client-subsection {
+    border-color: var(--border);
+  }
+
+  .crm-page--pipeline .crm-pipeline-column {
+    background: linear-gradient(180deg, rgba(22, 32, 51, 0.98) 0%, rgba(15, 23, 42, 0.98) 100%);
+  }
+
+  .crm-page .crm-pipeline-item {
+    background: var(--surface-raised);
+  }
+
+  .crm-page .crm-pipeline-empty {
+    background: rgba(15, 23, 42, 0.72);
+    border-style: dashed;
+  }
+
+  .crm-page--client-view .crm-summary-header__meta span:not(:last-child)::after {
+    color: rgba(148, 163, 184, 0.6);
+  }
+
+  .crm-page--client-view .crm-client-reminders {
+    border-color: rgba(96, 165, 250, 0.28);
+    box-shadow: inset 0 1px 0 rgba(255,255,255,0.03);
+  }
+
+  .crm-page--client-view .crm-client-task-group {
+    background: var(--surface-raised);
+  }
+
+  .crm-page--client-view .crm-client-timeline .crm-chip--neutral {
+    background: rgba(51, 65, 85, 0.72);
+    color: #dbe7f5;
+    border-color: rgba(148, 163, 184, 0.36);
+  }
+
+  .crm-page .archive-hero-desc[data-collapsed="true"] .archive-hero-desc__content::after {
+    background: linear-gradient(to bottom, rgba(15, 23, 42, 0), rgba(15, 23, 42, 0.92));
+  }
+
+  .crm-page .archive-hero-desc__toggle {
+    background: var(--surface-soft);
+    border-color: var(--border);
+    color: #dbeafe;
+  }
+
+  .crm-page .archive-hero-desc__toggle:hover,
+  .crm-page .archive-hero-desc__toggle:focus-visible,
+  .crm-page .archive-hero-desc[data-collapsed="false"] .archive-hero-desc__toggle {
+    background: rgba(30, 41, 59, 0.96);
+    border-color: rgba(96, 165, 250, 0.44);
+    color: #eff6ff;
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.18);
+  }
+
+  .crm-side-nav {
+    background: var(--surface);
+    border-color: var(--border);
+    box-shadow: 0 18px 36px rgba(2, 6, 23, 0.36);
+  }
+
+  .crm-side-nav__title,
+  .crm-side-nav__list a,
+  .crm-side-nav__list a.is-active {
+    color: var(--text);
+  }
+
+  .crm-side-nav__list a.is-active {
+    background: rgba(30, 64, 175, 0.22);
+  }
+
+  body.crm-route #site-header.peracrm-shell-header.is-scrolled .peracrm-shell-logo-block,
+  body.crm-route #site-header.peracrm-shell-header.is-scrolled .peracrm-header-actions__cluster {
+    background: rgba(15, 23, 42, 0.72);
+    border-color: rgba(148, 163, 184, 0.32);
+    box-shadow: 0 16px 32px rgba(2, 6, 23, 0.4);
+  }
+
+  body.crm-route #site-header.peracrm-shell-header .peracrm-shell-logo-link,
+  body.crm-route #site-header.peracrm-shell-header .peracrm-header-actions__cluster,
+  body.crm-route #site-header.peracrm-shell-header .crm-side-nav__toggle--header,
+  body.crm-route #site-header.peracrm-shell-header .crm-side-nav__toggle-icon,
+  body.crm-route #site-header.peracrm-shell-header .crm-side-nav__toggle-icon svg,
+  body.crm-route #site-header.peracrm-shell-header .peracrm-shell-logo-text {
+    color: #e2e8f0;
+  }
+
+  body.crm-route #site-header.peracrm-shell-header .peracrm-shell-logo-image,
+  .crm-side-nav__drawer-brand img.peracrm-shell-logo-image {
+    filter: brightness(0) saturate(100%) invert(92%) sepia(9%) saturate(735%) hue-rotate(181deg) brightness(97%) contrast(95%);
+  }
+
+  .crm-page .screen-reader-text:focus,
+  body.crm-route .screen-reader-text:focus {
+    background: var(--surface);
+    color: var(--text);
+    border: 1px solid var(--border);
   }
 }
