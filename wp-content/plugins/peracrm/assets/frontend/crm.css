@@ -2183,6 +2183,14 @@ body.crm-route table col,
 }
 
 @media (prefers-color-scheme: dark) {
+  body.crm-route,
+  body.crm-route #crm-app,
+  body.crm-route .site-main,
+  body.crm-route .site-main.crm-page,
+  body.crm-route .crm-page {
+    background: var(--bg, #020617);
+  }
+
   .crm-page {
     --bg: #020617;
     --surface: #0f172a;
@@ -4258,6 +4266,7 @@ body.crm-route #site-header.peracrm-shell-header.is-scrolled .peracrm-header-act
     color: var(--text);
   }
 
+  .crm-page .crm-form-workspace__eyebrow,
   .crm-page .crm-section__description,
   .crm-page .crm-list-workspace-toolbar__summary p,
   .crm-page .crm-list-workspace__table .crm-table__subtext,
@@ -4575,7 +4584,10 @@ body.crm-route #site-header.peracrm-shell-header.is-scrolled .peracrm-header-act
     color: #fca5a5;
   }
 
-  .crm-page--client-view .crm-client-timeline__detail,
+  .crm-page--client-view .crm-client-timeline__detail {
+    color: var(--text);
+  }
+
   .crm-page--client-view .crm-client-timeline__debug,
   .crm-page--client-view .crm-client-timeline .peracrm-enquiry-details__table th,
   .crm-page--client-view .crm-client-timeline .peracrm-enquiry-details summary {
