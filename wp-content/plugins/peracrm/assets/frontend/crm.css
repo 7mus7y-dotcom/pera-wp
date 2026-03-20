@@ -2002,7 +2002,7 @@ body.crm-route #site-header.peracrm-shell-header .peracrm-shell-logo-link {
   display: inline-flex;
   align-items: center;
   text-decoration: none;
-  color: #ffffff;
+  color: var(--brand, #002d72);
 }
 
 body.crm-route #site-header.peracrm-shell-header .peracrm-shell-logo-image,
@@ -2011,6 +2011,15 @@ body.crm-route #site-header.peracrm-shell-header .peracrm-shell-logo-link svg {
   width: 200px;
   max-width: 100%;
   height: auto;
+}
+
+body.crm-route #site-header.peracrm-shell-header .peracrm-shell-logo-link svg,
+body.crm-route #site-header.peracrm-shell-header .peracrm-shell-logo-link svg * {
+  fill: currentColor;
+}
+
+body.crm-route #site-header.peracrm-shell-header .peracrm-shell-logo-image {
+  filter: brightness(0) saturate(100%) invert(13%) sepia(75%) saturate(2149%) hue-rotate(204deg) brightness(95%) contrast(101%);
 }
 
 body.crm-route #site-header.peracrm-shell-header .peracrm-shell-logo-text {
@@ -2036,11 +2045,6 @@ body.crm-route #site-header.peracrm-shell-header .peracrm-shell-logo-text {
     background: rgba(15, 23, 42, 0.55);
     border-color: rgba(148, 163, 184, 0.32);
     box-shadow: 0 16px 32px rgba(2, 6, 23, 0.4);
-  }
-
-  body.crm-route #site-header.peracrm-shell-header .peracrm-shell-logo-link,
-  body.crm-route #site-header.peracrm-shell-header .peracrm-shell-logo-text {
-    color: #ffffff;
   }
 }
 
@@ -2070,6 +2074,20 @@ body.crm-route #site-header.peracrm-shell-header.is-scrolled .peracrm-header-act
   box-shadow: 0 10px 24px rgba(15, 23, 42, 0.14);
   backdrop-filter: blur(16px);
   -webkit-backdrop-filter: blur(16px);
+}
+
+body.crm-route #site-header.peracrm-shell-header .peracrm-header-actions__cluster,
+body.crm-route #site-header.peracrm-shell-header .crm-side-nav__toggle--header,
+body.crm-route #site-header.peracrm-shell-header .crm-side-nav__toggle--header:hover,
+body.crm-route #site-header.peracrm-shell-header .crm-side-nav__toggle--header:focus-visible,
+body.crm-route #site-header.peracrm-shell-header .crm-side-nav__toggle-icon,
+body.crm-route #site-header.peracrm-shell-header .crm-side-nav__toggle-icon svg,
+body.crm-route #site-header.peracrm-shell-header .peracrm-shell-logo-text {
+  color: var(--brand, #002d72);
+}
+
+body.crm-route #site-header.peracrm-shell-header .crm-side-nav__toggle--header:focus-visible {
+  box-shadow: 0 0 0 3px rgba(0, 45, 114, 0.16);
 }
 .crm-side-nav__toggle {
   display: none;
