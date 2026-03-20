@@ -3372,7 +3372,6 @@ body.crm-route #site-header.peracrm-shell-header .crm-side-nav__toggle--header:f
 .crm-view-toggle .btn,
 .crm-type-toggle .btn {
   min-height: 36px;
-  padding: 7px 12px;
   font-size: 0.88rem;
 }
 
@@ -4063,9 +4062,41 @@ body.crm-route #site-header.peracrm-shell-header.is-scrolled .peracrm-header-act
    Final polish / consistency pass
    ======================================================= */
 .crm-page {
+  --crm-shell-panel-padding-inline: 20px;
+  --crm-shell-panel-padding-bottom: 40px;
+  --crm-shell-box-padding: 16px;
+  --crm-shell-box-radius: 14px;
+  --crm-shell-section-padding-block: 20px;
+  --crm-shell-section-padding-inline: 0;
+  --crm-section-padding: 16px;
+  --crm-section-radius: 12px;
   --crm-button-radius: 12px;
   --crm-button-padding-y: 9px;
   --crm-button-padding-x: 14px;
+  --crm-button-compact-padding-y: 7px;
+  --crm-button-compact-padding-x: 12px;
+}
+
+.crm-page .content-panel {
+  padding: 0 var(--crm-shell-panel-padding-inline) var(--crm-shell-panel-padding-bottom);
+}
+
+.crm-page .content-panel-box {
+  border-radius: var(--crm-shell-box-radius);
+  padding: var(--crm-shell-box-padding);
+}
+
+.crm-page .section {
+  padding: var(--crm-shell-section-padding-block) var(--crm-shell-section-padding-inline);
+}
+
+.crm-page .crm-section,
+.crm-page .crm-table-wrap.crm-table-wrap--primitive {
+  border-radius: var(--crm-section-radius);
+}
+
+.crm-page .crm-section {
+  padding: var(--crm-section-padding);
 }
 
 .crm-page .btn,
@@ -4075,11 +4106,45 @@ body.crm-route #site-header.peracrm-shell-header.is-scrolled .peracrm-header-act
   min-height: 38px;
 }
 
+.crm-page .btn.crm-icon-btn,
+.crm-page button.btn.crm-icon-btn,
+.crm-page .btn.peracrm-linked-property-unlink-btn,
+.crm-page button.btn.peracrm-linked-property-unlink-btn,
+.crm-page .crm-inline-form .btn.crm-icon-btn,
+.crm-page .crm-row-list__actions .btn.crm-icon-btn,
+.crm-page .crm-table__actions .btn.crm-icon-btn,
+.crm-page .crm-section__actions .btn.crm-icon-btn {
+  padding: 0;
+  min-height: 34px;
+}
+
+.crm-page .crm-toolbar-actions .btn,
+.crm-page .crm-section__actions .btn,
+.crm-page .crm-row-list__actions .btn,
+.crm-page .crm-table__actions .btn,
+.crm-page .crm-view-toggle .btn,
+.crm-page .crm-type-toggle .btn,
+.crm-page .crm-view-toggle--secondary .btn,
+.crm-page .archive-hero-desc__toggle {
+  padding: var(--crm-button-compact-padding-y) var(--crm-button-compact-padding-x);
+}
+
+.crm-page .crm-row-list__actions .btn,
+.crm-page .crm-table__actions .btn,
+.crm-page .crm-section__actions .btn {
+  min-height: 34px;
+}
+
+.crm-page .crm-view-toggle,
+.crm-page .crm-type-toggle,
+.crm-page .crm-view-toggle--secondary {
+  align-items: center;
+}
+
 .crm-page .archive-hero-desc__toggle {
   align-self: flex-start;
   gap: 6px;
   min-height: 34px;
-  padding: 7px 12px;
   border-radius: 10px;
   border: 1px solid var(--border, #e8ecf2);
   background: var(--surface-soft, #f8fafc);
@@ -4136,7 +4201,6 @@ body.crm-route #site-header.peracrm-shell-header.is-scrolled .peracrm-header-act
 
 .crm-page .crm-view-toggle--secondary .btn {
   min-height: 34px;
-  padding: 7px 12px;
 }
 
 .crm-page .crm-view-toggle--secondary .btn--solid {
@@ -4158,7 +4222,7 @@ body.crm-route #site-header.peracrm-shell-header.is-scrolled .peracrm-header-act
 .crm-page--client-view .crm-client-task-group,
 .crm-page--client-view .crm-client-subsection,
 .crm-page--client-view .crm-section {
-  border-radius: 14px;
+  border-radius: var(--crm-section-radius);
 }
 
 .crm-page--client-view .crm-client-notes-truncate .archive-hero-desc__toggle--bottom,
@@ -4178,12 +4242,16 @@ body.crm-route #site-header.peracrm-shell-header.is-scrolled .peracrm-header-act
 }
 
 @media (max-width: 767px) {
-  .crm-page .content-panel {
-    padding: 0 12px 28px;
-  }
-
-  .crm-page .content-panel-box {
-    padding: 12px;
+  .crm-page {
+    --crm-shell-panel-padding-inline: 12px;
+    --crm-shell-panel-padding-bottom: 28px;
+    --crm-shell-box-padding: 12px;
+    --crm-shell-box-radius: 12px;
+    --crm-shell-section-padding-block: 12px;
+    --crm-section-padding: 12px;
+    --crm-section-radius: 10px;
+    --crm-button-padding-y: 8px;
+    --crm-button-padding-x: 13px;
   }
 
   .crm-page .btn,
