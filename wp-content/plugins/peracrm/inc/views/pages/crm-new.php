@@ -20,6 +20,7 @@ $prefill_email      = isset( $_GET['email'] ) ? sanitize_email( wp_unslash( (str
 $prefill_phone      = isset( $_GET['phone'] ) ? sanitize_text_field( wp_unslash( (string) $_GET['phone'] ) ) : ''; // phpcs:ignore WordPress.Security.NonceVerification.Recommended
 $prefill_source     = isset( $_GET['source'] ) ? sanitize_key( wp_unslash( (string) $_GET['source'] ) ) : 'website'; // phpcs:ignore WordPress.Security.NonceVerification.Recommended
 $prefill_notes      = isset( $_GET['notes'] ) ? sanitize_textarea_field( wp_unslash( (string) $_GET['notes'] ) ) : ''; // phpcs:ignore WordPress.Security.NonceVerification.Recommended
+$cancel_url         = home_url( '/crm/clients/' );
 
 $source_options = array(
 	'meta_ads'     => __( 'Meta Ads', 'peracrm' ),
@@ -114,12 +115,12 @@ peracrm_frontend_render_shell_header( array( 'show_crm_nav_toggle' => false ) );
 		  'crm-header',
 		  array(
 			  'title'       => __( 'Create new lead', 'peracrm' ),
-			  'description' => __( 'Add a lead directly from the front-end CRM workspace.', 'peracrm' ),
-			  'meta'        => __( 'New record', 'peracrm' ),
+			  'description' => __( 'Capture a new lead with clear field groups, calmer form density, and one obvious next step.', 'peracrm' ),
+			  'meta'        => __( 'New lead workspace', 'peracrm' ),
 			  'actions'     => array(
 				array(
 					'label' => __( 'Back to clients', 'peracrm' ),
-					'url'   => home_url( '/crm/clients/' ),
+					'url'   => $cancel_url,
 					'class' => 'btn btn--ghost btn--blue',
 					'type'  => 'secondary',
 				),
@@ -131,7 +132,21 @@ peracrm_frontend_render_shell_header( array( 'show_crm_nav_toggle' => false ) );
 
   <section class="content-panel content-panel--overlap-hero">
     <div class="content-panel-box border-dm container">
-      <article class="card-shell crm-form-card">
+      <article class="card-shell crm-form-card crm-form-workspace">
+        <header class="crm-form-workspace__header">
+          <div class="crm-form-workspace__intro">
+            <span class="crm-form-workspace__eyebrow"><?php echo esc_html__( 'Lead creation', 'peracrm' ); ?></span>
+            <h2 class="crm-form-workspace__title"><?php echo esc_html__( 'New lead details', 'peracrm' ); ?></h2>
+            <p class="crm-form-workspace__description"><?php echo esc_html__( 'Use the grouped sections below to capture identity, contact details, source, and optional context before creating the record.', 'peracrm' ); ?></p>
+          </div>
+          <div class="crm-form-workspace__meta">
+            <div class="crm-meta-line">
+              <span><strong><?php esc_html_e( 'Required:', 'peracrm' ); ?></strong> <?php esc_html_e( 'First name, last name, email, and source', 'peracrm' ); ?></span>
+              <span><strong><?php esc_html_e( 'Optional:', 'peracrm' ); ?></strong> <?php esc_html_e( 'Phone and notes', 'peracrm' ); ?></span>
+            </div>
+          </div>
+        </header>
+
         <?php if ( 'invalid_nonce' === $error ) : ?>
           <div class="crm-inline-notice crm-inline-notice--error" role="alert"><?php echo esc_html__( 'Security check failed. Please try again.', 'peracrm' ); ?></div>
         <?php elseif ( 'missing_required' === $error ) : ?>
@@ -151,53 +166,92 @@ peracrm_frontend_render_shell_header( array( 'show_crm_nav_toggle' => false ) );
           </div>
         <?php endif; ?>
 
-        <form method="post" action="<?php echo esc_url( home_url( '/crm/new/' ) ); ?>" class="crm-form-stack">
+        <form method="post" action="<?php echo esc_url( home_url( '/crm/new/' ) ); ?>" class="crm-form-stack crm-form-workspace__form">
           <?php wp_nonce_field( 'pera_crm_create_lead', 'pera_crm_create_lead_nonce' ); ?>
 
-          <p>
-            <label for="crm-first-name"><?php echo esc_html__( 'First name *', 'peracrm' ); ?></label>
-            <input id="crm-first-name" name="first_name" type="text" required value="<?php echo esc_attr( $prefill_first_name ); ?>" />
-          </p>
+          <section class="crm-section crm-section--flush crm-form-section" aria-labelledby="crm-new-lead-identity-heading">
+            <header class="crm-section__header">
+              <div class="crm-section__heading-group">
+                <h3 id="crm-new-lead-identity-heading" class="crm-section__title"><?php esc_html_e( 'Basic identity', 'peracrm' ); ?></h3>
+                <p class="crm-section__description"><?php esc_html_e( 'Capture the lead name and primary email first so duplicate checks and follow-up routing stay reliable.', 'peracrm' ); ?></p>
+              </div>
+            </header>
+            <div class="crm-section__body">
+              <div class="crm-form-grid crm-form-grid--split">
+                <div class="crm-form-field">
+                  <label for="crm-first-name"><?php echo esc_html__( 'First name *', 'peracrm' ); ?></label>
+                  <input id="crm-first-name" name="first_name" type="text" required value="<?php echo esc_attr( $prefill_first_name ); ?>" />
+                </div>
 
-          <p>
-            <label for="crm-last-name"><?php echo esc_html__( 'Last name *', 'peracrm' ); ?></label>
-            <input id="crm-last-name" name="last_name" type="text" required value="<?php echo esc_attr( $prefill_last_name ); ?>" />
-          </p>
+                <div class="crm-form-field">
+                  <label for="crm-last-name"><?php echo esc_html__( 'Last name *', 'peracrm' ); ?></label>
+                  <input id="crm-last-name" name="last_name" type="text" required value="<?php echo esc_attr( $prefill_last_name ); ?>" />
+                </div>
+              </div>
 
-          <p>
-            <label for="crm-email"><?php echo esc_html__( 'Email *', 'peracrm' ); ?></label>
-            <input id="crm-email" name="email" type="email" required value="<?php echo esc_attr( $prefill_email ); ?>" />
-          </p>
-
-          <div class="crm-phone-field">
-            <div class="crm-field-label"><?php echo esc_html__( 'Mobile / WhatsApp', 'peracrm' ); ?></div>
-            <div class="crm-phone-row">
-              <select name="peracrm_phone_country" class="crm-phone-country" aria-label="<?php echo esc_attr__( 'Country code', 'peracrm' ); ?>">
-                <?php foreach ( $crm_phone_country_options as $country_value => $country_label ) : ?>
-                  <option value="<?php echo esc_attr( (string) $country_value ); ?>" <?php selected( $prefill_phone_country, (string) $country_value ); ?>><?php echo esc_html( (string) $country_label ); ?></option>
-                <?php endforeach; ?>
-              </select>
-              <input type="tel" name="peracrm_phone_national" value="<?php echo esc_attr( (string) $prefill_phone_national ); ?>" inputmode="tel" autocomplete="tel-national" placeholder="<?php echo esc_attr__( 'Phone number', 'peracrm' ); ?>" aria-label="<?php echo esc_attr__( 'Phone number', 'peracrm' ); ?>" />
+              <div class="crm-form-field">
+                <label for="crm-email"><?php echo esc_html__( 'Email *', 'peracrm' ); ?></label>
+                <input id="crm-email" name="email" type="email" required value="<?php echo esc_attr( $prefill_email ); ?>" />
+              </div>
             </div>
-          </div>
+          </section>
 
-          <p>
-            <label for="crm-source"><?php echo esc_html__( 'Source *', 'peracrm' ); ?></label>
-            <select id="crm-source" name="source" required>
-              <?php foreach ( $source_options as $source_key => $source_label ) : ?>
-                <option value="<?php echo esc_attr( (string) $source_key ); ?>" <?php selected( $prefill_source, (string) $source_key ); ?>><?php echo esc_html( (string) $source_label ); ?></option>
-              <?php endforeach; ?>
-            </select>
-          </p>
+          <section class="crm-section crm-section--flush crm-form-section" aria-labelledby="crm-new-lead-contact-heading">
+            <header class="crm-section__header">
+              <div class="crm-section__heading-group">
+                <h3 id="crm-new-lead-contact-heading" class="crm-section__title"><?php esc_html_e( 'Contact details', 'peracrm' ); ?></h3>
+                <p class="crm-section__description"><?php esc_html_e( 'Add the best reachable number when available. The country code and national number stay separated for existing phone handling.', 'peracrm' ); ?></p>
+              </div>
+            </header>
+            <div class="crm-section__body">
+              <div class="crm-phone-field crm-form-field">
+                <label for="crm-phone-national"><?php echo esc_html__( 'Mobile / WhatsApp', 'peracrm' ); ?></label>
+                <div class="crm-phone-row">
+                  <select id="crm-phone-country" name="peracrm_phone_country" class="crm-phone-country" aria-label="<?php echo esc_attr__( 'Country code', 'peracrm' ); ?>">
+                    <?php foreach ( $crm_phone_country_options as $country_value => $country_label ) : ?>
+                      <option value="<?php echo esc_attr( (string) $country_value ); ?>" <?php selected( $prefill_phone_country, (string) $country_value ); ?>><?php echo esc_html( (string) $country_label ); ?></option>
+                    <?php endforeach; ?>
+                  </select>
+                  <input id="crm-phone-national" type="tel" name="peracrm_phone_national" value="<?php echo esc_attr( (string) $prefill_phone_national ); ?>" inputmode="tel" autocomplete="tel-national" placeholder="<?php echo esc_attr__( 'Phone number', 'peracrm' ); ?>" aria-label="<?php echo esc_attr__( 'Phone number', 'peracrm' ); ?>" />
+                </div>
+              </div>
+            </div>
+          </section>
 
-          <p>
-            <label for="crm-notes"><?php echo esc_html__( 'Notes', 'peracrm' ); ?></label>
-            <textarea id="crm-notes" name="notes" rows="4"><?php echo esc_textarea( $prefill_notes ); ?></textarea>
-          </p>
+          <section class="crm-section crm-section--flush crm-form-section" aria-labelledby="crm-new-lead-classification-heading">
+            <header class="crm-section__header">
+              <div class="crm-section__heading-group">
+                <h3 id="crm-new-lead-classification-heading" class="crm-section__title"><?php esc_html_e( 'Lead source and context', 'peracrm' ); ?></h3>
+                <p class="crm-section__description"><?php esc_html_e( 'Classify how the lead entered the CRM and add any optional notes that help the next advisor pick up the conversation safely.', 'peracrm' ); ?></p>
+              </div>
+            </header>
+            <div class="crm-section__body">
+              <div class="crm-form-field">
+                <label for="crm-source"><?php echo esc_html__( 'Source *', 'peracrm' ); ?></label>
+                <select id="crm-source" name="source" required>
+                  <?php foreach ( $source_options as $source_key => $source_label ) : ?>
+                    <option value="<?php echo esc_attr( (string) $source_key ); ?>" <?php selected( $prefill_source, (string) $source_key ); ?>><?php echo esc_html( (string) $source_label ); ?></option>
+                  <?php endforeach; ?>
+                </select>
+              </div>
 
-          <p>
-            <button type="submit" class="btn btn--solid btn--green"><?php echo esc_html__( 'Create lead', 'peracrm' ); ?></button>
-          </p>
+              <div class="crm-form-field">
+                <label for="crm-notes"><?php echo esc_html__( 'Notes', 'peracrm' ); ?></label>
+                <textarea id="crm-notes" name="notes" rows="4"><?php echo esc_textarea( $prefill_notes ); ?></textarea>
+              </div>
+            </div>
+          </section>
+
+          <footer class="crm-form-workspace__footer">
+            <div class="crm-meta-line">
+              <span><?php esc_html_e( 'Primary action creates the lead immediately.', 'peracrm' ); ?></span>
+              <span><?php esc_html_e( 'Cancel returns to the client workspace without saving.', 'peracrm' ); ?></span>
+            </div>
+            <div class="crm-action-group crm-action-group--form">
+              <a class="btn btn--ghost btn--blue crm-action-group__item crm-action-group__item--secondary" href="<?php echo esc_url( $cancel_url ); ?>"><?php esc_html_e( 'Cancel', 'peracrm' ); ?></a>
+              <button type="submit" class="btn btn--solid btn--green crm-action-group__item crm-action-group__item--primary"><?php echo esc_html__( 'Create lead', 'peracrm' ); ?></button>
+            </div>
+          </footer>
         </form>
       </article>
     </div>
