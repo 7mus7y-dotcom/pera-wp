@@ -267,22 +267,49 @@ peracrm_frontend_render_shell_header();
           sprintf( __( 'Last activity: %s', 'peracrm' ), $last_activity ),
           $link_label,
         );
+        $client_type_summary = '' !== $client_type_value ? ucfirst( str_replace( '_', ' ', $client_type_value ) ) : __( 'Not set', 'peracrm' );
+        $primary_source_label = ! empty( $source_pills ) ? (string) reset( $source_pills ) : __( 'Not captured', 'peracrm' );
+        $next_step_label      = __( 'Add the next reminder.', 'peracrm' );
+        $next_step_tone       = 'crm-chip--neutral';
+
+        if ( ! empty( $overdue_task_rows[0]['note'] ) ) {
+          $next_step_label = sprintf( __( 'Overdue: %s', 'peracrm' ), (string) $overdue_task_rows[0]['note'] );
+          $next_step_tone  = 'crm-chip--urgent';
+        } elseif ( ! empty( $today_reminders[0]['note'] ) ) {
+          $next_step_label = sprintf( __( 'Due today: %s', 'peracrm' ), (string) $today_reminders[0]['note'] );
+          $next_step_tone  = 'crm-chip--status';
+        } elseif ( ! empty( $upcoming_rows[0]['note'] ) ) {
+          $next_step_label = sprintf( __( 'Upcoming: %s', 'peracrm' ), (string) $upcoming_rows[0]['note'] );
+        }
+
         $summary_fact_items = array(
           array(
-            'label' => __( 'Status', 'peracrm' ),
+            'label' => __( 'Lifecycle', 'peracrm' ),
             'value' => $status_label,
             'variant' => 'crm-chip--status',
           ),
           array(
-            'label' => __( 'Health', 'peracrm' ),
+            'label' => __( 'Record health', 'peracrm' ),
             'value' => $health_label,
             'variant' => $overdue_reminders > 0 ? 'crm-chip--urgent' : 'crm-chip--neutral',
           ),
           array(
-            'label' => __( 'Client type', 'peracrm' ),
-            'value' => '' !== $client_type_value ? ucfirst( str_replace( '_', ' ', $client_type_value ) ) : __( 'Not set', 'peracrm' ),
-            'variant' => 'crm-chip--neutral',
+            'label' => __( 'Next step', 'peracrm' ),
+            'value' => $next_step_label,
+            'variant' => $next_step_tone,
           ),
+        );
+        $summary_context_items = array(
+          array( 'label' => __( 'Client type', 'peracrm' ), 'value' => $client_type_summary ),
+          array( 'label' => __( 'Primary source', 'peracrm' ), 'value' => $primary_source_label ),
+          array( 'label' => __( 'Contact', 'peracrm' ), 'value' => '' !== $profile_phone_value ? $profile_phone_value : ( '' !== $email_value ? $email_value : __( 'No direct contact saved', 'peracrm' ) ) ),
+          array( 'label' => __( 'Linked account', 'peracrm' ), 'value' => $link_label ),
+        );
+        $summary_stat_items = array(
+          array( 'label' => __( 'Open reminders', 'peracrm' ), 'value' => $open_reminders ),
+          array( 'label' => __( 'Overdue', 'peracrm' ), 'value' => $overdue_reminders ),
+          array( 'label' => __( 'Properties', 'peracrm' ), 'value' => $property_total ),
+          array( 'label' => __( 'Deals', 'peracrm' ), 'value' => $deals_count ),
         );
         $portfolio_items   = is_array( $property_groups['portfolio'] ?? null ) ? $property_groups['portfolio'] : array();
         $enquiry_relations = array( 'favourite', 'enquiry' );
@@ -292,55 +319,71 @@ peracrm_frontend_render_shell_header();
           <div class="crm-summary-header__main">
             <div class="crm-summary-header__identity">
               <p class="crm-summary-header__eyebrow"><?php esc_html_e( 'Client summary', 'peracrm' ); ?></p>
-              <h2 class="crm-summary-header__title"><?php echo esc_html( get_the_title( $client ) ); ?></h2>
+              <div class="crm-summary-header__title-row">
+                <h2 class="crm-summary-header__title"><?php echo esc_html( get_the_title( $client ) ); ?></h2>
+                <span class="crm-chip crm-chip--status"><?php echo esc_html( $status_label ); ?></span>
+              </div>
               <div class="crm-summary-header__meta">
                 <?php foreach ( $summary_meta_items as $summary_meta_item ) : ?>
                   <span><?php echo esc_html( (string) $summary_meta_item ); ?></span>
                 <?php endforeach; ?>
               </div>
-              <?php if ( ! empty( $source_pills ) ) : ?>
-              <div class="crm-summary-header__sources">
-                <span class="crm-summary-header__sources-label"><?php esc_html_e( 'Source', 'peracrm' ); ?></span>
-                <div class="crm-summary-header__sources-items">
-                  <?php foreach ( $source_pills as $source_pill ) : ?>
-                    <?php if ( '' === (string) $source_pill ) { continue; } ?>
-                    <span class="crm-chip crm-chip--neutral"><?php echo esc_html( (string) $source_pill ); ?></span>
-                  <?php endforeach; ?>
+              <div class="crm-summary-header__facts">
+                <?php foreach ( $summary_fact_items as $summary_fact_item ) : ?>
+                <div class="crm-summary-header__fact">
+                  <span class="crm-summary-header__fact-label"><?php echo esc_html( (string) $summary_fact_item['label'] ); ?></span>
+                  <span class="crm-chip <?php echo esc_attr( (string) $summary_fact_item['variant'] ); ?>"><?php echo esc_html( (string) $summary_fact_item['value'] ); ?></span>
                 </div>
+                <?php endforeach; ?>
               </div>
-              <?php endif; ?>
             </div>
-            <div class="crm-summary-header__actions">
-              <?php foreach ( $summary_fact_items as $summary_fact_item ) : ?>
-              <div class="crm-summary-header__fact">
-                <span class="crm-summary-header__fact-label"><?php echo esc_html( (string) $summary_fact_item['label'] ); ?></span>
-                <span class="crm-chip <?php echo esc_attr( (string) $summary_fact_item['variant'] ); ?>"><?php echo esc_html( (string) $summary_fact_item['value'] ); ?></span>
+            <div class="crm-summary-header__aside">
+              <dl class="crm-summary-header__context-list">
+                <?php foreach ( $summary_context_items as $summary_context_item ) : ?>
+                <div class="crm-summary-header__context-item">
+                  <dt><?php echo esc_html( (string) $summary_context_item['label'] ); ?></dt>
+                  <dd><?php echo esc_html( (string) $summary_context_item['value'] ); ?></dd>
+                </div>
+                <?php endforeach; ?>
+              </dl>
+              <div class="crm-summary-header__actions">
+                <a class="btn btn--solid btn--blue" href="#crm-add-reminder"><?php esc_html_e( 'Add reminder', 'peracrm' ); ?></a>
+                <a class="btn btn--ghost btn--blue" href="#peracrm_note_body_frontend"><?php esc_html_e( 'Add note', 'peracrm' ); ?></a>
+                <?php if ( '' !== $call_link ) : ?><a class="btn btn--ghost btn--blue" href="<?php echo esc_url( $call_link ); ?>"><?php esc_html_e( 'Call', 'peracrm' ); ?></a><?php endif; ?>
+                <?php if ( '' !== $whatsapp_link ) : ?><a class="btn btn--ghost btn--green" href="<?php echo esc_url( $whatsapp_link ); ?>" target="_blank" rel="noopener noreferrer"><?php esc_html_e( 'WhatsApp', 'peracrm' ); ?></a><?php endif; ?>
+                <?php if ( '' !== $email_link ) : ?><a class="btn btn--ghost btn--blue" href="<?php echo esc_url( $email_link ); ?>"><?php esc_html_e( 'Email', 'peracrm' ); ?></a><?php endif; ?>
               </div>
-              <?php endforeach; ?>
             </div>
           </div>
           <div class="crm-client-kpis crm-summary-header__kpis">
-            <article class="crm-client-kpi-card"><span class="crm-client-kpi-card__label"><?php esc_html_e( 'Open reminders', 'peracrm' ); ?></span><strong><?php echo esc_html( (string) $open_reminders ); ?></strong></article>
-            <article class="crm-client-kpi-card"><span class="crm-client-kpi-card__label"><?php esc_html_e( 'Overdue reminders', 'peracrm' ); ?></span><strong><?php echo esc_html( (string) $overdue_reminders ); ?></strong></article>
-            <article class="crm-client-kpi-card"><span class="crm-client-kpi-card__label"><?php esc_html_e( 'Linked properties', 'peracrm' ); ?></span><strong><?php echo esc_html( (string) $property_total ); ?></strong></article>
-            <article class="crm-client-kpi-card"><span class="crm-client-kpi-card__label"><?php esc_html_e( 'Deals', 'peracrm' ); ?></span><strong><?php echo esc_html( (string) $deals_count ); ?></strong></article>
+            <?php foreach ( $summary_stat_items as $summary_stat_item ) : ?>
+            <article class="crm-client-kpi-card">
+              <span class="crm-client-kpi-card__label"><?php echo esc_html( (string) $summary_stat_item['label'] ); ?></span>
+              <strong><?php echo esc_html( (string) $summary_stat_item['value'] ); ?></strong>
+            </article>
+            <?php endforeach; ?>
           </div>
         </section>
 
         <div class="crm-client-detail-layout">
           <div class="crm-client-detail-layout__main">
-            <article class="crm-section crm-section--flush crm-client-reminders" data-crm-panel="reminders">
+            <article id="crm-client-next-actions" class="crm-section crm-section--flush crm-client-reminders" data-crm-panel="reminders">
               <header class="crm-section__header">
                 <div class="crm-section__heading-group">
-                  <h3 class="crm-section__title"><?php esc_html_e( 'Next actions', 'peracrm' ); ?></h3>
+                  <h3 class="crm-section__title"><?php esc_html_e( 'Next actions and reminders', 'peracrm' ); ?></h3>
                   <p class="crm-section__description"><?php esc_html_e( 'Use this area first for due-now work, quick completions, and adding the next reminder.', 'peracrm' ); ?></p>
                 </div>
               </header>
               <div class="crm-section__body">
+                <div class="crm-client-next-step">
+                  <div class="crm-client-next-step__item"><span class="crm-client-next-step__label"><?php esc_html_e( 'Overdue', 'peracrm' ); ?></span><strong><?php echo esc_html( (string) $overdue_reminders ); ?></strong></div>
+                  <div class="crm-client-next-step__item"><span class="crm-client-next-step__label"><?php esc_html_e( 'Due today', 'peracrm' ); ?></span><strong><?php echo esc_html( (string) count( $today_reminders ) ); ?></strong></div>
+                  <div class="crm-client-next-step__item crm-client-next-step__item--focus"><span class="crm-client-next-step__label"><?php esc_html_e( 'Next step', 'peracrm' ); ?></span><p><?php echo esc_html( $next_step_label ); ?></p></div>
+                </div>
                 <div class="crm-client-reminders-grid crm-client-task-groups">
                   <?php foreach ( array(
-                    'today' => array( 'title' => __( 'Due today', 'peracrm' ), 'items' => $today_reminders, 'chip' => 'crm-chip--status', 'empty' => __( 'No reminders due today.', 'peracrm' ) ),
                     'overdue' => array( 'title' => __( 'Overdue', 'peracrm' ), 'items' => $overdue_task_rows, 'chip' => 'crm-chip--urgent', 'empty' => __( 'No overdue reminders.', 'peracrm' ) ),
+                    'today' => array( 'title' => __( 'Due today', 'peracrm' ), 'items' => $today_reminders, 'chip' => 'crm-chip--status', 'empty' => __( 'No reminders due today.', 'peracrm' ) ),
                     'upcoming' => array( 'title' => __( 'Upcoming', 'peracrm' ), 'items' => $upcoming_rows, 'chip' => 'crm-chip--neutral', 'empty' => __( 'No upcoming reminders.', 'peracrm' ) ),
                   ) as $task_group_key => $task_group ) : ?>
                   <section class="crm-client-task-group crm-client-task-group--<?php echo esc_attr( $task_group_key ); ?>">
@@ -590,7 +633,7 @@ peracrm_frontend_render_shell_header();
               </div>
             </section>
 
-            <article class="crm-section crm-section--flush" data-client-id="<?php echo esc_attr( (string) $client_id ); ?>">
+            <article class="crm-section crm-section--flush crm-client-related" data-client-id="<?php echo esc_attr( (string) $client_id ); ?>">
               <header class="crm-section__header">
                 <div class="crm-section__heading-group">
                   <h3 class="crm-section__title"><?php esc_html_e( 'Related records', 'peracrm' ); ?></h3>
