@@ -115,6 +115,15 @@ peracrm_frontend_render_shell_header( array( 'show_crm_nav_toggle' => false ) );
 		  array(
 			  'title'       => __( 'Create new lead', 'peracrm' ),
 			  'description' => __( 'Add a lead directly from the front-end CRM workspace.', 'peracrm' ),
+			  'meta'        => __( 'New record', 'peracrm' ),
+			  'actions'     => array(
+				array(
+					'label' => __( 'Back to clients', 'peracrm' ),
+					'url'   => home_url( '/crm/clients/' ),
+					'class' => 'btn btn--ghost btn--blue',
+					'type'  => 'secondary',
+				),
+			  ),
 		  )
 	  );
   }

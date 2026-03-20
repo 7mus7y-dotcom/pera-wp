@@ -28,6 +28,15 @@ peracrm_frontend_render_shell_header();
 		  array(
 			  'title'       => __( 'Pipeline', 'peracrm' ),
 			  'description' => __( 'Manage leads and clients by stage', 'peracrm' ),
+			  'meta'        => sprintf( __( '%d stages', 'peracrm' ), count( $columns ) ),
+			  'actions'     => array(
+				array(
+					'label' => __( 'Create lead', 'peracrm' ),
+					'url'   => home_url( '/crm/new/' ),
+					'class' => 'btn btn--solid btn--blue',
+					'type'  => 'primary',
+				),
+			  ),
 			  'active_view' => 'pipeline',
 		  )
 	  );

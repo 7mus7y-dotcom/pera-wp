@@ -225,7 +225,17 @@ peracrm_frontend_render_shell_header();
 <main id="primary" class="site-main crm-page crm-page--client-view">
   <?php
   $header_args = array(
-	  'title' => __( 'Client View', 'peracrm' ),
+	  'title' => empty( $access['allowed'] ) ? __( 'Client View', 'peracrm' ) : get_the_title( $client ),
+	  'description' => empty( $access['allowed'] ) ? '' : __( 'Client record workspace', 'peracrm' ),
+	  'meta' => empty( $access['allowed'] ) ? '' : sprintf( __( '%1$s • Advisor: %2$s • Last activity: %3$s', 'peracrm' ), $derived_type_label, $advisor_label, $last_activity ),
+	  'actions' => empty( $access['allowed'] ) ? array() : array(
+		array(
+			'label' => __( 'Back to clients', 'peracrm' ),
+			'url'   => 'lead' === $derived_type ? $leads_url : $clients_url,
+			'class' => 'btn btn--ghost btn--blue',
+			'type'  => 'secondary',
+		),
+	  ),
 	  'active_view' => 'clients',
   );
 
