@@ -3620,3 +3620,198 @@ body.crm-route #site-header.peracrm-shell-header.is-scrolled .peracrm-header-act
     display: none;
   }
 }
+
+/* =======================================================
+   PHASE 5 — LIST/TASK WORKSPACES
+   ======================================================= */
+.crm-page .crm-list-workspace-toolbar {
+  margin: 0 0 20px;
+  padding: 18px 20px;
+  border: 1px solid var(--border, #e8ecf2);
+  border-radius: 18px;
+  background: #ffffff;
+}
+
+.crm-page .crm-list-workspace-toolbar__row {
+  align-items: flex-start;
+  gap: 18px;
+}
+
+.crm-page .crm-list-workspace-toolbar__summary {
+  display: grid;
+  gap: 8px;
+  min-width: 0;
+  flex: 1 1 540px;
+}
+
+.crm-page .crm-list-workspace-toolbar__summary h2 {
+  margin: 0;
+  font-size: 1.15rem;
+  line-height: 1.3;
+}
+
+.crm-page .crm-list-workspace-toolbar__summary p {
+  margin: 0;
+  color: var(--text-soft, #4b5563);
+}
+
+.crm-page .crm-list-workspace-toolbar__meta {
+  gap: 8px 14px;
+}
+
+.crm-page .crm-list-workspace-toolbar__actions {
+  justify-content: flex-end;
+  align-items: flex-start;
+  flex-wrap: wrap;
+  flex: 0 1 auto;
+}
+
+.crm-page .crm-list-workspace-toolbar__scope,
+.crm-page .crm-type-toggle {
+  display: inline-flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.crm-page .crm-view-toggle--secondary {
+  padding: 4px;
+  border: 1px solid var(--border, #e8ecf2);
+  border-radius: 999px;
+  background: var(--surface-soft, #f8fafc);
+}
+
+.crm-page .crm-view-toggle--secondary .btn {
+  min-height: 36px;
+  padding: 8px 14px;
+  font-size: 0.85rem;
+}
+
+.crm-page .crm-view-toggle--secondary .btn--ghost {
+  background: transparent;
+  border-color: transparent;
+  color: var(--text-soft, #4b5563);
+}
+
+.crm-page .crm-view-toggle--secondary .btn--solid {
+  background: #ffffff;
+  color: var(--brand, #002d72);
+  border-color: var(--border, #e8ecf2);
+  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.08);
+}
+
+.crm-page .crm-list-workspace {
+  margin-bottom: 20px;
+}
+
+.crm-page .crm-list-workspace--table-first .crm-section__body,
+.crm-page .crm-list-workspace--rows .crm-section__body,
+.crm-page .crm-list-workspace__group .crm-section__body {
+  display: grid;
+  gap: 14px;
+}
+
+.crm-page .crm-list-workspace__table-wrap {
+  margin-bottom: 0;
+  overflow-x: auto;
+}
+
+.crm-page .crm-list-workspace__table th,
+.crm-page .crm-list-workspace__table td {
+  padding-top: 12px;
+  padding-bottom: 12px;
+}
+
+.crm-page .crm-list-workspace__table thead th {
+  white-space: nowrap;
+}
+
+.crm-page .crm-list-workspace__table .crm-table__primary {
+  gap: 2px;
+}
+
+.crm-page .crm-list-workspace__table .crm-table__subtext {
+  color: var(--text-soft, #4b5563);
+}
+
+.crm-page .crm-list-workspace--grouped,
+.crm-page .crm-list-workspace--rows {
+  display: grid;
+  gap: 16px;
+}
+
+.crm-page .crm-list-workspace__group {
+  border: 1px solid var(--border, #e8ecf2);
+  border-radius: 18px;
+  background: #ffffff;
+}
+
+.crm-page .crm-list-workspace__group--urgent {
+  border-color: rgba(220, 38, 38, 0.18);
+}
+
+.crm-page .crm-list-workspace__rows .crm-row-list__item {
+  padding-block: 14px;
+}
+
+.crm-page .crm-list-workspace__rows .crm-row-list__summary {
+  margin-bottom: 0;
+}
+
+.crm-page .crm-list-workspace__rows .crm-row-list__aside {
+  align-items: flex-end;
+}
+
+.crm-page .crm-list-workspace__rows .crm-action-group {
+  justify-content: flex-end;
+}
+
+.crm-page--leads .crm-table-wrap,
+.crm-page--tasks .crm-table-wrap {
+  border-radius: 16px;
+  border: 1px solid var(--border, #e8ecf2);
+  background: #ffffff;
+}
+
+.crm-page--leads .crm-leads-table tbody tr:hover,
+.crm-page--tasks .crm-leads-table tbody tr:hover {
+  background: #f8fafc;
+}
+
+@media (max-width: 1024px) {
+  .crm-page .crm-list-workspace-toolbar {
+    padding: 16px;
+  }
+
+  .crm-page .crm-list-workspace-toolbar__actions {
+    width: 100%;
+    justify-content: flex-start;
+  }
+}
+
+@media (max-width: 767px) {
+  .crm-page .crm-list-workspace-toolbar__row {
+    flex-direction: column;
+  }
+
+  .crm-page .crm-list-workspace-toolbar__actions,
+  .crm-page .crm-list-workspace-toolbar__scope,
+  .crm-page .crm-type-toggle,
+  .crm-page .crm-view-toggle--secondary {
+    width: 100%;
+  }
+
+  .crm-page .crm-view-toggle--secondary {
+    justify-content: space-between;
+  }
+
+  .crm-page .crm-view-toggle--secondary .btn {
+    flex: 1 1 0;
+  }
+
+  .crm-page .crm-list-workspace__rows .crm-row-list__aside,
+  .crm-page .crm-list-workspace__rows .crm-action-group {
+    width: 100%;
+    justify-content: flex-start;
+  }
+}
