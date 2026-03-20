@@ -69,6 +69,7 @@ if ( function_exists( 'peracrm_frontend_render_partial' ) ) {
 		array(
 			'title'       => $is_whatsapp ? __( 'WhatsApp Logs', 'peracrm' ) : __( 'Email Logs', 'peracrm' ),
 			'description' => __( 'Operational communication logs', 'peracrm' ),
+			'meta'        => __( 'Recent operational events', 'peracrm' ),
 			'active_view' => $view,
 		)
 	);

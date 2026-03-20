@@ -88,9 +88,24 @@ peracrm_frontend_render_shell_header();
 
 <main id="primary" class="site-main crm-page crm-page--<?php echo esc_attr( $is_leads ? 'leads' : ( $is_tasks ? 'tasks' : 'overview' ) ); ?>">
   <?php
+  $header_title = $is_leads ? ( $clients_type_view === 'clients' ? __( 'Clients', 'peracrm' ) : ( $clients_type_view === 'inactive' ? __( 'Inactive records', 'peracrm' ) : __( 'Leads', 'peracrm' ) ) ) : ( $is_tasks ? __( 'Tasks', 'peracrm' ) : __( 'CRM overview', 'peracrm' ) );
+  $header_description = $is_leads ? __( 'Manage lead and client records without hero-framed filters.', 'peracrm' ) : ( $is_tasks ? __( 'Track open reminders and due work in a compact workspace shell.', 'peracrm' ) : __( 'Staff workspace for daily pipeline, workload, and account visibility.', 'peracrm' ) );
+  $header_meta = $is_leads ? sprintf( __( '%d total records', 'peracrm' ), (int) ( $leads_data['total'] ?? 0 ) ) : ( $is_tasks ? sprintf( __( '%d open tasks', 'peracrm' ), count( is_array( $tasks_data['all'] ?? null ) ? $tasks_data['all'] : array() ) ) : __( 'Operational workspace', 'peracrm' ) );
+  $header_actions = array();
+  if ( $is_leads || ! $is_tasks ) {
+	  $header_actions[] = array(
+		  'label' => __( 'Create lead', 'peracrm' ),
+		  'url'   => $new_lead_url,
+		  'class' => 'btn btn--solid btn--blue',
+		  'type'  => 'primary',
+	  );
+  }
+
   $header_args = array(
-	  'title'       => __( 'CRM', 'peracrm' ),
-	  'description' => __( 'Staff workspace for daily pipeline, workload, and account visibility.', 'peracrm' ),
+	  'title'       => $header_title,
+	  'description' => $header_description,
+	  'meta'        => $header_meta,
+	  'actions'     => $header_actions,
 	  'active_view' => $crm_active_view,
 	  'show_client_filters' => $is_leads,
 	  'stages'      => $stages,
@@ -313,7 +328,7 @@ peracrm_frontend_render_shell_header();
 			$show_assigned  = ! empty( $task_rows ) && empty( $tasks_data['is_employee'] );
 			$tasks_page_url = home_url( wp_unslash( (string) ( $_SERVER['REQUEST_URI'] ?? '/crm/tasks/' ) ) );
 			?>
-      <div class="crm-leads-toolbar">
+      <div class="crm-toolbar crm-toolbar--content"><div class="crm-toolbar__row crm-leads-toolbar">
         <div>
           <h2><?php echo esc_html__( 'Tasks', 'peracrm' ); ?></h2>
           <p><?php echo esc_html( sprintf( __( '%d open tasks (reminders)', 'peracrm' ), count( $task_rows ) ) ); ?></p>
@@ -324,7 +339,7 @@ peracrm_frontend_render_shell_header();
             <button type="button" class="btn btn--ghost btn--blue" data-view="table" aria-pressed="false"><?php echo esc_html__( 'Table', 'peracrm' ); ?></button>
           </div>
         </div>
-      </div>
+      </div></div>
 
       <div class="crm-lead-cards" data-crm-view="cards">
         <section class="section" aria-labelledby="crm-tasks-today-heading">
@@ -448,7 +463,7 @@ peracrm_frontend_render_shell_header();
 				'dormant' => __( 'Dormant', 'peracrm' ),
 			);
 			?>
-      <div class="crm-leads-toolbar">
+      <div class="crm-toolbar crm-toolbar--content"><div class="crm-toolbar__row crm-leads-toolbar">
         <div>
           <h2><?php echo esc_html( $is_inactive ? __( 'Inactive', 'peracrm' ) : ( 'clients' === $clients_type_view ? __( 'Clients', 'peracrm' ) : __( 'Leads', 'peracrm' ) ) ); ?></h2>
           <p><?php echo esc_html__( 'Leads are those who have not invested with us. Clients are those who have invested with us or have property that they wish to sell or rent.', 'peracrm' ); ?></p>
@@ -460,13 +475,12 @@ peracrm_frontend_render_shell_header();
             <a class="btn <?php echo esc_attr( 'clients' === $clients_type_view ? 'btn--solid' : 'btn--ghost' ); ?> btn--blue" href="<?php echo esc_url( add_query_arg( 'type', 'clients', home_url( '/crm/clients/' ) ) ); ?>"><?php esc_html_e( 'Clients', 'peracrm' ); ?></a>
             <a class="btn <?php echo esc_attr( $is_inactive ? 'btn--solid' : 'btn--ghost' ); ?> btn--blue" href="<?php echo esc_url( add_query_arg( 'type', 'inactive', home_url( '/crm/clients/' ) ) ); ?>"><?php esc_html_e( 'Inactive', 'peracrm' ); ?></a>
           </div>
-          <a class="btn btn--solid btn--blue" href="<?php echo esc_url( $new_lead_url ); ?>"><?php echo esc_html__( 'Create lead', 'peracrm' ); ?></a>
           <div class="crm-view-toggle" data-crm-view-toggle data-storage-key="peracrm_clients_view">
             <button type="button" class="btn btn--solid btn--blue" data-view="cards" aria-pressed="true"><?php echo esc_html__( 'Cards', 'peracrm' ); ?></button>
             <button type="button" class="btn btn--ghost btn--blue" data-view="table" aria-pressed="false"><?php echo esc_html__( 'Table', 'peracrm' ); ?></button>
           </div>
         </div>
-      </div>
+      </div></div>
 
       <div class="crm-leads-table-wrap crm-table-wrap is-hidden" data-crm-view="table">
         <table class="crm-leads-table crm-table" data-crm-sort-table>

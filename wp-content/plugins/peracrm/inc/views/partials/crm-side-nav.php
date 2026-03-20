@@ -24,7 +24,6 @@ $items = array(
 	'clients' => array( 'label' => __( 'Clients', 'peracrm' ), 'url' => home_url( '/crm/clients/' ) ),
 	'tasks' => array( 'label' => __( 'Tasks', 'peracrm' ), 'url' => home_url( '/crm/tasks/' ) ),
 	'pipeline' => array( 'label' => __( 'Pipeline', 'peracrm' ), 'url' => home_url( '/crm/pipeline/' ) ),
-	'create_lead' => array( 'label' => __( 'Create lead', 'peracrm' ), 'url' => home_url( '/crm/new/' ) ),
 );
 if ( $can_view_logs ) {
 	$items['whatsapp_logs'] = array( 'label' => __( 'WhatsApp logs', 'peracrm' ), 'url' => home_url( '/crm/whatsapp-logs/' ) );
@@ -77,6 +76,7 @@ if ( $can_view_logs ) {
         <div class="crm-side-nav__drawer-section crm-side-nav__drawer-section--utility" aria-label="<?php echo esc_attr__( 'CRM utility links', 'peracrm' ); ?>">
           <p class="crm-side-nav__eyebrow"><?php esc_html_e( 'Quick access', 'peracrm' ); ?></p>
           <div class="crm-side-nav__utility-list">
+            <a href="<?php echo esc_url( home_url( '/crm/new/' ) ); ?>"><?php esc_html_e( 'Create lead', 'peracrm' ); ?></a>
             <a href="<?php echo esc_url( home_url( '/crm/' ) ); ?>"><?php esc_html_e( 'Dashboard home', 'peracrm' ); ?></a>
             <a href="<?php echo esc_url( home_url( '/' ) ); ?>"><?php esc_html_e( 'Return to website', 'peracrm' ); ?></a>
           </div>
