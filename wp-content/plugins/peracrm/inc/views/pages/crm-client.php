@@ -269,17 +269,39 @@ peracrm_frontend_render_shell_header();
         );
         $client_type_summary = '' !== $client_type_value ? ucfirst( str_replace( '_', ' ', $client_type_value ) ) : __( 'Not set', 'peracrm' );
         $primary_source_label = ! empty( $source_pills ) ? (string) reset( $source_pills ) : __( 'Not captured', 'peracrm' );
-        $next_step_label      = __( 'Add the next reminder.', 'peracrm' );
+        $next_step_label      = __( 'Add next reminder', 'peracrm' );
         $next_step_tone       = 'crm-chip--neutral';
+        $next_step_note       = static function ( array $reminder_row ): string {
+          $note = isset( $reminder_row['note'] ) ? trim( wp_strip_all_tags( (string) $reminder_row['note'] ) ) : '';
 
-        if ( ! empty( $overdue_task_rows[0]['note'] ) ) {
-          $next_step_label = sprintf( __( 'Overdue: %s', 'peracrm' ), (string) $overdue_task_rows[0]['note'] );
+          if ( '' === $note ) {
+            return '';
+          }
+
+          $note = preg_replace( '/\s+/', ' ', $note );
+          return function_exists( 'wp_html_excerpt' ) ? wp_html_excerpt( $note, 44, '…' ) : mb_strimwidth( $note, 0, 44, '…' );
+        };
+
+        if ( ! empty( $overdue_task_rows ) ) {
+          $next_step_label = __( 'Overdue reminder', 'peracrm' );
           $next_step_tone  = 'crm-chip--urgent';
-        } elseif ( ! empty( $today_reminders[0]['note'] ) ) {
-          $next_step_label = sprintf( __( 'Due today: %s', 'peracrm' ), (string) $today_reminders[0]['note'] );
+          $next_step_short = $next_step_note( (array) $overdue_task_rows[0] );
+          if ( '' !== $next_step_short ) {
+            $next_step_label = sprintf( __( 'Overdue reminder: %s', 'peracrm' ), $next_step_short );
+          }
+        } elseif ( ! empty( $today_reminders ) ) {
+          $next_step_label = __( 'Due today reminder', 'peracrm' );
           $next_step_tone  = 'crm-chip--status';
-        } elseif ( ! empty( $upcoming_rows[0]['note'] ) ) {
-          $next_step_label = sprintf( __( 'Upcoming: %s', 'peracrm' ), (string) $upcoming_rows[0]['note'] );
+          $next_step_short = $next_step_note( (array) $today_reminders[0] );
+          if ( '' !== $next_step_short ) {
+            $next_step_label = sprintf( __( 'Due today reminder: %s', 'peracrm' ), $next_step_short );
+          }
+        } elseif ( ! empty( $upcoming_rows ) ) {
+          $next_step_label = __( 'Upcoming reminder', 'peracrm' );
+          $next_step_short = $next_step_note( (array) $upcoming_rows[0] );
+          if ( '' !== $next_step_short ) {
+            $next_step_label = sprintf( __( 'Upcoming reminder: %s', 'peracrm' ), $next_step_short );
+          }
         }
 
         $summary_fact_items = array(
