@@ -4073,8 +4073,10 @@ body.crm-route #site-header.peracrm-shell-header.is-scrolled .peracrm-header-act
   --crm-button-radius: 12px;
   --crm-button-padding-y: 9px;
   --crm-button-padding-x: 14px;
-  --crm-button-compact-padding-y: 7px;
+  --crm-button-compact-padding-y: 6px;
   --crm-button-compact-padding-x: 12px;
+  --crm-button-operational-min-height: 34px;
+  --crm-button-operational-font-size: 0.88rem;
 }
 
 .crm-page .content-panel {
@@ -4118,21 +4120,20 @@ body.crm-route #site-header.peracrm-shell-header.is-scrolled .peracrm-header-act
   min-height: 34px;
 }
 
-.crm-page .crm-toolbar-actions .btn,
-.crm-page .crm-section__actions .btn,
-.crm-page .crm-row-list__actions .btn,
-.crm-page .crm-table__actions .btn,
-.crm-page .crm-view-toggle .btn,
-.crm-page .crm-type-toggle .btn,
-.crm-page .crm-view-toggle--secondary .btn,
+.crm-page .crm-toolbar-actions .btn:not(.crm-icon-btn):not(.peracrm-linked-property-unlink-btn),
+.crm-page .crm-section__actions .btn:not(.crm-icon-btn):not(.peracrm-linked-property-unlink-btn),
+.crm-page .crm-row-list__aside .btn:not(.crm-icon-btn):not(.peracrm-linked-property-unlink-btn),
+.crm-page .crm-row-list__actions .btn:not(.crm-icon-btn):not(.peracrm-linked-property-unlink-btn),
+.crm-page .crm-table__actions .btn:not(.crm-icon-btn):not(.peracrm-linked-property-unlink-btn),
+.crm-page .crm-task-action .btn:not(.crm-icon-btn):not(.peracrm-linked-property-unlink-btn),
+.crm-page .crm-action-group .btn:not(.crm-icon-btn):not(.peracrm-linked-property-unlink-btn),
+.crm-page .crm-view-toggle .btn:not(.crm-icon-btn):not(.peracrm-linked-property-unlink-btn),
+.crm-page .crm-type-toggle .btn:not(.crm-icon-btn):not(.peracrm-linked-property-unlink-btn),
+.crm-page .crm-view-toggle--secondary .btn:not(.crm-icon-btn):not(.peracrm-linked-property-unlink-btn),
 .crm-page .archive-hero-desc__toggle {
   padding: var(--crm-button-compact-padding-y) var(--crm-button-compact-padding-x);
-}
-
-.crm-page .crm-row-list__actions .btn,
-.crm-page .crm-table__actions .btn,
-.crm-page .crm-section__actions .btn {
-  min-height: 34px;
+  min-height: var(--crm-button-operational-min-height);
+  font-size: var(--crm-button-operational-font-size);
 }
 
 .crm-page .crm-view-toggle,
