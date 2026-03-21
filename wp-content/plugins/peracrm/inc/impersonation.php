@@ -131,20 +131,38 @@ if (!function_exists('peracrm_get_impersonation_targets')) {
             return [];
         }
 
-        $users = get_users([
-            'role__in' => ['employee'],
+        $current_blog_id = function_exists('get_current_blog_id') ? (int) get_current_blog_id() : 0;
+        $user_query_args = [
             'orderby' => 'display_name',
             'order' => 'ASC',
             'fields' => ['ID', 'display_name', 'roles'],
-        ]);
+        ];
 
+        if (is_multisite()) {
+            $user_query_args['blog_id'] = $current_blog_id > 0 ? $current_blog_id : 0;
+        }
+
+        $users = get_users($user_query_args);
         $targets = [];
+
         foreach ($users as $user) {
             if (!$user instanceof WP_User) {
                 continue;
             }
 
             $user_id = (int) $user->ID;
+            if ($user_id <= 0) {
+                continue;
+            }
+
+            if (is_multisite() && $current_blog_id > 0 && function_exists('is_user_member_of_blog') && !is_user_member_of_blog($user_id, $current_blog_id)) {
+                continue;
+            }
+
+            if (function_exists('peracrm_user_can_access_crm') && !peracrm_user_can_access_crm($user_id)) {
+                continue;
+            }
+
             if (!peracrm_user_is_impersonatable_target($user_id)) {
                 continue;
             }
