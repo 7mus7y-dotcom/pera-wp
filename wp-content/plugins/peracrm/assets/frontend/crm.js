@@ -176,156 +176,327 @@
 })();
 
 (function () {
-  var root = document.querySelector('[data-crm-view-toggle]');
-  var storageKey = root && root.getAttribute('data-storage-key') ? root.getAttribute('data-storage-key') : 'peracrm_clients_view';
-  if (!root) {
-    return;
-  }
-
-  var buttons = Array.prototype.slice.call(root.querySelectorAll('button[data-view]'));
-  var tableView = document.querySelector('[data-crm-view="table"]');
-  var cardsView = document.querySelector('[data-crm-view="cards"]');
-
-  function applyView(view) {
-    var isCards = view !== 'table';
-
-    if (tableView) {
-      tableView.classList.toggle('is-hidden', isCards);
+  function initViewToggle(root) {
+    if (!root || root.getAttribute('data-crm-view-toggle-initialized') === 'true') {
+      return;
     }
-    if (cardsView) {
-      cardsView.classList.toggle('is-hidden', !isCards);
+
+    var storageKey = root.getAttribute('data-storage-key') ? root.getAttribute('data-storage-key') : 'peracrm_clients_view';
+    var scope = root.closest('[data-crm-clients-workspace], .crm-layout__main, main, body') || document;
+    var buttons = Array.prototype.slice.call(root.querySelectorAll('button[data-view]'));
+    var tableView = scope.querySelector('[data-crm-view="table"]');
+    var cardsView = scope.querySelector('[data-crm-view="cards"]');
+
+    if (!buttons.length || (!tableView && !cardsView)) {
+      return;
     }
+
+    function applyView(view) {
+      var isCards = view !== 'table';
+
+      if (tableView) {
+        tableView.classList.toggle('is-hidden', isCards);
+      }
+      if (cardsView) {
+        cardsView.classList.toggle('is-hidden', !isCards);
+      }
+
+      buttons.forEach(function (button) {
+        var active = button.getAttribute('data-view') === (isCards ? 'cards' : 'table');
+        button.classList.toggle('btn--solid', active);
+        button.classList.toggle('btn--ghost', !active);
+        button.setAttribute('aria-pressed', active ? 'true' : 'false');
+      });
+    }
+
+    var stored = '';
+    try {
+      stored = window.localStorage.getItem(storageKey) || '';
+    } catch (e) {
+      stored = '';
+    }
+
+    var defaultDesktop = root.getAttribute('data-default-desktop') === 'cards' ? 'cards' : 'table';
+    var defaultMobile = root.getAttribute('data-default-mobile') === 'table' ? 'table' : 'cards';
+    var prefersMobileDefault = window.matchMedia && window.matchMedia('(max-width: 767px)').matches;
+    var fallbackView = prefersMobileDefault ? defaultMobile : defaultDesktop;
+    var initial = stored === 'table' || stored === 'cards' ? stored : fallbackView;
+    applyView(initial);
 
     buttons.forEach(function (button) {
-      var active = button.getAttribute('data-view') === (isCards ? 'cards' : 'table');
-      button.classList.toggle('btn--solid', active);
-      button.classList.toggle('btn--ghost', !active);
-      button.setAttribute('aria-pressed', active ? 'true' : 'false');
+      button.addEventListener('click', function () {
+        var view = button.getAttribute('data-view') === 'table' ? 'table' : 'cards';
+        applyView(view);
+        try {
+          window.localStorage.setItem(storageKey, view);
+        } catch (e) {}
+      });
     });
+
+    root.setAttribute('data-crm-view-toggle-initialized', 'true');
   }
 
-  var stored = '';
-  try {
-    stored = window.localStorage.getItem(storageKey) || '';
-  } catch (e) {
-    stored = '';
-  }
+  function initSortableTable(table) {
+    if (!table || table.getAttribute('data-crm-sort-table-initialized') === 'true') {
+      return;
+    }
 
-  var defaultDesktop = root.getAttribute('data-default-desktop') === 'cards' ? 'cards' : 'table';
-  var defaultMobile = root.getAttribute('data-default-mobile') === 'table' ? 'table' : 'cards';
-  var prefersMobileDefault = window.matchMedia && window.matchMedia('(max-width: 767px)').matches;
-  var fallbackView = prefersMobileDefault ? defaultMobile : defaultDesktop;
-  var initial = stored === 'table' || stored === 'cards' ? stored : fallbackView;
-  applyView(initial);
+    var tbody = table.querySelector('tbody');
+    if (!tbody) {
+      return;
+    }
 
-  buttons.forEach(function (button) {
-    button.addEventListener('click', function () {
-      var view = button.getAttribute('data-view') === 'table' ? 'table' : 'cards';
-      applyView(view);
-      try {
-        window.localStorage.setItem(storageKey, view);
-      } catch (e) {}
-    });
-  });
+    var headers = Array.prototype.slice.call(table.querySelectorAll('th [data-sort]'));
+    var state = { key: '', dir: 'asc' };
 
-  var table = document.querySelector('[data-crm-sort-table]') || document.querySelector('.crm-leads-table');
-  if (!table) {
-    return;
-  }
-
-  var tbody = table.querySelector('tbody');
-  if (!tbody) {
-    return;
-  }
-
-  var headers = Array.prototype.slice.call(table.querySelectorAll('th [data-sort]'));
-  var state = { key: '', dir: 'asc' };
-
-  function toComparable(row, key) {
-    var value = String(row.getAttribute('data-' + key) || '').trim();
-    if (key === 'created' || key === 'updated') {
-      var n = Number(value);
-      if (!Number.isNaN(n) && n > 0) {
-        return n;
+    function toComparable(row, key) {
+      var value = String(row.getAttribute('data-' + key) || '').trim();
+      if (key === 'created' || key === 'updated') {
+        var n = Number(value);
+        if (!Number.isNaN(n) && n > 0) {
+          return n;
+        }
+        var d = Date.parse(value);
+        return Number.isNaN(d) ? value.toLowerCase() : d;
       }
-      var d = Date.parse(value);
-      return Number.isNaN(d) ? value.toLowerCase() : d;
+
+      var maybeNumber = Number(value);
+      if (value !== '' && !Number.isNaN(maybeNumber) && /\d/.test(value)) {
+        return maybeNumber;
+      }
+
+      return value.toLowerCase();
     }
 
-    var maybeNumber = Number(value);
-    if (value !== '' && !Number.isNaN(maybeNumber) && /\d/.test(value)) {
-      return maybeNumber;
+    function compare(a, b, key, dir) {
+      var left = toComparable(a, key);
+      var right = toComparable(b, key);
+      var direction = dir === 'desc' ? -1 : 1;
+
+      if (typeof left === 'number' && typeof right === 'number') {
+        return (left - right) * direction;
+      }
+
+      return String(left).localeCompare(String(right), undefined, { sensitivity: 'base' }) * direction;
     }
 
-    return value.toLowerCase();
-  }
-
-  function compare(a, b, key, dir) {
-    var left = toComparable(a, key);
-    var right = toComparable(b, key);
-    var direction = dir === 'desc' ? -1 : 1;
-
-    if (typeof left === 'number' && typeof right === 'number') {
-      return (left - right) * direction;
+    function updateHeaderState(activeKey, dir) {
+      headers.forEach(function (button) {
+        var th = button.closest('th');
+        var indicator = button.querySelector('.peracrm-sort-indicator');
+        var isActive = button.getAttribute('data-sort') === activeKey;
+        if (th) {
+          th.setAttribute('aria-sort', isActive ? (dir === 'desc' ? 'descending' : 'ascending') : 'none');
+        }
+        if (indicator) {
+          indicator.textContent = isActive ? (dir === 'desc' ? '▼' : '▲') : '';
+        }
+      });
     }
 
-    return String(left).localeCompare(String(right), undefined, { sensitivity: 'base' }) * direction;
-  }
+    function sortRows(key) {
+      var dir = state.key === key && state.dir === 'asc' ? 'desc' : 'asc';
+      state = { key: key, dir: dir };
 
-  function updateHeaderState(activeKey, dir) {
+      var rows = Array.prototype.slice.call(tbody.querySelectorAll('tr[data-sort-row], tr[data-name]'));
+      rows.sort(function (a, b) {
+        return compare(a, b, key, dir);
+      });
+      rows.forEach(function (row) {
+        tbody.appendChild(row);
+      });
+
+      updateHeaderState(key, dir);
+    }
+
     headers.forEach(function (button) {
-      var th = button.closest('th');
-      var indicator = button.querySelector('.peracrm-sort-indicator');
-      var isActive = button.getAttribute('data-sort') === activeKey;
-      if (th) {
-        th.setAttribute('aria-sort', isActive ? (dir === 'desc' ? 'descending' : 'ascending') : 'none');
+      button.addEventListener('click', function () {
+        sortRows(button.getAttribute('data-sort'));
+      });
+    });
+
+    tbody.addEventListener('click', function (event) {
+      var target = event.target;
+      if (!target) {
+        return;
       }
-      if (indicator) {
-        indicator.textContent = isActive ? (dir === 'desc' ? '▼' : '▲') : '';
+
+      if (target.closest('a, button, input, select, textarea')) {
+        return;
+      }
+
+      var row = target.closest('tr[data-row-url]');
+      if (!row) {
+        return;
+      }
+
+      var url = row.getAttribute('data-row-url');
+      if (url) {
+        window.location.href = url;
+      }
+    });
+
+    table.setAttribute('data-crm-sort-table-initialized', 'true');
+  }
+
+  function initCrmWorkspaceBehaviors(scope) {
+    var root = scope && scope.querySelectorAll ? scope : document;
+
+    Array.prototype.slice.call(root.querySelectorAll('[data-crm-view-toggle]')).forEach(initViewToggle);
+    Array.prototype.slice.call(root.querySelectorAll('[data-crm-sort-table], .crm-leads-table')).forEach(initSortableTable);
+  }
+
+  window.peraCrmInitWorkspaceBehaviors = initCrmWorkspaceBehaviors;
+  initCrmWorkspaceBehaviors(document);
+})();
+
+(function () {
+  var clientsPathPattern = /\/crm\/clients\/?$/;
+  var workspaceSelector = '[data-crm-clients-workspace]';
+  var toggleSelector = '[data-crm-clients-type-toggle]';
+  var inFlightController = null;
+
+  function isClientsRoute(url) {
+    var pathname = url && url.pathname ? url.pathname : window.location.pathname;
+    return clientsPathPattern.test(pathname);
+  }
+
+  function getWorkspace() {
+    return document.querySelector(workspaceSelector);
+  }
+
+  function getToggle() {
+    return document.querySelector(toggleSelector);
+  }
+
+  function setToggleDisabled(toggle, disabled) {
+    if (!toggle) {
+      return;
+    }
+
+    Array.prototype.slice.call(toggle.querySelectorAll('a[href]')).forEach(function (link) {
+      if (disabled) {
+        link.setAttribute('aria-disabled', 'true');
+        link.setAttribute('tabindex', '-1');
+      } else {
+        link.removeAttribute('aria-disabled');
+        link.removeAttribute('tabindex');
       }
     });
   }
 
-  function sortRows(key) {
-    var dir = state.key === key && state.dir === 'asc' ? 'desc' : 'asc';
-    state = { key: key, dir: dir };
+  function setLoadingState(workspace, toggle, isLoading) {
+    if (!workspace) {
+      return;
+    }
 
-    var rows = Array.prototype.slice.call(tbody.querySelectorAll('tr[data-sort-row], tr[data-name]'));
-    rows.sort(function (a, b) {
-      return compare(a, b, key, dir);
-    });
-    rows.forEach(function (row) {
-      tbody.appendChild(row);
-    });
-
-    updateHeaderState(key, dir);
+    workspace.classList.toggle('is-loading', isLoading);
+    workspace.setAttribute('aria-busy', isLoading ? 'true' : 'false');
+    setToggleDisabled(toggle, isLoading);
   }
 
-  headers.forEach(function (button) {
-    button.addEventListener('click', function () {
-      sortRows(button.getAttribute('data-sort'));
+  function swapWorkspaceFromHtml(html) {
+    var parser = new window.DOMParser();
+    var nextDocument = parser.parseFromString(html, 'text/html');
+    var nextWorkspace = nextDocument.querySelector(workspaceSelector);
+    var currentWorkspace = getWorkspace();
+
+    if (!nextWorkspace || !currentWorkspace || !currentWorkspace.parentNode) {
+      throw new Error('CRM clients workspace was not found in the response.');
+    }
+
+    currentWorkspace.parentNode.replaceChild(nextWorkspace, currentWorkspace);
+    if (typeof window.peraCrmInitWorkspaceBehaviors === 'function') {
+      window.peraCrmInitWorkspaceBehaviors(nextWorkspace);
+    }
+  }
+
+  function fetchAndSwap(url, options) {
+    var targetUrl = url instanceof window.URL ? url : new window.URL(url, window.location.origin);
+    var workspace = getWorkspace();
+    var toggle = getToggle();
+
+    if (!workspace || !toggle || !isClientsRoute(targetUrl)) {
+      window.location.href = targetUrl.toString();
+      return Promise.resolve(false);
+    }
+
+    if (inFlightController) {
+      inFlightController.abort();
+    }
+
+    inFlightController = new window.AbortController();
+    setLoadingState(workspace, toggle, true);
+
+    return window.fetch(targetUrl.toString(), {
+      method: 'GET',
+      credentials: 'same-origin',
+      headers: {
+        'X-Requested-With': 'fetch',
+        'Accept': 'text/html'
+      },
+      signal: inFlightController.signal
+    }).then(function (response) {
+      if (!response.ok) {
+        throw new Error('CRM clients workspace request failed.');
+      }
+      return response.text();
+    }).then(function (html) {
+      swapWorkspaceFromHtml(html);
+      if (!options || options.pushState !== false) {
+        window.history.pushState({ crmClientsWorkspace: true, url: targetUrl.toString() }, '', targetUrl.toString());
+      }
+      return true;
+    }).catch(function (error) {
+      if (error && error.name === 'AbortError') {
+        return false;
+      }
+
+      if (!options || options.fallback !== false) {
+        window.location.href = targetUrl.toString();
+      }
+      return false;
+    }).finally(function () {
+      inFlightController = null;
+      setLoadingState(getWorkspace(), getToggle(), false);
     });
+  }
+
+  if (!isClientsRoute(new window.URL(window.location.href)) || !getWorkspace() || !getToggle()) {
+    return;
+  }
+
+  document.addEventListener('click', function (event) {
+    var link = event.target.closest(toggleSelector + ' a[href]');
+    if (!link) {
+      return;
+    }
+
+    if (event.defaultPrevented || event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) {
+      return;
+    }
+
+    if (link.getAttribute('aria-disabled') === 'true') {
+      event.preventDefault();
+      return;
+    }
+
+    var targetUrl = new window.URL(link.href, window.location.origin);
+    if (!isClientsRoute(targetUrl)) {
+      return;
+    }
+
+    event.preventDefault();
+    fetchAndSwap(targetUrl);
   });
 
-  tbody.addEventListener('click', function (event) {
-    var target = event.target;
-    if (!target) {
+  window.addEventListener('popstate', function () {
+    var targetUrl = new window.URL(window.location.href);
+    if (!isClientsRoute(targetUrl)) {
       return;
     }
 
-    if (target.closest('a, button, input, select, textarea')) {
-      return;
-    }
-
-    var row = target.closest('tr[data-row-url]');
-    if (!row) {
-      return;
-    }
-
-    var url = row.getAttribute('data-row-url');
-    if (url) {
-      window.location.href = url;
-    }
+    fetchAndSwap(targetUrl, { pushState: false, fallback: true });
   });
 })();
 

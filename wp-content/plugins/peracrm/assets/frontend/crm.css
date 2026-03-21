@@ -4776,3 +4776,12 @@ body.crm-route #site-header.peracrm-shell-header.is-scrolled .peracrm-header-act
     border: 1px solid var(--border);
   }
 }
+
+.crm-page [data-crm-clients-workspace] {
+  transition: opacity 160ms ease;
+}
+
+.crm-page [data-crm-clients-workspace].is-loading {
+  opacity: 0.6;
+  pointer-events: none;
+}
