@@ -773,7 +773,14 @@ function peracrm_handle_add_note()
         peracrm_admin_redirect_with_notice($redirect, 'note_missing');
     }
 
-    $note_id = peracrm_note_add($client_id, get_current_user_id(), $note_body);
+    $actor_user_id = function_exists('peracrm_get_actor_user_id') ? peracrm_get_actor_user_id() : get_current_user_id();
+    $note_id = peracrm_note_add($client_id, $actor_user_id, $note_body);
+    if ($note_id && function_exists('peracrm_log_event')) {
+        peracrm_log_event($client_id, 'note_added', [
+            'note_id' => (int) $note_id,
+            'actor_user_id' => $actor_user_id,
+        ]);
+    }
     if (!$note_id) {
         peracrm_admin_redirect_with_notice($redirect, 'note_failed');
     }
@@ -972,7 +979,7 @@ function peracrm_handle_pipeline_move_stage()
         $payload = [
             'from' => $from_status,
             'to' => $to_status,
-            'actor_user_id' => get_current_user_id(),
+            'actor_user_id' => function_exists('peracrm_get_actor_user_id') ? peracrm_get_actor_user_id() : get_current_user_id(),
             'context' => 'pipeline',
         ];
         if (function_exists('peracrm_log_event')) {
@@ -1041,7 +1048,7 @@ function peracrm_handle_pipeline_bulk_action()
 
     $done = 0;
     $failed = $skipped;
-    $actor_id = get_current_user_id();
+    $actor_id = function_exists('peracrm_get_actor_user_id') ? peracrm_get_actor_user_id() : get_current_user_id();
     $can_reassign = peracrm_admin_user_can_reassign();
     $can_override = $is_admin || ($action_key === 'reassign_advisor' && $can_reassign);
 
@@ -1091,7 +1098,7 @@ function peracrm_handle_pipeline_bulk_action()
                 peracrm_pipeline_bulk_redirect($redirect, $action_key, 0, $total_client_ids, $capped);
             }
             if ($reminder_advisor_id <= 0) {
-                $reminder_advisor_id = $actor_id;
+                $reminder_advisor_id = function_exists('peracrm_get_default_assignee_user_id') ? peracrm_get_default_assignee_user_id($actor_id) : $actor_id;
             }
         }
     }
@@ -1191,6 +1198,7 @@ function peracrm_handle_pipeline_bulk_action()
                     peracrm_log_event($client_id, 'advisor_reassigned', [
                         'from' => $old_advisor,
                         'to' => $new_advisor,
+                        'actor_user_id' => $actor_id,
                     ]);
                 }
             }
@@ -1200,11 +1208,21 @@ function peracrm_handle_pipeline_bulk_action()
         }
 
         if ('add_reminder' === $action_key) {
-            $assigned_advisor = $reminder_advisor_id > 0 ? $reminder_advisor_id : $actor_id;
+            $assigned_advisor = $reminder_advisor_id > 0 ? $reminder_advisor_id : (function_exists('peracrm_get_default_assignee_user_id') ? peracrm_get_default_assignee_user_id($actor_id) : $actor_id);
             $reminder_id = peracrm_reminder_add($client_id, $assigned_advisor, $due_at_mysql, $reminder_note);
             if (!$reminder_id) {
                 $failed++;
                 continue;
+            }
+
+            if (function_exists('peracrm_log_event')) {
+                peracrm_log_event($client_id, 'reminder_added', [
+                    'reminder_id' => (int) $reminder_id,
+                    'advisor_user_id' => (int) $assigned_advisor,
+                    'actor_user_id' => $actor_id,
+                    'context' => 'pipeline_bulk',
+                    'status' => 'pending',
+                ]);
             }
 
             $done++;
@@ -1720,6 +1738,7 @@ function peracrm_handle_reassign_client_advisor()
             peracrm_log_event($client_id, 'advisor_reassigned', [
                 'from' => $old_advisor,
                 'to' => $new_advisor,
+                'actor_user_id' => function_exists('peracrm_get_actor_user_id') ? peracrm_get_actor_user_id() : get_current_user_id(),
             ]);
         }
     }
@@ -1757,7 +1776,7 @@ function peracrm_handle_add_reminder()
         wp_die('Invalid client');
     }
 
-    $current_user_id = get_current_user_id();
+    $current_user_id = function_exists('peracrm_get_actor_user_id') ? peracrm_get_actor_user_id() : get_current_user_id();
     $assigned_advisor_id = function_exists('peracrm_client_get_assigned_advisor_id')
         ? (int) peracrm_client_get_assigned_advisor_id($client_id)
         : 0;
@@ -1786,13 +1805,24 @@ function peracrm_handle_add_reminder()
     $assigned_advisor = function_exists('peracrm_client_get_assigned_advisor_id')
         ? (int) peracrm_client_get_assigned_advisor_id($client_id)
         : 0;
-    if ($assigned_advisor <= 0) {
-        $assigned_advisor = get_current_user_id();
+    if (function_exists('peracrm_resolve_assignee_user_id')) {
+        $assigned_advisor = peracrm_resolve_assignee_user_id(0, $assigned_advisor);
+    } elseif ($assigned_advisor <= 0) {
+        $assigned_advisor = $current_user_id;
     }
 
     $reminder_id = peracrm_reminder_add($client_id, $assigned_advisor, $due_at_mysql, $note);
     if (!$reminder_id) {
         peracrm_admin_redirect_with_notice($redirect, 'reminder_failed');
+    }
+
+    if (function_exists('peracrm_log_event')) {
+        peracrm_log_event($client_id, 'reminder_added', [
+            'reminder_id' => (int) $reminder_id,
+            'advisor_user_id' => (int) $assigned_advisor,
+            'actor_user_id' => $current_user_id,
+            'status' => 'pending',
+        ]);
     }
 
     peracrm_admin_redirect_with_notice($redirect, 'reminder_added');
@@ -1818,13 +1848,23 @@ function peracrm_handle_mark_reminder_done()
         $redirect = get_edit_post_link($client_id, 'raw');
     }
 
-    $result = peracrm_reminders_update_status_authorized($reminder_id, 'done', get_current_user_id());
+    $actor_user_id = function_exists('peracrm_get_actor_user_id') ? peracrm_get_actor_user_id() : get_current_user_id();
+    $result = peracrm_reminders_update_status_authorized($reminder_id, 'done', $actor_user_id);
     if (is_wp_error($result)) {
         if ($result->get_error_code() === 'unauthorized') {
             wp_die('Unauthorized');
         }
 
         peracrm_admin_redirect_with_notice($redirect, 'reminder_failed');
+    }
+
+    if (function_exists('peracrm_log_event')) {
+        peracrm_log_event($client_id, 'reminder_status_changed', [
+            'reminder_id' => (int) $reminder_id,
+            'status' => 'done',
+            'advisor_user_id' => isset($reminder['advisor_user_id']) ? (int) $reminder['advisor_user_id'] : 0,
+            'actor_user_id' => $actor_user_id,
+        ]);
     }
 
     peracrm_admin_redirect_with_notice($redirect, 'reminder_done');
@@ -1874,7 +1914,8 @@ function peracrm_handle_update_reminder_status()
             'enforce_client_scope' => $context === 'frontend',
         );
 
-        $result = peracrm_reminders_update_status_authorized($reminder_id, $status, get_current_user_id(), $args);
+        $actor_user_id = function_exists('peracrm_get_actor_user_id') ? peracrm_get_actor_user_id() : get_current_user_id();
+        $result = peracrm_reminders_update_status_authorized($reminder_id, $status, $actor_user_id, $args);
         if (is_wp_error($result)) {
             $code = $result->get_error_code();
             peracrm_debug_admin_post_log('PERACRM admin-post reminder status error', [
@@ -1885,7 +1926,7 @@ function peracrm_handle_update_reminder_status()
                 'status' => $status,
                 'context' => $context,
                 'args' => $args,
-                'user_id' => get_current_user_id(),
+                'user_id' => $actor_user_id,
             ]);
 
             if ($code === 'invalid_status') {
@@ -1904,6 +1945,15 @@ function peracrm_handle_update_reminder_status()
         }
 
         $status = peracrm_reminders_sanitize_status($status);
+        if (function_exists('peracrm_log_event')) {
+            peracrm_log_event($client_id, 'reminder_status_changed', [
+                'reminder_id' => (int) $reminder_id,
+                'status' => $status,
+                'advisor_user_id' => isset($reminder['advisor_user_id']) ? (int) $reminder['advisor_user_id'] : 0,
+                'actor_user_id' => $actor_user_id,
+            ]);
+        }
+
         if ($status === 'done') {
             peracrm_admin_redirect_with_notice($redirect, 'reminder_done');
         }
@@ -2793,7 +2843,7 @@ function peracrm_handle_convert_to_client()
         'party_id' => $client_id,
         'title' => __('Converted to client', 'peracrm'),
         'stage' => 'completed',
-        'owner_user_id' => get_current_user_id(),
+        'owner_user_id' => function_exists('peracrm_get_default_assignee_user_id') ? peracrm_get_default_assignee_user_id(get_current_user_id()) : get_current_user_id(),
         'currency' => 'USD',
     ]);
 
@@ -2825,6 +2875,13 @@ function peracrm_handle_create_deal()
             'peracrm_deal_error' => rawurlencode($validation_error),
         ], admin_url('post.php')));
         exit;
+    }
+
+    if (isset($_POST['owner_user_id']) && '' !== (string) $_POST['owner_user_id']) {
+        $requested_owner_user_id = absint($_POST['owner_user_id']);
+        if ($requested_owner_user_id > 0 && function_exists('peracrm_user_is_valid_advisor') && !peracrm_user_is_valid_advisor($requested_owner_user_id)) {
+            wp_die('Invalid deal owner', 400);
+        }
     }
 
     $party = peracrm_party_get($client_id);
@@ -2892,6 +2949,13 @@ function peracrm_handle_update_deal()
             'peracrm_deal_id' => $deal_id,
         ], admin_url('post.php')));
         exit;
+    }
+
+    if (isset($_POST['owner_user_id']) && '' !== (string) $_POST['owner_user_id']) {
+        $requested_owner_user_id = absint($_POST['owner_user_id']);
+        if ($requested_owner_user_id > 0 && function_exists('peracrm_user_is_valid_advisor') && !peracrm_user_is_valid_advisor($requested_owner_user_id)) {
+            wp_die('Invalid deal owner', 400);
+        }
     }
 
     $updated = peracrm_deals_update($deal_id, [

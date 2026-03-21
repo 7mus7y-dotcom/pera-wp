@@ -1485,7 +1485,15 @@ if ( ! function_exists( 'pera_crm_client_action_ajax' ) ) {
 			}
 
 			$note_body = isset( $_POST['peracrm_note_body'] ) ? trim( sanitize_textarea_field( wp_unslash( (string) $_POST['peracrm_note_body'] ) ) ) : '';
-			$ok = '' !== $note_body && function_exists( 'peracrm_note_add' ) ? (bool) peracrm_note_add( $client_id, get_current_user_id(), substr( $note_body, 0, 5000 ) ) : false;
+			$actor_user_id = function_exists( 'peracrm_get_actor_user_id' ) ? peracrm_get_actor_user_id() : get_current_user_id();
+			$note_id = '' !== $note_body && function_exists( 'peracrm_note_add' ) ? (int) peracrm_note_add( $client_id, $actor_user_id, substr( $note_body, 0, 5000 ) ) : 0;
+			if ( $note_id > 0 && function_exists( 'peracrm_log_event' ) ) {
+				peracrm_log_event( $client_id, 'note_added', array(
+					'note_id'       => $note_id,
+					'actor_user_id' => $actor_user_id,
+				) );
+			}
+			$ok = $note_id > 0;
 			pera_crm_client_action_ajax_json( $ok, $ok ? __( 'Note added.', 'peracrm' ) : __( 'Unable to add note.', 'peracrm' ), $client_id, 'notes', $ok ? 200 : 400 );
 		} elseif ( 'note-delete' === $type ) {
 			check_admin_referer( 'peracrm_delete_note', 'peracrm_delete_note_nonce' );
@@ -1503,11 +1511,23 @@ if ( ! function_exists( 'pera_crm_client_action_ajax' ) ) {
 			check_admin_referer( 'peracrm_add_reminder', 'peracrm_add_reminder_nonce' );
 			$due = function_exists( 'peracrm_admin_parse_datetime' ) ? peracrm_admin_parse_datetime( wp_unslash( (string) ( $_POST['peracrm_due_at'] ?? '' ) ) ) : '';
 			$note = isset( $_POST['peracrm_reminder_note'] ) ? sanitize_textarea_field( wp_unslash( (string) $_POST['peracrm_reminder_note'] ) ) : '';
+			$actor_user_id    = function_exists( 'peracrm_get_actor_user_id' ) ? peracrm_get_actor_user_id() : get_current_user_id();
 			$assigned_advisor = function_exists( 'peracrm_client_get_assigned_advisor_id' ) ? (int) peracrm_client_get_assigned_advisor_id( $client_id ) : 0;
-			if ( $assigned_advisor <= 0 ) {
-				$assigned_advisor = get_current_user_id();
+			if ( function_exists( 'peracrm_resolve_assignee_user_id' ) ) {
+				$assigned_advisor = peracrm_resolve_assignee_user_id( 0, $assigned_advisor );
+			} elseif ( $assigned_advisor <= 0 ) {
+				$assigned_advisor = $actor_user_id;
 			}
-			$ok = '' !== $due && function_exists( 'peracrm_reminder_add' ) ? (bool) peracrm_reminder_add( $client_id, $assigned_advisor, $due, substr( (string) $note, 0, 5000 ) ) : false;
+			$reminder_id = '' !== $due && function_exists( 'peracrm_reminder_add' ) ? (int) peracrm_reminder_add( $client_id, $assigned_advisor, $due, substr( (string) $note, 0, 5000 ) ) : 0;
+			if ( $reminder_id > 0 && function_exists( 'peracrm_log_event' ) ) {
+				peracrm_log_event( $client_id, 'reminder_added', array(
+					'reminder_id'    => $reminder_id,
+					'advisor_user_id' => $assigned_advisor,
+					'actor_user_id'   => $actor_user_id,
+					'status'          => 'pending',
+				) );
+			}
+			$ok = $reminder_id > 0;
 			pera_crm_client_action_ajax_json( $ok, $ok ? __( 'Reminder added.', 'peracrm' ) : __( 'Unable to add reminder.', 'peracrm' ), $client_id, 'reminders', $ok ? 200 : 400 );
 		} elseif ( 'reminder-status' === $type ) {
 			check_admin_referer( 'peracrm_update_reminder_status', 'peracrm_update_reminder_status_nonce' );
@@ -1517,11 +1537,20 @@ if ( ! function_exists( 'pera_crm_client_action_ajax' ) ) {
 				? peracrm_reminders_update_status_authorized(
 					$reminder_id,
 					$status,
-					get_current_user_id(),
+					function_exists( 'peracrm_get_actor_user_id' ) ? peracrm_get_actor_user_id() : get_current_user_id(),
 					array( 'enforce_client_scope' => true )
 				)
 				: new WP_Error( 'missing_handler', __( 'Reminder actions unavailable.', 'peracrm' ) );
 			$ok          = ! is_wp_error( $result );
+			if ( $ok && function_exists( 'peracrm_log_event' ) ) {
+				$reminder = function_exists( 'peracrm_reminders_get' ) ? peracrm_reminders_get( $reminder_id ) : null;
+				peracrm_log_event( $client_id, 'reminder_status_changed', array(
+					'reminder_id'    => $reminder_id,
+					'status'         => $status,
+					'advisor_user_id' => isset( $reminder['advisor_user_id'] ) ? (int) $reminder['advisor_user_id'] : 0,
+					'actor_user_id'  => function_exists( 'peracrm_get_actor_user_id' ) ? peracrm_get_actor_user_id() : get_current_user_id(),
+				) );
+			}
 			$message     = $ok ? __( 'Reminder updated.', 'peracrm' ) : ( $result instanceof WP_Error ? $result->get_error_message() : __( 'Unable to update reminder.', 'peracrm' ) );
 			pera_crm_client_action_ajax_json( $ok, $message, $client_id, 'reminders', $ok ? 200 : 400 );
 		} elseif ( 'property-link' === $type ) {
@@ -1548,6 +1577,13 @@ if ( ! function_exists( 'pera_crm_client_action_ajax' ) ) {
 				'deal_value' => isset( $_POST['deal_value'] ) ? (float) wp_unslash( (string) $_POST['deal_value'] ) : null,
 				'currency' => isset( $_POST['currency'] ) ? sanitize_text_field( wp_unslash( (string) $_POST['currency'] ) ) : 'USD',
 			);
+			if ( isset( $_POST['owner_user_id'] ) ) {
+				$requested_owner_user_id = absint( wp_unslash( (string) $_POST['owner_user_id'] ) );
+				if ( $requested_owner_user_id > 0 && function_exists( 'peracrm_user_is_valid_advisor' ) && ! peracrm_user_is_valid_advisor( $requested_owner_user_id ) ) {
+					wp_send_json_error( array( 'ok' => false, 'message' => __( 'Invalid deal owner.', 'peracrm' ) ), 400 );
+				}
+				$payload['owner_user_id'] = $requested_owner_user_id;
+			}
 			$ok = $deal_id > 0 ? (bool) peracrm_deals_update( $deal_id, $payload ) : ( (int) peracrm_deals_create( $payload ) > 0 );
 			pera_crm_client_action_ajax_json( $ok, $ok ? __( 'Deal saved.', 'peracrm' ) : __( 'Unable to save deal.', 'peracrm' ), $client_id, 'deals', $ok ? 200 : 400 );
 		} elseif ( 'advisor' === $type ) {
@@ -1561,12 +1597,22 @@ if ( ! function_exists( 'pera_crm_client_action_ajax' ) ) {
 				wp_send_json_error( array( 'ok' => false, 'message' => __( 'Invalid advisor selection.', 'peracrm' ) ), 400 );
 			}
 
+			$old_advisor = function_exists( 'peracrm_client_get_assigned_advisor_id' ) ? (int) peracrm_client_get_assigned_advisor_id( $client_id ) : 0;
+
 			foreach ( array( 'assigned_advisor_user_id', 'crm_assigned_advisor' ) as $meta_key ) {
 				if ( $new_advisor > 0 ) {
 					update_post_meta( $client_id, $meta_key, $new_advisor );
 				} else {
 					delete_post_meta( $client_id, $meta_key );
 				}
+			}
+
+			if ( $new_advisor !== $old_advisor && function_exists( 'peracrm_log_event' ) ) {
+				peracrm_log_event( $client_id, 'advisor_reassigned', array(
+					'from'          => $old_advisor,
+					'to'            => $new_advisor,
+					'actor_user_id' => function_exists( 'peracrm_get_actor_user_id' ) ? peracrm_get_actor_user_id() : get_current_user_id(),
+				) );
 			}
 
 			pera_crm_client_action_ajax_json( true, __( 'Advisor reassigned.', 'peracrm' ), $client_id, 'advisor', 200 );
