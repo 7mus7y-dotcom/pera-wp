@@ -2835,8 +2835,46 @@ body.crm-route #site-header.peracrm-shell-header .crm-side-nav__toggle--header:f
   gap: 8px;
   align-items: center;
 }
-.crm-page--logs .peracrm-whatsapp-logs.is-loading { opacity: 0.55; pointer-events: none; }
+.crm-page--logs .peracrm-whatsapp-log-page-size label {
+  color: var(--text-soft, #4b5563);
+  font-size: 0.92rem;
+  font-weight: 600;
+}
+.crm-page--logs .peracrm-whatsapp-log-page-size select {
+  min-width: 88px;
+  padding: 0.6rem 2.25rem 0.6rem 0.85rem;
+  border: 1px solid var(--border, #e8ecf2);
+  border-radius: 10px;
+  background-color: var(--surface, #ffffff);
+  color: var(--text, #000000);
+  appearance: none;
+  -webkit-appearance: none;
+  background-image: linear-gradient(45deg, transparent 50%, currentColor 50%), linear-gradient(135deg, currentColor 50%, transparent 50%);
+  background-position: calc(100% - 16px) calc(50% - 3px), calc(100% - 11px) calc(50% - 3px);
+  background-size: 5px 5px, 5px 5px;
+  background-repeat: no-repeat;
+}
+.crm-page--logs .peracrm-whatsapp-log-page-size select:focus {
+  outline: none;
+  border-color: #002d72;
+  box-shadow: 0 0 0 1px rgba(0, 45, 114, 0.12);
+}
 .crm-page--logs .peracrm-whatsapp-logs-table .check-column { width: 42px; }
+.crm-page--logs .peracrm-whatsapp-logs-table .check-column input[type="checkbox"] {
+  inline-size: 18px;
+  block-size: 18px;
+  margin: 0;
+  border: 1px solid var(--border, #cbd5e1);
+  border-radius: 5px;
+  background: var(--surface, #ffffff);
+  accent-color: var(--brand, #002d72);
+  cursor: pointer;
+}
+.crm-page--logs .peracrm-whatsapp-logs-table .check-column input[type="checkbox"]:focus-visible {
+  outline: 0;
+  box-shadow: 0 0 0 3px rgba(0, 45, 114, 0.14);
+}
+.crm-page--logs .peracrm-whatsapp-logs.is-loading { opacity: 0.55; pointer-events: none; }
 .crm-page--logs .peracrm-whatsapp-log-message { min-width: 220px; }
 @media (max-width: 767px) {
   .crm-page--logs .peracrm-whatsapp-log-controls { align-items: stretch; }
@@ -4376,6 +4414,13 @@ body.crm-route #site-header.peracrm-shell-header.is-scrolled .peracrm-header-act
     color: var(--text);
   }
 
+  .crm-page--overview .crm-overview-metrics .crm-kpi-card,
+  .crm-page--client-view .crm-client-subsection--deal-workspace .crm-form-section {
+    background: var(--surface-raised);
+    border-color: var(--border);
+    color: var(--text);
+  }
+
   .crm-page--overview .crm-overview-priority,
   .crm-page--overview .crm-overview-priority-card--urgent,
   .crm-page--client-view .crm-client-next-step__item--focus {
@@ -4519,6 +4564,26 @@ body.crm-route #site-header.peracrm-shell-header.is-scrolled .peracrm-header-act
   .crm-page .crm-search-control:focus {
     border-color: rgba(96, 165, 250, 0.62);
     box-shadow: 0 0 0 1px rgba(96, 165, 250, 0.32);
+  }
+
+  .crm-page--logs .peracrm-whatsapp-log-page-size label {
+    color: var(--text-soft);
+  }
+
+  .crm-page--logs .peracrm-whatsapp-log-page-size select {
+    background-color: #0b1220;
+    border-color: rgba(148, 163, 184, 0.46);
+    color: var(--text);
+  }
+
+  .crm-page--logs .peracrm-whatsapp-logs-table .check-column input[type="checkbox"] {
+    border-color: rgba(148, 163, 184, 0.52);
+    background: #0b1220;
+    box-shadow: none;
+  }
+
+  .crm-page--logs .peracrm-whatsapp-logs-table .check-column input[type="checkbox"]:focus-visible {
+    box-shadow: 0 0 0 3px rgba(96, 165, 250, 0.24);
   }
 
   .crm-page .crm-table thead th,
