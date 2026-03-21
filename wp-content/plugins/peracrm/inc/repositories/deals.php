@@ -156,6 +156,40 @@ function peracrm_deals_sanitize_commission_payload(array $data, array $existing 
     ];
 }
 
+
+function peracrm_deals_sanitize_owner_user_id($owner_user_id)
+{
+    if ($owner_user_id === null || $owner_user_id === '') {
+        return 0;
+    }
+
+    $owner_user_id = (int) $owner_user_id;
+    if ($owner_user_id <= 0) {
+        return 0;
+    }
+
+    if (function_exists('peracrm_user_is_valid_advisor') && !peracrm_user_is_valid_advisor($owner_user_id)) {
+        return 0;
+    }
+
+    return $owner_user_id;
+}
+
+function peracrm_deals_default_owner_user_id($fallback_user_id = 0)
+{
+    $fallback_user_id = (int) $fallback_user_id;
+
+    if (function_exists('peracrm_get_default_assignee_user_id')) {
+        return peracrm_deals_sanitize_owner_user_id(peracrm_get_default_assignee_user_id($fallback_user_id));
+    }
+
+    if ($fallback_user_id > 0) {
+        return peracrm_deals_sanitize_owner_user_id($fallback_user_id);
+    }
+
+    return peracrm_deals_sanitize_owner_user_id(get_current_user_id());
+}
+
 function peracrm_deals_table_exists()
 {
     global $wpdb;
@@ -231,7 +265,16 @@ function peracrm_deals_create(array $data)
 
     $closed_reason = peracrm_deal_sanitize_closed_reason($data['closed_reason'] ?? 'none');
 
-    $result = peracrm_with_target_blog(static function () use ($wpdb, $party_id, $title, $stage, $closed_reason, $data, $now, $closed_at, $commission) {
+    if (array_key_exists('owner_user_id', $data) && $data['owner_user_id'] !== '' && $data['owner_user_id'] !== null) {
+        $owner_user_id = peracrm_deals_sanitize_owner_user_id($data['owner_user_id']);
+        if ((int) $data['owner_user_id'] > 0 && $owner_user_id <= 0) {
+            return 0;
+        }
+    } else {
+        $owner_user_id = peracrm_deals_default_owner_user_id();
+    }
+
+    $result = peracrm_with_target_blog(static function () use ($wpdb, $party_id, $title, $stage, $closed_reason, $data, $now, $closed_at, $commission, $owner_user_id) {
         $table = peracrm_table('peracrm_deals');
         $inserted = $wpdb->insert(
             $table,
@@ -253,7 +296,7 @@ function peracrm_deals_create(array $data)
                 'commission_notes' => $commission['commission_notes'],
                 'expected_close_date' => !empty($data['expected_close_date']) ? sanitize_text_field((string) $data['expected_close_date']) : null,
                 'closed_at' => $closed_at,
-                'owner_user_id' => !empty($data['owner_user_id']) ? (int) $data['owner_user_id'] : null,
+                'owner_user_id' => $owner_user_id > 0 ? $owner_user_id : null,
                 'created_at' => $now,
                 'updated_at' => $now,
             ],
@@ -310,7 +353,20 @@ function peracrm_deals_update($deal_id, array $data)
         ? peracrm_deal_sanitize_closed_reason($data['closed_reason'])
         : peracrm_deal_sanitize_closed_reason($deal['closed_reason'] ?? 'none');
 
-    $updated = peracrm_with_target_blog(static function () use ($wpdb, $deal_id, $title, $stage, $closed_reason, $data, $closed_at, $now, $commission) {
+    if (array_key_exists('owner_user_id', $data)) {
+        if ($data['owner_user_id'] === '' || $data['owner_user_id'] === null) {
+            $owner_user_id = (int) ($deal['owner_user_id'] ?? 0);
+        } else {
+            $owner_user_id = peracrm_deals_sanitize_owner_user_id($data['owner_user_id']);
+            if ((int) $data['owner_user_id'] > 0 && $owner_user_id <= 0) {
+                return false;
+            }
+        }
+    } else {
+        $owner_user_id = (int) ($deal['owner_user_id'] ?? 0);
+    }
+
+    $updated = peracrm_with_target_blog(static function () use ($wpdb, $deal_id, $title, $stage, $closed_reason, $data, $closed_at, $now, $commission, $owner_user_id) {
         $table = peracrm_table('peracrm_deals');
         return $wpdb->update(
             $table,
@@ -331,7 +387,7 @@ function peracrm_deals_update($deal_id, array $data)
                 'commission_notes' => $commission['commission_notes'],
                 'expected_close_date' => isset($data['expected_close_date']) ? sanitize_text_field((string) $data['expected_close_date']) : null,
                 'closed_at' => $closed_at !== '' ? $closed_at : null,
-                'owner_user_id' => isset($data['owner_user_id']) ? (int) $data['owner_user_id'] : null,
+                'owner_user_id' => $owner_user_id > 0 ? $owner_user_id : null,
                 'updated_at' => $now,
             ],
             ['id' => $deal_id],

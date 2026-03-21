@@ -216,6 +216,50 @@ if (!function_exists('peracrm_get_effective_crm_user_id')) {
     }
 }
 
+
+if (!function_exists('peracrm_get_default_assignee_user_id')) {
+    /**
+     * Resolve the default advisor/owner user ID for CRM writes.
+     *
+     * Uses the effective CRM user during impersonation when that target is a
+     * valid advisor, otherwise falls back to the provided default or actor.
+     */
+    function peracrm_get_default_assignee_user_id(int $fallback_user_id = 0): int
+    {
+        $effective_user_id = peracrm_get_effective_crm_user_id();
+        if ($effective_user_id > 0 && function_exists('peracrm_user_is_valid_advisor') && peracrm_user_is_valid_advisor($effective_user_id)) {
+            return $effective_user_id;
+        }
+
+        $fallback_user_id = (int) $fallback_user_id;
+        if ($fallback_user_id > 0 && function_exists('peracrm_user_is_valid_advisor') && peracrm_user_is_valid_advisor($fallback_user_id)) {
+            return $fallback_user_id;
+        }
+
+        $actor_user_id = peracrm_get_actor_user_id();
+        if ($actor_user_id > 0 && function_exists('peracrm_user_is_valid_advisor') && peracrm_user_is_valid_advisor($actor_user_id)) {
+            return $actor_user_id;
+        }
+
+        return $fallback_user_id > 0 ? $fallback_user_id : $actor_user_id;
+    }
+}
+
+if (!function_exists('peracrm_resolve_assignee_user_id')) {
+    /**
+     * Resolve an explicit advisor/owner request when valid, otherwise use the default CRM assignee.
+     */
+    function peracrm_resolve_assignee_user_id(int $requested_user_id = 0, int $fallback_user_id = 0): int
+    {
+        $requested_user_id = (int) $requested_user_id;
+        if ($requested_user_id > 0 && function_exists('peracrm_user_is_valid_advisor') && peracrm_user_is_valid_advisor($requested_user_id)) {
+            return $requested_user_id;
+        }
+
+        return peracrm_get_default_assignee_user_id($fallback_user_id);
+    }
+}
+
 if (!function_exists('peracrm_set_impersonated_crm_user_id')) {
     /**
      * Persist an impersonated CRM target for the current real user.
