@@ -4300,3 +4300,43 @@ body:not(.single-post) tr:nth-child(even) {
     display: block !important;
   }
 }
+
+
+.pera-crm-viewing-as-banner {
+  background: #111827;
+  color: #fff;
+  padding: 12px 20px;
+}
+.pera-crm-viewing-as-banner__inner {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  align-items: center;
+  justify-content: space-between;
+}
+.pera-crm-viewing-as-banner__meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 12px;
+  align-items: center;
+}
+.pera-crm-viewing-as-banner__meta span {
+  opacity: .8;
+}
+.pera-crm-viewing-as-banner__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  align-items: center;
+}
+.peracrm-impersonation-switcher,
+.peracrm-impersonation-reset {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  align-items: center;
+  margin: 0;
+}
+.peracrm-impersonation-switcher__select {
+  min-width: 220px;
+}

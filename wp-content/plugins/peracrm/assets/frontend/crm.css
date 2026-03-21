@@ -4861,3 +4861,65 @@ body.crm-route #site-header.peracrm-shell-header.is-scrolled .peracrm-header-act
     padding-block: 12px;
   }
 }
+
+
+.pera-crm-viewing-as-banner {
+  margin-top: 1rem;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 20px;
+  background: rgba(7, 16, 33, 0.9);
+  color: #fff;
+  box-shadow: 0 18px 50px rgba(5, 10, 20, 0.2);
+}
+
+.pera-crm-viewing-as-banner__inner {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1rem 1.25rem;
+}
+
+.pera-crm-viewing-as-banner__meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem 0.875rem;
+  align-items: center;
+}
+
+.pera-crm-viewing-as-banner__meta span {
+  color: rgba(255, 255, 255, 0.76);
+}
+
+.pera-crm-viewing-as-banner__actions,
+.peracrm-impersonation-switcher,
+.peracrm-impersonation-reset {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  align-items: center;
+}
+
+.peracrm-impersonation-switcher {
+  margin: 0;
+}
+
+.peracrm-impersonation-switcher__select {
+  min-width: 220px;
+}
+
+@media (max-width: 767px) {
+  .pera-crm-viewing-as-banner__inner,
+  .pera-crm-viewing-as-banner__actions,
+  .peracrm-impersonation-switcher,
+  .peracrm-impersonation-reset {
+    width: 100%;
+  }
+
+  .peracrm-impersonation-switcher__select,
+  .peracrm-impersonation-switcher button,
+  .peracrm-impersonation-reset button {
+    width: 100%;
+  }
+}

@@ -227,11 +227,13 @@ if ( ! function_exists( 'pera_crm_get_overdue_reminders_count_for_current_user' 
 			return 0;
 		}
 
-		$current_user_id = get_current_user_id();
-		$is_employee     = function_exists( 'pera_crm_user_is_employee' ) && pera_crm_user_is_employee( $current_user_id );
+		$real_user_id          = get_current_user_id();
+		$effective_user_id     = function_exists( 'peracrm_get_effective_crm_user_id' ) ? peracrm_get_effective_crm_user_id() : $real_user_id;
+		$is_impersonating      = function_exists( 'peracrm_is_impersonating_crm_user' ) && peracrm_is_impersonating_crm_user();
+		$effective_is_employee = function_exists( 'pera_crm_user_is_employee' ) && pera_crm_user_is_employee( $effective_user_id );
 
-		if ( $is_employee && function_exists( 'peracrm_reminders_count_for_advisor' ) ) {
-			return max( 0, (int) peracrm_reminders_count_for_advisor( $current_user_id, pera_crm_reminders_open_status(), 'overdue' ) );
+		if ( function_exists( 'peracrm_reminders_count_for_advisor' ) && ( $is_impersonating || $effective_is_employee ) ) {
+			return max( 0, (int) peracrm_reminders_count_for_advisor( $effective_user_id, pera_crm_reminders_open_status(), 'overdue' ) );
 		}
 
 		$count = pera_crm_fetch_overdue_reminders_count();
@@ -407,9 +409,11 @@ if ( ! function_exists( 'pera_crm_fetch_recent_activity' ) ) {
 	 * @return array{available:bool,rows:array<int,array{time:string,type:string,summary:string,client_id:int}>}
 	 */
 	function pera_crm_fetch_recent_activity(): array {
-		$current_user_id = get_current_user_id();
-		$is_employee     = pera_crm_user_is_employee( $current_user_id );
-		$allowed_ids     = $is_employee ? pera_crm_get_allowed_client_ids_for_user( $current_user_id ) : array();
+		$real_user_id          = get_current_user_id();
+		$effective_user_id     = function_exists( 'peracrm_get_effective_crm_user_id' ) ? peracrm_get_effective_crm_user_id() : $real_user_id;
+		$is_impersonating      = function_exists( 'peracrm_is_impersonating_crm_user' ) && peracrm_is_impersonating_crm_user();
+		$effective_is_employee = pera_crm_user_is_employee( $effective_user_id );
+		$allowed_ids           = ( $is_impersonating || $effective_is_employee ) ? pera_crm_get_allowed_client_ids_for_user( $effective_user_id ) : array();
 
 		if ( function_exists( 'peracrm_activity_list' ) ) {
 			$args = array(
@@ -417,14 +421,14 @@ if ( ! function_exists( 'pera_crm_fetch_recent_activity' ) ) {
 				'orderby' => 'created_at',
 				'order'   => 'DESC',
 			);
-			if ( $is_employee ) {
+			if ( $is_impersonating || $effective_is_employee ) {
 				if ( empty( $allowed_ids ) ) {
 					return array( 'available' => true, 'rows' => array() );
 				}
 				$args['party_ids'] = $allowed_ids;
 			}
 			$items = pera_crm_normalize_activities( peracrm_activity_list( $args ) );
-			if ( ! empty( $items ) || $is_employee ) {
+			if ( ! empty( $items ) || $is_impersonating || $effective_is_employee ) {
 				return array( 'available' => true, 'rows' => $items );
 			}
 			$items = pera_crm_normalize_activities( peracrm_activity_list( array( 'limit' => 20 ) ) );
@@ -437,7 +441,7 @@ if ( ! function_exists( 'pera_crm_fetch_recent_activity' ) ) {
 				continue;
 			}
 			$items = pera_crm_normalize_activities( call_user_func( $callback, 20 ) );
-			if ( $is_employee && ! empty( $allowed_ids ) ) {
+			if ( ( $is_impersonating || $effective_is_employee ) && ! empty( $allowed_ids ) ) {
 				$items = array_values( array_filter( $items, static function ( array $item ) use ( $allowed_ids ): bool {
 					return in_array( (int) $item['client_id'], $allowed_ids, true );
 				} ) );
@@ -456,9 +460,11 @@ if ( ! function_exists( 'pera_crm_get_recent_leads' ) ) {
 	 * @return array<int,array{id:int,name:string,url:string}>
 	 */
 	function pera_crm_get_recent_leads( int $limit = 20 ): array {
-		$current_user_id = get_current_user_id();
-		$is_employee     = pera_crm_user_is_employee( $current_user_id );
-		$allowed_ids     = $is_employee ? pera_crm_get_allowed_client_ids_for_user( $current_user_id ) : array();
+		$real_user_id          = get_current_user_id();
+		$effective_user_id     = function_exists( 'peracrm_get_effective_crm_user_id' ) ? peracrm_get_effective_crm_user_id() : $real_user_id;
+		$is_impersonating      = function_exists( 'peracrm_is_impersonating_crm_user' ) && peracrm_is_impersonating_crm_user();
+		$effective_is_employee = pera_crm_user_is_employee( $effective_user_id );
+		$allowed_ids           = ( $is_impersonating || $effective_is_employee ) ? pera_crm_get_allowed_client_ids_for_user( $effective_user_id ) : array();
 		$args            = array(
 			'post_type'      => 'crm_client',
 			'post_status'    => array( 'publish', 'private', 'draft', 'pending', 'future' ),
@@ -468,7 +474,7 @@ if ( ! function_exists( 'pera_crm_get_recent_leads' ) ) {
 			'fields'         => 'ids',
 			'no_found_rows'  => true,
 		);
-		if ( $is_employee ) {
+		if ( $is_impersonating || $effective_is_employee ) {
 			$args['post__in'] = empty( $allowed_ids ) ? array( 0 ) : $allowed_ids;
 		}
 
@@ -540,9 +546,12 @@ if ( ! function_exists( 'pera_crm_get_task_rows' ) ) {
 	 * @return array<int,array{reminder_id:int,lead_id:int,lead_name:string,due_date:string,reminder_note:string,last_note:string,status:string}>
 	 */
 	function pera_crm_get_task_rows( bool $overdue = false ): array {
-		$current_user_id = get_current_user_id();
-		$is_employee     = pera_crm_user_is_employee( $current_user_id );
-		$open_status     = pera_crm_reminders_open_status();
+		$real_user_id          = get_current_user_id();
+		$effective_user_id     = function_exists( 'peracrm_get_effective_crm_user_id' ) ? peracrm_get_effective_crm_user_id() : $real_user_id;
+		$is_impersonating      = function_exists( 'peracrm_is_impersonating_crm_user' ) && peracrm_is_impersonating_crm_user();
+		$effective_is_employee = pera_crm_user_is_employee( $effective_user_id );
+		$should_scope          = $is_impersonating || $effective_is_employee;
+		$open_status           = pera_crm_reminders_open_status();
 		$timezone        = wp_timezone();
 		$current_dt      = current_datetime();
 		$today_start_ts  = $current_dt->setTime( 0, 0, 0 )->getTimestamp();
@@ -551,9 +560,9 @@ if ( ! function_exists( 'pera_crm_get_task_rows' ) ) {
 		$rows            = array();
 		$debug_ids       = array();
 
-		if ( $is_employee && function_exists( 'peracrm_reminders_list_for_advisor' ) ) {
+		if ( $should_scope && function_exists( 'peracrm_reminders_list_for_advisor' ) ) {
 			$range = $overdue ? 'overdue' : 'all';
-			$raw   = peracrm_reminders_list_for_advisor( $current_user_id, 200, 0, $open_status, $range, 'asc' );
+			$raw   = peracrm_reminders_list_for_advisor( $effective_user_id, 200, 0, $open_status, $range, 'asc' );
 			if ( is_array( $raw ) ) {
 				$note_client_ids = array();
 				foreach ( $raw as $row ) {
@@ -595,7 +604,7 @@ if ( ! function_exists( 'pera_crm_get_task_rows' ) ) {
 			}
 		}
 
-		if ( $is_employee ) {
+		if ( $is_impersonating || $effective_is_employee ) {
 			pera_crm_debug_tasks_log( $overdue ? 'overdue' : 'today', 'no_employee_source', $debug_ids, 0 );
 			return array();
 		}
@@ -677,17 +686,20 @@ if ( ! function_exists( 'pera_crm_get_tasks_view_data' ) ) {
 	 * @return array<string,mixed>
 	 */
 	function pera_crm_get_tasks_view_data(): array {
-		$current_user_id = get_current_user_id();
-		$is_employee     = pera_crm_user_is_employee( $current_user_id );
-		$open_status     = pera_crm_reminders_open_status();
+		$real_user_id          = get_current_user_id();
+		$effective_user_id     = function_exists( 'peracrm_get_effective_crm_user_id' ) ? peracrm_get_effective_crm_user_id() : $real_user_id;
+		$is_impersonating      = function_exists( 'peracrm_is_impersonating_crm_user' ) && peracrm_is_impersonating_crm_user();
+		$effective_is_employee = pera_crm_user_is_employee( $effective_user_id );
+		$should_scope          = $is_impersonating || $effective_is_employee;
+		$open_status           = pera_crm_reminders_open_status();
 		$timezone        = wp_timezone();
 		$today           = current_datetime();
 		$today_start_ts  = $today->setTime( 0, 0, 0 )->getTimestamp();
 		$today_end_ts    = $today->setTime( 23, 59, 59 )->getTimestamp();
 		$raw_rows        = array();
 
-		if ( function_exists( 'peracrm_reminders_list_for_advisor' ) && $is_employee ) {
-			$raw = peracrm_reminders_list_for_advisor( $current_user_id, 200, 0, $open_status, 'all', 'asc' );
+		if ( function_exists( 'peracrm_reminders_list_for_advisor' ) && $should_scope ) {
+			$raw = peracrm_reminders_list_for_advisor( $effective_user_id, 200, 0, $open_status, 'all', 'asc' );
 			if ( is_array( $raw ) ) {
 				$raw_rows = $raw;
 			}

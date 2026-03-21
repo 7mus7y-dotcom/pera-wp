@@ -22,6 +22,15 @@ $filter_q            = isset( $_GET['q'] ) ? sanitize_text_field( wp_unslash( (s
 $filter_stage        = isset( $_GET['stage'] ) ? sanitize_key( wp_unslash( (string) $_GET['stage'] ) ) : '';
 $filter_advisor      = isset( $_GET['advisor'] ) ? absint( wp_unslash( (string) $_GET['advisor'] ) ) : 0;
 
+$impersonation_ui    = function_exists( 'peracrm_get_impersonation_ui_state' ) ? peracrm_get_impersonation_ui_state() : array();
+$can_impersonate     = ! empty( $impersonation_ui['can_impersonate'] );
+$is_impersonating    = ! empty( $impersonation_ui['is_impersonating'] );
+$impersonation_label = isset( $impersonation_ui['effective_user_label'] ) ? (string) $impersonation_ui['effective_user_label'] : '';
+$real_user_label     = isset( $impersonation_ui['real_user_label'] ) ? (string) $impersonation_ui['real_user_label'] : '';
+$impersonation_targets = is_array( $impersonation_ui['targets'] ?? null ) ? $impersonation_ui['targets'] : array();
+$impersonation_action_url = isset( $impersonation_ui['admin_post_url'] ) ? (string) $impersonation_ui['admin_post_url'] : '';
+$selected_impersonation_user = isset( $impersonation_ui['effective_user_id'] ) ? (int) $impersonation_ui['effective_user_id'] : 0;
+
 $has_toolbar = $show_client_filters || '' !== $toolbar_content;
 ?>
 <section class="crm-page-header" aria-label="<?php echo esc_attr__( 'CRM page header', 'peracrm' ); ?>">
@@ -60,6 +69,51 @@ $has_toolbar = $show_client_filters || '' !== $toolbar_content;
       </div>
       <?php endif; ?>
     </div>
+
+    <?php if ( $can_impersonate || $is_impersonating ) : ?>
+    <div class="pera-crm-viewing-as-banner" role="status" aria-live="polite">
+      <div class="pera-crm-viewing-as-banner__inner">
+        <div class="pera-crm-viewing-as-banner__meta">
+          <strong><?php echo esc_html( sprintf( $is_impersonating ? __( 'Viewing as: %s', 'peracrm' ) : __( 'Current view: %s', 'peracrm' ), $impersonation_label ) ); ?></strong>
+          <?php if ( $is_impersonating && '' !== $real_user_label ) : ?>
+            <span><?php echo esc_html( sprintf( __( 'Signed in as: %s', 'peracrm' ), $real_user_label ) ); ?></span>
+          <?php endif; ?>
+        </div>
+
+        <?php if ( $can_impersonate && '' !== $impersonation_action_url ) : ?>
+        <div class="pera-crm-viewing-as-banner__actions">
+          <form method="post" action="<?php echo esc_url( $impersonation_action_url ); ?>" class="peracrm-impersonation-switcher">
+            <input type="hidden" name="action" value="peracrm_set_view_as_advisor">
+            <?php wp_nonce_field( 'peracrm_set_view_as_advisor', 'peracrm_view_as_nonce' ); ?>
+            <label class="screen-reader-text" for="peracrm-view-as-user-id"><?php esc_html_e( 'Select advisor view', 'peracrm' ); ?></label>
+            <select id="peracrm-view-as-user-id" name="peracrm_view_as_user_id" class="crm-search-control peracrm-impersonation-switcher__select">
+              <option value="0"><?php esc_html_e( 'My view', 'peracrm' ); ?></option>
+              <?php foreach ( $impersonation_targets as $target ) : ?>
+                <?php
+                $target_id = isset( $target['id'] ) ? (int) $target['id'] : 0;
+                $target_name = isset( $target['display_name'] ) ? (string) $target['display_name'] : '';
+                if ( $target_id <= 0 || '' === $target_name ) {
+                  continue;
+                }
+                ?>
+                <option value="<?php echo esc_attr( (string) $target_id ); ?>" <?php selected( $selected_impersonation_user, $target_id ); ?>><?php echo esc_html( $target_name ); ?></option>
+              <?php endforeach; ?>
+            </select>
+            <button type="submit" class="btn btn--solid btn--blue"><?php esc_html_e( 'Switch view', 'peracrm' ); ?></button>
+          </form>
+
+          <?php if ( $is_impersonating ) : ?>
+          <form method="post" action="<?php echo esc_url( $impersonation_action_url ); ?>" class="peracrm-impersonation-reset">
+            <input type="hidden" name="action" value="peracrm_clear_view_as_advisor">
+            <?php wp_nonce_field( 'peracrm_clear_view_as_advisor', 'peracrm_view_as_nonce' ); ?>
+            <button type="submit" class="btn btn--ghost btn--white"><?php esc_html_e( 'Return to my view', 'peracrm' ); ?></button>
+          </form>
+          <?php endif; ?>
+        </div>
+        <?php endif; ?>
+      </div>
+    </div>
+    <?php endif; ?>
 
     <?php if ( $has_toolbar ) : ?>
     <div class="crm-toolbar">
