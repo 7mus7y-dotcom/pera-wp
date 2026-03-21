@@ -598,6 +598,7 @@ peracrm_frontend_render_shell_header();
 				}
 			}
 			?>
+      <div data-crm-clients-workspace>
       <section class="crm-toolbar crm-toolbar--content crm-list-workspace-toolbar crm-list-workspace-toolbar--leads" aria-label="<?php echo esc_attr__( 'Lead and client workspace controls', 'peracrm' ); ?>">
         <div class="crm-toolbar__row crm-list-workspace-toolbar__row">
           <div class="crm-list-workspace-toolbar__summary">
@@ -612,7 +613,7 @@ peracrm_frontend_render_shell_header();
             </div>
           </div>
           <div class="crm-toolbar-actions crm-list-workspace-toolbar__actions">
-            <div class="crm-type-toggle crm-action-group crm-action-group--toolbar" role="group" aria-label="<?php echo esc_attr__( 'Lead or client listing', 'peracrm' ); ?>">
+            <div class="crm-type-toggle crm-action-group crm-action-group--toolbar" data-crm-clients-type-toggle role="group" aria-label="<?php echo esc_attr__( 'Lead or client listing', 'peracrm' ); ?>">
               <a class="btn <?php echo esc_attr( 'leads' === $clients_type_view ? 'btn--solid' : 'btn--ghost' ); ?> btn--blue crm-action-group__item" href="<?php echo esc_url( add_query_arg( 'type', 'leads', home_url( '/crm/clients/' ) ) ); ?>"><?php esc_html_e( 'Leads', 'peracrm' ); ?></a>
               <a class="btn <?php echo esc_attr( 'clients' === $clients_type_view ? 'btn--solid' : 'btn--ghost' ); ?> btn--blue crm-action-group__item" href="<?php echo esc_url( add_query_arg( 'type', 'clients', home_url( '/crm/clients/' ) ) ); ?>"><?php esc_html_e( 'Clients', 'peracrm' ); ?></a>
               <a class="btn <?php echo esc_attr( $is_inactive ? 'btn--solid' : 'btn--ghost' ); ?> btn--blue crm-action-group__item" href="<?php echo esc_url( add_query_arg( 'type', 'inactive', home_url( '/crm/clients/' ) ) ); ?>"><?php esc_html_e( 'Inactive', 'peracrm' ); ?></a>
@@ -740,6 +741,7 @@ peracrm_frontend_render_shell_header();
 				echo wp_kses_post( $pagination );
 			}
 			?>
+      </div>
 		<?php endif; ?>
       </div>
       <?php if ( function_exists( 'peracrm_frontend_render_partial' ) ) { peracrm_frontend_render_partial( 'crm-side-nav', array( 'active_view' => $crm_active_view ) ); } ?>
