@@ -54,15 +54,6 @@ $crm_overdue_count          = $show_crm_header_button && function_exists( 'pera_
 $crm_label                  = $crm_overdue_count > 0
   ? sprintf( 'CRM (%d overdue reminders)', $crm_overdue_count )
   : 'CRM';
-$is_crm_route               = function_exists( 'peracrm_is_request_on_crm_route' ) && peracrm_is_request_on_crm_route();
-$crm_is_impersonating       = $is_crm_route && function_exists( 'peracrm_is_impersonating_crm_user' ) && peracrm_is_impersonating_crm_user();
-$crm_effective_user_label   = $crm_is_impersonating && function_exists( 'peracrm_get_effective_crm_user_label' )
-  ? peracrm_get_effective_crm_user_label()
-  : '';
-$crm_real_user_label        = $crm_is_impersonating && function_exists( 'peracrm_get_real_user_label' )
-  ? peracrm_get_real_user_label()
-  : '';
-$crm_clear_view_action_url  = $crm_is_impersonating ? admin_url( 'admin-post.php' ) : '';
 ?>
 
 <header id="site-header" class="site-header">
@@ -115,28 +106,6 @@ $crm_clear_view_action_url  = $crm_is_impersonating ? admin_url( 'admin-post.php
 
   </div>
 </header>
-
-<?php if ( $crm_is_impersonating && '' !== $crm_effective_user_label ) : ?>
-  <div class="pera-crm-viewing-as-banner">
-    <div class="container pera-crm-viewing-as-banner__inner">
-      <div class="pera-crm-viewing-as-banner__meta">
-        <strong><?php echo esc_html( sprintf( 'Viewing as: %s', $crm_effective_user_label ) ); ?></strong>
-        <?php if ( '' !== $crm_real_user_label ) : ?>
-          <span><?php echo esc_html( sprintf( 'Signed in as: %s', $crm_real_user_label ) ); ?></span>
-        <?php endif; ?>
-      </div>
-      <div class="pera-crm-viewing-as-banner__actions">
-        <form method="post" action="<?php echo esc_url( $crm_clear_view_action_url ); ?>" class="peracrm-impersonation-reset">
-          <input type="hidden" name="action" value="peracrm_clear_view_as_advisor">
-          <?php wp_nonce_field( 'peracrm_clear_view_as_advisor', 'peracrm_view_as_nonce' ); ?>
-          <button type="submit" class="btn btn--solid btn--black">
-            <?php echo esc_html__( 'Return to my view', 'peracrm' ); ?>
-          </button>
-        </form>
-      </div>
-    </div>
-  </div>
-<?php endif; ?>
 
 <!-- OFF-CANVAS MENU -->
 <nav class="offcanvas-nav" aria-label="Main">
