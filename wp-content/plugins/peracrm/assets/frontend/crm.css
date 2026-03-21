@@ -3559,7 +3559,7 @@ body.crm-route #site-header.peracrm-shell-header.is-scrolled .peracrm-header-act
   }
 
   .crm-page .crm-action-group--form {
-    justify-content: stretch;
+    justify-content: flex-start;
   }
 
   .crm-action-group__item--secondary,
@@ -5008,7 +5008,6 @@ body.crm-route #site-header.peracrm-shell-header.is-scrolled .peracrm-header-act
 .crm-client-filters__lock-badge {
   display: inline-flex;
   align-items: center;
-  max-width: max-content;
   padding: 0.25rem 0.65rem;
   border-radius: 999px;
   background: rgba(0, 45, 114, 0.08);
@@ -5017,6 +5016,25 @@ body.crm-route #site-header.peracrm-shell-header.is-scrolled .peracrm-header-act
   font-weight: 700;
   letter-spacing: 0.05em;
   text-transform: uppercase;
+}
+
+@media (max-width: 900px) {
+  .pera-crm-viewing-as-banner__meta {
+    flex-basis: 280px;
+  }
+
+  .pera-crm-viewing-as-banner__actions {
+    flex-basis: 320px;
+    justify-content: flex-start;
+  }
+
+  .peracrm-impersonation-switcher {
+    flex-basis: 280px;
+  }
+
+  .peracrm-impersonation-switcher__select {
+    flex-basis: 180px;
+  }
 }
 
 @media (max-width: 767px) {
@@ -5033,7 +5051,7 @@ body.crm-route #site-header.peracrm-shell-header.is-scrolled .peracrm-header-act
   }
 
   .pera-crm-viewing-as-banner__actions {
-    justify-content: stretch;
+    justify-content: flex-start;
   }
 
   .peracrm-impersonation-switcher,

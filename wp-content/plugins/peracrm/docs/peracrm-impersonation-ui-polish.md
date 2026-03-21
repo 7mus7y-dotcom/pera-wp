@@ -45,3 +45,16 @@ In its place, the header now shows a short locked-state note explaining that the
 - [ ] switching still works
 - [ ] reset still works
 - [ ] no conflicting advisor filter confusion on pages where filters are present
+
+
+## Final pre-deploy cleanup
+- Replaced the invalid mobile `justify-content: stretch;` declaration with `justify-content: flex-start;` so the stacked action area uses a valid flexbox value.
+- Simplified the advisor lock badge sizing by removing `max-width: max-content;`, letting the existing `inline-flex` sizing keep the badge content-fit naturally.
+- Reviewed the banner at medium widths and added a light tablet breakpoint so the meta/actions/select controls wrap earlier and stay readable before the mobile stack takes over.
+
+## Manual QA checklist
+- [ ] no invalid flex value remains
+- [ ] lock badge still sizes cleanly
+- [ ] mobile layout still stacks correctly
+- [ ] medium-width layout looks clean
+- [ ] desktop layout remains unchanged in spirit
