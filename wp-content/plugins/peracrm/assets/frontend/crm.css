@@ -4073,10 +4073,10 @@ body.crm-route #site-header.peracrm-shell-header.is-scrolled .peracrm-header-act
   --crm-button-radius: 12px;
   --crm-button-padding-y: 9px;
   --crm-button-padding-x: 14px;
-  --crm-button-compact-padding-y: 6px;
-  --crm-button-compact-padding-x: 12px;
-  --crm-button-operational-min-height: 34px;
-  --crm-button-operational-font-size: 0.88rem;
+  --crm-button-compact-padding-y: 5px;
+  --crm-button-compact-padding-x: 10px;
+  --crm-button-operational-min-height: 32px;
+  --crm-button-operational-font-size: 0.85rem;
 }
 
 .crm-page .content-panel {
