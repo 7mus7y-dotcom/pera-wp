@@ -52,9 +52,28 @@ In its place, the header now shows a short locked-state note explaining that the
 - Simplified the advisor lock badge sizing by removing `max-width: max-content;`, letting the existing `inline-flex` sizing keep the badge content-fit naturally.
 - Reviewed the banner at medium widths and added a light tablet breakpoint so the meta/actions/select controls wrap earlier and stay readable before the mobile stack takes over.
 
+## Follow-up diagnosis: real mobile overflow cause
+The remaining mobile overflow was not just a flex-wrapping problem.
+
+The impersonation dropdown inherits the shared `.crm-search-control` sizing, which gives it `width: 100%`, `padding: 0.7rem 0.9rem`, and later a `min-height: 42px`.
+
+Inside the impersonation banner, that inherited control sizing caused two issues at once:
+- the select looked oversized because it also inherited the CRM-wide `line-height: 1.6`, which made the internal vertical space feel much larger than the surrounding banner UI;
+- the select had no component-level `box-sizing: border-box`, so its full-width/padded sizing was more likely to push wider than the available action column on narrow mobile widths.
+
+## Final scoped fix
+The final fix stays specific to the impersonation UI instead of shrinking CRM selects globally.
+
+- Added a scoped override on `.peracrm-impersonation-switcher__select` to set `box-sizing: border-box`, compact/select-appropriate padding, a tighter line-height, and a slightly smaller minimum height.
+- Kept the select visually consistent by preserving the rounded CRM control styling and adding a component-scoped dropdown arrow treatment instead of changing all selects.
+- Let the impersonation select take the full action-row width earlier at tablet/mobile breakpoints so it does not compete with the buttons for horizontal space.
+- Preserved the stacked mobile order: state text, dropdown, apply button, reset button.
+
 ## Manual QA checklist
-- [ ] no invalid flex value remains
-- [ ] lock badge still sizes cleanly
-- [ ] mobile layout still stacks correctly
-- [ ] medium-width layout looks clean
-- [ ] desktop layout remains unchanged in spirit
+- [ ] impersonation select fits inside container on mobile
+- [ ] no horizontal overflow
+- [ ] select no longer has excessive internal padding
+- [ ] apply button fits and is tappable
+- [ ] reset button fits and is tappable
+- [ ] medium-width layout still works
+- [ ] desktop layout still looks clean
