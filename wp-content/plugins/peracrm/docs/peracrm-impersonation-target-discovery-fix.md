@@ -15,15 +15,18 @@ On multisite, that discovery step is too narrow because role membership is store
 
 That meant a valid employee like Dave could be excluded from the candidate list even though he belongs to the active CRM subsite and still passes the existing impersonation target rule.
 
+A follow-up issue remained after that multisite adjustment: the helper requested a custom `fields` array from `get_users()`, but the loop still required each result to be a full `WP_User` instance. In practice that meant the returned rows could be skipped before the multisite validation logic ran, leaving the dropdown stuck on `My view` even when a valid subsite employee existed.
+
 ## What changed
 
 `peracrm_get_impersonation_targets()` now:
 
 1. resolves the current blog/site ID
-2. loads a broader user list for that current blog using `get_users()` with `blog_id`
-3. explicitly verifies multisite membership on the current blog
-4. verifies CRM access relevance
-5. preserves the existing final gate via `peracrm_user_is_impersonatable_target()`
+2. requests full `WP_User` objects from `get_users()` so the existing `instanceof WP_User` guard remains valid
+3. loads a broader user list for that current blog using `get_users()` with `blog_id`
+4. explicitly verifies multisite membership on the current blog
+5. verifies CRM access relevance
+6. preserves the existing final gate via `peracrm_user_is_impersonatable_target()`
 
 This keeps target discovery broad enough for multisite while leaving the final impersonation eligibility policy unchanged.
 

@@ -135,7 +135,7 @@ if (!function_exists('peracrm_get_impersonation_targets')) {
         $user_query_args = [
             'orderby' => 'display_name',
             'order' => 'ASC',
-            'fields' => ['ID', 'display_name', 'roles'],
+            'fields' => 'all',
         ];
 
         if (is_multisite()) {
