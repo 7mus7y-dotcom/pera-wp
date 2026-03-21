@@ -30,6 +30,7 @@ $real_user_label     = isset( $impersonation_ui['real_user_label'] ) ? (string) 
 $impersonation_targets = is_array( $impersonation_ui['targets'] ?? null ) ? $impersonation_ui['targets'] : array();
 $impersonation_action_url = isset( $impersonation_ui['admin_post_url'] ) ? (string) $impersonation_ui['admin_post_url'] : '';
 $selected_impersonation_user = isset( $impersonation_ui['effective_user_id'] ) ? (int) $impersonation_ui['effective_user_id'] : 0;
+$show_advisor_filter = $show_client_filters && ! $is_impersonating;
 
 $has_toolbar = $show_client_filters || '' !== $toolbar_content;
 ?>
@@ -71,13 +72,22 @@ $has_toolbar = $show_client_filters || '' !== $toolbar_content;
     </div>
 
     <?php if ( $can_impersonate || $is_impersonating ) : ?>
-    <div class="pera-crm-viewing-as-banner" role="status" aria-live="polite">
+    <div class="pera-crm-viewing-as-banner<?php echo $is_impersonating ? ' pera-crm-viewing-as-banner--active' : ''; ?>" role="status" aria-live="polite">
       <div class="pera-crm-viewing-as-banner__inner">
         <div class="pera-crm-viewing-as-banner__meta">
-          <strong><?php echo esc_html( sprintf( $is_impersonating ? __( 'Viewing as: %s', 'peracrm' ) : __( 'Current view: %s', 'peracrm' ), $impersonation_label ) ); ?></strong>
-          <?php if ( $is_impersonating && '' !== $real_user_label ) : ?>
-            <span><?php echo esc_html( sprintf( __( 'Signed in as: %s', 'peracrm' ), $real_user_label ) ); ?></span>
-          <?php endif; ?>
+          <span class="pera-crm-viewing-as-banner__state"><?php echo esc_html( $is_impersonating ? __( 'Impersonation active', 'peracrm' ) : __( 'Default CRM view', 'peracrm' ) ); ?></span>
+          <div class="pera-crm-viewing-as-banner__identity-block">
+            <div class="pera-crm-viewing-as-banner__identity-row">
+              <span class="pera-crm-viewing-as-banner__label"><?php echo esc_html( $is_impersonating ? __( 'Viewing as', 'peracrm' ) : __( 'Current view', 'peracrm' ) ); ?></span>
+              <strong class="pera-crm-viewing-as-banner__value"><?php echo esc_html( $impersonation_label ); ?></strong>
+            </div>
+            <?php if ( $is_impersonating && '' !== $real_user_label ) : ?>
+              <div class="pera-crm-viewing-as-banner__identity-row pera-crm-viewing-as-banner__identity-row--secondary">
+                <span class="pera-crm-viewing-as-banner__label"><?php esc_html_e( 'Signed in as', 'peracrm' ); ?></span>
+                <span class="pera-crm-viewing-as-banner__value"><?php echo esc_html( $real_user_label ); ?></span>
+              </div>
+            <?php endif; ?>
+          </div>
         </div>
 
         <?php if ( $can_impersonate && '' !== $impersonation_action_url ) : ?>
@@ -86,8 +96,8 @@ $has_toolbar = $show_client_filters || '' !== $toolbar_content;
             <input type="hidden" name="action" value="peracrm_set_view_as_advisor">
             <?php wp_nonce_field( 'peracrm_set_view_as_advisor', 'peracrm_view_as_nonce' ); ?>
             <label class="screen-reader-text" for="peracrm-view-as-user-id"><?php esc_html_e( 'Select advisor view', 'peracrm' ); ?></label>
-            <select id="peracrm-view-as-user-id" name="peracrm_view_as_user_id" class="crm-search-control peracrm-impersonation-switcher__select">
-              <option value="0"><?php esc_html_e( 'My view', 'peracrm' ); ?></option>
+            <select id="peracrm-view-as-user-id" name="peracrm_view_as_user_id" class="crm-search-control peracrm-impersonation-switcher__select" aria-label="<?php esc_attr_e( 'Choose CRM view', 'peracrm' ); ?>">
+              <option value="0"><?php esc_html_e( 'View as myself', 'peracrm' ); ?></option>
               <?php foreach ( $impersonation_targets as $target ) : ?>
                 <?php
                 $target_id = isset( $target['id'] ) ? (int) $target['id'] : 0;
@@ -99,7 +109,7 @@ $has_toolbar = $show_client_filters || '' !== $toolbar_content;
                 <option value="<?php echo esc_attr( (string) $target_id ); ?>" <?php selected( $selected_impersonation_user, $target_id ); ?>><?php echo esc_html( $target_name ); ?></option>
               <?php endforeach; ?>
             </select>
-            <button type="submit" class="btn btn--solid btn--blue"><?php esc_html_e( 'Switch view', 'peracrm' ); ?></button>
+            <button type="submit" class="btn btn--solid btn--blue"><?php esc_html_e( 'Apply view', 'peracrm' ); ?></button>
           </form>
 
           <?php if ( $is_impersonating ) : ?>
@@ -120,7 +130,7 @@ $has_toolbar = $show_client_filters || '' !== $toolbar_content;
       <?php if ( $show_client_filters ) : ?>
       <form method="get" action="<?php echo esc_url( home_url( '/crm/clients/' ) ); ?>" class="crm-client-filters" aria-label="<?php echo esc_attr__( 'Client filters', 'peracrm' ); ?>">
         <input type="hidden" name="type" value="<?php echo esc_attr( $clients_type_view ); ?>">
-        <div class="crm-toolbar__row crm-client-filters__grid">
+        <div class="crm-toolbar__row crm-client-filters__grid<?php echo $is_impersonating ? ' crm-client-filters__grid--impersonating' : ''; ?>">
           <label>
             <span class="screen-reader-text"><?php esc_html_e( 'Search clients', 'peracrm' ); ?></span>
             <input class="crm-search-control" type="search" name="q" value="<?php echo esc_attr( $filter_q ); ?>" placeholder="<?php echo esc_attr__( 'Search clients', 'peracrm' ); ?>">
@@ -138,6 +148,7 @@ $has_toolbar = $show_client_filters || '' !== $toolbar_content;
             </select>
           </label>
 
+          <?php if ( $show_advisor_filter ) : ?>
           <label>
             <span class="screen-reader-text"><?php esc_html_e( 'Advisor', 'peracrm' ); ?></span>
             <select class="crm-search-control" name="advisor">
@@ -156,6 +167,12 @@ $has_toolbar = $show_client_filters || '' !== $toolbar_content;
               <?php endforeach; ?>
             </select>
           </label>
+          <?php elseif ( $is_impersonating ) : ?>
+          <div class="crm-client-filters__lock" aria-live="polite">
+            <span class="crm-client-filters__lock-badge"><?php esc_html_e( 'Advisor filter locked', 'peracrm' ); ?></span>
+            <p><?php echo esc_html( sprintf( __( 'Results already follow the active view as %s.', 'peracrm' ), $impersonation_label ) ); ?></p>
+          </div>
+          <?php endif; ?>
 
           <div class="crm-action-group crm-action-group--toolbar crm-client-filters__actions">
             <button type="submit" class="btn btn--solid btn--blue crm-action-group__item crm-action-group__item--primary"><?php esc_html_e( 'Apply filters', 'peracrm' ); ?></button>
