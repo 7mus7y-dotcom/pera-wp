@@ -538,119 +538,20 @@ if ( ! function_exists( 'pera_property_get_schema_images' ) ) {
   }
 }
 
-if ( ! function_exists( 'pera_property_get_schema_geo' ) ) {
-  function pera_property_get_schema_geo( int $post_id ): array {
-    $district = pera_property_get_district_name( $post_id );
-    $region   = pera_property_get_region_name( $post_id );
-
-    $address = array(
-      '@type'           => 'PostalAddress',
-      'addressLocality' => $district !== '' ? $district : 'Istanbul',
-      'addressCountry'  => 'TR',
+if ( ! function_exists( 'pera_property_get_breadcrumb_term_item' ) ) {
+  function pera_property_get_breadcrumb_term_item( WP_Term $term, int $position ): array {
+    $item = array(
+      '@type'    => 'ListItem',
+      'position' => $position,
+      'name'     => pera_property_normalize_whitespace( (string) $term->name ),
     );
 
-    if ( $region !== '' ) {
-      $address['addressRegion'] = $region;
+    $term_link = get_term_link( $term );
+    if ( ! is_wp_error( $term_link ) && is_string( $term_link ) && $term_link !== '' ) {
+      $item['item'] = $term_link;
     }
 
-    return $address;
-  }
-}
-
-if ( ! function_exists( 'pera_property_get_schema_availability' ) ) {
-  function pera_property_get_schema_availability( int $post_id ): string {
-    $ready_label = pera_property_get_ready_label( $post_id );
-
-    if ( $ready_label === '' ) {
-      return 'https://schema.org/InStock';
-    }
-
-    if ( strcasecmp( $ready_label, 'Key-ready' ) === 0 ) {
-      return 'https://schema.org/InStock';
-    }
-
-    if ( stripos( $ready_label, 'Ready on ' ) === 0 ) {
-      return 'https://schema.org/PreOrder';
-    }
-
-    return 'https://schema.org/InStock';
-  }
-}
-
-if ( ! function_exists( 'pera_property_get_schema_offer' ) ) {
-  function pera_property_get_schema_offer( int $post_id ): array {
-    $unit_context   = pera_property_get_selected_unit_context( $post_id );
-    $selected_unit  = is_array( $unit_context['selected_unit'] ) ? $unit_context['selected_unit'] : null;
-    $selected_price_min = 0;
-    $selected_price_max = 0;
-
-    if ( is_array( $selected_unit ) ) {
-      $selected_price_min = isset( $selected_unit['price_min'] ) && is_numeric( $selected_unit['price_min'] )
-        ? (int) $selected_unit['price_min']
-        : 0;
-      $selected_price_max = isset( $selected_unit['price_max'] ) && is_numeric( $selected_unit['price_max'] )
-        ? (int) $selected_unit['price_max']
-        : 0;
-
-      if ( $selected_price_min < 1 && isset( $selected_unit['v2_price_usd_min'] ) && is_numeric( $selected_unit['v2_price_usd_min'] ) ) {
-        $selected_price_min = (int) $selected_unit['v2_price_usd_min'];
-      }
-
-      if ( $selected_price_max < 1 && isset( $selected_unit['v2_price_usd_max'] ) && is_numeric( $selected_unit['v2_price_usd_max'] ) ) {
-        $selected_price_max = (int) $selected_unit['v2_price_usd_max'];
-      }
-    }
-
-    $post_price_min = (int) get_post_meta( $post_id, 'v2_price_usd_min', true );
-    $post_price_max = (int) get_post_meta( $post_id, 'v2_price_usd_max', true );
-
-    $low_price  = $selected_price_min > 0 ? $selected_price_min : $post_price_min;
-    $high_price = $selected_price_max > 0 ? $selected_price_max : $post_price_max;
-
-    if ( $high_price <= 0 ) {
-      $high_price = $low_price;
-    }
-
-    if ( $low_price <= 0 ) {
-      return array();
-    }
-
-    $offer = array(
-      '@type'         => 'Offer',
-      'priceCurrency' => 'USD',
-      'url'           => pera_property_canonical_url( $post_id ),
-      'availability'  => pera_property_get_schema_availability( $post_id ),
-    );
-
-    if ( $high_price > $low_price ) {
-      $offer['priceSpecification'] = array(
-        '@type'         => 'PriceSpecification',
-        'priceCurrency' => 'USD',
-        'minPrice'      => $low_price,
-        'maxPrice'      => $high_price,
-      );
-      $offer['price'] = $low_price;
-    } else {
-      $offer['price'] = $low_price;
-    }
-
-    return $offer;
-  }
-}
-
-if ( ! function_exists( 'pera_property_get_schema_type' ) ) {
-  function pera_property_get_schema_type( int $post_id ): array {
-    $type = pera_property_mb_strtolower( pera_property_get_type_name( $post_id ) );
-
-    if ( $type !== '' && strpos( $type, 'apartment' ) !== false ) {
-      return array( 'Product', 'Apartment' );
-    }
-
-    if ( $type !== '' && strpos( $type, 'villa' ) !== false ) {
-      return array( 'Product', 'SingleFamilyResidence' );
-    }
-
-    return array( 'Product' );
+    return $item;
   }
 }
 
@@ -663,32 +564,10 @@ if ( ! function_exists( 'pera_property_build_schema_graph' ) ) {
       return array();
     }
 
-    $images = pera_property_get_schema_images( $post_id );
-    $offer  = pera_property_get_schema_offer( $post_id );
-    $types  = pera_property_get_schema_type( $post_id );
     $graph  = array(
       '@context' => 'https://schema.org',
       '@graph'   => array(),
     );
-
-    $property = array(
-      '@type'    => $types,
-      '@id'      => $url . '#property',
-      'name'     => $name,
-      'url'      => $url,
-      'category' => pera_property_get_type_name( $post_id ),
-      'address'  => pera_property_get_schema_geo( $post_id ),
-    );
-
-    if ( ! empty( $images ) ) {
-      $property['image'] = $images;
-    }
-
-    if ( ! empty( $offer ) ) {
-      $property['offers'] = $offer;
-    }
-
-    $graph['@graph'][] = $property;
 
     $breadcrumb_items = array(
       array(
@@ -699,22 +578,44 @@ if ( ! function_exists( 'pera_property_build_schema_graph' ) ) {
       ),
     );
 
-    $district = pera_property_get_district_name( $post_id );
-    $region   = pera_property_get_region_name( $post_id );
+    $region_term = null;
+    $region_terms = get_the_terms( $post_id, 'region' );
+    if ( is_array( $region_terms ) && ! empty( $region_terms ) ) {
+      $candidate = reset( $region_terms );
+      if ( $candidate instanceof WP_Term && ! is_wp_error( $candidate ) ) {
+        $region_term = $candidate;
+      }
+    }
 
-    if ( $region !== '' ) {
-      $breadcrumb_items[] = array(
-        '@type'    => 'ListItem',
-        'position' => count( $breadcrumb_items ) + 1,
-        'name'     => $region,
+    if ( $region_term instanceof WP_Term ) {
+      $breadcrumb_items[] = pera_property_get_breadcrumb_term_item(
+        $region_term,
+        count( $breadcrumb_items ) + 1
       );
     }
 
-    if ( $district !== '' ) {
-      $breadcrumb_items[] = array(
-        '@type'    => 'ListItem',
-        'position' => count( $breadcrumb_items ) + 1,
-        'name'     => $district,
+    $district_term = null;
+    if ( function_exists( 'pera_get_deepest_term' ) ) {
+      $candidate = pera_get_deepest_term( $post_id, 'district' );
+      if ( $candidate instanceof WP_Term && ! is_wp_error( $candidate ) ) {
+        $district_term = $candidate;
+      }
+    }
+
+    if ( ! ( $district_term instanceof WP_Term ) ) {
+      $district_terms = get_the_terms( $post_id, 'district' );
+      if ( is_array( $district_terms ) && ! empty( $district_terms ) ) {
+        $candidate = reset( $district_terms );
+        if ( $candidate instanceof WP_Term && ! is_wp_error( $candidate ) ) {
+          $district_term = $candidate;
+        }
+      }
+    }
+
+    if ( $district_term instanceof WP_Term ) {
+      $breadcrumb_items[] = pera_property_get_breadcrumb_term_item(
+        $district_term,
+        count( $breadcrumb_items ) + 1
       );
     }
 
