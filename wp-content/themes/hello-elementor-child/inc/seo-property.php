@@ -351,11 +351,14 @@ if ( ! function_exists( 'pera_property_get_selected_unit_context' ) ) {
   function pera_property_get_selected_unit_context( int $post_id ): array {
     static $cache = array();
 
-    if ( isset( $cache[ $post_id ] ) ) {
-      return $cache[ $post_id ];
+    $unit_key_raw = isset( $_GET['unit_key'] ) ? trim( (string) wp_unslash( $_GET['unit_key'] ) ) : '';
+    $cache_key = $post_id . '|' . $unit_key_raw;
+
+    if ( isset( $cache[ $cache_key ] ) ) {
+      return $cache[ $cache_key ];
     }
 
-    $unit_key = isset( $_GET['unit_key'] ) ? absint( $_GET['unit_key'] ) : 0;
+    $unit_key_numeric = ( $unit_key_raw !== '' && ctype_digit( $unit_key_raw ) ) ? (int) $unit_key_raw : 0;
 
     if ( ! function_exists( 'pera_units_get_display_data' ) ) {
       $v2_helper_path = get_stylesheet_directory() . '/inc/v2-units-index.php';
@@ -370,7 +373,7 @@ if ( ! function_exists( 'pera_property_get_selected_unit_context' ) ) {
     $is_resale = in_array( 'resales', $special_slugs, true );
 
     $context = array(
-      'unit_key'      => $unit_key,
+      'unit_key'      => $unit_key_raw,
       'selected_unit' => null,
       'price_text'    => '',
       'size_text'     => '',
@@ -382,7 +385,7 @@ if ( ! function_exists( 'pera_property_get_selected_unit_context' ) ) {
         $post_id,
         array(
           'context'    => 'single',
-          'unit_key'   => $unit_key,
+          'unit_key'   => $unit_key_numeric,
           'is_project' => $context['is_project'],
         )
       );
@@ -395,12 +398,48 @@ if ( ! function_exists( 'pera_property_get_selected_unit_context' ) ) {
       }
     }
 
-    if ( is_array( $context['selected_unit'] ) ) {
-      $context['size_text'] = pera_property_extract_size_text( $context['selected_unit'] );
+    if ( $unit_key_raw !== '' && ! is_array( $context['selected_unit'] ) ) {
+      $matched_row = pera_property_find_unit_row( $post_id, $unit_key_raw );
+      if ( is_array( $matched_row ) ) {
+        $context['selected_unit'] = $matched_row;
+      }
     }
 
-    $cache[ $post_id ] = $context;
-    return $cache[ $post_id ];
+    if ( is_array( $context['selected_unit'] ) ) {
+      $context['size_text'] = pera_property_extract_size_text( $context['selected_unit'] );
+
+      if ( $context['price_text'] === '' ) {
+        $price_min = isset( $context['selected_unit']['price_min'] ) && is_numeric( $context['selected_unit']['price_min'] )
+          ? (int) $context['selected_unit']['price_min']
+          : 0;
+        $price_max = isset( $context['selected_unit']['price_max'] ) && is_numeric( $context['selected_unit']['price_max'] )
+          ? (int) $context['selected_unit']['price_max']
+          : 0;
+
+        if ( $price_min < 1 ) {
+          $price_min = isset( $context['selected_unit']['v2_price_usd_min'] ) && is_numeric( $context['selected_unit']['v2_price_usd_min'] )
+            ? (int) $context['selected_unit']['v2_price_usd_min']
+            : 0;
+        }
+        if ( $price_max < 1 ) {
+          $price_max = isset( $context['selected_unit']['v2_price_usd_max'] ) && is_numeric( $context['selected_unit']['v2_price_usd_max'] )
+            ? (int) $context['selected_unit']['v2_price_usd_max']
+            : 0;
+        }
+        if ( $price_max <= 0 ) {
+          $price_max = $price_min;
+        }
+
+        if ( $price_min > 0 && function_exists( 'pera_v2_units_format_price_text' ) ) {
+          $context['price_text'] = pera_property_normalize_whitespace(
+            (string) pera_v2_units_format_price_text( $price_min, $price_max, (bool) $context['is_project'] )
+          );
+        }
+      }
+    }
+
+    $cache[ $cache_key ] = $context;
+    return $cache[ $cache_key ];
   }
 }
 
@@ -452,6 +491,33 @@ if ( ! function_exists( 'pera_property_get_location_label' ) ) {
   }
 }
 
+if ( ! function_exists( 'pera_property_should_add_sale_context' ) ) {
+  function pera_property_should_add_sale_context( string $value ): bool {
+    $normalized = pera_property_mb_strtolower( pera_property_normalize_whitespace( $value ) );
+    if ( $normalized === '' ) {
+      return true;
+    }
+
+    return ! (bool) preg_match( '/(^|[^\p{L}])(for sale|sale|satılık|satis|listing|listed)([^\p{L}]|$)/u', $normalized );
+  }
+}
+
+if ( ! function_exists( 'pera_property_get_price_description_fragment' ) ) {
+  function pera_property_get_price_description_fragment( string $price_text ): string {
+    $price_text = pera_property_normalize_whitespace( $price_text );
+    if ( $price_text === '' ) {
+      return '';
+    }
+
+    if ( preg_match( '/^from\s+/iu', $price_text ) ) {
+      $amount = preg_replace( '/^from\s+/iu', '', $price_text );
+      return 'from ' . trim( (string) $amount );
+    }
+
+    return 'priced at ' . $price_text;
+  }
+}
+
 if ( ! function_exists( 'pera_property_build_seo_title' ) ) {
   function pera_property_build_seo_title( int $post_id ): string {
     $public_title = pera_property_get_public_title( $post_id );
@@ -468,35 +534,35 @@ if ( ! function_exists( 'pera_property_build_seo_title' ) ) {
 
     $parts = array( $public_title );
 
-    $needs_type_prefix = $type !== ''
-      && $bedroom_label !== ''
-      && ! pera_property_string_contains( $title_lower, pera_property_mb_strtolower( $type ) )
-      && ! pera_property_string_contains( $title_lower, pera_property_mb_strtolower( $bedroom_label ) );
-
-    if ( $needs_type_prefix ) {
-      array_unshift( $parts, trim( $bedroom_label . ' ' . $type ) );
-      $public_title = implode( ' ', array_unique( array_filter( $parts ) ) );
-      $parts = array( $public_title );
-      $title_lower = pera_property_mb_strtolower( $public_title );
-    }
-
-    $location_phrase = '';
-    if ( $district !== '' ) {
-      $district_lower = pera_property_mb_strtolower( $district );
-      if ( ! pera_property_string_contains( $title_lower, $district_lower ) || ! pera_property_string_contains( $title_lower, 'istanbul' ) ) {
-        $location_phrase = 'for sale in ' . $district . ', Istanbul';
+    if ( $type !== '' && $bedroom_label !== '' ) {
+      $descriptor = trim( $bedroom_label . ' ' . $type );
+      if (
+        $descriptor !== ''
+        && ! pera_property_string_contains( $title_lower, pera_property_mb_strtolower( $type ) )
+        && ! pera_property_string_contains( $title_lower, pera_property_mb_strtolower( $bedroom_label ) )
+      ) {
+        $parts[] = $descriptor;
       }
-    } elseif ( ! pera_property_string_contains( $title_lower, 'istanbul' ) ) {
-      $location_phrase = 'for sale in Istanbul';
     }
 
-    if ( $location_phrase !== '' ) {
-      $parts[] = $location_phrase;
+    $has_istanbul = pera_property_string_contains( $title_lower, 'istanbul' );
+    $has_district = false;
+
+    if ( $district !== '' ) {
+      $has_district = pera_property_string_contains( $title_lower, pera_property_mb_strtolower( $district ) );
+
+      if ( ! $has_district && ! $has_istanbul ) {
+        $parts[] = 'for sale in ' . $district . ', Istanbul';
+      } elseif ( $has_district && ! $has_istanbul && pera_property_should_add_sale_context( $public_title ) ) {
+        $parts[] = 'for sale in Istanbul';
+      }
+    } elseif ( ! $has_istanbul ) {
+      $parts[] = 'for sale in Istanbul';
     }
 
-    $seo_title = implode( ' ', array_filter( $parts ) );
+    $seo_title = implode( ', ', array_filter( $parts ) );
     $seo_title = preg_replace( '/\s+/', ' ', (string) $seo_title );
-    $seo_title = trim( (string) $seo_title );
+    $seo_title = trim( preg_replace( '/,\s+for sale/i', ' for sale', (string) $seo_title ) );
 
     return $seo_title . ' | Pera Property';
   }
@@ -524,24 +590,30 @@ if ( ! function_exists('pera_property_get_meta_description') ) {
 
     $subject = 'this property';
     if ( $bedroom_label !== '' && $type !== '' ) {
-      $subject = strtolower( $bedroom_label . ' ' . $type );
+      $subject = pera_property_mb_strtolower( $bedroom_label . ' ' . $type );
     } elseif ( $type !== '' ) {
-      $subject = strtolower( $type );
+      $subject = pera_property_mb_strtolower( $type );
     } elseif ( $title !== '' ) {
       $subject = $title;
     }
 
-    $description = 'Explore ' . $subject . ' for sale in ' . $location;
+    $description = $title !== ''
+      ? 'Explore ' . $title . ' in ' . $location
+      : 'Discover ' . $subject . ' in ' . $location;
+
+    if ( $title === '' && pera_property_should_add_sale_context( $subject ) ) {
+      $description = 'Discover ' . $subject . ' for sale in ' . $location;
+    }
 
     $details = array();
     if ( $size_text !== '' ) {
       $details[] = 'with ' . $size_text . ' of space';
     }
     if ( $price_text !== '' ) {
-      $details[] = 'priced ' . $price_text;
+      $details[] = pera_property_get_price_description_fragment( $price_text );
     }
     if ( $ready_label !== '' ) {
-      $details[] = strtolower( $ready_label );
+      $details[] = pera_property_mb_strtolower( $ready_label );
     }
 
     if ( ! empty( $details ) ) {
