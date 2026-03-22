@@ -358,7 +358,9 @@ if ( ! function_exists( 'pera_property_get_selected_unit_context' ) ) {
       return $cache[ $cache_key ];
     }
 
-    $unit_key_numeric = ( $unit_key_raw !== '' && ctype_digit( $unit_key_raw ) ) ? (int) $unit_key_raw : 0;
+    $unit_key_is_numeric = ( $unit_key_raw !== '' && ctype_digit( $unit_key_raw ) );
+    $unit_key_is_string = ( $unit_key_raw !== '' && ! $unit_key_is_numeric );
+    $unit_key_numeric = $unit_key_is_numeric ? (int) $unit_key_raw : 0;
 
     if ( ! function_exists( 'pera_units_get_display_data' ) ) {
       $v2_helper_path = get_stylesheet_directory() . '/inc/v2-units-index.php';
@@ -380,7 +382,12 @@ if ( ! function_exists( 'pera_property_get_selected_unit_context' ) ) {
       'is_project'    => ( $is_project && ! $is_resale ),
     );
 
-    if ( function_exists( 'pera_units_get_display_data' ) ) {
+    if ( $unit_key_is_string ) {
+      $matched_row = pera_property_find_unit_row( $post_id, $unit_key_raw );
+      if ( is_array( $matched_row ) ) {
+        $context['selected_unit'] = $matched_row;
+      }
+    } elseif ( function_exists( 'pera_units_get_display_data' ) ) {
       $display = pera_units_get_display_data(
         $post_id,
         array(
