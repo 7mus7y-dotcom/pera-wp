@@ -498,6 +498,243 @@ if ( ! function_exists( 'pera_property_get_location_label' ) ) {
   }
 }
 
+if ( ! function_exists( 'pera_property_get_schema_images' ) ) {
+  function pera_property_get_schema_images( int $post_id ): array {
+    $images = array();
+
+    $social = pera_property_get_social_image( $post_id );
+    if ( ! empty( $social['url'] ) ) {
+      $images[] = esc_url_raw( (string) $social['url'] );
+    }
+
+    if ( function_exists( 'get_field' ) ) {
+      $gallery = get_field( 'main_gallery', $post_id );
+      if ( is_array( $gallery ) ) {
+        foreach ( $gallery as $item ) {
+          if ( ! is_array( $item ) ) {
+            continue;
+          }
+
+          $url = '';
+
+          if ( ! empty( $item['url'] ) ) {
+            $url = (string) $item['url'];
+          } elseif ( ! empty( $item['ID'] ) ) {
+            $resolved = wp_get_attachment_image_url( (int) $item['ID'], 'full' );
+            if ( $resolved ) {
+              $url = (string) $resolved;
+            }
+          }
+
+          if ( $url !== '' ) {
+            $images[] = esc_url_raw( $url );
+          }
+        }
+      }
+    }
+
+    $images = array_values( array_unique( array_filter( $images ) ) );
+    return array_slice( $images, 0, 10 );
+  }
+}
+
+if ( ! function_exists( 'pera_property_get_schema_geo' ) ) {
+  function pera_property_get_schema_geo( int $post_id ): array {
+    $district = pera_property_get_district_name( $post_id );
+    $region   = pera_property_get_region_name( $post_id );
+
+    $address = array(
+      '@type'           => 'PostalAddress',
+      'addressLocality' => $district !== '' ? $district : 'Istanbul',
+      'addressCountry'  => 'TR',
+    );
+
+    if ( $region !== '' ) {
+      $address['addressRegion'] = $region;
+    }
+
+    return $address;
+  }
+}
+
+if ( ! function_exists( 'pera_property_get_schema_availability' ) ) {
+  function pera_property_get_schema_availability( int $post_id ): string {
+    $ready_label = pera_property_get_ready_label( $post_id );
+
+    if ( $ready_label === '' ) {
+      return 'https://schema.org/InStock';
+    }
+
+    if ( strcasecmp( $ready_label, 'Key-ready' ) === 0 ) {
+      return 'https://schema.org/InStock';
+    }
+
+    if ( stripos( $ready_label, 'Ready on ' ) === 0 ) {
+      return 'https://schema.org/PreOrder';
+    }
+
+    return 'https://schema.org/InStock';
+  }
+}
+
+if ( ! function_exists( 'pera_property_get_schema_offer' ) ) {
+  function pera_property_get_schema_offer( int $post_id ): array {
+    $unit_context   = pera_property_get_selected_unit_context( $post_id );
+    $selected_unit  = is_array( $unit_context['selected_unit'] ) ? $unit_context['selected_unit'] : null;
+    $selected_price_min = 0;
+    $selected_price_max = 0;
+
+    if ( is_array( $selected_unit ) ) {
+      $selected_price_min = isset( $selected_unit['price_min'] ) && is_numeric( $selected_unit['price_min'] )
+        ? (int) $selected_unit['price_min']
+        : 0;
+      $selected_price_max = isset( $selected_unit['price_max'] ) && is_numeric( $selected_unit['price_max'] )
+        ? (int) $selected_unit['price_max']
+        : 0;
+
+      if ( $selected_price_min < 1 && isset( $selected_unit['v2_price_usd_min'] ) && is_numeric( $selected_unit['v2_price_usd_min'] ) ) {
+        $selected_price_min = (int) $selected_unit['v2_price_usd_min'];
+      }
+
+      if ( $selected_price_max < 1 && isset( $selected_unit['v2_price_usd_max'] ) && is_numeric( $selected_unit['v2_price_usd_max'] ) ) {
+        $selected_price_max = (int) $selected_unit['v2_price_usd_max'];
+      }
+    }
+
+    $post_price_min = (int) get_post_meta( $post_id, 'v2_price_usd_min', true );
+    $post_price_max = (int) get_post_meta( $post_id, 'v2_price_usd_max', true );
+
+    $low_price  = $selected_price_min > 0 ? $selected_price_min : $post_price_min;
+    $high_price = $selected_price_max > 0 ? $selected_price_max : $post_price_max;
+
+    if ( $high_price <= 0 ) {
+      $high_price = $low_price;
+    }
+
+    if ( $low_price <= 0 ) {
+      return array();
+    }
+
+    $offer = array(
+      '@type'         => 'Offer',
+      'priceCurrency' => 'USD',
+      'url'           => pera_property_canonical_url( $post_id ),
+      'availability'  => pera_property_get_schema_availability( $post_id ),
+    );
+
+    if ( $high_price > $low_price ) {
+      $offer['priceSpecification'] = array(
+        '@type'         => 'PriceSpecification',
+        'priceCurrency' => 'USD',
+        'minPrice'      => $low_price,
+        'maxPrice'      => $high_price,
+      );
+      $offer['price'] = $low_price;
+    } else {
+      $offer['price'] = $low_price;
+    }
+
+    return $offer;
+  }
+}
+
+if ( ! function_exists( 'pera_property_get_schema_type' ) ) {
+  function pera_property_get_schema_type( int $post_id ): array {
+    $type = pera_property_mb_strtolower( pera_property_get_type_name( $post_id ) );
+
+    if ( $type !== '' && strpos( $type, 'apartment' ) !== false ) {
+      return array( 'Product', 'Apartment' );
+    }
+
+    if ( $type !== '' && strpos( $type, 'villa' ) !== false ) {
+      return array( 'Product', 'SingleFamilyResidence' );
+    }
+
+    return array( 'Product' );
+  }
+}
+
+if ( ! function_exists( 'pera_property_build_schema_graph' ) ) {
+  function pera_property_build_schema_graph( int $post_id ): array {
+    $name = pera_property_get_public_title( $post_id );
+    $url  = pera_property_canonical_url( $post_id );
+
+    if ( $name === '' || $url === '' ) {
+      return array();
+    }
+
+    $images = pera_property_get_schema_images( $post_id );
+    $offer  = pera_property_get_schema_offer( $post_id );
+    $types  = pera_property_get_schema_type( $post_id );
+    $graph  = array(
+      '@context' => 'https://schema.org',
+      '@graph'   => array(),
+    );
+
+    $property = array(
+      '@type'    => $types,
+      '@id'      => $url . '#property',
+      'name'     => $name,
+      'url'      => $url,
+      'category' => pera_property_get_type_name( $post_id ),
+      'address'  => pera_property_get_schema_geo( $post_id ),
+    );
+
+    if ( ! empty( $images ) ) {
+      $property['image'] = $images;
+    }
+
+    if ( ! empty( $offer ) ) {
+      $property['offers'] = $offer;
+    }
+
+    $graph['@graph'][] = $property;
+
+    $breadcrumb_items = array(
+      array(
+        '@type'    => 'ListItem',
+        'position' => 1,
+        'name'     => 'Istanbul',
+        'item'     => home_url( '/' ),
+      ),
+    );
+
+    $district = pera_property_get_district_name( $post_id );
+    $region   = pera_property_get_region_name( $post_id );
+
+    if ( $region !== '' ) {
+      $breadcrumb_items[] = array(
+        '@type'    => 'ListItem',
+        'position' => count( $breadcrumb_items ) + 1,
+        'name'     => $region,
+      );
+    }
+
+    if ( $district !== '' ) {
+      $breadcrumb_items[] = array(
+        '@type'    => 'ListItem',
+        'position' => count( $breadcrumb_items ) + 1,
+        'name'     => $district,
+      );
+    }
+
+    $breadcrumb_items[] = array(
+      '@type'    => 'ListItem',
+      'position' => count( $breadcrumb_items ) + 1,
+      'name'     => $name,
+      'item'     => $url,
+    );
+
+    $graph['@graph'][] = array(
+      '@type'           => 'BreadcrumbList',
+      '@id'             => $url . '#breadcrumb',
+      'itemListElement' => $breadcrumb_items,
+    );
+
+    return $graph;
+  }
+}
+
 if ( ! function_exists( 'pera_property_should_add_sale_context' ) ) {
   function pera_property_should_add_sale_context( string $value ): bool {
     $normalized = pera_property_mb_strtolower( pera_property_normalize_whitespace( $value ) );
@@ -746,6 +983,11 @@ add_action('wp_head', function () {
   if ( $img_url ) {
     echo '<meta name="twitter:image" content="' . esc_url($img_url) . '">' . "\n";
     echo '<meta name="twitter:image:alt" content="' . esc_attr($img_alt) . '">' . "\n";
+  }
+
+  $schema_graph = pera_property_build_schema_graph( $post_id );
+  if ( ! empty( $schema_graph ) ) {
+    echo '<script type="application/ld+json">' . wp_json_encode( $schema_graph, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE ) . '</script>' . "\n";
   }
 
   echo "<!-- /Pera: Single Property SEO / Social -->\n\n";
