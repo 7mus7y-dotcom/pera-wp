@@ -4883,6 +4883,7 @@ body.crm-route #site-header.peracrm-shell-header.is-scrolled .peracrm-header-act
   gap: 1rem;
   align-items: center;
   justify-content: space-between;
+  min-width: 0;
   padding: 1rem 1.25rem;
 }
 
@@ -4948,6 +4949,7 @@ body.crm-route #site-header.peracrm-shell-header.is-scrolled .peracrm-header-act
   display: flex;
   flex: 1 1 420px;
   min-width: 0;
+  max-width: 100%;
   flex-wrap: wrap;
   gap: 0.75rem;
   align-items: stretch;
@@ -4966,6 +4968,8 @@ body.crm-route #site-header.peracrm-shell-header.is-scrolled .peracrm-header-act
 .peracrm-impersonation-switcher {
   margin: 0;
   flex: 1 1 340px;
+  width: 100%;
+  max-width: 100%;
 }
 
 .peracrm-impersonation-switcher__select {
@@ -4990,6 +4994,8 @@ body.crm-route #site-header.peracrm-shell-header.is-scrolled .peracrm-header-act
 
 .peracrm-impersonation-switcher .btn,
 .peracrm-impersonation-reset .btn {
+  min-width: 0;
+  max-width: 100%;
   min-height: 42px;
   white-space: normal;
 }
@@ -5046,7 +5052,7 @@ body.crm-route #site-header.peracrm-shell-header.is-scrolled .peracrm-header-act
   }
 
   .peracrm-impersonation-switcher__select {
-    flex-basis: 100%;
+    flex: 1 1 100%;
   }
 }
 
@@ -5077,6 +5083,8 @@ body.crm-route #site-header.peracrm-shell-header.is-scrolled .peracrm-header-act
   }
 
   .peracrm-impersonation-switcher__select,
+  .peracrm-impersonation-switcher .btn,
+  .peracrm-impersonation-reset .btn,
   .peracrm-impersonation-switcher button,
   .peracrm-impersonation-reset button {
     width: 100%;
