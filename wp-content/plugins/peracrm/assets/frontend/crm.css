@@ -4144,7 +4144,6 @@ body.crm-route #site-header.peracrm-shell-header.is-scrolled .peracrm-header-act
 #crm-hero .btn {
   padding: var(--crm-button-padding-y) var(--crm-button-padding-x);
   border-radius: var(--crm-button-radius);
-  min-height: 38px;
 }
 
 .crm-page .btn.crm-icon-btn,
