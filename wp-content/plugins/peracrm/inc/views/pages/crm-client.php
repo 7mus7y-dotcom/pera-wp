@@ -411,50 +411,7 @@ peracrm_frontend_render_shell_header();
                   <div class="crm-client-next-step__item"><span class="crm-client-next-step__label"><?php esc_html_e( 'Due today', 'peracrm' ); ?></span><strong><?php echo esc_html( (string) count( $today_reminders ) ); ?></strong></div>
                   <div class="crm-client-next-step__item crm-client-next-step__item--focus"><span class="crm-client-next-step__label"><?php esc_html_e( 'Next step', 'peracrm' ); ?></span><p><?php echo esc_html( $next_step_label ); ?></p></div>
                 </div>
-                <div class="crm-client-reminders-grid crm-client-task-groups">
-                  <?php foreach ( array(
-                    'overdue' => array( 'title' => __( 'Overdue', 'peracrm' ), 'items' => $overdue_task_rows, 'chip' => 'crm-chip--urgent', 'empty' => __( 'No overdue reminders.', 'peracrm' ) ),
-                    'today' => array( 'title' => __( 'Due today', 'peracrm' ), 'items' => $today_reminders, 'chip' => 'crm-chip--status', 'empty' => __( 'No reminders due today.', 'peracrm' ) ),
-                    'upcoming' => array( 'title' => __( 'Upcoming', 'peracrm' ), 'items' => $upcoming_rows, 'chip' => 'crm-chip--neutral', 'empty' => __( 'No upcoming reminders.', 'peracrm' ) ),
-                  ) as $task_group_key => $task_group ) : ?>
-                  <section class="crm-client-task-group crm-client-task-group--<?php echo esc_attr( $task_group_key ); ?>">
-                    <div class="crm-client-task-group__header">
-                      <h4><?php echo esc_html( (string) $task_group['title'] ); ?></h4>
-                      <span class="crm-chip <?php echo esc_attr( (string) $task_group['chip'] ); ?>"><?php echo esc_html( (string) count( $task_group['items'] ) ); ?></span>
-                    </div>
-                    <ul class="crm-row-list">
-                      <?php if ( empty( $task_group['items'] ) ) : ?>
-                      <li class="crm-row-list__item crm-row-list__item--empty"><p><?php echo esc_html( (string) $task_group['empty'] ); ?></p></li>
-                      <?php else : ?>
-                        <?php foreach ( $task_group['items'] as $reminder_row ) : ?>
-                        <li class="crm-row-list__item">
-                          <div class="crm-row-list__content">
-                            <div class="crm-row-list__header">
-                              <h5 class="crm-row-list__title"><?php echo esc_html( (string) ( $reminder_row['note'] ?? __( 'Reminder', 'peracrm' ) ) ); ?></h5>
-                              <span class="crm-chip <?php echo esc_attr( (string) $task_group['chip'] ); ?>"><?php echo esc_html( (string) ( $reminder_row['due_display'] ?? '' ) ); ?></span>
-                            </div>
-                          </div>
-                          <?php if ( ! empty( $reminder_row['id'] ) ) : ?>
-                          <div class="crm-row-list__aside">
-                            <form class="crm-task-action" method="post" action="<?php echo esc_url( home_url( '/wp-admin/admin-post.php' ) ); ?>" data-crm-ajax-form="reminder-status">
-                              <input type="hidden" name="action" value="peracrm_update_reminder_status">
-                              <input type="hidden" name="peracrm_client_id" value="<?php echo esc_attr( (string) $client_id ); ?>" />
-                              <input type="hidden" name="peracrm_reminder_id" value="<?php echo esc_attr( (string) absint( $reminder_row['id'] ) ); ?>">
-                              <input type="hidden" name="peracrm_status" value="done">
-                              <input type="hidden" name="peracrm_redirect" value="<?php echo esc_url( $frontend_url ); ?>">
-                              <input type="hidden" name="peracrm_context" value="frontend">
-                              <?php wp_nonce_field( 'peracrm_update_reminder_status', 'peracrm_update_reminder_status_nonce' ); ?>
-                              <button type="submit" class="btn btn--ghost btn--blue crm-task-done-btn"><?php esc_html_e( 'Done', 'peracrm' ); ?></button>
-                            </form>
-                          </div>
-                          <?php endif; ?>
-                        </li>
-                        <?php endforeach; ?>
-                      <?php endif; ?>
-                    </ul>
-                  </section>
-                  <?php endforeach; ?>
-                </div>
+                
               </div>
               <div class="crm-section__footer">
                 <form id="crm-add-reminder" method="post" action="<?php echo esc_url( home_url( '/wp-admin/admin-post.php' ) ); ?>" class="crm-form-stack" data-crm-ajax-form="reminder">
