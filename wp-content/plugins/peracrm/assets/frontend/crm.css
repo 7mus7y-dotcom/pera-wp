@@ -1114,6 +1114,7 @@ body.crm-route .crm-page--client-view .crm-portfolio-actions .peracrm-linked-pro
   border: 1px solid var(--border, #e8ecf2);
   border-radius: 12px;
   background: #ffffff;
+  align-content: start;
 }
 
 .crm-page--overview .crm-overview-priority-card--urgent {
