@@ -91,6 +91,27 @@ if (!function_exists('pera_is_crm_route')) {
     }
 }
 
+if (!function_exists('peracrm_is_crm_overview_route')) {
+    /**
+     * Determine whether the current CRM request is the overview dashboard route.
+     */
+    function peracrm_is_crm_overview_route(): bool
+    {
+        if (!pera_is_crm_route()) {
+            return false;
+        }
+
+        $action = sanitize_key((string) get_query_var('pera_crm_action', ''));
+        $view = sanitize_key((string) get_query_var('pera_crm_view', ''));
+
+        if ($action !== '') {
+            return false;
+        }
+
+        return $view === '' || $view === 'overview';
+    }
+}
+
 if (!function_exists('pera_crm_register_query_var')) {
     function pera_crm_register_query_var(array $vars): array
     {
