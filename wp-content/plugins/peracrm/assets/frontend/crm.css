@@ -5057,12 +5057,21 @@ body.crm-route #site-header.peracrm-shell-header.is-scrolled .peracrm-header-act
 }
 
 @media (max-width: 767px) {
-  .pera-crm-viewing-as-banner__inner,
+  .pera-crm-viewing-as-banner__inner {
+    flex-direction: column;
+    align-items: stretch;
+    justify-content: flex-start;
+  }
+
+  .pera-crm-viewing-as-banner__inner > *,
   .pera-crm-viewing-as-banner__meta,
   .pera-crm-viewing-as-banner__actions,
   .peracrm-impersonation-switcher,
   .peracrm-impersonation-reset {
+    flex: none;
     width: 100%;
+    min-width: 0;
+    max-width: 100%;
   }
 
   .pera-crm-viewing-as-banner__meta {
@@ -5070,6 +5079,7 @@ body.crm-route #site-header.peracrm-shell-header.is-scrolled .peracrm-header-act
   }
 
   .pera-crm-viewing-as-banner__actions {
+    flex-direction: column;
     justify-content: flex-start;
   }
 
@@ -5087,8 +5097,11 @@ body.crm-route #site-header.peracrm-shell-header.is-scrolled .peracrm-header-act
   .peracrm-impersonation-reset .btn,
   .peracrm-impersonation-switcher button,
   .peracrm-impersonation-reset button {
+    flex: none;
     width: 100%;
+    min-width: 0;
     max-width: 100%;
+    box-sizing: border-box;
   }
 
   .peracrm-impersonation-switcher__select {
