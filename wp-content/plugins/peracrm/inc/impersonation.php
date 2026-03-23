@@ -84,10 +84,11 @@ if (!function_exists('peracrm_current_user_can_view_as_advisor')) {
 
 if (!function_exists('peracrm_user_is_impersonatable_target')) {
     /**
-     * Validate explicit advisor/employee impersonation targets only.
+     * Validate CRM impersonation targets.
      *
-     * Admins/managers are not valid targets unless they also qualify as an
-     * employee/advisor assignee under the CRM role model.
+     * Valid targets must be CRM-facing users in the current site context with
+     * an explicit employee or manager role. Administrators are not valid
+     * impersonation targets in this policy.
      */
     function peracrm_user_is_impersonatable_target(int $user_id): bool
     {
@@ -105,17 +106,13 @@ if (!function_exists('peracrm_user_is_impersonatable_target')) {
             return false;
         }
 
-        if (function_exists('pera_crm_user_is_employee')) {
-            return (bool) pera_crm_user_is_employee($user_id);
-        }
+        $roles = (array) $user->roles;
+        $is_employee_target = function_exists('pera_crm_user_is_employee')
+            ? (bool) pera_crm_user_is_employee($user_id)
+            : in_array('employee', $roles, true) && !in_array('manager', $roles, true) && !in_array('administrator', $roles, true);
+        $is_manager_target = in_array('manager', $roles, true) && !in_array('administrator', $roles, true);
 
-        if (function_exists('peracrm_user_is_employee_advisor')) {
-            return (bool) peracrm_user_is_employee_advisor($user_id);
-        }
-
-        return in_array('employee', (array) $user->roles, true)
-            && !in_array('manager', (array) $user->roles, true)
-            && !in_array('administrator', (array) $user->roles, true);
+        return $is_employee_target || $is_manager_target;
     }
 }
 
