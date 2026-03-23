@@ -30,7 +30,8 @@ $real_user_label     = isset( $impersonation_ui['real_user_label'] ) ? (string) 
 $impersonation_targets = is_array( $impersonation_ui['targets'] ?? null ) ? $impersonation_ui['targets'] : array();
 $impersonation_action_url = isset( $impersonation_ui['admin_post_url'] ) ? (string) $impersonation_ui['admin_post_url'] : '';
 $selected_impersonation_user = isset( $impersonation_ui['effective_user_id'] ) ? (int) $impersonation_ui['effective_user_id'] : 0;
-$show_advisor_filter = $show_client_filters && ! $is_impersonating;
+$show_advisor_filter       = $show_client_filters && ! $is_impersonating;
+$show_impersonation_ui    = function_exists( 'peracrm_is_crm_overview_route' ) && peracrm_is_crm_overview_route();
 
 $has_toolbar = $show_client_filters || '' !== $toolbar_content;
 ?>
@@ -71,7 +72,7 @@ $has_toolbar = $show_client_filters || '' !== $toolbar_content;
       <?php endif; ?>
     </div>
 
-    <?php if ( $can_impersonate || $is_impersonating ) : ?>
+    <?php if ( $show_impersonation_ui && ( $can_impersonate || $is_impersonating ) ) : ?>
     <div class="pera-crm-viewing-as-banner<?php echo $is_impersonating ? ' pera-crm-viewing-as-banner--active' : ''; ?>" role="status" aria-live="polite">
       <div class="pera-crm-viewing-as-banner__inner">
         <div class="pera-crm-viewing-as-banner__meta">
