@@ -4947,13 +4947,13 @@ body.crm-route #site-header.peracrm-shell-header.is-scrolled .peracrm-header-act
 
 .pera-crm-viewing-as-banner__actions {
   display: flex;
-  flex: 1 1 420px;
+  flex: 1 1 auto;
   min-width: 0;
   max-width: 100%;
   flex-wrap: wrap;
   gap: 0.75rem;
   align-items: stretch;
-  justify-content: flex-end;
+  justify-content: flex-start;
 }
 
 .peracrm-impersonation-switcher,
@@ -5043,7 +5043,7 @@ body.crm-route #site-header.peracrm-shell-header.is-scrolled .peracrm-header-act
   }
 
   .pera-crm-viewing-as-banner__actions {
-    flex-basis: 320px;
+    flex-basis: auto;
     justify-content: flex-start;
   }
 
