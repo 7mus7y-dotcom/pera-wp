@@ -4117,7 +4117,7 @@ body.crm-route #site-header.peracrm-shell-header.is-scrolled .peracrm-header-act
   --crm-button-padding-x: 14px;
   --crm-button-compact-padding-y: 5px;
   --crm-button-compact-padding-x: 10px;
-  --crm-button-operational-min-height: 32px;
+  --crm-button-operational-min-height: 24px;
   --crm-button-operational-font-size: 0.85rem;
 }
 
