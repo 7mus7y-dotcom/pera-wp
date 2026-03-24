@@ -4836,17 +4836,20 @@ body.crm-route #site-header.peracrm-shell-header.is-scrolled .peracrm-header-act
   }
 
   .crm-page--leads [data-crm-clients-workspace] > .crm-list-workspace {
-    margin-bottom: 0;
+  margin-bottom: 0;
   }
-
-  .crm-page--leads [data-crm-clients-workspace] > .crm-list-workspace > .crm-section__header {
+  
+  .crm-page--leads [data-crm-clients-workspace] > .crm-list-workspace > .crm-section__header,
+  .crm-page--leads [data-crm-clients-workspace] > .crm-list-workspace > .crm-section__body {
     padding-inline: 0;
+  }
+  
+  .crm-page--leads [data-crm-clients-workspace] > .crm-list-workspace > .crm-section__header {
     padding-top: 10px;
     padding-bottom: 8px;
   }
-
+  
   .crm-page--leads [data-crm-clients-workspace] > .crm-list-workspace > .crm-section__body {
-    padding-inline: 0;
     gap: 10px;
     padding-top: 0;
     padding-bottom: 10px;
@@ -4857,7 +4860,7 @@ body.crm-route #site-header.peracrm-shell-header.is-scrolled .peracrm-header-act
     padding-top: 10px;
     padding-bottom: 10px;
   }
-
+  
   .crm-page--leads [data-crm-clients-workspace] .crm-list-workspace__rows .crm-row-list__item {
     padding-block: 12px;
   }
