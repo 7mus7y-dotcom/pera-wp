@@ -152,6 +152,47 @@ if ( ! function_exists('pera_seo_all_get_image') ) {
   }
 }
 
+if ( ! function_exists( 'pera_seo_all_build_post_document_title' ) ) {
+  /**
+   * Build a clean, deterministic document title for standard blog posts.
+   */
+  function pera_seo_all_build_post_document_title( int $post_id, string $fallback_title ): string {
+    $post_title = trim( wp_strip_all_tags( (string) get_the_title( $post_id ) ) );
+    if ( $post_title === '' ) {
+      return $fallback_title;
+    }
+
+    $site_name = trim( wp_strip_all_tags( (string) get_bloginfo( 'name' ) ) );
+    if ( $site_name === '' ) {
+      return $post_title;
+    }
+
+    $site_name_pattern = preg_quote( $site_name, '/' );
+    $already_suffixed  = (bool) preg_match( '/(?:\||-|—|–|:)?\s*' . $site_name_pattern . '\s*$/iu', $post_title );
+
+    $title = $already_suffixed
+      ? $post_title
+      : $post_title . ' | ' . $site_name;
+
+    $title = trim( preg_replace( '/\s+/', ' ', $title ) );
+
+    return $title !== '' ? $title : $fallback_title;
+  }
+}
+
+add_filter( 'pre_get_document_title', function ( $title ) {
+  if ( ! is_singular( 'post' ) ) {
+    return $title;
+  }
+
+  $post_id = (int) get_queried_object_id();
+  if ( $post_id <= 0 ) {
+    return $title;
+  }
+
+  return pera_seo_all_build_post_document_title( $post_id, (string) $title );
+}, 20 );
+
 if ( ! function_exists('pera_seo_default_image') ) {
   function pera_seo_default_image(): array {
     $id = (int) PERA_SEO_DEFAULT_OG_IMAGE_ID;
