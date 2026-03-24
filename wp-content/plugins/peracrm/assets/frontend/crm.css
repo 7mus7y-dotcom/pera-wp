@@ -4852,17 +4852,6 @@ body.crm-route #site-header.peracrm-shell-header.is-scrolled .peracrm-header-act
     padding-bottom: 10px;
   }
   
-  .crm-page--leads [data-crm-clients-workspace] > .crm-list-workspace .crm-section__header {
-    padding-top: 10px;
-    padding-bottom: 8px;
-  }
-
-  .crm-page--leads [data-crm-clients-workspace] > .crm-list-workspace .crm-section__body {
-    gap: 10px;
-    padding-top: 0;
-    padding-bottom: 10px;
-  }
-
   .crm-page--leads [data-crm-clients-workspace] .crm-list-workspace__table th,
   .crm-page--leads [data-crm-clients-workspace] .crm-list-workspace__table td {
     padding-top: 10px;
