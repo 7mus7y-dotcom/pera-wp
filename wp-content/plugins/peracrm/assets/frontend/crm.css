@@ -4068,7 +4068,6 @@ body.crm-route #site-header.peracrm-shell-header.is-scrolled .peracrm-header-act
 
 @media (max-width: 767px) {
   .crm-page .crm-list-workspace-toolbar__row {
-    flex-direction: column;
     align-items: stretch;
     justify-content: flex-start;
     gap: 10px;
