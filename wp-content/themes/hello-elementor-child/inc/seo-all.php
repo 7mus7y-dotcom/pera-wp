@@ -180,17 +180,72 @@ if ( ! function_exists( 'pera_seo_all_build_post_document_title' ) ) {
   }
 }
 
+if ( ! function_exists( 'pera_seo_all_build_blog_archive_document_title' ) ) {
+  /**
+   * Build concise document titles for standard blog archive surfaces only.
+   */
+  function pera_seo_all_build_blog_archive_document_title( string $fallback_title ): string {
+    $site_name = trim( wp_strip_all_tags( (string) get_bloginfo( 'name' ) ) );
+    $base      = '';
+
+    if ( is_home() && ! is_front_page() ) {
+      $posts_page_id = (int) get_option( 'page_for_posts' );
+      if ( $posts_page_id > 0 ) {
+        $base = trim( wp_strip_all_tags( (string) get_the_title( $posts_page_id ) ) );
+      }
+
+      if ( $base === '' ) {
+        $base = __( 'Blog', 'peraproperty' );
+      }
+    } elseif ( is_category() ) {
+      $term_name = trim( wp_strip_all_tags( (string) single_cat_title( '', false ) ) );
+      if ( $term_name !== '' ) {
+        $base = sprintf( __( '%s Articles', 'peraproperty' ), $term_name );
+      }
+    } elseif ( is_tag() ) {
+      $term_name = trim( wp_strip_all_tags( (string) single_tag_title( '', false ) ) );
+      if ( $term_name !== '' ) {
+        $base = sprintf( __( '%s Articles', 'peraproperty' ), $term_name );
+      }
+    } elseif ( is_date() ) {
+      $archive_label = trim( wp_strip_all_tags( (string) get_the_archive_title() ) );
+      if ( $archive_label !== '' ) {
+        $base = sprintf( __( '%s Articles', 'peraproperty' ), $archive_label );
+      }
+    }
+
+    if ( $base === '' ) {
+      return $fallback_title;
+    }
+
+    $paged = max( 1, (int) get_query_var( 'paged' ) );
+    if ( $paged > 1 ) {
+      $base .= sprintf( __( ' (Page %d)', 'peraproperty' ), $paged );
+    }
+
+    if ( $site_name !== '' ) {
+      return $base . ' | ' . $site_name;
+    }
+
+    return $base;
+  }
+}
+
 add_filter( 'pre_get_document_title', function ( $title ) {
-  if ( ! is_singular( 'post' ) ) {
+  if ( is_singular( 'post' ) ) {
+    $post_id = (int) get_queried_object_id();
+    if ( $post_id > 0 ) {
+      return pera_seo_all_build_post_document_title( $post_id, (string) $title );
+    }
+
     return $title;
   }
 
-  $post_id = (int) get_queried_object_id();
-  if ( $post_id <= 0 ) {
-    return $title;
+  if ( is_home() || is_category() || is_tag() || is_date() ) {
+    return pera_seo_all_build_blog_archive_document_title( (string) $title );
   }
 
-  return pera_seo_all_build_post_document_title( $post_id, (string) $title );
+  return $title;
 }, 20 );
 
 if ( ! function_exists('pera_seo_default_image') ) {
