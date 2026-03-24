@@ -295,6 +295,12 @@ add_filter( 'wp_robots', function ( array $robots ): array {
     $robots['follow'] = true;
   }
 
+  // Media attachment pages: noindex (prevents index bloat)
+  if ( is_attachment() ) {
+    $robots['noindex'] = true;
+    $robots['follow'] = true;
+  }
+
   // Filtered property archive URLs: noindex (prevents index bloat)
   if ( pera_is_filtered_property_archive() ) {
     $robots['noindex'] = true;
