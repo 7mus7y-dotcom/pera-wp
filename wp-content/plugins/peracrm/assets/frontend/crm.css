@@ -4073,7 +4073,6 @@ body.crm-route #site-header.peracrm-shell-header.is-scrolled .peracrm-header-act
     justify-content: flex-start;
     gap: 10px;
   }
-}
 
   .crm-page .crm-list-workspace-toolbar__actions,
   .crm-page .crm-list-workspace-toolbar__scope,
