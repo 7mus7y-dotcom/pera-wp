@@ -109,29 +109,37 @@ get_header();
               <div class="hero__media" aria-hidden="true">
                 <?php
                   $hero_img_id = get_post_thumbnail_id();
+                  $hero_attachment_id = $hero_img_id ? (int) $hero_img_id : 55756;
+                  $hero_image_size = 'full';
+
+                  if ( image_get_intermediate_size( $hero_attachment_id, '2048x2048' ) ) {
+                    $hero_image_size = '2048x2048';
+                  } elseif ( image_get_intermediate_size( $hero_attachment_id, 'large' ) ) {
+                    $hero_image_size = 'large';
+                  }
+
+                  $hero_image_attrs = array(
+                    'class'         => 'hero-media',
+                    'loading'       => 'eager',
+                    'decoding'      => 'async',
+                    'fetchpriority' => 'high',
+                    'sizes'         => '100vw',
+                  );
             
                   if ( $hero_img_id ) {
                     echo wp_get_attachment_image(
                       $hero_img_id,
-                      'full',
+                      $hero_image_size,
                       false,
-                      array(
-                        'class'    => 'hero-media',
-                        'loading'  => 'eager',
-                        'decoding' => 'async',
-                      )
+                      $hero_image_attrs
                     );
                   } else {
                     // Fallback background (vopbesiktas.svg uploaded to WP)
                     echo wp_get_attachment_image(
-                      55756,
-                      'full',
+                      $hero_attachment_id,
+                      $hero_image_size,
                       false,
-                      array(
-                        'class'    => 'hero-media',
-                        'loading'  => 'eager',
-                        'decoding' => 'async',
-                      )
+                      $hero_image_attrs
                     );
                   }
                 ?>
