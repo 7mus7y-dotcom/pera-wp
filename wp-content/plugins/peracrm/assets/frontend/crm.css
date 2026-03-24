@@ -4042,6 +4042,23 @@ body.crm-route #site-header.peracrm-shell-header.is-scrolled .peracrm-header-act
   justify-content: flex-end;
 }
 
+.crm-page .crm-list-workspace__rows .crm-action-group > form {
+  display: flex;
+  margin: 0;
+}
+
+.crm-page .crm-list-workspace__rows .crm-action-group .crm-action-group__item {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  box-sizing: border-box;
+  min-height: var(--crm-button-operational-min-height);
+  padding: var(--crm-button-compact-padding-y) var(--crm-button-compact-padding-x);
+  border-radius: var(--crm-button-radius);
+  line-height: 1;
+  white-space: nowrap;
+}
+
 .crm-page--leads .crm-table-wrap,
 .crm-page--tasks .crm-table-wrap {
   border-radius: 16px;
@@ -4091,6 +4108,10 @@ body.crm-route #site-header.peracrm-shell-header.is-scrolled .peracrm-header-act
   .crm-page .crm-list-workspace__rows .crm-action-group {
     width: 100%;
     justify-content: flex-start;
+  }
+
+  .crm-page .crm-list-workspace__rows .crm-action-group > form {
+    flex: 0 0 auto;
   }
 }
 
