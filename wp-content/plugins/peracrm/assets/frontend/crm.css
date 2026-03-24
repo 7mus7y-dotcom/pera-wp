@@ -3261,8 +3261,11 @@ body.crm-route #site-header.peracrm-shell-header .crm-side-nav__toggle--header:f
 /* =======================================================
    Phase 1 CRM app shell header foundation
    ======================================================= */
-.crm-page {
+body.crm-route {
   --crm-shell-max-width: min(1280px, calc(100% - 40px));
+}
+
+.crm-page {
   --crm-shell-radius: 12px;
   --crm-shell-gap: 16px;
 }
@@ -3529,7 +3532,7 @@ body.crm-route #site-header.peracrm-shell-header.is-scrolled .peracrm-header-act
 }
 
 @media (max-width: 767px) {
-  .crm-page {
+  body.crm-route {
     --crm-shell-max-width: calc(100% - 24px);
   }
 
