@@ -167,6 +167,74 @@ if ( ! function_exists('pera_seo_default_image') ) {
   }
 }
 
+if ( ! function_exists( 'pera_seo_post_breadcrumb_items' ) ) {
+  /**
+   * Build a deterministic breadcrumb trail for standard blog posts.
+   *
+   * @return array<int, array{name:string,url:string}>
+   */
+  function pera_seo_post_breadcrumb_items( int $post_id ): array {
+    if ( $post_id <= 0 || get_post_type( $post_id ) !== 'post' ) {
+      return array();
+    }
+
+    $items = array(
+      array(
+        'name' => __( 'Home', 'hello-elementor-child' ),
+        'url'  => (string) home_url( '/' ),
+      ),
+    );
+
+    $posts_page_id    = (int) get_option( 'page_for_posts' );
+    $posts_page_title = '';
+    $posts_page_url   = '';
+
+    if ( $posts_page_id > 0 ) {
+      $posts_page_title = trim( (string) get_the_title( $posts_page_id ) );
+      $posts_page_url   = (string) get_permalink( $posts_page_id );
+    } else {
+      $posts_page_url = (string) get_post_type_archive_link( 'post' );
+    }
+
+    if ( $posts_page_title === '' ) {
+      $posts_page_title = __( 'Blog', 'hello-elementor-child' );
+    }
+
+    if ( $posts_page_url !== '' ) {
+      $items[] = array(
+        'name' => $posts_page_title,
+        'url'  => $posts_page_url,
+      );
+    }
+
+    $primary_category = null;
+    $categories       = get_the_category( $post_id );
+    if ( ! empty( $categories ) && is_array( $categories ) ) {
+      $primary_category = $categories[0];
+    }
+
+    if ( $primary_category instanceof WP_Term ) {
+      $category_url = get_category_link( $primary_category->term_id );
+      if ( ! is_wp_error( $category_url ) && $category_url ) {
+        $items[] = array(
+          'name' => $primary_category->name,
+          'url'  => (string) $category_url,
+        );
+      }
+    }
+
+    $post_title = trim( (string) get_the_title( $post_id ) );
+    if ( $post_title !== '' ) {
+      $items[] = array(
+        'name' => $post_title,
+        'url'  => '',
+      );
+    }
+
+    return $items;
+  }
+}
+
 /**
  * Canonical fallback (keeps scheme/host consistent).
  */
@@ -445,6 +513,40 @@ add_action( 'wp_head', function () {
     }
 
     echo '<script type="application/ld+json">' . wp_json_encode( $schema, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE ) . '</script>' . "\n";
+
+    $breadcrumb_items = pera_seo_post_breadcrumb_items( $post_id );
+    if ( ! empty( $breadcrumb_items ) ) {
+      $schema_breadcrumb_items = array();
+
+      foreach ( $breadcrumb_items as $index => $item ) {
+        if ( empty( $item['name'] ) ) {
+          continue;
+        }
+
+        $schema_item = array(
+          '@type'    => 'ListItem',
+          'position' => count( $schema_breadcrumb_items ) + 1,
+          'name'     => (string) $item['name'],
+        );
+
+        if ( ! empty( $item['url'] ) ) {
+          $schema_item['item'] = (string) $item['url'];
+        }
+
+        $schema_breadcrumb_items[] = $schema_item;
+      }
+
+      if ( ! empty( $schema_breadcrumb_items ) ) {
+        $breadcrumb_schema = array(
+          '@context'         => 'https://schema.org',
+          '@type'            => 'BreadcrumbList',
+          '@id'              => $canonical . '#breadcrumb',
+          'itemListElement'  => $schema_breadcrumb_items,
+        );
+
+        echo '<script type="application/ld+json">' . wp_json_encode( $breadcrumb_schema, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE ) . '</script>' . "\n";
+      }
+    }
   }
   
   if ( is_tax() || is_category() || is_tag() ) {

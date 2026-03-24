@@ -22,23 +22,83 @@ get_header();
 	                $primary_cat  = ! empty( $cats ) ? $cats[0] : null;
 	                $primary_name = $primary_cat ? $primary_cat->name : '';
 	                $primary_link = $primary_cat ? get_category_link( $primary_cat->term_id ) : '';
+                  $posts_page_id = (int) get_option( 'page_for_posts' );
+                  $posts_page_link = $posts_page_id > 0 ? get_permalink( $posts_page_id ) : get_post_type_archive_link( 'post' );
+                  if ( ! $posts_page_link ) {
+                    $posts_page_link = home_url( '/' );
+                  }
+                  $breadcrumb_items = function_exists( 'pera_seo_post_breadcrumb_items' )
+                    ? pera_seo_post_breadcrumb_items( get_the_ID() )
+                    : array();
 	                $published_ts = (int) get_post_time( 'U' );
 	                $modified_ts  = (int) get_post_modified_time( 'U' );
 	                $show_updated = $modified_ts > $published_ts;
+                  $author_id    = (int) get_the_author_meta( 'ID' );
+                  $tag_terms    = get_the_tags();
 	                
-	                // Related posts query (same category)
+	                // Related posts query: categories first, tags as fallback when no category match exists.
 	                $related_query = null;
-                
-                if ( $primary_cat && ! is_wp_error( $primary_cat ) ) {
-                  $related_query = new WP_Query( array(
-                    'post_type'           => 'post',
-                    'posts_per_page'      => 3,
-                    'post__not_in'        => array( get_the_ID() ),
-                    'cat'                 => (int) $primary_cat->term_id,
-                    'ignore_sticky_posts' => true,
-                    'no_found_rows'       => true,
-                  ) );
-                }
+
+                  $category_ids = array();
+                  if ( ! empty( $cats ) ) {
+                    $category_ids = wp_list_pluck( $cats, 'term_id' );
+                    $category_ids = array_map( 'intval', $category_ids );
+                  }
+
+                  $tag_ids = array();
+                  if ( ! empty( $tag_terms ) && is_array( $tag_terms ) ) {
+                    $tag_ids = wp_list_pluck( $tag_terms, 'term_id' );
+                    $tag_ids = array_map( 'intval', $tag_ids );
+                  }
+
+                  if ( ! empty( $category_ids ) ) {
+                    $related_query = new WP_Query( array(
+                      'post_type'              => 'post',
+                      'posts_per_page'         => 3,
+                      'post__not_in'           => array( get_the_ID() ),
+                      'ignore_sticky_posts'    => true,
+                      'no_found_rows'          => true,
+                      'update_post_meta_cache' => false,
+                      'update_post_term_cache' => true,
+                      'tax_query'              => array(
+                        array(
+                          'taxonomy' => 'category',
+                          'field'    => 'term_id',
+                          'terms'    => $category_ids,
+                        ),
+                      ),
+                    ) );
+                  }
+
+                  if (
+                    ! empty( $tag_ids )
+                    && (
+                      ! ( $related_query instanceof WP_Query )
+                      || (int) $related_query->post_count < 1
+                    )
+                  ) {
+                    $exclude_ids = array( get_the_ID() );
+                    if ( $related_query instanceof WP_Query && ! empty( $related_query->posts ) ) {
+                      $exclude_ids = array_merge( $exclude_ids, wp_list_pluck( $related_query->posts, 'ID' ) );
+                    }
+
+                    $related_query = new WP_Query( array(
+                      'post_type'              => 'post',
+                      'posts_per_page'         => 3,
+                      'post__not_in'           => array_map( 'intval', array_unique( $exclude_ids ) ),
+                      'ignore_sticky_posts'    => true,
+                      'no_found_rows'          => true,
+                      'update_post_meta_cache' => false,
+                      'update_post_term_cache' => true,
+                      'tax_query'              => array(
+                        array(
+                          'taxonomy' => 'post_tag',
+                          'field'    => 'term_id',
+                          'terms'    => $tag_ids,
+                        ),
+                      ),
+                    ) );
+                  }
 
             ?>
 
@@ -79,6 +139,33 @@ get_header();
               </div>
             
               <div class="hero-content">
+                <?php if ( ! empty( $breadcrumb_items ) ) : ?>
+                  <nav class="post-breadcrumbs" aria-label="Breadcrumb">
+                    <ol class="post-breadcrumbs__list">
+                      <?php foreach ( $breadcrumb_items as $index => $breadcrumb_item ) : ?>
+                        <?php
+                          $is_last = $index === count( $breadcrumb_items ) - 1;
+                          $name    = isset( $breadcrumb_item['name'] ) ? (string) $breadcrumb_item['name'] : '';
+                          $url     = isset( $breadcrumb_item['url'] ) ? (string) $breadcrumb_item['url'] : '';
+                        ?>
+                        <?php if ( $name !== '' ) : ?>
+                          <li class="post-breadcrumbs__item<?php echo $is_last ? ' is-current' : ''; ?>">
+                            <?php if ( ! $is_last && $url !== '' ) : ?>
+                              <a href="<?php echo esc_url( $url ); ?>">
+                                <?php echo esc_html( $name ); ?>
+                              </a>
+                            <?php else : ?>
+                              <span<?php echo $is_last ? ' aria-current="page"' : ''; ?>>
+                                <?php echo esc_html( $name ); ?>
+                              </span>
+                            <?php endif; ?>
+                          </li>
+                        <?php endif; ?>
+                      <?php endforeach; ?>
+                    </ol>
+                  </nav>
+                <?php endif; ?>
+
                 <div class="article-meta-top">
                   <?php if ( $primary_cat ) : ?>
                     <a class="article-meta-cat" href="<?php echo esc_url( $primary_link ); ?>">
@@ -112,7 +199,7 @@ get_header();
                   <span class="article-meta-separator"> / </span>
                   <span class="article-meta-item author vcard">
                     Written by
-                    <a class="url fn n" rel="author" href="<?php echo esc_url( get_author_posts_url( (int) get_the_author_meta( 'ID' ) ) ); ?>">
+                    <a class="url fn n" rel="author" href="<?php echo esc_url( get_author_posts_url( $author_id ) ); ?>">
                       <?php echo esc_html( get_the_author() ); ?>
                     </a>
                   </span>
@@ -131,6 +218,46 @@ get_header();
                         <article <?php post_class( 'article-body' ); ?>>
                             <?php the_content(); ?>
                         </article>
+
+                        <?php if ( ! empty( $tag_terms ) && is_array( $tag_terms ) ) : ?>
+                          <section class="post-tags" aria-label="Article tags">
+                            <h2 class="post-tags__title">Tags</h2>
+                            <ul class="post-tags__list">
+                              <?php foreach ( $tag_terms as $tag_term ) : ?>
+                                <?php $tag_link = get_tag_link( $tag_term->term_id ); ?>
+                                <?php if ( ! is_wp_error( $tag_link ) ) : ?>
+                                  <li class="post-tags__item">
+                                    <a href="<?php echo esc_url( $tag_link ); ?>">
+                                      <?php echo esc_html( $tag_term->name ); ?>
+                                    </a>
+                                  </li>
+                                <?php endif; ?>
+                              <?php endforeach; ?>
+                            </ul>
+                          </section>
+                        <?php endif; ?>
+
+                        <?php
+                          $previous_post = get_previous_post();
+                          $next_post     = get_next_post();
+                        ?>
+                        <?php if ( $previous_post || $next_post ) : ?>
+                          <nav class="post-adjacent-nav" aria-label="Article navigation">
+                            <?php if ( $previous_post instanceof WP_Post ) : ?>
+                              <a class="post-adjacent-nav__link post-adjacent-nav__link--prev" href="<?php echo esc_url( get_permalink( $previous_post ) ); ?>">
+                                <span class="post-adjacent-nav__label">Previous article</span>
+                                <span class="post-adjacent-nav__title"><?php echo esc_html( get_the_title( $previous_post ) ); ?></span>
+                              </a>
+                            <?php endif; ?>
+
+                            <?php if ( $next_post instanceof WP_Post ) : ?>
+                              <a class="post-adjacent-nav__link post-adjacent-nav__link--next" href="<?php echo esc_url( get_permalink( $next_post ) ); ?>">
+                                <span class="post-adjacent-nav__label">Next article</span>
+                                <span class="post-adjacent-nav__title"><?php echo esc_html( get_the_title( $next_post ) ); ?></span>
+                              </a>
+                            <?php endif; ?>
+                          </nav>
+                        <?php endif; ?>
                     </div>
 
 
@@ -140,7 +267,7 @@ get_header();
                       <?php if ( isset( $related_query ) && $related_query instanceof WP_Query && $related_query->have_posts() ) : ?>
                     
                         <section class="sidebar-block sidebar-block--related">
-                          <h3>More in <?php echo esc_html( $primary_name ); ?></h3>
+                          <h3>Related articles</h3>
                     
                           <div class="cards-slider cards-slider--sidebar">
                             <div class="slider-track">
@@ -171,14 +298,12 @@ get_header();
                           </div><!-- /.cards-slider -->
                     
                           <div class="sidebar-cta">
-                            <a class="btn btn-primary" href="<?php echo esc_url( $primary_link ); ?>">
+                            <a class="btn btn-primary" href="<?php echo esc_url( $primary_link ? $primary_link : $posts_page_link ); ?>">
                               See all posts
                             </a>
                           </div>
                     
                         </section>
-                    
-                        <?php wp_reset_postdata(); ?>
                     
                       <?php endif; ?>
 
