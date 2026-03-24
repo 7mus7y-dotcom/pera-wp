@@ -81,6 +81,7 @@
   font-weight: 600;
   font-size: 0.95rem;
   line-height: 1;
+  font-family: inherit;
   cursor: pointer;
   text-decoration: none;
 }
@@ -3955,6 +3956,7 @@ body.crm-route #site-header.peracrm-shell-header.is-scrolled .peracrm-header-act
   padding: 4px;
   border: 1px solid var(--border, #e8ecf2);
   background: var(--surface-soft, #f8fafc);
+  font-family: var(--crm-font-family);
 }
 
 .crm-page .crm-view-toggle--secondary .btn {
@@ -4102,6 +4104,21 @@ body.crm-route #site-header.peracrm-shell-header.is-scrolled .peracrm-header-act
 
   .crm-page .crm-view-toggle--secondary .btn {
     flex: 1 1 0;
+  }
+
+  .crm-page--tasks .crm-list-workspace-toolbar--tasks .crm-view-toggle--secondary {
+    display: inline-flex;
+    width: auto;
+    max-width: 100%;
+    justify-content: flex-start;
+    align-self: flex-start;
+    font-family: var(--crm-font-family);
+  }
+
+  .crm-page--tasks .crm-list-workspace-toolbar--tasks .crm-view-toggle--secondary .btn {
+    flex: 0 1 auto;
+    max-width: 100%;
+    font-family: inherit;
   }
 
   .crm-page .crm-list-workspace__rows .crm-row-list__aside,
