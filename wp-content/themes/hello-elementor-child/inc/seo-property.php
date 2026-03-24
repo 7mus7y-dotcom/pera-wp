@@ -663,6 +663,37 @@ if ( ! function_exists( 'pera_property_get_price_description_fragment' ) ) {
   }
 }
 
+if ( ! function_exists( 'pera_property_strip_sale_location_phrase' ) ) {
+  function pera_property_strip_sale_location_phrase( string $value ): string {
+    $value = pera_property_normalize_whitespace( $value );
+    if ( $value === '' ) {
+      return '';
+    }
+
+    $value = preg_replace( '/\bfor\s+sale\s+in\b\s*[^|]+$/iu', '', $value );
+    $value = preg_replace( '/\s*,\s*$/u', '', (string) $value );
+
+    return pera_property_normalize_whitespace( (string) $value );
+  }
+}
+
+if ( ! function_exists( 'pera_property_replace_istanbul_sale_phrase' ) ) {
+  function pera_property_replace_istanbul_sale_phrase( string $value, string $district ): string {
+    $value = pera_property_normalize_whitespace( $value );
+    $district = pera_property_normalize_whitespace( $district );
+
+    if ( $value === '' || $district === '' ) {
+      return $value;
+    }
+
+    return (string) preg_replace(
+      '/\bfor\s+sale\s+in\s+istanbul\b/iu',
+      'for sale in ' . $district . ', Istanbul',
+      $value
+    );
+  }
+}
+
 if ( ! function_exists( 'pera_property_build_seo_title' ) ) {
   function pera_property_build_seo_title( int $post_id ): string {
     $public_title = pera_property_get_public_title( $post_id );
@@ -680,7 +711,7 @@ if ( ! function_exists( 'pera_property_build_seo_title' ) ) {
     $parts = array( $public_title );
 
     if ( $type !== '' && $bedroom_label !== '' ) {
-      $descriptor = trim( $bedroom_label . ' ' . $type );
+      $descriptor = pera_property_strip_sale_location_phrase( trim( $bedroom_label . ' ' . $type ) );
       if (
         $descriptor !== ''
         && ! pera_property_string_contains( $title_lower, pera_property_mb_strtolower( $type ) )
@@ -690,18 +721,31 @@ if ( ! function_exists( 'pera_property_build_seo_title' ) ) {
       }
     }
 
+    if ( $district !== '' ) {
+      foreach ( $parts as $index => $part ) {
+        $parts[ $index ] = pera_property_replace_istanbul_sale_phrase( (string) $part, $district );
+      }
+    }
+
+    $base_title = implode( ', ', array_filter( $parts ) );
+    $base_title_lower = pera_property_mb_strtolower( $base_title );
+    $has_sale_in_istanbul = pera_property_string_contains( $base_title_lower, 'for sale in istanbul' );
+    $has_sale_in_district = ( $district !== '' )
+      ? pera_property_string_contains( $base_title_lower, pera_property_mb_strtolower( 'for sale in ' . $district ) )
+      : false;
+
     $has_istanbul = pera_property_string_contains( $title_lower, 'istanbul' );
     $has_district = false;
 
     if ( $district !== '' ) {
       $has_district = pera_property_string_contains( $title_lower, pera_property_mb_strtolower( $district ) );
 
-      if ( ! $has_district && ! $has_istanbul ) {
+      if ( ! $has_district && ! $has_istanbul && ! $has_sale_in_district ) {
         $parts[] = 'for sale in ' . $district . ', Istanbul';
-      } elseif ( $has_district && ! $has_istanbul && pera_property_should_add_sale_context( $public_title ) ) {
+      } elseif ( $has_district && ! $has_istanbul && pera_property_should_add_sale_context( $public_title ) && ! $has_sale_in_istanbul ) {
         $parts[] = 'for sale in Istanbul';
       }
-    } elseif ( ! $has_istanbul ) {
+    } elseif ( ! $has_istanbul && ! $has_sale_in_istanbul ) {
       $parts[] = 'for sale in Istanbul';
     }
 
