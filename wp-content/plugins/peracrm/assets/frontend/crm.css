@@ -3960,7 +3960,6 @@ body.crm-route #site-header.peracrm-shell-header.is-scrolled .peracrm-header-act
 .crm-page .crm-view-toggle--secondary {
   padding: 4px;
   border: 1px solid var(--border, #e8ecf2);
-  border-radius: 999px;
   background: var(--surface-soft, #f8fafc);
 }
 
