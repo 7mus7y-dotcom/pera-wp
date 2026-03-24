@@ -3518,8 +3518,7 @@ body.crm-route #site-header.peracrm-shell-header.is-scrolled .peracrm-header-act
 
   .crm-page-header {
     padding-inline: 16px;
-    padding-top: 8px;
-    padding-bottom: 6px;
+    padding: 20px 0px;
   }
 
   .crm-page-header__main {
@@ -3543,10 +3542,6 @@ body.crm-route #site-header.peracrm-shell-header.is-scrolled .peracrm-header-act
   .crm-page .content-panel-box {
     padding: 12px;
     border-radius: 12px;
-  }
-
-  .crm-page-header {
-    padding: 20px 0px;
   }
 
   .crm-page-header__main,
