@@ -16,15 +16,18 @@ get_header();
     <?php if ( have_posts() ) : ?>
         <?php while ( have_posts() ) : the_post(); ?>
 
-            <?php
-                // Primary category (for hero + related posts)
-                $cats         = get_the_category();
-                $primary_cat  = ! empty( $cats ) ? $cats[0] : null;
-                $primary_name = $primary_cat ? $primary_cat->name : '';
-                $primary_link = $primary_cat ? get_category_link( $primary_cat->term_id ) : '';
-                
-                // Related posts query (same category)
-                $related_query = null;
+	            <?php
+	                // Primary category (for hero + related posts)
+	                $cats         = get_the_category();
+	                $primary_cat  = ! empty( $cats ) ? $cats[0] : null;
+	                $primary_name = $primary_cat ? $primary_cat->name : '';
+	                $primary_link = $primary_cat ? get_category_link( $primary_cat->term_id ) : '';
+	                $published_ts = (int) get_post_time( 'U' );
+	                $modified_ts  = (int) get_post_modified_time( 'U' );
+	                $show_updated = $modified_ts > $published_ts;
+	                
+	                // Related posts query (same category)
+	                $related_query = null;
                 
                 if ( $primary_cat && ! is_wp_error( $primary_cat ) ) {
                   $related_query = new WP_Query( array(
@@ -91,11 +94,28 @@ get_header();
                 <?php endif; ?>
             
                 <div class="article-meta-secondary">
-                  <span class="article-meta-item">Date uploaded <?php echo esc_html( get_the_date() ); ?></span>
+                  <span class="article-meta-item">
+                    Date uploaded
+                    <time datetime="<?php echo esc_attr( get_the_date( DATE_W3C ) ); ?>">
+                      <?php echo esc_html( get_the_date() ); ?>
+                    </time>
+                  </span>
+                  <?php if ( $show_updated ) : ?>
+                    <span class="article-meta-separator"> / </span>
+                    <span class="article-meta-item">
+                      Updated
+                      <time datetime="<?php echo esc_attr( get_the_modified_date( DATE_W3C ) ); ?>">
+                        <?php echo esc_html( get_the_modified_date() ); ?>
+                      </time>
+                    </span>
+                  <?php endif; ?>
                   <span class="article-meta-separator"> / </span>
-                  <span class="article-meta-item">Updated <?php echo esc_html( get_the_modified_date() ); ?></span>
-                  <span class="article-meta-separator"> / </span>
-                  <span class="article-meta-item">Written by <?php echo esc_html( get_the_author() ); ?></span>
+                  <span class="article-meta-item author vcard">
+                    Written by
+                    <a class="url fn n" rel="author" href="<?php echo esc_url( get_author_posts_url( (int) get_the_author_meta( 'ID' ) ) ); ?>">
+                      <?php echo esc_html( get_the_author() ); ?>
+                    </a>
+                  </span>
                 </div>
               </div>
             </section>
