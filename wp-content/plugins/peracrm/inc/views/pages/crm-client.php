@@ -470,11 +470,11 @@ peracrm_frontend_render_shell_header();
                       <?php if ( '' !== $email_link ) : ?><a class="btn btn--ghost btn--blue" href="<?php echo esc_url( $email_link ); ?>"><?php esc_html_e( 'Email', 'peracrm' ); ?></a><?php endif; ?>
                     </div>
                     <?php endif; ?>
-                    <fieldset class="crm-checkbox-group">
+                    <fieldset class="crm-checkbox-group crm-checkbox-group--preferred-contact">
                       <legend><?php esc_html_e( 'Preferred contact', 'peracrm' ); ?></legend>
-                      <div class="crm-checkbox-group__options">
+                      <div class="crm-checkbox-group__options crm-checkbox-group__options--preferred-contact">
                         <?php foreach ( $preferred_contact_options as $contact_key => $contact_label ) : ?>
-                        <label class="crm-checkbox-option">
+                        <label class="crm-checkbox-option crm-checkbox-option--preferred-contact">
                           <input type="checkbox" name="peracrm_preferred_contact[]" value="<?php echo esc_attr( (string) $contact_key ); ?>" <?php checked( in_array( (string) $contact_key, $preferred_contact_values, true ) ); ?> />
                           <span><?php echo esc_html( (string) $contact_label ); ?></span>
                         </label>
