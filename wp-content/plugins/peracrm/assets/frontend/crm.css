@@ -2764,20 +2764,21 @@ body.crm-route #site-header.peracrm-shell-header .crm-side-nav__toggle--header:f
   max-width: 100%;
   overflow-x: auto;
   -webkit-overflow-scrolling: touch;
+  scrollbar-gutter: stable both-edges;
 }
 
 .crm-page--logs .crm-log-table {
   width: 100% !important;
   min-width: 100% !important;
   max-width: none;
-  border-collapse: collapse;
+  border-collapse: separate;
+  border-spacing: 0;
   table-layout: fixed !important;
 }
 
 .crm-page--logs .crm-log-table th,
 .crm-page--logs .crm-log-table td {
-  padding: 10px;
-  border-bottom: 1px solid #e8ecf2;
+  padding: 10px 12px;
   text-align: left;
   vertical-align: top;
   white-space: normal !important;
@@ -2841,17 +2842,41 @@ body.crm-route #site-header.peracrm-shell-header .crm-side-nav__toggle--header:f
 }
 
 
-.crm-page--logs [data-peracrm-whatsapp-feedback] { margin-bottom: 16px; }
+.crm-page--logs {
+  --crm-log-utility-gap: 12px;
+  --crm-log-controls-gap: 10px;
+  --crm-log-table-head-cell-padding: 9px 12px;
+  --crm-log-table-body-cell-padding: 10px 12px;
+}
+
+.crm-page--logs [data-peracrm-whatsapp-feedback] { margin-bottom: 12px; }
 .crm-page--logs .peracrm-whatsapp-log-controls {
   display: flex;
   justify-content: space-between;
-  gap: 12px;
+  gap: var(--crm-log-controls-gap);
   align-items: center;
-  margin-bottom: 16px;
+  margin: 0 0 10px;
   flex-wrap: wrap;
 }
 .crm-page--logs .crm-log-utility-row {
-  padding: 4px 2px 0;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: var(--crm-log-utility-gap);
+  margin: 0 0 10px;
+}
+.crm-page--logs .crm-log-utility-row--email {
+  justify-content: flex-end;
+}
+.crm-page--logs .crm-log-utility-actions,
+.crm-page--logs .peracrm-whatsapp-log-bulk {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+.crm-page--logs .pera-enquiry-email-log-utility-form {
+  margin: 0;
 }
 .crm-page--logs .peracrm-whatsapp-log-page-size {
   display: inline-flex;
@@ -2903,6 +2928,35 @@ body.crm-route #site-header.peracrm-shell-header .crm-side-nav__toggle--header:f
 }
 .crm-page--logs .peracrm-whatsapp-logs.is-loading { opacity: 0.55; pointer-events: none; }
 .crm-page--logs .peracrm-whatsapp-log-message { min-width: 220px; }
+.crm-page--logs .crm-log-table.crm-table thead th {
+  padding: var(--crm-log-table-head-cell-padding);
+}
+.crm-page--logs .crm-log-table.crm-table tbody td,
+.crm-page--logs .crm-log-table.crm-table tbody th.check-column {
+  padding: var(--crm-log-table-body-cell-padding);
+}
+.crm-page--logs .crm-log-empty-state {
+  margin: 0;
+  padding: 14px 12px;
+  border: 1px dashed var(--border, #d7dee8);
+  border-radius: 10px;
+  background: var(--surface-soft, #f8fafc);
+  color: var(--text-soft, #4b5563);
+}
+.crm-page--logs .crm-log-empty-state p {
+  margin: 0;
+}
+.crm-page--logs .tablenav.bottom {
+  margin: 10px 0 0;
+  padding: 8px 0 0;
+  border-top: 1px solid var(--border, #e8ecf2);
+}
+.crm-page--logs .tablenav .tablenav-pages {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 10px;
+}
 .crm-page--logs .crm-log-utility-btn,
 .crm-page--logs .pera-enquiry-email-log-utility-form .button.button-secondary,
 .crm-page--logs .pera-enquiry-email-log-utility-form button.button-secondary {
@@ -2933,18 +2987,12 @@ body.crm-route #site-header.peracrm-shell-header .crm-side-nav__toggle--header:f
   outline: 0;
   box-shadow: 0 0 0 3px rgba(0, 45, 114, 0.16);
 }
-@media (min-width: 1024px) {
-  .crm-page--logs .crm-log-table.crm-table thead th {
-    padding: 9px 11px;
-  }
-
-  .crm-page--logs .crm-log-table.crm-table tbody td {
-    padding: 10px 11px;
-  }
-}
 @media (max-width: 767px) {
   .crm-page--logs .peracrm-whatsapp-log-controls { align-items: stretch; }
+  .crm-page--logs .crm-log-utility-row { align-items: stretch; }
+  .crm-page--logs .crm-log-utility-row--email { justify-content: flex-start; }
   .crm-page--logs .peracrm-whatsapp-log-page-size { justify-content: space-between; width: 100%; }
+  .crm-page--logs .tablenav .tablenav-pages { justify-content: space-between; }
 }
 
 
