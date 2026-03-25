@@ -2896,6 +2896,42 @@ body.crm-route #site-header.peracrm-shell-header .crm-side-nav__toggle--header:f
 }
 .crm-page--logs .peracrm-whatsapp-logs.is-loading { opacity: 0.55; pointer-events: none; }
 .crm-page--logs .peracrm-whatsapp-log-message { min-width: 220px; }
+.crm-page--logs .pera-enquiry-email-log-utility-form .button.button-secondary,
+.crm-page--logs .pera-enquiry-email-log-utility-form button.button-secondary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--crm-button-compact-padding-y, 6px) var(--crm-button-compact-padding-x, 10px);
+  min-height: var(--crm-button-operational-min-height, 24px);
+  border-radius: var(--crm-button-radius, 999px);
+  border: 1px solid var(--brand, #002d72);
+  background: transparent;
+  color: var(--brand, #002d72);
+  font-size: var(--crm-button-operational-font-size, 0.85rem);
+  font-weight: 600;
+  line-height: 1;
+  text-decoration: none;
+  transition: background-color 160ms ease, color 160ms ease, border-color 160ms ease;
+}
+.crm-page--logs .pera-enquiry-email-log-utility-form .button.button-secondary:hover,
+.crm-page--logs .pera-enquiry-email-log-utility-form button.button-secondary:hover {
+  background: var(--brand, #002d72);
+  color: #ffffff;
+}
+.crm-page--logs .pera-enquiry-email-log-utility-form .button.button-secondary:focus-visible,
+.crm-page--logs .pera-enquiry-email-log-utility-form button.button-secondary:focus-visible {
+  outline: 0;
+  box-shadow: 0 0 0 3px rgba(0, 45, 114, 0.16);
+}
+@media (min-width: 1024px) {
+  .crm-page--logs .crm-log-table.crm-table thead th {
+    padding: 9px 11px;
+  }
+
+  .crm-page--logs .crm-log-table.crm-table tbody td {
+    padding: 10px 11px;
+  }
+}
 @media (max-width: 767px) {
   .crm-page--logs .peracrm-whatsapp-log-controls { align-items: stretch; }
   .crm-page--logs .peracrm-whatsapp-log-page-size { justify-content: space-between; width: 100%; }
@@ -2928,9 +2964,9 @@ body.crm-route #site-header.peracrm-shell-header .crm-side-nav__toggle--header:f
   display: grid;
   gap: var(--crm-section-gap);
   padding: var(--crm-section-padding);
-  border: 1px solid var(--border, #e8ecf2);
-  border-radius: 12px;
-  background: var(--surface, var(--color-white, #ffffff));
+  border: 0;
+  border-radius: 0;
+  background: transparent;
   box-shadow: none;
 }
 
@@ -4638,6 +4674,22 @@ body.crm-route #site-header.peracrm-shell-header.is-scrolled .peracrm-header-act
 
   .crm-page--logs .peracrm-whatsapp-logs-table .check-column input[type="checkbox"]:focus-visible {
     box-shadow: 0 0 0 3px rgba(96, 165, 250, 0.24);
+  }
+
+  .crm-page--logs .pera-enquiry-email-log-utility-form .button.button-secondary,
+  .crm-page--logs .pera-enquiry-email-log-utility-form button.button-secondary {
+    border-color: rgba(96, 165, 250, 0.44);
+    color: #dbeafe;
+    background-color: rgba(15, 23, 42, 0.32);
+  }
+
+  .crm-page--logs .pera-enquiry-email-log-utility-form .button.button-secondary:hover,
+  .crm-page--logs .pera-enquiry-email-log-utility-form .button.button-secondary:focus-visible,
+  .crm-page--logs .pera-enquiry-email-log-utility-form button.button-secondary:hover,
+  .crm-page--logs .pera-enquiry-email-log-utility-form button.button-secondary:focus-visible {
+    background-color: rgba(0, 86, 179, 0.18);
+    color: #dbeafe;
+    border-color: rgba(147, 197, 253, 0.56);
   }
 
   .crm-page .crm-table thead th,
