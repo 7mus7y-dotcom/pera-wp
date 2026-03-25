@@ -17,6 +17,20 @@
 	overflow-wrap: anywhere;
 }
 
+.pera-enquiry-email-log-admin .pera-enquiry-email-log-utilities {
+	margin: 8px 0 14px;
+}
+
+.pera-enquiry-email-log-admin .pera-enquiry-email-log-utility-form .button {
+	margin-right: 8px;
+}
+
+.pera-enquiry-email-log-admin .pera-enquiry-email-log-utility-form .description {
+	display: inline-block;
+	margin: 0;
+	vertical-align: middle;
+}
+
 @media screen and (max-width: 782px) {
 	.pera-enquiry-email-log-admin .pera-enquiry-email-log-table {
 		border: 0;

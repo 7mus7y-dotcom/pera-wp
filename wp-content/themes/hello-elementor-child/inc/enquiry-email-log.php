@@ -42,6 +42,110 @@ if ( ! function_exists( 'pera_enquiry_email_log_table_name' ) ) {
 	}
 }
 
+if ( ! function_exists( 'pera_enquiry_email_log_page_slug' ) ) {
+	function pera_enquiry_email_log_page_slug() {
+		return 'pera-enquiry-email-log';
+	}
+}
+
+if ( ! function_exists( 'pera_enquiry_email_log_admin_url' ) ) {
+	function pera_enquiry_email_log_admin_url( array $args = array() ) {
+		$base_url = add_query_arg(
+			array(
+				'page' => pera_enquiry_email_log_page_slug(),
+			),
+			admin_url( 'admin.php' )
+		);
+
+		if ( empty( $args ) ) {
+			return $base_url;
+		}
+
+		return add_query_arg( $args, $base_url );
+	}
+}
+
+if ( ! function_exists( 'pera_enquiry_email_log_clear_notice_query_key' ) ) {
+	function pera_enquiry_email_log_clear_notice_query_key() {
+		return 'pera_email_log_notice';
+	}
+}
+
+if ( ! function_exists( 'pera_enquiry_email_log_clear_transient_prefixes' ) ) {
+	function pera_enquiry_email_log_clear_transient_prefixes() {
+		return array(
+			'pera_citizenship_block_',
+			'pera_citizenship_count_',
+		);
+	}
+}
+
+if ( ! function_exists( 'pera_enquiry_email_log_clear_notice_state' ) ) {
+	function pera_enquiry_email_log_clear_notice_state() {
+		$notice_key = pera_enquiry_email_log_clear_notice_query_key();
+
+		$notice_code = isset( $_GET[ $notice_key ] ) ? sanitize_key( (string) wp_unslash( $_GET[ $notice_key ] ) ) : '';
+		$cleared     = isset( $_GET['cleared'] ) ? max( 0, absint( wp_unslash( $_GET['cleared'] ) ) ) : 0;
+
+		return array(
+			'notice'  => $notice_code,
+			'cleared' => $cleared,
+		);
+	}
+}
+
+if ( ! function_exists( 'pera_enquiry_email_log_render_clear_notice' ) ) {
+	function pera_enquiry_email_log_render_clear_notice() {
+		if ( ! current_user_can( 'manage_options' ) ) {
+			return;
+		}
+
+		$state       = pera_enquiry_email_log_clear_notice_state();
+		$notice_code = $state['notice'];
+		$cleared     = $state['cleared'];
+
+		if ( 'cleared' !== $notice_code && 'clear_failed' !== $notice_code ) {
+			return;
+		}
+
+		$classes = ( 'cleared' === $notice_code ) ? 'notice notice-success is-dismissible' : 'notice notice-error is-dismissible';
+		$message = ( 'cleared' === $notice_code )
+			? sprintf( __( 'Enquiry/rate-limit transients cleared (%d rows removed).', 'hello-elementor-child' ), $cleared )
+			: __( 'Unable to clear enquiry/rate-limit transients. Please try again.', 'hello-elementor-child' );
+		?>
+		<div class="<?php echo esc_attr( $classes ); ?>">
+			<p><?php echo esc_html( $message ); ?></p>
+		</div>
+		<?php
+	}
+}
+
+if ( ! function_exists( 'pera_enquiry_email_log_render_clear_button' ) ) {
+	function pera_enquiry_email_log_render_clear_button( $redirect_url = '' ) {
+		if ( ! current_user_can( 'manage_options' ) ) {
+			return;
+		}
+
+		$notice_key = pera_enquiry_email_log_clear_notice_query_key();
+		$redirect   = (string) $redirect_url;
+		if ( '' === $redirect ) {
+			$redirect = pera_enquiry_email_log_admin_url();
+		}
+		$redirect = remove_query_arg( array( $notice_key, 'cleared' ), $redirect );
+		?>
+		<div class="pera-enquiry-email-log-utilities">
+			<form method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>" class="pera-enquiry-email-log-utility-form">
+				<input type="hidden" name="action" value="pera_clear_enquiry_transients">
+				<input type="hidden" name="redirect_to" value="<?php echo esc_url( $redirect ); ?>">
+				<?php wp_nonce_field( 'pera_clear_enquiry_transients' ); ?>
+				<?php submit_button( __( 'Clear enquiry form transients', 'hello-elementor-child' ), 'secondary', 'submit', false ); ?>
+				<p class="description"><?php esc_html_e( 'Clears enquiry/rate-limit transients only', 'hello-elementor-child' ); ?></p>
+			</form>
+		</div>
+		<?php
+	}
+}
+
 if ( ! function_exists( 'pera_enquiry_email_last_failure_get' ) ) {
 	function pera_enquiry_email_last_failure_get() {
 		return isset( $GLOBALS['pera_enquiry_email_last_failure'] )
@@ -165,7 +269,7 @@ if ( ! function_exists( 'pera_enquiry_email_log_admin_menu' ) ) {
 			__( 'Enquiry Email Log', 'hello-elementor-child' ),
 			__( 'Emails', 'hello-elementor-child' ),
 			'manage_options',
-			'pera-enquiry-email-log',
+			pera_enquiry_email_log_page_slug(),
 			'pera_enquiry_email_log_render_admin_page',
 			'dashicons-email-alt',
 			58
@@ -174,9 +278,67 @@ if ( ! function_exists( 'pera_enquiry_email_log_admin_menu' ) ) {
 }
 add_action( 'admin_menu', 'pera_enquiry_email_log_admin_menu' );
 
+if ( ! function_exists( 'pera_enquiry_email_log_handle_clear_transients' ) ) {
+	function pera_enquiry_email_log_handle_clear_transients() {
+		if ( ! current_user_can( 'manage_options' ) ) {
+			wp_die( esc_html__( 'You are not allowed to perform this action.', 'hello-elementor-child' ) );
+		}
+
+		check_admin_referer( 'pera_clear_enquiry_transients' );
+
+		global $wpdb;
+
+		$total_deleted = 0;
+		$failed        = false;
+
+		foreach ( pera_enquiry_email_log_clear_transient_prefixes() as $prefix ) {
+			$patterns = array(
+				'_transient_' . $prefix . '%',
+				'_transient_timeout_' . $prefix . '%',
+			);
+
+			foreach ( $patterns as $pattern ) {
+				$sql = $wpdb->prepare(
+					"DELETE FROM {$wpdb->options} WHERE option_name LIKE %s",
+					$pattern
+				);
+				$result = $wpdb->query( $sql );
+
+				if ( false === $result ) {
+					$failed = true;
+					break 2;
+				}
+
+				$total_deleted += (int) $result;
+			}
+		}
+
+		$notice_key   = pera_enquiry_email_log_clear_notice_query_key();
+		$redirect_url = isset( $_POST['redirect_to'] ) ? esc_url_raw( wp_unslash( (string) $_POST['redirect_to'] ) ) : '';
+		$redirect_url = '' !== $redirect_url ? $redirect_url : pera_enquiry_email_log_admin_url();
+		$redirect_url = wp_validate_redirect( $redirect_url, pera_enquiry_email_log_admin_url() );
+
+		$args = $failed
+			? array(
+				$notice_key => 'clear_failed',
+			)
+			: array(
+				$notice_key => 'cleared',
+				'cleared'   => $total_deleted,
+			);
+
+		$redirect_url = add_query_arg( $args, $redirect_url );
+
+		wp_safe_redirect( esc_url_raw( $redirect_url ) );
+		exit;
+	}
+}
+add_action( 'admin_post_pera_clear_enquiry_transients', 'pera_enquiry_email_log_handle_clear_transients' );
+
 if ( ! function_exists( 'pera_enquiry_email_log_admin_assets' ) ) {
 	function pera_enquiry_email_log_admin_assets( $hook_suffix ) {
-		if ( 'toplevel_page_pera-enquiry-email-log' !== $hook_suffix ) {
+		$expected_hook = 'toplevel_page_' . pera_enquiry_email_log_page_slug();
+		if ( $expected_hook !== $hook_suffix ) {
 			return;
 		}
 
@@ -254,6 +416,8 @@ if ( ! function_exists( 'pera_enquiry_email_log_render_admin_page' ) ) {
 		?>
 		<div class="wrap pera-enquiry-email-log-admin">
 			<h1><?php esc_html_e( 'Enquiry Email Log', 'hello-elementor-child' ); ?></h1>
+			<?php pera_enquiry_email_log_render_clear_notice(); ?>
+			<?php pera_enquiry_email_log_render_clear_button( pera_enquiry_email_log_admin_url() ); ?>
 			<form action="options.php" method="post">
 				<?php settings_fields( 'pera_theme_settings' ); ?>
 				<p>
