@@ -95,6 +95,15 @@ if ( function_exists( 'peracrm_frontend_render_partial' ) ) {
           <p><?php esc_html_e( 'WhatsApp logs UI is unavailable in this environment.', 'peracrm' ); ?></p>
         <?php endif; ?>
       <?php elseif ( $is_email ) : ?>
+        <?php
+        $email_logs_page_url = home_url( '/crm/email-logs/' );
+        ?>
+        <?php if ( function_exists( 'pera_enquiry_email_log_render_clear_notice' ) ) : ?>
+          <?php pera_enquiry_email_log_render_clear_notice(); ?>
+        <?php endif; ?>
+        <?php if ( function_exists( 'pera_enquiry_email_log_render_clear_button' ) ) : ?>
+          <?php pera_enquiry_email_log_render_clear_button( $email_logs_page_url ); ?>
+        <?php endif; ?>
         <?php $rows = $read_email_logs(); ?>
         <?php if ( empty( $rows ) ) : ?>
           <p><?php esc_html_e( 'No email logs found.', 'peracrm' ); ?></p>
