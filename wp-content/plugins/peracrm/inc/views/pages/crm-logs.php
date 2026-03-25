@@ -102,11 +102,17 @@ if ( function_exists( 'peracrm_frontend_render_partial' ) ) {
           <?php pera_enquiry_email_log_render_clear_notice(); ?>
         <?php endif; ?>
         <?php if ( function_exists( 'pera_enquiry_email_log_render_clear_button' ) ) : ?>
-          <?php pera_enquiry_email_log_render_clear_button( $email_logs_page_url ); ?>
+          <div class="crm-log-utility-row crm-log-utility-row--email">
+            <div class="crm-log-utility-actions">
+              <?php pera_enquiry_email_log_render_clear_button( $email_logs_page_url ); ?>
+            </div>
+          </div>
         <?php endif; ?>
         <?php $rows = $read_email_logs(); ?>
         <?php if ( empty( $rows ) ) : ?>
-          <p><?php esc_html_e( 'No email logs found.', 'peracrm' ); ?></p>
+          <div class="crm-log-empty-state">
+            <p><?php esc_html_e( 'No email logs found.', 'peracrm' ); ?></p>
+          </div>
         <?php else : ?>
           <div class="crm-log-table-wrap crm-table-wrap crm-table-wrap--primitive">
             <table class="crm-log-table crm-table">
