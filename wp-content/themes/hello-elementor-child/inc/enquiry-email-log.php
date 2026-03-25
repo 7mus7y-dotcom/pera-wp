@@ -138,7 +138,11 @@ if ( ! function_exists( 'pera_enquiry_email_log_render_clear_button' ) ) {
 				<input type="hidden" name="action" value="pera_clear_enquiry_transients">
 				<input type="hidden" name="redirect_to" value="<?php echo esc_url( $redirect ); ?>">
 				<?php wp_nonce_field( 'pera_clear_enquiry_transients' ); ?>
-				<?php submit_button( __( 'Clear enquiry form transients', 'hello-elementor-child' ), 'secondary', 'submit', false ); ?>
+				<?php if ( function_exists( 'submit_button' ) ) : ?>
+					<?php submit_button( __( 'Clear enquiry form transients', 'hello-elementor-child' ), 'secondary', 'submit', false ); ?>
+				<?php else : ?>
+					<button type="submit" class="button button-secondary"><?php esc_html_e( 'Clear enquiry form transients', 'hello-elementor-child' ); ?></button>
+				<?php endif; ?>
 				<p class="description"><?php esc_html_e( 'Clears enquiry/rate-limit transients only', 'hello-elementor-child' ); ?></p>
 			</form>
 		</div>
