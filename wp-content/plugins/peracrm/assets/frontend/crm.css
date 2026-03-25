@@ -2850,6 +2850,9 @@ body.crm-route #site-header.peracrm-shell-header .crm-side-nav__toggle--header:f
   margin-bottom: 16px;
   flex-wrap: wrap;
 }
+.crm-page--logs .crm-log-utility-row {
+  padding: 4px 2px 0;
+}
 .crm-page--logs .peracrm-whatsapp-log-page-size {
   display: inline-flex;
   gap: 8px;
@@ -2894,8 +2897,13 @@ body.crm-route #site-header.peracrm-shell-header .crm-side-nav__toggle--header:f
   outline: 0;
   box-shadow: 0 0 0 3px rgba(0, 45, 114, 0.14);
 }
+.crm-page--logs .crm-log-table.peracrm-whatsapp-logs-table {
+  min-width: 1050px !important;
+  table-layout: auto !important;
+}
 .crm-page--logs .peracrm-whatsapp-logs.is-loading { opacity: 0.55; pointer-events: none; }
 .crm-page--logs .peracrm-whatsapp-log-message { min-width: 220px; }
+.crm-page--logs .crm-log-utility-btn,
 .crm-page--logs .pera-enquiry-email-log-utility-form .button.button-secondary,
 .crm-page--logs .pera-enquiry-email-log-utility-form button.button-secondary {
   display: inline-flex;
@@ -2913,11 +2921,13 @@ body.crm-route #site-header.peracrm-shell-header .crm-side-nav__toggle--header:f
   text-decoration: none;
   transition: background-color 160ms ease, color 160ms ease, border-color 160ms ease;
 }
+.crm-page--logs .crm-log-utility-btn:hover,
 .crm-page--logs .pera-enquiry-email-log-utility-form .button.button-secondary:hover,
 .crm-page--logs .pera-enquiry-email-log-utility-form button.button-secondary:hover {
   background: var(--brand, #002d72);
   color: #ffffff;
 }
+.crm-page--logs .crm-log-utility-btn:focus-visible,
 .crm-page--logs .pera-enquiry-email-log-utility-form .button.button-secondary:focus-visible,
 .crm-page--logs .pera-enquiry-email-log-utility-form button.button-secondary:focus-visible {
   outline: 0;
@@ -4676,6 +4686,7 @@ body.crm-route #site-header.peracrm-shell-header.is-scrolled .peracrm-header-act
     box-shadow: 0 0 0 3px rgba(96, 165, 250, 0.24);
   }
 
+  .crm-page--logs .crm-log-utility-btn,
   .crm-page--logs .pera-enquiry-email-log-utility-form .button.button-secondary,
   .crm-page--logs .pera-enquiry-email-log-utility-form button.button-secondary {
     border-color: rgba(96, 165, 250, 0.44);
@@ -4683,6 +4694,8 @@ body.crm-route #site-header.peracrm-shell-header.is-scrolled .peracrm-header-act
     background-color: rgba(15, 23, 42, 0.32);
   }
 
+  .crm-page--logs .crm-log-utility-btn:hover,
+  .crm-page--logs .crm-log-utility-btn:focus-visible,
   .crm-page--logs .pera-enquiry-email-log-utility-form .button.button-secondary:hover,
   .crm-page--logs .pera-enquiry-email-log-utility-form .button.button-secondary:focus-visible,
   .crm-page--logs .pera-enquiry-email-log-utility-form button.button-secondary:hover,

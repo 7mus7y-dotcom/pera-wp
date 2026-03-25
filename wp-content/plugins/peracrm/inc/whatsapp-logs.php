@@ -312,11 +312,11 @@ function peracrm_whatsapp_render_logs_table(array $state, $context = 'admin')
         echo '<p class="description">' . esc_html((string) $result['message']) . '</p>';
     }
 
-    echo '<div class="peracrm-whatsapp-log-controls">';
+    echo '<div class="peracrm-whatsapp-log-controls crm-log-utility-row">';
     echo '<div class="peracrm-whatsapp-log-bulk">';
-    echo '<button type="button" class="button button-secondary" data-peracrm-delete-selected disabled>' . esc_html__('Delete selected', 'peracrm') . '</button>';
+    echo '<button type="button" class="button button-secondary crm-log-utility-btn" data-peracrm-delete-selected disabled>' . esc_html__('Delete selected', 'peracrm') . '</button>';
     echo '</div>';
-    echo '<div class="peracrm-whatsapp-log-page-size">';
+    echo '<div class="peracrm-whatsapp-log-page-size crm-log-page-size">';
     echo '<label for="peracrm-whatsapp-per-page">' . esc_html__('Rows per page', 'peracrm') . '</label>';
     echo '<select id="peracrm-whatsapp-per-page" data-peracrm-page-size>';
     foreach (peracrm_whatsapp_allowed_page_sizes() as $allowed_size) {
@@ -331,7 +331,7 @@ function peracrm_whatsapp_render_logs_table(array $state, $context = 'admin')
     echo '</div>';
 
     $table_class = $context === 'frontend'
-        ? 'crm-log-table peracrm-whatsapp-logs-table'
+        ? 'crm-log-table crm-table peracrm-whatsapp-logs-table'
         : 'widefat striped peracrm-whatsapp-logs-table';
 
     echo '<table class="' . esc_attr($table_class) . '">';
@@ -348,7 +348,7 @@ function peracrm_whatsapp_render_logs_table(array $state, $context = 'admin')
     echo '<tbody>';
 
     if (empty($rows)) {
-        echo '<tr><td colspan="8">' . esc_html__('No WhatsApp click logs found.', 'peracrm') . '</td></tr>';
+        echo '<tr class="crm-table__empty"><td colspan="8">' . esc_html__('No WhatsApp click logs found.', 'peracrm') . '</td></tr>';
     } else {
         foreach ($rows as $row) {
             $log_id = isset($row['id']) ? (int) $row['id'] : 0;
@@ -426,7 +426,7 @@ function peracrm_whatsapp_render_logs_table(array $state, $context = 'admin')
 function peracrm_whatsapp_render_logs_panel(array $state, $context = 'admin')
 {
     $context = $context === 'frontend' ? 'frontend' : 'admin';
-    $wrapper_class = $context === 'frontend' ? 'peracrm-whatsapp-logs crm-log-table-wrap' : 'peracrm-whatsapp-logs';
+    $wrapper_class = $context === 'frontend' ? 'peracrm-whatsapp-logs crm-log-table-wrap crm-table-wrap crm-table-wrap--primitive' : 'peracrm-whatsapp-logs';
 
     ob_start();
     echo '<div data-peracrm-whatsapp-feedback></div>';
