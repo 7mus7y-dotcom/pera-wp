@@ -21,6 +21,12 @@ function peracrm_facebook_leads_ensure_claims_table()
     }
 }
 
+function peracrm_facebook_leads_claim_stale_timeout_seconds()
+{
+    $timeout = (int) apply_filters('peracrm_facebook_leads_claim_stale_timeout_seconds', 300);
+    return $timeout > 0 ? $timeout : 300;
+}
+
 function peracrm_facebook_leads_find_client_id_by_external_lead_id($facebook_lead_id)
 {
     $facebook_lead_id = sanitize_text_field((string) $facebook_lead_id);
@@ -104,6 +110,7 @@ function peracrm_facebook_leads_acquire_external_lead_id_claim($facebook_lead_id
         peracrm_facebook_leads_ensure_claims_table();
         $table = peracrm_facebook_leads_claims_table();
         $now = peracrm_now_mysql();
+        $stale_timeout = peracrm_facebook_leads_claim_stale_timeout_seconds();
 
         $inserted = $wpdb->query($wpdb->prepare(
             "INSERT IGNORE INTO {$table} (facebook_lead_id, client_id, claimed_at, updated_at)
@@ -121,10 +128,51 @@ function peracrm_facebook_leads_acquire_external_lead_id_claim($facebook_lead_id
             ];
         }
 
-        $existing_client_id = (int) $wpdb->get_var($wpdb->prepare(
-            "SELECT client_id FROM {$table} WHERE facebook_lead_id = %s LIMIT 1",
+        $existing = (array) $wpdb->get_row($wpdb->prepare(
+            "SELECT client_id, UNIX_TIMESTAMP(COALESCE(updated_at, claimed_at)) AS claim_ts
+             FROM {$table}
+             WHERE facebook_lead_id = %s
+             LIMIT 1",
             $facebook_lead_id
-        ));
+        ), ARRAY_A);
+        $existing_client_id = isset($existing['client_id']) ? (int) $existing['client_id'] : 0;
+
+        if ($existing_client_id <= 0) {
+            $reclaimed = $wpdb->query($wpdb->prepare(
+                "UPDATE {$table}
+                 SET claimed_at = %s, updated_at = %s
+                 WHERE facebook_lead_id = %s
+                   AND (client_id IS NULL OR client_id = 0)
+                   AND COALESCE(updated_at, claimed_at) <= DATE_SUB(%s, INTERVAL %d SECOND)",
+                $now,
+                $now,
+                $facebook_lead_id,
+                $now,
+                $stale_timeout
+            ));
+
+            if ((int) $reclaimed > 0) {
+                peracrm_facebook_leads_log_info('Reclaimed stale unbound Facebook lead claim', [
+                    'facebook_lead_id' => $facebook_lead_id,
+                    'stale_timeout_seconds' => $stale_timeout,
+                ]);
+                return [
+                    'ok' => true,
+                    'acquired' => true,
+                    'existing_client_id' => 0,
+                ];
+            }
+
+            $claim_ts = isset($existing['claim_ts']) ? (int) $existing['claim_ts'] : 0;
+            if ($claim_ts > 0) {
+                $claim_age_seconds = max(0, time() - $claim_ts);
+                peracrm_facebook_leads_log_debug('Facebook lead claim exists but is not stale enough to reclaim', [
+                    'facebook_lead_id' => $facebook_lead_id,
+                    'claim_age_seconds' => $claim_age_seconds,
+                    'stale_timeout_seconds' => $stale_timeout,
+                ]);
+            }
+        }
 
         return [
             'ok' => true,

@@ -277,12 +277,13 @@ function peracrm_ingest_enquiry(array $payload, array $context = [])
 
     $result = (int) peracrm_with_target_blog(static function () use ($email, $first_name, $last_name, $payload, $context, $property_id, $page_url, $post_id, $raw_fields, $message, $phone) {
         global $wpdb;
+        $context_source = !empty($context['handler']) ? sanitize_key((string) $context['handler']) : 'website_form';
 
         $resolver_data = [
             'first_name' => $first_name,
             'last_name' => $last_name,
             'phone' => $phone,
-            'source' => !empty($context['handler']) ? sanitize_key((string) $context['handler']) : 'website_form',
+            'source' => $context_source,
             'status' => 'enquiry',
         ];
 
@@ -323,17 +324,17 @@ function peracrm_ingest_enquiry(array $payload, array $context = [])
 
         $fingerprint = peracrm_ingest_fingerprint(
             $email !== '' ? $email : $phone,
-            !empty($context['handler']) ? (string) $context['handler'] : 'website_form',
+            $context_source,
             $property_id,
             $message
         );
 
         $event_payload = [
-            'form' => !empty($context['handler']) ? sanitize_key((string) $context['handler']) : 'website_form',
+            'form' => $context_source,
             'form_id' => !empty($context['form_id']) ? sanitize_text_field((string) $context['form_id']) : '',
             'form_name' => !empty($context['form_name']) ? sanitize_text_field((string) $context['form_name']) : '',
             'form_context' => isset($payload['form_context']) ? sanitize_key((string) $payload['form_context']) : '',
-            'source' => 'website_form',
+            'source' => $context_source,
             'fingerprint' => $fingerprint,
             'page_url' => $page_url,
             'post_id' => $post_id,
