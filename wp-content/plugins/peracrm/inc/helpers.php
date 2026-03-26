@@ -204,7 +204,7 @@ function peracrm_client_update_profile($client_id, $data)
         : ['enquiry', 'active', 'dormant', 'closed'];
     $allowed_types = function_exists('peracrm_client_type_options')
         ? array_keys((array) peracrm_client_type_options())
-        : ['citizenship', 'investor', 'lifestyle', 'seller', 'landlord'];
+        : ['citizenship', 'investor', 'lifestyle', 'seller', 'landlord', 'agent'];
     $status = isset($data['status']) ? sanitize_key($data['status']) : '';
     if (!in_array($status, $allowed_status, true)) {
         $status = '';
@@ -321,6 +321,7 @@ function peracrm_client_type_options()
         'lifestyle' => 'Lifestyle',
         'seller' => 'Seller',
         'landlord' => 'Landlord',
+        'agent' => 'Agent',
     ];
 }
 

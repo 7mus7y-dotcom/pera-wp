@@ -264,6 +264,7 @@ function peracrm_render_client_profile_metabox($post)
             'lifestyle' => 'Lifestyle',
             'seller' => 'Seller',
             'landlord' => 'Landlord',
+            'agent' => 'Agent',
         ];
 
     $contact_options = [
