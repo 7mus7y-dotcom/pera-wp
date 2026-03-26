@@ -3854,7 +3854,6 @@ body.crm-route #site-header.peracrm-shell-header.is-scrolled .peracrm-header-act
 }
 
 .crm-page--client-view .crm-client-detail-layout__column,
-.crm-page--client-view .crm-client-related-stack,
 .crm-page--client-view .crm-client-profile-sidecards,
 .crm-page--client-view .crm-client-profile-stack {
   display: flex;
@@ -3965,6 +3964,18 @@ body.crm-route #site-header.peracrm-shell-header.is-scrolled .peracrm-header-act
 .crm-page--client-view .crm-client-related {
   border-color: #e5e7eb;
   background: #fbfbfc;
+}
+
+.crm-page--client-view .crm-section--flush.crm-client-related > .crm-client-subsection {
+  padding-inline: var(--crm-section-padding);
+}
+
+.crm-page--client-view .crm-section--flush.crm-client-related > .crm-client-subsection:last-child {
+  padding-bottom: var(--crm-section-padding);
+}
+
+.crm-page--client-view .crm-client-related > .crm-client-subsection + .crm-client-subsection {
+  margin-top: 4px;
 }
 
 .crm-page--client-view .crm-client-related .crm-client-subsection {
