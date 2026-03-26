@@ -40,6 +40,7 @@ function peracrm_upgrade_schema_to($target_version, $installed_version = 0)
         $party_table = peracrm_table('peracrm_party');
         $deals_table = peracrm_table('peracrm_deals');
         $import_batches_table = peracrm_table('peracrm_import_batches');
+        $facebook_claims_table = peracrm_table('peracrm_facebook_lead_claims');
 
         $sql_notes = "CREATE TABLE {$notes_table} (
             id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
@@ -161,6 +162,16 @@ function peracrm_upgrade_schema_to($target_version, $installed_version = 0)
             KEY imported_by (imported_by)
         ) {$charset_collate};";
 
+        $sql_facebook_claims = "CREATE TABLE {$facebook_claims_table} (
+            facebook_lead_id VARCHAR(191) NOT NULL,
+            client_id BIGINT UNSIGNED NULL,
+            claimed_at DATETIME NOT NULL,
+            updated_at DATETIME NOT NULL,
+            PRIMARY KEY (facebook_lead_id),
+            KEY client_id (client_id),
+            KEY updated_at (updated_at)
+        ) {$charset_collate};";
+
 
         dbDelta($sql_notes);
         dbDelta($sql_reminders);
@@ -169,6 +180,7 @@ function peracrm_upgrade_schema_to($target_version, $installed_version = 0)
         dbDelta($sql_party);
         dbDelta($sql_deals);
         dbDelta($sql_import_batches);
+        dbDelta($sql_facebook_claims);
 
         if (function_exists('peracrm_push_log_create_table')) {
             peracrm_push_log_create_table();
@@ -193,6 +205,27 @@ function peracrm_upgrade_schema_to($target_version, $installed_version = 0)
             update_option('peracrm_migration_v4_done', 1);
         }
     });
+}
+
+function peracrm_create_facebook_lead_claims_table()
+{
+    global $wpdb;
+    $table = peracrm_table('peracrm_facebook_lead_claims');
+    $charset_collate = $wpdb->get_charset_collate();
+
+    require_once ABSPATH . 'wp-admin/includes/upgrade.php';
+
+    $sql = "CREATE TABLE {$table} (
+        facebook_lead_id VARCHAR(191) NOT NULL,
+        client_id BIGINT UNSIGNED NULL,
+        claimed_at DATETIME NOT NULL,
+        updated_at DATETIME NOT NULL,
+        PRIMARY KEY (facebook_lead_id),
+        KEY client_id (client_id),
+        KEY updated_at (updated_at)
+    ) {$charset_collate};";
+
+    dbDelta($sql);
 }
 
 function peracrm_migrate_legacy_status_to_party_table()

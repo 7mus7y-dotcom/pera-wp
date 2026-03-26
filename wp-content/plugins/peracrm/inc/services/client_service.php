@@ -11,7 +11,7 @@ function peracrm_sync_client_contact_meta($client_id, $email, $phone = '')
     $email = sanitize_email($email);
     $phone = sanitize_text_field((string) $phone);
 
-    if ($client_id <= 0 || $email === '') {
+    if ($client_id <= 0 || ($email === '' && $phone === '')) {
         return;
     }
 
@@ -27,17 +27,19 @@ function peracrm_sync_client_contact_meta($client_id, $email, $phone = '')
         }
     }
 
-    $normalized_email = function_exists('peracrm_normalize_email')
-        ? peracrm_normalize_email($email)
-        : strtolower(trim((string) $email));
+    if ($email !== '') {
+        $normalized_email = function_exists('peracrm_normalize_email')
+            ? peracrm_normalize_email($email)
+            : strtolower(trim((string) $email));
 
-    update_post_meta($client_id, '_peracrm_email', $email);
-    update_post_meta($client_id, 'crm_primary_email', $email);
-    update_post_meta($client_id, 'primary_email', $email);
+        update_post_meta($client_id, '_peracrm_email', $email);
+        update_post_meta($client_id, 'crm_primary_email', $email);
+        update_post_meta($client_id, 'primary_email', $email);
 
-    if ($normalized_email !== '') {
-        update_post_meta($client_id, 'crm_primary_email_normalized', $normalized_email);
-        update_post_meta($client_id, 'primary_email_normalized', $normalized_email);
+        if ($normalized_email !== '') {
+            update_post_meta($client_id, 'crm_primary_email_normalized', $normalized_email);
+            update_post_meta($client_id, 'primary_email_normalized', $normalized_email);
+        }
     }
 }
 
@@ -465,6 +467,111 @@ function peracrm_find_or_create_client_by_email($email, array $data = [])
 
         peracrm_log_event($post_id, 'client_created', [
             'email' => $email,
+            'source' => $source,
+        ]);
+
+        return $post_id;
+    });
+}
+
+function peracrm_find_existing_client_id_by_phone($phone)
+{
+    $phone = sanitize_text_field((string) $phone);
+    $phone = preg_replace('/[^0-9+]/', '', $phone);
+    if (!is_string($phone) || $phone === '') {
+        return 0;
+    }
+
+    $matches = get_posts([
+        'post_type' => 'crm_client',
+        'posts_per_page' => 1,
+        'post_status' => 'any',
+        'fields' => 'ids',
+        'meta_query' => [
+            'relation' => 'OR',
+            [
+                'key' => '_peracrm_phone',
+                'value' => $phone,
+                'compare' => '=',
+            ],
+            [
+                'key' => 'crm_phone',
+                'value' => $phone,
+                'compare' => '=',
+            ],
+        ],
+    ]);
+
+    return !empty($matches) ? (int) $matches[0] : 0;
+}
+
+function peracrm_find_or_create_client_by_identity(array $identity, array $data = [])
+{
+    $email = isset($identity['email']) ? sanitize_email((string) $identity['email']) : '';
+    if ($email !== '' && !is_email($email)) {
+        $email = '';
+    }
+
+    $phone = isset($identity['phone']) ? sanitize_text_field((string) $identity['phone']) : '';
+    $phone = preg_replace('/[^0-9+]/', '', $phone);
+    if (!is_string($phone)) {
+        $phone = '';
+    }
+
+    if ($email !== '') {
+        return (int) peracrm_find_or_create_client_by_email($email, $data + ['phone' => $phone]);
+    }
+
+    if ($phone === '') {
+        return 0;
+    }
+
+    return (int) peracrm_with_target_blog(static function () use ($phone, $email, $data) {
+        $existing_id = (int) peracrm_find_existing_client_id_by_phone($phone);
+        if ($existing_id > 0) {
+            peracrm_client_ensure_published($existing_id, [
+                'email' => $email,
+                'reason' => 'ingest_existing_phone',
+            ]);
+            peracrm_sync_client_contact_meta($existing_id, $email, $phone);
+            return $existing_id;
+        }
+
+        $first_name = isset($data['first_name']) ? sanitize_text_field($data['first_name']) : '';
+        $last_name = isset($data['last_name']) ? sanitize_text_field($data['last_name']) : '';
+        $full_name = trim($first_name . ' ' . $last_name);
+        if ($full_name === '') {
+            $full_name = $phone !== '' ? $phone : __('New lead', 'peracrm');
+        }
+
+        $post_id = wp_insert_post([
+            'post_type' => 'crm_client',
+            'post_title' => $full_name,
+            'post_status' => 'publish',
+        ], true);
+
+        if (is_wp_error($post_id)) {
+            return 0;
+        }
+
+        $post_id = (int) $post_id;
+        $source = isset($data['source']) ? sanitize_key($data['source']) : 'manual';
+        $status = isset($data['status']) ? sanitize_key($data['status']) : 'enquiry';
+        $assigned_advisor = isset($data['assigned_advisor']) ? (int) $data['assigned_advisor'] : 0;
+
+        update_post_meta($post_id, 'crm_first_name', $first_name);
+        update_post_meta($post_id, 'crm_last_name', $last_name);
+        update_post_meta($post_id, 'crm_source', $source);
+        update_post_meta($post_id, 'crm_status', $status);
+        if ($assigned_advisor > 0) {
+            update_post_meta($post_id, 'crm_assigned_advisor', $assigned_advisor);
+        }
+
+        peracrm_sync_client_contact_meta($post_id, $email, $phone);
+
+        peracrm_log_event($post_id, 'client_created', [
+            'email' => $email,
+            'phone' => $phone,
             'source' => $source,
         ]);
 
