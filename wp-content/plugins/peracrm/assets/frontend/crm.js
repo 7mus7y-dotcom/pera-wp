@@ -561,251 +561,267 @@
 })();
 
 (function () {
-  var section = document.querySelector('[data-crm-linked-properties]');
-  if (!section) {
-    return;
-  }
-
   var ajaxUrl = window.peraCrmData && window.peraCrmData.ajaxUrl ? window.peraCrmData.ajaxUrl : '';
   var nonce = window.peraCrmData && window.peraCrmData.createPortfolioNonce ? window.peraCrmData.createPortfolioNonce : '';
   var updateNonce = window.peraCrmData && window.peraCrmData.updatePortfolioNonce ? window.peraCrmData.updatePortfolioNonce : '';
-  var clientId = section.getAttribute('data-client-id') || '';
-  var openButton = section.querySelector('[data-crm-portfolio-open]');
-  var outputRow = section.querySelector('[data-crm-portfolio-output]');
-  var urlInput = section.querySelector('[data-crm-portfolio-url]');
-  var copyButton = section.querySelector('[data-crm-portfolio-copy]');
-  var updateButton = section.querySelector('[data-crm-portfolio-update]');
-  var expiresNote = section.querySelector('[data-crm-portfolio-expires]');
-  var updateFeedback = null;
-
-  if (outputRow) {
-    updateFeedback = outputRow.querySelector('[data-crm-portfolio-update-feedback]');
-    if (!updateFeedback) {
-      updateFeedback = document.createElement('small');
-      updateFeedback.className = 'text-sm';
-      updateFeedback.setAttribute('data-crm-portfolio-update-feedback', '');
-      outputRow.appendChild(updateFeedback);
-    }
-  }
-
-  if (!ajaxUrl || !nonce || !clientId || !openButton) {
+  if (!ajaxUrl || !nonce) {
     return;
   }
 
-  var dialogId = openButton.getAttribute('data-crm-portfolio-open');
-  var dialog = dialogId ? document.getElementById(dialogId) : null;
-  if (!dialog) {
-    return;
-  }
-
-  var form = dialog.querySelector('[data-crm-portfolio-form]');
-  var submitButton = dialog.querySelector('[data-crm-portfolio-submit]');
-  var feedback = dialog.querySelector('[data-crm-portfolio-feedback]');
-  var closeButtons = Array.prototype.slice.call(dialog.querySelectorAll('[data-crm-portfolio-close]'));
-
-  function closeDialog() {
-    if (typeof dialog.close === 'function') {
-      dialog.close();
-    } else {
-      dialog.removeAttribute('open');
-    }
-  }
-
-  function openDialog() {
-    if (feedback) {
-      feedback.textContent = '';
+  function initLinkedPropertiesSection(section) {
+    if (!section || section.getAttribute('data-crm-portfolio-initialized') === 'true') {
+      return;
     }
 
-    if (typeof dialog.showModal === 'function') {
-      dialog.showModal();
-    } else {
-      dialog.setAttribute('open', 'open');
+    var clientId = section.getAttribute('data-client-id') || '';
+    var openButton = section.querySelector('[data-crm-portfolio-open]');
+    var outputRow = section.querySelector('[data-crm-portfolio-output]');
+    var urlInput = section.querySelector('[data-crm-portfolio-url]');
+    var copyButton = section.querySelector('[data-crm-portfolio-copy]');
+    var updateButton = section.querySelector('[data-crm-portfolio-update]');
+    var expiresNote = section.querySelector('[data-crm-portfolio-expires]');
+    var updateFeedback = null;
+
+    if (!clientId || !openButton) {
+      return;
     }
-  }
 
-  openButton.addEventListener('click', function () {
-    openDialog();
-  });
-
-  closeButtons.forEach(function (button) {
-    button.addEventListener('click', function () {
-      closeDialog();
-    });
-  });
-
-  dialog.addEventListener('click', function (event) {
-    if (event.target === dialog) {
-      closeDialog();
+    if (outputRow) {
+      updateFeedback = outputRow.querySelector('[data-crm-portfolio-update-feedback]');
+      if (!updateFeedback) {
+        updateFeedback = document.createElement('small');
+        updateFeedback.className = 'text-sm';
+        updateFeedback.setAttribute('data-crm-portfolio-update-feedback', '');
+        outputRow.appendChild(updateFeedback);
+      }
     }
-  });
 
-  if (form && submitButton) {
-    form.addEventListener('submit', function (event) {
-      event.preventDefault();
+    var dialogId = openButton.getAttribute('data-crm-portfolio-open');
+    var dialog = dialogId ? document.getElementById(dialogId) : null;
+    if (!dialog) {
+      return;
+    }
 
-      var formData = new window.FormData(form);
-      var expiry = String(formData.get('expiry') || '').trim();
+    var form = dialog.querySelector('[data-crm-portfolio-form]');
+    var submitButton = dialog.querySelector('[data-crm-portfolio-submit]');
+    var feedback = dialog.querySelector('[data-crm-portfolio-feedback]');
+    var closeButtons = Array.prototype.slice.call(dialog.querySelectorAll('[data-crm-portfolio-close]'));
 
-      var payload = new window.FormData();
-      payload.append('action', 'peracrm_create_portfolio_token');
-      payload.append('nonce', nonce);
-      payload.append('client_id', clientId);
-      payload.append('expiry', expiry);
+    function closeDialog() {
+      if (typeof dialog.close === 'function') {
+        dialog.close();
+      } else {
+        dialog.removeAttribute('open');
+      }
+    }
 
-      submitButton.disabled = true;
-      var originalLabel = submitButton.textContent;
-      submitButton.textContent = 'Generating…';
+    function openDialog() {
       if (feedback) {
         feedback.textContent = '';
       }
 
-      fetch(ajaxUrl, {
-        method: 'POST',
-        body: payload,
-        credentials: 'same-origin'
-      })
-        .then(function (response) { return response.json(); })
-        .then(function (json) {
-          if (!json || !json.success || !json.data || !json.data.url) {
-            var errorMessage = json && json.data && json.data.message ? String(json.data.message) : 'Unable to generate portfolio link.';
-            throw new Error(errorMessage);
-          }
-
-          if (urlInput) {
-            urlInput.value = String(json.data.url);
-          }
-          if (outputRow) {
-            outputRow.hidden = false;
-          }
-          if (expiresNote) {
-            expiresNote.textContent = json.data.expires_label ? 'Expires: ' + String(json.data.expires_label) : '';
-          }
-          if (updateButton && json.data.post_id) {
-            updateButton.hidden = false;
-            updateButton.setAttribute('data-portfolio-post-id', String(json.data.post_id));
-          }
-
-          if (feedback) {
-            feedback.textContent = 'Portfolio link generated.';
-          }
-          window.setTimeout(function () {
-            closeDialog();
-          }, 350);
-        })
-        .catch(function (error) {
-          if (feedback) {
-            feedback.textContent = error && error.message ? error.message : 'Unable to generate portfolio link.';
-          }
-        })
-        .finally(function () {
-          submitButton.disabled = false;
-          submitButton.textContent = originalLabel;
-        });
-    });
-  }
-
-  if (copyButton && urlInput) {
-    copyButton.addEventListener('click', function () {
-      var value = String(urlInput.value || '').trim();
-      if (!value) {
-        return;
+      if (typeof dialog.showModal === 'function') {
+        dialog.showModal();
+      } else {
+        dialog.setAttribute('open', 'open');
       }
+    }
 
-      if (navigator.clipboard && typeof navigator.clipboard.writeText === 'function') {
-        navigator.clipboard.writeText(value)
-          .then(function () {})
-          .catch(function () {
-            urlInput.focus();
-            urlInput.select();
-            document.execCommand('copy');
+    openButton.addEventListener('click', function () {
+      openDialog();
+    });
+
+    closeButtons.forEach(function (button) {
+      button.addEventListener('click', function () {
+        closeDialog();
+      });
+    });
+
+    dialog.addEventListener('click', function (event) {
+      if (event.target === dialog) {
+        closeDialog();
+      }
+    });
+
+    if (form && submitButton) {
+      form.addEventListener('submit', function (event) {
+        event.preventDefault();
+
+        var formData = new window.FormData(form);
+        var expiry = String(formData.get('expiry') || '').trim();
+
+        var payload = new window.FormData();
+        payload.append('action', 'peracrm_create_portfolio_token');
+        payload.append('nonce', nonce);
+        payload.append('client_id', clientId);
+        payload.append('expiry', expiry);
+
+        submitButton.disabled = true;
+        var originalLabel = submitButton.textContent;
+        submitButton.textContent = 'Generating…';
+        if (feedback) {
+          feedback.textContent = '';
+        }
+
+        fetch(ajaxUrl, {
+          method: 'POST',
+          body: payload,
+          credentials: 'same-origin'
+        })
+          .then(function (response) { return response.json(); })
+          .then(function (json) {
+            if (!json || !json.success || !json.data || !json.data.url) {
+              var errorMessage = json && json.data && json.data.message ? String(json.data.message) : 'Unable to generate portfolio link.';
+              throw new Error(errorMessage);
+            }
+
+            if (urlInput) {
+              urlInput.value = String(json.data.url);
+            }
+            if (outputRow) {
+              outputRow.hidden = false;
+            }
+            if (expiresNote) {
+              expiresNote.textContent = json.data.expires_label ? 'Expires: ' + String(json.data.expires_label) : '';
+            }
+            if (updateButton && json.data.post_id) {
+              updateButton.hidden = false;
+              updateButton.setAttribute('data-portfolio-post-id', String(json.data.post_id));
+            }
+
+            if (feedback) {
+              feedback.textContent = 'Portfolio link generated.';
+            }
+            window.setTimeout(function () {
+              closeDialog();
+            }, 350);
+          })
+          .catch(function (error) {
+            if (feedback) {
+              feedback.textContent = error && error.message ? error.message : 'Unable to generate portfolio link.';
+            }
+          })
+          .finally(function () {
+            submitButton.disabled = false;
+            submitButton.textContent = originalLabel;
           });
-        return;
-      }
+      });
+    }
 
-      urlInput.focus();
-      urlInput.select();
-      document.execCommand('copy');
-    });
+    if (copyButton && urlInput) {
+      copyButton.addEventListener('click', function () {
+        var value = String(urlInput.value || '').trim();
+        if (!value) {
+          return;
+        }
+
+        if (navigator.clipboard && typeof navigator.clipboard.writeText === 'function') {
+          navigator.clipboard.writeText(value)
+            .then(function () {})
+            .catch(function () {
+              urlInput.focus();
+              urlInput.select();
+              document.execCommand('copy');
+            });
+          return;
+        }
+
+        urlInput.focus();
+        urlInput.select();
+        document.execCommand('copy');
+      });
+    }
+
+    if (updateButton && updateNonce) {
+      updateButton.addEventListener('click', function () {
+        var portfolioPostId = updateButton.getAttribute('data-portfolio-post-id') || '';
+        var updateClientId = updateButton.getAttribute('data-client-id') || clientId;
+        if (!portfolioPostId || !updateClientId) {
+          return;
+        }
+
+        var payload = new window.FormData();
+        payload.append('action', 'peracrm_update_portfolio_token');
+        payload.append('nonce', updateNonce);
+        payload.append('client_id', updateClientId);
+        payload.append('portfolio_post_id', portfolioPostId);
+
+        var originalLabel = updateButton.textContent;
+        updateButton.disabled = true;
+        updateButton.textContent = 'Updating…';
+        if (updateFeedback) {
+          updateFeedback.textContent = '';
+        }
+
+        fetch(ajaxUrl, {
+          method: 'POST',
+          body: payload,
+          credentials: 'same-origin'
+        })
+          .then(function (response) { return response.json(); })
+          .then(function (json) {
+            if (!json || !json.success || !json.data || !json.data.url) {
+              var message = json && json.data && json.data.message ? String(json.data.message) : 'Unable to update portfolio link.';
+              throw new Error(message);
+            }
+
+            if (urlInput) {
+              urlInput.value = String(json.data.url);
+            }
+
+            if (expiresNote) {
+              expiresNote.textContent = json.data.expires_label ? 'Expires: ' + String(json.data.expires_label) : '';
+            }
+
+            if (json.data.post_id) {
+              updateButton.setAttribute('data-portfolio-post-id', String(json.data.post_id));
+            }
+
+            if (updateFeedback) {
+              updateFeedback.textContent = 'Portfolio link updated.';
+            }
+          })
+          .catch(function (error) {
+            var errorMessage = error && error.message ? error.message : 'Unable to update portfolio link.';
+            if (updateFeedback) {
+              updateFeedback.textContent = errorMessage;
+            } else {
+              window.alert(errorMessage);
+            }
+          })
+          .finally(function () {
+            updateButton.disabled = false;
+            updateButton.textContent = originalLabel;
+          });
+      });
+    }
+
+    section.setAttribute('data-crm-portfolio-initialized', 'true');
   }
 
-  if (updateButton && ajaxUrl && updateNonce) {
-    updateButton.addEventListener('click', function () {
-      var portfolioPostId = updateButton.getAttribute('data-portfolio-post-id') || '';
-      var updateClientId = updateButton.getAttribute('data-client-id') || clientId;
-      if (!portfolioPostId || !updateClientId) {
-        return;
-      }
-
-      var payload = new window.FormData();
-      payload.append('action', 'peracrm_update_portfolio_token');
-      payload.append('nonce', updateNonce);
-      payload.append('client_id', updateClientId);
-      payload.append('portfolio_post_id', portfolioPostId);
-
-      var originalLabel = updateButton.textContent;
-      updateButton.disabled = true;
-      updateButton.textContent = 'Updating…';
-      if (updateFeedback) {
-        updateFeedback.textContent = '';
-      }
-
-      fetch(ajaxUrl, {
-        method: 'POST',
-        body: payload,
-        credentials: 'same-origin'
-      })
-        .then(function (response) { return response.json(); })
-        .then(function (json) {
-          if (!json || !json.success || !json.data || !json.data.url) {
-            var message = json && json.data && json.data.message ? String(json.data.message) : 'Unable to update portfolio link.';
-            throw new Error(message);
-          }
-
-          if (urlInput) {
-            urlInput.value = String(json.data.url);
-          }
-
-          if (expiresNote) {
-            expiresNote.textContent = json.data.expires_label ? 'Expires: ' + String(json.data.expires_label) : '';
-          }
-
-          if (json.data.post_id) {
-            updateButton.setAttribute('data-portfolio-post-id', String(json.data.post_id));
-          }
-
-          if (updateFeedback) {
-            updateFeedback.textContent = 'Portfolio link updated.';
-          }
-        })
-        .catch(function (error) {
-          var errorMessage = error && error.message ? error.message : 'Unable to update portfolio link.';
-          if (updateFeedback) {
-            updateFeedback.textContent = errorMessage;
-          } else {
-            window.alert(errorMessage);
-          }
-        })
-        .finally(function () {
-          updateButton.disabled = false;
-          updateButton.textContent = originalLabel;
-        });
-    });
+  function initAllLinkedPropertiesSections(scope) {
+    var root = scope && scope.querySelectorAll ? scope : document;
+    Array.prototype.slice.call(root.querySelectorAll('[data-crm-linked-properties]')).forEach(initLinkedPropertiesSection);
   }
+
+  initAllLinkedPropertiesSections(document);
+  document.addEventListener('peracrm:panel-replaced', function (event) {
+    initAllLinkedPropertiesSections(event && event.detail ? event.detail.element : document);
+  });
 })();
 
 (function () {
-  var widgets = Array.prototype.slice.call(document.querySelectorAll('[data-crm-property-search]'));
-  if (!widgets.length) {
-    return;
-  }
-
   var ajaxUrl = window.peraCrmData && window.peraCrmData.ajaxUrl ? window.peraCrmData.ajaxUrl : '';
   var nonce = window.peraCrmData && window.peraCrmData.propertySearchNonce ? window.peraCrmData.propertySearchNonce : '';
   if (!ajaxUrl || !nonce) {
     return;
   }
 
-  widgets.forEach(function (widget) {
+  function initSearchWidget(widget) {
+    if (!widget || widget.getAttribute('data-crm-property-search-initialized') === 'true') {
+      return;
+    }
+
     var queryInput = widget.querySelector('[data-crm-property-query]');
     var idInput = widget.querySelector('[data-crm-property-id]');
     var results = widget.querySelector('[data-crm-property-results]');
@@ -896,15 +912,22 @@
         results.hidden = false;
       }
     });
+    widget.setAttribute('data-crm-property-search-initialized', 'true');
+  }
+
+  function initSearchWidgets(scope) {
+    var root = scope && scope.querySelectorAll ? scope : document;
+    var widgets = Array.prototype.slice.call(root.querySelectorAll('[data-crm-property-search]'));
+    widgets.forEach(initSearchWidget);
+  }
+
+  initSearchWidgets(document);
+  document.addEventListener('peracrm:panel-replaced', function (event) {
+    initSearchWidgets(event && event.detail ? event.detail.element : document);
   });
 })();
 
 (function () {
-  var rows = Array.prototype.slice.call(document.querySelectorAll('[data-crm-portfolio-row]'));
-  if (!rows.length) {
-    return;
-  }
-
   var ajaxUrl = window.peraCrmData && window.peraCrmData.ajaxUrl ? window.peraCrmData.ajaxUrl : '';
   var fieldsNonce = window.peraCrmData && window.peraCrmData.portfolioFieldsNonce ? window.peraCrmData.portfolioFieldsNonce : '';
   var uploadNonce = window.peraCrmData && window.peraCrmData.portfolioFloorPlanNonce ? window.peraCrmData.portfolioFloorPlanNonce : '';
@@ -912,7 +935,11 @@
     return;
   }
 
-  rows.forEach(function (row) {
+  function initPortfolioRow(row) {
+    if (!row || row.getAttribute('data-crm-portfolio-row-initialized') === 'true') {
+      return;
+    }
+
     var saveButton = row.querySelector('[data-action="save-portfolio-fields"]');
     var pickButton = row.querySelector('[data-action="pick-floorplan"]');
     var floorPlanInput = row.querySelector('[data-floorplan-input]');
@@ -1082,6 +1109,18 @@
           saveButton.disabled = false;
         });
     });
+    row.setAttribute('data-crm-portfolio-row-initialized', 'true');
+  }
+
+  function initPortfolioRows(scope) {
+    var root = scope && scope.querySelectorAll ? scope : document;
+    var rows = Array.prototype.slice.call(root.querySelectorAll('[data-crm-portfolio-row]'));
+    rows.forEach(initPortfolioRow);
+  }
+
+  initPortfolioRows(document);
+  document.addEventListener('peracrm:panel-replaced', function (event) {
+    initPortfolioRows(event && event.detail ? event.detail.element : document);
   });
 })();
 
@@ -1153,6 +1192,12 @@
     var current = document.querySelector('[data-crm-panel="' + panelName + '"]');
     if (incoming && current) {
       current.replaceWith(incoming);
+      document.dispatchEvent(new window.CustomEvent('peracrm:panel-replaced', {
+        detail: {
+          panel: panelName,
+          element: incoming
+        }
+      }));
       return true;
     }
 
