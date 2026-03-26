@@ -2888,8 +2888,8 @@ body.crm-route #site-header.peracrm-shell-header .crm-side-nav__toggle--header:f
   font-weight: 600;
 }
 .crm-page--logs .peracrm-whatsapp-log-page-size select {
-  min-width: 88px;
-  padding: 0.6rem 2.25rem 0.6rem 0.85rem;
+  min-width: 60px;
+  padding: 0.25rem;
   border: 1px solid var(--border, #e8ecf2);
   border-radius: 10px;
   background-color: var(--surface, #ffffff);
@@ -2905,6 +2905,7 @@ body.crm-route #site-header.peracrm-shell-header .crm-side-nav__toggle--header:f
   outline: none;
   border-color: #002d72;
   box-shadow: 0 0 0 1px rgba(0, 45, 114, 0.12);
+  padding: var(--space-xs) 0px;
 }
 .crm-page--logs .peracrm-whatsapp-logs-table .check-column { width: 42px; }
 .crm-page--logs .peracrm-whatsapp-logs-table .check-column input[type="checkbox"] {
@@ -3019,7 +3020,6 @@ body.crm-route #site-header.peracrm-shell-header .crm-side-nav__toggle--header:f
 .crm-page .crm-section {
   display: grid;
   gap: var(--crm-section-gap);
-  padding: var(--crm-section-padding);
   border: 0;
   border-radius: 0;
   background: transparent;
