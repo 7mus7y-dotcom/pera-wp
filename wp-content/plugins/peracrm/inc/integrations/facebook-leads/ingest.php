@@ -16,9 +16,40 @@ function peracrm_facebook_leads_claims_table()
 
 function peracrm_facebook_leads_ensure_claims_table()
 {
-    if (function_exists('peracrm_create_facebook_lead_claims_table')) {
-        peracrm_create_facebook_lead_claims_table();
+    static $ensured_by_blog = [];
+
+    $ensurer = static function () use (&$ensured_by_blog) {
+        global $wpdb;
+
+        $blog_id = (int) get_current_blog_id();
+        if (!empty($ensured_by_blog[$blog_id])) {
+            return true;
+        }
+
+        $table = peracrm_facebook_leads_claims_table();
+        $table_exists = $wpdb->get_var($wpdb->prepare('SHOW TABLES LIKE %s', $table)) === $table;
+        if (!$table_exists && function_exists('peracrm_create_facebook_lead_claims_table')) {
+            peracrm_create_facebook_lead_claims_table();
+            $table_exists = $wpdb->get_var($wpdb->prepare('SHOW TABLES LIKE %s', $table)) === $table;
+        }
+
+        if (!$table_exists) {
+            peracrm_facebook_leads_log_warning('Facebook claims table unavailable after ensure attempt', [
+                'claims_table' => $table,
+                'wpdb_error' => isset($wpdb->last_error) ? (string) $wpdb->last_error : '',
+            ]);
+            return false;
+        }
+
+        $ensured_by_blog[$blog_id] = true;
+        return true;
+    };
+
+    if (function_exists('peracrm_with_target_blog')) {
+        return (bool) peracrm_with_target_blog($ensurer);
     }
+
+    return (bool) $ensurer();
 }
 
 function peracrm_facebook_leads_claim_stale_timeout_seconds()
@@ -37,7 +68,9 @@ function peracrm_facebook_leads_find_client_id_by_external_lead_id($facebook_lea
     $finder = static function () use ($facebook_lead_id) {
         global $wpdb;
 
-        peracrm_facebook_leads_ensure_claims_table();
+        if (!peracrm_facebook_leads_ensure_claims_table()) {
+            return 0;
+        }
         $claims_table = peracrm_facebook_leads_claims_table();
         $claimed_client_id = (int) $wpdb->get_var($wpdb->prepare(
             "SELECT client_id FROM {$claims_table} WHERE facebook_lead_id = %s LIMIT 1",
@@ -107,7 +140,14 @@ function peracrm_facebook_leads_acquire_external_lead_id_claim($facebook_lead_id
     $claimer = static function () use ($facebook_lead_id) {
         global $wpdb;
 
-        peracrm_facebook_leads_ensure_claims_table();
+        if (!peracrm_facebook_leads_ensure_claims_table()) {
+            return [
+                'ok' => false,
+                'acquired' => false,
+                'existing_client_id' => 0,
+                'error' => 'claims_table_unavailable',
+            ];
+        }
         $table = peracrm_facebook_leads_claims_table();
         $now = peracrm_now_mysql();
         $stale_timeout = peracrm_facebook_leads_claim_stale_timeout_seconds();
@@ -119,6 +159,19 @@ function peracrm_facebook_leads_acquire_external_lead_id_claim($facebook_lead_id
             $now,
             $now
         ));
+
+        if ($inserted === false) {
+            peracrm_facebook_leads_log_warning('Failed to insert Facebook lead claim row', [
+                'facebook_lead_id' => $facebook_lead_id,
+                'wpdb_error' => isset($wpdb->last_error) ? (string) $wpdb->last_error : '',
+            ]);
+            return [
+                'ok' => false,
+                'acquired' => false,
+                'existing_client_id' => 0,
+                'error' => 'claim_insert_failed',
+            ];
+        }
 
         if ((int) $inserted > 0) {
             return [
@@ -197,7 +250,9 @@ function peracrm_facebook_leads_release_external_lead_id_claim($facebook_lead_id
 
     $releaser = static function () use ($facebook_lead_id) {
         global $wpdb;
-        peracrm_facebook_leads_ensure_claims_table();
+        if (!peracrm_facebook_leads_ensure_claims_table()) {
+            return false;
+        }
         $table = peracrm_facebook_leads_claims_table();
         $deleted = $wpdb->query($wpdb->prepare(
             "DELETE FROM {$table} WHERE facebook_lead_id = %s AND (client_id IS NULL OR client_id = 0)",
@@ -227,7 +282,13 @@ function peracrm_facebook_leads_bind_external_lead_id_claim($client_id, $faceboo
 
     $claimer = static function () use ($client_id, $facebook_lead_id) {
         global $wpdb;
-        peracrm_facebook_leads_ensure_claims_table();
+        if (!peracrm_facebook_leads_ensure_claims_table()) {
+            return [
+                'ok' => false,
+                'existing_client_id' => 0,
+                'error' => 'claims_table_unavailable',
+            ];
+        }
         $table = peracrm_facebook_leads_claims_table();
 
         $current_client_id = (int) $wpdb->get_var($wpdb->prepare(
@@ -301,7 +362,22 @@ function peracrm_facebook_leads_ingest_graph_lead(array $notification, array $gr
     }
 
     $claim = peracrm_facebook_leads_acquire_external_lead_id_claim($facebook_lead_id);
-    if (empty($claim['ok']) || empty($claim['acquired'])) {
+    if (empty($claim['ok'])) {
+        peracrm_facebook_leads_log_warning('Skipping lead ingest: unable to acquire Facebook lead claim', [
+            'facebook_lead_id' => $facebook_lead_id,
+            'error' => (string) ($claim['error'] ?? 'claim_acquire_failed'),
+            'facebook_form_id' => (string) ($source_meta['facebook_form_id'] ?? ''),
+            'facebook_ad_id' => (string) ($source_meta['facebook_ad_id'] ?? ''),
+        ]);
+
+        return [
+            'ok' => true,
+            'status' => 'claim_unavailable',
+            'client_id' => 0,
+        ];
+    }
+
+    if (empty($claim['acquired'])) {
         $existing_client_id = (int) ($claim['existing_client_id'] ?? 0);
         peracrm_facebook_leads_log_info('Skipping duplicate Facebook lead replay', [
             'facebook_lead_id' => $facebook_lead_id,
