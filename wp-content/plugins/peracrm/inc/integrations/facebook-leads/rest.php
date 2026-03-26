@@ -95,50 +95,103 @@ function peracrm_rest_facebook_leads_receive_webhook(WP_REST_Request $request)
         return new WP_REST_Response(['ok' => true, 'ignored' => true], 202);
     }
 
-    $identifiers = peracrm_facebook_leads_extract_payload_identifiers($payload);
+    $signature = peracrm_facebook_leads_extract_signature_stub($request, $payload);
+    if (!empty($signature['present']) && empty($signature['verified'])) {
+        peracrm_facebook_leads_log_debug('Webhook signature header present but verification is not enforced in this slice', [
+            'signature_stub' => $signature,
+        ]);
+    }
 
-    peracrm_facebook_leads_log_debug('Webhook payload received', [
-        'entry_count' => isset($payload['entry']) && is_array($payload['entry']) ? count($payload['entry']) : 0,
-        'leadgen_id' => $identifiers['leadgen_id'],
-        'page_id' => $identifiers['page_id'],
-        'form_id' => $identifiers['form_id'],
-    ]);
+    $notifications = peracrm_facebook_leads_extract_lead_notifications($payload);
+    if (empty($notifications)) {
+        peracrm_facebook_leads_log_info('Webhook payload acknowledged but no actionable leadgen notification found', [
+            'entry_count' => isset($payload['entry']) && is_array($payload['entry']) ? count($payload['entry']) : 0,
+        ]);
+
+        return new WP_REST_Response([
+            'ok' => true,
+            'ignored' => true,
+            'reason' => 'no_actionable_leadgen_id',
+        ], 202);
+    }
+
+    $retrieved = 0;
+    $failed = 0;
+
+    foreach ($notifications as $notification) {
+        $leadgen_id = (string) ($notification['leadgen_id'] ?? '');
+        if ($leadgen_id === '') {
+            continue;
+        }
+
+        $result = peracrm_facebook_leads_graph_get_lead($leadgen_id);
+        if (!empty($result['ok'])) {
+            $retrieved++;
+            $lead = is_array($result['lead'] ?? null) ? $result['lead'] : [];
+            peracrm_facebook_leads_log_info('Leadgen notification retrieved from Graph', [
+                'leadgen_id' => $leadgen_id,
+                'page_id' => (string) ($notification['page_id'] ?? ''),
+                'form_id' => (string) ($notification['form_id'] ?? ''),
+                'event_time' => (string) ($notification['event_time'] ?? ''),
+                'created_time' => (string) ($lead['created_time'] ?? ''),
+                'field_count' => isset($lead['field_data']) && is_array($lead['field_data']) ? count($lead['field_data']) : 0,
+                'graph_http_status' => (int) ($result['http_status'] ?? 0),
+                'graph_raw' => isset($result['raw']) && is_array($result['raw']) ? $result['raw'] : [],
+            ]);
+            continue;
+        }
+
+        $failed++;
+        peracrm_facebook_leads_log_warning('Leadgen notification Graph retrieval failed', [
+            'leadgen_id' => $leadgen_id,
+            'page_id' => (string) ($notification['page_id'] ?? ''),
+            'form_id' => (string) ($notification['form_id'] ?? ''),
+            'event_time' => (string) ($notification['event_time'] ?? ''),
+            'graph_http_status' => (int) ($result['http_status'] ?? 0),
+            'graph_error_code' => (string) ($result['error_code'] ?? ''),
+            'graph_error_message' => (string) ($result['error_message'] ?? ''),
+            'graph_raw' => isset($result['raw']) && is_array($result['raw']) ? $result['raw'] : [],
+        ]);
+    }
 
     return new WP_REST_Response([
         'ok' => true,
         'received' => true,
+        'notifications' => count($notifications),
+        'retrieved' => $retrieved,
+        'failed' => $failed,
     ], 200);
 }
 
-function peracrm_facebook_leads_extract_payload_identifiers(array $payload)
+function peracrm_facebook_leads_extract_lead_notifications(array $payload)
 {
-    $result = [
-        'leadgen_id' => '',
-        'page_id' => '',
-        'form_id' => '',
-    ];
+    $notifications = [];
 
     $entries = $payload['entry'] ?? [];
     if (!is_array($entries)) {
-        return $result;
+        return $notifications;
     }
 
-    foreach ($entries as $entry) {
+    foreach ($entries as $entry_index => $entry) {
         if (!is_array($entry)) {
             continue;
         }
 
-        if ($result['page_id'] === '' && isset($entry['id'])) {
-            $result['page_id'] = sanitize_text_field((string) $entry['id']);
-        }
+        $entry_page_id = isset($entry['id']) ? sanitize_text_field((string) $entry['id']) : '';
+        $entry_time = isset($entry['time']) ? (int) $entry['time'] : 0;
 
         $changes = $entry['changes'] ?? [];
         if (!is_array($changes)) {
             continue;
         }
 
-        foreach ($changes as $change) {
+        foreach ($changes as $change_index => $change) {
             if (!is_array($change)) {
+                continue;
+            }
+
+            $field = isset($change['field']) ? sanitize_key((string) $change['field']) : '';
+            if ($field !== '' && $field !== 'leadgen') {
                 continue;
             }
 
@@ -147,25 +200,46 @@ function peracrm_facebook_leads_extract_payload_identifiers(array $payload)
                 continue;
             }
 
-            if ($result['leadgen_id'] === '' && isset($value['leadgen_id'])) {
-                $result['leadgen_id'] = sanitize_text_field((string) $value['leadgen_id']);
+            $leadgen_id = isset($value['leadgen_id']) ? sanitize_text_field((string) $value['leadgen_id']) : '';
+            if ($leadgen_id === '') {
+                continue;
             }
 
-            if ($result['form_id'] === '' && isset($value['form_id'])) {
-                $result['form_id'] = sanitize_text_field((string) $value['form_id']);
-            }
-
-            if ($result['page_id'] === '' && isset($value['page_id'])) {
-                $result['page_id'] = sanitize_text_field((string) $value['page_id']);
-            }
-
-            if ($result['leadgen_id'] !== '' && $result['form_id'] !== '' && $result['page_id'] !== '') {
-                return $result;
-            }
+            $notifications[] = [
+                'leadgen_id' => $leadgen_id,
+                'page_id' => isset($value['page_id']) ? sanitize_text_field((string) $value['page_id']) : $entry_page_id,
+                'form_id' => isset($value['form_id']) ? sanitize_text_field((string) $value['form_id']) : '',
+                'event_time' => isset($value['created_time']) ? sanitize_text_field((string) $value['created_time']) : ($entry_time > 0 ? (string) $entry_time : ''),
+                'entry_index' => (int) $entry_index,
+                'change_index' => (int) $change_index,
+                'change_field' => $field,
+                'change_value_keys' => array_values(array_filter(array_map('sanitize_key', array_keys($value)))),
+            ];
         }
     }
 
-    return $result;
+    return $notifications;
+}
+
+function peracrm_facebook_leads_extract_signature_stub(WP_REST_Request $request, array $payload)
+{
+    $signature = (string) $request->get_header('X-Hub-Signature-256');
+    if ($signature === '') {
+        return [
+            'present' => false,
+            'verified' => false,
+            'reason' => 'missing_header',
+        ];
+    }
+
+    return [
+        'present' => true,
+        'verified' => false,
+        'reason' => 'todo_app_secret_hmac_verification',
+        'header_excerpt' => peracrm_facebook_leads_mask_secret($signature),
+        // TODO: Verify sha256 HMAC against raw request body using app secret in next hardening slice.
+        'payload_entries' => isset($payload['entry']) && is_array($payload['entry']) ? count($payload['entry']) : 0,
+    ];
 }
 
 function peracrm_rest_facebook_leads_serve_verify_challenge($served, $result, $request, $server)
