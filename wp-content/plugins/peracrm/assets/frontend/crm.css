@@ -3866,7 +3866,6 @@ body.crm-route #site-header.peracrm-shell-header.is-scrolled .peracrm-header-act
 .crm-page--client-view .crm-client-profile-grid,
 .crm-page--client-view .crm-client-reminders-grid {
   display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 12px;
 }
 
