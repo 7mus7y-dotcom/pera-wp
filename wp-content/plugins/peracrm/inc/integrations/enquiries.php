@@ -230,14 +230,24 @@ function peracrm_ingest_enquiry(array $payload, array $context = [])
 {
     peracrm_ingest_debug_log('peracrm_ingest_enquiry entered', $context);
 
-    if (!function_exists('peracrm_find_or_create_client_by_email') || !function_exists('peracrm_log_event')) {
+    if ((!function_exists('peracrm_find_or_create_client_by_email') && !function_exists('peracrm_find_or_create_client_by_identity')) || !function_exists('peracrm_log_event')) {
         peracrm_ingest_debug_log('ingest skipped: crm apis unavailable', $context);
         return 0;
     }
 
     $email = isset($payload['email']) ? sanitize_email((string) $payload['email']) : '';
-    if (!is_email($email)) {
-        peracrm_ingest_debug_log('email missing/invalid', $context + ['email' => $email]);
+    if ($email !== '' && !is_email($email)) {
+        $email = '';
+    }
+
+    $phone = isset($payload['phone']) ? sanitize_text_field((string) $payload['phone']) : '';
+    $phone = preg_replace('/[^0-9+]/', '', $phone);
+    if (!is_string($phone)) {
+        $phone = '';
+    }
+
+    if ($email === '' && $phone === '') {
+        peracrm_ingest_debug_log('ingest skipped: no usable identity', $context + ['email' => $email, 'phone' => $phone]);
         return 0;
     }
 
@@ -265,19 +275,23 @@ function peracrm_ingest_enquiry(array $payload, array $context = [])
         $raw_fields = peracrm_ingest_sanitize_raw_fields($payload['raw_fields']);
     }
 
-    $phone = isset($payload['phone']) ? sanitize_text_field((string) $payload['phone']) : '';
-    $phone = preg_replace('/[^0-9+]/', '', $phone);
-
     $result = (int) peracrm_with_target_blog(static function () use ($email, $first_name, $last_name, $payload, $context, $property_id, $page_url, $post_id, $raw_fields, $message, $phone) {
         global $wpdb;
 
-        $client_id = (int) peracrm_find_or_create_client_by_email($email, [
+        $resolver_data = [
             'first_name' => $first_name,
             'last_name' => $last_name,
             'phone' => $phone,
             'source' => !empty($context['handler']) ? sanitize_key((string) $context['handler']) : 'website_form',
             'status' => 'enquiry',
-        ]);
+        ];
+
+        $client_id = function_exists('peracrm_find_or_create_client_by_identity')
+            ? (int) peracrm_find_or_create_client_by_identity([
+                'email' => $email,
+                'phone' => $phone,
+            ], $resolver_data)
+            : (int) peracrm_find_or_create_client_by_email($email, $resolver_data);
 
         if ($client_id <= 0) {
             peracrm_ingest_debug_log('client create/update failed', $context + [
@@ -308,7 +322,7 @@ function peracrm_ingest_enquiry(array $payload, array $context = [])
         }
 
         $fingerprint = peracrm_ingest_fingerprint(
-            $email,
+            $email !== '' ? $email : $phone,
             !empty($context['handler']) ? (string) $context['handler'] : 'website_form',
             $property_id,
             $message

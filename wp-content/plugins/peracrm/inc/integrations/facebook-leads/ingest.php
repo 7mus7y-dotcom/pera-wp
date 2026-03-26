@@ -9,6 +9,18 @@ function peracrm_facebook_leads_external_meta_key()
     return '_peracrm_external_facebook_lead_id';
 }
 
+function peracrm_facebook_leads_claims_table()
+{
+    return peracrm_table('peracrm_facebook_lead_claims');
+}
+
+function peracrm_facebook_leads_ensure_claims_table()
+{
+    if (function_exists('peracrm_create_facebook_lead_claims_table')) {
+        peracrm_create_facebook_lead_claims_table();
+    }
+}
+
 function peracrm_facebook_leads_find_client_id_by_external_lead_id($facebook_lead_id)
 {
     $facebook_lead_id = sanitize_text_field((string) $facebook_lead_id);
@@ -17,6 +29,18 @@ function peracrm_facebook_leads_find_client_id_by_external_lead_id($facebook_lea
     }
 
     $finder = static function () use ($facebook_lead_id) {
+        global $wpdb;
+
+        peracrm_facebook_leads_ensure_claims_table();
+        $claims_table = peracrm_facebook_leads_claims_table();
+        $claimed_client_id = (int) $wpdb->get_var($wpdb->prepare(
+            "SELECT client_id FROM {$claims_table} WHERE facebook_lead_id = %s LIMIT 1",
+            $facebook_lead_id
+        ));
+        if ($claimed_client_id > 0) {
+            return $claimed_client_id;
+        }
+
         $found = get_posts([
             'post_type' => 'crm_client',
             'post_status' => 'any',
@@ -63,7 +87,86 @@ function peracrm_facebook_leads_save_external_lead_id($client_id, $facebook_lead
     $writer();
 }
 
-function peracrm_facebook_leads_claim_external_lead_id($client_id, $facebook_lead_id)
+function peracrm_facebook_leads_acquire_external_lead_id_claim($facebook_lead_id)
+{
+    $facebook_lead_id = sanitize_text_field((string) $facebook_lead_id);
+    if ($facebook_lead_id === '') {
+        return [
+            'ok' => false,
+            'acquired' => false,
+            'existing_client_id' => 0,
+        ];
+    }
+
+    $claimer = static function () use ($facebook_lead_id) {
+        global $wpdb;
+
+        peracrm_facebook_leads_ensure_claims_table();
+        $table = peracrm_facebook_leads_claims_table();
+        $now = peracrm_now_mysql();
+
+        $inserted = $wpdb->query($wpdb->prepare(
+            "INSERT IGNORE INTO {$table} (facebook_lead_id, client_id, claimed_at, updated_at)
+             VALUES (%s, NULL, %s, %s)",
+            $facebook_lead_id,
+            $now,
+            $now
+        ));
+
+        if ((int) $inserted > 0) {
+            return [
+                'ok' => true,
+                'acquired' => true,
+                'existing_client_id' => 0,
+            ];
+        }
+
+        $existing_client_id = (int) $wpdb->get_var($wpdb->prepare(
+            "SELECT client_id FROM {$table} WHERE facebook_lead_id = %s LIMIT 1",
+            $facebook_lead_id
+        ));
+
+        return [
+            'ok' => true,
+            'acquired' => false,
+            'existing_client_id' => $existing_client_id,
+        ];
+    };
+
+    if (function_exists('peracrm_with_target_blog')) {
+        return (array) peracrm_with_target_blog($claimer);
+    }
+
+    return (array) $claimer();
+}
+
+function peracrm_facebook_leads_release_external_lead_id_claim($facebook_lead_id)
+{
+    $facebook_lead_id = sanitize_text_field((string) $facebook_lead_id);
+    if ($facebook_lead_id === '') {
+        return false;
+    }
+
+    $releaser = static function () use ($facebook_lead_id) {
+        global $wpdb;
+        peracrm_facebook_leads_ensure_claims_table();
+        $table = peracrm_facebook_leads_claims_table();
+        $deleted = $wpdb->query($wpdb->prepare(
+            "DELETE FROM {$table} WHERE facebook_lead_id = %s AND (client_id IS NULL OR client_id = 0)",
+            $facebook_lead_id
+        ));
+
+        return (int) $deleted > 0;
+    };
+
+    if (function_exists('peracrm_with_target_blog')) {
+        return (bool) peracrm_with_target_blog($releaser);
+    }
+
+    return (bool) $releaser();
+}
+
+function peracrm_facebook_leads_bind_external_lead_id_claim($client_id, $facebook_lead_id)
 {
     $client_id = (int) $client_id;
     $facebook_lead_id = sanitize_text_field((string) $facebook_lead_id);
@@ -75,34 +178,42 @@ function peracrm_facebook_leads_claim_external_lead_id($client_id, $facebook_lea
     }
 
     $claimer = static function () use ($client_id, $facebook_lead_id) {
-        $existing_client_id = peracrm_facebook_leads_find_client_id_by_external_lead_id($facebook_lead_id);
-        if ($existing_client_id > 0 && $existing_client_id !== $client_id) {
+        global $wpdb;
+        peracrm_facebook_leads_ensure_claims_table();
+        $table = peracrm_facebook_leads_claims_table();
+
+        $current_client_id = (int) $wpdb->get_var($wpdb->prepare(
+            "SELECT client_id FROM {$table} WHERE facebook_lead_id = %s LIMIT 1",
+            $facebook_lead_id
+        ));
+
+        if ($current_client_id > 0 && $current_client_id !== $client_id) {
             return [
                 'ok' => false,
-                'existing_client_id' => $existing_client_id,
+                'existing_client_id' => $current_client_id,
             ];
         }
 
-        if ($existing_client_id === $client_id) {
+        $updated = $wpdb->query($wpdb->prepare(
+            "UPDATE {$table}
+             SET client_id = %d, updated_at = %s
+             WHERE facebook_lead_id = %s AND (client_id IS NULL OR client_id = 0 OR client_id = %d)",
+            $client_id,
+            peracrm_now_mysql(),
+            $facebook_lead_id,
+            $client_id
+        ));
+
+        if ($updated !== false) {
+            peracrm_facebook_leads_save_external_lead_id($client_id, $facebook_lead_id);
             return [
                 'ok' => true,
                 'existing_client_id' => $client_id,
             ];
         }
 
-        $saved = add_post_meta($client_id, peracrm_facebook_leads_external_meta_key(), $facebook_lead_id, true);
-        if ($saved) {
-            return [
-                'ok' => true,
-                'existing_client_id' => $client_id,
-            ];
-        }
-
-        update_post_meta($client_id, peracrm_facebook_leads_external_meta_key(), $facebook_lead_id);
-
-        $current_client_id = peracrm_facebook_leads_find_client_id_by_external_lead_id($facebook_lead_id);
         return [
-            'ok' => $current_client_id === $client_id,
+            'ok' => false,
             'existing_client_id' => $current_client_id,
         ];
     };
@@ -112,6 +223,11 @@ function peracrm_facebook_leads_claim_external_lead_id($client_id, $facebook_lea
     }
 
     return (array) $claimer();
+}
+
+function peracrm_facebook_leads_claim_external_lead_id($client_id, $facebook_lead_id)
+{
+    return peracrm_facebook_leads_bind_external_lead_id_claim($client_id, $facebook_lead_id);
 }
 
 function peracrm_facebook_leads_ingest_graph_lead(array $notification, array $graph_result)
@@ -136,8 +252,9 @@ function peracrm_facebook_leads_ingest_graph_lead(array $notification, array $gr
         ];
     }
 
-    $existing_client_id = peracrm_facebook_leads_find_client_id_by_external_lead_id($facebook_lead_id);
-    if ($existing_client_id > 0) {
+    $claim = peracrm_facebook_leads_acquire_external_lead_id_claim($facebook_lead_id);
+    if (empty($claim['ok']) || empty($claim['acquired'])) {
+        $existing_client_id = (int) ($claim['existing_client_id'] ?? 0);
         peracrm_facebook_leads_log_info('Skipping duplicate Facebook lead replay', [
             'facebook_lead_id' => $facebook_lead_id,
             'client_id' => $existing_client_id,
@@ -153,12 +270,23 @@ function peracrm_facebook_leads_ingest_graph_lead(array $notification, array $gr
     }
 
     $email = sanitize_email((string) ($payload['email'] ?? ''));
-    if (!is_email($email)) {
-        peracrm_facebook_leads_log_warning('Skipping lead ingest: mapping incomplete (email missing/invalid)', [
+    if ($email !== '' && !is_email($email)) {
+        $email = '';
+    }
+    $phone = isset($payload['phone']) ? sanitize_text_field((string) $payload['phone']) : '';
+    $phone = preg_replace('/[^0-9+]/', '', $phone);
+    if (!is_string($phone)) {
+        $phone = '';
+    }
+
+    if ($email === '' && $phone === '') {
+        peracrm_facebook_leads_log_warning('Skipping lead ingest: mapping incomplete (email/phone missing)', [
             'facebook_lead_id' => $facebook_lead_id,
-            'has_phone' => !empty($payload['phone']) ? 1 : 0,
+            'has_phone' => 0,
             'has_name' => (!empty($payload['name']) || !empty($payload['first_name']) || !empty($payload['last_name'])) ? 1 : 0,
         ]);
+
+        peracrm_facebook_leads_release_external_lead_id_claim($facebook_lead_id);
 
         return [
             'ok' => true,
@@ -168,6 +296,7 @@ function peracrm_facebook_leads_ingest_graph_lead(array $notification, array $gr
     }
 
     $payload['email'] = $email;
+    $payload['phone'] = $phone;
     $payload['raw_fields'] = isset($payload['raw_fields']) && is_array($payload['raw_fields']) ? $payload['raw_fields'] : [];
 
     $context = [
@@ -191,6 +320,8 @@ function peracrm_facebook_leads_ingest_graph_lead(array $notification, array $gr
             'facebook_ad_id' => (string) ($source_meta['facebook_ad_id'] ?? ''),
         ]);
 
+        peracrm_facebook_leads_release_external_lead_id_claim($facebook_lead_id);
+
         return [
             'ok' => true,
             'status' => 'ingest_no_client',
@@ -198,9 +329,12 @@ function peracrm_facebook_leads_ingest_graph_lead(array $notification, array $gr
         ];
     }
 
-    $claim = peracrm_facebook_leads_claim_external_lead_id($client_id, $facebook_lead_id);
-    if (empty($claim['ok'])) {
-        $existing_claim_client_id = (int) ($claim['existing_client_id'] ?? 0);
+    $bound = peracrm_facebook_leads_bind_external_lead_id_claim($client_id, $facebook_lead_id);
+    if (empty($bound['ok'])) {
+        $existing_claim_client_id = (int) ($bound['existing_client_id'] ?? 0);
+        if ($existing_claim_client_id <= 0) {
+            peracrm_facebook_leads_release_external_lead_id_claim($facebook_lead_id);
+        }
         peracrm_facebook_leads_log_warning('Facebook lead ingested but external lead id claim failed', [
             'facebook_lead_id' => $facebook_lead_id,
             'client_id' => $client_id,
