@@ -1440,7 +1440,6 @@ if ( ! function_exists( 'pera_crm_client_action_ajax' ) ) {
 			check_admin_referer( 'peracrm_save_client_profile', 'peracrm_save_client_profile_nonce' );
 			$data = array();
 			$data['status'] = isset( $_POST['peracrm_status'] ) ? sanitize_key( wp_unslash( (string) $_POST['peracrm_status'] ) ) : '';
-			$data['client_type'] = isset( $_POST['peracrm_client_type'] ) ? sanitize_key( wp_unslash( (string) $_POST['peracrm_client_type'] ) ) : '';
 			$data['preferred_contact'] = isset( $_POST['peracrm_preferred_contact'] )
 				? wp_unslash( $_POST['peracrm_preferred_contact'] )
 				: array();
@@ -1451,6 +1450,9 @@ if ( ! function_exists( 'pera_crm_client_action_ajax' ) ) {
 				? peracrm_phone_canonical_from_source( $_POST, 'peracrm_phone_country', 'peracrm_phone_national', 'peracrm_phone' )
 				: ( isset( $_POST['peracrm_phone'] ) ? sanitize_text_field( wp_unslash( (string) $_POST['peracrm_phone'] ) ) : '' );
 			$data['email'] = isset( $_POST['peracrm_email'] ) ? sanitize_email( wp_unslash( (string) $_POST['peracrm_email'] ) ) : '';
+			if ( isset( $_POST['peracrm_client_type'] ) ) {
+				$data['client_type'] = sanitize_key( wp_unslash( (string) $_POST['peracrm_client_type'] ) );
+			}
 			$ok = function_exists( 'peracrm_client_update_profile' ) ? (bool) peracrm_client_update_profile( $client_id, $data ) : false;
 			pera_crm_client_action_ajax_json( $ok, $ok ? __( 'Profile saved.', 'peracrm' ) : __( 'Unable to save profile.', 'peracrm' ), $client_id, 'profile', $ok ? 200 : 400 );
 		} elseif ( 'status' === $type ) {
