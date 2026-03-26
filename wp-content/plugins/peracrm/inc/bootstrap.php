@@ -20,6 +20,7 @@ require_once PERACRM_INC . '/whatsapp.php';
 require_once PERACRM_INC . '/whatsapp-logs.php';
 require_once PERACRM_INC . '/db/whatsapp_messages_table.php';
 require_once PERACRM_INC . '/integrations/enquiries.php';
+require_once PERACRM_INC . '/integrations/facebook-leads/bootstrap.php';
 require_once PERACRM_INC . '/db/push_log_table.php';
 require_once PERACRM_INC . '/frontend/view-loader.php';
 require_once PERACRM_INC . '/frontend/helper-bridge.php';
