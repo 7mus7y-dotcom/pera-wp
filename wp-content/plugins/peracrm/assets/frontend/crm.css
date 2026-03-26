@@ -3375,7 +3375,7 @@ body.crm-route #site-header.peracrm-shell-header .crm-side-nav__toggle--header:f
    Phase 1 CRM app shell header foundation
    ======================================================= */
 body.crm-route {
-  --crm-shell-max-width: min(1280px, calc(100% - 40px));
+  --crm-shell-max-width: min(1200px, calc(100% - 40px));
 }
 
 .crm-page {
@@ -3388,7 +3388,7 @@ body.crm-route {
 }
 
 .crm-page .content-panel--overlap-hero {
-  margin-top: 0;
+  margin-top: var(--crm-shell-gap);
 }
 
 .crm-page .content-panel-box {
@@ -3626,6 +3626,10 @@ body.crm-route #site-header.peracrm-shell-header.is-scrolled .peracrm-header-act
 @media (max-width: 991px) {
   .crm-page .content-panel {
     padding-inline: 16px;
+  }
+
+  .crm-page .content-panel--overlap-hero {
+    margin-top: 0;
   }
 
   .crm-page-header {
