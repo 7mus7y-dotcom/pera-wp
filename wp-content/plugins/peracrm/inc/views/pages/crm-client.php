@@ -639,8 +639,7 @@ peracrm_frontend_render_shell_header();
                   <p class="crm-section__description"><?php esc_html_e( 'Keep properties, enquiries, deals, and portfolio tools grouped after the main workflow sections.', 'peracrm' ); ?></p>
                 </div>
               </header>
-              <div class="crm-section__body crm-client-related-stack">
-                <section class="crm-client-subsection">
+              <section class="crm-client-subsection">
                   <h4><?php esc_html_e( 'Client enquiries', 'peracrm' ); ?></h4>
                   <?php foreach ( $property_groups as $relation => $items ) : if ( ! in_array( (string) $relation, $enquiry_relations, true ) ) { continue; } ?>
                     <div class="crm-inline-form"><h5><?php echo esc_html( ucfirst( (string) $relation ) ); ?></h5></div>
@@ -657,9 +656,9 @@ peracrm_frontend_render_shell_header();
                       </ul>
                     <?php endif; ?>
                   <?php endforeach; ?>
-                </section>
+              </section>
 
-                <section class="crm-client-subsection" data-crm-linked-properties data-client-id="<?php echo esc_attr( (string) $client_id ); ?>" data-crm-panel="properties">
+              <section class="crm-client-subsection" data-crm-linked-properties data-client-id="<?php echo esc_attr( (string) $client_id ); ?>" data-crm-panel="properties">
                   <div class="crm-inline-form crm-inline-form--between"><h4><?php esc_html_e( 'Linked properties', 'peracrm' ); ?></h4></div>
                   <form method="post" class="crm-form-stack" data-crm-ajax-form="property-link">
                     <?php wp_nonce_field( 'pera_crm_property_action', 'pera_crm_property_nonce' ); ?>
@@ -701,9 +700,7 @@ peracrm_frontend_render_shell_header();
                   <?php endforeach; ?>
 
                   <dialog class="crm-danger-dialog" id="crm-client-portfolio-dialog" aria-labelledby="crm-client-portfolio-dialog-title"><h4 id="crm-client-portfolio-dialog-title"><?php esc_html_e( 'Create portfolio', 'peracrm' ); ?></h4><form class="crm-form-stack" data-crm-portfolio-form><label><?php esc_html_e( 'Expiry', 'peracrm' ); ?><input type="text" name="expiry" value="+30 days" /></label><div class="crm-danger-dialog__actions"><button type="submit" class="btn btn--solid btn--green" data-crm-portfolio-submit><?php esc_html_e( 'Generate link', 'peracrm' ); ?></button><button type="button" class="btn btn--ghost btn--blue" data-crm-portfolio-close="crm-client-portfolio-dialog"><?php esc_html_e( 'Close', 'peracrm' ); ?></button></div><p class="text-sm" data-crm-portfolio-feedback></p></form></dialog>
-                </section>
-
-              </div>
+              </section>
             </article>
 
             <article class="crm-section crm-section--flush crm-client-deals" data-crm-panel="deals">
