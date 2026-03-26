@@ -112,7 +112,7 @@ $derived_type      = sanitize_key( (string) ( $data['derived_type'] ?? 'lead' ) 
 $derived_type      = in_array( $derived_type, array( 'lead', 'client' ), true ) ? $derived_type : 'lead';
 $derived_type_label = 'client' === $derived_type ? __( 'Client', 'peracrm' ) : __( 'Lead', 'peracrm' );
 $delete_redirect_url = 'lead' === $derived_type ? $leads_url : $clients_url;
-$client_type_options = is_array( $data['client_type_options'] ?? null ) ? $data['client_type_options'] : array( 'citizenship' => 'Citizenship', 'investor' => 'Investor', 'lifestyle' => 'Lifestyle', 'seller' => 'Seller', 'landlord' => 'Landlord' );
+$client_type_options = is_array( $data['client_type_options'] ?? null ) ? $data['client_type_options'] : array( 'citizenship' => 'Citizenship', 'investor' => 'Investor', 'lifestyle' => 'Lifestyle', 'seller' => 'Seller', 'landlord' => 'Landlord', 'agent' => 'Agent' );
 $status_options      = function_exists( 'peracrm_status_options' ) ? (array) peracrm_status_options() : array( 'enquiry' => 'Enquiry', 'active' => 'Active', 'dormant' => 'Dormant', 'closed' => 'Closed' );
 $client_type_value = sanitize_key( (string) ( $profile['client_type'] ?? '' ) );
 $preferred_contact_options = function_exists( 'peracrm_preferred_contact_options' ) ? (array) peracrm_preferred_contact_options() : array( 'call' => 'Call', 'whatsapp' => 'WhatsApp', 'email' => 'Email' );

@@ -444,11 +444,16 @@ function peracrm_render_client_view_page()
         'closed' => 'Closed',
     ];
 
-    $type_labels = [
-        'citizenship' => 'Citizenship',
-        'investor' => 'Investor',
-        'lifestyle' => 'Lifestyle',
-    ];
+    $type_labels = function_exists('peracrm_client_type_options')
+        ? (array) peracrm_client_type_options()
+        : [
+            'citizenship' => 'Citizenship',
+            'investor' => 'Investor',
+            'lifestyle' => 'Lifestyle',
+            'seller' => 'Seller',
+            'landlord' => 'Landlord',
+            'agent' => 'Agent',
+        ];
 
     $contact_labels = [
         '' => 'No preference',
