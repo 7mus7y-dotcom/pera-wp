@@ -2866,7 +2866,7 @@ body.crm-route #site-header.peracrm-shell-header .crm-side-nav__toggle--header:f
   margin: 0 0 10px;
 }
 .crm-page--logs .crm-log-utility-row--email {
-  justify-content: flex-end;
+  justify-content: flex-start;
 }
 .crm-page--logs .crm-log-utility-actions,
 .crm-page--logs .peracrm-whatsapp-log-bulk {
@@ -2989,7 +2989,6 @@ body.crm-route #site-header.peracrm-shell-header .crm-side-nav__toggle--header:f
 @media (max-width: 767px) {
   .crm-page--logs .peracrm-whatsapp-log-controls { align-items: stretch; }
   .crm-page--logs .crm-log-utility-row { align-items: stretch; }
-  .crm-page--logs .crm-log-utility-row--email { justify-content: flex-start; }
   .crm-page--logs .peracrm-whatsapp-log-page-size { justify-content: space-between; width: 100%; }
   .crm-page--logs .tablenav .tablenav-pages { justify-content: space-between; }
 }
