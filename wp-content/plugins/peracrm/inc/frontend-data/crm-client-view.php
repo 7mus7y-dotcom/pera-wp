@@ -874,23 +874,55 @@ if ( ! function_exists( 'pera_crm_update_portfolio_token_ajax' ) ) {
 		$portfolio_post_id = isset( $_POST['portfolio_post_id'] ) ? absint( wp_unslash( (string) $_POST['portfolio_post_id'] ) ) : 0;
 		$portfolio_state   = (array) pera_crm_client_view_with_target_blog(
 			static function () use ( $client_id, $portfolio_post_id, $property_ids ): array {
-				$post = $portfolio_post_id > 0 ? get_post( $portfolio_post_id ) : null;
+				$mapped_portfolio_id = (int) get_post_meta( $client_id, '_peracrm_portfolio_post_id', true );
+				$candidate_ids       = array_values(
+					array_unique(
+						array_filter(
+							array(
+								$portfolio_post_id,
+								$mapped_portfolio_id,
+							)
+						)
+					)
+				);
+
+				$resolved_post_id = 0;
+				foreach ( $candidate_ids as $candidate_id ) {
+					$post = get_post( (int) $candidate_id );
+					if ( ! ( $post instanceof WP_Post ) || 'portfolio' !== $post->post_type ) {
+						continue;
+					}
+
+					$portfolio_client_id = (int) get_post_meta( (int) $candidate_id, '_portfolio_client_id', true );
+					$belongs             = ( $portfolio_client_id === $client_id ) || ( $portfolio_client_id <= 0 && $mapped_portfolio_id === (int) $candidate_id );
+					if ( ! $belongs ) {
+						continue;
+					}
+
+					$resolved_post_id = (int) $candidate_id;
+					break;
+				}
+
+				if ( $resolved_post_id <= 0 ) {
+					return array( 'valid' => false );
+				}
+
+				$post = get_post( $resolved_post_id );
 				if ( ! ( $post instanceof WP_Post ) || 'portfolio' !== $post->post_type ) {
 					return array( 'valid' => false );
 				}
 
-				$portfolio_client_id = (int) get_post_meta( $portfolio_post_id, '_portfolio_client_id', true );
-				$mapped_portfolio_id = (int) get_post_meta( $client_id, '_peracrm_portfolio_post_id', true );
-				$belongs             = ( $portfolio_client_id === $client_id ) || ( $portfolio_client_id <= 0 && $mapped_portfolio_id === $portfolio_post_id );
-				if ( ! $belongs ) {
-					return array( 'valid' => false );
-				}
+				update_post_meta( $resolved_post_id, '_portfolio_property_ids', $property_ids );
+				update_post_meta( $resolved_post_id, '_portfolio_updated_at', time() );
+				wp_update_post(
+					array(
+						'ID' => $resolved_post_id,
+					)
+				);
+				clean_post_cache( $resolved_post_id );
 
-				update_post_meta( $portfolio_post_id, '_portfolio_property_ids', $property_ids );
-				update_post_meta( $portfolio_post_id, '_portfolio_updated_at', time() );
-
-				$token      = sanitize_text_field( (string) get_post_meta( $portfolio_post_id, '_portfolio_token', true ) );
-				$expires_at = (int) get_post_meta( $portfolio_post_id, '_portfolio_expires_at', true );
+				$token      = sanitize_text_field( (string) get_post_meta( $resolved_post_id, '_portfolio_token', true ) );
+				$expires_at = (int) get_post_meta( $resolved_post_id, '_portfolio_expires_at', true );
 				if ( '' === $token ) {
 					return array( 'valid' => false );
 				}
@@ -899,7 +931,7 @@ if ( ! function_exists( 'pera_crm_update_portfolio_token_ajax' ) ) {
 
 				update_post_meta( $client_id, '_peracrm_portfolio_url', $url );
 				update_post_meta( $client_id, '_peracrm_portfolio_token', $token );
-				update_post_meta( $client_id, '_peracrm_portfolio_post_id', $portfolio_post_id );
+				update_post_meta( $client_id, '_peracrm_portfolio_post_id', $resolved_post_id );
 				update_post_meta( $client_id, '_peracrm_portfolio_expires_at', $expires_at );
 				if ( (int) get_post_meta( $client_id, '_peracrm_portfolio_created_at', true ) <= 0 ) {
 					update_post_meta( $client_id, '_peracrm_portfolio_created_at', time() );
@@ -910,7 +942,7 @@ if ( ! function_exists( 'pera_crm_update_portfolio_token_ajax' ) ) {
 					'valid'      => true,
 					'url'        => $url,
 					'token'      => $token,
-					'post_id'    => $portfolio_post_id,
+					'post_id'    => $resolved_post_id,
 					'expires_at' => $expires_at,
 				);
 			}
