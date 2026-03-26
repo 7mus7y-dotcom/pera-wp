@@ -1159,6 +1159,23 @@
     return false;
   }
 
+  function replaceProfileFormOnly(panelHtml) {
+    if (!panelHtml) {
+      return false;
+    }
+
+    var parser = new window.DOMParser();
+    var parsed = parser.parseFromString(panelHtml, 'text/html');
+    var incomingForm = parsed.querySelector('form[data-crm-ajax-form="profile"]');
+    var currentForm = document.querySelector('[data-crm-panel="profile"] form[data-crm-ajax-form="profile"]');
+    if (!incomingForm || !currentForm) {
+      return false;
+    }
+
+    currentForm.replaceWith(incomingForm);
+    return true;
+  }
+
   function resolveLiveForm(panelName, formType, fallbackForm) {
     if (panelName) {
       var livePanel = document.querySelector('[data-crm-panel="' + panelName + '"]');
@@ -1298,7 +1315,13 @@
             activePanel = data.panel;
           }
           if (data.panel && data.panel_html) {
-            replacePanel(data.panel, data.panel_html);
+            var replaced = false;
+            if (data.panel === 'profile') {
+              replaced = replaceProfileFormOnly(data.panel_html);
+            }
+            if (!replaced) {
+              replacePanel(data.panel, data.panel_html);
+            }
           }
 
           activeForm = resolveLiveForm(activePanel, type, form);
