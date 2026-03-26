@@ -205,6 +205,30 @@ function peracrm_facebook_leads_graph_sanitize_headers($headers)
 function peracrm_facebook_leads_sanitize_debug_excerpt($value)
 {
     $value = (string) $value;
+    $decoded = json_decode($value, true);
+    if (is_array($decoded)) {
+        if (isset($decoded['field_data']) && is_array($decoded['field_data'])) {
+            $field_names = [];
+            foreach ($decoded['field_data'] as $field) {
+                if (!is_array($field)) {
+                    continue;
+                }
+
+                $field_name = sanitize_key((string) ($field['name'] ?? ''));
+                if ($field_name !== '') {
+                    $field_names[] = $field_name;
+                }
+            }
+
+            $decoded['field_data'] = [
+                'field_count' => count($field_names),
+                'field_names' => $field_names,
+            ];
+        }
+
+        $value = wp_json_encode($decoded);
+    }
+
     $value = preg_replace('/[\r\n\t]+/', ' ', $value);
     if (!is_string($value)) {
         $value = '';

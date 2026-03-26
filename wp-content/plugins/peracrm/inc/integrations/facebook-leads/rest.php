@@ -80,7 +80,25 @@ function peracrm_rest_facebook_leads_receive_webhook(WP_REST_Request $request)
         return new WP_REST_Response(['ok' => false, 'message' => 'disabled'], 403);
     }
 
-    $payload = $request->get_json_params();
+    $raw_body = (string) $request->get_body();
+    if ($raw_body === '') {
+        peracrm_facebook_leads_log_warning('Webhook payload rejected: empty request body', []);
+
+        return new WP_REST_Response(['ok' => false, 'error' => 'empty_body'], 400);
+    }
+
+    $signature = peracrm_facebook_leads_verify_signature($request, $raw_body);
+    if (empty($signature['ok'])) {
+        peracrm_facebook_leads_log_warning('Webhook signature verification failed', [
+            'reason' => (string) ($signature['reason'] ?? 'unknown'),
+            'header_excerpt' => (string) ($signature['header_excerpt'] ?? ''),
+        ]);
+
+        $status = (int) ($signature['status'] ?? 401);
+        return new WP_REST_Response(['ok' => false, 'error' => (string) ($signature['reason'] ?? 'invalid_signature')], $status);
+    }
+
+    $payload = json_decode($raw_body, true);
     if (!is_array($payload)) {
         peracrm_facebook_leads_log_warning('Webhook payload rejected: invalid JSON', []);
 
@@ -93,13 +111,6 @@ function peracrm_rest_facebook_leads_receive_webhook(WP_REST_Request $request)
         ]);
 
         return new WP_REST_Response(['ok' => true, 'ignored' => true], 202);
-    }
-
-    $signature = peracrm_facebook_leads_extract_signature_stub($request, $payload);
-    if (!empty($signature['present']) && empty($signature['verified'])) {
-        peracrm_facebook_leads_log_debug('Webhook signature header present but verification is not enforced in this slice', [
-            'signature_stub' => $signature,
-        ]);
     }
 
     $notifications = peracrm_facebook_leads_extract_lead_notifications($payload);
@@ -152,7 +163,7 @@ function peracrm_rest_facebook_leads_receive_webhook(WP_REST_Request $request)
                 'ingest_status' => $ingest_status,
                 'client_id' => (int) ($ingest_result['client_id'] ?? 0),
                 'graph_http_status' => (int) ($result['http_status'] ?? 0),
-                'graph_raw' => isset($result['raw']) && is_array($result['raw']) ? $result['raw'] : [],
+                'graph_debug' => isset($result['raw']) && is_array($result['raw']) ? $result['raw'] : [],
             ]);
             continue;
         }
@@ -166,7 +177,7 @@ function peracrm_rest_facebook_leads_receive_webhook(WP_REST_Request $request)
             'graph_http_status' => (int) ($result['http_status'] ?? 0),
             'graph_error_code' => (string) ($result['error_code'] ?? ''),
             'graph_error_message' => (string) ($result['error_message'] ?? ''),
-            'graph_raw' => isset($result['raw']) && is_array($result['raw']) ? $result['raw'] : [],
+            'graph_debug' => isset($result['raw']) && is_array($result['raw']) ? $result['raw'] : [],
         ]);
     }
 
@@ -186,10 +197,15 @@ function peracrm_facebook_leads_extract_lead_notifications(array $payload)
 {
     $notifications = [];
 
-    $entries = $payload['entry'] ?? [];
-    if (!is_array($entries)) {
+    if (!isset($payload['entry']) || !is_array($payload['entry'])) {
+        peracrm_facebook_leads_log_warning('Webhook payload rejected: missing/malformed entry list', []);
         return $notifications;
     }
+
+    $entries = $payload['entry'] ?? [];
+    $invalid_changes = 0;
+    $missing_leadgen = 0;
+    $non_leadgen_changes = 0;
 
     foreach ($entries as $entry_index => $entry) {
         if (!is_array($entry)) {
@@ -201,6 +217,7 @@ function peracrm_facebook_leads_extract_lead_notifications(array $payload)
 
         $changes = $entry['changes'] ?? [];
         if (!is_array($changes)) {
+            $invalid_changes++;
             continue;
         }
 
@@ -210,17 +227,20 @@ function peracrm_facebook_leads_extract_lead_notifications(array $payload)
             }
 
             $field = isset($change['field']) ? sanitize_key((string) $change['field']) : '';
-            if ($field !== '' && $field !== 'leadgen') {
+            if ($field !== 'leadgen') {
+                $non_leadgen_changes++;
                 continue;
             }
 
             $value = $change['value'] ?? [];
             if (!is_array($value)) {
+                $invalid_changes++;
                 continue;
             }
 
             $leadgen_id = isset($value['leadgen_id']) ? sanitize_text_field((string) $value['leadgen_id']) : '';
             if ($leadgen_id === '') {
+                $missing_leadgen++;
                 continue;
             }
 
@@ -237,27 +257,68 @@ function peracrm_facebook_leads_extract_lead_notifications(array $payload)
         }
     }
 
+    if (empty($notifications)) {
+        peracrm_facebook_leads_log_info('Webhook payload has no actionable leadgen notifications', [
+            'entry_count' => count($entries),
+            'invalid_changes' => $invalid_changes,
+            'non_leadgen_changes' => $non_leadgen_changes,
+            'missing_leadgen' => $missing_leadgen,
+        ]);
+    }
+
     return $notifications;
 }
 
-function peracrm_facebook_leads_extract_signature_stub(WP_REST_Request $request, array $payload)
+function peracrm_facebook_leads_verify_signature(WP_REST_Request $request, $raw_body)
 {
-    $signature = (string) $request->get_header('X-Hub-Signature-256');
-    if ($signature === '') {
+    $app_secret = peracrm_facebook_leads_get_app_secret();
+    if ($app_secret === '') {
         return [
-            'present' => false,
-            'verified' => false,
-            'reason' => 'missing_header',
+            'ok' => false,
+            'reason' => 'signature_not_configured',
+            'status' => 503,
+            'header_excerpt' => '',
         ];
     }
 
+    $signature = (string) $request->get_header('X-Hub-Signature-256');
+    if ($signature === '') {
+        return [
+            'ok' => false,
+            'reason' => 'missing_signature_header',
+            'status' => 401,
+            'header_excerpt' => '',
+        ];
+    }
+
+    $signature = trim($signature);
+    if (stripos($signature, 'sha256=') !== 0) {
+        return [
+            'ok' => false,
+            'reason' => 'invalid_signature_format',
+            'status' => 401,
+            'header_excerpt' => peracrm_facebook_leads_mask_secret($signature),
+        ];
+    }
+
+    $provided_hash = strtolower(substr($signature, 7));
+    if (!preg_match('/^[a-f0-9]{64}$/', $provided_hash)) {
+        return [
+            'ok' => false,
+            'reason' => 'invalid_signature_hash',
+            'status' => 401,
+            'header_excerpt' => peracrm_facebook_leads_mask_secret($signature),
+        ];
+    }
+
+    $expected_hash = hash_hmac('sha256', (string) $raw_body, $app_secret);
+    $verified = hash_equals($expected_hash, $provided_hash);
+
     return [
-        'present' => true,
-        'verified' => false,
-        'reason' => 'todo_app_secret_hmac_verification',
+        'ok' => $verified,
+        'reason' => $verified ? 'verified' : 'mismatch',
+        'status' => $verified ? 200 : 401,
         'header_excerpt' => peracrm_facebook_leads_mask_secret($signature),
-        // TODO: Verify sha256 HMAC against raw request body using app secret in next hardening slice.
-        'payload_entries' => isset($payload['entry']) && is_array($payload['entry']) ? count($payload['entry']) : 0,
     ];
 }
 
@@ -296,4 +357,3 @@ function peracrm_rest_facebook_leads_serve_verify_challenge($served, $result, $r
 }
 
 add_filter('rest_pre_serve_request', 'peracrm_rest_facebook_leads_serve_verify_challenge', 10, 4);
-add_action('rest_api_init', 'peracrm_rest_register_facebook_leads_routes');

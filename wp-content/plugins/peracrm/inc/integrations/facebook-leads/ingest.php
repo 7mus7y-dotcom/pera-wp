@@ -63,6 +63,57 @@ function peracrm_facebook_leads_save_external_lead_id($client_id, $facebook_lead
     $writer();
 }
 
+function peracrm_facebook_leads_claim_external_lead_id($client_id, $facebook_lead_id)
+{
+    $client_id = (int) $client_id;
+    $facebook_lead_id = sanitize_text_field((string) $facebook_lead_id);
+    if ($client_id <= 0 || $facebook_lead_id === '') {
+        return [
+            'ok' => false,
+            'existing_client_id' => 0,
+        ];
+    }
+
+    $claimer = static function () use ($client_id, $facebook_lead_id) {
+        $existing_client_id = peracrm_facebook_leads_find_client_id_by_external_lead_id($facebook_lead_id);
+        if ($existing_client_id > 0 && $existing_client_id !== $client_id) {
+            return [
+                'ok' => false,
+                'existing_client_id' => $existing_client_id,
+            ];
+        }
+
+        if ($existing_client_id === $client_id) {
+            return [
+                'ok' => true,
+                'existing_client_id' => $client_id,
+            ];
+        }
+
+        $saved = add_post_meta($client_id, peracrm_facebook_leads_external_meta_key(), $facebook_lead_id, true);
+        if ($saved) {
+            return [
+                'ok' => true,
+                'existing_client_id' => $client_id,
+            ];
+        }
+
+        update_post_meta($client_id, peracrm_facebook_leads_external_meta_key(), $facebook_lead_id);
+
+        $current_client_id = peracrm_facebook_leads_find_client_id_by_external_lead_id($facebook_lead_id);
+        return [
+            'ok' => $current_client_id === $client_id,
+            'existing_client_id' => $current_client_id,
+        ];
+    };
+
+    if (function_exists('peracrm_with_target_blog')) {
+        return (array) peracrm_with_target_blog($claimer);
+    }
+
+    return (array) $claimer();
+}
+
 function peracrm_facebook_leads_ingest_graph_lead(array $notification, array $graph_result)
 {
     $lead = isset($graph_result['lead']) && is_array($graph_result['lead']) ? $graph_result['lead'] : [];
@@ -147,7 +198,23 @@ function peracrm_facebook_leads_ingest_graph_lead(array $notification, array $gr
         ];
     }
 
-    peracrm_facebook_leads_save_external_lead_id($client_id, $facebook_lead_id);
+    $claim = peracrm_facebook_leads_claim_external_lead_id($client_id, $facebook_lead_id);
+    if (empty($claim['ok'])) {
+        $existing_claim_client_id = (int) ($claim['existing_client_id'] ?? 0);
+        peracrm_facebook_leads_log_warning('Facebook lead ingested but external lead id claim failed', [
+            'facebook_lead_id' => $facebook_lead_id,
+            'client_id' => $client_id,
+            'existing_client_id' => $existing_claim_client_id,
+            'facebook_form_id' => (string) ($source_meta['facebook_form_id'] ?? ''),
+            'facebook_ad_id' => (string) ($source_meta['facebook_ad_id'] ?? ''),
+        ]);
+
+        return [
+            'ok' => true,
+            'status' => 'duplicate_external_id_race',
+            'client_id' => $existing_claim_client_id > 0 ? $existing_claim_client_id : $client_id,
+        ];
+    }
 
     peracrm_facebook_leads_log_info('Facebook lead ingested into CRM', [
         'facebook_lead_id' => $facebook_lead_id,

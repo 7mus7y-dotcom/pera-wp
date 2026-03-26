@@ -138,13 +138,34 @@ function peracrm_facebook_leads_pick_first_non_empty(array $fields, array $keys)
 function peracrm_facebook_leads_sanitize_raw_payload($value)
 {
     if (is_array($value)) {
-        $sanitized = [];
-        foreach ($value as $key => $item) {
-            $sanitized_key = is_string($key) ? sanitize_key($key) : $key;
-            $sanitized[$sanitized_key] = peracrm_facebook_leads_sanitize_raw_payload($item);
+        $field_names = [];
+        if (isset($value['field_data']) && is_array($value['field_data'])) {
+            foreach ($value['field_data'] as $field) {
+                if (!is_array($field)) {
+                    continue;
+                }
+
+                $field_name = sanitize_key((string) ($field['name'] ?? ''));
+                if ($field_name !== '') {
+                    $field_names[] = $field_name;
+                }
+            }
         }
 
-        return $sanitized;
+        return [
+            'id' => sanitize_text_field((string) ($value['id'] ?? '')),
+            'created_time' => sanitize_text_field((string) ($value['created_time'] ?? '')),
+            'form_id' => sanitize_text_field((string) ($value['form_id'] ?? '')),
+            'form_name' => sanitize_text_field((string) ($value['form_name'] ?? '')),
+            'ad_id' => sanitize_text_field((string) ($value['ad_id'] ?? '')),
+            'ad_name' => sanitize_text_field((string) ($value['ad_name'] ?? '')),
+            'campaign_id' => sanitize_text_field((string) ($value['campaign_id'] ?? '')),
+            'campaign_name' => sanitize_text_field((string) ($value['campaign_name'] ?? '')),
+            'field_data' => [
+                'field_count' => count($field_names),
+                'field_names' => $field_names,
+            ],
+        ];
     }
 
     if (is_scalar($value) || $value === null) {
