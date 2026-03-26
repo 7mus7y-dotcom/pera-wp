@@ -2729,14 +2729,13 @@ body.crm-route #site-header.peracrm-shell-header .crm-side-nav__toggle--header:f
 .crm-search-control { display: block; width: 100%; padding: 0.7rem 0.9rem; border: 1px solid #e1e1e1; border-radius: 10px; background: #fff; }
 .crm-checkbox-group { border: 0; margin: 0; padding: 0; min-width: 0; }
 .crm-checkbox-group__options { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 8px; }
-.crm-checkbox-option { display: inline-flex; align-items: center; gap: 8px; padding: 8px 12px; border: 1px solid var(--border, #e8ecf2); border-radius: 999px; background: var(--surface-soft, #f8fafc); }
+.crm-checkbox-option { display: inline-flex; align-items: center; gap: 8px; padding: 2px 8px; border: 1px solid var(--border, #e8ecf2); border-radius: 999px; background: var(--surface-soft, #f8fafc); }
 .crm-page--client-view .crm-client-profile-panel .crm-checkbox-group--preferred-contact .crm-checkbox-group__options--preferred-contact {
   flex-wrap: nowrap;
   gap: 8px;
 }
 
 .crm-page--client-view .crm-client-profile-panel .crm-checkbox-group--preferred-contact .crm-checkbox-option--preferred-contact {
-  flex: 1 1 0;
   min-width: 0;
   white-space: nowrap;
 }
