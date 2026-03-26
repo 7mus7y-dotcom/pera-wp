@@ -117,6 +117,9 @@ function peracrm_rest_facebook_leads_receive_webhook(WP_REST_Request $request)
 
     $retrieved = 0;
     $failed = 0;
+    $ingested = 0;
+    $duplicates = 0;
+    $skipped = 0;
 
     foreach ($notifications as $notification) {
         $leadgen_id = (string) ($notification['leadgen_id'] ?? '');
@@ -128,6 +131,17 @@ function peracrm_rest_facebook_leads_receive_webhook(WP_REST_Request $request)
         if (!empty($result['ok'])) {
             $retrieved++;
             $lead = is_array($result['lead'] ?? null) ? $result['lead'] : [];
+            $ingest_result = peracrm_facebook_leads_ingest_graph_lead($notification, $result);
+
+            $ingest_status = sanitize_key((string) ($ingest_result['status'] ?? ''));
+            if ($ingest_status === 'ingested') {
+                $ingested++;
+            } elseif ($ingest_status === 'duplicate_external_id') {
+                $duplicates++;
+            } elseif ($ingest_status !== '') {
+                $skipped++;
+            }
+
             peracrm_facebook_leads_log_info('Leadgen notification retrieved from Graph', [
                 'leadgen_id' => $leadgen_id,
                 'page_id' => (string) ($notification['page_id'] ?? ''),
@@ -135,6 +149,8 @@ function peracrm_rest_facebook_leads_receive_webhook(WP_REST_Request $request)
                 'event_time' => (string) ($notification['event_time'] ?? ''),
                 'created_time' => (string) ($lead['created_time'] ?? ''),
                 'field_count' => isset($lead['field_data']) && is_array($lead['field_data']) ? count($lead['field_data']) : 0,
+                'ingest_status' => $ingest_status,
+                'client_id' => (int) ($ingest_result['client_id'] ?? 0),
                 'graph_http_status' => (int) ($result['http_status'] ?? 0),
                 'graph_raw' => isset($result['raw']) && is_array($result['raw']) ? $result['raw'] : [],
             ]);
@@ -160,6 +176,9 @@ function peracrm_rest_facebook_leads_receive_webhook(WP_REST_Request $request)
         'notifications' => count($notifications),
         'retrieved' => $retrieved,
         'failed' => $failed,
+        'ingested' => $ingested,
+        'duplicates' => $duplicates,
+        'skipped' => $skipped,
     ], 200);
 }
 
