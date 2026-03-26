@@ -3867,7 +3867,7 @@ body.crm-route #site-header.peracrm-shell-header.is-scrolled .peracrm-header-act
 .crm-page--client-view .crm-client-profile-grid,
 .crm-page--client-view .crm-client-reminders-grid {
   display: grid;
-  grid-template-columns: 1fr;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 12px;
 }
 
@@ -4010,6 +4010,14 @@ body.crm-route #site-header.peracrm-shell-header.is-scrolled .peracrm-header-act
 
   .crm-page--client-view .crm-summary-header__meta span::after {
     display: none;
+  }
+}
+
+
+@media (min-width: 900px) and (max-width: 1080px) {
+  .crm-page--client-view .crm-client-profile-grid,
+  .crm-page--client-view .crm-client-reminders-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }
 
