@@ -3979,6 +3979,7 @@ body.crm-route #site-header.peracrm-shell-header.is-scrolled .peracrm-header-act
 
 .crm-page--client-view .crm-section {
   border-radius: 16px;
+  border: 1px solid var(--border, #e8ecf2);
 }
 
 @media (max-width: 1200px) {
