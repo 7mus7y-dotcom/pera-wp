@@ -397,36 +397,7 @@ peracrm_frontend_render_shell_header();
         </section>
 
         <div class="crm-client-detail-layout">
-          <div class="crm-client-detail-layout__main">
-            <article id="crm-client-next-actions" class="crm-section crm-section--flush crm-client-reminders" data-crm-panel="reminders">
-              <header class="crm-section__header">
-                <div class="crm-section__heading-group">
-                  <h3 class="crm-section__title"><?php esc_html_e( 'Next actions and reminders', 'peracrm' ); ?></h3>
-                  <p class="crm-section__description"><?php esc_html_e( 'Use this area first for due-now work, quick completions, and adding the next reminder.', 'peracrm' ); ?></p>
-                </div>
-              </header>
-              <div class="crm-section__body">
-                <div class="crm-client-next-step">
-                  <div class="crm-client-next-step__item"><span class="crm-client-next-step__label"><?php esc_html_e( 'Overdue', 'peracrm' ); ?></span><strong><?php echo esc_html( (string) $overdue_reminders ); ?></strong></div>
-                  <div class="crm-client-next-step__item"><span class="crm-client-next-step__label"><?php esc_html_e( 'Due today', 'peracrm' ); ?></span><strong><?php echo esc_html( (string) count( $today_reminders ) ); ?></strong></div>
-                  <div class="crm-client-next-step__item crm-client-next-step__item--focus"><span class="crm-client-next-step__label"><?php esc_html_e( 'Next step', 'peracrm' ); ?></span><p><?php echo esc_html( $next_step_label ); ?></p></div>
-                </div>
-                
-              </div>
-              <div class="crm-section__footer">
-                <form id="crm-add-reminder" method="post" action="<?php echo esc_url( home_url( '/wp-admin/admin-post.php' ) ); ?>" class="crm-form-stack" data-crm-ajax-form="reminder">
-                  <?php wp_nonce_field( 'peracrm_add_reminder', 'peracrm_add_reminder_nonce' ); ?>
-                  <input type="hidden" name="action" value="peracrm_add_reminder" />
-                  <input type="hidden" name="peracrm_client_id" value="<?php echo esc_attr( (string) $client_id ); ?>" />
-                  <input type="hidden" name="peracrm_redirect" value="<?php echo esc_url( $frontend_url ); ?>" />
-                  <div class="crm-form-row-2">
-                    <label><?php esc_html_e( 'Due date & time', 'peracrm' ); ?><input type="datetime-local" name="peracrm_due_at" required /></label>
-                    <label><?php esc_html_e( 'Reminder note', 'peracrm' ); ?><textarea name="peracrm_reminder_note" rows="2" maxlength="5000" placeholder="<?php echo esc_attr__( 'Add a reminder note…', 'peracrm' ); ?>"></textarea></label>
-                  </div>
-                  <button type="submit" class="btn btn--solid btn--blue"><?php esc_html_e( 'Add reminder', 'peracrm' ); ?></button>
-                </form>
-              </div>
-            </article>
+          <div class="crm-client-detail-layout__column crm-client-detail-layout__column--primary">
 
             <article class="crm-section crm-section--flush crm-client-profile-panel" data-crm-panel="profile">
               <header class="crm-section__header">
@@ -583,6 +554,75 @@ peracrm_frontend_render_shell_header();
                 </div>
               </div>
             </section>
+          </div>
+
+          <div class="crm-client-detail-layout__column crm-client-detail-layout__column--secondary">
+            <article id="crm-client-next-actions" class="crm-section crm-section--flush crm-client-reminders" data-crm-panel="reminders">
+              <header class="crm-section__header">
+                <div class="crm-section__heading-group">
+                  <h3 class="crm-section__title"><?php esc_html_e( 'Next actions and reminders', 'peracrm' ); ?></h3>
+                  <p class="crm-section__description"><?php esc_html_e( 'Use this area first for due-now work, quick completions, and adding the next reminder.', 'peracrm' ); ?></p>
+                </div>
+              </header>
+              <div class="crm-section__body">
+                <div class="crm-client-next-step">
+                  <div class="crm-client-next-step__item"><span class="crm-client-next-step__label"><?php esc_html_e( 'Overdue', 'peracrm' ); ?></span><strong><?php echo esc_html( (string) $overdue_reminders ); ?></strong></div>
+                  <div class="crm-client-next-step__item"><span class="crm-client-next-step__label"><?php esc_html_e( 'Due today', 'peracrm' ); ?></span><strong><?php echo esc_html( (string) count( $today_reminders ) ); ?></strong></div>
+                  <div class="crm-client-next-step__item crm-client-next-step__item--focus"><span class="crm-client-next-step__label"><?php esc_html_e( 'Next step', 'peracrm' ); ?></span><p><?php echo esc_html( $next_step_label ); ?></p></div>
+                </div>
+              </div>
+              <div class="crm-section__footer">
+                <form id="crm-add-reminder" method="post" action="<?php echo esc_url( home_url( '/wp-admin/admin-post.php' ) ); ?>" class="crm-form-stack" data-crm-ajax-form="reminder">
+                  <?php wp_nonce_field( 'peracrm_add_reminder', 'peracrm_add_reminder_nonce' ); ?>
+                  <input type="hidden" name="action" value="peracrm_add_reminder" />
+                  <input type="hidden" name="peracrm_client_id" value="<?php echo esc_attr( (string) $client_id ); ?>" />
+                  <input type="hidden" name="peracrm_redirect" value="<?php echo esc_url( $frontend_url ); ?>" />
+                  <div class="crm-form-row-2">
+                    <label><?php esc_html_e( 'Due date & time', 'peracrm' ); ?><input type="datetime-local" name="peracrm_due_at" required /></label>
+                    <label><?php esc_html_e( 'Reminder note', 'peracrm' ); ?><textarea name="peracrm_reminder_note" rows="2" maxlength="5000" placeholder="<?php echo esc_attr__( 'Add a reminder note…', 'peracrm' ); ?>"></textarea></label>
+                  </div>
+                  <button type="submit" class="btn btn--solid btn--blue"><?php esc_html_e( 'Add reminder', 'peracrm' ); ?></button>
+                </form>
+              </div>
+            </article>
+
+            <div class="crm-client-profile-sidecards">
+              <section class="crm-client-subsection">
+                <h4><?php esc_html_e( 'CRM status', 'peracrm' ); ?></h4>
+                <form method="post" action="<?php echo esc_url( home_url( '/wp-admin/admin-post.php' ) ); ?>" class="crm-form-stack crm-status-form" id="crm-status-form" data-crm-ajax-form="status">
+                  <?php wp_nonce_field( 'peracrm_save_party_status' ); ?>
+                  <input type="hidden" name="action" value="peracrm_save_party_status" />
+                  <input type="hidden" name="peracrm_client_id" value="<?php echo esc_attr( (string) $client_id ); ?>" />
+                  <input type="hidden" name="peracrm_redirect" value="<?php echo esc_url( $frontend_url ); ?>" />
+                  <input type="hidden" name="form_context" value="status" />
+                  <div class="crm-status-grid">
+                    <label><?php esc_html_e( 'Lead pipeline stage', 'peracrm' ); ?><select name="lead_pipeline_stage"><?php foreach ( $party_stages as $value => $label ) : ?><option value="<?php echo esc_attr( (string) $value ); ?>" <?php selected( (string) ( $party['lead_pipeline_stage'] ?? '' ), (string) $value ); ?>><?php echo esc_html( (string) $label ); ?></option><?php endforeach; ?></select></label>
+                    <label><?php esc_html_e( 'Engagement', 'peracrm' ); ?><select name="engagement_state"><?php foreach ( $engagement_options as $value => $label ) : ?><option value="<?php echo esc_attr( (string) $value ); ?>" <?php selected( (string) ( $party['engagement_state'] ?? '' ), (string) $value ); ?>><?php echo esc_html( (string) $label ); ?></option><?php endforeach; ?></select></label>
+                    <label><?php esc_html_e( 'Client type', 'peracrm' ); ?><select name="peracrm_client_type"><option value=""><?php esc_html_e( 'Select type', 'peracrm' ); ?></option><?php foreach ( $client_type_options as $type_key => $type_label ) : ?><option value="<?php echo esc_attr( (string) $type_key ); ?>" <?php selected( $client_type_value, (string) $type_key ); ?>><?php echo esc_html( (string) $type_label ); ?></option><?php endforeach; ?></select></label>
+                    <label><?php esc_html_e( 'Disposition', 'peracrm' ); ?><select name="disposition"><?php foreach ( $disposition_opts as $value => $label ) : ?><option value="<?php echo esc_attr( (string) $value ); ?>" <?php selected( (string) ( $party['disposition'] ?? '' ), (string) $value ); ?>><?php echo esc_html( (string) $label ); ?></option><?php endforeach; ?></select></label>
+                  </div>
+                </form>
+                <div class="crm-status-actions">
+                  <button type="submit" form="crm-status-form" class="btn btn--solid btn--blue"><?php esc_html_e( 'Save status', 'peracrm' ); ?></button>
+                  <?php if ( 'lead' === $derived_type ) : ?>
+                  <form method="post" action="<?php echo esc_url( home_url( '/wp-admin/admin-post.php' ) ); ?>" class="crm-inline-form">
+                    <?php wp_nonce_field( 'peracrm_convert_to_client', 'peracrm_convert_to_client_nonce' ); ?>
+                    <input type="hidden" name="action" value="peracrm_convert_to_client" />
+                    <input type="hidden" name="peracrm_client_id" value="<?php echo esc_attr( (string) $client_id ); ?>" />
+                    <input type="hidden" name="peracrm_redirect" value="<?php echo esc_url( $frontend_url ); ?>" />
+                    <button type="submit" class="btn btn--ghost btn--blue"><?php esc_html_e( 'Convert to client', 'peracrm' ); ?></button>
+                  </form>
+                  <?php endif; ?>
+                </div>
+              </section>
+
+              <section class="crm-client-subsection" data-crm-panel="advisor">
+                <h4><?php esc_html_e( 'Assigned advisor', 'peracrm' ); ?></h4>
+                <?php if ( function_exists( 'peracrm_render_assigned_advisor_box' ) ) : ?>
+                  <?php peracrm_render_assigned_advisor_box( $client_id, array( 'context' => 'frontend', 'redirect' => $frontend_url ) ); ?>
+                <?php endif; ?>
+              </section>
+            </div>
 
             <article class="crm-section crm-section--flush crm-client-related" data-client-id="<?php echo esc_attr( (string) $client_id ); ?>">
               <header class="crm-section__header">
@@ -673,46 +713,6 @@ peracrm_frontend_render_shell_header();
               </div>
             </article>
           </div>
-
-          <aside class="crm-client-detail-layout__rail">
-            <div class="crm-client-profile-sidecards">
-              <section class="crm-client-subsection">
-                <h4><?php esc_html_e( 'CRM status', 'peracrm' ); ?></h4>
-                <form method="post" action="<?php echo esc_url( home_url( '/wp-admin/admin-post.php' ) ); ?>" class="crm-form-stack crm-status-form" id="crm-status-form" data-crm-ajax-form="status">
-                  <?php wp_nonce_field( 'peracrm_save_party_status' ); ?>
-                  <input type="hidden" name="action" value="peracrm_save_party_status" />
-                  <input type="hidden" name="peracrm_client_id" value="<?php echo esc_attr( (string) $client_id ); ?>" />
-                  <input type="hidden" name="peracrm_redirect" value="<?php echo esc_url( $frontend_url ); ?>" />
-                  <input type="hidden" name="form_context" value="status" />
-                  <div class="crm-status-grid">
-                    <label><?php esc_html_e( 'Lead pipeline stage', 'peracrm' ); ?><select name="lead_pipeline_stage"><?php foreach ( $party_stages as $value => $label ) : ?><option value="<?php echo esc_attr( (string) $value ); ?>" <?php selected( (string) ( $party['lead_pipeline_stage'] ?? '' ), (string) $value ); ?>><?php echo esc_html( (string) $label ); ?></option><?php endforeach; ?></select></label>
-                    <label><?php esc_html_e( 'Engagement', 'peracrm' ); ?><select name="engagement_state"><?php foreach ( $engagement_options as $value => $label ) : ?><option value="<?php echo esc_attr( (string) $value ); ?>" <?php selected( (string) ( $party['engagement_state'] ?? '' ), (string) $value ); ?>><?php echo esc_html( (string) $label ); ?></option><?php endforeach; ?></select></label>
-                    <label><?php esc_html_e( 'Client type', 'peracrm' ); ?><select name="peracrm_client_type"><option value=""><?php esc_html_e( 'Select type', 'peracrm' ); ?></option><?php foreach ( $client_type_options as $type_key => $type_label ) : ?><option value="<?php echo esc_attr( (string) $type_key ); ?>" <?php selected( $client_type_value, (string) $type_key ); ?>><?php echo esc_html( (string) $type_label ); ?></option><?php endforeach; ?></select></label>
-                    <label><?php esc_html_e( 'Disposition', 'peracrm' ); ?><select name="disposition"><?php foreach ( $disposition_opts as $value => $label ) : ?><option value="<?php echo esc_attr( (string) $value ); ?>" <?php selected( (string) ( $party['disposition'] ?? '' ), (string) $value ); ?>><?php echo esc_html( (string) $label ); ?></option><?php endforeach; ?></select></label>
-                  </div>
-                </form>
-                <div class="crm-status-actions">
-                  <button type="submit" form="crm-status-form" class="btn btn--solid btn--blue"><?php esc_html_e( 'Save status', 'peracrm' ); ?></button>
-                  <?php if ( 'lead' === $derived_type ) : ?>
-                  <form method="post" action="<?php echo esc_url( home_url( '/wp-admin/admin-post.php' ) ); ?>" class="crm-inline-form">
-                    <?php wp_nonce_field( 'peracrm_convert_to_client', 'peracrm_convert_to_client_nonce' ); ?>
-                    <input type="hidden" name="action" value="peracrm_convert_to_client" />
-                    <input type="hidden" name="peracrm_client_id" value="<?php echo esc_attr( (string) $client_id ); ?>" />
-                    <input type="hidden" name="peracrm_redirect" value="<?php echo esc_url( $frontend_url ); ?>" />
-                    <button type="submit" class="btn btn--ghost btn--blue"><?php esc_html_e( 'Convert to client', 'peracrm' ); ?></button>
-                  </form>
-                  <?php endif; ?>
-                </div>
-              </section>
-
-              <section class="crm-client-subsection" data-crm-panel="advisor">
-                <h4><?php esc_html_e( 'Assigned advisor', 'peracrm' ); ?></h4>
-                <?php if ( function_exists( 'peracrm_render_assigned_advisor_box' ) ) : ?>
-                  <?php peracrm_render_assigned_advisor_box( $client_id, array( 'context' => 'frontend', 'redirect' => $frontend_url ) ); ?>
-                <?php endif; ?>
-              </section>
-            </div>
-          </aside>
         </div>
         <?php if ( $can_delete_client || $can_set_dormant ) : ?>
         <article class="crm-section crm-section--flush crm-danger-zone">
