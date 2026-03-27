@@ -354,7 +354,7 @@ if (!function_exists('peracrm_get_impersonation_ui_state')) {
             'effective_user_id' => $effective_user_id,
             'effective_user_label' => $is_impersonating ? peracrm_get_effective_crm_user_label() : __('My view', 'peracrm'),
             'real_user_label' => $is_impersonating ? peracrm_get_real_user_label() : '',
-            'admin_post_url' => $can_impersonate ? admin_url('admin-post.php') : '',
+            'admin_post_url' => $can_impersonate ? home_url('/wp-admin/admin-post.php') : '',
         ];
     }
 }
