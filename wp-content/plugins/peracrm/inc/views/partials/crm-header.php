@@ -36,6 +36,9 @@ $new_leads_summary        = is_array( $args['new_leads_summary'] ?? null ) ? $ar
 $new_leads_count          = isset( $new_leads_summary['count'] ) ? max( 0, (int) $new_leads_summary['count'] ) : 0;
 $new_leads_url            = isset( $new_leads_summary['url'] ) ? (string) $new_leads_summary['url'] : '';
 $show_new_leads_summary   = '' !== $new_leads_url;
+$new_leads_copy           = $new_leads_count > 0
+	? sprintf( __( 'You have %d new leads requiring attention.', 'peracrm' ), $new_leads_count )
+	: __( 'You have no new leads requiring attention.', 'peracrm' );
 
 $has_toolbar = $show_client_filters || '' !== $toolbar_content;
 ?>
@@ -80,7 +83,7 @@ $has_toolbar = $show_client_filters || '' !== $toolbar_content;
       <?php if ( $show_new_leads_summary ) : ?>
       <aside class="crm-page-header__new-leads" aria-label="<?php echo esc_attr__( 'New leads summary', 'peracrm' ); ?>">
         <h2 class="crm-page-header__new-leads-title"><?php esc_html_e( 'New leads', 'peracrm' ); ?></h2>
-        <p class="crm-page-header__new-leads-copy"><?php echo esc_html( sprintf( __( 'You have %d new leads requiring attention.', 'peracrm' ), $new_leads_count ) ); ?></p>
+        <p class="crm-page-header__new-leads-copy"><?php echo esc_html( $new_leads_copy ); ?></p>
         <a class="btn btn--ghost btn--blue crm-page-header__new-leads-action" href="<?php echo esc_url( $new_leads_url ); ?>"><?php esc_html_e( 'New leads', 'peracrm' ); ?></a>
       </aside>
       <?php endif; ?>

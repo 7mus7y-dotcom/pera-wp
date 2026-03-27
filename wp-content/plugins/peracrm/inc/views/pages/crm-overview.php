@@ -45,8 +45,7 @@ $notices       = is_array( $crm_dashboard['notices'] ?? null ) ? $crm_dashboard[
 
 $crm_current_url    = home_url( wp_unslash( (string) ( $_SERVER['REQUEST_URI'] ?? '/crm/' ) ) );
 $new_lead_url       = home_url( '/crm/new/' );
-$overview_user_id   = function_exists( 'peracrm_get_effective_crm_user_id' ) ? (int) peracrm_get_effective_crm_user_id() : get_current_user_id();
-$new_leads_count    = ( ! $is_leads && ! $is_tasks && function_exists( 'pera_crm_count_new_leads_for_user' ) ) ? (int) pera_crm_count_new_leads_for_user( $overview_user_id, 72 ) : 0;
+$new_leads_count    = ( ! $is_leads && ! $is_tasks && function_exists( 'pera_crm_count_new_leads_for_user' ) ) ? (int) pera_crm_count_new_leads_for_user( 0, 72 ) : 0;
 $new_leads_url      = add_query_arg(
 	'new_leads',
 	'1',
