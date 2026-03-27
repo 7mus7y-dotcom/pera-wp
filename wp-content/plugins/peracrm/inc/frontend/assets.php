@@ -31,7 +31,6 @@ if (!function_exists('peracrm_frontend_dequeue_theme_assets')) {
         wp_dequeue_style('pera-main-css');
         wp_dequeue_script('pera-main-js');
         wp_dequeue_script('pera-whatsapp-click-log');
-        wp_dequeue_script('pera-crm-push');
     }
 }
 add_action('wp_enqueue_scripts', 'peracrm_frontend_dequeue_theme_assets', 41);
