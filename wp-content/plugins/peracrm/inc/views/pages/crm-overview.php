@@ -99,7 +99,7 @@ $render_overview_task_rows = static function ( array $tasks, string $empty_messa
 	<ul class="crm-row-list crm-overview-task-list">
 		<?php foreach ( $task_set['tasks'] as $task ) : ?>
 			<?php $task_status = sanitize_key( (string) ( $task['status'] ?? 'pending' ) ); ?>
-			<li class="<?php echo esc_attr( $row_class ); ?>">
+			<li class="<?php echo esc_attr( $row_class ); ?>" data-crm-reminder-row data-reminder-id="<?php echo esc_attr( (string) absint( $task['reminder_id'] ?? 0 ) ); ?>">
 				<div class="crm-row-list__content">
 					<div class="crm-row-list__header">
 						<h3 class="crm-row-list__title"><a href="<?php echo esc_url( home_url( '/crm/client/' . (int) $task['lead_id'] . '/' ) ); ?>"><?php echo esc_html( (string) ( $task['lead_name'] ?: __( 'Untitled lead', 'peracrm' ) ) ); ?></a></h3>
@@ -113,7 +113,7 @@ $render_overview_task_rows = static function ( array $tasks, string $empty_messa
 				<div class="crm-row-list__aside">
 					<a class="btn btn--ghost <?php echo esc_attr( $is_urgent ? 'btn--red' : 'btn--blue' ); ?>" href="<?php echo esc_url( home_url( '/crm/client/' . (int) $task['lead_id'] . '/' ) ); ?>"><?php echo esc_html__( 'Open client', 'peracrm' ); ?></a>
 					<?php if ( ! empty( $task['reminder_id'] ) && 'pending' === $task_status ) : ?>
-						<form class="crm-task-action" method="post" action="<?php echo esc_url( home_url( '/wp-admin/admin-post.php' ) ); ?>">
+						<form class="crm-task-action" method="post" action="<?php echo esc_url( home_url( '/wp-admin/admin-post.php' ) ); ?>" data-crm-reminder-action-form="1">
 							<input type="hidden" name="action" value="peracrm_update_reminder_status">
 							<input type="hidden" name="peracrm_reminder_id" value="<?php echo esc_attr( (string) absint( $task['reminder_id'] ) ); ?>">
 							<input type="hidden" name="peracrm_status" value="done">
@@ -437,7 +437,7 @@ peracrm_frontend_render_shell_header();
             <ul class="crm-row-list crm-list-workspace__rows">
               <?php foreach ( $rows as $task ) : ?>
                 <?php $task_is_overdue = ! empty( $task['is_overdue'] ) || 'urgent' === $tone; ?>
-                <li class="crm-row-list__item<?php echo esc_attr( $task_is_overdue ? ' crm-row-list__item--urgent' : '' ); ?>">
+                <li class="crm-row-list__item<?php echo esc_attr( $task_is_overdue ? ' crm-row-list__item--urgent' : '' ); ?>" data-crm-reminder-row data-reminder-id="<?php echo esc_attr( (string) absint( $task['reminder_id'] ?? 0 ) ); ?>">
                   <div class="crm-row-list__content">
                     <div class="crm-row-list__header">
                       <h4 class="crm-row-list__title"><a href="<?php echo esc_url( (string) $task['client_url'] ); ?>"><?php echo esc_html( (string) $task['client_name'] ); ?></a></h4>
@@ -455,7 +455,7 @@ peracrm_frontend_render_shell_header();
                     <div class="crm-action-group crm-action-group--toolbar">
                       <a class="btn btn--ghost <?php echo esc_attr( $task_is_overdue ? 'btn--red' : 'btn--blue' ); ?> crm-action-group__item crm-action-group__item--secondary" href="<?php echo esc_url( (string) $task['client_url'] ); ?>"><?php echo esc_html__( 'Open client', 'peracrm' ); ?></a>
                       <?php if ( ! empty( $task['reminder_id'] ) && 'done' !== sanitize_key( (string) ( $task['status'] ?? 'pending' ) ) ) : ?>
-                      <form method="post" action="<?php echo esc_url( home_url( '/wp-admin/admin-post.php' ) ); ?>">
+                      <form method="post" action="<?php echo esc_url( home_url( '/wp-admin/admin-post.php' ) ); ?>" data-crm-reminder-action-form="1">
                         <input type="hidden" name="action" value="peracrm_update_reminder_status">
                         <input type="hidden" name="peracrm_reminder_id" value="<?php echo esc_attr( (string) absint( $task['reminder_id'] ) ); ?>">
                         <input type="hidden" name="peracrm_status" value="done">
@@ -526,7 +526,7 @@ peracrm_frontend_render_shell_header();
                 <?php else : ?>
                   <?php foreach ( $task_rows as $task ) : ?>
                   <?php $task_is_overdue = ! empty( $task['is_overdue'] ); ?>
-                  <tr data-sort-row data-row-url="<?php echo esc_url( (string) $task['client_url'] ); ?>" data-due="<?php echo esc_attr( (string) ( $task['due_ts'] ?? 0 ) ); ?>" data-client="<?php echo esc_attr( strtolower( (string) $task['client_name'] ) ); ?>" data-note="<?php echo esc_attr( strtolower( (string) $task['note'] ) ); ?>" data-assigned="<?php echo esc_attr( strtolower( (string) $task['assigned_to'] ) ); ?>" data-status="<?php echo esc_attr( strtolower( (string) $task['status_label'] ) ); ?>">
+                  <tr data-sort-row data-crm-reminder-row data-reminder-id="<?php echo esc_attr( (string) absint( $task['reminder_id'] ?? 0 ) ); ?>" data-row-url="<?php echo esc_url( (string) $task['client_url'] ); ?>" data-due="<?php echo esc_attr( (string) ( $task['due_ts'] ?? 0 ) ); ?>" data-client="<?php echo esc_attr( strtolower( (string) $task['client_name'] ) ); ?>" data-note="<?php echo esc_attr( strtolower( (string) $task['note'] ) ); ?>" data-assigned="<?php echo esc_attr( strtolower( (string) $task['assigned_to'] ) ); ?>" data-status="<?php echo esc_attr( strtolower( (string) $task['status_label'] ) ); ?>">
                     <td>
                       <div class="crm-table__primary"><?php echo esc_html( (string) $task['due_display'] ); ?></div>
                       <?php if ( $task_is_overdue ) : ?><span class="crm-table__subtext"><?php echo esc_html__( 'Overdue', 'peracrm' ); ?></span><?php endif; ?>
@@ -537,7 +537,7 @@ peracrm_frontend_render_shell_header();
                     <td><span class="crm-chip <?php echo esc_attr( $task_is_overdue ? 'crm-chip--urgent' : 'crm-chip--status' ); ?>"><?php echo esc_html( (string) $task['status_label'] ); ?></span></td>
                     <td>
                       <?php if ( ! empty( $task['reminder_id'] ) && 'done' !== sanitize_key( (string) ( $task['status'] ?? 'pending' ) ) ) : ?>
-                      <form method="post" action="<?php echo esc_url( home_url( '/wp-admin/admin-post.php' ) ); ?>" onclick="event.stopPropagation();">
+                      <form method="post" action="<?php echo esc_url( home_url( '/wp-admin/admin-post.php' ) ); ?>" onclick="event.stopPropagation();" data-crm-reminder-action-form="1">
                         <input type="hidden" name="action" value="peracrm_update_reminder_status">
                         <input type="hidden" name="peracrm_reminder_id" value="<?php echo esc_attr( (string) absint( $task['reminder_id'] ) ); ?>">
                         <input type="hidden" name="peracrm_status" value="done">

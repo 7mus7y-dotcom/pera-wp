@@ -667,14 +667,14 @@ peracrm_frontend_render_shell_header();
                         $assignee_user     = $reminder_assignee_lookup[ $assignee_id ] ?? null;
                         $assignee_label    = $assignee_user instanceof WP_User ? (string) $assignee_user->display_name : __( 'Unassigned', 'peracrm' );
                         ?>
-                        <li>
+                        <li data-crm-reminder-row data-reminder-id="<?php echo esc_attr( (string) $reminder_id ); ?>">
                           <p><strong><?php echo esc_html( $reminder_summary ); ?></strong></p>
                           <small><?php echo esc_html( sprintf( __( 'Due: %s', 'peracrm' ), '' !== $reminder_due ? $reminder_due : '—' ) ); ?></small>
                           <small><?php echo esc_html( sprintf( __( 'Status: %s', 'peracrm' ), '' !== $status_label ? $status_label : __( 'Pending', 'peracrm' ) ) ); ?></small>
                           <small><?php echo esc_html( sprintf( __( 'Assigned: %s', 'peracrm' ), $assignee_label ) ); ?></small>
                           <?php if ( $reminder_id > 0 ) : ?>
                           <div class="crm-task-action">
-                            <form method="post" action="<?php echo esc_url( home_url( '/wp-admin/admin-post.php' ) ); ?>">
+                            <form method="post" action="<?php echo esc_url( home_url( '/wp-admin/admin-post.php' ) ); ?>" data-crm-reminder-action-form="1">
                               <?php wp_nonce_field( 'peracrm_update_reminder_status', 'peracrm_update_reminder_status_nonce' ); ?>
                               <input type="hidden" name="action" value="peracrm_update_reminder_status" />
                               <input type="hidden" name="peracrm_reminder_id" value="<?php echo esc_attr( (string) $reminder_id ); ?>" />
@@ -709,14 +709,14 @@ peracrm_frontend_render_shell_header();
                         $assignee_user     = $reminder_assignee_lookup[ $assignee_id ] ?? null;
                         $assignee_label    = $assignee_user instanceof WP_User ? (string) $assignee_user->display_name : __( 'Unassigned', 'peracrm' );
                         ?>
-                        <li>
+                        <li data-crm-reminder-row data-reminder-id="<?php echo esc_attr( (string) $reminder_id ); ?>">
                           <p><strong><?php echo esc_html( $reminder_summary ); ?></strong></p>
                           <small><?php echo esc_html( sprintf( __( 'Due: %s', 'peracrm' ), '' !== $reminder_due ? $reminder_due : '—' ) ); ?></small>
                           <small><?php echo esc_html( sprintf( __( 'Status: %s', 'peracrm' ), '' !== $status_label ? $status_label : __( 'Pending', 'peracrm' ) ) ); ?></small>
                           <small><?php echo esc_html( sprintf( __( 'Assigned: %s', 'peracrm' ), $assignee_label ) ); ?></small>
                           <?php if ( $reminder_id > 0 ) : ?>
                           <div class="crm-task-action">
-                            <form method="post" action="<?php echo esc_url( home_url( '/wp-admin/admin-post.php' ) ); ?>">
+                            <form method="post" action="<?php echo esc_url( home_url( '/wp-admin/admin-post.php' ) ); ?>" data-crm-reminder-action-form="1">
                               <?php wp_nonce_field( 'peracrm_update_reminder_status', 'peracrm_update_reminder_status_nonce' ); ?>
                               <input type="hidden" name="action" value="peracrm_update_reminder_status" />
                               <input type="hidden" name="peracrm_reminder_id" value="<?php echo esc_attr( (string) $reminder_id ); ?>" />

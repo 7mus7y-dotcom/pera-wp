@@ -5423,3 +5423,64 @@ body.crm-route #site-header.peracrm-shell-header.is-scrolled .peracrm-header-act
     flex-basis: auto;
   }
 }
+
+.crm-reminder-toast {
+  position: fixed;
+  right: 20px;
+  bottom: 20px;
+  z-index: 9999;
+  width: min(340px, calc(100vw - 24px));
+  border-radius: 12px;
+  border: 1px solid #d6deeb;
+  background: #fff;
+  color: #1f2a37;
+  box-shadow: 0 12px 30px rgba(15, 23, 42, 0.2);
+  padding: 14px 14px 12px;
+  transform: translateY(12px);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.2s ease, transform 0.2s ease;
+}
+
+.crm-reminder-toast.is-visible {
+  opacity: 1;
+  transform: translateY(0);
+  pointer-events: auto;
+}
+
+.crm-reminder-toast__close {
+  position: absolute;
+  top: 4px;
+  right: 6px;
+  border: 0;
+  background: transparent;
+  color: #526177;
+  font-size: 20px;
+  line-height: 1;
+  padding: 4px;
+  cursor: pointer;
+}
+
+.crm-reminder-toast__close:hover,
+.crm-reminder-toast__close:focus-visible {
+  color: #1f2a37;
+}
+
+.crm-reminder-toast__message {
+  margin: 0 18px 10px 0;
+  font-weight: 600;
+}
+
+.crm-reminder-toast__undo.btn {
+  width: 100%;
+  justify-content: center;
+}
+
+@media (max-width: 767px) {
+  .crm-reminder-toast {
+    left: 12px;
+    right: 12px;
+    bottom: 12px;
+    width: auto;
+  }
+}
