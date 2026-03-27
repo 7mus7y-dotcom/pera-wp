@@ -5472,8 +5472,34 @@ body.crm-route #site-header.peracrm-shell-header.is-scrolled .peracrm-header-act
 }
 
 .crm-reminder-toast__undo.btn {
-  width: 100%;
+  --btn-color: #002d72;
+  display: inline-flex;
+  align-items: center;
   justify-content: center;
+  width: 100%;
+  padding: 8px 15px;
+  border-radius: 999px;
+  border: 1px solid var(--btn-color);
+  background-color: transparent;
+  color: var(--btn-color);
+  font-weight: 600;
+  font-size: 0.95rem;
+  line-height: 1;
+  font-family: inherit;
+  cursor: pointer;
+  text-decoration: none;
+  transition: background-color 160ms ease, color 160ms ease, border-color 160ms ease;
+}
+
+.crm-reminder-toast__undo.btn:hover {
+  background-color: var(--btn-color);
+  color: #fff;
+  border-color: var(--btn-color);
+}
+
+.crm-reminder-toast__undo.btn:focus-visible {
+  outline: 0;
+  box-shadow: 0 0 0 3px rgba(0,0,0,0.15);
 }
 
 @media (max-width: 767px) {
