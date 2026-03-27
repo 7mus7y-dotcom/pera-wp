@@ -41,7 +41,7 @@ get_header();
                     </div>
                 <?php endif; ?>
 
-                <form action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>" method="post">
+                <form action="<?php echo esc_url( home_url( '/wp-admin/admin-post.php' ) ); ?>" method="post">
                     <input type="hidden" name="action" value="pera_public_register" />
                     <?php wp_nonce_field( 'pera_public_register_action', 'pera_public_register_nonce' ); ?>
 
