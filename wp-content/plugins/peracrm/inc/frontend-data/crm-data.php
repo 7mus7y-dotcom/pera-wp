@@ -465,17 +465,24 @@ if ( ! function_exists( 'pera_crm_get_recent_leads' ) ) {
 	 * @return int[]
 	 */
 	function pera_crm_get_new_lead_ids_for_user( int $user_id = 0, int $hours = 72 ): array {
-		$user_id = $user_id > 0 ? $user_id : get_current_user_id();
-		$hours   = max( 1, absint( $hours ) );
-		if ( $user_id <= 0 ) {
+		$real_user_id          = get_current_user_id();
+		$effective_user_id     = function_exists( 'peracrm_get_effective_crm_user_id' ) ? peracrm_get_effective_crm_user_id() : $real_user_id;
+		$is_impersonating      = function_exists( 'peracrm_is_impersonating_crm_user' ) && peracrm_is_impersonating_crm_user();
+		$effective_is_employee = pera_crm_user_is_employee( $effective_user_id );
+		$target_user_id        = $user_id > 0 ? $user_id : $effective_user_id;
+		$allowed_ids           = ( $is_impersonating || $effective_is_employee ) ? pera_crm_get_allowed_client_ids_for_user( $effective_user_id ) : array();
+
+		$hours = max( 1, absint( $hours ) );
+		if ( $target_user_id <= 0 ) {
 			return array();
 		}
 
-		$after = gmdate( 'Y-m-d H:i:s', time() - ( $hours * HOUR_IN_SECONDS ) );
-		$args  = array(
+		$after         = gmdate( 'Y-m-d H:i:s', time() - ( $hours * HOUR_IN_SECONDS ) );
+		$prefetch_cap  = 250;
+		$args          = array(
 			'post_type'      => 'crm_client',
 			'post_status'    => array( 'publish', 'private', 'draft', 'pending', 'future' ),
-			'posts_per_page' => -1,
+			'posts_per_page' => $prefetch_cap,
 			'fields'         => 'ids',
 			'no_found_rows'  => true,
 			'date_query'     => array(
@@ -489,18 +496,27 @@ if ( ! function_exists( 'pera_crm_get_recent_leads' ) ) {
 				'relation' => 'OR',
 				array(
 					'key'     => 'assigned_advisor_user_id',
-					'value'   => $user_id,
+					'value'   => $target_user_id,
 					'compare' => '=',
 				),
 				array(
 					'key'     => 'crm_assigned_advisor',
-					'value'   => $user_id,
+					'value'   => $target_user_id,
 					'compare' => '=',
 				),
 			),
 		);
 
+		if ( $is_impersonating || $effective_is_employee ) {
+			$args['post__in'] = empty( $allowed_ids ) ? array( 0 ) : $allowed_ids;
+		}
+
 		$ids = array_values( array_unique( array_map( 'intval', (array) get_posts( $args ) ) ) );
+		if ( $prefetch_cap === count( $ids ) ) {
+			$args['posts_per_page'] = -1;
+			$ids                    = array_values( array_unique( array_map( 'intval', (array) get_posts( $args ) ) ) );
+		}
+
 		if ( empty( $ids ) ) {
 			return array();
 		}
