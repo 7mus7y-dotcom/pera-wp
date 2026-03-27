@@ -95,7 +95,16 @@
       return null;
     }
 
-    const registration = await getRegistration();
+    const registrationTimeoutMs = 8000;
+    const registration = await Promise.race([
+      getRegistration(),
+      new Promise(function (_, reject) {
+        window.setTimeout(function () {
+          reject(new Error('Service worker registration timed out.'));
+        }, registrationTimeoutMs);
+      })
+    ]);
+
     return registration.pushManager.getSubscription();
   }
 
@@ -233,15 +242,15 @@
 
   async function refreshState() {
     try {
-      const subscription = await getCurrentSubscription();
-      const permission = 'Notification' in window ? Notification.permission : 'default';
-
       if (!supportsPushSetup()) {
         setStatus('Push is not supported in this browser on this device.', 'pill--red');
         setButtons(false);
         renderCronHealth();
         return;
       }
+
+      const subscription = await getCurrentSubscription();
+      const permission = 'Notification' in window ? Notification.permission : 'default';
 
       if (permission === 'denied') {
         setStatus('Notifications blocked – enable in site settings.', 'pill--red');
@@ -270,6 +279,8 @@
       setStatus('Push setup is unavailable in this browser session.', 'pill--red');
       setButtons(false);
       renderCronHealth();
+      await renderServiceWorkerStatus();
+      await refreshDiagnostics();
     }
   }
 
