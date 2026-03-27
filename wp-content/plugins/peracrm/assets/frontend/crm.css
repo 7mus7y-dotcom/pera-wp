@@ -3149,7 +3149,6 @@ body.crm-route #site-header.peracrm-shell-header .crm-side-nav__toggle--header:f
 .crm-page .crm-section--flush > .crm-section__header,
 .crm-page .crm-section--flush > .crm-section__body,
 .crm-page .crm-section--flush > .crm-section__footer {
-  padding-inline: var(--crm-section-padding);
 }
 
 .crm-page .crm-section--flush > .crm-section__header {
