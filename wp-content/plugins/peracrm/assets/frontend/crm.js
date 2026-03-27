@@ -13,6 +13,247 @@
 })();
 
 (function () {
+  var ajaxUrl = window.peraCrmData && window.peraCrmData.ajaxUrl ? window.peraCrmData.ajaxUrl : '';
+  if (!ajaxUrl) {
+    return;
+  }
+
+  var toastEl = null;
+  var toastTimer = null;
+  var activeUndo = null;
+
+  function nativeSubmit(form) {
+    if (!form) {
+      return;
+    }
+
+    form.setAttribute('data-crm-bypass-ajax', '1');
+    if (window.HTMLFormElement && window.HTMLFormElement.prototype && window.HTMLFormElement.prototype.submit) {
+      window.HTMLFormElement.prototype.submit.call(form);
+      return;
+    }
+    form.submit();
+  }
+
+  function parseJsonResponse(response) {
+    return response.text().then(function (body) {
+      var json = null;
+      try {
+        json = body ? JSON.parse(body) : null;
+      } catch (e) {
+        json = null;
+      }
+
+      var data = json && json.data ? json.data : {};
+      var message = data && data.message ? String(data.message) : 'Unable to update task.';
+      if (!response.ok || !json || !json.success) {
+        throw new Error(message);
+      }
+
+      return data;
+    });
+  }
+
+  function requestReminderStatus(reminderId, status, nonce) {
+    var payload = new window.FormData();
+    payload.append('action', 'peracrm_reminder_status_ajax');
+    payload.append('peracrm_reminder_id', String(reminderId || ''));
+    payload.append('peracrm_status', String(status || ''));
+    payload.append('peracrm_update_reminder_status_nonce', String(nonce || ''));
+
+    return window.fetch(ajaxUrl, {
+      method: 'POST',
+      credentials: 'same-origin',
+      body: payload
+    }).then(parseJsonResponse);
+  }
+
+  function ensureToast() {
+    if (toastEl) {
+      return toastEl;
+    }
+
+    var container = document.createElement('div');
+    container.className = 'crm-reminder-toast';
+    container.setAttribute('role', 'status');
+    container.setAttribute('aria-live', 'polite');
+    container.setAttribute('aria-hidden', 'true');
+    container.innerHTML = '' +
+      '<button type="button" class="crm-reminder-toast__close" aria-label="Close notification">×</button>' +
+      '<p class="crm-reminder-toast__message">Task completed!</p>' +
+      '<button type="button" class="btn btn--ghost btn--blue crm-reminder-toast__undo">Undo</button>';
+    document.body.appendChild(container);
+
+    container.querySelector('.crm-reminder-toast__close').addEventListener('click', function () {
+      hideToast();
+    });
+
+    container.querySelector('.crm-reminder-toast__undo').addEventListener('click', function () {
+      if (!activeUndo || !activeUndo.reminderId || !activeUndo.nonce) {
+        hideToast();
+        return;
+      }
+
+      var undoButton = container.querySelector('.crm-reminder-toast__undo');
+      undoButton.disabled = true;
+      undoButton.setAttribute('aria-busy', 'true');
+      requestReminderStatus(activeUndo.reminderId, activeUndo.previousStatus || 'pending', activeUndo.nonce)
+        .then(function () {
+          if (activeUndo && activeUndo.rowState && activeUndo.rowState.parent && activeUndo.rowState.row) {
+            activeUndo.rowState.parent.insertBefore(activeUndo.rowState.row, activeUndo.rowState.nextSibling || null);
+          }
+          hideToast();
+        })
+        .catch(function (error) {
+          var messageNode = container.querySelector('.crm-reminder-toast__message');
+          messageNode.textContent = error && error.message ? error.message : 'Unable to undo.';
+          scheduleToastDismiss(4500);
+        })
+        .finally(function () {
+          undoButton.disabled = false;
+          undoButton.removeAttribute('aria-busy');
+        });
+    });
+
+    document.addEventListener('keydown', function (event) {
+      if (event.key === 'Escape' && container.classList.contains('is-visible')) {
+        hideToast();
+      }
+    });
+
+    toastEl = container;
+    return toastEl;
+  }
+
+  function scheduleToastDismiss(delay) {
+    if (toastTimer) {
+      window.clearTimeout(toastTimer);
+    }
+    toastTimer = window.setTimeout(function () {
+      hideToast();
+    }, delay || 4500);
+  }
+
+  function hideToast() {
+    if (!toastEl) {
+      return;
+    }
+    toastEl.classList.remove('is-visible');
+    toastEl.setAttribute('aria-hidden', 'true');
+    activeUndo = null;
+    if (toastTimer) {
+      window.clearTimeout(toastTimer);
+      toastTimer = null;
+    }
+  }
+
+  function showToast(undoState) {
+    var toast = ensureToast();
+    var messageNode = toast.querySelector('.crm-reminder-toast__message');
+    var undoButton = toast.querySelector('.crm-reminder-toast__undo');
+    messageNode.textContent = 'Task completed!';
+    undoButton.disabled = false;
+    undoButton.removeAttribute('aria-busy');
+    // Intentionally single-instance toast UX: latest completion owns Undo context.
+    activeUndo = undoState || null;
+
+    toast.classList.add('is-visible');
+    toast.setAttribute('aria-hidden', 'false');
+    scheduleToastDismiss(4500);
+  }
+
+  function setButtonLoading(button, isLoading) {
+    if (!button) {
+      return;
+    }
+
+    if (isLoading) {
+      var original = button.tagName.toLowerCase() === 'input' ? (button.value || '') : (button.textContent || '');
+      button.setAttribute('data-crm-original-label', original);
+      button.disabled = true;
+      button.setAttribute('aria-busy', 'true');
+      if (button.tagName.toLowerCase() === 'input') {
+        button.value = 'Working…';
+      } else {
+        button.textContent = 'Working…';
+      }
+      return;
+    }
+
+    var label = button.getAttribute('data-crm-original-label');
+    button.disabled = false;
+    button.removeAttribute('aria-busy');
+    if (!label) {
+      return;
+    }
+    if (button.tagName.toLowerCase() === 'input') {
+      button.value = label;
+    } else {
+      button.textContent = label;
+    }
+  }
+
+  document.addEventListener('submit', function (event) {
+    var form = event.target.closest('form[data-crm-reminder-action-form="1"]');
+    if (!form) {
+      return;
+    }
+
+    if (form.getAttribute('data-crm-bypass-ajax') === '1') {
+      form.removeAttribute('data-crm-bypass-ajax');
+      return;
+    }
+
+    if (form.getAttribute('data-crm-busy') === '1') {
+      event.preventDefault();
+      return;
+    }
+
+    event.preventDefault();
+
+    var reminderId = parseInt(form.querySelector('input[name="peracrm_reminder_id"]') ? form.querySelector('input[name="peracrm_reminder_id"]').value : '0', 10) || 0;
+    var status = form.querySelector('input[name="peracrm_status"]') ? form.querySelector('input[name="peracrm_status"]').value : '';
+    var nonce = form.querySelector('input[name="peracrm_update_reminder_status_nonce"]') ? form.querySelector('input[name="peracrm_update_reminder_status_nonce"]').value : '';
+    if (!reminderId || !status || !nonce) {
+      nativeSubmit(form);
+      return;
+    }
+
+    var submitButton = event.submitter || form.querySelector('button[type="submit"], input[type="submit"]');
+    var row = form.closest('[data-crm-reminder-row]');
+    var rowState = row && row.parentNode ? {
+      row: row,
+      parent: row.parentNode,
+      nextSibling: row.nextSibling
+    } : null;
+
+    form.setAttribute('data-crm-busy', '1');
+    setButtonLoading(submitButton, true);
+
+    requestReminderStatus(reminderId, status, nonce)
+      .then(function (data) {
+        if (row && row.parentNode) {
+          row.parentNode.removeChild(row);
+        }
+
+        showToast({
+          reminderId: reminderId,
+          previousStatus: data && data.previous_status ? data.previous_status : 'pending',
+          nonce: nonce,
+          rowState: rowState
+        });
+      })
+      .catch(function () {
+        nativeSubmit(form);
+      })
+      .finally(function () {
+        form.removeAttribute('data-crm-busy');
+        setButtonLoading(submitButton, false);
+      });
+  });
+})();
+
+(function () {
   var navRoot = document.querySelector('[data-crm-nav]');
   if (!navRoot) {
     return;
