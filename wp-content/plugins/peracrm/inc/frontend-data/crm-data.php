@@ -455,6 +455,93 @@ if ( ! function_exists( 'pera_crm_fetch_recent_activity' ) ) {
 
 if ( ! function_exists( 'pera_crm_get_recent_leads' ) ) {
 	/**
+	 * Resolve new-lead IDs assigned to a user.
+	 *
+	 * New lead definition for this pass:
+	 * - Assigned to the target user.
+	 * - Created in the last N hours.
+	 * - Not in closed/completed/lost-style states.
+	 *
+	 * @return int[]
+	 */
+	function pera_crm_get_new_lead_ids_for_user( int $user_id = 0, int $hours = 72 ): array {
+		$user_id = $user_id > 0 ? $user_id : get_current_user_id();
+		$hours   = max( 1, absint( $hours ) );
+		if ( $user_id <= 0 ) {
+			return array();
+		}
+
+		$after = gmdate( 'Y-m-d H:i:s', time() - ( $hours * HOUR_IN_SECONDS ) );
+		$args  = array(
+			'post_type'      => 'crm_client',
+			'post_status'    => array( 'publish', 'private', 'draft', 'pending', 'future' ),
+			'posts_per_page' => -1,
+			'fields'         => 'ids',
+			'no_found_rows'  => true,
+			'date_query'     => array(
+				array(
+					'column'    => 'post_date_gmt',
+					'after'     => $after,
+					'inclusive' => true,
+				),
+			),
+			'meta_query'     => array(
+				'relation' => 'OR',
+				array(
+					'key'     => 'assigned_advisor_user_id',
+					'value'   => $user_id,
+					'compare' => '=',
+				),
+				array(
+					'key'     => 'crm_assigned_advisor',
+					'value'   => $user_id,
+					'compare' => '=',
+				),
+			),
+		);
+
+		$ids = array_values( array_unique( array_map( 'intval', (array) get_posts( $args ) ) ) );
+		if ( empty( $ids ) ) {
+			return array();
+		}
+
+		$client_ids     = function_exists( 'peracrm_party_batch_get_closed_won_client_ids' )
+			? array_map( 'intval', peracrm_party_batch_get_closed_won_client_ids( $ids ) )
+			: array();
+		$client_lookup  = array_flip( $client_ids );
+		$party_map      = function_exists( 'peracrm_party_get_status_by_ids' ) ? peracrm_party_get_status_by_ids( $ids ) : array();
+		$closed_stages  = array( 'completed', 'lost', 'deal_closed', 'deal_lost', 'closed_won', 'closed_lost' );
+		$closed_states  = array( 'closed', 'completed', 'lost' );
+		$filtered_ids   = array();
+
+		foreach ( $ids as $lead_id ) {
+			if ( isset( $client_lookup[ $lead_id ] ) ) {
+				continue;
+			}
+
+			$party      = isset( $party_map[ $lead_id ] ) && is_array( $party_map[ $lead_id ] ) ? $party_map[ $lead_id ] : array();
+			$engagement = sanitize_key( (string) ( $party['engagement_state'] ?? '' ) );
+			$stage      = sanitize_key( (string) ( $party['lead_pipeline_stage'] ?? '' ) );
+			$status     = sanitize_key( (string) get_post_meta( $lead_id, 'status', true ) );
+
+			if ( in_array( $engagement, $closed_states, true ) || in_array( $stage, $closed_stages, true ) || in_array( $status, $closed_states, true ) ) {
+				continue;
+			}
+
+			$filtered_ids[] = $lead_id;
+		}
+
+		return array_values( array_unique( array_map( 'intval', $filtered_ids ) ) );
+	}
+
+	/**
+	 * Count new leads assigned to a user in the last N hours.
+	 */
+	function pera_crm_count_new_leads_for_user( int $user_id = 0, int $hours = 72 ): int {
+		return count( pera_crm_get_new_lead_ids_for_user( $user_id, $hours ) );
+	}
+
+	/**
 	 * Fetch latest leads for dashboard.
 	 *
 	 * @return array<int,array{id:int,name:string,url:string}>

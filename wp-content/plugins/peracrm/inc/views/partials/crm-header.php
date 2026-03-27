@@ -32,43 +32,57 @@ $impersonation_action_url = isset( $impersonation_ui['admin_post_url'] ) ? (stri
 $selected_impersonation_user = isset( $impersonation_ui['effective_user_id'] ) ? (int) $impersonation_ui['effective_user_id'] : 0;
 $show_advisor_filter       = $show_client_filters && ! $is_impersonating;
 $show_impersonation_ui    = function_exists( 'peracrm_is_crm_overview_route' ) && peracrm_is_crm_overview_route();
+$new_leads_summary        = is_array( $args['new_leads_summary'] ?? null ) ? $args['new_leads_summary'] : array();
+$new_leads_count          = isset( $new_leads_summary['count'] ) ? max( 0, (int) $new_leads_summary['count'] ) : 0;
+$new_leads_url            = isset( $new_leads_summary['url'] ) ? (string) $new_leads_summary['url'] : '';
+$show_new_leads_summary   = '' !== $new_leads_url;
 
 $has_toolbar = $show_client_filters || '' !== $toolbar_content;
 ?>
 <section class="crm-page-header" aria-label="<?php echo esc_attr__( 'CRM page header', 'peracrm' ); ?>">
   <div class="container crm-page-header__inner">
-    <div class="crm-page-header__main">
-      <div class="crm-page-header__identity">
-        <h1 class="crm-page-header__title"><?php echo esc_html( $title ); ?></h1>
-        <?php if ( '' !== $meta || '' !== $description ) : ?>
-        <div class="crm-page-header__meta">
-          <?php if ( '' !== $meta ) : ?>
-          <p class="crm-page-header__context"><?php echo esc_html( $meta ); ?></p>
+    <div class="crm-page-header__main<?php echo $show_new_leads_summary ? ' crm-page-header__main--with-summary' : ''; ?>">
+      <div class="crm-page-header__main-primary">
+        <div class="crm-page-header__identity">
+          <h1 class="crm-page-header__title"><?php echo esc_html( $title ); ?></h1>
+          <?php if ( '' !== $meta || '' !== $description ) : ?>
+          <div class="crm-page-header__meta">
+            <?php if ( '' !== $meta ) : ?>
+            <p class="crm-page-header__context"><?php echo esc_html( $meta ); ?></p>
+            <?php endif; ?>
+            <?php if ( '' !== $description ) : ?>
+            <p class="crm-page-header__subtitle"><?php echo esc_html( $description ); ?></p>
+            <?php endif; ?>
+          </div>
           <?php endif; ?>
-          <?php if ( '' !== $description ) : ?>
-          <p class="crm-page-header__subtitle"><?php echo esc_html( $description ); ?></p>
-          <?php endif; ?>
+        </div>
+
+        <?php if ( ! empty( $actions ) ) : ?>
+        <div class="crm-action-group" aria-label="<?php echo esc_attr__( 'Page actions', 'peracrm' ); ?>">
+          <?php foreach ( $actions as $action ) : ?>
+            <?php
+            $action_url   = isset( $action['url'] ) ? (string) $action['url'] : '';
+            $action_label = isset( $action['label'] ) ? (string) $action['label'] : '';
+            $action_class = isset( $action['class'] ) ? (string) $action['class'] : 'btn btn--ghost btn--blue';
+            $action_type  = isset( $action['type'] ) ? sanitize_key( (string) $action['type'] ) : 'secondary';
+            $action_attr  = isset( $action['attributes'] ) ? (string) $action['attributes'] : '';
+
+            if ( '' === $action_url || '' === $action_label ) {
+              continue;
+            }
+            ?>
+            <a class="<?php echo esc_attr( trim( $action_class ) ); ?> crm-action-group__item crm-action-group__item--<?php echo esc_attr( $action_type ); ?>" href="<?php echo esc_url( $action_url ); ?>"<?php echo '' !== $action_attr ? ' ' . $action_attr : ''; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>><?php echo esc_html( $action_label ); ?></a>
+          <?php endforeach; ?>
         </div>
         <?php endif; ?>
       </div>
 
-      <?php if ( ! empty( $actions ) ) : ?>
-      <div class="crm-action-group" aria-label="<?php echo esc_attr__( 'Page actions', 'peracrm' ); ?>">
-        <?php foreach ( $actions as $action ) : ?>
-          <?php
-          $action_url   = isset( $action['url'] ) ? (string) $action['url'] : '';
-          $action_label = isset( $action['label'] ) ? (string) $action['label'] : '';
-          $action_class = isset( $action['class'] ) ? (string) $action['class'] : 'btn btn--ghost btn--blue';
-          $action_type  = isset( $action['type'] ) ? sanitize_key( (string) $action['type'] ) : 'secondary';
-          $action_attr  = isset( $action['attributes'] ) ? (string) $action['attributes'] : '';
-
-          if ( '' === $action_url || '' === $action_label ) {
-            continue;
-          }
-          ?>
-          <a class="<?php echo esc_attr( trim( $action_class ) ); ?> crm-action-group__item crm-action-group__item--<?php echo esc_attr( $action_type ); ?>" href="<?php echo esc_url( $action_url ); ?>"<?php echo '' !== $action_attr ? ' ' . $action_attr : ''; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>><?php echo esc_html( $action_label ); ?></a>
-        <?php endforeach; ?>
-      </div>
+      <?php if ( $show_new_leads_summary ) : ?>
+      <aside class="crm-page-header__new-leads" aria-label="<?php echo esc_attr__( 'New leads summary', 'peracrm' ); ?>">
+        <h2 class="crm-page-header__new-leads-title"><?php esc_html_e( 'New leads', 'peracrm' ); ?></h2>
+        <p class="crm-page-header__new-leads-copy"><?php echo esc_html( sprintf( __( 'You have %d new leads requiring attention.', 'peracrm' ), $new_leads_count ) ); ?></p>
+        <a class="btn btn--ghost btn--blue crm-page-header__new-leads-action" href="<?php echo esc_url( $new_leads_url ); ?>"><?php esc_html_e( 'New leads', 'peracrm' ); ?></a>
+      </aside>
       <?php endif; ?>
     </div>
 

@@ -3524,7 +3524,7 @@ body.crm-route {
   gap: 12px;
 }
 
-.crm-page-header__main,
+.crm-page-header__main-primary,
 .crm-toolbar__row,
 .crm-client-filters__grid {
   display: flex;
@@ -3539,6 +3539,40 @@ body.crm-route {
   border-radius: var(--crm-shell-radius);
   background: rgba(255, 255, 255, 0.92);
   box-shadow: none;
+  display: grid;
+  gap: 12px;
+}
+
+.crm-page-header__main-primary {
+  min-width: 0;
+}
+
+.crm-page-header__new-leads {
+  display: grid;
+  align-content: start;
+  gap: 10px;
+  border: 1px solid rgba(15, 23, 42, 0.08);
+  border-radius: 14px;
+  padding: 12px;
+  background: rgba(248, 250, 252, 0.9);
+}
+
+.crm-page-header__new-leads-title {
+  margin: 0;
+  color: #0f172a;
+  font-size: 1rem;
+  line-height: 1.25;
+}
+
+.crm-page-header__new-leads-copy {
+  margin: 0;
+  color: #475569;
+  font-size: 0.92rem;
+  line-height: 1.45;
+}
+
+.crm-page-header__new-leads-action {
+  justify-self: start;
 }
 
 .crm-page-header__identity {
@@ -3723,7 +3757,7 @@ body.crm-route #site-header.peracrm-shell-header.is-scrolled .peracrm-header-act
 }
 
 @media (max-width: 1199px) {
-  .crm-page-header__main,
+  .crm-page-header__main-primary,
   .crm-toolbar__row,
   .crm-client-filters__grid {
     flex-wrap: wrap;
@@ -3732,6 +3766,14 @@ body.crm-route #site-header.peracrm-shell-header.is-scrolled .peracrm-header-act
 
   .crm-action-group {
     justify-content: flex-start;
+  }
+}
+
+@media (min-width: 1200px) {
+  .crm-page-header__main--with-summary {
+    grid-template-columns: minmax(0, 2fr) minmax(0, 1fr);
+    align-items: stretch;
+    column-gap: 16px;
   }
 }
 
@@ -3755,6 +3797,10 @@ body.crm-route #site-header.peracrm-shell-header.is-scrolled .peracrm-header-act
 
   .crm-page-header__meta {
     display: grid;
+  }
+
+  .crm-page-header__new-leads {
+    width: 100%;
   }
 }
 
@@ -4656,6 +4702,7 @@ body.crm-route #site-header.peracrm-shell-header.is-scrolled .peracrm-header-act
   .crm-page-header__title,
   .crm-page-header__context,
   .crm-page-header__subtitle,
+  .crm-page-header__new-leads-title,
   .crm-page .crm-list-workspace-toolbar__summary h2,
   .crm-page .crm-row-list__summary,
   .crm-page .crm-section__title,
@@ -4666,6 +4713,7 @@ body.crm-route #site-header.peracrm-shell-header.is-scrolled .peracrm-header-act
 
   .crm-page .crm-form-workspace__eyebrow,
   .crm-page .crm-section__description,
+  .crm-page-header__new-leads-copy,
   .crm-page .crm-list-workspace-toolbar__summary p,
   .crm-page .crm-list-workspace__table .crm-table__subtext,
   .crm-page .crm-row-list__meta,
@@ -4687,6 +4735,7 @@ body.crm-route #site-header.peracrm-shell-header.is-scrolled .peracrm-header-act
 
   .crm-page .crm-table thead th,
   .crm-page .crm-leads-table th,
+  .crm-page-header__new-leads,
   .crm-page .crm-view-toggle,
   .crm-page .crm-type-toggle,
   .crm-page .crm-view-toggle--secondary,
