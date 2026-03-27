@@ -218,6 +218,34 @@ $reminder_buckets  = function_exists( 'pera_crm_client_view_bucket_reminders' )
 $today_reminders   = is_array( $reminder_buckets['today'] ?? null ) ? $reminder_buckets['today'] : array();
 $overdue_task_rows = is_array( $reminder_buckets['overdue'] ?? null ) ? $reminder_buckets['overdue'] : array();
 $upcoming_rows     = is_array( $reminder_buckets['upcoming'] ?? null ) ? $reminder_buckets['upcoming'] : array();
+$upcoming_rows     = array_merge( $today_reminders, $upcoming_rows );
+usort(
+	$upcoming_rows,
+	static function ( array $left, array $right ): int {
+		return (int) ( $left['due_ts'] ?? 0 ) <=> (int) ( $right['due_ts'] ?? 0 );
+	}
+);
+
+$active_reminder_rows = array_merge( $overdue_task_rows, $upcoming_rows );
+$reminder_assignee_ids = array_values(
+	array_unique(
+		array_filter(
+			array_map(
+				static function ( array $row ): int {
+					return (int) ( $row['advisor_user_id'] ?? 0 );
+				},
+				$active_reminder_rows
+			)
+		)
+	)
+);
+$reminder_assignee_lookup = array();
+foreach ( $reminder_assignee_ids as $assignee_id ) {
+	$assignee = get_userdata( (int) $assignee_id );
+	if ( $assignee instanceof WP_User ) {
+		$reminder_assignee_lookup[ (int) $assignee_id ] = $assignee;
+	}
+}
 if ( $deal_edit_id > 0 ) {
 	foreach ( $deals as $deal_row ) {
 		if ( (int) ( $deal_row['id'] ?? 0 ) === $deal_edit_id ) {
@@ -613,9 +641,99 @@ peracrm_frontend_render_shell_header();
               <div class="crm-section__body">
                 <div class="crm-client-next-step">
                   <div class="crm-client-next-step__item"><span class="crm-client-next-step__label"><?php esc_html_e( 'Overdue', 'peracrm' ); ?></span><strong><?php echo esc_html( (string) $overdue_reminders ); ?></strong></div>
-                  <div class="crm-client-next-step__item"><span class="crm-client-next-step__label"><?php esc_html_e( 'Due today', 'peracrm' ); ?></span><strong><?php echo esc_html( (string) count( $today_reminders ) ); ?></strong></div>
+                  <div class="crm-client-next-step__item"><span class="crm-client-next-step__label"><?php esc_html_e( 'Upcoming', 'peracrm' ); ?></span><strong><?php echo esc_html( (string) count( $upcoming_rows ) ); ?></strong></div>
                   <div class="crm-client-next-step__item crm-client-next-step__item--focus"><span class="crm-client-next-step__label"><?php esc_html_e( 'Next step', 'peracrm' ); ?></span><p><?php echo esc_html( $next_step_label ); ?></p></div>
                 </div>
+
+                <?php if ( empty( $active_reminder_rows ) ) : ?>
+                  <p><?php esc_html_e( 'No active reminders for this client.', 'peracrm' ); ?></p>
+                <?php else : ?>
+                <div class="crm-client-reminders-grid" data-crm-reminders-list>
+                  <section>
+                    <p class="pill"><?php esc_html_e( 'Overdue', 'peracrm' ); ?></p>
+                    <?php if ( empty( $overdue_task_rows ) ) : ?>
+                      <p class="text-sm"><?php esc_html_e( 'No overdue reminders.', 'peracrm' ); ?></p>
+                    <?php else : ?>
+                    <ul class="crm-list">
+                      <?php foreach ( $overdue_task_rows as $reminder_row ) : ?>
+                        <?php
+                        $reminder_id       = (int) ( $reminder_row['id'] ?? 0 );
+                        $reminder_note     = trim( (string) ( $reminder_row['note'] ?? '' ) );
+                        $reminder_summary  = '' !== $reminder_note ? wp_trim_words( $reminder_note, 16, '…' ) : sprintf( __( 'Reminder #%d', 'peracrm' ), $reminder_id );
+                        $reminder_due      = (string) ( $reminder_row['due_display'] ?? '' );
+                        $reminder_status   = sanitize_key( (string) ( $reminder_row['status'] ?? 'pending' ) );
+                        $status_label      = ucfirst( str_replace( '_', ' ', $reminder_status ) );
+                        $assignee_id       = (int) ( $reminder_row['advisor_user_id'] ?? 0 );
+                        $assignee_user     = $reminder_assignee_lookup[ $assignee_id ] ?? null;
+                        $assignee_label    = $assignee_user instanceof WP_User ? (string) $assignee_user->display_name : __( 'Unassigned', 'peracrm' );
+                        ?>
+                        <li>
+                          <p><strong><?php echo esc_html( $reminder_summary ); ?></strong></p>
+                          <small><?php echo esc_html( sprintf( __( 'Due: %s', 'peracrm' ), '' !== $reminder_due ? $reminder_due : '—' ) ); ?></small>
+                          <small><?php echo esc_html( sprintf( __( 'Status: %s', 'peracrm' ), '' !== $status_label ? $status_label : __( 'Pending', 'peracrm' ) ) ); ?></small>
+                          <small><?php echo esc_html( sprintf( __( 'Assigned: %s', 'peracrm' ), $assignee_label ) ); ?></small>
+                          <?php if ( $reminder_id > 0 ) : ?>
+                          <div class="crm-task-action">
+                            <form method="post" action="<?php echo esc_url( home_url( '/wp-admin/admin-post.php' ) ); ?>">
+                              <?php wp_nonce_field( 'peracrm_update_reminder_status', 'peracrm_update_reminder_status_nonce' ); ?>
+                              <input type="hidden" name="action" value="peracrm_update_reminder_status" />
+                              <input type="hidden" name="peracrm_reminder_id" value="<?php echo esc_attr( (string) $reminder_id ); ?>" />
+                              <input type="hidden" name="peracrm_status" value="done" />
+                              <input type="hidden" name="peracrm_context" value="frontend" />
+                              <input type="hidden" name="peracrm_redirect" value="<?php echo esc_url( $frontend_url ); ?>" />
+                              <button type="submit" class="btn btn--ghost btn--blue"><?php esc_html_e( 'Mark done', 'peracrm' ); ?></button>
+                            </form>
+                          </div>
+                          <?php endif; ?>
+                        </li>
+                      <?php endforeach; ?>
+                    </ul>
+                    <?php endif; ?>
+                  </section>
+
+                  <section>
+                    <p class="pill"><?php esc_html_e( 'Upcoming', 'peracrm' ); ?></p>
+                    <?php if ( empty( $upcoming_rows ) ) : ?>
+                      <p class="text-sm"><?php esc_html_e( 'No upcoming reminders.', 'peracrm' ); ?></p>
+                    <?php else : ?>
+                    <ul class="crm-list">
+                      <?php foreach ( $upcoming_rows as $reminder_row ) : ?>
+                        <?php
+                        $reminder_id       = (int) ( $reminder_row['id'] ?? 0 );
+                        $reminder_note     = trim( (string) ( $reminder_row['note'] ?? '' ) );
+                        $reminder_summary  = '' !== $reminder_note ? wp_trim_words( $reminder_note, 16, '…' ) : sprintf( __( 'Reminder #%d', 'peracrm' ), $reminder_id );
+                        $reminder_due      = (string) ( $reminder_row['due_display'] ?? '' );
+                        $reminder_status   = sanitize_key( (string) ( $reminder_row['status'] ?? 'pending' ) );
+                        $status_label      = ucfirst( str_replace( '_', ' ', $reminder_status ) );
+                        $assignee_id       = (int) ( $reminder_row['advisor_user_id'] ?? 0 );
+                        $assignee_user     = $reminder_assignee_lookup[ $assignee_id ] ?? null;
+                        $assignee_label    = $assignee_user instanceof WP_User ? (string) $assignee_user->display_name : __( 'Unassigned', 'peracrm' );
+                        ?>
+                        <li>
+                          <p><strong><?php echo esc_html( $reminder_summary ); ?></strong></p>
+                          <small><?php echo esc_html( sprintf( __( 'Due: %s', 'peracrm' ), '' !== $reminder_due ? $reminder_due : '—' ) ); ?></small>
+                          <small><?php echo esc_html( sprintf( __( 'Status: %s', 'peracrm' ), '' !== $status_label ? $status_label : __( 'Pending', 'peracrm' ) ) ); ?></small>
+                          <small><?php echo esc_html( sprintf( __( 'Assigned: %s', 'peracrm' ), $assignee_label ) ); ?></small>
+                          <?php if ( $reminder_id > 0 ) : ?>
+                          <div class="crm-task-action">
+                            <form method="post" action="<?php echo esc_url( home_url( '/wp-admin/admin-post.php' ) ); ?>">
+                              <?php wp_nonce_field( 'peracrm_update_reminder_status', 'peracrm_update_reminder_status_nonce' ); ?>
+                              <input type="hidden" name="action" value="peracrm_update_reminder_status" />
+                              <input type="hidden" name="peracrm_reminder_id" value="<?php echo esc_attr( (string) $reminder_id ); ?>" />
+                              <input type="hidden" name="peracrm_status" value="done" />
+                              <input type="hidden" name="peracrm_context" value="frontend" />
+                              <input type="hidden" name="peracrm_redirect" value="<?php echo esc_url( $frontend_url ); ?>" />
+                              <button type="submit" class="btn btn--ghost btn--blue"><?php esc_html_e( 'Mark done', 'peracrm' ); ?></button>
+                            </form>
+                          </div>
+                          <?php endif; ?>
+                        </li>
+                      <?php endforeach; ?>
+                    </ul>
+                    <?php endif; ?>
+                  </section>
+                </div>
+                <?php endif; ?>
               </div>
               <div class="crm-section__footer">
                 <form id="crm-add-reminder" method="post" action="<?php echo esc_url( home_url( '/wp-admin/admin-post.php' ) ); ?>" class="crm-form-stack" data-crm-ajax-form="reminder">
