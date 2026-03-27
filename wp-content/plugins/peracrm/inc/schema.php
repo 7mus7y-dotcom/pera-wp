@@ -61,11 +61,13 @@ function peracrm_upgrade_schema_to($target_version, $installed_version = 0)
             due_at DATETIME NOT NULL,
             status VARCHAR(20) NOT NULL DEFAULT 'pending',
             note TEXT NULL,
+            push_due_sent_at DATETIME NULL,
             created_at DATETIME NOT NULL,
             updated_at DATETIME NULL,
             PRIMARY KEY  (id),
             KEY advisor_due_status (advisor_user_id, status, due_at),
-            KEY client_status_due (client_id, status, due_at)
+            KEY client_status_due (client_id, status, due_at),
+            KEY due_push_queue (status, push_due_sent_at, due_at)
         ) {$charset_collate};";
 
         $sql_activity = "CREATE TABLE {$activity_table} (

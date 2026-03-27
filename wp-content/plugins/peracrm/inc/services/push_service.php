@@ -88,6 +88,129 @@ function peracrm_push_default_click_url()
     return (string) apply_filters('peracrm_push_click_url', '/crm/tasks/');
 }
 
+function peracrm_push_daily_overdue_meta_key()
+{
+    return 'peracrm_push_daily_overdue_ymd';
+}
+
+function peracrm_push_local_ymd($timestamp = null)
+{
+    $timestamp = $timestamp !== null ? (int) $timestamp : (int) current_time('timestamp');
+
+    return wp_date('Ymd', $timestamp, wp_timezone());
+}
+
+function peracrm_push_reminders_open_status()
+{
+    if (function_exists('pera_crm_reminders_open_status')) {
+        $status = sanitize_key((string) pera_crm_reminders_open_status());
+        if ($status !== '') {
+            return $status;
+        }
+    }
+
+    return 'pending';
+}
+
+function peracrm_push_count_overdue_for_user($user_id)
+{
+    global $wpdb;
+
+    $user_id = absint($user_id);
+    if ($user_id <= 0 || !function_exists('peracrm_reminders_table_exists') || !peracrm_reminders_table_exists()) {
+        return 0;
+    }
+
+    $table = peracrm_table('crm_reminders');
+    $now = current_time('mysql');
+    $open_status = peracrm_push_reminders_open_status();
+    $query = $wpdb->prepare(
+        "SELECT COUNT(*) FROM {$table}
+         WHERE advisor_user_id = %d
+           AND status = %s
+           AND due_at < %s",
+        $user_id,
+        $open_status,
+        $now
+    );
+
+    return max(0, (int) $wpdb->get_var($query));
+}
+
+function peracrm_push_maybe_send_daily_overdue_summary($user_id = 0)
+{
+    $user_id = $user_id ? absint($user_id) : get_current_user_id();
+    if ($user_id <= 0 || !peracrm_push_is_configured()) {
+        return [
+            'sent' => false,
+            'reason' => 'not_eligible',
+            'overdue_count' => 0,
+        ];
+    }
+
+    return peracrm_push_in_target_blog(static function () use ($user_id) {
+        $today = peracrm_push_local_ymd();
+        $meta_key = peracrm_push_daily_overdue_meta_key();
+        $already_sent = sanitize_text_field((string) get_user_meta($user_id, $meta_key, true));
+        if ($already_sent === $today) {
+            return [
+                'sent' => false,
+                'reason' => 'already_sent_today',
+                'overdue_count' => 0,
+            ];
+        }
+
+        $subscriptions = peracrm_push_list_user_subscriptions($user_id);
+        if (empty($subscriptions)) {
+            return [
+                'sent' => false,
+                'reason' => 'no_subs',
+                'overdue_count' => 0,
+            ];
+        }
+
+        $overdue_count = peracrm_push_count_overdue_for_user($user_id);
+        if ($overdue_count <= 0) {
+            return [
+                'sent' => false,
+                'reason' => 'no_overdue',
+                'overdue_count' => 0,
+            ];
+        }
+
+        $payload = [
+            'type' => 'crm_overdue_daily_summary',
+            'title' => 'Overdue reminders',
+            'body' => sprintf('You have %d overdue tasks.', $overdue_count),
+            'overdue_count' => $overdue_count,
+            'click_url' => peracrm_push_default_click_url(),
+        ];
+
+        $results = peracrm_push_send_to_user($user_id, $payload, [
+            'payload_type' => 'overdue_daily_summary',
+            'window_key' => $today,
+        ]);
+
+        $has_success = false;
+        foreach ($results as $result) {
+            if (!empty($result['ok'])) {
+                $has_success = true;
+                break;
+            }
+        }
+
+        if ($has_success) {
+            update_user_meta($user_id, $meta_key, $today);
+        }
+
+        return [
+            'sent' => $has_success,
+            'reason' => $has_success ? 'sent' : 'send_failed',
+            'overdue_count' => $overdue_count,
+        ];
+    });
+}
+
 function peracrm_push_normalize_subscription($subscription, $user_agent = '')
 {
     if (!is_array($subscription)) {
@@ -593,6 +716,79 @@ function peracrm_push_get_digest_decision($advisor_user_id, $pending_count, $ove
     ];
 }
 
+function peracrm_push_reminders_table_columns()
+{
+    global $wpdb;
+
+    static $cache = null;
+    if (is_array($cache)) {
+        return $cache;
+    }
+
+    $cache = [];
+    if (!function_exists('peracrm_reminders_table_exists') || !peracrm_reminders_table_exists()) {
+        return $cache;
+    }
+
+    $table = peracrm_table('crm_reminders');
+    $rows = (array) $wpdb->get_results("SHOW COLUMNS FROM {$table}", ARRAY_A);
+    foreach ($rows as $row) {
+        $field = isset($row['Field']) ? sanitize_key((string) $row['Field']) : '';
+        if ($field !== '') {
+            $cache[$field] = true;
+        }
+    }
+
+    return $cache;
+}
+
+function peracrm_push_reminders_has_due_sent_column()
+{
+    $columns = peracrm_push_reminders_table_columns();
+
+    return isset($columns['push_due_sent_at']);
+}
+
+function peracrm_push_mark_due_sent($reminder_id, $sent_at_mysql = '')
+{
+    global $wpdb;
+
+    $reminder_id = absint($reminder_id);
+    if ($reminder_id <= 0 || !peracrm_push_reminders_has_due_sent_column()) {
+        return false;
+    }
+
+    $sent_at_mysql = sanitize_text_field((string) $sent_at_mysql);
+    if ($sent_at_mysql === '') {
+        $sent_at_mysql = current_time('mysql');
+    }
+
+    $table = peracrm_table('crm_reminders');
+    $updated = $wpdb->update(
+        $table,
+        ['push_due_sent_at' => $sent_at_mysql],
+        ['id' => $reminder_id],
+        ['%s'],
+        ['%d']
+    );
+
+    return $updated !== false;
+}
+
+function peracrm_push_due_reminder_body($reminder)
+{
+    $note = isset($reminder['note']) ? trim(wp_strip_all_tags((string) $reminder['note'])) : '';
+    if ($note !== '') {
+        if (function_exists('mb_substr')) {
+            return mb_substr($note, 0, 140);
+        }
+
+        return substr($note, 0, 140);
+    }
+
+    return 'A task is now due.';
+}
+
 function peracrm_push_run_digest($args = [])
 {
     $args = is_array($args) ? $args : [];
@@ -611,13 +807,11 @@ function peracrm_push_run_digest($args = [])
         'advisor_decisions' => [],
         'skipped' => [
             'invalid_user' => 0,
-            'zero_pending' => 0,
             'no_subs' => 0,
-            'deduped' => 0,
             'not_configured' => 0,
             'table_missing' => 0,
             'send_error' => 0,
-            'status_mismatch' => 0,
+            'missing_due_sent_column' => 0,
         ],
     ];
 
@@ -649,164 +843,83 @@ function peracrm_push_run_digest($args = [])
             'force' => $force,
         ]);
 
-        $status_rows = (array) $wpdb->get_results(
-            "SELECT advisor_user_id, status, COUNT(*) AS status_count
-             FROM {$table}
-             GROUP BY advisor_user_id, status",
+        if (!peracrm_push_reminders_has_due_sent_column()) {
+            $summary['skipped']['missing_due_sent_column'] = 1;
+            return $summary;
+        }
+
+        $open_status = peracrm_push_reminders_open_status();
+        $rows = (array) $wpdb->get_results(
+            $wpdb->prepare(
+                "SELECT id, advisor_user_id, client_id, due_at, note
+                 FROM {$table}
+                 WHERE status = %s
+                   AND due_at <= %s
+                   AND (push_due_sent_at IS NULL OR push_due_sent_at = '' OR push_due_sent_at = '0000-00-00 00:00:00')
+                 ORDER BY due_at ASC, id ASC
+                 LIMIT %d",
+                $open_status,
+                $now,
+                200
+            ),
             ARRAY_A
         );
-        $status_by_advisor = [];
-        $live_statuses = [];
-        foreach ($status_rows as $status_row) {
-            $status_advisor_id = isset($status_row['advisor_user_id']) ? (int) $status_row['advisor_user_id'] : 0;
-            $status_key = isset($status_row['status']) ? sanitize_key((string) $status_row['status']) : '';
-            $status_count = isset($status_row['status_count']) ? (int) $status_row['status_count'] : 0;
-            if ($status_advisor_id <= 0 || $status_key === '' || $status_count <= 0) {
-                continue;
-            }
-
-            if (!in_array($status_key, $live_statuses, true)) {
-                $live_statuses[] = $status_key;
-            }
-
-            if (!isset($status_by_advisor[$status_advisor_id])) {
-                $status_by_advisor[$status_advisor_id] = [];
-            }
-            $status_by_advisor[$status_advisor_id][$status_key] = $status_count;
-        }
-
-        $status_filters = peracrm_push_digest_status_filters($live_statuses);
-        peracrm_push_digest_debug_log('status_filters', [
-            'status_filters' => $status_filters,
-        ]);
-
-        $histogram_logged = 0;
-        foreach ($status_by_advisor as $status_advisor_id => $status_counts) {
-            if ($histogram_logged >= 3) {
-                break;
-            }
-            peracrm_push_digest_debug_log('status_counts_histogram', [
-                'advisor_user_id' => $status_advisor_id,
-                'status_counts' => $status_counts,
-            ]);
-            $histogram_logged++;
-        }
-
-        foreach ($status_by_advisor as $status_advisor_id => $status_counts) {
-            $pending_in_statuses = 0;
-            foreach ($status_filters as $status_filter) {
-                $pending_in_statuses += isset($status_counts[$status_filter]) ? (int) $status_counts[$status_filter] : 0;
-            }
-            if ($pending_in_statuses > 0) {
-                continue;
-            }
-
-            $total_non_pending = array_sum($status_counts);
-            if ($total_non_pending <= 0) {
-                continue;
-            }
-
-            $summary['skipped']['status_mismatch']++;
-            peracrm_push_digest_debug_log('status_mismatch', [
-                'advisor_user_id' => $status_advisor_id,
-                'status_counts' => $status_counts,
-            ]);
-        }
-
-        $rows = [];
-        if (!empty($status_filters)) {
-            $status_placeholders = implode(', ', array_fill(0, count($status_filters), '%s'));
-            $rows_query = $wpdb->prepare(
-                "SELECT advisor_user_id,
-                        COUNT(*) AS pending_count,
-                        SUM(CASE WHEN due_at < %s THEN 1 ELSE 0 END) AS overdue_count
-                 FROM {$table}
-                 WHERE status IN ({$status_placeholders})
-                 GROUP BY advisor_user_id",
-                array_merge([$now], $status_filters)
-            );
-            if (is_string($rows_query) && $rows_query !== '') {
-                $rows = (array) $wpdb->get_results($rows_query, ARRAY_A);
-            }
-        }
 
         $summary['rows_considered'] = count($rows);
 
         foreach ($rows as $row) {
+            $reminder_id = isset($row['id']) ? (int) $row['id'] : 0;
             $advisor_user_id = isset($row['advisor_user_id']) ? (int) $row['advisor_user_id'] : 0;
-            $pending_count = isset($row['pending_count']) ? (int) $row['pending_count'] : 0;
-            $overdue_count = isset($row['overdue_count']) ? (int) $row['overdue_count'] : 0;
+            $client_id = isset($row['client_id']) ? (int) $row['client_id'] : 0;
 
-            if ($advisor_user_id <= 0) {
+            if ($reminder_id <= 0 || $advisor_user_id <= 0) {
                 $summary['skipped']['invalid_user']++;
                 continue;
             }
 
-            if ($pending_count <= 0) {
-                $summary['skipped']['zero_pending']++;
-                continue;
-            }
-
-            $decision = peracrm_push_get_digest_decision($advisor_user_id, $pending_count, $overdue_count, $window_key, $window_start, $force);
-            peracrm_push_digest_debug_log('advisor_row', [
-                'advisor_user_id' => $advisor_user_id,
-                'pending_count' => $pending_count,
-                'overdue_count' => $overdue_count,
-                'subs_count' => (int) ($decision['subs_count'] ?? 0),
-                'dedupe_meta_key' => (string) ($decision['dedupe_meta_key'] ?? ''),
-                'last_hash' => (string) ($decision['last_hash'] ?? ''),
-                'digest_hash' => (string) ($decision['new_hash'] ?? ''),
-                'decision' => (string) ($decision['decision'] ?? ''),
-                'reason' => (string) ($decision['reason'] ?? ''),
-                'force' => (bool) ($decision['force'] ?? false),
-            ]);
-            $decision_index = -1;
-            if (count($summary['advisor_decisions']) < 5) {
-                $decision_index = count($summary['advisor_decisions']);
-                $summary['advisor_decisions'][] = [
-                    'advisor_user_id' => $advisor_user_id,
-                    'pending_count' => $pending_count,
-                    'overdue_count' => $overdue_count,
-                    'subs_count' => (int) ($decision['subs_count'] ?? 0),
-                    'dedupe_meta_key' => (string) ($decision['dedupe_meta_key'] ?? ''),
-                    'last_hash' => (string) ($decision['last_hash'] ?? ''),
-                    'new_hash' => (string) ($decision['new_hash'] ?? ''),
-                    'decision' => (string) ($decision['decision'] ?? 'send'),
-                    'reason' => (string) ($decision['reason'] ?? ''),
-                ];
-            }
-
-            if (($decision['decision'] ?? '') === 'no_subs') {
+            $subscriptions = peracrm_push_list_user_subscriptions($advisor_user_id);
+            if (empty($subscriptions)) {
                 $summary['skipped']['no_subs']++;
-                peracrm_push_digest_debug_log('skip_no_subs', [
-                    'advisor_user_id' => $advisor_user_id,
-                    'pending_count' => $pending_count,
-                ]);
                 continue;
             }
 
-            if (($decision['decision'] ?? '') === 'deduped') {
-                $summary['skipped']['deduped']++;
-                peracrm_push_digest_debug_log('skip_deduped', [
-                    'advisor_user_id' => $advisor_user_id,
-                    'dedupe_meta_key' => (string) ($decision['dedupe_meta_key'] ?? ''),
-                    'last_hash' => (string) ($decision['last_hash'] ?? ''),
-                    'digest_hash' => (string) ($decision['new_hash'] ?? ''),
-                ]);
-                continue;
+            $click_url = peracrm_push_default_click_url();
+            if ($client_id > 0 && function_exists('pera_crm_get_client_view_url')) {
+                $click_url = (string) pera_crm_get_client_view_url($client_id);
             }
 
             $payload = [
-                'type' => 'crm_reminder_digest',
-                'title' => 'PeraCRM',
-                'body' => sprintf('You have %d pending reminders (%d overdue).', $pending_count, $overdue_count),
-                'pending_count' => $pending_count,
-                'overdue_count' => $overdue_count,
-                'click_url' => peracrm_push_default_click_url(),
+                'type' => 'crm_reminder_due',
+                'title' => 'Reminder due',
+                'body' => peracrm_push_due_reminder_body($row),
+                'reminder_id' => $reminder_id,
+                'client_id' => $client_id,
+                'click_url' => $click_url !== '' ? $click_url : peracrm_push_default_click_url(),
             ];
 
+            peracrm_push_digest_debug_log('due_row', [
+                'reminder_id' => $reminder_id,
+                'advisor_user_id' => $advisor_user_id,
+                'client_id' => $client_id,
+                'due_at' => isset($row['due_at']) ? (string) $row['due_at'] : '',
+                'subs_count' => count($subscriptions),
+            ]);
+
+            $decision_index = -1;
+            if (count($summary['advisor_decisions']) < 10) {
+                $decision_index = count($summary['advisor_decisions']);
+                $summary['advisor_decisions'][] = [
+                    'reminder_id' => $reminder_id,
+                    'advisor_user_id' => $advisor_user_id,
+                    'client_id' => $client_id,
+                    'subs_count' => count($subscriptions),
+                    'decision' => 'send',
+                    'reason' => 'eligible_due',
+                ];
+            }
+
             $results = peracrm_push_send_to_user($advisor_user_id, $payload, [
-                'payload_type' => 'digest',
+                'payload_type' => 'due_once',
                 'window_key' => $window_key,
             ]);
 
@@ -844,21 +957,18 @@ function peracrm_push_run_digest($args = [])
             }
 
             if ($has_success) {
-                update_user_meta($advisor_user_id, (string) ($decision['dedupe_meta_key'] ?? ''), (string) ($decision['new_hash'] ?? ''));
+                peracrm_push_mark_due_sent($reminder_id, current_time('mysql'));
                 peracrm_push_digest_debug_log('sent', [
                     'advisor_user_id' => $advisor_user_id,
+                    'reminder_id' => $reminder_id,
                     'attempted' => count($results),
-                    'forced' => (bool) ($decision['force'] ?? false),
                 ]);
                 if ($decision_index >= 0) {
                     $summary['advisor_decisions'][$decision_index]['decision'] = 'sent';
                 }
             } else {
-                if (count($results) === 0) {
-                    $summary['skipped']['no_subs']++;
-                }
                 if ($decision_index >= 0) {
-                    $summary['advisor_decisions'][$decision_index]['decision'] = count($results) > 0 ? 'send_error' : 'no_subs';
+                    $summary['advisor_decisions'][$decision_index]['decision'] = 'send_error';
                 }
             }
         }
@@ -1054,6 +1164,29 @@ function peracrm_push_run_digest_for_current_window($force = false)
 {
     return peracrm_push_run_digest(['force' => (bool) $force]);
 }
+
+function peracrm_push_maybe_run_session_daily_overdue_summary()
+{
+    if (!is_user_logged_in()) {
+        return;
+    }
+
+    if (!function_exists('pera_is_crm_route') || !pera_is_crm_route()) {
+        return;
+    }
+
+    $user_id = get_current_user_id();
+    if ($user_id <= 0) {
+        return;
+    }
+
+    if (!current_user_can('edit_crm_clients') && !current_user_can('manage_options')) {
+        return;
+    }
+
+    peracrm_push_maybe_send_daily_overdue_summary($user_id);
+}
+add_action('template_redirect', 'peracrm_push_maybe_run_session_daily_overdue_summary', 30);
 
 function peracrm_push_handle_send_test()
 {
