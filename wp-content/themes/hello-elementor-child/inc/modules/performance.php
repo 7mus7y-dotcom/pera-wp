@@ -93,3 +93,53 @@ add_filter( 'script_loader_tag', function ( $tag, $handle ) {
 
   return str_replace( ' src=', ' defer src=', $tag );
 }, 10, 2 );
+
+/**
+ * Front-end cache header hardening for auth-sensitive header UI.
+ *
+ * Why:
+ * - Home contains server-rendered staff/admin UI (admin bar + CRM controls).
+ * - Long-lived browser disk cache can replay anonymous HTML after login.
+ *
+ * Policy:
+ * - Logged-in front-end responses: private + no-store/no-cache.
+ * - Homepage for guests: short browser lifetime + Vary: Cookie to avoid
+ *   auth-state cache confusion while keeping guest performance reasonable.
+ */
+add_action( 'send_headers', function (): void {
+  if ( is_admin() || wp_doing_ajax() || ( defined( 'REST_REQUEST' ) && REST_REQUEST ) ) {
+    return;
+  }
+
+  if ( headers_sent() ) {
+    return;
+  }
+
+  $is_homepage = is_front_page() || is_page_template( 'home-page.php' ) || ( is_home() && ! is_front_page() );
+
+  if ( is_user_logged_in() ) {
+    if ( ! defined( 'DONOTCACHEPAGE' ) ) {
+      define( 'DONOTCACHEPAGE', true );
+    }
+
+    $nocache = wp_get_nocache_headers();
+    foreach ( $nocache as $name => $value ) {
+      if ( ! empty( $name ) && null !== $value ) {
+        header( $name . ': ' . $value, true );
+      }
+    }
+
+    header( 'Cache-Control: private, no-store, no-cache, must-revalidate, max-age=0', true );
+    header( 'Pragma: no-cache', true );
+    header( 'Expires: Wed, 11 Jan 1984 05:00:00 GMT', true );
+    header( 'Vary: Cookie', false );
+    return;
+  }
+
+  if ( $is_homepage ) {
+    // Keep guest caching but prevent month-long stale homepage HTML reuse.
+    header( 'Cache-Control: public, max-age=300, must-revalidate', true );
+    header( 'Expires: ' . gmdate( 'D, d M Y H:i:s', time() + 300 ) . ' GMT', true );
+    header( 'Vary: Cookie', false );
+  }
+}, 20 );
