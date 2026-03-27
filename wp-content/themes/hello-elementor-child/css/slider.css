@@ -375,7 +375,6 @@
 }
 
 .home-special-offers .slider-card {
-  flex: 0 0 calc((100% - 16px) / 2);
   max-width: calc((100% - 16px) / 2);
 }
 
