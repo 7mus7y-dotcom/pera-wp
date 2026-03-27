@@ -4110,12 +4110,6 @@ body.crm-route #site-header.peracrm-shell-header.is-scrolled .peracrm-header-act
   border: 1px solid var(--border, #e8ecf2);
 }
 
-@media (max-width: 1200px) {
-  .crm-page--client-view .crm-client-detail-layout {
-    grid-template-columns: minmax(0, 1.15fr) minmax(0, 0.85fr);
-  }
-}
-
 @media (max-width: 1199px) {
   .crm-page--client-view .crm-summary-header__meta {
     gap: 6px 10px;
