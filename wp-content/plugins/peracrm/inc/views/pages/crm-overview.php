@@ -45,6 +45,13 @@ $notices       = is_array( $crm_dashboard['notices'] ?? null ) ? $crm_dashboard[
 
 $crm_current_url    = home_url( wp_unslash( (string) ( $_SERVER['REQUEST_URI'] ?? '/crm/' ) ) );
 $new_lead_url       = home_url( '/crm/new/' );
+$overview_user_id   = function_exists( 'peracrm_get_effective_crm_user_id' ) ? (int) peracrm_get_effective_crm_user_id() : get_current_user_id();
+$new_leads_count    = ( ! $is_leads && ! $is_tasks && function_exists( 'pera_crm_count_new_leads_for_user' ) ) ? (int) pera_crm_count_new_leads_for_user( $overview_user_id, 72 ) : 0;
+$new_leads_url      = add_query_arg(
+	'new_leads',
+	'1',
+	home_url( '/crm/clients/' )
+);
 $overview_task_cap  = 8;
 $push_notice_key    = isset( $_GET['peracrm_push_notice'] ) ? sanitize_key( wp_unslash( (string) $_GET['peracrm_push_notice'] ) ) : '';
 $push_notice_text   = '';
@@ -169,6 +176,10 @@ peracrm_frontend_render_shell_header();
 	  'stages'      => $stages,
 	  'advisors'    => $advisors,
 	  'clients_type_view' => $clients_type_view,
+	  'new_leads_summary'  => ! $is_leads && ! $is_tasks ? array(
+		  'count' => $new_leads_count,
+		  'url'   => $new_leads_url,
+	  ) : array(),
   );
 
   if ( function_exists( 'peracrm_frontend_render_partial' ) ) {
