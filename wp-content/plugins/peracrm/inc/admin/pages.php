@@ -155,7 +155,7 @@ function peracrm_render_my_reminders_page()
         wp_die('Unauthorized');
     }
 
-    echo '<div class="wrap">';
+    echo '<div class="wrap peracrm-my-reminders-page">';
     echo '<h1>My Reminders</h1>';
 
     $advisor_id = get_current_user_id();
@@ -221,7 +221,7 @@ function peracrm_render_my_reminders_page()
         }
     }
 
-    echo '<form method="get" class="peracrm-filters">';
+    echo '<form method="get" class="peracrm-filters peracrm-my-reminders-filters">';
     echo '<input type="hidden" name="post_type" value="crm_client" />';
     echo '<input type="hidden" name="page" value="peracrm-my-reminders" />';
     echo '<label for="peracrm-filter-status" class="screen-reader-text">Status</label>';
@@ -288,7 +288,7 @@ function peracrm_render_my_reminders_page()
         );
     }
     echo '</select>';
-    echo '<button type="submit" class="button">Filter</button>';
+    echo '<button type="submit" class="button button-primary">Filter</button>';
     echo '</form>';
 
     if (empty($reminders)) {
@@ -310,7 +310,8 @@ function peracrm_render_my_reminders_page()
         admin_url('edit.php')
     );
 
-    echo '<table class="widefat fixed striped">';
+    echo '<div class="peracrm-my-reminders-table-wrap">';
+    echo '<table class="widefat fixed striped peracrm-my-reminders-table">';
     echo '<thead><tr><th>Due</th><th>Client</th><th>Note</th><th>Status</th><th>Actions</th></tr></thead>';
     echo '<tbody>';
     foreach ($reminders as $reminder) {
@@ -322,18 +323,19 @@ function peracrm_render_my_reminders_page()
         $status_label = ucfirst($reminder['status']);
 
         echo '<tr>';
-        echo '<td>' . esc_html($due_at) . '</td>';
-        echo '<td>';
+        echo '<td data-col-label="Due">' . esc_html($due_at) . '</td>';
+        echo '<td data-col-label="Client">';
         if ($client_link) {
             echo '<a href="' . esc_url($client_link) . '">' . esc_html($client_title) . '</a>';
         } else {
             echo esc_html($client_title);
         }
         echo '</td>';
-        echo '<td>' . esc_html($note) . '</td>';
-        echo '<td>' . esc_html($status_label) . '</td>';
-        echo '<td>';
+        echo '<td data-col-label="Note">' . esc_html($note) . '</td>';
+        echo '<td data-col-label="Status">' . esc_html($status_label) . '</td>';
+        echo '<td data-col-label="Actions">';
         if ($reminder['status'] === 'pending') {
+            echo '<div class="peracrm-my-reminders-actions">';
             echo '<form method="post" action="' . esc_url(admin_url('admin-post.php')) . '" class="peracrm-inline-form">';
             wp_nonce_field('peracrm_update_reminder_status');
             echo '<input type="hidden" name="action" value="peracrm_update_reminder_status" />';
@@ -350,6 +352,7 @@ function peracrm_render_my_reminders_page()
             echo '<input type="hidden" name="peracrm_redirect" value="' . esc_url($current_url) . '" />';
             echo '<button type="submit" class="button">Dismiss</button>';
             echo '</form>';
+            echo '</div>';
         } else {
             echo '—';
         }
@@ -357,6 +360,7 @@ function peracrm_render_my_reminders_page()
         echo '</tr>';
     }
     echo '</tbody></table>';
+    echo '</div>';
 
     $total_pages = (int) ceil($total / $per_page);
     if ($total_pages > 1) {
