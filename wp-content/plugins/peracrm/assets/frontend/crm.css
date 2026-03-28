@@ -1799,9 +1799,13 @@ body.crm-route .crm-page--client-view .crm-portfolio-actions .peracrm-linked-pro
     padding: 12px 0;
   }
 
-  .crm-page .grid-3 {
+  .crm-page--overview .grid-3 {
     grid-template-columns: minmax(0, 1fr);
     gap: 8px;
+  }
+
+  .crm-page--overview .grid-3 > * {
+    min-width: 0;
   }
 
   .crm-page--tasks .section + .section,
