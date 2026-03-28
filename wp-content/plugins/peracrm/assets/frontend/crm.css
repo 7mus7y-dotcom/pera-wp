@@ -1118,10 +1118,9 @@ body.crm-route .crm-page--client-view .crm-portfolio-actions .peracrm-linked-pro
 }
 
 .crm-page--pipeline .crm-pipeline-item__topline {
-  display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  gap: 8px;
+  display: grid;
+  gap: 6px;
+  justify-items: start;
 }
 
 .crm-page--pipeline .crm-pipeline-item h3 {
