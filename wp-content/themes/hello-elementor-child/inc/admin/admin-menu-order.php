@@ -8,7 +8,7 @@ if ( ! function_exists( 'pera_admin_enable_custom_menu_order' ) ) {
 	 * Child theme owns site-wide wp-admin menu presentation preferences.
 	 */
 	function pera_admin_enable_custom_menu_order( $enabled ): bool {
-		return true;
+		return current_user_can( 'manage_options' );
 	}
 }
 add_filter( 'custom_menu_order', 'pera_admin_enable_custom_menu_order' );
@@ -18,10 +18,11 @@ if ( ! function_exists( 'pera_admin_reorder_menu_items' ) ) {
 	 * Promote key top-level items, then append everything else as-is.
 	 *
 	 * Targeted slugs:
+	 * - Dashboard: index.php
 	 * - My properties: edit.php?post_type=property
 	 * - Pera portal: pera-portal
-	 * - Posts: edit.php
 	 * - CRM clients: edit.php?post_type=crm_client
+	 * - Posts: edit.php
 	 * - WhatsApp logs: pera-whatsapp-logs
 	 * - Emails: pera-enquiry-email-log
 	 *
@@ -31,15 +32,16 @@ if ( ! function_exists( 'pera_admin_reorder_menu_items' ) ) {
 	 * @return array<int,string>
 	 */
 	function pera_admin_reorder_menu_items( array $menu_order ): array {
-		if ( empty( $menu_order ) ) {
+		if ( empty( $menu_order ) || ! current_user_can( 'manage_options' ) ) {
 			return $menu_order;
 		}
 
 		$priority = array(
+			'index.php',
 			'edit.php?post_type=property',
 			'pera-portal',
-			'edit.php',
 			'edit.php?post_type=crm_client',
+			'edit.php',
 			'pera-whatsapp-logs',
 			'pera-enquiry-email-log',
 		);

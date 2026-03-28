@@ -71,7 +71,7 @@ function peracrm_register_admin_menu()
     $whatsapp_hook = add_submenu_page(
         $parent_slug,
         'WhatsApp',
-        'WhatsApp',
+        'WhatsApp Integration',
         $capability,
         'peracrm-whatsapp',
         'peracrm_render_whatsapp_page'
