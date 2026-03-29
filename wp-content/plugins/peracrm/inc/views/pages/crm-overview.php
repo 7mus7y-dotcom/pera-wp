@@ -41,6 +41,7 @@ $pipeline_health_links = array(
 	'overdue_reminders' => home_url( '/crm/tasks/?filter=overdue' ),
 	'due_today'         => home_url( '/crm/tasks/?filter=today' ),
 	'new_leads_72h'     => home_url( '/crm/clients/?type=leads&filter=new72' ),
+	'unassigne_open'    => home_url( '/crm/clients/?type=leads&filter=unassigned' ),
 	'unassigned_open'   => home_url( '/crm/clients/?type=leads&filter=unassigned' ),
 	'stale_open'        => home_url( '/crm/clients/?type=leads&filter=stale' ),
 	'open_pipeline'     => home_url( '/crm/clients/?type=leads&filter=open_scope' ),
@@ -592,11 +593,11 @@ peracrm_frontend_render_shell_header();
 
       <div class="crm-list-workspace crm-list-workspace--grouped is-hidden" data-crm-view="cards">
         <?php if ( 'overdue' === $tasks_active_filter ) : ?>
-          <?php $render_task_rows( $outstanding, __( 'No overdue tasks.', 'peracrm' ), 'crm-tasks-outstanding-heading', __( 'Overdue tasks', 'peracrm' ), __( 'Resolve past-due follow-up before moving into the rest of the queue.', 'peracrm' ), $tasks_page_url, $show_assigned, 'urgent' ); ?>
+          <?php $render_task_rows( $task_rows, __( 'No overdue tasks.', 'peracrm' ), 'crm-tasks-outstanding-heading', __( 'Overdue tasks', 'peracrm' ), __( 'Resolve past-due follow-up before moving into the rest of the queue.', 'peracrm' ), $tasks_page_url, $show_assigned, 'urgent' ); ?>
         <?php elseif ( 'today' === $tasks_active_filter ) : ?>
-          <?php $render_task_rows( $today_rows, __( 'No tasks due today.', 'peracrm' ), 'crm-tasks-today-heading', __( "Today's tasks", 'peracrm' ), __( 'Today’s due work stays grouped separately so quick processing is easier on smaller screens.', 'peracrm' ), $tasks_page_url, $show_assigned ); ?>
+          <?php $render_task_rows( $task_rows, __( 'No tasks due today.', 'peracrm' ), 'crm-tasks-today-heading', __( "Today's tasks", 'peracrm' ), __( 'Today’s due work stays grouped separately so quick processing is easier on smaller screens.', 'peracrm' ), $tasks_page_url, $show_assigned ); ?>
         <?php elseif ( 'open' === $tasks_active_filter ) : ?>
-          <?php $render_task_rows( $task_rows_all, __( 'No open tasks found.', 'peracrm' ), 'crm-tasks-open-heading', __( 'Open tasks', 'peracrm' ), __( 'Showing the full open queue for this scope in a single list view section.', 'peracrm' ), $tasks_page_url, $show_assigned ); ?>
+          <?php $render_task_rows( $task_rows, __( 'No open tasks found.', 'peracrm' ), 'crm-tasks-open-heading', __( 'Open tasks', 'peracrm' ), __( 'Showing the full open queue for this scope in a single list view section.', 'peracrm' ), $tasks_page_url, $show_assigned ); ?>
         <?php else : ?>
           <?php $render_task_rows( $outstanding, __( 'No outstanding tasks.', 'peracrm' ), 'crm-tasks-outstanding-heading', __( 'Overdue tasks', 'peracrm' ), __( 'Resolve past-due follow-up before moving into the rest of the queue.', 'peracrm' ), $tasks_page_url, $show_assigned, 'urgent' ); ?>
           <?php $render_task_rows( $today_rows, __( 'No tasks due today.', 'peracrm' ), 'crm-tasks-today-heading', __( "Today's tasks", 'peracrm' ), __( 'Today’s due work stays grouped separately so quick processing is easier on smaller screens.', 'peracrm' ), $tasks_page_url, $show_assigned ); ?>
