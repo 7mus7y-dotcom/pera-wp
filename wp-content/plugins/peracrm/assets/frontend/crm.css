@@ -1306,6 +1306,35 @@ body.crm-route .crm-page--client-view .crm-portfolio-actions .peracrm-linked-pro
   background: #ffffff;
 }
 
+.crm-page--overview .crm-overview-health {
+  background: linear-gradient(180deg, #f5f9ff 0%, #ffffff 100%);
+}
+
+.crm-page--overview .crm-overview-health > .crm-section__body {
+  gap: 8px;
+}
+
+.crm-page--overview .crm-health-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.crm-page--overview .crm-health-card {
+  gap: 6px;
+}
+
+.crm-page--overview .crm-health-card h3 {
+  margin: 6px 0 4px;
+}
+
+.crm-page--overview .crm-health-card__meta {
+  margin: 0;
+  color: var(--text-soft, #4b5563);
+  font-size: 0.8rem;
+  line-height: 1.35;
+}
+
 .crm-page--overview .crm-overview-note {
   display: grid;
   gap: 8px;
@@ -1615,6 +1644,19 @@ body.crm-route .crm-page--client-view .crm-portfolio-actions .peracrm-linked-pro
     font-size: 1.35rem;
   }
 
+  .crm-page--overview .crm-health-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 10px;
+  }
+
+  .crm-page--overview .crm-health-card {
+    gap: 4px;
+  }
+
+  .crm-page--overview .crm-health-card__meta {
+    font-size: 0.76rem;
+  }
+
   .crm-overview-task-grid {
     grid-template-columns: 1fr;
   }
@@ -1849,6 +1891,10 @@ body.crm-route .crm-page--client-view .crm-portfolio-actions .peracrm-linked-pro
 
   .crm-page--overview .crm-kpi-card {
     padding: 9px;
+  }
+
+  .crm-page--overview .crm-health-grid {
+    gap: 8px;
   }
 
   .crm-page--pipeline .crm-pipeline-board {
