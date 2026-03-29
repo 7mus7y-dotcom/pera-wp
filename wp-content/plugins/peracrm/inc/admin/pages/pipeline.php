@@ -231,7 +231,8 @@ function peracrm_render_pipeline_page()
     } elseif (empty($recent_events)) {
         echo '<p>' . esc_html('No recent pipeline changes.') . '</p>';
     } else {
-        echo '<table class="widefat striped">';
+        echo '<div class="peracrm-pipeline-recent-table-wrap">';
+        echo '<table class="widefat striped peracrm-pipeline-recent-table">';
         echo '<thead><tr>';
         echo '<th>' . esc_html('Time') . '</th>';
         echo '<th>' . esc_html('Client') . '</th>';
@@ -318,6 +319,7 @@ function peracrm_render_pipeline_page()
             echo '</tr>';
         }
         echo '</tbody></table>';
+        echo '</div>';
     }
     echo '</div>';
 
