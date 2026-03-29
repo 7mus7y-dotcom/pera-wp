@@ -337,7 +337,6 @@
 
 .peracrm-my-reminders-table td {
   vertical-align: top;
-  white-space: nowrap;
 }
 
 .peracrm-my-reminders-table td:nth-child(3) {
