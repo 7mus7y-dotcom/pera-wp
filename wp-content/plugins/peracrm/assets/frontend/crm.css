@@ -1329,9 +1329,20 @@ a.crm-health-card {
   text-decoration: none;
 }
 
+a.crm-health-card:visited,
+a.crm-health-card:active {
+  color: inherit;
+  text-decoration: none;
+}
+
 a.crm-health-card:hover,
 a.crm-health-card:focus-visible {
   text-decoration: none;
+}
+
+a.crm-health-card:focus-visible {
+  outline: 2px solid var(--brand, #002d72);
+  outline-offset: 2px;
 }
 
 .crm-page--overview .crm-health-card__label {

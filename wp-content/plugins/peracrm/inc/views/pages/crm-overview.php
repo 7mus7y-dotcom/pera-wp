@@ -351,7 +351,7 @@ peracrm_frontend_render_shell_header();
               $metric_url = (string) ( $pipeline_health_links[ $metric_key ] ?? '' );
               ?>
               <?php if ( '' !== $metric_url ) : ?>
-              <a class="card-shell crm-health-card" href="<?php echo esc_url( $metric_url ); ?>">
+              <a class="card-shell crm-health-card" href="<?php echo esc_url( $metric_url ); ?>" aria-label="<?php echo esc_attr( sprintf( __( '%1$s: %2$d', 'peracrm' ), (string) ( $metric['label'] ?? '' ), (int) ( $metric['value'] ?? 0 ) ) ); ?>">
               <?php else : ?>
               <article class="card-shell crm-health-card">
               <?php endif; ?>
@@ -431,12 +431,14 @@ peracrm_frontend_render_shell_header();
 
 			<?php elseif ( $is_tasks ) : ?>
 			<?php
-			$task_rows      = is_array( $tasks_data['all'] ?? null ) ? $tasks_data['all'] : array();
+			$task_rows_all  = is_array( $tasks_data['all'] ?? null ) ? $tasks_data['all'] : array();
 			$today_rows     = is_array( $tasks_data['today'] ?? null ) ? $tasks_data['today'] : array();
 			$outstanding    = is_array( $tasks_data['outstanding'] ?? null ) ? $tasks_data['outstanding'] : array();
 			$upcoming       = is_array( $tasks_data['upcoming'] ?? null ) ? $tasks_data['upcoming'] : array();
-			$show_assigned  = ! empty( $task_rows ) && empty( $tasks_data['is_employee'] );
+			$active_rows    = is_array( $tasks_data['active_rows'] ?? null ) ? $tasks_data['active_rows'] : array();
 			$tasks_active_filter = sanitize_key( (string) ( $tasks_data['active_filter'] ?? '' ) );
+			$task_rows      = '' !== $tasks_active_filter ? $active_rows : $task_rows_all;
+			$show_assigned  = ! empty( $task_rows ) && empty( $tasks_data['is_employee'] );
 			$task_filter_labels  = array(
 				'overdue' => __( 'Overdue reminders', 'peracrm' ),
 				'today'   => __( 'Due today', 'peracrm' ),
@@ -508,7 +510,7 @@ peracrm_frontend_render_shell_header();
             <h2><?php echo esc_html__( 'Task workspace', 'peracrm' ); ?></h2>
             <p><?php echo esc_html__( 'Work from the table first on desktop, with grouped row lists available as a secondary responsive view.', 'peracrm' ); ?></p>
             <div class="crm-meta-line crm-list-workspace-toolbar__meta">
-              <span><strong><?php esc_html_e( 'Open:', 'peracrm' ); ?></strong> <?php echo esc_html( (string) count( $task_rows ) ); ?></span>
+              <span><strong><?php esc_html_e( 'Open:', 'peracrm' ); ?></strong> <?php echo esc_html( (string) count( $task_rows_all ) ); ?></span>
               <span><strong><?php esc_html_e( 'Overdue:', 'peracrm' ); ?></strong> <?php echo esc_html( (string) count( $outstanding ) ); ?></span>
               <span><strong><?php esc_html_e( 'Due today:', 'peracrm' ); ?></strong> <?php echo esc_html( (string) count( $today_rows ) ); ?></span>
               <?php if ( '' !== $tasks_active_filter && isset( $task_filter_labels[ $tasks_active_filter ] ) ) : ?>
@@ -589,9 +591,17 @@ peracrm_frontend_render_shell_header();
       </section>
 
       <div class="crm-list-workspace crm-list-workspace--grouped is-hidden" data-crm-view="cards">
-        <?php $render_task_rows( $outstanding, __( 'No outstanding tasks.', 'peracrm' ), 'crm-tasks-outstanding-heading', __( 'Overdue tasks', 'peracrm' ), __( 'Resolve past-due follow-up before moving into the rest of the queue.', 'peracrm' ), $tasks_page_url, $show_assigned, 'urgent' ); ?>
-        <?php $render_task_rows( $today_rows, __( 'No tasks due today.', 'peracrm' ), 'crm-tasks-today-heading', __( "Today's tasks", 'peracrm' ), __( 'Today’s due work stays grouped separately so quick processing is easier on smaller screens.', 'peracrm' ), $tasks_page_url, $show_assigned ); ?>
-        <?php $render_task_rows( $upcoming, __( 'No upcoming tasks.', 'peracrm' ), 'crm-tasks-upcoming-heading', __( 'Upcoming tasks', 'peracrm' ), __( 'Future reminders remain available as a calmer secondary queue.', 'peracrm' ), $tasks_page_url, $show_assigned ); ?>
+        <?php if ( 'overdue' === $tasks_active_filter ) : ?>
+          <?php $render_task_rows( $outstanding, __( 'No overdue tasks.', 'peracrm' ), 'crm-tasks-outstanding-heading', __( 'Overdue tasks', 'peracrm' ), __( 'Resolve past-due follow-up before moving into the rest of the queue.', 'peracrm' ), $tasks_page_url, $show_assigned, 'urgent' ); ?>
+        <?php elseif ( 'today' === $tasks_active_filter ) : ?>
+          <?php $render_task_rows( $today_rows, __( 'No tasks due today.', 'peracrm' ), 'crm-tasks-today-heading', __( "Today's tasks", 'peracrm' ), __( 'Today’s due work stays grouped separately so quick processing is easier on smaller screens.', 'peracrm' ), $tasks_page_url, $show_assigned ); ?>
+        <?php elseif ( 'open' === $tasks_active_filter ) : ?>
+          <?php $render_task_rows( $task_rows_all, __( 'No open tasks found.', 'peracrm' ), 'crm-tasks-open-heading', __( 'Open tasks', 'peracrm' ), __( 'Showing the full open queue for this scope in a single list view section.', 'peracrm' ), $tasks_page_url, $show_assigned ); ?>
+        <?php else : ?>
+          <?php $render_task_rows( $outstanding, __( 'No outstanding tasks.', 'peracrm' ), 'crm-tasks-outstanding-heading', __( 'Overdue tasks', 'peracrm' ), __( 'Resolve past-due follow-up before moving into the rest of the queue.', 'peracrm' ), $tasks_page_url, $show_assigned, 'urgent' ); ?>
+          <?php $render_task_rows( $today_rows, __( 'No tasks due today.', 'peracrm' ), 'crm-tasks-today-heading', __( "Today's tasks", 'peracrm' ), __( 'Today’s due work stays grouped separately so quick processing is easier on smaller screens.', 'peracrm' ), $tasks_page_url, $show_assigned ); ?>
+          <?php $render_task_rows( $upcoming, __( 'No upcoming tasks.', 'peracrm' ), 'crm-tasks-upcoming-heading', __( 'Upcoming tasks', 'peracrm' ), __( 'Future reminders remain available as a calmer secondary queue.', 'peracrm' ), $tasks_page_url, $show_assigned ); ?>
+        <?php endif; ?>
       </div>
 		<?php else : ?>
 			<?php
