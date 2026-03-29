@@ -4171,6 +4171,7 @@ body.crm-route #site-header.peracrm-shell-header.is-scrolled .peracrm-header-act
 
 .crm-page--client-view .content-panel-box {
   background: transparent;
+  border: 0;
   border-radius: 0;
   box-shadow: none;
   padding: 0;
