@@ -750,15 +750,14 @@ peracrm_frontend_render_shell_header();
               </div>
             </article>
 
-            <article class="crm-section crm-section--flush crm-client-related" data-client-id="<?php echo esc_attr( (string) $client_id ); ?>">
+            <article class="crm-section crm-section--flush crm-client-related crm-client-related--enquiries" data-client-id="<?php echo esc_attr( (string) $client_id ); ?>">
               <header class="crm-section__header">
                 <div class="crm-section__heading-group">
-                  <h3 class="crm-section__title"><?php esc_html_e( 'Related records', 'peracrm' ); ?></h3>
-                  <p class="crm-section__description"><?php esc_html_e( 'Keep properties, enquiries, deals, and portfolio tools grouped after the main workflow sections.', 'peracrm' ); ?></p>
+                  <h3 class="crm-section__title"><?php esc_html_e( 'Client enquiries', 'peracrm' ); ?></h3>
+                  <p class="crm-section__description"><?php esc_html_e( 'Review enquiry-linked properties from favourites and enquiry activity.', 'peracrm' ); ?></p>
                 </div>
               </header>
-              <section class="crm-client-subsection">
-                  <h4><?php esc_html_e( 'Client enquiries', 'peracrm' ); ?></h4>
+              <section class="crm-client-subsection crm-client-subsection--enquiries">
                   <?php foreach ( $property_groups as $relation => $items ) : if ( ! in_array( (string) $relation, $enquiry_relations, true ) ) { continue; } ?>
                     <div class="crm-inline-form"><h5><?php echo esc_html( ucfirst( (string) $relation ) ); ?></h5></div>
                     <?php if ( empty( $items ) ) : ?>
@@ -775,15 +774,17 @@ peracrm_frontend_render_shell_header();
                     <?php endif; ?>
                   <?php endforeach; ?>
               </section>
+            </article>
 
+            <article class="crm-section crm-section--flush crm-client-related crm-client-related--portfolio" data-client-id="<?php echo esc_attr( (string) $client_id ); ?>">
+              <header class="crm-section__header">
+                <div class="crm-section__heading-group">
+                  <h3 class="crm-section__title"><?php esc_html_e( 'Portfolio', 'peracrm' ); ?></h3>
+                  <p class="crm-section__description"><?php esc_html_e( 'Link properties, generate portfolio links, and maintain per-property portfolio details.', 'peracrm' ); ?></p>
+                </div>
+              </header>
               <section class="crm-client-subsection crm-linked-workspace" data-crm-linked-properties data-client-id="<?php echo esc_attr( (string) $client_id ); ?>" data-crm-panel="properties">
-                  <header class="crm-linked-workspace__header">
-                    <div class="crm-form-workspace__intro crm-form-workspace__intro--embedded">
-                      <h4><?php esc_html_e( 'Linked properties', 'peracrm' ); ?></h4>
-                      <p><?php esc_html_e( 'Add properties, manage portfolio links, and update per-property portfolio details in one workspace.', 'peracrm' ); ?></p>
-                    </div>
-                  </header>
-                  <div class="crm-linked-workspace__add card-shell">
+                  <div class="crm-linked-workspace__add">
                     <div class="crm-inline-form crm-inline-form--between">
                       <h5><?php esc_html_e( 'Link property', 'peracrm' ); ?></h5>
                     </div>
