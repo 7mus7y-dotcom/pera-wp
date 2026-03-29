@@ -3563,6 +3563,8 @@ body.crm-route {
   border-radius: 14px;
   padding: 12px;
   background: rgba(248, 250, 252, 0.9);
+  box-sizing: border-box;
+  min-width: 0;
 }
 
 .crm-page-header__new-leads-title {
