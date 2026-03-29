@@ -651,6 +651,11 @@
 
 .crm-page--client-view .crm-linked-workspace__add {
   gap: 12px;
+  display: grid;
+  padding: 12px;
+  border: 1px solid #e8ecf2;
+  border-radius: 12px;
+  background: #ffffff;
 }
 
 .crm-page--client-view .crm-linked-workspace__toolbar {
@@ -659,12 +664,13 @@
 }
 
 .crm-page--client-view .crm-linked-workspace__relation {
-  border: 1px solid #e8ecf2;
-  border-radius: 14px;
-  background: #fcfdff;
-  padding: 12px;
+  border: 0;
+  border-top: 1px solid #e6ebf2;
+  border-radius: 0;
+  background: transparent;
+  padding: 10px 0 0;
   display: grid;
-  gap: 12px;
+  gap: 10px;
 }
 
 .crm-page--client-view .crm-linked-workspace__relation-head {
@@ -672,13 +678,13 @@
 }
 
 .crm-page--client-view .crm-linked-workspace__portfolio-tools {
-  border: 1px solid #d9e4f5;
-  border-radius: 12px;
-  padding: 10px;
-  background: #f7faff;
+  border: 0;
+  border-radius: 0;
+  padding: 0;
+  background: transparent;
   display: grid;
   grid-template-columns: minmax(220px, 1fr) auto;
-  gap: 10px 12px;
+  gap: 8px 12px;
   align-items: end;
 }
 
@@ -708,18 +714,18 @@
   gap: 8px;
   margin: 0;
   min-width: 0;
-  padding: 10px;
+  padding: 8px;
   border: 1px solid #e8ecf2;
-  border-radius: 10px;
+  border-radius: 8px;
 }
 
 .crm-page--client-view .crm-linked-workspace .peracrm-linked-properties-grid {
-  grid-template-columns: repeat(auto-fit, minmax(340px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
 }
 
 .crm-page--client-view .crm-linked-workspace .peracrm-linked-properties-grid__item {
-  padding: 12px;
-  border-radius: 12px;
+  padding: 10px;
+  border-radius: 10px;
   background: #ffffff;
 }
 
@@ -732,12 +738,12 @@
 
 .crm-page--client-view .crm-linked-workspace [data-crm-portfolio-row] {
   display: grid;
-  gap: 10px;
+  gap: 8px;
 }
 
 .crm-page--client-view .crm-linked-workspace [data-crm-portfolio-fields].crm-form-row-2 {
   grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 10px;
+  gap: 8px;
 }
 
 .crm-page--client-view .crm-linked-workspace [data-crm-portfolio-fields] > label {
@@ -746,7 +752,7 @@
 
 .crm-page--client-view .crm-linked-workspace .peracrm-portfolio-actions {
   border-top: 1px solid #edf2f9;
-  padding-top: 10px;
+  padding-top: 8px;
 }
 
 /* Portfolio-only linked property card containment (CRM client view). */
@@ -831,8 +837,8 @@ body.crm-route .crm-page--client-view [data-crm-portfolio-row] .crm-portfolio-ac
 body.crm-route .crm-page--client-view [data-crm-portfolio-output] ~ .peracrm-linked-properties-grid .peracrm-portfolio-actions {
   display: flex;
   align-items: center;
-  gap: 10px;
-  margin-top: 10px;
+  gap: 8px;
+  margin-top: 8px;
 }
 
 body.crm-route .crm-page--client-view [data-crm-portfolio-row] .crm-portfolio-actions .crm-inline-status,
@@ -844,10 +850,10 @@ body.crm-route .crm-page--client-view .crm-icon-btn,
 body.crm-route .crm-page--client-view .peracrm-linked-property-unlink-btn,
 body.crm-route .crm-page--client-view [data-crm-portfolio-output] ~ .peracrm-linked-properties-grid .crm-icon-btn,
 body.crm-route .crm-page--client-view [data-crm-portfolio-output] ~ .peracrm-linked-properties-grid .peracrm-linked-property-unlink-btn.peracrm-portfolio-action-btn {
-  width: 40px;
-  height: 40px;
-  min-width: 40px;
-  min-height: 40px;
+  width: 34px;
+  height: 34px;
+  min-width: 34px;
+  min-height: 34px;
   padding: 0;
   border-radius: 999px;
   display: inline-flex;
@@ -875,6 +881,19 @@ body.crm-route .crm-page--client-view .crm-portfolio-actions .peracrm-linked-pro
 }
 
 @media (max-width: 767px) {
+  .crm-page--client-view .crm-client-related {
+    background: #ffffff;
+  }
+
+  .crm-page--client-view .crm-linked-workspace {
+    gap: 10px;
+  }
+
+  .crm-page--client-view .crm-linked-workspace__add {
+    padding: 10px;
+    border-radius: 10px;
+  }
+
   .crm-page--client-view .crm-linked-workspace__portfolio-tools {
     grid-template-columns: 1fr;
   }
@@ -885,6 +904,16 @@ body.crm-route .crm-page--client-view .crm-portfolio-actions .peracrm-linked-pro
 
   .crm-page--client-view .crm-linked-workspace [data-crm-portfolio-fields].crm-form-row-2 {
     grid-template-columns: 1fr;
+    gap: 6px;
+  }
+
+  .crm-page--client-view .crm-linked-workspace .peracrm-linked-properties-grid {
+    grid-template-columns: 1fr;
+    gap: 8px;
+  }
+
+  .crm-page--client-view .crm-linked-workspace .peracrm-linked-properties-grid__item {
+    padding: 8px;
   }
 }
 
@@ -4247,8 +4276,10 @@ body.crm-route #site-header.peracrm-shell-header.is-scrolled .peracrm-header-act
 }
 
 .crm-page--client-view .crm-client-related .crm-client-subsection {
-  background: #fcfcfd;
-  border-color: #eceff3;
+  background: transparent;
+  border: 0;
+  border-radius: 0;
+  padding: 0;
 }
 
 .crm-page--client-view .crm-client-deals {
