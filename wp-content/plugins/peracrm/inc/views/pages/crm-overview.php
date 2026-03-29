@@ -339,7 +339,7 @@ peracrm_frontend_render_shell_header();
             <div class="crm-health-grid" aria-label="<?php echo esc_attr__( 'CRM Pipeline Health', 'peracrm' ); ?>">
               <?php foreach ( $pipeline_health as $metric ) : ?>
               <article class="card-shell crm-health-card">
-                <p class="crm-chip crm-chip--neutral"><?php echo esc_html( (string) ( $metric['label'] ?? '' ) ); ?></p>
+                <p class="crm-health-card__label"><?php echo esc_html( (string) ( $metric['label'] ?? '' ) ); ?></p>
                 <h3><?php echo esc_html( (string) ( (int) ( $metric['value'] ?? 0 ) ) ); ?></h3>
                 <?php if ( ! empty( $metric['context'] ) ) : ?>
                 <p class="crm-health-card__meta"><?php echo esc_html( (string) $metric['context'] ); ?></p>

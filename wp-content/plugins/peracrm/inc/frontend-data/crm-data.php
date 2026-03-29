@@ -975,15 +975,14 @@ if ( ! function_exists( 'pera_crm_get_dashboard_data' ) ) {
 			$activity_data['rows']
 		);
 
-		$pipeline_health = array();
-		if ( function_exists( 'pera_crm_get_pipeline_health_metrics' ) ) {
-			$pipeline_health = pera_crm_get_pipeline_health_metrics(
-				$open_leads,
-				(int) $overdue_reminders,
-				count( $todays_tasks ),
-				(int) pera_crm_count_new_leads_for_user( 0, 72 )
-			);
-		}
+			$pipeline_health = array();
+			if ( function_exists( 'pera_crm_get_pipeline_health_metrics' ) ) {
+				$pipeline_health = pera_crm_get_pipeline_health_metrics(
+					(int) $overdue_reminders,
+					count( $todays_tasks ),
+					(int) pera_crm_count_new_leads_for_user( 0, 72 )
+				);
+			}
 
 		return array(
 			'kpis'          => $kpis,
@@ -1004,7 +1003,7 @@ if ( ! function_exists( 'pera_crm_get_pipeline_health_metrics' ) ) {
 	 *
 	 * @return array<int,array{key:string,label:string,value:int,context:string}>
 	 */
-	function pera_crm_get_pipeline_health_metrics( int $open_leads, int $overdue_reminders, int $due_today, int $new_leads_72h ): array {
+	function pera_crm_get_pipeline_health_metrics( int $overdue_reminders, int $due_today, int $new_leads_72h ): array {
 		$real_user_id          = get_current_user_id();
 		$effective_user_id     = function_exists( 'peracrm_get_effective_crm_user_id' ) ? peracrm_get_effective_crm_user_id() : $real_user_id;
 		$is_impersonating      = function_exists( 'peracrm_is_impersonating_crm_user' ) && peracrm_is_impersonating_crm_user();
@@ -1014,7 +1013,7 @@ if ( ! function_exists( 'pera_crm_get_pipeline_health_metrics' ) ) {
 		$query_args = array(
 			'post_type'      => 'crm_client',
 			'post_status'    => array( 'publish', 'private', 'draft', 'pending', 'future' ),
-			'posts_per_page' => 300,
+			'posts_per_page' => -1,
 			'fields'         => 'ids',
 			'no_found_rows'  => true,
 		);
@@ -1038,6 +1037,7 @@ if ( ! function_exists( 'pera_crm_get_pipeline_health_metrics' ) ) {
 			}
 			$open_ids[] = $lead_id;
 		}
+		$open_in_scope = count( $open_ids );
 
 		$stale_cutoff_ts = current_time( 'timestamp' ) - ( 7 * DAY_IN_SECONDS );
 		$unassigned      = 0;
@@ -1086,13 +1086,13 @@ if ( ! function_exists( 'pera_crm_get_pipeline_health_metrics' ) ) {
 				'value'   => max( 0, $stale ),
 				'context' => __( 'Open leads with stale or missing recent activity', 'peracrm' ),
 			),
-			array(
-				'key'     => 'open_pipeline',
-				'label'   => __( 'Open pipeline', 'peracrm' ),
-				'value'   => max( 0, $open_leads ),
-				'context' => __( 'All open leads across active stages', 'peracrm' ),
-			),
-		);
+				array(
+					'key'     => 'open_pipeline',
+					'label'   => __( 'Open leads in scope', 'peracrm' ),
+					'value'   => max( 0, $open_in_scope ),
+					'context' => __( 'Leads not in closed or lost stage for your current CRM scope', 'peracrm' ),
+				),
+			);
 
 		return $metrics;
 	}
