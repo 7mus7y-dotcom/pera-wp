@@ -2027,15 +2027,34 @@ a.crm-health-card:focus-visible {
 
 .crm-page--client-view .crm-client-subsection--deal-workspace .crm-deals-form {
   margin-top: 6px;
+  gap: 10px;
 }
 
 .crm-page--client-view .crm-client-subsection--deal-workspace .crm-form-section {
-  border-radius: 10px;
-  background: #fcfcfd;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+}
+
+.crm-page--client-view .crm-client-subsection--deal-workspace .crm-form-section + .crm-form-section {
+  border-top: 1px solid rgba(15, 23, 42, 0.08);
+  padding-top: 10px;
+}
+
+.crm-page--client-view .crm-client-subsection--deal-workspace .crm-form-section > .crm-section__header {
+  padding-top: 0;
+  padding-bottom: 6px;
+}
+
+.crm-page--client-view .crm-client-subsection--deal-workspace .crm-form-section > .crm-section__body,
+.crm-page--client-view .crm-client-subsection--deal-workspace .crm-form-section > .crm-section__footer {
+  padding-top: 0;
+  padding-bottom: 0;
 }
 
 .crm-page--client-view .crm-client-subsection--deal-workspace .crm-form-workspace__footer--embedded {
-  padding-top: 8px;
+  padding-top: 6px;
 }
 
 .crm-deal-value-row {
@@ -4746,6 +4765,16 @@ body.crm-route #site-header.peracrm-shell-header.is-scrolled .peracrm-header-act
   .crm-page .crm-list-workspace-toolbar {
     padding: 12px;
     margin-bottom: 14px;
+  }
+
+  .crm-page--client-view .crm-client-subsection--deal-workspace {
+    padding: 8px;
+    gap: 10px;
+  }
+
+  .crm-page--client-view .crm-client-subsection--deal-workspace .crm-form-workspace__meta,
+  .crm-page--client-view .crm-client-subsection--deal-workspace .crm-form-workspace__footer--embedded {
+    padding-inline: 0;
   }
 }
 
