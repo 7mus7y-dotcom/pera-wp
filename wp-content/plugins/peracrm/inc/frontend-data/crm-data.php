@@ -779,6 +779,23 @@ if ( ! function_exists( 'pera_crm_get_overdue_tasks' ) ) {
 	}
 }
 
+
+if ( ! function_exists( 'pera_crm_get_request_filter' ) ) {
+	/**
+	 * Return whitelisted CRM deep-link filter from request.
+	 *
+	 * @param string[] $allowed Allowed filter keys.
+	 */
+	function pera_crm_get_request_filter( array $allowed ): string {
+		if ( ! isset( $_GET['filter'] ) ) { // phpcs:ignore WordPress.Security.NonceVerification.Recommended
+			return '';
+		}
+
+		$filter = sanitize_key( wp_unslash( (string) $_GET['filter'] ) ); // phpcs:ignore WordPress.Security.NonceVerification.Recommended
+		return in_array( $filter, $allowed, true ) ? $filter : '';
+	}
+}
+
 if ( ! function_exists( 'pera_crm_get_tasks_view_data' ) ) {
 	/**
 	 * Build /crm/tasks view model from open reminders.
@@ -789,6 +806,7 @@ if ( ! function_exists( 'pera_crm_get_tasks_view_data' ) ) {
 	 * @return array<string,mixed>
 	 */
 	function pera_crm_get_tasks_view_data(): array {
+		$active_filter         = pera_crm_get_request_filter( array( 'overdue', 'today', 'open' ) );
 		$real_user_id          = get_current_user_id();
 		$effective_user_id     = function_exists( 'peracrm_get_effective_crm_user_id' ) ? peracrm_get_effective_crm_user_id() : $real_user_id;
 		$is_impersonating      = function_exists( 'peracrm_is_impersonating_crm_user' ) && peracrm_is_impersonating_crm_user();
@@ -900,12 +918,23 @@ if ( ! function_exists( 'pera_crm_get_tasks_view_data' ) ) {
 			}
 		}
 
+		$active_rows = $all_rows;
+		if ( 'overdue' === $active_filter ) {
+			$active_rows = $overdue_rows;
+		} elseif ( 'today' === $active_filter ) {
+			$active_rows = $today_rows;
+		} elseif ( 'open' === $active_filter ) {
+			$active_rows = $all_rows;
+		}
+
 		return array(
-			'is_employee' => $is_employee,
-			'all'         => $all_rows,
-			'today'       => $today_rows,
-			'outstanding' => $overdue_rows,
-			'upcoming'    => $future_rows,
+			'is_employee'   => $effective_is_employee,
+			'all'           => $all_rows,
+			'today'         => $today_rows,
+			'outstanding'   => $overdue_rows,
+			'upcoming'      => $future_rows,
+			'active_filter' => $active_filter,
+			'active_rows'   => $active_rows,
 		);
 	}
 }
@@ -1218,6 +1247,7 @@ if ( ! function_exists( 'pera_crm_get_leads_view_data' ) ) {
 		$q               = isset( $_GET['q'] ) ? sanitize_text_field( wp_unslash( (string) $_GET['q'] ) ) : '';
 		$stage           = isset( $_GET['stage'] ) ? sanitize_key( wp_unslash( (string) $_GET['stage'] ) ) : '';
 		$advisor         = isset( $_GET['advisor'] ) ? absint( wp_unslash( (string) $_GET['advisor'] ) ) : 0;
+		$active_filter   = pera_crm_get_request_filter( array( 'unassigned', 'stale', 'new72', 'open_scope' ) );
 
 		$query_args = array(
 			'post_type'      => 'crm_client',
@@ -1243,6 +1273,7 @@ if ( ! function_exists( 'pera_crm_get_leads_view_data' ) ) {
 				'current_page'  => $page,
 				'per_page'      => $per_page,
 				'derived_type'  => $derived_type,
+				'active_filter' => $active_filter,
 				'is_employee'   => pera_crm_user_is_employee( $current_user_id ),
 				'scoped_ids'    => $allowed_ids,
 			);
@@ -1299,6 +1330,41 @@ if ( ! function_exists( 'pera_crm_get_leads_view_data' ) ) {
 					static function ( int $lead_id ) use ( $advisor ): bool {
 						$assigned_id = function_exists( 'peracrm_client_get_assigned_advisor_id' ) ? (int) peracrm_client_get_assigned_advisor_id( $lead_id ) : 0;
 						return $assigned_id === $advisor;
+					}
+				)
+			);
+		}
+
+		if ( '' !== $active_filter && 'leads' === $list_view && 'lead' === $derived_type ) {
+			$stale_cutoff_ts = current_time( 'timestamp' ) - ( 7 * DAY_IN_SECONDS );
+			$new_cutoff_ts   = current_time( 'timestamp' ) - ( 72 * HOUR_IN_SECONDS );
+			$filtered_ids    = array_values(
+				array_filter(
+					$filtered_ids,
+					static function ( int $lead_id ) use ( $active_filter, $party_map_full, $stale_cutoff_ts, $new_cutoff_ts ): bool {
+						if ( 'unassigned' === $active_filter ) {
+							$assigned_id = function_exists( 'peracrm_client_get_assigned_advisor_id' ) ? (int) peracrm_client_get_assigned_advisor_id( $lead_id ) : 0;
+							return $assigned_id <= 0;
+						}
+
+						if ( 'stale' === $active_filter ) {
+							$health  = function_exists( 'peracrm_client_health_get' ) ? (array) peracrm_client_health_get( $lead_id ) : array();
+							$last_ts = (int) ( $health['last_activity_ts'] ?? 0 );
+							return $last_ts <= 0 || $last_ts < $stale_cutoff_ts;
+						}
+
+						if ( 'new72' === $active_filter ) {
+							$created_ts = (int) get_post_time( 'U', true, $lead_id );
+							return $created_ts > 0 && $created_ts >= $new_cutoff_ts;
+						}
+
+						if ( 'open_scope' === $active_filter ) {
+							$party = isset( $party_map_full[ $lead_id ] ) && is_array( $party_map_full[ $lead_id ] ) ? $party_map_full[ $lead_id ] : array();
+							$stage = sanitize_key( (string) ( $party['lead_pipeline_stage'] ?? '' ) );
+							return ! in_array( $stage, array( 'deal_closed', 'deal_lost' ), true );
+						}
+
+						return true;
 					}
 				)
 			);
@@ -1399,6 +1465,7 @@ if ( ! function_exists( 'pera_crm_get_leads_view_data' ) ) {
 			'current_page'  => min( $page, $total_pages ),
 			'per_page'      => $per_page,
 			'derived_type'  => $derived_type,
+			'active_filter' => $active_filter,
 			'is_employee'   => pera_crm_user_is_employee( $current_user_id ),
 			'scoped_ids'    => $allowed_ids,
 		);
@@ -1482,6 +1549,7 @@ if ( ! function_exists( 'pera_crm_get_pipeline_view_data' ) ) {
 		$q               = isset( $_GET['q'] ) ? sanitize_text_field( wp_unslash( (string) $_GET['q'] ) ) : '';
 		$stage           = isset( $_GET['stage'] ) ? sanitize_key( wp_unslash( (string) $_GET['stage'] ) ) : '';
 		$advisor         = isset( $_GET['advisor'] ) ? absint( wp_unslash( (string) $_GET['advisor'] ) ) : 0;
+		$active_filter   = pera_crm_get_request_filter( array( 'unassigned', 'stale', 'new72', 'open_scope' ) );
 
 		$stages = pera_crm_get_pipeline_stages();
 		if ( empty( $stages ) ) {

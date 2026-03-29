@@ -37,6 +37,14 @@ $tasks_data = $is_tasks && function_exists( 'pera_crm_get_tasks_view_data' )
 	: array();
 
 $pipeline_health = is_array( $crm_dashboard['pipeline_health'] ?? null ) ? $crm_dashboard['pipeline_health'] : array();
+$pipeline_health_links = array(
+	'overdue_reminders' => home_url( '/crm/tasks/?filter=overdue' ),
+	'due_today'         => home_url( '/crm/tasks/?filter=today' ),
+	'new_leads_72h'     => home_url( '/crm/clients/?type=leads&filter=new72' ),
+	'unassigned_open'   => home_url( '/crm/clients/?type=leads&filter=unassigned' ),
+	'stale_open'        => home_url( '/crm/clients/?type=leads&filter=stale' ),
+	'open_pipeline'     => home_url( '/crm/clients/?type=leads&filter=open_scope' ),
+);
 $activity      = is_array( $crm_dashboard['activity'] ?? null ) ? $crm_dashboard['activity'] : array();
 $todays_tasks  = is_array( $crm_dashboard['todays_tasks'] ?? null ) ? $crm_dashboard['todays_tasks'] : array();
 $overdue_tasks = is_array( $crm_dashboard['overdue_tasks'] ?? null ) ? $crm_dashboard['overdue_tasks'] : array();
@@ -338,13 +346,25 @@ peracrm_frontend_render_shell_header();
           <div class="crm-section__body">
             <div class="crm-health-grid" aria-label="<?php echo esc_attr__( 'CRM Pipeline Health', 'peracrm' ); ?>">
               <?php foreach ( $pipeline_health as $metric ) : ?>
+              <?php
+              $metric_key = sanitize_key( (string) ( $metric['key'] ?? '' ) );
+              $metric_url = (string) ( $pipeline_health_links[ $metric_key ] ?? '' );
+              ?>
+              <?php if ( '' !== $metric_url ) : ?>
+              <a class="card-shell crm-health-card" href="<?php echo esc_url( $metric_url ); ?>">
+              <?php else : ?>
               <article class="card-shell crm-health-card">
+              <?php endif; ?>
                 <p class="crm-health-card__label"><?php echo esc_html( (string) ( $metric['label'] ?? '' ) ); ?></p>
                 <h3><?php echo esc_html( (string) ( (int) ( $metric['value'] ?? 0 ) ) ); ?></h3>
                 <?php if ( ! empty( $metric['context'] ) ) : ?>
                 <p class="crm-health-card__meta"><?php echo esc_html( (string) $metric['context'] ); ?></p>
                 <?php endif; ?>
+              <?php if ( '' !== $metric_url ) : ?>
+              </a>
+              <?php else : ?>
               </article>
+              <?php endif; ?>
               <?php endforeach; ?>
             </div>
           </div>
@@ -416,6 +436,12 @@ peracrm_frontend_render_shell_header();
 			$outstanding    = is_array( $tasks_data['outstanding'] ?? null ) ? $tasks_data['outstanding'] : array();
 			$upcoming       = is_array( $tasks_data['upcoming'] ?? null ) ? $tasks_data['upcoming'] : array();
 			$show_assigned  = ! empty( $task_rows ) && empty( $tasks_data['is_employee'] );
+			$tasks_active_filter = sanitize_key( (string) ( $tasks_data['active_filter'] ?? '' ) );
+			$task_filter_labels  = array(
+				'overdue' => __( 'Overdue reminders', 'peracrm' ),
+				'today'   => __( 'Due today', 'peracrm' ),
+				'open'    => __( 'Open reminders', 'peracrm' ),
+			);
 			$tasks_page_url = home_url( wp_unslash( (string) ( $_SERVER['REQUEST_URI'] ?? '/crm/tasks/' ) ) );
 			$render_task_rows = static function ( array $rows, string $empty_message, string $heading_id, string $heading, string $description, string $tasks_page_url, bool $show_assigned, string $tone = 'default' ) {
 				$section_class = 'urgent' === $tone ? ' crm-list-workspace__group--urgent' : '';
@@ -485,6 +511,9 @@ peracrm_frontend_render_shell_header();
               <span><strong><?php esc_html_e( 'Open:', 'peracrm' ); ?></strong> <?php echo esc_html( (string) count( $task_rows ) ); ?></span>
               <span><strong><?php esc_html_e( 'Overdue:', 'peracrm' ); ?></strong> <?php echo esc_html( (string) count( $outstanding ) ); ?></span>
               <span><strong><?php esc_html_e( 'Due today:', 'peracrm' ); ?></strong> <?php echo esc_html( (string) count( $today_rows ) ); ?></span>
+              <?php if ( '' !== $tasks_active_filter && isset( $task_filter_labels[ $tasks_active_filter ] ) ) : ?>
+                <span><strong><?php esc_html_e( 'Filter:', 'peracrm' ); ?></strong> <?php echo esc_html( (string) $task_filter_labels[ $tasks_active_filter ] ); ?></span>
+              <?php endif; ?>
             </div>
           </div>
           <div class="crm-toolbar-actions crm-list-workspace-toolbar__actions">
@@ -583,6 +612,13 @@ peracrm_frontend_render_shell_header();
 			);
 			$scope_label = $is_inactive ? __( 'Inactive records', 'peracrm' ) : ( 'clients' === $clients_type_view ? __( 'Clients', 'peracrm' ) : __( 'Leads', 'peracrm' ) );
 			$active_filter_bits = array();
+			$clients_active_filter = sanitize_key( (string) ( $leads_data['active_filter'] ?? '' ) );
+			$clients_filter_labels = array(
+				'unassigned' => __( 'Unassigned', 'peracrm' ),
+				'stale'      => __( 'No activity (7+ days)', 'peracrm' ),
+				'new72'      => __( 'New leads (72h)', 'peracrm' ),
+				'open_scope' => __( 'Open in scope', 'peracrm' ),
+			);
 			if ( '' !== $filter_q ) {
 				$active_filter_bits[] = sprintf( __( 'Search: %s', 'peracrm' ), $filter_q );
 			}
@@ -596,6 +632,9 @@ peracrm_frontend_render_shell_header();
 						break;
 					}
 				}
+			}
+			if ( '' !== $clients_active_filter && isset( $clients_filter_labels[ $clients_active_filter ] ) ) {
+				$active_filter_bits[] = sprintf( __( 'Filter: %s', 'peracrm' ), (string) $clients_filter_labels[ $clients_active_filter ] );
 			}
 			?>
       <div data-crm-clients-workspace>
