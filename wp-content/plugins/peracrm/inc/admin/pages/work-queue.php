@@ -352,7 +352,8 @@ function peracrm_render_work_queue_page()
         admin_url('edit.php')
     );
 
-    echo '<table class="widefat fixed striped">';
+    echo '<div class="peracrm-work-queue-table-wrap">';
+    echo '<table class="widefat fixed striped peracrm-work-queue-table">';
     echo '<thead><tr>';
     echo '<th>Client</th><th>Health</th><th>Last activity</th><th>Open</th><th>Overdue</th><th>Next due</th>';
     if ($is_admin) {
@@ -427,6 +428,7 @@ function peracrm_render_work_queue_page()
     }
 
     echo '</tbody></table>';
+    echo '</div>';
 
     $total_pages = (int) $query->max_num_pages;
     if ($total_pages > 1) {

@@ -365,3 +365,21 @@
     width: auto;
   }
 }
+
+
+.peracrm-work-queue-table-wrap {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+.peracrm-work-queue-table {
+  min-width: 100%;
+  width: max-content;
+}
+
+.peracrm-work-queue-table th,
+.peracrm-work-queue-table td {
+  white-space: nowrap;
+  overflow-wrap: normal;
+  word-break: normal;
+}
