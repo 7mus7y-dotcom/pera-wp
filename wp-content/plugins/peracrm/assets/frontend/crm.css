@@ -4169,6 +4169,13 @@ body.crm-route #site-header.peracrm-shell-header.is-scrolled .peracrm-header-act
   margin-bottom: 16px;
 }
 
+.crm-page--client-view .content-panel-box {
+  background: transparent;
+  border-radius: 0;
+  box-shadow: none;
+  padding: 0;
+}
+
 .crm-page--client-view .crm-summary-header__main {
   display: grid;
   grid-template-columns: minmax(0, 1.45fr) minmax(280px, 0.95fr);
@@ -5014,6 +5021,11 @@ body.crm-route #site-header.peracrm-shell-header.is-scrolled .peracrm-header-act
   .crm-page .content-panel-box {
     background: var(--surface-raised);
     box-shadow: 0 24px 56px rgba(2, 6, 23, 0.42);
+  }
+
+  .crm-page--client-view .content-panel-box {
+    background: transparent;
+    box-shadow: none;
   }
 
   .crm-page-header__main {
