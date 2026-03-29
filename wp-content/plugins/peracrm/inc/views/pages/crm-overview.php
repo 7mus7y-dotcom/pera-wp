@@ -444,6 +444,7 @@ peracrm_frontend_render_shell_header();
 				'today'   => __( 'Due today', 'peracrm' ),
 				'open'    => __( 'Open reminders', 'peracrm' ),
 			);
+			$tasks_active_filter_label = isset( $task_filter_labels[ $tasks_active_filter ] ) ? (string) $task_filter_labels[ $tasks_active_filter ] : '';
 			$tasks_page_url = home_url( wp_unslash( (string) ( $_SERVER['REQUEST_URI'] ?? '/crm/tasks/' ) ) );
 			$render_task_rows = static function ( array $rows, string $empty_message, string $heading_id, string $heading, string $description, string $tasks_page_url, bool $show_assigned, string $tone = 'default' ) {
 				$section_class = 'urgent' === $tone ? ' crm-list-workspace__group--urgent' : '';
@@ -509,12 +510,18 @@ peracrm_frontend_render_shell_header();
           <div class="crm-list-workspace-toolbar__summary">
             <h2><?php echo esc_html__( 'Task workspace', 'peracrm' ); ?></h2>
             <p><?php echo esc_html__( 'Work from the table first on desktop, with grouped row lists available as a secondary responsive view.', 'peracrm' ); ?></p>
+            <?php if ( '' !== $tasks_active_filter_label ) : ?>
+              <div class="crm-list-workspace-toolbar__active-filter" aria-live="polite">
+                <span class="crm-chip crm-chip--status"><?php echo esc_html( sprintf( __( 'Showing: %s', 'peracrm' ), $tasks_active_filter_label ) ); ?></span>
+                <a class="crm-list-workspace-toolbar__clear-filter" href="<?php echo esc_url( home_url( '/crm/tasks/' ) ); ?>"><?php esc_html_e( 'Clear', 'peracrm' ); ?></a>
+              </div>
+            <?php endif; ?>
             <div class="crm-meta-line crm-list-workspace-toolbar__meta">
               <span><strong><?php esc_html_e( 'Open:', 'peracrm' ); ?></strong> <?php echo esc_html( (string) count( $task_rows_all ) ); ?></span>
               <span><strong><?php esc_html_e( 'Overdue:', 'peracrm' ); ?></strong> <?php echo esc_html( (string) count( $outstanding ) ); ?></span>
               <span><strong><?php esc_html_e( 'Due today:', 'peracrm' ); ?></strong> <?php echo esc_html( (string) count( $today_rows ) ); ?></span>
-              <?php if ( '' !== $tasks_active_filter && isset( $task_filter_labels[ $tasks_active_filter ] ) ) : ?>
-                <span><strong><?php esc_html_e( 'Filter:', 'peracrm' ); ?></strong> <?php echo esc_html( (string) $task_filter_labels[ $tasks_active_filter ] ); ?></span>
+              <?php if ( '' !== $tasks_active_filter_label ) : ?>
+                <span><strong><?php esc_html_e( 'Filter:', 'peracrm' ); ?></strong> <?php echo esc_html( $tasks_active_filter_label ); ?></span>
               <?php endif; ?>
             </div>
           </div>
@@ -624,11 +631,12 @@ peracrm_frontend_render_shell_header();
 			$active_filter_bits = array();
 			$clients_active_filter = sanitize_key( (string) ( $leads_data['active_filter'] ?? '' ) );
 			$clients_filter_labels = array(
-				'unassigned' => __( 'Unassigned', 'peracrm' ),
-				'stale'      => __( 'No activity (7+ days)', 'peracrm' ),
+				'unassigned' => __( 'Unassigned leads', 'peracrm' ),
+				'stale'      => __( 'Stale leads', 'peracrm' ),
 				'new72'      => __( 'New leads (72h)', 'peracrm' ),
-				'open_scope' => __( 'Open in scope', 'peracrm' ),
+				'open_scope' => __( 'Open leads in scope', 'peracrm' ),
 			);
+			$clients_active_filter_label = isset( $clients_filter_labels[ $clients_active_filter ] ) ? (string) $clients_filter_labels[ $clients_active_filter ] : '';
 			if ( '' !== $filter_q ) {
 				$active_filter_bits[] = sprintf( __( 'Search: %s', 'peracrm' ), $filter_q );
 			}
@@ -643,8 +651,8 @@ peracrm_frontend_render_shell_header();
 					}
 				}
 			}
-			if ( '' !== $clients_active_filter && isset( $clients_filter_labels[ $clients_active_filter ] ) ) {
-				$active_filter_bits[] = sprintf( __( 'Filter: %s', 'peracrm' ), (string) $clients_filter_labels[ $clients_active_filter ] );
+			if ( '' !== $clients_active_filter_label ) {
+				$active_filter_bits[] = sprintf( __( 'Filter: %s', 'peracrm' ), $clients_active_filter_label );
 			}
 			?>
       <div data-crm-clients-workspace>
@@ -685,6 +693,12 @@ peracrm_frontend_render_shell_header();
           <div class="crm-list-workspace-toolbar__summary">
             <h2><?php echo esc_html( $scope_label ); ?></h2>
             <p><?php echo esc_html__( 'Use the workspace table to scan status, source, advisor ownership, and recent activity before opening individual records.', 'peracrm' ); ?></p>
+            <?php if ( '' !== $clients_active_filter_label ) : ?>
+              <div class="crm-list-workspace-toolbar__active-filter" aria-live="polite">
+                <span class="crm-chip crm-chip--status"><?php echo esc_html( sprintf( __( 'Showing: %s', 'peracrm' ), $clients_active_filter_label ) ); ?></span>
+                <a class="crm-list-workspace-toolbar__clear-filter" href="<?php echo esc_url( home_url( '/crm/clients/?type=leads' ) ); ?>"><?php esc_html_e( 'Clear', 'peracrm' ); ?></a>
+              </div>
+            <?php endif; ?>
             <div class="crm-meta-line crm-list-workspace-toolbar__meta">
               <span><strong><?php esc_html_e( 'Showing:', 'peracrm' ); ?></strong> <?php echo esc_html( sprintf( __( '%1$d–%2$d of %3$d', 'peracrm' ), $from, $to, $total ) ); ?></span>
               <span><strong><?php esc_html_e( 'Scope:', 'peracrm' ); ?></strong> <?php echo esc_html( $scope_label ); ?></span>
