@@ -650,17 +650,45 @@
 }
 
 .crm-page--client-view .crm-linked-workspace__add {
-  gap: 12px;
+  gap: 10px;
   display: grid;
-  padding: 12px;
-  border: 1px solid #e8ecf2;
-  border-radius: 12px;
+  padding: 10px;
+  border: 1px solid #e9edf3;
+  border-radius: 10px;
   background: #ffffff;
+}
+
+.crm-page--client-view .crm-linked-workspace__add .crm-inline-form,
+.crm-page--client-view .crm-linked-workspace__add .crm-inline-form h5 {
+  margin: 0;
+}
+
+.crm-page--client-view .crm-linked-workspace__add .crm-inline-form h5 {
+  line-height: 1.25;
+}
+
+.crm-page--client-view .crm-linked-workspace__add .crm-form-stack {
+  gap: 10px;
+}
+
+.crm-page--client-view .crm-linked-workspace__add .crm-property-search label {
+  margin-bottom: 4px;
+}
+
+.crm-page--client-view .crm-linked-workspace__add [data-crm-property-feedback] {
+  margin: 4px 0 0;
+  font-size: 0.76rem;
+  color: #6b7280;
 }
 
 .crm-page--client-view .crm-linked-workspace__toolbar {
   display: flex;
   justify-content: flex-end;
+  margin-top: 2px;
+}
+
+.crm-page--client-view .crm-linked-workspace__toolbar .btn {
+  min-height: 36px;
 }
 
 .crm-page--client-view .crm-linked-workspace__relation {
@@ -890,8 +918,11 @@ body.crm-route .crm-page--client-view .crm-portfolio-actions .peracrm-linked-pro
   }
 
   .crm-page--client-view .crm-linked-workspace__add {
-    padding: 10px;
-    border-radius: 10px;
+    padding: 0;
+    border: 0;
+    border-radius: 0;
+    background: transparent;
+    gap: 8px;
   }
 
   .crm-page--client-view .crm-linked-workspace__portfolio-tools {
@@ -900,6 +931,15 @@ body.crm-route .crm-page--client-view .crm-portfolio-actions .peracrm-linked-pro
 
   .crm-page--client-view .crm-linked-workspace__portfolio-actions {
     justify-self: start;
+  }
+
+  .crm-page--client-view .crm-linked-workspace__toolbar {
+    justify-content: stretch;
+    margin-top: 0;
+  }
+
+  .crm-page--client-view .crm-linked-workspace__toolbar .btn {
+    width: 100%;
   }
 
   .crm-page--client-view .crm-linked-workspace [data-crm-portfolio-fields].crm-form-row-2 {
