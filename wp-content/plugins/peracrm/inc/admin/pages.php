@@ -32,7 +32,7 @@ function peracrm_register_admin_menu()
         $GLOBALS['peracrm_my_reminders_hook'] = $hook;
     }
 
-    add_submenu_page(
+    $work_queue_hook = add_submenu_page(
         $parent_slug,
         'Work Queue',
         'Work Queue',
@@ -40,6 +40,10 @@ function peracrm_register_admin_menu()
         'peracrm-work-queue',
         'peracrm_render_work_queue_page'
     );
+
+    if ($work_queue_hook) {
+        $GLOBALS['peracrm_work_queue_hook'] = $work_queue_hook;
+    }
 
     $pipeline_hook = add_submenu_page(
         $parent_slug,
@@ -123,6 +127,13 @@ function peracrm_admin_is_my_reminders_screen($hook)
 function peracrm_admin_is_pipeline_screen($hook)
 {
     $stored = isset($GLOBALS['peracrm_pipeline_hook']) ? $GLOBALS['peracrm_pipeline_hook'] : '';
+
+    return $stored !== '' && $hook === $stored;
+}
+
+function peracrm_admin_is_work_queue_screen($hook)
+{
+    $stored = isset($GLOBALS['peracrm_work_queue_hook']) ? $GLOBALS['peracrm_work_queue_hook'] : '';
 
     return $stored !== '' && $hook === $stored;
 }
