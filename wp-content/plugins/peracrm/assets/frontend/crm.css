@@ -4322,6 +4322,26 @@ body.crm-route #site-header.peracrm-shell-header.is-scrolled .peracrm-header-act
   color: var(--text-soft, #4b5563);
 }
 
+.crm-page .crm-list-workspace-toolbar__active-filter {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.crm-page .crm-list-workspace-toolbar__clear-filter {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--brand, #002d72);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.crm-page .crm-list-workspace-toolbar__clear-filter:hover,
+.crm-page .crm-list-workspace-toolbar__clear-filter:focus-visible {
+  color: var(--brand-600, #0a3b8f);
+}
+
 .crm-page .crm-list-workspace-toolbar__meta {
   gap: 8px 14px;
 }
