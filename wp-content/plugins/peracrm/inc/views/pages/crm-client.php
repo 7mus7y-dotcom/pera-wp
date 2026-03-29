@@ -530,12 +530,6 @@ peracrm_frontend_render_shell_header();
                 </div>
               </section>
 
-              <section class="crm-client-subsection" data-crm-panel="advisor">
-                <h4><?php esc_html_e( 'Assigned advisor', 'peracrm' ); ?></h4>
-                <?php if ( function_exists( 'peracrm_render_assigned_advisor_box' ) ) : ?>
-                  <?php peracrm_render_assigned_advisor_box( $client_id, array( 'context' => 'frontend', 'redirect' => $frontend_url ) ); ?>
-                <?php endif; ?>
-              </section>
             </div>
 
             <article class="crm-section crm-section--flush" data-crm-panel="notes">
@@ -871,7 +865,18 @@ peracrm_frontend_render_shell_header();
         <?php if ( $can_delete_client || $can_set_dormant ) : ?>
         <article class="crm-section crm-section--flush crm-danger-zone">
           <header class="crm-section__header"><div class="crm-section__heading-group"><h3 class="crm-section__title"><?php esc_html_e( 'Danger zone', 'peracrm' ); ?></h3><p class="crm-section__description"><?php echo esc_html( $danger_zone_description ); ?></p></div></header>
-          <div class="crm-section__body"><button type="button" class="btn btn--ghost <?php echo $can_delete_client ? 'btn--red' : 'btn--blue'; ?> crm-danger-zone__trigger" data-crm-danger-open="crm-client-danger-dialog"><?php echo esc_html( $danger_trigger_label ); ?></button></div>
+          <div class="crm-section__body crm-danger-zone__body">
+            <section class="crm-danger-zone__block crm-danger-zone__block--advisor" data-crm-panel="advisor">
+              <h4><?php esc_html_e( 'Assigned advisor', 'peracrm' ); ?></h4>
+              <?php if ( function_exists( 'peracrm_render_assigned_advisor_box' ) ) : ?>
+                <?php peracrm_render_assigned_advisor_box( $client_id, array( 'context' => 'frontend', 'redirect' => $frontend_url ) ); ?>
+              <?php endif; ?>
+            </section>
+            <section class="crm-danger-zone__block crm-danger-zone__block--actions">
+              <h4><?php echo esc_html( $danger_trigger_label ); ?></h4>
+              <button type="button" class="btn btn--ghost <?php echo $can_delete_client ? 'btn--red' : 'btn--blue'; ?> crm-danger-zone__trigger" data-crm-danger-open="crm-client-danger-dialog"><?php echo esc_html( $danger_trigger_label ); ?></button>
+            </section>
+          </div>
           <dialog class="crm-danger-dialog" id="crm-client-danger-dialog" aria-labelledby="crm-danger-title-<?php echo esc_attr( (string) $client_id ); ?>"><h4 id="crm-danger-title-<?php echo esc_attr( (string) $client_id ); ?>"><?php echo esc_html( $danger_dialog_title ); ?></h4><p><?php echo esc_html( $danger_dialog_copy ); ?></p><div class="crm-danger-dialog__actions"><?php if ( $can_delete_client ) : ?><form method="post" action="<?php echo esc_url( home_url( '/wp-admin/admin-post.php' ) ); ?>"><?php wp_nonce_field( 'peracrm_delete_client', 'peracrm_delete_client_nonce' ); ?><input type="hidden" name="action" value="peracrm_delete_client" /><input type="hidden" name="peracrm_client_id" value="<?php echo esc_attr( (string) $client_id ); ?>" /><input type="hidden" name="peracrm_redirect" value="<?php echo esc_url( $delete_redirect_url ); ?>" /><button type="submit" class="btn btn--solid btn--red"><?php esc_html_e( 'Yes (Delete)', 'peracrm' ); ?></button></form><?php endif; ?><?php if ( $can_set_dormant ) : ?><form method="post" action="<?php echo esc_url( home_url( '/wp-admin/admin-post.php' ) ); ?>"><?php wp_nonce_field( 'peracrm_save_client_profile', 'peracrm_save_client_profile_nonce' ); ?><input type="hidden" name="action" value="peracrm_save_client_profile" /><input type="hidden" name="peracrm_client_id" value="<?php echo esc_attr( (string) $client_id ); ?>" /><input type="hidden" name="peracrm_redirect" value="<?php echo esc_url( $frontend_url ); ?>" /><input type="hidden" name="form_context" value="profile" /><input type="hidden" name="peracrm_status" value="dormant" /><input type="hidden" name="peracrm_client_type" value="<?php echo esc_attr( (string) ( $profile['client_type'] ?? '' ) ); ?>" /><input type="hidden" name="peracrm_preferred_contact" value="<?php echo esc_attr( function_exists( 'peracrm_normalize_preferred_contact' ) ? peracrm_normalize_preferred_contact( $profile['preferred_contact'] ?? '' ) : (string) ( $profile['preferred_contact'] ?? '' ) ); ?>" /><input type="hidden" name="peracrm_phone_country" value="<?php echo esc_attr( (string) $crm_phone_country_value ); ?>" /><input type="hidden" name="peracrm_phone_national" value="<?php echo esc_attr( (string) $crm_phone_national_value ); ?>" /><input type="hidden" name="peracrm_phone" value="<?php echo esc_attr( $profile_phone_value ); ?>" /><input type="hidden" name="peracrm_email" value="<?php echo esc_attr( (string) ( $profile['email'] ?? '' ) ); ?>" /><input type="hidden" name="peracrm_budget_min_usd" value="<?php echo esc_attr( (string) ( $profile['budget_min_usd'] ?? '' ) ); ?>" /><input type="hidden" name="peracrm_budget_max_usd" value="<?php echo esc_attr( (string) ( $profile['budget_max_usd'] ?? '' ) ); ?>" /><input type="hidden" name="peracrm_bedrooms" value="<?php echo esc_attr( (string) ( $profile['bedrooms'] ?? '' ) ); ?>" /><button type="submit" class="btn btn--ghost btn--blue"><?php esc_html_e( 'Make it dormant', 'peracrm' ); ?></button></form><?php endif; ?><button type="button" class="btn btn--ghost btn--blue" data-crm-danger-close="crm-client-danger-dialog"><?php esc_html_e( 'No (Close)', 'peracrm' ); ?></button></div></dialog>
         </article>
         <?php endif; ?>

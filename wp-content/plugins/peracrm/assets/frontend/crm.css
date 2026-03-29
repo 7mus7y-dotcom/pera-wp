@@ -2201,6 +2201,36 @@ a.crm-health-card:focus-visible {
   margin-top: 8px;
 }
 
+.crm-page--client-view .crm-danger-zone .crm-danger-zone__body {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 16px;
+}
+
+.crm-page--client-view .crm-danger-zone .crm-danger-zone__block {
+  min-width: 0;
+}
+
+.crm-page--client-view .crm-danger-zone .crm-danger-zone__block h4 {
+  margin: 0 0 10px;
+}
+
+.crm-page--client-view .crm-danger-zone .crm-danger-zone__block .peracrm-metabox,
+.crm-page--client-view .crm-danger-zone .crm-danger-zone__block .peracrm-form {
+  background: transparent;
+  border: 0;
+  box-shadow: none;
+  padding: 0;
+  margin: 0;
+}
+
+@media (min-width: 1025px) {
+  .crm-page--client-view .crm-danger-zone .crm-danger-zone__body {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    align-items: start;
+  }
+}
+
 .crm-danger-dialog {
   width: min(540px, calc(100vw - 32px));
   border: 1px solid #d94b4b;
