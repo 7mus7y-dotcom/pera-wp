@@ -975,15 +975,126 @@ if ( ! function_exists( 'pera_crm_get_dashboard_data' ) ) {
 			$activity_data['rows']
 		);
 
+			$pipeline_health = array();
+			if ( function_exists( 'pera_crm_get_pipeline_health_metrics' ) ) {
+				$pipeline_health = pera_crm_get_pipeline_health_metrics(
+					(int) $overdue_reminders,
+					count( $todays_tasks ),
+					(int) pera_crm_count_new_leads_for_user( 0, 72 )
+				);
+			}
+
 		return array(
 			'kpis'          => $kpis,
 			'pipeline'      => $pipeline,
+			'pipeline_health' => $pipeline_health,
 			'activity'      => $activity,
 			'todays_tasks'  => $todays_tasks,
 			'overdue_tasks' => $overdue_tasks,
 			'new_leads'     => $new_leads,
 			'notices'       => array_values( array_unique( $notices ) ),
 		);
+	}
+}
+
+if ( ! function_exists( 'pera_crm_get_pipeline_health_metrics' ) ) {
+	/**
+	 * Build actionable pipeline health metrics for overview page.
+	 *
+	 * @return array<int,array{key:string,label:string,value:int,context:string}>
+	 */
+	function pera_crm_get_pipeline_health_metrics( int $overdue_reminders, int $due_today, int $new_leads_72h ): array {
+		$real_user_id          = get_current_user_id();
+		$effective_user_id     = function_exists( 'peracrm_get_effective_crm_user_id' ) ? peracrm_get_effective_crm_user_id() : $real_user_id;
+		$is_impersonating      = function_exists( 'peracrm_is_impersonating_crm_user' ) && peracrm_is_impersonating_crm_user();
+		$effective_is_employee = pera_crm_user_is_employee( $effective_user_id );
+		$can_manage_all        = current_user_can( 'manage_options' ) || current_user_can( 'peracrm_manage_all_clients' );
+
+		$query_args = array(
+			'post_type'      => 'crm_client',
+			'post_status'    => array( 'publish', 'private', 'draft', 'pending', 'future' ),
+			'posts_per_page' => -1,
+			'fields'         => 'ids',
+			'no_found_rows'  => true,
+		);
+
+		if ( ! $can_manage_all || $is_impersonating || $effective_is_employee ) {
+			$allowed_ids = pera_crm_get_allowed_client_ids_for_user( $effective_user_id );
+			$query_args['post__in'] = empty( $allowed_ids ) ? array( 0 ) : $allowed_ids;
+		}
+
+		$lead_ids  = array_values( array_filter( array_map( 'intval', (array) get_posts( $query_args ) ) ) );
+		$party_map = ! empty( $lead_ids ) && function_exists( 'peracrm_party_get_status_by_ids' )
+			? (array) peracrm_party_get_status_by_ids( $lead_ids )
+			: array();
+
+		$open_ids = array();
+		foreach ( $lead_ids as $lead_id ) {
+			$party = is_array( $party_map[ $lead_id ] ?? null ) ? $party_map[ $lead_id ] : array();
+			$stage = sanitize_key( (string) ( $party['lead_pipeline_stage'] ?? '' ) );
+			if ( in_array( $stage, array( 'deal_closed', 'deal_lost' ), true ) ) {
+				continue;
+			}
+			$open_ids[] = $lead_id;
+		}
+		$open_in_scope = count( $open_ids );
+
+		$stale_cutoff_ts = current_time( 'timestamp' ) - ( 7 * DAY_IN_SECONDS );
+		$unassigned      = 0;
+		$stale           = 0;
+		foreach ( $open_ids as $lead_id ) {
+			$assigned_id = function_exists( 'peracrm_client_get_assigned_advisor_id' ) ? (int) peracrm_client_get_assigned_advisor_id( $lead_id ) : 0;
+			if ( $assigned_id <= 0 ) {
+				$unassigned++;
+			}
+
+			$health   = function_exists( 'peracrm_client_health_get' ) ? (array) peracrm_client_health_get( $lead_id ) : array();
+			$last_ts  = (int) ( $health['last_activity_ts'] ?? 0 );
+			if ( $last_ts <= 0 || $last_ts < $stale_cutoff_ts ) {
+				$stale++;
+			}
+		}
+
+		$metrics = array(
+			array(
+				'key'     => 'overdue_reminders',
+				'label'   => __( 'Overdue reminders', 'peracrm' ),
+				'value'   => max( 0, $overdue_reminders ),
+				'context' => __( 'Needs immediate follow-up', 'peracrm' ),
+			),
+			array(
+				'key'     => 'due_today',
+				'label'   => __( 'Due today', 'peracrm' ),
+				'value'   => max( 0, $due_today ),
+				'context' => __( 'Open reminders due before day-end', 'peracrm' ),
+			),
+			array(
+				'key'     => 'new_leads_72h',
+				'label'   => __( 'New leads (72h)', 'peracrm' ),
+				'value'   => max( 0, $new_leads_72h ),
+				'context' => __( 'Recently created leads in your scope', 'peracrm' ),
+			),
+			array(
+				'key'     => 'unassigned_open',
+				'label'   => __( 'Unassigned open leads', 'peracrm' ),
+				'value'   => max( 0, $unassigned ),
+				'context' => __( 'Open leads without an advisor owner', 'peracrm' ),
+			),
+			array(
+				'key'     => 'stale_open',
+				'label'   => __( 'No activity (7+ days)', 'peracrm' ),
+				'value'   => max( 0, $stale ),
+				'context' => __( 'Open leads with stale or missing recent activity', 'peracrm' ),
+			),
+				array(
+					'key'     => 'open_pipeline',
+					'label'   => __( 'Open leads in scope', 'peracrm' ),
+					'value'   => max( 0, $open_in_scope ),
+					'context' => __( 'Leads not in closed or lost stage for your current CRM scope', 'peracrm' ),
+				),
+			);
+
+		return $metrics;
 	}
 }
 

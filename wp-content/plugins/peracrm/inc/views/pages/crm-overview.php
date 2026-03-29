@@ -18,11 +18,12 @@ $derived_type_filter = 'clients' === $clients_type_view ? 'client' : 'lead';
 $crm_dashboard = function_exists( 'pera_crm_get_dashboard_data' )
 	? pera_crm_get_dashboard_data()
 	: array(
-		'kpis'          => array(),
-		'pipeline'      => array(),
-		'activity'      => array(),
-		'todays_tasks'  => array(),
-		'overdue_tasks' => array(),
+			'kpis'          => array(),
+			'pipeline'      => array(),
+			'pipeline_health' => array(),
+			'activity'      => array(),
+			'todays_tasks'  => array(),
+			'overdue_tasks' => array(),
 		'new_leads'     => array(),
 		'notices'       => array( __( 'CRM data unavailable.', 'peracrm' ) ),
 	);
@@ -35,8 +36,7 @@ $tasks_data = $is_tasks && function_exists( 'pera_crm_get_tasks_view_data' )
 	? pera_crm_get_tasks_view_data()
 	: array();
 
-$kpis          = is_array( $crm_dashboard['kpis'] ?? null ) ? $crm_dashboard['kpis'] : array();
-$pipeline      = is_array( $crm_dashboard['pipeline'] ?? null ) ? $crm_dashboard['pipeline'] : array();
+$pipeline_health = is_array( $crm_dashboard['pipeline_health'] ?? null ) ? $crm_dashboard['pipeline_health'] : array();
 $activity      = is_array( $crm_dashboard['activity'] ?? null ) ? $crm_dashboard['activity'] : array();
 $todays_tasks  = is_array( $crm_dashboard['todays_tasks'] ?? null ) ? $crm_dashboard['todays_tasks'] : array();
 $overdue_tasks = is_array( $crm_dashboard['overdue_tasks'] ?? null ) ? $crm_dashboard['overdue_tasks'] : array();
@@ -56,15 +56,6 @@ if ( 'test_push_sent' === $push_notice_key ) {
 } elseif ( 'test_push_failed' === $push_notice_key ) {
 	$push_notice_text = __( 'Unable to send test push. Make sure push is enabled on this device.', 'peracrm' );
 }
-
-$kpi_tiles = array(
-	array( 'label' => __( 'Total open leads', 'peracrm' ), 'key' => 'total_open_leads' ),
-	array( 'label' => __( 'New enquiries', 'peracrm' ), 'key' => 'new_enquiries' ),
-	array( 'label' => __( 'Qualified', 'peracrm' ), 'key' => 'qualified' ),
-	array( 'label' => __( 'Viewing arranged', 'peracrm' ), 'key' => 'viewing_arranged' ),
-	array( 'label' => __( 'Offer made', 'peracrm' ), 'key' => 'offer_made' ),
-	array( 'label' => __( 'Overdue reminders', 'peracrm' ), 'key' => 'overdue_reminders' ),
-);
 
 $stages = function_exists( 'pera_crm_get_pipeline_stages' ) ? pera_crm_get_pipeline_stages() : array();
 $advisors = function_exists( 'pera_crm_get_pipeline_advisor_options' ) ? pera_crm_get_pipeline_advisor_options() : array();
@@ -336,47 +327,29 @@ peracrm_frontend_render_shell_header();
         </article>
       </section>
 
-      <section class="section crm-overview-band crm-overview-band--tertiary" aria-labelledby="crm-kpi-heading">
-        <article class="crm-section crm-section--flush crm-overview-metrics">
+      <section class="section crm-overview-band crm-overview-band--tertiary" aria-labelledby="crm-pipeline-health-heading">
+        <article class="crm-section crm-section--flush crm-overview-metrics crm-overview-health">
           <header class="crm-section__header">
             <div class="crm-section__heading-group">
-              <h2 id="crm-kpi-heading" class="crm-section__title"><?php echo esc_html__( 'KPI Snapshot', 'peracrm' ); ?></h2>
-              <p class="crm-section__description"><?php echo esc_html__( 'Broad counts stay available below the action queues for quick health checks.', 'peracrm' ); ?></p>
+              <h2 id="crm-pipeline-health-heading" class="crm-section__title"><?php echo esc_html__( 'Pipeline Health', 'peracrm' ); ?></h2>
+              <p class="crm-section__description"><?php echo esc_html__( 'Action-focused indicators for ownership, urgency, and lead momentum.', 'peracrm' ); ?></p>
             </div>
           </header>
-		  <div class="crm-section__body">
-		    <div class="grid-3 crm-kpi-grid cards-slider cards-slider--snap cards-slider--grid-lg" aria-label="<?php echo esc_attr__( 'CRM KPI Snapshot', 'peracrm' ); ?>">
-					<?php foreach ( $kpi_tiles as $tile ) : ?>
-            <article class="card-shell slider-card crm-kpi-card">
-              <p class="crm-chip crm-chip--neutral"><?php echo esc_html( $tile['label'] ); ?></p>
-              <h3><?php echo esc_html( (string) ( (int) ( $kpis[ $tile['key'] ] ?? 0 ) ) ); ?></h3>
-            </article>
-					<?php endforeach; ?>
+          <div class="crm-section__body">
+            <div class="crm-health-grid" aria-label="<?php echo esc_attr__( 'CRM Pipeline Health', 'peracrm' ); ?>">
+              <?php foreach ( $pipeline_health as $metric ) : ?>
+              <article class="card-shell crm-health-card">
+                <p class="crm-health-card__label"><?php echo esc_html( (string) ( $metric['label'] ?? '' ) ); ?></p>
+                <h3><?php echo esc_html( (string) ( (int) ( $metric['value'] ?? 0 ) ) ); ?></h3>
+                <?php if ( ! empty( $metric['context'] ) ) : ?>
+                <p class="crm-health-card__meta"><?php echo esc_html( (string) $metric['context'] ); ?></p>
+                <?php endif; ?>
+              </article>
+              <?php endforeach; ?>
+            </div>
           </div>
-		  </div>
         </article>
       </section>
-
-	      <section class="section crm-overview-band crm-overview-band--tertiary" aria-labelledby="crm-pipeline-heading">
-	        <article class="crm-section crm-section--flush crm-overview-metrics">
-	          <header class="crm-section__header">
-	            <div class="crm-section__heading-group">
-	              <h2 id="crm-pipeline-heading" class="crm-section__title"><?php echo esc_html__( 'Pipeline Overview', 'peracrm' ); ?></h2>
-	              <p class="crm-section__description"><?php echo esc_html__( 'Stage totals remain visible, but do not outrank current work queues.', 'peracrm' ); ?></p>
-	            </div>
-	          </header>
-          <div class="crm-section__body">
-            <div class="grid-3 crm-kpi-grid cards-slider cards-slider--snap cards-slider--grid-lg" aria-label="<?php echo esc_attr__( 'CRM Pipeline Overview', 'peracrm' ); ?>">
-					<?php foreach ( $pipeline as $stage ) : ?>
-              <article class="card-shell slider-card crm-kpi-card">
-                <p class="crm-chip crm-chip--neutral"><?php echo esc_html( (string) ( $stage['label'] ?? '' ) ); ?></p>
-                <h3><?php echo esc_html( (string) ( (int) ( $stage['count'] ?? 0 ) ) ); ?></h3>
-              </article>
-					<?php endforeach; ?>
-	          </div>
-          </div>
-	        </article>
-	      </section>
 
       <?php if ( ! empty( $notices ) ) : ?>
       <section class="section crm-overview-band crm-overview-band--secondary" aria-label="<?php echo esc_attr__( 'CRM notices', 'peracrm' ); ?>">
