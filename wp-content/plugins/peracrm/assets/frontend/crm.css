@@ -1324,6 +1324,16 @@ body.crm-route .crm-page--client-view .crm-portfolio-actions .peracrm-linked-pro
   gap: 6px;
 }
 
+a.crm-health-card {
+  color: inherit;
+  text-decoration: none;
+}
+
+a.crm-health-card:hover,
+a.crm-health-card:focus-visible {
+  text-decoration: none;
+}
+
 .crm-page--overview .crm-health-card__label {
   margin: 0;
   font-size: 0.76rem;
