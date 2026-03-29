@@ -652,6 +652,7 @@ function peracrm_render_pipeline_page()
     echo '<button type="submit" class="button button-primary">Apply</button>';
     echo '</form>';
 
+    echo '<div class="peracrm-pipeline-board-wrap">';
     echo '<div class="peracrm-pipeline-board">';
     foreach ($columns as $status_key => $column) {
         $label = $column['label'];
@@ -822,6 +823,7 @@ function peracrm_render_pipeline_page()
 
         echo '</div>';
     }
+    echo '</div>';
     echo '</div>';
     echo '<script>
     document.addEventListener("DOMContentLoaded", function () {

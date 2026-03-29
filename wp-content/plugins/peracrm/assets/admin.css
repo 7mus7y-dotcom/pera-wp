@@ -116,9 +116,19 @@
 }
 
 .peracrm-pipeline-board {
-    display: grid;
+    display: flex;
     gap: 16px;
-    grid-template-columns: repeat(4, minmax(0, 1fr));
+    align-items: flex-start;
+}
+
+.peracrm-pipeline-board-wrap {
+    overflow-x: auto;
+    padding-bottom: 4px;
+}
+
+.peracrm-pipeline-column {
+    flex: 0 0 300px;
+    min-width: 300px;
 }
 
 .peracrm-pipeline-column__header {
@@ -137,6 +147,7 @@
 .peracrm-pipeline-card__title {
     font-weight: 600;
     margin-bottom: 8px;
+    overflow-wrap: anywhere;
 }
 
 .peracrm-pipeline-card__hints {
@@ -180,6 +191,13 @@
     display: grid;
     gap: 4px;
     font-size: 12px;
+}
+
+@media (max-width: 782px) {
+    .peracrm-pipeline-column {
+        flex-basis: 280px;
+        min-width: 280px;
+    }
 }
 
 .peracrm-timeline .peracrm-enquiry-details {
