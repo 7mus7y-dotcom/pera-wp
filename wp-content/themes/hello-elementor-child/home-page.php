@@ -211,26 +211,7 @@ get_template_part( 'parts/home-special-offers' );
 ?>
 
 
-<?php
-/* ======================================================
-   FEATURED PICKS (HOME)
-   Uses existing parts/featured-villa + parts/featured-apartment
-   IMPORTANT: reuse existing slider class stack (slider.css expects these)
-   ====================================================== */
-?>
 
-<section class="section featured-picks">
-  <div class="container">
-    <div class="cards-slider cards-slider--features cards-slider--snap cards-slider--grid-lg cards-slider--featured-picks" aria-label="Featured picks">
-      <div class="slider-card">
-        <?php get_template_part( 'parts/featured-villa' ); ?>
-      </div>
-      <div class="slider-card">
-        <?php get_template_part( 'parts/featured-apartment' ); ?>
-      </div>
-    </div>
-  </div>
-</section>
 
 <!-- ======================================================
      FEATURED DISTRICTS (LOCATION GATEWAY)
