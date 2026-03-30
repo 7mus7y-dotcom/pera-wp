@@ -65,18 +65,13 @@ $cat_link = $primary_cat ? get_category_link( $primary_cat->term_id ) : '';
 
   <div class="post-card-body">
 
-    <div class="post-card-meta">
-        <span class="post-card-date">
-          <?php echo esc_html( get_the_date( 'M d, y' ) ); ?>
-        </span>
-
-
-      <?php if ( $show_cat_pill && $cat_name ) : ?>
+    <?php if ( $show_cat_pill && $cat_name ) : ?>
+      <div class="post-card-meta post-card-meta--top">
         <a href="<?php echo esc_url( $cat_link ); ?>" class="<?php echo esc_attr( $pill_class ); ?>">
           <?php echo esc_html( $cat_name ); ?>
         </a>
-      <?php endif; ?>
-    </div>
+      </div>
+    <?php endif; ?>
 
     <h2 class="post-card-title">
       <a href="<?php the_permalink(); ?>">
@@ -89,6 +84,10 @@ $cat_link = $primary_cat ? get_category_link( $primary_cat->term_id ) : '';
         <?php echo esc_html( wp_trim_words( get_the_excerpt(), $excerpt_words, '…' ) ); ?>
       </div>
     <?php endif; ?>
+
+    <div class="post-card-date">
+      <?php echo esc_html( get_the_date( 'M d, Y' ) ); ?>
+    </div>
 
     <?php if ( $show_readmore ) : ?>
       <div class="post-card-readmore">
