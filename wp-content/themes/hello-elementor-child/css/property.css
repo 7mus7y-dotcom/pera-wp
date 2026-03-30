@@ -98,6 +98,10 @@
 .property-further-reading__grid{ margin-top: 16px; }
 .property-further-reading__card{ overflow: hidden; }
 
+.home-editorial-posts__actions{
+  margin-top: 16px;
+}
+
 .property-further-reading__thumb{
   display: block;
   aspect-ratio: 16 / 9;
