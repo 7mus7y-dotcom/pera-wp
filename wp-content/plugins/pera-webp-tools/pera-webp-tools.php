@@ -16,6 +16,10 @@ if ( ! class_exists( 'Pera_WebP_Tools' ) ) {
 		const LAST_RESULT_META_KEY    = '_pera_webp_last_result';
 		const LAST_ERROR_META_KEY     = '_pera_webp_last_error';
 		const LAST_RESULT_CONVERTED   = 'converted';
+		const STATS_CACHE_KEY         = 'pera_webp_tools_stats_v1';
+		const STATS_CACHE_TTL         = 60;
+		const DEFAULT_BATCH_SIZE      = 30;
+		protected static $stats_runtime_cache = null;
 
 		public static function init() {
 			add_filter( 'wp_get_attachment_image_src', array( __CLASS__, 'maybe_swap_to_webp' ), 10, 3 );
@@ -71,6 +75,23 @@ if ( ! class_exists( 'Pera_WebP_Tools' ) ) {
 			return '';
 		}
 
+		public static function get_environment_info() {
+			$webp_encoding_supported = function_exists( 'wp_image_editor_supports' ) ? wp_image_editor_supports( array( 'mime_type' => 'image/webp' ) ) : false;
+			$editor_stack            = 'Unknown';
+
+			if ( class_exists( 'WP_Image_Editor_Imagick' ) && class_exists( 'Imagick' ) ) {
+				$editor_stack = 'Imagick';
+			} elseif ( class_exists( 'WP_Image_Editor_GD' ) && function_exists( 'gd_info' ) ) {
+				$editor_stack = 'GD';
+			}
+
+			return array(
+				'webp_encoding_supported' => (bool) $webp_encoding_supported,
+				'editor_stack'            => $editor_stack,
+				'batch_size'              => self::DEFAULT_BATCH_SIZE,
+			);
+		}
+
 		public static function convert_file( $filepath, $quality = 82 ) {
 			$ext = strtolower( pathinfo( $filepath, PATHINFO_EXTENSION ) );
 			if ( ! in_array( $ext, array( 'jpg', 'jpeg', 'png' ), true ) ) {
@@ -113,6 +134,7 @@ if ( ! class_exists( 'Pera_WebP_Tools' ) ) {
 
 			$file = get_attached_file( $attachment_id );
 			if ( ! $file || ! file_exists( $file ) ) {
+				self::invalidate_stats_cache();
 				$log['message']    = 'Attachment file missing on disk.';
 				$log['error_type'] = 'missing_file';
 				update_post_meta( $attachment_id, self::LAST_RESULT_META_KEY, 'error' );
@@ -122,6 +144,7 @@ if ( ! class_exists( 'Pera_WebP_Tools' ) ) {
 
 			$ext = strtolower( pathinfo( $file, PATHINFO_EXTENSION ) );
 			if ( ! in_array( $ext, array( 'jpg', 'jpeg', 'png' ), true ) ) {
+				self::invalidate_stats_cache();
 				$log['message']    = 'Only JPG/PNG can be converted.';
 				$log['error_type'] = 'skipped';
 				update_post_meta( $attachment_id, self::LAST_RESULT_META_KEY, 'skipped' );
@@ -153,9 +176,11 @@ if ( ! class_exists( 'Pera_WebP_Tools' ) ) {
 			$log['message'] = implode( ' ', $log['details'] );
 
 			if ( $log['ok'] ) {
+				self::invalidate_stats_cache();
 				update_post_meta( $attachment_id, self::LAST_RESULT_META_KEY, self::LAST_RESULT_CONVERTED );
 				delete_post_meta( $attachment_id, self::LAST_ERROR_META_KEY );
 			} else {
+				self::invalidate_stats_cache();
 				update_post_meta( $attachment_id, self::LAST_RESULT_META_KEY, 'error' );
 				update_post_meta( $attachment_id, self::LAST_ERROR_META_KEY, $log['message'] );
 			}
@@ -164,39 +189,67 @@ if ( ! class_exists( 'Pera_WebP_Tools' ) ) {
 		}
 
 		public static function get_attachment_status( $attachment_id ) {
+			$status_context = self::get_attachment_status_context( $attachment_id );
+			return $status_context['status'];
+		}
+
+		public static function get_attachment_status_context( $attachment_id ) {
 			$file = get_attached_file( $attachment_id );
 			if ( ! $file || ! file_exists( $file ) ) {
-				return 'error';
+				return array(
+					'status' => 'error',
+					'detail' => 'Attachment file missing on disk.',
+				);
 			}
 
 			$ext = strtolower( pathinfo( $file, PATHINFO_EXTENSION ) );
 			if ( ! in_array( $ext, array( 'jpg', 'jpeg', 'png' ), true ) ) {
-				return 'skipped';
+				return array(
+					'status' => 'skipped',
+					'detail' => 'Not a convertible JPG/PNG attachment.',
+				);
 			}
 
+			$last_result = self::get_last_result_meta( $attachment_id );
+
 			if ( ! file_exists( preg_replace( '/\.(jpe?g|png)$/i', '.webp', $file ) ) ) {
-				return self::has_recorded_error( $attachment_id ) ? 'error' : 'missing';
+				$status = ( 'error' === $last_result ) ? 'error' : ( 'skipped' === $last_result ? 'skipped' : 'missing' );
+				return array(
+					'status' => $status,
+					'detail' => 'Original file WebP is missing.',
+				);
 			}
 
 			$meta = wp_get_attachment_metadata( $attachment_id );
 			if ( is_array( $meta ) && ! empty( $meta['sizes'] ) ) {
 				$base_dir = trailingslashit( pathinfo( $file, PATHINFO_DIRNAME ) );
+				$missing_sizes = array();
 				foreach ( $meta['sizes'] as $info ) {
 					if ( empty( $info['file'] ) ) {
 						continue;
 					}
 					$size_file = $base_dir . $info['file'];
 					if ( file_exists( $size_file ) && ! file_exists( preg_replace( '/\.(jpe?g|png)$/i', '.webp', $size_file ) ) ) {
-						return self::has_recorded_error( $attachment_id ) ? 'error' : 'missing';
+						$missing_sizes[] = wp_basename( $size_file );
 					}
+				}
+				if ( ! empty( $missing_sizes ) ) {
+					$status = ( 'error' === $last_result ) ? 'error' : ( 'skipped' === $last_result ? 'skipped' : 'missing' );
+					return array(
+						'status' => $status,
+						'detail' => sprintf( 'One or more generated size WebP files are missing (%d).', count( $missing_sizes ) ),
+					);
 				}
 			}
 
-			return 'converted';
+			return array(
+				'status' => 'converted',
+				'detail' => '',
+			);
 		}
 
 		public static function has_recorded_error( $attachment_id ) {
-			$last_result = get_post_meta( $attachment_id, self::LAST_RESULT_META_KEY, true );
+			$last_result = self::get_last_result_meta( $attachment_id );
 			return in_array( $last_result, array( 'error', 'skipped' ), true );
 		}
 
@@ -205,6 +258,11 @@ if ( ! class_exists( 'Pera_WebP_Tools' ) ) {
 			if ( 'ok' === $last_result ) {
 				update_post_meta( $attachment_id, self::LAST_RESULT_META_KEY, self::LAST_RESULT_CONVERTED );
 			}
+		}
+
+		public static function get_last_result_meta( $attachment_id ) {
+			self::normalize_last_result_meta( $attachment_id );
+			return get_post_meta( $attachment_id, self::LAST_RESULT_META_KEY, true );
 		}
 
 		public static function add_media_row_actions( $actions, $post ) {
@@ -337,6 +395,7 @@ if ( ! class_exists( 'Pera_WebP_Tools' ) ) {
 			$status = isset( $_GET['webp_status'] ) ? sanitize_key( wp_unslash( $_GET['webp_status'] ) ) : 'all';
 			$stats  = self::calculate_stats();
 			$webp_environment_warning = self::get_webp_environment_warning();
+			$env_info                = self::get_environment_info();
 
 			$table = new Pera_WebP_Tools_List_Table( array(
 				'status_filter' => $status,
@@ -353,7 +412,8 @@ if ( ! class_exists( 'Pera_WebP_Tools' ) ) {
 						'all'       => 'All',
 						'converted' => 'Converted',
 						'missing'   => 'Missing WebP',
-						'error'     => 'Errors/Skipped',
+						'error'     => 'Errors',
+						'skipped'   => 'Skipped',
 					);
 					$total = count( $links );
 					$index = 0;
@@ -375,8 +435,18 @@ if ( ! class_exists( 'Pera_WebP_Tools' ) ) {
 					<strong>Total scanned:</strong> <?php echo esc_html( (string) $stats['all'] ); ?> &nbsp;|&nbsp;
 					<strong>Converted:</strong> <?php echo esc_html( (string) $stats['converted'] ); ?> &nbsp;|&nbsp;
 					<strong>Missing WebP:</strong> <?php echo esc_html( (string) $stats['missing'] ); ?> &nbsp;|&nbsp;
-					<strong>Errors/Skipped:</strong> <?php echo esc_html( (string) $stats['error'] ); ?>
+					<strong>Errors:</strong> <?php echo esc_html( (string) $stats['error'] ); ?> &nbsp;|&nbsp;
+					<strong>Skipped:</strong> <?php echo esc_html( (string) $stats['skipped'] ); ?>
 				</p>
+
+				<div class="notice notice-info inline">
+					<p>
+						<strong>Environment:</strong>
+						WebP encoding support: <?php echo esc_html( $env_info['webp_encoding_supported'] ? 'Yes' : 'No' ); ?> &nbsp;|&nbsp;
+						Editor stack: <?php echo esc_html( $env_info['editor_stack'] ); ?> &nbsp;|&nbsp;
+						Batch size: <?php echo esc_html( (string) $env_info['batch_size'] ); ?>
+					</p>
+				</div>
 
 				<?php if ( ! empty( $webp_environment_warning ) ) : ?>
 					<div class="notice notice-warning inline">
@@ -388,7 +458,7 @@ if ( ! class_exists( 'Pera_WebP_Tools' ) ) {
 					<input type="hidden" name="action" value="pera_webp_tools_action" />
 					<input type="hidden" name="webp_tools_action" value="convert_all_missing" />
 					<?php wp_nonce_field( 'pera_webp_tools_action' ); ?>
-					<?php submit_button( 'Convert Next Missing Batch (up to 30)', 'primary', 'submit', false ); ?>
+					<?php submit_button( 'Convert Next Missing Batch (up to ' . (int) self::DEFAULT_BATCH_SIZE . ')', 'primary', 'submit', false ); ?>
 				</form>
 
 				<form method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>">
@@ -396,6 +466,7 @@ if ( ! class_exists( 'Pera_WebP_Tools' ) ) {
 					<input type="hidden" name="webp_tools_action" value="bulk_convert" />
 					<input type="hidden" name="redirect_status" value="<?php echo esc_attr( $status ); ?>" />
 					<?php wp_nonce_field( 'pera_webp_tools_action' ); ?>
+					<?php submit_button( 'Convert Selected', 'secondary', 'submit-top', false ); ?>
 					<?php $table->display(); ?>
 					<?php submit_button( 'Convert Selected', 'secondary', 'submit', false ); ?>
 				</form>
@@ -420,13 +491,7 @@ if ( ! class_exists( 'Pera_WebP_Tools' ) ) {
 				admin_url( 'upload.php' )
 			);
 
-			if ( 'convert_single' === $action ) {
-				$attachment_id = isset( $_POST['attachment_id'] ) ? (int) $_POST['attachment_id'] : 0;
-				if ( $attachment_id > 0 ) {
-					$result = self::convert_attachment( $attachment_id, true, 82 );
-					self::set_notice( ! empty( $result['ok'] ) ? 'success' : 'error', $result['message'] );
-				}
-			} elseif ( 'bulk_convert' === $action ) {
+			if ( 'bulk_convert' === $action ) {
 				$ids = isset( $_POST['attachments'] ) ? (array) wp_unslash( $_POST['attachments'] ) : array();
 				if ( empty( $ids ) ) {
 					self::set_notice( 'error', 'No attachments selected for conversion.' );
@@ -446,7 +511,7 @@ if ( ! class_exists( 'Pera_WebP_Tools' ) ) {
 				}
 				self::set_notice( 'info', sprintf( 'Bulk conversion completed. Converted: %d. Failed/Skipped: %d.', $ok, $fail ) );
 			} elseif ( 'convert_all_missing' === $action ) {
-				$processed = self::convert_missing_batch( 30 );
+				$processed = self::convert_missing_batch( self::DEFAULT_BATCH_SIZE );
 				$message = sprintf(
 					'Batch processed %d missing attachment(s). Converted: %d. Failed/Skipped: %d. Remaining missing: %d.',
 					$processed['processed'],
@@ -522,11 +587,22 @@ if ( ! class_exists( 'Pera_WebP_Tools' ) ) {
 		}
 
 		public static function calculate_stats() {
+			if ( is_array( self::$stats_runtime_cache ) ) {
+				return self::$stats_runtime_cache;
+			}
+
+			$cached = get_transient( self::STATS_CACHE_KEY );
+			if ( is_array( $cached ) ) {
+				self::$stats_runtime_cache = $cached;
+				return $cached;
+			}
+
 			$stats = array(
 				'all'       => 0,
 				'converted' => 0,
 				'missing'   => 0,
 				'error'     => 0,
+				'skipped'   => 0,
 			);
 
 			$ids = self::get_filtered_attachment_ids( 'all', 0 );
@@ -537,12 +613,22 @@ if ( ! class_exists( 'Pera_WebP_Tools' ) ) {
 					$stats['converted']++;
 				} elseif ( 'missing' === $status ) {
 					$stats['missing']++;
+				} elseif ( 'skipped' === $status ) {
+					$stats['skipped']++;
 				} else {
 					$stats['error']++;
 				}
 			}
 
+			set_transient( self::STATS_CACHE_KEY, $stats, self::STATS_CACHE_TTL );
+			self::$stats_runtime_cache = $stats;
+
 			return $stats;
+		}
+
+		public static function invalidate_stats_cache() {
+			self::$stats_runtime_cache = null;
+			delete_transient( self::STATS_CACHE_KEY );
 		}
 
 		public static function get_filtered_attachment_ids( $status = 'all', $limit = 0, $offset = 0 ) {
@@ -565,9 +651,8 @@ if ( ! class_exists( 'Pera_WebP_Tools' ) ) {
 
 			$filtered = array();
 			foreach ( $ids as $id ) {
-				self::normalize_last_result_meta( (int) $id );
 				$current = self::get_attachment_status( (int) $id );
-				if ( $status === $current || ( 'error' === $status && in_array( $current, array( 'error', 'skipped' ), true ) ) ) {
+				if ( $status === $current ) {
 					$filtered[] = (int) $id;
 				}
 			}
