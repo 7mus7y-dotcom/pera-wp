@@ -42,11 +42,20 @@ class Pera_WebP_Tools_List_Table extends WP_List_Table {
 		);
 	}
 
+	protected function get_default_primary_column_name() {
+		return 'filename';
+	}
+
 	protected function column_cb( $item ) {
 		return '<input type="checkbox" name="attachments[]" value="' . esc_attr( (string) $item['id'] ) . '" />';
 	}
 
 	public function prepare_items() {
+		$columns  = $this->get_columns();
+		$hidden   = array();
+		$sortable = $this->get_sortable_columns();
+		$this->_column_headers = array( $columns, $hidden, $sortable );
+
 		$per_page     = 20;
 		$current_page = $this->get_pagenum();
 		$offset       = ( $current_page - 1 ) * $per_page;
@@ -67,6 +76,7 @@ class Pera_WebP_Tools_List_Table extends WP_List_Table {
 				'uploaded' => mysql2date( 'Y-m-d H:i', $post->post_date ),
 				'uploaded_ts' => strtotime( $post->post_date_gmt ? $post->post_date_gmt : $post->post_date ),
 				'status'   => Pera_WebP_Tools::get_attachment_status( $attachment_id ),
+				'last_error' => (string) get_post_meta( $attachment_id, Pera_WebP_Tools::LAST_ERROR_META_KEY, true ),
 			);
 		}
 
@@ -149,7 +159,11 @@ class Pera_WebP_Tools_List_Table extends WP_List_Table {
 			'skipped'   => 'Skipped',
 		);
 		$status = isset( $labels[ $item['status'] ] ) ? $labels[ $item['status'] ] : $item['status'];
-		return esc_html( $status );
+		$output = '<strong>' . esc_html( $status ) . '</strong>';
+		if ( ! empty( $item['last_error'] ) && in_array( $item['status'], array( 'error', 'skipped' ), true ) ) {
+			$output .= '<br><span class="description pera-webp-last-error">' . esc_html( $item['last_error'] ) . '</span>';
+		}
+		return $output;
 	}
 
 	protected function column_action( $item ) {

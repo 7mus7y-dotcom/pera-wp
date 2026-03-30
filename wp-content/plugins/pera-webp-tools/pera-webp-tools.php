@@ -59,6 +59,18 @@ if ( ! class_exists( 'Pera_WebP_Tools' ) ) {
 			return function_exists( 'wp_get_image_editor' );
 		}
 
+		public static function get_webp_environment_warning() {
+			if ( ! function_exists( 'wp_image_editor_supports' ) ) {
+				return 'WordPress image editor support checks are unavailable. WebP conversion may fail on this server.';
+			}
+
+			if ( ! wp_image_editor_supports( array( 'mime_type' => 'image/webp' ) ) ) {
+				return 'This server does not report WebP encoding support in the active WordPress image editor stack (Imagick/GD). Conversions will likely fail until WebP support is enabled.';
+			}
+
+			return '';
+		}
+
 		public static function convert_file( $filepath, $quality = 82 ) {
 			$ext = strtolower( pathinfo( $filepath, PATHINFO_EXTENSION ) );
 			if ( ! in_array( $ext, array( 'jpg', 'jpeg', 'png' ), true ) ) {
@@ -324,6 +336,7 @@ if ( ! class_exists( 'Pera_WebP_Tools' ) ) {
 
 			$status = isset( $_GET['webp_status'] ) ? sanitize_key( wp_unslash( $_GET['webp_status'] ) ) : 'all';
 			$stats  = self::calculate_stats();
+			$webp_environment_warning = self::get_webp_environment_warning();
 
 			$table = new Pera_WebP_Tools_List_Table( array(
 				'status_filter' => $status,
@@ -365,11 +378,17 @@ if ( ! class_exists( 'Pera_WebP_Tools' ) ) {
 					<strong>Errors/Skipped:</strong> <?php echo esc_html( (string) $stats['error'] ); ?>
 				</p>
 
+				<?php if ( ! empty( $webp_environment_warning ) ) : ?>
+					<div class="notice notice-warning inline">
+						<p><strong>WebP environment warning:</strong> <?php echo esc_html( $webp_environment_warning ); ?></p>
+					</div>
+				<?php endif; ?>
+
 				<form method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>" style="margin:1em 0;">
 					<input type="hidden" name="action" value="pera_webp_tools_action" />
 					<input type="hidden" name="webp_tools_action" value="convert_all_missing" />
 					<?php wp_nonce_field( 'pera_webp_tools_action' ); ?>
-					<?php submit_button( 'Convert All Missing (batch)', 'primary', 'submit', false ); ?>
+					<?php submit_button( 'Convert Next Missing Batch (up to 30)', 'primary', 'submit', false ); ?>
 				</form>
 
 				<form method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>">
