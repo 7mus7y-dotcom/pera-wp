@@ -68,14 +68,18 @@ class Pera_WebP_Tools_List_Table extends WP_List_Table {
 				continue;
 			}
 			$file_path = get_attached_file( $attachment_id );
+			$status_context = Pera_WebP_Tools::get_attachment_status_context( $attachment_id );
 			$items[]   = array(
 				'id'       => $attachment_id,
 				'thumbnail'=> wp_get_attachment_image( $attachment_id, array( 60, 60 ), true ),
 				'filename' => $file_path ? wp_basename( $file_path ) : '(missing file)',
+				'edit_link' => get_edit_post_link( $attachment_id ),
+				'view_link' => wp_get_attachment_url( $attachment_id ),
 				'mime'     => get_post_mime_type( $attachment_id ),
 				'uploaded' => mysql2date( 'Y-m-d H:i', $post->post_date ),
 				'uploaded_ts' => strtotime( $post->post_date_gmt ? $post->post_date_gmt : $post->post_date ),
-				'status'   => Pera_WebP_Tools::get_attachment_status( $attachment_id ),
+				'status'   => $status_context['status'],
+				'status_detail' => isset( $status_context['detail'] ) ? (string) $status_context['detail'] : '',
 				'last_error' => (string) get_post_meta( $attachment_id, Pera_WebP_Tools::LAST_ERROR_META_KEY, true ),
 			);
 		}
@@ -140,7 +144,18 @@ class Pera_WebP_Tools_List_Table extends WP_List_Table {
 	}
 
 	protected function column_filename( $item ) {
-		return esc_html( $item['filename'] );
+		$output = '<strong>' . esc_html( $item['filename'] ) . '</strong>';
+		$actions = array();
+		if ( ! empty( $item['edit_link'] ) ) {
+			$actions['edit'] = '<a href="' . esc_url( $item['edit_link'] ) . '">Edit</a>';
+		}
+		if ( ! empty( $item['view_link'] ) ) {
+			$actions['view'] = '<a href="' . esc_url( $item['view_link'] ) . '" target="_blank" rel="noopener">View File</a>';
+		}
+		if ( ! empty( $actions ) ) {
+			$output .= $this->row_actions( $actions );
+		}
+		return $output;
 	}
 
 	protected function column_mime( $item ) {
@@ -155,11 +170,14 @@ class Pera_WebP_Tools_List_Table extends WP_List_Table {
 		$labels = array(
 			'converted' => 'Converted',
 			'missing'   => 'Missing WebP',
-			'error'     => 'Error/Skipped',
+			'error'     => 'Error',
 			'skipped'   => 'Skipped',
 		);
 		$status = isset( $labels[ $item['status'] ] ) ? $labels[ $item['status'] ] : $item['status'];
 		$output = '<strong>' . esc_html( $status ) . '</strong>';
+		if ( ! empty( $item['status_detail'] ) ) {
+			$output .= '<br><span class="description">' . esc_html( $item['status_detail'] ) . '</span>';
+		}
 		if ( ! empty( $item['last_error'] ) && in_array( $item['status'], array( 'error', 'skipped' ), true ) ) {
 			$output .= '<br><span class="description pera-webp-last-error">' . esc_html( $item['last_error'] ) . '</span>';
 		}
