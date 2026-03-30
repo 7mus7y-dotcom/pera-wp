@@ -218,7 +218,6 @@
 }
 
 /* Mobile image ratio fix for editorial strip */
-@media (max-width: 639px) {
   .home-editorial-posts__slider .post-card-thumb {
     aspect-ratio: 16 / 9;
     height: auto;
@@ -230,4 +229,3 @@
     height: 100%;
     object-fit: cover;
   }
-}
