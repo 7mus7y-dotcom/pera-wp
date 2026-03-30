@@ -811,6 +811,12 @@
   font-size: 0.86rem;
 }
 
+.crm-page--client-view .crm-linked-workspace [data-crm-portfolio-fields] > label textarea {
+  min-height: 56px;
+  font-size: 0.86rem;
+  resize: vertical;
+}
+
 .crm-page--client-view .crm-linked-workspace .peracrm-portfolio-actions {
   border-top: 1px solid #edf2f9;
   padding-top: 6px;
@@ -887,6 +893,10 @@ body.crm-route .crm-page--client-view [data-crm-portfolio-output] ~ .peracrm-lin
 body.crm-route .crm-page--client-view [data-crm-portfolio-output] ~ .peracrm-linked-properties-grid .peracrm-portfolio-floor-plan-field {
   grid-column: 1 / -1;
   position: relative;
+}
+
+body.crm-route .crm-page--client-view [data-crm-portfolio-output] ~ .peracrm-linked-properties-grid .peracrm-portfolio-notes-field {
+  grid-column: 1 / -1;
 }
 
 body.crm-route .crm-page--client-view [data-crm-portfolio-output] ~ .peracrm-linked-properties-grid [data-crm-portfolio-fields] input[type="file"].floorplan-input,

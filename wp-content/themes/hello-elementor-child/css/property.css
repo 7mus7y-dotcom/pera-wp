@@ -1449,6 +1449,52 @@ body.is-lightbox-open{ overflow: hidden; }
   min-width: 760px;
 }
 
+.portfolio-token-page .portfolio-notes-col,
+.portfolio-token-page .portfolio-note-cell {
+  width: 52px;
+  text-align: center;
+}
+
+.portfolio-token-page .portfolio-note-cell {
+  position: relative;
+}
+
+.portfolio-token-page .portfolio-note-trigger {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 30px;
+  border: 1px solid rgba(15, 23, 42, 0.15);
+  border-radius: 999px;
+  background: #fff;
+  color: #334155;
+  cursor: pointer;
+}
+
+.portfolio-token-page .portfolio-note-trigger svg {
+  width: 16px;
+  height: 16px;
+  fill: currentColor;
+}
+
+.portfolio-token-page .portfolio-note-popover {
+  position: absolute;
+  z-index: 20;
+  right: 0;
+  top: calc(100% + 6px);
+  width: min(280px, 70vw);
+  padding: 10px 12px;
+  border-radius: 10px;
+  background: #fff;
+  border: 1px solid rgba(15, 23, 42, 0.12);
+  box-shadow: 0 12px 26px rgba(15, 23, 42, 0.18);
+  text-align: left;
+  white-space: normal;
+  font-size: 0.85rem;
+  line-height: 1.45;
+}
+
 .portfolio-token-page .portfolio-floor-plan-action {
   display: inline-flex;
   align-items: center;

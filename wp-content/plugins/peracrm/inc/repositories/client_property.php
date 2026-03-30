@@ -119,6 +119,7 @@ function peracrm_client_property_update_portfolio_fields($client_id, $property_i
         'gross_size',
         'list_price',
         'cash_price',
+        'notes',
         'floor_plan_attachment_id',
     ];
 
