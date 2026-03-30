@@ -173,7 +173,7 @@ if ( $needs_slider ) {
      Rule: blog page OR single post OR blog archive OR single property
   ========================= */
 
-  if ( $is_blog_page || $is_single_post || $is_blog_archive || $is_single_property ) {
+  if ( $is_home || $is_blog_page || $is_single_post || $is_blog_archive || $is_single_property ) {
 
     $deps = array( 'pera-main-css' );
     if ( $needs_slider ) {
