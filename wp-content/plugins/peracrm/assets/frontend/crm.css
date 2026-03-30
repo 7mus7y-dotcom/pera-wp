@@ -4457,6 +4457,106 @@ body.crm-route #site-header.peracrm-shell-header.is-scrolled .peracrm-header-act
   border: 1px solid var(--border, #e8ecf2);
 }
 
+/* =======================================================
+   CRM client view spacing normalization (tighter rhythm)
+   ======================================================= */
+.crm-page--client-view {
+  --crm-section-padding: 14px;
+  --crm-section-gap: 10px;
+  --crm-section-header-gap: 10px;
+  --crm-client-stack-gap: 12px;
+}
+
+.crm-page--client-view .crm-client-summary {
+  gap: 10px;
+  padding: 14px 16px;
+  margin-bottom: 12px;
+}
+
+.crm-page--client-view .crm-client-detail-layout {
+  gap: 16px;
+  margin-bottom: 12px;
+}
+
+.crm-page--client-view .crm-client-detail-layout__column,
+.crm-page--client-view .crm-client-profile-sidecards,
+.crm-page--client-view .crm-client-profile-stack {
+  gap: var(--crm-client-stack-gap);
+}
+
+.crm-page--client-view .crm-client-profile-grid,
+.crm-page--client-view .crm-client-reminders-grid,
+.crm-page--client-view .crm-client-next-step {
+  gap: 10px;
+}
+
+.crm-page--client-view .crm-client-task-group,
+.crm-page--client-view .crm-client-subsection {
+  padding: 10px;
+}
+
+.crm-page--client-view .crm-section__body {
+  gap: 10px;
+}
+
+.crm-page--client-view .crm-form-stack {
+  gap: 10px;
+}
+
+.crm-page--client-view .crm-form-row-2,
+.crm-page--client-view .crm-deals-grid {
+  gap: 10px;
+}
+
+.crm-page--client-view .crm-row-list__item,
+.crm-page--client-view .crm-activity-list__item {
+  gap: 10px;
+  padding: 10px 0;
+}
+
+.crm-page--client-view .crm-row-list__content {
+  gap: 4px;
+}
+
+.crm-page--client-view .crm-row-list__meta,
+.crm-page--client-view .crm-row-list__meta-line,
+.crm-page--client-view .crm-meta-line {
+  gap: 4px 10px;
+}
+
+.crm-page--client-view .crm-linked-workspace {
+  gap: 12px;
+}
+
+.crm-page--client-view .crm-linked-workspace__add {
+  padding: 8px;
+  gap: 8px;
+}
+
+.crm-page--client-view .crm-linked-workspace .peracrm-linked-properties-grid {
+  gap: 10px;
+}
+
+.crm-page--client-view .crm-linked-workspace .peracrm-linked-properties-grid__item {
+  padding: 8px;
+}
+
+.crm-page--client-view .crm-client-subsection--deal-workspace {
+  gap: 12px;
+}
+
+.crm-page--client-view .crm-client-subsection--deal-workspace .crm-deals-form {
+  gap: 8px;
+}
+
+.crm-page--client-view .crm-client-subsection--deal-workspace .crm-form-section + .crm-form-section {
+  padding-top: 8px;
+}
+
+.crm-page--client-view .crm-danger-zone .crm-danger-zone__body {
+  gap: 12px;
+}
+
 @media (max-width: 1199px) {
   .crm-page--client-view .crm-summary-header__meta {
     gap: 6px 10px;
@@ -4953,6 +5053,13 @@ body.crm-route #site-header.peracrm-shell-header.is-scrolled .peracrm-header-act
     --crm-button-padding-x: 13px;
   }
 
+  .crm-page--client-view {
+    --crm-section-padding: 10px;
+    --crm-section-gap: 8px;
+    --crm-section-header-gap: 8px;
+    --crm-client-stack-gap: 10px;
+  }
+
   .crm-page .btn,
   #crm-hero .btn {
     width: auto;
@@ -4966,6 +5073,26 @@ body.crm-route #site-header.peracrm-shell-header.is-scrolled .peracrm-header-act
   .crm-page--client-view .crm-client-subsection--deal-workspace {
     padding: 8px;
     gap: 10px;
+  }
+
+  .crm-page--client-view .crm-client-summary {
+    padding: 12px;
+    margin-bottom: 10px;
+  }
+
+  .crm-page--client-view .crm-client-detail-layout {
+    gap: 12px;
+    margin-bottom: 10px;
+  }
+
+  .crm-page--client-view .crm-client-task-group,
+  .crm-page--client-view .crm-client-subsection {
+    padding: 8px;
+  }
+
+  .crm-page--client-view .crm-row-list__item,
+  .crm-page--client-view .crm-activity-list__item {
+    padding: 8px 0;
   }
 
   .crm-page--client-view .crm-client-subsection--deal-workspace .crm-form-workspace__meta,
