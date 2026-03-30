@@ -1187,7 +1187,7 @@ if ( ! function_exists( 'pera_crm_save_portfolio_property_fields_ajax' ) ) {
 			pera_crm_ajax_error( 'portfolio_relation_not_found', __( 'Portfolio relation not found for this property.', 'peracrm' ), 404 );
 		}
 
-		$allowed = array( 'unit_type', 'floor_number', 'net_size', 'gross_size', 'list_price', 'cash_price', 'floor_plan_attachment_id' );
+		$allowed = array( 'unit_type', 'floor_number', 'net_size', 'gross_size', 'list_price', 'cash_price', 'notes', 'floor_plan_attachment_id' );
 		$sanitized = array();
 
 		$floor_plan_url = '';
@@ -1205,6 +1205,18 @@ if ( ! function_exists( 'pera_crm_save_portfolio_property_fields_ajax' ) ) {
 
 			if ( 'unit_type' === $key || 'floor_number' === $key ) {
 				$value = sanitize_text_field( (string) $raw_fields[ $key ] );
+				$sanitized[ $key ] = '' === $value ? null : $value;
+				continue;
+			}
+
+			if ( 'notes' === $key ) {
+				$value = sanitize_textarea_field( (string) $raw_fields[ $key ] );
+				$value = trim( $value );
+				if ( function_exists( 'mb_substr' ) ) {
+					$value = mb_substr( $value, 0, 500 );
+				} else {
+					$value = substr( $value, 0, 500 );
+				}
 				$sanitized[ $key ] = '' === $value ? null : $value;
 				continue;
 			}

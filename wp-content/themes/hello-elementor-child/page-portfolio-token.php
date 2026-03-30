@@ -152,6 +152,7 @@ get_header();
 									<th scope="col"><?php esc_html_e( 'List ($)', 'hello-elementor-child' ); ?></th>
 									<th scope="col"><?php esc_html_e( 'Cash ($)', 'hello-elementor-child' ); ?></th>
 									<th scope="col"><?php esc_html_e( 'Floor plan', 'hello-elementor-child' ); ?></th>
+									<th scope="col" class="portfolio-notes-col"><?php esc_html_e( 'Notes', 'hello-elementor-child' ); ?></th>
 								</tr>
 							</thead>
 							<tbody>
@@ -163,6 +164,7 @@ get_header();
 											? $portfolio_rows_by_property[ $property_id ]
 											: array();
 										$floor_plan_url = isset( $floor_plan_urls_by_property[ $property_id ] ) ? (string) $floor_plan_urls_by_property[ $property_id ] : '';
+										$portfolio_note = isset( $row_data['notes'] ) ? trim( (string) $row_data['notes'] ) : '';
 
 										$field_or_dash = static function ( array $row, string $key ): string {
 											$value = isset( $row[ $key ] ) ? trim( (string) $row[ $key ] ) : '';
@@ -198,11 +200,22 @@ get_header();
 													—
 												<?php endif; ?>
 											</td>
+											<td class="portfolio-note-cell">
+												<?php if ( '' !== $portfolio_note ) : ?>
+													<button type="button" class="portfolio-note-trigger" data-portfolio-note-trigger aria-label="<?php esc_attr_e( 'View notes', 'hello-elementor-child' ); ?>" aria-expanded="false">
+														<svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+															<path d="M4 5.5A2.5 2.5 0 0 1 6.5 3h11A2.5 2.5 0 0 1 20 5.5v7A2.5 2.5 0 0 1 17.5 15H9l-4.7 4.1a.8.8 0 0 1-1.3-.6V5.5Zm2.5-1a1 1 0 0 0-1 1v11.3L8.2 14a.8.8 0 0 1 .5-.2h8.8a1 1 0 0 0 1-1v-7a1 1 0 0 0-1-1h-11Z"/>
+															<path d="M8 8.25h8a.75.75 0 0 1 0 1.5H8a.75.75 0 0 1 0-1.5Zm0 3h5a.75.75 0 0 1 0 1.5H8a.75.75 0 0 1 0-1.5Z"/>
+														</svg>
+													</button>
+													<div class="portfolio-note-popover" data-portfolio-note-popover hidden role="tooltip"><?php echo nl2br( esc_html( $portfolio_note ) ); ?></div>
+												<?php endif; ?>
+											</td>
 										</tr>
 									<?php endwhile; ?>
 								<?php else : ?>
 									<tr>
-										<td colspan="8"><?php esc_html_e( 'No properties available in this portfolio right now.', 'hello-elementor-child' ); ?></td>
+										<td colspan="9"><?php esc_html_e( 'No properties available in this portfolio right now.', 'hello-elementor-child' ); ?></td>
 									</tr>
 								<?php endif; ?>
 							</tbody>
@@ -255,6 +268,54 @@ get_header();
 			});
 
 			applyView(activeView);
+		})();
+
+		(function () {
+			var active = null;
+			var closeActive = function () {
+				if (!active) {
+					return;
+				}
+				active.popover.hidden = true;
+				active.button.setAttribute('aria-expanded', 'false');
+				active = null;
+			};
+
+			var openForButton = function (button) {
+				var popover = button && button.parentNode ? button.parentNode.querySelector('[data-portfolio-note-popover]') : null;
+				if (!popover) {
+					return;
+				}
+
+				if (active && active.button === button) {
+					closeActive();
+					return;
+				}
+
+				closeActive();
+				popover.hidden = false;
+				button.setAttribute('aria-expanded', 'true');
+				active = { button: button, popover: popover };
+			};
+
+			document.addEventListener('click', function (event) {
+				var trigger = event.target.closest('[data-portfolio-note-trigger]');
+				if (trigger) {
+					event.preventDefault();
+					openForButton(trigger);
+					return;
+				}
+
+				if (active && !event.target.closest('.portfolio-note-cell')) {
+					closeActive();
+				}
+			});
+
+			document.addEventListener('keydown', function (event) {
+				if (event.key === 'Escape') {
+					closeActive();
+				}
+			});
 		})();
 		</script>
 
