@@ -26,6 +26,7 @@ if ( ! class_exists( 'Pera_WebP_Tools' ) ) {
 			add_filter( 'media_row_actions', array( __CLASS__, 'add_media_row_actions' ), 10, 2 );
 			add_action( 'admin_init', array( __CLASS__, 'handle_single_conversion_request' ) );
 			add_action( 'admin_init', array( __CLASS__, 'handle_single_delete_request' ) );
+			add_action( 'admin_enqueue_scripts', array( __CLASS__, 'enqueue_admin_assets' ) );
 
 			add_filter( 'bulk_actions-upload', array( __CLASS__, 'register_media_bulk_action' ) );
 			add_filter( 'handle_bulk_actions-upload', array( __CLASS__, 'handle_media_bulk_action' ), 10, 3 );
@@ -135,7 +136,7 @@ if ( ! class_exists( 'Pera_WebP_Tools' ) ) {
 
 			$file = get_attached_file( $attachment_id );
 			if ( ! $file || ! file_exists( $file ) ) {
-				self::invalidate_stats_cache();
+				self::maybe_invalidate_stats_cache();
 				$log['message']    = 'Attachment file missing on disk.';
 				$log['error_type'] = 'missing_file';
 				update_post_meta( $attachment_id, self::LAST_RESULT_META_KEY, 'error' );
@@ -145,7 +146,7 @@ if ( ! class_exists( 'Pera_WebP_Tools' ) ) {
 
 			$ext = strtolower( pathinfo( $file, PATHINFO_EXTENSION ) );
 			if ( ! in_array( $ext, array( 'jpg', 'jpeg', 'png' ), true ) ) {
-				self::invalidate_stats_cache();
+				self::maybe_invalidate_stats_cache();
 				$log['message']    = 'Only JPG/PNG can be converted.';
 				$log['error_type'] = 'skipped';
 				update_post_meta( $attachment_id, self::LAST_RESULT_META_KEY, 'skipped' );
@@ -177,11 +178,11 @@ if ( ! class_exists( 'Pera_WebP_Tools' ) ) {
 			$log['message'] = implode( ' ', $log['details'] );
 
 			if ( $log['ok'] ) {
-				self::invalidate_stats_cache();
+				self::maybe_invalidate_stats_cache();
 				update_post_meta( $attachment_id, self::LAST_RESULT_META_KEY, self::LAST_RESULT_CONVERTED );
 				delete_post_meta( $attachment_id, self::LAST_ERROR_META_KEY );
 			} else {
-				self::invalidate_stats_cache();
+				self::maybe_invalidate_stats_cache();
 				update_post_meta( $attachment_id, self::LAST_RESULT_META_KEY, 'error' );
 				update_post_meta( $attachment_id, self::LAST_ERROR_META_KEY, $log['message'] );
 			}
@@ -217,24 +218,22 @@ if ( ! class_exists( 'Pera_WebP_Tools' ) ) {
 			if ( ! $original_webp_exists ) {
 				$meta = wp_get_attachment_metadata( $attachment_id );
 				if ( is_array( $meta ) && ! empty( $meta['sizes'] ) ) {
-					$base_dir             = trailingslashit( pathinfo( $file, PATHINFO_DIRNAME ) );
-					$has_generated_sizes  = false;
+					$base_dir               = trailingslashit( pathinfo( $file, PATHINFO_DIRNAME ) );
+					$has_sizes              = false;
 					$has_existing_size_webp = false;
 
 					foreach ( $meta['sizes'] as $info ) {
 						if ( empty( $info['file'] ) ) {
 							continue;
 						}
+						$has_sizes = true;
 						$size_file = $base_dir . $info['file'];
-						if ( file_exists( $size_file ) ) {
-							$has_generated_sizes = true;
-							if ( file_exists( preg_replace( '/\.(jpe?g|png)$/i', '.webp', $size_file ) ) ) {
-								$has_existing_size_webp = true;
-							}
+						if ( file_exists( $size_file ) && file_exists( preg_replace( '/\.(jpe?g|png)$/i', '.webp', $size_file ) ) ) {
+							$has_existing_size_webp = true;
 						}
 					}
 
-					if ( $has_generated_sizes && $has_existing_size_webp ) {
+					if ( $has_sizes && $has_existing_size_webp ) {
 						return array(
 							'status' => 'missing_original_only',
 							'detail' => 'Original WebP missing but generated sizes exist.',
@@ -366,7 +365,12 @@ if ( ! class_exists( 'Pera_WebP_Tools' ) ) {
 		}
 
 		public static function handle_single_delete_request() {
-			if ( ! is_admin() || ! isset( $_GET['pera_webp_delete'], $_GET['id'] ) ) {
+			if (
+				! is_admin() ||
+				! isset( $_GET['pera_webp_delete'], $_GET['id'] ) ||
+				! isset( $_GET['page'] ) ||
+				$_GET['page'] !== 'pera-webp-tools'
+			) {
 				return;
 			}
 
@@ -389,8 +393,9 @@ if ( ! class_exists( 'Pera_WebP_Tools' ) ) {
 				self::set_notice( 'error', 'Only image attachments shown in WebP Tools can be deleted from this action.' );
 			} else {
 				$deleted = wp_delete_attachment( $attachment_id, true );
-				self::invalidate_stats_cache();
 				if ( $deleted ) {
+					do_action( 'pera_webp_tools_attachment_deleted', $attachment_id );
+					self::maybe_invalidate_stats_cache();
 					self::set_notice( 'success', 'Attachment deleted.' );
 				} else {
 					self::set_notice( 'error', 'Could not delete attachment.' );
@@ -515,6 +520,24 @@ if ( ! class_exists( 'Pera_WebP_Tools' ) ) {
 					<strong>Errors:</strong> <?php echo esc_html( (string) $stats['error'] ); ?> &nbsp;|&nbsp;
 					<strong>Skipped:</strong> <?php echo esc_html( (string) $stats['skipped'] ); ?>
 				</p>
+				<?php if ( ! empty( $stats['broken'] ) ) : ?>
+					<div class="notice notice-error inline">
+						<p>
+							<?php
+							echo esc_html( sprintf( '%d broken attachments detected (missing source files). Review now.', (int) $stats['broken'] ) );
+							echo ' ';
+							$broken_url = add_query_arg(
+								array(
+									'page'        => 'pera-webp-tools',
+									'webp_status' => 'broken',
+								),
+								admin_url( 'upload.php' )
+							);
+							?>
+							<a href="<?php echo esc_url( $broken_url ); ?>">Review now</a>
+						</p>
+					</div>
+				<?php endif; ?>
 
 				<div class="notice notice-info inline">
 					<p>
@@ -543,14 +566,21 @@ if ( ! class_exists( 'Pera_WebP_Tools' ) ) {
 					<input type="hidden" name="webp_tools_action" value="bulk_convert" />
 					<input type="hidden" name="redirect_status" value="<?php echo esc_attr( $status ); ?>" />
 					<?php wp_nonce_field( 'pera_webp_tools_action' ); ?>
+					<?php $dry_checked = ! empty( $_POST['dry_run_delete'] ) ? 'checked' : ''; ?>
+					<p>
+						<label>
+							<input type="checkbox" name="dry_run_delete" value="1" <?php echo esc_attr( $dry_checked ); ?> />
+							Dry run (preview only, no deletion)
+						</label>
+					</p>
 					<?php submit_button( 'Convert Selected', 'secondary', 'submit-top', false ); ?>
 					<?php if ( current_user_can( 'delete_posts' ) ) : ?>
-						<?php submit_button( 'Delete Selected', 'delete', 'submit-delete-top', false, array( 'onclick' => "return confirm('Delete selected attachments permanently?');" ) ); ?>
+						<?php submit_button( 'Delete Selected', 'secondary delete', 'submit-delete-top', false, array( 'onclick' => "return confirm('Delete selected attachments permanently?');" ) ); ?>
 					<?php endif; ?>
 					<?php $table->display(); ?>
 					<?php submit_button( 'Convert Selected', 'secondary', 'submit', false ); ?>
 					<?php if ( current_user_can( 'delete_posts' ) ) : ?>
-						<?php submit_button( 'Delete Selected', 'delete', 'submit-delete', false, array( 'onclick' => "return confirm('Delete selected attachments permanently?');" ) ); ?>
+						<?php submit_button( 'Delete Selected', 'secondary delete', 'submit-delete', false, array( 'onclick' => "return confirm('Delete selected attachments permanently?');" ) ); ?>
 					<?php endif; ?>
 				</form>
 			</div>
@@ -602,6 +632,7 @@ if ( ! class_exists( 'Pera_WebP_Tools' ) ) {
 				}
 
 				$ids = isset( $_POST['attachments'] ) ? (array) wp_unslash( $_POST['attachments'] ) : array();
+				$dry_run = ! empty( $_POST['dry_run_delete'] );
 				if ( empty( $ids ) ) {
 					self::set_notice( 'error', 'No attachments selected for deletion.' );
 					wp_safe_redirect( $redirect );
@@ -610,24 +641,66 @@ if ( ! class_exists( 'Pera_WebP_Tools' ) ) {
 
 				$ok = 0;
 				$fail = 0;
+				$eligible = 0;
+				$total_size = 0;
 				foreach ( $ids as $id ) {
 					$attachment_id = (int) $id;
+					$post          = get_post( $attachment_id );
+					if ( ! $post || 'attachment' !== $post->post_type ) {
+						$fail++;
+						continue;
+					}
 					$mime          = get_post_mime_type( $attachment_id );
 					if ( ! in_array( $mime, array( 'image/jpeg', 'image/png' ), true ) ) {
 						$fail++;
+						continue;
+					}
+					$eligible++;
+
+					$file = get_attached_file( $attachment_id );
+					if ( $file && file_exists( $file ) ) {
+						$total_size += filesize( $file );
+						$meta = wp_get_attachment_metadata( $attachment_id );
+						if ( is_array( $meta ) && ! empty( $meta['sizes'] ) ) {
+							$base_dir = trailingslashit( pathinfo( $file, PATHINFO_DIRNAME ) );
+							foreach ( $meta['sizes'] as $info ) {
+								if ( empty( $info['file'] ) ) {
+									continue;
+								}
+								$size_file = $base_dir . $info['file'];
+								if ( file_exists( $size_file ) ) {
+									$total_size += filesize( $size_file );
+								}
+							}
+						}
+					}
+
+					if ( $dry_run ) {
 						continue;
 					}
 
 					$deleted = wp_delete_attachment( $attachment_id, true );
 					if ( $deleted ) {
 						$ok++;
+						do_action( 'pera_webp_tools_attachment_deleted', $attachment_id );
 					} else {
 						$fail++;
 					}
 				}
 
-				self::invalidate_stats_cache();
-				self::set_notice( 'info', sprintf( 'Deleted: %d. Failed: %d.', $ok, $fail ) );
+				if ( $dry_run ) {
+					self::set_notice(
+						'info',
+						sprintf(
+							'Dry run: %d attachments would be deleted. Estimated space freed: %s.',
+							$eligible,
+							size_format( $total_size )
+						)
+					);
+				} else {
+					self::maybe_invalidate_stats_cache();
+					self::set_notice( 'info', sprintf( 'Deleted: %d attachments. Skipped/Failed: %d.', $ok, $fail ) );
+				}
 			} elseif ( 'convert_all_missing' === $action ) {
 				$processed = self::convert_missing_batch( self::DEFAULT_BATCH_SIZE );
 				$message = sprintf(
@@ -745,6 +818,29 @@ if ( ! class_exists( 'Pera_WebP_Tools' ) ) {
 		public static function invalidate_stats_cache() {
 			self::$stats_runtime_cache = null;
 			delete_transient( self::STATS_CACHE_KEY );
+		}
+
+		public static function maybe_invalidate_stats_cache() {
+			$last = get_transient( 'pera_webp_last_invalidate' );
+			if ( ! $last || ( time() - $last ) > 10 ) {
+				self::invalidate_stats_cache();
+				set_transient( 'pera_webp_last_invalidate', time(), 30 );
+			}
+		}
+
+		public static function enqueue_admin_assets() {
+			$screen = get_current_screen();
+			if ( ! $screen || $screen->id !== 'upload_page_pera-webp-tools' ) {
+				return;
+			}
+
+			$handle = 'pera-webp-tools-admin';
+			wp_register_style( $handle, false, array(), '1.0.0' );
+			wp_enqueue_style( $handle );
+			wp_add_inline_style(
+				$handle,
+				'.pera-webp-broken-text { color: #b32d2e; }'
+			);
 		}
 
 		public static function get_filtered_attachment_ids( $status = 'all', $limit = 0, $offset = 0 ) {
