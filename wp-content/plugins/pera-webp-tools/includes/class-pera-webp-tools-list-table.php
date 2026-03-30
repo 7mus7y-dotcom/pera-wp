@@ -1,0 +1,148 @@
+<?php
+
+if ( ! defined( 'ABSPATH' ) ) {
+	exit;
+}
+
+class Pera_WebP_Tools_List_Table extends WP_List_Table {
+	protected $status_filter = 'all';
+
+	public function __construct( $args = array() ) {
+		parent::__construct(
+			array(
+				'singular' => 'webp-attachment',
+				'plural'   => 'webp-attachments',
+				'ajax'     => false,
+			)
+		);
+
+		if ( ! empty( $args['status_filter'] ) ) {
+			$this->status_filter = sanitize_key( $args['status_filter'] );
+		}
+	}
+
+	public function get_columns() {
+		return array(
+			'cb'         => '<input type="checkbox" />',
+			'thumbnail'  => 'Thumbnail',
+			'id'         => 'Attachment ID',
+			'filename'   => 'Filename',
+			'mime'       => 'Mime Type',
+			'uploaded'   => 'Upload Date',
+			'status'     => 'WebP Status',
+			'action'     => 'Action',
+		);
+	}
+
+	public function get_sortable_columns() {
+		return array(
+			'id'       => array( 'ID', false ),
+			'uploaded' => array( 'date', true ),
+			'filename' => array( 'title', false ),
+		);
+	}
+
+	protected function get_bulk_actions() {
+		return array(
+			'bulk_convert' => 'Convert Selected',
+		);
+	}
+
+	protected function column_cb( $item ) {
+		return '<input type="checkbox" name="attachments[]" value="' . esc_attr( (string) $item['id'] ) . '" />';
+	}
+
+	public function prepare_items() {
+		$per_page     = 20;
+		$current_page = $this->get_pagenum();
+		$offset       = ( $current_page - 1 ) * $per_page;
+
+		$all_filtered_ids = Pera_WebP_Tools::get_filtered_attachment_ids( $this->status_filter, 0 );
+		$total_items      = count( $all_filtered_ids );
+		$page_ids         = array_slice( $all_filtered_ids, $offset, $per_page );
+
+		$items = array();
+		foreach ( $page_ids as $attachment_id ) {
+			$post = get_post( $attachment_id );
+			if ( ! $post ) {
+				continue;
+			}
+			$file_path = get_attached_file( $attachment_id );
+			$items[]   = array(
+				'id'       => $attachment_id,
+				'thumbnail'=> wp_get_attachment_image( $attachment_id, array( 60, 60 ), true ),
+				'filename' => $file_path ? wp_basename( $file_path ) : '(missing file)',
+				'mime'     => get_post_mime_type( $attachment_id ),
+				'uploaded' => mysql2date( 'Y-m-d H:i', $post->post_date ),
+				'status'   => Pera_WebP_Tools::get_attachment_status( $attachment_id ),
+			);
+		}
+
+		$this->items = $items;
+
+		$this->set_pagination_args(
+			array(
+				'total_items' => $total_items,
+				'per_page'    => $per_page,
+				'total_pages' => max( 1, (int) ceil( $total_items / $per_page ) ),
+			)
+		);
+	}
+
+	protected function column_thumbnail( $item ) {
+		return $item['thumbnail'] ? $item['thumbnail'] : '—';
+	}
+
+	protected function column_id( $item ) {
+		return (string) $item['id'];
+	}
+
+	protected function column_filename( $item ) {
+		return esc_html( $item['filename'] );
+	}
+
+	protected function column_mime( $item ) {
+		return esc_html( $item['mime'] );
+	}
+
+	protected function column_uploaded( $item ) {
+		return esc_html( $item['uploaded'] );
+	}
+
+	protected function column_status( $item ) {
+		$labels = array(
+			'converted' => 'Converted',
+			'missing'   => 'Missing WebP',
+			'error'     => 'Error/Skipped',
+			'skipped'   => 'Skipped',
+		);
+		$status = isset( $labels[ $item['status'] ] ) ? $labels[ $item['status'] ] : $item['status'];
+		return esc_html( $status );
+	}
+
+	protected function column_action( $item ) {
+		if ( 'converted' === $item['status'] ) {
+			return '<span class="description">Already converted</span>';
+		}
+
+		$nonce = wp_create_nonce( 'pera_webp_convert_' . $item['id'] );
+		$url   = add_query_arg(
+			array(
+				'pera_webp_convert' => 1,
+				'id'                => (int) $item['id'],
+				'sizes'             => 1,
+				'_wpnonce'          => $nonce,
+			),
+			admin_url( 'upload.php?page=pera-webp-tools&webp_status=' . $this->status_filter )
+		);
+
+		return '<a class="button button-small" href="' . esc_url( $url ) . '">Convert</a>';
+	}
+
+	protected function column_default( $item, $column_name ) {
+		if ( isset( $item[ $column_name ] ) ) {
+			return esc_html( (string) $item[ $column_name ] );
+		}
+		return '';
+	}
+}
