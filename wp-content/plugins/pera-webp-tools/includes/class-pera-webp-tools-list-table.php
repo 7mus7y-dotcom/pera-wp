@@ -158,10 +158,11 @@ class Pera_WebP_Tools_List_Table extends WP_List_Table {
 				array(
 					'pera_webp_delete' => 1,
 					'id'               => (int) $item['id'],
+					'page'             => 'pera-webp-tools',
 					'webp_status'      => $this->status_filter,
 					'_wpnonce'         => $delete_nonce,
 				),
-				admin_url( 'admin-post.php' )
+				admin_url( 'upload.php' )
 			);
 			$actions['delete'] = '<a href="' . esc_url( $delete_url ) . '" onclick="return confirm(\'Delete this attachment permanently?\');">Delete</a>';
 		}
@@ -198,7 +199,7 @@ class Pera_WebP_Tools_List_Table extends WP_List_Table {
 			$output .= '<br><span class="description pera-webp-last-error">' . esc_html( $item['last_error'] ) . '</span>';
 		}
 		if ( 'broken' === $item['status'] ) {
-			$output .= '<br><span class="description" style="color:#b32d2e;">Missing source file on disk.</span>';
+			$output .= '<br><span class="description pera-webp-broken-text">Missing source file on disk.</span>';
 		}
 		return $output;
 	}
