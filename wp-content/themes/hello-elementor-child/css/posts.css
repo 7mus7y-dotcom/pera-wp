@@ -88,9 +88,8 @@
 
 /* Title */
 .post-card-title{
-  margin: 0;
-  line-height: 1.35;
-  font-size: 1.2rem; /* baseline archive */
+  margin-bottom: 4px;
+  font-size: 1.05rem; /* baseline archive */
 }
 
 .post-card-title a{
@@ -101,7 +100,7 @@
 
 /* Excerpt */
 .post-card-excerpt{
-  font-size: 0.95rem; /* baseline archive */
+  font-size: 0.9rem; /* baseline archive */
   line-height: 1.45;
   color: var(--text-soft);
   margin: 0;
