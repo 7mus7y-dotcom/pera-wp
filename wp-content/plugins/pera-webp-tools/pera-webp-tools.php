@@ -15,6 +15,7 @@ if ( ! class_exists( 'Pera_WebP_Tools' ) ) {
 		const NOTICE_TRANSIENT_PREFIX = 'pera_webp_notice_';
 		const LAST_RESULT_META_KEY    = '_pera_webp_last_result';
 		const LAST_ERROR_META_KEY     = '_pera_webp_last_error';
+		const LAST_RESULT_CONVERTED   = 'converted';
 
 		public static function init() {
 			add_filter( 'wp_get_attachment_image_src', array( __CLASS__, 'maybe_swap_to_webp' ), 10, 3 );
@@ -140,7 +141,7 @@ if ( ! class_exists( 'Pera_WebP_Tools' ) ) {
 			$log['message'] = implode( ' ', $log['details'] );
 
 			if ( $log['ok'] ) {
-				update_post_meta( $attachment_id, self::LAST_RESULT_META_KEY, 'ok' );
+				update_post_meta( $attachment_id, self::LAST_RESULT_META_KEY, self::LAST_RESULT_CONVERTED );
 				delete_post_meta( $attachment_id, self::LAST_ERROR_META_KEY );
 			} else {
 				update_post_meta( $attachment_id, self::LAST_RESULT_META_KEY, 'error' );
@@ -185,6 +186,13 @@ if ( ! class_exists( 'Pera_WebP_Tools' ) ) {
 		public static function has_recorded_error( $attachment_id ) {
 			$last_result = get_post_meta( $attachment_id, self::LAST_RESULT_META_KEY, true );
 			return in_array( $last_result, array( 'error', 'skipped' ), true );
+		}
+
+		public static function normalize_last_result_meta( $attachment_id ) {
+			$last_result = get_post_meta( $attachment_id, self::LAST_RESULT_META_KEY, true );
+			if ( 'ok' === $last_result ) {
+				update_post_meta( $attachment_id, self::LAST_RESULT_META_KEY, self::LAST_RESULT_CONVERTED );
+			}
 		}
 
 		public static function add_media_row_actions( $actions, $post ) {
@@ -364,19 +372,13 @@ if ( ! class_exists( 'Pera_WebP_Tools' ) ) {
 					<?php submit_button( 'Convert All Missing (batch)', 'primary', 'submit', false ); ?>
 				</form>
 
-				<form method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>" style="display:inline-block; margin:0 0 1em;">
-					<input type="hidden" name="action" value="pera_webp_tools_action" />
-					<input type="hidden" name="webp_tools_action" value="rescan" />
-					<?php wp_nonce_field( 'pera_webp_tools_action' ); ?>
-					<?php submit_button( 'Rescan / Recheck Status', 'secondary', 'submit', false ); ?>
-				</form>
-
 				<form method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>">
 					<input type="hidden" name="action" value="pera_webp_tools_action" />
 					<input type="hidden" name="webp_tools_action" value="bulk_convert" />
 					<input type="hidden" name="redirect_status" value="<?php echo esc_attr( $status ); ?>" />
 					<?php wp_nonce_field( 'pera_webp_tools_action' ); ?>
 					<?php $table->display(); ?>
+					<?php submit_button( 'Convert Selected', 'secondary', 'submit', false ); ?>
 				</form>
 			</div>
 			<?php
@@ -407,6 +409,12 @@ if ( ! class_exists( 'Pera_WebP_Tools' ) ) {
 				}
 			} elseif ( 'bulk_convert' === $action ) {
 				$ids = isset( $_POST['attachments'] ) ? (array) wp_unslash( $_POST['attachments'] ) : array();
+				if ( empty( $ids ) ) {
+					self::set_notice( 'error', 'No attachments selected for conversion.' );
+					wp_safe_redirect( $redirect );
+					exit;
+				}
+
 				$ok = 0;
 				$fail = 0;
 				foreach ( $ids as $id ) {
@@ -428,8 +436,6 @@ if ( ! class_exists( 'Pera_WebP_Tools' ) ) {
 					$processed['remaining']
 				);
 				self::set_notice( 'info', $message );
-			} elseif ( 'rescan' === $action ) {
-				self::set_notice( 'success', 'Status was rechecked from disk state.' );
 			}
 
 			wp_safe_redirect( $redirect );
@@ -540,6 +546,7 @@ if ( ! class_exists( 'Pera_WebP_Tools' ) ) {
 
 			$filtered = array();
 			foreach ( $ids as $id ) {
+				self::normalize_last_result_meta( (int) $id );
 				$current = self::get_attachment_status( (int) $id );
 				if ( $status === $current || ( 'error' === $status && in_array( $current, array( 'error', 'skipped' ), true ) ) ) {
 					$filtered[] = (int) $id;
