@@ -4301,4 +4301,7 @@ body:not(.single-post) tr:nth-child(even) {
   }
 }
 
+.home-editorial-posts__actions{
+  margin-top: 16px;
+}
 
