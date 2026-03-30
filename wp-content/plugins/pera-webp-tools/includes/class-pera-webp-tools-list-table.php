@@ -42,12 +42,6 @@ class Pera_WebP_Tools_List_Table extends WP_List_Table {
 		);
 	}
 
-	protected function get_bulk_actions() {
-		return array(
-			'bulk_convert' => 'Convert Selected',
-		);
-	}
-
 	protected function column_cb( $item ) {
 		return '<input type="checkbox" name="attachments[]" value="' . esc_attr( (string) $item['id'] ) . '" />';
 	}
@@ -58,11 +52,8 @@ class Pera_WebP_Tools_List_Table extends WP_List_Table {
 		$offset       = ( $current_page - 1 ) * $per_page;
 
 		$all_filtered_ids = Pera_WebP_Tools::get_filtered_attachment_ids( $this->status_filter, 0 );
-		$total_items      = count( $all_filtered_ids );
-		$page_ids         = array_slice( $all_filtered_ids, $offset, $per_page );
-
 		$items = array();
-		foreach ( $page_ids as $attachment_id ) {
+		foreach ( $all_filtered_ids as $attachment_id ) {
 			$post = get_post( $attachment_id );
 			if ( ! $post ) {
 				continue;
@@ -74,11 +65,52 @@ class Pera_WebP_Tools_List_Table extends WP_List_Table {
 				'filename' => $file_path ? wp_basename( $file_path ) : '(missing file)',
 				'mime'     => get_post_mime_type( $attachment_id ),
 				'uploaded' => mysql2date( 'Y-m-d H:i', $post->post_date ),
+				'uploaded_ts' => strtotime( $post->post_date_gmt ? $post->post_date_gmt : $post->post_date ),
 				'status'   => Pera_WebP_Tools::get_attachment_status( $attachment_id ),
 			);
 		}
 
-		$this->items = $items;
+		$orderby = isset( $_GET['orderby'] ) ? sanitize_key( wp_unslash( $_GET['orderby'] ) ) : 'uploaded';
+		$order   = isset( $_GET['order'] ) ? strtolower( sanitize_key( wp_unslash( $_GET['order'] ) ) ) : 'desc';
+		if ( ! in_array( $order, array( 'asc', 'desc' ), true ) ) {
+			$order = 'desc';
+		}
+
+		$sortable_columns = array( 'id', 'uploaded', 'filename' );
+		if ( ! in_array( $orderby, $sortable_columns, true ) ) {
+			$orderby = 'uploaded';
+		}
+
+		usort(
+			$items,
+			function( $a, $b ) use ( $orderby, $order ) {
+				$comparison = 0;
+				if ( 'id' === $orderby ) {
+					$comparison = (int) $a['id'] <=> (int) $b['id'];
+				} elseif ( 'filename' === $orderby ) {
+					$comparison = strnatcasecmp( (string) $a['filename'], (string) $b['filename'] );
+					if ( 0 === $comparison ) {
+						$comparison = (int) $a['id'] <=> (int) $b['id'];
+					}
+				} else {
+					$comparison = (int) $a['uploaded_ts'] <=> (int) $b['uploaded_ts'];
+					if ( 0 === $comparison ) {
+						$comparison = (int) $a['id'] <=> (int) $b['id'];
+					}
+				}
+
+				return 'asc' === $order ? $comparison : -$comparison;
+			}
+		);
+
+		$total_items = count( $items );
+		$page_items  = array_slice( $items, $offset, $per_page );
+		foreach ( $page_items as &$item ) {
+			unset( $item['uploaded_ts'] );
+		}
+		unset( $item );
+
+		$this->items = $page_items;
 
 		$this->set_pagination_args(
 			array(
