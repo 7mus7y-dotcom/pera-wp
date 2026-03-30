@@ -65,27 +65,32 @@
   padding: var(--space-xs);
   display:flex;
   flex-direction:column;
-  gap:6px;
+  gap:8px;
 }
 
 /* Meta row */
 .post-card-meta{
   display:flex;
-  justify-content:space-between;
   align-items:center;
   gap:8px;
 }
 
+.post-card-meta--top{
+  justify-content:flex-start;
+}
+
 .post-card-date{
-  font-size: 0.78rem;
+  font-size: 0.76rem;
+  line-height: 1.3;
   color: var(--text-soft);
+  opacity: 0.9;
 }
 
 /* Title */
 .post-card-title{
-  margin: 2px 0 4px;
+  margin: 0;
   line-height: 1.35;
-  font-size: 1.15rem; /* baseline archive */
+  font-size: 1.2rem; /* baseline archive */
 }
 
 .post-card-title a{
@@ -106,13 +111,14 @@
 .post-card-readmore{
   display:flex;
   justify-content:flex-end;
+  padding-top: 2px;
   margin-top:auto;
 }
 
 /* Sidebar variant: reduce title + excerpt by 15%
    Add .post-card--sidebar to the <article> or pass via post_class() */
 .post-card--sidebar .post-card-title{
-  font-size: calc(1.15rem * 0.85);
+  font-size: calc(1.2rem * 0.85);
 }
 
 .post-card--sidebar .post-card-excerpt{
