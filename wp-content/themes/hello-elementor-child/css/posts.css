@@ -163,3 +163,51 @@
     border-top: 0;
   }
 }
+
+/* =======================================================
+   HOME – Editorial strip (reuse cards-slider + post-card)
+   ======================================================= */
+.home-editorial-posts__slider {
+  gap: 16px;
+}
+
+.home-editorial-posts__slider > .slider-card {
+  flex: 0 0 86%;
+  max-width: 86%;
+}
+
+.home-editorial-posts__cta {
+  display: flex;
+}
+
+.home-editorial-posts__cta .post-card-body {
+  width: 100%;
+  justify-content: center;
+  gap: 12px;
+}
+
+.home-editorial-posts__cta .post-card-title {
+  margin: 0;
+}
+
+.home-editorial-posts__cta-actions {
+  margin-top: 4px;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 8px;
+}
+
+@media (min-width: 640px) {
+  .home-editorial-posts__slider > .slider-card {
+    flex-basis: 320px;
+    max-width: 320px;
+  }
+}
+
+@media (min-width: 1280px) {
+  .home-editorial-posts__slider > .slider-card {
+    flex-basis: calc((100% - 48px) / 4);
+    max-width: calc((100% - 48px) / 4);
+  }
+}
