@@ -177,8 +177,8 @@
 }
 
 .home-editorial-posts__slider > .slider-card {
-  flex: 0 0 86%;
-  max-width: 86%;
+  flex: 0 0 360px;
+  max-width: 100%;
 }
 
 .home-editorial-posts__cta {
