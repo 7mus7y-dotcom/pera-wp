@@ -247,8 +247,8 @@ peracrm_frontend_render_shell_header();
         <article class="crm-section crm-section--flush crm-overview-queue">
           <header class="crm-section__header">
             <div class="crm-section__heading-group">
-              <h2 id="crm-new-leads-heading" class="crm-section__title"><?php echo esc_html__( 'New leads queue', 'peracrm' ); ?></h2>
-              <p class="crm-section__description"><?php echo esc_html__( 'Fresh enquiries that still need first-touch review or assignment.', 'peracrm' ); ?></p>
+              <h2 id="crm-new-leads-heading" class="crm-section__title"><?php echo esc_html__( 'Recent leads', 'peracrm' ); ?></h2>
+              <p class="crm-section__description"><?php echo esc_html__( 'Most recently created lead records.', 'peracrm' ); ?></p>
             </div>
             <div class="crm-section__actions">
               <a class="btn btn--ghost btn--blue" href="<?php echo esc_url( home_url( '/crm/clients/?type=leads' ) ); ?>"><?php echo esc_html__( 'Open leads workspace', 'peracrm' ); ?></a>
