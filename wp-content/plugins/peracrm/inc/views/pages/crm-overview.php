@@ -242,6 +242,47 @@ peracrm_frontend_render_shell_header();
         </article>
       </section>
 
+      <section class="section crm-overview-band crm-overview-band--queue" aria-labelledby="crm-strict-new-leads-heading">
+        <article class="crm-section crm-section--flush crm-overview-queue">
+          <header class="crm-section__header">
+            <div class="crm-section__heading-group">
+              <h2 id="crm-strict-new-leads-heading" class="crm-section__title"><?php echo esc_html__( 'New leads', 'peracrm' ); ?></h2>
+              <p class="crm-section__description"><?php echo esc_html__( 'Assigned leads created in the last 72 hours.', 'peracrm' ); ?></p>
+            </div>
+            <div class="crm-section__actions">
+              <a class="btn btn--ghost btn--blue" href="<?php echo esc_url( home_url( '/crm/clients/?type=leads&filter=new72' ) ); ?>"><?php echo esc_html__( 'Open new leads', 'peracrm' ); ?></a>
+            </div>
+          </header>
+          <div class="crm-section__body">
+          <?php if ( empty( $strict_new_leads ) ) : ?>
+            <p><?php echo esc_html__( 'No newly assigned leads in the last 72 hours.', 'peracrm' ); ?></p>
+          <?php else : ?>
+            <ul class="crm-row-list">
+            <?php foreach ( $strict_new_leads as $lead ) : ?>
+              <li class="crm-row-list__item">
+                <div class="crm-row-list__content">
+                  <div class="crm-row-list__header">
+                    <h3 class="crm-row-list__title"><a href="<?php echo esc_url( (string) ( $lead['url'] ?? '' ) ); ?>"><?php echo esc_html( (string) ( $lead['name'] ?? '' ) ); ?></a></h3>
+                    <?php if ( ! empty( $lead['source'] ) ) : ?>
+                      <span class="crm-chip crm-chip--status"><?php echo esc_html( (string) $lead['source'] ); ?></span>
+                    <?php endif; ?>
+                  </div>
+                  <div class="crm-row-list__meta">
+                    <span><strong><?php esc_html_e( 'Phone:', 'peracrm' ); ?></strong> <?php echo esc_html( (string) ( $lead['phone'] ?? '—' ) ); ?></span>
+                    <span><strong><?php esc_html_e( 'Enquiry:', 'peracrm' ); ?></strong> <?php echo esc_html( (string) ( $lead['enquiry_at'] ?? '—' ) ); ?></span>
+                  </div>
+                </div>
+                <div class="crm-row-list__aside">
+                  <a class="btn btn--ghost btn--blue" href="<?php echo esc_url( (string) ( $lead['url'] ?? '' ) ); ?>"><?php echo esc_html__( 'Open lead', 'peracrm' ); ?></a>
+                </div>
+              </li>
+            <?php endforeach; ?>
+            </ul>
+          <?php endif; ?>
+          </div>
+        </article>
+      </section>
+
       <section class="section crm-overview-band crm-overview-band--queue" aria-labelledby="crm-new-leads-heading">
         <article class="crm-section crm-section--flush crm-overview-queue">
           <header class="crm-section__header">
@@ -265,47 +306,6 @@ peracrm_frontend_render_shell_header();
                     <h3 class="crm-row-list__title"><a href="<?php echo esc_url( (string) ( $lead['url'] ?? '' ) ); ?>"><?php echo esc_html( (string) ( $lead['name'] ?? '' ) ); ?></a></h3>
                     <?php if ( ! empty( $lead['source'] ) ) : ?>
                       <span class="crm-chip crm-chip--neutral"><?php echo esc_html( (string) $lead['source'] ); ?></span>
-                    <?php endif; ?>
-                  </div>
-                  <div class="crm-row-list__meta">
-                    <span><strong><?php esc_html_e( 'Phone:', 'peracrm' ); ?></strong> <?php echo esc_html( (string) ( $lead['phone'] ?? '—' ) ); ?></span>
-                    <span><strong><?php esc_html_e( 'Enquiry:', 'peracrm' ); ?></strong> <?php echo esc_html( (string) ( $lead['enquiry_at'] ?? '—' ) ); ?></span>
-                  </div>
-                </div>
-                <div class="crm-row-list__aside">
-                  <a class="btn btn--ghost btn--blue" href="<?php echo esc_url( (string) ( $lead['url'] ?? '' ) ); ?>"><?php echo esc_html__( 'Open lead', 'peracrm' ); ?></a>
-                </div>
-              </li>
-            <?php endforeach; ?>
-            </ul>
-          <?php endif; ?>
-          </div>
-        </article>
-      </section>
-
-      <section class="section crm-overview-band crm-overview-band--queue" aria-labelledby="crm-strict-new-leads-heading">
-        <article class="crm-section crm-section--flush crm-overview-queue">
-          <header class="crm-section__header">
-            <div class="crm-section__heading-group">
-              <h2 id="crm-strict-new-leads-heading" class="crm-section__title"><?php echo esc_html__( 'New leads', 'peracrm' ); ?></h2>
-              <p class="crm-section__description"><?php echo esc_html__( 'Strict 72-hour assigned leads that still require first-touch follow-up.', 'peracrm' ); ?></p>
-            </div>
-            <div class="crm-section__actions">
-              <a class="btn btn--ghost btn--blue" href="<?php echo esc_url( home_url( '/crm/clients/?type=leads&filter=new72' ) ); ?>"><?php echo esc_html__( 'Open new leads', 'peracrm' ); ?></a>
-            </div>
-          </header>
-          <div class="crm-section__body">
-          <?php if ( empty( $strict_new_leads ) ) : ?>
-            <p><?php echo esc_html__( 'No newly assigned leads in the last 72 hours.', 'peracrm' ); ?></p>
-          <?php else : ?>
-            <ul class="crm-row-list">
-            <?php foreach ( $strict_new_leads as $lead ) : ?>
-              <li class="crm-row-list__item">
-                <div class="crm-row-list__content">
-                  <div class="crm-row-list__header">
-                    <h3 class="crm-row-list__title"><a href="<?php echo esc_url( (string) ( $lead['url'] ?? '' ) ); ?>"><?php echo esc_html( (string) ( $lead['name'] ?? '' ) ); ?></a></h3>
-                    <?php if ( ! empty( $lead['source'] ) ) : ?>
-                      <span class="crm-chip crm-chip--status"><?php echo esc_html( (string) $lead['source'] ); ?></span>
                     <?php endif; ?>
                   </div>
                   <div class="crm-row-list__meta">
