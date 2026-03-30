@@ -55,7 +55,8 @@ $notices       = is_array( $crm_dashboard['notices'] ?? null ) ? $crm_dashboard[
 $crm_current_url    = home_url( wp_unslash( (string) ( $_SERVER['REQUEST_URI'] ?? '/crm/' ) ) );
 $new_lead_url       = home_url( '/crm/new/' );
 $new_leads_count    = ( ! $is_leads && ! $is_tasks && function_exists( 'pera_crm_count_new_leads_for_user' ) ) ? (int) pera_crm_count_new_leads_for_user( 0, 72 ) : 0;
-$new_leads_url      = home_url( '/crm/clients/' );
+$new_leads_url      = home_url( '/crm/clients/?type=leads&filter=new72' );
+$strict_new_leads   = array();
 $overview_task_cap  = 8;
 $push_notice_key    = isset( $_GET['peracrm_push_notice'] ) ? sanitize_key( wp_unslash( (string) $_GET['peracrm_push_notice'] ) ) : '';
 $push_notice_text   = '';
@@ -70,24 +71,22 @@ $stages = function_exists( 'pera_crm_get_pipeline_stages' ) ? pera_crm_get_pipel
 $advisors = function_exists( 'pera_crm_get_pipeline_advisor_options' ) ? pera_crm_get_pipeline_advisor_options() : array();
 $clients_new_leads_items = array();
 
+if ( ! $is_leads && ! $is_tasks && function_exists( 'pera_crm_get_new_lead_ids_for_user' ) ) {
+	$strict_new_lead_ids = array_map( 'intval', pera_crm_get_new_lead_ids_for_user( 0, 72 ) );
+	$strict_new_lead_ids = array_values( array_filter( $strict_new_lead_ids ) );
+	$strict_new_lead_ids = array_slice( $strict_new_lead_ids, 0, 10 );
+	$strict_new_leads    = function_exists( 'pera_crm_hydrate_lead_rows_for_panel' )
+		? pera_crm_hydrate_lead_rows_for_panel( $strict_new_lead_ids, 10 )
+		: array();
+}
+
 if ( $is_leads && 'leads' === $clients_type_view && function_exists( 'pera_crm_get_new_lead_ids_for_user' ) ) {
 	$new_lead_ids = array_map( 'intval', pera_crm_get_new_lead_ids_for_user( 0, 72 ) );
 	$new_lead_ids = array_values( array_filter( $new_lead_ids ) );
 	$new_lead_ids = array_slice( $new_lead_ids, 0, 8 );
-
-	foreach ( $new_lead_ids as $lead_id ) {
-		$source_key = sanitize_key( (string) get_post_meta( $lead_id, 'crm_source', true ) );
-		$source     = '' !== $source_key ? ucwords( str_replace( '_', ' ', $source_key ) ) : __( 'Website', 'peracrm' );
-		$created_ts = (int) get_post_time( 'U', true, $lead_id );
-
-		$clients_new_leads_items[] = array(
-			'id'         => $lead_id,
-			'name'       => get_the_title( $lead_id ),
-			'source'     => $source,
-			'enquiry_at' => $created_ts > 0 ? pera_crm_format_datetime_dmy_hm( $created_ts ) : '',
-			'url'        => function_exists( 'pera_crm_get_client_view_url' ) ? pera_crm_get_client_view_url( $lead_id ) : home_url( '/crm/client/' . $lead_id . '/' ),
-		);
-	}
+	$clients_new_leads_items = function_exists( 'pera_crm_hydrate_lead_rows_for_panel' )
+		? pera_crm_hydrate_lead_rows_for_panel( $new_lead_ids, 8 )
+		: array();
 }
 
 $crm_active_view = ! $is_leads && ! $is_tasks ? 'overview' : ( $is_leads ? 'clients' : 'tasks' );
@@ -266,6 +265,47 @@ peracrm_frontend_render_shell_header();
                     <h3 class="crm-row-list__title"><a href="<?php echo esc_url( (string) ( $lead['url'] ?? '' ) ); ?>"><?php echo esc_html( (string) ( $lead['name'] ?? '' ) ); ?></a></h3>
                     <?php if ( ! empty( $lead['source'] ) ) : ?>
                       <span class="crm-chip crm-chip--neutral"><?php echo esc_html( (string) $lead['source'] ); ?></span>
+                    <?php endif; ?>
+                  </div>
+                  <div class="crm-row-list__meta">
+                    <span><strong><?php esc_html_e( 'Phone:', 'peracrm' ); ?></strong> <?php echo esc_html( (string) ( $lead['phone'] ?? '—' ) ); ?></span>
+                    <span><strong><?php esc_html_e( 'Enquiry:', 'peracrm' ); ?></strong> <?php echo esc_html( (string) ( $lead['enquiry_at'] ?? '—' ) ); ?></span>
+                  </div>
+                </div>
+                <div class="crm-row-list__aside">
+                  <a class="btn btn--ghost btn--blue" href="<?php echo esc_url( (string) ( $lead['url'] ?? '' ) ); ?>"><?php echo esc_html__( 'Open lead', 'peracrm' ); ?></a>
+                </div>
+              </li>
+            <?php endforeach; ?>
+            </ul>
+          <?php endif; ?>
+          </div>
+        </article>
+      </section>
+
+      <section class="section crm-overview-band crm-overview-band--queue" aria-labelledby="crm-strict-new-leads-heading">
+        <article class="crm-section crm-section--flush crm-overview-queue">
+          <header class="crm-section__header">
+            <div class="crm-section__heading-group">
+              <h2 id="crm-strict-new-leads-heading" class="crm-section__title"><?php echo esc_html__( 'New leads', 'peracrm' ); ?></h2>
+              <p class="crm-section__description"><?php echo esc_html__( 'Strict 72-hour assigned leads that still require first-touch follow-up.', 'peracrm' ); ?></p>
+            </div>
+            <div class="crm-section__actions">
+              <a class="btn btn--ghost btn--blue" href="<?php echo esc_url( home_url( '/crm/clients/?type=leads&filter=new72' ) ); ?>"><?php echo esc_html__( 'Open new leads', 'peracrm' ); ?></a>
+            </div>
+          </header>
+          <div class="crm-section__body">
+          <?php if ( empty( $strict_new_leads ) ) : ?>
+            <p><?php echo esc_html__( 'No newly assigned leads in the last 72 hours.', 'peracrm' ); ?></p>
+          <?php else : ?>
+            <ul class="crm-row-list">
+            <?php foreach ( $strict_new_leads as $lead ) : ?>
+              <li class="crm-row-list__item">
+                <div class="crm-row-list__content">
+                  <div class="crm-row-list__header">
+                    <h3 class="crm-row-list__title"><a href="<?php echo esc_url( (string) ( $lead['url'] ?? '' ) ); ?>"><?php echo esc_html( (string) ( $lead['name'] ?? '' ) ); ?></a></h3>
+                    <?php if ( ! empty( $lead['source'] ) ) : ?>
+                      <span class="crm-chip crm-chip--status"><?php echo esc_html( (string) $lead['source'] ); ?></span>
                     <?php endif; ?>
                   </div>
                   <div class="crm-row-list__meta">

@@ -558,6 +558,42 @@ if ( ! function_exists( 'pera_crm_get_recent_leads' ) ) {
 	}
 
 	/**
+	 * Hydrate CRM lead post IDs into row data for list/panel rendering.
+	 *
+	 * @param int[] $lead_ids Lead post IDs.
+	 * @param int   $limit   Maximum rows to return.
+	 * @return array<int,array{id:int,name:string,phone:string,source:string,enquiry_at:string,url:string}>
+	 */
+	function pera_crm_hydrate_lead_rows_for_panel( array $lead_ids, int $limit = 10 ): array {
+		$lead_ids = array_values( array_filter( array_map( 'intval', $lead_ids ) ) );
+		if ( empty( $lead_ids ) ) {
+			return array();
+		}
+
+		$rows  = array();
+		$limit = max( 1, $limit );
+		foreach ( $lead_ids as $lead_id ) {
+			$source_key = sanitize_key( (string) get_post_meta( $lead_id, 'crm_source', true ) );
+			$source     = '' !== $source_key ? ucwords( str_replace( '_', ' ', $source_key ) ) : __( 'Website', 'peracrm' );
+			$created_ts = (int) get_post_time( 'U', true, $lead_id );
+			$rows[]     = array(
+				'id'         => $lead_id,
+				'name'       => get_the_title( $lead_id ),
+				'phone'      => (string) get_post_meta( $lead_id, '_peracrm_phone', true ),
+				'source'     => $source,
+				'enquiry_at' => $created_ts > 0 ? pera_crm_format_datetime_dmy_hm( $created_ts ) : '',
+				'url'        => function_exists( 'pera_crm_get_client_view_url' ) ? pera_crm_get_client_view_url( $lead_id ) : home_url( '/crm/client/' . $lead_id . '/' ),
+			);
+
+			if ( count( $rows ) >= $limit ) {
+				break;
+			}
+		}
+
+		return $rows;
+	}
+
+	/**
 	 * Fetch latest leads for dashboard.
 	 *
 	 * @return array<int,array{id:int,name:string,url:string}>
@@ -592,25 +628,14 @@ if ( ! function_exists( 'pera_crm_get_recent_leads' ) ) {
 			if ( isset( $client_lookup[ $lead_id ] ) ) {
 				continue;
 			}
-
-			$source_key = sanitize_key( (string) get_post_meta( $lead_id, 'crm_source', true ) );
-			$source     = '' !== $source_key ? ucwords( str_replace( '_', ' ', $source_key ) ) : __( 'Website', 'peracrm' );
-			$created_ts = (int) get_post_time( 'U', true, $lead_id );
-			$rows[]     = array(
-				'id'         => $lead_id,
-				'name'       => get_the_title( $lead_id ),
-				'phone'      => (string) get_post_meta( $lead_id, '_peracrm_phone', true ),
-				'source'     => $source,
-				'enquiry_at' => $created_ts > 0 ? pera_crm_format_datetime_dmy_hm( $created_ts ) : '',
-				'url'        => function_exists( 'pera_crm_get_client_view_url' ) ? pera_crm_get_client_view_url( $lead_id ) : home_url( '/crm/client/' . $lead_id . '/' ),
-			);
+			$rows[] = $lead_id;
 
 			if ( count( $rows ) >= $limit ) {
 				break;
 			}
 		}
 
-		return $rows;
+		return pera_crm_hydrate_lead_rows_for_panel( $rows, $limit );
 	}
 
 }
