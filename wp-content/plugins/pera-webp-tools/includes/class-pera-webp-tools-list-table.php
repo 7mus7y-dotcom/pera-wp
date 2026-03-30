@@ -152,6 +152,19 @@ class Pera_WebP_Tools_List_Table extends WP_List_Table {
 		if ( ! empty( $item['view_link'] ) ) {
 			$actions['view'] = '<a href="' . esc_url( $item['view_link'] ) . '" target="_blank" rel="noopener">View File</a>';
 		}
+		if ( current_user_can( 'delete_posts' ) ) {
+			$delete_nonce = wp_create_nonce( 'pera_webp_delete_' . $item['id'] );
+			$delete_url   = add_query_arg(
+				array(
+					'pera_webp_delete' => 1,
+					'id'               => (int) $item['id'],
+					'webp_status'      => $this->status_filter,
+					'_wpnonce'         => $delete_nonce,
+				),
+				admin_url( 'admin-post.php' )
+			);
+			$actions['delete'] = '<a href="' . esc_url( $delete_url ) . '" onclick="return confirm(\'Delete this attachment permanently?\');">Delete</a>';
+		}
 		if ( ! empty( $actions ) ) {
 			$output .= $this->row_actions( $actions );
 		}
@@ -170,16 +183,22 @@ class Pera_WebP_Tools_List_Table extends WP_List_Table {
 		$labels = array(
 			'converted' => 'Converted',
 			'missing'   => 'Missing WebP',
+			'missing_original_only' => 'Missing Original Only',
+			'broken'    => 'Broken (Missing File)',
 			'error'     => 'Error',
 			'skipped'   => 'Skipped',
 		);
 		$status = isset( $labels[ $item['status'] ] ) ? $labels[ $item['status'] ] : $item['status'];
-		$output = '<strong>' . esc_html( $status ) . '</strong>';
+		$status_class = 'broken' === $item['status'] ? ' pera-webp-status-broken' : '';
+		$output = '<strong class="pera-webp-status' . esc_attr( $status_class ) . '">' . esc_html( $status ) . '</strong>';
 		if ( ! empty( $item['status_detail'] ) ) {
 			$output .= '<br><span class="description">' . esc_html( $item['status_detail'] ) . '</span>';
 		}
 		if ( ! empty( $item['last_error'] ) && in_array( $item['status'], array( 'error', 'skipped' ), true ) ) {
 			$output .= '<br><span class="description pera-webp-last-error">' . esc_html( $item['last_error'] ) . '</span>';
+		}
+		if ( 'broken' === $item['status'] ) {
+			$output .= '<br><span class="description" style="color:#b32d2e;">Missing source file on disk.</span>';
 		}
 		return $output;
 	}

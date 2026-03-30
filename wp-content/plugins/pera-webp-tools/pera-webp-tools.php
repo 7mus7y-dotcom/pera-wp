@@ -25,6 +25,7 @@ if ( ! class_exists( 'Pera_WebP_Tools' ) ) {
 			add_filter( 'wp_get_attachment_image_src', array( __CLASS__, 'maybe_swap_to_webp' ), 10, 3 );
 			add_filter( 'media_row_actions', array( __CLASS__, 'add_media_row_actions' ), 10, 2 );
 			add_action( 'admin_init', array( __CLASS__, 'handle_single_conversion_request' ) );
+			add_action( 'admin_init', array( __CLASS__, 'handle_single_delete_request' ) );
 
 			add_filter( 'bulk_actions-upload', array( __CLASS__, 'register_media_bulk_action' ) );
 			add_filter( 'handle_bulk_actions-upload', array( __CLASS__, 'handle_media_bulk_action' ), 10, 3 );
@@ -197,7 +198,7 @@ if ( ! class_exists( 'Pera_WebP_Tools' ) ) {
 			$file = get_attached_file( $attachment_id );
 			if ( ! $file || ! file_exists( $file ) ) {
 				return array(
-					'status' => 'error',
+					'status' => 'broken',
 					'detail' => 'Attachment file missing on disk.',
 				);
 			}
@@ -212,7 +213,35 @@ if ( ! class_exists( 'Pera_WebP_Tools' ) ) {
 
 			$last_result = self::get_last_result_meta( $attachment_id );
 
-			if ( ! file_exists( preg_replace( '/\.(jpe?g|png)$/i', '.webp', $file ) ) ) {
+			$original_webp_exists = file_exists( preg_replace( '/\.(jpe?g|png)$/i', '.webp', $file ) );
+			if ( ! $original_webp_exists ) {
+				$meta = wp_get_attachment_metadata( $attachment_id );
+				if ( is_array( $meta ) && ! empty( $meta['sizes'] ) ) {
+					$base_dir             = trailingslashit( pathinfo( $file, PATHINFO_DIRNAME ) );
+					$has_generated_sizes  = false;
+					$has_existing_size_webp = false;
+
+					foreach ( $meta['sizes'] as $info ) {
+						if ( empty( $info['file'] ) ) {
+							continue;
+						}
+						$size_file = $base_dir . $info['file'];
+						if ( file_exists( $size_file ) ) {
+							$has_generated_sizes = true;
+							if ( file_exists( preg_replace( '/\.(jpe?g|png)$/i', '.webp', $size_file ) ) ) {
+								$has_existing_size_webp = true;
+							}
+						}
+					}
+
+					if ( $has_generated_sizes && $has_existing_size_webp ) {
+						return array(
+							'status' => 'missing_original_only',
+							'detail' => 'Original WebP missing but generated sizes exist.',
+						);
+					}
+				}
+
 				$status = ( 'error' === $last_result ) ? 'error' : ( 'skipped' === $last_result ? 'skipped' : 'missing' );
 				return array(
 					'status' => $status,
@@ -336,6 +365,50 @@ if ( ! class_exists( 'Pera_WebP_Tools' ) ) {
 			exit;
 		}
 
+		public static function handle_single_delete_request() {
+			if ( ! is_admin() || ! isset( $_GET['pera_webp_delete'], $_GET['id'] ) ) {
+				return;
+			}
+
+			if ( ! current_user_can( 'delete_posts' ) ) {
+				wp_die( 'You do not have permission to delete attachments.' );
+			}
+
+			$attachment_id = isset( $_GET['id'] ) ? (int) $_GET['id'] : 0;
+			if ( $attachment_id <= 0 ) {
+				wp_die( 'Invalid attachment ID.' );
+			}
+
+			$nonce = isset( $_GET['_wpnonce'] ) ? sanitize_text_field( wp_unslash( $_GET['_wpnonce'] ) ) : '';
+			if ( ! wp_verify_nonce( $nonce, 'pera_webp_delete_' . $attachment_id ) ) {
+				wp_die( 'Nonce check failed.' );
+			}
+
+			$mime = get_post_mime_type( $attachment_id );
+			if ( ! in_array( $mime, array( 'image/jpeg', 'image/png' ), true ) ) {
+				self::set_notice( 'error', 'Only image attachments shown in WebP Tools can be deleted from this action.' );
+			} else {
+				$deleted = wp_delete_attachment( $attachment_id, true );
+				self::invalidate_stats_cache();
+				if ( $deleted ) {
+					self::set_notice( 'success', 'Attachment deleted.' );
+				} else {
+					self::set_notice( 'error', 'Could not delete attachment.' );
+				}
+			}
+
+			$status   = isset( $_GET['webp_status'] ) ? sanitize_key( wp_unslash( $_GET['webp_status'] ) ) : 'all';
+			$redirect = add_query_arg(
+				array(
+					'page'        => 'pera-webp-tools',
+					'webp_status' => $status,
+				),
+				admin_url( 'upload.php' )
+			);
+			wp_safe_redirect( $redirect );
+			exit;
+		}
+
 		public static function register_media_bulk_action( $bulk_actions ) {
 			if ( current_user_can( 'upload_files' ) ) {
 				$bulk_actions['pera_webp_bulk_sizes'] = 'Convert to WebP (incl. sizes)';
@@ -412,6 +485,8 @@ if ( ! class_exists( 'Pera_WebP_Tools' ) ) {
 						'all'       => 'All',
 						'converted' => 'Converted',
 						'missing'   => 'Missing WebP',
+						'missing_original_only' => 'Missing Original Only',
+						'broken'    => 'Broken (Missing File)',
 						'error'     => 'Errors',
 						'skipped'   => 'Skipped',
 					);
@@ -435,6 +510,8 @@ if ( ! class_exists( 'Pera_WebP_Tools' ) ) {
 					<strong>Total scanned:</strong> <?php echo esc_html( (string) $stats['all'] ); ?> &nbsp;|&nbsp;
 					<strong>Converted:</strong> <?php echo esc_html( (string) $stats['converted'] ); ?> &nbsp;|&nbsp;
 					<strong>Missing WebP:</strong> <?php echo esc_html( (string) $stats['missing'] ); ?> &nbsp;|&nbsp;
+					<strong>Missing Original Only:</strong> <?php echo esc_html( (string) $stats['missing_original_only'] ); ?> &nbsp;|&nbsp;
+					<strong>Broken:</strong> <?php echo esc_html( (string) $stats['broken'] ); ?> &nbsp;|&nbsp;
 					<strong>Errors:</strong> <?php echo esc_html( (string) $stats['error'] ); ?> &nbsp;|&nbsp;
 					<strong>Skipped:</strong> <?php echo esc_html( (string) $stats['skipped'] ); ?>
 				</p>
@@ -467,8 +544,14 @@ if ( ! class_exists( 'Pera_WebP_Tools' ) ) {
 					<input type="hidden" name="redirect_status" value="<?php echo esc_attr( $status ); ?>" />
 					<?php wp_nonce_field( 'pera_webp_tools_action' ); ?>
 					<?php submit_button( 'Convert Selected', 'secondary', 'submit-top', false ); ?>
+					<?php if ( current_user_can( 'delete_posts' ) ) : ?>
+						<?php submit_button( 'Delete Selected', 'delete', 'submit-delete-top', false, array( 'onclick' => "return confirm('Delete selected attachments permanently?');" ) ); ?>
+					<?php endif; ?>
 					<?php $table->display(); ?>
 					<?php submit_button( 'Convert Selected', 'secondary', 'submit', false ); ?>
+					<?php if ( current_user_can( 'delete_posts' ) ) : ?>
+						<?php submit_button( 'Delete Selected', 'delete', 'submit-delete', false, array( 'onclick' => "return confirm('Delete selected attachments permanently?');" ) ); ?>
+					<?php endif; ?>
 				</form>
 			</div>
 			<?php
@@ -482,6 +565,9 @@ if ( ! class_exists( 'Pera_WebP_Tools' ) ) {
 			check_admin_referer( 'pera_webp_tools_action' );
 
 			$action = isset( $_POST['webp_tools_action'] ) ? sanitize_key( wp_unslash( $_POST['webp_tools_action'] ) ) : '';
+			if ( isset( $_POST['submit-delete-top'] ) || isset( $_POST['submit-delete'] ) ) {
+				$action = 'bulk_delete';
+			}
 			$status = isset( $_POST['redirect_status'] ) ? sanitize_key( wp_unslash( $_POST['redirect_status'] ) ) : 'all';
 			$redirect = add_query_arg(
 				array(
@@ -510,6 +596,38 @@ if ( ! class_exists( 'Pera_WebP_Tools' ) ) {
 					}
 				}
 				self::set_notice( 'info', sprintf( 'Bulk conversion completed. Converted: %d. Failed/Skipped: %d.', $ok, $fail ) );
+			} elseif ( 'bulk_delete' === $action ) {
+				if ( ! current_user_can( 'delete_posts' ) ) {
+					wp_die( 'You do not have permission to delete attachments.' );
+				}
+
+				$ids = isset( $_POST['attachments'] ) ? (array) wp_unslash( $_POST['attachments'] ) : array();
+				if ( empty( $ids ) ) {
+					self::set_notice( 'error', 'No attachments selected for deletion.' );
+					wp_safe_redirect( $redirect );
+					exit;
+				}
+
+				$ok = 0;
+				$fail = 0;
+				foreach ( $ids as $id ) {
+					$attachment_id = (int) $id;
+					$mime          = get_post_mime_type( $attachment_id );
+					if ( ! in_array( $mime, array( 'image/jpeg', 'image/png' ), true ) ) {
+						$fail++;
+						continue;
+					}
+
+					$deleted = wp_delete_attachment( $attachment_id, true );
+					if ( $deleted ) {
+						$ok++;
+					} else {
+						$fail++;
+					}
+				}
+
+				self::invalidate_stats_cache();
+				self::set_notice( 'info', sprintf( 'Deleted: %d. Failed: %d.', $ok, $fail ) );
 			} elseif ( 'convert_all_missing' === $action ) {
 				$processed = self::convert_missing_batch( self::DEFAULT_BATCH_SIZE );
 				$message = sprintf(
@@ -601,6 +719,8 @@ if ( ! class_exists( 'Pera_WebP_Tools' ) ) {
 				'all'       => 0,
 				'converted' => 0,
 				'missing'   => 0,
+				'missing_original_only' => 0,
+				'broken'    => 0,
 				'error'     => 0,
 				'skipped'   => 0,
 			);
@@ -609,12 +729,8 @@ if ( ! class_exists( 'Pera_WebP_Tools' ) ) {
 			foreach ( $ids as $id ) {
 				$status = self::get_attachment_status( (int) $id );
 				$stats['all']++;
-				if ( 'converted' === $status ) {
-					$stats['converted']++;
-				} elseif ( 'missing' === $status ) {
-					$stats['missing']++;
-				} elseif ( 'skipped' === $status ) {
-					$stats['skipped']++;
+				if ( isset( $stats[ $status ] ) ) {
+					$stats[ $status ]++;
 				} else {
 					$stats['error']++;
 				}
