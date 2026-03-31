@@ -134,6 +134,138 @@ if ( ! function_exists( 'pera_get_property_tags_archive_title' ) ) {
   }
 }
 
+if ( ! function_exists( 'pera_seo_normalize_meta_text' ) ) {
+  function pera_seo_normalize_meta_text( string $value ): string {
+    $value = wp_strip_all_tags( $value );
+    $value = preg_replace( '/\s+/u', ' ', $value );
+    return trim( (string) $value );
+  }
+}
+
+if ( ! function_exists( 'pera_get_property_archive_term_acf_field' ) ) {
+  /**
+   * Resolve an ACF term field safely across common ACF term reference formats.
+   */
+  function pera_get_property_archive_term_acf_field( WP_Term $term, string $field_name ): string {
+    if ( ! function_exists( 'get_field' ) ) {
+      return '';
+    }
+
+    $field_name = trim( $field_name );
+    if ( $field_name === '' ) {
+      return '';
+    }
+
+    $candidates = array(
+      $term,
+      $term->taxonomy . '_' . (int) $term->term_id,
+      'term_' . (int) $term->term_id,
+      (int) $term->term_id,
+    );
+
+    foreach ( $candidates as $candidate ) {
+      $value = get_field( $field_name, $candidate );
+      if ( is_string( $value ) ) {
+        $value = pera_seo_normalize_meta_text( $value );
+        if ( $value !== '' ) {
+          return $value;
+        }
+      }
+    }
+
+    return '';
+  }
+}
+
+if ( ! function_exists( 'pera_get_property_archive_term_manual_seo_title' ) ) {
+  function pera_get_property_archive_term_manual_seo_title( WP_Term $term ): string {
+    $manual = pera_get_property_archive_term_acf_field( $term, 'seo_title' );
+
+    if ( $manual === '' ) {
+      $manual = pera_seo_normalize_meta_text( (string) get_term_meta( $term->term_id, 'seo_title', true ) );
+    }
+
+    return $manual;
+  }
+}
+
+if ( ! function_exists( 'pera_get_property_archive_term_manual_meta_description' ) ) {
+  function pera_get_property_archive_term_manual_meta_description( WP_Term $term ): string {
+    $manual = pera_get_property_archive_term_acf_field( $term, 'seo_meta_description' );
+
+    if ( $manual === '' ) {
+      $manual = pera_seo_normalize_meta_text( (string) get_term_meta( $term->term_id, 'seo_meta_description', true ) );
+    }
+
+    return $manual;
+  }
+}
+
+if ( ! function_exists( 'pera_get_property_archive_term_excerpt_fallback' ) ) {
+  /**
+   * Existing term-description fallback chain for taxonomy archive meta descriptions.
+   */
+  function pera_get_property_archive_term_excerpt_fallback( WP_Term $term ): string {
+    $value = (string) get_term_meta( $term->term_id, 'term_excerpt', true );
+    if ( $value === '' ) $value = (string) get_term_meta( $term->term_id, 'excerpt', true );
+    if ( $value === '' ) $value = (string) get_term_meta( $term->term_id, 'pera_term_excerpt', true );
+    if ( $value === '' ) $value = (string) term_description( $term->term_id, $term->taxonomy );
+
+    return pera_seo_normalize_meta_text( $value );
+  }
+}
+
+if ( ! function_exists( 'pera_get_property_archive_generated_title' ) ) {
+  function pera_get_property_archive_generated_title( WP_Term $term ): string {
+    $name = pera_seo_normalize_meta_text( (string) $term->name );
+    $taxonomy = (string) $term->taxonomy;
+
+    if ( $taxonomy === 'district' ) {
+      return pera_get_district_archive_title( $term );
+    }
+
+    if ( $taxonomy === 'region' ) {
+      return pera_get_region_archive_title( $term );
+    }
+
+    if ( $taxonomy === 'property_tags' ) {
+      return pera_get_property_tags_archive_title( $term );
+    }
+
+    if ( $taxonomy === 'property_type' ) {
+      return $name !== ''
+        ? sprintf( '%s property for sale in Istanbul | Pera Property', $name )
+        : 'Property for sale in Istanbul | Pera Property';
+    }
+
+    if ( $taxonomy === 'bedrooms' ) {
+      if ( $name !== '' ) {
+        if ( preg_match( '/\d+/', $name, $matches ) ) {
+          return sprintf( '%s bedroom property for sale in Istanbul | Pera Property', $matches[0] );
+        }
+
+        return sprintf( '%s bedroom property for sale in Istanbul | Pera Property', $name );
+      }
+
+      return 'Property for sale in Istanbul | Pera Property';
+    }
+
+    if ( $taxonomy === 'special' ) {
+      return $name !== ''
+        ? sprintf( '%s property for sale in Istanbul | Pera Property', $name )
+        : 'Property for sale in Istanbul | Pera Property';
+    }
+
+    return '';
+  }
+}
+
+if ( ! function_exists( 'pera_get_property_archive_generated_description' ) ) {
+  function pera_get_property_archive_generated_description(): string {
+    return 'Discover property for sale in Istanbul, from luxury apartments to investment opportunities, with guidance from local experts.';
+  }
+}
+
 if ( ! function_exists( 'pera_property_archive_is_filtered_request' ) ) {
   function pera_property_archive_is_filtered_request( ?array $query = null ): bool {
     $query = $query ?? $_GET;
