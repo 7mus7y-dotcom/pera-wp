@@ -73,13 +73,11 @@ add_filter( 'pre_get_document_title', function( $title ) {
 
 add_action( 'wp_head', function () {
 
-  // Run only on property archive + property taxonomies
-  $taxes = array( 'district', 'region', 'property_type', 'bedrooms', 'property_tags' );
-  $taxes = array_values( array_filter( $taxes, 'taxonomy_exists' ) );
-
-  $is_property_context =
-    is_post_type_archive( 'property' ) ||
-    ( ! empty( $taxes ) && is_tax( $taxes ) );
+  // Run only on property archive ownership contexts (archive + taxonomies).
+  // Uses shared helper so "bedrooms" and "special" never fall through.
+  $is_property_context = function_exists( 'pera_is_property_archive_context' )
+    ? pera_is_property_archive_context()
+    : is_post_type_archive( 'property' );
 
   if ( ! $is_property_context ) {
     return;
@@ -173,20 +171,9 @@ add_filter( 'wp_robots', function ( array $robots ): array {
 
   if ( is_admin() ) return $robots;
 
-  $property_taxonomies = array(
-    'district',
-    'region',
-    'property_type',
-    'property_tags',
-    'special',
-  );
-  $property_taxonomies = array_filter( $property_taxonomies, 'taxonomy_exists' );
-
-  $is_property_context = is_post_type_archive( 'property' );
-
-  if ( ! empty( $property_taxonomies ) && is_tax( $property_taxonomies ) ) {
-    $is_property_context = true;
-  }
+  $is_property_context = function_exists( 'pera_is_property_archive_context' )
+    ? pera_is_property_archive_context()
+    : is_post_type_archive( 'property' );
 
   if ( ! $is_property_context ) {
     return $robots;

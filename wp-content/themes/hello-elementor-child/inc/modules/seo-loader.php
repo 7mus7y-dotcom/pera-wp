@@ -15,15 +15,12 @@ add_action( 'wp', function () {
     require_once $inc . 'seo-property.php';
     return;
   }
-  
-    $property_taxonomies = array(
-    'district',
-    'region',
-    'property_type',
-    'property_tags',
-    'special',
-  );
-  $property_taxonomies = array_filter( $property_taxonomies, 'taxonomy_exists' );
+
+  // Phase 1 ownership: all property archive/taxonomy SEO belongs to
+  // seo-property-archive.php via one shared taxonomy source of truth.
+  $property_taxonomies = function_exists( 'pera_get_property_archive_taxonomies' )
+    ? pera_get_property_archive_taxonomies()
+    : array( 'district', 'region', 'property_type', 'property_tags', 'bedrooms', 'special' );
 
   if ( ! empty( $property_taxonomies ) && is_tax( $property_taxonomies ) ) {
     require_once $inc . 'seo-property-archive.php';

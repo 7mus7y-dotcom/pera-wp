@@ -413,6 +413,12 @@ add_filter( 'wp_robots', function ( array $robots ): array {
 
   if ( is_admin() ) return $robots;
 
+  // Defensive ownership guard: property archive SEO belongs to
+  // seo-property-archive.php and should not be handled in this module.
+  if ( function_exists( 'pera_is_property_archive_context' ) && pera_is_property_archive_context() ) {
+    return $robots;
+  }
+
   // Exclude your single-property SEO module
   if ( is_singular('property') ) return $robots;
 
@@ -445,6 +451,10 @@ add_action( 'wp_head', function () {
 
   if ( is_admin() ) return;
 
+  // Defensive ownership guard: property archive SEO is intentionally centralized
+  // in seo-property-archive.php (loader should route these contexts away).
+  if ( function_exists( 'pera_is_property_archive_context' ) && pera_is_property_archive_context() ) return;
+
   // Exclude your single-property SEO module
   if ( is_singular('property') ) return;
 
@@ -465,11 +475,7 @@ add_action( 'wp_head', function () {
 
   // ---------- Canonical ----------
   $canonical = '';
-  $taxes = array( 'region', 'district', 'property_type', 'bedrooms', 'property_tags' );
-  $taxes = array_values( array_filter( $taxes, 'taxonomy_exists' ) );
-
-  $property_context = is_post_type_archive( 'property' )
-    || ( ! empty( $taxes ) && is_tax( $taxes ) );
+  $property_context = function_exists( 'pera_is_property_archive_context' ) && pera_is_property_archive_context();
 
   if ( $property_context ) {
     $canonical = function_exists( 'pera_property_archive_canonical_url' )
