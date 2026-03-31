@@ -37,3 +37,6 @@ add_action( 'wp', function () {
   require_once $inc . 'seo-all.php';
 
 }, 1 );
+
+// Remove WP core canonical; custom SEO modules own canonical output.
+remove_action( 'wp_head', 'rel_canonical' );
