@@ -1074,13 +1074,15 @@ add_filter( 'get_canonical_url', function ( ?string $canonical, $post ): ?string
 }, 10, 2 );
 
 add_filter( 'wp_robots', function ( array $robots ): array {
+
   if ( pera_property_has_unit_params() ) {
     $robots['noindex'] = true;
     $robots['follow'] = true;
   }
 
   return $robots;
-} );
+
+}, 10 );
 
 add_action('wp_head', function () {
   if ( ! pera_property_is_singular_context() ) return;
