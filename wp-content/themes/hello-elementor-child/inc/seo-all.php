@@ -152,11 +152,42 @@ if ( ! function_exists('pera_seo_all_get_image') ) {
   }
 }
 
+if ( ! function_exists( 'pera_seo_all_get_post_custom_title' ) ) {
+  /**
+   * Get a normalized custom SEO title for standard posts.
+   */
+  function pera_seo_all_get_post_custom_title( int $post_id ): string {
+    if ( get_post_type( $post_id ) !== 'post' ) {
+      return '';
+    }
+
+    $custom_title = '';
+
+    if ( function_exists( 'get_field' ) ) {
+      $custom_title = (string) get_field( 'seo_title', $post_id );
+    }
+
+    if ( $custom_title === '' ) {
+      $custom_title = (string) get_post_meta( $post_id, 'seo_title', true );
+    }
+
+    $custom_title = wp_strip_all_tags( $custom_title );
+    $custom_title = trim( preg_replace( '/\s+/', ' ', $custom_title ) );
+
+    return $custom_title;
+  }
+}
+
 if ( ! function_exists( 'pera_seo_all_build_post_document_title' ) ) {
   /**
    * Build a clean, deterministic document title for standard blog posts.
    */
   function pera_seo_all_build_post_document_title( int $post_id, string $fallback_title ): string {
+    $custom_title = pera_seo_all_get_post_custom_title( $post_id );
+    if ( $custom_title !== '' ) {
+      return $custom_title;
+    }
+
     $post_title = trim( wp_strip_all_tags( (string) get_the_title( $post_id ) ) );
     if ( $post_title === '' ) {
       return $fallback_title;
