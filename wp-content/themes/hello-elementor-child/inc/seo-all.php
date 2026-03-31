@@ -54,23 +54,9 @@ if ( ! function_exists('pera_seo_all_get_description') ) {
 
     $post_type = get_post_type( $post_id );
 
-    if ( $post_type === 'post' ) {
-      $manual_desc = '';
-
-      // Prefer an ACF field when available for editor-controlled post snippets.
-      if ( function_exists( 'get_field' ) ) {
-        $manual_desc = (string) get_field( 'seo_meta_description', $post_id );
-      }
-
-      // Native fallback meta key for environments without ACF field registration.
-      if ( $manual_desc === '' ) {
-        $manual_desc = (string) get_post_meta( $post_id, 'seo_meta_description', true );
-      }
-
-      $manual_desc = pera_seo_all_normalize_description( $manual_desc );
-      if ( $manual_desc !== '' ) {
-        return $manual_desc;
-      }
+    if ( in_array( $post_type, array( 'post', 'page' ), true ) ) {
+      $manual_desc = pera_seo_all_get_manual_post_text_field( $post_id, 'seo_meta_description' );
+      if ( $manual_desc !== '' ) return $manual_desc;
     }
 
     $desc = pera_seo_all_normalize_description( (string) get_the_excerpt( $post_id ) );
@@ -161,20 +147,130 @@ if ( ! function_exists( 'pera_seo_all_get_post_custom_title' ) ) {
       return '';
     }
 
-    $custom_title = '';
-
-    if ( function_exists( 'get_field' ) ) {
-      $custom_title = (string) get_field( 'seo_title', $post_id );
-    }
-
-    if ( $custom_title === '' ) {
-      $custom_title = (string) get_post_meta( $post_id, 'seo_title', true );
-    }
+    $custom_title = pera_seo_all_get_manual_post_text_field( $post_id, 'seo_title' );
 
     $custom_title = wp_strip_all_tags( $custom_title );
     $custom_title = trim( preg_replace( '/\s+/', ' ', $custom_title ) );
 
     return $custom_title;
+  }
+}
+
+if ( ! function_exists( 'pera_seo_all_get_manual_post_text_field' ) ) {
+  /**
+   * Resolve a text SEO field from ACF first, then raw post meta.
+   */
+  function pera_seo_all_get_manual_post_text_field( int $post_id, string $field_name ): string {
+    if ( $post_id <= 0 || $field_name === '' ) return '';
+
+    $value = '';
+    if ( function_exists( 'get_field' ) ) {
+      $acf_value = get_field( $field_name, $post_id );
+      if ( is_scalar( $acf_value ) ) {
+        $value = (string) $acf_value;
+      }
+    }
+
+    if ( $value === '' ) {
+      $value = (string) get_post_meta( $post_id, $field_name, true );
+    }
+
+    return pera_seo_all_normalize_description( $value, 300 );
+  }
+}
+
+if ( ! function_exists( 'pera_seo_all_resolve_social_image_from_value' ) ) {
+  /**
+   * Resolve image URL + attachment metadata from flexible ACF/meta value shapes.
+   *
+   * @return array{url:string,alt:string,width:int,height:int,attachment_id:int}
+   */
+  function pera_seo_all_resolve_social_image_from_value( $value ): array {
+    $attachment_id = 0;
+    $url = '';
+    $alt = '';
+    $width = 0;
+    $height = 0;
+
+    if ( is_array( $value ) ) {
+      if ( isset( $value['ID'] ) ) {
+        $attachment_id = (int) $value['ID'];
+      } elseif ( isset( $value['id'] ) ) {
+        $attachment_id = (int) $value['id'];
+      }
+
+      if ( isset( $value['url'] ) && is_string( $value['url'] ) ) {
+        $url = $value['url'];
+      }
+
+      if ( isset( $value['alt'] ) && is_string( $value['alt'] ) ) {
+        $alt = trim( $value['alt'] );
+      }
+    } elseif ( is_numeric( $value ) ) {
+      $attachment_id = (int) $value;
+    } elseif ( is_string( $value ) ) {
+      $value = trim( $value );
+      if ( $value !== '' ) {
+        if ( preg_match( '/^\d+$/', $value ) ) {
+          $attachment_id = (int) $value;
+        } else {
+          $url = $value;
+        }
+      }
+    }
+
+    if ( $attachment_id > 0 ) {
+      $resolved_url = wp_get_attachment_image_url( $attachment_id, 'full' );
+      if ( is_string( $resolved_url ) && $resolved_url !== '' ) {
+        $url = $resolved_url;
+      }
+
+      $meta = wp_get_attachment_metadata( $attachment_id );
+      if ( is_array( $meta ) ) {
+        $width = isset( $meta['width'] ) ? (int) $meta['width'] : 0;
+        $height = isset( $meta['height'] ) ? (int) $meta['height'] : 0;
+      }
+
+      if ( $alt === '' ) {
+        $candidate_alt = (string) get_post_meta( $attachment_id, '_wp_attachment_image_alt', true );
+        if ( $candidate_alt !== '' ) {
+          $alt = trim( $candidate_alt );
+        }
+      }
+    }
+
+    return array(
+      'url' => $url !== '' ? esc_url( $url ) : '',
+      'alt' => $alt,
+      'width' => $width,
+      'height' => $height,
+      'attachment_id' => $attachment_id > 0 ? $attachment_id : 0,
+    );
+  }
+}
+
+if ( ! function_exists( 'pera_seo_all_get_post_manual_social_image' ) ) {
+  /**
+   * Read optional post/page seo_social_image from ACF/meta when available.
+   *
+   * @return array{url:string,alt:string,width:int,height:int,attachment_id:int}
+   */
+  function pera_seo_all_get_post_manual_social_image( int $post_id ): array {
+    if ( $post_id <= 0 ) {
+      return array( 'url' => '', 'alt' => '', 'width' => 0, 'height' => 0, 'attachment_id' => 0 );
+    }
+
+    $raw = null;
+
+    if ( function_exists( 'get_field' ) ) {
+      $raw = get_field( 'seo_social_image', $post_id );
+    }
+
+    if ( empty( $raw ) ) {
+      $raw = get_post_meta( $post_id, 'seo_social_image', true );
+    }
+
+    return pera_seo_all_resolve_social_image_from_value( $raw );
   }
 }
 
@@ -243,6 +339,14 @@ if ( ! function_exists( 'pera_seo_all_build_blog_archive_document_title' ) ) {
       if ( $archive_label !== '' ) {
         $base = sprintf( __( '%s Articles', 'peraproperty' ), $archive_label );
       }
+    } elseif ( is_author() ) {
+      $author = get_queried_object();
+      if ( $author instanceof WP_User ) {
+        $author_name = trim( wp_strip_all_tags( (string) $author->display_name ) );
+        if ( $author_name !== '' ) {
+          $base = sprintf( __( 'Articles by %s', 'peraproperty' ), $author_name );
+        }
+      }
     }
 
     if ( $base === '' ) {
@@ -262,8 +366,90 @@ if ( ! function_exists( 'pera_seo_all_build_blog_archive_document_title' ) ) {
   }
 }
 
+if ( ! function_exists( 'pera_seo_all_get_context_key' ) ) {
+  /**
+   * Explicit non-property context keys for seo-all ownership.
+   */
+  function pera_seo_all_get_context_key(): string {
+    if ( is_front_page() ) return 'homepage';
+    if ( is_singular( 'post' ) ) return 'blog_post';
+    if ( is_page() ) return 'static_page';
+    if ( is_home() && ! is_front_page() ) return 'blog_home';
+    if ( is_category() ) return 'blog_category';
+    if ( is_tag() ) return 'blog_tag';
+    if ( is_date() ) return 'blog_date';
+    if ( is_author() ) return 'blog_author';
+    return 'fallback_other';
+  }
+}
+
+if ( ! function_exists( 'pera_seo_all_get_term_manual_text_field' ) ) {
+  function pera_seo_all_get_term_manual_text_field( WP_Term $term, string $field_name ): string {
+    if ( $field_name === '' ) return '';
+
+    $value = '';
+
+    if ( function_exists( 'get_field' ) ) {
+      $candidates = array(
+        $term,
+        $term->taxonomy . '_' . (int) $term->term_id,
+        'term_' . (int) $term->term_id,
+        (int) $term->term_id,
+      );
+
+      foreach ( $candidates as $candidate ) {
+        $candidate_value = get_field( $field_name, $candidate );
+        if ( is_scalar( $candidate_value ) ) {
+          $value = (string) $candidate_value;
+          if ( trim( $value ) !== '' ) break;
+        }
+      }
+    }
+
+    if ( trim( $value ) === '' ) {
+      $value = (string) get_term_meta( $term->term_id, $field_name, true );
+    }
+
+    return pera_seo_all_normalize_description( $value, 300 );
+  }
+}
+
+if ( ! function_exists( 'pera_seo_all_get_term_manual_social_image' ) ) {
+  /**
+   * @return array{url:string,alt:string,width:int,height:int,attachment_id:int}
+   */
+  function pera_seo_all_get_term_manual_social_image( WP_Term $term ): array {
+    $raw = null;
+
+    if ( function_exists( 'get_field' ) ) {
+      $candidates = array(
+        $term,
+        $term->taxonomy . '_' . (int) $term->term_id,
+        'term_' . (int) $term->term_id,
+        (int) $term->term_id,
+      );
+
+      foreach ( $candidates as $candidate ) {
+        $candidate_value = get_field( 'seo_social_image', $candidate );
+        if ( ! empty( $candidate_value ) ) {
+          $raw = $candidate_value;
+          break;
+        }
+      }
+    }
+
+    if ( empty( $raw ) ) {
+      $raw = get_term_meta( $term->term_id, 'seo_social_image', true );
+    }
+
+    return pera_seo_all_resolve_social_image_from_value( $raw );
+  }
+}
+
 add_filter( 'pre_get_document_title', function ( $title ) {
-  if ( is_singular( 'post' ) ) {
+  $context = pera_seo_all_get_context_key();
+
+  if ( $context === 'blog_post' ) {
     $post_id = (int) get_queried_object_id();
     if ( $post_id > 0 ) {
       return pera_seo_all_build_post_document_title( $post_id, (string) $title );
@@ -272,8 +458,36 @@ add_filter( 'pre_get_document_title', function ( $title ) {
     return $title;
   }
 
-  if ( is_home() || is_category() || is_tag() || is_date() ) {
+  if ( in_array( $context, array( 'blog_home', 'blog_category', 'blog_tag', 'blog_date', 'blog_author' ), true ) ) {
+    if ( $context === 'blog_home' ) {
+      $posts_page_id = (int) get_option( 'page_for_posts' );
+      if ( $posts_page_id > 0 ) {
+        $manual_title = pera_seo_all_get_manual_post_text_field( $posts_page_id, 'seo_title' );
+        if ( $manual_title !== '' ) {
+          return $manual_title;
+        }
+      }
+    } elseif ( in_array( $context, array( 'blog_category', 'blog_tag' ), true ) ) {
+      $term = get_queried_object();
+      if ( $term instanceof WP_Term ) {
+        $manual_title = pera_seo_all_get_term_manual_text_field( $term, 'seo_title' );
+        if ( $manual_title !== '' ) {
+          return $manual_title;
+        }
+      }
+    }
+
     return pera_seo_all_build_blog_archive_document_title( (string) $title );
+  }
+
+  if ( in_array( $context, array( 'homepage', 'static_page' ), true ) ) {
+    $post_id = (int) get_queried_object_id();
+    if ( $post_id > 0 ) {
+      $manual_title = pera_seo_all_get_manual_post_text_field( $post_id, 'seo_title' );
+      if ( $manual_title !== '' ) {
+        return $manual_title;
+      }
+    }
   }
 
   return $title;
@@ -462,15 +676,14 @@ add_action( 'wp_head', function () {
   if ( is_404() ) return;
 
   $site_name = (string) get_bloginfo('name');
+  $context   = pera_seo_all_get_context_key();
   $title     = wp_strip_all_tags( wp_get_document_title() );
+  $post_id   = (int) get_queried_object_id();
+  $schema_type = '';
 
-  // Determine a sensible "context id" for excerpt/image
-  $post_id = (int) get_queried_object_id();
-
-  // Blog posts index (Settings -> Reading -> Posts page)
-  if ( is_home() && ! is_front_page() ) {
+  if ( $context === 'blog_home' ) {
     $posts_page_id = (int) get_option('page_for_posts');
-    if ( $posts_page_id ) $post_id = $posts_page_id;
+    if ( $posts_page_id > 0 ) $post_id = $posts_page_id;
   }
 
   // ---------- Canonical ----------
@@ -497,24 +710,82 @@ add_action( 'wp_head', function () {
   // ---------- Description ----------
   $desc = '';
 
-  if ( $post_id ) {
-    $desc = pera_seo_all_get_description( $post_id );
-  } else {
-    // Term archives: use term description if available
-    if ( is_category() || is_tag() || is_tax() ) {
-      $term = get_queried_object();
-      if ( $term && ! is_wp_error($term) && ! empty($term->description) ) {
-        $desc = wp_strip_all_tags( (string) $term->description );
-        $desc = trim( preg_replace('/\s+/', ' ', $desc) );
-        if ( function_exists('mb_substr') ) $desc = mb_substr($desc, 0, 160);
-        else $desc = substr($desc, 0, 160);
+  switch ( $context ) {
+    case 'homepage':
+    case 'static_page':
+      if ( $post_id > 0 ) {
+        $desc = pera_seo_all_get_description( $post_id );
       }
-    }
-  }
+      $schema_type = 'WebPage';
+      break;
 
-  // If filtered property archive and we have no desc, use a short stable one
-  if ( $desc === '' && pera_is_filtered_property_archive() ) {
-    $desc = 'Browse Istanbul property listings filtered by district, type, bedrooms and budget.';
+    case 'blog_home':
+      if ( $post_id > 0 ) {
+        $manual = pera_seo_all_get_manual_post_text_field( $post_id, 'seo_meta_description' );
+        if ( $manual !== '' ) {
+          $desc = pera_seo_all_normalize_description( $manual );
+        } else {
+          $desc = pera_seo_all_get_description( $post_id );
+        }
+      }
+      if ( $desc === '' ) {
+        $desc = __( 'Latest articles, market insights, and guides from Pera Property.', 'peraproperty' );
+      }
+      $schema_type = 'CollectionPage';
+      break;
+
+    case 'blog_category':
+    case 'blog_tag':
+      $term = get_queried_object();
+      if ( $term instanceof WP_Term ) {
+        $manual = pera_seo_all_get_term_manual_text_field( $term, 'seo_meta_description' );
+        if ( $manual === '' ) {
+          $manual = function_exists( 'pera_get_term_excerpt' )
+            ? pera_get_term_excerpt( (int) $term->term_id, (string) $term->taxonomy, 28 )
+            : '';
+        }
+        if ( $manual === '' && ! empty( $term->description ) ) {
+          $manual = (string) $term->description;
+        }
+        $desc = pera_seo_all_normalize_description( $manual );
+      }
+      $schema_type = 'CollectionPage';
+      break;
+
+    case 'blog_date':
+      $date_title = trim( wp_strip_all_tags( (string) get_the_archive_title() ) );
+      if ( $date_title !== '' ) {
+        $desc = sprintf( __( 'Articles archived for %s.', 'peraproperty' ), $date_title );
+      }
+      $schema_type = 'CollectionPage';
+      break;
+
+    case 'blog_author':
+      $author = get_queried_object();
+      if ( $author instanceof WP_User ) {
+        $author_name = trim( wp_strip_all_tags( (string) $author->display_name ) );
+        if ( $author_name !== '' ) {
+          $desc = sprintf( __( 'Articles by %s.', 'peraproperty' ), $author_name );
+        }
+        $bio = trim( wp_strip_all_tags( (string) get_the_author_meta( 'description', (int) $author->ID ) ) );
+        if ( $bio !== '' ) {
+          $desc = pera_seo_all_normalize_description( $bio );
+        }
+      }
+      $schema_type = 'CollectionPage';
+      break;
+
+    case 'blog_post':
+      if ( $post_id > 0 ) {
+        $desc = pera_seo_all_get_description( $post_id );
+      }
+      break;
+
+    default:
+      if ( $post_id > 0 ) {
+        $desc = pera_seo_all_get_description( $post_id );
+      }
+      break;
   }
 
   // ---------- Image ----------
@@ -524,7 +795,39 @@ add_action( 'wp_head', function () {
   $img_height = 0;
   $img_attachment_id = 0;
 
-  if ( $post_id ) {
+  if ( in_array( $context, array( 'homepage', 'static_page', 'blog_home', 'blog_post' ), true ) && $post_id > 0 ) {
+    $manual_img = pera_seo_all_get_post_manual_social_image( $post_id );
+    if ( ! empty( $manual_img['url'] ) ) {
+      $img_url = (string) $manual_img['url'];
+      $img_alt = ! empty( $manual_img['alt'] ) ? (string) $manual_img['alt'] : $title;
+      $img_width = (int) $manual_img['width'];
+      $img_height = (int) $manual_img['height'];
+      $img_attachment_id = (int) $manual_img['attachment_id'];
+    }
+  }
+
+  if ( in_array( $context, array( 'blog_category', 'blog_tag' ), true ) ) {
+    $term = get_queried_object();
+    if ( $term instanceof WP_Term ) {
+      $manual_term_img = pera_seo_all_get_term_manual_social_image( $term );
+      if ( ! empty( $manual_term_img['url'] ) ) {
+        $img_url = (string) $manual_term_img['url'];
+        $img_alt = ! empty( $manual_term_img['alt'] ) ? (string) $manual_term_img['alt'] : $title;
+        $img_width = (int) $manual_term_img['width'];
+        $img_height = (int) $manual_term_img['height'];
+      } else {
+        $term_img = function_exists( 'pera_get_term_featured_image_url' )
+          ? pera_get_term_featured_image_url( (int) $term->term_id, (string) $term->taxonomy, 'full' )
+          : '';
+        if ( $term_img !== '' ) {
+          $img_url = esc_url( $term_img );
+          $img_alt = $title;
+        }
+      }
+    }
+  }
+
+  if ( $img_url === '' && $post_id ) {
     $img = pera_seo_all_get_image( $post_id );
     $img_url = $img['url'];
     $img_alt = $img['alt'] ?: $title;
@@ -542,7 +845,7 @@ add_action( 'wp_head', function () {
     }
   }
 
-  $og_type = is_singular() ? 'article' : 'website';
+  $og_type = ( $context === 'blog_post' ) ? 'article' : 'website';
 
   echo "\n<!-- Pera: SEO / Social -->\n";
 
@@ -589,7 +892,7 @@ add_action( 'wp_head', function () {
     echo '<meta name="twitter:image:alt" content="' . esc_attr($img_alt) . '">' . "\n";
   }
 
-  if ( is_singular( 'post' ) && $post_id > 0 ) {
+  if ( $context === 'blog_post' && $post_id > 0 ) {
     $author_id      = (int) get_post_field( 'post_author', $post_id );
     $author_name    = $author_id > 0 ? trim( (string) get_the_author_meta( 'display_name', $author_id ) ) : '';
     $publisher     = (string) get_bloginfo( 'name' );
@@ -687,40 +990,36 @@ add_action( 'wp_head', function () {
       }
     }
   }
-  
-  if ( is_tax() || is_category() || is_tag() ) {
 
-  $term = get_queried_object();
-
-  if ( $term instanceof WP_Term ) {
-
-    $taxonomy = (string) $term->taxonomy;
-    $term_id  = (int) $term->term_id;
-
-    // Use your saved term meta, with safe fallbacks
-    $desc = function_exists('pera_get_term_excerpt')
-      ? pera_get_term_excerpt( $term_id, $taxonomy, 28 )
-      : '';
-
-    $img  = function_exists('pera_get_term_featured_image_url')
-      ? pera_get_term_featured_image_url( $term_id, $taxonomy, 'full' )
-      : '';
+  if ( $schema_type !== '' && $canonical !== '' ) {
+    $schema = array(
+      '@context' => 'https://schema.org',
+      '@type'    => $schema_type,
+      '@id'      => $canonical . '#webpage',
+      'url'      => $canonical,
+      'name'     => $title,
+    );
 
     if ( $desc !== '' ) {
-      $desc = wp_strip_all_tags( $desc );
-      $desc = trim( preg_replace('/\s+/', ' ', $desc ) );
-
-      echo '<meta name="description" content="' . esc_attr( $desc ) . '">' . "\n";
-      echo '<meta property="og:description" content="' . esc_attr( $desc ) . '">' . "\n";
-      echo '<meta name="twitter:description" content="' . esc_attr( $desc ) . '">' . "\n";
+      $schema['description'] = $desc;
     }
 
-    if ( $img !== '' ) {
-      echo '<meta property="og:image" content="' . esc_url( $img ) . '">' . "\n";
-      echo '<meta name="twitter:image" content="' . esc_url( $img ) . '">' . "\n";
+    if ( $img_url !== '' ) {
+      $schema['image'] = $img_url;
+    }
+
+    echo '<script type="application/ld+json">' . wp_json_encode( $schema, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE ) . '</script>' . "\n";
+
+    if ( $context === 'homepage' ) {
+      $org = array(
+        '@context' => 'https://schema.org',
+        '@type'    => 'Organization',
+        'name'     => $site_name,
+        'url'      => (string) home_url( '/' ),
+      );
+      echo '<script type="application/ld+json">' . wp_json_encode( $org, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE ) . '</script>' . "\n";
     }
   }
-}
 
   echo "<!-- /Pera: SEO / Social -->\n\n";
 
