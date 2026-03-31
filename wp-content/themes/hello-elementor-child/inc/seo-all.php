@@ -854,11 +854,9 @@ add_action( 'wp_head', function () {
   }
 
   // Canonical ownership note:
-  // - standard single posts use WordPress core rel_canonical() as the single owner.
-  // - this module owns canonical output for non-post contexts.
-  if ( ! is_singular( 'post' ) ) {
-    echo '<link rel="canonical" href="' . esc_url($canonical) . '">' . "\n";
-  }
+  // - core rel_canonical() is removed in performance cleanup.
+  // - this module owns canonical output for all non-property contexts.
+  echo '<link rel="canonical" href="' . esc_url($canonical) . '">' . "\n";
 
   // Open Graph
   echo '<meta property="og:site_name" content="' . esc_attr($site_name) . '">' . "\n";
