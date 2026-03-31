@@ -538,6 +538,65 @@ if ( ! function_exists( 'pera_property_get_schema_images' ) ) {
   }
 }
 
+if ( ! function_exists( 'pera_property_extract_size_range' ) ) {
+  function pera_property_extract_size_range( ?array $row ): array {
+    if ( ! is_array( $row ) ) {
+      return array(
+        'min' => 0.0,
+        'max' => 0.0,
+      );
+    }
+
+    $size_min = 0.0;
+    $size_max = 0.0;
+
+    foreach ( array( 'size_min', 'v2_gross_size_min', 'gross_size_min' ) as $key ) {
+      if ( isset( $row[ $key ] ) && is_numeric( $row[ $key ] ) ) {
+        $size_min = (float) $row[ $key ];
+        break;
+      }
+    }
+
+    foreach ( array( 'size_max', 'v2_gross_size_max', 'gross_size_max' ) as $key ) {
+      if ( isset( $row[ $key ] ) && is_numeric( $row[ $key ] ) ) {
+        $size_max = (float) $row[ $key ];
+        break;
+      }
+    }
+
+    if ( $size_min > 0 && $size_max <= 0 ) {
+      $size_max = $size_min;
+    }
+
+    if ( $size_max > 0 && $size_min <= 0 ) {
+      $size_min = $size_max;
+    }
+
+    return array(
+      'min' => $size_min,
+      'max' => $size_max,
+    );
+  }
+}
+
+if ( ! function_exists( 'pera_property_get_schema_bedroom_count' ) ) {
+  function pera_property_get_schema_bedroom_count( int $post_id, ?array $selected_unit = null ): int {
+    if ( is_array( $selected_unit ) ) {
+      $bedrooms = pera_property_extract_bedrooms( $selected_unit );
+      if ( is_int( $bedrooms ) && $bedrooms > 0 ) {
+        return $bedrooms;
+      }
+    }
+
+    $label = pera_property_get_bedroom_label( $post_id, null );
+    if ( $label !== '' && preg_match( '/\d+/', $label, $matches ) ) {
+      return (int) $matches[0];
+    }
+
+    return 0;
+  }
+}
+
 if ( ! function_exists( 'pera_property_get_breadcrumb_term_item' ) ) {
   function pera_property_get_breadcrumb_term_item( WP_Term $term, int $position ): array {
     $item = array(
@@ -631,6 +690,93 @@ if ( ! function_exists( 'pera_property_build_schema_graph' ) ) {
       '@id'             => $url . '#breadcrumb',
       'itemListElement' => $breadcrumb_items,
     );
+
+    // Schema stays in this module so singular property ownership is explicit and
+    // does not drift into templates or unrelated global SEO code.
+    $unit_context = pera_property_get_selected_unit_context( $post_id );
+    $selected_unit = is_array( $unit_context['selected_unit'] ) ? $unit_context['selected_unit'] : null;
+    $description = pera_property_get_meta_description( $post_id );
+    $images = pera_property_get_schema_images( $post_id );
+
+    $webpage = array(
+      '@type' => 'WebPage',
+      '@id'   => $url . '#webpage',
+      'url'   => $url,
+      'name'  => $name,
+    );
+
+    if ( $description !== '' ) {
+      $webpage['description'] = $description;
+    }
+
+    if ( ! empty( $images ) ) {
+      $webpage['primaryImageOfPage'] = array(
+        '@type' => 'ImageObject',
+        'url'   => $images[0],
+      );
+    }
+
+    $graph['@graph'][] = $webpage;
+
+    // Residence is the safest primary entity currently supported by real fields
+    // (name, url, image, district/region, bedrooms, size) without fabricating
+    // commerce-specific values. Product/Offer is intentionally deferred.
+    $residence = array(
+      '@type'     => 'Residence',
+      '@id'       => $url . '#residence',
+      'name'      => $name,
+      'url'       => $url,
+      'mainEntityOfPage' => array(
+        '@id' => $url . '#webpage',
+      ),
+    );
+
+    if ( $description !== '' ) {
+      $residence['description'] = $description;
+    }
+
+    if ( ! empty( $images ) ) {
+      $residence['image'] = $images;
+    }
+
+    $address_locality = '';
+    if ( $district_term instanceof WP_Term ) {
+      $address_locality = pera_property_normalize_whitespace( (string) $district_term->name );
+    } elseif ( $region_term instanceof WP_Term ) {
+      $address_locality = pera_property_normalize_whitespace( (string) $region_term->name );
+    }
+
+    if ( $address_locality !== '' ) {
+      $residence['address'] = array(
+        '@type'           => 'PostalAddress',
+        'addressLocality' => $address_locality,
+        'addressRegion'   => 'Istanbul',
+        'addressCountry'  => 'TR',
+      );
+    }
+
+    $bedroom_count = pera_property_get_schema_bedroom_count( $post_id, $selected_unit );
+    if ( $bedroom_count > 0 ) {
+      $residence['numberOfRooms'] = $bedroom_count;
+      $residence['numberOfBedrooms'] = $bedroom_count;
+    }
+
+    $size_range = pera_property_extract_size_range( $selected_unit );
+    if ( $size_range['min'] > 0 ) {
+      $floor_size = array(
+        '@type'    => 'QuantitativeValue',
+        'unitCode' => 'MTK',
+        'value'    => round( $size_range['min'], 2 ),
+      );
+
+      if ( $size_range['max'] > 0 && $size_range['max'] !== $size_range['min'] ) {
+        $floor_size['maxValue'] = round( $size_range['max'], 2 );
+      }
+
+      $residence['floorSize'] = $floor_size;
+    }
+
+    $graph['@graph'][] = $residence;
 
     return $graph;
   }

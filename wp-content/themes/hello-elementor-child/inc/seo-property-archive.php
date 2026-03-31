@@ -11,6 +11,90 @@
 
 if ( ! defined( 'ABSPATH' ) ) exit;
 
+if ( ! function_exists( 'pera_property_archive_schema_title' ) ) {
+  function pera_property_archive_schema_title(): string {
+    if ( is_tax( pera_get_property_archive_taxonomies() ) ) {
+      $term = get_queried_object();
+      if ( $term instanceof WP_Term && ! is_wp_error( $term ) ) {
+        $manual = pera_get_property_archive_term_manual_seo_title( $term );
+        if ( $manual !== '' ) {
+          return $manual;
+        }
+
+        $generated = pera_get_property_archive_generated_title( $term );
+        if ( $generated !== '' ) {
+          return $generated;
+        }
+
+        return pera_seo_normalize_meta_text( (string) $term->name );
+      }
+    }
+
+    return 'Property for sale in Istanbul | Pera Property';
+  }
+}
+
+if ( ! function_exists( 'pera_property_archive_schema_description' ) ) {
+  function pera_property_archive_schema_description( bool $is_filtered, bool $has_seo_plugin ): string {
+    if ( $is_filtered || $has_seo_plugin ) {
+      return '';
+    }
+
+    if ( is_tax( pera_get_property_archive_taxonomies() ) ) {
+      $term = get_queried_object();
+      if ( ! ( $term instanceof WP_Term ) || is_wp_error( $term ) ) {
+        return '';
+      }
+
+      $manual = pera_get_property_archive_term_manual_meta_description( $term );
+      if ( $manual !== '' ) {
+        return $manual;
+      }
+
+      return pera_get_property_archive_term_excerpt_fallback( $term );
+    }
+
+    if ( is_post_type_archive( 'property' ) ) {
+      return pera_get_property_archive_generated_description();
+    }
+
+    return '';
+  }
+}
+
+if ( ! function_exists( 'pera_property_archive_schema_breadcrumb_items' ) ) {
+  function pera_property_archive_schema_breadcrumb_items( string $canonical, string $title ): array {
+    $items = array(
+      array(
+        '@type'    => 'ListItem',
+        'position' => 1,
+        'name'     => 'Home',
+        'item'     => home_url( '/' ),
+      ),
+      array(
+        '@type'    => 'ListItem',
+        'position' => 2,
+        'name'     => 'Property',
+        'item'     => get_post_type_archive_link( 'property' ) ?: home_url( '/property/' ),
+      ),
+    );
+
+    if ( is_tax( pera_get_property_archive_taxonomies() ) ) {
+      $term = get_queried_object();
+      if ( $term instanceof WP_Term && ! is_wp_error( $term ) ) {
+        $items[] = array(
+          '@type'    => 'ListItem',
+          'position' => 3,
+          'name'     => $title !== '' ? $title : pera_seo_normalize_meta_text( (string) $term->name ),
+          'item'     => $canonical,
+        );
+      }
+    }
+
+    return $items;
+  }
+}
+
 add_filter( 'pre_get_document_title', function( $title ) {
   // Taxonomy TITLE precedence:
   // 1) ACF seo_title, 2) raw term meta seo_title,
@@ -98,29 +182,7 @@ add_action( 'wp_head', function () {
     class_exists( 'WPSEO_Frontend' ) ||
     class_exists( 'RankMath\\Frontend\\Frontend' );
 
-  $meta_desc = '';
-
-  if ( ! $is_filtered && ! $has_seo_plugin ) {
-    if ( is_tax( pera_get_property_archive_taxonomies() ) ) {
-      $term = get_queried_object();
-
-      if ( $term instanceof WP_Term && ! is_wp_error( $term ) ) {
-        // Taxonomy META DESCRIPTION precedence:
-        // 1) ACF seo_meta_description, 2) raw term meta seo_meta_description,
-        // 3) term excerpt fallback chain, 4) empty.
-        $meta_desc = pera_get_property_archive_term_manual_meta_description( $term );
-
-        if ( $meta_desc === '' ) {
-          $meta_desc = pera_get_property_archive_term_excerpt_fallback( $term );
-        }
-      }
-    } elseif ( is_post_type_archive( 'property' ) ) {
-      // Main /property/ META DESCRIPTION precedence:
-      // 1) safe existing manual source (deferred if unavailable),
-      // 2) generated archive description, 3) empty.
-      $meta_desc = pera_get_property_archive_generated_description();
-    }
-  }
+  $meta_desc = pera_property_archive_schema_description( $is_filtered, $has_seo_plugin );
 
   echo "\n<!-- Pera SEO: Property archive -->\n";
 
@@ -129,6 +191,40 @@ add_action( 'wp_head', function () {
   }
 
   echo '<link rel="canonical" href="' . esc_url( $canonical ) . '">' . "\n";
+
+  // Archive/taxonomy schema is intentionally owned by this module so page-type
+  // schema logic stays close to canonical/robots ownership for the same context.
+  // We intentionally defer ItemList for this phase to avoid fragile coupling to
+  // loop internals on paginated and filtered archive requests.
+  if ( ! $is_filtered && $canonical !== '' ) {
+    $title = pera_property_archive_schema_title();
+    $graph = array(
+      '@context' => 'https://schema.org',
+      '@graph'   => array(),
+    );
+
+    $collection_page = array(
+      '@type' => 'CollectionPage',
+      '@id'   => $canonical . '#collection-page',
+      'url'   => $canonical,
+      'name'  => $title,
+    );
+
+    if ( $meta_desc !== '' ) {
+      $collection_page['description'] = $meta_desc;
+    }
+
+    $graph['@graph'][] = $collection_page;
+
+    $graph['@graph'][] = array(
+      '@type'           => 'BreadcrumbList',
+      '@id'             => $canonical . '#breadcrumb',
+      'itemListElement' => pera_property_archive_schema_breadcrumb_items( $canonical, $title ),
+    );
+
+    echo '<script type="application/ld+json">' . wp_json_encode( $graph, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE ) . '</script>' . "\n";
+  }
+
   echo "<!-- /Pera SEO: Property archive -->\n\n";
 
 }, 30 );
