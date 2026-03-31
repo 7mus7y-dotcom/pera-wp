@@ -12,69 +12,49 @@
 if ( ! defined( 'ABSPATH' ) ) exit;
 
 add_filter( 'pre_get_document_title', function( $title ) {
-  if ( ! is_tax( 'district' ) ) {
+  // Taxonomy TITLE precedence:
+  // 1) ACF seo_title, 2) raw term meta seo_title,
+  // 3) taxonomy-generated title formula, 4) existing/default title.
+  if ( is_tax( pera_get_property_archive_taxonomies() ) ) {
+    $term = get_queried_object();
+    if ( ! ( $term instanceof WP_Term ) || is_wp_error( $term ) ) {
+      return $title;
+    }
+
+    $manual = pera_get_property_archive_term_manual_seo_title( $term );
+    if ( $manual !== '' ) {
+      return $manual;
+    }
+
+    $generated = pera_get_property_archive_generated_title( $term );
+    if ( $generated !== '' ) {
+      return $generated;
+    }
+
     return $title;
   }
 
-  $term = get_queried_object();
-  if ( ! ( $term instanceof WP_Term ) || is_wp_error( $term ) ) {
+  if ( ! is_post_type_archive( 'property' ) || is_tax() || is_search() ) {
     return $title;
   }
 
-  return pera_get_district_archive_title( $term );
-}, 20 );
-
-add_filter( 'pre_get_document_title', function( $title ) {
-  if ( ! is_tax( 'region' ) ) {
-    return $title;
-  }
-
-  $term = get_queried_object();
-  if ( ! ( $term instanceof WP_Term ) || is_wp_error( $term ) ) {
-    return $title;
-  }
-
-  return pera_get_region_archive_title( $term );
-}, 20 );
-
-add_filter( 'pre_get_document_title', function( $title ) {
-  if ( ! is_tax( 'property_tags' ) ) {
-    return $title;
-  }
-
-  $term = get_queried_object();
-  if ( ! ( $term instanceof WP_Term ) || is_wp_error( $term ) ) {
-    return $title;
-  }
-
-  return pera_get_property_tags_archive_title( $term );
-}, 20 );
-
-add_filter( 'pre_get_document_title', function( $title ) {
-  if ( ! is_post_type_archive( 'property' ) ) {
-    return $title;
-  }
-
-  if ( is_tax() || is_search() ) {
-    return $title;
-  }
-
-  $paged = max( 1, (int) get_query_var( 'paged' ) );
-  if ( get_query_var( 'page' ) ) {
-    $paged = max( $paged, (int) get_query_var( 'page' ) );
-  }
+  // Main /property/ TITLE precedence:
+  // 1) safe existing manual source (deferred in Phase 2 if unavailable),
+  // 2) generated page-1 title, 3) existing/default title for pagination.
+  $paged = function_exists( 'pera_property_archive_get_paged' )
+    ? pera_property_archive_get_paged()
+    : max( 1, (int) get_query_var( 'paged' ) );
 
   if ( $paged > 1 ) {
     return $title;
   }
 
-  return 'Property for Sale in Istanbul';
+  return 'Property for sale in Istanbul | Pera Property';
 }, 20 );
 
 add_action( 'wp_head', function () {
 
   // Run only on property archive ownership contexts (archive + taxonomies).
-  // Uses shared helper so "bedrooms" and "special" never fall through.
   $is_property_context = function_exists( 'pera_is_property_archive_context' )
     ? pera_is_property_archive_context()
     : is_post_type_archive( 'property' );
@@ -83,14 +63,8 @@ add_action( 'wp_head', function () {
     return;
   }
 
-  // -------------------------------
-  // Detect “filtered” state (robust for arrays + scalars)
-  // -------------------------------
   $is_filtered = pera_property_archive_is_filtered_request();
 
-  // -------------------------------
-  // Canonical base (taxonomy-aware)
-  // -------------------------------
   $canonical = function_exists( 'pera_property_archive_canonical_url' )
     ? pera_property_archive_canonical_url()
     : '';
@@ -99,10 +73,6 @@ add_action( 'wp_head', function () {
     $paged = function_exists( 'pera_property_archive_get_paged' )
       ? pera_property_archive_get_paged()
       : max( 1, (int) get_query_var( 'paged' ) );
-
-    if ( get_query_var( 'page' ) ) {
-      $paged = max( $paged, (int) get_query_var( 'page' ) );
-    }
 
     if ( is_tax() ) {
       $qo = get_queried_object();
@@ -119,16 +89,9 @@ add_action( 'wp_head', function () {
     }
 
     $base = trailingslashit( $base );
-
-    $canonical = ( $paged > 1 )
-      ? $base . 'page/' . $paged . '/'
-      : $base;
+    $canonical = ( $paged > 1 ) ? $base . 'page/' . $paged . '/' : $base;
   }
 
-  // -------------------------------
-  // Optional meta description (taxonomy only, unfiltered only)
-  // Avoid duplicates if Yoast/RankMath are active.
-  // -------------------------------
   $has_seo_plugin =
     defined( 'WPSEO_VERSION' ) ||
     defined( 'RANK_MATH_VERSION' ) ||
@@ -137,25 +100,28 @@ add_action( 'wp_head', function () {
 
   $meta_desc = '';
 
-  if ( is_tax() && ! $is_filtered && ! $has_seo_plugin ) {
-    $qo = get_queried_object();
+  if ( ! $is_filtered && ! $has_seo_plugin ) {
+    if ( is_tax( pera_get_property_archive_taxonomies() ) ) {
+      $term = get_queried_object();
 
-    if ( $qo instanceof WP_Term && ! is_wp_error( $qo ) ) {
+      if ( $term instanceof WP_Term && ! is_wp_error( $term ) ) {
+        // Taxonomy META DESCRIPTION precedence:
+        // 1) ACF seo_meta_description, 2) raw term meta seo_meta_description,
+        // 3) term excerpt fallback chain, 4) empty.
+        $meta_desc = pera_get_property_archive_term_manual_meta_description( $term );
 
-      // Prefer term excerpt stored in term meta, then fallback to term_description()
-      $meta_desc = get_term_meta( $qo->term_id, 'term_excerpt', true );
-      if ( ! $meta_desc ) $meta_desc = get_term_meta( $qo->term_id, 'excerpt', true );
-      if ( ! $meta_desc ) $meta_desc = get_term_meta( $qo->term_id, 'pera_term_excerpt', true );
-      if ( ! $meta_desc ) $meta_desc = term_description( $qo->term_id, $qo->taxonomy );
-
-      $meta_desc = wp_strip_all_tags( (string) $meta_desc );
-      $meta_desc = trim( preg_replace( '/\s+/', ' ', $meta_desc ) );
+        if ( $meta_desc === '' ) {
+          $meta_desc = pera_get_property_archive_term_excerpt_fallback( $term );
+        }
+      }
+    } elseif ( is_post_type_archive( 'property' ) ) {
+      // Main /property/ META DESCRIPTION precedence:
+      // 1) safe existing manual source (deferred if unavailable),
+      // 2) generated archive description, 3) empty.
+      $meta_desc = pera_get_property_archive_generated_description();
     }
   }
 
-  // -------------------------------
-  // Output
-  // -------------------------------
   echo "\n<!-- Pera SEO: Property archive -->\n";
 
   if ( $meta_desc !== '' ) {
