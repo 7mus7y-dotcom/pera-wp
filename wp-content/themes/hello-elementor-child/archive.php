@@ -111,6 +111,28 @@ get_header();
             $archive_subtitle = '';
         }
     }
+
+    $blog_quick_links = array();
+    if ( is_home() && ! is_front_page() ) {
+        $blog_quick_link_slugs = array( 'market-reports', 'area-guides', 'investment', 'new-developments' );
+
+        foreach ( $blog_quick_link_slugs as $blog_quick_link_slug ) {
+            $blog_quick_link_term = get_category_by_slug( $blog_quick_link_slug );
+            if ( ! ( $blog_quick_link_term instanceof WP_Term ) ) {
+                continue;
+            }
+
+            $blog_quick_link_url = get_term_link( $blog_quick_link_term );
+            if ( is_wp_error( $blog_quick_link_url ) ) {
+                continue;
+            }
+
+            $blog_quick_links[] = array(
+                'url'  => $blog_quick_link_url,
+                'name' => $blog_quick_link_term->name,
+            );
+        }
+    }
     ?>
 
     <section class="hero hero--left hero--archive" id="archive-hero">
@@ -136,6 +158,19 @@ get_header();
 
         <?php if ( $archive_subtitle !== '' ) : ?>
           <p class="lead"><?php echo esc_html( $archive_subtitle ); ?></p>
+        <?php endif; ?>
+
+
+        <?php if ( is_home() && ! is_front_page() ) : ?>
+          <p class="hero-support"><?php esc_html_e( 'Stay up to date with the latest developments in the Istanbul real estate market. Our blog covers everything from district guides and new developments to investment strategies and legal considerations for buying property in Istanbul.', 'peraproperty' ); ?></p>
+
+          <?php if ( ! empty( $blog_quick_links ) ) : ?>
+            <div class="archive-quick-links" aria-label="<?php esc_attr_e( 'Blog quick links', 'peraproperty' ); ?>">
+              <?php foreach ( $blog_quick_links as $blog_quick_link ) : ?>
+                <a class="archive-quick-links__link" href="<?php echo esc_url( $blog_quick_link['url'] ); ?>"><?php echo esc_html( $blog_quick_link['name'] ); ?></a>
+              <?php endforeach; ?>
+            </div>
+          <?php endif; ?>
         <?php endif; ?>
       </div>
     </section>
