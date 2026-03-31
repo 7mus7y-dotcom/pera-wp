@@ -24,6 +24,18 @@ add_action( 'wp_enqueue_scripts', function () {
 
 }, 20 );
 
+/**
+ * Remove wp-embed.js (not needed)
+ */
+add_action( 'wp_enqueue_scripts', function () {
+
+    if ( is_admin() ) {
+        return;
+    }
+
+    wp_deregister_script( 'wp-embed' );
+
+}, 100 );
 
 /**
  * Frontend head cleanup (Gutenberg, RSS, oEmbed, emoji, etc.)
@@ -66,18 +78,7 @@ add_action( 'init', function () {
 
 }, 20 );
 
-/**
- * Remove wp-embed.js (not needed)
- */
-add_action( 'wp_footer', function () {
 
-    if ( is_admin() ) {
-        return;
-    }
-
-    wp_deregister_script( 'wp-embed' );
-
-}, 20 );
 
     /* =======================================================
     DEFER SCRIPTS
