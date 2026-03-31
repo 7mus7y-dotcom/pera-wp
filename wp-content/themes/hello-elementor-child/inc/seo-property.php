@@ -11,21 +11,25 @@ if ( ! function_exists('pera_property_get_social_image') ) {
 
     $url = '';
     $alt = '';
+    $width = 0;
+    $height = 0;
+    $attachment_id = 0;
 
     if ( function_exists('get_field') ) {
       $main_image = get_field('main_image', $post_id);
 
       if ( is_array($main_image) ) {
+        if ( ! empty($main_image['ID']) ) $attachment_id = (int) $main_image['ID'];
         if ( ! empty($main_image['url']) ) $url = (string) $main_image['url'];
         if ( ! empty($main_image['alt']) ) $alt = (string) $main_image['alt'];
 
-        if ( empty($url) && ! empty($main_image['ID']) ) {
-          $resolved = wp_get_attachment_image_url((int) $main_image['ID'], 'full');
+        if ( empty($url) && $attachment_id > 0 ) {
+          $resolved = wp_get_attachment_image_url($attachment_id, 'full');
           if ( $resolved ) $url = (string) $resolved;
         }
 
-        if ( empty($alt) && ! empty($main_image['ID']) ) {
-          $resolved_alt = get_post_meta((int) $main_image['ID'], '_wp_attachment_image_alt', true);
+        if ( empty($alt) && $attachment_id > 0 ) {
+          $resolved_alt = get_post_meta($attachment_id, '_wp_attachment_image_alt', true);
           if ( is_string($resolved_alt) && $resolved_alt !== '' ) $alt = $resolved_alt;
         }
       }
@@ -34,15 +38,26 @@ if ( ! function_exists('pera_property_get_social_image') ) {
     if ( empty($url) ) {
       $thumb_id = get_post_thumbnail_id($post_id);
       if ( $thumb_id ) {
+        $attachment_id = (int) $thumb_id;
         $url = (string) wp_get_attachment_image_url((int) $thumb_id, 'full');
         $thumb_alt = get_post_meta((int) $thumb_id, '_wp_attachment_image_alt', true);
         if ( is_string($thumb_alt) && $thumb_alt !== '' ) $alt = $thumb_alt;
       }
     }
 
+    if ( $attachment_id > 0 ) {
+      $meta = wp_get_attachment_metadata( $attachment_id );
+      if ( is_array( $meta ) ) {
+        $width = isset( $meta['width'] ) ? (int) $meta['width'] : 0;
+        $height = isset( $meta['height'] ) ? (int) $meta['height'] : 0;
+      }
+    }
+
     return array(
       'url' => $url ? esc_url($url) : '',
       'alt' => $alt ? trim($alt) : '',
+      'width' => $width,
+      'height' => $height,
     );
   }
 }
@@ -1097,6 +1112,8 @@ add_action('wp_head', function () {
   $img     = pera_property_get_social_image($post_id);
   $img_url = $img['url'];
   $img_alt = $img['alt'] ?: pera_property_get_public_title( $post_id );
+  $img_width = isset( $img['width'] ) ? (int) $img['width'] : 0;
+  $img_height = isset( $img['height'] ) ? (int) $img['height'] : 0;
 
   echo "\n<!-- Pera: Single Property SEO / Social -->\n";
 
@@ -1105,7 +1122,7 @@ add_action('wp_head', function () {
   }
 
   echo '<meta property="og:site_name" content="' . esc_attr( get_bloginfo('name') ) . '">' . "\n";
-  echo '<meta property="og:type" content="website">' . "\n";
+  echo '<meta property="og:type" content="product">' . "\n";
   echo '<meta property="og:title" content="' . esc_attr($title) . '">' . "\n";
   echo '<meta property="og:url" content="' . esc_url($url) . '">' . "\n";
 
@@ -1113,8 +1130,15 @@ add_action('wp_head', function () {
     echo '<meta property="og:description" content="' . esc_attr($desc) . '">' . "\n";
   }
   if ( $img_url ) {
+    if ( $img_width < 1 || $img_height < 1 ) {
+      $img_width = 1200;
+      $img_height = 630;
+    }
+
     echo '<meta property="og:image" content="' . esc_url($img_url) . '">' . "\n";
     echo '<meta property="og:image:alt" content="' . esc_attr($img_alt) . '">' . "\n";
+    echo '<meta property="og:image:width" content="' . esc_attr( (string) $img_width ) . '">' . "\n";
+    echo '<meta property="og:image:height" content="' . esc_attr( (string) $img_height ) . '">' . "\n";
   }
 
   echo '<meta name="twitter:card" content="summary_large_image">' . "\n";
