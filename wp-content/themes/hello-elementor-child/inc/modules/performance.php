@@ -55,6 +55,30 @@ add_action( 'init', function () {
     remove_action( 'wp_head', 'wp_global_styles_render_svg_filters' );
 }, 20 );
 
+/**
+ * Remove RSS feeds, RSD, WLW and oEmbed links from <head>
+ * (frontend cleanup for performance + SEO hygiene)
+ */
+add_action( 'init', function () {
+
+    if ( is_admin() ) {
+        return;
+    }
+
+    // RSS feeds
+    remove_action( 'wp_head', 'feed_links', 2 );
+    remove_action( 'wp_head', 'feed_links_extra', 3 );
+
+    // RSD + WLW
+    remove_action( 'wp_head', 'rsd_link' );
+    remove_action( 'wp_head', 'wlwmanifest_link' );
+
+    // oEmbed
+    remove_action( 'wp_head', 'wp_oembed_add_discovery_links' );
+    remove_action( 'wp_head', 'wp_oembed_add_host_js' );
+
+}, 20 );
+
     /* =======================================================
     DEFER SCRIPTS
     ======================================================= */
