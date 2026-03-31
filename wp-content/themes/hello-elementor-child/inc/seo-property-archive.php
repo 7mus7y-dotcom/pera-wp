@@ -95,6 +95,155 @@ if ( ! function_exists( 'pera_property_archive_schema_breadcrumb_items' ) ) {
   }
 }
 
+if ( ! function_exists( 'pera_property_archive_resolve_image_from_acf_value' ) ) {
+  /**
+   * Normalize common ACF image return formats (array/id/url).
+   *
+   * @return array{url:string,alt:string}
+   */
+  function pera_property_archive_resolve_image_from_acf_value( $value ): array {
+    $url = '';
+    $alt = '';
+
+    if ( is_array( $value ) ) {
+      if ( isset( $value['url'] ) && is_string( $value['url'] ) ) {
+        $url = $value['url'];
+      }
+
+      if ( isset( $value['alt'] ) && is_string( $value['alt'] ) ) {
+        $alt = $value['alt'];
+      }
+
+      if ( $url === '' && ! empty( $value['ID'] ) ) {
+        $candidate = wp_get_attachment_image_url( (int) $value['ID'], 'full' );
+        if ( $candidate ) {
+          $url = (string) $candidate;
+        }
+      }
+
+      if ( $alt === '' && ! empty( $value['ID'] ) ) {
+        $candidate_alt = get_post_meta( (int) $value['ID'], '_wp_attachment_image_alt', true );
+        if ( is_string( $candidate_alt ) ) {
+          $alt = $candidate_alt;
+        }
+      }
+    } elseif ( is_numeric( $value ) ) {
+      $attachment_id = (int) $value;
+      if ( $attachment_id > 0 ) {
+        $candidate = wp_get_attachment_image_url( $attachment_id, 'full' );
+        if ( $candidate ) {
+          $url = (string) $candidate;
+        }
+
+        $candidate_alt = get_post_meta( $attachment_id, '_wp_attachment_image_alt', true );
+        if ( is_string( $candidate_alt ) ) {
+          $alt = $candidate_alt;
+        }
+      }
+    } elseif ( is_string( $value ) ) {
+      $url = trim( $value );
+    }
+
+    return array(
+      'url' => $url !== '' ? esc_url( $url ) : '',
+      'alt' => $alt !== '' ? pera_seo_normalize_meta_text( $alt ) : '',
+    );
+  }
+}
+
+if ( ! function_exists( 'pera_property_archive_taxonomy_manual_social_image' ) ) {
+  /**
+   * Optional manual term social image from existing ACF term fields.
+   *
+   * We only read existing field names; no new storage is introduced here.
+   *
+   * @return array{url:string,alt:string}
+   */
+  function pera_property_archive_taxonomy_manual_social_image( WP_Term $term ): array {
+    if ( ! function_exists( 'get_field' ) ) {
+      return array( 'url' => '', 'alt' => '' );
+    }
+
+    $field_names = array(
+      'seo_social_image',
+      'social_image',
+      'seo_og_image',
+      'og_image',
+      'twitter_image',
+    );
+
+    $term_refs = array(
+      $term,
+      $term->taxonomy . '_' . (int) $term->term_id,
+      'term_' . (int) $term->term_id,
+      (int) $term->term_id,
+    );
+
+    foreach ( $field_names as $field_name ) {
+      foreach ( $term_refs as $ref ) {
+        $image = pera_property_archive_resolve_image_from_acf_value( get_field( $field_name, $ref ) );
+        if ( $image['url'] !== '' ) {
+          return $image;
+        }
+      }
+    }
+
+    return array( 'url' => '', 'alt' => '' );
+  }
+}
+
+if ( ! function_exists( 'pera_property_archive_social_image' ) ) {
+  /**
+   * Resolve social image for property archive/taxonomy contexts.
+   *
+   * Taxonomy precedence:
+   * 1) Existing manual term social image field (if present),
+   * 2) Existing term featured image helper,
+   * 3) Site default social image.
+   *
+   * /property/ archive precedence:
+   * 1) Site default social image (manual archive override deferred).
+   *
+   * @return array{url:string,alt:string}
+   */
+  function pera_property_archive_social_image(): array {
+    if ( is_tax( pera_get_property_archive_taxonomies() ) ) {
+      $term = get_queried_object();
+      if ( $term instanceof WP_Term && ! is_wp_error( $term ) ) {
+        $manual = pera_property_archive_taxonomy_manual_social_image( $term );
+        if ( $manual['url'] !== '' ) {
+          return $manual;
+        }
+
+        if ( function_exists( 'pera_get_term_featured_image_url' ) ) {
+          $url = (string) pera_get_term_featured_image_url( (int) $term->term_id, (string) $term->taxonomy, 'full' );
+          if ( $url !== '' ) {
+            return array(
+              'url' => esc_url( $url ),
+              'alt' => pera_seo_normalize_meta_text( (string) $term->name ),
+            );
+          }
+        }
+      }
+    }
+
+    if ( function_exists( 'pera_seo_default_image' ) ) {
+      $fallback = pera_seo_default_image();
+      $url = isset( $fallback['url'] ) ? (string) $fallback['url'] : '';
+      $alt = isset( $fallback['alt'] ) ? (string) $fallback['alt'] : '';
+
+      if ( $url !== '' ) {
+        return array(
+          'url' => esc_url( $url ),
+          'alt' => $alt !== '' ? pera_seo_normalize_meta_text( $alt ) : '',
+        );
+      }
+    }
+
+    return array( 'url' => '', 'alt' => '' );
+  }
+}
+
 add_filter( 'pre_get_document_title', function( $title ) {
   // Taxonomy TITLE precedence:
   // 1) ACF seo_title, 2) raw term meta seo_title,
@@ -191,6 +340,37 @@ add_action( 'wp_head', function () {
   }
 
   echo '<link rel="canonical" href="' . esc_url( $canonical ) . '">' . "\n";
+
+  // Social ownership for property archive/taxonomy contexts.
+  // Skip filtered URLs (aligned with noindex strategy) and SEO plugin stacks.
+  if ( ! $is_filtered && ! $has_seo_plugin && $canonical !== '' ) {
+    $social_title = pera_property_archive_schema_title();
+    $social_image = pera_property_archive_social_image();
+    $social_desc  = $meta_desc;
+
+    echo '<meta property="og:type" content="website">' . "\n";
+    echo '<meta property="og:title" content="' . esc_attr( $social_title ) . '">' . "\n";
+    echo '<meta property="og:url" content="' . esc_url( $canonical ) . '">' . "\n";
+
+    if ( $social_desc !== '' ) {
+      echo '<meta property="og:description" content="' . esc_attr( $social_desc ) . '">' . "\n";
+    }
+
+    if ( $social_image['url'] !== '' ) {
+      echo '<meta property="og:image" content="' . esc_url( $social_image['url'] ) . '">' . "\n";
+    }
+
+    echo '<meta name="twitter:card" content="' . ( $social_image['url'] !== '' ? 'summary_large_image' : 'summary' ) . '">' . "\n";
+    echo '<meta name="twitter:title" content="' . esc_attr( $social_title ) . '">' . "\n";
+
+    if ( $social_desc !== '' ) {
+      echo '<meta name="twitter:description" content="' . esc_attr( $social_desc ) . '">' . "\n";
+    }
+
+    if ( $social_image['url'] !== '' ) {
+      echo '<meta name="twitter:image" content="' . esc_url( $social_image['url'] ) . '">' . "\n";
+    }
+  }
 
   // Archive/taxonomy schema is intentionally owned by this module so page-type
   // schema logic stays close to canonical/robots ownership for the same context.
