@@ -41,6 +41,20 @@ add_action( 'wp_enqueue_scripts', function () {
 
 }, 100 );
 
+/**
+ * Remove Gutenberg global styles and SVG filters on frontend.
+ * Safe for Elementor-driven theme output.
+ */
+add_action( 'init', function () {
+    if ( is_admin() ) {
+        return;
+    }
+
+    remove_action( 'wp_enqueue_scripts', 'wp_enqueue_global_styles' );
+    remove_action( 'wp_footer', 'wp_enqueue_global_styles', 1 );
+    remove_action( 'wp_head', 'wp_global_styles_render_svg_filters' );
+}, 20 );
+
     /* =======================================================
     DEFER SCRIPTS
     ======================================================= */
