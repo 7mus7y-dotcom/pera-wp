@@ -30,6 +30,8 @@ add_action( 'init', function () {
      * Replace WP core canonical with custom canonical
      * --------------------------------------- */
     remove_action( 'wp_head', 'rel_canonical' );
+    remove_action( 'wp_head', 'wp_site_icon', 99 );
+    add_filter( 'get_site_icon_url', '__return_false' );
 
     /* ---------------------------------------
      * Gutenberg / global styles cleanup
@@ -45,6 +47,9 @@ add_action( 'init', function () {
     remove_action( 'wp_head', 'feed_links_extra', 3 );
     remove_action( 'wp_head', 'rsd_link' );
     remove_action( 'wp_head', 'wlwmanifest_link' );
+    remove_action( 'wp_head', 'rest_output_link_wp_head' );
+    remove_action( 'wp_head', 'wp_shortlink_wp_head' );
+    remove_action( 'wp_head', 'wp_generator' );
 
     /* ---------------------------------------
      * oEmbed cleanup
@@ -61,6 +66,32 @@ add_action( 'init', function () {
     remove_action( 'admin_print_styles', 'print_emoji_styles' );
 
 }, 20 );
+
+add_filter( 'wp_robots', function ( array $robots ): array {
+
+    if ( is_admin() ) {
+        return $robots;
+    }
+
+    if ( ! empty( $robots['noindex'] ) || ! empty( $robots['nofollow'] ) ) {
+        return $robots;
+    }
+
+    if ( ! isset( $robots['index'] ) && ! isset( $robots['noindex'] ) ) {
+        $robots['index'] = true;
+    }
+
+    if ( ! isset( $robots['follow'] ) && ! isset( $robots['nofollow'] ) ) {
+        $robots['follow'] = true;
+    }
+
+    if ( empty( $robots['max-image-preview'] ) ) {
+        $robots['max-image-preview'] = 'large';
+    }
+
+    return $robots;
+
+}, 99 );
 
 /* =======================================================
    GUTENBERG / BLOCK CSS CLEANUP
