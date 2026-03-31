@@ -165,11 +165,11 @@ get_header();
           <p class="hero-support"><?php esc_html_e( 'Stay up to date with the latest developments in the Istanbul real estate market. Our blog covers everything from district guides and new developments to investment strategies and legal considerations for buying property in Istanbul.', 'peraproperty' ); ?></p>
 
           <?php if ( ! empty( $blog_quick_links ) ) : ?>
-            <div class="archive-quick-links" aria-label="<?php esc_attr_e( 'Blog quick links', 'peraproperty' ); ?>">
+            <nav class="archive-quick-links" aria-label="<?php esc_attr_e( 'Blog quick links', 'peraproperty' ); ?>">
               <?php foreach ( $blog_quick_links as $blog_quick_link ) : ?>
                 <a class="archive-quick-links__link" href="<?php echo esc_url( $blog_quick_link['url'] ); ?>"><?php echo esc_html( $blog_quick_link['name'] ); ?></a>
               <?php endforeach; ?>
-            </div>
+            </nav>
           <?php endif; ?>
         <?php endif; ?>
       </div>
