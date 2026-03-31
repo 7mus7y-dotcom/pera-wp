@@ -114,7 +114,7 @@ get_header();
 
     $blog_quick_links = array();
     if ( is_home() && ! is_front_page() ) {
-        $blog_quick_link_slugs = array( 'market-reports', 'area-guides', 'investment', 'new-developments' );
+        $blog_quick_link_slugs = array( 'buyer-guides', 'regional-guides', 'investment-advice', 'buyer-guides' );
 
         foreach ( $blog_quick_link_slugs as $blog_quick_link_slug ) {
             $blog_quick_link_term = get_category_by_slug( $blog_quick_link_slug );
