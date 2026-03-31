@@ -694,8 +694,33 @@ if ( ! function_exists( 'pera_property_replace_istanbul_sale_phrase' ) ) {
   }
 }
 
+if ( ! function_exists( 'pera_property_get_manual_seo_title' ) ) {
+  function pera_property_get_manual_seo_title( int $post_id ): string {
+    if ( $post_id < 1 ) {
+      return '';
+    }
+
+    $manual = '';
+
+    if ( function_exists( 'get_field' ) ) {
+      $manual = (string) get_field( 'seo_title', $post_id );
+    }
+
+    if ( $manual === '' ) {
+      $manual = (string) get_post_meta( $post_id, 'seo_title', true );
+    }
+
+    return pera_property_normalize_whitespace( $manual );
+  }
+}
+
 if ( ! function_exists( 'pera_property_build_seo_title' ) ) {
   function pera_property_build_seo_title( int $post_id ): string {
+    $manual_title = pera_property_get_manual_seo_title( $post_id );
+    if ( $manual_title !== '' ) {
+      return $manual_title;
+    }
+
     $public_title = pera_property_get_public_title( $post_id );
     if ( $public_title === '' ) {
       $public_title = 'Property';
@@ -757,8 +782,33 @@ if ( ! function_exists( 'pera_property_build_seo_title' ) ) {
   }
 }
 
+if ( ! function_exists( 'pera_property_get_manual_meta_description' ) ) {
+  function pera_property_get_manual_meta_description( int $post_id ): string {
+    if ( $post_id < 1 ) {
+      return '';
+    }
+
+    $manual = '';
+
+    if ( function_exists( 'get_field' ) ) {
+      $manual = (string) get_field( 'seo_meta_description', $post_id );
+    }
+
+    if ( $manual === '' ) {
+      $manual = (string) get_post_meta( $post_id, 'seo_meta_description', true );
+    }
+
+    return pera_property_normalize_whitespace( $manual );
+  }
+}
+
 if ( ! function_exists('pera_property_get_meta_description') ) {
   function pera_property_get_meta_description( int $post_id ): string {
+    $manual_description = pera_property_get_manual_meta_description( $post_id );
+    if ( $manual_description !== '' ) {
+      return pera_property_limit_text( $manual_description, 160 );
+    }
+
     $excerpt = pera_property_get_meta_excerpt( $post_id );
     if ( $excerpt !== '' ) {
       $word_count = str_word_count( wp_strip_all_tags( $excerpt ) );
