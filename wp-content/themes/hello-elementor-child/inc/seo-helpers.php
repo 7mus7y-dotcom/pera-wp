@@ -4,6 +4,44 @@
  */
 if ( ! defined( 'ABSPATH' ) ) exit;
 
+if ( ! function_exists( 'pera_get_property_archive_taxonomies' ) ) {
+  /**
+   * Canonical property archive taxonomy list shared by loader + SEO modules.
+   *
+   * Centralising this list keeps ownership/routing coherent across:
+   * - module loading
+   * - context detection
+   * - canonical + robots handling
+   */
+  function pera_get_property_archive_taxonomies( bool $existing_only = true ): array {
+    $taxonomies = array(
+      'district',
+      'region',
+      'property_type',
+      'property_tags',
+      'bedrooms',
+      'special',
+    );
+
+    if ( ! $existing_only ) {
+      return $taxonomies;
+    }
+
+    return array_values( array_filter( $taxonomies, 'taxonomy_exists' ) );
+  }
+}
+
+if ( ! function_exists( 'pera_is_property_archive_context' ) ) {
+  /**
+   * True when current request is owned by the property archive SEO module.
+   */
+  function pera_is_property_archive_context(): bool {
+    $taxonomies = pera_get_property_archive_taxonomies();
+    return is_post_type_archive( 'property' )
+      || ( ! empty( $taxonomies ) && is_tax( $taxonomies ) );
+  }
+}
+
 if ( ! function_exists( 'pera_get_district_archive_location_name' ) ) {
   function pera_get_district_archive_location_name( WP_Term $term ): string {
     $name = trim( (string) $term->name );
@@ -100,10 +138,7 @@ if ( ! function_exists( 'pera_property_archive_is_filtered_request' ) ) {
   function pera_property_archive_is_filtered_request( ?array $query = null ): bool {
     $query = $query ?? $_GET;
 
-    $is_property_context = is_post_type_archive( 'property' )
-      || is_tax( array( 'region', 'district', 'property_type', 'bedrooms', 'property_tags' ) );
-
-    if ( ! $is_property_context ) {
+    if ( ! pera_is_property_archive_context() ) {
       return false;
     }
 
@@ -169,13 +204,7 @@ if ( ! function_exists( 'pera_property_archive_get_paged' ) ) {
 
 if ( ! function_exists( 'pera_property_archive_canonical_url' ) ) {
   function pera_property_archive_canonical_url(): string {
-    $taxes = array( 'region', 'district', 'property_type', 'bedrooms', 'property_tags' );
-    $taxes = array_values( array_filter( $taxes, 'taxonomy_exists' ) );
-
-    $is_property_context = is_post_type_archive( 'property' )
-      || ( ! empty( $taxes ) && is_tax( $taxes ) );
-
-    if ( ! $is_property_context ) {
+    if ( ! pera_is_property_archive_context() ) {
       return '';
     }
 
