@@ -26,56 +26,56 @@ add_action( 'wp_enqueue_scripts', function () {
 
 
 /**
- * Remove Gutenberg block styles on frontend
- * Safe for lean / non-block themes
- */
-add_action( 'wp_enqueue_scripts', function () {
-
-    if ( is_admin() ) {
-        return;
-    }
-
-    wp_dequeue_style( 'wp-block-library' );
-    wp_dequeue_style( 'wp-block-library-theme' );
-    wp_dequeue_style( 'wc-block-style' ); // WooCommerce blocks (safe even if WC inactive)
-
-}, 100 );
-
-/**
- * Remove Gutenberg global styles and SVG filters on frontend.
- * Safe for Elementor-driven theme output.
+ * Frontend head cleanup (Gutenberg, RSS, oEmbed, emoji, etc.)
  */
 add_action( 'init', function () {
+
     if ( is_admin() ) {
         return;
     }
 
+    /* ---------------------------------------
+     * Gutenberg cleanup
+     * --------------------------------------- */
     remove_action( 'wp_enqueue_scripts', 'wp_enqueue_global_styles' );
     remove_action( 'wp_footer', 'wp_enqueue_global_styles', 1 );
     remove_action( 'wp_head', 'wp_global_styles_render_svg_filters' );
+
+    /* ---------------------------------------
+     * RSS / RSD / WLW cleanup
+     * --------------------------------------- */
+    remove_action( 'wp_head', 'feed_links', 2 );
+    remove_action( 'wp_head', 'feed_links_extra', 3 );
+    remove_action( 'wp_head', 'rsd_link' );
+    remove_action( 'wp_head', 'wlwmanifest_link' );
+
+    /* ---------------------------------------
+     * oEmbed cleanup
+     * --------------------------------------- */
+    remove_action( 'wp_head', 'wp_oembed_add_discovery_links' );
+    remove_action( 'wp_head', 'wp_oembed_add_host_js' );
+
+    /* ---------------------------------------
+     * Emoji cleanup
+     * --------------------------------------- */
+    remove_action( 'wp_head', 'print_emoji_detection_script', 7 );
+    remove_action( 'wp_print_styles', 'print_emoji_styles' );
+    remove_action( 'wp_head', 'print_emoji_styles' );
+    remove_action( 'admin_print_scripts', 'print_emoji_detection_script' );
+    remove_action( 'admin_print_styles', 'print_emoji_styles' );
+
 }, 20 );
 
 /**
- * Remove RSS feeds, RSD, WLW and oEmbed links from <head>
- * (frontend cleanup for performance + SEO hygiene)
+ * Remove wp-embed.js (not needed)
  */
-add_action( 'init', function () {
+add_action( 'wp_footer', function () {
 
     if ( is_admin() ) {
         return;
     }
 
-    // RSS feeds
-    remove_action( 'wp_head', 'feed_links', 2 );
-    remove_action( 'wp_head', 'feed_links_extra', 3 );
-
-    // RSD + WLW
-    remove_action( 'wp_head', 'rsd_link' );
-    remove_action( 'wp_head', 'wlwmanifest_link' );
-
-    // oEmbed
-    remove_action( 'wp_head', 'wp_oembed_add_discovery_links' );
-    remove_action( 'wp_head', 'wp_oembed_add_host_js' );
+    wp_deregister_script( 'wp-embed' );
 
 }, 20 );
 
