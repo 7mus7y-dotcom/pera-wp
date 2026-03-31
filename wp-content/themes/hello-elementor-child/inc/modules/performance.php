@@ -123,25 +123,6 @@ add_action( 'wp_enqueue_scripts', function () {
 }, 100 );
 
 /* =======================================================
-   GLOBAL CANONICAL (REPLACES WP CORE)
-   ======================================================= */
-add_action( 'wp_head', function () {
-
-    if ( is_admin() ) return;
-
-    $canonical = wp_get_canonical_url();
-
-    if ( ! $canonical && is_singular() ) {
-        $canonical = get_permalink();
-    }
-
-    if ( ! $canonical ) return;
-
-    echo '<link rel="canonical" href="' . esc_url( $canonical ) . '">' . "\n";
-
-}, 5 );
-
-/* =======================================================
    DEFER NON-CRITICAL CSS (HOMEPAGE ONLY)
    ======================================================= */
 add_filter( 'style_loader_tag', function ( $html, $handle ) {

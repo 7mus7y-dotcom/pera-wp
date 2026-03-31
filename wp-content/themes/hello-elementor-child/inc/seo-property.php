@@ -1121,6 +1121,10 @@ add_action('wp_head', function () {
     echo '<meta name="description" content="' . esc_attr($desc) . '">' . "\n";
   }
 
+  if ( $url !== '' ) {
+    echo '<link rel="canonical" href="' . esc_url( $url ) . '">' . "\n";
+  }
+
   echo '<meta property="og:site_name" content="' . esc_attr( get_bloginfo('name') ) . '">' . "\n";
   echo '<meta property="og:type" content="product">' . "\n";
   echo '<meta property="og:title" content="' . esc_attr($title) . '">' . "\n";
