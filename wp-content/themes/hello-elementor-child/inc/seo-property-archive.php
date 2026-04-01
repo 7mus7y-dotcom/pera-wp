@@ -323,8 +323,7 @@ add_action( 'wp_head', function () {
       ? pera_property_archive_get_paged()
       : max( 1, (int) get_query_var( 'paged' ) );
 
-    if ( is_tax() ) {
-      $qo = get_queried_object();
+  if ( is_tax() && ! $has_query_string ) {      $qo = get_queried_object();
       $base = ( $qo instanceof WP_Term && ! is_wp_error( $qo ) ) ? get_term_link( $qo ) : '';
       if ( is_wp_error( $base ) ) {
         $base = '';
