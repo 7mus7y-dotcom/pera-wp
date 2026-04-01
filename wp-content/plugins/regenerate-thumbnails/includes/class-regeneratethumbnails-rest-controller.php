@@ -221,13 +221,67 @@ class RegenerateThumbnails_REST_Controller extends WP_REST_Controller {
 	 * @return array|WP_Error The data array or a WP_Error object on error.
 	 */
 	public function attachment_info( $request ) {
+		$attachment_id = (int) $request->get_param( 'id' );
+		$start         = microtime( true );
+		$this->maybe_log_attachmentinfo_event( 'attachment_info:start', array( 'attachment_id' => $attachment_id ) );
+
 		$regenerator = RegenerateThumbnails_Regenerator::get_instance( $request->get_param( 'id' ) );
 
 		if ( is_wp_error( $regenerator ) ) {
+			$this->maybe_log_attachmentinfo_event( 'attachment_info:error:get_instance', array(
+				'attachment_id' => $attachment_id,
+				'error_code'    => $regenerator->get_error_code(),
+				'duration_ms'   => round( ( microtime( true ) - $start ) * 1000, 2 ),
+			) );
 			return $regenerator;
 		}
 
-		return $regenerator->get_attachment_info();
+		$response = $regenerator->get_attachment_info();
+
+		if ( is_wp_error( $response ) ) {
+			$this->maybe_log_attachmentinfo_event( 'attachment_info:error:get_attachment_info', array(
+				'attachment_id' => $attachment_id,
+				'error_code'    => $response->get_error_code(),
+				'duration_ms'   => round( ( microtime( true ) - $start ) * 1000, 2 ),
+			) );
+		} else {
+			$this->maybe_log_attachmentinfo_event( 'attachment_info:success', array(
+				'attachment_id' => $attachment_id,
+				'duration_ms'   => round( ( microtime( true ) - $start ) * 1000, 2 ),
+			) );
+		}
+
+		return $response;
+	}
+
+	/**
+	 * Conditional logger for attachmentinfo lifecycle diagnostics.
+	 *
+	 * Enable with `add_filter( 'regenerate_thumbnails_debug_attachmentinfo_logging', '__return_true' );`
+	 * or define the `REGENERATE_THUMBNAILS_DEBUG_ATTACHMENTINFO` constant as true.
+	 *
+	 * @since 3.1.6
+	 *
+	 * @param string $event   Event name.
+	 * @param array  $context Optional event context.
+	 */
+	private function maybe_log_attachmentinfo_event( $event, $context = array() ) {
+		$enabled = (
+			( defined( 'REGENERATE_THUMBNAILS_DEBUG_ATTACHMENTINFO' ) && REGENERATE_THUMBNAILS_DEBUG_ATTACHMENTINFO )
+			|| apply_filters( 'regenerate_thumbnails_debug_attachmentinfo_logging', false )
+		);
+
+		if ( ! $enabled ) {
+			return;
+		}
+
+		error_log(
+			sprintf(
+				'Regenerate Thumbnails attachmentinfo [%s] %s',
+				$event,
+				wp_json_encode( $context )
+			)
+		);
 	}
 
 	/**
