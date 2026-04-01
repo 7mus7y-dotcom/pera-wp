@@ -195,7 +195,7 @@ get_header();
         <div class="container">
             <?php if ( have_posts() ) : ?>
 
-                <div class="cards-grid">
+                <div class="cards-masonry">
                   <?php
                   while ( have_posts() ) :
                     the_post();
@@ -217,7 +217,7 @@ get_header();
 
                   set_query_var( 'pera_post_card_args', null );
                   ?>
-                </div><!-- /.cards-grid -->
+                </div><!-- /.cards-masonry -->
 
                 <?php
                 global $wp_query;
