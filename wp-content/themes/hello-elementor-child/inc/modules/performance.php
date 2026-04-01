@@ -186,7 +186,16 @@ add_action( 'send_headers', function (): void {
         return;
     }
 
-    if ( headers_sent() ) {
+    // Detect meaningful filters (not UTMs etc)
+    $has_filters = function_exists('pera_property_archive_is_filtered_request')
+        ? pera_property_archive_is_filtered_request()
+        : ! empty($_GET);
+
+    if ( $has_filters ) {
+        nocache_headers();
+        header( 'Cache-Control: private, no-store, no-cache, must-revalidate, max-age=0' );
+        header( 'Pragma: no-cache' );
+        header( 'Expires: 0' );
         return;
     }
 
@@ -216,6 +225,7 @@ add_action( 'send_headers', function (): void {
         header( 'Cache-Control: public, max-age=300, must-revalidate', true );
         header( 'Expires: ' . gmdate( 'D, d M Y H:i:s', time() + 300 ) . ' GMT', true );
         header( 'Vary: Cookie', false );
+        header( 'Vary: Accept-Encoding', false );
     }
 
 }, 20 );
