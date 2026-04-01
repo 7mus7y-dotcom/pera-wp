@@ -374,8 +374,6 @@ add_action( 'wp_head', function () {
 
   // Archive/taxonomy schema is intentionally owned by this module so page-type
   // schema logic stays close to canonical/robots ownership for the same context.
-  // We intentionally defer ItemList for this phase to avoid fragile coupling to
-  // loop internals on paginated and filtered archive requests.
   if ( ! $is_filtered && $canonical !== '' ) {
     $title = pera_property_archive_schema_title();
     $graph = array(
@@ -401,6 +399,10 @@ add_action( 'wp_head', function () {
       '@id'             => $canonical . '#breadcrumb',
       'itemListElement' => pera_property_archive_schema_breadcrumb_items( $canonical, $title ),
     );
+
+    // ItemList intentionally deferred: archive-property.php builds a dedicated
+    // $property_query after get_header(), so wp_head cannot safely prove the
+    // rendered card set is the main query on first render.
 
     echo '<script type="application/ld+json">' . wp_json_encode( $graph, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE ) . '</script>' . "\n";
   }
