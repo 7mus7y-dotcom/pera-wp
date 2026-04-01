@@ -600,6 +600,20 @@ if ( ! function_exists('pera_is_filtered_property_archive') ) {
   }
 }
 
+if ( ! function_exists( 'pera_seo_all_should_apply_query_noindex' ) ) {
+  function pera_seo_all_should_apply_query_noindex(): bool {
+    if ( is_search() ) {
+      return true;
+    }
+
+    if ( is_archive() && ! empty( $_GET ) ) {
+      return true;
+    }
+
+    return false;
+  }
+}
+
 /**
  * For property contexts, return the stable base URL you want to canonical to
  * when filters are present.
@@ -638,6 +652,11 @@ add_filter( 'wp_robots', function ( array $robots ): array {
 
   // WP search results: noindex
   if ( is_search() ) {
+    $robots['noindex'] = true;
+    $robots['follow'] = true;
+  }
+
+  if ( pera_seo_all_should_apply_query_noindex() ) {
     $robots['noindex'] = true;
     $robots['follow'] = true;
   }
@@ -689,6 +708,8 @@ add_action( 'wp_head', function () {
   // ---------- Canonical ----------
   $canonical = '';
   $property_context = function_exists( 'pera_is_property_archive_context' ) && pera_is_property_archive_context();
+  $has_query_string = ! empty( $_GET );
+  $apply_query_noindex = pera_seo_all_should_apply_query_noindex();
 
   if ( $property_context ) {
     $canonical = function_exists( 'pera_property_archive_canonical_url' )
@@ -705,6 +726,11 @@ add_action( 'wp_head', function () {
     if ( ! $canonical ) {
       $canonical = pera_seo_all_canonical_fallback();
     }
+  }
+
+  if ( $apply_query_noindex ) {
+    $request_uri = isset( $_SERVER['REQUEST_URI'] ) ? (string) $_SERVER['REQUEST_URI'] : '/';
+    $canonical = home_url( strtok( $request_uri, '?' ) );
   }
 
   // ---------- Description ----------
@@ -862,7 +888,12 @@ add_action( 'wp_head', function () {
   echo '<meta property="og:site_name" content="' . esc_attr($site_name) . '">' . "\n";
   echo '<meta property="og:type" content="' . esc_attr($og_type) . '">' . "\n";
   echo '<meta property="og:title" content="' . esc_attr($title) . '">' . "\n";
-  echo '<meta property="og:url" content="' . esc_url($canonical) . '">' . "\n";
+  $og_url = $canonical;
+  if ( $apply_query_noindex && $has_query_string ) {
+    $request_uri = isset( $_SERVER['REQUEST_URI'] ) ? (string) $_SERVER['REQUEST_URI'] : '/';
+    $og_url = home_url( add_query_arg( array(), $request_uri ) );
+  }
+  echo '<meta property="og:url" content="' . esc_url($og_url) . '">' . "\n";
 
   if ( $desc !== '' ) {
     echo '<meta property="og:description" content="' . esc_attr($desc) . '">' . "\n";
