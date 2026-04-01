@@ -11,6 +11,12 @@
 
 if ( ! defined( 'ABSPATH' ) ) exit;
 
+if ( ! function_exists( 'pera_property_archive_has_query_string' ) ) {
+  function pera_property_archive_has_query_string(): bool {
+    return ! empty( $_GET );
+  }
+}
+
 if ( ! function_exists( 'pera_property_archive_schema_title' ) ) {
   function pera_property_archive_schema_title(): string {
     if ( is_tax( pera_get_property_archive_taxonomies() ) ) {
@@ -271,6 +277,10 @@ add_filter( 'pre_get_document_title', function( $title ) {
     return $title;
   }
 
+  if ( pera_property_archive_has_query_string() ) {
+    return 'Search results | ' . $title;
+  }
+
   // Main /property/ TITLE precedence:
   // 1) safe existing manual source (deferred in Phase 2 if unavailable),
   // 2) generated page-1 title, 3) existing/default title for pagination.
@@ -296,11 +306,17 @@ add_action( 'wp_head', function () {
     return;
   }
 
-  $is_filtered = pera_property_archive_is_filtered_request();
+  $has_query_string = pera_property_archive_has_query_string();
+  $is_filtered = pera_property_archive_is_filtered_request() || $has_query_string;
 
   $canonical = function_exists( 'pera_property_archive_canonical_url' )
     ? pera_property_archive_canonical_url()
     : '';
+
+  if ( $has_query_string ) {
+    $request_uri = isset( $_SERVER['REQUEST_URI'] ) ? (string) $_SERVER['REQUEST_URI'] : '/';
+    $canonical = home_url( strtok( $request_uri, '?' ) );
+  }
 
   if ( $canonical === '' ) {
     $paged = function_exists( 'pera_property_archive_get_paged' )
@@ -342,15 +358,19 @@ add_action( 'wp_head', function () {
   echo '<link rel="canonical" href="' . esc_url( $canonical ) . '">' . "\n";
 
   // Social ownership for property archive/taxonomy contexts.
-  // Skip filtered URLs (aligned with noindex strategy) and SEO plugin stacks.
-  if ( ! $is_filtered && ! $has_seo_plugin && $canonical !== '' ) {
+  // Keep tags enabled for filtered pages but prevent canonical pollution via og:url.
+  if ( ! $has_seo_plugin && $canonical !== '' ) {
     $social_title = pera_property_archive_schema_title();
     $social_image = pera_property_archive_social_image();
     $social_desc  = $meta_desc;
 
     echo '<meta property="og:type" content="website">' . "\n";
     echo '<meta property="og:title" content="' . esc_attr( $social_title ) . '">' . "\n";
-    echo '<meta property="og:url" content="' . esc_url( $canonical ) . '">' . "\n";
+    $og_url = $has_query_string
+      ? home_url( add_query_arg( array(), isset( $_SERVER['REQUEST_URI'] ) ? (string) $_SERVER['REQUEST_URI'] : '/' ) )
+      : $canonical;
+
+    echo '<meta property="og:url" content="' . esc_url( $og_url ) . '">' . "\n";
 
     if ( $social_desc !== '' ) {
       echo '<meta property="og:description" content="' . esc_attr( $social_desc ) . '">' . "\n";
@@ -421,7 +441,7 @@ add_filter( 'wp_robots', function ( array $robots ): array {
     return $robots;
   }
 
-  $is_filtered = pera_property_archive_is_filtered_request();
+  $is_filtered = pera_property_archive_is_filtered_request() || pera_property_archive_has_query_string();
 
   if ( $is_filtered ) {
     $robots['noindex'] = true;
