@@ -581,10 +581,21 @@ if ( ! function_exists( 'pera_seo_post_breadcrumb_items' ) ) {
  */
 if ( ! function_exists('pera_seo_all_canonical_fallback') ) {
   function pera_seo_all_canonical_fallback(): string {
-    $req = isset($_SERVER['REQUEST_URI']) ? (string) $_SERVER['REQUEST_URI'] : '/';
-    $req = $req ?: '/';
-    $req = preg_replace('/#.*/', '', $req);
-    return esc_url( home_url( $req ) );
+    $request_uri = isset( $_SERVER['REQUEST_URI'] ) ? (string) $_SERVER['REQUEST_URI'] : '/';
+    $request_uri = $request_uri ?: '/';
+    $request_uri = preg_replace( '/#.*/', '', $request_uri );
+    $request_uri = (string) strtok( $request_uri, '?' );
+    return esc_url( home_url( $request_uri ) );
+  }
+}
+
+if ( ! function_exists( 'pera_seo_all_should_apply_query_noindex' ) ) {
+  function pera_seo_all_should_apply_query_noindex(): bool {
+    if ( is_search() ) {
+      return true;
+    }
+
+    return is_archive() && ! empty( $_GET );
   }
 }
 
@@ -650,8 +661,7 @@ add_filter( 'wp_robots', function ( array $robots ): array {
   // Exclude your single-property SEO module
   if ( is_singular('property') ) return $robots;
 
-  // WP search results: noindex
-  if ( is_search() ) {
+  if ( pera_seo_all_should_apply_query_noindex() ) {
     $robots['noindex'] = true;
     $robots['follow'] = true;
   }
