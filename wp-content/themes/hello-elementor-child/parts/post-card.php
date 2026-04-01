@@ -34,44 +34,54 @@ $primary_cat = ( ! empty( $cats ) && ! is_wp_error( $cats ) ) ? $cats[0] : null;
 
 $cat_name = $primary_cat ? $primary_cat->name : '';
 $cat_link = $primary_cat ? get_category_link( $primary_cat->term_id ) : '';
+
+$post_subtitle = trim( (string) get_post_meta( $post_id, 'post_subtitle', true ) );
 ?>
 
 <article <?php post_class( $card_classes, $post_id ); ?>>
 
-  <?php if ( has_post_thumbnail( $post_id ) ) : ?>
-    <a href="<?php the_permalink(); ?>" class="post-card-thumb">
-      <?php
-      echo get_the_post_thumbnail(
-        $post_id,
-        $thumb_size,
-        array(
-          'loading'  => 'lazy',
-          'decoding' => 'async',
-        )
-      );
-      ?>
-    </a>
-  <?php else : ?>
-    <div class="post-card-thumb-placeholder post-card-thumb-logo" aria-hidden="true">
-      <img
-        src="<?php echo esc_url( get_stylesheet_directory_uri() . '/logos-icons/pera-logo.svg' ); ?>"
-        alt=""
-        class="post-card-placeholder-logo"
-        loading="lazy"
-        decoding="async"
-      >
-    </div>
-  <?php endif; ?>
-
-  <div class="post-card-body">
-
-    <?php if ( $show_cat_pill && $cat_name ) : ?>
-      <div class="post-card-meta post-card-meta--top">
-        <a href="<?php echo esc_url( $cat_link ); ?>" class="<?php echo esc_attr( $pill_class ); ?>">
-          <?php echo esc_html( $cat_name ); ?>
-        </a>
+  <div class="post-card-media">
+    <?php if ( has_post_thumbnail( $post_id ) ) : ?>
+      <a href="<?php the_permalink(); ?>" class="post-card-thumb">
+        <?php
+        echo get_the_post_thumbnail(
+          $post_id,
+          $thumb_size,
+          array(
+            'loading'  => 'lazy',
+            'decoding' => 'async',
+          )
+        );
+        ?>
+      </a>
+    <?php else : ?>
+      <div class="post-card-thumb-placeholder post-card-thumb-logo" aria-hidden="true">
+        <img
+          src="<?php echo esc_url( get_stylesheet_directory_uri() . '/logos-icons/pera-logo.svg' ); ?>"
+          alt=""
+          class="post-card-placeholder-logo"
+          loading="lazy"
+          decoding="async"
+        >
       </div>
     <?php endif; ?>
+
+    <?php if ( ( $show_cat_pill && $cat_name ) || '' !== $post_subtitle ) : ?>
+      <div class="post-card-thumb-overlay flex flex-col items-start">
+        <?php if ( $show_cat_pill && $cat_name ) : ?>
+          <a href="<?php echo esc_url( $cat_link ); ?>" class="<?php echo esc_attr( $pill_class ); ?>">
+            <?php echo esc_html( $cat_name ); ?>
+          </a>
+        <?php endif; ?>
+
+        <?php if ( '' !== $post_subtitle ) : ?>
+          <div class="post-card-subtitle text-xs text-light"><?php echo esc_html( $post_subtitle ); ?></div>
+        <?php endif; ?>
+      </div>
+    <?php endif; ?>
+  </div>
+
+  <div class="post-card-body">
 
     <h2 class="post-card-title">
       <a href="<?php the_permalink(); ?>">
