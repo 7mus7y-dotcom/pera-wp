@@ -50,6 +50,20 @@ class RegenerateThumbnails {
 	public $menu_id;
 
 	/**
+	 * Most recent admin page hook suffix received by admin_enqueues().
+	 *
+	 * @var string
+	 */
+	public $last_admin_enqueue_hook = '';
+
+	/**
+	 * Whether the enqueue guard matched on the most recent admin_enqueues() call.
+	 *
+	 * @var bool
+	 */
+	public $last_admin_enqueue_matched = false;
+
+	/**
 	 * The capability required to use this plugin.
 	 * Please don't change this directly. Use the "regenerate_thumbs_cap" filter instead.
 	 *
@@ -178,7 +192,10 @@ class RegenerateThumbnails {
 	 * @param string $hook_suffix The current page's hook suffix as provided by admin-header.php.
 	 */
 	public function admin_enqueues( $hook_suffix ) {
-		if ( $hook_suffix != $this->menu_id ) {
+		$this->last_admin_enqueue_hook    = (string) $hook_suffix;
+		$this->last_admin_enqueue_matched = $this->is_regenerate_thumbnails_page( $hook_suffix );
+
+		if ( ! $this->last_admin_enqueue_matched ) {
 			return;
 		}
 
@@ -316,10 +333,39 @@ class RegenerateThumbnails {
 	}
 
 	/**
+	 * Determines whether the current admin page is the Regenerate Thumbnails page.
+	 *
+	 * @param string $hook_suffix The current page hook suffix.
+	 *
+	 * @return bool Whether this is the Regenerate Thumbnails admin page.
+	 */
+	private function is_regenerate_thumbnails_page( $hook_suffix ) {
+		if ( $hook_suffix === $this->menu_id ) {
+			return true;
+		}
+
+		$page = isset( $_GET['page'] ) ? sanitize_key( wp_unslash( $_GET['page'] ) ) : '';
+		if ( 'regenerate-thumbnails' !== $page ) {
+			return false;
+		}
+
+		return in_array(
+			(string) $hook_suffix,
+			array(
+				'tools_page_regenerate-thumbnails',
+				'media_page_regenerate-thumbnails',
+				'upload_page_regenerate-thumbnails',
+			),
+			true
+		);
+	}
+
+	/**
 	 * The main Regenerate Thumbnails interface, as displayed at Tools → Regenerate Thumbnails.
 	 */
 	public function regenerate_interface() {
 		global $wp_version;
+		global $hook_suffix;
 
 		echo '<div class="wrap">';
 		echo '<h1>' . esc_html_x( 'Regenerate Thumbnails', 'admin page title', 'regenerate-thumbnails' ) . '</h1>';
@@ -341,6 +387,14 @@ class RegenerateThumbnails {
 
 				<div id="regenerate-thumbnails-diagnostics" class="notice notice-info" style="margin: 10px 0;">
 					<p><strong>Diagnostic status:</strong> <span id="regenerate-thumbnails-diagnostics-text"><?php esc_html_e( 'PHP rendered diagnostics box', 'regenerate-thumbnails' ); ?></span></p>
+					<p>
+						<strong>Hook suffix:</strong>
+						<code><?php echo esc_html( is_string( $hook_suffix ) ? $hook_suffix : '' ); ?></code><br />
+						<strong>Stored menu_id:</strong>
+						<code><?php echo esc_html( is_string( $this->menu_id ) ? $this->menu_id : '' ); ?></code><br />
+						<strong>Enqueue guard matched:</strong>
+						<code><?php echo $this->last_admin_enqueue_matched ? 'yes' : 'no'; ?></code>
+					</p>
 				</div>
 
 				<router-view><p class="hide-if-no-js"><?php esc_html_e( 'Loading…', 'regenerate-thumbnails' ); ?></p></router-view>
