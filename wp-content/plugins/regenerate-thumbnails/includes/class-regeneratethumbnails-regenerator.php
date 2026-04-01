@@ -554,31 +554,37 @@ class RegenerateThumbnails_Regenerator {
 	 * @return array|WP_Error The attachment name, fullsize URL, registered thumbnail size status, and any unregistered sizes, or WP_Error on error.
 	 */
 	public function get_attachment_info() {
+		$start_time = microtime( true );
+		$this->maybe_log_attachmentinfo_debug( 'get_attachment_info:start', array( 'attachment_id' => $this->attachment->ID ) );
+
 		$fullsizepath = $this->get_fullsizepath();
 		if ( is_wp_error( $fullsizepath ) ) {
 			$fullsizepath->add_data( array( 'attachment' => $this->attachment ) );
+			$this->maybe_log_attachmentinfo_debug( 'get_attachment_info:error:get_fullsizepath', array(
+				'attachment_id' => $this->attachment->ID,
+				'error_code'    => $fullsizepath->get_error_code(),
+				'duration_ms'   => round( ( microtime( true ) - $start_time ) * 1000, 2 ),
+			) );
 
 			return $fullsizepath;
 		}
 
-		$editor = wp_get_image_editor( $fullsizepath );
-		if ( is_wp_error( $editor ) ) {
-			// Display a more helpful error message.
-			if ( 'image_no_editor' === $editor->get_error_code() ) {
-				$editor = new WP_Error( 'image_no_editor', __( 'The current image editor cannot process this file type.', 'regenerate-thumbnails' ) );
-			}
+		$this->maybe_log_attachmentinfo_debug( 'get_attachment_info:step:get_fullsizepath', array(
+			'attachment_id' => $this->attachment->ID,
+			'path'          => _wp_relative_upload_path( $fullsizepath ),
+			'duration_ms'   => round( ( microtime( true ) - $start_time ) * 1000, 2 ),
+		) );
 
-			$editor->add_data( array(
-				'attachment' => $this->attachment,
-				'status'     => 415,
-			) );
-
-			return $editor;
-		}
+		$attachment_mime_type = get_post_mime_type( $this->attachment );
+		$is_pdf               = ( 'application/pdf' === $attachment_mime_type );
 
 		$metadata = wp_get_attachment_metadata( $this->attachment->ID );
 
 		if ( false === $metadata || ! is_array( $metadata ) ) {
+			$this->maybe_log_attachmentinfo_debug( 'get_attachment_info:error:wp_get_attachment_metadata', array(
+				'attachment_id' => $this->attachment->ID,
+				'duration_ms'   => round( ( microtime( true ) - $start_time ) * 1000, 2 ),
+			) );
 			return new WP_Error(
 				'regenerate_thumbnails_regenerator_no_metadata',
 				__( 'Unable to load the metadata for this attachment.', 'regenerate-thumbnails' ),
@@ -597,6 +603,36 @@ class RegenerateThumbnails_Regenerator {
 		$width  = ( isset( $metadata['width'] ) ) ? $metadata['width'] : null;
 		$height = ( isset( $metadata['height'] ) ) ? $metadata['height'] : null;
 
+		$editor = null;
+		if ( $width && $height ) {
+			$editor = wp_get_image_editor( $fullsizepath );
+			if ( is_wp_error( $editor ) ) {
+				// Display a more helpful error message.
+				if ( 'image_no_editor' === $editor->get_error_code() ) {
+					$editor = new WP_Error( 'image_no_editor', __( 'The current image editor cannot process this file type.', 'regenerate-thumbnails' ) );
+				}
+
+				$editor->add_data( array(
+					'attachment' => $this->attachment,
+					'status'     => 415,
+				) );
+				$this->maybe_log_attachmentinfo_debug( 'get_attachment_info:error:wp_get_image_editor', array(
+					'attachment_id' => $this->attachment->ID,
+					'mime_type'     => $attachment_mime_type,
+					'error_code'    => $editor->get_error_code(),
+					'duration_ms'   => round( ( microtime( true ) - $start_time ) * 1000, 2 ),
+				) );
+
+				return $editor;
+			}
+
+			$this->maybe_log_attachmentinfo_debug( 'get_attachment_info:step:wp_get_image_editor', array(
+				'attachment_id' => $this->attachment->ID,
+				'mime_type'     => $attachment_mime_type,
+				'duration_ms'   => round( ( microtime( true ) - $start_time ) * 1000, 2 ),
+			) );
+		}
+
 		require_once( ABSPATH . '/wp-admin/includes/image.php' );
 
 		$preview = false;
@@ -607,15 +643,22 @@ class RegenerateThumbnails_Regenerator {
 			is_array( $metadata['sizes']['full'] ) &&
 			! empty( $metadata['sizes']['full']['file'] )
 		) {
-			$preview = str_replace(
-				wp_basename( $fullsizepath ),
-				$metadata['sizes']['full']['file'],
-				wp_get_attachment_url( $this->attachment->ID )
-			);
+			$preview_relative_path = _wp_get_attachment_relative_path( $fullsizepath ) . DIRECTORY_SEPARATOR . $metadata['sizes']['full']['file'];
+			$preview_file_path     = dirname( $fullsizepath ) . DIRECTORY_SEPARATOR . $metadata['sizes']['full']['file'];
 
-			if ( ! file_exists( $preview ) ) {
+			$preview = str_replace( wp_basename( $fullsizepath ), $metadata['sizes']['full']['file'], wp_get_attachment_url( $this->attachment->ID ) );
+
+			if ( ! file_exists( $preview_file_path ) ) {
 				$preview = false;
 			}
+
+			$this->maybe_log_attachmentinfo_debug( 'get_attachment_info:step:pdf_preview', array(
+				'attachment_id'          => $this->attachment->ID,
+				'preview_relative_path'  => $preview_relative_path,
+				'preview_file_exists'    => (bool) $preview,
+				'is_pdf'                 => $is_pdf,
+				'duration_ms'            => round( ( microtime( true ) - $start_time ) * 1000, 2 ),
+			) );
 		}
 
 		$response = array(
@@ -705,6 +748,44 @@ class RegenerateThumbnails_Regenerator {
 			);
 		}
 
+		$this->maybe_log_attachmentinfo_debug( 'get_attachment_info:success', array(
+			'attachment_id'               => $this->attachment->ID,
+			'mime_type'                   => $attachment_mime_type,
+			'registered_sizes_count'      => count( $response['registered_sizes'] ),
+			'unregistered_sizes_count'    => count( $response['unregistered_sizes'] ),
+			'duration_ms'                 => round( ( microtime( true ) - $start_time ) * 1000, 2 ),
+		) );
+
 		return $response;
+	}
+
+	/**
+	 * Conditional logger for attachmentinfo diagnostics.
+	 *
+	 * Enable with `add_filter( 'regenerate_thumbnails_debug_attachmentinfo_logging', '__return_true' );`
+	 * or define the `REGENERATE_THUMBNAILS_DEBUG_ATTACHMENTINFO` constant as true.
+	 *
+	 * @since 3.1.6
+	 *
+	 * @param string $event   Event name.
+	 * @param array  $context Optional event context.
+	 */
+	private function maybe_log_attachmentinfo_debug( $event, $context = array() ) {
+		$enabled = (
+			( defined( 'REGENERATE_THUMBNAILS_DEBUG_ATTACHMENTINFO' ) && REGENERATE_THUMBNAILS_DEBUG_ATTACHMENTINFO )
+			|| apply_filters( 'regenerate_thumbnails_debug_attachmentinfo_logging', false )
+		);
+
+		if ( ! $enabled ) {
+			return;
+		}
+
+		error_log(
+			sprintf(
+				'Regenerate Thumbnails attachmentinfo [%s] %s',
+				$event,
+				wp_json_encode( $context )
+			)
+		);
 	}
 }
