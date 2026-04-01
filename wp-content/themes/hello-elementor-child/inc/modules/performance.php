@@ -186,11 +186,16 @@ add_action( 'send_headers', function (): void {
         return;
     }
 
+    if ( headers_sent() ) {
+        return;
+    }
+
     // Detect meaningful filters (not UTMs etc)
     $has_filters = function_exists('pera_property_archive_is_filtered_request')
         ? pera_property_archive_is_filtered_request()
         : ! empty($_GET);
 
+    // 1. FILTERED REQUESTS → NEVER CACHE
     if ( $has_filters ) {
         nocache_headers();
         header( 'Cache-Control: private, no-store, no-cache, must-revalidate, max-age=0' );
@@ -199,8 +204,7 @@ add_action( 'send_headers', function (): void {
         return;
     }
 
-    $is_homepage = is_front_page() || is_page_template( 'home-page.php' ) || ( is_home() && ! is_front_page() );
-
+    // 2. LOGGED-IN USERS → NEVER CACHE
     if ( is_user_logged_in() ) {
 
         if ( ! defined( 'DONOTCACHEPAGE' ) ) {
@@ -221,11 +225,47 @@ add_action( 'send_headers', function (): void {
         return;
     }
 
+    /* =======================================================
+       ROUTE-SPECIFIC CACHE CONTROL
+       ======================================================= */
+
+    // 3. Property archive
+    if ( is_post_type_archive('property') ) {
+        header( 'Cache-Control: public, max-age=300, must-revalidate', true );
+        header( 'Expires: ' . gmdate( 'D, d M Y H:i:s', time() + 300 ) . ' GMT', true );
+        return;
+    }
+
+    // 4. Property single
+    if ( is_singular('property') ) {
+        header( 'Cache-Control: public, max-age=600, must-revalidate', true );
+        header( 'Expires: ' . gmdate( 'D, d M Y H:i:s', time() + 600 ) . ' GMT', true );
+        return;
+    }
+
+    // 5. District taxonomy
+    if ( is_tax('district') ) {
+        header( 'Cache-Control: public, max-age=900, must-revalidate', true );
+        header( 'Expires: ' . gmdate( 'D, d M Y H:i:s', time() + 900 ) . ' GMT', true );
+        return;
+    }
+
+    // 6. Blog posts
+    if ( is_singular('post') ) {
+        header( 'Cache-Control: public, max-age=1800, must-revalidate', true );
+        header( 'Expires: ' . gmdate( 'D, d M Y H:i:s', time() + 1800 ) . ' GMT', true );
+        return;
+    }
+
+    // 7. Homepage
+    $is_homepage = is_front_page() || is_page_template( 'home-page.php' ) || ( is_home() && ! is_front_page() );
+
     if ( $is_homepage ) {
         header( 'Cache-Control: public, max-age=300, must-revalidate', true );
         header( 'Expires: ' . gmdate( 'D, d M Y H:i:s', time() + 300 ) . ' GMT', true );
         header( 'Vary: Cookie', false );
         header( 'Vary: Accept-Encoding', false );
+        return;
     }
 
 }, 20 );
