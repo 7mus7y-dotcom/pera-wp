@@ -203,7 +203,7 @@ class RegenerateThumbnails {
 			'regenerate-thumbnails',
 			plugins_url( 'dist/build.js', __FILE__ ),
 			array( 'wp-api-request' ),
-			( defined( 'SCRIPT_DEBUG' ) && SCRIPT_DEBUG ) ? filemtime( dirname( __FILE__ ) . '/dist/build.js' ) : $this->version,
+			filemtime( dirname( __FILE__ ) . '/dist/build.js' ),
 			true
 		);
 
