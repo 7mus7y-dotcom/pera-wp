@@ -200,9 +200,17 @@ class RegenerateThumbnails {
 		}
 
 		wp_enqueue_script(
+			'regenerate-thumbnails-diagnostics',
+			plugins_url( 'js/regenerate-diagnostics.js', __FILE__ ),
+			array( 'jquery', 'wp-api-request' ),
+			filemtime( dirname( __FILE__ ) . '/js/regenerate-diagnostics.js' ),
+			true
+		);
+
+		wp_enqueue_script(
 			'regenerate-thumbnails',
 			plugins_url( 'dist/build.js', __FILE__ ),
-			array( 'jquery', 'wp-api-request' ),
+			array( 'jquery', 'wp-api-request', 'regenerate-thumbnails-diagnostics' ),
 			filemtime( dirname( __FILE__ ) . '/dist/build.js' ),
 			true
 		);
@@ -298,12 +306,6 @@ class RegenerateThumbnails {
 		// phpcs:enable
 
 		wp_localize_script( 'regenerate-thumbnails', 'regenerateThumbnails', $script_data );
-
-		wp_add_inline_script(
-			'regenerate-thumbnails',
-			"(function($){\n\tfunction setStatus(message){\n\t\tvar container = document.getElementById('regenerate-thumbnails-diagnostics');\n\t\tvar text = document.getElementById('regenerate-thumbnails-diagnostics-text');\n\t\tif(!container || !text){ return; }\n\t\tcontainer.style.display = '';\n\t\ttext.textContent = message;\n\t}\n\n\tfunction getSingleIdFromHash(){\n\t\tvar match = String(window.location.hash || '').match(/#\\/regenerate\\/(\\d+)/);\n\t\treturn match ? match[1] : null;\n\t}\n\n\tsetStatus('inline diagnostics script executed');\n\n\tif (typeof window.regenerateThumbnails === 'undefined') {\n\t\tsetStatus('required global missing: regenerateThumbnails');\n\t\treturn;\n\t}\n\n\tif (typeof window.wp === 'undefined' || typeof window.wp.apiRequest !== 'function') {\n\t\tsetStatus('required global missing: wp.apiRequest');\n\t\treturn;\n\t}\n\n\tif (typeof window.wpApiSettings === 'undefined' || !window.wpApiSettings.nonce) {\n\t\tsetStatus('required global missing: wpApiSettings.nonce');\n\t\treturn;\n\t}\n\n\tfunction updateRouteStatus(){\n\t\tvar id = getSingleIdFromHash();\n\t\tif(id){\n\t\t\tsetStatus('route entered with attachment ID ' + id);\n\t\t}\n\t}\n\n\tupdateRouteStatus();\n\twindow.addEventListener('hashchange', updateRouteStatus);\n\n\t$(document).on('ajaxSend', function(event, jqXHR, settings){\n\t\tvar id = getSingleIdFromHash();\n\t\tif(!id || !settings || !settings.url){ return; }\n\t\tif(settings.url.indexOf('/regenerate-thumbnails/v1/attachmentinfo/' + id) !== -1){\n\t\t\tsetStatus('request started');\n\t\t}\n\t});\n\n\t$(document).on('ajaxSuccess', function(event, jqXHR, settings){\n\t\tvar id = getSingleIdFromHash();\n\t\tif(!id || !settings || !settings.url){ return; }\n\t\tif(settings.url.indexOf('/regenerate-thumbnails/v1/attachmentinfo/' + id) !== -1){\n\t\t\tsetStatus('request success');\n\t\t}\n\t});\n\n\t$(document).on('ajaxError', function(event, jqXHR, settings, errorThrown){\n\t\tvar id = getSingleIdFromHash();\n\t\tif(!id || !settings || !settings.url){ return; }\n\t\tif(settings.url.indexOf('/regenerate-thumbnails/v1/attachmentinfo/' + id) !== -1){\n\t\t\tvar message = 'request failed';\n\t\t\tif(jqXHR && jqXHR.responseJSON && jqXHR.responseJSON.message){\n\t\t\t\tmessage += ': ' + jqXHR.responseJSON.message;\n\t\t\t} else if (jqXHR && jqXHR.responseText) {\n\t\t\t\tmessage += ': ' + String(jqXHR.responseText).replace(/<[^>]*>/g, ' ').replace(/\\s+/g, ' ').trim().substring(0, 220);\n\t\t\t} else if (errorThrown) {\n\t\t\t\tmessage += ': ' + errorThrown;\n\t\t\t}\n\t\t\tsetStatus(message);\n\t\t}\n\t});\n})(jQuery);",
-			'before'
-		);
 
 		wp_enqueue_style(
 			'regenerate-thumbnails-progressbar',
