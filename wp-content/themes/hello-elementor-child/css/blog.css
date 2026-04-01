@@ -9,7 +9,7 @@
 
 
 /* =======================================================
-   2. POSTS GRID — MASONRY LAYOUT (LAYOUT ONLY)
+   2. ARCHIVE POSTS — MASONRY LAYOUT
    ======================================================= */
 
 .section-posts {
@@ -21,7 +21,44 @@
   margin-inline: auto;
 }
 
-/* .posts-grid moved to main.css as cards-masonry */
+/* Archive post loop uses .cards-masonry from main.css; keep archive-specific tuning here. */
+.section-posts .cards-masonry {
+  column-count: 1;
+  column-gap: var(--space-md);
+}
+
+@media (min-width: 768px) {
+  .section-posts .cards-masonry {
+    column-count: 2;
+  }
+}
+
+@media (min-width: 1100px) {
+  .section-posts .cards-masonry {
+    column-count: 3;
+  }
+}
+
+.section-posts .cards-masonry .post-card-thumb,
+.section-posts .cards-masonry .post-card-thumb-placeholder {
+  aspect-ratio: 16 / 9;
+}
+
+.section-posts .cards-masonry > article.post-card {
+  display: inline-block;
+  width: 100%;
+  margin-bottom: var(--space-md);
+  break-inside: avoid;
+  -webkit-column-break-inside: avoid;
+  page-break-inside: avoid;
+}
+
+.section-posts .cards-masonry .post-card-thumb img {
+  width: 100%;
+  height: 100%;
+  display: block;
+  object-fit: cover;
+}
 
 
 /* =======================================================
