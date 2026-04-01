@@ -17,7 +17,8 @@ $excerpt_words = isset( $card_args['excerpt_words'] ) ? (int) $card_args['excerp
 $thumb_size    = isset( $card_args['thumb_size'] ) ? sanitize_key( $card_args['thumb_size'] ) : 'pera-card';
 
 $show_cat_pill = array_key_exists( 'show_cat_pill', $card_args ) ? (bool) $card_args['show_cat_pill'] : true;
-$pill_class    = isset( $card_args['pill_class'] ) ? sanitize_text_field( $card_args['pill_class'] ) : 'pill pill--outline';
+$overlay_category_badge_class = 'pill pill--green';
+$overlay_subtitle_badge_class = 'pill pill--blue';
 
 $show_readmore = array_key_exists( 'show_readmore', $card_args ) ? (bool) $card_args['show_readmore'] : true;
 $btn_class     = isset( $card_args['btn_class'] ) ? sanitize_text_field( $card_args['btn_class'] ) : 'btn btn--solid btn--blue';
@@ -69,13 +70,13 @@ $post_subtitle = trim( (string) get_post_meta( $post_id, 'post_subtitle', true )
     <?php if ( ( $show_cat_pill && $cat_name ) || '' !== $post_subtitle ) : ?>
       <div class="post-card-thumb-overlay flex flex-col items-start">
         <?php if ( $show_cat_pill && $cat_name ) : ?>
-          <a href="<?php echo esc_url( $cat_link ); ?>" class="<?php echo esc_attr( $pill_class ); ?>">
+          <a href="<?php echo esc_url( $cat_link ); ?>" class="<?php echo esc_attr( $overlay_category_badge_class ); ?>">
             <?php echo esc_html( $cat_name ); ?>
           </a>
         <?php endif; ?>
 
         <?php if ( '' !== $post_subtitle ) : ?>
-          <div class="post-card-subtitle text-xs text-light"><?php echo esc_html( $post_subtitle ); ?></div>
+          <div class="post-card-subtitle <?php echo esc_attr( $overlay_subtitle_badge_class ); ?>"><?php echo esc_html( $post_subtitle ); ?></div>
         <?php endif; ?>
       </div>
     <?php endif; ?>

@@ -86,6 +86,12 @@
   max-width: 36ch;
 }
 
+
+.post-card-thumb-overlay .pill--blue{
+  background: var(--brand);
+  color: #ffffff;
+}
+
 /* Body */
 .post-card-body{
   padding: var(--space-xs);
