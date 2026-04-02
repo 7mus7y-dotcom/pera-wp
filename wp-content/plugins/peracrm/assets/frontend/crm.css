@@ -6102,6 +6102,33 @@ body.crm-route #site-header.peracrm-shell-header.is-scrolled .peracrm-header-act
   gap: 10px;
 }
 
+@media (prefers-color-scheme: dark) {
+  .portfolio-token-page .portfolio-citizenship-guidance__panel {
+    background: #152034;
+    border-color: #34486e;
+  }
+
+  .portfolio-token-page .portfolio-citizenship-guidance__kicker {
+    color: #9fb0d4;
+  }
+
+  .portfolio-token-page .portfolio-citizenship-guidance__title,
+  .portfolio-token-page .portfolio-citizenship-guidance__text,
+  .portfolio-token-page .portfolio-citizenship-guidance__list {
+    color: #e7eefc;
+  }
+
+  .portfolio-token-page .portfolio-citizenship-guidance__actions .btn--ghost {
+    color: #e7eefc;
+    border-color: rgba(231, 238, 252, 0.45);
+  }
+
+  .portfolio-token-page .portfolio-citizenship-guidance__actions .btn--ghost:hover {
+    background-color: rgba(231, 238, 252, 0.12);
+    border-color: rgba(231, 238, 252, 0.72);
+  }
+}
+
 @media (min-width: 900px) {
   .portfolio-token-page .portfolio-citizenship-guidance__panel {
     grid-template-columns: minmax(0, 1fr) auto;
