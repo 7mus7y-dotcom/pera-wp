@@ -66,6 +66,7 @@ get_header();
 		$expires_at = isset( $context['expires_at'] ) ? (int) $context['expires_at'] : 0;
 		$portfolio_id = isset( $context['portfolio_id'] ) ? (int) $context['portfolio_id'] : 0;
 		$client_id    = $portfolio_id > 0 ? (int) get_post_meta( $portfolio_id, '_portfolio_client_id', true ) : 0;
+		$include_citizenship_faq = $portfolio_id > 0 && (int) get_post_meta( $portfolio_id, '_portfolio_include_citizenship_faq', true ) === 1;
 
 		$portfolio_rows_by_property = array();
 		$floor_plan_urls_by_property = array();
@@ -224,6 +225,10 @@ get_header();
 				</section>
 			</div>
 		</section>
+
+		<?php if ( $include_citizenship_faq ) : ?>
+			<?php get_template_part( 'partials/faq', 'citizenship' ); ?>
+		<?php endif; ?>
 
 		<script>
 		(function () {
