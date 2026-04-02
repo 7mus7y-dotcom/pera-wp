@@ -119,6 +119,7 @@ if ( $needs_slider ) {
     pera_enqueue_property_archive_assets( $needs_slider );
   }
 
+
   if ( $is_single_property || $is_single_bodrum_property || $is_home ) {
     wp_enqueue_style(
       'pera-property-css',

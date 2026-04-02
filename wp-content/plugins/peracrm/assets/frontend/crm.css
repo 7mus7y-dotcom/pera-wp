@@ -6051,3 +6051,72 @@ body.crm-route #site-header.peracrm-shell-header.is-scrolled .peracrm-header-act
     width: auto;
   }
 }
+
+/* Portfolio token: citizenship guidance panel */
+.portfolio-token-page .portfolio-citizenship-guidance {
+  padding-top: 0;
+}
+
+.portfolio-token-page .portfolio-citizenship-guidance__panel {
+  background: #f4f8ff;
+  border: 1px solid #d7e4ff;
+  border-radius: 14px;
+  padding: 22px;
+  display: grid;
+  gap: 18px;
+  align-items: start;
+}
+
+.portfolio-token-page .portfolio-citizenship-guidance__kicker {
+  margin: 0 0 6px;
+  font-size: 0.75rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  font-weight: 600;
+  color: #4f5f82;
+}
+
+.portfolio-token-page .portfolio-citizenship-guidance__title {
+  margin: 0;
+  font-size: 1.35rem;
+  line-height: 1.3;
+}
+
+.portfolio-token-page .portfolio-citizenship-guidance__text {
+  margin: 10px 0 0;
+  max-width: 70ch;
+}
+
+.portfolio-token-page .portfolio-citizenship-guidance__list {
+  margin: 12px 0 0;
+  padding-left: 1.1rem;
+}
+
+.portfolio-token-page .portfolio-citizenship-guidance__list li + li {
+  margin-top: 4px;
+}
+
+.portfolio-token-page .portfolio-citizenship-guidance__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+@media (min-width: 900px) {
+  .portfolio-token-page .portfolio-citizenship-guidance__panel {
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 22px;
+  }
+
+  .portfolio-token-page .portfolio-citizenship-guidance__actions {
+    flex-direction: column;
+    align-items: stretch;
+    justify-content: center;
+    min-width: 230px;
+  }
+
+  .portfolio-token-page .portfolio-citizenship-guidance__actions .btn {
+    width: 100%;
+    text-align: center;
+  }
+}

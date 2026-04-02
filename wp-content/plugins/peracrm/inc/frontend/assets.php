@@ -20,6 +20,18 @@ if (!function_exists('peracrm_frontend_get_asset_file')) {
 }
 
 
+
+if (!function_exists('peracrm_is_portfolio_token_route')) {
+    function peracrm_is_portfolio_token_route(): bool
+    {
+        if (function_exists('pera_portfolio_token_is_request') && pera_portfolio_token_is_request()) {
+            return true;
+        }
+
+        return '' !== (string) get_query_var('portfolio_token', '');
+    }
+}
+
 if (!function_exists('peracrm_frontend_dequeue_theme_assets')) {
     function peracrm_frontend_dequeue_theme_assets(): void
     {
@@ -38,10 +50,13 @@ add_action('wp_enqueue_scripts', 'peracrm_frontend_dequeue_theme_assets', 41);
 if (!function_exists('pera_crm_enqueue_assets')) {
     function pera_crm_enqueue_assets(): void
     {
-        if (!function_exists('pera_is_crm_route') || !pera_is_crm_route()) {
+        $is_crm_route = function_exists('pera_is_crm_route') && pera_is_crm_route();
+        $is_portfolio_token_route = function_exists('peracrm_is_portfolio_token_route') && peracrm_is_portfolio_token_route();
+
+        if (!$is_crm_route && !$is_portfolio_token_route) {
             return;
         }
-        
+
         $fonts_css = peracrm_frontend_get_asset_file('assets/frontend/fonts.css');
         $crm_css = peracrm_frontend_get_asset_file('assets/frontend/crm.css');
         $slider_css = peracrm_frontend_get_asset_file('assets/frontend/slider.css');
@@ -73,6 +88,10 @@ if (!function_exists('pera_crm_enqueue_assets')) {
                 $crm_css_deps,
                 (string) filemtime($crm_css['path'])
             );
+        }
+
+        if (!$is_crm_route) {
+            return;
         }
 
         $crm_js = peracrm_frontend_get_asset_file('assets/frontend/crm.js');
