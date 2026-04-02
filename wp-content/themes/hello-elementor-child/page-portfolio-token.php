@@ -73,6 +73,8 @@ get_header();
 		}
 		$show_citizenship_faq = ( 'citizenship' === $client_type );
 
+		$citizenship_advisor_contact_url = '';
+
 		$portfolio_rows_by_property = array();
 		$floor_plan_urls_by_property = array();
 		if ( $client_id > 0 && function_exists( 'peracrm_client_property_list' ) ) {
@@ -232,6 +234,15 @@ get_header();
 		</section>
 
 		<?php if ( $show_citizenship_faq ) : ?>
+			<?php
+			get_template_part(
+				'partials/portfolio-citizenship-cta',
+				null,
+				array(
+					'advisor_contact_url' => $citizenship_advisor_contact_url,
+				)
+			);
+			?>
 			<?php get_template_part( 'partials/faq', 'citizenship' ); ?>
 		<?php endif; ?>
 
