@@ -892,7 +892,7 @@
         return getFaqToggleValue(contextEl);
       }
 
-      var faqToggle = relationScope.querySelector('.crm-linked-workspace__relation-head [data-crm-portfolio-citizenship-faq]');
+      var faqToggle = relationScope.querySelector('[data-crm-portfolio-citizenship-faq]');
       return faqToggle && faqToggle.checked ? '1' : '0';
     }
 
