@@ -59,6 +59,15 @@ $portfolio_saved_post_id     = (int) ( $portfolio_link_state['post_id'] ?? 0 );
 $portfolio_saved_expires_at  = (int) ( $portfolio_link_state['expires_at'] ?? 0 );
 $portfolio_saved_is_revoked  = ! empty( $portfolio_link_state['revoked'] );
 $portfolio_saved_is_active   = '' !== $portfolio_saved_url && $portfolio_saved_expires_at > time() && ! $portfolio_saved_is_revoked;
+$portfolio_include_citizenship_faq = function_exists( 'pera_crm_client_view_with_target_blog' ) ? (int) pera_crm_client_view_with_target_blog(
+	static function () use ( $portfolio_saved_post_id ): int {
+		if ( $portfolio_saved_post_id <= 0 ) {
+			return 0;
+		}
+
+		return (int) get_post_meta( $portfolio_saved_post_id, '_portfolio_include_citizenship_faq', true ) === 1 ? 1 : 0;
+	}
+) : 0;
 $portfolio_saved_expires_txt = $portfolio_saved_expires_at > 0
 	? wp_date( get_option( 'date_format' ) . ' ' . get_option( 'time_format' ), $portfolio_saved_expires_at )
 	: '';
@@ -828,6 +837,7 @@ peracrm_frontend_render_shell_header();
                     <section class="crm-linked-workspace__relation">
                       <div class="crm-inline-form crm-inline-form--between crm-linked-workspace__relation-head"><h5><?php echo esc_html( ucfirst( (string) $relation ) ); ?></h5><?php if ( 'portfolio' === (string) $relation && ! empty( $portfolio_items ) ) : ?><button type="button" class="btn btn--ghost btn--blue crm-portfolio-create-btn" data-crm-portfolio-open="crm-client-portfolio-dialog"><?php esc_html_e( 'Create portfolio', 'peracrm' ); ?></button><?php endif; ?></div>
                       <?php if ( 'portfolio' === (string) $relation && ! empty( $portfolio_items ) ) : ?>
+                      <p class="text-sm"><label><input type="checkbox" data-crm-portfolio-citizenship-faq <?php checked( $portfolio_include_citizenship_faq, 1 ); ?> /> <?php esc_html_e( 'Include Turkish citizenship FAQ on public portfolio page', 'peracrm' ); ?></label></p>
                       <div class="crm-linked-workspace__portfolio-tools" data-crm-portfolio-output <?php echo $portfolio_saved_is_active ? '' : 'hidden'; ?>>
                         <div class="crm-linked-workspace__portfolio-url"><label><?php esc_html_e( 'Portfolio link', 'peracrm' ); ?><input type="text" readonly data-crm-portfolio-url value="<?php echo esc_attr( $portfolio_saved_is_active ? $portfolio_saved_url : '' ); ?>" /></label></div>
                         <div class="crm-linked-workspace__portfolio-actions"><button type="button" class="btn btn--ghost btn--blue" data-crm-portfolio-copy><?php esc_html_e( 'Copy', 'peracrm' ); ?></button><button type="button" class="btn btn--ghost btn--blue" data-crm-portfolio-update data-client-id="<?php echo esc_attr( (string) $client_id ); ?>" data-portfolio-post-id="<?php echo esc_attr( (string) $portfolio_saved_post_id ); ?>" <?php echo $portfolio_saved_is_active && $portfolio_saved_post_id > 0 ? '' : 'hidden'; ?>><?php esc_html_e( 'Update', 'peracrm' ); ?></button></div>
