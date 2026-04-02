@@ -49,7 +49,7 @@ get_header();
                 <p class="lead">
                   Turkish citizenship by investment is one of the fastest and most accessible residency-to-passport programmes globally, with the real estate route allowing investors to obtain a Turkish passport by purchasing property worth $400,000 or more.
                 </p>
-            
+
                 <div class="hero-actions">
                   <a href="#citizenship-callback" class="btn btn--solid btn--green">
                     Book a consultation
@@ -65,6 +65,49 @@ get_header();
             
             </section>
 
+  <section class="section">
+    <div class="container">
+      <h2>Turkish Citizenship by Investment Requirements (2026)</h2>
+      <ul class="checklist">
+        <li>
+          <svg class="icon icon-tick" aria-hidden="true">
+            <use href="<?php echo get_stylesheet_directory_uri(); ?>/logos-icons/icons.svg#icon-check"></use>
+          </svg>
+          Minimum real estate investment: $400,000
+        </li>
+        <li>
+          <svg class="icon icon-tick" aria-hidden="true">
+            <use href="<?php echo get_stylesheet_directory_uri(); ?>/logos-icons/icons.svg#icon-check"></use>
+          </svg>
+          Property must be held for at least 3 years
+        </li>
+        <li>
+          <svg class="icon icon-tick" aria-hidden="true">
+            <use href="<?php echo get_stylesheet_directory_uri(); ?>/logos-icons/icons.svg#icon-check"></use>
+          </svg>
+          Investment must be paid in foreign currency (DAB required)
+        </li>
+        <li>
+          <svg class="icon icon-tick" aria-hidden="true">
+            <use href="<?php echo get_stylesheet_directory_uri(); ?>/logos-icons/icons.svg#icon-check"></use>
+          </svg>
+          Must obtain a Certificate of Conformity
+        </li>
+        <li>
+          <svg class="icon icon-tick" aria-hidden="true">
+            <use href="<?php echo get_stylesheet_directory_uri(); ?>/logos-icons/icons.svg#icon-check"></use>
+          </svg>
+          Application includes spouse and children under 18
+        </li>
+        <li>
+          <svg class="icon icon-tick" aria-hidden="true">
+            <use href="<?php echo get_stylesheet_directory_uri(); ?>/logos-icons/icons.svg#icon-check"></use>
+          </svg>
+          Process typically takes 3–6 months
+        </li>
+      </ul>
+    </div>
+  </section>
 
   <!-- =====================================================
        OVERVIEW PANEL: FULL-SERVICE CONSULTANCY
@@ -1583,6 +1626,175 @@ get_header();
           <p>
             Yes, new citizens do not need to give up their nationality, provided
             their original country also allows dual nationality.
+          </p>
+        </div>
+      </details>
+
+      <!-- 19 -->
+      <details class="doc-item">
+        <summary class="doc-summary">
+          <span class="doc-title">
+            Q: Can I buy multiple properties to qualify?
+          </span>
+          <span class="doc-icon" aria-hidden="true">
+            <span class="doc-icon-line doc-icon-line--horizontal"></span>
+            <span class="doc-icon-line doc-icon-line--vertical"></span>
+          </span>
+        </summary>
+        <div class="doc-panel">
+          <p>
+            Yes, multiple properties can be combined as long as the total value meets
+            the $400,000 requirement.
+          </p>
+        </div>
+      </details>
+
+      <!-- 20 -->
+      <details class="doc-item">
+        <summary class="doc-summary">
+          <span class="doc-title">
+            Q: Can off-plan property qualify for citizenship?
+          </span>
+          <span class="doc-icon" aria-hidden="true">
+            <span class="doc-icon-line doc-icon-line--horizontal"></span>
+            <span class="doc-icon-line doc-icon-line--vertical"></span>
+          </span>
+        </summary>
+        <div class="doc-panel">
+          <p>
+            Yes, provided the property has construction servitude or condominium
+            ownership and meets official criteria.
+          </p>
+        </div>
+      </details>
+
+      <!-- 21 -->
+      <details class="doc-item">
+        <summary class="doc-summary">
+          <span class="doc-title">
+            Q: Can I buy commercial property?
+          </span>
+          <span class="doc-icon" aria-hidden="true">
+            <span class="doc-icon-line doc-icon-line--horizontal"></span>
+            <span class="doc-icon-line doc-icon-line--vertical"></span>
+          </span>
+        </summary>
+        <div class="doc-panel">
+          <p>
+            Yes, both residential and commercial properties qualify if they meet legal
+            requirements.
+          </p>
+        </div>
+      </details>
+
+      <!-- 22 -->
+      <details class="doc-item">
+        <summary class="doc-summary">
+          <span class="doc-title">
+            Q: What is the Certificate of Conformity?
+          </span>
+          <span class="doc-icon" aria-hidden="true">
+            <span class="doc-icon-line doc-icon-line--horizontal"></span>
+            <span class="doc-icon-line doc-icon-line--vertical"></span>
+          </span>
+        </summary>
+        <div class="doc-panel">
+          <p>
+            It is an official document confirming your investment meets citizenship
+            requirements.
+          </p>
+        </div>
+      </details>
+
+      <!-- 23 -->
+      <details class="doc-item">
+        <summary class="doc-summary">
+          <span class="doc-title">
+            Q: What is the foreign currency requirement (DAB)?
+          </span>
+          <span class="doc-icon" aria-hidden="true">
+            <span class="doc-icon-line doc-icon-line--horizontal"></span>
+            <span class="doc-icon-line doc-icon-line--vertical"></span>
+          </span>
+        </summary>
+        <div class="doc-panel">
+          <p>
+            The purchase must be completed using foreign currency converted through
+            a Turkish bank with official documentation.
+          </p>
+        </div>
+      </details>
+
+      <!-- 24 -->
+      <details class="doc-item">
+        <summary class="doc-summary">
+          <span class="doc-title">
+            Q: Can I sell the property after 3 years?
+          </span>
+          <span class="doc-icon" aria-hidden="true">
+            <span class="doc-icon-line doc-icon-line--horizontal"></span>
+            <span class="doc-icon-line doc-icon-line--vertical"></span>
+          </span>
+        </summary>
+        <div class="doc-panel">
+          <p>
+            Yes, once the 3-year holding period is complete, you are free to sell
+            without affecting your citizenship.
+          </p>
+        </div>
+      </details>
+
+      <!-- 25 -->
+      <details class="doc-item">
+        <summary class="doc-summary">
+          <span class="doc-title">
+            Q: Do I need to visit Turkey during the process?
+          </span>
+          <span class="doc-icon" aria-hidden="true">
+            <span class="doc-icon-line doc-icon-line--horizontal"></span>
+            <span class="doc-icon-line doc-icon-line--vertical"></span>
+          </span>
+        </summary>
+        <div class="doc-panel">
+          <p>
+            Not necessarily; the process can be completed via power of attorney.
+          </p>
+        </div>
+      </details>
+
+      <!-- 26 -->
+      <details class="doc-item">
+        <summary class="doc-summary">
+          <span class="doc-title">
+            Q: Can I include my family?
+          </span>
+          <span class="doc-icon" aria-hidden="true">
+            <span class="doc-icon-line doc-icon-line--horizontal"></span>
+            <span class="doc-icon-line doc-icon-line--vertical"></span>
+          </span>
+        </summary>
+        <div class="doc-panel">
+          <p>
+            Yes, your spouse and children under 18 are included in the application.
+          </p>
+        </div>
+      </details>
+
+      <!-- 27 -->
+      <details class="doc-item">
+        <summary class="doc-summary">
+          <span class="doc-title">
+            Q: What happens if the valuation is below $400,000?
+          </span>
+          <span class="doc-icon" aria-hidden="true">
+            <span class="doc-icon-line doc-icon-line--horizontal"></span>
+            <span class="doc-icon-line doc-icon-line--vertical"></span>
+          </span>
+        </summary>
+        <div class="doc-panel">
+          <p>
+            The application will not qualify, so an official valuation report is
+            essential.
           </p>
         </div>
       </details>
