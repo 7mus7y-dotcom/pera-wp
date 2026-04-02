@@ -783,9 +783,7 @@ peracrm_frontend_render_shell_header();
               </header>
               <section class="crm-client-subsection crm-linked-workspace" data-crm-linked-properties data-client-id="<?php echo esc_attr( (string) $client_id ); ?>" data-crm-panel="properties">
                   <div class="crm-linked-workspace__add">
-                    <div class="crm-inline-form crm-inline-form--between">
-                      <h5><?php esc_html_e( 'Link property', 'peracrm' ); ?></h5>
-                    </div>
+                    <h5><?php esc_html_e( 'Link property', 'peracrm' ); ?></h5>
                     <form method="post" class="crm-form-stack" data-crm-ajax-form="property-link">
                       <?php wp_nonce_field( 'pera_crm_property_action', 'pera_crm_property_nonce' ); ?>
                       <input type="hidden" name="pera_crm_property_action" value="link" />
@@ -797,7 +795,7 @@ peracrm_frontend_render_shell_header();
                         <p class="text-sm" data-crm-property-feedback><?php esc_html_e( 'Type at least 2 letters and choose a project.', 'peracrm' ); ?></p>
                       </div>
                       <input type="hidden" name="relation_type" value="portfolio" />
-                      <div class="crm-linked-workspace__toolbar">
+                      <div class="crm-linked-workspace__toolbar crm-action-group">
                         <button type="submit" class="btn btn--ghost btn--blue"><?php esc_html_e( 'Link property', 'peracrm' ); ?></button>
                       </div>
                     </form>
@@ -815,7 +813,7 @@ peracrm_frontend_render_shell_header();
                       <?php if ( 'portfolio' === (string) $relation && ! empty( $portfolio_items ) ) : ?>
                       <div class="crm-linked-workspace__portfolio-tools" data-crm-portfolio-output <?php echo $portfolio_saved_is_active ? '' : 'hidden'; ?>>
                         <div class="crm-linked-workspace__portfolio-url"><label><?php esc_html_e( 'Portfolio link', 'peracrm' ); ?><input type="text" readonly data-crm-portfolio-url value="<?php echo esc_attr( $portfolio_saved_is_active ? $portfolio_saved_url : '' ); ?>" /></label></div>
-                        <div class="crm-linked-workspace__portfolio-actions"><button type="button" class="btn btn--ghost btn--blue" data-crm-portfolio-copy><?php esc_html_e( 'Copy', 'peracrm' ); ?></button><button type="button" class="btn btn--ghost btn--blue" data-crm-portfolio-update data-client-id="<?php echo esc_attr( (string) $client_id ); ?>" data-portfolio-post-id="<?php echo esc_attr( (string) $portfolio_saved_post_id ); ?>" <?php echo $portfolio_saved_is_active && $portfolio_saved_post_id > 0 ? '' : 'hidden'; ?>><?php esc_html_e( 'Update', 'peracrm' ); ?></button></div>
+                        <div class="crm-linked-workspace__portfolio-actions crm-action-group"><button type="button" class="btn btn--ghost btn--blue" data-crm-portfolio-copy><?php esc_html_e( 'Copy', 'peracrm' ); ?></button><button type="button" class="btn btn--ghost btn--blue" data-crm-portfolio-update data-client-id="<?php echo esc_attr( (string) $client_id ); ?>" data-portfolio-post-id="<?php echo esc_attr( (string) $portfolio_saved_post_id ); ?>" <?php echo $portfolio_saved_is_active && $portfolio_saved_post_id > 0 ? '' : 'hidden'; ?>><?php esc_html_e( 'Update', 'peracrm' ); ?></button></div>
                         <small class="text-sm crm-linked-workspace__portfolio-meta" data-crm-portfolio-expires><?php echo esc_html( $portfolio_saved_is_active && '' !== $portfolio_saved_expires_txt ? sprintf( __( 'Expires: %s', 'peracrm' ), $portfolio_saved_expires_txt ) : '' ); ?></small>
                       </div>
                       <?php endif; ?>
