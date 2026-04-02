@@ -857,10 +857,8 @@ peracrm_frontend_render_shell_header();
               </header>
               <div class="crm-section__body">
                 <section class="crm-client-subsection crm-client-subsection--deal-workspace">
-                  <div class="crm-inline-form crm-inline-form--between">
-                    <div class="crm-form-workspace__intro crm-form-workspace__intro--embedded">
-                      <h4><?php esc_html_e( 'Deal workspace', 'peracrm' ); ?></h4>
-                    </div>
+                  <div class="crm-form-workspace__intro crm-form-workspace__intro--embedded">
+                    <h4><?php esc_html_e( 'Deal workspace', 'peracrm' ); ?></h4>
                   </div>
                   <ul class="crm-row-list crm-deals-list">
                     <?php if ( empty( $deals ) ) : ?><li class="crm-row-list__item crm-row-list__item--empty"><p><?php esc_html_e( 'No deals yet.', 'peracrm' ); ?></p></li><?php endif; ?>
