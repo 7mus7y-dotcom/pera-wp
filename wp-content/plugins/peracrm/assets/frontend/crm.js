@@ -815,13 +815,15 @@
     }
 
     var clientId = section.getAttribute('data-client-id') || '';
-    var openButton = section.querySelector('[data-crm-portfolio-open]');
-    var outputRow = section.querySelector('[data-crm-portfolio-output]');
-    var urlInput = section.querySelector('[data-crm-portfolio-url]');
-    var copyButton = section.querySelector('[data-crm-portfolio-copy]');
-    var updateButton = section.querySelector('[data-crm-portfolio-update]');
-    var expiresNote = section.querySelector('[data-crm-portfolio-expires]');
+    var controlsWrap = section.querySelector('[data-crm-portfolio-controls]');
+    var openButton = controlsWrap ? controlsWrap.querySelector('[data-crm-portfolio-open]') : null;
+    var outputRow = controlsWrap ? controlsWrap.querySelector('[data-crm-portfolio-output]') : null;
+    var urlInput = controlsWrap ? controlsWrap.querySelector('[data-crm-portfolio-url]') : null;
+    var copyButton = controlsWrap ? controlsWrap.querySelector('[data-crm-portfolio-copy]') : null;
+    var updateButton = controlsWrap ? controlsWrap.querySelector('[data-crm-portfolio-update]') : null;
+    var expiresNote = controlsWrap ? controlsWrap.querySelector('[data-crm-portfolio-expires]') : null;
     var updateFeedback = null;
+    var activeControlsWrap = controlsWrap;
 
     if (!clientId || !openButton) {
       return;
@@ -868,11 +870,23 @@
       }
     }
 
-    function getFaqToggleValue() {
-      return section.querySelector('[data-crm-portfolio-citizenship-faq]')?.checked ? '1' : '0';
+    function getFaqToggleValue(contextEl) {
+      var contextWrap = contextEl && typeof contextEl.closest === 'function'
+        ? contextEl.closest('[data-crm-portfolio-controls]')
+        : null;
+      var scope = contextWrap || activeControlsWrap || controlsWrap;
+      if (!scope) {
+        return '0';
+      }
+
+      var faqToggle = scope.querySelector('[data-crm-portfolio-citizenship-faq]');
+      return faqToggle && faqToggle.checked ? '1' : '0';
     }
 
     openButton.addEventListener('click', function () {
+      activeControlsWrap = typeof openButton.closest === 'function'
+        ? openButton.closest('[data-crm-portfolio-controls]')
+        : controlsWrap;
       openDialog();
     });
 
@@ -900,7 +914,7 @@
         payload.append('nonce', nonce);
         payload.append('client_id', clientId);
         payload.append('expiry', expiry);
-        payload.append('include_citizenship_faq', getFaqToggleValue());
+        payload.append('include_citizenship_faq', getFaqToggleValue(openButton));
 
         submitButton.disabled = true;
         var originalLabel = submitButton.textContent;
@@ -991,7 +1005,7 @@
         payload.append('nonce', updateNonce);
         payload.append('client_id', updateClientId);
         payload.append('portfolio_post_id', portfolioPostId);
-        payload.append('include_citizenship_faq', getFaqToggleValue());
+        payload.append('include_citizenship_faq', getFaqToggleValue(updateButton));
 
         var originalLabel = updateButton.textContent;
         updateButton.disabled = true;
