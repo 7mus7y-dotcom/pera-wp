@@ -821,7 +821,6 @@
     var copyButton = section.querySelector('[data-crm-portfolio-copy]');
     var updateButton = section.querySelector('[data-crm-portfolio-update]');
     var expiresNote = section.querySelector('[data-crm-portfolio-expires]');
-    var faqToggle = section.querySelector('[data-crm-portfolio-citizenship-faq]');
     var updateFeedback = null;
 
     if (!clientId || !openButton) {
@@ -897,7 +896,8 @@
         payload.append('nonce', nonce);
         payload.append('client_id', clientId);
         payload.append('expiry', expiry);
-        payload.append('include_citizenship_faq', faqToggle && faqToggle.checked ? '1' : '0');
+        var submitFaqToggle = section.querySelector('[data-crm-portfolio-citizenship-faq]');
+        payload.append('include_citizenship_faq', submitFaqToggle && submitFaqToggle.checked ? '1' : '0');
 
         submitButton.disabled = true;
         var originalLabel = submitButton.textContent;
@@ -988,7 +988,8 @@
         payload.append('nonce', updateNonce);
         payload.append('client_id', updateClientId);
         payload.append('portfolio_post_id', portfolioPostId);
-        payload.append('include_citizenship_faq', faqToggle && faqToggle.checked ? '1' : '0');
+        var updateFaqToggle = section.querySelector('[data-crm-portfolio-citizenship-faq]');
+        payload.append('include_citizenship_faq', updateFaqToggle && updateFaqToggle.checked ? '1' : '0');
 
         var originalLabel = updateButton.textContent;
         updateButton.disabled = true;
