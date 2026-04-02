@@ -446,6 +446,81 @@ if ( ! function_exists( 'pera_seo_all_get_term_manual_social_image' ) ) {
   }
 }
 
+if ( ! function_exists( 'pera_seo_all_is_citizenship_page' ) ) {
+  function pera_seo_all_is_citizenship_page(): bool {
+    return is_page( 'citizenship-by-investment' ) || is_page_template( 'page-citizenship.php' );
+  }
+}
+
+if ( ! function_exists( 'pera_seo_all_citizenship_faq_items' ) ) {
+  /**
+   * FAQ content for /citizenship-by-investment/.
+   * Questions/answers intentionally mirror visible UI copy.
+   *
+   * @return array<int,array{question:string,answer:string}>
+   */
+  function pera_seo_all_citizenship_faq_items(): array {
+    return array(
+      array(
+        'question' => 'Q: Can I buy multiple properties to qualify?',
+        'answer'   => 'Yes. You can combine multiple eligible properties as long as the total qualifying value is at least USD 400,000 and the purchases comply with current citizenship rules.',
+      ),
+      array(
+        'question' => 'Q: Can off-plan property qualify for citizenship?',
+        'answer'   => 'In many cases, yes. Off-plan units may qualify if the project and title status meet the legal criteria in force at the time of application, and the investment is properly documented. Because eligibility can vary by project structure, legal checks should be completed before committing.',
+      ),
+      array(
+        'question' => 'Q: Can I buy commercial property?',
+        'answer'   => 'Commercial property may qualify, provided it meets the applicable valuation, transfer and compliance requirements in force at the time of application.',
+      ),
+      array(
+        'question' => 'Q: What is the Certificate of Conformity?',
+        'answer'   => 'The Certificate of Conformity is an official confirmation that your investment meets the legal conditions of the citizenship-by-investment program. It is a key document required before citizenship approval.',
+      ),
+      array(
+        'question' => 'Q: What is the foreign currency requirement (DAB)?',
+        'answer'   => 'For Turkish citizenship by investment, the purchase funds are generally required to be brought in as foreign currency and converted through the banking system in line with current rules. The DAB (Döviz Alım Belgesi) is the supporting currency-exchange document typically requested in the title transfer and conformity process.',
+      ),
+      array(
+        'question' => 'Q: What happens if the valuation is below $400,000?',
+        'answer'   => 'If the official valuation used for your application is below USD 400,000, the property will not qualify under the real estate citizenship route.',
+      ),
+      array(
+        'question' => 'Q: Can I sell the property after 3 years?',
+        'answer'   => 'Yes. Once the mandatory 3-year holding period and registry commitment are completed, you can usually sell the property without cancelling citizenship already granted.',
+      ),
+      array(
+        'question' => 'Q: Do I need to visit Turkey during the process?',
+        'answer'   => 'In most cases, applicants must be physically present in Turkey for biometric processing connected to the investor residency stage. With the fast-track option, the residency application, biometrics, and citizenship submission can often be completed during a single visit.',
+      ),
+      array(
+        'question' => 'Q: Is there a fast-track option for Turkish citizenship by investment?',
+        'answer'   => 'Yes. A fast-track option is now available for investor residency applications linked to citizenship-by-investment cases. This can reduce the number of in-person steps by allowing residency processing, biometrics, and citizenship submission to be handled in a shorter timeframe.',
+      ),
+      array(
+        'question' => 'Q: How many times do I need to visit Turkey?',
+        'answer'   => 'At least one visit is usually required for biometric processing. With the fast-track option, the required in-person stages can often be completed in a single visit.',
+      ),
+      array(
+        'question' => 'Q: Can I include my family?',
+        'answer'   => 'Yes. The main applicant’s spouse and dependent children under 18 are generally included in the same citizenship-by-investment application.',
+      ),
+      array(
+        'question' => 'Q: Does Turkey allow dual nationality?',
+        'answer'   => 'Turkey generally permits dual nationality. Whether you can keep your original nationality also depends on the laws of your current country.',
+      ),
+      array(
+        'question' => 'Q: Do I need to learn Turkish or take a test?',
+        'answer'   => 'No language exam is usually required under the real-estate citizenship route. Applicants should still verify current documentation and interview practice at the time of submission.',
+      ),
+      array(
+        'question' => 'Q: How long does Turkish citizenship by investment take?',
+        'answer'   => 'The overall process typically takes several months from property purchase to passport issuance. With the fast-track route, the residency and citizenship submission stages can be completed much faster at the start of the process, reducing delays and the need for multiple appointments.',
+      ),
+    );
+  }
+}
+
 add_filter( 'pre_get_document_title', function ( $title ) {
   $context = pera_seo_all_get_context_key();
 
@@ -1026,6 +1101,93 @@ add_action( 'wp_head', function () {
         );
 
         echo '<script type="application/ld+json">' . wp_json_encode( $breadcrumb_schema, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE ) . '</script>' . "\n";
+      }
+    }
+  }
+
+  if ( $context === 'static_page' && $post_id > 0 && pera_seo_all_is_citizenship_page() && $canonical !== '' ) {
+    $publisher_name = 'Pera Property';
+    $publisher_url = (string) home_url( '/' );
+    $publisher_logo = '';
+    $custom_logo_id = (int) get_theme_mod( 'custom_logo' );
+
+    if ( $custom_logo_id > 0 ) {
+      $publisher_logo = (string) wp_get_attachment_image_url( $custom_logo_id, 'full' );
+    }
+
+    $article_image = $img_url;
+    if ( $article_image === '' ) {
+      $hero_fallback = (string) wp_get_attachment_image_url( 55756, 'full' );
+      if ( $hero_fallback !== '' ) {
+        $article_image = $hero_fallback;
+      }
+    }
+
+    $article_schema = array(
+      '@context' => 'https://schema.org',
+      '@type' => 'Article',
+      'headline' => get_the_title( $post_id ),
+      'mainEntityOfPage' => array(
+        '@type' => 'WebPage',
+        '@id' => $canonical,
+      ),
+      'author' => array(
+        '@type' => 'Organization',
+        'name' => $publisher_name,
+      ),
+      'publisher' => array(
+        '@type' => 'Organization',
+        'name' => $publisher_name,
+        'url' => $publisher_url,
+      ),
+      'datePublished' => get_post_time( DATE_W3C, true, $post_id ),
+      'dateModified' => get_post_modified_time( DATE_W3C, true, $post_id ),
+    );
+
+    if ( $desc !== '' ) {
+      $article_schema['description'] = $desc;
+    }
+
+    if ( $publisher_logo !== '' ) {
+      $article_schema['publisher']['logo'] = array(
+        '@type' => 'ImageObject',
+        'url' => $publisher_logo,
+      );
+    }
+
+    if ( $article_image !== '' ) {
+      $article_schema['image'] = $article_image;
+    }
+
+    echo '<script type="application/ld+json">' . wp_json_encode( $article_schema, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE ) . '</script>' . "\n";
+
+    $faq_items = pera_seo_all_citizenship_faq_items();
+    if ( ! empty( $faq_items ) ) {
+      $faq_entities = array();
+
+      foreach ( $faq_items as $faq_item ) {
+        if ( empty( $faq_item['question'] ) || empty( $faq_item['answer'] ) ) {
+          continue;
+        }
+
+        $faq_entities[] = array(
+          '@type' => 'Question',
+          'name' => (string) $faq_item['question'],
+          'acceptedAnswer' => array(
+            '@type' => 'Answer',
+            'text' => (string) $faq_item['answer'],
+          ),
+        );
+      }
+
+      if ( ! empty( $faq_entities ) ) {
+        $faq_schema = array(
+          '@context' => 'https://schema.org',
+          '@type' => 'FAQPage',
+          'mainEntity' => $faq_entities,
+        );
+
+        echo '<script type="application/ld+json">' . wp_json_encode( $faq_schema, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE ) . '</script>' . "\n";
       }
     }
   }
