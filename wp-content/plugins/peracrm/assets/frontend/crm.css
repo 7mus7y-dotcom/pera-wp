@@ -4458,6 +4458,10 @@ body.crm-route #site-header.peracrm-shell-header.is-scrolled .peracrm-header-act
   background: #fbfbfc;
 }
 
+.crm-page--client-view .crm-client-deals > .crm-section__body {
+  gap: 8px;
+}
+
 .crm-page--client-view .crm-section {
   border-radius: 16px;
   border: 1px solid var(--border, #e8ecf2);
@@ -4548,11 +4552,28 @@ body.crm-route #site-header.peracrm-shell-header.is-scrolled .peracrm-header-act
 }
 
 .crm-page--client-view .crm-client-subsection--deal-workspace {
-  gap: 12px;
+  padding: 0;
+  gap: 8px;
+}
+
+.crm-page--client-view .crm-client-subsection--deal-workspace .crm-row-list.crm-deals-list {
+  gap: 0;
 }
 
 .crm-page--client-view .crm-client-subsection--deal-workspace .crm-deals-form {
   gap: 8px;
+  margin-top: 0;
+}
+
+.crm-page--client-view .crm-client-subsection--deal-workspace .crm-form-workspace__meta,
+.crm-page--client-view .crm-client-subsection--deal-workspace .crm-form-workspace__footer--embedded {
+  gap: 6px;
+  padding-top: 0;
+  padding-bottom: 0;
+}
+
+.crm-page--client-view .crm-client-subsection--deal-workspace .crm-form-section {
+  gap: 4px;
 }
 
 .crm-page--client-view .crm-client-subsection--deal-workspace .crm-form-section + .crm-form-section {
@@ -5077,7 +5098,7 @@ body.crm-route #site-header.peracrm-shell-header.is-scrolled .peracrm-header-act
   }
 
   .crm-page--client-view .crm-client-subsection--deal-workspace {
-    padding: 8px;
+    padding: 0;
     gap: 10px;
   }
 
