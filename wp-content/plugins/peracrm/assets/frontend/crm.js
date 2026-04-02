@@ -868,6 +868,10 @@
       }
     }
 
+    function getFaqToggleValue() {
+      return section.querySelector('[data-crm-portfolio-citizenship-faq]')?.checked ? '1' : '0';
+    }
+
     openButton.addEventListener('click', function () {
       openDialog();
     });
@@ -896,8 +900,7 @@
         payload.append('nonce', nonce);
         payload.append('client_id', clientId);
         payload.append('expiry', expiry);
-        var submitFaqToggle = section.querySelector('[data-crm-portfolio-citizenship-faq]');
-        payload.append('include_citizenship_faq', submitFaqToggle && submitFaqToggle.checked ? '1' : '0');
+        payload.append('include_citizenship_faq', getFaqToggleValue());
 
         submitButton.disabled = true;
         var originalLabel = submitButton.textContent;
@@ -988,8 +991,7 @@
         payload.append('nonce', updateNonce);
         payload.append('client_id', updateClientId);
         payload.append('portfolio_post_id', portfolioPostId);
-        var updateFaqToggle = section.querySelector('[data-crm-portfolio-citizenship-faq]');
-        payload.append('include_citizenship_faq', updateFaqToggle && updateFaqToggle.checked ? '1' : '0');
+        payload.append('include_citizenship_faq', getFaqToggleValue());
 
         var originalLabel = updateButton.textContent;
         updateButton.disabled = true;
