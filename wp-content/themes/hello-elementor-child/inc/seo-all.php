@@ -454,8 +454,14 @@ if ( ! function_exists( 'pera_seo_all_is_citizenship_page' ) ) {
 
 if ( ! function_exists( 'pera_seo_all_citizenship_faq_items' ) ) {
   /**
-   * FAQ content for /citizenship-by-investment/.
-   * Questions/answers intentionally mirror visible UI copy.
+   * IMPORTANT:
+   * This function is the single source of truth for the citizenship FAQ.
+   * It is used BOTH for:
+   * 1) Visible FAQ rendering (partials/faq-citizenship.php)
+   * 2) FAQPage JSON-LD schema
+   *
+   * Any changes here MUST be reflected in the UI output automatically.
+   * Do NOT duplicate FAQ content elsewhere.
    *
    * @return array<int,array{question:string,answer:string}>
    */
