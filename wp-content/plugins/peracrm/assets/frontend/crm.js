@@ -848,6 +848,7 @@
     var form = dialog.querySelector('[data-crm-portfolio-form]');
     var submitButton = dialog.querySelector('[data-crm-portfolio-submit]');
     var feedback = dialog.querySelector('[data-crm-portfolio-feedback]');
+    var hiddenFaqInput = form ? form.querySelector('[data-crm-portfolio-faq-hidden]') : null;
     var closeButtons = Array.prototype.slice.call(dialog.querySelectorAll('[data-crm-portfolio-close]'));
 
     function closeDialog() {
@@ -883,6 +884,18 @@
       return faqToggle && faqToggle.checked ? '1' : '0';
     }
 
+    function getFaqToggleValueFromRelation(contextEl) {
+      var relationScope = contextEl && typeof contextEl.closest === 'function'
+        ? contextEl.closest('.crm-linked-workspace__relation')
+        : null;
+      if (!relationScope) {
+        return getFaqToggleValue(contextEl);
+      }
+
+      var faqToggle = relationScope.querySelector('.crm-linked-workspace__relation-head [data-crm-portfolio-citizenship-faq]');
+      return faqToggle && faqToggle.checked ? '1' : '0';
+    }
+
     openButton.addEventListener('click', function () {
       activeControlsWrap = typeof openButton.closest === 'function'
         ? openButton.closest('[data-crm-portfolio-controls]')
@@ -908,13 +921,17 @@
 
         var formData = new window.FormData(form);
         var expiry = String(formData.get('expiry') || '').trim();
+        var includeCitizenshipFaq = getFaqToggleValue(openButton);
+        if (hiddenFaqInput) {
+          hiddenFaqInput.value = includeCitizenshipFaq;
+        }
 
         var payload = new window.FormData();
         payload.append('action', 'peracrm_create_portfolio_token');
         payload.append('nonce', nonce);
         payload.append('client_id', clientId);
         payload.append('expiry', expiry);
-        payload.append('include_citizenship_faq', getFaqToggleValue(openButton));
+        payload.append('include_citizenship_faq', includeCitizenshipFaq);
 
         submitButton.disabled = true;
         var originalLabel = submitButton.textContent;
@@ -1005,7 +1022,7 @@
         payload.append('nonce', updateNonce);
         payload.append('client_id', updateClientId);
         payload.append('portfolio_post_id', portfolioPostId);
-        payload.append('include_citizenship_faq', getFaqToggleValue(updateButton));
+        payload.append('include_citizenship_faq', getFaqToggleValueFromRelation(updateButton));
 
         var originalLabel = updateButton.textContent;
         updateButton.disabled = true;
