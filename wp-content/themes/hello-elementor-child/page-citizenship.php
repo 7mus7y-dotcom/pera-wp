@@ -1111,6 +1111,72 @@ get_header();
 </section>
 
 <!-- =====================================================
+     FAST-TRACK PROCESS UPDATE
+     ====================================================== -->
+<section class="section">
+  <div class="container">
+    <header class="section-header">
+      <h2>Fast-Track Investor Residency and Citizenship Process</h2>
+      <p>
+        Turkey has introduced a fast-track option for investor residency applications,
+        allowing qualified applicants to complete both residency and citizenship
+        application steps in a significantly shorter timeframe.
+      </p>
+    </header>
+
+    <h3>Standard Process:</h3>
+    <ul class="checklist">
+      <li>
+        <svg class="icon icon-tick" aria-hidden="true">
+          <use href="<?php echo get_stylesheet_directory_uri(); ?>/logos-icons/icons.svg#icon-check"></use>
+        </svg>
+        Residency application and approval
+      </li>
+      <li>
+        <svg class="icon icon-tick" aria-hidden="true">
+          <use href="<?php echo get_stylesheet_directory_uri(); ?>/logos-icons/icons.svg#icon-check"></use>
+        </svg>
+        Separate citizenship application
+      </li>
+      <li>
+        <svg class="icon icon-tick" aria-hidden="true">
+          <use href="<?php echo get_stylesheet_directory_uri(); ?>/logos-icons/icons.svg#icon-check"></use>
+        </svg>
+        Multiple steps and timelines
+      </li>
+    </ul>
+
+    <h3>Fast-Track Option:</h3>
+    <ul class="checklist">
+      <li>
+        <svg class="icon icon-tick" aria-hidden="true">
+          <use href="<?php echo get_stylesheet_directory_uri(); ?>/logos-icons/icons.svg#icon-check"></use>
+        </svg>
+        Residency application, biometrics, and citizenship submission can be completed in one visit
+      </li>
+      <li>
+        <svg class="icon icon-tick" aria-hidden="true">
+          <use href="<?php echo get_stylesheet_directory_uri(); ?>/logos-icons/icons.svg#icon-check"></use>
+        </svg>
+        Biometric processing completed on arrival
+      </li>
+      <li>
+        <svg class="icon icon-tick" aria-hidden="true">
+          <use href="<?php echo get_stylesheet_directory_uri(); ?>/logos-icons/icons.svg#icon-check"></use>
+        </svg>
+        Citizenship submission may be completed the same day
+      </li>
+      <li>
+        <svg class="icon icon-tick" aria-hidden="true">
+          <use href="<?php echo get_stylesheet_directory_uri(); ?>/logos-icons/icons.svg#icon-check"></use>
+        </svg>
+        Optional expedited service
+      </li>
+    </ul>
+  </div>
+</section>
+
+<!-- =====================================================
      DOCUMENTS REQUIRED
      ====================================================== -->
 <section class="section section-soft" id="citizenship-documents">
@@ -1278,362 +1344,6 @@ get_header();
       <details class="doc-item">
         <summary class="doc-summary">
           <span class="doc-title">
-            Q: What is the surveyor’s role and what is an appraisal report?
-          </span>
-          <span class="doc-icon" aria-hidden="true">
-            <span class="doc-icon-line doc-icon-line--horizontal"></span>
-            <span class="doc-icon-line doc-icon-line--vertical"></span>
-          </span>
-        </summary>
-        <div class="doc-panel">
-          <p>
-            The surveyor provides a report which must match or exceed the purchase price
-            of the property. This is to ensure that the buyer and seller are carrying out
-            a transaction in good faith. The Ministry of Urbanisation then verifies this
-            report and confirms the value and purchase price. It must exceed $400,000.
-          </p>
-        </div>
-      </details>
-
-      <!-- 2 -->
-      <details class="doc-item">
-        <summary class="doc-summary">
-          <span class="doc-title">
-            Q: Do I need to be in Turkey for the process?
-          </span>
-          <span class="doc-icon" aria-hidden="true">
-            <span class="doc-icon-line doc-icon-line--horizontal"></span>
-            <span class="doc-icon-line doc-icon-line--vertical"></span>
-          </span>
-        </summary>
-        <div class="doc-panel">
-          <p>
-            The applicant and spouse (but not any children under 18) must visit Turkey to
-            attend the residency application (where biometrics are taken), and then again
-            on successful outcome of the application in order to receive the Turkish ID and
-            passport. The immigration office can only be attended by the applicant or the
-            applicant’s solicitor. The solicitor must be registered with the Turkish Bar
-            Association.
-          </p>
-        </div>
-      </details>
-
-      <!-- 3 -->
-      <details class="doc-item">
-        <summary class="doc-summary">
-          <span class="doc-title">
-            Q: How long does it take, some people say maximum 60 days?
-          </span>
-          <span class="doc-icon" aria-hidden="true">
-            <span class="doc-icon-line doc-icon-line--horizontal"></span>
-            <span class="doc-icon-line doc-icon-line--vertical"></span>
-          </span>
-        </summary>
-        <div class="doc-panel">
-          <p>
-            Impossible. The purchase process usually takes 3–4 weeks in total. If a VAT
-            exemption is involved, a further 2–3 weeks is needed just for that process.
-            Document preparation by the applicant usually takes 3–4 weeks. Even if documents
-            are prepared well in advance, the application process itself can take around
-            4 weeks. The assessment of the application takes a minimum of two months, and
-            on average around three months. Expect to be granted citizenship after a minimum
-            period of three months; in most cases citizenship is granted around six months
-            after the date of application.
-          </p>
-        </div>
-      </details>
-
-      <!-- 4 -->
-      <details class="doc-item">
-        <summary class="doc-summary">
-          <span class="doc-title">
-            Q: What is the currency certificate (DAB)?
-          </span>
-          <span class="doc-icon" aria-hidden="true">
-            <span class="doc-icon-line doc-icon-line--horizontal"></span>
-            <span class="doc-icon-line doc-icon-line--vertical"></span>
-          </span>
-        </summary>
-        <div class="doc-panel">
-          <p>
-            This part of the process was introduced in February 2022. It requires
-            international buyers to use euros, pounds sterling, or US dollars in
-            transactions. The purchase price must be exchanged to Turkish lira via
-            the Central Bank by the buyer or the seller. The Central Bank then
-            provides a purchase certificate, which must be presented to the land
-            registry offices during the title (tapu) exchanges. This certificate
-            is called the DAB (Doviz alım belgesi).
-          </p>
-        </div>
-      </details>
-
-      <!-- 5 -->
-      <details class="doc-item">
-        <summary class="doc-summary">
-          <span class="doc-title">
-            Q: I bought a property in Turkey before the change in law, does it qualify?
-          </span>
-          <span class="doc-icon" aria-hidden="true">
-            <span class="doc-icon-line doc-icon-line--horizontal"></span>
-            <span class="doc-icon-line doc-icon-line--vertical"></span>
-          </span>
-        </summary>
-        <div class="doc-panel">
-          <p>
-            Property transactions can now be backdated to 2017, provided all relevant
-            payment receipts can be provided from the developer’s bank account.
-          </p>
-        </div>
-      </details>
-
-      <!-- 6 -->
-      <details class="doc-item">
-        <summary class="doc-summary">
-          <span class="doc-title">
-            Q: Does the property have to be residential or does commercial qualify?
-          </span>
-          <span class="doc-icon" aria-hidden="true">
-            <span class="doc-icon-line doc-icon-line--horizontal"></span>
-            <span class="doc-icon-line doc-icon-line--vertical"></span>
-          </span>
-        </summary>
-        <div class="doc-panel">
-          <p>
-            Commercial property can also be used as part of the application process.
-          </p>
-        </div>
-      </details>
-
-      <!-- 7 -->
-      <details class="doc-item">
-        <summary class="doc-summary">
-          <span class="doc-title">
-            Q: How long does this process take?
-          </span>
-          <span class="doc-icon" aria-hidden="true">
-            <span class="doc-icon-line doc-icon-line--horizontal"></span>
-            <span class="doc-icon-line doc-icon-line--vertical"></span>
-          </span>
-        </summary>
-        <div class="doc-panel">
-          <p>
-            The granting of citizenship takes between four and six weeks once all
-            documents have been submitted to the authorities.
-          </p>
-        </div>
-      </details>
-
-      <!-- 8 -->
-      <details class="doc-item">
-        <summary class="doc-summary">
-          <span class="doc-title">
-            Q: Can I buy multiple properties or is it just one?
-          </span>
-          <span class="doc-icon" aria-hidden="true">
-            <span class="doc-icon-line doc-icon-line--horizontal"></span>
-            <span class="doc-icon-line doc-icon-line--vertical"></span>
-          </span>
-        </summary>
-        <div class="doc-panel">
-          <p>
-            Multiple properties can be purchased provided the total exceeds $400,000.
-          </p>
-        </div>
-      </details>
-
-      <!-- 9 -->
-      <details class="doc-item">
-        <summary class="doc-summary">
-          <span class="doc-title">
-            Q: What conditions apply to the exchange rate between dollars and lira?
-          </span>
-          <span class="doc-icon" aria-hidden="true">
-            <span class="doc-icon-line doc-icon-line--horizontal"></span>
-            <span class="doc-icon-line doc-icon-line--vertical"></span>
-          </span>
-        </summary>
-        <div class="doc-panel">
-          <p>
-            This rule changed in June 2021. The official exchange rate now used is
-            the Turkish Central Bank rate (TCMB) published at 4pm one day before
-            the funds are credited to the seller’s account. The date of the tapu
-            transfer is no longer used. The payment can only be made in USD, EUR,
-            or GBP. This must then be exchanged for lira by the seller with the
-            TCMB, which issues a currency certificate (the DAB). The amount
-            exchanged <strong>must</strong> exceed $400,000.
-          </p>
-        </div>
-      </details>
-
-      <!-- 10 -->
-      <details class="doc-item">
-        <summary class="doc-summary">
-          <span class="doc-title">
-            Q: As a new citizen can I work in Turkey or open a business?
-          </span>
-          <span class="doc-icon" aria-hidden="true">
-            <span class="doc-icon-line doc-icon-line--horizontal"></span>
-            <span class="doc-icon-line doc-icon-line--vertical"></span>
-          </span>
-        </summary>
-        <div class="doc-panel">
-          <p>
-            Yes. As part of the application you are also required to take a residence
-            permit, which gives you the immediate right of employment in Turkey.
-          </p>
-        </div>
-      </details>
-
-      <!-- 11 -->
-      <details class="doc-item">
-        <summary class="doc-summary">
-          <span class="doc-title">
-            Q: I bought property on instalments but did not register the title until after the new law, does it qualify?
-          </span>
-          <span class="doc-icon" aria-hidden="true">
-            <span class="doc-icon-line doc-icon-line--horizontal"></span>
-            <span class="doc-icon-line doc-icon-line--vertical"></span>
-          </span>
-        </summary>
-        <div class="doc-panel">
-          <p>
-            It can qualify subject to Ministry approval and assuming you can provide
-            all the backdated receipts for every single payment. The exchange rate
-            used will be one day before the funds are credited to the seller’s account.
-          </p>
-        </div>
-      </details>
-
-      <!-- 12 -->
-      <details class="doc-item">
-        <summary class="doc-summary">
-          <span class="doc-title">
-            Q: Is a criminal check required?
-          </span>
-          <span class="doc-icon" aria-hidden="true">
-            <span class="doc-icon-line doc-icon-line--horizontal"></span>
-            <span class="doc-icon-line doc-icon-line--vertical"></span>
-          </span>
-        </summary>
-        <div class="doc-panel">
-          <p>
-            The Ministry reserves the right to carry out a security check to ensure
-            the applicant poses no threat to the Turkish public or national security.
-          </p>
-        </div>
-      </details>
-
-      <!-- 13 -->
-      <details class="doc-item">
-        <summary class="doc-summary">
-          <span class="doc-title">
-            Q: Will I or my children have to complete military service in Turkey?
-          </span>
-          <span class="doc-icon" aria-hidden="true">
-            <span class="doc-icon-line doc-icon-line--horizontal"></span>
-            <span class="doc-icon-line doc-icon-line--vertical"></span>
-          </span>
-        </summary>
-        <div class="doc-panel">
-          <p>
-            Children under 18 will need to complete military service in Turkey as
-            Turkish nationals. However, as dual nationals they qualify for exemption
-            and can pay a fee instead of serving.
-          </p>
-        </div>
-      </details>
-
-      <!-- 14 -->
-      <details class="doc-item">
-        <summary class="doc-summary">
-          <span class="doc-title">
-            Q: Can my parents obtain citizenship through my purchase?
-          </span>
-          <span class="doc-icon" aria-hidden="true">
-            <span class="doc-icon-line doc-icon-line--horizontal"></span>
-            <span class="doc-icon-line doc-icon-line--vertical"></span>
-          </span>
-        </summary>
-        <div class="doc-panel">
-          <p>
-            No, they must make their own individual purchase.
-          </p>
-        </div>
-      </details>
-
-      <!-- 15 -->
-      <details class="doc-item">
-        <summary class="doc-summary">
-          <span class="doc-title">
-            Q: My child is over 18, can they take citizenship through my purchase?
-          </span>
-          <span class="doc-icon" aria-hidden="true">
-            <span class="doc-icon-line doc-icon-line--horizontal"></span>
-            <span class="doc-icon-line doc-icon-line--vertical"></span>
-          </span>
-        </summary>
-        <div class="doc-panel">
-          <p>
-            No, they must make their own individual purchase.
-          </p>
-        </div>
-      </details>
-
-      <!-- 16 -->
-      <details class="doc-item">
-        <summary class="doc-summary">
-          <span class="doc-title">
-            Q: Do I need to learn the language or take any test/interview?
-          </span>
-          <span class="doc-icon" aria-hidden="true">
-            <span class="doc-icon-line doc-icon-line--horizontal"></span>
-            <span class="doc-icon-line doc-icon-line--vertical"></span>
-          </span>
-        </summary>
-        <div class="doc-panel">
-          <p>No.</p>
-        </div>
-      </details>
-
-      <!-- 17 -->
-      <details class="doc-item">
-        <summary class="doc-summary">
-          <span class="doc-title">
-            Q: I have a travel document but no passport, can I qualify?
-          </span>
-          <span class="doc-icon" aria-hidden="true">
-            <span class="doc-icon-line doc-icon-line--horizontal"></span>
-            <span class="doc-icon-line doc-icon-line--vertical"></span>
-          </span>
-        </summary>
-        <div class="doc-panel">
-          <p>Yes.</p>
-        </div>
-      </details>
-
-      <!-- 18 -->
-      <details class="doc-item">
-        <summary class="doc-summary">
-          <span class="doc-title">
-            Q: Does Turkey allow for dual nationality?
-          </span>
-          <span class="doc-icon" aria-hidden="true">
-            <span class="doc-icon-line doc-icon-line--horizontal"></span>
-            <span class="doc-icon-line doc-icon-line--vertical"></span>
-          </span>
-        </summary>
-        <div class="doc-panel">
-          <p>
-            Yes, new citizens do not need to give up their nationality, provided
-            their original country also allows dual nationality.
-          </p>
-        </div>
-      </details>
-
-      <!-- 19 -->
-      <details class="doc-item">
-        <summary class="doc-summary">
-          <span class="doc-title">
             Q: Can I buy multiple properties to qualify?
           </span>
           <span class="doc-icon" aria-hidden="true">
@@ -1643,13 +1353,14 @@ get_header();
         </summary>
         <div class="doc-panel">
           <p>
-            Yes, multiple properties can be combined as long as the total value meets
-            the $400,000 requirement.
+            Yes. You can combine multiple eligible properties as long as the total
+            qualifying value is at least USD 400,000 and the purchases comply with
+            current citizenship rules.
           </p>
         </div>
       </details>
 
-      <!-- 20 -->
+      <!-- 2 -->
       <details class="doc-item">
         <summary class="doc-summary">
           <span class="doc-title">
@@ -1662,13 +1373,18 @@ get_header();
         </summary>
         <div class="doc-panel">
           <p>
-            Yes, provided the property has construction servitude or condominium
-            ownership and meets official criteria.
+            In many cases, yes. Off-plan units may qualify if the project and title
+            status meet the legal criteria in force at the time of application, and
+            the investment is properly documented.
+          </p>
+          <p>
+            Because eligibility can vary by project structure, legal checks should be
+            completed before committing.
           </p>
         </div>
       </details>
 
-      <!-- 21 -->
+      <!-- 3 -->
       <details class="doc-item">
         <summary class="doc-summary">
           <span class="doc-title">
@@ -1681,13 +1397,14 @@ get_header();
         </summary>
         <div class="doc-panel">
           <p>
-            Yes, both residential and commercial properties qualify if they meet legal
-            requirements.
+            Yes. Commercial property can qualify for Turkish citizenship by investment
+            if it satisfies the same valuation, transfer and compliance requirements as
+            residential property.
           </p>
         </div>
       </details>
 
-      <!-- 22 -->
+      <!-- 4 -->
       <details class="doc-item">
         <summary class="doc-summary">
           <span class="doc-title">
@@ -1700,13 +1417,14 @@ get_header();
         </summary>
         <div class="doc-panel">
           <p>
-            It is an official document confirming your investment meets citizenship
-            requirements.
+            The Certificate of Conformity is an official confirmation that your
+            investment meets the legal conditions of the citizenship-by-investment
+            program. It is a key document required before citizenship approval.
           </p>
         </div>
       </details>
 
-      <!-- 23 -->
+      <!-- 5 -->
       <details class="doc-item">
         <summary class="doc-summary">
           <span class="doc-title">
@@ -1719,68 +1437,18 @@ get_header();
         </summary>
         <div class="doc-panel">
           <p>
-            The purchase must be completed using foreign currency converted through
-            a Turkish bank with official documentation.
+            For Turkish citizenship by investment, the purchase funds are generally
+            required to be brought in as foreign currency and converted through the
+            banking system in line with current rules.
           </p>
-        </div>
-      </details>
-
-      <!-- 24 -->
-      <details class="doc-item">
-        <summary class="doc-summary">
-          <span class="doc-title">
-            Q: Can I sell the property after 3 years?
-          </span>
-          <span class="doc-icon" aria-hidden="true">
-            <span class="doc-icon-line doc-icon-line--horizontal"></span>
-            <span class="doc-icon-line doc-icon-line--vertical"></span>
-          </span>
-        </summary>
-        <div class="doc-panel">
           <p>
-            Yes, once the 3-year holding period is complete, you are free to sell
-            without affecting your citizenship.
+            The DAB (Döviz Alım Belgesi) is the supporting currency-exchange document
+            typically requested in the title transfer and conformity process.
           </p>
         </div>
       </details>
 
-      <!-- 25 -->
-      <details class="doc-item">
-        <summary class="doc-summary">
-          <span class="doc-title">
-            Q: Do I need to visit Turkey during the process?
-          </span>
-          <span class="doc-icon" aria-hidden="true">
-            <span class="doc-icon-line doc-icon-line--horizontal"></span>
-            <span class="doc-icon-line doc-icon-line--vertical"></span>
-          </span>
-        </summary>
-        <div class="doc-panel">
-          <p>
-            Not necessarily; the process can be completed via power of attorney.
-          </p>
-        </div>
-      </details>
-
-      <!-- 26 -->
-      <details class="doc-item">
-        <summary class="doc-summary">
-          <span class="doc-title">
-            Q: Can I include my family?
-          </span>
-          <span class="doc-icon" aria-hidden="true">
-            <span class="doc-icon-line doc-icon-line--horizontal"></span>
-            <span class="doc-icon-line doc-icon-line--vertical"></span>
-          </span>
-        </summary>
-        <div class="doc-panel">
-          <p>
-            Yes, your spouse and children under 18 are included in the application.
-          </p>
-        </div>
-      </details>
-
-      <!-- 27 -->
+      <!-- 6 -->
       <details class="doc-item">
         <summary class="doc-summary">
           <span class="doc-title">
@@ -1793,8 +1461,174 @@ get_header();
         </summary>
         <div class="doc-panel">
           <p>
-            The application will not qualify, so an official valuation report is
-            essential.
+            If the official valuation used for your application is below USD 400,000,
+            the property will not meet the minimum threshold for citizenship.
+          </p>
+          <p>
+            If the official valuation falls below the threshold, the application will
+            not qualify under the real estate route.
+          </p>
+        </div>
+      </details>
+
+      <!-- 7 -->
+      <details class="doc-item">
+        <summary class="doc-summary">
+          <span class="doc-title">
+            Q: Can I sell the property after 3 years?
+          </span>
+          <span class="doc-icon" aria-hidden="true">
+            <span class="doc-icon-line doc-icon-line--horizontal"></span>
+            <span class="doc-icon-line doc-icon-line--vertical"></span>
+          </span>
+        </summary>
+        <div class="doc-panel">
+          <p>
+            Yes. Once the mandatory 3-year holding period and registry commitment are
+            completed, you can usually sell the property without cancelling citizenship
+            already granted.
+          </p>
+        </div>
+      </details>
+
+      <!-- 8 -->
+      <details class="doc-item">
+        <summary class="doc-summary">
+          <span class="doc-title">
+            Q: Do I need to visit Turkey during the process?
+          </span>
+          <span class="doc-icon" aria-hidden="true">
+            <span class="doc-icon-line doc-icon-line--horizontal"></span>
+            <span class="doc-icon-line doc-icon-line--vertical"></span>
+          </span>
+        </summary>
+        <div class="doc-panel">
+          <p>
+            In most cases, applicants must be physically present in Turkey for
+            biometric processing connected to the investor residency stage. With the
+            fast-track option, the residency application, biometrics, and citizenship
+            submission can often be completed during a single visit.
+          </p>
+        </div>
+      </details>
+
+      <!-- 9 -->
+      <details class="doc-item">
+        <summary class="doc-summary">
+          <span class="doc-title">
+            Q: Is there a fast-track option for Turkish citizenship by investment?
+          </span>
+          <span class="doc-icon" aria-hidden="true">
+            <span class="doc-icon-line doc-icon-line--horizontal"></span>
+            <span class="doc-icon-line doc-icon-line--vertical"></span>
+          </span>
+        </summary>
+        <div class="doc-panel">
+          <p>
+            Yes. A fast-track option is now available for investor residency
+            applications linked to citizenship-by-investment cases. This can reduce
+            the number of in-person steps by allowing residency processing,
+            biometrics, and citizenship submission to be handled in a much shorter
+            window.
+          </p>
+        </div>
+      </details>
+
+      <!-- 10 -->
+      <details class="doc-item">
+        <summary class="doc-summary">
+          <span class="doc-title">
+            Q: How many times do I need to visit Turkey?
+          </span>
+          <span class="doc-icon" aria-hidden="true">
+            <span class="doc-icon-line doc-icon-line--horizontal"></span>
+            <span class="doc-icon-line doc-icon-line--vertical"></span>
+          </span>
+        </summary>
+        <div class="doc-panel">
+          <p>
+            At least one visit is usually required for biometric processing. With
+            the fast-track option, the required in-person stages can often be
+            completed in a single visit.
+          </p>
+        </div>
+      </details>
+
+      <!-- 11 -->
+      <details class="doc-item">
+        <summary class="doc-summary">
+          <span class="doc-title">
+            Q: Can I include my family?
+          </span>
+          <span class="doc-icon" aria-hidden="true">
+            <span class="doc-icon-line doc-icon-line--horizontal"></span>
+            <span class="doc-icon-line doc-icon-line--vertical"></span>
+          </span>
+        </summary>
+        <div class="doc-panel">
+          <p>
+            Yes. The main applicant’s spouse and dependent children under 18 are
+            generally included in the same citizenship-by-investment application.
+          </p>
+        </div>
+      </details>
+
+      <!-- 12 -->
+      <details class="doc-item">
+        <summary class="doc-summary">
+          <span class="doc-title">
+            Q: Does Turkey allow dual nationality?
+          </span>
+          <span class="doc-icon" aria-hidden="true">
+            <span class="doc-icon-line doc-icon-line--horizontal"></span>
+            <span class="doc-icon-line doc-icon-line--vertical"></span>
+          </span>
+        </summary>
+        <div class="doc-panel">
+          <p>
+            Turkey generally permits dual nationality. Whether you can keep your
+            original nationality also depends on the laws of your current country.
+          </p>
+        </div>
+      </details>
+
+      <!-- 13 -->
+      <details class="doc-item">
+        <summary class="doc-summary">
+          <span class="doc-title">
+            Q: Do I need to learn Turkish or take a test?
+          </span>
+          <span class="doc-icon" aria-hidden="true">
+            <span class="doc-icon-line doc-icon-line--horizontal"></span>
+            <span class="doc-icon-line doc-icon-line--vertical"></span>
+          </span>
+        </summary>
+        <div class="doc-panel">
+          <p>
+            No language exam is usually required under the real-estate citizenship
+            route. Applicants should still verify current documentation and interview
+            practice at the time of submission.
+          </p>
+        </div>
+      </details>
+
+      <!-- 14 -->
+      <details class="doc-item">
+        <summary class="doc-summary">
+          <span class="doc-title">
+            Q: How long does Turkish citizenship by investment take?
+          </span>
+          <span class="doc-icon" aria-hidden="true">
+            <span class="doc-icon-line doc-icon-line--horizontal"></span>
+            <span class="doc-icon-line doc-icon-line--vertical"></span>
+          </span>
+        </summary>
+        <div class="doc-panel">
+          <p>
+            The overall process typically takes several months from property purchase
+            to passport issuance. With the fast-track route, the residency and
+            citizenship submission stages can be completed much faster at the start
+            of the process, reducing delays and the need for multiple appointments.
           </p>
         </div>
       </details>
