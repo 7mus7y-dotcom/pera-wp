@@ -817,11 +817,11 @@
     var clientId = section.getAttribute('data-client-id') || '';
     var controlsWrap = section.querySelector('[data-crm-portfolio-controls]');
     var openButton = controlsWrap ? controlsWrap.querySelector('[data-crm-portfolio-open]') : null;
-    var outputRow = controlsWrap ? controlsWrap.querySelector('[data-crm-portfolio-output]') : null;
-    var urlInput = controlsWrap ? controlsWrap.querySelector('[data-crm-portfolio-url]') : null;
-    var copyButton = controlsWrap ? controlsWrap.querySelector('[data-crm-portfolio-copy]') : null;
-    var updateButton = controlsWrap ? controlsWrap.querySelector('[data-crm-portfolio-update]') : null;
-    var expiresNote = controlsWrap ? controlsWrap.querySelector('[data-crm-portfolio-expires]') : null;
+    var outputRow = section.querySelector('[data-crm-portfolio-output]');
+    var urlInput = section.querySelector('[data-crm-portfolio-url]');
+    var copyButton = section.querySelector('[data-crm-portfolio-copy]');
+    var updateButton = section.querySelector('[data-crm-portfolio-update]');
+    var expiresNote = section.querySelector('[data-crm-portfolio-expires]');
     var updateFeedback = null;
 
     if (!clientId || !openButton) {
