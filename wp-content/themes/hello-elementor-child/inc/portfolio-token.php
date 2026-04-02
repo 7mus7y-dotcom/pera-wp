@@ -164,7 +164,6 @@ if ( ! function_exists( 'pera_portfolio_token_create_portfolio' ) ) {
 		update_post_meta( $post_id, '_portfolio_client_id', max( 0, $client_id ) );
 		update_post_meta( $post_id, '_portfolio_expires_at', max( 0, $expires_ts ) );
 		update_post_meta( $post_id, '_portfolio_revoked', 0 );
-		update_post_meta( $post_id, '_portfolio_include_citizenship_faq', 0 );
 
 		return array(
 			'post_id' => (int) $post_id,

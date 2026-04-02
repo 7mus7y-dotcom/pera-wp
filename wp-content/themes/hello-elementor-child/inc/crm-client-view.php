@@ -775,7 +775,6 @@ if ( ! function_exists( 'pera_crm_create_portfolio_token_ajax' ) ) {
 		$expires_raw = isset( $_POST['expiry'] ) ? sanitize_text_field( wp_unslash( (string) $_POST['expiry'] ) ) : '';
 		$expires_raw = '' !== $expires_raw ? $expires_raw : '+30 days';
 		$expires_at  = strtotime( $expires_raw );
-		$include_citizenship_faq = ! empty( $_POST['include_citizenship_faq'] ) ? 1 : 0;
 		if ( false === $expires_at || $expires_at <= 0 ) {
 			pera_crm_ajax_error( 'invalid_expiry', __( 'Invalid expiry format.', 'hello-elementor-child' ), 400 );
 		}
@@ -800,15 +799,12 @@ if ( ! function_exists( 'pera_crm_create_portfolio_token_ajax' ) ) {
 		$created_at      = time();
 
 		pera_crm_client_view_with_target_blog(
-			static function () use ( $client_id, $portfolio_url, $portfolio_token, $portfolio_post, $expires_at, $created_at, $include_citizenship_faq ): void {
+			static function () use ( $client_id, $portfolio_url, $portfolio_token, $portfolio_post, $expires_at, $created_at ): void {
 				update_post_meta( $client_id, '_peracrm_portfolio_url', $portfolio_url );
 				update_post_meta( $client_id, '_peracrm_portfolio_token', $portfolio_token );
 				update_post_meta( $client_id, '_peracrm_portfolio_post_id', $portfolio_post );
 				update_post_meta( $client_id, '_peracrm_portfolio_expires_at', (int) $expires_at );
 				update_post_meta( $client_id, '_peracrm_portfolio_created_at', (int) $created_at );
-				if ( $portfolio_post > 0 ) {
-					update_post_meta( $portfolio_post, '_portfolio_include_citizenship_faq', (int) $include_citizenship_faq );
-				}
 			}
 		);
 
@@ -861,9 +857,8 @@ if ( ! function_exists( 'pera_crm_update_portfolio_token_ajax' ) ) {
 		}
 
 		$portfolio_post_id = isset( $_POST['portfolio_post_id'] ) ? absint( wp_unslash( (string) $_POST['portfolio_post_id'] ) ) : 0;
-		$include_citizenship_faq = ! empty( $_POST['include_citizenship_faq'] ) ? 1 : 0;
 		$portfolio_state   = (array) pera_crm_client_view_with_target_blog(
-			static function () use ( $client_id, $portfolio_post_id, $property_ids, $include_citizenship_faq ): array {
+			static function () use ( $client_id, $portfolio_post_id, $property_ids ): array {
 				$post = $portfolio_post_id > 0 ? get_post( $portfolio_post_id ) : null;
 				if ( ! ( $post instanceof WP_Post ) || 'portfolio' !== $post->post_type ) {
 					return array( 'valid' => false );
@@ -878,7 +873,6 @@ if ( ! function_exists( 'pera_crm_update_portfolio_token_ajax' ) ) {
 
 				update_post_meta( $portfolio_post_id, '_portfolio_property_ids', $property_ids );
 				update_post_meta( $portfolio_post_id, '_portfolio_updated_at', time() );
-				update_post_meta( $portfolio_post_id, '_portfolio_include_citizenship_faq', (int) $include_citizenship_faq );
 
 				$token      = sanitize_text_field( (string) get_post_meta( $portfolio_post_id, '_portfolio_token', true ) );
 				$expires_at = (int) get_post_meta( $portfolio_post_id, '_portfolio_expires_at', true );
@@ -932,16 +926,13 @@ if ( ! function_exists( 'pera_crm_update_portfolio_token_ajax' ) ) {
 			);
 
 			pera_crm_client_view_with_target_blog(
-				static function () use ( $client_id, $portfolio_state, $expires_at, $created_at, $include_citizenship_faq ): void {
+				static function () use ( $client_id, $portfolio_state, $expires_at, $created_at ): void {
 					update_post_meta( $client_id, '_peracrm_portfolio_url', $portfolio_state['url'] );
 					update_post_meta( $client_id, '_peracrm_portfolio_token', $portfolio_state['token'] );
 					update_post_meta( $client_id, '_peracrm_portfolio_post_id', (int) $portfolio_state['post_id'] );
 					update_post_meta( $client_id, '_peracrm_portfolio_expires_at', (int) $expires_at );
 					update_post_meta( $client_id, '_peracrm_portfolio_created_at', (int) $created_at );
 					update_post_meta( $client_id, '_peracrm_portfolio_updated_at', (int) $created_at );
-					if ( (int) $portfolio_state['post_id'] > 0 ) {
-						update_post_meta( (int) $portfolio_state['post_id'], '_portfolio_include_citizenship_faq', (int) $include_citizenship_faq );
-					}
 				}
 			);
 		}
