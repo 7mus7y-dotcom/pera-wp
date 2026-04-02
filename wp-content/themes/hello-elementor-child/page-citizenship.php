@@ -47,10 +47,7 @@ get_header();
                 <h1>Turkish Citizenship by Real Estate Investment</h1>
             
                 <p class="lead">
-                  Obtain a Turkish passport for you and your family with a
-                  minimum USD&nbsp;400,000 real estate investment in Istanbul.
-                  Pera Property manages the entire process from property
-                  selection to passports in hand.
+                  Turkish citizenship by investment is one of the fastest and most accessible residency-to-passport programmes globally, with the real estate route allowing investors to obtain a Turkish passport by purchasing property worth $400,000 or more.
                 </p>
             
                 <div class="hero-actions">
