@@ -67,6 +67,7 @@ add_action( 'wp_enqueue_scripts', function () {
   $is_portfolio_token = function_exists( 'pera_portfolio_token_is_request' ) && pera_portfolio_token_is_request();
 
   $is_blog_page    = is_page_template( 'page-posts.php' ) || is_page( 'blog' );
+  $is_posts_index  = is_home() && ! is_front_page();
   $is_single_post  = is_singular( 'post' );
   $is_blog_archive = function_exists( 'pera_is_blog_archive' ) ? pera_is_blog_archive() : false;
 
@@ -154,7 +155,7 @@ if ( $needs_slider ) {
      Rule: blog page OR single post OR blog archive
   ========================= */
 
-  if ( $is_blog_page || $is_single_post || $is_blog_archive ) {
+  if ( $is_blog_page || $is_posts_index || $is_single_post || $is_blog_archive ) {
 
     $deps = array( 'pera-main-css' );
     if ( $needs_slider ) {
@@ -174,7 +175,7 @@ if ( $needs_slider ) {
      Rule: blog page OR single post OR blog archive OR single property
   ========================= */
 
-  if ( $is_home || $is_blog_page || $is_single_post || $is_blog_archive || $is_single_property ) {
+  if ( $is_home || $is_blog_page || $is_posts_index || $is_single_post || $is_blog_archive || $is_single_property ) {
 
     $deps = array( 'pera-main-css' );
     if ( $needs_slider ) {
