@@ -29,7 +29,7 @@ $guide_url           = home_url( '/citizenship-by-investment/' );
 			</div>
 
 			<div class="portfolio-citizenship-guidance__actions">
-				<a class="btn btn--blue" href="<?php echo esc_url( $guide_url ); ?>">View Citizenship Guide</a>
+				<a class="btn btn--solid btn--blue" href="<?php echo esc_url( $guide_url ); ?>">View Citizenship Guide</a>
 				<?php if ( '' !== $advisor_contact_url ) : ?>
 					<a class="btn btn--ghost btn--blue" href="<?php echo esc_url( $advisor_contact_url ); ?>">Contact Your Advisor</a>
 				<?php endif; ?>
