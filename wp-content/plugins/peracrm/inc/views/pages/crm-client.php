@@ -378,16 +378,22 @@ peracrm_frontend_render_shell_header();
           array( 'label' => __( 'Properties', 'peracrm' ), 'value' => $property_total ),
           array( 'label' => __( 'Deals', 'peracrm' ), 'value' => $deals_count ),
         );
+        $client_title_name = get_the_title( $client );
         $portfolio_items   = is_array( $property_groups['portfolio'] ?? null ) ? $property_groups['portfolio'] : array();
         $enquiry_relations = array( 'favourite', 'enquiry' );
         ?>
+
+        <div class="crm-client-sticky-name" data-crm-client-sticky-name aria-hidden="true">
+          <p class="crm-client-sticky-name__title"><?php echo esc_html( $client_title_name ); ?></p>
+          <span class="crm-chip crm-chip--status crm-client-sticky-name__meta"><?php echo esc_html( $status_label ); ?></span>
+        </div>
 
         <section class="crm-summary-header crm-client-summary">
           <div class="crm-summary-header__main">
             <div class="crm-summary-header__identity">
               <p class="crm-summary-header__eyebrow"><?php esc_html_e( 'Client summary', 'peracrm' ); ?></p>
               <div class="crm-summary-header__title-row">
-                <h2 class="crm-summary-header__title"><?php echo esc_html( get_the_title( $client ) ); ?></h2>
+                <h2 class="crm-summary-header__title"><?php echo esc_html( $client_title_name ); ?></h2>
                 <span class="crm-chip crm-chip--status"><?php echo esc_html( $status_label ); ?></span>
               </div>
               <div class="crm-summary-header__meta">

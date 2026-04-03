@@ -4175,6 +4175,52 @@ body.crm-route #site-header.peracrm-shell-header.is-scrolled .peracrm-header-act
   margin-bottom: 16px;
 }
 
+.crm-page--client-view .crm-client-sticky-name {
+  position: sticky;
+  top: var(--crm-client-sticky-offset, var(--header-height, 171px));
+  z-index: 110;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin-bottom: 10px;
+  padding: 0 14px;
+  border: 0 solid var(--border, #e8ecf2);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.96);
+  box-shadow: 0 8px 24px rgba(15, 23, 42, 0.14);
+  max-height: 0;
+  overflow: hidden;
+  opacity: 0;
+  pointer-events: none;
+  transform: translateY(-6px);
+  transition: max-height 180ms ease, opacity 140ms ease, transform 140ms ease, padding 180ms ease, border-width 180ms ease;
+}
+
+.crm-page--client-view.crm-client-sticky-active .crm-client-sticky-name {
+  max-height: 56px;
+  padding-top: 8px;
+  padding-bottom: 8px;
+  border-width: 1px;
+  opacity: 1;
+  pointer-events: auto;
+  transform: translateY(0);
+}
+
+.crm-page--client-view .crm-client-sticky-name__title {
+  margin: 0;
+  font-size: 0.98rem;
+  font-weight: 600;
+  line-height: 1.25;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.crm-page--client-view .crm-client-sticky-name__meta {
+  flex: 0 0 auto;
+}
+
 .crm-page--client-view .content-panel-box {
   background: transparent;
   border: 0;
