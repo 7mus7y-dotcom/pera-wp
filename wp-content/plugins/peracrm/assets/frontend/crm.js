@@ -285,8 +285,29 @@
     page.style.setProperty('--crm-client-sticky-offset', readHeaderOffset() + 'px');
   }
 
+  function isMobileViewport() {
+    return window.innerWidth <= 767;
+  }
+
+  function getMobileStickyScrollThreshold() {
+    return 180;
+  }
+
   function getStickyTriggerOffset() {
-    return readHeaderOffset() + (window.innerWidth <= 767 ? 100 : 0);
+    return readHeaderOffset();
+  }
+
+  function shouldShowStickyOnMobile() {
+    return window.scrollY > getMobileStickyScrollThreshold();
+  }
+
+  function syncStickyVisibility(entry) {
+    if (isMobileViewport()) {
+      setStickyVisible(shouldShowStickyOnMobile());
+      return;
+    }
+
+    setStickyVisible(!(entry && entry.isIntersecting));
   }
 
   function scheduleOffsetSync() {
@@ -302,22 +323,32 @@
   syncOffsetVar();
 
   if ('IntersectionObserver' in window) {
+    function syncMobileStickyOnScroll() {
+      if (!isMobileViewport()) {
+        return;
+      }
+      setStickyVisible(shouldShowStickyOnMobile());
+    }
+
     var observer = new window.IntersectionObserver(function (entries) {
       var entry = entries && entries[0] ? entries[0] : null;
-      setStickyVisible(!(entry && entry.isIntersecting));
+      syncStickyVisibility(entry);
     }, {
       threshold: 0,
       rootMargin: '-' + getStickyTriggerOffset() + 'px 0px 0px 0px'
     });
 
     observer.observe(summary);
+    syncMobileStickyOnScroll();
+    window.addEventListener('scroll', syncMobileStickyOnScroll, { passive: true });
 
     window.addEventListener('resize', function () {
       syncOffsetVar();
+      syncMobileStickyOnScroll();
       observer.disconnect();
       observer = new window.IntersectionObserver(function (entries) {
         var entry = entries && entries[0] ? entries[0] : null;
-        setStickyVisible(!(entry && entry.isIntersecting));
+        syncStickyVisibility(entry);
       }, {
         threshold: 0,
         rootMargin: '-' + getStickyTriggerOffset() + 'px 0px 0px 0px'
@@ -329,6 +360,10 @@
 
   function syncFallback() {
     syncOffsetVar();
+    if (isMobileViewport()) {
+      setStickyVisible(shouldShowStickyOnMobile());
+      return;
+    }
     var offset = getStickyTriggerOffset();
     var rect = summary.getBoundingClientRect();
     setStickyVisible(rect.bottom <= offset);
