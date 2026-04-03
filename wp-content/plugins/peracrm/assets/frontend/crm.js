@@ -254,6 +254,91 @@
 })();
 
 (function () {
+  var page = document.querySelector('.crm-page--client-view');
+  if (!page) {
+    return;
+  }
+
+  var summary = page.querySelector('.crm-client-summary');
+  var stickyBar = page.querySelector('[data-crm-client-sticky-name]');
+  var shellHeader = document.querySelector('#site-header.peracrm-shell-header');
+  if (!summary || !stickyBar) {
+    return;
+  }
+
+  var rafId = 0;
+
+  function setStickyVisible(isVisible) {
+    page.classList.toggle('crm-client-sticky-active', !!isVisible);
+    stickyBar.setAttribute('aria-hidden', isVisible ? 'false' : 'true');
+  }
+
+  function readHeaderOffset() {
+    if (!shellHeader) {
+      return 0;
+    }
+    var rect = shellHeader.getBoundingClientRect();
+    return Math.max(0, Math.round(rect.bottom));
+  }
+
+  function syncOffsetVar() {
+    page.style.setProperty('--crm-client-sticky-offset', readHeaderOffset() + 'px');
+  }
+
+  function scheduleOffsetSync() {
+    if (rafId) {
+      return;
+    }
+    rafId = window.requestAnimationFrame(function () {
+      rafId = 0;
+      syncOffsetVar();
+    });
+  }
+
+  syncOffsetVar();
+
+  if ('IntersectionObserver' in window) {
+    var observer = new window.IntersectionObserver(function (entries) {
+      var entry = entries && entries[0] ? entries[0] : null;
+      setStickyVisible(!(entry && entry.isIntersecting));
+    }, {
+      threshold: 0,
+      rootMargin: '-' + readHeaderOffset() + 'px 0px 0px 0px'
+    });
+
+    observer.observe(summary);
+
+    window.addEventListener('resize', function () {
+      syncOffsetVar();
+      observer.disconnect();
+      observer = new window.IntersectionObserver(function (entries) {
+        var entry = entries && entries[0] ? entries[0] : null;
+        setStickyVisible(!(entry && entry.isIntersecting));
+      }, {
+        threshold: 0,
+        rootMargin: '-' + readHeaderOffset() + 'px 0px 0px 0px'
+      });
+      observer.observe(summary);
+    }, { passive: true });
+    return;
+  }
+
+  function syncFallback() {
+    syncOffsetVar();
+    var offset = readHeaderOffset();
+    var rect = summary.getBoundingClientRect();
+    setStickyVisible(rect.bottom <= offset);
+  }
+
+  syncFallback();
+  window.addEventListener('scroll', syncFallback, { passive: true });
+  window.addEventListener('resize', syncFallback, { passive: true });
+  if (shellHeader) {
+    window.addEventListener('scroll', scheduleOffsetSync, { passive: true });
+  }
+})();
+
+(function () {
   var navRoot = document.querySelector('[data-crm-nav]');
   if (!navRoot) {
     return;
