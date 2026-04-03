@@ -817,6 +817,9 @@
     var clientId = section.getAttribute('data-client-id') || '';
     var controlsWrap = section.querySelector('[data-crm-portfolio-controls]');
     var openButton = controlsWrap ? controlsWrap.querySelector('[data-crm-portfolio-open]') : null;
+    if (!openButton) {
+      openButton = section.querySelector('[data-crm-portfolio-open]');
+    }
     var outputRow = section.querySelector('[data-crm-portfolio-output]');
     var urlInput = section.querySelector('[data-crm-portfolio-url]');
     var copyButton = section.querySelector('[data-crm-portfolio-copy]');
