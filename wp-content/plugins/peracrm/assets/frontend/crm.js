@@ -285,6 +285,10 @@
     page.style.setProperty('--crm-client-sticky-offset', readHeaderOffset() + 'px');
   }
 
+  function getStickyTriggerOffset() {
+    return readHeaderOffset() + (window.innerWidth <= 767 ? 180 : 0);
+  }
+
   function scheduleOffsetSync() {
     if (rafId) {
       return;
@@ -303,7 +307,7 @@
       setStickyVisible(!(entry && entry.isIntersecting));
     }, {
       threshold: 0,
-      rootMargin: '-' + readHeaderOffset() + 'px 0px 0px 0px'
+      rootMargin: '-' + getStickyTriggerOffset() + 'px 0px 0px 0px'
     });
 
     observer.observe(summary);
@@ -316,7 +320,7 @@
         setStickyVisible(!(entry && entry.isIntersecting));
       }, {
         threshold: 0,
-        rootMargin: '-' + readHeaderOffset() + 'px 0px 0px 0px'
+        rootMargin: '-' + getStickyTriggerOffset() + 'px 0px 0px 0px'
       });
       observer.observe(summary);
     }, { passive: true });
@@ -325,7 +329,7 @@
 
   function syncFallback() {
     syncOffsetVar();
-    var offset = readHeaderOffset();
+    var offset = getStickyTriggerOffset();
     var rect = summary.getBoundingClientRect();
     setStickyVisible(rect.bottom <= offset);
   }
