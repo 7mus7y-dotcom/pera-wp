@@ -286,7 +286,7 @@
   }
 
   function getStickyTriggerOffset() {
-    return readHeaderOffset() + (window.innerWidth <= 767 ? 180 : 0);
+    return readHeaderOffset() + (window.innerWidth <= 767 ? 100 : 0);
   }
 
   function scheduleOffsetSync() {
