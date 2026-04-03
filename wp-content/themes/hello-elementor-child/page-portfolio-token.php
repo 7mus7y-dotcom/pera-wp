@@ -116,7 +116,7 @@ get_header();
 		<section class="section section-soft">
 			<div class="container">
 				<div class="pb-md portfolio-token-summary">
-					<p class="text-light">
+					<p>
 						<?php echo esc_html( sprintf( '%d properties', (int) $properties_query->post_count ) ); ?>
 						<?php if ( $expires_at > 0 ) : ?>
 							<span> · <?php echo esc_html( sprintf( 'Valid until %s', wp_date( get_option( 'date_format' ), $expires_at ) ) ); ?></span>
