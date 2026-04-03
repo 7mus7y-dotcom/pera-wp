@@ -327,6 +327,7 @@
       if (!isMobileViewport()) {
         return;
       }
+      scheduleOffsetSync();
       setStickyVisible(shouldShowStickyOnMobile());
     }
 
