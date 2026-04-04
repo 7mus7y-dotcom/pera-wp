@@ -1,0 +1,79 @@
+#regenerate-thumbnails-missing-ui {
+	max-width: none;
+	margin-top: 16px;
+}
+
+#regenerate-thumbnails-missing-ui .regenthumbs-missing-summary {
+	margin: 0.4em 0;
+}
+
+#regenerate-thumbnails-missing-ui .regenthumbs-missing-toolbar,
+#regenerate-thumbnails-missing-ui .regenthumbs-missing-footer {
+	display: flex;
+	align-items: center;
+	gap: 8px;
+	flex-wrap: wrap;
+	margin: 12px 0;
+}
+
+#regenerate-thumbnails-missing-ui .regenthumbs-missing-selection-summary,
+#regenerate-thumbnails-missing-ui .regenthumbs-missing-page-label {
+	white-space: nowrap;
+}
+
+#regenerate-thumbnails-missing-ui .regenthumbs-missing-table-wrap {
+	overflow-x: auto;
+	max-width: 100%;
+}
+
+#regenerate-thumbnails-missing-ui .regenthumbs-missing-table {
+	min-width: 760px;
+}
+
+#regenerate-thumbnails-missing-ui .regenthumbs-missing-table th,
+#regenerate-thumbnails-missing-ui .regenthumbs-missing-table td {
+	vertical-align: top;
+}
+
+#regenerate-thumbnails-missing-ui .regenthumbs-missing-name,
+#regenerate-thumbnails-missing-ui .regenthumbs-missing-filename,
+#regenerate-thumbnails-missing-ui .regenthumbs-missing-size-tag,
+#regenerate-thumbnails-missing-ui .regenthumbs-missing-actions-cell,
+#regenerate-thumbnails-missing-ui .regenthumbs-missing-edit-link {
+	white-space: nowrap;
+}
+
+#regenerate-thumbnails-missing-ui .regenthumbs-missing-sizes-cell {
+	white-space: nowrap;
+}
+
+#regenerate-thumbnails-missing-ui .regenthumbs-missing-size-tag {
+	display: inline-block;
+	margin: 0 6px 6px 0;
+}
+
+#regenerate-thumbnails-missing-ui .check-column input[type="checkbox"] {
+	min-width: 18px;
+	min-height: 18px;
+}
+
+#regenerate-thumbnails-missing-ui .button {
+	white-space: nowrap;
+}
+
+@media (max-width: 782px) {
+	#regenerate-thumbnails-missing-ui {
+		padding: 12px;
+	}
+
+	#regenerate-thumbnails-missing-ui .regenthumbs-missing-toolbar,
+	#regenerate-thumbnails-missing-ui .regenthumbs-missing-footer {
+		align-items: flex-start;
+	}
+
+	#regenerate-thumbnails-missing-ui .regenthumbs-missing-pagination {
+		display: flex;
+		gap: 8px;
+		flex-wrap: wrap;
+	}
+}

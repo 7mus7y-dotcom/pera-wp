@@ -330,6 +330,13 @@ class RegenerateThumbnails {
 			array(),
 			( defined( 'SCRIPT_DEBUG' ) && SCRIPT_DEBUG ) ? filemtime( dirname( __FILE__ ) . '/css/progressbar.css' ) : $this->version
 		);
+
+		wp_enqueue_style(
+			'regenerate-thumbnails-diagnostics',
+			plugins_url( 'css/regenerate-diagnostics.css', __FILE__ ),
+			array( 'regenerate-thumbnails-progressbar' ),
+			filemtime( dirname( __FILE__ ) . '/css/regenerate-diagnostics.css' )
+		);
 	}
 
 	/**
