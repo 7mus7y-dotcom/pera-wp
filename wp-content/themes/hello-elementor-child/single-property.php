@@ -1217,22 +1217,18 @@ if ( $show_gallery_test_variant && $has_gallery ) :
     </p>
     <div class="property-gallery-test-b__strip" aria-label="Gallery masonry test variant photos" role="list">
       <?php foreach ( $gallery_test_items as $gallery_item ) :
-        $img_id    = $gallery_item['id'];
-        $alt_label = $gallery_item['alt'];
+        $img_id     = $gallery_item['id'];
+        $alt_label  = $gallery_item['alt'];
+        $img_url_b  = wp_get_attachment_image_url( $img_id, 'full' );
+        if ( ! $img_url_b ) { continue; }
       ?>
         <div class="property-gallery-test-b__item" role="listitem" aria-label="<?php echo esc_attr( $alt_label ); ?>">
-          <?php
-          echo wp_get_attachment_image(
-            $img_id,
-            'pera-card',
-            false,
-            array(
-              'loading'  => 'lazy',
-              'decoding' => 'async',
-              'alt'      => $alt_label,
-            )
-          );
-          ?>
+          <img
+            src="<?php echo esc_url( $img_url_b ); ?>"
+            loading="lazy"
+            decoding="async"
+            alt="<?php echo esc_attr( $alt_label ); ?>"
+          >
         </div>
       <?php endforeach; ?>
     </div>
