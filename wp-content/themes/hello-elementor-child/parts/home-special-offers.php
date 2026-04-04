@@ -123,7 +123,7 @@ if ( empty( $offers ) ) {
       <h2>Special Offers</h2>
     </header>
 
-    <div class="cards-slider-shell cards-slider-shell--nav">
+    <div class="cards-slider-shell--nav">
       <button
         type="button"
         class="cards-slider-nav cards-slider-nav--prev"
