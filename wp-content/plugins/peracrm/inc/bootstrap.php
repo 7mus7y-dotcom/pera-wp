@@ -5,6 +5,7 @@ if (!defined('ABSPATH')) {
 }
 
 require_once PERACRM_INC . '/helpers.php';
+require_once PERACRM_INC . '/phone-countries.php';
 require_once PERACRM_INC . '/impersonation.php';
 require_once PERACRM_INC . '/stages.php';
 require_once PERACRM_INC . '/schema.php';

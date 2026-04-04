@@ -4305,3 +4305,13 @@ body:not(.single-post) tr:nth-child(even) {
   margin-top: 16px;
 }
 
+
+.phone-country-search-wrap {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.phone-country-search-wrap .phone-country-search {
+  min-width: 180px;
+}

@@ -1624,3 +1624,13 @@ body.page-template-page-crm table col,
     grid-column: auto;
   }
 }
+
+.phone-country-search-wrap {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.phone-country-search-wrap .phone-country-search {
+  min-width: 170px;
+}
