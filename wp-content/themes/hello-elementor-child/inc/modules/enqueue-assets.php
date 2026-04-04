@@ -110,6 +110,16 @@ if ( $needs_slider ) {
   );
 }
 
+if ( $is_home ) {
+  wp_enqueue_script(
+    'pera-slider-nav',
+    get_stylesheet_directory_uri() . '/js/slider-nav.js',
+    array(),
+    pera_get_asset_version( '/js/slider-nav.js' ),
+    true
+  );
+}
+
 
   /* =========================
      3) property.css

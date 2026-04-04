@@ -267,6 +267,11 @@
   position: relative;
 }
 
+/* Shared shell for card sliders with chevron navigation */
+.cards-slider-shell--nav {
+  position: relative;
+}
+
 /* Nav chevrons */
 .property-gallery-nav{
   position: absolute;
@@ -290,7 +295,35 @@
   box-shadow: 0 8px 20px rgba(0,0,0,0.12);
 }
 
+.cards-slider-nav {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  z-index: 5;
+
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  width: 44px;
+  height: 44px;
+
+  border: 0;
+  border-radius: var(--pill-radius, 999px);
+  cursor: pointer;
+
+  background: rgba(255,255,255,0.9);
+  box-shadow: 0 8px 20px rgba(0,0,0,0.12);
+}
+
 .property-gallery .property-gallery-nav svg{
+  display: block;
+  color: var(--text);
+  fill: currentColor;
+  stroke: currentColor;
+}
+
+.cards-slider-nav svg {
   display: block;
   color: var(--text);
   fill: currentColor;
@@ -299,6 +332,8 @@
 
 .property-gallery-nav--prev{ left: 8px; }
 .property-gallery-nav--next{ right: 8px; }
+.cards-slider-nav--prev{ left: 8px; }
+.cards-slider-nav--next{ right: 8px; }
 
 
 @media (min-width: 768px) {
@@ -362,8 +397,19 @@
   box-shadow: 0 8px 20px rgba(0, 0, 0, 0.45);
 }
 
+[data-theme="dark"] .cards-slider-nav,
+.dark .cards-slider-nav{
+  background: rgba(15, 23, 42, 0.85);
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.45);
+}
+
 [data-theme="dark"] .property-gallery .property-gallery-nav svg,
 .dark .property-gallery .property-gallery-nav svg{
+  color: #f8fafc;
+}
+
+[data-theme="dark"] .cards-slider-nav svg,
+.dark .cards-slider-nav svg{
   color: #f8fafc;
 }
 
