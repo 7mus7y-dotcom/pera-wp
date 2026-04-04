@@ -123,52 +123,76 @@ if ( empty( $offers ) ) {
       <h2>Special Offers</h2>
     </header>
 
-    <div class="cards-slider cards-slider--snap" aria-label="Special offers">
-      <?php foreach ( $offers as $offer ) : ?>
-        <article class="slider-card special-offers-card">
+    <div class="cards-slider-shell cards-slider-shell--nav">
+      <button
+        type="button"
+        class="cards-slider-nav cards-slider-nav--prev"
+        data-slider-target="special-offers-slider"
+        aria-label="Previous special offers"
+      >
+        <svg width="22" height="22" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+          <use href="<?php echo esc_url( get_stylesheet_directory_uri() . '/logos-icons/icons.svg#icon-chevron-left' ); ?>"></use>
+        </svg>
+      </button>
 
-          <a
-            href="<?php echo esc_url( $offer['permalink'] ); ?>"
-            class="special-offers-card__media"
-            aria-label="<?php echo esc_attr( sprintf( 'View special offer: %s', $offer['title'] ) ); ?>"
-          >
-            <?php if ( $offer['attachment_id'] > 0 ) : ?>
-              <?php
-                echo wp_get_attachment_image(
-                  $offer['attachment_id'],
-                  'large',
-                  false,
-                  array(
-                    'alt'      => esc_attr( $offer['title'] ),
-                    'loading'  => 'lazy',
-                    'decoding' => 'async',
-                  )
-                );
-              ?>
-            <?php else : ?>
-              <img
-                src="<?php echo esc_url( $offer['image_url'] ); ?>"
-                alt="<?php echo esc_attr( $offer['title'] ); ?>"
-                loading="lazy"
-                decoding="async"
-              >
-            <?php endif; ?>
-          </a>
+      <div class="cards-slider cards-slider--snap" id="special-offers-slider" aria-label="Special offers">
+        <?php foreach ( $offers as $offer ) : ?>
+          <article class="slider-card special-offers-card">
 
-          <div class="special-offers-card__body">
-            <?php if ( $offer['district_label'] !== '' ) : ?>
-              <p class="special-offers-card__location"><?php echo esc_html( $offer['district_label'] ); ?></p>
-            <?php endif; ?>
+            <a
+              href="<?php echo esc_url( $offer['permalink'] ); ?>"
+              class="special-offers-card__media"
+              aria-label="<?php echo esc_attr( sprintf( 'View special offer: %s', $offer['title'] ) ); ?>"
+            >
+              <?php if ( $offer['attachment_id'] > 0 ) : ?>
+                <?php
+                  echo wp_get_attachment_image(
+                    $offer['attachment_id'],
+                    'large',
+                    false,
+                    array(
+                      'alt'      => esc_attr( $offer['title'] ),
+                      'loading'  => 'lazy',
+                      'decoding' => 'async',
+                    )
+                  );
+                ?>
+              <?php else : ?>
+                <img
+                  src="<?php echo esc_url( $offer['image_url'] ); ?>"
+                  alt="<?php echo esc_attr( $offer['title'] ); ?>"
+                  loading="lazy"
+                  decoding="async"
+                >
+              <?php endif; ?>
+            </a>
 
-            <h3 class="special-offers-card__title">
-              <a href="<?php echo esc_url( $offer['permalink'] ); ?>">
-                <?php echo esc_html( $offer['title'] ); ?>
-              </a>
-            </h3>
-          </div>
+            <div class="special-offers-card__body">
+              <?php if ( $offer['district_label'] !== '' ) : ?>
+                <p class="special-offers-card__location"><?php echo esc_html( $offer['district_label'] ); ?></p>
+              <?php endif; ?>
 
-        </article>
-      <?php endforeach; ?>
+              <h3 class="special-offers-card__title">
+                <a href="<?php echo esc_url( $offer['permalink'] ); ?>">
+                  <?php echo esc_html( $offer['title'] ); ?>
+                </a>
+              </h3>
+            </div>
+
+          </article>
+        <?php endforeach; ?>
+      </div>
+
+      <button
+        type="button"
+        class="cards-slider-nav cards-slider-nav--next"
+        data-slider-target="special-offers-slider"
+        aria-label="Next special offers"
+      >
+        <svg width="22" height="22" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+          <use href="<?php echo esc_url( get_stylesheet_directory_uri() . '/logos-icons/icons.svg#icon-chevron-right' ); ?>"></use>
+        </svg>
+      </button>
     </div>
 
   </div>
