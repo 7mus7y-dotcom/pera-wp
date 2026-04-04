@@ -426,7 +426,7 @@
   display: block;
   height: 100%;
   width: auto;
-  max-width: none;
+  max-width: min(82vw, 520px);
   object-fit: cover;
 }
 
@@ -435,11 +435,19 @@
     gap: 12px;
     height: 340px;
   }
+
+  .property-gallery-test-b__item img{
+    max-width: min(68vw, 760px);
+  }
 }
 
 @media (min-width: 1024px){
   .property-gallery-test-b__strip{
     height: 420px;
+  }
+
+  .property-gallery-test-b__item img{
+    max-width: min(56vw, 900px);
   }
 }
 
