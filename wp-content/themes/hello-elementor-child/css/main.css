@@ -2825,6 +2825,51 @@ body:not(.single-post) tr:nth-child(even) {
   color: var(--text-soft);
 }
 
+/* =======================================================
+   HOME: Featured properties catalogue card
+   ======================================================= */
+.home-featured-properties .property-card--catalogue .property-card__inner--catalogue{
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 100%;
+  text-align: center;
+}
+
+.home-featured-properties .property-card__catalogue-body{
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+}
+
+.home-featured-properties .property-card__catalogue-body h3{
+  margin: 0;
+}
+
+.home-featured-properties .property-card__catalogue-body p{
+  margin: 0;
+}
+
+.home-featured-properties .property-card__catalogue-kicker{
+  position: relative;
+  overflow: hidden;
+}
+
+.home-featured-properties .property-card__catalogue-kicker-hover{
+  display: none;
+}
+
+.home-featured-properties .property-card--catalogue:hover .property-card__catalogue-kicker-default,
+.home-featured-properties .property-card--catalogue:focus-within .property-card__catalogue-kicker-default{
+  display: none;
+}
+
+.home-featured-properties .property-card--catalogue:hover .property-card__catalogue-kicker-hover,
+.home-featured-properties .property-card--catalogue:focus-within .property-card__catalogue-kicker-hover{
+  display: inline;
+}
+
 /* Feature grid layout */
 .feature-grid {
   max-width: var(--container);

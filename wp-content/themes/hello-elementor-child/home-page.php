@@ -158,12 +158,12 @@ $featured_query = new WP_Query( array(
 ) );
 ?>
 
-<section class="section">
+<section class="section home-featured-properties">
   <div class="container">
 
     <div class="section-header section-header--center">
-      <h2>Featured opportunities</h2>
-      <p class="lead">A selection of current listings across Istanbul.</p>
+      <h2>Latest property for sale in Istanbul</h2>
+      <p class="lead">The newest apartments, villas and investment opportunities recently added to our website.</p>
     </div>
 
     <div class="cards-slider cards-slider--features cards-slider--snap cards-slider--grid-lg" aria-label="Featured properties">
@@ -179,12 +179,19 @@ $featured_query = new WP_Query( array(
                 ) );
               ?>
             <?php else : ?>
-              <div class="property-card property-card--archive">
-                <div class="property-card__inner flex-center text-center">
-                  <div>
-                    <h3>Want to see more?</h3>
-                    <p class="text-sm">Check out all of our listings</p>
-                    <a class="btn btn--solid btn--blue" href="/property/">See all listings</a>
+              <div class="property-card property-card--archive property-card--catalogue">
+                <div class="property-card__inner property-card__inner--catalogue">
+                  <div class="property-card__catalogue-body">
+                    <span class="pill pill--brand pill--sm property-card__catalogue-kicker">
+                      <span class="property-card__catalogue-kicker-default">FULL CATALOGUE</span>
+                      <span class="property-card__catalogue-kicker-hover" aria-hidden="true">→ Browse all listings</span>
+                    </span>
+                    <h3>Browse all property for sale in Istanbul</h3>
+                    <p class="text-sm">Apartments • Villas • Projects</p>
+                    <div class="hero-actions">
+                      <a class="btn btn--solid btn--blue" href="/property/">See all listings</a>
+                      <a class="btn btn--ghost btn--blue" href="/property/#results">Advanced search</a>
+                    </div>
                   </div>
                 </div>
               </div>
