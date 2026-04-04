@@ -164,6 +164,8 @@ $form_context = ( $context === 'property' )
       <div class="cta-field">
         <span class="cta-label">Mobile / WhatsApp</span>
         <div class="cta-phone-row sr-phone-row">
+          <!-- phone helper: <?php echo function_exists( 'peracrm_phone_dial_code_options' ) ? 'yes' : 'no'; ?> -->
+          <!-- phone count: <?php echo (int) count( $available_phone_countries ); ?> -->
           <select id="sr_phone_country" name="sr_phone_country" class="cta-control cta-control--phone-country" required aria-label="Country code" data-phone-country-select="1">
             <?php foreach ( $available_phone_countries as $country_row ) :
               $country_value = isset( $country_row['dial_code'] ) ? (string) $country_row['dial_code'] : '';
