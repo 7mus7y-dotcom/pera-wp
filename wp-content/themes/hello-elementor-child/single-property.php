@@ -1065,101 +1065,41 @@ $custom_video_text = $custom_video_text ? wp_kses_post( wpautop( $custom_video_t
     $has_gallery = ( ! empty( $gallery_ids ) && is_array( $gallery_ids ) && (int) $photo_count > 0 );
 
     if ( $has_gallery ) :
-
-      // Split into two rows (alternating), only keep valid attachment IDs.
-      $row1 = array();
-      $row2 = array();
-
-      foreach ( $gallery_ids as $i => $img_id ) {
+      $gallery_items = array();
+      foreach ( $gallery_ids as $img_id ) {
         $img_id = absint( $img_id );
         if ( ! $img_id ) { continue; }
+        if ( ! wp_get_attachment_image_url( $img_id, 'full' ) ) { continue; }
 
-        if ( $i % 2 === 0 ) { $row1[] = $img_id; }
-        else { $row2[] = $img_id; }
+        $alt_meta = trim( (string) get_post_meta( $img_id, '_wp_attachment_image_alt', true ) );
+        $gallery_items[] = array(
+          'id'  => $img_id,
+          'alt' => $alt_meta !== '' ? $alt_meta : $title,
+        );
       }
 
-      $has_rows = ( ! empty( $row1 ) || ! empty( $row2 ) );
-
-      if ( $has_rows ) :
+      if ( ! empty( $gallery_items ) ) :
     ?>
-
-      <div class="property-gallery-shell" aria-label="Property photos">
-
-        <button
-          class="property-gallery-nav property-gallery-nav--prev"
-          type="button"
-          aria-label="Scroll left"
-        >
-          <svg aria-hidden="true" width="22" height="22">
-            <use href="<?php echo esc_url( get_stylesheet_directory_uri() . '/logos-icons/icons.svg#icon-chevron-left' ); ?>"></use>
-          </svg>
-        </button>
-
-        <button
-          class="property-gallery-nav property-gallery-nav--next"
-          type="button"
-          aria-label="Scroll right"
-        >
-          <svg aria-hidden="true" width="22" height="22">
-            <use href="<?php echo esc_url( get_stylesheet_directory_uri() . '/logos-icons/icons.svg#icon-chevron-right' ); ?>"></use>
-          </svg>
-        </button>
-
-        <div class="property-gallery-strip" aria-label="Gallery photos">
-
-          <?php
-          /**
-           * Render one row of gallery items (no lightbox, no JS hooks).
-           *
-           * @param int[] $row_ids
-           */
-          $render_gallery_row = function( array $row_ids ) use ( $title ) {
-
-            if ( empty( $row_ids ) ) { return; }
-
-            echo '<div class="property-gallery-strip__row" role="list">';
-
-            foreach ( $row_ids as $img_id ) {
-
-              $img_id = absint( $img_id );
-              if ( ! $img_id ) { continue; }
-
-              // Skip if attachment is missing
-              if ( ! wp_get_attachment_image_url( $img_id, 'full' ) ) { continue; }
-
-              $alt_meta  = trim( (string) get_post_meta( $img_id, '_wp_attachment_image_alt', true ) );
-              $alt_label = $alt_meta !== '' ? $alt_meta : $title;
-
-              echo '<div class="property-gallery-strip__item" role="listitem" aria-label="' . esc_attr( $alt_label ) . '">';
-
-              echo wp_get_attachment_image(
-                $img_id,
-                'pera-card',
-                false,
-                array(
-                  'loading'  => 'lazy',
-                  'decoding' => 'async',
-                  'alt'      => $alt_label,
-                )
-              );
-
-              echo '</div>';
-            }
-
-            echo '</div>';
-          };
-
-          $render_gallery_row( $row1 );
-          $render_gallery_row( $row2 );
-          ?>
-
-        </div><!-- /.property-gallery-strip -->
-      </div><!-- /.property-gallery-shell -->
-
-    <?php
-      else :
-        echo '<p class="text-soft" style="margin:0;">No gallery images available.</p>';
-      endif;
+      <div class="property-gallery__strip" aria-label="Property photos" role="list">
+        <?php foreach ( $gallery_items as $gallery_item ) :
+          $img_id    = $gallery_item['id'];
+          $alt_label = $gallery_item['alt'];
+          $img_url   = wp_get_attachment_image_url( $img_id, 'full' );
+          if ( ! $img_url ) { continue; }
+        ?>
+          <div class="property-gallery__item" role="listitem" aria-label="<?php echo esc_attr( $alt_label ); ?>">
+            <img
+              src="<?php echo esc_url( $img_url ); ?>"
+              loading="lazy"
+              decoding="async"
+              alt="<?php echo esc_attr( $alt_label ); ?>"
+            >
+          </div>
+        <?php endforeach; ?>
+      </div>
+    <?php else :
+      echo '<p class="text-soft" style="margin:0;">No gallery images available.</p>';
+    endif;
 
     else :
       echo '<p class="text-soft" style="margin:0;">No gallery images available.</p>';
@@ -1167,74 +1107,6 @@ $custom_video_text = $custom_video_text ? wp_kses_post( wpautop( $custom_video_t
     ?>
   </div><!-- /.container -->
 </section>
-
-<?php
-$show_gallery_test_variant = current_user_can( 'manage_options' ) && isset( $_GET['gallery_test'] ); // phpcs:ignore WordPress.Security.NonceVerification.Recommended
-if ( $show_gallery_test_variant && $has_gallery ) :
-  $gallery_test_items = array();
-  foreach ( $gallery_ids as $img_id ) {
-    $img_id = absint( $img_id );
-    if ( ! $img_id ) { continue; }
-    if ( ! wp_get_attachment_image_url( $img_id, 'full' ) ) { continue; }
-
-    $alt_meta = trim( (string) get_post_meta( $img_id, '_wp_attachment_image_alt', true ) );
-    $gallery_test_items[] = array(
-      'id'  => $img_id,
-      'alt' => $alt_meta !== '' ? $alt_meta : $title,
-    );
-  }
-?>
-<section class="section property-gallery-test" aria-label="Admin preview gallery test variant">
-  <div class="container">
-    <p class="property-gallery-test__note">
-      <strong>Admin preview:</strong> no-JS gallery concept
-    </p>
-
-    <div class="property-gallery-test__strip" aria-label="Gallery test variant photos" role="list">
-      <?php foreach ( $gallery_test_items as $gallery_item ) :
-        $img_id     = $gallery_item['id'];
-        $alt_label  = $gallery_item['alt'];
-      ?>
-        <div class="property-gallery-test__item" role="listitem" aria-label="<?php echo esc_attr( $alt_label ); ?>">
-          <?php
-          echo wp_get_attachment_image(
-            $img_id,
-            'pera-card',
-            false,
-            array(
-              'loading'  => 'lazy',
-              'decoding' => 'async',
-              'alt'      => $alt_label,
-            )
-          );
-          ?>
-        </div>
-      <?php endforeach; ?>
-    </div>
-
-    <p class="property-gallery-test-b__note">
-      <strong>Admin preview:</strong> masonry-style no-JS gallery concept
-    </p>
-    <div class="property-gallery-test-b__strip" aria-label="Gallery masonry test variant photos" role="list">
-      <?php foreach ( $gallery_test_items as $gallery_item ) :
-        $img_id     = $gallery_item['id'];
-        $alt_label  = $gallery_item['alt'];
-        $img_url_b  = wp_get_attachment_image_url( $img_id, 'full' );
-        if ( ! $img_url_b ) { continue; }
-      ?>
-        <div class="property-gallery-test-b__item" role="listitem" aria-label="<?php echo esc_attr( $alt_label ); ?>">
-          <img
-            src="<?php echo esc_url( $img_url_b ); ?>"
-            loading="lazy"
-            decoding="async"
-            alt="<?php echo esc_attr( $alt_label ); ?>"
-          >
-        </div>
-      <?php endforeach; ?>
-    </div>
-  </div>
-</section>
-<?php endif; ?>
 
 
 
@@ -1689,8 +1561,7 @@ endif;
 
 <script>
 /* ==========================================================
-   PERA PROPERTY — GALLERY CHEVRON SCROLL + READ MORE TOGGLE
-   (Drag removed, lightbox removed)
+   PERA PROPERTY — READ MORE TOGGLE
    ========================================================== */
 
 document.addEventListener('DOMContentLoaded', function () {
@@ -1714,42 +1585,8 @@ document.addEventListener('DOMContentLoaded', function () {
     });
   }
 
-  /* ==========================================================
-     2) PROPERTY GALLERY STRIP (chevrons only)
-     ========================================================== */
-  function initGalleryChevronScroll() {
-    const shell = document.querySelector('.property-gallery-shell');
-    if (!shell) return;
-
-    // No more data-gallery-* hooks — use existing classes only
-    const strip  = shell.querySelector('.property-gallery-strip');
-    const btnPrev = shell.querySelector('.property-gallery-nav--prev');
-    const btnNext = shell.querySelector('.property-gallery-nav--next');
-
-    if (!strip) return;
-
-    function scrollByAmount(dir) {
-      const amount = Math.max(240, Math.round(strip.clientWidth * 0.8));
-      strip.scrollBy({ left: dir * amount, behavior: 'smooth' });
-    }
-
-    if (btnPrev) btnPrev.addEventListener('click', function (e) {
-      e.preventDefault();
-      e.stopPropagation();
-      scrollByAmount(-1);
-    });
-
-    if (btnNext) btnNext.addEventListener('click', function (e) {
-      e.preventDefault();
-      e.stopPropagation();
-      scrollByAmount(1);
-    });
-  }
-
   // Init
   initArchiveHeroToggle();
-  initGalleryChevronScroll();
-
 });
 </script>
 
