@@ -99,6 +99,26 @@ if (!function_exists('pera_crm_enqueue_assets')) {
             return;
         }
 
+
+        $phone_picker_js = peracrm_frontend_get_asset_file('assets/frontend/phone-country-picker.js');
+        if (!empty($phone_picker_js)) {
+            wp_enqueue_script(
+                'pera-phone-country-picker',
+                $phone_picker_js['url'],
+                [],
+                (string) filemtime($phone_picker_js['path']),
+                true
+            );
+
+            wp_localize_script(
+                'pera-phone-country-picker',
+                'peraPhoneCountries',
+                [
+                    'countries' => function_exists('peracrm_phone_dial_code_options') ? peracrm_phone_dial_code_options() : [],
+                ]
+            );
+        }
+
         wp_enqueue_script(
             'pera-crm-js',
             $crm_js['url'],

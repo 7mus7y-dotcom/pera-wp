@@ -36,46 +36,35 @@ if ( ! isset( $source_options[ $prefill_source ] ) ) {
 }
 
 $default_phone_country = '+90';
-$crm_phone_country_options = array(
-	'+1'   => '+1',
-	'+27'  => '+27',
-	'+30'  => '+30',
-	'+31'  => '+31',
-	'+32'  => '+32',
-	'+33'  => '+33',
-	'+34'  => '+34',
-	'+39'  => '+39',
-	'+41'  => '+41',
-	'+43'  => '+43',
-	'+44'  => '+44',
-	'+45'  => '+45',
-	'+46'  => '+46',
-	'+47'  => '+47',
-	'+49'  => '+49',
-	'+65'  => '+65',
-	'+86'  => '+86',
-	'+90'  => '+90',
-	'+353' => '+353',
-	'+852' => '+852',
-	'+880' => '+880',
-	'+961' => '+961',
-	'+962' => '+962',
-	'+965' => '+965',
-	'+966' => '+966',
-	'+968' => '+968',
-	'+971' => '+971',
-	'+973' => '+973',
-	'+974' => '+974',
-);
-$available_phone_countries = $crm_phone_country_options;
+$available_phone_countries = function_exists( 'peracrm_phone_dial_code_options' )
+	? (array) peracrm_phone_dial_code_options()
+	: array(
+		array( 'iso' => 'TR', 'dial_code' => '+90', 'label' => 'Turkey +90', 'search_tokens' => 'Turkey TR +90' ),
+		array( 'iso' => 'GB', 'dial_code' => '+44', 'label' => 'United Kingdom +44', 'search_tokens' => 'United Kingdom UK GB +44' ),
+		array( 'iso' => 'AE', 'dial_code' => '+971', 'label' => 'United Arab Emirates +971', 'search_tokens' => 'United Arab Emirates UAE AE +971' ),
+		array( 'iso' => 'US', 'dial_code' => '+1', 'label' => 'United States +1', 'search_tokens' => 'United States USA US +1' ),
+	);
 
+$phone_country_lookup = array();
+foreach ( $available_phone_countries as $country_row ) {
+	if ( ! is_array( $country_row ) ) {
+		continue;
+	}
+
+	$dial_code = isset( $country_row['dial_code'] ) ? (string) $country_row['dial_code'] : '';
+	if ( '' === $dial_code ) {
+		continue;
+	}
+
+	$phone_country_lookup[ $dial_code ] = true;
+}
 $prefill_phone_country  = $default_phone_country;
 $prefill_phone_national = '';
 $prefill_phone_trimmed  = ltrim( $prefill_phone );
 
 if ( '' !== $prefill_phone_trimmed && '+' === substr( $prefill_phone_trimmed, 0, 1 ) ) {
 	$phone_digits  = preg_replace( '/\D+/', '', $prefill_phone_trimmed );
-	$sorted_codes  = array_keys( $available_phone_countries );
+	$sorted_codes  = function_exists( 'peracrm_phone_country_dial_codes' ) ? (array) peracrm_phone_country_dial_codes() : array_keys( $phone_country_lookup );
 	usort(
 		$sorted_codes,
 		static function ( $left, $right ) {
@@ -101,7 +90,7 @@ if ( '' === $prefill_phone_national && '' !== $prefill_phone ) {
 	$prefill_phone_national = preg_replace( '/\D+/', '', $prefill_phone );
 }
 
-if ( ! isset( $crm_phone_country_options[ $prefill_phone_country ] ) ) {
+if ( ! isset( $phone_country_lookup[ $prefill_phone_country ] ) ) {
 	$prefill_phone_country = $default_phone_country;
 }
 
@@ -207,9 +196,17 @@ peracrm_frontend_render_shell_header( array( 'show_crm_nav_toggle' => false ) );
               <div class="crm-phone-field crm-form-field">
                 <label for="crm-phone-national"><?php echo esc_html__( 'Mobile / WhatsApp', 'peracrm' ); ?></label>
                 <div class="crm-phone-row">
-                  <select id="crm-phone-country" name="peracrm_phone_country" class="crm-phone-country" aria-label="<?php echo esc_attr__( 'Country code', 'peracrm' ); ?>">
-                    <?php foreach ( $crm_phone_country_options as $country_value => $country_label ) : ?>
-                      <option value="<?php echo esc_attr( (string) $country_value ); ?>" <?php selected( $prefill_phone_country, (string) $country_value ); ?>><?php echo esc_html( (string) $country_label ); ?></option>
+                  <select id="crm-phone-country" name="peracrm_phone_country" class="crm-phone-country" aria-label="<?php echo esc_attr__( 'Country code', 'peracrm' ); ?>" data-phone-country-select="1">
+                    <?php foreach ( $available_phone_countries as $country_row ) :
+                      $country_value = isset( $country_row['dial_code'] ) ? (string) $country_row['dial_code'] : '';
+                      $country_label = isset( $country_row['label'] ) ? (string) $country_row['label'] : $country_value;
+                      $country_iso   = isset( $country_row['iso'] ) ? (string) $country_row['iso'] : '';
+                      $country_tokens = isset( $country_row['search_tokens'] ) ? (string) $country_row['search_tokens'] : '';
+                      if ( '' === $country_value ) {
+                        continue;
+                      }
+                    ?>
+                      <option value="<?php echo esc_attr( $country_value ); ?>" data-country-iso="<?php echo esc_attr( $country_iso ); ?>" data-country-search="<?php echo esc_attr( $country_tokens ); ?>" <?php selected( $prefill_phone_country, $country_value ); ?>><?php echo esc_html( $country_label ); ?></option>
                     <?php endforeach; ?>
                   </select>
                   <input id="crm-phone-national" type="tel" name="peracrm_phone_national" value="<?php echo esc_attr( (string) $prefill_phone_national ); ?>" inputmode="tel" autocomplete="tel-national" placeholder="<?php echo esc_attr__( 'Phone number', 'peracrm' ); ?>" aria-label="<?php echo esc_attr__( 'Phone number', 'peracrm' ); ?>" />

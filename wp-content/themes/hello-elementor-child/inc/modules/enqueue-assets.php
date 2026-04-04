@@ -84,6 +84,25 @@ add_action( 'wp_enqueue_scripts', function () {
     is_singular( 'property' ) ||
     is_singular( 'bodrum-property' );
 
+  if ( ! $is_crm_route && defined( 'PERACRM_URL' ) && $is_enquiry_page ) {
+    wp_enqueue_script(
+      'pera-phone-country-picker',
+      trailingslashit( PERACRM_URL ) . 'assets/frontend/phone-country-picker.js',
+      array(),
+      null,
+      true
+    );
+
+    wp_localize_script(
+      'pera-phone-country-picker',
+      'peraPhoneCountries',
+      array(
+        'countries' => function_exists( 'peracrm_phone_dial_code_options' ) ? peracrm_phone_dial_code_options() : array(),
+      )
+    );
+  }
+
+
 /* =========================
    2) slider.css
    Rule: home, single-property, single-post, contact, about-new, single-bodrum-property
