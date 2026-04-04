@@ -1171,6 +1171,18 @@ $custom_video_text = $custom_video_text ? wp_kses_post( wpautop( $custom_video_t
 <?php
 $show_gallery_test_variant = current_user_can( 'manage_options' ) && isset( $_GET['gallery_test'] ); // phpcs:ignore WordPress.Security.NonceVerification.Recommended
 if ( $show_gallery_test_variant && $has_gallery ) :
+  $gallery_test_items = array();
+  foreach ( $gallery_ids as $img_id ) {
+    $img_id = absint( $img_id );
+    if ( ! $img_id ) { continue; }
+    if ( ! wp_get_attachment_image_url( $img_id, 'full' ) ) { continue; }
+
+    $alt_meta = trim( (string) get_post_meta( $img_id, '_wp_attachment_image_alt', true ) );
+    $gallery_test_items[] = array(
+      'id'  => $img_id,
+      'alt' => $alt_meta !== '' ? $alt_meta : $title,
+    );
+  }
 ?>
 <section class="section property-gallery-test" aria-label="Admin preview gallery test variant">
   <div class="container">
@@ -1179,15 +1191,36 @@ if ( $show_gallery_test_variant && $has_gallery ) :
     </p>
 
     <div class="property-gallery-test__strip" aria-label="Gallery test variant photos" role="list">
-      <?php foreach ( $gallery_ids as $img_id ) :
-        $img_id = absint( $img_id );
-        if ( ! $img_id ) { continue; }
-        if ( ! wp_get_attachment_image_url( $img_id, 'full' ) ) { continue; }
-
-        $alt_meta  = trim( (string) get_post_meta( $img_id, '_wp_attachment_image_alt', true ) );
-        $alt_label = $alt_meta !== '' ? $alt_meta : $title;
+      <?php foreach ( $gallery_test_items as $gallery_item ) :
+        $img_id     = $gallery_item['id'];
+        $alt_label  = $gallery_item['alt'];
       ?>
         <div class="property-gallery-test__item" role="listitem" aria-label="<?php echo esc_attr( $alt_label ); ?>">
+          <?php
+          echo wp_get_attachment_image(
+            $img_id,
+            'pera-card',
+            false,
+            array(
+              'loading'  => 'lazy',
+              'decoding' => 'async',
+              'alt'      => $alt_label,
+            )
+          );
+          ?>
+        </div>
+      <?php endforeach; ?>
+    </div>
+
+    <p class="property-gallery-test-b__note">
+      <strong>Admin preview:</strong> masonry-style no-JS gallery concept
+    </p>
+    <div class="property-gallery-test-b__strip" aria-label="Gallery masonry test variant photos" role="list">
+      <?php foreach ( $gallery_test_items as $gallery_item ) :
+        $img_id    = $gallery_item['id'];
+        $alt_label = $gallery_item['alt'];
+      ?>
+        <div class="property-gallery-test-b__item" role="listitem" aria-label="<?php echo esc_attr( $alt_label ); ?>">
           <?php
           echo wp_get_attachment_image(
             $img_id,
