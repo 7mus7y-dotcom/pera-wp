@@ -22,7 +22,7 @@ if ( ! class_exists( 'Pera_WebP_Tools' ) ) {
 		protected static $stats_runtime_cache = null;
 
 		public static function init() {
-			add_filter( 'wp_get_attachment_image_src', array( __CLASS__, 'maybe_swap_to_webp' ), 10, 3 );
+			add_filter( 'wp_get_attachment_image_attributes', array( __CLASS__, 'maybe_swap_attachment_image_attrs_to_webp' ), 10, 3 );
 			add_filter( 'media_row_actions', array( __CLASS__, 'add_media_row_actions' ), 10, 2 );
 			add_action( 'admin_init', array( __CLASS__, 'handle_single_conversion_request' ) );
 			add_action( 'admin_init', array( __CLASS__, 'handle_single_delete_request' ) );
@@ -36,29 +36,68 @@ if ( ! class_exists( 'Pera_WebP_Tools' ) ) {
 			add_action( 'admin_notices', array( __CLASS__, 'render_admin_notices' ) );
 		}
 
-		public static function maybe_swap_to_webp( $image, $attachment_id, $size ) {
-			if ( empty( $image[0] ) ) {
-				return $image;
+		public static function maybe_swap_attachment_image_attrs_to_webp( $attr, $attachment, $size ) {
+			if ( ! is_array( $attr ) ) {
+				return $attr;
 			}
 
-			$url = $image[0];
-			if ( ! preg_match( '/\.(jpe?g|png)$/i', $url ) ) {
-				return $image;
+			if ( ! empty( $attr['src'] ) ) {
+				$attr['src'] = self::maybe_swap_single_url_to_webp( (string) $attr['src'] );
+			}
+
+			if ( empty( $attr['srcset'] ) || ! is_string( $attr['srcset'] ) ) {
+				return $attr;
+			}
+
+			$srcset_items    = array_map( 'trim', explode( ',', $attr['srcset'] ) );
+			$rewritten_items = array();
+
+			foreach ( $srcset_items as $item ) {
+				if ( '' === $item ) {
+					continue;
+				}
+
+				$parts      = preg_split( '/\s+/', $item, 2 );
+				$url        = isset( $parts[0] ) ? trim( $parts[0] ) : '';
+				$descriptor = isset( $parts[1] ) ? trim( $parts[1] ) : '';
+
+				if ( '' === $url ) {
+					continue;
+				}
+
+				$rewritten_url = self::maybe_swap_single_url_to_webp( $url );
+				$rewritten_items[] = '' !== $descriptor ? ( $rewritten_url . ' ' . $descriptor ) : $rewritten_url;
+			}
+
+			if ( ! empty( $rewritten_items ) ) {
+				$attr['srcset'] = implode( ', ', $rewritten_items );
+			}
+
+			return $attr;
+		}
+
+		protected static function maybe_swap_single_url_to_webp( $url ) {
+			if ( '' === $url ) {
+				return $url;
+			}
+
+			if ( ! preg_match( '/\.(jpe?g|png)(\?.*)?$/i', $url ) ) {
+				return $url;
 			}
 
 			$uploads = wp_upload_dir();
 			if ( empty( $uploads['baseurl'] ) || empty( $uploads['basedir'] ) ) {
-				return $image;
+				return $url;
 			}
 
-			$webp_url  = preg_replace( '/\.(jpe?g|png)$/i', '.webp', $url );
-			$webp_path = str_replace( $uploads['baseurl'], $uploads['basedir'], $webp_url );
+			$webp_url  = preg_replace( '/\.(jpe?g|png)(\?.*)?$/i', '.webp$2', $url );
+			$webp_path = str_replace( $uploads['baseurl'], $uploads['basedir'], (string) $webp_url );
 
 			if ( $webp_path && file_exists( $webp_path ) ) {
-				$image[0] = $webp_url;
+				return (string) $webp_url;
 			}
 
-			return $image;
+			return $url;
 		}
 
 		public static function can_encode() {
