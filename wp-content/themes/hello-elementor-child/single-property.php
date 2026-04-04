@@ -1084,16 +1084,20 @@ $custom_video_text = $custom_video_text ? wp_kses_post( wpautop( $custom_video_t
         <?php foreach ( $gallery_items as $gallery_item ) :
           $img_id    = $gallery_item['id'];
           $alt_label = $gallery_item['alt'];
-          $img_url   = wp_get_attachment_image_url( $img_id, 'full' );
-          if ( ! $img_url ) { continue; }
+          $image_html = wp_get_attachment_image(
+            $img_id,
+            'full',
+            false,
+            array(
+              'loading'  => 'lazy',
+              'decoding' => 'async',
+              'alt'      => $alt_label,
+            )
+          );
+          if ( ! $image_html ) { continue; }
         ?>
           <div class="property-gallery__item" role="listitem" aria-label="<?php echo esc_attr( $alt_label ); ?>">
-            <img
-              src="<?php echo esc_url( $img_url ); ?>"
-              loading="lazy"
-              decoding="async"
-              alt="<?php echo esc_attr( $alt_label ); ?>"
-            >
+            <?php echo $image_html; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>
           </div>
         <?php endforeach; ?>
       </div>
