@@ -401,7 +401,7 @@
   display: flex;
   align-items: flex-start;
   gap: 10px;
-  height: 240px;
+  height: 260px;
   overflow-x: auto;
   overflow-y: hidden;
   -webkit-overflow-scrolling: touch;
@@ -413,8 +413,9 @@
 .property-gallery-test-b__item{
   flex: 0 0 auto;
   height: 100%;
-  min-width: 180px;
-  max-width: 420px;
+  min-width: 120px;
+  width: auto;
+  aspect-ratio: auto;
   border-radius: var(--radius-lg);
   overflow: hidden;
   scroll-snap-align: start;
@@ -425,13 +426,20 @@
   display: block;
   height: 100%;
   width: auto;
+  max-width: none;
   object-fit: cover;
 }
 
 @media (min-width: 768px){
   .property-gallery-test-b__strip{
     gap: 12px;
-    height: 260px;
+    height: 340px;
+  }
+}
+
+@media (min-width: 1024px){
+  .property-gallery-test-b__strip{
+    height: 420px;
   }
 }
 
