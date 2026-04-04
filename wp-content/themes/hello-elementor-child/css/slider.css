@@ -391,6 +391,50 @@
   }
 }
 
+.property-gallery-test-b__note{
+  margin: 14px 0 12px;
+  font-size: 0.9rem;
+  color: var(--text-soft, #64748b);
+}
+
+.property-gallery-test-b__strip{
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  height: 240px;
+  overflow-x: auto;
+  overflow-y: hidden;
+  -webkit-overflow-scrolling: touch;
+  scroll-snap-type: x proximity;
+  scroll-padding-inline: 2px;
+  padding-bottom: 2px;
+}
+
+.property-gallery-test-b__item{
+  flex: 0 0 auto;
+  height: 100%;
+  min-width: 180px;
+  max-width: 420px;
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  scroll-snap-align: start;
+  background: var(--surface, #fff);
+}
+
+.property-gallery-test-b__item img{
+  display: block;
+  height: 100%;
+  width: auto;
+  object-fit: cover;
+}
+
+@media (min-width: 768px){
+  .property-gallery-test-b__strip{
+    gap: 12px;
+    height: 260px;
+  }
+}
+
 /* =======================================================
    Slider card buttons — mobile sizing tweak
    ======================================================= */
