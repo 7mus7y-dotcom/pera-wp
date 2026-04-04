@@ -15,8 +15,7 @@
 	setStatus('external diagnostics script executed');
 
 	if (typeof window.regenerateThumbnails === 'undefined') {
-		setStatus('required global missing: regenerateThumbnails');
-		return;
+		setStatus('info: optional global missing: regenerateThumbnails (continuing)');
 	}
 
 	if (typeof window.wp === 'undefined' || typeof window.wp.apiRequest !== 'function') {
