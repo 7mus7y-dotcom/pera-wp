@@ -760,6 +760,125 @@ class RegenerateThumbnails_Regenerator {
 	}
 
 	/**
+	 * Returns details about currently missing registered thumbnail sizes for this attachment.
+	 *
+	 * "Missing thumbnails" means a regeneratable registered size that should exist for the
+	 * source image but is currently absent from metadata or points to a file that is missing.
+	 *
+	 * @since 3.1.7
+	 *
+	 * @return array|WP_Error {
+	 *     The missing thumbnail summary for this attachment.
+	 *
+	 *     @type array $missing_sizes         List of missing registered size labels.
+	 *     @type int   $expected_sizes_count  Number of registered sizes expected to exist.
+	 *     @type int   $present_sizes_count   Number of expected sizes that are present.
+	 * }
+	 */
+	public function get_missing_thumbnails_summary() {
+		$fullsizepath = $this->get_fullsizepath();
+		if ( is_wp_error( $fullsizepath ) ) {
+			return $fullsizepath;
+		}
+
+		$metadata = wp_get_attachment_metadata( $this->attachment->ID );
+		if ( false === $metadata || ! is_array( $metadata ) ) {
+			return new WP_Error(
+				'regenerate_thumbnails_regenerator_no_metadata',
+				__( 'Unable to load the metadata for this attachment.', 'regenerate-thumbnails' ),
+				array(
+					'status'     => 404,
+					'attachment' => $this->attachment,
+				)
+			);
+		}
+
+		if ( ! isset( $metadata['sizes'] ) || ! is_array( $metadata['sizes'] ) ) {
+			$metadata['sizes'] = array();
+		}
+
+		$registered_sizes = RegenerateThumbnails()->get_thumbnail_sizes();
+		if ( 'application/pdf' === get_post_mime_type( $this->attachment ) ) {
+			$registered_sizes = array_intersect_key(
+				$registered_sizes,
+				array(
+					'thumbnail' => true,
+					'medium'    => true,
+					'large'     => true,
+				)
+			);
+		}
+
+		$missing_sizes        = array();
+		$expected_sizes_count = 0;
+		$present_sizes_count  = 0;
+		$upload_dir           = dirname( $fullsizepath ) . DIRECTORY_SEPARATOR;
+		$width                = isset( $metadata['width'] ) ? (int) $metadata['width'] : 0;
+		$height               = isset( $metadata['height'] ) ? (int) $metadata['height'] : 0;
+
+		$editor = null;
+		if ( $width && $height ) {
+			$editor = wp_get_image_editor( $fullsizepath );
+			if ( is_wp_error( $editor ) ) {
+				return $editor;
+			}
+		}
+
+		foreach ( $registered_sizes as $size_label => $size_data ) {
+			$should_exist = false;
+			$file_exists  = false;
+			$has_metadata = ! empty( $metadata['sizes'][ $size_label ] ) && is_array( $metadata['sizes'][ $size_label ] );
+
+			if ( $width && $height ) {
+				$thumbnail = $this->get_thumbnail( $editor, $width, $height, $size_data['width'], $size_data['height'], $size_data['crop'] );
+
+				// If false, WordPress legitimately would not generate this size (e.g. larger than source).
+				if ( false === $thumbnail ) {
+					continue;
+				}
+
+				$should_exist = true;
+				$file_exists  = file_exists( $thumbnail['filename'] );
+
+				if (
+					$has_metadata
+					&& isset( $metadata['sizes'][ $size_label ]['width'], $metadata['sizes'][ $size_label ]['height'] )
+					&& (int) $metadata['sizes'][ $size_label ]['width'] === (int) $thumbnail['width']
+					&& (int) $metadata['sizes'][ $size_label ]['height'] === (int) $thumbnail['height']
+					&& $file_exists
+				) {
+					$present_sizes_count++;
+				} else {
+					$missing_sizes[] = $size_label;
+				}
+			} else {
+				if ( empty( $metadata['sizes'][ $size_label ]['file'] ) ) {
+					continue;
+				}
+
+				$should_exist = true;
+				$file_exists  = file_exists( $upload_dir . $metadata['sizes'][ $size_label ]['file'] );
+
+				if ( $file_exists ) {
+					$present_sizes_count++;
+				} else {
+					$missing_sizes[] = $size_label;
+				}
+			}
+
+			if ( $should_exist ) {
+				$expected_sizes_count++;
+			}
+		}
+
+		return array(
+			'missing_sizes'        => $missing_sizes,
+			'expected_sizes_count' => $expected_sizes_count,
+			'present_sizes_count'  => $present_sizes_count,
+		);
+	}
+
+	/**
 	 * Conditional logger for attachmentinfo diagnostics.
 	 *
 	 * Enable with `add_filter( 'regenerate_thumbnails_debug_attachmentinfo_logging', '__return_true' );`
