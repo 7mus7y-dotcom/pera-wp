@@ -251,7 +251,8 @@
 			data: { page: missingState.page, per_page: missingState.perPage, include_summary: 1 },
 			type: 'GET',
 			dataType: 'json',
-			cache: false
+			cache: false,
+			timeout: 45000
 		}).done(function(response, textStatus, xhr){
 			var totalPages = parseInt(xhr.getResponseHeader('x-wp-totalpages'), 10);
 			missingState.totalPages = totalPages && totalPages > 0 ? totalPages : 1;

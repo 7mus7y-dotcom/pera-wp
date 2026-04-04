@@ -61,7 +61,26 @@
 	white-space: nowrap;
 }
 
+#regenerate-thumbnails-app .button.button-hero {
+	max-width: 100%;
+}
+
 @media (max-width: 782px) {
+	#regenerate-thumbnails-app {
+		overflow-x: hidden;
+	}
+
+	#regenerate-thumbnails-app .button.button-hero {
+		width: 100%;
+		height: auto;
+		line-height: 1.4;
+		white-space: normal;
+		overflow-wrap: anywhere;
+		word-break: break-word;
+		padding: 10px 14px;
+		text-align: center;
+	}
+
 	#regenerate-thumbnails-missing-ui {
 		padding: 12px;
 	}
@@ -75,5 +94,19 @@
 		display: flex;
 		gap: 8px;
 		flex-wrap: wrap;
+	}
+
+	#regenerate-thumbnails-missing-ui .button,
+	#regenerate-thumbnails-missing-ui .regenthumbs-missing-selection-summary,
+	#regenerate-thumbnails-missing-ui .regenthumbs-missing-page-label,
+	#regenerate-thumbnails-missing-ui .regenthumbs-missing-name,
+	#regenerate-thumbnails-missing-ui .regenthumbs-missing-filename,
+	#regenerate-thumbnails-missing-ui .regenthumbs-missing-actions-cell,
+	#regenerate-thumbnails-missing-ui .regenthumbs-missing-edit-link {
+		white-space: normal;
+	}
+
+	#regenerate-thumbnails-missing-ui .regenthumbs-missing-table {
+		min-width: 640px;
 	}
 }
