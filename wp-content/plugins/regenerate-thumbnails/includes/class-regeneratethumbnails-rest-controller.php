@@ -484,7 +484,7 @@ class RegenerateThumbnails_REST_Controller extends WP_REST_Controller {
 				'paged'                  => $page,
 				'fields'                 => 'ids',
 				'no_found_rows'          => true,
-				'update_post_meta_cache' => false,
+				'update_post_meta_cache' => true,
 				'update_post_term_cache' => false,
 				'post_mime_type'         => $this->get_regeneratable_mime_types(),
 				'meta_query'             => array(
