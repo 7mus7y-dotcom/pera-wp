@@ -42,7 +42,7 @@ $regional_url = ( $regional_category && ! is_wp_error( $regional_category ) )
       <p class="lead">Regional guides, buyer guidance, and investment articles to help you navigate the Istanbul market with confidence.</p>
     </header>
 
-    <div class="cards-slider-shell cards-slider-shell--nav">
+    <div class="cards-slider-shell--nav">
       <button
         type="button"
         class="cards-slider-nav cards-slider-nav--prev"
