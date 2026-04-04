@@ -169,10 +169,15 @@
 		if(missingState.loading){ return; }
 		missingState.loading = true;
 		missingState.page = page || 1;
+		setStatus('missing thumbnails request started');
+
+		var container = ensureMissingUiContainer();
+		if(container){
+			container.innerHTML = '<h2 style="margin-top:0;">Missing thumbnails</h2><p>Loading missing thumbnails…</p>';
+		}
 
 		wp.apiRequest({
-			namespace: 'regenerate-thumbnails/v1',
-			endpoint: 'missing',
+			path: '/regenerate-thumbnails/v1/missing',
 			data: { page: missingState.page, per_page: missingState.perPage, include_summary: 1 },
 			type: 'GET',
 			dataType: 'json',
@@ -181,15 +186,18 @@
 			var totalPages = parseInt(xhr.getResponseHeader('x-wp-totalpages'), 10);
 			missingState.totalPages = totalPages && totalPages > 0 ? totalPages : 1;
 			renderMissingUi(response);
+			setStatus('missing thumbnails request succeeded');
 		}).fail(function(xhr){
-			var container = ensureMissingUiContainer();
+			var message = 'Unable to load missing thumbnails.';
+			if(xhr && xhr.responseJSON && xhr.responseJSON.message){
+				message += ' ' + xhr.responseJSON.message;
+			} else {
+				message += ' An unexpected error occurred while loading data.';
+			}
 			if(container){
-				var message = 'Unable to load missing thumbnails.';
-				if(xhr && xhr.responseJSON && xhr.responseJSON.message){
-					message += ' ' + xhr.responseJSON.message;
-				}
 				container.innerHTML = '<h2 style="margin-top:0;">Missing thumbnails</h2><p>' + escHtml(message) + '</p>';
 			}
+			setStatus('missing thumbnails request failed: ' + message);
 		}).always(function(){
 			missingState.loading = false;
 		});
