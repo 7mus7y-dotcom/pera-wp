@@ -195,6 +195,42 @@ function peracrm_ingest_fingerprint($email, $handler, $property_id, $message)
     return hash('sha256', strtolower(trim((string) $email)) . '|' . sanitize_key((string) $handler) . '|' . (int) $property_id . '|' . trim((string) $message));
 }
 
+function peracrm_ingest_default_admin_user_id()
+{
+    static $cached = null;
+
+    if ($cached !== null) {
+        return (int) $cached;
+    }
+
+    $admin_ids = get_users([
+        'role' => 'administrator',
+        'fields' => 'ids',
+        'number' => 1,
+        'orderby' => 'ID',
+        'order' => 'ASC',
+    ]);
+
+    $cached = !empty($admin_ids) ? (int) $admin_ids[0] : 0;
+
+    return (int) $cached;
+}
+
+function peracrm_ingest_enforce_advisor_assignment($client_id, $advisor_user_id)
+{
+    $client_id = (int) $client_id;
+    $advisor_user_id = (int) $advisor_user_id;
+
+    if ($client_id <= 0 || $advisor_user_id <= 0) {
+        return false;
+    }
+
+    update_post_meta($client_id, 'assigned_advisor_user_id', $advisor_user_id);
+    update_post_meta($client_id, 'crm_assigned_advisor', $advisor_user_id);
+
+    return true;
+}
+
 function peracrm_ingest_recent_fingerprint_exists($fingerprint, $window_seconds = 300)
 {
     $fingerprint = sanitize_text_field((string) $fingerprint);
@@ -278,6 +314,7 @@ function peracrm_ingest_enquiry(array $payload, array $context = [])
     $result = (int) peracrm_with_target_blog(static function () use ($email, $first_name, $last_name, $payload, $context, $property_id, $page_url, $post_id, $raw_fields, $message, $phone) {
         global $wpdb;
         $context_source = !empty($context['handler']) ? sanitize_key((string) $context['handler']) : 'website_form';
+        $default_assigned_advisor = (int) peracrm_ingest_default_admin_user_id();
 
         $resolver_data = [
             'first_name' => $first_name,
@@ -285,6 +322,7 @@ function peracrm_ingest_enquiry(array $payload, array $context = [])
             'phone' => $phone,
             'source' => $context_source,
             'status' => 'enquiry',
+            'assigned_advisor' => $default_assigned_advisor,
         ];
 
         $client_id = function_exists('peracrm_find_or_create_client_by_identity')
@@ -302,6 +340,12 @@ function peracrm_ingest_enquiry(array $payload, array $context = [])
         }
 
         peracrm_ingest_debug_log('client created/updated', $context + ['client_id' => $client_id]);
+        $advisor_assigned = peracrm_ingest_enforce_advisor_assignment($client_id, $default_assigned_advisor);
+        peracrm_ingest_debug_log('advisor assignment enforced', $context + [
+            'client_id' => $client_id,
+            'advisor_user_id' => $default_assigned_advisor,
+            'advisor_assigned' => $advisor_assigned ? 1 : 0,
+        ]);
 
         if (function_exists('peracrm_party_upsert_status') && function_exists('peracrm_party_get')) {
             $party = peracrm_party_get($client_id);
