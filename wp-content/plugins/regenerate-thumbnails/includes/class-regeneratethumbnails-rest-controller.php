@@ -31,6 +31,15 @@ class RegenerateThumbnails_REST_Controller extends WP_REST_Controller {
 	const MISSING_RESULTS_LIMIT = 100;
 
 	/**
+	 * Maximum number of recent regeneratable attachments inspected for the /missing queue snapshot.
+	 *
+	 * @since 3.1.7
+	 *
+	 * @var int
+	 */
+	const MISSING_CANDIDATE_WINDOW = 100;
+
+	/**
 	 * The namespace for the REST API routes.
 	 *
 	 * @since 3.0.0
@@ -466,9 +475,9 @@ class RegenerateThumbnails_REST_Controller extends WP_REST_Controller {
 	 * @return array|WP_Error {
 	 *     Snapshot data.
 	 *
-	 *     @type array $missing_ids         Filtered list of attachment IDs with missing thumbnails (capped).
-	 *     @type int   $total_regeneratable Total regeneratable candidate attachments scanned while building the capped snapshot.
-	 *     @type int   $attachments_checked Number of candidate attachments inspected while building the capped snapshot.
+	 *     @type array $missing_ids         Filtered list of attachment IDs with missing thumbnails from the bounded recent candidate window.
+	 *     @type int   $total_regeneratable Total regeneratable candidate attachments present in the bounded recent candidate window.
+	 *     @type int   $attachments_checked Number of candidate attachments inspected while building the bounded snapshot.
 	 * }
 	 */
 	private function get_missing_attachments_snapshot() {
@@ -480,58 +489,51 @@ class RegenerateThumbnails_REST_Controller extends WP_REST_Controller {
 		$missing_ids         = array();
 		$total_regeneratable = 0;
 		$attachments_checked = 0;
-		$page                = 1;
-		$per_page            = 100;
-		$results_limit       = self::MISSING_RESULTS_LIMIT;
-
-		do {
-			$query = new WP_Query( array(
-				'post_type'              => 'attachment',
-				'post_status'            => 'inherit',
-				'orderby'                => array(
-					'date' => 'DESC',
-					'ID'   => 'DESC',
+		$query = new WP_Query( array(
+			'post_type'              => 'attachment',
+			'post_status'            => 'inherit',
+			'orderby'                => array(
+				'date' => 'DESC',
+				'ID'   => 'DESC',
+			),
+			'posts_per_page'         => self::MISSING_CANDIDATE_WINDOW,
+			'fields'                 => 'ids',
+			'no_found_rows'          => true,
+			'update_post_meta_cache' => true,
+			'update_post_term_cache' => false,
+			'post_mime_type'         => $this->get_regeneratable_mime_types(),
+			'meta_query'             => array(
+				array(
+					'key'     => '_wp_attachment_context',
+					'value'   => 'site-icon',
+					'compare' => 'NOT EXISTS',
 				),
-				'posts_per_page'         => $per_page,
-				'paged'                  => $page,
-				'fields'                 => 'ids',
-				'no_found_rows'          => true,
-				'update_post_meta_cache' => true,
-				'update_post_term_cache' => false,
-				'post_mime_type'         => $this->get_regeneratable_mime_types(),
-				'meta_query'             => array(
-					array(
-						'key'     => '_wp_attachment_context',
-						'value'   => 'site-icon',
-						'compare' => 'NOT EXISTS',
-					),
-				),
-			) );
+			),
+		) );
 
-			$total_regeneratable += count( $query->posts );
+		$candidate_ids        = is_array( $query->posts ) ? $query->posts : array();
+		$total_regeneratable  = count( $candidate_ids );
+		$attachments_checked  = $total_regeneratable;
 
-			foreach ( $query->posts as $attachment_id ) {
-				$attachments_checked++;
-
-				$regenerator = RegenerateThumbnails_Regenerator::get_instance( $attachment_id );
-				if ( is_wp_error( $regenerator ) ) {
-					continue;
-				}
-
-				$summary = $regenerator->get_missing_thumbnails_summary();
-				if ( is_wp_error( $summary ) || empty( $summary['missing_sizes'] ) ) {
-					continue;
-				}
-
-				$missing_ids[] = (int) $attachment_id;
-
-				if ( count( $missing_ids ) >= $results_limit ) {
-					break 2;
-				}
+		foreach ( $candidate_ids as $attachment_id ) {
+			$regenerator = RegenerateThumbnails_Regenerator::get_instance( $attachment_id );
+			if ( is_wp_error( $regenerator ) ) {
+				continue;
 			}
 
-			$page++;
-		} while ( ! empty( $query->posts ) );
+			$summary = $regenerator->get_missing_thumbnails_summary();
+			if ( is_wp_error( $summary ) || empty( $summary['missing_sizes'] ) ) {
+				continue;
+			}
+
+			$missing_ids[] = (int) $attachment_id;
+		}
+
+		if ( count( $missing_ids ) > self::MISSING_RESULTS_LIMIT ) {
+			$missing_ids = array_slice( $missing_ids, 0, self::MISSING_RESULTS_LIMIT );
+		}
+
+		$missing_ids = $this->sort_attachment_ids_newest_first( $missing_ids );
 
 		$snapshot = array(
 			'missing_ids'         => $missing_ids,
@@ -542,6 +544,49 @@ class RegenerateThumbnails_REST_Controller extends WP_REST_Controller {
 		set_transient( self::MISSING_CACHE_KEY, $snapshot, 10 * MINUTE_IN_SECONDS );
 
 		return $snapshot;
+	}
+
+	/**
+	 * Explicitly sort attachment IDs newest-first by post_date DESC and ID DESC.
+	 *
+	 * @since 3.1.7
+	 *
+	 * @param array $attachment_ids Attachment IDs.
+	 *
+	 * @return array
+	 */
+	private function sort_attachment_ids_newest_first( $attachment_ids ) {
+		if ( count( $attachment_ids ) < 2 ) {
+			return $attachment_ids;
+		}
+
+		usort( $attachment_ids, function( $a, $b ) {
+			$post_a = get_post( $a );
+			$post_b = get_post( $b );
+
+			if ( ! $post_a && ! $post_b ) {
+				return 0;
+			}
+
+			if ( ! $post_a ) {
+				return 1;
+			}
+
+			if ( ! $post_b ) {
+				return -1;
+			}
+
+			$timestamp_a = strtotime( $post_a->post_date_gmt ? $post_a->post_date_gmt : $post_a->post_date );
+			$timestamp_b = strtotime( $post_b->post_date_gmt ? $post_b->post_date_gmt : $post_b->post_date );
+
+			if ( $timestamp_a === $timestamp_b ) {
+				return (int) $b - (int) $a;
+			}
+
+			return ( $timestamp_a > $timestamp_b ) ? -1 : 1;
+		} );
+
+		return $attachment_ids;
 	}
 
 	/**
