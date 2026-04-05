@@ -274,12 +274,20 @@
 			renderMissingChrome();
 		}
 
-		wp.apiRequest({
-			path: '/regenerate-thumbnails/v1/missing',
-			data: { cursor: missingState.cursor, include_summary: 1 },
+		var missingEndpoint = 'regenerate-thumbnails/v1/missing';
+		var requestData = { cursor: missingState.cursor, include_summary: 1 };
+		var requestUrl = String(window.wpApiSettings.root || '') + missingEndpoint;
+		var finalRequestUrl = requestUrl + (requestUrl.indexOf('?') === -1 ? '?' : '&') + $.param(requestData);
+
+		$.ajax({
+			url: requestUrl,
+			data: requestData,
 			type: 'GET',
 			dataType: 'json',
-			cache: false
+			cache: false,
+			headers: {
+				'X-WP-Nonce': window.wpApiSettings.nonce
+			}
 		}).done(function(response){
 			missingState.cursor = (response && response.next_cursor !== null && typeof response.next_cursor !== 'undefined')
 				? parseInt(response.next_cursor, 10)
@@ -295,6 +303,9 @@
 			} else {
 				message += ' An unexpected error occurred while loading data.';
 			}
+			message += ' Request URL: ' + finalRequestUrl + '.';
+			message += ' textStatus: ' + (textStatus || '(none)') + '.';
+			message += ' errorThrown: ' + (errorThrown || '(none)') + '.';
 			if(xhr && typeof xhr.status !== 'undefined'){
 				message += ' HTTP status: ' + xhr.status + '.';
 			}
