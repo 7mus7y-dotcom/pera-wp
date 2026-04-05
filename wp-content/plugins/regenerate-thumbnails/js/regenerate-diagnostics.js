@@ -274,20 +274,14 @@
 			renderMissingChrome();
 		}
 
-		var missingEndpoint = 'regenerate-thumbnails/v1/missing';
+		var requestPath = '/regenerate-thumbnails/v1/missing';
 		var requestData = { cursor: missingState.cursor, include_summary: 1 };
-		var requestUrl = String(window.wpApiSettings.root || '') + missingEndpoint;
-		var finalRequestUrl = requestUrl + (requestUrl.indexOf('?') === -1 ? '?' : '&') + $.param(requestData);
+		var requestDescription = 'wp.apiRequest path "' + requestPath + '" with query ' + $.param(requestData);
 
-		$.ajax({
-			url: requestUrl,
-			data: requestData,
-			type: 'GET',
-			dataType: 'json',
-			cache: false,
-			headers: {
-				'X-WP-Nonce': window.wpApiSettings.nonce
-			}
+		window.wp.apiRequest({
+			path: requestPath,
+			method: 'GET',
+			data: requestData
 		}).done(function(response){
 			missingState.cursor = (response && response.next_cursor !== null && typeof response.next_cursor !== 'undefined')
 				? parseInt(response.next_cursor, 10)
@@ -303,7 +297,7 @@
 			} else {
 				message += ' An unexpected error occurred while loading data.';
 			}
-			message += ' Request URL: ' + finalRequestUrl + '.';
+			message += ' Request debug: ' + requestDescription + '.';
 			message += ' textStatus: ' + (textStatus || '(none)') + '.';
 			message += ' errorThrown: ' + (errorThrown || '(none)') + '.';
 			if(xhr && typeof xhr.status !== 'undefined'){
