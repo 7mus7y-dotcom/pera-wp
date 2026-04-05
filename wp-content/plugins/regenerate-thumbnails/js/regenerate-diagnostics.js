@@ -74,7 +74,8 @@
 		page: 1,
 		perPage: 20,
 		totalPages: 1,
-		loading: false
+		loading: false,
+		candidateWindow: 100
 	};
 
 	function escHtml(value){
@@ -133,8 +134,8 @@
 		var attachmentsChecked = payload && payload.attachments_checked ? payload.attachments_checked : 0;
 
 		var summary = totalMissing === null
-			? 'Showing the 100 most recent attachments requiring regeneration: calculating…'
-			: 'Showing the 100 most recent attachments requiring regeneration: <strong>' + Number(totalMissing).toLocaleString() + '</strong> found';
+			? 'Showing attachments requiring regeneration from the ' + Number(missingState.candidateWindow).toLocaleString() + ' most recent uploads: calculating…'
+			: 'Showing attachments requiring regeneration from the ' + Number(missingState.candidateWindow).toLocaleString() + ' most recent uploads: <strong>' + Number(totalMissing).toLocaleString() + '</strong> found';
 
 		var rows = items.length ? items.map(function(item){
 			var name = item.title || item.filename || ('Attachment ' + item.id);
@@ -161,7 +162,7 @@
 		container.innerHTML =
 			'<h2 class="regenthumbs-missing-heading">Missing thumbnails</h2>'
 			+ '<p class="regenthumbs-missing-summary">' + summary + '</p>'
-			+ '<p class="regenthumbs-missing-summary">Newest uploads are scanned first and the list stops after finding 100 items that need regeneration.</p>'
+			+ '<p class="regenthumbs-missing-summary">This queue checks only the most recent ' + Number(missingState.candidateWindow).toLocaleString() + ' regeneratable uploads, ordered newest first.</p>'
 			+ '<p class="regenthumbs-missing-summary">Attachments scanned while building this recent-items queue: ' + Number(attachmentsChecked).toLocaleString() + '</p>'
 			+ '<div class="regenthumbs-missing-toolbar">'
 			+ '<button type="button" class="button" id="regenthumbs-missing-select-all">Select all on page</button>'
@@ -257,12 +258,23 @@
 			missingState.totalPages = totalPages && totalPages > 0 ? totalPages : 1;
 			renderMissingUi(response);
 			setStatus('missing thumbnails request succeeded');
-		}).fail(function(xhr){
+		}).fail(function(xhr, textStatus, errorThrown){
 			var message = 'Unable to load missing thumbnails.';
 			if(xhr && xhr.responseJSON && xhr.responseJSON.message){
 				message += ' ' + xhr.responseJSON.message;
 			} else {
 				message += ' An unexpected error occurred while loading data.';
+			}
+			if(xhr && typeof xhr.status !== 'undefined'){
+				message += ' HTTP status: ' + xhr.status + '.';
+			}
+			if(xhr && xhr.statusText){
+				message += ' Status text: ' + xhr.statusText + '.';
+			}
+			if(textStatus === 'timeout'){
+				message += ' The request timed out after 45 seconds. Please try again.';
+			} else if (errorThrown) {
+				message += ' Error: ' + errorThrown + '.';
 			}
 			if(container){
 				container.innerHTML = '<h2 class="regenthumbs-missing-heading">Missing thumbnails</h2><p>' + escHtml(message) + '</p>';
