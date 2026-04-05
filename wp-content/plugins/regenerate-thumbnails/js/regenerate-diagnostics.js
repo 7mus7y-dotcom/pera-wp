@@ -275,7 +275,11 @@
 		}
 
 		var requestPath = '/regenerate-thumbnails/v1/missing';
-		var requestData = { cursor: missingState.cursor, include_summary: 1 };
+		var requestData = {
+			cursor: missingState.cursor,
+			include_summary: 1,
+			_wpnonce: window.wpApiSettings.nonce
+		};
 		var requestDescription = 'wp.apiRequest path "' + requestPath + '" with query ' + $.param(requestData);
 
 		window.wp.apiRequest({
