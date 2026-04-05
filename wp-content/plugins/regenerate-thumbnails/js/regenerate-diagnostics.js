@@ -71,11 +71,12 @@
 	});
 
 	var missingState = {
-		page: 1,
-		perPage: 20,
-		totalPages: 1,
 		loading: false,
-		candidateWindow: 100
+		cursor: 0,
+		hasMore: false,
+		itemsById: {},
+		foundCount: 0,
+		lastChecked: 0
 	};
 
 	function escHtml(value){
@@ -125,47 +126,38 @@
 		}
 	}
 
-	function renderMissingUi(payload){
+	function rowMarkup(item){
+		var name = item.title || item.filename || ('Attachment ' + item.id);
+		var attachmentText = '<strong class="regenthumbs-missing-name">' + escHtml(name) + '</strong>';
+		if(item.filename){
+			attachmentText += '<br /><code class="regenthumbs-missing-filename">' + escHtml(item.filename) + '</code>';
+		}
+		var missingSizes = (item.missing_sizes || []).map(function(size){
+			return '<code class="regenthumbs-missing-size-tag">' + escHtml(size) + '</code>';
+		}).join(' ');
+		var actions = '<a class="button button-small" href="' + escHtml(item.regenerate_url || ('#/regenerate/' + item.id)) + '">Regenerate</a>';
+		if(item.edit_url){
+			actions += ' <a class="button-link regenthumbs-missing-edit-link" href="' + escHtml(item.edit_url) + '">Edit Media</a>';
+		}
+
+		return '<tr data-attachment-id="' + Number(item.id) + '">'
+			+ '<th scope="row" class="check-column"><input type="checkbox" class="regenthumbs-missing-select" value="' + Number(item.id) + '" /></th>'
+			+ '<td>' + attachmentText + '</td>'
+			+ '<td class="regenthumbs-missing-sizes-cell">' + missingSizes + '</td>'
+			+ '<td class="regenthumbs-missing-actions-cell">' + actions + '</td>'
+			+ '</tr>';
+	}
+
+	function renderMissingChrome(){
 		var container = ensureMissingUiContainer();
 		if(!container){ return; }
-
-		var items = (payload && payload.items) ? payload.items : [];
-		var totalMissing = payload && payload.total_missing_attachments !== null ? payload.total_missing_attachments : null;
-		var attachmentsChecked = payload && payload.attachments_checked ? payload.attachments_checked : 0;
-
-		var summary = totalMissing === null
-			? 'Showing attachments requiring regeneration from the ' + Number(missingState.candidateWindow).toLocaleString() + ' most recent uploads: calculating…'
-			: 'Showing attachments requiring regeneration from the ' + Number(missingState.candidateWindow).toLocaleString() + ' most recent uploads: <strong>' + Number(totalMissing).toLocaleString() + '</strong> found';
-
-		var rows = items.length ? items.map(function(item){
-			var name = item.title || item.filename || ('Attachment ' + item.id);
-			var attachmentText = '<strong class="regenthumbs-missing-name">' + escHtml(name) + '</strong>';
-			if(item.filename){
-				attachmentText += '<br /><code class="regenthumbs-missing-filename">' + escHtml(item.filename) + '</code>';
-			}
-			var missingSizes = (item.missing_sizes || []).map(function(size){
-				return '<code class="regenthumbs-missing-size-tag">' + escHtml(size) + '</code>';
-			}).join(' ');
-			var actions = '<a class="button button-small" href="' + escHtml(item.regenerate_url || ('#/regenerate/' + item.id)) + '">Regenerate</a>';
-			if(item.edit_url){
-				actions += ' <a class="button-link regenthumbs-missing-edit-link" href="' + escHtml(item.edit_url) + '">Edit Media</a>';
-			}
-
-			return '<tr>'
-				+ '<th scope="row" class="check-column"><input type="checkbox" class="regenthumbs-missing-select" value="' + Number(item.id) + '" /></th>'
-				+ '<td>' + attachmentText + '</td>'
-				+ '<td class="regenthumbs-missing-sizes-cell">' + missingSizes + '</td>'
-				+ '<td class="regenthumbs-missing-actions-cell">' + actions + '</td>'
-				+ '</tr>';
-		}).join('') : '<tr><td colspan="4">No attachments requiring regeneration were found on this page.</td></tr>';
-
 		container.innerHTML =
 			'<h2 class="regenthumbs-missing-heading">Missing thumbnails</h2>'
-			+ '<p class="regenthumbs-missing-summary">' + summary + '</p>'
-			+ '<p class="regenthumbs-missing-summary">This queue checks only the most recent ' + Number(missingState.candidateWindow).toLocaleString() + ' regeneratable uploads, ordered newest first.</p>'
-			+ '<p class="regenthumbs-missing-summary">Attachments scanned while building this recent-items queue: ' + Number(attachmentsChecked).toLocaleString() + '</p>'
+			+ '<p class="regenthumbs-missing-summary" id="regenthumbs-missing-summary-main"></p>'
+			+ '<p class="regenthumbs-missing-summary">This tool scans newest uploads first and stops after finding 25 items.</p>'
+			+ '<p class="regenthumbs-missing-summary" id="regenthumbs-missing-summary-checked"></p>'
 			+ '<div class="regenthumbs-missing-toolbar">'
-			+ '<button type="button" class="button" id="regenthumbs-missing-select-all">Select all on page</button>'
+			+ '<button type="button" class="button" id="regenthumbs-missing-select-all">Select all listed</button>'
 			+ '<button type="button" class="button" id="regenthumbs-missing-clear-selection">Clear selection</button>'
 			+ '<button type="button" class="button button-primary" id="regenthumbs-missing-regenerate-selected" disabled="disabled">Regenerate selected</button>'
 			+ '<span id="regenthumbs-missing-selection-summary" class="regenthumbs-missing-selection-summary">0 selected</span>'
@@ -173,18 +165,60 @@
 			+ '<div class="regenthumbs-missing-table-wrap">'
 			+ '<table class="widefat striped regenthumbs-missing-table">'
 			+ '<thead><tr><td class="check-column"><input type="checkbox" id="regenthumbs-missing-select-all-header" /></td><th>Attachment</th><th>Missing sizes</th><th>Actions</th></tr></thead>'
-			+ '<tbody>' + rows + '</tbody>'
+			+ '<tbody id="regenthumbs-missing-table-body"><tr id="regenthumbs-missing-empty"><td colspan="4">Loading missing thumbnails…</td></tr></tbody>'
 			+ '</table>'
 			+ '</div>'
 			+ '<div class="regenthumbs-missing-footer">'
-			+ '<div class="regenthumbs-missing-pagination">'
-			+ '<button type="button" class="button" id="regenthumbs-missing-prev"' + (missingState.page <= 1 ? ' disabled="disabled"' : '') + '>Previous</button> '
-			+ '<button type="button" class="button" id="regenthumbs-missing-next"' + (missingState.page >= missingState.totalPages ? ' disabled="disabled"' : '') + '>Next</button> '
-			+ '<span class="regenthumbs-missing-page-label">Page ' + missingState.page + ' of ' + missingState.totalPages + '</span>'
-			+ '</div>'
+			+ '<button type="button" class="button" id="regenthumbs-missing-find-more" disabled="disabled">Find 25 more</button>'
 			+ '</div>';
+	}
 
+	function updateMissingSummary(){
+		var main = document.getElementById('regenthumbs-missing-summary-main');
+		var checked = document.getElementById('regenthumbs-missing-summary-checked');
+		if(main){
+			if(missingState.foundCount > 0){
+				main.innerHTML = 'Showing the newest attachments requiring regeneration: <strong>' + Number(missingState.foundCount).toLocaleString() + '</strong> listed so far.';
+			} else {
+				main.textContent = 'Showing the newest attachments requiring regeneration.';
+			}
+		}
+		if(checked){
+			checked.textContent = 'Attachments scanned in latest request: ' + Number(missingState.lastChecked).toLocaleString() + '.';
+		}
+		var findMore = document.getElementById('regenthumbs-missing-find-more');
+		if(findMore){
+			findMore.disabled = missingState.loading || !missingState.hasMore;
+			findMore.textContent = missingState.loading ? 'Searching…' : 'Find 25 more';
+		}
+	}
+
+	function appendMissingRows(items){
+		var body = document.getElementById('regenthumbs-missing-table-body');
+		if(!body){ return; }
+
+		var emptyRow = document.getElementById('regenthumbs-missing-empty');
+		if(emptyRow){
+			emptyRow.parentNode.removeChild(emptyRow);
+		}
+
+		var appended = 0;
+		(items || []).forEach(function(item){
+			if(!item || !item.id || missingState.itemsById[item.id]){
+				return;
+			}
+			missingState.itemsById[item.id] = true;
+			body.insertAdjacentHTML('beforeend', rowMarkup(item));
+			appended += 1;
+		});
+
+		if(body.children.length === 0){
+			body.innerHTML = '<tr id="regenthumbs-missing-empty"><td colspan="4">No attachments requiring regeneration were found yet.</td></tr>';
+		}
+
+		missingState.foundCount += appended;
 		updateMissingSelectionUi();
+		updateMissingSummary();
 	}
 
 	function goToBulkRegenerate(ids){
@@ -195,18 +229,6 @@
 		url.hash = '';
 		window.location.assign(url.toString());
 	}
-
-	$(document).on('click', '#regenthumbs-missing-prev', function(){
-		if(missingState.page > 1){
-			loadMissingUi(missingState.page - 1);
-		}
-	});
-
-	$(document).on('click', '#regenthumbs-missing-next', function(){
-		if(missingState.page < missingState.totalPages){
-			loadMissingUi(missingState.page + 1);
-		}
-	});
 
 	$(document).on('change', '.regenthumbs-missing-select, #regenthumbs-missing-select-all-header', function(event){
 		if(event.target && event.target.id === 'regenthumbs-missing-select-all-header'){
@@ -235,28 +257,36 @@
 		goToBulkRegenerate(ids);
 	});
 
-	function loadMissingUi(page){
+	$(document).on('click', '#regenthumbs-missing-find-more', function(){
+		if(missingState.loading || !missingState.hasMore){
+			return;
+		}
+		loadMissingUi(false);
+	});
+
+	function loadMissingUi(isInitial){
 		if(missingState.loading){ return; }
 		missingState.loading = true;
-		missingState.page = page || 1;
 		setStatus('missing thumbnails request started');
+		updateMissingSummary();
 
-		var container = ensureMissingUiContainer();
-		if(container){
-			container.innerHTML = '<h2 class="regenthumbs-missing-heading">Missing thumbnails</h2><p>Loading missing thumbnails…</p>';
+		if(isInitial){
+			renderMissingChrome();
 		}
 
 		wp.apiRequest({
 			path: '/regenerate-thumbnails/v1/missing',
-			data: { page: missingState.page, per_page: missingState.perPage, include_summary: 1 },
+			data: { cursor: missingState.cursor, include_summary: 1 },
 			type: 'GET',
 			dataType: 'json',
-			cache: false,
-			timeout: 120000
-		}).done(function(response, textStatus, xhr){
-			var totalPages = parseInt(xhr.getResponseHeader('x-wp-totalpages'), 10);
-			missingState.totalPages = totalPages && totalPages > 0 ? totalPages : 1;
-			renderMissingUi(response);
+			cache: false
+		}).done(function(response){
+			missingState.cursor = (response && response.next_cursor !== null && typeof response.next_cursor !== 'undefined')
+				? parseInt(response.next_cursor, 10)
+				: missingState.cursor;
+			missingState.hasMore = !!(response && response.has_more);
+			missingState.lastChecked = response && response.attachments_checked ? response.attachments_checked : 0;
+			appendMissingRows(response && response.items ? response.items : []);
 			setStatus('missing thumbnails request succeeded');
 		}).fail(function(xhr, textStatus, errorThrown){
 			var message = 'Unable to load missing thumbnails.';
@@ -271,18 +301,27 @@
 			if(xhr && xhr.statusText){
 				message += ' Status text: ' + xhr.statusText + '.';
 			}
-			if(textStatus === 'timeout'){
-				message += ' The request timed out after 45 seconds. Please try again.';
-			} else if (errorThrown) {
+			if (errorThrown) {
 				message += ' Error: ' + errorThrown + '.';
 			}
+			var container = ensureMissingUiContainer();
 			if(container){
 				container.innerHTML = '<h2 class="regenthumbs-missing-heading">Missing thumbnails</h2><p>' + escHtml(message) + '</p>';
 			}
 			setStatus('missing thumbnails request failed: ' + message);
 		}).always(function(){
 			missingState.loading = false;
+			updateMissingSummary();
 		});
+	}
+
+	function resetMissingUiState(){
+		missingState.loading = false;
+		missingState.cursor = 0;
+		missingState.hasMore = false;
+		missingState.itemsById = {};
+		missingState.foundCount = 0;
+		missingState.lastChecked = 0;
 	}
 
 	function maybeLoadMissingUi(){
@@ -292,7 +331,9 @@
 		if(!document.getElementById('regenerate-thumbnails-app')){
 			return;
 		}
-		loadMissingUi(1);
+
+		resetMissingUiState();
+		loadMissingUi(true);
 	}
 
 	$(document).ready(function(){
