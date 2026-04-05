@@ -19,7 +19,16 @@ class RegenerateThumbnails_REST_Controller extends WP_REST_Controller {
 	 *
 	 * @var string
 	 */
-	const MISSING_CACHE_KEY = 'regenerate_thumbnails_missing_snapshot_v1';
+	const MISSING_CACHE_KEY = 'regenerate_thumbnails_missing_snapshot_v2';
+
+	/**
+	 * Maximum number of missing attachments returned by the /missing route.
+	 *
+	 * @since 3.1.7
+	 *
+	 * @var int
+	 */
+	const MISSING_RESULTS_LIMIT = 100;
 
 	/**
 	 * The namespace for the REST API routes.
@@ -457,9 +466,9 @@ class RegenerateThumbnails_REST_Controller extends WP_REST_Controller {
 	 * @return array|WP_Error {
 	 *     Snapshot data.
 	 *
-	 *     @type array $missing_ids         Filtered list of attachment IDs with missing thumbnails.
-	 *     @type int   $total_regeneratable Total regeneratable candidate attachments.
-	 *     @type int   $attachments_checked Number of candidate attachments inspected while building the snapshot.
+	 *     @type array $missing_ids         Filtered list of attachment IDs with missing thumbnails (capped).
+	 *     @type int   $total_regeneratable Total regeneratable candidate attachments scanned while building the capped snapshot.
+	 *     @type int   $attachments_checked Number of candidate attachments inspected while building the capped snapshot.
 	 * }
 	 */
 	private function get_missing_attachments_snapshot() {
@@ -473,13 +482,16 @@ class RegenerateThumbnails_REST_Controller extends WP_REST_Controller {
 		$attachments_checked = 0;
 		$page                = 1;
 		$per_page            = 100;
+		$results_limit       = self::MISSING_RESULTS_LIMIT;
 
 		do {
 			$query = new WP_Query( array(
 				'post_type'              => 'attachment',
 				'post_status'            => 'inherit',
-				'orderby'                => 'ID',
-				'order'                  => 'ASC',
+				'orderby'                => array(
+					'date' => 'DESC',
+					'ID'   => 'DESC',
+				),
 				'posts_per_page'         => $per_page,
 				'paged'                  => $page,
 				'fields'                 => 'ids',
@@ -512,6 +524,10 @@ class RegenerateThumbnails_REST_Controller extends WP_REST_Controller {
 				}
 
 				$missing_ids[] = (int) $attachment_id;
+
+				if ( count( $missing_ids ) >= $results_limit ) {
+					break 2;
+				}
 			}
 
 			$page++;
