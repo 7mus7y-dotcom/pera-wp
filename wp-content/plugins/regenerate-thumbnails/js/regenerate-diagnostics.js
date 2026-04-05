@@ -130,12 +130,11 @@
 
 		var items = (payload && payload.items) ? payload.items : [];
 		var totalMissing = payload && payload.total_missing_attachments !== null ? payload.total_missing_attachments : null;
-		var totalRegeneratable = payload && payload.total_regeneratable ? payload.total_regeneratable : 0;
 		var attachmentsChecked = payload && payload.attachments_checked ? payload.attachments_checked : 0;
 
 		var summary = totalMissing === null
-			? 'Attachments with missing thumbnails: calculating…'
-			: 'Attachments with missing thumbnails: <strong>' + Number(totalMissing).toLocaleString() + '</strong>';
+			? 'Showing the 100 most recent attachments requiring regeneration: calculating…'
+			: 'Showing the 100 most recent attachments requiring regeneration: <strong>' + Number(totalMissing).toLocaleString() + '</strong> found';
 
 		var rows = items.length ? items.map(function(item){
 			var name = item.title || item.filename || ('Attachment ' + item.id);
@@ -162,8 +161,8 @@
 		container.innerHTML =
 			'<h2 class="regenthumbs-missing-heading">Missing thumbnails</h2>'
 			+ '<p class="regenthumbs-missing-summary">' + summary + '</p>'
-			+ '<p class="regenthumbs-missing-summary">Total regeneratable candidate attachments: ' + Number(totalRegeneratable).toLocaleString() + '</p>'
-			+ '<p class="regenthumbs-missing-summary">Attachments checked while building snapshot: ' + Number(attachmentsChecked).toLocaleString() + '</p>'
+			+ '<p class="regenthumbs-missing-summary">Newest uploads are scanned first and the list stops after finding 100 items that need regeneration.</p>'
+			+ '<p class="regenthumbs-missing-summary">Attachments scanned while building this recent-items queue: ' + Number(attachmentsChecked).toLocaleString() + '</p>'
 			+ '<div class="regenthumbs-missing-toolbar">'
 			+ '<button type="button" class="button" id="regenthumbs-missing-select-all">Select all on page</button>'
 			+ '<button type="button" class="button" id="regenthumbs-missing-clear-selection">Clear selection</button>'
