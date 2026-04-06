@@ -1006,13 +1006,29 @@
     var urlInput = section.querySelector('[data-crm-portfolio-url]');
     var expiresNote = section.querySelector('[data-crm-portfolio-expires]');
     var updateButton = section.querySelector('[data-crm-portfolio-update]');
+    var openLink = section.querySelector('[data-crm-portfolio-open-link]');
+    var portfolioUrl = String(responseData.url || '');
 
     if (outputRow) {
       outputRow.hidden = false;
     }
 
     if (urlInput) {
-      urlInput.value = String(responseData.url || '');
+      urlInput.value = portfolioUrl;
+    }
+
+    if (openLink) {
+      if (portfolioUrl) {
+        openLink.setAttribute('href', portfolioUrl);
+        openLink.hidden = false;
+        openLink.removeAttribute('aria-hidden');
+        openLink.removeAttribute('tabindex');
+      } else {
+        openLink.setAttribute('href', '#');
+        openLink.hidden = true;
+        openLink.setAttribute('aria-hidden', 'true');
+        openLink.setAttribute('tabindex', '-1');
+      }
     }
 
     if (expiresNote) {
