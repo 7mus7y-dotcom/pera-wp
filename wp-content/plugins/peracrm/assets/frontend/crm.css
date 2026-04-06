@@ -717,18 +717,21 @@
   align-items: end;
 }
 
-.crm-page--client-view .crm-linked-workspace__portfolio-tools label {
-  display: grid;
-  gap: 6px;
-  margin: 0;
-}
-
 .crm-page--client-view .crm-linked-workspace__portfolio-url {
   min-width: 0;
 }
 
+.crm-page--client-view .crm-linked-workspace__portfolio-url label {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: nowrap;
+  margin: 0;
+}
+
 .crm-page--client-view .crm-linked-workspace__portfolio-url input {
-  width: 100%;
+  flex: 1 1 auto;
+  min-width: 0;
   box-sizing: border-box;
 }
 
@@ -748,9 +751,6 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  min-height: var(--crm-button-operational-min-height);
-  padding: var(--crm-button-compact-padding-y) 10px;
-  flex: 0 0 auto;
 }
 
 .crm-page--client-view .crm-linked-workspace__portfolio-meta {
@@ -1014,6 +1014,11 @@ body.crm-route .crm-page--client-view .crm-portfolio-actions .peracrm-linked-pro
 
   .crm-page--client-view .crm-linked-workspace__portfolio-actions {
     justify-self: start;
+  }
+
+  .crm-page--client-view .crm-linked-workspace__portfolio-url label {
+    flex-wrap: wrap;
+    align-items: flex-start;
   }
 
   .crm-page--client-view .crm-linked-workspace__toolbar {
