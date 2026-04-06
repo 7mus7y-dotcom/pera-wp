@@ -324,6 +324,135 @@ if ( ! function_exists( 'pera_portfolio_token_wp_robots' ) ) {
 }
 add_filter( 'wp_robots', 'pera_portfolio_token_wp_robots', 99 );
 
+if ( ! function_exists( 'pera_portfolio_token_get_primary_term_name' ) ) {
+	/**
+	 * Resolve the first term name for a taxonomy on a property post.
+	 */
+	function pera_portfolio_token_get_primary_term_name( int $property_id, string $taxonomy ): string {
+		if ( $property_id <= 0 || '' === $taxonomy ) {
+			return '';
+		}
+
+		$terms = get_the_terms( $property_id, $taxonomy );
+		if ( empty( $terms ) || is_wp_error( $terms ) || ! isset( $terms[0] ) ) {
+			return '';
+		}
+
+		return trim( (string) $terms[0]->name );
+	}
+}
+
+if ( ! function_exists( 'pera_portfolio_token_get_main_image_id' ) ) {
+	/**
+	 * Resolve the linked property main image ID.
+	 */
+	function pera_portfolio_token_get_main_image_id( int $property_id ): int {
+		if ( $property_id <= 0 || ! function_exists( 'get_field' ) ) {
+			return 0;
+		}
+
+		$main_image = get_field( 'main_image', $property_id );
+		if ( is_array( $main_image ) && ! empty( $main_image['ID'] ) ) {
+			return (int) $main_image['ID'];
+		}
+
+		return 0;
+	}
+}
+
+if ( ! function_exists( 'pera_portfolio_token_render_crm_offer_card' ) ) {
+	/**
+	 * Render dedicated admin-only CRM portfolio offer card markup.
+	 *
+	 * @param int   $property_id Property post ID.
+	 * @param array $portfolio_row Portfolio row data keyed by property relation metadata.
+	 */
+	function pera_portfolio_token_render_crm_offer_card( int $property_id, array $portfolio_row = array() ): void {
+		if ( $property_id <= 0 ) {
+			return;
+		}
+
+		$title = trim( (string) get_the_title( $property_id ) );
+		if ( '' === $title ) {
+			$title = __( 'Untitled property', 'hello-elementor-child' );
+		}
+
+		$region_name   = pera_portfolio_token_get_primary_term_name( $property_id, 'region' );
+		$district_name = pera_portfolio_token_get_primary_term_name( $property_id, 'district' );
+		$image_id      = pera_portfolio_token_get_main_image_id( $property_id );
+
+		$beds_label  = trim( (string) ( $portfolio_row['unit_type'] ?? '' ) );
+		$net_size    = trim( (string) ( $portfolio_row['net_size'] ?? '' ) );
+		$gross_size  = trim( (string) ( $portfolio_row['gross_size'] ?? '' ) );
+		$cash_price  = trim( (string) ( $portfolio_row['cash_price'] ?? '' ) );
+		$list_price  = trim( (string) ( $portfolio_row['list_price'] ?? '' ) );
+		$permalink   = get_permalink( $property_id );
+		$property_url = is_string( $permalink ) ? $permalink : '';
+
+		$cash_display  = '' !== $cash_price ? '$' . number_format_i18n( (float) $cash_price, 0 ) : '—';
+		$list_display  = '' !== $list_price ? '$' . number_format_i18n( (float) $list_price, 0 ) : '—';
+		$net_display   = '' !== $net_size ? $net_size . ' m²' : '—';
+		$gross_display = '' !== $gross_size ? $gross_size . ' m²' : '—';
+		$beds_display  = '' !== $beds_label ? $beds_label : '—';
+		?>
+		<article class="peracrm-portfolio-offer-card">
+			<h2 class="peracrm-portfolio-offer-card__title">
+				<?php if ( '' !== $property_url ) : ?>
+					<a href="<?php echo esc_url( $property_url ); ?>"><?php echo esc_html( $title ); ?></a>
+				<?php else : ?>
+					<?php echo esc_html( $title ); ?>
+				<?php endif; ?>
+			</h2>
+
+			<?php if ( '' !== $region_name || '' !== $district_name ) : ?>
+				<div class="peracrm-portfolio-offer-card__pills">
+					<?php if ( '' !== $region_name ) : ?>
+						<span class="pill pill--outline"><?php echo esc_html( $region_name ); ?></span>
+					<?php endif; ?>
+					<?php if ( '' !== $district_name ) : ?>
+						<span class="pill pill--outline"><?php echo esc_html( $district_name ); ?></span>
+					<?php endif; ?>
+				</div>
+			<?php endif; ?>
+
+			<div class="peracrm-portfolio-offer-card__summary">
+				<p class="peracrm-portfolio-offer-card__cash"><?php echo esc_html( $cash_display ); ?></p>
+				<p class="peracrm-portfolio-offer-card__meta">
+					<span><?php echo esc_html( sprintf( __( 'Beds: %s', 'hello-elementor-child' ), $beds_display ) ); ?></span>
+					<span aria-hidden="true">•</span>
+					<span><?php echo esc_html( sprintf( __( 'Net: %s', 'hello-elementor-child' ), $net_display ) ); ?></span>
+					<span aria-hidden="true">•</span>
+					<span><?php echo esc_html( sprintf( __( 'Gross: %s', 'hello-elementor-child' ), $gross_display ) ); ?></span>
+				</p>
+				<p class="peracrm-portfolio-offer-card__list">
+					<?php echo esc_html( sprintf( __( 'List: %s', 'hello-elementor-child' ), $list_display ) ); ?>
+				</p>
+			</div>
+
+			<div class="peracrm-portfolio-offer-card__media">
+				<?php if ( $image_id > 0 ) : ?>
+					<?php
+					echo wp_get_attachment_image(
+						$image_id,
+						'large',
+						false,
+						array(
+							'class'    => 'peracrm-portfolio-offer-card__img',
+							'alt'      => esc_attr( $title ),
+							'loading'  => 'lazy',
+							'decoding' => 'async',
+						)
+					);
+					?>
+				<?php else : ?>
+					<div class="peracrm-portfolio-offer-card__placeholder" aria-hidden="true"></div>
+				<?php endif; ?>
+			</div>
+		</article>
+		<?php
+	}
+}
+
 if ( ! function_exists( 'pera_portfolio_token_rewrite_notice' ) ) {
 	/**
 	 * Admin reminder to flush rewrites after deploys.
