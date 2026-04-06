@@ -836,12 +836,15 @@
 .crm-page--client-view .crm-linked-workspace [data-crm-portfolio-fields] > label input:not([type="file"]):not([type="hidden"]) {
   min-height: 34px;
   font-size: 0.76rem;
+  border-radius:10px;
 }
 
 .crm-page--client-view .crm-linked-workspace [data-crm-portfolio-fields] > label textarea {
   min-height: 56px;
   font-size: 0.86rem;
   resize: vertical;
+  border-radius:10px;
+
 }
 
 .crm-page--client-view .crm-linked-workspace .peracrm-portfolio-actions {
