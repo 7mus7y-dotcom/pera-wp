@@ -1906,6 +1906,112 @@ if ( ! function_exists( 'pera_crm_get_client_assigned_advisor_id' ) ) {
 	}
 }
 
+if ( ! function_exists( 'pera_crm_get_performance_assigned_party_ids' ) ) {
+	/**
+	 * Fetch CRM party IDs assigned to advisors inside the selected date window.
+	 *
+	 * Note: this plugin does not maintain a canonical assignment timestamp for all
+	 * assignments. Until such a source exists, performance cohorts are bounded by
+	 * CRM party post creation time.
+	 *
+	 * @param array{date_from:string,date_to:string} $range
+	 * @param int                                     $scope_user_id
+	 * @return int[]
+	 */
+	function pera_crm_get_performance_assigned_party_ids( array $range, int $scope_user_id = 0 ): array {
+		$scope_user_id = max( 0, absint( $scope_user_id ) );
+		$date_from     = sanitize_text_field( (string) ( $range['date_from'] ?? '' ) );
+		$date_to       = sanitize_text_field( (string) ( $range['date_to'] ?? '' ) );
+
+		$meta_query = array();
+		if ( $scope_user_id > 0 ) {
+			$meta_query = array(
+				'relation' => 'OR',
+				array(
+					'key'     => 'assigned_advisor_user_id',
+					'value'   => $scope_user_id,
+					'compare' => '=',
+				),
+				array(
+					'key'     => 'crm_assigned_advisor',
+					'value'   => $scope_user_id,
+					'compare' => '=',
+				),
+			);
+		} else {
+			$meta_query = array(
+				'relation' => 'OR',
+				array(
+					'key'     => 'assigned_advisor_user_id',
+					'value'   => 0,
+					'type'    => 'NUMERIC',
+					'compare' => '>',
+				),
+				array(
+					'key'     => 'crm_assigned_advisor',
+					'value'   => 0,
+					'type'    => 'NUMERIC',
+					'compare' => '>',
+				),
+			);
+		}
+
+		$ids = get_posts(
+			array(
+				'post_type'      => 'crm_client',
+				'post_status'    => array( 'publish', 'private', 'draft', 'pending', 'future' ),
+				'posts_per_page' => -1,
+				'fields'         => 'ids',
+				'no_found_rows'  => true,
+				'date_query'     => array(
+					array(
+						'column'    => 'post_date',
+						'after'     => $date_from,
+						'before'    => $date_to,
+						'inclusive' => true,
+					),
+				),
+				'meta_query'     => $meta_query,
+			)
+		);
+
+		return array_values( array_unique( array_filter( array_map( 'intval', (array) $ids ) ) ) );
+	}
+}
+
+if ( ! function_exists( 'pera_crm_filter_true_lead_party_ids' ) ) {
+	/**
+	 * Canonical lead filter:
+	 * - `crm_client` holds party records.
+	 * - parties with completed deals are treated as converted clients and excluded.
+	 *
+	 * @param int[] $party_ids
+	 * @return int[]
+	 */
+	function pera_crm_filter_true_lead_party_ids( array $party_ids ): array {
+		$party_ids = array_values( array_unique( array_filter( array_map( 'intval', $party_ids ) ) ) );
+		if ( empty( $party_ids ) ) {
+			return array();
+		}
+
+		$converted_client_ids = function_exists( 'peracrm_party_batch_get_closed_won_client_ids' )
+			? array_map( 'intval', (array) peracrm_party_batch_get_closed_won_client_ids( $party_ids ) )
+			: array();
+		$converted_lookup     = array_fill_keys( $converted_client_ids, true );
+		$lead_ids             = array();
+
+		foreach ( $party_ids as $party_id ) {
+			if ( isset( $converted_lookup[ $party_id ] ) ) {
+				continue;
+			}
+
+			$lead_ids[] = $party_id;
+		}
+
+		return array_values( array_unique( $lead_ids ) );
+	}
+}
+
 if ( ! function_exists( 'pera_crm_get_performance_summary' ) ) {
 	/**
 	 * Build server-rendered performance summary payload.
@@ -1930,43 +2036,8 @@ if ( ! function_exists( 'pera_crm_get_performance_summary' ) ) {
 			$range['date_to']   = sanitize_text_field( (string) $args['date_to'] );
 		}
 
-		$lead_ids = get_posts(
-			array(
-				'post_type'      => 'crm_client',
-				'post_status'    => array( 'publish', 'private', 'draft', 'pending', 'future' ),
-				'posts_per_page' => -1,
-				'fields'         => 'ids',
-				'no_found_rows'  => true,
-				'date_query'     => array(
-					array(
-						'column'    => 'post_date',
-						'after'     => $range['date_from'],
-						'before'    => $range['date_to'],
-						'inclusive' => true,
-					),
-				),
-			)
-		);
-
-		$cohort_ids = array();
-		foreach ( array_map( 'intval', (array) $lead_ids ) as $lead_id ) {
-			if ( $lead_id <= 0 ) {
-				continue;
-			}
-
-			$assigned_user_id = pera_crm_get_client_assigned_advisor_id( $lead_id );
-			if ( $assigned_user_id <= 0 ) {
-				continue;
-			}
-
-			if ( $scope_user_id > 0 && $assigned_user_id !== $scope_user_id ) {
-				continue;
-			}
-
-			$cohort_ids[] = $lead_id;
-		}
-
-		$cohort_ids = array_values( array_unique( $cohort_ids ) );
+		$candidate_party_ids = pera_crm_get_performance_assigned_party_ids( $range, $scope_user_id );
+		$cohort_ids          = pera_crm_filter_true_lead_party_ids( $candidate_party_ids );
 		$party_map  = ! empty( $cohort_ids ) && function_exists( 'peracrm_party_get_status_by_ids' )
 			? peracrm_party_get_status_by_ids( $cohort_ids )
 			: array();
@@ -2045,6 +2116,11 @@ if ( ! function_exists( 'pera_crm_get_performance_summary' ) ) {
 			'scope' => array(
 				'user_id'     => $scope_user_id,
 				'is_employee' => $is_employee,
+			),
+			'new_leads_basis' => array(
+				'date_field' => 'post_date',
+				'mode'       => 'creation_date_fallback',
+				'note'       => 'No canonical assignment timestamp exists for all advisor assignments; using creation-date cohort bounded to assigned true leads.',
 			),
 			'cards' => array(
 				'new_leads'     => $new_leads,
