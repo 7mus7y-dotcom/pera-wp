@@ -1823,3 +1823,236 @@ if ( ! function_exists( 'pera_crm_get_pipeline_view_data' ) ) {
 		);
 	}
 }
+
+if ( ! function_exists( 'pera_crm_get_performance_range_options' ) ) {
+	/**
+	 * Supported performance date ranges.
+	 *
+	 * @return array<string,string>
+	 */
+	function pera_crm_get_performance_range_options(): array {
+		return array(
+			'7d'         => __( 'Last 7 days', 'peracrm' ),
+			'30d'        => __( 'Last 30 days', 'peracrm' ),
+			'this_month' => __( 'This month', 'peracrm' ),
+			'last_month' => __( 'Last month', 'peracrm' ),
+		);
+	}
+}
+
+if ( ! function_exists( 'pera_crm_resolve_performance_range' ) ) {
+	/**
+	 * Resolve date range bounds for performance dashboard.
+	 *
+	 * @return array{key:string,label:string,date_from:string,date_to:string}
+	 */
+	function pera_crm_resolve_performance_range( string $range_key = '30d' ): array {
+		$options   = pera_crm_get_performance_range_options();
+		$range_key = sanitize_key( $range_key );
+		if ( ! isset( $options[ $range_key ] ) ) {
+			$range_key = '30d';
+		}
+
+		$now      = current_time( 'timestamp' );
+		$date_to  = wp_date( 'Y-m-d H:i:s', $now, wp_timezone() );
+		$date_from = $date_to;
+
+		switch ( $range_key ) {
+			case '7d':
+				$date_from = wp_date( 'Y-m-d H:i:s', strtotime( '-7 days', $now ), wp_timezone() );
+				break;
+			case 'this_month':
+				$date_from = wp_date( 'Y-m-01 00:00:00', $now, wp_timezone() );
+				break;
+			case 'last_month':
+				$date_from = wp_date( 'Y-m-01 00:00:00', strtotime( 'first day of last month', $now ), wp_timezone() );
+				$date_to   = wp_date( 'Y-m-t 23:59:59', strtotime( 'last day of last month', $now ), wp_timezone() );
+				break;
+			case '30d':
+			default:
+				$date_from = wp_date( 'Y-m-d H:i:s', strtotime( '-30 days', $now ), wp_timezone() );
+				break;
+		}
+
+		return array(
+			'key'       => $range_key,
+			'label'     => (string) $options[ $range_key ],
+			'date_from' => $date_from,
+			'date_to'   => $date_to,
+		);
+	}
+}
+
+if ( ! function_exists( 'pera_crm_get_client_assigned_advisor_id' ) ) {
+	/**
+	 * Resolve assigned advisor user ID for a CRM client post.
+	 */
+	function pera_crm_get_client_assigned_advisor_id( int $client_id ): int {
+		$client_id = absint( $client_id );
+		if ( $client_id <= 0 ) {
+			return 0;
+		}
+
+		if ( function_exists( 'peracrm_client_get_assigned_advisor_id' ) ) {
+			return max( 0, (int) peracrm_client_get_assigned_advisor_id( $client_id ) );
+		}
+
+		$assigned = (int) get_post_meta( $client_id, 'assigned_advisor_user_id', true );
+		if ( $assigned > 0 ) {
+			return $assigned;
+		}
+
+		return max( 0, (int) get_post_meta( $client_id, 'crm_assigned_advisor', true ) );
+	}
+}
+
+if ( ! function_exists( 'pera_crm_get_performance_summary' ) ) {
+	/**
+	 * Build server-rendered performance summary payload.
+	 *
+	 * @param array<string,mixed> $args
+	 * @return array<string,mixed>
+	 */
+	function pera_crm_get_performance_summary( array $args = array() ): array {
+		$current_user_id = get_current_user_id();
+		$effective_user  = function_exists( 'peracrm_get_effective_crm_user_id' ) ? (int) peracrm_get_effective_crm_user_id() : $current_user_id;
+		$is_employee     = pera_crm_user_is_employee( $effective_user );
+		$scope_user_id   = $is_employee ? $effective_user : 0;
+		$requested_scope = isset( $args['scope_user_id'] ) ? absint( $args['scope_user_id'] ) : null;
+
+		if ( null !== $requested_scope ) {
+			$scope_user_id = $requested_scope;
+		}
+
+		$range = pera_crm_resolve_performance_range( isset( $args['range_key'] ) ? (string) $args['range_key'] : '30d' );
+		if ( ! empty( $args['date_from'] ) && ! empty( $args['date_to'] ) ) {
+			$range['date_from'] = sanitize_text_field( (string) $args['date_from'] );
+			$range['date_to']   = sanitize_text_field( (string) $args['date_to'] );
+		}
+
+		$lead_ids = get_posts(
+			array(
+				'post_type'      => 'crm_client',
+				'post_status'    => array( 'publish', 'private', 'draft', 'pending', 'future' ),
+				'posts_per_page' => -1,
+				'fields'         => 'ids',
+				'no_found_rows'  => true,
+				'date_query'     => array(
+					array(
+						'column'    => 'post_date',
+						'after'     => $range['date_from'],
+						'before'    => $range['date_to'],
+						'inclusive' => true,
+					),
+				),
+			)
+		);
+
+		$cohort_ids = array();
+		foreach ( array_map( 'intval', (array) $lead_ids ) as $lead_id ) {
+			if ( $lead_id <= 0 ) {
+				continue;
+			}
+
+			$assigned_user_id = pera_crm_get_client_assigned_advisor_id( $lead_id );
+			if ( $assigned_user_id <= 0 ) {
+				continue;
+			}
+
+			if ( $scope_user_id > 0 && $assigned_user_id !== $scope_user_id ) {
+				continue;
+			}
+
+			$cohort_ids[] = $lead_id;
+		}
+
+		$cohort_ids = array_values( array_unique( $cohort_ids ) );
+		$party_map  = ! empty( $cohort_ids ) && function_exists( 'peracrm_party_get_status_by_ids' )
+			? peracrm_party_get_status_by_ids( $cohort_ids )
+			: array();
+
+		$new_leads = count( $cohort_ids );
+		$junk      = 0;
+		$qualified = 0;
+		$viewings  = 0;
+
+		foreach ( $cohort_ids as $lead_id ) {
+			$party       = is_array( $party_map[ $lead_id ] ?? null ) ? $party_map[ $lead_id ] : array();
+			$disposition = sanitize_key( (string) ( $party['disposition'] ?? 'none' ) );
+			$stage       = sanitize_key( (string) ( $party['lead_pipeline_stage'] ?? '' ) );
+			$is_junk     = 'junk_lead' === $disposition;
+
+			if ( $is_junk ) {
+				++$junk;
+				continue;
+			}
+
+			if ( 'qualified' === $stage ) {
+				++$qualified;
+			}
+
+			if ( 'viewing_arranged' === $stage ) {
+				++$viewings;
+			}
+		}
+
+		$deals_created = 0;
+		if ( function_exists( 'peracrm_deals_table_exists' ) && peracrm_deals_table_exists() ) {
+			$deals_created = (int) peracrm_with_target_blog(
+				static function () use ( $scope_user_id, $range ): int {
+					global $wpdb;
+
+					$table        = peracrm_table( 'peracrm_deals' );
+					$postmeta     = $wpdb->postmeta;
+					$from         = (string) $range['date_from'];
+					$to           = (string) $range['date_to'];
+					$where_clause = 'd.created_at >= %s AND d.created_at <= %s';
+					$params       = array( $from, $to );
+
+					if ( $scope_user_id > 0 ) {
+						$where_clause .= " AND (
+							d.owner_user_id = %d
+							OR (
+								(d.owner_user_id IS NULL OR d.owner_user_id = 0)
+								AND EXISTS (
+									SELECT 1
+									FROM {$postmeta} pm
+									WHERE pm.post_id = d.party_id
+									  AND pm.meta_key IN ('assigned_advisor_user_id','crm_assigned_advisor')
+									  AND pm.meta_value = %s
+								)
+							)
+						)";
+						$params[] = $scope_user_id;
+						$params[] = (string) $scope_user_id;
+					}
+
+					$query = $wpdb->prepare(
+						"SELECT COUNT(*)
+						 FROM {$table} d
+						 WHERE {$where_clause}",
+						$params
+					);
+
+					$count = $wpdb->get_var( $query ); // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery
+					return is_numeric( $count ) ? max( 0, (int) $count ) : 0;
+				}
+			);
+		}
+
+		return array(
+			'range' => $range,
+			'scope' => array(
+				'user_id'     => $scope_user_id,
+				'is_employee' => $is_employee,
+			),
+			'cards' => array(
+				'new_leads'     => $new_leads,
+				'qualified'     => $qualified,
+				'junk'          => $junk,
+				'viewings'      => $viewings,
+				'deals_created' => $deals_created,
+			),
+		);
+	}
+}
