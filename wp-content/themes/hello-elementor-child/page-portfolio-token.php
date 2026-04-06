@@ -130,11 +130,18 @@ get_header();
 				</div>
 
 				<section data-portfolio-view="card" hidden>
-					<div id="property-grid" class="cards-grid">
+					<div id="property-grid" class="cards-grid peracrm-portfolio-card-grid">
 						<?php if ( $properties_query->have_posts() ) : ?>
 							<?php while ( $properties_query->have_posts() ) : $properties_query->the_post(); ?>
 								<?php
-								if ( function_exists( 'pera_render_property_card' ) ) {
+								$property_id = (int) get_the_ID();
+								$row_data    = isset( $portfolio_rows_by_property[ $property_id ] ) && is_array( $portfolio_rows_by_property[ $property_id ] )
+									? $portfolio_rows_by_property[ $property_id ]
+									: array();
+
+								if ( current_user_can( 'manage_options' ) && function_exists( 'pera_portfolio_token_render_crm_offer_card' ) ) {
+									pera_portfolio_token_render_crm_offer_card( $property_id, $row_data );
+								} elseif ( function_exists( 'pera_render_property_card' ) ) {
 									pera_render_property_card( array( 'variant' => 'archive' ) );
 								}
 								?>
