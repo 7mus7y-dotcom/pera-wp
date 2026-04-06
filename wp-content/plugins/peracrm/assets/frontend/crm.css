@@ -721,10 +721,21 @@
   margin: 0;
 }
 
+.crm-page--client-view .crm-linked-workspace__portfolio-url {
+  padding-right: 10px;
+  box-sizing: border-box;
+}
+
 .crm-page--client-view .crm-linked-workspace__portfolio-actions {
   display: inline-flex;
   gap: 8px;
   justify-self: end;
+}
+
+.crm-page--client-view .crm-linked-workspace__portfolio-open-link svg {
+  width: 16px;
+  height: 16px;
+  display: block;
 }
 
 .crm-page--client-view .crm-linked-workspace__portfolio-meta {
@@ -984,6 +995,10 @@ body.crm-route .crm-page--client-view .crm-portfolio-actions .peracrm-linked-pro
 
   .crm-page--client-view .crm-linked-workspace__portfolio-tools {
     grid-template-columns: 1fr;
+  }
+
+  .crm-page--client-view .crm-linked-workspace__portfolio-url {
+    padding-right: 0;
   }
 
   .crm-page--client-view .crm-linked-workspace__portfolio-actions {
