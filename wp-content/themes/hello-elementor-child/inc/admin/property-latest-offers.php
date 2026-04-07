@@ -119,7 +119,7 @@ if ( ! function_exists( 'pera_property_latest_offers_render_meta_box' ) ) {
 						$floor_plan_url   = $floor_plan_id > 0 ? wp_get_attachment_url( $floor_plan_id ) : '';
 						?>
 						<tr class="pera-latest-offers-row">
-							<td><input type="text" class="regular-text" name="pera_latest_offers[<?php echo esc_attr( (string) $index ); ?>][type]" value="<?php echo esc_attr( (string) $row['type'] ); ?>" /></td>
+							<td><input type="text" class="pera-offer-type-field" maxlength="8" name="pera_latest_offers[<?php echo esc_attr( (string) $index ); ?>][type]" value="<?php echo esc_attr( (string) $row['type'] ); ?>" /></td>
 							<td><input type="text" class="small-text" name="pera_latest_offers[<?php echo esc_attr( (string) $index ); ?>][floor]" value="<?php echo esc_attr( (string) $row['floor'] ); ?>" /></td>
 							<td><input type="number" step="0.01" min="0" class="small-text" name="pera_latest_offers[<?php echo esc_attr( (string) $index ); ?>][net_sqm]" value="<?php echo esc_attr( (string) $row['net_sqm'] ); ?>" /></td>
 							<td><input type="number" step="0.01" min="0" class="small-text" name="pera_latest_offers[<?php echo esc_attr( (string) $index ); ?>][gross_sqm]" value="<?php echo esc_attr( (string) $row['gross_sqm'] ); ?>" /></td>
@@ -156,7 +156,7 @@ if ( ! function_exists( 'pera_property_latest_offers_render_meta_box' ) ) {
 		</div>
 		<script type="text/html" id="tmpl-pera-latest-offers-row">
 			<tr class="pera-latest-offers-row">
-				<td><input type="text" class="regular-text" name="pera_latest_offers[__index__][type]" value="" /></td>
+				<td><input type="text" class="pera-offer-type-field" maxlength="8" name="pera_latest_offers[__index__][type]" value="" /></td>
 				<td><input type="text" class="small-text" name="pera_latest_offers[__index__][floor]" value="" /></td>
 				<td><input type="number" step="0.01" min="0" class="small-text" name="pera_latest_offers[__index__][net_sqm]" value="" /></td>
 				<td><input type="number" step="0.01" min="0" class="small-text" name="pera_latest_offers[__index__][gross_sqm]" value="" /></td>
