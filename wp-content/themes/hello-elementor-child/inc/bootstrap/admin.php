@@ -8,3 +8,4 @@ require_once get_stylesheet_directory() . '/inc/admin/peracrm-diagnostics.php';
 require_once get_stylesheet_directory() . '/inc/admin/admin-menu-order.php';
 require_once get_stylesheet_directory() . '/inc/admin/dashboard-rationalization.php';
 require_once get_stylesheet_directory() . '/inc/admin/regenerate-thumbnails-menu-compat.php';
+require_once get_stylesheet_directory() . '/inc/admin/property-latest-offers.php';
