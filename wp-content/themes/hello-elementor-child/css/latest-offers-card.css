@@ -1,21 +1,29 @@
 .pera-latest-offers-card-list {
   display: grid;
-  gap: 20px;
+  gap: 16px;
 }
 
 .pera-latest-offer-card {
-  border: 1px solid #e4ebf4;
-  border-radius: 16px;
+  display: grid;
+  gap: 10px;
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
   background: #fff;
-  padding: 20px;
-  box-shadow: 0 8px 24px rgba(17, 39, 72, 0.06);
+  padding: 14px;
+}
+
+.pera-latest-offer-card__pills {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
 }
 
 .pera-latest-offer-card__title {
-  margin: 0 0 12px;
-  font-size: 24px;
+  margin: 0;
+  font-size: 1rem;
   line-height: 1.25;
-  color: #17315f;
+  font-weight: 800;
+  color: #111827;
 }
 
 .pera-latest-offer-card__title a {
@@ -23,71 +31,128 @@
   text-decoration: none;
 }
 
+.pera-latest-offer-card__title a:hover,
+.pera-latest-offer-card__title a:focus {
+  text-decoration: underline;
+}
+
+.pera-latest-offer-card__summary {
+  background: #e8f6ec;
+  border: 1px solid #1f6a3c;
+  border-radius: 10px;
+  padding: 8px;
+  display: grid;
+  gap: 4px;
+}
+
 .pera-latest-offer-card__heading {
   margin: 0;
-  color: #7e8ea8;
-  font-size: 13px;
-  text-transform: uppercase;
-  letter-spacing: 0.06em;
+  margin-bottom: 4px;
+  font-size: 0.77rem;
+  line-height: 1.25;
+  font-weight: 700;
+  color: #14532d;
 }
 
 .pera-latest-offer-card__list,
 .pera-latest-offer-card__cash,
 .pera-latest-offer-card__meta {
-  margin: 8px 0 0;
-  color: #17315f;
+  margin: 0;
 }
 
 .pera-latest-offer-card__list {
-  font-size: 16px;
+  font-size: 0.74rem;
+  color: #166534;
 }
 
 .pera-latest-offer-card__cash {
-  font-size: 28px;
+  margin-top: 0;
+  font-size: 0.95rem;
   font-weight: 700;
+  color: #0f5132;
 }
 
 .pera-latest-offer-card__meta {
   display: flex;
   flex-wrap: wrap;
-  gap: 8px;
-  font-size: 14px;
-  color: #344f7a;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.75rem;
+  color: #14532d;
+}
+
+.pera-latest-offer-card__media {
+  position: relative;
+  aspect-ratio: 16 / 9;
+  border-radius: 10px;
+  overflow: hidden;
+  background: #f3f4f6;
+}
+
+.pera-latest-offer-card__img,
+.pera-latest-offer-card__placeholder {
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+
+.pera-latest-offer-card__img {
+  object-fit: cover;
+}
+
+.pera-latest-offer-card__placeholder {
+  background: linear-gradient(135deg, #e5e7eb 0%, #f8fafc 100%);
 }
 
 .pera-latest-offer-card__utility {
-  margin-top: 16px;
   display: flex;
   flex-wrap: wrap;
-  gap: 10px;
+  gap: 8px;
   align-items: center;
 }
 
 .pera-latest-offer-card__pill {
   display: inline-flex;
   align-items: center;
-  gap: 8px;
-  border: 1px solid #cdd9ea;
+  justify-content: center;
+  gap: 6px;
+  border: 1px solid #e5e7eb;
   border-radius: 999px;
-  padding: 8px 12px;
-  background: #f8fbff;
-  color: #1e3d73;
-  font-size: 13px;
+  padding: 2px 10px;
+  background: transparent;
+  color: #000;
+  font-size: 0.75rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  font-weight: 500;
   text-decoration: none;
-  line-height: 1;
+  line-height: 1.3;
+  max-width: max-content;
   cursor: pointer;
 }
 
 .pera-latest-offer-card__pill svg {
   width: 14px;
   height: 14px;
-  fill: currentColor;
+  fill: currentColor !important;
+  stroke: currentColor !important;
 }
 
 .pera-latest-offer-card__pill--blue {
-  border-color: #173f92;
-  background: #173f92;
+  border-color: transparent;
+  background: var(--brand, #2f6df6);
   color: #fff;
+}
+
+.pera-latest-offer-card__cta {
+  position: absolute;
+  right: 6px;
+  bottom: 6px;
+  z-index: 2;
+  gap: 4px;
+  padding: 1px 8px;
+  font-size: 0.75rem;
+  line-height: 1;
 }
 
 .pera-latest-offer-card__note {
@@ -103,15 +168,20 @@
 }
 
 .pera-latest-offer-card__note-panel {
-  margin-top: 8px;
-  padding: 12px;
-  border: 1px solid #d7e1ef;
+  position: absolute;
+  top: calc(100% + 8px);
+  left: 0;
+  z-index: 3;
+  min-width: 180px;
+  max-width: min(280px, calc(100vw - 48px));
+  padding: 10px;
+  border: 1px solid #d1d5db;
   border-radius: 10px;
   background: #fff;
-  max-width: min(320px, 85vw);
-  color: #3f5378;
-  font-size: 14px;
-  line-height: 1.45;
+  color: #1f2937;
+  font-size: 0.76rem;
+  line-height: 1.35;
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.08);
 }
 
 
@@ -136,6 +206,25 @@
   width: 14px;
   height: 14px;
   flex: 0 0 14px;
+}
+
+.pera-latest-offer-card .pill {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 2px 10px;
+  border-radius: 999px;
+  font-size: 0.75rem;
+  font-weight: 500;
+  line-height: 1.3;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+.pera-latest-offer-card .pill.pill--green {
+  background: #008453;
+  color: #fff;
 }
 
 @media (min-width: 768px) {
