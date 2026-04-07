@@ -167,6 +167,66 @@ if ( ! function_exists( 'pera_latest_offers_enqueue_card_styles' ) ) {
 	}
 }
 
+if ( ! function_exists( 'pera_latest_offers_collect_homepage_cards' ) ) {
+	/**
+	 * Collect up to N flattened latest-offer cards across recent published properties.
+	 *
+	 * @return array<int,array<string,mixed>>
+	 */
+	function pera_latest_offers_collect_homepage_cards( int $limit = 6, int $candidate_limit = 36 ): array {
+		$limit           = $limit > 0 ? $limit : 6;
+		$candidate_limit = $candidate_limit > 0 ? $candidate_limit : 36;
+
+		$property_ids = get_posts(
+			array(
+				'post_type'              => 'property',
+				'post_status'            => 'publish',
+				'posts_per_page'         => $candidate_limit,
+				'meta_query'             => array(
+					array(
+						'key'     => pera_latest_offers_meta_key(),
+						'compare' => 'EXISTS',
+					),
+				),
+				'orderby'                => 'date',
+				'order'                  => 'DESC',
+				'ignore_sticky_posts'    => true,
+				'fields'                 => 'ids',
+				'no_found_rows'          => true,
+				'update_post_meta_cache' => false,
+				'update_post_term_cache' => false,
+			)
+		);
+
+		if ( empty( $property_ids ) || ! is_array( $property_ids ) ) {
+			return array();
+		}
+
+		$cards = array();
+
+		foreach ( $property_ids as $property_id ) {
+			$property_id = (int) $property_id;
+			if ( $property_id <= 0 ) {
+				continue;
+			}
+
+			$rows = pera_latest_offers_get_rows( $property_id );
+			if ( empty( $rows ) ) {
+				continue;
+			}
+
+			foreach ( $rows as $offer_row ) {
+				$cards[] = pera_latest_offers_card_view_model( $property_id, $offer_row );
+				if ( count( $cards ) >= $limit ) {
+					break 2;
+				}
+			}
+		}
+
+		return array_values( array_filter( $cards ) );
+	}
+}
+
 if ( ! function_exists( 'pera_latest_offers_render_card' ) ) {
 	/**
 	 * @param array<string,mixed> $card
