@@ -412,6 +412,24 @@ if ( ! function_exists( 'pera_portfolio_token_get_plugin_icon_url' ) ) {
 	}
 }
 
+if ( ! function_exists( 'pera_portfolio_token_get_document_title' ) ) {
+	/**
+	 * Build scoped browser title for token pages.
+	 */
+	function pera_portfolio_token_get_document_title( string $title ): string {
+		if ( ! pera_portfolio_token_is_request() ) {
+			return $title;
+		}
+
+		$context = pera_portfolio_token_get_request_context();
+		$client  = isset( $context['client_name'] ) ? trim( (string) $context['client_name'] ) : '';
+		$prefix  = '' !== $client ? $client : __( 'Portfolio', 'hello-elementor-child' );
+
+		return sprintf( '%s - A custom portfolio | Pera Property', $prefix );
+	}
+}
+add_filter( 'pre_get_document_title', 'pera_portfolio_token_get_document_title', 999 );
+
 if ( ! function_exists( 'pera_portfolio_token_render_crm_offer_card' ) ) {
 	/**
 	 * Render dedicated admin-only CRM portfolio offer card markup.
@@ -447,6 +465,7 @@ if ( ! function_exists( 'pera_portfolio_token_render_crm_offer_card' ) ) {
 		$property_url = is_string( $permalink ) ? $permalink : '';
 		$floor_plan_icon_url = pera_portfolio_token_get_plugin_icon_url( 'floor-plan.svg' );
 		$notes_icon_url      = pera_portfolio_token_get_plugin_icon_url( 'notes.svg' );
+		$map_icon_url        = pera_portfolio_token_get_plugin_icon_url( 'map.svg' );
 
 		$cash_display  = '' !== $cash_price ? '$' . number_format_i18n( (float) $cash_price, 0 ) : '—';
 		$list_display  = '' !== $list_price ? '$' . number_format_i18n( (float) $list_price, 0 ) : '—';
@@ -457,13 +476,16 @@ if ( ! function_exists( 'pera_portfolio_token_render_crm_offer_card' ) ) {
 		<article class="peracrm-portfolio-offer-card">
 			<div class="peracrm-portfolio-offer-card__pills">
 				<?php if ( '' !== $region_name ) : ?>
-					<span class="pill pill--outline"><?php echo esc_html( $region_name ); ?></span>
+					<span class="pill pill--green"><?php echo esc_html( $region_name ); ?></span>
 				<?php endif; ?>
 				<?php if ( '' !== $district_name ) : ?>
-					<span class="pill pill--outline"><?php echo esc_html( $district_name ); ?></span>
+					<span class="pill pill--green"><?php echo esc_html( $district_name ); ?></span>
 				<?php endif; ?>
 				<?php if ( '' !== $map_url ) : ?>
 					<a class="pill pill--outline" href="<?php echo esc_url( $map_url ); ?>" target="_blank" rel="noopener noreferrer">
+						<?php if ( '' !== $map_icon_url ) : ?>
+							<img src="<?php echo esc_url( $map_icon_url ); ?>" alt="" aria-hidden="true" />
+						<?php endif; ?>
 						<?php esc_html_e( 'Map', 'hello-elementor-child' ); ?>
 					</a>
 				<?php endif; ?>
