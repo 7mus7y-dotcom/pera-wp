@@ -30,7 +30,6 @@
   font-size: 1rem;
   line-height: 1.25;
   font-weight: 800;
-  text-transform: capitalize;
 }
 
 .peracrm-portfolio-offer-card__title a {
@@ -60,6 +59,7 @@
 
 .peracrm-portfolio-offer-card__heading {
   margin: 0;
+  margin-bottom: 4px;
   font-size: 0.77rem;
   line-height: 1.25;
   font-weight: 700;
@@ -73,7 +73,8 @@
 }
 
 .peracrm-portfolio-offer-card__cash {
-  font-size: 0.89rem;
+  margin-top: 0;
+  font-size: 0.95rem;
   font-weight: 700;
   color: #0f5132;
 }
@@ -88,6 +89,7 @@
 }
 
 .peracrm-portfolio-offer-card__list {
+  margin-bottom: 2px;
   font-size: 0.74rem;
   color: #166534;
 }
