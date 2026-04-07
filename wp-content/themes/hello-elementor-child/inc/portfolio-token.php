@@ -519,6 +519,15 @@ if ( ! function_exists( 'pera_portfolio_token_render_crm_offer_card' ) ) {
 			</div>
 
 			<div class="peracrm-portfolio-offer-card__media">
+				<?php if ( '' !== $property_url ) : ?>
+					<a class="peracrm-portfolio-offer-card__cta pill pill--blue"
+						href="<?php echo esc_url( $property_url ); ?>"
+						target="_blank"
+						rel="noopener noreferrer">
+						<img src="<?php echo esc_url( pera_portfolio_token_get_plugin_icon_url( 'external.svg' ) ); ?>" alt="" aria-hidden="true" />
+						<?php esc_html_e( 'Project details', 'hello-elementor-child' ); ?>
+					</a>
+				<?php endif; ?>
 				<?php if ( $image_id > 0 ) : ?>
 					<?php
 					echo wp_get_attachment_image(
