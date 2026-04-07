@@ -119,9 +119,13 @@
 
 .peracrm-portfolio-offer-card__cta {
   position: absolute;
-  top: 6px;
   right: 6px;
+  bottom: 6px;
   z-index: 2;
+  gap: 4px;
+  padding: 1px 8px;
+  font-size: 0.75rem;
+  line-height: 1;
 }
 
 .peracrm-portfolio-offer-card__cta img {
@@ -130,25 +134,18 @@
 }
 
 
-.peracrm-portfolio-offer-card__cta .pill {
-  gap: 4px;
-  padding: 1px 8px;
-  font-size: 0.75rem;
-  line-height: 1;
-}
-
-.peracrm-portfolio-offer-card__cta .pill.pill--blue,
-.peracrm-portfolio-offer-card__cta .pill.pill--blue:hover {
+.peracrm-portfolio-offer-card__cta.pill--blue,
+.peracrm-portfolio-offer-card__cta.pill--blue:hover {
   background: var(--brand, #2f6df6);
 }
 
-.peracrm-portfolio-offer-card__cta .pill svg,
-.peracrm-portfolio-offer-card__cta .pill svg * {
+.peracrm-portfolio-offer-card__cta svg,
+.peracrm-portfolio-offer-card__cta svg * {
   fill: #fff !important;
   stroke: #fff !important;
 }
 
-.peracrm-portfolio-offer-card__cta .pill img {
+.peracrm-portfolio-offer-card__cta img {
   filter: brightness(0) invert(1);
 }
 
