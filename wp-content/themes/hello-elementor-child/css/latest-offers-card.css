@@ -16,6 +16,7 @@
   display: flex;
   flex-wrap: wrap;
   gap: 6px;
+  margin-bottom: 0;
 }
 
 .pera-latest-offer-card__title {

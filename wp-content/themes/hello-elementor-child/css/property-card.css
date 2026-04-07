@@ -272,7 +272,8 @@
   text-decoration: none;
 }
 
-.property-card__location a.property-card__location-link:hover {
+.property-card__location .property-card__location-link:hover,
+.property-card__location .property-card__location-link:focus-visible {
   font-weight: 600;
   text-decoration: none;
 }
