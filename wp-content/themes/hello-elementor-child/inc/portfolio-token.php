@@ -447,6 +447,8 @@ if ( ! function_exists( 'pera_portfolio_token_render_crm_offer_card' ) ) {
 			$title = __( 'Untitled property', 'hello-elementor-child' );
 		}
 
+		$display_title = ucwords( strtolower( $title ) );
+
 		$region_name   = pera_portfolio_token_get_primary_term_name( $property_id, 'region' );
 		$district_name = pera_portfolio_token_get_primary_term_name( $property_id, 'district' );
 		$image_id      = pera_portfolio_token_get_main_image_id( $property_id );
@@ -493,9 +495,9 @@ if ( ! function_exists( 'pera_portfolio_token_render_crm_offer_card' ) ) {
 
 			<h2 class="peracrm-portfolio-offer-card__title">
 				<?php if ( '' !== $property_url ) : ?>
-					<a href="<?php echo esc_url( $property_url ); ?>"><?php echo esc_html( $title ); ?></a>
+					<a href="<?php echo esc_url( $property_url ); ?>"><?php echo esc_html( $display_title ); ?></a>
 				<?php else : ?>
-					<?php echo esc_html( $title ); ?>
+					<?php echo esc_html( $display_title ); ?>
 				<?php endif; ?>
 			</h2>
 
@@ -525,7 +527,7 @@ if ( ! function_exists( 'pera_portfolio_token_render_crm_offer_card' ) ) {
 						false,
 						array(
 							'class'    => 'peracrm-portfolio-offer-card__img',
-							'alt'      => esc_attr( $title ),
+							'alt'      => esc_attr( $display_title ),
 							'loading'  => 'lazy',
 							'decoding' => 'async',
 						)
