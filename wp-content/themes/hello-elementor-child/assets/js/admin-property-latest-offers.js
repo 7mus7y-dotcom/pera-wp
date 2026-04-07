@@ -1,14 +1,37 @@
 (function ($) {
   'use strict';
 
-  function getRowIndex($tbody) {
-    return $tbody.find('tr.pera-latest-offers-row').length;
+  function getInitialNextIndex($tbody) {
+    var maxIndex = -1;
+
+    $tbody.find('tr.pera-latest-offers-row').each(function () {
+      var inputName = $(this).find('input[name^="pera_latest_offers["], textarea[name^="pera_latest_offers["]').first().attr('name') || '';
+      var match = inputName.match(/^pera_latest_offers\[(\d+)\]/);
+
+      if (match) {
+        maxIndex = Math.max(maxIndex, parseInt(match[1], 10));
+      }
+    });
+
+    return maxIndex + 1;
+  }
+
+  function getNextIndex($wrap, $tbody) {
+    var nextIndex = $wrap.data('peraLatestOffersNextIndex');
+
+    if (typeof nextIndex === 'undefined') {
+      nextIndex = getInitialNextIndex($tbody);
+    }
+
+    $wrap.data('peraLatestOffersNextIndex', nextIndex + 1);
+
+    return nextIndex;
   }
 
   function addRow($wrap) {
     var $tbody = $wrap.find('[data-pera-latest-offers-rows]');
     var template = $('#tmpl-pera-latest-offers-row').html() || '';
-    var index = getRowIndex($tbody);
+    var index = getNextIndex($wrap, $tbody);
     var rowHtml = template.replace(/__index__/g, String(index));
 
     $tbody.append(rowHtml);
