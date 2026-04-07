@@ -31,6 +31,14 @@ $map_url        = isset( $card['map_url'] ) ? (string) $card['map_url'] : '';
 		<?php if ( '' !== $district_name ) : ?>
 			<span class="pill pill--green"><?php echo esc_html( $district_name ); ?></span>
 		<?php endif; ?>
+		<?php if ( '' !== $map_url ) : ?>
+			<a class="pera-latest-offer-card__pill" href="<?php echo esc_url( $map_url ); ?>" target="_blank" rel="noopener noreferrer">
+				<svg class="icon pera-latest-offer-card__icon" aria-hidden="true" width="16" height="16">
+					<use href="#icon-map" xlink:href="#icon-map"></use>
+				</svg>
+				<span><?php esc_html_e( 'Map', 'hello-elementor-child' ); ?></span>
+			</a>
+		<?php endif; ?>
 	</div>
 
 	<h3 class="pera-latest-offer-card__title">
@@ -87,15 +95,6 @@ $map_url        = isset( $card['map_url'] ) ? (string) $card['map_url'] : '';
 	</div>
 
 	<div class="pera-latest-offer-card__utility">
-		<?php if ( '' !== $map_url ) : ?>
-			<a class="pera-latest-offer-card__pill" href="<?php echo esc_url( $map_url ); ?>" target="_blank" rel="noopener noreferrer">
-				<svg class="icon pera-latest-offer-card__icon" aria-hidden="true" width="16" height="16">
-					<use href="#icon-map" xlink:href="#icon-map"></use>
-				</svg>
-				<span><?php esc_html_e( 'Map', 'hello-elementor-child' ); ?></span>
-			</a>
-		<?php endif; ?>
-
 		<?php if ( '' !== $floor_plan_url ) : ?>
 			<a class="pera-latest-offer-card__pill" href="<?php echo esc_url( $floor_plan_url ); ?>" target="_blank" rel="noopener noreferrer">
 				<svg class="icon pera-latest-offer-card__icon" aria-hidden="true" width="16" height="16">
