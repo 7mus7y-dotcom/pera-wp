@@ -326,11 +326,20 @@ add_filter( 'wp_robots', 'pera_portfolio_token_wp_robots', 99 );
 
 if ( ! function_exists( 'pera_portfolio_token_get_primary_term_name' ) ) {
 	/**
-	 * Resolve the first term name for a taxonomy on a property post.
+	 * Resolve a display term name for a taxonomy on a property post.
+	 *
+	 * District prefers the deepest assigned child term when available.
 	 */
 	function pera_portfolio_token_get_primary_term_name( int $property_id, string $taxonomy ): string {
 		if ( $property_id <= 0 || '' === $taxonomy ) {
 			return '';
+		}
+
+		if ( 'district' === $taxonomy && function_exists( 'pera_get_deepest_term' ) ) {
+			$deepest_term = pera_get_deepest_term( $property_id, $taxonomy );
+			if ( $deepest_term instanceof WP_Term ) {
+				return trim( (string) $deepest_term->name );
+			}
 		}
 
 		$terms = get_the_terms( $property_id, $taxonomy );
