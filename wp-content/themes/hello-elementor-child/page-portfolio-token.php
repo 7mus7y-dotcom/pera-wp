@@ -130,7 +130,8 @@ get_header();
 				</div>
 
 				<section data-portfolio-view="card" hidden>
-					<div id="property-grid" class="cards-grid peracrm-portfolio-card-grid">
+					<?php $card_grid_class = current_user_can( 'manage_options' ) ? 'peracrm-portfolio-card-grid' : 'cards-grid'; ?>
+					<div id="property-grid" class="<?php echo esc_attr( $card_grid_class ); ?>">
 						<?php if ( $properties_query->have_posts() ) : ?>
 							<?php while ( $properties_query->have_posts() ) : $properties_query->the_post(); ?>
 								<?php

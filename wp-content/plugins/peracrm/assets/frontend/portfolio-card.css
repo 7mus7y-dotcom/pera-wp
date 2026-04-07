@@ -103,3 +103,22 @@
 .peracrm-portfolio-offer-card__placeholder {
   background: linear-gradient(135deg, #e5e7eb 0%, #f8fafc 100%);
 }
+
+/* Fallback if global theme pill styles are unavailable on token pages. */
+.peracrm-portfolio-offer-card .pill {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 3px 10px;
+  border-radius: 999px;
+  font-size: 0.72rem;
+  line-height: 1.3;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+.peracrm-portfolio-offer-card .pill.pill--outline {
+  border: 1px solid #e5e7eb;
+  background: #f8fafc;
+  color: #0f172a;
+}

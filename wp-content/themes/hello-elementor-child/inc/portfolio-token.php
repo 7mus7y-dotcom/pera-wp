@@ -352,8 +352,14 @@ if ( ! function_exists( 'pera_portfolio_token_get_main_image_id' ) ) {
 		}
 
 		$main_image = get_field( 'main_image', $property_id );
-		if ( is_array( $main_image ) && ! empty( $main_image['ID'] ) ) {
-			return (int) $main_image['ID'];
+		if ( is_array( $main_image ) ) {
+			$image_id = isset( $main_image['ID'] ) ? (int) $main_image['ID'] : 0;
+			return $image_id > 0 ? $image_id : 0;
+		}
+
+		if ( is_numeric( $main_image ) ) {
+			$image_id = (int) $main_image;
+			return $image_id > 0 ? $image_id : 0;
 		}
 
 		return 0;
@@ -381,7 +387,7 @@ if ( ! function_exists( 'pera_portfolio_token_render_crm_offer_card' ) ) {
 		$district_name = pera_portfolio_token_get_primary_term_name( $property_id, 'district' );
 		$image_id      = pera_portfolio_token_get_main_image_id( $property_id );
 
-		$beds_label  = trim( (string) ( $portfolio_row['unit_type'] ?? '' ) );
+		$unit_type   = trim( (string) ( $portfolio_row['unit_type'] ?? '' ) );
 		$net_size    = trim( (string) ( $portfolio_row['net_size'] ?? '' ) );
 		$gross_size  = trim( (string) ( $portfolio_row['gross_size'] ?? '' ) );
 		$cash_price  = trim( (string) ( $portfolio_row['cash_price'] ?? '' ) );
@@ -393,7 +399,7 @@ if ( ! function_exists( 'pera_portfolio_token_render_crm_offer_card' ) ) {
 		$list_display  = '' !== $list_price ? '$' . number_format_i18n( (float) $list_price, 0 ) : '—';
 		$net_display   = '' !== $net_size ? $net_size . ' m²' : '—';
 		$gross_display = '' !== $gross_size ? $gross_size . ' m²' : '—';
-		$beds_display  = '' !== $beds_label ? $beds_label : '—';
+		$unit_display  = '' !== $unit_type ? $unit_type : '—';
 		?>
 		<article class="peracrm-portfolio-offer-card">
 			<h2 class="peracrm-portfolio-offer-card__title">
@@ -418,7 +424,7 @@ if ( ! function_exists( 'pera_portfolio_token_render_crm_offer_card' ) ) {
 			<div class="peracrm-portfolio-offer-card__summary">
 				<p class="peracrm-portfolio-offer-card__cash"><?php echo esc_html( $cash_display ); ?></p>
 				<p class="peracrm-portfolio-offer-card__meta">
-					<span><?php echo esc_html( sprintf( __( 'Beds: %s', 'hello-elementor-child' ), $beds_display ) ); ?></span>
+					<span><?php echo esc_html( sprintf( __( 'Type: %s', 'hello-elementor-child' ), $unit_display ) ); ?></span>
 					<span aria-hidden="true">•</span>
 					<span><?php echo esc_html( sprintf( __( 'Net: %s', 'hello-elementor-child' ), $net_display ) ); ?></span>
 					<span aria-hidden="true">•</span>
