@@ -3875,6 +3875,108 @@ body:not(.single-post) tr:nth-child(even) {
 
 .checklist-icon { color: var(--pill-green); flex-shrink: 0; }
 
+/* =======================================================
+   CITIZENSHIP PAGE: ADMIN-ONLY HERO PREVIEW VARIANTS
+   ======================================================= */
+.citizenship-layout-switcher {
+  max-width: var(--container);
+  margin: 16px auto 8px;
+  padding: 10px 14px;
+  border: 1px solid #d1d5db;
+  border-radius: 999px;
+  background: #ffffff;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  align-items: center;
+  font-size: 0.85rem;
+}
+
+.citizenship-layout-switcher a {
+  color: var(--brand);
+  text-decoration: none;
+  border: 1px solid rgba(30, 58, 138, 0.22);
+  border-radius: 999px;
+  padding: 4px 10px;
+}
+
+.citizenship-layout-switcher a.is-active {
+  background: var(--brand);
+  color: #ffffff;
+  border-color: var(--brand);
+}
+
+.citizenship-hero .hero-content {
+  padding-bottom: 54px;
+}
+
+.citizenship-hero .hero-content h1 {
+  max-width: 18ch;
+  line-height: 1.1;
+}
+
+.citizenship-hero .lead {
+  max-width: 64ch;
+}
+
+.citizenship-hero-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1.1fr) minmax(0, 0.9fr);
+  gap: 24px;
+  align-items: start;
+}
+
+.citizenship-hero-card {
+  margin-top: 16px;
+  border-radius: 20px;
+}
+
+.citizenship-hero-card .checklist {
+  margin: 0;
+}
+
+.citizenship-step-row {
+  margin-top: 20px;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 16px;
+}
+
+.citizenship-step-card h2 {
+  font-size: 0.95rem;
+}
+
+.citizenship-value-grid {
+  margin-top: 8px;
+}
+
+.citizenship-consultancy-preview .content-panel-box {
+  border-radius: 24px;
+}
+
+.citizenship-stack-blocks .container {
+  max-width: var(--container);
+}
+
+.citizenship-stack-card {
+  margin-bottom: 18px;
+}
+
+.citizenship-stack-card .content-panel-grid {
+  padding: 0;
+}
+
+@media (max-width: 900px) {
+  .citizenship-hero-grid,
+  .citizenship-step-row {
+    grid-template-columns: 1fr;
+  }
+
+  .citizenship-layout-switcher {
+    border-radius: 18px;
+  }
+}
+
 /* ============================================================
    FEATURED PROPERTY (home)
    Minimal modifier layer – relies on existing layout system

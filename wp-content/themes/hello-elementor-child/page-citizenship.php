@@ -6,117 +6,213 @@ if ( ! defined( 'ABSPATH' ) ) {
     exit;
 }
 
+$citizenship_preview_layout = '';
+$citizenship_preview_is_admin = current_user_can( 'manage_options' );
+
+if ( $citizenship_preview_is_admin && isset( $_GET['citizenship_layout'] ) ) {
+    $layout_candidate = sanitize_key( wp_unslash( $_GET['citizenship_layout'] ) );
+    if ( in_array( $layout_candidate, array( 'a', 'b', 'c' ), true ) ) {
+        $citizenship_preview_layout = $layout_candidate;
+    }
+}
+
+if ( $citizenship_preview_layout !== '' ) {
+    if ( ! defined( 'DONOTCACHEPAGE' ) ) {
+        define( 'DONOTCACHEPAGE', true );
+    }
+    nocache_headers();
+    add_filter(
+        'wp_robots',
+        static function ( array $robots ): array {
+            $robots['noindex'] = true;
+            $robots['follow']  = false;
+            return $robots;
+        }
+    );
+}
+
 get_header();
 ?>
 
 <main id="primary" class="site-main">
 
-        <!-- =====================================================
-         HERO – CITIZENSHIP
-         Canonical structure + fallback background (ID 55756)
-         ===================================================== -->
-            <section class="hero hero--left hero--citizenship" id="citizenship-hero">
-            
-              <div class="hero__media" aria-hidden="true">
-                <?php
+<?php
+$citizenship_requirements = array(
+    'Minimum real estate investment: $400,000',
+    'Property must be held for at least 3 years',
+    'Investment must be paid in foreign currency (DAB required)',
+    'Must obtain a Certificate of Conformity',
+    'Application includes spouse and children under 18',
+    'Process typically takes 3–6 months',
+);
 
-                  {
-                    // Fallback background (vopbesiktas.svg – attachment ID 55756)
-                    echo wp_get_attachment_image(
-                      55756,
-                      'full',
-                      false,
-                      array(
-                        'class'         => 'hero-media',
-                        'fetchpriority' => 'high',
-                        'loading'       => 'eager',
-                        'decoding'      => 'async',
-                      )
-                    );
-            
-                    /*
-                    // If you prefer to "grey out" the background for now, comment the block above
-                    // and leave the hero as a solid-colour hero (background: var(--brand)).
-                    */
-                  }
-                ?>
-                <div class="hero-overlay" aria-hidden="true"></div>
-              </div>
-            
-              <div class="hero-content">
-                <h1>Turkish Citizenship by Real Estate Investment</h1>
-            
-                <p class="lead">
-                  Turkish citizenship by investment is one of the fastest and most accessible residency-to-passport programmes globally, with the real estate route allowing investors to obtain a Turkish passport by purchasing property worth $400,000 or more.
-                </p>
+$citizenship_consultancy_points = array(
+    'End-to-end guidance from first call to Turkish passports.',
+    'Carefully curated portfolio of CBI-eligible properties in Istanbul.',
+    'Coordination with experienced Turkish lawyers and tax advisors.',
+    'Support with bank accounts, tax numbers and residency permits.',
+    'Transparent reporting and regular updates throughout the process.',
+);
 
-                <div class="hero-actions">
-                  <a href="#citizenship-callback" class="btn btn--solid btn--green">
-                    Book a consultation
-                  </a>
-            
-                  <?php /* Enable later when PDF is ready
-                  <a href="/property/?special=citizenship" class="btn btn-secondary">
-                    Download guide
-                  </a>
-                  */ ?>
-                </div>
-              </div>
-            
-            </section>
+$citizenship_process_steps = array(
+    array(
+        'title' => 'Qualify',
+        'copy'  => 'Confirm family eligibility, timeline and budget for the real-estate route.',
+    ),
+    array(
+        'title' => 'Buy property',
+        'copy'  => 'Select and purchase compliant property worth USD 400,000+ with legal due diligence.',
+    ),
+    array(
+        'title' => 'Apply',
+        'copy'  => 'Secure conformity paperwork, residency file and citizenship submission for your family.',
+    ),
+);
 
-  <section class="section">
-    <div class="container">
-      <h2>Turkish Citizenship by Investment Requirements (2026)</h2>
-      <ul class="checklist">
-        <li>
-          <svg class="icon icon-tick" aria-hidden="true">
-            <use href="<?php echo get_stylesheet_directory_uri(); ?>/logos-icons/icons.svg#icon-check"></use>
-          </svg>
-          Minimum real estate investment: $400,000
-        </li>
-        <li>
-          <svg class="icon icon-tick" aria-hidden="true">
-            <use href="<?php echo get_stylesheet_directory_uri(); ?>/logos-icons/icons.svg#icon-check"></use>
-          </svg>
-          Property must be held for at least 3 years
-        </li>
-        <li>
-          <svg class="icon icon-tick" aria-hidden="true">
-            <use href="<?php echo get_stylesheet_directory_uri(); ?>/logos-icons/icons.svg#icon-check"></use>
-          </svg>
-          Investment must be paid in foreign currency (DAB required)
-        </li>
-        <li>
-          <svg class="icon icon-tick" aria-hidden="true">
-            <use href="<?php echo get_stylesheet_directory_uri(); ?>/logos-icons/icons.svg#icon-check"></use>
-          </svg>
-          Must obtain a Certificate of Conformity
-        </li>
-        <li>
-          <svg class="icon icon-tick" aria-hidden="true">
-            <use href="<?php echo get_stylesheet_directory_uri(); ?>/logos-icons/icons.svg#icon-check"></use>
-          </svg>
-          Application includes spouse and children under 18
-        </li>
-        <li>
-          <svg class="icon icon-tick" aria-hidden="true">
-            <use href="<?php echo get_stylesheet_directory_uri(); ?>/logos-icons/icons.svg#icon-check"></use>
-          </svg>
-          Process typically takes 3–6 months
-        </li>
-      </ul>
+$citizenship_preview_base_url = get_permalink();
+?>
+
+<?php if ( $citizenship_preview_is_admin ) : ?>
+  <div class="citizenship-layout-switcher" role="status" aria-label="Citizenship layout preview switcher">
+    <strong>Admin preview:</strong>
+    <a href="<?php echo esc_url( remove_query_arg( 'citizenship_layout', $citizenship_preview_base_url ) ); ?>" class="<?php echo $citizenship_preview_layout === '' ? 'is-active' : ''; ?>">Production</a>
+    <a href="<?php echo esc_url( add_query_arg( 'citizenship_layout', 'a', $citizenship_preview_base_url ) ); ?>" class="<?php echo $citizenship_preview_layout === 'a' ? 'is-active' : ''; ?>">Option A</a>
+    <a href="<?php echo esc_url( add_query_arg( 'citizenship_layout', 'b', $citizenship_preview_base_url ) ); ?>" class="<?php echo $citizenship_preview_layout === 'b' ? 'is-active' : ''; ?>">Option B</a>
+    <a href="<?php echo esc_url( add_query_arg( 'citizenship_layout', 'c', $citizenship_preview_base_url ) ); ?>" class="<?php echo $citizenship_preview_layout === 'c' ? 'is-active' : ''; ?>">Option C</a>
+  </div>
+<?php endif; ?>
+
+<?php if ( 'a' === $citizenship_preview_layout ) : ?>
+  <section class="hero hero--left hero--citizenship citizenship-hero citizenship-hero--option-a" id="citizenship-hero">
+    <div class="hero__media" aria-hidden="true">
+      <?php
+      echo wp_get_attachment_image(
+          55756,
+          'full',
+          false,
+          array(
+              'class'         => 'hero-media',
+              'fetchpriority' => 'high',
+              'loading'       => 'eager',
+              'decoding'      => 'async',
+          )
+      );
+      ?>
+      <div class="hero-overlay" aria-hidden="true"></div>
+    </div>
+    <div class="hero-content">
+      <div class="citizenship-hero-grid">
+        <div class="citizenship-hero-copy">
+          <p class="pill pill--sm pill--outline">Turkish Citizenship by Investment</p>
+          <h1>Turkish Citizenship by Real Estate Investment</h1>
+          <p class="lead">
+            Turkish citizenship by investment is one of the fastest and most accessible residency-to-passport programmes globally, with the real estate route allowing investors to obtain a Turkish passport by purchasing property worth $400,000 or more.
+          </p>
+          <article class="feature-card citizenship-hero-card" aria-label="Turkish Citizenship by Investment Requirements (2026)">
+            <div class="feature-card-header">
+              <h2>Turkish Citizenship by Investment Requirements (2026)</h2>
+            </div>
+            <div class="feature-card-body">
+              <ul class="checklist">
+                <?php foreach ( $citizenship_requirements as $requirement ) : ?>
+                  <li>
+                    <svg class="icon icon-tick" aria-hidden="true">
+                      <use href="<?php echo get_stylesheet_directory_uri(); ?>/logos-icons/icons.svg#icon-check"></use>
+                    </svg>
+                    <?php echo esc_html( $requirement ); ?>
+                  </li>
+                <?php endforeach; ?>
+              </ul>
+            </div>
+          </article>
+          <div class="hero-actions">
+            <a href="#citizenship-callback" class="btn btn--solid btn--green">Book a consultation</a>
+            <a href="#citizenship-form" class="btn btn--ghost btn--blue">Start my application plan</a>
+          </div>
+        </div>
+        <div class="citizenship-hero-media">
+          <div class="media-frame media-frame--image-fill">
+            <?php
+            echo wp_get_attachment_image(
+                55703,
+                'full',
+                false,
+                array(
+                    'class'    => 'media-image',
+                    'loading'  => 'lazy',
+                    'decoding' => 'async',
+                    'alt'      => esc_attr( 'Family reviewing Turkish citizenship by investment options in a modern Istanbul apartment' ),
+                )
+            );
+            ?>
+          </div>
+        </div>
+      </div>
     </div>
   </section>
 
-  <!-- =====================================================
-       OVERVIEW PANEL: FULL-SERVICE CONSULTANCY
-       ====================================================== -->
-  <section class="content-panel content-panel--overlap-hero">
+  <section class="content-panel citizenship-consultancy-preview">
+    <div class="content-panel-box">
+      <div class="content-panel-grid content-panel-grid--single">
+        <header class="section-header section-header--center">
+          <h2>Full-service citizenship consultancy in Istanbul</h2>
+          <p>Since 2016, Pera’s founders and legal partners have assisted international clients with Turkish Citizenship by Investment, combining specialist real estate knowledge with a dedicated immigration and legal team.</p>
+        </header>
+        <div class="feature-grid citizenship-value-grid">
+          <article class="feature-card"><div class="feature-card-body"><p>Strategic property shortlists aligned with citizenship eligibility and your family’s lifestyle goals.</p></div></article>
+          <article class="feature-card"><div class="feature-card-body"><p>Coordinated legal and administrative execution from title deed checks to citizenship filing readiness.</p></div></article>
+          <article class="feature-card"><div class="feature-card-body"><p>One accountable team with clear updates, timeline visibility, and practical next steps at every stage.</p></div></article>
+        </div>
+      </div>
+    </div>
+  </section>
+<?php elseif ( 'b' === $citizenship_preview_layout ) : ?>
+  <section class="hero hero--left hero--citizenship citizenship-hero citizenship-hero--option-b" id="citizenship-hero">
+    <div class="hero__media" aria-hidden="true">
+      <?php
+      echo wp_get_attachment_image(
+          55756,
+          'full',
+          false,
+          array(
+              'class'         => 'hero-media',
+              'fetchpriority' => 'high',
+              'loading'       => 'eager',
+              'decoding'      => 'async',
+          )
+      );
+      ?>
+      <div class="hero-overlay" aria-hidden="true"></div>
+    </div>
+    <div class="hero-content">
+      <p class="pill pill--sm pill--outline">Turkish Citizenship by Investment</p>
+      <h1>Turkish Citizenship by Real Estate Investment</h1>
+      <p class="lead">
+        Turkish citizenship by investment is one of the fastest and most accessible residency-to-passport programmes globally, with the real estate route allowing investors to obtain a Turkish passport by purchasing property worth $400,000 or more.
+      </p>
+      <div class="citizenship-step-row" aria-label="Citizenship journey steps">
+        <?php foreach ( $citizenship_process_steps as $index => $step ) : ?>
+          <article class="feature-card citizenship-step-card">
+            <div class="feature-card-header">
+              <h2>Step <?php echo esc_html( (string) ( $index + 1 ) ); ?>: <?php echo esc_html( $step['title'] ); ?></h2>
+            </div>
+            <div class="feature-card-body">
+              <p><?php echo esc_html( $step['copy'] ); ?></p>
+            </div>
+          </article>
+        <?php endforeach; ?>
+      </div>
+      <div class="hero-actions">
+        <a href="#citizenship-callback" class="btn btn--solid btn--green">Book a consultation</a>
+        <a href="#citizenship-form" class="btn btn--ghost btn--blue">Talk to a citizenship advisor</a>
+      </div>
+    </div>
+  </section>
+
+  <section class="content-panel">
     <div class="content-panel-box">
       <div class="content-panel-grid">
 
-        <!-- LEFT: TEXT -->
         <div>
           <header class="section-header">
             <h2>Full-service citizenship consultancy in Istanbul</h2>
@@ -129,71 +225,17 @@ get_header();
           </header>
 
             <ul class="checklist">
-              <li>
-                <svg class="icon icon-tick" aria-hidden="true">
-                  <use href="<?php echo get_stylesheet_directory_uri(); ?>/logos-icons/icons.svg#icon-check"></use>
-                </svg>
-                End-to-end guidance from first call to Turkish passports.
-              </li>
-            
-              <li>
-                <svg class="icon icon-tick" aria-hidden="true">
-                  <use href="<?php echo get_stylesheet_directory_uri(); ?>/logos-icons/icons.svg#icon-check"></use>
-                </svg>
-                Carefully curated portfolio of CBI-eligible properties in Istanbul.
-              </li>
-            
-              <li>
-                <svg class="icon icon-tick" aria-hidden="true">
-                  <use href="<?php echo get_stylesheet_directory_uri(); ?>/logos-icons/icons.svg#icon-check"></use>
-                </svg>
-                Coordination with experienced Turkish lawyers and tax advisors.
-              </li>
-            
-              <li>
-                <svg class="icon icon-tick" aria-hidden="true">
-                  <use href="<?php echo get_stylesheet_directory_uri(); ?>/logos-icons/icons.svg#icon-check"></use>
-                </svg>
-                Support with bank accounts, tax numbers and residency permits.
-              </li>
-            
-              <li>
-                <svg class="icon icon-tick" aria-hidden="true">
-                  <use href="<?php echo get_stylesheet_directory_uri(); ?>/logos-icons/icons.svg#icon-check"></use>
-                </svg>
-                Transparent reporting and regular updates throughout the process.
-              </li>
+              <?php foreach ( $citizenship_consultancy_points as $point ) : ?>
+                <li>
+                  <svg class="icon icon-tick" aria-hidden="true">
+                    <use href="<?php echo get_stylesheet_directory_uri(); ?>/logos-icons/icons.svg#icon-check"></use>
+                  </svg>
+                  <?php echo esc_html( $point ); ?>
+                </li>
+              <?php endforeach; ?>
             </ul>
-
-
-          <div class="signoff-card">
-            <div class="signoff-avatar">
-                <?php
-                echo wp_get_attachment_image(
-                    55700,
-                    'full',
-                    false,
-                    array(
-                        'class'   => '',
-                        'alt'     => 'Pera Property Director',
-                        'loading' => 'lazy',
-                        'decoding'=> 'async',
-                    )
-                );
-                ?>
-            </div>
-
-            <div class="signoff-text">
-              <h5>Pera Property Directors</h5>
-              <p>
-                Nearly 40 years’ combined experience in Istanbul real estate
-                and citizenship by investment.
-              </p>
-            </div>
-          </div>
         </div>
-        
-        <!-- RIGHT: MEDIA (IMAGE) -->
+
         <div>
             <div class="media-frame media-frame--image-fill">
             <?php
@@ -219,6 +261,222 @@ get_header();
       </div><!-- /.content-panel-grid -->
     </div><!-- /.content-panel-box -->
   </section>
+<?php elseif ( 'c' === $citizenship_preview_layout ) : ?>
+  <section class="hero hero--left hero--citizenship citizenship-hero citizenship-hero--option-c" id="citizenship-hero">
+    <div class="hero__media" aria-hidden="true">
+      <?php
+      echo wp_get_attachment_image(
+          55756,
+          'full',
+          false,
+          array(
+              'class'         => 'hero-media',
+              'fetchpriority' => 'high',
+              'loading'       => 'eager',
+              'decoding'      => 'async',
+          )
+      );
+      ?>
+      <div class="hero-overlay" aria-hidden="true"></div>
+    </div>
+    <div class="hero-content">
+      <p class="pill pill--sm pill--outline">Turkish Citizenship by Investment</p>
+      <h1>Turkish Citizenship by Real Estate Investment</h1>
+      <p class="lead">
+        Turkish citizenship by investment is one of the fastest and most accessible residency-to-passport programmes globally, with the real estate route allowing investors to obtain a Turkish passport by purchasing property worth $400,000 or more.
+      </p>
+      <div class="hero-actions">
+        <a href="#citizenship-callback" class="btn btn--solid btn--green">Book a consultation</a>
+      </div>
+    </div>
+  </section>
+
+  <section class="section citizenship-stack-blocks">
+    <div class="container">
+      <article class="feature-card citizenship-stack-card">
+        <div class="feature-card-header">
+          <h2>Turkish Citizenship by Investment Requirements (2026)</h2>
+        </div>
+        <div class="feature-card-body">
+          <ul class="checklist">
+            <?php foreach ( $citizenship_requirements as $requirement ) : ?>
+              <li>
+                <svg class="icon icon-tick" aria-hidden="true">
+                  <use href="<?php echo get_stylesheet_directory_uri(); ?>/logos-icons/icons.svg#icon-check"></use>
+                </svg>
+                <?php echo esc_html( $requirement ); ?>
+              </li>
+            <?php endforeach; ?>
+          </ul>
+        </div>
+      </article>
+
+      <article class="feature-card citizenship-stack-card">
+        <div class="content-panel-grid">
+          <div>
+            <header class="section-header">
+              <h2>Full-service citizenship consultancy in Istanbul</h2>
+              <p>
+                Since 2016, Pera’s founders and legal partners have assisted
+                international clients with Turkish Citizenship by Investment,
+                combining specialist real estate knowledge with a dedicated
+                immigration and legal team.
+              </p>
+            </header>
+            <ul class="checklist">
+              <?php foreach ( $citizenship_consultancy_points as $point ) : ?>
+                <li>
+                  <svg class="icon icon-tick" aria-hidden="true">
+                    <use href="<?php echo get_stylesheet_directory_uri(); ?>/logos-icons/icons.svg#icon-check"></use>
+                  </svg>
+                  <?php echo esc_html( $point ); ?>
+                </li>
+              <?php endforeach; ?>
+            </ul>
+          </div>
+          <div>
+            <div class="media-frame media-frame--image-fill">
+              <?php
+              echo wp_get_attachment_image(
+                  55703,
+                  'full',
+                  false,
+                  array(
+                      'class'    => 'media-image',
+                      'loading'  => 'lazy',
+                      'decoding' => 'async',
+                      'alt'      => esc_attr( 'Family reviewing Turkish citizenship by investment options in a modern Istanbul apartment' ),
+                  )
+              );
+              ?>
+            </div>
+          </div>
+        </div>
+      </article>
+    </div>
+  </section>
+<?php else : ?>
+  <!-- =====================================================
+       HERO – CITIZENSHIP
+       Canonical structure + fallback background (ID 55756)
+       ===================================================== -->
+  <section class="hero hero--left hero--citizenship" id="citizenship-hero">
+    <div class="hero__media" aria-hidden="true">
+      <?php
+      echo wp_get_attachment_image(
+          55756,
+          'full',
+          false,
+          array(
+              'class'         => 'hero-media',
+              'fetchpriority' => 'high',
+              'loading'       => 'eager',
+              'decoding'      => 'async',
+          )
+      );
+      ?>
+      <div class="hero-overlay" aria-hidden="true"></div>
+    </div>
+    <div class="hero-content">
+      <h1>Turkish Citizenship by Real Estate Investment</h1>
+      <p class="lead">
+        Turkish citizenship by investment is one of the fastest and most accessible residency-to-passport programmes globally, with the real estate route allowing investors to obtain a Turkish passport by purchasing property worth $400,000 or more.
+      </p>
+      <div class="hero-actions">
+        <a href="#citizenship-callback" class="btn btn--solid btn--green">Book a consultation</a>
+      </div>
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="container">
+      <h2>Turkish Citizenship by Investment Requirements (2026)</h2>
+      <ul class="checklist">
+        <?php foreach ( $citizenship_requirements as $requirement ) : ?>
+          <li>
+            <svg class="icon icon-tick" aria-hidden="true">
+              <use href="<?php echo get_stylesheet_directory_uri(); ?>/logos-icons/icons.svg#icon-check"></use>
+            </svg>
+            <?php echo esc_html( $requirement ); ?>
+          </li>
+        <?php endforeach; ?>
+      </ul>
+    </div>
+  </section>
+
+  <section class="content-panel content-panel--overlap-hero">
+    <div class="content-panel-box">
+      <div class="content-panel-grid">
+        <div>
+          <header class="section-header">
+            <h2>Full-service citizenship consultancy in Istanbul</h2>
+            <p>
+              Since 2016, Pera’s founders and legal partners have assisted
+              international clients with Turkish Citizenship by Investment,
+              combining specialist real estate knowledge with a dedicated
+              immigration and legal team.
+            </p>
+          </header>
+
+          <ul class="checklist">
+            <?php foreach ( $citizenship_consultancy_points as $point ) : ?>
+              <li>
+                <svg class="icon icon-tick" aria-hidden="true">
+                  <use href="<?php echo get_stylesheet_directory_uri(); ?>/logos-icons/icons.svg#icon-check"></use>
+                </svg>
+                <?php echo esc_html( $point ); ?>
+              </li>
+            <?php endforeach; ?>
+          </ul>
+
+          <div class="signoff-card">
+            <div class="signoff-avatar">
+              <?php
+              echo wp_get_attachment_image(
+                  55700,
+                  'full',
+                  false,
+                  array(
+                      'class'    => '',
+                      'alt'      => 'Pera Property Director',
+                      'loading'  => 'lazy',
+                      'decoding' => 'async',
+                  )
+              );
+              ?>
+            </div>
+
+            <div class="signoff-text">
+              <h5>Pera Property Directors</h5>
+              <p>
+                Nearly 40 years’ combined experience in Istanbul real estate
+                and citizenship by investment.
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <div>
+          <div class="media-frame media-frame--image-fill">
+            <?php
+            echo wp_get_attachment_image(
+                55703,
+                'full',
+                false,
+                array(
+                    'class'    => 'media-image',
+                    'loading'  => 'lazy',
+                    'decoding' => 'async',
+                    'alt'      => esc_attr( 'Family reviewing Turkish citizenship by investment options in a modern Istanbul apartment' ),
+                )
+            );
+            ?>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+<?php endif; ?>
 
   <!-- =====================================================
        OUR FULL-PACKAGE CITIZENSHIP SERVICE
