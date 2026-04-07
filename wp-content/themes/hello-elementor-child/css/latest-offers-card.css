@@ -113,3 +113,39 @@
   font-size: 14px;
   line-height: 1.45;
 }
+
+
+.pera-home-latest-offers {
+  padding-top: clamp(32px, 4vw, 56px);
+  padding-bottom: clamp(32px, 4vw, 56px);
+}
+
+.pera-home-latest-offers .section-header {
+  margin-bottom: 20px;
+}
+
+.pera-home-latest-offers .section-header h2 {
+  margin: 0;
+}
+
+.pera-latest-offers-card-list--home {
+  grid-template-columns: 1fr;
+}
+
+.pera-latest-offer-card__icon {
+  width: 14px;
+  height: 14px;
+  flex: 0 0 14px;
+}
+
+@media (min-width: 768px) {
+  .pera-latest-offers-card-list--home {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (min-width: 1200px) {
+  .pera-latest-offers-card-list--home {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}

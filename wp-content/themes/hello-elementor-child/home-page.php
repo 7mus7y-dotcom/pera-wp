@@ -215,8 +215,11 @@ $featured_query = new WP_Query( array(
    SPECIAL OFFERS (HOME)
    ====================================================== */
 get_template_part( 'parts/home-special-offers' );
-?>
 
+if ( current_user_can( 'manage_options' ) ) {
+  get_template_part( 'partials/home-latest-offers' );
+}
+?>
 
 
 

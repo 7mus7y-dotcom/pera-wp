@@ -48,7 +48,9 @@ $floor_plan_url = isset( $card['floor_plan_url'] ) ? (string) $card['floor_plan_
 	<div class="pera-latest-offer-card__utility">
 		<?php if ( '' !== $floor_plan_url ) : ?>
 			<a class="pera-latest-offer-card__pill" href="<?php echo esc_url( $floor_plan_url ); ?>" target="_blank" rel="noopener noreferrer">
-				<svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M3 3h8v2H5v6H3V3zm10 0h8v8h-2V5h-6V3zM3 13h2v6h6v2H3v-8zm16 0h2v8h-8v-2h6v-6z"/></svg>
+				<svg class="icon pera-latest-offer-card__icon" aria-hidden="true" width="16" height="16">
+					<use href="#icon-floor-plan" xlink:href="#icon-floor-plan"></use>
+				</svg>
 				<span><?php esc_html_e( 'Floor plan', 'hello-elementor-child' ); ?></span>
 			</a>
 		<?php endif; ?>
@@ -56,7 +58,9 @@ $floor_plan_url = isset( $card['floor_plan_url'] ) ? (string) $card['floor_plan_
 		<?php if ( '' !== $notes ) : ?>
 			<details class="pera-latest-offer-card__note">
 				<summary class="pera-latest-offer-card__pill">
-					<svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M5 3h14a2 2 0 012 2v14l-4-3H5a2 2 0 01-2-2V5a2 2 0 012-2zm2 5v2h10V8H7zm0 4v2h7v-2H7z"/></svg>
+					<svg class="icon pera-latest-offer-card__icon" aria-hidden="true" width="16" height="16">
+						<use href="#icon-legal" xlink:href="#icon-legal"></use>
+					</svg>
 					<span><?php esc_html_e( 'Notes', 'hello-elementor-child' ); ?></span>
 				</summary>
 				<div class="pera-latest-offer-card__note-panel"><?php echo nl2br( esc_html( $notes ) ); ?></div>
@@ -66,7 +70,9 @@ $floor_plan_url = isset( $card['floor_plan_url'] ) ? (string) $card['floor_plan_
 		<?php if ( '' !== $property_url ) : ?>
 			<a class="pera-latest-offer-card__pill pera-latest-offer-card__pill--blue" href="<?php echo esc_url( $property_url ); ?>" target="_blank" rel="noopener noreferrer">
 				<span><?php esc_html_e( 'Project details', 'hello-elementor-child' ); ?></span>
-				<svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M14 3h7v7h-2V6.41l-9.29 9.3-1.42-1.42 9.3-9.29H14V3z"/><path d="M5 5h6v2H7v10h10v-4h2v6H5V5z"/></svg>
+				<svg class="icon pera-latest-offer-card__icon" aria-hidden="true" width="16" height="16">
+					<use href="#icon-upload" xlink:href="#icon-upload"></use>
+				</svg>
 			</a>
 		<?php endif; ?>
 	</div>
