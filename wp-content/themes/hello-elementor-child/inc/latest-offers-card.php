@@ -121,6 +121,52 @@ if ( ! function_exists( 'pera_latest_offers_format_floor' ) ) {
 }
 
 if ( ! function_exists( 'pera_latest_offers_card_view_model' ) ) {
+	if ( ! function_exists( 'pera_latest_offers_primary_term_name' ) ) {
+		function pera_latest_offers_primary_term_name( int $property_id, string $taxonomy ): string {
+			if ( $property_id <= 0 || '' === $taxonomy ) {
+				return '';
+			}
+
+			$terms = get_the_terms( $property_id, $taxonomy );
+			if ( is_wp_error( $terms ) || empty( $terms ) || ! is_array( $terms ) ) {
+				return '';
+			}
+
+			$term = reset( $terms );
+			if ( ! ( $term instanceof WP_Term ) ) {
+				return '';
+			}
+
+			return trim( (string) $term->name );
+		}
+	}
+
+	if ( ! function_exists( 'pera_latest_offers_main_image_id' ) ) {
+		function pera_latest_offers_main_image_id( int $property_id ): int {
+			if ( $property_id <= 0 || ! function_exists( 'get_field' ) ) {
+				return 0;
+			}
+
+			$main_image = get_field( 'main_image', $property_id );
+
+			if ( is_array( $main_image ) ) {
+				$image_id = isset( $main_image['ID'] ) ? (int) $main_image['ID'] : 0;
+				if ( $image_id > 0 ) {
+					return $image_id;
+				}
+			}
+
+			if ( is_numeric( $main_image ) ) {
+				$image_id = (int) $main_image;
+				if ( $image_id > 0 ) {
+					return $image_id;
+				}
+			}
+
+			return 0;
+		}
+	}
+
 	/**
 	 * @param array<string,mixed> $offer_row
 	 * @return array<string,mixed>
@@ -128,6 +174,9 @@ if ( ! function_exists( 'pera_latest_offers_card_view_model' ) ) {
 	function pera_latest_offers_card_view_model( int $property_id, array $offer_row ): array {
 		$title      = pera_latest_offers_property_title( $property_id );
 		$property_url = get_permalink( $property_id );
+		$image_id     = pera_latest_offers_main_image_id( $property_id );
+		$region_name  = pera_latest_offers_primary_term_name( $property_id, 'region' );
+		$district_name = pera_latest_offers_primary_term_name( $property_id, 'district' );
 
 		$type       = isset( $offer_row['type'] ) ? trim( (string) $offer_row['type'] ) : '';
 		$floor_text = isset( $offer_row['floor'] ) ? pera_latest_offers_format_floor( (string) $offer_row['floor'] ) : '';
@@ -144,6 +193,9 @@ if ( ! function_exists( 'pera_latest_offers_card_view_model' ) ) {
 			'property_id'     => $property_id,
 			'property_title'  => $title,
 			'property_url'    => is_string( $property_url ) ? $property_url : '',
+			'image_id'        => $image_id,
+			'region_name'     => $region_name,
+			'district_name'   => $district_name,
 			'type'            => '' !== $type ? $type : '—',
 			'floor'           => $floor_text,
 			'net_sqm'         => $net_size,
