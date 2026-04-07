@@ -119,14 +119,37 @@
 
 .peracrm-portfolio-offer-card__cta {
   position: absolute;
-  top: 8px;
-  right: 8px;
+  top: 6px;
+  right: 6px;
   z-index: 2;
 }
 
 .peracrm-portfolio-offer-card__cta img {
   width: 14px;
   height: 14px;
+}
+
+
+.peracrm-portfolio-offer-card__cta .pill {
+  gap: 4px;
+  padding: 1px 8px;
+  font-size: 0.75rem;
+  line-height: 1;
+}
+
+.peracrm-portfolio-offer-card__cta .pill.pill--blue,
+.peracrm-portfolio-offer-card__cta .pill.pill--blue:hover {
+  background: var(--brand, #2f6df6);
+}
+
+.peracrm-portfolio-offer-card__cta .pill svg,
+.peracrm-portfolio-offer-card__cta .pill svg * {
+  fill: #fff !important;
+  stroke: #fff !important;
+}
+
+.peracrm-portfolio-offer-card__cta .pill img {
+  filter: brightness(0) invert(1);
 }
 
 /* Fallback if global theme pill styles are unavailable on token pages. */
