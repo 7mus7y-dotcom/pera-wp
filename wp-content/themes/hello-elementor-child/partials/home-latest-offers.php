@@ -15,10 +15,11 @@ if ( function_exists( 'pera_latest_offers_enqueue_card_styles' ) ) {
 	pera_latest_offers_enqueue_card_styles();
 }
 ?>
-<section class="section pera-home-latest-offers" aria-label="<?php echo esc_attr__( 'Latest offers', 'hello-elementor-child' ); ?>">
+<section class="section pera-home-latest-offers" aria-label="<?php echo esc_attr__( 'Latest opportunities in Istanbul', 'hello-elementor-child' ); ?>">
 	<div class="container">
 		<div class="section-header section-header--center">
-			<h2><?php esc_html_e( 'Latest offers', 'hello-elementor-child' ); ?></h2>
+			<h2><?php esc_html_e( 'Curated Opportunities in Istanbul', 'hello-elementor-child' ); ?></h2>
+			<p><?php esc_html_e( 'Handpicked current offers from selected Istanbul projects.', 'hello-elementor-child' ); ?></p>
 		</div>
 
 		<div class="pera-latest-offers-card-list pera-latest-offers-card-list--home cards-slider cards-slider--features cards-slider--snap cards-slider--grid-lg" aria-label="<?php echo esc_attr__( 'Latest offers list', 'hello-elementor-child' ); ?>">
