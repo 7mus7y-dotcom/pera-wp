@@ -258,7 +258,7 @@
 }
 
 /* Each taxonomy as a pill, uppercase */
-.property-card__location a {
+.property-card__location .property-card__location-link {
   display: inline-flex;
   align-items: center;
   padding: 1px 10px;
@@ -272,7 +272,8 @@
   text-decoration: none;
 }
 
-.property-card__location a:hover {
+.property-card__location .property-card__location-link:hover,
+.property-card__location .property-card__location-link:focus-visible {
   font-weight: 600;
   text-decoration: none;
 }
@@ -415,7 +416,7 @@
     color: #ffffff;
   }
 
-  .property-card__location a {
+  .property-card__location .property-card__location-link {
     color: var(--inverse);
     background: var(--pill-green);
   }
