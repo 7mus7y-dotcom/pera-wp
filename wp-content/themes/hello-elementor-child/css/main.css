@@ -3879,17 +3879,23 @@ body:not(.single-post) tr:nth-child(even) {
    CITIZENSHIP PAGE: ADMIN-ONLY HERO PREVIEW VARIANTS
    ======================================================= */
 .citizenship-layout-switcher {
-  max-width: var(--container);
-  margin: 16px auto 8px;
+  max-width: min(var(--container), calc(100% - 20px));
+  margin: 0;
   padding: 10px 14px;
   border: 1px solid #d1d5db;
-  border-radius: 999px;
+  border-radius: 14px;
   background: #ffffff;
   display: flex;
   flex-wrap: wrap;
   gap: 10px;
   align-items: center;
   font-size: 0.85rem;
+  position: fixed;
+  top: calc(var(--header-height) + 12px);
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 25;
+  box-shadow: 0 8px 24px rgba(15, 23, 42, 0.16);
 }
 
 .citizenship-layout-switcher a {
@@ -3907,63 +3913,131 @@ body:not(.single-post) tr:nth-child(even) {
 }
 
 .citizenship-hero .hero-content {
-  padding-bottom: 54px;
+  padding-bottom: 42px;
 }
 
 .citizenship-hero .hero-content h1 {
-  max-width: 18ch;
-  line-height: 1.1;
+  max-width: 20ch;
+  line-height: 1.12;
+  margin-bottom: 0.6em;
+  font-size: clamp(1.95rem, 4vw, 2.8rem);
 }
 
 .citizenship-hero .lead {
-  max-width: 64ch;
+  max-width: 62ch;
+  margin-bottom: 1.15rem;
+  font-size: clamp(1rem, 1.45vw, 1.08rem);
 }
 
 .citizenship-hero-grid {
   display: grid;
   grid-template-columns: minmax(0, 1.1fr) minmax(0, 0.9fr);
-  gap: 24px;
+  gap: 20px;
   align-items: start;
 }
 
 .citizenship-hero-card {
-  margin-top: 16px;
+  margin-top: 12px;
   border-radius: 20px;
+  padding: 14px 16px 10px;
+  box-shadow: 0 10px 28px rgba(15, 23, 42, 0.12);
 }
 
 .citizenship-hero-card .checklist {
   margin: 0;
 }
 
+.citizenship-hero-card .feature-card-header {
+  margin-bottom: 8px;
+  padding-bottom: 8px;
+}
+
+.citizenship-hero-card .feature-card-header h2 {
+  font-size: 1.04rem;
+  margin: 0;
+}
+
+.citizenship-hero-card .checklist li {
+  margin-bottom: 10px;
+  font-size: 0.95rem;
+}
+
+.citizenship-hero .hero-actions {
+  margin-top: 12px;
+  gap: 10px;
+}
+
+.citizenship-hero .hero-actions .btn {
+  padding: 11px 16px;
+}
+
+.citizenship-hero-media .media-frame {
+  min-height: 320px;
+}
+
 .citizenship-step-row {
-  margin-top: 20px;
+  margin-top: 16px;
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 16px;
 }
 
+.citizenship-step-card {
+  border-color: #dbe3ef;
+  box-shadow: 0 8px 24px rgba(15, 23, 42, 0.08);
+}
+
+.citizenship-step-card .feature-card-header {
+  margin-bottom: 10px;
+}
+
 .citizenship-step-card h2 {
+  font-size: 0.92rem;
+  letter-spacing: 0.02em;
+  text-transform: none;
+}
+
+.citizenship-step-card .feature-card-body p {
   font-size: 0.95rem;
+  line-height: 1.55;
 }
 
 .citizenship-value-grid {
-  margin-top: 8px;
+  margin-top: 2px;
 }
 
 .citizenship-consultancy-preview .content-panel-box {
   border-radius: 24px;
 }
 
-.citizenship-stack-blocks .container {
-  max-width: var(--container);
+.citizenship-stack-blocks .content-panel-box {
+  padding: 14px;
 }
 
 .citizenship-stack-card {
-  margin-bottom: 18px;
+  margin-bottom: 14px;
+  padding: 14px 16px;
+}
+
+.citizenship-stack-card:last-child {
+  margin-bottom: 0;
+}
+
+.citizenship-stack-card .checklist {
+  margin: 12px 0 4px;
 }
 
 .citizenship-stack-card .content-panel-grid {
   padding: 0;
+  gap: 22px;
+}
+
+.citizenship-stack-card .section-header h2 {
+  margin-bottom: 6px;
+}
+
+.citizenship-stack-card .section-header p {
+  margin-bottom: 8px;
 }
 
 @media (max-width: 900px) {
@@ -3973,7 +4047,99 @@ body:not(.single-post) tr:nth-child(even) {
   }
 
   .citizenship-layout-switcher {
+    border-radius: 12px;
+    top: auto;
+    bottom: 12px;
+    left: 10px;
+    right: 10px;
+    transform: none;
+    max-width: none;
+    justify-content: center;
+    gap: 8px;
+    padding: 8px 10px;
+  }
+
+  .citizenship-hero .hero-content {
+    padding-bottom: 28px;
+  }
+
+  .citizenship-hero .hero-content h1 {
+    max-width: 18ch;
+    font-size: clamp(1.6rem, 7vw, 2.05rem);
+  }
+
+  .citizenship-hero .lead {
+    font-size: 0.98rem;
+    line-height: 1.55;
+  }
+
+  .citizenship-hero-media .media-frame {
+    min-height: 0;
+    aspect-ratio: 4 / 3;
+    max-height: 300px;
+  }
+
+  .citizenship-hero .hero-actions {
+    display: flex;
+    width: 100%;
+    align-items: stretch;
+  }
+
+  .citizenship-hero .hero-actions .btn {
+    width: 100%;
+    justify-content: center;
+    text-align: center;
+  }
+
+  .citizenship-step-row {
+    gap: 10px;
+  }
+
+  .citizenship-step-card {
     border-radius: 18px;
+    padding: 14px 14px 12px;
+  }
+
+  .citizenship-step-card .feature-card-header {
+    border-bottom-width: 0;
+    padding-bottom: 0;
+    margin-bottom: 4px;
+  }
+
+  .citizenship-step-card h2 {
+    font-size: 0.95rem;
+  }
+
+  .citizenship-step-card + .citizenship-step-card {
+    position: relative;
+  }
+
+  .citizenship-step-card + .citizenship-step-card::before {
+    content: "";
+    position: absolute;
+    top: -8px;
+    left: 18px;
+    right: 18px;
+    height: 1px;
+    background: rgba(148, 163, 184, 0.34);
+  }
+
+  .citizenship-consultancy-preview .feature-grid {
+    gap: 12px;
+  }
+
+  .citizenship-stack-blocks {
+    padding-bottom: 40px;
+  }
+
+  .citizenship-stack-blocks .content-panel-box {
+    padding: 12px;
+  }
+
+  .citizenship-stack-card {
+    border-radius: 18px;
+    padding: 12px;
+    margin-bottom: 10px;
   }
 }
 
