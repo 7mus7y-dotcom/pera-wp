@@ -23,7 +23,7 @@ $notes          = isset( $card['notes'] ) ? (string) $card['notes'] : '';
 $floor_plan_url = isset( $card['floor_plan_url'] ) ? (string) $card['floor_plan_url'] : '';
 $map_url        = isset( $card['map_url'] ) ? (string) $card['map_url'] : '';
 ?>
-<article class="pera-latest-offer-card" aria-label="<?php echo esc_attr__( 'Latest offer card', 'hello-elementor-child' ); ?>">
+<article class="pera-latest-offer-card slider-card" aria-label="<?php echo esc_attr__( 'Latest offer card', 'hello-elementor-child' ); ?>">
 	<div class="pera-latest-offer-card__pills">
 		<?php if ( '' !== $region_name ) : ?>
 			<span class="pill pill--green"><?php echo esc_html( $region_name ); ?></span>

@@ -21,7 +21,7 @@ if ( function_exists( 'pera_latest_offers_enqueue_card_styles' ) ) {
 			<h2><?php esc_html_e( 'Latest offers', 'hello-elementor-child' ); ?></h2>
 		</div>
 
-		<div class="pera-latest-offers-card-list pera-latest-offers-card-list--home" aria-label="<?php echo esc_attr__( 'Latest offers list', 'hello-elementor-child' ); ?>">
+		<div class="pera-latest-offers-card-list pera-latest-offers-card-list--home cards-slider cards-slider--features cards-slider--snap cards-slider--grid-lg" aria-label="<?php echo esc_attr__( 'Latest offers list', 'hello-elementor-child' ); ?>">
 			<?php foreach ( $cards as $card ) : ?>
 				<?php pera_latest_offers_render_card( $card ); ?>
 			<?php endforeach; ?>
