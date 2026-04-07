@@ -151,7 +151,7 @@ $citizenship_preview_base_url = get_permalink();
     </div>
   </section>
 
-  <section class="content-panel citizenship-consultancy-preview">
+  <section class="content-panel content-panel--overlap-hero citizenship-consultancy-preview">
     <div class="content-panel-box">
       <div class="content-panel-grid content-panel-grid--single">
         <header class="section-header section-header--center">
@@ -209,7 +209,7 @@ $citizenship_preview_base_url = get_permalink();
     </div>
   </section>
 
-  <section class="content-panel">
+  <section class="content-panel content-panel--overlap-hero">
     <div class="content-panel-box">
       <div class="content-panel-grid">
 
@@ -291,8 +291,8 @@ $citizenship_preview_base_url = get_permalink();
     </div>
   </section>
 
-  <section class="section citizenship-stack-blocks">
-    <div class="container">
+  <section class="content-panel content-panel--overlap-hero citizenship-stack-blocks">
+    <div class="content-panel-box">
       <article class="feature-card citizenship-stack-card">
         <div class="feature-card-header">
           <h2>Turkish Citizenship by Investment Requirements (2026)</h2>
