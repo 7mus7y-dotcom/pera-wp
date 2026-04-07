@@ -1,0 +1,28 @@
+.pera-latest-offers-scroll {
+  overflow-x: auto;
+}
+
+.pera-latest-offers-table {
+  min-width: 1080px;
+}
+
+.pera-latest-offers-table td,
+.pera-latest-offers-table th {
+  vertical-align: top;
+}
+
+.pera-latest-offers-table textarea {
+  min-width: 180px;
+}
+
+.pera-floor-plan-label {
+  margin-bottom: 6px;
+  font-size: 12px;
+  line-height: 1.4;
+}
+
+.pera-floor-plan-actions {
+  display: flex;
+  gap: 6px;
+  margin-top: 6px;
+}
