@@ -124,12 +124,12 @@ get_header();
 					</p>
 
 					<div class="portfolio-view-toggle" role="group" aria-label="Portfolio view">
-						<button type="button" class="btn btn--ghost btn--blue" data-portfolio-view-btn="card" aria-pressed="false">CARD</button>
-						<button type="button" class="btn btn--ghost btn--blue is-active" data-portfolio-view-btn="table" aria-pressed="true">TABLE</button>
+						<button type="button" class="btn btn--ghost btn--blue is-active" data-portfolio-view-btn="card" aria-pressed="true">CARD</button>
+						<button type="button" class="btn btn--ghost btn--blue" data-portfolio-view-btn="table" aria-pressed="false">TABLE</button>
 					</div>
 				</div>
 
-				<section data-portfolio-view="card" hidden>
+				<section data-portfolio-view="card">
 					<?php $card_grid_class = current_user_can( 'manage_options' ) ? 'peracrm-portfolio-card-grid' : 'cards-grid'; ?>
 					<div id="property-grid" class="<?php echo esc_attr( $card_grid_class ); ?>">
 						<?php if ( $properties_query->have_posts() ) : ?>
@@ -155,7 +155,7 @@ get_header();
 
 				<?php $properties_query->rewind_posts(); ?>
 
-				<section data-portfolio-view="table">
+				<section data-portfolio-view="table" hidden>
 					<div class="table-wrap portfolio-table-wrap">
 						<table class="portfolio-table">
 							<thead>
@@ -268,11 +268,11 @@ get_header();
 			var params = new URLSearchParams(window.location.search);
 			var urlView = (params.get('view') || '').toLowerCase();
 			var storedView = (window.localStorage && window.localStorage.getItem(storageKey) || '').toLowerCase();
-			var activeView = validViews[urlView] ? urlView : (validViews[storedView] ? storedView : 'table');
+			var activeView = validViews[urlView] ? urlView : (validViews[storedView] ? storedView : 'card');
 
 			var applyView = function (view) {
 				if (!validViews[view]) {
-					view = 'table';
+					view = 'card';
 				}
 
 				sections.forEach(function (section) {
@@ -292,7 +292,7 @@ get_header();
 
 			buttons.forEach(function (button) {
 				button.addEventListener('click', function () {
-					applyView(button.getAttribute('data-portfolio-view-btn') || 'table');
+					applyView(button.getAttribute('data-portfolio-view-btn') || 'card');
 				});
 			});
 
