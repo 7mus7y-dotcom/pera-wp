@@ -468,6 +468,7 @@ if ( ! function_exists( 'pera_portfolio_token_render_crm_offer_card' ) ) {
 		$floor_plan_icon_url = pera_portfolio_token_get_plugin_icon_url( 'floor-plan.svg' );
 		$notes_icon_url      = pera_portfolio_token_get_plugin_icon_url( 'notes.svg' );
 		$map_icon_url        = pera_portfolio_token_get_plugin_icon_url( 'map.svg' );
+		$external_icon_url   = pera_portfolio_token_get_plugin_icon_url( 'external.svg' );
 
 		$cash_display  = '' !== $cash_price ? '$' . number_format_i18n( (float) $cash_price, 0 ) : '—';
 		$list_display  = '' !== $list_price ? '$' . number_format_i18n( (float) $list_price, 0 ) : '—';
@@ -524,7 +525,9 @@ if ( ! function_exists( 'pera_portfolio_token_render_crm_offer_card' ) ) {
 						href="<?php echo esc_url( $property_url ); ?>"
 						target="_blank"
 						rel="noopener noreferrer">
-						<img src="<?php echo esc_url( pera_portfolio_token_get_plugin_icon_url( 'external.svg' ) ); ?>" alt="" aria-hidden="true" />
+						<?php if ( '' !== $external_icon_url ) : ?>
+							<img src="<?php echo esc_url( $external_icon_url ); ?>" alt="" aria-hidden="true" />
+						<?php endif; ?>
 						<?php esc_html_e( 'Project details', 'hello-elementor-child' ); ?>
 					</a>
 				<?php endif; ?>
