@@ -286,6 +286,16 @@ if ( ! function_exists( 'pera_property_latest_offers_save' ) ) {
 				continue;
 			}
 
+			$floor_plan_id = isset( $row['floor_plan_id'] ) ? absint( $row['floor_plan_id'] ) : 0;
+			if ( $floor_plan_id > 0 ) {
+				$is_attachment = get_post_type( $floor_plan_id ) === 'attachment';
+				$is_jpeg       = get_post_mime_type( $floor_plan_id ) === 'image/jpeg';
+
+				if ( ! $is_attachment || ! $is_jpeg ) {
+					$floor_plan_id = 0;
+				}
+			}
+
 			$item = array(
 				'type'          => isset( $row['type'] ) ? sanitize_text_field( (string) $row['type'] ) : '',
 				'floor'         => isset( $row['floor'] ) ? sanitize_text_field( (string) $row['floor'] ) : '',
@@ -294,7 +304,7 @@ if ( ! function_exists( 'pera_property_latest_offers_save' ) ) {
 				'list_price'    => isset( $row['list_price'] ) ? pera_property_latest_offers_sanitize_price( $row['list_price'] ) : '',
 				'cash_price'    => isset( $row['cash_price'] ) ? pera_property_latest_offers_sanitize_price( $row['cash_price'] ) : '',
 				'notes'         => isset( $row['notes'] ) ? sanitize_textarea_field( (string) $row['notes'] ) : '',
-				'floor_plan_id' => isset( $row['floor_plan_id'] ) ? absint( $row['floor_plan_id'] ) : 0,
+				'floor_plan_id' => $floor_plan_id,
 			);
 
 			$is_empty =
