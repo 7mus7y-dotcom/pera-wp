@@ -130,8 +130,7 @@ get_header();
 				</div>
 
 				<section data-portfolio-view="card">
-					<?php $card_grid_class = current_user_can( 'manage_options' ) ? 'peracrm-portfolio-card-grid' : 'cards-grid'; ?>
-					<div id="property-grid" class="<?php echo esc_attr( $card_grid_class ); ?>">
+					<div id="property-grid" class="peracrm-portfolio-card-grid">
 						<?php if ( $properties_query->have_posts() ) : ?>
 							<?php while ( $properties_query->have_posts() ) : $properties_query->the_post(); ?>
 								<?php
@@ -140,7 +139,7 @@ get_header();
 									? $portfolio_rows_by_property[ $property_id ]
 									: array();
 
-								if ( current_user_can( 'manage_options' ) && function_exists( 'pera_portfolio_token_render_crm_offer_card' ) ) {
+								if ( function_exists( 'pera_portfolio_token_render_crm_offer_card' ) ) {
 									pera_portfolio_token_render_crm_offer_card( $property_id, $row_data );
 								} elseif ( function_exists( 'pera_render_property_card' ) ) {
 									pera_render_property_card( array( 'variant' => 'archive' ) );
