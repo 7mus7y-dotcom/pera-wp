@@ -141,6 +141,41 @@ if ( ! function_exists( 'pera_latest_offers_card_view_model' ) ) {
 		}
 	}
 
+	if ( ! function_exists( 'pera_latest_offers_property_location_names' ) ) {
+		/**
+		 * @return array{region_name:string,district_name:string}
+		 */
+		function pera_latest_offers_property_location_names( int $property_id ): array {
+			$region_name   = '';
+			$district_name = '';
+
+			if ( $property_id > 0 && function_exists( 'pera_get_property_card_location_terms' ) ) {
+				$location_terms = pera_get_property_card_location_terms( $property_id );
+				$region_term    = $location_terms['region_term'] ?? null;
+				$district_term  = $location_terms['district_term'] ?? null;
+
+				if ( $region_term instanceof WP_Term ) {
+					$region_name = trim( (string) $region_term->name );
+				}
+				if ( $district_term instanceof WP_Term ) {
+					$district_name = trim( (string) $district_term->name );
+				}
+			}
+
+			if ( '' === $region_name ) {
+				$region_name = pera_latest_offers_primary_term_name( $property_id, 'region' );
+			}
+			if ( '' === $district_name ) {
+				$district_name = pera_latest_offers_primary_term_name( $property_id, 'district' );
+			}
+
+			return array(
+				'region_name'   => $region_name,
+				'district_name' => $district_name,
+			);
+		}
+	}
+
 	if ( ! function_exists( 'pera_latest_offers_main_image_id' ) ) {
 		function pera_latest_offers_main_image_id( int $property_id ): int {
 			if ( $property_id <= 0 || ! function_exists( 'get_field' ) ) {
@@ -163,7 +198,38 @@ if ( ! function_exists( 'pera_latest_offers_card_view_model' ) ) {
 				}
 			}
 
+			if ( is_string( $main_image ) ) {
+				$image_url = trim( $main_image );
+				if ( '' !== $image_url ) {
+					$image_id = attachment_url_to_postid( $image_url );
+					if ( $image_id > 0 ) {
+						return (int) $image_id;
+					}
+				}
+			}
+
 			return 0;
+		}
+	}
+
+	if ( ! function_exists( 'pera_latest_offers_property_map_url' ) ) {
+		function pera_latest_offers_property_map_url( int $property_id ): string {
+			if ( $property_id <= 0 || ! function_exists( 'get_field' ) ) {
+				return '';
+			}
+
+			$map = get_field( 'map', $property_id );
+			if ( ! is_array( $map ) ) {
+				return '';
+			}
+
+			$lat = isset( $map['lat'] ) ? trim( (string) $map['lat'] ) : '';
+			$lng = isset( $map['lng'] ) ? trim( (string) $map['lng'] ) : '';
+			if ( '' === $lat || '' === $lng ) {
+				return '';
+			}
+
+			return 'https://www.google.com/maps?q=' . rawurlencode( $lat . ',' . $lng );
 		}
 	}
 
@@ -175,8 +241,10 @@ if ( ! function_exists( 'pera_latest_offers_card_view_model' ) ) {
 		$title      = pera_latest_offers_property_title( $property_id );
 		$property_url = get_permalink( $property_id );
 		$image_id     = pera_latest_offers_main_image_id( $property_id );
-		$region_name  = pera_latest_offers_primary_term_name( $property_id, 'region' );
-		$district_name = pera_latest_offers_primary_term_name( $property_id, 'district' );
+		$location_names = pera_latest_offers_property_location_names( $property_id );
+		$region_name    = $location_names['region_name'] ?? '';
+		$district_name  = $location_names['district_name'] ?? '';
+		$map_url        = pera_latest_offers_property_map_url( $property_id );
 
 		$type       = isset( $offer_row['type'] ) ? trim( (string) $offer_row['type'] ) : '';
 		$floor_text = isset( $offer_row['floor'] ) ? pera_latest_offers_format_floor( (string) $offer_row['floor'] ) : '';
@@ -204,6 +272,7 @@ if ( ! function_exists( 'pera_latest_offers_card_view_model' ) ) {
 			'cash_price'      => $cash_price,
 			'notes'           => $notes,
 			'floor_plan_url'  => $floor_plan_url,
+			'map_url'         => $map_url,
 		);
 	}
 }

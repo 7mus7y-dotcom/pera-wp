@@ -21,6 +21,7 @@ $list_price     = isset( $card['list_price'] ) ? (string) $card['list_price'] : 
 $cash_price     = isset( $card['cash_price'] ) ? (string) $card['cash_price'] : '—';
 $notes          = isset( $card['notes'] ) ? (string) $card['notes'] : '';
 $floor_plan_url = isset( $card['floor_plan_url'] ) ? (string) $card['floor_plan_url'] : '';
+$map_url        = isset( $card['map_url'] ) ? (string) $card['map_url'] : '';
 ?>
 <article class="pera-latest-offer-card" aria-label="<?php echo esc_attr__( 'Latest offer card', 'hello-elementor-child' ); ?>">
 	<div class="pera-latest-offer-card__pills">
@@ -62,7 +63,7 @@ $floor_plan_url = isset( $card['floor_plan_url'] ) ? (string) $card['floor_plan_
 			<a class="pera-latest-offer-card__pill pera-latest-offer-card__pill--blue pera-latest-offer-card__cta" href="<?php echo esc_url( $property_url ); ?>" target="_blank" rel="noopener noreferrer">
 				<span><?php esc_html_e( 'Project details', 'hello-elementor-child' ); ?></span>
 				<svg class="icon pera-latest-offer-card__icon" aria-hidden="true" width="16" height="16">
-					<use href="#icon-chevron-right" xlink:href="#icon-chevron-right"></use>
+					<use href="#icon-upload" xlink:href="#icon-upload"></use>
 				</svg>
 			</a>
 		<?php endif; ?>
@@ -86,6 +87,15 @@ $floor_plan_url = isset( $card['floor_plan_url'] ) ? (string) $card['floor_plan_
 	</div>
 
 	<div class="pera-latest-offer-card__utility">
+		<?php if ( '' !== $map_url ) : ?>
+			<a class="pera-latest-offer-card__pill" href="<?php echo esc_url( $map_url ); ?>" target="_blank" rel="noopener noreferrer">
+				<svg class="icon pera-latest-offer-card__icon" aria-hidden="true" width="16" height="16">
+					<use href="#icon-map" xlink:href="#icon-map"></use>
+				</svg>
+				<span><?php esc_html_e( 'Map', 'hello-elementor-child' ); ?></span>
+			</a>
+		<?php endif; ?>
+
 		<?php if ( '' !== $floor_plan_url ) : ?>
 			<a class="pera-latest-offer-card__pill" href="<?php echo esc_url( $floor_plan_url ); ?>" target="_blank" rel="noopener noreferrer">
 				<svg class="icon pera-latest-offer-card__icon" aria-hidden="true" width="16" height="16">
@@ -99,7 +109,7 @@ $floor_plan_url = isset( $card['floor_plan_url'] ) ? (string) $card['floor_plan_
 			<details class="pera-latest-offer-card__note">
 				<summary class="pera-latest-offer-card__pill">
 					<svg class="icon pera-latest-offer-card__icon" aria-hidden="true" width="16" height="16">
-						<use href="#icon-folder-duplicate" xlink:href="#icon-folder-duplicate"></use>
+						<use href="#icon-legal" xlink:href="#icon-legal"></use>
 					</svg>
 					<span><?php esc_html_e( 'Notes', 'hello-elementor-child' ); ?></span>
 				</summary>
