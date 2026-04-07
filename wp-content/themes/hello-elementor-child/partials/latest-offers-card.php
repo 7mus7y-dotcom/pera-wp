@@ -71,7 +71,7 @@ $map_url        = isset( $card['map_url'] ) ? (string) $card['map_url'] : '';
 			<a class="pera-latest-offer-card__pill pera-latest-offer-card__pill--blue pera-latest-offer-card__cta" href="<?php echo esc_url( $property_url ); ?>" target="_blank" rel="noopener noreferrer">
 				<span><?php esc_html_e( 'Project details', 'hello-elementor-child' ); ?></span>
 				<svg class="icon pera-latest-offer-card__icon" aria-hidden="true" width="16" height="16">
-					<use href="#icon-upload" xlink:href="#icon-upload"></use>
+					<use href="#icon-external-open" xlink:href="#icon-external-open"></use>
 				</svg>
 			</a>
 		<?php endif; ?>
@@ -108,7 +108,7 @@ $map_url        = isset( $card['map_url'] ) ? (string) $card['map_url'] : '';
 			<details class="pera-latest-offer-card__note">
 				<summary class="pera-latest-offer-card__pill">
 					<svg class="icon pera-latest-offer-card__icon" aria-hidden="true" width="16" height="16">
-						<use href="#icon-legal" xlink:href="#icon-legal"></use>
+						<use href="#icon-notes" xlink:href="#icon-notes"></use>
 					</svg>
 					<span><?php esc_html_e( 'Notes', 'hello-elementor-child' ); ?></span>
 				</summary>
