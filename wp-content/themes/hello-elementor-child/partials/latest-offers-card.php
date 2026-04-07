@@ -24,12 +24,12 @@ $floor_plan_url = isset( $card['floor_plan_url'] ) ? (string) $card['floor_plan_
 $map_url        = isset( $card['map_url'] ) ? (string) $card['map_url'] : '';
 ?>
 <article class="pera-latest-offer-card slider-card" aria-label="<?php echo esc_attr__( 'Latest offer card', 'hello-elementor-child' ); ?>">
-	<div class="pera-latest-offer-card__pills">
+	<div class="pera-latest-offer-card__pills property-card__location">
 		<?php if ( '' !== $region_name ) : ?>
-			<span class="pill pill--green"><?php echo esc_html( $region_name ); ?></span>
+			<span class="property-card__location-link"><?php echo esc_html( $region_name ); ?></span>
 		<?php endif; ?>
 		<?php if ( '' !== $district_name ) : ?>
-			<span class="pill pill--green"><?php echo esc_html( $district_name ); ?></span>
+			<span class="property-card__location-link"><?php echo esc_html( $district_name ); ?></span>
 		<?php endif; ?>
 		<?php if ( '' !== $map_url ) : ?>
 			<a class="pera-latest-offer-card__pill" href="<?php echo esc_url( $map_url ); ?>" target="_blank" rel="noopener noreferrer">

@@ -210,29 +210,6 @@
   flex: 0 0 14px;
 }
 
-.pera-latest-offer-card .pill {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 6px;
-  padding: 1px 10px;
-  min-height: 20px;
-  border-radius: 999px;
-  border: 1px solid #999999;
-  background: #f3f4f6;
-  color: #000000;
-  font-size: 0.75rem;
-  font-weight: 400;
-  line-height: 1;
-  text-transform: uppercase;
-  letter-spacing: 0.06em;
-  box-sizing: border-box;
-}
-
-.pera-latest-offer-card .pill.pill--green {
-  background: #f3f4f6;
-  color: #000000;
-}
 
 @media (prefers-color-scheme: dark) {
   .pera-latest-offer-card {
