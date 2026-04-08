@@ -1,18 +1,68 @@
 .peracrm-portfolio-card-grid {
-  display: grid;
+  display: flex;
+  flex-wrap: nowrap;
+  overflow-x: auto;
+  overflow-y: hidden;
+  scroll-behavior: smooth;
+  -webkit-overflow-scrolling: touch;
+  scroll-snap-type: x mandatory;
   gap: 16px;
-  grid-template-columns: 1fr;
+  padding-bottom: 8px;
+}
+
+.peracrm-portfolio-card-grid .peracrm-portfolio-offer-card {
+  flex: 0 0 min(84%, 360px);
+  max-width: min(84%, 360px);
+  scroll-snap-align: start;
 }
 
 @media (min-width: 768px) {
-  .peracrm-portfolio-card-grid {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
+  .peracrm-portfolio-card-grid .peracrm-portfolio-offer-card {
+    flex-basis: calc((100% - 32px - 56px) / 3);
+    max-width: calc((100% - 32px - 56px) / 3);
   }
 }
 
 @media (min-width: 1200px) {
+  .peracrm-portfolio-card-grid .peracrm-portfolio-offer-card {
+    flex-basis: calc((100% - 48px - 64px) / 4);
+    max-width: calc((100% - 48px - 64px) / 4);
+  }
+}
+
+.peracrm-portfolio-card-grid::-webkit-scrollbar {
+  height: 6px;
+}
+
+.peracrm-portfolio-card-grid::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.peracrm-portfolio-card-grid::-webkit-scrollbar-thumb {
+  background: rgba(148, 163, 184, 0.45);
+  border-radius: 999px;
+}
+
+.peracrm-portfolio-card-grid::-webkit-scrollbar-thumb:hover {
+  background: rgba(148, 163, 184, 0.7);
+}
+
+.peracrm-portfolio-card-grid {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(148, 163, 184, 0.55) transparent;
+}
+
+@media (prefers-color-scheme: dark) {
   .peracrm-portfolio-card-grid {
-    grid-template-columns: repeat(3, minmax(0, 1fr));
+    scrollbar-color: rgba(148, 163, 184, 0.6) transparent;
+  }
+
+  .peracrm-portfolio-card-grid::-webkit-scrollbar-thumb {
+    background: rgba(148, 163, 184, 0.65);
+  }
+
+  .peracrm-portfolio-card-grid::-webkit-scrollbar-thumb:hover {
+    background: rgba(148, 163, 184, 0.9);
   }
 }
 
