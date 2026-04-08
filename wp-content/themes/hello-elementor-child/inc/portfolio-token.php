@@ -207,31 +207,24 @@ if ( ! function_exists( 'pera_theme_portfolio_token_get_request_context' ) ) {
 
 		$context['is_request'] = true;
 
-		$client_id = pera_theme_portfolio_token_find_client_id( $token );
+		$resolved = pera_theme_portfolio_token_get_request_context_by_token( $token );
+		if ( empty( $resolved['is_valid'] ) ) {
+			return $context;
+		}
+
+		$client_id = (int) ( $resolved['client_id'] ?? 0 );
 		if ( $client_id <= 0 ) {
 			return $context;
 		}
 
-		$client_post = get_post( $client_id );
-		if ( ! ( $client_post instanceof WP_Post ) || 'crm_client' !== $client_post->post_type ) {
-			return $context;
-		}
-
-		$property_ids = pera_theme_portfolio_token_parse_property_ids( get_post_meta( $client_id, '_peracrm_theme_portfolio_property_ids', true ) );
-
-		$client_name = trim( wp_strip_all_tags( (string) get_the_title( $client_id ) ) );
-		$advisor_name = '';
-		$advisor_user = get_userdata( (int) $client_post->post_author );
-		if ( $advisor_user instanceof WP_User ) {
-			$advisor_name = trim( wp_strip_all_tags( (string) $advisor_user->display_name ) );
-		}
-
 		$context['is_valid']     = true;
-		$context['status']       = 200;
+		$context['status']       = (int) ( $resolved['status'] ?? 200 );
 		$context['client_id']    = $client_id;
-		$context['client_name']  = $client_name;
-		$context['advisor_name'] = $advisor_name;
-		$context['property_ids'] = $property_ids;
+		$context['client_name']  = isset( $resolved['client_name'] ) ? (string) $resolved['client_name'] : '';
+		$context['advisor_name'] = isset( $resolved['advisor_name'] ) ? (string) $resolved['advisor_name'] : '';
+		$context['property_ids'] = isset( $resolved['property_ids'] ) && is_array( $resolved['property_ids'] )
+			? array_values( array_filter( array_map( 'absint', $resolved['property_ids'] ) ) )
+			: array();
 		$context['created_at']   = max( 0, (int) get_post_meta( $client_id, '_peracrm_theme_portfolio_created_at', true ) );
 		$context['updated_at']   = max( 0, (int) get_post_meta( $client_id, '_peracrm_theme_portfolio_updated_at', true ) );
 
@@ -381,7 +374,7 @@ if ( ! function_exists( 'pera_portfolio_token_get_request_context' ) ) {
 	/**
 	 * Resolve the current portfolio token request.
 	 *
-	 * @return array{is_request:bool,is_valid:bool,status:int,portfolio_id:int,property_ids:array<int>,client_name:string,advisor_name:string,expires_at:int}
+	 * @return array{is_request:bool,is_valid:bool,status:int,portfolio_id:int,client_id:int,property_ids:array<int>,client_name:string,advisor_name:string,expires_at:int}
 	 */
 	function pera_portfolio_token_get_request_context(): array {
 		static $context = null;
@@ -395,6 +388,7 @@ if ( ! function_exists( 'pera_portfolio_token_get_request_context' ) ) {
 			'is_valid'     => false,
 			'status'       => 404,
 			'portfolio_id' => 0,
+			'client_id'    => 0,
 			'property_ids' => array(),
 			'client_name'  => '',
 			'advisor_name' => '',
@@ -423,6 +417,18 @@ if ( ! function_exists( 'pera_portfolio_token_get_request_context' ) ) {
 		);
 
 		if ( empty( $portfolio_ids ) ) {
+			$theme_context = pera_theme_portfolio_token_get_request_context_by_token( $token );
+			if ( ! empty( $theme_context['is_valid'] ) ) {
+				$context['is_valid']     = true;
+				$context['status']       = (int) ( $theme_context['status'] ?? 200 );
+				$context['client_id']    = (int) ( $theme_context['client_id'] ?? 0 );
+				$context['property_ids'] = isset( $theme_context['property_ids'] ) && is_array( $theme_context['property_ids'] )
+					? array_values( array_filter( array_map( 'absint', $theme_context['property_ids'] ) ) )
+					: array();
+				$context['client_name']  = isset( $theme_context['client_name'] ) ? (string) $theme_context['client_name'] : '';
+				$context['advisor_name'] = isset( $theme_context['advisor_name'] ) ? (string) $theme_context['advisor_name'] : '';
+			}
+
 			return $context;
 		}
 
@@ -461,10 +467,63 @@ if ( ! function_exists( 'pera_portfolio_token_get_request_context' ) ) {
 		$context['is_valid']     = true;
 		$context['status']       = 200;
 		$context['portfolio_id'] = $portfolio_id;
+		$context['client_id']    = $client_id;
 		$context['property_ids'] = $property_ids;
 		$context['client_name']  = $client_name;
 		$context['advisor_name'] = $advisor_name;
 		$context['expires_at']   = max( 0, $expires_at );
+
+		return $context;
+	}
+}
+
+if ( ! function_exists( 'pera_theme_portfolio_token_get_request_context_by_token' ) ) {
+	/**
+	 * Resolve context for theme portfolio tokens while keeping /portfolio/{token}/ as the live route.
+	 *
+	 * @param string $token Token value from /portfolio/{token}/.
+	 * @return array{is_valid:bool,status:int,client_id:int,client_name:string,advisor_name:string,property_ids:array<int>}
+	 */
+	function pera_theme_portfolio_token_get_request_context_by_token( string $token ): array {
+		$context = array(
+			'is_valid'    => false,
+			'status'      => 404,
+			'client_id'   => 0,
+			'client_name' => '',
+			'advisor_name'=> '',
+			'property_ids'=> array(),
+		);
+
+		$token = preg_replace( '/[^A-Za-z0-9]/', '', $token );
+		$token = is_string( $token ) ? $token : '';
+		if ( '' === $token ) {
+			return $context;
+		}
+
+		$client_id = pera_theme_portfolio_token_find_client_id( $token );
+		if ( $client_id <= 0 ) {
+			return $context;
+		}
+
+		$client_post = get_post( $client_id );
+		if ( ! ( $client_post instanceof WP_Post ) || 'crm_client' !== $client_post->post_type ) {
+			return $context;
+		}
+
+		$property_ids = pera_theme_portfolio_token_parse_property_ids( get_post_meta( $client_id, '_peracrm_theme_portfolio_property_ids', true ) );
+		$client_name  = trim( wp_strip_all_tags( (string) get_the_title( $client_id ) ) );
+		$advisor_name = '';
+		$advisor_user = get_userdata( (int) $client_post->post_author );
+		if ( $advisor_user instanceof WP_User ) {
+			$advisor_name = trim( wp_strip_all_tags( (string) $advisor_user->display_name ) );
+		}
+
+		$context['is_valid']     = true;
+		$context['status']       = 200;
+		$context['client_id']    = $client_id;
+		$context['client_name']  = $client_name;
+		$context['advisor_name'] = $advisor_name;
+		$context['property_ids'] = $property_ids;
 
 		return $context;
 	}

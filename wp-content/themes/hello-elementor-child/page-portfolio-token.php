@@ -14,6 +14,7 @@ $context = function_exists( 'pera_portfolio_token_get_request_context' )
 		'is_valid'     => false,
 		'status'       => 404,
 		'portfolio_id' => 0,
+		'client_id'    => 0,
 		'property_ids' => array(),
 		'client_name'  => '',
 		'advisor_name' => '',
@@ -65,7 +66,10 @@ get_header();
 			: array();
 		$expires_at = isset( $context['expires_at'] ) ? (int) $context['expires_at'] : 0;
 		$portfolio_id = isset( $context['portfolio_id'] ) ? (int) $context['portfolio_id'] : 0;
-		$client_id    = $portfolio_id > 0 ? (int) get_post_meta( $portfolio_id, '_portfolio_client_id', true ) : 0;
+		$client_id    = isset( $context['client_id'] ) ? (int) $context['client_id'] : 0;
+		if ( $client_id <= 0 && $portfolio_id > 0 ) {
+			$client_id = (int) get_post_meta( $portfolio_id, '_portfolio_client_id', true );
+		}
 		$client_type = '';
 		if ( $client_id > 0 && function_exists( 'peracrm_client_get_profile' ) ) {
 			$client_profile = (array) peracrm_client_get_profile( $client_id );
