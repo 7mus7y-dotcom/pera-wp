@@ -209,12 +209,14 @@
   --offers-slider-gap: 16px;
   --offers-slider-peek: clamp(44px, 8vw, 96px);
   gap: var(--offers-slider-gap);
+  flex-wrap: nowrap;
   padding-inline-end: 0;
   scroll-padding-inline-start: 0;
 }
 
 .pera-home-latest-offers .pera-latest-offers-card-list--home.cards-slider > .slider-card {
   flex: 0 0 calc(100% - var(--offers-slider-peek));
+  scroll-snap-align: start;
 }
 
 .pera-latest-offer-card__icon {
