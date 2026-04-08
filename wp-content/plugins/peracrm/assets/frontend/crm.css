@@ -4924,6 +4924,16 @@ body.crm-route #site-header.peracrm-shell-header.is-scrolled .peracrm-header-act
   box-shadow: 0 1px 2px rgba(15, 23, 42, 0.08);
 }
 
+.crm-page--client-view .peracrm-theme-portfolio-offers-toggle {
+  margin-left: auto;
+}
+
+.crm-page--client-view .peracrm-theme-portfolio-offers-table__notes {
+  max-width: 240px;
+  white-space: normal;
+  overflow-wrap: anywhere;
+}
+
 .crm-page .crm-list-workspace {
   margin-bottom: 20px;
 }

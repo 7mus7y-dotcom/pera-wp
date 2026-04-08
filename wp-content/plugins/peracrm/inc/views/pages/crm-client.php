@@ -914,33 +914,87 @@ peracrm_frontend_render_shell_header();
                 <section class="crm-linked-workspace__relation">
                   <div class="crm-inline-form crm-inline-form--between crm-linked-workspace__relation-head">
                     <h5><?php esc_html_e( 'Offers in this portfolio', 'peracrm' ); ?></h5>
+                    <?php if ( ! empty( $theme_portfolio_offers ) ) : ?>
+                      <div class="crm-view-toggle crm-view-toggle--secondary peracrm-theme-portfolio-offers-toggle" data-crm-view-toggle data-storage-key="<?php echo esc_attr( 'peracrm_theme_portfolio_offers_view_' . (string) $client_id ); ?>" data-default-desktop="cards" data-default-mobile="cards">
+                        <button type="button" class="btn btn--solid btn--blue" data-view="cards" aria-pressed="true"><?php esc_html_e( 'Card', 'peracrm' ); ?></button>
+                        <button type="button" class="btn btn--ghost btn--blue" data-view="table" aria-pressed="false"><?php esc_html_e( 'Table', 'peracrm' ); ?></button>
+                      </div>
+                    <?php endif; ?>
                   </div>
                   <?php if ( empty( $theme_portfolio_offers ) ) : ?>
                     <p><?php esc_html_e( 'No offers found for selected properties.', 'peracrm' ); ?></p>
                   <?php else : ?>
-                    <ul class="crm-list peracrm-linked-properties-grid">
-                      <?php foreach ( $theme_portfolio_offers as $offer_row ) :
-                        $offer_property_id = (int) ( $offer_row['property_id'] ?? 0 );
-                        $offer_property_label = '';
-                        foreach ( $theme_portfolio_properties as $property_lookup ) {
-                          if ( (int) ( $property_lookup['property_id'] ?? 0 ) === $offer_property_id ) {
-                            $offer_property_label = (string) ( $property_lookup['label'] ?? '' );
-                            break;
-                          }
-                        }
-                      ?>
-                      <li class="peracrm-linked-properties-grid__item">
-                        <div class="crm-linked-property-row__header"><span class="crm-linked-property-link"><?php echo esc_html( '' !== $offer_property_label ? $offer_property_label : sprintf( __( 'Property #%d', 'peracrm' ), $offer_property_id ) ); ?></span><button type="button" class="btn btn--ghost btn--blue peracrm-linked-property-unlink-btn crm-icon-btn" data-crm-theme-portfolio-remove data-property-id="<?php echo esc_attr( (string) $offer_property_id ); ?>" aria-label="<?php esc_attr_e( 'Remove property', 'peracrm' ); ?>"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><use href="#icon-broken-chain"></use></svg></button></div>
-                        <div class="crm-portfolio-facts-summary" aria-label="<?php esc_attr_e( 'Theme offer facts summary', 'peracrm' ); ?>">
-                          <p class="crm-portfolio-facts-summary__line"><span class="crm-portfolio-facts-summary__label"><?php esc_html_e( 'Type', 'peracrm' ); ?></span> <?php echo esc_html( (string) ( $offer_row['offer_type'] ?? '—' ) ); ?> <span aria-hidden="true">•</span> <span class="crm-portfolio-facts-summary__label"><?php esc_html_e( 'Floor', 'peracrm' ); ?></span> <?php echo esc_html( (string) ( $offer_row['floor'] ?? '—' ) ); ?></p>
-                          <p class="crm-portfolio-facts-summary__line"><?php echo esc_html( '' !== (string) ( $offer_row['net_size'] ?? '' ) ? (string) $offer_row['net_size'] . 'm²' : '—' ); ?> / <?php echo esc_html( '' !== (string) ( $offer_row['gross_size'] ?? '' ) ? (string) $offer_row['gross_size'] . 'm²' : '—' ); ?> <span aria-hidden="true">•</span> <?php echo esc_html( '' !== (string) ( $offer_row['list_price'] ?? '' ) ? '$' . ltrim( (string) $offer_row['list_price'], '$' ) : '—' ); ?> / <?php echo esc_html( '' !== (string) ( $offer_row['cash_price'] ?? '' ) ? '$' . ltrim( (string) $offer_row['cash_price'], '$' ) : '—' ); ?></p>
-                          <?php if ( '' !== (string) ( $offer_row['notes'] ?? '' ) ) : ?>
-                          <p class="crm-portfolio-facts-summary__line"><?php echo esc_html( (string) $offer_row['notes'] ); ?></p>
-                          <?php endif; ?>
+                    <div class="peracrm-theme-portfolio-offers-views" data-crm-view-scope>
+                      <div data-crm-view="cards">
+                        <ul class="crm-list peracrm-linked-properties-grid">
+                          <?php foreach ( $theme_portfolio_offers as $offer_row ) :
+                            $offer_property_id = (int) ( $offer_row['property_id'] ?? 0 );
+                            $offer_property_label = '';
+                            foreach ( $theme_portfolio_properties as $property_lookup ) {
+                              if ( (int) ( $property_lookup['property_id'] ?? 0 ) === $offer_property_id ) {
+                                $offer_property_label = (string) ( $property_lookup['label'] ?? '' );
+                                break;
+                              }
+                            }
+                            $offer_property_display = '' !== $offer_property_label ? $offer_property_label : sprintf( __( 'Property #%d', 'peracrm' ), $offer_property_id );
+                          ?>
+                          <li class="peracrm-linked-properties-grid__item">
+                            <div class="crm-linked-property-row__header"><span class="crm-linked-property-link"><?php echo esc_html( $offer_property_display ); ?></span><button type="button" class="btn btn--ghost btn--blue peracrm-linked-property-unlink-btn crm-icon-btn" data-crm-theme-portfolio-remove data-property-id="<?php echo esc_attr( (string) $offer_property_id ); ?>" aria-label="<?php esc_attr_e( 'Remove property', 'peracrm' ); ?>"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><use href="#icon-broken-chain"></use></svg></button></div>
+                            <div class="crm-portfolio-facts-summary" aria-label="<?php esc_attr_e( 'Theme offer facts summary', 'peracrm' ); ?>">
+                              <p class="crm-portfolio-facts-summary__line"><span class="crm-portfolio-facts-summary__label"><?php esc_html_e( 'Type', 'peracrm' ); ?></span> <?php echo esc_html( (string) ( $offer_row['offer_type'] ?? '—' ) ); ?> <span aria-hidden="true">•</span> <span class="crm-portfolio-facts-summary__label"><?php esc_html_e( 'Floor', 'peracrm' ); ?></span> <?php echo esc_html( (string) ( $offer_row['floor'] ?? '—' ) ); ?></p>
+                              <p class="crm-portfolio-facts-summary__line"><?php echo esc_html( '' !== (string) ( $offer_row['net_size'] ?? '' ) ? (string) $offer_row['net_size'] . 'm²' : '—' ); ?> / <?php echo esc_html( '' !== (string) ( $offer_row['gross_size'] ?? '' ) ? (string) $offer_row['gross_size'] . 'm²' : '—' ); ?> <span aria-hidden="true">•</span> <?php echo esc_html( '' !== (string) ( $offer_row['list_price'] ?? '' ) ? '$' . ltrim( (string) $offer_row['list_price'], '$' ) : '—' ); ?> / <?php echo esc_html( '' !== (string) ( $offer_row['cash_price'] ?? '' ) ? '$' . ltrim( (string) $offer_row['cash_price'], '$' ) : '—' ); ?></p>
+                              <?php if ( '' !== (string) ( $offer_row['notes'] ?? '' ) ) : ?>
+                              <p class="crm-portfolio-facts-summary__line"><?php echo esc_html( (string) $offer_row['notes'] ); ?></p>
+                              <?php endif; ?>
+                            </div>
+                          </li>
+                          <?php endforeach; ?>
+                        </ul>
+                      </div>
+                      <div class="is-hidden" data-crm-view="table">
+                        <div class="crm-table-wrap crm-table-wrap--primitive">
+                          <table class="crm-table peracrm-theme-portfolio-offers-table">
+                            <thead>
+                              <tr>
+                                <th><?php esc_html_e( 'Project / Property', 'peracrm' ); ?></th>
+                                <th><?php esc_html_e( 'Type', 'peracrm' ); ?></th>
+                                <th><?php esc_html_e( 'Floor', 'peracrm' ); ?></th>
+                                <th><?php esc_html_e( 'Net', 'peracrm' ); ?></th>
+                                <th><?php esc_html_e( 'Gross', 'peracrm' ); ?></th>
+                                <th><?php esc_html_e( 'List price', 'peracrm' ); ?></th>
+                                <th><?php esc_html_e( 'Cash price', 'peracrm' ); ?></th>
+                                <th><?php esc_html_e( 'Notes', 'peracrm' ); ?></th>
+                                <th><?php esc_html_e( 'Action', 'peracrm' ); ?></th>
+                              </tr>
+                            </thead>
+                            <tbody>
+                              <?php foreach ( $theme_portfolio_offers as $offer_row ) :
+                                $offer_property_id = (int) ( $offer_row['property_id'] ?? 0 );
+                                $offer_property_label = '';
+                                foreach ( $theme_portfolio_properties as $property_lookup ) {
+                                  if ( (int) ( $property_lookup['property_id'] ?? 0 ) === $offer_property_id ) {
+                                    $offer_property_label = (string) ( $property_lookup['label'] ?? '' );
+                                    break;
+                                  }
+                                }
+                              ?>
+                              <tr>
+                                <td class="crm-table__cell--primary"><?php echo esc_html( '' !== $offer_property_label ? $offer_property_label : sprintf( __( 'Property #%d', 'peracrm' ), $offer_property_id ) ); ?></td>
+                                <td><?php echo esc_html( (string) ( $offer_row['offer_type'] ?? '—' ) ); ?></td>
+                                <td><?php echo esc_html( (string) ( $offer_row['floor'] ?? '—' ) ); ?></td>
+                                <td><?php echo esc_html( '' !== (string) ( $offer_row['net_size'] ?? '' ) ? (string) $offer_row['net_size'] . 'm²' : '—' ); ?></td>
+                                <td><?php echo esc_html( '' !== (string) ( $offer_row['gross_size'] ?? '' ) ? (string) $offer_row['gross_size'] . 'm²' : '—' ); ?></td>
+                                <td><?php echo esc_html( '' !== (string) ( $offer_row['list_price'] ?? '' ) ? '$' . ltrim( (string) $offer_row['list_price'], '$' ) : '—' ); ?></td>
+                                <td><?php echo esc_html( '' !== (string) ( $offer_row['cash_price'] ?? '' ) ? '$' . ltrim( (string) $offer_row['cash_price'], '$' ) : '—' ); ?></td>
+                                <td class="peracrm-theme-portfolio-offers-table__notes"><?php echo esc_html( '' !== (string) ( $offer_row['notes'] ?? '' ) ? (string) $offer_row['notes'] : '—' ); ?></td>
+                                <td class="crm-table__cell--actions"><button type="button" class="btn btn--ghost btn--blue peracrm-linked-property-unlink-btn crm-icon-btn" data-crm-theme-portfolio-remove data-property-id="<?php echo esc_attr( (string) $offer_property_id ); ?>" aria-label="<?php esc_attr_e( 'Remove property', 'peracrm' ); ?>"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><use href="#icon-broken-chain"></use></svg></button></td>
+                              </tr>
+                              <?php endforeach; ?>
+                            </tbody>
+                          </table>
                         </div>
-                      </li>
-                      <?php endforeach; ?>
-                    </ul>
+                      </div>
+                    </div>
                   <?php endif; ?>
                 </section>
               </section>

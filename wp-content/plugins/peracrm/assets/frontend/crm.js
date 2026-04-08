@@ -548,7 +548,7 @@
     }
 
     var storageKey = root.getAttribute('data-storage-key') ? root.getAttribute('data-storage-key') : 'peracrm_clients_view';
-    var scope = root.closest('[data-crm-clients-workspace], .crm-layout__main, main, body') || document;
+    var scope = root.closest('[data-crm-view-scope], [data-crm-clients-workspace], .crm-layout__main, main, body') || document;
     var buttons = Array.prototype.slice.call(root.querySelectorAll('button[data-view]'));
     var tableView = scope.querySelector('[data-crm-view="table"]');
     var cardsView = scope.querySelector('[data-crm-view="cards"]');
