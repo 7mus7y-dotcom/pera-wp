@@ -4929,6 +4929,28 @@ body.crm-route #site-header.peracrm-shell-header.is-scrolled .peracrm-header-act
   align-self: center;
 }
 
+.crm-page--client-view [data-crm-theme-portfolio] .crm-linked-workspace__relation-head {
+  flex-wrap: wrap;
+  align-items: flex-start;
+}
+
+.crm-page--client-view [data-crm-theme-portfolio] .crm-linked-workspace__relation-head > h5 {
+  flex: 0 0 100%;
+  margin: 0;
+}
+
+.crm-page--client-view [data-crm-theme-portfolio] .peracrm-theme-portfolio-offers-toggle {
+  display: inline-flex;
+  width: fit-content;
+  max-width: 100%;
+  justify-content: flex-start;
+  align-self: flex-start;
+}
+
+.crm-page--client-view [data-crm-theme-portfolio] .peracrm-theme-portfolio-offers-toggle .btn {
+  flex: 0 0 auto;
+}
+
 .crm-page--client-view .peracrm-theme-portfolio-offers-table__notes {
   width: 72px;
   min-width: 72px;
@@ -5018,16 +5040,16 @@ body.crm-route #site-header.peracrm-shell-header.is-scrolled .peracrm-header-act
 }
 
 @media (max-width: 767px) {
-  .crm-page--client-view .peracrm-theme-portfolio-offers-toggle {
+  .crm-page--client-view [data-crm-theme-portfolio] .peracrm-theme-portfolio-offers-toggle {
     display: inline-flex;
-    width: auto;
+    width: fit-content;
     max-width: 100%;
     justify-content: flex-start;
     align-self: flex-start;
   }
 
-  .crm-page--client-view .peracrm-theme-portfolio-offers-toggle .btn {
-    flex: 0 1 auto;
+  .crm-page--client-view [data-crm-theme-portfolio] .peracrm-theme-portfolio-offers-toggle .btn {
+    flex: 0 0 auto;
   }
 
   .crm-page--client-view .peracrm-theme-portfolio-offers-table {
