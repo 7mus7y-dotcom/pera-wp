@@ -90,18 +90,6 @@ if (!function_exists('pera_crm_enqueue_assets')) {
             );
         }
 
-        if ($is_portfolio_token_route) {
-            $portfolio_card_css = peracrm_frontend_get_asset_file('assets/frontend/portfolio-card.css');
-            if (!empty($portfolio_card_css)) {
-                wp_enqueue_style(
-                    'pera-crm-portfolio-card-css',
-                    $portfolio_card_css['url'],
-                    array('pera-crm-css'),
-                    (string) filemtime($portfolio_card_css['path'])
-                );
-            }
-        }
-
         if (!$is_crm_route) {
             return;
         }
