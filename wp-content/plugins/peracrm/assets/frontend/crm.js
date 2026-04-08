@@ -1317,7 +1317,7 @@
       return '';
     }
 
-    var cleaned = value.replace(/^https?:\/\//i, '');
+    var cleaned = value.replace(/^https?:\/\//i, '').replace(/^www\./i, '');
     return cleaned.length > 54 ? cleaned.slice(0, 51) + '…' : cleaned;
   }
 
@@ -1328,14 +1328,13 @@
 
     var createBtn = section.querySelector('[data-crm-theme-portfolio-create]');
     var updateBtn = section.querySelector('[data-crm-theme-portfolio-refresh]');
-    var canManage = !!section.querySelector('[data-crm-theme-portfolio-remove]');
 
     if (createBtn) {
-      createBtn.hidden = !canManage || !!hasUrl;
+      createBtn.hidden = !!hasUrl;
     }
 
     if (updateBtn) {
-      updateBtn.hidden = !canManage || !hasUrl;
+      updateBtn.hidden = !hasUrl;
     }
   }
 

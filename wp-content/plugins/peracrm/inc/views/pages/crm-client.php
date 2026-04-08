@@ -73,6 +73,8 @@ $theme_portfolio_state      = function_exists( 'pera_crm_client_view_theme_portf
 	? (array) pera_crm_client_view_theme_portfolio_url_state( $client_id )
 	: array();
 $theme_portfolio_url        = (string) ( $theme_portfolio_state['url'] ?? '' );
+$theme_portfolio_url_display = preg_replace( '#^www\.#i', '', preg_replace( '#^https?://#i', '', $theme_portfolio_url ) );
+$theme_portfolio_url_display = is_string( $theme_portfolio_url_display ) ? $theme_portfolio_url_display : '';
 $theme_portfolio_updated_at = (int) ( $theme_portfolio_state['updated_at'] ?? 0 );
 $theme_portfolio_updated    = $theme_portfolio_updated_at > 0
 	? wp_date( get_option( 'date_format' ) . ' ' . get_option( 'time_format' ), $theme_portfolio_updated_at )
@@ -894,16 +896,16 @@ peracrm_frontend_render_shell_header();
                 </div>
 
                 <div class="crm-linked-workspace__portfolio-tools" data-crm-theme-portfolio-output>
-                  <div class="crm-linked-workspace__portfolio-url"><label><?php esc_html_e( 'Portfolio URL', 'peracrm' ); ?><input type="text" readonly data-crm-theme-portfolio-url data-crm-theme-portfolio-url-full="<?php echo esc_attr( $theme_portfolio_url ); ?>" value="<?php echo esc_attr( $theme_portfolio_url ); ?>" title="<?php echo esc_attr( $theme_portfolio_url ); ?>" /></label></div>
+                  <div class="crm-linked-workspace__portfolio-url"><label><?php esc_html_e( 'Portfolio URL', 'peracrm' ); ?><input type="text" readonly data-crm-theme-portfolio-url data-crm-theme-portfolio-url-full="<?php echo esc_attr( $theme_portfolio_url ); ?>" value="<?php echo esc_attr( $theme_portfolio_url_display ); ?>" title="<?php echo esc_attr( $theme_portfolio_url ); ?>" /></label></div>
                   <div class="crm-linked-workspace__portfolio-actions crm-action-group">
-                    <a class="btn btn--ghost btn--blue" data-crm-theme-portfolio-open-link href="<?php echo esc_url( '' !== $theme_portfolio_url ? $theme_portfolio_url : '#' ); ?>" target="_blank" rel="noopener noreferrer" <?php echo '' !== $theme_portfolio_url ? '' : 'hidden aria-hidden="true" tabindex="-1"'; ?>>
+                    <a class="btn btn--ghost btn--blue crm-linked-workspace__portfolio-open-link crm-icon-btn" data-crm-theme-portfolio-open-link href="<?php echo esc_url( '' !== $theme_portfolio_url ? $theme_portfolio_url : '#' ); ?>" target="_blank" rel="noopener noreferrer" aria-label="<?php esc_attr_e( 'Open portfolio URL in new tab', 'peracrm' ); ?>" title="<?php esc_attr_e( 'Open portfolio URL in new tab', 'peracrm' ); ?>" <?php echo '' !== $theme_portfolio_url ? '' : 'hidden aria-hidden="true" tabindex="-1"'; ?>>
                       <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path fill="currentColor" d="M14 3h7v7h-2V6.41l-9.29 9.3-1.42-1.42 9.3-9.29H14V3Zm5 16V12h2v9H3V3h9v2H5v14h14Z"></path></svg>
                     </a>
                     <button type="button" class="btn btn--ghost btn--blue crm-icon-btn" data-crm-theme-portfolio-copy aria-label="<?php esc_attr_e( 'Copy portfolio URL', 'peracrm' ); ?>" title="<?php esc_attr_e( 'Copy portfolio URL', 'peracrm' ); ?>">
                       <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path fill="currentColor" d="M16 1H6a2 2 0 0 0-2 2v12h2V3h10V1Zm3 4H10a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h9a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2Zm0 16H10V7h9v14Z"></path></svg>
                     </button>
-                    <button type="button" class="btn btn--ghost btn--blue" data-crm-theme-portfolio-create <?php echo '' === $theme_portfolio_url && ! empty( $theme_portfolio_properties ) ? '' : 'hidden'; ?>><?php esc_html_e( 'Create portfolio', 'peracrm' ); ?></button>
-                    <button type="button" class="btn btn--ghost btn--blue" data-crm-theme-portfolio-refresh <?php echo '' !== $theme_portfolio_url && ! empty( $theme_portfolio_properties ) ? '' : 'hidden'; ?>><?php esc_html_e( 'Update URL', 'peracrm' ); ?></button>
+                    <button type="button" class="btn btn--ghost btn--blue" data-crm-theme-portfolio-create <?php echo '' === $theme_portfolio_url ? '' : 'hidden'; ?>><?php esc_html_e( 'Create portfolio', 'peracrm' ); ?></button>
+                    <button type="button" class="btn btn--ghost btn--blue" data-crm-theme-portfolio-refresh <?php echo '' !== $theme_portfolio_url ? '' : 'hidden'; ?>><?php esc_html_e( 'Update URL', 'peracrm' ); ?></button>
                   </div>
                   <small class="text-sm crm-linked-workspace__portfolio-meta" data-crm-theme-portfolio-updated><?php echo esc_html( '' !== $theme_portfolio_updated ? sprintf( __( 'Updated: %s', 'peracrm' ), $theme_portfolio_updated ) : '' ); ?></small>
                   <small class="crm-inline-status" data-crm-theme-portfolio-feedback aria-live="polite"></small>

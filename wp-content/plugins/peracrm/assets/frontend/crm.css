@@ -714,7 +714,7 @@
   display: grid;
   grid-template-columns: minmax(220px, 1fr) auto;
   gap: 8px 12px;
-  align-items: end;
+  align-items: center;
 }
 
 .crm-page--client-view [data-crm-theme-portfolio] .crm-linked-workspace__portfolio-tools {
@@ -742,14 +742,16 @@
 
 .crm-page--client-view .crm-linked-workspace__portfolio-actions {
   display: inline-flex;
-  gap: 8px;
+  gap: 6px;
   justify-self: end;
+  align-items: center;
+  flex-wrap: nowrap;
 }
 
 .crm-page--client-view [data-crm-theme-portfolio] .crm-linked-workspace__portfolio-actions {
   align-items: center;
   gap: 6px;
-  flex-wrap: wrap;
+  flex-wrap: nowrap;
 }
 
 .crm-page--client-view [data-crm-theme-portfolio] .crm-linked-workspace__portfolio-url input {
@@ -764,8 +766,8 @@
 }
 
 .crm-page--client-view .crm-linked-workspace__portfolio-open-link svg {
-  width: 16px;
-  height: 16px;
+  width: 15px;
+  height: 15px;
   display: block;
 }
 
@@ -773,6 +775,21 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
+}
+
+.crm-page--client-view [data-crm-theme-portfolio] [data-crm-theme-portfolio-open-link],
+.crm-page--client-view [data-crm-theme-portfolio] [data-crm-theme-portfolio-copy] {
+  width: 34px;
+  height: 34px;
+  min-width: 34px;
+  min-height: 34px;
+  padding: 0;
+}
+
+.crm-page--client-view [data-crm-theme-portfolio] [data-crm-theme-portfolio-open-link] svg,
+.crm-page--client-view [data-crm-theme-portfolio] [data-crm-theme-portfolio-copy] svg {
+  width: 15px;
+  height: 15px;
 }
 
 .crm-page--client-view .crm-linked-workspace__portfolio-meta {
@@ -1045,6 +1062,7 @@ body.crm-route .crm-page--client-view .crm-portfolio-actions .peracrm-linked-pro
 
   .crm-page--client-view .crm-linked-workspace__portfolio-actions {
     justify-self: start;
+    flex-wrap: wrap;
   }
 
   .crm-page--client-view [data-crm-theme-portfolio] .crm-linked-workspace__portfolio-actions .btn:not(.crm-icon-btn) {
