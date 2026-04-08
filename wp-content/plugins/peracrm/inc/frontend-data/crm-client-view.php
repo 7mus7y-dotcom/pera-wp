@@ -742,6 +742,15 @@ if ( ! function_exists( 'pera_crm_client_view_get_theme_portfolio_property_ids' 
 	}
 }
 
+if ( ! function_exists( 'pera_crm_client_view_clear_theme_portfolio_url_state' ) ) {
+	function pera_crm_client_view_clear_theme_portfolio_url_state( int $client_id ): void {
+		delete_post_meta( $client_id, '_peracrm_theme_portfolio_url' );
+		delete_post_meta( $client_id, '_peracrm_theme_portfolio_token' );
+		delete_post_meta( $client_id, '_peracrm_theme_portfolio_created_at' );
+		delete_post_meta( $client_id, '_peracrm_theme_portfolio_updated_at' );
+	}
+}
+
 if ( ! function_exists( 'pera_crm_client_view_save_theme_portfolio_property_ids' ) ) {
 	function pera_crm_client_view_save_theme_portfolio_property_ids( int $client_id, array $property_ids ): void {
 		$clean = array_values(
@@ -756,10 +765,7 @@ if ( ! function_exists( 'pera_crm_client_view_save_theme_portfolio_property_ids'
 			static function () use ( $client_id, $clean ): void {
 				if ( empty( $clean ) ) {
 					delete_post_meta( $client_id, pera_crm_client_view_theme_portfolio_property_meta_key() );
-					delete_post_meta( $client_id, '_peracrm_theme_portfolio_url' );
-					delete_post_meta( $client_id, '_peracrm_theme_portfolio_token' );
-					delete_post_meta( $client_id, '_peracrm_theme_portfolio_created_at' );
-					delete_post_meta( $client_id, '_peracrm_theme_portfolio_updated_at' );
+					pera_crm_client_view_clear_theme_portfolio_url_state( $client_id );
 					return;
 				}
 
@@ -841,6 +847,11 @@ if ( ! function_exists( 'pera_crm_client_view_refresh_theme_portfolio_url' ) ) {
 	function pera_crm_client_view_refresh_theme_portfolio_url( int $client_id ): array {
 		$property_ids = pera_crm_client_view_get_theme_portfolio_property_ids( $client_id );
 		if ( empty( $property_ids ) ) {
+			pera_crm_client_view_with_target_blog(
+				static function () use ( $client_id ): void {
+					pera_crm_client_view_clear_theme_portfolio_url_state( $client_id );
+				}
+			);
 			return array();
 		}
 
