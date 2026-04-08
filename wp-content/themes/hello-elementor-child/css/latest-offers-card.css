@@ -19,6 +19,15 @@
   margin-bottom: 0;
 }
 
+.pera-latest-offer-card__top-pill {
+  padding: 1px 10px;
+  min-height: 20px;
+  line-height: 1;
+  border-color: #999999;
+  background: #f3f4f6 !important;
+  color: #000000;
+}
+
 .pera-latest-offer-card__title {
   margin: 0;
   font-size: 1.05rem;
@@ -309,6 +318,13 @@
 [data-theme="dark"] .pera-latest-offer-card__media,
 .dark .pera-latest-offer-card__media {
   background: #111827;
+}
+
+[data-theme="dark"] .pera-latest-offer-card__top-pill,
+.dark .pera-latest-offer-card__top-pill {
+  border-color: #334155;
+  background: #0b1220 !important;
+  color: #e2e8f0;
 }
 
 [data-theme="dark"] .pera-latest-offer-card__placeholder,
