@@ -691,6 +691,307 @@ if ( ! function_exists( 'pera_crm_client_view_parse_property_ids_csv' ) ) {
 	}
 }
 
+
+if ( ! function_exists( 'pera_crm_client_view_theme_portfolio_property_meta_key' ) ) {
+	function pera_crm_client_view_theme_portfolio_property_meta_key(): string {
+		return '_peracrm_theme_portfolio_property_ids';
+	}
+}
+
+if ( ! function_exists( 'pera_crm_client_view_theme_portfolio_url_state' ) ) {
+	function pera_crm_client_view_theme_portfolio_url_state( int $client_id ): array {
+		return (array) pera_crm_client_view_with_target_blog(
+			static function () use ( $client_id ): array {
+				return array(
+					'url'        => esc_url_raw( (string) get_post_meta( $client_id, '_peracrm_theme_portfolio_url', true ) ),
+					'token'      => sanitize_text_field( (string) get_post_meta( $client_id, '_peracrm_theme_portfolio_token', true ) ),
+					'updated_at' => (int) get_post_meta( $client_id, '_peracrm_theme_portfolio_updated_at', true ),
+				);
+			}
+		);
+	}
+}
+
+if ( ! function_exists( 'pera_crm_client_view_get_theme_portfolio_property_ids' ) ) {
+	function pera_crm_client_view_get_theme_portfolio_property_ids( int $client_id ): array {
+		return (array) pera_crm_client_view_with_target_blog(
+			static function () use ( $client_id ): array {
+				$raw  = get_post_meta( $client_id, pera_crm_client_view_theme_portfolio_property_meta_key(), true );
+				$rows = is_array( $raw ) ? $raw : array();
+				$ids  = array();
+				$seen = array();
+
+				foreach ( $rows as $value ) {
+					$property_id = absint( $value );
+					if ( $property_id <= 0 || isset( $seen[ $property_id ] ) ) {
+						continue;
+					}
+
+					$post = get_post( $property_id );
+					if ( ! ( $post instanceof WP_Post ) || 'property' !== $post->post_type || 'publish' !== $post->post_status ) {
+						continue;
+					}
+
+					$seen[ $property_id ] = true;
+					$ids[]                = $property_id;
+				}
+
+				return $ids;
+			}
+		);
+	}
+}
+
+if ( ! function_exists( 'pera_crm_client_view_save_theme_portfolio_property_ids' ) ) {
+	function pera_crm_client_view_save_theme_portfolio_property_ids( int $client_id, array $property_ids ): void {
+		$clean = array_values(
+			array_unique(
+				array_filter(
+					array_map( 'absint', $property_ids )
+				)
+			)
+		);
+
+		pera_crm_client_view_with_target_blog(
+			static function () use ( $client_id, $clean ): void {
+				if ( empty( $clean ) ) {
+					delete_post_meta( $client_id, pera_crm_client_view_theme_portfolio_property_meta_key() );
+					delete_post_meta( $client_id, '_peracrm_theme_portfolio_url' );
+					delete_post_meta( $client_id, '_peracrm_theme_portfolio_token' );
+					delete_post_meta( $client_id, '_peracrm_theme_portfolio_created_at' );
+					delete_post_meta( $client_id, '_peracrm_theme_portfolio_updated_at' );
+					return;
+				}
+
+				update_post_meta( $client_id, pera_crm_client_view_theme_portfolio_property_meta_key(), $clean );
+			}
+		);
+	}
+}
+
+if ( ! function_exists( 'pera_crm_client_view_theme_offer_rows_for_property' ) ) {
+	function pera_crm_client_view_theme_offer_rows_for_property( int $property_id ): array {
+		$rows = array();
+		if ( function_exists( 'pera_latest_offers_get_rows' ) ) {
+			$rows = (array) pera_latest_offers_get_rows( $property_id );
+		} else {
+			$rows = (array) get_post_meta( $property_id, '_pera_latest_offers', true );
+		}
+
+		return is_array( $rows ) ? $rows : array();
+	}
+}
+
+if ( ! function_exists( 'pera_crm_client_view_normalize_theme_offer_row' ) ) {
+	function pera_crm_client_view_normalize_theme_offer_row( int $property_id, array $offer_row ): array {
+		return array(
+			'property_id'        => $property_id,
+			'offer_type'         => sanitize_text_field( (string) ( $offer_row['type'] ?? '' ) ),
+			'floor'              => sanitize_text_field( (string) ( $offer_row['floor'] ?? '' ) ),
+			'net_size'           => sanitize_text_field( (string) ( $offer_row['net_sqm'] ?? '' ) ),
+			'gross_size'         => sanitize_text_field( (string) ( $offer_row['gross_sqm'] ?? '' ) ),
+			'list_price'         => sanitize_text_field( (string) ( $offer_row['list_price'] ?? '' ) ),
+			'cash_price'         => sanitize_text_field( (string) ( $offer_row['cash_price'] ?? '' ) ),
+			'notes'              => sanitize_textarea_field( (string) ( $offer_row['notes'] ?? '' ) ),
+			'floor_plan_id'      => absint( $offer_row['floor_plan_id'] ?? 0 ),
+			'offer_source'       => 'theme_latest_offers',
+			'offer_storage_meta' => '_pera_latest_offers',
+		);
+	}
+}
+
+if ( ! function_exists( 'pera_crm_client_view_get_theme_portfolio_preview' ) ) {
+	function pera_crm_client_view_get_theme_portfolio_preview( int $client_id ): array {
+		return (array) pera_crm_client_view_with_target_blog(
+			static function () use ( $client_id ): array {
+				$property_ids = pera_crm_client_view_get_theme_portfolio_property_ids( $client_id );
+				$properties   = array();
+				$offers       = array();
+
+				foreach ( $property_ids as $property_id ) {
+					$properties[] = array(
+						'property_id' => $property_id,
+						'label'       => function_exists( 'pera_crm_client_view_property_project_name' )
+							? (string) pera_crm_client_view_property_project_name( $property_id )
+							: (string) get_the_title( $property_id ),
+						'url'         => (string) get_permalink( $property_id ),
+					);
+
+					$property_rows = pera_crm_client_view_theme_offer_rows_for_property( $property_id );
+					foreach ( $property_rows as $row ) {
+						if ( ! is_array( $row ) ) {
+							continue;
+						}
+
+						$offers[] = pera_crm_client_view_normalize_theme_offer_row( $property_id, $row );
+					}
+				}
+
+				return array(
+					'property_ids' => $property_ids,
+					'properties'   => $properties,
+					'offers'       => $offers,
+				);
+			}
+		);
+	}
+}
+
+if ( ! function_exists( 'pera_crm_client_view_refresh_theme_portfolio_url' ) ) {
+	function pera_crm_client_view_refresh_theme_portfolio_url( int $client_id ): array {
+		$property_ids = pera_crm_client_view_get_theme_portfolio_property_ids( $client_id );
+		if ( empty( $property_ids ) ) {
+			return array();
+		}
+
+		$refreshed_at = time();
+		$state        = (array) pera_crm_client_view_with_target_blog(
+			static function () use ( $client_id ): array {
+				return array(
+					'token'      => sanitize_text_field( (string) get_post_meta( $client_id, '_peracrm_theme_portfolio_token', true ) ),
+					'created_at' => (int) get_post_meta( $client_id, '_peracrm_theme_portfolio_created_at', true ),
+				);
+			}
+		);
+		$token        = (string) ( $state['token'] ?? '' );
+		$created_at   = (int) ( $state['created_at'] ?? 0 );
+
+		if ( '' === $token ) {
+			$seed  = wp_json_encode( array( $client_id, $property_ids, $refreshed_at, wp_rand( 1000, 999999 ) ) );
+			$token = substr( hash_hmac( 'sha256', (string) $seed, wp_salt( 'auth' ) ), 0, 24 );
+		}
+
+		if ( $created_at <= 0 ) {
+			$created_at = $refreshed_at;
+		}
+
+		$url = trailingslashit( home_url( '/portfolio-theme/' . rawurlencode( $token ) ) );
+
+		pera_crm_client_view_with_target_blog(
+			static function () use ( $client_id, $url, $token, $created_at, $refreshed_at ): void {
+				update_post_meta( $client_id, '_peracrm_theme_portfolio_url', $url );
+				update_post_meta( $client_id, '_peracrm_theme_portfolio_token', $token );
+				if ( (int) get_post_meta( $client_id, '_peracrm_theme_portfolio_created_at', true ) <= 0 ) {
+					update_post_meta( $client_id, '_peracrm_theme_portfolio_created_at', $created_at );
+				}
+				update_post_meta( $client_id, '_peracrm_theme_portfolio_updated_at', $refreshed_at );
+			}
+		);
+
+		return array(
+			'url'         => $url,
+			'token'       => $token,
+			'updated_at'  => $refreshed_at,
+			'updated_label'=> wp_date( get_option( 'date_format' ) . ' ' . get_option( 'time_format' ), $refreshed_at ),
+			'count'       => count( $property_ids ),
+		);
+	}
+}
+
+if ( ! function_exists( 'pera_crm_client_view_theme_portfolio_access_or_error' ) ) {
+	function pera_crm_client_view_theme_portfolio_access_or_error( int $client_id ): void {
+		if ( $client_id <= 0 ) {
+			pera_crm_ajax_error( 'invalid_client', __( 'Invalid client.', 'peracrm' ), 400 );
+		}
+		$access = pera_crm_client_view_access_state( $client_id );
+		if ( empty( $access['allowed'] ) ) {
+			pera_crm_ajax_error( 'access_denied', __( 'Access denied.', 'peracrm' ), 403, array( 'user_id' => get_current_user_id() ) );
+		}
+	}
+}
+
+if ( ! function_exists( 'pera_crm_theme_portfolio_add_property_ajax' ) ) {
+	function pera_crm_theme_portfolio_add_property_ajax(): void {
+		if ( ! pera_crm_ajax_is_expected_action( 'peracrm_theme_portfolio_add_property' ) ) {
+			pera_crm_ajax_error( 'invalid_action', __( 'Invalid action', 'peracrm' ), 400 );
+		}
+		$nonce = isset( $_POST['nonce'] ) ? sanitize_text_field( wp_unslash( (string) $_POST['nonce'] ) ) : '';
+		if ( '' === $nonce || ! wp_verify_nonce( $nonce, 'pera_crm_theme_portfolio_add_property' ) ) {
+			pera_crm_ajax_error( 'invalid_nonce', __( 'Invalid nonce', 'peracrm' ), 403 );
+		}
+
+		$client_id   = isset( $_POST['client_id'] ) ? absint( wp_unslash( (string) $_POST['client_id'] ) ) : 0;
+		$property_id = isset( $_POST['property_id'] ) ? absint( wp_unslash( (string) $_POST['property_id'] ) ) : 0;
+		pera_crm_client_view_theme_portfolio_access_or_error( $client_id );
+
+		$property_exists = (bool) pera_crm_client_view_with_target_blog(
+			static function () use ( $property_id ): bool {
+				$post = get_post( $property_id );
+				return ( $post instanceof WP_Post ) && 'property' === $post->post_type && 'publish' === $post->post_status;
+			}
+		);
+		if ( ! $property_exists ) {
+			pera_crm_ajax_error( 'invalid_property', __( 'Property not found.', 'peracrm' ), 404 );
+		}
+
+		$ids   = pera_crm_client_view_get_theme_portfolio_property_ids( $client_id );
+		$ids[] = $property_id;
+		pera_crm_client_view_save_theme_portfolio_property_ids( $client_id, $ids );
+		pera_crm_ajax_success( array( 'code' => 'theme_portfolio_property_added' ) );
+	}
+}
+add_action( 'wp_ajax_peracrm_theme_portfolio_add_property', 'pera_crm_theme_portfolio_add_property_ajax' );
+
+if ( ! function_exists( 'pera_crm_theme_portfolio_remove_property_ajax' ) ) {
+	function pera_crm_theme_portfolio_remove_property_ajax(): void {
+		if ( ! pera_crm_ajax_is_expected_action( 'peracrm_theme_portfolio_remove_property' ) ) {
+			pera_crm_ajax_error( 'invalid_action', __( 'Invalid action', 'peracrm' ), 400 );
+		}
+		$nonce = isset( $_POST['nonce'] ) ? sanitize_text_field( wp_unslash( (string) $_POST['nonce'] ) ) : '';
+		if ( '' === $nonce || ! wp_verify_nonce( $nonce, 'pera_crm_theme_portfolio_remove_property' ) ) {
+			pera_crm_ajax_error( 'invalid_nonce', __( 'Invalid nonce', 'peracrm' ), 403 );
+		}
+
+		$client_id   = isset( $_POST['client_id'] ) ? absint( wp_unslash( (string) $_POST['client_id'] ) ) : 0;
+		$property_id = isset( $_POST['property_id'] ) ? absint( wp_unslash( (string) $_POST['property_id'] ) ) : 0;
+		pera_crm_client_view_theme_portfolio_access_or_error( $client_id );
+
+		$ids = array_values(
+			array_filter(
+				pera_crm_client_view_get_theme_portfolio_property_ids( $client_id ),
+				static function ( $id ) use ( $property_id ): bool {
+					return (int) $id !== $property_id;
+				}
+			)
+		);
+		pera_crm_client_view_save_theme_portfolio_property_ids( $client_id, $ids );
+		pera_crm_ajax_success( array( 'code' => 'theme_portfolio_property_removed' ) );
+	}
+}
+add_action( 'wp_ajax_peracrm_theme_portfolio_remove_property', 'pera_crm_theme_portfolio_remove_property_ajax' );
+
+if ( ! function_exists( 'pera_crm_refresh_theme_portfolio_url_ajax' ) ) {
+	function pera_crm_refresh_theme_portfolio_url_ajax(): void {
+		if ( ! pera_crm_ajax_is_expected_action( 'peracrm_refresh_theme_portfolio_url' ) ) {
+			pera_crm_ajax_error( 'invalid_action', __( 'Invalid action', 'peracrm' ), 400 );
+		}
+		$nonce = isset( $_POST['nonce'] ) ? sanitize_text_field( wp_unslash( (string) $_POST['nonce'] ) ) : '';
+		if ( '' === $nonce || ! wp_verify_nonce( $nonce, 'pera_crm_refresh_theme_portfolio_url' ) ) {
+			pera_crm_ajax_error( 'invalid_nonce', __( 'Invalid nonce', 'peracrm' ), 403 );
+		}
+
+		$client_id = isset( $_POST['client_id'] ) ? absint( wp_unslash( (string) $_POST['client_id'] ) ) : 0;
+		pera_crm_client_view_theme_portfolio_access_or_error( $client_id );
+
+		$state = pera_crm_client_view_refresh_theme_portfolio_url( $client_id );
+		if ( empty( $state['url'] ) ) {
+			pera_crm_ajax_error( 'theme_portfolio_empty', __( 'Select at least one property first.', 'peracrm' ), 400 );
+		}
+
+		pera_crm_ajax_success(
+			array(
+				'code'          => 'theme_portfolio_url_refreshed',
+				'url'           => (string) ( $state['url'] ?? '' ),
+				'token'         => (string) ( $state['token'] ?? '' ),
+				'updated_at'    => (int) ( $state['updated_at'] ?? 0 ),
+				'updated_label' => (string) ( $state['updated_label'] ?? '' ),
+				'count'         => (int) ( $state['count'] ?? 0 ),
+			)
+		);
+	}
+}
+add_action( 'wp_ajax_peracrm_refresh_theme_portfolio_url', 'pera_crm_refresh_theme_portfolio_url_ajax' );
+
 if ( ! function_exists( 'pera_crm_client_view_get_portfolio_property_ids' ) ) {
 	/**
 	 * Fetch ordered, valid portfolio-linked property IDs for a client.
