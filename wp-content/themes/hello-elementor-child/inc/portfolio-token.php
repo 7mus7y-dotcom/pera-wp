@@ -699,34 +699,43 @@ if ( ! function_exists( 'pera_portfolio_token_render_crm_offer_card' ) ) {
 			return;
 		}
 
-		$title = trim( (string) get_the_title( $property_id ) );
-		if ( '' === $title ) {
-			$title = __( 'Untitled property', 'hello-elementor-child' );
+		$offer_row = array(
+			'type'          => trim( (string) ( $portfolio_row['unit_type'] ?? '' ) ),
+			'floor'         => trim( (string) ( $portfolio_row['floor_number'] ?? '' ) ),
+			'net_sqm'       => trim( (string) ( $portfolio_row['net_size'] ?? '' ) ),
+			'gross_sqm'     => trim( (string) ( $portfolio_row['gross_size'] ?? '' ) ),
+			'list_price'    => trim( (string) ( $portfolio_row['list_price'] ?? '' ) ),
+			'cash_price'    => trim( (string) ( $portfolio_row['cash_price'] ?? '' ) ),
+			'notes'         => trim( (string) ( $portfolio_row['notes'] ?? '' ) ),
+			'floor_plan_id' => isset( $portfolio_row['floor_plan_attachment_id'] ) ? (int) $portfolio_row['floor_plan_attachment_id'] : 0,
+		);
+
+		$has_portfolio_offer_data = false;
+		foreach ( array( 'type', 'floor', 'net_sqm', 'gross_sqm', 'list_price', 'cash_price', 'notes', 'floor_plan_id' ) as $offer_key ) {
+			if ( 'floor_plan_id' === $offer_key ) {
+				if ( (int) $offer_row[ $offer_key ] > 0 ) {
+					$has_portfolio_offer_data = true;
+					break;
+				}
+				continue;
+			}
+
+			if ( '' !== trim( (string) $offer_row[ $offer_key ] ) ) {
+				$has_portfolio_offer_data = true;
+				break;
+			}
 		}
 
-		$region_name   = trim( (string) pera_portfolio_token_get_primary_term_name( $property_id, 'region' ) );
-		$district_name = trim( (string) pera_portfolio_token_get_primary_term_name( $property_id, 'district' ) );
+		if ( ! $has_portfolio_offer_data && function_exists( 'pera_latest_offers_get_rows' ) ) {
+			$latest_offer_rows = pera_latest_offers_get_rows( $property_id );
+			if ( ! empty( $latest_offer_rows ) && is_array( $latest_offer_rows[0] ?? null ) ) {
+				$offer_row = $latest_offer_rows[0];
+			}
+		}
 
-		$floor_plan_attachment_id = isset( $portfolio_row['floor_plan_attachment_id'] ) ? (int) $portfolio_row['floor_plan_attachment_id'] : 0;
-		$floor_plan_url           = $floor_plan_attachment_id > 0 ? (string) wp_get_attachment_url( $floor_plan_attachment_id ) : '';
-		$permalink                = get_permalink( $property_id );
-
-		$card = array(
-			'property_title' => ucwords( strtolower( $title ) ),
-			'property_url'   => is_string( $permalink ) ? $permalink : '',
-			'type'           => trim( (string) ( $portfolio_row['unit_type'] ?? '' ) ),
-			'floor'          => trim( (string) ( $portfolio_row['floor_number'] ?? '' ) ),
-			'net_sqm'        => trim( (string) ( $portfolio_row['net_size'] ?? '' ) ),
-			'gross_sqm'      => trim( (string) ( $portfolio_row['gross_size'] ?? '' ) ),
-			'list_price'     => trim( (string) ( $portfolio_row['list_price'] ?? '' ) ),
-			'cash_price'     => trim( (string) ( $portfolio_row['cash_price'] ?? '' ) ),
-			'notes'          => trim( (string) ( $portfolio_row['notes'] ?? '' ) ),
-			'image_id'       => pera_portfolio_token_get_main_image_id( $property_id ),
-			'region_name'    => $region_name,
-			'district_name'  => $district_name,
-			'map_url'        => pera_portfolio_token_get_property_map_url( $property_id ),
-			'floor_plan_url' => $floor_plan_url,
-		);
+		$card = function_exists( 'pera_latest_offers_card_view_model' )
+			? pera_latest_offers_card_view_model( $property_id, $offer_row )
+			: array();
 
 		if ( function_exists( 'pera_latest_offers_render_card' ) ) {
 			pera_latest_offers_render_card( $card );
