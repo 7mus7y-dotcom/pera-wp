@@ -836,6 +836,15 @@ section,
   color: var(--pill-outline-text);
 }
 
+.pill--subtle {
+  padding: 1px 10px;
+  min-height: 20px;
+  line-height: 1;
+  border: 1px solid #999999;
+  background: #f3f4f6;
+  color: #000000;
+}
+
 a.pill {
   text-decoration: none;
 }
@@ -861,6 +870,21 @@ button.pill:focus-visible {
 .pill--brand { background: var(--brand); color: #ffffff; }
 .pill--green { background: var(--pill-green); color: #ffffff; }
 .pill--red   { background: var(--pill-red);   color: #ffffff; }
+
+@media (prefers-color-scheme: dark) {
+  .pill--subtle {
+    border-color: #334155;
+    background: #0b1220;
+    color: #e2e8f0;
+  }
+}
+
+[data-theme="dark"] .pill--subtle,
+.dark .pill--subtle {
+  border-color: #334155;
+  background: #0b1220;
+  color: #e2e8f0;
+}
 
 /* Active state (works for any pill, incl. outline) */
 .pill--active {
