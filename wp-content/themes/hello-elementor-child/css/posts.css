@@ -90,6 +90,7 @@
 .post-card-thumb-overlay .pill--blue{
   background: var(--brand);
   color: #ffffff;
+  font-size: 0.70rem
 }
 
 /* Body */
