@@ -26,13 +26,13 @@ $map_url        = isset( $card['map_url'] ) ? (string) $card['map_url'] : '';
 <article class="pera-latest-offer-card slider-card" aria-label="<?php echo esc_attr__( 'Latest offer card', 'hello-elementor-child' ); ?>">
 	<div class="pera-latest-offer-card__pills">
 		<?php if ( '' !== $region_name ) : ?>
-			<span class="pill pill--outline pera-latest-offer-card__top-pill"><?php echo esc_html( $region_name ); ?></span>
+			<span class="pill pill--subtle"><?php echo esc_html( $region_name ); ?></span>
 		<?php endif; ?>
 		<?php if ( '' !== $district_name ) : ?>
-			<span class="pill pill--outline pera-latest-offer-card__top-pill"><?php echo esc_html( $district_name ); ?></span>
+			<span class="pill pill--subtle"><?php echo esc_html( $district_name ); ?></span>
 		<?php endif; ?>
 		<?php if ( '' !== $map_url ) : ?>
-			<a class="pill pill--outline pera-latest-offer-card__top-pill" href="<?php echo esc_url( $map_url ); ?>" target="_blank" rel="noopener noreferrer">
+			<a class="pill pill--subtle" href="<?php echo esc_url( $map_url ); ?>" target="_blank" rel="noopener noreferrer">
 				<svg class="icon pill__icon pera-latest-offer-card__icon" aria-hidden="true" width="16" height="16">
 					<use href="#icon-map" xlink:href="#icon-map"></use>
 				</svg>
