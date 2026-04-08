@@ -149,6 +149,9 @@ if (!function_exists('pera_crm_enqueue_assets')) {
                 'updatePortfolioNonce' => wp_create_nonce('pera_crm_update_portfolio_token'),
                 'portfolioFieldsNonce' => wp_create_nonce('pera_crm_save_portfolio_property_fields'),
                 'portfolioFloorPlanNonce' => wp_create_nonce('pera_crm_upload_portfolio_floor_plan'),
+                'themePortfolioAddNonce' => wp_create_nonce('pera_crm_theme_portfolio_add_property'),
+                'themePortfolioRemoveNonce' => wp_create_nonce('pera_crm_theme_portfolio_remove_property'),
+                'themePortfolioRefreshNonce' => wp_create_nonce('pera_crm_refresh_theme_portfolio_url'),
             ]
         );
 

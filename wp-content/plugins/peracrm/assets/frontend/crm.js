@@ -1264,6 +1264,215 @@
 })();
 
 (function () {
+  var data = window.peraCrmData || {};
+  var ajaxUrl = data.ajaxUrl ? String(data.ajaxUrl) : '';
+  var addNonce = data.themePortfolioAddNonce ? String(data.themePortfolioAddNonce) : '';
+  var removeNonce = data.themePortfolioRemoveNonce ? String(data.themePortfolioRemoveNonce) : '';
+  var refreshNonce = data.themePortfolioRefreshNonce ? String(data.themePortfolioRefreshNonce) : '';
+
+  function getSection(node) {
+    if (!node || !node.closest) {
+      return document.querySelector('[data-crm-theme-portfolio]');
+    }
+
+    return node.closest('[data-crm-theme-portfolio]') || document.querySelector('[data-crm-theme-portfolio]');
+  }
+
+  function setFeedback(section, message) {
+    if (!section) {
+      return;
+    }
+
+    var feedback = section.querySelector('[data-crm-theme-portfolio-feedback]');
+    if (!feedback) {
+      return;
+    }
+
+    feedback.textContent = message ? String(message) : '';
+  }
+
+  function copyValue(input, value) {
+    if (navigator.clipboard && typeof navigator.clipboard.writeText === 'function') {
+      return navigator.clipboard.writeText(value);
+    }
+
+    input.focus();
+    input.select();
+    if (!document.execCommand('copy')) {
+      return Promise.reject(new Error('Clipboard access failed.'));
+    }
+
+    return Promise.resolve();
+  }
+
+  function postAction(payload) {
+    return fetch(ajaxUrl, {
+      method: 'POST',
+      body: payload,
+      credentials: 'same-origin'
+    }).then(function (response) { return response.json(); });
+  }
+
+  function applyUrlState(section, json) {
+    var data = json && json.data ? json.data : {};
+    var url = String(data.url || '');
+    var urlInput = section.querySelector('[data-crm-theme-portfolio-url]');
+    var openLink = section.querySelector('[data-crm-theme-portfolio-open-link]');
+    var updated = section.querySelector('[data-crm-theme-portfolio-updated]');
+
+    if (urlInput) {
+      urlInput.value = url;
+    }
+
+    if (openLink) {
+      if (url) {
+        openLink.hidden = false;
+        openLink.removeAttribute('aria-hidden');
+        openLink.removeAttribute('tabindex');
+        openLink.setAttribute('href', url);
+      } else {
+        openLink.hidden = true;
+        openLink.setAttribute('aria-hidden', 'true');
+        openLink.setAttribute('tabindex', '-1');
+        openLink.setAttribute('href', '#');
+      }
+    }
+
+    if (updated) {
+      updated.textContent = data.updated_label ? 'Updated: ' + String(data.updated_label) : '';
+    }
+  }
+
+  document.addEventListener('submit', function (event) {
+    var form = event.target && event.target.matches ? (event.target.matches('[data-crm-theme-portfolio-add-form]') ? event.target : null) : null;
+    if (!form) {
+      return;
+    }
+
+    event.preventDefault();
+    var section = getSection(form);
+    var clientId = section ? String(section.getAttribute('data-client-id') || '') : '';
+    var propertyId = form.querySelector('[data-crm-property-id]') ? String(form.querySelector('[data-crm-property-id]').value || '') : '';
+
+    if (!ajaxUrl || !addNonce || !clientId || !propertyId) {
+      setFeedback(section, 'Unable to add property right now.');
+      return;
+    }
+
+    var payload = new window.FormData();
+    payload.append('action', 'peracrm_theme_portfolio_add_property');
+    payload.append('nonce', addNonce);
+    payload.append('client_id', clientId);
+    payload.append('property_id', propertyId);
+
+    setFeedback(section, 'Adding property…');
+    postAction(payload)
+      .then(function (json) {
+        if (!json || !json.success) {
+          throw new Error(json && json.data && json.data.message ? String(json.data.message) : 'Unable to add property.');
+        }
+
+        window.location.reload();
+      })
+      .catch(function (error) {
+        setFeedback(section, error && error.message ? error.message : 'Unable to add property.');
+      });
+  });
+
+  document.addEventListener('click', function (event) {
+    var copyBtn = event.target.closest('[data-crm-theme-portfolio-copy]');
+    if (copyBtn) {
+      event.preventDefault();
+      var copySection = getSection(copyBtn);
+      var input = copySection ? copySection.querySelector('[data-crm-theme-portfolio-url]') : null;
+      var value = input ? String(input.value || '').trim() : '';
+      if (!input || !value) {
+        setFeedback(copySection, 'No URL to copy yet.');
+        return;
+      }
+
+      copyValue(input, value)
+        .then(function () { setFeedback(copySection, 'Portfolio URL copied.'); })
+        .catch(function () { setFeedback(copySection, 'Unable to copy automatically.'); });
+      return;
+    }
+
+    var removeBtn = event.target.closest('[data-crm-theme-portfolio-remove]');
+    if (removeBtn) {
+      event.preventDefault();
+      var removeSection = getSection(removeBtn);
+      var clientId = removeSection ? String(removeSection.getAttribute('data-client-id') || '') : '';
+      var propertyId = String(removeBtn.getAttribute('data-property-id') || '');
+      if (!ajaxUrl || !removeNonce || !clientId || !propertyId) {
+        setFeedback(removeSection, 'Unable to remove property right now.');
+        return;
+      }
+
+      var removePayload = new window.FormData();
+      removePayload.append('action', 'peracrm_theme_portfolio_remove_property');
+      removePayload.append('nonce', removeNonce);
+      removePayload.append('client_id', clientId);
+      removePayload.append('property_id', propertyId);
+
+      setFeedback(removeSection, 'Removing property…');
+      postAction(removePayload)
+        .then(function (json) {
+          if (!json || !json.success) {
+            throw new Error(json && json.data && json.data.message ? String(json.data.message) : 'Unable to remove property.');
+          }
+
+          window.location.reload();
+        })
+        .catch(function (error) {
+          setFeedback(removeSection, error && error.message ? error.message : 'Unable to remove property.');
+        });
+      return;
+    }
+
+    var refreshBtn = event.target.closest('[data-crm-theme-portfolio-refresh]');
+    if (!refreshBtn) {
+      return;
+    }
+
+    event.preventDefault();
+    var section = getSection(refreshBtn);
+    var clientId = section ? String(section.getAttribute('data-client-id') || '') : '';
+    if (!ajaxUrl || !refreshNonce || !clientId) {
+      setFeedback(section, 'Unable to refresh URL right now.');
+      return;
+    }
+
+    var payload = new window.FormData();
+    payload.append('action', 'peracrm_refresh_theme_portfolio_url');
+    payload.append('nonce', refreshNonce);
+    payload.append('client_id', clientId);
+
+    var original = refreshBtn.textContent;
+    refreshBtn.disabled = true;
+    refreshBtn.textContent = 'Updating…';
+    setFeedback(section, '');
+
+    postAction(payload)
+      .then(function (json) {
+        if (!json || !json.success) {
+          throw new Error(json && json.data && json.data.message ? String(json.data.message) : 'Unable to refresh URL.');
+        }
+
+        applyUrlState(section, json);
+        setFeedback(section, 'Portfolio URL updated.');
+      })
+      .catch(function (error) {
+        setFeedback(section, error && error.message ? error.message : 'Unable to refresh URL.');
+      })
+      .finally(function () {
+        refreshBtn.disabled = false;
+        refreshBtn.textContent = original;
+      });
+  });
+})();
+
+
+(function () {
   var ajaxUrl = window.peraCrmData && window.peraCrmData.ajaxUrl ? window.peraCrmData.ajaxUrl : '';
   var nonce = window.peraCrmData && window.peraCrmData.propertySearchNonce ? window.peraCrmData.propertySearchNonce : '';
   if (!ajaxUrl || !nonce) {

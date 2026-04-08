@@ -63,6 +63,21 @@ $portfolio_saved_expires_txt = $portfolio_saved_expires_at > 0
 	? wp_date( get_option( 'date_format' ) . ' ' . get_option( 'time_format' ), $portfolio_saved_expires_at )
 	: '';
 
+
+$theme_portfolio_preview = function_exists( 'pera_crm_client_view_get_theme_portfolio_preview' )
+	? (array) pera_crm_client_view_get_theme_portfolio_preview( $client_id )
+	: array();
+$theme_portfolio_properties = is_array( $theme_portfolio_preview['properties'] ?? null ) ? $theme_portfolio_preview['properties'] : array();
+$theme_portfolio_offers     = is_array( $theme_portfolio_preview['offers'] ?? null ) ? $theme_portfolio_preview['offers'] : array();
+$theme_portfolio_state      = function_exists( 'pera_crm_client_view_theme_portfolio_url_state' )
+	? (array) pera_crm_client_view_theme_portfolio_url_state( $client_id )
+	: array();
+$theme_portfolio_url        = (string) ( $theme_portfolio_state['url'] ?? '' );
+$theme_portfolio_updated_at = (int) ( $theme_portfolio_state['updated_at'] ?? 0 );
+$theme_portfolio_updated    = $theme_portfolio_updated_at > 0
+	? wp_date( get_option( 'date_format' ) . ' ' . get_option( 'time_format' ), $theme_portfolio_updated_at )
+	: '';
+
 $open_reminders    = (int) ( $data['open_reminders'] ?? 0 );
 $overdue_reminders = (int) ( $data['overdue_reminders'] ?? 0 );
 $property_total    = (int) ( $data['property_total'] ?? 0 );
@@ -852,7 +867,102 @@ peracrm_frontend_render_shell_header();
 
                   <dialog class="crm-danger-dialog" id="crm-client-portfolio-dialog" aria-labelledby="crm-client-portfolio-dialog-title"><h4 id="crm-client-portfolio-dialog-title"><?php esc_html_e( 'Create portfolio', 'peracrm' ); ?></h4><form class="crm-form-stack" data-crm-portfolio-form><label><?php esc_html_e( 'Expiry', 'peracrm' ); ?><input type="text" name="expiry" value="+30 days" /></label><div class="crm-danger-dialog__actions"><button type="submit" class="btn btn--solid btn--green" data-crm-portfolio-submit><?php esc_html_e( 'Generate link', 'peracrm' ); ?></button><button type="button" class="btn btn--ghost btn--blue" data-crm-portfolio-close="crm-client-portfolio-dialog"><?php esc_html_e( 'Close', 'peracrm' ); ?></button></div><p class="text-sm" data-crm-portfolio-feedback></p></form></dialog>
               </section>
+
             </article>
+
+            <article class="crm-section crm-section--flush crm-client-related crm-client-related--theme-portfolio" data-client-id="<?php echo esc_attr( (string) $client_id ); ?>" data-crm-theme-portfolio>
+              <header class="crm-section__header">
+                <div class="crm-section__heading-group">
+                  <h3 class="crm-section__title"><?php esc_html_e( 'Theme portfolio', 'peracrm' ); ?></h3>
+                  <p class="crm-section__description"><?php esc_html_e( 'Manage a second standalone portfolio fed from theme property offers.', 'peracrm' ); ?></p>
+                </div>
+              </header>
+              <section class="crm-client-subsection crm-linked-workspace" data-client-id="<?php echo esc_attr( (string) $client_id ); ?>">
+                <div class="crm-linked-workspace__add">
+                  <h5><?php esc_html_e( 'Select property', 'peracrm' ); ?></h5>
+                  <form class="crm-form-stack" data-crm-theme-portfolio-add-form>
+                    <div class="crm-property-search" data-crm-property-search>
+                      <label><?php esc_html_e( 'Project', 'peracrm' ); ?><input type="text" data-crm-property-query placeholder="<?php echo esc_attr__( 'Search project name', 'peracrm' ); ?>" autocomplete="off" /></label>
+                      <input type="hidden" name="property_id" data-crm-property-id required />
+                      <div class="crm-property-search-results" data-crm-property-results hidden></div>
+                      <p class="text-sm" data-crm-property-feedback><?php esc_html_e( 'Type at least 2 letters and choose a project.', 'peracrm' ); ?></p>
+                    </div>
+                    <div class="crm-linked-workspace__toolbar crm-action-group">
+                      <button type="submit" class="btn btn--ghost btn--blue"><?php esc_html_e( 'Add property', 'peracrm' ); ?></button>
+                    </div>
+                  </form>
+                </div>
+
+                <div class="crm-linked-workspace__portfolio-tools" data-crm-theme-portfolio-output>
+                  <div class="crm-linked-workspace__portfolio-url"><label><?php esc_html_e( 'Portfolio URL', 'peracrm' ); ?><input type="text" readonly data-crm-theme-portfolio-url value="<?php echo esc_attr( $theme_portfolio_url ); ?>" /></label></div>
+                  <div class="crm-linked-workspace__portfolio-actions crm-action-group">
+                    <a class="btn btn--ghost btn--blue" data-crm-theme-portfolio-open-link href="<?php echo esc_url( '' !== $theme_portfolio_url ? $theme_portfolio_url : '#' ); ?>" target="_blank" rel="noopener noreferrer" <?php echo '' !== $theme_portfolio_url ? '' : 'hidden aria-hidden="true" tabindex="-1"'; ?>>
+                      <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path fill="currentColor" d="M14 3h7v7h-2V6.41l-9.29 9.3-1.42-1.42 9.3-9.29H14V3Zm5 16V12h2v9H3V3h9v2H5v14h14Z"></path></svg>
+                    </a>
+                    <button type="button" class="btn btn--ghost btn--blue" data-crm-theme-portfolio-copy><?php esc_html_e( 'Copy URL', 'peracrm' ); ?></button>
+                    <button type="button" class="btn btn--ghost btn--blue" data-crm-theme-portfolio-refresh><?php esc_html_e( 'Update URL', 'peracrm' ); ?></button>
+                  </div>
+                  <small class="text-sm crm-linked-workspace__portfolio-meta" data-crm-theme-portfolio-updated><?php echo esc_html( '' !== $theme_portfolio_updated ? sprintf( __( 'Updated: %s', 'peracrm' ), $theme_portfolio_updated ) : '' ); ?></small>
+                  <small class="text-sm" data-crm-theme-portfolio-feedback></small>
+                </div>
+
+                <section class="crm-linked-workspace__relation">
+                  <div class="crm-inline-form crm-inline-form--between crm-linked-workspace__relation-head">
+                    <h5><?php esc_html_e( 'Selected properties', 'peracrm' ); ?></h5>
+                  </div>
+                  <?php if ( empty( $theme_portfolio_properties ) ) : ?>
+                    <p><?php esc_html_e( 'No properties selected.', 'peracrm' ); ?></p>
+                  <?php else : ?>
+                    <ul class="crm-list peracrm-linked-properties-grid">
+                      <?php foreach ( $theme_portfolio_properties as $theme_property ) :
+                        $theme_property_id    = (int) ( $theme_property['property_id'] ?? 0 );
+                        $theme_property_label = (string) ( $theme_property['label'] ?? '' );
+                        $theme_property_url   = (string) ( $theme_property['url'] ?? '' );
+                      ?>
+                      <li class="peracrm-linked-properties-grid__item">
+                        <?php if ( '' !== $theme_property_url ) : ?><a class="crm-linked-property-link" href="<?php echo esc_url( $theme_property_url ); ?>" target="_blank" rel="noopener noreferrer"><?php echo esc_html( $theme_property_label ); ?></a><?php else : ?><span class="crm-linked-property-link"><?php echo esc_html( $theme_property_label ); ?></span><?php endif; ?>
+                        <button type="button" class="btn btn--ghost btn--blue peracrm-linked-property-unlink-btn" data-crm-theme-portfolio-remove data-property-id="<?php echo esc_attr( (string) $theme_property_id ); ?>" aria-label="<?php esc_attr_e( 'Remove property', 'peracrm' ); ?>"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><use href="#icon-broken-chain"></use></svg></button>
+                      </li>
+                      <?php endforeach; ?>
+                    </ul>
+                  <?php endif; ?>
+                </section>
+
+                <section class="crm-linked-workspace__relation">
+                  <div class="crm-inline-form crm-inline-form--between crm-linked-workspace__relation-head">
+                    <h5><?php esc_html_e( 'Offers in this portfolio', 'peracrm' ); ?></h5>
+                  </div>
+                  <?php if ( empty( $theme_portfolio_offers ) ) : ?>
+                    <p><?php esc_html_e( 'No offers found for selected properties.', 'peracrm' ); ?></p>
+                  <?php else : ?>
+                    <ul class="crm-list peracrm-linked-properties-grid">
+                      <?php foreach ( $theme_portfolio_offers as $offer_row ) :
+                        $offer_property_id = (int) ( $offer_row['property_id'] ?? 0 );
+                        $offer_property_label = '';
+                        foreach ( $theme_portfolio_properties as $property_lookup ) {
+                          if ( (int) ( $property_lookup['property_id'] ?? 0 ) === $offer_property_id ) {
+                            $offer_property_label = (string) ( $property_lookup['label'] ?? '' );
+                            break;
+                          }
+                        }
+                      ?>
+                      <li class="peracrm-linked-properties-grid__item">
+                        <div class="crm-linked-property-row__header"><span class="crm-linked-property-link"><?php echo esc_html( '' !== $offer_property_label ? $offer_property_label : sprintf( __( 'Property #%d', 'peracrm' ), $offer_property_id ) ); ?></span></div>
+                        <div class="crm-portfolio-facts-summary" aria-label="<?php esc_attr_e( 'Theme offer facts summary', 'peracrm' ); ?>">
+                          <p class="crm-portfolio-facts-summary__line"><span class="crm-portfolio-facts-summary__label"><?php esc_html_e( 'Type', 'peracrm' ); ?></span> <?php echo esc_html( (string) ( $offer_row['offer_type'] ?? '—' ) ); ?> <span aria-hidden="true">•</span> <span class="crm-portfolio-facts-summary__label"><?php esc_html_e( 'Floor', 'peracrm' ); ?></span> <?php echo esc_html( (string) ( $offer_row['floor'] ?? '—' ) ); ?></p>
+                          <p class="crm-portfolio-facts-summary__line"><?php echo esc_html( '' !== (string) ( $offer_row['net_size'] ?? '' ) ? (string) $offer_row['net_size'] . 'm²' : '—' ); ?> / <?php echo esc_html( '' !== (string) ( $offer_row['gross_size'] ?? '' ) ? (string) $offer_row['gross_size'] . 'm²' : '—' ); ?> <span aria-hidden="true">•</span> <?php echo esc_html( '' !== (string) ( $offer_row['list_price'] ?? '' ) ? '$' . ltrim( (string) $offer_row['list_price'], '$' ) : '—' ); ?> / <?php echo esc_html( '' !== (string) ( $offer_row['cash_price'] ?? '' ) ? '$' . ltrim( (string) $offer_row['cash_price'], '$' ) : '—' ); ?></p>
+                          <?php if ( '' !== (string) ( $offer_row['notes'] ?? '' ) ) : ?>
+                          <p class="crm-portfolio-facts-summary__line"><?php echo esc_html( (string) $offer_row['notes'] ); ?></p>
+                          <?php endif; ?>
+                        </div>
+                      </li>
+                      <?php endforeach; ?>
+                    </ul>
+                  <?php endif; ?>
+                </section>
+              </section>
+            </article>
+
             <article class="crm-section crm-section--flush crm-client-deals" data-crm-panel="deals">
               <header class="crm-section__header">
                 <div class="crm-section__heading-group">
