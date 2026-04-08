@@ -4987,26 +4987,26 @@ body.crm-route #site-header.peracrm-shell-header.is-scrolled .peracrm-header-act
   min-width: 220px;
 }
 
-.crm-page--client-view .peracrm-theme-portfolio-offers-views [data-crm-view="table"] .crm-table-wrap {
+.crm-page--client-view [data-crm-theme-portfolio] .crm-linked-workspace__relation,
+.crm-page--client-view [data-crm-theme-portfolio] .peracrm-theme-portfolio-offers-views,
+.crm-page--client-view [data-crm-theme-portfolio] .peracrm-theme-portfolio-offers-views [data-crm-view="table"] {
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+}
+
+.crm-page--client-view [data-crm-theme-portfolio] .peracrm-theme-portfolio-offers-views [data-crm-view="table"] .crm-table-wrap {
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
   overflow-x: auto;
+  overflow-y: hidden;
   -webkit-overflow-scrolling: touch;
 }
 
 @media (max-width: 767px) {
   .crm-page--client-view .peracrm-theme-portfolio-offers-toggle {
     margin-left: 0;
-  }
-
-  .crm-page--client-view .peracrm-theme-portfolio-offers-views [data-crm-view="table"] {
-    min-width: 0;
-  }
-
-  .crm-page--client-view .peracrm-theme-portfolio-offers-views [data-crm-view="table"] .crm-table-wrap {
-    width: 100%;
-    max-width: 100%;
-    margin-inline: 0;
-    padding-inline: 0;
-    box-sizing: border-box;
   }
 
   .crm-page--client-view .peracrm-theme-portfolio-offers-table {
