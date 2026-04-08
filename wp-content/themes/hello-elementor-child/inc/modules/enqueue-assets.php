@@ -64,7 +64,8 @@ add_action( 'wp_enqueue_scripts', function () {
     ) );
 
   $is_single_property = is_singular( 'property' );
-  $is_portfolio_token = function_exists( 'pera_portfolio_token_is_request' ) && pera_portfolio_token_is_request();
+  $is_portfolio_token = ( function_exists( 'pera_portfolio_token_is_request' ) && pera_portfolio_token_is_request() )
+    || ( function_exists( 'pera_theme_portfolio_token_is_request' ) && pera_theme_portfolio_token_is_request() );
 
   $is_blog_page    = is_page_template( 'page-posts.php' ) || is_page( 'blog' );
   $is_posts_index  = is_home() && ! is_front_page();
