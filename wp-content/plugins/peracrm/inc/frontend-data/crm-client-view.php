@@ -876,7 +876,7 @@ if ( ! function_exists( 'pera_crm_client_view_refresh_theme_portfolio_url' ) ) {
 			$created_at = $refreshed_at;
 		}
 
-		$url = trailingslashit( home_url( '/portfolio-theme/' . rawurlencode( $token ) ) );
+		$url = trailingslashit( home_url( '/portfolio/' . rawurlencode( $token ) ) );
 
 		pera_crm_client_view_with_target_blog(
 			static function () use ( $client_id, $url, $token, $created_at, $refreshed_at ): void {
