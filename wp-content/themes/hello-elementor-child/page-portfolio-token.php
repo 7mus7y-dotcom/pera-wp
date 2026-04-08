@@ -130,7 +130,8 @@ get_header();
 				</div>
 
 				<section data-portfolio-view="card">
-					<div id="property-grid" class="peracrm-portfolio-card-grid">
+					<div class="cards-slider-shell--nav peracrm-portfolio-card-shell">
+						<div id="property-grid" class="peracrm-portfolio-card-grid cards-slider cards-slider--snap" aria-label="<?php esc_attr_e( 'Portfolio properties', 'hello-elementor-child' ); ?>">
 						<?php if ( $properties_query->have_posts() ) : ?>
 							<?php while ( $properties_query->have_posts() ) : $properties_query->the_post(); ?>
 								<?php
@@ -149,6 +150,7 @@ get_header();
 						<?php else : ?>
 							<p class="no-results">No properties available in this portfolio right now.</p>
 						<?php endif; ?>
+						</div>
 					</div>
 				</section>
 

@@ -476,7 +476,7 @@ if ( ! function_exists( 'pera_portfolio_token_render_crm_offer_card' ) ) {
 		$gross_display = '' !== $gross_size ? $gross_size . ' m²' : '—';
 		$unit_display  = '' !== $unit_type ? $unit_type : '—';
 		?>
-		<article class="peracrm-portfolio-offer-card">
+		<article class="peracrm-portfolio-offer-card slider-card">
 			<div class="peracrm-portfolio-offer-card__pills">
 				<?php if ( '' !== $region_name ) : ?>
 					<span class="pill pill--green"><?php echo esc_html( $region_name ); ?></span>
