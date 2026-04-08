@@ -1289,6 +1289,54 @@
     }
 
     feedback.textContent = message ? String(message) : '';
+    feedback.classList.remove('is-success', 'is-error');
+  }
+
+  function setFeedbackState(section, message, type) {
+    if (!section) {
+      return;
+    }
+
+    var feedback = section.querySelector('[data-crm-theme-portfolio-feedback]');
+    if (!feedback) {
+      return;
+    }
+
+    feedback.textContent = message ? String(message) : '';
+    feedback.classList.remove('is-success', 'is-error');
+    if (type === 'success') {
+      feedback.classList.add('is-success');
+    } else if (type === 'error') {
+      feedback.classList.add('is-error');
+    }
+  }
+
+  function shortenUrlForDisplay(url) {
+    var value = String(url || '').trim();
+    if (!value) {
+      return '';
+    }
+
+    var cleaned = value.replace(/^https?:\/\//i, '');
+    return cleaned.length > 54 ? cleaned.slice(0, 51) + '…' : cleaned;
+  }
+
+  function syncCreateUpdateButtons(section, hasUrl) {
+    if (!section) {
+      return;
+    }
+
+    var createBtn = section.querySelector('[data-crm-theme-portfolio-create]');
+    var updateBtn = section.querySelector('[data-crm-theme-portfolio-refresh]');
+    var canManage = !!section.querySelector('[data-crm-theme-portfolio-remove]');
+
+    if (createBtn) {
+      createBtn.hidden = !canManage || !!hasUrl;
+    }
+
+    if (updateBtn) {
+      updateBtn.hidden = !canManage || !hasUrl;
+    }
   }
 
   function copyValue(input, value) {
@@ -1321,7 +1369,9 @@
     var updated = section.querySelector('[data-crm-theme-portfolio-updated]');
 
     if (urlInput) {
-      urlInput.value = url;
+      urlInput.setAttribute('data-crm-theme-portfolio-url-full', url);
+      urlInput.value = shortenUrlForDisplay(url);
+      urlInput.setAttribute('title', url);
     }
 
     if (openLink) {
@@ -1341,6 +1391,8 @@
     if (updated) {
       updated.textContent = data.updated_label ? 'Updated: ' + String(data.updated_label) : '';
     }
+
+    syncCreateUpdateButtons(section, !!url);
   }
 
   document.addEventListener('submit', function (event) {
@@ -1385,15 +1437,15 @@
       event.preventDefault();
       var copySection = getSection(copyBtn);
       var input = copySection ? copySection.querySelector('[data-crm-theme-portfolio-url]') : null;
-      var value = input ? String(input.value || '').trim() : '';
+      var value = input ? String(input.getAttribute('data-crm-theme-portfolio-url-full') || input.value || '').trim() : '';
       if (!input || !value) {
-        setFeedback(copySection, 'No URL to copy yet.');
+        setFeedbackState(copySection, 'No URL to copy yet.', 'error');
         return;
       }
 
       copyValue(input, value)
-        .then(function () { setFeedback(copySection, 'Portfolio URL copied.'); })
-        .catch(function () { setFeedback(copySection, 'Unable to copy automatically.'); });
+        .then(function () { setFeedbackState(copySection, 'Portfolio URL copied.', 'success'); })
+        .catch(function () { setFeedbackState(copySection, 'Unable to copy automatically.', 'error'); });
       return;
     }
 
@@ -1429,7 +1481,7 @@
       return;
     }
 
-    var refreshBtn = event.target.closest('[data-crm-theme-portfolio-refresh]');
+    var refreshBtn = event.target.closest('[data-crm-theme-portfolio-refresh], [data-crm-theme-portfolio-create]');
     if (!refreshBtn) {
       return;
     }
@@ -1438,7 +1490,7 @@
     var section = getSection(refreshBtn);
     var clientId = section ? String(section.getAttribute('data-client-id') || '') : '';
     if (!ajaxUrl || !refreshNonce || !clientId) {
-      setFeedback(section, 'Unable to refresh URL right now.');
+      setFeedbackState(section, 'Unable to refresh URL right now.', 'error');
       return;
     }
 
@@ -1448,8 +1500,10 @@
     payload.append('client_id', clientId);
 
     var original = refreshBtn.textContent;
+    var actionLabel = refreshBtn.matches('[data-crm-theme-portfolio-create]') ? 'Creating…' : 'Updating…';
+    var successLabel = refreshBtn.matches('[data-crm-theme-portfolio-create]') ? 'Portfolio URL generated.' : 'Portfolio URL updated.';
     refreshBtn.disabled = true;
-    refreshBtn.textContent = 'Updating…';
+    refreshBtn.textContent = actionLabel;
     setFeedback(section, '');
 
     postAction(payload)
@@ -1459,15 +1513,29 @@
         }
 
         applyUrlState(section, json);
-        setFeedback(section, 'Portfolio URL updated.');
+        setFeedbackState(section, successLabel, 'success');
       })
       .catch(function (error) {
-        setFeedback(section, error && error.message ? error.message : 'Unable to refresh URL.');
+        setFeedbackState(section, error && error.message ? error.message : 'Unable to refresh URL.', 'error');
       })
       .finally(function () {
         refreshBtn.disabled = false;
         refreshBtn.textContent = original;
       });
+  });
+
+  document.addEventListener('DOMContentLoaded', function () {
+    var section = getSection(document.body);
+    var input = section ? section.querySelector('[data-crm-theme-portfolio-url]') : null;
+    if (!section || !input) {
+      return;
+    }
+
+    var fullUrl = String(input.getAttribute('data-crm-theme-portfolio-url-full') || input.value || '').trim();
+    input.setAttribute('data-crm-theme-portfolio-url-full', fullUrl);
+    input.value = shortenUrlForDisplay(fullUrl);
+    input.setAttribute('title', fullUrl);
+    syncCreateUpdateButtons(section, !!fullUrl);
   });
 })();
 
