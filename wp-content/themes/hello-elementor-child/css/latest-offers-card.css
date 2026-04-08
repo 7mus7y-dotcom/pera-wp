@@ -225,8 +225,63 @@
   flex: 0 0 14px;
 }
 
+.portfolio-token-page .peracrm-portfolio-card-grid {
+  gap: 16px;
+  padding-bottom: 8px;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(148, 163, 184, 0.55) transparent;
+}
+
+.portfolio-token-page .peracrm-portfolio-card-grid > .pera-latest-offer-card {
+  flex: 0 0 min(84%, 360px);
+  max-width: min(84%, 360px);
+  scroll-snap-align: start;
+}
+
+.portfolio-token-page .peracrm-portfolio-card-grid::-webkit-scrollbar {
+  height: 6px;
+}
+
+.portfolio-token-page .peracrm-portfolio-card-grid::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.portfolio-token-page .peracrm-portfolio-card-grid::-webkit-scrollbar-thumb {
+  background: rgba(148, 163, 184, 0.45);
+  border-radius: 999px;
+}
+
+.portfolio-token-page .peracrm-portfolio-card-grid::-webkit-scrollbar-thumb:hover {
+  background: rgba(148, 163, 184, 0.7);
+}
+
+@media (min-width: 768px) {
+  .portfolio-token-page .peracrm-portfolio-card-grid > .pera-latest-offer-card {
+    flex-basis: calc((100% - 32px - 56px) / 3);
+    max-width: calc((100% - 32px - 56px) / 3);
+  }
+}
+
+@media (min-width: 1200px) {
+  .portfolio-token-page .peracrm-portfolio-card-grid > .pera-latest-offer-card {
+    flex-basis: calc((100% - 48px - 64px) / 4);
+    max-width: calc((100% - 48px - 64px) / 4);
+  }
+}
 
 @media (prefers-color-scheme: dark) {
+  .portfolio-token-page .peracrm-portfolio-card-grid {
+    scrollbar-color: rgba(148, 163, 184, 0.6) transparent;
+  }
+
+  .portfolio-token-page .peracrm-portfolio-card-grid::-webkit-scrollbar-thumb {
+    background: rgba(148, 163, 184, 0.65);
+  }
+
+  .portfolio-token-page .peracrm-portfolio-card-grid::-webkit-scrollbar-thumb:hover {
+    background: rgba(148, 163, 184, 0.9);
+  }
+
   .pera-latest-offer-card {
     border-color: var(--brand);
     background: #0f172a;

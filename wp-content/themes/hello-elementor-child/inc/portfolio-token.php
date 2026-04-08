@@ -667,19 +667,6 @@ if ( ! function_exists( 'pera_portfolio_token_get_property_map_url' ) ) {
 	}
 }
 
-if ( ! function_exists( 'pera_portfolio_token_get_plugin_icon_url' ) ) {
-	/**
-	 * Resolve plugin-owned icon URL for CRM portfolio card controls.
-	 */
-	function pera_portfolio_token_get_plugin_icon_url( string $icon_file ): string {
-		if ( '' === $icon_file || ! defined( 'PERACRM_URL' ) ) {
-			return '';
-		}
-
-		return trailingslashit( (string) PERACRM_URL ) . 'assets/frontend/icons/' . ltrim( $icon_file, '/' );
-	}
-}
-
 if ( ! function_exists( 'pera_portfolio_token_get_document_title' ) ) {
 	/**
 	 * Build scoped browser title for token pages.
@@ -702,7 +689,7 @@ add_filter( 'pre_get_document_title', 'pera_portfolio_token_get_document_title',
 
 if ( ! function_exists( 'pera_portfolio_token_render_crm_offer_card' ) ) {
 	/**
-	 * Render dedicated admin-only CRM portfolio offer card markup.
+	 * Render token-route offer cards with the shared theme offers-card component.
 	 *
 	 * @param int   $property_id Property post ID.
 	 * @param array $portfolio_row Portfolio row data keyed by property relation metadata.
@@ -717,134 +704,33 @@ if ( ! function_exists( 'pera_portfolio_token_render_crm_offer_card' ) ) {
 			$title = __( 'Untitled property', 'hello-elementor-child' );
 		}
 
-		$display_title = ucwords( strtolower( $title ) );
+		$region_name   = trim( (string) pera_portfolio_token_get_primary_term_name( $property_id, 'region' ) );
+		$district_name = trim( (string) pera_portfolio_token_get_primary_term_name( $property_id, 'district' ) );
 
-		$region_name   = pera_portfolio_token_get_primary_term_name( $property_id, 'region' );
-		$district_name = pera_portfolio_token_get_primary_term_name( $property_id, 'district' );
-		$image_id      = pera_portfolio_token_get_main_image_id( $property_id );
-
-		$unit_type   = trim( (string) ( $portfolio_row['unit_type'] ?? '' ) );
-		$net_size    = trim( (string) ( $portfolio_row['net_size'] ?? '' ) );
-		$gross_size  = trim( (string) ( $portfolio_row['gross_size'] ?? '' ) );
-		$cash_price  = trim( (string) ( $portfolio_row['cash_price'] ?? '' ) );
-		$list_price  = trim( (string) ( $portfolio_row['list_price'] ?? '' ) );
-		$notes       = trim( (string) ( $portfolio_row['notes'] ?? '' ) );
 		$floor_plan_attachment_id = isset( $portfolio_row['floor_plan_attachment_id'] ) ? (int) $portfolio_row['floor_plan_attachment_id'] : 0;
 		$floor_plan_url           = $floor_plan_attachment_id > 0 ? (string) wp_get_attachment_url( $floor_plan_attachment_id ) : '';
-		$map_url                  = pera_portfolio_token_get_property_map_url( $property_id );
+		$permalink                = get_permalink( $property_id );
 
-		$permalink   = get_permalink( $property_id );
-		$property_url = is_string( $permalink ) ? $permalink : '';
-		$floor_plan_icon_url = pera_portfolio_token_get_plugin_icon_url( 'floor-plan.svg' );
-		$notes_icon_url      = pera_portfolio_token_get_plugin_icon_url( 'notes.svg' );
-		$map_icon_url        = pera_portfolio_token_get_plugin_icon_url( 'map.svg' );
-		$external_icon_url   = pera_portfolio_token_get_plugin_icon_url( 'external.svg' );
+		$card = array(
+			'property_title' => ucwords( strtolower( $title ) ),
+			'property_url'   => is_string( $permalink ) ? $permalink : '',
+			'type'           => trim( (string) ( $portfolio_row['unit_type'] ?? '' ) ),
+			'floor'          => trim( (string) ( $portfolio_row['floor_number'] ?? '' ) ),
+			'net_sqm'        => trim( (string) ( $portfolio_row['net_size'] ?? '' ) ),
+			'gross_sqm'      => trim( (string) ( $portfolio_row['gross_size'] ?? '' ) ),
+			'list_price'     => trim( (string) ( $portfolio_row['list_price'] ?? '' ) ),
+			'cash_price'     => trim( (string) ( $portfolio_row['cash_price'] ?? '' ) ),
+			'notes'          => trim( (string) ( $portfolio_row['notes'] ?? '' ) ),
+			'image_id'       => pera_portfolio_token_get_main_image_id( $property_id ),
+			'region_name'    => $region_name,
+			'district_name'  => $district_name,
+			'map_url'        => pera_portfolio_token_get_property_map_url( $property_id ),
+			'floor_plan_url' => $floor_plan_url,
+		);
 
-		$cash_display  = '' !== $cash_price ? '$' . number_format_i18n( (float) $cash_price, 0 ) : '—';
-		$list_display  = '' !== $list_price ? '$' . number_format_i18n( (float) $list_price, 0 ) : '—';
-		$net_display   = '' !== $net_size ? $net_size . ' m²' : '—';
-		$gross_display = '' !== $gross_size ? $gross_size . ' m²' : '—';
-		$unit_display  = '' !== $unit_type ? $unit_type : '—';
-		?>
-		<article class="peracrm-portfolio-offer-card slider-card">
-			<div class="peracrm-portfolio-offer-card__pills">
-				<?php if ( '' !== $region_name ) : ?>
-					<span class="pill pill--green"><?php echo esc_html( $region_name ); ?></span>
-				<?php endif; ?>
-				<?php if ( '' !== $district_name ) : ?>
-					<span class="pill pill--green"><?php echo esc_html( $district_name ); ?></span>
-				<?php endif; ?>
-				<?php if ( '' !== $map_url ) : ?>
-					<a class="pill pill--outline" href="<?php echo esc_url( $map_url ); ?>" target="_blank" rel="noopener noreferrer">
-						<?php if ( '' !== $map_icon_url ) : ?>
-							<img src="<?php echo esc_url( $map_icon_url ); ?>" alt="" aria-hidden="true" />
-						<?php endif; ?>
-						<?php esc_html_e( 'Map', 'hello-elementor-child' ); ?>
-					</a>
-				<?php endif; ?>
-			</div>
-
-			<h2 class="peracrm-portfolio-offer-card__title">
-				<?php if ( '' !== $property_url ) : ?>
-					<a href="<?php echo esc_url( $property_url ); ?>"><?php echo esc_html( $display_title ); ?></a>
-				<?php else : ?>
-					<?php echo esc_html( $display_title ); ?>
-				<?php endif; ?>
-			</h2>
-
-			<div class="peracrm-portfolio-offer-card__summary">
-				<p class="peracrm-portfolio-offer-card__heading"><?php esc_html_e( 'Apartment details', 'hello-elementor-child' ); ?></p>
-				<p class="peracrm-portfolio-offer-card__list">
-					<?php echo esc_html( sprintf( __( 'List price: %s', 'hello-elementor-child' ), $list_display ) ); ?>
-				</p>
-				<p class="peracrm-portfolio-offer-card__cash">
-					<?php echo esc_html( sprintf( __( 'Cash price: %s', 'hello-elementor-child' ), $cash_display ) ); ?>
-				</p>
-				<p class="peracrm-portfolio-offer-card__meta">
-					<span><?php echo esc_html( sprintf( __( 'Type: %s', 'hello-elementor-child' ), $unit_display ) ); ?></span>
-					<span aria-hidden="true">•</span>
-					<span><?php echo esc_html( sprintf( __( 'Net: %s', 'hello-elementor-child' ), $net_display ) ); ?></span>
-					<span aria-hidden="true">•</span>
-					<span><?php echo esc_html( sprintf( __( 'Gross: %s', 'hello-elementor-child' ), $gross_display ) ); ?></span>
-				</p>
-			</div>
-
-			<div class="peracrm-portfolio-offer-card__media">
-				<?php if ( '' !== $property_url ) : ?>
-					<a class="peracrm-portfolio-offer-card__cta pill pill--blue"
-						href="<?php echo esc_url( $property_url ); ?>"
-						target="_blank"
-						rel="noopener noreferrer">
-						<?php if ( '' !== $external_icon_url ) : ?>
-							<img src="<?php echo esc_url( $external_icon_url ); ?>" alt="" aria-hidden="true" />
-						<?php endif; ?>
-						<?php esc_html_e( 'Project details', 'hello-elementor-child' ); ?>
-					</a>
-				<?php endif; ?>
-				<?php if ( $image_id > 0 ) : ?>
-					<?php
-					echo wp_get_attachment_image(
-						$image_id,
-						'large',
-						false,
-						array(
-							'class'    => 'peracrm-portfolio-offer-card__img',
-							'alt'      => esc_attr( $display_title ),
-							'loading'  => 'lazy',
-							'decoding' => 'async',
-						)
-					);
-					?>
-				<?php else : ?>
-					<div class="peracrm-portfolio-offer-card__placeholder" aria-hidden="true"></div>
-				<?php endif; ?>
-			</div>
-
-			<?php if ( '' !== $floor_plan_url || '' !== $notes ) : ?>
-				<div class="peracrm-portfolio-offer-card__utility">
-					<?php if ( '' !== $floor_plan_url ) : ?>
-						<a class="pill pill--outline peracrm-portfolio-offer-card__utility-pill" href="<?php echo esc_url( $floor_plan_url ); ?>" target="_blank" rel="noopener noreferrer">
-							<?php if ( '' !== $floor_plan_icon_url ) : ?>
-								<img src="<?php echo esc_url( $floor_plan_icon_url ); ?>" alt="" aria-hidden="true" />
-							<?php endif; ?>
-							<span><?php esc_html_e( 'Floor plan', 'hello-elementor-child' ); ?></span>
-						</a>
-					<?php endif; ?>
-					<?php if ( '' !== $notes ) : ?>
-						<details class="peracrm-portfolio-offer-card__note">
-							<summary class="pill pill--outline peracrm-portfolio-offer-card__utility-pill">
-								<?php if ( '' !== $notes_icon_url ) : ?>
-									<img src="<?php echo esc_url( $notes_icon_url ); ?>" alt="" aria-hidden="true" />
-								<?php endif; ?>
-								<span><?php esc_html_e( 'Notes', 'hello-elementor-child' ); ?></span>
-							</summary>
-							<div class="peracrm-portfolio-offer-card__note-panel"><?php echo nl2br( esc_html( $notes ) ); ?></div>
-						</details>
-					<?php endif; ?>
-				</div>
-			<?php endif; ?>
-		</article>
-		<?php
+		if ( function_exists( 'pera_latest_offers_render_card' ) ) {
+			pera_latest_offers_render_card( $card );
+		}
 	}
 }
 
