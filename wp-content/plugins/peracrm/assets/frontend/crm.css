@@ -4941,10 +4941,12 @@ body.crm-route #site-header.peracrm-shell-header.is-scrolled .peracrm-header-act
 
 .crm-page--client-view [data-crm-theme-portfolio] .peracrm-theme-portfolio-offers-toggle {
   display: inline-flex;
-  width: fit-content;
+  width: auto;
+  inline-size: max-content;
   max-width: 100%;
   justify-content: flex-start;
   align-self: flex-start;
+  flex: 0 0 auto;
 }
 
 .crm-page--client-view [data-crm-theme-portfolio] .peracrm-theme-portfolio-offers-toggle .btn {
@@ -5042,10 +5044,12 @@ body.crm-route #site-header.peracrm-shell-header.is-scrolled .peracrm-header-act
 @media (max-width: 767px) {
   .crm-page--client-view [data-crm-theme-portfolio] .peracrm-theme-portfolio-offers-toggle {
     display: inline-flex;
-    width: fit-content;
+    width: auto;
+    inline-size: max-content;
     max-width: 100%;
     justify-content: flex-start;
     align-self: flex-start;
+    flex: 0 0 auto;
   }
 
   .crm-page--client-view [data-crm-theme-portfolio] .peracrm-theme-portfolio-offers-toggle .btn {
@@ -5673,6 +5677,25 @@ body.crm-route #site-header.peracrm-shell-header.is-scrolled .peracrm-header-act
     color: #dcfce7;
   }
 
+  .crm-page--client-view .btn--ghost.btn--blue {
+    background-color: rgba(30, 64, 175, 0.18);
+    border-color: rgba(96, 165, 250, 0.54);
+    color: #dbeafe;
+  }
+
+  .crm-page--client-view .btn--ghost.btn--blue:hover,
+  .crm-page--client-view .btn--ghost.btn--blue:focus-visible {
+    background-color: rgba(37, 99, 235, 0.3);
+    border-color: rgba(147, 197, 253, 0.62);
+    color: #eff6ff;
+  }
+
+  .crm-page--client-view .btn--ghost.btn--blue svg,
+  .crm-page--client-view .btn--ghost.btn--blue svg * {
+    fill: currentColor;
+    stroke: currentColor;
+  }
+
   .crm-page .btn--solid.btn--blue {
     color: #eff6ff;
   }
@@ -5713,6 +5736,18 @@ body.crm-route #site-header.peracrm-shell-header.is-scrolled .peracrm-header-act
     background: rgba(37, 99, 235, 0.32);
     border-color: rgba(147, 197, 253, 0.56);
     color: #f8fbff;
+  }
+
+  .crm-page--client-view [data-crm-theme-portfolio] .peracrm-theme-portfolio-offers-toggle .btn--ghost {
+    background: rgba(15, 23, 42, 0.45);
+    border-color: rgba(96, 165, 250, 0.42);
+    color: #cfe2ff;
+  }
+
+  .crm-page--client-view [data-crm-theme-portfolio] .peracrm-theme-portfolio-offers-toggle .btn--solid {
+    background: rgba(37, 99, 235, 0.36);
+    border-color: rgba(147, 197, 253, 0.62);
+    color: #eff6ff;
   }
 
   .crm-page input:not([type="hidden"]),
