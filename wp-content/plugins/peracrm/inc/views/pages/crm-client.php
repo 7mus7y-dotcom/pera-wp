@@ -963,7 +963,7 @@ peracrm_frontend_render_shell_header();
                                 <th><?php esc_html_e( 'Gross', 'peracrm' ); ?></th>
                                 <th><?php esc_html_e( 'List price', 'peracrm' ); ?></th>
                                 <th><?php esc_html_e( 'Cash price', 'peracrm' ); ?></th>
-                                <th><?php esc_html_e( 'Notes', 'peracrm' ); ?></th>
+                                <th class="peracrm-theme-portfolio-offers-table__notes-head"><?php esc_html_e( 'Notes', 'peracrm' ); ?></th>
                                 <th><?php esc_html_e( 'Action', 'peracrm' ); ?></th>
                               </tr>
                             </thead>
@@ -986,7 +986,19 @@ peracrm_frontend_render_shell_header();
                                 <td><?php echo esc_html( '' !== (string) ( $offer_row['gross_size'] ?? '' ) ? (string) $offer_row['gross_size'] . 'm²' : '—' ); ?></td>
                                 <td><?php echo esc_html( '' !== (string) ( $offer_row['list_price'] ?? '' ) ? '$' . ltrim( (string) $offer_row['list_price'], '$' ) : '—' ); ?></td>
                                 <td><?php echo esc_html( '' !== (string) ( $offer_row['cash_price'] ?? '' ) ? '$' . ltrim( (string) $offer_row['cash_price'], '$' ) : '—' ); ?></td>
-                                <td class="peracrm-theme-portfolio-offers-table__notes"><?php echo esc_html( '' !== (string) ( $offer_row['notes'] ?? '' ) ? (string) $offer_row['notes'] : '—' ); ?></td>
+                                <td class="peracrm-theme-portfolio-offers-table__notes">
+                                  <?php if ( '' !== (string) ( $offer_row['notes'] ?? '' ) ) : ?>
+                                    <details class="peracrm-theme-portfolio-offers-note">
+                                      <summary class="btn btn--ghost btn--blue crm-icon-btn peracrm-theme-portfolio-offers-note__trigger" aria-label="<?php esc_attr_e( 'View offer notes', 'peracrm' ); ?>" title="<?php esc_attr_e( 'View offer notes', 'peracrm' ); ?>">
+                                        <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path fill="currentColor" d="M4 4h16v11H7l-3 3V4Zm2 2v7.17L6.17 13H18V6H6Zm2 2h8v2H8V8Zm0 3h5v2H8v-2Z"></path></svg>
+                                        <span class="screen-reader-text"><?php esc_html_e( 'Show notes', 'peracrm' ); ?></span>
+                                      </summary>
+                                      <div class="peracrm-theme-portfolio-offers-note__panel"><?php echo nl2br( esc_html( (string) $offer_row['notes'] ) ); ?></div>
+                                    </details>
+                                  <?php else : ?>
+                                    <span class="peracrm-theme-portfolio-offers-note__empty" aria-hidden="true">—</span>
+                                  <?php endif; ?>
+                                </td>
                                 <td class="crm-table__cell--actions"><button type="button" class="btn btn--ghost btn--blue peracrm-linked-property-unlink-btn crm-icon-btn" data-crm-theme-portfolio-remove data-property-id="<?php echo esc_attr( (string) $offer_property_id ); ?>" aria-label="<?php esc_attr_e( 'Remove property', 'peracrm' ); ?>"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><use href="#icon-broken-chain"></use></svg></button></td>
                               </tr>
                               <?php endforeach; ?>
