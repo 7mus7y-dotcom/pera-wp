@@ -19,6 +19,10 @@
   margin-bottom: 0;
 }
 
+.pera-latest-offer-card__pills .pill {
+  max-height: 19px;
+}
+
 .pera-latest-offer-card__title {
   margin-bottom: 4px;
   font-size: 1.05rem;
@@ -160,7 +164,11 @@
 }
 
 .pera-latest-offer-card__pill--map {
-  margin-left: auto;
+  position: absolute;
+  top: 6px;
+  right: 6px;
+  z-index: 3;
+  margin-left: 0;
 }
 
 .pera-latest-offer-card__note {
