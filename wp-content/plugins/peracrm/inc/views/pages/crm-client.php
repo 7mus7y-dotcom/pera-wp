@@ -476,14 +476,15 @@ peracrm_frontend_render_shell_header();
                     <input type="hidden" name="peracrm_client_id" value="<?php echo esc_attr( (string) $client_id ); ?>" />
                     <input type="hidden" name="peracrm_redirect" value="<?php echo esc_url( $frontend_url ); ?>" />
                     <input type="hidden" name="form_context" value="profile" />
-                    <div class="crm-profile-grid">
-                      <label class="crm-field crm-field--half"><?php esc_html_e( 'Status', 'peracrm' ); ?>
+                    <div class="crm-profile-grid crm-form-grid">
+                      <div class="crm-field crm-field--half">
+                        <label><?php esc_html_e( 'Status', 'peracrm' ); ?></label>
                         <select name="peracrm_status" id="peracrm-status" class="widefat">
                           <?php foreach ( $status_options as $status_key => $status_text ) : ?>
                             <option value="<?php echo esc_attr( (string) $status_key ); ?>" <?php selected( (string) ( $profile['status'] ?? '' ), (string) $status_key ); ?>><?php echo esc_html( (string) $status_text ); ?></option>
                           <?php endforeach; ?>
                         </select>
-                      </label>
+                      </div>
                       <div class="crm-phone-field crm-field crm-field--inline">
                         <label class="crm-field__label"><?php esc_html_e( 'Mobile / WhatsApp', 'peracrm' ); ?></label>
                         <div class="crm-phone-row">
@@ -504,7 +505,10 @@ peracrm_frontend_render_shell_header();
                         </div>
                         <input type="hidden" name="peracrm_phone" value="<?php echo esc_attr( $profile_phone_value ); ?>" />
                       </div>
-                      <label class="crm-field crm-field--half"><?php esc_html_e( 'Email', 'peracrm' ); ?><input type="email" name="peracrm_email" value="<?php echo esc_attr( (string) ( $profile['email'] ?? '' ) ); ?>" /></label>
+                      <div class="crm-field crm-field--half">
+                        <label><?php esc_html_e( 'Email', 'peracrm' ); ?></label>
+                        <input type="email" name="peracrm_email" value="<?php echo esc_attr( (string) ( $profile['email'] ?? '' ) ); ?>" />
+                      </div>
                       <fieldset class="crm-checkbox-group crm-checkbox-group--preferred-contact crm-field crm-field--inline">
                         <legend><?php esc_html_e( 'Preferred contact', 'peracrm' ); ?></legend>
                         <div class="crm-checkbox-group__options crm-checkbox-group__options--preferred-contact">
@@ -524,12 +528,23 @@ peracrm_frontend_render_shell_header();
                       </div>
                       <?php endif; ?>
                     </div>
-                    <div class="crm-keyfacts-grid">
-                      <label class="crm-field crm-field--half"><?php esc_html_e( 'Budget min (USD)', 'peracrm' ); ?><input type="number" min="0" name="peracrm_budget_min_usd" value="<?php echo esc_attr( (string) ( $profile['budget_min_usd'] ?? '' ) ); ?>" /></label>
-                      <label class="crm-field crm-field--half"><?php esc_html_e( 'Budget max (USD)', 'peracrm' ); ?><input type="number" min="0" name="peracrm_budget_max_usd" value="<?php echo esc_attr( (string) ( $profile['budget_max_usd'] ?? '' ) ); ?>" /></label>
-                      <label class="crm-field crm-field--inline"><?php esc_html_e( 'Bedrooms', 'peracrm' ); ?><input type="number" min="0" step="1" name="peracrm_bedrooms" value="<?php echo esc_attr( (string) ( $profile['bedrooms'] ?? '' ) ); ?>" /></label>
+                    <div class="crm-keyfacts-grid crm-form-grid">
+                      <div class="crm-field crm-field--half">
+                        <label><?php esc_html_e( 'Budget min (USD)', 'peracrm' ); ?></label>
+                        <input type="number" min="0" name="peracrm_budget_min_usd" value="<?php echo esc_attr( (string) ( $profile['budget_min_usd'] ?? '' ) ); ?>" />
+                      </div>
+                      <div class="crm-field crm-field--half">
+                        <label><?php esc_html_e( 'Budget max (USD)', 'peracrm' ); ?></label>
+                        <input type="number" min="0" name="peracrm_budget_max_usd" value="<?php echo esc_attr( (string) ( $profile['budget_max_usd'] ?? '' ) ); ?>" />
+                      </div>
+                      <div class="crm-field crm-field--inline">
+                        <label><?php esc_html_e( 'Bedrooms', 'peracrm' ); ?></label>
+                        <input type="number" min="0" step="1" name="peracrm_bedrooms" value="<?php echo esc_attr( (string) ( $profile['bedrooms'] ?? '' ) ); ?>" />
+                      </div>
+                      <div class="crm-field crm-field--inline">
+                        <button type="submit" class="btn btn--solid btn--blue"><?php esc_html_e( 'Save profile', 'peracrm' ); ?></button>
+                      </div>
                     </div>
-                    <button type="submit" class="btn btn--solid btn--blue"><?php esc_html_e( 'Save profile', 'peracrm' ); ?></button>
                   </form>
 
                 </div>
@@ -545,15 +560,17 @@ peracrm_frontend_render_shell_header();
                   <input type="hidden" name="peracrm_client_id" value="<?php echo esc_attr( (string) $client_id ); ?>" />
                   <input type="hidden" name="peracrm_redirect" value="<?php echo esc_url( $frontend_url ); ?>" />
                   <input type="hidden" name="form_context" value="status" />
-                  <div class="crm-status-grid">
-                    <label><?php esc_html_e( 'Lead pipeline stage', 'peracrm' ); ?><select name="lead_pipeline_stage"><?php foreach ( $party_stages as $value => $label ) : ?><option value="<?php echo esc_attr( (string) $value ); ?>" <?php selected( (string) ( $party['lead_pipeline_stage'] ?? '' ), (string) $value ); ?>><?php echo esc_html( (string) $label ); ?></option><?php endforeach; ?></select></label>
-                    <label><?php esc_html_e( 'Engagement', 'peracrm' ); ?><select name="engagement_state"><?php foreach ( $engagement_options as $value => $label ) : ?><option value="<?php echo esc_attr( (string) $value ); ?>" <?php selected( (string) ( $party['engagement_state'] ?? '' ), (string) $value ); ?>><?php echo esc_html( (string) $label ); ?></option><?php endforeach; ?></select></label>
-                    <label><?php esc_html_e( 'Client type', 'peracrm' ); ?><select name="peracrm_client_type"><option value=""><?php esc_html_e( 'Select type', 'peracrm' ); ?></option><?php foreach ( $client_type_options as $type_key => $type_label ) : ?><option value="<?php echo esc_attr( (string) $type_key ); ?>" <?php selected( $client_type_value, (string) $type_key ); ?>><?php echo esc_html( (string) $type_label ); ?></option><?php endforeach; ?></select></label>
-                    <label><?php esc_html_e( 'Disposition', 'peracrm' ); ?><select name="disposition"><?php foreach ( $disposition_opts as $value => $label ) : ?><option value="<?php echo esc_attr( (string) $value ); ?>" <?php selected( (string) ( $party['disposition'] ?? '' ), (string) $value ); ?>><?php echo esc_html( (string) $label ); ?></option><?php endforeach; ?></select></label>
+                  <div class="crm-status-grid crm-form-grid">
+                    <div class="crm-field crm-field--half"><label><?php esc_html_e( 'Lead pipeline stage', 'peracrm' ); ?></label><select name="lead_pipeline_stage"><?php foreach ( $party_stages as $value => $label ) : ?><option value="<?php echo esc_attr( (string) $value ); ?>" <?php selected( (string) ( $party['lead_pipeline_stage'] ?? '' ), (string) $value ); ?>><?php echo esc_html( (string) $label ); ?></option><?php endforeach; ?></select></div>
+                    <div class="crm-field crm-field--half"><label><?php esc_html_e( 'Engagement', 'peracrm' ); ?></label><select name="engagement_state"><?php foreach ( $engagement_options as $value => $label ) : ?><option value="<?php echo esc_attr( (string) $value ); ?>" <?php selected( (string) ( $party['engagement_state'] ?? '' ), (string) $value ); ?>><?php echo esc_html( (string) $label ); ?></option><?php endforeach; ?></select></div>
+                    <div class="crm-field crm-field--half"><label><?php esc_html_e( 'Client type', 'peracrm' ); ?></label><select name="peracrm_client_type"><option value=""><?php esc_html_e( 'Select type', 'peracrm' ); ?></option><?php foreach ( $client_type_options as $type_key => $type_label ) : ?><option value="<?php echo esc_attr( (string) $type_key ); ?>" <?php selected( $client_type_value, (string) $type_key ); ?>><?php echo esc_html( (string) $type_label ); ?></option><?php endforeach; ?></select></div>
+                    <div class="crm-field crm-field--half"><label><?php esc_html_e( 'Disposition', 'peracrm' ); ?></label><select name="disposition"><?php foreach ( $disposition_opts as $value => $label ) : ?><option value="<?php echo esc_attr( (string) $value ); ?>" <?php selected( (string) ( $party['disposition'] ?? '' ), (string) $value ); ?>><?php echo esc_html( (string) $label ); ?></option><?php endforeach; ?></select></div>
+                    <div class="crm-field crm-field--inline">
+                      <button type="submit" form="crm-status-form" class="btn btn--solid btn--blue"><?php esc_html_e( 'Save status', 'peracrm' ); ?></button>
+                    </div>
                   </div>
                 </form>
                 <div class="crm-status-actions">
-                  <button type="submit" form="crm-status-form" class="btn btn--solid btn--blue"><?php esc_html_e( 'Save status', 'peracrm' ); ?></button>
                   <?php if ( 'lead' === $derived_type ) : ?>
                   <form method="post" action="<?php echo esc_url( home_url( '/wp-admin/admin-post.php' ) ); ?>" class="crm-inline-form">
                     <?php wp_nonce_field( 'peracrm_convert_to_client', 'peracrm_convert_to_client_nonce' ); ?>
