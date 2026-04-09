@@ -432,15 +432,15 @@ if (!function_exists('pera_crm_maybe_load_template')) {
 }
 add_filter('template_include', 'pera_crm_maybe_load_template', 30);
 
-if (!function_exists('pera_crm_filter_client_document_title')) {
-    function pera_crm_filter_client_document_title(string $title): string
+if (!function_exists('pera_crm_get_client_detail_document_title')) {
+    function pera_crm_get_client_detail_document_title(): string
     {
         if (is_admin() || !pera_is_crm_route()) {
-            return $title;
+            return '';
         }
 
         if ('client' !== sanitize_key((string) get_query_var('pera_crm_view', ''))) {
-            return $title;
+            return '';
         }
 
         $client_id = function_exists('pera_crm_client_view_get_client_id')
@@ -448,14 +448,60 @@ if (!function_exists('pera_crm_filter_client_document_title')) {
             : (int) get_query_var('pera_crm_client_id', 0);
 
         if ($client_id <= 0 || 'crm_client' !== get_post_type($client_id)) {
-            return $title;
+            return '';
         }
 
-        $client_title = get_the_title($client_id);
-        return $client_title !== '' ? $client_title : $title;
+        $client_name = trim(wp_strip_all_tags((string) get_the_title($client_id)));
+        if ($client_name === '') {
+            $client_name = 'Client #' . $client_id;
+        }
+
+        $raw_client_type = trim((string) get_post_meta($client_id, '_peracrm_client_type', true));
+        if ($raw_client_type === '') {
+            $raw_client_type = trim((string) get_post_meta($client_id, 'peracrm_client_type', true));
+        }
+
+        $client_type = '';
+        if ($raw_client_type !== '') {
+            $client_type_options = function_exists('peracrm_client_type_options') ? (array) peracrm_client_type_options() : [];
+            if (isset($client_type_options[$raw_client_type])) {
+                $client_type = trim((string) $client_type_options[$raw_client_type]);
+            } else {
+                $normalized = str_replace(['_', '-'], ' ', $raw_client_type);
+                $client_type = ($normalized !== '' && strtolower($normalized) === $normalized) ? ucwords($normalized) : $normalized;
+                $client_type = trim(wp_strip_all_tags($client_type));
+            }
+        }
+
+        if ($client_type === '') {
+            return $client_name;
+        }
+
+        return $client_name . ' - ' . $client_type;
     }
 }
-add_filter('pre_get_document_title', 'pera_crm_filter_client_document_title');
+if (!function_exists('pera_crm_filter_client_document_title')) {
+    function pera_crm_filter_client_document_title(string $title): string
+    {
+        $crm_title = pera_crm_get_client_detail_document_title();
+        return $crm_title !== '' ? $crm_title : $title;
+    }
+}
+add_filter('pre_get_document_title', 'pera_crm_filter_client_document_title', 999);
+
+if (!function_exists('pera_crm_filter_client_document_title_parts')) {
+    function pera_crm_filter_client_document_title_parts(array $parts): array
+    {
+        $crm_title = pera_crm_get_client_detail_document_title();
+        if ($crm_title === '') {
+            return $parts;
+        }
+
+        $parts['title'] = $crm_title;
+        return $parts;
+    }
+}
+add_filter('document_title_parts', 'pera_crm_filter_client_document_title_parts', 999);
 
 if (!function_exists('pera_crm_add_body_class')) {
     function pera_crm_add_body_class(array $classes): array
