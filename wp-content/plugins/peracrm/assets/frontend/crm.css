@@ -2246,14 +2246,28 @@ a.crm-health-card:focus-visible {
   margin-top: 2px;
 }
 
-.crm-status-panel {
+.crm-page--client-view .crm-status-panel {
   position: relative;
 }
 
-.crm-status-grid {
+.crm-page--client-view .crm-status-grid {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 12px;
+}
+
+.crm-page--client-view .crm-status-grid > label {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin-bottom: 0;
+}
+
+.crm-page--client-view .crm-status-grid > label > input,
+.crm-page--client-view .crm-status-grid > label > select,
+.crm-page--client-view .crm-status-grid > label > textarea {
+  width: 100%;
+  max-width: 100%;
 }
 
 .crm-status-actions {
@@ -2355,16 +2369,29 @@ a.crm-health-card:focus-visible {
     grid-template-columns: 1fr;
   }
 
-  .crm-status-grid {
-    grid-template-columns: 1fr;
-  }
-
   .crm-deals-grid {
     grid-template-columns: 1fr;
   }
 
   .crm-status-actions > * {
     flex-basis: 100%;
+  }
+}
+
+@media (max-width: 575px) {
+  .crm-page--client-view .crm-status-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 8px;
+  }
+
+  .crm-page--client-view .crm-status-grid > label {
+    font-size: 0.75rem;
+  }
+}
+
+@media (max-width: 360px) {
+  .crm-page--client-view .crm-status-grid {
+    grid-template-columns: 1fr;
   }
 }
 
