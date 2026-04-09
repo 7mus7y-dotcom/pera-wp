@@ -433,7 +433,7 @@
   }
 
   .pera-home-latest-offers .pera-latest-offers-card-list--home.cards-slider {
-    --offers-slider-peek: clamp(64px, 5vw, 110px);
+    --offers-slider-peek: clamp(32px, 3vw, 64px);
   }
 
   .pera-home-latest-offers .pera-latest-offers-card-list--home.cards-slider > .slider-card {
