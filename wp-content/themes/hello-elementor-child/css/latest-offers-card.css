@@ -158,6 +158,10 @@
   line-height: 1;
 }
 
+.pera-latest-offer-card__pill--map {
+  margin-left: auto;
+}
+
 .pera-latest-offer-card__note {
   position: relative;
 }
