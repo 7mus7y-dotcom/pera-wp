@@ -476,57 +476,59 @@ peracrm_frontend_render_shell_header();
                     <input type="hidden" name="peracrm_client_id" value="<?php echo esc_attr( (string) $client_id ); ?>" />
                     <input type="hidden" name="peracrm_redirect" value="<?php echo esc_url( $frontend_url ); ?>" />
                     <input type="hidden" name="form_context" value="profile" />
-                    <label><?php esc_html_e( 'Status', 'peracrm' ); ?>
-                      <select name="peracrm_status" id="peracrm-status" class="widefat">
-                        <?php foreach ( $status_options as $status_key => $status_text ) : ?>
-                          <option value="<?php echo esc_attr( (string) $status_key ); ?>" <?php selected( (string) ( $profile['status'] ?? '' ), (string) $status_key ); ?>><?php echo esc_html( (string) $status_text ); ?></option>
-                        <?php endforeach; ?>
-                      </select>
-                    </label>
-                    <div class="crm-phone-field">
-                      <span><?php esc_html_e( 'Mobile / WhatsApp', 'peracrm' ); ?></span>
-                      <div class="crm-phone-row">
-                        <select name="peracrm_phone_country" class="crm-phone-country" aria-label="Country code" data-phone-country-select="1">
-                          <?php foreach ( $available_phone_countries as $country_row ) :
-                            $country_value = isset( $country_row['dial_code'] ) ? (string) $country_row['dial_code'] : '';
-                            $country_label = isset( $country_row['label'] ) ? (string) $country_row['label'] : $country_value;
-                            $country_iso   = isset( $country_row['iso'] ) ? (string) $country_row['iso'] : '';
-                            $country_tokens = isset( $country_row['search_tokens'] ) ? (string) $country_row['search_tokens'] : '';
-                            if ( '' === $country_value ) {
-                              continue;
-                            }
-                          ?>
-                            <option value="<?php echo esc_attr( $country_value ); ?>" data-country-iso="<?php echo esc_attr( $country_iso ); ?>" data-country-search="<?php echo esc_attr( $country_tokens ); ?>" <?php selected( $crm_phone_country_value, $country_value ); ?>><?php echo esc_html( $country_label ); ?></option>
+                    <div class="crm-profile-grid">
+                      <label class="crm-field crm-field--half"><?php esc_html_e( 'Status', 'peracrm' ); ?>
+                        <select name="peracrm_status" id="peracrm-status" class="widefat">
+                          <?php foreach ( $status_options as $status_key => $status_text ) : ?>
+                            <option value="<?php echo esc_attr( (string) $status_key ); ?>" <?php selected( (string) ( $profile['status'] ?? '' ), (string) $status_key ); ?>><?php echo esc_html( (string) $status_text ); ?></option>
                           <?php endforeach; ?>
                         </select>
-                        <input type="text" name="peracrm_phone_national" value="<?php echo esc_attr( (string) $crm_phone_national_value ); ?>" inputmode="tel" autocomplete="tel-national" placeholder="Phone number" aria-label="Phone number" />
+                      </label>
+                      <div class="crm-phone-field crm-field crm-field--inline">
+                        <label class="crm-field__label"><?php esc_html_e( 'Mobile / WhatsApp', 'peracrm' ); ?></label>
+                        <div class="crm-phone-row">
+                          <select name="peracrm_phone_country" class="crm-phone-country" aria-label="Country code" data-phone-country-select="1">
+                            <?php foreach ( $available_phone_countries as $country_row ) :
+                              $country_value = isset( $country_row['dial_code'] ) ? (string) $country_row['dial_code'] : '';
+                              $country_label = isset( $country_row['label'] ) ? (string) $country_row['label'] : $country_value;
+                              $country_iso   = isset( $country_row['iso'] ) ? (string) $country_row['iso'] : '';
+                              $country_tokens = isset( $country_row['search_tokens'] ) ? (string) $country_row['search_tokens'] : '';
+                              if ( '' === $country_value ) {
+                                continue;
+                              }
+                            ?>
+                              <option value="<?php echo esc_attr( $country_value ); ?>" data-country-iso="<?php echo esc_attr( $country_iso ); ?>" data-country-search="<?php echo esc_attr( $country_tokens ); ?>" <?php selected( $crm_phone_country_value, $country_value ); ?>><?php echo esc_html( $country_label ); ?></option>
+                            <?php endforeach; ?>
+                          </select>
+                          <input type="text" name="peracrm_phone_national" value="<?php echo esc_attr( (string) $crm_phone_national_value ); ?>" inputmode="tel" autocomplete="tel-national" placeholder="Phone number" aria-label="Phone number" />
+                        </div>
+                        <input type="hidden" name="peracrm_phone" value="<?php echo esc_attr( $profile_phone_value ); ?>" />
                       </div>
-                      <input type="hidden" name="peracrm_phone" value="<?php echo esc_attr( $profile_phone_value ); ?>" />
-                    </div>
-                    <label><?php esc_html_e( 'Email', 'peracrm' ); ?><input type="email" name="peracrm_email" value="<?php echo esc_attr( (string) ( $profile['email'] ?? '' ) ); ?>" /></label>
-                    <?php if ( '' !== $call_link || '' !== $whatsapp_link || '' !== $email_link ) : ?>
-                    <div class="crm-client-quick-actions">
-                      <?php if ( '' !== $call_link ) : ?><a class="btn btn--ghost btn--blue" href="<?php echo esc_url( $call_link ); ?>"><?php esc_html_e( 'Call', 'peracrm' ); ?></a><?php endif; ?>
-                      <?php if ( '' !== $whatsapp_link ) : ?><a class="btn btn--ghost btn--green" href="<?php echo esc_url( $whatsapp_link ); ?>" target="_blank" rel="noopener noreferrer"><?php esc_html_e( 'WhatsApp', 'peracrm' ); ?></a><?php endif; ?>
-                      <?php if ( '' !== $email_link ) : ?><a class="btn btn--ghost btn--blue" href="<?php echo esc_url( $email_link ); ?>"><?php esc_html_e( 'Email', 'peracrm' ); ?></a><?php endif; ?>
-                    </div>
-                    <?php endif; ?>
-                    <fieldset class="crm-checkbox-group crm-checkbox-group--preferred-contact">
-                      <legend><?php esc_html_e( 'Preferred contact', 'peracrm' ); ?></legend>
-                      <div class="crm-checkbox-group__options crm-checkbox-group__options--preferred-contact">
-                        <?php foreach ( $preferred_contact_options as $contact_key => $contact_label ) : ?>
-                        <label class="crm-checkbox-option crm-checkbox-option--preferred-contact">
-                          <input type="checkbox" name="peracrm_preferred_contact[]" value="<?php echo esc_attr( (string) $contact_key ); ?>" <?php checked( in_array( (string) $contact_key, $preferred_contact_values, true ) ); ?> />
-                          <span><?php echo esc_html( (string) $contact_label ); ?></span>
-                        </label>
-                        <?php endforeach; ?>
+                      <label class="crm-field crm-field--half"><?php esc_html_e( 'Email', 'peracrm' ); ?><input type="email" name="peracrm_email" value="<?php echo esc_attr( (string) ( $profile['email'] ?? '' ) ); ?>" /></label>
+                      <fieldset class="crm-checkbox-group crm-checkbox-group--preferred-contact crm-field crm-field--inline">
+                        <legend><?php esc_html_e( 'Preferred contact', 'peracrm' ); ?></legend>
+                        <div class="crm-checkbox-group__options crm-checkbox-group__options--preferred-contact">
+                          <?php foreach ( $preferred_contact_options as $contact_key => $contact_label ) : ?>
+                          <label class="crm-checkbox-option crm-checkbox-option--preferred-contact">
+                            <input type="checkbox" name="peracrm_preferred_contact[]" value="<?php echo esc_attr( (string) $contact_key ); ?>" <?php checked( in_array( (string) $contact_key, $preferred_contact_values, true ) ); ?> />
+                            <span><?php echo esc_html( (string) $contact_label ); ?></span>
+                          </label>
+                          <?php endforeach; ?>
+                        </div>
+                      </fieldset>
+                      <?php if ( '' !== $call_link || '' !== $whatsapp_link || '' !== $email_link ) : ?>
+                      <div class="crm-client-quick-actions crm-field crm-field--inline">
+                        <?php if ( '' !== $call_link ) : ?><a class="btn btn--ghost btn--blue" href="<?php echo esc_url( $call_link ); ?>"><?php esc_html_e( 'Call', 'peracrm' ); ?></a><?php endif; ?>
+                        <?php if ( '' !== $whatsapp_link ) : ?><a class="btn btn--ghost btn--green" href="<?php echo esc_url( $whatsapp_link ); ?>" target="_blank" rel="noopener noreferrer"><?php esc_html_e( 'WhatsApp', 'peracrm' ); ?></a><?php endif; ?>
+                        <?php if ( '' !== $email_link ) : ?><a class="btn btn--ghost btn--blue" href="<?php echo esc_url( $email_link ); ?>"><?php esc_html_e( 'Email', 'peracrm' ); ?></a><?php endif; ?>
                       </div>
-                    </fieldset>
-                    <div class="crm-form-row-2">
-                      <label><?php esc_html_e( 'Budget min (USD)', 'peracrm' ); ?><input type="number" min="0" name="peracrm_budget_min_usd" value="<?php echo esc_attr( (string) ( $profile['budget_min_usd'] ?? '' ) ); ?>" /></label>
-                      <label><?php esc_html_e( 'Budget max (USD)', 'peracrm' ); ?><input type="number" min="0" name="peracrm_budget_max_usd" value="<?php echo esc_attr( (string) ( $profile['budget_max_usd'] ?? '' ) ); ?>" /></label>
+                      <?php endif; ?>
                     </div>
-                    <label><?php esc_html_e( 'Bedrooms', 'peracrm' ); ?><input type="number" min="0" step="1" name="peracrm_bedrooms" value="<?php echo esc_attr( (string) ( $profile['bedrooms'] ?? '' ) ); ?>" /></label>
+                    <div class="crm-keyfacts-grid">
+                      <label class="crm-field crm-field--half"><?php esc_html_e( 'Budget min (USD)', 'peracrm' ); ?><input type="number" min="0" name="peracrm_budget_min_usd" value="<?php echo esc_attr( (string) ( $profile['budget_min_usd'] ?? '' ) ); ?>" /></label>
+                      <label class="crm-field crm-field--half"><?php esc_html_e( 'Budget max (USD)', 'peracrm' ); ?><input type="number" min="0" name="peracrm_budget_max_usd" value="<?php echo esc_attr( (string) ( $profile['budget_max_usd'] ?? '' ) ); ?>" /></label>
+                      <label class="crm-field crm-field--inline"><?php esc_html_e( 'Bedrooms', 'peracrm' ); ?><input type="number" min="0" step="1" name="peracrm_bedrooms" value="<?php echo esc_attr( (string) ( $profile['bedrooms'] ?? '' ) ); ?>" /></label>
+                    </div>
                     <button type="submit" class="btn btn--solid btn--blue"><?php esc_html_e( 'Save profile', 'peracrm' ); ?></button>
                   </form>
 

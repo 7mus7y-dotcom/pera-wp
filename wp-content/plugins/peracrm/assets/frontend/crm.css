@@ -4559,6 +4559,43 @@ body.crm-route #site-header.peracrm-shell-header.is-scrolled .peracrm-header-act
   gap: 12px;
 }
 
+.crm-page--client-view .crm-profile-grid,
+.crm-page--client-view .crm-keyfacts-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 12px;
+}
+
+.crm-page--client-view .crm-profile-grid .crm-field,
+.crm-page--client-view .crm-keyfacts-grid .crm-field {
+  min-width: 0;
+}
+
+.crm-page--client-view .crm-field--inline {
+  grid-column: span 1;
+}
+
+.crm-page--client-view .crm-field--half {
+  grid-column: span 1;
+}
+
+.crm-page--client-view .crm-client-profile-panel label:not(.crm-checkbox-option),
+.crm-page--client-view .crm-field__label {
+  display: flex;
+  flex-direction: column;
+  font-size: 0.85rem;
+  line-height: 1.3;
+  margin-bottom: 4px;
+  gap: 4px;
+}
+
+.crm-page--client-view .crm-client-profile-panel input,
+.crm-page--client-view .crm-client-profile-panel select,
+.crm-page--client-view .crm-client-profile-panel textarea {
+  width: 100%;
+  box-sizing: border-box;
+}
+
 .crm-page--client-view .crm-client-task-groups {
   grid-template-columns: repeat(3, minmax(0, 1fr));
 }
@@ -4849,6 +4886,40 @@ body.crm-route #site-header.peracrm-shell-header.is-scrolled .peracrm-header-act
   .crm-page--client-view .crm-client-profile-grid,
   .crm-page--client-view .crm-client-reminders-grid {
     grid-template-columns: 1fr;
+  }
+}
+
+@media (min-width: 768px) {
+  .crm-page--client-view .crm-profile-grid,
+  .crm-page--client-view .crm-keyfacts-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .crm-page--client-view .crm-field--inline {
+    grid-column: span 2;
+  }
+
+  .crm-page--client-view .crm-field--half {
+    grid-column: span 1;
+  }
+}
+
+@media (max-width: 575px) {
+  .crm-page--client-view .crm-profile-grid,
+  .crm-page--client-view .crm-keyfacts-grid {
+    grid-template-columns: 1fr;
+    gap: 10px;
+  }
+
+  .crm-page--client-view input,
+  .crm-page--client-view select,
+  .crm-page--client-view textarea,
+  .crm-page--client-view .btn {
+    min-height: 42px;
+  }
+
+  .crm-page--client-view {
+    overflow-x: hidden;
   }
 }
 
