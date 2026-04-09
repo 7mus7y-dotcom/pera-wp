@@ -808,6 +808,7 @@ peracrm_frontend_render_shell_header();
           </div>
         </div>
         <div class="crm-client-profile-stack">
+<?php /*
         <article class="crm-section crm-section--flush crm-client-related crm-client-related--portfolio" data-client-id="<?php echo esc_attr( (string) $client_id ); ?>">
               <header class="crm-section__header">
                 <div class="crm-section__heading-group">
@@ -883,6 +884,7 @@ peracrm_frontend_render_shell_header();
               </section>
 
             </article>
+*/ ?>
 
             <article class="crm-section crm-section--flush crm-client-related crm-client-related--theme-portfolio" data-client-id="<?php echo esc_attr( (string) $client_id ); ?>" data-crm-theme-portfolio>
               <header class="crm-section__header">
