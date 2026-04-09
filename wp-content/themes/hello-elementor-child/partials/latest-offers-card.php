@@ -26,10 +26,10 @@ $map_url        = isset( $card['map_url'] ) ? (string) $card['map_url'] : '';
 <article class="pera-latest-offer-card slider-card" aria-label="<?php echo esc_attr__( 'Latest offer card', 'hello-elementor-child' ); ?>">
 	<div class="pera-latest-offer-card__pills">
 		<?php if ( '' !== $region_name ) : ?>
-			<span class="pill pill--subtle"><?php echo esc_html( $region_name ); ?></span>
+			<span class="pill pill--green"><?php echo esc_html( $region_name ); ?></span>
 		<?php endif; ?>
 		<?php if ( '' !== $district_name ) : ?>
-			<span class="pill pill--subtle"><?php echo esc_html( $district_name ); ?></span>
+			<span class="pill pill--green"><?php echo esc_html( $district_name ); ?></span>
 		<?php endif; ?>
 	</div>
 
@@ -59,6 +59,15 @@ $map_url        = isset( $card['map_url'] ) ? (string) $card['map_url'] : '';
 	</div>
 
 	<div class="pera-latest-offer-card__media">
+		<?php if ( '' !== $map_url ) : ?>
+			<a class="pera-latest-offer-card__pill pera-latest-offer-card__pill--map" href="<?php echo esc_url( $map_url ); ?>" target="_blank" rel="noopener noreferrer">
+				<svg class="icon pera-latest-offer-card__icon" aria-hidden="true" width="16" height="16">
+					<use href="#icon-map" xlink:href="#icon-map"></use>
+				</svg>
+				<span><?php esc_html_e( 'Map', 'hello-elementor-child' ); ?></span>
+			</a>
+		<?php endif; ?>
+
 		<?php if ( '' !== $property_url ) : ?>
 			<a class="pera-latest-offer-card__pill pera-latest-offer-card__pill--blue pera-latest-offer-card__cta" href="<?php echo esc_url( $property_url ); ?>" target="_blank" rel="noopener noreferrer">
 				<span><?php esc_html_e( 'Project details', 'hello-elementor-child' ); ?></span>
@@ -106,15 +115,6 @@ $map_url        = isset( $card['map_url'] ) ? (string) $card['map_url'] : '';
 				</summary>
 				<div class="pera-latest-offer-card__note-panel"><?php echo nl2br( esc_html( $notes ) ); ?></div>
 			</details>
-		<?php endif; ?>
-
-		<?php if ( '' !== $map_url ) : ?>
-			<a class="pera-latest-offer-card__pill pera-latest-offer-card__pill--map" href="<?php echo esc_url( $map_url ); ?>" target="_blank" rel="noopener noreferrer">
-				<svg class="icon pera-latest-offer-card__icon" aria-hidden="true" width="16" height="16">
-					<use href="#icon-map" xlink:href="#icon-map"></use>
-				</svg>
-				<span><?php esc_html_e( 'Map', 'hello-elementor-child' ); ?></span>
-			</a>
 		<?php endif; ?>
 	</div>
 </article>
