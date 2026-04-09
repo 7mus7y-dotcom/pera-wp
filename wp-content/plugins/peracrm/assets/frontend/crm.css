@@ -4891,6 +4891,11 @@ body.crm-route #site-header.peracrm-shell-header.is-scrolled .peracrm-header-act
 }
 
 @media (max-width: 575px) {
+  .crm-page--client-view .crm-form-grid.crm-status-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 8px;
+  }
+
   .crm-page--client-view input,
   .crm-page--client-view select,
   .crm-page--client-view textarea,
@@ -4900,6 +4905,12 @@ body.crm-route #site-header.peracrm-shell-header.is-scrolled .peracrm-header-act
 
   .crm-page--client-view {
     overflow-x: hidden;
+  }
+}
+
+@media (max-width: 360px) {
+  .crm-page--client-view .crm-form-grid.crm-status-grid {
+    grid-template-columns: 1fr;
   }
 }
 
