@@ -205,16 +205,16 @@ get_header();
 											<td>
 												<?php
 												$list = $row_data['list_price'] ?? null;
-												echo null !== $list && '' !== $list
-													? esc_html( number_format( (float) $list, 0, '.', ',' ) )
+												echo null !== $list && '' !== $list && function_exists( 'pera_latest_offers_format_price' )
+													? esc_html( pera_latest_offers_format_price( (string) $list ) )
 													: '—';
 												?>
 											</td>
 											<td>
 												<?php
 												$cash = $row_data['cash_price'] ?? null;
-												echo null !== $cash && '' !== $cash
-													? esc_html( number_format( (float) $cash, 0, '.', ',' ) )
+												echo null !== $cash && '' !== $cash && function_exists( 'pera_latest_offers_format_price' )
+													? esc_html( pera_latest_offers_format_price( (string) $cash ) )
 													: '—';
 												?>
 											</td>

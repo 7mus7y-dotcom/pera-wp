@@ -79,6 +79,18 @@ $theme_portfolio_updated_at = (int) ( $theme_portfolio_state['updated_at'] ?? 0 
 $theme_portfolio_updated    = $theme_portfolio_updated_at > 0
 	? wp_date( get_option( 'date_format' ) . ' ' . get_option( 'time_format' ), $theme_portfolio_updated_at )
 	: '';
+$format_price_or_dash       = static function ( $value ): string {
+	$raw = is_scalar( $value ) ? trim( (string) $value ) : '';
+	if ( '' === $raw ) {
+		return '—';
+	}
+
+	if ( function_exists( 'pera_latest_offers_format_price' ) ) {
+		return (string) pera_latest_offers_format_price( $raw );
+	}
+
+	return '$' . ltrim( $raw, '$' );
+};
 
 $open_reminders    = (int) ( $data['open_reminders'] ?? 0 );
 $overdue_reminders = (int) ( $data['overdue_reminders'] ?? 0 );
@@ -841,7 +853,7 @@ peracrm_frontend_render_shell_header();
                       <?php endif; ?>
                       <?php if ( empty( $items ) ) : ?><p><?php esc_html_e( 'No properties.', 'peracrm' ); ?></p><?php else : ?>
                       <ul class="crm-list peracrm-linked-properties-grid">
-                        <?php foreach ( $items as $item ) : $property_id = (int) ( $item['property_id'] ?? 0 ); $property_label=''; $property_url=''; $floor_plan_attachment_id=(int)($item['floor_plan_attachment_id']??0); $floor_plan_url=''; if ( $floor_plan_attachment_id > 0 ) { $floor_plan_url = pera_crm_client_view_with_target_blog( static function () use ( $floor_plan_attachment_id ): string { return (string) wp_get_attachment_url( $floor_plan_attachment_id ); } ); } if ( $property_id > 0 ) { $property_label = pera_crm_client_view_with_target_blog( static function () use ( $property_id ): string { return function_exists( 'pera_crm_client_view_property_project_name' ) ? (string) pera_crm_client_view_property_project_name( $property_id ) : (string) get_the_title( $property_id ); } ); $property_url = pera_crm_client_view_with_target_blog( static function () use ( $property_id ): string { return (string) get_permalink( $property_id ); } ); } $portfolio_unit_type = trim( (string) ( $item['unit_type'] ?? '' ) ); $portfolio_floor_number = trim( (string) ( $item['floor_number'] ?? '' ) ); $portfolio_net_size = trim( (string) ( $item['net_size'] ?? '' ) ); $portfolio_gross_size = trim( (string) ( $item['gross_size'] ?? '' ) ); $portfolio_list_price = trim( (string) ( $item['list_price'] ?? '' ) ); $portfolio_cash_price = trim( (string) ( $item['cash_price'] ?? '' ) ); $portfolio_net_size_display = '' !== $portfolio_net_size ? $portfolio_net_size . 'm²' : '—'; $portfolio_gross_size_display = '' !== $portfolio_gross_size ? $portfolio_gross_size . 'm²' : '—'; $portfolio_list_price_display = '' !== $portfolio_list_price ? '$' . ltrim( $portfolio_list_price, '$' ) : '—'; $portfolio_cash_price_display = '' !== $portfolio_cash_price ? '$' . ltrim( $portfolio_cash_price, '$' ) : '—'; ?>
+                        <?php foreach ( $items as $item ) : $property_id = (int) ( $item['property_id'] ?? 0 ); $property_label=''; $property_url=''; $floor_plan_attachment_id=(int)($item['floor_plan_attachment_id']??0); $floor_plan_url=''; if ( $floor_plan_attachment_id > 0 ) { $floor_plan_url = pera_crm_client_view_with_target_blog( static function () use ( $floor_plan_attachment_id ): string { return (string) wp_get_attachment_url( $floor_plan_attachment_id ); } ); } if ( $property_id > 0 ) { $property_label = pera_crm_client_view_with_target_blog( static function () use ( $property_id ): string { return function_exists( 'pera_crm_client_view_property_project_name' ) ? (string) pera_crm_client_view_property_project_name( $property_id ) : (string) get_the_title( $property_id ); } ); $property_url = pera_crm_client_view_with_target_blog( static function () use ( $property_id ): string { return (string) get_permalink( $property_id ); } ); } $portfolio_unit_type = trim( (string) ( $item['unit_type'] ?? '' ) ); $portfolio_floor_number = trim( (string) ( $item['floor_number'] ?? '' ) ); $portfolio_net_size = trim( (string) ( $item['net_size'] ?? '' ) ); $portfolio_gross_size = trim( (string) ( $item['gross_size'] ?? '' ) ); $portfolio_list_price = trim( (string) ( $item['list_price'] ?? '' ) ); $portfolio_cash_price = trim( (string) ( $item['cash_price'] ?? '' ) ); $portfolio_net_size_display = '' !== $portfolio_net_size ? $portfolio_net_size . 'm²' : '—'; $portfolio_gross_size_display = '' !== $portfolio_gross_size ? $portfolio_gross_size . 'm²' : '—'; $portfolio_list_price_display = $format_price_or_dash( $portfolio_list_price ); $portfolio_cash_price_display = $format_price_or_dash( $portfolio_cash_price ); ?>
                         <li class="peracrm-linked-properties-grid__item">
                           <div class="crm-linked-property-row__header">
                             <?php if ( '' !== $property_url ) : ?><a class="crm-linked-property-link" href="<?php echo esc_url( $property_url ); ?>" target="_blank" rel="noopener noreferrer"><?php echo esc_html( $property_label ); ?></a><?php else : ?><span class="crm-linked-property-link"><?php echo esc_html( $property_label ); ?></span><?php endif; ?>
@@ -942,7 +954,7 @@ peracrm_frontend_render_shell_header();
                             <div class="crm-linked-property-row__header"><span class="crm-linked-property-link"><?php echo esc_html( $offer_property_display ); ?></span><button type="button" class="btn btn--ghost btn--blue peracrm-linked-property-unlink-btn crm-icon-btn" data-crm-theme-portfolio-remove data-property-id="<?php echo esc_attr( (string) $offer_property_id ); ?>" aria-label="<?php esc_attr_e( 'Remove property', 'peracrm' ); ?>"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><use href="#icon-broken-chain"></use></svg></button></div>
                             <div class="crm-portfolio-facts-summary" aria-label="<?php esc_attr_e( 'Theme offer facts summary', 'peracrm' ); ?>">
                               <p class="crm-portfolio-facts-summary__line"><span class="crm-portfolio-facts-summary__label"><?php esc_html_e( 'Type', 'peracrm' ); ?></span> <?php echo esc_html( (string) ( $offer_row['offer_type'] ?? '—' ) ); ?> <span aria-hidden="true">•</span> <span class="crm-portfolio-facts-summary__label"><?php esc_html_e( 'Floor', 'peracrm' ); ?></span> <?php echo esc_html( (string) ( $offer_row['floor'] ?? '—' ) ); ?></p>
-                              <p class="crm-portfolio-facts-summary__line"><?php echo esc_html( '' !== (string) ( $offer_row['net_size'] ?? '' ) ? (string) $offer_row['net_size'] . 'm²' : '—' ); ?> / <?php echo esc_html( '' !== (string) ( $offer_row['gross_size'] ?? '' ) ? (string) $offer_row['gross_size'] . 'm²' : '—' ); ?> <span aria-hidden="true">•</span> <?php echo esc_html( '' !== (string) ( $offer_row['list_price'] ?? '' ) ? '$' . ltrim( (string) $offer_row['list_price'], '$' ) : '—' ); ?> / <?php echo esc_html( '' !== (string) ( $offer_row['cash_price'] ?? '' ) ? '$' . ltrim( (string) $offer_row['cash_price'], '$' ) : '—' ); ?></p>
+                              <p class="crm-portfolio-facts-summary__line"><?php echo esc_html( '' !== (string) ( $offer_row['net_size'] ?? '' ) ? (string) $offer_row['net_size'] . 'm²' : '—' ); ?> / <?php echo esc_html( '' !== (string) ( $offer_row['gross_size'] ?? '' ) ? (string) $offer_row['gross_size'] . 'm²' : '—' ); ?> <span aria-hidden="true">•</span> <?php echo esc_html( $format_price_or_dash( (string) ( $offer_row['list_price'] ?? '' ) ) ); ?> / <?php echo esc_html( $format_price_or_dash( (string) ( $offer_row['cash_price'] ?? '' ) ) ); ?></p>
                               <?php if ( '' !== (string) ( $offer_row['notes'] ?? '' ) ) : ?>
                               <p class="crm-portfolio-facts-summary__line"><?php echo esc_html( (string) $offer_row['notes'] ); ?></p>
                               <?php endif; ?>
@@ -984,8 +996,8 @@ peracrm_frontend_render_shell_header();
                                 <td><?php echo esc_html( (string) ( $offer_row['floor'] ?? '—' ) ); ?></td>
                                 <td><?php echo esc_html( '' !== (string) ( $offer_row['net_size'] ?? '' ) ? (string) $offer_row['net_size'] . 'm²' : '—' ); ?></td>
                                 <td><?php echo esc_html( '' !== (string) ( $offer_row['gross_size'] ?? '' ) ? (string) $offer_row['gross_size'] . 'm²' : '—' ); ?></td>
-                                <td><?php echo esc_html( '' !== (string) ( $offer_row['list_price'] ?? '' ) ? '$' . ltrim( (string) $offer_row['list_price'], '$' ) : '—' ); ?></td>
-                                <td><?php echo esc_html( '' !== (string) ( $offer_row['cash_price'] ?? '' ) ? '$' . ltrim( (string) $offer_row['cash_price'], '$' ) : '—' ); ?></td>
+                                <td><?php echo esc_html( $format_price_or_dash( (string) ( $offer_row['list_price'] ?? '' ) ) ); ?></td>
+                                <td><?php echo esc_html( $format_price_or_dash( (string) ( $offer_row['cash_price'] ?? '' ) ) ); ?></td>
                                 <td class="peracrm-theme-portfolio-offers-table__notes">
                                   <?php if ( '' !== (string) ( $offer_row['notes'] ?? '' ) ) : ?>
                                     <details class="peracrm-theme-portfolio-offers-note">
