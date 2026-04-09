@@ -20,21 +20,22 @@
 }
 
 .pera-latest-offer-card__title {
-  margin: 0;
+  margin-bottom: 4px;
   font-size: 1.05rem;
   line-height: 1.2;
   font-weight: 700;
-  color: #111827;
 }
 
 .pera-latest-offer-card__title a {
   color: inherit;
+  font-weight: 700;
   text-decoration: none;
 }
 
 .pera-latest-offer-card__title a:hover,
 .pera-latest-offer-card__title a:focus {
-  text-decoration: underline;
+  font-weight: 800;
+  text-decoration: none;
 }
 
 .pera-latest-offer-card__summary {
