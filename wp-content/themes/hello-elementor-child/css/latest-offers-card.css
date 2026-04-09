@@ -25,6 +25,7 @@
   line-height: 1.2;
   font-weight: 700;
   color: #111827;
+  text-transform: capitalize;
 }
 
 .pera-latest-offer-card__title a {
