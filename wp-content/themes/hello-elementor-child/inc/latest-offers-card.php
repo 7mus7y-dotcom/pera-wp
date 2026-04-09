@@ -46,13 +46,62 @@ if ( ! function_exists( 'pera_latest_offers_get_rows' ) ) {
 }
 
 if ( ! function_exists( 'pera_latest_offers_format_price' ) ) {
+	/**
+	 * Normalize raw price input to a numeric value in whole currency units.
+	 *
+	 * Accepts values such as:
+	 * - 600000
+	 * - 600,000
+	 * - 600000.00
+	 * - $600,000.00
+	 *
+	 * @return float|null
+	 */
+	function pera_latest_offers_parse_price( string $raw_value ): ?float {
+		$clean = trim( preg_replace( '/[^0-9,\.]/', '', $raw_value ) ?? '' );
+		if ( '' === $clean ) {
+			return null;
+		}
+
+		$has_comma = false !== strpos( $clean, ',' );
+		$has_dot   = false !== strpos( $clean, '.' );
+
+		if ( $has_comma && $has_dot ) {
+			$last_comma = (int) strrpos( $clean, ',' );
+			$last_dot   = (int) strrpos( $clean, '.' );
+			$decimal    = $last_comma > $last_dot ? ',' : '.';
+			$thousand   = ',' === $decimal ? '.' : ',';
+
+			$clean = str_replace( $thousand, '', $clean );
+			$clean = str_replace( $decimal, '.', $clean );
+		} elseif ( $has_comma || $has_dot ) {
+			$separator     = $has_comma ? ',' : '.';
+			$parts         = explode( $separator, $clean );
+			$part_count    = count( $parts );
+			$last_fragment = (string) end( $parts );
+
+			if ( 2 === $part_count && preg_match( '/^\d{1,2}$/', $last_fragment ) ) {
+				$clean = str_replace( $separator, '.', $clean );
+			} else {
+				$clean = str_replace( $separator, '', $clean );
+			}
+		}
+
+		if ( '' === $clean || ! is_numeric( $clean ) ) {
+			return null;
+		}
+
+		$value = (float) $clean;
+		return $value > 0 ? $value : null;
+	}
+
 	function pera_latest_offers_format_price( string $raw_value ): string {
-		$clean = preg_replace( '/[^0-9]/', '', $raw_value );
-		if ( ! is_string( $clean ) || '' === $clean ) {
+		$price = pera_latest_offers_parse_price( $raw_value );
+		if ( null === $price ) {
 			return '—';
 		}
 
-		return '$' . number_format_i18n( (float) $clean, 0 );
+		return '$' . number_format_i18n( $price, 0 );
 	}
 }
 

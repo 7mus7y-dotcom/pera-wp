@@ -128,14 +128,26 @@ get_header();
 													$value = isset( $row[ $key ] ) ? trim( (string) $row[ $key ] ) : '';
 													return '' !== $value ? $value : '—';
 												};
+												$format_price_or_dash = static function ( array $row, string $key ): string {
+													$value = isset( $row[ $key ] ) ? trim( (string) $row[ $key ] ) : '';
+													if ( '' === $value ) {
+														return '—';
+													}
+
+													if ( function_exists( 'pera_latest_offers_format_price' ) ) {
+														return pera_latest_offers_format_price( $value );
+													}
+
+													return '$' . ltrim( $value, '$' );
+												};
 												?>
 												<tr>
 													<td><?php echo esc_html( $field_or_dash( $offer, 'type' ) ); ?></td>
 													<td><?php echo esc_html( $field_or_dash( $offer, 'floor' ) ); ?></td>
 													<td><?php echo esc_html( $field_or_dash( $offer, 'net_sqm' ) ); ?></td>
 													<td><?php echo esc_html( $field_or_dash( $offer, 'gross_sqm' ) ); ?></td>
-													<td><?php echo esc_html( $field_or_dash( $offer, 'list_price' ) ); ?></td>
-													<td><?php echo esc_html( $field_or_dash( $offer, 'cash_price' ) ); ?></td>
+													<td><?php echo esc_html( $format_price_or_dash( $offer, 'list_price' ) ); ?></td>
+													<td><?php echo esc_html( $format_price_or_dash( $offer, 'cash_price' ) ); ?></td>
 													<td><?php echo esc_html( $field_or_dash( $offer, 'notes' ) ); ?></td>
 												</tr>
 											<?php endforeach; ?>
