@@ -476,7 +476,7 @@ peracrm_frontend_render_shell_header();
                     <input type="hidden" name="peracrm_client_id" value="<?php echo esc_attr( (string) $client_id ); ?>" />
                     <input type="hidden" name="peracrm_redirect" value="<?php echo esc_url( $frontend_url ); ?>" />
                     <input type="hidden" name="form_context" value="profile" />
-                    <div class="crm-profile-grid crm-form-grid">
+                    <div class="crm-profile-grid crm-form-grid crm-form-grid--profile">
                       <div class="crm-field crm-field--half">
                         <label><?php esc_html_e( 'Status', 'peracrm' ); ?></label>
                         <select name="peracrm_status" id="peracrm-status" class="widefat">
@@ -528,7 +528,7 @@ peracrm_frontend_render_shell_header();
                       </div>
                       <?php endif; ?>
                     </div>
-                    <div class="crm-keyfacts-grid crm-form-grid">
+                    <div class="crm-keyfacts-grid crm-form-grid crm-form-grid--keyfacts">
                       <div class="crm-field crm-field--half">
                         <label><?php esc_html_e( 'Budget min (USD)', 'peracrm' ); ?></label>
                         <input type="number" min="0" name="peracrm_budget_min_usd" value="<?php echo esc_attr( (string) ( $profile['budget_min_usd'] ?? '' ) ); ?>" />
@@ -541,7 +541,7 @@ peracrm_frontend_render_shell_header();
                         <label><?php esc_html_e( 'Bedrooms', 'peracrm' ); ?></label>
                         <input type="number" min="0" step="1" name="peracrm_bedrooms" value="<?php echo esc_attr( (string) ( $profile['bedrooms'] ?? '' ) ); ?>" />
                       </div>
-                      <div class="crm-field crm-field--inline">
+                      <div class="crm-field crm-field--inline crm-field--actions">
                         <button type="submit" class="btn btn--solid btn--blue"><?php esc_html_e( 'Save profile', 'peracrm' ); ?></button>
                       </div>
                     </div>
@@ -696,13 +696,13 @@ peracrm_frontend_render_shell_header();
                   <p><?php esc_html_e( 'No active reminders for this client.', 'peracrm' ); ?></p>
                 <?php else : ?>
                 <div class="crm-client-reminders-grid" data-crm-reminders-list>
-                  <section>
+                  <section class="crm-client-reminders-group crm-client-reminders-group--overdue">
                     <p class="pill"><?php esc_html_e( 'Overdue', 'peracrm' ); ?></p>
                     <?php if ( empty( $overdue_task_rows ) ) : ?>
                       <p class="text-sm"><?php esc_html_e( 'No overdue reminders.', 'peracrm' ); ?></p>
                     <?php else : ?>
                     <ul class="crm-list">
-                      <?php foreach ( $overdue_task_rows as $reminder_row ) : ?>
+                      <?php foreach ( $overdue_task_rows as $reminder_index => $reminder_row ) : ?>
                         <?php
                         $reminder_id       = (int) ( $reminder_row['id'] ?? 0 );
                         $reminder_note     = trim( (string) ( $reminder_row['note'] ?? '' ) );
@@ -714,7 +714,7 @@ peracrm_frontend_render_shell_header();
                         $assignee_user     = $reminder_assignee_lookup[ $assignee_id ] ?? null;
                         $assignee_label    = $assignee_user instanceof WP_User ? (string) $assignee_user->display_name : __( 'Unassigned', 'peracrm' );
                         ?>
-                        <li data-crm-reminder-row data-reminder-id="<?php echo esc_attr( (string) $reminder_id ); ?>">
+                        <li class="<?php echo esc_attr( 0 === (int) $reminder_index ? 'crm-reminder-item crm-reminder-item--next' : 'crm-reminder-item' ); ?>" data-crm-reminder-row data-reminder-id="<?php echo esc_attr( (string) $reminder_id ); ?>">
                           <p><strong><?php echo esc_html( $reminder_summary ); ?></strong></p>
                           <small><?php echo esc_html( sprintf( __( 'Due: %s', 'peracrm' ), '' !== $reminder_due ? $reminder_due : '—' ) ); ?></small>
                           <small><?php echo esc_html( sprintf( __( 'Status: %s', 'peracrm' ), '' !== $status_label ? $status_label : __( 'Pending', 'peracrm' ) ) ); ?></small>
@@ -738,13 +738,13 @@ peracrm_frontend_render_shell_header();
                     <?php endif; ?>
                   </section>
 
-                  <section>
+                  <section class="crm-client-reminders-group crm-client-reminders-group--upcoming">
                     <p class="pill"><?php esc_html_e( 'Upcoming', 'peracrm' ); ?></p>
                     <?php if ( empty( $upcoming_rows ) ) : ?>
                       <p class="text-sm"><?php esc_html_e( 'No upcoming reminders.', 'peracrm' ); ?></p>
                     <?php else : ?>
                     <ul class="crm-list">
-                      <?php foreach ( $upcoming_rows as $reminder_row ) : ?>
+                      <?php foreach ( $upcoming_rows as $reminder_index => $reminder_row ) : ?>
                         <?php
                         $reminder_id       = (int) ( $reminder_row['id'] ?? 0 );
                         $reminder_note     = trim( (string) ( $reminder_row['note'] ?? '' ) );
@@ -756,7 +756,7 @@ peracrm_frontend_render_shell_header();
                         $assignee_user     = $reminder_assignee_lookup[ $assignee_id ] ?? null;
                         $assignee_label    = $assignee_user instanceof WP_User ? (string) $assignee_user->display_name : __( 'Unassigned', 'peracrm' );
                         ?>
-                        <li data-crm-reminder-row data-reminder-id="<?php echo esc_attr( (string) $reminder_id ); ?>">
+                        <li class="<?php echo esc_attr( ( 0 === (int) $reminder_index && empty( $overdue_task_rows ) ) ? 'crm-reminder-item crm-reminder-item--next' : 'crm-reminder-item' ); ?>" data-crm-reminder-row data-reminder-id="<?php echo esc_attr( (string) $reminder_id ); ?>">
                           <p><strong><?php echo esc_html( $reminder_summary ); ?></strong></p>
                           <small><?php echo esc_html( sprintf( __( 'Due: %s', 'peracrm' ), '' !== $reminder_due ? $reminder_due : '—' ) ); ?></small>
                           <small><?php echo esc_html( sprintf( __( 'Status: %s', 'peracrm' ), '' !== $status_label ? $status_label : __( 'Pending', 'peracrm' ) ) ); ?></small>
