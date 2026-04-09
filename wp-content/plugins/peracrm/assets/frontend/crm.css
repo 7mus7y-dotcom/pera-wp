@@ -2251,23 +2251,7 @@ a.crm-health-card:focus-visible {
 }
 
 .crm-page--client-view .crm-status-grid {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 12px;
-}
-
-.crm-page--client-view .crm-status-grid > label {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-  margin-bottom: 0;
-}
-
-.crm-page--client-view .crm-status-grid > label > input,
-.crm-page--client-view .crm-status-grid > label > select,
-.crm-page--client-view .crm-status-grid > label > textarea {
-  width: 100%;
-  max-width: 100%;
+  gap: 14px;
 }
 
 .crm-status-actions {
@@ -2384,7 +2368,7 @@ a.crm-health-card:focus-visible {
     gap: 8px;
   }
 
-  .crm-page--client-view .crm-status-grid > label {
+  .crm-page--client-view .crm-status-grid .crm-field > label {
     font-size: 0.75rem;
   }
 }
@@ -4560,14 +4544,20 @@ body.crm-route #site-header.peracrm-shell-header.is-scrolled .peracrm-header-act
 }
 
 .crm-page--client-view .crm-profile-grid,
-.crm-page--client-view .crm-keyfacts-grid {
+.crm-page--client-view .crm-keyfacts-grid,
+.crm-page--client-view .crm-status-grid {
+  gap: 14px;
+}
+
+.crm-page--client-view .crm-form-grid {
   display: grid;
   grid-template-columns: 1fr;
-  gap: 12px;
+  gap: 14px;
 }
 
 .crm-page--client-view .crm-profile-grid .crm-field,
-.crm-page--client-view .crm-keyfacts-grid .crm-field {
+.crm-page--client-view .crm-keyfacts-grid .crm-field,
+.crm-page--client-view .crm-status-grid .crm-field {
   min-width: 0;
 }
 
@@ -4579,7 +4569,7 @@ body.crm-route #site-header.peracrm-shell-header.is-scrolled .peracrm-header-act
   grid-column: span 1;
 }
 
-.crm-page--client-view .crm-client-profile-panel label:not(.crm-checkbox-option),
+.crm-page--client-view .crm-field > label,
 .crm-page--client-view .crm-field__label {
   display: flex;
   flex-direction: column;
@@ -4589,10 +4579,11 @@ body.crm-route #site-header.peracrm-shell-header.is-scrolled .peracrm-header-act
   gap: 4px;
 }
 
-.crm-page--client-view .crm-client-profile-panel input,
-.crm-page--client-view .crm-client-profile-panel select,
-.crm-page--client-view .crm-client-profile-panel textarea {
+.crm-page--client-view .crm-field input,
+.crm-page--client-view .crm-field select,
+.crm-page--client-view .crm-field textarea {
   width: 100%;
+  max-width: 100%;
   box-sizing: border-box;
 }
 
@@ -4890,27 +4881,16 @@ body.crm-route #site-header.peracrm-shell-header.is-scrolled .peracrm-header-act
 }
 
 @media (min-width: 768px) {
-  .crm-page--client-view .crm-profile-grid,
-  .crm-page--client-view .crm-keyfacts-grid {
+  .crm-page--client-view .crm-form-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
   .crm-page--client-view .crm-field--inline {
     grid-column: span 2;
   }
-
-  .crm-page--client-view .crm-field--half {
-    grid-column: span 1;
-  }
 }
 
 @media (max-width: 575px) {
-  .crm-page--client-view .crm-profile-grid,
-  .crm-page--client-view .crm-keyfacts-grid {
-    grid-template-columns: 1fr;
-    gap: 10px;
-  }
-
   .crm-page--client-view input,
   .crm-page--client-view select,
   .crm-page--client-view textarea,
