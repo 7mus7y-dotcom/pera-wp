@@ -6,9 +6,6 @@
 .pera-latest-offer-card {
   display: grid;
   gap: 10px;
-  border: 1px solid var(--pill-outline-border);
-  border-radius: 12px;
-  background: #fff;
   padding: var(--space-xs);
 }
 

@@ -215,7 +215,7 @@ if ( $size_min > 0 ) {
 ?>
 
 <article <?php post_class( $card_classes ); ?>>
-  <div class="property-card__inner">
+  <div class="property-card__inner pera-card-shell">
 
     <div class="property-card__media">
 
