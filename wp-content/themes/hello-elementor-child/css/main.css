@@ -3981,7 +3981,12 @@ body:not(.single-post) tr:nth-child(even) {
 }
 
 .citizenship-hero .hero-overlay {
-  background: linear-gradient(160deg, rgba(255, 255, 255, 0.92), rgba(255, 255, 255, 0.84));
+  background: linear-gradient(
+    180deg,
+    rgba(255, 255, 255, 0.75) 0%,
+    rgba(255, 255, 255, 0.55) 40%,
+    rgba(255, 255, 255, 0.2) 100%
+  );
 }
 
 .citizenship-hero .feature-card {
@@ -4165,10 +4170,6 @@ body:not(.single-post) tr:nth-child(even) {
   .citizenship-consultancy-preview .feature-grid {
     gap: 12px;
   }
-}
-
-.citizenship-hero--option-a2 .hero-overlay {
-  background: linear-gradient(165deg, rgba(255, 255, 255, 0.95), rgba(255, 255, 255, 0.9));
 }
 
 .citizenship-hero--option-a2 .citizenship-hero-card {
