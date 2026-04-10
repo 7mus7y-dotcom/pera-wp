@@ -39,7 +39,7 @@ $cat_link = $primary_cat ? get_category_link( $primary_cat->term_id ) : '';
 $post_subtitle = trim( (string) get_post_meta( $post_id, 'post_subtitle', true ) );
 ?>
 
-<article <?php post_class( $card_classes, $post_id ); ?>>
+<article <?php post_class( $card_classes . " pera-card-shell", $post_id ); ?>>
 
   <div class="post-card-media">
     <?php if ( has_post_thumbnail( $post_id ) ) : ?>
