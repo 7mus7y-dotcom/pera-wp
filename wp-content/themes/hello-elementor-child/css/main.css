@@ -3980,12 +3980,14 @@ body:not(.single-post) tr:nth-child(even) {
   color: var(--text-soft);
 }
 
-.citizenship-hero .hero-overlay {
+.citizenship-hero--option-a1 .hero-overlay,
+.citizenship-hero--option-a2 .hero-overlay,
+.citizenship-hero--option-a3 .hero-overlay {
   background: linear-gradient(
     180deg,
-    rgba(255, 255, 255, 0.75) 0%,
-    rgba(255, 255, 255, 0.55) 40%,
-    rgba(255, 255, 255, 0.2) 100%
+    rgba(255, 255, 255, 0.85) 0%,
+    rgba(255, 255, 255, 0.6) 40%,
+    rgba(255, 255, 255, 0.15) 100%
   );
 }
 
