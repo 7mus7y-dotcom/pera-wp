@@ -480,11 +480,11 @@
 /* =======================================================
    Home: Special Offers (portrait scroller)
    ======================================================= */
-.home-special-offers .cards-slider {
+.home-special-offers__slider {
   gap: 16px;
 }
 
-.home-special-offers .slider-card {
+.home-special-offers__slider > .slider-card {
   max-width: calc((100% - 16px) / 2);
 }
 
@@ -534,7 +534,7 @@
 }
 
 @media (min-width: 1024px) {
-  .home-special-offers .slider-card {
+  .home-special-offers__slider > .slider-card {
     flex-basis: calc((100% - 48px) / 4);
     max-width: calc((100% - 48px) / 4);
   }
