@@ -135,7 +135,7 @@ if ( empty( $offers ) ) {
         </svg>
       </button>
 
-      <div class="cards-slider cards-slider--snap" id="special-offers-slider" aria-label="Special offers">
+      <div class="cards-slider cards-slider--snap home-special-offers__slider" id="special-offers-slider" aria-label="Special offers">
         <?php foreach ( $offers as $offer ) : ?>
           <article class="slider-card special-offers-card">
 
