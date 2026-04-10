@@ -214,11 +214,9 @@ $featured_query = new WP_Query( array(
 /* ======================================================
    SPECIAL OFFERS (HOME)
    ====================================================== */
-get_template_part( 'parts/home-special-offers' );
+/* get_template_part( 'parts/home-special-offers' ); */
 
-if ( current_user_can( 'manage_options' ) ) {
-  get_template_part( 'partials/home-latest-offers' );
-}
+get_template_part( 'partials/home-latest-offers' );
 ?>
 
 
@@ -324,16 +322,14 @@ if ( current_user_can( 'manage_options' ) ) {
 
 <?php
 // -----------------------------------------------------------------------------
-// HOME — Bodrum Mansion feature (ADMIN ONLY)
+// HOME — Bodrum Mansion feature
 // Placement: after "Explore Istanbul’s prime districts" and before "Buyer Journey"
 // -----------------------------------------------------------------------------
-if ( current_user_can( 'manage_options' ) ) :
+$mansion_url = 'https://www.peraproperty.com/bodrum-property/mansion-scale-estate-in-yalikavak-marina/';
+$hero_img_id = 56209;
 
-  $mansion_url = 'https://www.peraproperty.com/bodrum-property/mansion-scale-estate-in-yalikavak-marina/';
-  $hero_img_id = 56209;
-
-  // Use full size; if your existing patterns use a different size, align to them.
-  $hero_img = wp_get_attachment_image_url( $hero_img_id, 'pera-card' );
+// Use full size; if your existing patterns use a different size, align to them.
+$hero_img = wp_get_attachment_image_url( $hero_img_id, 'pera-card' );
 ?>
 
 <!-- ======================================================
@@ -394,8 +390,6 @@ if ( current_user_can( 'manage_options' ) ) :
       </div><!-- /.content-panel -->
   </div><!-- /.container -->
 </section>
-
-<?php endif; ?>
 
 <?php
 /* ======================================================
