@@ -191,7 +191,7 @@
 
 /* Shared shell for reusable cards (property/post/latest-offers) */
 .pera-card-shell {
-  background: #ffffff;
+  background: var(--inverse);
   border-radius: var(--radius-lg);
   border: 1px solid #e2e8f0;
   box-shadow: 0 6px 30px rgba(15, 23, 42, 0.06);
@@ -327,11 +327,6 @@ p {
   text-align: center;
 }
 
-/* Uppercase */
-.text-upper {
-  text-transform: uppercase;
-}
-
 /* =======================================================
    TEXT SIZE UTILITIES
    Common, reusable typographic helpers
@@ -362,12 +357,6 @@ p {
 
 .text-medium{
   font-weight: 500;
-}
-
-/* Muted / secondary colour (you already have text-soft, keep it) */
-/* This is just here for completeness of the set */
-.text-muted{
-  color: var(--text-soft);
 }
 
 /* Uppercase helper (for meta labels, pills, captions) */
@@ -850,7 +839,7 @@ section,
 /* Outline (legacy match) */
 .pill--outline {
   background: var(--pill-outline-bg) !important;
-  border: 1px solid #e5e7eb;
+  border: 1px solid var(--pill-outline-border);
   color: var(--pill-outline-text);
 }
 
@@ -885,9 +874,9 @@ button.pill:focus-visible {
 }
 
 /* Brand / status variants */
-.pill--brand { background: var(--brand); color: #ffffff; }
-.pill--green { background: var(--pill-green); color: #ffffff; }
-.pill--red   { background: var(--pill-red);   color: #ffffff; }
+.pill--brand { background: var(--brand); color: var(--inverse); }
+.pill--green { background: var(--pill-green); color: var(--inverse); }
+.pill--red   { background: var(--pill-red);   color: var(--inverse); }
 
 @media (prefers-color-scheme: dark) {
   .pill--subtle {
@@ -1249,21 +1238,11 @@ button.pill:focus-visible {
 
 
 /* ======================================================
-   HERO SEARCH – GLASS CARD REFINEMENT
-   ====================================================== */
-
-.hero-search-lite.glass {
-  padding: clamp(20px, 3vw, 32px);
-  border-radius: var(--radius-2xl);
-}
-
-
-/* ======================================================
    HERO SEARCH – GLASS CARD PADDING
    ====================================================== */
 
 .hero-search-lite.glass {
-  padding: clamp(20px, 3vw, 32px);
+  padding: clamp(var(--space-md), 3vw, var(--space-lg));
   border-radius: var(--radius-2xl);
 }
 
@@ -2454,7 +2433,7 @@ body:not(.single-post) tr:nth-child(even) {
   right: 0;
   bottom: 0;
   z-index: 9999;
-  background: #ffffff;
+  background: var(--inverse);
   color: var(--text);
   border-top: 2px solid var(--brand);
   box-shadow: 0 -3px 6px rgba(0,0,0,0.15);
@@ -2954,7 +2933,7 @@ body:not(.single-post) tr:nth-child(even) {
 
 /* Card base */
 .feature-card {
-  background: #ffffff;
+  background: var(--inverse);
   border-radius: 24px;
   border: 1px solid #e5e7eb;
   padding: 18px 20px 18px;
@@ -3598,7 +3577,7 @@ body:not(.single-post) tr:nth-child(even) {
   gap: 16px;
   padding: 18px 20px;
   border-radius: 20px;
-  background: #ffffff;
+  background: var(--inverse);
   border: 1px solid #e5e7eb;
   box-shadow: 0 2px 6px rgba(0,0,0,0.04);
   align-items: flex-start;
