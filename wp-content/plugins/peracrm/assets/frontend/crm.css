@@ -1490,6 +1490,12 @@ body.crm-route .crm-page--client-view .crm-portfolio-actions .peracrm-linked-pro
   grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
 }
 
+.crm-page--performance .crm-performance-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  gap: 12px;
+}
+
 .crm-page--performance .crm-performance-card {
   border: 1px solid var(--border, #e8ecf2);
   border-radius: 12px;

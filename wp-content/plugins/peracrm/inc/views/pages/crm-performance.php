@@ -41,9 +41,24 @@ $summary = function_exists( 'pera_crm_get_performance_summary' )
 			'viewings'      => 0,
 			'deals_created' => 0,
 		),
+		'attention' => array(
+			'no_activity' => 0,
+			'no_reminder' => 0,
+			'untouched'   => 0,
+			'overdue'     => 0,
+		),
 	);
 
 $cards = is_array( $summary['cards'] ?? null ) ? $summary['cards'] : array();
+
+$attention = is_array( $summary['attention'] ?? null ) ? $summary['attention'] : array();
+
+$attention_defs = array(
+	'no_activity' => __( 'No Activity Yet', 'peracrm' ),
+	'no_reminder' => __( 'No Reminder Set', 'peracrm' ),
+	'untouched'   => __( 'Untouched (3+ days)', 'peracrm' ),
+	'overdue'     => __( 'Overdue Reminders', 'peracrm' ),
+);
 
 $card_defs = array(
 	'new_leads'     => __( 'Leads', 'peracrm' ),
@@ -103,6 +118,18 @@ peracrm_frontend_render_shell_header();
                 </article>
               <?php endforeach; ?>
             </div>
+            <section class="content-panel" aria-labelledby="crm-performance-attention-title">
+              <h2 id="crm-performance-attention-title" class="crm-section__title"><?php esc_html_e( 'Attention Needed', 'peracrm' ); ?></h2>
+              <div class="crm-performance-cards crm-performance-grid" role="list" aria-label="<?php esc_attr_e( 'Attention needed cards', 'peracrm' ); ?>">
+                <?php foreach ( $attention_defs as $key => $label ) : ?>
+                  <?php $value = isset( $attention[ $key ] ) ? max( 0, (int) $attention[ $key ] ) : 0; ?>
+                  <article class="crm-performance-card" role="listitem">
+                    <p class="crm-performance-card__value"><?php echo esc_html( number_format_i18n( $value ) ); ?></p>
+                    <p class="crm-performance-card__label"><?php echo esc_html( $label ); ?></p>
+                  </article>
+                <?php endforeach; ?>
+              </div>
+            </section>
           </div>
         </section>
       </div>

@@ -2111,6 +2111,138 @@ if ( ! function_exists( 'pera_crm_get_performance_summary' ) ) {
 			);
 		}
 
+
+
+		$no_activity = 0;
+		$no_reminder = 0;
+		$untouched   = 0;
+		$overdue     = 0;
+		$now_ts      = current_time( 'timestamp' );
+		$stale_ts    = $now_ts - ( 3 * DAY_IN_SECONDS );
+		$open_status = pera_crm_reminders_open_status();
+		$reminder_by_lead = array();
+
+		if ( ! empty( $cohort_ids ) ) {
+			$reminder_by_lead = (array) peracrm_with_target_blog(
+				static function () use ( $cohort_ids, $open_status ): array {
+					global $wpdb;
+
+					$ids = array_values( array_unique( array_filter( array_map( 'absint', $cohort_ids ) ) ) );
+					if ( empty( $ids ) ) {
+						return array();
+					}
+
+					$table_candidates = array( $wpdb->prefix . 'crm_reminders' );
+					if ( function_exists( 'peracrm_table' ) ) {
+						$table_candidates[] = peracrm_table( 'crm_reminders' );
+					}
+
+					$table = '';
+					foreach ( array_unique( array_filter( $table_candidates ) ) as $candidate ) {
+						$exists = $wpdb->get_var( $wpdb->prepare( 'SHOW TABLES LIKE %s', $candidate ) ); // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery
+						if ( $exists === $candidate ) {
+							$table = $candidate;
+							break;
+						}
+					}
+
+					if ( '' === $table ) {
+						return array();
+					}
+
+					$placeholders = implode( ',', array_fill( 0, count( $ids ), '%d' ) );
+					$sql          = $wpdb->prepare(
+						"SELECT client_id, due_at, status
+						 FROM {$table}
+						 WHERE client_id IN ({$placeholders})",
+						$ids
+					); // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+
+					$rows = $wpdb->get_results( $sql, ARRAY_A ); // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery
+					if ( ! is_array( $rows ) || empty( $rows ) ) {
+						return array();
+					}
+
+					$now_mysql = current_time( 'mysql' );
+					$out       = array();
+					foreach ( $rows as $row ) {
+						$lead_id = isset( $row['client_id'] ) ? (int) $row['client_id'] : 0;
+						if ( $lead_id <= 0 ) {
+							continue;
+						}
+
+						if ( ! isset( $out[ $lead_id ] ) ) {
+							$out[ $lead_id ] = array(
+								'has_any'        => false,
+								'has_overdue'    => false,
+								'last_due_ts'    => 0,
+							);
+						}
+
+						$out[ $lead_id ]['has_any'] = true;
+
+						$due_at = (string) ( $row['due_at'] ?? '' );
+						$due_ts = '' !== $due_at ? strtotime( $due_at ) : 0;
+						if ( $due_ts > (int) $out[ $lead_id ]['last_due_ts'] ) {
+							$out[ $lead_id ]['last_due_ts'] = $due_ts;
+						}
+
+						$status = sanitize_key( (string) ( $row['status'] ?? '' ) );
+						if ( '' !== $due_at && $due_at < $now_mysql && 'completed' !== $status && $status === $open_status ) {
+							$out[ $lead_id ]['has_overdue'] = true;
+						}
+					}
+
+					return $out;
+				}
+			);
+		}
+
+		foreach ( $cohort_ids as $lead_id ) {
+			$lead_id           = (int) $lead_id;
+			$lead_reminder_row = is_array( $reminder_by_lead[ $lead_id ] ?? null ) ? $reminder_by_lead[ $lead_id ] : array();
+			$last_activity_ts  = 0;
+			$has_activity      = false;
+
+			if ( function_exists( 'peracrm_client_health_get' ) ) {
+				$health           = (array) peracrm_client_health_get( $lead_id );
+				$last_activity_ts = (int) ( $health['last_activity_ts'] ?? 0 );
+				$has_activity     = $last_activity_ts > 0;
+			}
+
+			if ( ! $has_activity && function_exists( 'peracrm_notes_list' ) ) {
+				$latest_note = peracrm_notes_list( $lead_id, 1, 0 );
+				if ( is_array( $latest_note ) && is_array( $latest_note[0] ?? null ) ) {
+					$has_activity = true;
+					foreach ( array( 'created_at', 'date_gmt', 'date', 'time' ) as $time_key ) {
+						$raw_ts = isset( $latest_note[0][ $time_key ] ) ? strtotime( (string) $latest_note[0][ $time_key ] ) : 0;
+						if ( $raw_ts > 0 ) {
+							$last_activity_ts = max( $last_activity_ts, $raw_ts );
+							break;
+						}
+					}
+				}
+			}
+
+			if ( ! $has_activity ) {
+				++$no_activity;
+			}
+
+			$has_reminder = ! empty( $lead_reminder_row['has_any'] );
+			if ( ! $has_reminder ) {
+				++$no_reminder;
+			}
+
+			$reminder_ts = isset( $lead_reminder_row['last_due_ts'] ) ? (int) $lead_reminder_row['last_due_ts'] : 0;
+			$latest_ts   = max( $last_activity_ts, $reminder_ts );
+			if ( $latest_ts > 0 && $latest_ts < $stale_ts ) {
+				++$untouched;
+			}
+
+			if ( ! empty( $lead_reminder_row['has_overdue'] ) ) {
+				++$overdue;
+			}
+		}
 		return array(
 			'range' => $range,
 			'scope' => array(
@@ -2128,6 +2260,12 @@ if ( ! function_exists( 'pera_crm_get_performance_summary' ) ) {
 				'junk'          => $junk,
 				'viewings'      => $viewings,
 				'deals_created' => $deals_created,
+			),
+			'attention' => array(
+				'no_activity' => $no_activity,
+				'no_reminder' => $no_reminder,
+				'untouched'   => $untouched,
+				'overdue'     => $overdue,
 			),
 		);
 	}
