@@ -262,6 +262,40 @@ if ( ! function_exists( 'pera_crm_reminders_open_status' ) ) {
 	}
 }
 
+if ( ! function_exists( 'pera_crm_reminders_closed_statuses' ) ) {
+	/**
+	 * Resolve reminder statuses that should be treated as closed/completed.
+	 *
+	 * @return string[]
+	 */
+	function pera_crm_reminders_closed_statuses(): array {
+		$closed = array( 'done', 'dismissed', 'completed', 'closed' );
+
+		if ( function_exists( 'peracrm_reminders_allowed_statuses' ) ) {
+			$statuses = peracrm_reminders_allowed_statuses();
+			if ( is_array( $statuses ) && ! empty( $statuses ) ) {
+				foreach ( $statuses as $status ) {
+					$status = sanitize_key( (string) $status );
+					if ( in_array( $status, array( 'done', 'dismissed', 'completed', 'closed' ), true ) ) {
+						$closed[] = $status;
+					}
+				}
+			}
+		}
+
+		return array_values( array_unique( array_filter( array_map( 'sanitize_key', $closed ) ) ) );
+	}
+}
+
+if ( ! function_exists( 'pera_crm_reminder_is_closed_status' ) ) {
+	/**
+	 * Check whether a reminder status is considered closed/completed.
+	 */
+	function pera_crm_reminder_is_closed_status( string $status ): bool {
+		return in_array( sanitize_key( $status ), pera_crm_reminders_closed_statuses(), true );
+	}
+}
+
 if ( ! function_exists( 'pera_crm_debug_tasks_log' ) ) {
 	/**
 	 * Log dashboard task data path diagnostics.
@@ -2119,88 +2153,10 @@ if ( ! function_exists( 'pera_crm_get_performance_summary' ) ) {
 		$overdue     = 0;
 		$now_ts      = current_time( 'timestamp' );
 		$stale_ts    = $now_ts - ( 3 * DAY_IN_SECONDS );
-		$open_status = pera_crm_reminders_open_status();
 		$reminder_by_lead = array();
-
-		if ( ! empty( $cohort_ids ) ) {
-			$reminder_by_lead = (array) peracrm_with_target_blog(
-				static function () use ( $cohort_ids, $open_status ): array {
-					global $wpdb;
-
-					$ids = array_values( array_unique( array_filter( array_map( 'absint', $cohort_ids ) ) ) );
-					if ( empty( $ids ) ) {
-						return array();
-					}
-
-					$table_candidates = array( $wpdb->prefix . 'crm_reminders' );
-					if ( function_exists( 'peracrm_table' ) ) {
-						$table_candidates[] = peracrm_table( 'crm_reminders' );
-					}
-
-					$table = '';
-					foreach ( array_unique( array_filter( $table_candidates ) ) as $candidate ) {
-						$exists = $wpdb->get_var( $wpdb->prepare( 'SHOW TABLES LIKE %s', $candidate ) ); // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery
-						if ( $exists === $candidate ) {
-							$table = $candidate;
-							break;
-						}
-					}
-
-					if ( '' === $table ) {
-						return array();
-					}
-
-					$placeholders = implode( ',', array_fill( 0, count( $ids ), '%d' ) );
-					$sql          = $wpdb->prepare(
-						"SELECT client_id, due_at, status
-						 FROM {$table}
-						 WHERE client_id IN ({$placeholders})",
-						$ids
-					); // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
-
-					$rows = $wpdb->get_results( $sql, ARRAY_A ); // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery
-					if ( ! is_array( $rows ) || empty( $rows ) ) {
-						return array();
-					}
-
-					$now_mysql = current_time( 'mysql' );
-					$out       = array();
-					foreach ( $rows as $row ) {
-						$lead_id = isset( $row['client_id'] ) ? (int) $row['client_id'] : 0;
-						if ( $lead_id <= 0 ) {
-							continue;
-						}
-
-						if ( ! isset( $out[ $lead_id ] ) ) {
-							$out[ $lead_id ] = array(
-								'has_any'        => false,
-								'has_overdue'    => false,
-								'last_due_ts'    => 0,
-							);
-						}
-
-						$out[ $lead_id ]['has_any'] = true;
-
-						$due_at = (string) ( $row['due_at'] ?? '' );
-						$due_ts = '' !== $due_at ? strtotime( $due_at ) : 0;
-						if ( $due_ts > (int) $out[ $lead_id ]['last_due_ts'] ) {
-							$out[ $lead_id ]['last_due_ts'] = $due_ts;
-						}
-
-						$status = sanitize_key( (string) ( $row['status'] ?? '' ) );
-						if ( '' !== $due_at && $due_at < $now_mysql && 'completed' !== $status && $status === $open_status ) {
-							$out[ $lead_id ]['has_overdue'] = true;
-						}
-					}
-
-					return $out;
-				}
-			);
-		}
 
 		foreach ( $cohort_ids as $lead_id ) {
 			$lead_id           = (int) $lead_id;
-			$lead_reminder_row = is_array( $reminder_by_lead[ $lead_id ] ?? null ) ? $reminder_by_lead[ $lead_id ] : array();
 			$last_activity_ts  = 0;
 			$has_activity      = false;
 
@@ -2208,9 +2164,7 @@ if ( ! function_exists( 'pera_crm_get_performance_summary' ) ) {
 				$health           = (array) peracrm_client_health_get( $lead_id );
 				$last_activity_ts = (int) ( $health['last_activity_ts'] ?? 0 );
 				$has_activity     = $last_activity_ts > 0;
-			}
-
-			if ( ! $has_activity && function_exists( 'peracrm_notes_list' ) ) {
+			} elseif ( function_exists( 'peracrm_notes_list' ) ) {
 				$latest_note = peracrm_notes_list( $lead_id, 1, 0 );
 				if ( is_array( $latest_note ) && is_array( $latest_note[0] ?? null ) ) {
 					$has_activity = true;
@@ -2228,14 +2182,41 @@ if ( ! function_exists( 'pera_crm_get_performance_summary' ) ) {
 				++$no_activity;
 			}
 
+			if ( ! isset( $reminder_by_lead[ $lead_id ] ) ) {
+				$lead_reminders = function_exists( 'peracrm_reminders_list_for_client' )
+					? (array) peracrm_reminders_list_for_client( $lead_id, 200, 0, null )
+					: array();
+
+				$has_any     = ! empty( $lead_reminders );
+				$has_overdue = false;
+				if ( $has_any ) {
+					$now_mysql = current_time( 'mysql' );
+					foreach ( $lead_reminders as $lead_reminder ) {
+						if ( ! is_array( $lead_reminder ) ) {
+							continue;
+						}
+						$due_at  = (string) ( $lead_reminder['due_at'] ?? '' );
+						$status  = sanitize_key( (string) ( $lead_reminder['status'] ?? '' ) );
+						if ( '' !== $due_at && $due_at < $now_mysql && ! pera_crm_reminder_is_closed_status( $status ) ) {
+							$has_overdue = true;
+							break;
+						}
+					}
+				}
+
+				$reminder_by_lead[ $lead_id ] = array(
+					'has_any'     => $has_any,
+					'has_overdue' => $has_overdue,
+				);
+			}
+
+			$lead_reminder_row = is_array( $reminder_by_lead[ $lead_id ] ?? null ) ? $reminder_by_lead[ $lead_id ] : array();
 			$has_reminder = ! empty( $lead_reminder_row['has_any'] );
 			if ( ! $has_reminder ) {
 				++$no_reminder;
 			}
 
-			$reminder_ts = isset( $lead_reminder_row['last_due_ts'] ) ? (int) $lead_reminder_row['last_due_ts'] : 0;
-			$latest_ts   = max( $last_activity_ts, $reminder_ts );
-			if ( $latest_ts > 0 && $latest_ts < $stale_ts ) {
+			if ( $last_activity_ts <= 0 || $last_activity_ts < $stale_ts ) {
 				++$untouched;
 			}
 
