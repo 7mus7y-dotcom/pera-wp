@@ -2037,7 +2037,7 @@ if ( ! function_exists( 'pera_crm_get_performance_summary' ) ) {
 		}
 
 		$candidate_party_ids = pera_crm_get_performance_assigned_party_ids( $range, $scope_user_id );
-		$cohort_ids          = pera_crm_filter_true_lead_party_ids( $candidate_party_ids );
+		$cohort_ids          = $candidate_party_ids;
 		$party_map  = ! empty( $cohort_ids ) && function_exists( 'peracrm_party_get_status_by_ids' )
 			? peracrm_party_get_status_by_ids( $cohort_ids )
 			: array();
@@ -2119,8 +2119,8 @@ if ( ! function_exists( 'pera_crm_get_performance_summary' ) ) {
 			),
 			'new_leads_basis' => array(
 				'date_field' => 'post_date',
-				'mode'       => 'creation_date_fallback',
-				'note'       => 'No canonical assignment timestamp exists for all advisor assignments; using creation-date cohort bounded to assigned true leads.',
+				'mode'       => 'creation_date',
+				'note'       => 'Lead cohort is created-in-period assigned CRM records in visible scope.',
 			),
 			'cards' => array(
 				'new_leads'     => $new_leads,

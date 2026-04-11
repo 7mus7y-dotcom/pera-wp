@@ -46,7 +46,7 @@ $summary = function_exists( 'pera_crm_get_performance_summary' )
 $cards = is_array( $summary['cards'] ?? null ) ? $summary['cards'] : array();
 
 $card_defs = array(
-	'new_leads'     => __( 'New Leads', 'peracrm' ),
+	'new_leads'     => __( 'Leads', 'peracrm' ),
 	'qualified'     => __( 'Qualified', 'peracrm' ),
 	'junk'          => __( 'Junk Leads', 'peracrm' ),
 	'viewings'      => __( 'Viewings', 'peracrm' ),
