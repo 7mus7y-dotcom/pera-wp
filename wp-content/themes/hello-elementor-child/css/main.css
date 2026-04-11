@@ -38,6 +38,9 @@
   --inverse: #ffffff;
   --bg: #ffffff;
   --bg-soft: #f7f7f7;
+  --border-neutral: #e5e7eb;
+  --border-neutral-soft: #e2e8f0;
+  --shadow-panel-soft: 0 18px 45px rgba(0, 0, 0, 0.06);
   --brand: #002d72;
   --accent: #0056b3;
   --radius: 8px;
@@ -191,9 +194,9 @@
 
 /* Shared shell for reusable cards (property/post/latest-offers) */
 .pera-card-shell {
-  background: #ffffff;
+  background: var(--inverse);
   border-radius: var(--radius-lg);
-  border: 1px solid #e2e8f0;
+  border: 1px solid var(--border-neutral-soft);
   box-shadow: 0 6px 30px rgba(15, 23, 42, 0.06);
   transition:
     box-shadow 0.18s ease,
@@ -629,11 +632,11 @@ section,
 /* Solid */
 .btn--solid {
   background-color: var(--btn-color);
-  color: #fff;
+  color: var(--inverse);
 }
 
 .btn--solid:hover {
-  background-color: #ffffff;
+  background-color: var(--inverse);
   color: var(--btn-color);
   border-color: var(--btn-color);
 }
@@ -646,7 +649,7 @@ section,
 
 .btn--ghost:hover {
   background-color: var(--btn-color);
-  color: #fff;
+  color: var(--inverse);
   border-color: var(--btn-color);
 }
 
@@ -668,7 +671,7 @@ section,
 .btn--red    { --btn-color: var(--pill-red); }
 .btn--yellow { --btn-color: #ffed00; }
 .btn--black  { --btn-color: #000000; }
-.btn--white { --btn-color: #ffffff; }
+.btn--white { --btn-color: var(--inverse); }
 
 
 
@@ -850,7 +853,7 @@ section,
 /* Outline (legacy match) */
 .pill--outline {
   background: var(--pill-outline-bg) !important;
-  border: 1px solid #e5e7eb;
+  border: 1px solid var(--border-neutral);
   color: var(--pill-outline-text);
 }
 
@@ -885,9 +888,9 @@ button.pill:focus-visible {
 }
 
 /* Brand / status variants */
-.pill--brand { background: var(--brand); color: #ffffff; }
-.pill--green { background: var(--pill-green); color: #ffffff; }
-.pill--red   { background: var(--pill-red);   color: #ffffff; }
+.pill--brand { background: var(--brand); color: var(--inverse); }
+.pill--green { background: var(--pill-green); color: var(--inverse); }
+.pill--red   { background: var(--pill-red);   color: var(--inverse); }
 
 @media (prefers-color-scheme: dark) {
   .pill--subtle {
@@ -2944,7 +2947,7 @@ body:not(.single-post) tr:nth-child(even) {
   letter-spacing: 0.02em;
   white-space: nowrap;
   color: var(--brand);
-  background: #fff;
+  background: var(--inverse);
 }
 
 #pricing .feature-grid {
@@ -2954,9 +2957,9 @@ body:not(.single-post) tr:nth-child(even) {
 
 /* Card base */
 .feature-card {
-  background: #ffffff;
+  background: var(--inverse);
   border-radius: 24px;
-  border: 1px solid #e5e7eb;
+  border: 1px solid var(--border-neutral);
   padding: 18px 20px 18px;
   display: flex;
   flex-direction: column;
@@ -2971,7 +2974,7 @@ body:not(.single-post) tr:nth-child(even) {
 .feature-card-header {
   padding-bottom: 10px;
   margin-bottom: 12px;
-  border-bottom: 1px solid #e5e7eb;
+  border-bottom: 1px solid var(--border-neutral);
   display: flex;
   align-items: center;
   gap: 0.75rem;
@@ -3398,10 +3401,10 @@ body:not(.single-post) tr:nth-child(even) {
    ======================================================= */
 
 .enquiry-cta {
-  background: #ffffff;
+  background: var(--inverse);
   border-radius: 16px;
   padding: 1.5rem 1.4rem;
-  box-shadow: 0 18px 45px rgba(0, 0, 0, 0.06);
+  box-shadow: var(--shadow-panel-soft);
 }
 /* Enquiry form when used inside content panels (contact-cta) */
 .enquiry-cta--panel {
@@ -3554,10 +3557,10 @@ body:not(.single-post) tr:nth-child(even) {
     align-items: center;
   }
   .enquiry-cta {
-    background: #ffffff;
+    background: var(--inverse);
     border-radius: 16px;
     padding: 1rem;
-    box-shadow: 0 18px 45px rgba(0, 0, 0, 0.06);
+    box-shadow: var(--shadow-panel-soft);
   }
 }
 .enquiry-cta-footer .cta-checkbox {
@@ -3598,8 +3601,8 @@ body:not(.single-post) tr:nth-child(even) {
   gap: 16px;
   padding: 18px 20px;
   border-radius: 20px;
-  background: #ffffff;
-  border: 1px solid #e5e7eb;
+  background: var(--inverse);
+  border: 1px solid var(--border-neutral);
   box-shadow: 0 2px 6px rgba(0,0,0,0.04);
   align-items: flex-start;
 }
