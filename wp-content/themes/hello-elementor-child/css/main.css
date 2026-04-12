@@ -1207,35 +1207,6 @@ button.pill:focus-visible {
   display: inline-flex;
 }
 
-/* Stack CTA above quick-link pills */
-.single-bodrum-property #bodrum-hero .hero-quicklinks{
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start; /* keeps button natural width */
-}
-
-/* Pills stay in one row */
-.single-bodrum-property #bodrum-hero .hero-quicklinks__row{
-  display: inline-flex;
-  gap: 8px;
-  flex-wrap: nowrap;
-}
-
-/* Mobile: icon-only pills */
-@media (max-width: 768px){
-  .single-bodrum-property #bodrum-hero .hero-pill__text{
-    display: none;
-  }
-
-  .single-bodrum-property #bodrum-hero .pill__icon{
-    margin-right: 0;
-  }
-
-
-}
-
-
-
 /* ======================================================
    HERO SEARCH – GLASS CARD REFINEMENT
    ====================================================== */
@@ -1355,44 +1326,6 @@ button.pill:focus-visible {
 }
 
 
-/* =======================================================
-   PROPERTY – Facilities pills
-   ======================================================= */
-
-.property-facilities{
-  margin-top: 20px;
-}
-
-.property-facilities__pills{
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-}
-
-/* =======================================================
-   PROPERTY – Pricing + Advisors
-   ======================================================= */
-
-.property-pricing-advisors{
-  display: flex;
-  gap: 24px;
-  align-items: stretch;
-}
-
-.property-pricing-advisors__pricing{
-  flex: 0 0 67%;
-}
-
-.property-pricing-advisors__advisors{
-  flex: 0 0 33%;
-}
-
-.property-pricing-advisors__list{
-  display: flex;
-  flex-direction: column;
-  gap: 16px;
-}
-
 .advisor-row{
   display: flex;
   gap: 12px;
@@ -1435,19 +1368,6 @@ button.pill:focus-visible {
   text-decoration:none;
   gap: 8px;
 }
-
-@media (max-width: 768px){
-  .property-pricing-advisors{
-    flex-direction: column;
-  }
-
-  .property-pricing-advisors__pricing,
-  .property-pricing-advisors__advisors{
-    flex: 0 0 auto;
-    width: 100%;
-  }
-}
-
 
 /* =======================================================
    9. HEADER (GLOBAL) — CLEAN + SAFE
@@ -2170,36 +2090,6 @@ body.is-nav-open .offcanvas-backdrop {
 
 
 
-
-
-/* Archive categories panel header underline */
-.archive-cats-head {
-  padding-bottom: 10px;
-  margin-bottom: 14px;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.14);
-}
-
-.archive-cats-title{
-  padding-bottom: 10px;
-  margin-bottom: 14px;
-  border-bottom: 1px solid rgba(0,0,0,0.10);
-}
-
-.archive-cat-card{
-  display: flex;
-  flex-direction: column;
-}
-
-.archive-cat-meta{
-  margin-top: auto;            /* pushes meta row to bottom */
-  display: flex;
-  justify-content: flex-end;   /* pushes button to right */
-}
-
-.archive-cat-btn{
-  align-self: flex-end;
-  width: auto;
-}
 
 
 /* Medium screens */
