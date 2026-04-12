@@ -42,6 +42,10 @@
   --accent: #0056b3;
   --radius: 8px;
   --container: 1200px;
+  --fs-ui-xs: 0.8rem;
+  --fs-ui-sm: 0.85rem;
+  --fs-ui-md: 0.9rem;
+  --fs-ui-lg: 0.95rem;
 
   /* radius system */
   --radius-xs: 4px;
@@ -162,7 +166,7 @@
    ======================================================= */
 
 .card-shell {
-  background: #ffffff;
+  background: var(--inverse);
   border: 1px solid #d1d5db; /* dark grey, subtle */
   border-radius: var(--radius-lg, 16px);
   padding: var(--space-sm, 12px) var(--space-sm, 12px) var(--space-sm, 12px);
@@ -258,7 +262,7 @@ a:focus {
   left: 0;
   padding: 8px 16px;
   background: var(--brand);
-  color: #ffffff;
+  color: var(--inverse);
   z-index: 999;
   text-decoration: none;
   border-radius: var(--radius-xs, 4px);
@@ -308,7 +312,7 @@ p {
 
 /* Light text (for dark backgrounds, overlays) */
 .text-light {
-  color: #fff;
+  color: var(--inverse);
 }
 
 /* Muted / secondary text */
@@ -335,7 +339,7 @@ p {
 
 /* Slightly smaller than body (labels, secondary info) */
 .text-sm{
-  font-size: 0.9rem;
+  font-size: var(--fs-ui-md);
   line-height: 1.45;
 }
 
@@ -585,7 +589,7 @@ section,
   border-radius: 999px;
   border: 1px solid transparent;
   font-weight: 600;
-  font-size: 0.95rem;
+  font-size: var(--fs-ui-lg);
   line-height: 1; /* ← FIX */
   cursor: pointer;
   text-decoration: none;
@@ -659,7 +663,7 @@ section,
 /* Card variant (slightly smaller) */
 .btn-card {
   padding: 10px 18px;
-  font-size: 0.9rem;
+  font-size: var(--fs-ui-md);
 }
 
 /* Small circular icon button (e.g. Whatsapp) */
@@ -686,7 +690,7 @@ section,
   border-radius: 50%;
   border: 1px solid rgba(255, 255, 255, 0.7);
   background: rgba(0, 0, 0, 0.35);
-  color: #ffffff;
+  color: var(--inverse);
   cursor: pointer;
   transition: background-color 160ms ease, border-color 160ms ease, color 160ms ease;
 }
@@ -715,7 +719,7 @@ section,
 
 .fav-toggle.is-fav {
   color: var(--brand);
-  background: #ffffff;
+  background: var(--inverse);
   border-color: var(--brand);
 }
 
@@ -737,7 +741,7 @@ section,
   opacity: 0;
   pointer-events: none;
   transition: opacity 140ms ease, transform 140ms ease;
-  color: #ffffff;
+  color: var(--inverse);
   background: var(--brand);
   border-radius: 50%;
   display: inline-flex;
@@ -773,14 +777,14 @@ section,
   width: min(420px, 100%);
   padding: 10px 16px;
   border-radius: var(--pill-radius, 999px);
-  background: #ffffff;
+  background: var(--inverse);
   color: #000000;
   box-shadow: var(--glass-shadow-soft, 0 4px 10px rgba(15, 23, 42, 0.18));
 }
 
 .fav-undo-toast__msg {
   font-weight: 600;
-  font-size: 0.95rem;
+  font-size: var(--fs-ui-lg);
 }
 
 
@@ -788,12 +792,12 @@ section,
 .btn-whatsapp {
   background: #25D366;
   border-color: #25D366;
-  color: #ffffff;
+  color: var(--inverse);
 }
 .btn-whatsapp:hover {
   background: #1DA851;
   border-color: #1DA851;
-  color: #ffffff;
+  color: var(--inverse);
 }
 
 /* Shared icon sizing for sprite-based icons */
@@ -1243,21 +1247,12 @@ button.pill:focus-visible {
 
 
 /* ======================================================
-   HERO SEARCH – GLASS CARD PADDING
-   ====================================================== */
-
-.hero-search-lite.glass {
-  padding: clamp(20px, 3vw, 32px);
-  border-radius: var(--radius-2xl);
-}
-
-/* ======================================================
    HERO SEARCH – PILLS ONLY
    ====================================================== */
 
 /* Base: make pills white */
 .hero-search-lite .pill {
-  background: #ffffff;
+  background: var(--inverse);
   border: 1px solid var(--pill-text-on-color);
   color: var(--pill-text-on-color);
 }
