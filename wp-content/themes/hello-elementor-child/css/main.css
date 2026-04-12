@@ -159,14 +159,11 @@
    ======================================================= */
 
 .card-shell {
-  background: var(--color-white, #ffffff);
-  border: 1px solid var(--border-muted, #d1d5db); /* dark grey, subtle */
+  background: #ffffff;
+  border: 1px solid #d1d5db; /* dark grey, subtle */
   border-radius: var(--radius-lg, 16px);
   padding: var(--space-sm, 12px) var(--space-sm, 12px) var(--space-sm, 12px);
-  box-shadow: var(
-    --shadow-soft,
-    0 2px 6px rgba(0,0,0,0.06)
-  );
+  box-shadow: 0 2px 6px rgba(0,0,0,0.06);
   display: flex;
   flex-direction: column;
   gap: var(--space-xs, 8px);
@@ -1348,7 +1345,7 @@ button.pill:focus-visible {
 }
 
 .archive-hero-desc__toggle:hover{
-  background-color: var(--pill-green-hover, #1f7f4a);
+  background-color: #1f7f4a;
   box-shadow: 0 6px 16px rgba(0,0,0,0.18);
   transform: translateY(-1px);
 }
@@ -3781,11 +3778,11 @@ body:not(.single-post) tr:nth-child(even) {
 
 /* Reset default details/summary styles */
 .doc-item {
-  border-bottom: 1px solid var(--border-soft, rgba(148, 163, 184, 0.3));
+  border-bottom: 1px solid rgba(148, 163, 184, 0.3);
   padding: 10px 0;
 }
 .doc-item:first-of-type {
-  border-top: 1px solid var(--border-soft, rgba(148, 163, 184, 0.3));
+  border-top: 1px solid rgba(148, 163, 184, 0.3);
 }
 
 /* Summary row */
@@ -3815,7 +3812,7 @@ body:not(.single-post) tr:nth-child(even) {
   width: 18px;
   height: 18px;
   border-radius: 999px;
-  border: 1px solid var(--border-soft, rgba(148, 163, 184, 0.7));
+  border: 1px solid rgba(148, 163, 184, 0.7);
   display: inline-flex;
   align-items: center;
   justify-content: center;
