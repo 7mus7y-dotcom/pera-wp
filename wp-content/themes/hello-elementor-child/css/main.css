@@ -1326,49 +1326,6 @@ button.pill:focus-visible {
 }
 
 
-.advisor-row{
-  display: flex;
-  gap: 12px;
-  align-items: center;
-}
-
-.advisor-row__media{
-  width: 64px;
-  height: 64px;
-  flex: 0 0 64px;
-  border-radius: var(--radius-md, 12px);
-  overflow: hidden;
-  background: var(--bg-soft);
-}
-
-.advisor-row__image{
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-}
-
-.advisor-row__image--placeholder{
-  width: 100%;
-  height: 100%;
-}
-
-.advisor-row__name{
-  font-weight: 600;
-}
-
-.advisor-row__position{
-  color: var(--text-soft, #555555);
-  font-size: 0.9rem;
-}
-
-.advisor-row__wa{
-  color: inherit;
-  display: inline-flex;
-  align-items: center;
-  text-decoration:none;
-  gap: 8px;
-}
-
 /* =======================================================
    9. HEADER (GLOBAL) — CLEAN + SAFE
    Requirements:
