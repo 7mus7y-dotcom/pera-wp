@@ -68,6 +68,83 @@
    (scoped to map card only)
    ======================================================= */
 
+/* Stack CTA above quick-link pills */
+.single-bodrum-property #bodrum-hero .hero-quicklinks{
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start; /* keeps button natural width */
+}
+
+/* Pills stay in one row */
+.single-bodrum-property #bodrum-hero .hero-quicklinks__row{
+  display: inline-flex;
+  gap: 8px;
+  flex-wrap: nowrap;
+}
+
+/* Mobile: icon-only pills */
+@media (max-width: 768px){
+  .single-bodrum-property #bodrum-hero .hero-pill__text{
+    display: none;
+  }
+
+  .single-bodrum-property #bodrum-hero .pill__icon{
+    margin-right: 0;
+  }
+
+
+}
+
+/* =======================================================
+   PROPERTY – Facilities pills
+   ======================================================= */
+
+.property-facilities{
+  margin-top: 20px;
+}
+
+.property-facilities__pills{
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+/* =======================================================
+   PROPERTY – Pricing + Advisors
+   ======================================================= */
+
+.property-pricing-advisors{
+  display: flex;
+  gap: 24px;
+  align-items: stretch;
+}
+
+.property-pricing-advisors__pricing{
+  flex: 0 0 67%;
+}
+
+.property-pricing-advisors__advisors{
+  flex: 0 0 33%;
+}
+
+.property-pricing-advisors__list{
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+@media (max-width: 768px){
+  .property-pricing-advisors{
+    flex-direction: column;
+  }
+
+  .property-pricing-advisors__pricing,
+  .property-pricing-advisors__advisors{
+    flex: 0 0 auto;
+    width: 100%;
+  }
+}
+
 .property-map-card .archive-hero-desc__toggle{
   background-color: var(--pill-green);
   color: #ffffff;

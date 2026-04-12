@@ -270,6 +270,35 @@
   background: rgba(255, 255, 255, 0.15);
 }
 
+/* Archive categories panel header underline */
+.archive-cats-head {
+  padding-bottom: 10px;
+  margin-bottom: 14px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.14);
+}
+
+.archive-cats-title{
+  padding-bottom: 10px;
+  margin-bottom: 14px;
+  border-bottom: 1px solid rgba(0,0,0,0.10);
+}
+
+.archive-cat-card{
+  display: flex;
+  flex-direction: column;
+}
+
+.archive-cat-meta{
+  margin-top: auto;            /* pushes meta row to bottom */
+  display: flex;
+  justify-content: flex-end;   /* pushes button to right */
+}
+
+.archive-cat-btn{
+  align-self: flex-end;
+  width: auto;
+}
+
 /* =======================================================
    6. SINGLE ARTICLE LAYOUT + SIDEBAR
    ======================================================= */
