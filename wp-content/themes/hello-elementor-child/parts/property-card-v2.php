@@ -350,13 +350,13 @@ if ( $size_min > 0 ) {
         <div class="property-card__location">
 
           <?php if ( $district_term ) : ?>
-            <a href="<?php echo esc_url( get_term_link( $district_term ) ); ?>" class="property-card__location-link">
+            <a href="<?php echo esc_url( get_term_link( $district_term ) ); ?>" class="pill pill--subtle property-card__location-link">
               <?php echo esc_html( $district_term->name ); ?>
             </a>
           <?php endif; ?>
 
           <?php if ( $region_term ) : ?>
-            <a href="<?php echo esc_url( get_term_link( $region_term ) ); ?>" class="property-card__location-link">
+            <a href="<?php echo esc_url( get_term_link( $region_term ) ); ?>" class="pill pill--subtle property-card__location-link">
               <?php echo esc_html( $region_term->name ); ?>
             </a>
           <?php endif; ?>

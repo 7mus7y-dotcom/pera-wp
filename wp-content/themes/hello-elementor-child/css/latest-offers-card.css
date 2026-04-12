@@ -115,23 +115,9 @@
 }
 
 .pera-latest-offer-card__pill {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
   gap: 6px;
-  border: 1px solid #999999;
-  border-radius: 999px;
-  padding: 1px 10px;
-  min-height: 20px;
-  background: #f3f4f6;
-  color: #000;
-  font-size: 0.75rem;
   letter-spacing: 0.06em;
-  text-transform: uppercase;
   font-weight: 400;
-  text-decoration: none;
-  line-height: 1;
-  max-width: max-content;
   cursor: pointer;
   box-sizing: border-box;
 }
@@ -307,12 +293,6 @@
     background: linear-gradient(135deg, #1f2937 0%, #0f172a 100%);
   }
 
-  .pera-latest-offer-card__pill {
-    border-color: #334155;
-    background: #0b1220;
-    color: #e2e8f0;
-  }
-
   .pera-latest-offer-card__pill--blue {
     border-color: transparent;
     background: #2f6df6;
@@ -367,13 +347,6 @@
 [data-theme="dark"] .pera-latest-offer-card__placeholder,
 .dark .pera-latest-offer-card__placeholder {
   background: linear-gradient(135deg, #1f2937 0%, #0f172a 100%);
-}
-
-[data-theme="dark"] .pera-latest-offer-card__pill,
-.dark .pera-latest-offer-card__pill {
-  border-color: #334155;
-  background: #0b1220;
-  color: #e2e8f0;
 }
 
 [data-theme="dark"] .pera-latest-offer-card__pill--blue,

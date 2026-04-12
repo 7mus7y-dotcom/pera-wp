@@ -250,17 +250,7 @@
 
 /* Each taxonomy as a pill, uppercase */
 .property-card__location .property-card__location-link {
-  display: inline-flex;
-  align-items: center;
-  padding: 1px 10px;
-  border-radius: 999px;
-  border:1px solid #999999;
-  background: #f3f4f6;
-  font-size: 0.75rem;
-  text-transform: uppercase;
   letter-spacing: 0.06em;
-  color: #000000;
-  text-decoration: none;
 }
 
 .property-card__location .property-card__location-link:hover,

@@ -58,9 +58,9 @@ $map_url        = isset( $card['map_url'] ) ? (string) $card['map_url'] : '';
 		</p>
 	</div>
 
-	<div class="pera-latest-offer-card__media">
-		<?php if ( '' !== $map_url ) : ?>
-			<a class="pera-latest-offer-card__pill pera-latest-offer-card__pill--map" href="<?php echo esc_url( $map_url ); ?>" target="_blank" rel="noopener noreferrer">
+		<div class="pera-latest-offer-card__media">
+			<?php if ( '' !== $map_url ) : ?>
+				<a class="pill pill--subtle pera-latest-offer-card__pill pera-latest-offer-card__pill--map" href="<?php echo esc_url( $map_url ); ?>" target="_blank" rel="noopener noreferrer">
 				<svg class="icon pera-latest-offer-card__icon" aria-hidden="true" width="16" height="16">
 					<use href="#icon-map" xlink:href="#icon-map"></use>
 				</svg>
@@ -68,8 +68,8 @@ $map_url        = isset( $card['map_url'] ) ? (string) $card['map_url'] : '';
 			</a>
 		<?php endif; ?>
 
-		<?php if ( '' !== $property_url ) : ?>
-			<a class="pera-latest-offer-card__pill pera-latest-offer-card__pill--blue pera-latest-offer-card__cta" href="<?php echo esc_url( $property_url ); ?>" target="_blank" rel="noopener noreferrer">
+			<?php if ( '' !== $property_url ) : ?>
+				<a class="pill pill--subtle pera-latest-offer-card__pill pera-latest-offer-card__pill--blue pera-latest-offer-card__cta" href="<?php echo esc_url( $property_url ); ?>" target="_blank" rel="noopener noreferrer">
 				<span><?php esc_html_e( 'Project details', 'hello-elementor-child' ); ?></span>
 				<svg class="icon pera-latest-offer-card__icon" aria-hidden="true" width="16" height="16">
 					<use href="#icon-external-open" xlink:href="#icon-external-open"></use>
@@ -95,9 +95,9 @@ $map_url        = isset( $card['map_url'] ) ? (string) $card['map_url'] : '';
 		<?php endif; ?>
 	</div>
 
-	<div class="pera-latest-offer-card__utility">
-		<?php if ( '' !== $floor_plan_url ) : ?>
-			<a class="pera-latest-offer-card__pill" href="<?php echo esc_url( $floor_plan_url ); ?>" target="_blank" rel="noopener noreferrer">
+		<div class="pera-latest-offer-card__utility">
+			<?php if ( '' !== $floor_plan_url ) : ?>
+				<a class="pill pill--subtle pera-latest-offer-card__pill" href="<?php echo esc_url( $floor_plan_url ); ?>" target="_blank" rel="noopener noreferrer">
 				<svg class="icon pera-latest-offer-card__icon" aria-hidden="true" width="16" height="16">
 					<use href="#icon-floor-plan" xlink:href="#icon-floor-plan"></use>
 				</svg>
@@ -105,9 +105,9 @@ $map_url        = isset( $card['map_url'] ) ? (string) $card['map_url'] : '';
 			</a>
 		<?php endif; ?>
 
-		<?php if ( '' !== $notes ) : ?>
-			<details class="pera-latest-offer-card__note">
-				<summary class="pera-latest-offer-card__pill">
+			<?php if ( '' !== $notes ) : ?>
+				<details class="pera-latest-offer-card__note">
+					<summary class="pill pill--subtle pera-latest-offer-card__pill">
 					<svg class="icon pera-latest-offer-card__icon" aria-hidden="true" width="16" height="16">
 						<use href="#icon-notes" xlink:href="#icon-notes"></use>
 					</svg>
