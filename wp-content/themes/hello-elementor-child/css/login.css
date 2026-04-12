@@ -176,15 +176,6 @@ body.login #login_error {
   text-decoration: none;
 }
 
-add_action('login_footer', function () {
-  ?>
-  <div class="pera-login-footer">
-    © <?php echo date('Y'); ?> Pera Property · All rights reserved
-  </div>
-  <?php
-});
-
-
 /* 8) Dark mode: match your dark tokens approach */
 @media (prefers-color-scheme: dark) {
   body.login {
