@@ -134,7 +134,6 @@ if ( $is_wp_admin ) {
 }
 
 if ( $load_crm_integration ) {
-	require_once get_stylesheet_directory() . '/inc/bootstrap/crm-gated.php';
 }
 
 if ( $is_frontend ) {
