@@ -1240,15 +1240,6 @@ button.pill:focus-visible {
 
 
 /* ======================================================
-   HERO SEARCH – GLASS CARD PADDING
-   ====================================================== */
-
-.hero-search-lite.glass {
-  padding: clamp(20px, 3vw, 32px);
-  border-radius: var(--radius-2xl);
-}
-
-/* ======================================================
    HERO SEARCH – PILLS ONLY
    ====================================================== */
 
@@ -2612,7 +2603,7 @@ body:not(.single-post) tr:nth-child(even) {
 .footer-social {
   display: flex;
   gap: 12px;
-  justify-content:iciel;
+  justify-content: center;
   align-items: center;
 }
 
