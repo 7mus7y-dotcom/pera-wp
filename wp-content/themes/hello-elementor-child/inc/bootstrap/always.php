@@ -41,4 +41,3 @@ require_once get_stylesheet_directory() . '/inc/whatsapp-click-log.php';
  * CRM router hooks (rewrite/query vars/template resolver) must always be
  * registered so permalink flushes retain /crm/* rules.
  */
-require_once get_stylesheet_directory() . '/inc/crm-router.php';
