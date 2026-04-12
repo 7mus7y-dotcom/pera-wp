@@ -38,11 +38,9 @@ if ( ! defined( 'ABSPATH' ) ) {
 <input type="checkbox" id="nav-toggle" class="nav-toggle" hidden>
 
 <?php
-// CRM capability helpers may be provided by plugin-owned routing/bootstrap; keep fallback checks defensive.
+// Prefer canonical plugin helper; keep a minimal capability fallback for plugin-off/backward-compatible contexts.
 if ( function_exists( 'peracrm_user_can_access_crm' ) ) {
   $crm_header_access_allowed = (bool) peracrm_user_can_access_crm();
-} elseif ( function_exists( 'pera_crm_user_can_access' ) ) {
-  $crm_header_access_allowed = (bool) pera_crm_user_can_access();
 } else {
   $crm_header_access_allowed = current_user_can( 'manage_options' ) || current_user_can( 'edit_crm_clients' );
 }
