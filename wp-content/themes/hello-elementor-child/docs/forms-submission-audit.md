@@ -1,7 +1,9 @@
 # Enquiry Form Submission Audit (Full Site)
 
 Date: 2026-02-15  
-Scope: Theme forms, `/crm/` front-end forms, MU-plugin ingestion/integrations, and form-related JS/nonce usage.
+Scope: Theme forms, `/crm/` front-end forms, MU-plugin ingestion/integrations, and form-related JS/nonce usage.  
+
+> Note (2026-04-12): Any references below to theme-owned CRM routing (`inc/crm-router.php`) are historical. Active CRM routing/shims are plugin-owned.
 
 ## Commands used for discovery
 
@@ -33,7 +35,7 @@ Notes:
 
 | Form area | Render file(s) | Submit mechanism | Handler(s) | Security controls | Response/UX |
 |---|---|---|---|---|---|
-| Create lead | `page-crm-new.php` | POST to `/crm/new/` route (not `admin-post`) | `pera_crm_handle_new_lead()` in `inc/crm-router.php` (hooked on `init`) | login + role/cap checks (`edit_crm_clients`), nonce `pera_crm_create_lead_nonce`, required field and source whitelist validation | Redirects to `/crm/new/` with error code or new `/crm/client/{id}/` |
+| Create lead | `page-crm-new.php` | POST to `/crm/new/` route (not `admin-post`) | Historical: theme handler was `pera_crm_handle_new_lead()` in `inc/crm-router.php`; current ownership is plugin-side | login + role/cap checks (`edit_crm_clients`), nonce `pera_crm_create_lead_nonce`, required field and source whitelist validation | Redirects to `/crm/new/` with error code or new `/crm/client/{id}/` |
 | Client profile/status/forms and reminders | `page-crm.php`, `page-crm-client.php` | `admin-post.php` | MU plugin actions in `inc/admin/admin.php` routed to handlers in `inc/admin/actions.php` | Per-action nonce checks (`check_admin_referer`/`wp_verify_nonce`), capability and advisor-scope checks | Redirect back with `peracrm_notice`/`crm_notice` flags |
 | Deal create/update/delete | `page-crm-client.php` | `admin-post.php` | `peracrm_handle_create_deal`, `peracrm_handle_update_deal`, `peracrm_handle_delete_deal` | Shared validator `peracrm_is_valid_deal_submission_request` enforces matching action + nonce; caps enforced | Safe redirects with success/failure notice |
 | Property search (front-end CRM helper) | `page-crm-client.php` + `js/crm.js` | `admin-ajax.php?action=pera_crm_property_search` | `wp_ajax_pera_crm_property_search` in `inc/crm-client-view.php` | nonce from localized script (`propertySearchNonce`) verified server-side; capability checks on client scope | `wp_send_json_success/error` |
@@ -85,6 +87,7 @@ Recommendation:
 Findings:
 - `admin-post` actions in front-end CRM forms include `action=` and corresponding `admin_post_{action}` registrations.
 - Front-end public forms (SR/favourites/citizenship) intentionally use native same-page POST + `init` handler, not `admin-post`.
+- CRM routing/shim ownership referenced in older theme notes should be treated as historical; runtime ownership is plugin-side.
 - AJAX handlers using front-end context return `wp_send_json_*` and verify nonce.
 - REST routes are registered with permission callbacks; protected CRM REST uses `wp_rest` nonce expectations for cookie-auth contexts.
 

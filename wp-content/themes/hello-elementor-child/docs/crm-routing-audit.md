@@ -1,8 +1,8 @@
-# CRM Routing Audit: `/crm/new/` 404 and implementation plan
+# CRM Routing Audit: `/crm/new/` 404 and implementation plan (historical theme-era notes)
 
 ## Scope
-Audited files:
-- `inc/crm-router.php`
+Audited files (historical snapshot before CRM routing moved out of the theme runtime):
+- `inc/crm-router.php` *(removed from theme; routing now plugin-owned)*
 - `page-crm.php`
 - `page-crm-new.php`
 - `page-crm-client.php`
@@ -16,16 +16,16 @@ Most common causes:
 3. Query var not public, so rule cannot drive template conditions.
 4. Template include callback not handling the resolved view.
 
-## CRM rewrite rule inventory (code-level)
-Current CRM router registers these routes on `init`:
+## CRM rewrite rule inventory (code-level, historical)
+The list below documents the former theme router behavior. Active CRM rewrite ownership now lives in plugin code:
 1. `^crm/?$` -> `index.php?pera_crm=1`
 2. `^crm/new/?$` -> `index.php?pera_crm=1&pera_crm_view=new`
 3. `^crm/client/([0-9]+)/?$` -> `index.php?pera_crm=1&pera_crm_view=client&pera_crm_client_id=$matches[1]`
 4. `^crm/leads/?$` -> `index.php?pera_crm=1&pera_crm_view=leads&paged=1`
 5. `^crm/leads/page/([0-9]+)/?$` -> `index.php?pera_crm=1&pera_crm_view=leads&paged=$matches[1]`
 
-## Query vars registered
-CRM router currently registers these public query vars:
+## Query vars registered (historical)
+Former theme router registered these public query vars:
 - `pera_crm`
 - `pera_crm_view`
 - `pera_crm_client_id`
@@ -37,13 +37,13 @@ CRM router currently registers these public query vars:
 - `/crm/new/` => sets `pera_crm=1`, `pera_crm_view=new`.
 - `/crm/client/<id>/` => sets `pera_crm=1`, `pera_crm_view=client`, `pera_crm_client_id=<id>`.
 
-## Template include behavior
-`template_include` checks CRM virtual route (`pera_crm=1`):
+## Template include behavior (historical)
+Theme `template_include` checks CRM virtual route (`pera_crm=1`):
 - if `pera_crm_view === new` => load `page-crm-new.php`
 - else if `pera_crm_view === client` => load `page-crm-client.php`
 - else => load `page-crm.php`
 
-## Implementation summary completed
+## Implementation summary completed (historical)
 1. Route registration normalized to:
    - `^crm/?$` => `index.php?pera_crm=1`
    - `^crm/new/?$` => `index.php?pera_crm=1&pera_crm_view=new`
@@ -54,7 +54,7 @@ CRM router currently registers these public query vars:
 6. Added success notice on client page.
 7. Rewrite flush remains handled on `after_switch_theme`; manual flush instructions included below.
 
-## Rewrite flush instructions
+## Rewrite flush instructions (still applicable when CRM routes change in plugin code)
 - WP Admin: **Settings → Permalinks → Save Changes**.
 - WP-CLI: `wp rewrite flush --hard`
 
@@ -85,5 +85,5 @@ User GET /crm/new/
   -> template_include => page-crm-client.php
 ```
 
-## Host/cookie note for front-end `admin-post.php` submissions
+## Host/cookie note for front-end `admin-post.php` submissions (still applicable)
 When `WP_HOME` and `WP_SITEURL` differ by host (for example `www.example.com` vs `example.com`), front-end CRM forms must post to `home_url('/wp-admin/admin-post.php')` so browser auth cookies are sent on submit. Using `admin_url('admin-post.php')` on front-end templates can target the `WP_SITEURL` host and cause `is_user_logged_in()` to fail during `admin_post_*` handling.
