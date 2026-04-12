@@ -38,7 +38,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 <input type="checkbox" id="nav-toggle" class="nav-toggle" hidden>
 
 <?php
-// Do not depend on crm-router.php load timing: it is route-gated to /crm/* requests.
+// CRM capability helpers may be provided by plugin-owned routing/bootstrap; keep fallback checks defensive.
 if ( function_exists( 'peracrm_user_can_access_crm' ) ) {
   $crm_header_access_allowed = (bool) peracrm_user_can_access_crm();
 } elseif ( function_exists( 'pera_crm_user_can_access' ) ) {
