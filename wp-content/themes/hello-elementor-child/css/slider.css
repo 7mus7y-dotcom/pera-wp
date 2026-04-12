@@ -183,25 +183,6 @@
 }
 
 /* =======================================================
-   Featured picks: slider on mobile, 2-up grid on desktop
-   ======================================================= */
-@media (min-width: 1024px) {
-  .cards-slider--featured-picks {
-    display: grid;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 24px;
-    overflow: visible;
-    scroll-snap-type: none;
-  }
-
-  .cards-slider--featured-picks .slider-card {
-    flex: none;
-    max-width: 100%;
-    scroll-snap-align: none;
-  }
-}
-
-/* =======================================================
    Property Gallery: production filmstrip
    ======================================================= */
 .property-gallery__strip{
