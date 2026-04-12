@@ -10,7 +10,7 @@ add_action( 'wp_enqueue_scripts', function () {
      0) ALWAYS
   ========================= */
 
-  $is_crm_route = function_exists( 'pera_is_crm_route' ) && pera_is_crm_route();
+  $is_crm_route = function_exists( 'pera_is_crm_route' ) ? (bool) pera_is_crm_route() : false;
 
   if ( ! $is_crm_route ) {
     // main.css everywhere except plugin-owned CRM shell routes.
