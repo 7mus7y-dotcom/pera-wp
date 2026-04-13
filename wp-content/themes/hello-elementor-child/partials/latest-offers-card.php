@@ -105,7 +105,7 @@ $map_url        = isset( $card['map_url'] ) ? (string) $card['map_url'] : '';
 			</a>
 		<?php endif; ?>
 
-			<?php if ( '' !== $notes ) : ?>
+			<?php if ( pera_is_portfolio_token_page() && '' !== $notes ) : ?>
 				<details class="pera-latest-offer-card__note">
 					<summary class="pill pill--subtle pera-latest-offer-card__pill">
 					<svg class="icon pera-latest-offer-card__icon" aria-hidden="true" width="16" height="16">

@@ -147,6 +147,13 @@ if ( ! function_exists( 'pera_latest_offers_format_notes' ) ) {
 	}
 }
 
+if ( ! function_exists( 'pera_is_portfolio_token_page' ) ) {
+	function pera_is_portfolio_token_page(): bool {
+		$token = get_query_var( 'portfolio_token' );
+		return ! empty( $token );
+	}
+}
+
 if ( ! function_exists( 'pera_latest_offers_property_title' ) ) {
 	function pera_latest_offers_property_title( int $property_id ): string {
 		$title = trim( (string) get_the_title( $property_id ) );
