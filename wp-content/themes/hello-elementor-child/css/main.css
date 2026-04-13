@@ -3772,7 +3772,7 @@ body:not(.single-post) tr:nth-child(even) {
 }
 
 .citizenship-hero .hero-content {
-  padding-bottom: 34px;
+  padding-bottom: 28px;
 }
 
 .citizenship-hero--option-a1,
@@ -3808,16 +3808,17 @@ body:not(.single-post) tr:nth-child(even) {
 }
 
 .citizenship-hero .hero-content h1 {
-  max-width: 18ch;
+  max-width: 17ch;
   line-height: 1.14;
-  margin-bottom: 0.45em;
-  font-size: clamp(1.85rem, 3.8vw, 2.65rem);
+  margin-bottom: 0.42em;
+  font-size: clamp(1.86rem, 3.1vw, 2.75rem);
 }
 
 .citizenship-hero .lead {
-  max-width: 54ch;
-  margin-bottom: 0.9rem;
-  font-size: clamp(0.99rem, 1.3vw, 1.06rem);
+  max-width: 58ch;
+  margin-bottom: 1rem;
+  font-size: clamp(0.99rem, 1.15vw, 1.08rem);
+  line-height: 1.56;
 }
 
 .citizenship-brand {
@@ -3838,16 +3839,20 @@ body:not(.single-post) tr:nth-child(even) {
 }
 
 .citizenship-hero-grid {
+  max-width: min(760px, 100%);
+}
+
+.citizenship-hero-copy {
   display: grid;
-  grid-template-columns: minmax(0, 1.1fr) minmax(0, 0.9fr);
-  gap: 16px;
+  gap: 10px;
   align-items: start;
 }
 
 .citizenship-hero-card {
-  margin-top: 8px;
+  margin-top: 6px;
+  width: min(640px, 100%);
   border-radius: 18px;
-  padding: 12px 14px 8px;
+  padding: 14px 16px 10px;
   box-shadow: 0 8px 20px rgba(15, 23, 42, 0.09);
 }
 
@@ -3862,7 +3867,7 @@ body:not(.single-post) tr:nth-child(even) {
 }
 
 .citizenship-requirements-group + .citizenship-requirements-group {
-  margin-top: 10px;
+  margin-top: 12px;
 }
 
 .citizenship-requirements-group h3 {
@@ -3884,8 +3889,9 @@ body:not(.single-post) tr:nth-child(even) {
 }
 
 .citizenship-hero .hero-actions {
-  margin-top: 10px;
+  margin-top: 2px;
   gap: 8px;
+  width: min(640px, 100%);
 }
 
 .citizenship-hero .hero-actions .btn {
@@ -3893,13 +3899,10 @@ body:not(.single-post) tr:nth-child(even) {
 }
 
 .citizenship-trust-strip {
-  margin: 8px 0 0;
+  margin: 2px 0 0;
+  max-width: 60ch;
   font-size: 0.84rem;
   color: var(--text-soft);
-}
-
-.citizenship-hero-media .media-frame {
-  min-height: 320px;
 }
 
 .citizenship-value-grid {
@@ -3912,10 +3915,6 @@ body:not(.single-post) tr:nth-child(even) {
 }
 
 @media (max-width: 900px) {
-  .citizenship-hero-grid {
-    grid-template-columns: 1fr;
-  }
-
   .citizenship-layout-switcher {
     border-radius: 12px;
     top: auto;
@@ -3933,6 +3932,14 @@ body:not(.single-post) tr:nth-child(even) {
     padding-bottom: 18px;
   }
 
+  .citizenship-hero-grid {
+    max-width: 100%;
+  }
+
+  .citizenship-hero-copy {
+    gap: 9px;
+  }
+
   .citizenship-hero .hero-content h1 {
     max-width: 16ch;
     font-size: clamp(1.55rem, 6.3vw, 1.98rem);
@@ -3946,12 +3953,6 @@ body:not(.single-post) tr:nth-child(even) {
   .citizenship-brand {
     margin-bottom: 6px;
     font-size: 0.75rem;
-  }
-
-  .citizenship-hero-media .media-frame {
-    min-height: 0;
-    aspect-ratio: 4 / 3;
-    max-height: 270px;
   }
 
   .citizenship-hero .hero-actions {
@@ -3983,6 +3984,38 @@ body:not(.single-post) tr:nth-child(even) {
 
   .citizenship-consultancy-preview .feature-grid {
     gap: 12px;
+  }
+}
+
+@media (min-width: 901px) and (max-width: 1199px) {
+  .citizenship-hero .hero-content {
+    padding-top: clamp(34px, 5vw, 54px);
+    padding-bottom: 24px;
+  }
+
+  .citizenship-hero-grid {
+    max-width: min(700px, 100%);
+  }
+
+  .citizenship-hero-card,
+  .citizenship-hero .hero-actions {
+    width: min(610px, 100%);
+  }
+}
+
+@media (min-width: 1200px) {
+  .citizenship-hero .hero-content {
+    padding-top: clamp(44px, 4.6vw, 76px);
+    padding-bottom: 24px;
+  }
+
+  .citizenship-hero-grid {
+    max-width: min(790px, calc(100% - 120px));
+  }
+
+  .citizenship-hero-card,
+  .citizenship-hero .hero-actions {
+    width: min(620px, 100%);
   }
 }
 
