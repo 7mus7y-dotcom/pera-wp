@@ -142,7 +142,7 @@ peracrm_frontend_render_shell_header();
                 </article>
               <?php endforeach; ?>
             </div>
-            <section class="content-panel" aria-labelledby="crm-performance-attention-title">
+            <section class="content-panel crm-performance-subsection" aria-labelledby="crm-performance-attention-title">
               <h2 id="crm-performance-attention-title" class="crm-section__title"><?php esc_html_e( 'Attention Needed', 'peracrm' ); ?></h2>
               <div class="crm-performance-cards crm-performance-grid" role="list" aria-label="<?php esc_attr_e( 'Attention needed cards', 'peracrm' ); ?>">
                 <?php foreach ( $attention_defs as $key => $label ) : ?>
@@ -154,7 +154,7 @@ peracrm_frontend_render_shell_header();
                 <?php endforeach; ?>
               </div>
             </section>
-            <section class="content-panel" aria-labelledby="crm-performance-progress-title">
+            <section class="content-panel crm-performance-subsection" aria-labelledby="crm-performance-progress-title">
               <h2 id="crm-performance-progress-title" class="crm-section__title"><?php esc_html_e( 'Cohort Progress', 'peracrm' ); ?></h2>
               <div class="crm-performance-cards crm-performance-grid" role="list" aria-label="<?php esc_attr_e( 'Cohort progress count cards', 'peracrm' ); ?>">
                 <?php foreach ( $progress_count_defs as $key => $label ) : ?>
@@ -175,7 +175,7 @@ peracrm_frontend_render_shell_header();
                 <?php endforeach; ?>
               </div>
             </section>
-            <section class="content-panel" aria-labelledby="crm-performance-sources-title">
+            <section class="content-panel crm-performance-subsection crm-performance-subsection--sources" aria-labelledby="crm-performance-sources-title">
               <h2 id="crm-performance-sources-title" class="crm-section__title"><?php esc_html_e( 'Lead Sources', 'peracrm' ); ?></h2>
               <div class="crm-table-wrap crm-table-wrap--primitive">
                 <table class="crm-table">
@@ -196,11 +196,11 @@ peracrm_frontend_render_shell_header();
                     <?php else : ?>
                       <?php foreach ( $sources as $row ) : ?>
                         <tr>
-                          <td><?php echo esc_html( (string) ( $row['source'] ?? '' ) ); ?></td>
-                          <td><?php echo esc_html( number_format_i18n( max( 0, (int) ( $row['leads'] ?? 0 ) ) ) ); ?></td>
-                          <td><?php echo esc_html( number_format_i18n( max( 0, (int) ( $row['qualified'] ?? 0 ) ) ) ); ?></td>
-                          <td><?php echo esc_html( number_format_i18n( max( 0, (int) ( $row['junk'] ?? 0 ) ) ) ); ?></td>
-                          <td><?php echo esc_html( number_format_i18n( max( 0, (int) ( $row['viewings'] ?? 0 ) ) ) ); ?></td>
+                          <td data-label="<?php esc_attr_e( 'Source', 'peracrm' ); ?>"><?php echo esc_html( (string) ( $row['source'] ?? '' ) ); ?></td>
+                          <td data-label="<?php esc_attr_e( 'Leads', 'peracrm' ); ?>"><?php echo esc_html( number_format_i18n( max( 0, (int) ( $row['leads'] ?? 0 ) ) ) ); ?></td>
+                          <td data-label="<?php esc_attr_e( 'Qualified', 'peracrm' ); ?>"><?php echo esc_html( number_format_i18n( max( 0, (int) ( $row['qualified'] ?? 0 ) ) ) ); ?></td>
+                          <td data-label="<?php esc_attr_e( 'Junk', 'peracrm' ); ?>"><?php echo esc_html( number_format_i18n( max( 0, (int) ( $row['junk'] ?? 0 ) ) ) ); ?></td>
+                          <td data-label="<?php esc_attr_e( 'Viewings', 'peracrm' ); ?>"><?php echo esc_html( number_format_i18n( max( 0, (int) ( $row['viewings'] ?? 0 ) ) ) ); ?></td>
                         </tr>
                       <?php endforeach; ?>
                     <?php endif; ?>
