@@ -1466,10 +1466,11 @@ body.crm-route .crm-page--client-view .crm-portfolio-actions .peracrm-linked-pro
 }
 
 .crm-page--performance .crm-performance-subsection {
-  padding: 12px;
-  border: 1px solid var(--border, #e8ecf2);
+  padding: 12px 0;
+  border: 0;
+  border-top: 1px solid color-mix(in srgb, var(--border, #e8ecf2) 72%, transparent 28%);
   border-radius: 12px;
-  background: var(--surface-raised, #fcfdff);
+  background: transparent;
 }
 
 .crm-page--performance .crm-performance-subsection + .crm-performance-subsection {
@@ -1589,6 +1590,16 @@ body.crm-route .crm-page--client-view .crm-portfolio-actions .peracrm-linked-pro
 
 .crm-page--performance .crm-performance-subsection .crm-section__title {
   font-size: 0.96rem;
+  margin-bottom: 8px;
+}
+
+.crm-page--performance .crm-performance-subsection--sources .crm-table-wrap.crm-table-wrap--primitive {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+.crm-page--performance .crm-performance-subsection--sources .crm-table {
+  min-width: 560px;
 }
 
 .crm-page--overview .crm-overview-eyebrow {
@@ -4075,9 +4086,10 @@ body.crm-route #site-header.peracrm-shell-header .crm-side-nav__toggle--header:f
   }
 
   .crm-page--performance .crm-performance-subsection {
-    padding: 10px;
+    padding: 10px 0;
     background: transparent;
-    border-color: color-mix(in srgb, var(--border, #e8ecf2) 78%, transparent 22%);
+    border: 0;
+    border-top: 1px solid color-mix(in srgb, var(--border, #e8ecf2) 62%, transparent 38%);
   }
 
   .crm-page--performance .crm-performance-subsection .crm-section__title {
@@ -4087,59 +4099,23 @@ body.crm-route #site-header.peracrm-shell-header .crm-side-nav__toggle--header:f
   .crm-page--performance .crm-performance-subsection--sources .crm-table-wrap.crm-table-wrap--primitive {
     border: 0;
     background: transparent;
+    margin: 0 -2px;
+    padding: 0 2px 4px;
   }
 
-  .crm-page--performance .crm-performance-subsection--sources .crm-table thead {
-    display: none;
+  .crm-page--performance .crm-performance-subsection--sources .crm-table {
+    min-width: 520px;
   }
 
-  .crm-page--performance .crm-performance-subsection--sources .crm-table tbody,
-  .crm-page--performance .crm-performance-subsection--sources .crm-table tr,
-  .crm-page--performance .crm-performance-subsection--sources .crm-table td {
-    display: block;
-    width: 100%;
-  }
-
-  .crm-page--performance .crm-performance-subsection--sources .crm-table tbody tr {
-    border: 1px solid var(--border, #e8ecf2);
-    border-radius: 10px;
-    padding: 8px 10px;
-    margin-bottom: 8px;
-    background: var(--surface, #ffffff);
-  }
-
-  .crm-page--performance .crm-performance-subsection--sources .crm-table tbody tr:last-child {
-    margin-bottom: 0;
-  }
-
+  .crm-page--performance .crm-performance-subsection--sources .crm-table thead th,
   .crm-page--performance .crm-performance-subsection--sources .crm-table tbody td {
-    border: 0;
-    padding: 6px 0;
-    display: flex;
-    align-items: baseline;
-    justify-content: space-between;
-    gap: 12px;
-    font-size: 0.9rem;
-  }
-
-  .crm-page--performance .crm-performance-subsection--sources .crm-table tbody td::before {
-    content: attr(data-label);
-    color: var(--text-soft, #475569);
-    font-size: 0.74rem;
-    font-weight: 700;
-    letter-spacing: 0.05em;
-    text-transform: uppercase;
-    flex: 0 0 auto;
+    padding: 8px 10px;
+    font-size: 0.84rem;
+    white-space: nowrap;
   }
 
   .crm-page--performance .crm-performance-subsection--sources .crm-table .crm-table__empty td {
-    justify-content: flex-start;
-    display: block;
-    padding: 4px 0;
-  }
-
-  .crm-page--performance .crm-performance-subsection--sources .crm-table .crm-table__empty td::before {
-    content: none;
+    white-space: normal;
   }
 }
 
@@ -6068,17 +6044,8 @@ body.crm-route #site-header.peracrm-shell-header.is-scrolled .peracrm-header-act
   }
 
   .crm-page--performance .crm-performance-subsection {
-    background: color-mix(in srgb, var(--surface-raised) 82%, transparent 18%);
+    background: transparent;
     border-color: var(--border);
-  }
-
-  .crm-page--performance .crm-performance-subsection--sources .crm-table tbody tr {
-    background: var(--surface-soft);
-    border-color: var(--border);
-  }
-
-  .crm-page--performance .crm-performance-subsection--sources .crm-table tbody td::before {
-    color: var(--text-soft);
   }
 
   .crm-page .btn--solid:hover,
