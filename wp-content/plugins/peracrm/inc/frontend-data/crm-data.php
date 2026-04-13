@@ -1796,25 +1796,8 @@ if ( ! function_exists( 'pera_crm_get_pipeline_view_data' ) ) {
 
 			$budget_min = isset( $profile['budget_min_usd'] ) ? absint( $profile['budget_min_usd'] ) : 0;
 			$budget_max = isset( $profile['budget_max_usd'] ) ? absint( $profile['budget_max_usd'] ) : 0;
-			$lead_source = '';
-
-			$lead_source_candidates = array(
-				$party['lead_source'] ?? '',
-				$party['source'] ?? '',
-				$profile['lead_source'] ?? '',
-				$profile['source'] ?? '',
-				get_post_meta( $client_id, 'crm_source', true ),
-			);
-
-			foreach ( $lead_source_candidates as $lead_source_candidate ) {
-				$lead_source_candidate = sanitize_text_field( (string) $lead_source_candidate );
-				if ( '' === $lead_source_candidate ) {
-					continue;
-				}
-
-				$lead_source = ucwords( str_replace( '_', ' ', $lead_source_candidate ) );
-				break;
-			}
+			$source_data = pera_crm_resolve_party_source_bucket( $client_id, $party );
+			$lead_source = sanitize_text_field( (string) ( $source_data['label'] ?? '' ) );
 
 			$board[ $stage_key ]['items'][] = array(
 				'id'            => $client_id,
@@ -2046,6 +2029,46 @@ if ( ! function_exists( 'pera_crm_filter_true_lead_party_ids' ) ) {
 	}
 }
 
+if ( ! function_exists( 'pera_crm_resolve_party_source_bucket' ) ) {
+	/**
+	 * Resolve lead source using existing CRM pipeline precedence.
+	 *
+	 * @param int                $lead_id
+	 * @param array<string,mixed> $party
+	 * @return array{key:string,label:string}
+	 */
+	function pera_crm_resolve_party_source_bucket( int $lead_id, array $party = array() ): array {
+		$lead_id = absint( $lead_id );
+		$profile = function_exists( 'peracrm_client_get_profile' ) ? (array) peracrm_client_get_profile( $lead_id ) : array();
+
+		$lead_source_candidates = array(
+			$party['lead_source'] ?? '',
+			$party['source'] ?? '',
+			$profile['lead_source'] ?? '',
+			$profile['source'] ?? '',
+			get_post_meta( $lead_id, 'crm_source', true ),
+		);
+
+		foreach ( $lead_source_candidates as $lead_source_candidate ) {
+			$lead_source_candidate = sanitize_text_field( (string) $lead_source_candidate );
+			if ( '' === $lead_source_candidate ) {
+				continue;
+			}
+
+			$source_key = sanitize_key( $lead_source_candidate );
+			return array(
+				'key'   => $source_key,
+				'label' => ucwords( str_replace( '_', ' ', $lead_source_candidate ) ),
+			);
+		}
+
+		return array(
+			'key'   => '',
+			'label' => '',
+		);
+	}
+}
+
 if ( ! function_exists( 'pera_crm_get_performance_summary' ) ) {
 	/**
 	 * Build server-rendered performance summary payload.
@@ -2080,25 +2103,68 @@ if ( ! function_exists( 'pera_crm_get_performance_summary' ) ) {
 		$junk      = 0;
 		$qualified = 0;
 		$viewings  = 0;
+		$source_rows = array();
 
 		foreach ( $cohort_ids as $lead_id ) {
 			$party       = is_array( $party_map[ $lead_id ] ?? null ) ? $party_map[ $lead_id ] : array();
 			$disposition = sanitize_key( (string) ( $party['disposition'] ?? 'none' ) );
 			$stage       = sanitize_key( (string) ( $party['lead_pipeline_stage'] ?? '' ) );
 			$is_junk     = 'junk_lead' === $disposition;
+			$source_data = pera_crm_resolve_party_source_bucket( (int) $lead_id, $party );
+			$source_key  = sanitize_key( (string) ( $source_data['key'] ?? '' ) );
+			$source_label = sanitize_text_field( (string) ( $source_data['label'] ?? '' ) );
+
+			if ( '' === $source_key ) {
+				$source_key   = 'unknown';
+				$source_label = __( 'Unknown', 'peracrm' );
+			}
+
+			if ( '' === $source_label ) {
+				$source_label = ucwords( str_replace( '_', ' ', $source_key ) );
+			}
+
+			if ( ! isset( $source_rows[ $source_key ] ) ) {
+				$source_rows[ $source_key ] = array(
+					'source'    => $source_label,
+					'key'       => $source_key,
+					'leads'     => 0,
+					'qualified' => 0,
+					'junk'      => 0,
+					'viewings'  => 0,
+				);
+			}
+
+			++$source_rows[ $source_key ]['leads'];
 
 			if ( $is_junk ) {
 				++$junk;
+				++$source_rows[ $source_key ]['junk'];
 				continue;
 			}
 
 			if ( 'qualified' === $stage ) {
 				++$qualified;
+				++$source_rows[ $source_key ]['qualified'];
 			}
 
 			if ( 'viewing_arranged' === $stage ) {
 				++$viewings;
+				++$source_rows[ $source_key ]['viewings'];
 			}
+		}
+
+		if ( ! empty( $source_rows ) ) {
+			uasort(
+				$source_rows,
+				static function ( array $a, array $b ): int {
+					$lead_compare = (int) ( $b['leads'] ?? 0 ) <=> (int) ( $a['leads'] ?? 0 );
+					if ( 0 !== $lead_compare ) {
+						return $lead_compare;
+					}
+
+					return strcasecmp( (string) ( $a['source'] ?? '' ), (string) ( $b['source'] ?? '' ) );
+				}
+			);
 		}
 
 		$deals_created = 0;
@@ -2261,6 +2327,7 @@ if ( ! function_exists( 'pera_crm_get_performance_summary' ) ) {
 				'untouched'   => $untouched,
 				'overdue'     => $overdue,
 			),
+			'sources' => array_values( $source_rows ),
 		);
 	}
 }

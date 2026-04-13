@@ -47,12 +47,14 @@ $summary = function_exists( 'pera_crm_get_performance_summary' )
 			'untouched'   => 0,
 			'overdue'     => 0,
 		),
+		'sources' => array(),
 	);
 
 $cards = is_array( $summary['cards'] ?? null ) ? $summary['cards'] : array();
 
 $attention = is_array( $summary['attention'] ?? null ) ? $summary['attention'] : array();
 $progress  = is_array( $summary['progress'] ?? null ) ? $summary['progress'] : array();
+$sources   = is_array( $summary['sources'] ?? null ) ? $summary['sources'] : array();
 
 $attention_defs = array(
 	'no_activity' => __( 'No Activity Yet', 'peracrm' ),
@@ -171,6 +173,39 @@ peracrm_frontend_render_shell_header();
                     <p class="crm-performance-card__label"><?php echo esc_html( $label ); ?></p>
                   </article>
                 <?php endforeach; ?>
+              </div>
+            </section>
+            <section class="content-panel" aria-labelledby="crm-performance-sources-title">
+              <h2 id="crm-performance-sources-title" class="crm-section__title"><?php esc_html_e( 'Lead Sources', 'peracrm' ); ?></h2>
+              <div class="crm-table-wrap crm-table-wrap--primitive">
+                <table class="crm-table">
+                  <thead>
+                    <tr>
+                      <th><?php esc_html_e( 'Source', 'peracrm' ); ?></th>
+                      <th><?php esc_html_e( 'Leads', 'peracrm' ); ?></th>
+                      <th><?php esc_html_e( 'Qualified', 'peracrm' ); ?></th>
+                      <th><?php esc_html_e( 'Junk', 'peracrm' ); ?></th>
+                      <th><?php esc_html_e( 'Viewings', 'peracrm' ); ?></th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <?php if ( empty( $sources ) ) : ?>
+                      <tr class="crm-table__empty">
+                        <td colspan="5"><?php esc_html_e( 'No source data for this period.', 'peracrm' ); ?></td>
+                      </tr>
+                    <?php else : ?>
+                      <?php foreach ( $sources as $row ) : ?>
+                        <tr>
+                          <td><?php echo esc_html( (string) ( $row['source'] ?? '' ) ); ?></td>
+                          <td><?php echo esc_html( number_format_i18n( max( 0, (int) ( $row['leads'] ?? 0 ) ) ) ); ?></td>
+                          <td><?php echo esc_html( number_format_i18n( max( 0, (int) ( $row['qualified'] ?? 0 ) ) ) ); ?></td>
+                          <td><?php echo esc_html( number_format_i18n( max( 0, (int) ( $row['junk'] ?? 0 ) ) ) ); ?></td>
+                          <td><?php echo esc_html( number_format_i18n( max( 0, (int) ( $row['viewings'] ?? 0 ) ) ) ); ?></td>
+                        </tr>
+                      <?php endforeach; ?>
+                    <?php endif; ?>
+                  </tbody>
+                </table>
               </div>
             </section>
           </div>
