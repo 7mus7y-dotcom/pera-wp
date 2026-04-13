@@ -2069,49 +2069,101 @@ if ( ! function_exists( 'pera_crm_resolve_party_source_bucket' ) ) {
 	}
 }
 
-if ( ! function_exists( 'pera_crm_get_performance_summary' ) ) {
+if ( ! function_exists( 'pera_crm_get_previous_performance_range' ) ) {
 	/**
-	 * Build server-rendered performance summary payload.
+	 * Derive the immediately preceding equivalent range for comparison.
 	 *
-	 * @param array<string,mixed> $args
+	 * @param array{key?:string,label?:string,date_from?:string,date_to?:string} $current_range
+	 * @return array{key:string,label:string,date_from:string,date_to:string}
+	 */
+	function pera_crm_get_previous_performance_range( array $current_range ): array {
+		$key      = sanitize_key( (string) ( $current_range['key'] ?? '30d' ) );
+		$timezone = wp_timezone();
+
+		try {
+			$current_from = new DateTimeImmutable( (string) ( $current_range['date_from'] ?? '' ), $timezone );
+			$current_to   = new DateTimeImmutable( (string) ( $current_range['date_to'] ?? '' ), $timezone );
+		} catch ( Exception $e ) {
+			return pera_crm_resolve_performance_range( '30d' );
+		}
+
+		switch ( $key ) {
+			case 'this_month':
+				$previous_key = 'last_month';
+				$from_dt      = $current_from->modify( 'first day of last month' )->setTime( 0, 0, 0 );
+				$to_dt        = $current_from->modify( 'last day of last month' )->setTime( 23, 59, 59 );
+				$label        = pera_crm_get_performance_range_options()['last_month'] ?? __( 'Last month', 'peracrm' );
+				break;
+			case 'last_month':
+				$previous_key = 'last_month';
+				$from_dt      = $current_from->modify( 'first day of last month' )->setTime( 0, 0, 0 );
+				$to_dt        = $current_from->modify( 'last day of last month' )->setTime( 23, 59, 59 );
+				$label        = sprintf(
+					/* translators: %s: month label (e.g. March 2026). */
+					__( 'Previous: %s', 'peracrm' ),
+					wp_date( 'F Y', $from_dt->getTimestamp(), $timezone )
+				);
+				break;
+			case '7d':
+			case '30d':
+			default:
+				$previous_key = $key;
+				$seconds      = max( 1, $current_to->getTimestamp() - $current_from->getTimestamp() + 1 );
+				$from_dt      = $current_from->modify( '-' . $seconds . ' seconds' );
+				$to_dt        = $current_from->modify( '-1 second' );
+				$label        = sprintf(
+					/* translators: %1$s: from date, %2$s: to date. */
+					__( 'Previous period (%1$s – %2$s)', 'peracrm' ),
+					wp_date( get_option( 'date_format' ), $from_dt->getTimestamp(), $timezone ),
+					wp_date( get_option( 'date_format' ), $to_dt->getTimestamp(), $timezone )
+				);
+				break;
+		}
+
+		return array(
+			'key'       => $previous_key,
+			'label'     => $label,
+			'date_from' => $from_dt->format( 'Y-m-d H:i:s' ),
+			'date_to'   => $to_dt->format( 'Y-m-d H:i:s' ),
+		);
+	}
+}
+
+if ( ! function_exists( 'pera_crm_build_performance_summary_for_range' ) ) {
+	/**
+	 * Build performance summary payload for a resolved date range.
+	 *
+	 * @param array{key:string,label:string,date_from:string,date_to:string} $range
 	 * @return array<string,mixed>
 	 */
-	function pera_crm_get_performance_summary( array $args = array() ): array {
-		$current_user_id = get_current_user_id();
-		$effective_user  = function_exists( 'peracrm_get_effective_crm_user_id' ) ? (int) peracrm_get_effective_crm_user_id() : $current_user_id;
-		$is_employee     = pera_crm_user_is_employee( $effective_user );
-		$scope_user_id   = $is_employee ? $effective_user : 0;
-		$requested_scope = isset( $args['scope_user_id'] ) ? absint( $args['scope_user_id'] ) : null;
-
-		if ( null !== $requested_scope ) {
-			$scope_user_id = $requested_scope;
-		}
-
-		$range = pera_crm_resolve_performance_range( isset( $args['range_key'] ) ? (string) $args['range_key'] : '30d' );
-		if ( ! empty( $args['date_from'] ) && ! empty( $args['date_to'] ) ) {
-			$range['date_from'] = sanitize_text_field( (string) $args['date_from'] );
-			$range['date_to']   = sanitize_text_field( (string) $args['date_to'] );
-		}
-
+	function pera_crm_build_performance_summary_for_range( array $range, int $scope_user_id, bool $is_employee ): array {
 		$candidate_party_ids = pera_crm_get_performance_assigned_party_ids( $range, $scope_user_id );
 		$cohort_ids          = $candidate_party_ids;
-		$party_map  = ! empty( $cohort_ids ) && function_exists( 'peracrm_party_get_status_by_ids' )
+		$party_map           = ! empty( $cohort_ids ) && function_exists( 'peracrm_party_get_status_by_ids' )
 			? peracrm_party_get_status_by_ids( $cohort_ids )
 			: array();
 
-		$new_leads = count( $cohort_ids );
-		$junk      = 0;
-		$qualified = 0;
-		$viewings  = 0;
-		$source_rows = array();
+		$new_leads    = count( $cohort_ids );
+		$junk         = 0;
+		$qualified    = 0;
+		$viewings     = 0;
+		$source_rows  = array();
+		$no_activity  = 0;
+		$no_reminder  = 0;
+		$untouched    = 0;
+		$overdue      = 0;
+		$stale_ts     = current_time( 'timestamp' ) - ( 3 * DAY_IN_SECONDS );
+		$now_mysql    = current_time( 'mysql' );
+		$reminder_by_lead = array();
 
 		foreach ( $cohort_ids as $lead_id ) {
-			$party       = is_array( $party_map[ $lead_id ] ?? null ) ? $party_map[ $lead_id ] : array();
-			$disposition = sanitize_key( (string) ( $party['disposition'] ?? 'none' ) );
-			$stage       = sanitize_key( (string) ( $party['lead_pipeline_stage'] ?? '' ) );
-			$is_junk     = 'junk_lead' === $disposition;
-			$source_data = pera_crm_resolve_party_source_bucket( (int) $lead_id, $party );
-			$source_key  = sanitize_key( (string) ( $source_data['key'] ?? '' ) );
+			$lead_id      = (int) $lead_id;
+			$party        = is_array( $party_map[ $lead_id ] ?? null ) ? $party_map[ $lead_id ] : array();
+			$disposition  = sanitize_key( (string) ( $party['disposition'] ?? 'none' ) );
+			$stage        = sanitize_key( (string) ( $party['lead_pipeline_stage'] ?? '' ) );
+			$is_junk      = 'junk_lead' === $disposition;
+			$source_data  = pera_crm_resolve_party_source_bucket( $lead_id, $party );
+			$source_key   = sanitize_key( (string) ( $source_data['key'] ?? '' ) );
 			$source_label = sanitize_text_field( (string) ( $source_data['label'] ?? '' ) );
 
 			if ( '' === $source_key ) {
@@ -2139,97 +2191,20 @@ if ( ! function_exists( 'pera_crm_get_performance_summary' ) ) {
 			if ( $is_junk ) {
 				++$junk;
 				++$source_rows[ $source_key ]['junk'];
-				continue;
-			}
-
-			if ( 'qualified' === $stage ) {
-				++$qualified;
-				++$source_rows[ $source_key ]['qualified'];
-			}
-
-			if ( 'viewing_arranged' === $stage ) {
-				++$viewings;
-				++$source_rows[ $source_key ]['viewings'];
-			}
-		}
-
-		if ( ! empty( $source_rows ) ) {
-			uasort(
-				$source_rows,
-				static function ( array $a, array $b ): int {
-					$lead_compare = (int) ( $b['leads'] ?? 0 ) <=> (int) ( $a['leads'] ?? 0 );
-					if ( 0 !== $lead_compare ) {
-						return $lead_compare;
-					}
-
-					return strcasecmp( (string) ( $a['source'] ?? '' ), (string) ( $b['source'] ?? '' ) );
+			} else {
+				if ( 'qualified' === $stage ) {
+					++$qualified;
+					++$source_rows[ $source_key ]['qualified'];
 				}
-			);
-		}
 
-		$deals_created = 0;
-		if ( function_exists( 'peracrm_deals_table_exists' ) && peracrm_deals_table_exists() ) {
-			$deals_created = (int) peracrm_with_target_blog(
-				static function () use ( $scope_user_id, $range ): int {
-					global $wpdb;
-
-					$table        = peracrm_table( 'peracrm_deals' );
-					$postmeta     = $wpdb->postmeta;
-					$from         = (string) $range['date_from'];
-					$to           = (string) $range['date_to'];
-					$where_clause = 'd.created_at >= %s AND d.created_at <= %s';
-					$params       = array( $from, $to );
-
-					if ( $scope_user_id > 0 ) {
-						$where_clause .= " AND (
-							d.owner_user_id = %d
-							OR (
-								(d.owner_user_id IS NULL OR d.owner_user_id = 0)
-								AND EXISTS (
-									SELECT 1
-									FROM {$postmeta} pm
-									WHERE pm.post_id = d.party_id
-									  AND pm.meta_key IN ('assigned_advisor_user_id','crm_assigned_advisor')
-									  AND pm.meta_value = %s
-								)
-							)
-						)";
-						$params[] = $scope_user_id;
-						$params[] = (string) $scope_user_id;
-					}
-
-					$query = $wpdb->prepare(
-						"SELECT COUNT(*)
-						 FROM {$table} d
-						 WHERE {$where_clause}",
-						$params
-					);
-
-					$count = $wpdb->get_var( $query ); // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery
-					return is_numeric( $count ) ? max( 0, (int) $count ) : 0;
+				if ( 'viewing_arranged' === $stage ) {
+					++$viewings;
+					++$source_rows[ $source_key ]['viewings'];
 				}
-			);
-		}
+			}
 
-
-
-		$qualified_rate = $new_leads > 0 ? ( (float) $qualified / (float) $new_leads ) : 0.0;
-		$viewing_rate   = $new_leads > 0 ? ( (float) $viewings / (float) $new_leads ) : 0.0;
-		$deal_rate      = $new_leads > 0 ? ( (float) $deals_created / (float) $new_leads ) : 0.0;
-
-		$no_activity = 0;
-		$no_reminder = 0;
-		$untouched   = 0;
-		$overdue     = 0;
-		$now_ts      = current_time( 'timestamp' );
-		$stale_ts    = $now_ts - ( 3 * DAY_IN_SECONDS );
-		$reminder_by_lead = array();
-
-		foreach ( $cohort_ids as $lead_id ) {
-			$lead_id           = (int) $lead_id;
-			$last_activity_ts  = 0;
-			$has_activity      = false;
-
+			$last_activity_ts = 0;
+			$has_activity     = false;
 			if ( function_exists( 'peracrm_client_health_get' ) ) {
 				$health           = (array) peracrm_client_health_get( $lead_id );
 				$last_activity_ts = (int) ( $health['last_activity_ts'] ?? 0 );
@@ -2247,7 +2222,6 @@ if ( ! function_exists( 'pera_crm_get_performance_summary' ) ) {
 					}
 				}
 			}
-
 			if ( ! $has_activity ) {
 				++$no_activity;
 			}
@@ -2256,24 +2230,21 @@ if ( ! function_exists( 'pera_crm_get_performance_summary' ) ) {
 				$lead_reminders = function_exists( 'peracrm_reminders_list_for_client' )
 					? (array) peracrm_reminders_list_for_client( $lead_id, 200, 0, null )
 					: array();
-
 				$has_any     = ! empty( $lead_reminders );
 				$has_overdue = false;
 				if ( $has_any ) {
-					$now_mysql = current_time( 'mysql' );
 					foreach ( $lead_reminders as $lead_reminder ) {
 						if ( ! is_array( $lead_reminder ) ) {
 							continue;
 						}
-						$due_at  = (string) ( $lead_reminder['due_at'] ?? '' );
-						$status  = sanitize_key( (string) ( $lead_reminder['status'] ?? '' ) );
+						$due_at = (string) ( $lead_reminder['due_at'] ?? '' );
+						$status = sanitize_key( (string) ( $lead_reminder['status'] ?? '' ) );
 						if ( '' !== $due_at && $due_at < $now_mysql && ! pera_crm_reminder_is_closed_status( $status ) ) {
 							$has_overdue = true;
 							break;
 						}
 					}
 				}
-
 				$reminder_by_lead[ $lead_id ] = array(
 					'has_any'     => $has_any,
 					'has_overdue' => $has_overdue,
@@ -2281,19 +2252,70 @@ if ( ! function_exists( 'pera_crm_get_performance_summary' ) ) {
 			}
 
 			$lead_reminder_row = is_array( $reminder_by_lead[ $lead_id ] ?? null ) ? $reminder_by_lead[ $lead_id ] : array();
-			$has_reminder = ! empty( $lead_reminder_row['has_any'] );
-			if ( ! $has_reminder ) {
+			if ( empty( $lead_reminder_row['has_any'] ) ) {
 				++$no_reminder;
 			}
-
 			if ( $last_activity_ts <= 0 || $last_activity_ts < $stale_ts ) {
 				++$untouched;
 			}
-
 			if ( ! empty( $lead_reminder_row['has_overdue'] ) ) {
 				++$overdue;
 			}
 		}
+
+		if ( ! empty( $source_rows ) ) {
+			uasort(
+				$source_rows,
+				static function ( array $a, array $b ): int {
+					$lead_compare = (int) ( $b['leads'] ?? 0 ) <=> (int) ( $a['leads'] ?? 0 );
+					if ( 0 !== $lead_compare ) {
+						return $lead_compare;
+					}
+					return strcasecmp( (string) ( $a['source'] ?? '' ), (string) ( $b['source'] ?? '' ) );
+				}
+			);
+		}
+
+		$deals_created = 0;
+		if ( function_exists( 'peracrm_deals_table_exists' ) && peracrm_deals_table_exists() ) {
+			$deals_created = (int) peracrm_with_target_blog(
+				static function () use ( $scope_user_id, $range ): int {
+					global $wpdb;
+					$table        = peracrm_table( 'peracrm_deals' );
+					$postmeta     = $wpdb->postmeta;
+					$where_clause = 'd.created_at >= %s AND d.created_at <= %s';
+					$params       = array( (string) $range['date_from'], (string) $range['date_to'] );
+					if ( $scope_user_id > 0 ) {
+						$where_clause .= " AND (
+							d.owner_user_id = %d
+							OR (
+								(d.owner_user_id IS NULL OR d.owner_user_id = 0)
+								AND EXISTS (
+									SELECT 1
+									FROM {$postmeta} pm
+									WHERE pm.post_id = d.party_id
+									  AND pm.meta_key IN ('assigned_advisor_user_id','crm_assigned_advisor')
+									  AND pm.meta_value = %s
+								)
+							)
+						)";
+						$params[] = $scope_user_id;
+						$params[] = (string) $scope_user_id;
+					}
+					$query = $wpdb->prepare(
+						"SELECT COUNT(*) FROM {$table} d WHERE {$where_clause}",
+						$params
+					);
+					$count = $wpdb->get_var( $query ); // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery
+					return is_numeric( $count ) ? max( 0, (int) $count ) : 0;
+				}
+			);
+		}
+
+		$qualified_rate = $new_leads > 0 ? ( (float) $qualified / (float) $new_leads ) : 0.0;
+		$viewing_rate   = $new_leads > 0 ? ( (float) $viewings / (float) $new_leads ) : 0.0;
+		$deal_rate      = $new_leads > 0 ? ( (float) $deals_created / (float) $new_leads ) : 0.0;
+
 		return array(
 			'range' => $range,
 			'scope' => array(
@@ -2312,15 +2334,15 @@ if ( ! function_exists( 'pera_crm_get_performance_summary' ) ) {
 				'viewings'      => $viewings,
 				'deals_created' => $deals_created,
 			),
-                        'progress' => array(
-                                'leads'          => (int) $new_leads,
-                                'qualified'      => (int) $qualified,
-                                'viewings'       => (int) $viewings,
-                                'deals_created'  => (int) $deals_created,
-                                'qualified_rate' => (float) $qualified_rate,
-                                'viewing_rate'   => (float) $viewing_rate,
-                                'deal_rate'      => (float) $deal_rate,
-                        ),
+			'progress' => array(
+				'leads'          => (int) $new_leads,
+				'qualified'      => (int) $qualified,
+				'viewings'       => (int) $viewings,
+				'deals_created'  => (int) $deals_created,
+				'qualified_rate' => (float) $qualified_rate,
+				'viewing_rate'   => (float) $viewing_rate,
+				'deal_rate'      => (float) $deal_rate,
+			),
 			'attention' => array(
 				'no_activity' => $no_activity,
 				'no_reminder' => $no_reminder,
@@ -2329,5 +2351,103 @@ if ( ! function_exists( 'pera_crm_get_performance_summary' ) ) {
 			),
 			'sources' => array_values( $source_rows ),
 		);
+	}
+}
+
+if ( ! function_exists( 'pera_crm_get_performance_delta_payload' ) ) {
+	/**
+	 * Build comparison delta payload between current and previous summary values.
+	 *
+	 * pct is null when previous is 0 and current > 0 to avoid divide-by-zero.
+	 *
+	 * @param array<string,mixed> $current
+	 * @param array<string,mixed> $previous
+	 * @return array<string,array<string,int|float|null>>
+	 */
+	function pera_crm_get_performance_delta_payload( array $current, array $previous ): array {
+		$metrics = array(
+			'leads',
+			'qualified',
+			'viewings',
+			'deals_created',
+			'qualified_rate',
+			'viewing_rate',
+			'deal_rate',
+		);
+		$delta = array();
+
+		foreach ( $metrics as $metric ) {
+			$current_value  = isset( $current['progress'][ $metric ] ) ? (float) $current['progress'][ $metric ] : 0.0;
+			$previous_value = isset( $previous['progress'][ $metric ] ) ? (float) $previous['progress'][ $metric ] : 0.0;
+			$abs            = $current_value - $previous_value;
+			$pct            = 0.0;
+
+			if ( $previous_value > 0 ) {
+				$pct = ( $abs / $previous_value ) * 100;
+			} elseif ( $current_value > 0 ) {
+				$pct = null;
+			}
+
+			$delta[ $metric ] = array(
+				'current'  => $current_value,
+				'previous' => $previous_value,
+				'abs'      => $abs,
+				'pct'      => $pct,
+			);
+		}
+
+		foreach ( array( 'leads', 'qualified', 'viewings', 'deals_created' ) as $count_metric ) {
+			$delta[ $count_metric ]['current']  = (int) round( (float) $delta[ $count_metric ]['current'] );
+			$delta[ $count_metric ]['previous'] = (int) round( (float) $delta[ $count_metric ]['previous'] );
+			$delta[ $count_metric ]['abs']      = (int) round( (float) $delta[ $count_metric ]['abs'] );
+		}
+
+		return $delta;
+	}
+}
+
+if ( ! function_exists( 'pera_crm_get_performance_summary' ) ) {
+	/**
+	 * Build server-rendered performance summary payload.
+	 *
+	 * @param array<string,mixed> $args
+	 * @return array<string,mixed>
+	 */
+	function pera_crm_get_performance_summary( array $args = array() ): array {
+		$current_user_id = get_current_user_id();
+		$effective_user  = function_exists( 'peracrm_get_effective_crm_user_id' ) ? (int) peracrm_get_effective_crm_user_id() : $current_user_id;
+		$is_employee     = pera_crm_user_is_employee( $effective_user );
+		$scope_user_id   = $is_employee ? $effective_user : 0;
+		$requested_scope = isset( $args['scope_user_id'] ) ? absint( $args['scope_user_id'] ) : null;
+
+		if ( null !== $requested_scope ) {
+			$scope_user_id = $requested_scope;
+		}
+
+		$current_range = pera_crm_resolve_performance_range( isset( $args['range_key'] ) ? (string) $args['range_key'] : '30d' );
+		if ( ! empty( $args['date_from'] ) && ! empty( $args['date_to'] ) ) {
+			$current_range['date_from'] = sanitize_text_field( (string) $args['date_from'] );
+			$current_range['date_to']   = sanitize_text_field( (string) $args['date_to'] );
+		}
+
+		$previous_range    = pera_crm_get_previous_performance_range( $current_range );
+		$current_summary   = pera_crm_build_performance_summary_for_range( $current_range, $scope_user_id, $is_employee );
+		$previous_summary  = pera_crm_build_performance_summary_for_range( $previous_range, $scope_user_id, $is_employee );
+		$comparison_payload = array(
+			'current' => array(
+				'range'    => $current_summary['range'],
+				'cards'    => $current_summary['cards'],
+				'progress' => $current_summary['progress'],
+			),
+			'previous' => array(
+				'range'    => $previous_summary['range'],
+				'cards'    => $previous_summary['cards'],
+				'progress' => $previous_summary['progress'],
+			),
+			'delta' => pera_crm_get_performance_delta_payload( $current_summary, $previous_summary ),
+		);
+
+		$current_summary['comparison'] = $comparison_payload;
+		return $current_summary;
 	}
 }

@@ -55,6 +55,8 @@ $cards = is_array( $summary['cards'] ?? null ) ? $summary['cards'] : array();
 $attention = is_array( $summary['attention'] ?? null ) ? $summary['attention'] : array();
 $progress  = is_array( $summary['progress'] ?? null ) ? $summary['progress'] : array();
 $sources   = is_array( $summary['sources'] ?? null ) ? $summary['sources'] : array();
+$comparison = is_array( $summary['comparison'] ?? null ) ? $summary['comparison'] : array();
+$comparison_delta = is_array( $comparison['delta'] ?? null ) ? $comparison['delta'] : array();
 
 $attention_defs = array(
 	'no_activity' => __( 'No Activity Yet', 'peracrm' ),
@@ -90,6 +92,38 @@ $format_percent = static function ( float $ratio ): string {
         $decimals      = ( abs( $rounded - round( $rounded ) ) < 0.00001 ) ? 0 : 1;
         $number_string = number_format_i18n( $rounded, $decimals );
         return $number_string . '%';
+};
+
+$comparison_defs = array(
+	'leads'          => array( 'label' => __( 'Leads', 'peracrm' ), 'type' => 'count' ),
+	'qualified'      => array( 'label' => __( 'Qualified', 'peracrm' ), 'type' => 'count' ),
+	'viewings'       => array( 'label' => __( 'Viewings', 'peracrm' ), 'type' => 'count' ),
+	'deals_created'  => array( 'label' => __( 'Deals Created', 'peracrm' ), 'type' => 'count' ),
+	'qualified_rate' => array( 'label' => __( 'Qualified Rate', 'peracrm' ), 'type' => 'rate' ),
+	'viewing_rate'   => array( 'label' => __( 'Viewing Rate', 'peracrm' ), 'type' => 'rate' ),
+	'deal_rate'      => array( 'label' => __( 'Deal Rate', 'peracrm' ), 'type' => 'rate' ),
+);
+
+$format_signed = static function ( float $value, int $decimals = 0 ): string {
+	$rounded = round( $value, $decimals );
+	$prefix  = $rounded > 0 ? '+' : '';
+	return $prefix . number_format_i18n( $rounded, $decimals );
+};
+
+$format_comparison_delta = static function ( array $metric, string $type ) use ( $format_signed ): string {
+	$abs = (float) ( $metric['abs'] ?? 0 );
+	$pct = $metric['pct'] ?? 0;
+
+	if ( 'rate' === $type ) {
+		return sprintf( '%s pts', $format_signed( $abs * 100, 1 ) );
+	}
+
+	$abs_text = $format_signed( $abs, 0 );
+	if ( null === $pct ) {
+		return $abs > 0 ? sprintf( '%s (%s)', $abs_text, __( 'New', 'peracrm' ) ) : $abs_text;
+	}
+
+	return sprintf( '%s (%s%%)', $abs_text, $format_signed( (float) $pct, 1 ) );
 };
 
 peracrm_frontend_render_shell_header();
@@ -206,6 +240,27 @@ peracrm_frontend_render_shell_header();
                     <?php endif; ?>
                   </tbody>
                 </table>
+              </div>
+            </section>
+            <section class="content-panel crm-performance-subsection crm-performance-subsection--comparison" aria-labelledby="crm-performance-comparison-title">
+              <h2 id="crm-performance-comparison-title" class="crm-section__title"><?php esc_html_e( 'Performance Comparison', 'peracrm' ); ?></h2>
+              <div class="crm-performance-cards crm-performance-grid" role="list" aria-label="<?php esc_attr_e( 'Performance comparison cards', 'peracrm' ); ?>">
+                <?php foreach ( $comparison_defs as $key => $metric_def ) : ?>
+                  <?php
+                  $metric = is_array( $comparison_delta[ $key ] ?? null ) ? $comparison_delta[ $key ] : array();
+                  $current_value = (float) ( $metric['current'] ?? 0 );
+                  $previous_value = (float) ( $metric['previous'] ?? 0 );
+                  $type = (string) ( $metric_def['type'] ?? 'count' );
+                  $current_display = 'rate' === $type ? $format_percent( $current_value ) : number_format_i18n( (int) round( $current_value ) );
+                  $previous_display = 'rate' === $type ? $format_percent( $previous_value ) : number_format_i18n( (int) round( $previous_value ) );
+                  ?>
+                  <article class="crm-performance-card" role="listitem">
+                    <p class="crm-performance-card__value"><?php echo esc_html( $current_display ); ?></p>
+                    <p class="crm-performance-card__label"><?php echo esc_html( (string) $metric_def['label'] ); ?></p>
+                    <p class="crm-performance-card__meta"><?php echo esc_html( sprintf( __( 'Prev: %s', 'peracrm' ), $previous_display ) ); ?></p>
+                    <p class="crm-performance-card__delta"><?php echo esc_html( $format_comparison_delta( $metric, $type ) ); ?></p>
+                  </article>
+                <?php endforeach; ?>
               </div>
             </section>
           </div>
