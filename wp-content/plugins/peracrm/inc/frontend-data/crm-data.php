@@ -2147,6 +2147,10 @@ if ( ! function_exists( 'pera_crm_get_performance_summary' ) ) {
 
 
 
+		$qualified_rate = $new_leads > 0 ? ( (float) $qualified / (float) $new_leads ) : 0.0;
+		$viewing_rate   = $new_leads > 0 ? ( (float) $viewings / (float) $new_leads ) : 0.0;
+		$deal_rate      = $new_leads > 0 ? ( (float) $deals_created / (float) $new_leads ) : 0.0;
+
 		$no_activity = 0;
 		$no_reminder = 0;
 		$untouched   = 0;
@@ -2242,6 +2246,15 @@ if ( ! function_exists( 'pera_crm_get_performance_summary' ) ) {
 				'viewings'      => $viewings,
 				'deals_created' => $deals_created,
 			),
+                        'progress' => array(
+                                'leads'          => (int) $new_leads,
+                                'qualified'      => (int) $qualified,
+                                'viewings'       => (int) $viewings,
+                                'deals_created'  => (int) $deals_created,
+                                'qualified_rate' => (float) $qualified_rate,
+                                'viewing_rate'   => (float) $viewing_rate,
+                                'deal_rate'      => (float) $deal_rate,
+                        ),
 			'attention' => array(
 				'no_activity' => $no_activity,
 				'no_reminder' => $no_reminder,

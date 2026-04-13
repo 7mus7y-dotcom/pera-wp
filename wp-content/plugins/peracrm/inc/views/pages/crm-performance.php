@@ -52,6 +52,7 @@ $summary = function_exists( 'pera_crm_get_performance_summary' )
 $cards = is_array( $summary['cards'] ?? null ) ? $summary['cards'] : array();
 
 $attention = is_array( $summary['attention'] ?? null ) ? $summary['attention'] : array();
+$progress  = is_array( $summary['progress'] ?? null ) ? $summary['progress'] : array();
 
 $attention_defs = array(
 	'no_activity' => __( 'No Activity Yet', 'peracrm' ),
@@ -67,6 +68,27 @@ $card_defs = array(
 	'viewings'      => __( 'Viewings', 'peracrm' ),
 	'deals_created' => __( 'Deals Created', 'peracrm' ),
 );
+
+$progress_count_defs = array(
+        'leads'         => __( 'Leads', 'peracrm' ),
+        'qualified'     => __( 'Qualified', 'peracrm' ),
+        'viewings'      => __( 'Viewings', 'peracrm' ),
+        'deals_created' => __( 'Deals Created', 'peracrm' ),
+);
+
+$progress_rate_defs = array(
+        'qualified_rate' => __( 'Qualified Rate', 'peracrm' ),
+        'viewing_rate'   => __( 'Viewing Rate', 'peracrm' ),
+        'deal_rate'      => __( 'Deal Rate', 'peracrm' ),
+);
+
+$format_percent = static function ( float $ratio ): string {
+        $percent       = max( 0, $ratio ) * 100;
+        $rounded       = round( $percent, 1 );
+        $decimals      = ( abs( $rounded - round( $rounded ) ) < 0.00001 ) ? 0 : 1;
+        $number_string = number_format_i18n( $rounded, $decimals );
+        return $number_string . '%';
+};
 
 peracrm_frontend_render_shell_header();
 ?>
@@ -125,6 +147,27 @@ peracrm_frontend_render_shell_header();
                   <?php $value = isset( $attention[ $key ] ) ? max( 0, (int) $attention[ $key ] ) : 0; ?>
                   <article class="crm-performance-card" role="listitem">
                     <p class="crm-performance-card__value"><?php echo esc_html( number_format_i18n( $value ) ); ?></p>
+                    <p class="crm-performance-card__label"><?php echo esc_html( $label ); ?></p>
+                  </article>
+                <?php endforeach; ?>
+              </div>
+            </section>
+            <section class="content-panel" aria-labelledby="crm-performance-progress-title">
+              <h2 id="crm-performance-progress-title" class="crm-section__title"><?php esc_html_e( 'Cohort Progress', 'peracrm' ); ?></h2>
+              <div class="crm-performance-cards crm-performance-grid" role="list" aria-label="<?php esc_attr_e( 'Cohort progress count cards', 'peracrm' ); ?>">
+                <?php foreach ( $progress_count_defs as $key => $label ) : ?>
+                  <?php $value = isset( $progress[ $key ] ) ? max( 0, (int) $progress[ $key ] ) : 0; ?>
+                  <article class="crm-performance-card" role="listitem">
+                    <p class="crm-performance-card__value"><?php echo esc_html( number_format_i18n( $value ) ); ?></p>
+                    <p class="crm-performance-card__label"><?php echo esc_html( $label ); ?></p>
+                  </article>
+                <?php endforeach; ?>
+              </div>
+              <div class="crm-performance-cards crm-performance-grid" role="list" aria-label="<?php esc_attr_e( 'Cohort progress rate cards', 'peracrm' ); ?>">
+                <?php foreach ( $progress_rate_defs as $key => $label ) : ?>
+                  <?php $value = isset( $progress[ $key ] ) ? (float) $progress[ $key ] : 0.0; ?>
+                  <article class="crm-performance-card" role="listitem">
+                    <p class="crm-performance-card__value"><?php echo esc_html( $format_percent( $value ) ); ?></p>
                     <p class="crm-performance-card__label"><?php echo esc_html( $label ); ?></p>
                   </article>
                 <?php endforeach; ?>
