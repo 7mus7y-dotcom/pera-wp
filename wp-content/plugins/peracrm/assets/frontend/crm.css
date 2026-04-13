@@ -1547,6 +1547,46 @@ body.crm-route .crm-page--client-view .crm-portfolio-actions .peracrm-linked-pro
   line-height: 1.35;
 }
 
+.crm-page--performance .crm-performance-card__delta.is-positive {
+  color: var(--pill-green, #16a34a);
+}
+
+.crm-page--performance .crm-performance-card__delta.is-negative {
+  color: var(--pill-red, #dc2626);
+}
+
+.crm-page--performance .crm-performance-card__delta.is-neutral {
+  color: var(--text-soft, #475569);
+}
+
+.crm-page--performance .crm-performance-subsection--comparison .crm-performance-grid {
+  gap: 10px;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+}
+
+.crm-page--performance .crm-performance-card--comparison {
+  gap: 3px;
+  padding: 12px;
+}
+
+.crm-page--performance .crm-performance-card--comparison .crm-performance-card__label {
+  font-size: 0.78rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.crm-page--performance .crm-performance-card--comparison .crm-performance-card__value {
+  font-size: clamp(1.3rem, 2.2vw, 1.8rem);
+}
+
+.crm-page--performance .crm-performance-card--comparison .crm-performance-card__meta {
+  font-size: 0.76rem;
+}
+
+.crm-page--performance .crm-performance-card--comparison .crm-performance-card__delta {
+  font-size: 0.8rem;
+}
+
 .crm-page--performance .crm-performance-subsection .crm-section__title {
   font-size: 0.96rem;
 }
@@ -4009,6 +4049,31 @@ body.crm-route #site-header.peracrm-shell-header .crm-side-nav__toggle--header:f
     font-size: 0.8rem;
   }
 
+  .crm-page--performance .crm-performance-subsection--comparison .crm-performance-grid {
+    gap: 6px;
+    grid-template-columns: 1fr;
+  }
+
+  .crm-page--performance .crm-performance-card--comparison {
+    padding: 9px 10px;
+    gap: 1px;
+  }
+
+  .crm-page--performance .crm-performance-card--comparison .crm-performance-card__label {
+    font-size: 0.72rem;
+    line-height: 1.2;
+  }
+
+  .crm-page--performance .crm-performance-card--comparison .crm-performance-card__value {
+    font-size: clamp(1.18rem, 5.7vw, 1.4rem);
+  }
+
+  .crm-page--performance .crm-performance-card--comparison .crm-performance-card__meta,
+  .crm-page--performance .crm-performance-card--comparison .crm-performance-card__delta {
+    font-size: 0.74rem;
+    line-height: 1.28;
+  }
+
   .crm-page--performance .crm-performance-subsection {
     padding: 10px;
     background: transparent;
@@ -5984,6 +6049,22 @@ body.crm-route #site-header.peracrm-shell-header.is-scrolled .peracrm-header-act
 
   .crm-page--performance .crm-performance-card__label {
     color: var(--text-soft);
+  }
+
+  .crm-page--performance .crm-performance-card__meta {
+    color: color-mix(in srgb, var(--text-soft) 88%, #ffffff 12%);
+  }
+
+  .crm-page--performance .crm-performance-card__delta.is-positive {
+    color: #4ade80;
+  }
+
+  .crm-page--performance .crm-performance-card__delta.is-negative {
+    color: #f87171;
+  }
+
+  .crm-page--performance .crm-performance-card__delta.is-neutral {
+    color: #cbd5e1;
   }
 
   .crm-page--performance .crm-performance-subsection {

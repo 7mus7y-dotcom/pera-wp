@@ -126,6 +126,19 @@ $format_comparison_delta = static function ( array $metric, string $type ) use (
 	return sprintf( '%s (%s%%)', $abs_text, $format_signed( (float) $pct, 1 ) );
 };
 
+$get_delta_state_class = static function ( array $metric ): string {
+	$abs = (float) ( $metric['abs'] ?? 0 );
+	if ( $abs > 0 ) {
+		return 'is-positive';
+	}
+
+	if ( $abs < 0 ) {
+		return 'is-negative';
+	}
+
+	return 'is-neutral';
+};
+
 peracrm_frontend_render_shell_header();
 ?>
 
@@ -253,12 +266,13 @@ peracrm_frontend_render_shell_header();
                   $type = (string) ( $metric_def['type'] ?? 'count' );
                   $current_display = 'rate' === $type ? $format_percent( $current_value ) : number_format_i18n( (int) round( $current_value ) );
                   $previous_display = 'rate' === $type ? $format_percent( $previous_value ) : number_format_i18n( (int) round( $previous_value ) );
+                  $delta_state_class = $get_delta_state_class( $metric );
                   ?>
-                  <article class="crm-performance-card" role="listitem">
-                    <p class="crm-performance-card__value"><?php echo esc_html( $current_display ); ?></p>
+                  <article class="crm-performance-card crm-performance-card--comparison" role="listitem">
                     <p class="crm-performance-card__label"><?php echo esc_html( (string) $metric_def['label'] ); ?></p>
+                    <p class="crm-performance-card__value"><?php echo esc_html( $current_display ); ?></p>
                     <p class="crm-performance-card__meta"><?php echo esc_html( sprintf( __( 'Prev: %s', 'peracrm' ), $previous_display ) ); ?></p>
-                    <p class="crm-performance-card__delta"><?php echo esc_html( $format_comparison_delta( $metric, $type ) ); ?></p>
+                    <p class="crm-performance-card__delta <?php echo esc_attr( $delta_state_class ); ?>"><?php echo esc_html( $format_comparison_delta( $metric, $type ) ); ?></p>
                   </article>
                 <?php endforeach; ?>
               </div>
