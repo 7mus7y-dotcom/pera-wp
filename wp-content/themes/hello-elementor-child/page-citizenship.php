@@ -163,23 +163,6 @@ $citizenship_preview_variants = array(
           </div>
           <p class="citizenship-trust-strip"><?php echo esc_html( $citizenship_preview['trust_copy'] ); ?></p>
         </div>
-        <div class="citizenship-hero-media">
-          <div class="media-frame media-frame--image-fill">
-            <?php
-            echo wp_get_attachment_image(
-                55703,
-                'full',
-                false,
-                array(
-                    'class'    => 'media-image',
-                    'loading'  => 'lazy',
-                    'decoding' => 'async',
-                    'alt'      => esc_attr( 'Family reviewing Turkish citizenship by investment options in a modern Istanbul apartment' ),
-                )
-            );
-            ?>
-          </div>
-        </div>
       </div>
     </div>
   </section>
