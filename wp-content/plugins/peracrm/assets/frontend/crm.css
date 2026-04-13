@@ -1532,6 +1532,21 @@ body.crm-route .crm-page--client-view .crm-portfolio-actions .peracrm-linked-pro
   font-weight: 600;
 }
 
+.crm-page--performance .crm-performance-card__meta {
+  margin: 2px 0 0;
+  color: var(--text-soft, #475569);
+  font-size: 0.8rem;
+  line-height: 1.35;
+}
+
+.crm-page--performance .crm-performance-card__delta {
+  margin: 0;
+  color: var(--text, #0f172a);
+  font-size: 0.82rem;
+  font-weight: 600;
+  line-height: 1.35;
+}
+
 .crm-page--performance .crm-performance-subsection .crm-section__title {
   font-size: 0.96rem;
 }
