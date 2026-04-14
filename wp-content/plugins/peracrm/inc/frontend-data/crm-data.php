@@ -2184,6 +2184,294 @@ if ( ! function_exists( 'pera_crm_get_stage_distribution_for_cohort' ) ) {
 	}
 }
 
+if ( ! function_exists( 'pera_crm_get_post_created_ts_map' ) ) {
+	/**
+	 * Fetch creation timestamps for CRM client posts.
+	 *
+	 * @param int[] $post_ids
+	 * @return array<int,int>
+	 */
+	function pera_crm_get_post_created_ts_map( array $post_ids ): array {
+		global $wpdb;
+
+		$post_ids = array_values( array_unique( array_filter( array_map( 'intval', $post_ids ) ) ) );
+		if ( empty( $post_ids ) || ! isset( $wpdb ) ) {
+			return array();
+		}
+
+		$placeholders = implode( ',', array_fill( 0, count( $post_ids ), '%d' ) );
+		$query        = $wpdb->prepare(
+			"SELECT ID, post_date_gmt, post_date
+			 FROM {$wpdb->posts}
+			 WHERE ID IN ({$placeholders})",
+			$post_ids
+		);
+		$rows         = (array) $wpdb->get_results( $query, ARRAY_A ); // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery
+		$map          = array();
+
+		foreach ( $rows as $row ) {
+			if ( ! is_array( $row ) ) {
+				continue;
+			}
+
+			$lead_id = isset( $row['ID'] ) ? (int) $row['ID'] : 0;
+			if ( $lead_id <= 0 ) {
+				continue;
+			}
+
+			$created_ts = 0;
+			$post_gmt   = isset( $row['post_date_gmt'] ) ? (string) $row['post_date_gmt'] : '';
+			$post_local = isset( $row['post_date'] ) ? (string) $row['post_date'] : '';
+			if ( '' !== $post_gmt && '0000-00-00 00:00:00' !== $post_gmt ) {
+				$created_ts = strtotime( $post_gmt . ' UTC' );
+			}
+
+			if ( $created_ts <= 0 && '' !== $post_local && '0000-00-00 00:00:00' !== $post_local ) {
+				$created_ts = strtotime( $post_local );
+			}
+
+			$map[ $lead_id ] = max( 0, (int) $created_ts );
+		}
+
+		return $map;
+	}
+}
+
+if ( ! function_exists( 'pera_crm_get_first_meaningful_activity_ts_map' ) ) {
+	/**
+	 * Fetch earliest employee-meaningful activity timestamp per lead.
+	 *
+	 * @param int[] $lead_ids
+	 * @return array<int,int>
+	 */
+	function pera_crm_get_first_meaningful_activity_ts_map( array $lead_ids ): array {
+		global $wpdb;
+
+		$lead_ids = array_values( array_unique( array_filter( array_map( 'intval', $lead_ids ) ) ) );
+		if ( empty( $lead_ids ) || ! isset( $wpdb ) || ! function_exists( 'peracrm_activity_table_exists' ) || ! peracrm_activity_table_exists() ) {
+			return array();
+		}
+
+		$event_types = array(
+			'note_added',
+			'status_changed',
+			'advisor_reassigned',
+			'reminder_added',
+			'reminder_status_changed',
+		);
+
+		$event_placeholders = implode( ',', array_fill( 0, count( $event_types ), '%s' ) );
+		$id_placeholders    = implode( ',', array_fill( 0, count( $lead_ids ), '%d' ) );
+		$table              = peracrm_table( 'crm_activity' );
+
+		$params = array_merge( $event_types, $lead_ids );
+		$query  = $wpdb->prepare(
+			"SELECT client_id, MIN(created_at) AS first_activity_at
+			 FROM {$table}
+			 WHERE event_type IN ({$event_placeholders})
+			   AND client_id IN ({$id_placeholders})
+			 GROUP BY client_id",
+			$params
+		);
+		$rows   = (array) $wpdb->get_results( $query, ARRAY_A ); // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery
+		$map    = array();
+
+		foreach ( $rows as $row ) {
+			if ( ! is_array( $row ) ) {
+				continue;
+			}
+
+			$lead_id = isset( $row['client_id'] ) ? (int) $row['client_id'] : 0;
+			$ts      = isset( $row['first_activity_at'] ) ? strtotime( (string) $row['first_activity_at'] ) : 0;
+			if ( $lead_id > 0 && $ts > 0 ) {
+				$map[ $lead_id ] = (int) $ts;
+			}
+		}
+
+		return $map;
+	}
+}
+
+if ( ! function_exists( 'pera_crm_get_first_note_ts_map' ) ) {
+	/**
+	 * Fetch earliest note timestamp per lead from canonical notes table.
+	 *
+	 * @param int[] $lead_ids
+	 * @return array<int,int>
+	 */
+	function pera_crm_get_first_note_ts_map( array $lead_ids ): array {
+		global $wpdb;
+
+		$lead_ids = array_values( array_unique( array_filter( array_map( 'intval', $lead_ids ) ) ) );
+		if ( empty( $lead_ids ) || ! isset( $wpdb ) || ! function_exists( 'peracrm_notes_table_exists' ) || ! peracrm_notes_table_exists() ) {
+			return array();
+		}
+
+		$notes_table      = peracrm_table( 'crm_notes' );
+		$id_placeholders  = implode( ',', array_fill( 0, count( $lead_ids ), '%d' ) );
+		$has_visibility   = function_exists( 'peracrm_notes_table_has_visibility_column' ) && peracrm_notes_table_has_visibility_column();
+		$query            = '';
+		$params           = $lead_ids;
+
+		if ( $has_visibility ) {
+			$params = array_merge( array( 'internal' ), $lead_ids );
+			$query  = $wpdb->prepare(
+				"SELECT client_id, MIN(created_at) AS first_note_at
+				 FROM {$notes_table}
+				 WHERE visibility = %s
+				   AND client_id IN ({$id_placeholders})
+				 GROUP BY client_id",
+				$params
+			);
+		} else {
+			$query = $wpdb->prepare(
+				"SELECT client_id, MIN(created_at) AS first_note_at
+				 FROM {$notes_table}
+				 WHERE client_id IN ({$id_placeholders})
+				 GROUP BY client_id",
+				$params
+			);
+		}
+
+		$rows = (array) $wpdb->get_results( $query, ARRAY_A ); // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery
+		$map  = array();
+		foreach ( $rows as $row ) {
+			if ( ! is_array( $row ) ) {
+				continue;
+			}
+			$lead_id = isset( $row['client_id'] ) ? (int) $row['client_id'] : 0;
+			$ts      = isset( $row['first_note_at'] ) ? strtotime( (string) $row['first_note_at'] ) : 0;
+			if ( $lead_id > 0 && $ts > 0 ) {
+				$map[ $lead_id ] = (int) $ts;
+			}
+		}
+
+		return $map;
+	}
+}
+
+if ( ! function_exists( 'pera_crm_get_first_action_metrics_for_cohort' ) ) {
+	/**
+	 * Build response speed metrics for a selected lead cohort.
+	 *
+	 * @param int[] $cohort_ids
+	 * @return array<string,mixed>
+	 */
+	function pera_crm_get_first_action_metrics_for_cohort( array $cohort_ids ): array {
+		$cohort_ids = array_values( array_unique( array_filter( array_map( 'intval', $cohort_ids ) ) ) );
+
+		$payload = array(
+			'basis' => array(
+				'source' => 'unavailable',
+				'note'   => __( 'No reliable activity source available for first action timing.', 'peracrm' ),
+			),
+			'no_action_24h'                => 0,
+			'no_action_48h'                => 0,
+			'touched_within_24h'           => 0,
+			'average_first_action_seconds' => 0,
+			'median_first_action_seconds'  => 0,
+			'measured_leads'               => 0,
+		);
+
+		if ( empty( $cohort_ids ) ) {
+			$payload['basis']['note'] = __( 'No leads in the selected cohort.', 'peracrm' );
+			return $payload;
+		}
+
+		$created_map       = pera_crm_get_post_created_ts_map( $cohort_ids );
+		$activity_first_ts = pera_crm_get_first_meaningful_activity_ts_map( $cohort_ids );
+		$notes_first_ts    = pera_crm_get_first_note_ts_map( $cohort_ids );
+		$deltas            = array();
+		$no_action_24h     = 0;
+		$no_action_48h     = 0;
+		$touched_24h       = 0;
+		$used_activity     = false;
+		$used_notes        = false;
+
+		foreach ( $cohort_ids as $lead_id ) {
+			$created_ts = (int) ( $created_map[ $lead_id ] ?? 0 );
+			if ( $created_ts <= 0 ) {
+				continue;
+			}
+
+			$first_action_ts = (int) ( $activity_first_ts[ $lead_id ] ?? 0 );
+			if ( $first_action_ts > 0 && $first_action_ts >= $created_ts ) {
+				$used_activity = true;
+			} else {
+				$first_action_ts = 0;
+			}
+
+			if ( $first_action_ts <= 0 ) {
+				$first_note_ts = (int) ( $notes_first_ts[ $lead_id ] ?? 0 );
+				if ( $first_note_ts > 0 && $first_note_ts >= $created_ts ) {
+					$first_action_ts = $first_note_ts;
+					$used_notes      = true;
+				}
+			}
+
+			if ( $first_action_ts <= 0 ) {
+				++$no_action_24h;
+				++$no_action_48h;
+				continue;
+			}
+
+			$delta_seconds = max( 0, $first_action_ts - $created_ts );
+			$deltas[]      = $delta_seconds;
+
+			if ( $delta_seconds <= DAY_IN_SECONDS ) {
+				++$touched_24h;
+			} else {
+				++$no_action_24h;
+			}
+
+			if ( $delta_seconds > ( 2 * DAY_IN_SECONDS ) ) {
+				++$no_action_48h;
+			}
+		}
+
+		sort( $deltas, SORT_NUMERIC );
+		$measured_leads = count( $deltas );
+		$average        = 0;
+		$median         = 0;
+		if ( $measured_leads > 0 ) {
+			$average = (int) round( array_sum( $deltas ) / $measured_leads );
+
+			$mid = (int) floor( $measured_leads / 2 );
+			if ( 0 === $measured_leads % 2 ) {
+				$median = (int) round( ( (int) $deltas[ $mid - 1 ] + (int) $deltas[ $mid ] ) / 2 );
+			} else {
+				$median = (int) $deltas[ $mid ];
+			}
+		}
+
+		$basis_source = 'unavailable';
+		$basis_note   = __( 'No measurable first actions were found for this cohort.', 'peracrm' );
+		if ( $used_activity && $used_notes ) {
+			$basis_source = 'mixed';
+			$basis_note   = __( 'Based on earliest meaningful CRM activity with notes fallback when activity is absent.', 'peracrm' );
+		} elseif ( $used_activity ) {
+			$basis_source = 'activity_log';
+			$basis_note   = __( 'Based on earliest meaningful CRM activity (notes, stage changes, reassignments, and reminder actions).', 'peracrm' );
+		} elseif ( $used_notes ) {
+			$basis_source = 'notes_fallback';
+			$basis_note   = __( 'Based on earliest internal CRM note because meaningful activity records were not available.', 'peracrm' );
+		}
+
+		$payload['basis']                         = array(
+			'source' => $basis_source,
+			'note'   => $basis_note,
+		);
+		$payload['no_action_24h']                = max( 0, (int) $no_action_24h );
+		$payload['no_action_48h']                = max( 0, (int) $no_action_48h );
+		$payload['touched_within_24h']           = max( 0, (int) $touched_24h );
+		$payload['average_first_action_seconds'] = max( 0, (int) $average );
+		$payload['median_first_action_seconds']  = max( 0, (int) $median );
+		$payload['measured_leads']               = max( 0, (int) $measured_leads );
+
+		return $payload;
+	}
+}
+
 if ( ! function_exists( 'pera_crm_build_performance_summary_for_range' ) ) {
 	/**
 	 * Build performance summary payload for a resolved date range.
@@ -2371,6 +2659,7 @@ if ( ! function_exists( 'pera_crm_build_performance_summary_for_range' ) ) {
 		$viewing_rate   = $new_leads > 0 ? ( (float) $viewings / (float) $new_leads ) : 0.0;
 		$deal_rate      = $new_leads > 0 ? ( (float) $deals_created / (float) $new_leads ) : 0.0;
 		$stage_distribution = pera_crm_get_stage_distribution_for_cohort( $cohort_ids, is_array( $party_map ) ? $party_map : array() );
+		$response_speed     = pera_crm_get_first_action_metrics_for_cohort( $cohort_ids );
 
 		return array(
 			'range' => $range,
@@ -2407,6 +2696,7 @@ if ( ! function_exists( 'pera_crm_build_performance_summary_for_range' ) ) {
 			),
 			'sources' => array_values( $source_rows ),
 			'stage_distribution' => $stage_distribution,
+			'response_speed' => $response_speed,
 		);
 	}
 }

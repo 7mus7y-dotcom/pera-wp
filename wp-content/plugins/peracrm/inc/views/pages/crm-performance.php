@@ -49,6 +49,17 @@ $summary = function_exists( 'pera_crm_get_performance_summary' )
 		),
 		'sources' => array(),
 		'stage_distribution' => array(),
+		'response_speed' => array(
+			'basis' => array(
+				'source' => 'unavailable',
+				'note'   => '',
+			),
+			'no_action_24h'                => 0,
+			'no_action_48h'                => 0,
+			'average_first_action_seconds' => 0,
+			'median_first_action_seconds'  => 0,
+			'measured_leads'               => 0,
+		),
 	);
 
 $cards = is_array( $summary['cards'] ?? null ) ? $summary['cards'] : array();
@@ -60,6 +71,8 @@ $comparison = is_array( $summary['comparison'] ?? null ) ? $summary['comparison'
 $comparison_delta = is_array( $comparison['delta'] ?? null ) ? $comparison['delta'] : array();
 $stage_distribution = is_array( $summary['stage_distribution'] ?? null ) ? $summary['stage_distribution'] : array();
 $stage_distribution_total = max( 0, (int) ( $progress['leads'] ?? 0 ) );
+$response_speed = is_array( $summary['response_speed'] ?? null ) ? $summary['response_speed'] : array();
+$response_speed_basis = is_array( $response_speed['basis'] ?? null ) ? $response_speed['basis'] : array();
 
 $attention_defs = array(
 	'no_activity' => __( 'No Activity Yet', 'peracrm' ),
@@ -95,6 +108,32 @@ $format_percent = static function ( float $ratio ): string {
         $decimals      = ( abs( $rounded - round( $rounded ) ) < 0.00001 ) ? 0 : 1;
         $number_string = number_format_i18n( $rounded, $decimals );
         return $number_string . '%';
+};
+
+$format_compact_duration = static function ( int $seconds ): string {
+	$seconds = max( 0, $seconds );
+
+	if ( $seconds < HOUR_IN_SECONDS ) {
+		$minutes = (int) floor( $seconds / MINUTE_IN_SECONDS );
+		if ( $minutes <= 0 && $seconds > 0 ) {
+			$minutes = 1;
+		}
+		return sprintf( __( '%dm', 'peracrm' ), $minutes );
+	}
+
+	if ( $seconds < DAY_IN_SECONDS ) {
+		$hours   = (int) floor( $seconds / HOUR_IN_SECONDS );
+		$minutes = (int) floor( ( $seconds % HOUR_IN_SECONDS ) / MINUTE_IN_SECONDS );
+		return $minutes > 0
+			? sprintf( __( '%1$dh %2$dm', 'peracrm' ), $hours, $minutes )
+			: sprintf( __( '%dh', 'peracrm' ), $hours );
+	}
+
+	$days  = (int) floor( $seconds / DAY_IN_SECONDS );
+	$hours = (int) floor( ( $seconds % DAY_IN_SECONDS ) / HOUR_IN_SECONDS );
+	return $hours > 0
+		? sprintf( __( '%1$dd %2$dh', 'peracrm' ), $days, $hours )
+		: sprintf( __( '%dd', 'peracrm' ), $days );
 };
 
 $comparison_defs = array(
@@ -313,6 +352,41 @@ peracrm_frontend_render_shell_header();
                   </tbody>
                 </table>
               </div>
+            </section>
+            <section class="content-panel crm-performance-subsection crm-performance-subsection--response-speed" aria-labelledby="crm-performance-response-speed-title">
+              <h2 id="crm-performance-response-speed-title" class="crm-section__title"><?php esc_html_e( 'Response Speed', 'peracrm' ); ?></h2>
+              <div class="crm-performance-cards crm-performance-grid" role="list" aria-label="<?php esc_attr_e( 'Response speed cards', 'peracrm' ); ?>">
+                <article class="crm-performance-card" role="listitem">
+                  <p class="crm-performance-card__value"><?php echo esc_html( number_format_i18n( max( 0, (int) ( $response_speed['no_action_24h'] ?? 0 ) ) ) ); ?></p>
+                  <p class="crm-performance-card__label"><?php esc_html_e( 'No action in 24h', 'peracrm' ); ?></p>
+                </article>
+                <article class="crm-performance-card" role="listitem">
+                  <p class="crm-performance-card__value"><?php echo esc_html( number_format_i18n( max( 0, (int) ( $response_speed['no_action_48h'] ?? 0 ) ) ) ); ?></p>
+                  <p class="crm-performance-card__label"><?php esc_html_e( 'No action in 48h', 'peracrm' ); ?></p>
+                </article>
+                <article class="crm-performance-card" role="listitem">
+                  <p class="crm-performance-card__value"><?php echo esc_html( $format_compact_duration( (int) ( $response_speed['average_first_action_seconds'] ?? 0 ) ) ); ?></p>
+                  <p class="crm-performance-card__label"><?php esc_html_e( 'Avg. first action', 'peracrm' ); ?></p>
+                </article>
+                <article class="crm-performance-card" role="listitem">
+                  <p class="crm-performance-card__value"><?php echo esc_html( $format_compact_duration( (int) ( $response_speed['median_first_action_seconds'] ?? 0 ) ) ); ?></p>
+                  <p class="crm-performance-card__label"><?php esc_html_e( 'Median first action', 'peracrm' ); ?></p>
+                </article>
+              </div>
+              <?php if ( ! empty( $response_speed_basis['note'] ) ) : ?>
+                <p class="crm-section__description">
+                  <?php
+                  echo esc_html(
+                  	sprintf(
+                  		/* translators: 1: basis note, 2: measured leads count */
+                  		__( '%1$s Measured leads: %2$s.', 'peracrm' ),
+                  		(string) $response_speed_basis['note'],
+                  		number_format_i18n( max( 0, (int) ( $response_speed['measured_leads'] ?? 0 ) ) )
+                  	)
+                  );
+                  ?>
+                </p>
+              <?php endif; ?>
             </section>
           </div>
         </section>
