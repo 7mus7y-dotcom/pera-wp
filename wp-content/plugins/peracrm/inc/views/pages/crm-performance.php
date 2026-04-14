@@ -48,6 +48,7 @@ $summary = function_exists( 'pera_crm_get_performance_summary' )
 			'overdue'     => 0,
 		),
 		'sources' => array(),
+		'stage_distribution' => array(),
 	);
 
 $cards = is_array( $summary['cards'] ?? null ) ? $summary['cards'] : array();
@@ -57,6 +58,8 @@ $progress  = is_array( $summary['progress'] ?? null ) ? $summary['progress'] : a
 $sources   = is_array( $summary['sources'] ?? null ) ? $summary['sources'] : array();
 $comparison = is_array( $summary['comparison'] ?? null ) ? $summary['comparison'] : array();
 $comparison_delta = is_array( $comparison['delta'] ?? null ) ? $comparison['delta'] : array();
+$stage_distribution = is_array( $summary['stage_distribution'] ?? null ) ? $summary['stage_distribution'] : array();
+$stage_distribution_total = max( 0, (int) ( $progress['leads'] ?? 0 ) );
 
 $attention_defs = array(
 	'no_activity' => __( 'No Activity Yet', 'peracrm' ),
@@ -275,6 +278,40 @@ peracrm_frontend_render_shell_header();
                     <p class="crm-performance-card__delta <?php echo esc_attr( $delta_state_class ); ?>"><?php echo esc_html( $format_comparison_delta( $metric, $type ) ); ?></p>
                   </article>
                 <?php endforeach; ?>
+              </div>
+            </section>
+            <section class="content-panel crm-performance-subsection crm-performance-subsection--stage-distribution" aria-labelledby="crm-performance-stage-distribution-title">
+              <h2 id="crm-performance-stage-distribution-title" class="crm-section__title"><?php esc_html_e( 'Stage Distribution', 'peracrm' ); ?></h2>
+              <div class="crm-table-wrap crm-table-wrap--primitive">
+                <table class="crm-table crm-table--stage-distribution">
+                  <thead>
+                    <tr>
+                      <th><?php esc_html_e( 'Stage', 'peracrm' ); ?></th>
+                      <th><?php esc_html_e( 'Count', 'peracrm' ); ?></th>
+                      <th><?php esc_html_e( 'Share', 'peracrm' ); ?></th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <?php if ( empty( $stage_distribution ) ) : ?>
+                      <tr class="crm-table__empty">
+                        <td colspan="3"><?php esc_html_e( 'No cohort records in this period.', 'peracrm' ); ?></td>
+                      </tr>
+                    <?php else : ?>
+                      <?php foreach ( $stage_distribution as $row ) : ?>
+                        <?php
+                        $label = sanitize_text_field( (string) ( $row['label'] ?? '' ) );
+                        $count = max( 0, (int) ( $row['count'] ?? 0 ) );
+                        $share = $stage_distribution_total > 0 ? $format_percent( $count / $stage_distribution_total ) : $format_percent( 0.0 );
+                        ?>
+                        <tr>
+                          <td data-label="<?php esc_attr_e( 'Stage', 'peracrm' ); ?>"><?php echo esc_html( $label ); ?></td>
+                          <td data-label="<?php esc_attr_e( 'Count', 'peracrm' ); ?>"><?php echo esc_html( number_format_i18n( $count ) ); ?></td>
+                          <td data-label="<?php esc_attr_e( 'Share', 'peracrm' ); ?>"><?php echo esc_html( $share ); ?></td>
+                        </tr>
+                      <?php endforeach; ?>
+                    <?php endif; ?>
+                  </tbody>
+                </table>
               </div>
             </section>
           </div>
