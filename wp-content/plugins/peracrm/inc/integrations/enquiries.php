@@ -408,13 +408,16 @@ function peracrm_ingest_enquiry(array $payload, array $context = [])
             peracrm_ingest_debug_log('event deduped by fingerprint', $context + ['client_id' => $client_id, 'fingerprint' => $fingerprint]);
         } else {
             $event_payload['submission_id'] = $submission_id;
-            if (!isset($event_payload['actor_user_id']) || (int) $event_payload['actor_user_id'] <= 0) {
-                $event_payload['actor_user_id'] = function_exists('peracrm_get_actor_user_id') ? peracrm_get_actor_user_id() : get_current_user_id();
-            }
-            $event_payload['ts'] = peracrm_now_mysql();
 
-            $activity_id = (int) peracrm_activity_insert($client_id, 'enquiry', $event_payload);
-            $activity_logged = $activity_id > 0;
+            if (function_exists('peracrm_log_event_result')) {
+                $log_result = peracrm_log_event_result($client_id, 'enquiry', $event_payload);
+                $activity_logged = !empty($log_result['ok']);
+                $activity_id = isset($log_result['activity_id']) ? (int) $log_result['activity_id'] : 0;
+            } else {
+                $activity_logged = (bool) peracrm_log_event($client_id, 'enquiry', $event_payload);
+                $activity_id = 0;
+            }
+
             peracrm_ingest_debug_log('event logged', $context + ['client_id' => $client_id, 'activity_logged' => $activity_logged ? 1 : 0, 'activity_id' => $activity_id]);
         }
 
