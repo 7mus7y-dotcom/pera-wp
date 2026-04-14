@@ -2129,6 +2129,61 @@ if ( ! function_exists( 'pera_crm_get_previous_performance_range' ) ) {
 	}
 }
 
+if ( ! function_exists( 'pera_crm_get_stage_distribution_for_cohort' ) ) {
+	/**
+	 * Build current pipeline stage distribution for the provided cohort.
+	 *
+	 * Reuses canonical pipeline stages and the pipeline view fallback bucket for
+	 * records without a recognized stage.
+	 *
+	 * @param int[]                     $cohort_ids
+	 * @param array<int,array<string,mixed>> $party_map
+	 * @return array<int,array{key:string,label:string,count:int}>
+	 */
+	function pera_crm_get_stage_distribution_for_cohort( array $cohort_ids, array $party_map = array() ): array {
+		$cohort_ids = array_values( array_unique( array_filter( array_map( 'intval', $cohort_ids ) ) ) );
+		$stages     = pera_crm_get_pipeline_stages();
+		if ( empty( $stages ) ) {
+			$stages = array(
+				'new_enquiry'      => __( 'New enquiry', 'peracrm' ),
+				'qualified'        => __( 'Qualified', 'peracrm' ),
+				'viewing_arranged' => __( 'Viewing arranged', 'peracrm' ),
+				'offer_made'       => __( 'Offer made', 'peracrm' ),
+				'deal_closed'      => __( 'Deal closed', 'peracrm' ),
+				'deal_lost'        => __( 'Deal lost', 'peracrm' ),
+			);
+		}
+
+		$fallback_stage_key         = 'unassigned_new';
+		$stages[ $fallback_stage_key ] = __( 'Unassigned / New', 'peracrm' );
+		$counts                     = array_fill_keys( array_keys( $stages ), 0 );
+
+		if ( ! empty( $cohort_ids ) && empty( $party_map ) && function_exists( 'peracrm_party_get_status_by_ids' ) ) {
+			$party_map = peracrm_party_get_status_by_ids( $cohort_ids );
+		}
+
+		foreach ( $cohort_ids as $lead_id ) {
+			$party     = is_array( $party_map[ $lead_id ] ?? null ) ? $party_map[ $lead_id ] : array();
+			$stage_key = sanitize_key( (string) ( $party['lead_pipeline_stage'] ?? '' ) );
+			if ( '' === $stage_key || ! isset( $counts[ $stage_key ] ) ) {
+				$stage_key = $fallback_stage_key;
+			}
+			++$counts[ $stage_key ];
+		}
+
+		$distribution = array();
+		foreach ( $stages as $stage_key => $stage_label ) {
+			$distribution[] = array(
+				'key'   => (string) $stage_key,
+				'label' => sanitize_text_field( (string) $stage_label ),
+				'count' => max( 0, (int) ( $counts[ $stage_key ] ?? 0 ) ),
+			);
+		}
+
+		return $distribution;
+	}
+}
+
 if ( ! function_exists( 'pera_crm_build_performance_summary_for_range' ) ) {
 	/**
 	 * Build performance summary payload for a resolved date range.
@@ -2315,6 +2370,7 @@ if ( ! function_exists( 'pera_crm_build_performance_summary_for_range' ) ) {
 		$qualified_rate = $new_leads > 0 ? ( (float) $qualified / (float) $new_leads ) : 0.0;
 		$viewing_rate   = $new_leads > 0 ? ( (float) $viewings / (float) $new_leads ) : 0.0;
 		$deal_rate      = $new_leads > 0 ? ( (float) $deals_created / (float) $new_leads ) : 0.0;
+		$stage_distribution = pera_crm_get_stage_distribution_for_cohort( $cohort_ids, is_array( $party_map ) ? $party_map : array() );
 
 		return array(
 			'range' => $range,
@@ -2350,6 +2406,7 @@ if ( ! function_exists( 'pera_crm_build_performance_summary_for_range' ) ) {
 				'overdue'     => $overdue,
 			),
 			'sources' => array_values( $source_rows ),
+			'stage_distribution' => $stage_distribution,
 		);
 	}
 }

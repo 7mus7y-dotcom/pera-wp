@@ -1610,6 +1610,20 @@ body.crm-route .crm-page--client-view .crm-portfolio-actions .peracrm-linked-pro
   max-width: none;
 }
 
+.crm-page--performance .crm-performance-subsection--stage-distribution .crm-table-wrap.crm-table-wrap--primitive {
+  width: 100%;
+  max-width: 100%;
+  overflow-x: auto;
+  overflow-y: hidden;
+  -webkit-overflow-scrolling: touch;
+}
+
+.crm-page--performance .crm-performance-subsection--stage-distribution .crm-table {
+  width: 100%;
+  min-width: 320px;
+  max-width: none;
+}
+
 .crm-page--overview .crm-overview-eyebrow {
   margin: 0 0 4px;
   color: var(--text-soft, #4b5563);
@@ -4119,6 +4133,19 @@ body.crm-route #site-header.peracrm-shell-header .crm-side-nav__toggle--header:f
     width: max-content;
     min-width: 520px;
     max-width: none;
+  }
+
+  .crm-page--performance .crm-performance-subsection--stage-distribution .crm-table {
+    width: max-content;
+    min-width: 320px;
+    max-width: none;
+  }
+
+  .crm-page--performance .crm-performance-subsection--stage-distribution .crm-table thead th,
+  .crm-page--performance .crm-performance-subsection--stage-distribution .crm-table tbody td {
+    padding: 8px 10px;
+    font-size: 0.84rem;
+    white-space: nowrap;
   }
 
   .crm-page--performance .crm-performance-subsection--sources .crm-table thead th,
