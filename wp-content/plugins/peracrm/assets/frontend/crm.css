@@ -5805,6 +5805,12 @@ body.crm-route #site-header.peracrm-shell-header.is-scrolled .peracrm-header-act
   gap: 10px;
 }
 
+/* Overview push card follows the same overview-band spacing ownership as other overview sections. */
+.crm-page--overview .crm-overview-band--push {
+  margin: 0;
+  padding: 0;
+}
+
 .crm-page .crm-list-workspace-toolbar {
   margin: 0 0 16px;
   padding: 16px 18px;
@@ -5857,6 +5863,29 @@ body.crm-route #site-header.peracrm-shell-header.is-scrolled .peracrm-header-act
 .crm-page--new .crm-form-card {
   border-radius: 14px;
   box-shadow: 0 2px 10px rgba(15, 23, 42, 0.04);
+}
+
+/* New-lead panel ownership: shell wraps, sections space content. */
+.crm-page--new .crm-form-card.crm-form-workspace {
+  padding: 0;
+  gap: 0;
+}
+
+.crm-page--new .crm-form-workspace__header {
+  padding: var(--crm-section-padding) var(--crm-section-padding) 0;
+}
+
+.crm-page--new .crm-form-workspace__form {
+  gap: 0;
+}
+
+.crm-page--new .crm-form-workspace__form > .crm-inline-notice {
+  margin: 0 var(--crm-section-padding);
+}
+
+.crm-page--new .crm-form-workspace__footer {
+  padding: 6px var(--crm-section-padding) var(--crm-section-padding);
+  margin-top: 0;
 }
 
 @media (max-width: 1024px) {

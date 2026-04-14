@@ -433,12 +433,12 @@ peracrm_frontend_render_shell_header();
       <?php endif; ?>
 
 			<?php if ( is_user_logged_in() ) : ?>
-	      <section class="section" aria-label="<?php echo esc_attr__( 'Push notifications', 'peracrm' ); ?>">
+	      <section class="crm-overview-band crm-overview-band--secondary crm-overview-band--push" aria-labelledby="crm-push-notifications-heading">
 	        <article class="crm-section crm-section--flush crm-push-panel" data-crm-push-card>
 	          <header class="crm-section__header">
             <div class="crm-section__heading-group">
               <span class="crm-chip crm-chip--neutral"><?php echo esc_html__( 'Notifications', 'peracrm' ); ?></span>
-              <h2 class="crm-section__title"><?php echo esc_html__( 'Reminder Push Notifications', 'peracrm' ); ?></h2>
+              <h2 id="crm-push-notifications-heading" class="crm-section__title"><?php echo esc_html__( 'Reminder Push Notifications', 'peracrm' ); ?></h2>
             </div>
           </header>
           <div class="crm-section__body">
