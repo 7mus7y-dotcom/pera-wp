@@ -2220,14 +2220,15 @@ if ( ! function_exists( 'pera_crm_get_post_created_ts_map' ) ) {
 			}
 
 			$created_ts = 0;
-			$post_gmt   = isset( $row['post_date_gmt'] ) ? (string) $row['post_date_gmt'] : '';
 			$post_local = isset( $row['post_date'] ) ? (string) $row['post_date'] : '';
-			if ( '' !== $post_gmt && '0000-00-00 00:00:00' !== $post_gmt ) {
-				$created_ts = strtotime( $post_gmt . ' UTC' );
+			$post_gmt   = isset( $row['post_date_gmt'] ) ? (string) $row['post_date_gmt'] : '';
+
+			if ( '' !== $post_local && '0000-00-00 00:00:00' !== $post_local ) {
+				$created_ts = strtotime( $post_local );
 			}
 
-			if ( $created_ts <= 0 && '' !== $post_local && '0000-00-00 00:00:00' !== $post_local ) {
-				$created_ts = strtotime( $post_local );
+			if ( $created_ts <= 0 && '' !== $post_gmt && '0000-00-00 00:00:00' !== $post_gmt ) {
+				$created_ts = strtotime( $post_gmt . ' UTC' );
 			}
 
 			$map[ $lead_id ] = max( 0, (int) $created_ts );
