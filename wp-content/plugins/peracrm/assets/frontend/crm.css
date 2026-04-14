@@ -1465,11 +1465,7 @@ body.crm-route .crm-page--client-view .crm-portfolio-actions .peracrm-linked-pro
   gap: 16px;
 }
 
-.crm-page--performance .crm-performance-subsection {
-  padding: 12px 0;
-  width: 100%;
-  max-width: 100%;
-  min-width: 0;
+.crm-page--performance .crm-subpanel.crm-performance-subsection {
   border: 0;
   border-top: 1px solid color-mix(in srgb, var(--border, #e8ecf2) 72%, transparent 28%);
   border-radius: 12px;
@@ -5690,6 +5686,7 @@ body.crm-route #site-header.peracrm-shell-header.is-scrolled .peracrm-header-act
   --crm-button-operational-font-size: 0.85rem;
 }
 
+/* Shell spacing ownership: only top-level page wrappers use .content-panel/.content-panel-box. */
 .crm-page .content-panel {
   padding: 0 var(--crm-shell-panel-padding-inline) var(--crm-shell-panel-padding-bottom);
 }
@@ -5703,6 +5700,7 @@ body.crm-route #site-header.peracrm-shell-header.is-scrolled .peracrm-header-act
   padding: var(--crm-shell-section-padding-block) var(--crm-shell-section-padding-inline);
 }
 
+/* Panel spacing ownership: card/section containers. */
 .crm-page .crm-section,
 .crm-page .crm-table-wrap.crm-table-wrap--primitive {
   border-radius: var(--crm-section-radius);
@@ -5710,6 +5708,19 @@ body.crm-route #site-header.peracrm-shell-header.is-scrolled .peracrm-header-act
 
 .crm-page .crm-section {
   padding: var(--crm-section-padding);
+}
+
+/* Keep flush sections authoritative even after the base .crm-section pass. */
+.crm-page .crm-section--flush {
+  padding: 0;
+}
+
+/* Internal/component spacing ownership lives in section internals (header/body/footer, grids, etc.). */
+.crm-page .crm-subpanel {
+  padding: 12px 0;
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
 }
 
 .crm-page .btn,

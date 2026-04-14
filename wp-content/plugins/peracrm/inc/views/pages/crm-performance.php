@@ -231,7 +231,7 @@ peracrm_frontend_render_shell_header();
                 </article>
               <?php endforeach; ?>
             </div>
-            <section class="content-panel crm-performance-subsection" aria-labelledby="crm-performance-attention-title">
+            <section class="crm-subpanel crm-performance-subsection" aria-labelledby="crm-performance-attention-title">
               <h2 id="crm-performance-attention-title" class="crm-section__title"><?php esc_html_e( 'Attention Needed', 'peracrm' ); ?></h2>
               <div class="crm-performance-cards crm-performance-grid" role="list" aria-label="<?php esc_attr_e( 'Attention needed cards', 'peracrm' ); ?>">
                 <?php foreach ( $attention_defs as $key => $label ) : ?>
@@ -243,7 +243,7 @@ peracrm_frontend_render_shell_header();
                 <?php endforeach; ?>
               </div>
             </section>
-            <section class="content-panel crm-performance-subsection" aria-labelledby="crm-performance-progress-title">
+            <section class="crm-subpanel crm-performance-subsection" aria-labelledby="crm-performance-progress-title">
               <h2 id="crm-performance-progress-title" class="crm-section__title"><?php esc_html_e( 'Cohort Progress', 'peracrm' ); ?></h2>
               <div class="crm-performance-cards crm-performance-grid" role="list" aria-label="<?php esc_attr_e( 'Cohort progress count cards', 'peracrm' ); ?>">
                 <?php foreach ( $progress_count_defs as $key => $label ) : ?>
@@ -264,7 +264,7 @@ peracrm_frontend_render_shell_header();
                 <?php endforeach; ?>
               </div>
             </section>
-            <section class="content-panel crm-performance-subsection crm-performance-subsection--sources" aria-labelledby="crm-performance-sources-title">
+            <section class="crm-subpanel crm-performance-subsection crm-performance-subsection--sources" aria-labelledby="crm-performance-sources-title">
               <h2 id="crm-performance-sources-title" class="crm-section__title"><?php esc_html_e( 'Lead Sources', 'peracrm' ); ?></h2>
               <div class="crm-table-wrap crm-table-wrap--primitive">
                 <table class="crm-table">
@@ -297,7 +297,7 @@ peracrm_frontend_render_shell_header();
                 </table>
               </div>
             </section>
-            <section class="content-panel crm-performance-subsection crm-performance-subsection--comparison" aria-labelledby="crm-performance-comparison-title">
+            <section class="crm-subpanel crm-performance-subsection crm-performance-subsection--comparison" aria-labelledby="crm-performance-comparison-title">
               <h2 id="crm-performance-comparison-title" class="crm-section__title"><?php esc_html_e( 'Performance Comparison', 'peracrm' ); ?></h2>
               <div class="crm-performance-cards crm-performance-grid" role="list" aria-label="<?php esc_attr_e( 'Performance comparison cards', 'peracrm' ); ?>">
                 <?php foreach ( $comparison_defs as $key => $metric_def ) : ?>
@@ -319,7 +319,7 @@ peracrm_frontend_render_shell_header();
                 <?php endforeach; ?>
               </div>
             </section>
-            <section class="content-panel crm-performance-subsection crm-performance-subsection--stage-distribution" aria-labelledby="crm-performance-stage-distribution-title">
+            <section class="crm-subpanel crm-performance-subsection crm-performance-subsection--stage-distribution" aria-labelledby="crm-performance-stage-distribution-title">
               <h2 id="crm-performance-stage-distribution-title" class="crm-section__title"><?php esc_html_e( 'Stage Distribution', 'peracrm' ); ?></h2>
               <div class="crm-table-wrap crm-table-wrap--primitive">
                 <table class="crm-table crm-table--stage-distribution">
@@ -353,7 +353,7 @@ peracrm_frontend_render_shell_header();
                 </table>
               </div>
             </section>
-            <section class="content-panel crm-performance-subsection crm-performance-subsection--response-speed" aria-labelledby="crm-performance-response-speed-title">
+            <section class="crm-subpanel crm-performance-subsection crm-performance-subsection--response-speed" aria-labelledby="crm-performance-response-speed-title">
               <h2 id="crm-performance-response-speed-title" class="crm-section__title"><?php esc_html_e( 'Response Speed', 'peracrm' ); ?></h2>
               <div class="crm-performance-cards crm-performance-grid" role="list" aria-label="<?php esc_attr_e( 'Response speed cards', 'peracrm' ); ?>">
                 <article class="crm-performance-card" role="listitem">
