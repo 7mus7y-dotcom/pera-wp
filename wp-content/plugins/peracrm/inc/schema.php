@@ -192,6 +192,9 @@ function peracrm_upgrade_schema_to($target_version, $installed_version = 0)
         if (function_exists('peracrm_whatsapp_messages_create_table')) {
             peracrm_whatsapp_messages_create_table();
         }
+        if (function_exists('peracrm_notification_log_create_table')) {
+            peracrm_notification_log_create_table();
+        }
 
         $closed_reason_exists = $wpdb->get_var($wpdb->prepare("SHOW COLUMNS FROM {$deals_table} LIKE %s", 'closed_reason'));
         if (!$closed_reason_exists) {
