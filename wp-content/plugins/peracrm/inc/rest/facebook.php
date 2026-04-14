@@ -60,6 +60,11 @@ function peracrm_rest_facebook_verify_webhook(WP_REST_Request $request)
 function peracrm_rest_facebook_receive_webhook(WP_REST_Request $request)
 {
     $leadgen_id = '';
+    $notifications_count = 0;
+    $retrieved = 0;
+    $ingested = 0;
+    $failed = 0;
+    $last_error = '';
 
     try {
         $payload = $request->get_json_params();
@@ -90,6 +95,8 @@ function peracrm_rest_facebook_receive_webhook(WP_REST_Request $request)
             error_log('PeraCRM Facebook leadgen_id extracted: ' . $leadgen_id);
         }
 
+        $notifications_count = is_array($notifications) ? count($notifications) : 0;
+
         if (
             !empty($notifications)
             && function_exists('peracrm_facebook_leads_graph_get_lead')
@@ -103,18 +110,38 @@ function peracrm_rest_facebook_receive_webhook(WP_REST_Request $request)
 
                 $graph_result = peracrm_facebook_leads_graph_get_lead($notification_leadgen_id);
                 if (!empty($graph_result['ok'])) {
-                    peracrm_facebook_leads_ingest_graph_lead($notification, $graph_result);
+                    $retrieved++;
+                    $ingest_result = peracrm_facebook_leads_ingest_graph_lead($notification, $graph_result);
+                    if (sanitize_key((string) ($ingest_result['status'] ?? '')) === 'ingested') {
+                        $ingested++;
+                    }
+                    continue;
                 }
+
+                $failed++;
+                $last_error = sanitize_text_field((string) ($graph_result['error_message'] ?? 'graph_lookup_failed'));
+                error_log('PeraCRM Facebook Graph lead lookup failed: ' . wp_json_encode([
+                    'leadgen_id' => $notification_leadgen_id,
+                    'error_code' => sanitize_key((string) ($graph_result['error_code'] ?? 'unknown')),
+                    'error_message' => $last_error,
+                    'http_status' => (int) ($graph_result['http_status'] ?? 0),
+                ]));
             }
         }
     } catch (Throwable $e) {
         error_log('PeraCRM Facebook webhook exception: ' . $e->getMessage());
+        $last_error = sanitize_text_field($e->getMessage());
     }
 
     $response_data = [
         'ok' => true,
         'received' => true,
         'leadgen_id' => $leadgen_id,
+        'notifications' => $notifications_count,
+        'retrieved' => $retrieved,
+        'ingested' => $ingested,
+        'failed' => $failed,
+        'last_error' => $last_error,
         'handled_by' => 'peracrm_rest_facebook_receive_webhook',
     ];
     error_log('PeraCRM Facebook webhook response returned: ' . wp_json_encode($response_data));
