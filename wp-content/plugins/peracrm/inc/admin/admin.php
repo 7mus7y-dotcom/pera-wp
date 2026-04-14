@@ -35,6 +35,7 @@ add_action('admin_post_peracrm_pipeline_move_stage', 'peracrm_handle_pipeline_mo
 add_action('admin_post_peracrm_pipeline_bulk_action', 'peracrm_handle_pipeline_bulk_action');
 add_action('admin_post_peracrm_pipeline_export_csv', 'peracrm_handle_pipeline_export_csv');
 add_action('admin_post_peracrm_save_whatsapp_settings', 'peracrm_handle_whatsapp_settings_save');
+add_action('admin_post_peracrm_test_enquiry_notifications', 'peracrm_enquiry_notifications_handle_test_send');
 add_action('admin_post_peracrm_import_upload_csv', 'peracrm_handle_import_upload_csv');
 add_action('admin_post_peracrm_import_validate_csv', 'peracrm_handle_import_validate_csv');
 add_action('admin_post_peracrm_import_commit_csv', 'peracrm_handle_import_commit_csv');

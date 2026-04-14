@@ -427,6 +427,7 @@ function peracrm_facebook_leads_ingest_graph_lead(array $notification, array $gr
         'handler' => 'facebook_lead_ads',
         'form_id' => (string) ($source_meta['facebook_form_id'] ?? ''),
         'form_name' => (string) ($source_meta['facebook_form_name'] ?? ''),
+        'source_event_id' => $facebook_lead_id,
         'current_blog_id' => (int) get_current_blog_id(),
         'target_blog_id' => function_exists('peracrm_get_target_blog_id') ? (int) peracrm_get_target_blog_id() : 0,
         'site_url' => esc_url_raw((string) home_url('/')),

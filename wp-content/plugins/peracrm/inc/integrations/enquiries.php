@@ -392,6 +392,7 @@ function peracrm_ingest_enquiry(array $payload, array $context = [])
             'current_blog_id' => isset($context['current_blog_id']) ? (int) $context['current_blog_id'] : (int) get_current_blog_id(),
             'target_blog_id' => isset($context['target_blog_id']) ? (int) $context['target_blog_id'] : (int) peracrm_get_target_blog_id(),
             'site_url' => isset($context['site_url']) ? esc_url_raw((string) $context['site_url']) : esc_url_raw((string) home_url('/')),
+            'source_event_id' => isset($context['source_event_id']) ? sanitize_text_field((string) $context['source_event_id']) : '',
         ];
 
         if (!empty($raw_fields)) {
@@ -399,11 +400,22 @@ function peracrm_ingest_enquiry(array $payload, array $context = [])
         }
 
         $activity_logged = false;
+        $activity_id = 0;
+        $is_duplicate_replay = false;
+        $submission_id = sanitize_text_field((string) wp_generate_uuid4());
         if (peracrm_ingest_recent_fingerprint_exists($fingerprint, 300)) {
+            $is_duplicate_replay = true;
             peracrm_ingest_debug_log('event deduped by fingerprint', $context + ['client_id' => $client_id, 'fingerprint' => $fingerprint]);
         } else {
-            $activity_logged = (bool) peracrm_log_event($client_id, 'enquiry', $event_payload);
-            peracrm_ingest_debug_log('event logged', $context + ['client_id' => $client_id, 'activity_logged' => $activity_logged ? 1 : 0]);
+            $event_payload['submission_id'] = $submission_id;
+            if (!isset($event_payload['actor_user_id']) || (int) $event_payload['actor_user_id'] <= 0) {
+                $event_payload['actor_user_id'] = function_exists('peracrm_get_actor_user_id') ? peracrm_get_actor_user_id() : get_current_user_id();
+            }
+            $event_payload['ts'] = peracrm_now_mysql();
+
+            $activity_id = (int) peracrm_activity_insert($client_id, 'enquiry', $event_payload);
+            $activity_logged = $activity_id > 0;
+            peracrm_ingest_debug_log('event logged', $context + ['client_id' => $client_id, 'activity_logged' => $activity_logged ? 1 : 0, 'activity_id' => $activity_id]);
         }
 
         $property_linked = false;
@@ -425,6 +437,21 @@ function peracrm_ingest_enquiry(array $payload, array $context = [])
             'activity_logged' => $activity_logged ? 1 : 0,
             'property_linked' => $property_linked ? 1 : 0,
         ]);
+
+        if (function_exists('peracrm_enquiry_notifications_dispatch')) {
+            peracrm_enquiry_notifications_dispatch([
+                'client_id' => $client_id,
+                'payload' => $payload,
+                'context' => $context,
+                'source' => $context_source,
+                'source_event_id' => isset($context['source_event_id']) ? sanitize_text_field((string) $context['source_event_id']) : '',
+                'activity_logged' => $activity_logged,
+                'activity_id' => $activity_id,
+                'is_duplicate_replay' => $is_duplicate_replay,
+                'submission_id' => $submission_id,
+                'retry_fingerprint' => $fingerprint,
+            ]);
+        }
 
         return $client_id;
     });

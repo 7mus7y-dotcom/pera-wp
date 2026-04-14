@@ -11,6 +11,7 @@ function peracrm_whatsapp_default_settings()
         'phone_number_id' => '',
         'access_token' => '',
         'verify_token' => '',
+        'graph_api_version' => 'v22.0',
         'test_mode' => 0,
     ];
 }
@@ -55,6 +56,7 @@ function peracrm_whatsapp_save_settings(array $input)
         'enabled' => !empty($input['enabled']) ? 1 : 0,
         'phone_number_id' => sanitize_text_field((string) ($input['phone_number_id'] ?? '')),
         'verify_token' => $existing['verify_token'],
+        'graph_api_version' => sanitize_text_field((string) ($input['graph_api_version'] ?? ($existing['graph_api_version'] ?? 'v22.0'))),
         'test_mode' => !empty($input['test_mode']) ? 1 : 0,
         'access_token' => $existing['access_token'],
     ];
