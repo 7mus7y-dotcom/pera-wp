@@ -3525,7 +3525,7 @@ body.crm-route #site-header.peracrm-shell-header .crm-side-nav__toggle--header:f
   --crm-log-table-body-cell-padding: 10px 12px;
 }
 
-.crm-page--logs [data-peracrm-whatsapp-feedback] { margin-bottom: 12px; }
+.crm-page--logs [data-peracrm-whatsapp-feedback] { margin:0; }
 .crm-page--logs .peracrm-whatsapp-log-controls {
   display: flex;
   justify-content: space-between;
