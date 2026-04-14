@@ -328,6 +328,34 @@ function peracrm_whatsapp_create_client_from_inbound($phone_e164, $contact_name 
     update_post_meta($post_id, '_peracrm_phone', $phone_e164);
     update_post_meta($post_id, 'crm_source', 'whatsapp_inbound');
     update_post_meta($post_id, 'crm_status', 'enquiry');
+
+    $default_advisor_user_id = 0;
+    if (function_exists('peracrm_ingest_default_admin_user_id')) {
+        $default_advisor_user_id = (int) peracrm_ingest_default_admin_user_id();
+    } else {
+        $admin_ids = get_users([
+            'role' => 'administrator',
+            'fields' => 'ids',
+            'number' => 1,
+            'orderby' => 'ID',
+            'order' => 'ASC',
+        ]);
+        $default_advisor_user_id = !empty($admin_ids) ? (int) $admin_ids[0] : 0;
+    }
+
+    if (function_exists('peracrm_get_default_assignee_user_id')) {
+        $default_advisor_user_id = (int) peracrm_get_default_assignee_user_id($default_advisor_user_id);
+    }
+
+    if ($default_advisor_user_id > 0) {
+        if (function_exists('peracrm_ingest_enforce_advisor_assignment')) {
+            peracrm_ingest_enforce_advisor_assignment($post_id, $default_advisor_user_id);
+        } else {
+            update_post_meta($post_id, 'assigned_advisor_user_id', $default_advisor_user_id);
+            update_post_meta($post_id, 'crm_assigned_advisor', $default_advisor_user_id);
+        }
+    }
+
     if ($contact_name !== '') {
         update_post_meta($post_id, 'crm_first_name', $contact_name);
     }
@@ -575,6 +603,50 @@ function peracrm_whatsapp_process_inbound_payload(array $payload)
                                 'source' => 'whatsapp_inbound',
                                 'phone' => $phone_e164,
                             ]);
+
+                            $event_payload = [
+                                'form' => 'whatsapp_inbound',
+                                'form_name' => 'WhatsApp inbound',
+                                'source' => 'whatsapp_inbound',
+                                'message' => $message_body,
+                                'phone' => $phone_e164,
+                                'name' => $contact_name,
+                                'submitted_at' => peracrm_now_mysql(),
+                                'source_event_id' => $message_id,
+                            ];
+
+                            $activity_logged = false;
+                            $activity_id = 0;
+                            if (function_exists('peracrm_log_event_result')) {
+                                $enquiry_log_result = peracrm_log_event_result($client_id, 'enquiry', $event_payload);
+                                $activity_logged = !empty($enquiry_log_result['ok']);
+                                $activity_id = isset($enquiry_log_result['activity_id']) ? (int) $enquiry_log_result['activity_id'] : 0;
+                            } else {
+                                $activity_logged = (bool) peracrm_log_event($client_id, 'enquiry', $event_payload);
+                            }
+
+                            if (function_exists('peracrm_enquiry_notifications_dispatch')) {
+                                peracrm_enquiry_notifications_dispatch([
+                                    'client_id' => $client_id,
+                                    'payload' => [
+                                        'phone' => $phone_e164,
+                                        'name' => $contact_name,
+                                        'message' => $message_body,
+                                    ],
+                                    'context' => [
+                                        'handler' => 'whatsapp_inbound',
+                                        'form_id' => 'whatsapp_inbound',
+                                        'form_name' => 'WhatsApp inbound',
+                                    ],
+                                    'source' => 'whatsapp_inbound',
+                                    'source_event_id' => $message_id,
+                                    'activity_logged' => $activity_logged,
+                                    'activity_id' => $activity_id,
+                                    'is_duplicate_replay' => false,
+                                    'submission_id' => sanitize_text_field((string) wp_generate_uuid4()),
+                                    'retry_fingerprint' => hash('sha256', $phone_e164 . '|' . $message_id . '|' . $message_body),
+                                ]);
+                            }
                         }
                     }
 
