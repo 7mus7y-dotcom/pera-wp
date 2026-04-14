@@ -61,8 +61,7 @@ function peracrm_rest_facebook_receive_webhook(WP_REST_Request $request)
 {
     $leadgen_id = '';
     $notifications_count = 0;
-    $retrieved = 0;
-    $ingested = 0;
+    $scheduled = 0;
     $failed = 0;
     $last_error = '';
 
@@ -96,35 +95,26 @@ function peracrm_rest_facebook_receive_webhook(WP_REST_Request $request)
         }
 
         $notifications_count = is_array($notifications) ? count($notifications) : 0;
+        set_transient('peracrm_facebook_last_webhook_payload', $payload, DAY_IN_SECONDS);
 
-        if (
-            !empty($notifications)
-            && function_exists('peracrm_facebook_leads_graph_get_lead')
-            && function_exists('peracrm_facebook_leads_ingest_graph_lead')
-        ) {
+        if (!empty($notifications)) {
             foreach ($notifications as $notification) {
-                $notification_leadgen_id = sanitize_text_field((string) ($notification['leadgen_id'] ?? ''));
-                if ($notification_leadgen_id === '') {
+                if (!is_array($notification)) {
                     continue;
                 }
 
-                $graph_result = peracrm_facebook_leads_graph_get_lead($notification_leadgen_id);
-                if (!empty($graph_result['ok'])) {
-                    $retrieved++;
-                    $ingest_result = peracrm_facebook_leads_ingest_graph_lead($notification, $graph_result);
-                    if (sanitize_key((string) ($ingest_result['status'] ?? '')) === 'ingested') {
-                        $ingested++;
-                    }
+                $scheduled_result = peracrm_rest_facebook_schedule_notification_processing($notification);
+                if (!empty($scheduled_result['ok'])) {
+                    $scheduled++;
                     continue;
                 }
 
                 $failed++;
-                $last_error = sanitize_text_field((string) ($graph_result['error_message'] ?? 'graph_lookup_failed'));
-                error_log('PeraCRM Facebook Graph lead lookup failed: ' . wp_json_encode([
-                    'leadgen_id' => $notification_leadgen_id,
-                    'error_code' => sanitize_key((string) ($graph_result['error_code'] ?? 'unknown')),
+                $last_error = sanitize_text_field((string) ($scheduled_result['error_message'] ?? 'schedule_failed'));
+                error_log('PeraCRM Facebook lead notification scheduling failed: ' . wp_json_encode([
+                    'leadgen_id' => sanitize_text_field((string) ($notification['leadgen_id'] ?? '')),
+                    'error_code' => sanitize_key((string) ($scheduled_result['error_code'] ?? 'unknown')),
                     'error_message' => $last_error,
-                    'http_status' => (int) ($graph_result['http_status'] ?? 0),
                 ]));
             }
         }
@@ -138,15 +128,99 @@ function peracrm_rest_facebook_receive_webhook(WP_REST_Request $request)
         'received' => true,
         'leadgen_id' => $leadgen_id,
         'notifications' => $notifications_count,
-        'retrieved' => $retrieved,
-        'ingested' => $ingested,
+        'retrieved' => 0,
+        'ingested' => 0,
+        'scheduled' => $scheduled,
         'failed' => $failed,
         'last_error' => $last_error,
+        'processing' => 'deferred',
         'handled_by' => 'peracrm_rest_facebook_receive_webhook',
     ];
     error_log('PeraCRM Facebook webhook response returned: ' . wp_json_encode($response_data));
 
     return new WP_REST_Response($response_data, 200);
+}
+
+function peracrm_rest_facebook_schedule_notification_processing(array $notification)
+{
+    $leadgen_id = sanitize_text_field((string) ($notification['leadgen_id'] ?? ''));
+    if ($leadgen_id === '') {
+        return [
+            'ok' => false,
+            'error_code' => 'missing_leadgen_id',
+            'error_message' => 'Leadgen ID missing from notification.',
+        ];
+    }
+
+    $event_args = [
+        'notification' => $notification,
+    ];
+
+    $next_scheduled = wp_next_scheduled('peracrm_process_facebook_lead_notification', $event_args);
+    if ($next_scheduled) {
+        return [
+            'ok' => true,
+            'already_scheduled' => true,
+            'leadgen_id' => $leadgen_id,
+        ];
+    }
+
+    $scheduled = wp_schedule_single_event(time(), 'peracrm_process_facebook_lead_notification', $event_args);
+    if (!$scheduled) {
+        return [
+            'ok' => false,
+            'error_code' => 'wp_schedule_single_event_failed',
+            'error_message' => 'Unable to schedule async Facebook lead processing.',
+        ];
+    }
+
+    error_log('PeraCRM Facebook lead notification scheduled for async processing: ' . wp_json_encode([
+        'leadgen_id' => $leadgen_id,
+    ]));
+
+    return [
+        'ok' => true,
+        'leadgen_id' => $leadgen_id,
+    ];
+}
+
+function peracrm_process_facebook_lead_notification($event_payload)
+{
+    $notification = [];
+    if (is_array($event_payload) && isset($event_payload['notification']) && is_array($event_payload['notification'])) {
+        $notification = $event_payload['notification'];
+    } elseif (is_array($event_payload)) {
+        $notification = $event_payload;
+    }
+
+    $leadgen_id = sanitize_text_field((string) ($notification['leadgen_id'] ?? ''));
+    if ($leadgen_id === '') {
+        error_log('PeraCRM Facebook async processing skipped: missing leadgen_id');
+        return;
+    }
+
+    if (!function_exists('peracrm_facebook_leads_graph_get_lead') || !function_exists('peracrm_facebook_leads_ingest_graph_lead')) {
+        error_log('PeraCRM Facebook async processing skipped: integration helpers unavailable');
+        return;
+    }
+
+    $graph_result = peracrm_facebook_leads_graph_get_lead($leadgen_id);
+    if (empty($graph_result['ok'])) {
+        error_log('PeraCRM Facebook Graph lead lookup failed (async): ' . wp_json_encode([
+            'leadgen_id' => $leadgen_id,
+            'error_code' => sanitize_key((string) ($graph_result['error_code'] ?? 'unknown')),
+            'error_message' => sanitize_text_field((string) ($graph_result['error_message'] ?? 'graph_lookup_failed')),
+            'http_status' => (int) ($graph_result['http_status'] ?? 0),
+        ]));
+        return;
+    }
+
+    $ingest_result = peracrm_facebook_leads_ingest_graph_lead($notification, $graph_result);
+    error_log('PeraCRM Facebook lead async ingest completed: ' . wp_json_encode([
+        'leadgen_id' => $leadgen_id,
+        'status' => sanitize_key((string) ($ingest_result['status'] ?? 'unknown')),
+        'client_id' => (int) ($ingest_result['client_id'] ?? 0),
+    ]));
 }
 
 function peracrm_rest_facebook_serve_verify_challenge($served, $result, $request, $server)
@@ -181,3 +255,4 @@ function peracrm_rest_facebook_serve_verify_challenge($served, $result, $request
 
 add_filter('rest_pre_serve_request', 'peracrm_rest_facebook_serve_verify_challenge', 10, 4);
 add_action('rest_api_init', 'peracrm_rest_register_facebook_routes');
+add_action('peracrm_process_facebook_lead_notification', 'peracrm_process_facebook_lead_notification', 10, 1);
