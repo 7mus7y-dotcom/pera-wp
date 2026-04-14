@@ -153,7 +153,7 @@ function peracrm_rest_facebook_schedule_notification_processing(array $notificat
     }
 
     $event_args = [
-        'notification' => $notification,
+        $notification,
     ];
 
     $next_scheduled = wp_next_scheduled('peracrm_process_facebook_lead_notification', $event_args);
@@ -184,15 +184,8 @@ function peracrm_rest_facebook_schedule_notification_processing(array $notificat
     ];
 }
 
-function peracrm_process_facebook_lead_notification($event_payload)
+function peracrm_process_facebook_lead_notification($notification)
 {
-    $notification = [];
-    if (is_array($event_payload) && isset($event_payload['notification']) && is_array($event_payload['notification'])) {
-        $notification = $event_payload['notification'];
-    } elseif (is_array($event_payload)) {
-        $notification = $event_payload;
-    }
-
     $leadgen_id = sanitize_text_field((string) ($notification['leadgen_id'] ?? ''));
     if ($leadgen_id === '') {
         error_log('PeraCRM Facebook async processing skipped: missing leadgen_id');
