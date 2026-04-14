@@ -206,7 +206,7 @@ peracrm_frontend_render_shell_header();
 	    <div class="content-panel-box border-dm crm-layout">
       <div class="crm-layout__main">
 			<?php if ( ! $is_leads && ! $is_tasks ) : ?>
-      <section class="section crm-overview-band crm-overview-band--primary" aria-labelledby="crm-priority-work-heading">
+      <section class="crm-overview-band crm-overview-band--primary" aria-labelledby="crm-priority-work-heading">
         <article class="crm-section crm-section--flush crm-overview-priority">
           <header class="crm-section__header">
             <div class="crm-section__heading-group">
@@ -242,7 +242,7 @@ peracrm_frontend_render_shell_header();
         </article>
       </section>
 
-      <section class="section crm-overview-band crm-overview-band--queue" aria-labelledby="crm-strict-new-leads-heading">
+      <section class="crm-overview-band crm-overview-band--queue" aria-labelledby="crm-strict-new-leads-heading">
         <article class="crm-section crm-section--flush crm-overview-queue">
           <header class="crm-section__header">
             <div class="crm-section__heading-group">
@@ -283,7 +283,7 @@ peracrm_frontend_render_shell_header();
         </article>
       </section>
 
-      <section class="section crm-overview-band crm-overview-band--queue" aria-labelledby="crm-new-leads-heading">
+      <section class="crm-overview-band crm-overview-band--queue" aria-labelledby="crm-new-leads-heading">
         <article class="crm-section crm-section--flush crm-overview-queue">
           <header class="crm-section__header">
             <div class="crm-section__heading-group">
@@ -324,7 +324,7 @@ peracrm_frontend_render_shell_header();
         </article>
       </section>
 
-      <section class="section crm-overview-band" aria-labelledby="crm-task-focus-heading">
+      <section class="crm-overview-band" aria-labelledby="crm-task-focus-heading">
         <article class="crm-section crm-section--flush">
           <header class="crm-section__header">
             <div class="crm-section__heading-group">
@@ -348,7 +348,7 @@ peracrm_frontend_render_shell_header();
         </article>
       </section>
 
-      <section class="section crm-overview-band crm-overview-band--secondary" aria-labelledby="crm-activity-heading">
+      <section class="crm-overview-band crm-overview-band--secondary" aria-labelledby="crm-activity-heading">
         <article class="crm-section crm-section--flush crm-overview-activity">
           <header class="crm-section__header">
             <div class="crm-section__heading-group">
@@ -376,7 +376,7 @@ peracrm_frontend_render_shell_header();
         </article>
       </section>
 
-      <section class="section crm-overview-band crm-overview-band--tertiary" aria-labelledby="crm-pipeline-health-heading">
+      <section class="crm-overview-band crm-overview-band--tertiary" aria-labelledby="crm-pipeline-health-heading">
         <article class="crm-section crm-section--flush crm-overview-metrics crm-overview-health">
           <header class="crm-section__header">
             <div class="crm-section__heading-group">
@@ -413,7 +413,7 @@ peracrm_frontend_render_shell_header();
       </section>
 
       <?php if ( ! empty( $notices ) ) : ?>
-      <section class="section crm-overview-band crm-overview-band--secondary" aria-label="<?php echo esc_attr__( 'CRM notices', 'peracrm' ); ?>">
+      <section class="crm-overview-band crm-overview-band--secondary" aria-label="<?php echo esc_attr__( 'CRM notices', 'peracrm' ); ?>">
         <article class="crm-section crm-section--flush">
           <header class="crm-section__header">
             <div class="crm-section__heading-group">

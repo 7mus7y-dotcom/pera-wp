@@ -1422,8 +1422,10 @@ body.crm-route .crm-page--client-view .crm-portfolio-actions .peracrm-linked-pro
   gap: 18px;
 }
 
+/* Overview bands are structural wrappers; inner .crm-section owns panel spacing. */
 .crm-page--overview .crm-overview-band {
   margin: 0;
+  padding: 0;
 }
 
 .crm-page--overview .crm-overview-priority {
