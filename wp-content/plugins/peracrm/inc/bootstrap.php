@@ -50,6 +50,7 @@ require_once PERACRM_INC . '/services/push_service.php';
 require_once PERACRM_INC . '/cron/push_cron.php';
 require_once PERACRM_INC . '/rest/push.php';
 require_once PERACRM_INC . '/rest/whatsapp.php';
+require_once PERACRM_INC . '/rest/facebook.php';
 require_once PERACRM_INC . '/rest.php';
 require_once PERACRM_INC . '/admin/metaboxes/timeline.php';
 
