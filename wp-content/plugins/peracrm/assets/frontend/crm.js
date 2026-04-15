@@ -41,6 +41,26 @@
   window.addEventListener('resize', scheduleStickyOffsetSync, { passive: true });
 })();
 
+
+(function () {
+  var clientPage = document.querySelector('.crm-page--client-view');
+  if (!clientPage) {
+    return;
+  }
+
+  var stickyName = clientPage.querySelector('.crm-client-sticky-name');
+  if (!stickyName) {
+    return;
+  }
+
+  function syncStickyNameVisibility() {
+    stickyName.classList.toggle('is-hidden', window.scrollY <= 320);
+  }
+
+  syncStickyNameVisibility();
+  window.addEventListener('scroll', syncStickyNameVisibility, { passive: true });
+})();
+
 (function () {
   var ajaxUrl = window.peraCrmData && window.peraCrmData.ajaxUrl ? window.peraCrmData.ajaxUrl : '';
   if (!ajaxUrl) {

@@ -4638,6 +4638,16 @@ body.crm-route #site-header.peracrm-shell-header.is-scrolled .peracrm-header-act
 }
 
 .crm-page--client-view .crm-client-sticky-name {
+  transition: opacity 160ms ease, transform 160ms ease;
+}
+
+.crm-page--client-view .crm-client-sticky-name.is-hidden {
+  opacity: 0;
+  transform: translateY(-6px);
+  pointer-events: none;
+}
+
+.crm-page--client-view .crm-client-sticky-name {
   position: sticky;
   top: var(--crm-shell-sticky-offset);
   z-index: 110;
