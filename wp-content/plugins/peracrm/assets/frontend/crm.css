@@ -4217,6 +4217,7 @@ body.crm-route {
 .crm-page {
   --crm-shell-radius: 12px;
   --crm-shell-gap: 16px;
+  --crm-shell-sticky-offset: 80px;
 }
 
 .crm-page .content-panel {
@@ -4257,6 +4258,14 @@ body.crm-route {
   border-radius: 999px;
   background: rgba(255, 255, 255, 0.92);
   color: #0f172a;
+}
+
+.crm-page-date-pill,
+.crm-client-date-pill {
+  position: sticky;
+  top: var(--crm-shell-sticky-offset);
+  z-index: 120;
+  margin-left: auto;
 }
 
 .crm-page-date-pill__label {
@@ -4629,7 +4638,7 @@ body.crm-route #site-header.peracrm-shell-header.is-scrolled .peracrm-header-act
 
 .crm-page--client-view .crm-client-sticky-name {
   position: sticky;
-  top: var(--crm-client-sticky-offset, 0px);
+  top: var(--crm-shell-sticky-offset);
   z-index: 110;
   display: inline-flex;
   width: fit-content;
@@ -4676,6 +4685,10 @@ body.crm-route #site-header.peracrm-shell-header.is-scrolled .peracrm-header-act
 
 .crm-page--client-view .crm-client-sticky-name__meta {
   flex: 0 0 auto;
+}
+
+.crm-page--client-view {
+  --crm-shell-sticky-offset: 88px;
 }
 
 .crm-page--client-view .content-panel-box {
@@ -6011,12 +6024,6 @@ body.crm-route #site-header.peracrm-shell-header.is-scrolled .peracrm-header-act
     margin-bottom: 14px;
   }
 
-  .crm-page-date-pill {
-    position: sticky;
-    top: var(--crm-shell-sticky-offset, 0px);
-    z-index: 120;
-  }
-
   .crm-page--client-view .crm-client-subsection--deal-workspace {
     padding: 0;
     gap: 10px;
@@ -6045,6 +6052,33 @@ body.crm-route #site-header.peracrm-shell-header.is-scrolled .peracrm-header-act
   .crm-page--client-view .crm-client-subsection--deal-workspace .crm-form-workspace__meta,
   .crm-page--client-view .crm-client-subsection--deal-workspace .crm-form-workspace__footer--embedded {
     padding-inline: 0;
+  }
+
+  .crm-page--client-view .crm-summary-header__actions .btn,
+  .crm-page--client-view .crm-summary-header__actions a,
+  .crm-page--client-view .crm-summary-header__actions button {
+    padding-top: 6px;
+    padding-bottom: 6px;
+    min-height: 36px;
+  }
+
+  .crm-page--client-view .crm-client-kpis,
+  .crm-page--client-view .crm-client-kpis.cards-slider {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    gap: 10px;
+  }
+
+  .crm-page--client-view .crm-client-kpis .slider-card,
+  .crm-page--client-view .crm-client-kpis > * {
+    flex-basis: auto;
+    max-width: none;
+    min-width: 0;
+    width: auto;
+  }
+
+  .crm-page--client-view .crm-client-kpi-card {
+    min-width: 0;
   }
 }
 
