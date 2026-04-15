@@ -285,6 +285,7 @@ peracrm_frontend_render_shell_header();
 	  'title' => empty( $access['allowed'] ) ? __( 'Client View', 'peracrm' ) : get_the_title( $client ),
 	  'description' => empty( $access['allowed'] ) ? '' : __( 'Client record workspace', 'peracrm' ),
 	  'meta' => empty( $access['allowed'] ) ? '' : sprintf( __( '%1$s • Advisor: %2$s • Last activity: %3$s', 'peracrm' ), $derived_type_label, $advisor_label, $last_activity ),
+	  'date_pill_label' => __( 'Today', 'peracrm' ),
 	  'actions' => empty( $access['allowed'] ) ? array() : array(
 		array(
 			'label' => __( 'Back to clients', 'peracrm' ),

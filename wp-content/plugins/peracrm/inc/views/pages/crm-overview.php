@@ -185,6 +185,7 @@ peracrm_frontend_render_shell_header();
 	  'title'       => $header_title,
 	  'description' => $header_description,
 	  'meta'        => $header_meta,
+	  'date_pill_label' => __( 'Today', 'peracrm' ),
 	  'actions'     => $header_actions,
 	  'active_view' => $crm_active_view,
 	  'show_client_filters' => $is_leads,

@@ -2185,7 +2185,8 @@ a.crm-health-card:focus-visible {
 }
 
 .crm-floating-toggle {
-  right: max(16px, calc((100vw - var(--container)) / 2 + 16px));
+  left: auto;
+  right: max(16px, calc((100vw - var(--crm-shell-max-width, min(1200px, calc(100% - 40px)))) / 2 + 16px));
 }
 
 @media (prefers-color-scheme: dark) {
@@ -4198,6 +4199,32 @@ body.crm-route {
   gap: 12px;
 }
 
+.crm-page-date-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  justify-self: start;
+  padding: 6px 12px;
+  border: 1px solid rgba(0, 45, 114, 0.12);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.92);
+  color: #0f172a;
+}
+
+.crm-page-date-pill__label {
+  font-size: 0.74rem;
+  line-height: 1.2;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--text-soft, #4b5563);
+}
+
+.crm-page-date-pill__value {
+  font-size: 0.84rem;
+  line-height: 1.3;
+  font-weight: 600;
+}
+
 .crm-page-header__main-primary,
 .crm-toolbar__row,
 .crm-client-filters__grid {
@@ -5558,6 +5585,12 @@ body.crm-route #site-header.peracrm-shell-header.is-scrolled .peracrm-header-act
   background: #ffffff;
 }
 
+.crm-page .crm-list-workspace__group > .crm-section__header,
+.crm-page .crm-list-workspace__group > .crm-section__body,
+.crm-page .crm-list-workspace__group > .crm-section__footer {
+  padding-inline: var(--crm-section-padding);
+}
+
 .crm-page .crm-list-workspace__group--urgent {
   border-color: rgba(220, 38, 38, 0.18);
 }
@@ -5855,6 +5888,12 @@ body.crm-route #site-header.peracrm-shell-header.is-scrolled .peracrm-header-act
   border-radius: var(--crm-section-radius);
 }
 
+.crm-page--client-view .crm-section--flush:not(.crm-form-section) > .crm-section__header,
+.crm-page--client-view .crm-section--flush:not(.crm-form-section) > .crm-section__body,
+.crm-page--client-view .crm-section--flush:not(.crm-form-section) > .crm-section__footer {
+  padding-inline: var(--crm-section-padding);
+}
+
 .crm-page--client-view .crm-client-notes-truncate .archive-hero-desc__toggle--bottom,
 .crm-page--client-view .crm-client-timeline .archive-hero-desc__toggle {
   margin-top: 12px;
@@ -5922,6 +5961,12 @@ body.crm-route #site-header.peracrm-shell-header.is-scrolled .peracrm-header-act
   .crm-page .crm-list-workspace-toolbar {
     padding: 12px;
     margin-bottom: 14px;
+  }
+
+  .crm-page-date-pill {
+    position: sticky;
+    top: var(--crm-shell-sticky-offset, 0px);
+    z-index: 120;
   }
 
   .crm-page--client-view .crm-client-subsection--deal-workspace {
