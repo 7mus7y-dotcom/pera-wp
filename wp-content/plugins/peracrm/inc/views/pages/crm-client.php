@@ -398,7 +398,7 @@ peracrm_frontend_render_shell_header();
         ?>
 
         <div class="crm-client-toolbar" aria-label="<?php esc_attr_e( 'Client navigation', 'peracrm' ); ?>">
-          <a class="btn btn--ghost btn--blue crm-client-toolbar__back" href="<?php echo esc_url( 'lead' === $derived_type ? $leads_url : $clients_url ); ?>"><?php esc_html_e( 'Back to clients', 'peracrm' ); ?></a>
+          <a class="btn btn--ghost btn--blue crm-client-toolbar__back" href="<?php echo esc_url( 'lead' === $derived_type ? $leads_url : $clients_url ); ?>"><?php esc_html_e( '← Back to clients', 'peracrm' ); ?></a>
         </div>
 
         <div class="crm-client-sticky-name" data-crm-client-sticky-name>

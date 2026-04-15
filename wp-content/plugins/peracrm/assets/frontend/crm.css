@@ -4632,6 +4632,10 @@ body.crm-route #site-header.peracrm-shell-header.is-scrolled .peracrm-header-act
   margin-bottom: 10px;
 }
 
+.crm-page--client-view .crm-client-toolbar__back {
+  width: auto;
+}
+
 .crm-page--client-view .crm-client-summary {
   display: flex;
   flex-direction: column;
@@ -4684,6 +4688,77 @@ body.crm-route #site-header.peracrm-shell-header.is-scrolled .peracrm-header-act
 
 .crm-page--client-view .crm-client-sticky-name__meta {
   flex: 0 0 auto;
+}
+
+@media (max-width: 767px) {
+  .crm-page--client-view {
+    --crm-shell-sticky-offset: 82px;
+  }
+
+  .crm-page--client-view .crm-page-header {
+    padding: 6px 12px 2px;
+  }
+
+  .crm-page--client-view .crm-page-header__inner {
+    gap: 6px;
+  }
+
+  .crm-page--client-view .crm-page-header__main {
+    padding: 8px 10px;
+    border-radius: 10px;
+    gap: 6px;
+  }
+
+  .crm-page--client-view .crm-page-header__identity {
+    gap: 2px;
+  }
+
+  .crm-page--client-view .crm-page-header__title {
+    font-size: 1.05rem;
+    line-height: 1.2;
+  }
+
+  .crm-page--client-view .crm-page-date-pill {
+    justify-self: end;
+    margin-top: 0;
+    padding: 4px 10px;
+    gap: 6px;
+  }
+
+  .crm-page--client-view .crm-page-date-pill__label {
+    font-size: 0.68rem;
+  }
+
+  .crm-page--client-view .crm-page-date-pill__value {
+    font-size: 0.78rem;
+  }
+
+  .crm-page--client-view .crm-client-toolbar {
+    margin-bottom: 6px;
+  }
+
+  .crm-page--client-view .crm-client-toolbar .crm-client-toolbar__back {
+    min-height: 34px;
+    padding: 5px 10px;
+    border-radius: 999px;
+    font-size: 0.82rem;
+    line-height: 1.2;
+  }
+
+  .crm-page--client-view .crm-client-sticky-name {
+    max-width: 100%;
+    margin-bottom: 6px;
+    padding: 6px 10px;
+    gap: 8px;
+  }
+
+  .crm-page--client-view .crm-client-sticky-name__title {
+    font-size: 0.92rem;
+  }
+
+  .crm-page--client-view .crm-client-summary {
+    margin-bottom: 8px;
+  }
 }
 
 .crm-page--client-view {
