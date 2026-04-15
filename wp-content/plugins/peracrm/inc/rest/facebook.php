@@ -59,6 +59,9 @@ function peracrm_rest_facebook_verify_webhook(WP_REST_Request $request)
 
 function peracrm_rest_facebook_receive_webhook(WP_REST_Request $request)
 {
+    $raw = file_get_contents('php://input');
+    error_log('PeraCRM FB WEBHOOK RAW: ' . $raw);
+
     $leadgen_id = '';
     $notifications_count = 0;
     $scheduled = 0;
