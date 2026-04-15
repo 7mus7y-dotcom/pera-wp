@@ -3467,8 +3467,9 @@ body.crm-route #site-header.peracrm-shell-header .crm-side-nav__toggle--header:f
   .crm-page--client-view .crm-client-quick-actions .btn,
   .crm-page--client-view .crm-client-quick-actions a,
   .crm-page--client-view .crm-client-quick-actions button {
-    padding-top: 2px;
-    padding-bottom: 2px;
+    min-height: 32px;
+    padding-top: 4px;
+    padding-bottom: 4px;
   }
 }
 
