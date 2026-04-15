@@ -1,15 +1,44 @@
 (function () {
   var header = document.querySelector('#site-header.peracrm-shell-header');
-  if (!header) {
-    return;
-  }
+  var crmPage = document.querySelector('.crm-page');
+  var rafId = 0;
 
   function syncScrolledState() {
+    if (!header) {
+      return;
+    }
     header.classList.toggle('is-scrolled', window.scrollY > 8);
   }
 
+  function readHeaderOffset() {
+    if (!header) {
+      return 0;
+    }
+    return Math.max(0, Math.round(header.getBoundingClientRect().bottom));
+  }
+
+  function syncStickyOffsetVar() {
+    if (!crmPage) {
+      return;
+    }
+    crmPage.style.setProperty('--crm-shell-sticky-offset', readHeaderOffset() + 'px');
+  }
+
+  function scheduleStickyOffsetSync() {
+    if (rafId) {
+      return;
+    }
+    rafId = window.requestAnimationFrame(function () {
+      rafId = 0;
+      syncStickyOffsetVar();
+    });
+  }
+
   syncScrolledState();
+  syncStickyOffsetVar();
   window.addEventListener('scroll', syncScrolledState, { passive: true });
+  window.addEventListener('scroll', scheduleStickyOffsetSync, { passive: true });
+  window.addEventListener('resize', scheduleStickyOffsetSync, { passive: true });
 })();
 
 (function () {
@@ -307,7 +336,14 @@
       return;
     }
 
-    setStickyVisible(!(entry && entry.isIntersecting));
+    if (entry) {
+      setStickyVisible(!(entry && entry.isIntersecting));
+      return;
+    }
+
+    var offset = getStickyTriggerOffset();
+    var rect = summary.getBoundingClientRect();
+    setStickyVisible(rect.bottom <= offset);
   }
 
   function scheduleOffsetSync() {
@@ -322,15 +358,12 @@
 
   syncOffsetVar();
 
-  if ('IntersectionObserver' in window) {
-    function syncMobileStickyOnScroll() {
-      if (!isMobileViewport()) {
-        return;
-      }
-      scheduleOffsetSync();
-      setStickyVisible(shouldShowStickyOnMobile());
-    }
+  function syncStickyOnScroll() {
+    scheduleOffsetSync();
+    syncStickyVisibility(null);
+  }
 
+  if ('IntersectionObserver' in window) {
     var observer = new window.IntersectionObserver(function (entries) {
       var entry = entries && entries[0] ? entries[0] : null;
       syncStickyVisibility(entry);
@@ -340,12 +373,12 @@
     });
 
     observer.observe(summary);
-    syncMobileStickyOnScroll();
-    window.addEventListener('scroll', syncMobileStickyOnScroll, { passive: true });
+    syncStickyOnScroll();
+    window.addEventListener('scroll', syncStickyOnScroll, { passive: true });
 
     window.addEventListener('resize', function () {
       syncOffsetVar();
-      syncMobileStickyOnScroll();
+      syncStickyOnScroll();
       observer.disconnect();
       observer = new window.IntersectionObserver(function (entries) {
         var entry = entries && entries[0] ? entries[0] : null;
@@ -361,13 +394,7 @@
 
   function syncFallback() {
     syncOffsetVar();
-    if (isMobileViewport()) {
-      setStickyVisible(shouldShowStickyOnMobile());
-      return;
-    }
-    var offset = getStickyTriggerOffset();
-    var rect = summary.getBoundingClientRect();
-    setStickyVisible(rect.bottom <= offset);
+    syncStickyVisibility(null);
   }
 
   syncFallback();

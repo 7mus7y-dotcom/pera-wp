@@ -193,6 +193,7 @@ peracrm_frontend_render_shell_header();
 			  'title'       => __( 'Performance', 'peracrm' ),
 			  'description' => __( 'Topline CRM production metrics for the selected period.', 'peracrm' ),
 			  'meta'        => (string) ( $summary['range']['label'] ?? '' ),
+			  'date_pill_label' => __( 'Today', 'peracrm' ),
 			  'active_view' => 'performance',
 		  )
 	  );
