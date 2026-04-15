@@ -3462,6 +3462,16 @@ body.crm-route #site-header.peracrm-shell-header .crm-side-nav__toggle--header:f
 .crm-page--client-view .crm-client-quick-actions .btn--green {
   white-space: nowrap;
 }
+
+@media (max-width: 767px) {
+  .crm-page--client-view .crm-client-quick-actions .btn,
+  .crm-page--client-view .crm-client-quick-actions a,
+  .crm-page--client-view .crm-client-quick-actions button {
+    padding-top: 6px;
+    padding-bottom: 6px;
+  }
+}
+
 .crm-note-delete-form { margin-top: 6px; }
 
 .crm-page--logs .content-panel,
