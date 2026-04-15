@@ -1988,6 +1988,12 @@ a.crm-health-card:focus-visible {
 
 .crm-page--client-view .crm-client-reminders .crm-client-reminders-grid > section > .pill {
   margin: 0 0 6px;
+  display: inline-flex;
+  width: auto;
+  max-width: max-content;
+  justify-self: start;
+  align-self: start;
+  white-space: nowrap;
 }
 
 
