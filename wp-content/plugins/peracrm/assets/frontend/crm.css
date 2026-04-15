@@ -3427,47 +3427,24 @@ body.crm-route #site-header.peracrm-shell-header .crm-side-nav__toggle--header:f
 
 .crm-page--client-view .crm-profile-preferred-contact label,
 .crm-page--client-view .crm-checkbox-group--preferred-contact .crm-checkbox-option--preferred-contact {
-  position: relative;
   display: inline-flex;
   align-items: center;
   gap: 6px;
   min-width: 0;
   margin: 0;
   padding: 6px 10px;
-  border: 1px solid #d6dde6;
+  border: 1px solid var(--border, #e8ecf2);
   border-radius: 999px;
-  background: #f6f8fb;
-  cursor: pointer;
-  font-size: 13px;
-  line-height: 1;
+  background: var(--surface-soft, #f8fafc);
   white-space: nowrap;
 }
 
 .crm-page--client-view .crm-profile-preferred-contact input[type="checkbox"],
 .crm-page--client-view .crm-checkbox-group--preferred-contact .crm-checkbox-option--preferred-contact input[type="checkbox"] {
-  appearance: none;
-  width: 0;
-  height: 0;
+  flex: 0 0 auto;
+  width: auto;
+  height: auto;
   margin: 0;
-  padding: 0;
-}
-
-.crm-page--client-view .crm-profile-preferred-contact input[type="checkbox"] + span,
-.crm-page--client-view .crm-checkbox-group--preferred-contact .crm-checkbox-option--preferred-contact input[type="checkbox"] + span {
-  display: inline-flex;
-  align-items: center;
-  gap: 4px;
-}
-
-.crm-page--client-view .crm-profile-preferred-contact input[type="checkbox"]:checked + span,
-.crm-page--client-view .crm-checkbox-group--preferred-contact .crm-checkbox-option--preferred-contact input[type="checkbox"]:checked + span {
-  font-weight: 600;
-}
-
-.crm-page--client-view .crm-profile-preferred-contact input[type="checkbox"]:checked + span::before,
-.crm-page--client-view .crm-checkbox-group--preferred-contact .crm-checkbox-option--preferred-contact input[type="checkbox"]:checked + span::before {
-  content: "✓";
-  font-weight: 700;
 }
 
 .crm-page--client-view .crm-profile-actions,
@@ -3478,17 +3455,18 @@ body.crm-route #site-header.peracrm-shell-header .crm-side-nav__toggle--header:f
 }
 
 .crm-page--client-view .crm-profile-actions .btn,
-.crm-page--client-view .crm-client-quick-actions .btn {
+.crm-page--client-view .crm-client-quick-actions .btn,
+.crm-page--client-view .crm-client-quick-actions a,
+.crm-page--client-view .crm-client-quick-actions button {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  min-width: 90px;
-  padding: 8px 14px;
+  min-width: 0;
+  white-space: nowrap;
 }
 
 @media (min-width: 768px) {
-  .crm-page--client-view .crm-profile-actions .btn,
-  .crm-page--client-view .crm-client-quick-actions .btn {
+  .crm-page--client-view .crm-profile-actions .btn {
     flex: 1;
   }
 }
