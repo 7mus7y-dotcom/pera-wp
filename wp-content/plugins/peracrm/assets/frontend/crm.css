@@ -602,7 +602,6 @@
 
 .crm-client-profile-panel .crm-client-quick-actions a {
   min-width: 0;
-  overflow-wrap: anywhere;
 }
 
 .crm-client-notes-list__meta {
@@ -3418,14 +3417,12 @@ body.crm-route #site-header.peracrm-shell-header .crm-side-nav__toggle--header:f
   gap: 12px;
 }
 
-.crm-page--client-view .crm-profile-preferred-contact,
 .crm-page--client-view .crm-checkbox-group--preferred-contact .crm-checkbox-group__options--preferred-contact {
   display: flex;
   flex-wrap: wrap;
   gap: 8px;
 }
 
-.crm-page--client-view .crm-profile-preferred-contact label,
 .crm-page--client-view .crm-checkbox-group--preferred-contact .crm-checkbox-option--preferred-contact {
   display: inline-flex;
   align-items: center;
@@ -3439,7 +3436,6 @@ body.crm-route #site-header.peracrm-shell-header .crm-side-nav__toggle--header:f
   white-space: nowrap;
 }
 
-.crm-page--client-view .crm-profile-preferred-contact input[type="checkbox"],
 .crm-page--client-view .crm-checkbox-group--preferred-contact .crm-checkbox-option--preferred-contact input[type="checkbox"] {
   flex: 0 0 auto;
   width: auto;
@@ -3447,14 +3443,12 @@ body.crm-route #site-header.peracrm-shell-header .crm-side-nav__toggle--header:f
   margin: 0;
 }
 
-.crm-page--client-view .crm-profile-actions,
 .crm-page--client-view .crm-client-quick-actions {
   display: flex;
   flex-wrap: wrap;
   gap: 8px;
 }
 
-.crm-page--client-view .crm-profile-actions .btn,
 .crm-page--client-view .crm-client-quick-actions .btn,
 .crm-page--client-view .crm-client-quick-actions a,
 .crm-page--client-view .crm-client-quick-actions button {
@@ -3465,13 +3459,6 @@ body.crm-route #site-header.peracrm-shell-header .crm-side-nav__toggle--header:f
   white-space: nowrap;
 }
 
-@media (min-width: 768px) {
-  .crm-page--client-view .crm-profile-actions .btn {
-    flex: 1;
-  }
-}
-
-.crm-page--client-view .crm-profile-actions .btn--whatsapp,
 .crm-page--client-view .crm-client-quick-actions .btn--green {
   white-space: nowrap;
 }
