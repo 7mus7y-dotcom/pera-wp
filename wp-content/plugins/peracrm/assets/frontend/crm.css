@@ -4626,6 +4626,12 @@ body.crm-route #site-header.peracrm-shell-header.is-scrolled .peracrm-header-act
 }
 
 /* Phase 3 client detail refactor */
+.crm-page--client-view .crm-client-toolbar {
+  display: flex;
+  justify-content: flex-start;
+  margin-bottom: 10px;
+}
+
 .crm-page--client-view .crm-client-summary {
   display: flex;
   flex-direction: column;

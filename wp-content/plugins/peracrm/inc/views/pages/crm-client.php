@@ -282,18 +282,11 @@ peracrm_frontend_render_shell_header();
 <main id="primary" class="site-main crm-page crm-page--client-view">
   <?php
   $header_args = array(
-	  'title' => empty( $access['allowed'] ) ? __( 'Client View', 'peracrm' ) : get_the_title( $client ),
-	  'description' => empty( $access['allowed'] ) ? '' : __( 'Client record workspace', 'peracrm' ),
-	  'meta' => empty( $access['allowed'] ) ? '' : sprintf( __( '%1$s • Advisor: %2$s • Last activity: %3$s', 'peracrm' ), $derived_type_label, $advisor_label, $last_activity ),
+	  'title' => __( 'Client View', 'peracrm' ),
+	  'description' => '',
+	  'meta' => '',
 	  'date_pill_label' => __( 'Today', 'peracrm' ),
-	  'actions' => empty( $access['allowed'] ) ? array() : array(
-		array(
-			'label' => __( 'Back to clients', 'peracrm' ),
-			'url'   => 'lead' === $derived_type ? $leads_url : $clients_url,
-			'class' => 'btn btn--ghost btn--blue',
-			'type'  => 'secondary',
-		),
-	  ),
+	  'actions' => array(),
 	  'active_view' => 'clients',
   );
 
@@ -403,6 +396,10 @@ peracrm_frontend_render_shell_header();
         $portfolio_items   = is_array( $property_groups['portfolio'] ?? null ) ? $property_groups['portfolio'] : array();
         $enquiry_relations = array( 'favourite', 'enquiry' );
         ?>
+
+        <div class="crm-client-toolbar" aria-label="<?php esc_attr_e( 'Client navigation', 'peracrm' ); ?>">
+          <a class="btn btn--ghost btn--blue crm-client-toolbar__back" href="<?php echo esc_url( 'lead' === $derived_type ? $leads_url : $clients_url ); ?>"><?php esc_html_e( 'Back to clients', 'peracrm' ); ?></a>
+        </div>
 
         <div class="crm-client-sticky-name" data-crm-client-sticky-name>
           <p class="crm-client-sticky-name__title"><?php echo esc_html( $client_title_name ); ?></p>
