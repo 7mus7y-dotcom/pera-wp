@@ -404,7 +404,7 @@ peracrm_frontend_render_shell_header();
         $enquiry_relations = array( 'favourite', 'enquiry' );
         ?>
 
-        <div class="crm-client-sticky-name" data-crm-client-sticky-name aria-hidden="true">
+        <div class="crm-client-sticky-name" data-crm-client-sticky-name>
           <p class="crm-client-sticky-name__title"><?php echo esc_html( $client_title_name ); ?></p>
           <span class="crm-chip crm-chip--status crm-client-sticky-name__meta"><?php echo esc_html( $status_label ); ?></span>
         </div>
