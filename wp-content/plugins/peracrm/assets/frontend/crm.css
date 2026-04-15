@@ -4641,7 +4641,7 @@ body.crm-route #site-header.peracrm-shell-header.is-scrolled .peracrm-header-act
   position: sticky;
   top: var(--crm-shell-sticky-offset);
   z-index: 110;
-  display: inline-flex;
+  display: flex;
   max-width: calc(100% - 24px);
   align-items: center;
   justify-content: flex-start;
@@ -5257,10 +5257,6 @@ body.crm-route #site-header.peracrm-shell-header.is-scrolled .peracrm-header-act
   .crm-page--client-view textarea,
   .crm-page--client-view .btn {
     min-height: 42px;
-  }
-
-  .crm-page--client-view {
-    overflow-x: hidden;
   }
 
   .crm-page--client-view .crm-client-summary {
