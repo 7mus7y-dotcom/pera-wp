@@ -3976,10 +3976,19 @@ body.crm-route #site-header.peracrm-shell-header .crm-side-nav__toggle--header:f
   color: var(--text, #000000);
 }
 
-.crm-page .crm-task-note-indicator {
+.crm-page .crm-task-note-wrap {
+  position: relative;
   display: inline-flex;
   align-items: center;
-  padding: 1px 6px;
+  margin-inline-start: 8px;
+  vertical-align: middle;
+}
+
+.crm-page .crm-task-note-trigger {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 1px 8px;
   border: 1px solid var(--border, #d9e1ec);
   border-radius: 999px;
   background: var(--surface-soft, #f8fafc);
@@ -3989,6 +3998,48 @@ body.crm-route #site-header.peracrm-shell-header .crm-side-nav__toggle--header:f
   letter-spacing: 0.02em;
   text-transform: uppercase;
   font-weight: 600;
+  cursor: pointer;
+}
+
+.crm-page .crm-task-note-trigger:hover,
+.crm-page .crm-task-note-wrap.is-open .crm-task-note-trigger,
+.crm-page .crm-task-note-trigger:focus-visible {
+  background: #e8eef9;
+  border-color: #bfd0ea;
+  color: #24364a;
+}
+
+.crm-page .crm-task-note-trigger:focus-visible {
+  outline: 2px solid rgba(0, 86, 179, 0.25);
+  outline-offset: 1px;
+}
+
+.crm-page .crm-task-note-trigger__icon {
+  font-size: 0.78rem;
+  line-height: 1;
+}
+
+.crm-page .crm-task-note-popover {
+  position: absolute;
+  z-index: 12;
+  top: calc(100% + 6px);
+  right: 0;
+  width: min(280px, 70vw);
+  padding: 8px 10px;
+  border-radius: 10px;
+  border: 1px solid var(--border, #d9e1ec);
+  background: #ffffff;
+  box-shadow: 0 8px 18px rgba(15, 23, 42, 0.12);
+  color: var(--text, #000000);
+  font-size: 0.78rem;
+  line-height: 1.45;
+  text-transform: none;
+  letter-spacing: normal;
+  font-weight: 500;
+}
+
+.crm-page .crm-task-note-popover[hidden] {
+  display: none;
 }
 
 .crm-page .crm-row-list__aside {

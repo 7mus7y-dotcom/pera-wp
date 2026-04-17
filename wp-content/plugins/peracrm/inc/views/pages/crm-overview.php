@@ -127,12 +127,26 @@ $render_overview_task_rows = static function ( array $tasks, string $empty_messa
 						<h3 class="crm-row-list__title"><a href="<?php echo esc_url( home_url( '/crm/client/' . (int) $task['lead_id'] . '/' ) ); ?>"><?php echo esc_html( (string) ( $task['lead_name'] ?: __( 'Untitled lead', 'peracrm' ) ) ); ?></a></h3>
 						<span class="<?php echo esc_attr( $due_chip_class ); ?>"><?php echo esc_html( (string) ( $task['due_date'] ?? '' ) ); ?></span>
 					</div>
-					<p class="crm-row-list__summary"><?php echo esc_html( (string) ( $task['reminder_note'] ?? '' ) ); ?></p>
-					<?php if ( ! empty( $task['has_note'] ) ) : ?>
-						<div class="crm-meta-line">
-							<span class="crm-task-note-indicator" aria-label="<?php echo esc_attr__( 'Task has note', 'peracrm' ); ?>" title="<?php echo esc_attr__( 'Task has note', 'peracrm' ); ?>"><?php echo esc_html__( 'Has note', 'peracrm' ); ?></span>
-						</div>
-					<?php endif; ?>
+					<p class="crm-row-list__summary">
+						<?php echo esc_html( (string) ( $task['reminder_note'] ?? '' ) ); ?>
+						<?php if ( ! empty( $task['has_note'] ) && ! empty( $task['note_preview'] ) ) : ?>
+							<span class="crm-task-note-wrap" data-crm-note-wrap>
+								<button
+									type="button"
+									class="crm-task-note-trigger"
+									data-crm-note-trigger
+									aria-expanded="false"
+									aria-label="<?php echo esc_attr__( 'Show latest note', 'peracrm' ); ?>"
+								>
+									<span class="crm-task-note-trigger__icon" aria-hidden="true">📝</span>
+									<span class="crm-task-note-trigger__label"><?php echo esc_html__( 'Has note', 'peracrm' ); ?></span>
+								</button>
+								<span class="crm-task-note-popover" data-crm-note-popover role="tooltip" hidden>
+									<?php echo esc_html( (string) $task['note_preview'] ); ?>
+								</span>
+							</span>
+						<?php endif; ?>
+					</p>
 				</div>
 				<div class="crm-row-list__aside">
 					<a class="btn btn--ghost <?php echo esc_attr( $is_urgent ? 'btn--red' : 'btn--blue' ); ?>" href="<?php echo esc_url( home_url( '/crm/client/' . (int) $task['lead_id'] . '/' ) ); ?>"><?php echo esc_html__( 'Open client', 'peracrm' ); ?></a>
