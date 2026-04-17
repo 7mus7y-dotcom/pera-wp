@@ -5261,7 +5261,7 @@ body.crm-route #site-header.peracrm-shell-header.is-scrolled .peracrm-header-act
   .crm-page--client-view .crm-summary-header__kpis,
   .crm-page--client-view .crm-summary-header__context-list,
   .crm-page--client-view .crm-client-next-step {
-    grid-template-columns: 1fr;
+    /*grid-template-columns: 1fr;*/ deleted for now
   }
 
   .crm-page--client-view .crm-summary-header__facts {
