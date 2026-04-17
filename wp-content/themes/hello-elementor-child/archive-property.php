@@ -963,8 +963,8 @@ $pagination_html = function_exists( 'pera_render_property_pagination' )
     </div>
     <?php if ( $regional_guide_url !== '' ) : ?>
       <div class="taxonomy-intro__actions">
-        <a class="button taxonomy-intro__button" href="<?php echo esc_url( $regional_guide_url ); ?>">
-          <?php esc_html_e( 'Read regional guide', 'hello-elementor-child' ); ?>
+        <a class="btn btn--solid btn--green" href="<?php echo esc_url( $regional_guide_url ); ?>">
+          <?php echo esc_html( sprintf( 'Read %s area guide', $qo->name ) ); ?>
         </a>
       </div>
     <?php endif; ?>
