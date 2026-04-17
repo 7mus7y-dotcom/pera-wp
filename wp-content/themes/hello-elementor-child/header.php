@@ -70,6 +70,8 @@ if (
 ) {
   $pera_header_show_since = true;
 }
+
+$pera_header_show_since = (bool) apply_filters( 'pera/header/show_since', $pera_header_show_since );
 ?>
 
 <header id="site-header" class="site-header">
@@ -79,7 +81,7 @@ if (
     <div class="site-branding">
       <?php
       echo pera_get_site_logo_markup( array(
-        'link_class' => 'site-logo logo-pera' . ( $pera_header_show_since ? ' site-logo--with-since' : '' ),
+        'link_class' => 'site-logo logo-pera',
         'aria_label' => 'Pera Property',
         'title'      => 'Pera Property',
         'home_url'   => home_url( '/' ),
