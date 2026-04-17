@@ -109,6 +109,19 @@
 .crm-page .btn--red, #crm-hero .btn--red { --btn-color: var(--pill-red); }
 .crm-page .btn--white, #crm-hero .btn--white { --btn-color: #ffffff; }
 
+/* Normalize button vs anchor rendering in CRM */
+.crm-page .crm-action-group button.btn,
+.crm-page button.btn[type="submit"],
+.crm-page button.btn[type="button"] {
+  appearance: none;
+  -webkit-appearance: none;
+  font: inherit;
+  line-height: inherit;
+  margin: 0;
+  background: none; /* prevents UA background */
+  border: none;     /* your variant classes will reapply borders */
+}
+
 .crm-page .pill,
 #crm-hero .pill {
   display: inline-flex;
