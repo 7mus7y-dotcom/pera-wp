@@ -53,25 +53,6 @@ $crm_label                  = $crm_overdue_count > 0
   ? sprintf( 'CRM (%d overdue reminders)', $crm_overdue_count )
   : 'CRM';
 
-/**
- * Admin-only preview toggle for the logo strapline.
- *
- * Example:
- * /?header_since=1
- *
- * Only users with manage_options can trigger the preview.
- */
-$pera_header_show_since = false;
-
-if (
-  isset( $_GET['header_since'] )
-  && '1' === sanitize_text_field( wp_unslash( $_GET['header_since'] ) )
-  && current_user_can( 'manage_options' )
-) {
-  $pera_header_show_since = true;
-}
-
-$pera_header_show_since = (bool) apply_filters( 'pera/header/show_since', $pera_header_show_since );
 ?>
 
 <header id="site-header" class="site-header">
@@ -85,7 +66,7 @@ $pera_header_show_since = (bool) apply_filters( 'pera/header/show_since', $pera_
         'aria_label' => 'Pera Property',
         'title'      => 'Pera Property',
         'home_url'   => home_url( '/' ),
-        'show_since' => $pera_header_show_since,
+        'show_since' => true,
       ) );
       ?>
     </div>
