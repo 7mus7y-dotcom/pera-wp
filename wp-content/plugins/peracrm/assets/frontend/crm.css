@@ -109,16 +109,6 @@
 .crm-page .btn--red, #crm-hero .btn--red { --btn-color: var(--pill-red); }
 .crm-page .btn--white, #crm-hero .btn--white { --btn-color: #ffffff; }
 
-/* Normalize button vs anchor rendering in CRM */
-.crm-page .crm-action-group button.btn,
-.crm-page button.btn[type="submit"],
-.crm-page button.btn[type="button"] {
-  appearance: none;
-  -webkit-appearance: none;
-  font: inherit;
-  line-height: inherit;
-}
-
 .crm-page .pill,
 #crm-hero .pill {
   display: inline-flex;
@@ -5758,7 +5748,6 @@ body.crm-route #site-header.peracrm-shell-header.is-scrolled .peracrm-header-act
   align-items: center;
   justify-content: center;
   box-sizing: border-box;
-  min-height: var(--crm-button-operational-min-height);
   padding: var(--crm-button-compact-padding-y) var(--crm-button-compact-padding-x);
   border-radius: var(--crm-button-radius);
   line-height: 1;
@@ -5925,7 +5914,6 @@ body.crm-route #site-header.peracrm-shell-header.is-scrolled .peracrm-header-act
 .crm-page .crm-view-toggle--secondary .btn:not(.crm-icon-btn):not(.peracrm-linked-property-unlink-btn),
 .crm-page .archive-hero-desc__toggle {
   padding: var(--crm-button-compact-padding-y) var(--crm-button-compact-padding-x);
-  min-height: var(--crm-button-operational-min-height);
   font-size: var(--crm-button-operational-font-size);
 }
 
