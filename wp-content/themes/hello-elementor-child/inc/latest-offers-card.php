@@ -374,7 +374,20 @@ if ( ! function_exists( 'pera_latest_offers_collect_cards' ) ) {
 			'update_post_term_cache' => false,
 		);
 
-		$property_ids = get_posts( wp_parse_args( $query_args, $base_query_args ) );
+		$final_query_args = $base_query_args;
+
+		if ( ! empty( $query_args ) ) {
+			$final_query_args = wp_parse_args( $query_args, $final_query_args );
+		}
+
+		if ( isset( $query_args['meta_query'] ) && is_array( $query_args['meta_query'] ) ) {
+			$final_query_args['meta_query'] = array_merge(
+				$base_query_args['meta_query'],
+				$query_args['meta_query']
+			);
+		}
+
+		$property_ids = get_posts( $final_query_args );
 
 		if ( empty( $property_ids ) || ! is_array( $property_ids ) ) {
 			return array();
