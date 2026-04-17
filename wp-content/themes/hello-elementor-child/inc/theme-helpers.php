@@ -31,6 +31,8 @@ if ( ! function_exists( 'pera_get_site_logo_markup' ) ) {
       'title'       => get_bloginfo( 'name' ),
       'home_url'      => home_url( '/' ),
       'fallback_width' => 120,
+      'show_since'     => false,
+      'since_text'     => 'SINCE 2016',
     );
 
     $args = wp_parse_args( $args, $defaults );
@@ -41,6 +43,8 @@ if ( ! function_exists( 'pera_get_site_logo_markup' ) ) {
     $title      = (string) $args['title'];
     $home_url      = (string) $args['home_url'];
     $fallback_width = (int) $args['fallback_width'];
+    $show_since     = ! empty( $args['show_since'] );
+    $since_text     = trim( (string) $args['since_text'] );
 
     $logo_id    = (int) get_theme_mod( 'custom_logo' );
     $logo_width = $fallback_width > 0 ? $fallback_width : 120;
@@ -58,13 +62,25 @@ if ( ! function_exists( 'pera_get_site_logo_markup' ) ) {
       );
 
       if ( $image_html ) {
+        $logo_inner = sprintf(
+          '<span class="site-logo__mark" aria-hidden="true">%1$s</span>',
+          $image_html
+        );
+
+        if ( $show_since && $since_text !== '' ) {
+          $logo_inner .= sprintf(
+            '<span class="site-logo__since">%1$s</span>',
+            esc_html( $since_text )
+          );
+        }
+
         return sprintf(
           '<a href="%1$s" class="%2$s" aria-label="%3$s" title="%4$s">%5$s</a>',
           esc_url( $home_url ),
           esc_attr( $link_class ),
           esc_attr( $aria_label ),
           esc_attr( $title ),
-          $image_html
+          $logo_inner
         );
       }
     }
@@ -72,26 +88,50 @@ if ( ! function_exists( 'pera_get_site_logo_markup' ) ) {
     $logo_path = get_stylesheet_directory() . '/logos-icons/pera-logo.svg';
 
     if ( file_exists( $logo_path ) ) {
+      $logo_inner = sprintf(
+        '<span class="site-logo__mark" aria-hidden="true">%1$s</span>',
+        file_get_contents( $logo_path )
+      );
+
+      if ( $show_since && $since_text !== '' ) {
+        $logo_inner .= sprintf(
+          '<span class="site-logo__since">%1$s</span>',
+          esc_html( $since_text )
+        );
+      }
+
       return sprintf(
         '<a href="%1$s" class="%2$s" aria-label="%3$s" title="%4$s">%5$s</a>',
         esc_url( $home_url ),
         esc_attr( $link_class ),
         esc_attr( $aria_label ),
         esc_attr( $title ),
-        file_get_contents( $logo_path )
+        $logo_inner
       );
     }
 
-    return sprintf(
-      '<a href="%1$s" class="%2$s" aria-label="%3$s" title="%4$s"><img src="%5$s" alt="%6$s" width="%7$d" class="%8$s" /></a>',
-      esc_url( $home_url ),
-      esc_attr( $link_class ),
-      esc_attr( $aria_label ),
-      esc_attr( $title ),
+    $fallback_logo = sprintf(
+      '<span class="site-logo__mark" aria-hidden="true"><img src="%1$s" alt="%2$s" width="%3$d" class="%4$s" /></span>',
       esc_url( get_stylesheet_directory_uri() . '/logos-icons/logo-white.svg' ),
       esc_attr( get_bloginfo( 'name' ) ),
       $logo_width,
       esc_attr( $img_class )
+    );
+
+    if ( $show_since && $since_text !== '' ) {
+      $fallback_logo .= sprintf(
+        '<span class="site-logo__since">%1$s</span>',
+        esc_html( $since_text )
+      );
+    }
+
+    return sprintf(
+      '<a href="%1$s" class="%2$s" aria-label="%3$s" title="%4$s">%5$s</a>',
+      esc_url( $home_url ),
+      esc_attr( $link_class ),
+      esc_attr( $aria_label ),
+      esc_attr( $title ),
+      $fallback_logo
     );
   }
 }
@@ -314,4 +354,3 @@ function pera_register_forgot_password_page() {
         }
     }
 }
-
