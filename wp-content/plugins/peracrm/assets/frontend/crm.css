@@ -31,7 +31,18 @@
   --pill-padding-x: 12px;
   --pill-radius: 999px;
   --pill-font-size: 0.75rem;
+  --pill-line-height: 1.2;
   --pill-letter-spacing: 0.06em;
+  --crm-pill-padding-y: var(--pill-padding-y);
+  --crm-pill-padding-x: var(--pill-padding-x);
+  --crm-pill-radius: var(--pill-radius);
+  --crm-pill-font-size: var(--pill-font-size);
+  --crm-pill-line-height: var(--pill-line-height);
+  --crm-chip-padding-y: var(--crm-pill-padding-y);
+  --crm-chip-padding-x: 10px;
+  --crm-chip-radius: var(--crm-pill-radius);
+  --crm-chip-font-size: var(--crm-pill-font-size);
+  --crm-chip-line-height: var(--crm-pill-line-height);
   --border-muted: #d1d5db;
   --radius-lg: 20px;
   --space-xs: 10px;
@@ -70,20 +81,34 @@
 .crm-page .section { padding: 40px 20px; }
 .crm-page .grid-3 { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 30px; }
 
-.crm-page .btn,
-#crm-hero .btn {
+.crm-page :is(.btn, a.btn, button.btn, input[type="submit"].btn, input[type="button"].btn),
+#crm-hero :is(.btn, a.btn, button.btn, input[type="submit"].btn, input[type="button"].btn) {
   display: inline-flex;
   align-items: center;
   justify-content: center;
+  gap: 6px;
+  vertical-align: middle;
   padding: 8px 15px;
   border-radius: 999px;
   border: 1px solid transparent;
   font-weight: 600;
   font-size: 0.95rem;
-  line-height: 1;
+  line-height: 1.2;
   font-family: inherit;
   cursor: pointer;
   text-decoration: none;
+  white-space: nowrap;
+  appearance: none;
+  -webkit-appearance: none;
+  transition: background-color 160ms ease,color 160ms ease,border-color 160ms ease,box-shadow 160ms ease;
+}
+.crm-page :is(.btn, a.btn, button.btn, input[type="submit"].btn, input[type="button"].btn):disabled,
+.crm-page :is(.btn, a.btn, button.btn, input[type="submit"].btn, input[type="button"].btn).is-disabled,
+#crm-hero :is(.btn, a.btn, button.btn, input[type="submit"].btn, input[type="button"].btn):disabled,
+#crm-hero :is(.btn, a.btn, button.btn, input[type="submit"].btn, input[type="button"].btn).is-disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  pointer-events: none;
 }
 .crm-page .btn--solid,
 .crm-page .btn--ghost,
@@ -114,10 +139,10 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  padding: var(--pill-padding-y) var(--pill-padding-x);
-  border-radius: var(--pill-radius);
-  font-size: var(--pill-font-size);
-  line-height: 1.3;
+  padding: var(--crm-pill-padding-y) var(--crm-pill-padding-x);
+  border-radius: var(--crm-pill-radius);
+  font-size: var(--crm-pill-font-size);
+  line-height: var(--crm-pill-line-height);
   text-transform: uppercase;
   letter-spacing: var(--pill-letter-spacing);
   text-decoration: none;
@@ -506,7 +531,6 @@
 .crm-page--client-view .crm-client-kpi-card {
   gap: 6px;
   padding: 12px;
-  min-height: 0;
 }
 
 .crm-page--client-view .crm-client-kpi-card .pill {
@@ -1060,10 +1084,6 @@ body.crm-route .crm-page--client-view .crm-portfolio-actions .peracrm-linked-pro
   .crm-page--client-view .crm-linked-workspace__portfolio-actions {
     justify-self: start;
     flex-wrap: wrap;
-  }
-
-  .crm-page--client-view [data-crm-theme-portfolio] .crm-linked-workspace__portfolio-actions .btn:not(.crm-icon-btn) {
-    min-height: 34px;
   }
 
   .crm-page--client-view .crm-linked-workspace__portfolio-url label {
@@ -2096,7 +2116,6 @@ a.crm-health-card:focus-visible {
 
   .crm-page--client-view .crm-client-reminders .crm-client-reminders-grid > section {
     margin: 0;
-    min-height: 0;
     padding: 0;
   }
 
@@ -3140,6 +3159,7 @@ body.crm-route #site-header.peracrm-shell-header .crm-side-nav__toggle--header:f
   gap: 0;
   margin: 0;
   min-width: 44px;
+  /* Intentional: icon-only/toggle control keeps a minimum tap target. */
   min-height: 44px;
   padding: 10px;
   white-space: nowrap;
@@ -3370,6 +3390,7 @@ body.crm-route #site-header.peracrm-shell-header .crm-side-nav__toggle--header:f
   align-items: center;
   justify-content: center;
   min-width: 44px;
+  /* Intentional: icon-only close control keeps a minimum tap target. */
   min-height: 44px;
   padding: 0;
   border: 1px solid rgba(255, 255, 255, 0.16);
@@ -3462,7 +3483,6 @@ body.crm-route #site-header.peracrm-shell-header .crm-side-nav__toggle--header:f
   .crm-page--client-view .crm-client-quick-actions .btn,
   .crm-page--client-view .crm-client-quick-actions a,
   .crm-page--client-view .crm-client-quick-actions button {
-    min-height: 32px;
     padding-top: 4px;
     padding-bottom: 4px;
   }
@@ -3542,13 +3562,12 @@ body.crm-route #site-header.peracrm-shell-header .crm-side-nav__toggle--header:f
   }
 }
 
-.crm-inline-status { margin-top: 8px; font-size: 0.85rem; font-weight: 600; min-height: 1.2em; }
+.crm-inline-status { margin-top: 8px; font-size: 0.85rem; font-weight: 600; }
 .crm-inline-status.is-success { color: #0a7a3b; }
 .crm-inline-status.is-error { color: #a11; }
 
 .crm-page--client-view .crm-portfolio-create-btn {
   padding-inline: 14px;
-  min-height: 38px;
 }
 
 .crm-confirm-dialog {
@@ -3684,7 +3703,6 @@ body.crm-route #site-header.peracrm-shell-header .crm-side-nav__toggle--header:f
   align-items: center;
   justify-content: center;
   padding: var(--crm-button-compact-padding-y, 6px) var(--crm-button-compact-padding-x, 10px);
-  min-height: var(--crm-button-operational-min-height, 24px);
   border-radius: var(--crm-button-radius, 999px);
   border: 1px solid var(--brand, #002d72);
   background: transparent;
@@ -3972,14 +3990,14 @@ body.crm-route #site-header.peracrm-shell-header .crm-side-nav__toggle--header:f
   justify-content: center;
   gap: 6px;
   max-width: 100%;
-  padding: 4px 10px;
+  padding: var(--crm-chip-padding-y) var(--crm-chip-padding-x);
   border: 1px solid var(--crm-chip-border);
-  border-radius: 999px;
+  border-radius: var(--crm-chip-radius);
   background: var(--crm-chip-bg);
   color: var(--crm-chip-text);
-  font-size: 0.72rem;
+  font-size: var(--crm-chip-font-size);
   font-weight: 700;
-  line-height: 1.25;
+  line-height: var(--crm-chip-line-height);
   letter-spacing: 0.04em;
   text-transform: uppercase;
   white-space: nowrap;
@@ -4462,7 +4480,6 @@ body.crm-route {
 }
 
 .crm-search-control {
-  min-height: 42px;
   border-radius: 12px;
   border-color: #dbe3ee;
   box-shadow: none;
@@ -5332,6 +5349,7 @@ body.crm-route #site-header.peracrm-shell-header.is-scrolled .peracrm-header-act
   .crm-page--client-view select,
   .crm-page--client-view textarea,
   .crm-page--client-view .btn {
+    /* Intentional mobile touch target floor for actionable controls/forms. */
     min-height: 42px;
   }
 
@@ -5837,7 +5855,6 @@ body.crm-route #site-header.peracrm-shell-header.is-scrolled .peracrm-header-act
   --crm-button-padding-x: 14px;
   --crm-button-compact-padding-y: 5px;
   --crm-button-compact-padding-x: 10px;
-  --crm-button-operational-min-height: 24px;
   --crm-button-operational-font-size: 0.85rem;
 }
 
@@ -6949,6 +6966,7 @@ body.crm-route #site-header.peracrm-shell-header.is-scrolled .peracrm-header-act
   max-width: 100%;
   box-sizing: border-box;
   padding: 0.55rem 2.35rem 0.55rem 0.85rem;
+  /* Intentional: select keeps a consistent mobile-friendly hit area. */
   min-height: 40px;
   border-radius: 12px;
   font-size: 0.95rem;
@@ -6966,6 +6984,7 @@ body.crm-route #site-header.peracrm-shell-header.is-scrolled .peracrm-header-act
 .peracrm-impersonation-reset .btn {
   min-width: 0;
   max-width: 100%;
+  /* Intentional: action controls keep a mobile-friendly hit area. */
   min-height: 42px;
   white-space: normal;
 }
