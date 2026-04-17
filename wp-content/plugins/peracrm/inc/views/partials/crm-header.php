@@ -41,6 +41,31 @@ $new_leads_copy           = $new_leads_count > 0
 	: __( 'You have no new leads requiring attention.', 'peracrm' );
 $date_pill_label          = isset( $args['date_pill_label'] ) ? (string) $args['date_pill_label'] : __( 'Today', 'peracrm' );
 $date_pill_value          = wp_date( get_option( 'date_format' ) );
+$normalize_action_classes = static function ( string $class_stack ): string {
+	$classes = preg_split( '/\s+/', trim( $class_stack ) ) ?: array();
+	$classes = array_values( array_filter( $classes, static function ( $class_name ) {
+		return is_string( $class_name ) && '' !== $class_name;
+	} ) );
+
+	if ( in_array( 'btn', $classes, true ) && ! in_array( 'btn--solid', $classes, true ) && ! in_array( 'btn--ghost', $classes, true ) ) {
+		$classes[] = 'btn--ghost';
+	}
+
+	$uses_variant = in_array( 'btn--solid', $classes, true ) || in_array( 'btn--ghost', $classes, true );
+	$has_color    = false;
+	foreach ( array( 'btn--blue', 'btn--green', 'btn--red', 'btn--white' ) as $color_class ) {
+		if ( in_array( $color_class, $classes, true ) ) {
+			$has_color = true;
+			break;
+		}
+	}
+
+	if ( $uses_variant && ! $has_color ) {
+		$classes[] = 'btn--blue';
+	}
+
+	return implode( ' ', array_values( array_unique( $classes ) ) );
+};
 
 $has_toolbar = $show_client_filters || '' !== $toolbar_content;
 ?>
@@ -69,6 +94,7 @@ $has_toolbar = $show_client_filters || '' !== $toolbar_content;
             $action_url   = isset( $action['url'] ) ? (string) $action['url'] : '';
             $action_label = isset( $action['label'] ) ? (string) $action['label'] : '';
             $action_class = isset( $action['class'] ) ? (string) $action['class'] : 'btn btn--ghost btn--blue';
+            $action_class = $normalize_action_classes( $action_class );
             $action_type  = isset( $action['type'] ) ? sanitize_key( (string) $action['type'] ) : 'secondary';
             $action_attr  = isset( $action['attributes'] ) ? (string) $action['attributes'] : '';
 
