@@ -45,7 +45,7 @@ $description_content = trim( (string) get_post_field( 'post_content', get_querie
 			</header>
 
 			<?php if ( ! empty( $cards ) ) : ?>
-				<div class="pera-latest-offers-card-list">
+				<div class="pera-latest-offers-card-list pera-latest-offers-card-list--grid-4">
 					<?php foreach ( $cards as $card ) : ?>
 						<?php pera_latest_offers_render_card( $card ); ?>
 					<?php endforeach; ?>
