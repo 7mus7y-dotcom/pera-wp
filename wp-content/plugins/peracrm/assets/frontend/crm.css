@@ -3976,6 +3976,21 @@ body.crm-route #site-header.peracrm-shell-header .crm-side-nav__toggle--header:f
   color: var(--text, #000000);
 }
 
+.crm-page .crm-task-note-indicator {
+  display: inline-flex;
+  align-items: center;
+  padding: 1px 6px;
+  border: 1px solid var(--border, #d9e1ec);
+  border-radius: 999px;
+  background: var(--surface-soft, #f8fafc);
+  color: var(--text-soft, #4b5563);
+  font-size: 0.72rem;
+  line-height: 1.35;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+  font-weight: 600;
+}
+
 .crm-page .crm-row-list__aside {
   display: grid;
   justify-items: end;

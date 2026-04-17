@@ -676,36 +676,31 @@ if ( ! function_exists( 'pera_crm_get_recent_leads' ) ) {
 
 if ( ! function_exists( 'pera_crm_get_task_rows' ) ) {
 	/**
-	 * Resolve latest note snippets for CRM client IDs.
+	 * Resolve note-presence flags for CRM client IDs.
 	 *
 	 * @param int[] $client_ids Client IDs.
-	 * @return array<int,string>
+	 * @return array<int,bool>
 	 */
-	function pera_crm_get_latest_note_snippets( array $client_ids ): array {
-		$snippets = array();
+	function pera_crm_get_note_presence_map( array $client_ids ): array {
+		$presence = array();
 		$ids      = array_values( array_unique( array_filter( array_map( 'absint', $client_ids ) ) ) );
 
 		if ( empty( $ids ) || ! function_exists( 'peracrm_notes_list' ) ) {
-			return $snippets;
+			return $presence;
 		}
 
 		foreach ( $ids as $client_id ) {
 			$latest_note = peracrm_notes_list( $client_id, 1, 0 );
-			if ( empty( $latest_note ) || ! is_array( $latest_note ) || ! is_array( $latest_note[0] ?? null ) ) {
-				$snippets[ $client_id ] = '';
-				continue;
-			}
-
-			$snippets[ $client_id ] = wp_strip_all_tags( (string) ( $latest_note[0]['note_body'] ?? '' ) );
+			$presence[ $client_id ] = ! empty( $latest_note ) && is_array( $latest_note ) && is_array( $latest_note[0] ?? null );
 		}
 
-		return $snippets;
+		return $presence;
 	}
 
 	/**
 	 * Resolve reminder/task rows from helpers or SQL fallback.
 	 *
-	 * @return array<int,array{reminder_id:int,lead_id:int,lead_name:string,due_date:string,reminder_note:string,last_note:string,status:string}>
+	 * @return array<int,array{reminder_id:int,lead_id:int,lead_name:string,due_date:string,reminder_note:string,has_note:bool,status:string}>
 	 */
 	function pera_crm_get_task_rows( bool $overdue = false ): array {
 		$real_user_id          = get_current_user_id();
@@ -750,16 +745,16 @@ if ( ! function_exists( 'pera_crm_get_task_rows' ) ) {
 						'lead_name'     => pera_crm_get_lead_name( $lead_id ),
 						'due_date'      => pera_crm_format_datetime_dmy_hm( $due_ts, $timezone ),
 						'reminder_note' => wp_strip_all_tags( (string) ( $row['note'] ?? '' ) ),
-						'last_note'     => '',
+						'has_note'      => false,
 						'status'        => sanitize_key( (string) ( $row['status'] ?? $open_status ) ),
 					);
 					$note_client_ids[] = $lead_id;
 				}
 
-				$latest_notes = pera_crm_get_latest_note_snippets( $note_client_ids );
+				$note_presence = pera_crm_get_note_presence_map( $note_client_ids );
 				foreach ( $rows as $index => $task_row ) {
 					$lead_id                   = (int) ( $task_row['lead_id'] ?? 0 );
-					$rows[ $index ]['last_note'] = (string) ( $latest_notes[ $lead_id ] ?? '' );
+					$rows[ $index ]['has_note'] = ! empty( $note_presence[ $lead_id ] );
 				}
 				pera_crm_debug_tasks_log( $overdue ? 'overdue' : 'today', 'mu_advisor', $debug_ids, count( $rows ) );
 				return $rows;
@@ -809,16 +804,16 @@ if ( ! function_exists( 'pera_crm_get_task_rows' ) ) {
 				'lead_name'     => pera_crm_get_lead_name( $lead_id ),
 				'due_date'      => pera_crm_format_datetime_dmy_hm( pera_crm_parse_local_mysql_datetime_to_ts( (string) ( $row['due_at'] ?? '' ), $timezone ), $timezone ),
 				'reminder_note' => wp_strip_all_tags( (string) ( $row['note'] ?? '' ) ),
-				'last_note'     => '',
+				'has_note'      => false,
 				'status'        => $open_status,
 			);
 			$note_client_ids[] = $lead_id;
 		}
 
-		$latest_notes = pera_crm_get_latest_note_snippets( $note_client_ids );
+		$note_presence = pera_crm_get_note_presence_map( $note_client_ids );
 		foreach ( $rows as $index => $task_row ) {
 			$lead_id                   = (int) ( $task_row['lead_id'] ?? 0 );
-			$rows[ $index ]['last_note'] = (string) ( $latest_notes[ $lead_id ] ?? '' );
+			$rows[ $index ]['has_note'] = ! empty( $note_presence[ $lead_id ] );
 		}
 
 		pera_crm_debug_tasks_log( $overdue ? 'overdue' : 'today', 'sql_all', $debug_ids, count( $rows ) );
