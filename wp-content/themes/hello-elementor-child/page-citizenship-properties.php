@@ -16,7 +16,7 @@ $cards = function_exists( 'pera_latest_offers_collect_cards' )
 		array(
 			'tax_query' => array(
 				array(
-					'taxonomy' => 'specials',
+					'taxonomy' => 'special',
 					'field'    => 'slug',
 					'terms'    => array( 'citizenship' ),
 				),
