@@ -117,9 +117,6 @@
   -webkit-appearance: none;
   font: inherit;
   line-height: inherit;
-  margin: 0;
-  background: none; /* prevents UA background */
-  border: none;     /* your variant classes will reapply borders */
 }
 
 .crm-page .pill,
