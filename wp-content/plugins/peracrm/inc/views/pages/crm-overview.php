@@ -133,7 +133,7 @@ $render_overview_task_rows = static function ( array $tasks, string $empty_messa
 							<span class="crm-task-note-wrap" data-crm-note-wrap>
 								<button
 									type="button"
-									class="crm-task-note-trigger"
+									class="btn btn--ghost btn--blue crm-task-note-trigger"
 									data-crm-note-trigger
 									aria-expanded="false"
 									aria-label="<?php echo esc_attr__( 'Show latest note', 'peracrm' ); ?>"
@@ -571,7 +571,7 @@ peracrm_frontend_render_shell_header();
             <?php if ( '' !== $tasks_active_filter_label ) : ?>
               <div class="crm-list-workspace-toolbar__active-filter" aria-live="polite">
                 <span class="crm-chip crm-chip--status"><?php echo esc_html( sprintf( __( 'Showing: %s', 'peracrm' ), $tasks_active_filter_label ) ); ?></span>
-                <a class="crm-list-workspace-toolbar__clear-filter" href="<?php echo esc_url( home_url( '/crm/tasks/' ) ); ?>"><?php esc_html_e( 'Clear', 'peracrm' ); ?></a>
+                <a class="btn btn--ghost btn--blue crm-list-workspace-toolbar__clear-filter" href="<?php echo esc_url( home_url( '/crm/tasks/' ) ); ?>"><?php esc_html_e( 'Clear', 'peracrm' ); ?></a>
               </div>
             <?php endif; ?>
             <div class="crm-meta-line crm-list-workspace-toolbar__meta">
@@ -754,7 +754,7 @@ peracrm_frontend_render_shell_header();
             <?php if ( '' !== $clients_active_filter_label ) : ?>
               <div class="crm-list-workspace-toolbar__active-filter" aria-live="polite">
                 <span class="crm-chip crm-chip--status"><?php echo esc_html( sprintf( __( 'Showing: %s', 'peracrm' ), $clients_active_filter_label ) ); ?></span>
-                <a class="crm-list-workspace-toolbar__clear-filter" href="<?php echo esc_url( home_url( '/crm/clients/?type=leads' ) ); ?>"><?php esc_html_e( 'Clear', 'peracrm' ); ?></a>
+                <a class="btn btn--ghost btn--blue crm-list-workspace-toolbar__clear-filter" href="<?php echo esc_url( home_url( '/crm/clients/?type=leads' ) ); ?>"><?php esc_html_e( 'Clear', 'peracrm' ); ?></a>
               </div>
             <?php endif; ?>
             <div class="crm-meta-line crm-list-workspace-toolbar__meta">

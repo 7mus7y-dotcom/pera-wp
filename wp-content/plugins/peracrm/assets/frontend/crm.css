@@ -3370,19 +3370,22 @@ body.crm-route #site-header.peracrm-shell-header .crm-side-nav__toggle--header:f
 }
 .crm-side-nav__utility-list {
   display: grid;
-  gap: 6px;
+  gap: 8px;
 }
-.crm-side-nav__utility-list a {
-  display: inline-flex;
-  align-items: center;
-  color: rgba(255, 255, 255, 0.86);
-  text-decoration: none;
-  font-family: var(--crm-font-family);
-  font-size: 0.85rem;
-  line-height: 1.45;
+.crm-side-nav__utility-list .crm-side-nav__utility-action {
+  justify-content: flex-start;
+  width: max-content;
+  max-width: 100%;
+  padding: 6px 12px;
+  border-color: rgba(255, 255, 255, 0.42);
+  color: #ffffff;
+  font-size: 0.78rem;
+  line-height: 1.3;
 }
-.crm-side-nav__utility-list a:hover,
-.crm-side-nav__utility-list a:focus-visible {
+.crm-side-nav__utility-list .crm-side-nav__utility-action:hover,
+.crm-side-nav__utility-list .crm-side-nav__utility-action:focus-visible {
+  border-color: rgba(255, 255, 255, 0.72);
+  background: rgba(255, 255, 255, 0.18);
   color: #ffffff;
 }
 .crm-side-nav__close {
@@ -3985,20 +3988,14 @@ body.crm-route #site-header.peracrm-shell-header .crm-side-nav__toggle--header:f
 }
 
 .crm-page .crm-task-note-trigger {
-  display: inline-flex;
-  align-items: center;
   gap: 4px;
-  padding: 1px 8px;
-  border: 1px solid var(--border, #d9e1ec);
-  border-radius: 999px;
-  background: var(--surface-soft, #f8fafc);
-  color: var(--text-soft, #4b5563);
+  padding: 2px 9px;
   font-size: 0.72rem;
   line-height: 1.35;
   letter-spacing: 0.02em;
   text-transform: uppercase;
   font-weight: 600;
-  cursor: pointer;
+  min-height: 0;
 }
 
 .crm-page .crm-task-note-trigger:hover,
@@ -5504,16 +5501,10 @@ body.crm-route #site-header.peracrm-shell-header.is-scrolled .peracrm-header-act
 }
 
 .crm-page .crm-list-workspace-toolbar__clear-filter {
-  font-size: 0.85rem;
+  padding: 4px 11px;
+  font-size: 0.78rem;
+  line-height: 1.25;
   font-weight: 600;
-  color: var(--brand, #002d72);
-  text-decoration: underline;
-  text-underline-offset: 2px;
-}
-
-.crm-page .crm-list-workspace-toolbar__clear-filter:hover,
-.crm-page .crm-list-workspace-toolbar__clear-filter:focus-visible {
-  color: var(--brand-600, #0a3b8f);
 }
 
 .crm-page .crm-list-workspace-toolbar__meta {
