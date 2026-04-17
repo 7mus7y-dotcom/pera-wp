@@ -4573,12 +4573,7 @@ body.crm-route #site-header.peracrm-shell-header.is-scrolled .peracrm-header-act
   .crm-page .content-panel {
     padding: 0 12px 28px;
   }
-
-  .crm-page .content-panel-box {
-    padding: 12px;
-    border-radius: 12px;
-  }
-
+  
   .crm-page-header__main,
   .crm-toolbar {
     padding: 10px 12px;
@@ -6047,11 +6042,11 @@ body.crm-route #site-header.peracrm-shell-header.is-scrolled .peracrm-header-act
 }
 
 .crm-page--new .crm-form-workspace__header {
-  padding: var(--crm-section-padding) var(--crm-section-padding) 0;
+  padding: var(--crm-section-padding);
 }
 
 .crm-page--new .crm-form-workspace__form {
-  gap: 0;
+  padding: var(--crm-section-padding);
 }
 
 .crm-page--new .crm-form-workspace__form > .crm-inline-notice {
