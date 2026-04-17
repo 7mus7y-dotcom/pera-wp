@@ -122,9 +122,9 @@
 .crm-page .btn--solid:hover,
 #crm-hero .btn--solid:hover { background-color: #ffffff; color: var(--btn-color, var(--brand, #002d72)); border-color: var(--btn-color, var(--brand, #002d72)); }
 .crm-page .btn--ghost,
-#crm-hero .btn--ghost { background-color: transparent; color: var(--btn-color, var(--brand, #002d72)); }
+#crm-hero .btn--ghost { background-color: var(--btn-color, var(--brand, #002d72)); color: #ffffff; border-color: var(--btn-color, var(--brand, #002d72)); }
 .crm-page .btn--ghost:hover,
-#crm-hero .btn--ghost:hover { background-color: var(--btn-color, var(--brand, #002d72)); color: #fff; border-color: var(--btn-color, var(--brand, #002d72)); }
+#crm-hero .btn--ghost:hover { filter: brightness(0.95); }
 .crm-page .btn--solid:focus-visible,
 .crm-page .btn--ghost:focus-visible,
 #crm-hero .btn--solid:focus-visible,
@@ -4520,12 +4520,6 @@ body.crm-route {
   font-size: 0.88rem;
 }
 
-.crm-page .crm-view-toggle .btn--ghost,
-.crm-page .crm-type-toggle .btn--ghost {
-  border-color: transparent;
-  background: transparent;
-}
-
 .crm-page .crm-view-toggle .btn--solid,
 .crm-page .crm-type-toggle .btn--solid {
   box-shadow: none;
@@ -5537,12 +5531,6 @@ body.crm-route #site-header.peracrm-shell-header.is-scrolled .peracrm-header-act
   /*min-height: 36px;*/
   padding: 8px 14px;
   font-size: 0.85rem;
-}
-
-.crm-page .crm-view-toggle--secondary .btn--ghost {
-  background: transparent;
-  border-color: transparent;
-  color: var(--text-soft, #4b5563);
 }
 
 .crm-page .crm-view-toggle--secondary .btn--solid {

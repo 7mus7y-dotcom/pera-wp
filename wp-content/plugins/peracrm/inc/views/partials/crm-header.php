@@ -48,7 +48,7 @@ $normalize_action_classes = static function ( string $class_stack ): string {
 	} ) );
 
 	if ( in_array( 'btn', $classes, true ) && ! in_array( 'btn--solid', $classes, true ) && ! in_array( 'btn--ghost', $classes, true ) ) {
-		$classes[] = 'btn--ghost';
+		$classes[] = 'btn--solid';
 	}
 
 	$uses_variant = in_array( 'btn--solid', $classes, true ) || in_array( 'btn--ghost', $classes, true );
@@ -93,7 +93,7 @@ $has_toolbar = $show_client_filters || '' !== $toolbar_content;
             <?php
             $action_url   = isset( $action['url'] ) ? (string) $action['url'] : '';
             $action_label = isset( $action['label'] ) ? (string) $action['label'] : '';
-            $action_class = isset( $action['class'] ) ? (string) $action['class'] : 'btn btn--ghost btn--blue';
+            $action_class = isset( $action['class'] ) ? (string) $action['class'] : 'btn btn--solid btn--blue';
             $action_class = $normalize_action_classes( $action_class );
             $action_type  = isset( $action['type'] ) ? sanitize_key( (string) $action['type'] ) : 'secondary';
             $action_attr  = isset( $action['attributes'] ) ? (string) $action['attributes'] : '';
@@ -112,7 +112,7 @@ $has_toolbar = $show_client_filters || '' !== $toolbar_content;
       <aside class="crm-page-header__new-leads" aria-label="<?php echo esc_attr__( 'New leads summary', 'peracrm' ); ?>">
         <h2 class="crm-page-header__new-leads-title"><?php esc_html_e( 'New leads', 'peracrm' ); ?></h2>
         <p class="crm-page-header__new-leads-copy"><?php echo esc_html( $new_leads_copy ); ?></p>
-        <a class="btn btn--ghost btn--blue crm-page-header__new-leads-action" href="<?php echo esc_url( $new_leads_url ); ?>"><?php esc_html_e( 'New leads', 'peracrm' ); ?></a>
+        <a class="btn btn--solid btn--blue crm-page-header__new-leads-action" href="<?php echo esc_url( $new_leads_url ); ?>"><?php esc_html_e( 'New leads', 'peracrm' ); ?></a>
       </aside>
       <?php endif; ?>
     </div>
