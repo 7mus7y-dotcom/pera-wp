@@ -237,12 +237,25 @@ $related_taxonomy_groups = array();
 $related_taxonomy_total  = 0;
 $related_terms_flat      = array();
 $term_description_html   = '';
+$regional_guide_url      = '';
 
 if ( $qo instanceof WP_Term ) {
   $term_description_raw = term_description( $qo );
 
   if ( trim( wp_strip_all_tags( $term_description_raw ) ) !== '' ) {
     $term_description_html = wpautop( wp_kses_post( $term_description_raw ) );
+  }
+
+  if ( function_exists( 'get_field' ) ) {
+    $regional_guide = get_field( 'regional_guide', $qo );
+
+    if ( $regional_guide ) {
+      $regional_guide_permalink = get_permalink( (int) $regional_guide );
+
+      if ( is_string( $regional_guide_permalink ) && $regional_guide_permalink !== '' ) {
+        $regional_guide_url = $regional_guide_permalink;
+      }
+    }
   }
 }
 
@@ -948,6 +961,13 @@ $pagination_html = function_exists( 'pera_render_property_pagination' )
     <div class="entry-content">
       <?php echo $term_description_html; ?>
     </div>
+    <?php if ( $regional_guide_url !== '' ) : ?>
+      <div class="taxonomy-intro__actions">
+        <a class="button taxonomy-intro__button" href="<?php echo esc_url( $regional_guide_url ); ?>">
+          <?php esc_html_e( 'Read regional guide', 'hello-elementor-child' ); ?>
+        </a>
+      </div>
+    <?php endif; ?>
   </section>
 <?php endif; ?>
 

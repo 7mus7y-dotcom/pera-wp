@@ -2060,6 +2060,10 @@ body.is-nav-open .offcanvas-backdrop {
   }
 }
 
+.taxonomy-intro__actions{
+  margin-top: var(--space-sm);
+}
+
 
 /* Masonry columns (posts masonry, gallery masonry) */
 .cards-masonry{
