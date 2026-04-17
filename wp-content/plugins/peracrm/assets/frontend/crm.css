@@ -354,7 +354,6 @@
 }
 
 .crm-form-stack input {
-  width: 100%;
   max-width: 560px;
 }
 
@@ -379,7 +378,6 @@
 .crm-form-stack select,
 .crm-form-stack textarea {
   display: block;
-  width: 100%;
   padding: 0.7rem 0.9rem;
   border-radius: 10px;
   border: 1px solid #e1e1e1;
