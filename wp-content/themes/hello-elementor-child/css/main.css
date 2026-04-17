@@ -3942,14 +3942,20 @@ body:not(.single-post) tr:nth-child(even) {
 
   .citizenship-hero .hero-actions {
     display: flex;
-    width: 100%;
-    align-items: stretch;
+    width: auto;
+    max-width: 100%;
+    flex-wrap: nowrap;
+    gap: 8px;
+    align-items: center;
   }
 
   .citizenship-hero .hero-actions .btn {
-    width: 100%;
+    width: auto;
+    flex: 0 0 auto;
+    display: inline-flex;
     justify-content: center;
     text-align: center;
+    padding: 9px 13px;
   }
 
   .citizenship-hero-card {
