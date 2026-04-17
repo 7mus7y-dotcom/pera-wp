@@ -2444,7 +2444,6 @@ a.crm-health-card:focus-visible {
 }
 
 .crm-deal-value-row .crm-deal-value-input {
-  flex: 1 1 auto;
   min-width: 0;
 }
 
@@ -2453,8 +2452,6 @@ a.crm-health-card:focus-visible {
 }
 
 .crm-deal-value-row .crm-deal-currency select {
-  width: 50px;
-  max-width: 50px;
   padding-left: 6px;
   padding-right: 6px;
 }
