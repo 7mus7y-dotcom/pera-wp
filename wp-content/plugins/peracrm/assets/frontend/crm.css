@@ -5457,7 +5457,7 @@ body.crm-route #site-header.peracrm-shell-header.is-scrolled .peracrm-header-act
 }
 
 .crm-page .crm-view-toggle--secondary .btn {
-  min-height: 36px;
+  /*min-height: 36px;*/
   padding: 8px 14px;
   font-size: 0.85rem;
 }
@@ -5528,7 +5528,7 @@ body.crm-route #site-header.peracrm-shell-header.is-scrolled .peracrm-header-act
 
 .crm-page--client-view .peracrm-theme-portfolio-offers-note__trigger {
   min-width: 36px;
-  min-height: 36px;
+ /*min-height: 36px;*/
   padding: 8px;
 }
 
@@ -6123,7 +6123,7 @@ body.crm-route #site-header.peracrm-shell-header.is-scrolled .peracrm-header-act
   .crm-page--client-view .crm-summary-header__actions button {
     padding-top: 6px;
     padding-bottom: 6px;
-    min-height: 36px;
+   /* min-height: 36px;*/
   }
 
   .crm-page--client-view .crm-client-kpis,
