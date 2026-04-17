@@ -1402,6 +1402,36 @@ button.pill:focus-visible {
   transition: color 0.35s ease;
 }
 
+#site-header .site-branding .site-logo {
+  display: inline-flex;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: center;
+  gap: 6px;
+  text-decoration: none;
+  line-height: 1;
+}
+
+#site-header .site-branding .site-logo__mark {
+  display: block;
+}
+
+#site-header .site-branding .site-logo__mark svg {
+  display: block;
+}
+
+#site-header .site-branding .site-logo__since {
+  display: block;
+  margin-left: 1px;
+  font-size: 10px;
+  font-weight: 500;
+  line-height: 1;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  white-space: nowrap;
+  opacity: 0.72;
+}
+
 /* Icons cluster — no glass until scroll */
 #site-header .header-icons {
   display: flex;
