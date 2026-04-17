@@ -16,7 +16,7 @@ $citizenship_requirements = array(
     'Minimum real estate investment: $400,000',
     'Property must be held for at least 3 years',
     'Investment must be paid in foreign currency (DAB required)',
-    'Must obtain a Certificate of Conformity',
+    'Must obtain a valid expertise report',
     'Application includes spouse and children under 18',
     'Process typically takes 3–6 months',
 );
@@ -42,13 +42,8 @@ $citizenship_requirements = array(
     <div class="hero-content">
       <div class="citizenship-hero-grid">
         <div class="citizenship-hero-copy">
-          <div class="citizenship-brand">
-            <img src="<?php echo esc_url( get_stylesheet_directory_uri() . '/logos-icons/pera-small.svg' ); ?>" alt="" loading="lazy" decoding="async" />
-            <span>Pera Property</span>
-          </div>
-          <p class="pill pill--sm pill--outline">Turkish Citizenship by Investment</p>
           <h1>Turkish Citizenship Through Real Estate</h1>
-          <p class="lead">
+          <p>
             A streamlined route built around a USD 400,000+ property investment, family inclusion, and a generally efficient timeline for eligible applicants.
           </p>
           <article class="feature-card citizenship-hero-card" aria-label="Turkish Citizenship by Investment Requirements (2026)">
@@ -86,9 +81,14 @@ $citizenship_requirements = array(
           </article>
           <div class="hero-actions">
             <a href="#citizenship-callback" class="btn btn--solid btn--green">Book a consultation</a>
-            <a href="#citizenship-form" class="btn btn--ghost btn--blue">See eligible properties</a>
+            <a href="https://www.peraproperty.com/turkish-citizenship-properties/" 
+               class="btn btn--solid btn--blue" 
+               target="_blank" 
+               rel="noopener">
+              See eligible properties
+            </a>          
           </div>
-          <p class="citizenship-trust-strip">Since 2016 • Istanbul-based team • Legal process clarity</p>
+          <p class="citizenship-trust-strip text-brand">Since 2016 • Istanbul-based team • Legal process clarity</p>
         </div>
       </div>
     </div>
