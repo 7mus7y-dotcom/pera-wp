@@ -96,7 +96,7 @@ $citizenship_requirements = array(
 
   <section class="content-panel content-panel--overlap-hero citizenship-consultancy">
     <div class="content-panel-box">
-      <div class="content-panel-grid content-panel-grid--single">
+      <div class="content-panel-grid--single">
         <header class="section-header section-header--center">
           <h2>Full-service citizenship consultancy in Istanbul</h2>
           <p>Since 2016, Pera’s founders and legal partners have assisted international clients with Turkish Citizenship by Investment, combining specialist real estate knowledge with a dedicated immigration and legal team.</p>
