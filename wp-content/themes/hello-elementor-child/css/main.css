@@ -1418,6 +1418,11 @@ button.pill:focus-visible {
 
 #site-header .site-branding .site-logo__mark svg {
   display: block;
+  pointer-events: none;
+}
+
+#site-header .site-branding .site-logo__mark img {
+  pointer-events: none;
 }
 
 #site-header .site-branding .site-logo__since {
