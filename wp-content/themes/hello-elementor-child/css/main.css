@@ -3735,71 +3735,28 @@ body:not(.single-post) tr:nth-child(even) {
 .checklist-icon { color: var(--pill-green); flex-shrink: 0; }
 
 /* =======================================================
-   CITIZENSHIP PAGE: ADMIN-ONLY HERO PREVIEW VARIANTS
+   CITIZENSHIP PAGE: HERO / INTRO (FINAL)
    ======================================================= */
-.citizenship-layout-switcher {
-  max-width: min(var(--container), calc(100% - 20px));
-  margin: 0;
-  padding: 10px 14px;
-  border: 1px solid #d1d5db;
-  border-radius: 14px;
-  background: #ffffff;
-  display: flex;
-  flex-wrap: wrap;
-  gap: 10px;
-  align-items: center;
-  font-size: 0.85rem;
-  position: fixed;
-  top: calc(var(--header-height) + 12px);
-  left: 50%;
-  transform: translateX(-50%);
-  z-index: 25;
-  box-shadow: 0 8px 24px rgba(15, 23, 42, 0.16);
-}
-
-.citizenship-layout-switcher a {
-  color: var(--brand);
-  text-decoration: none;
-  border: 1px solid rgba(30, 58, 138, 0.22);
-  border-radius: 999px;
-  padding: 4px 10px;
-}
-
-.citizenship-layout-switcher a.is-active {
-  background: var(--brand);
-  color: #ffffff;
-  border-color: var(--brand);
-}
 
 .citizenship-hero .hero-content {
   padding-bottom: 28px;
 }
 
-.citizenship-hero--option-a1,
-.citizenship-hero--option-a2,
-.citizenship-hero--option-a3 {
+.citizenship-hero {
   color: var(--text);
   background: var(--bg);
 }
 
-.citizenship-hero--option-a1 .hero-content h1,
-.citizenship-hero--option-a2 .hero-content h1,
-.citizenship-hero--option-a3 .hero-content h1 {
+.citizenship-hero .hero-content h1 {
   color: var(--text) !important;
 }
 
-.citizenship-hero--option-a1 .lead,
-.citizenship-hero--option-a2 .lead,
-.citizenship-hero--option-a3 .lead,
-.citizenship-hero--option-a1 .lead p,
-.citizenship-hero--option-a2 .lead p,
-.citizenship-hero--option-a3 .lead p {
+.citizenship-hero .lead,
+.citizenship-hero .lead p {
   color: var(--text-soft);
 }
 
-.citizenship-hero--option-a1 .hero-overlay,
-.citizenship-hero--option-a2 .hero-overlay,
-.citizenship-hero--option-a3 .hero-overlay {
+.citizenship-hero .hero-overlay {
   background: none;
 }
 
@@ -3853,7 +3810,8 @@ body:not(.single-post) tr:nth-child(even) {
   width: min(640px, 100%);
   border-radius: 18px;
   padding: 14px 16px 10px;
-  box-shadow: 0 8px 20px rgba(15, 23, 42, 0.09);
+  box-shadow: 0 6px 16px rgba(15, 23, 42, 0.07);
+  border-color: rgba(148, 163, 184, 0.35);
 }
 
 .citizenship-hero-card .feature-card-header {
@@ -3898,6 +3856,11 @@ body:not(.single-post) tr:nth-child(even) {
   padding: 10px 15px;
 }
 
+.citizenship-hero .hero-actions .btn--ghost {
+  border-style: solid;
+  border-width: 1px;
+}
+
 .citizenship-trust-strip {
   margin: 2px 0 0;
   max-width: 60ch;
@@ -3909,25 +3872,12 @@ body:not(.single-post) tr:nth-child(even) {
   margin-top: 2px;
 }
 
-.citizenship-consultancy-preview .content-panel-box {
+.citizenship-consultancy .content-panel-box {
   border-radius: 24px;
   border-top: 1px solid rgba(15, 23, 42, 0.07);
 }
 
 @media (max-width: 900px) {
-  .citizenship-layout-switcher {
-    border-radius: 12px;
-    top: auto;
-    bottom: 12px;
-    left: 10px;
-    right: 10px;
-    transform: none;
-    max-width: none;
-    justify-content: center;
-    gap: 8px;
-    padding: 8px 10px;
-  }
-
   .citizenship-hero .hero-content {
     padding-bottom: 18px;
   }
@@ -3982,7 +3932,7 @@ body:not(.single-post) tr:nth-child(even) {
     line-height: 1.4;
   }
 
-  .citizenship-consultancy-preview .feature-grid {
+  .citizenship-consultancy .feature-grid {
     gap: 12px;
   }
 }
@@ -4017,30 +3967,6 @@ body:not(.single-post) tr:nth-child(even) {
   .citizenship-hero .hero-actions {
     width: min(620px, 100%);
   }
-}
-
-.citizenship-hero--option-a2 .citizenship-hero-card {
-  box-shadow: 0 6px 16px rgba(15, 23, 42, 0.07);
-  border-color: rgba(148, 163, 184, 0.35);
-}
-
-.citizenship-hero--option-a2 .hero-actions .btn--ghost {
-  border-style: solid;
-  border-width: 1px;
-}
-
-.citizenship-hero--option-a3 .citizenship-hero-card {
-  border-color: rgba(29, 78, 216, 0.22);
-  box-shadow: 0 10px 24px rgba(30, 64, 175, 0.11);
-}
-
-.citizenship-hero--option-a3 .hero-actions .btn--solid {
-  box-shadow: 0 8px 20px rgba(22, 163, 74, 0.2);
-}
-
-.citizenship-hero--option-a3 .citizenship-trust-strip {
-  color: #334155;
-  font-weight: 500;
 }
 
 /* ============================================================
