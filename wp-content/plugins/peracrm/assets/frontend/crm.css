@@ -688,7 +688,7 @@
 }
 
 .crm-page--client-view .crm-linked-workspace__toolbar .btn {
-  min-height: 34px;
+ /* min-height: 34px;*/
 }
 
 .crm-page--client-view .crm-linked-workspace__relation {
@@ -779,9 +779,9 @@
 .crm-page--client-view [data-crm-theme-portfolio] [data-crm-theme-portfolio-open-link],
 .crm-page--client-view [data-crm-theme-portfolio] [data-crm-theme-portfolio-copy] {
   width: 34px;
-  height: 34px;
+  /*height: 34px;*/
   min-width: 34px;
-  min-height: 34px;
+  /*min-height: 34px;*/
   padding: 0;
 }
 
@@ -877,7 +877,7 @@
 }
 
 .crm-page--client-view .crm-linked-workspace [data-crm-portfolio-fields] > label input:not([type="file"]):not([type="hidden"]) {
-  min-height: 34px;
+  /*min-height: 34px;*/
   font-size: 0.76rem;
   border-radius:10px;
 }
@@ -951,7 +951,7 @@ body.crm-route .crm-page--client-view [data-crm-portfolio-output] ~ .peracrm-lin
 .peracrm-linked-property-unlink-btn {
   align-items: center;
   justify-content: center;
-  min-height: 34px;
+  /*min-height: 34px;*/
   min-width: 34px;
   padding: 6px;
 }
@@ -1009,9 +1009,9 @@ body.crm-route .crm-page--client-view .peracrm-linked-property-unlink-btn,
 body.crm-route .crm-page--client-view [data-crm-portfolio-output] ~ .peracrm-linked-properties-grid .crm-icon-btn,
 body.crm-route .crm-page--client-view [data-crm-portfolio-output] ~ .peracrm-linked-properties-grid .peracrm-linked-property-unlink-btn.peracrm-portfolio-action-btn {
   width: 34px;
-  height: 34px;
+ /* height: 34px;*/
   min-width: 34px;
-  min-height: 34px;
+ /* min-height: 34px;*/
   padding: 0;
   border-radius: 999px;
   display: inline-flex;
@@ -4432,7 +4432,7 @@ body.crm-route {
 
 .crm-view-toggle .btn,
 .crm-type-toggle .btn {
-  min-height: 36px;
+  /*min-height: 36px;*/
   font-size: 0.88rem;
 }
 
@@ -4729,7 +4729,7 @@ body.crm-route #site-header.peracrm-shell-header.is-scrolled .peracrm-header-act
   }
 
   .crm-page--client-view .crm-client-toolbar .crm-client-toolbar__back {
-    min-height: 34px;
+    /*min-height: 34px;*/
     padding: 5px 10px;
     border-radius: 999px;
     font-size: 0.82rem;
@@ -5899,7 +5899,7 @@ body.crm-route #site-header.peracrm-shell-header.is-scrolled .peracrm-header-act
 .crm-page .crm-table__actions .btn.crm-icon-btn,
 .crm-page .crm-section__actions .btn.crm-icon-btn {
   padding: 0;
-  min-height: 34px;
+  /*min-height: 34px;*/
 }
 
 .crm-page .crm-toolbar-actions .btn:not(.crm-icon-btn):not(.peracrm-linked-property-unlink-btn),
@@ -5926,7 +5926,7 @@ body.crm-route #site-header.peracrm-shell-header.is-scrolled .peracrm-header-act
 .crm-page .archive-hero-desc__toggle {
   align-self: flex-start;
   gap: 6px;
-  min-height: 34px;
+  /*min-height: 34px;*/
   border-radius: 10px;
   border: 1px solid var(--border, #e8ecf2);
   background: var(--surface-soft, #f8fafc);
@@ -5988,7 +5988,7 @@ body.crm-route #site-header.peracrm-shell-header.is-scrolled .peracrm-header-act
 }
 
 .crm-page .crm-view-toggle--secondary .btn {
-  min-height: 34px;
+  /*min-height: 34px;*/
 }
 
 .crm-page .crm-view-toggle--secondary .btn--solid {
@@ -6798,7 +6798,7 @@ body.crm-route #site-header.peracrm-shell-header.is-scrolled .peracrm-header-act
 
   .crm-page--leads [data-crm-clients-workspace] .crm-type-toggle .btn,
   .crm-page--leads [data-crm-clients-workspace] .crm-view-toggle--secondary .btn {
-    min-height: 32px;
+    /*min-height: 32px;*/
     padding: 4px 10px;
     font-size: 0.81rem;
   }
