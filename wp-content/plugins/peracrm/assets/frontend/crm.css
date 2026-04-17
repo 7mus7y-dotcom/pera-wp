@@ -4042,6 +4042,14 @@ body.crm-route #site-header.peracrm-shell-header .crm-side-nav__toggle--header:f
   display: none;
 }
 
+@media (max-width: 640px) {
+  .crm-page .crm-task-note-popover {
+    left: 0;
+    right: auto;
+    width: min(280px, calc(100vw - 32px));
+  }
+}
+
 .crm-page .crm-row-list__aside {
   display: grid;
   justify-items: end;
