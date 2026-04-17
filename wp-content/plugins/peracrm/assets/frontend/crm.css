@@ -4653,7 +4653,7 @@ body.crm-route #site-header.peracrm-shell-header.is-scrolled .peracrm-header-act
   top: var(--crm-shell-sticky-offset);
   z-index: 110;
   display: flex;
-  max-width: calc(100% - 24px);
+  width: fit-content;
   align-items: center;
   justify-content: flex-start;
   gap: 10px;
