@@ -3939,7 +3939,6 @@ body:not(.single-post) tr:nth-child(even) {
 @media (min-width: 901px) and (max-width: 1199px) {
   .citizenship-hero .hero-content {
     padding-top: clamp(34px, 5vw, 54px);
-    padding-bottom: 24px;
   }
 
   .citizenship-hero-grid {
@@ -3955,7 +3954,6 @@ body:not(.single-post) tr:nth-child(even) {
 @media (min-width: 1200px) {
   .citizenship-hero .hero-content {
     padding-top: clamp(44px, 4.6vw, 76px);
-    padding-bottom: 24px;
   }
 
   .citizenship-hero-grid {
