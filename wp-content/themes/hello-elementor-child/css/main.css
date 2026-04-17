@@ -3865,7 +3865,6 @@ body:not(.single-post) tr:nth-child(even) {
   margin: 2px 0 0;
   max-width: 60ch;
   font-size: 0.84rem;
-  color: var(--text-soft);
 }
 
 .citizenship-value-grid {
