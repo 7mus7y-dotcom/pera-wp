@@ -41,6 +41,91 @@
   window.addEventListener('resize', scheduleStickyOffsetSync, { passive: true });
 })();
 
+(function () {
+  var noteWraps = Array.prototype.slice.call(document.querySelectorAll('[data-crm-note-wrap]'));
+  if (!noteWraps.length) {
+    return;
+  }
+
+  function closeWrap(wrap) {
+    if (!wrap) {
+      return;
+    }
+    var trigger = wrap.querySelector('[data-crm-note-trigger]');
+    var popover = wrap.querySelector('[data-crm-note-popover]');
+    wrap.classList.remove('is-open');
+    if (trigger) {
+      trigger.setAttribute('aria-expanded', 'false');
+    }
+    if (popover) {
+      popover.hidden = true;
+    }
+  }
+
+  function openWrap(wrap) {
+    if (!wrap) {
+      return;
+    }
+    var trigger = wrap.querySelector('[data-crm-note-trigger]');
+    var popover = wrap.querySelector('[data-crm-note-popover]');
+    wrap.classList.add('is-open');
+    if (trigger) {
+      trigger.setAttribute('aria-expanded', 'true');
+    }
+    if (popover) {
+      popover.hidden = false;
+    }
+  }
+
+  function closeOthers(activeWrap) {
+    noteWraps.forEach(function (wrap) {
+      if (wrap !== activeWrap) {
+        closeWrap(wrap);
+      }
+    });
+  }
+
+  noteWraps.forEach(function (wrap) {
+    var trigger = wrap.querySelector('[data-crm-note-trigger]');
+    if (!trigger) {
+      return;
+    }
+
+    wrap.addEventListener('mouseenter', function () {
+      closeOthers(wrap);
+      openWrap(wrap);
+    });
+
+    wrap.addEventListener('mouseleave', function () {
+      closeWrap(wrap);
+    });
+
+    trigger.addEventListener('click', function (event) {
+      event.preventDefault();
+      var isOpen = wrap.classList.contains('is-open');
+      closeOthers(wrap);
+      if (isOpen) {
+        closeWrap(wrap);
+      } else {
+        openWrap(wrap);
+      }
+    });
+  });
+
+  document.addEventListener('click', function (event) {
+    var insideWrap = event.target && event.target.closest ? event.target.closest('[data-crm-note-wrap]') : null;
+    if (!insideWrap) {
+      noteWraps.forEach(closeWrap);
+    }
+  });
+
+  document.addEventListener('keydown', function (event) {
+    if (event.key === 'Escape') {
+      noteWraps.forEach(closeWrap);
+    }
+  });
+})();
+
 
 (function () {
   var clientPage = document.querySelector('.crm-page--client-view');
