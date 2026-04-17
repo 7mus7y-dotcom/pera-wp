@@ -88,7 +88,7 @@ $citizenship_requirements = array(
               See eligible properties
             </a>          
           </div>
-          <p class="citizenship-trust-strip text-brand">Since 2016 • Istanbul-based team • Legal process clarity</p>
+          <p class="citizenship-trust-strip text-light">Since 2016 • Istanbul-based team • Legal process clarity</p>
         </div>
       </div>
     </div>
