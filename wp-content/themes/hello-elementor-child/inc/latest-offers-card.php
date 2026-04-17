@@ -344,36 +344,37 @@ if ( ! function_exists( 'pera_latest_offers_enqueue_card_styles' ) ) {
 	}
 }
 
-if ( ! function_exists( 'pera_latest_offers_collect_homepage_cards' ) ) {
+if ( ! function_exists( 'pera_latest_offers_collect_cards' ) ) {
 	/**
-	 * Collect up to N flattened latest-offer cards across recent published properties.
+	 * Collect flattened latest-offer cards across published properties.
 	 *
+	 * @param array<string,mixed> $query_args Additional get_posts() query args (for example tax_query).
 	 * @return array<int,array<string,mixed>>
 	 */
-	function pera_latest_offers_collect_homepage_cards( int $limit = 6, int $candidate_limit = 36 ): array {
+	function pera_latest_offers_collect_cards( int $limit = 6, int $candidate_limit = 36, array $query_args = array() ): array {
 		$limit           = $limit > 0 ? $limit : 6;
 		$candidate_limit = $candidate_limit > 0 ? $candidate_limit : 36;
 
-		$property_ids = get_posts(
-			array(
-				'post_type'              => 'property',
-				'post_status'            => 'publish',
-				'posts_per_page'         => $candidate_limit,
-				'meta_query'             => array(
-					array(
-						'key'     => pera_latest_offers_meta_key(),
-						'compare' => 'EXISTS',
-					),
+		$base_query_args = array(
+			'post_type'              => 'property',
+			'post_status'            => 'publish',
+			'posts_per_page'         => $candidate_limit,
+			'meta_query'             => array(
+				array(
+					'key'     => pera_latest_offers_meta_key(),
+					'compare' => 'EXISTS',
 				),
-				'orderby'                => 'date',
-				'order'                  => 'DESC',
-				'ignore_sticky_posts'    => true,
-				'fields'                 => 'ids',
-				'no_found_rows'          => true,
-				'update_post_meta_cache' => false,
-				'update_post_term_cache' => false,
-			)
+			),
+			'orderby'                => 'date',
+			'order'                  => 'DESC',
+			'ignore_sticky_posts'    => true,
+			'fields'                 => 'ids',
+			'no_found_rows'          => true,
+			'update_post_meta_cache' => false,
+			'update_post_term_cache' => false,
 		);
+
+		$property_ids = get_posts( wp_parse_args( $query_args, $base_query_args ) );
 
 		if ( empty( $property_ids ) || ! is_array( $property_ids ) ) {
 			return array();
@@ -401,6 +402,19 @@ if ( ! function_exists( 'pera_latest_offers_collect_homepage_cards' ) ) {
 		}
 
 		return array_values( array_filter( $cards ) );
+	}
+}
+
+if ( ! function_exists( 'pera_latest_offers_collect_homepage_cards' ) ) {
+	/**
+	 * Collect up to N flattened latest-offer cards across recent published properties.
+	 *
+	 * @return array<int,array<string,mixed>>
+	 */
+	function pera_latest_offers_collect_homepage_cards( int $limit = 6, int $candidate_limit = 36 ): array {
+		return function_exists( 'pera_latest_offers_collect_cards' )
+			? pera_latest_offers_collect_cards( $limit, $candidate_limit )
+			: array();
 	}
 }
 
