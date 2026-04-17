@@ -128,9 +128,11 @@ $render_overview_task_rows = static function ( array $tasks, string $empty_messa
 						<span class="<?php echo esc_attr( $due_chip_class ); ?>"><?php echo esc_html( (string) ( $task['due_date'] ?? '' ) ); ?></span>
 					</div>
 					<p class="crm-row-list__summary"><?php echo esc_html( (string) ( $task['reminder_note'] ?? '' ) ); ?></p>
-					<div class="crm-meta-line">
-						<span><strong><?php esc_html_e( 'Latest note:', 'peracrm' ); ?></strong> <?php echo esc_html( (string) ( $task['last_note'] ?? __( 'No recent notes yet.', 'peracrm' ) ) ); ?></span>
-					</div>
+					<?php if ( ! empty( $task['has_note'] ) ) : ?>
+						<div class="crm-meta-line">
+							<span class="crm-task-note-indicator" aria-label="<?php echo esc_attr__( 'Task has note', 'peracrm' ); ?>" title="<?php echo esc_attr__( 'Task has note', 'peracrm' ); ?>"><?php echo esc_html__( 'Has note', 'peracrm' ); ?></span>
+						</div>
+					<?php endif; ?>
 				</div>
 				<div class="crm-row-list__aside">
 					<a class="btn btn--ghost <?php echo esc_attr( $is_urgent ? 'btn--red' : 'btn--blue' ); ?>" href="<?php echo esc_url( home_url( '/crm/client/' . (int) $task['lead_id'] . '/' ) ); ?>"><?php echo esc_html__( 'Open client', 'peracrm' ); ?></a>
