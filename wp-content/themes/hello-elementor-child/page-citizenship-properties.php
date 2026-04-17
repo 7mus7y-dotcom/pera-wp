@@ -12,7 +12,7 @@ get_header();
 $cards = function_exists( 'pera_latest_offers_collect_cards' )
 	? pera_latest_offers_collect_cards(
 		12,
-		120,
+		60,
 		array(
 			'tax_query' => array(
 				array(
@@ -28,6 +28,8 @@ $cards = function_exists( 'pera_latest_offers_collect_cards' )
 if ( function_exists( 'pera_latest_offers_enqueue_card_styles' ) ) {
 	pera_latest_offers_enqueue_card_styles();
 }
+
+$description_content = trim( (string) get_post_field( 'post_content', get_queried_object_id() ) );
 ?>
 
 <main id="primary" class="site-main">
@@ -35,7 +37,11 @@ if ( function_exists( 'pera_latest_offers_enqueue_card_styles' ) ) {
 		<div class="container">
 			<header class="section-header section-header--center">
 				<h1><?php the_title(); ?></h1>
-				<p><?php esc_html_e( 'Browse latest property offers tagged for Turkish citizenship eligibility.', 'hello-elementor-child' ); ?></p>
+				<?php if ( '' !== $description_content ) : ?>
+					<?php the_content(); ?>
+				<?php else : ?>
+					<p><?php esc_html_e( 'Browse latest property offers tagged for Turkish citizenship eligibility.', 'hello-elementor-child' ); ?></p>
+				<?php endif; ?>
 			</header>
 
 			<?php if ( ! empty( $cards ) ) : ?>
