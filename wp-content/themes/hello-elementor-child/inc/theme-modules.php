@@ -5,6 +5,7 @@ require_once get_stylesheet_directory() . '/inc/modules/property-archive-safety.
 require_once get_stylesheet_directory() . '/inc/modules/seo-loader.php';
 require_once get_stylesheet_directory() . '/inc/modules/template-routing.php';
 require_once get_stylesheet_directory() . '/inc/modules/enqueue-assets.php';
+require_once get_stylesheet_directory() . '/inc/modules/analytics.php';
 require_once get_stylesheet_directory() . '/inc/modules/performance.php';
 require_once get_stylesheet_directory() . '/inc/modules/theme-setup.php';
 require_once get_stylesheet_directory() . '/inc/modules/login.php';
