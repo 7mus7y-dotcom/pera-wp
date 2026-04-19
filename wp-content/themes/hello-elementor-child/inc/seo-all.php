@@ -1231,3 +1231,33 @@ add_action( 'wp_head', function () {
   echo "<!-- /Pera: SEO / Social -->\n\n";
 
 }, 12 );
+
+/**
+ * Optional per-post/page FAQ schema via ACF/meta field.
+ * Field key: seo_faq_schema (raw JSON only, without <script> tags).
+ */
+add_action( 'wp_head', function () {
+  if ( is_admin() || ! is_singular( array( 'post', 'page' ) ) ) {
+    return;
+  }
+
+  $post_id = get_the_ID();
+  if ( ! $post_id ) {
+    return;
+  }
+
+  $faq_schema_json = (string) get_post_meta( (int) $post_id, 'seo_faq_schema', true );
+  $faq_schema_json = trim( $faq_schema_json );
+
+  if ( $faq_schema_json === '' ) {
+    return;
+  }
+
+  json_decode( $faq_schema_json );
+  if ( json_last_error() !== JSON_ERROR_NONE ) {
+    return;
+  }
+
+  echo "<!-- FAQ Schema (ACF) -->\n";
+  echo '<script type="application/ld+json">' . $faq_schema_json . '</script>' . "\n";
+}, 13 );
