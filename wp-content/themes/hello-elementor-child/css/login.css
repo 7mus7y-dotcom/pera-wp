@@ -215,6 +215,14 @@ body.login .notice a {
 }
 
 @media (prefers-color-scheme: dark) {
+  body.login .pera-login-branding .site-logo {
+    color: var(--inverse);
+  }
+
+  body.login .pera-login-branding .site-logo__since {
+    color: rgba(248, 250, 252, 0.92);
+  }
+
   body.login form {
     background: #020617;
     color: #e9e9e9;
