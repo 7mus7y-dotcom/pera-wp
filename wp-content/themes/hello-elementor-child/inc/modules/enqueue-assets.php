@@ -130,6 +130,29 @@ if ( $needs_slider ) {
   );
 }
 
+$needs_card_typography = (
+  $is_home
+  || $is_property_archive
+  || $is_portfolio_token
+  || $is_property_map
+  || $is_single_property
+  || $is_single_bodrum_property
+  || $is_blog_page
+  || $is_posts_index
+  || $is_single_post
+  || $is_blog_archive
+  || $is_favourites_page
+);
+
+if ( $needs_card_typography ) {
+  wp_enqueue_style(
+    'pera-card-typography',
+    get_stylesheet_directory_uri() . '/css/card-typography.css',
+    array( 'pera-main-css' ),
+    pera_get_asset_version( '/css/card-typography.css' )
+  );
+}
+
 if ( $is_home ) {
   wp_enqueue_script(
     'pera-slider-nav',
@@ -167,7 +190,7 @@ if ( $is_home ) {
 
   if ( $is_home || $is_single_property || $is_single_post || $is_favourites_page ) {
 
-    $deps = array( 'pera-main-css' );
+    $deps = array( 'pera-main-css', 'pera-card-typography' );
     if ( $needs_slider ) {
       $deps[] = 'pera-slider-css';
     }
@@ -207,7 +230,7 @@ if ( $is_home ) {
 
   if ( $is_home || $is_blog_page || $is_posts_index || $is_single_post || $is_blog_archive || $is_single_property ) {
 
-    $deps = array( 'pera-main-css' );
+    $deps = array( 'pera-main-css', 'pera-card-typography' );
     if ( $needs_slider ) {
       $deps[] = 'pera-slider-css';
     }

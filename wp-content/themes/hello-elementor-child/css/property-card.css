@@ -261,25 +261,11 @@
 
 /* TITLE */
 .property-card__title {
-  font-size: 1.05rem;
   margin-bottom: 4px;
-}
-
-.property-card__title a {
-  color: inherit;
-  font-weight: 700;
-  text-decoration: none;
-}
-
-.property-card__title a:hover {
-  font-weight: 800;
-  text-decoration: none;
 }
 
 /* EXCERPT */
 .property-card__excerpt {
-  font-size: 0.9rem;
-  color: #4b5563;
   margin: 0;
 }
 
@@ -312,16 +298,10 @@
   background: var(--text);
 }
 
-.property-card__price {
-  font-weight: 600;
-  font-size: 0.98rem;
-  color: var(--brand);
-}
 
 .property-card__updated {
   font-size: 0.6em;
   opacity: 0.75;
-  color: var(--text-soft);
 }
 
 /* Property card footer: two rows (price left, size right; date next row right) */
@@ -348,14 +328,6 @@
    PROPERTY CARD – SIDEBAR VARIANT
    (reduce typographic scale ~15%)
    ======================================================= */
-
-.property-card--sidebar .property-card__title {
-  font-size: calc(1.05rem * 0.85);
-}
-
-.property-card--sidebar .property-card__excerpt {
-  font-size: calc(0.9rem * 0.85);
-}
 
 /* Tighten rhythm (actual working properties) */
 .property-card--sidebar .property-card__location {
@@ -389,29 +361,9 @@
     box-shadow: 0 16px 45px rgba(0, 0, 0, 0.9);
   }
 
-  .property-card__title a {
-    color: var(--soft-blue);
-  }
-
-  .property-card__title a:hover {
-    color: #ffffff;
-  }
-
   .property-card__location .property-card__location-link {
     color: var(--inverse);
     background: var(--pill-green);
-  }
-
-  .property-card__excerpt {
-    color: #d1d5db;
-  }
-
-  .property-card__price {
-    color: var(--text-soft);
-  }
-
-  .property-card__updated {
-    color: #9ca3af;
   }
 
   .property-card__footer::before {

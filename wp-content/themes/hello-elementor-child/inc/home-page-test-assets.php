@@ -28,9 +28,16 @@ add_action( 'wp_enqueue_scripts', function () {
   );
 
   wp_enqueue_style(
+    'pera-card-typography',
+    get_stylesheet_directory_uri() . '/css/card-typography.css',
+    array( 'pera-main-css' ),
+    pera_get_asset_version( '/css/card-typography.css' )
+  );
+
+  wp_enqueue_style(
     'pera-property-card',
     get_stylesheet_directory_uri() . '/css/property-card.css',
-    array( 'pera-main-css', 'pera-slider-css' ),
+    array( 'pera-main-css', 'pera-card-typography', 'pera-slider-css' ),
     pera_get_asset_version( '/css/property-card.css' )
   );
 
