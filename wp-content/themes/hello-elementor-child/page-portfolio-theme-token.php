@@ -35,10 +35,6 @@ if ( ! empty( $context['is_valid'] ) && function_exists( 'pera_theme_portfolio_t
 	$offer_groups = pera_theme_portfolio_token_build_offer_groups( (array) ( $context['property_ids'] ?? array() ) );
 }
 
-if ( function_exists( 'pera_latest_offers_enqueue_card_styles' ) ) {
-	pera_latest_offers_enqueue_card_styles();
-}
-
 get_header();
 ?>
 

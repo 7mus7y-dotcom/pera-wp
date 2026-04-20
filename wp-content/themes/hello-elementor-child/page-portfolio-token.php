@@ -30,10 +30,6 @@ if ( ! empty( $context['is_request'] ) && $status_code >= 400 ) {
 	nocache_headers();
 }
 
-if ( function_exists( 'pera_latest_offers_enqueue_card_styles' ) ) {
-	pera_latest_offers_enqueue_card_styles();
-}
-
 get_header();
 ?>
 

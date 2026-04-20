@@ -351,6 +351,40 @@ if ( ! function_exists( 'pera_latest_offers_enqueue_card_styles' ) ) {
 	}
 }
 
+if ( ! function_exists( 'pera_latest_offers_should_enqueue_card_styles' ) ) {
+	function pera_latest_offers_should_enqueue_card_styles(): bool {
+		if ( is_front_page() || is_page_template( 'home-page.php' ) ) {
+			return true;
+		}
+
+		if ( is_page_template( 'page-citizenship-properties.php' ) ) {
+			return true;
+		}
+
+		if ( function_exists( 'pera_portfolio_token_is_request' ) && pera_portfolio_token_is_request() ) {
+			return true;
+		}
+
+		if ( function_exists( 'pera_theme_portfolio_token_is_request' ) && pera_theme_portfolio_token_is_request() ) {
+			return true;
+		}
+
+		return false;
+	}
+}
+
+add_action(
+	'wp_enqueue_scripts',
+	function (): void {
+		if ( ! function_exists( 'pera_latest_offers_should_enqueue_card_styles' ) || ! pera_latest_offers_should_enqueue_card_styles() ) {
+			return;
+		}
+
+		pera_latest_offers_enqueue_card_styles();
+	},
+	20
+);
+
 if ( ! function_exists( 'pera_latest_offers_collect_cards' ) ) {
 	/**
 	 * Collect flattened latest-offer cards across published properties.
@@ -465,9 +499,7 @@ if ( ! function_exists( 'pera_latest_offers_render_cards_for_property' ) ) {
 			return;
 		}
 
-		pera_latest_offers_enqueue_card_styles();
-
-		echo '<div class="pera-latest-offers-card-list">';
+			echo '<div class="pera-latest-offers-card-list">';
 		foreach ( $rows as $offer_row ) {
 			$card = pera_latest_offers_card_view_model( $property_id, $offer_row );
 			pera_latest_offers_render_card( $card );
