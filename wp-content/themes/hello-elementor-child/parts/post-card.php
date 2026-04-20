@@ -3,43 +3,29 @@ if ( ! defined( 'ABSPATH' ) ) { exit; }
 
 /**
  * Template Part: Post Card
- * Source of truth for options: $card_args (query var bridge)
+ * Public API: variant, card_classes, show_readmore
  */
 
 $card_args = get_query_var( 'pera_post_card_args' );
 $card_args = is_array( $card_args ) ? $card_args : array();
 
-$variant = isset( $card_args['variant'] ) ? sanitize_key( $card_args['variant'] ) : 'archive';
-
-/* Optional knobs */
-$show_excerpt  = array_key_exists( 'show_excerpt',  $card_args ) ? (bool) $card_args['show_excerpt']  : true;
-$excerpt_words = isset( $card_args['excerpt_words'] ) ? (int) $card_args['excerpt_words'] : 28;
-$thumb_size    = isset( $card_args['thumb_size'] ) ? sanitize_key( $card_args['thumb_size'] ) : 'pera-card';
-
-$show_cat_pill = array_key_exists( 'show_cat_pill', $card_args ) ? (bool) $card_args['show_cat_pill'] : true;
-$overlay_category_badge_class = 'pill pill--green';
-$overlay_subtitle_badge_class = 'pill pill--blue';
-
-$show_readmore = array_key_exists( 'show_readmore', $card_args ) ? (bool) $card_args['show_readmore'] : true;
-$btn_class     = isset( $card_args['btn_class'] ) ? sanitize_text_field( $card_args['btn_class'] ) : 'btn btn--solid btn--blue';
-$btn_label     = isset( $card_args['btn_label'] ) ? sanitize_text_field( $card_args['btn_label'] ) : __( 'Read more', 'peraproperty' );
-
+$variant       = isset( $card_args['variant'] ) ? sanitize_key( $card_args['variant'] ) : 'archive';
 $extra_classes = isset( $card_args['card_classes'] ) ? sanitize_text_field( $card_args['card_classes'] ) : '';
-$card_classes  = trim( $extra_classes . ' post-card post-card--' . $variant );
+$show_readmore = array_key_exists( 'show_readmore', $card_args ) ? (bool) $card_args['show_readmore'] : true;
+
+$card_classes = trim( $extra_classes . ' post-card post-card--' . $variant );
 
 $post_id = get_the_ID();
 
-/* Primary category (first category) */
 $cats        = get_the_category( $post_id );
 $primary_cat = ( ! empty( $cats ) && ! is_wp_error( $cats ) ) ? $cats[0] : null;
-
-$cat_name = $primary_cat ? $primary_cat->name : '';
-$cat_link = $primary_cat ? get_category_link( $primary_cat->term_id ) : '';
+$cat_name    = $primary_cat ? $primary_cat->name : '';
+$cat_link    = $primary_cat ? get_category_link( $primary_cat->term_id ) : '';
 
 $post_subtitle = trim( (string) get_post_meta( $post_id, 'post_subtitle', true ) );
 ?>
 
-<article <?php post_class( $card_classes . " pera-card-shell", $post_id ); ?>>
+<article <?php post_class( $card_classes . ' pera-card-shell', $post_id ); ?>>
 
   <div class="post-card-media">
     <?php if ( has_post_thumbnail( $post_id ) ) : ?>
@@ -47,7 +33,7 @@ $post_subtitle = trim( (string) get_post_meta( $post_id, 'post_subtitle', true )
         <?php
         echo get_the_post_thumbnail(
           $post_id,
-          $thumb_size,
+          'medium_large',
           array(
             'loading'  => 'lazy',
             'decoding' => 'async',
@@ -67,34 +53,31 @@ $post_subtitle = trim( (string) get_post_meta( $post_id, 'post_subtitle', true )
       </div>
     <?php endif; ?>
 
-    <?php if ( ( $show_cat_pill && $cat_name ) || '' !== $post_subtitle ) : ?>
+    <?php if ( $cat_name || '' !== $post_subtitle ) : ?>
       <div class="post-card-thumb-overlay flex flex-col items-start">
-        <?php if ( $show_cat_pill && $cat_name ) : ?>
-          <a href="<?php echo esc_url( $cat_link ); ?>" class="<?php echo esc_attr( $overlay_category_badge_class ); ?>">
+        <?php if ( $cat_name ) : ?>
+          <a href="<?php echo esc_url( $cat_link ); ?>" class="pill pill--green">
             <?php echo esc_html( $cat_name ); ?>
           </a>
         <?php endif; ?>
 
         <?php if ( '' !== $post_subtitle ) : ?>
-          <div class="post-card-subtitle <?php echo esc_attr( $overlay_subtitle_badge_class ); ?>"><?php echo esc_html( $post_subtitle ); ?></div>
+          <div class="post-card-subtitle pill pill--blue"><?php echo esc_html( $post_subtitle ); ?></div>
         <?php endif; ?>
       </div>
     <?php endif; ?>
   </div>
 
   <div class="post-card-body">
-
     <h2 class="post-card-title">
       <a href="<?php the_permalink(); ?>">
         <?php the_title(); ?>
       </a>
     </h2>
 
-    <?php if ( $show_excerpt ) : ?>
-      <div class="post-card-excerpt">
-        <?php echo esc_html( wp_trim_words( get_the_excerpt(), $excerpt_words, '…' ) ); ?>
-      </div>
-    <?php endif; ?>
+    <div class="post-card-excerpt">
+      <?php echo esc_html( wp_trim_words( get_the_excerpt(), 22, '…' ) ); ?>
+    </div>
 
     <div class="post-card-date">
       <?php echo esc_html( get_the_date( 'M d, Y' ) ); ?>
@@ -102,11 +85,10 @@ $post_subtitle = trim( (string) get_post_meta( $post_id, 'post_subtitle', true )
 
     <?php if ( $show_readmore ) : ?>
       <div class="post-card-readmore">
-        <a href="<?php the_permalink(); ?>" class="<?php echo esc_attr( $btn_class ); ?>">
-          <?php echo esc_html( $btn_label ); ?>
+        <a href="<?php the_permalink(); ?>" class="btn btn--solid btn--blue">
+          <?php esc_html_e( 'Read more', 'peraproperty' ); ?>
         </a>
       </div>
     <?php endif; ?>
-
   </div>
 </article>
