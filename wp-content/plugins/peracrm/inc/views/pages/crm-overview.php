@@ -133,7 +133,7 @@ $render_overview_task_rows = static function ( array $tasks, string $empty_messa
 							<span class="crm-task-note-wrap" data-crm-note-wrap>
 								<button
 									type="button"
-									class="btn btn--ghost btn--blue crm-task-note-trigger"
+									class="pill crm-task-note-trigger"
 									data-crm-note-trigger
 									aria-expanded="false"
 									aria-label="<?php echo esc_attr__( 'Show latest note', 'peracrm' ); ?>"
