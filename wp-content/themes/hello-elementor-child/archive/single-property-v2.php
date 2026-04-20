@@ -1208,7 +1208,6 @@ if ( $has_further_reading ) :
                 'excerpt_words' => 22,
                 'thumb_size'    => 'pera-card',
                 'show_cat_pill' => true,
-                'pill_class'    => 'pill pill--outline',
                 'show_readmore' => false,
               ) );
 

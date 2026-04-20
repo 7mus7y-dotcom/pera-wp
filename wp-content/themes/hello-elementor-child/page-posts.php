@@ -65,54 +65,22 @@ get_header();
                     <?php
                     while ( $posts_query->have_posts() ) :
                         $posts_query->the_post();
-                        ?>
-                        <article <?php post_class( 'post-card' ); ?>>
-                            <a href="<?php the_permalink(); ?>" class="post-card-thumb">
-                                <?php if ( has_post_thumbnail() ) : ?>
-                                    <?php the_post_thumbnail( 'medium_large', array(
-                                        'loading'  => 'lazy',
-                                        'decoding' => 'async',
-                                    ) ); ?>
-                                <?php else : ?>
-                                    <div class="post-card-thumb-placeholder">
-                                        <span><?php echo esc_html( wp_trim_words( get_the_title(), 6, '…' ) ); ?></span>
-                                    </div>
-                                <?php endif; ?>
-                            </a>
+                        set_query_var( 'pera_post_card_args', array(
+                            'variant'       => 'grid',
+                            'show_excerpt'  => true,
+                            'excerpt_words' => 28,
+                            'thumb_size'    => 'medium_large',
+                            'show_cat_pill' => true,
+                            'show_readmore' => true,
+                            'btn_class'     => 'btn btn--solid btn--black',
+                            'btn_label'     => __( 'Read article', 'peraproperty' ),
+                        ) );
 
-                            <div class="post-card-body">
-                                <div class="post-card-meta">
-                                    <span class="post-card-date">
-                                        <?php echo get_the_date(); ?>
-                                    </span>
-                                    <?php
-                                    $cats = get_the_category();
-                                    if ( ! empty( $cats ) ) :
-                                        $cat      = $cats[0];
-                                        $cat_link = get_category_link( $cat->term_id );
-                                        ?>
-                                        <a class="post-card-cat" href="<?php echo esc_url( $cat_link ); ?>">
-                                            <?php echo esc_html( $cat->name ); ?>
-                                        </a>
-                                    <?php endif; ?>
-                                </div>
+                        get_template_part( 'parts/post-card' );
+                    endwhile;
 
-                                <h2 class="post-card-title">
-                                    <a href="<?php the_permalink(); ?>">
-                                        <?php the_title(); ?>
-                                    </a>
-                                </h2>
-
-                                <p class="post-card-excerpt">
-                                    <?php echo wp_trim_words( get_the_excerpt(), 28, '…' ); ?>
-                                </p>
-
-                                <a href="<?php the_permalink(); ?>" class="btnbtn btn--solid btn--black post-card-readmore">
-                                    Read article
-                                </a>
-                            </div>
-                        </article>
-                    <?php endwhile; ?>
+                    set_query_var( 'pera_post_card_args', null );
+                    ?>
                 </div> <!-- /.posts-grid -->
 
                 <?php
