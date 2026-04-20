@@ -207,7 +207,6 @@ get_header();
                       'excerpt_words' => 28,
                       'thumb_size'    => 'medium_large',
                       'show_cat_pill' => true,
-                      'pill_class'    => 'pill pill--outline',
                       'show_readmore' => true,
                     ) );
 
