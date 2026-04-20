@@ -26,9 +26,9 @@ add_filter( 'login_headertext', function () {
   return 'Pera Property – Client Login';
 } );
 
-add_filter( 'login_form_top', function ( $content ) {
+add_filter( 'login_message', function ( $message ) {
   if ( ! function_exists( 'pera_get_site_logo_markup' ) ) {
-    return $content;
+    return $message;
   }
 
   $brand = sprintf(
@@ -42,7 +42,7 @@ add_filter( 'login_form_top', function ( $content ) {
     ) )
   );
 
-  return $brand . $content;
+  return $brand . $message;
 } );
 
 add_filter( 'login_redirect', function ( $redirect_to, $requested_redirect_to, $user ) {

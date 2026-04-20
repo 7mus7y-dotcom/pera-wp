@@ -47,7 +47,7 @@ body.login #nav a[href*="register"] {
   display: none !important;
 }
 
-/* Branded logo block rendered inside the login form card */
+/* Branded logo block rendered above the login form on wp-login.php */
 body.login .pera-login-branding {
   margin: 0 0 var(--space-md);
   text-align: center;
