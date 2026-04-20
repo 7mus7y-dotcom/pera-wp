@@ -52,7 +52,7 @@ $show_crm_nav_toggle = isset($args['show_crm_nav_toggle']) ? (bool) $args['show_
       <div class="peracrm-header-actions__cluster">
         <button
           type="button"
-          class="btn btn--ghost btn--white crm-side-nav__toggle crm-side-nav__toggle--header"
+          class="btn btn--ghost crm-side-nav__toggle crm-side-nav__toggle--header"
           data-crm-nav-toggle
           aria-expanded="false"
           aria-controls="crm-side-nav-drawer"
