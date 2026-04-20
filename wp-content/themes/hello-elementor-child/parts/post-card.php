@@ -9,7 +9,7 @@ if ( ! defined( 'ABSPATH' ) ) { exit; }
 $card_args = get_query_var( 'pera_post_card_args' );
 $card_args = is_array( $card_args ) ? $card_args : array();
 
-$variant       = isset( $card_args['variant'] ) ? sanitize_key( $card_args['variant'] ) : 'archive';
+$variant       = isset( $card_args['variant'] ) ? sanitize_key( $card_args['variant'] ) : 'grid';
 $extra_classes = isset( $card_args['card_classes'] ) ? sanitize_text_field( $card_args['card_classes'] ) : '';
 $show_readmore = array_key_exists( 'show_readmore', $card_args ) ? (bool) $card_args['show_readmore'] : true;
 
