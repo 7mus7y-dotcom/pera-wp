@@ -178,7 +178,7 @@ if ( '' !== trim( wp_strip_all_tags( (string) $description_content ) ) ) {
 					<p id="citizenship-properties-map-empty" hidden>
 						<?php esc_html_e( 'No mappable citizenship properties are available right now.', 'hello-elementor-child' ); ?>
 					</p>
-						<script type="application/json" id="citizenship-properties-map-data"><?php echo esc_html( $map_json ); ?></script>
+						<script type="application/json" id="citizenship-properties-map-data"><?php echo $map_json; ?></script>
 					</div>
 			<?php else : ?>
 				<p><?php esc_html_e( 'No citizenship-tagged property offers are available right now. Please check back soon.', 'hello-elementor-child' ); ?></p>
