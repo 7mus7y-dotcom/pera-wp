@@ -320,6 +320,16 @@ document.addEventListener('DOMContentLoaded', function () {
     let last = null;
     let ticking = false;
 
+    function syncHeaderOffsetVars() {
+      var headerHeight = Math.max(0, Math.round(header.getBoundingClientRect().height || header.offsetHeight || 0));
+      if (!headerHeight) {
+        return;
+      }
+
+      document.documentElement.style.setProperty('--header-height', headerHeight + 'px');
+      document.documentElement.style.setProperty('--sticky-offset', headerHeight + 'px');
+    }
+
     function setHeaderState() {
       const isScrolled = window.scrollY > SCROLL_TRIGGER;
       if (isScrolled !== last) {
@@ -332,12 +342,14 @@ document.addEventListener('DOMContentLoaded', function () {
       if (!ticking) {
         ticking = true;
         requestAnimationFrame(function () {
+          syncHeaderOffsetVars();
           setHeaderState();
           ticking = false;
         });
       }
     }
 
+    syncHeaderOffsetVars();
     setHeaderState();
     window.addEventListener('scroll', requestTick, { passive: true });
     window.addEventListener('resize', requestTick);
