@@ -268,11 +268,11 @@ if ( ! function_exists( 'pera_latest_offers_card_view_model' ) ) {
 		}
 	}
 
-	if ( ! function_exists( 'pera_latest_offers_property_map_url' ) ) {
-		function pera_latest_offers_property_map_url( int $property_id ): string {
-			if ( $property_id <= 0 || ! function_exists( 'get_field' ) ) {
-				return '';
-			}
+if ( ! function_exists( 'pera_latest_offers_property_map_url' ) ) {
+	function pera_latest_offers_property_map_url( int $property_id ): string {
+		if ( $property_id <= 0 || ! function_exists( 'get_field' ) ) {
+			return '';
+		}
 
 			$map = get_field( 'map', $property_id );
 			if ( ! is_array( $map ) ) {
@@ -285,9 +285,47 @@ if ( ! function_exists( 'pera_latest_offers_card_view_model' ) ) {
 				return '';
 			}
 
-			return 'https://www.google.com/maps?q=' . rawurlencode( $lat . ',' . $lng );
-		}
+		return 'https://www.google.com/maps?q=' . rawurlencode( $lat . ',' . $lng );
 	}
+}
+
+if ( ! function_exists( 'pera_latest_offers_property_map_coords' ) ) {
+	/**
+	 * @return array{lat:float,lng:float}|array
+	 */
+	function pera_latest_offers_property_map_coords( int $property_id ): array {
+		if ( $property_id <= 0 || ! function_exists( 'get_field' ) ) {
+			return array();
+		}
+
+		$map = get_field( 'map', $property_id );
+		if ( ! is_array( $map ) ) {
+			return array();
+		}
+
+		$lat_raw = isset( $map['lat'] ) ? trim( (string) $map['lat'] ) : '';
+		$lng_raw = isset( $map['lng'] ) ? trim( (string) $map['lng'] ) : '';
+		if ( '' === $lat_raw || '' === $lng_raw ) {
+			return array();
+		}
+
+		if ( ! is_numeric( $lat_raw ) || ! is_numeric( $lng_raw ) ) {
+			return array();
+		}
+
+		$lat = (float) $lat_raw;
+		$lng = (float) $lng_raw;
+
+		if ( $lat < -90 || $lat > 90 || $lng < -180 || $lng > 180 ) {
+			return array();
+		}
+
+		return array(
+			'lat' => $lat,
+			'lng' => $lng,
+		);
+	}
+}
 
 	/**
 	 * @param array<string,mixed> $offer_row
@@ -485,6 +523,67 @@ if ( ! function_exists( 'pera_latest_offers_render_card' ) ) {
 		set_query_var( 'pera_latest_offer_card', $card );
 		get_template_part( 'partials/latest-offers-card' );
 		set_query_var( 'pera_latest_offer_card', $previous );
+	}
+}
+
+if ( ! function_exists( 'pera_latest_offers_marker_dto_from_card' ) ) {
+	/**
+	 * @param array<string,mixed> $card
+	 * @return array<string,mixed>|null
+	 */
+	function pera_latest_offers_marker_dto_from_card( array $card ): ?array {
+		$post_id = isset( $card['property_id'] ) ? (int) $card['property_id'] : 0;
+		if ( $post_id <= 0 ) {
+			return null;
+		}
+
+		$coords = pera_latest_offers_property_map_coords( $post_id );
+		if ( empty( $coords ) ) {
+			return null;
+		}
+
+		$title     = isset( $card['property_title'] ) ? trim( (string) $card['property_title'] ) : '';
+		$permalink = isset( $card['property_url'] ) ? (string) $card['property_url'] : '';
+		$list      = isset( $card['list_price'] ) ? trim( (string) $card['list_price'] ) : '';
+		$cash      = isset( $card['cash_price'] ) ? trim( (string) $card['cash_price'] ) : '';
+
+		$price_display = '—';
+		if ( '' !== $list && '—' !== $list ) {
+			$price_display = $list;
+		} elseif ( '' !== $cash && '—' !== $cash ) {
+			$price_display = $cash;
+		}
+
+		$location_bits = array();
+		$district      = isset( $card['district_name'] ) ? trim( (string) $card['district_name'] ) : '';
+		$region        = isset( $card['region_name'] ) ? trim( (string) $card['region_name'] ) : '';
+		if ( '' !== $district ) {
+			$location_bits[] = $district;
+		}
+		if ( '' !== $region ) {
+			$location_bits[] = $region;
+		}
+		$location_label = implode( ', ', $location_bits );
+
+		$image_id      = isset( $card['image_id'] ) ? (int) $card['image_id'] : 0;
+		$thumbnail_url = '';
+		if ( $image_id > 0 ) {
+			$thumbnail = wp_get_attachment_image_url( $image_id, 'medium_large' );
+			if ( is_string( $thumbnail ) ) {
+				$thumbnail_url = $thumbnail;
+			}
+		}
+
+		return array(
+			'post_id'         => $post_id,
+			'title'           => $title,
+			'permalink'       => $permalink,
+			'lat'             => (float) $coords['lat'],
+			'lng'             => (float) $coords['lng'],
+			'price_display'   => $price_display,
+			'location_label'  => $location_label,
+			'thumbnail_url'   => $thumbnail_url,
+		);
 	}
 }
 
