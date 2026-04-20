@@ -201,13 +201,8 @@ get_header();
                     the_post();
 
                     set_query_var( 'pera_post_card_args', array(
-                      'variant'       => 'grid',
-                      'card_classes'  => '',
-                      'show_excerpt'  => true,
-                      'excerpt_words' => 28,
-                      'thumb_size'    => 'medium_large',
-                      'show_cat_pill' => true,
-                      'show_readmore' => true,
+                      'variant'      => 'grid',
+                      'card_classes' => '',
                     ) );
 
                     get_template_part( 'parts/post-card' );

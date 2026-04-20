@@ -66,14 +66,7 @@ get_header();
                     while ( $posts_query->have_posts() ) :
                         $posts_query->the_post();
                         set_query_var( 'pera_post_card_args', array(
-                            'variant'       => 'grid',
-                            'show_excerpt'  => true,
-                            'excerpt_words' => 28,
-                            'thumb_size'    => 'medium_large',
-                            'show_cat_pill' => true,
-                            'show_readmore' => true,
-                            'btn_class'     => 'btn btn--solid btn--black',
-                            'btn_label'     => __( 'Read article', 'peraproperty' ),
+                            'variant' => 'grid',
                         ) );
 
                         get_template_part( 'parts/post-card' );

@@ -60,12 +60,8 @@ $regional_url = ( $regional_category && ! is_wp_error( $regional_category ) )
           $editorial_query->the_post();
 
           set_query_var( 'pera_post_card_args', array(
-            'variant'       => 'grid',
-            'card_classes'  => 'slider-card',
-            'thumb_size'    => 'medium_large',
-            'show_excerpt'  => true,
-            'excerpt_words' => 22,
-            'show_readmore' => true,
+            'variant'      => 'grid',
+            'card_classes' => 'slider-card',
           ) );
 
           get_template_part( 'parts/post-card' );

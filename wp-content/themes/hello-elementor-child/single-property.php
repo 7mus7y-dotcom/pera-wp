@@ -1522,10 +1522,6 @@ if ( $has_further_reading ) :
               set_query_var( 'pera_post_card_args', array(
                 'variant'       => 'sidebar',
                 'card_classes'  => 'slider-card',
-                'show_excerpt'  => true,
-                'excerpt_words' => 22,
-                'thumb_size'    => 'pera-card',
-                'show_cat_pill' => true,
                 'show_readmore' => false,
               ) );
 
