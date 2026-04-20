@@ -3916,6 +3916,23 @@ body:not(.single-post) tr:nth-child(even) {
   border-top: 1px solid rgba(15, 23, 42, 0.07);
 }
 
+@media (prefers-color-scheme: dark) {
+  /*
+   * This hero is visually light even in dark mode because the background artwork
+   * remains a white / light silhouette composition.
+   *
+   * Only force the main heading + intro copy dark so they retain contrast against
+   * the light hero artwork. Do not affect the requirements card, buttons, or trust strip.
+   */
+  .citizenship-hero .citizenship-hero-copy > h1 {
+    color: #111111 !important;
+  }
+
+  .citizenship-hero .citizenship-hero-copy > p:first-of-type {
+    color: #333333 !important;
+  }
+}
+
 @media (max-width: 900px) {
   .citizenship-hero .hero-content {
     padding-bottom: 18px;
