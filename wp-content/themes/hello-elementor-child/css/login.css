@@ -92,7 +92,7 @@ body.login .pera-login-branding .site-logo__since {
   letter-spacing: 0.36em;
   text-transform: uppercase;
   white-space: nowrap;
-  color: var(--text-soft);
+  color: var(--inverse);
   opacity: 1;
 }
 
