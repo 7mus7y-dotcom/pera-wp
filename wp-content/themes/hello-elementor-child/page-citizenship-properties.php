@@ -86,7 +86,7 @@ if ( '' !== trim( wp_strip_all_tags( (string) $description_content ) ) ) {
 		</div>
 	</section>
 
-	<section class="section pera-citizenship-properties">
+	<section class="section content-panel content-panel--overlap-hero pera-citizenship-properties">
 		<div class="container">
 			<?php if ( ! empty( $cards ) ) : ?>
 				<div class="pera-latest-offers-card-list pera-latest-offers-card-list--grid-4">
