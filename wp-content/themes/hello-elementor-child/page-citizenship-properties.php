@@ -202,6 +202,8 @@ if ( '' !== trim( wp_strip_all_tags( (string) $description_content ) ) ) {
 		var mapInstance = null;
 		var mapBooted = false;
 		var markers = [];
+		var mapBounds = [];
+		var hasRenderableMarkers = false;
 		var hasMapError = false;
 
 		if (!cardsPanel || !mapPanel || !buttons.length) return;
@@ -279,7 +281,7 @@ if ( '' !== trim( wp_strip_all_tags( (string) $description_content ) ) ) {
 				attribution: '&copy; OpenStreetMap contributors'
 			}).addTo(mapInstance);
 
-			var bounds = [];
+			mapBounds = [];
 			var duplicateCounts = Object.create(null);
 			markers.forEach(function (item) {
 				var lat = Number(item && item.lat);
@@ -291,18 +293,21 @@ if ( '' !== trim( wp_strip_all_tags( (string) $description_content ) ) ) {
 				var adjusted = offsetLatLng(lat, lng, duplicateIndex);
 				var marker = window.L.marker(adjusted).addTo(mapInstance);
 				marker.bindPopup(popupHtml(item));
-				bounds.push(adjusted);
+				mapBounds.push(adjusted);
 			});
 
-			if (!bounds.length) {
-				if (mapEmpty) mapEmpty.hidden = false;
-				mapCanvas.hidden = true;
-				return;
-			}
+			hasRenderableMarkers = mapBounds.length > 0;
+		}
 
-			if (mapEmpty) mapEmpty.hidden = true;
-			mapCanvas.hidden = false;
-			mapInstance.fitBounds(bounds, {padding: [36, 36]});
+		function syncMapVisibility() {
+			if (mapEmpty) mapEmpty.hidden = hasRenderableMarkers;
+			if (mapCanvas) mapCanvas.hidden = !hasRenderableMarkers;
+		}
+
+		function refreshMapLayout() {
+			if (!mapInstance || !hasRenderableMarkers) return;
+			mapInstance.invalidateSize();
+			mapInstance.fitBounds(mapBounds, {padding: [36, 36]});
 		}
 
 		function setUrlView(view) {
@@ -333,8 +338,11 @@ if ( '' !== trim( wp_strip_all_tags( (string) $description_content ) ) ) {
 
 			if (nextView === 'map') {
 				initMapIfNeeded();
-				if (mapInstance) {
-					setTimeout(function () { mapInstance.invalidateSize(); }, 50);
+				syncMapVisibility();
+				if (mapInstance && hasRenderableMarkers) {
+					window.requestAnimationFrame(function () {
+						setTimeout(refreshMapLayout, 30);
+					});
 				}
 			}
 
