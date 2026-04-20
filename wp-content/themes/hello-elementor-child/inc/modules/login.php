@@ -26,6 +26,25 @@ add_filter( 'login_headertext', function () {
   return 'Pera Property – Client Login';
 } );
 
+add_filter( 'login_form_top', function ( $content ) {
+  if ( ! function_exists( 'pera_get_site_logo_markup' ) ) {
+    return $content;
+  }
+
+  $brand = sprintf(
+    '<div class="pera-login-branding">%s</div>',
+    pera_get_site_logo_markup( array(
+      'link_class' => 'site-logo logo-pera',
+      'aria_label' => 'Pera Property',
+      'title'      => 'Pera Property',
+      'home_url'   => home_url( '/' ),
+      'show_since' => true,
+    ) )
+  );
+
+  return $brand . $content;
+} );
+
 add_filter( 'login_redirect', function ( $redirect_to, $requested_redirect_to, $user ) {
   if ( ! $user || is_wp_error( $user ) ) {
     return $redirect_to;
