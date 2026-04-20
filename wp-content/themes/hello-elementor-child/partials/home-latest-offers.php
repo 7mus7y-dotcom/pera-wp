@@ -11,9 +11,6 @@ if ( empty( $cards ) ) {
 	return;
 }
 
-if ( function_exists( 'pera_latest_offers_enqueue_card_styles' ) ) {
-	pera_latest_offers_enqueue_card_styles();
-}
 ?>
 <section class="section pera-home-latest-offers" aria-label="<?php echo esc_attr__( 'Latest opportunities in Istanbul', 'hello-elementor-child' ); ?>">
 	<div class="container">

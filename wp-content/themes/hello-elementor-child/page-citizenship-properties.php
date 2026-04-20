@@ -25,10 +25,6 @@ $cards = function_exists( 'pera_latest_offers_collect_cards' )
 	)
 	: array();
 
-if ( function_exists( 'pera_latest_offers_enqueue_card_styles' ) ) {
-	pera_latest_offers_enqueue_card_styles();
-}
-
 $description_content = trim( (string) get_post_field( 'post_content', get_queried_object_id() ) );
 $hero_title          = get_the_title();
 $hero_desc_html      = '';
