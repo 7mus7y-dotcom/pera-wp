@@ -1,0 +1,134 @@
+/*
+ * Pera Property – Shared Card Typography
+ * Purpose: Single source of truth for typography used by property, latest-offer,
+ * and post-card components.
+ * Scope: Typography only (font, line-height, color, text decoration, opacity).
+ */
+
+/* =======================================================
+   TITLES
+   ======================================================= */
+.property-card__title,
+.pera-latest-offer-card__title,
+.post-card-title {
+  font-size: 1.05rem;
+  line-height: 1.2;
+}
+
+/* =======================================================
+   TITLE LINKS
+   ======================================================= */
+.property-card__title a,
+.pera-latest-offer-card__title a,
+.post-card-title a {
+  color: inherit;
+  font-weight: 700;
+  text-decoration: none;
+}
+
+/* =======================================================
+   TITLE HOVER / FOCUS
+   ======================================================= */
+.property-card__title a:hover,
+.property-card__title a:focus,
+.pera-latest-offer-card__title a:hover,
+.pera-latest-offer-card__title a:focus,
+.post-card-title a:hover,
+.post-card-title a:focus {
+  font-weight: 800;
+  text-decoration: none;
+}
+
+/* =======================================================
+   META TEXT
+   ======================================================= */
+.property-card__updated,
+.post-card-date {
+  color: var(--text-soft);
+  line-height: 1.3;
+}
+
+.post-card-date {
+  font-size: 0.76rem;
+  opacity: 0.9;
+}
+
+/* =======================================================
+   EXCERPT TEXT
+   ======================================================= */
+.property-card__excerpt,
+.post-card-excerpt {
+  font-size: 0.9rem;
+  line-height: 1.45;
+}
+
+.property-card__excerpt {
+  color: #4b5563;
+}
+
+.post-card-excerpt {
+  color: var(--text-soft);
+}
+
+/* =======================================================
+   PRICE / KEY VALUE TEXT
+   ======================================================= */
+.property-card__price,
+.pera-latest-offer-card__cash {
+  font-weight: 700;
+}
+
+.property-card__price {
+  font-size: 0.98rem;
+  font-weight: 600;
+  color: var(--brand);
+}
+
+.pera-latest-offer-card__cash {
+  font-size: 0.95rem;
+  color: #0f5132;
+}
+
+/* =======================================================
+   SIDEBAR TYPOGRAPHY SCALE
+   ======================================================= */
+.property-card--sidebar .property-card__title,
+.post-card--sidebar .post-card-title {
+  font-size: calc(1.05rem * 0.85);
+}
+
+.property-card--sidebar .property-card__excerpt,
+.post-card--sidebar .post-card-excerpt {
+  font-size: calc(0.9rem * 0.85);
+}
+
+/* =======================================================
+   DARK MODE TYPOGRAPHY
+   ======================================================= */
+@media (prefers-color-scheme: dark) {
+  .property-card__title a,
+  .post-card-title a {
+    color: var(--soft-blue);
+  }
+
+  .property-card__title a:hover,
+  .property-card__title a:focus,
+  .post-card-title a:hover,
+  .post-card-title a:focus {
+    color: #ffffff;
+  }
+
+  .property-card__excerpt,
+  .post-card-excerpt {
+    color: #d1d5db;
+  }
+
+  .property-card__price {
+    color: var(--text-soft);
+  }
+
+  .property-card__updated,
+  .post-card-date {
+    color: #9ca3af;
+  }
+}

@@ -336,9 +336,16 @@ if ( ! function_exists( 'pera_latest_offers_card_view_model' ) ) {
 if ( ! function_exists( 'pera_latest_offers_enqueue_card_styles' ) ) {
 	function pera_latest_offers_enqueue_card_styles(): void {
 		wp_enqueue_style(
+			'pera-card-typography',
+			get_stylesheet_directory_uri() . '/css/card-typography.css',
+			array( 'pera-main-css' ),
+			pera_get_asset_version( '/css/card-typography.css' )
+		);
+
+		wp_enqueue_style(
 			'pera-latest-offers-card',
 			get_stylesheet_directory_uri() . '/css/latest-offers-card.css',
-			array( 'pera-main-css' ),
+			array( 'pera-main-css', 'pera-card-typography' ),
 			pera_get_asset_version( '/css/latest-offers-card.css' )
 		);
 	}

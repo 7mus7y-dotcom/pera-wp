@@ -187,13 +187,20 @@ function pera_is_property_archive() {
  */
 function pera_enqueue_property_archive_assets( bool $needs_slider = false ): void {
   wp_enqueue_style(
+    'pera-card-typography',
+    get_stylesheet_directory_uri() . '/css/card-typography.css',
+    array( 'pera-main-css' ),
+    pera_get_asset_version( '/css/card-typography.css' )
+  );
+
+  wp_enqueue_style(
     'pera-property-css',
     get_stylesheet_directory_uri() . '/css/property.css',
     array( 'pera-main-css' ),
     pera_get_asset_version( '/css/property.css' )
   );
 
-  $deps = array( 'pera-main-css' );
+  $deps = array( 'pera-main-css', 'pera-card-typography' );
   if ( $needs_slider ) {
     $deps[] = 'pera-slider-css';
   }
