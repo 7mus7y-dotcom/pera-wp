@@ -614,7 +614,16 @@ if ( ! function_exists( 'pera_latest_offers_marker_dto_from_card' ) ) {
 			return null;
 		}
 
-		$coords = pera_latest_offers_property_map_coords( $post_id );
+		$coords = array();
+		$map_url = isset( $card['map_url'] ) ? trim( (string) $card['map_url'] ) : '';
+		if ( '' !== $map_url && function_exists( 'pera_latest_offers_parse_google_maps_url_coords' ) ) {
+			$coords = pera_latest_offers_parse_google_maps_url_coords( $map_url );
+		}
+
+		if ( empty( $coords ) ) {
+			$coords = pera_latest_offers_property_map_coords( $post_id );
+		}
+
 		if ( empty( $coords ) ) {
 			return null;
 		}
