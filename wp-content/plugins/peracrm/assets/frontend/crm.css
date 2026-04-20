@@ -5065,7 +5065,7 @@ body.crm-route #site-header.peracrm-shell-header.is-scrolled .peracrm-header-act
 .crm-page--client-view .crm-client-reminders .crm-list li {
   display: grid;
   gap: 3px;
-  padding: 8px 0;
+  padding: 8px;
 }
 
 .crm-page--client-view .crm-client-reminders .crm-list li small {
