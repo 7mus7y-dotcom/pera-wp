@@ -290,40 +290,117 @@ if ( ! function_exists( 'pera_latest_offers_property_map_url' ) ) {
 }
 
 if ( ! function_exists( 'pera_latest_offers_property_map_coords' ) ) {
+	if ( ! function_exists( 'pera_latest_offers_are_valid_coordinates' ) ) {
+		function pera_latest_offers_are_valid_coordinates( $lat_raw, $lng_raw ): bool {
+			if ( ! is_numeric( $lat_raw ) || ! is_numeric( $lng_raw ) ) {
+				return false;
+			}
+
+			$lat = (float) $lat_raw;
+			$lng = (float) $lng_raw;
+
+			return $lat >= -90 && $lat <= 90 && $lng >= -180 && $lng <= 180;
+		}
+	}
+
+	if ( ! function_exists( 'pera_latest_offers_normalize_coordinates' ) ) {
+		/**
+		 * @return array{lat:float,lng:float}|array
+		 */
+		function pera_latest_offers_normalize_coordinates( $lat_raw, $lng_raw ): array {
+			if ( ! pera_latest_offers_are_valid_coordinates( $lat_raw, $lng_raw ) ) {
+				return array();
+			}
+
+			return array(
+				'lat' => (float) $lat_raw,
+				'lng' => (float) $lng_raw,
+			);
+		}
+	}
+
+	if ( ! function_exists( 'pera_latest_offers_parse_google_maps_url_coords' ) ) {
+		/**
+		 * @return array{lat:float,lng:float}|array
+		 */
+		function pera_latest_offers_parse_google_maps_url_coords( string $map_url ): array {
+			$map_url = trim( $map_url );
+			if ( '' === $map_url ) {
+				return array();
+			}
+
+			$decoded_url = rawurldecode( $map_url );
+			if ( preg_match( '/(?:q=|@)\s*(-?\d+(?:\.\d+)?)\s*,\s*(-?\d+(?:\.\d+)?)/i', $decoded_url, $matches ) ) {
+				$coords = pera_latest_offers_normalize_coordinates( $matches[1], $matches[2] );
+				if ( ! empty( $coords ) ) {
+					return $coords;
+				}
+			}
+
+			return array();
+		}
+	}
+
+	if ( ! function_exists( 'pera_latest_offers_meta_coords' ) ) {
+		/**
+		 * @return array{lat:float,lng:float}|array
+		 */
+		function pera_latest_offers_meta_coords( int $property_id ): array {
+			if ( $property_id <= 0 ) {
+				return array();
+			}
+
+			$meta_key_pairs = array(
+				array( 'lat', 'lng' ),
+				array( 'latitude', 'longitude' ),
+				array( 'property_lat', 'property_lng' ),
+				array( 'property_latitude', 'property_longitude' ),
+				array( 'map_lat', 'map_lng' ),
+				array( 'map_latitude', 'map_longitude' ),
+			);
+
+			foreach ( $meta_key_pairs as $pair ) {
+				$lat_raw = trim( (string) get_post_meta( $property_id, $pair[0], true ) );
+				$lng_raw = trim( (string) get_post_meta( $property_id, $pair[1], true ) );
+
+				$coords = pera_latest_offers_normalize_coordinates( $lat_raw, $lng_raw );
+				if ( ! empty( $coords ) ) {
+					return $coords;
+				}
+			}
+
+			return array();
+		}
+	}
+
 	/**
 	 * @return array{lat:float,lng:float}|array
 	 */
 	function pera_latest_offers_property_map_coords( int $property_id ): array {
-		if ( $property_id <= 0 || ! function_exists( 'get_field' ) ) {
+		if ( $property_id <= 0 ) {
 			return array();
 		}
 
-		$map = get_field( 'map', $property_id );
-		if ( ! is_array( $map ) ) {
-			return array();
+		if ( function_exists( 'get_field' ) ) {
+			$map = get_field( 'map', $property_id );
+			if ( is_array( $map ) ) {
+				$lat_raw = isset( $map['lat'] ) ? trim( (string) $map['lat'] ) : '';
+				$lng_raw = isset( $map['lng'] ) ? trim( (string) $map['lng'] ) : '';
+
+				$coords = pera_latest_offers_normalize_coordinates( $lat_raw, $lng_raw );
+				if ( ! empty( $coords ) ) {
+					return $coords;
+				}
+			}
 		}
 
-		$lat_raw = isset( $map['lat'] ) ? trim( (string) $map['lat'] ) : '';
-		$lng_raw = isset( $map['lng'] ) ? trim( (string) $map['lng'] ) : '';
-		if ( '' === $lat_raw || '' === $lng_raw ) {
-			return array();
+		$meta_coords = pera_latest_offers_meta_coords( $property_id );
+		if ( ! empty( $meta_coords ) ) {
+			return $meta_coords;
 		}
 
-		if ( ! is_numeric( $lat_raw ) || ! is_numeric( $lng_raw ) ) {
-			return array();
-		}
-
-		$lat = (float) $lat_raw;
-		$lng = (float) $lng_raw;
-
-		if ( $lat < -90 || $lat > 90 || $lng < -180 || $lng > 180 ) {
-			return array();
-		}
-
-		return array(
-			'lat' => $lat,
-			'lng' => $lng,
-		);
+		$map_url = pera_latest_offers_property_map_url( $property_id );
+		return pera_latest_offers_parse_google_maps_url_coords( $map_url );
 	}
 }
 
