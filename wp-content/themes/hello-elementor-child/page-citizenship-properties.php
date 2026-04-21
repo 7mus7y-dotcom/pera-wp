@@ -9,13 +9,13 @@ if ( ! defined( 'ABSPATH' ) ) {
 
 wp_enqueue_style(
 	'pera-leaflet',
-	'https://unpkg.com/leaflet@1.9.4/dist/leaflet.css',
+	get_stylesheet_directory_uri() . '/vendor/leaflet/leaflet.css',
 	array(),
 	'1.9.4'
 );
 wp_enqueue_script(
 	'pera-leaflet',
-	'https://unpkg.com/leaflet@1.9.4/dist/leaflet.js',
+	get_stylesheet_directory_uri() . '/vendor/leaflet/leaflet.js',
 	array(),
 	'1.9.4',
 	true
