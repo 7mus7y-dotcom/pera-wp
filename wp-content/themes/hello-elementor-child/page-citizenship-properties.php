@@ -18,7 +18,7 @@ wp_enqueue_script(
 	get_stylesheet_directory_uri() . '/vendor/leaflet/leaflet.js',
 	array(),
 	'1.9.4',
-	true
+	false
 );
 
 get_header();
