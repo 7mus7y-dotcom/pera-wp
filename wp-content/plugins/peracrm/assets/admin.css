@@ -255,6 +255,235 @@
     word-break: break-word;
 }
 
+.peracrm-whatsapp-admin {
+    max-width: 1220px;
+}
+
+.peracrm-whatsapp-admin__title {
+    margin-bottom: 8px;
+}
+
+.peracrm-whatsapp-admin__intro {
+    margin: 0 0 16px;
+    max-width: 980px;
+}
+
+.peracrm-whatsapp-admin__notice {
+    margin: 0 0 12px;
+}
+
+.peracrm-whatsapp-admin__section {
+    background: #fff;
+    border: 1px solid #dcdcde;
+    border-radius: 6px;
+    margin: 0 0 16px;
+    padding: 14px 16px 16px;
+}
+
+.peracrm-whatsapp-admin__section > h2 {
+    margin: 0 0 10px;
+    padding: 0;
+}
+
+.peracrm-whatsapp-admin__section > p {
+    margin-top: 0;
+}
+
+.peracrm-whatsapp-admin .peracrm-whatsapp-table {
+    margin: 0;
+    max-width: 100%;
+}
+
+.peracrm-whatsapp-admin .peracrm-whatsapp-table th,
+.peracrm-whatsapp-admin .peracrm-whatsapp-table td {
+    overflow-wrap: anywhere;
+    word-break: break-word;
+}
+
+.peracrm-whatsapp-admin .peracrm-whatsapp-table--diagnostics th {
+    width: 240px;
+}
+
+.peracrm-whatsapp-admin .peracrm-whatsapp-table code {
+    white-space: normal;
+}
+
+.peracrm-whatsapp-admin__form {
+    margin: 0;
+    max-width: 900px;
+}
+
+.peracrm-whatsapp-admin .peracrm-whatsapp-form-table {
+    margin-top: 0;
+}
+
+.peracrm-whatsapp-admin .peracrm-whatsapp-form-table th {
+    width: 220px;
+}
+
+.peracrm-whatsapp-admin .peracrm-whatsapp-form-table input[type="text"],
+.peracrm-whatsapp-admin .peracrm-whatsapp-form-table input[type="password"] {
+    max-width: 100%;
+}
+
+.peracrm-whatsapp-admin .peracrm-whatsapp-log-message {
+    white-space: normal;
+}
+
+@media (max-width: 782px) {
+    .peracrm-whatsapp-admin__intro {
+        margin-bottom: 12px;
+    }
+
+    .peracrm-whatsapp-admin__section {
+        margin-bottom: 12px;
+        padding: 12px;
+    }
+
+    .peracrm-whatsapp-admin__section > h2 {
+        margin-bottom: 8px;
+    }
+
+    .peracrm-whatsapp-admin .peracrm-whatsapp-form-table,
+    .peracrm-whatsapp-admin .peracrm-whatsapp-form-table tbody,
+    .peracrm-whatsapp-admin .peracrm-whatsapp-form-table tr,
+    .peracrm-whatsapp-admin .peracrm-whatsapp-form-table th,
+    .peracrm-whatsapp-admin .peracrm-whatsapp-form-table td {
+        display: block;
+        width: 100%;
+    }
+
+    .peracrm-whatsapp-admin .peracrm-whatsapp-form-table tr {
+        margin-bottom: 12px;
+    }
+
+    .peracrm-whatsapp-admin .peracrm-whatsapp-form-table th {
+        margin: 0 0 6px;
+        padding: 0;
+    }
+
+    .peracrm-whatsapp-admin .peracrm-whatsapp-form-table td {
+        margin: 0;
+        padding: 0;
+    }
+
+    .peracrm-whatsapp-admin .peracrm-whatsapp-form-table .description {
+        margin: 6px 0 0;
+    }
+
+    .peracrm-whatsapp-admin .peracrm-whatsapp-form-table input[type="text"],
+    .peracrm-whatsapp-admin .peracrm-whatsapp-form-table input[type="password"],
+    .peracrm-whatsapp-admin .peracrm-whatsapp-form-table select,
+    .peracrm-whatsapp-admin .peracrm-whatsapp-form-table textarea {
+        width: 100%;
+    }
+
+    .peracrm-whatsapp-admin .peracrm-whatsapp-admin__form .submit .button,
+    .peracrm-whatsapp-admin .peracrm-whatsapp-admin__form .button.button-secondary,
+    .peracrm-whatsapp-admin .peracrm-whatsapp-admin__form--test .button,
+    .peracrm-whatsapp-admin .peracrm-whatsapp-admin__form--test input[type="submit"],
+    .peracrm-whatsapp-admin .peracrm-whatsapp-admin__form--test button[type="submit"] {
+        box-sizing: border-box;
+        display: block;
+        text-align: center;
+        width: 100%;
+    }
+
+    .peracrm-whatsapp-admin .peracrm-whatsapp-table--diagnostics,
+    .peracrm-whatsapp-admin .peracrm-whatsapp-table--diagnostics tbody,
+    .peracrm-whatsapp-admin .peracrm-whatsapp-table--diagnostics tr,
+    .peracrm-whatsapp-admin .peracrm-whatsapp-table--diagnostics th,
+    .peracrm-whatsapp-admin .peracrm-whatsapp-table--diagnostics td {
+        display: block;
+        width: 100%;
+    }
+
+    .peracrm-whatsapp-admin .peracrm-whatsapp-table--diagnostics tr {
+        border-bottom: 1px solid #dcdcde;
+        padding: 8px 0;
+    }
+
+    .peracrm-whatsapp-admin .peracrm-whatsapp-table--diagnostics tr:last-child {
+        border-bottom: 0;
+    }
+
+    .peracrm-whatsapp-admin .peracrm-whatsapp-table--diagnostics th,
+    .peracrm-whatsapp-admin .peracrm-whatsapp-table--diagnostics td {
+        border: 0;
+        padding: 2px 0;
+    }
+
+    .peracrm-whatsapp-admin .peracrm-whatsapp-table--messages thead,
+    .peracrm-whatsapp-admin .peracrm-whatsapp-table--notifications thead {
+        border: 0;
+        clip: rect(1px, 1px, 1px, 1px);
+        clip-path: inset(50%);
+        height: 1px;
+        margin: -1px;
+        overflow: hidden;
+        padding: 0;
+        position: absolute;
+        width: 1px;
+    }
+
+    .peracrm-whatsapp-admin .peracrm-whatsapp-table--messages,
+    .peracrm-whatsapp-admin .peracrm-whatsapp-table--notifications,
+    .peracrm-whatsapp-admin .peracrm-whatsapp-table--messages tbody,
+    .peracrm-whatsapp-admin .peracrm-whatsapp-table--notifications tbody,
+    .peracrm-whatsapp-admin .peracrm-whatsapp-table--messages tr,
+    .peracrm-whatsapp-admin .peracrm-whatsapp-table--notifications tr,
+    .peracrm-whatsapp-admin .peracrm-whatsapp-table--messages td,
+    .peracrm-whatsapp-admin .peracrm-whatsapp-table--notifications td {
+        display: block;
+        width: 100%;
+    }
+
+    .peracrm-whatsapp-admin .peracrm-whatsapp-table--messages tr,
+    .peracrm-whatsapp-admin .peracrm-whatsapp-table--notifications tr {
+        background: #fff;
+        border: 1px solid #dcdcde;
+        border-radius: 6px;
+        box-shadow: none;
+        margin-bottom: 10px;
+        overflow: visible;
+        padding: 8px 10px;
+    }
+
+    .peracrm-whatsapp-admin .peracrm-whatsapp-table--messages td,
+    .peracrm-whatsapp-admin .peracrm-whatsapp-table--notifications td {
+        border: 0;
+        padding: 6px 0;
+    }
+
+    .peracrm-whatsapp-admin .peracrm-whatsapp-table--messages.widefat,
+    .peracrm-whatsapp-admin .peracrm-whatsapp-table--notifications.widefat,
+    .peracrm-whatsapp-admin .peracrm-whatsapp-table--messages.widefat tbody,
+    .peracrm-whatsapp-admin .peracrm-whatsapp-table--notifications.widefat tbody {
+        background: transparent;
+        border: 0;
+        border-collapse: separate;
+        border-spacing: 0;
+        box-shadow: none;
+    }
+
+    .peracrm-whatsapp-admin .peracrm-whatsapp-table--messages td::before,
+    .peracrm-whatsapp-admin .peracrm-whatsapp-table--notifications td::before {
+        color: #50575e;
+        content: attr(data-label);
+        display: block;
+        font-size: 12px;
+        font-weight: 600;
+        margin-bottom: 2px;
+    }
+
+    .peracrm-whatsapp-admin .peracrm-whatsapp-table--messages a:focus,
+    .peracrm-whatsapp-admin .peracrm-whatsapp-table--notifications a:focus,
+    .peracrm-whatsapp-admin .peracrm-whatsapp-table--messages button:focus,
+    .peracrm-whatsapp-admin .peracrm-whatsapp-table--notifications button:focus {
+        outline-offset: 2px;
+    }
+}
+
 
 .peracrm-import-page .peracrm-import-card {
     background: #fff;
