@@ -77,10 +77,6 @@ if ( ! function_exists( 'pera_analytics_enqueue_tracker' ) ) {
 			array(
 				'ajaxUrl'  => admin_url( 'admin-ajax.php' ),
 				'action'   => 'pera_track_page_visit',
-				'nonce'    => wp_create_nonce( 'pera_track_page_visit' ),
-				'path'     => wp_parse_url( home_url( '/' ), PHP_URL_PATH ),
-				'pageUrl'  => home_url( '/' ),
-				'pageTitle'=> wp_get_document_title(),
 				'postId'   => is_singular() ? get_the_ID() : 0,
 				'postType' => is_singular() ? get_post_type( get_the_ID() ) : '',
 			)
@@ -96,7 +92,18 @@ if ( ! function_exists( 'pera_analytics_get_or_set_visitor_id' ) ) {
 
 		if ( '' === $visitor_id || strlen( $visitor_id ) < 20 ) {
 			$visitor_id = wp_generate_uuid4();
-			setcookie( $cookie_name, $visitor_id, time() + YEAR_IN_SECONDS, COOKIEPATH ?: '/', COOKIE_DOMAIN, is_ssl(), true );
+			setcookie(
+				$cookie_name,
+				$visitor_id,
+				array(
+					'expires'  => time() + YEAR_IN_SECONDS,
+					'path'     => COOKIEPATH ?: '/',
+					'domain'   => COOKIE_DOMAIN,
+					'secure'   => is_ssl(),
+					'httponly' => true,
+					'samesite' => 'Lax',
+				)
+			);
 			$_COOKIE[ $cookie_name ] = $visitor_id;
 		}
 
@@ -106,23 +113,25 @@ if ( ! function_exists( 'pera_analytics_get_or_set_visitor_id' ) ) {
 
 if ( ! function_exists( 'pera_analytics_handle_track_request' ) ) {
 	function pera_analytics_handle_track_request(): void {
+		$request_method = isset( $_SERVER['REQUEST_METHOD'] ) ? strtoupper( sanitize_text_field( wp_unslash( (string) $_SERVER['REQUEST_METHOD'] ) ) ) : '';
+		if ( 'POST' !== $request_method ) {
+			wp_send_json_error( array( 'message' => 'Invalid request method' ), 405 );
+		}
+
 		if ( is_user_logged_in() ) {
 			wp_send_json_success( array( 'tracked' => false ) );
 		}
 
-		$nonce = isset( $_POST['nonce'] ) ? sanitize_text_field( wp_unslash( (string) $_POST['nonce'] ) ) : '';
-		if ( ! wp_verify_nonce( $nonce, 'pera_track_page_visit' ) ) {
-			wp_send_json_error( array( 'message' => 'Invalid nonce' ), 403 );
+		$origin      = isset( $_SERVER['HTTP_ORIGIN'] ) ? esc_url_raw( wp_unslash( (string) $_SERVER['HTTP_ORIGIN'] ) ) : '';
+		$site_host   = wp_parse_url( home_url(), PHP_URL_HOST );
+		$origin_host = $origin ? wp_parse_url( $origin, PHP_URL_HOST ) : '';
+		if ( $origin_host && $site_host && strtolower( (string) $origin_host ) !== strtolower( (string) $site_host ) ) {
+			wp_send_json_success( array( 'tracked' => false ) );
 		}
 
 		$user_agent = isset( $_SERVER['HTTP_USER_AGENT'] ) ? sanitize_text_field( wp_unslash( (string) $_SERVER['HTTP_USER_AGENT'] ) ) : '';
 		if ( pera_analytics_is_likely_bot_ua( $user_agent ) ) {
 			wp_send_json_success( array( 'tracked' => false, 'reason' => 'bot' ) );
-		}
-
-		$request_method = isset( $_SERVER['REQUEST_METHOD'] ) ? strtoupper( sanitize_text_field( wp_unslash( (string) $_SERVER['REQUEST_METHOD'] ) ) ) : '';
-		if ( 'POST' !== $request_method ) {
-			wp_send_json_error( array( 'message' => 'Invalid request method' ), 405 );
 		}
 
 		$page_path = isset( $_POST['page_path'] ) ? sanitize_text_field( wp_unslash( (string) $_POST['page_path'] ) ) : '';
@@ -132,7 +141,7 @@ if ( ! function_exists( 'pera_analytics_handle_track_request' ) ) {
 		$post_type = isset( $_POST['post_type'] ) ? sanitize_key( wp_unslash( (string) $_POST['post_type'] ) ) : '';
 		$referer   = isset( $_SERVER['HTTP_REFERER'] ) ? esc_url_raw( wp_unslash( (string) $_SERVER['HTTP_REFERER'] ) ) : '';
 
-		if ( '' === $page_path || pera_analytics_should_skip_path( $page_path ) ) {
+		if ( '' === $page_path || 0 !== strpos( $page_path, '/' ) || pera_analytics_should_skip_path( $page_path ) ) {
 			wp_send_json_success( array( 'tracked' => false ) );
 		}
 

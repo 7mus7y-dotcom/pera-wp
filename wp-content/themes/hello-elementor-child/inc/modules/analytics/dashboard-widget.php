@@ -29,15 +29,22 @@ if ( ! function_exists( 'pera_analytics_percent_change' ) ) {
 
 if ( ! function_exists( 'pera_analytics_render_dashboard_widget' ) ) {
 	function pera_analytics_render_dashboard_widget(): void {
-		$rows   = pera_analytics_get_top_pages( 8 );
-		$totals = pera_analytics_get_month_totals();
+		$rows    = pera_analytics_get_top_pages( 8 );
+		$totals  = pera_analytics_get_month_totals();
+		$windows = pera_analytics_month_window();
 
-		echo '<p><strong>' . esc_html__( 'Visits this month:', 'hello-elementor-child' ) . '</strong> ' . esc_html( number_format_i18n( $totals['current']['visits'] ) );
-		echo ' &nbsp;•&nbsp; <strong>' . esc_html__( 'Unique visitors:', 'hello-elementor-child' ) . '</strong> ' . esc_html( number_format_i18n( $totals['current']['uniques'] ) );
+		echo '<p><strong>' . esc_html__( 'Visits this month (to date):', 'hello-elementor-child' ) . '</strong> ' . esc_html( number_format_i18n( $totals['current']['visits'] ) );
+		echo ' &nbsp;•&nbsp; <strong>' . esc_html__( 'Unique visitors (to date):', 'hello-elementor-child' ) . '</strong> ' . esc_html( number_format_i18n( $totals['current']['uniques'] ) );
 		echo '</p>';
 
 		echo '<p><small>';
-		echo esc_html__( 'Last month comparison uses the full previous calendar month.', 'hello-elementor-child' );
+		echo esc_html__( 'Comparison uses a matched month-to-date window (previous month up to the same day/time cutoff).', 'hello-elementor-child' );
+		echo ' ';
+		echo esc_html( sprintf( '%s → %s', $windows['current']['start'], $windows['current']['end'] ) );
+		echo ' ';
+		echo esc_html__( 'vs', 'hello-elementor-child' );
+		echo ' ';
+		echo esc_html( sprintf( '%s → %s', $windows['previous']['start'], $windows['previous']['end'] ) );
 		echo '</small></p>';
 
 		if ( empty( $rows ) ) {
@@ -50,7 +57,7 @@ if ( ! function_exists( 'pera_analytics_render_dashboard_widget' ) ) {
 		echo '<th>' . esc_html__( 'Page', 'hello-elementor-child' ) . '</th>';
 		echo '<th>' . esc_html__( 'Visits', 'hello-elementor-child' ) . '</th>';
 		echo '<th>' . esc_html__( 'Unique', 'hello-elementor-child' ) . '</th>';
-		echo '<th>' . esc_html__( 'Last month', 'hello-elementor-child' ) . '</th>';
+		echo '<th>' . esc_html__( 'Matched previous', 'hello-elementor-child' ) . '</th>';
 		echo '<th>' . esc_html__( 'Change', 'hello-elementor-child' ) . '</th>';
 		echo '</tr></thead><tbody>';
 
