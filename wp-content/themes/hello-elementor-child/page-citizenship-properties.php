@@ -78,6 +78,7 @@ if ( '' !== trim( wp_strip_all_tags( (string) $description_content ) ) ) {
 	<style>
 		.pera-citizenship-properties .citizenship-properties-view-toggle{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin:0 0 16px;}
 		.pera-citizenship-properties .citizenship-view-btn{min-width:120px;}
+		.pera-citizenship-properties .citizenship-map-debug{margin:0 0 16px;padding:10px 12px;border:1px solid #d9deea;border-radius:10px;background:#f8faff;font:12px/1.45 ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,Liberation Mono,monospace;color:#1e293b;white-space:pre-wrap;}
 		#citizenship-properties-map-panel[hidden],
 		#citizenship-properties-cards-panel[hidden],
 		#citizenship-properties-map-empty[hidden]{display:none !important;}
@@ -161,6 +162,9 @@ if ( '' !== trim( wp_strip_all_tags( (string) $description_content ) ) ) {
 					<?php esc_html_e( 'Map', 'hello-elementor-child' ); ?>
 				</button>
 			</div>
+			<?php if ( current_user_can( 'manage_options' ) ) : ?>
+				<pre id="citizenship-properties-map-debug" class="citizenship-map-debug" aria-live="polite"><?php echo esc_html__( 'Map debug panel: waiting for runtime state…', 'hello-elementor-child' ); ?></pre>
+			<?php endif; ?>
 
 			<?php if ( ! empty( $cards ) ) : ?>
 				<div
@@ -205,15 +209,39 @@ if ( '' !== trim( wp_strip_all_tags( (string) $description_content ) ) ) {
 		var mapBounds = [];
 		var hasRenderableMarkers = false;
 		var hasMapError = false;
+		var parseSucceeded = false;
+		var currentView = 'cards';
+		var debugEl = document.getElementById('citizenship-properties-map-debug');
 
 		if (!cardsPanel || !mapPanel || !buttons.length) return;
 
 		try {
 			markers = jsonEl ? JSON.parse(jsonEl.textContent || '[]') : [];
 			if (!Array.isArray(markers)) markers = [];
+			parseSucceeded = true;
 		} catch (e) {
 			markers = [];
+			parseSucceeded = false;
 		}
+
+		function setDebugState(stage) {
+			if (!debugEl) return;
+			var lines = [
+				'stage: ' + String(stage || ''),
+				'markers.length: ' + String(Array.isArray(markers) ? markers.length : 0),
+				'json.parse.succeeded: ' + (parseSucceeded ? 'true' : 'false'),
+				'window.L.exists: ' + (window.L ? 'true' : 'false'),
+				'mapBooted: ' + (mapBooted ? 'true' : 'false'),
+				'mapInstance.exists: ' + (mapInstance ? 'true' : 'false'),
+				'mapBounds.length: ' + String(Array.isArray(mapBounds) ? mapBounds.length : 0),
+				'hasRenderableMarkers: ' + (hasRenderableMarkers ? 'true' : 'false'),
+				'mapCanvas.hidden: ' + (mapCanvas ? String(!!mapCanvas.hidden) : 'n/a'),
+				'mapEmpty.hidden: ' + (mapEmpty ? String(!!mapEmpty.hidden) : 'n/a'),
+				'currentView: ' + String(currentView || '')
+			];
+			debugEl.textContent = lines.join('\n');
+		}
+		setDebugState('after_parse');
 
 		function escapeHtml(value) {
 			return String(value || '')
@@ -297,6 +325,7 @@ if ( '' !== trim( wp_strip_all_tags( (string) $description_content ) ) ) {
 			});
 
 			hasRenderableMarkers = mapBounds.length > 0;
+			setDebugState('after_initMapIfNeeded');
 		}
 
 		function syncMapVisibility() {
@@ -332,6 +361,7 @@ if ( '' !== trim( wp_strip_all_tags( (string) $description_content ) ) ) {
 
 		function showView(view, persist) {
 			var nextView = view === 'map' ? 'map' : 'cards';
+			currentView = nextView;
 			cardsPanel.hidden = nextView !== 'cards';
 			mapPanel.hidden = nextView !== 'map';
 			setButtons(nextView);
@@ -350,6 +380,7 @@ if ( '' !== trim( wp_strip_all_tags( (string) $description_content ) ) ) {
 				try { window.localStorage.setItem(storageKey, nextView); } catch (e) {}
 				setUrlView(nextView);
 			}
+			setDebugState('after_showView');
 		}
 
 		buttons.forEach(function (button) {
