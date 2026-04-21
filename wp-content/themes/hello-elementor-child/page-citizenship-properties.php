@@ -85,11 +85,13 @@ if ( '' !== trim( wp_strip_all_tags( (string) $description_content ) ) ) {
 		#citizenship-properties-map-panel{background:#fff;border:1px solid #e4e8ef;border-radius:16px;padding:14px;}
 		#citizenship-properties-map-canvas{height:600px;border-radius:12px;overflow:hidden;background:#f4f6fb;}
 		#citizenship-properties-map-empty{margin:0;padding:12px 0;color:#4c5565;}
-		.citizenship-map-popup{max-width:240px;}
+		.citizenship-map-popup{max-width:260px;}
 		.citizenship-map-popup__thumb{display:block;width:100%;height:120px;object-fit:cover;border-radius:8px;margin:0 0 8px;}
 		.citizenship-map-popup__title{font-size:14px;line-height:1.35;font-weight:700;margin:0 0 6px;}
 		.citizenship-map-popup__meta{margin:0 0 4px;font-size:13px;line-height:1.35;color:#334155;}
-		.citizenship-map-popup__cta{display:inline-block;margin-top:6px;font-size:12px;font-weight:600;text-decoration:underline;}
+		.citizenship-map-popup__notes{margin:8px 0 0;font-size:12px;line-height:1.4;color:#475569;}
+		.citizenship-map-popup__actions{display:flex;flex-wrap:wrap;gap:8px;margin-top:8px;}
+		.citizenship-map-popup__cta{display:inline-block;font-size:12px;font-weight:600;text-decoration:underline;}
 		@media (max-width: 767px){
 			#citizenship-properties-map-canvas{height:460px;}
 		}
@@ -252,39 +254,6 @@ if ( '' !== trim( wp_strip_all_tags( (string) $description_content ) ) ) {
 		}
 		setDebugState('after_parse');
 
-		function escapeHtml(value) {
-			return String(value || '')
-				.replace(/&/g, '&amp;')
-				.replace(/</g, '&lt;')
-				.replace(/>/g, '&gt;')
-				.replace(/"/g, '&quot;')
-				.replace(/'/g, '&#39;');
-		}
-
-		function popupHtml(item) {
-			var title = escapeHtml(item.title || '');
-			var permalink = String(item.permalink || '');
-			var price = String(item.price_display || '');
-			var location = String(item.location_label || '');
-			var thumb = String(item.thumbnail_url || '');
-			var html = '<div class="citizenship-map-popup">';
-			if (thumb) {
-				html += '<img class="citizenship-map-popup__thumb" src="' + escapeHtml(thumb) + '" alt="' + title + '">';
-			}
-			html += '<h4 class="citizenship-map-popup__title">' + title + '</h4>';
-			if (price && price !== '—') {
-				html += '<p class="citizenship-map-popup__meta">' + escapeHtml(price) + '</p>';
-			}
-			if (location) {
-				html += '<p class="citizenship-map-popup__meta">' + escapeHtml(location) + '</p>';
-			}
-			if (permalink) {
-				html += '<a class="citizenship-map-popup__cta" href="' + escapeHtml(permalink) + '" target="_blank" rel="noopener noreferrer"><?php echo esc_js( __( 'Project details', 'hello-elementor-child' ) ); ?></a>';
-			}
-			html += '</div>';
-			return html;
-		}
-
 		function keyForLatLng(lat, lng) {
 			return lat.toFixed(6) + ',' + lng.toFixed(6);
 		}
@@ -332,7 +301,7 @@ if ( '' !== trim( wp_strip_all_tags( (string) $description_content ) ) ) {
 					duplicateCounts[duplicateKey] = duplicateIndex + 1;
 					var adjusted = offsetLatLng(lat, lng, duplicateIndex);
 					var marker = window.L.marker(adjusted).addTo(mapInstance);
-					marker.bindPopup(popupHtml(item));
+					marker.bindPopup(String(item && item.popup_html ? item.popup_html : ''));
 					mapBounds.push(adjusted);
 				});
 
