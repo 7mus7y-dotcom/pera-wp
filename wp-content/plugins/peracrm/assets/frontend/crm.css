@@ -43,6 +43,12 @@
   --crm-chip-radius: var(--crm-pill-radius);
   --crm-chip-font-size: var(--crm-pill-font-size);
   --crm-chip-line-height: var(--crm-pill-line-height);
+  --crm-button-core-gap: 6px;
+  --crm-button-core-font-size: 0.95rem;
+  --crm-button-core-line-height: 1.2;
+  --crm-button-core-weight: 600;
+  --crm-button-icon-size: 34px;
+  --crm-button-icon-radius: 999px;
   --border-muted: #d1d5db;
   --radius-lg: 20px;
   --space-xs: 10px;
@@ -86,14 +92,14 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: 6px;
+  gap: var(--crm-button-core-gap);
   vertical-align: middle;
   padding: 8px 15px;
   border-radius: 999px;
   border: 1px solid transparent;
-  font-weight: 600;
-  font-size: 0.95rem;
-  line-height: 1.2;
+  font-weight: var(--crm-button-core-weight);
+  font-size: var(--crm-button-core-font-size);
+  line-height: var(--crm-button-core-line-height);
   font-family: inherit;
   cursor: pointer;
   text-decoration: none;
@@ -134,11 +140,17 @@
 .crm-page .btn--red, #crm-hero .btn--red { --btn-color: var(--pill-red); }
 .crm-page .btn--white, #crm-hero .btn--white { --btn-color: #ffffff; }
 
-.crm-page .pill,
+.crm-page :is(.crm-chip, .pill),
 #crm-hero .pill {
   display: inline-flex;
   align-items: center;
   justify-content: center;
+  white-space: nowrap;
+}
+
+/* Legacy .pill classes remain supported as compatibility aliases until markup cleanup. */
+.crm-page .pill,
+#crm-hero .pill {
   padding: var(--crm-pill-padding-y) var(--crm-pill-padding-x);
   border-radius: var(--crm-pill-radius);
   font-size: var(--crm-pill-font-size);
@@ -151,6 +163,7 @@
   border: 0;
   background: var(--pill-bg);
   color: var(--pill-text);
+  font-weight: var(--crm-button-core-weight);
 }
 .crm-page .pill--outline,
 #crm-hero .pill--outline { background: var(--pill-outline-bg) !important; border: 1px solid #e5e7eb; color: var(--pill-outline-text); }
@@ -800,11 +813,7 @@
 
 .crm-page--client-view [data-crm-theme-portfolio] [data-crm-theme-portfolio-open-link],
 .crm-page--client-view [data-crm-theme-portfolio] [data-crm-theme-portfolio-copy] {
-  width: 34px;
-  /*height: 34px;*/
-  min-width: 34px;
-  /*min-height: 34px;*/
-  padding: 0;
+  /* Shared icon-button geometry is centralized in the final polish contract block. */
 }
 
 .crm-page--client-view [data-crm-theme-portfolio] [data-crm-theme-portfolio-open-link] svg,
@@ -1030,16 +1039,7 @@ body.crm-route .crm-page--client-view .crm-icon-btn,
 body.crm-route .crm-page--client-view .peracrm-linked-property-unlink-btn,
 body.crm-route .crm-page--client-view [data-crm-portfolio-output] ~ .peracrm-linked-properties-grid .crm-icon-btn,
 body.crm-route .crm-page--client-view [data-crm-portfolio-output] ~ .peracrm-linked-properties-grid .peracrm-linked-property-unlink-btn.peracrm-portfolio-action-btn {
-  width: 34px;
- /* height: 34px;*/
-  min-width: 34px;
- /* min-height: 34px;*/
-  padding: 0;
-  border-radius: 999px;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  line-height: 1;
+  /* Geometry is intentionally centralized later so CRM/icon aliases stay in sync. */
 }
 
 body.crm-route .crm-page--client-view [data-crm-portfolio-output] ~ .peracrm-linked-properties-grid .crm-icon-btn svg,
@@ -3705,12 +3705,10 @@ body.crm-route #site-header.peracrm-shell-header .crm-side-nav__toggle--header:f
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  padding: var(--crm-button-compact-padding-y, 6px) var(--crm-button-compact-padding-x, 10px);
   border-radius: var(--crm-button-radius, 999px);
   border: 1px solid var(--brand, #002d72);
   background: transparent;
   color: var(--brand, #002d72);
-  font-size: var(--crm-button-operational-font-size, 0.85rem);
   font-weight: 600;
   line-height: 1;
   text-decoration: none;
@@ -4055,6 +4053,7 @@ body.crm-route #site-header.peracrm-shell-header .crm-side-nav__toggle--header:f
   min-width: 0;
 }
 
+/* Canonical semantic chip primitive; legacy .pill styles above remain alias-compatible. */
 .crm-page .crm-chip {
   display: inline-flex;
   align-items: center;
@@ -4508,6 +4507,7 @@ body.crm-route {
 
 .crm-view-toggle,
 .crm-type-toggle {
+  /* JS-coupled segmented controls: keep selector/state contract stable for crm.js hooks. */
   padding: 4px;
   border: 1px solid rgba(15, 23, 42, 0.08);
   border-radius: 14px;
@@ -5954,18 +5954,7 @@ body.crm-route #site-header.peracrm-shell-header.is-scrolled .peracrm-header-act
   border-radius: var(--crm-button-radius);
 }
 
-.crm-page .btn.crm-icon-btn,
-.crm-page button.btn.crm-icon-btn,
-.crm-page .btn.peracrm-linked-property-unlink-btn,
-.crm-page button.btn.peracrm-linked-property-unlink-btn,
-.crm-page .crm-inline-form .btn.crm-icon-btn,
-.crm-page .crm-row-list__actions .btn.crm-icon-btn,
-.crm-page .crm-table__actions .btn.crm-icon-btn,
-.crm-page .crm-section__actions .btn.crm-icon-btn {
-  padding: 0;
-  /*min-height: 34px;*/
-}
-
+/* Compact operational controls share one sizing contract across toolbars/rows/section actions. */
 .crm-page .crm-toolbar-actions .btn:not(.crm-icon-btn):not(.peracrm-linked-property-unlink-btn),
 .crm-page .crm-section__actions .btn:not(.crm-icon-btn):not(.peracrm-linked-property-unlink-btn),
 .crm-page .crm-row-list__aside .btn:not(.crm-icon-btn):not(.peracrm-linked-property-unlink-btn),
@@ -5976,9 +5965,48 @@ body.crm-route #site-header.peracrm-shell-header.is-scrolled .peracrm-header-act
 .crm-page .crm-view-toggle .btn:not(.crm-icon-btn):not(.peracrm-linked-property-unlink-btn),
 .crm-page .crm-type-toggle .btn:not(.crm-icon-btn):not(.peracrm-linked-property-unlink-btn),
 .crm-page .crm-view-toggle--secondary .btn:not(.crm-icon-btn):not(.peracrm-linked-property-unlink-btn),
-.crm-page .archive-hero-desc__toggle {
+.crm-page .archive-hero-desc__toggle,
+.crm-page--logs .crm-log-utility-btn,
+.crm-page--logs .pera-enquiry-email-log-utility-form .button.button-secondary,
+.crm-page--logs .pera-enquiry-email-log-utility-form button.button-secondary {
   padding: var(--crm-button-compact-padding-y) var(--crm-button-compact-padding-x);
   font-size: var(--crm-button-operational-font-size);
+}
+
+/* Fixed-size icon controls are intentional behavior-safe targets for JS-triggered utilities. */
+.crm-page .btn.crm-icon-btn,
+.crm-page button.btn.crm-icon-btn,
+.crm-page .btn.peracrm-linked-property-unlink-btn,
+.crm-page button.btn.peracrm-linked-property-unlink-btn,
+.crm-page .crm-inline-form .btn.crm-icon-btn,
+.crm-page .crm-row-list__actions .btn.crm-icon-btn,
+.crm-page .crm-table__actions .btn.crm-icon-btn,
+.crm-page .crm-section__actions .btn.crm-icon-btn,
+body.crm-route .crm-page--client-view .crm-icon-btn,
+body.crm-route .crm-page--client-view .peracrm-linked-property-unlink-btn,
+body.crm-route .crm-page--client-view [data-crm-portfolio-output] ~ .peracrm-linked-properties-grid .crm-icon-btn,
+body.crm-route .crm-page--client-view [data-crm-portfolio-output] ~ .peracrm-linked-properties-grid .peracrm-linked-property-unlink-btn.peracrm-portfolio-action-btn,
+.crm-page--client-view [data-crm-theme-portfolio] [data-crm-theme-portfolio-open-link],
+.crm-page--client-view [data-crm-theme-portfolio] [data-crm-theme-portfolio-copy] {
+  width: var(--crm-button-icon-size);
+  min-width: var(--crm-button-icon-size);
+  padding: 0;
+  border-radius: var(--crm-button-icon-radius);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  line-height: 1;
+}
+
+.crm-page .btn.crm-icon-btn,
+.crm-page button.btn.crm-icon-btn,
+.crm-page .btn.peracrm-linked-property-unlink-btn,
+.crm-page button.btn.peracrm-linked-property-unlink-btn,
+.crm-page .crm-inline-form .btn.crm-icon-btn,
+.crm-page .crm-row-list__actions .btn.crm-icon-btn,
+.crm-page .crm-table__actions .btn.crm-icon-btn,
+.crm-page .crm-section__actions .btn.crm-icon-btn {
+  /* min-height intentionally omitted: icon controls are fixed-size via width/min-width contract. */
 }
 
 .crm-page .crm-view-toggle,
