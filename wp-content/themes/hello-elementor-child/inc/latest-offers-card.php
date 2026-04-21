@@ -603,6 +603,28 @@ if ( ! function_exists( 'pera_latest_offers_render_card' ) ) {
 	}
 }
 
+if ( ! function_exists( 'pera_latest_offers_render_popup_card_html' ) ) {
+	/**
+	 * @param array<string,mixed> $card
+	 */
+	function pera_latest_offers_render_popup_card_html( array $card ): string {
+		if ( empty( $card ) ) {
+			return '';
+		}
+
+		$previous = get_query_var( 'pera_latest_offer_card', null );
+		set_query_var( 'pera_latest_offer_card', $card );
+
+		ob_start();
+		get_template_part( 'partials/latest-offers-card-popup' );
+		$html = (string) ob_get_clean();
+
+		set_query_var( 'pera_latest_offer_card', $previous );
+
+		return trim( $html );
+	}
+}
+
 if ( ! function_exists( 'pera_latest_offers_marker_dto_from_card' ) ) {
 	/**
 	 * @param array<string,mixed> $card
@@ -660,6 +682,10 @@ if ( ! function_exists( 'pera_latest_offers_marker_dto_from_card' ) ) {
 			}
 		}
 
+		$popup_html = function_exists( 'pera_latest_offers_render_popup_card_html' )
+			? pera_latest_offers_render_popup_card_html( $card )
+			: '';
+
 		return array(
 			'post_id'         => $post_id,
 			'title'           => $title,
@@ -669,6 +695,7 @@ if ( ! function_exists( 'pera_latest_offers_marker_dto_from_card' ) ) {
 			'price_display'   => $price_display,
 			'location_label'  => $location_label,
 			'thumbnail_url'   => $thumbnail_url,
+			'popup_html'      => $popup_html,
 		);
 	}
 }
