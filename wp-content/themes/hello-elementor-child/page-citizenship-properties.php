@@ -209,6 +209,7 @@ if ( '' !== trim( wp_strip_all_tags( (string) $description_content ) ) ) {
 		var mapBounds = [];
 		var hasRenderableMarkers = false;
 		var hasMapError = false;
+		var lastErrorMessage = '';
 		var parseSucceeded = false;
 		var currentView = 'cards';
 		var debugEl = document.getElementById('citizenship-properties-map-debug');
@@ -231,10 +232,18 @@ if ( '' !== trim( wp_strip_all_tags( (string) $description_content ) ) ) {
 				'markers.length: ' + String(Array.isArray(markers) ? markers.length : 0),
 				'json.parse.succeeded: ' + (parseSucceeded ? 'true' : 'false'),
 				'window.L.exists: ' + (window.L ? 'true' : 'false'),
+				'hasMapError: ' + (hasMapError ? 'true' : 'false'),
+				'typeof window.L: ' + String(typeof window.L),
+				'typeof window.L.map: ' + String(window.L ? typeof window.L.map : 'undefined'),
+				'typeof window.L.tileLayer: ' + String(window.L ? typeof window.L.tileLayer : 'undefined'),
+				'typeof window.L.marker: ' + String(window.L ? typeof window.L.marker : 'undefined'),
 				'mapBooted: ' + (mapBooted ? 'true' : 'false'),
 				'mapInstance.exists: ' + (mapInstance ? 'true' : 'false'),
 				'mapBounds.length: ' + String(Array.isArray(mapBounds) ? mapBounds.length : 0),
 				'hasRenderableMarkers: ' + (hasRenderableMarkers ? 'true' : 'false'),
+				'mapCanvas.clientWidth: ' + (mapCanvas ? String(mapCanvas.clientWidth) : 'n/a'),
+				'mapCanvas.clientHeight: ' + (mapCanvas ? String(mapCanvas.clientHeight) : 'n/a'),
+				'lastErrorMessage: ' + String(lastErrorMessage || ''),
 				'mapCanvas.hidden: ' + (mapCanvas ? String(!!mapCanvas.hidden) : 'n/a'),
 				'mapEmpty.hidden: ' + (mapEmpty ? String(!!mapEmpty.hidden) : 'n/a'),
 				'currentView: ' + String(currentView || '')
@@ -293,39 +302,48 @@ if ( '' !== trim( wp_strip_all_tags( (string) $description_content ) ) ) {
 		function initMapIfNeeded() {
 			if (mapBooted || hasMapError) return;
 			mapBooted = true;
+			try {
+				if (!window.L || !mapCanvas) {
+					hasMapError = true;
+					showView('cards', false);
+					return;
+				}
 
-			if (!window.L || !mapCanvas) {
+				setDebugState('before_map_create');
+				mapInstance = window.L.map(mapCanvas, {
+					scrollWheelZoom: false
+				});
+				setDebugState('after_map_create');
+
+				window.L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+					maxZoom: 19,
+					attribution: '&copy; OpenStreetMap contributors'
+				}).addTo(mapInstance);
+				setDebugState('after_tile_layer');
+
+				mapBounds = [];
+				var duplicateCounts = Object.create(null);
+				markers.forEach(function (item) {
+					var lat = Number(item && item.lat);
+					var lng = Number(item && item.lng);
+					if (!isFinite(lat) || !isFinite(lng)) return;
+					var duplicateKey = keyForLatLng(lat, lng);
+					var duplicateIndex = Number(duplicateCounts[duplicateKey] || 0);
+					duplicateCounts[duplicateKey] = duplicateIndex + 1;
+					var adjusted = offsetLatLng(lat, lng, duplicateIndex);
+					var marker = window.L.marker(adjusted).addTo(mapInstance);
+					marker.bindPopup(popupHtml(item));
+					mapBounds.push(adjusted);
+				});
+
+				hasRenderableMarkers = mapBounds.length > 0;
+				setDebugState('after_initMapIfNeeded');
+			} catch (e) {
 				hasMapError = true;
+				lastErrorMessage = e && e.message ? String(e.message) : String(e);
+				setDebugState('init_exception');
 				showView('cards', false);
-				return;
 			}
-
-			mapInstance = window.L.map(mapCanvas, {
-				scrollWheelZoom: false
-			});
-
-			window.L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-				maxZoom: 19,
-				attribution: '&copy; OpenStreetMap contributors'
-			}).addTo(mapInstance);
-
-			mapBounds = [];
-			var duplicateCounts = Object.create(null);
-			markers.forEach(function (item) {
-				var lat = Number(item && item.lat);
-				var lng = Number(item && item.lng);
-				if (!isFinite(lat) || !isFinite(lng)) return;
-				var duplicateKey = keyForLatLng(lat, lng);
-				var duplicateIndex = Number(duplicateCounts[duplicateKey] || 0);
-				duplicateCounts[duplicateKey] = duplicateIndex + 1;
-				var adjusted = offsetLatLng(lat, lng, duplicateIndex);
-				var marker = window.L.marker(adjusted).addTo(mapInstance);
-				marker.bindPopup(popupHtml(item));
-				mapBounds.push(adjusted);
-			});
-
-			hasRenderableMarkers = mapBounds.length > 0;
-			setDebugState('after_initMapIfNeeded');
 		}
 
 		function syncMapVisibility() {
