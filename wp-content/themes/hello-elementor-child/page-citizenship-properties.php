@@ -85,13 +85,12 @@ if ( '' !== trim( wp_strip_all_tags( (string) $description_content ) ) ) {
 		#citizenship-properties-map-panel{background:#fff;border:1px solid #e4e8ef;border-radius:16px;padding:14px;}
 		#citizenship-properties-map-canvas{height:600px;border-radius:12px;overflow:hidden;background:#f4f6fb;}
 		#citizenship-properties-map-empty{margin:0;padding:12px 0;color:#4c5565;}
-		.citizenship-map-popup{max-width:260px;}
-		.citizenship-map-popup__thumb{display:block;width:100%;height:120px;object-fit:cover;border-radius:8px;margin:0 0 8px;}
-		.citizenship-map-popup__title{font-size:14px;line-height:1.35;font-weight:700;margin:0 0 6px;}
-		.citizenship-map-popup__meta{margin:0 0 4px;font-size:13px;line-height:1.35;color:#334155;}
-		.citizenship-map-popup__notes{margin:8px 0 0;font-size:12px;line-height:1.4;color:#475569;}
-		.citizenship-map-popup__actions{display:flex;flex-wrap:wrap;gap:8px;margin-top:8px;}
-		.citizenship-map-popup__cta{display:inline-block;font-size:12px;font-weight:600;text-decoration:underline;}
+		.leaflet-popup-content{margin:10px 12px;}
+		.citizenship-map-popup{max-width:260px;display:grid;gap:8px;}
+		.citizenship-map-popup .pera-latest-offer-card__title{margin:0;}
+		.citizenship-map-popup .pera-latest-offer-card__summary{padding:6px;gap:2px;}
+		.citizenship-map-popup .pera-latest-offer-card__img{display:block;width:100%;height:120px;object-fit:cover;border-radius:8px;}
+		.citizenship-map-popup .pera-latest-offer-card__utility{gap:6px;}
 		@media (max-width: 767px){
 			#citizenship-properties-map-canvas{height:460px;}
 		}
