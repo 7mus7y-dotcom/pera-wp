@@ -52,26 +52,61 @@ if ( ! function_exists( 'pera_analytics_render_dashboard_widget' ) ) {
 			return;
 		}
 
-		echo '<table class="widefat striped">';
+		echo '<style>
+			#pera_page_visits_widget .pera-analytics-table-wrap { overflow-x: auto; }
+			#pera_page_visits_widget .pera-analytics-table { min-width: 700px; table-layout: fixed; }
+			#pera_page_visits_widget .pera-analytics-col-page { width: 42%; max-width: 420px; }
+			#pera_page_visits_widget .pera-analytics-col-metric { width: 14.5%; text-align: right; white-space: nowrap; }
+			#pera_page_visits_widget .pera-analytics-page-link {
+				display: inline-block;
+				max-width: 100%;
+				font-weight: 600;
+				text-decoration: none;
+				white-space: nowrap;
+				overflow: hidden;
+				text-overflow: ellipsis;
+			}
+			#pera_page_visits_widget .pera-analytics-page-link:hover,
+			#pera_page_visits_widget .pera-analytics-page-link:focus { text-decoration: underline; }
+			#pera_page_visits_widget .pera-analytics-page-path {
+				margin-top: 2px;
+				font-size: 11px;
+				line-height: 1.35;
+				color: #646970;
+				white-space: nowrap;
+				overflow: hidden;
+				text-overflow: ellipsis;
+			}
+		</style>';
+
+		echo '<div class="pera-analytics-table-wrap">';
+		echo '<table class="widefat striped pera-analytics-table">';
 		echo '<thead><tr>';
-		echo '<th>' . esc_html__( 'Page', 'hello-elementor-child' ) . '</th>';
-		echo '<th>' . esc_html__( 'Visits', 'hello-elementor-child' ) . '</th>';
-		echo '<th>' . esc_html__( 'Unique', 'hello-elementor-child' ) . '</th>';
-		echo '<th>' . esc_html__( 'Matched previous', 'hello-elementor-child' ) . '</th>';
-		echo '<th>' . esc_html__( 'Change', 'hello-elementor-child' ) . '</th>';
+		echo '<th class="pera-analytics-col-page">' . esc_html__( 'Page', 'hello-elementor-child' ) . '</th>';
+		echo '<th class="pera-analytics-col-metric">' . esc_html__( 'Visits', 'hello-elementor-child' ) . '</th>';
+		echo '<th class="pera-analytics-col-metric">' . esc_html__( 'Unique', 'hello-elementor-child' ) . '</th>';
+		echo '<th class="pera-analytics-col-metric">' . esc_html__( 'Matched previous', 'hello-elementor-child' ) . '</th>';
+		echo '<th class="pera-analytics-col-metric">' . esc_html__( 'Change', 'hello-elementor-child' ) . '</th>';
 		echo '</tr></thead><tbody>';
 
 		foreach ( $rows as $row ) {
 			$title = ! empty( $row['page_title'] ) ? $row['page_title'] : $row['page_path'];
+			$path  = (string) $row['page_path'];
+			$url   = wp_http_validate_url( $path ) ? $path : home_url( $path );
+
 			echo '<tr>';
-			echo '<td>' . esc_html( $title ) . '<br/><code>' . esc_html( $row['page_path'] ) . '</code></td>';
-			echo '<td>' . esc_html( number_format_i18n( (int) $row['visits_this_month'] ) ) . '</td>';
-			echo '<td>' . esc_html( number_format_i18n( (int) $row['uniques_this_month'] ) ) . '</td>';
-			echo '<td>' . esc_html( number_format_i18n( (int) $row['visits_last_month'] ) ) . '</td>';
-			echo '<td>' . esc_html( pera_analytics_percent_change( (int) $row['visits_this_month'], (int) $row['visits_last_month'] ) ) . '</td>';
+			echo '<td class="pera-analytics-col-page">';
+			echo '<a class="pera-analytics-page-link" href="' . esc_url( $url ) . '" target="_blank" rel="noopener noreferrer">' . esc_html( $title ) . '</a>';
+			echo '<div class="pera-analytics-page-path" title="' . esc_attr( $path ) . '">' . esc_html( $path ) . '</div>';
+			echo '</td>';
+			echo '<td class="pera-analytics-col-metric">' . esc_html( number_format_i18n( (int) $row['visits_this_month'] ) ) . '</td>';
+			echo '<td class="pera-analytics-col-metric">' . esc_html( number_format_i18n( (int) $row['uniques_this_month'] ) ) . '</td>';
+			echo '<td class="pera-analytics-col-metric">' . esc_html( number_format_i18n( (int) $row['visits_last_month'] ) ) . '</td>';
+			echo '<td class="pera-analytics-col-metric">' . esc_html( pera_analytics_percent_change( (int) $row['visits_this_month'], (int) $row['visits_last_month'] ) ) . '</td>';
 			echo '</tr>';
 		}
 
 		echo '</tbody></table>';
+		echo '</div>';
 	}
 }
