@@ -65,3 +65,47 @@
 - **Deferred to Phase 2**
   - Markup-level selector simplification/migration work.
   - Any restructuring that would alter cascade order for behavior-coupled zones.
+
+## Phase 2 — compact height, hover restoration, dark mode repair
+
+- **Compact height contract (32px ceiling for compact controls)**
+  - Introduced explicit compact-control tokens to keep compact interactive controls within a consistent visual height ceiling:
+    - `--crm-control-compact-max-height: 32px`
+    - `--crm-control-compact-font-size`
+    - `--crm-control-compact-line-height`
+    - `--crm-control-compact-padding-y/x`
+    - `--crm-control-icon-size: 32px`
+  - Wired compact operational selectors (toolbars, row/table/section actions, segmented toggle buttons, archive toggle, logs utility bridges) to use shared compact height + type settings.
+  - Set icon controls covered by the canonical icon-button contract to a 32px box (`width/min-width/height/min-height/max-height`) while preserving existing selectors and behavior contracts.
+  - Kept `.pill` compatibility alias and canonical `.crm-chip` aligned to compact line-height/padding with the same max-height ceiling.
+  - Applied the compact max-height ceiling to compact date/meta badge controls and reminder toast undo button.
+
+- **Hover restoration pass**
+  - Restored explicit hover/focus-visible visual feedback for segmented-toggle ghost states in light mode to prevent neutralized/inconsistent hover outcomes.
+  - Restored/standardized hover feedback for:
+    - `.pill--outline`
+    - `.crm-chip` (non-selected)
+    - icon utility buttons under CRM icon-button selectors
+  - Kept selected/active states authoritative (e.g., `.crm-chip--selected` is excluded from neutral hover treatment).
+
+- **Dark mode repair pass**
+  - Added/normalized dark-mode pill surfaces for base `.pill` and `.pill--outline`, including visible hover states (no light-mode leftovers).
+  - Added dark-mode hover treatment for non-selected chips so hover remains visible against dark surfaces.
+  - Repaired reminder toast undo in dark mode with explicit border/fill/hover/focus contrast.
+  - Added dark-mode icon-button hover ring treatment for CRM icon utility controls.
+  - Preserved behavior-coupled segmented controls (`.crm-view-toggle`, `.crm-type-toggle`) while refining visual consistency only.
+
+- **Intentional exceptions / notes**
+  - Side-nav/header icon toggle controls keep their independent tap-target contract and were not folded into the compact CRM icon-button contract.
+  - No markup, JS, data-hook, state-class, or selector-identity changes were made in this phase.
+
+- **Still deferred**
+  - Any markup simplification/class migration (including `.pill` alias debt retirement) remains deferred to later phases.
+  - Any JS-coupled structural refactor remains deferred.
+
+### Phase 2 correction — height enforcement strategy update
+
+- Revised compact height enforcement to avoid hard clipping on text-based controls.
+- Removed blanket `min-height/max-height: 32px` usage from compact text-control groups and the mixed pill/chip/date/reminder grouping.
+- Text controls now rely on tokenized compact spacing (`padding`, `font-size`, `line-height`) so they naturally land at/under the 32px visual target.
+- Icon-only controls remain explicit fixed-size exceptions at 32px square via the canonical icon-button contract.

@@ -27,7 +27,7 @@
   --pill-active-text: #ffffff;
   --pill-active-border: #002d72;
   --pill-focus-ring: rgba(2, 6, 23, 0.2);
-  --pill-padding-y: 6px;
+  --pill-padding-y: 4px;
   --pill-padding-x: 12px;
   --pill-radius: 999px;
   --pill-font-size: 0.75rem;
@@ -47,7 +47,13 @@
   --crm-button-core-font-size: 0.95rem;
   --crm-button-core-line-height: 1.2;
   --crm-button-core-weight: 600;
-  --crm-button-icon-size: 34px;
+  --crm-control-compact-max-height: 32px;
+  --crm-control-compact-font-size: 0.82rem;
+  --crm-control-compact-line-height: 1.15;
+  --crm-control-compact-padding-y: 4px;
+  --crm-control-compact-padding-x: 10px;
+  --crm-control-icon-size: 32px;
+  --crm-button-icon-size: var(--crm-control-icon-size);
   --crm-button-icon-radius: 999px;
   --border-muted: #d1d5db;
   --radius-lg: 20px;
@@ -5905,9 +5911,9 @@ body.crm-route #site-header.peracrm-shell-header.is-scrolled .peracrm-header-act
   --crm-button-radius: 12px;
   --crm-button-padding-y: 9px;
   --crm-button-padding-x: 14px;
-  --crm-button-compact-padding-y: 5px;
-  --crm-button-compact-padding-x: 10px;
-  --crm-button-operational-font-size: 0.85rem;
+  --crm-button-compact-padding-y: var(--crm-control-compact-padding-y);
+  --crm-button-compact-padding-x: var(--crm-control-compact-padding-x);
+  --crm-button-operational-font-size: var(--crm-control-compact-font-size);
 }
 
 /* Shell spacing ownership: only top-level page wrappers use .content-panel/.content-panel-box. */
@@ -5971,6 +5977,7 @@ body.crm-route #site-header.peracrm-shell-header.is-scrolled .peracrm-header-act
 .crm-page--logs .pera-enquiry-email-log-utility-form button.button-secondary {
   padding: var(--crm-button-compact-padding-y) var(--crm-button-compact-padding-x);
   font-size: var(--crm-button-operational-font-size);
+  line-height: var(--crm-control-compact-line-height);
 }
 
 /* Icon-button contract (canonical geometry ownership). */
@@ -5991,6 +5998,9 @@ body.crm-route .crm-page--client-view [data-crm-portfolio-output] ~ .peracrm-lin
 .crm-page--client-view [data-crm-theme-portfolio] [data-crm-theme-portfolio-copy] {
   width: var(--crm-button-icon-size);
   min-width: var(--crm-button-icon-size);
+  height: var(--crm-button-icon-size);
+  min-height: var(--crm-button-icon-size);
+  max-height: var(--crm-button-icon-size);
   padding: 0;
   border-radius: var(--crm-button-icon-radius);
   display: inline-flex;
@@ -5999,10 +6009,67 @@ body.crm-route .crm-page--client-view [data-crm-portfolio-output] ~ .peracrm-lin
   line-height: 1;
 }
 
+.crm-page .pill,
+#crm-hero .pill,
+.crm-page .crm-chip {
+  line-height: var(--crm-control-compact-line-height);
+}
+
+.crm-page .crm-chip {
+  padding: var(--crm-control-compact-padding-y) var(--crm-chip-padding-x);
+}
+
+.crm-page .pill,
+#crm-hero .pill {
+  padding: var(--crm-control-compact-padding-y) var(--crm-pill-padding-x);
+}
+
+.crm-page-date-pill,
+.crm-client-date-pill {
+  padding-top: var(--crm-control-compact-padding-y);
+  padding-bottom: var(--crm-control-compact-padding-y);
+}
+
+.crm-reminder-toast__undo.btn {
+  padding: var(--crm-button-compact-padding-y) var(--crm-button-compact-padding-x);
+  font-size: var(--crm-button-operational-font-size);
+  line-height: var(--crm-control-compact-line-height);
+}
+
+.crm-page .pill--outline:hover,
+#crm-hero .pill--outline:hover {
+  background: var(--pill-outline-bg-hover) !important;
+  border-color: #cfd8e3;
+  color: var(--pill-outline-text);
+}
+
+.crm-page .crm-chip:not(.crm-chip--selected):hover {
+  background: color-mix(in srgb, var(--crm-chip-bg) 88%, #ffffff 12%);
+  border-color: color-mix(in srgb, var(--crm-chip-border) 88%, #ffffff 12%);
+}
+
+.crm-page .btn.crm-icon-btn:hover,
+.crm-page .btn.peracrm-linked-property-unlink-btn:hover,
+body.crm-route .crm-page--client-view .crm-icon-btn:hover,
+body.crm-route .crm-page--client-view .peracrm-linked-property-unlink-btn:hover {
+  box-shadow: 0 0 0 1px rgba(0, 45, 114, 0.12);
+}
+
 .crm-page .crm-view-toggle,
 .crm-page .crm-type-toggle,
 .crm-page .crm-view-toggle--secondary {
   align-items: center;
+}
+
+.crm-page .crm-view-toggle .btn--ghost:hover,
+.crm-page .crm-view-toggle .btn--ghost:focus-visible,
+.crm-page .crm-type-toggle .btn--ghost:hover,
+.crm-page .crm-type-toggle .btn--ghost:focus-visible,
+.crm-page .crm-view-toggle--secondary .btn--ghost:hover,
+.crm-page .crm-view-toggle--secondary .btn--ghost:focus-visible {
+  background: #eef4ff;
+  border-color: #bfd2fb;
+  color: var(--brand, #002d72);
 }
 
 .crm-page .archive-hero-desc__toggle {
@@ -6460,6 +6527,27 @@ body.crm-route .crm-page--client-view [data-crm-portfolio-output] ~ .peracrm-lin
     color: #dcfce7;
   }
 
+  .crm-page .pill,
+  #crm-hero .pill {
+    background: rgba(30, 64, 175, 0.26);
+    border-color: rgba(96, 165, 250, 0.42);
+    color: #eff6ff;
+  }
+
+  .crm-page .pill--outline,
+  #crm-hero .pill--outline {
+    background: rgba(15, 23, 42, 0.58) !important;
+    border-color: rgba(148, 163, 184, 0.44);
+    color: #dbe7f5;
+  }
+
+  .crm-page .pill--outline:hover,
+  #crm-hero .pill--outline:hover {
+    background: rgba(30, 41, 59, 0.9) !important;
+    border-color: rgba(147, 197, 253, 0.52);
+    color: #eff6ff;
+  }
+
   .crm-page--client-view .btn--ghost.btn--blue {
     background-color: rgba(30, 64, 175, 0.18);
     border-color: rgba(96, 165, 250, 0.54);
@@ -6600,6 +6688,33 @@ body.crm-route .crm-page--client-view [data-crm-portfolio-output] ~ .peracrm-lin
     background-color: rgba(0, 86, 179, 0.18);
     color: #dbeafe;
     border-color: rgba(147, 197, 253, 0.56);
+  }
+
+  .crm-page .crm-chip:not(.crm-chip--selected):hover {
+    background: rgba(30, 41, 59, 0.92);
+    border-color: rgba(148, 163, 184, 0.52);
+    color: #eff6ff;
+  }
+
+  .crm-reminder-toast__undo.btn {
+    border-color: rgba(96, 165, 250, 0.52);
+    color: #dbeafe;
+    background-color: rgba(15, 23, 42, 0.45);
+  }
+
+  .crm-reminder-toast__undo.btn:hover,
+  .crm-reminder-toast__undo.btn:focus-visible {
+    background-color: rgba(37, 99, 235, 0.28);
+    border-color: rgba(147, 197, 253, 0.62);
+    color: #eff6ff;
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.2);
+  }
+
+  .crm-page .btn.crm-icon-btn:hover,
+  .crm-page .btn.peracrm-linked-property-unlink-btn:hover,
+  body.crm-route .crm-page--client-view .crm-icon-btn:hover,
+  body.crm-route .crm-page--client-view .peracrm-linked-property-unlink-btn:hover {
+    box-shadow: 0 0 0 1px rgba(147, 197, 253, 0.54);
   }
 
   .crm-page .crm-table thead th,
