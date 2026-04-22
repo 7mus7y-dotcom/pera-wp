@@ -5354,11 +5354,12 @@ body.crm-route #site-header.peracrm-shell-header.is-scrolled .peracrm-header-act
   }
 
   .crm-page--client-view .crm-summary-header__facts {
-    gap: 6px 4px;
+    gap: 6px;
+    flex-wrap: wrap;
   }
 
   .crm-page--client-view .crm-summary-header__fact {
-    flex: 1 1 100%;
+    flex: 0 0 auto;
   }
 
   .crm-page--client-view .crm-summary-header__actions {
