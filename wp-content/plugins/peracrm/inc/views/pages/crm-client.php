@@ -104,6 +104,14 @@ $advisor_label = $assigned_user instanceof WP_User ? (string) $assigned_user->di
 $link_label    = $linked_user instanceof WP_User ? sprintf( __( 'Linked (%s)', 'peracrm' ), (string) $linked_user->user_login ) : __( 'Not linked', 'peracrm' );
 
 $party_stages       = function_exists( 'peracrm_party_stage_options' ) ? (array) peracrm_party_stage_options() : array();
+$lead_pipeline_stage_key   = isset( $party['lead_pipeline_stage'] ) ? sanitize_key( (string) $party['lead_pipeline_stage'] ) : '';
+$lead_pipeline_stage_label = isset( $party_stages[ $lead_pipeline_stage_key ] ) ? (string) $party_stages[ $lead_pipeline_stage_key ] : '';
+if ( '' === $lead_pipeline_stage_label && '' !== $lead_pipeline_stage_key ) {
+	$lead_pipeline_stage_label = ucwords( str_replace( '_', ' ', $lead_pipeline_stage_key ) );
+}
+if ( '' === $lead_pipeline_stage_label ) {
+	$lead_pipeline_stage_label = __( '—', 'peracrm' );
+}
 $engagement_options = function_exists( 'peracrm_party_engagement_options' ) ? (array) peracrm_party_engagement_options() : array();
 $disposition_opts   = function_exists( 'peracrm_party_disposition_options' ) ? (array) peracrm_party_disposition_options() : array();
 $deal_stage_options = function_exists( 'peracrm_deal_stage_options' ) ? (array) peracrm_deal_stage_options() : array();
@@ -403,7 +411,10 @@ peracrm_frontend_render_shell_header();
 
         <div class="crm-client-sticky-name" data-crm-client-sticky-name>
           <p class="crm-client-sticky-name__title"><?php echo esc_html( $client_title_name ); ?></p>
-          <span class="crm-chip crm-chip--status crm-client-sticky-name__meta"><?php echo esc_html( $status_label ); ?></span>
+          <div class="crm-client-sticky-name__meta">
+            <span class="crm-chip crm-chip--status"><?php echo esc_html( $status_label ); ?></span>
+            <span class="crm-chip crm-chip--neutral"><?php echo esc_html( $lead_pipeline_stage_label ); ?></span>
+          </div>
         </div>
 
         <section class="crm-summary-header crm-client-summary">
