@@ -87,6 +87,9 @@
 .crm-page .section { padding: 40px 20px; }
 .crm-page .grid-3 { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 30px; }
 
+/* =======================================================
+   Button core contract
+   ======================================================= */
 .crm-page :is(.btn, a.btn, button.btn, input[type="submit"].btn, input[type="button"].btn),
 #crm-hero :is(.btn, a.btn, button.btn, input[type="submit"].btn, input[type="button"].btn) {
   display: inline-flex;
@@ -140,6 +143,9 @@
 .crm-page .btn--red, #crm-hero .btn--red { --btn-color: var(--pill-red); }
 .crm-page .btn--white, #crm-hero .btn--white { --btn-color: #ffffff; }
 
+/* =======================================================
+   Chip / pill alias baseline
+   ======================================================= */
 .crm-page :is(.crm-chip, .pill),
 #crm-hero .pill {
   display: inline-flex;
@@ -980,11 +986,7 @@ body.crm-route .crm-page--client-view [data-crm-portfolio-output] ~ .peracrm-lin
 }
 
 .peracrm-linked-property-unlink-btn {
-  align-items: center;
-  justify-content: center;
-  /*min-height: 34px;*/
-  min-width: 34px;
-  padding: 6px;
+  /* Geometry is intentionally centralized in the icon-button contract block. */
 }
 
 .peracrm-linked-property-unlink-btn svg {
@@ -4471,9 +4473,6 @@ body.crm-route {
   border-radius: 10px;
 }
 
-.crm-action-group__item {
-}
-
 .crm-action-group__item--secondary,
 .crm-action-group__item--utility {
   opacity: 0.96;
@@ -5955,6 +5954,7 @@ body.crm-route #site-header.peracrm-shell-header.is-scrolled .peracrm-header-act
 }
 
 /* Compact operational controls share one sizing contract across toolbars/rows/section actions. */
+/* Includes archive summary toggle + CRM-scoped WP secondary bridges for parity. */
 .crm-page .crm-toolbar-actions .btn:not(.crm-icon-btn):not(.peracrm-linked-property-unlink-btn),
 .crm-page .crm-section__actions .btn:not(.crm-icon-btn):not(.peracrm-linked-property-unlink-btn),
 .crm-page .crm-row-list__aside .btn:not(.crm-icon-btn):not(.peracrm-linked-property-unlink-btn),
@@ -5973,6 +5973,7 @@ body.crm-route #site-header.peracrm-shell-header.is-scrolled .peracrm-header-act
   font-size: var(--crm-button-operational-font-size);
 }
 
+/* Icon-button contract (canonical geometry ownership). */
 /* Fixed-size icon controls are intentional behavior-safe targets for JS-triggered utilities. */
 .crm-page .btn.crm-icon-btn,
 .crm-page button.btn.crm-icon-btn,
@@ -5996,17 +5997,6 @@ body.crm-route .crm-page--client-view [data-crm-portfolio-output] ~ .peracrm-lin
   align-items: center;
   justify-content: center;
   line-height: 1;
-}
-
-.crm-page .btn.crm-icon-btn,
-.crm-page button.btn.crm-icon-btn,
-.crm-page .btn.peracrm-linked-property-unlink-btn,
-.crm-page button.btn.peracrm-linked-property-unlink-btn,
-.crm-page .crm-inline-form .btn.crm-icon-btn,
-.crm-page .crm-row-list__actions .btn.crm-icon-btn,
-.crm-page .crm-table__actions .btn.crm-icon-btn,
-.crm-page .crm-section__actions .btn.crm-icon-btn {
-  /* min-height intentionally omitted: icon controls are fixed-size via width/min-width contract. */
 }
 
 .crm-page .crm-view-toggle,
@@ -7228,22 +7218,11 @@ body.crm-route .crm-page--client-view [data-crm-portfolio-output] ~ .peracrm-lin
 
 .crm-reminder-toast__undo.btn {
   --btn-color: #002d72;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
   width: 100%;
-  padding: 8px 15px;
-  border-radius: 999px;
   border: 1px solid var(--btn-color);
   background-color: transparent;
   color: var(--btn-color);
-  font-weight: 600;
-  font-size: 0.95rem;
   line-height: 1;
-  font-family: inherit;
-  cursor: pointer;
-  text-decoration: none;
-  transition: background-color 160ms ease, color 160ms ease, border-color 160ms ease;
 }
 
 .crm-reminder-toast__undo.btn:hover {
