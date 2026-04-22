@@ -166,3 +166,28 @@
   - CSS-only pass; no JS changes.
   - No selector removals/renames.
   - No data-hook, nonce, hidden input, or behavior-contract changes.
+
+
+## Phase 3.1 — static pill migration
+
+- **Audit scope executed**
+  - Reviewed `wp-content/plugins/peracrm/inc/views/pages/*.php` and `wp-content/plugins/peracrm/inc/views/partials/*.php` for remaining `.pill` usage eligible for static migration.
+  - Cross-checked behavior coupling constraints against `wp-content/plugins/peracrm/assets/frontend/crm.js` (inspection only; no JS edits).
+
+- **Conversions made (safe/static only)**
+  - `0` additional `.pill` usages converted in this pass.
+  - Reason: the only remaining `.pill` occurrence in audited template scope is behavior-coupled and interactive (`.pill.crm-task-note-trigger` on a `<button>` with `data-crm-note-trigger`), so it is intentionally protected.
+
+- **Examples of safe conversion pattern (reference only)**
+  - Canonical static-label migration remains: `<p class="pill">…</p>` → `<span class="crm-chip crm-chip--status|urgent">…</span>`.
+  - Existing Phase 3 reminder-group conversions (`Overdue` / `Upcoming`) continue to represent the approved low-risk pattern.
+
+- **Explicitly skipped categories (risk control)**
+  - Interactive/clickable pills and anything inside `<button>`/`<a>`.
+  - JS/data-hook coupled elements (`[data-crm-*]`, `[data-peracrm-*]`), including note-trigger/popover flows.
+  - Toggles/segmented controls (`.crm-view-toggle`, `.crm-type-toggle`).
+  - Behavioral classes such as `.crm-task-note-trigger`, icon action controls, and items inside forms/AJAX flows (`.crm-task-action`, `data-crm-reminder-action-form`).
+
+- **Validation summary**
+  - Confirmed no new `.pill`→`.crm-chip` template edits were made where behavior might change.
+  - Confirmed no layout/CSS compatibility changes were required in this phase because no additional static template conversions occurred.
