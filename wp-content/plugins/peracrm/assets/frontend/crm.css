@@ -375,12 +375,20 @@
 .crm-table-sort {
   display: inline-flex;
   align-items: center;
+  justify-content: flex-start;
+  width: 100%;
   gap: 4px;
   border: 0;
   background: transparent;
   padding: 0;
   color: inherit;
   font: inherit;
+  font-size: inherit;
+  font-weight: inherit;
+  line-height: inherit;
+  letter-spacing: inherit;
+  text-transform: inherit;
+  vertical-align: middle;
   cursor: pointer;
 }
 
@@ -5808,6 +5816,16 @@ body.crm-route #site-header.peracrm-shell-header.is-scrolled .peracrm-header-act
 
 .crm-page .crm-list-workspace__table thead th {
   white-space: nowrap;
+  vertical-align: middle;
+}
+
+.crm-page--leads [data-crm-clients-workspace] .crm-list-workspace__table thead th,
+.crm-page--leads [data-crm-clients-workspace] .crm-list-workspace__table thead th .crm-table-sort {
+  font-size: 0.78rem;
+  font-weight: 700;
+  line-height: 1.3;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
 }
 
 .crm-page .crm-list-workspace__table .crm-table__primary {
@@ -6102,6 +6120,29 @@ body.crm-route .crm-page--client-view [data-crm-portfolio-output] ~ .peracrm-lin
 .crm-page .crm-chip:not(.crm-chip--selected):hover {
   background: color-mix(in srgb, var(--crm-chip-bg) 88%, #ffffff 12%);
   border-color: color-mix(in srgb, var(--crm-chip-border) 88%, #ffffff 12%);
+}
+
+.crm-page--leads [data-crm-clients-workspace] .crm-list-workspace__table .crm-table__add-task-btn {
+  max-height: var(--crm-control-compact-max-height);
+  padding: var(--crm-button-compact-padding-y) var(--crm-button-compact-padding-x);
+  font-size: var(--crm-button-operational-font-size);
+  line-height: var(--crm-control-compact-line-height);
+}
+
+.crm-page--leads [data-crm-clients-workspace] .crm-list-workspace__table .crm-next-task-detail {
+  display: block;
+  max-width: 220px;
+  margin-top: 4px;
+  opacity: 0;
+  max-height: 0;
+  overflow: hidden;
+  transition: opacity 140ms ease;
+}
+
+.crm-page--leads [data-crm-clients-workspace] .crm-list-workspace__table tr:hover .crm-next-task-detail,
+.crm-page--leads [data-crm-clients-workspace] .crm-list-workspace__table tr:focus-within .crm-next-task-detail {
+  opacity: 1;
+  max-height: 3em;
 }
 
 .crm-page .btn.crm-icon-btn:hover,

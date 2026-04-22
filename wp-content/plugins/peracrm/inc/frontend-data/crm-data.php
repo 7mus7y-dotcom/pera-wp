@@ -1346,15 +1346,12 @@ if ( ! function_exists( 'pera_crm_get_leads_view_data' ) ) {
 		$statuses     = array_values( array_unique( array_filter( array( 'pending', 'open', function_exists( 'pera_crm_reminders_open_status' ) ? pera_crm_reminders_open_status() : 'pending' ) ) ) );
 		$status_sql   = implode( ',', array_fill( 0, count( $statuses ), '%s' ) );
 		$params       = array_merge( $client_ids, $statuses );
-		$now_mysql    = current_datetime()->format( 'Y-m-d H:i:s' );
-		$params[]     = $now_mysql;
 		$query        = $wpdb->prepare(
 			"SELECT id, client_id, due_at, note
 			 FROM {$table}
 			 WHERE client_id IN ({$placeholders})
 			   AND status IN ({$status_sql})
 			   AND due_at <> ''
-			   AND due_at >= %s
 			 ORDER BY due_at ASC, id ASC",
 			$params
 		); // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
@@ -1575,6 +1572,8 @@ if ( ! function_exists( 'pera_crm_get_leads_view_data' ) ) {
 
 		$items = array();
 		$advisor_name_cache = array();
+		$today_start_ts     = (int) current_datetime()->setTime( 0, 0, 0 )->getTimestamp();
+		$today_end_ts       = (int) current_datetime()->setTime( 23, 59, 59 )->getTimestamp();
 		foreach ( $offset_ids as $lead_id ) {
 			$party     = isset( $party_map[ $lead_id ] ) && is_array( $party_map[ $lead_id ] ) ? $party_map[ $lead_id ] : array();
 			$health    = function_exists( 'peracrm_client_health_get' ) ? peracrm_client_health_get( $lead_id ) : array();
@@ -1605,6 +1604,9 @@ if ( ! function_exists( 'pera_crm_get_leads_view_data' ) ) {
 			$next_task_due     = $next_task_due_ts > 0 ? pera_crm_format_datetime_dmy_hm( $next_task_due_ts ) : '';
 			$next_task_note    = isset( $next_task['note'] ) ? trim( (string) $next_task['note'] ) : '';
 			$next_task_tooltip = '' !== $next_task_note ? $next_task_note : '';
+			$next_task_overdue = $next_task_due_ts > 0 && $next_task_due_ts < $today_start_ts;
+			$next_task_today   = $next_task_due_ts >= $today_start_ts && $next_task_due_ts <= $today_end_ts;
+			$next_task_future  = $next_task_due_ts > $today_end_ts;
 
 			$items[] = array(
 				'id'               => $lead_id,
@@ -1629,7 +1631,9 @@ if ( ! function_exists( 'pera_crm_get_leads_view_data' ) ) {
 				'next_task_due'    => $next_task_due,
 				'next_task_due_ts' => $next_task_due_ts,
 				'next_task_detail' => $next_task_tooltip,
-				'next_task_overdue' => ! empty( $next_task['is_overdue'] ),
+				'next_task_overdue' => $next_task_overdue,
+				'next_task_today'  => $next_task_today,
+				'next_task_future' => $next_task_future,
 				'next_task_url'    => home_url( '/crm/client/' . $lead_id . '/#crm-client-next-actions' ),
 				'edit_url'         => admin_url( 'post.php?post=' . $lead_id . '&action=edit' ),
 			);
