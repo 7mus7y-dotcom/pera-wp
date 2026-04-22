@@ -1332,7 +1332,7 @@ if ( ! function_exists( 'pera_crm_get_leads_view_data' ) ) {
 	 * Build map of next open reminder rows keyed by client ID.
 	 *
 	 * @param int[] $client_ids Client IDs.
-	 * @return array<int,array{due_at:string,note:string,title:string,is_overdue:bool,due_ts:int}>
+	 * @return array<int,array{due_at:string,note:string,is_overdue:bool,due_ts:int}>
 	 */
 	function pera_crm_get_next_task_rows_for_client_ids( array $client_ids ): array {
 		$client_ids = array_values( array_unique( array_filter( array_map( 'absint', $client_ids ) ) ) );
@@ -1346,12 +1346,15 @@ if ( ! function_exists( 'pera_crm_get_leads_view_data' ) ) {
 		$statuses     = array_values( array_unique( array_filter( array( 'pending', 'open', function_exists( 'pera_crm_reminders_open_status' ) ? pera_crm_reminders_open_status() : 'pending' ) ) ) );
 		$status_sql   = implode( ',', array_fill( 0, count( $statuses ), '%s' ) );
 		$params       = array_merge( $client_ids, $statuses );
+		$now_mysql    = current_datetime()->format( 'Y-m-d H:i:s' );
+		$params[]     = $now_mysql;
 		$query        = $wpdb->prepare(
 			"SELECT id, client_id, due_at, note
 			 FROM {$table}
 			 WHERE client_id IN ({$placeholders})
 			   AND status IN ({$status_sql})
 			   AND due_at <> ''
+			   AND due_at >= %s
 			 ORDER BY due_at ASC, id ASC",
 			$params
 		); // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
@@ -1361,7 +1364,6 @@ if ( ! function_exists( 'pera_crm_get_leads_view_data' ) ) {
 		}
 
 		$timezone = wp_timezone();
-		$now_ts   = current_datetime()->getTimestamp();
 		$next_map = array();
 
 		foreach ( $rows as $row ) {
@@ -1382,46 +1384,9 @@ if ( ! function_exists( 'pera_crm_get_leads_view_data' ) ) {
 				'due_at'      => $due_at,
 				'due_ts'      => $due_ts,
 				'note'        => isset( $row['note'] ) ? (string) $row['note'] : '',
-				'title'       => isset( $row['title'] ) ? (string) $row['title'] : '',
-				'is_overdue'  => $due_ts < $now_ts,
-				'is_upcoming' => $due_ts >= $now_ts,
+				'is_overdue'  => false,
+				'is_upcoming' => true,
 			);
-		}
-
-		foreach ( $client_ids as $client_id ) {
-			if ( isset( $next_map[ $client_id ] ) && ! empty( $next_map[ $client_id ]['is_upcoming'] ) ) {
-				continue;
-			}
-
-			$closest_overdue = null;
-			foreach ( $rows as $row ) {
-				if ( (int) ( $row['client_id'] ?? 0 ) !== $client_id ) {
-					continue;
-				}
-
-				$due_at = isset( $row['due_at'] ) ? (string) $row['due_at'] : '';
-				$due_ts = function_exists( 'pera_crm_parse_local_mysql_datetime_to_ts' )
-					? (int) pera_crm_parse_local_mysql_datetime_to_ts( $due_at, $timezone )
-					: (int) strtotime( $due_at );
-				if ( $due_ts <= 0 || $due_ts >= $now_ts ) {
-					continue;
-				}
-
-				if ( null === $closest_overdue || $due_ts > (int) $closest_overdue['due_ts'] ) {
-					$closest_overdue = array(
-						'due_at'      => $due_at,
-						'due_ts'      => $due_ts,
-						'note'        => isset( $row['note'] ) ? (string) $row['note'] : '',
-						'title'       => isset( $row['title'] ) ? (string) $row['title'] : '',
-						'is_overdue'  => true,
-						'is_upcoming' => false,
-					);
-				}
-			}
-
-			if ( is_array( $closest_overdue ) ) {
-				$next_map[ $client_id ] = $closest_overdue;
-			}
 		}
 
 		return $next_map;
@@ -1638,16 +1603,8 @@ if ( ! function_exists( 'pera_crm_get_leads_view_data' ) ) {
 			$next_task         = isset( $next_task_map[ $lead_id ] ) && is_array( $next_task_map[ $lead_id ] ) ? $next_task_map[ $lead_id ] : array();
 			$next_task_due_ts  = isset( $next_task['due_ts'] ) ? (int) $next_task['due_ts'] : 0;
 			$next_task_due     = $next_task_due_ts > 0 ? pera_crm_format_datetime_dmy_hm( $next_task_due_ts ) : '';
-			$next_task_title   = isset( $next_task['title'] ) ? trim( (string) $next_task['title'] ) : '';
 			$next_task_note    = isset( $next_task['note'] ) ? trim( (string) $next_task['note'] ) : '';
-			$next_task_tooltip = '';
-			if ( '' !== $next_task_title && '' !== $next_task_note ) {
-				$next_task_tooltip = $next_task_title . ' — ' . $next_task_note;
-			} elseif ( '' !== $next_task_title ) {
-				$next_task_tooltip = $next_task_title;
-			} elseif ( '' !== $next_task_note ) {
-				$next_task_tooltip = $next_task_note;
-			}
+			$next_task_tooltip = '' !== $next_task_note ? $next_task_note : '';
 
 			$items[] = array(
 				'id'               => $lead_id,
