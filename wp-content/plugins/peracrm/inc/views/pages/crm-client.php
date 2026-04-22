@@ -695,7 +695,7 @@ peracrm_frontend_render_shell_header();
                 <?php else : ?>
                 <div class="crm-client-reminders-grid" data-crm-reminders-list>
                   <section class="crm-client-reminders-group crm-client-reminders-group--overdue">
-                    <p class="pill"><?php esc_html_e( 'Overdue', 'peracrm' ); ?></p>
+                    <span class="crm-chip crm-chip--urgent"><?php esc_html_e( 'Overdue', 'peracrm' ); ?></span>
                     <?php if ( empty( $overdue_task_rows ) ) : ?>
                       <p class="text-sm"><?php esc_html_e( 'No overdue reminders.', 'peracrm' ); ?></p>
                     <?php else : ?>
@@ -737,7 +737,7 @@ peracrm_frontend_render_shell_header();
                   </section>
 
                   <section class="crm-client-reminders-group crm-client-reminders-group--upcoming">
-                    <p class="pill"><?php esc_html_e( 'Upcoming', 'peracrm' ); ?></p>
+                    <span class="crm-chip crm-chip--status"><?php esc_html_e( 'Upcoming', 'peracrm' ); ?></span>
                     <?php if ( empty( $upcoming_rows ) ) : ?>
                       <p class="text-sm"><?php esc_html_e( 'No upcoming reminders.', 'peracrm' ); ?></p>
                     <?php else : ?>

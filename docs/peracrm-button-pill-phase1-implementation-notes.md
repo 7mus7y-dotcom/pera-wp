@@ -109,3 +109,60 @@
 - Removed blanket `min-height/max-height: 32px` usage from compact text-control groups and the mixed pill/chip/date/reminder grouping.
 - Text controls now rely on tokenized compact spacing (`padding`, `font-size`, `line-height`) so they naturally land at/under the 32px visual target.
 - Icon-only controls remain explicit fixed-size exceptions at 32px square via the canonical icon-button contract.
+
+## Phase 3 — safe markup simplification
+
+- **What was simplified**
+  - Converted two purely visual reminder group labels in the client view from legacy `.pill` markup to canonical chip markup:
+    - `Overdue`: `<p class="pill">…</p>` → `<span class="crm-chip crm-chip--urgent">…</span>`
+    - `Upcoming`: `<p class="pill">…</p>` → `<span class="crm-chip crm-chip--status">…</span>`
+  - Kept behavior and structure intact (same parent sections, no form/event target changes).
+
+- **Compatibility styling follow-up**
+  - Updated the reminder-group heading selector to target both aliases during transition:
+    - `.crm-client-reminders-grid > section > :is(.pill, .crm-chip)`
+  - This preserves layout/spacing while allowing safe incremental `.pill` retirement.
+
+- **What was explicitly skipped (risk control)**
+  - No changes to JS-coupled controls, including any element with `data-crm-*`/`data-peracrm-*` hooks.
+  - No changes to toggle/segmented controls (`.crm-view-toggle`, `.crm-type-toggle`).
+  - No changes to unlink/icon action controls (`.crm-icon-btn`, `.peracrm-linked-property-unlink-btn`).
+  - No wrapper removals inside forms, reminder action rows, or AJAX-bound components.
+  - Left clickable note trigger aliases (e.g., `.pill.crm-task-note-trigger`) unchanged for now due to behavior-adjacent risk.
+
+- **Ambiguous areas left for later phases**
+  - Broader `.pill`→`.crm-chip` migration in mixed interactive/list-filter regions.
+  - Button-stack simplification where class membership may still provide layout hooks outside visual styling.
+  - Any wrapper pruning where spacing responsibility is not provably redundant from local context alone.
+
+## Phase 2.1 — compact button coverage audit and fixes
+
+- **Missing compact-coverage zones identified**
+  - Client-view summary action stack (`.crm-summary-header__actions .btn`).
+  - Client-view quick-contact actions (`.crm-client-quick-actions .btn`).
+  - CRM status utility actions (`.crm-status-actions .btn`, including inline-form button usage).
+  - Client-view utility rows/dialog actions:
+    - `.crm-client-toolbar .crm-client-toolbar__back.btn`
+    - `.crm-danger-dialog__actions .btn`
+    - `.crm-linked-workspace__toolbar .btn`
+    - `.crm-linked-workspace__portfolio-actions .btn`
+  - Existing compact zones (toolbars, action groups, row/table actions, view/type toggles, reminder task actions, archive toggles) were left intact.
+
+- **Selector coverage expansion applied**
+  - Expanded the shared compact operational selector contract in `crm.css` to include the missing utility/control zones above.
+  - Kept icon-only controls excluded via existing guard clauses:
+    - `:not(.crm-icon-btn):not(.peracrm-linked-property-unlink-btn)`
+  - Added `.crm-inline-form .btn` to compact coverage for behavior-equivalent inline utility controls.
+
+- **Mobile-specific compact inflation fix (client view)**
+  - Added a tightly scoped mobile (`max-width: 575px`) override for compact utility zones to prevent the broad client-view mobile button floor from inflating compact controls.
+  - Applied compact `min-height` and compact vertical padding only to the audited compact zones (summary/quick-actions/status/dialog/linked-workspace/reminder-task-action controls).
+
+- **Intentionally kept standard-size**
+  - Primary form submit CTAs in regular form flows (e.g., profile/status save, add note/reminder, create/update flows) were not globally downscaled.
+  - No global `.btn` shrink was introduced.
+
+- **Safety constraints preserved**
+  - CSS-only pass; no JS changes.
+  - No selector removals/renames.
+  - No data-hook, nonce, hidden input, or behavior-contract changes.
