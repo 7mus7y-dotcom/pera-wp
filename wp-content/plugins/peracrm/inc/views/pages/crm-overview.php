@@ -797,15 +797,15 @@ peracrm_frontend_render_shell_header();
             <table class="crm-leads-table crm-table crm-list-workspace__table" data-crm-sort-table>
               <thead>
                 <tr>
-                  <th aria-sort="none"><button type="button" class="crm-table-sort" data-sort="name"><?php echo esc_html__( 'Name', 'peracrm' ); ?> <span class="peracrm-sort-indicator" aria-hidden="true"></span></button></th>
-                  <th aria-sort="none"><button type="button" class="crm-table-sort" data-sort="status"><?php echo esc_html__( 'Status / stage', 'peracrm' ); ?> <span class="peracrm-sort-indicator" aria-hidden="true"></span></button></th>
-                  <th aria-sort="none"><button type="button" class="crm-table-sort" data-sort="source"><?php echo esc_html__( 'Source', 'peracrm' ); ?> <span class="peracrm-sort-indicator" aria-hidden="true"></span></button></th>
-                  <th aria-sort="none"><button type="button" class="crm-table-sort" data-sort="assigned"><?php echo esc_html__( 'Assigned advisor', 'peracrm' ); ?> <span class="peracrm-sort-indicator" aria-hidden="true"></span></button></th>
-                  <th><?php echo esc_html__( 'Record health', 'peracrm' ); ?></th>
-                  <th><?php echo esc_html__( 'Budget', 'peracrm' ); ?></th>
-                  <th><?php echo esc_html__( 'Next task due', 'peracrm' ); ?></th>
-                  <th aria-sort="none"><button type="button" class="crm-table-sort" data-sort="updated"><?php echo esc_html__( 'Last activity', 'peracrm' ); ?> <span class="peracrm-sort-indicator" aria-hidden="true"></span></button></th>
-                  <th aria-sort="none"><button type="button" class="crm-table-sort" data-sort="created"><?php echo esc_html__( 'Created', 'peracrm' ); ?> <span class="peracrm-sort-indicator" aria-hidden="true"></span></button></th>
+                  <th aria-sort="none"><button type="button" class="crm-table-sort" data-sort="name" data-sort-type="text"><?php echo esc_html__( 'Name', 'peracrm' ); ?> <span class="peracrm-sort-indicator" aria-hidden="true"></span></button></th>
+                  <th aria-sort="none"><button type="button" class="crm-table-sort" data-sort="status" data-sort-type="text"><?php echo esc_html__( 'Status / stage', 'peracrm' ); ?> <span class="peracrm-sort-indicator" aria-hidden="true"></span></button></th>
+                  <th aria-sort="none"><button type="button" class="crm-table-sort" data-sort="source" data-sort-type="text" data-sort-empty-last="true"><?php echo esc_html__( 'Source', 'peracrm' ); ?> <span class="peracrm-sort-indicator" aria-hidden="true"></span></button></th>
+                  <th aria-sort="none"><button type="button" class="crm-table-sort" data-sort="assigned" data-sort-type="text" data-sort-empty-last="true"><?php echo esc_html__( 'Assigned advisor', 'peracrm' ); ?> <span class="peracrm-sort-indicator" aria-hidden="true"></span></button></th>
+                  <th aria-sort="none"><button type="button" class="crm-table-sort" data-sort="health" data-sort-type="text" data-sort-empty-last="true"><?php echo esc_html__( 'Record health', 'peracrm' ); ?> <span class="peracrm-sort-indicator" aria-hidden="true"></span></button></th>
+                  <th aria-sort="none"><button type="button" class="crm-table-sort" data-sort="budget" data-sort-type="number" data-sort-empty-last="true"><?php echo esc_html__( 'Budget', 'peracrm' ); ?> <span class="peracrm-sort-indicator" aria-hidden="true"></span></button></th>
+                  <th aria-sort="none"><button type="button" class="crm-table-sort" data-sort="next-task" data-sort-type="date" data-sort-empty-last="true"><?php echo esc_html__( 'Next task due', 'peracrm' ); ?> <span class="peracrm-sort-indicator" aria-hidden="true"></span></button></th>
+                  <th aria-sort="none"><button type="button" class="crm-table-sort" data-sort="updated" data-sort-type="date"><?php echo esc_html__( 'Last activity', 'peracrm' ); ?> <span class="peracrm-sort-indicator" aria-hidden="true"></span></button></th>
+                  <th aria-sort="none"><button type="button" class="crm-table-sort" data-sort="created" data-sort-type="date"><?php echo esc_html__( 'Created', 'peracrm' ); ?> <span class="peracrm-sort-indicator" aria-hidden="true"></span></button></th>
                 </tr>
               </thead>
               <tbody>
@@ -819,7 +819,7 @@ peracrm_frontend_render_shell_header();
 						$engagement_key = sanitize_key( (string) ( $lead['engagement_state'] ?? '' ) );
 						$status_label   = isset( $status_labels[ $engagement_key ] ) ? $status_labels[ $engagement_key ] : (string) ( $stages[ $lead['stage'] ] ?? $lead['stage'] );
 						?>
-                <tr data-sort-row data-row-url="<?php echo esc_url( (string) $lead['crm_url'] ); ?>" data-name="<?php echo esc_attr( strtolower( (string) $lead['title'] ) ); ?>" data-status="<?php echo esc_attr( strtolower( (string) $status_label ) ); ?>" data-source="<?php echo esc_attr( strtolower( (string) ( $lead['source'] ?? '' ) ) ); ?>" data-assigned="<?php echo esc_attr( strtolower( (string) ( $lead['assigned_to'] ?? '' ) ) ); ?>" data-updated="<?php echo esc_attr( (string) ( $lead['updated_ts'] ?? 0 ) ); ?>" data-created="<?php echo esc_attr( (string) ( $lead['created_ts'] ?? 0 ) ); ?>">
+                <tr data-sort-row data-row-url="<?php echo esc_url( (string) $lead['crm_url'] ); ?>" data-name="<?php echo esc_attr( strtolower( (string) $lead['title'] ) ); ?>" data-status="<?php echo esc_attr( strtolower( (string) $status_label ) ); ?>" data-source="<?php echo esc_attr( strtolower( (string) ( $lead['source'] ?? '' ) ) ); ?>" data-assigned="<?php echo esc_attr( strtolower( (string) ( $lead['assigned_to'] ?? '' ) ) ); ?>" data-health="<?php echo esc_attr( strtolower( (string) ( $lead['record_health'] ?? '' ) ) ); ?>" data-budget="<?php echo esc_attr( (string) ( $lead['budget_value'] ?? 0 ) ); ?>" data-next-task="<?php echo esc_attr( (string) ( $lead['next_task_due_ts'] ?? 0 ) ); ?>" data-updated="<?php echo esc_attr( (string) ( $lead['updated_ts'] ?? 0 ) ); ?>" data-created="<?php echo esc_attr( (string) ( $lead['created_ts'] ?? 0 ) ); ?>">
                   <td class="crm-table__cell--primary">
                     <div class="crm-table__primary">
                       <a href="<?php echo esc_url( (string) $lead['crm_url'] ); ?>"><?php echo esc_html( (string) $lead['title'] ); ?></a>
@@ -839,12 +839,12 @@ peracrm_frontend_render_shell_header();
                   <td><?php echo esc_html( '' !== (string) ( $lead['budget_display'] ?? '' ) ? (string) $lead['budget_display'] : '—' ); ?></td>
                   <td>
 						<?php if ( ! empty( $lead['next_task_due_ts'] ) ) : ?>
-                      <span class="<?php echo esc_attr( ! empty( $lead['next_task_overdue'] ) ? 'crm-chip crm-chip--urgent' : 'crm-chip crm-chip--status' ); ?>"><?php echo esc_html( (string) ( $lead['next_task_due'] ?? '' ) ); ?></span>
+                      <span class="<?php echo esc_attr( ! empty( $lead['next_task_overdue'] ) ? 'crm-chip crm-chip--urgent' : ( ! empty( $lead['next_task_today'] ) ? 'crm-chip crm-chip--selected' : 'pill pill--green' ) ); ?>" title="<?php echo esc_attr( (string) ( $lead['next_task_detail'] ?? '' ) ); ?>" aria-label="<?php echo esc_attr( (string) ( $lead['next_task_detail'] ?? '' ) ); ?>"><?php echo esc_html( (string) ( $lead['next_task_due'] ?? '' ) ); ?></span>
 							<?php if ( '' !== (string) ( $lead['next_task_detail'] ?? '' ) ) : ?>
-                        <span class="crm-chip crm-chip--neutral" title="<?php echo esc_attr( (string) $lead['next_task_detail'] ); ?>" aria-label="<?php echo esc_attr( (string) $lead['next_task_detail'] ); ?>">ⓘ</span>
+                        <span class="crm-table__subtext crm-next-task-detail"><?php echo esc_html( (string) $lead['next_task_detail'] ); ?></span>
 							<?php endif; ?>
 						<?php else : ?>
-                      <a class="btn btn--ghost btn--blue" href="<?php echo esc_url( (string) ( $lead['next_task_url'] ?? ( (string) $lead['crm_url'] . '#crm-client-next-actions' ) ) ); ?>"><?php echo esc_html__( 'Add task', 'peracrm' ); ?></a>
+                      <a class="btn btn--ghost btn--blue crm-table__add-task-btn" href="<?php echo esc_url( (string) ( $lead['next_task_url'] ?? ( (string) $lead['crm_url'] . '#crm-client-next-actions' ) ) ); ?>"><?php echo esc_html__( 'Add task', 'peracrm' ); ?></a>
 						<?php endif; ?>
                   </td>
                   <td><?php echo esc_html( '' !== $lead['last_activity'] ? (string) $lead['last_activity'] : ( '' !== (string) ( $lead['updated'] ?? '' ) ? (string) $lead['updated'] : '—' ) ); ?></td>

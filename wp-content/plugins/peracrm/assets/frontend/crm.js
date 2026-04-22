@@ -624,36 +624,63 @@
 
     var headers = Array.prototype.slice.call(table.querySelectorAll('th [data-sort]'));
     var state = { key: '', dir: 'asc' };
+    var headerConfig = {};
 
-    function toComparable(row, key) {
+    headers.forEach(function (button) {
+      var key = String(button.getAttribute('data-sort') || '').trim();
+      if (!key) {
+        return;
+      }
+      headerConfig[key] = {
+        type: String(button.getAttribute('data-sort-type') || '').trim(),
+        emptyLast: button.getAttribute('data-sort-empty-last') === 'true'
+      };
+    });
+
+    function toComparable(row, key, config) {
       var value = String(row.getAttribute('data-' + key) || '').trim();
-      if (key === 'created' || key === 'updated') {
-        var n = Number(value);
-        if (!Number.isNaN(n) && n > 0) {
-          return n;
+      var normalized = value.toLowerCase();
+      var type = config && config.type ? config.type : '';
+
+      if (type === 'number') {
+        var num = Number(value);
+        return { empty: value === '' || Number.isNaN(num), value: Number.isNaN(num) ? 0 : num };
+      }
+
+      if (type === 'date') {
+        var ts = Number(value);
+        if (!Number.isNaN(ts) && ts > 0) {
+          return { empty: false, value: ts };
         }
-        var d = Date.parse(value);
-        return Number.isNaN(d) ? value.toLowerCase() : d;
+        var parsedTs = Date.parse(value);
+        return { empty: value === '' || Number.isNaN(parsedTs), value: Number.isNaN(parsedTs) ? 0 : parsedTs };
       }
 
-      var maybeNumber = Number(value);
-      if (value !== '' && !Number.isNaN(maybeNumber) && /\d/.test(value)) {
-        return maybeNumber;
+      if (key === 'created' || key === 'updated') {
+        var maybeTs = Number(value);
+        if (!Number.isNaN(maybeTs) && maybeTs > 0) {
+          return { empty: false, value: maybeTs };
+        }
       }
 
-      return value.toLowerCase();
+      return { empty: normalized === '', value: normalized };
     }
 
     function compare(a, b, key, dir) {
-      var left = toComparable(a, key);
-      var right = toComparable(b, key);
+      var config = headerConfig[key] || { type: '', emptyLast: false };
+      var left = toComparable(a, key, config);
+      var right = toComparable(b, key, config);
       var direction = dir === 'desc' ? -1 : 1;
 
-      if (typeof left === 'number' && typeof right === 'number') {
-        return (left - right) * direction;
+      if (config.emptyLast && left.empty !== right.empty) {
+        return left.empty ? 1 : -1;
       }
 
-      return String(left).localeCompare(String(right), undefined, { sensitivity: 'base' }) * direction;
+      if (typeof left.value === 'number' && typeof right.value === 'number') {
+        return (left.value - right.value) * direction;
+      }
+
+      return String(left.value).localeCompare(String(right.value), undefined, { sensitivity: 'base' }) * direction;
     }
 
     function updateHeaderState(activeKey, dir) {
