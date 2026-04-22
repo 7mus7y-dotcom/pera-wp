@@ -136,10 +136,14 @@
 #crm-hero .btn--solid { background-color: var(--btn-color, var(--brand, #002d72)); color: #fff; }
 .crm-page .btn--solid:hover,
 #crm-hero .btn--solid:hover { background-color: #ffffff; color: var(--btn-color, var(--brand, #002d72)); border-color: var(--btn-color, var(--brand, #002d72)); }
+.crm-page .btn--solid:active,
+#crm-hero .btn--solid:active { background-color: #eef4ff; color: var(--btn-color, var(--brand, #002d72)); border-color: var(--btn-color, var(--brand, #002d72)); }
 .crm-page .btn--ghost,
 #crm-hero .btn--ghost { background-color: var(--btn-color, var(--brand, #002d72)); color: #ffffff; border-color: var(--btn-color, var(--brand, #002d72)); }
 .crm-page .btn--ghost:hover,
-#crm-hero .btn--ghost:hover { filter: brightness(0.95); }
+#crm-hero .btn--ghost:hover { background-color: #ffffff; color: var(--btn-color, var(--brand, #002d72)); border-color: var(--btn-color, var(--brand, #002d72)); }
+.crm-page .btn--ghost:active,
+#crm-hero .btn--ghost:active { background-color: #eef4ff; color: var(--btn-color, var(--brand, #002d72)); border-color: var(--btn-color, var(--brand, #002d72)); }
 .crm-page .btn--solid:focus-visible,
 .crm-page .btn--ghost:focus-visible,
 #crm-hero .btn--solid:focus-visible,
@@ -3996,6 +4000,9 @@ body.crm-route #site-header.peracrm-shell-header .crm-side-nav__toggle--header:f
 .crm-page .crm-task-note-trigger {
   gap: 4px;
   padding: 2px 9px;
+  border: 1px solid var(--brand, #002d72);
+  background: var(--brand, #002d72);
+  color: #ffffff;
   font-size: 0.72rem;
   line-height: 1.35;
   letter-spacing: 0.02em;
@@ -4007,9 +4014,9 @@ body.crm-route #site-header.peracrm-shell-header .crm-side-nav__toggle--header:f
 .crm-page .crm-task-note-trigger:hover,
 .crm-page .crm-task-note-wrap.is-open .crm-task-note-trigger,
 .crm-page .crm-task-note-trigger:focus-visible {
-  background: #e8eef9;
-  border-color: #bfd0ea;
-  color: #24364a;
+  background: #ffffff;
+  border-color: var(--brand, #002d72);
+  color: var(--brand, #002d72);
 }
 
 .crm-page .crm-task-note-trigger:focus-visible {
@@ -6085,16 +6092,16 @@ body.crm-route .crm-page--client-view .peracrm-linked-property-unlink-btn:hover 
   gap: 6px;
   /*min-height: 34px;*/
   border-radius: 10px;
-  border: 1px solid var(--border, #e8ecf2);
-  background: var(--surface-soft, #f8fafc);
-  color: var(--brand, #002d72);
+  border: 1px solid var(--brand, #002d72);
+  background: var(--brand, #002d72);
+  color: #ffffff;
   box-shadow: none;
 }
 
 .crm-page .archive-hero-desc__toggle:hover,
 .crm-page .archive-hero-desc__toggle:focus-visible {
-  background: #eef4ff;
-  border-color: #bfd2fb;
+  background: #ffffff;
+  border-color: var(--brand, #002d72);
   color: var(--brand, #002d72);
   box-shadow: 0 0 0 3px rgba(0, 45, 114, 0.08);
   transform: none;
@@ -6102,12 +6109,16 @@ body.crm-route .crm-page--client-view .peracrm-linked-property-unlink-btn:hover 
 }
 
 .crm-page .archive-hero-desc__toggle:active {
+  background: #eef4ff;
+  border-color: var(--brand, #002d72);
+  color: var(--brand, #002d72);
   box-shadow: none;
   transform: none;
 }
 
 .crm-page .archive-hero-desc[data-collapsed="false"] .archive-hero-desc__toggle {
-  background: #eef4ff;
+  background: #ffffff;
+  color: var(--brand, #002d72);
 }
 
 .crm-page .crm-push-panel,
@@ -6483,56 +6494,37 @@ body.crm-route .crm-page--client-view .peracrm-linked-property-unlink-btn:hover 
   .crm-page .btn--solid:focus-visible,
   #crm-hero .btn--solid:hover,
   #crm-hero .btn--solid:focus-visible {
-    background-color: color-mix(in srgb, var(--btn-color, var(--brand, #002d72)) 82%, #ffffff 18%);
-    color: #f8fafc;
-    border-color: color-mix(in srgb, var(--btn-color, var(--brand, #002d72)) 88%, #ffffff 12%);
+    background-color: #f8fafc;
+    color: var(--btn-color, var(--brand, #002d72));
+    border-color: var(--btn-color, var(--brand, #002d72));
+  }
+
+  .crm-page .btn--solid:active,
+  #crm-hero .btn--solid:active {
+    background-color: #e2e8f0;
+    color: var(--btn-color, var(--brand, #002d72));
+    border-color: var(--btn-color, var(--brand, #002d72));
   }
 
   .crm-page .btn--ghost:hover,
   .crm-page .btn--ghost:focus-visible,
   #crm-hero .btn--ghost:hover,
   #crm-hero .btn--ghost:focus-visible {
+    background-color: #f8fafc;
+    color: var(--btn-color, var(--brand, #002d72));
     border-color: var(--btn-color, var(--brand, #002d72));
   }
 
   .crm-page .btn--ghost {
-    background-color: transparent;
+    background-color: var(--btn-color, var(--brand, #002d72));
+    color: #f8fafc;
   }
 
-  .crm-page .btn--ghost.btn--blue,
-  .crm-page .btn--ghost.btn--red,
-  .crm-page .btn--ghost.btn--green {
-    background-color: rgba(15, 23, 42, 0.32);
-  }
-
-  .crm-page .btn--ghost.btn--blue {
-    border-color: rgba(96, 165, 250, 0.44);
-  }
-
-  .crm-page .btn--ghost.btn--red {
-    border-color: rgba(248, 113, 113, 0.44);
-  }
-
-  .crm-page .btn--ghost.btn--green {
-    border-color: rgba(74, 222, 128, 0.38);
-  }
-
-  .crm-page .btn--ghost.btn--blue:hover,
-  .crm-page .btn--ghost.btn--blue:focus-visible {
-    background-color: rgba(0, 86, 179, 0.18);
-    color: #dbeafe;
-  }
-
-  .crm-page .btn--ghost.btn--red:hover,
-  .crm-page .btn--ghost.btn--red:focus-visible {
-    background-color: rgba(220, 38, 38, 0.18);
-    color: #fecaca;
-  }
-
-  .crm-page .btn--ghost.btn--green:hover,
-  .crm-page .btn--ghost.btn--green:focus-visible {
-    background-color: rgba(34, 197, 94, 0.16);
-    color: #dcfce7;
+  .crm-page .btn--ghost:active,
+  #crm-hero .btn--ghost:active {
+    background-color: #e2e8f0;
+    color: var(--btn-color, var(--brand, #002d72));
+    border-color: var(--btn-color, var(--brand, #002d72));
   }
 
   .crm-page .pill,
@@ -6557,16 +6549,16 @@ body.crm-route .crm-page--client-view .peracrm-linked-property-unlink-btn:hover 
   }
 
   .crm-page--client-view .btn--ghost.btn--blue {
-    background-color: rgba(30, 64, 175, 0.18);
-    border-color: rgba(96, 165, 250, 0.54);
-    color: #dbeafe;
+    background-color: var(--btn-color, var(--brand, #002d72));
+    border-color: var(--btn-color, var(--brand, #002d72));
+    color: #f8fafc;
   }
 
   .crm-page--client-view .btn--ghost.btn--blue:hover,
   .crm-page--client-view .btn--ghost.btn--blue:focus-visible {
-    background-color: rgba(37, 99, 235, 0.3);
-    border-color: rgba(147, 197, 253, 0.62);
-    color: #eff6ff;
+    background-color: #f8fafc;
+    border-color: var(--btn-color, var(--brand, #002d72));
+    color: var(--btn-color, var(--brand, #002d72));
   }
 
   .crm-page--client-view .btn--ghost.btn--blue svg,
@@ -6593,16 +6585,17 @@ body.crm-route .crm-page--client-view .peracrm-linked-property-unlink-btn:hover 
   .crm-page .crm-type-toggle .btn--ghost:focus-visible,
   .crm-page .crm-view-toggle--secondary .btn--ghost:hover,
   .crm-page .crm-view-toggle--secondary .btn--ghost:focus-visible {
-    background: rgba(30, 41, 59, 0.88);
-    color: var(--text);
+    background-color: #f8fafc;
+    color: var(--btn-color, var(--brand, #002d72));
+    border-color: var(--btn-color, var(--brand, #002d72));
   }
 
   .crm-page .crm-view-toggle .btn--solid,
   .crm-page .crm-type-toggle .btn--solid,
   .crm-page .crm-view-toggle--secondary .btn--solid {
-    background: rgba(30, 64, 175, 0.24);
-    border-color: rgba(96, 165, 250, 0.44);
-    color: #eff6ff;
+    background: var(--btn-color, var(--brand, #002d72));
+    border-color: var(--btn-color, var(--brand, #002d72));
+    color: #f8fafc;
     box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.04);
   }
 
@@ -6612,21 +6605,21 @@ body.crm-route .crm-page--client-view .peracrm-linked-property-unlink-btn:hover 
   .crm-page .crm-type-toggle .btn--solid:focus-visible,
   .crm-page .crm-view-toggle--secondary .btn--solid:hover,
   .crm-page .crm-view-toggle--secondary .btn--solid:focus-visible {
-    background: rgba(37, 99, 235, 0.32);
-    border-color: rgba(147, 197, 253, 0.56);
-    color: #f8fbff;
+    background: #f8fafc;
+    border-color: var(--btn-color, var(--brand, #002d72));
+    color: var(--btn-color, var(--brand, #002d72));
   }
 
   .crm-page--client-view [data-crm-theme-portfolio] .peracrm-theme-portfolio-offers-toggle .btn--ghost {
-    background: rgba(15, 23, 42, 0.45);
-    border-color: rgba(96, 165, 250, 0.42);
-    color: #cfe2ff;
+    background: var(--btn-color, var(--brand, #002d72));
+    border-color: var(--btn-color, var(--brand, #002d72));
+    color: #f8fafc;
   }
 
   .crm-page--client-view [data-crm-theme-portfolio] .peracrm-theme-portfolio-offers-toggle .btn--solid {
-    background: rgba(37, 99, 235, 0.36);
-    border-color: rgba(147, 197, 253, 0.62);
-    color: #eff6ff;
+    background: var(--btn-color, var(--brand, #002d72));
+    border-color: var(--btn-color, var(--brand, #002d72));
+    color: #f8fafc;
   }
 
   .crm-page input:not([type="hidden"]),
@@ -6705,16 +6698,16 @@ body.crm-route .crm-page--client-view .peracrm-linked-property-unlink-btn:hover 
   }
 
   .crm-reminder-toast__undo.btn {
-    border-color: rgba(96, 165, 250, 0.52);
-    color: #dbeafe;
-    background-color: rgba(15, 23, 42, 0.45);
+    border-color: var(--btn-color, var(--brand, #002d72));
+    color: #f8fafc;
+    background-color: var(--btn-color, var(--brand, #002d72));
   }
 
   .crm-reminder-toast__undo.btn:hover,
   .crm-reminder-toast__undo.btn:focus-visible {
-    background-color: rgba(37, 99, 235, 0.28);
-    border-color: rgba(147, 197, 253, 0.62);
-    color: #eff6ff;
+    background-color: #f8fafc;
+    border-color: var(--btn-color, var(--brand, #002d72));
+    color: var(--btn-color, var(--brand, #002d72));
     box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.2);
   }
 
@@ -6817,17 +6810,17 @@ body.crm-route .crm-page--client-view .peracrm-linked-property-unlink-btn:hover 
   }
 
   .crm-page .archive-hero-desc__toggle {
-    background: var(--surface-soft);
-    border-color: var(--border);
-    color: #dbeafe;
+    background: var(--brand, #002d72);
+    border-color: var(--brand, #002d72);
+    color: #f8fafc;
   }
 
   .crm-page .archive-hero-desc__toggle:hover,
   .crm-page .archive-hero-desc__toggle:focus-visible,
   .crm-page .archive-hero-desc[data-collapsed="false"] .archive-hero-desc__toggle {
-    background: rgba(30, 41, 59, 0.96);
-    border-color: rgba(96, 165, 250, 0.44);
-    color: #eff6ff;
+    background: #f8fafc;
+    border-color: var(--brand, #002d72);
+    color: var(--brand, #002d72);
     box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.18);
   }
 
@@ -7343,14 +7336,20 @@ body.crm-route .crm-page--client-view .peracrm-linked-property-unlink-btn:hover 
   --btn-color: #002d72;
   width: 100%;
   border: 1px solid var(--btn-color);
-  background-color: transparent;
-  color: var(--btn-color);
+  background-color: var(--btn-color);
+  color: #ffffff;
   line-height: 1;
 }
 
 .crm-reminder-toast__undo.btn:hover {
-  background-color: var(--btn-color);
-  color: #fff;
+  background-color: #ffffff;
+  color: var(--btn-color);
+  border-color: var(--btn-color);
+}
+
+.crm-reminder-toast__undo.btn:active {
+  background-color: #eef4ff;
+  color: var(--btn-color);
   border-color: var(--btn-color);
 }
 

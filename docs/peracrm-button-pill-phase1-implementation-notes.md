@@ -191,3 +191,36 @@
 - **Validation summary**
   - Confirmed no new `.pill`→`.crm-chip` template edits were made where behavior might change.
   - Confirmed no layout/CSS compatibility changes were required in this phase because no additional static template conversions occurred.
+
+## Phase 3.2 — hover inversion and interactive pill audit
+
+- **Button hover behavior corrected (solid/inverse now authoritative)**
+  - Normalized both `.btn--solid` and legacy `.btn--ghost` to use the same intentional control language:
+    - default: filled with assigned variant color (`--btn-color`)
+    - hover/focus-visible: inverse (light surface + colored text/border)
+    - active: inverse/pressed variant (stronger light pressed background)
+  - Removed the previous weak ghost hover treatment based on `filter: brightness(...)` in CRM button scope.
+  - Kept focus-visible ring behavior intact.
+
+- **Zones audited and aligned**
+  - Client summary/header action controls and quick actions.
+  - Status and reminder action buttons (including reminder toast Undo treatment).
+  - Danger dialog action rows.
+  - Linked workspace toolbar/portfolio action controls (including theme portfolio toggle region).
+  - Archive “See more/See less” button-like toggles.
+  - View/type toggle groups in compact operational zones.
+  - Logs utility actions in dark mode.
+
+- **Dark mode contrast corrections**
+  - Updated dark-mode button behavior to keep the same filled-default + inverse-hover logic rather than dim/transparent-only hover behavior.
+  - Ensured hover/active states remain visible and readable (no dark-on-dark text/background collisions in audited button zones).
+
+- **Interactive `.pill` decision**
+  - Remaining template-scope `.pill` usage is still `.pill.crm-task-note-trigger` (interactive `<button>` with `data-crm-note-trigger`).
+  - Cross-check against `crm.js` confirms this trigger is behavior-coupled to note-popover open/close state (`[data-crm-note-wrap]`, `[data-crm-note-trigger]`, `[data-crm-note-popover]`).
+  - Classification: **safe to restyle only**.
+  - Action taken: retained markup and JS/data hooks unchanged, but normalized trigger visuals through CSS to match filled/inverse interaction language.
+
+- **Intentionally deferred (risk control)**
+  - No structural migration of `.crm-task-note-trigger` markup/class stack.
+  - No JS edits and no changes to selector/data-hook/event contracts.
