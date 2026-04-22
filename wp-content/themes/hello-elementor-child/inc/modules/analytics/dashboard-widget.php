@@ -52,35 +52,15 @@ if ( ! function_exists( 'pera_analytics_render_dashboard_widget' ) ) {
 			return;
 		}
 
-		echo '<style>
-			#pera_page_visits_widget .pera-analytics-table-wrap { overflow-x: auto; }
-			#pera_page_visits_widget .pera-analytics-table { min-width: 700px; table-layout: fixed; }
-			#pera_page_visits_widget .pera-analytics-col-page { width: 42%; max-width: 420px; }
-			#pera_page_visits_widget .pera-analytics-col-metric { width: 14.5%; text-align: right; white-space: nowrap; }
-			#pera_page_visits_widget .pera-analytics-page-link {
-				display: inline-block;
-				max-width: 100%;
-				font-weight: 600;
-				text-decoration: none;
-				white-space: nowrap;
-				overflow: hidden;
-				text-overflow: ellipsis;
-			}
-			#pera_page_visits_widget .pera-analytics-page-link:hover,
-			#pera_page_visits_widget .pera-analytics-page-link:focus { text-decoration: underline; }
-			#pera_page_visits_widget .pera-analytics-page-path {
-				margin-top: 2px;
-				font-size: 11px;
-				line-height: 1.35;
-				color: #646970;
-				white-space: nowrap;
-				overflow: hidden;
-				text-overflow: ellipsis;
-			}
-		</style>';
-
 		echo '<div class="pera-analytics-table-wrap">';
 		echo '<table class="widefat striped pera-analytics-table">';
+		echo '<colgroup>';
+		echo '<col class="pera-analytics-col-page"/>';
+		echo '<col class="pera-analytics-col-metric"/>';
+		echo '<col class="pera-analytics-col-metric"/>';
+		echo '<col class="pera-analytics-col-metric"/>';
+		echo '<col class="pera-analytics-col-metric"/>';
+		echo '</colgroup>';
 		echo '<thead><tr>';
 		echo '<th class="pera-analytics-col-page">' . esc_html__( 'Page', 'hello-elementor-child' ) . '</th>';
 		echo '<th class="pera-analytics-col-metric">' . esc_html__( 'Visits', 'hello-elementor-child' ) . '</th>';
@@ -110,3 +90,37 @@ if ( ! function_exists( 'pera_analytics_render_dashboard_widget' ) ) {
 		echo '</div>';
 	}
 }
+
+if ( ! function_exists( 'pera_analytics_dashboard_widget_styles' ) ) {
+	function pera_analytics_dashboard_widget_styles(): void {
+		echo '<style>
+			#pera_page_visits_widget .pera-analytics-table-wrap { overflow-x: auto; }
+			#pera_page_visits_widget .pera-analytics-table { min-width: 860px; table-layout: fixed; }
+			#pera_page_visits_widget col.pera-analytics-col-page { width: 380px; }
+			#pera_page_visits_widget col.pera-analytics-col-metric { width: 120px; }
+			#pera_page_visits_widget .pera-analytics-col-metric { text-align: right !important; white-space: nowrap; }
+			#pera_page_visits_widget .pera-analytics-page-link {
+				display: inline-block;
+				max-width: 100%;
+				font-weight: 600;
+				text-decoration: none;
+				white-space: nowrap;
+				overflow: hidden;
+				text-overflow: ellipsis;
+				vertical-align: top;
+			}
+			#pera_page_visits_widget .pera-analytics-page-link:hover,
+			#pera_page_visits_widget .pera-analytics-page-link:focus { text-decoration: underline; }
+			#pera_page_visits_widget .pera-analytics-page-path {
+				margin-top: 2px;
+				font-size: 11px;
+				line-height: 1.35;
+				color: #646970;
+				white-space: nowrap;
+				overflow: hidden;
+				text-overflow: ellipsis;
+			}
+		</style>';
+	}
+}
+add_action( 'admin_head-index.php', 'pera_analytics_dashboard_widget_styles' );
