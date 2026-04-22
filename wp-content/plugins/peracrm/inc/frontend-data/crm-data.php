@@ -1336,54 +1336,95 @@ if ( ! function_exists( 'pera_crm_get_leads_view_data' ) ) {
 	 */
 	function pera_crm_get_next_task_rows_for_client_ids( array $client_ids ): array {
 		$client_ids = array_values( array_unique( array_filter( array_map( 'absint', $client_ids ) ) ) );
-		if ( empty( $client_ids ) || ! function_exists( 'peracrm_reminders_table_exists' ) || ! peracrm_reminders_table_exists() ) {
-			return array();
-		}
-
-		global $wpdb;
-		$table        = function_exists( 'peracrm_table' ) ? peracrm_table( 'crm_reminders' ) : $wpdb->prefix . 'crm_reminders';
-		$placeholders = implode( ',', array_fill( 0, count( $client_ids ), '%d' ) );
-		$statuses     = array_values( array_unique( array_filter( array( 'pending', 'open', function_exists( 'pera_crm_reminders_open_status' ) ? pera_crm_reminders_open_status() : 'pending' ) ) ) );
-		$status_sql   = implode( ',', array_fill( 0, count( $statuses ), '%s' ) );
-		$params       = array_merge( $client_ids, $statuses );
-		$query        = $wpdb->prepare(
-			"SELECT id, client_id, due_at, note
-			 FROM {$table}
-			 WHERE client_id IN ({$placeholders})
-			   AND status IN ({$status_sql})
-			   AND due_at <> ''
-			 ORDER BY due_at ASC, id ASC",
-			$params
-		); // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
-		$rows         = $wpdb->get_results( $query, ARRAY_A );
-		if ( ! is_array( $rows ) || empty( $rows ) ) {
+		if ( empty( $client_ids ) ) {
 			return array();
 		}
 
 		$timezone = wp_timezone();
 		$next_map = array();
+		$open_status = function_exists( 'pera_crm_reminders_open_status' ) ? pera_crm_reminders_open_status() : 'pending';
 
-		foreach ( $rows as $row ) {
-			$client_id = isset( $row['client_id'] ) ? (int) $row['client_id'] : 0;
-			if ( $client_id <= 0 || isset( $next_map[ $client_id ] ) ) {
+		if ( function_exists( 'peracrm_reminders_table_exists' ) && peracrm_reminders_table_exists() ) {
+			global $wpdb;
+			$table        = function_exists( 'peracrm_table' ) ? peracrm_table( 'crm_reminders' ) : $wpdb->prefix . 'crm_reminders';
+			$placeholders = implode( ',', array_fill( 0, count( $client_ids ), '%d' ) );
+			$statuses     = array_values( array_unique( array_filter( array( 'pending', 'open', $open_status ) ) ) );
+			$status_sql   = implode( ',', array_fill( 0, count( $statuses ), '%s' ) );
+			$params       = array_merge( $client_ids, $statuses );
+			$query        = $wpdb->prepare(
+				"SELECT id, client_id, due_at, note
+				 FROM {$table}
+				 WHERE client_id IN ({$placeholders})
+				   AND status IN ({$status_sql})
+				   AND due_at <> ''
+				 ORDER BY due_at ASC, id ASC",
+				$params
+			); // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+			$rows         = $wpdb->get_results( $query, ARRAY_A );
+
+			if ( is_array( $rows ) && ! empty( $rows ) ) {
+				foreach ( $rows as $row ) {
+					$client_id = isset( $row['client_id'] ) ? (int) $row['client_id'] : 0;
+					if ( $client_id <= 0 || isset( $next_map[ $client_id ] ) ) {
+						continue;
+					}
+
+					$due_at = isset( $row['due_at'] ) ? (string) $row['due_at'] : '';
+					$due_ts = function_exists( 'pera_crm_parse_local_mysql_datetime_to_ts' )
+						? (int) pera_crm_parse_local_mysql_datetime_to_ts( $due_at, $timezone )
+						: (int) strtotime( $due_at );
+					if ( $due_ts <= 0 ) {
+						continue;
+					}
+
+					$next_map[ $client_id ] = array(
+						'due_at'      => $due_at,
+						'due_ts'      => $due_ts,
+						'note'        => isset( $row['note'] ) ? (string) $row['note'] : '',
+						'is_overdue'  => false,
+						'is_upcoming' => true,
+					);
+				}
+			}
+		}
+
+		if ( ! empty( $next_map ) || ! function_exists( 'peracrm_reminders_list_for_client' ) ) {
+			return $next_map;
+		}
+
+		foreach ( $client_ids as $client_id ) {
+			$client_id = (int) $client_id;
+			if ( $client_id <= 0 ) {
 				continue;
 			}
 
-			$due_at = isset( $row['due_at'] ) ? (string) $row['due_at'] : '';
-			$due_ts = function_exists( 'pera_crm_parse_local_mysql_datetime_to_ts' )
-				? (int) pera_crm_parse_local_mysql_datetime_to_ts( $due_at, $timezone )
-				: (int) strtotime( $due_at );
-			if ( $due_ts <= 0 ) {
+			$reminders = (array) peracrm_reminders_list_for_client( $client_id, 20, 0, $open_status );
+			if ( empty( $reminders ) ) {
 				continue;
 			}
 
-			$next_map[ $client_id ] = array(
-				'due_at'      => $due_at,
-				'due_ts'      => $due_ts,
-				'note'        => isset( $row['note'] ) ? (string) $row['note'] : '',
-				'is_overdue'  => false,
-				'is_upcoming' => true,
-			);
+			foreach ( $reminders as $reminder_row ) {
+				if ( ! is_array( $reminder_row ) ) {
+					continue;
+				}
+
+				$due_at = isset( $reminder_row['due_at'] ) ? (string) $reminder_row['due_at'] : '';
+				$due_ts = function_exists( 'pera_crm_parse_local_mysql_datetime_to_ts' )
+					? (int) pera_crm_parse_local_mysql_datetime_to_ts( $due_at, $timezone )
+					: (int) strtotime( $due_at );
+				if ( $due_ts <= 0 ) {
+					continue;
+				}
+
+				$next_map[ $client_id ] = array(
+					'due_at'      => $due_at,
+					'due_ts'      => $due_ts,
+					'note'        => isset( $reminder_row['note'] ) ? (string) $reminder_row['note'] : '',
+					'is_overdue'  => false,
+					'is_upcoming' => true,
+				);
+				break;
+			}
 		}
 
 		return $next_map;
