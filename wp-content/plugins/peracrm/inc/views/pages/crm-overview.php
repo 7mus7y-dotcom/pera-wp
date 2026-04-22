@@ -12,7 +12,7 @@ $current_page = max( 1, (int) get_query_var( 'paged', 1 ) );
 $is_leads     = 'leads' === $view;
 $is_tasks     = 'tasks' === $view;
 $clients_type_view = isset( $_GET['type'] ) ? sanitize_key( wp_unslash( (string) $_GET['type'] ) ) : 'leads'; // phpcs:ignore WordPress.Security.NonceVerification.Recommended
-$clients_type_view = in_array( $clients_type_view, array( 'leads', 'clients', 'inactive' ), true ) ? $clients_type_view : 'leads';
+$clients_type_view = in_array( $clients_type_view, array( 'leads', 'clients', 'inactive', 'agent' ), true ) ? $clients_type_view : 'leads';
 $derived_type_filter = 'clients' === $clients_type_view ? 'client' : 'lead';
 $requested_clients_view = isset( $_GET['clients_view'] ) ? sanitize_key( wp_unslash( (string) $_GET['clients_view'] ) ) : '';
 $requested_clients_view = in_array( $requested_clients_view, array( 'table', 'cards' ), true ) ? $requested_clients_view : 'table';
@@ -190,7 +190,7 @@ peracrm_frontend_render_shell_header();
 
 <main id="primary" class="site-main crm-page crm-page--<?php echo esc_attr( $is_leads ? 'leads' : ( $is_tasks ? 'tasks' : 'overview' ) ); ?>">
   <?php
-  $header_title = $is_leads ? ( $clients_type_view === 'clients' ? __( 'Clients', 'peracrm' ) : ( $clients_type_view === 'inactive' ? __( 'Inactive records', 'peracrm' ) : __( 'Leads', 'peracrm' ) ) ) : ( $is_tasks ? __( 'Tasks', 'peracrm' ) : __( 'CRM overview', 'peracrm' ) );
+  $header_title = $is_leads ? ( $clients_type_view === 'clients' ? __( 'Clients', 'peracrm' ) : ( $clients_type_view === 'inactive' ? __( 'Inactive records', 'peracrm' ) : ( $clients_type_view === 'agent' ? __( 'Agents', 'peracrm' ) : __( 'Leads', 'peracrm' ) ) ) ) : ( $is_tasks ? __( 'Tasks', 'peracrm' ) : __( 'CRM overview', 'peracrm' ) );
   $header_description = $is_leads ? __( 'Manage lead and client records without hero-framed filters.', 'peracrm' ) : ( $is_tasks ? __( 'Track open reminders and due work in a compact workspace shell.', 'peracrm' ) : __( 'Staff workspace for daily pipeline, workload, and account visibility.', 'peracrm' ) );
   $header_meta = $is_leads ? sprintf( __( '%d total records', 'peracrm' ), (int) ( $leads_data['total'] ?? 0 ) ) : ( $is_tasks ? sprintf( __( '%d open tasks', 'peracrm' ), count( is_array( $tasks_data['all'] ?? null ) ? $tasks_data['all'] : array() ) ) : __( 'Operational workspace', 'peracrm' ) );
   $header_actions = array();
@@ -684,6 +684,7 @@ peracrm_frontend_render_shell_header();
 			$from          = $total > 0 ? ( ( $current_page - 1 ) * $per_page ) + 1 : 0;
 			$to            = min( $current_page * $per_page, $total );
 			$is_inactive   = 'inactive' === $clients_type_view;
+			$is_agent      = 'agent' === $clients_type_view;
 			$filter_q      = isset( $_GET['q'] ) ? sanitize_text_field( wp_unslash( (string) $_GET['q'] ) ) : '';
 			$filter_stage  = isset( $_GET['stage'] ) ? sanitize_key( wp_unslash( (string) $_GET['stage'] ) ) : '';
 			$filter_advisor = isset( $_GET['advisor'] ) ? absint( wp_unslash( (string) $_GET['advisor'] ) ) : 0;
@@ -691,7 +692,7 @@ peracrm_frontend_render_shell_header();
 				'closed'  => __( 'Closed', 'peracrm' ),
 				'dormant' => __( 'Dormant', 'peracrm' ),
 			);
-			$scope_label = $is_inactive ? __( 'Inactive records', 'peracrm' ) : ( 'clients' === $clients_type_view ? __( 'Clients', 'peracrm' ) : __( 'Leads', 'peracrm' ) );
+			$scope_label = $is_inactive ? __( 'Inactive records', 'peracrm' ) : ( $is_agent ? __( 'Agents', 'peracrm' ) : ( 'clients' === $clients_type_view ? __( 'Clients', 'peracrm' ) : __( 'Leads', 'peracrm' ) ) );
 			$active_filter_bits = array();
 			$clients_active_filter = sanitize_key( (string) ( $leads_data['active_filter'] ?? '' ) );
 			$clients_filter_labels = array(
@@ -760,7 +761,7 @@ peracrm_frontend_render_shell_header();
             <?php if ( '' !== $clients_active_filter_label ) : ?>
               <div class="crm-list-workspace-toolbar__active-filter" aria-live="polite">
                 <span class="crm-chip crm-chip--status"><?php echo esc_html( sprintf( __( 'Showing: %s', 'peracrm' ), $clients_active_filter_label ) ); ?></span>
-                <a class="btn btn--ghost btn--blue crm-list-workspace-toolbar__clear-filter" href="<?php echo esc_url( home_url( '/crm/clients/?type=leads' ) ); ?>"><?php esc_html_e( 'Clear', 'peracrm' ); ?></a>
+                <a class="btn btn--ghost btn--blue crm-list-workspace-toolbar__clear-filter" href="<?php echo esc_url( home_url( '/crm/clients/?type=' . $clients_type_view ) ); ?>"><?php esc_html_e( 'Clear', 'peracrm' ); ?></a>
               </div>
             <?php endif; ?>
             <div class="crm-meta-line crm-list-workspace-toolbar__meta">
@@ -776,6 +777,7 @@ peracrm_frontend_render_shell_header();
               <a class="btn <?php echo esc_attr( 'leads' === $clients_type_view ? 'btn--solid' : 'btn--ghost' ); ?> btn--blue crm-action-group__item" href="<?php echo esc_url( add_query_arg( 'type', 'leads', home_url( '/crm/clients/' ) ) ); ?>"><?php esc_html_e( 'Leads', 'peracrm' ); ?></a>
               <a class="btn <?php echo esc_attr( 'clients' === $clients_type_view ? 'btn--solid' : 'btn--ghost' ); ?> btn--blue crm-action-group__item" href="<?php echo esc_url( add_query_arg( 'type', 'clients', home_url( '/crm/clients/' ) ) ); ?>"><?php esc_html_e( 'Clients', 'peracrm' ); ?></a>
               <a class="btn <?php echo esc_attr( $is_inactive ? 'btn--solid' : 'btn--ghost' ); ?> btn--blue crm-action-group__item" href="<?php echo esc_url( add_query_arg( 'type', 'inactive', home_url( '/crm/clients/' ) ) ); ?>"><?php esc_html_e( 'Inactive', 'peracrm' ); ?></a>
+              <a class="btn <?php echo esc_attr( $is_agent ? 'btn--solid' : 'btn--ghost' ); ?> btn--blue crm-action-group__item" href="<?php echo esc_url( add_query_arg( 'type', 'agent', home_url( '/crm/clients/' ) ) ); ?>"><?php esc_html_e( 'Agent', 'peracrm' ); ?></a>
             </div>
             <div class="crm-view-toggle crm-view-toggle--secondary" data-crm-view-toggle data-storage-key="peracrm_clients_view" data-default-desktop="table" data-default-mobile="cards">
               <button type="button" class="btn <?php echo esc_attr( $clients_is_cards_view ? 'btn--solid btn--blue' : 'btn--ghost' ); ?>" data-view="cards" aria-pressed="<?php echo esc_attr( $clients_is_cards_view ? 'true' : 'false' ); ?>"><?php echo esc_html__( 'List view', 'peracrm' ); ?></button>
@@ -874,7 +876,7 @@ peracrm_frontend_render_shell_header();
 						<?php
 						$engagement_key = sanitize_key( (string) ( $lead['engagement_state'] ?? '' ) );
 						$status_label   = isset( $status_labels[ $engagement_key ] ) ? $status_labels[ $engagement_key ] : (string) ( $stages[ $lead['stage'] ] ?? $lead['stage'] );
-						$view_label     = 'clients' === $clients_type_view || $is_inactive ? __( 'View Client', 'peracrm' ) : __( 'View Lead', 'peracrm' );
+						$view_label     = 'clients' === $clients_type_view || $is_inactive || $is_agent ? __( 'View Client', 'peracrm' ) : __( 'View Lead', 'peracrm' );
 						?>
                   <li class="crm-row-list__item">
                     <div class="crm-row-list__content">
