@@ -1329,6 +1329,105 @@ add_filter(
 
 if ( ! function_exists( 'pera_crm_get_leads_view_data' ) ) {
 	/**
+	 * Build map of next open reminder rows keyed by client ID.
+	 *
+	 * @param int[] $client_ids Client IDs.
+	 * @return array<int,array{due_at:string,note:string,title:string,is_overdue:bool,due_ts:int}>
+	 */
+	function pera_crm_get_next_task_rows_for_client_ids( array $client_ids ): array {
+		$client_ids = array_values( array_unique( array_filter( array_map( 'absint', $client_ids ) ) ) );
+		if ( empty( $client_ids ) || ! function_exists( 'peracrm_reminders_table_exists' ) || ! peracrm_reminders_table_exists() ) {
+			return array();
+		}
+
+		global $wpdb;
+		$table        = function_exists( 'peracrm_table' ) ? peracrm_table( 'crm_reminders' ) : $wpdb->prefix . 'crm_reminders';
+		$placeholders = implode( ',', array_fill( 0, count( $client_ids ), '%d' ) );
+		$statuses     = array_values( array_unique( array_filter( array( 'pending', 'open', function_exists( 'pera_crm_reminders_open_status' ) ? pera_crm_reminders_open_status() : 'pending' ) ) ) );
+		$status_sql   = implode( ',', array_fill( 0, count( $statuses ), '%s' ) );
+		$params       = array_merge( $client_ids, $statuses );
+		$query        = $wpdb->prepare(
+			"SELECT id, client_id, due_at, note
+			 FROM {$table}
+			 WHERE client_id IN ({$placeholders})
+			   AND status IN ({$status_sql})
+			   AND due_at <> ''
+			 ORDER BY due_at ASC, id ASC",
+			$params
+		); // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+		$rows         = $wpdb->get_results( $query, ARRAY_A );
+		if ( ! is_array( $rows ) || empty( $rows ) ) {
+			return array();
+		}
+
+		$timezone = wp_timezone();
+		$now_ts   = current_datetime()->getTimestamp();
+		$next_map = array();
+
+		foreach ( $rows as $row ) {
+			$client_id = isset( $row['client_id'] ) ? (int) $row['client_id'] : 0;
+			if ( $client_id <= 0 || isset( $next_map[ $client_id ] ) ) {
+				continue;
+			}
+
+			$due_at = isset( $row['due_at'] ) ? (string) $row['due_at'] : '';
+			$due_ts = function_exists( 'pera_crm_parse_local_mysql_datetime_to_ts' )
+				? (int) pera_crm_parse_local_mysql_datetime_to_ts( $due_at, $timezone )
+				: (int) strtotime( $due_at );
+			if ( $due_ts <= 0 ) {
+				continue;
+			}
+
+			$next_map[ $client_id ] = array(
+				'due_at'      => $due_at,
+				'due_ts'      => $due_ts,
+				'note'        => isset( $row['note'] ) ? (string) $row['note'] : '',
+				'title'       => isset( $row['title'] ) ? (string) $row['title'] : '',
+				'is_overdue'  => $due_ts < $now_ts,
+				'is_upcoming' => $due_ts >= $now_ts,
+			);
+		}
+
+		foreach ( $client_ids as $client_id ) {
+			if ( isset( $next_map[ $client_id ] ) && ! empty( $next_map[ $client_id ]['is_upcoming'] ) ) {
+				continue;
+			}
+
+			$closest_overdue = null;
+			foreach ( $rows as $row ) {
+				if ( (int) ( $row['client_id'] ?? 0 ) !== $client_id ) {
+					continue;
+				}
+
+				$due_at = isset( $row['due_at'] ) ? (string) $row['due_at'] : '';
+				$due_ts = function_exists( 'pera_crm_parse_local_mysql_datetime_to_ts' )
+					? (int) pera_crm_parse_local_mysql_datetime_to_ts( $due_at, $timezone )
+					: (int) strtotime( $due_at );
+				if ( $due_ts <= 0 || $due_ts >= $now_ts ) {
+					continue;
+				}
+
+				if ( null === $closest_overdue || $due_ts > (int) $closest_overdue['due_ts'] ) {
+					$closest_overdue = array(
+						'due_at'      => $due_at,
+						'due_ts'      => $due_ts,
+						'note'        => isset( $row['note'] ) ? (string) $row['note'] : '',
+						'title'       => isset( $row['title'] ) ? (string) $row['title'] : '',
+						'is_overdue'  => true,
+						'is_upcoming' => false,
+					);
+				}
+			}
+
+			if ( is_array( $closest_overdue ) ) {
+				$next_map[ $client_id ] = $closest_overdue;
+			}
+		}
+
+		return $next_map;
+	}
+
+	/**
 	 * Build paginated leads data for the CRM leads view.
 	 *
 	 * @return array<string,mixed>
@@ -1505,6 +1604,9 @@ if ( ! function_exists( 'pera_crm_get_leads_view_data' ) ) {
 		if ( function_exists( 'peracrm_client_health_prime_cache' ) ) {
 			peracrm_client_health_prime_cache( $offset_ids );
 		}
+		$next_task_map = function_exists( 'pera_crm_get_next_task_rows_for_client_ids' )
+			? pera_crm_get_next_task_rows_for_client_ids( $offset_ids )
+			: array();
 
 		$items = array();
 		$advisor_name_cache = array();
@@ -1528,6 +1630,24 @@ if ( ! function_exists( 'pera_crm_get_leads_view_data' ) ) {
 
 			$created_ts = (int) get_post_time( 'U', true, $lead_id );
 			$updated_ts = (int) get_post_modified_time( 'U', true, $lead_id );
+			$profile    = function_exists( 'peracrm_client_get_profile' ) ? (array) peracrm_client_get_profile( $lead_id ) : array();
+			$budget_max = isset( $profile['budget_max_usd'] ) ? (int) $profile['budget_max_usd'] : 0;
+			$budget_min = isset( $profile['budget_min_usd'] ) ? (int) $profile['budget_min_usd'] : 0;
+			$budget_val = $budget_max > 0 ? $budget_max : ( $budget_min > 0 ? $budget_min : 0 );
+
+			$next_task         = isset( $next_task_map[ $lead_id ] ) && is_array( $next_task_map[ $lead_id ] ) ? $next_task_map[ $lead_id ] : array();
+			$next_task_due_ts  = isset( $next_task['due_ts'] ) ? (int) $next_task['due_ts'] : 0;
+			$next_task_due     = $next_task_due_ts > 0 ? pera_crm_format_datetime_dmy_hm( $next_task_due_ts ) : '';
+			$next_task_title   = isset( $next_task['title'] ) ? trim( (string) $next_task['title'] ) : '';
+			$next_task_note    = isset( $next_task['note'] ) ? trim( (string) $next_task['note'] ) : '';
+			$next_task_tooltip = '';
+			if ( '' !== $next_task_title && '' !== $next_task_note ) {
+				$next_task_tooltip = $next_task_title . ' — ' . $next_task_note;
+			} elseif ( '' !== $next_task_title ) {
+				$next_task_tooltip = $next_task_title;
+			} elseif ( '' !== $next_task_note ) {
+				$next_task_tooltip = $next_task_note;
+			}
 
 			$items[] = array(
 				'id'               => $lead_id,
@@ -1545,6 +1665,15 @@ if ( ! function_exists( 'pera_crm_get_leads_view_data' ) ) {
 				'updated_ts'       => $updated_ts,
 				'derived_type'     => isset( $client_lookup[ $lead_id ] ) ? 'client' : 'lead',
 				'crm_url'          => function_exists( 'pera_crm_get_client_view_url' ) ? pera_crm_get_client_view_url( $lead_id ) : home_url( '/crm/client/' . $lead_id . '/' ),
+				'record_health'    => isset( $health['label'] ) ? (string) $health['label'] : '',
+				'record_health_badge_html' => function_exists( 'peracrm_client_health_badge_html' ) ? (string) peracrm_client_health_badge_html( $health ) : '',
+				'budget_display'   => $budget_val > 0 ? sprintf( __( '$%s', 'peracrm' ), number_format_i18n( $budget_val ) ) : '',
+				'budget_value'     => $budget_val,
+				'next_task_due'    => $next_task_due,
+				'next_task_due_ts' => $next_task_due_ts,
+				'next_task_detail' => $next_task_tooltip,
+				'next_task_overdue' => ! empty( $next_task['is_overdue'] ),
+				'next_task_url'    => home_url( '/crm/client/' . $lead_id . '/#crm-client-next-actions' ),
 				'edit_url'         => admin_url( 'post.php?post=' . $lead_id . '&action=edit' ),
 			);
 		}

@@ -14,6 +14,12 @@ $is_tasks     = 'tasks' === $view;
 $clients_type_view = isset( $_GET['type'] ) ? sanitize_key( wp_unslash( (string) $_GET['type'] ) ) : 'leads'; // phpcs:ignore WordPress.Security.NonceVerification.Recommended
 $clients_type_view = in_array( $clients_type_view, array( 'leads', 'clients', 'inactive' ), true ) ? $clients_type_view : 'leads';
 $derived_type_filter = 'clients' === $clients_type_view ? 'client' : 'lead';
+$requested_clients_view = isset( $_GET['clients_view'] ) ? sanitize_key( wp_unslash( (string) $_GET['clients_view'] ) ) : '';
+$requested_clients_view = in_array( $requested_clients_view, array( 'table', 'cards' ), true ) ? $requested_clients_view : 'table';
+$clients_is_cards_view  = 'cards' === $requested_clients_view;
+$requested_tasks_view   = isset( $_GET['tasks_view'] ) ? sanitize_key( wp_unslash( (string) $_GET['tasks_view'] ) ) : '';
+$requested_tasks_view   = in_array( $requested_tasks_view, array( 'table', 'cards' ), true ) ? $requested_tasks_view : 'table';
+$tasks_is_cards_view    = 'cards' === $requested_tasks_view;
 
 $crm_dashboard = function_exists( 'pera_crm_get_dashboard_data' )
 	? pera_crm_get_dashboard_data()
@@ -589,8 +595,8 @@ peracrm_frontend_render_shell_header();
               <span class="crm-chip crm-chip--status crm-action-group__item"><?php echo esc_html( sprintf( _n( '%d due today', '%d due today', count( $today_rows ), 'peracrm' ), count( $today_rows ) ) ); ?></span>
             </div>
             <div class="crm-view-toggle crm-view-toggle--secondary" data-crm-view-toggle data-storage-key="peracrm_tasks_view" data-default-desktop="table" data-default-mobile="cards">
-              <button type="button" class="btn btn--ghost btn--blue" data-view="cards" aria-pressed="false"><?php echo esc_html__( 'List view', 'peracrm' ); ?></button>
-              <button type="button" class="btn btn--solid btn--blue" data-view="table" aria-pressed="true"><?php echo esc_html__( 'Table view', 'peracrm' ); ?></button>
+              <button type="button" class="btn <?php echo esc_attr( $tasks_is_cards_view ? 'btn--solid btn--blue' : 'btn--ghost' ); ?>" data-view="cards" aria-pressed="<?php echo esc_attr( $tasks_is_cards_view ? 'true' : 'false' ); ?>"><?php echo esc_html__( 'List view', 'peracrm' ); ?></button>
+              <button type="button" class="btn <?php echo esc_attr( $tasks_is_cards_view ? 'btn--ghost' : 'btn--solid btn--blue' ); ?>" data-view="table" aria-pressed="<?php echo esc_attr( $tasks_is_cards_view ? 'false' : 'true' ); ?>"><?php echo esc_html__( 'Table view', 'peracrm' ); ?></button>
             </div>
           </div>
         </div>
@@ -772,8 +778,8 @@ peracrm_frontend_render_shell_header();
               <a class="btn <?php echo esc_attr( $is_inactive ? 'btn--solid' : 'btn--ghost' ); ?> btn--blue crm-action-group__item" href="<?php echo esc_url( add_query_arg( 'type', 'inactive', home_url( '/crm/clients/' ) ) ); ?>"><?php esc_html_e( 'Inactive', 'peracrm' ); ?></a>
             </div>
             <div class="crm-view-toggle crm-view-toggle--secondary" data-crm-view-toggle data-storage-key="peracrm_clients_view" data-default-desktop="table" data-default-mobile="cards">
-              <button type="button" class="btn btn--ghost btn--blue" data-view="cards" aria-pressed="false"><?php echo esc_html__( 'List view', 'peracrm' ); ?></button>
-              <button type="button" class="btn btn--solid btn--blue" data-view="table" aria-pressed="true"><?php echo esc_html__( 'Table view', 'peracrm' ); ?></button>
+              <button type="button" class="btn <?php echo esc_attr( $clients_is_cards_view ? 'btn--solid btn--blue' : 'btn--ghost' ); ?>" data-view="cards" aria-pressed="<?php echo esc_attr( $clients_is_cards_view ? 'true' : 'false' ); ?>"><?php echo esc_html__( 'List view', 'peracrm' ); ?></button>
+              <button type="button" class="btn <?php echo esc_attr( $clients_is_cards_view ? 'btn--ghost' : 'btn--solid btn--blue' ); ?>" data-view="table" aria-pressed="<?php echo esc_attr( $clients_is_cards_view ? 'false' : 'true' ); ?>"><?php echo esc_html__( 'Table view', 'peracrm' ); ?></button>
             </div>
           </div>
         </div>
@@ -795,6 +801,9 @@ peracrm_frontend_render_shell_header();
                   <th aria-sort="none"><button type="button" class="crm-table-sort" data-sort="status"><?php echo esc_html__( 'Status / stage', 'peracrm' ); ?> <span class="peracrm-sort-indicator" aria-hidden="true"></span></button></th>
                   <th aria-sort="none"><button type="button" class="crm-table-sort" data-sort="source"><?php echo esc_html__( 'Source', 'peracrm' ); ?> <span class="peracrm-sort-indicator" aria-hidden="true"></span></button></th>
                   <th aria-sort="none"><button type="button" class="crm-table-sort" data-sort="assigned"><?php echo esc_html__( 'Assigned advisor', 'peracrm' ); ?> <span class="peracrm-sort-indicator" aria-hidden="true"></span></button></th>
+                  <th><?php echo esc_html__( 'Record health', 'peracrm' ); ?></th>
+                  <th><?php echo esc_html__( 'Budget', 'peracrm' ); ?></th>
+                  <th><?php echo esc_html__( 'Next task due', 'peracrm' ); ?></th>
                   <th aria-sort="none"><button type="button" class="crm-table-sort" data-sort="updated"><?php echo esc_html__( 'Last activity', 'peracrm' ); ?> <span class="peracrm-sort-indicator" aria-hidden="true"></span></button></th>
                   <th aria-sort="none"><button type="button" class="crm-table-sort" data-sort="created"><?php echo esc_html__( 'Created', 'peracrm' ); ?> <span class="peracrm-sort-indicator" aria-hidden="true"></span></button></th>
                 </tr>
@@ -802,7 +811,7 @@ peracrm_frontend_render_shell_header();
               <tbody>
 					<?php if ( empty( $items ) ) : ?>
                 <tr>
-                  <td class="crm-table__empty" colspan="6"><?php echo esc_html__( 'No leads found for this scope.', 'peracrm' ); ?></td>
+                  <td class="crm-table__empty" colspan="9"><?php echo esc_html__( 'No leads found for this scope.', 'peracrm' ); ?></td>
                 </tr>
 					<?php else : ?>
 					<?php foreach ( $items as $lead ) : ?>
@@ -820,6 +829,24 @@ peracrm_frontend_render_shell_header();
                   <td><span class="crm-chip crm-chip--status"><?php echo esc_html( (string) $status_label ); ?></span></td>
                   <td><?php echo esc_html( '' !== (string) ( $lead['source'] ?? '' ) ? (string) $lead['source'] : '—' ); ?></td>
                   <td><?php echo esc_html( '' !== (string) ( $lead['assigned_to'] ?? '' ) ? (string) $lead['assigned_to'] : '—' ); ?></td>
+                  <td>
+						<?php if ( ! empty( $lead['record_health_badge_html'] ) ) : ?>
+							<?php echo wp_kses_post( (string) $lead['record_health_badge_html'] ); ?>
+						<?php else : ?>
+                    <?php echo esc_html( '' !== (string) ( $lead['record_health'] ?? '' ) ? (string) $lead['record_health'] : '—' ); ?>
+						<?php endif; ?>
+                  </td>
+                  <td><?php echo esc_html( '' !== (string) ( $lead['budget_display'] ?? '' ) ? (string) $lead['budget_display'] : '—' ); ?></td>
+                  <td>
+						<?php if ( ! empty( $lead['next_task_due_ts'] ) ) : ?>
+                      <span class="<?php echo esc_attr( ! empty( $lead['next_task_overdue'] ) ? 'crm-chip crm-chip--urgent' : 'crm-chip crm-chip--status' ); ?>"><?php echo esc_html( (string) ( $lead['next_task_due'] ?? '' ) ); ?></span>
+							<?php if ( '' !== (string) ( $lead['next_task_detail'] ?? '' ) ) : ?>
+                        <span class="crm-chip crm-chip--neutral" title="<?php echo esc_attr( (string) $lead['next_task_detail'] ); ?>" aria-label="<?php echo esc_attr( (string) $lead['next_task_detail'] ); ?>">ⓘ</span>
+							<?php endif; ?>
+						<?php else : ?>
+                      <a class="btn btn--ghost btn--blue" href="<?php echo esc_url( (string) ( $lead['next_task_url'] ?? ( (string) $lead['crm_url'] . '#crm-client-next-actions' ) ) ); ?>"><?php echo esc_html__( 'Add task', 'peracrm' ); ?></a>
+						<?php endif; ?>
+                  </td>
                   <td><?php echo esc_html( '' !== $lead['last_activity'] ? (string) $lead['last_activity'] : ( '' !== (string) ( $lead['updated'] ?? '' ) ? (string) $lead['updated'] : '—' ) ); ?></td>
                   <td><?php echo esc_html( '' !== (string) ( $lead['created'] ?? '' ) ? (string) $lead['created'] : '—' ); ?></td>
                 </tr>
