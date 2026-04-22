@@ -6088,6 +6088,81 @@ body.crm-route .crm-page--client-view .peracrm-linked-property-unlink-btn:hover 
   color: var(--brand, #002d72);
 }
 
+.crm-page--leads .crm-type-toggle .btn.btn--ghost,
+.crm-page--leads .crm-view-toggle--secondary .btn.btn--ghost {
+  background: transparent;
+  border: 1px solid var(--brand, #002d72);
+  color: var(--brand, #002d72);
+}
+
+.crm-page--leads .crm-type-toggle .btn.btn--ghost:hover,
+.crm-page--leads .crm-type-toggle .btn.btn--ghost:focus-visible,
+.crm-page--leads .crm-view-toggle--secondary .btn.btn--ghost:hover,
+.crm-page--leads .crm-view-toggle--secondary .btn.btn--ghost:focus-visible {
+  background: var(--brand, #002d72);
+  border-color: var(--brand, #002d72);
+  color: #ffffff;
+}
+
+.crm-page--leads .crm-clients-pagination {
+  margin: 16px 0 0;
+}
+
+.crm-page--leads .crm-clients-pagination .page-numbers {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.crm-page--leads .crm-clients-pagination .page-numbers > li {
+  margin: 0;
+  padding: 0;
+}
+
+.crm-page--leads .crm-clients-pagination .page-numbers a,
+.crm-page--leads .crm-clients-pagination .page-numbers span {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 38px;
+  min-height: 38px;
+  padding: 0 12px;
+  border-radius: 999px;
+  border: 1px solid var(--brand, #002d72);
+  background: #ffffff;
+  color: var(--brand, #002d72);
+  font-weight: 600;
+  line-height: 1;
+  text-decoration: none;
+  transition: background-color 0.18s ease, color 0.18s ease, border-color 0.18s ease, box-shadow 0.18s ease;
+}
+
+.crm-page--leads .crm-clients-pagination .page-numbers a:hover,
+.crm-page--leads .crm-clients-pagination .page-numbers a:focus-visible {
+  background: #eef4ff;
+  border-color: var(--brand, #002d72);
+  color: var(--brand, #002d72);
+  box-shadow: 0 0 0 3px rgba(0, 45, 114, 0.1);
+  outline: 0;
+}
+
+.crm-page--leads .crm-clients-pagination .page-numbers .current {
+  background: var(--brand, #002d72);
+  border-color: var(--brand, #002d72);
+  color: #ffffff;
+}
+
+.crm-page--leads .crm-clients-pagination .page-numbers .dots {
+  border-color: rgba(0, 45, 114, 0.3);
+  background: transparent;
+  color: rgba(0, 45, 114, 0.75);
+}
+
 .crm-page .archive-hero-desc__toggle {
   align-self: flex-start;
   gap: 6px;

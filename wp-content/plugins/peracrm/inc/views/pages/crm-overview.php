@@ -891,7 +891,11 @@ peracrm_frontend_render_shell_header();
 			);
 			if ( is_string( $pagination ) ) {
 				$pagination = str_replace( trailingslashit( $pagination_root ) . 'page/1/', trailingslashit( $pagination_root ), $pagination );
-				echo wp_kses_post( $pagination );
+				?>
+				<nav class="crm-clients-pagination" aria-label="<?php esc_attr_e( 'Clients pagination', 'peracrm' ); ?>">
+					<?php echo wp_kses_post( $pagination ); ?>
+				</nav>
+				<?php
 			}
 			?>
       </div>
