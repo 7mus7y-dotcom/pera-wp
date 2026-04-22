@@ -6316,16 +6316,23 @@ body.crm-route .crm-page--client-view .peracrm-linked-property-unlink-btn:hover 
     align-items: stretch;
   }
 
-  .crm-page .crm-push-panel__actions .btn,
-  .crm-page .crm-push-panel__actions button.btn,
-  .crm-page .crm-push-panel__actions form,
-  .crm-page .crm-push-panel__actions form .btn {
+  .crm-page .crm-push-panel__actions > *,
+  .crm-page .crm-push-panel__actions form {
     width: 100%;
     max-width: 100%;
+    min-width: 0;
+    box-sizing: border-box;
   }
 
   .crm-page .crm-push-panel__actions .btn,
-  .crm-page .crm-push-panel__actions button.btn {
+  .crm-page .crm-push-panel__actions button.btn,
+  .crm-page .crm-push-panel__actions a.btn,
+  .crm-page .crm-push-panel__actions form .btn {
+    display: flex;
+    width: 100%;
+    max-width: 100%;
+    min-width: 0;
+    box-sizing: border-box;
     white-space: normal;
     text-align: center;
     justify-content: center;
