@@ -6289,6 +6289,30 @@ body.crm-route .crm-page--client-view .peracrm-linked-property-unlink-btn:hover 
 }
 
 /* Push panel mobile overflow fix */
+.crm-page--overview .crm-overview-band--push,
+.crm-page--overview .crm-overview-band--push .crm-push-panel,
+.crm-page--overview .crm-overview-band--push .crm-section__body,
+.crm-page--overview .crm-overview-band--push .crm-push-panel__actions {
+  min-width: 0;
+  max-width: 100%;
+}
+
+.crm-page--overview .crm-overview-band--push .crm-section__body > .crm-chip,
+.crm-page--overview .crm-overview-band--push [data-crm-push-status],
+.crm-page--overview .crm-overview-band--push [data-crm-push-sw-status],
+.crm-page--overview .crm-overview-band--push [data-crm-push-cron-health],
+.crm-page--overview .crm-overview-band--push [data-crm-push-diagnostics],
+.crm-page--overview .crm-overview-band--push [data-crm-push-digest-result] {
+  max-width: 100%;
+  min-width: 0;
+  overflow-wrap: anywhere;
+  word-break: break-word;
+}
+
+.crm-page--overview .crm-overview-band--push .crm-section__body > .crm-chip {
+  white-space: normal;
+}
+
 .crm-page .crm-push-panel__actions {
   display: flex;
   flex-wrap: wrap;
