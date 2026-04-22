@@ -842,8 +842,9 @@ peracrm_frontend_render_shell_header();
                   </td>
                   <td><?php echo esc_html( '' !== (string) ( $lead['budget_display'] ?? '' ) ? (string) $lead['budget_display'] : '—' ); ?></td>
                   <td>
-						<?php if ( ! empty( $lead['next_task_due_ts'] ) ) : ?>
-                      <span class="<?php echo esc_attr( ! empty( $lead['next_task_overdue'] ) ? 'crm-chip crm-chip--urgent' : ( ! empty( $lead['next_task_today'] ) ? 'crm-chip crm-chip--selected' : 'pill pill--green' ) ); ?>" title="<?php echo esc_attr( (string) ( $lead['next_task_detail'] ?? '' ) ); ?>" aria-label="<?php echo esc_attr( (string) ( $lead['next_task_detail'] ?? '' ) ); ?>"><?php echo esc_html( (string) ( $lead['next_task_due'] ?? '' ) ); ?></span>
+						<?php $next_task_due_text = trim( (string) ( $lead['next_task_due'] ?? '' ) ); ?>
+						<?php if ( '' !== $next_task_due_text || ! empty( $lead['next_task_due_ts'] ) ) : ?>
+                      <span class="<?php echo esc_attr( ! empty( $lead['next_task_overdue'] ) ? 'crm-chip crm-chip--urgent' : ( ! empty( $lead['next_task_today'] ) ? 'crm-chip crm-chip--selected' : 'pill pill--green' ) ); ?>" title="<?php echo esc_attr( (string) ( $lead['next_task_detail'] ?? '' ) ); ?>" aria-label="<?php echo esc_attr( (string) ( $lead['next_task_detail'] ?? '' ) ); ?>"><?php echo esc_html( $next_task_due_text ); ?></span>
 							<?php if ( '' !== (string) ( $lead['next_task_detail'] ?? '' ) ) : ?>
                         <span class="crm-table__subtext crm-next-task-detail"><?php echo esc_html( (string) $lead['next_task_detail'] ); ?></span>
 							<?php endif; ?>
