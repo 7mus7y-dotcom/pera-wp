@@ -33,6 +33,11 @@ if ( ! function_exists( 'pera_analytics_render_dashboard_widget' ) ) {
 		$totals  = pera_analytics_get_month_totals();
 		$windows = pera_analytics_month_window();
 
+		// Diagnostic marker: confirms this callback/file is the widget currently rendered in wp-admin/index.php.
+		echo '<div class="notice notice-warning inline pera-analytics-diagnostic" style="margin:0 0 12px;padding:8px 10px;border-left:4px solid #d63638;background:#fff8e5;">';
+		echo '<p style="margin:0;font-weight:700;color:#8a2424;">DIAGNOSTIC: pera analytics widget patched</p>';
+		echo '</div>';
+
 		echo '<p><strong>' . esc_html__( 'Visits this month (to date):', 'hello-elementor-child' ) . '</strong> ' . esc_html( number_format_i18n( $totals['current']['visits'] ) );
 		echo ' &nbsp;•&nbsp; <strong>' . esc_html__( 'Unique visitors (to date):', 'hello-elementor-child' ) . '</strong> ' . esc_html( number_format_i18n( $totals['current']['uniques'] ) );
 		echo '</p>';
@@ -52,8 +57,8 @@ if ( ! function_exists( 'pera_analytics_render_dashboard_widget' ) ) {
 			return;
 		}
 
-		echo '<div class="pera-analytics-table-wrap">';
-		echo '<table class="widefat striped pera-analytics-table">';
+		echo '<div class="pera-analytics-table-wrap" style="overflow-x:auto;border:2px solid #0a4b78;background:#f0f6fc;padding:6px;">';
+		echo '<table class="widefat striped pera-analytics-table" style="min-width:860px;table-layout:fixed;">';
 		echo '<colgroup>';
 		echo '<col class="pera-analytics-col-page"/>';
 		echo '<col class="pera-analytics-col-metric"/>';
@@ -62,11 +67,11 @@ if ( ! function_exists( 'pera_analytics_render_dashboard_widget' ) ) {
 		echo '<col class="pera-analytics-col-metric"/>';
 		echo '</colgroup>';
 		echo '<thead><tr>';
-		echo '<th class="pera-analytics-col-page">' . esc_html__( 'Page', 'hello-elementor-child' ) . '</th>';
-		echo '<th class="pera-analytics-col-metric">' . esc_html__( 'Visits', 'hello-elementor-child' ) . '</th>';
-		echo '<th class="pera-analytics-col-metric">' . esc_html__( 'Unique', 'hello-elementor-child' ) . '</th>';
-		echo '<th class="pera-analytics-col-metric">' . esc_html__( 'Matched previous', 'hello-elementor-child' ) . '</th>';
-		echo '<th class="pera-analytics-col-metric">' . esc_html__( 'Change', 'hello-elementor-child' ) . '</th>';
+		echo '<th class="pera-analytics-col-page" style="width:380px;">' . esc_html__( 'Page', 'hello-elementor-child' ) . '</th>';
+		echo '<th class="pera-analytics-col-metric" style="width:120px;text-align:right;white-space:nowrap;">' . esc_html__( 'Visits', 'hello-elementor-child' ) . '</th>';
+		echo '<th class="pera-analytics-col-metric" style="width:120px;text-align:right;white-space:nowrap;">' . esc_html__( 'Unique', 'hello-elementor-child' ) . '</th>';
+		echo '<th class="pera-analytics-col-metric" style="width:120px;text-align:right;white-space:nowrap;">' . esc_html__( 'Matched previous', 'hello-elementor-child' ) . '</th>';
+		echo '<th class="pera-analytics-col-metric" style="width:120px;text-align:right;white-space:nowrap;">' . esc_html__( 'Change', 'hello-elementor-child' ) . '</th>';
 		echo '</tr></thead><tbody>';
 
 		foreach ( $rows as $row ) {
@@ -75,14 +80,14 @@ if ( ! function_exists( 'pera_analytics_render_dashboard_widget' ) ) {
 			$url   = wp_http_validate_url( $path ) ? $path : home_url( $path );
 
 			echo '<tr>';
-			echo '<td class="pera-analytics-col-page">';
-			echo '<a class="pera-analytics-page-link" href="' . esc_url( $url ) . '" target="_blank" rel="noopener noreferrer">' . esc_html( $title ) . '</a>';
-			echo '<div class="pera-analytics-page-path" title="' . esc_attr( $path ) . '">' . esc_html( $path ) . '</div>';
+			echo '<td class="pera-analytics-col-page" style="width:380px;max-width:380px;">';
+			echo '<a class="pera-analytics-page-link" style="display:inline-block;max-width:100%;font-weight:600;text-decoration:none;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;vertical-align:top;" href="' . esc_url( $url ) . '" target="_blank" rel="noopener noreferrer">' . esc_html( $title ) . '</a>';
+			echo '<div class="pera-analytics-page-path" style="margin-top:2px;font-size:11px;line-height:1.35;color:#646970;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;" title="' . esc_attr( $path ) . '">' . esc_html( $path ) . '</div>';
 			echo '</td>';
-			echo '<td class="pera-analytics-col-metric">' . esc_html( number_format_i18n( (int) $row['visits_this_month'] ) ) . '</td>';
-			echo '<td class="pera-analytics-col-metric">' . esc_html( number_format_i18n( (int) $row['uniques_this_month'] ) ) . '</td>';
-			echo '<td class="pera-analytics-col-metric">' . esc_html( number_format_i18n( (int) $row['visits_last_month'] ) ) . '</td>';
-			echo '<td class="pera-analytics-col-metric">' . esc_html( pera_analytics_percent_change( (int) $row['visits_this_month'], (int) $row['visits_last_month'] ) ) . '</td>';
+			echo '<td class="pera-analytics-col-metric" style="text-align:right;white-space:nowrap;border-left:3px solid #72aee6;">' . esc_html( number_format_i18n( (int) $row['visits_this_month'] ) ) . '</td>';
+			echo '<td class="pera-analytics-col-metric" style="text-align:right;white-space:nowrap;border-left:3px solid #72aee6;">' . esc_html( number_format_i18n( (int) $row['uniques_this_month'] ) ) . '</td>';
+			echo '<td class="pera-analytics-col-metric" style="text-align:right;white-space:nowrap;border-left:3px solid #72aee6;">' . esc_html( number_format_i18n( (int) $row['visits_last_month'] ) ) . '</td>';
+			echo '<td class="pera-analytics-col-metric" style="text-align:right;white-space:nowrap;border-left:3px solid #72aee6;">' . esc_html( pera_analytics_percent_change( (int) $row['visits_this_month'], (int) $row['visits_last_month'] ) ) . '</td>';
 			echo '</tr>';
 		}
 
@@ -94,11 +99,12 @@ if ( ! function_exists( 'pera_analytics_render_dashboard_widget' ) ) {
 if ( ! function_exists( 'pera_analytics_dashboard_widget_styles' ) ) {
 	function pera_analytics_dashboard_widget_styles(): void {
 		echo '<style>
-			#pera_page_visits_widget .pera-analytics-table-wrap { overflow-x: auto; }
-			#pera_page_visits_widget .pera-analytics-table { min-width: 860px; table-layout: fixed; }
+			#dashboard-widgets-wrap #pera_page_visits_widget { outline: 4px solid #d63638; outline-offset: -4px; }
+			#dashboard-widgets-wrap #pera_page_visits_widget .pera-analytics-table-wrap { overflow-x: auto; background: #f0f6fc; }
+			#dashboard-widgets-wrap #pera_page_visits_widget .pera-analytics-table { min-width: 860px; table-layout: fixed; }
 			#pera_page_visits_widget col.pera-analytics-col-page { width: 380px; }
 			#pera_page_visits_widget col.pera-analytics-col-metric { width: 120px; }
-			#pera_page_visits_widget .pera-analytics-col-metric { text-align: right !important; white-space: nowrap; }
+			#dashboard-widgets-wrap #pera_page_visits_widget .pera-analytics-col-metric { text-align: right !important; white-space: nowrap; border-left: 3px solid #72aee6; }
 			#pera_page_visits_widget .pera-analytics-page-link {
 				display: inline-block;
 				max-width: 100%;
