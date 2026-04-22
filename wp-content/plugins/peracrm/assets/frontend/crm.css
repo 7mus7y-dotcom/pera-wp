@@ -5358,12 +5358,23 @@ body.crm-route #site-header.peracrm-shell-header.is-scrolled .peracrm-header-act
   }
 
   .crm-page--client-view .crm-summary-header__facts {
-    gap: 6px;
+    display: flex;
     flex-wrap: wrap;
+    gap: 6px;
   }
 
   .crm-page--client-view .crm-summary-header__fact {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: flex-start;
     flex: 0 0 auto;
+    text-align: center;
+  }
+
+  .crm-page--client-view .crm-summary-header__fact-label {
+    width: 100%;
+    text-align: center;
   }
 
   .crm-page--client-view .crm-summary-header__actions {
@@ -5380,6 +5391,30 @@ body.crm-route #site-header.peracrm-shell-header.is-scrolled .peracrm-header-act
 
   .crm-page--client-view .crm-summary-header__meta span::after {
     display: none;
+  }
+}
+
+/* Mobile collapse only */
+@media (max-width: 639px) {
+  .crm-page--client-view .crm-summary-header__facts {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 8px;
+  }
+
+  .crm-page--client-view .crm-summary-header__fact {
+    width: 100%;
+    align-items: center;
+    text-align: center;
+  }
+
+  .crm-page--client-view .crm-summary-header__fact-label {
+    width: 100%;
+    text-align: center;
+  }
+
+  .crm-page--client-view .crm-summary-header__fact .crm-chip {
+    justify-content: center;
   }
 }
 
