@@ -959,7 +959,7 @@ peracrm_frontend_render_shell_header();
                     <?php if ( ! empty( $theme_portfolio_offers ) ) : ?>
                       <div class="crm-view-toggle crm-view-toggle--secondary peracrm-theme-portfolio-offers-toggle" data-crm-view-toggle data-storage-key="<?php echo esc_attr( 'peracrm_theme_portfolio_offers_view_' . (string) $client_id ); ?>" data-default-desktop="cards" data-default-mobile="cards">
                         <button type="button" class="btn btn--solid btn--blue" data-view="cards" aria-pressed="true"><?php esc_html_e( 'Card', 'peracrm' ); ?></button>
-                        <button type="button" class="btn btn--ghost btn--blue" data-view="table" aria-pressed="false"><?php esc_html_e( 'Table', 'peracrm' ); ?></button>
+                        <button type="button" class="btn btn--ghost" data-view="table" aria-pressed="false"><?php esc_html_e( 'Table', 'peracrm' ); ?></button>
                       </div>
                     <?php endif; ?>
                   </div>

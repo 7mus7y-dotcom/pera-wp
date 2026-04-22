@@ -579,6 +579,7 @@
       buttons.forEach(function (button) {
         var active = button.getAttribute('data-view') === (isCards ? 'cards' : 'table');
         button.classList.toggle('btn--solid', active);
+        button.classList.toggle('btn--blue', active);
         button.classList.toggle('btn--ghost', !active);
         button.setAttribute('aria-pressed', active ? 'true' : 'false');
       });
