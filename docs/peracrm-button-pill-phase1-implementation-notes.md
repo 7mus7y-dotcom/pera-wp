@@ -41,3 +41,27 @@
 - Markup simplification to reduce alias debt (`.pill` usage migration toward `.crm-chip` where semantically correct).
 - Further segmented-control separation from command-button visual language.
 - Cleanup of historical duplicate blocks that are still harmless but structurally redundant outside this safe Phase 1 scope.
+
+## Phase 1.5 refinements
+
+- **Removed redundant button geometry where core contracts already apply**
+  - Dropped duplicate `.btn` geometry/type declarations from `.crm-reminder-toast__undo.btn` so it inherits the shared core button contract while preserving its explicit color/border behavior.
+  - Removed an empty historical `.crm-action-group__item {}` block.
+
+- **Completed compact operational contract usage notes**
+  - Kept compact sizing ownership in the shared compact selector contract and documented that it explicitly covers archive toggle + CRM-scoped WP secondary bridge buttons used in logs utilities.
+
+- **Tightened icon-button contract ownership**
+  - Removed legacy geometry declarations from `.peracrm-linked-property-unlink-btn` now that width/min-width/padding/radius/display alignment are centralized in the icon-button contract group.
+  - Removed a no-op duplicate icon-button selector block that only carried a comment and no declarations.
+
+- **Pill/chip system clarity**
+  - Added a dedicated chip/pill alias section header near the shared inline-flex baseline to make canonical (`.crm-chip`) vs compatibility alias (`.pill`) intent clearer without changing selectors or behavior.
+
+- **Known exceptions intentionally retained**
+  - Segmented toggle controls (`.crm-view-toggle` / `.crm-type-toggle`) retain their behavior-coupled styling and selector contracts.
+  - `.pill` remains a compatibility alias and is not force-migrated to `.crm-chip` in Phase 1.5.
+
+- **Deferred to Phase 2**
+  - Markup-level selector simplification/migration work.
+  - Any restructuring that would alter cascade order for behavior-coupled zones.
