@@ -2011,7 +2011,7 @@ a.crm-health-card:focus-visible {
   padding: 0;
 }
 
-.crm-page--client-view .crm-client-reminders .crm-client-reminders-grid > section > .pill {
+.crm-page--client-view .crm-client-reminders .crm-client-reminders-grid > section > :is(.pill, .crm-chip) {
   margin: 0 0 6px;
   display: inline-flex;
   width: auto;
@@ -5971,6 +5971,14 @@ body.crm-route #site-header.peracrm-shell-header.is-scrolled .peracrm-header-act
 .crm-page .crm-view-toggle .btn:not(.crm-icon-btn):not(.peracrm-linked-property-unlink-btn),
 .crm-page .crm-type-toggle .btn:not(.crm-icon-btn):not(.peracrm-linked-property-unlink-btn),
 .crm-page .crm-view-toggle--secondary .btn:not(.crm-icon-btn):not(.peracrm-linked-property-unlink-btn),
+.crm-page .crm-inline-form .btn:not(.crm-icon-btn):not(.peracrm-linked-property-unlink-btn),
+.crm-page--client-view .crm-client-toolbar .crm-client-toolbar__back.btn:not(.crm-icon-btn):not(.peracrm-linked-property-unlink-btn),
+.crm-page--client-view .crm-summary-header__actions .btn:not(.crm-icon-btn):not(.peracrm-linked-property-unlink-btn),
+.crm-page--client-view .crm-client-quick-actions .btn:not(.crm-icon-btn):not(.peracrm-linked-property-unlink-btn),
+.crm-page--client-view .crm-status-actions .btn:not(.crm-icon-btn):not(.peracrm-linked-property-unlink-btn),
+.crm-page--client-view .crm-danger-dialog__actions .btn:not(.crm-icon-btn):not(.peracrm-linked-property-unlink-btn),
+.crm-page--client-view .crm-linked-workspace__toolbar .btn:not(.crm-icon-btn):not(.peracrm-linked-property-unlink-btn),
+.crm-page--client-view .crm-linked-workspace__portfolio-actions .btn:not(.crm-icon-btn):not(.peracrm-linked-property-unlink-btn),
 .crm-page .archive-hero-desc__toggle,
 .crm-page--logs .crm-log-utility-btn,
 .crm-page--logs .pera-enquiry-email-log-utility-form .button.button-secondary,
@@ -7453,5 +7461,21 @@ body.crm-route .crm-page--client-view .peracrm-linked-property-unlink-btn:hover 
   .portfolio-token-page .portfolio-citizenship-guidance__actions .btn {
     width: 100%;
     text-align: center;
+  }
+}
+
+/* Phase 2.1 — compact coverage safeguard for mobile client-view utility controls. */
+@media (max-width: 575px) {
+  .crm-page--client-view .crm-client-toolbar .crm-client-toolbar__back.btn:not(.crm-icon-btn):not(.peracrm-linked-property-unlink-btn),
+  .crm-page--client-view .crm-summary-header__actions .btn:not(.crm-icon-btn):not(.peracrm-linked-property-unlink-btn),
+  .crm-page--client-view .crm-client-quick-actions .btn:not(.crm-icon-btn):not(.peracrm-linked-property-unlink-btn),
+  .crm-page--client-view .crm-status-actions .btn:not(.crm-icon-btn):not(.peracrm-linked-property-unlink-btn),
+  .crm-page--client-view .crm-danger-dialog__actions .btn:not(.crm-icon-btn):not(.peracrm-linked-property-unlink-btn),
+  .crm-page--client-view .crm-linked-workspace__toolbar .btn:not(.crm-icon-btn):not(.peracrm-linked-property-unlink-btn),
+  .crm-page--client-view .crm-linked-workspace__portfolio-actions .btn:not(.crm-icon-btn):not(.peracrm-linked-property-unlink-btn),
+  .crm-page--client-view .crm-client-reminders .crm-task-action .btn:not(.crm-icon-btn):not(.peracrm-linked-property-unlink-btn) {
+    min-height: var(--crm-control-compact-max-height);
+    padding-top: var(--crm-button-compact-padding-y);
+    padding-bottom: var(--crm-button-compact-padding-y);
   }
 }
