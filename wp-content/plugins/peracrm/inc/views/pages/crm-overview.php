@@ -13,7 +13,9 @@ $is_leads     = 'leads' === $view;
 $is_tasks     = 'tasks' === $view;
 $clients_type_view = isset( $_GET['type'] ) ? sanitize_key( wp_unslash( (string) $_GET['type'] ) ) : 'leads'; // phpcs:ignore WordPress.Security.NonceVerification.Recommended
 $clients_type_view = in_array( $clients_type_view, array( 'leads', 'clients', 'inactive', 'agent' ), true ) ? $clients_type_view : 'leads';
-$derived_type_filter = 'clients' === $clients_type_view ? 'client' : 'lead';
+$derived_type_filter = 'clients' === $clients_type_view
+	? 'client'
+	: ( 'agent' === $clients_type_view ? 'agent' : 'lead' );
 $requested_clients_view = isset( $_GET['clients_view'] ) ? sanitize_key( wp_unslash( (string) $_GET['clients_view'] ) ) : '';
 $requested_clients_view = in_array( $requested_clients_view, array( 'table', 'cards' ), true ) ? $requested_clients_view : 'table';
 $clients_is_cards_view  = 'cards' === $requested_clients_view;
@@ -813,7 +815,7 @@ peracrm_frontend_render_shell_header();
               <tbody>
 					<?php if ( empty( $items ) ) : ?>
                 <tr>
-                  <td class="crm-table__empty" colspan="9"><?php echo esc_html__( 'No leads found for this scope.', 'peracrm' ); ?></td>
+                  <td class="crm-table__empty" colspan="9"><?php echo esc_html__( 'No records found for this scope.', 'peracrm' ); ?></td>
                 </tr>
 					<?php else : ?>
 					<?php foreach ( $items as $lead ) : ?>

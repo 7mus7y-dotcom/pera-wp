@@ -1399,8 +1399,8 @@ if ( ! function_exists( 'pera_crm_get_leads_view_data' ) ) {
 		$page            = max( 1, absint( $page ) );
 		$per_page        = max( 1, absint( $per_page ) );
 		$allowed_ids     = pera_crm_get_allowed_client_ids_for_user( $current_user_id );
-		$derived_type    = in_array( $derived_type, array( 'lead', 'client' ), true ) ? $derived_type : 'lead';
-		$list_view       = in_array( $list_view, array( 'leads', 'clients', 'inactive' ), true ) ? $list_view : 'leads';
+		$derived_type    = in_array( $derived_type, array( 'lead', 'client', 'agent' ), true ) ? $derived_type : 'lead';
+		$list_view       = in_array( $list_view, array( 'leads', 'clients', 'inactive', 'agent' ), true ) ? $list_view : 'leads';
 		$q               = isset( $_GET['q'] ) ? sanitize_text_field( wp_unslash( (string) $_GET['q'] ) ) : '';
 		$stage           = isset( $_GET['stage'] ) ? sanitize_key( wp_unslash( (string) $_GET['stage'] ) ) : '';
 		$advisor         = isset( $_GET['advisor'] ) ? absint( wp_unslash( (string) $_GET['advisor'] ) ) : 0;
@@ -1444,7 +1444,7 @@ if ( ! function_exists( 'pera_crm_get_leads_view_data' ) ) {
 			array_filter(
 				$post_ids,
 				static function ( int $lead_id ) use ( $derived_type, $client_lookup, $list_view ): bool {
-					if ( 'inactive' === $list_view ) {
+					if ( 'inactive' === $list_view || 'agent' === $list_view ) {
 						return true;
 					}
 
@@ -1467,6 +1467,22 @@ if ( ! function_exists( 'pera_crm_get_leads_view_data' ) ) {
 				}
 			)
 		);
+
+		if ( 'agent' === $list_view ) {
+			$filtered_ids = array_values(
+				array_filter(
+					$filtered_ids,
+					static function ( int $lead_id ): bool {
+						$client_type = sanitize_key( (string) get_post_meta( $lead_id, '_peracrm_client_type', true ) );
+						if ( '' === $client_type ) {
+							$client_type = sanitize_key( (string) get_post_meta( $lead_id, 'peracrm_client_type', true ) );
+						}
+
+						return 'agent' === $client_type;
+					}
+				)
+			);
+		}
 
 		if ( '' !== $stage ) {
 			$filtered_ids = array_values(
