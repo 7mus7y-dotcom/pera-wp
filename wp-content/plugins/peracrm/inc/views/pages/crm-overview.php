@@ -475,13 +475,13 @@ peracrm_frontend_render_shell_header();
 	          <p class="text-sm" data-crm-push-cron-health><?php echo esc_html__( 'Digest cron health: checking…', 'peracrm' ); ?></p>
 	          <p class="text-sm" data-crm-push-diagnostics hidden></p>
 	          <p class="text-sm" data-crm-push-digest-result hidden></p>
-	          <div class="crm-task-action" style="display:flex;gap:8px;flex-wrap:wrap;">
+	          <div class="crm-task-action crm-push-panel__actions">
 	            <button type="button" class="btn btn--ghost btn--blue" data-crm-push-enable><?php echo esc_html__( 'Enable Push Notifications', 'peracrm' ); ?></button>
 	            <button type="button" class="btn btn--ghost btn--blue" data-crm-push-disable disabled><?php echo esc_html__( 'Disable on this device', 'peracrm' ); ?></button>
 	            <button type="button" class="btn btn--ghost btn--blue" data-crm-push-run-digest hidden><?php echo esc_html__( 'Run digest now', 'peracrm' ); ?></button>
 	            <button type="button" class="btn btn--ghost btn--blue" data-crm-push-refresh-diagnostics hidden><?php echo esc_html__( 'Refresh diagnostics', 'peracrm' ); ?></button>
 	            <?php if ( function_exists( 'peracrm_push_is_configured' ) && peracrm_push_is_configured() ) : ?>
-	            <form method="post" action="<?php echo esc_url( home_url( '/wp-admin/admin-post.php' ) ); ?>">
+	            <form class="crm-push-panel__form" method="post" action="<?php echo esc_url( home_url( '/wp-admin/admin-post.php' ) ); ?>">
 	              <input type="hidden" name="action" value="peracrm_send_test_push">
 	              <input type="hidden" name="peracrm_redirect" value="<?php echo esc_url( home_url( '/crm/' ) ); ?>">
 	              <?php wp_nonce_field( 'peracrm_send_test_push', 'peracrm_send_test_push_nonce' ); ?>
