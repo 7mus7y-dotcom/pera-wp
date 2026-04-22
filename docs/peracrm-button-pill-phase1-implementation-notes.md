@@ -224,3 +224,12 @@
 - **Intentionally deferred (risk control)**
   - No structural migration of `.crm-task-note-trigger` markup/class stack.
   - No JS edits and no changes to selector/data-hook/event contracts.
+
+### Phase 3.2 correction — explicit hover/active border preservation
+
+- Corrected hover/active border preservation so normalized inverse states now explicitly keep a **1px solid border** in each control’s own color family (`--btn-color`/brand variants) instead of relying on inherited border declarations.
+- Applied parity updates across:
+  - core `.btn--solid` + compatibility `.btn--ghost` states (light + dark mode),
+  - normalized button-like controls (`.archive-hero-desc__toggle`, `.crm-reminder-toast__undo.btn`, `.crm-task-note-trigger`),
+  - logs utility buttons sharing the same interaction language.
+- Scope remained CSS-only with no selector renames/removals, markup changes, or JS/data-hook changes.
