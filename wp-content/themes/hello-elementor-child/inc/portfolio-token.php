@@ -743,22 +743,6 @@ if ( ! function_exists( 'pera_portfolio_token_render_crm_offer_card' ) ) {
 	}
 }
 
-if ( ! function_exists( 'pera_portfolio_token_rewrite_notice' ) ) {
-	/**
-	 * Admin reminder to flush rewrites after deploys.
-	 */
-	function pera_portfolio_token_rewrite_notice(): void {
-		if ( ! current_user_can( 'manage_options' ) ) {
-			return;
-		}
-
-		echo '<div class="notice notice-info"><p>';
-		echo esc_html__( 'Portfolio token routes changed? Save Permalinks once (or run wp rewrite flush --hard) to refresh /portfolio/* rewrites.', 'hello-elementor-child' );
-		echo '</p></div>';
-	}
-}
-add_action( 'admin_notices', 'pera_portfolio_token_rewrite_notice' );
-
 if ( ! function_exists( 'pera_portfolio_token_register_wp_cli' ) ) {
 	/**
 	 * Register WP-CLI helpers for portfolio creation.
