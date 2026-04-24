@@ -5411,13 +5411,16 @@ body.crm-route #site-header.peracrm-shell-header.is-scrolled .peracrm-header-act
 @media (max-width: 640px) {
   .crm-page--client-view .crm-summary-header__facts {
     display: grid;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
     gap: 10px;
+    width: 100%;
+    max-width: 100%;
   }
 
   .crm-page--client-view .crm-summary-header__fact {
     min-width: 0;
     width: 100%;
+    max-width: 100%;
   }
 
   .crm-page--client-view .crm-summary-header__fact:nth-child(3) {
@@ -5429,9 +5432,11 @@ body.crm-route #site-header.peracrm-shell-header.is-scrolled .peracrm-header-act
     text-align: center;
   }
 
-  .crm-page--client-view .crm-summary-header__fact .crm-chip {
+  .crm-page--client-view .crm-summary-header__fact :is(.crm-chip, .pill) {
     width: 100%;
-    max-width: none;
+    max-width: 100%;
+    min-width: 0;
+    box-sizing: border-box;
     justify-content: center;
     text-align: center;
   }
