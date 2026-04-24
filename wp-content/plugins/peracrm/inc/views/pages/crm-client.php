@@ -522,7 +522,7 @@ peracrm_frontend_render_shell_header();
                         <legend><?php esc_html_e( 'Preferred contact', 'peracrm' ); ?></legend>
                         <div class="crm-checkbox-group__options crm-checkbox-group__options--preferred-contact">
                           <?php foreach ( $preferred_contact_options as $contact_key => $contact_label ) : ?>
-                          <label class="crm-checkbox-option crm-checkbox-option--preferred-contact">
+                          <label class="crm-checkbox-option crm-checkbox-option--preferred-contact crm-chip crm-chip--xs">
                             <input type="checkbox" name="peracrm_preferred_contact[]" value="<?php echo esc_attr( (string) $contact_key ); ?>" <?php checked( in_array( (string) $contact_key, $preferred_contact_values, true ) ); ?> />
                             <span><?php echo esc_html( (string) $contact_label ); ?></span>
                           </label>
