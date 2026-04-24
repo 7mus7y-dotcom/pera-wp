@@ -43,9 +43,9 @@
   --crm-chip-radius: var(--crm-pill-radius);
   --crm-chip-font-size: var(--crm-pill-font-size);
   --crm-chip-line-height: var(--crm-pill-line-height);
-  --crm-chip-padding-y-xs: 4px;
+  --crm-chip-padding-y-xs: 2px;
   --crm-chip-padding-x-xs: 8px;
-  --crm-chip-font-size-xs: 0.75rem;
+  --crm-chip-font-size-xs: 0.72rem;
   --crm-chip-line-height-xs: 1.1;
   --crm-button-core-gap: 6px;
   --crm-button-core-font-size: 0.95rem;
@@ -3497,7 +3497,7 @@ body.crm-route #site-header.peracrm-shell-header .crm-side-nav__toggle--header:f
   gap: 6px;
   min-width: 0;
   margin: 0;
-  padding: 6px 10px;
+  padding: var(--crm-chip-padding-y-xs) var(--crm-chip-padding-x-xs);
   border: 1px solid var(--border, #e8ecf2);
   border-radius: 999px;
   background: var(--surface-soft, #f8fafc);
@@ -3509,6 +3509,8 @@ body.crm-route #site-header.peracrm-shell-header .crm-side-nav__toggle--header:f
   width: auto;
   height: auto;
   margin: 0;
+  transform: scale(0.85);
+  transform-origin: center;
 }
 
 
