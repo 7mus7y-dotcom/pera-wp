@@ -5502,7 +5502,7 @@ body.crm-route #site-header.peracrm-shell-header.is-scrolled .peracrm-header-act
     gap: 8px;
   }
 
-  .crm-page--client-view input,
+  .crm-page--client-view input:not([type="checkbox"]):not([type="radio"]):not([type="hidden"]),
   .crm-page--client-view select,
   .crm-page--client-view textarea,
   .crm-page--client-view .btn {
