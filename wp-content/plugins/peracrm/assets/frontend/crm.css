@@ -43,9 +43,9 @@
   --crm-chip-radius: var(--crm-pill-radius);
   --crm-chip-font-size: var(--crm-pill-font-size);
   --crm-chip-line-height: var(--crm-pill-line-height);
-  --crm-chip-padding-y-xs: 2px;
+  --crm-chip-padding-y-xs: 4px;
   --crm-chip-padding-x-xs: 8px;
-  --crm-chip-font-size-xs: 0.72rem;
+  --crm-chip-font-size-xs: 0.75rem;
   --crm-chip-line-height-xs: 1.1;
   --crm-button-core-gap: 6px;
   --crm-button-core-font-size: 0.95rem;
