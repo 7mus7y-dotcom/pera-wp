@@ -459,33 +459,35 @@ peracrm_frontend_render_shell_header();
 
 			<?php if ( is_user_logged_in() ) : ?>
 	      <section class="crm-overview-band crm-overview-band--secondary crm-overview-band--push" aria-labelledby="crm-push-notifications-heading">
-	        <article class="crm-section crm-section--flush crm-push-panel" data-crm-push-card>
+	        <article class="crm-section crm-section--flush crm-push-panel crm-notifications-panel" data-crm-push-card>
 	          <header class="crm-section__header">
             <div class="crm-section__heading-group">
-              <span class="crm-chip crm-chip--neutral"><?php echo esc_html__( 'Notifications', 'peracrm' ); ?></span>
-              <h2 id="crm-push-notifications-heading" class="crm-section__title"><?php echo esc_html__( 'Reminder Push Notifications', 'peracrm' ); ?></h2>
+              <span class="crm-chip crm-chip--neutral crm-notifications-panel__eyebrow"><?php echo esc_html__( 'Notifications', 'peracrm' ); ?></span>
+              <h2 id="crm-push-notifications-heading" class="crm-section__title crm-notifications-panel__title"><?php echo esc_html__( 'Reminder Push Notifications', 'peracrm' ); ?></h2>
             </div>
           </header>
-          <div class="crm-section__body">
+          <div class="crm-section__body crm-notifications-panel__body">
 	          <?php if ( '' !== $push_notice_text ) : ?>
-	            <span class="crm-chip crm-chip--neutral"><?php echo esc_html( $push_notice_text ); ?></span>
+	            <span class="crm-chip crm-chip--neutral crm-notifications-panel__notice"><?php echo esc_html( $push_notice_text ); ?></span>
 	          <?php endif; ?>
-	          <p data-crm-push-status><?php echo esc_html__( 'Checking push notification status…', 'peracrm' ); ?></p>
-	          <p class="text-sm" data-crm-push-sw-status><?php echo esc_html__( 'Service worker status: checking…', 'peracrm' ); ?></p>
-	          <p class="text-sm" data-crm-push-cron-health><?php echo esc_html__( 'Digest cron health: checking…', 'peracrm' ); ?></p>
-	          <p class="text-sm" data-crm-push-diagnostics hidden></p>
-	          <p class="text-sm" data-crm-push-digest-result hidden></p>
-	          <div class="crm-task-action crm-push-panel__actions">
-	            <button type="button" class="btn btn--ghost btn--blue" data-crm-push-enable><?php echo esc_html__( 'Enable Push Notifications', 'peracrm' ); ?></button>
-	            <button type="button" class="btn btn--ghost btn--blue" data-crm-push-disable disabled><?php echo esc_html__( 'Disable on this device', 'peracrm' ); ?></button>
-	            <button type="button" class="btn btn--ghost btn--blue" data-crm-push-run-digest hidden><?php echo esc_html__( 'Run digest now', 'peracrm' ); ?></button>
-	            <button type="button" class="btn btn--ghost btn--blue" data-crm-push-refresh-diagnostics hidden><?php echo esc_html__( 'Refresh diagnostics', 'peracrm' ); ?></button>
+	          <p class="crm-notifications-panel__status" data-crm-push-status><?php echo esc_html__( 'Checking push notification status…', 'peracrm' ); ?></p>
+	          <div class="crm-notifications-panel__diagnostics">
+	            <p class="text-sm" data-crm-push-sw-status><?php echo esc_html__( 'Service worker status: checking…', 'peracrm' ); ?></p>
+	            <p class="text-sm" data-crm-push-cron-health><?php echo esc_html__( 'Digest cron health: checking…', 'peracrm' ); ?></p>
+	            <p class="text-sm" data-crm-push-diagnostics hidden></p>
+	            <p class="text-sm" data-crm-push-digest-result hidden></p>
+	          </div>
+	          <div class="crm-task-action crm-push-panel__actions crm-notifications-panel__actions">
+	            <button type="button" class="btn btn--ghost btn--blue crm-notifications-panel__button" data-crm-push-enable><?php echo esc_html__( 'Enable Push Notifications', 'peracrm' ); ?></button>
+	            <button type="button" class="btn btn--ghost btn--blue crm-notifications-panel__button" data-crm-push-disable disabled><?php echo esc_html__( 'Disable on this device', 'peracrm' ); ?></button>
+	            <button type="button" class="btn btn--ghost btn--blue crm-notifications-panel__button" data-crm-push-run-digest hidden><?php echo esc_html__( 'Run digest now', 'peracrm' ); ?></button>
+	            <button type="button" class="btn btn--ghost btn--blue crm-notifications-panel__button" data-crm-push-refresh-diagnostics hidden><?php echo esc_html__( 'Refresh diagnostics', 'peracrm' ); ?></button>
 	            <?php if ( function_exists( 'peracrm_push_is_configured' ) && peracrm_push_is_configured() ) : ?>
-	            <form class="crm-push-panel__form" method="post" action="<?php echo esc_url( home_url( '/wp-admin/admin-post.php' ) ); ?>">
+	            <form class="crm-push-panel__form crm-notifications-panel__form" method="post" action="<?php echo esc_url( home_url( '/wp-admin/admin-post.php' ) ); ?>">
 	              <input type="hidden" name="action" value="peracrm_send_test_push">
 	              <input type="hidden" name="peracrm_redirect" value="<?php echo esc_url( home_url( '/crm/' ) ); ?>">
 	              <?php wp_nonce_field( 'peracrm_send_test_push', 'peracrm_send_test_push_nonce' ); ?>
-	              <button type="submit" class="btn btn--ghost btn--blue"><?php echo esc_html__( 'Send test notification', 'peracrm' ); ?></button>
+	              <button type="submit" class="btn btn--ghost btn--blue crm-notifications-panel__button"><?php echo esc_html__( 'Send test notification', 'peracrm' ); ?></button>
 	            </form>
 	            <?php endif; ?>
 	          </div>
