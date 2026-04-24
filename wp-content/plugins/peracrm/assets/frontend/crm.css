@@ -465,7 +465,7 @@
 }
 
 /* Keep CRM client form controls aligned with enquiry form (.cta-control) styling. */
-.crm-page--client-view .crm-form-stack input:not([type="hidden"]),
+.crm-page--client-view .crm-form-stack input:not([type="hidden"]):not([type="checkbox"]):not([type="radio"]),
 .crm-page--client-view .crm-form-stack select,
 .crm-page--client-view .crm-form-stack textarea {
   color: var(--text, #222222);
@@ -2283,7 +2283,7 @@ a.crm-health-card:focus-visible {
 
 
 
-  .crm-page--client-view .crm-form-stack input:not([type="hidden"]),
+  .crm-page--client-view .crm-form-stack input:not([type="hidden"]):not([type="checkbox"]):not([type="radio"]),
   .crm-page--client-view .crm-form-stack select,
   .crm-page--client-view .crm-form-stack textarea {
     background-color: #020617;
@@ -2291,12 +2291,12 @@ a.crm-health-card:focus-visible {
     color: var(--text, #e5e7eb);
   }
 
-  .crm-page--client-view .crm-form-stack input:not([type="hidden"])::placeholder,
+  .crm-page--client-view .crm-form-stack input:not([type="hidden"]):not([type="checkbox"]):not([type="radio"])::placeholder,
   .crm-page--client-view .crm-form-stack textarea::placeholder {
     color: #6b7280;
   }
 
-  .crm-page--client-view .crm-form-stack input:not([type="hidden"]):focus,
+  .crm-page--client-view .crm-form-stack input:not([type="hidden"]):not([type="checkbox"]):not([type="radio"]):focus,
   .crm-page--client-view .crm-form-stack select:focus,
   .crm-page--client-view .crm-form-stack textarea:focus {
     border-color: var(--accent, #0056b3);
