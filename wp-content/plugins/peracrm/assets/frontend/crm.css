@@ -3498,6 +3498,8 @@ body.crm-route #site-header.peracrm-shell-header .crm-side-nav__toggle--header:f
   min-width: 0;
   margin: 0;
   padding: var(--crm-chip-padding-y-xs) var(--crm-chip-padding-x-xs);
+  font-size: var(--crm-chip-font-size-xs);
+  line-height: var(--crm-chip-line-height-xs);
   border: 1px solid var(--border, #e8ecf2);
   border-radius: 999px;
   background: var(--surface-soft, #f8fafc);
@@ -3506,11 +3508,11 @@ body.crm-route #site-header.peracrm-shell-header .crm-side-nav__toggle--header:f
 
 .crm-page--client-view .crm-checkbox-group--preferred-contact .crm-checkbox-option--preferred-contact input[type="checkbox"] {
   flex: 0 0 auto;
-  width: auto;
-  height: auto;
+  inline-size: 13px;
+  block-size: 13px;
+  width: 13px;
+  height: 13px;
   margin: 0;
-  transform: scale(0.85);
-  transform-origin: center;
 }
 
 
