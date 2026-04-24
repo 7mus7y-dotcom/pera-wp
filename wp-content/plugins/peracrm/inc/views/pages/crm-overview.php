@@ -459,7 +459,7 @@ peracrm_frontend_render_shell_header();
 
 			<?php if ( is_user_logged_in() ) : ?>
 	      <section class="crm-overview-band crm-overview-band--secondary crm-overview-band--push" aria-labelledby="crm-push-notifications-heading">
-	        <article class="crm-section crm-section--flush crm-push-panel crm-notifications-panel" data-crm-push-card>
+	        <article class="crm-section crm-section--flush crm-push-panel crm-list-workspace__group crm-notifications-panel" data-crm-push-card>
 	          <header class="crm-section__header">
             <div class="crm-section__heading-group">
               <span class="crm-chip crm-chip--neutral crm-notifications-panel__eyebrow"><?php echo esc_html__( 'Notifications', 'peracrm' ); ?></span>
