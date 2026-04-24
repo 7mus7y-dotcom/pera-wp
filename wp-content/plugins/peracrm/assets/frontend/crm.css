@@ -3511,11 +3511,6 @@ body.crm-route #site-header.peracrm-shell-header .crm-side-nav__toggle--header:f
   margin: 0;
 }
 
-.crm-page--client-view .crm-preferred-contact__option {
-  padding: var(--crm-chip-padding-y-xs) var(--crm-chip-padding-x-xs);
-  font-size: var(--crm-chip-font-size-xs);
-  line-height: var(--crm-chip-line-height-xs);
-}
 
 .crm-page--client-view .crm-client-quick-actions {
   display: flex;
