@@ -440,7 +440,7 @@
   max-width: 560px;
 }
 
-.crm-form-stack input,
+.crm-form-stack input:not([type="checkbox"]):not([type="radio"]),
 .crm-form-stack select,
 .crm-form-stack textarea {
   display: block;
@@ -451,12 +451,12 @@
   font-size: 0.95rem;
 }
 
-.crm-form-stack input::placeholder,
+.crm-form-stack input:not([type="checkbox"]):not([type="radio"])::placeholder,
 .crm-form-stack textarea::placeholder {
   color: #aaaaaa;
 }
 
-.crm-form-stack input:focus,
+.crm-form-stack input:not([type="checkbox"]):not([type="radio"]):focus,
 .crm-form-stack select:focus,
 .crm-form-stack textarea:focus {
   outline: none;
@@ -3464,7 +3464,7 @@ body.crm-route #site-header.peracrm-shell-header .crm-side-nav__toggle--header:f
 }
 .crm-side-nav__toggle--header { display: none; }
 
-.crm-form-stack input,
+.crm-form-stack input:not([type="checkbox"]):not([type="radio"]),
 .crm-form-stack select,
 .crm-form-stack textarea { box-sizing: border-box; min-width: 0; max-width: 100%; }
 .crm-page .card-shell,
