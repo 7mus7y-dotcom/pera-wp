@@ -14,3 +14,4 @@ require_once get_stylesheet_directory() . '/inc/modules/fonts.php';
 require_once get_stylesheet_directory() . '/inc/modules/v2-loader.php';
 require_once get_stylesheet_directory() . '/inc/modules/enquiry-loader.php';
 require_once get_stylesheet_directory() . '/inc/modules/misc.php';
+require_once get_stylesheet_directory() . '/inc/modules/sitemaps.php';
