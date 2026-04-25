@@ -99,10 +99,16 @@ add_filter(
 );
 
 add_filter(
-	'wp_sitemaps_users_pre_url_list',
-	static function ( $url_list ) {
-		return array();
-	}
+	'wp_sitemaps_add_provider',
+	static function ( $provider, string $name ) {
+		if ( 'users' === $name ) {
+			return false;
+		}
+
+		return $provider;
+	},
+	10,
+	2
 );
 
 add_filter(
@@ -120,7 +126,7 @@ add_filter(
 
 add_filter(
 	'wp_sitemaps_taxonomies_entry',
-	static function ( $entry, WP_Term $term ) {
+	static function ( $entry, int $term_id, string $taxonomy, WP_Term $term ) {
 		if ( $term->count < 1 ) {
 			return false;
 		}
@@ -132,7 +138,7 @@ add_filter(
 		return $entry;
 	},
 	10,
-	2
+	4
 );
 
 add_filter(
