@@ -18,6 +18,7 @@ require_once get_stylesheet_directory() . '/inc/taxonomy-meta.php';
  * SEO helper functions used by templates.
  */
 require_once get_stylesheet_directory() . '/inc/seo-helpers.php';
+require_once get_stylesheet_directory() . '/inc/schema.php';
 
 /**
  * Enforce district ancestors for property assignments.

@@ -1013,6 +1013,10 @@ add_action( 'wp_head', function () {
   }
 
   if ( $context === 'blog_post' && $post_id > 0 ) {
+    $is_regional_guide = function_exists( 'pera_schema_is_regional_guide_post' )
+      ? pera_schema_is_regional_guide_post( $post_id )
+      : false;
+
     $author_id      = (int) get_post_field( 'post_author', $post_id );
     $author_name    = $author_id > 0 ? trim( (string) get_the_author_meta( 'display_name', $author_id ) ) : '';
     $publisher     = (string) get_bloginfo( 'name' );
@@ -1026,7 +1030,7 @@ add_action( 'wp_head', function () {
 
     $schema = array(
       '@context'         => 'https://schema.org',
-      '@type'            => 'BlogPosting',
+      '@type'            => $is_regional_guide ? 'Article' : 'BlogPosting',
       'mainEntityOfPage' => array(
         '@type' => 'WebPage',
         '@id'   => $canonical,
@@ -1074,10 +1078,39 @@ add_action( 'wp_head', function () {
       $schema['image'] = $schema_image;
     }
 
-    echo '<script type="application/ld+json">' . wp_json_encode( $schema, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE ) . '</script>' . "\n";
+    $article_schema_type = isset( $schema['@type'] ) ? (string) $schema['@type'] : 'BlogPosting';
+    if (
+      function_exists( 'pera_schema_should_emit_type' )
+        ? pera_schema_should_emit_type(
+            $article_schema_type,
+            array(
+              'context' => 'blog_post',
+              'post_id' => $post_id,
+            )
+          )
+        : true
+    ) {
+      echo '<script type="application/ld+json">' . wp_json_encode( $schema, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE ) . '</script>' . "\n";
+    }
 
-    $breadcrumb_items = pera_seo_post_breadcrumb_items( $post_id );
-    if ( ! empty( $breadcrumb_items ) ) {
+    $breadcrumb_items = $is_regional_guide && function_exists( 'pera_schema_regional_guide_breadcrumb_items' )
+      ? pera_schema_regional_guide_breadcrumb_items( $post_id )
+      : pera_seo_post_breadcrumb_items( $post_id );
+
+    if (
+      ! empty( $breadcrumb_items )
+      && (
+        function_exists( 'pera_schema_should_emit_type' )
+          ? pera_schema_should_emit_type(
+              'BreadcrumbList',
+              array(
+                'context' => 'blog_post',
+                'post_id' => $post_id,
+              )
+            )
+          : true
+      )
+    ) {
       $schema_breadcrumb_items = array();
 
       foreach ( $breadcrumb_items as $index => $item ) {
@@ -1107,6 +1140,55 @@ add_action( 'wp_head', function () {
         );
 
         echo '<script type="application/ld+json">' . wp_json_encode( $breadcrumb_schema, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE ) . '</script>' . "\n";
+      }
+    }
+
+    if (
+      $is_regional_guide
+      && (
+        function_exists( 'pera_schema_should_emit_type' )
+          ? pera_schema_should_emit_type(
+              'FAQPage',
+              array(
+                'context' => 'regional_guide',
+                'post_id' => $post_id,
+              )
+            )
+          : true
+      )
+      && function_exists( 'pera_schema_extract_visible_faq_items_from_post' )
+    ) {
+      $faq_items = pera_schema_extract_visible_faq_items_from_post( $post_id );
+      if ( ! empty( $faq_items ) ) {
+        $faq_entities = array();
+
+        foreach ( $faq_items as $faq_item ) {
+          $question = isset( $faq_item['question'] ) ? trim( (string) $faq_item['question'] ) : '';
+          $answer   = isset( $faq_item['answer'] ) ? trim( (string) $faq_item['answer'] ) : '';
+          if ( $question === '' || $answer === '' ) {
+            continue;
+          }
+
+          $faq_entities[] = array(
+            '@type' => 'Question',
+            'name'  => $question,
+            'acceptedAnswer' => array(
+              '@type' => 'Answer',
+              'text'  => $answer,
+            ),
+          );
+        }
+
+        if ( ! empty( $faq_entities ) ) {
+          $faq_schema = array(
+            '@context'   => 'https://schema.org',
+            '@type'      => 'FAQPage',
+            'mainEntity' => $faq_entities,
+          );
+
+          echo '<script type="application/ld+json">' . wp_json_encode( $faq_schema, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE ) . '</script>' . "\n";
+          $GLOBALS['pera_schema_faq_emitted'] = true;
+        }
       }
     }
   }
@@ -1243,6 +1325,23 @@ add_action( 'wp_head', function () {
 
   $post_id = get_the_ID();
   if ( ! $post_id ) {
+    return;
+  }
+
+  if (
+    function_exists( 'pera_schema_should_emit_type' )
+    && ! pera_schema_should_emit_type(
+      'FAQPage',
+      array(
+        'context' => 'manual_meta_faq',
+        'post_id' => (int) $post_id,
+      )
+    )
+  ) {
+    return;
+  }
+
+  if ( ! empty( $GLOBALS['pera_schema_faq_emitted'] ) ) {
     return;
   }
 
