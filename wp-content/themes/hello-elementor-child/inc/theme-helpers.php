@@ -600,7 +600,7 @@ if ( ! function_exists( 'pera_inject_related_properties_into_guide_content' ) ) 
 
     $insert_after_paragraph = (int) apply_filters(
       'pera_related_guide_properties_insert_after_paragraph',
-      2,
+      10,
       $post_id
     );
     if ( $insert_after_paragraph < 1 ) {
