@@ -55,6 +55,28 @@ function pera_redirects_activate()
 register_activation_hook(__FILE__, 'pera_redirects_activate');
 
 /**
+ * Ensure redirects table exists before query operations.
+ *
+ * @return bool
+ */
+function pera_redirects_ensure_table_exists()
+{
+    global $wpdb;
+
+    $table_name = pera_redirects_table_name();
+    $existing_table = $wpdb->get_var($wpdb->prepare('SHOW TABLES LIKE %s', $table_name));
+    if ($existing_table === $table_name) {
+        return true;
+    }
+
+    pera_redirects_activate();
+
+    $existing_table = $wpdb->get_var($wpdb->prepare('SHOW TABLES LIKE %s', $table_name));
+
+    return $existing_table === $table_name;
+}
+
+/**
  * Normalize source path.
  *
  * @param string $source Source value.
@@ -162,6 +184,40 @@ function pera_redirects_is_valid_target_url($target_url)
 }
 
 /**
+ * Build safe redirect destination for runtime redirect output.
+ *
+ * @param string $target_url Target URL from DB.
+ * @return string
+ */
+function pera_redirects_get_safe_runtime_target_url($target_url)
+{
+    $target_url = trim((string) $target_url);
+    if ($target_url === '') {
+        return '';
+    }
+
+    if (0 === strpos($target_url, '/')) {
+        $safe_relative = wp_sanitize_redirect($target_url);
+        if (0 !== strpos($safe_relative, '/')) {
+            return '';
+        }
+
+        return $safe_relative;
+    }
+
+    if (!pera_redirects_is_valid_target_url($target_url)) {
+        return '';
+    }
+
+    $safe_absolute = wp_sanitize_redirect($target_url);
+    if (!wp_http_validate_url($safe_absolute)) {
+        return '';
+    }
+
+    return $safe_absolute;
+}
+
+/**
  * Validate redirect data.
  *
  * @param array $data Raw form data.
@@ -240,14 +296,20 @@ function pera_redirects_handle_admin_actions()
         return;
     }
 
-    if (!isset($_GET['page']) || $_GET['page'] !== 'pera-301-redirects') {
+    $page = isset($_GET['page']) ? sanitize_key(wp_unslash($_GET['page'])) : '';
+    if ($page !== 'pera-301-redirects') {
         return;
     }
 
     global $wpdb;
     $table_name = pera_redirects_table_name();
+    if (!pera_redirects_ensure_table_exists()) {
+        set_transient('pera_redirects_notice', array('type' => 'error', 'messages' => array(__('Could not initialize redirects table.', 'pera-301-redirects'))), 30);
+        return;
+    }
 
-    if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['pera_redirects_action'])) {
+    $request_method = isset($_SERVER['REQUEST_METHOD']) ? strtoupper(sanitize_text_field(wp_unslash($_SERVER['REQUEST_METHOD']))) : '';
+    if ($request_method === 'POST' && isset($_POST['pera_redirects_action'])) {
         check_admin_referer('pera_redirects_save_redirect');
 
         $action = sanitize_text_field(wp_unslash($_POST['pera_redirects_action']));
@@ -291,7 +353,7 @@ function pera_redirects_handle_admin_actions()
         }
 
         if ($action === 'update' && !empty($_POST['id'])) {
-            $id = (int) $_POST['id'];
+            $id = (int) sanitize_text_field(wp_unslash($_POST['id']));
             $result = $wpdb->update(
                 $table_name,
                 array(
@@ -327,7 +389,7 @@ function pera_redirects_handle_admin_actions()
 
     if (isset($_GET['pera_redirects_action'], $_GET['_wpnonce']) && $_GET['pera_redirects_action'] !== '') {
         $action = sanitize_text_field(wp_unslash($_GET['pera_redirects_action']));
-        $id = isset($_GET['id']) ? (int) $_GET['id'] : 0;
+        $id = isset($_GET['id']) ? (int) sanitize_text_field(wp_unslash($_GET['id'])) : 0;
 
         if ($id < 1) {
             return;
@@ -370,14 +432,18 @@ function pera_redirects_render_admin_page()
 
     global $wpdb;
     $table_name = pera_redirects_table_name();
+    if (!pera_redirects_ensure_table_exists()) {
+        echo '<div class="notice notice-error"><p>' . esc_html__('Could not initialize redirects table.', 'pera-301-redirects') . '</p></div>';
+        return;
+    }
 
     $search = isset($_GET['s']) ? sanitize_text_field(wp_unslash($_GET['s'])) : '';
-    $edit_id = isset($_GET['edit']) ? (int) $_GET['edit'] : 0;
+    $edit_id = isset($_GET['edit']) ? (int) sanitize_text_field(wp_unslash($_GET['edit'])) : 0;
 
     $where_sql = '';
     $query_args = array();
     $per_page = 50;
-    $paged = isset($_GET['paged']) ? max(1, (int) $_GET['paged']) : 1;
+    $paged = isset($_GET['paged']) ? max(1, (int) sanitize_text_field(wp_unslash($_GET['paged']))) : 1;
     $offset = ($paged - 1) * $per_page;
 
     if ($search !== '') {
@@ -532,14 +598,15 @@ function pera_redirects_render_admin_page()
         </table>
         <?php
         if ($total_pages > 1) {
-            $pagination_base = add_query_arg(
-                array(
-                    'page' => 'pera-301-redirects',
-                    's' => $search,
-                    'paged' => '%#%',
-                ),
-                admin_url('tools.php')
+            $pagination_args = array(
+                'page' => 'pera-301-redirects',
+                'paged' => '%#%',
             );
+            if ($search !== '') {
+                $pagination_args['s'] = $search;
+            }
+
+            $pagination_base = add_query_arg($pagination_args, admin_url('tools.php'));
 
             echo '<div class="tablenav"><div class="tablenav-pages">';
             echo wp_kses_post(
@@ -591,6 +658,9 @@ function pera_redirects_execute_redirect()
 
     global $wpdb;
     $table_name = pera_redirects_table_name();
+    if (!pera_redirects_ensure_table_exists()) {
+        return;
+    }
 
     $redirect = $wpdb->get_row(
         $wpdb->prepare(
@@ -604,8 +674,8 @@ function pera_redirects_execute_redirect()
         return;
     }
 
-    $target_url = (string) $redirect['target_url'];
-    if (!pera_redirects_is_valid_target_url($target_url)) {
+    $target_url = pera_redirects_get_safe_runtime_target_url((string) $redirect['target_url']);
+    if ($target_url === '') {
         return;
     }
 
