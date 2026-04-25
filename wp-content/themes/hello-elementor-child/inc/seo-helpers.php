@@ -19,7 +19,6 @@ if ( ! function_exists( 'pera_get_property_archive_taxonomies' ) ) {
       'region',
       'property_type',
       'property_tags',
-      'bedrooms',
       'special',
     );
 
