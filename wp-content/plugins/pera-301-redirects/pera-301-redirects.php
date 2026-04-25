@@ -167,6 +167,10 @@ function pera_redirects_is_valid_target_url($target_url)
 
     // Allow internal relative paths.
     if (0 === strpos($target_url, '/')) {
+        if (0 === strpos($target_url, '//')) {
+            return false;
+        }
+
         return true;
     }
 
@@ -197,8 +201,12 @@ function pera_redirects_get_safe_runtime_target_url($target_url)
     }
 
     if (0 === strpos($target_url, '/')) {
+        if (0 === strpos($target_url, '//')) {
+            return '';
+        }
+
         $safe_relative = wp_sanitize_redirect($target_url);
-        if (0 !== strpos($safe_relative, '/')) {
+        if (0 !== strpos($safe_relative, '/') || 0 === strpos($safe_relative, '//')) {
             return '';
         }
 
