@@ -342,47 +342,54 @@ get_header();
                             </div>
                         </section>
                     
-                        <!-- 4. LATEST PROPERTIES -->
-                        <section class="sidebar-block sidebar-block--properties">
-                          <h3>Latest properties</h3>
-                        
-                          <?php
-                          $properties = new WP_Query( array(
-                            'post_type'           => 'property',
-                            'posts_per_page'      => 3,
-                            'post_status'         => 'publish',
-                            'no_found_rows'       => true,
-                            'ignore_sticky_posts' => true,
-                          ) );
-                        
-                          if ( $properties->have_posts() ) : ?>
-                            
-                            <div class="cards-slider cards-slider--sidebar cards-slider--snap">
-                              <div class="slider-track">
-                                <?php
-                                while ( $properties->have_posts() ) :
-                                  $properties->the_post();
-                        
-                                  pera_render_property_card( array(
-                                    'variant'       => 'sidebar',
-                                    'card_classes'  => 'slider-card',
-                                    'show_badges'   => true,
-                                    'show_admin'    => false,
-                                    'show_excerpt'  => true,
-                                    'excerpt_words' => 18,
-                                    'image_size'    => 'large', // consider 'medium_large' for sidebar perf
-                                  ) );
-                        
-                                endwhile;
-                        
-                                // IMPORTANT: reset postdata
-                                wp_reset_postdata();
-                                ?>
+                        <?php
+                          $is_guide_like_post = function_exists( 'pera_schema_is_guide_like_post' )
+                            ? pera_schema_is_guide_like_post( get_the_ID() )
+                            : has_category( 'regional-guides', get_the_ID() );
+                        ?>
+                        <?php if ( ! $is_guide_like_post ) : ?>
+                          <!-- 4. LATEST PROPERTIES -->
+                          <section class="sidebar-block sidebar-block--properties">
+                            <h3>Latest properties</h3>
+                          
+                            <?php
+                            $properties = new WP_Query( array(
+                              'post_type'              => 'property',
+                              'posts_per_page'         => 3,
+                              'post_status'            => 'publish',
+                              'no_found_rows'          => true,
+                              'ignore_sticky_posts'    => true,
+                              'update_post_meta_cache' => false,
+                              'update_post_term_cache' => true,
+                            ) );
+                          
+                            if ( $properties->have_posts() ) : ?>
+                              
+                              <div class="cards-slider cards-slider--sidebar cards-slider--snap">
+                                <div class="slider-track">
+                                  <?php
+                                  while ( $properties->have_posts() ) :
+                                    $properties->the_post();
+                          
+                                    pera_render_property_card( array(
+                                      'variant'       => 'sidebar',
+                                      'card_classes'  => 'slider-card',
+                                      'show_badges'   => true,
+                                      'show_admin'    => false,
+                                      'show_excerpt'  => true,
+                                      'excerpt_words' => 18,
+                                      'image_size'    => 'large',
+                                    ) );
+                          
+                                  endwhile;
+                                  wp_reset_postdata();
+                                  ?>
+                                </div>
                               </div>
-                            </div>
-                        
-                          <?php endif; ?>
-                        </section>
+                          
+                            <?php endif; ?>
+                          </section>
+                        <?php endif; ?>
 
 
                 
