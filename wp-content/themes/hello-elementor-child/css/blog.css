@@ -447,6 +447,30 @@
   display: inline-flex;
 }
 
+/* Reusable CTA button groups inside article content */
+.article-body .article-cta-actions {
+  margin-top: 12px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.article-body .article-cta-actions .btn {
+  display: inline-flex;
+  justify-content: center;
+  text-align: center;
+}
+
+@media (max-width: 640px) {
+  .article-body .article-cta-actions {
+    flex-direction: column;
+  }
+
+  .article-body .article-cta-actions .btn {
+    width: 100%;
+  }
+}
+
 
 /* =======================================================
    7. ARTICLE TABLES – RESPONSIVE + STRIPED
