@@ -104,6 +104,216 @@ if ( ! function_exists( 'pera_schema_is_regional_guide_post' ) ) {
 	}
 }
 
+if ( ! function_exists( 'pera_schema_guide_like_category_slugs' ) ) {
+	/**
+	 * Default guide-like category slugs for post classification.
+	 *
+	 * @return array<int,string>
+	 */
+	function pera_schema_guide_like_category_slugs(): array {
+		$slugs = array(
+			'regional-guides',
+			'buyer-guides',
+			'investment-advice',
+		);
+
+		$slugs = apply_filters( 'pera_schema_guide_like_category_slugs', $slugs );
+
+		if ( ! is_array( $slugs ) ) {
+			return array();
+		}
+
+		$slugs = array_values(
+			array_filter(
+				array_map(
+					static function ( $slug ): string {
+						return sanitize_title( (string) $slug );
+					},
+					$slugs
+				),
+				static function ( string $slug ): bool {
+					return $slug !== '';
+				}
+			)
+		);
+
+		return array_values( array_unique( $slugs ) );
+	}
+}
+
+if ( ! function_exists( 'pera_schema_guide_like_category_priority' ) ) {
+	/**
+	 * Guide category priority when a post belongs to multiple guide-like categories.
+	 *
+	 * @return array<int,string>
+	 */
+	function pera_schema_guide_like_category_priority( int $post_id = 0 ): array {
+		$priority = array(
+			'regional-guides',
+			'buyer-guides',
+			'investment-advice',
+		);
+
+		$priority = apply_filters( 'pera_schema_guide_like_category_priority', $priority, $post_id );
+		if ( ! is_array( $priority ) ) {
+			return array();
+		}
+
+		$priority = array_values(
+			array_filter(
+				array_map(
+					static function ( $slug ): string {
+						return sanitize_title( (string) $slug );
+					},
+					$priority
+				),
+				static function ( string $slug ): bool {
+					return $slug !== '';
+				}
+			)
+		);
+
+		return array_values( array_unique( $priority ) );
+	}
+}
+
+if ( ! function_exists( 'pera_schema_get_primary_guide_like_category_slug' ) ) {
+	/**
+	 * Resolve the most relevant guide-like category slug for a post.
+	 */
+	function pera_schema_get_primary_guide_like_category_slug( int $post_id ): string {
+		if ( $post_id <= 0 || get_post_type( $post_id ) !== 'post' ) {
+			return '';
+		}
+
+		$guide_like_slugs = pera_schema_guide_like_category_slugs();
+		if ( empty( $guide_like_slugs ) ) {
+			return '';
+		}
+
+		$assigned = wp_get_post_categories(
+			$post_id,
+			array(
+				'fields' => 'slugs',
+			)
+		);
+
+		if ( ! is_array( $assigned ) || empty( $assigned ) ) {
+			return '';
+		}
+
+		$assigned = array_values(
+			array_filter(
+				array_map(
+					static function ( $slug ): string {
+						return sanitize_title( (string) $slug );
+					},
+					$assigned
+				),
+				static function ( string $slug ): bool {
+					return $slug !== '';
+				}
+			)
+		);
+
+		$guide_assigned = array_values( array_intersect( $assigned, $guide_like_slugs ) );
+		if ( empty( $guide_assigned ) ) {
+			return '';
+		}
+
+		$priority = pera_schema_guide_like_category_priority( $post_id );
+		foreach ( $priority as $slug ) {
+			if ( in_array( $slug, $guide_assigned, true ) ) {
+				return $slug;
+			}
+		}
+
+		return (string) $guide_assigned[0];
+	}
+}
+
+if ( ! function_exists( 'pera_schema_is_guide_like_post' ) ) {
+	/**
+	 * Guide-like posts are standard posts in configured guide categories.
+	 */
+	function pera_schema_is_guide_like_post( int $post_id ): bool {
+		$is_guide_like = pera_schema_get_primary_guide_like_category_slug( $post_id ) !== '';
+
+		return (bool) apply_filters( 'pera_schema_is_guide_like_post', $is_guide_like, $post_id );
+	}
+}
+
+if ( ! function_exists( 'pera_schema_guide_like_breadcrumb_items' ) ) {
+	/**
+	 * Build guide-like breadcrumbs:
+	 * Home > Blog > [Guide Category] > Current Post.
+	 *
+	 * @return array<int, array{name:string,url:string}>
+	 */
+	function pera_schema_guide_like_breadcrumb_items( int $post_id ): array {
+		$guide_slug = pera_schema_get_primary_guide_like_category_slug( $post_id );
+		if ( $guide_slug === '' ) {
+			return array();
+		}
+
+		$items = array(
+			array(
+				'name' => __( 'Home', 'hello-elementor-child' ),
+				'url'  => (string) home_url( '/' ),
+			),
+		);
+
+		$posts_page_id = (int) get_option( 'page_for_posts' );
+		$blog_url      = '';
+		$blog_name     = __( 'Blog', 'hello-elementor-child' );
+
+		if ( $posts_page_id > 0 ) {
+			$posts_url = get_permalink( $posts_page_id );
+			if ( is_string( $posts_url ) && $posts_url !== '' ) {
+				$blog_url = $posts_url;
+			}
+
+			$posts_title = trim( (string) get_the_title( $posts_page_id ) );
+			if ( $posts_title !== '' ) {
+				$blog_name = $posts_title;
+			}
+		} else {
+			$archive_url = get_post_type_archive_link( 'post' );
+			if ( is_string( $archive_url ) && $archive_url !== '' ) {
+				$blog_url = $archive_url;
+			}
+		}
+
+		if ( $blog_url !== '' ) {
+			$items[] = array(
+				'name' => $blog_name,
+				'url'  => $blog_url,
+			);
+		}
+
+		$guide_category = get_category_by_slug( $guide_slug );
+		if ( $guide_category instanceof WP_Term ) {
+			$guide_url = get_category_link( $guide_category->term_id );
+			if ( ! is_wp_error( $guide_url ) && is_string( $guide_url ) && $guide_url !== '' ) {
+				$items[] = array(
+					'name' => $guide_category->name,
+					'url'  => $guide_url,
+				);
+			}
+		}
+
+		$post_title = trim( (string) get_the_title( $post_id ) );
+		if ( $post_title !== '' ) {
+			$items[] = array(
+				'name' => $post_title,
+				'url'  => '',
+			);
+		}
+
+		return $items;
+	}
+}
+
 if ( ! function_exists( 'pera_schema_regional_guide_breadcrumb_items' ) ) {
 	/**
 	 * Build guide breadcrumbs: Home > Blog > Regional Guides > Current Guide.
@@ -255,6 +465,8 @@ if ( ! function_exists( 'pera_schema_extract_visible_faq_items_from_post' ) ) {
 		);
 
 		$items = array_slice( $items, 0, 12 );
+
+		$items = (array) apply_filters( 'pera_schema_guide_like_faq_items', $items, $post_id );
 
 		return (array) apply_filters( 'pera_schema_regional_guide_faq_items', $items, $post_id );
 	}

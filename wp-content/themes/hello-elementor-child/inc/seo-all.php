@@ -1013,8 +1013,8 @@ add_action( 'wp_head', function () {
   }
 
   if ( $context === 'blog_post' && $post_id > 0 ) {
-    $is_regional_guide = function_exists( 'pera_schema_is_regional_guide_post' )
-      ? pera_schema_is_regional_guide_post( $post_id )
+    $is_guide_like_post = function_exists( 'pera_schema_is_guide_like_post' )
+      ? pera_schema_is_guide_like_post( $post_id )
       : false;
 
     $author_id      = (int) get_post_field( 'post_author', $post_id );
@@ -1030,7 +1030,7 @@ add_action( 'wp_head', function () {
 
     $schema = array(
       '@context'         => 'https://schema.org',
-      '@type'            => $is_regional_guide ? 'Article' : 'BlogPosting',
+      '@type'            => $is_guide_like_post ? 'Article' : 'BlogPosting',
       'mainEntityOfPage' => array(
         '@type' => 'WebPage',
         '@id'   => $canonical,
@@ -1093,8 +1093,8 @@ add_action( 'wp_head', function () {
       echo '<script type="application/ld+json">' . wp_json_encode( $schema, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE ) . '</script>' . "\n";
     }
 
-    $breadcrumb_items = $is_regional_guide && function_exists( 'pera_schema_regional_guide_breadcrumb_items' )
-      ? pera_schema_regional_guide_breadcrumb_items( $post_id )
+    $breadcrumb_items = $is_guide_like_post && function_exists( 'pera_schema_guide_like_breadcrumb_items' )
+      ? pera_schema_guide_like_breadcrumb_items( $post_id )
       : pera_seo_post_breadcrumb_items( $post_id );
 
     if (
@@ -1144,13 +1144,13 @@ add_action( 'wp_head', function () {
     }
 
     if (
-      $is_regional_guide
+      $is_guide_like_post
       && (
         function_exists( 'pera_schema_should_emit_type' )
           ? pera_schema_should_emit_type(
               'FAQPage',
               array(
-                'context' => 'regional_guide',
+                'context' => 'guide_like_post',
                 'post_id' => $post_id,
               )
             )
