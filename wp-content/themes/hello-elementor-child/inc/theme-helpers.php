@@ -546,7 +546,7 @@ if ( ! function_exists( 'pera_render_related_guide_property_block' ) ) {
               ?>
             <?php endwhile; ?>
 
-            <article class="slider-card post-card post-card--cta home-editorial-posts__cta" aria-label="<?php echo esc_attr( sprintf( 'Property actions for %s', $district_term->name ) ); ?>">
+            <article class="slider-card post-card post-card--cta home-editorial-posts__cta pera-card-shell" aria-label="<?php echo esc_attr( sprintf( 'Property actions for %s', $district_term->name ) ); ?>">
               <div class="post-card-body">
                 <h3 class="post-card-title"><?php echo esc_html__( 'Like what you see?', 'hello-elementor-child' ); ?></h3>
                 <div class="home-editorial-posts__cta-actions">
