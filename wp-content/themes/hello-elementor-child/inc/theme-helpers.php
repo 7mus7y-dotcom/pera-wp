@@ -545,15 +545,18 @@ if ( ! function_exists( 'pera_render_related_guide_property_block' ) ) {
               ) );
               ?>
             <?php endwhile; ?>
+
+            <article class="slider-card post-card post-card--cta home-editorial-posts__cta" aria-label="<?php echo esc_attr( sprintf( 'Property actions for %s', $district_term->name ) ); ?>">
+              <div class="post-card-body">
+                <h3 class="post-card-title"><?php echo esc_html__( 'Like what you see?', 'hello-elementor-child' ); ?></h3>
+                <div class="home-editorial-posts__cta-actions">
+                  <a class="btn btn--solid btn--blue" href="<?php echo esc_url( $district_link ); ?>"><?php echo esc_html( sprintf( 'See all property for sale in %s', $district_term->name ) ); ?></a>
+                  <a class="btn btn--ghost btn--green" href="<?php echo esc_url( home_url( '/contact-us/' ) ); ?>"><?php echo esc_html__( 'Contact us', 'hello-elementor-child' ); ?></a>
+                </div>
+              </div>
+            </article>
           </div>
         </div>
-
-        <p class="sidebar-cta">
-          <a class="btn btn-primary" href="<?php echo esc_url( $district_link ); ?>"><?php echo esc_html( sprintf( 'Browse property for sale in %s', $district_term->name ) ); ?></a>
-          <?php if ( ! empty( $args['show_contact_cta'] ) ) : ?>
-            <a class="btn btn-outline" href="<?php echo esc_url( home_url( '/contact-us/' ) ); ?>">Contact us</a>
-          <?php endif; ?>
-        </p>
       </section>
       <?php
 
