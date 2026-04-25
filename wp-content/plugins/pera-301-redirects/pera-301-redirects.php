@@ -131,6 +131,37 @@ function pera_redirects_normalize_target_path_if_internal($target)
 }
 
 /**
+ * Check if a target is a valid redirect destination saved by the plugin.
+ *
+ * @param string $target_url Target URL from DB/form.
+ * @return bool
+ */
+function pera_redirects_is_valid_target_url($target_url)
+{
+    $target_url = trim((string) $target_url);
+    if ($target_url === '') {
+        return false;
+    }
+
+    // Allow internal relative paths.
+    if (0 === strpos($target_url, '/')) {
+        return true;
+    }
+
+    if (!wp_http_validate_url($target_url)) {
+        return false;
+    }
+
+    $parsed = wp_parse_url($target_url);
+    if (empty($parsed['scheme']) || empty($parsed['host'])) {
+        return false;
+    }
+
+    // Hard allow only http/https for absolute targets.
+    return in_array(strtolower($parsed['scheme']), array('http', 'https'), true);
+}
+
+/**
  * Validate redirect data.
  *
  * @param array $data Raw form data.
@@ -153,7 +184,7 @@ function pera_redirects_validate_redirect_data($data)
         $errors[] = __('Target URL is required.', 'pera-301-redirects');
     }
 
-    if ($target_url !== '' && 0 !== strpos($target_url, '/') && !wp_http_validate_url($target_url)) {
+    if ($target_url !== '' && !pera_redirects_is_valid_target_url($target_url)) {
         $errors[] = __('Target URL must be relative (/path/) or a valid absolute URL.', 'pera-301-redirects');
     }
 
@@ -245,7 +276,15 @@ function pera_redirects_handle_admin_actions()
             );
 
             if (false === $result) {
-                set_transient('pera_redirects_notice', array('type' => 'error', 'messages' => array(__('Could not create redirect. Source path may already exist.', 'pera-301-redirects'))), 30);
+                $error_message = __('Could not create redirect.', 'pera-301-redirects');
+                if (is_string($wpdb->last_error) && stripos($wpdb->last_error, 'Duplicate entry') !== false) {
+                    $error_message = sprintf(
+                        /* translators: %s: normalized source path */
+                        __('A redirect for source path "%s" already exists. Please edit the existing rule instead.', 'pera-301-redirects'),
+                        $redirect_data['source_path']
+                    );
+                }
+                set_transient('pera_redirects_notice', array('type' => 'error', 'messages' => array($error_message)), 30);
             } else {
                 set_transient('pera_redirects_notice', array('type' => 'success', 'messages' => array(__('Redirect created.', 'pera-301-redirects'))), 30);
             }
@@ -268,7 +307,15 @@ function pera_redirects_handle_admin_actions()
             );
 
             if (false === $result) {
-                set_transient('pera_redirects_notice', array('type' => 'error', 'messages' => array(__('Could not update redirect. Source path may already exist.', 'pera-301-redirects'))), 30);
+                $error_message = __('Could not update redirect.', 'pera-301-redirects');
+                if (is_string($wpdb->last_error) && stripos($wpdb->last_error, 'Duplicate entry') !== false) {
+                    $error_message = sprintf(
+                        /* translators: %s: normalized source path */
+                        __('A redirect for source path "%s" already exists. Please choose a unique source path.', 'pera-301-redirects'),
+                        $redirect_data['source_path']
+                    );
+                }
+                set_transient('pera_redirects_notice', array('type' => 'error', 'messages' => array($error_message)), 30);
             } else {
                 set_transient('pera_redirects_notice', array('type' => 'success', 'messages' => array(__('Redirect updated.', 'pera-301-redirects'))), 30);
             }
@@ -329,6 +376,9 @@ function pera_redirects_render_admin_page()
 
     $where_sql = '';
     $query_args = array();
+    $per_page = 50;
+    $paged = isset($_GET['paged']) ? max(1, (int) $_GET['paged']) : 1;
+    $offset = ($paged - 1) * $per_page;
 
     if ($search !== '') {
         $where_sql = "WHERE source_path LIKE %s OR target_url LIKE %s";
@@ -337,10 +387,18 @@ function pera_redirects_render_admin_page()
         $query_args[] = $like;
     }
 
-    $rows_sql = "SELECT * FROM {$table_name} {$where_sql} ORDER BY updated_at DESC";
-    $rows = !empty($query_args)
-        ? $wpdb->get_results($wpdb->prepare($rows_sql, $query_args), ARRAY_A)
-        : $wpdb->get_results($rows_sql, ARRAY_A);
+    $count_sql = "SELECT COUNT(*) FROM {$table_name} {$where_sql}";
+    $total_items = !empty($query_args)
+        ? (int) $wpdb->get_var($wpdb->prepare($count_sql, $query_args))
+        : (int) $wpdb->get_var($count_sql);
+    $total_pages = (int) ceil($total_items / $per_page);
+
+    $rows_sql = "SELECT * FROM {$table_name} {$where_sql} ORDER BY updated_at DESC LIMIT %d OFFSET %d";
+    if (!empty($query_args)) {
+        $rows = $wpdb->get_results($wpdb->prepare($rows_sql, array_merge($query_args, array($per_page, $offset))), ARRAY_A);
+    } else {
+        $rows = $wpdb->get_results($wpdb->prepare($rows_sql, $per_page, $offset), ARRAY_A);
+    }
 
     $edit_row = null;
     if ($edit_id > 0) {
@@ -447,6 +505,7 @@ function pera_redirects_render_admin_page()
                     $edit_url = add_query_arg(array('page' => 'pera-301-redirects', 'edit' => $id), admin_url('tools.php'));
                     $toggle_url = add_query_arg(array('page' => 'pera-301-redirects', 'pera_redirects_action' => 'toggle', 'id' => $id, '_wpnonce' => $nonce), admin_url('tools.php'));
                     $delete_url = add_query_arg(array('page' => 'pera-301-redirects', 'pera_redirects_action' => 'delete', 'id' => $id, '_wpnonce' => $nonce), admin_url('tools.php'));
+                    $test_url = home_url($row['source_path']);
                     ?>
                     <tr>
                         <td><code><?php echo esc_html($row['source_path']); ?></code></td>
@@ -460,6 +519,10 @@ function pera_redirects_render_admin_page()
                             |
                             <a href="<?php echo esc_url($toggle_url); ?>"><?php echo (int) $row['is_active'] === 1 ? esc_html__('Disable', 'pera-301-redirects') : esc_html__('Enable', 'pera-301-redirects'); ?></a>
                             |
+                            <?php if ((int) $row['is_active'] === 1) : ?>
+                                <a href="<?php echo esc_url($test_url); ?>" target="_blank" rel="noopener noreferrer"><?php esc_html_e('Test', 'pera-301-redirects'); ?></a>
+                                |
+                            <?php endif; ?>
                             <a href="<?php echo esc_url($delete_url); ?>" onclick="return confirm('<?php echo esc_js(__('Delete this redirect?', 'pera-301-redirects')); ?>');"><?php esc_html_e('Delete', 'pera-301-redirects'); ?></a>
                         </td>
                     </tr>
@@ -467,6 +530,34 @@ function pera_redirects_render_admin_page()
             <?php endif; ?>
             </tbody>
         </table>
+        <?php
+        if ($total_pages > 1) {
+            $pagination_base = add_query_arg(
+                array(
+                    'page' => 'pera-301-redirects',
+                    's' => $search,
+                    'paged' => '%#%',
+                ),
+                admin_url('tools.php')
+            );
+
+            echo '<div class="tablenav"><div class="tablenav-pages">';
+            echo wp_kses_post(
+                paginate_links(
+                    array(
+                        'base' => $pagination_base,
+                        'format' => '',
+                        'current' => $paged,
+                        'total' => max(1, $total_pages),
+                        'type' => 'plain',
+                        'prev_text' => __('&laquo;', 'pera-301-redirects'),
+                        'next_text' => __('&raquo;', 'pera-301-redirects'),
+                    )
+                )
+            );
+            echo '</div></div>';
+        }
+        ?>
     </div>
     <?php
 }
@@ -513,7 +604,11 @@ function pera_redirects_execute_redirect()
         return;
     }
 
-    $target_url = $redirect['target_url'];
+    $target_url = (string) $redirect['target_url'];
+    if (!pera_redirects_is_valid_target_url($target_url)) {
+        return;
+    }
+
     $normalized_target_path = pera_redirects_normalize_target_path_if_internal($target_url);
 
     // Prevent loops on same-domain same-path redirects.
@@ -530,7 +625,8 @@ function pera_redirects_execute_redirect()
         )
     );
 
-    wp_safe_redirect($target_url, (int) $redirect['status_code']);
+    // Use wp_redirect() because targets are already strictly validated on save and at runtime.
+    wp_redirect($target_url, (int) $redirect['status_code'], 'Pera 301 Redirects');
     exit;
 }
 add_action('template_redirect', 'pera_redirects_execute_redirect', 1);
