@@ -19,7 +19,7 @@ if ( ! function_exists( 'pera_property_archive_has_query_string' ) ) {
 
 if ( ! function_exists( 'pera_property_archive_schema_title' ) ) {
   function pera_property_archive_schema_title(): string {
-    if ( is_tax( pera_get_property_archive_taxonomies() ) ) {
+    if ( is_tax( pera_get_indexable_property_archive_taxonomies() ) ) {
       $term = get_queried_object();
       if ( $term instanceof WP_Term && ! is_wp_error( $term ) ) {
         $manual = pera_get_property_archive_term_manual_seo_title( $term );
@@ -46,7 +46,7 @@ if ( ! function_exists( 'pera_property_archive_schema_description' ) ) {
       return '';
     }
 
-    if ( is_tax( pera_get_property_archive_taxonomies() ) ) {
+    if ( is_tax( pera_get_indexable_property_archive_taxonomies() ) ) {
       $term = get_queried_object();
       if ( ! ( $term instanceof WP_Term ) || is_wp_error( $term ) ) {
         return '';
@@ -57,7 +57,14 @@ if ( ! function_exists( 'pera_property_archive_schema_description' ) ) {
         return $manual;
       }
 
-      return pera_get_property_archive_term_excerpt_fallback( $term );
+      $fallback = pera_get_property_archive_term_excerpt_fallback( $term );
+      if ( $fallback !== '' ) {
+        return $fallback;
+      }
+
+      return function_exists( 'pera_get_property_archive_generated_term_description' )
+        ? pera_get_property_archive_generated_term_description( $term )
+        : '';
     }
 
     if ( is_post_type_archive( 'property' ) ) {
@@ -85,7 +92,7 @@ if ( ! function_exists( 'pera_property_archive_schema_breadcrumb_items' ) ) {
       ),
     );
 
-    if ( is_tax( pera_get_property_archive_taxonomies() ) ) {
+    if ( is_tax( pera_get_indexable_property_archive_taxonomies() ) ) {
       $term = get_queried_object();
       if ( $term instanceof WP_Term && ! is_wp_error( $term ) ) {
         $items[] = array(
@@ -329,7 +336,7 @@ if ( ! function_exists( 'pera_property_archive_social_image' ) ) {
    * @return array{url:string,alt:string}
    */
   function pera_property_archive_social_image(): array {
-    if ( is_tax( pera_get_property_archive_taxonomies() ) ) {
+    if ( is_tax( pera_get_indexable_property_archive_taxonomies() ) ) {
       $term = get_queried_object();
       if ( $term instanceof WP_Term && ! is_wp_error( $term ) ) {
         $manual = pera_property_archive_taxonomy_manual_social_image( $term );
@@ -370,7 +377,7 @@ add_filter( 'pre_get_document_title', function( $title ) {
   // Taxonomy TITLE precedence:
   // 1) ACF seo_title, 2) raw term meta seo_title,
   // 3) taxonomy-generated title formula, 4) existing/default title.
-  if ( is_tax( pera_get_property_archive_taxonomies() ) ) {
+  if ( is_tax( pera_get_indexable_property_archive_taxonomies() ) ) {
     $term = get_queried_object();
     if ( ! ( $term instanceof WP_Term ) || is_wp_error( $term ) ) {
       return $title;
@@ -509,8 +516,11 @@ add_action( 'wp_head', function () {
 
   // Archive/taxonomy schema is intentionally owned by this module so page-type
   // schema logic stays close to canonical/robots ownership for the same context.
+  $is_indexable_property_tax_archive = is_tax( pera_get_indexable_property_archive_taxonomies() );
+
   if (
     ! $is_filtered
+    && ( ! is_tax() || $is_indexable_property_tax_archive )
     && $canonical !== ''
     && (
       function_exists( 'pera_schema_should_emit_type' )
@@ -562,9 +572,12 @@ add_action( 'wp_head', function () {
     }
 
     $qo = get_queried_object();
-    $is_district_archive = $qo instanceof WP_Term && ! is_wp_error( $qo ) && $qo->taxonomy === 'district';
+    $is_property_tax_archive = $qo instanceof WP_Term
+      && ! is_wp_error( $qo )
+      && in_array( (string) $qo->taxonomy, pera_get_indexable_property_archive_taxonomies(), true );
+
     if (
-      $is_district_archive
+      $is_property_tax_archive
       && (
         function_exists( 'pera_schema_should_emit_type' )
           ? pera_schema_should_emit_type(
@@ -606,6 +619,12 @@ add_filter( 'wp_robots', function ( array $robots ): array {
   }
 
   $is_filtered = pera_property_archive_is_filtered_request() || pera_property_archive_has_query_string();
+
+  if ( is_tax( 'special' ) ) {
+    $robots['noindex'] = true;
+    $robots['follow']  = true;
+    return $robots;
+  }
 
   if ( $is_filtered ) {
     $robots['noindex'] = true;
