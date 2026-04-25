@@ -517,7 +517,8 @@ add_action( 'wp_head', function () {
         ? pera_schema_should_emit_type(
             'CollectionPage',
             array(
-              'context' => 'property_archive',
+              'context'                        => 'property_archive',
+              'plugin_likely_outputs_same_type' => $has_seo_plugin,
             )
           )
         : true
@@ -547,8 +548,8 @@ add_action( 'wp_head', function () {
         ? pera_schema_should_emit_type(
             'BreadcrumbList',
             array(
-              'context'           => 'property_archive',
-              'force_theme_owner' => true,
+              'context'                        => 'property_archive',
+              'plugin_likely_outputs_same_type' => $has_seo_plugin,
             )
           )
         : true
