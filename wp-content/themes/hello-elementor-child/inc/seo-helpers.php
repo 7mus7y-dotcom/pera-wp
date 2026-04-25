@@ -31,6 +31,26 @@ if ( ! function_exists( 'pera_get_property_archive_taxonomies' ) ) {
   }
 }
 
+if ( ! function_exists( 'pera_get_indexable_property_archive_taxonomies' ) ) {
+  /**
+   * Property archive taxonomies intended to be indexable SEO archive pages.
+   */
+  function pera_get_indexable_property_archive_taxonomies( bool $existing_only = true ): array {
+    $taxonomies = array(
+      'district',
+      'region',
+      'property_type',
+      'property_tags',
+    );
+
+    if ( ! $existing_only ) {
+      return $taxonomies;
+    }
+
+    return array_values( array_filter( $taxonomies, 'taxonomy_exists' ) );
+  }
+}
+
 if ( ! function_exists( 'pera_is_property_archive_context' ) ) {
   /**
    * True when current request is owned by the property archive SEO module.
@@ -215,6 +235,23 @@ if ( ! function_exists( 'pera_get_property_archive_term_excerpt_fallback' ) ) {
   }
 }
 
+
+if ( ! function_exists( 'pera_property_archive_human_label_from_term_name' ) ) {
+  function pera_property_archive_human_label_from_term_name( string $name ): string {
+    $name = pera_seo_normalize_meta_text( $name );
+
+    if ( $name === '' ) {
+      return '';
+    }
+
+    if ( function_exists( 'mb_convert_case' ) ) {
+      return mb_convert_case( $name, MB_CASE_TITLE, 'UTF-8' );
+    }
+
+    return ucwords( strtolower( $name ) );
+  }
+}
+
 if ( ! function_exists( 'pera_get_property_archive_generated_title' ) ) {
   function pera_get_property_archive_generated_title( WP_Term $term ): string {
     $name = pera_seo_normalize_meta_text( (string) $term->name );
@@ -233,8 +270,10 @@ if ( ! function_exists( 'pera_get_property_archive_generated_title' ) ) {
     }
 
     if ( $taxonomy === 'property_type' ) {
-      return $name !== ''
-        ? sprintf( '%s property for sale in Istanbul | Pera Property', $name )
+      $label = pera_property_archive_human_label_from_term_name( $name );
+
+      return $label !== ''
+        ? sprintf( '%s for Sale in Istanbul | Pera Property', $label )
         : 'Property for sale in Istanbul | Pera Property';
     }
 
@@ -250,10 +289,34 @@ if ( ! function_exists( 'pera_get_property_archive_generated_title' ) ) {
       return 'Property for sale in Istanbul | Pera Property';
     }
 
-    if ( $taxonomy === 'special' ) {
-      return $name !== ''
-        ? sprintf( '%s property for sale in Istanbul | Pera Property', $name )
-        : 'Property for sale in Istanbul | Pera Property';
+    return '';
+  }
+}
+
+
+if ( ! function_exists( 'pera_get_property_archive_generated_term_description' ) ) {
+  function pera_get_property_archive_generated_term_description( WP_Term $term ): string {
+    $taxonomy = (string) $term->taxonomy;
+    $name     = pera_property_archive_human_label_from_term_name( (string) $term->name );
+
+    if ( $taxonomy === 'property_type' ) {
+      if ( $name !== '' ) {
+        return sprintf(
+          'Explore %s for sale in Istanbul with Pera Property. Discover verified listings and expert support for buyers and investors.',
+          $name
+        );
+      }
+
+      return pera_get_property_archive_generated_description();
+    }
+
+    if ( $taxonomy === 'district' || $taxonomy === 'region' || $taxonomy === 'property_tags' ) {
+      $scope = $name !== '' ? $name : 'Istanbul';
+
+      return sprintf(
+        'Explore property for sale in %s, Istanbul with Pera Property. View verified listings and get local guidance for confident buying.',
+        $scope
+      );
     }
 
     return '';
