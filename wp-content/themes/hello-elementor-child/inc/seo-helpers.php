@@ -220,6 +220,59 @@ if ( ! function_exists( 'pera_get_property_archive_term_manual_meta_description'
   }
 }
 
+if ( ! function_exists( 'pera_get_property_archive_term_manual_heading' ) ) {
+  /**
+   * Manual visible archive H1 override for term archives.
+   * Intentionally separate from SEO title so UI headings can differ from <title>.
+   */
+  function pera_get_property_archive_term_manual_heading( WP_Term $term ): string {
+    $field_candidates = array(
+      'archive_h1',
+      'archive_heading',
+      'h1_title',
+      'display_title',
+      'hero_title',
+    );
+
+    foreach ( $field_candidates as $field_name ) {
+      $manual = pera_get_property_archive_term_acf_field( $term, $field_name );
+      if ( $manual !== '' ) {
+        return $manual;
+      }
+    }
+
+    foreach ( $field_candidates as $field_name ) {
+      $manual = pera_seo_normalize_meta_text( (string) get_term_meta( $term->term_id, $field_name, true ) );
+      if ( $manual !== '' ) {
+        return $manual;
+      }
+    }
+
+    return '';
+  }
+}
+
+if ( ! function_exists( 'pera_get_property_type_archive_heading' ) ) {
+  function pera_get_property_type_archive_heading( WP_Term $term ): string {
+    $name = trim( (string) $term->name );
+    $slug = sanitize_title( (string) $term->slug );
+
+    if ( in_array( $slug, array( 'apartment', 'apartments' ), true ) ) {
+      return 'Apartments for Sale in Istanbul';
+    }
+
+    if ( in_array( $slug, array( 'villa', 'villas' ), true ) ) {
+      return 'Villas for Sale in Istanbul';
+    }
+
+    if ( $name !== '' ) {
+      return sprintf( '%s for Sale in Istanbul', $name );
+    }
+
+    return 'Property for sale in Istanbul';
+  }
+}
+
 if ( ! function_exists( 'pera_get_property_archive_term_excerpt_fallback' ) ) {
   /**
    * Existing term-description fallback chain for taxonomy archive meta descriptions.
