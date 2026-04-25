@@ -101,6 +101,122 @@ if ( ! function_exists( 'pera_property_archive_schema_breadcrumb_items' ) ) {
   }
 }
 
+if ( ! function_exists( 'pera_property_archive_schema_item_list_elements' ) ) {
+  /**
+   * Build ItemList entries from the same query builder used by archive-property.php.
+   *
+   * @return array<int,array<string,mixed>>
+   */
+  function pera_property_archive_schema_item_list_elements(): array {
+    if ( ! function_exists( 'pera_property_archive_build_args_from_context' ) ) {
+      return array();
+    }
+
+    $paged = function_exists( 'pera_property_archive_get_paged' )
+      ? (int) pera_property_archive_get_paged()
+      : max( 1, (int) get_query_var( 'paged' ) );
+
+    $taxonomy_context = function_exists( 'pera_get_property_tax_archive_context' )
+      ? pera_get_property_tax_archive_context()
+      : array();
+
+    $normalize_tax_slugs = static function ( $raw ): array {
+      if ( is_array( $raw ) ) {
+        $decoded = array_map(
+          static function ( $value ): string {
+            return rawurldecode( wp_unslash( (string) $value ) );
+          },
+          $raw
+        );
+      } elseif ( $raw !== null && $raw !== '' ) {
+        $decoded = array( rawurldecode( wp_unslash( (string) $raw ) ) );
+      } else {
+        $decoded = array();
+      }
+
+      $flat = array();
+      foreach ( $decoded as $item ) {
+        foreach ( explode( ',', $item ) as $piece ) {
+          $slug = sanitize_title( trim( $piece ) );
+          if ( $slug !== '' ) {
+            $flat[ $slug ] = true;
+          }
+        }
+      }
+
+      return array_keys( $flat );
+    };
+
+    $current_keyword = isset( $_GET['s'] ) ? sanitize_text_field( wp_unslash( (string) $_GET['s'] ) ) : '';
+    $current_keyword = trim( $current_keyword );
+    $current_keyword_is_post_id = ( $current_keyword !== '' ) && preg_match( '/^\d+$/', $current_keyword );
+    $current_keyword_post_id    = $current_keyword_is_post_id ? absint( $current_keyword ) : 0;
+
+    $qs_min = ( isset( $_GET['min_price'] ) && $_GET['min_price'] !== '' ) ? absint( $_GET['min_price'] ) : 0;
+    $qs_max = ( isset( $_GET['max_price'] ) && $_GET['max_price'] !== '' ) ? absint( $_GET['max_price'] ) : 0;
+
+    $ctx = array(
+      'paged'                      => max( 1, $paged ),
+      'current_district'           => $normalize_tax_slugs( $_GET['district'] ?? array() ),
+      'current_tag'                => $normalize_tax_slugs( $_GET['property_tags'] ?? array() ),
+      'current_type'               => isset( $_GET['property_type'] ) ? sanitize_title( wp_unslash( (string) $_GET['property_type'] ) ) : '',
+      'selected_beds'              => isset( $_GET['v2_beds'] ) ? sanitize_text_field( wp_unslash( (string) $_GET['v2_beds'] ) ) : '',
+      'current_keyword'            => $current_keyword,
+      'current_keyword_is_post_id' => $current_keyword_is_post_id,
+      'current_keyword_post_id'    => $current_keyword_post_id,
+      'taxonomy_context'           => is_array( $taxonomy_context ) ? $taxonomy_context : array(),
+      'has_price_qs'               => ( $qs_min > 0 || $qs_max > 0 ),
+      'qs_min'                     => $qs_min,
+      'qs_max'                     => $qs_max,
+      'sort'                       => isset( $_GET['sort'] ) ? sanitize_text_field( wp_unslash( (string) $_GET['sort'] ) ) : 'date_desc',
+    );
+
+    $args = pera_property_archive_build_args_from_context(
+      $ctx,
+      array(
+        'no_found_rows'  => true,
+        'fields'         => 'ids',
+      )
+    );
+    $args['no_found_rows'] = true;
+    $args['fields']        = 'ids';
+
+    $query = new WP_Query( $args );
+    if ( empty( $query->posts ) || ! is_array( $query->posts ) ) {
+      return array();
+    }
+
+    $posts_per_page = isset( $args['posts_per_page'] ) ? max( 1, (int) $args['posts_per_page'] ) : 12;
+    $position       = ( max( 1, $paged ) - 1 ) * $posts_per_page;
+    $items          = array();
+
+    foreach ( $query->posts as $post_id ) {
+      $post_id    = (int) $post_id;
+      $permalink  = get_permalink( $post_id );
+      $post_title = trim( (string) get_the_title( $post_id ) );
+
+      if ( ! is_string( $permalink ) || $permalink === '' ) {
+        continue;
+      }
+
+      $position++;
+      $entry = array(
+        '@type'    => 'ListItem',
+        'position' => $position,
+        'url'      => $permalink,
+      );
+
+      if ( $post_title !== '' ) {
+        $entry['name'] = $post_title;
+      }
+
+      $items[] = $entry;
+    }
+
+    return $items;
+  }
+}
+
 if ( ! function_exists( 'pera_property_archive_resolve_image_from_acf_value' ) ) {
   /**
    * Normalize common ACF image return formats (array/id/url).
@@ -393,7 +509,20 @@ add_action( 'wp_head', function () {
 
   // Archive/taxonomy schema is intentionally owned by this module so page-type
   // schema logic stays close to canonical/robots ownership for the same context.
-  if ( ! $is_filtered && $canonical !== '' ) {
+  if (
+    ! $is_filtered
+    && $canonical !== ''
+    && (
+      function_exists( 'pera_schema_should_emit_type' )
+        ? pera_schema_should_emit_type(
+            'CollectionPage',
+            array(
+              'context' => 'property_archive',
+            )
+          )
+        : true
+    )
+  ) {
     $title = pera_property_archive_schema_title();
     $graph = array(
       '@context' => 'https://schema.org',
@@ -413,15 +542,48 @@ add_action( 'wp_head', function () {
 
     $graph['@graph'][] = $collection_page;
 
-    $graph['@graph'][] = array(
-      '@type'           => 'BreadcrumbList',
-      '@id'             => $canonical . '#breadcrumb',
-      'itemListElement' => pera_property_archive_schema_breadcrumb_items( $canonical, $title ),
-    );
+    if (
+      function_exists( 'pera_schema_should_emit_type' )
+        ? pera_schema_should_emit_type(
+            'BreadcrumbList',
+            array(
+              'context'           => 'property_archive',
+              'force_theme_owner' => true,
+            )
+          )
+        : true
+    ) {
+      $graph['@graph'][] = array(
+        '@type'           => 'BreadcrumbList',
+        '@id'             => $canonical . '#breadcrumb',
+        'itemListElement' => pera_property_archive_schema_breadcrumb_items( $canonical, $title ),
+      );
+    }
 
-    // ItemList intentionally deferred: archive-property.php builds a dedicated
-    // $property_query after get_header(), so wp_head cannot safely prove the
-    // rendered card set is the main query on first render.
+    $qo = get_queried_object();
+    $is_district_archive = $qo instanceof WP_Term && ! is_wp_error( $qo ) && $qo->taxonomy === 'district';
+    if (
+      $is_district_archive
+      && (
+        function_exists( 'pera_schema_should_emit_type' )
+          ? pera_schema_should_emit_type(
+              'ItemList',
+              array(
+                'context' => 'district_archive',
+              )
+            )
+          : true
+      )
+    ) {
+      $item_list_elements = pera_property_archive_schema_item_list_elements();
+      if ( ! empty( $item_list_elements ) ) {
+        $graph['@graph'][] = array(
+          '@type'           => 'ItemList',
+          '@id'             => $canonical . '#itemlist',
+          'itemListElement' => $item_list_elements,
+        );
+      }
+    }
 
     echo '<script type="application/ld+json">' . wp_json_encode( $graph, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE ) . '</script>' . "\n";
   }
