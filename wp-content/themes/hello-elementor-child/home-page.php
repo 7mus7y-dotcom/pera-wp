@@ -662,7 +662,14 @@ get_template_part( 'parts/home-editorial-posts' );
 $homepage_faq_items = array();
 
 if ( function_exists( 'get_field' ) ) {
-  $faq_rows = get_field( 'faq', get_queried_object_id() );
+  $front_page_id = (int) get_option( 'page_on_front' );
+  if ( $front_page_id <= 0 ) {
+    $front_page_id = (int) get_queried_object_id();
+  }
+
+  $faq_rows = $front_page_id > 0
+    ? get_field( 'faq', $front_page_id )
+    : get_field( 'faq' );
 
   if ( is_array( $faq_rows ) ) {
     foreach ( $faq_rows as $faq_row ) {
