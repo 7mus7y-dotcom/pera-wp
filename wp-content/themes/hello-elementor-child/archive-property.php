@@ -214,6 +214,7 @@ if ( $debug_enabled ) {
 $is_filtered_search = function_exists( 'pera_property_archive_is_filtered_request' )
   ? pera_property_archive_is_filtered_request( $_GET )
   : false;
+$is_clean_main_property_archive = is_post_type_archive( 'property' ) && ! is_tax() && ! is_paged() && empty( $_GET );
 
 // Build heading (no count here — count belongs in #results-count. change heading based on taxonomy pages and search)
 if ( $is_filtered_search ) {
@@ -1025,6 +1026,40 @@ $pagination_html = function_exists( 'pera_render_property_pagination' )
   </section>
 <?php endif; ?>
 
+<?php if ( $is_clean_main_property_archive ) : ?>
+  <section class="archive-seo-content section section-soft">
+    <div class="container">
+      <div class="section-header">
+        <h2>Property for sale in Istanbul: where to buy and how to choose</h2>
+      </div>
+      <p class="text-soft">Istanbul gives buyers one of the broadest real estate selections in the region, from city-centre apartments to spacious family villas and investment-focused homes. Whether you are searching for a primary residence, a second home, or a property with long-term rental potential, the market offers options at very different price points and lifestyles. The key is matching location, building quality and ownership goals rather than choosing by price alone. On this page, you can compare listings and then narrow your search by district, property type, bedroom count and budget.</p>
+      <p class="text-soft">Apartments remain the most popular entry point for buyers who want central access and easier management. In premium neighbourhoods, modern apartments in secure complexes can attract strong demand from both local and international tenants. Family buyers who need more privacy and larger internal space often prefer villas in quieter residential areas with better access to schools and green spaces. For many clients, the best approach is to shortlist two or three districts first, then compare properties by transport links, construction standard, title status and resale liquidity.</p>
+      <p class="text-soft">Among the most searched locations are <a href="<?php echo esc_url( home_url( '/district/istanbul/besiktas/' ) ); ?>">Beşiktaş</a>, <a href="<?php echo esc_url( home_url( '/district/istanbul/sisli/' ) ); ?>">Şişli</a> and <a href="<?php echo esc_url( home_url( '/district/istanbul/kadikoy/' ) ); ?>">Kadıköy</a>. Beşiktaş is often preferred by buyers who want central living, waterfront access and established neighbourhoods. Şişli attracts professionals and investors looking for central convenience, business access and modern regeneration projects. Kadıköy, on the Anatolian side, is popular with lifestyle buyers who value culture, walkable streets and strong local demand. Bomonti and Nişantaşı are also frequently considered by premium urban buyers.</p>
+      <p class="text-soft">For investment property, buyers usually focus on future resale depth, achievable rental yields and the profile of end users in each micro-location. New developments can be attractive when developer quality and delivery track record are strong, while completed resale units can reduce timeline risk and provide immediate rental data. A practical investment review should include total acquisition cost, expected net rental income, management assumptions and likely exit scenarios over a multi-year horizon. This helps buyers avoid decisions based only on headline marketing figures.</p>
+      <p class="text-soft">Lifestyle buyers typically prioritise daily convenience: commute times, nearby amenities, schools, medical access and neighbourhood character. These factors influence long-term satisfaction as much as the apartment plan or finishing materials. In Istanbul, even adjacent streets can differ significantly in noise, traffic and tenant profile, so local guidance and physical viewing remain essential. Buyers who define non-negotiables early—such as building age, parking, security and walkability—tend to make faster and more confident decisions.</p>
+      <p class="text-soft">Citizenship-focused buyers should evaluate each property through both legal eligibility and market fundamentals. If your objective includes the Turkish passport route, requirements must be met precisely and documented correctly during purchase and transfer. You can review the process in detail on our <a href="<?php echo esc_url( home_url( '/citizenship-by-investment/' ) ); ?>">Turkish Citizenship by Investment</a> page. Even when citizenship is the primary driver, asset quality and location still matter for future resale and rental performance. A structured due-diligence process—valuation review, title checks and eligibility verification—helps ensure your purchase supports both personal and financial goals.</p>
+    </div>
+  </section>
+
+  <section class="archive-faq section">
+    <div class="container">
+      <div class="section-header">
+        <h2>Frequently asked questions</h2>
+      </div>
+      <h3>Can foreigners buy property in Istanbul?</h3>
+      <p>Yes. Foreign buyers can purchase property in Istanbul in most areas, subject to normal legal checks and title procedures. Most transactions include tax number registration, valuation and title-deed transfer support.</p>
+
+      <h3>What are the best areas to buy property in Istanbul?</h3>
+      <p>The best area depends on your goal. Beşiktaş and Şişli are central and lifestyle-driven, while Kadıköy is popular for local demand and city living. Premium buyers also consider Bomonti and Nişantaşı.</p>
+
+      <h3>Is Istanbul good for property investment?</h3>
+      <p>Istanbul is one of Turkey’s most active markets, with steady domestic and international demand. Results vary by location, property quality, rental strategy and entry price, so district-level analysis is important.</p>
+
+      <h3>Can I get Turkish citizenship by buying property?</h3>
+      <p>Yes, eligible buyers may apply under the Turkish Citizenship by Investment program if current legal thresholds and holding requirements are met. Professional legal review is recommended before purchase.</p>
+    </div>
+  </section>
+<?php endif; ?>
 
             
                 
