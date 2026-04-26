@@ -657,6 +657,55 @@ get_template_part( 'parts/home-editorial-posts' );
   </div>
 </section>
 
+<?php if ( is_front_page() ) : ?>
+<section class="section section-soft">
+  <div class="container">
+    <div class="section-header">
+      <h2>Property for Sale in Istanbul: Investment &amp; Lifestyle Opportunities</h2>
+    </div>
+
+    <p class="text-soft">
+      At Pera Property, we advise buyers on how to navigate <strong>property for sale in Istanbul</strong> with a clear strategy first — then shortlist options that match lifestyle goals, rental expectations, and budget. From central homes to investment-led developments, the market offers opportunities on both the European and Asian sides, each with different upside depending on your priorities.
+    </p>
+
+    <p class="text-soft">
+      For clients focused on long-term value, <strong>apartments for sale in Istanbul</strong> in districts such as <a href="<?php echo esc_url( home_url('/district/istanbul/besiktas/') ); ?>">Beşiktaş</a> and <a href="<?php echo esc_url( home_url('/district/istanbul/sisli/') ); ?>">Şişli</a> are often preferred for access to business hubs and daily convenience, while <a href="<?php echo esc_url( home_url('/district/istanbul/kadikoy/') ); ?>">Kadıköy</a> suits buyers who want a stronger residential and cultural profile.
+    </p>
+
+    <p class="text-soft">
+      If you plan to <strong>buy property in Istanbul</strong>, we recommend assessing location fundamentals, developer track record, exit liquidity, and realistic rental performance before committing. New projects can offer modern amenities and appreciation potential, while selected resale stock may provide faster income stability.
+    </p>
+
+    <p class="text-soft">
+      Istanbul is also a major destination for buyers interested in residency and citizenship options. Through the <a href="<?php echo esc_url( home_url('/citizenship-by-investment/') ); ?>">Turkish Citizenship by Investment</a> program, eligible property purchases can qualify investors for a Turkish passport, making real estate not only a lifestyle decision but also a strategic investment.
+    </p>
+  </div>
+</section>
+
+<section class="section">
+  <div class="container">
+    <div class="section-header">
+      <h2>FAQs About Buying Property in Istanbul</h2>
+    </div>
+
+    <h3>Can foreigners buy property in Istanbul?</h3>
+    <p>Yes, foreign buyers can purchase property in Istanbul in most areas. The process typically includes tax registration, valuation, and title deed transfer.</p>
+
+    <h3>Is Istanbul a good place to invest in property?</h3>
+    <p>Istanbul has strong demand and long-term growth potential, making it one of the most active real estate markets in the region.</p>
+
+    <h3>What types of property are available in Istanbul?</h3>
+    <p>Buyers can choose from apartments, villas, and commercial units across a wide range of price points and locations.</p>
+
+    <h3>Can I get Turkish citizenship by buying property?</h3>
+    <p>Yes, eligible investors can apply for Turkish citizenship through property investment under current legal requirements.</p>
+
+    <h3>How much does property cost in Istanbul?</h3>
+    <p>Property prices in Istanbul vary depending on location, property type, and proximity to central areas, with options available across a wide range of budgets.</p>
+  </div>
+</section>
+<?php endif; ?>
+
 </main>
 
 <?php get_footer();
