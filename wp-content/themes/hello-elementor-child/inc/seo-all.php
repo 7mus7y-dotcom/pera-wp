@@ -1186,8 +1186,8 @@ add_action( 'wp_head', function () {
             'mainEntity' => $faq_entities,
           );
 
-          echo '<script type="application/ld+json">' . wp_json_encode( $faq_schema, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE ) . '</script>' . "\n";
           $GLOBALS['pera_schema_faq_emitted'] = true;
+          echo '<script type="application/ld+json">' . wp_json_encode( $faq_schema, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE ) . '</script>' . "\n";
         }
       }
     }
@@ -1394,7 +1394,11 @@ add_action( 'wp_head', function () {
     return;
   }
 
-  $front_page_id = (int) get_queried_object_id();
+  $front_page_id = (int) get_option( 'page_on_front' );
+  if ( $front_page_id <= 0 ) {
+    $front_page_id = (int) get_queried_object_id();
+  }
+
   $faq_rows = $front_page_id > 0
     ? get_field( 'faq', $front_page_id )
     : get_field( 'faq' );
@@ -1405,8 +1409,8 @@ add_action( 'wp_head', function () {
   $faq_entities = array();
 
   foreach ( $faq_rows as $faq_row ) {
-    $question = isset( $faq_row['question'] ) ? trim( (string) $faq_row['question'] ) : '';
-    $answer   = isset( $faq_row['answer'] ) ? trim( (string) $faq_row['answer'] ) : '';
+    $question = isset( $faq_row['question'] ) ? trim( preg_replace( '/\s+/', ' ', wp_strip_all_tags( (string) $faq_row['question'] ) ) ) : '';
+    $answer   = isset( $faq_row['answer'] ) ? trim( preg_replace( '/\s+/', ' ', wp_strip_all_tags( (string) $faq_row['answer'] ) ) ) : '';
 
     if ( $question === '' || $answer === '' ) {
       continue;
@@ -1417,7 +1421,7 @@ add_action( 'wp_head', function () {
       'name'  => $question,
       'acceptedAnswer' => array(
         '@type' => 'Answer',
-        'text'  => trim( preg_replace( '/\s+/', ' ', wp_strip_all_tags( $answer ) ) ),
+        'text'  => $answer,
       ),
     );
   }
