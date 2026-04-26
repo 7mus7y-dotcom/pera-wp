@@ -377,7 +377,7 @@ if ( ! function_exists( 'pera_get_property_archive_generated_term_description' )
 
 if ( ! function_exists( 'pera_get_property_archive_generated_description' ) ) {
   function pera_get_property_archive_generated_description(): string {
-    return 'Discover property for sale in Istanbul, from luxury apartments to investment opportunities, with guidance from local experts.';
+    return 'Browse property for sale in Istanbul, including apartments, villas and investment opportunities in Beşiktaş, Şişli, Kadıköy and prime districts.';
   }
 }
 
