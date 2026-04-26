@@ -33,7 +33,7 @@ $beds_options = array( 1, 2, 3, 4, 5, 6 );
       <h1>Find Property in Istanbul</h1>
 
       <div class="lead">
-        <p>Search new projects and resales across Istanbul’s prime districts.</p>
+        <p>Explore the best property for sale in Istanbul, including modern apartments, luxury residences, and high-yield investment opportunities across the city’s most desirable districts.</p>
       </div>
 
       <div class="width-restricter centered">
@@ -209,6 +209,14 @@ $featured_query = new WP_Query( array(
 </section>
 
 <?php wp_reset_postdata(); ?>
+
+<section class="section section-soft">
+  <div class="container">
+    <p class="text-soft">
+      Explore a wide range of <strong>property for sale in Istanbul</strong>, from centrally located apartments to carefully selected investment opportunities across the city. Our portfolio includes both ready properties and off-market deals, allowing buyers to compare options based on location, budget, and long-term potential. Below, you can view some of our latest opportunities, chosen for their value, positioning, and investment appeal.
+    </p>
+  </div>
+</section>
 
 <?php
 /* ======================================================
