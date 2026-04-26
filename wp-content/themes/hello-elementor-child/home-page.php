@@ -658,6 +658,29 @@ get_template_part( 'parts/home-editorial-posts' );
 </section>
 
 <?php if ( is_front_page() ) : ?>
+<?php
+$homepage_faq_items = array();
+
+if ( function_exists( 'get_field' ) ) {
+  $faq_rows = get_field( 'faq', get_queried_object_id() );
+
+  if ( is_array( $faq_rows ) ) {
+    foreach ( $faq_rows as $faq_row ) {
+      $question = isset( $faq_row['question'] ) ? trim( (string) $faq_row['question'] ) : '';
+      $answer   = isset( $faq_row['answer'] ) ? trim( (string) $faq_row['answer'] ) : '';
+
+      if ( $question === '' || $answer === '' ) {
+        continue;
+      }
+
+      $homepage_faq_items[] = array(
+        'question' => $question,
+        'answer'   => $answer,
+      );
+    }
+  }
+}
+?>
 <section class="section section-soft">
   <div class="container">
     <div class="section-header">
@@ -682,28 +705,20 @@ get_template_part( 'parts/home-editorial-posts' );
   </div>
 </section>
 
-<section class="section">
-  <div class="container">
-    <div class="section-header">
-      <h2>FAQs About Buying Property in Istanbul</h2>
+<?php if ( ! empty( $homepage_faq_items ) ) : ?>
+  <section class="section">
+    <div class="container">
+      <div class="section-header">
+        <h2>FAQs About Buying Property in Istanbul</h2>
+      </div>
+
+      <?php foreach ( $homepage_faq_items as $faq_item ) : ?>
+        <h3><?php echo esc_html( $faq_item['question'] ); ?></h3>
+        <p><?php echo wp_kses_post( $faq_item['answer'] ); ?></p>
+      <?php endforeach; ?>
     </div>
-
-    <h3>Can foreigners buy property in Istanbul?</h3>
-    <p>Yes, foreign buyers can purchase property in Istanbul in most areas. The process typically includes tax registration, valuation, and title deed transfer.</p>
-
-    <h3>Is Istanbul a good place to invest in property?</h3>
-    <p>Istanbul has strong demand and long-term growth potential, making it one of the most active real estate markets in the region.</p>
-
-    <h3>What types of property are available in Istanbul?</h3>
-    <p>Buyers can choose from apartments, villas, and commercial units across a wide range of price points and locations.</p>
-
-    <h3>Can I get Turkish citizenship by buying property?</h3>
-    <p>Yes, eligible investors can apply for Turkish citizenship through property investment under current legal requirements.</p>
-
-    <h3>How much does property cost in Istanbul?</h3>
-    <p>Property prices in Istanbul vary depending on location, property type, and proximity to central areas, with options available across a wide range of budgets.</p>
-  </div>
-</section>
+  </section>
+<?php endif; ?>
 <?php endif; ?>
 
 </main>
