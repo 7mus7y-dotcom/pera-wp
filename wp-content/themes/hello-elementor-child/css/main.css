@@ -282,9 +282,9 @@ h1, h2, h3, h4, h5, h6 {
   margin: 0 0 0.5em;
 }
 
-h1 { font-size: 3rem; font-weight: 800; }
-h2 { font-size: 2.4rem; font-weight: 700; }
-h3 { font-size: 1.4rem; font-weight: 600; }
+h1 { font-size: 2.6rem; font-weight: 800; }
+h2 { font-size: 2rem; font-weight: 700; }
+h3 { font-size: 1.35rem; font-weight: 600; }
 
 p {
   font-size: 1rem;
@@ -297,12 +297,14 @@ p {
 .muted { color: var(--text-soft); }
 
 @media (max-width: 1024px) {
-  h1 { font-size: 2.5rem; }
-  h2 { font-size: 2rem; }
+  h1 { font-size: 2.25rem; }
+  h2 { font-size: 1.8rem; }
+  h3 { font-size: 1.3rem; }
 }
 @media (max-width: 768px) {
-  h1 { font-size: 2.2rem; }
-  h2 { font-size: 1.8rem; }
+  h1 { font-size: 2rem; }
+  h2 { font-size: 1.55rem; }
+  h3 { font-size: 1.2rem; }
 }
 
 
