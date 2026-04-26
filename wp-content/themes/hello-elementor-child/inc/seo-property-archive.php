@@ -415,7 +415,11 @@ add_filter( 'pre_get_document_title', function( $title ) {
     return $title;
   }
 
-  return 'Property for sale in Istanbul | Pera Property';
+  if ( ! empty( $_GET ) ) {
+    return $title;
+  }
+
+  return 'Property for Sale in Istanbul | Apartments & Investment Opportunities';
 }, 20 );
 
 add_action( 'wp_head', function () {
@@ -470,6 +474,7 @@ add_action( 'wp_head', function () {
     class_exists( 'RankMath\\Frontend\\Frontend' );
 
   $meta_desc = pera_property_archive_schema_description( $is_filtered, $has_seo_plugin );
+  $is_clean_main_property_archive = is_post_type_archive( 'property' ) && ! is_tax() && ! is_paged() && empty( $_GET );
 
   echo "\n<!-- Pera SEO: Property archive -->\n";
 
@@ -575,9 +580,10 @@ add_action( 'wp_head', function () {
     $is_property_tax_archive = $qo instanceof WP_Term
       && ! is_wp_error( $qo )
       && in_array( (string) $qo->taxonomy, pera_get_indexable_property_archive_taxonomies(), true );
+    $should_emit_item_list = $is_clean_main_property_archive || $is_property_tax_archive;
 
     if (
-      $is_property_tax_archive
+      $should_emit_item_list
       && (
         function_exists( 'pera_schema_should_emit_type' )
           ? pera_schema_should_emit_type(
@@ -600,6 +606,54 @@ add_action( 'wp_head', function () {
     }
 
     echo '<script type="application/ld+json">' . wp_json_encode( $graph, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE ) . '</script>' . "\n";
+  }
+
+  if (
+    ! $has_seo_plugin
+    && ! $is_filtered
+    && $is_clean_main_property_archive
+    && $canonical !== ''
+  ) {
+    $faq_schema = array(
+      '@context'   => 'https://schema.org',
+      '@type'      => 'FAQPage',
+      'mainEntity' => array(
+        array(
+          '@type'          => 'Question',
+          'name'           => 'Can foreigners buy property in Istanbul?',
+          'acceptedAnswer' => array(
+            '@type' => 'Answer',
+            'text'  => 'Yes. Foreign nationals can buy property in Istanbul in most districts, subject to standard title checks and military-zone rules. Buyers typically complete tax number registration, valuation and title-deed transfer with professional legal support.',
+          ),
+        ),
+        array(
+          '@type'          => 'Question',
+          'name'           => 'What are the best areas to buy property in Istanbul?',
+          'acceptedAnswer' => array(
+            '@type' => 'Answer',
+            'text'  => 'Popular areas depend on goals: Beşiktaş and Şişli are central and lifestyle-driven, Kadıköy is strong for local demand and city living, while neighborhoods like Bomonti and Nişantaşı attract premium buyers looking for established urban districts.',
+          ),
+        ),
+        array(
+          '@type'          => 'Question',
+          'name'           => 'Is Istanbul good for property investment?',
+          'acceptedAnswer' => array(
+            '@type' => 'Answer',
+            'text'  => 'Istanbul remains one of Turkey’s most active property markets, with year-round demand from domestic and international buyers. Investment outcomes vary by location, asset quality, rental strategy and entry price, so area-level analysis is essential.',
+          ),
+        ),
+        array(
+          '@type'          => 'Question',
+          'name'           => 'Can I get Turkish citizenship by buying property?',
+          'acceptedAnswer' => array(
+            '@type' => 'Answer',
+            'text'  => 'Yes, eligible buyers may apply for Turkish citizenship through investment when they meet current program requirements, including the minimum qualifying property value and holding period. A licensed advisor and legal team should verify eligibility before purchase.',
+          ),
+        ),
+      ),
+    );
+
+    echo '<script type="application/ld+json">' . wp_json_encode( $faq_schema, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE ) . '</script>' . "\n";
   }
 
   echo "<!-- /Pera SEO: Property archive -->\n\n";
