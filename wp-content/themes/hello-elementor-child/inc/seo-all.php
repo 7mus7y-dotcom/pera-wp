@@ -1390,51 +1390,46 @@ add_action( 'wp_head', function () {
     return;
   }
 
+  if ( ! function_exists( 'get_field' ) ) {
+    return;
+  }
+
+  $front_page_id = (int) get_queried_object_id();
+  $faq_rows = $front_page_id > 0
+    ? get_field( 'faq', $front_page_id )
+    : get_field( 'faq' );
+  if ( ! is_array( $faq_rows ) || empty( $faq_rows ) ) {
+    return;
+  }
+
+  $faq_entities = array();
+
+  foreach ( $faq_rows as $faq_row ) {
+    $question = isset( $faq_row['question'] ) ? trim( (string) $faq_row['question'] ) : '';
+    $answer   = isset( $faq_row['answer'] ) ? trim( (string) $faq_row['answer'] ) : '';
+
+    if ( $question === '' || $answer === '' ) {
+      continue;
+    }
+
+    $faq_entities[] = array(
+      '@type' => 'Question',
+      'name'  => $question,
+      'acceptedAnswer' => array(
+        '@type' => 'Answer',
+        'text'  => trim( preg_replace( '/\s+/', ' ', wp_strip_all_tags( $answer ) ) ),
+      ),
+    );
+  }
+
+  if ( empty( $faq_entities ) ) {
+    return;
+  }
+
   $faq_schema = array(
     '@context'   => 'https://schema.org',
     '@type'      => 'FAQPage',
-    'mainEntity' => array(
-      array(
-        '@type' => 'Question',
-        'name'  => 'Can foreigners buy property in Istanbul?',
-        'acceptedAnswer' => array(
-          '@type' => 'Answer',
-          'text'  => 'Yes, foreign buyers can purchase property in Istanbul in most areas. The process includes tax registration, valuation, and title deed transfer.',
-        ),
-      ),
-      array(
-        '@type' => 'Question',
-        'name'  => 'Is Istanbul a good place to invest in property?',
-        'acceptedAnswer' => array(
-          '@type' => 'Answer',
-          'text'  => 'Istanbul has strong demand and long-term growth potential, making it one of the most active real estate markets in the region.',
-        ),
-      ),
-      array(
-        '@type' => 'Question',
-        'name'  => 'What types of property are available in Istanbul?',
-        'acceptedAnswer' => array(
-          '@type' => 'Answer',
-          'text'  => 'Buyers can choose from apartments, villas, and commercial units across a wide range of price points and locations.',
-        ),
-      ),
-      array(
-        '@type' => 'Question',
-        'name'  => 'Can I get Turkish citizenship by buying property?',
-        'acceptedAnswer' => array(
-          '@type' => 'Answer',
-          'text'  => 'Yes, eligible investors can apply for Turkish citizenship through property investment under current legal requirements.',
-        ),
-      ),
-      array(
-        '@type' => 'Question',
-        'name'  => 'How much does property cost in Istanbul?',
-        'acceptedAnswer' => array(
-          '@type' => 'Answer',
-          'text'  => 'Property prices in Istanbul vary depending on location, property type, and proximity to central areas, with options available across a wide range of budgets.',
-        ),
-      ),
-    ),
+    'mainEntity' => $faq_entities,
   );
 
   $GLOBALS['pera_schema_faq_emitted'] = true;
