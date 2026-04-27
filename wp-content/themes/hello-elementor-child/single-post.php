@@ -301,7 +301,7 @@ get_header();
                           </div><!-- /.cards-slider -->
                     
                           <div class="sidebar-cta">
-                            <a class="btn btn-primary" href="<?php echo esc_url( $primary_link ? $primary_link : $posts_page_link ); ?>">
+                            <a class="btn btn--solid btn--blue" href="<?php echo esc_url( $primary_link ? $primary_link : $posts_page_link ); ?>">
                               See all posts
                             </a>
                           </div>
@@ -320,7 +320,7 @@ get_header();
                                 and negotiate with qualified buyers from Turkey and abroad.
                             </p>
                             <div class="sidebar-cta">
-                                <a class="btn btn-primary"
+                                <a class="btn btn--solid btn--blue"
                                    href="https://www.peraproperty.com/sell-your-istanbul-real-estate/">
                                     Sell!
                                 </a>
@@ -335,7 +335,7 @@ get_header();
                                 and move-in so you can enjoy secure, consistent income.
                             </p>
                             <div class="sidebar-cta">
-                                <a class="btn btn-primary"
+                                <a class="btn btn--solid btn--blue"
                                    href="https://www.peraproperty.com/rent-your-istanbul-real-estate/">
                                     Rent!
                                 </a>
@@ -411,7 +411,7 @@ get_header();
         <section class="section section-article">
             <div class="container narrow">
                 <p>Sorry, we couldn’t find this article.</p>
-                <a class="btn btn-outline" href="<?php echo esc_url( home_url( '/' ) ); ?>">Go to homepage</a>
+                <a class="btn btn--ghost btn--blue" href="<?php echo esc_url( home_url( '/' ) ); ?>">Go to homepage</a>
             </div>
         </section>
 
