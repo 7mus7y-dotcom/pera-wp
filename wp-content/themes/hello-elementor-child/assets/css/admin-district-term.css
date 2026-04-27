@@ -1,0 +1,130 @@
+body.taxonomy-district .wrap,
+body.taxonomy-district .wrap * {
+	box-sizing: border-box;
+}
+
+body.taxonomy-district .wrap input[type="text"],
+body.taxonomy-district .wrap input[type="search"],
+body.taxonomy-district .wrap input[type="url"],
+body.taxonomy-district .wrap input[type="email"],
+body.taxonomy-district .wrap input[type="number"],
+body.taxonomy-district .wrap input[type="password"],
+body.taxonomy-district .wrap textarea,
+body.taxonomy-district .wrap select,
+body.taxonomy-district .wrap .wp-editor-wrap,
+body.taxonomy-district .wrap .wp-editor-area,
+body.taxonomy-district .wrap .acf-input,
+body.taxonomy-district .wrap img {
+	max-width: 100%;
+}
+
+body.taxonomy-district .wrap textarea,
+body.taxonomy-district .wrap .wp-editor-area,
+body.taxonomy-district .wrap .acf-field textarea {
+	width: 100%;
+}
+
+body.taxonomy-district .wrap img,
+body.taxonomy-district .wrap .term-image-preview img {
+	height: auto;
+}
+
+body.taxonomy-district .wrap {
+	overflow-x: clip;
+}
+
+body.taxonomy-district .wrap p,
+body.taxonomy-district .wrap td,
+body.taxonomy-district .wrap th,
+body.taxonomy-district .wrap label,
+body.taxonomy-district .wrap .description,
+body.taxonomy-district .wrap .notice,
+body.taxonomy-district .wrap .acf-label,
+body.taxonomy-district .wrap .acf-input {
+	overflow-wrap: anywhere;
+	word-break: break-word;
+}
+
+body.taxonomy-district .pera-district-faqs-wrapper {
+	max-width: 100%;
+}
+
+body.taxonomy-district .pera-district-faq-row {
+	width: 100%;
+	max-width: 100%;
+	margin-bottom: 12px;
+	padding: 12px;
+	border: 1px solid #dcdcde;
+	background: #fff;
+}
+
+body.taxonomy-district .pera-district-faq-row p {
+	margin: 0 0 12px;
+}
+
+body.taxonomy-district .pera-district-faq-row p:last-child {
+	margin-bottom: 0;
+}
+
+body.taxonomy-district .pera-district-faq-row input[type="text"],
+body.taxonomy-district .pera-district-faq-row textarea {
+	width: 100%;
+	max-width: 100%;
+}
+
+body.taxonomy-district .acf-actions,
+body.taxonomy-district .acf-button-group,
+body.taxonomy-district .submit,
+body.taxonomy-district .term-group > p:last-child,
+body.taxonomy-district .term-group-wrap td > p:last-child {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 8px;
+}
+
+@media screen and (max-width: 782px) {
+	body.taxonomy-district .form-table,
+	body.taxonomy-district .form-table tbody,
+	body.taxonomy-district .form-table tr,
+	body.taxonomy-district .form-table th,
+	body.taxonomy-district .form-table td {
+		display: block;
+		width: 100%;
+	}
+
+	body.taxonomy-district .form-table th {
+		padding: 12px 0 6px;
+	}
+
+	body.taxonomy-district .form-table td {
+		padding: 0 0 12px;
+	}
+
+	body.taxonomy-district .wrap .acf-fields > .acf-field {
+		padding-left: 0;
+		padding-right: 0;
+	}
+
+	body.taxonomy-district .widefat,
+	body.taxonomy-district .regular-text,
+	body.taxonomy-district .large-text,
+	body.taxonomy-district .acf-input-wrap input,
+	body.taxonomy-district .acf-input-wrap textarea,
+	body.taxonomy-district .acf-input-wrap select {
+		width: 100% !important;
+		max-width: 100% !important;
+		min-width: 0;
+	}
+
+	body.taxonomy-district .acf-row,
+	body.taxonomy-district .acf-row td,
+	body.taxonomy-district .acf-row th,
+	body.taxonomy-district .acf-table,
+	body.taxonomy-district .acf-table > tbody > tr > td {
+		max-width: 100%;
+	}
+
+	body.taxonomy-district .acf-table {
+		table-layout: fixed;
+	}
+}
