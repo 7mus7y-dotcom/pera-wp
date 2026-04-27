@@ -598,6 +598,28 @@ section,
 }
 
 
+.btn-group {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.btn-group .btn {
+  flex: 1 1 auto;
+}
+
+/* Mobile refinement */
+@media (max-width: 600px) {
+  .btn-group {
+    flex-direction: column;
+  }
+
+  .btn-group .btn {
+    width: 100%;
+  }
+}
+
+
 /* =======================================================
    BUTTON COLOUR SYSTEM
    - All sizing comes from .btn (unchanged)
