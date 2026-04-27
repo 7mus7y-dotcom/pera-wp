@@ -979,6 +979,12 @@ $pagination_html = function_exists( 'pera_render_property_pagination' )
   </section>
 <?php endif; ?>
 
+<?php
+if ( $qo instanceof WP_Term && $qo->taxonomy === 'district' && function_exists( 'pera_render_district_page_faqs' ) ) {
+  pera_render_district_page_faqs( $qo );
+}
+?>
+
 <?php if ( $related_taxonomy_total > 0 ) : ?>
   <?php
     $is_single_row_related = ( $related_taxonomy_total > 0 && $related_taxonomy_total <= 4 );
@@ -1068,6 +1074,12 @@ $pagination_html = function_exists( 'pera_render_property_pagination' )
     </section>
 
 </main>
+
+<?php
+if ( $qo instanceof WP_Term && $qo->taxonomy === 'district' && function_exists( 'pera_render_district_page_faq_schema' ) ) {
+  pera_render_district_page_faq_schema( $qo );
+}
+?>
 
 <script>
 (function () {
