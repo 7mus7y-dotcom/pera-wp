@@ -68,5 +68,48 @@ add_action(
 			)
 		);
 
+		acf_add_local_field_group(
+			array(
+				'key'    => 'group_district_archive_content',
+				'title'  => 'District Archive Content',
+				'fields' => array(
+					array(
+						'key'           => 'field_district_archive_subtitle',
+						'label'         => 'Archive Subtitle',
+						'name'          => 'district_archive_subtitle',
+						'type'          => 'textarea',
+						'rows'          => 2,
+						'instructions'  => 'Short plain-text subtitle shown under the H1 on district archive pages.',
+					),
+					array(
+						'key'          => 'field_district_archive_body',
+						'label'        => 'Archive Body Content',
+						'name'         => 'district_archive_body',
+						'type'         => 'wysiwyg',
+						'tabs'         => 'all',
+						'toolbar'      => 'basic',
+						'media_upload' => 0,
+						'instructions' => 'Commercial archive content shown below property listings. HTML allowed.',
+					),
+					array(
+						'key'          => 'field_district_regional_guide_url',
+						'label'        => 'Regional Guide URL',
+						'name'         => 'district_regional_guide_url',
+						'type'         => 'url',
+						'instructions' => 'Optional link to the full regional guide article.',
+					),
+				),
+				'location' => array(
+					array(
+						array(
+							'param'    => 'taxonomy',
+							'operator' => '==',
+							'value'    => 'district',
+						),
+					),
+				),
+			)
+		);
+
 	}
 );
