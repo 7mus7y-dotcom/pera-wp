@@ -68,46 +68,5 @@ add_action(
 			)
 		);
 
-		acf_add_local_field_group(
-			array(
-				'key'    => 'group_district_page_faqs',
-				'title'  => 'District Page FAQs',
-				'fields' => array(
-					array(
-						'key'          => 'field_district_page_faqs',
-						'label'        => 'District Page FAQs',
-						'name'         => 'district_page_faqs',
-						'type'         => 'repeater',
-						'layout'       => 'row',
-						'button_label' => 'Add FAQ',
-						'sub_fields'   => array(
-							array(
-								'key'      => 'field_district_page_faq_question',
-								'label'    => 'Question',
-								'name'     => 'question',
-								'type'     => 'text',
-								'required' => 1,
-							),
-							array(
-								'key'      => 'field_district_page_faq_answer',
-								'label'    => 'Answer',
-								'name'     => 'answer',
-								'type'     => 'textarea',
-								'required' => 1,
-							),
-						),
-					),
-				),
-				'location' => array(
-					array(
-						array(
-							'param'    => 'taxonomy',
-							'operator' => '==',
-							'value'    => 'district',
-						),
-					),
-				),
-			)
-		);
 	}
 );
