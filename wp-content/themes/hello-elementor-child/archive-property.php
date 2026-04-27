@@ -239,6 +239,9 @@ $related_taxonomy_total  = 0;
 $related_terms_flat      = array();
 $term_description_html   = '';
 $regional_guide_url      = '';
+$district_archive_subtitle           = '';
+$district_archive_body               = '';
+$district_regional_guide_url_override = '';
 
 if ( $qo instanceof WP_Term ) {
   $term_description_raw = term_description( $qo );
@@ -257,6 +260,22 @@ if ( $qo instanceof WP_Term ) {
         $regional_guide_url = $regional_guide_permalink;
       }
     }
+
+    if ( $qo->taxonomy === 'district' ) {
+      $district_term_acf_key = 'district_' . (int) $qo->term_id;
+
+      $district_archive_subtitle = (string) get_field( 'district_archive_subtitle', $district_term_acf_key );
+      $district_archive_body = (string) get_field( 'district_archive_body', $district_term_acf_key );
+      $district_regional_guide_url_override = (string) get_field( 'district_regional_guide_url', $district_term_acf_key );
+    }
+  }
+
+  if ( $qo->taxonomy === 'district' && trim( $district_archive_body ) !== '' ) {
+    $term_description_html = wpautop( wp_kses_post( $district_archive_body ) );
+  }
+
+  if ( $qo->taxonomy === 'district' && trim( $district_regional_guide_url_override ) !== '' ) {
+    $regional_guide_url = trim( $district_regional_guide_url_override );
   }
 }
 
@@ -351,7 +370,9 @@ if ( ! $is_filtered_search && ( $qo instanceof WP_Term ) && ! is_wp_error( $qo )
     $term_excerpt = (string) get_term_meta( $qo->term_id, 'pera_term_excerpt', true );
   }
 
-  if ( trim( wp_strip_all_tags( $term_excerpt ) ) !== '' ) {
+  if ( $qo->taxonomy === 'district' && trim( wp_strip_all_tags( $district_archive_subtitle ) ) !== '' ) {
+    $hero_desc_html = '<p class="text-light">' . esc_html( trim( $district_archive_subtitle ) ) . '</p>';
+  } elseif ( trim( wp_strip_all_tags( $term_excerpt ) ) !== '' ) {
     $excerpt_html = wpautop( wp_kses_post( $term_excerpt ) );
 
     // Ensure paragraphs get text-light class
