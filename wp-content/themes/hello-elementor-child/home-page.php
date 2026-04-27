@@ -20,6 +20,23 @@ $hero_img_url     = wp_get_attachment_image_url($hero_img_id, 'pera-card');
 // V2 beds options (single-select radio; your V2 archive expects v2_beds scalar)
 $beds_options = array( 1, 2, 3, 4, 5, 6 );
 
+$front_page_id = (int) get_option( 'page_on_front' );
+if ( $front_page_id <= 0 ) {
+  $front_page_id = (int) get_queried_object_id();
+}
+
+$homepage_hero_subtext = '';
+$homepage_listing_intro = '';
+$homepage_bottom_seo_text = '';
+
+if ( function_exists( 'get_field' ) ) {
+  $field_context = $front_page_id > 0 ? $front_page_id : get_queried_object_id();
+
+  $homepage_hero_subtext = trim( (string) get_field( 'homepage_hero_subtext', $field_context ) );
+  $homepage_listing_intro = (string) get_field( 'homepage_listing_intro', $field_context );
+  $homepage_bottom_seo_text = (string) get_field( 'homepage_bottom_seo_text', $field_context );
+}
+
 // Budget presets still work in V2 because your V2 SSR/AJAX reads min_price/max_price
 ?>
 <section class="hero hero--center" aria-label="Homepage hero search">
@@ -33,7 +50,11 @@ $beds_options = array( 1, 2, 3, 4, 5, 6 );
       <h1>Find Property in Istanbul</h1>
 
       <div class="lead">
-        <p>Explore the best property for sale in Istanbul, including modern apartments, luxury residences, and high-yield investment opportunities across the city’s most desirable districts.</p>
+        <p>
+          <?php echo $homepage_hero_subtext !== ''
+            ? esc_html( $homepage_hero_subtext )
+            : 'Explore the best property for sale in Istanbul, including modern apartments, luxury residences, and high-yield investment opportunities across the city’s most desirable districts.'; ?>
+        </p>
       </div>
 
       <div class="width-restricter centered">
@@ -212,9 +233,13 @@ $featured_query = new WP_Query( array(
 
 <section class="section section-soft">
   <div class="container">
-    <p class="text-soft">
-      Explore a wide range of <strong>property for sale in Istanbul</strong>, from centrally located apartments to carefully selected investment opportunities across the city. Our portfolio includes both ready properties and off-market deals, allowing buyers to compare options based on location, budget, and long-term potential. Below, you can view some of our latest opportunities, chosen for their value, positioning, and investment appeal.
-    </p>
+    <?php if ( trim( wp_strip_all_tags( $homepage_listing_intro ) ) !== '' ) : ?>
+      <?php echo wp_kses_post( $homepage_listing_intro ); ?>
+    <?php else : ?>
+      <p class="text-soft">
+        Explore a wide range of <strong>property for sale in Istanbul</strong>, from centrally located apartments to carefully selected investment opportunities across the city. Our portfolio includes both ready properties and off-market deals, allowing buyers to compare options based on location, budget, and long-term potential. Below, you can view some of our latest opportunities, chosen for their value, positioning, and investment appeal.
+      </p>
+    <?php endif; ?>
   </div>
 </section>
 
@@ -236,23 +261,25 @@ get_template_part( 'partials/home-latest-offers' );
           <div class="container">
         
             <div class="section-header section-header--center">
-              <h2>Explore Istanbul’s prime districts</h2>
+              <h2>Best districts to buy property in Istanbul</h2>
               <p class="lead">
-                Start with the areas most requested by international buyers — each with its own character,
-                lifestyle, and long-term appeal.
+                Compare central and lifestyle-led areas where international buyers search for apartments for sale in Istanbul, with direct access to district listings and practical local guides.
+              </p>
+              <p class="text-soft">
+                If you are planning to buy Istanbul investment property, start with districts that match your goals for rental demand, resale potential, and day-to-day lifestyle. The districts below are among the most searched by Pera Property clients.
               </p>
             </div>
         
-            <div class="cards-slider cards-slider--wide cards-slider--snap cards-slider--grid-lg" aria-label="Featured districts">
+            <div class="cards-slider cards-slider--wide cards-slider--snap cards-slider--grid-lg" aria-label="Featured districts in Istanbul for property buyers">
         
           <!-- Beşiktaş -->
           <article class="card-shell slider-card">
             <span class="pill pill--brand pill--sm">Central</span>
         
-            <h3 style="margin-top: 10px;">Beşiktaş</h3>
+            <h3 style="margin-top: 10px;">Beşiktaş property</h3>
         
             <p class="muted" style="margin: 0;">
-              Bosphorus living, historic landmarks, universities, and consistently high demand.
+              Beşiktaş is a top choice for property for sale in Istanbul, offering Bosphorus access, established neighbourhoods, and strong long-term demand.
             </p>
         
             <div class="property-facilities__pills" style="margin-top: 12px;">
@@ -262,7 +289,7 @@ get_template_part( 'partials/home-latest-offers' );
             </div>
         
             <div class="hero-actions" style="margin-top: 14px;">
-              <a class="btn btn--solid btn--blue" href="/district/besiktas/#results">View listings</a>
+              <a class="btn btn--solid btn--blue" href="<?php echo esc_url( home_url('/district/istanbul/besiktas/#results') ); ?>">View listings</a>
               <a class="btn btn--ghost btn--blue" href="https://www.peraproperty.com/besiktas-from-bronze-age-to-ottoman-palaces_51249/">
                 Area guide
               </a>
@@ -273,10 +300,10 @@ get_template_part( 'partials/home-latest-offers' );
           <article class="card-shell slider-card">
             <span class="pill pill--brand pill--sm">Business &amp; Lifestyle</span>
         
-            <h3 style="margin-top: 10px;">Şişli</h3>
+            <h3 style="margin-top: 10px;">Şişli property</h3>
         
             <p class="muted" style="margin: 0;">
-              Central access to business districts, shopping, and established neighbourhoods.
+              Şişli property attracts buyers seeking central Istanbul property close to business districts, shopping streets, and metro connections.
             </p>
         
             <div class="property-facilities__pills" style="margin-top: 12px;">
@@ -286,32 +313,32 @@ get_template_part( 'partials/home-latest-offers' );
             </div>
         
             <div class="hero-actions" style="margin-top: 14px;">
-              <a class="btn btn--solid btn--blue" href="/district/sisli/#results">View listings</a>
+              <a class="btn btn--solid btn--blue" href="<?php echo esc_url( home_url('/district/istanbul/sisli/#results') ); ?>">View listings</a>
               <a class="btn btn--ghost btn--blue" href="https://www.peraproperty.com/sisli-the-heart-of-modern-istanbul_51392/">
                 Area guide
               </a>
             </div>
           </article>
         
-          <!-- Sarıyer -->
+          <!-- Kadıköy -->
           <article class="card-shell slider-card">
-            <span class="pill pill--brand pill--sm">Premium &amp; Green</span>
+            <span class="pill pill--brand pill--sm">Residential &amp; Cultural</span>
         
-            <h3 style="margin-top: 10px;">Sarıyer</h3>
+            <h3 style="margin-top: 10px;">Kadıköy property</h3>
         
             <p class="muted" style="margin: 0;">
-              Green surroundings, villa communities, and proximity to Istanbul’s key business hubs.
+              Kadıköy property is popular with buyers who want a residential environment, walkable neighbourhoods, and steady local demand on the Anatolian side.
             </p>
         
             <div class="property-facilities__pills" style="margin-top: 12px;">
-              <span class="pill pill--outline">Villas</span>
-              <span class="pill pill--outline">Nature</span>
-              <span class="pill pill--outline">Long-term value</span>
+              <span class="pill pill--outline">Walkable streets</span>
+              <span class="pill pill--outline">Local demand</span>
+              <span class="pill pill--outline">Anatolian side</span>
             </div>
         
             <div class="hero-actions" style="margin-top: 14px;">
-              <a class="btn btn--solid btn--green" href="/district/sariyer/#results">View listings</a>
-              <a class="btn btn--ghost btn--green" href="https://www.peraproperty.com/buying-property-in-sariyer-istanbul-explore-coastal-charm_50776/">
+              <a class="btn btn--solid btn--green" href="<?php echo esc_url( home_url('/district/istanbul/kadikoy/#results') ); ?>">View listings</a>
+              <a class="btn btn--ghost btn--green" href="<?php echo esc_url( home_url('/kadikoy-regional-guide-a-vibrant-hub-on-istanbuls-asian-side_51561/') ); ?>">
                 Area guide
               </a>
             </div>
@@ -321,8 +348,8 @@ get_template_part( 'partials/home-latest-offers' );
 
 
     <div class="hero-actions flex-center" style="margin-top: 18px;">
-      <a class="btn btn--solid btn--blue" href="/property/">Browse all districts</a>
-      <a class="btn btn--solid btn--green" href="/contact-us/">Not sure where to start?</a>
+      <a class="btn btn--solid btn--blue" href="/property/">Browse all Istanbul property listings</a>
+      <a class="btn btn--solid btn--green" href="/contact-us/">Get district advice</a>
     </div>
 
   </div>
@@ -662,11 +689,6 @@ get_template_part( 'parts/home-editorial-posts' );
 $homepage_faq_items = array();
 
 if ( function_exists( 'get_field' ) ) {
-  $front_page_id = (int) get_option( 'page_on_front' );
-  if ( $front_page_id <= 0 ) {
-    $front_page_id = (int) get_queried_object_id();
-  }
-
   $faq_rows = $front_page_id > 0
     ? get_field( 'faq', $front_page_id )
     : get_field( 'faq' );
@@ -698,9 +720,13 @@ if ( function_exists( 'get_field' ) ) {
       At Pera Property, we advise buyers on how to navigate <strong>property for sale in Istanbul</strong> with a clear strategy first — then shortlist options that match lifestyle goals, rental expectations, and budget. From central homes to investment-led developments, the market offers opportunities on both the European and Asian sides, each with different upside depending on your priorities.
     </p>
 
-    <p class="text-soft">
-      For clients focused on long-term value, <strong>apartments for sale in Istanbul</strong> in districts such as <a href="<?php echo esc_url( home_url('/district/istanbul/besiktas/') ); ?>">Beşiktaş</a> and <a href="<?php echo esc_url( home_url('/district/istanbul/sisli/') ); ?>">Şişli</a> are often preferred for access to business hubs and daily convenience, while <a href="<?php echo esc_url( home_url('/district/istanbul/kadikoy/') ); ?>">Kadıköy</a> suits buyers who want a stronger residential and cultural profile.
-    </p>
+    <?php if ( trim( wp_strip_all_tags( $homepage_bottom_seo_text ) ) !== '' ) : ?>
+      <?php echo wp_kses_post( $homepage_bottom_seo_text ); ?>
+    <?php else : ?>
+      <p class="text-soft">
+        For clients focused on long-term value, <strong>apartments for sale in Istanbul</strong> in districts such as <a href="<?php echo esc_url( home_url('/district/istanbul/besiktas/') ); ?>">Beşiktaş</a> and <a href="<?php echo esc_url( home_url('/district/istanbul/sisli/') ); ?>">Şişli</a> are often preferred for access to business hubs and daily convenience, while <a href="<?php echo esc_url( home_url('/district/istanbul/kadikoy/') ); ?>">Kadıköy</a> suits buyers who want a stronger residential and cultural profile.
+      </p>
+    <?php endif; ?>
 
     <p class="text-soft">
       If you plan to <strong>buy property in Istanbul</strong>, we recommend assessing location fundamentals, developer track record, exit liquidity, and realistic rental performance before committing. New projects can offer modern amenities and appreciation potential, while selected resale stock may provide faster income stability.
