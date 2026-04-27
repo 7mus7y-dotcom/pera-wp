@@ -307,24 +307,29 @@ if ( ! function_exists( 'pera_save_district_term_faqs' ) ) {
 			return;
 		}
 
-		$raw_rows = array();
+		$raw_rows                 = array();
+		$has_valid_rows_submission = false;
 
 		if ( isset( $_POST['district_page_faqs_payload'] ) ) {
 			$payload_raw = wp_unslash( $_POST['district_page_faqs_payload'] );
-			if ( is_string( $payload_raw ) && '' !== trim( $payload_raw ) ) {
+			if ( is_string( $payload_raw ) ) {
 				$decoded = json_decode( $payload_raw, true );
-				if ( is_array( $decoded ) ) {
-					$raw_rows = $decoded;
+				if ( JSON_ERROR_NONE === json_last_error() && is_array( $decoded ) ) {
+					$raw_rows                 = $decoded;
+					$has_valid_rows_submission = true;
 				}
 			}
 		}
 
-		if ( empty( $raw_rows ) && isset( $_POST['district_page_faqs'] ) ) {
-			$raw_rows = wp_unslash( $_POST['district_page_faqs'] );
+		if ( ! $has_valid_rows_submission && isset( $_POST['district_page_faqs'] ) ) {
+			$legacy_rows = wp_unslash( $_POST['district_page_faqs'] );
+			if ( is_array( $legacy_rows ) ) {
+				$raw_rows                 = $legacy_rows;
+				$has_valid_rows_submission = true;
+			}
 		}
 
-		if ( ! is_array( $raw_rows ) ) {
-			delete_term_meta( $term_id, 'district_page_faqs' );
+		if ( ! $has_valid_rows_submission ) {
 			return;
 		}
 
