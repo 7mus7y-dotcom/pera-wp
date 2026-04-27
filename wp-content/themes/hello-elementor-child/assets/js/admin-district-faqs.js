@@ -100,12 +100,31 @@
       });
     }
 
+    function markPayloadReady(isReady) {
+      form.setAttribute('data-pera-faq-payload-ready', isReady ? '1' : '0');
+    }
+
     form.addEventListener('submit', function () {
       var rows = collectRowsForSubmit();
       var payloadInput = ensurePayloadInput();
-      payloadInput.value = JSON.stringify(rows);
+      var payloadJson = '';
 
-      // Prevent max_input_vars truncation from large FAQ repeaters.
+      markPayloadReady(false);
+
+      try {
+        payloadJson = JSON.stringify(rows);
+      } catch (error) {
+        return;
+      }
+
+      if (typeof payloadJson !== 'string') {
+        return;
+      }
+
+      payloadInput.value = payloadJson;
+      markPayloadReady(true);
+
+      // Prevent max_input_vars truncation from large FAQ repeaters only when payload is safely set.
       dropFaqInputNames();
     });
   }
