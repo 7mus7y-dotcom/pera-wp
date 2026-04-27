@@ -213,7 +213,7 @@ if ( ! function_exists( 'pera_district_faq_row_template' ) ) {
 	 */
 	function pera_district_faq_row_template( int $index, string $question = '', string $answer = '' ): void {
 		?>
-		<div class="pera-district-faq-row" style="margin-bottom:12px; padding:12px; border:1px solid #dcdcde; background:#fff;">
+		<div class="pera-district-faq-row">
 			<p>
 				<label><strong><?php esc_html_e( 'Question', 'peraproperty' ); ?></strong></label>
 				<input type="text" class="widefat" name="district_page_faqs[<?php echo esc_attr( (string) $index ); ?>][question]" value="<?php echo esc_attr( $question ); ?>" />
@@ -370,6 +370,20 @@ if ( ! function_exists( 'pera_enqueue_district_faq_admin_assets' ) ) {
 		$screen = function_exists( 'get_current_screen' ) ? get_current_screen() : null;
 		if ( ! $screen || 'district' !== $screen->taxonomy ) {
 			return;
+		}
+
+		if ( ! in_array( $screen->base, array( 'edit-tags', 'term' ), true ) ) {
+			return;
+		}
+
+		$admin_css_path = get_stylesheet_directory() . '/assets/css/admin-district-term.css';
+		if ( file_exists( $admin_css_path ) ) {
+			wp_enqueue_style(
+				'pera-district-term-admin',
+				get_stylesheet_directory_uri() . '/assets/css/admin-district-term.css',
+				array(),
+				(string) filemtime( $admin_css_path )
+			);
 		}
 
 		wp_enqueue_script(
