@@ -16,6 +16,24 @@ add_action(
 				'title'  => 'Homepage FAQ',
 				'fields' => array(
 					array(
+						'key'   => 'field_homepage_hero_subtext',
+						'label' => 'Hero subtext',
+						'name'  => 'homepage_hero_subtext',
+						'type'  => 'textarea',
+					),
+					array(
+						'key'   => 'field_homepage_listing_intro',
+						'label' => 'First paragraph before listings',
+						'name'  => 'homepage_listing_intro',
+						'type'  => 'wysiwyg',
+					),
+					array(
+						'key'   => 'field_homepage_bottom_seo_text',
+						'label' => 'Second paragraph towards the end',
+						'name'  => 'homepage_bottom_seo_text',
+						'type'  => 'wysiwyg',
+					),
+					array(
 						'key'          => 'field_homepage_faq',
 						'label'        => 'FAQ',
 						'name'         => 'faq',
