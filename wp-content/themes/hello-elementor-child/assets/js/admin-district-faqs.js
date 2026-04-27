@@ -2,8 +2,9 @@
   function initDistrictFaqRepeater() {
     var wrapper = document.getElementById('district-page-faqs-wrapper');
     var addButton = document.getElementById('pera-add-faq-row');
+    var form = wrapper ? wrapper.closest('form') : null;
 
-    if (!wrapper || !addButton) {
+    if (!wrapper || !addButton || !form) {
       return;
     }
 
@@ -55,6 +56,57 @@
       }
 
       row.remove();
+    });
+
+    function collectRowsForSubmit() {
+      var rows = [];
+      var inputs = wrapper.querySelectorAll('.pera-district-faq-row');
+
+      inputs.forEach(function (row) {
+        var questionInput = row.querySelector('input[name^="district_page_faqs["][name$="[question]"]');
+        var answerInput = row.querySelector('textarea[name^="district_page_faqs["][name$="[answer]"]');
+        var question = questionInput ? questionInput.value.trim() : '';
+        var answer = answerInput ? answerInput.value.trim() : '';
+
+        if (!question || !answer) {
+          return;
+        }
+
+        rows.push({
+          question: question,
+          answer: answer
+        });
+      });
+
+      return rows;
+    }
+
+    function ensurePayloadInput() {
+      var payload = form.querySelector('input[name="district_page_faqs_payload"]');
+      if (!payload) {
+        payload = document.createElement('input');
+        payload.type = 'hidden';
+        payload.name = 'district_page_faqs_payload';
+        form.appendChild(payload);
+      }
+      return payload;
+    }
+
+    function dropFaqInputNames() {
+      var namedInputs = wrapper.querySelectorAll('input[name^="district_page_faqs["], textarea[name^="district_page_faqs["]');
+      namedInputs.forEach(function (el) {
+        el.setAttribute('data-pera-original-name', el.getAttribute('name') || '');
+        el.removeAttribute('name');
+      });
+    }
+
+    form.addEventListener('submit', function () {
+      var rows = collectRowsForSubmit();
+      var payloadInput = ensurePayloadInput();
+      payloadInput.value = JSON.stringify(rows);
+
+      // Prevent max_input_vars truncation from large FAQ repeaters.
+      dropFaqInputNames();
     });
   }
 
