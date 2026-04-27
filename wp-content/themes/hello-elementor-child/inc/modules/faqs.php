@@ -240,6 +240,7 @@ if ( ! function_exists( 'pera_render_district_add_faq_fields' ) ) {
 		<div class="form-field term-group">
 			<label for="district-page-faqs-wrapper"><?php esc_html_e( 'District FAQs', 'peraproperty' ); ?></label>
 			<?php wp_nonce_field( 'pera_district_faq_save', 'pera_district_faq_nonce' ); ?>
+			<input type="hidden" id="district-page-faqs-payload" name="district_page_faqs_payload" value="[]" />
 			<div id="district-page-faqs-wrapper" class="pera-district-faqs-wrapper" data-next-index="1">
 				<?php pera_district_faq_row_template( 0 ); ?>
 			</div>
@@ -268,6 +269,7 @@ if ( ! function_exists( 'pera_render_district_edit_faq_fields' ) ) {
 			<th scope="row"><label for="district-page-faqs-wrapper"><?php esc_html_e( 'District FAQs', 'peraproperty' ); ?></label></th>
 			<td>
 				<?php wp_nonce_field( 'pera_district_faq_save', 'pera_district_faq_nonce' ); ?>
+				<input type="hidden" id="district-page-faqs-payload" name="district_page_faqs_payload" value="<?php echo esc_attr( wp_json_encode( array_values( $faqs ) ) ); ?>" />
 				<div id="district-page-faqs-wrapper" class="pera-district-faqs-wrapper" data-next-index="<?php echo esc_attr( (string) count( $faqs ) ); ?>">
 					<?php foreach ( $faqs as $index => $faq ) : ?>
 						<?php
@@ -307,16 +309,18 @@ if ( ! function_exists( 'pera_save_district_term_faqs' ) ) {
 			return;
 		}
 
-		$raw_rows                 = array();
-		$has_valid_rows_submission = false;
+		$raw_rows                     = array();
+		$has_valid_rows_submission     = false;
+		$has_explicit_empty_submission = false;
 
 		if ( isset( $_POST['district_page_faqs_payload'] ) ) {
 			$payload_raw = wp_unslash( $_POST['district_page_faqs_payload'] );
-			if ( is_string( $payload_raw ) ) {
+			if ( is_string( $payload_raw ) && '' !== $payload_raw ) {
 				$decoded = json_decode( $payload_raw, true );
 				if ( JSON_ERROR_NONE === json_last_error() && is_array( $decoded ) ) {
-					$raw_rows                 = $decoded;
-					$has_valid_rows_submission = true;
+					$raw_rows                     = $decoded;
+					$has_valid_rows_submission     = true;
+					$has_explicit_empty_submission = empty( $decoded );
 				}
 			}
 		}
@@ -324,8 +328,9 @@ if ( ! function_exists( 'pera_save_district_term_faqs' ) ) {
 		if ( ! $has_valid_rows_submission && isset( $_POST['district_page_faqs'] ) ) {
 			$legacy_rows = wp_unslash( $_POST['district_page_faqs'] );
 			if ( is_array( $legacy_rows ) ) {
-				$raw_rows                 = $legacy_rows;
-				$has_valid_rows_submission = true;
+				$raw_rows                     = $legacy_rows;
+				$has_valid_rows_submission     = true;
+				$has_explicit_empty_submission = empty( $legacy_rows );
 			}
 		}
 
@@ -353,7 +358,9 @@ if ( ! function_exists( 'pera_save_district_term_faqs' ) ) {
 		}
 
 		if ( empty( $sanitized_rows ) ) {
-			delete_term_meta( $term_id, 'district_page_faqs' );
+			if ( $has_explicit_empty_submission ) {
+				delete_term_meta( $term_id, 'district_page_faqs' );
+			}
 			return;
 		}
 
