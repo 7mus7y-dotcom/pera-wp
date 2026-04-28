@@ -110,6 +110,52 @@ $citizenship_requirements = array(
     </div>
   </section>
 
+  <section class="section section-soft" id="what-is-turkish-citizenship-by-investment">
+    <div class="container">
+      <header class="section-header section-header--center">
+        <h2>What Is Turkish Citizenship by Investment?</h2>
+        <p>
+          Turkish Citizenship by Investment is a legal route that allows eligible foreign investors to apply for Turkish citizenship after completing a qualifying investment, most commonly through real estate.
+        </p>
+      </header>
+
+      <div class="feature-grid">
+        <article class="feature-card">
+          <div class="feature-card-header">
+            <h3>The real estate route</h3>
+          </div>
+          <div class="feature-card-body">
+            <p>
+              The most popular route is a qualifying property purchase of at least USD 400,000, subject to valuation, title deed, foreign currency and land registry requirements.
+            </p>
+          </div>
+        </article>
+
+        <article class="feature-card">
+          <div class="feature-card-header">
+            <h3>Family application</h3>
+          </div>
+          <div class="feature-card-body">
+            <p>
+              The main applicant can usually include a spouse and children under 18 in the same citizenship file, making it suitable for family relocation, second passport and long-term planning.
+            </p>
+          </div>
+        </article>
+
+        <article class="feature-card">
+          <div class="feature-card-header">
+            <h3>Property-led strategy</h3>
+          </div>
+          <div class="feature-card-body">
+            <p>
+              A well-selected Istanbul property can support the citizenship application while also offering rental income, resale liquidity and long-term exposure to the Turkish real estate market.
+            </p>
+          </div>
+        </article>
+      </div>
+    </div>
+  </section>
+
   <section class="content-panel content-panel--overlap-hero citizenship-consultancy">
     <div class="content-panel-box">
       <div class="content-panel-grid--single">

@@ -2,7 +2,7 @@
   <div class="container">
 
     <header class="section-header section-header--center">
-      <h2>Frequently Asked Questions</h2>
+      <h2>Turkish Citizenship by Investment FAQs</h2>
       <p>
         Common questions about the Turkish Citizenship by Investment process,
         documents and practical requirements.
