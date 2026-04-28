@@ -357,7 +357,7 @@ $featured_query = new WP_Query( array(
             </div>
         
             <div class="hero-actions">
-              <a class="btn btn--solid btn--blue" href="/district/besiktas/#results">View listings</a>
+              <a class="btn btn--solid btn--blue" href="/district/istanbul/besiktas/#results">View listings</a>
               <a class="btn btn--ghost btn--blue" href="https://www.peraproperty.com/besiktas-from-bronze-age-to-ottoman-palaces_51249/">
                 Area guide
               </a>
