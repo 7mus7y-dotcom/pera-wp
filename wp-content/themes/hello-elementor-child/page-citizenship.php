@@ -9,7 +9,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 get_header();
 ?>
 
-<main id="primary" class="site-main">
+<main id="primary" class="site-main pera-citizenship-page">
 
 <?php
 $citizenship_requirements = array(

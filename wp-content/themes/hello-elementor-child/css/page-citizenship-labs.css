@@ -1,0 +1,141 @@
+/* Turkish Citizenship landing page refinements (Material/Labs-inspired)
+ * Scoped to avoid leaking into other templates.
+ */
+
+body.page-template-page-citizenship .pera-citizenship-page {
+  --citi-bg-soft: #f8f9fb;
+  --citi-bg-muted: #f6f7f9;
+  --citi-panel-bg: #ffffff;
+  --citi-border: #e3e7ee;
+  --citi-text-main: #1f2937;
+  --citi-text-subtle: #5a6678;
+  --citi-radius-panel: 16px;
+  --citi-radius-control: 9px;
+  --citi-section-gap: clamp(56px, 7vw, 92px);
+}
+
+body.page-template-page-citizenship .pera-citizenship-page {
+  color: var(--citi-text-main);
+  font-size: 16px;
+  line-height: 1.65;
+}
+
+body.page-template-page-citizenship .pera-citizenship-page p {
+  color: var(--citi-text-subtle);
+}
+
+body.page-template-page-citizenship .pera-citizenship-page h1 {
+  font-size: clamp(36px, 5vw, 42px);
+  letter-spacing: -0.02em;
+  line-height: 1.15;
+}
+
+body.page-template-page-citizenship .pera-citizenship-page h2 {
+  font-size: clamp(26px, 3.2vw, 30px);
+  letter-spacing: -0.015em;
+  line-height: 1.2;
+}
+
+body.page-template-page-citizenship .pera-citizenship-page h3 {
+  line-height: 1.3;
+}
+
+body.page-template-page-citizenship .pera-citizenship-page > .section + .section,
+body.page-template-page-citizenship .pera-citizenship-page > .content-panel + .content-panel {
+  margin-top: var(--citi-section-gap);
+}
+
+body.page-template-page-citizenship .pera-citizenship-page .section.section-soft {
+  background: var(--citi-bg-soft);
+}
+
+body.page-template-page-citizenship .pera-citizenship-page #who-can-apply.section-soft,
+body.page-template-page-citizenship .pera-citizenship-page #citizenship-timeline.section-soft,
+body.page-template-page-citizenship .pera-citizenship-page #citizenship-callback.section-soft {
+  background: var(--citi-bg-muted);
+}
+
+body.page-template-page-citizenship .pera-citizenship-page .citizenship-hero .hero-overlay {
+  background: linear-gradient(
+    90deg,
+    rgba(255, 255, 255, 0.82) 12%,
+    rgba(255, 255, 255, 0.44) 56%,
+    rgba(255, 255, 255, 0.06) 100%
+  );
+}
+
+body.page-template-page-citizenship .pera-citizenship-page .content-panel-box,
+body.page-template-page-citizenship .pera-citizenship-page .feature-card,
+body.page-template-page-citizenship .pera-citizenship-page .info-step,
+body.page-template-page-citizenship .pera-citizenship-page .timeline-step,
+body.page-template-page-citizenship .pera-citizenship-page .enquiry-cta {
+  background: var(--citi-panel-bg);
+  border: 1px solid var(--citi-border);
+  border-radius: var(--citi-radius-panel);
+  box-shadow: 0 1px 2px rgba(16, 24, 40, 0.04);
+}
+
+body.page-template-page-citizenship .pera-citizenship-page .content-panel-box,
+body.page-template-page-citizenship .pera-citizenship-page .enquiry-cta {
+  padding: clamp(24px, 3.2vw, 36px);
+}
+
+body.page-template-page-citizenship .pera-citizenship-page .feature-card-body,
+body.page-template-page-citizenship .pera-citizenship-page .timeline-body,
+body.page-template-page-citizenship .pera-citizenship-page .info-step-body {
+  padding-top: 2px;
+}
+
+body.page-template-page-citizenship .pera-citizenship-page .section-header {
+  margin-bottom: clamp(22px, 3vw, 34px);
+}
+
+body.page-template-page-citizenship .pera-citizenship-page .feature-grid,
+body.page-template-page-citizenship .pera-citizenship-page .info-steps,
+body.page-template-page-citizenship .pera-citizenship-page .timeline {
+  gap: clamp(14px, 2vw, 20px);
+}
+
+body.page-template-page-citizenship .pera-citizenship-page .btn {
+  border-radius: var(--citi-radius-control);
+  box-shadow: none;
+  transition: background-color 0.2s ease, color 0.2s ease, border-color 0.2s ease, transform 0.2s ease;
+}
+
+body.page-template-page-citizenship .pera-citizenship-page .btn:hover {
+  transform: translateY(-1px);
+}
+
+body.page-template-page-citizenship .pera-citizenship-page .btn:focus-visible {
+  outline: 2px solid #9bb6ff;
+  outline-offset: 2px;
+}
+
+body.page-template-page-citizenship .pera-citizenship-page .hero-actions {
+  gap: 10px;
+}
+
+body.page-template-page-citizenship .pera-citizenship-page .timeline::before {
+  opacity: 0.35;
+}
+
+body.page-template-page-citizenship .pera-citizenship-page .timeline-number,
+body.page-template-page-citizenship .pera-citizenship-page .info-step-number {
+  box-shadow: none;
+}
+
+body.page-template-page-citizenship .pera-citizenship-page .citizenship-trust-strip {
+  opacity: 0.86;
+  font-size: 0.94rem;
+}
+
+@media (max-width: 767px) {
+  body.page-template-page-citizenship .pera-citizenship-page {
+    --citi-section-gap: 40px;
+  }
+
+  body.page-template-page-citizenship .pera-citizenship-page .content-panel-box,
+  body.page-template-page-citizenship .pera-citizenship-page .enquiry-cta {
+    padding: 20px;
+  }
+}
