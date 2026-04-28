@@ -31,6 +31,7 @@ $citizenship_requirements = array(
           false,
           array(
               'class'         => 'hero-media',
+              'alt'           => 'Turkish citizenship by investment through Istanbul real estate',
               'fetchpriority' => 'high',
               'loading'       => 'eager',
               'decoding'      => 'async',
@@ -42,9 +43,9 @@ $citizenship_requirements = array(
     <div class="hero-content">
       <div class="citizenship-hero-grid">
         <div class="citizenship-hero-copy">
-          <h1>Turkish Citizenship Through Real Estate</h1>
+          <h1>Turkish Citizenship by Investment Through Real Estate</h1>
           <p>
-            A streamlined route built around a USD 400,000+ property investment, family inclusion, and a generally efficient timeline for eligible applicants.
+            Apply for Turkish citizenship by investment through a qualifying USD 400,000 real estate purchase in Turkey. Pera Property helps international investors find eligible Istanbul properties, complete legal checks, and manage the citizenship application from purchase to passport.
           </p>
           <article class="feature-card citizenship-hero-card" aria-label="Turkish Citizenship by Investment Requirements (2026)">
             <div class="feature-card-header">
@@ -85,10 +86,25 @@ $citizenship_requirements = array(
                class="btn btn--solid btn--blue" 
                target="_blank" 
                rel="noopener">
-              See eligible properties
+              View Turkish citizenship properties for sale
             </a>          
           </div>
           <p class="citizenship-trust-strip text-light">Since 2016 • Istanbul-based team • Legal process clarity</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="content-panel citizenship-seo-intro">
+    <div class="content-panel-box">
+      <div class="content-panel-grid--single">
+        <header class="section-header section-header--center">
+          <h2>Turkey Citizenship by Investment with Pera Property</h2>
+          <p>Turkey citizenship by investment can be a practical route for families seeking a second nationality while owning high-potential Istanbul real estate.</p>
+        </header>
+        <div class="citizenship-seo-copy">
+          <p>Turkey’s citizenship by investment programme allows eligible investors to apply for Turkish citizenship through a qualifying real estate investment of at least USD 400,000. For many families, the Turkish citizenship property route is attractive because it combines a second passport strategy with ownership of a tangible Istanbul property asset.</p>
+          <p>Pera Property supports international buyers through the full Turkey citizenship by investment process, from selecting citizenship-eligible property options for sale in Istanbul to coordinating legal due diligence, valuation reports, title deed transfer, foreign currency documentation, residency steps, and the final Turkey citizenship application and Turkish passport by investment delivery stage.</p>
         </div>
       </div>
     </div>
@@ -210,7 +226,7 @@ $citizenship_requirements = array(
     <div class="container">
 
       <header class="section-header section-header--center">
-        <h2>Key facts about Turkish Citizenship by Investment</h2>
+        <h2>Turkey Citizenship by Investment: Key Facts</h2>
         <p>
           A fast, flexible route to Turkish citizenship for families who invest in qualifying real estate.
         </p>
@@ -282,7 +298,7 @@ $citizenship_requirements = array(
     <div class="container">
 
       <header class="section-header section-header--center">
-        <h2>Conditions to be met</h2>
+        <h2>Turkish Citizenship Property Investment Requirements</h2>
       </header>
 
       <div class="info-steps">
@@ -495,7 +511,7 @@ $citizenship_requirements = array(
     <div class="container">
 
       <header class="section-header section-header--center">
-        <h2>Citizenship benefits</h2>
+        <h2>Benefits of Turkish Citizenship by Investment</h2>
       </header>
 
       <div class="feature-grid">
@@ -773,10 +789,9 @@ $citizenship_requirements = array(
     <div class="container">
 
       <header class="section-header section-header--center">
-        <h2>Why choose Pera for Turkish citizenship?</h2>
+        <h2>Why Choose Pera Property for Turkish Citizenship by Investment?</h2>
         <p>
-          A specialist Istanbul real estate agency with a dedicated focus on
-          citizenship and residency investors.
+          A specialist Istanbul real estate agency helping international clients complete the Turkey citizenship application process with clear guidance from property selection to Turkish passport by investment approval.
         </p>
       </header>
 
