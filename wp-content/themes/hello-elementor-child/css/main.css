@@ -2165,14 +2165,25 @@ body:not(.single-post) tr:nth-child(even) {
   background: var(--bg-soft);
 }
 
-/* Gutenberg tables */
+/* Gutenberg wide tables */
+.wp-block-table {
+  width: 100%;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
 .wp-block-table table {
-  all: unset;
-  display: table;
-  width: auto;
-  max-width: 100%;
-  border-collapse: collapse;
-  font-size: 0.9rem;
+  width: max-content;
+  min-width: 100%;
+  max-width: none;
+  table-layout: auto;
+}
+
+.wp-block-table th,
+.wp-block-table td {
+  white-space: nowrap;
+  overflow-wrap: normal;
+  word-break: normal;
 }
 
 
