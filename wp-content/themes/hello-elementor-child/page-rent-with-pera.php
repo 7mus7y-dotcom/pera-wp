@@ -260,70 +260,77 @@ get_header();
     <section class="section" id="rental-management-faq">
         <div class="content-panel-box">
             <header class="section-header section-header--center">
-                <h2>Long-term rental management FAQ</h2>
-                <p>Clear answers for overseas and Istanbul-based owners who want Pera Property to manage their rental property professionally.</p>
+                <h2>Rental management FAQ</h2>
+                <p>Everything you need to know about how our full management service works in practice.</p>
             </header>
 
-            <div class="stacked-text faq-list">
-                <details class="card-shell mb-sm">
-                    <summary>Is this a full property management service or only tenant finding?</summary>
-                    <p>Our full management service covers tenant sourcing, advertising, lease preparation, tenant checks, renewal negotiations, maintenance coordination, tax and insurance assistance, and exit arrangements. Owners who only need tenant finding can also use our standard lettings service.</p>
+            <div class="faq-list">
+
+                <details>
+                    <summary>What does your full rental management service include?</summary>
+                    <p>Our service is fully hands-off for the owner. We handle tenant sourcing, marketing, viewings, lease preparation, tenant screening, contract negotiation, renewals, maintenance coordination, and ongoing tenant communication. We also assist with utility setup, tax guidance, and end-of-tenancy processes.</p>
                 </details>
 
-                <details class="card-shell mb-sm">
-                    <summary>What is your annual management fee?</summary>
-                    <p>For full management, our fee is the equivalent of one month’s rent per property per year. This is our service fee. Any property expenses, such as maintenance, repairs, taxes, insurance or utility-related costs, are billed separately and only arranged with your approval.</p>
+                <details>
+                    <summary>What is your management fee?</summary>
+                    <p>Our full management service is charged at <strong>12% + VAT of the monthly rent</strong>. This covers the ongoing management of the property throughout the tenancy, including renewals and day-to-day tenant management.</p>
                 </details>
 
-                <details class="card-shell mb-sm">
-                    <summary>Do you charge again if the same tenant renews?</summary>
-                    <p>Yes. If you want Pera Property to continue managing the property, the annual management fee applies again on renewal. If you prefer to manage the tenant yourself after the first year, there is no further management charge.</p>
+                <details>
+                    <summary>Are there any additional costs?</summary>
+                    <p>Yes — the management fee covers our service only. Property-related costs such as maintenance, repairs, taxes, insurance, utilities, or building charges are separate and always subject to your approval before any work is carried out.</p>
                 </details>
 
-                <details class="card-shell mb-sm">
-                    <summary>How are rent increases handled in Turkey?</summary>
-                    <p>Annual rent increases are handled in line with the legal cap, generally based on TÜFE/CPI. We negotiate renewals with the tenant and advise you according to the current legal framework and market conditions at the time of renewal.</p>
+                <details>
+                    <summary>How do you find and select tenants?</summary>
+                    <p>We market your property across our network and screen all applicants carefully. This typically includes employment and income checks, documentation review, and — where appropriate — requiring a Turkish guarantor. Our focus is always on placing reliable, financially stable tenants.</p>
                 </details>
 
-                <details class="card-shell mb-sm">
-                    <summary>How do you screen tenants?</summary>
-                    <p>We are highly selective. We check the tenant’s work and income position, request supporting documents where needed, and usually require a Turkish guarantor. We also ask the guarantor to sign in person at our office. Where appropriate, we may request additional assurances such as salary evidence or a credit report.</p>
+                <details>
+                    <summary>Will I approve the tenant before the contract is signed?</summary>
+                    <p>Yes. We present you with the proposed tenant and agreed terms before any contract is finalised. No tenancy is confirmed without your approval.</p>
                 </details>
 
-                <details class="card-shell mb-sm">
-                    <summary>Do you use a notarised exit agreement?</summary>
-                    <p>Yes. For long-term rentals we normally insist on a notarised exit agreement for 12 months. This gives the owner stronger protection if the tenant does not leave at the end of the agreed term.</p>
+                <details>
+                    <summary>Do you provide the rental contract in English?</summary>
+                    <p>Yes. We can prepare bilingual Turkish and English contracts so that you fully understand the terms of the agreement while ensuring compliance with local regulations.</p>
                 </details>
 
-                <details class="card-shell mb-sm">
-                    <summary>Will I approve the tenant and contract before signing?</summary>
-                    <p>Yes. We will share the proposed tenant details and lease terms with you before signature. We can also prepare bilingual Turkish and English rental contracts so you understand the agreement clearly.</p>
+                <details>
+                    <summary>How are rent increases handled?</summary>
+                    <p>Rent increases are managed in line with Turkish law, typically based on the official CPI (TÜFE) cap. We handle negotiations with the tenant and advise you on the optimal approach at each renewal period.</p>
                 </details>
 
-                <details class="card-shell mb-sm">
-                    <summary>Are utilities transferred to the tenant’s name?</summary>
-                    <p>Yes. For occupied properties, utilities are normally transferred to the tenant. For brand-new properties, the owner may first need to open the utility accounts and pay the initial deposits. We can arrange this process for you.</p>
+                <details>
+                    <summary>Do you use any legal protection for the landlord?</summary>
+                    <p>Yes. Where appropriate, we arrange a notarised exit undertaking (tahliye taahhütnamesi), which provides additional legal protection in case the tenant does not vacate at the end of the agreed term.</p>
                 </details>
 
-                <details class="card-shell mb-sm">
+                <details>
                     <summary>How is the tenant deposit handled?</summary>
-                    <p>The deposit is usually paid directly to the owner, often in foreign currency. We normally request a two-month deposit. At exit, the apartment is inspected and any justified deductions are assessed before the balance is returned in accordance with the lease and Turkish law.</p>
+                    <p>We typically secure a two-month deposit, which is held in accordance with Turkish rental practices. At the end of the tenancy, the property is inspected and any agreed deductions are applied before the remaining balance is returned.</p>
                 </details>
 
-                <details class="card-shell mb-sm">
-                    <summary>Do you arrange repairs and maintenance?</summary>
-                    <p>Yes. If there is a maintenance issue, such as an appliance fault or air-conditioning problem, we contact the relevant service provider, obtain the cost, and ask for your approval before proceeding. We do not approve expenses without your written consent by email or WhatsApp.</p>
+                <details>
+                    <summary>How are utilities managed?</summary>
+                    <p>For tenanted properties, utilities are usually transferred into the tenant’s name. For new properties, the owner may need to open the accounts initially. We manage and coordinate this process on your behalf.</p>
                 </details>
 
-                <details class="card-shell mb-sm">
-                    <summary>Do you provide monthly reports?</summary>
-                    <p>In most cases, rent is paid directly to the owner and expenses are paid separately by the owner, so monthly reporting is not always necessary. If you want us to manage incomings and outgoings, we can maintain a shared online record for transparency.</p>
+                <details>
+                    <summary>How do you handle maintenance and repairs?</summary>
+                    <p>If an issue arises, we coordinate with trusted contractors, obtain quotes where necessary, and seek your approval before proceeding. No expense is incurred without your consent.</p>
                 </details>
 
-                <details class="card-shell mb-sm">
-                    <summary>How can I terminate the management arrangement?</summary>
-                    <p>You can terminate with friendly notice. We will transfer the relevant documents and information to you, your new agent, or your chosen representative.</p>
+                <details>
+                    <summary>Do I receive reports or updates?</summary>
+                    <p>Rent is typically paid directly to the owner, so formal monthly reporting is not always required. However, we keep you informed of any key developments and can provide structured reporting if you prefer a more hands-on overview.</p>
                 </details>
+
+                <details>
+                    <summary>Can I take over management myself later?</summary>
+                    <p>Yes. You are free to take over management at any time with reasonable notice. We will ensure a smooth handover of all relevant documents and tenant information.</p>
+                </details>
+
             </div>
         </div>
     </section>
