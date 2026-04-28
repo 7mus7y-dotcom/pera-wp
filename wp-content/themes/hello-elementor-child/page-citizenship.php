@@ -156,17 +156,19 @@ $citizenship_requirements = array(
     </div>
   </section>
 
-  <section class="content-panel citizenship-consultancy">
-    <div class="content-panel-box">
-      <div class="content-panel-grid--single">
-        <header class="section-header section-header--center">
-          <h2>Full-service citizenship consultancy in Istanbul</h2>
-          <p>Since 2016, Pera’s founders and legal partners have assisted international clients with Turkish Citizenship by Investment, combining specialist real estate knowledge with a dedicated immigration and legal team.</p>
-        </header>
-        <div class="feature-grid citizenship-value-grid">
-          <article class="feature-card"><div class="feature-card-body"><p>Strategic property shortlists aligned with citizenship eligibility and your family’s lifestyle goals.</p></div></article>
-          <article class="feature-card"><div class="feature-card-body"><p>Coordinated legal and administrative execution from title deed checks to citizenship filing readiness.</p></div></article>
-          <article class="feature-card"><div class="feature-card-body"><p>One accountable team with clear updates, timeline visibility, and practical next steps at every stage.</p></div></article>
+  <section class="section citizenship-consultancy">
+    <div class="container">
+      <div class="content-panel-box">
+        <div class="content-panel-grid--single">
+          <header class="section-header section-header--center">
+            <h2>Full-service citizenship consultancy in Istanbul</h2>
+            <p>Since 2016, Pera’s founders and legal partners have assisted international clients with Turkish Citizenship by Investment, combining specialist real estate knowledge with a dedicated immigration and legal team.</p>
+          </header>
+          <div class="feature-grid citizenship-value-grid">
+            <article class="feature-card"><div class="feature-card-body"><p>Strategic property shortlists aligned with citizenship eligibility and your family’s lifestyle goals.</p></div></article>
+            <article class="feature-card"><div class="feature-card-body"><p>Coordinated legal and administrative execution from title deed checks to citizenship filing readiness.</p></div></article>
+            <article class="feature-card"><div class="feature-card-body"><p>One accountable team with clear updates, timeline visibility, and practical next steps at every stage.</p></div></article>
+          </div>
         </div>
       </div>
     </div>
