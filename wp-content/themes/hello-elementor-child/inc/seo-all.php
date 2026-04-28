@@ -193,6 +193,21 @@ if ( ! function_exists( 'pera_seo_all_is_rent_with_pera_page' ) ) {
   }
 }
 
+
+if ( ! function_exists( 'pera_seo_all_is_sell_with_pera_page' ) ) {
+  function pera_seo_all_is_sell_with_pera_page( int $post_id = 0 ): bool {
+    if ( ! is_page() ) {
+      return false;
+    }
+
+    if ( $post_id <= 0 ) {
+      $post_id = (int) get_queried_object_id();
+    }
+
+    return $post_id > 0 && is_page_template( 'page-sell-with-pera.php' );
+  }
+}
+
 if ( ! function_exists( 'pera_seo_all_resolve_social_image_from_value' ) ) {
   /**
    * Resolve image URL + attachment metadata from flexible ACF/meta value shapes.
@@ -582,6 +597,10 @@ add_filter( 'pre_get_document_title', function ( $title ) {
         return 'Property Management Istanbul | Rent Out Your Property with Pera';
       }
 
+      if ( pera_seo_all_is_sell_with_pera_page( $post_id ) ) {
+        return 'Sell Property in Istanbul | Expert Local Agency Services';
+      }
+
       $manual_title = pera_seo_all_get_manual_post_text_field( $post_id, 'seo_title' );
       if ( $manual_title !== '' ) {
         return $manual_title;
@@ -851,6 +870,11 @@ add_action( 'wp_head', function () {
       if ( $post_id > 0 ) {
         if ( pera_seo_all_is_rent_with_pera_page( $post_id ) ) {
           $desc = 'Full-service property management in Istanbul for local and overseas owners. Pera Property handles tenant sourcing, contracts, rent collection, maintenance and renewals.';
+          break;
+        }
+
+        if ( pera_seo_all_is_sell_with_pera_page( $post_id ) ) {
+          $desc = 'Sell your Istanbul property with Pera Property. Get a free valuation, professional marketing, qualified buyer viewings, negotiation support and title deed guidance.';
           break;
         }
 
@@ -1302,6 +1326,7 @@ add_action( 'wp_head', function () {
       }
     }
   }
+
 
   if ( $schema_type !== '' && $canonical !== '' ) {
     $schema = array(

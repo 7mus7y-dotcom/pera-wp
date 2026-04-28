@@ -12,6 +12,76 @@ if ( ! defined( 'ABSPATH' ) ) {
 $hero_heading = $args['hero_heading'] ?? 'Talk to Pera about your Istanbul plans';
 $hero_intro   = $args['hero_intro']   ?? 'Whether you’re buying, selling, or renting in Istanbul, our team can walk you through the numbers, the legal steps, and the neighbourhoods that fit your strategy.';
 
+$sell_with_pera_faq_items = array(
+    array(
+        'question' => 'How do I sell my property in Istanbul?',
+        'answer'   => 'Start with a valuation and sales strategy. We then prepare marketing, coordinate viewings, negotiate offers and support the title deed transfer process until completion.',
+    ),
+    array(
+        'question' => 'How long does it take to sell a property in Istanbul?',
+        'answer'   => 'Timelines vary by district, price point and property condition. Well-priced homes in active areas can attract offers quickly, while premium listings may require a longer marketing window.',
+    ),
+    array(
+        'question' => 'What documents do I need to sell property in Turkey?',
+        'answer'   => 'Most sellers need the tapu, ID or passport, tax number and supporting compliance documents such as DASK or iskan where relevant, plus debt and encumbrance checks.',
+    ),
+    array(
+        'question' => 'Can I sell my Istanbul property if I live abroad?',
+        'answer'   => 'Yes. We can manage valuation, marketing and viewings remotely, and coordinate power of attorney and lawyer-led documentation so the sale can progress while you are overseas.',
+    ),
+    array(
+        'question' => 'How much does Pera Property charge to sell my property?',
+        'answer'   => 'Pera Property\'s standard sales agency fee is 4% unless otherwise agreed in writing.',
+    ),
+    array(
+        'question' => 'How is my Istanbul property valuation calculated?',
+        'answer'   => 'We assess recent comparables where available, micro-location, building condition, floor and view quality, layout, demand trends and rental/investment potential.',
+    ),
+    array(
+        'question' => 'Do I need a lawyer to sell property in Turkey?',
+        'answer'   => 'A lawyer is not always legally mandatory, but many sellers choose one for contract review, tax coordination and risk management during the transfer process.',
+    ),
+    array(
+        'question' => 'Can you manage viewings if the property is tenanted?',
+        'answer'   => 'Yes. We coordinate with tenants or caretakers, schedule qualified buyer visits and keep disruption to occupants as limited as possible.',
+    ),
+);
+
+add_action( 'wp_head', static function () use ( $sell_with_pera_faq_items ) {
+    $faq_entities = array();
+
+    foreach ( $sell_with_pera_faq_items as $faq_item ) {
+        $question = isset( $faq_item['question'] ) ? trim( (string) $faq_item['question'] ) : '';
+        $answer   = isset( $faq_item['answer'] ) ? trim( (string) $faq_item['answer'] ) : '';
+
+        if ( $question === '' || $answer === '' ) {
+            continue;
+        }
+
+        $faq_entities[] = array(
+            '@type' => 'Question',
+            'name'  => $question,
+            'acceptedAnswer' => array(
+                '@type' => 'Answer',
+                'text'  => $answer,
+            ),
+        );
+    }
+
+    if ( empty( $faq_entities ) ) {
+        return;
+    }
+
+    $faq_schema = array(
+        '@context'   => 'https://schema.org',
+        '@type'      => 'FAQPage',
+        'mainEntity' => $faq_entities,
+    );
+
+    $GLOBALS['pera_schema_faq_emitted'] = true;
+    echo '<script type="application/ld+json">' . wp_json_encode( $faq_schema, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE ) . '</script>' . "\n";
+}, 12 );
+
 get_header();
 ?>
 
@@ -57,11 +127,11 @@ get_header();
           </div>
         
           <div class="hero-content">
-            <h1>Sell your Istanbul property with confidence.</h1>
+            <h1>Sell Property in Istanbul with a Trusted Local Agency</h1>
         
             <p class="lead">
-              From pricing and marketing to viewings and paperwork, our team handles every step
-              so you achieve the best possible result with minimum stress.
+              Get a free valuation from Istanbul property market specialists who manage pricing, marketing,
+              viewings, negotiation and the title deed process, with dedicated support for owners based abroad.
             </p>
         
             <div class="hero-actions">
@@ -386,6 +456,109 @@ get_header();
                   </li>
                 </ul>
 
+            </div>
+        </div>
+
+    <section class="section">
+        <div class="container">
+            <header class="section-header section-header--center">
+                <h2>How to sell your property in Istanbul</h2>
+            </header>
+
+            <div class="content-panel-box">
+                <p>Our seller journey starts with an initial review of your property, goals and timing, then moves to a realistic valuation based on Istanbul market conditions and your building profile.</p>
+                <p>Once we agree the strategy, we help prepare key documents, launch professional marketing, coordinate buyer viewings and report back with feedback that supports pricing decisions.</p>
+                <p>When offers arrive, we negotiate terms in line with your priorities, coordinate due diligence and support the title deed transfer process so the sale completes smoothly.</p>
+            </div>
+        </div>
+    </section>
+
+    <section class="section section-soft">
+        <div class="container">
+            <header class="section-header section-header--center">
+                <h2>Free Istanbul property valuation</h2>
+            </header>
+
+            <div class="content-panel-box">
+                <p>Our free valuation combines recent comparable listings and sales where available with on-the-ground insight from active buyer demand in your micro-location.</p>
+                <p>We assess building age and condition, floor level, view quality, layout efficiency and any outdoor space, then adjust for demand from end-users and investors. We also consider rental and investment potential to recommend a defensible asking range for today’s Istanbul market.</p>
+            </div>
+        </div>
+    </section>
+
+    <section class="section">
+        <div class="container grid-2">
+            <div>
+                <h2>Documents needed to sell property in Turkey</h2>
+                <p>Requirements can vary by property and ownership structure, but sellers should usually prepare the following before launch:</p>
+            </div>
+            <div>
+                <ul class="checklist">
+                    <li><svg class="icon icon-tick" aria-hidden="true"><use href="<?php echo get_stylesheet_directory_uri(); ?>/logos-icons/icons.svg#icon-check"></use></svg>Tapu (title deed)</li>
+                    <li><svg class="icon icon-tick" aria-hidden="true"><use href="<?php echo get_stylesheet_directory_uri(); ?>/logos-icons/icons.svg#icon-check"></use></svg>Passport or Turkish ID</li>
+                    <li><svg class="icon icon-tick" aria-hidden="true"><use href="<?php echo get_stylesheet_directory_uri(); ?>/logos-icons/icons.svg#icon-check"></use></svg>Tax number</li>
+                    <li><svg class="icon icon-tick" aria-hidden="true"><use href="<?php echo get_stylesheet_directory_uri(); ?>/logos-icons/icons.svg#icon-check"></use></svg>DASK (earthquake insurance), where applicable</li>
+                    <li><svg class="icon icon-tick" aria-hidden="true"><use href="<?php echo get_stylesheet_directory_uri(); ?>/logos-icons/icons.svg#icon-check"></use></svg>Iskan (habitation certificate), where relevant</li>
+                    <li><svg class="icon icon-tick" aria-hidden="true"><use href="<?php echo get_stylesheet_directory_uri(); ?>/logos-icons/icons.svg#icon-check"></use></svg>Mortgage, debt and encumbrance checks</li>
+                    <li><svg class="icon icon-tick" aria-hidden="true"><use href="<?php echo get_stylesheet_directory_uri(); ?>/logos-icons/icons.svg#icon-check"></use></svg>Power of attorney documents if the seller is based abroad</li>
+                </ul>
+            </div>
+        </div>
+    </section>
+
+    <section class="section section-soft">
+        <div class="container grid-2">
+            <div>
+                <h2>Seller fees, taxes and commission</h2>
+                <p><strong>Pera Property’s standard sales agency fee is 4% unless otherwise agreed in writing.</strong></p>
+                <p>Every sale is different, so we recommend confirming your total transaction costs early and reviewing tax points with qualified advisors before signing.</p>
+            </div>
+            <div>
+                <ul class="checklist">
+                    <li><svg class="icon icon-tick" aria-hidden="true"><use href="<?php echo get_stylesheet_directory_uri(); ?>/logos-icons/icons.svg#icon-check"></use></svg>Title deed expenses and transfer costs</li>
+                    <li><svg class="icon icon-tick" aria-hidden="true"><use href="<?php echo get_stylesheet_directory_uri(); ?>/logos-icons/icons.svg#icon-check"></use></svg>Your capital gains tax position</li>
+                    <li><svg class="icon icon-tick" aria-hidden="true"><use href="<?php echo get_stylesheet_directory_uri(); ?>/logos-icons/icons.svg#icon-check"></use></svg>Independent legal and accounting advice</li>
+                    <li><svg class="icon icon-tick" aria-hidden="true"><use href="<?php echo get_stylesheet_directory_uri(); ?>/logos-icons/icons.svg#icon-check"></use></svg>Outstanding mortgage or site-management debts</li>
+                </ul>
+                <p>We provide practical sale guidance, but formal tax and legal advice should come from your lawyer or accountant.</p>
+            </div>
+        </div>
+    </section>
+
+    <section class="section">
+        <div class="container">
+            <header class="section-header section-header--center">
+                <h2>Selling your Istanbul property from abroad</h2>
+            </header>
+            <div class="content-panel-box">
+                <p>If you live outside Turkey, we can coordinate valuation remotely, arrange photos and videos, and manage access with tenants or caretakers for buyer viewings.</p>
+                <p>Our team handles offer negotiation and can coordinate with your lawyer on power of attorney and transaction documents, while supporting you through each tapu milestone until completion.</p>
+                <p>To plan next steps, <a href="<?php echo esc_url( home_url( '/contact-us/' ) ); ?>">contact us</a>, learn more <a href="<?php echo esc_url( home_url( '/about-us/' ) ); ?>">about our team</a>, or explore our <a href="<?php echo esc_url( home_url( '/rent-with-pera/' ) ); ?>">property management services in Istanbul</a>. You can also read our <a href="<?php echo esc_url( home_url( '/category/regional-guides/' ) ); ?>">Istanbul area guides</a> for district-level demand insights.</p>
+            </div>
+        </div>
+    </section>
+
+    <section class="section section-soft">
+        <div class="container">
+            <header class="section-header section-header--center">
+                <h2>Frequently asked questions about selling property in Istanbul</h2>
+            </header>
+
+            <div class="feature-grid">
+                <?php foreach ( $sell_with_pera_faq_items as $faq_item ) :
+                    $question = isset( $faq_item['question'] ) ? trim( (string) $faq_item['question'] ) : '';
+                    $answer   = isset( $faq_item['answer'] ) ? trim( (string) $faq_item['answer'] ) : '';
+                    if ( $question === '' || $answer === '' ) {
+                        continue;
+                    }
+                ?>
+                    <article class="feature-card">
+                        <div class="feature-card-body">
+                            <h3><?php echo esc_html( $question ); ?></h3>
+                            <p><?php echo esc_html( $answer ); ?></p>
+                        </div>
+                    </article>
+                <?php endforeach; ?>
             </div>
         </div>
     </section>
