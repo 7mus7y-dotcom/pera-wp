@@ -22,7 +22,7 @@ $citizenship_requirements = array(
 );
 ?>
 
-  <section class="hero hero--left hero--citizenship citizenship-hero" id="citizenship-hero">
+  <section class="hero hero--left hero--citizenship citizenship-hero citi-labs-panel citi-labs-hero-panel" id="citizenship-hero">
     <div class="hero__media" aria-hidden="true">
       <?php
       echo wp_get_attachment_image(
@@ -88,13 +88,17 @@ $citizenship_requirements = array(
               See eligible properties
             </a>          
           </div>
-          <p class="citizenship-trust-strip text-light">Since 2016 • Istanbul-based team • Legal process clarity</p>
+          <div class="citizenship-trust-strip text-light citi-labs-chip-row" aria-label="Trust highlights">
+            <span class="citi-labs-chip">Since 2016</span>
+            <span class="citi-labs-chip">Istanbul-based team</span>
+            <span class="citi-labs-chip">Legal process clarity</span>
+          </div>
         </div>
       </div>
     </div>
   </section>
 
-  <section class="content-panel content-panel--overlap-hero citizenship-consultancy">
+  <section class="content-panel content-panel--overlap-hero citizenship-consultancy citi-labs-panel">
     <div class="content-panel-box">
       <div class="content-panel-grid--single">
         <header class="section-header section-header--center">
@@ -113,7 +117,7 @@ $citizenship_requirements = array(
   <!-- =====================================================
        OUR FULL-PACKAGE CITIZENSHIP SERVICE
        ====================================================== -->
-  <section class="section section-soft">
+  <section class="section section-soft citi-labs-panel">
     <div class="container">
 
       <header class="section-header section-header--center">
@@ -206,7 +210,7 @@ $citizenship_requirements = array(
   <!-- =====================================================
        KEY FACTS ABOUT THE PROGRAMME
        ====================================================== -->
-  <section class="section section-soft" id="citizenship-key-facts">
+  <section class="section section-soft citi-labs-panel" id="citizenship-key-facts">
     <div class="container">
 
       <header class="section-header section-header--center">
@@ -278,17 +282,17 @@ $citizenship_requirements = array(
   <!-- =====================================================
        CONDITIONS TO BE MET
        ====================================================== -->
-  <section class="section" id="conditions">
+  <section class="section citi-labs-panel" id="conditions">
     <div class="container">
 
       <header class="section-header section-header--center">
         <h2>Conditions to be met</h2>
       </header>
 
-      <div class="info-steps">
+      <div class="info-steps citi-labs-rail">
 
         <!-- VALUE -->
-        <article class="info-step">
+        <article class="info-step citi-labs-card">
           <div class="info-step-icon">
             <svg class="icon" aria-hidden="true" width="24" height="24">
               <use href="<?php echo get_stylesheet_directory_uri(); ?>/logos-icons/icons.svg#icon-currency"></use>
@@ -303,7 +307,7 @@ $citizenship_requirements = array(
         </article>
 
         <!-- TITLE -->
-        <article class="info-step">
+        <article class="info-step citi-labs-card">
           <div class="info-step-icon">
             <svg class="icon" aria-hidden="true" width="24" height="24">
               <use href="<?php echo get_stylesheet_directory_uri(); ?>/logos-icons/icons.svg#icon-tapu"></use>
@@ -318,7 +322,7 @@ $citizenship_requirements = array(
         </article>
 
         <!-- MULTIPLE PROPERTY -->
-        <article class="info-step">
+        <article class="info-step citi-labs-card">
           <div class="info-step-icon">
             <svg class="icon" aria-hidden="true" width="24" height="24">
               <use href="<?php echo get_stylesheet_directory_uri(); ?>/logos-icons/icons.svg#icon-property"></use>
@@ -333,7 +337,7 @@ $citizenship_requirements = array(
         </article>
 
         <!-- LEGAL CHARGE -->
-        <article class="info-step">
+        <article class="info-step citi-labs-card">
           <div class="info-step-icon">
             <svg class="icon" aria-hidden="true" width="24" height="24">
               <use href="<?php echo get_stylesheet_directory_uri(); ?>/logos-icons/icons.svg#icon-hammer"></use>
@@ -349,7 +353,7 @@ $citizenship_requirements = array(
         </article>
 
         <!-- VALUATION -->
-        <article class="info-step">
+        <article class="info-step citi-labs-card">
           <div class="info-step-icon">
             <svg class="icon" aria-hidden="true" width="24" height="24">
               <use href="<?php echo get_stylesheet_directory_uri(); ?>/logos-icons/icons.svg#icon-valuation"></use>
@@ -372,7 +376,7 @@ $citizenship_requirements = array(
   <!-- =====================================================
        WHO CAN APPLY?
        ====================================================== -->
-  <section class="section section-soft" id="who-can-apply">
+  <section class="section section-soft citi-labs-panel" id="who-can-apply">
     <div class="container">
 
       <header class="section-header section-header--center">
@@ -491,7 +495,7 @@ $citizenship_requirements = array(
   <!-- =====================================================
        CITIZENSHIP BENEFITS
        ====================================================== -->
-  <section class="section" id="citizenship-benefits">
+  <section class="section citi-labs-panel" id="citizenship-benefits">
     <div class="container">
 
       <header class="section-header section-header--center">
@@ -587,7 +591,7 @@ $citizenship_requirements = array(
                    
              
 
-  <section class="section section-soft" id="citizenship-callback">
+  <section class="section section-soft citi-labs-panel" id="citizenship-callback">
     <div class="container">
 
       <div class="enquiry-cta">

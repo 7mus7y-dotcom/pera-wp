@@ -1,67 +1,111 @@
-/* Turkish Citizenship landing page refinements (Material/Labs-inspired)
- * Scoped to avoid leaking into other templates.
+/*
+ * Admin-only Labs preview for citizenship page.
+ * Scope intentionally limited to the citizenship template root.
  */
 
-body.page-template-page-citizenship .pera-citizenship-page {
-  --citi-bg-soft: #f8f9fb;
-  --citi-bg-muted: #f6f7f9;
-  --citi-panel-bg: #ffffff;
-  --citi-border: #e3e7ee;
-  --citi-text-main: #1f2937;
-  --citi-text-subtle: #5a6678;
-  --citi-radius-panel: 16px;
-  --citi-radius-control: 9px;
-  --citi-section-gap: clamp(56px, 7vw, 92px);
+body.page-template-page-citizenship {
+  background: #f5f6f8;
 }
 
 body.page-template-page-citizenship .pera-citizenship-page {
-  color: var(--citi-text-main);
-  font-size: 16px;
-  line-height: 1.65;
+  --citi-labs-bg: #f5f6f8;
+  --citi-labs-panel: #fcfcfd;
+  --citi-labs-panel-strong: #ffffff;
+  --citi-labs-border: #e5e8ef;
+  --citi-labs-border-hover: #cfd7e6;
+  --citi-labs-text: #1f2733;
+  --citi-labs-subtle: #5e6a7d;
+  --citi-labs-radius-panel: clamp(24px, 2.6vw, 32px);
+  --citi-labs-radius-card: clamp(20px, 2.1vw, 26px);
+  --citi-labs-panel-pad: clamp(28px, 5vw, 64px);
+  --citi-labs-section-gap: clamp(28px, 5vw, 52px);
+
+  background: var(--citi-labs-bg);
+  color: var(--citi-labs-text);
+  font-size: 17px;
+  line-height: 1.68;
+  padding-block: clamp(14px, 3vw, 28px) clamp(48px, 6vw, 84px);
 }
 
 body.page-template-page-citizenship .pera-citizenship-page p {
-  color: var(--citi-text-subtle);
+  color: var(--citi-labs-subtle);
 }
 
 body.page-template-page-citizenship .pera-citizenship-page h1 {
-  font-size: clamp(36px, 5vw, 42px);
-  letter-spacing: -0.02em;
-  line-height: 1.15;
+  color: #171d28;
+  font-size: clamp(2.1rem, 4.8vw, 3.5rem);
+  letter-spacing: -0.03em;
+  line-height: 1.05;
 }
 
 body.page-template-page-citizenship .pera-citizenship-page h2 {
-  font-size: clamp(26px, 3.2vw, 30px);
-  letter-spacing: -0.015em;
-  line-height: 1.2;
+  color: #1d2430;
+  font-size: clamp(1.7rem, 3vw, 2.5rem);
+  letter-spacing: -0.025em;
+  line-height: 1.14;
 }
 
 body.page-template-page-citizenship .pera-citizenship-page h3 {
+  color: #2b3240;
+  font-size: clamp(1.1rem, 2vw, 1.35rem);
   line-height: 1.3;
 }
 
-body.page-template-page-citizenship .pera-citizenship-page > .section + .section,
-body.page-template-page-citizenship .pera-citizenship-page > .content-panel + .content-panel {
-  margin-top: var(--citi-section-gap);
+body.page-template-page-citizenship .pera-citizenship-page .citi-labs-panel {
+  max-width: 1180px;
+  margin-inline: auto;
+  margin-block: var(--citi-labs-section-gap);
+  border-radius: var(--citi-labs-radius-panel);
+  border: 1px solid var(--citi-labs-border);
+  background: var(--citi-labs-panel);
+  box-shadow: 0 1px 1px rgba(12, 18, 28, 0.03);
+  overflow: clip;
 }
 
-body.page-template-page-citizenship .pera-citizenship-page .section.section-soft {
-  background: var(--citi-bg-soft);
+body.page-template-page-citizenship .pera-citizenship-page .citi-labs-panel .container,
+body.page-template-page-citizenship .pera-citizenship-page .citi-labs-panel .hero-content,
+body.page-template-page-citizenship .pera-citizenship-page .citi-labs-panel .content-panel-box {
+  max-width: none;
+  padding: var(--citi-labs-panel-pad);
 }
 
-body.page-template-page-citizenship .pera-citizenship-page #who-can-apply.section-soft,
-body.page-template-page-citizenship .pera-citizenship-page #citizenship-timeline.section-soft,
-body.page-template-page-citizenship .pera-citizenship-page #citizenship-callback.section-soft {
-  background: var(--citi-bg-muted);
+body.page-template-page-citizenship .pera-citizenship-page .citi-labs-hero-panel {
+  position: relative;
+  isolation: isolate;
 }
 
-body.page-template-page-citizenship .pera-citizenship-page .citizenship-hero .hero-overlay {
-  background: linear-gradient(
-    90deg,
-    rgba(255, 255, 255, 0.82) 12%,
-    rgba(255, 255, 255, 0.44) 56%,
-    rgba(255, 255, 255, 0.06) 100%
-  );
+body.page-template-page-citizenship .pera-citizenship-page .citi-labs-hero-panel .hero__media {
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  overflow: hidden;
+}
+
+body.page-template-page-citizenship .pera-citizenship-page .citi-labs-hero-panel .hero-media {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  opacity: 0.24;
+  filter: saturate(0.85) contrast(0.92);
+}
+
+body.page-template-page-citizenship .pera-citizenship-page .citi-labs-hero-panel .hero-overlay {
+  background: linear-gradient(120deg, rgba(252, 253, 255, 0.96) 20%, rgba(252, 253, 255, 0.85) 55%, rgba(252, 253, 255, 0.72) 100%);
+}
+
+body.page-template-page-citizenship .pera-citizenship-page .citi-labs-hero-panel .citizenship-hero-grid,
+body.page-template-page-citizenship .pera-citizenship-page .citi-labs-hero-panel .citizenship-hero-copy {
+  max-width: 840px;
+}
+
+body.page-template-page-citizenship .pera-citizenship-page .section-header {
+  margin-bottom: clamp(18px, 2.5vw, 32px);
+}
+
+body.page-template-page-citizenship .pera-citizenship-page .feature-grid,
+body.page-template-page-citizenship .pera-citizenship-page .info-steps,
+body.page-template-page-citizenship .pera-citizenship-page .timeline {
+  gap: clamp(16px, 2vw, 24px);
 }
 
 body.page-template-page-citizenship .pera-citizenship-page .content-panel-box,
@@ -69,37 +113,47 @@ body.page-template-page-citizenship .pera-citizenship-page .feature-card,
 body.page-template-page-citizenship .pera-citizenship-page .info-step,
 body.page-template-page-citizenship .pera-citizenship-page .timeline-step,
 body.page-template-page-citizenship .pera-citizenship-page .enquiry-cta {
-  background: var(--citi-panel-bg);
-  border: 1px solid var(--citi-border);
-  border-radius: var(--citi-radius-panel);
-  box-shadow: 0 1px 2px rgba(16, 24, 40, 0.04);
+  border: 1px solid var(--citi-labs-border);
+  border-radius: var(--citi-labs-radius-card);
+  background: var(--citi-labs-panel-strong);
+  box-shadow: none;
+  transition: border-color 0.24s ease, transform 0.24s ease;
 }
 
-body.page-template-page-citizenship .pera-citizenship-page .content-panel-box,
-body.page-template-page-citizenship .pera-citizenship-page .enquiry-cta {
-  padding: clamp(24px, 3.2vw, 36px);
+body.page-template-page-citizenship .pera-citizenship-page .feature-card,
+body.page-template-page-citizenship .pera-citizenship-page .info-step,
+body.page-template-page-citizenship .pera-citizenship-page .timeline-step {
+  padding: clamp(24px, 3vw, 32px);
 }
 
-body.page-template-page-citizenship .pera-citizenship-page .feature-card-body,
-body.page-template-page-citizenship .pera-citizenship-page .timeline-body,
-body.page-template-page-citizenship .pera-citizenship-page .info-step-body {
-  padding-top: 2px;
+body.page-template-page-citizenship .pera-citizenship-page .feature-card:hover,
+body.page-template-page-citizenship .pera-citizenship-page .info-step:hover,
+body.page-template-page-citizenship .pera-citizenship-page .timeline-step:hover {
+  border-color: var(--citi-labs-border-hover);
+  transform: translateY(-2px);
 }
 
-body.page-template-page-citizenship .pera-citizenship-page .section-header {
-  margin-bottom: clamp(22px, 3vw, 34px);
+body.page-template-page-citizenship .pera-citizenship-page .info-step-icon {
+  margin-bottom: 12px;
 }
 
-body.page-template-page-citizenship .pera-citizenship-page .feature-grid,
-body.page-template-page-citizenship .pera-citizenship-page .info-steps,
-body.page-template-page-citizenship .pera-citizenship-page .timeline {
-  gap: clamp(14px, 2vw, 20px);
+body.page-template-page-citizenship .pera-citizenship-page .info-step-number,
+body.page-template-page-citizenship .pera-citizenship-page .timeline-number {
+  box-shadow: none;
+  background: #eaf0ff;
+  color: #365bb8;
+}
+
+body.page-template-page-citizenship .pera-citizenship-page .timeline::before {
+  display: none;
 }
 
 body.page-template-page-citizenship .pera-citizenship-page .btn {
-  border-radius: var(--citi-radius-control);
+  border-radius: 999px;
+  padding: 0.78rem 1.25rem;
   box-shadow: none;
-  transition: background-color 0.2s ease, color 0.2s ease, border-color 0.2s ease, transform 0.2s ease;
+  font-weight: 600;
+  transition: transform 0.2s ease, background-color 0.2s ease, border-color 0.2s ease, color 0.2s ease;
 }
 
 body.page-template-page-citizenship .pera-citizenship-page .btn:hover {
@@ -107,35 +161,80 @@ body.page-template-page-citizenship .pera-citizenship-page .btn:hover {
 }
 
 body.page-template-page-citizenship .pera-citizenship-page .btn:focus-visible {
-  outline: 2px solid #9bb6ff;
+  outline: 2px solid #9eb7ff;
   outline-offset: 2px;
 }
 
 body.page-template-page-citizenship .pera-citizenship-page .hero-actions {
+  display: flex;
+  flex-wrap: wrap;
   gap: 10px;
 }
 
-body.page-template-page-citizenship .pera-citizenship-page .timeline::before {
-  opacity: 0.35;
+body.page-template-page-citizenship .pera-citizenship-page .citi-labs-chip-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 9px;
+  margin-top: 14px;
 }
 
-body.page-template-page-citizenship .pera-citizenship-page .timeline-number,
-body.page-template-page-citizenship .pera-citizenship-page .info-step-number {
-  box-shadow: none;
+body.page-template-page-citizenship .pera-citizenship-page .citi-labs-chip {
+  display: inline-flex;
+  align-items: center;
+  border-radius: 999px;
+  border: 1px solid #dde3ee;
+  background: #f4f6fb;
+  color: #657289;
+  font-size: 0.9rem;
+  line-height: 1.1;
+  padding: 8px 13px;
 }
 
-body.page-template-page-citizenship .pera-citizenship-page .citizenship-trust-strip {
-  opacity: 0.86;
-  font-size: 0.94rem;
+body.page-template-page-citizenship .pera-citizenship-page .citi-labs-rail {
+  display: flex;
+  gap: clamp(14px, 1.8vw, 22px);
+  overflow-x: auto;
+  padding-bottom: 8px;
+  scroll-snap-type: x mandatory;
+  scrollbar-width: thin;
+}
+
+body.page-template-page-citizenship .pera-citizenship-page .citi-labs-rail > .citi-labs-card {
+  flex: 0 0 clamp(280px, 31vw, 340px);
+  scroll-snap-align: start;
+}
+
+body.page-template-page-citizenship .pera-citizenship-page .citi-labs-rail .info-step-icon {
+  margin-bottom: 18px;
+}
+
+body.page-template-page-citizenship .pera-citizenship-page .enquiry-cta {
+  padding: clamp(24px, 3.2vw, 40px);
+}
+
+@media (max-width: 991px) {
+  body.page-template-page-citizenship .pera-citizenship-page {
+    font-size: 16px;
+  }
+
+  body.page-template-page-citizenship .pera-citizenship-page .citi-labs-panel {
+    border-radius: 24px;
+  }
 }
 
 @media (max-width: 767px) {
   body.page-template-page-citizenship .pera-citizenship-page {
-    --citi-section-gap: 40px;
+    --citi-labs-panel-pad: 22px;
+    --citi-labs-section-gap: 18px;
   }
 
-  body.page-template-page-citizenship .pera-citizenship-page .content-panel-box,
-  body.page-template-page-citizenship .pera-citizenship-page .enquiry-cta {
-    padding: 20px;
+  body.page-template-page-citizenship .pera-citizenship-page .citi-labs-panel {
+    margin-inline: 12px;
+  }
+
+  body.page-template-page-citizenship .pera-citizenship-page .feature-card,
+  body.page-template-page-citizenship .pera-citizenship-page .info-step,
+  body.page-template-page-citizenship .pera-citizenship-page .timeline-step {
+    padding: 22px;
   }
 }
