@@ -156,7 +156,7 @@ $citizenship_requirements = array(
     </div>
   </section>
 
-  <section class="content-panel content-panel--overlap-hero citizenship-consultancy">
+  <section class="content-panel citizenship-consultancy">
     <div class="content-panel-box">
       <div class="content-panel-grid--single">
         <header class="section-header section-header--center">
