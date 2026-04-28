@@ -2186,6 +2186,21 @@ body:not(.single-post) tr:nth-child(even) {
   word-break: normal;
 }
 
+/* Final override: keep Gutenberg article tables horizontally scrollable on small screens */
+.section-article .article-body .wp-block-table table {
+  width: max-content !important;
+  min-width: 100%;
+  max-width: none !important;
+  table-layout: auto !important;
+}
+
+.section-article .article-body .wp-block-table th,
+.section-article .article-body .wp-block-table td {
+  white-space: nowrap !important;
+  overflow-wrap: normal !important;
+  word-break: normal !important;
+}
+
 
 /* =======================================================
    15. CTA SECTION
