@@ -77,7 +77,6 @@ add_action( 'wp_enqueue_scripts', function () {
   $is_about_new    = is_page_template( 'page-about-new.php' );
   $is_favourites_page = is_page_template( 'page-favourites.php' );
   $is_property_map = is_page_template( 'page-property-map.php' );
-  $is_citizenship_page = is_page_template( 'page-citizenship.php' ) || is_page( 'citizenship-by-investment' );
   $is_enquiry_page = is_page_template( 'page-citizenship.php' ) ||
     is_page_template( 'page-rent-with-pera.php' ) ||
     is_page_template( 'page-sell-with-pera.php' ) ||
@@ -154,14 +153,6 @@ if ( $needs_card_typography ) {
   );
 }
 
-if ( $is_citizenship_page && current_user_can( 'manage_options' ) ) {
-  wp_enqueue_style(
-    'pera-page-citizenship-labs',
-    get_stylesheet_directory_uri() . '/css/page-citizenship-labs.css',
-    array( 'pera-main-css' ),
-    pera_get_asset_version( '/css/page-citizenship-labs.css' )
-  );
-}
 
 if ( $is_home ) {
   wp_enqueue_script(
