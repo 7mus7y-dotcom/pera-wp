@@ -205,7 +205,7 @@ get_header();
             <article class="feature-card">
                 <div class="feature-card-header">
                     <h3>Full Management</h3>
-                    <p class="price-tag">12% + VAT</p>
+                    <p class="price-tag">One month’s rent per year</p>
                 </div>
 
                 <div class="feature-card-body">
@@ -257,8 +257,76 @@ get_header();
         </div>
     </section>
 
+    <section class="section" id="rental-management-faq">
+        <div class="content-panel-box">
+            <header class="section-header section-header--center">
+                <h2>Long-term rental management FAQ</h2>
+                <p>Clear answers for overseas and Istanbul-based owners who want Pera Property to manage their rental property professionally.</p>
+            </header>
 
+            <div class="stacked-text faq-list">
+                <details>
+                    <summary>Is this a full property management service or only tenant finding?</summary>
+                    <p>Our full management service covers tenant sourcing, advertising, lease preparation, tenant checks, renewal negotiations, maintenance coordination, tax and insurance assistance, and exit arrangements. Owners who only need tenant finding can also use our standard lettings service.</p>
+                </details>
 
+                <details>
+                    <summary>What is your annual management fee?</summary>
+                    <p>For full management, our fee is the equivalent of one month’s rent per property per year. This is our service fee. Any property expenses, such as maintenance, repairs, taxes, insurance or utility-related costs, are billed separately and only arranged with your approval.</p>
+                </details>
+
+                <details>
+                    <summary>Do you charge again if the same tenant renews?</summary>
+                    <p>Yes. If you want Pera Property to continue managing the property, the annual management fee applies again on renewal. If you prefer to manage the tenant yourself after the first year, there is no further management charge.</p>
+                </details>
+
+                <details>
+                    <summary>How are rent increases handled in Turkey?</summary>
+                    <p>Annual rent increases are handled in line with the legal cap, generally based on TÜFE/CPI. We negotiate renewals with the tenant and advise you according to the current legal framework and market conditions at the time of renewal.</p>
+                </details>
+
+                <details>
+                    <summary>How do you screen tenants?</summary>
+                    <p>We are highly selective. We check the tenant’s work and income position, request supporting documents where needed, and usually require a Turkish guarantor. We also ask the guarantor to sign in person at our office. Where appropriate, we may request additional assurances such as salary evidence or a credit report.</p>
+                </details>
+
+                <details>
+                    <summary>Do you use a notarised exit agreement?</summary>
+                    <p>Yes. For long-term rentals we normally insist on a notarised exit agreement for 12 months. This gives the owner stronger protection if the tenant does not leave at the end of the agreed term.</p>
+                </details>
+
+                <details>
+                    <summary>Will I approve the tenant and contract before signing?</summary>
+                    <p>Yes. We will share the proposed tenant details and lease terms with you before signature. We can also prepare bilingual Turkish and English rental contracts so you understand the agreement clearly.</p>
+                </details>
+
+                <details>
+                    <summary>Are utilities transferred to the tenant’s name?</summary>
+                    <p>Yes. For occupied properties, utilities are normally transferred to the tenant. For brand-new properties, the owner may first need to open the utility accounts and pay the initial deposits. We can arrange this process for you.</p>
+                </details>
+
+                <details>
+                    <summary>How is the tenant deposit handled?</summary>
+                    <p>The deposit is usually paid directly to the owner, often in foreign currency. We normally request a two-month deposit. At exit, the apartment is inspected and any justified deductions are assessed before the balance is returned in accordance with the lease and Turkish law.</p>
+                </details>
+
+                <details>
+                    <summary>Do you arrange repairs and maintenance?</summary>
+                    <p>Yes. If there is a maintenance issue, such as an appliance fault or air-conditioning problem, we contact the relevant service provider, obtain the cost, and ask for your approval before proceeding. We do not approve expenses without your written consent by email or WhatsApp.</p>
+                </details>
+
+                <details>
+                    <summary>Do you provide monthly reports?</summary>
+                    <p>In most cases, rent is paid directly to the owner and expenses are paid separately by the owner, so monthly reporting is not always necessary. If you want us to manage incomings and outgoings, we can maintain a shared online record for transparency.</p>
+                </details>
+
+                <details>
+                    <summary>How can I terminate the management arrangement?</summary>
+                    <p>You can terminate with friendly notice. We will transfer the relevant documents and information to you, your new agent, or your chosen representative.</p>
+                </details>
+            </div>
+        </div>
+    </section>
 
     <!-- SHORT TERM RENTALS -->
     <section class="section">
