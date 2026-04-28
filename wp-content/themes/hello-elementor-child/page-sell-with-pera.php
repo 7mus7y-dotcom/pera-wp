@@ -486,6 +486,76 @@ get_header();
         </div>
     </section>
 
+    <section class="section section-soft">
+        <div class="container">
+            <header class="section-header section-header--center">
+                <h2>Typical timeline for selling property in Istanbul</h2>
+                <p>Every sale moves at a different pace depending on district, price point, property condition and buyer demand. We keep you updated at each stage so decisions stay clear and practical.</p>
+            </header>
+
+            <div class="info-steps">
+                <div class="info-step">
+                    <div class="info-step-icon"><span class="info-step-number">1</span></div>
+                    <div class="info-step-body">
+                        <h3 class="info-step-title">Initial review and valuation</h3>
+                        <p class="info-step-text">We review your property details, location, key documents and seller goals, then agree an indicative valuation range for the current market.</p>
+                    </div>
+                </div>
+
+                <div class="info-step">
+                    <div class="info-step-icon"><span class="info-step-number">2</span></div>
+                    <div class="info-step-body">
+                        <h3 class="info-step-title">Listing requirements and document check</h3>
+                        <p class="info-step-text">Before launch, we usually verify tapu, ID/passport, tax number, DASK where applicable, iskan where relevant, mortgage or debt checks, and power of attorney documentation for overseas owners.</p>
+                    </div>
+                </div>
+
+                <div class="info-step">
+                    <div class="info-step-icon"><span class="info-step-number">3</span></div>
+                    <div class="info-step-body">
+                        <h3 class="info-step-title">Marketing preparation</h3>
+                        <p class="info-step-text">We prepare professional photos, video where suitable, floor plans, bilingual listing copy and a launch pricing strategy aligned with your timeline.</p>
+                    </div>
+                </div>
+
+                <div class="info-step">
+                    <div class="info-step-icon"><span class="info-step-number">4</span></div>
+                    <div class="info-step-body">
+                        <h3 class="info-step-title">Launch and qualified viewings</h3>
+                        <p class="info-step-text">Your listing goes live, buyer enquiries are screened, and viewings are arranged with you, your tenant or your caretaker as needed.</p>
+                    </div>
+                </div>
+
+                <div class="info-step">
+                    <div class="info-step-icon"><span class="info-step-number">5</span></div>
+                    <div class="info-step-body">
+                        <h3 class="info-step-title">Offer negotiation</h3>
+                        <p class="info-step-text">We compare offers by price, payment terms, deposit structure, timing and buyer readiness so you can choose the strongest path to completion.</p>
+                    </div>
+                </div>
+
+                <div class="info-step">
+                    <div class="info-step-icon"><span class="info-step-number">6</span></div>
+                    <div class="info-step-body">
+                        <h3 class="info-step-title">Contract, legal checks and tapu transfer</h3>
+                        <p class="info-step-text">We coordinate with your lawyer through contract checks, title deed office steps, final payment and handover, while keeping communication consistent until completion.</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="content-panel-box" style="margin-top:16px;">
+                <p><strong>Before we list your property, we usually review:</strong></p>
+                <ul class="checklist">
+                    <li><svg class="icon icon-tick" aria-hidden="true"><use href="<?php echo get_stylesheet_directory_uri(); ?>/logos-icons/icons.svg#icon-check"></use></svg>Tapu/title deed and ownership details</li>
+                    <li><svg class="icon icon-tick" aria-hidden="true"><use href="<?php echo get_stylesheet_directory_uri(); ?>/logos-icons/icons.svg#icon-check"></use></svg>Building age, condition and occupancy/tenant status</li>
+                    <li><svg class="icon icon-tick" aria-hidden="true"><use href="<?php echo get_stylesheet_directory_uri(); ?>/logos-icons/icons.svg#icon-check"></use></svg>Asking price expectations and launch strategy</li>
+                    <li><svg class="icon icon-tick" aria-hidden="true"><use href="<?php echo get_stylesheet_directory_uri(); ?>/logos-icons/icons.svg#icon-check"></use></svg>DASK and iskan where relevant</li>
+                    <li><svg class="icon icon-tick" aria-hidden="true"><use href="<?php echo get_stylesheet_directory_uri(); ?>/logos-icons/icons.svg#icon-check"></use></svg>Debts, mortgages or site-management dues</li>
+                </ul>
+            </div>
+        </div>
+    </section>
+
     <section class="section">
         <div class="container grid-2">
             <div>

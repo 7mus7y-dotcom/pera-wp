@@ -1354,11 +1354,18 @@ $custom_video_text = $custom_video_text ? wp_kses_post( wpautop( $custom_video_t
         <div class="hero-overlay"></div>
 
         <div class="hero-content section--center">
-          <h3 class="text-light">Speak with a Consultant</h3>
+          <h3 class="text-light">Own a similar property in Istanbul?</h3>
+          <p class="text-light">
+            Get a free valuation and see how Pera can market your property to local and international buyers, or let us manage your Istanbul rental with hands-on owner support.
+          </p>
 
           <div class="hero-actions flex-center">
-            <a href="https://www.peraproperty.com/contact-us/" class="btn btn--solid btn--blue">
-              Book a consultation
+            <a href="<?php echo esc_url( home_url( '/sell-your-istanbul-real-estate/' ) ); ?>" class="btn btn--solid btn--blue">
+              Get a Free Valuation
+            </a>
+
+            <a href="<?php echo esc_url( home_url( '/rent-with-pera/' ) ); ?>" class="btn btn--ghost btn--blue">
+              Explore Property Management
             </a>
 
             <a
