@@ -104,7 +104,7 @@ $citizenship_requirements = array(
         </header>
         <div class="citizenship-seo-copy">
           <p>Turkey’s citizenship by investment programme allows eligible investors to apply for Turkish citizenship through a qualifying real estate investment of at least USD 400,000. For many families, the Turkish citizenship property route is attractive because it combines a second passport strategy with ownership of a tangible Istanbul property asset.</p>
-          <p>Pera Property supports international buyers through the full Turkey citizenship by investment process, from selecting citizenship-eligible property options for sale in Istanbul to coordinating legal due diligence, valuation reports, title deed transfer, foreign currency documentation, residency steps, and the final Turkey citizenship application and Turkish passport by investment delivery stage.</p>
+          <p>Pera Property supports international buyers through the full Turkey citizenship by investment process, from selecting citizenship-eligible property options for sale in Istanbul to coordinating legal due diligence, valuation reports, title deed transfer, foreign currency documentation, residency steps, and the final citizenship application through to passport issuance.</p>
         </div>
       </div>
     </div>
