@@ -12,8 +12,13 @@ if ( ! function_exists( 'pera_analytics_head_scripts' ) ) {
 			return;
 		}
 
-		pera_analytics_render_ahrefs();
-		pera_analytics_meta_pixel();
+		if ( function_exists( 'pera_analytics_render_ahrefs' ) ) {
+			pera_analytics_render_ahrefs();
+		}
+
+		if ( function_exists( 'pera_analytics_meta_pixel' ) ) {
+			pera_analytics_meta_pixel();
+		}
 	}
 }
 
