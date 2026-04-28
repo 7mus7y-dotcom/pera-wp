@@ -8,6 +8,92 @@ if ( ! defined( 'ABSPATH' ) ) exit;
 $hero_heading = $args['hero_heading'] ?? 'Talk to Pera about your Istanbul plans';
 $hero_intro   = $args['hero_intro']   ?? 'Whether you’re buying, selling, or renting in Istanbul, our team can walk you through the numbers, the legal steps, and the neighbourhoods that fit your strategy.';
 
+if ( ! function_exists( 'pera_rent_with_pera_faq_schema' ) ) {
+    function pera_rent_with_pera_faq_schema() {
+        if ( ! is_page_template( 'page-rent-with-pera.php' ) ) {
+            return;
+        }
+
+        $faq_entities = array(
+            array(
+                'question' => 'What does your full property management in Istanbul service include?',
+                'answer'   => 'Our service is fully hands-off for Istanbul property owners. We handle tenant sourcing, marketing, viewings, lease preparation, tenant screening, contract negotiation, renewals, maintenance coordination, and ongoing tenant communication. We also assist with utility setup, tax guidance, and end-of-tenancy processes.',
+            ),
+            array(
+                'question' => 'What is your rental management fee?',
+                'answer'   => 'Our full property management service in Istanbul is charged at 12% + VAT of the monthly rent. This covers the ongoing management of the property throughout the tenancy, including renewals and day-to-day tenant management.',
+            ),
+            array(
+                'question' => 'Are there any additional costs?',
+                'answer'   => 'Yes — the management fee covers our service only. Property-related costs such as maintenance, repairs, taxes, insurance, utilities, or building charges are separate and always subject to your approval before any work is carried out.',
+            ),
+            array(
+                'question' => 'How do you find and select tenants?',
+                'answer'   => 'As part of our rental management in Istanbul, we market your property across our network and screen all applicants carefully. This typically includes employment and income checks, documentation review, and — where appropriate — requiring a Turkish guarantor. Our focus is always on placing reliable, financially stable tenants.',
+            ),
+            array(
+                'question' => 'Will I approve the tenant before the contract is signed?',
+                'answer'   => 'Yes. We present you with the proposed tenant and agreed terms before any contract is finalised. No tenancy is confirmed without your approval.',
+            ),
+            array(
+                'question' => 'Do you provide the rental contract in English?',
+                'answer'   => 'Yes. We can prepare bilingual Turkish and English contracts so that you fully understand the terms of the agreement while ensuring compliance with local regulations.',
+            ),
+            array(
+                'question' => 'How are rent increases handled?',
+                'answer'   => 'Rent increases are managed in line with Turkish law, typically based on the official CPI (TÜFE) cap. We handle negotiations with the tenant and advise you on the optimal approach at each renewal period.',
+            ),
+            array(
+                'question' => 'Do you use any legal protection for the landlord?',
+                'answer'   => 'Yes. Where appropriate, we arrange a notarised exit undertaking (tahliye taahhütnamesi), which provides additional legal protection in case the tenant does not vacate at the end of the agreed term.',
+            ),
+            array(
+                'question' => 'How is the tenant deposit handled?',
+                'answer'   => 'We typically secure a two-month deposit, which is held in accordance with Turkish rental practices. At the end of the tenancy, the property is inspected and any agreed deductions are applied before the remaining balance is returned.',
+            ),
+            array(
+                'question' => 'How are utilities managed?',
+                'answer'   => 'For tenanted properties, utilities are usually transferred into the tenant’s name. For new properties, the owner may need to open the accounts initially. We manage and coordinate this process on your behalf.',
+            ),
+            array(
+                'question' => 'How do you handle maintenance and repairs?',
+                'answer'   => 'If an issue arises, we coordinate with trusted contractors, obtain quotes where necessary, and seek your approval before proceeding. No expense is incurred without your consent, so Istanbul property owners stay in control.',
+            ),
+            array(
+                'question' => 'Do I receive reports or updates?',
+                'answer'   => 'Rent is typically paid directly to the owner, so formal monthly reporting is not always required. However, we keep you informed of any key developments and can provide structured reporting if you prefer a more hands-on overview.',
+            ),
+            array(
+                'question' => 'Can I take over management myself later?',
+                'answer'   => 'Yes. You are free to take over management at any time with reasonable notice. We will ensure a smooth handover of all relevant documents and tenant information.',
+            ),
+        );
+
+        $main_entity = array_map(
+            static function ( array $item ): array {
+                return array(
+                    '@type'          => 'Question',
+                    'name'           => $item['question'],
+                    'acceptedAnswer' => array(
+                        '@type' => 'Answer',
+                        'text'  => $item['answer'],
+                    ),
+                );
+            },
+            $faq_entities
+        );
+
+        $schema = array(
+            '@context'   => 'https://schema.org',
+            '@type'      => 'FAQPage',
+            'mainEntity' => $main_entity,
+        );
+
+        echo '<script type="application/ld+json">' . wp_json_encode( $schema, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES ) . '</script>' . "\n";
+    }
+}
+add_action( 'wp_head', 'pera_rent_with_pera_faq_schema', 25 );
+
 
 get_header();
 ?>
@@ -56,10 +142,10 @@ get_header();
           <div class="hero-content">
 
         
-            <h1>Rent your Istanbul property with confidence.</h1>
-        
+            <h1>Property management in Istanbul for overseas and local owners</h1>
+
             <p class="lead">
-              From tenant sourcing to full management, Pera handles every detail so you earn the best return with zero stress.
+              Pera provides full-service rental and property management in Istanbul, including tenant sourcing, contracts, rent collection, maintenance coordination, renewals, and dedicated owner support.
             </p>
         
             <div class="hero-actions">
@@ -80,10 +166,12 @@ get_header();
                 <!-- LEFT -->
                 <div>
                     <header class="section-header">
-                        <h2>Why rent your property with Pera?</h2>
+                        <h2>Why choose Pera for property management in Istanbul?</h2>
                         <p>
-                            We maximise your rental returns through professional marketing, strong tenant checks,
-                            and hands-on management that protects your time and your investment.
+                            We deliver rental management for Istanbul property owners through professional marketing,
+                            strong tenant checks, and hands-on service that protects your time and your investment.
+                            If you are preparing <a href="/property/">a property for rent in Istanbul</a>, or considering
+                            <a href="/sell-your-istanbul-real-estate/">selling your Istanbul property</a>, our team can advise on the best route.
                         </p>
                     </header>
 
@@ -205,7 +293,7 @@ get_header();
             <article class="feature-card">
                 <div class="feature-card-header">
                     <h3>Full Management</h3>
-                    <p class="price-tag">One month’s rent per year</p>
+                    <p class="price-tag">12% + VAT</p>
                 </div>
 
                 <div class="feature-card-body">
@@ -257,23 +345,130 @@ get_header();
         </div>
     </section>
 
+    <section class="section section-soft" id="rental-management-process">
+        <div class="content-panel-box">
+            <header class="section-header section-header--center">
+                <h2>How our Istanbul property management service works</h2>
+                <p>Our process is designed to keep rental management straightforward for Istanbul property owners.</p>
+            </header>
+
+            <div class="feature-grid">
+                <article class="feature-card">
+                    <div class="feature-card-header">
+                        <h3>1) Rental valuation</h3>
+                    </div>
+                    <div class="feature-card-body">
+                        <ul class="checklist">
+                            <li>
+                                <svg class="icon icon-tick" aria-hidden="true">
+                                    <use href="<?php echo get_stylesheet_directory_uri(); ?>/logos-icons/icons.svg#icon-check"></use>
+                                </svg>
+                                We assess market demand, building profile, and district comparables in areas such as <a href="/district/istanbul/besiktas/">Beşiktaş</a>, Şişli, Beyoğlu, and Kadıköy.
+                            </li>
+                        </ul>
+                    </div>
+                </article>
+
+                <article class="feature-card">
+                    <div class="feature-card-header">
+                        <h3>2) Marketing and tenant sourcing</h3>
+                    </div>
+                    <div class="feature-card-body">
+                        <ul class="checklist">
+                            <li>
+                                <svg class="icon icon-tick" aria-hidden="true">
+                                    <use href="<?php echo get_stylesheet_directory_uri(); ?>/logos-icons/icons.svg#icon-check"></use>
+                                </svg>
+                                We market your home across major channels to attract qualified long-term tenants quickly.
+                            </li>
+                        </ul>
+                    </div>
+                </article>
+
+                <article class="feature-card">
+                    <div class="feature-card-header">
+                        <h3>3) Tenant screening</h3>
+                    </div>
+                    <div class="feature-card-body">
+                        <ul class="checklist">
+                            <li>
+                                <svg class="icon icon-tick" aria-hidden="true">
+                                    <use href="<?php echo get_stylesheet_directory_uri(); ?>/logos-icons/icons.svg#icon-check"></use>
+                                </svg>
+                                We complete documentation and affordability checks before presenting tenants for your approval.
+                            </li>
+                        </ul>
+                    </div>
+                </article>
+
+                <article class="feature-card">
+                    <div class="feature-card-header">
+                        <h3>4) Contract and deposit setup</h3>
+                    </div>
+                    <div class="feature-card-body">
+                        <ul class="checklist">
+                            <li>
+                                <svg class="icon icon-tick" aria-hidden="true">
+                                    <use href="<?php echo get_stylesheet_directory_uri(); ?>/logos-icons/icons.svg#icon-check"></use>
+                                </svg>
+                                We prepare compliant tenancy contracts and organise deposit handling with clear owner sign-off.
+                            </li>
+                        </ul>
+                    </div>
+                </article>
+
+                <article class="feature-card">
+                    <div class="feature-card-header">
+                        <h3>5) Rent collection and maintenance</h3>
+                    </div>
+                    <div class="feature-card-body">
+                        <ul class="checklist">
+                            <li>
+                                <svg class="icon icon-tick" aria-hidden="true">
+                                    <use href="<?php echo get_stylesheet_directory_uri(); ?>/logos-icons/icons.svg#icon-check"></use>
+                                </svg>
+                                Our Istanbul rental management team supports collections, maintenance coordination, and tenant communication.
+                            </li>
+                        </ul>
+                    </div>
+                </article>
+
+                <article class="feature-card">
+                    <div class="feature-card-header">
+                        <h3>6) Renewal or exit management</h3>
+                    </div>
+                    <div class="feature-card-body">
+                        <ul class="checklist">
+                            <li>
+                                <svg class="icon icon-tick" aria-hidden="true">
+                                    <use href="<?php echo get_stylesheet_directory_uri(); ?>/logos-icons/icons.svg#icon-check"></use>
+                                </svg>
+                                We manage rent reviews, renewals, and move-out processes while keeping you informed at every stage.
+                            </li>
+                        </ul>
+                    </div>
+                </article>
+            </div>
+        </div>
+    </section>
+
     <section class="section" id="rental-management-faq">
         <div class="content-panel-box">
             <header class="section-header section-header--center">
                 <h2>Rental management FAQ</h2>
-                <p>Everything you need to know about how our full management service works in practice.</p>
+                <p>Everything you need to know about property management in Istanbul and how our rental management service works in practice.</p>
             </header>
 
             <div class="faq-list">
 
                 <details>
-                    <summary>What does your full rental management service include?</summary>
-                    <p>Our service is fully hands-off for the owner. We handle tenant sourcing, marketing, viewings, lease preparation, tenant screening, contract negotiation, renewals, maintenance coordination, and ongoing tenant communication. We also assist with utility setup, tax guidance, and end-of-tenancy processes.</p>
+                    <summary>What does your full property management in Istanbul service include?</summary>
+                    <p>Our service is fully hands-off for Istanbul property owners. We handle tenant sourcing, marketing, viewings, lease preparation, tenant screening, contract negotiation, renewals, maintenance coordination, and ongoing tenant communication. We also assist with utility setup, tax guidance, and end-of-tenancy processes.</p>
                 </details>
 
                 <details>
-                    <summary>What is your management fee?</summary>
-                    <p>Our full management service is charged at <strong>12% + VAT of the monthly rent</strong>. This covers the ongoing management of the property throughout the tenancy, including renewals and day-to-day tenant management.</p>
+                    <summary>What is your rental management fee?</summary>
+                    <p>Our full property management service in Istanbul is charged at <strong>12% + VAT of the monthly rent</strong>. This covers the ongoing management of the property throughout the tenancy, including renewals and day-to-day tenant management.</p>
                 </details>
 
                 <details>
@@ -283,7 +478,7 @@ get_header();
 
                 <details>
                     <summary>How do you find and select tenants?</summary>
-                    <p>We market your property across our network and screen all applicants carefully. This typically includes employment and income checks, documentation review, and — where appropriate — requiring a Turkish guarantor. Our focus is always on placing reliable, financially stable tenants.</p>
+                    <p>As part of our rental management in Istanbul, we market your property across our network and screen all applicants carefully. This typically includes employment and income checks, documentation review, and — where appropriate — requiring a Turkish guarantor. Our focus is always on placing reliable, financially stable tenants.</p>
                 </details>
 
                 <details>
@@ -318,7 +513,7 @@ get_header();
 
                 <details>
                     <summary>How do you handle maintenance and repairs?</summary>
-                    <p>If an issue arises, we coordinate with trusted contractors, obtain quotes where necessary, and seek your approval before proceeding. No expense is incurred without your consent.</p>
+                    <p>If an issue arises, we coordinate with trusted contractors, obtain quotes where necessary, and seek your approval before proceeding. No expense is incurred without your consent, so Istanbul property owners stay in control.</p>
                 </details>
 
                 <details>
@@ -345,8 +540,9 @@ get_header();
                     <header class="section-header">
                         <h2>The short term rental market (“Airbnb”)</h2>
                         <p>
-                            International owners trust Pera Property to manage their apartments on Istanbul’s short-term rental
-                            market. We provide an armchair experience while your property generates strong returns.
+                            Our core service is long-term property management in Istanbul, while short-term rental support is available where suitable for the asset and location.
+                            If you need dedicated holiday-let support, see our
+                            <a href="/short-term-rental-airbnb-in-istanbul_49220/">short-term rental and Airbnb management service</a>.
                         </p>
                     </header>
 
