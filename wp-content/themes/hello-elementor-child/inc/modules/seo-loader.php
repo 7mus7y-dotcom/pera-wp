@@ -13,6 +13,7 @@ add_action( 'wp', function () {
   // 1) Single Property
   if ( is_singular( 'property' ) ) {
     require_once $inc . 'seo-property.php';
+    require_once $inc . 'seo-property-offer.php';
     return;
   }
 
