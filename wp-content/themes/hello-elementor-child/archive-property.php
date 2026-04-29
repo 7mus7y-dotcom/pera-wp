@@ -1013,6 +1013,9 @@ $pagination_html = function_exists( 'pera_render_property_pagination' )
 if ( $qo instanceof WP_Term && $qo->taxonomy === 'district' && function_exists( 'pera_render_district_page_faqs' ) ) {
   pera_render_district_page_faqs( $qo );
 }
+if ( $qo instanceof WP_Term && $qo->taxonomy === 'property_tags' && function_exists( 'pera_render_property_tag_faq_html' ) ) {
+  pera_render_property_tag_faq_html( $qo );
+}
 ?>
 
 <?php if ( $related_taxonomy_total > 0 ) : ?>

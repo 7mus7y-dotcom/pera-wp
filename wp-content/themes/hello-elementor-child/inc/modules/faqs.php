@@ -412,3 +412,110 @@ if ( ! function_exists( 'pera_enqueue_district_faq_admin_assets' ) ) {
 	}
 	add_action( 'admin_enqueue_scripts', 'pera_enqueue_district_faq_admin_assets' );
 }
+
+if ( ! function_exists( 'pera_render_property_tags_add_faq_html_field' ) ) {
+	/**
+	 * Render FAQ HTML field on add property_tags term screen.
+	 */
+	function pera_render_property_tags_add_faq_html_field( string $taxonomy ): void {
+		if ( 'property_tags' !== $taxonomy ) {
+			return;
+		}
+		?>
+		<div class="form-field term-group">
+			<label for="faq_html_content"><?php esc_html_e( 'FAQ HTML Content', 'pera' ); ?></label>
+			<?php wp_nonce_field( 'pera_property_tags_faq_html_save', 'pera_property_tags_faq_html_nonce' ); ?>
+			<textarea id="faq_html_content" name="faq_html_content" rows="8" class="large-text"></textarea>
+			<p class="description"><?php esc_html_e( 'Used to display manual FAQ content on property tag archive pages. FAQ schema is not generated from this field yet.', 'pera' ); ?></p>
+		</div>
+		<?php
+	}
+	add_action( 'property_tags_add_form_fields', 'pera_render_property_tags_add_faq_html_field' );
+}
+
+if ( ! function_exists( 'pera_render_property_tags_edit_faq_html_field' ) ) {
+	/**
+	 * Render FAQ HTML field on edit property_tags term screen.
+	 */
+	function pera_render_property_tags_edit_faq_html_field( WP_Term $term ): void {
+		if ( 'property_tags' !== $term->taxonomy ) {
+			return;
+		}
+
+		$faq_html_content = (string) get_term_meta( (int) $term->term_id, 'faq_html_content', true );
+		?>
+		<tr class="form-field term-group-wrap">
+			<th scope="row"><label for="faq_html_content"><?php esc_html_e( 'FAQ HTML Content', 'pera' ); ?></label></th>
+			<td>
+				<?php wp_nonce_field( 'pera_property_tags_faq_html_save', 'pera_property_tags_faq_html_nonce' ); ?>
+				<textarea id="faq_html_content" name="faq_html_content" rows="10" class="large-text"><?php echo esc_textarea( $faq_html_content ); ?></textarea>
+				<p class="description"><?php esc_html_e( 'Used to display manual FAQ content on property tag archive pages. FAQ schema is not generated from this field yet.', 'pera' ); ?></p>
+			</td>
+		</tr>
+		<?php
+	}
+	add_action( 'property_tags_edit_form_fields', 'pera_render_property_tags_edit_faq_html_field' );
+}
+
+if ( ! function_exists( 'pera_save_property_tags_faq_html_content' ) ) {
+	/**
+	 * Save property_tags FAQ HTML term meta from add/edit forms.
+	 */
+	function pera_save_property_tags_faq_html_content( int $term_id, int $tt_id, string $taxonomy ): void {
+		unset( $tt_id );
+
+		if ( 'property_tags' !== $taxonomy ) {
+			return;
+		}
+
+		$taxonomy_obj = get_taxonomy( $taxonomy );
+		$required_cap = ( $taxonomy_obj && isset( $taxonomy_obj->cap->edit_terms ) ) ? $taxonomy_obj->cap->edit_terms : 'manage_categories';
+		if ( ! current_user_can( $required_cap ) ) {
+			return;
+		}
+
+		$nonce = isset( $_POST['pera_property_tags_faq_html_nonce'] ) ? sanitize_text_field( wp_unslash( $_POST['pera_property_tags_faq_html_nonce'] ) ) : '';
+		if ( '' === $nonce || ! wp_verify_nonce( $nonce, 'pera_property_tags_faq_html_save' ) ) {
+			return;
+		}
+
+		if ( ! isset( $_POST['faq_html_content'] ) ) {
+			return;
+		}
+
+		$faq_html_content = wp_kses_post( wp_unslash( $_POST['faq_html_content'] ) );
+		if ( '' === trim( wp_strip_all_tags( $faq_html_content ) ) ) {
+			delete_term_meta( $term_id, 'faq_html_content' );
+			return;
+		}
+
+		update_term_meta( $term_id, 'faq_html_content', $faq_html_content );
+	}
+	add_action( 'created_term', 'pera_save_property_tags_faq_html_content', 10, 3 );
+	add_action( 'edited_term', 'pera_save_property_tags_faq_html_content', 10, 3 );
+}
+
+if ( ! function_exists( 'pera_render_property_tag_faq_html' ) ) {
+	/**
+	 * Render manual FAQ HTML content for property_tags archives.
+	 */
+	function pera_render_property_tag_faq_html( WP_Term $term ): void {
+		if ( 'property_tags' !== $term->taxonomy ) {
+			return;
+		}
+
+		$faq_html_content = (string) get_term_meta( (int) $term->term_id, 'faq_html_content', true );
+		if ( '' === trim( wp_strip_all_tags( $faq_html_content ) ) ) {
+			return;
+		}
+		?>
+		<section class="section">
+			<div class="container">
+				<div class="article-body">
+					<?php echo wpautop( wp_kses_post( $faq_html_content ) ); ?>
+				</div>
+			</div>
+		</section>
+		<?php
+	}
+}
