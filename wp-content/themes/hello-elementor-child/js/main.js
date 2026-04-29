@@ -60,6 +60,35 @@ document.addEventListener('DOMContentLoaded', function () {
     window.fbq('track', 'PageView');
   }
 
+  function trackWhatsAppLeadClicks() {
+    document.addEventListener('click', function (event) {
+      var target = event.target;
+      if (!target || !target.closest) return;
+
+      var link = target.closest('a[href]');
+      if (!link) return;
+      if (link.__peraMetaLeadTracked) return;
+
+      var href = (link.getAttribute('href') || '').toLowerCase();
+      if (!href) return;
+
+      var isWhatsAppLink = href.indexOf('wa.me') !== -1 ||
+        href.indexOf('api.whatsapp.com') !== -1 ||
+        href.indexOf('whatsapp') !== -1;
+
+      if (!isWhatsAppLink) return;
+      if (typeof window.fbq !== 'function') return;
+
+      link.__peraMetaLeadTracked = true;
+      window.fbq('track', 'Lead', {
+        content_name: 'WhatsApp Click',
+        content_category: 'Citizenship Lead'
+      });
+    }, true);
+  }
+
+  trackWhatsAppLeadClicks();
+
 
   function openNav() {
     body.classList.add('is-nav-open');
