@@ -87,28 +87,25 @@ $luxury_query = new WP_Query( $luxury_query_args );
 		</div>
 	</section>
 
-	<section class="section section-soft pv-sm">
+	<section class="section section-soft">
 		<div class="container">
-			<div class="trust-strip flex items-center justify-between btn-group">
-				<div class="trust-item text-sm">
-					<span class="pill pill--green pill--sm" aria-hidden="true">✓</span>
-					<strong class="text-sm">Since 2016</strong>
-					<span class="text-xs">Established Istanbul market experience</span>
-				</div>
-				<div class="trust-item text-sm">
-					<span class="pill pill--green pill--sm" aria-hidden="true">✓</span>
-					<strong class="text-sm">British-Turkish consultants</strong>
-					<span class="text-xs">International buyer perspective</span>
-				</div>
-				<div class="trust-item text-sm">
-					<span class="pill pill--green pill--sm" aria-hidden="true">✓</span>
-					<strong class="text-sm">Buyer-side guidance</strong>
-					<span class="text-xs">Shortlisted around your goals</span>
-				</div>
-				<div class="trust-item text-sm">
-					<span class="pill pill--green pill--sm" aria-hidden="true">✓</span>
-					<strong class="text-sm">Selected luxury homes only</strong>
-					<span class="text-xs">Curated apartments, villas and residences</span>
+			<div class="pera-card-shell">
+				<p class="pill pill--green pill--sm">Luxury buyer advisory</p>
+				<h2>A Curated Route Into Istanbul&rsquo;s Prime Property Market</h2>
+				<p>Since 2016, Pera Property has helped international buyers compare Istanbul&rsquo;s strongest lifestyle and investment opportunities &mdash; from Bosphorus-view apartments and branded residences to private villas in established districts.</p>
+				<div class="cards-grid">
+					<div>
+						<strong>British-Turkish consultants</strong>
+						<p class="text-sm">Local market access with international buyer perspective.</p>
+					</div>
+					<div>
+						<strong>Buyer-side guidance</strong>
+						<p class="text-sm">Shortlists shaped around your budget, lifestyle and objective.</p>
+					</div>
+					<div>
+						<strong>Selected luxury homes only</strong>
+						<p class="text-sm">No mass listings &mdash; only properties worth serious consideration.</p>
+					</div>
 				</div>
 			</div>
 		</div>
