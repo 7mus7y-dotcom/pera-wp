@@ -11,9 +11,16 @@ if ( ! defined( 'ABSPATH' ) ) {
 get_header();
 
 $whatsapp_url = 'https://wa.me/905320639978?text=Hello%20Pera%20Property%2C%20I%27m%20interested%20in%20luxury%20property%20in%20Istanbul.%20Can%20you%20send%20me%20a%20private%20shortlist%3F';
+$luxury_term = get_term_by( 'slug', 'istanbul-luxury-property-for-sale', 'property_tags' );
 $all_luxury_url = home_url( '/property_tags/istanbul-luxury-property-for-sale/' );
 
-$luxury_term = get_term_by( 'slug', 'istanbul-luxury-property-for-sale', 'property_tags' );
+if ( $luxury_term instanceof WP_Term ) {
+	$luxury_term_link = get_term_link( $luxury_term );
+
+	if ( ! is_wp_error( $luxury_term_link ) ) {
+		$all_luxury_url = $luxury_term_link;
+	}
+}
 $hero_img_id = 0;
 
 if ( $luxury_term instanceof WP_Term && function_exists( 'get_field' ) ) {
