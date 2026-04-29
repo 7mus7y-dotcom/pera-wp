@@ -21,7 +21,7 @@ if ( ! function_exists( 'pera_rent_with_pera_faq_schema' ) ) {
             ),
             array(
                 'question' => 'What is your rental management fee?',
-                'answer'   => 'Our full property management service in Istanbul is charged at 12% + VAT of the monthly rent. This covers the ongoing management of the property throughout the tenancy, including renewals and day-to-day tenant management.',
+                'answer'   => 'Our full property management service in Istanbul is charged at 12% + VAT. This covers the ongoing management of the property throughout the tenancy, including renewals and day-to-day tenant management.',
             ),
             array(
                 'question' => 'Are there any additional costs?',
@@ -468,7 +468,7 @@ get_header();
 
                 <details>
                     <summary>What is your rental management fee?</summary>
-                    <p>Our full property management service in Istanbul is charged at <strong>12% + VAT of the monthly rent</strong>. This covers the ongoing management of the property throughout the tenancy, including renewals and day-to-day tenant management.</p>
+                    <p>Our full property management service in Istanbul is charged at <strong>12% + VAT</strong>. This covers the ongoing management of the property throughout the tenancy, including renewals and day-to-day tenant management.</p>
                 </details>
 
                 <details>
