@@ -146,7 +146,7 @@ $luxury_query = new WP_Query( $luxury_query_args );
 			</div>
 			<?php wp_reset_postdata(); ?>
 
-			<div class="btn-group">
+			<div class="section text-center">
 				<a class="btn btn--solid btn--black" href="<?php echo esc_url( $all_luxury_url ); ?>">View All Luxury Properties</a>
 			</div>
 		</div>
