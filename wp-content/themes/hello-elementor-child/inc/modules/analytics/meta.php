@@ -3,8 +3,42 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-if ( ! function_exists( 'pera_analytics_meta_pixel' ) ) {
-	function pera_analytics_meta_pixel(): void {
+if ( ! defined( 'PERA_META_PIXEL_ID' ) ) {
+	define( 'PERA_META_PIXEL_ID', '539517871655580' );
+}
+
+if ( ! function_exists( 'pera_analytics_meta_pixel_should_track' ) ) {
+	function pera_analytics_meta_pixel_should_track(): bool {
+		if ( is_admin() || wp_doing_ajax() || wp_doing_cron() ) {
+			return false;
+		}
+
+		if ( defined( 'REST_REQUEST' ) && REST_REQUEST ) {
+			return false;
+		}
+
+		if ( is_feed() || is_preview() || is_trackback() || is_robots() ) {
+			return false;
+		}
+
+		if ( is_user_logged_in() && current_user_can( 'manage_options' ) ) {
+			return false;
+		}
+
+		return true;
+	}
+}
+
+if ( ! function_exists( 'pera_analytics_meta_pixel_print_head' ) ) {
+	function pera_analytics_meta_pixel_print_head(): void {
+		if ( ! pera_analytics_meta_pixel_should_track() ) {
+			return;
+		}
+
+		if ( defined( 'PERA_META_PIXEL_PRINTED' ) ) {
+			return;
+		}
+		define( 'PERA_META_PIXEL_PRINTED', true );
 		?>
 		<!-- Meta Pixel Code -->
 		<script>
@@ -16,13 +50,26 @@ if ( ! function_exists( 'pera_analytics_meta_pixel' ) ) {
 		t.src=v;s=b.getElementsByTagName(e)[0];
 		s.parentNode.insertBefore(t,s)}(window, document,'script',
 		'https://connect.facebook.net/en_US/fbevents.js');
-		fbq('init', '539517871655580');
+		fbq('init', '<?php echo esc_js( PERA_META_PIXEL_ID ); ?>');
 		fbq('track', 'PageView');
 		</script>
-		<noscript><img height="1" width="1" style="display:none"
-		src="https://www.facebook.com/tr?id=539517871655580&ev=PageView&noscript=1"
-		/></noscript>
 		<!-- End Meta Pixel Code -->
+		<?php
+	}
+}
+
+if ( ! function_exists( 'pera_analytics_meta_pixel_print_noscript' ) ) {
+	function pera_analytics_meta_pixel_print_noscript(): void {
+		if ( ! pera_analytics_meta_pixel_should_track() ) {
+			return;
+		}
+
+		if ( defined( 'PERA_META_PIXEL_NOSCRIPT_PRINTED' ) ) {
+			return;
+		}
+		define( 'PERA_META_PIXEL_NOSCRIPT_PRINTED', true );
+		?>
+		<noscript><img height="1" width="1" style="display:none" src="https://www.facebook.com/tr?id=<?php echo rawurlencode( PERA_META_PIXEL_ID ); ?>&amp;ev=PageView&amp;noscript=1" alt="" /></noscript>
 		<?php
 	}
 }
