@@ -25,6 +25,29 @@ if ( ! defined( 'ABSPATH' ) ) {
 
 if ( ! defined( 'PERA_TERM_EXCERPT_KEY' ) ) define( 'PERA_TERM_EXCERPT_KEY', 'pera_term_excerpt' );
 if ( ! defined( 'PERA_TERM_IMAGE_KEY' ) )   define( 'PERA_TERM_IMAGE_KEY',   'pera_term_featured_image_id' );
+
+if ( ! defined( 'PERA_TERM_ARCHIVE_SUBTITLE_KEY' ) ) define( 'PERA_TERM_ARCHIVE_SUBTITLE_KEY', 'archive_subtitle' );
+if ( ! defined( 'PERA_TERM_ARCHIVE_BODY_KEY' ) )     define( 'PERA_TERM_ARCHIVE_BODY_KEY',     'archive_body_content' );
+if ( ! defined( 'PERA_TERM_SEO_TITLE_KEY' ) )        define( 'PERA_TERM_SEO_TITLE_KEY',        'seo_title' );
+if ( ! defined( 'PERA_TERM_SEO_DESC_KEY' ) )         define( 'PERA_TERM_SEO_DESC_KEY',         'seo_meta_description' );
+
+/**
+ * Taxonomies that support custom property-archive term fields.
+ */
+function pera_property_archive_meta_taxonomies(): array {
+  $taxonomies = array(
+    'district',
+    'region',
+    'property_type',
+    'property_tags',
+  );
+
+  return array_values( array_filter( $taxonomies, 'taxonomy_exists' ) );
+}
+
+function pera_taxonomy_supports_property_archive_meta( string $taxonomy ): bool {
+  return in_array( $taxonomy, pera_property_archive_meta_taxonomies(), true );
+}
 /**
  * Supported taxonomies: public + show_ui
  */
@@ -156,6 +179,28 @@ function pera_term_meta_render_add_fields( string $taxonomy ): void {
     <p class="description"><?php esc_html_e( 'Recommended: used as meta description on term archives.', 'pera' ); ?></p>
   </div>
 
+  <?php if ( pera_taxonomy_supports_property_archive_meta( $taxonomy ) ) : ?>
+  <div class="form-field">
+    <label for="pera_archive_subtitle"><?php esc_html_e( 'Archive Subtitle', 'pera' ); ?></label>
+    <input type="text" name="pera_archive_subtitle" id="pera_archive_subtitle" value="" maxlength="220" />
+  </div>
+
+  <div class="form-field">
+    <label for="pera_archive_body_content"><?php esc_html_e( 'Archive Body Content', 'pera' ); ?></label>
+    <textarea name="pera_archive_body_content" id="pera_archive_body_content" rows="6"></textarea>
+  </div>
+
+  <div class="form-field">
+    <label for="pera_seo_title"><?php esc_html_e( 'SEO Title', 'pera' ); ?></label>
+    <input type="text" name="pera_seo_title" id="pera_seo_title" value="" maxlength="300" />
+  </div>
+
+  <div class="form-field">
+    <label for="pera_seo_meta_description"><?php esc_html_e( 'SEO Meta Description', 'pera' ); ?></label>
+    <textarea name="pera_seo_meta_description" id="pera_seo_meta_description" rows="3" maxlength="300"></textarea>
+  </div>
+  <?php endif; ?>
+
   <div class="form-field pera-term-image-wrap">
     <label><?php esc_html_e( 'Term Featured Image', 'pera' ); ?></label>
 
@@ -179,6 +224,11 @@ function pera_term_meta_render_edit_fields( WP_Term $term, string $taxonomy ): v
 
   $excerpt  = (string) get_term_meta( $term_id, PERA_TERM_EXCERPT_KEY, true );
   $image_id = (int) get_term_meta( $term_id, PERA_TERM_IMAGE_KEY, true );
+
+  $archive_subtitle    = (string) get_term_meta( $term_id, PERA_TERM_ARCHIVE_SUBTITLE_KEY, true );
+  $archive_body        = (string) get_term_meta( $term_id, PERA_TERM_ARCHIVE_BODY_KEY, true );
+  $seo_title           = (string) get_term_meta( $term_id, PERA_TERM_SEO_TITLE_KEY, true );
+  $seo_meta_desc       = (string) get_term_meta( $term_id, PERA_TERM_SEO_DESC_KEY, true );
 
   // Back-compat read fallback for category
   if ( $taxonomy === 'category' ) {
@@ -210,6 +260,28 @@ function pera_term_meta_render_edit_fields( WP_Term $term, string $taxonomy ): v
       <p class="description"><?php esc_html_e( 'Recommended: used as meta description on term archives.', 'pera' ); ?></p>
     </td>
   </tr>
+
+  <?php if ( pera_taxonomy_supports_property_archive_meta( $taxonomy ) ) : ?>
+  <tr class="form-field">
+    <th scope="row"><label for="pera_archive_subtitle"><?php esc_html_e( 'Archive Subtitle', 'pera' ); ?></label></th>
+    <td><input type="text" name="pera_archive_subtitle" id="pera_archive_subtitle" value="<?php echo esc_attr( $archive_subtitle ); ?>" maxlength="220" class="regular-text" /></td>
+  </tr>
+
+  <tr class="form-field">
+    <th scope="row"><label for="pera_archive_body_content"><?php esc_html_e( 'Archive Body Content', 'pera' ); ?></label></th>
+    <td><textarea name="pera_archive_body_content" id="pera_archive_body_content" rows="6" class="large-text"><?php echo esc_textarea( $archive_body ); ?></textarea></td>
+  </tr>
+
+  <tr class="form-field">
+    <th scope="row"><label for="pera_seo_title"><?php esc_html_e( 'SEO Title', 'pera' ); ?></label></th>
+    <td><input type="text" name="pera_seo_title" id="pera_seo_title" value="<?php echo esc_attr( $seo_title ); ?>" maxlength="300" class="regular-text" /></td>
+  </tr>
+
+  <tr class="form-field">
+    <th scope="row"><label for="pera_seo_meta_description"><?php esc_html_e( 'SEO Meta Description', 'pera' ); ?></label></th>
+    <td><textarea name="pera_seo_meta_description" id="pera_seo_meta_description" rows="3" maxlength="300" class="large-text"><?php echo esc_textarea( $seo_meta_desc ); ?></textarea></td>
+  </tr>
+  <?php endif; ?>
 
   <tr class="form-field pera-term-image-wrap">
     <th scope="row"><label><?php esc_html_e( 'Term Featured Image', 'pera' ); ?></label></th>
@@ -281,6 +353,45 @@ function pera_term_meta_save( int $term_id, int $tt_id, string $taxonomy ): void
       delete_term_meta( $term_id, PERA_TERM_EXCERPT_KEY );
     } else {
       update_term_meta( $term_id, PERA_TERM_EXCERPT_KEY, $excerpt );
+    }
+  }
+
+
+  if ( pera_taxonomy_supports_property_archive_meta( $taxonomy ) ) {
+    if ( isset( $_POST['pera_archive_subtitle'] ) ) {
+      $archive_subtitle = sanitize_text_field( wp_unslash( $_POST['pera_archive_subtitle'] ) );
+      if ( $archive_subtitle === '' ) {
+        delete_term_meta( $term_id, PERA_TERM_ARCHIVE_SUBTITLE_KEY );
+      } else {
+        update_term_meta( $term_id, PERA_TERM_ARCHIVE_SUBTITLE_KEY, $archive_subtitle );
+      }
+    }
+
+    if ( isset( $_POST['pera_archive_body_content'] ) ) {
+      $archive_body = wp_kses_post( wp_unslash( $_POST['pera_archive_body_content'] ) );
+      if ( trim( wp_strip_all_tags( $archive_body ) ) === '' ) {
+        delete_term_meta( $term_id, PERA_TERM_ARCHIVE_BODY_KEY );
+      } else {
+        update_term_meta( $term_id, PERA_TERM_ARCHIVE_BODY_KEY, $archive_body );
+      }
+    }
+
+    if ( isset( $_POST['pera_seo_title'] ) ) {
+      $seo_title = sanitize_text_field( wp_unslash( $_POST['pera_seo_title'] ) );
+      if ( $seo_title === '' ) {
+        delete_term_meta( $term_id, PERA_TERM_SEO_TITLE_KEY );
+      } else {
+        update_term_meta( $term_id, PERA_TERM_SEO_TITLE_KEY, $seo_title );
+      }
+    }
+
+    if ( isset( $_POST['pera_seo_meta_description'] ) ) {
+      $seo_meta_description = sanitize_textarea_field( wp_unslash( $_POST['pera_seo_meta_description'] ) );
+      if ( $seo_meta_description === '' ) {
+        delete_term_meta( $term_id, PERA_TERM_SEO_DESC_KEY );
+      } else {
+        update_term_meta( $term_id, PERA_TERM_SEO_DESC_KEY, $seo_meta_description );
+      }
     }
   }
 
