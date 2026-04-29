@@ -87,28 +87,28 @@ $luxury_query = new WP_Query( $luxury_query_args );
 		</div>
 	</section>
 
-	<section class="section section-soft">
+	<section class="section section-soft pv-sm">
 		<div class="container">
-			<div class="cards-grid">
-				<div class="pera-card-shell">
+			<div class="trust-strip flex items-center justify-between btn-group">
+				<div class="trust-item text-sm">
 					<span class="pill pill--green pill--sm" aria-hidden="true">✓</span>
-					<h3 class="text-sm">Since 2016</h3>
-					<p class="text-xs">Established Istanbul market experience</p>
+					<strong class="text-sm">Since 2016</strong>
+					<span class="text-xs">Established Istanbul market experience</span>
 				</div>
-				<div class="pera-card-shell">
+				<div class="trust-item text-sm">
 					<span class="pill pill--green pill--sm" aria-hidden="true">✓</span>
-					<h3 class="text-sm">British-Turkish consultants</h3>
-					<p class="text-xs">International buyer perspective</p>
+					<strong class="text-sm">British-Turkish consultants</strong>
+					<span class="text-xs">International buyer perspective</span>
 				</div>
-				<div class="pera-card-shell">
+				<div class="trust-item text-sm">
 					<span class="pill pill--green pill--sm" aria-hidden="true">✓</span>
-					<h3 class="text-sm">Buyer-side guidance</h3>
-					<p class="text-xs">Shortlisted around your goals</p>
+					<strong class="text-sm">Buyer-side guidance</strong>
+					<span class="text-xs">Shortlisted around your goals</span>
 				</div>
-				<div class="pera-card-shell">
+				<div class="trust-item text-sm">
 					<span class="pill pill--green pill--sm" aria-hidden="true">✓</span>
-					<h3 class="text-sm">Selected luxury homes only</h3>
-					<p class="text-xs">Curated apartments, villas and residences</p>
+					<strong class="text-sm">Selected luxury homes only</strong>
+					<span class="text-xs">Curated apartments, villas and residences</span>
 				</div>
 			</div>
 		</div>
