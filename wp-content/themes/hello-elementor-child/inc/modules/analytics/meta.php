@@ -21,10 +21,6 @@ if ( ! function_exists( 'pera_analytics_meta_pixel_should_track' ) ) {
 			return false;
 		}
 
-		if ( is_user_logged_in() && current_user_can( 'manage_options' ) ) {
-			return false;
-		}
-
 		return true;
 	}
 }
