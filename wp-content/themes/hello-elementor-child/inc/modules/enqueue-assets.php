@@ -77,6 +77,7 @@ add_action( 'wp_enqueue_scripts', function () {
   $is_about_new    = is_page_template( 'page-about-new.php' );
   $is_favourites_page = is_page_template( 'page-favourites.php' );
   $is_property_map = is_page_template( 'page-property-map.php' );
+  $is_luxury_property_page = is_page_template( 'page-luxury-property.php' );
   $is_enquiry_page = is_page_template( 'page-citizenship.php' ) ||
     is_page_template( 'page-rent-with-pera.php' ) ||
     is_page_template( 'page-sell-with-pera.php' ) ||
@@ -142,6 +143,7 @@ $needs_card_typography = (
   || $is_single_post
   || $is_blog_archive
   || $is_favourites_page
+  || $is_luxury_property_page
 );
 
 if ( $needs_card_typography ) {
@@ -189,7 +191,7 @@ if ( $is_home ) {
      Rule: home OR property archive OR single property OR single post
   ========================= */
 
-  if ( $is_home || $is_single_property || $is_single_post || $is_favourites_page ) {
+  if ( $is_home || $is_single_property || $is_single_post || $is_favourites_page || $is_luxury_property_page ) {
 
     $deps = array( 'pera-main-css', 'pera-card-typography' );
     if ( $needs_slider ) {
