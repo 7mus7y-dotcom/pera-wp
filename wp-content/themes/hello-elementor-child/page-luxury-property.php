@@ -87,7 +87,7 @@ $luxury_query = new WP_Query( $luxury_query_args );
 		</div>
 	</section>
 
-	<section class="section section-soft">
+	<section class="content-panel content-panel--overlap-hero">
 		<div class="container">
 			<div class="pera-card-shell">
 				<p class="pill pill--green pill--sm">Luxury buyer advisory</p>
@@ -108,14 +108,6 @@ $luxury_query = new WP_Query( $luxury_query_args );
 					</div>
 				</div>
 			</div>
-		</div>
-	</section>
-
-	<section class="section">
-		<div class="container">
-			<h2>Curated, Not Generic</h2>
-			<p>This is not a generic property list. Pera Property curates premium Istanbul homes based on location, build quality, resale appeal, lifestyle value and your specific buying objectives.</p>
-			<p>We regularly shortlist opportunities in prime areas such as Beşiktaş, Nişantaşı, Etiler, Levent, Sarıyer, Üsküdar and Kadıköy.</p>
 		</div>
 	</section>
 
