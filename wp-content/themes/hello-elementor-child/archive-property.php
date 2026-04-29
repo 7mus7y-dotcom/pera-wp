@@ -363,8 +363,9 @@ if ( ! $is_filtered_search && ( $qo instanceof WP_Term ) && ! is_wp_error( $qo )
     $hero_title = pera_get_district_archive_heading( $qo );
   } elseif ( $qo->taxonomy === 'region' && function_exists( 'pera_get_region_archive_heading' ) ) {
     $hero_title = pera_get_region_archive_heading( $qo );
-  } elseif ( $qo->taxonomy === 'property_tags' && function_exists( 'pera_get_property_tags_archive_heading' ) ) {
-    $hero_title = pera_get_property_tags_archive_heading( $qo );
+  } elseif ( $qo->taxonomy === 'property_tags' ) {
+    $property_tags_archive_h1 = (string) get_term_meta( $qo->term_id, 'archive_h1_title', true );
+    $hero_title               = trim( $property_tags_archive_h1 ) !== '' ? $property_tags_archive_h1 : $qo->name;
   } elseif ( $qo->taxonomy === 'property_type' && function_exists( 'pera_get_property_type_archive_heading' ) ) {
     $hero_title = pera_get_property_type_archive_heading( $qo );
   } else {
