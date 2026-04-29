@@ -79,7 +79,7 @@ $luxury_query = new WP_Query( $luxury_query_args );
 
 		<div class="hero-content">
 			<h1>Luxury Property in Istanbul for Discerning Buyers</h1>
-			<p>Handpicked apartments, villas and branded residences in Istanbul&rsquo;s most desirable districts &mdash; selected for lifestyle, quality and long-term appeal.</p>
+			<p class="text-light">Handpicked apartments, villas and branded residences in Istanbul&rsquo;s most desirable districts &mdash; selected for lifestyle, quality and long-term appeal.</p>
 			<p>
 				<a class="btn btn--solid btn--green js-meta-lead-cta" data-meta-event="Lead" data-meta-context="luxury_property_landing" href="<?php echo esc_url( $whatsapp_url ); ?>">Request a Private Shortlist</a>
 				<a class="btn btn--solid btn--black" href="#selected-luxury-properties">View Selected Properties</a>
@@ -90,10 +90,26 @@ $luxury_query = new WP_Query( $luxury_query_args );
 	<section class="section section-soft">
 		<div class="container">
 			<div class="cards-grid">
-				<div>Since 2016</div>
-				<div>British-Turkish consultants</div>
-				<div>Buyer-side guidance</div>
-				<div>Selected luxury homes only</div>
+				<div class="pera-card-shell">
+					<span class="pill pill--green pill--sm" aria-hidden="true">✓</span>
+					<h3 class="text-sm">Since 2016</h3>
+					<p class="text-xs">Established Istanbul market experience</p>
+				</div>
+				<div class="pera-card-shell">
+					<span class="pill pill--green pill--sm" aria-hidden="true">✓</span>
+					<h3 class="text-sm">British-Turkish consultants</h3>
+					<p class="text-xs">International buyer perspective</p>
+				</div>
+				<div class="pera-card-shell">
+					<span class="pill pill--green pill--sm" aria-hidden="true">✓</span>
+					<h3 class="text-sm">Buyer-side guidance</h3>
+					<p class="text-xs">Shortlisted around your goals</p>
+				</div>
+				<div class="pera-card-shell">
+					<span class="pill pill--green pill--sm" aria-hidden="true">✓</span>
+					<h3 class="text-sm">Selected luxury homes only</h3>
+					<p class="text-xs">Curated apartments, villas and residences</p>
+				</div>
 			</div>
 		</div>
 	</section>
@@ -130,9 +146,9 @@ $luxury_query = new WP_Query( $luxury_query_args );
 			</div>
 			<?php wp_reset_postdata(); ?>
 
-			<p>
+			<div class="btn-group">
 				<a class="btn btn--solid btn--black" href="<?php echo esc_url( $all_luxury_url ); ?>">View All Luxury Properties</a>
-			</p>
+			</div>
 		</div>
 	</section>
 
