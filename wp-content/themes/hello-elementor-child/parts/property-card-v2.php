@@ -70,7 +70,25 @@ if ( function_exists( 'pera_get_property_card_location_terms' ) ) {
 
 // Specials (optional pill + tooltip, kept)
 $specials_terms = get_the_terms( $post_id, 'special' );
-$specials_term  = ( ! empty( $specials_terms ) && ! is_wp_error( $specials_terms ) ) ? $specials_terms[0] : null;
+$specials_term  = null;
+
+if ( ! empty( $specials_terms ) && ! is_wp_error( $specials_terms ) ) {
+  $specials_by_slug = array();
+
+  foreach ( $specials_terms as $term ) {
+    if ( isset( $term->slug ) && $term->slug !== 'citizenship' ) {
+      $specials_by_slug[ $term->slug ] = $term;
+    }
+  }
+
+  if ( isset( $specials_by_slug['project'] ) ) {
+    $specials_term = $specials_by_slug['project'];
+  } elseif ( isset( $specials_by_slug['resales'] ) ) {
+    $specials_term = $specials_by_slug['resales'];
+  } elseif ( ! empty( $specials_by_slug ) ) {
+    $specials_term = reset( $specials_by_slug );
+  }
+}
 
 $specials_label = $specials_term ? $specials_term->name : '';
 $specials_slug  = $specials_term ? $specials_term->slug : '';
