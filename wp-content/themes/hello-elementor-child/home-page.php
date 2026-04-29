@@ -525,10 +525,9 @@ get_template_part( 'parts/home-editorial-posts' );
 
       <div class="content-panel-left">
         <header class="section-header">
-          <h2>Sell with Pera</h2>
+          <h2>Own property in Istanbul?</h2>
           <p>
-            We treat every listing like a bespoke project — pricing strategy, premium marketing,
-            buyer qualification, negotiation, and completion coordination.
+            Whether you plan to sell your Istanbul property or rent it out, Pera Property supports local and overseas owners with clear pricing advice, qualified demand and practical, hands-on execution.
           </p>
         </header>
 
@@ -537,24 +536,24 @@ get_template_part( 'parts/home-editorial-posts' );
             <svg class="icon icon-tick" aria-hidden="true">
               <use href="<?php echo esc_url( get_stylesheet_directory_uri() . '/logos-icons/icons.svg#icon-check' ); ?>"></use>
             </svg>
-            Accurate pricing strategy (not guesswork)
+            Realistic Istanbul property valuation and pricing strategy
           </li>
           <li>
             <svg class="icon icon-tick" aria-hidden="true">
               <use href="<?php echo esc_url( get_stylesheet_directory_uri() . '/logos-icons/icons.svg#icon-check' ); ?>"></use>
             </svg>
-            Strong visibility to local &amp; international buyers
+            Professional marketing and qualified buyer or tenant enquiries
           </li>
           <li>
             <svg class="icon icon-tick" aria-hidden="true">
               <use href="<?php echo esc_url( get_stylesheet_directory_uri() . '/logos-icons/icons.svg#icon-check' ); ?>"></use>
             </svg>
-            End-to-end negotiation and paperwork handling
+            End-to-end support through negotiation, contracts and handover
           </li>
         </ul>
 
         <p style="margin-top: 12px; margin-bottom: 0;">
-          <a href="/sell-your-istanbul-real-estate/">Learn how we sell property in Istanbul</a>
+          <a href="/sell-your-istanbul-real-estate/">Sell your property in Istanbul with local experts</a>
         </p>
       </div>
 
@@ -581,11 +580,12 @@ get_template_part( 'parts/home-editorial-posts' );
         </div>
 
         <p class="muted" style="margin-top: 10px; margin-bottom: 0;">
-          If you already have a property in mind, <a href="<?php echo esc_url( home_url( '/sell-with-pera/' ) ); ?>">request a valuation</a>.
+          Need full support as an owner? Explore <a href="<?php echo esc_url( home_url( '/rent-with-pera/' ) ); ?>">property management in Istanbul</a> or request a valuation.
         </p>
 
         <div class="hero-actions flex-center">
-          <a class="btn btn--solid btn--green" href="<?php echo esc_url( home_url( '/sell-with-pera/' ) ); ?>">Get a Free Valuation</a>
+          <a class="btn btn--solid btn--green" href="<?php echo esc_url( home_url( '/sell-your-istanbul-real-estate/' ) ); ?>">Get a Free Valuation</a>
+          <a class="btn btn--ghost btn--blue" href="<?php echo esc_url( home_url( '/rent-with-pera/' ) ); ?>">Explore Property Management</a>
         </div>
       </div>
 

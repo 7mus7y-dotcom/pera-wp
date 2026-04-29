@@ -314,30 +314,28 @@ get_header();
                     
                         <!-- 2. SELL WITH PERA -->
                         <section class="sidebar-block sidebar-block--sell">
-                            <h3>Sell with Pera</h3>
+                            <h3>Sell Your Property in Istanbul</h3>
                             <p class="sidebar-text">
-                                Thinking of selling your Istanbul property? Our consultants help you price, market,
-                                and negotiate with qualified buyers from Turkey and abroad.
+                                Get a realistic Istanbul property valuation, professional marketing, qualified buyer viewings and end-to-end support through negotiation and the title deed process.
                             </p>
                             <div class="sidebar-cta">
                                 <a class="btn btn--solid btn--blue"
-                                   href="https://www.peraproperty.com/sell-your-istanbul-real-estate/">
-                                    Sell!
+                                   href="<?php echo esc_url( home_url( '/sell-your-istanbul-real-estate/' ) ); ?>">
+                                    Get a Free Valuation
                                 </a>
                             </div>
                         </section>
                     
                         <!-- 3. RENT WITH PERA -->
                         <section class="sidebar-block sidebar-block--rent">
-                            <h3>Rent with Pera</h3>
+                            <h3>Rent Out Your Property in Istanbul</h3>
                             <p class="sidebar-text">
-                                Need a reliable tenant and a hassle-free rental process? We manage viewings, contracts,
-                                and move-in so you can enjoy secure, consistent income.
+                                Pera Property helps local and overseas owners find reliable tenants, manage contracts, coordinate maintenance and protect rental income with hands-on Istanbul property management.
                             </p>
                             <div class="sidebar-cta">
                                 <a class="btn btn--solid btn--blue"
-                                   href="https://www.peraproperty.com/rent-your-istanbul-real-estate/">
-                                    Rent!
+                                   href="<?php echo esc_url( home_url( '/rent-with-pera/' ) ); ?>">
+                                    Explore Property Management
                                 </a>
                             </div>
                         </section>
