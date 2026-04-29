@@ -37,9 +37,8 @@ if ( ! defined( 'PERA_TERM_SEO_DESC_KEY' ) )         define( 'PERA_TERM_SEO_DESC
  */
 function pera_property_archive_meta_taxonomies(): array {
   $taxonomies = array(
-    'district',
-    'region',
-    'property_type',
+    // District/region archive + SEO term fields are managed by the original implementation.
+    // Keep this renderer limited to newly extended taxonomies to avoid duplicate admin fields.
     'property_tags',
   );
 
