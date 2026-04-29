@@ -1322,6 +1322,8 @@ add_action( 'wp_head', function () {
           'mainEntity' => $faq_entities,
         );
 
+        // Mark FAQ schema as emitted so other schema modules can avoid duplicate FAQPage output.
+        $GLOBALS['pera_schema_faq_emitted'] = true;
         echo '<script type="application/ld+json">' . wp_json_encode( $faq_schema, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE ) . '</script>' . "\n";
       }
     }
