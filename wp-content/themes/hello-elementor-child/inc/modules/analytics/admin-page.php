@@ -99,7 +99,7 @@ if ( ! function_exists( 'pera_analytics_register_admin_page' ) ) {
 			'pera-site-performance',
 			'pera_analytics_render_admin_page',
 			'dashicons-chart-area',
-			3
+			59
 		);
 	}
 }
@@ -164,6 +164,7 @@ if ( ! function_exists( 'pera_analytics_render_admin_page' ) ) {
 				</select>
 				<?php submit_button( __( 'Apply', 'hello-elementor-child' ), 'secondary', '', false ); ?>
 			</form>
+			<p class="description"><?php echo esc_html__( 'Unique visitor counts are calculated from recent raw visit data and may be unavailable for older periods after raw data is pruned.', 'hello-elementor-child' ); ?></p>
 
 			<p><?php echo esc_html( $allowed_periods[ $window['key'] ] ); ?><?php echo esc_html__( ' compared to previous matching period.', 'hello-elementor-child' ); ?></p>
 
