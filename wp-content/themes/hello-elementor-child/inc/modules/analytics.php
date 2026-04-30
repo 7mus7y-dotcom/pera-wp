@@ -45,3 +45,4 @@ require_once get_stylesheet_directory() . '/inc/modules/analytics/bots.php';
 require_once get_stylesheet_directory() . '/inc/modules/analytics/queries.php';
 require_once get_stylesheet_directory() . '/inc/modules/analytics/tracker.php';
 require_once get_stylesheet_directory() . '/inc/modules/analytics/dashboard-widget.php';
+require_once get_stylesheet_directory() . '/inc/modules/analytics/admin-page.php';
