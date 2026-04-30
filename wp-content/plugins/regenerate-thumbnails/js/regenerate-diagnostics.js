@@ -76,7 +76,8 @@
 		hasMore: false,
 		itemsById: {},
 		foundCount: 0,
-		lastChecked: 0
+		lastChecked: 0,
+		lastResultNotice: null
 	};
 
 	function escHtml(value){
@@ -118,7 +119,7 @@
 			summary.textContent = selectedCount + ' selected';
 		}
 		if(regenerateButton){
-			regenerateButton.disabled = selectedCount === 0;
+			regenerateButton.disabled = selectedCount === 0 || missingState.loading;
 		}
 		var selectAll = document.getElementById('regenthumbs-missing-select-all-header');
 		if(selectAll){
@@ -153,6 +154,7 @@
 		if(!container){ return; }
 		container.innerHTML =
 			'<h2 class="regenthumbs-missing-heading">Missing thumbnails</h2>'
+			+ '<div id="regenthumbs-missing-status-area"></div>'
 			+ '<p class="regenthumbs-missing-summary" id="regenthumbs-missing-summary-main"></p>'
 			+ '<p class="regenthumbs-missing-summary">This tool scans newest uploads first and stops after finding 25 items.</p>'
 			+ '<p class="regenthumbs-missing-summary" id="regenthumbs-missing-summary-checked"></p>'
@@ -171,6 +173,10 @@
 			+ '<div class="regenthumbs-missing-footer">'
 			+ '<button type="button" class="button" id="regenthumbs-missing-find-more" disabled="disabled">Find 25 more</button>'
 			+ '</div>';
+
+		if(missingState.lastResultNotice && missingState.lastResultNotice.message){
+			renderNotice(missingState.lastResultNotice.type, missingState.lastResultNotice.message);
+		}
 	}
 
 	function updateMissingSummary(){
@@ -221,13 +227,57 @@
 		updateMissingSummary();
 	}
 
-	function goToBulkRegenerate(ids){
-		if(!ids.length){ return; }
-		var url = new URL(window.location.href);
-		url.searchParams.set('page', 'regenerate-thumbnails');
-		url.searchParams.set('ids', ids.join(','));
-		url.hash = '';
-		window.location.assign(url.toString());
+	function renderNotice(type, message){
+		var container = document.getElementById('regenthumbs-missing-status-area');
+		if(!container){ return; }
+		missingState.lastResultNotice = { type: type, message: message };
+		container.innerHTML = '<div class="notice notice-' + escHtml(type) + ' inline"><p>' + escHtml(message) + '</p></div>';
+	}
+
+	function processRegenerationQueue(ids){
+		var queue = ids.slice(0);
+		var total = queue.length;
+		var done = 0;
+		var failed = [];
+		missingState.loading = true;
+		updateMissingSelectionUi();
+
+		function next(){
+			if(!queue.length){
+				missingState.loading = false;
+				updateMissingSelectionUi();
+				if(failed.length){
+					renderNotice('warning', 'Regenerated ' + (total - failed.length) + ' image(s). ' + failed.length + ' failed. Failed IDs: ' + failed.join(', ') + '.');
+				} else {
+					renderNotice('success', 'Regenerated thumbnails for ' + total + ' image(s).');
+				}
+				var priorNotice = missingState.lastResultNotice;
+				resetMissingUiState();
+				missingState.lastResultNotice = priorNotice;
+				loadMissingUi(true);
+				return;
+			}
+
+			var currentId = queue.shift();
+			done += 1;
+			var progressMessage = 'Regenerating ' + done + ' of ' + total + '…';
+			setStatus(progressMessage);
+			renderNotice('info', progressMessage);
+
+			window.wp.apiRequest({
+				path: '/regenerate-thumbnails/v1/regenerate/' + currentId,
+				method: 'POST',
+				data: { only_regenerate_missing_thumbnails: true }
+			}).done(function(){
+				$('tr[data-attachment-id="' + currentId + '"]').remove();
+			}).fail(function(){
+				failed.push(currentId);
+			}).always(function(){
+				next();
+			});
+		}
+
+		next();
 	}
 
 	$(document).on('change', '.regenthumbs-missing-select, #regenthumbs-missing-select-all-header', function(event){
@@ -253,8 +303,7 @@
 			return;
 		}
 
-		setStatus('starting batch regeneration for ' + ids.length + ' selected attachments');
-		goToBulkRegenerate(ids);
+		processRegenerationQueue(ids);
 	});
 
 	$(document).on('click', '#regenthumbs-missing-find-more', function(){
@@ -277,8 +326,7 @@
 		var requestPath = '/regenerate-thumbnails/v1/missing';
 		var requestData = {
 			cursor: missingState.cursor,
-			include_summary: 1,
-			_wpnonce: window.wpApiSettings.nonce
+			include_summary: 1
 		};
 		var requestDescription = 'wp.apiRequest path "' + requestPath + '" with query ' + $.param(requestData);
 
