@@ -335,6 +335,8 @@
 		};
 		var requestDescription = 'wp.apiRequest path "' + requestPath + '" with query ' + $.param(requestData);
 
+		var shouldContinueScan = false;
+
 		window.wp.apiRequest({
 			path: requestPath,
 			method: 'GET',
@@ -346,16 +348,13 @@
 			missingState.hasMore = !!(response && response.has_more);
 			missingState.lastChecked = response && response.attachments_checked ? response.attachments_checked : 0;
 			missingState.totalChecked += missingState.lastChecked;
-			missingState.requestCount += 1;
 			appendMissingRows(response && response.items ? response.items : []);
 			setStatus('missing thumbnails request succeeded');
-			if(
+			shouldContinueScan = (
 				missingState.hasMore
 				&& missingState.foundCount < MISSING_VISIBLE_LIMIT
-				&& missingState.requestCount < MISSING_MAX_AUTO_REQUESTS
-			){
-				loadMissingUi(false);
-			}
+				&& (missingState.requestCount + 1) < MISSING_MAX_AUTO_REQUESTS
+			);
 		}).fail(function(xhr, textStatus, errorThrown){
 			var message = 'Unable to load missing thumbnails.';
 			if(xhr && xhr.status === 0){
@@ -384,8 +383,12 @@
 			}
 			setStatus('missing thumbnails request failed: ' + message);
 		}).always(function(){
+			missingState.requestCount += 1;
 			missingState.loading = false;
 			updateMissingSummary();
+			if(shouldContinueScan){
+				loadMissingUi(false);
+			}
 		});
 	}
 
