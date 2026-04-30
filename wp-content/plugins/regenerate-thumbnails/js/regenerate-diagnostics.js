@@ -77,8 +77,12 @@
 		itemsById: {},
 		foundCount: 0,
 		lastChecked: 0,
+		totalChecked: 0,
+		requestCount: 0,
 		lastResultNotice: null
 	};
+	var MISSING_VISIBLE_LIMIT = 25;
+	var MISSING_MAX_AUTO_REQUESTS = 12;
 
 	function escHtml(value){
 		return String(value || '')
@@ -156,7 +160,7 @@
 			'<h2 class="regenthumbs-missing-heading">Missing thumbnails</h2>'
 			+ '<div id="regenthumbs-missing-status-area"></div>'
 			+ '<p class="regenthumbs-missing-summary" id="regenthumbs-missing-summary-main"></p>'
-			+ '<p class="regenthumbs-missing-summary">This tool scans newest uploads first and stops after finding 25 items.</p>'
+			+ '<p class="regenthumbs-missing-summary">This tool scans in small batches and lists up to 25 missing items per pass.</p>'
 			+ '<p class="regenthumbs-missing-summary" id="regenthumbs-missing-summary-checked"></p>'
 			+ '<div class="regenthumbs-missing-toolbar">'
 			+ '<button type="button" class="button" id="regenthumbs-missing-select-all">Select all listed</button>'
@@ -183,11 +187,7 @@
 		var main = document.getElementById('regenthumbs-missing-summary-main');
 		var checked = document.getElementById('regenthumbs-missing-summary-checked');
 		if(main){
-			if(missingState.foundCount > 0){
-				main.innerHTML = 'Showing the newest attachments requiring regeneration: <strong>' + Number(missingState.foundCount).toLocaleString() + '</strong> listed so far.';
-			} else {
-				main.textContent = 'Showing the newest attachments requiring regeneration.';
-			}
+			main.innerHTML = 'Scanning media library… checked <strong>' + Number(missingState.totalChecked).toLocaleString() + '</strong> attachments, found <strong>' + Number(missingState.foundCount).toLocaleString() + '</strong> missing thumbnails.';
 		}
 		if(checked){
 			checked.textContent = 'Attachments scanned in latest request: ' + Number(missingState.lastChecked).toLocaleString() + '.';
@@ -297,13 +297,18 @@
 		updateMissingSelectionUi();
 	});
 
-	$(document).on('click', '#regenthumbs-missing-regenerate-selected', function(){
+	$(document).on('click', '#regenthumbs-missing-regenerate-selected', function(event){
+		if(event){
+			event.preventDefault();
+			event.stopPropagation();
+		}
 		var ids = getSelectedMissingIds();
 		if(!ids.length){
-			return;
+			return false;
 		}
 
 		processRegenerationQueue(ids);
+		return false;
 	});
 
 	$(document).on('click', '#regenthumbs-missing-find-more', function(){
@@ -340,10 +345,22 @@
 				: missingState.cursor;
 			missingState.hasMore = !!(response && response.has_more);
 			missingState.lastChecked = response && response.attachments_checked ? response.attachments_checked : 0;
+			missingState.totalChecked += missingState.lastChecked;
+			missingState.requestCount += 1;
 			appendMissingRows(response && response.items ? response.items : []);
 			setStatus('missing thumbnails request succeeded');
+			if(
+				missingState.hasMore
+				&& missingState.foundCount < MISSING_VISIBLE_LIMIT
+				&& missingState.requestCount < MISSING_MAX_AUTO_REQUESTS
+			){
+				loadMissingUi(false);
+			}
 		}).fail(function(xhr, textStatus, errorThrown){
 			var message = 'Unable to load missing thumbnails.';
+			if(xhr && xhr.status === 0){
+				message += ' The request was aborted, blocked, or timed out before WordPress returned a response. Try reducing scan batch size or check server/PHP timeout.';
+			}
 			if(xhr && xhr.responseJSON && xhr.responseJSON.message){
 				message += ' ' + xhr.responseJSON.message;
 			} else {
@@ -379,6 +396,8 @@
 		missingState.itemsById = {};
 		missingState.foundCount = 0;
 		missingState.lastChecked = 0;
+		missingState.totalChecked = 0;
+		missingState.requestCount = 0;
 	}
 
 	function maybeLoadMissingUi(){
