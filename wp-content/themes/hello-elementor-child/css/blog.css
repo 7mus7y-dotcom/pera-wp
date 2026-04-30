@@ -475,6 +475,25 @@
   }
 }
 
+/* Tighten CTA cards inside article content */
+.article-body .card-shell > h2:first-child {
+  margin-top: 0;
+}
+
+.article-body .card-shell > p {
+  margin-bottom: 0;
+}
+
+.article-body .card-shell > .article-cta-actions {
+  margin-top: 4px;
+}
+
+@media (max-width: 640px) {
+  .article-body .article-cta-actions {
+    gap: 8px;
+  }
+}
+
 
 /* =======================================================
    7. ARTICLE TABLES – RESPONSIVE + STRIPED
