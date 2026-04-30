@@ -29,7 +29,7 @@ if ( ! function_exists( 'pera_analytics_percent_change' ) ) {
 
 if ( ! function_exists( 'pera_analytics_render_dashboard_widget' ) ) {
 	function pera_analytics_render_dashboard_widget(): void {
-		$rows    = pera_analytics_get_top_pages( 8 );
+		$rows    = pera_analytics_get_top_pages( 20 );
 		$totals  = pera_analytics_get_month_totals();
 		$windows = pera_analytics_month_window();
 
