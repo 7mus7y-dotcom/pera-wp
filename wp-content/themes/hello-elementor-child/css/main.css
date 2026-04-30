@@ -3809,8 +3809,8 @@ body:not(.single-post) tr:nth-child(even) {
   display: flex;
   align-items: flex-start;
   gap: 12px;
-  margin-bottom: 14px;
-  font-size: 16px;
+  /*margin-bottom: 14px;
+  font-size: 16px;*/
   line-height: 1.5;
 }
 .checklist .icon-tick {
