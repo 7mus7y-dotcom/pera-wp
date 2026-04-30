@@ -93,31 +93,42 @@ $luxury_query = new WP_Query( $luxury_query_args );
 				<p class="pill pill--green pill--sm">Luxury buyer advisory</p>
 				<h2>A Curated Route Into Istanbul&rsquo;s Prime Property Market</h2>
 				<p>Since 2016, Pera Property has helped international buyers compare Istanbul&rsquo;s strongest lifestyle and investment opportunities &mdash; from Bosphorus-view apartments and branded residences to private villas in established districts.</p>
-            	<div class="feature-card-body">
-                	<ul class="checklist">
-						<li>
-	                      <svg class="icon icon-tick" aria-hidden="true">
-	                        <use href="<?php echo get_stylesheet_directory_uri(); ?>/logos-icons/icons.svg#icon-check"></use>
-	                      </svg>
-						<strong>British-Turkish consultants</strong></li>
-						<p class="text-sm">Local market access with international buyer perspective.</p>
-					</ul>
-					<ul class="checklist">
-						<li>
-	                      <svg class="icon icon-tick" aria-hidden="true">
-	                        <use href="<?php echo get_stylesheet_directory_uri(); ?>/logos-icons/icons.svg#icon-check"></use>
-	                      </svg>
-						<strong>Buyer-side guidance</strong></li>
-						<p class="text-sm">Shortlists shaped around your budget, lifestyle and objective.</p>
-					</ul>
-					<ul class="checklist">
-						<li>
-	                      <svg class="icon icon-tick" aria-hidden="true">
-	                        <use href="<?php echo get_stylesheet_directory_uri(); ?>/logos-icons/icons.svg#icon-check"></use>
-	                      </svg>
-						<strong>Selected luxury homes only</strong></li>
-						<p class="text-sm">No mass listings &mdash; only properties worth serious consideration.</p>
-					</ul>
+				<div class="feature-card-body grid-3">
+				  <article class="card-shell">
+				    <ul class="checklist">
+				      <li>
+				        <svg class="icon icon-tick" aria-hidden="true">
+				          <use href="#icon-check" xlink:href="#icon-check"></use>
+				        </svg>
+				        <strong>British-Turkish consultants</strong>
+				      </li>
+				    </ul>
+				    <p class="text-sm">Local market access with international buyer perspective.</p>
+				  </article>
+				
+				  <article class="card-shell">
+				    <ul class="checklist">
+				      <li>
+				        <svg class="icon icon-tick" aria-hidden="true">
+				          <use href="#icon-check" xlink:href="#icon-check"></use>
+				        </svg>
+				        <strong>Buyer-side guidance</strong>
+				      </li>
+				    </ul>
+				    <p class="text-sm">Shortlists shaped around your budget, lifestyle and objective.</p>
+				  </article>
+				
+				  <article class="card-shell">
+				    <ul class="checklist">
+				      <li>
+				        <svg class="icon icon-tick" aria-hidden="true">
+				          <use href="#icon-check" xlink:href="#icon-check"></use>
+				        </svg>
+				        <strong>Selected luxury homes only</strong>
+				      </li>
+				    </ul>
+				    <p class="text-sm">No mass listings — only properties worth serious consideration.</p>
+				  </article>
 				</div>
 			</div>
 		</div>
