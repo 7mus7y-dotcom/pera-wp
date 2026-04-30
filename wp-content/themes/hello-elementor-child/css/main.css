@@ -3803,7 +3803,7 @@ body:not(.single-post) tr:nth-child(even) {
 .checklist {
   list-style: none;
   padding: 0;
-  margin: 24px 0;
+  margin: 0;
 }
 .checklist li {
   display: flex;
