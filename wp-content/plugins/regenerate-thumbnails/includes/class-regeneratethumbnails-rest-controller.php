@@ -425,7 +425,7 @@ class RegenerateThumbnails_REST_Controller extends WP_REST_Controller {
 				'offset'                 => $cursor,
 				'fields'                 => 'ids',
 				'no_found_rows'          => true,
-				'update_post_meta_cache' => true,
+				'update_post_meta_cache' => false,
 				'update_post_term_cache' => false,
 				'post_mime_type'         => $this->get_regeneratable_mime_types(),
 				'meta_query'             => array(
@@ -447,13 +447,8 @@ class RegenerateThumbnails_REST_Controller extends WP_REST_Controller {
 				$attachments_checked++;
 				$cursor++;
 
-				$regenerator = RegenerateThumbnails_Regenerator::get_instance( $attachment_id );
-				if ( is_wp_error( $regenerator ) ) {
-					continue;
-				}
-
-				$summary = $regenerator->get_missing_thumbnails_summary();
-				if ( is_wp_error( $summary ) || empty( $summary['missing_sizes'] ) ) {
+				$size_scan = $this->get_registered_size_scan_from_metadata( $attachment_id );
+				if ( empty( $size_scan['missing_sizes'] ) ) {
 					continue;
 				}
 
@@ -522,13 +517,8 @@ class RegenerateThumbnails_REST_Controller extends WP_REST_Controller {
 		$items = array();
 
 		foreach ( $attachment_ids as $attachment_id ) {
-			$regenerator = RegenerateThumbnails_Regenerator::get_instance( $attachment_id );
-			if ( is_wp_error( $regenerator ) ) {
-				continue;
-			}
-
-			$summary = $regenerator->get_missing_thumbnails_summary();
-			if ( is_wp_error( $summary ) || empty( $summary['missing_sizes'] ) ) {
+			$size_scan = $this->get_registered_size_scan_from_metadata( $attachment_id );
+			if ( empty( $size_scan['missing_sizes'] ) ) {
 				continue;
 			}
 
@@ -548,9 +538,9 @@ class RegenerateThumbnails_REST_Controller extends WP_REST_Controller {
 				'mime_type'            => get_post_mime_type( $attachment ),
 				'edit_url'             => get_edit_post_link( $attachment_id, 'raw' ),
 				'regenerate_url'       => admin_url( 'tools.php?page=regenerate-thumbnails#/regenerate/' . $attachment_id ),
-				'missing_sizes'        => array_values( $summary['missing_sizes'] ),
-				'expected_sizes_count' => (int) $summary['expected_sizes_count'],
-				'present_sizes_count'  => (int) $summary['present_sizes_count'],
+				'missing_sizes'        => array_values( $size_scan['missing_sizes'] ),
+				'expected_sizes_count' => count( $size_scan['eligible_sizes'] ),
+				'present_sizes_count'  => max( 0, count( $size_scan['eligible_sizes'] ) - count( $size_scan['missing_sizes'] ) ),
 			);
 		}
 
@@ -593,6 +583,83 @@ class RegenerateThumbnails_REST_Controller extends WP_REST_Controller {
 	 */
 	public static function invalidate_missing_thumbnails_cache() {
 		delete_transient( self::MISSING_CACHE_KEY );
+	}
+
+	/**
+	 * Return missing registered intermediate image sizes based on attachment metadata.
+	 *
+	 * @since 3.1.7
+	 *
+	 * @param int $attachment_id Attachment ID.
+	 *
+	 * @return array Scan result with eligible and missing size names.
+	 */
+	private function get_registered_size_scan_from_metadata( $attachment_id ) {
+		$attachment_id = (int) $attachment_id;
+		if ( $attachment_id <= 0 || ! wp_attachment_is_image( $attachment_id ) ) {
+			return array(
+				'eligible_sizes' => array(),
+				'missing_sizes'  => array(),
+			);
+		}
+
+		$metadata = get_post_meta( $attachment_id, '_wp_attachment_metadata', true );
+		if ( ! is_array( $metadata ) ) {
+			$all_sizes = array_values( get_intermediate_image_sizes() );
+			return array(
+				'eligible_sizes' => $all_sizes,
+				'missing_sizes'  => $all_sizes,
+			);
+		}
+
+		$registered_subsizes = wp_get_registered_image_subsizes();
+		if ( empty( $registered_subsizes ) || ! is_array( $registered_subsizes ) ) {
+			return array(
+				'eligible_sizes' => array(),
+				'missing_sizes'  => array(),
+			);
+		}
+
+		$original_width  = ! empty( $metadata['width'] ) ? (int) $metadata['width'] : 0;
+		$original_height = ! empty( $metadata['height'] ) ? (int) $metadata['height'] : 0;
+
+		$eligible_sizes = array();
+		foreach ( $registered_subsizes as $size_name => $size_args ) {
+			$target_width  = ! empty( $size_args['width'] ) ? (int) $size_args['width'] : 0;
+			$target_height = ! empty( $size_args['height'] ) ? (int) $size_args['height'] : 0;
+
+			if ( 0 === $target_width && 0 === $target_height ) {
+				continue;
+			}
+
+			if ( $original_width > 0 && $target_width > 0 && $target_width > $original_width ) {
+				continue;
+			}
+
+			if ( $original_height > 0 && $target_height > 0 && $target_height > $original_height ) {
+				continue;
+			}
+
+			$eligible_sizes[] = (string) $size_name;
+		}
+
+		if ( empty( $eligible_sizes ) ) {
+			return array(
+				'eligible_sizes' => array(),
+				'missing_sizes'  => array(),
+			);
+		}
+
+		$existing_sizes = array();
+		if ( ! empty( $metadata['sizes'] ) && is_array( $metadata['sizes'] ) ) {
+			$existing_sizes = array_keys( $metadata['sizes'] );
+		}
+
+		$missing = array_values( array_diff( $eligible_sizes, $existing_sizes ) );
+		return array(
+			'eligible_sizes' => $eligible_sizes,
+			'missing_sizes'  => $missing,
+		);
 	}
 
 	/**
