@@ -329,7 +329,6 @@
 				method: 'POST',
 				data: { only_regenerate_missing_thumbnails: true }
 			}).done(function(response){
-				console.log('regen response', currentId, response);
 				var remaining = response && Array.isArray(response.remaining_missing_sizes) ? response.remaining_missing_sizes : [];
 				var isComplete = response && response.status === 'complete' && remaining.length === 0;
 				if(isComplete){

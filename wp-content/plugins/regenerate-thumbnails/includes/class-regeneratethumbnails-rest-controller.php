@@ -578,6 +578,8 @@ class RegenerateThumbnails_REST_Controller extends WP_REST_Controller {
 	}
 
 	public function reset_missing_index() {
+		delete_post_meta_by_key( self::META_NEEDS_REGEN );
+		delete_post_meta_by_key( self::META_MISSING_SIZES );
 		update_option( self::INDEX_STATE_OPTION, array(
 			'cursor' => 0, 'scanned' => 0, 'flagged' => 0, 'paused' => false,
 		), false );
@@ -731,6 +733,9 @@ class RegenerateThumbnails_REST_Controller extends WP_REST_Controller {
 
 		$eligible_sizes = array();
 		foreach ( $registered_subsizes as $size_name => $size_args ) {
+			if ( 'medium_large' === (string) $size_name ) {
+				continue;
+			}
 			$target_width  = ! empty( $size_args['width'] ) ? (int) $size_args['width'] : 0;
 			$target_height = ! empty( $size_args['height'] ) ? (int) $size_args['height'] : 0;
 
