@@ -121,6 +121,7 @@ if ( ! class_exists( 'Pera_WebP_Tools' ) ) {
 		public static function get_environment_info() {
 			$webp_encoding_supported = function_exists( 'wp_image_editor_supports' ) ? wp_image_editor_supports( array( 'mime_type' => 'image/webp' ) ) : false;
 			$editor_stack            = 'Unknown';
+			$cwebp_path              = self::pera_webp_find_cwebp_binary();
 
 			if ( class_exists( 'WP_Image_Editor_Imagick' ) && class_exists( 'Imagick' ) ) {
 				$editor_stack = 'Imagick';
@@ -132,6 +133,71 @@ if ( ! class_exists( 'Pera_WebP_Tools' ) ) {
 				'webp_encoding_supported' => (bool) $webp_encoding_supported,
 				'editor_stack'            => $editor_stack,
 				'batch_size'              => self::DEFAULT_BATCH_SIZE,
+				'cwebp_available'         => '' !== $cwebp_path,
+				'cwebp_path'              => $cwebp_path,
+				'conversion_engine'       => 'cwebp preferred, WP editor fallback',
+			);
+		}
+
+		public static function pera_webp_find_cwebp_binary() {
+			$candidate_paths = array(
+				'/usr/bin/cwebp',
+				'/usr/local/bin/cwebp',
+				'/opt/cpanel/ea-webp/bin/cwebp',
+			);
+
+			foreach ( $candidate_paths as $candidate_path ) {
+				if ( file_exists( $candidate_path ) && is_executable( $candidate_path ) ) {
+					return $candidate_path;
+				}
+			}
+
+			$command_result = array();
+			$exit_code      = 1;
+			@exec( 'command -v cwebp 2>/dev/null', $command_result, $exit_code ); // phpcs:ignore WordPress.PHP.NoSilencedErrors.Discouraged
+			if ( 0 === $exit_code && ! empty( $command_result[0] ) ) {
+				$binary_path = trim( (string) $command_result[0] );
+				if ( '' !== $binary_path && file_exists( $binary_path ) && is_executable( $binary_path ) ) {
+					return $binary_path;
+				}
+			}
+
+			return '';
+		}
+
+		public static function pera_webp_convert_with_cwebp( $source_path, $webp_path, $quality = 82 ) {
+			if ( ! $source_path || ! file_exists( $source_path ) ) {
+				return array( 'ok' => false, 'error' => 'Source file missing on disk.' );
+			}
+
+			$ext = strtolower( pathinfo( $source_path, PATHINFO_EXTENSION ) );
+			if ( 'svg' === $ext ) {
+				return array( 'ok' => false, 'error' => 'SVG conversion is not supported.' );
+			}
+
+			if ( ! in_array( $ext, array( 'jpg', 'jpeg', 'png' ), true ) ) {
+				return array( 'ok' => false, 'error' => 'Only JPG/JPEG/PNG are supported by cwebp conversion.' );
+			}
+
+			$cwebp_path = self::pera_webp_find_cwebp_binary();
+			if ( '' === $cwebp_path ) {
+				return array( 'ok' => false, 'error' => 'cwebp binary is not available.' );
+			}
+
+			$quality      = max( 1, min( 100, (int) $quality ) );
+			$command      = escapeshellarg( $cwebp_path ) . ' -quiet -q ' . $quality . ' ' . escapeshellarg( $source_path ) . ' -o ' . escapeshellarg( $webp_path ) . ' 2>&1';
+			$cmd_output   = array();
+			$command_code = 1;
+			exec( $command, $cmd_output, $command_code );
+
+			if ( 0 === $command_code && file_exists( $webp_path ) ) {
+				return array( 'ok' => true );
+			}
+
+			$error = ! empty( $cmd_output ) ? trim( implode( "\n", $cmd_output ) ) : 'cwebp conversion failed.';
+			return array(
+				'ok'    => false,
+				'error' => $error,
 			);
 		}
 
@@ -195,8 +261,8 @@ if ( ! class_exists( 'Pera_WebP_Tools' ) ) {
 				return $log;
 			}
 
-			$ok_main          = self::convert_file( $file, $quality );
-			$log['details'][] = $ok_main ? 'Converted original.' : 'Could not convert original (no WebP encoder or error).';
+			$cwebp_path = self::pera_webp_find_cwebp_binary();
+			$ok_main    = self::convert_single_image_with_fallback( $file, $quality, $cwebp_path, 'original', $log );
 
 			if ( $include_sizes ) {
 				$meta = wp_get_attachment_metadata( $attachment_id );
@@ -208,8 +274,7 @@ if ( ! class_exists( 'Pera_WebP_Tools' ) ) {
 						}
 						$size_file = $base_dir . $info['file'];
 						if ( file_exists( $size_file ) ) {
-							$ok              = self::convert_file( $size_file, $quality );
-							$log['details'][] = $ok ? "OK size: {$size_key}" : "Skip size: {$size_key}";
+							self::convert_single_image_with_fallback( $size_file, $quality, $cwebp_path, "size: {$size_key}", $log );
 						}
 					}
 				}
@@ -229,6 +294,32 @@ if ( ! class_exists( 'Pera_WebP_Tools' ) ) {
 			}
 
 			return $log;
+		}
+
+		protected static function convert_single_image_with_fallback( $source_path, $quality, $cwebp_path, $label, &$log ) {
+			$webp_path = preg_replace( '/\.(jpe?g|png)$/i', '.webp', $source_path );
+			if ( ! $webp_path ) {
+				$log['details'][] = "Skip {$label}: could not derive WebP path.";
+				return false;
+			}
+
+			if ( file_exists( $webp_path ) ) {
+				$log['details'][] = "OK {$label}: WebP already exists.";
+				return true;
+			}
+
+			if ( '' !== $cwebp_path ) {
+				$cwebp_result = self::pera_webp_convert_with_cwebp( $source_path, $webp_path, $quality );
+				if ( ! empty( $cwebp_result['ok'] ) ) {
+					$log['details'][] = "Converted {$label} with cwebp.";
+					return true;
+				}
+				$log['details'][] = "cwebp failed for {$label}, using WP editor fallback.";
+			}
+
+			$wp_ok = self::convert_file( $source_path, $quality );
+			$log['details'][] = $wp_ok ? "Converted {$label} with WP editor." : "Could not convert {$label} with WP editor.";
+			return $wp_ok;
 		}
 
 		public static function get_attachment_status( $attachment_id ) {
@@ -585,6 +676,9 @@ if ( ! class_exists( 'Pera_WebP_Tools' ) ) {
 						<strong>Environment:</strong>
 						WebP encoding support: <?php echo esc_html( $env_info['webp_encoding_supported'] ? 'Yes' : 'No' ); ?> &nbsp;|&nbsp;
 						Editor stack: <?php echo esc_html( $env_info['editor_stack'] ); ?> &nbsp;|&nbsp;
+						cwebp available: <?php echo esc_html( $env_info['cwebp_available'] ? 'Yes' : 'No' ); ?> &nbsp;|&nbsp;
+						cwebp path: <?php echo esc_html( ! empty( $env_info['cwebp_path'] ) ? $env_info['cwebp_path'] : 'N/A' ); ?> &nbsp;|&nbsp;
+						Conversion engine: <?php echo esc_html( $env_info['conversion_engine'] ); ?> &nbsp;|&nbsp;
 						Batch size: <?php echo esc_html( (string) $env_info['batch_size'] ); ?>
 					</p>
 				</div>
