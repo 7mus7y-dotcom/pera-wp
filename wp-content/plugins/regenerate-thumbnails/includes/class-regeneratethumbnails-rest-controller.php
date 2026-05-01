@@ -456,9 +456,19 @@ class RegenerateThumbnails_REST_Controller extends WP_REST_Controller {
 	 */
 	public function missing_attachments( $request ) {
 		$exclude_ids = array_values( array_filter( array_map( 'absint', (array) $request->get_param( 'exclude_ids' ) ) ) );
+		$raster_mime_types = array(
+			'image/jpeg',
+			'image/png',
+			'image/gif',
+			'image/webp',
+			'image/avif',
+			'image/heic',
+			'image/heif',
+		);
 		$query = new WP_Query( array(
 			'post_type'              => 'attachment',
 			'post_status'            => 'inherit',
+			'post_mime_type'         => $raster_mime_types,
 			'orderby'                => array(
 				'date' => 'DESC',
 				'ID'   => 'DESC',
@@ -518,6 +528,8 @@ class RegenerateThumbnails_REST_Controller extends WP_REST_Controller {
 				$mime_types[] = $mime_type;
 			}
 		}
+
+		$mime_types = array_values( array_diff( $mime_types, array( 'image/svg+xml' ) ) );
 
 		return $mime_types;
 	}
@@ -599,7 +611,14 @@ class RegenerateThumbnails_REST_Controller extends WP_REST_Controller {
 		$ids = is_array( $query->posts ) ? $query->posts : array();
 		foreach ( $ids as $attachment_id ) {
 			$scanned++;
-			$status = $this->update_missing_meta_for_attachment( (int) $attachment_id );
+			$attachment_id = (int) $attachment_id;
+			$mime_type     = get_post_mime_type( $attachment_id );
+			if ( 'image/svg+xml' === $mime_type ) {
+				$this->clear_missing_meta_for_attachment( $attachment_id );
+				$cleared++;
+				continue;
+			}
+			$status = $this->update_missing_meta_for_attachment( $attachment_id );
 			if ( isset( $status['status'] ) && 'flagged' === $status['status'] ) { $flagged++; } elseif ( isset( $status['status'] ) && 'cleared' === $status['status'] ) { $cleared++; }
 		}
 		$has_more = count( $ids ) === self::MISSING_SCAN_BATCH_SIZE;
@@ -627,6 +646,15 @@ class RegenerateThumbnails_REST_Controller extends WP_REST_Controller {
 	}
 
 	private function update_missing_meta_for_attachment( $attachment_id ) {
+		$mime_type = get_post_mime_type( $attachment_id );
+		if ( 'image/svg+xml' === $mime_type ) {
+			$this->clear_missing_meta_for_attachment( $attachment_id );
+			return array(
+				'status'        => 'cleared',
+				'missing_sizes' => array(),
+			);
+		}
+
 		if ( $attachment_id <= 0 || ! wp_attachment_is_image( $attachment_id ) ) {
 			$this->clear_missing_meta_for_attachment( $attachment_id );
 			return array( 'status' => 'cleared', 'missing_sizes' => array() );
