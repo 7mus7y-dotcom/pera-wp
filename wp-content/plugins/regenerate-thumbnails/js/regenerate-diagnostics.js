@@ -79,7 +79,8 @@
 		lastChecked: 0,
 		totalChecked: 0,
 		requestCount: 0,
-		lastResultNotice: null
+		lastResultNotice: null,
+		successfulIds: {}
 	};
 	var indexState = {
 		running: false,
@@ -322,9 +323,19 @@
 				path: '/regenerate-thumbnails/v1/regenerate/' + currentId,
 				method: 'POST',
 				data: { only_regenerate_missing_thumbnails: true }
-			}).done(function(){
-				succeeded += 1;
-				setRowStatus(currentId, 'Success', 'status-success');
+			}).done(function(response){
+				var remaining = response && response.remaining_missing_sizes ? response.remaining_missing_sizes : [];
+				if(response && response.status === 'complete'){
+					succeeded += 1;
+					missingState.successfulIds[currentId] = true;
+					setRowStatus(currentId, 'Success', 'status-success');
+				} else if(response && response.status === 'partial'){
+					setRowStatus(currentId, 'Partial: still missing ' + (remaining.length ? remaining.join(', ') : '(unknown sizes)'), 'status-failed');
+				} else {
+					succeeded += 1;
+					missingState.successfulIds[currentId] = true;
+					setRowStatus(currentId, 'Success', 'status-success');
+				}
 				getRowDetails(currentId).row.find('.regenthumbs-missing-select').prop('checked', false);
 			}).fail(function(xhr, textStatus, errorThrown){
 				var details = getRowDetails(currentId);
@@ -445,7 +456,14 @@
 		}
 
 		var requestPath = '/regenerate-thumbnails/v1/missing';
-		var requestData = { include_summary: 1 };
+		var requestData = {
+			include_summary: 1,
+			exclude_ids: Object.keys(missingState.successfulIds).map(function(id){
+				return parseInt(id, 10);
+			}).filter(function(id){
+				return !Number.isNaN(id) && id > 0;
+			})
+		};
 		var requestDescription = 'wp.apiRequest path "' + requestPath + '" with query ' + $.param(requestData);
 
 		var shouldContinueScan = false;
@@ -505,6 +523,7 @@
 		missingState.lastChecked = 0;
 		missingState.totalChecked = 0;
 		missingState.requestCount = 0;
+		missingState.successfulIds = {};
 	}
 
 	function maybeLoadMissingUi(){
