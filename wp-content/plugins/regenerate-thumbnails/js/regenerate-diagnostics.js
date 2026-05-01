@@ -197,6 +197,11 @@
 		var missingSizes = (item.missing_sizes || []).map(function(size){
 			return '<code class="regenthumbs-missing-size-tag">' + escHtml(size) + '</code>';
 		}).join(' ');
+		if(item.missing_sources_differ){
+			var metaSizes = (item.meta_missing_sizes || []).join(', ') || '(none)';
+			var scanSizes = (item.scan_missing_sizes || []).join(', ') || '(none)';
+			missingSizes += '<div class="regenthumbs-missing-sizes-diff"><small>Meta: ' + escHtml(metaSizes) + '</small><br /><small>Scan: ' + escHtml(scanSizes) + '</small></div>';
+		}
 		var actions = '<a class="button button-small" href="' + escHtml(item.regenerate_url || ('#/regenerate/' + item.id)) + '">Regenerate</a>';
 		if(item.edit_url){
 			actions += ' <a class="button-link regenthumbs-missing-edit-link" href="' + escHtml(item.edit_url) + '">Edit Media</a>';
@@ -324,17 +329,19 @@
 				method: 'POST',
 				data: { only_regenerate_missing_thumbnails: true }
 			}).done(function(response){
-				var remaining = response && response.remaining_missing_sizes ? response.remaining_missing_sizes : [];
-				if(response && response.status === 'complete'){
+				console.log('regen response', currentId, response);
+				var remaining = response && Array.isArray(response.remaining_missing_sizes) ? response.remaining_missing_sizes : [];
+				var isComplete = response && response.status === 'complete' && remaining.length === 0;
+				if(isComplete){
 					succeeded += 1;
 					missingState.successfulIds[currentId] = true;
 					setRowStatus(currentId, 'Success', 'status-success');
 				} else if(response && response.status === 'partial'){
-					setRowStatus(currentId, 'Partial: still missing ' + (remaining.length ? remaining.join(', ') : '(unknown sizes)'), 'status-failed');
+					setRowStatus(currentId, 'Still missing: ' + (remaining.length ? remaining.join(', ') : '(unknown sizes)'), 'status-failed');
+					failed.push({ id: currentId, label: getRowDetails(currentId).label, reason: 'Still missing: ' + (remaining.length ? remaining.join(', ') : '(unknown sizes)') });
 				} else {
-					succeeded += 1;
-					missingState.successfulIds[currentId] = true;
-					setRowStatus(currentId, 'Success', 'status-success');
+					failed.push({ id: currentId, label: getRowDetails(currentId).label, reason: 'Unexpected regeneration response' });
+					setRowStatus(currentId, 'Failed: unexpected response', 'status-failed');
 				}
 				getRowDetails(currentId).row.find('.regenthumbs-missing-select').prop('checked', false);
 			}).fail(function(xhr, textStatus, errorThrown){
