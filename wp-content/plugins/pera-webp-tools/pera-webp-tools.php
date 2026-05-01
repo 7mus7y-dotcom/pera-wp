@@ -19,6 +19,8 @@ if ( ! class_exists( 'Pera_WebP_Tools' ) ) {
 		const STATS_CACHE_KEY         = 'pera_webp_tools_stats_v1';
 		const STATS_CACHE_TTL         = 60;
 		const DEFAULT_BATCH_SIZE      = 30;
+		const ACTION_CONVERT_SELECTED = 'pera_webp_tools_convert_selected';
+		const ACTION_CONVERT_MISSING  = 'pera_webp_tools_convert_missing_batch';
 		protected static $stats_runtime_cache = null;
 
 		public static function init() {
@@ -596,7 +598,7 @@ if ( ! class_exists( 'Pera_WebP_Tools' ) ) {
 				<form method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>" style="margin:1em 0;">
 					<input type="hidden" name="action" value="pera_webp_tools_action" />
 					<input type="hidden" name="webp_tools_action" value="convert_all_missing" />
-					<?php wp_nonce_field( 'pera_webp_tools_action' ); ?>
+					<?php wp_nonce_field( self::ACTION_CONVERT_MISSING, 'pera_webp_tools_nonce' ); ?>
 					<?php submit_button( 'Convert Next Missing Batch (up to ' . (int) self::DEFAULT_BATCH_SIZE . ')', 'primary', 'submit', false ); ?>
 				</form>
 
@@ -604,7 +606,7 @@ if ( ! class_exists( 'Pera_WebP_Tools' ) ) {
 					<input type="hidden" name="action" value="pera_webp_tools_action" />
 					<input type="hidden" name="webp_tools_action" value="bulk_convert" />
 					<input type="hidden" name="redirect_status" value="<?php echo esc_attr( $status ); ?>" />
-					<?php wp_nonce_field( 'pera_webp_tools_action' ); ?>
+					<?php wp_nonce_field( self::ACTION_CONVERT_SELECTED, 'pera_webp_tools_nonce' ); ?>
 					<?php $dry_checked = ! empty( $_POST['dry_run_delete'] ) ? 'checked' : ''; ?>
 					<p>
 						<label>
@@ -631,9 +633,15 @@ if ( ! class_exists( 'Pera_WebP_Tools' ) ) {
 				wp_die( 'You do not have permission to convert images.' );
 			}
 
-			check_admin_referer( 'pera_webp_tools_action' );
-
 			$action = isset( $_POST['webp_tools_action'] ) ? sanitize_key( wp_unslash( $_POST['webp_tools_action'] ) ) : '';
+			if ( isset( $_POST['submit-delete-top'] ) || isset( $_POST['submit-delete'] ) || 'bulk_convert' === $action ) {
+				check_admin_referer( self::ACTION_CONVERT_SELECTED, 'pera_webp_tools_nonce' );
+			} elseif ( 'convert_all_missing' === $action ) {
+				check_admin_referer( self::ACTION_CONVERT_MISSING, 'pera_webp_tools_nonce' );
+			} else {
+				wp_die( 'Invalid tools action.' );
+			}
+
 			if ( isset( $_POST['submit-delete-top'] ) || isset( $_POST['submit-delete'] ) ) {
 				$action = 'bulk_delete';
 			}
@@ -647,7 +655,8 @@ if ( ! class_exists( 'Pera_WebP_Tools' ) ) {
 			);
 
 			if ( 'bulk_convert' === $action ) {
-				$ids = isset( $_POST['attachments'] ) ? (array) wp_unslash( $_POST['attachments'] ) : array();
+				$raw_ids = isset( $_POST['attachments'] ) ? (array) wp_unslash( $_POST['attachments'] ) : array();
+				$ids     = array_filter( array_map( 'absint', $raw_ids ) );
 				if ( empty( $ids ) ) {
 					self::set_notice( 'error', 'No attachments selected for conversion.' );
 					wp_safe_redirect( $redirect );
@@ -664,13 +673,21 @@ if ( ! class_exists( 'Pera_WebP_Tools' ) ) {
 						$fail++;
 					}
 				}
+				$redirect = add_query_arg(
+					array(
+						'converted' => $ok,
+						'failed'    => $fail,
+					),
+					$redirect
+				);
 				self::set_notice( 'info', sprintf( 'Bulk conversion completed. Converted: %d. Failed/Skipped: %d.', $ok, $fail ) );
 			} elseif ( 'bulk_delete' === $action ) {
 				if ( ! current_user_can( 'delete_posts' ) ) {
 					wp_die( 'You do not have permission to delete attachments.' );
 				}
 
-				$ids = isset( $_POST['attachments'] ) ? (array) wp_unslash( $_POST['attachments'] ) : array();
+				$raw_ids = isset( $_POST['attachments'] ) ? (array) wp_unslash( $_POST['attachments'] ) : array();
+				$ids     = array_filter( array_map( 'absint', $raw_ids ) );
 				$dry_run = ! empty( $_POST['dry_run_delete'] );
 				if ( empty( $ids ) ) {
 					self::set_notice( 'error', 'No attachments selected for deletion.' );
@@ -793,6 +810,14 @@ if ( ! class_exists( 'Pera_WebP_Tools' ) ) {
 
 		public static function render_admin_notices() {
 			$data = get_transient( self::NOTICE_TRANSIENT_PREFIX . get_current_user_id() );
+
+			$converted = isset( $_GET['converted'] ) ? absint( wp_unslash( $_GET['converted'] ) ) : null;
+			$failed    = isset( $_GET['failed'] ) ? absint( wp_unslash( $_GET['failed'] ) ) : null;
+			if ( null !== $converted || null !== $failed ) {
+				echo '<div class="notice notice-info"><p>' .
+					esc_html( sprintf( 'Conversion results. Converted: %d. Failed/Skipped: %d.', (int) $converted, (int) $failed ) ) .
+					'</p></div>' ;
+			}
 			if ( ! $data ) {
 				if ( isset( $_GET['pera_webp_bulk_done'], $_GET['pera_webp_bulk_fail'] ) ) {
 					$ok   = isset( $_GET['pera_webp_bulk_done'] ) ? (int) $_GET['pera_webp_bulk_done'] : 0;
