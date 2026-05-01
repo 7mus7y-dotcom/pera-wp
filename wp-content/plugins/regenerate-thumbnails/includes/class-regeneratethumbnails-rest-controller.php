@@ -134,6 +134,14 @@ class RegenerateThumbnails_REST_Controller extends WP_REST_Controller {
 						'type'        => 'boolean',
 						'default'     => true,
 					),
+					'exclude_ids'     => array(
+						'description' => __( 'Attachment IDs to exclude from indexed missing-thumbnail results.', 'regenerate-thumbnails' ),
+						'type'        => 'array',
+						'default'     => array(),
+						'items'       => array(
+							'type' => 'integer',
+						),
+					),
 				),
 			),
 		) );
@@ -255,6 +263,7 @@ class RegenerateThumbnails_REST_Controller extends WP_REST_Controller {
 	 * @return true|WP_Error True on success, otherwise a WP_Error object.
 	 */
 	public function regenerate_item( $request ) {
+		$attachment_id = (int) $request->get_param( 'id' );
 		$regenerator = RegenerateThumbnails_Regenerator::get_instance( $request->get_param( 'id' ) );
 
 		if ( is_wp_error( $regenerator ) ) {
@@ -286,11 +295,15 @@ class RegenerateThumbnails_REST_Controller extends WP_REST_Controller {
 		}
 
 		self::invalidate_missing_thumbnails_cache();
+		$missing_status = $this->update_missing_meta_for_attachment( $attachment_id );
+		$size_scan      = $this->get_registered_size_scan_from_metadata( $attachment_id );
 
 		$response = $this->attachment_info( $request );
 		if ( ! is_wp_error( $response ) ) {
-			$this->update_missing_meta_for_attachment( (int) $request->get_param( 'id' ) );
-			$response = $this->attachment_info( $request );
+			$needs_regen_meta                    = (string) get_post_meta( $attachment_id, self::META_NEEDS_REGEN, true );
+			$is_complete                         = ( 'cleared' === $missing_status ) && '' === $needs_regen_meta;
+			$response['status']                  = $is_complete ? 'complete' : 'partial';
+			$response['remaining_missing_sizes'] = $is_complete ? array() : array_values( $size_scan['missing_sizes'] );
 		}
 
 		return $response;
@@ -441,6 +454,7 @@ class RegenerateThumbnails_REST_Controller extends WP_REST_Controller {
 	 * @return WP_REST_Response|WP_Error Response object on success, or WP_Error on failure.
 	 */
 	public function missing_attachments( $request ) {
+		$exclude_ids = array_values( array_filter( array_map( 'absint', (array) $request->get_param( 'exclude_ids' ) ) ) );
 		$query = new WP_Query( array(
 			'post_type'              => 'attachment',
 			'post_status'            => 'inherit',
@@ -453,15 +467,19 @@ class RegenerateThumbnails_REST_Controller extends WP_REST_Controller {
 			'no_found_rows'          => true,
 			'update_post_meta_cache' => false,
 			'update_post_term_cache' => false,
-			'meta_key'               => self::META_NEEDS_REGEN,
-			'meta_value'             => '1',
 			'meta_query'             => array(
+				array(
+					'key'     => self::META_NEEDS_REGEN,
+					'value'   => '1',
+					'compare' => '=',
+				),
 				array(
 					'key'     => '_wp_attachment_context',
 					'value'   => 'site-icon',
 					'compare' => 'NOT EXISTS',
 				),
 			),
+			'post__not_in'           => $exclude_ids,
 		) );
 
 		$response_data = array(
@@ -602,19 +620,30 @@ class RegenerateThumbnails_REST_Controller extends WP_REST_Controller {
 
 	private function update_missing_meta_for_attachment( $attachment_id ) {
 		if ( $attachment_id <= 0 || ! wp_attachment_is_image( $attachment_id ) ) {
-			delete_post_meta( $attachment_id, self::META_NEEDS_REGEN );
-			delete_post_meta( $attachment_id, self::META_MISSING_SIZES );
+			$this->clear_missing_meta_for_attachment( $attachment_id );
 			return 'cleared';
 		}
 		$size_scan = $this->get_registered_size_scan_from_metadata( $attachment_id );
 		if ( empty( $size_scan['missing_sizes'] ) ) {
-			delete_post_meta( $attachment_id, self::META_NEEDS_REGEN );
-			delete_post_meta( $attachment_id, self::META_MISSING_SIZES );
+			$this->clear_missing_meta_for_attachment( $attachment_id );
 			return 'cleared';
 		}
 		update_post_meta( $attachment_id, self::META_NEEDS_REGEN, '1' );
 		update_post_meta( $attachment_id, self::META_MISSING_SIZES, implode( ',', array_values( $size_scan['missing_sizes'] ) ) );
 		return 'flagged';
+	}
+
+	private function clear_missing_meta_for_attachment( $attachment_id ) {
+		delete_post_meta( $attachment_id, self::META_NEEDS_REGEN );
+		delete_post_meta( $attachment_id, self::META_MISSING_SIZES );
+
+		// Defensive cleanup: if duplicate rows exist, delete_metadata clears all rows by key.
+		if ( '' !== (string) get_post_meta( $attachment_id, self::META_NEEDS_REGEN, true ) ) {
+			delete_metadata( 'post', $attachment_id, self::META_NEEDS_REGEN, '', true );
+		}
+		if ( '' !== trim( (string) get_post_meta( $attachment_id, self::META_MISSING_SIZES, true ) ) ) {
+			delete_metadata( 'post', $attachment_id, self::META_MISSING_SIZES, '', true );
+		}
 	}
 
 	/**
