@@ -202,7 +202,7 @@
 			var scanSizes = (item.scan_missing_sizes || []).join(', ') || '(none)';
 			missingSizes += '<div class="regenthumbs-missing-sizes-diff"><small>Meta: ' + escHtml(metaSizes) + '</small><br /><small>Scan: ' + escHtml(scanSizes) + '</small></div>';
 		}
-		var actions = '<a class="button button-small" href="' + escHtml(item.regenerate_url || ('#/regenerate/' + item.id)) + '">Regenerate</a>';
+		var actions = '<button type="button" class="button button-small regenthumbs-missing-regenerate-one" data-attachment-id="' + Number(item.id) + '">Regenerate</button>';
 		if(item.edit_url){
 			actions += ' <a class="button-link regenthumbs-missing-edit-link" href="' + escHtml(item.edit_url) + '">Edit Media</a>';
 		}
@@ -392,6 +392,21 @@
 		}
 
 		processRegenerationQueue(ids);
+		return false;
+	});
+
+	$(document).on('click', '.regenthumbs-missing-regenerate-one', function(event){
+		event.preventDefault();
+		event.stopPropagation();
+		if(typeof event.stopImmediatePropagation === 'function'){
+			event.stopImmediatePropagation();
+		}
+
+		var id = parseInt($(this).data('attachment-id'), 10);
+		if(id > 0){
+			processRegenerationQueue([id]);
+		}
+
 		return false;
 	});
 
