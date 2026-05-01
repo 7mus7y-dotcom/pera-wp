@@ -72,13 +72,8 @@
 
 	var missingState = {
 		loading: false,
-		cursor: 0,
-		hasMore: false,
 		itemsById: {},
 		foundCount: 0,
-		lastChecked: 0,
-		totalChecked: 0,
-		requestCount: 0,
 		lastResultNotice: null,
 		successfulIds: {}
 	};
@@ -88,9 +83,6 @@
 		lastCursor: 0,
 		lastElapsedMs: 0
 	};
-	var MISSING_VISIBLE_LIMIT = 100;
-	var MISSING_MAX_AUTO_REQUESTS = 12;
-
 	function escHtml(value){
 		return String(value || '')
 			.replace(/&/g, '&amp;')
@@ -136,6 +128,20 @@
 		if(selectAll){
 			selectAll.checked = totalCount > 0 && selectedCount === totalCount;
 		}
+	}
+
+	function hasIndexedResults(){
+		return missingState.foundCount > 0;
+	}
+
+	function toggleActionControls(){
+		var enabled = hasIndexedResults();
+		['regenthumbs-missing-select-all', 'regenthumbs-missing-clear-selection', 'regenthumbs-missing-regenerate-selected'].forEach(function(id){
+			var el = document.getElementById(id);
+			if(el){
+				el.style.display = enabled ? '' : 'none';
+			}
+		});
 	}
 
 	function stripHtml(raw){
@@ -202,7 +208,7 @@
 			var scanSizes = (item.scan_missing_sizes || []).join(', ') || '(none)';
 			missingSizes += '<div class="regenthumbs-missing-sizes-diff"><small>Meta: ' + escHtml(metaSizes) + '</small><br /><small>Scan: ' + escHtml(scanSizes) + '</small></div>';
 		}
-		var actions = '<button type="button" class="button button-small regenthumbs-missing-regenerate-one" data-attachment-id="' + Number(item.id) + '">Regenerate</button>';
+		var actions = '<button type="button" class="button button-small regenthumbs-missing-regenerate-one" data-attachment-id="' + Number(item.id) + '">Regenerate this image</button>';
 		if(item.edit_url){
 			actions += ' <a class="button-link regenthumbs-missing-edit-link" href="' + escHtml(item.edit_url) + '">Edit Media</a>';
 		}
@@ -223,14 +229,14 @@
 			'<h2 class="regenthumbs-missing-heading">Missing thumbnails</h2>'
 			+ '<div id="regenthumbs-missing-status-area"></div>'
 			+ '<p class="regenthumbs-missing-summary" id="regenthumbs-missing-summary-main"></p>'
-			+ '<p class="regenthumbs-missing-summary">This tool scans in small batches and lists up to 10 missing items per pass.</p>'
+			+ '<p class="regenthumbs-missing-summary">First build the index, then this list shows images flagged for regeneration.</p>'
 			+ '<hr /><h3>Index missing thumbnails</h3>'
 			+ '<p id="regenthumbs-index-progress">Not started.</p>'
 			+ '<p id="regenthumbs-index-meta"></p>'
-			+ '<p><button type="button" class="button button-primary" id="regenthumbs-index-start">Start / Resume indexing</button> <button type="button" class="button" id="regenthumbs-index-pause">Pause indexing</button> <button type="button" class="button" id="regenthumbs-index-reset">Reset index and rescan</button></p>'
+			+ '<p><button type="button" class="button button-primary" id="regenthumbs-index-start">Start / Resume indexing</button> <button type="button" class="button" id="regenthumbs-index-pause">Pause indexing</button> <button type="button" class="button" id="regenthumbs-index-reset">Reset index</button></p>'
 			+ '<p class="regenthumbs-missing-summary" id="regenthumbs-missing-summary-checked"></p>'
 			+ '<div class="regenthumbs-missing-toolbar">'
-			+ '<button type="button" class="button" id="regenthumbs-missing-select-all">Select all listed</button>'
+			+ '<button type="button" class="button" id="regenthumbs-missing-select-all">Select all</button>'
 			+ '<button type="button" class="button" id="regenthumbs-missing-clear-selection">Clear selection</button>'
 			+ '<button type="button" class="button button-primary" id="regenthumbs-missing-regenerate-selected" disabled="disabled">Regenerate selected</button>'
 			+ '<span id="regenthumbs-missing-selection-summary" class="regenthumbs-missing-selection-summary">0 selected</span>'
@@ -238,12 +244,13 @@
 			+ '<div class="regenthumbs-missing-table-wrap">'
 			+ '<table class="widefat striped regenthumbs-missing-table">'
 			+ '<thead><tr><td class="check-column"><input type="checkbox" id="regenthumbs-missing-select-all-header" /></td><th>Attachment</th><th>Missing sizes</th><th>Status</th><th>Actions</th></tr></thead>'
-			+ '<tbody id="regenthumbs-missing-table-body"><tr id="regenthumbs-missing-empty"><td colspan="5">Loading missing thumbnails…</td></tr></tbody>'
+			+ '<tbody id="regenthumbs-missing-table-body"><tr id="regenthumbs-missing-empty"><td colspan="5">Reading indexed results…</td></tr></tbody>'
 			+ '</table>'
 			+ '</div>'
 			+ '<div class="regenthumbs-missing-footer">'
-			+ '<button type="button" class="button" id="regenthumbs-missing-rescan">Refresh list</button> '
+			+ '<button type="button" class="button" id="regenthumbs-missing-rescan">Refresh flagged images</button> '
 			+ '</div>';
+		toggleActionControls();
 
 		if(missingState.lastResultNotice && missingState.lastResultNotice.message){
 			renderNotice(missingState.lastResultNotice.type, missingState.lastResultNotice.message);
@@ -254,10 +261,10 @@
 		var main = document.getElementById('regenthumbs-missing-summary-main');
 		var checked = document.getElementById('regenthumbs-missing-summary-checked');
 		if(main){
-			main.innerHTML = 'Scanning media library… checked <strong>' + Number(missingState.totalChecked).toLocaleString() + '</strong> attachments, found <strong>' + Number(missingState.foundCount).toLocaleString() + '</strong> missing thumbnails.';
+			main.innerHTML = 'Reading indexed results… found <strong>' + Number(missingState.foundCount).toLocaleString() + '</strong> flagged images.';
 		}
 		if(checked){
-			checked.textContent = 'Attachments scanned in latest request: ' + Number(missingState.lastChecked).toLocaleString() + '.';
+			checked.textContent = 'Indexed results loaded: ' + Number(missingState.foundCount).toLocaleString() + '.';
 		}
 	}
 
@@ -286,6 +293,7 @@
 
 		missingState.foundCount += appended;
 		updateMissingSelectionUi();
+		toggleActionControls();
 		updateMissingSummary();
 	}
 
@@ -424,8 +432,13 @@
 		if(!progress || !meta){ return; }
 		var scanned = state && state.scanned ? state.scanned : 0;
 		var flagged = state && state.flagged ? state.flagged : 0;
-		progress.textContent = 'Scanned ' + Number(scanned).toLocaleString() + ' attachments, flagged ' + Number(flagged).toLocaleString() + ' needing regeneration.';
-		meta.textContent = 'Last cursor checked: ' + Number(indexState.lastCursor).toLocaleString() + '. Latest batch elapsed: ' + Number(indexState.lastElapsedMs).toLocaleString() + ' ms.';
+		if(scanned === 0){
+			progress.textContent = 'No index has been built yet. Click Start / Resume indexing to scan the media library.';
+			meta.textContent = '';
+		} else {
+			progress.textContent = 'Scanned ' + Number(scanned).toLocaleString() + ' attachments, flagged ' + Number(flagged).toLocaleString() + ' needing regeneration.';
+			meta.textContent = 'Last cursor checked: ' + Number(indexState.lastCursor).toLocaleString() + '. Latest batch elapsed: ' + Number(indexState.lastElapsedMs).toLocaleString() + ' ms.';
+		}
 	}
 
 	function runIndexBatchLoop(){
@@ -474,6 +487,9 @@
 
 		if(isInitial){
 			renderMissingChrome();
+			window.wp.apiRequest({ path: '/regenerate-thumbnails/v1/missing-index/state', method: 'GET' }).done(function(state){
+				renderIndexState(state || null);
+			});
 		}
 
 		var requestPath = '/regenerate-thumbnails/v1/missing';
@@ -487,17 +503,13 @@
 		};
 		var requestDescription = 'wp.apiRequest path "' + requestPath + '" with query ' + $.param(requestData);
 
-		var shouldContinueScan = false;
-
 		window.wp.apiRequest({
 			path: requestPath,
 			method: 'GET',
 			data: requestData
 		}).done(function(response){
-			missingState.lastChecked = 0;
 			appendMissingRows(response && response.items ? response.items : []);
 			setStatus('missing thumbnails request succeeded');
-			shouldContinueScan = false;
 		}).fail(function(xhr, textStatus, errorThrown){
 			var message = 'Unable to load missing thumbnails.';
 			if(xhr && xhr.status === 0){
@@ -526,24 +538,15 @@
 			}
 			setStatus('missing thumbnails request failed: ' + message);
 		}).always(function(){
-			missingState.requestCount += 1;
 			missingState.loading = false;
 			updateMissingSummary();
-			if(shouldContinueScan){
-				loadMissingUi(false);
-			}
 		});
 	}
 
 	function resetMissingUiState(){
 		missingState.loading = false;
-		missingState.cursor = 0;
-		missingState.hasMore = false;
 		missingState.itemsById = {};
 		missingState.foundCount = 0;
-		missingState.lastChecked = 0;
-		missingState.totalChecked = 0;
-		missingState.requestCount = 0;
 		missingState.successfulIds = {};
 	}
 
