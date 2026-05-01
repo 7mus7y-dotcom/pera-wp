@@ -81,6 +81,12 @@
 		requestCount: 0,
 		lastResultNotice: null
 	};
+	var indexState = {
+		running: false,
+		paused: false,
+		lastCursor: 0,
+		lastElapsedMs: 0
+	};
 	var MISSING_VISIBLE_LIMIT = 10;
 	var MISSING_MAX_AUTO_REQUESTS = 12;
 
@@ -212,6 +218,10 @@
 			+ '<div id="regenthumbs-missing-status-area"></div>'
 			+ '<p class="regenthumbs-missing-summary" id="regenthumbs-missing-summary-main"></p>'
 			+ '<p class="regenthumbs-missing-summary">This tool scans in small batches and lists up to 10 missing items per pass.</p>'
+			+ '<hr /><h3>Index missing thumbnails</h3>'
+			+ '<p id="regenthumbs-index-progress">Not started.</p>'
+			+ '<p id="regenthumbs-index-meta"></p>'
+			+ '<p><button type="button" class="button button-primary" id="regenthumbs-index-start">Start / Resume indexing</button> <button type="button" class="button" id="regenthumbs-index-pause">Pause indexing</button> <button type="button" class="button" id="regenthumbs-index-reset">Reset index and rescan</button></p>'
 			+ '<p class="regenthumbs-missing-summary" id="regenthumbs-missing-summary-checked"></p>'
 			+ '<div class="regenthumbs-missing-toolbar">'
 			+ '<button type="button" class="button" id="regenthumbs-missing-select-all">Select all listed</button>'
@@ -226,8 +236,7 @@
 			+ '</table>'
 			+ '</div>'
 			+ '<div class="regenthumbs-missing-footer">'
-			+ '<button type="button" class="button" id="regenthumbs-missing-rescan">Rescan</button> '
-			+ '<button type="button" class="button" id="regenthumbs-missing-find-more" disabled="disabled">Find 10 more</button>'
+			+ '<button type="button" class="button" id="regenthumbs-missing-rescan">Refresh list</button> '
 			+ '</div>';
 
 		if(missingState.lastResultNotice && missingState.lastResultNotice.message){
@@ -244,11 +253,6 @@
 		if(checked){
 			checked.textContent = 'Attachments scanned in latest request: ' + Number(missingState.lastChecked).toLocaleString() + '.';
 		}
-		var findMore = document.getElementById('regenthumbs-missing-find-more');
-		if(findMore){
-			findMore.disabled = missingState.loading || !missingState.hasMore;
-			findMore.textContent = missingState.loading ? 'Searching…' : 'Find 10 more';
-		}
 	}
 
 	function appendMissingRows(items){
@@ -262,9 +266,6 @@
 
 		var appended = 0;
 		(items || []).forEach(function(item){
-			if(missingState.foundCount + appended >= MISSING_VISIBLE_LIMIT){
-				return;
-			}
 			if(!item || !item.id || missingState.itemsById[item.id]){
 				return;
 			}
@@ -377,19 +378,60 @@
 		return false;
 	});
 
-	$(document).on('click', '#regenthumbs-missing-find-more', function(){
-		if(missingState.loading || !missingState.hasMore){
-			return;
-		}
-		loadMissingUi(false);
-	});
-
 	$(document).on('click', '#regenthumbs-missing-rescan', function(){
 		if(missingState.loading){
 			return;
 		}
 		resetMissingUiState();
 		loadMissingUi(true);
+	});
+
+	function renderIndexState(state){
+		var progress = document.getElementById('regenthumbs-index-progress');
+		var meta = document.getElementById('regenthumbs-index-meta');
+		if(!progress || !meta){ return; }
+		var scanned = state && state.scanned ? state.scanned : 0;
+		var flagged = state && state.flagged ? state.flagged : 0;
+		progress.textContent = 'Scanned ' + Number(scanned).toLocaleString() + ' attachments, flagged ' + Number(flagged).toLocaleString() + ' needing regeneration.';
+		meta.textContent = 'Last cursor checked: ' + Number(indexState.lastCursor).toLocaleString() + '. Latest batch elapsed: ' + Number(indexState.lastElapsedMs).toLocaleString() + ' ms.';
+	}
+
+	function runIndexBatchLoop(){
+		if(!indexState.running || indexState.paused){ return; }
+		window.wp.apiRequest({ path: '/regenerate-thumbnails/v1/missing-index/scan', method: 'POST' })
+			.done(function(response){
+				indexState.lastCursor = response && response.next_cursor ? response.next_cursor : 0;
+				indexState.lastElapsedMs = response && response.elapsed_ms ? response.elapsed_ms : 0;
+				renderIndexState(response && response.totals ? response.totals : null);
+				if(response && response.has_more && indexState.running && !indexState.paused){
+					runIndexBatchLoop();
+				} else {
+					indexState.running = false;
+					loadMissingUi(true);
+				}
+			}).fail(function(xhr, textStatus, errorThrown){
+				indexState.running = false;
+				renderNotice('warning', 'Indexing failed: ' + extractErrorReason(xhr, textStatus, errorThrown));
+			});
+	}
+
+	$(document).on('click', '#regenthumbs-index-start', function(){
+		indexState.running = true;
+		indexState.paused = false;
+		runIndexBatchLoop();
+	});
+	$(document).on('click', '#regenthumbs-index-pause', function(){
+		indexState.paused = true;
+		indexState.running = false;
+	});
+	$(document).on('click', '#regenthumbs-index-reset', function(){
+		window.wp.apiRequest({ path: '/regenerate-thumbnails/v1/missing-index/reset', method: 'POST' }).done(function(response){
+			indexState.lastCursor = response && response.cursor ? response.cursor : 0;
+			indexState.lastElapsedMs = 0;
+			renderIndexState(response || null);
+			resetMissingUiState();
+			loadMissingUi(true);
+		});
 	});
 
 	function loadMissingUi(isInitial){
@@ -403,10 +445,7 @@
 		}
 
 		var requestPath = '/regenerate-thumbnails/v1/missing';
-		var requestData = {
-			cursor: missingState.cursor,
-			include_summary: 1
-		};
+		var requestData = { include_summary: 1 };
 		var requestDescription = 'wp.apiRequest path "' + requestPath + '" with query ' + $.param(requestData);
 
 		var shouldContinueScan = false;
@@ -416,19 +455,10 @@
 			method: 'GET',
 			data: requestData
 		}).done(function(response){
-			missingState.cursor = (response && response.next_cursor !== null && typeof response.next_cursor !== 'undefined')
-				? parseInt(response.next_cursor, 10)
-				: missingState.cursor;
-			missingState.hasMore = !!(response && response.has_more);
-			missingState.lastChecked = response && response.attachments_checked ? response.attachments_checked : 0;
-			missingState.totalChecked += missingState.lastChecked;
+			missingState.lastChecked = 0;
 			appendMissingRows(response && response.items ? response.items : []);
 			setStatus('missing thumbnails request succeeded');
-			shouldContinueScan = (
-				missingState.hasMore
-				&& missingState.foundCount < MISSING_VISIBLE_LIMIT
-				&& (missingState.requestCount + 1) < MISSING_MAX_AUTO_REQUESTS
-			);
+			shouldContinueScan = false;
 		}).fail(function(xhr, textStatus, errorThrown){
 			var message = 'Unable to load missing thumbnails.';
 			if(xhr && xhr.status === 0){

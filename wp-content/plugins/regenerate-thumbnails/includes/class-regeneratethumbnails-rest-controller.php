@@ -38,6 +38,9 @@ class RegenerateThumbnails_REST_Controller extends WP_REST_Controller {
 	 * @var int
 	 */
 	const MISSING_SCAN_BATCH_SIZE = 50;
+	const INDEX_STATE_OPTION      = 'regenerate_thumbnails_missing_index_state_v1';
+	const META_NEEDS_REGEN        = '_needs_thumbnail_regeneration';
+	const META_MISSING_SIZES      = '_missing_thumbnail_sizes';
 
 	/**
 	 * The namespace for the REST API routes.
@@ -132,6 +135,30 @@ class RegenerateThumbnails_REST_Controller extends WP_REST_Controller {
 						'default'     => true,
 					),
 				),
+			),
+		) );
+
+		register_rest_route( $this->namespace, '/missing-index/scan', array(
+			array(
+				'methods'             => WP_REST_Server::CREATABLE,
+				'callback'            => array( $this, 'scan_missing_index_batch' ),
+				'permission_callback' => array( $this, 'permissions_check' ),
+			),
+		) );
+
+		register_rest_route( $this->namespace, '/missing-index/state', array(
+			array(
+				'methods'             => WP_REST_Server::READABLE,
+				'callback'            => array( $this, 'missing_index_state' ),
+				'permission_callback' => array( $this, 'permissions_check' ),
+			),
+		) );
+
+		register_rest_route( $this->namespace, '/missing-index/reset', array(
+			array(
+				'methods'             => WP_REST_Server::CREATABLE,
+				'callback'            => array( $this, 'reset_missing_index' ),
+				'permission_callback' => array( $this, 'permissions_check' ),
 			),
 		) );
 	}
@@ -260,7 +287,13 @@ class RegenerateThumbnails_REST_Controller extends WP_REST_Controller {
 
 		self::invalidate_missing_thumbnails_cache();
 
-		return $this->attachment_info( $request );
+		$response = $this->attachment_info( $request );
+		if ( ! is_wp_error( $response ) ) {
+			$this->update_missing_meta_for_attachment( (int) $request->get_param( 'id' ) );
+			$response = $this->attachment_info( $request );
+		}
+
+		return $response;
 	}
 
 	/**
@@ -408,10 +441,6 @@ class RegenerateThumbnails_REST_Controller extends WP_REST_Controller {
 	 * @return WP_REST_Response|WP_Error Response object on success, or WP_Error on failure.
 	 */
 	public function missing_attachments( $request ) {
-		$started_at_ms          = (int) round( microtime( true ) * 1000 );
-		$cursor                 = max( 0, (int) $request->get_param( 'cursor' ) );
-		$missing_attachment_ids = array();
-		$attachments_checked = 0;
 		$query = new WP_Query( array(
 			'post_type'              => 'attachment',
 			'post_status'            => 'inherit',
@@ -419,13 +448,13 @@ class RegenerateThumbnails_REST_Controller extends WP_REST_Controller {
 				'date' => 'DESC',
 				'ID'   => 'DESC',
 			),
-			'posts_per_page'         => self::MISSING_SCAN_BATCH_SIZE,
-			'offset'                 => $cursor,
+			'posts_per_page'         => 10,
 			'fields'                 => 'ids',
 			'no_found_rows'          => true,
 			'update_post_meta_cache' => false,
 			'update_post_term_cache' => false,
-			'post_mime_type'         => $this->get_regeneratable_mime_types(),
+			'meta_key'               => self::META_NEEDS_REGEN,
+			'meta_value'             => '1',
 			'meta_query'             => array(
 				array(
 					'key'     => '_wp_attachment_context',
@@ -435,27 +464,14 @@ class RegenerateThumbnails_REST_Controller extends WP_REST_Controller {
 			),
 		) );
 
-		$candidate_ids = is_array( $query->posts ) ? $query->posts : array();
-		foreach ( $candidate_ids as $attachment_id ) {
-			$attachments_checked++;
-			$size_scan = $this->get_registered_size_scan_from_metadata( $attachment_id );
-			if ( empty( $size_scan['missing_sizes'] ) ) {
-				continue;
-			}
-			$missing_attachment_ids[] = (int) $attachment_id;
-		}
-		$next_cursor = $cursor + $attachments_checked;
-		$has_more    = count( $candidate_ids ) === self::MISSING_SCAN_BATCH_SIZE;
-		$elapsed_ms  = max( 0, (int) round( microtime( true ) * 1000 ) - $started_at_ms );
-
 		$response_data = array(
-			'items'               => $this->build_missing_items_data( $missing_attachment_ids ),
-			'attachments_checked' => (int) $attachments_checked,
-			'elapsed_ms'          => (int) $elapsed_ms,
-			'cursor'              => (int) $cursor,
-			'next_cursor'         => $has_more ? (int) $next_cursor : null,
-			'items_found'         => count( $missing_attachment_ids ),
-			'has_more'            => (bool) $has_more,
+			'items'               => $this->build_missing_items_data( is_array( $query->posts ) ? $query->posts : array(), true ),
+			'attachments_checked' => 0,
+			'elapsed_ms'          => 0,
+			'cursor'              => 0,
+			'next_cursor'         => null,
+			'items_found'         => is_array( $query->posts ) ? count( $query->posts ) : 0,
+			'has_more'            => false,
 		);
 
 		if ( $request->get_param( 'include_summary' ) ) {
@@ -496,14 +512,17 @@ class RegenerateThumbnails_REST_Controller extends WP_REST_Controller {
 	 *
 	 * @return array
 	 */
-	private function build_missing_items_data( $attachment_ids ) {
+	private function build_missing_items_data( $attachment_ids, $use_meta = false ) {
 		$items = array();
 
 		foreach ( $attachment_ids as $attachment_id ) {
 			$size_scan = $this->get_registered_size_scan_from_metadata( $attachment_id );
-			if ( empty( $size_scan['missing_sizes'] ) ) {
-				continue;
+			$missing_sizes = $size_scan['missing_sizes'];
+			if ( $use_meta ) {
+				$meta_missing = trim( (string) get_post_meta( $attachment_id, self::META_MISSING_SIZES, true ) );
+				$missing_sizes = $meta_missing !== '' ? array_filter( array_map( 'trim', explode( ',', $meta_missing ) ) ) : array();
 			}
+			if ( empty( $missing_sizes ) ) { continue; }
 
 			$attachment = get_post( $attachment_id );
 			if ( ! $attachment ) {
@@ -521,13 +540,81 @@ class RegenerateThumbnails_REST_Controller extends WP_REST_Controller {
 				'mime_type'            => get_post_mime_type( $attachment ),
 				'edit_url'             => get_edit_post_link( $attachment_id, 'raw' ),
 				'regenerate_url'       => admin_url( 'tools.php?page=regenerate-thumbnails#/regenerate/' . $attachment_id ),
-				'missing_sizes'        => array_values( $size_scan['missing_sizes'] ),
+				'missing_sizes'        => array_values( $missing_sizes ),
 				'expected_sizes_count' => count( $size_scan['eligible_sizes'] ),
 				'present_sizes_count'  => max( 0, count( $size_scan['eligible_sizes'] ) - count( $size_scan['missing_sizes'] ) ),
 			);
 		}
 
 		return $items;
+	}
+
+	public function missing_index_state() {
+		return rest_ensure_response( $this->get_missing_index_state() );
+	}
+
+	public function reset_missing_index() {
+		update_option( self::INDEX_STATE_OPTION, array(
+			'cursor' => 0, 'scanned' => 0, 'flagged' => 0, 'paused' => false,
+		), false );
+		return rest_ensure_response( $this->get_missing_index_state() );
+	}
+
+	public function scan_missing_index_batch() {
+		$started_at_ms = (int) round( microtime( true ) * 1000 );
+		$state         = $this->get_missing_index_state();
+		$cursor        = max( 0, (int) $state['cursor'] );
+		$query         = new WP_Query( array(
+			'post_type' => 'attachment', 'post_status' => 'inherit', 'orderby' => array( 'ID' => 'ASC' ),
+			'posts_per_page' => self::MISSING_SCAN_BATCH_SIZE, 'offset' => $cursor, 'fields' => 'ids',
+			'no_found_rows' => true, 'update_post_meta_cache' => false, 'update_post_term_cache' => false,
+		) );
+		$scanned = 0; $flagged = 0; $cleared = 0;
+		$ids = is_array( $query->posts ) ? $query->posts : array();
+		foreach ( $ids as $attachment_id ) {
+			$scanned++;
+			$status = $this->update_missing_meta_for_attachment( (int) $attachment_id );
+			if ( 'flagged' === $status ) { $flagged++; } elseif ( 'cleared' === $status ) { $cleared++; }
+		}
+		$has_more = count( $ids ) === self::MISSING_SCAN_BATCH_SIZE;
+		$next_cursor = $has_more ? ( $cursor + $scanned ) : null;
+		$state['cursor']  = $has_more ? $next_cursor : 0;
+		$state['scanned'] = (int) $state['scanned'] + $scanned;
+		$state['flagged'] = (int) $state['flagged'] + $flagged;
+		update_option( self::INDEX_STATE_OPTION, $state, false );
+		return rest_ensure_response( array(
+			'scanned' => $scanned, 'flagged' => $flagged, 'cleared' => $cleared,
+			'next_cursor' => $next_cursor, 'has_more' => $has_more,
+			'elapsed_ms' => max( 0, (int) round( microtime( true ) * 1000 ) - $started_at_ms ),
+			'totals' => $state,
+		) );
+	}
+
+	private function get_missing_index_state() {
+		$state = get_option( self::INDEX_STATE_OPTION, array() );
+		return array(
+			'cursor' => isset( $state['cursor'] ) ? (int) $state['cursor'] : 0,
+			'scanned' => isset( $state['scanned'] ) ? (int) $state['scanned'] : 0,
+			'flagged' => isset( $state['flagged'] ) ? (int) $state['flagged'] : 0,
+			'paused' => ! empty( $state['paused'] ),
+		);
+	}
+
+	private function update_missing_meta_for_attachment( $attachment_id ) {
+		if ( $attachment_id <= 0 || ! wp_attachment_is_image( $attachment_id ) ) {
+			delete_post_meta( $attachment_id, self::META_NEEDS_REGEN );
+			delete_post_meta( $attachment_id, self::META_MISSING_SIZES );
+			return 'cleared';
+		}
+		$size_scan = $this->get_registered_size_scan_from_metadata( $attachment_id );
+		if ( empty( $size_scan['missing_sizes'] ) ) {
+			delete_post_meta( $attachment_id, self::META_NEEDS_REGEN );
+			delete_post_meta( $attachment_id, self::META_MISSING_SIZES );
+			return 'cleared';
+		}
+		update_post_meta( $attachment_id, self::META_NEEDS_REGEN, '1' );
+		update_post_meta( $attachment_id, self::META_MISSING_SIZES, implode( ',', array_values( $size_scan['missing_sizes'] ) ) );
+		return 'flagged';
 	}
 
 	/**
