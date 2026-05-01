@@ -74,6 +74,16 @@ $crm_label                  = $crm_overdue_count > 0
     <!-- RIGHT: ICONS -->
     <div class="header-icons">
 
+      <?php if ( is_user_logged_in() && current_user_can( 'manage_options' ) ) : ?>
+        <a href="<?php echo esc_url( admin_url() ); ?>"
+           class="header-crm-toggle"
+           aria-label="Open WordPress admin">
+          <svg class="icon" aria-hidden="true">
+            <use href="<?php echo esc_url( get_stylesheet_directory_uri() . '/logos-icons/icons.svg#icon-wp-admin' ); ?>"></use>
+          </svg>
+        </a>
+      <?php endif; ?>
+
       <?php if ( $show_crm_header_button ) : ?>
         <a href="<?php echo esc_url( home_url( '/crm' ) ); ?>"
            class="header-crm-toggle"
