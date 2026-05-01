@@ -659,12 +659,20 @@ class RegenerateThumbnails_REST_Controller extends WP_REST_Controller {
 			$this->clear_missing_meta_for_attachment( $attachment_id );
 			return array( 'status' => 'cleared', 'missing_sizes' => array() );
 		}
-		$size_scan = $this->get_registered_size_scan_from_metadata( $attachment_id );
-		$missing_sizes = array_values( $size_scan['missing_sizes'] );
-		if ( empty( $missing_sizes ) ) {
+
+		$original_image_path = wp_get_original_image_path( $attachment_id );
+		if ( empty( $original_image_path ) || ! file_exists( $original_image_path ) ) {
 			$this->clear_missing_meta_for_attachment( $attachment_id );
 			return array( 'status' => 'cleared', 'missing_sizes' => array() );
 		}
+
+		$missing = wp_get_missing_image_subsizes( $attachment_id );
+		if ( empty( $missing ) ) {
+			$this->clear_missing_meta_for_attachment( $attachment_id );
+			return array( 'status' => 'cleared', 'missing_sizes' => array() );
+		}
+
+		$missing_sizes = array_keys( $missing );
 		update_post_meta( $attachment_id, self::META_NEEDS_REGEN, '1' );
 		update_post_meta( $attachment_id, self::META_MISSING_SIZES, implode( ',', $missing_sizes ) );
 		return array( 'status' => 'flagged', 'missing_sizes' => $missing_sizes );
