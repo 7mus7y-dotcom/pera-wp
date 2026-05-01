@@ -743,6 +743,10 @@ class RegenerateThumbnails_REST_Controller extends WP_REST_Controller {
 				continue;
 			}
 
+			if ( $original_width <= 0 || $original_height <= 0 ) {
+				continue;
+			}
+
 			$resize = image_resize_dimensions(
 				$original_width,
 				$original_height,
