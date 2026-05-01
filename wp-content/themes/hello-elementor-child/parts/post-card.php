@@ -16,6 +16,13 @@ $show_readmore = array_key_exists( 'show_readmore', $card_args ) ? (bool) $card_
 $card_classes = trim( $extra_classes . ' post-card post-card--' . $variant );
 
 $post_id = get_the_ID();
+$post_permalink = get_permalink( $post_id );
+$post_title     = wp_strip_all_tags( get_the_title( $post_id ) );
+$read_more_aria_label = sprintf(
+  /* translators: %s: post title. */
+  __( 'Read more about %s', 'peraproperty' ),
+  $post_title
+);
 
 $cats        = get_the_category( $post_id );
 $primary_cat = ( ! empty( $cats ) && ! is_wp_error( $cats ) ) ? $cats[0] : null;
@@ -29,7 +36,7 @@ $post_subtitle = trim( (string) get_post_meta( $post_id, 'post_subtitle', true )
 
   <div class="post-card-media">
     <?php if ( has_post_thumbnail( $post_id ) ) : ?>
-      <a href="<?php the_permalink(); ?>" class="post-card-thumb">
+      <a href="<?php echo esc_url( $post_permalink ); ?>" class="post-card-thumb">
         <?php
         echo get_the_post_thumbnail(
           $post_id,
@@ -70,7 +77,7 @@ $post_subtitle = trim( (string) get_post_meta( $post_id, 'post_subtitle', true )
 
   <div class="post-card-body">
     <h2 class="post-card-title">
-      <a href="<?php the_permalink(); ?>">
+      <a href="<?php echo esc_url( $post_permalink ); ?>">
         <?php the_title(); ?>
       </a>
     </h2>
@@ -85,7 +92,7 @@ $post_subtitle = trim( (string) get_post_meta( $post_id, 'post_subtitle', true )
 
     <?php if ( $show_readmore ) : ?>
       <div class="post-card-readmore">
-        <a href="<?php the_permalink(); ?>" class="btn btn--solid btn--blue">
+        <a href="<?php echo esc_url( $post_permalink ); ?>" class="btn btn--solid btn--blue" aria-label="<?php echo esc_attr( $read_more_aria_label ); ?>">
           <?php esc_html_e( 'Read more', 'peraproperty' ); ?>
         </a>
       </div>
