@@ -172,6 +172,35 @@
         />
     </symbol>
     
+
+    <!-- WordPress admin / dashboard -->
+    <symbol id="icon-wp-admin" viewBox="0 0 24 24">
+      <path
+        fill="none"
+        stroke="currentColor"
+        stroke-linecap="round"
+        stroke-linejoin="round"
+        stroke-width="2"
+        d="M12 13a3 3 0 1 0 0-6 3 3 0 0 0 0 6Z"
+      />
+      <path
+        fill="none"
+        stroke="currentColor"
+        stroke-linecap="round"
+        stroke-linejoin="round"
+        stroke-width="2"
+        d="M4 12a8 8 0 1 1 16 0"
+      />
+      <path
+        fill="none"
+        stroke="currentColor"
+        stroke-linecap="round"
+        stroke-linejoin="round"
+        stroke-width="2"
+        d="M12 12l4-4"
+      />
+    </symbol>
+
     <!-- Search -->
 
     <symbol id="icon-search" viewBox="0 0 20 20">
