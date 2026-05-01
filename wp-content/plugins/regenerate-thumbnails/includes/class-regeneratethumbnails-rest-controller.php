@@ -463,7 +463,7 @@ class RegenerateThumbnails_REST_Controller extends WP_REST_Controller {
 				'date' => 'DESC',
 				'ID'   => 'DESC',
 			),
-			'posts_per_page'         => 10,
+			'posts_per_page'         => 100,
 			'fields'                 => 'ids',
 			'no_found_rows'          => true,
 			'update_post_meta_cache' => false,

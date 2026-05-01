@@ -88,7 +88,7 @@
 		lastCursor: 0,
 		lastElapsedMs: 0
 	};
-	var MISSING_VISIBLE_LIMIT = 10;
+	var MISSING_VISIBLE_LIMIT = 100;
 	var MISSING_MAX_AUTO_REQUESTS = 12;
 
 	function escHtml(value){
