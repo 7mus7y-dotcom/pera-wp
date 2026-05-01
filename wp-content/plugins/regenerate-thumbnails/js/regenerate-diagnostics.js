@@ -327,7 +327,7 @@
 			window.wp.apiRequest({
 				path: '/regenerate-thumbnails/v1/regenerate/' + currentId,
 				method: 'POST',
-				data: { only_regenerate_missing_thumbnails: true }
+				data: { only_regenerate_missing_thumbnails: false }
 			}).done(function(response){
 				var remaining = response && Array.isArray(response.remaining_missing_sizes) ? response.remaining_missing_sizes : [];
 				var isComplete = response && response.status === 'complete' && remaining.length === 0;
