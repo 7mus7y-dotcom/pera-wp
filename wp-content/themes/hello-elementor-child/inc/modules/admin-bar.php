@@ -43,10 +43,18 @@ function pera_customize_admin_bar( WP_Admin_Bar $wp_admin_bar ): void {
 
 		$wp_admin_bar->remove_node( 'peracrm_clients' );
 
+		$icon_label = static function ( string $icon_class, string $label ): string {
+			return sprintf(
+				'<span class="ab-icon dashicons %1$s" aria-hidden="true"></span><span class="screen-reader-text">%2$s</span>',
+			esc_attr( $icon_class ),
+			esc_html( $label )
+			);
+		};
+
 		$wp_admin_bar->add_node(
 			array(
 				'id'    => 'pera-admin-menu',
-				'title' => esc_html__( 'Menu', 'hello-elementor-child' ),
+				'title' => $icon_label( 'dashicons-menu', __( 'Menu', 'hello-elementor-child' ) ),
 				'href'  => esc_url( admin_url() ),
 			)
 		);
@@ -55,7 +63,7 @@ function pera_customize_admin_bar( WP_Admin_Bar $wp_admin_bar ): void {
 			$wp_admin_bar->add_node(
 				array(
 					'id'    => 'pera-crm',
-					'title' => esc_html__( 'CRM', 'hello-elementor-child' ),
+					'title' => $icon_label( 'dashicons-groups', __( 'CRM', 'hello-elementor-child' ) ),
 					'href'  => esc_url( home_url( '/crm/' ) ),
 				)
 			);
@@ -64,7 +72,7 @@ function pera_customize_admin_bar( WP_Admin_Bar $wp_admin_bar ): void {
 		$wp_admin_bar->add_node(
 			array(
 				'id'    => 'pera-home',
-				'title' => esc_html__( 'Home', 'hello-elementor-child' ),
+				'title' => $icon_label( 'dashicons-admin-home', __( 'Home', 'hello-elementor-child' ) ),
 				'href'  => esc_url( home_url( '/' ) ),
 			)
 		);
