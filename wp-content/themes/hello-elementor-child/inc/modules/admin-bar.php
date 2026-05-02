@@ -34,11 +34,14 @@ function pera_customize_admin_bar( WP_Admin_Bar $wp_admin_bar ): void {
 			'peracrm',
 			'peracrm-dashboard',
 			'edit-crm-clients',
+			'peracrm_clients',
 		);
 
 		foreach ( $nodes_to_remove as $node_id ) {
 			$wp_admin_bar->remove_node( $node_id );
 		}
+
+		$wp_admin_bar->remove_node( 'peracrm_clients' );
 
 		$wp_admin_bar->add_node(
 			array(
