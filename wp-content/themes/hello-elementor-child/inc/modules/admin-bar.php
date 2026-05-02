@@ -30,6 +30,10 @@ function pera_customize_admin_bar( WP_Admin_Bar $wp_admin_bar ): void {
 			'updates',
 			'my-sites',
 			'new-content',
+			'crm',
+			'peracrm',
+			'peracrm-dashboard',
+			'edit-crm-clients',
 		);
 
 		foreach ( $nodes_to_remove as $node_id ) {
