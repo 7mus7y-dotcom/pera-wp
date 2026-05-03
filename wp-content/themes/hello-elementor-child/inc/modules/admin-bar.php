@@ -51,14 +51,6 @@ function pera_customize_admin_bar( WP_Admin_Bar $wp_admin_bar ): void {
 			);
 		};
 
-		$wp_admin_bar->add_node(
-			array(
-				'id'    => 'pera-admin-menu',
-				'title' => $icon_label( 'dashicons-menu', __( 'Menu', 'hello-elementor-child' ) ),
-				'href'  => esc_url( admin_url() ),
-			)
-		);
-
 		if ( pera_admin_bar_can_access_crm() ) {
 			$wp_admin_bar->add_node(
 				array(
