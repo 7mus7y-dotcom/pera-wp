@@ -105,6 +105,23 @@ if ( ! function_exists( 'pera_analytics_register_admin_page' ) ) {
 }
 add_action( 'admin_menu', 'pera_analytics_register_admin_page' );
 
+
+if ( ! function_exists( 'pera_analytics_enqueue_admin_page_assets' ) ) {
+	function pera_analytics_enqueue_admin_page_assets( string $hook_suffix ): void {
+		if ( 'toplevel_page_pera-site-performance' !== $hook_suffix ) {
+			return;
+		}
+
+		wp_register_style( 'pera-site-performance-admin', false, array(), null );
+		wp_enqueue_style( 'pera-site-performance-admin' );
+		wp_add_inline_style(
+			'pera-site-performance-admin',
+			'.pera-site-performance-admin .pera-performance-filter{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin:8px 0 10px}.pera-site-performance-admin .pera-performance-filter label{margin:0}.pera-site-performance-admin .pera-performance-kpis{display:flex;flex-wrap:wrap;gap:12px;margin:12px 0 18px}.pera-site-performance-admin .pera-performance-kpi{box-sizing:border-box;padding:12px;min-width:180px}.pera-site-performance-admin .pera-performance-kpi__value{display:block;margin-top:4px;font-size:20px;line-height:1.3}.pera-site-performance-admin .pera-performance-table-wrap{max-width:100%;overflow-x:auto;-webkit-overflow-scrolling:touch}.pera-site-performance-admin .pera-performance-table{min-width:720px}.pera-site-performance-admin .pera-performance-table th,.pera-site-performance-admin .pera-performance-table td{vertical-align:top}.pera-site-performance-admin .pera-performance-table .column-page{min-width:260px}.pera-site-performance-admin .pera-performance-page-path{overflow-wrap:anywhere;word-break:break-word}@media screen and (max-width:782px){.pera-site-performance-admin .pera-performance-filter{align-items:stretch}.pera-site-performance-admin .pera-performance-filter label{width:100%}.pera-site-performance-admin .pera-performance-filter select,.pera-site-performance-admin .pera-performance-filter .button{width:100%;min-height:40px}.pera-site-performance-admin .pera-performance-kpis{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}.pera-site-performance-admin .pera-performance-kpi{min-width:0;margin-bottom:0}.pera-site-performance-admin .pera-performance-kpi__value{font-size:18px}.pera-site-performance-admin .pera-performance-table-wrap{border:1px solid #c3c4c7;background:linear-gradient(90deg,#fff 30%,rgba(255,255,255,0)),linear-gradient(90deg,rgba(0,0,0,.08),rgba(0,0,0,0));background-position:0 0,100% 0;background-repeat:no-repeat;background-size:40px 100%,18px 100%}.pera-site-performance-admin .pera-performance-scroll-hint{display:block;margin:0 0 6px;color:#646970;font-size:12px}.pera-site-performance-admin .pera-performance-table{border:0}}@media screen and (max-width:430px){.pera-site-performance-admin .pera-performance-kpis{grid-template-columns:1fr}.pera-site-performance-admin .pera-performance-kpi__value{font-size:17px}}@media screen and (min-width:783px){.pera-site-performance-admin .pera-performance-scroll-hint{display:none}}'
+		);
+	}
+}
+add_action( 'admin_enqueue_scripts', 'pera_analytics_enqueue_admin_page_assets' );
+
 if ( ! function_exists( 'pera_analytics_render_admin_page' ) ) {
 	function pera_analytics_render_admin_page(): void {
 		if ( ! current_user_can( 'manage_options' ) ) {
@@ -152,9 +169,9 @@ if ( ! function_exists( 'pera_analytics_render_admin_page' ) ) {
 
 		$summary_change = pera_analytics_percent_change( $totals_current['visits'], $totals_previous['visits'] );
 		?>
-		<div class="wrap">
+		<div class="wrap pera-site-performance-admin">
 			<h1><?php echo esc_html__( 'Site Performance', 'hello-elementor-child' ); ?></h1>
-			<form method="get" action="">
+			<form class="pera-performance-filter" method="get" action="">
 				<input type="hidden" name="page" value="pera-site-performance" />
 				<label for="pera-period"><strong><?php echo esc_html__( 'Period', 'hello-elementor-child' ); ?>:</strong></label>
 				<select id="pera-period" name="period">
@@ -168,17 +185,19 @@ if ( ! function_exists( 'pera_analytics_render_admin_page' ) ) {
 
 			<p><?php echo esc_html( $allowed_periods[ $window['key'] ] ); ?><?php echo esc_html__( ' compared to previous matching period.', 'hello-elementor-child' ); ?></p>
 
-			<div style="display:flex;flex-wrap:wrap;gap:12px;margin:12px 0 18px;">
-				<div class="postbox" style="padding:12px;min-width:180px;"><strong><?php echo esc_html__( 'Total visits', 'hello-elementor-child' ); ?></strong><br><?php echo esc_html( number_format_i18n( $totals_current['visits'] ) ); ?></div>
-				<div class="postbox" style="padding:12px;min-width:180px;"><strong><?php echo esc_html__( 'Unique visitors', 'hello-elementor-child' ); ?></strong><br><?php echo esc_html( number_format_i18n( $totals_current['uniques'] ) ); ?></div>
-				<div class="postbox" style="padding:12px;min-width:180px;"><strong><?php echo esc_html__( 'Previous period visits', 'hello-elementor-child' ); ?></strong><br><?php echo esc_html( number_format_i18n( $totals_previous['visits'] ) ); ?></div>
-				<div class="postbox" style="padding:12px;min-width:180px;"><strong><?php echo esc_html__( '% change', 'hello-elementor-child' ); ?></strong><br><?php echo esc_html( $summary_change ); ?></div>
+			<div class="pera-performance-kpis">
+				<div class="postbox pera-performance-kpi"><strong><?php echo esc_html__( 'Total visits', 'hello-elementor-child' ); ?></strong><span class="pera-performance-kpi__value"><?php echo esc_html( number_format_i18n( $totals_current['visits'] ) ); ?></span></div>
+				<div class="postbox pera-performance-kpi"><strong><?php echo esc_html__( 'Unique visitors', 'hello-elementor-child' ); ?></strong><span class="pera-performance-kpi__value"><?php echo esc_html( number_format_i18n( $totals_current['uniques'] ) ); ?></span></div>
+				<div class="postbox pera-performance-kpi"><strong><?php echo esc_html__( 'Previous period visits', 'hello-elementor-child' ); ?></strong><span class="pera-performance-kpi__value"><?php echo esc_html( number_format_i18n( $totals_previous['visits'] ) ); ?></span></div>
+				<div class="postbox pera-performance-kpi"><strong><?php echo esc_html__( '% change', 'hello-elementor-child' ); ?></strong><span class="pera-performance-kpi__value"><?php echo esc_html( $summary_change ); ?></span></div>
 			</div>
 
 			<h2><?php echo esc_html__( 'Top Pages', 'hello-elementor-child' ); ?></h2>
-			<table class="widefat striped">
+			<p class="pera-performance-scroll-hint"><?php echo esc_html__( 'Scroll horizontally to view all table columns.', 'hello-elementor-child' ); ?></p>
+			<div class="pera-performance-table-wrap" tabindex="0" role="region" aria-label="<?php echo esc_attr__( 'Top pages table', 'hello-elementor-child' ); ?>">
+			<table class="widefat striped pera-performance-table">
 				<thead><tr>
-					<th><?php echo esc_html__( 'Page', 'hello-elementor-child' ); ?></th>
+					<th class="column-page"><?php echo esc_html__( 'Page', 'hello-elementor-child' ); ?></th>
 					<th style="text-align:right;"><?php echo esc_html__( 'Visits', 'hello-elementor-child' ); ?></th>
 					<th style="text-align:right;"><?php echo esc_html__( 'Unique visitors', 'hello-elementor-child' ); ?></th>
 					<th style="text-align:right;"><?php echo esc_html__( 'Previous period visits', 'hello-elementor-child' ); ?></th>
@@ -195,7 +214,7 @@ if ( ! function_exists( 'pera_analytics_render_admin_page' ) ) {
 						$page_url = home_url( $page_path );
 						?>
 						<tr>
-							<td><a href="<?php echo esc_url( $page_url ); ?>" target="_blank" rel="noopener noreferrer"><?php echo esc_html( $page_title ); ?></a><br><small><?php echo esc_html( $page_path ); ?></small></td>
+							<td class="column-page"><a href="<?php echo esc_url( $page_url ); ?>" target="_blank" rel="noopener noreferrer"><?php echo esc_html( $page_title ); ?></a><br><small class="pera-performance-page-path"><?php echo esc_html( $page_path ); ?></small></td>
 							<td style="text-align:right;"><?php echo esc_html( number_format_i18n( $row['visits'] ) ); ?></td>
 							<td style="text-align:right;"><?php echo esc_html( number_format_i18n( $row['uniques'] ) ); ?></td>
 							<td style="text-align:right;"><?php echo esc_html( number_format_i18n( $row['previous_visits'] ) ); ?></td>
@@ -205,6 +224,7 @@ if ( ! function_exists( 'pera_analytics_render_admin_page' ) ) {
 				<?php endif; ?>
 				</tbody>
 			</table>
+			</div>
 		</div>
 		<?php
 	}
