@@ -477,11 +477,11 @@
 
 /* Tighten CTA cards inside article content */
 .article-body .card-shell > h2:first-child {
-  margin-top: 0;
+  /*margin-top: 0;*/
 }
 
 .article-body .card-shell > p {
-  margin-bottom: 0;
+  /*margin-bottom: 0;*/
 }
 
 .article-body .card-shell > .article-cta-actions {
