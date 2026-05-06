@@ -2201,6 +2201,94 @@ body:not(.single-post) tr:nth-child(even) {
   word-break: normal !important;
 }
 
+/* Opt-in responsive + striped Gutenberg tables */
+.wp-block-table.wp-block-table--responsive {
+  max-width: 100%;
+  width: 100%;
+  margin: 1.5rem 0;
+  display: block;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  border-radius: 8px;
+  border: 1px solid #e5e7eb;
+  background: #ffffff;
+}
+
+.wp-block-table.wp-block-table--responsive table {
+  border-collapse: collapse;
+  width: 100%;
+  max-width: 100%;
+  table-layout: fixed;
+}
+
+.wp-block-table.wp-block-table--responsive thead th {
+  background: var(--brand);
+  color: #ffffff;
+  font-weight: 600;
+  text-align: left;
+  font-size: 0.85rem;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  border-bottom: 1px solid rgba(255,255,255,0.2);
+}
+
+.wp-block-table.wp-block-table--responsive th,
+.wp-block-table.wp-block-table--responsive td {
+  padding: 0.55rem 0.7rem;
+  font-size: 0.9rem;
+  line-height: 1.4;
+  white-space: normal;
+  word-break: break-word;
+}
+
+.wp-block-table.wp-block-table--responsive tbody tr {
+  background: transparent;
+}
+
+.wp-block-table.wp-block-table--responsive tbody tr:nth-child(odd) {
+  background: #f9fafb;
+}
+
+.wp-block-table.wp-block-table--responsive tbody tr:nth-child(even) {
+  background: #f3f4f6;
+}
+
+.wp-block-table.wp-block-table--responsive tbody tr:hover {
+  background: #e5f0ff;
+}
+
+.wp-block-table.wp-block-table--responsive tbody td {
+  border-top: 1px solid #e5e7eb;
+}
+
+@media (prefers-color-scheme: dark) {
+  .wp-block-table.wp-block-table--responsive {
+    border-color: rgba(148, 163, 184, 0.5);
+    background: #020617;
+  }
+
+  .wp-block-table.wp-block-table--responsive thead th {
+    background: var(--brand);
+    border-bottom-color: rgba(15, 23, 42, 0.8);
+  }
+
+  .wp-block-table.wp-block-table--responsive tbody tr:nth-child(odd) {
+    background: rgba(15, 23, 42, 0.9);
+  }
+
+  .wp-block-table.wp-block-table--responsive tbody tr:nth-child(even) {
+    background: rgba(15, 23, 42, 0.8);
+  }
+
+  .wp-block-table.wp-block-table--responsive tbody tr:hover {
+    background: rgba(37, 99, 235, 0.3);
+  }
+
+  .wp-block-table.wp-block-table--responsive tbody td {
+    border-top-color: rgba(51, 65, 85, 0.9);
+  }
+}
+
 
 /* =======================================================
    15. CTA SECTION

@@ -97,50 +97,53 @@ get_header();
         </p>
       </div>
 
-      <div class="card-shell">
-        <ul class="checklist">
-          <li>
-            <a href="<?php echo esc_url( home_url( '/district/istanbul/besiktas/' ) ); ?>">
-              Property in Beşiktaş
-            </a>
-            – central Bosphorus living close to Nişantaşı, Dolmabahçe and business districts.
-          </li>
-
-          <li>
-            <a href="<?php echo esc_url( home_url( '/district/istanbul/sisli/' ) ); ?>">
-              Property in Şişli
-            </a>
-            – modern city living with luxury residences, offices and shopping districts.
-          </li>
-
-          <li>
-            <a href="<?php echo esc_url( home_url( '/district/istanbul/sariyer/' ) ); ?>">
-              Property in Sarıyer
-            </a>
-            – Bosphorus villas, waterfront homes and premium northern Istanbul districts.
-          </li>
-
-          <li>
-            <a href="<?php echo esc_url( home_url( '/district/istanbul/beyoglu/' ) ); ?>">
-              Property in Beyoğlu
-            </a>
-            – historic Istanbul neighbourhoods including Galata, Cihangir and Taksim.
-          </li>
-
-          <li>
-            <a href="<?php echo esc_url( home_url( '/district/istanbul/kadikoy/' ) ); ?>">
-              Property in Kadıköy
-            </a>
-            – popular Asian-side lifestyle districts with strong long-term demand.
-          </li>
-
-          <li>
-            <a href="<?php echo esc_url( home_url( '/district/istanbul/uskudar/' ) ); ?>">
-              Property in Üsküdar
-            </a>
-            – traditional Bosphorus neighbourhoods including Kandilli and Çengelköy.
-          </li>
-        </ul>
+      <div class="wp-block-table wp-block-table--responsive">
+        <table>
+          <thead>
+            <tr>
+              <th>District</th>
+              <th>Why buyers ask about it</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>
+                <a href="<?php echo esc_url( home_url( '/district/istanbul/besiktas/' ) ); ?>">Beşiktaş property</a>
+              </td>
+              <td>Central Bosphorus living close to Nişantaşı, Dolmabahçe and business districts.</td>
+            </tr>
+            <tr>
+              <td>
+                <a href="<?php echo esc_url( home_url( '/district/istanbul/sisli/' ) ); ?>">Şişli property</a>
+              </td>
+              <td>Modern city living with luxury residences, offices and shopping districts.</td>
+            </tr>
+            <tr>
+              <td>
+                <a href="<?php echo esc_url( home_url( '/district/istanbul/sariyer/' ) ); ?>">Sarıyer property</a>
+              </td>
+              <td>Bosphorus villas, waterfront homes and premium northern Istanbul districts.</td>
+            </tr>
+            <tr>
+              <td>
+                <a href="<?php echo esc_url( home_url( '/district/istanbul/beyoglu/' ) ); ?>">Beyoğlu property</a>
+              </td>
+              <td>Historic Istanbul neighbourhoods including Galata, Cihangir and Taksim.</td>
+            </tr>
+            <tr>
+              <td>
+                <a href="<?php echo esc_url( home_url( '/district/istanbul/kadikoy/' ) ); ?>">Kadıköy property</a>
+              </td>
+              <td>Popular Asian-side lifestyle districts with strong long-term demand.</td>
+            </tr>
+            <tr>
+              <td>
+                <a href="<?php echo esc_url( home_url( '/district/istanbul/uskudar/' ) ); ?>">Üsküdar property</a>
+              </td>
+              <td>Traditional Bosphorus neighbourhoods including Kandilli and Çengelköy.</td>
+            </tr>
+          </tbody>
+        </table>
       </div>
 
     </div>
