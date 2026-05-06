@@ -208,6 +208,20 @@ if ( ! function_exists( 'pera_seo_all_is_sell_with_pera_page' ) ) {
   }
 }
 
+if ( ! function_exists( 'pera_seo_all_is_contact_page' ) ) {
+  function pera_seo_all_is_contact_page( int $post_id = 0 ): bool {
+    if ( ! is_page() ) {
+      return false;
+    }
+
+    if ( $post_id <= 0 ) {
+      $post_id = (int) get_queried_object_id();
+    }
+
+    return $post_id > 0 && ( is_page_template( 'page-contact.php' ) || is_page( 'contact-us' ) );
+  }
+}
+
 if ( ! function_exists( 'pera_seo_all_resolve_social_image_from_value' ) ) {
   /**
    * Resolve image URL + attachment metadata from flexible ACF/meta value shapes.
@@ -601,6 +615,10 @@ add_filter( 'pre_get_document_title', function ( $title ) {
         return 'Sell Property in Istanbul | Expert Local Agency Services';
       }
 
+      if ( pera_seo_all_is_contact_page( $post_id ) ) {
+        return 'Contact Pera Property | Istanbul Real Estate Consultants';
+      }
+
       $manual_title = pera_seo_all_get_manual_post_text_field( $post_id, 'seo_title' );
       if ( $manual_title !== '' ) {
         return $manual_title;
@@ -875,6 +893,11 @@ add_action( 'wp_head', function () {
 
         if ( pera_seo_all_is_sell_with_pera_page( $post_id ) ) {
           $desc = 'Sell your Istanbul property with Pera Property. Get a free valuation, professional marketing, qualified buyer viewings, negotiation support and title deed guidance.';
+          break;
+        }
+
+        if ( pera_seo_all_is_contact_page( $post_id ) ) {
+          $desc = 'Contact Pera Property for expert Istanbul real estate advice. Speak with our consultants about buying, selling, renting, investment property or Turkish citizenship options.';
           break;
         }
 

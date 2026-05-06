@@ -51,11 +51,10 @@ get_header();
           </div>
         
           <div class="hero-content">
-            <h1>Contact Pera Property</h1>
+            <h1>Contact an Istanbul Real Estate Consultant</h1>
         
             <p class="lead">
-              Have a question about buying, selling or managing property in Istanbul?
-              Reach out to our experienced consultants for straightforward, honest advice.
+              Speak with Pera Property, an Istanbul real estate agency helping international buyers, investors and property owners make informed decisions across the city. Whether you want to buy property in Istanbul, sell your apartment, rent out your property or understand Turkish citizenship investment options, our consultants can guide you clearly from the first conversation.
             </p>
         
             <div class="hero-actions">
@@ -71,9 +70,81 @@ get_header();
         </section>
 
 
+  <!-- SEO SUPPORTING CONTENT -->
+  <section class="section" id="contact-help">
+    <div class="container">
+      <div class="card-shell">
+        <h2>How we can help</h2>
+        <ul class="checklist">
+          <li>Buying property in Istanbul, including apartments, villas and investment property.</li>
+          <li>Selling your Istanbul property with local market guidance and valuation support.</li>
+          <li>Renting out or managing your property for long-term or corporate tenants.</li>
+          <li>Turkish citizenship by investment consultation and property selection.</li>
+          <li>District and investment strategy guidance across Istanbul neighbourhoods.</li>
+        </ul>
+      </div>
+    </div>
+  </section>
 
 
- 
+  <section class="section" id="popular-districts">
+    <div class="container">
+
+      <div class="section-header">
+        <h2>Popular Istanbul districts we advise on</h2>
+        <p>
+          Our consultants regularly advise international buyers, investors and sellers across Istanbul’s most established residential and investment districts.
+        </p>
+      </div>
+
+      <div class="card-shell">
+        <ul class="checklist">
+          <li>
+            <a href="<?php echo esc_url( home_url( '/district/istanbul/besiktas/' ) ); ?>">
+              Property in Beşiktaş
+            </a>
+            – central Bosphorus living close to Nişantaşı, Dolmabahçe and business districts.
+          </li>
+
+          <li>
+            <a href="<?php echo esc_url( home_url( '/district/istanbul/sisli/' ) ); ?>">
+              Property in Şişli
+            </a>
+            – modern city living with luxury residences, offices and shopping districts.
+          </li>
+
+          <li>
+            <a href="<?php echo esc_url( home_url( '/district/istanbul/sariyer/' ) ); ?>">
+              Property in Sarıyer
+            </a>
+            – Bosphorus villas, waterfront homes and premium northern Istanbul districts.
+          </li>
+
+          <li>
+            <a href="<?php echo esc_url( home_url( '/district/istanbul/beyoglu/' ) ); ?>">
+              Property in Beyoğlu
+            </a>
+            – historic Istanbul neighbourhoods including Galata, Cihangir and Taksim.
+          </li>
+
+          <li>
+            <a href="<?php echo esc_url( home_url( '/district/istanbul/kadikoy/' ) ); ?>">
+              Property in Kadıköy
+            </a>
+            – popular Asian-side lifestyle districts with strong long-term demand.
+          </li>
+
+          <li>
+            <a href="<?php echo esc_url( home_url( '/district/istanbul/uskudar/' ) ); ?>">
+              Property in Üsküdar
+            </a>
+            – traditional Bosphorus neighbourhoods including Kandilli and Çengelköy.
+          </li>
+        </ul>
+      </div>
+
+    </div>
+  </section>
 
 
   <!-- CONTACT DETAILS + MAP -->
