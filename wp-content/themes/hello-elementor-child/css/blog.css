@@ -451,6 +451,27 @@
   display: inline-flex;
 }
 
+/* Editorial rhythm for standalone cards and CTA groups in article content only */
+.article-body > .card-shell {
+  margin-block: 1.5em;
+}
+
+.article-body > .card-shell:first-child {
+  margin-top: 0;
+}
+
+.article-body > .card-shell:last-child {
+  margin-bottom: 0;
+}
+
+.article-body > .card-shell + .article-cta-actions {
+  margin-top: 1.25em;
+}
+
+.article-body > .article-cta-actions {
+  margin-bottom: 1.5em;
+}
+
 /* Reusable CTA button groups inside article content */
 .article-body .article-cta-actions {
   margin-top: 12px;
@@ -491,6 +512,14 @@
 @media (max-width: 640px) {
   .article-body .article-cta-actions {
     gap: 2px;
+  }
+
+  .article-body > .card-shell {
+    margin-block: 1.35em;
+  }
+
+  .article-body > .article-cta-actions {
+    margin-bottom: 1.35em;
   }
 }
 
