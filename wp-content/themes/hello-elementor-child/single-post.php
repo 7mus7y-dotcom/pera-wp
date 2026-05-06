@@ -334,7 +334,7 @@ get_header();
                             </p>
                             <div class="sidebar-cta">
                                 <a class="btn btn--solid btn--blue"
-                                   href="<?php echo esc_url( home_url( '/rent-with-pera/' ) ); ?>">
+                                   href="<?php echo esc_url( home_url( '/rent-your-istanbul-real-estate/' ) ); ?>">
                                     Explore Property Management
                                 </a>
                             </div>

@@ -580,12 +580,12 @@ get_template_part( 'parts/home-editorial-posts' );
         </div>
 
         <p class="muted" style="margin-top: 10px; margin-bottom: 0;">
-          Need full support as an owner? Explore <a href="<?php echo esc_url( home_url( '/rent-with-pera/' ) ); ?>">property management in Istanbul</a> or request a valuation.
+          Need full support as an owner? Explore <a href="<?php echo esc_url( home_url( '/rent-your-istanbul-real-estate/' ) ); ?>">property management in Istanbul</a> or request a valuation.
         </p>
 
         <div class="hero-actions flex-center">
           <a class="btn btn--solid btn--green" href="<?php echo esc_url( home_url( '/sell-your-istanbul-real-estate/' ) ); ?>">Get a Free Valuation</a>
-          <a class="btn btn--ghost btn--blue" href="<?php echo esc_url( home_url( '/rent-with-pera/' ) ); ?>">Explore Property Management</a>
+          <a class="btn btn--ghost btn--blue" href="<?php echo esc_url( home_url( '/rent-your-istanbul-real-estate/' ) ); ?>">Explore Property Management</a>
         </div>
       </div>
 

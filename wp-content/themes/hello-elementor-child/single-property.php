@@ -1364,7 +1364,7 @@ $custom_video_text = $custom_video_text ? wp_kses_post( wpautop( $custom_video_t
               Get a Free Valuation
             </a>
 
-            <a href="<?php echo esc_url( home_url( '/rent-with-pera/' ) ); ?>" class="btn btn--ghost btn--blue">
+            <a href="<?php echo esc_url( home_url( '/rent-your-istanbul-real-estate/' ) ); ?>" class="btn btn--ghost btn--blue">
               Explore Property Management
             </a>
 

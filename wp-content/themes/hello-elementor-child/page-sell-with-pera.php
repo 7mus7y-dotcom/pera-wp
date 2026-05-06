@@ -603,7 +603,7 @@ get_header();
             <div class="content-panel-box">
                 <p>If you live outside Turkey, we can coordinate valuation remotely, arrange photos and videos, and manage access with tenants or caretakers for buyer viewings.</p>
                 <p>Our team handles offer negotiation and can coordinate with your lawyer on power of attorney and transaction documents, while supporting you through each tapu milestone until completion.</p>
-                <p>To plan next steps, <a href="<?php echo esc_url( home_url( '/contact-us/' ) ); ?>">contact us</a>, learn more <a href="<?php echo esc_url( home_url( '/about-us/' ) ); ?>">about our team</a>, or explore our <a href="<?php echo esc_url( home_url( '/rent-with-pera/' ) ); ?>">property management services in Istanbul</a>. You can also read our <a href="<?php echo esc_url( home_url( '/category/regional-guides/' ) ); ?>">Istanbul area guides</a> for district-level demand insights.</p>
+                <p>To plan next steps, <a href="<?php echo esc_url( home_url( '/contact-us/' ) ); ?>">contact us</a>, learn more <a href="<?php echo esc_url( home_url( '/about-us/' ) ); ?>">about our team</a>, or explore our <a href="<?php echo esc_url( home_url( '/rent-your-istanbul-real-estate/' ) ); ?>">property management services in Istanbul</a>. You can also read our <a href="<?php echo esc_url( home_url( '/category/regional-guides/' ) ); ?>">Istanbul area guides</a> for district-level demand insights.</p>
             </div>
         </div>
     </section>
