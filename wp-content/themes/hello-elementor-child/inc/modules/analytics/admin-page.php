@@ -9,6 +9,12 @@ if ( ! function_exists( 'pera_analytics_get_reporting_window' ) ) {
 		$now = new DateTimeImmutable( 'now', $tz );
 
 		switch ( $period_key ) {
+			case '24h':
+				$current_start = $now->modify( '-24 hours' );
+				$current_end   = $now;
+				$previous_start = $current_start->modify( '-24 hours' );
+				$previous_end   = $current_start;
+				break;
 			case '7d':
 				$current_start = $now->modify( '-7 days' );
 				$current_end   = $now;
@@ -129,6 +135,7 @@ if ( ! function_exists( 'pera_analytics_render_admin_page' ) ) {
 		}
 
 		$allowed_periods = array(
+			'24h'        => __( 'Last 24 hours', 'hello-elementor-child' ),
 			'7d'         => __( 'Last 7 days', 'hello-elementor-child' ),
 			'14d'        => __( 'Last 14 days', 'hello-elementor-child' ),
 			'30d'        => __( 'Last 30 days', 'hello-elementor-child' ),
