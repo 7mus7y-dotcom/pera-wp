@@ -120,10 +120,147 @@ if ( ! function_exists( 'pera_analytics_enqueue_admin_page_assets' ) ) {
 
 		wp_register_style( 'pera-site-performance-admin', false, array(), null );
 		wp_enqueue_style( 'pera-site-performance-admin' );
-		wp_add_inline_style(
-			'pera-site-performance-admin',
-			'.pera-site-performance-admin .pera-performance-filter{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin:8px 0 10px}.pera-site-performance-admin .pera-performance-filter label{margin:0}.pera-site-performance-admin .pera-performance-kpis{display:flex;flex-wrap:wrap;gap:12px;margin:12px 0 18px}.pera-site-performance-admin .pera-performance-kpi{box-sizing:border-box;padding:12px;min-width:180px}.pera-site-performance-admin .pera-performance-kpi__value{display:block;margin-top:4px;font-size:20px;line-height:1.3}.pera-site-performance-admin .pera-performance-table-wrap{max-width:100%;overflow-x:auto;-webkit-overflow-scrolling:touch}.pera-site-performance-admin .pera-performance-table{min-width:720px}.pera-site-performance-admin .pera-performance-table th,.pera-site-performance-admin .pera-performance-table td{vertical-align:top}.pera-site-performance-admin .pera-performance-table .column-page{min-width:260px}.pera-site-performance-admin .pera-performance-page-path{overflow-wrap:anywhere;word-break:break-word}@media screen and (max-width:782px){.pera-site-performance-admin .pera-performance-filter{align-items:stretch}.pera-site-performance-admin .pera-performance-filter label{width:100%}.pera-site-performance-admin .pera-performance-filter select,.pera-site-performance-admin .pera-performance-filter .button{width:100%;min-height:40px}.pera-site-performance-admin .pera-performance-kpis{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}.pera-site-performance-admin .pera-performance-kpi{min-width:0;margin-bottom:0}.pera-site-performance-admin .pera-performance-kpi__value{font-size:18px}.pera-site-performance-admin .pera-performance-table-wrap{border:1px solid #c3c4c7;background:linear-gradient(90deg,#fff 30%,rgba(255,255,255,0)),linear-gradient(90deg,rgba(0,0,0,.08),rgba(0,0,0,0));background-position:0 0,100% 0;background-repeat:no-repeat;background-size:40px 100%,18px 100%}.pera-site-performance-admin .pera-performance-scroll-hint{display:block;margin:0 0 6px;color:#646970;font-size:12px}.pera-site-performance-admin .pera-performance-table{border:0}}@media screen and (max-width:430px){.pera-site-performance-admin .pera-performance-kpis{grid-template-columns:1fr}.pera-site-performance-admin .pera-performance-kpi__value{font-size:17px}}@media screen and (min-width:783px){.pera-site-performance-admin .pera-performance-scroll-hint{display:none}}'
-		);
+
+		$performance_admin_css = <<<'CSS'
+.pera-site-performance-admin {
+	max-width: 100%;
+}
+
+.pera-site-performance-admin .pera-performance-filter {
+	display: flex;
+	align-items: center;
+	gap: 8px;
+	flex-wrap: wrap;
+	margin: 8px 0 10px;
+}
+
+.pera-site-performance-admin .pera-performance-filter label {
+	margin: 0;
+}
+
+.pera-site-performance-admin .pera-performance-kpis {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 12px;
+	margin: 12px 0 18px;
+}
+
+.pera-site-performance-admin .pera-performance-kpi {
+	box-sizing: border-box;
+	padding: 12px;
+	min-width: 180px;
+}
+
+.pera-site-performance-admin .pera-performance-kpi__value {
+	display: block;
+	margin-top: 4px;
+	font-size: 20px;
+	line-height: 1.3;
+	overflow-wrap: anywhere;
+}
+
+.pera-site-performance-admin .pera-performance-table-wrap {
+	max-width: 100%;
+	overflow-x: auto;
+	-webkit-overflow-scrolling: touch;
+	background-color: #fff;
+	padding-bottom: 1px;
+}
+
+.pera-site-performance-admin .pera-performance-table-wrap:focus {
+	outline: 2px solid #2271b1;
+	outline-offset: 2px;
+}
+
+.pera-site-performance-admin .pera-performance-table {
+	width: 100%;
+	min-width: 720px;
+}
+
+.pera-site-performance-admin .pera-performance-table th,
+.pera-site-performance-admin .pera-performance-table td {
+	vertical-align: top;
+}
+
+.pera-site-performance-admin .pera-performance-table .column-page {
+	min-width: 260px;
+}
+
+.pera-site-performance-admin .pera-performance-table__number {
+	text-align: right;
+	white-space: nowrap;
+}
+
+.pera-site-performance-admin .pera-performance-page-path {
+	overflow-wrap: anywhere;
+	word-break: break-word;
+}
+
+.pera-site-performance-admin .pera-performance-scroll-hint {
+	display: none;
+}
+
+@media screen and (max-width: 782px) {
+	.pera-site-performance-admin .pera-performance-filter {
+		align-items: stretch;
+	}
+
+	.pera-site-performance-admin .pera-performance-filter label {
+		width: 100%;
+	}
+
+	.pera-site-performance-admin .pera-performance-filter select,
+	.pera-site-performance-admin .pera-performance-filter .button {
+		box-sizing: border-box;
+		width: 100%;
+		min-height: 44px;
+	}
+
+	.pera-site-performance-admin .pera-performance-kpis {
+		display: grid;
+		grid-template-columns: repeat(2, minmax(0, 1fr));
+		gap: 10px;
+	}
+
+	.pera-site-performance-admin .pera-performance-kpi {
+		min-width: 0;
+		margin-bottom: 0;
+	}
+
+	.pera-site-performance-admin .pera-performance-kpi__value {
+		font-size: 18px;
+	}
+
+	.pera-site-performance-admin .pera-performance-table-wrap {
+		border: 1px solid #c3c4c7;
+		box-shadow: inset -18px 0 14px -16px rgba(0, 0, 0, .35);
+	}
+
+	.pera-site-performance-admin .pera-performance-scroll-hint {
+		display: block;
+		margin: 0 0 6px;
+		color: #646970;
+		font-size: 12px;
+	}
+
+	.pera-site-performance-admin .pera-performance-table {
+		border: 0;
+	}
+}
+
+@media screen and (max-width: 430px) {
+	.pera-site-performance-admin .pera-performance-kpis {
+		grid-template-columns: 1fr;
+	}
+
+	.pera-site-performance-admin .pera-performance-kpi__value {
+		font-size: 17px;
+	}
+}
+
+CSS;
+
+		wp_add_inline_style( 'pera-site-performance-admin', $performance_admin_css );
 	}
 }
 add_action( 'admin_enqueue_scripts', 'pera_analytics_enqueue_admin_page_assets' );
@@ -205,10 +342,10 @@ if ( ! function_exists( 'pera_analytics_render_admin_page' ) ) {
 			<table class="widefat striped pera-performance-table">
 				<thead><tr>
 					<th class="column-page"><?php echo esc_html__( 'Page', 'hello-elementor-child' ); ?></th>
-					<th style="text-align:right;"><?php echo esc_html__( 'Visits', 'hello-elementor-child' ); ?></th>
-					<th style="text-align:right;"><?php echo esc_html__( 'Unique visitors', 'hello-elementor-child' ); ?></th>
-					<th style="text-align:right;"><?php echo esc_html__( 'Previous period visits', 'hello-elementor-child' ); ?></th>
-					<th style="text-align:right;"><?php echo esc_html__( '% change', 'hello-elementor-child' ); ?></th>
+					<th class="pera-performance-table__number"><?php echo esc_html__( 'Visits', 'hello-elementor-child' ); ?></th>
+					<th class="pera-performance-table__number"><?php echo esc_html__( 'Unique visitors', 'hello-elementor-child' ); ?></th>
+					<th class="pera-performance-table__number"><?php echo esc_html__( 'Previous period visits', 'hello-elementor-child' ); ?></th>
+					<th class="pera-performance-table__number"><?php echo esc_html__( '% change', 'hello-elementor-child' ); ?></th>
 				</tr></thead>
 				<tbody>
 				<?php if ( empty( $rows ) ) : ?>
@@ -222,10 +359,10 @@ if ( ! function_exists( 'pera_analytics_render_admin_page' ) ) {
 						?>
 						<tr>
 							<td class="column-page"><a href="<?php echo esc_url( $page_url ); ?>" target="_blank" rel="noopener noreferrer"><?php echo esc_html( $page_title ); ?></a><br><small class="pera-performance-page-path"><?php echo esc_html( $page_path ); ?></small></td>
-							<td style="text-align:right;"><?php echo esc_html( number_format_i18n( $row['visits'] ) ); ?></td>
-							<td style="text-align:right;"><?php echo esc_html( number_format_i18n( $row['uniques'] ) ); ?></td>
-							<td style="text-align:right;"><?php echo esc_html( number_format_i18n( $row['previous_visits'] ) ); ?></td>
-							<td style="text-align:right;"><?php echo esc_html( pera_analytics_percent_change( $row['visits'], $row['previous_visits'] ) ); ?></td>
+							<td class="pera-performance-table__number"><?php echo esc_html( number_format_i18n( $row['visits'] ) ); ?></td>
+							<td class="pera-performance-table__number"><?php echo esc_html( number_format_i18n( $row['uniques'] ) ); ?></td>
+							<td class="pera-performance-table__number"><?php echo esc_html( number_format_i18n( $row['previous_visits'] ) ); ?></td>
+							<td class="pera-performance-table__number"><?php echo esc_html( pera_analytics_percent_change( $row['visits'], $row['previous_visits'] ) ); ?></td>
 						</tr>
 					<?php endforeach; ?>
 				<?php endif; ?>
