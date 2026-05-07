@@ -245,19 +245,20 @@ if ( ! function_exists( 'pera_analytics_get_period_uniques_by_path' ) ) {
 	}
 }
 
-if ( ! function_exists( 'pera_analytics_get_top_pages' ) ) {
-	function pera_analytics_get_top_pages( int $limit = 10 ): array {
-		$windows = pera_analytics_month_window();
-
-		$current_rollup = pera_analytics_get_period_page_rollup( $windows['current']['start'], $windows['current']['end'] );
-		$previous_rollup = pera_analytics_get_period_page_rollup( $windows['previous']['start'], $windows['previous']['end'] );
-		$current_uniques = pera_analytics_get_period_uniques_by_path( $windows['current']['start'], $windows['current']['end'] );
+if ( ! function_exists( 'pera_analytics_build_period_page_rows' ) ) {
+	function pera_analytics_build_period_page_rows( string $current_start, string $current_end, string $previous_start, string $previous_end ): array {
+		$current_rollup  = pera_analytics_get_period_page_rollup( $current_start, $current_end );
+		$previous_rollup = pera_analytics_get_period_page_rollup( $previous_start, $previous_end );
+		$current_uniques = pera_analytics_get_period_uniques_by_path( $current_start, $current_end );
 
 		$rows = array();
 		foreach ( $current_rollup as $page_path => $row ) {
 			$rows[] = array(
 				'page_path'          => $page_path,
-				'page_title'         => $row['page_title'],
+				'page_title'         => (string) $row['page_title'],
+				'visits'             => (int) $row['visits'],
+				'uniques'            => isset( $current_uniques[ $page_path ] ) ? (int) $current_uniques[ $page_path ] : 0,
+				'previous_visits'    => isset( $previous_rollup[ $page_path ] ) ? (int) $previous_rollup[ $page_path ]['visits'] : 0,
 				'visits_this_month'  => (int) $row['visits'],
 				'uniques_this_month' => isset( $current_uniques[ $page_path ] ) ? (int) $current_uniques[ $page_path ] : 0,
 				'visits_last_month'  => isset( $previous_rollup[ $page_path ] ) ? (int) $previous_rollup[ $page_path ]['visits'] : 0,
@@ -267,11 +268,79 @@ if ( ! function_exists( 'pera_analytics_get_top_pages' ) ) {
 		usort(
 			$rows,
 			static function ( array $a, array $b ): int {
-				return (int) $b['visits_this_month'] <=> (int) $a['visits_this_month'];
+				return (int) $b['visits'] <=> (int) $a['visits'];
 			}
 		);
 
-		return array_slice( $rows, 0, $limit );
+		return $rows;
+	}
+}
+
+if ( ! function_exists( 'pera_analytics_resolve_path_post_id' ) ) {
+	function pera_analytics_resolve_path_post_id( string $page_path ): int {
+		static $cache = array();
+
+		if ( isset( $cache[ $page_path ] ) ) {
+			return $cache[ $page_path ];
+		}
+
+		$path = '/' . ltrim( trim( $page_path ), '/' );
+		if ( '/' === $path ) {
+			$cache[ $page_path ] = 0;
+			return 0;
+		}
+
+		$post_id = url_to_postid( home_url( $path ) );
+
+		$cache[ $page_path ] = $post_id > 0 ? (int) $post_id : 0;
+		return $cache[ $page_path ];
+	}
+}
+
+if ( ! function_exists( 'pera_analytics_is_blog_post_path' ) ) {
+	function pera_analytics_is_blog_post_path( string $page_path ): bool {
+		$post_id = pera_analytics_resolve_path_post_id( $page_path );
+
+		return $post_id > 0 && 'post' === get_post_type( $post_id );
+	}
+}
+
+if ( ! function_exists( 'pera_analytics_split_page_rows_by_type' ) ) {
+	function pera_analytics_split_page_rows_by_type( array $rows, int $static_limit = 20, int $posts_limit = 20 ): array {
+		$static_rows = array();
+		$post_rows   = array();
+
+		foreach ( $rows as $row ) {
+			$page_path = (string) ( $row['page_path'] ?? '' );
+			if ( pera_analytics_is_blog_post_path( $page_path ) ) {
+				$post_rows[] = $row;
+				continue;
+			}
+
+			$static_rows[] = $row;
+		}
+
+		return array(
+			'static' => array_slice( $static_rows, 0, $static_limit ),
+			'posts'  => array_slice( $post_rows, 0, $posts_limit ),
+		);
+	}
+}
+
+if ( ! function_exists( 'pera_analytics_get_top_pages' ) ) {
+	function pera_analytics_get_top_pages( int $limit = 10 ): array {
+		$windows = pera_analytics_month_window();
+
+		return array_slice(
+			pera_analytics_build_period_page_rows(
+				$windows['current']['start'],
+				$windows['current']['end'],
+				$windows['previous']['start'],
+				$windows['previous']['end']
+			),
+			0,
+			$limit
+		);
 	}
 }
 

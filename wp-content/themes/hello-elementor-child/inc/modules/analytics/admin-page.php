@@ -265,6 +265,45 @@ CSS;
 }
 add_action( 'admin_enqueue_scripts', 'pera_analytics_enqueue_admin_page_assets' );
 
+if ( ! function_exists( 'pera_analytics_render_admin_pages_table' ) ) {
+	function pera_analytics_render_admin_pages_table( array $rows, string $aria_label, string $empty_message ): void {
+		?>
+		<p class="pera-performance-scroll-hint"><?php echo esc_html__( 'Scroll horizontally to view all table columns.', 'hello-elementor-child' ); ?></p>
+		<div class="pera-performance-table-wrap" tabindex="0" role="region" aria-label="<?php echo esc_attr( $aria_label ); ?>">
+		<table class="widefat striped pera-performance-table">
+			<thead><tr>
+				<th class="column-page"><?php echo esc_html__( 'Page', 'hello-elementor-child' ); ?></th>
+				<th class="pera-performance-table__number"><?php echo esc_html__( 'Visits', 'hello-elementor-child' ); ?></th>
+				<th class="pera-performance-table__number"><?php echo esc_html__( 'Unique visitors', 'hello-elementor-child' ); ?></th>
+				<th class="pera-performance-table__number"><?php echo esc_html__( 'Previous period visits', 'hello-elementor-child' ); ?></th>
+				<th class="pera-performance-table__number"><?php echo esc_html__( '% change', 'hello-elementor-child' ); ?></th>
+			</tr></thead>
+			<tbody>
+			<?php if ( empty( $rows ) ) : ?>
+				<tr><td colspan="5"><?php echo esc_html( $empty_message ); ?></td></tr>
+			<?php else : ?>
+				<?php foreach ( $rows as $row ) : ?>
+					<?php
+					$page_path  = (string) $row['page_path'];
+					$page_title = '' !== $row['page_title'] ? $row['page_title'] : $page_path;
+					$page_url   = home_url( $page_path );
+					?>
+					<tr>
+						<td class="column-page"><a href="<?php echo esc_url( $page_url ); ?>" target="_blank" rel="noopener noreferrer"><?php echo esc_html( $page_title ); ?></a><br><small class="pera-performance-page-path"><?php echo esc_html( $page_path ); ?></small></td>
+						<td class="pera-performance-table__number"><?php echo esc_html( number_format_i18n( (int) $row['visits'] ) ); ?></td>
+						<td class="pera-performance-table__number"><?php echo esc_html( number_format_i18n( (int) $row['uniques'] ) ); ?></td>
+						<td class="pera-performance-table__number"><?php echo esc_html( number_format_i18n( (int) $row['previous_visits'] ) ); ?></td>
+						<td class="pera-performance-table__number"><?php echo esc_html( pera_analytics_percent_change( (int) $row['visits'], (int) $row['previous_visits'] ) ); ?></td>
+					</tr>
+				<?php endforeach; ?>
+			<?php endif; ?>
+			</tbody>
+		</table>
+		</div>
+		<?php
+	}
+}
+
 if ( ! function_exists( 'pera_analytics_render_admin_page' ) ) {
 	function pera_analytics_render_admin_page(): void {
 		if ( ! current_user_can( 'manage_options' ) ) {
@@ -286,30 +325,15 @@ if ( ! function_exists( 'pera_analytics_render_admin_page' ) ) {
 		}
 
 		$window = pera_analytics_get_reporting_window( $period_input );
-		$current_rollup  = pera_analytics_get_period_page_rollup( $window['current']['start'], $window['current']['end'] );
-		$previous_rollup = pera_analytics_get_period_page_rollup( $window['previous']['start'], $window['previous']['end'] );
-		$current_uniques_by_path = pera_analytics_get_period_uniques_by_path( $window['current']['start'], $window['current']['end'] );
 		$totals_current  = pera_analytics_get_period_totals( $window['current']['start'], $window['current']['end'] );
 		$totals_previous = pera_analytics_get_period_totals( $window['previous']['start'], $window['previous']['end'] );
-
-		$rows = array();
-		foreach ( $current_rollup as $page_path => $row ) {
-			$rows[] = array(
-				'page_path' => $page_path,
-				'page_title' => (string) $row['page_title'],
-				'visits' => (int) $row['visits'],
-				'uniques' => isset( $current_uniques_by_path[ $page_path ] ) ? (int) $current_uniques_by_path[ $page_path ] : 0,
-				'previous_visits' => isset( $previous_rollup[ $page_path ] ) ? (int) $previous_rollup[ $page_path ]['visits'] : 0,
-			);
-		}
-
-		usort(
-			$rows,
-			static function ( array $a, array $b ): int {
-				return $b['visits'] <=> $a['visits'];
-			}
+		$all_page_rows   = pera_analytics_build_period_page_rows(
+			$window['current']['start'],
+			$window['current']['end'],
+			$window['previous']['start'],
+			$window['previous']['end']
 		);
-		$rows = array_slice( $rows, 0, 20 );
+		$split_page_rows = pera_analytics_split_page_rows_by_type( $all_page_rows, 20, 20 );
 
 		$summary_change = pera_analytics_percent_change( $totals_current['visits'], $totals_previous['visits'] );
 		?>
@@ -336,39 +360,23 @@ if ( ! function_exists( 'pera_analytics_render_admin_page' ) ) {
 				<div class="postbox pera-performance-kpi"><strong><?php echo esc_html__( '% change', 'hello-elementor-child' ); ?></strong><span class="pera-performance-kpi__value"><?php echo esc_html( $summary_change ); ?></span></div>
 			</div>
 
-			<h2><?php echo esc_html__( 'Top Pages', 'hello-elementor-child' ); ?></h2>
-			<p class="pera-performance-scroll-hint"><?php echo esc_html__( 'Scroll horizontally to view all table columns.', 'hello-elementor-child' ); ?></p>
-			<div class="pera-performance-table-wrap" tabindex="0" role="region" aria-label="<?php echo esc_attr__( 'Top pages table', 'hello-elementor-child' ); ?>">
-			<table class="widefat striped pera-performance-table">
-				<thead><tr>
-					<th class="column-page"><?php echo esc_html__( 'Page', 'hello-elementor-child' ); ?></th>
-					<th class="pera-performance-table__number"><?php echo esc_html__( 'Visits', 'hello-elementor-child' ); ?></th>
-					<th class="pera-performance-table__number"><?php echo esc_html__( 'Unique visitors', 'hello-elementor-child' ); ?></th>
-					<th class="pera-performance-table__number"><?php echo esc_html__( 'Previous period visits', 'hello-elementor-child' ); ?></th>
-					<th class="pera-performance-table__number"><?php echo esc_html__( '% change', 'hello-elementor-child' ); ?></th>
-				</tr></thead>
-				<tbody>
-				<?php if ( empty( $rows ) ) : ?>
-					<tr><td colspan="5"><?php echo esc_html__( 'No data available for this period yet.', 'hello-elementor-child' ); ?></td></tr>
-				<?php else : ?>
-					<?php foreach ( $rows as $row ) : ?>
-						<?php
-						$page_path = (string) $row['page_path'];
-						$page_title = '' !== $row['page_title'] ? $row['page_title'] : $page_path;
-						$page_url = home_url( $page_path );
-						?>
-						<tr>
-							<td class="column-page"><a href="<?php echo esc_url( $page_url ); ?>" target="_blank" rel="noopener noreferrer"><?php echo esc_html( $page_title ); ?></a><br><small class="pera-performance-page-path"><?php echo esc_html( $page_path ); ?></small></td>
-							<td class="pera-performance-table__number"><?php echo esc_html( number_format_i18n( $row['visits'] ) ); ?></td>
-							<td class="pera-performance-table__number"><?php echo esc_html( number_format_i18n( $row['uniques'] ) ); ?></td>
-							<td class="pera-performance-table__number"><?php echo esc_html( number_format_i18n( $row['previous_visits'] ) ); ?></td>
-							<td class="pera-performance-table__number"><?php echo esc_html( pera_analytics_percent_change( $row['visits'], $row['previous_visits'] ) ); ?></td>
-						</tr>
-					<?php endforeach; ?>
-				<?php endif; ?>
-				</tbody>
-			</table>
-			</div>
+			<h2><?php echo esc_html__( 'Top static, archive and template pages', 'hello-elementor-child' ); ?></h2>
+			<?php
+			pera_analytics_render_admin_pages_table(
+				$split_page_rows['static'],
+				esc_html__( 'Top static, archive and template pages table', 'hello-elementor-child' ),
+				__( 'No static, archive or template page data available for this period yet.', 'hello-elementor-child' )
+			);
+			?>
+
+			<h2><?php echo esc_html__( 'Top blog posts', 'hello-elementor-child' ); ?></h2>
+			<?php
+			pera_analytics_render_admin_pages_table(
+				$split_page_rows['posts'],
+				esc_html__( 'Top blog posts table', 'hello-elementor-child' ),
+				__( 'No blog post data available for this period yet.', 'hello-elementor-child' )
+			);
+			?>
 		</div>
 		<?php
 	}
