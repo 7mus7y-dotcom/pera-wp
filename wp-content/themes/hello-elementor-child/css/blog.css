@@ -309,7 +309,7 @@
 }
 
 /* Main article body */
-.article-main .article-body {
+.article-main .{
   font-size: 1rem;
   line-height: 1.7;
 }
@@ -345,6 +345,18 @@
   margin-bottom: 0.6em;*/
 }
 
+.article-body p:empty {
+	display: none;
+	margin: 0;
+	padding: 0;
+}
+
+.article-body .card-shell > p:empty,
+.article-body .info-step > p:empty,
+.article-body .info-step-body > p:empty,
+.article-body .grid-2 > p:empty {
+	display: none;
+}
 .post-tags {
   margin-top: 28px;
   border-top: 1px solid #e5e7eb;
