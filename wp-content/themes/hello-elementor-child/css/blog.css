@@ -318,6 +318,27 @@
   margin-bottom: 1.1em;
 }
 
+.article-body .list-tick {
+  list-style: none;
+  padding-left: 0;
+  margin-left: 0;
+}
+
+.article-body .list-tick li {
+  position: relative;
+  padding-left: 1.1rem;
+  margin-bottom: 0.45rem;
+}
+
+.article-body .list-tick li::before {
+  content: "✓";
+  position: absolute;
+  left: 0;
+  top: 0;
+  font-weight: 700;
+  color: var(--color-blue);
+}
+
 .article-body h2,
 .article-body h3 {
  /* margin-top: 1.8em;
