@@ -178,18 +178,15 @@ get_header();
     <?php if ( $archive_description !== '' ) : ?>
       <section class="content-panel content-panel--overlap-hero section-archive-desc">
         <div class="content-panel-box border-brand">
-          <div class="content-panel-grid">
-            <div class="content-panel-left">
-              <div class="archive-hero-desc">
-                <div class="archive-hero-desc__content lead">
-                  <?php echo wp_kses_post( wpautop( $archive_description ) ); ?>
-                </div>
-              </div>
+          <div class="archive-hero-desc">
+            <div class="archive-hero-desc__content lead">
+              <?php echo wp_kses_post( wpautop( $archive_description ) ); ?>
             </div>
           </div>
         </div>
       </section>
     <?php endif; ?>
+
 
     <section class="section section-posts content-panel--overlap-hero">
         <div class="container">
@@ -305,10 +302,9 @@ get_header();
                   </p>
 
                   <div class="card-meta-row">
-                    <span class="screen-reader-text"><?php esc_html_e( 'Category archive link', 'peraproperty' ); ?></span>
-                    <a href="<?php echo esc_url( $cat_link ); ?>" class="btn btn--ghost btn--black btn-card">
-                      <?php esc_html_e( 'View posts', 'peraproperty' ); ?>
-                    </a>
+                      <a href="<?php echo esc_url( $cat_link ); ?>" class="btn btn--ghost btn--black btn-card" aria-label="<?php echo esc_attr( sprintf( __( 'View posts in %s', 'peraproperty' ), $cat->name ) ); ?>">
+                        <?php esc_html_e( 'View posts', 'peraproperty' ); ?>
+                      </a>
                   </div>
 
                 </article>
