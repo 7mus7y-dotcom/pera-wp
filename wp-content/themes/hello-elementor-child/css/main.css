@@ -3370,9 +3370,107 @@ body:not(.single-post) tr:nth-child(even) {
 /* =======================================================
    CONTACT PAGE UTILITIES
    ======================================================= */
-.hero--contact .hero-content > .hero-actions + .hero-actions {
+.hero--contact .hero-actions {
+  align-items: stretch;
+}
+
+#contact-trust {
+  padding-top: 1.5rem;
+  padding-bottom: 1.5rem;
+}
+
+#contact-trust .contact-trust-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 0.85rem;
+}
+
+#contact-trust .contact-trust-card {
   display: flex;
-  margin-top: 12px;
+  align-items: center;
+  min-height: 74px;
+  padding: 1rem 1.1rem;
+  border: 1px solid var(--border-neutral-soft);
+  border-radius: 16px;
+  background: var(--bg-soft);
+  color: var(--text);
+  font-weight: 700;
+  line-height: 1.35;
+  box-shadow: var(--shadow-panel-soft);
+}
+
+#contact-help .contact-help-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 1rem;
+  margin-top: 1.5rem;
+}
+
+#contact-help .contact-help-card {
+  padding: 1.25rem;
+  border: 1px solid var(--border-neutral-soft);
+  border-radius: 18px;
+  background: var(--bg-soft);
+  box-shadow: var(--shadow-panel-soft);
+}
+
+#contact-help .contact-help-card h3 {
+  margin: 0 0 0.65rem;
+  font-size: 1.05rem;
+}
+
+#contact-help .contact-help-card p {
+  margin: 0;
+  color: var(--text-soft);
+  line-height: 1.65;
+}
+
+@media (max-width: 1100px) {
+  #contact-help .contact-help-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 900px) {
+  #contact-trust .contact-trust-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 640px) {
+  .hero--contact .hero-actions {
+    display: flex;
+    width: 100%;
+  }
+
+  .hero--contact .hero-actions .btn {
+    justify-content: center;
+    width: 100%;
+  }
+
+  #contact-trust {
+    padding-top: 1rem;
+    padding-bottom: 1rem;
+  }
+
+  #contact-trust .contact-trust-grid,
+  #contact-help .contact-help-grid {
+    grid-template-columns: 1fr;
+  }
+
+  #contact-trust .contact-trust-card {
+    min-height: auto;
+    padding: 0.85rem 1rem;
+  }
+
+  #contact-help .contact-help-grid {
+    gap: 0.85rem;
+    margin-top: 1.25rem;
+  }
+
+  #contact-help .contact-help-card {
+    padding: 1rem;
+  }
 }
 
 #contact-faq .stacked-text {
