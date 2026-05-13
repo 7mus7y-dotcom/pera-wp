@@ -62,19 +62,24 @@ get_header();
               <a href="<?php echo esc_url( add_query_arg( 'text', 'Hi, I would like to speak with an Istanbul property consultant about buying, selling or investing in property.', 'https://wa.me/905320639978' ) ); ?>" class="btn btn--solid btn--green" target="_blank" rel="noopener">
                   <svg class="icon" aria-hidden="true">
                     <use href="<?php echo esc_url( get_stylesheet_directory_uri() . '/logos-icons/icons.svg#icon-whatsapp' ); ?>"></use>
-                  </svg> WhatsApp an Istanbul Property Consultant
+                  </svg> WhatsApp Our Team
               </a>
-            </div>
-
-            <div class="hero-actions" aria-label="Why clients contact Pera Property">
-              <span class="pill pill--subtle">Istanbul-based since 2016</span>
-              <span class="pill pill--subtle">English-speaking consultants</span>
-              <span class="pill pill--subtle">Licensed real estate agency in Turkey</span>
-              <span class="pill pill--subtle">Office near Taksim and Dolmabah&ccedil;e</span>
             </div>
           </div>
         
         </section>
+
+
+  <section class="section section--compact" id="contact-trust" aria-label="Why clients contact Pera Property">
+    <div class="container">
+      <div class="contact-trust-grid">
+        <div class="contact-trust-card">Istanbul-based since 2016</div>
+        <div class="contact-trust-card">English-speaking consultants</div>
+        <div class="contact-trust-card">Licensed real estate agency in Turkey</div>
+        <div class="contact-trust-card">Office near Taksim and Dolmabah&ccedil;e</div>
+      </div>
+    </div>
+  </section>
 
 
   <!-- SEO SUPPORTING CONTENT -->
@@ -85,13 +90,24 @@ get_header();
         <p>
           As an Istanbul real estate agency, Pera Property gives foreign buyers, sellers and landlords direct access to property consultants in Istanbul who understand the local market, legal process and long-term investment considerations.
         </p>
-        <ul class="checklist">
-          <li>Discuss buying property in Istanbul, including apartments, villas and investment properties that match your budget and lifestyle goals.</li>
-          <li>Get clear advice from Istanbul property consultants on districts, pricing, negotiation and the next steps for foreign buyers.</li>
-          <li>Plan the sale of your Istanbul property with local market guidance, valuation support and qualified buyer introductions.</li>
-          <li>Explore renting out or managing your property in Istanbul for long-term, corporate or carefully selected tenants.</li>
-          <li>Ask about Turkish citizenship by investment, suitable property selection and the practical documents needed for a compliant purchase.</li>
-        </ul>
+        <div class="contact-help-grid">
+          <article class="contact-help-card">
+            <h3>Buying in Istanbul</h3>
+            <p>Advice on districts, budgets, negotiation and suitable property options for foreign buyers.</p>
+          </article>
+          <article class="contact-help-card">
+            <h3>Selling Property</h3>
+            <p>Valuation guidance, marketing advice and qualified buyer introductions for Istanbul property owners.</p>
+          </article>
+          <article class="contact-help-card">
+            <h3>Renting &amp; Management</h3>
+            <p>Support for landlords looking to rent, manage or protect their Istanbul property.</p>
+          </article>
+          <article class="contact-help-card">
+            <h3>Citizenship Enquiries</h3>
+            <p>Guidance on Turkish citizenship by investment, compliant property selection and practical next steps.</p>
+          </article>
+        </div>
       </div>
     </div>
   </section>
