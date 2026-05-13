@@ -8,8 +8,6 @@ if ( ! defined( 'ABSPATH' ) ) {
     exit;
 }
 
-get_header();
-
 $contact_faq_items = array(
     array(
         'question' => 'Can I contact Pera Property in English?',
@@ -36,6 +34,43 @@ $contact_faq_items = array(
         'answer'   => 'We advise across Istanbul, including central European-side areas such as Beşiktaş, Şişli, Sarıyer and Beyoğlu, plus Asian-side districts such as Kadıköy and Üsküdar.',
     ),
 );
+
+add_action(
+    'wp_head',
+    static function () use ( $contact_faq_items ) {
+        $contact_faq_entities = array();
+
+        foreach ( $contact_faq_items as $contact_faq_item ) {
+            if ( empty( $contact_faq_item['question'] ) || empty( $contact_faq_item['answer'] ) ) {
+                continue;
+            }
+
+            $contact_faq_entities[] = array(
+                '@type'          => 'Question',
+                'name'           => (string) $contact_faq_item['question'],
+                'acceptedAnswer' => array(
+                    '@type' => 'Answer',
+                    'text'  => (string) $contact_faq_item['answer'],
+                ),
+            );
+        }
+
+        if ( empty( $contact_faq_entities ) ) {
+            return;
+        }
+
+        $contact_faq_schema = array(
+            '@context'   => 'https://schema.org',
+            '@type'      => 'FAQPage',
+            'mainEntity' => $contact_faq_entities,
+        );
+
+        $GLOBALS['pera_schema_faq_emitted'] = true;
+        echo '<script type="application/ld+json">' . wp_json_encode( $contact_faq_schema, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE ) . '</script>' . "\n";
+    }
+);
+
+get_header();
 ?>
 
         <!-- =====================================================
@@ -409,36 +444,6 @@ $contact_faq_items = array(
       </div>
     </div>
   </section>
-
-
-<?php
-$contact_faq_entities = array();
-foreach ( $contact_faq_items as $contact_faq_item ) {
-    if ( empty( $contact_faq_item['question'] ) || empty( $contact_faq_item['answer'] ) ) {
-        continue;
-    }
-
-    $contact_faq_entities[] = array(
-        '@type'          => 'Question',
-        'name'           => (string) $contact_faq_item['question'],
-        'acceptedAnswer' => array(
-            '@type' => 'Answer',
-            'text'  => (string) $contact_faq_item['answer'],
-        ),
-    );
-}
-
-if ( ! empty( $contact_faq_entities ) ) {
-    $contact_faq_schema = array(
-        '@context'   => 'https://schema.org',
-        '@type'      => 'FAQPage',
-        'mainEntity' => $contact_faq_entities,
-    );
-
-    $GLOBALS['pera_schema_faq_emitted'] = true;
-    echo '<script type="application/ld+json">' . wp_json_encode( $contact_faq_schema, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE ) . '</script>' . "\n";
-}
-?>
 
 
 <?php get_template_part( 'parts/our-services-card' ); ?>
