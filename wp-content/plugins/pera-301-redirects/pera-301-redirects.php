@@ -290,6 +290,31 @@ function pera_redirects_register_admin_menu()
 add_action('admin_menu', 'pera_redirects_register_admin_menu');
 
 /**
+ * Enqueue admin assets for the redirects page.
+ *
+ * @param string $hook Current admin page hook.
+ * @return void
+ */
+function pera_redirects_enqueue_admin_assets($hook)
+{
+    $page = isset($_GET['page']) ? sanitize_key(wp_unslash($_GET['page'])) : '';
+    if ($hook !== 'tools_page_pera-301-redirects' && $page !== 'pera-301-redirects') {
+        return;
+    }
+
+    $css_path = plugin_dir_path(__FILE__) . 'assets/admin.css';
+    $css_url = plugin_dir_url(__FILE__) . 'assets/admin.css';
+
+    wp_enqueue_style(
+        'pera-301-redirects-admin',
+        $css_url,
+        array(),
+        file_exists($css_path) ? (string) filemtime($css_path) : '1.0.0'
+    );
+}
+add_action('admin_enqueue_scripts', 'pera_redirects_enqueue_admin_assets');
+
+/**
  * Handle admin create/update/delete/toggle actions.
  *
  * @return void
@@ -486,25 +511,6 @@ function pera_redirects_render_admin_page()
     ?>
     <div class="wrap">
         <h1><?php esc_html_e('Pera 301 Redirects', 'pera-301-redirects'); ?></h1>
-
-        <style>
-            .pera-redirects-table-scroll {
-                overflow-x: auto;
-                -webkit-overflow-scrolling: touch;
-                width: 100%;
-            }
-
-            .pera-redirects-table {
-                min-width: 900px;
-                table-layout: auto;
-            }
-
-            .pera-redirects-table th,
-            .pera-redirects-table td,
-            .pera-redirects-table code {
-                white-space: nowrap;
-            }
-        </style>
 
         <?php if ($notice && !empty($notice['messages'])) : ?>
             <div class="notice notice-<?php echo esc_attr($notice['type'] === 'error' ? 'error' : 'success'); ?> is-dismissible">

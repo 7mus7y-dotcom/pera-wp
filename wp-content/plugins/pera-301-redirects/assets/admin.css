@@ -1,0 +1,50 @@
+.pera-redirects-table-scroll {
+    display: block;
+    width: 100%;
+    max-width: 100%;
+    overflow-x: auto;
+    overflow-y: hidden;
+    -webkit-overflow-scrolling: touch;
+}
+
+.pera-redirects-table-scroll .pera-redirects-table {
+    width: max-content;
+    min-width: 900px;
+    table-layout: auto;
+}
+
+.pera-redirects-table-scroll .pera-redirects-table th,
+.pera-redirects-table-scroll .pera-redirects-table td {
+    white-space: nowrap;
+    vertical-align: top;
+}
+
+.pera-redirects-table-scroll .pera-redirects-table code {
+    white-space: nowrap;
+    display: inline-block;
+    max-width: none;
+}
+
+@media screen and (max-width: 782px) {
+    .pera-redirects-table-scroll .pera-redirects-table {
+        display: table;
+    }
+
+    .pera-redirects-table-scroll .pera-redirects-table thead {
+        display: table-header-group;
+    }
+
+    .pera-redirects-table-scroll .pera-redirects-table tbody {
+        display: table-row-group;
+    }
+
+    .pera-redirects-table-scroll .pera-redirects-table tr {
+        display: table-row;
+    }
+
+    .pera-redirects-table-scroll .pera-redirects-table th,
+    .pera-redirects-table-scroll .pera-redirects-table td {
+        display: table-cell;
+        white-space: nowrap;
+    }
+}
