@@ -9,6 +9,33 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 get_header();
+
+$contact_faq_items = array(
+    array(
+        'question' => 'Can I contact Pera Property in English?',
+        'answer'   => 'Yes. Our English-speaking property consultants regularly advise international buyers, sellers and landlords interested in Istanbul real estate.',
+    ),
+    array(
+        'question' => 'Can you help me buy property in Istanbul remotely?',
+        'answer'   => 'Yes. We can discuss your brief, shortlist suitable properties, arrange video calls or virtual viewings, and explain the steps before you travel or appoint a representative.',
+    ),
+    array(
+        'question' => 'Do you help with Turkish citizenship property purchases?',
+        'answer'   => 'Yes. We advise on Turkish citizenship property enquiries, including suitable real estate options, investment thresholds and the practical purchase process with specialist legal support where needed.',
+    ),
+    array(
+        'question' => 'Can I visit your Istanbul office?',
+        'answer'   => 'Yes. Our office is in Gümüşsuyu, Beyoğlu, close to Taksim and Dolmabahçe. Appointments are recommended so the right consultant is available for your enquiry.',
+    ),
+    array(
+        'question' => 'Can you help sell or rent out my Istanbul property?',
+        'answer'   => 'Yes. We help owners with valuation advice, sales marketing, tenant search, rental management and practical guidance for selling or renting property in Istanbul.',
+    ),
+    array(
+        'question' => 'Which Istanbul districts do you cover?',
+        'answer'   => 'We advise across Istanbul, including central European-side areas such as Beşiktaş, Şişli, Sarıyer and Beyoğlu, plus Asian-side districts such as Kadıköy and Üsküdar.',
+    ),
+);
 ?>
 
         <!-- =====================================================
@@ -374,27 +401,44 @@ get_header();
         <h2>Contact Pera Property FAQs</h2>
 
         <div class="stacked-text">
-          <h3>Can I contact Pera Property in English?</h3>
-          <p>Yes. Our English-speaking property consultants regularly advise international buyers, sellers and landlords interested in Istanbul real estate.</p>
-
-          <h3>Can you help me buy property in Istanbul remotely?</h3>
-          <p>Yes. We can discuss your brief, shortlist suitable properties, arrange video calls or virtual viewings, and explain the steps before you travel or appoint a representative.</p>
-
-          <h3>Do you help with Turkish citizenship property purchases?</h3>
-          <p>Yes. We advise on Turkish citizenship property enquiries, including suitable real estate options, investment thresholds and the practical purchase process with specialist legal support where needed.</p>
-
-          <h3>Can I visit your Istanbul office?</h3>
-          <p>Yes. Our office is in G&uuml;m&uuml;şsuyu, Beyoğlu, close to Taksim and Dolmabah&ccedil;e. Appointments are recommended so the right consultant is available for your enquiry.</p>
-
-          <h3>Can you help sell or rent out my Istanbul property?</h3>
-          <p>Yes. We help owners with valuation advice, sales marketing, tenant search, rental management and practical guidance for selling or renting property in Istanbul.</p>
-
-          <h3>Which Istanbul districts do you cover?</h3>
-          <p>We advise across Istanbul, including central European-side areas such as Beşiktaş, Şişli, Sarıyer and Beyoğlu, plus Asian-side districts such as Kadıköy and Üsküdar.</p>
+          <?php foreach ( $contact_faq_items as $contact_faq_item ) : ?>
+            <h3><?php echo esc_html( $contact_faq_item['question'] ); ?></h3>
+            <p><?php echo esc_html( $contact_faq_item['answer'] ); ?></p>
+          <?php endforeach; ?>
         </div>
       </div>
     </div>
   </section>
+
+
+<?php
+$contact_faq_entities = array();
+foreach ( $contact_faq_items as $contact_faq_item ) {
+    if ( empty( $contact_faq_item['question'] ) || empty( $contact_faq_item['answer'] ) ) {
+        continue;
+    }
+
+    $contact_faq_entities[] = array(
+        '@type'          => 'Question',
+        'name'           => (string) $contact_faq_item['question'],
+        'acceptedAnswer' => array(
+            '@type' => 'Answer',
+            'text'  => (string) $contact_faq_item['answer'],
+        ),
+    );
+}
+
+if ( ! empty( $contact_faq_entities ) ) {
+    $contact_faq_schema = array(
+        '@context'   => 'https://schema.org',
+        '@type'      => 'FAQPage',
+        'mainEntity' => $contact_faq_entities,
+    );
+
+    $GLOBALS['pera_schema_faq_emitted'] = true;
+    echo '<script type="application/ld+json">' . wp_json_encode( $contact_faq_schema, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE ) . '</script>' . "\n";
+}
+?>
 
 
 <?php get_template_part( 'parts/our-services-card' ); ?>
