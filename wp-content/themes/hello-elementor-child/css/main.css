@@ -3370,6 +3370,26 @@ body:not(.single-post) tr:nth-child(even) {
 /* =======================================================
    CONTACT PAGE UTILITIES
    ======================================================= */
+.hero--contact .hero-content > .hero-actions + .hero-actions {
+  display: flex;
+  margin-top: 12px;
+}
+
+#contact-faq .stacked-text {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+#contact-faq .stacked-text > h3,
+#contact-faq .stacked-text > p {
+  margin: 0;
+}
+
+#contact-faq .stacked-text > h3:not(:first-child) {
+  margin-top: 0.75rem;
+}
+
 .contact-social-buttons {
   display: flex;
   flex-wrap: wrap;
