@@ -9,6 +9,12 @@ if ( ! function_exists( 'pera_analytics_get_reporting_window' ) ) {
 		$now = new DateTimeImmutable( 'now', $tz );
 
 		switch ( $period_key ) {
+			case 'all_time':
+				$current_start = null;
+				$current_end   = $now;
+				$previous_start = null;
+				$previous_end   = null;
+				break;
 			case '24h':
 				$current_start = $now->modify( '-24 hours' );
 				$current_end   = $now;
@@ -55,19 +61,19 @@ if ( ! function_exists( 'pera_analytics_get_reporting_window' ) ) {
 		return array(
 			'key'      => $period_key,
 			'current'  => array(
-				'start' => $current_start->format( 'Y-m-d H:i:s' ),
+				'start' => $current_start instanceof DateTimeImmutable ? $current_start->format( 'Y-m-d H:i:s' ) : null,
 				'end'   => $current_end->format( 'Y-m-d H:i:s' ),
 			),
 			'previous' => array(
-				'start' => $previous_start->format( 'Y-m-d H:i:s' ),
-				'end'   => $previous_end->format( 'Y-m-d H:i:s' ),
+				'start' => $previous_start instanceof DateTimeImmutable ? $previous_start->format( 'Y-m-d H:i:s' ) : null,
+				'end'   => $previous_end instanceof DateTimeImmutable ? $previous_end->format( 'Y-m-d H:i:s' ) : null,
 			),
 		);
 	}
 }
 
 if ( ! function_exists( 'pera_analytics_get_period_totals' ) ) {
-	function pera_analytics_get_period_totals( string $start, string $end ): array {
+	function pera_analytics_get_period_totals( ?string $start, string $end ): array {
 		global $wpdb;
 		$raw_table = pera_analytics_raw_table_name();
 
@@ -77,17 +83,29 @@ if ( ! function_exists( 'pera_analytics_get_period_totals' ) ) {
 			$visits += (int) $row['visits'];
 		}
 
-		$totals = $wpdb->get_row(
-			$wpdb->prepare(
-				"SELECT COUNT(DISTINCT visitor_id) AS uniques
-				FROM {$raw_table}
-				WHERE visited_at >= %s
-				  AND visited_at < %s",
-				$start,
-				$end
-			),
-			ARRAY_A
-		);
+		if ( null === $start ) {
+			$totals = $wpdb->get_row(
+				$wpdb->prepare(
+					"SELECT COUNT(DISTINCT visitor_id) AS uniques
+					FROM {$raw_table}
+					WHERE visited_at < %s",
+					$end
+				),
+				ARRAY_A
+			);
+		} else {
+			$totals = $wpdb->get_row(
+				$wpdb->prepare(
+					"SELECT COUNT(DISTINCT visitor_id) AS uniques
+					FROM {$raw_table}
+					WHERE visited_at >= %s
+					  AND visited_at < %s",
+					$start,
+					$end
+				),
+				ARRAY_A
+			);
+		}
 
 		return array(
 			'visits'  => $visits,
@@ -266,7 +284,7 @@ CSS;
 add_action( 'admin_enqueue_scripts', 'pera_analytics_enqueue_admin_page_assets' );
 
 if ( ! function_exists( 'pera_analytics_render_admin_pages_table' ) ) {
-	function pera_analytics_render_admin_pages_table( array $rows, string $aria_label, string $empty_message ): void {
+	function pera_analytics_render_admin_pages_table( array $rows, string $aria_label, string $empty_message, bool $show_previous_comparison = true ): void {
 		?>
 		<p class="pera-performance-scroll-hint"><?php echo esc_html__( 'Scroll horizontally to view all table columns.', 'hello-elementor-child' ); ?></p>
 		<div class="pera-performance-table-wrap" tabindex="0" role="region" aria-label="<?php echo esc_attr( $aria_label ); ?>">
@@ -292,8 +310,8 @@ if ( ! function_exists( 'pera_analytics_render_admin_pages_table' ) ) {
 						<td class="column-page"><a href="<?php echo esc_url( $page_url ); ?>" target="_blank" rel="noopener noreferrer"><?php echo esc_html( $page_title ); ?></a><br><small class="pera-performance-page-path"><?php echo esc_html( $page_path ); ?></small></td>
 						<td class="pera-performance-table__number"><?php echo esc_html( number_format_i18n( (int) $row['visits'] ) ); ?></td>
 						<td class="pera-performance-table__number"><?php echo esc_html( number_format_i18n( (int) $row['uniques'] ) ); ?></td>
-						<td class="pera-performance-table__number"><?php echo esc_html( number_format_i18n( (int) $row['previous_visits'] ) ); ?></td>
-						<td class="pera-performance-table__number"><?php echo esc_html( pera_analytics_percent_change( (int) $row['visits'], (int) $row['previous_visits'] ) ); ?></td>
+						<td class="pera-performance-table__number"><?php echo $show_previous_comparison ? esc_html( number_format_i18n( (int) $row['previous_visits'] ) ) : esc_html__( '—', 'hello-elementor-child' ); ?></td>
+						<td class="pera-performance-table__number"><?php echo $show_previous_comparison ? esc_html( pera_analytics_percent_change( (int) $row['visits'], (int) $row['previous_visits'] ) ) : esc_html__( '—', 'hello-elementor-child' ); ?></td>
 					</tr>
 				<?php endforeach; ?>
 			<?php endif; ?>
@@ -317,6 +335,7 @@ if ( ! function_exists( 'pera_analytics_render_admin_page' ) ) {
 			'30d'        => __( 'Last 30 days', 'hello-elementor-child' ),
 			'this_month' => __( 'This month', 'hello-elementor-child' ),
 			'last_month' => __( 'Last month', 'hello-elementor-child' ),
+			'all_time'   => __( 'All time', 'hello-elementor-child' ),
 		);
 
 		$period_input = isset( $_GET['period'] ) ? sanitize_key( wp_unslash( $_GET['period'] ) ) : 'this_month';
@@ -325,8 +344,11 @@ if ( ! function_exists( 'pera_analytics_render_admin_page' ) ) {
 		}
 
 		$window = pera_analytics_get_reporting_window( $period_input );
+		$show_previous_comparison = 'all_time' !== $window['key'];
 		$totals_current  = pera_analytics_get_period_totals( $window['current']['start'], $window['current']['end'] );
-		$totals_previous = pera_analytics_get_period_totals( $window['previous']['start'], $window['previous']['end'] );
+		$totals_previous = $show_previous_comparison
+			? pera_analytics_get_period_totals( $window['previous']['start'], $window['previous']['end'] )
+			: array( 'visits' => 0, 'uniques' => 0 );
 		$all_page_rows   = pera_analytics_build_period_page_rows(
 			$window['current']['start'],
 			$window['current']['end'],
@@ -335,7 +357,7 @@ if ( ! function_exists( 'pera_analytics_render_admin_page' ) ) {
 		);
 		$split_page_rows = pera_analytics_split_page_rows_by_type( $all_page_rows, 20, 20 );
 
-		$summary_change = pera_analytics_percent_change( $totals_current['visits'], $totals_previous['visits'] );
+		$summary_change = $show_previous_comparison ? pera_analytics_percent_change( $totals_current['visits'], $totals_previous['visits'] ) : '—';
 		?>
 		<div class="wrap pera-site-performance-admin">
 			<h1><?php echo esc_html__( 'Site Performance', 'hello-elementor-child' ); ?></h1>
@@ -351,12 +373,12 @@ if ( ! function_exists( 'pera_analytics_render_admin_page' ) ) {
 			</form>
 			<p class="description"><?php echo esc_html__( 'Unique visitor counts are calculated from recent raw visit data and may be unavailable for older periods after raw data is pruned.', 'hello-elementor-child' ); ?></p>
 
-			<p><?php echo esc_html( $allowed_periods[ $window['key'] ] ); ?><?php echo esc_html__( ' compared to previous matching period.', 'hello-elementor-child' ); ?></p>
+			<p><?php echo esc_html( $allowed_periods[ $window['key'] ] ); ?><?php echo $show_previous_comparison ? esc_html__( ' compared to previous matching period.', 'hello-elementor-child' ) : esc_html__( ' across all recorded analytics history.', 'hello-elementor-child' ); ?></p>
 
 			<div class="pera-performance-kpis">
 				<div class="postbox pera-performance-kpi"><strong><?php echo esc_html__( 'Total visits', 'hello-elementor-child' ); ?></strong><span class="pera-performance-kpi__value"><?php echo esc_html( number_format_i18n( $totals_current['visits'] ) ); ?></span></div>
 				<div class="postbox pera-performance-kpi"><strong><?php echo esc_html__( 'Unique visitors', 'hello-elementor-child' ); ?></strong><span class="pera-performance-kpi__value"><?php echo esc_html( number_format_i18n( $totals_current['uniques'] ) ); ?></span></div>
-				<div class="postbox pera-performance-kpi"><strong><?php echo esc_html__( 'Previous period visits', 'hello-elementor-child' ); ?></strong><span class="pera-performance-kpi__value"><?php echo esc_html( number_format_i18n( $totals_previous['visits'] ) ); ?></span></div>
+				<div class="postbox pera-performance-kpi"><strong><?php echo esc_html__( 'Previous period visits', 'hello-elementor-child' ); ?></strong><span class="pera-performance-kpi__value"><?php echo $show_previous_comparison ? esc_html( number_format_i18n( $totals_previous['visits'] ) ) : esc_html__( '—', 'hello-elementor-child' ); ?></span></div>
 				<div class="postbox pera-performance-kpi"><strong><?php echo esc_html__( '% change', 'hello-elementor-child' ); ?></strong><span class="pera-performance-kpi__value"><?php echo esc_html( $summary_change ); ?></span></div>
 			</div>
 
@@ -365,7 +387,8 @@ if ( ! function_exists( 'pera_analytics_render_admin_page' ) ) {
 			pera_analytics_render_admin_pages_table(
 				$split_page_rows['static'],
 				esc_html__( 'Top static, archive and template pages table', 'hello-elementor-child' ),
-				__( 'No static, archive or template page data available for this period yet.', 'hello-elementor-child' )
+				__( 'No static, archive or template page data available for this period yet.', 'hello-elementor-child' ),
+				$show_previous_comparison
 			);
 			?>
 
@@ -374,7 +397,8 @@ if ( ! function_exists( 'pera_analytics_render_admin_page' ) ) {
 			pera_analytics_render_admin_pages_table(
 				$split_page_rows['posts'],
 				esc_html__( 'Top blog posts table', 'hello-elementor-child' ),
-				__( 'No blog post data available for this period yet.', 'hello-elementor-child' )
+				__( 'No blog post data available for this period yet.', 'hello-elementor-child' ),
+				$show_previous_comparison
 			);
 			?>
 		</div>

@@ -113,18 +113,18 @@ if ( ! function_exists( 'pera_analytics_month_window' ) ) {
 }
 
 if ( ! function_exists( 'pera_analytics_get_period_page_rollup' ) ) {
-	function pera_analytics_get_period_page_rollup( string $start, string $end ): array {
+	function pera_analytics_get_period_page_rollup( ?string $start, string $end ): array {
 		global $wpdb;
 
 		$raw_table   = pera_analytics_raw_table_name();
 		$daily_table = pera_analytics_daily_table_name();
 		$tz          = wp_timezone();
 
-		$start_dt = new DateTimeImmutable( $start, $tz );
+		$start_dt = null === $start ? null : new DateTimeImmutable( $start, $tz );
 		$end_dt   = new DateTimeImmutable( $end, $tz );
 		$today    = ( new DateTimeImmutable( 'now', $tz ) )->setTime( 0, 0, 0 );
 
-		if ( $end_dt <= $start_dt ) {
+		if ( null !== $start_dt && $end_dt <= $start_dt ) {
 			return array();
 		}
 
@@ -132,7 +132,7 @@ if ( ! function_exists( 'pera_analytics_get_period_page_rollup' ) ) {
 		$daily_rows  = array();
 
 		$daily_start = $start_dt;
-		if ( '00:00:00' !== $start_dt->format( 'H:i:s' ) ) {
+		if ( null !== $start_dt && '00:00:00' !== $start_dt->format( 'H:i:s' ) ) {
 			$daily_start = $start_dt->modify( 'tomorrow' )->setTime( 0, 0, 0 );
 		}
 
@@ -141,22 +141,35 @@ if ( ! function_exists( 'pera_analytics_get_period_page_rollup' ) ) {
 			$daily_end = $today;
 		}
 
-		if ( $daily_start < $daily_end ) {
-			$daily_rows = $wpdb->get_results(
-				$wpdb->prepare(
-					"SELECT page_path, MAX(page_title) AS page_title, SUM(visits) AS visits
-					FROM {$daily_table}
-					WHERE summary_date >= %s
-					  AND summary_date < %s
-					GROUP BY page_path",
-					$daily_start->format( 'Y-m-d' ),
-					$daily_end->format( 'Y-m-d' )
-				),
-				ARRAY_A
-			);
+		if ( null === $daily_start || $daily_start < $daily_end ) {
+			if ( null === $daily_start ) {
+				$daily_rows = $wpdb->get_results(
+					$wpdb->prepare(
+						"SELECT page_path, MAX(page_title) AS page_title, SUM(visits) AS visits
+						FROM {$daily_table}
+						WHERE summary_date < %s
+						GROUP BY page_path",
+						$daily_end->format( 'Y-m-d' )
+					),
+					ARRAY_A
+				);
+			} else {
+				$daily_rows = $wpdb->get_results(
+					$wpdb->prepare(
+						"SELECT page_path, MAX(page_title) AS page_title, SUM(visits) AS visits
+						FROM {$daily_table}
+						WHERE summary_date >= %s
+						  AND summary_date < %s
+						GROUP BY page_path",
+						$daily_start->format( 'Y-m-d' ),
+						$daily_end->format( 'Y-m-d' )
+					),
+					ARRAY_A
+				);
+			}
 		}
 
-		if ( $start_dt < $daily_start ) {
+		if ( null !== $start_dt && null !== $daily_start && $start_dt < $daily_start ) {
 			$raw_windows[] = array(
 				'start' => $start_dt->format( 'Y-m-d H:i:s' ),
 				'end'   => $daily_start->format( 'Y-m-d H:i:s' ),
@@ -168,22 +181,40 @@ if ( ! function_exists( 'pera_analytics_get_period_page_rollup' ) ) {
 				'start' => $daily_end->format( 'Y-m-d H:i:s' ),
 				'end'   => $end_dt->format( 'Y-m-d H:i:s' ),
 			);
+		} elseif ( null === $start_dt && empty( $daily_rows ) ) {
+			$raw_windows[] = array(
+				'start' => null,
+				'end'   => $end_dt->format( 'Y-m-d H:i:s' ),
+			);
 		}
 
 		$raw_rows = array();
 		foreach ( $raw_windows as $window ) {
-			$window_rows = $wpdb->get_results(
-				$wpdb->prepare(
-					"SELECT page_path, MAX(page_title) AS page_title, COUNT(*) AS visits
-					FROM {$raw_table}
-					WHERE visited_at >= %s
-					  AND visited_at < %s
-					GROUP BY page_path",
-					$window['start'],
-					$window['end']
-				),
-				ARRAY_A
-			);
+			if ( null === $window['start'] ) {
+				$window_rows = $wpdb->get_results(
+					$wpdb->prepare(
+						"SELECT page_path, MAX(page_title) AS page_title, COUNT(*) AS visits
+						FROM {$raw_table}
+						WHERE visited_at < %s
+						GROUP BY page_path",
+						$window['end']
+					),
+					ARRAY_A
+				);
+			} else {
+				$window_rows = $wpdb->get_results(
+					$wpdb->prepare(
+						"SELECT page_path, MAX(page_title) AS page_title, COUNT(*) AS visits
+						FROM {$raw_table}
+						WHERE visited_at >= %s
+						  AND visited_at < %s
+						GROUP BY page_path",
+						$window['start'],
+						$window['end']
+					),
+					ARRAY_A
+				);
+			}
 
 			if ( ! empty( $window_rows ) ) {
 				$raw_rows = array_merge( $raw_rows, $window_rows );
@@ -216,25 +247,40 @@ if ( ! function_exists( 'pera_analytics_get_period_page_rollup' ) ) {
 }
 
 if ( ! function_exists( 'pera_analytics_get_period_uniques_by_path' ) ) {
-	function pera_analytics_get_period_uniques_by_path( string $start, string $end ): array {
+	function pera_analytics_get_period_uniques_by_path( ?string $start, string $end ): array {
 		global $wpdb;
 
 		$raw_table = pera_analytics_raw_table_name();
 
-		$rows = $wpdb->get_results(
-			$wpdb->prepare(
-				"SELECT
-					page_path,
-					COUNT(DISTINCT visitor_id) AS uniques
-				FROM {$raw_table}
-				WHERE visited_at >= %s
-				  AND visited_at < %s
-				GROUP BY page_path",
-				$start,
-				$end
-			),
-			ARRAY_A
-		);
+		if ( null === $start ) {
+			$rows = $wpdb->get_results(
+				$wpdb->prepare(
+					"SELECT
+						page_path,
+						COUNT(DISTINCT visitor_id) AS uniques
+					FROM {$raw_table}
+					WHERE visited_at < %s
+					GROUP BY page_path",
+					$end
+				),
+				ARRAY_A
+			);
+		} else {
+			$rows = $wpdb->get_results(
+				$wpdb->prepare(
+					"SELECT
+						page_path,
+						COUNT(DISTINCT visitor_id) AS uniques
+					FROM {$raw_table}
+					WHERE visited_at >= %s
+					  AND visited_at < %s
+					GROUP BY page_path",
+					$start,
+					$end
+				),
+				ARRAY_A
+			);
+		}
 
 		$map = array();
 		foreach ( (array) $rows as $row ) {
@@ -246,9 +292,9 @@ if ( ! function_exists( 'pera_analytics_get_period_uniques_by_path' ) ) {
 }
 
 if ( ! function_exists( 'pera_analytics_build_period_page_rows' ) ) {
-	function pera_analytics_build_period_page_rows( string $current_start, string $current_end, string $previous_start, string $previous_end ): array {
+	function pera_analytics_build_period_page_rows( ?string $current_start, string $current_end, ?string $previous_start, ?string $previous_end ): array {
 		$current_rollup  = pera_analytics_get_period_page_rollup( $current_start, $current_end );
-		$previous_rollup = pera_analytics_get_period_page_rollup( $previous_start, $previous_end );
+		$previous_rollup = null === $previous_end ? array() : pera_analytics_get_period_page_rollup( $previous_start, $previous_end );
 		$current_uniques = pera_analytics_get_period_uniques_by_path( $current_start, $current_end );
 
 		$rows = array();
