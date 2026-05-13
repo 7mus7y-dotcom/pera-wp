@@ -222,6 +222,43 @@ if ( ! function_exists( 'pera_seo_all_is_contact_page' ) ) {
   }
 }
 
+
+if ( ! function_exists( 'pera_seo_all_contact_faq_items' ) ) {
+  /**
+   * Contact page FAQ content mirrored from page-contact.php visible FAQ.
+   *
+   * @return array<int,array{question:string,answer:string}>
+   */
+  function pera_seo_all_contact_faq_items(): array {
+    return array(
+      array(
+        'question' => 'Can I contact Pera Property in English?',
+        'answer'   => 'Yes. Our English-speaking property consultants regularly advise international buyers, sellers and landlords interested in Istanbul real estate.',
+      ),
+      array(
+        'question' => 'Can you help me buy property in Istanbul remotely?',
+        'answer'   => 'Yes. We can discuss your brief, shortlist suitable properties, arrange video calls or virtual viewings, and explain the steps before you travel or appoint a representative.',
+      ),
+      array(
+        'question' => 'Do you help with Turkish citizenship property purchases?',
+        'answer'   => 'Yes. We advise on Turkish citizenship property enquiries, including suitable real estate options, investment thresholds and the practical purchase process with specialist legal support where needed.',
+      ),
+      array(
+        'question' => 'Can I visit your Istanbul office?',
+        'answer'   => 'Yes. Our office is in Gümüşsuyu, Beyoğlu, close to Taksim and Dolmabahçe. Appointments are recommended so the right consultant is available for your enquiry.',
+      ),
+      array(
+        'question' => 'Can you help sell or rent out my Istanbul property?',
+        'answer'   => 'Yes. We help owners with valuation advice, sales marketing, tenant search, rental management and practical guidance for selling or renting property in Istanbul.',
+      ),
+      array(
+        'question' => 'Which Istanbul districts do you cover?',
+        'answer'   => 'We advise across Istanbul, including central European-side areas such as Beşiktaş, Şişli, Sarıyer and Beyoğlu, plus Asian-side districts such as Kadıköy and Üsküdar.',
+      ),
+    );
+  }
+}
+
 if ( ! function_exists( 'pera_seo_all_resolve_social_image_from_value' ) ) {
   /**
    * Resolve image URL + attachment metadata from flexible ACF/meta value shapes.
@@ -1350,6 +1387,144 @@ add_action( 'wp_head', function () {
         echo '<script type="application/ld+json">' . wp_json_encode( $faq_schema, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE ) . '</script>' . "\n";
       }
     }
+  }
+
+
+
+  if ( $context === 'static_page' && $post_id > 0 && pera_seo_all_is_contact_page( $post_id ) && $canonical !== '' ) {
+    $contact_page_id = $canonical . '#contactpage';
+    $business_id     = $canonical . '#realestateagent';
+    $faq_id          = $canonical . '#faq';
+
+    $contact_page_schema = array(
+      '@context' => 'https://schema.org',
+      '@type' => 'ContactPage',
+      '@id' => $contact_page_id,
+      'url' => $canonical,
+      'name' => $title,
+      'mainEntity' => array(
+        '@id' => $business_id,
+      ),
+    );
+
+    if ( $desc !== '' ) {
+      $contact_page_schema['description'] = $desc;
+    }
+
+    $business_schema = array(
+      '@context' => 'https://schema.org',
+      '@type' => 'RealEstateAgent',
+      '@id' => $business_id,
+      'name' => 'Pera Property',
+      'url' => 'https://www.peraproperty.com/',
+      'telephone' => '+90 532 063 99 78',
+      'email' => 'info@peraproperty.com',
+      'address' => array(
+        '@type' => 'PostalAddress',
+        'streetAddress' => 'Gümüşsuyu Mah. Ankara Palas, İnönü Cd. No 59/1',
+        'postalCode' => '34437',
+        'addressLocality' => 'Beyoğlu / İstanbul',
+        'addressCountry' => 'TR',
+      ),
+      'areaServed' => array(
+        '@type' => 'Place',
+        'name' => 'Istanbul, Türkiye',
+      ),
+      'openingHours' => array(
+        'Mo-Fr 09:30-18:00',
+        'Sa-Su by appointment',
+      ),
+      'openingHoursSpecification' => array(
+        array(
+          '@type' => 'OpeningHoursSpecification',
+          'dayOfWeek' => array(
+            'Monday',
+            'Tuesday',
+            'Wednesday',
+            'Thursday',
+            'Friday',
+          ),
+          'opens' => '09:30',
+          'closes' => '18:00',
+        ),
+      ),
+      'makesOffer' => array(
+        array(
+          '@type' => 'Offer',
+          'itemOffered' => array(
+            '@type' => 'Service',
+            'name' => 'Istanbul property sales',
+          ),
+        ),
+        array(
+          '@type' => 'Offer',
+          'itemOffered' => array(
+            '@type' => 'Service',
+            'name' => 'Property buying consultancy',
+          ),
+        ),
+        array(
+          '@type' => 'Offer',
+          'itemOffered' => array(
+            '@type' => 'Service',
+            'name' => 'Selling property in Istanbul',
+          ),
+        ),
+        array(
+          '@type' => 'Offer',
+          'itemOffered' => array(
+            '@type' => 'Service',
+            'name' => 'Rental management',
+          ),
+        ),
+        array(
+          '@type' => 'Offer',
+          'itemOffered' => array(
+            '@type' => 'Service',
+            'name' => 'Turkish citizenship by investment property advice',
+          ),
+        ),
+      ),
+    );
+
+    $faq_entities = array();
+    foreach ( pera_seo_all_contact_faq_items() as $faq_item ) {
+      $question = isset( $faq_item['question'] ) ? pera_seo_all_normalize_description( (string) $faq_item['question'], 300 ) : '';
+      $answer   = isset( $faq_item['answer'] ) ? pera_seo_all_normalize_description( (string) $faq_item['answer'], 500 ) : '';
+
+      if ( $question === '' || $answer === '' ) {
+        continue;
+      }
+
+      $faq_entities[] = array(
+        '@type' => 'Question',
+        'name' => $question,
+        'acceptedAnswer' => array(
+          '@type' => 'Answer',
+          'text' => $answer,
+        ),
+      );
+    }
+
+    $schema_graph = array(
+      '@context' => 'https://schema.org',
+      '@graph' => array(
+        $contact_page_schema,
+        $business_schema,
+      ),
+    );
+
+    if ( ! empty( $faq_entities ) ) {
+      $schema_graph['@graph'][] = array(
+        '@type' => 'FAQPage',
+        '@id' => $faq_id,
+        'url' => $canonical,
+        'mainEntity' => $faq_entities,
+      );
+      $GLOBALS['pera_schema_faq_emitted'] = true;
+    }
+
+    echo '<script type="application/ld+json">' . wp_json_encode( $schema_graph, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE ) . '</script>' . "\n";
   }
 
 
