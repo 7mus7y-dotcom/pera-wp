@@ -487,6 +487,25 @@ function pera_redirects_render_admin_page()
     <div class="wrap">
         <h1><?php esc_html_e('Pera 301 Redirects', 'pera-301-redirects'); ?></h1>
 
+        <style>
+            .pera-redirects-table-scroll {
+                overflow-x: auto;
+                -webkit-overflow-scrolling: touch;
+                width: 100%;
+            }
+
+            .pera-redirects-table {
+                min-width: 900px;
+                table-layout: auto;
+            }
+
+            .pera-redirects-table th,
+            .pera-redirects-table td,
+            .pera-redirects-table code {
+                white-space: nowrap;
+            }
+        </style>
+
         <?php if ($notice && !empty($notice['messages'])) : ?>
             <div class="notice notice-<?php echo esc_attr($notice['type'] === 'error' ? 'error' : 'success'); ?> is-dismissible">
                 <?php foreach ($notice['messages'] as $message) : ?>
@@ -554,7 +573,8 @@ function pera_redirects_render_admin_page()
             </p>
         </form>
 
-        <table class="widefat striped">
+        <div class="pera-redirects-table-scroll">
+            <table class="widefat striped pera-redirects-table">
             <thead>
                 <tr>
                     <th><?php esc_html_e('Source', 'pera-301-redirects'); ?></th>
@@ -603,7 +623,8 @@ function pera_redirects_render_admin_page()
                 <?php endforeach; ?>
             <?php endif; ?>
             </tbody>
-        </table>
+            </table>
+        </div>
         <?php
         if ($total_pages > 1) {
             $pagination_args = array(
