@@ -7829,6 +7829,19 @@ body.crm-route .crm-page--client-view .peracrm-linked-property-unlink-btn:hover 
   }
 }
 
+/* CRM button hover/active border visibility safety net. */
+.crm-page :is(.btn, a.btn, button.btn, input[type="submit"].btn, input[type="button"].btn):not(:disabled):not(.is-disabled):hover,
+.crm-page :is(.btn, a.btn, button.btn, input[type="submit"].btn, input[type="button"].btn):not(:disabled):not(.is-disabled):active,
+#crm-hero :is(.btn, a.btn, button.btn, input[type="submit"].btn, input[type="button"].btn):not(:disabled):not(.is-disabled):hover,
+#crm-hero :is(.btn, a.btn, button.btn, input[type="submit"].btn, input[type="button"].btn):not(:disabled):not(.is-disabled):active {
+  border: 1px solid var(--btn-color, var(--brand, #002d72));
+}
+
+.crm-page .archive-hero-desc__toggle:hover,
+.crm-page .archive-hero-desc__toggle:active {
+  border: 1px solid var(--brand, #002d72);
+}
+
 .mini-btn {
     transform: scale(0.8);
     transform-origin: center;
