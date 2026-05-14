@@ -6280,7 +6280,7 @@ body.crm-route .crm-page--client-view .peracrm-linked-property-unlink-btn:hover 
   gap: 6px;
   /*min-height: 34px;*/
   border-radius: 10px;
-  border: 1px solid var(--brand, #002d72);
+  border: 1px solid var(--brand);
   background: var(--brand, #002d72);
   color: #ffffff;
   box-shadow: none;
@@ -6289,7 +6289,7 @@ body.crm-route .crm-page--client-view .peracrm-linked-property-unlink-btn:hover 
 .crm-page .archive-hero-desc__toggle:hover,
 .crm-page .archive-hero-desc__toggle:focus-visible {
   background: #ffffff;
-  border: 1px solid var(--brand, #002d72);
+  border: 1px solid var(--brand);
   color: var(--brand, #002d72);
   box-shadow: 0 0 0 3px rgba(0, 45, 114, 0.08);
   transform: none;
@@ -6298,7 +6298,7 @@ body.crm-route .crm-page--client-view .peracrm-linked-property-unlink-btn:hover 
 
 .crm-page .archive-hero-desc__toggle:active {
   background: #eef4ff;
-  border: 1px solid var(--brand, #002d72);
+  border: 1px solid var(--brand);
   color: var(--brand, #002d72);
   box-shadow: none;
   transform: none;
@@ -7161,7 +7161,7 @@ body.crm-route .crm-page--client-view .peracrm-linked-property-unlink-btn:hover 
 
   .crm-page .archive-hero-desc__toggle {
     background: var(--brand, #002d72);
-    border-color: var(--brand, #002d72);
+    border-color: var(--brand);
     color: #f8fafc;
   }
 
@@ -7169,7 +7169,7 @@ body.crm-route .crm-page--client-view .peracrm-linked-property-unlink-btn:hover 
   .crm-page .archive-hero-desc__toggle:focus-visible,
   .crm-page .archive-hero-desc[data-collapsed="false"] .archive-hero-desc__toggle {
     background: #f8fafc;
-    border: 1px solid var(--brand, #002d72);
+    border: 1px solid var(--brand);
     color: var(--brand, #002d72);
     box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.18);
   }

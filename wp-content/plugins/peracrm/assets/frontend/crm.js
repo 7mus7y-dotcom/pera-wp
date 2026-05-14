@@ -492,10 +492,11 @@
   function updateToggleVisibility(block, content, buttons) {
     var needsToggle = content.scrollHeight > content.clientHeight + 8;
     var isCollapsed = block.getAttribute('data-collapsed') !== 'false';
+    var timelineBlock = block.closest('.crm-client-timeline');
 
-    buttons.forEach(function (button) {
+    buttons.forEach(function (button, index) {
       var isBottomToggle = button.classList.contains('archive-hero-desc__toggle--bottom');
-      if (!needsToggle) {
+      if (!needsToggle || (timelineBlock && index > 0)) {
         button.hidden = true;
         return;
       }
