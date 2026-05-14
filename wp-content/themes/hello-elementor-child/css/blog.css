@@ -17,12 +17,15 @@
 }
 
 .section-posts .container {
+  position: relative;
   max-width: var(--container);
   margin-inline: auto;
 }
 
 /* Archive post loop uses .cards-masonry from main.css; keep archive-specific tuning here. */
 .section-posts .cards-masonry {
+  position: relative;
+  z-index: 1;
   column-count: 1;
   column-gap: var(--space-md);
 }
@@ -980,11 +983,14 @@
    ======================================================= */
 
 .blog-sort {
+  position: relative;
+  z-index: 20;
   display: flex;
   align-items: center;
   gap: 10px;
   margin: 0 0 22px;
   flex-wrap: wrap;
+  pointer-events: auto;
 }
 
 .blog-sort__label {
@@ -994,12 +1000,17 @@
 }
 
 .blog-sort__options {
+  position: relative;
+  z-index: 21;
   display: flex;
   gap: 8px;
   flex-wrap: wrap;
+  pointer-events: auto;
 }
 
 .blog-sort__link {
+  position: relative;
+  z-index: 22;
   display: inline-flex;
   align-items: center;
   justify-content: center;
