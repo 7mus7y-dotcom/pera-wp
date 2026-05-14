@@ -3,6 +3,8 @@
  * Blog archive ordering.
  *
  * Allows public post archives to be ordered by the selected date option.
+ *
+ * TODO: Consider ordering by _pera_editorial_updated_date once editorial dates are populated.
  */
 
 if ( ! defined( 'ABSPATH' ) ) {
