@@ -177,7 +177,7 @@ get_header();
 
     <?php if ( $archive_description !== '' ) : ?>
       <section class="content-panel section-archive-desc">
-        <div class="content-panel-box border-brand">
+        <div class="content-panel-box">
           <div class="archive-hero-desc">
             <div class="archive-hero-desc__content lead">
               <?php echo wp_kses_post( wpautop( $archive_description ) ); ?>
