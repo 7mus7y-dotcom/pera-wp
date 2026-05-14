@@ -282,20 +282,23 @@ get_header();
       $other_cats = array_slice( $other_cats, 0, 6 );
 
       if ( ! empty( $other_cats ) ) : ?>
-        <section class="section section-archive-cats">
-          <div class="container archive-cats">
-            <h2 class="archive-cats-title"><?php esc_html_e( 'Explore other topics', 'peraproperty' ); ?></h2>
+        <section class="section section-soft">
+          <div class="container">
+            <h2><?php esc_html_e( 'Explore other topics', 'peraproperty' ); ?></h2>
 
-            <div class="archive-cats-grid cards-scroll-mobile">
+            <div class="grid-3">
               <?php foreach ( $other_cats as $cat ) :
 
                 $cat_link = get_category_link( $cat->term_id );
 
                 $desc = ! empty( $cat->description )
                   ? wp_trim_words( wp_strip_all_tags( $cat->description ), 24, '…' )
-                  : sprintf( '%d post%s', (int) $cat->count, $cat->count === 1 ? '' : 's' );
+                  : sprintf(
+                    _n( '%d post', '%d posts', (int) $cat->count, 'peraproperty' ),
+                    (int) $cat->count
+                  );
                 ?>
-                <article class="archive-cat-card card-shell">
+                <article class="card-shell">
 
                   <h3 class="post-card-title">
                     <a href="<?php echo esc_url( $cat_link ); ?>">
@@ -303,7 +306,7 @@ get_header();
                     </a>
                   </h3>
 
-                  <p class="archive-cat-desc">
+                  <p class="muted">
                     <?php echo esc_html( $desc ); ?>
                   </p>
 
