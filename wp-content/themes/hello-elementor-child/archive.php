@@ -176,7 +176,7 @@ get_header();
     </section>
 
     <?php if ( $archive_description !== '' ) : ?>
-      <section class="section section-soft">
+      <section class="section section-soft content-panel--overlap-hero">
         <div class="container">
           <div class="card-shell">
             <div class="lead">
@@ -188,7 +188,7 @@ get_header();
     <?php endif; ?>
 
 
-    <section class="section section-posts content-panel--overlap-hero">
+    <section class="section section-posts">
         <div class="container">
             <?php if ( have_posts() ) : ?>
 
