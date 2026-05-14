@@ -630,9 +630,9 @@ peracrm_frontend_render_shell_header();
                           </li>
                         <?php endforeach; ?>
                       </ul>
-                      <button type="button" class="btn btn--ghost btn--blue archive-hero-desc__toggle archive-hero-desc__toggle--bottom" aria-expanded="false" aria-controls="crm-client-notes-content" data-label-more="<?php echo esc_attr__( 'See more', 'peracrm' ); ?>" data-label-less="<?php echo esc_attr__( 'See less', 'peracrm' ); ?>" hidden><?php esc_html_e( 'See more', 'peracrm' ); ?></button>
+                      <button type="button" class="btn btn--ghost btn--blue mini-btn archive-hero-desc__toggle archive-hero-desc__toggle--bottom" aria-expanded="false" aria-controls="crm-client-notes-content" data-label-more="<?php echo esc_attr__( 'See more', 'peracrm' ); ?>" data-label-less="<?php echo esc_attr__( 'See less', 'peracrm' ); ?>" hidden><?php esc_html_e( 'See more', 'peracrm' ); ?></button>
                     </div>
-                    <button type="button" class="btn btn--ghost btn--blue archive-hero-desc__toggle archive-hero-desc__toggle--top" aria-expanded="false" aria-controls="crm-client-notes-content" data-label-more="<?php echo esc_attr__( 'See more', 'peracrm' ); ?>" data-label-less="<?php echo esc_attr__( 'See less', 'peracrm' ); ?>" hidden><?php esc_html_e( 'See more', 'peracrm' ); ?></button>
+                    <button type="button" class="btn btn--ghost btn--blue mini-btn archive-hero-desc__toggle archive-hero-desc__toggle--top" aria-expanded="false" aria-controls="crm-client-notes-content" data-label-more="<?php echo esc_attr__( 'See more', 'peracrm' ); ?>" data-label-less="<?php echo esc_attr__( 'See less', 'peracrm' ); ?>" hidden><?php esc_html_e( 'See more', 'peracrm' ); ?></button>
                   </div>
                 <?php endif; ?>
               </div>
@@ -680,7 +680,7 @@ peracrm_frontend_render_shell_header();
                     <?php endforeach; endif; ?>
                     </ul>
                   </div>
-                  <button type="button" class="btn btn--ghost btn--blue archive-hero-desc__toggle" aria-expanded="false" aria-controls="crm-client-timeline-content" data-label-more="<?php echo esc_attr__( 'See more', 'peracrm' ); ?>" data-label-less="<?php echo esc_attr__( 'See less', 'peracrm' ); ?>"><?php esc_html_e( 'See more', 'peracrm' ); ?></button>
+                  <button type="button" class="btn btn--ghost btn--blue mini-btn archive-hero-desc__toggle" aria-expanded="false" aria-controls="crm-client-timeline-content" data-label-more="<?php echo esc_attr__( 'See more', 'peracrm' ); ?>" data-label-less="<?php echo esc_attr__( 'See less', 'peracrm' ); ?>"><?php esc_html_e( 'See more', 'peracrm' ); ?></button>
                 </div>
               </div>
             </section>
