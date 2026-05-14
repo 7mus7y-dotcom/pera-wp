@@ -623,7 +623,7 @@ peracrm_frontend_render_shell_header();
                                 <?php wp_nonce_field( 'peracrm_delete_note', 'peracrm_delete_note_nonce' ); ?>
                                 <input type="hidden" name="peracrm_client_id" value="<?php echo esc_attr( (string) $client_id ); ?>" />
                                 <input type="hidden" name="peracrm_note_id" value="<?php echo esc_attr( (string) absint( $note['id'] ) ); ?>" />
-                                <button type="submit" class="btn btn--ghost btn--red" data-crm-confirm-text="<?php echo esc_attr__( 'Delete this note?', 'peracrm' ); ?>"><?php esc_html_e( 'Delete', 'peracrm' ); ?></button>
+                                <button type="submit" class="btn btn--ghost btn--red mini-btn" data-crm-confirm-text="<?php echo esc_attr__( 'Delete this note?', 'peracrm' ); ?>"><?php esc_html_e( 'Delete', 'peracrm' ); ?></button>
                               </form>
                             </div>
                             <?php endif; ?>
