@@ -192,6 +192,12 @@ get_header();
         <div class="container">
             <?php if ( have_posts() ) : ?>
 
+                <?php
+                if ( function_exists( 'pera_render_blog_archive_sort_control' ) ) {
+                    pera_render_blog_archive_sort_control();
+                }
+                ?>
+
                 <div class="cards-masonry">
                   <?php
                   while ( have_posts() ) :
