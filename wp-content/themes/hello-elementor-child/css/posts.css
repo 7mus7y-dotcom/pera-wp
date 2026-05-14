@@ -122,6 +122,32 @@
   margin: 0;
 }
 
+/* Dates */
+.post-card-date{
+  display:inline-flex;
+  align-items:center;
+  gap:4px;
+}
+
+.post-card-date + .post-card-date{
+  margin-left:10px;
+}
+
+.post-card-date__label{
+  font-weight:600;
+}
+
+@media screen and (max-width: 600px){
+  .post-card-date{
+    display:flex;
+  }
+
+  .post-card-date + .post-card-date{
+    margin-left:0;
+    margin-top:4px;
+  }
+}
+
 /* Read more (optional) */
 .post-card-readmore{
   display:flex;
