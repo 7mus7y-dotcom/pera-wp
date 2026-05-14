@@ -162,7 +162,7 @@ get_header();
 
 
         <?php if ( is_home() && ! is_front_page() ) : ?>
-          <p class="hero-support"><?php esc_html_e( 'Stay up to date with the latest developments in the Istanbul real estate market. Our blog covers everything from district guides and new developments to investment strategies and legal considerations for buying property in Istanbul.', 'peraproperty' ); ?></p>
+          <p class="lead"><?php esc_html_e( 'Stay up to date with the latest developments in the Istanbul real estate market. Our blog covers everything from district guides and new developments to investment strategies and legal considerations for buying property in Istanbul.', 'peraproperty' ); ?></p>
 
           <?php if ( ! empty( $blog_quick_links ) ) : ?>
             <nav class="archive-quick-links" aria-label="<?php esc_attr_e( 'Blog quick links', 'peraproperty' ); ?>">
