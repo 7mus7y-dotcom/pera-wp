@@ -4030,6 +4030,21 @@ body:not(.single-post) tr:nth-child(even) {
 
 .checklist-icon { color: var(--pill-green); flex-shrink: 0; }
 
+.checklist.checklist--auto li {
+  position: relative;
+  padding-left: 1.6rem;
+}
+
+.checklist.checklist--auto li::before {
+  content: "✓";
+  position: absolute;
+  left: 0;
+  top: 0.05rem;
+  font-weight: 700;
+  line-height: 1;
+  color: var(--pill-green);
+}
+
 /* =======================================================
    CITIZENSHIP PAGE: HERO / INTRO (FINAL)
    ======================================================= */
