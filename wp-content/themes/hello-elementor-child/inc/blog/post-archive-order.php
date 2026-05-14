@@ -44,10 +44,10 @@ function pera_get_blog_archive_sort_options() {
  * @return string
  */
 function pera_get_blog_archive_sort_key() {
-	$sort    = isset( $_GET['sort'] ) ? sanitize_key( wp_unslash( $_GET['sort'] ) ) : 'updated';
+	$sort    = isset( $_GET['sort'] ) ? sanitize_key( wp_unslash( $_GET['sort'] ) ) : 'published';
 	$options = pera_get_blog_archive_sort_options();
 
-	return array_key_exists( $sort, $options ) ? $sort : 'updated';
+	return array_key_exists( $sort, $options ) ? $sort : 'published';
 }
 
 /**
