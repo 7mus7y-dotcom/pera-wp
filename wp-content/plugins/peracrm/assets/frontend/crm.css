@@ -7828,3 +7828,8 @@ body.crm-route .crm-page--client-view .peracrm-linked-property-unlink-btn:hover 
     padding-bottom: var(--crm-button-compact-padding-y);
   }
 }
+
+.mini-btn {
+    transform: scale(0.8);
+    transform-origin: center;
+}
