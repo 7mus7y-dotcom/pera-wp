@@ -32,7 +32,18 @@ get_header();
                     : array();
 	                $published_ts = (int) get_post_time( 'U' );
 	                $modified_ts  = (int) get_post_modified_time( 'U' );
-	                $show_updated = $modified_ts > $published_ts;
+                  $has_editorial_updated_date = function_exists( 'pera_get_editorial_updated_date_raw' )
+                    && '' !== pera_get_editorial_updated_date_raw( get_the_ID() );
+	                $show_updated = $has_editorial_updated_date || $modified_ts > $published_ts;
+
+                  if ( function_exists( 'pera_get_public_updated_date' ) ) {
+                    $updated_date_display = pera_get_public_updated_date( '', get_the_ID() );
+                    $updated_datetime     = pera_get_public_updated_datetime_attr( get_the_ID() );
+                  } else {
+                    $updated_date_display = get_the_modified_date();
+                    $updated_datetime     = get_the_modified_date( DATE_W3C );
+                  }
+
                   $author_id    = (int) get_the_author_meta( 'ID' );
                   $tag_terms    = get_the_tags();
 	                
@@ -199,8 +210,8 @@ get_header();
                     <span class="article-meta-separator"> / </span>
                     <span class="article-meta-item">
                       Updated
-                      <time datetime="<?php echo esc_attr( get_the_modified_date( DATE_W3C ) ); ?>">
-                        <?php echo esc_html( get_the_modified_date() ); ?>
+                      <time datetime="<?php echo esc_attr( $updated_datetime ); ?>">
+                        <?php echo esc_html( $updated_date_display ); ?>
                       </time>
                     </span>
                   <?php endif; ?>

@@ -30,6 +30,14 @@ $cat_name    = $primary_cat ? $primary_cat->name : '';
 $cat_link    = $primary_cat ? get_category_link( $primary_cat->term_id ) : '';
 
 $post_subtitle = trim( (string) get_post_meta( $post_id, 'post_subtitle', true ) );
+
+if ( function_exists( 'pera_get_public_updated_date' ) ) {
+  $updated_date_display = pera_get_public_updated_date( 'M j, Y', $post_id );
+  $updated_datetime     = pera_get_public_updated_datetime_attr( $post_id );
+} else {
+  $updated_date_display = get_the_modified_date( 'M j, Y' );
+  $updated_datetime     = get_the_modified_date( DATE_W3C );
+}
 ?>
 
 <article <?php post_class( $card_classes . ' pera-card-shell', $post_id ); ?>>
@@ -98,8 +106,8 @@ $post_subtitle = trim( (string) get_post_meta( $post_id, 'post_subtitle', true )
 
       <span class="article-meta-item">
         <?php esc_html_e( 'Updated:', 'peraproperty' ); ?>
-        <time datetime="<?php echo esc_attr( get_the_modified_date( DATE_W3C ) ); ?>">
-          <?php echo esc_html( get_the_modified_date( 'M j, Y' ) ); ?>
+        <time datetime="<?php echo esc_attr( $updated_datetime ); ?>">
+          <?php echo esc_html( $updated_date_display ); ?>
         </time>
       </span>
     </div>
