@@ -176,12 +176,10 @@ get_header();
     </section>
 
     <?php if ( $archive_description !== '' ) : ?>
-      <section class="section section-soft content-panel--overlap-hero">
-        <div class="container">
-          <div class="card-shell">
-            <div class="lead">
-              <?php echo wp_kses_post( wpautop( $archive_description ) ); ?>
-            </div>
+      <section class="content-panel content-panel--overlap-hero">
+        <div class="content-panel-box">
+          <div class="lead">
+            <?php echo wp_kses_post( wpautop( $archive_description ) ); ?>
           </div>
         </div>
       </section>
