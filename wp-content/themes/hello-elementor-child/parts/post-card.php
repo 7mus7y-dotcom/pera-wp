@@ -86,18 +86,20 @@ $post_subtitle = trim( (string) get_post_meta( $post_id, 'post_subtitle', true )
       <?php echo esc_html( wp_trim_words( get_the_excerpt(), 22, '…' ) ); ?>
     </div>
 
-    <div class="post-card-dates">
-      <span class="post-card-date post-card-date--published">
-        <span class="post-card-date__label"><?php esc_html_e( 'Date published:', 'peraproperty' ); ?></span>
+    <div class="article-meta-secondary post-card-meta-secondary">
+      <span class="article-meta-item">
+        <?php esc_html_e( 'Published:', 'peraproperty' ); ?>
         <time datetime="<?php echo esc_attr( get_the_date( DATE_W3C ) ); ?>">
-          <?php echo esc_html( get_the_date( 'd/m/Y' ) ); ?>
+          <?php echo esc_html( get_the_date( 'M j, Y' ) ); ?>
         </time>
       </span>
 
-      <span class="post-card-date post-card-date--modified">
-        <span class="post-card-date__label"><?php esc_html_e( 'Date updated:', 'peraproperty' ); ?></span>
+      <span class="article-meta-separator"> / </span>
+
+      <span class="article-meta-item">
+        <?php esc_html_e( 'Updated:', 'peraproperty' ); ?>
         <time datetime="<?php echo esc_attr( get_the_modified_date( DATE_W3C ) ); ?>">
-          <?php echo esc_html( get_the_modified_date( 'd/m/Y' ) ); ?>
+          <?php echo esc_html( get_the_modified_date( 'M j, Y' ) ); ?>
         </time>
       </span>
     </div>
