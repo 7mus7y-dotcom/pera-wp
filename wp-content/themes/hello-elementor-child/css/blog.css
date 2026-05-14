@@ -974,3 +974,79 @@
     border-color: var(--brand);
   }
 }
+
+/* =======================================================
+   3. ARCHIVE SORT CONTROL
+   ======================================================= */
+
+.blog-sort {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 0 0 22px;
+  flex-wrap: wrap;
+}
+
+.blog-sort__label {
+  font-size: 14px;
+  font-weight: 700;
+  color: #111827;
+}
+
+.blog-sort__options {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.blog-sort__link {
+  display: inline-flex;
+  align-items: center;
+  min-height: 34px;
+  padding: 0 13px;
+  border: 1px solid #d1d5db;
+  border-radius: 999px;
+  background: #fff;
+  color: #111827;
+  font-size: 13px;
+  font-weight: 700;
+  line-height: 1;
+  text-decoration: none;
+}
+
+.blog-sort__link:hover,
+.blog-sort__link:focus {
+  border-color: #111827;
+  color: #111827;
+  text-decoration: none;
+}
+
+.blog-sort__link.is-active {
+  border-color: #111827;
+  background: #111827;
+  color: #fff;
+}
+
+@media (prefers-color-scheme: dark) {
+  .blog-sort__label {
+    color: #f9fafb;
+  }
+
+  .blog-sort__link {
+    border-color: #374151;
+    background: #020617;
+    color: #f9fafb;
+  }
+
+  .blog-sort__link:hover,
+  .blog-sort__link:focus {
+    border-color: #f9fafb;
+    color: #f9fafb;
+  }
+
+  .blog-sort__link.is-active {
+    border-color: #f9fafb;
+    background: #f9fafb;
+    color: #020617;
+  }
+}
