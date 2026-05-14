@@ -5506,8 +5506,8 @@ body.crm-route #site-header.peracrm-shell-header.is-scrolled .peracrm-header-act
   .crm-page--client-view select,
   .crm-page--client-view textarea,
   .crm-page--client-view .btn {
-    /* Intentional mobile touch target floor for actionable controls/forms. */
-    min-height: 42px;
+    /* Intentional mobile touch target floor for actionable controls/forms. 
+    min-height: 42px;*/
   }
 
   .crm-page--client-view .crm-client-summary {
