@@ -231,12 +231,6 @@
    5A. BLOG INDEX HERO SUPPORT + QUICK LINKS
    ======================================================= */
 
-.hero-support {
-  margin-top: 10px;
-  max-width: 72ch;
-  color: var(--text-soft);
-}
-
 .archive-quick-links {
   margin-top: 14px;
   display: flex;
