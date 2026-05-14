@@ -122,6 +122,18 @@
   margin: 0;
 }
 
+
+.post-card .post-card-meta-secondary{
+  margin-top: 2px;
+  color: #555555;
+}
+
+.post-card .post-card-meta-secondary .article-meta-item,
+.post-card .post-card-meta-secondary .article-meta-separator,
+.post-card .post-card-meta-secondary time{
+  color: inherit;
+}
+
 /* Read more (optional) */
 .post-card-readmore{
   display:flex;
@@ -153,6 +165,17 @@
   .post-card .pill{
     background: var(--pill-green);
     color: #ffffff;
+  }
+
+
+  .post-card .post-card-meta-secondary{
+    color: #d1d5db;
+  }
+
+  .post-card .post-card-meta-secondary .article-meta-item,
+  .post-card .post-card-meta-secondary .article-meta-separator,
+  .post-card .post-card-meta-secondary time{
+    color: inherit;
   }
 
   /* Optional: slightly stronger separation if you ever add inner borders */
