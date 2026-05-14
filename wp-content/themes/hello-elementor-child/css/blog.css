@@ -1002,6 +1002,7 @@
 .blog-sort__link {
   display: inline-flex;
   align-items: center;
+  justify-content: center;
   min-height: 34px;
   padding: 0 13px;
   border: 1px solid #d1d5db;
@@ -1012,6 +1013,14 @@
   font-weight: 700;
   line-height: 1;
   text-decoration: none;
+  cursor: pointer;
+  pointer-events: auto;
+}
+
+.blog-sort__link *,
+.blog-sort__link::before,
+.blog-sort__link::after {
+  pointer-events: none;
 }
 
 .blog-sort__link:hover,
