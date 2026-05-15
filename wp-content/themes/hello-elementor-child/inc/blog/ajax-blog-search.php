@@ -148,7 +148,8 @@ function pera_ajax_blog_search() {
 		'paged'               => $paged,
 		'ignore_sticky_posts' => true,
 		'orderby'             => $options[ $sort ]['orderby'],
-		'order'               => $options[ $sort ]['order'],
+		'order'                 => $options[ $sort ]['order'],
+		'pera_blog_ajax_search' => true,
 	);
 
 	switch ( $archive_type ) {
@@ -188,11 +189,24 @@ function pera_ajax_blog_search() {
 	if ( '' !== trim( $search ) ) {
 		global $wpdb;
 
-		$title_like                 = '%' . $wpdb->esc_like( $search ) . '%';
-		$title_first_orderby_filter = static function ( $orderby ) use ( $wpdb, $title_like ) {
+		$exact_title                = $search;
+		$prefix_title_like          = $wpdb->esc_like( $search ) . '%';
+		$contains_title_like        = '%' . $wpdb->esc_like( $search ) . '%';
+		$title_first_orderby_filter = static function ( $orderby, $query ) use ( $wpdb, $exact_title, $prefix_title_like, $contains_title_like ) {
+			if ( ! ( $query instanceof WP_Query ) || ! $query->get( 'pera_blog_ajax_search' ) ) {
+				return $orderby;
+			}
+
 			$title_match_orderby = $wpdb->prepare(
-				"CASE WHEN {$wpdb->posts}.post_title LIKE %s THEN 0 ELSE 1 END ASC",
-				$title_like
+				"CASE
+					WHEN {$wpdb->posts}.post_title = %s THEN 0
+					WHEN {$wpdb->posts}.post_title LIKE %s THEN 1
+					WHEN {$wpdb->posts}.post_title LIKE %s THEN 2
+					ELSE 3
+				END ASC",
+				$exact_title,
+				$prefix_title_like,
+				$contains_title_like
 			);
 
 			if ( '' === trim( (string) $orderby ) ) {
@@ -202,13 +216,13 @@ function pera_ajax_blog_search() {
 			return $title_match_orderby . ', ' . $orderby;
 		};
 
-		add_filter( 'posts_orderby', $title_first_orderby_filter );
+		add_filter( 'posts_orderby', $title_first_orderby_filter, 10, 2 );
 	}
 
 	$blog_query = new WP_Query( $query_args );
 
 	if ( null !== $title_first_orderby_filter ) {
-		remove_filter( 'posts_orderby', $title_first_orderby_filter );
+		remove_filter( 'posts_orderby', $title_first_orderby_filter, 10 );
 	}
 
 	if ( $blog_query->have_posts() ) {
