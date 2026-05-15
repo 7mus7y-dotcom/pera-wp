@@ -12,6 +12,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 add_action( 'pre_get_posts', 'pera_order_blog_archives_by_selected_date' );
+add_filter( 'posts_clauses', 'pera_order_blog_archive_search_by_title_priority', 10, 2 );
 
 /**
  * Get supported blog archive sort options.
@@ -51,6 +52,28 @@ function pera_get_blog_archive_sort_key() {
 }
 
 /**
+ * Get the explicit SQL ORDER BY clause for a blog archive sort key.
+ *
+ * @param string $sort Selected sort key.
+ * @return string
+ */
+function pera_get_blog_archive_secondary_orderby_sql( $sort ) {
+	global $wpdb;
+
+	switch ( $sort ) {
+		case 'updated':
+			return "{$wpdb->posts}.post_modified DESC";
+
+		case 'oldest':
+			return "{$wpdb->posts}.post_date ASC";
+
+		case 'published':
+		default:
+			return "{$wpdb->posts}.post_date DESC";
+	}
+}
+
+/**
  * Determine whether a query is the public main blog archive query.
  *
  * @param mixed $query WordPress query instance.
@@ -84,6 +107,45 @@ function pera_order_blog_archives_by_selected_date( $query ) {
 
 	$query->set( 'orderby', $choice['orderby'] );
 	$query->set( 'order', $choice['order'] );
+}
+
+/**
+ * Order searched front-end main blog archive queries by title match priority.
+ *
+ * @param array<string,string> $clauses SQL clauses for the query.
+ * @param WP_Query            $query   WordPress query instance.
+ * @return array<string,string>
+ */
+function pera_order_blog_archive_search_by_title_priority( $clauses, $query ) {
+	if ( is_admin() || ! pera_is_blog_archive_query( $query ) ) {
+		return $clauses;
+	}
+
+	$search = trim( (string) $query->get( 's' ) );
+
+	if ( '' === $search ) {
+		return $clauses;
+	}
+
+	global $wpdb;
+
+	$title_match_orderby = $wpdb->prepare(
+		"CASE
+WHEN {$wpdb->posts}.post_title = %s THEN 0
+WHEN {$wpdb->posts}.post_title LIKE %s THEN 1
+WHEN {$wpdb->posts}.post_title LIKE %s THEN 2
+ELSE 3
+		END ASC",
+		$search,
+		$wpdb->esc_like( $search ) . '%',
+		'%' . $wpdb->esc_like( $search ) . '%'
+	);
+
+	$clauses['orderby'] = $title_match_orderby . ', ' . pera_get_blog_archive_secondary_orderby_sql(
+		pera_get_blog_archive_sort_key()
+	);
+
+	return $clauses;
 }
 
 /**
