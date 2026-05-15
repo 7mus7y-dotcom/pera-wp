@@ -1066,6 +1066,14 @@ if ( $qo instanceof WP_Term && $qo->taxonomy === 'property_tags' && function_exi
   </section>
 <?php endif; ?>
 
+
+
+            
+                
+      </div>
+  </div>
+</section>
+
 <?php if ( $is_clean_main_property_archive ) : ?>
   <section class="archive-seo-content section section-soft">
     <div class="container">
@@ -1100,13 +1108,6 @@ if ( $qo instanceof WP_Term && $qo->taxonomy === 'property_tags' && function_exi
     </div>
   </section>
 <?php endif; ?>
-
-            
-                
-            </div>
-        </div>
-    </section>
-
 </main>
 
 <?php
