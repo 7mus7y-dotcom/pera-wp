@@ -945,7 +945,7 @@ $pagination_html = function_exists( 'pera_render_property_pagination' )
 
 ?>
 
-<div class="flex-center" style="margin-top:18px; gap:14px; flex-wrap:wrap;">
+<div class="flex-center mt-sm mb-sm">
   <nav
     class="property-pagination <?php echo $pagination_html !== '' ? '' : 'is-hidden'; ?>"
     aria-label="Property results pages"
