@@ -15,6 +15,28 @@ add_action( 'wp_ajax_pera_blog_search', 'pera_ajax_blog_search' );
 add_action( 'wp_ajax_nopriv_pera_blog_search', 'pera_ajax_blog_search' );
 
 /**
+ * Get the explicit SQL ORDER BY clause for a blog archive sort key.
+ *
+ * @param string $sort Selected sort key.
+ * @return string
+ */
+function pera_blog_search_get_secondary_orderby_sql( $sort ) {
+	global $wpdb;
+
+	switch ( $sort ) {
+		case 'updated':
+			return "{$wpdb->posts}.post_modified DESC";
+
+		case 'oldest':
+			return "{$wpdb->posts}.post_date ASC";
+
+		case 'published':
+		default:
+			return "{$wpdb->posts}.post_date DESC";
+	}
+}
+
+/**
  * Get a sanitized AJAX request value.
  *
  * @param string $key Request key.
@@ -184,7 +206,7 @@ function pera_ajax_blog_search() {
 			break;
 	}
 
-	$title_first_orderby_filter = null;
+	$title_first_clauses_filter = null;
 
 	if ( '' !== trim( $search ) ) {
 		global $wpdb;
@@ -192,9 +214,16 @@ function pera_ajax_blog_search() {
 		$exact_title                = $search;
 		$prefix_title_like          = $wpdb->esc_like( $search ) . '%';
 		$contains_title_like        = '%' . $wpdb->esc_like( $search ) . '%';
-		$title_first_orderby_filter = static function ( $orderby, $query ) use ( $wpdb, $exact_title, $prefix_title_like, $contains_title_like ) {
+		$secondary_orderby          = pera_blog_search_get_secondary_orderby_sql( $sort );
+		$title_first_clauses_filter = static function ( $clauses, $query ) use (
+			$wpdb,
+			$exact_title,
+			$prefix_title_like,
+			$contains_title_like,
+			$secondary_orderby
+		) {
 			if ( ! ( $query instanceof WP_Query ) || ! $query->get( 'pera_blog_ajax_search' ) ) {
-				return $orderby;
+				return $clauses;
 			}
 
 			$title_match_orderby = $wpdb->prepare(
@@ -209,20 +238,18 @@ ELSE 3
 				$contains_title_like
 			);
 
-			if ( '' === trim( (string) $orderby ) ) {
-				return $title_match_orderby;
-			}
+			$clauses['orderby'] = $title_match_orderby . ', ' . $secondary_orderby;
 
-			return $title_match_orderby . ', ' . $orderby;
+			return $clauses;
 		};
 
-		add_filter( 'posts_orderby', $title_first_orderby_filter, 10, 2 );
+		add_filter( 'posts_clauses', $title_first_clauses_filter, 10, 2 );
 	}
 
 	$blog_query = new WP_Query( $query_args );
 
-	if ( null !== $title_first_orderby_filter ) {
-		remove_filter( 'posts_orderby', $title_first_orderby_filter, 10 );
+	if ( null !== $title_first_clauses_filter ) {
+		remove_filter( 'posts_clauses', $title_first_clauses_filter, 10 );
 	}
 
 	if ( $blog_query->have_posts() ) {
