@@ -183,7 +183,33 @@ function pera_ajax_blog_search() {
 			break;
 	}
 
+	$title_first_orderby_filter = null;
+
+	if ( '' !== trim( $search ) ) {
+		global $wpdb;
+
+		$title_like                 = '%' . $wpdb->esc_like( $search ) . '%';
+		$title_first_orderby_filter = static function ( $orderby ) use ( $wpdb, $title_like ) {
+			$title_match_orderby = $wpdb->prepare(
+				"CASE WHEN {$wpdb->posts}.post_title LIKE %s THEN 0 ELSE 1 END ASC",
+				$title_like
+			);
+
+			if ( '' === trim( (string) $orderby ) ) {
+				return $title_match_orderby;
+			}
+
+			return $title_match_orderby . ', ' . $orderby;
+		};
+
+		add_filter( 'posts_orderby', $title_first_orderby_filter );
+	}
+
 	$blog_query = new WP_Query( $query_args );
+
+	if ( null !== $title_first_orderby_filter ) {
+		remove_filter( 'posts_orderby', $title_first_orderby_filter );
+	}
 
 	if ( $blog_query->have_posts() ) {
 		$grid_html = pera_blog_search_render_grid( $blog_query );
