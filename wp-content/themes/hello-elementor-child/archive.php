@@ -245,17 +245,17 @@ get_header();
                 </form>
             <?php endif; ?>
 
+            <?php
+            if ( $is_blog_style_archive && function_exists( 'pera_render_blog_archive_sort_control' ) ) {
+                pera_render_blog_archive_sort_control();
+            }
+            ?>
+
             <?php if ( $is_blog_style_archive ) : ?>
                 <div id="blog-results" data-blog-results>
             <?php endif; ?>
 
             <?php if ( have_posts() ) : ?>
-
-                <?php
-                if ( function_exists( 'pera_render_blog_archive_sort_control' ) ) {
-                    pera_render_blog_archive_sort_control();
-                }
-                ?>
 
                 <div class="cards-masonry">
                       <?php

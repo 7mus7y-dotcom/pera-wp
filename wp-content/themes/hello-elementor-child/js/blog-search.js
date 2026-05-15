@@ -46,12 +46,21 @@
     }
   }
 
+  function getCanonicalArchiveUrl() {
+    var baseUrl = form.getAttribute('action') || window.location.href;
+    var url = new URL(baseUrl, window.location.href);
+
+    url.pathname = url.pathname.replace(/\/page\/\d+\/?$/, '/');
+
+    return url;
+  }
+
   function updateUrl(searchTerm, sort, paged) {
     if (!window.history || !window.history.replaceState) {
       return;
     }
 
-    var url = new URL(window.location.href);
+    var url = getCanonicalArchiveUrl();
 
     if (searchTerm) {
       url.searchParams.set('s', searchTerm);
