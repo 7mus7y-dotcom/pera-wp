@@ -199,10 +199,10 @@ function pera_ajax_blog_search() {
 
 			$title_match_orderby = $wpdb->prepare(
 				"CASE
-					WHEN {$wpdb->posts}.post_title = %s THEN 0
-					WHEN {$wpdb->posts}.post_title LIKE %s THEN 1
-					WHEN {$wpdb->posts}.post_title LIKE %s THEN 2
-					ELSE 3
+WHEN {$wpdb->posts}.post_title = %s THEN 0
+WHEN {$wpdb->posts}.post_title LIKE %s THEN 1
+WHEN {$wpdb->posts}.post_title LIKE %s THEN 2
+ELSE 3
 				END ASC",
 				$exact_title,
 				$prefix_title_like,
