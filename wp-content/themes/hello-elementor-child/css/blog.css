@@ -1049,3 +1049,58 @@
     color: #020617;
   }
 }
+
+/* =======================================================
+   4. ARCHIVE SEARCH
+   ======================================================= */
+
+.blog-search {
+  position: relative;
+  z-index: 20;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 0 0 18px;
+  flex-wrap: wrap;
+}
+
+.blog-search input[type="search"] {
+  flex: 1 1 260px;
+  min-height: 42px;
+  padding: 0 14px;
+  border: 1px solid #d1d5db;
+  border-radius: 999px;
+  background: #ffffff;
+  color: #111827;
+  font: inherit;
+}
+
+.blog-search input[type="search"]:focus {
+  border-color: var(--brand);
+  outline: 2px solid rgba(37, 99, 235, 0.18);
+  outline-offset: 2px;
+}
+
+.blog-search .btn {
+  min-height: 42px;
+  white-space: nowrap;
+}
+
+.blog-search__count {
+  flex-basis: 100%;
+  color: var(--text-soft);
+  font-size: 0.9rem;
+}
+
+.blog-search.is-loading input[type="search"],
+.blog-search.is-loading .btn {
+  opacity: 0.72;
+}
+
+@media (prefers-color-scheme: dark) {
+  .blog-search input[type="search"] {
+    border-color: #374151;
+    background: #020617;
+    color: #f9fafb;
+  }
+}

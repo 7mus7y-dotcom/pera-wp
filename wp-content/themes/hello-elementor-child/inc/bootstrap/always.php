@@ -34,6 +34,7 @@ require_once get_stylesheet_directory() . '/inc/form-spam-guard.php';
 require_once get_stylesheet_directory() . '/inc/property-card-helpers.php';
 require_once get_stylesheet_directory() . '/inc/latest-offers-card.php';
 require_once get_stylesheet_directory() . '/inc/blog/editorial-updated-date.php';
+require_once get_stylesheet_directory() . '/inc/blog/ajax-blog-search.php';
 require_once get_stylesheet_directory() . '/inc/client-portal.php';
 require_once get_stylesheet_directory() . '/inc/enquiry-email-log.php';
 require_once get_stylesheet_directory() . '/inc/whatsapp.php';

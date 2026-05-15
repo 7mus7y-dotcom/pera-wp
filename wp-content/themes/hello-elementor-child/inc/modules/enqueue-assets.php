@@ -226,6 +226,33 @@ if ( $is_home ) {
     );
   }
 
+  $is_blog_search_archive = $is_blog_page
+    || $is_posts_index
+    || is_category()
+    || is_tag()
+    || is_author()
+    || is_date();
+
+  if ( $is_blog_search_archive ) {
+    wp_enqueue_script(
+      'pera-blog-search',
+      get_stylesheet_directory_uri() . '/js/blog-search.js',
+      array(),
+      pera_get_asset_version( '/js/blog-search.js' ),
+      true
+    );
+
+    wp_localize_script(
+      'pera-blog-search',
+      'peraBlogSearch',
+      array(
+        'ajax_url' => admin_url( 'admin-ajax.php' ),
+        'nonce'    => wp_create_nonce( 'pera_blog_search' ),
+        'action'   => 'pera_blog_search',
+      )
+    );
+  }
+
   /* =========================
      6) posts.css
      Rule: blog page OR single post OR blog archive OR single property
