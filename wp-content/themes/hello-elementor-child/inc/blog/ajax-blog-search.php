@@ -15,28 +15,6 @@ add_action( 'wp_ajax_pera_blog_search', 'pera_ajax_blog_search' );
 add_action( 'wp_ajax_nopriv_pera_blog_search', 'pera_ajax_blog_search' );
 
 /**
- * Get the explicit SQL ORDER BY clause for a blog archive sort key.
- *
- * @param string $sort Selected sort key.
- * @return string
- */
-function pera_blog_search_get_secondary_orderby_sql( $sort ) {
-	global $wpdb;
-
-	switch ( $sort ) {
-		case 'updated':
-			return "{$wpdb->posts}.post_modified DESC";
-
-		case 'oldest':
-			return "{$wpdb->posts}.post_date ASC";
-
-		case 'published':
-		default:
-			return "{$wpdb->posts}.post_date DESC";
-	}
-}
-
-/**
  * Get a sanitized AJAX request value.
  *
  * @param string $key Request key.
@@ -214,7 +192,7 @@ function pera_ajax_blog_search() {
 		$exact_title                = $search;
 		$prefix_title_like          = $wpdb->esc_like( $search ) . '%';
 		$contains_title_like        = '%' . $wpdb->esc_like( $search ) . '%';
-		$secondary_orderby          = pera_blog_search_get_secondary_orderby_sql( $sort );
+		$secondary_orderby          = pera_get_blog_archive_secondary_orderby_sql( $sort );
 		$title_first_clauses_filter = static function ( $clauses, $query ) use (
 			$wpdb,
 			$exact_title,
