@@ -1217,7 +1217,6 @@ button.pill:focus-visible {
 .flex-center {
   justify-content: center;
   align-items: center;
-  margin: 20px 0;
 }
 .hero-actions.flex-center {
   display: flex;
