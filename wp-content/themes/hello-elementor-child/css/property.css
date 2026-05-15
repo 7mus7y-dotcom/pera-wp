@@ -28,6 +28,13 @@
   min-height: calc(52vh + var(--header-height));
 }
 
+.pera-v2-archive .property-archive-hero > .hero-content{
+  max-width: var(--container);
+  width: min(var(--container), calc(100% - 40px));
+  margin-left: auto;
+  margin-right: auto;
+}
+
 .pera-v2-archive .property-archive-hero .hero-content{
   padding: 250px 20px 52px;
 }
