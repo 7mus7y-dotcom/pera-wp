@@ -3079,16 +3079,16 @@ body:not(.single-post) tr:nth-child(even) {
   background: var(--bg);
   border-radius: 32px;
   box-shadow: 0 18px 45px rgba(15, 23, 42, 0.18);
-  padding: var(--space-xs);
+  padding: var(--space-sm);
 }
 
 /* Two-column layout */
 .content-panel-grid {
   display: grid;
   grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr);
-  gap: 32px;
+  gap: var(--space-lg);
   align-items: flex-start;
-  padding:var(--space-xs);
+  padding:var(--space-sm);
 }
 .page-template-page-book-a-consultancy .content-panel-grid--single {
   grid-template-columns: minmax(0, 1fr);
@@ -3096,10 +3096,10 @@ body:not(.single-post) tr:nth-child(even) {
 
 /* Section header text */
 .section-header h2 {
-  margin-bottom: 10px;
+  margin-bottom: var(--space-sm);
 }
 .section-header p {
-  margin-bottom: 10px;
+  margin-bottom: var(--space-sm);
   color: var(--text-soft);
 }
 
@@ -3108,7 +3108,7 @@ body:not(.single-post) tr:nth-child(even) {
 .inline-row {
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: var(--space-sm);
   margin: 4px 0 14px;
 }
 .inline-row .icon {
