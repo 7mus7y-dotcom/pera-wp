@@ -188,6 +188,67 @@ get_header();
 
     <section class="section section-posts">
         <div class="container">
+            <?php
+            $is_blog_style_archive = is_home() || is_category() || is_tag() || is_author() || is_date();
+
+            if ( $is_blog_style_archive ) :
+                $blog_search_action = remove_query_arg( array( 'paged', 'page' ), get_pagenum_link( 1, false ) );
+                $blog_search_term   = get_search_query();
+                $blog_archive_type  = 'home';
+                $blog_archive_id    = 0;
+                $blog_archive_year  = 0;
+                $blog_archive_month = 0;
+                $blog_archive_day   = 0;
+
+                if ( is_category() ) {
+                    $blog_archive_type = 'category';
+                    $blog_archive_id   = (int) get_queried_object_id();
+                } elseif ( is_tag() ) {
+                    $blog_archive_type = 'tag';
+                    $blog_archive_id   = (int) get_queried_object_id();
+                } elseif ( is_author() ) {
+                    $blog_archive_type = 'author';
+                    $blog_archive_id   = (int) get_queried_object_id();
+                } elseif ( is_date() ) {
+                    $blog_archive_type  = 'date';
+                    $blog_archive_year  = (int) get_query_var( 'year' );
+                    $blog_archive_month = (int) get_query_var( 'monthnum' );
+                    $blog_archive_day   = (int) get_query_var( 'day' );
+                }
+                ?>
+                <form
+                    class="blog-search"
+                    role="search"
+                    method="get"
+                    action="<?php echo esc_url( $blog_search_action ); ?>"
+                    data-blog-search-form
+                    data-archive-type="<?php echo esc_attr( $blog_archive_type ); ?>"
+                    data-archive-id="<?php echo esc_attr( (string) $blog_archive_id ); ?>"
+                    data-archive-year="<?php echo esc_attr( (string) $blog_archive_year ); ?>"
+                    data-archive-month="<?php echo esc_attr( (string) $blog_archive_month ); ?>"
+                    data-archive-day="<?php echo esc_attr( (string) $blog_archive_day ); ?>"
+                >
+                    <label class="screen-reader-text" for="blog-archive-search"><?php esc_html_e( 'Search blog articles', 'peraproperty' ); ?></label>
+                    <input
+                        id="blog-archive-search"
+                        type="search"
+                        name="s"
+                        value="<?php echo esc_attr( $blog_search_term ); ?>"
+                        placeholder="<?php esc_attr_e( 'Search articles', 'peraproperty' ); ?>"
+                        autocomplete="off"
+                    >
+                    <?php if ( function_exists( 'pera_get_blog_archive_sort_key' ) ) : ?>
+                        <input type="hidden" name="sort" value="<?php echo esc_attr( pera_get_blog_archive_sort_key() ); ?>" data-blog-sort-input>
+                    <?php endif; ?>
+                    <button class="btn btn--solid btn--blue" type="submit"><?php esc_html_e( 'Search', 'peraproperty' ); ?></button>
+                    <span class="blog-search__count" data-blog-search-count aria-live="polite"></span>
+                </form>
+            <?php endif; ?>
+
+            <?php if ( $is_blog_style_archive ) : ?>
+                <div id="blog-results" data-blog-results>
+            <?php endif; ?>
+
             <?php if ( have_posts() ) : ?>
 
                 <?php
@@ -197,42 +258,42 @@ get_header();
                 ?>
 
                 <div class="cards-masonry">
-                  <?php
-                  while ( have_posts() ) :
-                    the_post();
+                      <?php
+                      while ( have_posts() ) :
+                        the_post();
 
-                    set_query_var( 'pera_post_card_args', array(
-                      'variant'      => 'grid',
-                      'card_classes' => '',
-                    ) );
+                        set_query_var( 'pera_post_card_args', array(
+                          'variant'      => 'grid',
+                          'card_classes' => '',
+                        ) );
 
-                    get_template_part( 'parts/post-card' );
+                        get_template_part( 'parts/post-card' );
 
-                  endwhile;
+                      endwhile;
 
-                  set_query_var( 'pera_post_card_args', null );
-                  ?>
+                      set_query_var( 'pera_post_card_args', null );
+                      ?>
                 </div><!-- /.cards-masonry -->
 
                 <?php
                 global $wp_query;
 
-                $big   = 999999999;
-                $links = paginate_links(
-                    array(
-                        'base'      => str_replace( $big, '%#%', esc_url( get_pagenum_link( $big ) ) ),
-                        'format'    => '?paged=%#%',
-                        'current'   => max( 1, get_query_var( 'paged' ) ),
-                        'total'     => (int) $wp_query->max_num_pages,
-                        'type'      => 'array',
-                        'mid_size'  => 1,
-                        'end_size'  => 1,
-                        'prev_text' => __( 'Previous', 'peraproperty' ),
-                        'next_text' => __( 'Next', 'peraproperty' ),
-                    )
-                );
+                    $big   = 999999999;
+                    $links = paginate_links(
+                        array(
+                            'base'      => str_replace( $big, '%#%', esc_url( get_pagenum_link( $big ) ) ),
+                            'format'    => '?paged=%#%',
+                            'current'   => max( 1, get_query_var( 'paged' ) ),
+                            'total'     => (int) $wp_query->max_num_pages,
+                            'type'      => 'array',
+                            'mid_size'  => 1,
+                            'end_size'  => 1,
+                            'prev_text' => __( 'Previous', 'peraproperty' ),
+                            'next_text' => __( 'Next', 'peraproperty' ),
+                        )
+                    );
 
-                if ( ! empty( $links ) ) : ?>
+                    if ( ! empty( $links ) ) : ?>
                     <nav class="posts-pagination" aria-label="<?php esc_attr_e( 'Posts pagination', 'peraproperty' ); ?>">
                         <ul>
                             <?php foreach ( $links as $link ) : ?>
@@ -251,6 +312,10 @@ get_header();
                     </a>
                 </div>
 
+            <?php endif; ?>
+
+            <?php if ( $is_blog_style_archive ) : ?>
+                </div><!-- /#blog-results -->
             <?php endif; ?>
 
         </div><!-- /.container -->
