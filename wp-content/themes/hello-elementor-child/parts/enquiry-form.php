@@ -152,13 +152,13 @@ $form_context = ( $context === 'property' )
     <div class="cta-fieldset">
 
       <div class="cta-field">
-        <label class="cta-label">Full name</label>
-        <input type="text" name="sr_name" class="cta-control" required placeholder="Your full name">
+        <label class="cta-label" for="sr_name">Full name</label>
+        <input type="text" id="sr_name" name="sr_name" class="cta-control" required placeholder="Your full name">
       </div>
 
       <div class="cta-field">
-        <label class="cta-label">Email</label>
-        <input type="email" name="sr_email" class="cta-control" required placeholder="name@example.com">
+        <label class="cta-label" for="sr_email">Email</label>
+        <input type="email" id="sr_email" name="sr_email" class="cta-control" required placeholder="name@example.com">
       </div>
 
       <div class="cta-field">
@@ -253,15 +253,15 @@ $form_context = ( $context === 'property' )
         </div>
 
         <div class="cta-field">
-          <label class="cta-label">Message (optional)</label>
-          <textarea name="sr_message" rows="4" class="cta-control" placeholder="Anything else we should know?"></textarea>
+          <label class="cta-label" for="sr_message">Message (optional)</label>
+          <textarea id="sr_message" name="sr_message" rows="4" class="cta-control" placeholder="Anything else we should know?"></textarea>
         </div>
 
       <?php else : ?>
 
         <div class="cta-field">
-          <label class="cta-label">Message</label>
-          <textarea name="sr_message" rows="4" class="cta-control" placeholder="Tell us what you need (availability, brochure request, viewing, questions, etc.)."></textarea>
+          <label class="cta-label" for="sr_message">Message</label>
+          <textarea id="sr_message" name="sr_message" rows="4" class="cta-control" placeholder="Tell us what you need (availability, brochure request, viewing, questions, etc.)."></textarea>
         </div>
 
       <?php endif; ?>
