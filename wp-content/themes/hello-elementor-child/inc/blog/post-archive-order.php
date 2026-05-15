@@ -74,21 +74,80 @@ function pera_get_blog_archive_secondary_orderby_sql( $sort ) {
 }
 
 /**
+ * Determine whether the current request path is the configured posts page.
+ *
+ * WordPress treats /blog/?s=term as a search request rather than is_home(), so
+ * query conditionals alone are not enough to distinguish it from global search.
+ * Comparing the request path with the posts-page permalink keeps the search
+ * ordering scoped to the normal blog URL.
+ *
+ * @return bool
+ */
+function pera_is_blog_posts_page_request_path() {
+	$posts_page_id = (int) get_option( 'page_for_posts' );
+
+	if ( $posts_page_id <= 0 ) {
+		return false;
+	}
+
+	$posts_page_url = get_permalink( $posts_page_id );
+
+	if ( ! $posts_page_url ) {
+		return false;
+	}
+
+	$posts_page_path = (string) wp_parse_url( $posts_page_url, PHP_URL_PATH );
+	$request_uri     = isset( $_SERVER['REQUEST_URI'] ) ? wp_unslash( $_SERVER['REQUEST_URI'] ) : '';
+	$request_path    = (string) wp_parse_url( $request_uri, PHP_URL_PATH );
+
+	$posts_page_path = '/' . trim( $posts_page_path, '/' );
+	$request_path    = '/' . trim( $request_path, '/' );
+
+	return $request_path === $posts_page_path;
+}
+
+/**
+ * Determine whether a search query is limited to posts.
+ *
+ * @param WP_Query $query WordPress query instance.
+ * @return bool
+ */
+function pera_is_post_search_query( WP_Query $query ) {
+	if ( ! $query->is_search() || '' === trim( (string) $query->get( 's' ) ) ) {
+		return false;
+	}
+
+	$post_type = $query->get( 'post_type' );
+
+	if ( empty( $post_type ) || 'post' === $post_type ) {
+		return true;
+	}
+
+	return is_array( $post_type ) && array( 'post' ) === array_values( $post_type );
+}
+
+/**
  * Determine whether a query is the public main blog archive query.
  *
  * @param mixed $query WordPress query instance.
  * @return bool
  */
 function pera_is_blog_archive_query( $query ) {
-	return $query instanceof WP_Query
-		&& $query->is_main_query()
-		&& (
-			$query->is_home()
-			|| $query->is_category()
-			|| $query->is_tag()
-			|| $query->is_author()
-			|| $query->is_date()
-		);
+	if ( is_admin() || wp_doing_ajax() || ! ( $query instanceof WP_Query ) || ! $query->is_main_query() ) {
+		return false;
+	}
+
+	if (
+		$query->is_home()
+		|| $query->is_category()
+		|| $query->is_tag()
+		|| $query->is_author()
+		|| $query->is_date()
+	) {
+		return true;
+	}
+
+	return pera_is_post_search_query( $query ) && pera_is_blog_posts_page_request_path();
 }
 
 /**
@@ -104,6 +163,10 @@ function pera_order_blog_archives_by_selected_date( $query ) {
 	$options = pera_get_blog_archive_sort_options();
 	$sort    = pera_get_blog_archive_sort_key();
 	$choice  = $options[ $sort ];
+
+	if ( pera_is_post_search_query( $query ) ) {
+		$query->set( 'post_type', 'post' );
+	}
 
 	$query->set( 'orderby', $choice['orderby'] );
 	$query->set( 'order', $choice['order'] );
