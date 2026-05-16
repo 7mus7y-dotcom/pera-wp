@@ -612,7 +612,7 @@ section,
 @media (max-width: 600px) {
   .btn-group {
     flex-direction: column;
-    gap: 4px;
+    gap: 2px;
   }
 
   .btn-group .btn {
