@@ -363,7 +363,7 @@ get_header();
                                 <svg class="icon icon-tick" aria-hidden="true">
                                     <use href="<?php echo get_stylesheet_directory_uri(); ?>/logos-icons/icons.svg#icon-check"></use>
                                 </svg>
-                                We assess market demand, building profile, and district comparables in areas such as <a href="/district/istanbul/besiktas/">Beşiktaş</a>, Şişli, Beyoğlu, and Kadıköy.
+                                We assess market demand, building profile, and district comparables in areas such as Beşiktaş, Şişli, Beyoğlu, and Kadıköy.
                             </li>
                         </ul>
                     </div>
