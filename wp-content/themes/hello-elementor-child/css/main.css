@@ -4008,28 +4008,61 @@ body:not(.single-post) tr:nth-child(even) {
 
 /* Checklist (tick icon list) */
 .checklist {
+  --checklist-icon-color: var(--pill-green);
+  --checklist-icon-bg: transparent;
+  --checklist-icon-size: 1.5rem;
+  --checklist-gap: var(--space-sm, 12px);
+  --checklist-item-gap: 0;
+  --checklist-item-padding: 0;
+  --checklist-surface: var(--inverse);
+  --checklist-border: var(--border-neutral-soft);
+  --checklist-shadow: none;
+  --checklist-text: inherit;
+
   list-style: none;
   padding: 0;
   margin: 0;
+  color: var(--checklist-text);
 }
 .checklist li {
   display: flex;
   align-items: flex-start;
-  gap: 12px;
+  gap: var(--checklist-gap);
+  padding: var(--checklist-item-padding);
   /*margin-bottom: 14px;
   font-size: 16px;*/
   line-height: 1.5;
+}
+.checklist > li + li {
+  margin-top: var(--checklist-item-gap);
+}
+.checklist > li::before {
+  content: "✓";
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: var(--checklist-icon-size);
+  min-width: var(--checklist-icon-size);
+  height: var(--checklist-icon-size);
+  border-radius: var(--pill-radius, 999px);
+  background: var(--checklist-icon-bg);
+  color: var(--checklist-icon-color);
+  font-weight: 800;
+  line-height: 1;
+}
+.checklist > li:has(> .icon-tick)::before {
+  content: none;
 }
 .checklist .icon-tick {
   width: 24px;
   height: 24px;
   flex-shrink: 0;
-  color: var(--pill-green);
+  color: var(--checklist-icon-color);
   fill: none;
   stroke: currentColor;
 }
 
-.checklist-icon { color: var(--pill-green); flex-shrink: 0; }
+.checklist-icon { color: var(--checklist-icon-color); flex-shrink: 0; }
 
 .checklist.checklist--auto li {
   position: relative;
@@ -4041,9 +4074,94 @@ body:not(.single-post) tr:nth-child(even) {
   position: absolute;
   left: 0;
   top: 0.05rem;
+  width: auto;
+  min-width: 0;
+  height: auto;
   font-weight: 700;
   line-height: 1;
-  color: var(--pill-green);
+  color: var(--checklist-icon-color);
+}
+
+.checklist--card,
+.checklist--boxed,
+.checklist--premium {
+  --checklist-item-gap: var(--space-xs, 8px);
+
+  padding: var(--space-md, 20px);
+  border: 1px solid var(--checklist-border);
+  border-radius: var(--radius-lg, 16px);
+  background: var(--checklist-surface);
+  box-shadow: var(--checklist-shadow);
+}
+
+.checklist--card {
+  --checklist-shadow: var(--shadow-panel-soft);
+}
+
+.checklist--boxed {
+  --checklist-surface: var(--bg-soft);
+  --checklist-item-padding: var(--space-xs, 8px) 0;
+}
+
+.checklist--premium {
+  --checklist-icon-bg: var(--pill-bg-soft);
+  --checklist-shadow: var(--shadow-panel-soft);
+
+  border-color: var(--brand);
+}
+
+.checklist--compact {
+  --checklist-icon-size: 1.1rem;
+  --checklist-gap: var(--space-xs, 8px);
+  --checklist-item-gap: var(--space-2xs, 4px);
+
+  font-size: var(--fs-ui-sm, 0.85rem);
+}
+
+.checklist--columns {
+  column-count: 2;
+  column-gap: var(--space-lg, 32px);
+}
+
+.checklist--columns > li {
+  break-inside: avoid;
+  margin-bottom: var(--space-xs, 8px);
+}
+
+@media (max-width: 700px) {
+  .checklist--columns {
+    column-count: 1;
+  }
+}
+
+@media (prefers-color-scheme: dark) {
+  .checklist--card,
+  .checklist--boxed,
+  .checklist--premium {
+    --checklist-surface: var(--bg);
+    --checklist-border: var(--glass-border-soft);
+    --checklist-text: var(--text);
+  }
+
+  .checklist--premium {
+    --checklist-icon-bg: var(--pill-bg-dark);
+  }
+}
+
+[data-theme="dark"] .checklist--card,
+[data-theme="dark"] .checklist--boxed,
+[data-theme="dark"] .checklist--premium,
+.dark .checklist--card,
+.dark .checklist--boxed,
+.dark .checklist--premium {
+  --checklist-surface: var(--bg);
+  --checklist-border: var(--glass-border-soft);
+  --checklist-text: var(--text);
+}
+
+[data-theme="dark"] .checklist--premium,
+.dark .checklist--premium {
+  --checklist-icon-bg: var(--pill-bg-dark);
 }
 
 /* =======================================================
