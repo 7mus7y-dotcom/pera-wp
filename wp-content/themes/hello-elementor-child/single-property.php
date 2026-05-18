@@ -697,36 +697,41 @@ $custom_video_text = $custom_video_text ? wp_kses_post( wpautop( $custom_video_t
         }
       }
       ?>
-
+  <!-- /summary -->
       <?php if ( $summary_html ) : ?>
 
         <?php
         $summary_html = apply_filters( 'the_content', $summary_html );
-
-        // Ensure FIRST list has checklist class
-        if ( preg_match( '/<ul\b/i', $summary_html ) ) {
-          $summary_html = preg_replace( '/<ul\b(?![^>]*\bclass=)/i', '<ul class="checklist"', $summary_html, 1 );
-          $summary_html = preg_replace( '/<ul\b([^>]*\bclass=")([^"]*)"/i', '<ul$1$2 checklist"', $summary_html, 1 );
-        } elseif ( preg_match( '/<ol\b/i', $summary_html ) ) {
-          $summary_html = preg_replace( '/<ol\b(?![^>]*\bclass=)/i', '<ol class="checklist"', $summary_html, 1 );
-          $summary_html = preg_replace( '/<ol\b([^>]*\bclass=")([^"]*)"/i', '<ol$1$2 checklist"', $summary_html, 1 );
+      
+        /*
+         * Upgrade the FIRST list in the summary to the new checklist component.
+         * Do not inject SVG icons; .checklist handles ticks via CSS ::before.
+         */
+        if ( preg_match( '/<(ul|ol)\b/i', $summary_html, $matches ) ) {
+          $list_tag = strtolower( $matches[1] );
+      
+          if ( preg_match( '/<' . $list_tag . '\b[^>]*\bclass="/i', $summary_html ) ) {
+            $summary_html = preg_replace(
+              '/<' . $list_tag . '\b([^>]*\bclass=")([^"]*)"/i',
+              '<' . $list_tag . '$1$2 checklist checklist--card checklist--premium"',
+              $summary_html,
+              1
+            );
+          } else {
+            $summary_html = preg_replace(
+              '/<' . $list_tag . '\b/i',
+              '<' . $list_tag . ' class="checklist checklist--card checklist--premium"',
+              $summary_html,
+              1
+            );
+          }
         }
-
-        $tick_svg = '<svg class="icon-check checklist-icon" aria-hidden="true" focusable="false" width="18" height="18">
-          <use href="' . esc_url( get_stylesheet_directory_uri() . '/logos-icons/icons.svg#icon-check' ) . '"></use>
-        </svg>';
-
-        $summary_html = preg_replace(
-          '/<li(\s[^>]*)?>/i',
-          '$0' . $tick_svg,
-          $summary_html
-        );
         ?>
-
+      
         <div class="property-overview__summary">
           <?php echo $summary_html; ?>
         </div>
-
+      
       <?php endif; ?>
 
     </div><!-- /.property-overview__main -->
