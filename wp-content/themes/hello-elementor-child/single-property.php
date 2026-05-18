@@ -713,14 +713,14 @@ $custom_video_text = $custom_video_text ? wp_kses_post( wpautop( $custom_video_t
           if ( preg_match( '/<' . $list_tag . '\b[^>]*\bclass="/i', $summary_html ) ) {
             $summary_html = preg_replace(
               '/<' . $list_tag . '\b([^>]*\bclass=")([^"]*)"/i',
-              '<' . $list_tag . '$1$2 checklist checklist--card checklist--premium"',
+              '<' . $list_tag . '$1$2 checklist checklist--premium"',
               $summary_html,
               1
             );
           } else {
             $summary_html = preg_replace(
               '/<' . $list_tag . '\b/i',
-              '<' . $list_tag . ' class="checklist checklist--card checklist--premium"',
+              '<' . $list_tag . ' class="checklist checklist--premium"',
               $summary_html,
               1
             );
