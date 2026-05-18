@@ -15,6 +15,33 @@ function pera_get_asset_version( string $relative_path ): string {
   return wp_get_theme()->get( 'Version' );
 }
 
+if ( ! function_exists( 'pera_get_term_short_label' ) ) {
+  /**
+   * Get a frontend-friendly taxonomy term label, falling back to the full name.
+   *
+   * @param mixed $term WP_Term-like object.
+   */
+  function pera_get_term_short_label( $term ): string {
+    if ( ! $term || is_wp_error( $term ) ) {
+      return '';
+    }
+
+    $label = '';
+
+    if ( function_exists( 'get_field' ) ) {
+      $label = get_field( 'short_label', $term );
+
+      if ( ! $label && ! empty( $term->taxonomy ) && ! empty( $term->term_id ) ) {
+        $label = get_field( 'short_label', $term->taxonomy . '_' . $term->term_id );
+      }
+    }
+
+    $label = is_string( $label ) ? trim( $label ) : '';
+
+    return $label !== '' ? $label : (string) $term->name;
+  }
+}
+
 
 
 if ( ! function_exists( 'pera_get_site_logo_markup' ) ) {
