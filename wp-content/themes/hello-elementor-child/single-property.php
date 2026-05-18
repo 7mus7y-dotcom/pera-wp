@@ -892,10 +892,10 @@ $custom_video_text = $custom_video_text ? wp_kses_post( wpautop( $custom_video_t
           ?>
           <?php if ( ! is_wp_error( $tag_link ) && $tag_link ) : ?>
             <a class="pill pill--green" href="<?php echo esc_url( $tag_link ); ?>">
-              <?php echo esc_html( $tag->name ); ?>
+              <?php echo esc_html( pera_get_term_short_label( $tag ) ); ?>
             </a>
           <?php else : ?>
-            <span class="pill pill--green"><?php echo esc_html( $tag->name ); ?></span>
+            <span class="pill pill--green"><?php echo esc_html( pera_get_term_short_label( $tag ) ); ?></span>
           <?php endif; ?>
         <?php endforeach; ?>
       </div>
