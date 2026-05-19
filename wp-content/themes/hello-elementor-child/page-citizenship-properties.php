@@ -166,9 +166,6 @@ if ( '' !== trim( wp_strip_all_tags( (string) $description_content ) ) ) {
 					<?php esc_html_e( 'Map', 'hello-elementor-child' ); ?>
 				</button>
 			</div>
-			<?php if ( current_user_can( 'manage_options' ) ) : ?>
-				<pre id="citizenship-properties-map-debug" class="citizenship-map-debug" aria-live="polite"><?php echo esc_html__( 'Map debug panel: waiting for runtime state…', 'hello-elementor-child' ); ?></pre>
-			<?php endif; ?>
 
 			<?php if ( ! empty( $cards ) ) : ?>
 				<div
@@ -192,6 +189,9 @@ if ( '' !== trim( wp_strip_all_tags( (string) $description_content ) ) ) {
 				<p><?php esc_html_e( 'No citizenship-tagged property offers are available right now. Please check back soon.', 'hello-elementor-child' ); ?></p>
 			<?php endif; ?>
 		</div>
+			<?php if ( current_user_can( 'manage_options' ) ) : ?>
+				<pre id="citizenship-properties-map-debug" class="citizenship-map-debug" aria-live="polite"><?php echo esc_html__( 'Map debug panel: waiting for runtime state…', 'hello-elementor-child' ); ?></pre>
+			<?php endif; ?>
 	</section>
 </main>
 
