@@ -1,80 +1,92 @@
+<?php
+$cta_args = get_query_var( 'pera_contact_cta_args', array() );
+$cta_args = is_array( $cta_args ) ? $cta_args : array();
+
+$heading = isset( $cta_args['heading'] ) && is_scalar( $cta_args['heading'] ) && trim( (string) $cta_args['heading'] ) !== ''
+	? (string) $cta_args['heading']
+	: 'Talk to Pera about your Istanbul plans';
+
+$text = isset( $cta_args['text'] ) && is_scalar( $cta_args['text'] ) && trim( (string) $cta_args['text'] ) !== ''
+	? (string) $cta_args['text']
+	: 'Whether you’re buying, selling, or renting in Istanbul, our team can walk you through the numbers, the legal steps, and the neighbourhoods that fit your strategy.';
+
+$whatsapp_message = isset( $cta_args['whatsapp_message'] ) && is_scalar( $cta_args['whatsapp_message'] ) && trim( (string) $cta_args['whatsapp_message'] ) !== ''
+	? (string) $cta_args['whatsapp_message']
+	: "Hello Pera Property, I'd like to discuss Istanbul real estate.";
+
+$whatsapp_url = esc_url( 'https://wa.me/905452054356?text=' . rawurlencode( $whatsapp_message ) );
+$icon_sprite  = esc_url( get_stylesheet_directory_uri() . '/logos-icons/icons.svg#icon-check' );
+?>
 <section class="section section-soft">
-    <div class="content-panel-box border-dm">
-        <div class="content-panel-grid">
+	<div class="content-panel-box border-dm">
+		<div class="content-panel-grid">
 
-            <!-- LEFT COLUMN -->
-            <div>
-                <header class="section-header">
-                    <h2>Talk to Pera about your Istanbul plans</h2>
-                    <p>
-                        Whether you’re buying, selling, or renting in Istanbul, our team can walk you
-                        through the numbers, the legal steps, and the neighbourhoods that fit your strategy.
-                    </p>
-                </header>
+			<!-- LEFT COLUMN -->
+			<div>
+				<header class="section-header">
+					<h2><?php echo esc_html( $heading ); ?></h2>
+					<p><?php echo esc_html( $text ); ?></p>
+				</header>
 
-                <ul class="checklist">
-                    <li>
-                        <svg class="icon icon-tick" aria-hidden="true">
-                            <use href="<?php echo get_stylesheet_directory_uri(); ?>/logos-icons/icons.svg#icon-check"></use>
-                        </svg>
-                        Reliable, data-driven advice.
-                    </li>
+				<ul class="checklist">
+					<li>
+						<svg class="icon icon-tick" aria-hidden="true">
+							<use href="<?php echo $icon_sprite; ?>"></use>
+						</svg>
+						Reliable, data-driven advice.
+					</li>
 
-                    <li>
-                        <svg class="icon icon-tick" aria-hidden="true">
-                            <use href="<?php echo get_stylesheet_directory_uri(); ?>/logos-icons/icons.svg#icon-check"></use>
-                        </svg>
-                        On-the-ground Istanbul expertise.
-                    </li>
+					<li>
+						<svg class="icon icon-tick" aria-hidden="true">
+							<use href="<?php echo $icon_sprite; ?>"></use>
+						</svg>
+						On-the-ground Istanbul expertise.
+					</li>
 
-                    <li>
-                        <svg class="icon icon-tick" aria-hidden="true">
-                            <use href="<?php echo get_stylesheet_directory_uri(); ?>/logos-icons/icons.svg#icon-check"></use>
-                        </svg>
-                        Multi-lingual support.
-                    </li>
-                </ul>
-            </div>
+					<li>
+						<svg class="icon icon-tick" aria-hidden="true">
+							<use href="<?php echo $icon_sprite; ?>"></use>
+						</svg>
+						Multi-lingual support.
+					</li>
+				</ul>
+			</div>
 
-            <!-- RIGHT COLUMN -->
-            <div class="media-frame">
+			<!-- RIGHT COLUMN -->
+			<div class="media-frame">
+				<div class="media-frame__bg">
+					<?php
+					echo wp_get_attachment_image(
+						55686,
+						'pera-card',
+						false,
+						array(
+							'class'    => 'media-frame__bg-img',
+							'loading'  => 'lazy',
+							'decoding' => 'async',
+							'alt'      => 'Isometric illustration of Beşiktaş',
+						)
+					);
+					?>
+				</div>
 
-                <!-- RESPONSIVE BACKGROUND IMAGE -->
-                <div class="media-frame__bg">
-                    <?php
-                    echo wp_get_attachment_image(
-                        55686,             // The attachment ID
-                        'pera-card',           // WP will generate srcset automatically
-                        false,
-                        array(
-                            'class'    => 'media-frame__bg-img',
-                            'loading'  => 'lazy',
-                            'decoding' => 'async',
-                            'alt'      => 'Isometric illustration of Beşiktaş'
-                        )
-                    );
-                    ?>
-                </div>
+				<div class="hero-overlay"></div>
 
-                <div class="hero-overlay"></div>
+				<div class="hero-content section--center">
+					<h3 class="text-light">Speak with a Consultant</h3>
 
-                <div class="hero-content section--center">
-                    <h3 class="text-light">Speak with a Consultant</h3>
+					<div class="hero-actions flex-center">
+						<a href="https://www.peraproperty.com/contact-us/" class="btn btn--solid btn--blue">
+							Book a consultation
+						</a>
 
-                    <div class="hero-actions flex-center">
-                        <a href="https://www.peraproperty.com/contact-us/" class="btn btn--solid btn--blue">
-                            Book a consultation
-                        </a>
+						<a href="<?php echo $whatsapp_url; ?>" class="btn btn--solid btn--green">
+							Chat on WhatsApp
+						</a>
+					</div>
+				</div>
+			</div>
 
-                        <a href="https://wa.me/905452054356?text=Hello%20Pera%20Property%2C%20I%27d%20like%20to%20discuss%20Istanbul%20real%20estate."
-                           class="btn btn--solid btn--green">
-                            Chat on WhatsApp
-                        </a>
-                    </div>
-                </div>
-
-            </div><!-- media-frame -->
-
-        </div><!-- content-panel-grid -->
-    </div><!-- content-panel-box -->
+		</div>
+	</div>
 </section>
