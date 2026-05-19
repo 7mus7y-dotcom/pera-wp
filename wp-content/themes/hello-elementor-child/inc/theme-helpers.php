@@ -241,6 +241,62 @@ function pera_is_blog_archive() {
 }
 
 /**
+ * Get normalized featured guide post IDs for a category term.
+ *
+ * @param WP_Term|null $term Category term.
+ * @return int[]
+ */
+function pera_get_category_featured_guide_post_ids( ?WP_Term $term = null ): array {
+    if ( ! ( $term instanceof WP_Term ) ) {
+        return array();
+    }
+
+    if ( ! function_exists( 'pera_get_term_acf_field' ) ) {
+        return array();
+    }
+
+    $raw_featured_links = pera_get_term_acf_field( 'featured_guide_links', $term );
+    if ( ! is_array( $raw_featured_links ) || empty( $raw_featured_links ) ) {
+        return array();
+    }
+
+    $featured_post_ids = array();
+
+    foreach ( $raw_featured_links as $featured_item ) {
+        $candidate_post_id = 0;
+
+        if ( $featured_item instanceof WP_Post ) {
+            $candidate_post_id = (int) $featured_item->ID;
+        } elseif ( is_numeric( $featured_item ) ) {
+            $candidate_post_id = (int) $featured_item;
+        } elseif ( is_array( $featured_item ) ) {
+            if ( isset( $featured_item['ID'] ) && is_numeric( $featured_item['ID'] ) ) {
+                $candidate_post_id = (int) $featured_item['ID'];
+            } elseif ( isset( $featured_item['id'] ) && is_numeric( $featured_item['id'] ) ) {
+                $candidate_post_id = (int) $featured_item['id'];
+            }
+        }
+
+        if ( $candidate_post_id <= 0 ) {
+            continue;
+        }
+
+        $post_status = get_post_status( $candidate_post_id );
+        if ( 'publish' !== $post_status ) {
+            continue;
+        }
+
+        $featured_post_ids[] = $candidate_post_id;
+    }
+
+    if ( empty( $featured_post_ids ) ) {
+        return array();
+    }
+
+    return array_values( array_unique( $featured_post_ids ) );
+}
+
+/**
  * Are we on a PROPERTY archive (CPT or its taxonomies)?
  */
 function pera_is_property_archive() {
