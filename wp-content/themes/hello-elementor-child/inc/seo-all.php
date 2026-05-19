@@ -1496,6 +1496,74 @@ add_action( 'wp_head', function () {
 
 }, 12 );
 
+
+/**
+ * Optional term-level FAQ schema via ACF/meta field on blog category/tag archives.
+ * Field key: seo_faq_schema_json (raw JSON only, without <script> tags).
+ */
+add_action( 'wp_head', function () {
+  if ( is_admin() ) {
+    return;
+  }
+
+  if ( ! is_category() && ! is_tag() ) {
+    return;
+  }
+
+  if ( ! empty( $GLOBALS['pera_schema_faq_emitted'] ) ) {
+    return;
+  }
+
+  if (
+    function_exists( 'pera_schema_should_emit_type' )
+    && ! pera_schema_should_emit_type(
+      'FAQPage',
+      array(
+        'context' => 'manual_term_faq',
+        'term_id' => (int) get_queried_object_id(),
+      )
+    )
+  ) {
+    return;
+  }
+
+  $term = get_queried_object();
+  if ( ! ( $term instanceof WP_Term ) ) {
+    return;
+  }
+
+  $faq_json = '';
+
+  if ( function_exists( 'pera_get_term_acf_field' ) ) {
+    $raw = pera_get_term_acf_field( 'seo_faq_schema_json', $term );
+    if ( is_scalar( $raw ) ) {
+      $faq_json = trim( (string) $raw );
+    }
+  }
+
+  if ( $faq_json === '' ) {
+    $faq_json = trim( (string) get_term_meta( (int) $term->term_id, 'seo_faq_schema_json', true ) );
+  }
+
+  if ( $faq_json === '' ) {
+    return;
+  }
+
+  $decoded = json_decode( $faq_json, true );
+  if ( json_last_error() !== JSON_ERROR_NONE || ! is_array( $decoded ) ) {
+    return;
+  }
+
+  $encoded = wp_json_encode( $decoded, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE );
+  if ( ! is_string( $encoded ) || $encoded === '' ) {
+    return;
+  }
+
+  echo "<!-- FAQ Schema (Term ACF) -->\n";
+  echo '<script type="application/ld+json">' . $encoded . '</script>' . "\n";
+  $GLOBALS['pera_schema_faq_emitted'] = true;
+}, 13 );
+
 /**
  * Optional per-post/page FAQ schema via ACF/meta field.
  * Field key: seo_faq_schema (raw JSON only, without <script> tags).
