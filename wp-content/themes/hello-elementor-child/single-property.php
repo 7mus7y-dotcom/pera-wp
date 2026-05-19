@@ -1339,8 +1339,8 @@ $custom_video_text = $custom_video_text ? wp_kses_post( wpautop( $custom_video_t
       </div>
 
       <!-- RIGHT: media CTA -->
-      <div class="media-frame media-frame--image-fill">
-        <div class="media-frame__bg">
+    <div class="media-frame media-frame--image-fill media-frame--cta">
+      <div class="media-frame__bg">
           <?php
             echo wp_get_attachment_image(
               55686,
