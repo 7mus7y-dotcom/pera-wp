@@ -18,7 +18,7 @@ function pera_get_asset_version( string $relative_path ): string {
 
 if ( ! function_exists( 'pera_get_term_acf_field' ) ) {
   /**
-   * Get an ACF field value for a taxonomy term using the safe taxonomy_termId key.
+   * Get an ACF field value for a taxonomy term using resilient candidate keys.
    *
    * @return mixed|null
    */
@@ -42,7 +42,22 @@ if ( ! function_exists( 'pera_get_term_acf_field' ) ) {
       return null;
     }
 
-    return get_field( $field_name, $term->taxonomy . '_' . (int) $term->term_id );
+    $term_id    = (int) $term->term_id;
+    $candidates = array(
+      $term,
+      $term->taxonomy . '_' . $term_id,
+      'term_' . $term_id,
+      $term_id,
+    );
+
+    foreach ( $candidates as $candidate ) {
+      $value = get_field( $field_name, $candidate );
+      if ( $value !== null && $value !== false && $value !== '' && $value !== array() ) {
+        return $value;
+      }
+    }
+
+    return null;
   }
 }
 
