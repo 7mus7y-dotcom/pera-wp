@@ -224,31 +224,29 @@ get_header();
 
     <?php
     if ( is_category() && ! empty( $archive_featured_post_ids ) ) :
-        if ( ! empty( $archive_featured_post_ids ) ) :
-            $featured_heading = trim( $archive_featured_heading ) !== '' ? $archive_featured_heading : __( 'Start with these guides', 'peraproperty' );
-            ?>
-            <section class="section">
-              <div class="container">
-                <div class="content-panel-box">
-                  <h2><?php echo esc_html( $featured_heading ); ?></h2>
-                  <?php if ( trim( wp_strip_all_tags( $archive_featured_intro ) ) !== '' ) : ?>
-                    <div class="lead"><?php echo wp_kses_post( apply_filters( 'the_content', $archive_featured_intro ) ); ?></div>
-                  <?php endif; ?>
-                  <div class="archive-cats-grid cards-scroll-mobile">
-                    <?php foreach ( $archive_featured_post_ids as $featured_post_id ) : ?>
-                      <?php $featured_post = get_post( $featured_post_id ); ?>
-                      <?php if ( ! ( $featured_post instanceof WP_Post ) ) { continue; } ?>
-                      <article class="archive-cat-card card-shell">
-                        <h3 class="post-card-title"><a href="<?php echo esc_url( get_permalink( $featured_post ) ); ?>"><?php echo esc_html( get_the_title( $featured_post ) ); ?></a></h3>
-                        <p class="archive-cat-desc"><?php echo esc_html( wp_trim_words( wp_strip_all_tags( get_the_excerpt( $featured_post ) ), 24, '…' ) ); ?></p>
-                        <div class="card-meta-row"><a href="<?php echo esc_url( get_permalink( $featured_post ) ); ?>" class="btn btn--ghost btn--black btn-card"><?php esc_html_e( 'Read article', 'peraproperty' ); ?></a></div>
-                      </article>
-                    <?php endforeach; ?>
-                  </div>
-                </div>
+        $featured_heading = trim( $archive_featured_heading ) !== '' ? $archive_featured_heading : __( 'Start with these guides', 'peraproperty' );
+        ?>
+        <section class="section">
+          <div class="container">
+            <div class="content-panel-box">
+              <h2><?php echo esc_html( $featured_heading ); ?></h2>
+              <?php if ( trim( wp_strip_all_tags( $archive_featured_intro ) ) !== '' ) : ?>
+                <div class="lead"><?php echo wp_kses_post( apply_filters( 'the_content', $archive_featured_intro ) ); ?></div>
+              <?php endif; ?>
+              <div class="archive-cats-grid cards-scroll-mobile">
+                <?php foreach ( $archive_featured_post_ids as $featured_post_id ) : ?>
+                  <?php $featured_post = get_post( $featured_post_id ); ?>
+                  <?php if ( ! ( $featured_post instanceof WP_Post ) ) { continue; } ?>
+                  <article class="archive-cat-card card-shell">
+                    <h3 class="post-card-title"><a href="<?php echo esc_url( get_permalink( $featured_post ) ); ?>"><?php echo esc_html( get_the_title( $featured_post ) ); ?></a></h3>
+                    <p class="archive-cat-desc"><?php echo esc_html( wp_trim_words( wp_strip_all_tags( get_the_excerpt( $featured_post ) ), 24, '…' ) ); ?></p>
+                    <div class="card-meta-row"><a href="<?php echo esc_url( get_permalink( $featured_post ) ); ?>" class="btn btn--ghost btn--black btn-card"><?php esc_html_e( 'Read article', 'peraproperty' ); ?></a></div>
+                  </article>
+                <?php endforeach; ?>
               </div>
-            </section>
-        <?php endif; ?>
+            </div>
+          </div>
+        </section>
     <?php endif; ?>
 
 
