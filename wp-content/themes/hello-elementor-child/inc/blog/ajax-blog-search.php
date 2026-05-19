@@ -32,15 +32,20 @@ function pera_blog_search_request_value( $key ) {
  * Render post cards for a blog search query.
  *
  * @param WP_Query $query Search query.
+ * @param int[]    $skip_post_ids Post IDs to skip while rendering.
  * @return string
  */
-function pera_blog_search_render_grid( WP_Query $query ) {
+function pera_blog_search_render_grid( WP_Query $query, array $skip_post_ids = array() ) {
 	ob_start();
 	?>
 	<div class="cards-masonry">
 		<?php
 		while ( $query->have_posts() ) :
 			$query->the_post();
+
+			if ( ! empty( $skip_post_ids ) && in_array( (int) get_the_ID(), $skip_post_ids, true ) ) {
+				continue;
+			}
 
 			set_query_var(
 				'pera_post_card_args',
@@ -230,8 +235,17 @@ ELSE 3
 		remove_filter( 'posts_clauses', $title_first_clauses_filter, 10 );
 	}
 
+	$skip_featured_post_ids = array();
+
+	if ( 'category' === $archive_type && $archive_id > 0 && '' === trim( $search ) && function_exists( 'pera_get_category_featured_guide_post_ids' ) ) {
+		$category_term = get_term( $archive_id, 'category' );
+		if ( $category_term instanceof WP_Term ) {
+			$skip_featured_post_ids = pera_get_category_featured_guide_post_ids( $category_term );
+		}
+	}
+
 	if ( $blog_query->have_posts() ) {
-		$grid_html = pera_blog_search_render_grid( $blog_query );
+		$grid_html = pera_blog_search_render_grid( $blog_query, $skip_featured_post_ids );
 	} else {
 		$grid_html = '<div class="no-posts"><p>' . esc_html__( 'No articles found matching your search.', 'peraproperty' ) . '</p></div>';
 	}

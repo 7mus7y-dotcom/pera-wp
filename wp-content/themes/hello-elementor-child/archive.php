@@ -20,7 +20,7 @@ get_header();
     $archive_description = '';
     $archive_featured_heading = '';
     $archive_featured_intro   = '';
-    $archive_featured_posts   = array();
+    $archive_featured_post_ids = array();
     $archive_bottom_content   = '';
     $archive_faq_html         = '';
     $archive_cta_heading      = '';
@@ -90,7 +90,9 @@ get_header();
 
                 $archive_featured_heading = (string) ( pera_get_term_acf_field( 'featured_links_heading', $term ) ?? '' );
                 $archive_featured_intro   = (string) ( pera_get_term_acf_field( 'featured_links_intro', $term ) ?? '' );
-                $archive_featured_posts   = pera_get_term_acf_field( 'featured_guide_links', $term );
+                if ( function_exists( 'pera_get_category_featured_guide_post_ids' ) ) {
+                    $archive_featured_post_ids = pera_get_category_featured_guide_post_ids( $term );
+                }
                 $archive_bottom_content   = (string) ( pera_get_term_acf_field( 'archive_bottom_content', $term ) ?? '' );
                 $archive_faq_html         = (string) ( pera_get_term_acf_field( 'seo_faq_schema_2', $term ) ?? '' );
                 $archive_cta_heading      = (string) ( pera_get_term_acf_field( 'archive_cta_heading', $term ) ?? '' );
@@ -221,17 +223,8 @@ get_header();
 
 
     <?php
-    if ( is_category() && is_array( $archive_featured_posts ) && ! empty( $archive_featured_posts ) ) :
-        $featured_posts = array();
-        foreach ( $archive_featured_posts as $featured_item ) {
-            $featured_post = is_object( $featured_item ) ? $featured_item : get_post( (int) $featured_item );
-            if ( ! ( $featured_post instanceof WP_Post ) || $featured_post->post_status !== 'publish' ) {
-                continue;
-            }
-            $featured_posts[] = $featured_post;
-        }
-
-        if ( ! empty( $featured_posts ) ) :
+    if ( is_category() && ! empty( $archive_featured_post_ids ) ) :
+        if ( ! empty( $archive_featured_post_ids ) ) :
             $featured_heading = trim( $archive_featured_heading ) !== '' ? $archive_featured_heading : __( 'Start with these guides', 'peraproperty' );
             ?>
             <section class="section">
@@ -242,7 +235,9 @@ get_header();
                     <div class="lead"><?php echo wp_kses_post( apply_filters( 'the_content', $archive_featured_intro ) ); ?></div>
                   <?php endif; ?>
                   <div class="archive-cats-grid cards-scroll-mobile">
-                    <?php foreach ( $featured_posts as $featured_post ) : ?>
+                    <?php foreach ( $archive_featured_post_ids as $featured_post_id ) : ?>
+                      <?php $featured_post = get_post( $featured_post_id ); ?>
+                      <?php if ( ! ( $featured_post instanceof WP_Post ) ) { continue; } ?>
                       <article class="archive-cat-card card-shell">
                         <h3 class="post-card-title"><a href="<?php echo esc_url( get_permalink( $featured_post ) ); ?>"><?php echo esc_html( get_the_title( $featured_post ) ); ?></a></h3>
                         <p class="archive-cat-desc"><?php echo esc_html( wp_trim_words( wp_strip_all_tags( get_the_excerpt( $featured_post ) ), 24, '…' ) ); ?></p>
@@ -327,11 +322,23 @@ get_header();
             <?php endif; ?>
 
             <?php if ( have_posts() ) : ?>
+                <?php
+                $skip_featured_post_ids = array();
+                $is_archive_search      = '' !== trim( get_search_query() );
+
+                if ( is_category() && ! $is_archive_search && ! empty( $archive_featured_post_ids ) ) {
+                    $skip_featured_post_ids = $archive_featured_post_ids;
+                }
+                ?>
 
                 <div class="cards-masonry">
                       <?php
                       while ( have_posts() ) :
                         the_post();
+
+                        if ( ! empty( $skip_featured_post_ids ) && in_array( (int) get_the_ID(), $skip_featured_post_ids, true ) ) {
+                            continue;
+                        }
 
                         set_query_var( 'pera_post_card_args', array(
                           'variant'      => 'grid',
