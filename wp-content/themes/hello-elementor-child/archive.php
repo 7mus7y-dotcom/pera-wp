@@ -88,9 +88,9 @@ get_header();
                     $archive_description = (string) $acf_intro;
                 }
 
-                $archive_featured_heading = (string) ( pera_get_term_acf_field( 'archive_featured_heading', $term ) ?? '' );
-                $archive_featured_intro   = (string) ( pera_get_term_acf_field( 'archive_featured_intro', $term ) ?? '' );
-                $archive_featured_posts   = pera_get_term_acf_field( 'archive_featured_posts', $term );
+                $archive_featured_heading = (string) ( pera_get_term_acf_field( 'featured_links_heading', $term ) ?? '' );
+                $archive_featured_intro   = (string) ( pera_get_term_acf_field( 'featured_links_intro', $term ) ?? '' );
+                $archive_featured_posts   = pera_get_term_acf_field( 'featured_guide_links', $term );
                 $archive_bottom_content   = (string) ( pera_get_term_acf_field( 'archive_bottom_content', $term ) ?? '' );
                 $archive_faq_html         = (string) ( pera_get_term_acf_field( 'seo_faq_schema_2', $term ) ?? '' );
                 $archive_cta_heading      = (string) ( pera_get_term_acf_field( 'archive_cta_heading', $term ) ?? '' );
