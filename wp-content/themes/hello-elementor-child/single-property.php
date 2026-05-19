@@ -1181,15 +1181,15 @@ $custom_video_text = $custom_video_text ? wp_kses_post( wpautop( $custom_video_t
             <p class="property-map-card__address text-soft"><?php echo esc_html( $address ); ?></p>
           <?php endif; ?>
     
-          <div class="media-frame media-frame--map property-map-card__frame">
+          <div class="media-frame media-frame--image-fill media-frame--cta">
             <iframe
-              class="media-embed--map"
-              src="<?php echo esc_url( $embed_url ); ?>"
-              loading="lazy"
-              referrerpolicy="no-referrer-when-downgrade"
-              allowfullscreen
-              title="Location map"
-            ></iframe>
+                  class="media-embed--map"
+                  src="<?php echo esc_url( $embed_url ); ?>"
+                  loading="lazy"
+                  referrerpolicy="no-referrer-when-downgrade"
+                  allowfullscreen
+                  title="Location map"
+                ></iframe>
           </div>
     
           <div class="property-map-card__actions">
