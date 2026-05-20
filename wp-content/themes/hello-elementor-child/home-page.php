@@ -369,7 +369,7 @@ $hero_img = wp_get_attachment_image_url( $hero_img_id, 'pera-card' );
 
 <!-- ======================================================
     BODRUM MANSION
-    ====================================================== -->
+    ====================================================== 
 
 <section class="content">
   <div class="content-panel-box">
@@ -424,7 +424,7 @@ $hero_img = wp_get_attachment_image_url( $hero_img_id, 'pera-card' );
         </div>
       </div><!-- /.content-panel -->
   </div><!-- /.container -->
-</section>
+</section>-->
 
 <?php
 /* ======================================================
