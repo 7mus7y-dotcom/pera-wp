@@ -240,7 +240,7 @@ get_header();
                   <article class="archive-cat-card card-shell">
                     <h3 class="post-card-title"><a href="<?php echo esc_url( get_permalink( $featured_post ) ); ?>"><?php echo esc_html( get_the_title( $featured_post ) ); ?></a></h3>
                     <p class="archive-cat-desc"><?php echo esc_html( wp_trim_words( wp_strip_all_tags( get_the_excerpt( $featured_post ) ), 24, '…' ) ); ?></p>
-                    <div class="card-meta-row"><a href="<?php echo esc_url( get_permalink( $featured_post ) ); ?>" class="btn btn--ghost btn--black btn-card"><?php esc_html_e( 'Read article', 'peraproperty' ); ?></a></div>
+                    <div class="card-meta-row"><a href="<?php echo esc_url( get_permalink( $featured_post ) ); ?>" class="btn btn--solid btn--brand btn-card"><?php esc_html_e( 'Read article', 'peraproperty' ); ?></a></div>
                   </article>
                 <?php endforeach; ?>
               </div>
