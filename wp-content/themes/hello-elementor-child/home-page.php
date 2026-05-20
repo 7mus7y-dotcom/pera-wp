@@ -353,78 +353,7 @@ get_template_part( 'partials/home-latest-offers' );
     </div>
 
   </div>
-</section>
-
-<?php
-// -----------------------------------------------------------------------------
-// HOME — Bodrum Mansion feature (ADMIN ONLY)
-// Placement: after "Explore Istanbul’s prime districts" and before "Buyer Journey"
-// -----------------------------------------------------------------------------
-$mansion_url = 'https://www.peraproperty.com/bodrum-property/mansion-scale-estate-in-yalikavak-marina/';
-$hero_img_id = 56209;
-
-// Use full size; if your existing patterns use a different size, align to them.
-$hero_img = wp_get_attachment_image_url( $hero_img_id, 'pera-card' );
-?>
-
-<!-- ======================================================
-    BODRUM MANSION
-    ====================================================== 
-
-<section class="content">
-  <div class="content-panel-box">
-    <div class="content-panel-grid">
-
-    <!-- Reuse your existing "content-panel" pattern to keep site rhythm -->
-      <div class="content-panel-left">
-      <!-- Inside the panel, use hero-style block classes you already have (no CSS added) -->
-        <div class="hero__media media-frame">
-          <?php if ( $hero_img ) : ?>
-            <img
-              class="hero__img"
-              src="<?php echo esc_url( $hero_img ); ?>"
-              alt="<?php echo esc_attr( 'Mansion-scale estate in Yalıkavak Marina, Bodrum' ); ?>"
-              loading="lazy"
-              decoding="async"
-            />
-          <?php else : ?>
-            <!-- Image ID 56209 missing -->
-            <div class="hero__img" aria-hidden="true"></div>
-          <?php endif; ?>
-        </div>
-      </div>
-
-      <div class="content-panel-right">
-
-            <div class="home-featured__kicker">Bodrum · Yalıkavak Marina</div>
-
-            <h2 class="home-featured__title">Mansion-Scale Waterfront Estate</h2>
-
-            <p class="home-featured__excerpt">
-              A landmark private residence overlooking the marina — created for uncompromising privacy,
-              scale, and prestige in Bodrum’s most sought-after setting.
-            </p>
-
-            <div class="property-facilities__pills pb-md">
-              <span class="pill">Ultra-prime marina location</span>
-              <span class="pill">Estate-scale plot</span>
-              <span class="pill">Sea-view terraces</span>
-              <span class="pill">Private appointments</span>
-            </div>
-
-            <div class="hero-actions">
-              <a class="btn btn--solid btn--blue" href="<?php echo esc_url( $mansion_url ); ?>">
-                View full details
-              </a>
-              <a class="btn btn--solid btn--green" href="<?php echo esc_url( $mansion_url . '#contact-form' ); ?>">
-                Arrange a viewing
-              </a>
-            </div>
-
-        </div>
-      </div><!-- /.content-panel -->
-  </div><!-- /.container -->
-</section>-->
+</section>  
 
 <?php
 /* ======================================================
