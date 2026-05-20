@@ -469,7 +469,7 @@ get_header();
                   </p>
 
                   <div class="card-meta-row">
-                      <a href="<?php echo esc_url( $cat_link ); ?>" class="btn btn--ghost btn--black btn-card" aria-label="<?php echo esc_attr( sprintf( __( 'View posts in %s', 'peraproperty' ), $cat->name ) ); ?>">
+                      <a href="<?php echo esc_url( $cat_link ); ?>" class="btn btn--solid btn--black btn-card" aria-label="<?php echo esc_attr( sprintf( __( 'View posts in %s', 'peraproperty' ), $cat->name ) ); ?>">
                         <?php esc_html_e( 'View posts', 'peraproperty' ); ?>
                       </a>
                   </div>
