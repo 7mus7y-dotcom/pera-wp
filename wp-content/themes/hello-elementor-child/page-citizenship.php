@@ -6,36 +6,10 @@ if ( ! defined( 'ABSPATH' ) ) {
     exit;
 }
 
-$is_citizenship_admin = current_user_can( 'manage_options' );
-$citizenship_version  = isset( $_GET['citizenship_version'] ) ? sanitize_key( wp_unslash( $_GET['citizenship_version'] ) ) : 'original';
-$citizenship_version  = in_array( $citizenship_version, array( 'original', 'new-flow' ), true ) ? $citizenship_version : 'original';
-$use_new_flow         = $is_citizenship_admin && ( 'new-flow' === $citizenship_version );
-
-if ( $use_new_flow ) {
-    if ( ! defined( 'DONOTCACHEPAGE' ) ) {
-        define( 'DONOTCACHEPAGE', true );
-    }
-    nocache_headers();
-}
-
 get_header();
 ?>
 
 <main id="primary" class="site-main">
-
-<?php if ( $is_citizenship_admin ) : ?>
-  <div class="citizenship-admin-preview-switcher" role="region" aria-label="Citizenship preview switcher">
-    <nav class="citizenship-admin-preview-switcher__nav" aria-label="Citizenship page version switcher">
-      <a href="<?php echo esc_url( add_query_arg( 'citizenship_version', 'original' ) ); ?>" class="btn btn--ghost btn--blue<?php echo ! $use_new_flow ? ' is-active' : ''; ?>">Original</a>
-      <a href="<?php echo esc_url( add_query_arg( 'citizenship_version', 'new-flow' ) ); ?>" class="btn btn--ghost btn--blue<?php echo $use_new_flow ? ' is-active' : ''; ?>">New Flow</a>
-    </nav>
-  </div>
-  <style>
-    .citizenship-admin-preview-switcher{position:sticky;top:calc(var(--header-height, 84px) + 8px);z-index:20;display:flex;justify-content:flex-end;padding:8px 16px}
-    .citizenship-admin-preview-switcher__nav{display:flex;gap:8px;flex-wrap:wrap;padding:8px;border:1px solid #dbe5f0;border-radius:12px;background:#fff}
-    .citizenship-admin-preview-switcher .btn.is-active{background:#1d4f91;color:#fff;border-color:#1d4f91}
-  </style>
-<?php endif; ?>
 
 <?php
 $citizenship_requirements = array(
@@ -48,102 +22,7 @@ $citizenship_requirements = array(
 );
 ?>
 
-<?php if ( $use_new_flow ) : ?>
-  <section class="hero hero--left hero--citizenship" id="citizenship-hero-new-flow">
-    <div class="hero-content container">
-      <h1>Turkish Citizenship by Investment Through Istanbul Real Estate</h1>
-      <p>Obtain Turkish citizenship for your family through a qualifying USD 400,000 property investment in Istanbul.</p>
-      <div class="feature-grid">
-        <article class="feature-card"><div class="feature-card-body"><p><strong>USD 400,000</strong> minimum property investment</p></div></article>
-        <article class="feature-card"><div class="feature-card-body"><p><strong>Family application</strong> included</p></div></article>
-        <article class="feature-card"><div class="feature-card-body"><p><strong>No full-time residence</strong> requirement</p></div></article>
-        <article class="feature-card"><div class="feature-card-body"><p><strong>Istanbul property-backed</strong> investment</p></div></article>
-      </div>
-      <div class="hero-actions">
-        <a href="#citizenship-new-flow-enquiry" class="btn btn--solid btn--green">Book a consultation</a>
-        <a href="<?php echo esc_url( home_url( '/turkish-citizenship-properties/' ) ); ?>" class="btn btn--solid btn--blue">View citizenship eligible properties</a>
-      </div>
-    </div>
-  </section>
 
-  <section class="section section-soft">
-    <div class="container">
-      <header class="section-header section-header--center"><h2>Why Turkish Citizenship</h2></header>
-      <div class="feature-grid">
-        <article class="feature-card"><div class="feature-card-body"><p>Improve mobility, family security and long-term optionality with a second citizenship route linked to a regulated investment framework.</p></div></article>
-        <article class="feature-card"><div class="feature-card-body"><p>Support lifestyle flexibility and access to Turkey for work, travel, education and business continuity planning.</p></div></article>
-        <article class="feature-card"><div class="feature-card-body"><p>Diversify your wealth strategy by combining citizenship planning with a tangible real estate asset in Istanbul.</p></div></article>
-      </div>
-    </div>
-  </section>
-
-  <section class="section">
-    <div class="container">
-      <header class="section-header section-header--center"><h2>Why Istanbul Property</h2></header>
-      <p>Istanbul real estate remains a strong citizenship route due to deep rental demand, resale liquidity, central district depth, urban renewal momentum, lifestyle appeal and the security of owning a physical asset.</p>
-    </div>
-  </section>
-
-  <section class="section section-soft">
-    <div class="container">
-      <header class="section-header section-header--center"><h2>What USD 400,000 Can Buy</h2></header>
-      <div class="feature-grid">
-        <article class="feature-card"><div class="feature-card-header"><h3>Central apartments</h3></div><div class="feature-card-body"><p>Well-located units in connected districts.</p></div></article>
-        <article class="feature-card"><div class="feature-card-header"><h3>Boutique developments</h3></div><div class="feature-card-body"><p>Lower-density projects with premium positioning.</p></div></article>
-        <article class="feature-card"><div class="feature-card-header"><h3>Rental-focused units</h3></div><div class="feature-card-body"><p>Inventory designed for steady tenant demand.</p></div></article>
-        <article class="feature-card"><div class="feature-card-header"><h3>Family-sized options</h3></div><div class="feature-card-body"><p>Larger layouts suitable for relocation plans.</p></div></article>
-        <article class="feature-card"><div class="feature-card-header"><h3>Citizenship-eligible inventory</h3></div><div class="feature-card-body"><p>Properties screened for eligibility criteria.</p></div></article>
-      </div>
-    </div>
-  </section>
-
-  <section class="section">
-    <div class="container">
-      <header class="section-header section-header--center"><h2>The Process</h2></header>
-      <div class="info-steps">
-        <article class="info-step"><div class="info-step-icon"><span class="info-step-number">1</span></div><div class="info-step-body"><h3 class="info-step-title">Consultation</h3></div></article>
-        <article class="info-step"><div class="info-step-icon"><span class="info-step-number">2</span></div><div class="info-step-body"><h3 class="info-step-title">Property shortlist</h3></div></article>
-        <article class="info-step"><div class="info-step-icon"><span class="info-step-number">3</span></div><div class="info-step-body"><h3 class="info-step-title">Legal checks</h3></div></article>
-        <article class="info-step"><div class="info-step-icon"><span class="info-step-number">4</span></div><div class="info-step-body"><h3 class="info-step-title">Purchase and valuation</h3></div></article>
-        <article class="info-step"><div class="info-step-icon"><span class="info-step-number">5</span></div><div class="info-step-body"><h3 class="info-step-title">Residence permit application</h3></div></article>
-        <article class="info-step"><div class="info-step-icon"><span class="info-step-number">6</span></div><div class="info-step-body"><h3 class="info-step-title">Citizenship application</h3></div></article>
-        <article class="info-step"><div class="info-step-icon"><span class="info-step-number">7</span></div><div class="info-step-body"><h3 class="info-step-title">Passport approval</h3></div></article>
-      </div>
-    </div>
-  </section>
-
-  <section class="section cta">
-    <div class="container">
-      <h2>Citizenship Eligible Properties</h2>
-      <p>Browse current Istanbul inventory aligned with Turkish citizenship criteria.</p>
-      <a href="<?php echo esc_url( home_url( '/turkish-citizenship-properties/' ) ); ?>" class="btn btn--solid btn--blue">View citizenship eligible properties</a>
-    </div>
-  </section>
-
-  <section class="section section-soft">
-    <div class="container">
-      <header class="section-header section-header--center"><h2>Why Pera Property</h2></header>
-      <div class="feature-grid">
-        <article class="feature-card"><div class="feature-card-body"><p>Istanbul market expertise and property sourcing across central districts.</p></div></article>
-        <article class="feature-card"><div class="feature-card-body"><p>Legal coordination, valuation support, banking and title deed guidance.</p></div></article>
-        <article class="feature-card"><div class="feature-card-body"><p>After-sales support to help manage your property after acquisition.</p></div></article>
-      </div>
-    </div>
-  </section>
-
-  <section class="section cta" id="citizenship-new-flow-enquiry">
-    <div class="container">
-      <h2>Discuss your citizenship plan with our Istanbul team</h2>
-      <p>Tell us your budget and timeline, and we will prepare a citizenship-eligible property shortlist with next legal steps.</p>
-      <div class="hero-actions">
-        <a href="<?php echo esc_url( home_url( '/contact/' ) ); ?>" class="btn btn--solid btn--green">Contact our citizenship team</a>
-        <a href="<?php echo esc_url( home_url( '/turkish-citizenship-properties/' ) ); ?>" class="btn btn--ghost btn--blue">Browse eligible properties</a>
-      </div>
-    </div>
-  </section>
-
-  <?php get_template_part( 'partials/faq', 'citizenship' ); ?>
-<?php else : ?>
 
   <section class="hero hero--left hero--citizenship citizenship-hero" id="citizenship-hero">
     <div class="hero__media" aria-hidden="true">
@@ -1436,7 +1315,6 @@ $citizenship_requirements = array(
     </div>
   </section>
 
-<?php endif; ?>
 </main>
 
 <?php
