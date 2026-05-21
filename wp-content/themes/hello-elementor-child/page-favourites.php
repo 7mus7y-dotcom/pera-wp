@@ -133,7 +133,7 @@ get_header();
         <?php echo esc_html( $hero_subtext ); ?>
       </p>
 
-      <p class="text-soft">
+      <p class="lead">
         <span data-favourites-count><?php echo esc_html( (string) $rendered_count ); ?></span> saved
       </p>
     </div>
