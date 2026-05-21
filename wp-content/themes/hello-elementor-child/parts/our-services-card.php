@@ -93,7 +93,7 @@
                     </p>
                 </div>
                 <div class="feature-card-footer">
-                    <a href="/turkish-citizenship-by-real-estate-investment_6292/" class="btn btn--solid btn--blue">
+                    <a href="/citizenship-by-investment/" class="btn btn--solid btn--blue">
                         Read more &gt;&gt;
                     </a>
                 </div>
