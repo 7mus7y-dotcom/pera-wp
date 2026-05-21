@@ -78,7 +78,8 @@ add_action( 'wp_enqueue_scripts', function () {
   $is_favourites_page = is_page_template( 'page-favourites.php' );
   $is_property_map = is_page_template( 'page-property-map.php' );
   $is_luxury_property_page = is_page_template( 'page-luxury-property.php' );
-  $is_enquiry_page = is_page_template( 'page-citizenship.php' ) ||
+  $is_citizenship_page = is_page_template( 'page-citizenship.php' );
+  $is_enquiry_page = $is_citizenship_page ||
     is_page_template( 'page-rent-with-pera.php' ) ||
     is_page_template( 'page-sell-with-pera.php' ) ||
     is_page_template( 'page-book-a-consultancy.php' ) ||
@@ -145,6 +146,16 @@ $needs_card_typography = (
   || $is_favourites_page
   || $is_luxury_property_page
 );
+
+
+if ( ! $is_crm_route && $is_citizenship_page ) {
+  wp_enqueue_style(
+    'pera-citizenship-css',
+    get_stylesheet_directory_uri() . '/css/citizenship.css',
+    array( 'pera-main-css' ),
+    pera_get_asset_version( '/css/citizenship.css' )
+  );
+}
 
 if ( $needs_card_typography ) {
   wp_enqueue_style(

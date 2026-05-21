@@ -1,0 +1,259 @@
+/* =======================================================
+   CITIZENSHIP PAGE
+   Loaded only on page-citizenship.php
+   ======================================================= */
+
+/* Hero shell overrides */
+.citizenship-hero {
+  color: var(--text);
+  background: var(--bg);
+}
+
+.citizenship-hero .hero-content {
+  padding-bottom: 50px;
+}
+
+.citizenship-hero .hero-overlay {
+  background: none;
+}
+
+.citizenship-hero .hero-content h1 {
+  max-width: 17ch;
+  line-height: 1.14;
+  margin-bottom: 0.42em;
+  font-size: clamp(1.86rem, 3.1vw, 2.75rem);
+  color: var(--text) !important;
+}
+
+.citizenship-hero .lead,
+.citizenship-hero .lead p {
+  color: var(--text-soft);
+}
+
+.citizenship-hero .lead {
+  max-width: 58ch;
+  margin-bottom: 1rem;
+  font-size: clamp(0.99rem, 1.15vw, 1.08rem);
+  line-height: 1.56;
+}
+
+/* Brand */
+.citizenship-brand {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 8px;
+  font-size: 0.8rem;
+  color: var(--text-soft);
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
+.citizenship-brand img {
+  width: 18px;
+  height: 18px;
+  opacity: 0.9;
+}
+
+/* Hero content layout */
+.citizenship-hero-grid {
+  display: grid;
+  gap: var(--space-xl);
+  max-width: min(760px, 100%);
+}
+
+.citizenship-hero-copy {
+  display: grid;
+  gap: 10px;
+  align-items: start;
+  padding: clamp(2rem, 4vw, 4rem);
+}
+
+/* Requirements card */
+.citizenship-hero .feature-card {
+  color: var(--text);
+}
+
+.citizenship-hero-card {
+  margin-top: 6px;
+  width: min(640px, 100%);
+  border-radius: 18px;
+  padding: 14px 16px 10px;
+  box-shadow: 0 6px 16px rgba(15, 23, 42, 0.07);
+  border-color: rgba(148, 163, 184, 0.35);
+}
+
+.citizenship-hero-card .feature-card-header {
+  margin-bottom: 6px;
+  padding-bottom: 7px;
+}
+
+.citizenship-hero-card .feature-card-header h2 {
+  font-size: 0.98rem;
+  margin: 0;
+}
+
+.citizenship-requirements-group + .citizenship-requirements-group {
+  margin-top: 12px;
+}
+
+.citizenship-requirements-group h3 {
+  margin: 0 0 4px;
+  font-size: 0.82rem;
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+  color: var(--text-soft);
+}
+
+.citizenship-hero-card .checklist {
+  margin: 0;
+}
+
+.citizenship-hero-card .checklist li {
+  margin-bottom: 8px;
+  font-size: 0.92rem;
+  line-height: 1.45;
+}
+
+/* Actions */
+.citizenship-hero .hero-actions {
+  margin-top: 2px;
+  gap: 8px;
+  width: min(640px, 100%);
+}
+
+.citizenship-hero .hero-actions .btn {
+  padding: 10px 15px;
+}
+
+.citizenship-hero .hero-actions .btn--ghost {
+  border-style: solid;
+  border-width: 1px;
+}
+
+/* Trust strip */
+.citizenship-trust-strip {
+  margin: 2px 0 0;
+  max-width: 60ch;
+  font-size: 0.84rem;
+  color: var(--text-soft);
+}
+
+.citizenship-value-grid {
+  margin-top: 2px;
+}
+
+.citizenship-consultancy .content-panel-box {
+  border-radius: 24px;
+  border-top: 1px solid rgba(15, 23, 42, 0.07);
+}
+
+/* Dark mode hero correction */
+@media (prefers-color-scheme: dark) {
+  /*
+   * This hero is visually light even in dark mode because the background artwork
+   * remains a white / light silhouette composition.
+   *
+   * Only force the main heading + intro copy dark so they retain contrast against
+   * the light hero artwork. Do not affect the requirements card or buttons.
+   */
+  .citizenship-hero .citizenship-hero-copy > h1 {
+    color: #111111 !important;
+  }
+
+  .citizenship-hero .citizenship-hero-copy > p:first-of-type {
+    color: #333333 !important;
+  }
+
+  .citizenship-hero .citizenship-trust-strip {
+    color: #333333;
+  }
+}
+
+@media (max-width: 900px) {
+  .citizenship-hero .hero-content {
+    padding-bottom: 18px;
+  }
+
+  .citizenship-hero-grid {
+    max-width: 100%;
+  }
+
+  .citizenship-hero-copy {
+    gap: 9px;
+  }
+
+  .citizenship-hero .hero-content h1 {
+    max-width: 16ch;
+    font-size: clamp(1.55rem, 6.3vw, 1.98rem);
+  }
+
+  .citizenship-hero .lead {
+    font-size: 0.95rem;
+    line-height: 1.48;
+  }
+
+  .citizenship-brand {
+    margin-bottom: 6px;
+    font-size: 0.75rem;
+  }
+
+  .citizenship-hero .hero-actions {
+    display: flex;
+    width: auto;
+    max-width: 100%;
+    flex-wrap: nowrap;
+    gap: 8px;
+    align-items: center;
+  }
+
+  .citizenship-hero .hero-actions .btn {
+    width: auto;
+    flex: 0 0 auto;
+    display: inline-flex;
+    justify-content: center;
+    text-align: center;
+    padding: 9px 13px;
+  }
+
+  .citizenship-hero-card {
+    border-radius: 16px;
+    padding: 11px 12px 6px;
+  }
+
+  .citizenship-hero-card .checklist li {
+    font-size: 0.9rem;
+    margin-bottom: 7px;
+  }
+
+  .citizenship-trust-strip {
+    font-size: 0.8rem;
+    line-height: 1.4;
+  }
+
+  .citizenship-consultancy .feature-grid {
+    gap: 12px;
+  }
+}
+
+@media (min-width: 901px) and (max-width: 1199px) {
+  .citizenship-hero-grid {
+    max-width: min(700px, 100%);
+  }
+
+  .citizenship-hero-card,
+  .citizenship-hero .hero-actions {
+    width: min(610px, 100%);
+  }
+}
+
+@media (min-width: 1200px) {
+  .citizenship-hero-grid {
+    max-width: min(790px, calc(100% - 120px));
+  }
+
+  .citizenship-hero-card,
+  .citizenship-hero .hero-actions {
+    width: min(620px, 100%);
+  }
+}
