@@ -1090,6 +1090,14 @@ button.pill:focus-visible {
   overflow: hidden;
 }
 
+/* Hero height variants */
+.hero.hero--compact {
+  min-height: calc(32vh + var(--header-height));
+}
+
+.hero.hero--short {
+  min-height: calc(24vh + var(--header-height));
+}
 
 /* Full-bleed background image inside hero */
 .hero-media {
@@ -1196,7 +1204,10 @@ button.pill:focus-visible {
   .hero {
     min-height: 50vh;
   }
-
+   
+  .hero.hero--compact {
+    min-height: calc(32vh + var(--header-height));
+  }
   .hero-content {
     padding: 150px 16px 50px;
   }
