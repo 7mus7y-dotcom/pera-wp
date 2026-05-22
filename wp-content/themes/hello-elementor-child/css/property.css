@@ -6,7 +6,6 @@
    - Keeps dark-mode overrides scoped to prefers-color-scheme: dark
    ======================================================= */
 
-
 /* =======================================================
    PROPERTY ARCHIVE – BASE LAYOUT
    ======================================================= */
@@ -26,8 +25,9 @@
   padding-inline: 20px;
 }
 
+/* Keep property archive hero compact across all viewports */
 .pera-v2-archive .property-archive-hero {
-  min-height: calc(52vh + var(--header-height));
+  min-height: calc(32vh + var(--header-height));
 }
 
 /* Optional: slightly narrower intro text on archive page */
@@ -50,20 +50,12 @@
 }
 
 @media (max-width: 1024px) {
-  .pera-v2-archive .property-archive-hero {
-    min-height: calc(50vh + var(--header-height));
-  }
-
   .pera-v2-archive .property-archive-intro-panel {
     margin-top: -22px;
   }
 }
 
 @media (max-width: 768px) {
-  .pera-v2-archive .property-archive-hero {
-    min-height: 46vh;
-  }
-
   .pera-v2-archive .property-archive-intro-panel {
     margin-top: -14px;
   }
