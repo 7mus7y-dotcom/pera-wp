@@ -11,60 +11,60 @@
    PROPERTY ARCHIVE – BASE LAYOUT
    ======================================================= */
 
+/* Stop the global content-rail constraint from offsetting hero internals */
+.content-rail > section.property-archive-hero > * {
+  max-width: none;
+  margin-left: 0;
+  margin-right: 0;
+}
+
+/* Re-centre only the readable hero copy */
+.content-rail > section.property-archive-hero > .hero-content {
+  max-width: var(--container);
+  width: 100%;
+  margin-inline: auto;
+  padding-inline: 20px;
+}
+
+.pera-v2-archive .property-archive-hero {
+  min-height: calc(52vh + var(--header-height));
+}
+
 /* Optional: slightly narrower intro text on archive page */
-.property-archive .section-header{
+.property-archive .section-header {
   max-width: 720px;
 }
 
 /* PROPERTY ARCHIVE – Remove box shadow & theme it clean */
-.property-archive .content-panel-box{
+.property-archive .content-panel-box {
   box-shadow: none !important;
-  border: 0; /* was "0px" without style; keep clean */
+  border: 0;
   max-width: var(--container);
   margin: 0 auto;
 }
 
-/*.pera-v2-archive .property-archive-hero{
-  min-height: calc(52vh + var(--header-height));
-}
-
-.pera-v2-archive .property-archive-hero > .hero-content{
-  max-width: var(--container);
-  width: min(var(--container), calc(100% - 40px));
-  margin-left: auto;
-  margin-right: auto;
-}
-
-.pera-v2-archive .property-archive-hero .hero-content{
-  padding: 250px 20px 52px;
-}*/
-
-.pera-v2-archive .property-archive-intro-panel{
+.pera-v2-archive .property-archive-intro-panel {
   position: relative;
   z-index: 2;
   margin-top: -28px;
 }
 
-@media (max-width: 1024px){
-  .pera-v2-archive .property-archive-hero{
+@media (max-width: 1024px) {
+  .pera-v2-archive .property-archive-hero {
     min-height: calc(50vh + var(--header-height));
   }
 
-  .pera-v2-archive .property-archive-intro-panel{
+  .pera-v2-archive .property-archive-intro-panel {
     margin-top: -22px;
   }
 }
 
-@media (max-width: 768px){
-  .pera-v2-archive .property-archive-hero{
+@media (max-width: 768px) {
+  .pera-v2-archive .property-archive-hero {
     min-height: 46vh;
   }
 
-  /*.pera-v2-archive .property-archive-hero .hero-content{
-    padding: 210px 20px 52px;
-  }*/
-
-  .pera-v2-archive .property-archive-intro-panel{
+  .pera-v2-archive .property-archive-intro-panel {
     margin-top: -14px;
   }
 }
