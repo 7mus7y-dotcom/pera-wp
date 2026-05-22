@@ -554,11 +554,11 @@ section,
    ======================================================= */
 
 /* Constrain content for sections, but NOT the hero */
-.content-rail > section:not(.property-hero) > * {
+/*.content-rail > section:not(.property-hero) > * {
   max-width: 1200px;
   margin-left: auto;
   margin-right: auto;
-}
+}*/
 
 
 /* Allow intentional full-bleed children */
