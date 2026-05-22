@@ -16,5 +16,6 @@ require_once get_stylesheet_directory() . '/inc/modules/enquiry-loader.php';
 require_once get_stylesheet_directory() . '/inc/modules/misc.php';
 require_once get_stylesheet_directory() . '/inc/modules/admin-bar.php';
 require_once get_stylesheet_directory() . '/inc/modules/sitemaps.php';
+require_once get_stylesheet_directory() . '/inc/modules/llms.php';
 require_once get_stylesheet_directory() . '/inc/modules/faqs.php';
 require_once get_stylesheet_directory() . '/inc/acf-fields.php';
