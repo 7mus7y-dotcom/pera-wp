@@ -1080,7 +1080,7 @@ button.pill:focus-visible {
   position: relative;
   margin-top: calc((var(--header-height) + 1px) * -1);
   width: 100%;
-  min-height: calc(60vh + var(--header-height));
+  min-height: calc(40vh + var(--header-height));
   display: flex;
   align-items: center;
   justify-content: center;
