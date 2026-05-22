@@ -171,7 +171,7 @@ get_header();
     }
     ?>
 
-    <section class="hero hero--left hero--archive" id="archive-hero">
+    <section class="hero hero--left hero--archive hero--compact" id="archive-hero">
       <div class="hero__media" aria-hidden="true">
         <?php
         echo wp_get_attachment_image(
