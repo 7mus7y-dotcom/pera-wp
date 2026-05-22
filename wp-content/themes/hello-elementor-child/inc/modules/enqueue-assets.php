@@ -74,6 +74,7 @@ add_action( 'wp_enqueue_scripts', function () {
 
   // Specific templates
   $is_contact_page = is_page_template( 'page-contact.php' );
+  $is_vop_besiktas_page = is_page_template( 'page-vop-besiktas.php' );
   $is_about_new    = is_page_template( 'page-about-new.php' );
   $is_favourites_page = is_page_template( 'page-favourites.php' );
   $is_property_map = is_page_template( 'page-property-map.php' );
@@ -154,6 +155,24 @@ if ( ! $is_crm_route && $is_citizenship_page ) {
     get_stylesheet_directory_uri() . '/css/citizenship.css',
     array( 'pera-main-css' ),
     pera_get_asset_version( '/css/citizenship.css' )
+  );
+}
+
+if ( ! $is_crm_route && $is_contact_page ) {
+  wp_enqueue_style(
+    'pera-contact-css',
+    get_stylesheet_directory_uri() . '/css/contact.css',
+    array( 'pera-main-css' ),
+    pera_get_asset_version( '/css/contact.css' )
+  );
+}
+
+if ( ! $is_crm_route && $is_vop_besiktas_page ) {
+  wp_enqueue_style(
+    'pera-vop-besiktas-css',
+    get_stylesheet_directory_uri() . '/css/vop-besiktas.css',
+    array( 'pera-main-css' ),
+    pera_get_asset_version( '/css/vop-besiktas.css' )
   );
 }
 

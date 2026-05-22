@@ -939,107 +939,6 @@ button.pill:focus-visible {
     }
     
     
- /* =======================================================
-   CONTACT CARDS (Option 2)
-   ======================================================= */
-
-.contact-card{
-  display:flex;
-  align-items:center;
-  gap:14px;
-
-  padding: 12px 14px;
-  border-radius: 16px;
-
-  background: var(--bg-soft);
-  border: 1px solid rgba(0,0,0,0.08);
-
-  margin-bottom: 12px;
-}
-
-.contact-card__icon{
-  width: 44px;
-  height: 44px;
-  border-radius: 50%;
-
-  background: var(--pill-green);
-  color: #fff;
-
-  display:flex;
-  align-items:center;
-  justify-content:center;
-
-  flex-shrink:0;
-}
-
-.contact-card__icon .icon{
-  width: 25px;
-  height: 25px;
-  stroke: currentColor;
-  fill: currentColor; /* ensures your WA glyph is visible even if it uses fill */
-}
-
-.contact-card__body{
-  display:flex;
-  flex-direction:column;
-  gap: 3px;
-  min-width: 0;
-}
-
-.contact-card__number{
-  font-weight: 700;
-  font-size: 0.95rem;
-  text-decoration: none;
-  color: inherit;
-}
-
-.contact-card__action{
-  font-size: 0.82rem;
-  font-weight: 600;
-  color: var(--text-soft);
-  text-decoration: underline;
-  text-underline-offset: 3px;
-}
-
-.contact-card__action:hover{
-  color: var(--brand);
-}
-
-/* Dark mode (supports BOTH your hooks) */
-@media (prefers-color-scheme: dark){
-  .contact-card{
-    background: rgba(15, 23, 42, 0.65);
-    border-color: rgba(148, 163, 184, 0.28);
-  }
-
-  .contact-card__action{
-    color: rgba(226, 232, 240, 0.82);
-  }
-
-  .contact-card__action:hover{
-    color: #ffffff;
-  }
-}
-
-/* If you are using class/theme hook as well */
-[data-theme="dark"] .contact-card,
-.dark .contact-card{
-  background: rgba(15, 23, 42, 0.65);
-  border-color: rgba(148, 163, 184, 0.28);
-}
-
-[data-theme="dark"] .contact-card__action,
-.dark .contact-card__action{
-  color: rgba(226, 232, 240, 0.82);
-}
-
-[data-theme="dark"] .contact-card__action:hover,
-.dark .contact-card__action:hover{
-  color: #ffffff;
-}
-
-
-
 /* =======================================================
    SIZES
    (Base size stays as your current token values)
@@ -2000,69 +1899,6 @@ body.is-nav-open .offcanvas-backdrop {
   }
 }
 
-
-/* =======================================================
-   13. PROJECT CARDS
-   ======================================================= */
-.cards {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-  gap: 30px;
-  margin-top: 40px;
-}
-
-/* Make the whole card a column */
-.project-card {
-  background: #fafafa;
-  border-radius: 10px;
-  overflow: hidden;
-  box-shadow: 0 2px 6px rgba(0,0,0,.05);
-  transition: transform .25s ease, box-shadow .25s ease;
-  display: flex;
-  flex-direction: column;
-}
-
-/* Image stays at the top */
-.project-card > img {
-  width: 100%;
-  height: 200px;
-  object-fit: cover;
-  object-position: center;
-  display: block;
-}
-.project-card:hover {
-  transform: translateY(-4px);
-  box-shadow: 0 6px 12px rgba(0,0,0,0.1);
-}
-
-/* Content fills the remaining height */
-.project-card .content {
-  padding: 20px;
-  display: flex;
-  flex-direction: column;
-  flex: 1 1 auto;
-}
-
-/* text and list */
-.project-card p {
-  margin-bottom: 12px;
-  color: #555555;
-}
-.project-card ul {
-  list-style: none;
-  padding: 0;
-  margin: 0 0 15px;
-}
-.project-card li {
-  font-size: 0.9rem;
-  margin: 3px 0;
-}
-
-/* default inline links in cards */
-.project-card a {
-  font-weight: 500;
-  font-size: 0.9rem;
-}
 
 /* bottom action row */
 .card-actions {
@@ -4340,15 +4176,6 @@ body:not(.single-post) tr:nth-child(even) {
   .pillars div {
     background: var(--bg-soft);
     color: var(--text);
-  }
-
-  .project-card {
-    background: var(--bg-soft);
-    box-shadow: 0 2px 8px rgba(0,0,0,0.5);
-  }
-  .project-card p,
-  .project-card li {
-    color: var(--text-soft);
   }
 
   .cookie-banner {
