@@ -684,6 +684,17 @@ section,
 .btn--black  { --btn-color: #000000; }
 .btn--white { --btn-color: var(--inverse); }
 
+@media (prefers-color-scheme: dark) {
+  .btn.btn--solid.btn--black.btn-card {
+    border-color: var(--inverse, #ffffff);
+  }
+}
+
+[data-theme="dark"] .btn.btn--solid.btn--black.btn-card,
+.dark .btn.btn--solid.btn--black.btn-card {
+  border-color: var(--inverse, #ffffff);
+}
+
 
 /* Dark-mode button safety */
 @media (prefers-color-scheme: dark) {
