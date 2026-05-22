@@ -553,19 +553,19 @@ section,
    CONTENT RAIL – GLOBAL SECTION CONSTRAINT
    ======================================================= */
 
-/* Constrain content for sections, but NOT the hero */
-.content-rail > section:not(.property-hero) > * {
-   max-width: var(--container);  
-   margin-left: auto;
-   margin-right: auto;
+/* Constrain normal section children, but do not interfere with hero internals */
+.content-rail > section:not(.hero) > * {
+  max-width: var(--container);  
+  margin-left: auto;
+  margin-right: auto;
 }
-
 
 /* Allow intentional full-bleed children */
 .content-rail > section > .full-bleed {
   max-width: none;
+  margin-left: 0;
+  margin-right: 0;
 }
-
 
 @media (max-width: 768px) {
   section,
