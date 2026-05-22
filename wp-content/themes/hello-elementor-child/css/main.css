@@ -677,6 +677,7 @@ section,
    Colour tokens
 ------------------------ */
 .btn--blue   { --btn-color: var(--brand); }
+.btn--brand  { --btn-color: var(--brand); }
 .btn--green  { --btn-color: var(--pill-green); }
 .btn--red    { --btn-color: var(--pill-red); }
 .btn--yellow { --btn-color: #ffed00; }
@@ -727,13 +728,15 @@ section,
     border-color: #ffffff;
   }
 
-  .btn--blue.btn--ghost {
+  .btn--blue.btn--ghost,
+  .btn--brand.btn--ghost {
     background-color: transparent;
     color: #ffffff;
     border-color: #ffffff;
   }
 
-  .btn--blue.btn--ghost:hover {
+  .btn--blue.btn--ghost:hover,
+  .btn--brand.btn--ghost:hover {
     background-color: #ffffff;
     color: var(--brand);
     border-color: #ffffff;
@@ -766,7 +769,9 @@ section,
 [data-theme="dark"] .btn--black.btn--ghost,
 .dark .btn--black.btn--ghost,
 [data-theme="dark"] .btn--blue.btn--ghost,
-.dark .btn--blue.btn--ghost {
+.dark .btn--blue.btn--ghost,
+[data-theme="dark"] .btn--brand.btn--ghost,
+.dark .btn--brand.btn--ghost {
   background-color: transparent;
   color: #ffffff;
   border-color: #ffffff;
@@ -775,7 +780,9 @@ section,
 [data-theme="dark"] .btn--white.btn--ghost:hover,
 .dark .btn--white.btn--ghost:hover,
 [data-theme="dark"] .btn--blue.btn--ghost:hover,
-.dark .btn--blue.btn--ghost:hover {
+.dark .btn--blue.btn--ghost:hover,
+[data-theme="dark"] .btn--brand.btn--ghost:hover,
+.dark .btn--brand.btn--ghost:hover {
   background-color: #ffffff;
   color: var(--brand);
   border-color: #ffffff;
