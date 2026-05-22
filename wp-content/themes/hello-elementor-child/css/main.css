@@ -1146,7 +1146,7 @@ button.pill:focus-visible {
   max-width: var(--container);
   width: 100%;
   margin-inline: auto;
-  padding: 120px 20px 60px;
+  padding: 150px 20px 60px;
 }
 
 .hero h1 {
