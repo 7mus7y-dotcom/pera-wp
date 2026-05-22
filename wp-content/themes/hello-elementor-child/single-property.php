@@ -1204,14 +1204,17 @@ $custom_video_text = $custom_video_text ? wp_kses_post( wpautop( $custom_video_t
                 <?php echo esc_html( $location_heading ?: 'Location & distances' ); ?>
               </h4>
     
-              <div class="archive-hero-desc" data-collapsed="true">
-                <div id="property-distances-content" class="archive-hero-desc__content text-soft">
+              <div class="moreless moreless--property-distances" data-moreless data-collapsed="true">
+                <div id="property-distances-content" class="moreless__content text-soft" data-moreless-content>
                   <?php echo apply_filters( 'the_content', $distances_html ); ?>
                 </div>
     
                 <button
                   type="button"
-                  class="pill pill--green archive-hero-desc__toggle"
+                  class="pill pill--green moreless__toggle"
+                  data-moreless-toggle
+                  data-label-more="Read more"
+                  data-label-less="Read less"
                   aria-expanded="false"
                   aria-controls="property-distances-content"
                 >
@@ -1570,36 +1573,7 @@ endif;
 </main>
 
 
-<script>
-/* ==========================================================
-   PERA PROPERTY — READ MORE TOGGLE
-   ========================================================== */
 
-document.addEventListener('DOMContentLoaded', function () {
-
-  /* ==========================================================
-     1) "READ MORE / LESS" TOGGLE
-     ========================================================== */
-  function initArchiveHeroToggle() {
-    document.addEventListener('click', function (e) {
-      const btn = e.target.closest('.archive-hero-desc__toggle');
-      if (!btn) return;
-
-      const wrap = btn.closest('.archive-hero-desc');
-      if (!wrap) return;
-
-      const isCollapsed = wrap.getAttribute('data-collapsed') === 'true';
-
-      wrap.setAttribute('data-collapsed', isCollapsed ? 'false' : 'true');
-      btn.setAttribute('aria-expanded', String(isCollapsed));
-      btn.textContent = isCollapsed ? 'Read less' : 'Read more';
-    });
-  }
-
-  // Init
-  initArchiveHeroToggle();
-});
-</script>
 
 
 

@@ -207,6 +207,17 @@ if ( $is_home ) {
   }
 
 
+
+
+  if ( ! $is_crm_route && $is_single_property ) {
+    wp_enqueue_script(
+      'pera-moreless',
+      get_stylesheet_directory_uri() . '/js/moreless.js',
+      array(),
+      pera_get_asset_version( '/js/moreless.js' ),
+      true
+    );
+  }
   if ( $is_single_property || $is_single_bodrum_property || $is_home ) {
     wp_enqueue_style(
       'pera-property-css',
