@@ -11,19 +11,19 @@
    ======================================================= */
 
 /* Stop the global content-rail constraint from offsetting hero internals */
-.content-rail > section.property-archive-hero > * {
+/* .content-rail > section.property-archive-hero > * {
   max-width: none;
   margin-left: 0;
   margin-right: 0;
-}
+}*/
 
 /* Re-centre only the readable hero copy */
-.content-rail > section.property-archive-hero > .hero-content {
+/* .content-rail > section.property-archive-hero > .hero-content {
   max-width: var(--container);
   width: 100%;
   margin-inline: auto;
   padding-inline: 20px;
-}
+}*/
 
 /* Keep property archive hero compact across all viewports */
 .pera-v2-archive .property-archive-hero {
