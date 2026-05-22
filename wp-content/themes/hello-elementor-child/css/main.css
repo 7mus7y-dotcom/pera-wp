@@ -2254,6 +2254,37 @@ body:not(.single-post) tr:nth-child(even) {
   }
 }
 
+.wp-block-table table.sortable thead th {
+  cursor: pointer;
+  position: relative;
+  padding-right: 2rem;
+}
+
+.wp-block-table table.sortable thead th::after {
+  content: "⇅";
+  position: absolute;
+  right: 0.7rem;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 0.8em;
+  opacity: 0.75;
+}
+
+.wp-block-table table.sortable thead th[aria-sort="ascending"]::after {
+  content: "▲";
+  opacity: 1;
+}
+
+.wp-block-table table.sortable thead th[aria-sort="descending"]::after {
+  content: "▼";
+  opacity: 1;
+}
+
+.wp-block-table table.sortable thead th:focus-visible {
+  outline: 2px solid currentColor;
+  outline-offset: -2px;
+}
+
 
 /* =======================================================
    15. CTA SECTION

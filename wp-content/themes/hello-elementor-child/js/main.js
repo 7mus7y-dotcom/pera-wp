@@ -201,6 +201,85 @@ document.addEventListener('DOMContentLoaded', function () {
     spriteObserver.observe(document.body, { childList: true, subtree: true });
   }
 
+  function parseSortableNumber(value) {
+    var cleaned = String(value || '')
+      .replace(/\s/g, '')
+      .replace(/,/g, '')
+      .replace(/[^\d.-]/g, '');
+
+    return cleaned ? parseFloat(cleaned) : NaN;
+  }
+
+  function initSortableTables() {
+    document.querySelectorAll('table.sortable').forEach(function (table) {
+      if (table.dataset.sortableInitialized === 'true') return;
+
+      var headers = table.querySelectorAll('thead tr:first-child th');
+      var tbody = table.tBodies[0];
+      if (!headers.length || !tbody) return;
+
+      headers.forEach(function (th, index) {
+        var type = th.dataset.type || 'text';
+
+        th.tabIndex = th.tabIndex >= 0 ? th.tabIndex : 0;
+        th.setAttribute('role', th.getAttribute('role') || 'button');
+        th.setAttribute('aria-sort', 'none');
+
+        function sort(direction) {
+          headers.forEach(function (h) {
+            if (h !== th) h.setAttribute('aria-sort', 'none');
+          });
+
+          th.setAttribute('aria-sort', direction);
+
+          Array.from(tbody.rows)
+            .sort(function (a, b) {
+              var av = ((a.cells[index] && a.cells[index].textContent) || '').trim();
+              var bv = ((b.cells[index] && b.cells[index].textContent) || '').trim();
+
+              if (type !== 'text') {
+                av = parseSortableNumber(av);
+                bv = parseSortableNumber(bv);
+
+                if (isNaN(av) && isNaN(bv)) return 0;
+                if (isNaN(av)) return 1;
+                if (isNaN(bv)) return -1;
+
+                return direction === 'ascending' ? av - bv : bv - av;
+              }
+
+              return direction === 'ascending'
+                ? av.localeCompare(bv)
+                : bv.localeCompare(av);
+            })
+            .forEach(function (row) {
+              tbody.appendChild(row);
+            });
+        }
+
+        th.addEventListener('click', function () {
+          sort(th.getAttribute('aria-sort') === 'ascending' ? 'descending' : 'ascending');
+        });
+
+        th.addEventListener('keydown', function (event) {
+          if (event.key === 'Enter' || event.key === ' ') {
+            event.preventDefault();
+            sort(th.getAttribute('aria-sort') === 'ascending' ? 'descending' : 'ascending');
+          }
+
+          if (event.key === 'ArrowUp' || event.key === 'ArrowDown') {
+            event.preventDefault();
+            sort(event.key === 'ArrowUp' ? 'ascending' : 'descending');
+          }
+        });
+      });
+
+      table.dataset.sortableInitialized = 'true';
+    });
+  }
+
+  initSortableTables();
+
   /* -----------------------------------------
      4. COOKIE MONSTER – GOV.UK STYLE MINIMAL
      ----------------------------------------- */
