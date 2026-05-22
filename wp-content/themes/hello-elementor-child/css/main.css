@@ -1192,27 +1192,26 @@ button.pill:focus-visible {
 }
 
 /* =======================================================
-   ARCHIVE HERO – COLLAPSIBLE DESCRIPTION
+   MORE / LESS – Collapsible text
    ======================================================= */
 
-/* Collapsed / expanded driven by data attribute */
-.archive-hero-desc[data-collapsed="true"] .archive-hero-desc__content{
+.moreless[data-collapsed="true"] .moreless__content {
   max-height: 120px;
   overflow: hidden;
   position: relative;
 }
 
-.archive-hero-desc[data-collapsed="false"] .archive-hero-desc__content{
+.moreless[data-collapsed="false"] .moreless__content {
   max-height: none;
   overflow: visible;
 }
 
-/* Optional fade at bottom when collapsed */
-.archive-hero-desc[data-collapsed="true"]
-.archive-hero-desc__content::after{
+.moreless[data-collapsed="true"] .moreless__content::after {
   content: "";
   position: absolute;
-  left: 0; right: 0; bottom: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
   height: 48px;
   pointer-events: none;
   background: linear-gradient(
@@ -1222,9 +1221,7 @@ button.pill:focus-visible {
   );
 }
 
-
-/* Archive hero toggle hover / focus */
-.archive-hero-desc__toggle{
+.moreless__toggle {
   transition:
     background-color 0.2s ease,
     color 0.2s ease,
@@ -1232,30 +1229,28 @@ button.pill:focus-visible {
     transform 0.15s ease;
 }
 
-.archive-hero-desc__toggle:hover{
-  background-color: #1f7f4a;
+.moreless__toggle:hover {
+  background-color: var(--pill-green-hover, #1f7f4a);
   box-shadow: 0 6px 16px rgba(0,0,0,0.18);
   transform: translateY(-1px);
 }
 
-.archive-hero-desc__toggle:active{
+.moreless__toggle:active {
   transform: translateY(0);
   box-shadow: 0 3px 8px rgba(0,0,0,0.18);
 }
 
-/* Keyboard accessibility */
-.archive-hero-desc__toggle:focus-visible{
+.moreless__toggle:focus-visible {
   outline: 2px solid rgba(255,255,255,0.85);
   outline-offset: 2px;
 }
 
-.archive-hero-desc[data-collapsed="false"] .archive-hero-desc__toggle{
+.moreless[data-collapsed="false"] .moreless__toggle {
   background-color: rgba(255,255,255,0.15);
 }
 
-@media (max-width: 640px){
-  .archive-hero-desc[data-collapsed="true"]
-  .archive-hero-desc__content{
+@media (max-width: 640px) {
+  .moreless[data-collapsed="true"] .moreless__content {
     max-height: 160px;
   }
 }
