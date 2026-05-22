@@ -405,8 +405,7 @@ if ( ! $is_filtered_search && ( $qo instanceof WP_Term ) && ! is_wp_error( $qo )
 ?>
 
     <!-- HERO -->
-    <section class="hero hero--left property-archive-hero">
-
+    <section class="hero hero--left hero--compact property-archive-hero">
           <?php
             // Taxonomy hero image (ACF term field). Expected: image array or ID.
             $term        = get_queried_object();
