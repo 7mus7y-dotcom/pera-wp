@@ -1,19 +1,10 @@
 /* =======================================================
-   PROPERTY ARCHIVE / SINGLE – property.css (CLEANED)
-   Notes:
-   - Removes duplicate/conflicting rules
-   - Fixes dual-range slider thumb alignment + touch behaviour (iOS)
-   - Keeps dark-mode overrides scoped to prefers-color-scheme: dark
+   PROPERTY ARCHIVE / SINGLE – property.css 
    ======================================================= */
 
 /* =======================================================
    PROPERTY ARCHIVE – BASE LAYOUT
    ======================================================= */
-
-/* Keep property archive hero compact across all viewports */
-.pera-v2-archive .property-archive-hero {
-  min-height: calc(32vh + var(--header-height));
-}
 
 /* Optional: slightly narrower intro text on archive page */
 .property-archive .section-header {
