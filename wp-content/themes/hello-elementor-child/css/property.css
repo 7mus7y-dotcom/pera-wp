@@ -77,7 +77,7 @@
 /* Pills stay in one row */
 .single-bodrum-property #bodrum-hero .hero-quicklinks__row{
   display: inline-flex;
-  gap: 8px;
+  gap: var(--space-xs);
   flex-wrap: nowrap;
 }
 
@@ -99,13 +99,13 @@
    ======================================================= */
 
 .property-facilities{
-  margin-top: 20px;
+  margin-top: var(--space-md);
 }
 
 .property-facilities__pills{
   display: flex;
   flex-wrap: wrap;
-  gap: 8px;
+  gap: var(--space-xs);
 }
 
 /* =======================================================
@@ -172,7 +172,7 @@
   display: inline-flex;
   align-items: center;
   text-decoration:none;
-  gap: 8px;
+  gap: var(--space-xs);
 }
 
 @media (max-width: 768px){
@@ -281,8 +281,8 @@
 .property-filters-wrapper{
   background: var(--bg);
   padding: 10px;
-  border: 1px solid rgba(255,255,255,0.18);
-  border-radius: 20px;
+  border: 1px solid var(--border-neutral-soft);
+  border-radius: var(--radius-xl);
   margin-bottom: 30px;
 }
 
@@ -442,8 +442,8 @@ body.has-open-dialog{
 .filter-group input[type="number"]{
   width: 100%;
   padding: 8px 10px;
-  border-radius: 10px;
-  border: 1px solid var(--soft-blue);
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border-neutral-soft);
   font-size: 0.9rem;
 }
 
@@ -496,7 +496,7 @@ body.has-open-dialog{
 /* Active pill: on-brand */
 .filter-pill--active{
   background: var(--brand);
-  color: #ffffff;
+  color: var(--inverse);
 }
 
 .filter-pill span{
@@ -760,14 +760,14 @@ body.has-open-dialog{
   right: 0;
   min-width: 180px;
   background: var(--bg);
-  border: 1px solid rgba(15, 23, 42, 0.12);
+  border: 1px solid var(--border-neutral-soft);
   border-radius: var(--radius-sm);
   padding: 6px;
   display: flex;
   flex-direction: column;
   gap: 4px;
   z-index: 20;
-  box-shadow: 0 12px 24px rgba(15, 23, 42, 0.18);
+  box-shadow: var(--glass-shadow-soft);
 }
 
 /* Ensure the sort dropdown is truly hidden when [hidden] is present */
@@ -795,7 +795,7 @@ body.has-open-dialog{
 
 .property-sort__option.is-active{
   background: var(--brand);
-  color: #fff;
+  color: var(--inverse);
 }
 
 .property-sort__pills{
@@ -1368,9 +1368,9 @@ body.is-lightbox-open{ overflow: hidden; }
   height: 36px;
   padding: 0 12px;
 
-  border-radius: 999px;
-  border: 1px solid rgba(0,0,0,0.14);
-  background: #fff;
+  border-radius: var(--pill-radius);
+  border: 1px solid var(--border-neutral-soft);
+  background: var(--bg);
 
   color: var(--text);
   text-decoration: none;
@@ -1388,7 +1388,7 @@ body.is-lightbox-open{ overflow: hidden; }
 .property-pagination .page-numbers .current {
   background: var(--brand);
   border-color: var(--brand);
-  color: #fff;
+  color: var(--inverse);
   font-weight: 600;
 }
 
@@ -1482,10 +1482,10 @@ body.is-lightbox-open{ overflow: hidden; }
 
   .property-archive .content-panel-box{
     background: #020617;
-    color: var(--soft-blue);
+    color: var(--border-neutral-soft);
   }
 
-  .property-archive .section-header h2{ color: var(--soft-blue); }
+  .property-archive .section-header h2{ color: var(--border-neutral-soft); }
   .property-archive .section-header p{ color: #9ca3af; }
 
   /* Filters */
@@ -1496,7 +1496,7 @@ body.is-lightbox-open{ overflow: hidden; }
   .filter-group input[type="number"]{
     background: #020617;
     border-color: #1f2937;
-    color: var(--soft-blue);
+    color: var(--border-neutral-soft);
   }
 
   .filter-select-wrap select:focus,
@@ -1510,7 +1510,7 @@ body.is-lightbox-open{ overflow: hidden; }
   .pill.pill--outline.filter-pill{
     border-color: #4b5563;
     background: #020617;
-    color: var(--soft-blue);
+    color: var(--border-neutral-soft);
   }
 
   .pill.pill--outline.filter-pill.filter-pill--active{
@@ -1554,21 +1554,21 @@ body.is-lightbox-open{ overflow: hidden; }
     border-color: var(--brand);
   }
 
-  .filter-price__summary{ color: var(--soft-blue); }
+  .filter-price__summary{ color: var(--border-neutral-soft); }
 
   #filter-keyword,
   .filter-group input[type="text"],
   .filter-group input[type="number"]{
     border: 1px solid rgba(255,255,255,0.15);
     background: #0f0f14;
-    color: var(--soft-blue);
+    color: var(--border-neutral-soft);
   }
   
-      .property-pagination .page-numbers a,
+        .property-pagination .page-numbers a,
         .property-pagination .page-numbers span {
           background: #0f0f14;
           border-color: rgba(255,255,255,0.14);
-          color: var(--soft-blue);
+          color: var(--border-neutral-soft);
         }
         
         .property-pagination .page-numbers a:hover {
