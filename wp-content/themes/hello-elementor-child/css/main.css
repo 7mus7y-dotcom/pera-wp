@@ -684,6 +684,110 @@ section,
 .btn--white { --btn-color: var(--inverse); }
 
 
+/* Dark-mode button safety */
+@media (prefers-color-scheme: dark) {
+  .btn--solid:focus-visible,
+  .btn--ghost:focus-visible {
+    box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.22);
+  }
+
+  .btn--white.btn--solid {
+    background-color: #ffffff;
+    color: var(--brand);
+    border-color: #ffffff;
+  }
+
+  .btn--white.btn--solid:hover {
+    background-color: transparent;
+    color: #ffffff;
+    border-color: #ffffff;
+  }
+
+  .btn--white.btn--ghost {
+    background-color: transparent;
+    color: #ffffff;
+    border-color: #ffffff;
+  }
+
+  .btn--white.btn--ghost:hover {
+    background-color: #ffffff;
+    color: var(--brand);
+    border-color: #ffffff;
+  }
+
+  .btn--black.btn--ghost {
+    background-color: transparent;
+    color: #ffffff;
+    border-color: #ffffff;
+  }
+
+  .btn--black.btn--ghost:hover {
+    background-color: #ffffff;
+    color: #000000;
+    border-color: #ffffff;
+  }
+
+  .btn--blue.btn--ghost {
+    background-color: transparent;
+    color: #ffffff;
+    border-color: #ffffff;
+  }
+
+  .btn--blue.btn--ghost:hover {
+    background-color: #ffffff;
+    color: var(--brand);
+    border-color: #ffffff;
+  }
+}
+
+[data-theme="dark"] .btn--solid:focus-visible,
+.dark .btn--solid:focus-visible,
+[data-theme="dark"] .btn--ghost:focus-visible,
+.dark .btn--ghost:focus-visible {
+  box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.22);
+}
+
+[data-theme="dark"] .btn--white.btn--solid,
+.dark .btn--white.btn--solid {
+  background-color: #ffffff;
+  color: var(--brand);
+  border-color: #ffffff;
+}
+
+[data-theme="dark"] .btn--white.btn--solid:hover,
+.dark .btn--white.btn--solid:hover {
+  background-color: transparent;
+  color: #ffffff;
+  border-color: #ffffff;
+}
+
+[data-theme="dark"] .btn--white.btn--ghost,
+.dark .btn--white.btn--ghost,
+[data-theme="dark"] .btn--black.btn--ghost,
+.dark .btn--black.btn--ghost,
+[data-theme="dark"] .btn--blue.btn--ghost,
+.dark .btn--blue.btn--ghost {
+  background-color: transparent;
+  color: #ffffff;
+  border-color: #ffffff;
+}
+
+[data-theme="dark"] .btn--white.btn--ghost:hover,
+.dark .btn--white.btn--ghost:hover,
+[data-theme="dark"] .btn--blue.btn--ghost:hover,
+.dark .btn--blue.btn--ghost:hover {
+  background-color: #ffffff;
+  color: var(--brand);
+  border-color: #ffffff;
+}
+
+[data-theme="dark"] .btn--black.btn--ghost:hover,
+.dark .btn--black.btn--ghost:hover {
+  background-color: #ffffff;
+  color: #000000;
+  border-color: #ffffff;
+}
+
 
 /* Card variant (slightly smaller) */
 .btn-card {
@@ -4417,32 +4521,6 @@ body:not(.single-post) tr:nth-child(even) {
     .home-featured__price {
         color: #ffffff;
     }
-
-/* =======================================================
-   BUTTON SYSTEM – DARK MODE + CONTRAST FIXES
-   ======================================================= */
-
-/* Yellow must use black text when filled (light + dark) */
-.btn--solid.btn--yellow { color: #000; }
-.btn--ghost.btn--yellow:hover { color: #000; }
-
-/* Dark mode focus ring (supports both hooks) */
-
-  .btn--solid:focus-visible,
-  .btn--ghost:focus-visible{
-    box-shadow: 0 0 0 3px rgba(255,255,255,0.18);
-  }
-
-
-[data-theme="dark"] .btn--solid:focus-visible,
-[data-theme="dark"] .btn--ghost:focus-visible,
-.dark .btn--solid:focus-visible,
-.dark .btn--ghost:focus-visible{
-  box-shadow: 0 0 0 3px rgba(255,255,255,0.18);
-}
-
-  
-}
 
 /* =======================================================
    WordPress admin bar mobile layout guard
