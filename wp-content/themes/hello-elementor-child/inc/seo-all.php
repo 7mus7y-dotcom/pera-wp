@@ -609,6 +609,9 @@ add_filter( 'pre_get_document_title', function ( $title ) {
     $post_id = (int) get_queried_object_id();
     if ( $post_id > 0 ) {
       if ( pera_seo_all_is_rent_with_pera_page( $post_id ) ) {
+        if ( current_user_can( 'manage_options' ) ) {
+          return 'Property Management Istanbul | Rent Out Your Istanbul Property';
+        }
         return 'Property Management Istanbul | Rent Out Your Property with Pera';
       }
 
@@ -888,7 +891,11 @@ add_action( 'wp_head', function () {
     case 'static_page':
       if ( $post_id > 0 ) {
         if ( pera_seo_all_is_rent_with_pera_page( $post_id ) ) {
-          $desc = 'Full-service property management in Istanbul for local and overseas owners. Pera Property handles tenant sourcing, contracts, rent collection, maintenance and renewals.';
+          if ( current_user_can( 'manage_options' ) ) {
+            $desc = 'Rent out your Istanbul property with Pera Property. Long-term rental management, tenant sourcing, rent collection, maintenance and support for overseas owners.';
+          } else {
+            $desc = 'Full-service property management in Istanbul for local and overseas owners. Pera Property handles tenant sourcing, contracts, rent collection, maintenance and renewals.';
+          }
           break;
         }
 
