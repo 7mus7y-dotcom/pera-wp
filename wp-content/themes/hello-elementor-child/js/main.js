@@ -25,9 +25,14 @@ document.addEventListener('DOMContentLoaded', function () {
 
   function initGA() {
     if (analyticsLoaded) return;
+
+    // GA4 measurement ID is injected server-side via wp_add_inline_script.
+    if (!window.peraTrackingConfig || !window.peraTrackingConfig.gaMeasurementId) {
+      return;
+    }
+
     analyticsLoaded = true;
 
-    if (!window.peraTrackingConfig || !window.peraTrackingConfig.gaMeasurementId) return;
     var gaId = window.peraTrackingConfig.gaMeasurementId;
 
     loadScript('https://www.googletagmanager.com/gtag/js?id=' + encodeURIComponent(gaId), 'pera-ga4');
@@ -288,11 +293,6 @@ document.addEventListener('DOMContentLoaded', function () {
   var COOKIE_KEY = 'pera_cookie_pref_v2';
   var banner     = document.getElementById('cookie-banner');
 
-  // If there is no cookie banner on this page, do nothing
-  if (!banner) {
-    return;
-  }
-
   var btnAcceptAll = document.getElementById('cookie-accept-all');
   var btnReject    = document.getElementById('cookie-reject');
   var btnSave      = document.getElementById('cookie-save');   // may not exist (hidden in GOV layout)
@@ -352,6 +352,10 @@ document.addEventListener('DOMContentLoaded', function () {
 
   // Global hook for “Cookie settings” link in footer
   window.peraOpenCookieSettings = function () {
+    if (!banner) {
+      return;
+    }
+
     var prefs = getPrefs();
     if (prefs) {
       applyPrefs(prefs);
@@ -360,14 +364,21 @@ document.addEventListener('DOMContentLoaded', function () {
     showBanner();
   };
 
-  // Initial load: show banner if no prefs
+  // Initial load: apply existing consent first.
+  // gtag.js still loads only when analytics consent is true.
   var existing = getPrefs();
-  if (!existing) {
-    // No preference stored yet → show banner
-    showBanner();
-  } else {
-    // Already have prefs → apply silently (no banner)
+  if (existing) {
     applyPrefs(existing);
+  }
+
+  // If there is no cookie banner on this page, stop after applying saved consent.
+  if (!banner) {
+    return;
+  }
+
+  // Show banner only when there are no saved preferences.
+  if (!existing) {
+    showBanner();
   }
 
   // Button: Accept all cookies
