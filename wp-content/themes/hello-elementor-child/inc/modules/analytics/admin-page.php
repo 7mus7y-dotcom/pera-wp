@@ -322,6 +322,20 @@ if ( ! function_exists( 'pera_analytics_render_admin_pages_table' ) ) {
 	}
 }
 
+if ( ! function_exists( 'pera_analytics_source_type_label' ) ) {
+	function pera_analytics_source_type_label( string $source_type ): string {
+		$labels = array(
+			'direct'         => __( 'Direct', 'hello-elementor-child' ),
+			'internal'       => __( 'Internal', 'hello-elementor-child' ),
+			'organic_search' => __( 'Organic search', 'hello-elementor-child' ),
+			'social'         => __( 'Social', 'hello-elementor-child' ),
+			'referral'       => __( 'Referral', 'hello-elementor-child' ),
+		);
+
+		return isset( $labels[ $source_type ] ) ? $labels[ $source_type ] : $source_type;
+	}
+}
+
 if ( ! function_exists( 'pera_analytics_render_admin_page' ) ) {
 	function pera_analytics_render_admin_page(): void {
 		if ( ! current_user_can( 'manage_options' ) ) {
@@ -356,6 +370,8 @@ if ( ! function_exists( 'pera_analytics_render_admin_page' ) ) {
 			$window['previous']['end']
 		);
 		$split_page_rows = pera_analytics_split_page_rows_by_type( $all_page_rows, 20, 20 );
+		$source_rows     = pera_analytics_get_source_breakdown( $window['current']['start'], $window['current']['end'] );
+		$top_referrers   = pera_analytics_get_top_referrers( $window['current']['start'], $window['current']['end'], 10 );
 
 		$summary_change = $show_previous_comparison ? pera_analytics_percent_change( $totals_current['visits'], $totals_previous['visits'] ) : '—';
 		?>
@@ -380,6 +396,60 @@ if ( ! function_exists( 'pera_analytics_render_admin_page' ) ) {
 				<div class="postbox pera-performance-kpi"><strong><?php echo esc_html__( 'Unique visitors', 'hello-elementor-child' ); ?></strong><span class="pera-performance-kpi__value"><?php echo esc_html( number_format_i18n( $totals_current['uniques'] ) ); ?></span></div>
 				<div class="postbox pera-performance-kpi"><strong><?php echo esc_html__( 'Previous period visits', 'hello-elementor-child' ); ?></strong><span class="pera-performance-kpi__value"><?php echo $show_previous_comparison ? esc_html( number_format_i18n( $totals_previous['visits'] ) ) : esc_html__( '—', 'hello-elementor-child' ); ?></span></div>
 				<div class="postbox pera-performance-kpi"><strong><?php echo esc_html__( '% change', 'hello-elementor-child' ); ?></strong><span class="pera-performance-kpi__value"><?php echo esc_html( $summary_change ); ?></span></div>
+			</div>
+
+			<h2><?php echo esc_html__( 'Visit origins', 'hello-elementor-child' ); ?></h2>
+			<p class="description"><?php echo esc_html__( 'Visit origin data is based on recent raw visit records and may not be available for older/all-time periods after raw data is pruned.', 'hello-elementor-child' ); ?></p>
+			<p class="pera-performance-scroll-hint"><?php echo esc_html__( 'Scroll horizontally to view all table columns.', 'hello-elementor-child' ); ?></p>
+			<div class="pera-performance-table-wrap" tabindex="0" role="region" aria-label="<?php echo esc_attr__( 'Visit origins table', 'hello-elementor-child' ); ?>">
+			<table class="widefat striped pera-performance-table">
+				<thead><tr>
+					<th><?php echo esc_html__( 'Source type', 'hello-elementor-child' ); ?></th>
+					<th class="pera-performance-table__number"><?php echo esc_html__( 'Visits', 'hello-elementor-child' ); ?></th>
+					<th class="pera-performance-table__number"><?php echo esc_html__( 'Unique visitors', 'hello-elementor-child' ); ?></th>
+					<th class="pera-performance-table__number"><?php echo esc_html__( '% of visits', 'hello-elementor-child' ); ?></th>
+				</tr></thead>
+				<tbody>
+				<?php foreach ( $source_rows as $row ) : ?>
+					<?php
+					$visits  = (int) ( $row['visits'] ?? 0 );
+					$uniques = (int) ( $row['uniques'] ?? 0 );
+					$share   = $totals_current['visits'] > 0 ? ( $visits / $totals_current['visits'] ) * 100 : 0;
+					?>
+					<tr>
+						<td><?php echo esc_html( pera_analytics_source_type_label( (string) ( $row['source_type'] ?? 'direct' ) ) ); ?></td>
+						<td class="pera-performance-table__number"><?php echo esc_html( number_format_i18n( $visits ) ); ?></td>
+						<td class="pera-performance-table__number"><?php echo esc_html( number_format_i18n( $uniques ) ); ?></td>
+						<td class="pera-performance-table__number"><?php echo esc_html( number_format_i18n( $share, 1 ) ); ?>%</td>
+					</tr>
+				<?php endforeach; ?>
+				</tbody>
+			</table>
+			</div>
+
+			<h2><?php echo esc_html__( 'Top external referrers', 'hello-elementor-child' ); ?></h2>
+			<p class="pera-performance-scroll-hint"><?php echo esc_html__( 'Scroll horizontally to view all table columns.', 'hello-elementor-child' ); ?></p>
+			<div class="pera-performance-table-wrap" tabindex="0" role="region" aria-label="<?php echo esc_attr__( 'Top external referrers table', 'hello-elementor-child' ); ?>">
+			<table class="widefat striped pera-performance-table">
+				<thead><tr>
+					<th><?php echo esc_html__( 'Referrer host', 'hello-elementor-child' ); ?></th>
+					<th class="pera-performance-table__number"><?php echo esc_html__( 'Visits', 'hello-elementor-child' ); ?></th>
+					<th class="pera-performance-table__number"><?php echo esc_html__( 'Unique visitors', 'hello-elementor-child' ); ?></th>
+				</tr></thead>
+				<tbody>
+				<?php if ( empty( $top_referrers ) ) : ?>
+					<tr><td colspan="3"><?php echo esc_html__( 'No external referrer data available for this period yet.', 'hello-elementor-child' ); ?></td></tr>
+				<?php else : ?>
+					<?php foreach ( $top_referrers as $referrer ) : ?>
+						<tr>
+							<td><?php echo esc_html( (string) ( $referrer['referer_host'] ?? '' ) ); ?></td>
+							<td class="pera-performance-table__number"><?php echo esc_html( number_format_i18n( (int) ( $referrer['visits'] ?? 0 ) ) ); ?></td>
+							<td class="pera-performance-table__number"><?php echo esc_html( number_format_i18n( (int) ( $referrer['uniques'] ?? 0 ) ) ); ?></td>
+						</tr>
+					<?php endforeach; ?>
+				<?php endif; ?>
+				</tbody>
+			</table>
 			</div>
 
 			<h2><?php echo esc_html__( 'Top static, archive and template pages', 'hello-elementor-child' ); ?></h2>

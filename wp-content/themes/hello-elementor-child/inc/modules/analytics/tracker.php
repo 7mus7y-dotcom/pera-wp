@@ -3,6 +3,8 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
+require_once __DIR__ . '/source-classification.php';
+
 if ( ! function_exists( 'pera_analytics_should_track_frontend' ) ) {
 	function pera_analytics_should_track_frontend(): bool {
 		if ( is_admin() || is_user_logged_in() ) {
@@ -140,6 +142,7 @@ if ( ! function_exists( 'pera_analytics_handle_track_request' ) ) {
 		$post_id   = isset( $_POST['post_id'] ) ? absint( $_POST['post_id'] ) : 0;
 		$post_type = isset( $_POST['post_type'] ) ? sanitize_key( wp_unslash( (string) $_POST['post_type'] ) ) : '';
 		$referer   = isset( $_SERVER['HTTP_REFERER'] ) ? esc_url_raw( wp_unslash( (string) $_SERVER['HTTP_REFERER'] ) ) : '';
+		$source    = pera_analytics_classify_referer_source( $referer, pera_analytics_normalize_host( $site_host ) );
 
 		if ( '' === $page_path || 0 !== strpos( $page_path, '/' ) || pera_analytics_should_skip_path( $page_path ) ) {
 			wp_send_json_success( array( 'tracked' => false ) );
@@ -160,9 +163,13 @@ if ( ! function_exists( 'pera_analytics_handle_track_request' ) ) {
 				'post_id'         => $post_id > 0 ? $post_id : 0,
 				'post_type'       => '' !== $post_type ? $post_type : '',
 				'referer'         => $referer,
+				'referer_host'    => $source['referer_host'],
+				'source_type'     => $source['source_type'],
+				'is_internal'     => $source['is_internal'],
+				'is_direct'       => $source['is_direct'],
 				'user_agent_hash' => hash( 'sha256', $user_agent ),
 			),
-			array( '%s', '%s', '%s', '%s', '%s', '%d', '%s', '%s', '%s' )
+			array( '%s', '%s', '%s', '%s', '%s', '%d', '%s', '%s', '%s', '%s', '%d', '%d', '%s' )
 		);
 
 		wp_send_json_success( array( 'tracked' => true ) );
