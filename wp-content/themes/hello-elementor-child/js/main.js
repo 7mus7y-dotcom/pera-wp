@@ -65,34 +65,84 @@ document.addEventListener('DOMContentLoaded', function () {
     window.fbq('track', 'PageView');
   }
 
-  function trackWhatsAppLeadClicks() {
+  function trackWhatsAppDispatcher() {
     document.addEventListener('click', function (event) {
       var target = event.target;
       if (!target || !target.closest) return;
 
-      var link = target.closest('a[href]');
+      var link = target.closest('a[data-whatsapp="1"][href]');
       if (!link) return;
-      if (link.__peraMetaLeadTracked) return;
+      var now = Date.now();
+      var lastClick = parseInt(link.getAttribute('data-pera-whatsapp-last-click') || '0', 10);
+      if (!isNaN(lastClick) && now - lastClick < 400) return;
+      link.setAttribute('data-pera-whatsapp-last-click', String(now));
 
-      var href = (link.getAttribute('href') || '').toLowerCase();
-      if (!href) return;
+      var href = link.getAttribute('href') || '';
+      var metaParams = {
+        whatsapp_type: link.getAttribute('data-whatsapp-type') || '',
+        track_context: link.getAttribute('data-track-context') || '',
+        track_intent: link.getAttribute('data-track-intent') || '',
+        track_source: link.getAttribute('data-track-source') || '',
+        link_url: href
+      };
 
-      var isWhatsAppLink = href.indexOf('wa.me') !== -1 ||
-        href.indexOf('api.whatsapp.com') !== -1 ||
-        href.indexOf('whatsapp') !== -1;
+      if (typeof window.gtag === 'function') {
+        window.gtag('event', link.getAttribute('data-track-ga4-event') || 'whatsapp_click', {
+          whatsapp_type: metaParams.whatsapp_type,
+          track_context: metaParams.track_context,
+          track_intent: metaParams.track_intent,
+          track_source: metaParams.track_source,
+          page_location: window.location.href,
+          page_title: document.title || '',
+          link_url: href
+        });
+      }
 
-      if (!isWhatsAppLink) return;
-      if (typeof window.fbq !== 'function') return;
+      // Meta WhatsAppLead should only fire when fbq exists; fbq is loaded by the consent-controlled Meta Pixel path.
+      if (typeof window.fbq === 'function') {
+        window.fbq('trackCustom', 'WhatsAppLead', metaParams);
+      }
 
-      link.__peraMetaLeadTracked = true;
-      window.fbq('track', 'Lead', {
-        content_name: 'WhatsApp Click',
-        content_category: 'Citizenship Lead'
-      });
+      var logConfig = window.peraWhatsappLog || {};
+      if (!logConfig.ajax_url || !logConfig.action || !logConfig.nonce) return;
+
+      var payload = new URLSearchParams();
+      payload.append('action', logConfig.action);
+      payload.append('nonce', logConfig.nonce);
+      payload.append('page_type', link.getAttribute('data-page-type') || 'generic');
+      payload.append('post_id', link.getAttribute('data-post-id') || '0');
+      payload.append('post_title', link.getAttribute('data-post-title') || '');
+      payload.append('page_url', link.getAttribute('data-page-url') || window.location.href);
+      payload.append('message_text', link.getAttribute('data-message-text') || '');
+      payload.append('referrer', document.referrer || '');
+      payload.append('user_agent', window.navigator.userAgent || '');
+      payload.append('whatsapp_type', metaParams.whatsapp_type);
+      payload.append('track_intent', metaParams.track_intent);
+      payload.append('track_source', metaParams.track_source);
+      payload.append('track_context', metaParams.track_context);
+      payload.append('link_href', href);
+      payload.append('event_source', 'whatsapp_cta');
+      payload.append('crm_event', link.getAttribute('data-track-crm-event') || 'whatsapp_click');
+
+      if (typeof navigator.sendBeacon === 'function') {
+        var beaconBody = new Blob([payload.toString()], {
+          type: 'application/x-www-form-urlencoded; charset=UTF-8'
+        });
+        navigator.sendBeacon(logConfig.ajax_url, beaconBody);
+        return;
+      }
+
+      fetch(logConfig.ajax_url, {
+        method: 'POST',
+        credentials: 'same-origin',
+        keepalive: true,
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8' },
+        body: payload.toString()
+      }).catch(function () { return null; });
     }, true);
   }
 
-  trackWhatsAppLeadClicks();
+  trackWhatsAppDispatcher();
 
 
   function openNav() {
