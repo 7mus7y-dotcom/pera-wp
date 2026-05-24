@@ -439,7 +439,7 @@ get_header();
         <a
           href="https://wa.me/905452054356?text=Hello%20I%20would%20like%20to%20book%20a%20consultancy%20call%20with%20Pera%20Property"
           target="_blank"
-          rel="noopener"
+          rel="noopener" data-whatsapp="1" data-whatsapp-type="service_cta" data-track-channel="whatsapp" data-track-intent="high" data-track-source="template" data-track-context="book_consultancy" data-track-ga4-event="whatsapp_click" data-track-crm-event="whatsapp_click"
           class="btn btn--solid btn--blue"
         >
           WhatsApp our team

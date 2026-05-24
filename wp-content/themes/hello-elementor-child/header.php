@@ -262,7 +262,15 @@ $crm_label                  = $crm_overdue_count > 0
            class="footer-social-link"
            aria-label="WhatsApp Pera Property"
            target="_blank"
-           rel="noopener">
+           rel="noopener"
+           data-whatsapp="1"
+           data-whatsapp-type="header_primary"
+           data-track-channel="whatsapp"
+           data-track-intent="high"
+           data-track-source="template"
+           data-track-context="site_header"
+           data-track-ga4-event="whatsapp_click"
+           data-track-crm-event="whatsapp_click">
           <svg class="icon" aria-hidden="true">
             <use href="<?php echo esc_url( get_stylesheet_directory_uri() . '/logos-icons/icons.svg#icon-whatsapp' ); ?>"></use>
           </svg>

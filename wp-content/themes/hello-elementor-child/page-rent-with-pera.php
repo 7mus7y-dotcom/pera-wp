@@ -708,7 +708,15 @@ get_header();
                                 </a>
         
                                 <a href="https://wa.me/905452054356?text=Hello%20Pera%20Property%2C%20I%27d%20like%20to%20discuss%20Istanbul%20real%20estate."
-                                   class="btn btn--solid btn--green">
+                                   class="btn btn--solid btn--green"
+                                   data-whatsapp="1"
+                                   data-whatsapp-type="service_cta"
+                                   data-track-channel="whatsapp"
+                                   data-track-intent="high"
+                                   data-track-source="template"
+                                   data-track-context="rent_with_pera"
+                                   data-track-ga4-event="whatsapp_click"
+                                   data-track-crm-event="whatsapp_click">
                                     Chat on WhatsApp
                                 </a>
                             </div>

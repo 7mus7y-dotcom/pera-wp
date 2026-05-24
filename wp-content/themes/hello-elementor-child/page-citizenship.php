@@ -1308,6 +1308,14 @@ $citizenship_requirements = array(
         <a
           href="https://wa.me/905320639978?text=Hello%20Pera%20Property%2C%20I%27m%20interested%20in%20Turkish%20citizenship%20by%20investment."
           class="btn btn--ghost btn--green"
+          data-whatsapp="1"
+          data-whatsapp-type="citizenship_cta"
+          data-track-channel="whatsapp"
+          data-track-intent="high"
+          data-track-source="template"
+          data-track-context="citizenship_page"
+          data-track-ga4-event="whatsapp_click"
+          data-track-crm-event="whatsapp_click"
         >
           Chat on WhatsApp
         </a>
