@@ -5,6 +5,14 @@
 
 if ( ! defined( 'ABSPATH' ) ) exit;
 
+$is_rent_page_seo_preview = current_user_can( 'manage_options' );
+if ( $is_rent_page_seo_preview && isset( $_GET['rent_page_version'] ) && 'seo' === sanitize_key( wp_unslash( $_GET['rent_page_version'] ) ) ) {
+    if ( ! defined( 'DONOTCACHEPAGE' ) ) {
+        define( 'DONOTCACHEPAGE', true );
+    }
+    nocache_headers();
+}
+
 $hero_heading = $args['hero_heading'] ?? 'Talk to Pera about your Istanbul plans';
 $hero_intro   = $args['hero_intro']   ?? 'Whether you’re buying, selling, or renting in Istanbul, our team can walk you through the numbers, the legal steps, and the neighbourhoods that fit your strategy.';
 
@@ -13,6 +21,7 @@ if ( ! function_exists( 'pera_rent_with_pera_faq_schema' ) ) {
         if ( ! is_page_template( 'page-rent-with-pera.php' ) ) {
             return;
         }
+        $is_preview = current_user_can( 'manage_options' );
 
         $faq_entities = array(
             array(
@@ -68,6 +77,19 @@ if ( ! function_exists( 'pera_rent_with_pera_faq_schema' ) ) {
                 'answer'   => 'Yes. You are free to take over management at any time with reasonable notice. We will ensure a smooth handover of all relevant documents and tenant information.',
             ),
         );
+
+        if ( $is_preview ) {
+            $faq_entities = array(
+                array( 'question' => 'Can foreigners rent out property in Istanbul?', 'answer' => 'Yes. Foreign owners can rent out eligible property in Istanbul. We help with practical steps, tenancy setup, and ongoing landlord support.' ),
+                array( 'question' => 'What does property management in Istanbul include?', 'answer' => 'Our property management service covers rental valuation, marketing, tenant sourcing, screening, tenancy coordination, rent collection, maintenance oversight, inspections, and owner reporting.' ),
+                array( 'question' => 'Do you provide long-term rental management?', 'answer' => 'Yes. Long-term rental management is our core service, with optional short-term support only where suitable for the property and location.' ),
+                array( 'question' => 'Can you manage my Istanbul apartment if I live overseas?', 'answer' => 'Yes. We support overseas landlords with day-to-day tenant communication, maintenance coordination, approvals, and regular updates.' ),
+                array( 'question' => 'Do you help with utilities, DASK and property tax?', 'answer' => 'Yes. We coordinate utility setup and support owners with DASK and annual property tax practicalities as part of our landlord services.' ),
+                array( 'question' => 'How do you handle repairs and maintenance costs?', 'answer' => 'We coordinate contractors, share quotes, and secure owner approval before third-party costs are committed.' ),
+                array( 'question' => 'Which Istanbul areas are best for rental demand?', 'answer' => 'Demand is often strong in central and well-connected districts such as Beşiktaş, Şişli, Nişantaşı, Bomonti, Kağıthane, Kadıköy, Üsküdar, Bakırköy and Atakent/Küçükçekmece.' ),
+                array( 'question' => 'Do you help furnish or prepare a property for rent?', 'answer' => 'Yes. We advise on furnishing, presentation, and practical setup to improve rental demand and tenant quality.' ),
+            );
+        }
 
         $main_entity = array_map(
             static function ( array $item ): array {
@@ -143,10 +165,13 @@ get_header();
 
         
             <h1>Property management in Istanbul for overseas and local owners</h1>
-
-            <p class="lead">
-              Pera provides full-service rental and property management in Istanbul, including tenant sourcing, contracts, rent collection, maintenance coordination, renewals, and dedicated owner support.
-            </p>
+            <?php if ( $is_rent_page_seo_preview ) : ?>
+                <p class="lead">Rent out property in Istanbul with a trusted Istanbul property management company. We focus on long-term rental management in Istanbul for local and foreign owners, covering tenant sourcing, rent collection, property care, and clear owner reporting.</p>
+            <?php else : ?>
+                <p class="lead">
+                  Pera provides full-service rental and property management in Istanbul, including tenant sourcing, contracts, rent collection, maintenance coordination, renewals, and dedicated owner support.
+                </p>
+            <?php endif; ?>
         
             <div class="hero-actions">
               <a href="#pricing" class="btn btn--solid btn--blue">See pricing</a>
@@ -238,6 +263,21 @@ get_header();
             </div>
         </div>
     </section>
+    <?php if ( $is_rent_page_seo_preview ) : ?>
+    <section class="section section-soft">
+        <div class="content-panel-box">
+            <header class="section-header section-header--center"><h2>Property Management Services in Istanbul</h2></header>
+            <div class="feature-grid">
+                <article class="feature-card"><div class="feature-card-header"><h3>Long-term rental management</h3></div><div class="feature-card-body"><p>Our Istanbul rental management service includes valuation, marketing, tenant sourcing, tenancy coordination, Istanbul rent collection, and ongoing apartment management for local and overseas owners.</p></div></article>
+                <article class="feature-card"><div class="feature-card-header"><h3>Landlord administration</h3></div><div class="feature-card-body"><p>We support Istanbul landlord services including utility setup, DASK and annual property tax support, deposit handling, and owner reporting tailored to overseas landlords with property in Istanbul.</p></div></article>
+                <article class="feature-card"><div class="feature-card-header"><h3>Asset care and approvals</h3></div><div class="feature-card-body"><p>Maintenance coordination, inspections, and contractor management are handled with owner approvals before third-party costs are committed.</p></div></article>
+            </div>
+        </div>
+    </section>
+    <section class="section"><div class="content-panel-box"><header class="section-header"><h2>Long-Term Rental Management for Foreign Owners</h2><p>As a property management company in Istanbul, we are set up for foreign owners who need dependable local execution. If you are abroad, we can manage your Istanbul apartment end-to-end and keep decisions clear, documented, and approval-led.</p></header></div></section>
+    <section class="section section-soft"><div class="content-panel-box"><header class="section-header section-header--center"><h2>Best Istanbul Areas for Rental Demand</h2><p>We regularly manage and let homes in <a href="/district/istanbul/besiktas/">Beşiktaş</a>, <a href="/district/istanbul/sisli/">Şişli</a> (including Bomonti and Nişantaşı), <a href="/district/istanbul/kagithane/">Kağıthane</a>, <a href="/district/istanbul/kadikoy/">Kadıköy</a>, <a href="/district/istanbul/uskudar/">Üsküdar</a>, <a href="/district/istanbul/bakirkoy/">Bakırköy</a>, and Atakent / Küçükçekmece. Explore our <a href="/property/">property listings</a> and <a href="/buyer-guides/">buyer guides</a> for district context.</p></header></div></section>
+    <section class="section"><div class="content-panel-box"><header class="section-header section-header--center"><h2>Why International Owners Choose Pera Property</h2><p>Owners choose us for practical execution, transparent communication, and reliable process controls across tenant checks, rent collection, maintenance, and reporting. Contact us through <a href="/contact/">our contact page</a> to discuss your rental plan.</p></header></div></section>
+    <?php endif; ?>
 
     <!-- PRICING -->
     <section id="pricing" class="section section-soft">
@@ -455,7 +495,7 @@ get_header();
     <section class="section" id="rental-management-faq">
         <div class="content-panel-box">
             <header class="section-header section-header--center">
-                <h2>Rental management FAQ</h2>
+                <h2><?php echo $is_rent_page_seo_preview ? 'Istanbul Property Management FAQ' : 'Rental management FAQ'; ?></h2>
                 <p>Everything you need to know about property management in Istanbul and how our rental management service works in practice.</p>
             </header>
 
