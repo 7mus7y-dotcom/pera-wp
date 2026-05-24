@@ -4,6 +4,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 require_once get_stylesheet_directory() . '/inc/modules/analytics/ahrefs.php';
+require_once get_stylesheet_directory() . '/inc/modules/analytics/ga4.php';
 require_once get_stylesheet_directory() . '/inc/modules/analytics/meta.php';
 
 if ( ! function_exists( 'pera_analytics_head_scripts' ) ) {
