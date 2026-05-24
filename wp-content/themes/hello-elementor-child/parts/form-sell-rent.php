@@ -95,7 +95,15 @@ $form_context = $args['form_context'] ?? 'general-contact';
                         </a>
 
                         <a href="https://wa.me/905452054356?text=Hello%20Pera%20Property%2C%20I%27d%20like%20to%20discuss%20Istanbul%20real%20estate."
-                           class="btn btn-secondary">
+                           class="btn btn-secondary"
+                           data-whatsapp="1"
+                           data-whatsapp-type="service_cta"
+                           data-track-channel="whatsapp"
+                           data-track-intent="medium"
+                           data-track-source="partial"
+                           data-track-context="sell_rent_form_side"
+                           data-track-ga4-event="whatsapp_click"
+                           data-track-crm-event="whatsapp_click">
                             Chat on WhatsApp
                         </a>
                     </div>

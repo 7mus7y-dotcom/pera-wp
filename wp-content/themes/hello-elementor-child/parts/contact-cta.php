@@ -80,7 +80,7 @@ $icon_sprite  = esc_url( get_stylesheet_directory_uri() . '/logos-icons/icons.sv
 							Book a consultation
 						</a>
 
-						<a href="<?php echo $whatsapp_url; ?>" class="btn btn--solid btn--green">
+						<a href="<?php echo $whatsapp_url; ?>" class="btn btn--solid btn--green" data-whatsapp="1" data-whatsapp-type="inline_cta" data-track-channel="whatsapp" data-track-intent="high" data-track-source="partial" data-track-context="reusable_contact_cta" data-track-ga4-event="whatsapp_click" data-track-crm-event="whatsapp_click">
 							Chat on WhatsApp
 						</a>
 					</div>

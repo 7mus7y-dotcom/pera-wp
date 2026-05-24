@@ -81,7 +81,19 @@ $luxury_query = new WP_Query( $luxury_query_args );
 			<h1>Luxury Property in Istanbul for Discerning Buyers</h1>
 			<p class="text-light">Handpicked apartments, villas and branded residences in Istanbul&rsquo;s most desirable districts &mdash; selected for lifestyle, quality and long-term appeal.</p>
 			<p>
-				<a class="btn btn--solid btn--green js-meta-lead-cta" data-meta-event="Lead" data-meta-context="luxury_property_landing" href="<?php echo esc_url( $whatsapp_url ); ?>">Request a Private Shortlist</a>
+				<a
+					class="btn btn--solid btn--green js-meta-lead-cta"
+					data-meta-event="Lead"
+					data-meta-context="luxury_property_landing"
+					data-whatsapp="1"
+					data-whatsapp-type="luxury_shortlist"
+					data-track-channel="whatsapp"
+					data-track-intent="high"
+					data-track-source="template"
+					data-track-context="luxury_property_landing"
+					data-track-ga4-event="whatsapp_click"
+					data-track-crm-event="whatsapp_click"
+					href="<?php echo esc_url( $whatsapp_url ); ?>">Request a Private Shortlist</a>
 				<a class="btn btn--solid btn--black" href="#selected-luxury-properties">View Selected Properties</a>
 			</p>
 		</div>
@@ -168,7 +180,19 @@ $luxury_query = new WP_Query( $luxury_query_args );
 		<div class="container">
 			<h2>Want a Private Shortlist Instead?</h2>
 			<p>Tell us your preferred location, budget and purpose, and our Istanbul team will send you a focused shortlist instead of overwhelming you with unsuitable options.</p>
-			<p><a class="btn btn--solid btn--green js-meta-lead-cta" data-meta-event="Lead" data-meta-context="luxury_property_landing" href="<?php echo esc_url( $whatsapp_url ); ?>">Request a Private Shortlist on WhatsApp</a></p>
+			<p><a
+				class="btn btn--solid btn--green js-meta-lead-cta"
+				data-meta-event="Lead"
+				data-meta-context="luxury_property_landing"
+				data-whatsapp="1"
+				data-whatsapp-type="luxury_shortlist"
+				data-track-channel="whatsapp"
+				data-track-intent="high"
+				data-track-source="template"
+				data-track-context="luxury_property_landing"
+				data-track-ga4-event="whatsapp_click"
+				data-track-crm-event="whatsapp_click"
+				href="<?php echo esc_url( $whatsapp_url ); ?>">Request a Private Shortlist on WhatsApp</a></p>
 		</div>
 	</section>
 
@@ -204,7 +228,19 @@ $luxury_query = new WP_Query( $luxury_query_args );
 		<div class="container">
 			<h2>Speak with an Istanbul Luxury Property Specialist</h2>
 			<p>Share your budget, preferred locations and buying objective. We will help you compare the best available options and avoid unsuitable listings.</p>
-			<p><a class="btn btn--solid btn--green js-meta-lead-cta" data-meta-event="Lead" data-meta-context="luxury_property_landing" href="<?php echo esc_url( $whatsapp_url ); ?>">Message Pera Property on WhatsApp</a></p>
+			<p><a
+				class="btn btn--solid btn--green js-meta-lead-cta"
+				data-meta-event="Lead"
+				data-meta-context="luxury_property_landing"
+				data-whatsapp="1"
+				data-whatsapp-type="luxury_shortlist"
+				data-track-channel="whatsapp"
+				data-track-intent="high"
+				data-track-source="template"
+				data-track-context="luxury_property_landing"
+				data-track-ga4-event="whatsapp_click"
+				data-track-crm-event="whatsapp_click"
+				href="<?php echo esc_url( $whatsapp_url ); ?>">Message Pera Property on WhatsApp</a></p>
 		</div>
 	</section>
 </main>

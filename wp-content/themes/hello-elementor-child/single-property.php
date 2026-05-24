@@ -575,6 +575,14 @@ $has_further_reading = ! empty( $post_ids );
           href="<?php echo esc_url( $wa_url ); ?>"
           target="_blank"
           rel="noopener"
+          data-whatsapp="1"
+          data-whatsapp-type="property_detail_primary"
+          data-track-channel="whatsapp"
+          data-track-intent="high"
+          data-track-source="template"
+          data-track-context="property_detail"
+          data-track-ga4-event="whatsapp_click"
+          data-track-crm-event="whatsapp_click"
         >
           <svg class="icon" aria-hidden="true" width="18" height="18">
             <use href="<?php echo esc_url( get_stylesheet_directory_uri() . '/logos-icons/icons.svg#icon-whatsapp' ); ?>"></use>
@@ -1042,7 +1050,20 @@ $custom_video_text = $custom_video_text ? wp_kses_post( wpautop( $custom_video_t
                   if ( $wa_href ) :
                     ?>
                     <div class="inline-row pill pill--green glass--pill glass--compact">
-                      <a class="advisor-row__wa" href="<?php echo esc_url( $wa_href ); ?>" target="_blank" rel="noopener">
+                      <a
+                        class="advisor-row__wa"
+                        href="<?php echo esc_url( $wa_href ); ?>"
+                        target="_blank"
+                        rel="noopener"
+                        data-whatsapp="1"
+                        data-whatsapp-type="agent_card"
+                        data-track-channel="whatsapp"
+                        data-track-intent="high"
+                        data-track-source="template"
+                        data-track-context="property_agent_card"
+                        data-track-ga4-event="whatsapp_click"
+                        data-track-crm-event="whatsapp_click"
+                      >
                         <svg class="icon" aria-hidden="true">
                           <use href="<?php echo esc_url( get_stylesheet_directory_uri() . '/logos-icons/icons.svg#icon-whatsapp' ); ?>"></use>
                         </svg>
@@ -1381,6 +1402,14 @@ $custom_video_text = $custom_video_text ? wp_kses_post( wpautop( $custom_video_t
               class="btn btn--solid btn--green"
               target="_blank"
               rel="noopener"
+              data-whatsapp="1"
+              data-whatsapp-type="property_detail_secondary"
+              data-track-channel="whatsapp"
+              data-track-intent="medium"
+              data-track-source="template"
+              data-track-context="property_detail"
+              data-track-ga4-event="whatsapp_click"
+              data-track-crm-event="whatsapp_click"
             >
               Chat on WhatsApp
             </a>
