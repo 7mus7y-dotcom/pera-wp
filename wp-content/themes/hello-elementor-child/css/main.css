@@ -3293,7 +3293,6 @@ body:not(.single-post) tr:nth-child(even) {
 
 @media (max-width: 900px) {
   .content-panel {
-    margin-top: -40px;
     padding-bottom: 40px;
   }
 
