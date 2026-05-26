@@ -20,6 +20,10 @@ if ( ! function_exists( 'pera_admin_posts_list_mobile_table_css' ) ) {
 			return;
 		}
 
+		// TEMP: Disabled while diagnosing mobile blank state on wp-admin Posts list.
+		// If mobile default WordPress card layout returns, the issue is confirmed in admin-posts-mobile-table.css.
+		return;
+
 		$asset_rel_path = '/assets/css/admin-posts-mobile-table.css';
 		$version        = function_exists( 'pera_get_asset_version' )
 			? pera_get_asset_version( $asset_rel_path )

@@ -9,6 +9,7 @@
   .post-type-post.edit-php #posts-filter {
     max-width: 100%;
     overflow-x: auto;
+    overflow-y: visible;
     -webkit-overflow-scrolling: touch;
   }
 
@@ -33,9 +34,6 @@
     display: none !important;
   }
 
-  .post-type-post.edit-php #posts-filter .wp-list-table .toggle-row {
-    display: none !important;
-  }
 
   .post-type-post.edit-php #posts-filter .wp-list-table .column-title,
   .post-type-post.edit-php #posts-filter .wp-list-table .column-author,
