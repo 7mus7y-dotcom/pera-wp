@@ -162,6 +162,63 @@ if ( function_exists( 'get_field' ) ) {
     </div>
   </section>
 
+<?php if ( current_user_can( 'manage_options' ) ) : ?>
+  <section class="section section-soft" aria-labelledby="home-buyer-routes-title">
+    <div class="container">
+
+      <header class="section-header section-header--center">
+        <span class="pill pill--brand pill--sm">Buyer routes</span>
+        <h2 id="home-buyer-routes-title">Start your Istanbul property journey</h2>
+        <p class="lead">
+          Choose the route that best matches your reason for buying in Istanbul.
+        </p>
+      </header>
+
+      <div class="grid-2">
+        <article class="card-shell">
+          <span class="pill pill--brand pill--sm">Citizenship</span>
+          <h3>Citizenship by Investment</h3>
+          <p class="muted">Approved real estate routes for buyers planning to apply for Turkish citizenship through property investment.</p>
+          <div class="hero-actions">
+            <a class="btn btn--solid btn--blue" href="<?php echo esc_url( home_url( '/citizenship-by-investment/' ) ); ?>">Explore citizenship</a>
+            <a class="btn btn--ghost btn--blue" href="<?php echo esc_url( home_url( '/contact-us/' ) ); ?>">Ask an advisor</a>
+          </div>
+        </article>
+
+        <article class="card-shell">
+          <span class="pill pill--brand pill--sm">Investment</span>
+          <h3>Istanbul Investment Property</h3>
+          <p class="muted">Districts, projects and market insight for buyers focused on capital growth, rental demand and long-term value.</p>
+          <div class="hero-actions">
+            <a class="btn btn--solid btn--green" href="<?php echo esc_url( home_url( '/category/investment-advice/' ) ); ?>">Read investment advice</a>
+            <a class="btn btn--ghost btn--green" href="<?php echo esc_url( home_url( '/property/#results' ) ); ?>">View properties</a>
+          </div>
+        </article>
+
+        <article class="card-shell">
+          <span class="pill pill--brand pill--sm">Luxury</span>
+          <h3>Luxury Homes &amp; Branded Residences</h3>
+          <p class="muted">Bosphorus homes, branded residences and premium Istanbul addresses for lifestyle-led and high-value buyers.</p>
+          <div class="hero-actions">
+            <a class="btn btn--solid btn--blue" href="<?php echo esc_url( home_url( '/property_tags/istanbul-luxury-property-for-sale/' ) ); ?>">View luxury homes</a>
+            <a class="btn btn--ghost btn--blue" href="<?php echo esc_url( home_url( '/contact-us/' ) ); ?>">Request shortlist</a>
+          </div>
+        </article>
+
+        <article class="card-shell">
+          <span class="pill pill--brand pill--sm">Buyer guide</span>
+          <h3>First-Time Foreign Buyers</h3>
+          <p class="muted">Practical guidance on title deed transfer, legal checks, taxes and safe property purchasing in Istanbul.</p>
+          <div class="hero-actions">
+            <a class="btn btn--solid btn--green" href="<?php echo esc_url( home_url( '/buyers-guide/' ) ); ?>">Read buyer guide</a>
+            <a class="btn btn--ghost btn--green" href="<?php echo esc_url( home_url( '/book-a-consultancy/' ) ); ?>">Book consultancy</a>
+          </div>
+        </article>
+      </div>
+    </div>
+  </section>
+<?php endif; ?>
+
 
 <?php
 /* ======================================================
