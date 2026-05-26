@@ -141,7 +141,17 @@ if ( ! function_exists( 'pera_analytics_handle_track_request' ) ) {
 		$page_title= isset( $_POST['page_title'] ) ? sanitize_text_field( wp_unslash( (string) $_POST['page_title'] ) ) : '';
 		$post_id   = isset( $_POST['post_id'] ) ? absint( $_POST['post_id'] ) : 0;
 		$post_type = isset( $_POST['post_type'] ) ? sanitize_key( wp_unslash( (string) $_POST['post_type'] ) ) : '';
-		$referer   = isset( $_SERVER['HTTP_REFERER'] ) ? esc_url_raw( wp_unslash( (string) $_SERVER['HTTP_REFERER'] ) ) : '';
+		$referer   = '';
+
+		if ( isset( $_POST['referer'] ) ) {
+			$referer = esc_url_raw( wp_unslash( (string) $_POST['referer'] ) );
+		} elseif ( isset( $_POST['referrer'] ) ) {
+			$referer = esc_url_raw( wp_unslash( (string) $_POST['referrer'] ) );
+		}
+
+		if ( '' === $referer && isset( $_SERVER['HTTP_REFERER'] ) ) {
+			$referer = esc_url_raw( wp_unslash( (string) $_SERVER['HTTP_REFERER'] ) );
+		}
 		$source    = pera_analytics_classify_referer_source( $referer, pera_analytics_normalize_host( $site_host ) );
 
 		if ( '' === $page_path || 0 !== strpos( $page_path, '/' ) || pera_analytics_should_skip_path( $page_path ) ) {
