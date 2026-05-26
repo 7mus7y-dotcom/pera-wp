@@ -174,7 +174,7 @@ if ( function_exists( 'get_field' ) ) {
         </p>
       </header>
 
-      <div class="cards-slider cards-slider--wide cards-slider--snap cards-slider--grid-lg" aria-label="Buyer routes">
+      <div class="cards-slider cards-slider--wide cards-slider--snap cards-slider--grid-2" aria-label="Buyer routes">
         <article class="card-shell slider-card">
           <span class="pill pill--brand pill--sm">Citizenship</span>
           <h3>Citizenship by Investment</h3>
