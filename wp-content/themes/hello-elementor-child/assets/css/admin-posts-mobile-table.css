@@ -1,0 +1,69 @@
+/*
+ * Preserve table layout on mobile for wp-admin Posts list only.
+ *
+ * Enqueued only on edit.php for post_type=post via admin_enqueue_scripts.
+ * This intentionally disables WordPress card/stacked list-table styles so users
+ * can keep all columns visible with horizontal scrolling.
+ */
+@media screen and (max-width: 782px) {
+  .post-type-post.edit-php .wp-list-table {
+    min-width: 1000px;
+    table-layout: auto;
+  }
+
+  .post-type-post.edit-php .wp-list-table,
+  .post-type-post.edit-php .wp-list-table thead,
+  .post-type-post.edit-php .wp-list-table tbody,
+  .post-type-post.edit-php .wp-list-table tfoot,
+  .post-type-post.edit-php .wp-list-table tr,
+  .post-type-post.edit-php .wp-list-table th,
+  .post-type-post.edit-php .wp-list-table td {
+    display: table-cell;
+  }
+
+  .post-type-post.edit-php .wp-list-table tr {
+    display: table-row;
+  }
+
+  .post-type-post.edit-php .wp-list-table thead,
+  .post-type-post.edit-php .wp-list-table tfoot {
+    display: table-header-group;
+  }
+
+  .post-type-post.edit-php .wp-list-table tbody {
+    display: table-row-group;
+  }
+
+  .post-type-post.edit-php .wp-list-table td:not(.check-column) {
+    padding-left: 10px;
+  }
+
+  .post-type-post.edit-php .wp-list-table tr:not(.inline-edit-row):not(.no-items) td:not(.check-column)::before {
+    content: none !important;
+    display: none !important;
+  }
+
+  .post-type-post.edit-php .wp-list-table .is-expanded td {
+    display: table-cell;
+  }
+
+  .post-type-post.edit-php .wp-list-table .toggle-row {
+    display: none;
+  }
+
+  .post-type-post.edit-php .tablenav,
+  .post-type-post.edit-php .tablenav .alignleft,
+  .post-type-post.edit-php .tablenav .alignright,
+  .post-type-post.edit-php .tablenav .actions,
+  .post-type-post.edit-php .bulkactions {
+    overflow: visible;
+  }
+
+  .post-type-post.edit-php .wp-list-table .column-title,
+  .post-type-post.edit-php .wp-list-table .column-author,
+  .post-type-post.edit-php .wp-list-table .column-categories,
+  .post-type-post.edit-php .wp-list-table .column-tags,
+  .post-type-post.edit-php .wp-list-table .column-date {
+    white-space: nowrap;
+  }
+}
