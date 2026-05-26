@@ -6,65 +6,42 @@
  * can keep all columns visible with horizontal scrolling.
  */
 @media screen and (max-width: 782px) {
-  /*
-   * Disable WP's responsive stacked-card table behavior on Posts list.
-   * For this project, horizontal scrolling is preferred to preserve true
-   * row/column relationships on small screens.
-   */
-  .post-type-post.edit-php .wrap form {
+  .post-type-post.edit-php #posts-filter {
     max-width: 100%;
     overflow-x: auto;
     -webkit-overflow-scrolling: touch;
   }
 
-  .post-type-post.edit-php .wp-list-table {
+  .post-type-post.edit-php #posts-filter .wp-list-table {
     min-width: 1000px;
-    table-layout: auto;
-    display: table;
   }
 
-  .post-type-post.edit-php .wp-list-table thead {
-    display: table-header-group;
-  }
-  .post-type-post.edit-php .wp-list-table tbody {
-    display: table-row-group;
-  }
-  .post-type-post.edit-php .wp-list-table tfoot {
-    display: table-footer-group;
-  }
-  .post-type-post.edit-php .wp-list-table tr {
-    display: table-row;
-  }
-  .post-type-post.edit-php .wp-list-table th,
-  .post-type-post.edit-php .wp-list-table td {
-    display: table-cell;
+  .post-type-post.edit-php #posts-filter .wp-list-table tr:not(.inline-edit-row):not(.no-items) td:not(.check-column) {
+    display: table-cell !important;
+    width: auto !important;
+    position: static !important;
+    clear: none !important;
   }
 
-  .post-type-post.edit-php .wp-list-table td:not(.check-column) {
-    padding-left: 10px;
+  .post-type-post.edit-php #posts-filter .wp-list-table th,
+  .post-type-post.edit-php #posts-filter .wp-list-table td {
+    float: none !important;
   }
 
-  .post-type-post.edit-php .wp-list-table tr:not(.inline-edit-row):not(.no-items) td:not(.check-column)::before {
+  .post-type-post.edit-php #posts-filter .wp-list-table tr:not(.inline-edit-row):not(.no-items) td:not(.check-column)::before {
     content: none !important;
     display: none !important;
   }
-  .post-type-post.edit-php .wp-list-table .toggle-row {
-    display: none;
+
+  .post-type-post.edit-php #posts-filter .wp-list-table .toggle-row {
+    display: none !important;
   }
 
-  .post-type-post.edit-php .tablenav,
-  .post-type-post.edit-php .tablenav .alignleft,
-  .post-type-post.edit-php .tablenav .alignright,
-  .post-type-post.edit-php .tablenav .actions,
-  .post-type-post.edit-php .bulkactions {
-    overflow: visible;
-  }
-
-  .post-type-post.edit-php .wp-list-table .column-title,
-  .post-type-post.edit-php .wp-list-table .column-author,
-  .post-type-post.edit-php .wp-list-table .column-categories,
-  .post-type-post.edit-php .wp-list-table .column-tags,
-  .post-type-post.edit-php .wp-list-table .column-date {
+  .post-type-post.edit-php #posts-filter .wp-list-table .column-title,
+  .post-type-post.edit-php #posts-filter .wp-list-table .column-author,
+  .post-type-post.edit-php #posts-filter .wp-list-table .column-categories,
+  .post-type-post.edit-php #posts-filter .wp-list-table .column-tags,
+  .post-type-post.edit-php #posts-filter .wp-list-table .column-date {
     white-space: nowrap;
   }
 }
