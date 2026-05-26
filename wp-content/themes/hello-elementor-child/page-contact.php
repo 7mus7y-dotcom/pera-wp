@@ -121,7 +121,19 @@ get_header();
         
             <div class="hero-actions">
               <a href="tel:+905320639978" class="btn btn--solid btn--blue">Call Our Istanbul Office</a>
-              <a href="<?php echo esc_url( add_query_arg( 'text', 'Hi, I would like to speak with an Istanbul property consultant about buying, selling or investing in property.', 'https://wa.me/905320639978' ) ); ?>" class="btn btn--solid btn--green" target="_blank" rel="noopener">
+              <a
+                href="<?php echo esc_url( add_query_arg( 'text', 'Hi, I would like to speak with an Istanbul property consultant about buying, selling or investing in property.', 'https://wa.me/905320639978' ) ); ?>"
+                class="btn btn--solid btn--green"
+                target="_blank"
+                rel="noopener"
+                data-whatsapp="1"
+                data-whatsapp-type="contact_cta"
+                data-track-channel="whatsapp"
+                data-track-intent="high"
+                data-track-source="template"
+                data-track-context="contact_hero"
+                data-track-ga4-event="whatsapp_click"
+                data-track-crm-event="whatsapp_click">
                   <svg class="icon" aria-hidden="true">
                     <use href="<?php echo esc_url( get_stylesheet_directory_uri() . '/logos-icons/icons.svg#icon-whatsapp' ); ?>"></use>
                   </svg> WhatsApp Our Team
@@ -269,7 +281,19 @@ get_header();
             
                 <div class="contact-card__body">
                   <a href="tel:+905320639978" class="contact-card__number">+90 532 063 99 78</a>
-                  <a href="https://wa.me/905320639978" class="contact-card__action" target="_blank" rel="noopener">
+                  <a
+                    href="https://wa.me/905320639978"
+                    class="contact-card__action"
+                    target="_blank"
+                    rel="noopener"
+                    data-whatsapp="1"
+                    data-whatsapp-type="agent_card"
+                    data-track-channel="whatsapp"
+                    data-track-intent="medium"
+                    data-track-source="template"
+                    data-track-context="contact_agent_card"
+                    data-track-ga4-event="whatsapp_click"
+                    data-track-crm-event="whatsapp_click">
                     Message on WhatsApp
                   </a>
                 </div>
@@ -284,7 +308,19 @@ get_header();
             
                 <div class="contact-card__body">
                   <a href="tel:+905452054356" class="contact-card__number">+90 545 205 43 56</a>
-                  <a href="https://wa.me/905452054356" class="contact-card__action" target="_blank" rel="noopener">
+                  <a
+                    href="https://wa.me/905452054356"
+                    class="contact-card__action"
+                    target="_blank"
+                    rel="noopener"
+                    data-whatsapp="1"
+                    data-whatsapp-type="agent_card"
+                    data-track-channel="whatsapp"
+                    data-track-intent="medium"
+                    data-track-source="template"
+                    data-track-context="contact_agent_card"
+                    data-track-ga4-event="whatsapp_click"
+                    data-track-crm-event="whatsapp_click">
                     Message on WhatsApp
                   </a>
                 </div>
