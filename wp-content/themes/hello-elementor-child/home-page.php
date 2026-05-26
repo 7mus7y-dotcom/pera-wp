@@ -162,7 +162,6 @@ if ( function_exists( 'get_field' ) ) {
     </div>
   </section>
 
-<?php if ( current_user_can( 'manage_options' ) ) : ?>
   <section class="section section-soft" aria-labelledby="home-buyer-routes-title">
     <div class="container">
 
@@ -217,7 +216,6 @@ if ( function_exists( 'get_field' ) ) {
       </div>
     </div>
   </section>
-<?php endif; ?>
 
 
 <?php
