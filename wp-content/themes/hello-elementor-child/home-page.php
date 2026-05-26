@@ -174,8 +174,8 @@ if ( function_exists( 'get_field' ) ) {
         </p>
       </header>
 
-      <div class="grid-2">
-        <article class="card-shell">
+      <div class="cards-slider cards-slider--wide cards-slider--snap cards-slider--grid-lg" aria-label="Buyer routes">
+        <article class="card-shell slider-card">
           <span class="pill pill--brand pill--sm">Citizenship</span>
           <h3>Citizenship by Investment</h3>
           <p class="muted">Approved real estate routes for buyers planning to apply for Turkish citizenship through property investment.</p>
@@ -185,7 +185,7 @@ if ( function_exists( 'get_field' ) ) {
           </div>
         </article>
 
-        <article class="card-shell">
+        <article class="card-shell slider-card">
           <span class="pill pill--brand pill--sm">Investment</span>
           <h3>Istanbul Investment Property</h3>
           <p class="muted">Districts, projects and market insight for buyers focused on capital growth, rental demand and long-term value.</p>
@@ -195,7 +195,7 @@ if ( function_exists( 'get_field' ) ) {
           </div>
         </article>
 
-        <article class="card-shell">
+        <article class="card-shell slider-card">
           <span class="pill pill--brand pill--sm">Luxury</span>
           <h3>Luxury Homes &amp; Branded Residences</h3>
           <p class="muted">Bosphorus homes, branded residences and premium Istanbul addresses for lifestyle-led and high-value buyers.</p>
@@ -205,7 +205,7 @@ if ( function_exists( 'get_field' ) ) {
           </div>
         </article>
 
-        <article class="card-shell">
+        <article class="card-shell slider-card">
           <span class="pill pill--brand pill--sm">Buyer guide</span>
           <h3>First-Time Foreign Buyers</h3>
           <p class="muted">Practical guidance on title deed transfer, legal checks, taxes and safe property purchasing in Istanbul.</p>
