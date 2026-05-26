@@ -444,3 +444,72 @@ if ( ! function_exists( 'pera_analytics_get_month_totals' ) ) {
 		);
 	}
 }
+
+if ( ! function_exists( 'pera_analytics_get_source_breakdown' ) ) {
+	function pera_analytics_get_source_breakdown( ?string $start, string $end ): array {
+		global $wpdb;
+		$raw_table = pera_analytics_raw_table_name();
+
+		if ( null === $start ) {
+			$sql  = "SELECT source_type, COUNT(*) AS visits, COUNT(DISTINCT visitor_id) AS uniques FROM {$raw_table} WHERE visited_at < %s GROUP BY source_type ORDER BY visits DESC";
+			$rows = $wpdb->get_results( $wpdb->prepare( $sql, $end ), ARRAY_A );
+		} else {
+			$sql  = "SELECT source_type, COUNT(*) AS visits, COUNT(DISTINCT visitor_id) AS uniques FROM {$raw_table} WHERE visited_at >= %s AND visited_at < %s GROUP BY source_type ORDER BY visits DESC";
+			$rows = $wpdb->get_results( $wpdb->prepare( $sql, $start, $end ), ARRAY_A );
+		}
+
+		$all_sources = array(
+			'direct'         => array( 'source_type' => 'direct', 'visits' => 0, 'uniques' => 0 ),
+			'internal'       => array( 'source_type' => 'internal', 'visits' => 0, 'uniques' => 0 ),
+			'organic_search' => array( 'source_type' => 'organic_search', 'visits' => 0, 'uniques' => 0 ),
+			'social'         => array( 'source_type' => 'social', 'visits' => 0, 'uniques' => 0 ),
+			'referral'       => array( 'source_type' => 'referral', 'visits' => 0, 'uniques' => 0 ),
+		);
+
+		foreach ( $rows as $row ) {
+			$key = (string) ( $row['source_type'] ?? 'direct' );
+			if ( ! isset( $all_sources[ $key ] ) ) {
+				$key = 'referral';
+			}
+			$all_sources[ $key ]['visits']  += (int) ( $row['visits'] ?? 0 );
+			$all_sources[ $key ]['uniques'] += (int) ( $row['uniques'] ?? 0 );
+		}
+
+		return array_values( $all_sources );
+	}
+}
+
+if ( ! function_exists( 'pera_analytics_get_top_referrers' ) ) {
+	function pera_analytics_get_top_referrers( ?string $start, string $end, int $limit = 10 ): array {
+		global $wpdb;
+		$raw_table = pera_analytics_raw_table_name();
+		$limit     = max( 1, $limit );
+
+		if ( null === $start ) {
+			$sql = "SELECT referer_host, COUNT(*) AS visits, COUNT(DISTINCT visitor_id) AS uniques
+				FROM {$raw_table}
+				WHERE visited_at < %s
+				  AND is_internal = 0
+				  AND is_direct = 0
+				  AND referer_host IS NOT NULL
+				  AND referer_host <> ''
+				GROUP BY referer_host
+				ORDER BY visits DESC
+				LIMIT %d";
+			return $wpdb->get_results( $wpdb->prepare( $sql, $end, $limit ), ARRAY_A );
+		}
+
+		$sql = "SELECT referer_host, COUNT(*) AS visits, COUNT(DISTINCT visitor_id) AS uniques
+			FROM {$raw_table}
+			WHERE visited_at >= %s
+			  AND visited_at < %s
+			  AND is_internal = 0
+			  AND is_direct = 0
+			  AND referer_host IS NOT NULL
+			  AND referer_host <> ''
+			GROUP BY referer_host
+			ORDER BY visits DESC
+			LIMIT %d";
+		return $wpdb->get_results( $wpdb->prepare( $sql, $start, $end, $limit ), ARRAY_A );
+	}
+}
