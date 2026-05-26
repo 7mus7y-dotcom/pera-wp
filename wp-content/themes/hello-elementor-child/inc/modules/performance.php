@@ -190,6 +190,9 @@ add_action( 'send_headers', function (): void {
         return;
     }
 
+    // Keep referrer attribution consistent while preserving modern cross-origin privacy defaults.
+    header( 'Referrer-Policy: strict-origin-when-cross-origin', true );
+
     // Detect meaningful filters (not UTMs etc)
     $has_filters = function_exists('pera_property_archive_is_filtered_request')
         ? pera_property_archive_is_filtered_request()
