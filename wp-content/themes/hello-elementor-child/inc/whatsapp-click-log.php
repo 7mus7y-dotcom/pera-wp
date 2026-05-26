@@ -4,7 +4,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 if ( ! defined( 'PERA_WHATSAPP_CLICKS_DB_VERSION' ) ) {
-	define( 'PERA_WHATSAPP_CLICKS_DB_VERSION', '1.0.0' );
+	define( 'PERA_WHATSAPP_CLICKS_DB_VERSION', '1.1.0' );
 }
 
 if ( ! function_exists( 'pera_whatsapp_clicks_table_name' ) ) {
@@ -35,6 +35,13 @@ if ( ! function_exists( 'pera_whatsapp_clicks_install' ) ) {
 			referrer text NULL,
 			user_agent text NULL,
 			ip_address varchar(100) NULL,
+			whatsapp_type varchar(100) NULL,
+			track_intent varchar(100) NULL,
+			track_source varchar(100) NULL,
+			track_context varchar(191) NULL,
+			link_href text NULL,
+			event_source varchar(100) NULL,
+			crm_event varchar(100) NULL,
 			PRIMARY KEY  (id),
 			KEY created_at (created_at),
 			KEY page_type (page_type),
@@ -128,6 +135,13 @@ if ( ! function_exists( 'pera_whatsapp_normalize_payload' ) ) {
 			'referrer'     => mb_substr( $referrer, 0, 1000 ),
 			'user_agent'   => mb_substr( sanitize_text_field( (string) ( $payload['user_agent'] ?? '' ) ), 0, 500 ),
 			'ip_address'   => mb_substr( $ip_address, 0, 100 ),
+			'whatsapp_type'=> mb_substr( sanitize_key( (string) ( $payload['whatsapp_type'] ?? '' ) ), 0, 100 ),
+			'track_intent' => mb_substr( sanitize_key( (string) ( $payload['track_intent'] ?? '' ) ), 0, 100 ),
+			'track_source' => mb_substr( sanitize_key( (string) ( $payload['track_source'] ?? '' ) ), 0, 100 ),
+			'track_context'=> mb_substr( sanitize_text_field( (string) ( $payload['track_context'] ?? '' ) ), 0, 191 ),
+			'link_href'    => mb_substr( esc_url_raw( (string) ( $payload['link_href'] ?? '' ) ), 0, 2000 ),
+			'event_source' => mb_substr( sanitize_key( (string) ( $payload['event_source'] ?? '' ) ), 0, 100 ),
+			'crm_event'    => mb_substr( sanitize_key( (string) ( $payload['crm_event'] ?? '' ) ), 0, 100 ),
 		);
 	}
 }
@@ -147,11 +161,18 @@ if ( ! function_exists( 'pera_whatsapp_clicks_insert' ) ) {
 			'referrer'     => $normalized['referrer'],
 			'user_agent'   => $normalized['user_agent'],
 			'ip_address'   => $normalized['ip_address'],
+			'whatsapp_type'=> $normalized['whatsapp_type'],
+			'track_intent' => $normalized['track_intent'],
+			'track_source' => $normalized['track_source'],
+			'track_context'=> $normalized['track_context'],
+			'link_href'    => $normalized['link_href'],
+			'event_source' => $normalized['event_source'],
+			'crm_event'    => $normalized['crm_event'],
 		);
 
 		$data['post_id'] = (int) $normalized['post_id'];
 
-		$formats  = array( '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%d' );
+		$formats  = array( '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%d' );
 		$inserted = $wpdb->insert( $table_name, $data, $formats );
 
 		return false !== $inserted;
@@ -179,6 +200,13 @@ if ( ! function_exists( 'pera_log_whatsapp_click_ajax' ) ) {
 			'referrer'     => isset( $_POST['referrer'] ) ? wp_unslash( (string) $_POST['referrer'] ) : '',
 			'user_agent'   => isset( $_POST['user_agent'] ) ? wp_unslash( (string) $_POST['user_agent'] ) : '',
 			'ip_address'   => isset( $_SERVER['REMOTE_ADDR'] ) ? wp_unslash( (string) $_SERVER['REMOTE_ADDR'] ) : '',
+			'whatsapp_type'=> isset( $_POST['whatsapp_type'] ) ? wp_unslash( (string) $_POST['whatsapp_type'] ) : '',
+			'track_intent' => isset( $_POST['track_intent'] ) ? wp_unslash( (string) $_POST['track_intent'] ) : '',
+			'track_source' => isset( $_POST['track_source'] ) ? wp_unslash( (string) $_POST['track_source'] ) : '',
+			'track_context'=> isset( $_POST['track_context'] ) ? wp_unslash( (string) $_POST['track_context'] ) : '',
+			'link_href'    => isset( $_POST['link_href'] ) ? wp_unslash( (string) $_POST['link_href'] ) : '',
+			'event_source' => isset( $_POST['event_source'] ) ? wp_unslash( (string) $_POST['event_source'] ) : '',
+			'crm_event'    => isset( $_POST['crm_event'] ) ? wp_unslash( (string) $_POST['crm_event'] ) : '',
 		);
 
 		if ( ! pera_whatsapp_clicks_insert( $payload ) ) {
