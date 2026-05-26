@@ -38,6 +38,8 @@
     payload.append('page_title', document.title || '');
     payload.append('post_id', String(window.peraVisitTracker.postId || 0));
     payload.append('post_type', window.peraVisitTracker.postType || '');
+    payload.append('referer', document.referrer || '');
+    payload.append('referrer', document.referrer || '');
 
     var endpoint = window.peraVisitTracker.ajaxUrl;
 
