@@ -24,7 +24,7 @@ if ( ! function_exists( 'pera_analytics_install_schema' ) ) {
 		global $wpdb;
 
 		$installed_version = get_option( 'pera_analytics_schema_version', '' );
-		$target_version    = '1.1.0';
+		$target_version    = '1.2.0';
 
 		if ( $installed_version === $target_version ) {
 			return;
@@ -50,12 +50,14 @@ if ( ! function_exists( 'pera_analytics_install_schema' ) ) {
 			source_type VARCHAR(32) NOT NULL DEFAULT 'direct',
 			is_internal TINYINT(1) NOT NULL DEFAULT 0,
 			is_direct TINYINT(1) NOT NULL DEFAULT 0,
+			is_suspected_bot TINYINT(1) NOT NULL DEFAULT 0,
 			user_agent_hash VARCHAR(64) NULL,
 			PRIMARY KEY  (id),
 			KEY visited_at (visited_at),
 			KEY page_path (page_path),
 			KEY post_id (post_id),
 			KEY visitor_id (visitor_id),
+			KEY is_suspected_bot (is_suspected_bot),
 			KEY source_type (source_type),
 			KEY referer_host (referer_host)
 		) {$charset_collate};";

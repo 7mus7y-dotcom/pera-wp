@@ -3,6 +3,97 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
+if ( ! function_exists( 'pera_analytics_has_suspected_bot_column' ) ) {
+	function pera_analytics_has_suspected_bot_column(): bool {
+		static $has_column = null;
+
+		if ( null !== $has_column ) {
+			return $has_column;
+		}
+
+		global $wpdb;
+		$raw_table = pera_analytics_raw_table_name();
+		$column    = $wpdb->get_var( "SHOW COLUMNS FROM {$raw_table} LIKE 'is_suspected_bot'" );
+		$has_column = ! empty( $column );
+
+		return $has_column;
+	}
+}
+
+if ( ! function_exists( 'pera_analytics_suspected_bot_where_clause' ) ) {
+	function pera_analytics_suspected_bot_where_clause( string $alias = '' ): string {
+		if ( ! pera_analytics_has_suspected_bot_column() ) {
+			return '';
+		}
+
+		$qualified = '' === $alias ? 'is_suspected_bot' : $alias . '.is_suspected_bot';
+		return " AND {$qualified} = 0";
+	}
+}
+
+if ( ! function_exists( 'pera_analytics_suspected_bot_thresholds' ) ) {
+	function pera_analytics_suspected_bot_thresholds(): array {
+		return array(
+			'min_visits'        => (int) apply_filters( 'pera_analytics_suspected_bot_min_visits', 10 ),
+			'max_span_seconds'  => (int) apply_filters( 'pera_analytics_suspected_bot_max_span_seconds', 180 ),
+			'lookback_days'     => (int) apply_filters( 'pera_analytics_suspected_bot_lookback_days', 90 ),
+		);
+	}
+}
+
+if ( ! function_exists( 'pera_analytics_mark_suspected_bot_visits' ) ) {
+	function pera_analytics_mark_suspected_bot_visits( ?string $start = null, ?string $end = null ): int {
+		if ( ! pera_analytics_has_suspected_bot_column() ) {
+			return 0;
+		}
+
+		global $wpdb;
+		$raw_table   = pera_analytics_raw_table_name();
+		$thresholds  = pera_analytics_suspected_bot_thresholds();
+		$window_start = $start ?: gmdate( 'Y-m-d H:i:s', strtotime( '-' . max( 1, $thresholds['lookback_days'] ) . ' days' ) );
+		$window_end   = $end ?: gmdate( 'Y-m-d H:i:s' );
+
+		$sql = "UPDATE {$raw_table} v
+			INNER JOIN (
+				SELECT visitor_id
+				FROM {$raw_table}
+				WHERE visited_at >= %s
+				  AND visited_at < %s
+				GROUP BY visitor_id
+				HAVING COUNT(*) >= %d
+				   AND TIMESTAMPDIFF(SECOND, MIN(visited_at), MAX(visited_at)) <= %d
+				   AND SUM(CASE WHEN referer_host IS NULL OR referer_host = '' THEN 1 ELSE 0 END) = COUNT(*)
+			) flagged ON flagged.visitor_id = v.visitor_id
+			SET v.is_suspected_bot = 1
+			WHERE v.visited_at >= %s
+			  AND v.visited_at < %s
+				  " . pera_analytics_suspected_bot_where_clause( 'v' );
+
+		$wpdb->query( $wpdb->prepare( $sql, $window_start, $window_end, $thresholds['min_visits'], $thresholds['max_span_seconds'], $window_start, $window_end ) );
+		return (int) $wpdb->rows_affected;
+	}
+}
+
+if ( ! function_exists( 'pera_analytics_get_suspected_bot_visits_count' ) ) {
+	function pera_analytics_get_suspected_bot_visits_count( ?string $start = null, ?string $end = null ): int {
+		if ( ! pera_analytics_has_suspected_bot_column() ) {
+			return 0;
+		}
+
+		global $wpdb;
+		$raw_table = pera_analytics_raw_table_name();
+		$end       = $end ?: gmdate( 'Y-m-d H:i:s' );
+
+		if ( null === $start ) {
+			$count = $wpdb->get_var( $wpdb->prepare( "SELECT COUNT(*) FROM {$raw_table} WHERE visited_at < %s AND is_suspected_bot = 1", $end ) );
+		} else {
+			$count = $wpdb->get_var( $wpdb->prepare( "SELECT COUNT(*) FROM {$raw_table} WHERE visited_at >= %s AND visited_at < %s AND is_suspected_bot = 1", $start, $end ) );
+		}
+
+		return (int) $count;
+	}
+}
+
 if ( ! function_exists( 'pera_analytics_run_daily_aggregation' ) ) {
 	function pera_analytics_run_daily_aggregation(): void {
 		global $wpdb;
@@ -10,6 +101,12 @@ if ( ! function_exists( 'pera_analytics_run_daily_aggregation' ) ) {
 		$raw_table   = pera_analytics_raw_table_name();
 		$daily_table = pera_analytics_daily_table_name();
 		$today       = gmdate( 'Y-m-d' );
+		$thresholds  = pera_analytics_suspected_bot_thresholds();
+
+		pera_analytics_mark_suspected_bot_visits(
+			gmdate( 'Y-m-d H:i:s', strtotime( '-' . max( 1, $thresholds['lookback_days'] ) . ' days' ) ),
+			$today . ' 00:00:00'
+		);
 
 		$dates = $wpdb->get_col(
 			$wpdb->prepare(
@@ -39,10 +136,11 @@ if ( ! function_exists( 'pera_analytics_run_daily_aggregation' ) ) {
 						MAX(page_title) AS page_title,
 						COUNT(*) AS visits,
 						COUNT(DISTINCT visitor_id) AS unique_visitors
-					FROM {$raw_table}
-					WHERE visited_at >= %s
-					  AND visited_at < %s
-					GROUP BY page_path, COALESCE(post_id, 0)",
+						FROM {$raw_table}
+						WHERE visited_at >= %s
+						  AND visited_at < %s
+						  " . pera_analytics_suspected_bot_where_clause() . "
+						GROUP BY page_path, COALESCE(post_id, 0)",
 					$date,
 					$day_start,
 					$day_end
@@ -194,9 +292,10 @@ if ( ! function_exists( 'pera_analytics_get_period_page_rollup' ) ) {
 				$window_rows = $wpdb->get_results(
 					$wpdb->prepare(
 						"SELECT page_path, MAX(page_title) AS page_title, COUNT(*) AS visits
-						FROM {$raw_table}
-						WHERE visited_at < %s
-						GROUP BY page_path",
+							FROM {$raw_table}
+							WHERE visited_at < %s
+							  " . pera_analytics_suspected_bot_where_clause() . "
+							GROUP BY page_path",
 						$window['end']
 					),
 					ARRAY_A
@@ -205,10 +304,11 @@ if ( ! function_exists( 'pera_analytics_get_period_page_rollup' ) ) {
 				$window_rows = $wpdb->get_results(
 					$wpdb->prepare(
 						"SELECT page_path, MAX(page_title) AS page_title, COUNT(*) AS visits
-						FROM {$raw_table}
-						WHERE visited_at >= %s
-						  AND visited_at < %s
-						GROUP BY page_path",
+							FROM {$raw_table}
+							WHERE visited_at >= %s
+							  AND visited_at < %s
+							  " . pera_analytics_suspected_bot_where_clause() . "
+							GROUP BY page_path",
 						$window['start'],
 						$window['end']
 					),
@@ -258,9 +358,10 @@ if ( ! function_exists( 'pera_analytics_get_period_uniques_by_path' ) ) {
 					"SELECT
 						page_path,
 						COUNT(DISTINCT visitor_id) AS uniques
-					FROM {$raw_table}
-					WHERE visited_at < %s
-					GROUP BY page_path",
+						FROM {$raw_table}
+						WHERE visited_at < %s
+						  " . pera_analytics_suspected_bot_where_clause() . "
+						GROUP BY page_path",
 					$end
 				),
 				ARRAY_A
@@ -271,10 +372,11 @@ if ( ! function_exists( 'pera_analytics_get_period_uniques_by_path' ) ) {
 					"SELECT
 						page_path,
 						COUNT(DISTINCT visitor_id) AS uniques
-					FROM {$raw_table}
-					WHERE visited_at >= %s
-					  AND visited_at < %s
-					GROUP BY page_path",
+						FROM {$raw_table}
+						WHERE visited_at >= %s
+						  AND visited_at < %s
+						  " . pera_analytics_suspected_bot_where_clause() . "
+						GROUP BY page_path",
 					$start,
 					$end
 				),
@@ -414,7 +516,8 @@ if ( ! function_exists( 'pera_analytics_get_month_totals' ) ) {
 				"SELECT COUNT(DISTINCT visitor_id) AS uniques
 				FROM {$raw_table}
 				WHERE visited_at >= %s
-				  AND visited_at < %s",
+				  AND visited_at < %s
+				  " . pera_analytics_suspected_bot_where_clause(),
 				$windows['current']['start'],
 				$windows['current']['end']
 			),
@@ -425,7 +528,8 @@ if ( ! function_exists( 'pera_analytics_get_month_totals' ) ) {
 				"SELECT COUNT(DISTINCT visitor_id) AS uniques
 				FROM {$raw_table}
 				WHERE visited_at >= %s
-				  AND visited_at < %s",
+				  AND visited_at < %s
+				  " . pera_analytics_suspected_bot_where_clause(),
 				$windows['previous']['start'],
 				$windows['previous']['end']
 			),
@@ -451,10 +555,10 @@ if ( ! function_exists( 'pera_analytics_get_source_breakdown' ) ) {
 		$raw_table = pera_analytics_raw_table_name();
 
 		if ( null === $start ) {
-			$sql  = "SELECT source_type, COUNT(*) AS visits, COUNT(DISTINCT visitor_id) AS uniques FROM {$raw_table} WHERE visited_at < %s GROUP BY source_type ORDER BY visits DESC";
+			$sql  = "SELECT source_type, COUNT(*) AS visits, COUNT(DISTINCT visitor_id) AS uniques FROM {$raw_table} WHERE visited_at < %s" . pera_analytics_suspected_bot_where_clause() . " GROUP BY source_type ORDER BY visits DESC";
 			$rows = $wpdb->get_results( $wpdb->prepare( $sql, $end ), ARRAY_A );
 		} else {
-			$sql  = "SELECT source_type, COUNT(*) AS visits, COUNT(DISTINCT visitor_id) AS uniques FROM {$raw_table} WHERE visited_at >= %s AND visited_at < %s GROUP BY source_type ORDER BY visits DESC";
+			$sql  = "SELECT source_type, COUNT(*) AS visits, COUNT(DISTINCT visitor_id) AS uniques FROM {$raw_table} WHERE visited_at >= %s AND visited_at < %s" . pera_analytics_suspected_bot_where_clause() . " GROUP BY source_type ORDER BY visits DESC";
 			$rows = $wpdb->get_results( $wpdb->prepare( $sql, $start, $end ), ARRAY_A );
 		}
 
@@ -489,6 +593,7 @@ if ( ! function_exists( 'pera_analytics_get_top_referrers' ) ) {
 			$sql = "SELECT referer_host, COUNT(*) AS visits, COUNT(DISTINCT visitor_id) AS uniques
 				FROM {$raw_table}
 				WHERE visited_at < %s
+				  " . pera_analytics_suspected_bot_where_clause() . "
 				  AND is_internal = 0
 				  AND is_direct = 0
 				  AND referer_host IS NOT NULL
@@ -501,9 +606,10 @@ if ( ! function_exists( 'pera_analytics_get_top_referrers' ) ) {
 
 		$sql = "SELECT referer_host, COUNT(*) AS visits, COUNT(DISTINCT visitor_id) AS uniques
 			FROM {$raw_table}
-			WHERE visited_at >= %s
-			  AND visited_at < %s
-			  AND is_internal = 0
+				WHERE visited_at >= %s
+				  AND visited_at < %s
+				  " . pera_analytics_suspected_bot_where_clause() . "
+				  AND is_internal = 0
 			  AND is_direct = 0
 			  AND referer_host IS NOT NULL
 			  AND referer_host <> ''
