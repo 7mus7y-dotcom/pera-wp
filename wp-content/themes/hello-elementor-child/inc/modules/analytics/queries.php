@@ -658,10 +658,23 @@ if ( ! function_exists( 'pera_analytics_get_top_direct_entry_pages' ) ) {
 			return array();
 		}
 
-		$total_direct_entries = 0;
-		foreach ( $rows as $row ) {
-			$total_direct_entries += (int) ( $row['direct_entries'] ?? 0 );
-		}
+		$total_sql = "SELECT COUNT(*) AS total_direct_entries
+		FROM (
+			SELECT first.visitor_id
+			FROM (
+				SELECT visitor_id, MIN(visited_at) AS first_visit
+				FROM {$raw_table}
+				WHERE {$period_where}
+				GROUP BY visitor_id
+			) AS sessions
+			INNER JOIN {$raw_table} AS first
+				ON first.visitor_id = sessions.visitor_id
+				AND first.visited_at = sessions.first_visit
+			WHERE first.source_type = 'direct'
+				AND first.page_path IS NOT NULL
+				AND first.page_path <> ''{$bot_where}
+		) AS direct_sessions";
+		$total_direct_entries = (int) $wpdb->get_var( $wpdb->prepare( $total_sql, ...$period_args ) );
 
 		foreach ( $rows as &$row ) {
 			$direct_entries                 = (int) ( $row['direct_entries'] ?? 0 );
