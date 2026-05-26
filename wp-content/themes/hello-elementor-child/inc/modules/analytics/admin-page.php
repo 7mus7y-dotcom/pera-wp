@@ -373,6 +373,7 @@ if ( ! function_exists( 'pera_analytics_render_admin_page' ) ) {
 		);
 		$split_page_rows = pera_analytics_split_page_rows_by_type( $all_page_rows, 20, 20 );
 		$source_rows     = pera_analytics_get_source_breakdown( $window['current']['start'], $window['current']['end'] );
+		$top_direct_entries = pera_analytics_get_top_direct_entry_pages( $window['current']['start'], $window['current']['end'], 20 );
 		$top_referrers   = pera_analytics_get_top_referrers( $window['current']['start'], $window['current']['end'], 10 );
 
 		$summary_change = $show_previous_comparison ? pera_analytics_percent_change( $totals_current['visits'], $totals_previous['visits'] ) : '—';
@@ -425,6 +426,39 @@ if ( ! function_exists( 'pera_analytics_render_admin_page' ) ) {
 						<td class="pera-performance-table__number"><?php echo esc_html( number_format_i18n( $share, 1 ) ); ?>%</td>
 					</tr>
 				<?php endforeach; ?>
+				</tbody>
+			</table>
+			</div>
+
+			<h2><?php echo esc_html__( 'Top Direct Entry Pages', 'hello-elementor-child' ); ?></h2>
+			<p class="description"><?php echo esc_html__( 'Shows pages where visitors first entered the site with no recorded external referrer. This can include typed URLs, bookmarks, WhatsApp/email links, app traffic, privacy-stripped referrers and some bot-like traffic.', 'hello-elementor-child' ); ?></p>
+			<p class="pera-performance-scroll-hint"><?php echo esc_html__( 'Scroll horizontally to view all table columns.', 'hello-elementor-child' ); ?></p>
+			<div class="pera-performance-table-wrap" tabindex="0" role="region" aria-label="<?php echo esc_attr__( 'Top direct entry pages table', 'hello-elementor-child' ); ?>">
+			<table class="widefat striped pera-performance-table">
+				<thead><tr>
+					<th><?php echo esc_html__( 'Page', 'hello-elementor-child' ); ?></th>
+					<th class="pera-performance-table__number"><?php echo esc_html__( 'Direct entries', 'hello-elementor-child' ); ?></th>
+					<th class="pera-performance-table__number"><?php echo esc_html__( 'Unique visitors', 'hello-elementor-child' ); ?></th>
+					<th class="pera-performance-table__number"><?php echo esc_html__( '% of direct entries', 'hello-elementor-child' ); ?></th>
+				</tr></thead>
+				<tbody>
+				<?php if ( empty( $top_direct_entries ) ) : ?>
+					<tr><td colspan="4"><?php echo esc_html__( 'No direct entry pages available for this period yet.', 'hello-elementor-child' ); ?></td></tr>
+				<?php else : ?>
+					<?php foreach ( $top_direct_entries as $row ) : ?>
+						<?php
+						$page_path  = (string) ( $row['page_path'] ?? '' );
+						$page_title = '' !== (string) ( $row['page_title'] ?? '' ) ? (string) $row['page_title'] : $page_path;
+						$page_url   = home_url( $page_path );
+						?>
+						<tr>
+							<td class="column-page"><a href="<?php echo esc_url( $page_url ); ?>" target="_blank" rel="noopener noreferrer"><?php echo esc_html( $page_title ); ?></a><br><small class="pera-performance-page-path"><?php echo esc_html( $page_path ); ?></small></td>
+							<td class="pera-performance-table__number"><?php echo esc_html( number_format_i18n( (int) ( $row['direct_entries'] ?? 0 ) ) ); ?></td>
+							<td class="pera-performance-table__number"><?php echo esc_html( number_format_i18n( (int) ( $row['unique_visitors'] ?? 0 ) ) ); ?></td>
+							<td class="pera-performance-table__number"><?php echo esc_html( number_format_i18n( (float) ( $row['percent_of_direct_entries'] ?? 0 ), 1 ) ); ?>%</td>
+						</tr>
+					<?php endforeach; ?>
+				<?php endif; ?>
 				</tbody>
 			</table>
 			</div>

@@ -619,3 +619,56 @@ if ( ! function_exists( 'pera_analytics_get_top_referrers' ) ) {
 		return $wpdb->get_results( $wpdb->prepare( $sql, $start, $end, $limit ), ARRAY_A );
 	}
 }
+
+if ( ! function_exists( 'pera_analytics_get_top_direct_entry_pages' ) ) {
+	function pera_analytics_get_top_direct_entry_pages( ?string $start, string $end, int $limit = 20 ): array {
+		global $wpdb;
+		$raw_table = pera_analytics_raw_table_name();
+		$limit     = max( 1, $limit );
+		$bot_where = pera_analytics_suspected_bot_where_clause( 'first' );
+
+		$period_where = null === $start
+			? 'visited_at < %s'
+			: 'visited_at >= %s AND visited_at < %s';
+		$period_args  = null === $start ? array( $end ) : array( $start, $end );
+
+		$sql = "SELECT first.page_path,
+			MAX(first.page_title) AS page_title,
+			COUNT(*) AS direct_entries,
+			COUNT(DISTINCT first.visitor_id) AS unique_visitors
+		FROM (
+			SELECT visitor_id, MIN(visited_at) AS first_visit
+			FROM {$raw_table}
+			WHERE {$period_where}
+			GROUP BY visitor_id
+		) AS sessions
+		INNER JOIN {$raw_table} AS first
+			ON first.visitor_id = sessions.visitor_id
+			AND first.visited_at = sessions.first_visit
+		WHERE first.source_type = 'direct'
+			AND first.page_path IS NOT NULL
+			AND first.page_path <> ''{$bot_where}
+		GROUP BY first.page_path
+		ORDER BY direct_entries DESC
+		LIMIT %d";
+
+		$query_args = array_merge( $period_args, array( $limit ) );
+		$rows       = $wpdb->get_results( $wpdb->prepare( $sql, ...$query_args ), ARRAY_A );
+		if ( empty( $rows ) ) {
+			return array();
+		}
+
+		$total_direct_entries = 0;
+		foreach ( $rows as $row ) {
+			$total_direct_entries += (int) ( $row['direct_entries'] ?? 0 );
+		}
+
+		foreach ( $rows as &$row ) {
+			$direct_entries                 = (int) ( $row['direct_entries'] ?? 0 );
+			$row['percent_of_direct_entries'] = $total_direct_entries > 0 ? ( $direct_entries / $total_direct_entries ) * 100 : 0;
+		}
+		unset( $row );
+
+		return $rows;
+	}
+}
