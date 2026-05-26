@@ -6,32 +6,37 @@
  * can keep all columns visible with horizontal scrolling.
  */
 @media screen and (max-width: 782px) {
+  /*
+   * Disable WP's responsive stacked-card table behavior on Posts list.
+   * For this project, horizontal scrolling is preferred to preserve true
+   * row/column relationships on small screens.
+   */
+  .post-type-post.edit-php .wrap form {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
   .post-type-post.edit-php .wp-list-table {
     min-width: 1000px;
     table-layout: auto;
+    display: table;
   }
 
-  .post-type-post.edit-php .wp-list-table,
-  .post-type-post.edit-php .wp-list-table thead,
-  .post-type-post.edit-php .wp-list-table tbody,
-  .post-type-post.edit-php .wp-list-table tfoot,
-  .post-type-post.edit-php .wp-list-table tr,
-  .post-type-post.edit-php .wp-list-table th,
-  .post-type-post.edit-php .wp-list-table td {
-    display: table-cell;
+  .post-type-post.edit-php .wp-list-table thead {
+    display: table-header-group;
   }
-
+  .post-type-post.edit-php .wp-list-table tbody {
+    display: table-row-group;
+  }
+  .post-type-post.edit-php .wp-list-table tfoot {
+    display: table-footer-group;
+  }
   .post-type-post.edit-php .wp-list-table tr {
     display: table-row;
   }
-
-  .post-type-post.edit-php .wp-list-table thead,
-  .post-type-post.edit-php .wp-list-table tfoot {
-    display: table-header-group;
-  }
-
-  .post-type-post.edit-php .wp-list-table tbody {
-    display: table-row-group;
+  .post-type-post.edit-php .wp-list-table th,
+  .post-type-post.edit-php .wp-list-table td {
+    display: table-cell;
   }
 
   .post-type-post.edit-php .wp-list-table td:not(.check-column) {
