@@ -856,25 +856,13 @@
 
   .post-adjacent-nav {
     grid-template-columns: 1fr;
+    gap: 10px;
+    padding-top: 14px;
   }
 
-  .post-adjacent-nav.post-adjacent-nav--compact-2col {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 2px;
-  }
-
-  .post-adjacent-nav--compact-2col .post-adjacent-nav__link {
-    padding: 10px;
-    gap: 3px;
-  }
-
-  .post-adjacent-nav--compact-2col .post-adjacent-nav__label {
-    font-size: 0.68rem;
-  }
-
-  .post-adjacent-nav--compact-2col .post-adjacent-nav__title {
-    font-size: 0.88rem;
-    line-height: 1.35;
+  .post-adjacent-nav__link {
+    padding: 14px;
+    border-radius: 12px;
   }
 
   .post-adjacent-nav__link--next {
