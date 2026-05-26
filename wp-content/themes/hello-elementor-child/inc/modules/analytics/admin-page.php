@@ -86,9 +86,10 @@ if ( ! function_exists( 'pera_analytics_get_period_totals' ) ) {
 		if ( null === $start ) {
 			$totals = $wpdb->get_row(
 				$wpdb->prepare(
-					"SELECT COUNT(DISTINCT visitor_id) AS uniques
+				"SELECT COUNT(DISTINCT visitor_id) AS uniques
 					FROM {$raw_table}
-					WHERE visited_at < %s",
+					WHERE visited_at < %s
+					  " . pera_analytics_suspected_bot_where_clause() . "",
 					$end
 				),
 				ARRAY_A
@@ -96,10 +97,11 @@ if ( ! function_exists( 'pera_analytics_get_period_totals' ) ) {
 		} else {
 			$totals = $wpdb->get_row(
 				$wpdb->prepare(
-					"SELECT COUNT(DISTINCT visitor_id) AS uniques
+				"SELECT COUNT(DISTINCT visitor_id) AS uniques
 					FROM {$raw_table}
 					WHERE visited_at >= %s
-					  AND visited_at < %s",
+					  AND visited_at < %s
+					  " . pera_analytics_suspected_bot_where_clause() . "",
 					$start,
 					$end
 				),
