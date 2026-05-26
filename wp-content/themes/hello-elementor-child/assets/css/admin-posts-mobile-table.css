@@ -12,6 +12,7 @@
    * row/column relationships on small screens.
    */
   .post-type-post.edit-php .wrap form {
+    max-width: 100%;
     overflow-x: auto;
     -webkit-overflow-scrolling: touch;
   }
@@ -47,11 +48,6 @@
     content: none !important;
     display: none !important;
   }
-
-  .post-type-post.edit-php .wp-list-table .is-expanded td {
-    display: table-cell;
-  }
-
   .post-type-post.edit-php .wp-list-table .toggle-row {
     display: none;
   }
