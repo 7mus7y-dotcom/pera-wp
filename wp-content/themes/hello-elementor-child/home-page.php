@@ -181,7 +181,7 @@ if ( function_exists( 'get_field' ) ) {
           <p class="muted">Approved real estate routes for buyers planning to apply for Turkish citizenship through property investment.</p>
           <div class="hero-actions">
             <a class="btn btn--solid btn--blue" href="<?php echo esc_url( home_url( '/citizenship-by-investment/' ) ); ?>">Explore citizenship</a>
-            <a class="btn btn--ghost btn--blue" href="<?php echo esc_url( home_url( '/contact-us/' ) ); ?>">Ask an advisor</a>
+            <a class="btn btn--ghost btn--blue" href="<?php echo esc_url( home_url( '/turkish-citizenship-properties/' ) ); ?>">Request shortlist</a>
           </div>
         </article>
 
@@ -191,7 +191,7 @@ if ( function_exists( 'get_field' ) ) {
           <p class="muted">Districts, projects and market insight for buyers focused on capital growth, rental demand and long-term value.</p>
           <div class="hero-actions">
             <a class="btn btn--solid btn--green" href="<?php echo esc_url( home_url( '/category/investment-advice/' ) ); ?>">Read investment advice</a>
-            <a class="btn btn--ghost btn--green" href="<?php echo esc_url( home_url( '/property/#results' ) ); ?>">View properties</a>
+            <a class="btn btn--ghost btn--green" href="<?php echo esc_url( home_url( '/property_tags/istanbul-investment-property-for-sale/' ) ); ?>">View properties</a>
           </div>
         </article>
 
@@ -210,7 +210,7 @@ if ( function_exists( 'get_field' ) ) {
           <h3>First-Time Foreign Buyers</h3>
           <p class="muted">Practical guidance on title deed transfer, legal checks, taxes and safe property purchasing in Istanbul.</p>
           <div class="hero-actions">
-            <a class="btn btn--solid btn--green" href="<?php echo esc_url( home_url( '/buyers-guide/' ) ); ?>">Read buyer guide</a>
+            <a class="btn btn--solid btn--green" href="<?php echo esc_url( home_url( '/category/buyer-guides/' ) ); ?>">Read buyer guide</a>
             <a class="btn btn--ghost btn--green" href="<?php echo esc_url( home_url( '/book-a-consultancy/' ) ); ?>">Book consultancy</a>
           </div>
         </article>
