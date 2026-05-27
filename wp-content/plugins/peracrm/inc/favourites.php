@@ -199,7 +199,11 @@ function peracrm_handle_toggle_favourite()
     }
 
     if (!is_user_logged_in()) {
-        wp_safe_redirect(wp_login_url($redirect_back));
+        if (function_exists('pera_get_public_client_login_url')) {
+            wp_safe_redirect(pera_get_public_client_login_url($redirect_back));
+        } else {
+            wp_safe_redirect(home_url('/client-login/'));
+        }
         exit;
     }
 

@@ -332,6 +332,35 @@ function pera_client_portal_get_login_redirect_target() {
     return wp_validate_redirect( $login_url, home_url( '/client-login/' ) );
 }
 
+function pera_get_public_client_login_url( $redirect_to = '' ) {
+    $fallback = home_url( '/client-login/' );
+    $login_url = $fallback;
+
+    if ( ! is_string( $redirect_to ) || '' === $redirect_to ) {
+        return $login_url;
+    }
+
+    $candidate = trim( $redirect_to );
+    if ( '/' === substr( $candidate, 0, 1 ) ) {
+        $candidate = home_url( $candidate );
+    }
+
+    $validated_redirect = wp_validate_redirect( $candidate, $fallback );
+    if ( $validated_redirect === $fallback ) {
+        return $login_url;
+    }
+
+    $home_host      = wp_parse_url( home_url( '/' ), PHP_URL_HOST );
+    $redirect_host  = wp_parse_url( $validated_redirect, PHP_URL_HOST );
+    $same_site_host = is_string( $home_host ) && is_string( $redirect_host ) && strtolower( $home_host ) === strtolower( $redirect_host );
+
+    if ( ! $same_site_host ) {
+        return $login_url;
+    }
+
+    return add_query_arg( 'redirect_to', $validated_redirect, $fallback );
+}
+
 function pera_client_portal_enforce_login_redirect() {
     if ( is_user_logged_in() || ! is_page( 'client-portal' ) ) {
         return;

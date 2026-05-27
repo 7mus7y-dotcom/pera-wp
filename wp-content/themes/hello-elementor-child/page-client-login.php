@@ -108,7 +108,7 @@ get_header();
                     // WP core login form, styled by .client-login-container inputs & .button-primary
                     $requested_redirect = isset( $_GET['redirect_to'] ) ? esc_url_raw( wp_unslash( $_GET['redirect_to'] ) ) : '';
                     $default_redirect   = home_url( '/client-portal/' );
-                    $redirect_target    = $requested_redirect ? $requested_redirect : $default_redirect;
+                    $redirect_target    = wp_validate_redirect( $requested_redirect, $default_redirect );
 
                     $login_args = array(
                         'echo'           => true,
