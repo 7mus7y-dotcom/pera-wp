@@ -19,7 +19,9 @@ wp_enqueue_style(
     $client_login_ver
 );
 
-$background_image = wp_get_attachment_image_url( 55484, 'full' );
+$background_image = function_exists( 'pera_get_login_background_image_url' )
+    ? pera_get_login_background_image_url()
+    : '';
 
 ?><!doctype html>
 <html <?php language_attributes(); ?>>
@@ -46,6 +48,15 @@ $background_image = wp_get_attachment_image_url( 55484, 'full' );
                                 'show_since' => true,
                             )
                         );
+                    } else {
+                        ?>
+                        <a class="site-logo logo-pera" href="<?php echo esc_url( home_url( '/' ) ); ?>" aria-label="<?php esc_attr_e( 'Pera Property', 'hello-elementor-child' ); ?>" title="<?php esc_attr_e( 'Pera Property', 'hello-elementor-child' ); ?>">
+                            <span class="site-logo__mark" aria-hidden="true">
+                                <img class="pera-site-logo-image" src="<?php echo esc_url( get_stylesheet_directory_uri() . '/logos-icons/logo-white.svg' ); ?>" alt="" width="200" loading="eager">
+                            </span>
+                            <span class="site-logo__since"><?php esc_html_e( 'SINCE 2016', 'hello-elementor-child' ); ?></span>
+                        </a>
+                        <?php
                     }
                     ?>
                 </div>
