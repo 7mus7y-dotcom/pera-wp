@@ -19,15 +19,37 @@ wp_enqueue_style(
     $client_login_ver
 );
 
-get_header();
-?>
+$background_image = wp_get_attachment_image_url( 55484, 'full' );
 
+?><!doctype html>
+<html <?php language_attributes(); ?>>
+<head>
+    <meta charset="<?php bloginfo( 'charset' ); ?>">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <?php wp_head(); ?>
+</head>
+<body <?php body_class( 'client-login-standalone' ); ?>>
+<?php wp_body_open(); ?>
 <div class="client-login-wrapper">
     <main id="primary" class="site-main">
         <section class="client-login-section">
             <div class="client-login-shell">
-            <h1 class="client-login-title"><?php echo is_user_logged_in() ? esc_html__( 'Client Portal', 'hello-elementor-child' ) : esc_html__( 'Client Login', 'hello-elementor-child' ); ?></h1>
-            <div class="client-login-container">
+                <div class="client-login-branding">
+                    <?php
+                    if ( function_exists( 'pera_get_site_logo_markup' ) ) {
+                        echo pera_get_site_logo_markup(
+                            array(
+                                'link_class' => 'site-logo logo-pera',
+                                'aria_label' => 'Pera Property',
+                                'title'      => 'Pera Property',
+                                'home_url'   => home_url( '/' ),
+                                'show_since' => true,
+                            )
+                        );
+                    }
+                    ?>
+                </div>
+                <div class="client-login-container">
                 <?php if ( is_user_logged_in() ) : ?>
 
                     <?php $current_user = wp_get_current_user(); ?>
@@ -82,14 +104,13 @@ get_header();
                     <?php endif; ?>
 
                     <?php
-                    // WP core login form, styled by .client-login-container inputs & .button-primary
                     $requested_redirect = isset( $_GET['redirect_to'] ) ? esc_url_raw( wp_unslash( $_GET['redirect_to'] ) ) : '';
                     $default_redirect   = home_url( '/client-portal/' );
                     $redirect_target    = wp_validate_redirect( $requested_redirect, $default_redirect );
 
                     $login_args = array(
                         'echo'           => true,
-                        'redirect'       => $redirect_target, // where to send after login
+                        'redirect'       => $redirect_target,
                         'form_id'        => 'pera-client-login-form',
                         'label_username' => __( 'Email or Username', 'pera' ),
                         'label_password' => __( 'Password', 'pera' ),
@@ -114,11 +135,16 @@ get_header();
                     </div>
 
                 <?php endif; ?>
-            </div>
+                </div>
             </div>
         </section>
     </main>
 </div>
-
-<?php
-get_footer();
+<?php if ( $background_image ) : ?>
+<style>
+.client-login-standalone{background-image:url('<?php echo esc_url( $background_image ); ?>');}
+</style>
+<?php endif; ?>
+<?php wp_footer(); ?>
+</body>
+</html>
