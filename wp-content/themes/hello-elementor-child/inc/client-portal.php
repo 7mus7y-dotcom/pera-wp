@@ -47,6 +47,43 @@ function pera_register_core_client_pages() {
 }
 add_action( 'after_switch_theme', 'pera_register_core_client_pages', 5 );
 
+function pera_public_register_turnstile_site_key() {
+    // Admin note: public registration is fail-closed unless BOTH constants below are set.
+    // Define PERA_TURNSTILE_SITE_KEY and PERA_TURNSTILE_SECRET_KEY in wp-config.php.
+    return defined( 'PERA_TURNSTILE_SITE_KEY' ) ? sanitize_text_field( (string) PERA_TURNSTILE_SITE_KEY ) : '';
+}
+
+function pera_public_register_turnstile_secret_key() {
+    return defined( 'PERA_TURNSTILE_SECRET_KEY' ) ? sanitize_text_field( (string) PERA_TURNSTILE_SECRET_KEY ) : '';
+}
+
+function pera_public_register_turnstile_check( $token ) {
+    $secret = pera_public_register_turnstile_secret_key();
+    $token  = is_string( $token ) ? trim( $token ) : '';
+
+    if ( '' === $secret || '' === $token ) {
+        return false;
+    }
+
+    $response = wp_remote_post(
+        'https://challenges.cloudflare.com/turnstile/v0/siteverify',
+        array(
+            'timeout' => 12,
+            'body'    => array(
+                'secret'   => $secret,
+                'response' => $token,
+                'remoteip' => isset( $_SERVER['REMOTE_ADDR'] ) ? sanitize_text_field( (string) wp_unslash( $_SERVER['REMOTE_ADDR'] ) ) : '',
+            ),
+        )
+    );
+
+    if ( is_wp_error( $response ) ) {
+        return false;
+    }
+
+    $payload = json_decode( wp_remote_retrieve_body( $response ), true );
+    return is_array( $payload ) && ! empty( $payload['success'] );
+}
 
 function pera_public_register_get_redirect( $path, $args = array() ) {
     $url = home_url( $path );
@@ -72,6 +109,24 @@ function pera_public_register_handle_submission() {
 
     if ( ! empty( $_POST['company'] ) ) {
         wp_safe_redirect( pera_public_register_get_redirect( '/register/' ) );
+        exit;
+    }
+    $consent = isset( $_POST['privacy_terms_consent'] ) ? sanitize_key( wp_unslash( $_POST['privacy_terms_consent'] ) ) : '';
+    if ( '1' !== $consent ) {
+        wp_safe_redirect( pera_public_register_get_redirect( '/register/', array( 'register_error' => 'consent_required' ) ) );
+        exit;
+    }
+
+    $turnstile_site_key   = pera_public_register_turnstile_site_key();
+    $turnstile_secret_key = pera_public_register_turnstile_secret_key();
+    if ( '' === $turnstile_site_key || '' === $turnstile_secret_key ) {
+        wp_safe_redirect( pera_public_register_get_redirect( '/register/', array( 'register_error' => 'turnstile_not_configured' ) ) );
+        exit;
+    }
+
+    $turnstile_token = isset( $_POST['cf-turnstile-response'] ) ? (string) wp_unslash( $_POST['cf-turnstile-response'] ) : '';
+    if ( ! pera_public_register_turnstile_check( $turnstile_token ) ) {
+        wp_safe_redirect( pera_public_register_get_redirect( '/register/', array( 'register_error' => 'turnstile_failed' ) ) );
         exit;
     }
 
@@ -101,14 +156,18 @@ function pera_public_register_handle_submission() {
         exit;
     }
 
-    $client_ip = isset( $_SERVER['REMOTE_ADDR'] ) ? sanitize_text_field( wp_unslash( $_SERVER['REMOTE_ADDR'] ) ) : 'unknown';
-    $rate_key  = 'pera_public_register_' . md5( strtolower( $email ) . '|' . $client_ip );
+    $client_ip      = isset( $_SERVER['REMOTE_ADDR'] ) ? sanitize_text_field( wp_unslash( $_SERVER['REMOTE_ADDR'] ) ) : 'unknown';
+    $email_key      = 'pera_public_register_email_' . md5( strtolower( $email ) );
+    $ip_key         = 'pera_public_register_ip_' . md5( $client_ip );
+    $email_attempts = (int) get_transient( $email_key );
+    $ip_attempts    = (int) get_transient( $ip_key );
 
-    if ( get_transient( $rate_key ) ) {
+    if ( $email_attempts >= 3 || $ip_attempts >= 10 ) {
         wp_safe_redirect( pera_public_register_get_redirect( '/register/', array( 'register_error' => 'rate_limited' ) ) );
         exit;
     }
-    set_transient( $rate_key, 1, MINUTE_IN_SECONDS );
+    set_transient( $email_key, $email_attempts + 1, 15 * MINUTE_IN_SECONDS );
+    set_transient( $ip_key, $ip_attempts + 1, 15 * MINUTE_IN_SECONDS );
 
     $email_parts = explode( '@', $email, 2 );
     $base_login  = isset( $email_parts[0] ) ? sanitize_user( $email_parts[0], true ) : '';
@@ -141,6 +200,8 @@ function pera_public_register_handle_submission() {
         wp_safe_redirect( pera_public_register_get_redirect( '/register/', array( 'register_error' => 'create_failed' ) ) );
         exit;
     }
+    update_user_meta( (int) $user_id, 'pera_email_verified', '0' );
+    update_user_meta( (int) $user_id, 'pera_registered_via_public_form', '1' );
 
     $membership_ok = true;
 
@@ -204,14 +265,58 @@ function pera_public_register_handle_submission() {
         $crm_synced = ! empty( $crm_sync['ok'] ) && ( ! array_key_exists( 'event_logged', $crm_sync ) || ! empty( $crm_sync['event_logged'] ) );
     }
 
+    $verify_token = wp_generate_password( 48, false, false );
+    update_user_meta( (int) $user_id, 'pera_email_verification_token', wp_hash_password( $verify_token ) );
+    update_user_meta( (int) $user_id, 'pera_email_verification_sent_at', (string) time() );
+
+    $verify_url = add_query_arg(
+        array(
+            'pera_verify_email' => (int) $user_id,
+            'token'             => rawurlencode( $verify_token ),
+        ),
+        home_url( '/register/' )
+    );
+
+    wp_mail(
+        $email,
+        sprintf( __( 'Verify your %s account', 'hello-elementor-child' ), wp_specialchars_decode( get_bloginfo( 'name' ), ENT_QUOTES ) ),
+        sprintf( __( "Hi %s,\n\nPlease verify your email by opening this link:\n%s\n\nAfter verification you can access the client portal.\n", 'hello-elementor-child' ), $first_name, esc_url_raw( $verify_url ) )
+    );
+
     wp_safe_redirect( pera_public_register_get_redirect( '/client-login/', array(
         'registered' => 1,
+        'verify_email' => 1,
         'crm_sync'   => $crm_synced ? 'ok' : 'pending',
     ) ) );
     exit;
 }
 add_action( 'admin_post_nopriv_pera_public_register', 'pera_public_register_handle_submission' );
 add_action( 'admin_post_pera_public_register', 'pera_public_register_handle_submission' );
+
+function pera_public_register_handle_verification_request() {
+    if ( ! is_page( 'register' ) || ! isset( $_GET['pera_verify_email'], $_GET['token'] ) ) {
+        return;
+    }
+    $user_id = (int) wp_unslash( $_GET['pera_verify_email'] );
+    $token   = sanitize_text_field( (string) wp_unslash( $_GET['token'] ) );
+    $hash    = (string) get_user_meta( $user_id, 'pera_email_verification_token', true );
+    $sent_at = (int) get_user_meta( $user_id, 'pera_email_verification_sent_at', true );
+    $expires = $sent_at > 0 ? ( $sent_at + ( 48 * HOUR_IN_SECONDS ) ) : 0;
+    if ( $user_id <= 0 || '' === $token || '' === $hash || ! wp_check_password( $token, $hash ) ) {
+        wp_safe_redirect( pera_public_register_get_redirect( '/client-login/', array( 'verify_status' => 'invalid' ) ) );
+        exit;
+    }
+    if ( $expires > 0 && time() > $expires ) {
+        delete_user_meta( $user_id, 'pera_email_verification_token' );
+        wp_safe_redirect( pera_public_register_get_redirect( '/client-login/', array( 'verify_status' => 'expired' ) ) );
+        exit;
+    }
+    update_user_meta( $user_id, 'pera_email_verified', '1' );
+    delete_user_meta( $user_id, 'pera_email_verification_token' );
+    wp_safe_redirect( pera_public_register_get_redirect( '/client-login/', array( 'verify_status' => 'success' ) ) );
+    exit;
+}
+add_action( 'template_redirect', 'pera_public_register_handle_verification_request', 1 );
 
 function pera_client_portal_get_login_redirect_target() {
     $request_uri = isset( $_SERVER['REQUEST_URI'] ) ? wp_unslash( $_SERVER['REQUEST_URI'] ) : '/client-portal/';
@@ -236,6 +341,25 @@ function pera_client_portal_enforce_login_redirect() {
     exit;
 }
 add_action( 'template_redirect', 'pera_client_portal_enforce_login_redirect', 0 );
+
+function pera_client_portal_block_unverified_public_registrations() {
+    if ( ! is_user_logged_in() || ! is_page( 'client-portal' ) ) {
+        return;
+    }
+    $user_id = get_current_user_id();
+    $public_registration = (string) get_user_meta( $user_id, 'pera_registered_via_public_form', true );
+    $verified            = (string) get_user_meta( $user_id, 'pera_email_verified', true );
+    if ( '1' === $public_registration && '1' !== $verified ) {
+        wp_safe_redirect( pera_public_register_get_redirect( '/client-login/', array( 'verify_status' => 'required' ) ) );
+        exit;
+    }
+}
+add_action( 'template_redirect', 'pera_client_portal_block_unverified_public_registrations', 1 );
+
+add_action( 'login_form_register', function () {
+    wp_safe_redirect( home_url( '/register/' ) );
+    exit;
+} );
 
 function pera_handle_client_portal_profile_update() {
     if ( ! is_user_logged_in() ) {

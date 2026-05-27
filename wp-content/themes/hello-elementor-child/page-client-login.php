@@ -85,6 +85,24 @@ get_header();
                             <?php endif; ?>
                         </div>
                     <?php endif; ?>
+                    <?php $verify_status = isset( $_GET['verify_status'] ) ? sanitize_key( wp_unslash( $_GET['verify_status'] ) ) : ''; ?>
+                    <?php if ( 'success' === $verify_status ) : ?>
+                        <div class="client-login-success" role="status">
+                            <?php esc_html_e( 'Email verified successfully. You can now access the client portal.', 'hello-elementor-child' ); ?>
+                        </div>
+                    <?php elseif ( 'required' === $verify_status ) : ?>
+                        <div class="client-login-error" role="alert">
+                            <?php esc_html_e( 'Please verify your email before accessing the client portal.', 'hello-elementor-child' ); ?>
+                        </div>
+                    <?php elseif ( 'invalid' === $verify_status ) : ?>
+                        <div class="client-login-error" role="alert">
+                            <?php esc_html_e( 'Verification link is invalid or expired. Please contact support.', 'hello-elementor-child' ); ?>
+                        </div>
+                    <?php elseif ( 'expired' === $verify_status ) : ?>
+                        <div class="client-login-error" role="alert">
+                            <?php esc_html_e( 'Verification link has expired (48 hours). Please contact support for a new verification email.', 'hello-elementor-child' ); ?>
+                        </div>
+                    <?php endif; ?>
 
                     <?php
                     // WP core login form, styled by .client-login-container inputs & .button-primary
