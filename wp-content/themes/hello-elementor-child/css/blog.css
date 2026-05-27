@@ -487,27 +487,30 @@
   margin-bottom: 1.5em;
 }
 
-/* Reusable CTA button groups */
-.article-cta-actions {
+/* Reusable CTA button groups (standalone + in cards) */
+.article-body .article-cta-actions,
+.card-shell .article-cta-actions {
   margin-top: 12px;
   display: flex;
-  align-items: center;
-  gap: var(--space-sm);
   flex-wrap: wrap;
+  gap: var(--space-sm);
+  align-items: stretch;
 }
 
-.article-cta-actions .btn {
-  margin: 0;
-  flex: 0 0 auto;
-  display: inline-flex;
+.article-body .article-cta-actions.justify-center,
+.card-shell .article-cta-actions.justify-center {
   justify-content: center;
-  text-align: center;
 }
 
-@media (max-width: 640px) {
-  .article-cta-actions {
-    gap: var(--space-xs);
-  }
+.article-body .article-cta-actions .btn,
+.card-shell .article-cta-actions .btn {
+  margin: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  line-height: 1.2;
+  flex: 0 0 auto;
+  text-align: center;
 }
 
 /* Tighten CTA cards inside article content */
