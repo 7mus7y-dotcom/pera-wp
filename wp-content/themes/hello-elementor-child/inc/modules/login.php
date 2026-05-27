@@ -121,8 +121,10 @@ add_action( 'template_redirect', function () {
 } );
 
 add_action( 'login_init', function () {
-  // Mirror the same behavior on wp-login.php, but never block explicit logout.
-  if ( is_user_logged_in() && ( empty( $_REQUEST['action'] ) || 'logout' !== sanitize_key( wp_unslash( $_REQUEST['action'] ) ) ) ) {
+  // Mirror the same behavior on wp-login.php only for plain and explicit login actions.
+  $action = isset( $_REQUEST['action'] ) ? sanitize_key( wp_unslash( $_REQUEST['action'] ) ) : '';
+
+  if ( is_user_logged_in() && ( '' === $action || 'login' === $action ) ) {
     pera_maybe_redirect_logged_in_auth_pages();
   }
 } );
