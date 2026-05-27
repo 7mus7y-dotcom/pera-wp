@@ -24,7 +24,7 @@ $background_image = function_exists( 'pera_get_login_background_image_url' )
     : '';
 
 ?><!doctype html>
-<html <?php language_attributes(); ?>>
+<html <?php language_attributes(); ?> class="client-login-standalone-html">
 <head>
     <meta charset="<?php bloginfo( 'charset' ); ?>">
     <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -153,7 +153,7 @@ $background_image = function_exists( 'pera_get_login_background_image_url' )
 </div>
 <?php if ( $background_image ) : ?>
 <style>
-.client-login-standalone{background-image:url('<?php echo esc_url( $background_image ); ?>');}
+.client-login-standalone{--client-login-bg-image:url('<?php echo esc_url( $background_image ); ?>');}
 </style>
 <?php endif; ?>
 <?php wp_footer(); ?>

@@ -1,4 +1,5 @@
-.client-login-standalone {
+html.client-login-standalone-html,
+body.client-login-standalone {
   --brand: #002d72;
   --inverse: #ffffff;
   --space-xs: 8px;
@@ -14,11 +15,9 @@
   --shadow-soft: 0 2px 6px rgba(0, 0, 0, 0.10);
 
   margin: 0;
-  min-height: 100vh;
+  min-height: 100%;
   background-color: var(--brand);
-  background-size: cover;
-  background-position: center;
-  background-repeat: no-repeat;
+  position: relative;
   font-family: 'Montserrat', system-ui, -apple-system, "Segoe UI", Arial, sans-serif;
   color: var(--inverse);
 }
@@ -27,11 +26,24 @@
   content: '';
   position: fixed;
   inset: 0;
+  background-image: var(--client-login-bg-image, none);
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  z-index: 0;
+}
+
+.client-login-standalone::after {
+  content: '';
+  position: fixed;
+  inset: 0;
   background: rgba(0, 0, 0, 0.55);
-  z-index: -1;
+  z-index: 1;
 }
 
 .client-login-standalone .client-login-wrapper {
+  position: relative;
+  z-index: 2;
   min-height: 100vh;
   display: grid;
   place-items: center;
