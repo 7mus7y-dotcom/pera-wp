@@ -1,170 +1,109 @@
-.page-template-page-client-login {
-  --client-login-bg: var(--e-global-color-85f57ca, #f0f0f1);
-  --client-login-card-bg: var(--e-global-color-33f1f2f, #fff);
-  --client-login-text: var(--e-global-color-text, #1d2327);
-  --client-login-muted: var(--e-global-color-secondary, #50575e);
-  --client-login-border: #c3c4c7;
-  --client-login-focus: var(--e-global-color-primary, #2271b1);
-  --client-login-focus-ring: color-mix(in srgb, var(--client-login-focus) 28%, transparent);
-  --client-login-button: var(--e-global-color-primary, #2271b1);
-  --client-login-button-hover: color-mix(in srgb, var(--client-login-button) 88%, #000);
-}
+.client-login-standalone {
+  --brand: #002d72;
+  --inverse: #ffffff;
+  --space-xs: 8px;
+  --space-sm: 12px;
+  --space-md: 20px;
+  --bg: #ffffff;
+  --text: #1f2937;
+  --text-soft: #4b5563;
+  --border-muted: #d1d5db;
+  --radius-sm: 6px;
+  --radius-md: 12px;
+  --radius-lg: 16px;
+  --shadow-soft: 0 2px 6px rgba(0, 0, 0, 0.10);
 
-.page-template-page-client-login .client-login-wrapper {
-  min-height: clamp(540px, 82vh, 860px);
-  padding: 2rem 1rem;
-  background: var(--client-login-bg);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.page-template-page-client-login .site-main,
-.page-template-page-client-login .client-login-section {
-  width: 100%;
-}
-
-.page-template-page-client-login .client-login-shell {
-  width: min(100%, 370px);
-  margin: 0 auto;
-}
-
-.page-template-page-client-login .client-login-title {
-  margin: 0 0 20px;
-  text-align: center;
-  font-size: 20px;
-  line-height: 1.2;
-  color: var(--client-login-text);
-}
-
-.page-template-page-client-login .client-login-container {
-  background: var(--client-login-card-bg);
-  border: 1px solid var(--client-login-border);
-  box-shadow: 0 1px 3px rgba(0, 0, 0, .04);
-  border-radius: 6px;
-  padding: 26px 24px;
-}
-
-.page-template-page-client-login .client-login-subtitle,
-.page-template-page-client-login .client-login-container p {
-  color: var(--client-login-muted);
-  font-size: 14px;
-}
-
-.page-template-page-client-login .client-login-container label {
-  color: var(--client-login-text);
-  font-size: 14px;
-  font-weight: 500;
-}
-
-.page-template-page-client-login .client-login-container .login-username,
-.page-template-page-client-login .client-login-container .login-password,
-.page-template-page-client-login .client-login-container .login-remember {
-  margin: 0 0 16px;
-}
-
-.page-template-page-client-login .client-login-container input[type="text"],
-.page-template-page-client-login .client-login-container input[type="password"],
-.page-template-page-client-login .client-login-container input[type="email"] {
-  width: 100%;
-  min-height: 40px;
-  margin-top: 4px;
-  border: 1px solid var(--client-login-border);
-  border-radius: 4px;
-  background: var(--client-login-card-bg);
-  color: var(--client-login-text);
-  padding: 0 10px;
-  font-size: 16px;
-  line-height: 1.4;
-}
-
-.page-template-page-client-login .client-login-container input:-webkit-autofill,
-.page-template-page-client-login .client-login-container input:-webkit-autofill:hover,
-.page-template-page-client-login .client-login-container input:-webkit-autofill:focus {
-  -webkit-text-fill-color: var(--client-login-text);
-  -webkit-box-shadow: 0 0 0 1000px var(--client-login-card-bg) inset;
-  box-shadow: 0 0 0 1000px var(--client-login-card-bg) inset;
-}
-
-.page-template-page-client-login .client-login-container input:focus-visible,
-.page-template-page-client-login .client-login-container .button-primary:focus-visible,
-.page-template-page-client-login .client-login-links a:focus-visible {
-  outline: 2px solid transparent;
-  border-color: var(--client-login-focus);
-  box-shadow: 0 0 0 1px var(--client-login-focus), 0 0 0 4px var(--client-login-focus-ring);
-}
-
-.page-template-page-client-login .client-login-container .login-submit {
   margin: 0;
+  min-height: 100vh;
+  background-color: var(--brand);
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  font-family: 'Montserrat', system-ui, -apple-system, "Segoe UI", Arial, sans-serif;
+  color: var(--inverse);
 }
 
-.page-template-page-client-login .client-login-container .button-primary,
-.page-template-page-client-login .client-login-container #wp-submit {
-  width: auto;
-  min-height: 36px;
-  border: 1px solid var(--client-login-button);
-  border-radius: 4px;
-  background: var(--client-login-button);
-  color: #fff;
-  padding: 0 14px;
-  font-size: 14px;
-  font-weight: 500;
-  line-height: 2.2;
-  cursor: pointer;
+.client-login-standalone::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.55);
+  z-index: -1;
 }
 
-.page-template-page-client-login .client-login-container .button-primary:hover,
-.page-template-page-client-login .client-login-container #wp-submit:hover {
-  background: var(--client-login-button-hover);
-  border-color: var(--client-login-button-hover);
+.client-login-standalone .client-login-wrapper {
+  min-height: 100vh;
+  display: grid;
+  place-items: center;
+  padding: 24px;
 }
 
-.page-template-page-client-login .client-login-links {
-  margin-top: 16px;
-  text-align: center;
+.client-login-shell { width: min(400px, calc(100% - 16px)); }
+.client-login-branding { margin: 0 0 var(--space-md); text-align: center; }
+.client-login-branding .site-logo { display:inline-flex;flex-direction:column;align-items:center;gap:8px;color:var(--inverse);text-decoration:none;line-height:1; }
+.client-login-branding .site-logo.logo-pera svg,
+.client-login-branding .site-logo.logo-pera img.custom-logo,
+.client-login-branding .site-logo.logo-pera .pera-site-logo-image { width: 200px; max-width: 100%; height: auto; }
+.client-login-branding .site-logo__since { font-size:9px;font-weight:600;letter-spacing:.36em;text-transform:uppercase;color:var(--inverse); }
+
+.client-login-container {
+  margin-top: 0;
+  padding: var(--space-md);
+  background: var(--bg);
+  color: var(--text);
+  border: 1px solid var(--border-muted);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-soft);
 }
 
-.page-template-page-client-login .client-login-links a {
-  color: var(--client-login-focus);
-  text-decoration: none;
+.client-login-subtitle { color: var(--text-soft); margin-top: 0; }
+.client-login-container label { color: var(--text); font-weight: 600; font-size: .9rem; letter-spacing: .02em; }
+.client-login-container .input,
+.client-login-container input[type="text"],
+.client-login-container input[type="email"],
+.client-login-container input[type="password"] {
+  border-radius: var(--radius-sm);
+  border: 1px solid rgba(0, 0, 0, 0.18);
+  padding: 10px 12px;
+  font-size: 1rem;
+  box-shadow: none;
 }
-
-.page-template-page-client-login .client-login-links a:hover {
-  text-decoration: underline;
+.client-login-container .input:focus,
+.client-login-container input[type="text"]:focus,
+.client-login-container input[type="email"]:focus,
+.client-login-container input[type="password"]:focus {
+  outline: 0;
+  border-color: var(--brand);
+  box-shadow: 0 0 0 3px rgba(0, 45, 114, 0.15);
 }
+.client-login-container .button-primary,
+.client-login-container #wp-submit {
+  background: var(--brand);
+  border-color: var(--brand);
+  color: #ffffff;
+  font-weight: 700;
+  border-radius: 999px;
+  padding: 10px 16px;
+  line-height: 1;
+  min-height: 40px;
+}
+.client-login-container .button-primary:hover,
+.client-login-container .button-primary:focus,
+.client-login-container #wp-submit:hover,
+.client-login-container #wp-submit:focus { background:#fff; color:var(--brand); border-color:var(--brand); }
 
-.page-template-page-client-login .client-login-success,
-.page-template-page-client-login .client-login-error {
-  border-left: 4px solid #72aee6;
-  background: var(--client-login-card-bg);
-  box-shadow: 0 1px 1px rgba(0, 0, 0, .04);
+.client-login-links { margin: var(--space-sm) 0 0; text-align: center; }
+.client-login-links a { color: #0f3f92; text-decoration: underline; text-underline-offset: 3px; font-weight: 500; }
+
+.client-login-success,
+.client-login-error {
+  background: #ffffff;
+  color: #111827;
+  border: 1px solid #d1d5db;
+  border-left-width: 4px;
+  border-radius: var(--radius-md);
+  margin: var(--space-sm) 0;
   padding: 12px;
-  margin: 0 0 16px;
-  color: var(--client-login-text);
-  font-size: 14px;
 }
-
-.page-template-page-client-login .client-login-error {
-  border-left-color: #d63638;
-}
-
-@media (prefers-color-scheme: dark) {
-  .page-template-page-client-login {
-    --client-login-bg: var(--e-global-color-75a69f3, #101418);
-    --client-login-card-bg: var(--e-global-color-2f9f0ec, #1a1f25);
-    --client-login-text: #f0f3f6;
-    --client-login-muted: #c6d0da;
-    --client-login-border: #3c434a;
-    --client-login-focus-ring: color-mix(in srgb, var(--client-login-focus) 40%, transparent);
-  }
-}
-
-@media (max-width: 480px) {
-  .page-template-page-client-login .client-login-wrapper {
-    padding: 1rem .75rem;
-  }
-
-  .page-template-page-client-login .client-login-container {
-    padding: 20px 16px;
-  }
-}
+.client-login-success { border-left-color: #72aee6; }
+.client-login-error { border-left-color: #d63638; }
