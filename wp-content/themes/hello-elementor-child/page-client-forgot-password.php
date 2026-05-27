@@ -7,6 +7,11 @@ if ( ! defined( 'ABSPATH' ) ) {
     exit;
 }
 
+// Logged-in users should use their dashboard instead of the password reset form.
+if ( function_exists( 'pera_maybe_redirect_logged_in_auth_pages' ) ) {
+    pera_maybe_redirect_logged_in_auth_pages();
+}
+
 $client_login_asset = '/css/client-login.css';
 $client_login_ver   = function_exists( 'pera_get_asset_version' )
     ? pera_get_asset_version( $client_login_asset )
