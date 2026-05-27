@@ -8,6 +8,12 @@ if ( ! defined( 'ABSPATH' ) ) {
   exit;
 }
 
+if ( ! defined( 'DONOTCACHEPAGE' ) ) {
+  define( 'DONOTCACHEPAGE', true );
+}
+
+nocache_headers();
+
 $favourites_page = get_page_by_path( 'my-favourites' );
 $favourites_url  = $favourites_page ? get_permalink( $favourites_page ) : home_url( '/my-favourites/' );
 
