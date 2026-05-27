@@ -153,7 +153,12 @@ $background_image = function_exists( 'pera_get_login_background_image_url' )
 </div>
 <?php if ( $background_image ) : ?>
 <style>
-.client-login-standalone{--client-login-bg-image:url('<?php echo esc_url( $background_image ); ?>');}
+body.client-login-standalone {
+  background-image: url('<?php echo esc_url( $background_image ); ?>');
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+}
 </style>
 <?php endif; ?>
 <?php wp_footer(); ?>
