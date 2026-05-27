@@ -154,7 +154,9 @@ $crm_label                  = $crm_overdue_count > 0
         <?php
         $favourites_page = get_page_by_path( 'my-favourites' );
         $favourites_url = $favourites_page ? get_permalink( $favourites_page ) : home_url( '/my-favourites/' );
-        $login_url = wp_login_url( home_url( '/my-favourites/' ) );
+        $login_url = function_exists( 'pera_get_public_client_login_url' )
+          ? pera_get_public_client_login_url( $favourites_url )
+          : add_query_arg( 'redirect_to', $favourites_url, home_url( '/client-login/' ) );
         $logout_url = wp_logout_url( home_url( '/' ) );
         $recent_favourite_ids = array();
 
