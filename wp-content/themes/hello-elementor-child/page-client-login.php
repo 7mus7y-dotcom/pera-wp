@@ -7,57 +7,36 @@ if ( ! defined( 'ABSPATH' ) ) {
     exit;
 }
 
+$client_login_asset = '/css/client-login.css';
+$client_login_ver   = function_exists( 'pera_get_asset_version' )
+    ? pera_get_asset_version( $client_login_asset )
+    : (string) filemtime( get_stylesheet_directory() . $client_login_asset );
+
+wp_enqueue_style(
+    'pera-client-login',
+    get_stylesheet_directory_uri() . $client_login_asset,
+    array(),
+    $client_login_ver
+);
+
 get_header();
 ?>
-
-<style>
-  /* Force dark theme variables on this page */
-  body {
-    --bg: #0e0e12;
-    --bg-soft: #1a1a1e;
-    --text: #e9e9e9;
-    --text-soft: #c0c0c0;
-    --brand: #000080;
-    --accent: #3b82f6;
-    --inverse: #ffffff;
-  }
-
-  /* Force dark styling for the login card, regardless of OS theme */
-  .page-template-page-client-login .client-login-wrapper {
-    background: var(--bg-soft);
-  }
-
-  .page-template-page-client-login .client-login-container {
-    background: #020617;
-    border: 1px solid rgba(148,163,184,0.3);
-    box-shadow: none;
-  }
-
-  .page-template-page-client-login .client-login-title {
-    color: var(--text);
-  }
-
-  .page-template-page-client-login .client-login-subtitle,
-  .page-template-page-client-login .client-login-container label {
-    color: var(--text-soft);
-  }
-</style>
 
 <div class="client-login-wrapper">
     <main id="primary" class="site-main">
         <section class="client-login-section">
+            <div class="client-login-shell">
+            <h1 class="client-login-title"><?php echo is_user_logged_in() ? esc_html__( 'Client Portal', 'hello-elementor-child' ) : esc_html__( 'Client Login', 'hello-elementor-child' ); ?></h1>
             <div class="client-login-container">
                 <?php if ( is_user_logged_in() ) : ?>
 
                     <?php $current_user = wp_get_current_user(); ?>
-
-                    <h1 class="client-login-title">Client Portal</h1>
                     <p class="client-login-subtitle">
                         Hello <?php echo esc_html( $current_user->display_name ); ?>, you are already logged in.
                     </p>
 
                     <p>
-                        <a class="btn btn--solid btn--blue" href="<?php echo esc_url( home_url( '/client-portal/' ) ); ?>">
+                        <a class="button button-primary" href="<?php echo esc_url( home_url( '/client-portal/' ) ); ?>">
                             Go to client portal
                         </a>
                     </p>
@@ -69,10 +48,8 @@ get_header();
                     </div>
 
                 <?php else : ?>
-
-                    <h1 class="client-login-title">Client Login</h1>
                     <p class="client-login-subtitle">
-                        Access your reserved project documents and reports.
+                        Sign in to access your reserved project documents and reports.
                     </p>
 
                     <?php if ( isset( $_GET['registered'] ) && '1' === sanitize_key( wp_unslash( $_GET['registered'] ) ) ) : ?>
@@ -132,11 +109,12 @@ get_header();
 
                     <div class="client-login-links">
                         <a href="<?php echo esc_url( get_permalink( get_page_by_path( 'client-forgot-password' ) ) ); ?>">
-                          Forgot your password?
+                          Lost your password?
                         </a>
                     </div>
 
                 <?php endif; ?>
+            </div>
             </div>
         </section>
     </main>

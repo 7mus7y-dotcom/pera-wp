@@ -1,0 +1,170 @@
+.page-template-page-client-login {
+  --client-login-bg: var(--e-global-color-85f57ca, #f0f0f1);
+  --client-login-card-bg: var(--e-global-color-33f1f2f, #fff);
+  --client-login-text: var(--e-global-color-text, #1d2327);
+  --client-login-muted: var(--e-global-color-secondary, #50575e);
+  --client-login-border: #c3c4c7;
+  --client-login-focus: var(--e-global-color-primary, #2271b1);
+  --client-login-focus-ring: color-mix(in srgb, var(--client-login-focus) 28%, transparent);
+  --client-login-button: var(--e-global-color-primary, #2271b1);
+  --client-login-button-hover: color-mix(in srgb, var(--client-login-button) 88%, #000);
+}
+
+.page-template-page-client-login .client-login-wrapper {
+  min-height: clamp(540px, 82vh, 860px);
+  padding: 2rem 1rem;
+  background: var(--client-login-bg);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.page-template-page-client-login .site-main,
+.page-template-page-client-login .client-login-section {
+  width: 100%;
+}
+
+.page-template-page-client-login .client-login-shell {
+  width: min(100%, 370px);
+  margin: 0 auto;
+}
+
+.page-template-page-client-login .client-login-title {
+  margin: 0 0 20px;
+  text-align: center;
+  font-size: 20px;
+  line-height: 1.2;
+  color: var(--client-login-text);
+}
+
+.page-template-page-client-login .client-login-container {
+  background: var(--client-login-card-bg);
+  border: 1px solid var(--client-login-border);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, .04);
+  border-radius: 6px;
+  padding: 26px 24px;
+}
+
+.page-template-page-client-login .client-login-subtitle,
+.page-template-page-client-login .client-login-container p {
+  color: var(--client-login-muted);
+  font-size: 14px;
+}
+
+.page-template-page-client-login .client-login-container label {
+  color: var(--client-login-text);
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.page-template-page-client-login .client-login-container .login-username,
+.page-template-page-client-login .client-login-container .login-password,
+.page-template-page-client-login .client-login-container .login-remember {
+  margin: 0 0 16px;
+}
+
+.page-template-page-client-login .client-login-container input[type="text"],
+.page-template-page-client-login .client-login-container input[type="password"],
+.page-template-page-client-login .client-login-container input[type="email"] {
+  width: 100%;
+  min-height: 40px;
+  margin-top: 4px;
+  border: 1px solid var(--client-login-border);
+  border-radius: 4px;
+  background: var(--client-login-card-bg);
+  color: var(--client-login-text);
+  padding: 0 10px;
+  font-size: 16px;
+  line-height: 1.4;
+}
+
+.page-template-page-client-login .client-login-container input:-webkit-autofill,
+.page-template-page-client-login .client-login-container input:-webkit-autofill:hover,
+.page-template-page-client-login .client-login-container input:-webkit-autofill:focus {
+  -webkit-text-fill-color: var(--client-login-text);
+  -webkit-box-shadow: 0 0 0 1000px var(--client-login-card-bg) inset;
+  box-shadow: 0 0 0 1000px var(--client-login-card-bg) inset;
+}
+
+.page-template-page-client-login .client-login-container input:focus-visible,
+.page-template-page-client-login .client-login-container .button-primary:focus-visible,
+.page-template-page-client-login .client-login-links a:focus-visible {
+  outline: 2px solid transparent;
+  border-color: var(--client-login-focus);
+  box-shadow: 0 0 0 1px var(--client-login-focus), 0 0 0 4px var(--client-login-focus-ring);
+}
+
+.page-template-page-client-login .client-login-container .login-submit {
+  margin: 0;
+}
+
+.page-template-page-client-login .client-login-container .button-primary,
+.page-template-page-client-login .client-login-container #wp-submit {
+  width: auto;
+  min-height: 36px;
+  border: 1px solid var(--client-login-button);
+  border-radius: 4px;
+  background: var(--client-login-button);
+  color: #fff;
+  padding: 0 14px;
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 2.2;
+  cursor: pointer;
+}
+
+.page-template-page-client-login .client-login-container .button-primary:hover,
+.page-template-page-client-login .client-login-container #wp-submit:hover {
+  background: var(--client-login-button-hover);
+  border-color: var(--client-login-button-hover);
+}
+
+.page-template-page-client-login .client-login-links {
+  margin-top: 16px;
+  text-align: center;
+}
+
+.page-template-page-client-login .client-login-links a {
+  color: var(--client-login-focus);
+  text-decoration: none;
+}
+
+.page-template-page-client-login .client-login-links a:hover {
+  text-decoration: underline;
+}
+
+.page-template-page-client-login .client-login-success,
+.page-template-page-client-login .client-login-error {
+  border-left: 4px solid #72aee6;
+  background: var(--client-login-card-bg);
+  box-shadow: 0 1px 1px rgba(0, 0, 0, .04);
+  padding: 12px;
+  margin: 0 0 16px;
+  color: var(--client-login-text);
+  font-size: 14px;
+}
+
+.page-template-page-client-login .client-login-error {
+  border-left-color: #d63638;
+}
+
+@media (prefers-color-scheme: dark) {
+  .page-template-page-client-login {
+    --client-login-bg: var(--e-global-color-75a69f3, #101418);
+    --client-login-card-bg: var(--e-global-color-2f9f0ec, #1a1f25);
+    --client-login-text: #f0f3f6;
+    --client-login-muted: #c6d0da;
+    --client-login-border: #3c434a;
+    --client-login-focus-ring: color-mix(in srgb, var(--client-login-focus) 40%, transparent);
+  }
+}
+
+@media (max-width: 480px) {
+  .page-template-page-client-login .client-login-wrapper {
+    padding: 1rem .75rem;
+  }
+
+  .page-template-page-client-login .client-login-container {
+    padding: 20px 16px;
+  }
+}
