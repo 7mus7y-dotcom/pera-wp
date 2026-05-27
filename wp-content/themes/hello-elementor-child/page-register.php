@@ -23,7 +23,13 @@ $error_messages = array(
     'create_failed'    => __( 'We could not create your account right now. Please try again.', 'hello-elementor-child' ),
     'membership_failed'=> __( 'Your account was created, but site access could not be completed. Please contact support.', 'hello-elementor-child' ),
     'rate_limited'     => __( 'Too many attempts. Please wait and try again.', 'hello-elementor-child' ),
+    'consent_required' => __( 'You must accept the Privacy Policy and Terms to continue.', 'hello-elementor-child' ),
+    'turnstile_not_configured' => __( 'Registration is temporarily unavailable. Please contact support.', 'hello-elementor-child' ),
+    'turnstile_failed' => __( 'Security check failed. Please try again.', 'hello-elementor-child' ),
 );
+$turnstile_site_key = function_exists( 'pera_public_register_turnstile_site_key' ) ? pera_public_register_turnstile_site_key() : '';
+$privacy_url        = home_url( '/privacy-policy/' );
+$terms_url          = home_url( '/terms-and-conditions/' );
 
 get_header();
 ?>
@@ -74,6 +80,26 @@ get_header();
                         <label for="pera_register_company"><?php esc_html_e( 'Company', 'hello-elementor-child' ); ?></label>
                         <input type="text" name="company" id="pera_register_company" tabindex="-1" autocomplete="off" />
                     </p>
+                    <p>
+                        <label for="pera_register_consent">
+                            <input type="checkbox" name="privacy_terms_consent" id="pera_register_consent" value="1" required />
+                            <?php
+                            printf(
+                                /* translators: 1: privacy policy URL, 2: terms URL */
+                                wp_kses_post(
+                                    __( 'I agree to the <a href="%1$s" target="_blank" rel="noopener noreferrer">Privacy Policy</a> and <a href="%2$s" target="_blank" rel="noopener noreferrer">Terms and Conditions</a>.', 'hello-elementor-child' )
+                                ),
+                                esc_url( $privacy_url ),
+                                esc_url( $terms_url )
+                            );
+                            ?>
+                        </label>
+                    </p>
+
+                    <?php if ( '' !== $turnstile_site_key ) : ?>
+                    <script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>
+                    <div class="cf-turnstile" data-sitekey="<?php echo esc_attr( $turnstile_site_key ); ?>"></div>
+                    <?php endif; ?>
 
                     <p class="submit">
                         <button type="submit" class="btn btn--solid btn--blue"><?php esc_html_e( 'Create account', 'hello-elementor-child' ); ?></button>
