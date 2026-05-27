@@ -1,6 +1,21 @@
 <?php
 if ( ! defined( 'ABSPATH' ) ) exit;
 
+
+if ( ! function_exists( 'pera_get_login_background_image_url' ) ) {
+  /**
+   * Return the branded wp-login background image URL.
+   *
+   * Source of truth: current wp-login customization uses media attachment ID 55484.
+   */
+  function pera_get_login_background_image_url(): string {
+    $background_attachment_id = 55484;
+    $background_image_url     = wp_get_attachment_image_url( $background_attachment_id, 'full' );
+
+    return is_string( $background_image_url ) ? $background_image_url : '';
+  }
+}
+
 /* =======================================================
    LOGIN SCREEN (wp-login.php): login.css + BRANDING
    ======================================================= */
@@ -76,7 +91,7 @@ add_filter( 'login_redirect', function ( $redirect_to, $requested_redirect_to, $
 
 add_action('login_enqueue_scripts', function () {
 
-  $bg = wp_get_attachment_image_url(55484, 'full');
+  $bg = pera_get_login_background_image_url();
 
   if ($bg) {
     wp_add_inline_style('pera-login', "
