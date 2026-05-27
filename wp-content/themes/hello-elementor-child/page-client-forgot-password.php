@@ -32,7 +32,7 @@ $back_to_login_url  = $back_to_login_page ? get_permalink( $back_to_login_page )
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <?php wp_head(); ?>
 </head>
-<body <?php body_class( 'client-login-standalone client-forgot-password-standalone' ); ?>>
+<body <?php body_class( 'client-login-standalone' ); ?>>
 <?php wp_body_open(); ?>
 <div class="client-login-wrapper">
     <main id="primary" class="site-main">
@@ -90,7 +90,7 @@ $back_to_login_url  = $back_to_login_page ? get_permalink( $back_to_login_page )
 </div>
 <?php if ( $background_image ) : ?>
 <style>
-body.client-forgot-password-standalone {
+body.client-login-standalone {
   background-image: url('<?php echo esc_url( $background_image ); ?>');
   background-size: cover;
   background-position: center;
