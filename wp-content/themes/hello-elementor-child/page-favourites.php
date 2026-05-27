@@ -14,17 +14,7 @@ if ( ! defined( 'DONOTCACHEPAGE' ) ) {
 
 nocache_headers();
 
-$favourites_page = get_page_by_path( 'my-favourites' );
-$favourites_url  = $favourites_page ? get_permalink( $favourites_page ) : home_url( '/my-favourites/' );
-
 $logged_in = is_user_logged_in();
-if ( ! $logged_in ) {
-  $login_target = function_exists( 'pera_get_public_client_login_url' )
-    ? pera_get_public_client_login_url( $favourites_url )
-    : add_query_arg( 'redirect_to', $favourites_url, home_url( '/client-login/' ) );
-  wp_safe_redirect( $login_target );
-  exit;
-}
 
 $favourites = $logged_in ? pera_get_user_favourites( get_current_user_id() ) : array();
 
