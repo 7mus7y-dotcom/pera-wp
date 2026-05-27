@@ -16,6 +16,31 @@ if ( ! function_exists( 'pera_get_login_background_image_url' ) ) {
   }
 }
 
+if ( ! function_exists( 'pera_get_logged_in_auth_redirect_url' ) ) {
+  /**
+   * Resolve the post-auth destination for users who should not view auth forms.
+   */
+  function pera_get_logged_in_auth_redirect_url(): string {
+    return current_user_can( 'manage_options' )
+      ? admin_url()
+      : home_url( '/client-portal/' );
+  }
+}
+
+if ( ! function_exists( 'pera_maybe_redirect_logged_in_auth_pages' ) ) {
+  /**
+   * Redirect logged-in users away from login/reset pages to their role-appropriate dashboard.
+   */
+  function pera_maybe_redirect_logged_in_auth_pages(): void {
+    if ( ! is_user_logged_in() ) {
+      return;
+    }
+
+    wp_safe_redirect( pera_get_logged_in_auth_redirect_url() );
+    exit;
+  }
+}
+
 /* =======================================================
    LOGIN SCREEN (wp-login.php): login.css + BRANDING
    ======================================================= */
@@ -87,6 +112,20 @@ add_filter( 'login_redirect', function ( $redirect_to, $requested_redirect_to, $
 
   return home_url( '/my-favourites/' );
 }, 10, 3 );
+
+add_action( 'template_redirect', function () {
+  // Keep template-level auth pages from rendering for logged-in users.
+  if ( is_page( array( 'client-login', 'client-forgot-password' ) ) ) {
+    pera_maybe_redirect_logged_in_auth_pages();
+  }
+} );
+
+add_action( 'login_init', function () {
+  // Mirror the same behavior on wp-login.php, but never block explicit logout.
+  if ( is_user_logged_in() && ( empty( $_REQUEST['action'] ) || 'logout' !== sanitize_key( wp_unslash( $_REQUEST['action'] ) ) ) ) {
+    pera_maybe_redirect_logged_in_auth_pages();
+  }
+} );
 
 
 add_action('login_enqueue_scripts', function () {
