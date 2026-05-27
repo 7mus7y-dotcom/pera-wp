@@ -68,12 +68,13 @@ get_header();
 
                     <p>
                         <label for="pera_register_password"><?php esc_html_e( 'Password', 'hello-elementor-child' ); ?></label>
-                        <input type="password" name="password" id="pera_register_password" required autocomplete="new-password" />
+                        <input type="password" name="password" id="pera_register_password" required autocomplete="new-password" minlength="8" />
+                        <small><?php esc_html_e( 'Use at least 8 characters. A mix of letters, numbers, and symbols is recommended.', 'hello-elementor-child' ); ?></small>
                     </p>
 
                     <p>
                         <label for="pera_register_password_confirm"><?php esc_html_e( 'Confirm password', 'hello-elementor-child' ); ?></label>
-                        <input type="password" name="password_confirm" id="pera_register_password_confirm" required autocomplete="new-password" />
+                        <input type="password" name="password_confirm" id="pera_register_password_confirm" required autocomplete="new-password" minlength="8" />
                     </p>
 
                     <p class="pera-hp" aria-hidden="true" style="position:absolute;left:-9999px;opacity:0;">
