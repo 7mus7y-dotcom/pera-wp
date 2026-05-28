@@ -131,6 +131,8 @@ function pera_admin_bar_mobile_visibility_css(): void {
 	echo '<style id="pera-admin-bar-mobile-visibility">@media screen and (max-width: 600px) {#wpadminbar #wp-admin-bar-pera-admin-menu,#wpadminbar #wp-admin-bar-pera-crm,#wpadminbar #wp-admin-bar-pera-home {display: block !important;}#wpadminbar #wp-admin-bar-pera-admin-menu > .ab-item,#wpadminbar #wp-admin-bar-pera-crm > .ab-item,#wpadminbar #wp-admin-bar-pera-home > .ab-item {display: flex !important;align-items: center;justify-content: center;width: 40px;}}</style>';
 }
 
-add_action( 'admin_bar_menu', 'pera_customize_admin_bar', 999 );
-add_action( 'wp_before_admin_bar_render', 'pera_debug_admin_bar_nodes_dump', 9999 );
-add_action( 'admin_head', 'pera_admin_bar_mobile_visibility_css' );
+if ( is_admin() ) {
+	add_action( 'admin_bar_menu', 'pera_customize_admin_bar', 999 );
+	add_action( 'wp_before_admin_bar_render', 'pera_debug_admin_bar_nodes_dump', 9999 );
+	add_action( 'admin_head', 'pera_admin_bar_mobile_visibility_css' );
+}
