@@ -140,6 +140,9 @@ if ( ! function_exists( 'pera_analytics_enqueue_admin_page_assets' ) ) {
 
 		wp_register_style( 'pera-site-performance-admin', false, array(), null );
 		wp_enqueue_style( 'pera-site-performance-admin' );
+		wp_enqueue_script( 'chart-js', 'https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js', array(), '4.4.3', true );
+		wp_register_script( 'pera-site-performance-chart', '', array( 'chart-js' ), null, true );
+		wp_enqueue_script( 'pera-site-performance-chart' );
 
 		$performance_admin_css = <<<'CSS'
 .pera-site-performance-admin {
@@ -220,6 +223,16 @@ if ( ! function_exists( 'pera_analytics_enqueue_admin_page_assets' ) ) {
 	display: none;
 }
 
+.pera-site-performance-admin .pera-performance-chart-card {
+	padding: 12px;
+	margin-bottom: 18px;
+}
+
+.pera-site-performance-admin .pera-performance-chart-wrap {
+	position: relative;
+	min-height: 280px;
+}
+
 @media screen and (max-width: 782px) {
 	.pera-site-performance-admin .pera-performance-filter {
 		align-items: stretch;
@@ -281,6 +294,60 @@ if ( ! function_exists( 'pera_analytics_enqueue_admin_page_assets' ) ) {
 CSS;
 
 		wp_add_inline_style( 'pera-site-performance-admin', $performance_admin_css );
+
+		$chart_js = <<<'JS'
+(function () {
+	if (!window.peraPerformanceChartData || !window.Chart) {
+		return;
+	}
+	var canvas = document.getElementById('pera-visits-by-day-chart');
+	if (!canvas) {
+		return;
+	}
+	new window.Chart(canvas, {
+		type: 'line',
+		data: {
+			labels: window.peraPerformanceChartData.labels || [],
+			datasets: [
+				{
+					label: window.peraPerformanceChartData.visitsLabel || 'Visits',
+					data: window.peraPerformanceChartData.visits || [],
+					borderColor: '#2271b1',
+					backgroundColor: 'rgba(34,113,177,0.12)',
+					borderWidth: 2,
+					tension: 0.25,
+					pointRadius: 2
+				},
+				{
+					label: window.peraPerformanceChartData.uniqueVisitorsLabel || 'Unique visitors',
+					data: window.peraPerformanceChartData.uniqueVisitors || [],
+					borderColor: '#3858e9',
+					backgroundColor: 'rgba(56,88,233,0.08)',
+					borderWidth: 2,
+					tension: 0.25,
+					pointRadius: 2
+				}
+			]
+		},
+		options: {
+			responsive: true,
+			maintainAspectRatio: false,
+			plugins: {
+				legend: { position: 'top' }
+			},
+			scales: {
+				y: {
+					beginAtZero: true,
+					ticks: {
+						precision: 0
+					}
+				}
+			}
+		}
+	});
+})();
+JS;
+		wp_add_inline_script( 'pera-site-performance-chart', $chart_js );
 	}
 }
 add_action( 'admin_enqueue_scripts', 'pera_analytics_enqueue_admin_page_assets' );
@@ -377,6 +444,27 @@ if ( ! function_exists( 'pera_analytics_render_admin_page' ) ) {
 		$top_referrers   = pera_analytics_get_top_referrers( $window['current']['start'], $window['current']['end'], 10 );
 
 		$summary_change = $show_previous_comparison ? pera_analytics_percent_change( $totals_current['visits'], $totals_previous['visits'] ) : '—';
+		$daily_totals   = pera_analytics_get_daily_totals_for_window( $window['current']['start'], $window['current']['end'] );
+		$chart_labels   = array();
+		$chart_visits   = array();
+		$chart_uniques  = array();
+		foreach ( $daily_totals as $daily_total ) {
+			$chart_labels[]  = (string) ( $daily_total['summary_date'] ?? '' );
+			$chart_visits[]  = (int) ( $daily_total['visits'] ?? 0 );
+			$chart_uniques[] = (int) ( $daily_total['unique_visitors'] ?? 0 );
+		}
+
+		wp_localize_script(
+			'pera-site-performance-chart',
+			'peraPerformanceChartData',
+			array(
+				'labels'              => $chart_labels,
+				'visits'              => $chart_visits,
+				'uniqueVisitors'      => $chart_uniques,
+				'visitsLabel'         => __( 'Visits', 'hello-elementor-child' ),
+				'uniqueVisitorsLabel' => __( 'Unique visitors', 'hello-elementor-child' ),
+			)
+		);
 		?>
 		<div class="wrap pera-site-performance-admin">
 			<h1><?php echo esc_html__( 'Site Performance', 'hello-elementor-child' ); ?></h1>
@@ -399,6 +487,40 @@ if ( ! function_exists( 'pera_analytics_render_admin_page' ) ) {
 				<div class="postbox pera-performance-kpi"><strong><?php echo esc_html__( 'Unique visitors', 'hello-elementor-child' ); ?></strong><span class="pera-performance-kpi__value"><?php echo esc_html( number_format_i18n( $totals_current['uniques'] ) ); ?></span></div>
 				<div class="postbox pera-performance-kpi"><strong><?php echo esc_html__( 'Previous period visits', 'hello-elementor-child' ); ?></strong><span class="pera-performance-kpi__value"><?php echo $show_previous_comparison ? esc_html( number_format_i18n( $totals_previous['visits'] ) ) : esc_html__( '—', 'hello-elementor-child' ); ?></span></div>
 				<div class="postbox pera-performance-kpi"><strong><?php echo esc_html__( '% change', 'hello-elementor-child' ); ?></strong><span class="pera-performance-kpi__value"><?php echo esc_html( $summary_change ); ?></span></div>
+			</div>
+
+			<h2><?php echo esc_html__( 'Visits by day', 'hello-elementor-child' ); ?></h2>
+			<div class="postbox pera-performance-chart-card">
+				<p class="description"><?php echo esc_html__( 'Daily totals for visits and unique visitors in the selected period.', 'hello-elementor-child' ); ?></p>
+				<div class="pera-performance-chart-wrap">
+					<canvas id="pera-visits-by-day-chart" aria-label="<?php echo esc_attr__( 'Line chart showing visits and unique visitors by day', 'hello-elementor-child' ); ?>" role="img"></canvas>
+				</div>
+				<noscript>
+					<p><?php echo esc_html__( 'JavaScript is disabled. Showing tabular data instead.', 'hello-elementor-child' ); ?></p>
+				</noscript>
+				<p class="pera-performance-scroll-hint"><?php echo esc_html__( 'Scroll horizontally to view all table columns.', 'hello-elementor-child' ); ?></p>
+				<div class="pera-performance-table-wrap" tabindex="0" role="region" aria-label="<?php echo esc_attr__( 'Visits by day fallback table', 'hello-elementor-child' ); ?>">
+					<table class="widefat striped pera-performance-table">
+						<thead><tr>
+							<th><?php echo esc_html__( 'Date', 'hello-elementor-child' ); ?></th>
+							<th class="pera-performance-table__number"><?php echo esc_html__( 'Visits', 'hello-elementor-child' ); ?></th>
+							<th class="pera-performance-table__number"><?php echo esc_html__( 'Unique visitors', 'hello-elementor-child' ); ?></th>
+						</tr></thead>
+						<tbody>
+						<?php if ( empty( $daily_totals ) ) : ?>
+							<tr><td colspan="3"><?php echo esc_html__( 'No daily visit data available for this period yet.', 'hello-elementor-child' ); ?></td></tr>
+						<?php else : ?>
+							<?php foreach ( $daily_totals as $daily_total ) : ?>
+								<tr>
+									<td><?php echo esc_html( (string) ( $daily_total['summary_date'] ?? '' ) ); ?></td>
+									<td class="pera-performance-table__number"><?php echo esc_html( number_format_i18n( (int) ( $daily_total['visits'] ?? 0 ) ) ); ?></td>
+									<td class="pera-performance-table__number"><?php echo esc_html( number_format_i18n( (int) ( $daily_total['unique_visitors'] ?? 0 ) ) ); ?></td>
+								</tr>
+							<?php endforeach; ?>
+						<?php endif; ?>
+						</tbody>
+					</table>
+				</div>
 			</div>
 
 			<h2><?php echo esc_html__( 'Visit origins', 'hello-elementor-child' ); ?></h2>
