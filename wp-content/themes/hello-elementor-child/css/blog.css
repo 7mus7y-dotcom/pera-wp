@@ -690,7 +690,7 @@
   list-style: none;
   margin: 0;
   padding: var(--space-md) calc(var(--space-lg) + 34px) var(--space-md) var(--space-md);
-  color: var(--text);
+  color: var(--pera-text, #111827);
   font-weight: 700;
   font-size: clamp(1rem, 0.96rem + 0.2vw, 1.08rem);
   line-height: 1.45;
@@ -723,6 +723,14 @@
     opacity 0.18s ease;
 }
 
+.faq-item > summary svg,
+.faq-item > summary .icon,
+.faq-item > summary use {
+  color: currentColor;
+  fill: currentColor;
+  stroke: currentColor;
+}
+
 .faq-item > summary::before {
   border: 1px solid var(--border-neutral-soft);
   background: rgba(0, 45, 114, 0.04);
@@ -731,8 +739,8 @@
 
 .faq-item > summary::after {
   background:
-    linear-gradient(var(--brand), var(--brand)) center / 10px 1.75px no-repeat,
-    linear-gradient(var(--brand), var(--brand)) center / 1.75px 10px no-repeat;
+    linear-gradient(currentColor, currentColor) center / 10px 1.75px no-repeat,
+    linear-gradient(currentColor, currentColor) center / 1.75px 10px no-repeat;
 }
 
 .faq-item[open] > summary {
@@ -749,7 +757,7 @@
 
 .faq-item[open] > summary::after {
   background:
-    linear-gradient(var(--brand), var(--brand)) center / 10px 1.75px no-repeat;
+    linear-gradient(currentColor, currentColor) center / 10px 1.75px no-repeat;
 }
 
 .faq-answer {

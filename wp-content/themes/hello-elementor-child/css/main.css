@@ -4163,21 +4163,22 @@ body:not(.single-post) tr:nth-child(even) {
    ======================================================= */
 
 [data-theme="dark"] .faq-accordion,
-.dark .faq-accordion {
+.dark .faq-accordion,
+.dark-mode .faq-accordion {
   --faq-dark-surface: #07111f;
   --faq-dark-surface-hover: #0b1626;
   --faq-dark-surface-open: #0d1b2d;
   --faq-dark-border: rgba(148, 163, 184, 0.26);
   --faq-dark-border-active: rgba(191, 219, 254, 0.36);
   --faq-dark-question: #f8fafc;
-  --faq-dark-question-active: #ffffff;
+  --faq-dark-question-active: #d6b46a;
   --faq-dark-answer: #cbd5e1;
-  --faq-dark-icon: #dbeafe;
   --faq-dark-focus: rgba(96, 165, 250, 0.42);
 }
 
 [data-theme="dark"] .faq-accordion .faq-item,
-.dark .faq-accordion .faq-item {
+.dark .faq-accordion .faq-item,
+.dark-mode .faq-accordion .faq-item {
   background: var(--faq-dark-surface);
   border-color: var(--faq-dark-border);
   box-shadow: 0 14px 34px rgba(0, 0, 0, 0.28);
@@ -4186,62 +4187,79 @@ body:not(.single-post) tr:nth-child(even) {
 [data-theme="dark"] .faq-accordion .faq-item:hover,
 [data-theme="dark"] .faq-accordion .faq-item:focus-within,
 .dark .faq-accordion .faq-item:hover,
-.dark .faq-accordion .faq-item:focus-within {
+.dark .faq-accordion .faq-item:focus-within,
+.dark-mode .faq-accordion .faq-item:hover,
+.dark-mode .faq-accordion .faq-item:focus-within {
   background: var(--faq-dark-surface-hover);
   border-color: var(--faq-dark-border-active);
   box-shadow: 0 18px 42px rgba(0, 0, 0, 0.36);
 }
 
 [data-theme="dark"] .faq-accordion .faq-item[open],
-.dark .faq-accordion .faq-item[open] {
+.dark .faq-accordion .faq-item[open],
+.dark-mode .faq-accordion .faq-item[open] {
   background: var(--faq-dark-surface-open);
   border-color: var(--faq-dark-border-active);
   box-shadow: 0 20px 48px rgba(0, 0, 0, 0.38);
 }
 
 [data-theme="dark"] .faq-accordion .faq-item > summary,
-.dark .faq-accordion .faq-item > summary {
+.dark .faq-accordion .faq-item > summary,
+.dark-mode .faq-accordion .faq-item > summary {
   color: var(--faq-dark-question);
 }
 
 [data-theme="dark"] .faq-accordion .faq-item > summary::before,
-.dark .faq-accordion .faq-item > summary::before {
+.dark .faq-accordion .faq-item > summary::before,
+.dark-mode .faq-accordion .faq-item > summary::before {
   background: rgba(15, 23, 42, 0.72);
   border-color: rgba(191, 219, 254, 0.22);
 }
 
 [data-theme="dark"] .faq-accordion .faq-item > summary::after,
-.dark .faq-accordion .faq-item > summary::after {
+.dark .faq-accordion .faq-item > summary::after,
+.dark-mode .faq-accordion .faq-item > summary::after {
   background:
-    linear-gradient(var(--faq-dark-icon), var(--faq-dark-icon)) center / 10px 1.75px no-repeat,
-    linear-gradient(var(--faq-dark-icon), var(--faq-dark-icon)) center / 1.75px 10px no-repeat;
+    linear-gradient(currentColor, currentColor) center / 10px 1.75px no-repeat,
+    linear-gradient(currentColor, currentColor) center / 1.75px 10px no-repeat;
 }
 
+[data-theme="dark"] .faq-accordion .faq-item:hover > summary,
+[data-theme="dark"] .faq-accordion .faq-item:focus-within > summary,
 [data-theme="dark"] .faq-accordion .faq-item[open] > summary,
-.dark .faq-accordion .faq-item[open] > summary {
+.dark .faq-accordion .faq-item:hover > summary,
+.dark .faq-accordion .faq-item:focus-within > summary,
+.dark .faq-accordion .faq-item[open] > summary,
+.dark-mode .faq-accordion .faq-item:hover > summary,
+.dark-mode .faq-accordion .faq-item:focus-within > summary,
+.dark-mode .faq-accordion .faq-item[open] > summary {
   color: var(--faq-dark-question-active);
   border-bottom-color: rgba(148, 163, 184, 0.2);
 }
 
 [data-theme="dark"] .faq-accordion .faq-item[open] > summary::before,
-.dark .faq-accordion .faq-item[open] > summary::before {
+.dark .faq-accordion .faq-item[open] > summary::before,
+.dark-mode .faq-accordion .faq-item[open] > summary::before {
   background: rgba(37, 99, 235, 0.16);
   border-color: var(--faq-dark-border-active);
 }
 
 [data-theme="dark"] .faq-accordion .faq-item[open] > summary::after,
-.dark .faq-accordion .faq-item[open] > summary::after {
+.dark .faq-accordion .faq-item[open] > summary::after,
+.dark-mode .faq-accordion .faq-item[open] > summary::after {
   background:
-    linear-gradient(var(--faq-dark-icon), var(--faq-dark-icon)) center / 10px 1.75px no-repeat;
+    linear-gradient(currentColor, currentColor) center / 10px 1.75px no-repeat;
 }
 
 [data-theme="dark"] .faq-accordion .faq-answer,
-.dark .faq-accordion .faq-answer {
+.dark .faq-accordion .faq-answer,
+.dark-mode .faq-accordion .faq-answer {
   color: var(--faq-dark-answer);
 }
 
 [data-theme="dark"] .faq-accordion .faq-item > summary:focus-visible,
-.dark .faq-accordion .faq-item > summary:focus-visible {
+.dark .faq-accordion .faq-item > summary:focus-visible,
+.dark-mode .faq-accordion .faq-item > summary:focus-visible {
   outline: 2px solid var(--faq-dark-focus);
   outline-offset: 4px;
 }
