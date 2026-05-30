@@ -723,16 +723,20 @@ if ( function_exists( 'get_field' ) ) {
 </section>
 
 <?php if ( ! empty( $homepage_faq_items ) ) : ?>
-  <section class="section">
+  <section class="faq-section section">
     <div class="container">
-      <div class="section-header">
-        <h2>FAQs About Buying Property in Istanbul</h2>
-      </div>
+      <h2>FAQs About Buying Property in Istanbul</h2>
 
-      <?php foreach ( $homepage_faq_items as $faq_item ) : ?>
-        <h3><?php echo esc_html( $faq_item['question'] ); ?></h3>
-        <p><?php echo wp_kses_post( $faq_item['answer'] ); ?></p>
-      <?php endforeach; ?>
+      <div class="faq-accordion">
+        <?php foreach ( $homepage_faq_items as $faq_index => $faq_item ) : ?>
+          <details class="faq-item"<?php echo $faq_index === 0 ? ' open' : ''; ?>>
+            <summary><?php echo esc_html( $faq_item['question'] ); ?></summary>
+            <div class="faq-answer">
+              <?php echo wp_kses_post( wpautop( $faq_item['answer'] ) ); ?>
+            </div>
+          </details>
+        <?php endforeach; ?>
+      </div>
     </div>
   </section>
 <?php endif; ?>
