@@ -466,17 +466,19 @@ get_header();
 
 
   <!-- FAQ -->
-  <section class="section" id="contact-faq">
+  <section class="faq-section section" id="contact-faq">
     <div class="container">
-      <div class="card-shell">
-        <h2>Contact Pera Property FAQs</h2>
+      <h2>Contact Pera Property FAQs</h2>
 
-        <div class="stacked-text">
-          <?php foreach ( $contact_faq_items as $contact_faq_item ) : ?>
-            <h3><?php echo esc_html( $contact_faq_item['question'] ); ?></h3>
-            <p><?php echo esc_html( $contact_faq_item['answer'] ); ?></p>
-          <?php endforeach; ?>
-        </div>
+      <div class="faq-accordion">
+        <?php foreach ( $contact_faq_items as $contact_faq_index => $contact_faq_item ) : ?>
+          <details class="faq-item"<?php echo $contact_faq_index === 0 ? ' open' : ''; ?>>
+            <summary><?php echo esc_html( $contact_faq_item['question'] ); ?></summary>
+            <div class="faq-answer">
+              <?php echo wp_kses_post( wpautop( $contact_faq_item['answer'] ) ); ?>
+            </div>
+          </details>
+        <?php endforeach; ?>
       </div>
     </div>
   </section>

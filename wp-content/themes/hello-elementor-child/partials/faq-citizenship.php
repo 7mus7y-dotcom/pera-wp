@@ -1,4 +1,4 @@
-<section class="section section-soft" id="citizenship-faq">
+<section class="faq-section section section-soft" id="citizenship-faq">
   <div class="container">
 
     <header class="section-header section-header--center">
@@ -9,39 +9,31 @@
       </p>
     </header>
 
-    <div class="doc-accordion">
+    <div class="faq-accordion">
       <?php
       $faq_items = function_exists( 'pera_seo_all_citizenship_faq_items' )
         ? pera_seo_all_citizenship_faq_items()
         : array();
+
+      $faq_index = 0;
 
       foreach ( $faq_items as $faq_item ) :
         if ( empty( $faq_item['question'] ) || empty( $faq_item['answer'] ) ) {
           continue;
         }
 
-        $question  = (string) $faq_item['question'];
-        $answer    = trim( (string) $faq_item['answer'] );
-        $paragraphs = preg_split( '/(?<=[.!?])\s+(?=[A-Z0-9(“"\'])/u', $answer ) ?: array( $answer );
+        $question = (string) $faq_item['question'];
+        $answer   = trim( (string) $faq_item['answer'] );
       ?>
-      <details class="doc-item">
-        <summary class="doc-summary">
-          <span class="doc-title"><?php echo esc_html( $question ); ?></span>
-          <span class="doc-icon" aria-hidden="true">
-            <span class="doc-icon-line doc-icon-line--horizontal"></span>
-            <span class="doc-icon-line doc-icon-line--vertical"></span>
-          </span>
-        </summary>
-        <div class="doc-panel">
-          <?php foreach ( $paragraphs as $paragraph ) : ?>
-            <?php $paragraph = trim( (string) $paragraph ); ?>
-            <?php if ( $paragraph === '' ) { continue; } ?>
-            <p><?php echo esc_html( $paragraph ); ?></p>
-          <?php endforeach; ?>
+      <details class="faq-item"<?php echo $faq_index === 0 ? ' open' : ''; ?>>
+        <summary><?php echo esc_html( $question ); ?></summary>
+        <div class="faq-answer">
+          <?php echo wp_kses_post( wpautop( $answer ) ); ?>
         </div>
       </details>
+      <?php $faq_index++; ?>
       <?php endforeach; ?>
-    </div><!-- /.doc-accordion -->
+    </div><!-- /.faq-accordion -->
 
 
   </div>
