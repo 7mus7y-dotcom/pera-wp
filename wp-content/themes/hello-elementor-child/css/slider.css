@@ -272,6 +272,7 @@
   /* Keep styling minimal; inherits your theme if you’ve got button vars */
   background: rgba(255,255,255,0.9);
   box-shadow: 0 8px 20px rgba(0,0,0,0.12);
+  color: var(--text);
 }
 
 /* Home card slider chevrons: hidden on mobile, visible on tablet+ */
@@ -293,9 +294,13 @@
 
 .cards-slider-nav svg {
   display: block;
-  color: var(--text);
+  color: currentColor;
   fill: currentColor;
   stroke: currentColor;
+}
+
+.cards-slider-nav use {
+  color: currentColor;
 }
 
 .cards-slider-nav:disabled {
@@ -401,13 +406,18 @@
   transition: opacity 0.2s ease;
   background: rgba(255,255,255,0.9);
   box-shadow: 0 8px 20px rgba(0,0,0,0.12);
+  color: var(--text);
 }
 
 .single-bodrum-property .property-gallery-nav svg {
   display: block;
-  color: var(--text);
+  color: currentColor;
   fill: currentColor;
   stroke: currentColor;
+}
+
+.single-bodrum-property .property-gallery-nav use {
+  color: currentColor;
 }
 
 .single-bodrum-property .property-gallery-nav:disabled {
@@ -465,26 +475,21 @@
 }
 
 [data-theme="dark"] .cards-slider-nav,
-.dark .cards-slider-nav{
+.dark .cards-slider-nav,
+.dark-mode .cards-slider-nav{
   background: rgba(15, 23, 42, 0.85);
   box-shadow: 0 8px 20px rgba(0, 0, 0, 0.45);
+  color: #f8fafc;
 }
 
 [data-theme="dark"] .single-bodrum-property .property-gallery-nav,
-.dark .single-bodrum-property .property-gallery-nav{
+.dark .single-bodrum-property .property-gallery-nav,
+.dark-mode .single-bodrum-property .property-gallery-nav{
   background: rgba(15, 23, 42, 0.85);
   box-shadow: 0 8px 20px rgba(0, 0, 0, 0.45);
-}
-
-[data-theme="dark"] .cards-slider-nav svg,
-.dark .cards-slider-nav svg{
   color: #f8fafc;
 }
 
-[data-theme="dark"] .single-bodrum-property .property-gallery-nav svg,
-.dark .single-bodrum-property .property-gallery-nav svg{
-  color: #f8fafc;
-}
 
 /* =======================================================
    Home: Special Offers (portrait scroller)

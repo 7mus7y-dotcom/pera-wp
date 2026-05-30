@@ -4325,7 +4325,7 @@ body:not(.single-post) tr:nth-child(even) {
   --faq-dark-border: rgba(148, 163, 184, 0.26);
   --faq-dark-border-active: rgba(191, 219, 254, 0.36);
   --faq-dark-question: #f8fafc;
-  --faq-dark-question-active: #ffffff;
+  --faq-dark-question-active: #d6b46a;
   --faq-dark-answer: #cbd5e1;
   --faq-dark-icon-circle: rgba(15, 23, 42, 0.72);
   --faq-dark-icon-circle-open: rgba(37, 99, 235, 0.16);
@@ -4379,6 +4379,8 @@ body:not(.single-post) tr:nth-child(even) {
   color: currentColor;
 }
 
+[data-theme="dark"] .faq-accordion .faq-item:hover > summary,
+[data-theme="dark"] .faq-accordion .faq-item:focus-within > summary,
 [data-theme="dark"] .faq-accordion .faq-item[open] > summary,
 .dark .faq-accordion .faq-item[open] > summary,
 .dark-mode .faq-accordion .faq-item[open] > summary {
