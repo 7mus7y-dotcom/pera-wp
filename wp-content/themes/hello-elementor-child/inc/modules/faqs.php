@@ -70,21 +70,25 @@ if ( ! function_exists( 'pera_render_faq_html' ) ) {
 			return;
 		}
 		?>
-		<div class="article-body">
+		<div class="faq-section article-body">
 			<h2><?php echo esc_html( $heading ); ?></h2>
-			<?php foreach ( $faqs as $faq ) : ?>
+			<div class="faq-accordion">
 				<?php
-				$question = isset( $faq['question'] ) ? trim( (string) $faq['question'] ) : '';
-				$answer   = isset( $faq['answer'] ) ? trim( (string) $faq['answer'] ) : '';
-				if ( '' === $question || '' === trim( wp_strip_all_tags( $answer ) ) ) {
-					continue;
-				}
-				?>
-				<details class="card-shell mb-sm">
-					<summary><strong><?php echo esc_html( $question ); ?></strong></summary>
-					<div><?php echo wp_kses_post( wpautop( $answer ) ); ?></div>
-				</details>
-			<?php endforeach; ?>
+				$faq_index = 0;
+				foreach ( $faqs as $faq ) :
+					$question = isset( $faq['question'] ) ? trim( (string) $faq['question'] ) : '';
+					$answer   = isset( $faq['answer'] ) ? trim( (string) $faq['answer'] ) : '';
+					if ( '' === $question || '' === trim( wp_strip_all_tags( $answer ) ) ) {
+						continue;
+					}
+					?>
+					<details class="faq-item"<?php echo 0 === $faq_index ? ' open' : ''; ?>>
+						<summary><?php echo esc_html( $question ); ?></summary>
+						<div class="faq-answer"><?php echo wp_kses_post( wpautop( $answer ) ); ?></div>
+					</details>
+					<?php $faq_index++; ?>
+				<?php endforeach; ?>
+			</div>
 		</div>
 		<?php
 	}

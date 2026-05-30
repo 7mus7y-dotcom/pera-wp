@@ -208,19 +208,46 @@ $luxury_query = new WP_Query( $luxury_query_args );
 		</div>
 	</section>
 
-	<section class="section">
+	<section class="faq-section section">
 		<div class="container">
 			<h2>Frequently Asked Questions</h2>
-			<h3>What types of luxury property are available in Istanbul?</h3>
-			<p>Luxury options include sea-view apartments, penthouses, branded residences, detached villas and limited boutique projects in prime districts.</p>
-			<h3>Which areas are best for luxury property in Istanbul?</h3>
-			<p>Buyer goals differ, but Beşiktaş, Nişantaşı, Etiler, Levent, Sarıyer, Üsküdar and Kadıköy are frequently shortlisted for premium homes.</p>
-			<h3>Can luxury property qualify for Turkish citizenship?</h3>
-			<p>Some properties may qualify for Turkish citizenship routes if they meet the prevailing legal and valuation requirements at the time of purchase.</p>
-			<h3>Are villas or apartments better for luxury buyers?</h3>
-			<p>It depends on priorities. Villas can offer greater space and privacy, while luxury apartments may provide central access, amenities and easier day-to-day management.</p>
-			<h3>How does Pera Property help buyers?</h3>
-			<p>Pera Property helps define criteria, pre-screens suitable options, arranges viewings and supports decision-making to reduce noise and avoid mismatched listings.</p>
+
+			<div class="faq-accordion">
+				<details class="faq-item" open>
+					<summary>What types of luxury property are available in Istanbul?</summary>
+					<div class="faq-answer">
+						<p>Luxury options include sea-view apartments, penthouses, branded residences, detached villas and limited boutique projects in prime districts.</p>
+					</div>
+				</details>
+
+				<details class="faq-item">
+					<summary>Which areas are best for luxury property in Istanbul?</summary>
+					<div class="faq-answer">
+						<p>Buyer goals differ, but Beşiktaş, Nişantaşı, Etiler, Levent, Sarıyer, Üsküdar and Kadıköy are frequently shortlisted for premium homes.</p>
+					</div>
+				</details>
+
+				<details class="faq-item">
+					<summary>Can luxury property qualify for Turkish citizenship?</summary>
+					<div class="faq-answer">
+						<p>Some properties may qualify for Turkish citizenship routes if they meet the prevailing legal and valuation requirements at the time of purchase.</p>
+					</div>
+				</details>
+
+				<details class="faq-item">
+					<summary>Are villas or apartments better for luxury buyers?</summary>
+					<div class="faq-answer">
+						<p>It depends on priorities. Villas can offer greater space and privacy, while luxury apartments may provide central access, amenities and easier day-to-day management.</p>
+					</div>
+				</details>
+
+				<details class="faq-item">
+					<summary>How does Pera Property help buyers?</summary>
+					<div class="faq-answer">
+						<p>Pera Property helps define criteria, pre-screens suitable options, arranges viewings and supports decision-making to reduce noise and avoid mismatched listings.</p>
+					</div>
+				</details>
+			</div>
 		</div>
 	</section>
 

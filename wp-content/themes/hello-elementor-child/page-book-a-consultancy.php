@@ -398,32 +398,40 @@ get_header();
     </section>
 
     <!-- FAQ -->
-    <section class="section" id="faq">
-      <div class="section-header section-header--center">
+    <section class="faq-section section" id="faq">
+      <div class="container">
         <h2>Frequently asked questions</h2>
         <p>Quick answers to common consultancy questions.</p>
-      </div>
 
-      <div class="stacked-text">
-        <details>
-          <summary>How much does the consultancy call cost?</summary>
-          <p>Our initial consultancy calls are complimentary and focused on giving you clarity.</p>
-        </details>
+        <div class="faq-accordion">
+          <details class="faq-item" open>
+            <summary>How much does the consultancy call cost?</summary>
+            <div class="faq-answer">
+              <p>Our initial consultancy calls are complimentary and focused on giving you clarity.</p>
+            </div>
+          </details>
 
-        <details>
-          <summary>Can I bring a friend or family member?</summary>
-          <p>Yes. Let us know in advance and we will share the meeting link accordingly.</p>
-        </details>
+          <details class="faq-item">
+            <summary>Can I bring a friend or family member?</summary>
+            <div class="faq-answer">
+              <p>Yes. Let us know in advance and we will share the meeting link accordingly.</p>
+            </div>
+          </details>
 
-        <details>
-          <summary>Do you support remote or in-person meetings?</summary>
-          <p>We primarily host calls online, but in-person meetings in Istanbul can be arranged.</p>
-        </details>
+          <details class="faq-item">
+            <summary>Do you support remote or in-person meetings?</summary>
+            <div class="faq-answer">
+              <p>We primarily host calls online, but in-person meetings in Istanbul can be arranged.</p>
+            </div>
+          </details>
 
-        <details>
-          <summary>What if I need a translator?</summary>
-          <p>We can provide bilingual consultants or translators for Arabic, Russian, and Turkish.</p>
-        </details>
+          <details class="faq-item">
+            <summary>What if I need a translator?</summary>
+            <div class="faq-answer">
+              <p>We can provide bilingual consultants or translators for Arabic, Russian, and Turkish.</p>
+            </div>
+          </details>
+        </div>
       </div>
     </section>
 

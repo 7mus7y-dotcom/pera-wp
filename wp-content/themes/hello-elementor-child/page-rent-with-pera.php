@@ -492,78 +492,102 @@ get_header();
         </div>
     </section>
 
-    <section class="section" id="rental-management-faq">
-        <div class="content-panel-box">
-            <header class="section-header section-header--center">
-                <h2><?php echo $is_rent_page_seo_preview ? 'Istanbul Property Management FAQ' : 'Rental management FAQ'; ?></h2>
-                <p>Everything you need to know about property management in Istanbul and how our rental management service works in practice.</p>
-            </header>
+    <section class="faq-section section" id="rental-management-faq">
+        <div class="container">
+            <h2><?php echo $is_rent_page_seo_preview ? 'Istanbul Property Management FAQ' : 'Rental management FAQ'; ?></h2>
+            <p>Everything you need to know about property management in Istanbul and how our rental management service works in practice.</p>
 
-            <div class="faq-list">
+            <div class="faq-accordion">
 
-                <details>
+                <details class="faq-item" open>
                     <summary>What does your full property management in Istanbul service include?</summary>
-                    <p>Our service is fully hands-off for Istanbul property owners. We handle tenant sourcing, marketing, viewings, lease preparation, tenant screening, contract negotiation, renewals, maintenance coordination, and ongoing tenant communication. We also assist with utility setup, tax guidance, and end-of-tenancy processes.</p>
+                    <div class="faq-answer">
+                        <p>Our service is fully hands-off for Istanbul property owners. We handle tenant sourcing, marketing, viewings, lease preparation, tenant screening, contract negotiation, renewals, maintenance coordination, and ongoing tenant communication. We also assist with utility setup, tax guidance, and end-of-tenancy processes.</p>
+                    </div>
                 </details>
 
-                <details>
+                <details class="faq-item">
                     <summary>What is your rental management fee?</summary>
-                    <p>Our full property management service in Istanbul is charged at <strong>12% + VAT</strong>. This covers the ongoing management of the property throughout the tenancy, including renewals and day-to-day tenant management.</p>
+                    <div class="faq-answer">
+                        <p>Our full property management service in Istanbul is charged at <strong>12% + VAT</strong>. This covers the ongoing management of the property throughout the tenancy, including renewals and day-to-day tenant management.</p>
+                    </div>
                 </details>
 
-                <details>
+                <details class="faq-item">
                     <summary>Are there any additional costs?</summary>
-                    <p>Yes — the management fee covers our service only. Property-related costs such as maintenance, repairs, taxes, insurance, utilities, or building charges are separate and always subject to your approval before any work is carried out.</p>
+                    <div class="faq-answer">
+                        <p>Yes — the management fee covers our service only. Property-related costs such as maintenance, repairs, taxes, insurance, utilities, or building charges are separate and always subject to your approval before any work is carried out.</p>
+                    </div>
                 </details>
 
-                <details>
+                <details class="faq-item">
                     <summary>How do you find and select tenants?</summary>
-                    <p>As part of our rental management in Istanbul, we market your property across our network and screen all applicants carefully. This typically includes employment and income checks, documentation review, and — where appropriate — requiring a Turkish guarantor. Our focus is always on placing reliable, financially stable tenants.</p>
+                    <div class="faq-answer">
+                        <p>As part of our rental management in Istanbul, we market your property across our network and screen all applicants carefully. This typically includes employment and income checks, documentation review, and — where appropriate — requiring a Turkish guarantor. Our focus is always on placing reliable, financially stable tenants.</p>
+                    </div>
                 </details>
 
-                <details>
+                <details class="faq-item">
                     <summary>Will I approve the tenant before the contract is signed?</summary>
-                    <p>Yes. We present you with the proposed tenant and agreed terms before any contract is finalised. No tenancy is confirmed without your approval.</p>
+                    <div class="faq-answer">
+                        <p>Yes. We present you with the proposed tenant and agreed terms before any contract is finalised. No tenancy is confirmed without your approval.</p>
+                    </div>
                 </details>
 
-                <details>
+                <details class="faq-item">
                     <summary>Do you provide the rental contract in English?</summary>
-                    <p>Yes. We can prepare bilingual Turkish and English contracts so that you fully understand the terms of the agreement while ensuring compliance with local regulations.</p>
+                    <div class="faq-answer">
+                        <p>Yes. We can prepare bilingual Turkish and English contracts so that you fully understand the terms of the agreement while ensuring compliance with local regulations.</p>
+                    </div>
                 </details>
 
-                <details>
+                <details class="faq-item">
                     <summary>How are rent increases handled?</summary>
-                    <p>Rent increases are managed in line with Turkish law, typically based on the official CPI (TÜFE) cap. We handle negotiations with the tenant and advise you on the optimal approach at each renewal period.</p>
+                    <div class="faq-answer">
+                        <p>Rent increases are managed in line with Turkish law, typically based on the official CPI (TÜFE) cap. We handle negotiations with the tenant and advise you on the optimal approach at each renewal period.</p>
+                    </div>
                 </details>
 
-                <details>
+                <details class="faq-item">
                     <summary>Do you use any legal protection for the landlord?</summary>
-                    <p>Yes. Where appropriate, we arrange a notarised exit undertaking (tahliye taahhütnamesi), which provides additional legal protection in case the tenant does not vacate at the end of the agreed term.</p>
+                    <div class="faq-answer">
+                        <p>Yes. Where appropriate, we arrange a notarised exit undertaking (tahliye taahhütnamesi), which provides additional legal protection in case the tenant does not vacate at the end of the agreed term.</p>
+                    </div>
                 </details>
 
-                <details>
+                <details class="faq-item">
                     <summary>How is the tenant deposit handled?</summary>
-                    <p>We typically secure a two-month deposit, which is held in accordance with Turkish rental practices. At the end of the tenancy, the property is inspected and any agreed deductions are applied before the remaining balance is returned.</p>
+                    <div class="faq-answer">
+                        <p>We typically secure a two-month deposit, which is held in accordance with Turkish rental practices. At the end of the tenancy, the property is inspected and any agreed deductions are applied before the remaining balance is returned.</p>
+                    </div>
                 </details>
 
-                <details>
+                <details class="faq-item">
                     <summary>How are utilities managed?</summary>
-                    <p>For tenanted properties, utilities are usually transferred into the tenant’s name. For new properties, the owner may need to open the accounts initially. We manage and coordinate this process on your behalf.</p>
+                    <div class="faq-answer">
+                        <p>For tenanted properties, utilities are usually transferred into the tenant’s name. For new properties, the owner may need to open the accounts initially. We manage and coordinate this process on your behalf.</p>
+                    </div>
                 </details>
 
-                <details>
+                <details class="faq-item">
                     <summary>How do you handle maintenance and repairs?</summary>
-                    <p>If an issue arises, we coordinate with trusted contractors, obtain quotes where necessary, and seek your approval before proceeding. No expense is incurred without your consent, so Istanbul property owners stay in control.</p>
+                    <div class="faq-answer">
+                        <p>If an issue arises, we coordinate with trusted contractors, obtain quotes where necessary, and seek your approval before proceeding. No expense is incurred without your consent, so Istanbul property owners stay in control.</p>
+                    </div>
                 </details>
 
-                <details>
+                <details class="faq-item">
                     <summary>Do I receive reports or updates?</summary>
-                    <p>Rent is typically paid directly to the owner, so formal monthly reporting is not always required. However, we keep you informed of any key developments and can provide structured reporting if you prefer a more hands-on overview.</p>
+                    <div class="faq-answer">
+                        <p>Rent is typically paid directly to the owner, so formal monthly reporting is not always required. However, we keep you informed of any key developments and can provide structured reporting if you prefer a more hands-on overview.</p>
+                    </div>
                 </details>
 
-                <details>
+                <details class="faq-item">
                     <summary>Can I take over management myself later?</summary>
-                    <p>Yes. You are free to take over management at any time with reasonable notice. We will ensure a smooth handover of all relevant documents and tenant information.</p>
+                    <div class="faq-answer">
+                        <p>Yes. You are free to take over management at any time with reasonable notice. We will ensure a smooth handover of all relevant documents and tenant information.</p>
+                    </div>
                 </details>
 
             </div>

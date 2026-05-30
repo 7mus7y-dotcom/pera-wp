@@ -608,26 +608,27 @@ get_header();
         </div>
     </section>
 
-    <section class="section section-soft">
+    <section class="faq-section section section-soft">
         <div class="container">
-            <header class="section-header section-header--center">
-                <h2>Frequently asked questions about selling property in Istanbul</h2>
-            </header>
+            <h2>Frequently asked questions about selling property in Istanbul</h2>
 
-            <div class="feature-grid">
-                <?php foreach ( $sell_with_pera_faq_items as $faq_item ) :
+            <div class="faq-accordion">
+                <?php
+                $faq_index = 0;
+                foreach ( $sell_with_pera_faq_items as $faq_item ) :
                     $question = isset( $faq_item['question'] ) ? trim( (string) $faq_item['question'] ) : '';
                     $answer   = isset( $faq_item['answer'] ) ? trim( (string) $faq_item['answer'] ) : '';
                     if ( $question === '' || $answer === '' ) {
                         continue;
                     }
                 ?>
-                    <article class="feature-card">
-                        <div class="feature-card-body">
-                            <h3><?php echo esc_html( $question ); ?></h3>
-                            <p><?php echo esc_html( $answer ); ?></p>
+                    <details class="faq-item"<?php echo $faq_index === 0 ? ' open' : ''; ?>>
+                        <summary><?php echo esc_html( $question ); ?></summary>
+                        <div class="faq-answer">
+                            <?php echo wp_kses_post( wpautop( $answer ) ); ?>
                         </div>
-                    </article>
+                    </details>
+                    <?php $faq_index++; ?>
                 <?php endforeach; ?>
             </div>
         </div>
