@@ -4159,11 +4159,166 @@ body:not(.single-post) tr:nth-child(even) {
 }
 
 /* =======================================================
-   FAQ ACCORDION – DARK MODE
+   FAQ ACCORDION (REUSABLE)
    ======================================================= */
 
+.faq-section {
+  margin-block: var(--space-lg);
+}
+
+.faq-accordion {
+  display: grid;
+  gap: var(--space-sm);
+}
+
+.faq-item {
+  background: var(--inverse);
+  border: 1px solid var(--border-neutral-soft);
+  border-radius: var(--radius-lg);
+  box-shadow: 0 4px 16px rgba(15, 23, 42, 0.05);
+  overflow: hidden;
+  transition:
+    border-color 0.18s ease,
+    box-shadow 0.18s ease,
+    transform 0.18s ease;
+}
+
+.faq-item:hover,
+.faq-item:focus-within {
+  border-color: var(--brand);
+  border-color: color-mix(in srgb, var(--brand) 24%, var(--border-neutral-soft));
+  box-shadow: 0 10px 22px rgba(15, 23, 42, 0.08);
+  transform: translateY(-1px);
+}
+
+.faq-item[open] {
+  border-color: var(--brand);
+  border-color: color-mix(in srgb, var(--brand) 30%, var(--border-neutral-soft));
+  box-shadow: 0 12px 26px rgba(15, 23, 42, 0.1);
+}
+
+.faq-item > summary {
+  position: relative;
+  list-style: none;
+  margin: 0;
+  padding: var(--space-md) calc(var(--space-lg) + 34px) var(--space-md) var(--space-md);
+  color: var(--text);
+  font-weight: 700;
+  font-size: clamp(1rem, 0.96rem + 0.2vw, 1.08rem);
+  line-height: 1.45;
+  cursor: pointer;
+  transition: color 0.16s ease;
+}
+
+.faq-item > summary::-webkit-details-marker {
+  display: none;
+}
+
+.faq-item > summary::marker {
+  content: "";
+}
+
+.faq-item > summary::before,
+.faq-item > summary::after {
+  content: "";
+  position: absolute;
+  right: var(--space-md);
+  top: 50%;
+  width: 22px;
+  height: 22px;
+  border-radius: 999px;
+  transform: translateY(-50%);
+  transition:
+    transform 0.18s ease,
+    background-color 0.18s ease,
+    border-color 0.18s ease,
+    opacity 0.18s ease;
+}
+
+.faq-item > summary::before {
+  border: 1px solid var(--border-neutral-soft);
+  background: rgba(0, 45, 114, 0.04);
+  background: color-mix(in srgb, var(--brand) 4%, transparent);
+}
+
+.faq-item > summary::after {
+  color: var(--brand);
+  background:
+    linear-gradient(currentColor, currentColor) center / 10px 1.75px no-repeat,
+    linear-gradient(currentColor, currentColor) center / 1.75px 10px no-repeat;
+}
+
+.faq-item > summary svg,
+.faq-item > summary .icon {
+  color: currentColor;
+  fill: none;
+  stroke: currentColor;
+}
+
+.faq-item > summary use {
+  color: currentColor;
+  fill: currentColor;
+  stroke: currentColor;
+}
+
+.faq-item[open] > summary {
+  color: var(--brand);
+  border-bottom: 1px solid var(--border-neutral-soft);
+}
+
+.faq-item[open] > summary::before {
+  border-color: var(--brand);
+  border-color: color-mix(in srgb, var(--brand) 34%, var(--border-neutral-soft));
+  background: rgba(0, 45, 114, 0.12);
+  background: color-mix(in srgb, var(--brand) 12%, transparent);
+}
+
+.faq-item[open] > summary::after {
+  background:
+    linear-gradient(currentColor, currentColor) center / 10px 1.75px no-repeat;
+}
+
+.faq-answer {
+  padding: 0 var(--space-md) var(--space-md);
+  color: var(--text-soft);
+  font-size: 0.96rem;
+  line-height: 1.75;
+}
+
+.faq-answer > *:first-child {
+  margin-top: 0;
+}
+
+.faq-answer > *:last-child {
+  margin-bottom: 0;
+}
+
+@media (max-width: 767px) {
+  .faq-section {
+    margin-block: var(--space-md);
+  }
+
+  .faq-item > summary {
+    padding: var(--space-sm) calc(var(--space-md) + 32px) var(--space-sm) var(--space-sm);
+  }
+
+  .faq-item > summary::before,
+  .faq-item > summary::after {
+    right: var(--space-sm);
+    width: 20px;
+    height: 20px;
+  }
+
+  .faq-answer {
+    padding: 0 var(--space-sm) var(--space-sm);
+    font-size: 0.94rem;
+    line-height: 1.7;
+  }
+}
+
 [data-theme="dark"] .faq-accordion,
-.dark .faq-accordion {
+.dark .faq-accordion,
+.dark-mode .faq-accordion {
   --faq-dark-surface: #07111f;
   --faq-dark-surface-hover: #0b1626;
   --faq-dark-surface-open: #0d1b2d;
@@ -4172,12 +4327,15 @@ body:not(.single-post) tr:nth-child(even) {
   --faq-dark-question: #f8fafc;
   --faq-dark-question-active: #ffffff;
   --faq-dark-answer: #cbd5e1;
-  --faq-dark-icon: #dbeafe;
+  --faq-dark-icon-circle: rgba(15, 23, 42, 0.72);
+  --faq-dark-icon-circle-open: rgba(37, 99, 235, 0.16);
+  --faq-dark-icon-border: rgba(191, 219, 254, 0.22);
   --faq-dark-focus: rgba(96, 165, 250, 0.42);
 }
 
 [data-theme="dark"] .faq-accordion .faq-item,
-.dark .faq-accordion .faq-item {
+.dark .faq-accordion .faq-item,
+.dark-mode .faq-accordion .faq-item {
   background: var(--faq-dark-surface);
   border-color: var(--faq-dark-border);
   box-shadow: 0 14px 34px rgba(0, 0, 0, 0.28);
@@ -4186,62 +4344,70 @@ body:not(.single-post) tr:nth-child(even) {
 [data-theme="dark"] .faq-accordion .faq-item:hover,
 [data-theme="dark"] .faq-accordion .faq-item:focus-within,
 .dark .faq-accordion .faq-item:hover,
-.dark .faq-accordion .faq-item:focus-within {
+.dark .faq-accordion .faq-item:focus-within,
+.dark-mode .faq-accordion .faq-item:hover,
+.dark-mode .faq-accordion .faq-item:focus-within {
   background: var(--faq-dark-surface-hover);
   border-color: var(--faq-dark-border-active);
   box-shadow: 0 18px 42px rgba(0, 0, 0, 0.36);
 }
 
 [data-theme="dark"] .faq-accordion .faq-item[open],
-.dark .faq-accordion .faq-item[open] {
+.dark .faq-accordion .faq-item[open],
+.dark-mode .faq-accordion .faq-item[open] {
   background: var(--faq-dark-surface-open);
   border-color: var(--faq-dark-border-active);
   box-shadow: 0 20px 48px rgba(0, 0, 0, 0.38);
 }
 
 [data-theme="dark"] .faq-accordion .faq-item > summary,
-.dark .faq-accordion .faq-item > summary {
+.dark .faq-accordion .faq-item > summary,
+.dark-mode .faq-accordion .faq-item > summary {
   color: var(--faq-dark-question);
 }
 
 [data-theme="dark"] .faq-accordion .faq-item > summary::before,
-.dark .faq-accordion .faq-item > summary::before {
-  background: rgba(15, 23, 42, 0.72);
-  border-color: rgba(191, 219, 254, 0.22);
+.dark .faq-accordion .faq-item > summary::before,
+.dark-mode .faq-accordion .faq-item > summary::before {
+  background: var(--faq-dark-icon-circle);
+  border-color: var(--faq-dark-icon-border);
 }
 
 [data-theme="dark"] .faq-accordion .faq-item > summary::after,
-.dark .faq-accordion .faq-item > summary::after {
-  background:
-    linear-gradient(var(--faq-dark-icon), var(--faq-dark-icon)) center / 10px 1.75px no-repeat,
-    linear-gradient(var(--faq-dark-icon), var(--faq-dark-icon)) center / 1.75px 10px no-repeat;
+.dark .faq-accordion .faq-item > summary::after,
+.dark-mode .faq-accordion .faq-item > summary::after {
+  color: currentColor;
 }
 
 [data-theme="dark"] .faq-accordion .faq-item[open] > summary,
-.dark .faq-accordion .faq-item[open] > summary {
+.dark .faq-accordion .faq-item[open] > summary,
+.dark-mode .faq-accordion .faq-item[open] > summary {
   color: var(--faq-dark-question-active);
   border-bottom-color: rgba(148, 163, 184, 0.2);
 }
 
 [data-theme="dark"] .faq-accordion .faq-item[open] > summary::before,
-.dark .faq-accordion .faq-item[open] > summary::before {
-  background: rgba(37, 99, 235, 0.16);
+.dark .faq-accordion .faq-item[open] > summary::before,
+.dark-mode .faq-accordion .faq-item[open] > summary::before {
+  background: var(--faq-dark-icon-circle-open);
   border-color: var(--faq-dark-border-active);
 }
 
 [data-theme="dark"] .faq-accordion .faq-item[open] > summary::after,
-.dark .faq-accordion .faq-item[open] > summary::after {
-  background:
-    linear-gradient(var(--faq-dark-icon), var(--faq-dark-icon)) center / 10px 1.75px no-repeat;
+.dark .faq-accordion .faq-item[open] > summary::after,
+.dark-mode .faq-accordion .faq-item[open] > summary::after {
+  color: currentColor;
 }
 
 [data-theme="dark"] .faq-accordion .faq-answer,
-.dark .faq-accordion .faq-answer {
+.dark .faq-accordion .faq-answer,
+.dark-mode .faq-accordion .faq-answer {
   color: var(--faq-dark-answer);
 }
 
 [data-theme="dark"] .faq-accordion .faq-item > summary:focus-visible,
-.dark .faq-accordion .faq-item > summary:focus-visible {
+.dark .faq-accordion .faq-item > summary:focus-visible,
+.dark-mode .faq-accordion .faq-item > summary:focus-visible {
   outline: 2px solid var(--faq-dark-focus);
   outline-offset: 4px;
 }
