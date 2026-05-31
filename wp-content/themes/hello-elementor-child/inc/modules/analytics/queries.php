@@ -239,14 +239,15 @@ if ( ! function_exists( 'pera_analytics_get_period_page_rollup' ) ) {
 			$daily_end = $today;
 		}
 
+		$daily_dates_with_rows = array();
 		if ( null === $daily_start || $daily_start < $daily_end ) {
 			if ( null === $daily_start ) {
 				$daily_rows = $wpdb->get_results(
 					$wpdb->prepare(
-						"SELECT page_path, MAX(page_title) AS page_title, SUM(visits) AS visits
+						"SELECT summary_date, page_path, MAX(page_title) AS page_title, SUM(visits) AS visits
 						FROM {$daily_table}
 						WHERE summary_date < %s
-						GROUP BY page_path",
+						GROUP BY summary_date, page_path",
 						$daily_end->format( 'Y-m-d' )
 					),
 					ARRAY_A
@@ -254,16 +255,23 @@ if ( ! function_exists( 'pera_analytics_get_period_page_rollup' ) ) {
 			} else {
 				$daily_rows = $wpdb->get_results(
 					$wpdb->prepare(
-						"SELECT page_path, MAX(page_title) AS page_title, SUM(visits) AS visits
+						"SELECT summary_date, page_path, MAX(page_title) AS page_title, SUM(visits) AS visits
 						FROM {$daily_table}
 						WHERE summary_date >= %s
 						  AND summary_date < %s
-						GROUP BY page_path",
+						GROUP BY summary_date, page_path",
 						$daily_start->format( 'Y-m-d' ),
 						$daily_end->format( 'Y-m-d' )
 					),
 					ARRAY_A
 				);
+			}
+
+			foreach ( $daily_rows as $daily_row ) {
+				$date_key = (string) ( $daily_row['summary_date'] ?? '' );
+				if ( '' !== $date_key ) {
+					$daily_dates_with_rows[ $date_key ] = true;
+				}
 			}
 		}
 
@@ -272,6 +280,19 @@ if ( ! function_exists( 'pera_analytics_get_period_page_rollup' ) ) {
 				'start' => $start_dt->format( 'Y-m-d H:i:s' ),
 				'end'   => $daily_start->format( 'Y-m-d H:i:s' ),
 			);
+		}
+
+		if ( null !== $daily_start ) {
+			for ( $cursor = $daily_start; $cursor < $daily_end; $cursor = $cursor->modify( '+1 day' ) ) {
+				if ( isset( $daily_dates_with_rows[ $cursor->format( 'Y-m-d' ) ] ) ) {
+					continue;
+				}
+
+				$raw_windows[] = array(
+					'start' => $cursor->format( 'Y-m-d H:i:s' ),
+					'end'   => $cursor->modify( '+1 day' )->format( 'Y-m-d H:i:s' ),
+				);
+			}
 		}
 
 		if ( $daily_end < $end_dt ) {
@@ -361,9 +382,10 @@ if ( ! function_exists( 'pera_analytics_get_daily_totals_for_window' ) ) {
 			return array();
 		}
 
-		$today_date = ( new DateTimeImmutable( 'now', $tz ) )->format( 'Y-m-d' );
-		$range_start = null === $start_dt ? null : $start_dt->setTime( 0, 0, 0 );
-		$range_end   = $end_dt->setTime( 0, 0, 0 );
+		$range_start         = null === $start_dt ? null : $start_dt->setTime( 0, 0, 0 );
+		$range_end_exclusive = $end_dt->setTime( 0, 0, 0 );
+		// Daily summaries are treated as completed-day rollups; current/partial days are read from raw visits.
+		$display_end         = '00:00:00' === $end_dt->format( 'H:i:s' ) ? $range_end_exclusive->modify( '-1 day' ) : $range_end_exclusive;
 
 		$rows = array();
 		if ( null === $range_start ) {
@@ -374,7 +396,7 @@ if ( ! function_exists( 'pera_analytics_get_daily_totals_for_window' ) ) {
 					WHERE summary_date < %s
 					GROUP BY summary_date
 					ORDER BY summary_date ASC",
-					$range_end->format( 'Y-m-d' )
+					$range_end_exclusive->format( 'Y-m-d' )
 				),
 				ARRAY_A
 			);
@@ -383,11 +405,12 @@ if ( ! function_exists( 'pera_analytics_get_daily_totals_for_window' ) ) {
 				$wpdb->prepare(
 					"SELECT summary_date, SUM(visits) AS visits, SUM(unique_visitors) AS unique_visitors
 					FROM {$daily_table}
-					WHERE summary_date BETWEEN %s AND %s
+					WHERE summary_date >= %s
+					  AND summary_date < %s
 					GROUP BY summary_date
 					ORDER BY summary_date ASC",
 					$range_start->format( 'Y-m-d' ),
-					$range_end->format( 'Y-m-d' )
+					$range_end_exclusive->format( 'Y-m-d' )
 				),
 				ARRAY_A
 			);
@@ -405,43 +428,62 @@ if ( ! function_exists( 'pera_analytics_get_daily_totals_for_window' ) ) {
 			);
 		}
 
-		// Optional enhancement: if the selected window includes today and the daily rollup
-		// for today is unavailable, append today's counts from raw visit data.
-		if ( $end_dt->format( 'Y-m-d' ) >= $today_date ) {
-			$includes_today = null === $range_start || $range_start->format( 'Y-m-d' ) <= $today_date;
-			if ( $includes_today && ! isset( $totals_by_date[ $today_date ] ) ) {
-				$today_start = ( new DateTimeImmutable( 'today', $tz ) )->format( 'Y-m-d H:i:s' );
-				$raw_today   = $wpdb->get_row(
-					$wpdb->prepare(
-						"SELECT COUNT(*) AS visits, COUNT(DISTINCT visitor_id) AS unique_visitors
-						FROM {$raw_table}
-						WHERE visited_at >= %s
-						  AND visited_at < %s
-						  " . pera_analytics_suspected_bot_where_clause(),
-						$today_start,
-						$end_dt->format( 'Y-m-d H:i:s' )
-					),
-					ARRAY_A
-				);
-
-				$totals_by_date[ $today_date ] = array(
-					'visits'          => (int) ( $raw_today['visits'] ?? 0 ),
-					'unique_visitors' => (int) ( $raw_today['unique_visitors'] ?? 0 ),
-				);
+		if ( null === $range_start ) {
+			if ( empty( $totals_by_date ) ) {
+				$range_start = $display_end;
+			} else {
+				$ordered_dates = array_keys( $totals_by_date );
+				sort( $ordered_dates );
+				$range_start = new DateTimeImmutable( $ordered_dates[0], $tz );
 			}
 		}
 
-		if ( null === $range_start ) {
-			if ( empty( $totals_by_date ) ) {
-				return array();
+		$raw_fill_start = null === $start_dt ? $display_end : $range_start;
+		if ( $raw_fill_start < $range_start ) {
+			$raw_fill_start = $range_start;
+		}
+
+		for ( $cursor = $raw_fill_start; $cursor <= $display_end; $cursor = $cursor->modify( '+1 day' ) ) {
+			$date_key = $cursor->format( 'Y-m-d' );
+			if ( isset( $totals_by_date[ $date_key ] ) ) {
+				continue;
 			}
-			$ordered_dates = array_keys( $totals_by_date );
-			sort( $ordered_dates );
-			$range_start = new DateTimeImmutable( $ordered_dates[0], $tz );
+
+			$day_start = $cursor;
+			if ( null !== $start_dt && $day_start < $start_dt ) {
+				$day_start = $start_dt;
+			}
+
+			$day_end = $cursor->modify( '+1 day' );
+			if ( $day_end > $end_dt ) {
+				$day_end = $end_dt;
+			}
+
+			if ( $day_end <= $day_start ) {
+				continue;
+			}
+
+			$raw_day = $wpdb->get_row(
+				$wpdb->prepare(
+					"SELECT COUNT(*) AS visits, COUNT(DISTINCT visitor_id) AS unique_visitors
+					FROM {$raw_table}
+					WHERE visited_at >= %s
+					  AND visited_at < %s
+					  " . pera_analytics_suspected_bot_where_clause(),
+					$day_start->format( 'Y-m-d H:i:s' ),
+					$day_end->format( 'Y-m-d H:i:s' )
+				),
+				ARRAY_A
+			);
+
+			$totals_by_date[ $date_key ] = array(
+				'visits'          => (int) ( $raw_day['visits'] ?? 0 ),
+				'unique_visitors' => (int) ( $raw_day['unique_visitors'] ?? 0 ),
+			);
 		}
 
 		$filled_rows = array();
-		for ( $cursor = $range_start; $cursor <= $range_end; $cursor = $cursor->modify( '+1 day' ) ) {
+		for ( $cursor = $range_start; $cursor <= $display_end; $cursor = $cursor->modify( '+1 day' ) ) {
 			$date_key = $cursor->format( 'Y-m-d' );
 			$filled_rows[] = array(
 				'summary_date'     => $date_key,
