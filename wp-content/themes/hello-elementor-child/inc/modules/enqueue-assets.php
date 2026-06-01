@@ -10,10 +10,11 @@ add_action( 'wp_enqueue_scripts', function () {
      0) ALWAYS
   ========================= */
 
-  $is_crm_route = function_exists( 'pera_is_crm_route' ) ? (bool) pera_is_crm_route() : false;
+  $is_crm_route            = function_exists( 'pera_is_crm_route' ) ? (bool) pera_is_crm_route() : false;
+  $is_standalone_auth_page = function_exists( 'pera_is_standalone_auth_page' ) ? (bool) pera_is_standalone_auth_page() : false;
 
-  if ( ! $is_crm_route ) {
-    // main.css everywhere except plugin-owned CRM shell routes.
+  if ( ! $is_crm_route && ! $is_standalone_auth_page ) {
+    // main.css everywhere except plugin-owned CRM shell routes and standalone auth pages.
     wp_enqueue_style(
       'pera-main-css',
       get_stylesheet_directory_uri() . '/css/main.css',
@@ -21,7 +22,7 @@ add_action( 'wp_enqueue_scripts', function () {
       pera_get_asset_version( '/css/main.css' )
     );
 
-    // main.js everywhere except plugin-owned CRM shell routes.
+    // main.js everywhere except plugin-owned CRM shell routes and standalone auth pages.
     wp_enqueue_script(
       'pera-main-js',
       get_stylesheet_directory_uri() . '/js/main.js',
@@ -422,3 +423,20 @@ if ( $is_home ) {
   );
 
 }, 40 );
+
+
+/**
+ * Keep standalone auth pages isolated from normal frontend assets.
+ */
+add_action( 'wp_enqueue_scripts', function () {
+  if ( ! function_exists( 'pera_is_standalone_auth_page' ) || ! pera_is_standalone_auth_page() ) {
+    return;
+  }
+
+  wp_dequeue_style( 'pera-main-css' );
+  wp_deregister_style( 'pera-main-css' );
+  wp_dequeue_script( 'pera-main-js' );
+  wp_deregister_script( 'pera-main-js' );
+  wp_dequeue_script( 'pera-whatsapp-click-log' );
+  wp_deregister_script( 'pera-whatsapp-click-log' );
+}, 100 );
