@@ -15,7 +15,7 @@ body.client-login-standalone {
   --shadow-soft: 0 2px 6px rgba(0, 0, 0, 0.10);
 
   margin: 0;
-  background-color: var(--brand);
+  background-color: #002d72;
   position: relative;
   font-family: 'Montserrat', system-ui, -apple-system, "Segoe UI", Arial, sans-serif;
   color: var(--inverse);
@@ -24,6 +24,13 @@ body.client-login-standalone {
 html.client-login-standalone-html,
 body.client-login-standalone {
   min-height: 100%;
+  background-color: #002d72;
+}
+
+body.client-login-standalone .client-login-wrapper,
+body.client-login-standalone .site-main,
+body.client-login-standalone .client-login-section {
+  background: transparent !important;
 }
 
 body.client-login-standalone::before {

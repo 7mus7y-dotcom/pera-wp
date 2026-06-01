@@ -112,6 +112,10 @@ if ( ! function_exists( 'pera_floating_whatsapp_button' ) ) {
 			return;
 		}
 
+		if ( function_exists( 'pera_is_standalone_auth_page' ) && pera_is_standalone_auth_page() ) {
+			return;
+		}
+
 		$is_crm_route = function_exists( 'pera_is_crm_route' ) && pera_is_crm_route();
 
 		if ( $is_crm_route && is_user_logged_in() && function_exists( 'pera_crm_user_can_access' ) && pera_crm_user_can_access() ) {

@@ -15,6 +15,22 @@ function pera_get_asset_version( string $relative_path ): string {
   return wp_get_theme()->get( 'Version' );
 }
 
+if ( ! function_exists( 'pera_is_standalone_auth_page' ) ) {
+  /**
+   * Detect the theme-owned standalone client auth templates.
+   */
+  function pera_is_standalone_auth_page(): bool {
+    if ( isset( $GLOBALS['pagenow'] ) && 'wp-login.php' === $GLOBALS['pagenow'] ) {
+      return false;
+    }
+
+    return is_page_template( array(
+      'page-client-login.php',
+      'page-client-forgot-password.php',
+    ) );
+  }
+}
+
 
 if ( ! function_exists( 'pera_get_term_acf_field' ) ) {
   /**
