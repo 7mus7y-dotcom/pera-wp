@@ -1185,77 +1185,71 @@ $custom_video_text = $custom_video_text ? wp_kses_post( wpautop( $custom_video_t
     </div>
 
     <!-- RIGHT: MAP -->
-    <aside class="property-location__aside">
-      <?php if ( $has_map ) : ?>
-        <?php
-          $lat      = (float) $map['lat'];
-          $lng      = (float) $map['lng'];
-          $address  = ! empty( $map['address'] ) ? (string) $map['address'] : '';
-          $gmaps_url = 'https://www.google.com/maps?q=' . rawurlencode( $lat . ',' . $lng );
-          $embed_url = 'https://www.google.com/maps?q=' . rawurlencode( $lat . ',' . $lng ) . '&z=15&output=embed';
-        ?>
-    
-        <div class="card-shell property-map-card">
-          <h3 class="property-map-card__title">Map</h3>
-    
-          <?php if ( $address ) : ?>
-            <p class="property-map-card__address text-soft"><?php echo esc_html( $address ); ?></p>
-          <?php endif; ?>
-    
-      <div class="media-frame media-frame--image-fill">                
-          <iframe
-                  class="media-embed--map"
-                  src="<?php echo esc_url( $embed_url ); ?>"
-                  loading="lazy"
-                  referrerpolicy="no-referrer-when-downgrade"
-                  allowfullscreen
-                  title="Location map"
-                ></iframe>
-          </div>
-    
-          <div class="property-map-card__actions">
-            <a class="btn btn--solid btn--green" href="<?php echo esc_url( $gmaps_url ); ?>" target="_blank" rel="noopener">
-              Open in Google Maps
-            </a>
-          </div>
-    
-          <?php if ( $has_distances ) : ?>
-            <div class="property-map-card__distances">
-              <h4 class="property-map-card__distances-title">
-                <?php echo esc_html( $location_heading ?: 'Location & distances' ); ?>
-              </h4>
-    
-              <div class="moreless moreless--property-distances" data-moreless data-collapsed="true">
-                <div id="property-distances-content" class="moreless__content text-soft" data-moreless-content>
-                  <?php echo apply_filters( 'the_content', $distances_html ); ?>
-                </div>
-    
-                <button
-                  type="button"
-                  class="pill pill--green moreless__toggle"
-                  data-moreless-toggle
-                  data-label-more="Read more"
-                  data-label-less="Read less"
-                  aria-expanded="false"
-                  aria-controls="property-distances-content"
-                >
-                  Read more
-                </button>
-              </div>
-            </div>
-          <?php endif; ?>
-    
-        </div>
-    
-      <?php else : ?>
-    
-        <div class="card-shell property-map-card">
-          <h3 class="property-map-card__title">Map</h3>
-          <p class="text-soft" style="margin:0;">Map location is not available for this listing.</p>
-        </div>
-    
+<aside class="property-location__aside">
+  <?php if ( $has_map ) : ?>
+    <?php
+      $lat       = (float) $map['lat'];
+      $lng       = (float) $map['lng'];
+      $address   = ! empty( $map['address'] ) ? (string) $map['address'] : '';
+      $gmaps_url = 'https://www.google.com/maps?q=' . rawurlencode( $lat . ',' . $lng );
+      $embed_url = 'https://www.google.com/maps?q=' . rawurlencode( $lat . ',' . $lng ) . '&z=15&output=embed';
+    ?>
+
+    <div class="card-shell property-map-card">
+      <h3 class="property-map-card__title">Map</h3>
+
+      <?php if ( $address ) : ?>
+        <p class="property-map-card__address text-soft">
+          <?php echo esc_html( $address ); ?>
+        </p>
       <?php endif; ?>
-    </aside>
+
+      <div class="media-frame media-frame--image-fill">
+        <iframe
+          class="media-embed--map"
+          src="<?php echo esc_url( $embed_url ); ?>"
+          loading="lazy"
+          referrerpolicy="no-referrer-when-downgrade"
+          allowfullscreen
+          title="Location map"
+        ></iframe>
+      </div>
+
+      <div class="property-map-card__actions">
+        <a
+          class="btn btn--solid btn--green"
+          href="<?php echo esc_url( $gmaps_url ); ?>"
+          target="_blank"
+          rel="noopener"
+        >
+          Open in Google Maps
+        </a>
+      </div>
+
+      <?php if ( $has_distances ) : ?>
+        <div class="property-map-card__distances">
+          <h4 class="property-map-card__distances-title">
+            <?php echo esc_html( $location_heading ?: 'Location & distances' ); ?>
+          </h4>
+
+          <div class="property-map-card__distances-content text-soft">
+            <?php echo apply_filters( 'the_content', $distances_html ); ?>
+          </div>
+        </div>
+      <?php endif; ?>
+    </div>
+
+  <?php else : ?>
+
+    <div class="card-shell property-map-card">
+      <h3 class="property-map-card__title">Map</h3>
+      <p class="text-soft" style="margin:0;">
+        Map location is not available for this listing.
+      </p>
+    </div>
+
+  <?php endif; ?>
+</aside>
 
 
   </div>
