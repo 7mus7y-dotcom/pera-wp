@@ -1199,10 +1199,10 @@ $custom_video_text = $custom_video_text ? wp_kses_post( wpautop( $custom_video_t
 <?php if ( $has_property_editorial_content ) : ?>
 <section class="section section-soft property-editorial-content" id="property-editorial-content">
   <div class="container">
-    <div class="content-panel-box">
+    <div class="grid-2--tight property-editorial-grid">
 
       <?php if ( $has_property_editorial_intro_card ) : ?>
-        <div class="card-shell">
+        <div class="card-shell property-editorial-card property-editorial-card--wide">
           <h2>Why this property?</h2>
 
           <?php if ( $has_property_editorial_intro ) : ?>
@@ -1243,63 +1243,55 @@ $custom_video_text = $custom_video_text ? wp_kses_post( wpautop( $custom_video_t
         </div>
       <?php endif; ?>
 
-      <?php if ( $has_property_district_analysis || $has_property_investment_potential || $has_estimated_rental_yield ) : ?>
-        <div class="grid-2--tight">
-          <?php if ( $has_property_district_analysis ) : ?>
-            <div class="card-shell">
-              <h2>Location and district analysis</h2>
-              <div>
-                <?php echo wp_kses_post( wpautop( $property_district_analysis ) ); ?>
-              </div>
-            </div>
-          <?php endif; ?>
-
-          <?php if ( $has_property_investment_potential || $has_estimated_rental_yield ) : ?>
-            <div class="card-shell">
-              <h2>Investment and rental potential</h2>
-
-              <?php if ( $has_property_investment_potential ) : ?>
-                <div>
-                  <?php echo wp_kses_post( wpautop( $property_investment_potential ) ); ?>
-                </div>
-              <?php endif; ?>
-
-              <?php if ( $has_estimated_rental_yield ) : ?>
-                <p><strong>Indicative rental yield:</strong> <?php echo esc_html( $estimated_rental_yield ); ?></p>
-              <?php endif; ?>
-
-              <p class="text-soft">
-                Rental figures are indicative only and are not a guaranteed return.
-              </p>
-            </div>
-          <?php endif; ?>
+      <?php if ( $has_property_district_analysis ) : ?>
+        <div class="card-shell property-editorial-card">
+          <h2>Location and district analysis</h2>
+          <div>
+            <?php echo wp_kses_post( wpautop( $property_district_analysis ) ); ?>
+          </div>
         </div>
       <?php endif; ?>
 
-      <?php if ( $has_property_buyer_suitability || $has_property_developer_profile ) : ?>
-        <div class="grid-2--tight">
-          <?php if ( $has_property_buyer_suitability ) : ?>
-            <div class="card-shell">
-              <h2>Who this property is suitable for</h2>
-              <div>
-                <?php echo wp_kses_post( wpautop( $property_buyer_suitability ) ); ?>
-              </div>
+      <?php if ( $has_property_investment_potential || $has_estimated_rental_yield ) : ?>
+        <div class="card-shell property-editorial-card">
+          <h2>Investment and rental potential</h2>
+
+          <?php if ( $has_property_investment_potential ) : ?>
+            <div>
+              <?php echo wp_kses_post( wpautop( $property_investment_potential ) ); ?>
             </div>
           <?php endif; ?>
 
-          <?php if ( $has_property_developer_profile ) : ?>
-            <div class="card-shell">
-              <h2>Developer and construction credibility</h2>
-              <div>
-                <?php echo wp_kses_post( wpautop( $property_developer_profile ) ); ?>
-              </div>
-            </div>
+          <?php if ( $has_estimated_rental_yield ) : ?>
+            <p><strong>Indicative rental yield:</strong> <?php echo esc_html( $estimated_rental_yield ); ?></p>
           <?php endif; ?>
+
+          <p class="text-soft">
+            Rental figures are indicative only and are not a guaranteed return.
+          </p>
+        </div>
+      <?php endif; ?>
+
+      <?php if ( $has_property_buyer_suitability ) : ?>
+        <div class="card-shell property-editorial-card">
+          <h2>Who this property is suitable for</h2>
+          <div>
+            <?php echo wp_kses_post( wpautop( $property_buyer_suitability ) ); ?>
+          </div>
+        </div>
+      <?php endif; ?>
+
+      <?php if ( $has_property_developer_profile ) : ?>
+        <div class="card-shell property-editorial-card">
+          <h2>Developer and construction credibility</h2>
+          <div>
+            <?php echo wp_kses_post( wpautop( $property_developer_profile ) ); ?>
+          </div>
         </div>
       <?php endif; ?>
 
       <?php if ( ! empty( $property_faq_items ) ) : ?>
-        <div class="card-shell">
+        <div class="card-shell property-editorial-card property-editorial-card--wide">
           <h2>Property questions</h2>
 
           <?php foreach ( $property_faq_items as $faq_item ) : ?>
