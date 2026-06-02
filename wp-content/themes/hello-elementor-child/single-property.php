@@ -367,7 +367,108 @@ if ( $fp_enabled && is_array( $floor_plans ) && ! empty( $floor_plans ) ) {
 
 $has_floor_plans = ( $fp_enabled && ( ! empty( $floor_plan_items ) || ! empty( $floor_plans_text ) ) );
 
-/* 12) FURTHER READING (ACF relationship to Posts) */
+/* 12) PROPERTY SEO & EDITORIAL CONTENT (ACF Free) */
+$property_editorial_intro       = function_exists( 'get_field' ) ? get_field( 'property_editorial_intro', $property_id ) : '';
+$property_highlights_text       = function_exists( 'get_field' ) ? get_field( 'property_highlights_text', $property_id ) : '';
+$property_district_analysis     = function_exists( 'get_field' ) ? get_field( 'property_district_analysis', $property_id ) : '';
+$property_investment_potential  = function_exists( 'get_field' ) ? get_field( 'property_investment_potential', $property_id ) : '';
+$property_buyer_suitability     = function_exists( 'get_field' ) ? get_field( 'property_buyer_suitability', $property_id ) : '';
+$property_developer_profile     = function_exists( 'get_field' ) ? get_field( 'property_developer_profile', $property_id ) : '';
+$property_faq_text              = function_exists( 'get_field' ) ? get_field( 'property_faq_text', $property_id ) : '';
+$estimated_rental_yield         = function_exists( 'get_field' ) ? get_field( 'estimated_rental_yield', $property_id ) : '';
+$target_buyer_type              = function_exists( 'get_field' ) ? get_field( 'target_buyer_type', $property_id ) : '';
+$property_key_advantages        = function_exists( 'get_field' ) ? get_field( 'property_key_advantages', $property_id ) : '';
+
+$pera_normalize_editorial_items = static function ( $value ) {
+  $items = array();
+
+  if ( is_array( $value ) ) {
+    foreach ( $value as $item ) {
+      if ( is_array( $item ) ) {
+        $item = $item['label'] ?? $item['value'] ?? reset( $item );
+      }
+
+      $item = trim( (string) $item );
+      if ( $item !== '' ) {
+        $items[] = $item;
+      }
+    }
+  } else {
+    $value = trim( (string) $value );
+
+    if ( $value !== '' ) {
+      $items = preg_split( '/\r\n|\r|\n|,/', $value );
+      $items = array_map( 'trim', $items );
+      $items = array_filter( $items, static function ( $item ) {
+        return $item !== '';
+      } );
+    }
+  }
+
+  return array_values( array_unique( $items ) );
+};
+
+$property_highlights_items = array();
+if ( trim( (string) $property_highlights_text ) !== '' ) {
+  $property_highlights_items = preg_split( '/\r\n|\r|\n/', (string) $property_highlights_text );
+  $property_highlights_items = array_map( 'trim', $property_highlights_items );
+  $property_highlights_items = array_filter( $property_highlights_items, static function ( $item ) {
+    return $item !== '';
+  } );
+  $property_highlights_items = array_values( $property_highlights_items );
+}
+$property_key_advantages_items = $pera_normalize_editorial_items( $property_key_advantages );
+$target_buyer_type_items = $pera_normalize_editorial_items( $target_buyer_type );
+
+$property_faq_items = array();
+if ( trim( (string) $property_faq_text ) !== '' ) {
+  $faq_lines = preg_split( '/\r\n|\r|\n/', (string) $property_faq_text );
+
+  foreach ( $faq_lines as $faq_line ) {
+    $faq_line = trim( (string) $faq_line );
+
+    if ( $faq_line === '' || strpos( $faq_line, '|' ) === false ) {
+      continue;
+    }
+
+    list( $question, $answer ) = array_map( 'trim', explode( '|', $faq_line, 2 ) );
+
+    if ( $question === '' || $answer === '' ) {
+      continue;
+    }
+
+    $property_faq_items[] = array(
+      'question' => $question,
+      'answer'   => $answer,
+    );
+  }
+}
+
+$has_property_editorial_intro = trim( (string) $property_editorial_intro ) !== '';
+$has_property_district_analysis = trim( (string) $property_district_analysis ) !== '';
+$has_property_investment_potential = trim( (string) $property_investment_potential ) !== '';
+$has_estimated_rental_yield = trim( (string) $estimated_rental_yield ) !== '';
+$has_property_buyer_suitability = trim( (string) $property_buyer_suitability ) !== '';
+$has_property_developer_profile = trim( (string) $property_developer_profile ) !== '';
+
+$has_property_editorial_intro_card = (
+  $has_property_editorial_intro ||
+  ! empty( $property_highlights_items ) ||
+  ! empty( $property_key_advantages_items ) ||
+  ! empty( $target_buyer_type_items )
+);
+
+$has_property_editorial_content = (
+  $has_property_editorial_intro_card ||
+  $has_property_district_analysis ||
+  $has_property_investment_potential ||
+  $has_estimated_rental_yield ||
+  $has_property_buyer_suitability ||
+  $has_property_developer_profile ||
+  ! empty( $property_faq_items )
+);
+
+/* 13) FURTHER READING (ACF relationship to Posts) */
 $further_reading_heading = function_exists( 'get_field' ) ? (string) get_field( 'further_reading_heading', $property_id ) : '';
 $further_reading_text    = function_exists( 'get_field' ) ? (string) get_field( 'further_reading_text', $property_id ) : '';
 
@@ -920,167 +1021,6 @@ $custom_video_text = $custom_video_text ? wp_kses_post( wpautop( $custom_video_t
 
 </section>
 
-<section class="section section-soft">
-  <div class="container">
-    <div class="property-pricing-advisors">
-      <div class="property-pricing-advisors__pricing">
-        <?php
-        if ( function_exists( 'pera_v2_render_units_price_table' ) ) {
-          pera_v2_render_units_price_table(
-            $property_id,
-            array(
-              'wrap_section' => false,
-            )
-          );
-        }
-        ?>
-      </div>
-
-      <aside class="property-pricing-advisors__advisors" aria-label="Contact an agent">
-        <?php
-        $advisors = function_exists( 'get_field' ) ? get_field( 'advisors', $property_id ) : array();
-        if ( ! is_array( $advisors ) ) {
-          $advisors = array();
-        }
-        $selected_advisors = array();
-
-        foreach ( $advisors as $advisor ) {
-          $advisor_id = is_object( $advisor ) ? $advisor->ID : (int) $advisor;
-          if ( ! $advisor_id ) {
-            continue;
-          }
-
-          $is_advisor = function_exists( 'get_field' ) ? (bool) get_field( 'advisor', $advisor_id ) : false;
-          if ( ! $is_advisor ) {
-            continue;
-          }
-
-          $selected_advisors[] = $advisor_id;
-        }
-
-        $selected_advisors = array_values( array_unique( $selected_advisors ) );
-        $selected_advisors = array_slice( $selected_advisors, 0, 2 );
-
-        if ( empty( $selected_advisors ) ) {
-          $advisors_query = new WP_Query(
-            array(
-              'post_type'      => 'team',
-              'posts_per_page' => 2,
-              'orderby'        => 'rand',
-              'post_status'    => 'publish',
-              'meta_query'     => array(
-                array(
-                  'key'   => 'advisor',
-                  'value' => '1',
-                ),
-              ),
-            )
-          );
-
-          if ( $advisors_query->have_posts() ) {
-            $selected_advisors = wp_list_pluck( $advisors_query->posts, 'ID' );
-          }
-
-          wp_reset_postdata();
-        }
-
-        if ( ! empty( $selected_advisors ) ) :
-        ?>
-          <div class="card-shell">
-            <header class="section-header">
-              <h3>Contact an agent</h3>
-              <p>Message us on WhatsApp for availability, pricing, and floor plans.</p>
-            </header>
-
-            <div class="property-pricing-advisors__list">
-              <?php foreach ( $selected_advisors as $advisor_id ) : ?>
-              <?php
-              $name_field = function_exists( 'get_field' ) ? get_field( 'name', $advisor_id ) : '';
-              $name       = $name_field ? $name_field : get_the_title( $advisor_id );
-              $position   = function_exists( 'get_field' ) ? get_field( 'position', $advisor_id ) : '';
-              $photo      = function_exists( 'get_field' ) ? get_field( 'photo', $advisor_id ) : '';
-              $number     = function_exists( 'get_field' ) ? get_field( 'number', $advisor_id ) : '';
-              $number_raw = is_string( $number ) ? trim( $number ) : '';
-              $number_digits = $number_raw ? preg_replace( '/\D+/', '', $number_raw ) : '';
-              $photo_id   = '';
-
-              if ( is_array( $photo ) && ! empty( $photo['ID'] ) ) {
-                $photo_id = (int) $photo['ID'];
-              } elseif ( is_numeric( $photo ) ) {
-                $photo_id = (int) $photo;
-              }
-              ?>
-
-              <div class="advisor-row">
-                <div class="advisor-row__media">
-                  <?php
-                  if ( $photo_id ) {
-                    echo wp_get_attachment_image(
-                      $photo_id,
-                      'thumbnail',
-                      false,
-                      array(
-                        'class'   => 'advisor-row__image',
-                        'loading' => 'lazy',
-                        'alt'     => esc_attr( $name ),
-                      )
-                    );
-                  } else {
-                    ?>
-                    <div class="advisor-row__image advisor-row__image--placeholder"></div>
-                    <?php
-                  }
-                  ?>
-                </div>
-                <div class="advisor-row__body">
-                  <div class="advisor-row__name"><?php echo esc_html( $name ); ?></div>
-                  <?php if ( $position ) : ?>
-                    <div class="advisor-row__position text-sm"><?php echo esc_html( $position ); ?></div>
-                  <?php endif; ?>
-                  <?php
-                  $wa_href = '';
-                  if ( $number_digits ) {
-                    $listing_id    = get_the_ID();
-                    $listing_title = get_the_title();
-                    $wa_message    = rawurlencode( "Hello I'd like more info on listing {$listing_id} {$listing_title}" );
-                    $wa_href       = 'https://wa.me/' . $number_digits . '?text=' . $wa_message;
-                  } elseif ( isset( $wa_url ) && ! empty( $wa_url ) ) {
-                    $wa_href = $wa_url;
-                  }
-                  if ( $wa_href ) :
-                    ?>
-                    <div class="inline-row pill pill--green glass--pill glass--compact">
-                      <a
-                        class="advisor-row__wa"
-                        href="<?php echo esc_url( $wa_href ); ?>"
-                        target="_blank"
-                        rel="noopener"
-                        data-whatsapp="1"
-                        data-whatsapp-type="agent_card"
-                        data-track-channel="whatsapp"
-                        data-track-intent="high"
-                        data-track-source="template"
-                        data-track-context="property_agent_card"
-                        data-track-ga4-event="whatsapp_click"
-                        data-track-crm-event="whatsapp_click"
-                      >
-                        <svg class="icon" aria-hidden="true">
-                          <use href="<?php echo esc_url( get_stylesheet_directory_uri() . '/logos-icons/icons.svg#icon-whatsapp' ); ?>"></use>
-                        </svg>
-                        Contact
-                      </a>
-                    </div>
-                  <?php endif; ?>
-                </div>
-              </div>
-            <?php endforeach; ?>
-            </div>
-          </div>
-        <?php endif; ?>
-      </aside>
-    </div>
-  </div>
-</section>
 
 <!-- =====================================
    GALLERY (ANCHOR TARGET)
@@ -1256,6 +1196,127 @@ $custom_video_text = $custom_video_text ? wp_kses_post( wpautop( $custom_video_t
 </section>
 
 
+<?php if ( $has_property_editorial_content ) : ?>
+<section class="section section-soft property-editorial-content" id="property-editorial-content">
+  <div class="container">
+    <div class="content-panel-box">
+
+      <?php if ( $has_property_editorial_intro_card ) : ?>
+        <div class="card-shell">
+          <h2>Why this property?</h2>
+
+          <?php if ( $has_property_editorial_intro ) : ?>
+            <div>
+              <?php echo wp_kses_post( wpautop( $property_editorial_intro ) ); ?>
+            </div>
+          <?php endif; ?>
+
+          <?php if ( ! empty( $property_highlights_items ) ) : ?>
+            <ul class="checklist checklist--premium">
+              <?php foreach ( $property_highlights_items as $highlight_item ) : ?>
+                <li><?php echo esc_html( $highlight_item ); ?></li>
+              <?php endforeach; ?>
+            </ul>
+          <?php endif; ?>
+
+          <?php if ( ! empty( $property_key_advantages_items ) ) : ?>
+            <div>
+              <h3>Key advantages</h3>
+              <div class="property-facilities__pills">
+                <?php foreach ( $property_key_advantages_items as $advantage_item ) : ?>
+                  <span class="pill pill--green"><?php echo esc_html( $advantage_item ); ?></span>
+                <?php endforeach; ?>
+              </div>
+            </div>
+          <?php endif; ?>
+
+          <?php if ( ! empty( $target_buyer_type_items ) ) : ?>
+            <div>
+              <h3>Suitable for</h3>
+              <div class="property-facilities__pills">
+                <?php foreach ( $target_buyer_type_items as $buyer_type_item ) : ?>
+                  <span class="pill pill--green"><?php echo esc_html( $buyer_type_item ); ?></span>
+                <?php endforeach; ?>
+              </div>
+            </div>
+          <?php endif; ?>
+        </div>
+      <?php endif; ?>
+
+      <?php if ( $has_property_district_analysis || $has_property_investment_potential || $has_estimated_rental_yield ) : ?>
+        <div class="grid-2--tight">
+          <?php if ( $has_property_district_analysis ) : ?>
+            <div class="card-shell">
+              <h2>Location and district analysis</h2>
+              <div>
+                <?php echo wp_kses_post( wpautop( $property_district_analysis ) ); ?>
+              </div>
+            </div>
+          <?php endif; ?>
+
+          <?php if ( $has_property_investment_potential || $has_estimated_rental_yield ) : ?>
+            <div class="card-shell">
+              <h2>Investment and rental potential</h2>
+
+              <?php if ( $has_property_investment_potential ) : ?>
+                <div>
+                  <?php echo wp_kses_post( wpautop( $property_investment_potential ) ); ?>
+                </div>
+              <?php endif; ?>
+
+              <?php if ( $has_estimated_rental_yield ) : ?>
+                <p><strong>Indicative rental yield:</strong> <?php echo esc_html( $estimated_rental_yield ); ?></p>
+              <?php endif; ?>
+
+              <p class="text-soft">
+                Rental figures are indicative only and are not a guaranteed return.
+              </p>
+            </div>
+          <?php endif; ?>
+        </div>
+      <?php endif; ?>
+
+      <?php if ( $has_property_buyer_suitability || $has_property_developer_profile ) : ?>
+        <div class="grid-2--tight">
+          <?php if ( $has_property_buyer_suitability ) : ?>
+            <div class="card-shell">
+              <h2>Who this property is suitable for</h2>
+              <div>
+                <?php echo wp_kses_post( wpautop( $property_buyer_suitability ) ); ?>
+              </div>
+            </div>
+          <?php endif; ?>
+
+          <?php if ( $has_property_developer_profile ) : ?>
+            <div class="card-shell">
+              <h2>Developer and construction credibility</h2>
+              <div>
+                <?php echo wp_kses_post( wpautop( $property_developer_profile ) ); ?>
+              </div>
+            </div>
+          <?php endif; ?>
+        </div>
+      <?php endif; ?>
+
+      <?php if ( ! empty( $property_faq_items ) ) : ?>
+        <div class="card-shell">
+          <h2>Property questions</h2>
+
+          <?php foreach ( $property_faq_items as $faq_item ) : ?>
+            <div>
+              <h3><?php echo esc_html( $faq_item['question'] ); ?></h3>
+              <?php echo wp_kses_post( wpautop( $faq_item['answer'] ) ); ?>
+            </div>
+          <?php endforeach; ?>
+        </div>
+      <?php endif; ?>
+
+    </div>
+  </div>
+</section>
+<?php endif; ?>
+
+
 <?php if ( $has_floor_plans ) : ?>
 <section class="section section-soft property-floor-plans" id="property-floor-plans">
   <div class="container">
@@ -1316,6 +1377,169 @@ $custom_video_text = $custom_video_text ? wp_kses_post( wpautop( $custom_video_t
   </div>
 </section>
 <?php endif; ?>
+
+
+<section class="section section-soft">
+  <div class="container">
+    <div class="property-pricing-advisors">
+      <div class="property-pricing-advisors__pricing">
+        <?php
+        if ( function_exists( 'pera_v2_render_units_price_table' ) ) {
+          pera_v2_render_units_price_table(
+            $property_id,
+            array(
+              'wrap_section' => false,
+            )
+          );
+        }
+        ?>
+      </div>
+
+      <aside class="property-pricing-advisors__advisors" aria-label="Contact an agent">
+        <?php
+        $advisors = function_exists( 'get_field' ) ? get_field( 'advisors', $property_id ) : array();
+        if ( ! is_array( $advisors ) ) {
+          $advisors = array();
+        }
+        $selected_advisors = array();
+
+        foreach ( $advisors as $advisor ) {
+          $advisor_id = is_object( $advisor ) ? $advisor->ID : (int) $advisor;
+          if ( ! $advisor_id ) {
+            continue;
+          }
+
+          $is_advisor = function_exists( 'get_field' ) ? (bool) get_field( 'advisor', $advisor_id ) : false;
+          if ( ! $is_advisor ) {
+            continue;
+          }
+
+          $selected_advisors[] = $advisor_id;
+        }
+
+        $selected_advisors = array_values( array_unique( $selected_advisors ) );
+        $selected_advisors = array_slice( $selected_advisors, 0, 2 );
+
+        if ( empty( $selected_advisors ) ) {
+          $advisors_query = new WP_Query(
+            array(
+              'post_type'      => 'team',
+              'posts_per_page' => 2,
+              'orderby'        => 'rand',
+              'post_status'    => 'publish',
+              'meta_query'     => array(
+                array(
+                  'key'   => 'advisor',
+                  'value' => '1',
+                ),
+              ),
+            )
+          );
+
+          if ( $advisors_query->have_posts() ) {
+            $selected_advisors = wp_list_pluck( $advisors_query->posts, 'ID' );
+          }
+
+          wp_reset_postdata();
+        }
+
+        if ( ! empty( $selected_advisors ) ) :
+        ?>
+          <div class="card-shell">
+            <header class="section-header">
+              <h3>Contact an agent</h3>
+              <p>Message us on WhatsApp for availability, pricing, and floor plans.</p>
+            </header>
+
+            <div class="property-pricing-advisors__list">
+              <?php foreach ( $selected_advisors as $advisor_id ) : ?>
+              <?php
+              $name_field = function_exists( 'get_field' ) ? get_field( 'name', $advisor_id ) : '';
+              $name       = $name_field ? $name_field : get_the_title( $advisor_id );
+              $position   = function_exists( 'get_field' ) ? get_field( 'position', $advisor_id ) : '';
+              $photo      = function_exists( 'get_field' ) ? get_field( 'photo', $advisor_id ) : '';
+              $number     = function_exists( 'get_field' ) ? get_field( 'number', $advisor_id ) : '';
+              $number_raw = is_string( $number ) ? trim( $number ) : '';
+              $number_digits = $number_raw ? preg_replace( '/\D+/', '', $number_raw ) : '';
+              $photo_id   = '';
+
+              if ( is_array( $photo ) && ! empty( $photo['ID'] ) ) {
+                $photo_id = (int) $photo['ID'];
+              } elseif ( is_numeric( $photo ) ) {
+                $photo_id = (int) $photo;
+              }
+              ?>
+
+              <div class="advisor-row">
+                <div class="advisor-row__media">
+                  <?php
+                  if ( $photo_id ) {
+                    echo wp_get_attachment_image(
+                      $photo_id,
+                      'thumbnail',
+                      false,
+                      array(
+                        'class'   => 'advisor-row__image',
+                        'loading' => 'lazy',
+                        'alt'     => esc_attr( $name ),
+                      )
+                    );
+                  } else {
+                    ?>
+                    <div class="advisor-row__image advisor-row__image--placeholder"></div>
+                    <?php
+                  }
+                  ?>
+                </div>
+                <div class="advisor-row__body">
+                  <div class="advisor-row__name"><?php echo esc_html( $name ); ?></div>
+                  <?php if ( $position ) : ?>
+                    <div class="advisor-row__position text-sm"><?php echo esc_html( $position ); ?></div>
+                  <?php endif; ?>
+                  <?php
+                  $wa_href = '';
+                  if ( $number_digits ) {
+                    $listing_id    = get_the_ID();
+                    $listing_title = get_the_title();
+                    $wa_message    = rawurlencode( "Hello I'd like more info on listing {$listing_id} {$listing_title}" );
+                    $wa_href       = 'https://wa.me/' . $number_digits . '?text=' . $wa_message;
+                  } elseif ( isset( $wa_url ) && ! empty( $wa_url ) ) {
+                    $wa_href = $wa_url;
+                  }
+                  if ( $wa_href ) :
+                    ?>
+                    <div class="inline-row pill pill--green glass--pill glass--compact">
+                      <a
+                        class="advisor-row__wa"
+                        href="<?php echo esc_url( $wa_href ); ?>"
+                        target="_blank"
+                        rel="noopener"
+                        data-whatsapp="1"
+                        data-whatsapp-type="agent_card"
+                        data-track-channel="whatsapp"
+                        data-track-intent="high"
+                        data-track-source="template"
+                        data-track-context="property_agent_card"
+                        data-track-ga4-event="whatsapp_click"
+                        data-track-crm-event="whatsapp_click"
+                      >
+                        <svg class="icon" aria-hidden="true">
+                          <use href="<?php echo esc_url( get_stylesheet_directory_uri() . '/logos-icons/icons.svg#icon-whatsapp' ); ?>"></use>
+                        </svg>
+                        Contact
+                      </a>
+                    </div>
+                  <?php endif; ?>
+                </div>
+              </div>
+            <?php endforeach; ?>
+            </div>
+          </div>
+        <?php endif; ?>
+      </aside>
+    </div>
+  </div>
+</section>
 
 
 <!-- =====================================
