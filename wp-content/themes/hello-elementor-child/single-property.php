@@ -1195,183 +1195,7 @@ $custom_video_text = $custom_video_text ? wp_kses_post( wpautop( $custom_video_t
   </div>
 </section>
 
-
-<?php if ( $has_property_editorial_content ) : ?>
-<section class="section section-soft property-editorial-content" id="property-editorial-content">
-  <div class="container">
-    <div class="grid-2--tight property-editorial-grid">
-
-      <?php if ( $has_property_editorial_intro_card ) : ?>
-        <div class="card-shell property-editorial-card property-editorial-card--wide">
-          <h2>Why this property?</h2>
-
-          <?php if ( $has_property_editorial_intro ) : ?>
-            <div>
-              <?php echo wp_kses_post( wpautop( $property_editorial_intro ) ); ?>
-            </div>
-          <?php endif; ?>
-
-          <?php if ( ! empty( $property_highlights_items ) ) : ?>
-            <ul class="checklist checklist--premium">
-              <?php foreach ( $property_highlights_items as $highlight_item ) : ?>
-                <li><?php echo esc_html( $highlight_item ); ?></li>
-              <?php endforeach; ?>
-            </ul>
-          <?php endif; ?>
-
-          <?php if ( ! empty( $property_key_advantages_items ) ) : ?>
-            <div>
-              <h3>Key advantages</h3>
-              <div class="property-facilities__pills">
-                <?php foreach ( $property_key_advantages_items as $advantage_item ) : ?>
-                  <span class="pill pill--green"><?php echo esc_html( $advantage_item ); ?></span>
-                <?php endforeach; ?>
-              </div>
-            </div>
-          <?php endif; ?>
-
-          <?php if ( ! empty( $target_buyer_type_items ) ) : ?>
-            <div>
-              <h3>Suitable for</h3>
-              <div class="property-facilities__pills">
-                <?php foreach ( $target_buyer_type_items as $buyer_type_item ) : ?>
-                  <span class="pill pill--green"><?php echo esc_html( $buyer_type_item ); ?></span>
-                <?php endforeach; ?>
-              </div>
-            </div>
-          <?php endif; ?>
-        </div>
-      <?php endif; ?>
-
-      <?php if ( $has_property_district_analysis ) : ?>
-        <div class="card-shell property-editorial-card">
-          <h2>Location and district analysis</h2>
-          <div>
-            <?php echo wp_kses_post( wpautop( $property_district_analysis ) ); ?>
-          </div>
-        </div>
-      <?php endif; ?>
-
-      <?php if ( $has_property_investment_potential || $has_estimated_rental_yield ) : ?>
-        <div class="card-shell property-editorial-card">
-          <h2>Investment and rental potential</h2>
-
-          <?php if ( $has_property_investment_potential ) : ?>
-            <div>
-              <?php echo wp_kses_post( wpautop( $property_investment_potential ) ); ?>
-            </div>
-          <?php endif; ?>
-
-          <?php if ( $has_estimated_rental_yield ) : ?>
-            <p><strong>Indicative rental yield:</strong> <?php echo esc_html( $estimated_rental_yield ); ?></p>
-          <?php endif; ?>
-
-          <p class="text-soft">
-            Rental figures are indicative only and are not a guaranteed return.
-          </p>
-        </div>
-      <?php endif; ?>
-
-      <?php if ( $has_property_buyer_suitability ) : ?>
-        <div class="card-shell property-editorial-card">
-          <h2>Who this property is suitable for</h2>
-          <div>
-            <?php echo wp_kses_post( wpautop( $property_buyer_suitability ) ); ?>
-          </div>
-        </div>
-      <?php endif; ?>
-
-      <?php if ( $has_property_developer_profile ) : ?>
-        <div class="card-shell property-editorial-card">
-          <h2>Developer and construction credibility</h2>
-          <div>
-            <?php echo wp_kses_post( wpautop( $property_developer_profile ) ); ?>
-          </div>
-        </div>
-      <?php endif; ?>
-
-      <?php if ( ! empty( $property_faq_items ) ) : ?>
-        <div class="card-shell property-editorial-card property-editorial-card--wide">
-          <h2>Property questions</h2>
-
-          <?php foreach ( $property_faq_items as $faq_item ) : ?>
-            <div>
-              <h3><?php echo esc_html( $faq_item['question'] ); ?></h3>
-              <?php echo wp_kses_post( wpautop( $faq_item['answer'] ) ); ?>
-            </div>
-          <?php endforeach; ?>
-        </div>
-      <?php endif; ?>
-
-    </div>
-  </div>
-</section>
-<?php endif; ?>
-
-
-<?php if ( $has_floor_plans ) : ?>
-<section class="section section-soft property-floor-plans" id="property-floor-plans">
-  <div class="container">
-
-    <h2><?php echo esc_html( $floor_plans_heading ?: 'Floor plans' ); ?></h2>
-
-    <?php if ( ! empty( $floor_plans_text ) ) : ?>
-      <div class="property-floor-plans__intro text-soft">
-        <?php echo apply_filters( 'the_content', $floor_plans_text ); ?>
-      </div>
-    <?php endif; ?>
-
-    <?php if ( ! empty( $floor_plan_items ) ) : ?>
-
-      <div class="media-grid property-floor-plans__grid">
-        <?php foreach ( $floor_plan_items as $img ) :
-
-          $img_id  = (int) $img['ID'];
-          $full    = wp_get_attachment_image_url( $img_id, 'full' );
-          if ( ! $full ) { continue; }
-
-          $alt     = get_post_meta( $img_id, '_wp_attachment_image_alt', true );
-          $alt     = $alt ? $alt : $title;
-
-          $caption = wp_get_attachment_caption( $img_id );
-          ?>
-          <a
-              class="media-grid__item card-shell"
-              href="<?php echo esc_url( $full ); ?>"
-              aria-label="<?php echo esc_attr( $alt ); ?>"
-              target="_blank"
-              rel="noopener"
-            >
-
-              <?php
-                echo wp_get_attachment_image(
-                  $img_id,
-                  'pera-card',
-                  false,
-                  array(
-                    'loading'  => 'lazy',
-                    'decoding' => 'async',
-                    'alt'      => $alt,
-                  )
-                );
-              ?>
-            </a>
-
-        <?php endforeach; ?>
-      </div>
-
-    <?php else : ?>
-
-      <p class="text-soft" style="margin:0;">Floor plans are available on request.</p>
-
-    <?php endif; ?>
-
-  </div>
-</section>
-<?php endif; ?>
-
-
-<section class="section section-soft">
+  <section class="section section-soft">
   <div class="container">
     <div class="property-pricing-advisors">
       <div class="property-pricing-advisors__pricing">
@@ -1532,6 +1356,184 @@ $custom_video_text = $custom_video_text ? wp_kses_post( wpautop( $custom_video_t
     </div>
   </div>
 </section>
+
+<?php if ( $has_property_editorial_content ) : ?>
+<section class="section section-soft property-editorial-content" id="property-editorial-content">
+  <div class="container">
+    <div class="grid-2--tight property-editorial-grid">
+
+      <?php if ( $has_property_editorial_intro_card ) : ?>
+        <div class="card-shell property-editorial-card property-editorial-card--wide">
+          <h2>Why this property?</h2>
+
+          <?php if ( $has_property_editorial_intro ) : ?>
+            <div>
+              <?php echo wp_kses_post( wpautop( $property_editorial_intro ) ); ?>
+            </div>
+          <?php endif; ?>
+
+          <?php if ( ! empty( $property_highlights_items ) ) : ?>
+            <ul class="checklist checklist--premium">
+              <?php foreach ( $property_highlights_items as $highlight_item ) : ?>
+                <li><?php echo esc_html( $highlight_item ); ?></li>
+              <?php endforeach; ?>
+            </ul>
+          <?php endif; ?>
+
+          <?php if ( ! empty( $property_key_advantages_items ) ) : ?>
+            <div>
+              <h3>Key advantages</h3>
+              <div class="property-facilities__pills">
+                <?php foreach ( $property_key_advantages_items as $advantage_item ) : ?>
+                  <span class="pill pill--green"><?php echo esc_html( $advantage_item ); ?></span>
+                <?php endforeach; ?>
+              </div>
+            </div>
+          <?php endif; ?>
+
+          <?php if ( ! empty( $target_buyer_type_items ) ) : ?>
+            <div>
+              <h3>Suitable for</h3>
+              <div class="property-facilities__pills">
+                <?php foreach ( $target_buyer_type_items as $buyer_type_item ) : ?>
+                  <span class="pill pill--green"><?php echo esc_html( $buyer_type_item ); ?></span>
+                <?php endforeach; ?>
+              </div>
+            </div>
+          <?php endif; ?>
+        </div>
+      <?php endif; ?>
+
+      <?php if ( $has_property_district_analysis ) : ?>
+        <div class="card-shell property-editorial-card">
+          <h2>Location and district analysis</h2>
+          <div>
+            <?php echo wp_kses_post( wpautop( $property_district_analysis ) ); ?>
+          </div>
+        </div>
+      <?php endif; ?>
+
+      <?php if ( $has_property_investment_potential || $has_estimated_rental_yield ) : ?>
+        <div class="card-shell property-editorial-card">
+          <h2>Investment and rental potential</h2>
+
+          <?php if ( $has_property_investment_potential ) : ?>
+            <div>
+              <?php echo wp_kses_post( wpautop( $property_investment_potential ) ); ?>
+            </div>
+          <?php endif; ?>
+
+          <?php if ( $has_estimated_rental_yield ) : ?>
+            <p><strong>Indicative rental yield:</strong> <?php echo esc_html( $estimated_rental_yield ); ?></p>
+          
+
+          <p class="text-soft">
+            Rental figures are indicative only and are not a guaranteed return.
+          </p>
+          <?php endif; ?>
+        </div>
+      <?php endif; ?>
+
+      <?php if ( $has_property_buyer_suitability ) : ?>
+        <div class="card-shell property-editorial-card">
+          <h2>Who this property is suitable for</h2>
+          <div>
+            <?php echo wp_kses_post( wpautop( $property_buyer_suitability ) ); ?>
+          </div>
+        </div>
+      <?php endif; ?>
+
+      <?php if ( $has_property_developer_profile ) : ?>
+        <div class="card-shell property-editorial-card">
+          <h2>Developer and construction credibility</h2>
+          <div>
+            <?php echo wp_kses_post( wpautop( $property_developer_profile ) ); ?>
+          </div>
+        </div>
+      <?php endif; ?>
+
+      <?php if ( ! empty( $property_faq_items ) ) : ?>
+        <div class="card-shell property-editorial-card property-editorial-card--wide">
+          <h2>Property questions</h2>
+
+          <?php foreach ( $property_faq_items as $faq_item ) : ?>
+            <div>
+              <h3><?php echo esc_html( $faq_item['question'] ); ?></h3>
+              <?php echo wp_kses_post( wpautop( $faq_item['answer'] ) ); ?>
+            </div>
+          <?php endforeach; ?>
+        </div>
+      <?php endif; ?>
+
+    </div>
+  </div>
+</section>
+<?php endif; ?>
+
+
+<?php if ( $has_floor_plans ) : ?>
+<section class="section section-soft property-floor-plans" id="property-floor-plans">
+  <div class="container">
+
+    <h2><?php echo esc_html( $floor_plans_heading ?: 'Floor plans' ); ?></h2>
+
+    <?php if ( ! empty( $floor_plans_text ) ) : ?>
+      <div class="property-floor-plans__intro text-soft">
+        <?php echo apply_filters( 'the_content', $floor_plans_text ); ?>
+      </div>
+    <?php endif; ?>
+
+    <?php if ( ! empty( $floor_plan_items ) ) : ?>
+
+      <div class="media-grid property-floor-plans__grid">
+        <?php foreach ( $floor_plan_items as $img ) :
+
+          $img_id  = (int) $img['ID'];
+          $full    = wp_get_attachment_image_url( $img_id, 'full' );
+          if ( ! $full ) { continue; }
+
+          $alt     = get_post_meta( $img_id, '_wp_attachment_image_alt', true );
+          $alt     = $alt ? $alt : $title;
+
+          $caption = wp_get_attachment_caption( $img_id );
+          ?>
+          <a
+              class="media-grid__item card-shell"
+              href="<?php echo esc_url( $full ); ?>"
+              aria-label="<?php echo esc_attr( $alt ); ?>"
+              target="_blank"
+              rel="noopener"
+            >
+
+              <?php
+                echo wp_get_attachment_image(
+                  $img_id,
+                  'pera-card',
+                  false,
+                  array(
+                    'loading'  => 'lazy',
+                    'decoding' => 'async',
+                    'alt'      => $alt,
+                  )
+                );
+              ?>
+            </a>
+
+        <?php endforeach; ?>
+      </div>
+
+    <?php else : ?>
+
+      <p class="text-soft" style="margin:0;">Floor plans are available on request.</p>
+
+    <?php endif; ?>
+
+  </div>
+</section>
+<?php endif; ?>
+
+
+
 
 
 <!-- =====================================
