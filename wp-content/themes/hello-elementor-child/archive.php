@@ -42,7 +42,49 @@ get_header();
 
             $posts_content = (string) get_post_field( 'post_content', $posts_page_id );
             if ( trim( wp_strip_all_tags( $posts_content ) ) !== '' ) {
-                $archive_description = (string) apply_filters( 'the_content', $posts_content );
+                $archive_description = $posts_content;
+            }
+
+            if ( function_exists( 'get_field' ) ) {
+                $acf_h1 = get_field( 'archive_h1', $posts_page_id );
+                if ( is_scalar( $acf_h1 ) && trim( (string) $acf_h1 ) !== '' ) {
+                    $archive_title = (string) $acf_h1;
+                }
+
+                $acf_subtitle = get_field( 'archive_subtitle', $posts_page_id );
+                if ( is_scalar( $acf_subtitle ) && trim( (string) $acf_subtitle ) !== '' ) {
+                    $archive_subtitle = (string) $acf_subtitle;
+                }
+
+                $acf_intro = get_field( 'archive_intro_content', $posts_page_id );
+                if ( is_scalar( $acf_intro ) && trim( wp_strip_all_tags( (string) $acf_intro ) ) !== '' ) {
+                    $archive_description = (string) $acf_intro;
+                }
+
+                $acf_bottom_content = get_field( 'archive_bottom_content', $posts_page_id );
+                if ( is_scalar( $acf_bottom_content ) && trim( wp_strip_all_tags( (string) $acf_bottom_content ) ) !== '' ) {
+                    $archive_bottom_content = (string) $acf_bottom_content;
+                }
+
+                $acf_faq_html = get_field( 'seo_faq_schema_2', $posts_page_id );
+                if ( is_scalar( $acf_faq_html ) && trim( wp_strip_all_tags( (string) $acf_faq_html ) ) !== '' ) {
+                    $archive_faq_html = (string) $acf_faq_html;
+                }
+
+                $acf_cta_heading = get_field( 'archive_cta_heading', $posts_page_id );
+                if ( is_scalar( $acf_cta_heading ) && trim( (string) $acf_cta_heading ) !== '' ) {
+                    $archive_cta_heading = (string) $acf_cta_heading;
+                }
+
+                $acf_cta_text = get_field( 'archive_cta_text', $posts_page_id );
+                if ( is_scalar( $acf_cta_text ) && trim( (string) $acf_cta_text ) !== '' ) {
+                    $archive_cta_text = (string) $acf_cta_text;
+                }
+
+                $acf_cta_whatsapp = get_field( 'archive_whatsapp_message', $posts_page_id );
+                if ( is_scalar( $acf_cta_whatsapp ) && trim( (string) $acf_cta_whatsapp ) !== '' ) {
+                    $archive_cta_whatsapp = (string) $acf_cta_whatsapp;
+                }
             }
         }
 
@@ -150,7 +192,7 @@ get_header();
 
     $blog_quick_links = array();
     if ( is_home() && ! is_front_page() ) {
-        $blog_quick_link_slugs = array( 'buyer-guides', 'regional-guides', 'investment-advice', 'buyer-guides' );
+        $blog_quick_link_slugs = array( 'buyer-guides', 'regional-guides', 'investment-advice' );
 
         foreach ( $blog_quick_link_slugs as $blog_quick_link_slug ) {
             $blog_quick_link_term = get_category_by_slug( $blog_quick_link_slug );
@@ -398,7 +440,7 @@ get_header();
     </section>
 
 
-    <?php if ( is_category() && trim( wp_strip_all_tags( $archive_bottom_content ) ) !== '' ) : ?>
+    <?php if ( ( is_category() || ( is_home() && ! is_front_page() ) ) && trim( wp_strip_all_tags( $archive_bottom_content ) ) !== '' ) : ?>
       <section class="section">
         <div class="container">
           <div class="content-panel-box"><?php echo wp_kses_post( apply_filters( 'the_content', $archive_bottom_content ) ); ?></div>
@@ -406,7 +448,7 @@ get_header();
       </section>
     <?php endif; ?>
 
-    <?php if ( is_category() && trim( wp_strip_all_tags( $archive_faq_html ) ) !== '' ) : ?>
+    <?php if ( ( is_category() || ( is_home() && ! is_front_page() ) ) && trim( wp_strip_all_tags( $archive_faq_html ) ) !== '' ) : ?>
       <section class="section" aria-label="<?php esc_attr_e( 'Frequently asked questions', 'peraproperty' ); ?>">
         <div class="container">
           <div class="content-panel-box">
@@ -484,7 +526,7 @@ get_header();
     <?php endif; ?>
 
     <?php
-    if ( is_category() ) {
+    if ( is_category() || ( is_home() && ! is_front_page() ) ) {
       set_query_var( 'pera_contact_cta_args', array(
         'heading'          => $archive_cta_heading,
         'text'             => $archive_cta_text,
