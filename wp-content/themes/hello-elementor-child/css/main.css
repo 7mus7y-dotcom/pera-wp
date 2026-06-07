@@ -4082,6 +4082,7 @@ body:not(.single-post) tr:nth-child(even) {
   --checklist-item-gap: var(--space-xs, 8px);
 
   padding: var(--space-md, 20px);
+  margin-bottom: var(--space-md, 20px);
   border: 1px solid var(--checklist-border);
   border-radius: var(--radius-lg, 16px);
   background: var(--checklist-surface);
