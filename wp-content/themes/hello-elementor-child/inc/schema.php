@@ -85,6 +85,67 @@ if ( ! function_exists( 'pera_schema_should_emit_type' ) ) {
 	}
 }
 
+if ( ! function_exists( 'pera_output_manual_faq_schema_field' ) ) {
+	/**
+	 * Temporarily output manually entered FAQ JSON-LD from the per-object field.
+	 *
+	 * The field is expected to contain the full script tag when needed, and is
+	 * intentionally echoed without wrapping so existing manual entries remain
+	 * compatible until schema ownership is consolidated.
+	 */
+	function pera_output_manual_faq_schema_field(): void {
+		if ( is_admin() || ! is_singular() ) {
+			return;
+		}
+
+		static $did_output = false;
+		if ( $did_output ) {
+			return;
+		}
+
+		$post_id = (int) get_queried_object_id();
+		if ( $post_id <= 0 ) {
+			return;
+		}
+
+		$post_type = get_post_type( $post_id );
+		if ( ! is_string( $post_type ) || $post_type === '' ) {
+			return;
+		}
+
+		$post_type_object = get_post_type_object( $post_type );
+		if ( ! $post_type_object || empty( $post_type_object->public ) ) {
+			return;
+		}
+
+		$schema = '';
+
+		if ( function_exists( 'get_field' ) ) {
+			$acf_schema = get_field( 'seo_faq_schema', $post_id );
+			if ( is_scalar( $acf_schema ) ) {
+				$schema = (string) $acf_schema;
+			}
+		}
+
+		if ( trim( $schema ) === '' ) {
+			$schema = (string) get_post_meta( $post_id, 'seo_faq_schema', true );
+		}
+
+		$schema = trim( $schema );
+
+		if ( $schema === '' ) {
+			return;
+		}
+
+		$did_output = true;
+		$GLOBALS['pera_schema_faq_emitted'] = true;
+
+		echo "\n<!-- Pera: Manual FAQ Schema (temporary) -->\n";
+		echo $schema . "\n";
+	}
+}
+add_action( 'wp_head', 'pera_output_manual_faq_schema_field', 35 );
+
 if ( ! function_exists( 'pera_schema_is_regional_guide_post' ) ) {
 	/**
 	 * Regional guides are currently implemented as blog posts in the
