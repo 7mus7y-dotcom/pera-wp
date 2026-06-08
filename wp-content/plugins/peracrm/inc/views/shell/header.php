@@ -18,6 +18,9 @@ $plugin_logo_path = trailingslashit(PERACRM_PATH) . 'logos-icons/pera-logo.svg';
 $plugin_logo_url = trailingslashit(PERACRM_URL) . 'logos-icons/pera-logo.svg';
 $has_plugin_logo = file_exists($plugin_logo_path);
 $show_crm_nav_toggle = isset($args['show_crm_nav_toggle']) ? (bool) $args['show_crm_nav_toggle'] : true;
+$show_header_search = is_user_logged_in()
+    && function_exists('peracrm_header_search_user_can_access')
+    && peracrm_header_search_user_can_access();
 ?>
 <!doctype html>
 <html <?php language_attributes(); ?>>
@@ -46,6 +49,29 @@ $show_crm_nav_toggle = isset($args['show_crm_nav_toggle']) ? (bool) $args['show_
         </a>
       </div>
     </div>
+
+    <?php if ($show_header_search) : ?>
+    <form class="peracrm-header-search" data-peracrm-header-search role="search" action="<?php echo esc_url(home_url('/crm/clients/')); ?>" method="get">
+      <label class="screen-reader-text" for="peracrm-header-search-input"><?php esc_html_e('Search CRM clients', 'peracrm'); ?></label>
+      <input
+        id="peracrm-header-search-input"
+        class="crm-search-control peracrm-header-search__input"
+        type="search"
+        name="q"
+        placeholder="<?php esc_attr_e('Search clients', 'peracrm'); ?>"
+        autocomplete="off"
+        data-peracrm-header-search-input
+        aria-controls="peracrm-header-search-results"
+        aria-expanded="false"
+      >
+      <div
+        id="peracrm-header-search-results"
+        class="peracrm-header-search__results"
+        data-peracrm-header-search-results
+        hidden
+      ></div>
+    </form>
+    <?php endif; ?>
 
     <?php if ($show_crm_nav_toggle) : ?>
     <div class="peracrm-header-actions" data-peracrm-header-actions>

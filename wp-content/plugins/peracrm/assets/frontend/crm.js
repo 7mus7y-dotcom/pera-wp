@@ -42,6 +42,277 @@
 })();
 
 (function () {
+  var form = document.querySelector('[data-peracrm-header-search]');
+  var ajaxUrl = window.peraCrmData && window.peraCrmData.ajaxUrl ? window.peraCrmData.ajaxUrl : '';
+  var nonce = window.peraCrmData && window.peraCrmData.headerSearchNonce ? window.peraCrmData.headerSearchNonce : '';
+
+  if (!form || !ajaxUrl || !nonce) {
+    return;
+  }
+
+  var input = form.querySelector('[data-peracrm-header-search-input]');
+  var resultsEl = form.querySelector('[data-peracrm-header-search-results]');
+  var debounceTimer = 0;
+  var activeIndex = -1;
+  var results = [];
+  var requestId = 0;
+
+  if (!input || !resultsEl || !window.fetch || !window.FormData) {
+    return;
+  }
+
+  function setExpanded(isExpanded) {
+    input.setAttribute('aria-expanded', isExpanded ? 'true' : 'false');
+  }
+
+  function setBusy(isBusy) {
+    if (isBusy) {
+      form.setAttribute('aria-busy', 'true');
+    } else {
+      form.removeAttribute('aria-busy');
+    }
+  }
+
+  function clearResults() {
+    results = [];
+    activeIndex = -1;
+    resultsEl.textContent = '';
+    resultsEl.hidden = true;
+    setExpanded(false);
+  }
+
+  function setActive(index) {
+    var items = Array.prototype.slice.call(resultsEl.querySelectorAll('[data-peracrm-header-search-result]'));
+    activeIndex = items.length ? Math.max(0, Math.min(index, items.length - 1)) : -1;
+
+    items.forEach(function (item, itemIndex) {
+      var isActive = itemIndex === activeIndex;
+      item.classList.toggle('is-active', isActive);
+      item.setAttribute('aria-selected', isActive ? 'true' : 'false');
+      if (isActive) {
+        item.focus({ preventScroll: true });
+      }
+    });
+  }
+
+  function appendText(parent, className, text) {
+    if (!text) {
+      return null;
+    }
+
+    var el = document.createElement('span');
+    el.className = className;
+    el.textContent = String(text);
+    parent.appendChild(el);
+    return el;
+  }
+
+  function renderStatus(message) {
+    results = [];
+    activeIndex = -1;
+    resultsEl.textContent = '';
+    var status = document.createElement('div');
+    status.className = 'peracrm-header-search__status';
+    status.setAttribute('role', 'status');
+    status.textContent = message;
+    resultsEl.appendChild(status);
+    resultsEl.hidden = false;
+    setExpanded(true);
+  }
+
+  function renderResults(items) {
+    results = Array.isArray(items) ? items : [];
+    activeIndex = -1;
+    resultsEl.textContent = '';
+
+    if (!results.length) {
+      renderStatus('No clients found.');
+      return;
+    }
+
+    var list = document.createElement('div');
+    list.className = 'peracrm-header-search__list';
+    list.setAttribute('role', 'listbox');
+    list.setAttribute('aria-label', 'CRM client search results');
+
+    results.forEach(function (item, index) {
+      var url = item && item.url ? String(item.url) : '';
+      var button = document.createElement('button');
+      button.type = 'button';
+      button.className = 'peracrm-header-search__result';
+      button.setAttribute('role', 'option');
+      button.setAttribute('aria-selected', 'false');
+      button.setAttribute('data-peracrm-header-search-result', '');
+      button.setAttribute('data-result-index', String(index));
+
+      var title = document.createElement('span');
+      title.className = 'peracrm-header-search__result-title';
+      title.textContent = item && item.title ? String(item.title) : 'Untitled client';
+      button.appendChild(title);
+
+      var meta = document.createElement('span');
+      meta.className = 'peracrm-header-search__result-meta';
+      appendText(meta, 'peracrm-header-search__result-chip', item && item.type_label ? item.type_label : '');
+      appendText(meta, 'peracrm-header-search__result-chip', item && item.stage_label ? item.stage_label : '');
+      appendText(meta, 'peracrm-header-search__result-contact', item && item.email ? item.email : '');
+      appendText(meta, 'peracrm-header-search__result-contact', item && item.phone ? item.phone : '');
+      if (meta.childNodes.length) {
+        button.appendChild(meta);
+      }
+
+      button.addEventListener('click', function () {
+        if (url) {
+          window.location.assign(url);
+        }
+      });
+
+      list.appendChild(button);
+    });
+
+    resultsEl.appendChild(list);
+    resultsEl.hidden = false;
+    setExpanded(true);
+  }
+
+  function parseSearchResponse(response) {
+    return response.text().then(function (body) {
+      var json = null;
+      try {
+        json = body ? JSON.parse(body) : null;
+      } catch (e) {
+        json = null;
+      }
+
+      if (!response.ok || !json || !json.success) {
+        throw new Error('Unable to search clients.');
+      }
+
+      return json.data && Array.isArray(json.data.results) ? json.data.results : [];
+    });
+  }
+
+  function requestSearch(term) {
+    var currentRequestId = ++requestId;
+    var payload = new window.FormData();
+    payload.append('action', 'peracrm_header_search');
+    payload.append('nonce', String(nonce));
+    payload.append('q', term);
+
+    setBusy(true);
+
+    window.fetch(ajaxUrl, {
+      method: 'POST',
+      credentials: 'same-origin',
+      body: payload
+    })
+      .then(parseSearchResponse)
+      .then(function (items) {
+        if (currentRequestId !== requestId) {
+          return;
+        }
+        renderResults(items);
+      })
+      .catch(function () {
+        if (currentRequestId !== requestId) {
+          return;
+        }
+        renderStatus('Unable to search. Press Enter to view matching clients.');
+      })
+      .finally(function () {
+        if (currentRequestId === requestId) {
+          setBusy(false);
+        }
+      });
+  }
+
+  input.addEventListener('input', function () {
+    var term = input.value.trim();
+    window.clearTimeout(debounceTimer);
+
+    if (term.length < 2) {
+      requestId += 1;
+      setBusy(false);
+      clearResults();
+      return;
+    }
+
+    debounceTimer = window.setTimeout(function () {
+      requestSearch(term);
+    }, 250);
+  });
+
+  input.addEventListener('keydown', function (event) {
+    var items = Array.prototype.slice.call(resultsEl.querySelectorAll('[data-peracrm-header-search-result]'));
+
+    if (event.key === 'Escape') {
+      clearResults();
+      input.focus({ preventScroll: true });
+      return;
+    }
+
+    if (!items.length) {
+      return;
+    }
+
+    if (event.key === 'ArrowDown') {
+      event.preventDefault();
+      setActive(activeIndex < 0 ? 0 : activeIndex + 1);
+      return;
+    }
+
+    if (event.key === 'ArrowUp') {
+      event.preventDefault();
+      setActive(activeIndex < 0 ? items.length - 1 : activeIndex - 1);
+      return;
+    }
+
+    if (event.key === 'Enter' && activeIndex >= 0 && results[activeIndex] && results[activeIndex].url) {
+      event.preventDefault();
+      window.location.assign(String(results[activeIndex].url));
+    }
+  });
+
+  resultsEl.addEventListener('keydown', function (event) {
+    var items = Array.prototype.slice.call(resultsEl.querySelectorAll('[data-peracrm-header-search-result]'));
+
+    if (event.key === 'Escape') {
+      clearResults();
+      input.focus({ preventScroll: true });
+      return;
+    }
+
+    if (!items.length) {
+      return;
+    }
+
+    if (event.key === 'ArrowDown') {
+      event.preventDefault();
+      setActive(activeIndex < 0 ? 0 : activeIndex + 1);
+      return;
+    }
+
+    if (event.key === 'ArrowUp') {
+      event.preventDefault();
+      setActive(activeIndex < 0 ? items.length - 1 : activeIndex - 1);
+      return;
+    }
+
+    if (event.key === 'Enter' && activeIndex >= 0 && results[activeIndex] && results[activeIndex].url) {
+      event.preventDefault();
+      window.location.assign(String(results[activeIndex].url));
+    }
+  });
+
+  document.addEventListener('click', function (event) {
+    if (event.target && form.contains(event.target)) {
+      return;
+    }
+    clearResults();
+  });
+})();
+
+
+(function () {
   var noteWraps = Array.prototype.slice.call(document.querySelectorAll('[data-crm-note-wrap]'));
   if (!noteWraps.length) {
     return;
