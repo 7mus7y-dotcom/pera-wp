@@ -44,21 +44,30 @@ body.client-login-standalone::before {
 
 body.client-login-standalone .client-login-wrapper {
   position: relative;
-  min-height: 100vh;
-  display: grid;
-  place-items: center;
-  padding: 24px;
 }
 
-.client-login-shell { width: min(400px, calc(100% - 16px)); }
-.client-login-branding { margin: 0 0 var(--space-md); text-align: center; }
-.client-login-branding .site-logo { display:inline-flex;flex-direction:column;align-items:center;gap:8px;color:var(--inverse);text-decoration:none;line-height:1; }
+.client-login-section {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 40px 20px;
+}
+
+.client-login-shell {
+  width: 100%;
+  max-width: 480px;
+  margin: 0 auto;
+}
+.client-login-branding { margin: 0 0 24px; text-align: center; }
+.client-login-branding .site-logo { display:inline-flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;color:var(--inverse);text-decoration:none;line-height:1; }
 .client-login-branding .site-logo.logo-pera svg,
 .client-login-branding .site-logo.logo-pera img.custom-logo,
 .client-login-branding .site-logo.logo-pera .pera-site-logo-image { width: 200px; max-width: 100%; height: auto; }
 .client-login-branding .site-logo__since { font-size:9px;font-weight:600;letter-spacing:.36em;text-transform:uppercase;color:var(--inverse); }
 
 .client-login-container {
+  width: 100%;
   margin-top: 0;
   padding: var(--space-md);
   background: var(--bg);
@@ -66,6 +75,14 @@ body.client-login-standalone .client-login-wrapper {
   border: 1px solid var(--border-muted);
   border-radius: var(--radius-lg);
   box-shadow: var(--shadow-soft);
+}
+
+#pera-client-login-form { width: 100%; }
+
+#pera-client-login-form input[type="text"],
+#pera-client-login-form input[type="password"] {
+  width: 100%;
+  box-sizing: border-box;
 }
 
 .client-login-subtitle { color: var(--text-soft); margin-top: 0; }
@@ -138,4 +155,11 @@ body.client-login-standalone .client-login-wrapper {
   .client-login-container input[type="password"]:focus { border-color: #3b82f6; box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.25); }
   .client-login-success,
   .client-login-error { background: #f8fafc; color: #111827; border-color: #cbd5e1; }
+}
+
+.client-login-branding .site-logo,
+.client-login-branding .site-logo svg,
+.client-login-branding .site-logo__mark,
+.client-login-branding .site-logo__since {
+  color: var(--brand);
 }
