@@ -61,6 +61,32 @@ get_header();
                     $archive_description = (string) $acf_intro;
                 }
 
+                $archive_featured_heading = (string) ( get_field( 'featured_links_heading', $posts_page_id ) ?? '' );
+                $archive_featured_intro   = (string) ( get_field( 'featured_links_intro', $posts_page_id ) ?? '' );
+
+                $acf_featured_links = get_field( 'featured_guide_links', $posts_page_id );
+                if ( is_array( $acf_featured_links ) && ! empty( $acf_featured_links ) ) {
+                    $archive_featured_post_ids = array();
+
+                    foreach ( $acf_featured_links as $featured_item ) {
+                        $candidate_post_id = 0;
+
+                        if ( $featured_item instanceof WP_Post ) {
+                            $candidate_post_id = (int) $featured_item->ID;
+                        } elseif ( is_numeric( $featured_item ) ) {
+                            $candidate_post_id = (int) $featured_item;
+                        }
+
+                        if ( $candidate_post_id <= 0 ) {
+                            continue;
+                        }
+
+                        $archive_featured_post_ids[] = $candidate_post_id;
+                    }
+
+                    $archive_featured_post_ids = array_values( array_unique( $archive_featured_post_ids ) );
+                }
+
                 $acf_bottom_content = get_field( 'archive_bottom_content', $posts_page_id );
                 if ( is_scalar( $acf_bottom_content ) && trim( wp_strip_all_tags( (string) $acf_bottom_content ) ) !== '' ) {
                     $archive_bottom_content = (string) $acf_bottom_content;
@@ -265,7 +291,7 @@ get_header();
 
 
     <?php
-    if ( is_category() && ! empty( $archive_featured_post_ids ) ) :
+    if ( ( is_category() || ( is_home() && ! is_front_page() ) ) && ! empty( $archive_featured_post_ids ) ) :
         $featured_heading = trim( $archive_featured_heading ) !== '' ? $archive_featured_heading : __( 'Start with these guides', 'peraproperty' );
         ?>
         <section class="section">
