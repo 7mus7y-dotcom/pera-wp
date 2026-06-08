@@ -19,8 +19,13 @@ $plugin_logo_url = trailingslashit(PERACRM_URL) . 'logos-icons/pera-logo.svg';
 $has_plugin_logo = file_exists($plugin_logo_path);
 $show_crm_nav_toggle = isset($args['show_crm_nav_toggle']) ? (bool) $args['show_crm_nav_toggle'] : true;
 $show_header_search = is_user_logged_in()
-    && function_exists('peracrm_header_search_user_can_access')
-    && peracrm_header_search_user_can_access();
+    && (
+        (function_exists('pera_crm_user_can_access') && pera_crm_user_can_access())
+        || current_user_can('manage_options')
+        || current_user_can('edit_crm_clients')
+        || current_user_can('edit_crm_leads')
+        || current_user_can('edit_crm_deals')
+    );
 ?>
 <!doctype html>
 <html <?php language_attributes(); ?>>
@@ -31,6 +36,20 @@ $show_header_search = is_user_logged_in()
 </head>
 <body <?php body_class('crm-route'); ?>>
 <?php wp_body_open(); ?>
+
+<?php if (current_user_can('manage_options')) : ?>
+<!-- peracrm header search debug:
+shell_header=1
+logged_in=<?php echo is_user_logged_in() ? '1' : '0'; ?>
+pera_access_exists=<?php echo function_exists('pera_crm_user_can_access') ? '1' : '0'; ?>
+pera_access=<?php echo function_exists('pera_crm_user_can_access') && pera_crm_user_can_access() ? '1' : '0'; ?>
+manage_options=<?php echo current_user_can('manage_options') ? '1' : '0'; ?>
+edit_crm_clients=<?php echo current_user_can('edit_crm_clients') ? '1' : '0'; ?>
+edit_crm_leads=<?php echo current_user_can('edit_crm_leads') ? '1' : '0'; ?>
+edit_crm_deals=<?php echo current_user_can('edit_crm_deals') ? '1' : '0'; ?>
+show_header_search=<?php echo $show_header_search ? '1' : '0'; ?>
+-->
+<?php endif; ?>
 
 <a href="#primary" class="skip-link"><?php esc_html_e('Skip to content', 'peracrm'); ?></a>
 

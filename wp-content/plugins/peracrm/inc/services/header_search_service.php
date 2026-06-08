@@ -11,15 +11,18 @@ if (!function_exists('peracrm_header_search_user_can_access')) {
             return false;
         }
 
-        if (function_exists('pera_crm_user_can_access')) {
-            return (bool) pera_crm_user_can_access();
+        if (function_exists('pera_crm_user_can_access') && pera_crm_user_can_access()) {
+            return true;
         }
 
-        if (function_exists('peracrm_user_can_access_crm')) {
-            return (bool) peracrm_user_can_access_crm();
+        if (function_exists('peracrm_user_can_access_crm') && peracrm_user_can_access_crm()) {
+            return true;
         }
 
-        return current_user_can('manage_options') || current_user_can('edit_crm_clients');
+        return current_user_can('manage_options')
+            || current_user_can('edit_crm_clients')
+            || current_user_can('edit_crm_leads')
+            || current_user_can('edit_crm_deals');
     }
 }
 
