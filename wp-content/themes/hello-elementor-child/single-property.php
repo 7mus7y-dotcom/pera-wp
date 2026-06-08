@@ -1083,11 +1083,24 @@ $custom_video_text = $custom_video_text ? wp_kses_post( wpautop( $custom_video_t
 /* ======================================================
    YOUTUBE / OEMBED VIDEO TOUR
    ====================================================== */
-$yt_heading = function_exists( 'get_field' ) ? (string) get_field( 'yt_heading', $property_id ) : '';
-$yt_video   = function_exists( 'get_field' ) ? get_field( 'yt_video', $property_id ) : '';
+$yt_heading    = function_exists( 'get_field' ) ? (string) get_field( 'yt_heading', $property_id ) : '';
+$yt_video      = function_exists( 'get_field' ) ? get_field( 'yt_video', $property_id ) : '';
+$yt_embed_html = '';
+
+if ( ! empty( $yt_video ) ) {
+  $yt_video_raw = trim( (string) $yt_video );
+
+  if ( filter_var( $yt_video_raw, FILTER_VALIDATE_URL ) ) {
+    $yt_embed_html = wp_oembed_get( esc_url_raw( $yt_video_raw ) );
+  }
+
+  if ( empty( $yt_embed_html ) ) {
+    $yt_embed_html = $yt_video_raw;
+  }
+}
 ?>
 
-<?php if ( ! empty( $yt_video ) ) : ?>
+<?php if ( ! empty( $yt_embed_html ) ) : ?>
   <section class="section section-soft property-youtube-tour" id="property-video-tour">
     <div class="container">
       <header class="section-header">
@@ -1096,7 +1109,24 @@ $yt_video   = function_exists( 'get_field' ) ? get_field( 'yt_video', $property_
       </header>
 
       <div class="card-shell property-youtube-tour__media">
-        <?php echo wp_kses_post( $yt_video ); ?>
+        <?php
+        echo wp_kses(
+          $yt_embed_html,
+          array(
+            'iframe' => array(
+              'src'             => true,
+              'width'           => true,
+              'height'          => true,
+              'frameborder'     => true,
+              'allow'           => true,
+              'allowfullscreen' => true,
+              'title'           => true,
+              'loading'         => true,
+              'referrerpolicy'  => true,
+            ),
+          )
+        );
+        ?>
       </div>
     </div>
   </section>
