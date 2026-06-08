@@ -77,7 +77,7 @@ get_header();
                             $candidate_post_id = (int) $featured_item;
                         }
 
-                        if ( $candidate_post_id <= 0 ) {
+                        if ( $candidate_post_id <= 0 || get_post_status( $candidate_post_id ) !== 'publish' ) {
                             continue;
                         }
 
@@ -304,7 +304,7 @@ get_header();
               <div class="archive-cats-grid cards-scroll-mobile">
                 <?php foreach ( $archive_featured_post_ids as $featured_post_id ) : ?>
                   <?php $featured_post = get_post( $featured_post_id ); ?>
-                  <?php if ( ! ( $featured_post instanceof WP_Post ) ) { continue; } ?>
+                  <?php if ( ! ( $featured_post instanceof WP_Post ) || get_post_status( $featured_post ) !== 'publish' ) { continue; } ?>
                   <article class="archive-cat-card card-shell">
                     <h3 class="post-card-title"><a href="<?php echo esc_url( get_permalink( $featured_post ) ); ?>"><?php echo esc_html( get_the_title( $featured_post ) ); ?></a></h3>
                     <p class="archive-cat-desc"><?php echo esc_html( wp_trim_words( wp_strip_all_tags( get_the_excerpt( $featured_post ) ), 24, '…' ) ); ?></p>
@@ -392,7 +392,7 @@ get_header();
                 $skip_featured_post_ids = array();
                 $is_archive_search      = '' !== trim( get_search_query() );
 
-                if ( is_category() && ! $is_archive_search && ! empty( $archive_featured_post_ids ) ) {
+                if ( ( is_category() || ( is_home() && ! is_front_page() ) ) && ! $is_archive_search && ! empty( $archive_featured_post_ids ) ) {
                     $skip_featured_post_ids = $archive_featured_post_ids;
                 }
                 ?>
