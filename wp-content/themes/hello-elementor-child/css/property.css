@@ -1154,6 +1154,19 @@ body.is-lightbox-open{ overflow: hidden; }
   object-fit: contain;
 }
 
+.property-youtube-tour__media {
+  padding: 0;
+  overflow: hidden;
+}
+
+.property-youtube-tour__media iframe {
+  display: block;
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  height: auto;
+  border: 0;
+}
+
 .property-location__about,
 .property-location__distances{
   line-height: 1.6;

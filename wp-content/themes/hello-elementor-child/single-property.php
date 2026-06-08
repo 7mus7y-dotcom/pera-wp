@@ -1079,6 +1079,28 @@ $custom_video_text = $custom_video_text ? wp_kses_post( wpautop( $custom_video_t
 </section>
 
 
+<?php
+/* ======================================================
+   YOUTUBE / OEMBED VIDEO TOUR
+   ====================================================== */
+$yt_heading = function_exists( 'get_field' ) ? (string) get_field( 'yt_heading', $property_id ) : '';
+$yt_video   = function_exists( 'get_field' ) ? get_field( 'yt_video', $property_id ) : '';
+?>
+
+<?php if ( ! empty( $yt_video ) ) : ?>
+  <section class="section section-soft property-youtube-tour" id="property-video-tour">
+    <div class="container">
+      <header class="section-header">
+        <h2><?php echo esc_html( $yt_heading ?: 'Property Video Tour' ); ?></h2>
+        <p class="text-soft">Take a closer look at this property and explore the layout, finishes and surrounding area in our video tour.</p>
+      </header>
+
+      <div class="card-shell property-youtube-tour__media">
+        <?php echo wp_kses_post( $yt_video ); ?>
+      </div>
+    </div>
+  </section>
+<?php endif; ?>
 
 
 <!-- =====================================
