@@ -58,6 +58,7 @@ body.client-login-standalone .client-login-wrapper {
   width: 100%;
   max-width: 480px;
   margin: 0 auto;
+  box-sizing: border-box;
 }
 .client-login-branding { margin: 0 0 24px; text-align: center; }
 .client-login-branding .site-logo { display:inline-flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;color:var(--inverse);text-decoration:none;line-height:1; }
@@ -68,6 +69,7 @@ body.client-login-standalone .client-login-wrapper {
 
 .client-login-container {
   width: 100%;
+  box-sizing: border-box;
   margin-top: 0;
   padding: var(--space-md);
   background: var(--bg);
@@ -91,6 +93,7 @@ body.client-login-standalone .client-login-wrapper {
 .client-login-container input[type="text"],
 .client-login-container input[type="email"],
 .client-login-container input[type="password"] {
+  box-sizing: border-box;
   border-radius: var(--radius-sm);
   border: 1px solid rgba(0, 0, 0, 0.18);
   padding: 10px 12px;
@@ -107,6 +110,7 @@ body.client-login-standalone .client-login-wrapper {
 }
 .client-login-container .button-primary,
 .client-login-container #wp-submit {
+  box-sizing: border-box;
   background: var(--brand);
   border-color: var(--brand);
   color: #ffffff;
