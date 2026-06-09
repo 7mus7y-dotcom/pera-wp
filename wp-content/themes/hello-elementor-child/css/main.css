@@ -3999,6 +3999,37 @@ body:not(.single-post) tr:nth-child(even) {
   }
 }
 
+ol.pretty-list {
+  list-style: none;
+  counter-reset: pretty-counter;
+  padding-left: 0;
+  margin: 1.5rem 0;
+}
+
+ol.pretty-list li {
+  counter-increment: pretty-counter;
+  position: relative;
+  padding-left: 3rem;
+  margin-bottom: 1rem;
+  line-height: 1.7;
+}
+
+ol.pretty-list li::before {
+  content: counter(pretty-counter);
+  position: absolute;
+  left: 0;
+  top: 0.15rem;
+  width: 2rem;
+  height: 2rem;
+  border-radius: 50%;
+  background: #111827;
+  color: #fff;
+  font-size: 0.85rem;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
 
 /* Checklist (tick icon list) */
 .checklist {
