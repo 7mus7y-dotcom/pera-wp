@@ -3999,6 +3999,55 @@ body:not(.single-post) tr:nth-child(even) {
   }
 }
 
+/* =======================================================
+   ORDERED LISTS
+   ======================================================= */
+ol.minimal-list {
+  list-style-position: inside;
+  padding-left: 0;
+  margin: 1.25rem 0;
+}
+
+ol.minimal-list li {
+  padding: 0.65rem 0;
+  border-bottom: 1px solid rgba(17, 24, 39, 0.08);
+  line-height: 1.7;
+}
+
+ol.minimal-list li::marker {
+  font-weight: 700;
+  color: #9a6a2f;
+}
+
+ol.editorial-list {
+  list-style: none;
+  counter-reset: editorial-counter;
+  padding-left: 0;
+  margin: 1.75rem 0;
+}
+
+ol.editorial-list li {
+  counter-increment: editorial-counter;
+  position: relative;
+  padding: 1rem 1rem 1rem 3.75rem;
+  margin-bottom: 0.75rem;
+  border: 1px solid rgba(17, 24, 39, 0.08);
+  border-radius: 14px;
+  background: #fff;
+  line-height: 1.65;
+}
+
+ol.editorial-list li::before {
+  content: counter(editorial-counter, decimal-leading-zero);
+  position: absolute;
+  left: 1rem;
+  top: 1rem;
+  font-size: 0.8rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  color: #9a6a2f;
+}
+
 ol.pretty-list {
   list-style: none;
   counter-reset: pretty-counter;
