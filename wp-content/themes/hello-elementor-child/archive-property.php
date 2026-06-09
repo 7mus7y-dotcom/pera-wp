@@ -22,7 +22,7 @@ get_header();
    - Do NOT reference $property_query here (it is created later)
 ------------------------------------------------------------ */
 $archive_title       = 'Property for sale in Istanbul';
-$archive_description = 'We’ve got dozens of pages covering hundreds of options across almost all 48 districts of Istanbul. If you are looking for something more specific, be sure to contact us with your details, requirements, budget, etc. – take it easy and leave the rest to us.';
+$archive_description = 'With access to a wide range of property for sale in Istanbul, from central apartments to family homes, villas and investment opportunities, we can help you find options that match your budget and requirements. Tell us what you are looking for — including your preferred areas, property type, budget and purchase goals — and our team will prepare a focused shortlist for you.';
 
 // ------------------------------------------------------------
 // 1) PAGED RESOLUTION (robust for /page/N/ and ?paged=N)
