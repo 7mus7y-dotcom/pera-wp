@@ -47,32 +47,6 @@ function pera_register_core_client_pages() {
 }
 add_action( 'after_switch_theme', 'pera_register_core_client_pages', 5 );
 
-
-function pera_favourites_enforce_login_redirect() {
-    if ( ! is_page( 'my-favourites' ) ) {
-        return;
-    }
-
-    if ( ! defined( 'DONOTCACHEPAGE' ) ) {
-        define( 'DONOTCACHEPAGE', true );
-    }
-
-    nocache_headers();
-
-    if ( is_user_logged_in() ) {
-        return;
-    }
-
-    $favourites_page = get_page_by_path( 'my-favourites' );
-    $favourites_url  = $favourites_page ? get_permalink( $favourites_page ) : home_url( '/my-favourites/' );
-
-    $login_target = pera_get_public_client_login_url( $favourites_url );
-
-    wp_safe_redirect( $login_target );
-    exit;
-}
-add_action( 'template_redirect', 'pera_favourites_enforce_login_redirect', 0 );
-
 function pera_public_register_turnstile_site_key() {
     // Admin note: public registration is fail-closed unless BOTH constants below are set.
     // Define PERA_TURNSTILE_SITE_KEY and PERA_TURNSTILE_SECRET_KEY in wp-config.php.
