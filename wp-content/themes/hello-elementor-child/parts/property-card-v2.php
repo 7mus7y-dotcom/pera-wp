@@ -382,11 +382,11 @@ if ( $size_min > 0 ) {
         </div>
       <?php endif; ?>
 
-      <h2 class="property-card__title">
+      <h3 class="property-card__title">
         <a href="<?php echo esc_url( $card_url ); ?>" class="property-card__title-link">
           <?php the_title(); ?>
         </a>
-      </h2>
+      </h3>
 
       <?php if ( $show_excerpt && has_excerpt() ) : ?>
         <p class="property-card__excerpt">

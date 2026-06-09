@@ -150,11 +150,11 @@ $secondary_cta = isset($args['secondary_cta']) && is_array($args['secondary_cta'
         <?php echo esc_html( $kicker ); ?>
       </p>
 
-      <h2 class="property-card__title">
+      <h3 class="property-card__title">
         <a href="<?php echo esc_url( $permalink ); ?>" class="property-card__title-link">
           <?php echo esc_html( $title ); ?>
         </a>
-      </h2>
+      </h3>
 
       <?php if ( $img_id ) : ?>
         <div class="property-card__media">
