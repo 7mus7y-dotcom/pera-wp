@@ -1425,7 +1425,7 @@ if ( ! empty( $yt_video ) ) {
           <?php endif; ?>
 
           <?php if ( ! empty( $property_highlights_items ) ) : ?>
-            <ul class="checklist checklist--premium">
+            <ul class="checklist">
               <?php foreach ( $property_highlights_items as $highlight_item ) : ?>
                 <li><?php echo esc_html( $highlight_item ); ?></li>
               <?php endforeach; ?>
