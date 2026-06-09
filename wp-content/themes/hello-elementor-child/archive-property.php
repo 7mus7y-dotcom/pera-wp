@@ -215,6 +215,9 @@ $is_filtered_search = function_exists( 'pera_property_archive_is_filtered_reques
   ? pera_property_archive_is_filtered_request( $_GET )
   : false;
 $is_clean_main_property_archive = is_post_type_archive( 'property' ) && ! is_tax() && ! is_paged() && empty( $_GET );
+$listings_section_heading = $is_clean_main_property_archive
+  ? __( 'View Property for Sale in Istanbul', 'hello-elementor-child' )
+  : __( 'Available Properties', 'hello-elementor-child' );
 
 // Build heading (no count here — count belongs in #results-count. change heading based on taxonomy pages and search)
 if ( $is_filtered_search ) {
@@ -469,7 +472,7 @@ if ( ! $is_filtered_search && ( $qo instanceof WP_Term ) && ! is_wp_error( $qo )
         <div class="container overlap-hero-archive">
             <div class="property-filters-wrapper">
                 <header class="section-header">
-                            <h2>Available properties</h2>
+                            <h2><?php echo esc_html( $listings_section_heading ); ?></h2>
                             <p>Use the filters below to refine by district, property type, bedrooms and budget.</p>
                 </header>
 
