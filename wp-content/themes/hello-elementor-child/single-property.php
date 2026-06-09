@@ -797,7 +797,7 @@ $custom_video_text = $custom_video_text ? wp_kses_post( wpautop( $custom_video_t
         if ( $district_url ) {
           $district_name = $district_term->name;
           ?>
-          <p class="lead">
+          <p class="text-sm">
             Browse all <a href="<?php echo esc_url( $district_url ); ?>">
               <?php echo esc_html( 'property for sale in ' . $district_name ); ?>
             </a>.
