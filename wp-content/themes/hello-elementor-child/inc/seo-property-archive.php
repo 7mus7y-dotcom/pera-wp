@@ -17,6 +17,52 @@ if ( ! function_exists( 'pera_property_archive_has_query_string' ) ) {
   }
 }
 
+if ( ! function_exists( 'pera_property_archive_is_clean_main_archive' ) ) {
+  /**
+   * True only for the first, unfiltered /property/ archive page.
+   */
+  function pera_property_archive_is_clean_main_archive(): bool {
+    return is_post_type_archive( 'property' ) && ! is_tax() && ! is_search() && ! is_paged() && empty( $_GET );
+  }
+}
+
+if ( ! function_exists( 'pera_property_archive_settings_field' ) ) {
+  /**
+   * Safely read an ACF field from the private property archive SEO settings page.
+   *
+   * @return mixed|string
+   */
+  function pera_property_archive_settings_field( string $field_name ) {
+    if ( ! function_exists( 'get_field' ) || ! function_exists( 'pera_get_property_archive_settings_page_id' ) ) {
+      return '';
+    }
+
+    $page_id = pera_get_property_archive_settings_page_id();
+    if ( ! $page_id ) {
+      return '';
+    }
+
+    $value = get_field( $field_name, $page_id );
+
+    return is_string( $value ) ? trim( $value ) : $value;
+  }
+}
+
+if ( ! function_exists( 'pera_property_archive_settings_text_field' ) ) {
+  /**
+   * Read a scalar settings value and normalize it for safe SEO text output.
+   */
+  function pera_property_archive_settings_text_field( string $field_name ): string {
+    $value = pera_property_archive_settings_field( $field_name );
+
+    if ( ! is_scalar( $value ) ) {
+      return '';
+    }
+
+    return pera_seo_normalize_meta_text( (string) $value );
+  }
+}
+
 if ( ! function_exists( 'pera_property_archive_schema_title' ) ) {
   function pera_property_archive_schema_title(): string {
     if ( is_tax( pera_get_indexable_property_archive_taxonomies() ) ) {
@@ -33,6 +79,13 @@ if ( ! function_exists( 'pera_property_archive_schema_title' ) ) {
         }
 
         return pera_seo_normalize_meta_text( (string) $term->name );
+      }
+    }
+
+    if ( pera_property_archive_is_clean_main_archive() ) {
+      $manual = pera_property_archive_settings_text_field( 'seo_title' );
+      if ( $manual !== '' ) {
+        return $manual;
       }
     }
 
@@ -68,6 +121,13 @@ if ( ! function_exists( 'pera_property_archive_schema_description' ) ) {
     }
 
     if ( is_post_type_archive( 'property' ) ) {
+      if ( pera_property_archive_is_clean_main_archive() ) {
+        $manual = pera_property_archive_settings_text_field( 'seo_meta_description' );
+        if ( $manual !== '' ) {
+          return $manual;
+        }
+      }
+
       return pera_get_property_archive_generated_description();
     }
 
@@ -356,6 +416,13 @@ if ( ! function_exists( 'pera_property_archive_social_image' ) ) {
       }
     }
 
+    if ( pera_property_archive_is_clean_main_archive() ) {
+      $manual = pera_property_archive_resolve_image_from_acf_value( pera_property_archive_settings_field( 'seo_social_image' ) );
+      if ( $manual['url'] !== '' ) {
+        return $manual;
+      }
+    }
+
     if ( function_exists( 'pera_seo_default_image' ) ) {
       $fallback = pera_seo_default_image();
       $url = isset( $fallback['url'] ) ? (string) $fallback['url'] : '';
@@ -405,7 +472,7 @@ add_filter( 'pre_get_document_title', function( $title ) {
   }
 
   // Main /property/ TITLE precedence:
-  // 1) safe existing manual source (deferred in Phase 2 if unavailable),
+  // 1) private settings page ACF seo_title,
   // 2) generated page-1 title, 3) existing/default title for pagination.
   $paged = function_exists( 'pera_property_archive_get_paged' )
     ? pera_property_archive_get_paged()
@@ -417,6 +484,11 @@ add_filter( 'pre_get_document_title', function( $title ) {
 
   if ( ! empty( $_GET ) ) {
     return $title;
+  }
+
+  $manual = pera_property_archive_settings_text_field( 'seo_title' );
+  if ( $manual !== '' ) {
+    return $manual;
   }
 
   return 'Property for Sale in Istanbul | Apartments & Investment Opportunities';
@@ -474,7 +546,7 @@ add_action( 'wp_head', function () {
     class_exists( 'RankMath\\Frontend\\Frontend' );
 
   $meta_desc = pera_property_archive_schema_description( $is_filtered, $has_seo_plugin );
-  $is_clean_main_property_archive = is_post_type_archive( 'property' ) && ! is_tax() && ! is_paged() && empty( $_GET );
+  $is_clean_main_property_archive = pera_property_archive_is_clean_main_archive();
 
   echo "\n<!-- Pera SEO: Property archive -->\n";
 
@@ -614,46 +686,18 @@ add_action( 'wp_head', function () {
     && $is_clean_main_property_archive
     && $canonical !== ''
   ) {
-    $faq_schema = array(
-      '@context'   => 'https://schema.org',
-      '@type'      => 'FAQPage',
-      'mainEntity' => array(
-        array(
-          '@type'          => 'Question',
-          'name'           => 'Can foreigners buy property in Istanbul?',
-          'acceptedAnswer' => array(
-            '@type' => 'Answer',
-            'text'  => 'Yes. Foreign nationals can buy property in Istanbul in most districts, subject to standard title checks and military-zone rules. Buyers typically complete tax number registration, valuation and title-deed transfer with professional legal support.',
-          ),
-        ),
-        array(
-          '@type'          => 'Question',
-          'name'           => 'What are the best areas to buy property in Istanbul?',
-          'acceptedAnswer' => array(
-            '@type' => 'Answer',
-            'text'  => 'Popular areas depend on goals: Beşiktaş and Şişli are central and lifestyle-driven, Kadıköy is strong for local demand and city living, while neighborhoods like Bomonti and Nişantaşı attract premium buyers looking for established urban districts.',
-          ),
-        ),
-        array(
-          '@type'          => 'Question',
-          'name'           => 'Is Istanbul good for property investment?',
-          'acceptedAnswer' => array(
-            '@type' => 'Answer',
-            'text'  => 'Istanbul remains one of Turkey’s most active property markets, with year-round demand from domestic and international buyers. Investment outcomes vary by location, asset quality, rental strategy and entry price, so area-level analysis is essential.',
-          ),
-        ),
-        array(
-          '@type'          => 'Question',
-          'name'           => 'Can I get Turkish citizenship by buying property?',
-          'acceptedAnswer' => array(
-            '@type' => 'Answer',
-            'text'  => 'Yes, eligible buyers may apply for Turkish citizenship through investment when they meet current program requirements, including the minimum qualifying property value and holding period. A licensed advisor and legal team should verify eligibility before purchase.',
-          ),
-        ),
-      ),
-    );
+    $faq_json = pera_property_archive_settings_field( 'seo_faq_schema_json' );
+    $faq_json = is_scalar( $faq_json ) ? trim( (string) $faq_json ) : '';
 
-    echo '<script type="application/ld+json">' . wp_json_encode( $faq_schema, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE ) . '</script>' . "\n";
+    if ( $faq_json !== '' ) {
+      $faq_schema = json_decode( $faq_json, true );
+      if ( json_last_error() === JSON_ERROR_NONE && is_array( $faq_schema ) ) {
+        $encoded_faq_schema = wp_json_encode( $faq_schema, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE );
+        if ( is_string( $encoded_faq_schema ) && $encoded_faq_schema !== '' ) {
+          echo '<script type="application/ld+json">' . $encoded_faq_schema . '</script>' . "\n";
+        }
+      }
+    }
   }
 
   echo "<!-- /Pera SEO: Property archive -->\n\n";
