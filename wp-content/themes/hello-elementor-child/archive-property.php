@@ -21,8 +21,36 @@ get_header();
    HERO TITLE / DESCRIPTION (page template safe)
    - Do NOT reference $property_query here (it is created later)
 ------------------------------------------------------------ */
-$archive_title       = 'Property for sale in Istanbul';
-$archive_description = 'With access to a wide range of property for sale in Istanbul, from central apartments to family homes, villas and investment opportunities, we can help you find options that match your budget and requirements. Tell us what you are looking for — including your preferred areas, property type, budget and purchase goals — and our team will prepare a focused shortlist for you.';
+$property_archive_settings_page_id = function_exists( 'pera_get_property_archive_settings_page_id' )
+  ? pera_get_property_archive_settings_page_id()
+  : 0;
+
+$property_archive_get_field = static function ( string $field_name ) use ( $property_archive_settings_page_id ) {
+  if ( ! $property_archive_settings_page_id || ! function_exists( 'get_field' ) ) {
+    return '';
+  }
+
+  $value = get_field( $field_name, $property_archive_settings_page_id );
+
+  return is_string( $value ) ? trim( $value ) : $value;
+};
+
+$archive_title_fallback       = 'Property for sale in Istanbul';
+$archive_description_fallback = 'With access to a wide range of property for sale in Istanbul, from central apartments to family homes, villas and investment opportunities, we can help you find options that match your budget and requirements. Tell us what you are looking for — including your preferred areas, property type, budget and purchase goals — and our team will prepare a focused shortlist for you.';
+
+$archive_title = (string) $property_archive_get_field( 'archive_h1' );
+if ( $archive_title === '' ) {
+  $archive_title = $archive_title_fallback;
+}
+
+$archive_subtitle = (string) $property_archive_get_field( 'archive_subtitle' );
+
+$archive_intro_content = (string) $property_archive_get_field( 'archive_intro_content' );
+if ( $archive_intro_content === '' ) {
+  $archive_intro_content = $archive_description_fallback;
+}
+
+$archive_description = $archive_subtitle !== '' ? $archive_subtitle : wp_strip_all_tags( $archive_intro_content );
 
 // ------------------------------------------------------------
 // 1) PAGED RESOLUTION (robust for /page/N/ and ?paged=N)
@@ -223,14 +251,19 @@ $listings_section_heading = $is_clean_main_property_archive
 if ( $is_filtered_search ) {
   $hero_title = 'Here are your search results';
   $hero_desc  = 'Use the filters below to refine your results.';
-} else {
+} elseif ( $is_clean_main_property_archive ) {
   $hero_title = $archive_title;
-  $hero_desc  = $archive_description;
+  $hero_desc  = $archive_intro_content;
+} else {
+  $hero_title = $archive_title_fallback;
+  $hero_desc  = $archive_description_fallback;
 }
 
 $hero_desc_html = '';
 
-if ( trim( wp_strip_all_tags( (string) $hero_desc ) ) !== '' ) {
+if ( $is_clean_main_property_archive && trim( wp_strip_all_tags( (string) $archive_intro_content ) ) !== '' ) {
+  $hero_desc_html = wp_kses_post( wpautop( $archive_intro_content ) );
+} elseif ( trim( wp_strip_all_tags( (string) $hero_desc ) ) !== '' ) {
   $hero_desc_html = '<p class="text-light">' . esc_html( wp_strip_all_tags( (string) $hero_desc ) ) . '</p>';
 }
 
@@ -1077,8 +1110,16 @@ if ( $qo instanceof WP_Term && $qo->taxonomy === 'property_tags' && function_exi
 </section>
 
 <?php if ( $is_clean_main_property_archive ) : ?>
+  <?php
+    $archive_bottom_content = (string) $property_archive_get_field( 'archive_bottom_content' );
+    $archive_cta_heading    = (string) $property_archive_get_field( 'archive_cta_heading' );
+    $archive_cta_text       = (string) $property_archive_get_field( 'archive_cta_text' );
+  ?>
   <section class="archive-seo-content section section-soft">
     <div class="container">
+      <?php if ( $archive_bottom_content !== '' ) : ?>
+        <?php echo wp_kses_post( wpautop( $archive_bottom_content ) ); ?>
+      <?php else : ?>
       <div class="section-header">
         <h2>Property for sale in Istanbul: where to buy and how to choose</h2>
       </div>
@@ -1088,8 +1129,27 @@ if ( $qo instanceof WP_Term && $qo->taxonomy === 'property_tags' && function_exi
       <p class="text-soft">For investment property, buyers usually focus on future resale depth, achievable rental yields and the profile of end users in each micro-location. New developments can be attractive when developer quality and delivery track record are strong, while completed resale units can reduce timeline risk and provide immediate rental data. A practical investment review should include total acquisition cost, expected net rental income, management assumptions and likely exit scenarios over a multi-year horizon. This helps buyers avoid decisions based only on headline marketing figures.</p>
       <p class="text-soft">Lifestyle buyers typically prioritise daily convenience: commute times, nearby amenities, schools, medical access and neighbourhood character. These factors influence long-term satisfaction as much as the apartment plan or finishing materials. In Istanbul, even adjacent streets can differ significantly in noise, traffic and tenant profile, so local guidance and physical viewing remain essential. Buyers who define non-negotiables early—such as building age, parking, security and walkability—tend to make faster and more confident decisions.</p>
       <p class="text-soft">Citizenship-focused buyers should evaluate each property through both legal eligibility and market fundamentals. If your objective includes the Turkish passport route, requirements must be met precisely and documented correctly during purchase and transfer. You can review the process in detail on our <a href="<?php echo esc_url( home_url( '/citizenship-by-investment/' ) ); ?>">Turkish Citizenship by Investment</a> page. Even when citizenship is the primary driver, asset quality and location still matter for future resale and rental performance. A structured due-diligence process—valuation review, title checks and eligibility verification—helps ensure your purchase supports both personal and financial goals.</p>
+      <?php endif; ?>
     </div>
   </section>
+
+  <?php if ( $archive_cta_heading !== '' || $archive_cta_text !== '' ) : ?>
+    <section class="archive-cta section section-soft">
+      <div class="container">
+        <?php if ( $archive_cta_heading !== '' ) : ?>
+          <div class="section-header">
+            <h2><?php echo esc_html( $archive_cta_heading ); ?></h2>
+          </div>
+        <?php endif; ?>
+
+        <?php if ( $archive_cta_text !== '' ) : ?>
+          <div class="entry-content">
+            <?php echo wp_kses_post( wpautop( $archive_cta_text ) ); ?>
+          </div>
+        <?php endif; ?>
+      </div>
+    </section>
+  <?php endif; ?>
 
   <section class="faq-section archive-faq section">
     <div class="container">
