@@ -262,7 +262,41 @@ if ( $is_filtered_search ) {
 $hero_desc_html = '';
 
 if ( $is_clean_main_property_archive && trim( wp_strip_all_tags( (string) $archive_intro_content ) ) !== '' ) {
-  $hero_desc_html = wp_kses_post( wpautop( $archive_intro_content ) );
+  $hero_desc_html = wpautop( wp_kses_post( $archive_intro_content ) );
+
+  if ( class_exists( 'WP_HTML_Tag_Processor' ) ) {
+    $hero_desc_processor = new WP_HTML_Tag_Processor( $hero_desc_html );
+
+    while ( $hero_desc_processor->next_tag( 'p' ) ) {
+      $hero_desc_processor->add_class( 'text-light' );
+    }
+
+    $hero_desc_html = $hero_desc_processor->get_updated_html();
+  } else {
+    $hero_desc_html = preg_replace_callback(
+      '/<p(\s[^>]*)?>/i',
+      static function ( array $matches ): string {
+        $attributes = $matches[1] ?? '';
+
+        if ( preg_match( "/\\sclass=([\"'])(.*?)\\1/i", $attributes, $class_matches ) ) {
+          $classes = preg_split( '/\s+/', trim( $class_matches[2] ) );
+          $classes = is_array( $classes ) ? $classes : array();
+
+          if ( ! in_array( 'text-light', $classes, true ) ) {
+            $classes[] = 'text-light';
+          }
+
+          $updated_class_attribute = ' class=' . $class_matches[1] . esc_attr( trim( implode( ' ', array_filter( $classes ) ) ) ) . $class_matches[1];
+          $updated_attributes      = str_replace( $class_matches[0], $updated_class_attribute, $attributes );
+
+          return '<p' . $updated_attributes . '>';
+        }
+
+        return '<p' . $attributes . ' class="text-light">';
+      },
+      $hero_desc_html
+    );
+  }
 } elseif ( trim( wp_strip_all_tags( (string) $hero_desc ) ) !== '' ) {
   $hero_desc_html = '<p class="text-light">' . esc_html( wp_strip_all_tags( (string) $hero_desc ) ) . '</p>';
 }
@@ -1111,9 +1145,22 @@ if ( $qo instanceof WP_Term && $qo->taxonomy === 'property_tags' && function_exi
 
 <?php if ( $is_clean_main_property_archive ) : ?>
   <?php
-    $archive_bottom_content = (string) $property_archive_get_field( 'archive_bottom_content' );
-    $archive_cta_heading    = (string) $property_archive_get_field( 'archive_cta_heading' );
-    $archive_cta_text       = (string) $property_archive_get_field( 'archive_cta_text' );
+    $archive_bottom_content      = (string) $property_archive_get_field( 'archive_bottom_content' );
+    $archive_cta_heading         = (string) $property_archive_get_field( 'archive_cta_heading' );
+    $archive_cta_text            = (string) $property_archive_get_field( 'archive_cta_text' );
+    $archive_whatsapp_message    = (string) $property_archive_get_field( 'archive_whatsapp_message' );
+    $archive_whatsapp_number     = '905452054356';
+    $archive_whatsapp_message    = $archive_whatsapp_message !== ''
+      ? $archive_whatsapp_message
+      : 'Hello Pera Property, I am interested in property for sale in Istanbul. My budget, preferred area and requirements are as follows:';
+    $archive_whatsapp_context    = function_exists( 'pera_get_whatsapp_context' ) ? pera_get_whatsapp_context() : array();
+    $archive_whatsapp_context_url = is_array( $archive_whatsapp_context ) ? (string) ( $archive_whatsapp_context['whatsapp_url'] ?? '' ) : '';
+
+    if ( preg_match( '~wa\.me/([0-9]+)~', $archive_whatsapp_context_url, $archive_whatsapp_matches ) ) {
+      $archive_whatsapp_number = $archive_whatsapp_matches[1];
+    }
+
+    $archive_whatsapp_url = 'https://wa.me/' . $archive_whatsapp_number . '?text=' . rawurlencode( $archive_whatsapp_message );
   ?>
   <section class="archive-seo-content section section-soft">
     <div class="container">
@@ -1147,6 +1194,10 @@ if ( $qo instanceof WP_Term && $qo->taxonomy === 'property_tags' && function_exi
             <?php echo wp_kses_post( wpautop( $archive_cta_text ) ); ?>
           </div>
         <?php endif; ?>
+
+        <a class="btn btn--solid btn--green" href="<?php echo esc_url( $archive_whatsapp_url ); ?>" target="_blank" rel="noopener">
+          <?php echo esc_html__( 'Send us your requirements', 'hello-elementor-child' ); ?>
+        </a>
       </div>
     </section>
   <?php endif; ?>
