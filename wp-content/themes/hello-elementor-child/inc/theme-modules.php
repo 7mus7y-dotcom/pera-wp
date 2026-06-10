@@ -2,6 +2,7 @@
 if ( ! defined( 'ABSPATH' ) ) exit;
 
 require_once get_stylesheet_directory() . '/inc/modules/property-archive-safety.php';
+require_once get_stylesheet_directory() . '/inc/modules/property-archive-settings.php';
 require_once get_stylesheet_directory() . '/inc/modules/seo-loader.php';
 require_once get_stylesheet_directory() . '/inc/modules/template-routing.php';
 require_once get_stylesheet_directory() . '/inc/modules/enqueue-assets.php';
@@ -19,5 +20,4 @@ require_once get_stylesheet_directory() . '/inc/modules/admin-bar.php';
 require_once get_stylesheet_directory() . '/inc/modules/sitemaps.php';
 require_once get_stylesheet_directory() . '/inc/modules/llms.php';
 require_once get_stylesheet_directory() . '/inc/modules/faqs.php';
-require_once get_stylesheet_directory() . '/inc/modules/acf-options.php';
 require_once get_stylesheet_directory() . '/inc/acf-fields.php';
