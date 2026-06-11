@@ -292,15 +292,6 @@
   margin: 0;
 }
 
-.citizenship-caution-list {
-  list-style: disc;
-  padding-left: 1.2rem;
-}
-
-.citizenship-caution-list li {
-  display: list-item;
-  padding-left: 0;
-}
 
 .citizenship-table-wrap {
   overflow-x: auto;

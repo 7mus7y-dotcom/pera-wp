@@ -1330,36 +1330,11 @@ $citizenship_requirements = array(
         </div>
         <div class="feature-card-body">
           <ul class="checklist">
-            <li>
-              <svg class="icon icon-tick" aria-hidden="true">
-                <use href="<?php echo get_stylesheet_directory_uri(); ?>/logos-icons/icons.svg#icon-check"></use>
-              </svg>
-              Families seeking a second citizenship
-            </li>
-            <li>
-              <svg class="icon icon-tick" aria-hidden="true">
-                <use href="<?php echo get_stylesheet_directory_uri(); ?>/logos-icons/icons.svg#icon-check"></use>
-              </svg>
-              Investors who want a tangible real estate asset
-            </li>
-            <li>
-              <svg class="icon icon-tick" aria-hidden="true">
-                <use href="<?php echo get_stylesheet_directory_uri(); ?>/logos-icons/icons.svg#icon-check"></use>
-              </svg>
-              Buyers focused on Istanbul liquidity
-            </li>
-            <li>
-              <svg class="icon icon-tick" aria-hidden="true">
-                <use href="<?php echo get_stylesheet_directory_uri(); ?>/logos-icons/icons.svg#icon-check"></use>
-              </svg>
-              Applicants who can hold the property for at least 3 years
-            </li>
-            <li>
-              <svg class="icon icon-tick" aria-hidden="true">
-                <use href="<?php echo get_stylesheet_directory_uri(); ?>/logos-icons/icons.svg#icon-check"></use>
-              </svg>
-              Investors who want a relatively fast citizenship route
-            </li>
+            <li>Families seeking a second citizenship</li>
+            <li>Investors who want a tangible real estate asset</li>
+            <li>Buyers focused on Istanbul liquidity</li>
+            <li>Applicants who can hold the property for at least 3 years</li>
+            <li>Investors who want a relatively fast citizenship route</li>
           </ul>
         </div>
       </article>
@@ -1369,7 +1344,7 @@ $citizenship_requirements = array(
           <h3>Not ideal for</h3>
         </div>
         <div class="feature-card-body">
-          <ul class="checklist citizenship-caution-list">
+          <ul class="checklist checklist--cross">
             <li>Buyers who specifically need visa-free US or Schengen access</li>
             <li>Investors who want immediate resale flexibility</li>
             <li>Applicants unwilling to complete bank, legal and source-of-funds documentation</li>
