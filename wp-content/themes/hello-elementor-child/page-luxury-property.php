@@ -41,7 +41,7 @@ if ( ! $hero_img_id ) {
 $luxury_query_args = array(
 	'post_type'      => 'property',
 	'post_status'    => 'publish',
-	'posts_per_page' => 9,
+	'posts_per_page' => 12,
 	'orderby'        => 'date',
 	'order'          => 'DESC',
 	'tax_query'      => array(
