@@ -146,6 +146,55 @@ $luxury_query = new WP_Query( $luxury_query_args );
 		</div>
 	</section>
 
+	<section id="selected-luxury-properties" class="section section-soft">
+		<div class="container">
+			<h2>Selected Luxury Properties in Istanbul</h2>
+			<p>Explore a focused sample of current luxury listings. For broader inventory, view the full luxury tag archive.</p>
+
+			<div class="cards-grid">
+				<?php if ( $luxury_query->have_posts() ) : ?>
+					<?php while ( $luxury_query->have_posts() ) : $luxury_query->the_post(); ?>
+						<?php
+						if ( function_exists( 'pera_render_property_card' ) ) {
+							pera_render_property_card(
+								array(
+									'variant' => 'archive',
+								)
+							);
+						}
+						?>
+					<?php endwhile; ?>
+				<?php else : ?>
+					<p>No luxury properties are available right now. Please check back shortly.</p>
+				<?php endif; ?>
+			</div>
+			<?php wp_reset_postdata(); ?>
+
+			<div class="section text-center">
+				<a class="btn btn--solid btn--black" href="<?php echo esc_url( $all_luxury_url ); ?>">View All Luxury Properties</a>
+			</div>
+		</div>
+	</section>
+
+	<section class="section">
+		<div class="container">
+			<h2>Want a Private Shortlist Instead?</h2>
+			<p>Tell us your preferred location, budget and purpose, and our Istanbul team will send you a focused shortlist instead of overwhelming you with unsuitable options.</p>
+			<p><a
+				class="btn btn--solid btn--green js-meta-lead-cta"
+				data-meta-event="Lead"
+				data-meta-context="luxury_property_landing"
+				data-whatsapp="1"
+				data-whatsapp-type="luxury_shortlist"
+				data-track-channel="whatsapp"
+				data-track-intent="high"
+				data-track-source="template"
+				data-track-context="luxury_property_landing"
+				data-track-ga4-event="whatsapp_click"
+				data-track-crm-event="whatsapp_click"
+				href="<?php echo esc_url( $whatsapp_url ); ?>">Request a Private Shortlist on WhatsApp</a></p>
+		</div>
+	</section>
 
 	<?php
 	$luxury_guide_id = 59250;
@@ -153,13 +202,6 @@ $luxury_query = new WP_Query( $luxury_query_args );
 
 	$luxury_guide_url   = $luxury_guide ? get_permalink( $luxury_guide ) : home_url( '/luxury-property-in-istanbul-the-complete-guide-to-prime-real-estate_59250/' );
 	$luxury_guide_title = $luxury_guide ? get_the_title( $luxury_guide ) : 'Luxury Property in Istanbul: The Complete Guide to Prime Real Estate';
-	$luxury_guide_text  = $luxury_guide ? wp_trim_words( get_the_excerpt( $luxury_guide ), 28 ) : 'Explore Istanbul’s luxury property market in depth, including prime districts, villas, branded residences, Bosphorus-view homes and buyer considerations.';
-
-	// Temporary visual comparison switch. Remove after choosing final guide card layout.
-	$guide_card_variant = isset( $_GET['guide_card_variant'] ) ? sanitize_key( wp_unslash( $_GET['guide_card_variant'] ) ) : 'callout';
-	if ( ! in_array( $guide_card_variant, array( 'callout', 'grid' ), true ) ) {
-		$guide_card_variant = 'callout';
-	}
 	?>
 
 	<section class="section section-soft">
@@ -168,52 +210,27 @@ $luxury_query = new WP_Query( $luxury_query_args );
 
 			<p>Istanbul&rsquo;s luxury property market is highly location-specific. The strongest areas depend on whether the buyer is prioritising Bosphorus views, central business access, privacy, family living, branded residence services or long-term resale strength.</p>
 
-			<?php if ( 'callout' === $guide_card_variant ) : ?>
-				<div class="guide-callout card-shell">
-					<div class="guide-callout__content">
-						<p class="pill pill--green pill--sm">Luxury property guide</p>
-
-						<h3>
-							<a href="<?php echo esc_url( $luxury_guide_url ); ?>">
-								<?php echo esc_html( $luxury_guide_title ); ?>
-							</a>
-						</h3>
-
-						<p>
-							Use our complete guide to compare Istanbul&rsquo;s prime districts, Bosphorus-view homes, branded residences, villas and buyer considerations in more depth.
-						</p>
-					</div>
-
-					<div class="guide-callout__action">
-						<a class="btn btn--solid btn--black" href="<?php echo esc_url( $luxury_guide_url ); ?>">
-							Read the guide
-						</a>
-					</div>
-				</div>
-			<?php endif; ?>
-
 			<div class="cards-grid">
-				<?php if ( 'grid' === $guide_card_variant ) : ?>
-					<article class="card-shell guide-grid-card">
-						<p class="pill pill--green pill--sm">Full guide</p>
+				<article class="card-shell guide-grid-card">
+					<p class="pill pill--green pill--sm">Full guide</p>
 
-						<h3>
-							<a href="<?php echo esc_url( $luxury_guide_url ); ?>">
-								<?php echo esc_html( $luxury_guide_title ); ?>
-							</a>
-						</h3>
+					<h3>
+						<a href="<?php echo esc_url( $luxury_guide_url ); ?>">
+							<?php echo esc_html( $luxury_guide_title ); ?>
+						</a>
+					</h3>
 
-						<p>
-							Compare Istanbul&rsquo;s prime districts, property types, Bosphorus-view homes, villa markets and buyer considerations in our full luxury property guide.
-						</p>
+					<p>
+						Compare Istanbul&rsquo;s prime districts, property types, Bosphorus-view homes, villa markets and buyer considerations in our full luxury property guide.
+					</p>
 
-						<p>
-							<a href="<?php echo esc_url( $luxury_guide_url ); ?>">
-								Read the complete guide
-							</a>
-						</p>
-					</article>
-				<?php endif; ?>
+					<p>
+						<a href="<?php echo esc_url( $luxury_guide_url ); ?>">
+							Read the complete guide
+						</a>
+					</p>
+				</article>
+
 				<article class="card-shell">
 					<h3>Beşiktaş, Etiler and Levent</h3>
 					<p>These districts are ideal for buyers who want central access, prestige and proximity to Istanbul&rsquo;s business and lifestyle core. Levent and Etiler are particularly attractive for branded residences, high-end apartments and buyers who need quick access to Maslak, Zincirlikuyu and the Bosphorus corridor.</p>
@@ -307,56 +324,6 @@ $luxury_query = new WP_Query( $luxury_query_args );
 		</div>
 	</section>
 
-	<section id="selected-luxury-properties" class="section section-soft">
-		<div class="container">
-			<h2>Selected Luxury Properties in Istanbul</h2>
-			<p>Explore a focused sample of current luxury listings. For broader inventory, view the full luxury tag archive.</p>
-
-			<div class="cards-grid">
-				<?php if ( $luxury_query->have_posts() ) : ?>
-					<?php while ( $luxury_query->have_posts() ) : $luxury_query->the_post(); ?>
-						<?php
-						if ( function_exists( 'pera_render_property_card' ) ) {
-							pera_render_property_card(
-								array(
-									'variant' => 'archive',
-								)
-							);
-						}
-						?>
-					<?php endwhile; ?>
-				<?php else : ?>
-					<p>No luxury properties are available right now. Please check back shortly.</p>
-				<?php endif; ?>
-			</div>
-			<?php wp_reset_postdata(); ?>
-
-			<div class="section text-center">
-				<a class="btn btn--solid btn--black" href="<?php echo esc_url( $all_luxury_url ); ?>">View All Luxury Properties</a>
-			</div>
-		</div>
-	</section>
-
-	<section class="section">
-		<div class="container">
-			<h2>Want a Private Shortlist Instead?</h2>
-			<p>Tell us your preferred location, budget and purpose, and our Istanbul team will send you a focused shortlist instead of overwhelming you with unsuitable options.</p>
-			<p><a
-				class="btn btn--solid btn--green js-meta-lead-cta"
-				data-meta-event="Lead"
-				data-meta-context="luxury_property_landing"
-				data-whatsapp="1"
-				data-whatsapp-type="luxury_shortlist"
-				data-track-channel="whatsapp"
-				data-track-intent="high"
-				data-track-source="template"
-				data-track-context="luxury_property_landing"
-				data-track-ga4-event="whatsapp_click"
-				data-track-crm-event="whatsapp_click"
-				href="<?php echo esc_url( $whatsapp_url ); ?>">Request a Private Shortlist on WhatsApp</a></p>
-		</div>
-	</section>
-
 	<section class="section section-soft">
 		<div class="container">
 			<h2>Why Buyers Choose Istanbul</h2>
@@ -412,25 +379,6 @@ $luxury_query = new WP_Query( $luxury_query_args );
 		</div>
 	</section>
 
-	<section class="section section-soft">
-		<div class="container">
-			<h2>Speak with an Istanbul Luxury Property Specialist</h2>
-			<p>Share your budget, preferred locations and buying objective. We will help you compare the best available options and avoid unsuitable listings.</p>
-			<p><a
-				class="btn btn--solid btn--green js-meta-lead-cta"
-				data-meta-event="Lead"
-				data-meta-context="luxury_property_landing"
-				data-whatsapp="1"
-				data-whatsapp-type="luxury_shortlist"
-				data-track-channel="whatsapp"
-				data-track-intent="high"
-				data-track-source="template"
-				data-track-context="luxury_property_landing"
-				data-track-ga4-event="whatsapp_click"
-				data-track-crm-event="whatsapp_click"
-				href="<?php echo esc_url( $whatsapp_url ); ?>">Message Pera Property on WhatsApp</a></p>
-		</div>
-	</section>
 </main>
 
 <?php
