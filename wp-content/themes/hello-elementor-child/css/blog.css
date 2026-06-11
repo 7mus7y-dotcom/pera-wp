@@ -652,6 +652,59 @@
   border-top: 1px solid #e5e7eb;
 }
 
+/* =======================================================
+   ARTICLE RESPONSIVE TABLE OVERRIDES + WIDTH PRESETS
+   Opt-in fixes for narrative article tables
+   ======================================================= */
+
+.section-article .article-body .wp-block-table.wp-block-table--responsive table {
+  width: 100% !important;
+  min-width: 0;
+  max-width: 100% !important;
+  table-layout: fixed !important;
+}
+
+.section-article .article-body .wp-block-table.wp-block-table--responsive th,
+.section-article .article-body .wp-block-table.wp-block-table--responsive td {
+  white-space: normal !important;
+  overflow-wrap: anywhere !important;
+  word-break: normal !important;
+}
+
+/* 3-column process-stage preset */
+.section-article .article-body .wp-block-table.wp-block-table--responsive.article-table--process-stages thead th:nth-child(1),
+.section-article .article-body .wp-block-table.wp-block-table--responsive.article-table--process-stages tbody th[scope="row"],
+.section-article .article-body .wp-block-table.wp-block-table--responsive.article-table--process-stages tbody td:nth-child(1) {
+  width: 24%;
+}
+
+.section-article .article-body .wp-block-table.wp-block-table--responsive.article-table--process-stages thead th:nth-child(2),
+.section-article .article-body .wp-block-table.wp-block-table--responsive.article-table--process-stages tbody td:nth-child(2) {
+  width: 38%;
+}
+
+.section-article .article-body .wp-block-table.wp-block-table--responsive.article-table--process-stages thead th:nth-child(3),
+.section-article .article-body .wp-block-table.wp-block-table--responsive.article-table--process-stages tbody td:nth-child(3) {
+  width: 38%;
+}
+
+/* 2-column issue/explanation preset */
+.section-article .article-body .wp-block-table.wp-block-table--responsive.article-table--two-col thead th:nth-child(1),
+.section-article .article-body .wp-block-table.wp-block-table--responsive.article-table--two-col tbody th[scope="row"],
+.section-article .article-body .wp-block-table.wp-block-table--responsive.article-table--two-col tbody td:nth-child(1) {
+  width: 30%;
+}
+
+.section-article .article-body .wp-block-table.wp-block-table--responsive.article-table--two-col thead th:nth-child(2),
+.section-article .article-body .wp-block-table.wp-block-table--responsive.article-table--two-col tbody td:nth-child(2) {
+  width: 70%;
+}
+
+/* Keep row-header borders consistent with td borders */
+.section-article .article-body .wp-block-table.wp-block-table--responsive tbody th {
+  border-top: 1px solid #e5e7eb;
+}
+
 /* Code blocks in article body */
 .section-article .article-body pre {
   max-width: 100%;
