@@ -154,6 +154,12 @@ $luxury_query = new WP_Query( $luxury_query_args );
 	$luxury_guide_url   = $luxury_guide ? get_permalink( $luxury_guide ) : home_url( '/luxury-property-in-istanbul-the-complete-guide-to-prime-real-estate_59250/' );
 	$luxury_guide_title = $luxury_guide ? get_the_title( $luxury_guide ) : 'Luxury Property in Istanbul: The Complete Guide to Prime Real Estate';
 	$luxury_guide_text  = $luxury_guide ? wp_trim_words( get_the_excerpt( $luxury_guide ), 28 ) : 'Explore Istanbul’s luxury property market in depth, including prime districts, villas, branded residences, Bosphorus-view homes and buyer considerations.';
+
+	// Temporary visual comparison switch. Remove after choosing final guide card layout.
+	$guide_card_variant = isset( $_GET['guide_card_variant'] ) ? sanitize_key( wp_unslash( $_GET['guide_card_variant'] ) ) : 'callout';
+	if ( ! in_array( $guide_card_variant, array( 'callout', 'grid' ), true ) ) {
+		$guide_card_variant = 'callout';
+	}
 	?>
 
 	<section class="section section-soft">
@@ -162,42 +168,52 @@ $luxury_query = new WP_Query( $luxury_query_args );
 
 			<p>Istanbul&rsquo;s luxury property market is highly location-specific. The strongest areas depend on whether the buyer is prioritising Bosphorus views, central business access, privacy, family living, branded residence services or long-term resale strength.</p>
 
-			<article class="post-card post-card--featured-guide card-shell">
-				<?php if ( $luxury_guide && has_post_thumbnail( $luxury_guide ) ) : ?>
-					<div class="post-card-media">
-						<a class="post-card-thumb" href="<?php echo esc_url( $luxury_guide_url ); ?>" aria-label="<?php echo esc_attr( $luxury_guide_title ); ?>">
-							<?php
-							echo get_the_post_thumbnail(
-								$luxury_guide,
-								'large',
-								array(
-									'loading'  => 'lazy',
-									'decoding' => 'async',
-								)
-							);
-							?>
-						</a>
-					</div>
-				<?php endif; ?>
+			<?php if ( 'callout' === $guide_card_variant ) : ?>
+				<div class="guide-callout card-shell">
+					<div class="guide-callout__content">
+						<p class="pill pill--green pill--sm">Luxury property guide</p>
 
-				<div class="post-card-body">
-					<p class="pill pill--green pill--sm">Luxury property guide</p>
-					<h3 class="post-card-title">
-						<a href="<?php echo esc_url( $luxury_guide_url ); ?>">
-							<?php echo esc_html( $luxury_guide_title ); ?>
-						</a>
-					</h3>
-					<div class="post-card-excerpt">
-						<p><?php echo esc_html( $luxury_guide_text ); ?></p>
-						<p>The listings below show selected luxury opportunities, while this guide explains Istanbul&rsquo;s main prime districts, property types, Bosphorus-view homes, villa markets and buyer considerations in more depth.</p>
+						<h3>
+							<a href="<?php echo esc_url( $luxury_guide_url ); ?>">
+								<?php echo esc_html( $luxury_guide_title ); ?>
+							</a>
+						</h3>
+
+						<p>
+							Use our complete guide to compare Istanbul&rsquo;s prime districts, Bosphorus-view homes, branded residences, villas and buyer considerations in more depth.
+						</p>
 					</div>
-					<div class="post-card-readmore">
-						<a class="btn btn--solid btn--black" href="<?php echo esc_url( $luxury_guide_url ); ?>">Read the complete luxury property guide</a>
+
+					<div class="guide-callout__action">
+						<a class="btn btn--solid btn--black" href="<?php echo esc_url( $luxury_guide_url ); ?>">
+							Read the guide
+						</a>
 					</div>
 				</div>
-			</article>
+			<?php endif; ?>
 
 			<div class="cards-grid">
+				<?php if ( 'grid' === $guide_card_variant ) : ?>
+					<article class="card-shell guide-grid-card">
+						<p class="pill pill--green pill--sm">Full guide</p>
+
+						<h3>
+							<a href="<?php echo esc_url( $luxury_guide_url ); ?>">
+								<?php echo esc_html( $luxury_guide_title ); ?>
+							</a>
+						</h3>
+
+						<p>
+							Compare Istanbul&rsquo;s prime districts, property types, Bosphorus-view homes, villa markets and buyer considerations in our full luxury property guide.
+						</p>
+
+						<p>
+							<a href="<?php echo esc_url( $luxury_guide_url ); ?>">
+								Read the complete guide
+							</a>
+						</p>
+					</article>
+				<?php endif; ?>
 				<article class="card-shell">
 					<h3>Beşiktaş, Etiler and Levent</h3>
 					<p>These districts are ideal for buyers who want central access, prestige and proximity to Istanbul&rsquo;s business and lifestyle core. Levent and Etiler are particularly attractive for branded residences, high-end apartments and buyers who need quick access to Maslak, Zincirlikuyu and the Bosphorus corridor.</p>
