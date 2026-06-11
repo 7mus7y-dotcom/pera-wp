@@ -162,6 +162,24 @@
 }
 
 /* =======================================================
+   FRONTEND UTILITIES
+   ======================================================= */
+
+.u-mb-0 {
+  margin-bottom: 0 !important;
+}
+
+.u-eyebrow {
+  margin: 0 0 var(--space-xs, 8px);
+  color: var(--text-soft);
+  font-size: var(--fs-ui-xs, 0.8rem);
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  line-height: 1.2;
+  text-transform: uppercase;
+}
+
+/* =======================================================
    GENERIC CARD SHELL (reusable)
    ======================================================= */
 
