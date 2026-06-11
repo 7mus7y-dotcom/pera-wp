@@ -659,9 +659,17 @@
 
 .section-article .article-body .wp-block-table.wp-block-table--responsive table {
   width: 100% !important;
-  min-width: 0;
-  max-width: 100% !important;
+  min-width: 640px;
+  max-width: none !important;
   table-layout: fixed !important;
+}
+
+.section-article .article-body .wp-block-table.wp-block-table--responsive.article-table--process-stages table {
+  min-width: 720px;
+}
+
+.section-article .article-body .wp-block-table.wp-block-table--responsive.article-table--two-col table {
+  min-width: 560px;
 }
 
 .section-article .article-body .wp-block-table.wp-block-table--responsive th,
