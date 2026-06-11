@@ -4143,6 +4143,13 @@ ol.pretty-list li::before {
   font-weight: 800;
   line-height: 1;
 }
+.checklist--cross {
+  --checklist-icon-bg: var(--pill-red-bg, rgba(220, 38, 38, 0.12));
+  --checklist-icon-color: var(--pill-red, #dc2626);
+}
+.checklist--cross > li::before {
+  content: "×";
+}
 .checklist > li:has(> .icon-tick)::before {
   content: none;
 }
