@@ -80,7 +80,7 @@ $luxury_query = new WP_Query( $luxury_query_args );
 		<div class="hero-content">
 			<h1>Luxury Property in Istanbul for Discerning Buyers</h1>
 			<p class="text-light">Handpicked apartments, villas and branded residences in Istanbul&rsquo;s most desirable districts &mdash; selected for lifestyle, quality and long-term appeal.</p>
-			<p>
+			<div class="hero-actions hero-actions--luxury">
 				<a
 					class="btn btn--solid btn--green js-meta-lead-cta"
 					data-meta-event="Lead"
@@ -95,7 +95,7 @@ $luxury_query = new WP_Query( $luxury_query_args );
 					data-track-crm-event="whatsapp_click"
 					href="<?php echo esc_url( $whatsapp_url ); ?>">Request a Private Shortlist</a>
 				<a class="btn btn--solid btn--black" href="#selected-luxury-properties">View Selected Properties</a>
-			</p>
+			</div>
 		</div>
 	</section>
 
