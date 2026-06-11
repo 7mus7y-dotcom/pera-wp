@@ -141,6 +141,18 @@ $luxury_query = new WP_Query( $luxury_query_args );
 				    </ul>
 				    <p class="text-sm">No mass listings — only properties worth serious consideration.</p>
 				  </article>
+
+				 <article class="card-shell">
+				    <ul class="checklist">
+				      <li>
+				        <svg class="icon icon-tick" aria-hidden="true">
+				          <use href="#icon-check" xlink:href="#icon-check"></use>
+				        </svg>
+				        <strong>Property management</strong>
+				      </li>
+				    </ul>
+				    <p class="text-sm">Full property management of your home including cleaning, dealing with bills, taxes and other small annoyances - so you can concentrate on enjoying your home.</p>
+				  </article>
 				</div>
 			</div>
 		</div>
