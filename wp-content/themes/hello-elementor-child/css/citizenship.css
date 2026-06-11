@@ -257,3 +257,106 @@
     width: min(620px, 100%);
   }
 }
+
+/* Advisory sections added above the FAQ */
+.citizenship-advisory-panel {
+  display: grid;
+  gap: 22px;
+  padding: clamp(1.25rem, 2.5vw, 2rem);
+}
+
+.citizenship-advisory-copy p:last-child,
+.citizenship-route-note {
+  margin-bottom: 0;
+}
+
+.citizenship-disclaimer {
+  border-left: 4px solid var(--green, #0f7b5f);
+  border-radius: 14px;
+  background: rgba(15, 123, 95, 0.1);
+  color: var(--text, #111827);
+  padding: 16px 18px;
+  line-height: 1.55;
+}
+
+.citizenship-disclaimer strong {
+  display: block;
+  margin-bottom: 4px;
+}
+
+.citizenship-fit-grid {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.citizenship-fit-card .checklist {
+  margin: 0;
+}
+
+.citizenship-caution-list {
+  list-style: disc;
+  padding-left: 1.2rem;
+}
+
+.citizenship-caution-list li {
+  display: list-item;
+  padding-left: 0;
+}
+
+.citizenship-table-wrap {
+  overflow-x: auto;
+  border: 1px solid rgba(148, 163, 184, 0.35);
+  border-radius: 18px;
+  background: var(--bg, #ffffff);
+  box-shadow: 0 8px 22px rgba(15, 23, 42, 0.06);
+}
+
+.citizenship-route-table {
+  width: 100%;
+  min-width: 720px;
+  border-collapse: collapse;
+  text-align: left;
+}
+
+.citizenship-route-table th,
+.citizenship-route-table td {
+  padding: 15px 18px;
+  border-bottom: 1px solid rgba(148, 163, 184, 0.25);
+  vertical-align: top;
+}
+
+.citizenship-route-table thead th {
+  background: rgba(15, 23, 42, 0.04);
+  color: var(--text, #111827);
+  font-weight: 700;
+}
+
+.citizenship-route-table tbody th {
+  color: var(--text, #111827);
+  font-weight: 700;
+}
+
+.citizenship-route-table tbody tr:last-child th,
+.citizenship-route-table tbody tr:last-child td {
+  border-bottom: 0;
+}
+
+.citizenship-route-note {
+  margin-top: 16px;
+  color: var(--text-soft, #4b5563);
+  font-size: 0.95rem;
+}
+
+@media (max-width: 900px) {
+  .citizenship-fit-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .citizenship-route-table {
+    min-width: 640px;
+  }
+
+  .citizenship-route-table th,
+  .citizenship-route-table td {
+    padding: 13px 14px;
+  }
+}

@@ -1280,6 +1280,165 @@ $citizenship_requirements = array(
 </section>
 
 <!-- =====================================================
+     LEGAL AND COMPLIANCE CHECKS
+     ====================================================== -->
+<section class="section" id="citizenship-compliance-checks">
+  <div class="container">
+    <header class="section-header section-header--center">
+      <h2>Legal and compliance checks before you buy</h2>
+      <p>
+        Buying property for Turkish citizenship is not the same as buying a normal investment apartment. Before a property is treated as citizenship-eligible, the legal, title deed, valuation, payment and conformity requirements must be checked carefully.
+      </p>
+    </header>
+
+    <div class="content-panel-box citizenship-advisory-panel">
+      <div class="citizenship-advisory-copy">
+        <p>
+          Pera Property coordinates the property search and transaction process with licensed Turkish legal partners so that investors understand the requirements before committing to a purchase. Eligibility should be confirmed before funds are committed, especially where the property, seller, payment route or valuation needs further review.
+        </p>
+        <p>
+          These checks typically include an independent Turkish lawyer review, title deed checks, seller and property eligibility checks, official valuation report review, DAB / foreign currency compliance, land registry annotation for the mandatory 3-year holding period, and the Certificate of Conformity stage.
+        </p>
+        <p>
+          If you are comparing <a href="/property/">citizenship-eligible properties in Istanbul</a>, our team can explain which items need legal confirmation before reservation, title deed transfer and citizenship filing.
+        </p>
+      </div>
+
+      <div class="citizenship-disclaimer" role="note" aria-label="Legal services disclaimer">
+        <strong>Pera Property is not a law firm.</strong> Citizenship applications are handled with licensed Turkish legal partners. Property eligibility and legal requirements must be confirmed at the time of purchase.
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- =====================================================
+     FIT ASSESSMENT
+     ====================================================== -->
+<section class="section section-soft" id="is-turkish-citizenship-right-for-you">
+  <div class="container">
+    <header class="section-header section-header--center">
+      <h2>Is Turkish Citizenship by Investment right for you?</h2>
+      <p>
+        Turkish citizenship by investment can be a strong fit for some buyers, but it is not the right route for every objective. The best decision depends on your family priorities, documentation position, exit timeline and appetite for real estate ownership.
+      </p>
+    </header>
+
+    <div class="feature-grid citizenship-fit-grid">
+      <article class="feature-card citizenship-fit-card">
+        <div class="feature-card-header">
+          <h3>Good fit for</h3>
+        </div>
+        <div class="feature-card-body">
+          <ul class="checklist">
+            <li>
+              <svg class="icon icon-tick" aria-hidden="true">
+                <use href="<?php echo get_stylesheet_directory_uri(); ?>/logos-icons/icons.svg#icon-check"></use>
+              </svg>
+              Families seeking a second citizenship
+            </li>
+            <li>
+              <svg class="icon icon-tick" aria-hidden="true">
+                <use href="<?php echo get_stylesheet_directory_uri(); ?>/logos-icons/icons.svg#icon-check"></use>
+              </svg>
+              Investors who want a tangible real estate asset
+            </li>
+            <li>
+              <svg class="icon icon-tick" aria-hidden="true">
+                <use href="<?php echo get_stylesheet_directory_uri(); ?>/logos-icons/icons.svg#icon-check"></use>
+              </svg>
+              Buyers focused on Istanbul liquidity
+            </li>
+            <li>
+              <svg class="icon icon-tick" aria-hidden="true">
+                <use href="<?php echo get_stylesheet_directory_uri(); ?>/logos-icons/icons.svg#icon-check"></use>
+              </svg>
+              Applicants who can hold the property for at least 3 years
+            </li>
+            <li>
+              <svg class="icon icon-tick" aria-hidden="true">
+                <use href="<?php echo get_stylesheet_directory_uri(); ?>/logos-icons/icons.svg#icon-check"></use>
+              </svg>
+              Investors who want a relatively fast citizenship route
+            </li>
+          </ul>
+        </div>
+      </article>
+
+      <article class="feature-card citizenship-fit-card">
+        <div class="feature-card-header">
+          <h3>Not ideal for</h3>
+        </div>
+        <div class="feature-card-body">
+          <ul class="checklist citizenship-caution-list">
+            <li>Buyers who specifically need visa-free US or Schengen access</li>
+            <li>Investors who want immediate resale flexibility</li>
+            <li>Applicants unwilling to complete bank, legal and source-of-funds documentation</li>
+            <li>Buyers focused only on the cheapest qualifying property rather than eligibility, location and resale potential</li>
+          </ul>
+        </div>
+      </article>
+    </div>
+  </div>
+</section>
+
+<!-- =====================================================
+     INVESTMENT ROUTE COMPARISON
+     ====================================================== -->
+<section class="section" id="turkish-citizenship-investment-routes">
+  <div class="container">
+    <header class="section-header section-header--center">
+      <h2>Turkish citizenship investment routes compared</h2>
+      <p>
+        The real estate route is the most common option for many international investors, but it is not the only Turkish citizenship by investment route. The best route depends on your investment objective, documentation position, timeline and appetite for property ownership.
+      </p>
+    </header>
+
+    <div class="citizenship-table-wrap" role="region" aria-label="Turkish citizenship investment route comparison" tabindex="0">
+      <table class="citizenship-route-table">
+        <thead>
+          <tr>
+            <th scope="col">Route</th>
+            <th scope="col">Minimum investment</th>
+            <th scope="col">Common use case</th>
+            <th scope="col">Notes</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <th scope="row">Real estate</th>
+            <td>USD 400,000</td>
+            <td>Most popular route</td>
+            <td>Property must usually be held for at least 3 years</td>
+          </tr>
+          <tr>
+            <th scope="row">Bank deposit</th>
+            <td>USD 500,000</td>
+            <td>Capital preservation</td>
+            <td>Rules, bank requirements and documentation process differ</td>
+          </tr>
+          <tr>
+            <th scope="row">Government bonds</th>
+            <td>USD 500,000</td>
+            <td>Passive investment</td>
+            <td>Less exposure to property market performance</td>
+          </tr>
+          <tr>
+            <th scope="row">Business or employment routes</th>
+            <td>Varies</td>
+            <td>Operational investors</td>
+            <td>Usually more complex and case-specific</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <p class="citizenship-route-note">
+      Investment thresholds and application practice can change. Requirements should be checked with a licensed Turkish legal adviser before making an investment decision. To discuss your objectives, <a href="/contact/">speak to Pera Property</a>.
+    </p>
+  </div>
+</section>
+
+<!-- =====================================================
      FREQUENTLY ASKED QUESTIONS
      ====================================================== -->
 <?php get_template_part( 'partials/faq', 'citizenship' ); ?>
