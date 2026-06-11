@@ -1300,12 +1300,12 @@ $citizenship_requirements = array(
           These checks typically include an independent Turkish lawyer review, title deed checks, seller and property eligibility checks, official valuation report review, DAB / foreign currency compliance, land registry annotation for the mandatory 3-year holding period, and the Certificate of Conformity stage.
         </p>
         <p>
-          If you are comparing <a href="/property/">citizenship-eligible properties in Istanbul</a>, our team can explain which items need legal confirmation before reservation, title deed transfer and citizenship filing.
+          If you are comparing <a href="/turkish-citizenship-properties/">citizenship-eligible properties in Istanbul</a>, our team can explain which items need legal confirmation before reservation, title deed transfer and citizenship filing.
         </p>
       </div>
 
       <div class="citizenship-disclaimer" role="note" aria-label="Legal services disclaimer">
-        <strong>Pera Property is not a law firm.</strong> Citizenship applications are handled with licensed Turkish legal partners. Property eligibility and legal requirements must be confirmed at the time of purchase.
+        <strong>Pera Property is not a law firm.</strong> Citizenship applications are handled with licensed Turkish legal partners. Pera Property checks eligibility of all property which is claimed to be eligible before offering it to our clients. We strongly advise no payments are made before eligibility, particularly valuation reports, are checked.
       </div>
     </div>
   </div>
