@@ -1300,7 +1300,7 @@ $citizenship_requirements = array(
           These checks typically include an independent Turkish lawyer review, title deed checks, seller and property eligibility checks, official valuation report review, DAB / foreign currency compliance, land registry annotation for the mandatory 3-year holding period, and the Certificate of Conformity stage.
         </p>
         <p>
-          If you are comparing <a href="/turkish-citizenship-properties/">citizenship-eligible properties in Istanbul</a>, our team can explain which items need legal confirmation before reservation, title deed transfer and citizenship filing.
+          If you are comparing <a href="<?php echo esc_url( home_url( '/property/' ) ); ?>">citizenship-eligible properties in Istanbul</a>, our team can explain which items need legal confirmation before reservation, title deed transfer and citizenship filing.
         </p>
       </div>
 
@@ -1408,7 +1408,7 @@ $citizenship_requirements = array(
     </div>
 
     <p class="citizenship-route-note">
-      Investment thresholds and application practice can change. Requirements should be checked with a licensed Turkish legal adviser before making an investment decision. To discuss your objectives, <a href="/contact/">speak to Pera Property</a>.
+      Investment thresholds and application practice can change. Requirements should be checked with a licensed Turkish legal adviser before making an investment decision. To discuss your objectives, <a href="<?php echo esc_url( home_url( '/contact/' ) ); ?>">speak to Pera Property</a>.
     </p>
   </div>
 </section>
