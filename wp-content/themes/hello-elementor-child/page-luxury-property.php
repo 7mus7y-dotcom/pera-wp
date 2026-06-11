@@ -163,31 +163,22 @@ $luxury_query = new WP_Query( $luxury_query_args );
 			<p>Istanbul&rsquo;s luxury property market is highly location-specific. The strongest areas depend on whether the buyer is prioritising Bosphorus views, central business access, privacy, family living, branded residence services or long-term resale strength.</p>
 
 			<article class="post-card post-card--featured-guide card-shell">
-				<div class="post-card-media">
-					<?php if ( $luxury_guide && has_post_thumbnail( $luxury_guide ) ) : ?>
+				<?php if ( $luxury_guide && has_post_thumbnail( $luxury_guide ) ) : ?>
+					<div class="post-card-media">
 						<a class="post-card-thumb" href="<?php echo esc_url( $luxury_guide_url ); ?>" aria-label="<?php echo esc_attr( $luxury_guide_title ); ?>">
 							<?php
 							echo get_the_post_thumbnail(
 								$luxury_guide,
 								'large',
 								array(
-									'loading' => 'lazy',
+									'loading'  => 'lazy',
+									'decoding' => 'async',
 								)
 							);
 							?>
 						</a>
-					<?php else : ?>
-						<div class="post-card-thumb-placeholder post-card-thumb-logo" aria-hidden="true">
-							<img
-								src="<?php echo esc_url( get_stylesheet_directory_uri() . '/logos-icons/pera-logo.svg' ); ?>"
-								alt=""
-								class="post-card-placeholder-logo"
-								loading="lazy"
-								decoding="async"
-							>
-						</div>
-					<?php endif; ?>
-				</div>
+					</div>
+				<?php endif; ?>
 
 				<div class="post-card-body">
 					<p class="pill pill--green pill--sm">Luxury property guide</p>

@@ -4943,6 +4943,10 @@ ol.pretty-list li::before {
   padding: 0.5rem 0;
 }
 
+.post-card--featured-guide .post-card-body:only-child {
+  grid-column: 1 / -1;
+}
+
 .post-card--featured-guide .post-card-title a {
   color: inherit;
   text-decoration: none;
