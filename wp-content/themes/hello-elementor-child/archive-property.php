@@ -881,6 +881,9 @@ if ( ! $is_filtered_search && ( $qo instanceof WP_Term ) && ! is_wp_error( $qo )
                                 if ( ! is_wp_error( $tags ) ) :
                                     foreach ( $tags as $tag ) :
                                         $is_active = in_array( $tag->slug, $current_tag, true );
+                                        $tag_label = function_exists( 'pera_get_term_short_label' )
+                                            ? pera_get_term_short_label( $tag )
+                                            : $tag->name;
                                         ?>
                                         <label class="pill pill--outline filter-pill <?php echo $is_active ? 'pill--active' : ''; ?>">
                                             <input
@@ -889,7 +892,7 @@ if ( ! $is_filtered_search && ( $qo instanceof WP_Term ) && ! is_wp_error( $qo )
                                                 value="<?php echo esc_attr( $tag->slug ); ?>"
                                                 <?php checked( $is_active ); ?>
                                             >
-                                            <span><?php echo esc_html( $tag->name ); ?> (<?php echo (int) $tag->count; ?>)</span>
+                                            <span><?php echo esc_html( $tag_label ); ?> (<?php echo (int) $tag->count; ?>)</span>
                                         </label>
                                     <?php endforeach;
                                 endif;
