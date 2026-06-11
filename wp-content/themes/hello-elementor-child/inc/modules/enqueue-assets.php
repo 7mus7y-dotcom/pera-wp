@@ -297,10 +297,10 @@ if ( $is_home ) {
 
   /* =========================
      6) posts.css
-     Rule: blog page OR single post OR blog archive OR single property
+     Rule: blog page OR single post OR blog archive OR single property OR luxury property landing page
   ========================= */
 
-  if ( $is_home || $is_blog_page || $is_posts_index || $is_single_post || $is_blog_archive || $is_single_property ) {
+  if ( $is_home || $is_blog_page || $is_posts_index || $is_single_post || $is_blog_archive || $is_single_property || $is_luxury_property_page ) {
 
     $deps = array( 'pera-main-css', 'pera-card-typography' );
     if ( $needs_slider ) {

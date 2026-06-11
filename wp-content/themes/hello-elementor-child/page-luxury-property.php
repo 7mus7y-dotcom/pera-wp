@@ -146,6 +146,160 @@ $luxury_query = new WP_Query( $luxury_query_args );
 		</div>
 	</section>
 
+
+	<?php
+	$luxury_guide_id = 59250;
+	$luxury_guide    = get_post( $luxury_guide_id );
+
+	$luxury_guide_url   = $luxury_guide ? get_permalink( $luxury_guide ) : home_url( '/luxury-property-in-istanbul-the-complete-guide-to-prime-real-estate_59250/' );
+	$luxury_guide_title = $luxury_guide ? get_the_title( $luxury_guide ) : 'Luxury Property in Istanbul: The Complete Guide to Prime Real Estate';
+	$luxury_guide_text  = $luxury_guide ? wp_trim_words( get_the_excerpt( $luxury_guide ), 28 ) : 'Explore Istanbul’s luxury property market in depth, including prime districts, villas, branded residences, Bosphorus-view homes and buyer considerations.';
+	?>
+
+	<section class="section section-soft">
+		<div class="container">
+			<h2>Best Areas for Luxury Property in Istanbul</h2>
+
+			<p>Istanbul&rsquo;s luxury property market is highly location-specific. The strongest areas depend on whether the buyer is prioritising Bosphorus views, central business access, privacy, family living, branded residence services or long-term resale strength.</p>
+
+			<article class="post-card post-card--featured-guide card-shell">
+				<div class="post-card-media">
+					<?php if ( $luxury_guide && has_post_thumbnail( $luxury_guide ) ) : ?>
+						<a class="post-card-thumb" href="<?php echo esc_url( $luxury_guide_url ); ?>" aria-label="<?php echo esc_attr( $luxury_guide_title ); ?>">
+							<?php
+							echo get_the_post_thumbnail(
+								$luxury_guide,
+								'large',
+								array(
+									'loading' => 'lazy',
+								)
+							);
+							?>
+						</a>
+					<?php else : ?>
+						<div class="post-card-thumb-placeholder post-card-thumb-logo" aria-hidden="true">
+							<img
+								src="<?php echo esc_url( get_stylesheet_directory_uri() . '/logos-icons/pera-logo.svg' ); ?>"
+								alt=""
+								class="post-card-placeholder-logo"
+								loading="lazy"
+								decoding="async"
+							>
+						</div>
+					<?php endif; ?>
+				</div>
+
+				<div class="post-card-body">
+					<p class="pill pill--green pill--sm">Luxury property guide</p>
+					<h3 class="post-card-title">
+						<a href="<?php echo esc_url( $luxury_guide_url ); ?>">
+							<?php echo esc_html( $luxury_guide_title ); ?>
+						</a>
+					</h3>
+					<div class="post-card-excerpt">
+						<p><?php echo esc_html( $luxury_guide_text ); ?></p>
+						<p>The listings below show selected luxury opportunities, while this guide explains Istanbul&rsquo;s main prime districts, property types, Bosphorus-view homes, villa markets and buyer considerations in more depth.</p>
+					</div>
+					<div class="post-card-readmore">
+						<a class="btn btn--solid btn--black" href="<?php echo esc_url( $luxury_guide_url ); ?>">Read the complete luxury property guide</a>
+					</div>
+				</div>
+			</article>
+
+			<div class="cards-grid">
+				<article class="card-shell">
+					<h3>Beşiktaş, Etiler and Levent</h3>
+					<p>These districts are ideal for buyers who want central access, prestige and proximity to Istanbul&rsquo;s business and lifestyle core. Levent and Etiler are particularly attractive for branded residences, high-end apartments and buyers who need quick access to Maslak, Zincirlikuyu and the Bosphorus corridor.</p>
+					<p><a href="/district/istanbul/besiktas/">View Beşiktaş properties</a></p>
+				</article>
+
+				<article class="card-shell">
+					<h3>Nişantaşı and Şişli</h3>
+					<p>Nişantaşı is one of Istanbul&rsquo;s most established luxury apartment markets, known for walkability, boutiques, restaurants, private healthcare and historic apartment buildings. It suits buyers who want an urban, city-centre lifestyle rather than a compound or suburban villa setting.</p>
+					<p>
+						<a href="/district/istanbul/sisli/">View Şişli properties</a><br>
+						<a href="/buying-property-in-nisantasi-inside-istanbuls-most-prestigious-residential-market_59156/">Read the Nişantaşı buyer guide</a>
+					</p>
+				</article>
+
+				<article class="card-shell">
+					<h3>Sarıyer, Zekeriyaköy and the Northern Bosphorus</h3>
+					<p>Sarıyer and the northern districts are often preferred by villa buyers, families and clients looking for more privacy, greenery and larger living spaces. These areas are especially relevant for buyers comparing gated communities, forest-side homes and luxury villas.</p>
+					<p>
+						<a href="/district/istanbul/sariyer/">View Sarıyer properties</a><br>
+						<a href="/buying-property-in-sariyer-istanbul-explore-coastal-charm_50776/">Read the Sarıyer guide</a>
+					</p>
+				</article>
+
+				<article class="card-shell">
+					<h3>Üsküdar, Kandilli and the Asian Bosphorus</h3>
+					<p>The Asian Bosphorus offers a different luxury profile: waterfront mansions, historic neighbourhoods, calmer residential streets and strong views back toward the European side. Üsküdar, Kandilli, Çengelköy and nearby Bosphorus villages are attractive for buyers who want character and view quality.</p>
+					<p>
+						<a href="/district/istanbul/uskudar/">View Üsküdar properties</a><br>
+						<a href="/a-regional-guide-to-uskudar_51808/">Read the Üsküdar guide</a>
+					</p>
+				</article>
+			</div>
+		</div>
+	</section>
+
+	<section class="section">
+		<div class="container">
+			<h2>Types of Luxury Property Available in Istanbul</h2>
+
+			<p>Luxury property in Istanbul covers several different buyer profiles. Some clients want a lock-up-and-leave branded residence, while others prefer a Bosphorus-view apartment, a city-centre penthouse or a private villa with garden space.</p>
+
+			<div class="cards-grid">
+				<article class="card-shell">
+					<h3>Luxury Apartments</h3>
+					<p>Luxury apartments in Istanbul are usually concentrated in central districts such as Beşiktaş, Şişli, Nişantaşı, Levent, Etiler and parts of Kadıköy. They are popular with buyers who want convenience, security, walkability and strong rental demand.</p>
+				</article>
+
+				<article class="card-shell">
+					<h3>Branded Residences</h3>
+					<p>Branded and managed residences appeal to international buyers because they often provide security, concierge-style services, professional site management and amenities such as gyms, pools, parking and social facilities.</p>
+				</article>
+
+				<article class="card-shell">
+					<h3>Bosphorus View Homes</h3>
+					<p>Bosphorus-view property remains one of Istanbul&rsquo;s most recognisable luxury segments. View quality, building condition, title deed status, parking, floor level and immediate surroundings can all have a major effect on value.</p>
+					<p><a href="/bosphorus-sea-view-apartments-and-villas-in-istanbul_6262/">Read about Bosphorus sea-view apartments and villas</a></p>
+				</article>
+
+				<article class="card-shell">
+					<h3>Private Villas</h3>
+					<p>Villas are most relevant for buyers seeking privacy, garden space, family living and larger internal layouts. Sarıyer, Zekeriyaköy, Beykoz, Çekmeköy and selected northern districts are often considered by villa buyers.</p>
+					<p><a href="/a-guide-to-istanbuls-villa-communities-where-to-find-luxury-and-space_52516/">Read our guide to Istanbul&rsquo;s villa communities</a></p>
+				</article>
+			</div>
+		</div>
+	</section>
+
+	<section class="section section-soft">
+		<div class="container">
+			<h2>Investment and Rental Potential</h2>
+
+			<p>The strongest luxury property investments in Istanbul are usually not defined by price alone. Location quality, scarcity, building management, transport access, view quality and tenant depth are often more important than headline square metre size.</p>
+
+			<p>Prime districts can attract executives, expatriates, corporate tenants, families and international buyers looking for a reliable Istanbul base. For investors, the aim is usually a combination of capital preservation, rental liquidity and long-term resale appeal rather than chasing the highest theoretical yield.</p>
+
+			<ul class="checklist">
+				<li>Central apartments can suit executive and expatriate rental demand.</li>
+				<li>Branded residences may appeal to buyers who value management and amenities.</li>
+				<li>Bosphorus-view homes are limited in supply and often have strong long-term recognition.</li>
+				<li>Villas can perform well when privacy, land, garden space and family use are priorities.</li>
+				<li>District choice should be matched to the buyer&rsquo;s lifestyle, rental strategy and exit plan.</li>
+			</ul>
+
+			<p>
+				For wider market context, see our
+				<a href="/property-for-sale-in-istanbul-the-complete-2026-buyers-guide_58742/">2026 Istanbul property buyer&rsquo;s guide</a>
+				and our
+				<a href="/istanbul-property-market-in-february-2026-best-districts-for-price-growth-and-yield_58617/">district price growth and yield analysis</a>.
+			</p>
+		</div>
+	</section>
+
 	<section id="selected-luxury-properties" class="section section-soft">
 		<div class="container">
 			<h2>Selected Luxury Properties in Istanbul</h2>
