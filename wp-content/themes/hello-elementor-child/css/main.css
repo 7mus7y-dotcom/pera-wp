@@ -4922,3 +4922,43 @@ ol.pretty-list li::before {
 .phone-country-search-wrap .phone-country-search {
   min-width: 180px;
 }
+
+/* Luxury guide card modifier for the reusable post-card component. */
+.post-card--featured-guide {
+  display: grid;
+  grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.1fr);
+  gap: 1.5rem;
+  align-items: center;
+  margin: 1.5rem 0 2rem;
+}
+
+.post-card--featured-guide .post-card-media {
+  height: 100%;
+  min-height: 240px;
+  aspect-ratio: auto;
+  border-radius: var(--radius-lg);
+}
+
+.post-card--featured-guide .post-card-body {
+  padding: 0.5rem 0;
+}
+
+.post-card--featured-guide .post-card-title a {
+  color: inherit;
+  text-decoration: none;
+}
+
+.post-card--featured-guide .post-card-title a:hover {
+  text-decoration: underline;
+}
+
+@media (max-width: 782px) {
+  .post-card--featured-guide {
+    grid-template-columns: 1fr;
+  }
+
+  .post-card--featured-guide .post-card-media {
+    min-height: 0;
+    aspect-ratio: 16 / 9;
+  }
+}
