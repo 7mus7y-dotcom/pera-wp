@@ -151,7 +151,7 @@ $luxury_query = new WP_Query( $luxury_query_args );
 			<h2>Selected Luxury Properties in Istanbul</h2>
 			<p>Explore a focused sample of current luxury listings. For broader inventory, view the full luxury tag archive.</p>
 
-			<div class="grid-2">
+			<div class="grid-3">
 				<?php if ( $luxury_query->have_posts() ) : ?>
 					<?php while ( $luxury_query->have_posts() ) : $luxury_query->the_post(); ?>
 						<?php
