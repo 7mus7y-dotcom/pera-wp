@@ -151,7 +151,7 @@ $luxury_query = new WP_Query( $luxury_query_args );
 			<h2>Selected Luxury Properties in Istanbul</h2>
 			<p>Explore a focused sample of current luxury listings. For broader inventory, view the full luxury tag archive.</p>
 
-			<div class="cards-grid">
+			<div class="grid-2">
 				<?php if ( $luxury_query->have_posts() ) : ?>
 					<?php while ( $luxury_query->have_posts() ) : $luxury_query->the_post(); ?>
 						<?php
@@ -210,7 +210,7 @@ $luxury_query = new WP_Query( $luxury_query_args );
 
 			<p>Istanbul&rsquo;s luxury property market is highly location-specific. The strongest areas depend on whether the buyer is prioritising Bosphorus views, central business access, privacy, family living, branded residence services or long-term resale strength.</p>
 
-			<div class="cards-grid">
+			<div class="grid-2">
 				<article class="card-shell guide-grid-card">
 					<p class="pill pill--green pill--sm">Full guide</p>
 
@@ -273,7 +273,7 @@ $luxury_query = new WP_Query( $luxury_query_args );
 
 			<p>Luxury property in Istanbul covers several different buyer profiles. Some clients want a lock-up-and-leave branded residence, while others prefer a Bosphorus-view apartment, a city-centre penthouse or a private villa with garden space.</p>
 
-			<div class="cards-grid">
+			<div class="grid-2">
 				<article class="card-shell">
 					<h3>Luxury Apartments</h3>
 					<p>Luxury apartments in Istanbul are usually concentrated in central districts such as Beşiktaş, Şişli, Nişantaşı, Levent, Etiler and parts of Kadıköy. They are popular with buyers who want convenience, security, walkability and strong rental demand.</p>
@@ -327,7 +327,7 @@ $luxury_query = new WP_Query( $luxury_query_args );
 	<section class="section section-soft">
 		<div class="container">
 			<h2>Why Buyers Choose Istanbul</h2>
-			<div class="cards-grid">
+			<div class="grid-2">
 				<div><strong>Bosphorus and sea-view lifestyle</strong><p>Exceptional waterfront settings and established lifestyle districts.</p></div>
 				<div><strong>Strong prime-district resale appeal</strong><p>Enduring demand in centrally located, high-quality neighborhoods.</p></div>
 				<div><strong>Branded residences and managed projects</strong><p>Professionally operated homes with service-oriented amenities.</p></div>
