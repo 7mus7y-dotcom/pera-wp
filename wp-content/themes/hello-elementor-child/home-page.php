@@ -199,7 +199,7 @@ if ( function_exists( 'get_field' ) ) {
           <h3>Luxury Homes &amp; Branded Residences</h3>
           <p class="muted">Bosphorus homes, branded residences and premium Istanbul addresses for lifestyle-led and high-value buyers.</p>
           <div class="hero-actions">
-            <a class="btn btn--solid btn--blue" href="<?php echo esc_url( home_url( '/property_tags/istanbul-luxury-property-for-sale/' ) ); ?>">View luxury homes</a>
+            <a class="btn btn--solid btn--blue" href="<?php echo esc_url( home_url( '/istanbul-luxury-property/' ) ); ?>">View luxury homes</a>
             <a class="btn btn--ghost btn--blue" href="<?php echo esc_url( home_url( '/contact-us/' ) ); ?>">Request shortlist</a>
           </div>
         </article>
