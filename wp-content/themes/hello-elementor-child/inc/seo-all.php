@@ -1273,7 +1273,13 @@ add_action( 'wp_head', function () {
 
   if ( $context === 'static_page' && $post_id > 0 && pera_seo_all_is_citizenship_page() && $canonical !== '' ) {
     $publisher_name = 'Pera Property';
-    $publisher_url = (string) home_url( '/' );
+    $home_url       = (string) home_url( '/' );
+    $website_id     = (string) home_url( '/#website' );
+    $webpage_id     = $canonical . '#webpage';
+    $organization_id = $home_url . '#organization';
+    $agent_id       = $home_url . '#realestateagent';
+    $service_id     = $canonical . '#service';
+    $breadcrumb_id  = $canonical . '#breadcrumb';
     $publisher_logo = '';
     $custom_logo_id = (int) get_theme_mod( 'custom_logo' );
 
@@ -1281,51 +1287,160 @@ add_action( 'wp_head', function () {
       $publisher_logo = (string) wp_get_attachment_image_url( $custom_logo_id, 'full' );
     }
 
-    $article_image = $img_url;
-    if ( $article_image === '' ) {
-      $hero_fallback = (string) wp_get_attachment_image_url( 55756, 'full' );
-      if ( $hero_fallback !== '' ) {
-        $article_image = $hero_fallback;
-      }
+    $schema_image = $img_url;
+    if ( $schema_image === '' ) {
+      $schema_image = (string) wp_get_attachment_image_url( 55756, 'full' );
     }
 
-    $article_schema = array(
-      '@context' => 'https://schema.org',
-      '@type' => 'Article',
-      'headline' => get_the_title( $post_id ),
-      'mainEntityOfPage' => array(
-        '@type' => 'WebPage',
-        '@id' => $canonical,
-      ),
-      'author' => array(
-        '@type' => 'Organization',
-        'name' => $publisher_name,
-      ),
+    $website_schema = array(
+      '@type' => 'WebSite',
+      '@id'   => $website_id,
+      'url'   => $home_url,
+      'name'  => $site_name,
       'publisher' => array(
-        '@type' => 'Organization',
-        'name' => $publisher_name,
-        'url' => $publisher_url,
+        '@id' => $organization_id,
       ),
-      'datePublished' => get_post_time( DATE_W3C, true, $post_id ),
-      'dateModified' => get_post_modified_time( DATE_W3C, true, $post_id ),
     );
 
-    if ( $desc !== '' ) {
-      $article_schema['description'] = $desc;
-    }
+    $organization_schema = array(
+      '@type' => 'Organization',
+      '@id'   => $organization_id,
+      'name'  => $publisher_name,
+      'url'   => $home_url,
+    );
 
     if ( $publisher_logo !== '' ) {
-      $article_schema['publisher']['logo'] = array(
+      $organization_schema['logo'] = array(
         '@type' => 'ImageObject',
-        'url' => $publisher_logo,
+        'url'   => $publisher_logo,
       );
     }
 
-    if ( $article_image !== '' ) {
-      $article_schema['image'] = $article_image;
+    $real_estate_agent_schema = array(
+      '@type' => 'RealEstateAgent',
+      '@id'   => $agent_id,
+      'name'  => $publisher_name,
+      'url'   => $home_url,
+      'description' => 'Istanbul-based real estate agency helping international buyers purchase property in Turkey, including citizenship-eligible real estate investments.',
+      'telephone' => '+90 532 063 99 78',
+      'email' => 'info@peraproperty.com',
+      'parentOrganization' => array(
+        '@id' => $organization_id,
+      ),
+      'address' => array(
+        '@type' => 'PostalAddress',
+        'streetAddress' => 'Gümüşsuyu Mah. Ankara Palas, İnönü Cd. No 59/1',
+        'postalCode' => '34437',
+        'addressLocality' => 'Beyoğlu',
+        'addressRegion' => 'İstanbul',
+        'addressCountry' => 'TR',
+      ),
+      'areaServed' => array(
+        '@type' => 'Country',
+        'name'  => 'Turkey',
+      ),
+    );
+
+    if ( $schema_image !== '' ) {
+      $real_estate_agent_schema['image'] = $schema_image;
     }
 
-    echo '<script type="application/ld+json">' . wp_json_encode( $article_schema, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE ) . '</script>' . "\n";
+    $webpage_schema = array(
+      '@type' => 'WebPage',
+      '@id'   => $webpage_id,
+      'url'   => $canonical,
+      'name'  => $title,
+      'isPartOf' => array(
+        '@id' => $website_id,
+      ),
+      'about' => array(
+        '@id' => $service_id,
+      ),
+      'mainEntity' => array(
+        '@id' => $service_id,
+      ),
+      'breadcrumb' => array(
+        '@id' => $breadcrumb_id,
+      ),
+      'publisher' => array(
+        '@id' => $organization_id,
+      ),
+    );
+
+    if ( $desc !== '' ) {
+      $webpage_schema['description'] = $desc;
+    }
+
+    if ( $schema_image !== '' ) {
+      $webpage_schema['image'] = $schema_image;
+    }
+
+    $service_schema = array(
+      '@type' => 'Service',
+      '@id'   => $service_id,
+      'name'  => 'Turkish Citizenship by Investment Consultancy',
+      'serviceType' => 'Citizenship by investment property advisory',
+      'url'   => $canonical,
+      'provider' => array(
+        '@id' => $agent_id,
+      ),
+      'areaServed' => array(
+        '@type' => 'Country',
+        'name'  => 'Turkey',
+      ),
+      'audience' => array(
+        '@type' => 'Audience',
+        'audienceType' => 'International property investors and families applying for Turkish citizenship by investment',
+      ),
+      'mainEntityOfPage' => array(
+        '@id' => $webpage_id,
+      ),
+      'availableChannel' => array(
+        '@type' => 'ServiceChannel',
+        'serviceUrl' => $canonical,
+        'availableLanguage' => array(
+          'English',
+          'Turkish',
+        ),
+      ),
+    );
+
+    if ( $desc !== '' ) {
+      $service_schema['description'] = $desc;
+    }
+
+    $breadcrumb_schema = array(
+      '@type' => 'BreadcrumbList',
+      '@id'   => $breadcrumb_id,
+      'itemListElement' => array(
+        array(
+          '@type' => 'ListItem',
+          'position' => 1,
+          'name' => 'Home',
+          'item' => $home_url,
+        ),
+        array(
+          '@type' => 'ListItem',
+          'position' => 2,
+          'name' => 'Turkish Citizenship by Investment',
+          'item' => $canonical,
+        ),
+      ),
+    );
+
+    $schema_graph = array(
+      '@context' => 'https://schema.org',
+      '@graph'   => array(
+        $website_schema,
+        $organization_schema,
+        $real_estate_agent_schema,
+        $webpage_schema,
+        $service_schema,
+        $breadcrumb_schema,
+      ),
+    );
+
+    echo '<script type="application/ld+json">' . wp_json_encode( $schema_graph, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT ) . '</script>' . "\n";
 
     $faq_items = pera_seo_all_citizenship_faq_items();
     if ( ! empty( $faq_items ) ) {
@@ -1336,9 +1451,11 @@ add_action( 'wp_head', function () {
           continue;
         }
 
+        $faq_question = preg_replace( '/^Q:\s*/', '', (string) $faq_item['question'] );
+
         $faq_entities[] = array(
           '@type' => 'Question',
-          'name' => (string) $faq_item['question'],
+          'name' => $faq_question,
           'acceptedAnswer' => array(
             '@type' => 'Answer',
             'text' => (string) $faq_item['answer'],
@@ -1355,7 +1472,7 @@ add_action( 'wp_head', function () {
 
         // Mark FAQ schema as emitted so other schema modules can avoid duplicate FAQPage output.
         $GLOBALS['pera_schema_faq_emitted'] = true;
-        echo '<script type="application/ld+json">' . wp_json_encode( $faq_schema, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE ) . '</script>' . "\n";
+        echo '<script type="application/ld+json">' . wp_json_encode( $faq_schema, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT ) . '</script>' . "\n";
       }
     }
   }
@@ -1469,7 +1586,7 @@ add_action( 'wp_head', function () {
   }
 
 
-  if ( $schema_type !== '' && $canonical !== '' ) {
+  if ( $schema_type !== '' && $canonical !== '' && ! ( $context === 'static_page' && $post_id > 0 && pera_seo_all_is_citizenship_page() ) ) {
     $schema = array(
       '@context' => 'https://schema.org',
       '@type'    => $schema_type,
