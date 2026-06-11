@@ -1170,6 +1170,25 @@ button.pill:focus-visible {
   justify-content: center;
 }
 
+
+.hero-actions--luxury {
+  margin-top: 1.25rem;
+}
+
+@media (max-width: 600px) {
+  .hero-actions--luxury {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 0.75rem;
+  }
+
+  .hero-actions--luxury .btn {
+    width: 100%;
+    justify-content: center;
+    text-align: center;
+  }
+}
+
 /* Hero pills – row layout already handled by .hero-actions */
 .hero-pills {
   align-items: center;
