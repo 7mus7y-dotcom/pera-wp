@@ -122,7 +122,8 @@ $needs_slider = (
   $is_single_bodrum_property ||
   $is_single_post ||
   $is_contact_page ||
-  $is_about_new
+  $is_about_new ||
+  $is_citizenship_page
 );
 
 if ( $needs_slider ) {
