@@ -4120,7 +4120,7 @@ ol.pretty-list li::before {
 .checklist {
   --checklist-icon-color: var(--pill-green);
   --checklist-icon-bg: transparent;
-  --checklist-icon-size: 1.5rem;
+  --checklist-icon-size: 1.1rem;
   --checklist-gap: var(--space-sm, 12px);
   --checklist-item-gap: 0;
   --checklist-item-padding: 0;
