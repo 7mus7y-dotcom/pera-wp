@@ -160,7 +160,6 @@ $citizenship_requirements = array(
 
   <section class="section citizenship-consultancy">
     <div class="container">
-      <div class="content-panel-box">
         <div class="content-panel-grid--single">
           <header class="section-header section-header--center">
             <h2>Full-service citizenship consultancy in Istanbul</h2>
@@ -172,7 +171,6 @@ $citizenship_requirements = array(
             <article class="feature-card"><div class="feature-card-body"><p>One accountable team with clear updates, timeline visibility, and practical next steps at every stage.</p></div></article>
           </div>
         </div>
-      </div>
     </div>
   </section>
 
