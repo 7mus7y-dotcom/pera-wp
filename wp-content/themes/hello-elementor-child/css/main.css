@@ -2159,7 +2159,6 @@ body:not(.single-post) td {
   border-bottom: 1px solid #dddddd;
 }
 body:not(.single-post) th {
-  background: #111111;
   color: #ffffff;
   text-align: left;
 }
