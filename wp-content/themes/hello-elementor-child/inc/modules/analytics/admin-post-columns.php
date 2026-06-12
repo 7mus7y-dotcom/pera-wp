@@ -3,59 +3,100 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-if ( ! function_exists( 'pera_analytics_add_post_visits_30d_column' ) ) {
-	function pera_analytics_add_post_visits_30d_column( array $columns ): array {
+if ( ! function_exists( 'pera_analytics_visits_30d_column_key' ) ) {
+	function pera_analytics_visits_30d_column_key(): string {
+		return 'pera_visits_30d';
+	}
+}
+
+if ( ! function_exists( 'pera_analytics_visits_30d_admin_post_types' ) ) {
+	function pera_analytics_visits_30d_admin_post_types(): array {
+		return array( 'post', 'property' );
+	}
+}
+
+if ( ! function_exists( 'pera_analytics_add_visits_30d_column' ) ) {
+	function pera_analytics_add_visits_30d_column( array $columns ): array {
 		if ( ! current_user_can( 'manage_options' ) ) {
 			return $columns;
 		}
 
-		$columns['pera_visits_30d'] = esc_html__( 'Visits 30d', 'hello-elementor-child' );
+		$columns[ pera_analytics_visits_30d_column_key() ] = esc_html__( 'Visits 30d', 'hello-elementor-child' );
 
 		return $columns;
 	}
 }
-add_filter( 'manage_post_posts_columns', 'pera_analytics_add_post_visits_30d_column' );
 
-if ( ! function_exists( 'pera_analytics_make_post_visits_30d_sortable' ) ) {
-	function pera_analytics_make_post_visits_30d_sortable( array $sortable_columns ): array {
-		$sortable_columns['pera_visits_30d'] = 'pera_visits_30d';
+if ( ! function_exists( 'pera_analytics_make_visits_30d_sortable' ) ) {
+	function pera_analytics_make_visits_30d_sortable( array $sortable_columns ): array {
+		$sortable_columns[ pera_analytics_visits_30d_column_key() ] = pera_analytics_visits_30d_column_key();
 
 		return $sortable_columns;
 	}
 }
-add_filter( 'manage_edit-post_sortable_columns', 'pera_analytics_make_post_visits_30d_sortable' );
 
-if ( ! function_exists( 'pera_analytics_render_post_visits_30d_column' ) ) {
-	function pera_analytics_render_post_visits_30d_column( string $column_name, int $post_id ): void {
-		if ( 'pera_visits_30d' !== $column_name || ! current_user_can( 'manage_options' ) ) {
-			return;
-		}
+if ( ! function_exists( 'pera_analytics_visits_30d_date_window' ) ) {
+	function pera_analytics_visits_30d_date_window(): array {
+		return array(
+			'start_date' => wp_date( 'Y-m-d', strtotime( '-29 days', current_time( 'timestamp' ) ) ),
+			'end_date'   => wp_date( 'Y-m-d', current_time( 'timestamp' ) ),
+		);
+	}
+}
 
+if ( ! function_exists( 'pera_analytics_get_post_visits_30d' ) ) {
+	function pera_analytics_get_post_visits_30d( int $post_id ): int {
 		global $wpdb;
 
-		$daily_table = $wpdb->prefix . 'pera_page_visit_daily';
-		$start_date  = wp_date( 'Y-m-d', strtotime( '-29 days', current_time( 'timestamp' ) ) );
-		$end_date    = wp_date( 'Y-m-d', current_time( 'timestamp' ) );
+		$daily_table = pera_analytics_daily_table_name();
+		$date_window = pera_analytics_visits_30d_date_window();
 
-		$visits = (int) $wpdb->get_var(
+		return (int) $wpdb->get_var(
 			$wpdb->prepare(
 				"SELECT COALESCE(SUM(visits), 0)
 				 FROM {$daily_table}
 				 WHERE post_id = %d
 				   AND summary_date BETWEEN %s AND %s",
 				$post_id,
-				$start_date,
-				$end_date
+				$date_window['start_date'],
+				$date_window['end_date']
 			)
 		);
-
-		echo esc_html( number_format_i18n( $visits ) );
 	}
 }
-add_action( 'manage_post_posts_custom_column', 'pera_analytics_render_post_visits_30d_column', 10, 2 );
 
-if ( ! function_exists( 'pera_analytics_prepare_post_visits_30d_sorting' ) ) {
-	function pera_analytics_prepare_post_visits_30d_sorting( WP_Query $query ): void {
+if ( ! function_exists( 'pera_analytics_render_visits_30d_column' ) ) {
+	function pera_analytics_render_visits_30d_column( string $column_name, int $post_id ): void {
+		if ( pera_analytics_visits_30d_column_key() !== $column_name || ! current_user_can( 'manage_options' ) ) {
+			return;
+		}
+
+		echo esc_html( number_format_i18n( pera_analytics_get_post_visits_30d( $post_id ) ) );
+	}
+}
+
+if ( ! function_exists( 'pera_analytics_admin_list_post_type' ) ) {
+	function pera_analytics_admin_list_post_type( WP_Query $query ): string {
+		$post_type = $query->get( 'post_type' );
+		if ( is_array( $post_type ) ) {
+			$post_type = reset( $post_type );
+		}
+
+		$post_type = sanitize_key( (string) $post_type );
+		if ( '' !== $post_type ) {
+			return $post_type;
+		}
+
+		if ( isset( $_GET['post_type'] ) ) {
+			return sanitize_key( wp_unslash( (string) $_GET['post_type'] ) );
+		}
+
+		return 'post';
+	}
+}
+
+if ( ! function_exists( 'pera_analytics_prepare_visits_30d_sorting' ) ) {
+	function pera_analytics_prepare_visits_30d_sorting( WP_Query $query ): void {
 		if ( ! is_admin() || ! $query->is_main_query() ) {
 			return;
 		}
@@ -68,12 +109,11 @@ if ( ! function_exists( 'pera_analytics_prepare_post_visits_30d_sorting' ) ) {
 			return;
 		}
 
-		$post_type = $query->get( 'post_type' );
-		if ( $post_type && 'post' !== $post_type ) {
+		if ( ! in_array( pera_analytics_admin_list_post_type( $query ), pera_analytics_visits_30d_admin_post_types(), true ) ) {
 			return;
 		}
 
-		if ( 'pera_visits_30d' !== $query->get( 'orderby' ) ) {
+		if ( pera_analytics_visits_30d_column_key() !== $query->get( 'orderby' ) ) {
 			return;
 		}
 
@@ -84,10 +124,9 @@ if ( ! function_exists( 'pera_analytics_prepare_post_visits_30d_sorting' ) ) {
 		$query->set( 'pera_sort_visits_30d', true );
 	}
 }
-add_action( 'pre_get_posts', 'pera_analytics_prepare_post_visits_30d_sorting' );
 
-if ( ! function_exists( 'pera_analytics_apply_post_visits_30d_sorting_clauses' ) ) {
-	function pera_analytics_apply_post_visits_30d_sorting_clauses( array $clauses, WP_Query $query ): array {
+if ( ! function_exists( 'pera_analytics_apply_visits_30d_sorting_clauses' ) ) {
+	function pera_analytics_apply_visits_30d_sorting_clauses( array $clauses, WP_Query $query ): array {
 		if ( ! is_admin() || ! $query->is_main_query() || ! $query->get( 'pera_sort_visits_30d' ) ) {
 			return $clauses;
 		}
@@ -97,9 +136,8 @@ if ( ! function_exists( 'pera_analytics_apply_post_visits_30d_sorting_clauses' )
 
 		global $wpdb;
 
-		$daily_table = $wpdb->prefix . 'pera_page_visit_daily';
-		$start_date  = wp_date( 'Y-m-d', strtotime( '-29 days', current_time( 'timestamp' ) ) );
-		$end_date    = wp_date( 'Y-m-d', current_time( 'timestamp' ) );
+		$daily_table = pera_analytics_daily_table_name();
+		$date_window = pera_analytics_visits_30d_date_window();
 		$order       = strtoupper( (string) $query->get( 'order' ) );
 		$order       = 'ASC' === $order ? 'ASC' : 'DESC';
 
@@ -112,8 +150,8 @@ if ( ! function_exists( 'pera_analytics_apply_post_visits_30d_sorting_clauses' )
 				WHERE summary_date BETWEEN %s AND %s
 				GROUP BY post_id
 			) {$alias} ON {$wpdb->posts}.ID = {$alias}.post_id",
-			$start_date,
-			$end_date
+			$date_window['start_date'],
+			$date_window['end_date']
 		);
 
 		$clauses['orderby'] = "COALESCE({$alias}.visits_30d, 0) {$order}, {$wpdb->posts}.ID DESC";
@@ -121,4 +159,21 @@ if ( ! function_exists( 'pera_analytics_apply_post_visits_30d_sorting_clauses' )
 		return $clauses;
 	}
 }
-add_filter( 'posts_clauses', 'pera_analytics_apply_post_visits_30d_sorting_clauses', 10, 2 );
+
+if ( ! function_exists( 'pera_analytics_register_visits_30d_admin_columns' ) ) {
+	function pera_analytics_register_visits_30d_admin_columns(): void {
+		foreach ( pera_analytics_visits_30d_admin_post_types() as $post_type ) {
+			if ( ! post_type_exists( $post_type ) ) {
+				continue;
+			}
+
+			add_filter( "manage_{$post_type}_posts_columns", 'pera_analytics_add_visits_30d_column' );
+			add_filter( "manage_edit-{$post_type}_sortable_columns", 'pera_analytics_make_visits_30d_sortable' );
+			add_action( "manage_{$post_type}_posts_custom_column", 'pera_analytics_render_visits_30d_column', 10, 2 );
+		}
+	}
+}
+add_action( 'admin_init', 'pera_analytics_register_visits_30d_admin_columns' );
+
+add_action( 'pre_get_posts', 'pera_analytics_prepare_visits_30d_sorting' );
+add_filter( 'posts_clauses', 'pera_analytics_apply_visits_30d_sorting_clauses', 10, 2 );
