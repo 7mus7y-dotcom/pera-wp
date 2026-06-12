@@ -146,6 +146,7 @@ $needs_card_typography = (
   || $is_single_post
   || $is_blog_archive
   || $is_favourites_page
+  || $is_citizenship_page
   || $is_luxury_property_page
 );
 
@@ -297,10 +298,10 @@ if ( $is_home ) {
 
   /* =========================
      6) posts.css
-     Rule: blog page OR single post OR blog archive OR single property OR luxury property landing page
+     Rule: blog page OR single post OR blog archive OR single property OR luxury property landing page OR citizenship page
   ========================= */
 
-  if ( $is_home || $is_blog_page || $is_posts_index || $is_single_post || $is_blog_archive || $is_single_property || $is_luxury_property_page ) {
+  if ( $is_home || $is_blog_page || $is_posts_index || $is_single_post || $is_blog_archive || $is_single_property || $is_luxury_property_page || $is_citizenship_page ) {
 
     $deps = array( 'pera-main-css', 'pera-card-typography' );
     if ( $needs_slider ) {
