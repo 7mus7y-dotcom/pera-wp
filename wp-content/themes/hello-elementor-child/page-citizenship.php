@@ -1413,6 +1413,8 @@ $citizenship_requirements = array(
   </div>
 </section>
 
+<?php get_template_part( 'parts/citizenship-guide-posts' ); ?>
+
 <!-- =====================================================
      FREQUENTLY ASKED QUESTIONS
      ====================================================== -->
