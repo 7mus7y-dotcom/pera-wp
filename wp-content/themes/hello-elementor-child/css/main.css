@@ -209,6 +209,11 @@
   flex-wrap: wrap;
 }
 
+.article-card-stack {
+  display: grid;
+  gap: var(--space-md, 20px);
+}
+
 
 
 /* Shared shell for reusable cards (property/post/latest-offers) */
