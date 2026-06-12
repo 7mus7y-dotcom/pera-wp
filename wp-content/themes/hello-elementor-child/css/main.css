@@ -3055,11 +3055,12 @@ body:not(.single-post) tr:nth-child(even) {
   color: var(--text, #111827);
   padding: 16px 18px;
   line-height: 1.55;
+  margin-bottom: var(--space-sm);
+
 }
 
 .content-note strong {
   display: block;
-  margin-bottom: 4px;
 }
 
 /* Responsive: 2 columns then 1 */
