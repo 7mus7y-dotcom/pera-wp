@@ -3042,6 +3042,21 @@ body:not(.single-post) tr:nth-child(even) {
   background: var(--accent);
 }
 
+/* Reusable content note / disclaimer */
+.content-note {
+  border-left: 4px solid var(--green, #0f7b5f);
+  border-radius: 14px;
+  background: rgba(15, 123, 95, 0.1);
+  color: var(--text, #111827);
+  padding: 16px 18px;
+  line-height: 1.55;
+}
+
+.content-note strong {
+  display: block;
+  margin-bottom: 4px;
+}
+
 /* Responsive: 2 columns then 1 */
 @media (max-width: 1024px) {
   .feature-grid {

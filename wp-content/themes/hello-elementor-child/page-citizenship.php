@@ -1304,7 +1304,7 @@ $citizenship_requirements = array(
         </p>
       </div>
 
-      <div class="citizenship-disclaimer" role="note" aria-label="Legal services disclaimer">
+      <div class="content-note" role="note" aria-label="Legal services disclaimer">
         <strong>Pera Property is not a law firm.</strong> Citizenship applications are handled with licensed Turkish legal partners. Pera Property checks eligibility of all property which is claimed to be eligible before offering it to our clients. We strongly advise no payments are made before eligibility, particularly valuation reports, are checked.
       </div>
     </div>
