@@ -270,19 +270,6 @@
   margin-bottom: 0;
 }
 
-.citizenship-disclaimer {
-  border-left: 4px solid var(--green, #0f7b5f);
-  border-radius: 14px;
-  background: rgba(15, 123, 95, 0.1);
-  color: var(--text, #111827);
-  padding: 16px 18px;
-  line-height: 1.55;
-}
-
-.citizenship-disclaimer strong {
-  display: block;
-  margin-bottom: 4px;
-}
 
 .citizenship-fit-grid {
   grid-template-columns: repeat(2, minmax(0, 1fr));
