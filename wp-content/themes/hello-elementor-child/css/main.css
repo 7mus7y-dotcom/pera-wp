@@ -3225,6 +3225,22 @@ body:not(.single-post) tr:nth-child(even) {
   font-size: 0.8rem;
 }
 
+@media (prefers-color-scheme: dark) {
+  .content-panel-box {
+    background: #020617;
+    border-color: rgba(148, 163, 184, 0.35);
+  }
+
+  .signoff-card {
+    background: rgba(15, 23, 42, 0.95);
+    border: 1px solid rgba(148, 163, 184, 0.35);
+  }
+
+  .signoff-text h5 {
+    color: var(--text);
+  }
+}
+
 /* keep this special case for About page if needed */
 .about-pera .signoff-card {
   flex: 0 0 auto;
