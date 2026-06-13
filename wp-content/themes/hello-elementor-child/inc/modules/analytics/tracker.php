@@ -115,9 +115,9 @@ if ( ! function_exists( 'pera_analytics_get_or_set_visitor_id' ) ) {
 
 
 
-if ( ! function_exists( 'pera_analytics_get_request_country' ) ) {
-	function pera_analytics_get_request_country(): array {
-		$country_code = isset( $_SERVER['HTTP_CF_IPCOUNTRY'] ) ? strtoupper( sanitize_text_field( wp_unslash( (string) $_SERVER['HTTP_CF_IPCOUNTRY'] ) ) ) : '';
+if ( ! function_exists( 'pera_analytics_country_from_code' ) ) {
+	function pera_analytics_country_from_code( string $country_code, string $country_name = '' ): array {
+		$country_code = strtoupper( sanitize_text_field( $country_code ) );
 
 		if ( ! preg_match( '/^[A-Z]{2}$/', $country_code ) || 'XX' === $country_code ) {
 			return array(
@@ -126,17 +126,160 @@ if ( ! function_exists( 'pera_analytics_get_request_country' ) ) {
 			);
 		}
 
-		$country_name = $country_code;
-		if ( function_exists( 'locale_get_display_region' ) ) {
+		$resolved_name = '' !== $country_name ? $country_name : $country_code;
+		if ( '' === $country_name && function_exists( 'locale_get_display_region' ) ) {
 			$display_name = locale_get_display_region( '-' . $country_code, get_locale() );
 			if ( is_string( $display_name ) && '' !== $display_name ) {
-				$country_name = $display_name;
+				$resolved_name = $display_name;
 			}
 		}
 
 		return array(
 			'country_code' => $country_code,
-			'country_name' => function_exists( 'mb_substr' ) ? mb_substr( $country_name, 0, 100 ) : substr( $country_name, 0, 100 ),
+			'country_name' => function_exists( 'mb_substr' ) ? mb_substr( $resolved_name, 0, 100 ) : substr( $resolved_name, 0, 100 ),
+		);
+	}
+}
+
+if ( ! function_exists( 'pera_analytics_get_request_ip' ) ) {
+	function pera_analytics_get_request_ip(): string {
+		$ip_headers = array(
+			'HTTP_CF_CONNECTING_IP',
+			'HTTP_TRUE_CLIENT_IP',
+			'HTTP_X_FORWARDED_FOR',
+			'REMOTE_ADDR',
+		);
+
+		foreach ( $ip_headers as $header ) {
+			$value = isset( $_SERVER[ $header ] ) ? (string) wp_unslash( $_SERVER[ $header ] ) : '';
+			if ( '' === $value ) {
+				continue;
+			}
+
+			foreach ( explode( ',', $value ) as $candidate ) {
+				$ip = trim( $candidate );
+				if ( false !== filter_var( $ip, FILTER_VALIDATE_IP, FILTER_FLAG_NO_PRIV_RANGE | FILTER_FLAG_NO_RES_RANGE ) ) {
+					return $ip;
+				}
+			}
+		}
+
+		return '';
+	}
+}
+
+if ( ! function_exists( 'pera_analytics_geoip_database_paths' ) ) {
+	function pera_analytics_geoip_database_paths(): array {
+		$paths = array(
+			WP_CONTENT_DIR . '/uploads/GeoLite2-Country.mmdb',
+			WP_CONTENT_DIR . '/GeoLite2-Country.mmdb',
+			ABSPATH . 'GeoLite2-Country.mmdb',
+			'/usr/share/GeoIP/GeoLite2-Country.mmdb',
+			'/usr/local/share/GeoIP/GeoLite2-Country.mmdb',
+			'/var/lib/GeoIP/GeoLite2-Country.mmdb',
+		);
+
+		/**
+		 * Allows hosts to point analytics country detection at an existing local
+		 * MaxMind GeoLite2 Country database without making per-visit API calls.
+		 */
+		$paths = apply_filters( 'pera_analytics_geoip_database_paths', $paths );
+
+		return array_values( array_filter( array_unique( array_map( 'strval', (array) $paths ) ) ) );
+	}
+}
+
+
+if ( ! function_exists( 'pera_analytics_maybe_load_geoip_reader' ) ) {
+	function pera_analytics_maybe_load_geoip_reader(): bool {
+		if ( class_exists( '\GeoIp2\Database\Reader' ) ) {
+			return true;
+		}
+
+		$autoload_paths = array(
+			get_stylesheet_directory() . '/vendor/autoload.php',
+			WP_CONTENT_DIR . '/vendor/autoload.php',
+			ABSPATH . 'vendor/autoload.php',
+		);
+
+		/**
+		 * Allows hosts to expose an existing Composer autoloader that contains the
+		 * MaxMind GeoIP2 Reader package; this still uses a local database only.
+		 */
+		$autoload_paths = apply_filters( 'pera_analytics_geoip_autoload_paths', $autoload_paths );
+
+		foreach ( array_filter( array_unique( array_map( 'strval', (array) $autoload_paths ) ) ) as $autoload_path ) {
+			if ( is_readable( $autoload_path ) ) {
+				require_once $autoload_path;
+			}
+
+			if ( class_exists( '\GeoIp2\Database\Reader' ) ) {
+				return true;
+			}
+		}
+
+		return false;
+	}
+}
+
+if ( ! function_exists( 'pera_analytics_get_country_from_local_geoip' ) ) {
+	function pera_analytics_get_country_from_local_geoip( string $ip ): array {
+		if ( '' === $ip ) {
+			return array();
+		}
+
+		if ( pera_analytics_maybe_load_geoip_reader() ) {
+			foreach ( pera_analytics_geoip_database_paths() as $database_path ) {
+				if ( ! is_readable( $database_path ) ) {
+					continue;
+				}
+
+				try {
+					$reader       = new \GeoIp2\Database\Reader( $database_path );
+					$record       = $reader->country( $ip );
+					$country_code = isset( $record->country->isoCode ) ? (string) $record->country->isoCode : '';
+					$locale       = function_exists( 'get_locale' ) ? substr( (string) get_locale(), 0, 2 ) : 'en';
+					$country_name = isset( $record->country->names[ $locale ] ) ? (string) $record->country->names[ $locale ] : ( isset( $record->country->name ) ? (string) $record->country->name : '' );
+					$reader->close();
+
+					if ( '' !== $country_code ) {
+						return pera_analytics_country_from_code( $country_code, $country_name );
+					}
+				} catch ( Throwable $e ) {
+					continue;
+				}
+			}
+		}
+
+		if ( function_exists( 'geoip_country_code_by_name' ) ) {
+			$country_code = geoip_country_code_by_name( $ip );
+			if ( is_string( $country_code ) && '' !== $country_code ) {
+				return pera_analytics_country_from_code( $country_code );
+			}
+		}
+
+		return array();
+	}
+}
+
+if ( ! function_exists( 'pera_analytics_get_request_country' ) ) {
+	function pera_analytics_get_request_country(): array {
+		$cloudflare_country_code = isset( $_SERVER['HTTP_CF_IPCOUNTRY'] ) ? strtoupper( sanitize_text_field( wp_unslash( (string) $_SERVER['HTTP_CF_IPCOUNTRY'] ) ) ) : '';
+
+		if ( preg_match( '/^[A-Z]{2}$/', $cloudflare_country_code ) && 'XX' !== $cloudflare_country_code ) {
+			return pera_analytics_country_from_code( $cloudflare_country_code );
+		}
+
+		$local_geoip_country = pera_analytics_get_country_from_local_geoip( pera_analytics_get_request_ip() );
+		if ( ! empty( $local_geoip_country ) ) {
+			return $local_geoip_country;
+		}
+
+		// Historical visits recorded before local GeoIP support was added remain
+		// XX / Unknown; only new visits can be enriched from Cloudflare or GeoIP.
+		return array(
+			'country_code' => 'XX',
+			'country_name' => 'Unknown',
 		);
 	}
 }
