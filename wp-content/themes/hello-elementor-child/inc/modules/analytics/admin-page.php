@@ -441,6 +441,7 @@ if ( ! function_exists( 'pera_analytics_render_admin_page' ) ) {
 		$split_page_rows = pera_analytics_split_page_rows_by_type( $all_page_rows, 20, 20 );
 		$source_rows     = pera_analytics_get_source_breakdown( $window['current']['start'], $window['current']['end'] );
 		$top_direct_entries = pera_analytics_get_top_direct_entry_pages( $window['current']['start'], $window['current']['end'], 20 );
+		$top_countries  = pera_analytics_get_top_countries( $window['current']['start'], $window['current']['end'], 10 );
 		$top_referrers   = pera_analytics_get_top_referrers( $window['current']['start'], $window['current']['end'], 10 );
 
 		$summary_change = $show_previous_comparison ? pera_analytics_percent_change( $totals_current['visits'], $totals_previous['visits'] ) : '—';
@@ -548,6 +549,42 @@ if ( ! function_exists( 'pera_analytics_render_admin_page' ) ) {
 						<td class="pera-performance-table__number"><?php echo esc_html( number_format_i18n( $share, 1 ) ); ?>%</td>
 					</tr>
 				<?php endforeach; ?>
+				</tbody>
+			</table>
+			</div>
+
+
+			<h2><?php echo esc_html__( 'Top Countries', 'hello-elementor-child' ); ?></h2>
+			<p class="description"><?php echo esc_html__( 'Country data is captured from Cloudflare country headers when available; otherwise visits are grouped as Unknown.', 'hello-elementor-child' ); ?></p>
+			<p class="pera-performance-scroll-hint"><?php echo esc_html__( 'Scroll horizontally to view all table columns.', 'hello-elementor-child' ); ?></p>
+			<div class="pera-performance-table-wrap" tabindex="0" role="region" aria-label="<?php echo esc_attr__( 'Top countries table', 'hello-elementor-child' ); ?>">
+			<table class="widefat striped pera-performance-table">
+				<thead><tr>
+					<th><?php echo esc_html__( 'Country', 'hello-elementor-child' ); ?></th>
+					<th class="pera-performance-table__number"><?php echo esc_html__( 'Visits', 'hello-elementor-child' ); ?></th>
+					<th class="pera-performance-table__number"><?php echo esc_html__( 'Unique visitors', 'hello-elementor-child' ); ?></th>
+					<th class="pera-performance-table__number"><?php echo esc_html__( '% of visits', 'hello-elementor-child' ); ?></th>
+				</tr></thead>
+				<tbody>
+				<?php if ( empty( $top_countries ) ) : ?>
+					<tr><td colspan="4"><?php echo esc_html__( 'No country data available for this period yet.', 'hello-elementor-child' ); ?></td></tr>
+				<?php else : ?>
+					<?php foreach ( $top_countries as $country ) : ?>
+						<?php
+						$visits       = (int) ( $country['visits'] ?? 0 );
+						$country_code = (string) ( $country['country_code'] ?? 'XX' );
+						$country_name = (string) ( $country['country_name'] ?? 'Unknown' );
+						$share        = $totals_current['visits'] > 0 ? ( $visits / $totals_current['visits'] ) * 100 : 0;
+						$label        = 'XX' !== $country_code ? sprintf( '%s (%s)', $country_name, $country_code ) : $country_name;
+						?>
+						<tr>
+							<td><?php echo esc_html( $label ); ?></td>
+							<td class="pera-performance-table__number"><?php echo esc_html( number_format_i18n( $visits ) ); ?></td>
+							<td class="pera-performance-table__number"><?php echo esc_html( number_format_i18n( (int) ( $country['uniques'] ?? 0 ) ) ); ?></td>
+							<td class="pera-performance-table__number"><?php echo esc_html( number_format_i18n( $share, 1 ) ); ?>%</td>
+						</tr>
+					<?php endforeach; ?>
+				<?php endif; ?>
 				</tbody>
 			</table>
 			</div>

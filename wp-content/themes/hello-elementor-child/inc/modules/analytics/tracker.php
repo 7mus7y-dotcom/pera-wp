@@ -113,6 +113,34 @@ if ( ! function_exists( 'pera_analytics_get_or_set_visitor_id' ) ) {
 	}
 }
 
+
+
+if ( ! function_exists( 'pera_analytics_get_request_country' ) ) {
+	function pera_analytics_get_request_country(): array {
+		$country_code = isset( $_SERVER['HTTP_CF_IPCOUNTRY'] ) ? strtoupper( sanitize_text_field( wp_unslash( (string) $_SERVER['HTTP_CF_IPCOUNTRY'] ) ) ) : '';
+
+		if ( ! preg_match( '/^[A-Z]{2}$/', $country_code ) || 'XX' === $country_code ) {
+			return array(
+				'country_code' => 'XX',
+				'country_name' => 'Unknown',
+			);
+		}
+
+		$country_name = $country_code;
+		if ( function_exists( 'locale_get_display_region' ) ) {
+			$display_name = locale_get_display_region( '-' . $country_code, get_locale() );
+			if ( is_string( $display_name ) && '' !== $display_name ) {
+				$country_name = $display_name;
+			}
+		}
+
+		return array(
+			'country_code' => $country_code,
+			'country_name' => function_exists( 'mb_substr' ) ? mb_substr( $country_name, 0, 100 ) : substr( $country_name, 0, 100 ),
+		);
+	}
+}
+
 if ( ! function_exists( 'pera_analytics_handle_track_request' ) ) {
 	function pera_analytics_handle_track_request(): void {
 		$request_method = isset( $_SERVER['REQUEST_METHOD'] ) ? strtoupper( sanitize_text_field( wp_unslash( (string) $_SERVER['REQUEST_METHOD'] ) ) ) : '';
@@ -153,6 +181,7 @@ if ( ! function_exists( 'pera_analytics_handle_track_request' ) ) {
 			$referer = esc_url_raw( wp_unslash( (string) $_SERVER['HTTP_REFERER'] ) );
 		}
 		$source    = pera_analytics_classify_referer_source( $referer, pera_analytics_normalize_host( $site_host ) );
+		$country   = pera_analytics_get_request_country();
 
 		if ( '' === $page_path || 0 !== strpos( $page_path, '/' ) || pera_analytics_should_skip_path( $page_path ) ) {
 			wp_send_json_success( array( 'tracked' => false ) );
@@ -169,7 +198,7 @@ if ( ! function_exists( 'pera_analytics_handle_track_request' ) ) {
 				'visitor_id'      => $visitor_id,
 				'page_url'        => $page_url,
 				'page_path'       => $page_path,
-				'page_title'      => mb_substr( $page_title, 0, 255 ),
+				'page_title'      => function_exists( 'mb_substr' ) ? mb_substr( $page_title, 0, 255 ) : substr( $page_title, 0, 255 ),
 				'post_id'         => $post_id > 0 ? $post_id : 0,
 				'post_type'       => '' !== $post_type ? $post_type : '',
 				'referer'         => $referer,
@@ -177,9 +206,11 @@ if ( ! function_exists( 'pera_analytics_handle_track_request' ) ) {
 				'source_type'     => $source['source_type'],
 				'is_internal'     => $source['is_internal'],
 				'is_direct'       => $source['is_direct'],
+				'country_code'    => $country['country_code'],
+				'country_name'    => $country['country_name'],
 				'user_agent_hash' => hash( 'sha256', $user_agent ),
 			),
-			array( '%s', '%s', '%s', '%s', '%s', '%d', '%s', '%s', '%s', '%s', '%d', '%d', '%s' )
+			array( '%s', '%s', '%s', '%s', '%s', '%d', '%s', '%s', '%s', '%s', '%d', '%d', '%s', '%s', '%s' )
 		);
 
 		wp_send_json_success( array( 'tracked' => true ) );

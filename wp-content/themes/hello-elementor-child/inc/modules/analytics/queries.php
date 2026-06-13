@@ -733,6 +733,43 @@ if ( ! function_exists( 'pera_analytics_get_source_breakdown' ) ) {
 	}
 }
 
+
+
+if ( ! function_exists( 'pera_analytics_get_top_countries' ) ) {
+	function pera_analytics_get_top_countries( ?string $start, string $end, int $limit = 10 ): array {
+		global $wpdb;
+		$raw_table = pera_analytics_raw_table_name();
+		$limit     = max( 1, $limit );
+
+		$select = "SELECT
+			CASE WHEN country_code IS NULL OR country_code = '' THEN 'XX' ELSE country_code END AS country_code,
+			CASE WHEN country_name IS NULL OR country_name = '' THEN 'Unknown' ELSE country_name END AS country_name,
+			COUNT(*) AS visits,
+			COUNT(DISTINCT visitor_id) AS uniques
+			FROM {$raw_table}";
+
+		if ( null === $start ) {
+			$sql = $select . "
+				WHERE visited_at < %s
+				" . pera_analytics_suspected_bot_where_clause() . "
+				GROUP BY country_code, country_name
+				ORDER BY visits DESC, country_name ASC
+				LIMIT %d";
+			return $wpdb->get_results( $wpdb->prepare( $sql, $end, $limit ), ARRAY_A );
+		}
+
+		$sql = $select . "
+			WHERE visited_at >= %s
+			  AND visited_at < %s
+			  " . pera_analytics_suspected_bot_where_clause() . "
+			GROUP BY country_code, country_name
+			ORDER BY visits DESC, country_name ASC
+			LIMIT %d";
+
+		return $wpdb->get_results( $wpdb->prepare( $sql, $start, $end, $limit ), ARRAY_A );
+	}
+}
+
 if ( ! function_exists( 'pera_analytics_get_top_referrers' ) ) {
 	function pera_analytics_get_top_referrers( ?string $start, string $end, int $limit = 10 ): array {
 		global $wpdb;
