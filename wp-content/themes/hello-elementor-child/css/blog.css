@@ -22,6 +22,10 @@
   margin-inline: auto;
 }
 
+#blog-results {
+  scroll-margin-top: calc(var(--sticky-offset, 96px) + 24px);
+}
+
 /* Archive post loop uses .cards-masonry from main.css; keep archive-specific tuning here. */
 .section-posts .cards-masonry {
   position: relative;

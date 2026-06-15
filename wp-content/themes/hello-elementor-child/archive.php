@@ -425,15 +425,16 @@ get_header();
                     $big   = 999999999;
                     $links = paginate_links(
                         array(
-                            'base'      => str_replace( $big, '%#%', esc_url( get_pagenum_link( $big ) ) ),
-                            'format'    => '?paged=%#%',
-                            'current'   => max( 1, get_query_var( 'paged' ) ),
-                            'total'     => (int) $wp_query->max_num_pages,
-                            'type'      => 'array',
-                            'mid_size'  => 1,
-                            'end_size'  => 1,
-                            'prev_text' => __( 'Previous', 'peraproperty' ),
-                            'next_text' => __( 'Next', 'peraproperty' ),
+                            'base'         => str_replace( $big, '%#%', esc_url( get_pagenum_link( $big ) ) ),
+                            'format'       => '?paged=%#%',
+                            'current'      => max( 1, get_query_var( 'paged' ) ),
+                            'total'        => (int) $wp_query->max_num_pages,
+                            'type'         => 'array',
+                            'add_fragment' => '#blog-results',
+                            'mid_size'     => 1,
+                            'end_size'     => 1,
+                            'prev_text'    => __( 'Previous', 'peraproperty' ),
+                            'next_text'    => __( 'Next', 'peraproperty' ),
                         )
                     );
 
