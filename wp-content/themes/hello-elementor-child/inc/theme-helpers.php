@@ -28,7 +28,6 @@ if ( ! function_exists( 'pera_is_standalone_auth_page' ) ) {
       'page-client-login.php',
       'page-client-forgot-password.php',
       'page-register.php',
-      'page-client-portal.php',
     ) );
   }
 }
