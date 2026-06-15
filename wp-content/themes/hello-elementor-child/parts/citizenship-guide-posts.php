@@ -46,3 +46,71 @@ if ( ! $citizenship_guide_query->have_posts() ) {
     </div>
   </div>
 </section>
+
+<?php
+$citizenship_guide_home_style_query = new WP_Query( array(
+  'category_name'       => 'citizenship',
+  'posts_per_page'      => 4,
+  'post_type'           => 'post',
+  'post_status'         => 'publish',
+  'ignore_sticky_posts' => true,
+  'no_found_rows'       => true,
+  'orderby'             => 'date',
+  'order'               => 'DESC',
+) );
+
+if ( ! $citizenship_guide_home_style_query->have_posts() ) {
+  return;
+}
+?>
+
+<section class="section home-editorial-posts" aria-label="Citizenship guide posts home slider markup test">
+  <div class="container">
+    <header class="section-header section-header--center">
+      <h2>Citizenship guide posts — home slider markup test</h2>
+      <p class="lead">Temporary comparison version using the homepage editorial posts slider markup, filtered to citizenship posts.</p>
+    </header>
+
+    <div class="cards-slider-shell--nav">
+      <button
+        type="button"
+        class="cards-slider-nav cards-slider-nav--prev"
+        data-slider-target="citizenship-guide-posts-home-style-slider"
+        aria-label="Previous citizenship guide posts"
+      >
+        <svg width="22" height="22" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+          <use href="<?php echo esc_url( get_stylesheet_directory_uri() . '/logos-icons/icons.svg#icon-chevron-left' ); ?>"></use>
+        </svg>
+      </button>
+
+      <div class="cards-slider cards-slider--snap home-editorial-posts__slider" id="citizenship-guide-posts-home-style-slider" aria-label="Citizenship guide posts home slider markup test">
+        <?php
+        while ( $citizenship_guide_home_style_query->have_posts() ) :
+          $citizenship_guide_home_style_query->the_post();
+
+          set_query_var( 'pera_post_card_args', array(
+            'variant'      => 'grid',
+            'card_classes' => 'slider-card',
+          ) );
+
+          get_template_part( 'parts/post-card' );
+        endwhile;
+
+        set_query_var( 'pera_post_card_args', null );
+        wp_reset_postdata();
+        ?>
+      </div>
+
+      <button
+        type="button"
+        class="cards-slider-nav cards-slider-nav--next"
+        data-slider-target="citizenship-guide-posts-home-style-slider"
+        aria-label="Next citizenship guide posts"
+      >
+        <svg width="22" height="22" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+          <use href="<?php echo esc_url( get_stylesheet_directory_uri() . '/logos-icons/icons.svg#icon-chevron-right' ); ?>"></use>
+        </svg>
+      </button>
+    </div>
+  </div>
+</section>

@@ -189,7 +189,7 @@ if ( $needs_card_typography ) {
 }
 
 
-if ( $is_home ) {
+if ( $is_home || $is_citizenship_page ) {
   wp_enqueue_script(
     'pera-slider-nav',
     get_stylesheet_directory_uri() . '/js/slider-nav.js',
