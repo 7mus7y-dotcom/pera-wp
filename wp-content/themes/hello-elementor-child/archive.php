@@ -397,6 +397,7 @@ get_header();
                 }
                 ?>
 
+                <div id="blog-post-list-anchor" class="blog-post-list-anchor" aria-hidden="true"></div>
                 <div id="blog-post-list" class="cards-masonry">
                       <?php
                       while ( have_posts() ) :
@@ -430,7 +431,7 @@ get_header();
                             'current'      => max( 1, get_query_var( 'paged' ) ),
                             'total'        => (int) $wp_query->max_num_pages,
                             'type'         => 'array',
-                            'add_fragment' => '#blog-post-list',
+                            'add_fragment' => '#blog-post-list-anchor',
                             'mid_size'     => 1,
                             'end_size'     => 1,
                             'prev_text'    => __( 'Previous', 'peraproperty' ),

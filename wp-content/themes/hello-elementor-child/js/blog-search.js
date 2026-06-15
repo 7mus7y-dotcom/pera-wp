@@ -89,6 +89,30 @@
     results.setAttribute('aria-busy', isLoading ? 'true' : 'false');
   }
 
+  function getStickyOffset() {
+    var stickyOffset = window.getComputedStyle(document.documentElement).getPropertyValue('--sticky-offset');
+    var parsedOffset = parseFloat(stickyOffset);
+
+    return Number.isFinite(parsedOffset) ? parsedOffset : 96;
+  }
+
+  function scrollToPostListAnchor() {
+    var anchor = document.getElementById('blog-post-list-anchor');
+
+    if (!anchor || !window.requestAnimationFrame) {
+      return;
+    }
+
+    window.requestAnimationFrame(function () {
+      var top = anchor.getBoundingClientRect().top + window.pageYOffset - getStickyOffset() - 24;
+
+      window.scrollTo({
+        top: Math.max(0, top),
+        behavior: 'auto'
+      });
+    });
+  }
+
   function runSearch(paged) {
     var searchTerm = input ? input.value.trim() : '';
     var sort = getActiveSort();
@@ -138,6 +162,7 @@
         }
 
         updateUrl(searchTerm, sort, paged || 1);
+        scrollToPostListAnchor();
       })
       .catch(function (error) {
         if (error.name === 'AbortError') {
