@@ -1626,6 +1626,16 @@ function peracrm_handle_save_client_profile()
         error_log('[peracrm] peracrm_handle_save_client_profile start post_id=' . $client_id);
     }
 
+    $fallback_redirect = add_query_arg(
+        [
+            'post' => $client_id,
+            'action' => 'edit',
+        ],
+        admin_url('post.php')
+    );
+
+    $redirect = peracrm_admin_preferred_redirect_url($fallback_redirect);
+
     $form_context = isset($_POST['form_context']) ? sanitize_key(wp_unslash($_POST['form_context'])) : 'profile';
     if ($form_context !== 'profile') {
         wp_die('Invalid profile form context.');
@@ -1669,21 +1679,29 @@ function peracrm_handle_save_client_profile()
         $data['email'] = sanitize_email($email_raw);
     }
 
+    $name_success = true;
+    if (isset($_POST['peracrm_client_name'])) {
+        $client_name = trim(sanitize_text_field(wp_unslash($_POST['peracrm_client_name'])));
+        if ($client_name === '') {
+            $name_success = false;
+        } else {
+            $updated_client = wp_update_post(
+                [
+                    'ID' => $client_id,
+                    'post_title' => $client_name,
+                ],
+                true
+            );
+
+            $name_success = !is_wp_error($updated_client) && (int) $updated_client > 0;
+        }
+    }
+
     $success = function_exists('peracrm_client_update_profile')
         ? peracrm_client_update_profile($client_id, $data)
         : false;
 
-    $fallback_redirect = add_query_arg(
-            [
-                'post' => $client_id,
-                'action' => 'edit',
-            ],
-            admin_url('post.php')
-        );
-
-    $redirect = peracrm_admin_preferred_redirect_url($fallback_redirect);
-
-    if (!$success) {
+    if (!$success || !$name_success) {
         if ($should_log) {
             error_log('[peracrm] peracrm_handle_save_client_profile end post_id=' . $client_id . ' success=0');
         }

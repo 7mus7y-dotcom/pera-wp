@@ -421,9 +421,23 @@ peracrm_frontend_render_shell_header();
           <div class="crm-summary-header__main">
             <div class="crm-summary-header__identity">
               <p class="crm-summary-header__eyebrow"><?php esc_html_e( 'Client summary', 'peracrm' ); ?></p>
-              <div class="crm-summary-header__title-row">
-                <h2 class="crm-summary-header__title"><?php echo esc_html( $client_title_name ); ?></h2>
-                <span class="crm-chip crm-chip--status"><?php echo esc_html( $status_label ); ?></span>
+              <div class="crm-summary-header__title-row" data-crm-client-name-edit>
+                <div class="crm-client-name-edit__display" data-crm-client-name-display>
+                  <h2 class="crm-summary-header__title"><?php echo esc_html( $client_title_name ); ?></h2>
+                  <span class="crm-chip crm-chip--status"><?php echo esc_html( $status_label ); ?></span>
+                  <button type="button" class="btn btn--ghost btn--blue crm-client-name-edit__trigger" data-crm-client-name-edit-trigger><?php esc_html_e( 'Edit', 'peracrm' ); ?></button>
+                </div>
+                <form method="post" action="<?php echo esc_url( home_url( '/wp-admin/admin-post.php' ) ); ?>" class="crm-client-name-edit__form" data-crm-client-name-edit-form hidden>
+                  <?php wp_nonce_field( 'peracrm_save_client_profile', 'peracrm_save_client_profile_nonce' ); ?>
+                  <input type="hidden" name="action" value="peracrm_save_client_profile" />
+                  <input type="hidden" name="peracrm_client_id" value="<?php echo esc_attr( (string) $client_id ); ?>" />
+                  <input type="hidden" name="peracrm_redirect" value="<?php echo esc_url( $frontend_url ); ?>" />
+                  <input type="hidden" name="form_context" value="profile" />
+                  <label class="screen-reader-text" for="peracrm-client-name-<?php echo esc_attr( (string) $client_id ); ?>"><?php esc_html_e( 'Client name', 'peracrm' ); ?></label>
+                  <input id="peracrm-client-name-<?php echo esc_attr( (string) $client_id ); ?>" class="crm-client-name-edit__input" type="text" name="peracrm_client_name" value="<?php echo esc_attr( $client_title_name ); ?>" required />
+                  <button type="submit" class="btn btn--solid btn--blue"><?php esc_html_e( 'Save', 'peracrm' ); ?></button>
+                  <button type="button" class="btn btn--ghost btn--blue" data-crm-client-name-edit-cancel><?php esc_html_e( 'Cancel', 'peracrm' ); ?></button>
+                </form>
               </div>
               <div class="crm-summary-header__meta">
                 <?php foreach ( $summary_meta_items as $summary_meta_item ) : ?>

@@ -418,6 +418,41 @@
 })();
 
 (function () {
+  var wrappers = document.querySelectorAll('[data-crm-client-name-edit]');
+  if (!wrappers.length) {
+    return;
+  }
+
+  wrappers.forEach(function (wrapper) {
+    var display = wrapper.querySelector('[data-crm-client-name-display]');
+    var form = wrapper.querySelector('[data-crm-client-name-edit-form]');
+    var trigger = wrapper.querySelector('[data-crm-client-name-edit-trigger]');
+    var cancel = wrapper.querySelector('[data-crm-client-name-edit-cancel]');
+    var input = form ? form.querySelector('input[name="peracrm_client_name"]') : null;
+    var originalValue = input ? input.value : '';
+
+    if (!display || !form || !trigger || !cancel || !input) {
+      return;
+    }
+
+    trigger.addEventListener('click', function () {
+      originalValue = input.value;
+      display.hidden = true;
+      form.hidden = false;
+      input.focus();
+      input.select();
+    });
+
+    cancel.addEventListener('click', function () {
+      input.value = originalValue;
+      form.hidden = true;
+      display.hidden = false;
+      trigger.focus();
+    });
+  });
+})();
+
+(function () {
   var ajaxUrl = window.peraCrmData && window.peraCrmData.ajaxUrl ? window.peraCrmData.ajaxUrl : '';
   if (!ajaxUrl) {
     return;
