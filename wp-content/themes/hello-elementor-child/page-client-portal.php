@@ -19,7 +19,7 @@ if ( ! is_user_logged_in() ) {
 $client_login_asset = '/css/client-login.css';
 $client_login_ver   = function_exists( 'pera_get_asset_version' )
     ? pera_get_asset_version( $client_login_asset )
-    : (string) filemtime( get_stylesheet_directory() . $client_login_asset );
+    : ( file_exists( get_stylesheet_directory() . $client_login_asset ) ? (string) filemtime( get_stylesheet_directory() . $client_login_asset ) : wp_get_theme()->get( 'Version' ) );
 
 wp_enqueue_style(
     'pera-client-login',
@@ -44,6 +44,10 @@ $profile   = function_exists( 'peracrm_client_get_profile' ) && $client_id > 0
     ? peracrm_client_get_profile( $client_id )
     : array();
 
+if ( ! is_array( $profile ) ) {
+    $profile = array();
+}
+
 $preferred_contact = isset( $profile['preferred_contact'] ) ? (string) $profile['preferred_contact'] : '';
 $budget_min_usd    = isset( $profile['budget_min_usd'] ) ? (string) $profile['budget_min_usd'] : '';
 $budget_max_usd    = isset( $profile['budget_max_usd'] ) ? (string) $profile['budget_max_usd'] : '';
@@ -52,7 +56,8 @@ if ( '' === $phone && isset( $profile['phone'] ) ) {
     $phone = (string) $profile['phone'];
 }
 
-$updated = isset( $_GET['updated'] ) && '1' === sanitize_key( wp_unslash( $_GET['updated'] ) );
+$updated = isset( $_GET['updated'] ) ? sanitize_key( (string) wp_unslash( $_GET['updated'] ) ) : '';
+$updated = '1' === $updated;
 
 ?><!doctype html>
 <html <?php language_attributes(); ?> class="client-login-standalone-html">
