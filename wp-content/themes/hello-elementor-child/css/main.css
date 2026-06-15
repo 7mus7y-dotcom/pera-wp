@@ -2744,8 +2744,6 @@ body:not(.single-post) tr:nth-child(even) {
    19. CLIENT LOGIN PAGE
    ======================================================= */
 .client-login-wrapper {
-  padding-top: 120px;
-  padding-bottom: 80px;
   background: var(--bg-soft);
 }
 .client-login-section {
