@@ -325,7 +325,7 @@ get_template_part( 'partials/home-latest-offers' );
               </p>
             </div>
         
-            <div class="cards-slider cards-slider--wide cards-slider--snap cards-slider--grid-lg" aria-label="Featured districts in Istanbul for property buyers">
+            <div class="cards-slider cards-slider--wide cards-slider--snap" aria-label="Featured districts in Istanbul for property buyers">
         
           <!-- Beşiktaş -->
           <article class="card-shell slider-card">
