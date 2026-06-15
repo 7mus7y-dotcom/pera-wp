@@ -38,6 +38,7 @@ function pera_blog_search_request_value( $key ) {
 function pera_blog_search_render_grid( WP_Query $query, array $skip_post_ids = array() ) {
 	ob_start();
 	?>
+	<div id="blog-post-list-anchor" class="blog-post-list-anchor" aria-hidden="true"></div>
 	<div id="blog-post-list" class="cards-masonry">
 		<?php
 		while ( $query->have_posts() ) :
@@ -95,7 +96,7 @@ function pera_blog_search_render_pagination( WP_Query $query, $paged, array $que
 			'current'      => max( 1, $paged ),
 			'total'        => $max_pages,
 			'type'         => 'array',
-			'add_fragment' => '#blog-post-list',
+			'add_fragment' => '#blog-post-list-anchor',
 			'mid_size'     => 1,
 			'end_size'     => 1,
 			'prev_text'    => __( 'Previous', 'peraproperty' ),

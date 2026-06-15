@@ -22,7 +22,7 @@
   margin-inline: auto;
 }
 
-#blog-post-list {
+.blog-post-list-anchor {
   scroll-margin-top: calc(var(--sticky-offset, 96px) + 24px);
 }
 
