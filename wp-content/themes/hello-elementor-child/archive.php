@@ -384,7 +384,7 @@ get_header();
             ?>
 
             <?php if ( $is_blog_style_archive ) : ?>
-                <div id="blog-results" data-blog-results>
+                <div data-blog-results>
             <?php endif; ?>
 
             <?php if ( have_posts() ) : ?>
@@ -397,7 +397,7 @@ get_header();
                 }
                 ?>
 
-                <div class="cards-masonry">
+                <div id="blog-post-list" class="cards-masonry">
                       <?php
                       while ( have_posts() ) :
                         the_post();
@@ -430,7 +430,7 @@ get_header();
                             'current'      => max( 1, get_query_var( 'paged' ) ),
                             'total'        => (int) $wp_query->max_num_pages,
                             'type'         => 'array',
-                            'add_fragment' => '#blog-results',
+                            'add_fragment' => '#blog-post-list',
                             'mid_size'     => 1,
                             'end_size'     => 1,
                             'prev_text'    => __( 'Previous', 'peraproperty' ),
@@ -460,7 +460,7 @@ get_header();
             <?php endif; ?>
 
             <?php if ( $is_blog_style_archive ) : ?>
-                </div><!-- /#blog-results -->
+                </div><!-- /[data-blog-results] -->
             <?php endif; ?>
 
         </div><!-- /.container -->
