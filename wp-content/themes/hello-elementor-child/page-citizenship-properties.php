@@ -55,9 +55,10 @@ foreach ( $cards as $card ) {
 	$map_markers[] = $marker;
 }
 
-$requested_view = isset( $_GET['view'] ) ? sanitize_key( wp_unslash( (string) $_GET['view'] ) ) : '';
-$initial_view   = 'map' === $requested_view ? 'map' : 'cards';
-$map_json       = wp_json_encode( array_values( $map_markers ) );
+$requested_view     = isset( $_GET['view'] ) ? sanitize_key( wp_unslash( (string) $_GET['view'] ) ) : '';
+$has_requested_view = in_array( $requested_view, array( 'cards', 'map' ), true );
+$initial_view       = 'map' === $requested_view ? 'map' : 'cards';
+$map_json           = wp_json_encode( array_values( $map_markers ) );
 if ( ! is_string( $map_json ) ) {
 	$map_json = '[]';
 }
@@ -379,8 +380,10 @@ if ( '' !== trim( wp_strip_all_tags( (string) $description_content ) ) ) {
 		});
 
 		var initial = '<?php echo esc_js( $initial_view ); ?>';
+		var hasRequestedView = <?php echo $has_requested_view ? 'true' : 'false'; ?>;
+
 		try {
-			if (initial !== 'map') {
+			if (!hasRequestedView) {
 				var stored = window.localStorage.getItem(storageKey);
 				if (stored === 'map' || stored === 'cards') initial = stored;
 			}
