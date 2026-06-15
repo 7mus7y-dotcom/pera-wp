@@ -2786,7 +2786,6 @@ body:not(.single-post) tr:nth-child(even) {
   padding: 12px;
   border: 1px solid #cccccc;
   border-radius: 6px;
-  margin-bottom: 20px;
 }
 .client-login-container .button-primary {
   background: var(--brand);
@@ -2813,7 +2812,7 @@ body:not(.single-post) tr:nth-child(even) {
   font-weight: 500;
 }
 .client-login-links a:hover {
-  opacity: 0.7;
+text-decoration:underline;
 }
 
 
