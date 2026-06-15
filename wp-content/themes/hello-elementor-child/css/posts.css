@@ -260,8 +260,8 @@ META DATA
 }
 
 .home-districts-slider > .slider-card {
-  flex: 0 0 320px;
-  max-width: 320px;
+  flex: 0 0 300px;
+  max-width: 300px;
 }
 
 @media (max-width: 374px) {
@@ -279,8 +279,8 @@ META DATA
   }
 
   .home-districts-slider > .slider-card {
-    flex-basis: 320px;
-    max-width: 320px;
+    flex-basis: 300px;
+    max-width: 300px;
     scroll-snap-align: none;
   }
 }

@@ -398,6 +398,30 @@ get_template_part( 'partials/home-latest-offers' );
               </a>
             </div>
           </article>
+
+          <!-- Sarıyer -->
+          <article class="card-shell slider-card">
+            <span class="pill pill--brand pill--sm">Bosphorus &amp; Luxury</span>
+
+            <h3 style="margin-top: 10px;">Sarıyer property</h3>
+
+            <p class="muted" style="margin: 0;">
+              Sarıyer property appeals to buyers seeking Bosphorus lifestyle, green residential neighbourhoods, luxury compounds, and long-term prestige on Istanbul’s European side.
+            </p>
+
+            <div class="property-facilities__pills" style="margin-top: 12px;">
+              <span class="pill pill--outline">Bosphorus</span>
+              <span class="pill pill--outline">Luxury homes</span>
+              <span class="pill pill--outline">European side</span>
+            </div>
+
+            <div class="hero-actions" style="margin-top: 14px;">
+              <a class="btn btn--solid btn--blue" href="<?php echo esc_url( home_url('/district/istanbul/sariyer/#results') ); ?>">View listings</a>
+              <a class="btn btn--ghost btn--blue" href="<?php echo esc_url( home_url('/istanbul-luxury-property/') ); ?>">
+                Luxury guide
+              </a>
+            </div>
+          </article>
         
         </div>
 
