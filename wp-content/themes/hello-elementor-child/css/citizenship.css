@@ -338,31 +338,3 @@
     padding: 13px 14px;
   }
 }
-
-/* Citizenship guide posts */
-.citizenship-guide-posts__grid {
-  gap: var(--space-md, 20px);
-}
-
-.citizenship-guide-posts__card {
-  flex: 0 0 min(82vw, 340px);
-  max-width: min(82vw, 340px);
-}
-
-@media (min-width: 768px) {
-  .citizenship-guide-posts__card {
-    flex-basis: 320px;
-    max-width: 320px;
-  }
-}
-
-@media (min-width: 1280px) {
-  .citizenship-guide-posts__grid {
-    padding-bottom: 0;
-  }
-
-  .citizenship-guide-posts__card {
-    flex-basis: calc((100% - (var(--space-md, 20px) * 3)) / 4);
-    max-width: calc((100% - (var(--space-md, 20px) * 3)) / 4);
-  }
-}
