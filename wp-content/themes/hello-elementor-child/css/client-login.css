@@ -78,10 +78,14 @@ body.client-login-standalone .client-login-wrapper {
   box-shadow: var(--shadow-soft);
 }
 
-#pera-client-login-form { width: 100%; }
+#pera-client-login-form,
+#pera-client-register-form { width: 100%; }
 
 #pera-client-login-form input[type="text"],
-#pera-client-login-form input[type="password"] {
+#pera-client-login-form input[type="password"],
+#pera-client-register-form input[type="text"],
+#pera-client-register-form input[type="email"],
+#pera-client-register-form input[type="password"] {
   width: 100%;
   box-sizing: border-box;
 }
