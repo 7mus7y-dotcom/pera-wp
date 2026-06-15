@@ -38,7 +38,7 @@ function pera_blog_search_request_value( $key ) {
 function pera_blog_search_render_grid( WP_Query $query, array $skip_post_ids = array() ) {
 	ob_start();
 	?>
-	<div class="cards-masonry">
+	<div id="blog-post-list" class="cards-masonry">
 		<?php
 		while ( $query->have_posts() ) :
 			$query->the_post();
@@ -90,16 +90,17 @@ function pera_blog_search_render_pagination( WP_Query $query, $paged, array $que
 
 	$links = paginate_links(
 		array(
-			'base'      => $base,
-			'format'    => '',
-			'current'   => max( 1, $paged ),
-			'total'     => $max_pages,
-			'type'      => 'array',
-			'mid_size'  => 1,
-			'end_size'  => 1,
-			'prev_text' => __( 'Previous', 'peraproperty' ),
-			'next_text' => __( 'Next', 'peraproperty' ),
-			'add_args'  => array_filter(
+			'base'         => $base,
+			'format'       => '',
+			'current'      => max( 1, $paged ),
+			'total'        => $max_pages,
+			'type'         => 'array',
+			'add_fragment' => '#blog-post-list',
+			'mid_size'     => 1,
+			'end_size'     => 1,
+			'prev_text'    => __( 'Previous', 'peraproperty' ),
+			'next_text'    => __( 'Next', 'peraproperty' ),
+			'add_args'     => array_filter(
 				$query_args,
 				static function ( $value ) {
 					return '' !== $value && null !== $value;
