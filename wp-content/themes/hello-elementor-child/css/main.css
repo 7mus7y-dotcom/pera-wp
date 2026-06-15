@@ -194,6 +194,13 @@
   gap: var(--space-xs, 8px);
 }
 
+.card-shell--premium {
+  border-color: #d4af37;
+  box-shadow:
+    0 2px 6px rgba(0,0,0,0.06),
+    0 0 0 1px rgba(212, 175, 55, 0.14);
+}
+
 
 .card-shell > h3,
 .card-shell > h4 {
@@ -4711,6 +4718,13 @@ ol.pretty-list li::before {
   .card-shell {
     background: #020617;
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.6);
+  }
+
+  .card-shell--premium {
+    border-color: rgba(212, 175, 55, 0.75);
+    box-shadow:
+      0 2px 6px rgba(0,0,0,0.22),
+      0 0 0 1px rgba(212, 175, 55, 0.18);
   }
 
   .pillars div {
