@@ -84,7 +84,7 @@ $citizenship_requirements = array(
           </article>
           <div class="hero-actions">
             <a href="#citizenship-callback" class="btn btn--solid btn--green">Book a consultation</a>
-            <a href="https://www.peraproperty.com/turkish-citizenship-properties/" 
+            <a href="https://www.peraproperty.com/turkish-citizenship-properties/?view=cards" 
                class="btn btn--solid btn--blue" 
                target="_blank" 
                rel="noopener">
