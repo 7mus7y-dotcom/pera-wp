@@ -258,3 +258,29 @@ META DATA
 .home-editorial-posts__slider .post-card-media {
   aspect-ratio: 16 / 9;
 }
+
+.home-districts-slider > .slider-card {
+  flex: 0 0 320px;
+  max-width: 320px;
+}
+
+@media (max-width: 374px) {
+  .home-districts-slider > .slider-card {
+    flex-basis: calc(100vw - 32px);
+    max-width: calc(100vw - 32px);
+  }
+}
+
+@media (min-width: 1280px) {
+  .home-districts-slider {
+    overflow-x: visible;
+    justify-content: center;
+    scroll-snap-type: none;
+  }
+
+  .home-districts-slider > .slider-card {
+    flex-basis: 320px;
+    max-width: 320px;
+    scroll-snap-align: none;
+  }
+}
