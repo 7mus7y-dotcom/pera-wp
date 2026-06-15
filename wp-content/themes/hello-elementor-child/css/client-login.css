@@ -49,7 +49,6 @@ body.client-login-standalone .client-login-wrapper {
 .client-login-section {
   min-height: 100vh;
   display: flex;
-  align-items: center;
   justify-content: center;
   padding: 40px 20px;
 }
