@@ -27,7 +27,7 @@ if ( ! $citizenship_guide_query->have_posts() ) {
       <p class="lead">These guides explain the key property, valuation, DAB and Certificate of Conformity checks that matter before buying property for Turkish citizenship.</p>
     </header>
 
-    <div class="cards-slider cards-slider--snap citizenship-guide-posts__grid" id="citizenship-guide-posts-slider" aria-label="Turkish citizenship guide posts">
+    <div class="cards-slider cards-slider--snap cards-slider--grid-desktop citizenship-guide-posts__grid" id="citizenship-guide-posts-slider" aria-label="Turkish citizenship guide posts">
       <?php
       while ( $citizenship_guide_query->have_posts() ) :
         $citizenship_guide_query->the_post();
