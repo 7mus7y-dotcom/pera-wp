@@ -4946,6 +4946,36 @@ body.crm-route #site-header.peracrm-shell-header.is-scrolled .peracrm-header-act
   gap: 10px;
 }
 
+.crm-page--client-view .crm-client-name-edit__display {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.crm-page--client-view .crm-client-name-edit__trigger {
+  min-height: 0;
+  padding: 4px 10px;
+  border-radius: 999px;
+  font-size: 0.78rem;
+  line-height: 1.2;
+}
+
+.crm-page--client-view .crm-client-name-edit__form {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.crm-page--client-view .crm-client-name-edit__form[hidden] {
+  display: none;
+}
+
+.crm-page--client-view .crm-client-name-edit__input {
+  width: min(320px, 72vw);
+}
+
 .crm-page--client-view .crm-summary-header__title {
   margin: 0;
   font-size: 1.55rem;
