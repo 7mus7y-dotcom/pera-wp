@@ -210,14 +210,14 @@ if ( ! function_exists( 'pera_latest_offers_whatsapp_url' ) ) {
 			? sprintf( 'Hello Pera Property, I’m interested in this citizenship property: %s. Can you confirm availability and citizenship suitability? %s', $property_title, $property_url )
 			: sprintf( 'Hello Pera Property, I’m interested in this property: %s. Can you confirm availability and send more details? %s', $property_title, $property_url );
 
-		return 'https://wa.me/905320639978?text=' . rawurlencode( $message );
+		return 'https://wa.me/905452054356?text=' . rawurlencode( $message );
 	}
 }
 
 if ( ! function_exists( 'pera_latest_offers_citizenship_mid_list_whatsapp_url' ) ) {
 	function pera_latest_offers_citizenship_mid_list_whatsapp_url(): string {
 		$message = 'Hello Pera Property, I’m comparing Turkish citizenship properties. My budget is [budget] and preferred location is [location]. Can you help me choose the best options?';
-		return 'https://wa.me/905320639978?text=' . rawurlencode( $message );
+		return 'https://wa.me/905452054356?text=' . rawurlencode( $message );
 	}
 }
 
