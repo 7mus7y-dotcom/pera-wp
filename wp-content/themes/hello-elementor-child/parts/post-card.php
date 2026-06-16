@@ -18,12 +18,6 @@ $card_classes = trim( $extra_classes . ' post-card post-card--' . $variant );
 $post_id = get_the_ID();
 $post_permalink = get_permalink( $post_id );
 $post_title     = wp_strip_all_tags( get_the_title( $post_id ) );
-$read_more_aria_label = sprintf(
-  /* translators: %s: post title. */
-  __( 'Read more about %s', 'peraproperty' ),
-  $post_title
-);
-
 $cats        = get_the_category( $post_id );
 $primary_cat = ( ! empty( $cats ) && ! is_wp_error( $cats ) ) ? $cats[0] : null;
 $cat_name    = $primary_cat ? $primary_cat->name : '';
@@ -114,8 +108,9 @@ if ( function_exists( 'pera_get_public_updated_date' ) ) {
 
     <?php if ( $show_readmore ) : ?>
       <div class="post-card-readmore">
-        <a href="<?php echo esc_url( $post_permalink ); ?>" class="btn btn--solid btn--blue" aria-label="<?php echo esc_attr( $read_more_aria_label ); ?>">
-          <?php esc_html_e( 'Read more', 'peraproperty' ); ?>
+        <a href="<?php echo esc_url( $post_permalink ); ?>" class="btn btn--solid btn--blue">
+          <span aria-hidden="true"><?php esc_html_e( 'Read guide', 'peraproperty' ); ?></span>
+          <span class="screen-reader-text"><?php echo esc_html( sprintf( __( ' about %s', 'peraproperty' ), $post_title ) ); ?></span>
         </a>
       </div>
     <?php endif; ?>
