@@ -40,6 +40,10 @@ if ( ! function_exists( 'pera_render_property_pagination' ) ) {
 $requested_view     = isset( $_GET['view'] ) ? sanitize_key( wp_unslash( (string) $_GET['view'] ) ) : '';
 $has_requested_view = in_array( $requested_view, array( 'cards', 'map' ), true );
 $initial_view       = 'map' === $requested_view ? 'map' : 'cards';
+$requested_sort     = isset( $_GET['sort'] ) ? sanitize_key( wp_unslash( (string) $_GET['sort'] ) ) : 'default';
+$selected_sort      = function_exists( 'pera_latest_offers_normalize_sort' )
+	? pera_latest_offers_normalize_sort( $requested_sort )
+	: ( in_array( $requested_sort, array( 'default', 'price_asc', 'price_desc' ), true ) ? $requested_sort : 'default' );
 $paged              = max(
 	1,
 	(int) get_query_var( 'paged' ),
@@ -58,7 +62,8 @@ $card_page = function_exists( 'pera_latest_offers_collect_paginated_cards' )
 					'terms'    => array( 'citizenship' ),
 				),
 			),
-		)
+		),
+		$selected_sort
 	)
 	: array(
 		'cards'       => array(),
@@ -76,8 +81,11 @@ $pagination_html = function_exists( 'pera_render_property_pagination' )
 	? pera_render_property_pagination(
 		$pagination_query,
 		$paged,
-		array(
+		array_filter(
+			array(
 			'view' => 'cards',
+			'sort' => 'default' !== $selected_sort ? $selected_sort : '',
+			)
 		),
 		get_permalink()
 	)
@@ -110,8 +118,13 @@ $hero_desc_html = '<p class="text-light">' . esc_html__( 'Browse selected Istanb
 
 <main id="primary" class="site-main">
 	<style>
-		.pera-citizenship-properties .citizenship-properties-view-toggle{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin:0 0 16px;}
+		.pera-citizenship-properties .citizenship-properties-toolbar{display:flex;gap:12px;align-items:center;justify-content:space-between;flex-wrap:wrap;margin:0 0 16px;}
+		.pera-citizenship-properties .citizenship-properties-view-toggle{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin:0;}
 		.pera-citizenship-properties .citizenship-view-btn{min-width:120px;}
+		.pera-citizenship-properties .citizenship-properties-sort{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin:0;}
+		.pera-citizenship-properties .citizenship-properties-sort label{font-size:14px;font-weight:700;color:#263142;}
+		.pera-citizenship-properties .citizenship-properties-sort select{min-height:42px;border:1px solid #d9deea;border-radius:10px;background:#fff;color:#263142;font-weight:700;padding:8px 34px 8px 12px;}
+		.pera-citizenship-properties .citizenship-properties-sort .citizenship-properties-sort-submit{min-height:42px;padding:8px 14px;}
 		.citizenship-hero-trust-strip{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-top:18px;color:#fff;font-size:14px;font-weight:700;letter-spacing:.01em;}
 		.citizenship-hero-trust-strip span{display:inline-flex;align-items:center;gap:8px;}
 		.citizenship-hero-trust-strip span:not(:last-child)::after{content:"•";opacity:.7;}
@@ -232,23 +245,36 @@ $hero_desc_html = '<p class="text-light">' . esc_html__( 'Browse selected Istanb
 				</article>
 			</div>
 
-			<div class="citizenship-properties-view-toggle" role="group" aria-label="<?php esc_attr_e( 'Property view mode', 'hello-elementor-child' ); ?>">
-				<button
-					type="button"
-					class="btn btn--solid btn--black citizenship-view-btn"
-					data-citizenship-view="cards"
-					aria-pressed="<?php echo 'cards' === $initial_view ? 'true' : 'false'; ?>"
-				>
-					<?php esc_html_e( 'Cards', 'hello-elementor-child' ); ?>
-				</button>
-				<button
-					type="button"
-					class="btn btn--solid btn--black citizenship-view-btn"
-					data-citizenship-view="map"
-					aria-pressed="<?php echo 'map' === $initial_view ? 'true' : 'false'; ?>"
-				>
-					<?php esc_html_e( 'Map', 'hello-elementor-child' ); ?>
-				</button>
+			<div class="citizenship-properties-toolbar">
+				<div class="citizenship-properties-view-toggle" role="group" aria-label="<?php esc_attr_e( 'Property view mode', 'hello-elementor-child' ); ?>">
+					<button
+						type="button"
+						class="btn btn--solid btn--black citizenship-view-btn"
+						data-citizenship-view="cards"
+						aria-pressed="<?php echo 'cards' === $initial_view ? 'true' : 'false'; ?>"
+					>
+						<?php esc_html_e( 'Cards', 'hello-elementor-child' ); ?>
+					</button>
+					<button
+						type="button"
+						class="btn btn--solid btn--black citizenship-view-btn"
+						data-citizenship-view="map"
+						aria-pressed="<?php echo 'map' === $initial_view ? 'true' : 'false'; ?>"
+					>
+						<?php esc_html_e( 'Map', 'hello-elementor-child' ); ?>
+					</button>
+				</div>
+
+				<form class="citizenship-properties-sort" action="<?php echo esc_url( get_permalink() ); ?>" method="get">
+					<input type="hidden" name="view" value="<?php echo esc_attr( $initial_view ); ?>">
+					<label for="citizenship-properties-sort"><?php esc_html_e( 'Sort by', 'hello-elementor-child' ); ?></label>
+					<select id="citizenship-properties-sort" name="sort">
+						<option value="default" <?php selected( $selected_sort, 'default' ); ?>><?php esc_html_e( 'Default', 'hello-elementor-child' ); ?></option>
+						<option value="price_asc" <?php selected( $selected_sort, 'price_asc' ); ?>><?php esc_html_e( 'Price low to high', 'hello-elementor-child' ); ?></option>
+						<option value="price_desc" <?php selected( $selected_sort, 'price_desc' ); ?>><?php esc_html_e( 'Price high to low', 'hello-elementor-child' ); ?></option>
+					</select>
+					<button type="submit" class="btn btn--solid btn--black citizenship-properties-sort-submit"><?php esc_html_e( 'Apply', 'hello-elementor-child' ); ?></button>
+				</form>
 			</div>
 
 			<?php if ( ! empty( $cards ) ) : ?>
@@ -300,6 +326,8 @@ $hero_desc_html = '<p class="text-light">' . esc_html__( 'Browse selected Istanb
 		var mapEmpty = document.getElementById('citizenship-properties-map-empty');
 		var jsonEl = document.getElementById('citizenship-properties-map-data');
 		var buttons = Array.prototype.slice.call(root.querySelectorAll('[data-citizenship-view]'));
+		var sortSelect = document.getElementById('citizenship-properties-sort');
+		var sortViewInput = root.querySelector('.citizenship-properties-sort input[name="view"]');
 		var storageKey = 'peraCitizenshipPropertiesView';
 		var mapInstance = null;
 		var mapBooted = false;
@@ -433,6 +461,11 @@ $hero_desc_html = '<p class="text-light">' . esc_html__( 'Browse selected Istanb
 			window.history.replaceState({}, '', url.toString());
 		}
 
+		function setSortViewInput(view) {
+			if (!sortViewInput) return;
+			sortViewInput.value = view === 'map' ? 'map' : 'cards';
+		}
+
 		function setButtons(view) {
 			buttons.forEach(function (button) {
 				var isActive = button.getAttribute('data-citizenship-view') === view;
@@ -448,6 +481,7 @@ $hero_desc_html = '<p class="text-light">' . esc_html__( 'Browse selected Istanb
 			cardsPanel.hidden = nextView !== 'cards';
 			mapPanel.hidden = nextView !== 'map';
 			setButtons(nextView);
+			setSortViewInput(nextView);
 
 			if (nextView === 'map') {
 				initMapIfNeeded();
@@ -471,6 +505,22 @@ $hero_desc_html = '<p class="text-light">' . esc_html__( 'Browse selected Istanb
 				showView(button.getAttribute('data-citizenship-view') || 'cards', true);
 			});
 		});
+
+		if (sortSelect) {
+			sortSelect.addEventListener('change', function () {
+				var url = new URL('<?php echo esc_js( get_permalink() ); ?>');
+				var sort = sortSelect.value || 'default';
+				if (currentView === 'map') {
+					url.searchParams.set('view', 'map');
+				} else {
+					url.searchParams.set('view', 'cards');
+				}
+				if (sort !== 'default') {
+					url.searchParams.set('sort', sort);
+				}
+				window.location.href = url.toString();
+			});
+		}
 
 		var initial = '<?php echo esc_js( $initial_view ); ?>';
 		var hasRequestedView = <?php echo $has_requested_view ? 'true' : 'false'; ?>;
