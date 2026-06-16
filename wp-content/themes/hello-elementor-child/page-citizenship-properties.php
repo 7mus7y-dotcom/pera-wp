@@ -70,7 +70,7 @@ $pagination_html = function_exists( 'pera_render_property_pagination' )
 		$pagination_query,
 		$paged,
 		array(
-			'view' => $initial_view,
+			'view' => 'cards',
 		),
 		get_permalink()
 	)
@@ -210,11 +210,17 @@ if ( '' !== trim( wp_strip_all_tags( (string) $description_content ) ) ) {
 						<?php endforeach; ?>
 					</div>
 
-					<?php if ( '' !== $pagination_html ) : ?>
-						<nav class="property-pagination" aria-label="<?php esc_attr_e( 'Citizenship properties pagination', 'hello-elementor-child' ); ?>">
-							<?php echo $pagination_html; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>
+					<div class="flex-center mt-sm mb-sm">
+						<nav
+							class="property-pagination <?php echo $pagination_html !== '' ? '' : 'is-hidden'; ?>"
+							aria-label="<?php esc_attr_e( 'Citizenship property results pages', 'hello-elementor-child' ); ?>"
+						>
+							<?php if ( $pagination_html !== '' ) : ?>
+								<?php echo $pagination_html; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>
+							<?php endif; ?>
 						</nav>
-					<?php endif; ?>
+
+					</div>
 				</div>
 
 				<div id="citizenship-properties-map-panel" <?php echo 'cards' === $initial_view ? 'hidden' : ''; ?>>
