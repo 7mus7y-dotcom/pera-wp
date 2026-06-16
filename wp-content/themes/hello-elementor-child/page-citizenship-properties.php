@@ -104,22 +104,19 @@ if ( ! is_string( $map_json ) ) {
 	$map_json = '[]';
 }
 
-$description_content = trim( (string) get_post_field( 'post_content', get_queried_object_id() ) );
-$hero_title          = get_the_title();
-$hero_desc_html      = '';
-
-if ( '' !== trim( wp_strip_all_tags( (string) $description_content ) ) ) {
-	$hero_desc_html = wpautop( wp_kses_post( $description_content ) );
-	$hero_desc_html = str_replace( '<p>', '<p class="text-light">', $hero_desc_html );
-} else {
-	$hero_desc_html = '<p class="text-light">' . esc_html__( 'Browse latest property offers tagged for Turkish citizenship eligibility.', 'hello-elementor-child' ) . '</p>';
-}
+$hero_title     = __( 'Turkish Citizenship Properties in Istanbul', 'hello-elementor-child' );
+$hero_desc_html = '<p class="text-light">' . esc_html__( 'Browse selected Istanbul properties suitable for Turkish citizenship by investment. All listings on this page are selected for the citizenship route and reviewed for price, location, title deed status, valuation logic and resale potential before recommendation.', 'hello-elementor-child' ) . '</p>';
 ?>
 
 <main id="primary" class="site-main">
 	<style>
 		.pera-citizenship-properties .citizenship-properties-view-toggle{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin:0 0 16px;}
 		.pera-citizenship-properties .citizenship-view-btn{min-width:120px;}
+		.citizenship-hero-trust-strip{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-top:18px;color:#fff;font-size:14px;font-weight:700;letter-spacing:.01em;}
+		.citizenship-hero-trust-strip span{display:inline-flex;align-items:center;gap:8px;}
+		.citizenship-hero-trust-strip span:not(:last-child)::after{content:"•";opacity:.7;}
+		.pera-citizenship-properties .citizenship-properties-intro-panel{margin:0 0 18px;}
+		.pera-citizenship-properties .citizenship-properties-check-grid{margin:0 0 18px;}
 		.pera-citizenship-properties .citizenship-map-debug{margin:0 0 16px;padding:10px 12px;border:1px solid #d9deea;border-radius:10px;background:#f8faff;font:12px/1.45 ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,Liberation Mono,monospace;color:#1e293b;white-space:pre-wrap;}
 		#citizenship-properties-map-panel[hidden],
 		#citizenship-properties-cards-panel[hidden],
@@ -185,11 +182,56 @@ if ( '' !== trim( wp_strip_all_tags( (string) $description_content ) ) ) {
 			<?php if ( '' !== $hero_desc_html ) : ?>
 				<?php echo $hero_desc_html; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>
 			<?php endif; ?>
+			<div class="citizenship-hero-trust-strip" aria-label="<?php esc_attr_e( 'Citizenship property highlights', 'hello-elementor-child' ); ?>">
+				<span><?php esc_html_e( '$400,000+ citizenship route', 'hello-elementor-child' ); ?></span>
+				<span><?php esc_html_e( 'Istanbul-focused shortlist', 'hello-elementor-child' ); ?></span>
+				<span><?php esc_html_e( 'Eligibility checked before reservation', 'hello-elementor-child' ); ?></span>
+				<span><?php esc_html_e( 'Family application support', 'hello-elementor-child' ); ?></span>
+			</div>
 		</div>
 	</section>
 
 	<section class="section content-panel content-panel--overlap-hero pera-citizenship-properties">
 		<div class="container">
+			<div class="content-panel-box citizenship-properties-intro-panel">
+				<div class="section-header">
+					<p class="u-eyebrow"><?php esc_html_e( 'Citizenship property shortlist', 'hello-elementor-child' ); ?></p>
+					<h2><?php esc_html_e( 'Need help choosing the right citizenship property?', 'hello-elementor-child' ); ?></h2>
+					<p><?php esc_html_e( 'Every property listed here is selected for Turkish citizenship buyers, but the best option depends on your budget, family plans, preferred location and exit strategy. Tell us what you are looking for and we will prepare a focused shortlist.', 'hello-elementor-child' ); ?></p>
+				</div>
+				<div class="hero-actions">
+					<a href="<?php echo esc_url( 'https://www.peraproperty.com/citizenship-by-investment/#citizenship-callback' ); ?>" class="btn btn--solid btn--green"><?php esc_html_e( 'Request a private shortlist', 'hello-elementor-child' ); ?></a>
+					<a href="<?php echo esc_url( 'https://wa.me/905320639978?text=Hello%20Pera%20Property%2C%20I%27m%20interested%20in%20Turkish%20citizenship%20properties.%20Can%20you%20send%20me%20a%20shortlist%3F' ); ?>" class="btn btn--solid btn--blue" target="_blank" rel="noopener" data-whatsapp="1" data-whatsapp-type="citizenship_properties_page" data-track-channel="whatsapp" data-track-intent="high" data-track-source="page" data-track-context="citizenship_properties_intro" data-track-ga4-event="whatsapp_click" data-track-crm-event="whatsapp_click"><?php esc_html_e( 'WhatsApp our citizenship team', 'hello-elementor-child' ); ?></a>
+				</div>
+			</div>
+
+			<div class="feature-grid citizenship-properties-check-grid">
+				<article class="feature-card">
+					<div class="feature-card-header">
+						<h3><?php esc_html_e( 'Citizenship-ready budget', 'hello-elementor-child' ); ?></h3>
+					</div>
+					<div class="feature-card-body">
+						<p><?php esc_html_e( 'Listings are selected around the Turkish citizenship property route and the USD 400,000+ investment requirement.', 'hello-elementor-child' ); ?></p>
+					</div>
+				</article>
+				<article class="feature-card">
+					<div class="feature-card-header">
+						<h3><?php esc_html_e( 'Eligibility reviewed', 'hello-elementor-child' ); ?></h3>
+					</div>
+					<div class="feature-card-body">
+						<p><?php esc_html_e( 'Before recommendation, we check title deed status, seller suitability, valuation logic and payment-route requirements.', 'hello-elementor-child' ); ?></p>
+					</div>
+				</article>
+				<article class="feature-card">
+					<div class="feature-card-header">
+						<h3><?php esc_html_e( 'Exit and rental logic', 'hello-elementor-child' ); ?></h3>
+					</div>
+					<div class="feature-card-body">
+						<p><?php esc_html_e( 'We prioritise Istanbul properties with practical resale potential, rental demand and long-term ownership logic.', 'hello-elementor-child' ); ?></p>
+					</div>
+				</article>
+			</div>
+
 			<div class="citizenship-properties-view-toggle" role="group" aria-label="<?php esc_attr_e( 'Property view mode', 'hello-elementor-child' ); ?>">
 				<button
 					type="button"
