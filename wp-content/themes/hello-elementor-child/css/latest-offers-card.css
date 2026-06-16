@@ -426,14 +426,16 @@
 .pera-latest-offer-card--cta__actions {
   display: flex;
   flex-wrap: wrap;
-  gap: 8px;
+  gap: 12px;
   align-items: center;
   margin-top: auto;
 }
 
-.pera-latest-offer-card--cta__primary {
-  border-color: #1f6a3c;
-  color: #14532d;
+.pera-latest-offer-card--cta__button {
+  justify-content: center;
+  min-height: 46px;
+  padding-inline: 20px;
+  text-align: center;
 }
 
 @media (prefers-color-scheme: dark) {
@@ -446,8 +448,7 @@
     background: #0f2f21;
   }
 
-  .pera-latest-offer-card--cta__body p,
-  .pera-latest-offer-card--cta__primary {
+  .pera-latest-offer-card--cta__body p {
     color: #d1fae5;
   }
 }
@@ -464,8 +465,18 @@
 }
 
 [data-theme="dark"] .pera-latest-offer-card--cta__body p,
-[data-theme="dark"] .pera-latest-offer-card--cta__primary,
-.dark .pera-latest-offer-card--cta__body p,
-.dark .pera-latest-offer-card--cta__primary {
+.dark .pera-latest-offer-card--cta__body p {
   color: #d1fae5;
+}
+
+
+@media (max-width: 640px) {
+  .pera-latest-offer-card--cta__actions {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .pera-latest-offer-card--cta__button {
+    width: 100%;
+  }
 }
