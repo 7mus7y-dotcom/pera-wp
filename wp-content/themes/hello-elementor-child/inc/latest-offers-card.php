@@ -672,7 +672,7 @@ if ( ! function_exists( 'pera_latest_offers_collect_paginated_cards' ) ) {
 	 * properties with multiple offer rows do not cause cards to be skipped between pages.
 	 *
 	 * @param array<string,mixed> $query_args Additional get_posts() query args (for example tax_query).
-	 * @return array{cards:array<int,array<string,mixed>>,total_cards:int,total_pages:int}
+	 * @return array{cards:array<int,array<string,mixed>>,all_cards:array<int,array<string,mixed>>,total_cards:int,total_pages:int}
 	 */
 	function pera_latest_offers_collect_paginated_cards( int $per_page = 12, int $paged = 1, array $query_args = array(), string $sort = 'default' ): array {
 		$per_page = max( 1, $per_page );
@@ -715,6 +715,7 @@ if ( ! function_exists( 'pera_latest_offers_collect_paginated_cards' ) ) {
 		if ( empty( $property_ids ) || ! is_array( $property_ids ) ) {
 			return array(
 				'cards'       => array(),
+				'all_cards'   => array(),
 				'total_cards' => 0,
 				'total_pages' => 0,
 			);
@@ -747,11 +748,124 @@ if ( ! function_exists( 'pera_latest_offers_collect_paginated_cards' ) ) {
 
 		return array(
 			'cards'       => array_values( array_slice( array_filter( $cards ), $offset, $per_page ) ),
+			'all_cards'   => array_values( array_filter( $cards ) ),
 			'total_cards' => $total_cards,
 			'total_pages' => (int) ceil( $total_cards / $per_page ),
 		);
 	}
 }
+
+if ( ! function_exists( 'pera_latest_offers_citizenship_query_args' ) ) {
+	function pera_latest_offers_citizenship_query_args(): array {
+		return array(
+			'tax_query' => array(
+				array(
+					'taxonomy' => 'special',
+					'field'    => 'slug',
+					'terms'    => array( 'citizenship' ),
+				),
+			),
+		);
+	}
+}
+
+if ( ! function_exists( 'pera_latest_offers_marker_dtos_from_cards' ) ) {
+	/**
+	 * @param array<int,array<string,mixed>> $cards
+	 * @return array<int,array<string,mixed>>
+	 */
+	function pera_latest_offers_marker_dtos_from_cards( array $cards ): array {
+		$markers = array();
+		foreach ( $cards as $card ) {
+			if ( ! is_array( $card ) ) {
+				continue;
+			}
+
+			$marker = function_exists( 'pera_latest_offers_marker_dto_from_card' )
+				? pera_latest_offers_marker_dto_from_card( $card )
+				: null;
+			if ( is_array( $marker ) ) {
+				$markers[] = $marker;
+			}
+		}
+
+		return array_values( $markers );
+	}
+}
+
+if ( ! function_exists( 'pera_latest_offers_render_cards_html' ) ) {
+	/**
+	 * @param array<int,array<string,mixed>> $cards
+	 */
+	function pera_latest_offers_render_cards_html( array $cards ): string {
+		ob_start();
+		foreach ( $cards as $card ) {
+			if ( is_array( $card ) ) {
+				pera_latest_offers_render_card( $card );
+			}
+		}
+		return (string) ob_get_clean();
+	}
+}
+
+if ( ! function_exists( 'pera_ajax_citizenship_latest_offers' ) ) {
+	function pera_ajax_citizenship_latest_offers(): void {
+		check_ajax_referer( 'pera_citizenship_latest_offers', 'nonce' );
+
+		if ( ! function_exists( 'pera_render_property_pagination' ) ) {
+			$property_pagination_path = get_stylesheet_directory() . '/inc/property-pagination.php';
+			if ( file_exists( $property_pagination_path ) ) {
+				require_once $property_pagination_path;
+			}
+		}
+
+		$sort = isset( $_POST['sort'] ) ? pera_latest_offers_normalize_sort( sanitize_key( wp_unslash( (string) $_POST['sort'] ) ) ) : 'date_desc';
+		$view = isset( $_POST['view'] ) ? sanitize_key( wp_unslash( (string) $_POST['view'] ) ) : 'cards';
+		$view = 'map' === $view ? 'map' : 'cards';
+
+		$card_page = pera_latest_offers_collect_paginated_cards(
+			12,
+			1,
+			pera_latest_offers_citizenship_query_args(),
+			$sort
+		);
+
+		$cards       = isset( $card_page['cards'] ) && is_array( $card_page['cards'] ) ? $card_page['cards'] : array();
+		$all_cards   = isset( $card_page['all_cards'] ) && is_array( $card_page['all_cards'] ) ? $card_page['all_cards'] : $cards;
+		$total_pages = isset( $card_page['total_pages'] ) ? max( 0, (int) $card_page['total_pages'] ) : 0;
+
+		$pagination_html = '';
+		if ( function_exists( 'pera_render_property_pagination' ) ) {
+			$pagination_query                = new WP_Query();
+			$pagination_query->max_num_pages = $total_pages;
+			$page = get_page_by_path( 'turkish-citizenship-properties' );
+			$base = $page instanceof WP_Post ? get_permalink( $page ) : home_url( '/turkish-citizenship-properties/' );
+			$pagination_html = pera_render_property_pagination(
+				$pagination_query,
+				1,
+				array_filter(
+					array(
+						'view' => 'map' === $view ? 'map' : '',
+						'sort' => 'date_desc' !== $sort ? $sort : '',
+					)
+				),
+				$base
+			);
+		}
+
+		wp_send_json_success(
+			array(
+				'cards_html'      => pera_latest_offers_render_cards_html( $cards ),
+				'pagination_html' => $pagination_html,
+				'markers'         => pera_latest_offers_marker_dtos_from_cards( $all_cards ),
+				'sort'            => $sort,
+				'total_pages'     => $total_pages,
+			)
+		);
+	}
+}
+add_action( 'wp_ajax_pera_citizenship_latest_offers', 'pera_ajax_citizenship_latest_offers' );
+add_action( 'wp_ajax_nopriv_pera_citizenship_latest_offers', 'pera_ajax_citizenship_latest_offers' );
 
 if ( ! function_exists( 'pera_latest_offers_collect_homepage_cards' ) ) {
 	/**
