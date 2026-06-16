@@ -232,8 +232,8 @@ if ( ! function_exists( 'pera_latest_offers_render_citizenship_mid_list_cta' ) )
 				<p><?php esc_html_e( 'Send your budget and preferred location. We’ll confirm which options best fit your citizenship application, rental goals and resale plan before you reserve.', 'hello-elementor-child' ); ?></p>
 			</div>
 			<div class="pera-latest-offer-card--cta__actions">
-				<a class="pill pill--subtle pera-latest-offer-card__pill pera-latest-offer-card--cta__primary" href="<?php echo esc_url( 'https://www.peraproperty.com/citizenship-by-investment/#citizenship-callback' ); ?>"><?php esc_html_e( 'Request eligibility check', 'hello-elementor-child' ); ?></a>
-				<a class="pill pill--subtle pera-latest-offer-card__pill pera-latest-offer-card__pill--blue" href="<?php echo esc_url( $whatsapp_url ); ?>" target="_blank" rel="noopener noreferrer" data-whatsapp="1" data-whatsapp-type="citizenship_mid_list_cta" data-track-channel="whatsapp" data-track-intent="high" data-track-source="page" data-track-context="citizenship_mid_list_cta" data-track-ga4-event="whatsapp_click" data-track-crm-event="whatsapp_click"><?php esc_html_e( 'WhatsApp us', 'hello-elementor-child' ); ?></a>
+				<a class="btn btn--solid btn--green pera-latest-offer-card--cta__button" href="<?php echo esc_url( 'https://www.peraproperty.com/citizenship-by-investment/#citizenship-callback' ); ?>"><?php esc_html_e( 'Request eligibility check', 'hello-elementor-child' ); ?></a>
+				<a class="btn btn--solid btn--black pera-latest-offer-card--cta__button" href="<?php echo esc_url( $whatsapp_url ); ?>" target="_blank" rel="noopener noreferrer" data-whatsapp="1" data-whatsapp-type="citizenship_mid_list_cta" data-track-channel="whatsapp" data-track-intent="high" data-track-source="page" data-track-context="citizenship_mid_list_cta" data-track-ga4-event="whatsapp_click" data-track-crm-event="whatsapp_click"><?php esc_html_e( 'WhatsApp us', 'hello-elementor-child' ); ?></a>
 			</div>
 		</article>
 		<?php
@@ -719,11 +719,13 @@ if ( ! function_exists( 'pera_latest_offers_collect_paginated_cards' ) ) {
 	 * @param array<string,mixed> $query_args Additional get_posts() query args (for example tax_query).
 	 * @return array{cards:array<int,array<string,mixed>>,all_cards:array<int,array<string,mixed>>,total_cards:int,total_pages:int}
 	 */
-	function pera_latest_offers_collect_paginated_cards( int $per_page = 12, int $paged = 1, array $query_args = array(), string $sort = 'default' ): array {
-		$per_page = max( 1, $per_page );
-		$paged    = max( 1, $paged );
-		$offset   = ( $paged - 1 ) * $per_page;
-		$sort     = function_exists( 'pera_latest_offers_normalize_sort' ) ? pera_latest_offers_normalize_sort( $sort ) : 'date_desc';
+	function pera_latest_offers_collect_paginated_cards( int $per_page = 12, int $paged = 1, array $query_args = array(), string $sort = 'default', int $first_page_per_page = 0 ): array {
+		$per_page            = max( 1, $per_page );
+		$paged               = max( 1, $paged );
+		$first_page_per_page = $first_page_per_page > 0 ? $first_page_per_page : $per_page;
+		$offset              = 1 === $paged ? 0 : $first_page_per_page + ( ( $paged - 2 ) * $per_page );
+		$current_per_page    = 1 === $paged ? $first_page_per_page : $per_page;
+		$sort                = function_exists( 'pera_latest_offers_normalize_sort' ) ? pera_latest_offers_normalize_sort( $sort ) : 'date_desc';
 
 		$base_query_args = array(
 			'post_type'              => 'property',
@@ -791,11 +793,15 @@ if ( ! function_exists( 'pera_latest_offers_collect_paginated_cards' ) ) {
 		$cards       = function_exists( 'pera_latest_offers_sort_cards' ) ? pera_latest_offers_sort_cards( $cards, $sort ) : $cards;
 		$total_cards = count( $cards );
 
+		$total_pages = $total_cards <= $first_page_per_page
+			? ( $total_cards > 0 ? 1 : 0 )
+			: 1 + (int) ceil( ( $total_cards - $first_page_per_page ) / $per_page );
+
 		return array(
-			'cards'       => array_values( array_slice( array_filter( $cards ), $offset, $per_page ) ),
+			'cards'       => array_values( array_slice( array_filter( $cards ), $offset, $current_per_page ) ),
 			'all_cards'   => array_values( array_filter( $cards ) ),
 			'total_cards' => $total_cards,
-			'total_pages' => (int) ceil( $total_cards / $per_page ),
+			'total_pages' => $total_pages,
 		);
 	}
 }
@@ -846,7 +852,7 @@ if ( ! function_exists( 'pera_latest_offers_render_cards_html' ) ) {
 		$paged = max( 1, $paged );
 		ob_start();
 		$rendered_cards = 0;
-		$cta_position   = min( 6, count( $cards ) );
+		$cta_position   = min( 7, count( $cards ) );
 		foreach ( $cards as $card ) {
 			if ( is_array( $card ) ) {
 				if ( $include_citizenship_cta ) {
@@ -883,7 +889,8 @@ if ( ! function_exists( 'pera_ajax_citizenship_latest_offers' ) ) {
 			12,
 			1,
 			pera_latest_offers_citizenship_query_args(),
-			$sort
+			$sort,
+			11
 		);
 
 		$cards       = isset( $card_page['cards'] ) && is_array( $card_page['cards'] ) ? $card_page['cards'] : array();

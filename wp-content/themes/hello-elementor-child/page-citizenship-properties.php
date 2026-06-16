@@ -55,7 +55,8 @@ $card_page = function_exists( 'pera_latest_offers_collect_paginated_cards' )
 		12,
 		$paged,
 		function_exists( 'pera_latest_offers_citizenship_query_args' ) ? pera_latest_offers_citizenship_query_args() : array(),
-		$selected_sort
+		$selected_sort,
+		11
 	)
 	: array(
 		'cards'       => array(),
@@ -288,7 +289,7 @@ $hero_desc_html = '<p class="text-light">' . esc_html__( 'Browse selected Istanb
 				<div id="citizenship-properties-cards-panel" <?php echo 'map' === $initial_view ? 'hidden' : ''; ?>>
 					<div class="pera-latest-offers-card-list pera-latest-offers-card-list--grid-4">
 						<?php
-						$citizenship_cta_position = min( 6, count( $cards ) );
+						$citizenship_cta_position = min( 7, count( $cards ) );
 						$rendered_cards            = 0;
 						foreach ( $cards as $card ) :
 							if ( is_array( $card ) ) {
