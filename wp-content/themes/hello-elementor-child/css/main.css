@@ -179,6 +179,14 @@
   text-transform: uppercase;
 }
 
+.section-cta {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: var(--space-sm, 12px);
+  margin-top: var(--space-lg, 24px);
+}
+
 /* =======================================================
    GENERIC CARD SHELL (reusable)
    ======================================================= */

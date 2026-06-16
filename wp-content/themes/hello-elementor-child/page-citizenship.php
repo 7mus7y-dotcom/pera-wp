@@ -174,6 +174,8 @@ $citizenship_requirements = array(
     </div>
   </section>
 
+  <?php get_template_part( 'partials/citizenship-latest-offers' ); ?>
+
   <!-- =====================================================
        OUR FULL-PACKAGE CITIZENSHIP SERVICE
        ====================================================== -->
