@@ -664,10 +664,9 @@ $citizenship_requirements = array(
         <?php endif; ?>
 
           <header class="enquiry-cta-header">
-            <h2>Request a call back</h2>
+            <h2>Request your citizenship property shortlist</h2>
             <p>
-              Share a few details and one of our consultants will contact you
-              to discuss your plans and answer any questions.
+              Share your budget, family details and timeline, and our team will contact you with suitable Istanbul property options for your Turkish citizenship application.
             </p>
           </header>
 
@@ -819,7 +818,7 @@ $citizenship_requirements = array(
             <?php endif; ?>
 
             <button type="submit" class="btn btn--ghost btn--green">
-              Request a call back
+              Send my shortlist request
             </button>
           </div>
 
