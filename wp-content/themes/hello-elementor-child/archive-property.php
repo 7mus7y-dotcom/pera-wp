@@ -568,7 +568,7 @@ if ( ! $is_filtered_search && ( $qo instanceof WP_Term ) && ! is_wp_error( $qo )
                       data-sort-trigger
                     >
                       <svg class="icon" aria-hidden="true" width="18" height="18">
-                        <use href="<?php echo esc_url( get_stylesheet_directory_uri() . '/logos-icons/icons.svg#icon-sort' ); ?>"></use>
+                        <use href="#icon-sort" xlink:href="#icon-sort"></use>
                       </svg>
                       Sort
                     </button>
