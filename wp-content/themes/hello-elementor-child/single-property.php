@@ -420,8 +420,10 @@ if ( trim( (string) $property_highlights_text ) !== '' ) {
 $property_key_advantages_items = $pera_normalize_editorial_items( $property_key_advantages );
 $target_buyer_type_items = $pera_normalize_editorial_items( $target_buyer_type );
 
-$property_faq_items = array();
-if ( trim( (string) $property_faq_text ) !== '' ) {
+$property_faq_items = function_exists( 'pera_property_get_faq_items' )
+  ? pera_property_get_faq_items( $property_id )
+  : array();
+if ( empty( $property_faq_items ) && trim( (string) $property_faq_text ) !== '' ) {
   $faq_lines = preg_split( '/\r\n|\r|\n/', (string) $property_faq_text );
 
   foreach ( $faq_lines as $faq_line ) {

@@ -78,6 +78,59 @@ if ( ! function_exists( 'pera_property_mb_strtolower' ) ) {
   }
 }
 
+if ( ! function_exists( 'pera_property_get_faq_items' ) ) {
+  /**
+   * Return property FAQ rows from the editable "Question|Answer" field.
+   *
+   * @param int $post_id Property post ID.
+   * @return array<int,array{question:string,answer:string}>
+   */
+  function pera_property_get_faq_items( int $post_id ): array {
+    if ( $post_id < 1 ) {
+      return array();
+    }
+
+    $faq_text = '';
+    if ( function_exists( 'get_field' ) ) {
+      $faq_text = (string) get_field( 'property_faq_text', $post_id );
+    }
+
+    if ( $faq_text === '' ) {
+      $faq_text = (string) get_post_meta( $post_id, 'property_faq_text', true );
+    }
+
+    if ( trim( $faq_text ) === '' ) {
+      return array();
+    }
+
+    $faq_items = array();
+    $faq_lines = preg_split( '/\r\n|\r|\n/', $faq_text );
+
+    foreach ( $faq_lines as $faq_line ) {
+      $faq_line = trim( (string) $faq_line );
+
+      if ( $faq_line === '' || strpos( $faq_line, '|' ) === false ) {
+        continue;
+      }
+
+      list( $question, $answer ) = array_map( 'trim', explode( '|', $faq_line, 2 ) );
+      $question = pera_property_normalize_whitespace( $question );
+      $answer   = pera_property_normalize_whitespace( $answer );
+
+      if ( $question === '' || $answer === '' ) {
+        continue;
+      }
+
+      $faq_items[] = array(
+        'question' => $question,
+        'answer'   => $answer,
+      );
+    }
+
+    return $faq_items;
+  }
+}
+
 if ( ! function_exists( 'pera_property_string_contains' ) ) {
   function pera_property_string_contains( string $haystack, string $needle ): bool {
     if ( $needle === '' ) {
@@ -792,6 +845,38 @@ if ( ! function_exists( 'pera_property_build_schema_graph' ) ) {
     }
 
     $graph['@graph'][] = $residence;
+
+    $faq_items = pera_property_get_faq_items( $post_id );
+    if ( ! empty( $faq_items ) ) {
+      $faq_entities = array();
+
+      foreach ( $faq_items as $faq_item ) {
+        $question = isset( $faq_item['question'] ) ? trim( (string) $faq_item['question'] ) : '';
+        $answer   = isset( $faq_item['answer'] ) ? trim( (string) $faq_item['answer'] ) : '';
+
+        if ( $question === '' || $answer === '' ) {
+          continue;
+        }
+
+        $faq_entities[] = array(
+          '@type'          => 'Question',
+          'name'           => $question,
+          'acceptedAnswer' => array(
+            '@type' => 'Answer',
+            'text'  => $answer,
+          ),
+        );
+      }
+
+      if ( ! empty( $faq_entities ) ) {
+        $graph['@graph'][] = array(
+          '@type'      => 'FAQPage',
+          '@id'        => $url . '#faq',
+          'mainEntity' => $faq_entities,
+        );
+        $GLOBALS['pera_schema_faq_emitted'] = true;
+      }
+    }
 
     return $graph;
   }
