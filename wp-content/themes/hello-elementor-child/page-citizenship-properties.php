@@ -287,9 +287,20 @@ $hero_desc_html = '<p class="text-light">' . esc_html__( 'Browse selected Istanb
 			<?php if ( ! empty( $cards ) ) : ?>
 				<div id="citizenship-properties-cards-panel" <?php echo 'map' === $initial_view ? 'hidden' : ''; ?>>
 					<div class="pera-latest-offers-card-list pera-latest-offers-card-list--grid-4">
-						<?php foreach ( $cards as $card ) : ?>
-							<?php pera_latest_offers_render_card( $card ); ?>
-						<?php endforeach; ?>
+						<?php
+						$citizenship_cta_position = min( 6, count( $cards ) );
+						$rendered_cards            = 0;
+						foreach ( $cards as $card ) :
+							if ( is_array( $card ) ) {
+								$card['tracking_context'] = 'citizenship_property_card';
+							}
+							pera_latest_offers_render_card( $card );
+							$rendered_cards++;
+							if ( 1 === $paged && $rendered_cards === $citizenship_cta_position && function_exists( 'pera_latest_offers_render_citizenship_mid_list_cta' ) ) {
+								pera_latest_offers_render_citizenship_mid_list_cta();
+							}
+						endforeach;
+						?>
 					</div>
 
 					<div class="flex-center mt-sm mb-sm">

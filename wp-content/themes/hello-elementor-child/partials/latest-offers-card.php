@@ -23,6 +23,9 @@ $cash_price     = isset( $card['cash_price'] ) ? (string) $card['cash_price'] : 
 $notes          = isset( $card['notes'] ) ? (string) $card['notes'] : '';
 $floor_plan_url = isset( $card['floor_plan_url'] ) ? (string) $card['floor_plan_url'] : '';
 $map_url        = isset( $card['map_url'] ) ? (string) $card['map_url'] : '';
+$card_context   = isset( $card['tracking_context'] ) ? sanitize_key( (string) $card['tracking_context'] ) : 'latest_offer_card';
+$whatsapp_url   = function_exists( 'pera_latest_offers_whatsapp_url' ) ? pera_latest_offers_whatsapp_url( $property_title, $property_url, $card_context ) : '';
+$whatsapp_type  = 'citizenship_property_card' === $card_context ? 'citizenship_property_card' : 'latest_offer_card';
 ?>
 <article class="pera-latest-offer-card slider-card pera-card-shell" aria-label="<?php echo esc_attr__( 'Latest offer card', 'hello-elementor-child' ); ?>">
 	<div class="pera-latest-offer-card__pills">
@@ -74,11 +77,11 @@ $map_url        = isset( $card['map_url'] ) ? (string) $card['map_url'] : '';
 			</a>
 		<?php endif; ?>
 
-			<?php if ( '' !== $property_url ) : ?>
-				<a class="pill pill--subtle pera-latest-offer-card__pill pera-latest-offer-card__pill--blue pera-latest-offer-card__cta" href="<?php echo esc_url( $property_url ); ?>" target="_blank" rel="noopener noreferrer">
-				<span><?php esc_html_e( 'Project details', 'hello-elementor-child' ); ?></span>
+			<?php if ( '' !== $whatsapp_url ) : ?>
+				<a class="pill pill--subtle pera-latest-offer-card__pill pera-latest-offer-card__pill--blue pera-latest-offer-card__cta" href="<?php echo esc_url( $whatsapp_url ); ?>" target="_blank" rel="noopener noreferrer" data-whatsapp="1" data-whatsapp-type="<?php echo esc_attr( $whatsapp_type ); ?>" data-track-channel="whatsapp" data-track-intent="high" data-track-source="card" data-track-context="<?php echo esc_attr( $whatsapp_type ); ?>" data-track-ga4-event="whatsapp_click" data-track-crm-event="whatsapp_click">
+				<span><?php esc_html_e( 'Ask about this property', 'hello-elementor-child' ); ?></span>
 				<svg class="icon pera-latest-offer-card__icon" aria-hidden="true" width="16" height="16">
-					<use href="#icon-external-open" xlink:href="#icon-external-open"></use>
+					<use href="#icon-whatsapp" xlink:href="#icon-whatsapp"></use>
 				</svg>
 			</a>
 		<?php endif; ?>

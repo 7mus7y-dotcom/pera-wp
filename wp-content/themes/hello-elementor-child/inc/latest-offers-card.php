@@ -195,6 +195,51 @@ if ( ! function_exists( 'pera_latest_offers_format_floor' ) ) {
 	}
 }
 
+
+if ( ! function_exists( 'pera_latest_offers_whatsapp_url' ) ) {
+	function pera_latest_offers_whatsapp_url( string $property_title, string $property_url, string $context = 'latest_offer_card' ): string {
+		$property_title = trim( wp_strip_all_tags( $property_title ) );
+		$property_url   = trim( $property_url );
+
+		if ( '' === $property_title && '' === $property_url ) {
+			return '';
+		}
+
+		$is_citizenship = 'citizenship_property_card' === $context || ( function_exists( 'is_page_template' ) && is_page_template( 'page-citizenship-properties.php' ) );
+		$message        = $is_citizenship
+			? sprintf( 'Hello Pera Property, I’m interested in this citizenship property: %s. Can you confirm availability and citizenship suitability? %s', $property_title, $property_url )
+			: sprintf( 'Hello Pera Property, I’m interested in this property: %s. Can you confirm availability and send more details? %s', $property_title, $property_url );
+
+		return 'https://wa.me/905320639978?text=' . rawurlencode( $message );
+	}
+}
+
+if ( ! function_exists( 'pera_latest_offers_citizenship_mid_list_whatsapp_url' ) ) {
+	function pera_latest_offers_citizenship_mid_list_whatsapp_url(): string {
+		$message = 'Hello Pera Property, I’m comparing Turkish citizenship properties. My budget is [budget] and preferred location is [location]. Can you help me choose the best options?';
+		return 'https://wa.me/905320639978?text=' . rawurlencode( $message );
+	}
+}
+
+if ( ! function_exists( 'pera_latest_offers_render_citizenship_mid_list_cta' ) ) {
+	function pera_latest_offers_render_citizenship_mid_list_cta(): void {
+		$whatsapp_url = pera_latest_offers_citizenship_mid_list_whatsapp_url();
+		?>
+		<article class="pera-latest-offer-card pera-card-shell pera-latest-offer-card--cta" aria-label="<?php echo esc_attr__( 'Citizenship property shortlist help', 'hello-elementor-child' ); ?>">
+			<span class="pill pill--brand pill--sm pera-latest-offer-card--cta__eyebrow"><?php esc_html_e( 'Shortlist help', 'hello-elementor-child' ); ?></span>
+			<div class="pera-latest-offer-card--cta__body">
+				<h3 class="pera-latest-offer-card__title pera-latest-offer-card--cta__title"><?php esc_html_e( 'Need help comparing these citizenship properties?', 'hello-elementor-child' ); ?></h3>
+				<p><?php esc_html_e( 'Send your budget and preferred location. We’ll confirm which options best fit your citizenship application, rental goals and resale plan before you reserve.', 'hello-elementor-child' ); ?></p>
+			</div>
+			<div class="pera-latest-offer-card--cta__actions">
+				<a class="pill pill--subtle pera-latest-offer-card__pill pera-latest-offer-card--cta__primary" href="<?php echo esc_url( 'https://www.peraproperty.com/citizenship-by-investment/#citizenship-callback' ); ?>"><?php esc_html_e( 'Request eligibility check', 'hello-elementor-child' ); ?></a>
+				<a class="pill pill--subtle pera-latest-offer-card__pill pera-latest-offer-card__pill--blue" href="<?php echo esc_url( $whatsapp_url ); ?>" target="_blank" rel="noopener noreferrer" data-whatsapp="1" data-whatsapp-type="citizenship_mid_list_cta" data-track-channel="whatsapp" data-track-intent="high" data-track-source="page" data-track-context="citizenship_mid_list_cta" data-track-ga4-event="whatsapp_click" data-track-crm-event="whatsapp_click"><?php esc_html_e( 'WhatsApp us', 'hello-elementor-child' ); ?></a>
+			</div>
+		</article>
+		<?php
+	}
+}
+
 if ( ! function_exists( 'pera_latest_offers_card_view_model' ) ) {
 	if ( ! function_exists( 'pera_latest_offers_primary_term_name' ) ) {
 		function pera_latest_offers_primary_term_name( int $property_id, string $taxonomy ): string {
@@ -797,11 +842,22 @@ if ( ! function_exists( 'pera_latest_offers_render_cards_html' ) ) {
 	/**
 	 * @param array<int,array<string,mixed>> $cards
 	 */
-	function pera_latest_offers_render_cards_html( array $cards ): string {
+	function pera_latest_offers_render_cards_html( array $cards, bool $include_citizenship_cta = false, int $paged = 1 ): string {
+		$paged = max( 1, $paged );
 		ob_start();
+		$rendered_cards = 0;
+		$cta_position   = min( 6, count( $cards ) );
 		foreach ( $cards as $card ) {
 			if ( is_array( $card ) ) {
+				if ( $include_citizenship_cta ) {
+					$card['tracking_context'] = 'citizenship_property_card';
+				}
 				pera_latest_offers_render_card( $card );
+				$rendered_cards++;
+			}
+
+			if ( $include_citizenship_cta && 1 === $paged && $rendered_cards === $cta_position && function_exists( 'pera_latest_offers_render_citizenship_mid_list_cta' ) ) {
+				pera_latest_offers_render_citizenship_mid_list_cta();
 			}
 		}
 		return (string) ob_get_clean();
@@ -855,7 +911,7 @@ if ( ! function_exists( 'pera_ajax_citizenship_latest_offers' ) ) {
 
 		wp_send_json_success(
 			array(
-				'cards_html'      => pera_latest_offers_render_cards_html( $cards ),
+				'cards_html'      => pera_latest_offers_render_cards_html( $cards, true, 1 ),
 				'pagination_html' => $pagination_html,
 				'markers'         => pera_latest_offers_marker_dtos_from_cards( $all_cards ),
 				'sort'            => $sort,
