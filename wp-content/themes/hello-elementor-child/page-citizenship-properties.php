@@ -417,46 +417,6 @@ $hero_desc_html = '<p class="text-light">' . esc_html__( 'Browse selected Istanb
 
 	<?php get_template_part( 'parts/citizenship-guide-posts' ); ?>
 
-	<?php if ( current_user_can( 'manage_options' ) ) : ?>
-		<section class="section section-soft citizenship-card-style-preview" aria-label="<?php esc_attr_e( 'Feature card style preview', 'hello-elementor-child' ); ?>">
-			<div class="container">
-				<header class="section-header section-header--center">
-					<p class="u-eyebrow"><?php esc_html_e( 'Admin preview', 'hello-elementor-child' ); ?></p>
-					<h2><?php esc_html_e( 'Feature card style variants', 'hello-elementor-child' ); ?></h2>
-					<p><?php esc_html_e( 'Temporary visual test section for comparing reusable feature-card modifiers.', 'hello-elementor-child' ); ?></p>
-				</header>
-
-				<div class="feature-grid feature-grid--tablet-3">
-					<article class="feature-card feature-card--elevated">
-						<div class="feature-card-header">
-							<h3><?php esc_html_e( 'Elevated card', 'hello-elementor-child' ); ?></h3>
-						</div>
-						<div class="feature-card-body">
-							<p><?php esc_html_e( 'A premium white card with a soft shadow and hover lift. Best suited to service, conversion and why-choose-us sections.', 'hello-elementor-child' ); ?></p>
-						</div>
-					</article>
-
-					<article class="feature-card feature-card--accent">
-						<div class="feature-card-header">
-							<h3><?php esc_html_e( 'Accent card', 'hello-elementor-child' ); ?></h3>
-						</div>
-						<div class="feature-card-body">
-							<p><?php esc_html_e( 'A structured card with a brand-coloured left border. Best suited to legal, process, eligibility and requirement sections.', 'hello-elementor-child' ); ?></p>
-						</div>
-					</article>
-
-					<article class="feature-card feature-card--soft">
-						<div class="feature-card-header">
-							<h3><?php esc_html_e( 'Soft card', 'hello-elementor-child' ); ?></h3>
-						</div>
-						<div class="feature-card-body">
-							<p><?php esc_html_e( 'A subtle brand-tinted card with a light gradient. Best suited to benefits, family, intro and softer marketing sections.', 'hello-elementor-child' ); ?></p>
-						</div>
-					</article>
-				</div>
-			</div>
-		</section>
-	<?php endif; ?>
 </main>
 
 <script>
