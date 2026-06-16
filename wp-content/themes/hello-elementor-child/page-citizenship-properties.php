@@ -15,6 +15,20 @@ wp_enqueue_style(
 );
 
 wp_enqueue_style(
+	'pera-slider-css',
+	get_stylesheet_directory_uri() . '/css/slider.css',
+	array( 'pera-main-css' ),
+	function_exists( 'pera_get_asset_version' ) ? pera_get_asset_version( '/css/slider.css' ) : null
+);
+
+wp_enqueue_style(
+	'pera-posts-css',
+	get_stylesheet_directory_uri() . '/css/posts.css',
+	array( 'pera-main-css', 'pera-card-typography', 'pera-slider-css' ),
+	function_exists( 'pera_get_asset_version' ) ? pera_get_asset_version( '/css/posts.css' ) : null
+);
+
+wp_enqueue_style(
 	'pera-leaflet',
 	get_stylesheet_directory_uri() . '/vendor/leaflet/leaflet.css',
 	array(),
