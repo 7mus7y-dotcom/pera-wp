@@ -1510,12 +1510,16 @@ if ( ! empty( $yt_video ) ) {
         <div class="card-shell property-editorial-card property-editorial-card--wide">
           <h2>Property questions</h2>
 
-          <?php foreach ( $property_faq_items as $faq_item ) : ?>
-            <div>
-              <h3><?php echo esc_html( $faq_item['question'] ); ?></h3>
-              <?php echo wp_kses_post( wpautop( $faq_item['answer'] ) ); ?>
-            </div>
-          <?php endforeach; ?>
+          <div class="faq-accordion">
+            <?php foreach ( $property_faq_items as $faq_index => $faq_item ) : ?>
+              <details class="faq-item" <?php echo 0 === (int) $faq_index ? 'open' : ''; ?>>
+                <summary>Q: <?php echo esc_html( $faq_item['question'] ); ?></summary>
+                <div class="faq-answer">
+                  <?php echo wp_kses_post( wpautop( $faq_item['answer'] ) ); ?>
+                </div>
+              </details>
+            <?php endforeach; ?>
+          </div>
         </div>
       <?php endif; ?>
 
