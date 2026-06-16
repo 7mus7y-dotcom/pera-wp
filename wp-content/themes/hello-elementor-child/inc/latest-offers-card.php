@@ -587,6 +587,97 @@ if ( ! function_exists( 'pera_latest_offers_collect_cards' ) ) {
 	}
 }
 
+
+if ( ! function_exists( 'pera_latest_offers_collect_paginated_cards' ) ) {
+	/**
+	 * Collect a paginated slice of flattened latest-offer cards across published properties.
+	 *
+	 * Pagination is based on individual latest-offer rows, not parent property posts, so
+	 * properties with multiple offer rows do not cause cards to be skipped between pages.
+	 *
+	 * @param array<string,mixed> $query_args Additional get_posts() query args (for example tax_query).
+	 * @return array{cards:array<int,array<string,mixed>>,total_cards:int,total_pages:int}
+	 */
+	function pera_latest_offers_collect_paginated_cards( int $per_page = 12, int $paged = 1, array $query_args = array() ): array {
+		$per_page = max( 1, $per_page );
+		$paged    = max( 1, $paged );
+		$offset   = ( $paged - 1 ) * $per_page;
+
+		$base_query_args = array(
+			'post_type'              => 'property',
+			'post_status'            => 'publish',
+			'posts_per_page'         => -1,
+			'meta_query'             => array(
+				array(
+					'key'     => pera_latest_offers_meta_key(),
+					'compare' => 'EXISTS',
+				),
+			),
+			'orderby'                => 'date',
+			'order'                  => 'DESC',
+			'ignore_sticky_posts'    => true,
+			'fields'                 => 'ids',
+			'no_found_rows'          => true,
+			'update_post_meta_cache' => false,
+			'update_post_term_cache' => false,
+		);
+
+		$final_query_args = $base_query_args;
+		if ( ! empty( $query_args ) ) {
+			$final_query_args = wp_parse_args( $query_args, $final_query_args );
+		}
+
+		if ( isset( $query_args['meta_query'] ) && is_array( $query_args['meta_query'] ) ) {
+			$final_query_args['meta_query'] = array_merge(
+				$base_query_args['meta_query'],
+				$query_args['meta_query']
+			);
+		}
+
+		$property_ids = get_posts( $final_query_args );
+		if ( empty( $property_ids ) || ! is_array( $property_ids ) ) {
+			return array(
+				'cards'       => array(),
+				'total_cards' => 0,
+				'total_pages' => 0,
+			);
+		}
+
+		$cards       = array();
+		$total_cards = 0;
+
+		foreach ( $property_ids as $property_id ) {
+			$property_id = (int) $property_id;
+			if ( $property_id <= 0 ) {
+				continue;
+			}
+
+			$rows = pera_latest_offers_get_rows( $property_id );
+			if ( empty( $rows ) ) {
+				continue;
+			}
+
+			foreach ( $rows as $offer_row ) {
+				if ( ! is_array( $offer_row ) ) {
+					continue;
+				}
+
+				if ( $total_cards >= $offset && count( $cards ) < $per_page ) {
+					$cards[] = pera_latest_offers_card_view_model( $property_id, $offer_row );
+				}
+
+				$total_cards++;
+			}
+		}
+
+		return array(
+			'cards'       => array_values( array_filter( $cards ) ),
+			'total_cards' => $total_cards,
+			'total_pages' => (int) ceil( $total_cards / $per_page ),
+		);
+	}
+}
+
 if ( ! function_exists( 'pera_latest_offers_collect_homepage_cards' ) ) {
 	/**
 	 * Collect up to N flattened latest-offer cards across recent published properties.

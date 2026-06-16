@@ -23,10 +23,26 @@ wp_enqueue_script(
 
 get_header();
 
-$cards = function_exists( 'pera_latest_offers_collect_cards' )
-	? pera_latest_offers_collect_cards(
+if ( ! function_exists( 'pera_render_property_pagination' ) ) {
+	$property_pagination_path = get_stylesheet_directory() . '/inc/property-pagination.php';
+	if ( file_exists( $property_pagination_path ) ) {
+		require_once $property_pagination_path;
+	}
+}
+
+$requested_view     = isset( $_GET['view'] ) ? sanitize_key( wp_unslash( (string) $_GET['view'] ) ) : '';
+$has_requested_view = in_array( $requested_view, array( 'cards', 'map' ), true );
+$initial_view       = 'map' === $requested_view ? 'map' : 'cards';
+$paged              = max(
+	1,
+	(int) get_query_var( 'paged' ),
+	isset( $_GET['paged'] ) ? (int) $_GET['paged'] : 1
+);
+
+$card_page = function_exists( 'pera_latest_offers_collect_paginated_cards' )
+	? pera_latest_offers_collect_paginated_cards(
 		12,
-		60,
+		$paged,
 		array(
 			'tax_query' => array(
 				array(
@@ -37,7 +53,28 @@ $cards = function_exists( 'pera_latest_offers_collect_cards' )
 			),
 		)
 	)
-	: array();
+	: array(
+		'cards'       => array(),
+		'total_cards' => 0,
+		'total_pages' => 0,
+	);
+
+$cards       = isset( $card_page['cards'] ) && is_array( $card_page['cards'] ) ? $card_page['cards'] : array();
+$total_pages = isset( $card_page['total_pages'] ) ? max( 0, (int) $card_page['total_pages'] ) : 0;
+
+$pagination_query                = new WP_Query();
+$pagination_query->max_num_pages = $total_pages;
+
+$pagination_html = function_exists( 'pera_render_property_pagination' )
+	? pera_render_property_pagination(
+		$pagination_query,
+		$paged,
+		array(
+			'view' => $initial_view,
+		),
+		get_permalink()
+	)
+	: '';
 
 $map_markers = array();
 foreach ( $cards as $card ) {
@@ -55,9 +92,6 @@ foreach ( $cards as $card ) {
 	$map_markers[] = $marker;
 }
 
-$requested_view     = isset( $_GET['view'] ) ? sanitize_key( wp_unslash( (string) $_GET['view'] ) ) : '';
-$has_requested_view = in_array( $requested_view, array( 'cards', 'map' ), true );
-$initial_view       = 'map' === $requested_view ? 'map' : 'cards';
 $map_json           = wp_json_encode( array_values( $map_markers ) );
 if ( ! is_string( $map_json ) ) {
 	$map_json = '[]';
@@ -169,14 +203,18 @@ if ( '' !== trim( wp_strip_all_tags( (string) $description_content ) ) ) {
 			</div>
 
 			<?php if ( ! empty( $cards ) ) : ?>
-				<div
-					class="pera-latest-offers-card-list pera-latest-offers-card-list--grid-4"
-					id="citizenship-properties-cards-panel"
-					<?php echo 'map' === $initial_view ? 'hidden' : ''; ?>
-				>
-					<?php foreach ( $cards as $card ) : ?>
-						<?php pera_latest_offers_render_card( $card ); ?>
-					<?php endforeach; ?>
+				<div id="citizenship-properties-cards-panel" <?php echo 'map' === $initial_view ? 'hidden' : ''; ?>>
+					<div class="pera-latest-offers-card-list pera-latest-offers-card-list--grid-4">
+						<?php foreach ( $cards as $card ) : ?>
+							<?php pera_latest_offers_render_card( $card ); ?>
+						<?php endforeach; ?>
+					</div>
+
+					<?php if ( '' !== $pagination_html ) : ?>
+						<nav class="property-pagination" aria-label="<?php esc_attr_e( 'Citizenship properties pagination', 'hello-elementor-child' ); ?>">
+							<?php echo $pagination_html; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>
+						</nav>
+					<?php endif; ?>
 				</div>
 
 				<div id="citizenship-properties-map-panel" <?php echo 'cards' === $initial_view ? 'hidden' : ''; ?>>
