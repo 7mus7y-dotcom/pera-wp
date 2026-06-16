@@ -191,12 +191,13 @@ $hero_desc_html = '<p class="text-light">' . esc_html__( 'Browse selected Istanb
 					<p><?php esc_html_e( 'Every property listed here is selected for Turkish citizenship buyers, but the best option depends on your budget, family plans, preferred location and exit strategy. Tell us what you are looking for and we will prepare a focused shortlist.', 'hello-elementor-child' ); ?></p>
 				</div>
 				<div class="hero-actions">
-					<a href="<?php echo esc_url( 'https://www.peraproperty.com/citizenship-by-investment/#citizenship-callback' ); ?>" class="btn btn--solid btn--green"><?php esc_html_e( 'Request a private shortlist', 'hello-elementor-child' ); ?></a>
+					<a href="<?php echo esc_url( 'https://www.peraproperty.com/citizenship-by-investment/#citizenship-callback' ); ?>" class="btn btn--solid btn--green"><?php esc_html_e( 'Get a citizenship-safe property shortlist', 'hello-elementor-child' ); ?></a>
 					<a href="<?php echo esc_url( 'https://wa.me/905320639978?text=Hello%20Pera%20Property%2C%20I%27m%20interested%20in%20Turkish%20citizenship%20properties.%20Can%20you%20send%20me%20a%20shortlist%3F' ); ?>" class="btn btn--solid btn--blue" target="_blank" rel="noopener" data-whatsapp="1" data-whatsapp-type="citizenship_properties_page" data-track-channel="whatsapp" data-track-intent="high" data-track-source="page" data-track-context="citizenship_properties_intro" data-track-ga4-event="whatsapp_click" data-track-crm-event="whatsapp_click"><?php esc_html_e( 'WhatsApp our citizenship team', 'hello-elementor-child' ); ?></a>
+					<a href="<?php echo esc_url( 'https://www.peraproperty.com/citizenship-by-investment/' ); ?>" class="btn btn--ghost btn--black"><?php esc_html_e( 'Read the Turkish citizenship guide', 'hello-elementor-child' ); ?></a>
 				</div>
 			</div>
 
-			<div class="feature-grid citizenship-properties-check-grid">
+			<div class="feature-grid feature-grid--tablet-3 citizenship-properties-check-grid">
 				<article class="feature-card">
 					<div class="feature-card-header">
 						<h3><?php esc_html_e( 'Citizenship-ready budget', 'hello-elementor-child' ); ?></h3>
@@ -221,6 +222,23 @@ $hero_desc_html = '<p class="text-light">' . esc_html__( 'Browse selected Istanb
 						<p><?php esc_html_e( 'We prioritise Istanbul properties with practical resale potential, rental demand and long-term ownership logic.', 'hello-elementor-child' ); ?></p>
 					</div>
 				</article>
+			</div>
+
+			<div class="content-panel-box citizenship-properties-process-panel">
+				<div class="section-header">
+					<p class="u-eyebrow"><?php esc_html_e( 'Before we recommend a citizenship property', 'hello-elementor-child' ); ?></p>
+					<h2><?php esc_html_e( 'How we check citizenship property suitability', 'hello-elementor-child' ); ?></h2>
+					<p><?php esc_html_e( 'A property can look suitable on price alone, but citizenship buyers need more than a listing. Before we recommend an option, we check the legal, valuation and exit-risk details that affect the application.', 'hello-elementor-child' ); ?></p>
+				</div>
+				<ul class="checklist">
+					<li><?php esc_html_e( 'Title deed status and seller suitability', 'hello-elementor-child' ); ?></li>
+					<li><?php esc_html_e( 'Whether the property can support the Turkish citizenship route', 'hello-elementor-child' ); ?></li>
+					<li><?php esc_html_e( 'Valuation logic against the declared sale price', 'hello-elementor-child' ); ?></li>
+					<li><?php esc_html_e( 'Payment route, bank transfer and DAB requirements', 'hello-elementor-child' ); ?></li>
+					<li><?php esc_html_e( 'Rental and resale potential after the holding period', 'hello-elementor-child' ); ?></li>
+					<li><?php esc_html_e( 'Whether the property fits your family application plan', 'hello-elementor-child' ); ?></li>
+				</ul>
+				<p class="content-note"><strong><?php esc_html_e( 'Important:', 'hello-elementor-child' ); ?></strong> <?php esc_html_e( 'The listings below are examples of properties we currently consider suitable for citizenship buyers. Final suitability depends on availability, title deed status, valuation, payment route and your personal application structure.', 'hello-elementor-child' ); ?></p>
 			</div>
 
 			<div class="citizenship-properties-toolbar">
@@ -332,6 +350,58 @@ $hero_desc_html = '<p class="text-light">' . esc_html__( 'Browse selected Istanb
 				<pre id="citizenship-properties-map-debug" class="citizenship-map-debug" aria-live="polite"><?php echo esc_html__( 'Map debug panel: waiting for runtime state…', 'hello-elementor-child' ); ?></pre>
 			<?php endif; ?>
 	</section>
+
+	<section id="citizenship-property-faq" class="section section-soft citizenship-properties-faq">
+		<div class="container">
+			<div class="section-header">
+				<p class="u-eyebrow"><?php esc_html_e( 'Citizenship property FAQ', 'hello-elementor-child' ); ?></p>
+				<h2><?php esc_html_e( 'Common questions before choosing a citizenship property', 'hello-elementor-child' ); ?></h2>
+				<p><?php esc_html_e( 'These are the questions most buyers ask before reserving a property for Turkish citizenship by investment.', 'hello-elementor-child' ); ?></p>
+			</div>
+
+			<div class="feature-grid">
+				<article class="feature-card">
+					<div class="feature-card-header">
+						<h3><?php esc_html_e( 'Are all properties on this page suitable for citizenship?', 'hello-elementor-child' ); ?></h3>
+					</div>
+					<div class="feature-card-body">
+						<p><?php esc_html_e( 'They are selected for citizenship buyers, but final suitability must be confirmed before reservation. Availability, title deed status, valuation and payment route all need to be checked.', 'hello-elementor-child' ); ?></p>
+					</div>
+				</article>
+				<article class="feature-card">
+					<div class="feature-card-header">
+						<h3><?php esc_html_e( 'Can I buy more than one property to reach $400,000?', 'hello-elementor-child' ); ?></h3>
+					</div>
+					<div class="feature-card-body">
+						<p><?php esc_html_e( 'Yes, buyers can often combine more than one eligible property, provided the total qualifying value and legal process meet the citizenship requirements.', 'hello-elementor-child' ); ?></p>
+					</div>
+				</article>
+				<article class="feature-card">
+					<div class="feature-card-header">
+						<h3><?php esc_html_e( 'How do you check valuation report risk?', 'hello-elementor-child' ); ?></h3>
+					</div>
+					<div class="feature-card-body">
+						<p><?php esc_html_e( 'We look at comparable sales, the declared purchase price, project pricing, district liquidity and whether the property value is likely to support the citizenship file.', 'hello-elementor-child' ); ?></p>
+					</div>
+				</article>
+				<article class="feature-card">
+					<div class="feature-card-header">
+						<h3><?php esc_html_e( 'Can my family be included in the application?', 'hello-elementor-child' ); ?></h3>
+					</div>
+					<div class="feature-card-body">
+						<p><?php esc_html_e( 'In most standard cases, the main applicant can include a spouse and children under 18. Family structure should be reviewed before choosing the property route.', 'hello-elementor-child' ); ?></p>
+					</div>
+				</article>
+			</div>
+
+			<div class="section-cta">
+				<a href="<?php echo esc_url( 'https://www.peraproperty.com/citizenship-by-investment/' ); ?>" class="btn btn--solid btn--blue"><?php esc_html_e( 'Read the full citizenship guide', 'hello-elementor-child' ); ?></a>
+				<a href="<?php echo esc_url( 'https://www.peraproperty.com/citizenship-by-investment/#citizenship-callback' ); ?>" class="btn btn--solid btn--green"><?php esc_html_e( 'Request a private shortlist', 'hello-elementor-child' ); ?></a>
+			</div>
+		</div>
+	</section>
+
+	<?php get_template_part( 'parts/citizenship-guide-posts' ); ?>
 </main>
 
 <script>
