@@ -3087,6 +3087,13 @@ text-decoration:underline;
   }
 }
 
+/* Optional: keep selected feature grids at 3 columns on tablet / small laptop */
+@media (min-width: 641px) and (max-width: 1024px) {
+  .feature-grid--tablet-3 {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
 /* =======================================================
    UNIVERSAL CONTENT PANEL (REUSABLE)
    ======================================================= */
