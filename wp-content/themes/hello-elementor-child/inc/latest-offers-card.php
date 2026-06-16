@@ -472,7 +472,7 @@ if ( ! function_exists( 'pera_latest_offers_should_enqueue_card_styles' ) ) {
 			return true;
 		}
 
-		if ( is_page_template( 'page-citizenship-properties.php' ) ) {
+		if ( is_page_template( 'page-citizenship.php' ) || is_page_template( 'page-citizenship-properties.php' ) ) {
 			return true;
 		}
 
