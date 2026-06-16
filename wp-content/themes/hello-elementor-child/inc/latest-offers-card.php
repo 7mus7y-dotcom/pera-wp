@@ -45,20 +45,33 @@ if ( ! function_exists( 'pera_latest_offers_get_rows' ) ) {
 	}
 }
 
-if ( ! function_exists( 'pera_latest_offers_format_price' ) ) {
+if ( ! function_exists( 'pera_latest_offers_parse_price' ) ) {
 	/**
 	 * Normalize raw price input to a numeric value in whole currency units.
 	 *
 	 * Accepts values such as:
-	 * - 600000
-	 * - 600,000
-	 * - 600000.00
-	 * - $600,000.00
+	 * - $450,000
+	 * - 450000
+	 * - USD 450,000
+	 * - 450.000
+	 * - 450,000.00
 	 *
 	 * @return float|null
 	 */
 	function pera_latest_offers_parse_price( string $raw_value ): ?float {
-		$clean = trim( preg_replace( '/[^0-9,\.]/', '', $raw_value ) ?? '' );
+		$raw_value = trim( $raw_value );
+		if ( '' === $raw_value || preg_match( '/^[\s\-_—–]+$/u', $raw_value ) ) {
+			return null;
+		}
+
+		$clean = preg_replace( '/[^0-9,\.\-]/', '', $raw_value );
+		$clean = is_string( $clean ) ? trim( $clean ) : '';
+		if ( '' === $clean || '-' === $clean ) {
+			return null;
+		}
+
+		$is_negative = 0 === strpos( $clean, '-' );
+		$clean       = str_replace( '-', '', $clean );
 		if ( '' === $clean ) {
 			return null;
 		}
@@ -80,11 +93,15 @@ if ( ! function_exists( 'pera_latest_offers_format_price' ) ) {
 			$part_count    = count( $parts );
 			$last_fragment = (string) end( $parts );
 
-			if ( 2 === $part_count && preg_match( '/^\d{1,2}$/', $last_fragment ) ) {
+			if ( 2 === $part_count && preg_match( '/^\d{1,2}$/', $last_fragment ) && strlen( $parts[0] ) <= 3 ) {
 				$clean = str_replace( $separator, '.', $clean );
 			} else {
 				$clean = str_replace( $separator, '', $clean );
 			}
+		}
+
+		if ( $is_negative ) {
+			$clean = '-' . $clean;
 		}
 
 		if ( '' === $clean || ! is_numeric( $clean ) ) {
@@ -94,7 +111,9 @@ if ( ! function_exists( 'pera_latest_offers_format_price' ) ) {
 		$value = (float) $clean;
 		return $value > 0 ? $value : null;
 	}
+}
 
+if ( ! function_exists( 'pera_latest_offers_format_price' ) ) {
 	function pera_latest_offers_format_price( string $raw_value ): string {
 		$price = pera_latest_offers_parse_price( $raw_value );
 		if ( null === $price ) {
@@ -435,6 +454,8 @@ if ( ! function_exists( 'pera_latest_offers_property_map_coords' ) ) {
 		$gross_size = isset( $offer_row['gross_sqm'] ) ? pera_latest_offers_format_size( (string) $offer_row['gross_sqm'] ) : '—';
 		$list_price = isset( $offer_row['list_price'] ) ? pera_latest_offers_format_price( (string) $offer_row['list_price'] ) : '—';
 		$cash_price = isset( $offer_row['cash_price'] ) ? pera_latest_offers_format_price( (string) $offer_row['cash_price'] ) : '—';
+		$list_price_value = isset( $offer_row['list_price'] ) ? pera_latest_offers_parse_price( (string) $offer_row['list_price'] ) : null;
+		$cash_price_value = isset( $offer_row['cash_price'] ) ? pera_latest_offers_parse_price( (string) $offer_row['cash_price'] ) : null;
 		$notes      = isset( $offer_row['notes'] ) ? pera_latest_offers_format_notes( (string) $offer_row['notes'] ) : '';
 
 		$floor_plan_id  = isset( $offer_row['floor_plan_id'] ) ? (int) $offer_row['floor_plan_id'] : 0;
@@ -454,10 +475,62 @@ if ( ! function_exists( 'pera_latest_offers_property_map_coords' ) ) {
 			'gross_sqm'       => $gross_size,
 			'list_price'      => $list_price,
 			'cash_price'      => $cash_price,
+			'sort_price'      => null !== $cash_price_value ? $cash_price_value : $list_price_value,
 			'notes'           => $notes,
 			'floor_plan_url'  => $floor_plan_url,
 			'map_url'         => $map_url,
 		);
+	}
+}
+
+if ( ! function_exists( 'pera_latest_offers_normalize_sort' ) ) {
+	function pera_latest_offers_normalize_sort( string $sort ): string {
+		$sort = sanitize_key( $sort );
+		return in_array( $sort, array( 'default', 'price_asc', 'price_desc' ), true ) ? $sort : 'default';
+	}
+}
+
+if ( ! function_exists( 'pera_latest_offers_sort_cards' ) ) {
+	/**
+	 * Sort latest-offer cards by their display price value.
+	 *
+	 * @param array<int,array<string,mixed>> $cards
+	 * @return array<int,array<string,mixed>>
+	 */
+	function pera_latest_offers_sort_cards( array $cards, string $sort = 'default' ): array {
+		$sort = pera_latest_offers_normalize_sort( $sort );
+		if ( 'default' === $sort ) {
+			return array_values( $cards );
+		}
+
+		usort(
+			$cards,
+			static function ( array $a, array $b ) use ( $sort ): int {
+				$a_price = isset( $a['sort_price'] ) && is_numeric( $a['sort_price'] ) ? (float) $a['sort_price'] : null;
+				$b_price = isset( $b['sort_price'] ) && is_numeric( $b['sort_price'] ) ? (float) $b['sort_price'] : null;
+
+				if ( null === $a_price && null === $b_price ) {
+					return 0;
+				}
+				if ( null === $a_price ) {
+					return 1;
+				}
+				if ( null === $b_price ) {
+					return -1;
+				}
+				if ( $a_price === $b_price ) {
+					return 0;
+				}
+
+				if ( 'price_desc' === $sort ) {
+					return $a_price < $b_price ? 1 : -1;
+				}
+
+				return $a_price > $b_price ? 1 : -1;
+			}
+		);
+
+		return array_values( $cards );
 	}
 }
 
@@ -598,10 +671,11 @@ if ( ! function_exists( 'pera_latest_offers_collect_paginated_cards' ) ) {
 	 * @param array<string,mixed> $query_args Additional get_posts() query args (for example tax_query).
 	 * @return array{cards:array<int,array<string,mixed>>,total_cards:int,total_pages:int}
 	 */
-	function pera_latest_offers_collect_paginated_cards( int $per_page = 12, int $paged = 1, array $query_args = array() ): array {
+	function pera_latest_offers_collect_paginated_cards( int $per_page = 12, int $paged = 1, array $query_args = array(), string $sort = 'default' ): array {
 		$per_page = max( 1, $per_page );
 		$paged    = max( 1, $paged );
 		$offset   = ( $paged - 1 ) * $per_page;
+		$sort     = function_exists( 'pera_latest_offers_normalize_sort' ) ? pera_latest_offers_normalize_sort( $sort ) : 'default';
 
 		$base_query_args = array(
 			'post_type'              => 'property',
@@ -643,8 +717,7 @@ if ( ! function_exists( 'pera_latest_offers_collect_paginated_cards' ) ) {
 			);
 		}
 
-		$cards       = array();
-		$total_cards = 0;
+		$cards = array();
 
 		foreach ( $property_ids as $property_id ) {
 			$property_id = (int) $property_id;
@@ -662,16 +735,15 @@ if ( ! function_exists( 'pera_latest_offers_collect_paginated_cards' ) ) {
 					continue;
 				}
 
-				if ( $total_cards >= $offset && count( $cards ) < $per_page ) {
-					$cards[] = pera_latest_offers_card_view_model( $property_id, $offer_row );
-				}
-
-				$total_cards++;
+				$cards[] = pera_latest_offers_card_view_model( $property_id, $offer_row );
 			}
 		}
 
+		$cards       = function_exists( 'pera_latest_offers_sort_cards' ) ? pera_latest_offers_sort_cards( $cards, $sort ) : $cards;
+		$total_cards = count( $cards );
+
 		return array(
-			'cards'       => array_values( array_filter( $cards ) ),
+			'cards'       => array_values( array_slice( array_filter( $cards ), $offset, $per_page ) ),
 			'total_cards' => $total_cards,
 			'total_pages' => (int) ceil( $total_cards / $per_page ),
 		);
