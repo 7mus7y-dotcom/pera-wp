@@ -8,6 +8,13 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 wp_enqueue_style(
+	'pera-property-css',
+	get_stylesheet_directory_uri() . '/css/property.css',
+	array( 'pera-main-css' ),
+	function_exists( 'pera_get_asset_version' ) ? pera_get_asset_version( '/css/property.css' ) : null
+);
+
+wp_enqueue_style(
 	'pera-leaflet',
 	get_stylesheet_directory_uri() . '/vendor/leaflet/leaflet.css',
 	array(),
