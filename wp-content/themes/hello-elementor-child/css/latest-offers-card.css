@@ -89,6 +89,17 @@
   background: linear-gradient(135deg, #e5e7eb 0%, #f8fafc 100%);
 }
 
+.pera-latest-offer-card__project-overlay {
+  position: absolute;
+  top: 0.75rem;
+  left: 0.75rem;
+  z-index: 3;
+  max-width: calc(100% - 1.5rem);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
 .pera-latest-offer-card__utility {
   display: flex;
   flex-wrap: wrap;

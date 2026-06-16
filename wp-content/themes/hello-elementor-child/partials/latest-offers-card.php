@@ -26,9 +26,6 @@ $map_url        = isset( $card['map_url'] ) ? (string) $card['map_url'] : '';
 ?>
 <article class="pera-latest-offer-card slider-card pera-card-shell" aria-label="<?php echo esc_attr__( 'Latest offer card', 'hello-elementor-child' ); ?>">
 	<div class="pera-latest-offer-card__pills">
-		<?php if ( '' !== $project_name ) : ?>
-			<span class="pill pill--brand pill--sm pera-latest-offer-card__project"><?php echo esc_html( $project_name ); ?></span>
-		<?php endif; ?>
 		<?php if ( '' !== $region_name ) : ?>
 			<span class="pill pill--green"><?php echo esc_html( $region_name ); ?></span>
 		<?php endif; ?>
@@ -63,6 +60,11 @@ $map_url        = isset( $card['map_url'] ) ? (string) $card['map_url'] : '';
 	</div>
 
 		<div class="pera-latest-offer-card__media">
+			<?php if ( '' !== $project_name ) : ?>
+				<span class="pill pill--brand pill--sm pera-latest-offer-card__project-overlay">
+					<?php echo esc_html( $project_name ); ?>
+				</span>
+			<?php endif; ?>
 			<?php if ( '' !== $map_url ) : ?>
 				<a class="pill pill--subtle pera-latest-offer-card__pill pera-latest-offer-card__pill--map" href="<?php echo esc_url( $map_url ); ?>" target="_blank" rel="noopener noreferrer">
 				<svg class="icon pera-latest-offer-card__icon" aria-hidden="true" width="16" height="16">
