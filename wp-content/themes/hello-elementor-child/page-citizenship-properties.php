@@ -54,15 +54,7 @@ $card_page = function_exists( 'pera_latest_offers_collect_paginated_cards' )
 	? pera_latest_offers_collect_paginated_cards(
 		12,
 		$paged,
-		array(
-			'tax_query' => array(
-				array(
-					'taxonomy' => 'special',
-					'field'    => 'slug',
-					'terms'    => array( 'citizenship' ),
-				),
-			),
-		),
+		function_exists( 'pera_latest_offers_citizenship_query_args' ) ? pera_latest_offers_citizenship_query_args() : array(),
 		$selected_sort
 	)
 	: array(
@@ -72,6 +64,7 @@ $card_page = function_exists( 'pera_latest_offers_collect_paginated_cards' )
 	);
 
 $cards       = isset( $card_page['cards'] ) && is_array( $card_page['cards'] ) ? $card_page['cards'] : array();
+$marker_cards = isset( $card_page['all_cards'] ) && is_array( $card_page['all_cards'] ) ? $card_page['all_cards'] : $cards;
 $total_pages = isset( $card_page['total_pages'] ) ? max( 0, (int) $card_page['total_pages'] ) : 0;
 
 $pagination_query                = new WP_Query();
@@ -91,21 +84,9 @@ $pagination_html = function_exists( 'pera_render_property_pagination' )
 	)
 	: '';
 
-$map_markers = array();
-foreach ( $cards as $card ) {
-	if ( ! is_array( $card ) ) {
-		continue;
-	}
-
-	$marker = function_exists( 'pera_latest_offers_marker_dto_from_card' )
-		? pera_latest_offers_marker_dto_from_card( $card )
-		: null;
-	if ( ! is_array( $marker ) ) {
-		continue;
-	}
-
-	$map_markers[] = $marker;
-}
+$map_markers = function_exists( 'pera_latest_offers_marker_dtos_from_cards' )
+	? pera_latest_offers_marker_dtos_from_cards( $marker_cards )
+	: array();
 
 $map_json           = wp_json_encode( array_values( $map_markers ) );
 if ( ! is_string( $map_json ) ) {
@@ -351,6 +332,8 @@ $hero_desc_html = '<p class="text-light">' . esc_html__( 'Browse selected Istanb
 		var mapCanvas = document.getElementById('citizenship-properties-map-canvas');
 		var mapEmpty = document.getElementById('citizenship-properties-map-empty');
 		var jsonEl = document.getElementById('citizenship-properties-map-data');
+		var cardsList = root.querySelector('.pera-latest-offers-card-list');
+		var paginationNav = root.querySelector('.property-pagination');
 		var buttons = Array.prototype.slice.call(root.querySelectorAll('[data-citizenship-view]'));
 		var sortMenu = root.querySelector('[data-sort-menu]');
 		var sortTrigger = sortMenu ? sortMenu.querySelector('[data-sort-trigger]') : null;
@@ -363,12 +346,15 @@ $hero_desc_html = '<p class="text-light">' . esc_html__( 'Browse selected Istanb
 		var mapBooted = false;
 		var markers = [];
 		var mapBounds = [];
+		var leafletMarkers = [];
 		var hasRenderableMarkers = false;
 		var hasMapError = false;
 		var lastErrorMessage = '';
 		var parseSucceeded = false;
 		var currentView = 'cards';
 		var debugEl = document.getElementById('citizenship-properties-map-debug');
+		var ajaxUrl = '<?php echo esc_js( admin_url( 'admin-ajax.php' ) ); ?>';
+		var ajaxNonce = '<?php echo esc_js( wp_create_nonce( 'pera_citizenship_latest_offers' ) ); ?>';
 
 		if (!cardsPanel || !mapPanel || !buttons.length) return;
 
@@ -445,6 +431,7 @@ $hero_desc_html = '<p class="text-light">' . esc_html__( 'Browse selected Istanb
 				setDebugState('after_tile_layer');
 
 				mapBounds = [];
+				leafletMarkers = [];
 				var duplicateCounts = Object.create(null);
 				markers.forEach(function (item) {
 					var lat = Number(item && item.lat);
@@ -456,6 +443,7 @@ $hero_desc_html = '<p class="text-light">' . esc_html__( 'Browse selected Istanb
 					var adjusted = offsetLatLng(lat, lng, duplicateIndex);
 					var marker = window.L.marker(adjusted).addTo(mapInstance);
 					marker.bindPopup(String(item && item.popup_html ? item.popup_html : ''));
+					leafletMarkers.push(marker);
 					mapBounds.push(adjusted);
 				});
 
@@ -467,6 +455,48 @@ $hero_desc_html = '<p class="text-light">' . esc_html__( 'Browse selected Istanb
 				setDebugState('init_exception');
 				showView('cards', false);
 			}
+		}
+
+		function rebuildMapMarkers(nextMarkers) {
+			markers = Array.isArray(nextMarkers) ? nextMarkers : [];
+			parseSucceeded = true;
+			mapBounds = [];
+			hasRenderableMarkers = false;
+
+			if (!mapInstance || !window.L) {
+				mapBooted = false;
+				setDebugState('after_marker_data_update');
+				return;
+			}
+
+			leafletMarkers.forEach(function (marker) {
+				try { mapInstance.removeLayer(marker); } catch (e) {}
+			});
+			leafletMarkers = [];
+
+			var duplicateCounts = Object.create(null);
+			markers.forEach(function (item) {
+				var lat = Number(item && item.lat);
+				var lng = Number(item && item.lng);
+				if (!isFinite(lat) || !isFinite(lng)) return;
+				var duplicateKey = keyForLatLng(lat, lng);
+				var duplicateIndex = Number(duplicateCounts[duplicateKey] || 0);
+				duplicateCounts[duplicateKey] = duplicateIndex + 1;
+				var adjusted = offsetLatLng(lat, lng, duplicateIndex);
+				var marker = window.L.marker(adjusted).addTo(mapInstance);
+				marker.bindPopup(String(item && item.popup_html ? item.popup_html : ''));
+				leafletMarkers.push(marker);
+				mapBounds.push(adjusted);
+			});
+
+			hasRenderableMarkers = mapBounds.length > 0;
+			syncMapVisibility();
+			if (currentView === 'map') {
+				window.requestAnimationFrame(function () {
+					setTimeout(refreshMapLayout, 30);
+				});
+			}
+			setDebugState('after_rebuild_markers');
 		}
 
 		function syncMapVisibility() {
@@ -562,7 +592,7 @@ $hero_desc_html = '<p class="text-light">' . esc_html__( 'Browse selected Istanb
 				}
 			}
 
-			function goToSort(sort) {
+			function buildSortUrl(sort) {
 				var url = new URL('<?php echo esc_js( get_permalink() ); ?>');
 				if (currentView === 'map') {
 					url.searchParams.set('view', 'map');
@@ -570,7 +600,50 @@ $hero_desc_html = '<p class="text-light">' . esc_html__( 'Browse selected Istanb
 				if (sort && sort !== 'date_desc') {
 					url.searchParams.set('sort', sort);
 				}
-				window.location.href = url.toString();
+				return url;
+			}
+
+			function refreshSort(sort) {
+				var url = buildSortUrl(sort);
+				if (!window.fetch || !cardsList || !paginationNav) {
+					window.location.href = url.toString();
+					return;
+				}
+
+				root.classList.add('is-loading');
+				var body = new URLSearchParams();
+				body.set('action', 'pera_citizenship_latest_offers');
+				body.set('nonce', ajaxNonce);
+				body.set('sort', sort || 'date_desc');
+				body.set('view', currentView === 'map' ? 'map' : 'cards');
+
+				fetch(ajaxUrl, {
+					method: 'POST',
+					credentials: 'same-origin',
+					headers: {'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8'},
+					body: body.toString()
+				})
+					.then(function (response) {
+						if (!response.ok) throw new Error('AJAX response was not OK');
+						return response.json();
+					})
+					.then(function (json) {
+						if (!json || !json.success || !json.data) throw new Error('AJAX response was unsuccessful');
+						cardsList.innerHTML = String(json.data.cards_html || '');
+						paginationNav.innerHTML = String(json.data.pagination_html || '');
+						paginationNav.classList.toggle('is-hidden', !String(json.data.pagination_html || ''));
+						if (jsonEl) jsonEl.textContent = JSON.stringify(json.data.markers || []);
+						rebuildMapMarkers(json.data.markers || []);
+						if (window.history && window.history.pushState) {
+							window.history.pushState({}, '', url.toString());
+						}
+					})
+					.catch(function () {
+						window.location.href = url.toString();
+					})
+					.finally(function () {
+						root.classList.remove('is-loading');
+					});
 			}
 
 			sortTrigger.addEventListener('click', function (event) {
@@ -586,7 +659,7 @@ $hero_desc_html = '<p class="text-light">' . esc_html__( 'Browse selected Istanb
 					sortInput.value = sort;
 					paintSortOptions();
 					setSortMenuOpen(false);
-					goToSort(sort);
+					refreshSort(sort);
 				});
 			});
 
