@@ -232,6 +232,17 @@ if ( ! function_exists( 'pera_latest_offers_card_view_model' ) ) {
 		}
 	}
 
+	if ( ! function_exists( 'pera_latest_offers_project_name' ) ) {
+		function pera_latest_offers_project_name( int $property_id ): string {
+			if ( $property_id <= 0 || ! function_exists( 'get_field' ) ) {
+				return '';
+			}
+
+			$project_name = get_field( 'project_name', $property_id );
+			return is_string( $project_name ) ? trim( $project_name ) : '';
+		}
+	}
+
 	if ( ! function_exists( 'pera_latest_offers_main_image_id' ) ) {
 		function pera_latest_offers_main_image_id( int $property_id ): int {
 			if ( $property_id <= 0 || ! function_exists( 'get_field' ) ) {
@@ -416,6 +427,7 @@ if ( ! function_exists( 'pera_latest_offers_property_map_coords' ) ) {
 		$region_name    = $location_names['region_name'] ?? '';
 		$district_name  = $location_names['district_name'] ?? '';
 		$map_url        = pera_latest_offers_property_map_url( $property_id );
+		$project_name   = pera_latest_offers_project_name( $property_id );
 
 		$type       = isset( $offer_row['type'] ) ? trim( (string) $offer_row['type'] ) : '';
 		$floor_text = isset( $offer_row['floor'] ) ? pera_latest_offers_format_floor( (string) $offer_row['floor'] ) : '';
@@ -435,6 +447,7 @@ if ( ! function_exists( 'pera_latest_offers_property_map_coords' ) ) {
 			'image_id'        => $image_id,
 			'region_name'     => $region_name,
 			'district_name'   => $district_name,
+			'project_name'    => $project_name,
 			'type'            => '' !== $type ? $type : '—',
 			'floor'           => $floor_text,
 			'net_sqm'         => $net_size,

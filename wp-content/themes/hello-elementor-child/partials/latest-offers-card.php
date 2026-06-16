@@ -13,6 +13,7 @@ $property_url   = isset( $card['property_url'] ) ? (string) $card['property_url'
 $image_id       = isset( $card['image_id'] ) ? (int) $card['image_id'] : 0;
 $region_name    = isset( $card['region_name'] ) ? (string) $card['region_name'] : '';
 $district_name  = isset( $card['district_name'] ) ? (string) $card['district_name'] : '';
+$project_name   = isset( $card['project_name'] ) ? (string) $card['project_name'] : '';
 $type           = isset( $card['type'] ) ? (string) $card['type'] : '—';
 $floor          = isset( $card['floor'] ) ? (string) $card['floor'] : '';
 $net_sqm        = isset( $card['net_sqm'] ) ? (string) $card['net_sqm'] : '—';
@@ -25,6 +26,9 @@ $map_url        = isset( $card['map_url'] ) ? (string) $card['map_url'] : '';
 ?>
 <article class="pera-latest-offer-card slider-card pera-card-shell" aria-label="<?php echo esc_attr__( 'Latest offer card', 'hello-elementor-child' ); ?>">
 	<div class="pera-latest-offer-card__pills">
+		<?php if ( '' !== $project_name ) : ?>
+			<span class="pill pill--brand pill--sm pera-latest-offer-card__project"><?php echo esc_html( $project_name ); ?></span>
+		<?php endif; ?>
 		<?php if ( '' !== $region_name ) : ?>
 			<span class="pill pill--green"><?php echo esc_html( $region_name ); ?></span>
 		<?php endif; ?>
