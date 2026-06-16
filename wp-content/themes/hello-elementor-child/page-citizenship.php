@@ -121,7 +121,7 @@ $citizenship_requirements = array(
         </p>
       </header>
 
-      <div class="feature-grid">
+      <div class="feature-grid feature-grid--tablet-3">
         <article class="feature-card">
           <div class="feature-card-header">
             <h3>The real estate route</h3>
