@@ -486,7 +486,10 @@ if ( ! function_exists( 'pera_latest_offers_property_map_coords' ) ) {
 if ( ! function_exists( 'pera_latest_offers_normalize_sort' ) ) {
 	function pera_latest_offers_normalize_sort( string $sort ): string {
 		$sort = sanitize_key( $sort );
-		return in_array( $sort, array( 'default', 'price_asc', 'price_desc' ), true ) ? $sort : 'default';
+		if ( 'default' === $sort ) {
+			return 'date_desc';
+		}
+		return in_array( $sort, array( 'date_desc', 'date_asc', 'price_asc', 'price_desc' ), true ) ? $sort : 'date_desc';
 	}
 }
 
@@ -499,7 +502,7 @@ if ( ! function_exists( 'pera_latest_offers_sort_cards' ) ) {
 	 */
 	function pera_latest_offers_sort_cards( array $cards, string $sort = 'default' ): array {
 		$sort = pera_latest_offers_normalize_sort( $sort );
-		if ( 'default' === $sort ) {
+		if ( in_array( $sort, array( 'date_desc', 'date_asc' ), true ) ) {
 			return array_values( $cards );
 		}
 
@@ -675,7 +678,7 @@ if ( ! function_exists( 'pera_latest_offers_collect_paginated_cards' ) ) {
 		$per_page = max( 1, $per_page );
 		$paged    = max( 1, $paged );
 		$offset   = ( $paged - 1 ) * $per_page;
-		$sort     = function_exists( 'pera_latest_offers_normalize_sort' ) ? pera_latest_offers_normalize_sort( $sort ) : 'default';
+		$sort     = function_exists( 'pera_latest_offers_normalize_sort' ) ? pera_latest_offers_normalize_sort( $sort ) : 'date_desc';
 
 		$base_query_args = array(
 			'post_type'              => 'property',
@@ -688,7 +691,7 @@ if ( ! function_exists( 'pera_latest_offers_collect_paginated_cards' ) ) {
 				),
 			),
 			'orderby'                => 'date',
-			'order'                  => 'DESC',
+			'order'                  => 'date_asc' === $sort ? 'ASC' : 'DESC',
 			'ignore_sticky_posts'    => true,
 			'fields'                 => 'ids',
 			'no_found_rows'          => true,
