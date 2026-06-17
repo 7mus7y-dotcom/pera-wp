@@ -360,9 +360,7 @@ $hero_desc_html = '<p class="text-light">' . esc_html__( 'Browse selected Istanb
 				<p><?php esc_html_e( 'No citizenship-tagged property offers are available right now. Please check back soon.', 'hello-elementor-child' ); ?></p>
 			<?php endif; ?>
 		</div>
-			<?php if ( current_user_can( 'manage_options' ) ) : ?>
-				<pre id="citizenship-properties-map-debug" class="citizenship-map-debug" aria-live="polite"><?php echo esc_html__( 'Map debug panel: waiting for runtime state…', 'hello-elementor-child' ); ?></pre>
-			<?php endif; ?>
+			
 	</section>
 
 	<section id="citizenship-property-faq" class="section section-soft citizenship-properties-faq">
