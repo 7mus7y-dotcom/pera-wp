@@ -770,6 +770,100 @@ if ( ! function_exists( 'pera_analytics_get_top_countries' ) ) {
 	}
 }
 
+
+if ( ! function_exists( 'pera_analytics_get_country_name_for_code' ) ) {
+	function pera_analytics_get_country_name_for_code( ?string $start, string $end, string $country_code ): string {
+		global $wpdb;
+		$raw_table    = pera_analytics_raw_table_name();
+		$country_code = strtoupper( sanitize_text_field( $country_code ) );
+
+		if ( 'XX' === $country_code || '' === $country_code ) {
+			return __( 'Unknown', 'hello-elementor-child' );
+		}
+
+		if ( ! preg_match( '/^[A-Z]{2}$/', $country_code ) ) {
+			return '';
+		}
+
+		$select = "SELECT country_name
+			FROM {$raw_table}
+			WHERE country_code = %s
+			  AND country_name IS NOT NULL
+			  AND country_name <> ''
+			  AND country_name <> 'Unknown'";
+
+		if ( null === $start ) {
+			$sql = $select . "
+				AND visited_at < %s
+				" . pera_analytics_suspected_bot_where_clause() . "
+				GROUP BY country_name
+				ORDER BY COUNT(*) DESC
+				LIMIT 1";
+			$name = $wpdb->get_var( $wpdb->prepare( $sql, $country_code, $end ) );
+		} else {
+			$sql = $select . "
+				AND visited_at >= %s
+				AND visited_at < %s
+				" . pera_analytics_suspected_bot_where_clause() . "
+				GROUP BY country_name
+				ORDER BY COUNT(*) DESC
+				LIMIT 1";
+			$name = $wpdb->get_var( $wpdb->prepare( $sql, $country_code, $start, $end ) );
+		}
+
+		return is_string( $name ) && '' !== $name ? $name : $country_code;
+	}
+}
+
+
+if ( ! function_exists( 'pera_analytics_get_pages_by_country' ) ) {
+	function pera_analytics_get_pages_by_country( ?string $start, string $end, string $country_code, int $limit = 50 ): array {
+		global $wpdb;
+		$raw_table    = pera_analytics_raw_table_name();
+		$limit        = max( 1, $limit );
+		$country_code = strtoupper( sanitize_text_field( $country_code ) );
+
+		if ( '' === $country_code ) {
+			return array();
+		}
+
+		$country_where = 'XX' === $country_code
+			? "(country_code IS NULL OR country_code = '' OR country_code = 'XX')"
+			: 'country_code = %s';
+		$select = "SELECT
+			page_path,
+			MAX(page_title) AS page_title,
+			COUNT(*) AS visits,
+			COUNT(DISTINCT visitor_id) AS unique_visitors
+			FROM {$raw_table}
+			WHERE page_path IS NOT NULL
+			  AND page_path <> ''
+			  AND {$country_where}";
+
+		$args = 'XX' === $country_code ? array() : array( $country_code );
+		if ( null === $start ) {
+			$sql  = $select . "
+				AND visited_at < %s
+				" . pera_analytics_suspected_bot_where_clause() . "
+				GROUP BY page_path
+				ORDER BY visits DESC, page_path ASC
+				LIMIT %d";
+			$args = array_merge( $args, array( $end, $limit ) );
+			return $wpdb->get_results( $wpdb->prepare( $sql, ...$args ), ARRAY_A );
+		}
+
+		$sql = $select . "
+			AND visited_at >= %s
+			AND visited_at < %s
+			" . pera_analytics_suspected_bot_where_clause() . "
+			GROUP BY page_path
+			ORDER BY visits DESC, page_path ASC
+			LIMIT %d";
+		$args = array_merge( $args, array( $start, $end, $limit ) );
+		return $wpdb->get_results( $wpdb->prepare( $sql, ...$args ), ARRAY_A );
+	}
+}
+
 if ( ! function_exists( 'pera_analytics_get_top_referrers' ) ) {
 	function pera_analytics_get_top_referrers( ?string $start, string $end, int $limit = 10 ): array {
 		global $wpdb;
