@@ -19,6 +19,49 @@ if (!function_exists('peracrm_frontend_get_asset_file')) {
     }
 }
 
+
+if (!function_exists('peracrm_frontend_get_asset_url')) {
+    function peracrm_frontend_get_asset_url(string $relative_plugin_path): string
+    {
+        if (!defined('PERACRM_URL') || '' === (string) PERACRM_URL) {
+            return '';
+        }
+
+        return trailingslashit(PERACRM_URL) . ltrim($relative_plugin_path, '/');
+    }
+}
+
+if (!function_exists('peracrm_frontend_enqueue_style_asset')) {
+    function peracrm_frontend_enqueue_style_asset(string $handle, string $relative_plugin_path, array $deps = array()): bool
+    {
+        $asset = peracrm_frontend_get_asset_file($relative_plugin_path);
+        if (!empty($asset)) {
+            wp_enqueue_style(
+                $handle,
+                $asset['url'],
+                $deps,
+                (string) filemtime($asset['path'])
+            );
+
+            return true;
+        }
+
+        $asset_url = peracrm_frontend_get_asset_url($relative_plugin_path);
+        if ('' === $asset_url) {
+            return false;
+        }
+
+        wp_enqueue_style(
+            $handle,
+            $asset_url,
+            $deps,
+            defined('PERACRM_VERSION') ? (string) PERACRM_VERSION : null
+        );
+
+        return true;
+    }
+}
+
 if (!function_exists('peracrm_frontend_is_crm_request_path')) {
     function peracrm_frontend_is_crm_request_path(): bool
     {
@@ -83,38 +126,15 @@ if (!function_exists('pera_crm_enqueue_assets')) {
             return;
         }
 
-        $fonts_css = peracrm_frontend_get_asset_file('assets/frontend/fonts.css');
-        $crm_css = peracrm_frontend_get_asset_file('assets/frontend/crm.css');
-        $slider_css = peracrm_frontend_get_asset_file('assets/frontend/slider.css');
-
         $crm_css_deps = array();
-        if (!empty($fonts_css)) {
-            wp_enqueue_style(
-                'pera-crm-fonts-css',
-                $fonts_css['url'],
-                array(),
-                (string) filemtime($fonts_css['path'])
-            );
+        if (peracrm_frontend_enqueue_style_asset('pera-crm-fonts-css', 'assets/frontend/fonts.css')) {
             $crm_css_deps[] = 'pera-crm-fonts-css';
         }
-        if (!empty($slider_css)) {
-            wp_enqueue_style(
-                'pera-slider-css',
-                $slider_css['url'],
-                array(),
-                (string) filemtime($slider_css['path'])
-            );
+        if (peracrm_frontend_enqueue_style_asset('pera-slider-css', 'assets/frontend/slider.css')) {
             $crm_css_deps[] = 'pera-slider-css';
         }
 
-        if (!empty($crm_css)) {
-            wp_enqueue_style(
-                'pera-crm-css',
-                $crm_css['url'],
-                $crm_css_deps,
-                (string) filemtime($crm_css['path'])
-            );
-        }
+        peracrm_frontend_enqueue_style_asset('pera-crm-css', 'assets/frontend/crm.css', $crm_css_deps);
 
         if (!$is_crm_request) {
             return;
