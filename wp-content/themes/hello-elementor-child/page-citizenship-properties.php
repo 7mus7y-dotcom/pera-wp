@@ -373,39 +373,48 @@ $hero_desc_html = '<p class="text-light">' . esc_html__( 'Browse selected Istanb
 				<p><?php esc_html_e( 'These are the questions most buyers ask before reserving a property for Turkish citizenship by investment.', 'hello-elementor-child' ); ?></p>
 			</div>
 
-			<div class="feature-grid">
-				<article class="feature-card">
-					<div class="feature-card-header">
-						<h3><?php esc_html_e( 'Are all properties on this page suitable for citizenship?', 'hello-elementor-child' ); ?></h3>
-					</div>
-					<div class="feature-card-body">
+			<div class="faq-accordion">
+				<details class="faq-item" open>
+					<summary><?php esc_html_e( 'Are all properties on this page suitable for citizenship?', 'hello-elementor-child' ); ?></summary>
+					<div class="faq-answer">
 						<p><?php esc_html_e( 'They are selected for citizenship buyers, but final suitability must be confirmed before reservation. Availability, title deed status, valuation and payment route all need to be checked.', 'hello-elementor-child' ); ?></p>
 					</div>
-				</article>
-				<article class="feature-card">
-					<div class="feature-card-header">
-						<h3><?php esc_html_e( 'Can I buy more than one property to reach $400,000?', 'hello-elementor-child' ); ?></h3>
-					</div>
-					<div class="feature-card-body">
+				</details>
+			
+				<details class="faq-item">
+					<summary><?php esc_html_e( 'Can I buy more than one property to reach $400,000?', 'hello-elementor-child' ); ?></summary>
+					<div class="faq-answer">
 						<p><?php esc_html_e( 'Yes, buyers can often combine more than one eligible property, provided the total qualifying value and legal process meet the citizenship requirements.', 'hello-elementor-child' ); ?></p>
 					</div>
-				</article>
-				<article class="feature-card">
-					<div class="feature-card-header">
-						<h3><?php esc_html_e( 'How do you check valuation report risk?', 'hello-elementor-child' ); ?></h3>
-					</div>
-					<div class="feature-card-body">
+				</details>
+			
+				<details class="faq-item">
+					<summary><?php esc_html_e( 'How do you check valuation report risk?', 'hello-elementor-child' ); ?></summary>
+					<div class="faq-answer">
 						<p><?php esc_html_e( 'We look at comparable sales, the declared purchase price, project pricing, district liquidity and whether the property value is likely to support the citizenship file.', 'hello-elementor-child' ); ?></p>
 					</div>
-				</article>
-				<article class="feature-card">
-					<div class="feature-card-header">
-						<h3><?php esc_html_e( 'Can my family be included in the application?', 'hello-elementor-child' ); ?></h3>
-					</div>
-					<div class="feature-card-body">
+				</details>
+			
+				<details class="faq-item">
+					<summary><?php esc_html_e( 'Can my family be included in the application?', 'hello-elementor-child' ); ?></summary>
+					<div class="faq-answer">
 						<p><?php esc_html_e( 'In most standard cases, the main applicant can include a spouse and children under 18. Family structure should be reviewed before choosing the property route.', 'hello-elementor-child' ); ?></p>
 					</div>
-				</article>
+				</details>
+			
+				<details class="faq-item">
+					<summary><?php esc_html_e( 'How long must I keep the property after obtaining citizenship?', 'hello-elementor-child' ); ?></summary>
+					<div class="faq-answer">
+						<p><?php esc_html_e( 'The qualifying property must generally be held for at least three years. The required restriction is registered on the title deed as part of the citizenship process.', 'hello-elementor-child' ); ?></p>
+					</div>
+				</details>
+			
+				<details class="faq-item">
+					<summary><?php esc_html_e( 'Can I rent out the property during the three-year holding period?', 'hello-elementor-child' ); ?></summary>
+					<div class="faq-answer">
+						<p><?php esc_html_e( 'Yes, the property can normally be rented during the mandatory holding period, provided the title deed restriction remains in place and the rental arrangement does not conflict with the citizenship file.', 'hello-elementor-child' ); ?></p>
+					</div>
+				</details>
 			</div>
 
 			<div class="section-cta">
