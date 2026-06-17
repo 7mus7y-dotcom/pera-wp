@@ -37,7 +37,8 @@ if (!function_exists('pera_crm_debug_log_gate')) {
         $request_uri = isset($_SERVER['REQUEST_URI']) ? (string) wp_unslash($_SERVER['REQUEST_URI']) : '';
         $request_path = wp_parse_url($request_uri, PHP_URL_PATH);
         $request_path = is_string($request_path) ? $request_path : '';
-        if (0 !== strpos(trailingslashit($request_path), '/crm/')) {
+        $normalized_request_path = strtolower($request_path);
+        if (0 !== strpos(trailingslashit($normalized_request_path), '/crm/')) {
             return;
         }
 
@@ -62,18 +63,20 @@ if (!function_exists('pera_crm_debug_log_gate')) {
 if (!function_exists('pera_crm_register_route')) {
     function pera_crm_register_route(): void
     {
-        add_rewrite_rule('^crm/?$', 'index.php?pera_crm=1', 'top');
-        add_rewrite_rule('^crm/new/?$', 'index.php?pera_crm=1&pera_crm_action=new', 'top');
-        add_rewrite_rule('^crm/client/([0-9]+)/?$', 'index.php?pera_crm=1&pera_crm_view=client&pera_crm_client_id=$matches[1]&client_id=$matches[1]', 'top');
-        add_rewrite_rule('^crm/clients/?$', 'index.php?pera_crm=1&pera_crm_view=leads&paged=1', 'top');
-        add_rewrite_rule('^crm/clients/page/([0-9]+)/?$', 'index.php?pera_crm=1&pera_crm_view=leads&paged=$matches[1]', 'top');
-        add_rewrite_rule('^crm/leads/?$', 'index.php?pera_crm=1&pera_crm_view=leads&paged=1', 'top');
-        add_rewrite_rule('^crm/leads/page/([0-9]+)/?$', 'index.php?pera_crm=1&pera_crm_view=leads&paged=$matches[1]', 'top');
-        add_rewrite_rule('^crm/tasks/?$', 'index.php?pera_crm=1&pera_crm_view=tasks', 'top');
-        add_rewrite_rule('^crm/pipeline/?$', 'index.php?pera_crm=1&pera_crm_view=pipeline', 'top');
-        add_rewrite_rule('^crm/performance/?$', 'index.php?pera_crm=1&pera_crm_view=performance', 'top');
-        add_rewrite_rule('^crm/whatsapp-logs/?$', 'index.php?pera_crm=1&pera_crm_view=whatsapp_logs', 'top');
-        add_rewrite_rule('^crm/email-logs/?$', 'index.php?pera_crm=1&pera_crm_view=email_logs', 'top');
+        $crm_route_prefix = '(?i:crm)';
+
+        add_rewrite_rule('^' . $crm_route_prefix . '/?$', 'index.php?pera_crm=1', 'top');
+        add_rewrite_rule('^' . $crm_route_prefix . '/new/?$', 'index.php?pera_crm=1&pera_crm_action=new', 'top');
+        add_rewrite_rule('^' . $crm_route_prefix . '/client/([0-9]+)/?$', 'index.php?pera_crm=1&pera_crm_view=client&pera_crm_client_id=$matches[1]&client_id=$matches[1]', 'top');
+        add_rewrite_rule('^' . $crm_route_prefix . '/clients/?$', 'index.php?pera_crm=1&pera_crm_view=leads&paged=1', 'top');
+        add_rewrite_rule('^' . $crm_route_prefix . '/clients/page/([0-9]+)/?$', 'index.php?pera_crm=1&pera_crm_view=leads&paged=$matches[1]', 'top');
+        add_rewrite_rule('^' . $crm_route_prefix . '/leads/?$', 'index.php?pera_crm=1&pera_crm_view=leads&paged=1', 'top');
+        add_rewrite_rule('^' . $crm_route_prefix . '/leads/page/([0-9]+)/?$', 'index.php?pera_crm=1&pera_crm_view=leads&paged=$matches[1]', 'top');
+        add_rewrite_rule('^' . $crm_route_prefix . '/tasks/?$', 'index.php?pera_crm=1&pera_crm_view=tasks', 'top');
+        add_rewrite_rule('^' . $crm_route_prefix . '/pipeline/?$', 'index.php?pera_crm=1&pera_crm_view=pipeline', 'top');
+        add_rewrite_rule('^' . $crm_route_prefix . '/performance/?$', 'index.php?pera_crm=1&pera_crm_view=performance', 'top');
+        add_rewrite_rule('^' . $crm_route_prefix . '/whatsapp-logs/?$', 'index.php?pera_crm=1&pera_crm_view=whatsapp_logs', 'top');
+        add_rewrite_rule('^' . $crm_route_prefix . '/email-logs/?$', 'index.php?pera_crm=1&pera_crm_view=email_logs', 'top');
     }
 }
 add_action('init', 'pera_crm_register_route');
@@ -411,7 +414,8 @@ if (!function_exists('pera_crm_maybe_load_template')) {
             $request_uri = isset($_SERVER['REQUEST_URI']) ? (string) wp_unslash($_SERVER['REQUEST_URI']) : '';
             $request_path = wp_parse_url($request_uri, PHP_URL_PATH);
             $request_path = is_string($request_path) ? $request_path : '';
-            if (0 === strpos(trailingslashit($request_path), '/crm/')) {
+            $normalized_request_path = strtolower($request_path);
+            if (0 === strpos(trailingslashit($normalized_request_path), '/crm/')) {
                 pera_crm_debug_log_gate('rewrite_or_query_var_miss');
             }
             return $template;
@@ -518,7 +522,7 @@ add_filter('body_class', 'pera_crm_add_body_class');
 if (!function_exists('peracrm_rewrite_version')) {
     function peracrm_rewrite_version(): string
     {
-        return 'peracrm-' . PERACRM_VERSION . '-crm-routes-v1';
+        return 'peracrm-' . PERACRM_VERSION . '-crm-routes-v2';
     }
 }
 
