@@ -203,22 +203,7 @@ $hero_desc_html = '<p class="text-light">' . esc_html__( 'Browse selected Istanb
 				</article>
 			</div>
 
-			<div class="content-panel-box citizenship-properties-process-panel">
-				<div class="section-header">
-					<p class="u-eyebrow"><?php esc_html_e( 'Before we recommend a citizenship property', 'hello-elementor-child' ); ?></p>
-					<h2><?php esc_html_e( 'How we check citizenship property suitability', 'hello-elementor-child' ); ?></h2>
-					<p><?php esc_html_e( 'A property can look suitable on price alone, but citizenship buyers need more than a listing. Before we recommend an option, we check the legal, valuation and exit-risk details that affect the application.', 'hello-elementor-child' ); ?></p>
-				</div>
-				<ul class="checklist">
-					<li><?php esc_html_e( 'Title deed status and seller suitability', 'hello-elementor-child' ); ?></li>
-					<li><?php esc_html_e( 'Whether the property can support the Turkish citizenship route', 'hello-elementor-child' ); ?></li>
-					<li><?php esc_html_e( 'Valuation logic against the declared sale price', 'hello-elementor-child' ); ?></li>
-					<li><?php esc_html_e( 'Payment route, bank transfer and DAB requirements', 'hello-elementor-child' ); ?></li>
-					<li><?php esc_html_e( 'Rental and resale potential after the holding period', 'hello-elementor-child' ); ?></li>
-					<li><?php esc_html_e( 'Whether the property fits your family application plan', 'hello-elementor-child' ); ?></li>
-				</ul>
-				<p class="content-note"><strong><?php esc_html_e( 'Important:', 'hello-elementor-child' ); ?></strong> <?php esc_html_e( 'The listings below are examples of properties we currently consider suitable for citizenship buyers. Final suitability depends on availability, title deed status, valuation, payment route and your personal application structure.', 'hello-elementor-child' ); ?></p>
-			</div>
+			
 
 			<div class="citizenship-properties-toolbar">
 				<div class="citizenship-properties-view-toggle" role="group" aria-label="<?php esc_attr_e( 'Property view mode', 'hello-elementor-child' ); ?>">
@@ -328,6 +313,40 @@ $hero_desc_html = '<p class="text-light">' . esc_html__( 'Browse selected Istanb
 			
 	</section>
 
+	<section id="citizenship-properties-process-panel" class="section section-soft">
+		<div class="container">
+			<div class="content-panel-box citizenship-properties-process-panel">
+				<div class="section-header">
+					<p class="u-eyebrow">
+						<?php esc_html_e( 'Before we recommend a citizenship property', 'hello-elementor-child' ); ?>
+					</p>
+	
+					<h2>
+						<?php esc_html_e( 'How we check citizenship property suitability', 'hello-elementor-child' ); ?>
+					</h2>
+	
+					<p>
+						<?php esc_html_e( 'A property can look suitable on price alone, but citizenship buyers need more than a listing. Before we recommend an option, we check the legal, valuation and exit-risk details that affect the application.', 'hello-elementor-child' ); ?>
+					</p>
+				</div>
+	
+				<ul class="checklist">
+					<li><?php esc_html_e( 'Title deed status and seller suitability', 'hello-elementor-child' ); ?></li>
+					<li><?php esc_html_e( 'Whether the property can support the Turkish citizenship route', 'hello-elementor-child' ); ?></li>
+					<li><?php esc_html_e( 'Valuation logic against the declared sale price', 'hello-elementor-child' ); ?></li>
+					<li><?php esc_html_e( 'Payment route, bank transfer and DAB requirements', 'hello-elementor-child' ); ?></li>
+					<li><?php esc_html_e( 'Rental and resale potential after the holding period', 'hello-elementor-child' ); ?></li>
+					<li><?php esc_html_e( 'Whether the property fits your family application plan', 'hello-elementor-child' ); ?></li>
+				</ul>
+	
+				<p class="content-note">
+					<strong><?php esc_html_e( 'Important:', 'hello-elementor-child' ); ?></strong>
+					<?php esc_html_e( 'The listings below are examples of properties we currently consider suitable for citizenship buyers. Final suitability depends on availability, title deed status, valuation, payment route and your personal application structure.', 'hello-elementor-child' ); ?>
+				</p>
+			</div>
+		</div>
+	</section>
+	
 	<section id="citizenship-property-faq" class="section section-soft citizenship-properties-faq">
 		<div class="container">
 			<div class="section-header">
