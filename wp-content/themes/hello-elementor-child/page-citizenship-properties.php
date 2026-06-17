@@ -7,41 +7,6 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-wp_enqueue_style(
-	'pera-property-css',
-	get_stylesheet_directory_uri() . '/css/property.css',
-	array( 'pera-main-css' ),
-	function_exists( 'pera_get_asset_version' ) ? pera_get_asset_version( '/css/property.css' ) : null
-);
-
-wp_enqueue_style(
-	'pera-slider-css',
-	get_stylesheet_directory_uri() . '/css/slider.css',
-	array( 'pera-main-css' ),
-	function_exists( 'pera_get_asset_version' ) ? pera_get_asset_version( '/css/slider.css' ) : null
-);
-
-wp_enqueue_style(
-	'pera-posts-css',
-	get_stylesheet_directory_uri() . '/css/posts.css',
-	array( 'pera-main-css', 'pera-card-typography', 'pera-slider-css' ),
-	function_exists( 'pera_get_asset_version' ) ? pera_get_asset_version( '/css/posts.css' ) : null
-);
-
-wp_enqueue_style(
-	'pera-leaflet',
-	get_stylesheet_directory_uri() . '/vendor/leaflet/leaflet.css',
-	array(),
-	'1.9.4'
-);
-wp_enqueue_script(
-	'pera-leaflet',
-	get_stylesheet_directory_uri() . '/vendor/leaflet/leaflet.js',
-	array(),
-	'1.9.4',
-	false
-);
-
 get_header();
 
 if ( ! function_exists( 'pera_render_property_pagination' ) ) {
