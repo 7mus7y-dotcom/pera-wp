@@ -233,6 +233,18 @@ if ( ! function_exists( 'pera_analytics_enqueue_admin_page_assets' ) ) {
 	min-height: 280px;
 }
 
+.pera-site-performance-admin .pera-country-pages-control {
+	display: flex;
+	align-items: center;
+	gap: 8px;
+	flex-wrap: wrap;
+	margin: 10px 0;
+}
+
+.pera-site-performance-admin .pera-country-pages-status {
+	margin: 8px 0;
+}
+
 @media screen and (max-width: 782px) {
 	.pera-site-performance-admin .pera-performance-filter {
 		align-items: stretch;
@@ -243,7 +255,8 @@ if ( ! function_exists( 'pera_analytics_enqueue_admin_page_assets' ) ) {
 	}
 
 	.pera-site-performance-admin .pera-performance-filter select,
-	.pera-site-performance-admin .pera-performance-filter .button {
+	.pera-site-performance-admin .pera-performance-filter .button,
+	.pera-site-performance-admin .pera-country-pages-control select {
 		box-sizing: border-box;
 		width: 100%;
 		min-height: 44px;
@@ -348,9 +361,194 @@ CSS;
 })();
 JS;
 		wp_add_inline_script( 'pera-site-performance-chart', $chart_js );
+		$country_pages_js = <<<'JS'
+(function () {
+	var config = window.peraCountryPagesData || {};
+	var select = document.getElementById('pera-country-pages-country');
+	var tbody = document.getElementById('pera-country-pages-results');
+	var status = document.getElementById('pera-country-pages-status');
+	var section = document.getElementById('pera-country-pages-section');
+	var periodForm = document.querySelector('.pera-performance-filter');
+	if (!select || !tbody || !config.ajaxUrl || !config.nonce) {
+		return;
+	}
+
+	function escapeHtml(value) {
+		return String(value || '').replace(/[&<>"']/g, function (char) {
+			return ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#039;' })[char];
+		});
+	}
+
+	function setStatus(message) {
+		if (status) {
+			status.textContent = message || '';
+		}
+	}
+
+	function renderEmpty(message) {
+		tbody.innerHTML = '<tr><td colspan="3">' + escapeHtml(message) + '</td></tr>';
+	}
+
+	function countryExists(country) {
+		return !!country && Array.prototype.some.call(select.options, function (option) {
+			return option.value === country;
+		});
+	}
+
+	function updateCountryInUrl(country) {
+		if (!window.history || !window.URL || !window.URLSearchParams) {
+			return;
+		}
+		var url = new URL(window.location.href);
+		if (country) {
+			url.searchParams.set('country', country);
+		} else {
+			url.searchParams.delete('country');
+		}
+		window.history.replaceState({}, '', url.toString());
+	}
+
+	function focusCountrySection() {
+		if (!section) {
+			return;
+		}
+		section.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+		if (typeof section.focus === 'function') {
+			section.focus({ preventScroll: true });
+		}
+	}
+
+	function renderRows(rows) {
+		if (!rows || !rows.length) {
+			renderEmpty(config.emptyMessage || 'No page visits found for this country in the selected period.');
+			return;
+		}
+		tbody.innerHTML = rows.map(function (row) {
+			var title = row.page_title || row.page_path || '';
+			var url = row.page_url || '#';
+			return '<tr>' +
+				'<td class="column-page"><a href="' + escapeHtml(url) + '" target="_blank" rel="noopener noreferrer">' + escapeHtml(title) + '</a><br><small class="pera-performance-page-path">' + escapeHtml(row.page_path || '') + '</small></td>' +
+				'<td class="pera-performance-table__number">' + escapeHtml(row.visits_formatted || row.visits || '0') + '</td>' +
+				'<td class="pera-performance-table__number">' + escapeHtml(row.unique_visitors_formatted || row.unique_visitors || '0') + '</td>' +
+				'</tr>';
+		}).join('');
+	}
+
+	function loadCountry(country, options) {
+		options = options || {};
+		if (countryExists(country)) {
+			select.value = country;
+		}
+		if (options.updateUrl !== false) {
+			updateCountryInUrl(country);
+		}
+		if (options.focus) {
+			focusCountrySection();
+		}
+		if (!country) {
+			setStatus('');
+			renderEmpty(config.promptMessage || 'Select a country to view page visits.');
+			return;
+		}
+		setStatus(config.loadingMessage || 'Loading page visits…');
+		var body = new window.URLSearchParams();
+		body.append('action', 'pera_analytics_country_pages');
+		body.append('nonce', config.nonce);
+		body.append('period', config.period || 'this_month');
+		body.append('country', country);
+		window.fetch(config.ajaxUrl, { method: 'POST', credentials: 'same-origin', body: body })
+			.then(function (response) { return response.json(); })
+			.then(function (response) {
+				setStatus('');
+				if (!response || !response.success) {
+					renderEmpty((response && response.data && response.data.message) || config.errorMessage || 'Unable to load page visits.');
+					return;
+				}
+				renderRows(response.data.rows || []);
+			})
+			.catch(function () {
+				setStatus('');
+				renderEmpty(config.errorMessage || 'Unable to load page visits.');
+			});
+	}
+
+	select.addEventListener('change', function () {
+		loadCountry(select.value || '', { updateUrl: true });
+	});
+
+	document.querySelectorAll('[data-country-code]').forEach(function (link) {
+		link.addEventListener('click', function (event) {
+			var country = link.getAttribute('data-country-code') || '';
+			event.preventDefault();
+			if (!countryExists(country)) {
+				setStatus('');
+				renderEmpty(config.errorMessage || 'Unable to load page visits.');
+				return;
+			}
+			loadCountry(country, { updateUrl: true, focus: true });
+		});
+	});
+
+	if (periodForm) {
+		periodForm.addEventListener('submit', function () {
+			var input = periodForm.querySelector('input[name="country"]');
+			if (input) {
+				input.value = select.value || '';
+			}
+		});
+	}
+
+	if (config.selectedCountry && countryExists(config.selectedCountry)) {
+		loadCountry(config.selectedCountry, { updateUrl: false });
+	}
+})();
+JS;
+		wp_add_inline_script( 'pera-site-performance-chart', $country_pages_js );
 	}
 }
 add_action( 'admin_enqueue_scripts', 'pera_analytics_enqueue_admin_page_assets' );
+
+if ( ! function_exists( 'pera_analytics_handle_country_pages_ajax' ) ) {
+	function pera_analytics_handle_country_pages_ajax(): void {
+		if ( ! current_user_can( 'manage_options' ) ) {
+			wp_send_json_error( array( 'message' => __( 'You do not have permission to access this report.', 'hello-elementor-child' ) ), 403 );
+		}
+
+		check_ajax_referer( 'pera_analytics_country_pages', 'nonce' );
+
+		$allowed_periods = array( '24h', '7d', '14d', '30d', 'this_month', 'last_month', 'all_time' );
+		$period = isset( $_POST['period'] ) ? sanitize_key( wp_unslash( $_POST['period'] ) ) : 'this_month';
+		if ( ! in_array( $period, $allowed_periods, true ) ) {
+			$period = 'this_month';
+		}
+
+		$country_code = isset( $_POST['country'] ) ? strtoupper( sanitize_text_field( wp_unslash( $_POST['country'] ) ) ) : '';
+		if ( '' === $country_code || ( 'XX' !== $country_code && ! preg_match( '/^[A-Z]{2}$/', $country_code ) ) ) {
+			wp_send_json_error( array( 'message' => __( 'Please select a valid country.', 'hello-elementor-child' ) ), 400 );
+		}
+
+		$window = pera_analytics_get_reporting_window( $period );
+		$country_name = pera_analytics_get_country_name_for_code( $window['current']['start'], $window['current']['end'], $country_code );
+		$rows   = pera_analytics_get_pages_by_country( $window['current']['start'], $window['current']['end'], $country_code, 50 );
+		$items  = array();
+		foreach ( $rows as $row ) {
+			$page_path = (string) ( $row['page_path'] ?? '' );
+			$items[] = array(
+				'page_path'                 => $page_path,
+				'page_title'                => (string) ( $row['page_title'] ?? '' ),
+				'page_url'                  => home_url( '/' . ltrim( $page_path, '/' ) ),
+				'country_name'              => $country_name,
+				'visits'                    => (int) ( $row['visits'] ?? 0 ),
+				'visits_formatted'          => number_format_i18n( (int) ( $row['visits'] ?? 0 ) ),
+				'unique_visitors'           => (int) ( $row['unique_visitors'] ?? 0 ),
+				'unique_visitors_formatted' => number_format_i18n( (int) ( $row['unique_visitors'] ?? 0 ) ),
+			);
+		}
+
+		wp_send_json_success( array( 'rows' => $items ) );
+	}
+}
+add_action( 'wp_ajax_pera_analytics_country_pages', 'pera_analytics_handle_country_pages_ajax' );
 
 if ( ! function_exists( 'pera_analytics_render_admin_pages_table' ) ) {
 	function pera_analytics_render_admin_pages_table( array $rows, string $aria_label, string $empty_message, bool $show_previous_comparison = true ): void {
@@ -442,6 +640,18 @@ if ( ! function_exists( 'pera_analytics_render_admin_page' ) ) {
 		$source_rows     = pera_analytics_get_source_breakdown( $window['current']['start'], $window['current']['end'] );
 		$top_direct_entries = pera_analytics_get_top_direct_entry_pages( $window['current']['start'], $window['current']['end'], 20 );
 		$top_countries  = pera_analytics_get_top_countries( $window['current']['start'], $window['current']['end'], 10 );
+		$country_options = pera_analytics_get_top_countries( $window['current']['start'], $window['current']['end'], 100 );
+		$selected_country = isset( $_GET['country'] ) ? strtoupper( sanitize_text_field( wp_unslash( $_GET['country'] ) ) ) : '';
+		$country_option_codes = array();
+		foreach ( $country_options as $country_option ) {
+			$country_option_code = (string) ( $country_option['country_code'] ?? '' );
+			if ( '' !== $country_option_code ) {
+				$country_option_codes[ $country_option_code ] = true;
+			}
+		}
+		if ( ! isset( $country_option_codes[ $selected_country ] ) ) {
+			$selected_country = '';
+		}
 		$top_referrers   = pera_analytics_get_top_referrers( $window['current']['start'], $window['current']['end'], 10 );
 
 		$summary_change = $show_previous_comparison ? pera_analytics_percent_change( $totals_current['visits'], $totals_previous['visits'] ) : '—';
@@ -454,6 +664,21 @@ if ( ! function_exists( 'pera_analytics_render_admin_page' ) ) {
 			$chart_visits[]  = (int) ( $daily_total['visits'] ?? 0 );
 			$chart_uniques[] = (int) ( $daily_total['unique_visitors'] ?? 0 );
 		}
+
+		wp_localize_script(
+			'pera-site-performance-chart',
+			'peraCountryPagesData',
+			array(
+				'ajaxUrl'       => admin_url( 'admin-ajax.php' ),
+				'nonce'         => wp_create_nonce( 'pera_analytics_country_pages' ),
+				'period'        => $window['key'],
+				'selectedCountry' => $selected_country,
+				'promptMessage' => __( 'Select a country to view page visits.', 'hello-elementor-child' ),
+				'loadingMessage' => __( 'Loading page visits…', 'hello-elementor-child' ),
+				'emptyMessage'  => __( 'No page visits found for this country in the selected period.', 'hello-elementor-child' ),
+				'errorMessage'  => __( 'Unable to load page visits.', 'hello-elementor-child' ),
+			)
+		);
 
 		wp_localize_script(
 			'pera-site-performance-chart',
@@ -471,6 +696,7 @@ if ( ! function_exists( 'pera_analytics_render_admin_page' ) ) {
 			<h1><?php echo esc_html__( 'Site Performance', 'hello-elementor-child' ); ?></h1>
 			<form class="pera-performance-filter" method="get" action="">
 				<input type="hidden" name="page" value="pera-site-performance" />
+				<input type="hidden" name="country" value="<?php echo esc_attr( $selected_country ); ?>" />
 				<label for="pera-period"><strong><?php echo esc_html__( 'Period', 'hello-elementor-child' ); ?>:</strong></label>
 				<select id="pera-period" name="period">
 					<?php foreach ( $allowed_periods as $period_key => $period_label ) : ?>
@@ -578,13 +804,44 @@ if ( ! function_exists( 'pera_analytics_render_admin_page' ) ) {
 						$label        = 'XX' !== $country_code ? sprintf( '%s (%s)', $country_name, $country_code ) : $country_name;
 						?>
 						<tr>
-							<td><?php echo esc_html( $label ); ?></td>
+							<td><a href="#pera-country-pages-section" data-country-code="<?php echo esc_attr( $country_code ); ?>"><?php echo esc_html( $label ); ?></a></td>
 							<td class="pera-performance-table__number"><?php echo esc_html( number_format_i18n( $visits ) ); ?></td>
 							<td class="pera-performance-table__number"><?php echo esc_html( number_format_i18n( (int) ( $country['uniques'] ?? 0 ) ) ); ?></td>
 							<td class="pera-performance-table__number"><?php echo esc_html( number_format_i18n( $share, 1 ) ); ?>%</td>
 						</tr>
 					<?php endforeach; ?>
 				<?php endif; ?>
+				</tbody>
+			</table>
+			</div>
+
+			<h2 id="pera-country-pages-section" tabindex="-1"><?php echo esc_html__( 'Pages by country', 'hello-elementor-child' ); ?></h2>
+			<p class="description"><?php echo esc_html__( 'Select a country from the current period to see pages visited by users from that country.', 'hello-elementor-child' ); ?></p>
+			<div class="pera-country-pages-control">
+				<label for="pera-country-pages-country"><strong><?php echo esc_html__( 'Country', 'hello-elementor-child' ); ?>:</strong></label>
+				<select id="pera-country-pages-country">
+					<option value=""><?php echo esc_html__( 'Select country', 'hello-elementor-child' ); ?></option>
+					<?php foreach ( $country_options as $country ) : ?>
+						<?php
+						$country_code = (string) ( $country['country_code'] ?? 'XX' );
+						$country_name = (string) ( $country['country_name'] ?? 'Unknown' );
+						$label        = 'XX' !== $country_code ? sprintf( '%s (%s)', $country_name, $country_code ) : $country_name;
+						?>
+						<option value="<?php echo esc_attr( $country_code ); ?>" <?php selected( $selected_country, $country_code ); ?>><?php echo esc_html( $label ); ?></option>
+					<?php endforeach; ?>
+				</select>
+			</div>
+			<p id="pera-country-pages-status" class="description pera-country-pages-status" aria-live="polite"></p>
+			<p class="pera-performance-scroll-hint"><?php echo esc_html__( 'Scroll horizontally to view all table columns.', 'hello-elementor-child' ); ?></p>
+			<div class="pera-performance-table-wrap" tabindex="0" role="region" aria-label="<?php echo esc_attr__( 'Pages by selected country table', 'hello-elementor-child' ); ?>">
+			<table class="widefat striped pera-performance-table">
+				<thead><tr>
+					<th class="column-page"><?php echo esc_html__( 'Page', 'hello-elementor-child' ); ?></th>
+					<th class="pera-performance-table__number"><?php echo esc_html__( 'Visits', 'hello-elementor-child' ); ?></th>
+					<th class="pera-performance-table__number"><?php echo esc_html__( 'Unique visitors', 'hello-elementor-child' ); ?></th>
+				</tr></thead>
+				<tbody id="pera-country-pages-results">
+					<tr><td colspan="3"><?php echo esc_html__( 'Select a country to view page visits.', 'hello-elementor-child' ); ?></td></tr>
 				</tbody>
 			</table>
 			</div>
