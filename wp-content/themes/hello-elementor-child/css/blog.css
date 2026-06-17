@@ -40,7 +40,7 @@
   }
 }
 
-@media (min-width: 1100px) {
+@media (min-width: 1024px) {
   .section-posts .cards-masonry {
     column-count: 3;
   }
