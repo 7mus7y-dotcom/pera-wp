@@ -307,14 +307,19 @@ get_header();
               <?php endif; ?>
               <div class="cards-slider cards-slider--snap cards-slider--grid-lg archive-featured-guides">
                 <?php foreach ( $archive_featured_post_ids as $featured_post_id ) : ?>
-                  <?php $featured_post = get_post( $featured_post_id ); ?>
-                  <?php if ( ! ( $featured_post instanceof WP_Post ) || get_post_status( $featured_post ) !== 'publish' ) { continue; } ?>
-                  <article class="archive-cat-card card-shell slider-card">
-                    <h3 class="post-card-title"><a href="<?php echo esc_url( get_permalink( $featured_post ) ); ?>"><?php echo esc_html( get_the_title( $featured_post ) ); ?></a></h3>
-                    <p class="archive-cat-desc"><?php echo esc_html( wp_trim_words( wp_strip_all_tags( get_the_excerpt( $featured_post ) ), 24, '…' ) ); ?></p>
-                    <div class="card-meta-row"><a href="<?php echo esc_url( get_permalink( $featured_post ) ); ?>" class="btn btn--solid btn--black btn-card"><?php esc_html_e( 'Read article', 'peraproperty' ); ?></a></div>
-                  </article>
+                  <?php
+                  set_query_var(
+                    'pera_featured_guide_card_args',
+                    array(
+                      'post_id'      => $featured_post_id,
+                      'card_classes' => 'slider-card',
+                    )
+                  );
+
+                  get_template_part( 'parts/post-card-featured-guide' );
+                  ?>
                 <?php endforeach; ?>
+                <?php set_query_var( 'pera_featured_guide_card_args', null ); ?>
               </div>
             </div>
           </div>
