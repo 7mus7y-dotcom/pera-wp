@@ -71,6 +71,7 @@ add_action( 'wp_enqueue_scripts', function () {
   $is_blog_page    = is_page_template( 'page-posts.php' ) || is_page( 'blog' );
   $is_posts_index  = is_home() && ! is_front_page();
   $is_single_post  = is_singular( 'post' );
+  $is_featured_guides_archive = $is_posts_index || is_category();
   $is_blog_archive = function_exists( 'pera_is_blog_archive' ) ? pera_is_blog_archive() : false;
 
   // Specific templates
@@ -122,6 +123,7 @@ $needs_slider = (
   $is_single_property ||
   $is_single_bodrum_property ||
   $is_single_post ||
+  $is_featured_guides_archive ||
   $is_contact_page ||
   $is_about_new ||
   $is_citizenship_page ||
