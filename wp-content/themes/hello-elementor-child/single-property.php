@@ -582,6 +582,12 @@ $has_further_reading = ! empty( $post_ids );
         
               <?php echo '$' . number_format_i18n( $hero_price_min ); ?>
             </span>
+
+            <?php if ( is_array( $v2_units_by_beds ) && count( $v2_units_by_beds ) > 1 ) : ?>
+              <a class="property-hero__price-link text-light text-sm" href="#property-price-range">
+                <?php esc_html_e( 'See all prices', 'hello-elementor-child' ); ?>
+              </a>
+            <?php endif; ?>
         
             <?php
             // Optional: show a range if you want (only when max is meaningful and > min)
@@ -1249,7 +1255,7 @@ if ( ! empty( $yt_video ) ) {
   </div>
 </section>
 
-  <section class="section section-soft">
+  <section id="property-price-range" class="section section-soft property-price-range">
   <div class="container">
     <div class="property-pricing-advisors">
       <div class="property-pricing-advisors__pricing">

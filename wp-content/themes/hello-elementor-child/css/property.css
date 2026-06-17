@@ -1266,6 +1266,12 @@ body.is-lightbox-open{ overflow: hidden; }
   color: #fff;
 }
 
+.property-hero__price-link{
+  display: inline-block;
+  margin-left: var(--space-sm, 12px);
+  white-space: nowrap;
+}
+
 
 
 
@@ -1461,6 +1467,18 @@ body.is-lightbox-open{ overflow: hidden; }
 .property-price-range thead th {
   padding-top: 14px;
   padding-bottom: 14px;
+  background: var(--text, #111827);
+  color: var(--inverse, #ffffff);
+}
+
+#property-price-range{
+  scroll-margin-top: calc(var(--header-height) + 20px);
+}
+
+@media (max-width: 768px){
+  #property-price-range{
+    scroll-margin-top: calc(var(--header-height-mobile) + 20px);
+  }
 }
 
 .property-price-range__note.text-sm p,
