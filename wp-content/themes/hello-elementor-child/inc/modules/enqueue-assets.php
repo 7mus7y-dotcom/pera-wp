@@ -81,6 +81,7 @@ add_action( 'wp_enqueue_scripts', function () {
   $is_property_map = is_page_template( 'page-property-map.php' );
   $is_luxury_property_page = is_page_template( 'page-luxury-property.php' );
   $is_citizenship_page = is_page_template( 'page-citizenship.php' );
+  $is_citizenship_properties_page = is_page_template( 'page-citizenship-properties.php' );
   $is_enquiry_page = $is_citizenship_page ||
     is_page_template( 'page-rent-with-pera.php' ) ||
     is_page_template( 'page-sell-with-pera.php' ) ||
@@ -123,7 +124,8 @@ $needs_slider = (
   $is_single_post ||
   $is_contact_page ||
   $is_about_new ||
-  $is_citizenship_page
+  $is_citizenship_page ||
+  $is_citizenship_properties_page
 );
 
 if ( $needs_slider ) {
@@ -148,6 +150,7 @@ $needs_card_typography = (
   || $is_blog_archive
   || $is_favourites_page
   || $is_citizenship_page
+  || $is_citizenship_properties_page
   || $is_luxury_property_page
 );
 
@@ -221,7 +224,7 @@ if ( $is_home || $is_citizenship_page ) {
       true
     );
   }
-  if ( $is_single_property || $is_single_bodrum_property || $is_home ) {
+  if ( $is_single_property || $is_single_bodrum_property || $is_home || $is_citizenship_properties_page ) {
     wp_enqueue_style(
       'pera-property-css',
       get_stylesheet_directory_uri() . '/css/property.css',
@@ -302,7 +305,7 @@ if ( $is_home || $is_citizenship_page ) {
      Rule: blog page OR single post OR blog archive OR single property OR luxury property landing page OR citizenship page
   ========================= */
 
-  if ( $is_home || $is_blog_page || $is_posts_index || $is_single_post || $is_blog_archive || $is_single_property || $is_luxury_property_page || $is_citizenship_page ) {
+  if ( $is_home || $is_blog_page || $is_posts_index || $is_single_post || $is_blog_archive || $is_single_property || $is_luxury_property_page || $is_citizenship_page || $is_citizenship_properties_page ) {
 
     $deps = array( 'pera-main-css', 'pera-card-typography' );
     if ( $needs_slider ) {
@@ -314,6 +317,23 @@ if ( $is_home || $is_citizenship_page ) {
       get_stylesheet_directory_uri() . '/css/posts.css',
       $deps,
       pera_get_asset_version( '/css/posts.css' )
+    );
+  }
+
+  if ( $is_citizenship_properties_page ) {
+    wp_enqueue_style(
+      'pera-leaflet',
+      get_stylesheet_directory_uri() . '/vendor/leaflet/leaflet.css',
+      array(),
+      '1.9.4'
+    );
+
+    wp_enqueue_script(
+      'pera-leaflet',
+      get_stylesheet_directory_uri() . '/vendor/leaflet/leaflet.js',
+      array(),
+      '1.9.4',
+      false
     );
   }
 
