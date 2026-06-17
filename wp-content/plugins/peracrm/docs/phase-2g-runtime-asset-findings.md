@@ -13,8 +13,8 @@
 ## Current ownership model on `/crm/*`
 
 - **Plugin-owned runtime assets:**
-  - `pera-slider-css`
-  - `pera-crm-css`
+  - `peracrm-frontend-slider`
+  - `peracrm-frontend-css`
   - `pera-crm-js`
   - `pera-crm-push`
 
