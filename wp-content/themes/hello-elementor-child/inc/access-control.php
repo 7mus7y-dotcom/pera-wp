@@ -49,6 +49,8 @@ if ( ! function_exists( 'pera_is_crm_frontend_request_path' ) ) {
     $request_path = wp_parse_url( $request_uri, PHP_URL_PATH );
     $request_path = is_string( $request_path ) ? $request_path : '';
 
+    $request_path = strtolower( $request_path );
+
     return $request_path === '/crm' || strpos( trailingslashit( $request_path ), '/crm/' ) === 0;
   }
 }
