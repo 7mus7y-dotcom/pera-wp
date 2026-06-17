@@ -19,7 +19,28 @@ if (!function_exists('peracrm_frontend_get_asset_file')) {
     }
 }
 
+if (!function_exists('peracrm_frontend_is_crm_request_path')) {
+    function peracrm_frontend_is_crm_request_path(): bool
+    {
+        if (is_admin() || wp_doing_ajax() || (defined('REST_REQUEST') && REST_REQUEST)) {
+            return false;
+        }
 
+        $request_uri = isset($_SERVER['REQUEST_URI']) ? (string) wp_unslash($_SERVER['REQUEST_URI']) : '';
+        if ('' === $request_uri) {
+            return false;
+        }
+
+        $path = wp_parse_url($request_uri, PHP_URL_PATH);
+        if (!is_string($path) || '' === $path) {
+            return false;
+        }
+
+        $path = strtolower($path);
+
+        return '/crm' === $path || 0 === strpos(trailingslashit($path), '/crm/');
+    }
+}
 
 if (!function_exists('peracrm_is_portfolio_token_route')) {
     function peracrm_is_portfolio_token_route(): bool
@@ -35,7 +56,10 @@ if (!function_exists('peracrm_is_portfolio_token_route')) {
 if (!function_exists('peracrm_frontend_dequeue_theme_assets')) {
     function peracrm_frontend_dequeue_theme_assets(): void
     {
-        if (!function_exists('pera_is_crm_route') || !pera_is_crm_route()) {
+        $is_crm_route = function_exists('pera_is_crm_route') && pera_is_crm_route();
+        $is_crm_request_path = peracrm_frontend_is_crm_request_path();
+
+        if (!$is_crm_route && !$is_crm_request_path) {
             return;
         }
 
@@ -51,9 +75,11 @@ if (!function_exists('pera_crm_enqueue_assets')) {
     function pera_crm_enqueue_assets(): void
     {
         $is_crm_route = function_exists('pera_is_crm_route') && pera_is_crm_route();
+        $is_crm_request_path = peracrm_frontend_is_crm_request_path();
+        $is_crm_request = $is_crm_route || $is_crm_request_path;
         $is_portfolio_token_route = function_exists('peracrm_is_portfolio_token_route') && peracrm_is_portfolio_token_route();
 
-        if (!$is_crm_route && !$is_portfolio_token_route) {
+        if (!$is_crm_request && !$is_portfolio_token_route) {
             return;
         }
 
@@ -90,7 +116,7 @@ if (!function_exists('pera_crm_enqueue_assets')) {
             );
         }
 
-        if (!$is_crm_route) {
+        if (!$is_crm_request) {
             return;
         }
 
