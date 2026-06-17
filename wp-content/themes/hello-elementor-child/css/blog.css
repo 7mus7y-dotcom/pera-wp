@@ -28,31 +28,29 @@
 
 /* Archive post loop uses .cards-masonry from main.css; keep archive-specific tuning here. */
 .section-posts .cards-masonry {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: var(--space-md);
   position: relative;
   z-index: 1;
-  column-count: 1;
-  column-gap: var(--space-md);
 }
 
 @media (min-width: 768px) {
   .section-posts .cards-masonry {
-    column-count: 2;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }
 
 @media (min-width: 1024px) {
   .section-posts .cards-masonry {
-    column-count: 3;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
   }
 }
 
 .section-posts .cards-masonry > article.post-card {
-  display: inline-block;
+  display: block;
   width: 100%;
-  margin-bottom: var(--space-md);
-  break-inside: avoid;
-  -webkit-column-break-inside: avoid;
-  page-break-inside: avoid;
+  margin-bottom: 0;
 }
 
 /* =======================================================
