@@ -639,7 +639,7 @@ function peracrm_whatsapp_enqueue_logs_assets($context = 'admin', $version = nul
             wp_enqueue_style(
                 'peracrm-whatsapp-logs-shared',
                 PERACRM_URL . '/assets/admin.css',
-                ['pera-crm-css'],
+                ['peracrm-frontend-css'],
                 $version ?: (string) filemtime($admin_css_path)
             );
         }

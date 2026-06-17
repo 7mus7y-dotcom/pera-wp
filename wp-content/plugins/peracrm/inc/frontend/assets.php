@@ -127,14 +127,14 @@ if (!function_exists('pera_crm_enqueue_assets')) {
         }
 
         $crm_css_deps = array();
-        if (peracrm_frontend_enqueue_style_asset('pera-crm-fonts-css', 'assets/frontend/fonts.css')) {
-            $crm_css_deps[] = 'pera-crm-fonts-css';
+        if (peracrm_frontend_enqueue_style_asset('peracrm-frontend-fonts', 'assets/frontend/fonts.css')) {
+            $crm_css_deps[] = 'peracrm-frontend-fonts';
         }
-        if (peracrm_frontend_enqueue_style_asset('pera-slider-css', 'assets/frontend/slider.css')) {
-            $crm_css_deps[] = 'pera-slider-css';
+        if (peracrm_frontend_enqueue_style_asset('peracrm-frontend-slider', 'assets/frontend/slider.css')) {
+            $crm_css_deps[] = 'peracrm-frontend-slider';
         }
 
-        peracrm_frontend_enqueue_style_asset('pera-crm-css', 'assets/frontend/crm.css', $crm_css_deps);
+        peracrm_frontend_enqueue_style_asset('peracrm-frontend-css', 'assets/frontend/crm.css', $crm_css_deps);
 
         if (!$is_crm_request) {
             return;
