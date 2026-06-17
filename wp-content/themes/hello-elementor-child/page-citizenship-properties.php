@@ -313,7 +313,7 @@ $hero_desc_html = '<p class="text-light">' . esc_html__( 'Browse selected Istanb
 			
 	</section>
 
-	<section id="citizenship-properties-process-panel" class="section section-soft">
+	<section id="citizenship-property-suitability" class="section section-soft">
 		<div class="container">
 			<div class="content-panel-box citizenship-properties-process-panel">
 				<div class="section-header">
