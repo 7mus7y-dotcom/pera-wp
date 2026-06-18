@@ -1273,8 +1273,15 @@ function pera_handle_citizenship_enquiry() {
       pera_send_enquiry_autoreply( 'citizenship', $email, $auto_subject, $auto_lines );
     }
 
-    $status   = $sent ? 'ok' : 'mail-failed';
-    $redirect = home_url( '/citizenship-by-investment/?enquiry=' . $status . '#citizenship-form' );
+    $status        = $sent ? 'ok' : 'mail-failed';
+    $redirect_path = isset( $_POST['citizenship_redirect_path'] ) ? sanitize_text_field( wp_unslash( $_POST['citizenship_redirect_path'] ) ) : '/citizenship-by-investment/';
+    $allowed_paths = array( '/citizenship-by-investment/', '/zh-citizenship-by-investment/' );
+
+    if ( ! in_array( $redirect_path, $allowed_paths, true ) ) {
+      $redirect_path = '/citizenship-by-investment/';
+    }
+
+    $redirect = home_url( $redirect_path . '?enquiry=' . $status . '#citizenship-form' );
 
     pera_forms_debug_log( 'redirect', array( 'form_key' => 'pera_citizenship_action', 'handler' => __FUNCTION__, 'redirect' => $redirect ) );
     wp_safe_redirect( $redirect );
