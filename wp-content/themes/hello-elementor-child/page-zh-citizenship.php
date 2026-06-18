@@ -234,6 +234,7 @@ $citizenship_requirements = array(
           <h2>获取适合投资入籍的伊斯坦布尔房产清单</h2>
           <p>请填写预算、家庭成员和时间计划，Pera Property 团队将为您的土耳其入籍申请准备合适的伊斯坦布尔房产建议。</p>
         </header>
+        <?php get_template_part( 'partials/wechat-cta-zh' ); ?>
         <section id="citizenship-form" class="citizenship-form-section">
           <?php if ( isset( $_GET['enquiry'] ) ) : ?>
             <?php $status = sanitize_text_field( wp_unslash( $_GET['enquiry'] ) ); $is_success = ( $status === 'ok' ); ?>
