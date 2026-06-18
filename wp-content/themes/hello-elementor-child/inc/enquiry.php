@@ -78,22 +78,50 @@ function pera_forms_debug_log( $message, array $context = array() ) {
   error_log( $line );
 }
 
+
+function pera_citizenship_allowed_redirect_paths() {
+  return array( '/citizenship-by-investment/', '/zh-citizenship-by-investment/' );
+}
+
+function pera_citizenship_redirect_path_from_post() {
+  $redirect_path = isset( $_POST['citizenship_redirect_path'] ) ? sanitize_text_field( wp_unslash( $_POST['citizenship_redirect_path'] ) ) : '/citizenship-by-investment/';
+
+  if ( ! in_array( $redirect_path, pera_citizenship_allowed_redirect_paths(), true ) ) {
+    return '/citizenship-by-investment/';
+  }
+
+  return $redirect_path;
+}
+
+function pera_citizenship_redirect_url( $status ) {
+  $status = sanitize_key( (string) $status );
+  if ( '' === $status ) {
+    $status = 'failed';
+  }
+
+  return home_url( pera_citizenship_redirect_path_from_post() . '?enquiry=' . rawurlencode( $status ) . '#citizenship-form' );
+}
+
 function pera_forms_nonce_failure_redirect( $form_key, $fallback_url, $query_arg, $anchor = '' ) {
-  $redirect = ! empty( $_POST['_wp_http_referer'] )
-    ? esc_url_raw( wp_unslash( $_POST['_wp_http_referer'] ) )
-    : home_url( $fallback_url );
+  if ( 'pera_citizenship_action' === $form_key ) {
+    $redirect = pera_citizenship_redirect_url( 'failed' );
+  } else {
+    $redirect = ! empty( $_POST['_wp_http_referer'] )
+      ? esc_url_raw( wp_unslash( $_POST['_wp_http_referer'] ) )
+      : home_url( $fallback_url );
 
-  $redirect = preg_replace( '/#.*$/', '', $redirect );
-  $redirect = add_query_arg(
-    array(
-      $query_arg => 'failed',
-      'reason'   => 'nonce',
-    ),
-    $redirect
-  );
+    $redirect = preg_replace( '/#.*$/', '', $redirect );
+    $redirect = add_query_arg(
+      array(
+        $query_arg => 'failed',
+        'reason'   => 'nonce',
+      ),
+      $redirect
+    );
 
-  if ( $anchor ) {
-    $redirect .= $anchor;
+    if ( $anchor ) {
+      $redirect .= $anchor;
+    }
   }
 
   pera_forms_debug_log(
@@ -149,8 +177,7 @@ function pera_forms_failed_submission_redirect_url() {
     $redirect = add_query_arg( 'enquiry', 'failed', $redirect );
     $anchor   = '#favourites-enquiry';
   } elseif ( isset( $_POST['pera_citizenship_action'] ) ) {
-    $redirect = add_query_arg( 'enquiry', 'failed', $redirect );
-    $anchor   = '#citizenship-form';
+    return pera_citizenship_redirect_url( 'failed' );
   } else {
     $redirect = add_query_arg( 'enquiry', 'failed', $redirect );
   }
@@ -385,7 +412,7 @@ function pera_citizenship_turnstile_check( $token ) {
 }
 
 function pera_citizenship_failed_redirect( $reason = 'blocked' ) {
-  $redirect = home_url( '/citizenship-by-investment/?enquiry=failed#citizenship-form' );
+  $redirect = pera_citizenship_redirect_url( 'failed' );
   pera_forms_debug_log(
     'redirect',
     array(
@@ -1273,15 +1300,8 @@ function pera_handle_citizenship_enquiry() {
       pera_send_enquiry_autoreply( 'citizenship', $email, $auto_subject, $auto_lines );
     }
 
-    $status        = $sent ? 'ok' : 'mail-failed';
-    $redirect_path = isset( $_POST['citizenship_redirect_path'] ) ? sanitize_text_field( wp_unslash( $_POST['citizenship_redirect_path'] ) ) : '/citizenship-by-investment/';
-    $allowed_paths = array( '/citizenship-by-investment/', '/zh-citizenship-by-investment/' );
-
-    if ( ! in_array( $redirect_path, $allowed_paths, true ) ) {
-      $redirect_path = '/citizenship-by-investment/';
-    }
-
-    $redirect = home_url( $redirect_path . '?enquiry=' . $status . '#citizenship-form' );
+    $status   = $sent ? 'ok' : 'mail-failed';
+    $redirect = pera_citizenship_redirect_url( $status );
 
     pera_forms_debug_log( 'redirect', array( 'form_key' => 'pera_citizenship_action', 'handler' => __FUNCTION__, 'redirect' => $redirect ) );
     wp_safe_redirect( $redirect );
