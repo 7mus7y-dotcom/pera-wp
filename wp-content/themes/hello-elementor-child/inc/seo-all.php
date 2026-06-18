@@ -496,6 +496,12 @@ if ( ! function_exists( 'pera_seo_all_is_citizenship_page' ) ) {
   }
 }
 
+if ( ! function_exists( 'pera_seo_all_is_zh_citizenship_page' ) ) {
+  function pera_seo_all_is_zh_citizenship_page(): bool {
+    return is_page( 'zh-citizenship-by-investment' ) || is_page_template( 'page-zh-citizenship.php' );
+  }
+}
+
 if ( ! function_exists( 'pera_seo_all_citizenship_faq_items' ) ) {
   /**
    * IMPORTANT:
@@ -571,6 +577,74 @@ if ( ! function_exists( 'pera_seo_all_citizenship_faq_items' ) ) {
   }
 }
 
+if ( ! function_exists( 'pera_seo_all_zh_citizenship_faq_items' ) ) {
+  /**
+   * Single source of truth for the Chinese citizenship FAQ.
+   *
+   * Used by:
+   * 1) Visible FAQ rendering (partials/faq-zh-citizenship.php)
+   * 2) Chinese FAQPage JSON-LD schema
+   *
+   * @return array<int,array{question:string,answer:string}>
+   */
+  function pera_seo_all_zh_citizenship_faq_items(): array {
+    return array(
+      array(
+        'question' => '我可以购买多套房产来满足土耳其投资入籍要求吗？',
+        'answer'   => '通常可以。投资者可通过一套或多套符合条件的房产达到最低合格投资额，但每套房产的产权、估值、付款和登记要求都需要审查。',
+      ),
+      array(
+        'question' => '期房可以用于土耳其投资入籍吗？',
+        'answer'   => '在部分情况下可以，但取决于项目结构、产权状态、付款安排和申请时的规则。建议在认购前完成法律检查。',
+      ),
+      array(
+        'question' => '商业房产可以用于土耳其投资入籍吗？',
+        'answer'   => '商业房产可能符合要求，但需满足估值、产权转让、付款及合规要求。是否适用应由律师逐案确认。',
+      ),
+      array(
+        'question' => '什么是土耳其投资入籍的合格证明？',
+        'answer'   => '合格证明是确认投资符合入籍条件的重要官方文件，通常是进入最终公民身份审批前的关键步骤之一。',
+      ),
+      array(
+        'question' => 'DAB 外币换汇文件是什么？',
+        'answer'   => 'DAB 通常指外币兑换证明，用于证明购房资金按规定通过银行系统以外币进入并兑换。该文件通常与产权过户和合格证明流程相关。',
+      ),
+      array(
+        'question' => '如果房产估值低于 USD 400,000 会怎样？',
+        'answer'   => '如果用于申请的官方估值低于最低门槛，该房产通常不能单独满足房地产投资入籍要求，可能需要补充其他合格房产或重新评估方案。',
+      ),
+      array(
+        'question' => '3 年后可以出售房产吗？',
+        'answer'   => '通常在完成强制持有期和登记承诺后，可以出售房产；已经取得的公民身份通常不会因合规期满后的出售而被取消。',
+      ),
+      array(
+        'question' => '申请过程中必须去土耳其吗？',
+        'answer'   => '多数情况下，申请人需要到土耳其完成与投资者居留相关的生物识别等步骤。具体次数和安排需由律师根据最新流程确认。',
+      ),
+      array(
+        'question' => '土耳其投资入籍有加速流程吗？',
+        'answer'   => '部分投资者可能可以在较集中的时间内完成居留申请、生物识别和入籍文件提交。是否可行取决于预约、文件完整性及申请时的主管机关实践。',
+      ),
+      array(
+        'question' => '配偶和子女可以一起申请吗？',
+        'answer'   => '通常可以。主申请人的配偶及 18 岁以下子女一般可纳入同一投资入籍申请。成年子女、父母或其他亲属通常需要单独评估。',
+      ),
+      array(
+        'question' => '土耳其允许双重国籍吗？',
+        'answer'   => '土耳其通常允许双重国籍。但您是否能保留原国籍，仍需取决于原国籍国家或地区的法律。',
+      ),
+      array(
+        'question' => '土耳其投资入籍需要土耳其语考试吗？',
+        'answer'   => '房地产投资入籍路径通常不要求土耳其语考试，但申请文件、身份核验和政府实践应以提交时要求为准。',
+      ),
+      array(
+        'question' => '土耳其投资入籍通常需要多久？',
+        'answer'   => '从购房、文件准备、居留到入籍审批，完整流程通常需要数月。实际时间取决于房产交易速度、文件完整性、预约安排和政府处理时间。',
+      ),
+    );
+  }
+}
+
 add_filter( 'pre_get_document_title', function ( $title ) {
   $context = pera_seo_all_get_context_key();
 
@@ -621,6 +695,10 @@ add_filter( 'pre_get_document_title', function ( $title ) {
 
       if ( pera_seo_all_is_contact_page( $post_id ) ) {
         return 'Contact Pera Property | Istanbul Real Estate Consultants';
+      }
+
+      if ( pera_seo_all_is_zh_citizenship_page() ) {
+        return '土耳其投资入籍｜通过房地产获得土耳其公民身份 | Pera Property';
       }
 
       $manual_title = pera_seo_all_get_manual_post_text_field( $post_id, 'seo_title' );
@@ -906,6 +984,11 @@ add_action( 'wp_head', function () {
 
         if ( pera_seo_all_is_contact_page( $post_id ) ) {
           $desc = 'Contact Pera Property for expert Istanbul real estate advice. Speak with our consultants about buying, selling, renting, investment property or Turkish citizenship options.';
+          break;
+        }
+
+        if ( pera_seo_all_is_zh_citizenship_page() ) {
+          $desc = '了解如何通过符合条件的土耳其房地产投资申请土耳其公民身份。Pera Property 协助中国及国际投资者筛选伊斯坦布尔房产、完成法律尽调、产权过户及入籍申请流程。';
           break;
         }
 
@@ -1477,6 +1560,168 @@ add_action( 'wp_head', function () {
     }
   }
 
+  if ( $context === 'static_page' && $post_id > 0 && pera_seo_all_is_zh_citizenship_page() && $canonical !== '' ) {
+    $publisher_name  = 'Pera Property';
+    $home_url        = (string) home_url( '/' );
+    $website_id      = (string) home_url( '/#website' );
+    $webpage_id      = $canonical . '#webpage';
+    $organization_id = $home_url . '#organization';
+    $agent_id        = $home_url . '#realestateagent';
+    $service_id      = $canonical . '#service';
+    $breadcrumb_id   = $canonical . '#breadcrumb';
+    $schema_image    = $img_url;
+
+    if ( $schema_image === '' ) {
+      $schema_image = (string) wp_get_attachment_image_url( 55756, 'full' );
+    }
+
+    $webpage_schema = array(
+      '@type'       => 'WebPage',
+      '@id'         => $webpage_id,
+      'url'         => $canonical,
+      'name'        => $title,
+      'inLanguage'  => 'zh-CN',
+      'description' => $desc,
+      'isPartOf'    => array(
+        '@id' => $website_id,
+      ),
+      'about'       => array(
+        '@id' => $service_id,
+      ),
+      'mainEntity'  => array(
+        '@id' => $service_id,
+      ),
+      'breadcrumb'  => array(
+        '@id' => $breadcrumb_id,
+      ),
+      'publisher'   => array(
+        '@id' => $organization_id,
+      ),
+    );
+
+    if ( $schema_image !== '' ) {
+      $webpage_schema['image'] = $schema_image;
+    }
+
+    $schema_graph = array(
+      '@context' => 'https://schema.org',
+      '@graph'   => array(
+        array(
+          '@type'     => 'WebSite',
+          '@id'       => $website_id,
+          'url'       => $home_url,
+          'name'      => $site_name,
+          'publisher' => array(
+            '@id' => $organization_id,
+          ),
+        ),
+        array(
+          '@type' => 'Organization',
+          '@id'   => $organization_id,
+          'name'  => $publisher_name,
+          'url'   => $home_url,
+        ),
+        array(
+          '@type'       => 'RealEstateAgent',
+          '@id'         => $agent_id,
+          'name'        => $publisher_name,
+          'url'         => $home_url,
+          'description' => 'Istanbul-based real estate agency helping international buyers purchase property in Turkey, including citizenship-eligible real estate investments.',
+          'telephone'   => '+90 532 063 99 78',
+          'email'       => 'info@peraproperty.com',
+          'areaServed'  => array(
+            '@type' => 'Country',
+            'name'  => 'Turkey',
+          ),
+        ),
+        $webpage_schema,
+        array(
+          '@type'            => 'Service',
+          '@id'              => $service_id,
+          'name'             => '土耳其投资入籍房地产顾问服务',
+          'serviceType'      => 'Citizenship by investment property advisory',
+          'url'              => $canonical,
+          'description'      => $desc,
+          'provider'         => array(
+            '@id' => $agent_id,
+          ),
+          'areaServed'       => array(
+            '@type' => 'Country',
+            'name'  => 'Turkey',
+          ),
+          'audience'         => array(
+            '@type'        => 'Audience',
+            'audienceType' => '中国及国际房地产投资者和土耳其投资入籍家庭申请人',
+          ),
+          'mainEntityOfPage' => array(
+            '@id' => $webpage_id,
+          ),
+          'availableChannel' => array(
+            '@type'             => 'ServiceChannel',
+            'serviceUrl'        => $canonical,
+            'availableLanguage' => array(
+              'Chinese',
+              'English',
+              'Turkish',
+            ),
+          ),
+        ),
+        array(
+          '@type'           => 'BreadcrumbList',
+          '@id'             => $breadcrumb_id,
+          'itemListElement' => array(
+            array(
+              '@type'    => 'ListItem',
+              'position' => 1,
+              'name'     => 'Home',
+              'item'     => $home_url,
+            ),
+            array(
+              '@type'    => 'ListItem',
+              'position' => 2,
+              'name'     => '土耳其投资入籍',
+              'item'     => $canonical,
+            ),
+          ),
+        ),
+      ),
+    );
+
+    echo '<script type="application/ld+json">' . wp_json_encode( $schema_graph, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT ) . '</script>' . "\n";
+
+    $faq_items = pera_seo_all_zh_citizenship_faq_items();
+    if ( ! empty( $faq_items ) ) {
+      $faq_entities = array();
+
+      foreach ( $faq_items as $faq_item ) {
+        if ( empty( $faq_item['question'] ) || empty( $faq_item['answer'] ) ) {
+          continue;
+        }
+
+        $faq_entities[] = array(
+          '@type'          => 'Question',
+          'name'           => (string) $faq_item['question'],
+          'acceptedAnswer' => array(
+            '@type' => 'Answer',
+            'text'  => (string) $faq_item['answer'],
+          ),
+        );
+      }
+
+      if ( ! empty( $faq_entities ) ) {
+        $faq_schema = array(
+          '@context'   => 'https://schema.org',
+          '@type'      => 'FAQPage',
+          'inLanguage' => 'zh-CN',
+          'mainEntity' => $faq_entities,
+        );
+
+        $GLOBALS['pera_schema_faq_emitted'] = true;
+        echo '<script type="application/ld+json">' . wp_json_encode( $faq_schema, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT ) . '</script>' . "\n";
+      }
+    }
+  }
+
 
 
   if ( $context === 'static_page' && $post_id > 0 && pera_seo_all_is_contact_page( $post_id ) && $canonical !== '' ) {
@@ -1586,7 +1831,7 @@ add_action( 'wp_head', function () {
   }
 
 
-  if ( $schema_type !== '' && $canonical !== '' && ! ( $context === 'static_page' && $post_id > 0 && pera_seo_all_is_citizenship_page() ) ) {
+  if ( $schema_type !== '' && $canonical !== '' && ! ( $context === 'static_page' && $post_id > 0 && ( pera_seo_all_is_citizenship_page() || pera_seo_all_is_zh_citizenship_page() ) ) ) {
     $schema = array(
       '@context' => 'https://schema.org',
       '@type'    => $schema_type,

@@ -4,7 +4,7 @@ if ( ! defined( 'ABSPATH' ) ) exit;
 /**
  * functions.php (or your existing loader section)
  * Conditionally load /inc/enquiry.php only on:
- * - page-citizenship.php
+ * - page-citizenship.php / page-zh-citizenship.php
  * - page-rent-with-pera.php
  * - page-sell-with-pera.php
  * - single-property.php
@@ -40,6 +40,7 @@ add_action( 'init', function () {
   // Pages by template (only works if these are actual template filenames in your theme)
   if (
     is_page_template( 'page-citizenship.php' ) ||
+    is_page_template( 'page-zh-citizenship.php' ) ||
     is_page_template( 'page-rent-with-pera.php' ) ||
     is_page_template( 'page-sell-with-pera.php' ) ||
     is_page_template( 'page-book-a-consultancy.php' ) ||
@@ -50,7 +51,7 @@ add_action( 'init', function () {
   }
 
   // Safety fallback: if your pages are not using those exact filenames, load by slug as well
-  if ( is_page( array( 'citizenship-by-investment', 'rent-with-pera', 'sell-with-pera', 'my-favourites' ) ) ) {
+  if ( is_page( array( 'citizenship-by-investment', 'zh-citizenship-by-investment', 'rent-with-pera', 'sell-with-pera', 'my-favourites' ) ) ) {
     require_once get_stylesheet_directory() . '/inc/enquiry.php';
     return;
   }
