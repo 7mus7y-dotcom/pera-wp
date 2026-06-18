@@ -134,7 +134,22 @@ $citizenship_requirements = array(
     </div>
   </section>
 
-  <?php get_template_part( 'partials/citizenship-latest-offers' ); ?>
+  <?php
+  get_template_part(
+      'partials/citizenship-latest-offers',
+      null,
+      array(
+          'aria_label'          => '当前伊斯坦布尔入籍房产精选',
+          'eyebrow'             => '入籍房产精选',
+          'heading'             => '当前伊斯坦布尔入籍房产精选',
+          'intro'               => '精选可能适合通过房地产投资申请土耳其公民身份的伊斯坦布尔房产，并从入籍适用性、估值逻辑、产权状态、地段质量及未来转售潜力等方面进行初步筛选。',
+          'view_all_label'      => '查看所有入籍房产',
+          'request_label'       => '获取私人房产清单',
+          'previous_aria_label' => '上一组房产',
+          'next_aria_label'     => '下一组房产',
+      )
+  );
+  ?>
 
   <section class="section section-soft">
     <div class="container">

@@ -17,6 +17,8 @@ $cards              = isset( $args['cards'] ) && is_array( $args['cards'] ) ? $a
 $card_list_modifier = isset( $args['card_list_modifier'] ) ? sanitize_html_class( (string) $args['card_list_modifier'] ) : '';
 $primary_cta        = isset( $args['primary_cta'] ) && is_array( $args['primary_cta'] ) ? $args['primary_cta'] : array();
 $secondary_cta      = isset( $args['secondary_cta'] ) && is_array( $args['secondary_cta'] ) ? $args['secondary_cta'] : array();
+$previous_aria_label = isset( $args['previous_aria_label'] ) ? trim( (string) $args['previous_aria_label'] ) : __( 'Previous offers', 'hello-elementor-child' );
+$next_aria_label     = isset( $args['next_aria_label'] ) ? trim( (string) $args['next_aria_label'] ) : __( 'Next offers', 'hello-elementor-child' );
 
 if ( empty( $cards ) ) {
 	return;
@@ -73,7 +75,7 @@ $ctas = array_filter(
 				type="button"
 				class="cards-slider-nav cards-slider-nav--prev"
 				data-slider-target="<?php echo esc_attr( $slider_id ); ?>"
-				aria-label="<?php echo esc_attr__( 'Previous offers', 'hello-elementor-child' ); ?>"
+				aria-label="<?php echo esc_attr( $previous_aria_label ); ?>"
 			>
 				<svg width="22" height="22" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
 					<use href="<?php echo esc_url( get_stylesheet_directory_uri() . '/logos-icons/icons.svg#icon-chevron-left' ); ?>"></use>
@@ -94,7 +96,7 @@ $ctas = array_filter(
 				type="button"
 				class="cards-slider-nav cards-slider-nav--next"
 				data-slider-target="<?php echo esc_attr( $slider_id ); ?>"
-				aria-label="<?php echo esc_attr__( 'Next offers', 'hello-elementor-child' ); ?>"
+				aria-label="<?php echo esc_attr( $next_aria_label ); ?>"
 			>
 				<svg width="22" height="22" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
 					<use href="<?php echo esc_url( get_stylesheet_directory_uri() . '/logos-icons/icons.svg#icon-chevron-right' ); ?>"></use>
