@@ -354,7 +354,18 @@ $citizenship_requirements = array(
     </div>
   </section>
 
-  <?php get_template_part( 'parts/citizenship-guide-posts' ); ?>
+  <?php
+  get_template_part( 'parts/citizenship-guide-posts', null, array(
+    'category_slug'      => 'chinese-buyers',
+    'section_aria_label' => '中国买家指南文章',
+    'eyebrow'            => '中国买家指南',
+    'heading'            => '继续阅读我们的土耳其房产与入籍中文指南',
+    'intro'              => '这些指南为中国买家介绍土耳其购房、投资入籍、伊斯坦布尔区域选择、估值、付款文件和产权流程中的关键问题。',
+    'slider_id'          => 'zh-citizenship-guide-posts-slider',
+    'prev_aria_label'    => '上一篇中国买家指南',
+    'next_aria_label'    => '下一篇中国买家指南',
+  ) );
+  ?>
 
   <?php get_template_part( 'partials/faq', 'zh-citizenship' ); ?>
 
