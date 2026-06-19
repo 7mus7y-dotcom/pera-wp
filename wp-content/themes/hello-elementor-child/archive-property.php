@@ -1083,14 +1083,6 @@ $pagination_html = function_exists( 'pera_render_property_pagination' )
 $property_archive_faq_items = ( function_exists( 'pera_property_archive_is_indexable_faq_context' ) && pera_property_archive_is_indexable_faq_context() && function_exists( 'pera_get_property_archive_faq_items' ) )
   ? pera_get_property_archive_faq_items()
   : array();
-$property_archive_legacy_faq_allowed = ! is_search()
-  && ! is_paged()
-  && ( ! function_exists( 'pera_property_archive_has_query_string' ) || ! pera_property_archive_has_query_string() )
-  && ( ! function_exists( 'pera_property_archive_is_filtered_request' ) || ! pera_property_archive_is_filtered_request() );
-
-if ( $property_archive_legacy_faq_allowed && empty( $property_archive_faq_items ) && $qo instanceof WP_Term && $qo->taxonomy === 'property_tags' && function_exists( 'pera_render_property_tag_faq_html' ) ) {
-  pera_render_property_tag_faq_html( $qo );
-}
 ?>
 
 <?php if ( $related_taxonomy_total > 0 ) : ?>
