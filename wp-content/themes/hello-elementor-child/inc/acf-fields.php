@@ -91,13 +91,6 @@ add_action(
 						'media_upload' => 0,
 						'instructions' => 'Commercial archive content shown below property listings. HTML allowed.',
 					),
-					array(
-						'key'          => 'field_district_regional_guide_url',
-						'label'        => 'Regional Guide URL',
-						'name'         => 'district_regional_guide_url',
-						'type'         => 'url',
-						'instructions' => 'Optional link to the full regional guide article.',
-					),
 				),
 				'location' => array(
 					array(

@@ -313,7 +313,6 @@ $term_description_html   = '';
 $regional_guide_url      = '';
 $district_archive_subtitle           = '';
 $district_archive_body               = '';
-$district_regional_guide_url_override = '';
 $generic_archive_subtitle            = '';
 $generic_archive_body                = '';
 
@@ -340,7 +339,6 @@ if ( $qo instanceof WP_Term ) {
 
       $district_archive_subtitle = (string) get_field( 'district_archive_subtitle', $district_term_acf_key );
       $district_archive_body = (string) get_field( 'district_archive_body', $district_term_acf_key );
-      $district_regional_guide_url_override = (string) get_field( 'district_regional_guide_url', $district_term_acf_key );
     }
   }
 
@@ -353,9 +351,6 @@ if ( $qo instanceof WP_Term ) {
     $term_description_html = wpautop( wp_kses_post( $generic_archive_body ) );
   }
 
-  if ( $qo->taxonomy === 'district' && trim( $district_regional_guide_url_override ) !== '' ) {
-    $regional_guide_url = trim( $district_regional_guide_url_override );
-  }
 }
 
 if ( ( is_tax( 'district' ) || ( $qo instanceof WP_Term && $qo->taxonomy === 'district' ) ) && ( $qo instanceof WP_Term ) ) {

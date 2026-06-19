@@ -37,8 +37,9 @@ if ( ! defined( 'PERA_TERM_SEO_DESC_KEY' ) )         define( 'PERA_TERM_SEO_DESC
  */
 function pera_property_archive_meta_taxonomies(): array {
   $taxonomies = array(
-    // District/region archive + SEO term fields are managed by the original implementation.
-    // Keep this renderer limited to newly extended taxonomies to avoid duplicate admin fields.
+    // District archive fields are managed by the original district-specific ACF field group.
+    // Region and property tag archives reuse the generic archive_subtitle/archive_body_content term meta.
+    'region',
     'property_tags',
   );
 
