@@ -1093,9 +1093,6 @@ $property_archive_legacy_faq_allowed = ! is_search()
   && ( ! function_exists( 'pera_property_archive_has_query_string' ) || ! pera_property_archive_has_query_string() )
   && ( ! function_exists( 'pera_property_archive_is_filtered_request' ) || ! pera_property_archive_is_filtered_request() );
 
-if ( $property_archive_legacy_faq_allowed && empty( $property_archive_faq_items ) && $qo instanceof WP_Term && $qo->taxonomy === 'district' && function_exists( 'pera_render_district_page_faqs' ) ) {
-  pera_render_district_page_faqs( $qo );
-}
 if ( $property_archive_legacy_faq_allowed && empty( $property_archive_faq_items ) && $qo instanceof WP_Term && $qo->taxonomy === 'property_tags' && function_exists( 'pera_render_property_tag_faq_html' ) ) {
   pera_render_property_tag_faq_html( $qo );
 }
@@ -1222,12 +1219,6 @@ if ( $property_archive_legacy_faq_allowed && empty( $property_archive_faq_items 
   </section>
 <?php endif; ?>
 </main>
-
-<?php
-if ( $property_archive_legacy_faq_allowed && empty( $property_archive_faq_items ) && $qo instanceof WP_Term && $qo->taxonomy === 'district' && function_exists( 'pera_render_district_page_faq_schema' ) ) {
-  pera_render_district_page_faq_schema( $qo );
-}
-?>
 
 <script>
 (function () {
