@@ -52,7 +52,6 @@ if ( ! function_exists( 'pera_get_property_reference' ) ) {
 
 if ( ! function_exists( 'pera_get_whatsapp_context' ) ) {
 	function pera_get_whatsapp_context(): array {
-		$phone    = '905452054356';
 		$page_url = pera_get_current_request_url();
 
 		$context = array(
@@ -92,17 +91,9 @@ if ( ! function_exists( 'pera_get_whatsapp_context' ) ) {
 			$context['message_text'] = "Hi, I'm interested in renting out my property in Istanbul with Pera Property. Can you provide more information about your rental service?";
 		}
 
-		$context['whatsapp_url'] = 'https://wa.me/' . $phone . '?text=' . rawurlencode( $context['message_text'] );
+		$context['whatsapp_url'] = pera_get_whatsapp_url( $context['message_text'] );
 
 		return $context;
-	}
-}
-
-if ( ! function_exists( 'pera_get_whatsapp_url' ) ) {
-	function pera_get_whatsapp_url(): string {
-		$context = pera_get_whatsapp_context();
-
-		return (string) ( $context['whatsapp_url'] ?? '' );
 	}
 }
 

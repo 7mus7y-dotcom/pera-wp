@@ -37,6 +37,7 @@ require_once get_stylesheet_directory() . '/inc/blog/editorial-updated-date.php'
 require_once get_stylesheet_directory() . '/inc/blog/ajax-blog-search.php';
 require_once get_stylesheet_directory() . '/inc/client-portal.php';
 require_once get_stylesheet_directory() . '/inc/enquiry-email-log.php';
+require_once get_stylesheet_directory() . '/inc/whatsapp-helpers.php';
 require_once get_stylesheet_directory() . '/inc/whatsapp.php';
 require_once get_stylesheet_directory() . '/inc/whatsapp-click-log.php';
 
