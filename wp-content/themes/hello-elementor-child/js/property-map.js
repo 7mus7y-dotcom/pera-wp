@@ -28,6 +28,10 @@
 
     const selectedPanel = document.querySelector('.property-map__selected');
     const resultsEl = document.getElementById('property-map-results');
+    const filtersForm = document.getElementById('property-map-filters');
+    const countEl = document.getElementById('property-map-count');
+    const emptyEl = document.getElementById('property-map-empty');
+    const layoutEl = document.querySelector('.property-map-layout');
     const mapConfig = window.peraPropertyMap || {};
     const markerIconUrl = mapConfig.marker_icon || null;
     const defaultCenter = { lat: 41.0082, lng: 28.9784 };
@@ -37,6 +41,16 @@
       mapTypeControl: false,
       streetViewControl: false,
     });
+
+    const trackEvent = (eventName, params = {}) => {
+      document.dispatchEvent(new CustomEvent('pera:track', {
+        detail: Object.assign({
+          event_name: eventName,
+          page_location: window.location.href,
+          page_title: document.title || ''
+        }, params)
+      }));
+    };
 
     const setResultsHtml = (html) => {
       if (resultsEl) {
@@ -98,6 +112,10 @@
             return;
           }
           setResultsHtml(payload.data.card_html);
+          if (layoutEl && window.innerWidth < 768) {
+            layoutEl.setAttribute('data-active-view', 'list');
+            document.querySelectorAll('[data-map-view]').forEach((btn) => btn.classList.toggle('is-active', btn.getAttribute('data-map-view') === 'list'));
+          }
         })
         .catch((error) => {
           if (error && error.name === 'AbortError') {
@@ -235,6 +253,71 @@
 
     let markerCount = 0;
     let lastPosition = null;
+    const markerEntries = [];
+
+    const getFilters = () => {
+      const formData = filtersForm ? new FormData(filtersForm) : new FormData();
+      return {
+        district: String(formData.get('district') || ''),
+        minPrice: parseInt(formData.get('min_price') || '0', 10) || 0,
+        maxPrice: parseInt(formData.get('max_price') || '0', 10) || 0,
+        bedrooms: parseInt(formData.get('bedrooms') || '0', 10) || 0,
+        type: String(formData.get('type') || '')
+      };
+    };
+
+    const propertyMatches = (data, filters) => {
+      const priceMin = parseInt(data.price_min || '0', 10) || 0;
+      const priceMax = parseInt(data.price_max || priceMin || '0', 10) || priceMin;
+      const beds = Array.isArray(data.bedrooms) ? data.bedrooms.map((bed) => parseInt(bed || '0', 10)).filter(Boolean) : [];
+      if (filters.district && data.district !== filters.district) return false;
+      if (filters.type && data.type !== filters.type) return false;
+      if (filters.minPrice && priceMax && priceMax < filters.minPrice) return false;
+      if (filters.maxPrice && priceMin && priceMin > filters.maxPrice) return false;
+      if (filters.bedrooms && !beds.some((bed) => bed >= filters.bedrooms)) return false;
+      return true;
+    };
+
+    const updateCount = (visibleCount) => {
+      if (countEl) {
+        countEl.textContent = `${visibleCount.toLocaleString()} ${visibleCount === 1 ? 'property' : 'properties'} shown`;
+      }
+      if (emptyEl) {
+        emptyEl.hidden = visibleCount !== 0;
+      }
+    };
+
+    const applyFilters = (shouldTrack = false, adjustViewport = false) => {
+      const filters = getFilters();
+      let visible = 0;
+      const visibleBounds = new window.google.maps.LatLngBounds();
+      markerEntries.forEach((entry) => {
+        const match = propertyMatches(entry.data, filters);
+        entry.marker.setMap(match ? map : null);
+        if (match) {
+          visible += 1;
+          visibleBounds.extend(entry.marker.getPosition());
+        }
+      });
+      closeActiveOverlay();
+      updateCount(visible);
+      if (adjustViewport && visible > 1) {
+        map.fitBounds(visibleBounds);
+      } else if (adjustViewport && visible === 1) {
+        map.setCenter(visibleBounds.getCenter());
+        map.setZoom(14);
+      }
+      if (shouldTrack) {
+        trackEvent('property_map_filter', {
+          filter_district: filters.district,
+          filter_type: filters.type,
+          filter_bedrooms: filters.bedrooms,
+          filter_min_price: filters.minPrice,
+          filter_max_price: filters.maxPrice,
+          visible_count: visible
+        });
+      }
+    };
 
     markersData.forEach((markerData) => {
       const position = {
@@ -266,6 +349,8 @@
       markerCount += 1;
       lastPosition = position;
 
+      markerEntries.push({ marker, data: markerData });
+
       marker.addListener('click', () => {
         closeActiveOverlay();
 
@@ -275,6 +360,7 @@
         }
 
         loadMarkerCard(markerData.id);
+        trackEvent('property_map_marker_select', { property_id: markerData.id || '', property_title: markerData.title || '' });
 
         if (selectedPanel && window.innerWidth < 768) {
           selectedPanel.scrollIntoView({ behavior: 'smooth', block: 'start' });
@@ -286,6 +372,71 @@
       showMessage('No properties are available on the map right now.');
       return;
     }
+
+    if (filtersForm) {
+      let filterTimer = null;
+      filtersForm.addEventListener('input', (event) => {
+        const target = event.target;
+        if (!target || !target.matches || !target.matches('input')) return;
+        window.clearTimeout(filterTimer);
+        filterTimer = window.setTimeout(() => applyFilters(true, false), 250);
+      });
+      filtersForm.addEventListener('change', (event) => {
+        const target = event.target;
+        if (!target || !target.matches || target.matches('input')) return;
+        applyFilters(true, true);
+      });
+      filtersForm.addEventListener('reset', () => {
+        window.setTimeout(() => applyFilters(true, true), 0);
+      });
+    }
+
+    document.addEventListener('click', (event) => {
+      const trackEl = event.target && event.target.closest ? event.target.closest('[data-map-track]') : null;
+      if (trackEl) {
+        trackEvent('property_map_interaction', { interaction: trackEl.getAttribute('data-map-track') || '' });
+      }
+
+      const detailLink = event.target && event.target.closest ? event.target.closest('#property-map-results a[href]') : null;
+      if (detailLink && !detailLink.matches('[data-whatsapp="1"]')) {
+        trackEvent('property_map_detail_click', { link_url: detailLink.href });
+      }
+
+      const viewButton = event.target && event.target.closest ? event.target.closest('[data-map-view]') : null;
+      if (viewButton && layoutEl) {
+        const view = viewButton.getAttribute('data-map-view');
+        layoutEl.setAttribute('data-active-view', view);
+        document.querySelectorAll('[data-map-view]').forEach((btn) => btn.classList.toggle('is-active', btn === viewButton));
+        if (view === 'map') {
+          window.google.maps.event.trigger(map, 'resize');
+        }
+      }
+    });
+
+    document.querySelectorAll('a[href^="#"]').forEach((anchor) => {
+      anchor.addEventListener('click', (event) => {
+        const target = document.querySelector(anchor.getAttribute('href'));
+        if (!target) return;
+        event.preventDefault();
+        target.scrollIntoView({ behavior: window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth', block: 'start' });
+      });
+    });
+
+    const assistForm = document.getElementById('property-map-assist-form');
+    if (assistForm) {
+      assistForm.addEventListener('submit', (event) => {
+        event.preventDefault();
+        const formData = new FormData(assistForm);
+        const message = `Hi, I'd like personalised Istanbul property recommendations. Name: ${formData.get('name') || ''}. WhatsApp: ${formData.get('phone') || ''}. Budget: ${formData.get('budget') || ''}. Purpose: ${formData.get('purpose') || ''}. Preferred area: ${formData.get('area') || 'Not sure'}.`;
+        const fallback = assistForm.getAttribute('data-whatsapp-url') || '';
+        if (!fallback) return;
+        const base = fallback.split('?')[0];
+        trackEvent('property_map_assisted_search_submit', { buying_purpose: String(formData.get('purpose') || '') });
+        window.location.href = `${base}?text=${encodeURIComponent(message)}`;
+      });
+    }
+
+    updateCount(markerEntries.length);
 
     if (markerCount === 1 && lastPosition) {
       map.setCenter(lastPosition);
