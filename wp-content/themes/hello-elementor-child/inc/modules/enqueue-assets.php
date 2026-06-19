@@ -31,6 +31,14 @@ add_action( 'wp_enqueue_scripts', function () {
       true
     );
 
+    wp_localize_script(
+      'pera-main-js',
+      'peraFrontendConfig',
+      array(
+        'whatsappNumber' => function_exists( 'pera_get_whatsapp_number' ) ? pera_get_whatsapp_number() : '',
+      )
+    );
+
     wp_enqueue_script(
       'pera-whatsapp-click-log',
       get_stylesheet_directory_uri() . '/js/whatsapp-click-log.js',
