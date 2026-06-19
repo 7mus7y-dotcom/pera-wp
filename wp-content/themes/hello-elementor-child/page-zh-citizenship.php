@@ -391,7 +391,7 @@ $citizenship_requirements = array(
       <p>请告诉我们您的预算、家庭成员和时间计划。Pera Property 顾问将帮助您了解适合的伊斯坦布尔房产选择和下一步流程。</p>
       <div class="hero-actions">
         <a href="#citizenship-callback" class="btn btn--solid btn--green">联系入籍顾问</a>
-        <a href="https://wa.me/905320639978?text=Hello%20Pera%20Property%2C%20I%20would%20like%20Chinese%20guidance%20about%20Turkish%20citizenship%20by%20investment." class="btn btn--ghost btn--green" data-whatsapp="1" data-whatsapp-type="citizenship_cta" data-track-channel="whatsapp" data-track-intent="high" data-track-source="template" data-track-context="zh_citizenship_page" data-track-ga4-event="whatsapp_click" data-track-crm-event="whatsapp_click">WhatsApp 咨询</a>
+        <a href="<?php echo esc_url( pera_get_whatsapp_url( 'Hello Pera Property, I would like Chinese guidance about Turkish citizenship by investment.' ) ); ?>" class="btn btn--ghost btn--green" data-whatsapp="1" data-whatsapp-type="citizenship_cta" data-track-channel="whatsapp" data-track-intent="high" data-track-source="template" data-track-context="zh_citizenship_page" data-track-ga4-event="whatsapp_click" data-track-crm-event="whatsapp_click">WhatsApp 咨询</a>
         <a href="<?php echo esc_url( home_url( '/citizenship-by-investment/' ) ); ?>" class="btn btn--ghost btn--green">View this page in English</a>
       </div>
     </div>

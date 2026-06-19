@@ -10,7 +10,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 
 get_header();
 
-$whatsapp_url = 'https://wa.me/905320639978?text=Hello%20Pera%20Property%2C%20I%27m%20interested%20in%20luxury%20property%20in%20Istanbul.%20Can%20you%20send%20me%20a%20private%20shortlist%3F';
+$whatsapp_url = pera_get_whatsapp_url( 'Hello Pera Property, I\'m interested in luxury property in Istanbul. Can you send me a private shortlist?' );
 $luxury_term = get_term_by( 'slug', 'istanbul-luxury-property-for-sale', 'property_tags' );
 $all_luxury_url = home_url( '/property_tags/istanbul-luxury-property-for-sale/' );
 

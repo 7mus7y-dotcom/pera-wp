@@ -260,7 +260,7 @@ $crm_label                  = $crm_overdue_count > 0
       </div>
 
       <div class="offcanvas-contact-social footer-social">
-        <a href="https://wa.me/905320639978?text=Hello%20Pera%20Property%2C%20I%27d%20like%20to%20learn%20more%20about%20your%20Istanbul%20properties."
+        <a href="<?php echo esc_url( pera_get_whatsapp_url( 'Hello Pera Property, I\'d like to learn more about your Istanbul properties.' ) ); ?>"
            class="footer-social-link"
            aria-label="WhatsApp Pera Property"
            target="_blank"

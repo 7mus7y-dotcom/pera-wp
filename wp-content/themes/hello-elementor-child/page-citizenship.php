@@ -1441,7 +1441,7 @@ $citizenship_requirements = array(
           Contact our citizenship team
         </a>
         <a
-          href="https://wa.me/905320639978?text=Hello%20Pera%20Property%2C%20I%27m%20interested%20in%20Turkish%20citizenship%20by%20investment."
+          href="<?php echo esc_url( pera_get_whatsapp_url( 'Hello Pera Property, I\'m interested in Turkish citizenship by investment.' ) ); ?>"
           class="btn btn--ghost btn--green"
           data-whatsapp="1"
           data-whatsapp-type="citizenship_cta"
