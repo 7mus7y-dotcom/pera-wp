@@ -65,6 +65,78 @@ document.addEventListener('DOMContentLoaded', function () {
     window.fbq('track', 'PageView');
   }
 
+
+  function getConfiguredWhatsAppNumber() {
+    var config = window.peraFrontendConfig || {};
+    var number = String(config.whatsappNumber || '').replace(/\D+/g, '');
+
+    return number || '';
+  }
+
+  function isWhatsAppLink(url) {
+    var host = (url.hostname || '').toLowerCase().replace(/^www\./, '');
+    var path = (url.pathname || '').toLowerCase();
+
+    return host === 'wa.me' ||
+      (host === 'api.whatsapp.com' && path.indexOf('/send') === 0) ||
+      (host === 'whatsapp.com' && path.indexOf('/send') === 0);
+  }
+
+  function rewriteWhatsAppHref(href, configuredNumber) {
+    if (!href || !configuredNumber) return href;
+
+    var url;
+    try {
+      url = new URL(href, window.location.href);
+    } catch (e) {
+      return href;
+    }
+
+    if (!isWhatsAppLink(url)) return href;
+
+    if (url.hostname.toLowerCase().replace(/^www\./, '') === 'wa.me') {
+      var pathParts = url.pathname.split('/');
+      if (pathParts.length > 1 && /^\d+$/.test(pathParts[1] || '')) {
+        pathParts[1] = configuredNumber;
+        url.pathname = pathParts.join('/');
+        return url.toString();
+      }
+
+      return href;
+    }
+
+    if (url.searchParams.has('phone')) {
+      var currentPhone = String(url.searchParams.get('phone') || '').replace(/\D+/g, '');
+      if (currentPhone) {
+        url.searchParams.set('phone', configuredNumber);
+        return url.toString();
+      }
+    }
+
+    return href;
+  }
+
+  function rewriteLegacyWhatsAppLinks(root) {
+    var configuredNumber = getConfiguredWhatsAppNumber();
+    if (!configuredNumber || !root || !root.querySelectorAll) return;
+
+    var links = Array.from(root.querySelectorAll('a[href]'));
+    if (root.matches && root.matches('a[href]')) {
+      links.unshift(root);
+    }
+
+    links.forEach(function (link) {
+      if (link.getAttribute('data-pera-whatsapp-rewritten') === configuredNumber) return;
+
+      var href = link.getAttribute('href') || '';
+      var rewrittenHref = rewriteWhatsAppHref(href, configuredNumber);
+      if (rewrittenHref && rewrittenHref !== href) {
+        link.setAttribute('href', rewrittenHref);
+        link.setAttribute('data-pera-whatsapp-rewritten', configuredNumber);
+      }
+    });
+  }
+
   function trackWhatsAppDispatcher() {
     document.addEventListener('click', function (event) {
       var target = event.target;
@@ -142,6 +214,7 @@ document.addEventListener('DOMContentLoaded', function () {
     }, true);
   }
 
+  rewriteLegacyWhatsAppLinks(document);
   trackWhatsAppDispatcher();
 
   document.addEventListener('pera:track', function (event) {
@@ -263,6 +336,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
           if (node.querySelectorAll) {
             rewriteSvgUses(node);
+            rewriteLegacyWhatsAppLinks(node);
           }
         });
       });
