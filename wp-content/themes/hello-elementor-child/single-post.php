@@ -46,6 +46,31 @@ get_header();
 
                   $author_id    = (int) get_the_author_meta( 'ID' );
                   $tag_terms    = get_the_tags();
+
+                  $post_faq_raw = '';
+
+                  if ( function_exists( 'get_field' ) ) {
+                    $post_faq_value = get_field( 'seo_faq_v2', get_the_ID() );
+
+                    if ( is_scalar( $post_faq_value ) ) {
+                      $post_faq_raw = trim( (string) $post_faq_value );
+                    }
+                  }
+
+                  if ( '' === $post_faq_raw ) {
+                    $post_faq_value = get_post_meta( get_the_ID(), 'seo_faq_v2', true );
+
+                    if ( is_scalar( $post_faq_value ) ) {
+                      $post_faq_raw = trim( (string) $post_faq_value );
+                    }
+                  }
+
+                  $post_faq_items = (
+                    '' !== $post_faq_raw
+                    && function_exists( 'pera_parse_faq_pipe_text' )
+                  )
+                    ? pera_parse_faq_pipe_text( $post_faq_raw )
+                    : array();
 	                
 	                // Related posts query: categories first, tags as fallback when no category match exists.
 	                $related_query = null;
@@ -237,6 +262,22 @@ get_header();
                         <article <?php post_class( 'article-body' ); ?>>
                             <?php the_content(); ?>
                         </article>
+
+                        <?php if ( ! empty( $post_faq_items ) && function_exists( 'pera_render_faq_html' ) ) : ?>
+                          <?php pera_render_faq_html( $post_faq_items, 'Frequently Asked Questions' ); ?>
+                        <?php endif; ?>
+
+                        <?php
+                          if ( ! empty( $post_faq_items ) && function_exists( 'pera_render_faq_schema' ) ) {
+                            pera_render_faq_schema(
+                              $post_faq_items,
+                              array(
+                                'context' => 'single_post',
+                                'post_id' => get_the_ID(),
+                              )
+                            );
+                          }
+                        ?>
 
                         <?php if ( ! empty( $tag_terms ) && is_array( $tag_terms ) ) : ?>
                           <section class="post-tags" aria-label="Article tags">
