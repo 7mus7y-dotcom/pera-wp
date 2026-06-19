@@ -3148,18 +3148,9 @@ text-decoration:underline;
    UNIVERSAL CONTENT PANEL (REUSABLE)
    ======================================================= */
 
-/* Outer wrapper – used to overlap hero OR stand alone 
 .content-panel {
   position: relative;
   z-index: 3;
-  margin-top: calc(var(--header-height) * -0.55);
-  padding: 0 10px 60px;
-}*/
-
-.content-panel {
-  position: relative;
-  z-index: 3;
-  padding: 0 10px 60px;
   margin-top: 0;
 }
 
