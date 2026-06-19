@@ -1085,10 +1085,18 @@ $pagination_html = function_exists( 'pera_render_property_pagination' )
 <?php endif; ?>
 
 <?php
-if ( $qo instanceof WP_Term && $qo->taxonomy === 'district' && function_exists( 'pera_render_district_page_faqs' ) ) {
+$property_archive_faq_items = ( function_exists( 'pera_property_archive_is_indexable_faq_context' ) && pera_property_archive_is_indexable_faq_context() && function_exists( 'pera_get_property_archive_faq_items' ) )
+  ? pera_get_property_archive_faq_items()
+  : array();
+$property_archive_legacy_faq_allowed = ! is_search()
+  && ! is_paged()
+  && ( ! function_exists( 'pera_property_archive_has_query_string' ) || ! pera_property_archive_has_query_string() )
+  && ( ! function_exists( 'pera_property_archive_is_filtered_request' ) || ! pera_property_archive_is_filtered_request() );
+
+if ( $property_archive_legacy_faq_allowed && empty( $property_archive_faq_items ) && $qo instanceof WP_Term && $qo->taxonomy === 'district' && function_exists( 'pera_render_district_page_faqs' ) ) {
   pera_render_district_page_faqs( $qo );
 }
-if ( $qo instanceof WP_Term && $qo->taxonomy === 'property_tags' && function_exists( 'pera_render_property_tag_faq_html' ) ) {
+if ( $property_archive_legacy_faq_allowed && empty( $property_archive_faq_items ) && $qo instanceof WP_Term && $qo->taxonomy === 'property_tags' && function_exists( 'pera_render_property_tag_faq_html' ) ) {
   pera_render_property_tag_faq_html( $qo );
 }
 ?>
@@ -1199,23 +1207,24 @@ if ( $qo instanceof WP_Term && $qo->taxonomy === 'property_tags' && function_exi
     </section>
   <?php endif; ?>
 
-  <?php
-    $archive_faq_items = function_exists( 'pera_get_property_archive_faq_items' )
-      ? pera_get_property_archive_faq_items()
-      : array();
-  ?>
-  <?php if ( ! empty( $archive_faq_items ) && function_exists( 'pera_render_faq_html' ) ) : ?>
-    <section class="archive-faq section">
-      <div class="container">
-        <?php pera_render_faq_html( $archive_faq_items, 'Frequently Asked Questions About Property in Istanbul' ); ?>
-      </div>
-    </section>
-  <?php endif; ?>
+<?php endif; ?>
+
+<?php if ( ! empty( $property_archive_faq_items ) && function_exists( 'pera_render_faq_html' ) ) : ?>
+  <section class="archive-faq section">
+    <div class="container">
+      <?php
+        $property_archive_faq_heading = function_exists( 'pera_get_property_archive_faq_heading' )
+          ? pera_get_property_archive_faq_heading()
+          : 'Frequently Asked Questions About Property in Istanbul';
+        pera_render_faq_html( $property_archive_faq_items, $property_archive_faq_heading );
+      ?>
+    </div>
+  </section>
 <?php endif; ?>
 </main>
 
 <?php
-if ( $qo instanceof WP_Term && $qo->taxonomy === 'district' && function_exists( 'pera_render_district_page_faq_schema' ) ) {
+if ( $property_archive_legacy_faq_allowed && empty( $property_archive_faq_items ) && $qo instanceof WP_Term && $qo->taxonomy === 'district' && function_exists( 'pera_render_district_page_faq_schema' ) ) {
   pera_render_district_page_faq_schema( $qo );
 }
 ?>

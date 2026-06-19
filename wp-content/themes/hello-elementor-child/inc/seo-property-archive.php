@@ -63,6 +63,85 @@ if ( ! function_exists( 'pera_property_archive_settings_text_field' ) ) {
   }
 }
 
+if ( ! function_exists( 'pera_property_archive_is_supported_taxonomy_archive' ) ) {
+  /**
+   * True when the queried term is a property archive taxonomy attached to the property CPT.
+   */
+  function pera_property_archive_is_supported_taxonomy_archive(): bool {
+    $term = get_queried_object();
+    if ( ! ( $term instanceof WP_Term ) || is_wp_error( $term ) ) {
+      return false;
+    }
+
+    $taxonomy = (string) $term->taxonomy;
+    $supported_taxonomies = function_exists( 'pera_get_property_archive_taxonomies' )
+      ? pera_get_property_archive_taxonomies()
+      : array();
+
+    if ( ! in_array( $taxonomy, $supported_taxonomies, true ) ) {
+      return false;
+    }
+
+    $property_taxonomies = get_object_taxonomies( 'property', 'names' );
+    return in_array( $taxonomy, (array) $property_taxonomies, true );
+  }
+}
+
+if ( ! function_exists( 'pera_property_archive_is_indexable_faq_context' ) ) {
+  /**
+   * True when FAQ HTML/schema may be emitted for the active property archive.
+   */
+  function pera_property_archive_is_indexable_faq_context(): bool {
+    if ( is_search() || is_paged() || pera_property_archive_has_query_string() || pera_property_archive_is_filtered_request() ) {
+      return false;
+    }
+
+    if ( pera_property_archive_is_clean_main_archive() ) {
+      return true;
+    }
+
+    $term = get_queried_object();
+    if ( ! ( $term instanceof WP_Term ) || is_wp_error( $term ) ) {
+      return false;
+    }
+
+    $taxonomy = (string) $term->taxonomy;
+    if ( ! pera_property_archive_is_supported_taxonomy_archive() ) {
+      return false;
+    }
+
+    $indexable_taxonomies = function_exists( 'pera_get_indexable_property_archive_taxonomies' )
+      ? pera_get_indexable_property_archive_taxonomies()
+      : array();
+
+    return in_array( $taxonomy, $indexable_taxonomies, true );
+  }
+}
+
+if ( ! function_exists( 'pera_get_property_archive_faq_heading' ) ) {
+  /**
+   * Return the context-aware FAQ heading for property archives.
+   */
+  function pera_get_property_archive_faq_heading(): string {
+    if ( pera_property_archive_is_clean_main_archive() ) {
+      return 'Frequently Asked Questions About Property in Istanbul';
+    }
+
+    $term = get_queried_object();
+    if ( $term instanceof WP_Term && ! is_wp_error( $term ) ) {
+      $name = function_exists( 'pera_seo_normalize_meta_text' )
+        ? pera_seo_normalize_meta_text( (string) $term->name )
+        : trim( wp_strip_all_tags( (string) $term->name ) );
+
+      if ( '' !== $name ) {
+        return sprintf( 'Frequently Asked Questions About %s Property', $name );
+      }
+    }
+
+    return 'Frequently Asked Questions About Property in Istanbul';
+  }
+}
+
 if ( ! function_exists( 'pera_property_archive_schema_title' ) ) {
   function pera_property_archive_schema_title(): string {
     if ( is_tax( pera_get_indexable_property_archive_taxonomies() ) ) {
@@ -681,13 +760,20 @@ add_action( 'wp_head', function () {
   }
 
   if (
-    ! $is_filtered
-    && $is_clean_main_property_archive
+    function_exists( 'pera_property_archive_is_indexable_faq_context' )
+    && pera_property_archive_is_indexable_faq_context()
     && $canonical !== ''
     && function_exists( 'pera_get_property_archive_faq_items' )
     && function_exists( 'pera_render_faq_schema' )
   ) {
-    pera_render_faq_schema( pera_get_property_archive_faq_items() );
+    $faq_context = array( 'context' => 'property_archive' );
+    $faq_term    = get_queried_object();
+    if ( $faq_term instanceof WP_Term && ! is_wp_error( $faq_term ) ) {
+      $faq_context['taxonomy'] = (string) $faq_term->taxonomy;
+      $faq_context['term_id']  = (int) $faq_term->term_id;
+    }
+
+    pera_render_faq_schema( pera_get_property_archive_faq_items(), $faq_context );
   }
 
 
