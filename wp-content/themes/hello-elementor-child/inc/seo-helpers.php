@@ -50,6 +50,99 @@ if ( ! function_exists( 'pera_get_indexable_property_archive_taxonomies' ) ) {
   }
 }
 
+if ( ! function_exists( 'pera_get_property_taxonomy_archive_cta_taxonomies' ) ) {
+  /**
+   * Taxonomies that receive the contextual CTA below archive body content.
+   *
+   * The default list is intentionally limited to location/tag archive surfaces
+   * whose archive copy reads as a property-search context.
+   */
+  function pera_get_property_taxonomy_archive_cta_taxonomies(): array {
+    $taxonomies = array(
+      'district',
+      'region',
+      'property_tags',
+    );
+
+    return apply_filters( 'pera_property_taxonomy_archive_cta_taxonomies', $taxonomies );
+  }
+}
+
+if ( ! function_exists( 'pera_get_property_taxonomy_archive_cta_heading_exceptions' ) ) {
+  /**
+   * Slug-keyed heading exceptions for terms where "in {term}" is unnatural.
+   */
+  function pera_get_property_taxonomy_archive_cta_heading_exceptions(): array {
+    $exceptions = array(
+      'bosphorus'     => 'Looking for property on the Bosphorus?',
+      'anatolia'      => 'Looking for property on Istanbul’s Asian side?',
+      'media-highway' => 'Looking for property along Istanbul’s Media Highway?',
+      'central-coast' => 'Looking for property on Istanbul’s central coast?',
+      'golden-horn'   => 'Looking for property around the Golden Horn?',
+      'old-city'      => 'Looking for property in Istanbul’s Old City?',
+      'city-centre'   => 'Looking for property in Istanbul city centre?',
+    );
+
+    return apply_filters( 'pera_property_taxonomy_archive_cta_heading_exceptions', $exceptions );
+  }
+}
+
+if ( ! function_exists( 'pera_get_property_taxonomy_archive_cta_heading' ) ) {
+  /**
+   * Build the contextual taxonomy archive CTA heading from the queried term.
+   */
+  function pera_get_property_taxonomy_archive_cta_heading( WP_Term $term ): string {
+    $exceptions = pera_get_property_taxonomy_archive_cta_heading_exceptions();
+    $slug       = sanitize_title( (string) $term->slug );
+
+    if ( isset( $exceptions[ $slug ] ) && is_string( $exceptions[ $slug ] ) && trim( $exceptions[ $slug ] ) !== '' ) {
+      $heading = trim( $exceptions[ $slug ] );
+    } else {
+      $heading = sprintf( 'Looking for property in %s?', $term->name );
+    }
+
+    return (string) apply_filters( 'pera_property_taxonomy_archive_cta_heading', $heading, $term );
+  }
+}
+
+if ( ! function_exists( 'pera_get_property_taxonomy_archive_cta_text' ) ) {
+  /**
+   * Build the contextual taxonomy archive CTA body text.
+   */
+  function pera_get_property_taxonomy_archive_cta_text( WP_Term $term ): string {
+    $text = 'Speak to Pera Property for current availability, suitable developments and advice based on your budget and requirements.';
+
+    return (string) apply_filters( 'pera_property_taxonomy_archive_cta_text', $text, $term );
+  }
+}
+
+if ( ! function_exists( 'pera_should_render_property_taxonomy_archive_cta' ) ) {
+  /**
+   * Determine whether the contextual taxonomy CTA should render for this request.
+   */
+  function pera_should_render_property_taxonomy_archive_cta( $term = null ): bool {
+    if ( ! is_tax() || is_post_type_archive( 'property' ) ) {
+      return false;
+    }
+
+    if ( ! ( $term instanceof WP_Term ) || is_wp_error( $term ) ) {
+      return false;
+    }
+
+    $taxonomy = (string) $term->taxonomy;
+    if ( $taxonomy === '' || ! taxonomy_exists( $taxonomy ) || ! is_object_in_taxonomy( 'property', $taxonomy ) ) {
+      return false;
+    }
+
+    $supported_taxonomies = pera_get_property_taxonomy_archive_cta_taxonomies();
+    if ( ! in_array( $taxonomy, $supported_taxonomies, true ) ) {
+      return false;
+    }
+
+    return (bool) apply_filters( 'pera_should_render_property_taxonomy_archive_cta', true, $term );
+  }
+}
+
 if ( ! function_exists( 'pera_is_property_archive_context' ) ) {
   /**
    * True when current request is owned by the property archive SEO module.
