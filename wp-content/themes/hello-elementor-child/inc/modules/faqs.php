@@ -56,32 +56,87 @@ if ( ! function_exists( 'pera_parse_faq_pipe_text' ) ) {
 	}
 }
 
+if ( ! function_exists( 'pera_property_archive_term_raw_faq_value' ) ) {
+	/**
+	 * Resolve raw seo_faq_v2 text for a property taxonomy term.
+	 *
+	 * @return string
+	 */
+	function pera_property_archive_term_raw_faq_value( WP_Term $term ): string {
+		$raw = '';
+
+		if ( function_exists( 'get_field' ) ) {
+			$value = get_field( 'seo_faq_v2', $term );
+			if ( is_scalar( $value ) ) {
+				$raw = trim( (string) $value );
+			}
+		}
+
+		if ( '' === $raw ) {
+			$value = get_term_meta( (int) $term->term_id, 'seo_faq_v2', true );
+			if ( is_scalar( $value ) ) {
+				$raw = trim( (string) $value );
+			}
+		}
+
+		return $raw;
+	}
+}
+
+if ( ! function_exists( 'pera_property_archive_taxonomy_is_attached_to_property' ) ) {
+	/**
+	 * Determine whether a taxonomy is attached to the property CPT.
+	 */
+	function pera_property_archive_taxonomy_is_attached_to_property( string $taxonomy ): bool {
+		$property_taxonomies = get_object_taxonomies( 'property', 'names' );
+		return in_array( $taxonomy, (array) $property_taxonomies, true );
+	}
+}
+
 if ( ! function_exists( 'pera_get_property_archive_faq_items' ) ) {
 	/**
-	 * Return centralised FAQ rows for the clean main property archive.
+	 * Return centralised FAQ rows for the active property archive context.
 	 *
 	 * @return array<int,array{question:string,answer:string}>
 	 */
 	function pera_get_property_archive_faq_items(): array {
-		static $faq_items = null;
+		static $faq_items_by_context = array();
 
-		if ( null !== $faq_items ) {
-			return $faq_items;
+		$context_key = 'none';
+		$raw         = '';
+
+		if ( function_exists( 'pera_property_archive_is_clean_main_archive' ) && pera_property_archive_is_clean_main_archive() ) {
+			$context_key = 'main';
+			if ( function_exists( 'pera_property_archive_settings_field' ) ) {
+				$value = pera_property_archive_settings_field( 'seo_faq_v2' );
+				$raw   = is_scalar( $value ) ? trim( (string) $value ) : '';
+			}
+		} else {
+			$term = get_queried_object();
+			if ( $term instanceof WP_Term && ! is_wp_error( $term ) ) {
+				$taxonomy = (string) $term->taxonomy;
+				$supported = function_exists( 'pera_get_property_archive_taxonomies' )
+					? in_array( $taxonomy, pera_get_property_archive_taxonomies(), true )
+					: taxonomy_exists( $taxonomy );
+
+				if ( $supported && pera_property_archive_taxonomy_is_attached_to_property( $taxonomy ) ) {
+					$context_key = 'term:' . $taxonomy . ':' . (int) $term->term_id;
+					$raw         = pera_property_archive_term_raw_faq_value( $term );
+				}
+			}
 		}
 
-		if ( ! function_exists( 'pera_property_archive_settings_field' ) ) {
-			$faq_items = array();
-			return $faq_items;
+		if ( isset( $faq_items_by_context[ $context_key ] ) ) {
+			return $faq_items_by_context[ $context_key ];
 		}
 
-		$raw = pera_property_archive_settings_field( 'seo_faq_v2' );
-		if ( ! is_scalar( $raw ) ) {
-			$faq_items = array();
-			return $faq_items;
+		if ( '' === $raw ) {
+			$faq_items_by_context[ $context_key ] = array();
+			return $faq_items_by_context[ $context_key ];
 		}
 
-		$faq_items = pera_parse_faq_pipe_text( (string) $raw );
-		return $faq_items;
+		$faq_items_by_context[ $context_key ] = pera_parse_faq_pipe_text( $raw );
+		return $faq_items_by_context[ $context_key ];
 	}
 }
 
@@ -181,8 +236,9 @@ if ( ! function_exists( 'pera_render_faq_schema' ) ) {
 	 * Render FAQPage JSON-LD for FAQ rows.
 	 *
 	 * @param array<int,array{question:string,answer:string}> $faqs FAQ rows.
+	 * @param array<string,mixed>                          $context Optional schema ownership context.
 	 */
-	function pera_render_faq_schema( $faqs ): void {
+	function pera_render_faq_schema( $faqs, array $context = array() ): void {
 		if ( ! is_array( $faqs ) || empty( $faqs ) ) {
 			return;
 		}
@@ -193,8 +249,9 @@ if ( ! function_exists( 'pera_render_faq_schema' ) ) {
 			function_exists( 'pera_schema_should_emit_type' )
 			&& ! pera_schema_should_emit_type(
 				'FAQPage',
-				array(
-					'context' => 'faq_renderer',
+				array_merge(
+					array( 'context' => 'faq_renderer' ),
+					$context
 				)
 			)
 		) {
