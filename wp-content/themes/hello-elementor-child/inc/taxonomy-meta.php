@@ -7,6 +7,9 @@
  * - Term Excerpt (pera_term_excerpt)
  * - Term Featured Image (pera_term_featured_image_id)
  *
+ * SEO title and meta description fields are intentionally not rendered here.
+ * Those fields are owned by the ACF SEO Helper Fields field group.
+ *
  * Back-compat (read-only fallback):
  * - category_excerpt
  * - category_featured_image_id
@@ -29,8 +32,6 @@ if ( ! defined( 'PERA_TERM_IMAGE_KEY' ) )   define( 'PERA_TERM_IMAGE_KEY',   'pe
 if ( ! defined( 'PERA_TERM_ARCHIVE_SUBTITLE_KEY' ) ) define( 'PERA_TERM_ARCHIVE_SUBTITLE_KEY', 'archive_subtitle' );
 if ( ! defined( 'PERA_TERM_ARCHIVE_BODY_KEY' ) )     define( 'PERA_TERM_ARCHIVE_BODY_KEY',     'archive_body_content' );
 if ( ! defined( 'PERA_TERM_ARCHIVE_H1_TITLE_KEY' ) ) define( 'PERA_TERM_ARCHIVE_H1_TITLE_KEY', 'archive_h1_title' );
-if ( ! defined( 'PERA_TERM_SEO_TITLE_KEY' ) )        define( 'PERA_TERM_SEO_TITLE_KEY',        'seo_title' );
-if ( ! defined( 'PERA_TERM_SEO_DESC_KEY' ) )         define( 'PERA_TERM_SEO_DESC_KEY',         'seo_meta_description' );
 
 /**
  * Taxonomies that support custom property-archive term fields.
@@ -197,16 +198,6 @@ function pera_term_meta_render_add_fields( string $taxonomy ): void {
     <input type="text" name="pera_archive_h1_title" id="pera_archive_h1_title" value="" maxlength="220" />
   </div>
   <?php endif; ?>
-
-  <div class="form-field">
-    <label for="pera_seo_title"><?php esc_html_e( 'SEO Title', 'pera' ); ?></label>
-    <input type="text" name="pera_seo_title" id="pera_seo_title" value="" maxlength="300" />
-  </div>
-
-  <div class="form-field">
-    <label for="pera_seo_meta_description"><?php esc_html_e( 'SEO Meta Description', 'pera' ); ?></label>
-    <textarea name="pera_seo_meta_description" id="pera_seo_meta_description" rows="3" maxlength="300"></textarea>
-  </div>
   <?php endif; ?>
 
   <div class="form-field pera-term-image-wrap">
@@ -236,8 +227,6 @@ function pera_term_meta_render_edit_fields( WP_Term $term, string $taxonomy ): v
   $archive_subtitle    = (string) get_term_meta( $term_id, PERA_TERM_ARCHIVE_SUBTITLE_KEY, true );
   $archive_body        = (string) get_term_meta( $term_id, PERA_TERM_ARCHIVE_BODY_KEY, true );
   $archive_h1_title    = (string) get_term_meta( $term_id, PERA_TERM_ARCHIVE_H1_TITLE_KEY, true );
-  $seo_title           = (string) get_term_meta( $term_id, PERA_TERM_SEO_TITLE_KEY, true );
-  $seo_meta_desc       = (string) get_term_meta( $term_id, PERA_TERM_SEO_DESC_KEY, true );
 
   // Back-compat read fallback for category
   if ( $taxonomy === 'category' ) {
@@ -287,16 +276,6 @@ function pera_term_meta_render_edit_fields( WP_Term $term, string $taxonomy ): v
     <td><input type="text" name="pera_archive_h1_title" id="pera_archive_h1_title" value="<?php echo esc_attr( $archive_h1_title ); ?>" maxlength="220" class="regular-text" /></td>
   </tr>
   <?php endif; ?>
-
-  <tr class="form-field">
-    <th scope="row"><label for="pera_seo_title"><?php esc_html_e( 'SEO Title', 'pera' ); ?></label></th>
-    <td><input type="text" name="pera_seo_title" id="pera_seo_title" value="<?php echo esc_attr( $seo_title ); ?>" maxlength="300" class="regular-text" /></td>
-  </tr>
-
-  <tr class="form-field">
-    <th scope="row"><label for="pera_seo_meta_description"><?php esc_html_e( 'SEO Meta Description', 'pera' ); ?></label></th>
-    <td><textarea name="pera_seo_meta_description" id="pera_seo_meta_description" rows="3" maxlength="300" class="large-text"><?php echo esc_textarea( $seo_meta_desc ); ?></textarea></td>
-  </tr>
   <?php endif; ?>
 
   <tr class="form-field pera-term-image-wrap">
@@ -398,24 +377,6 @@ function pera_term_meta_save( int $term_id, int $tt_id, string $taxonomy ): void
         delete_term_meta( $term_id, PERA_TERM_ARCHIVE_H1_TITLE_KEY );
       } else {
         update_term_meta( $term_id, PERA_TERM_ARCHIVE_H1_TITLE_KEY, $archive_h1_title );
-      }
-    }
-
-    if ( isset( $_POST['pera_seo_title'] ) ) {
-      $seo_title = sanitize_text_field( wp_unslash( $_POST['pera_seo_title'] ) );
-      if ( $seo_title === '' ) {
-        delete_term_meta( $term_id, PERA_TERM_SEO_TITLE_KEY );
-      } else {
-        update_term_meta( $term_id, PERA_TERM_SEO_TITLE_KEY, $seo_title );
-      }
-    }
-
-    if ( isset( $_POST['pera_seo_meta_description'] ) ) {
-      $seo_meta_description = sanitize_textarea_field( wp_unslash( $_POST['pera_seo_meta_description'] ) );
-      if ( $seo_meta_description === '' ) {
-        delete_term_meta( $term_id, PERA_TERM_SEO_DESC_KEY );
-      } else {
-        update_term_meta( $term_id, PERA_TERM_SEO_DESC_KEY, $seo_meta_description );
       }
     }
   }
