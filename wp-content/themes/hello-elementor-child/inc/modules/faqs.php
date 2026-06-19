@@ -3,6 +3,88 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
+
+if ( ! function_exists( 'pera_parse_faq_pipe_text' ) ) {
+	/**
+	 * Parse newline-delimited FAQ rows in the canonical shared FAQ shape.
+	 *
+	 * Expected format: Question|Answer, one FAQ per line. Only the first pipe
+	 * separates question from answer so answers can contain additional pipes.
+	 *
+	 * @param string $raw Raw textarea content.
+	 * @return array<int,array{question:string,answer:string}>
+	 */
+	function pera_parse_faq_pipe_text( string $raw ): array {
+		$raw = trim( $raw );
+		if ( '' === $raw ) {
+			return array();
+		}
+
+		$faqs  = array();
+		$lines = preg_split( '/\r\n|\r|\n/', $raw );
+		$lines = is_array( $lines ) ? $lines : array();
+
+		foreach ( $lines as $line ) {
+			$line = trim( (string) $line );
+			if ( '' === $line || false === strpos( $line, '|' ) ) {
+				continue;
+			}
+
+			$parts = explode( '|', $line, 2 );
+			if ( count( $parts ) < 2 ) {
+				continue;
+			}
+
+			$question = trim( wp_strip_all_tags( (string) $parts[0] ) );
+			$answer   = trim( wp_kses_post( (string) $parts[1] ) );
+
+			if ( '' === $question || '' === trim( wp_strip_all_tags( $answer ) ) ) {
+				continue;
+			}
+
+			$faqs[] = array(
+				'question' => $question,
+				'answer'   => $answer,
+			);
+
+			if ( count( $faqs ) >= 20 ) {
+				break;
+			}
+		}
+
+		return $faqs;
+	}
+}
+
+if ( ! function_exists( 'pera_get_property_archive_faq_items' ) ) {
+	/**
+	 * Return centralised FAQ rows for the clean main property archive.
+	 *
+	 * @return array<int,array{question:string,answer:string}>
+	 */
+	function pera_get_property_archive_faq_items(): array {
+		static $faq_items = null;
+
+		if ( null !== $faq_items ) {
+			return $faq_items;
+		}
+
+		if ( ! function_exists( 'pera_property_archive_settings_field' ) ) {
+			$faq_items = array();
+			return $faq_items;
+		}
+
+		$raw = pera_property_archive_settings_field( 'seo_faq_v2' );
+		if ( ! is_scalar( $raw ) ) {
+			$faq_items = array();
+			return $faq_items;
+		}
+
+		$faq_items = pera_parse_faq_pipe_text( (string) $raw );
+		return $faq_items;
+	}
+}
+
 if ( ! function_exists( 'pera_get_district_page_faqs' ) ) {
 	/**
 	 * Return district FAQ rows stored in term meta.
@@ -105,6 +187,17 @@ if ( ! function_exists( 'pera_render_faq_schema' ) ) {
 			return;
 		}
 		if ( ! empty( $GLOBALS['pera_schema_faq_emitted'] ) ) {
+			return;
+		}
+		if (
+			function_exists( 'pera_schema_should_emit_type' )
+			&& ! pera_schema_should_emit_type(
+				'FAQPage',
+				array(
+					'context' => 'faq_renderer',
+				)
+			)
+		) {
 			return;
 		}
 

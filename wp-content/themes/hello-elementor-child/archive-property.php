@@ -242,7 +242,9 @@ if ( $debug_enabled ) {
 $is_filtered_search = function_exists( 'pera_property_archive_is_filtered_request' )
   ? pera_property_archive_is_filtered_request( $_GET )
   : false;
-$is_clean_main_property_archive = is_post_type_archive( 'property' ) && ! is_tax() && ! is_paged() && empty( $_GET );
+$is_clean_main_property_archive = function_exists( 'pera_property_archive_is_clean_main_archive' )
+  ? pera_property_archive_is_clean_main_archive()
+  : ( is_post_type_archive( 'property' ) && ! is_tax() && ! is_search() && ! is_paged() && empty( $_GET ) );
 $listings_section_heading = $is_clean_main_property_archive
   ? __( 'View Property for Sale in Istanbul', 'hello-elementor-child' )
   : __( 'Available Properties', 'hello-elementor-child' );
@@ -1197,41 +1199,18 @@ if ( $qo instanceof WP_Term && $qo->taxonomy === 'property_tags' && function_exi
     </section>
   <?php endif; ?>
 
-  <section class="faq-section archive-faq section">
-    <div class="container">
-      <h2>Frequently asked questions</h2>
-
-      <div class="faq-accordion">
-        <details class="faq-item" open>
-          <summary>Can foreigners buy property in Istanbul?</summary>
-          <div class="faq-answer">
-            <p>Yes. Foreign buyers can purchase property in Istanbul in most areas, subject to normal legal checks and title procedures. Most transactions include tax number registration, valuation and title-deed transfer support.</p>
-          </div>
-        </details>
-
-        <details class="faq-item">
-          <summary>What are the best areas to buy property in Istanbul?</summary>
-          <div class="faq-answer">
-            <p>The best area depends on your goal. Beşiktaş and Şişli are central and lifestyle-driven, while Kadıköy is popular for local demand and city living. Premium buyers also consider Bomonti and Nişantaşı.</p>
-          </div>
-        </details>
-
-        <details class="faq-item">
-          <summary>Is Istanbul good for property investment?</summary>
-          <div class="faq-answer">
-            <p>Istanbul is one of Turkey’s most active markets, with steady domestic and international demand. Results vary by location, property quality, rental strategy and entry price, so district-level analysis is important.</p>
-          </div>
-        </details>
-
-        <details class="faq-item">
-          <summary>Can I get Turkish citizenship by buying property?</summary>
-          <div class="faq-answer">
-            <p>Yes, eligible buyers may apply under the Turkish Citizenship by Investment program if current legal thresholds and holding requirements are met. Professional legal review is recommended before purchase.</p>
-          </div>
-        </details>
+  <?php
+    $archive_faq_items = function_exists( 'pera_get_property_archive_faq_items' )
+      ? pera_get_property_archive_faq_items()
+      : array();
+  ?>
+  <?php if ( ! empty( $archive_faq_items ) && function_exists( 'pera_render_faq_html' ) ) : ?>
+    <section class="archive-faq section">
+      <div class="container">
+        <?php pera_render_faq_html( $archive_faq_items, 'Frequently Asked Questions About Property in Istanbul' ); ?>
       </div>
-    </div>
-  </section>
+    </section>
+  <?php endif; ?>
 <?php endif; ?>
 </main>
 
