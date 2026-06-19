@@ -3,6 +3,79 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
+/**
+ * Reuse the existing district related-link / regional-guide ACF group on every
+ * taxonomy archive template that renders those fields.
+ *
+ * The field group itself is managed in ACF (not registered in this file), so
+ * this filter deliberately expands the loaded group's location rules instead
+ * of registering duplicate region_* or property_tags_* fields.
+ */
+add_filter(
+	'acf/load_field_group',
+	static function ( $field_group ) {
+		if ( ! is_array( $field_group ) || empty( $field_group['key'] ) || ! function_exists( 'acf_get_fields' ) ) {
+			return $field_group;
+		}
+
+		$target_field_names = array( 'related_districts', 'related_regions', 'related_tags', 'regional_guide' );
+		$field_names        = array();
+		$fields             = acf_get_fields( $field_group['key'] );
+
+		if ( is_array( $fields ) ) {
+			foreach ( $fields as $field ) {
+				if ( is_array( $field ) && ! empty( $field['name'] ) ) {
+					$field_names[] = (string) $field['name'];
+				}
+			}
+		}
+
+		if ( array_diff( $target_field_names, $field_names ) ) {
+			return $field_group;
+		}
+
+		if ( empty( $field_group['location'] ) || ! is_array( $field_group['location'] ) ) {
+			$field_group['location'] = array();
+		}
+
+		$taxonomies_with_fields = array( 'district', 'region', 'property_tags' );
+		$existing_taxonomies    = array();
+
+		foreach ( $field_group['location'] as $rule_group ) {
+			if ( ! is_array( $rule_group ) ) {
+				continue;
+			}
+
+			foreach ( $rule_group as $rule ) {
+				if (
+					is_array( $rule )
+					&& isset( $rule['param'], $rule['operator'], $rule['value'] )
+					&& $rule['param'] === 'taxonomy'
+					&& $rule['operator'] === '=='
+				) {
+					$existing_taxonomies[] = (string) $rule['value'];
+				}
+			}
+		}
+
+		foreach ( $taxonomies_with_fields as $taxonomy ) {
+			if ( in_array( $taxonomy, $existing_taxonomies, true ) ) {
+				continue;
+			}
+
+			$field_group['location'][] = array(
+				array(
+					'param'    => 'taxonomy',
+					'operator' => '==',
+					'value'    => $taxonomy,
+				),
+			);
+		}
+
+		return $field_group;
+	}
+);
+
 add_action(
 	'acf/init',
 	static function () {

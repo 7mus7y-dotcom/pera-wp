@@ -353,7 +353,7 @@ if ( $qo instanceof WP_Term ) {
 
 }
 
-if ( ( is_tax( 'district' ) || ( $qo instanceof WP_Term && $qo->taxonomy === 'district' ) ) && ( $qo instanceof WP_Term ) ) {
+if ( ( is_tax( array( 'district', 'region', 'property_tags' ) ) || ( $qo instanceof WP_Term && in_array( $qo->taxonomy, array( 'district', 'region', 'property_tags' ), true ) ) ) && ( $qo instanceof WP_Term ) ) {
   $normalize_related_terms = static function ( $raw, string $taxonomy ): array {
     if ( ! is_array( $raw ) ) {
       $raw = empty( $raw ) ? array() : array( $raw );
