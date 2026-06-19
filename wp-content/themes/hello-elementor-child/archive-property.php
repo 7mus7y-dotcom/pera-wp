@@ -1152,18 +1152,10 @@ if ( $qo instanceof WP_Term && $qo->taxonomy === 'property_tags' && function_exi
     $archive_cta_heading         = (string) $property_archive_get_field( 'archive_cta_heading' );
     $archive_cta_text            = (string) $property_archive_get_field( 'archive_cta_text' );
     $archive_whatsapp_message    = (string) $property_archive_get_field( 'archive_whatsapp_message' );
-    $archive_whatsapp_number     = '905452054356';
     $archive_whatsapp_message    = $archive_whatsapp_message !== ''
       ? $archive_whatsapp_message
       : 'Hello Pera Property, I am interested in property for sale in Istanbul. My budget, preferred area and requirements are as follows:';
-    $archive_whatsapp_context    = function_exists( 'pera_get_whatsapp_context' ) ? pera_get_whatsapp_context() : array();
-    $archive_whatsapp_context_url = is_array( $archive_whatsapp_context ) ? (string) ( $archive_whatsapp_context['whatsapp_url'] ?? '' ) : '';
-
-    if ( preg_match( '~wa\.me/([0-9]+)~', $archive_whatsapp_context_url, $archive_whatsapp_matches ) ) {
-      $archive_whatsapp_number = $archive_whatsapp_matches[1];
-    }
-
-    $archive_whatsapp_url = 'https://wa.me/' . $archive_whatsapp_number . '?text=' . rawurlencode( $archive_whatsapp_message );
+    $archive_whatsapp_url = pera_get_whatsapp_url( $archive_whatsapp_message );
   ?>
   <section class="archive-seo-content section section-soft">
     <div class="container">

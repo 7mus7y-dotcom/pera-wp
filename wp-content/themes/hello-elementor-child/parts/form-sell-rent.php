@@ -94,7 +94,7 @@ $form_context = $args['form_context'] ?? 'general-contact';
                             Book a consultation
                         </a>
 
-                        <a href="https://wa.me/905452054356?text=Hello%20Pera%20Property%2C%20I%27d%20like%20to%20discuss%20Istanbul%20real%20estate."
+                        <a href="<?php echo esc_url( pera_get_whatsapp_url( 'Hello Pera Property, I\'d like to discuss Istanbul real estate.' ) ); ?>"
                            class="btn btn-secondary"
                            data-whatsapp="1"
                            data-whatsapp-type="service_cta"

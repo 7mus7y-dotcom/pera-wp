@@ -358,7 +358,7 @@ get_header();
 
       <div class="hero-actions">
         <a
-          href="https://wa.me/905452054356"
+          href="<?php echo esc_url( pera_get_whatsapp_url() ); ?>"
           class="btn btn--solid btn--black"
           target="_blank"
           rel="noopener" data-whatsapp="1" data-whatsapp-type="project_cta" data-track-channel="whatsapp" data-track-intent="high" data-track-source="template" data-track-context="vop_besiktas" data-track-ga4-event="whatsapp_click" data-track-crm-event="whatsapp_click"

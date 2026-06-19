@@ -122,7 +122,7 @@ get_header();
             <div class="hero-actions">
               <a href="tel:+905320639978" class="btn btn--solid btn--blue">Call Our Istanbul Office</a>
               <a
-                href="<?php echo esc_url( add_query_arg( 'text', 'Hi, I would like to speak with an Istanbul property consultant about buying, selling or investing in property.', 'https://wa.me/905320639978' ) ); ?>"
+                href="<?php echo esc_url( pera_get_whatsapp_url( 'Hi, I would like to speak with an Istanbul property consultant about buying, selling or investing in property.' ) ); ?>"
                 class="btn btn--solid btn--green"
                 target="_blank"
                 rel="noopener"
@@ -282,7 +282,7 @@ get_header();
                 <div class="contact-card__body">
                   <a href="tel:+905320639978" class="contact-card__number">+90 532 063 99 78</a>
                   <a
-                    href="https://wa.me/905320639978"
+                    href="<?php echo esc_url( pera_get_whatsapp_url() ); ?>"
                     class="contact-card__action"
                     target="_blank"
                     rel="noopener"
@@ -309,7 +309,7 @@ get_header();
                 <div class="contact-card__body">
                   <a href="tel:+905452054356" class="contact-card__number">+90 545 205 43 56</a>
                   <a
-                    href="https://wa.me/905452054356"
+                    href="<?php echo esc_url( pera_get_whatsapp_url() ); ?>"
                     class="contact-card__action"
                     target="_blank"
                     rel="noopener"

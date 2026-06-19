@@ -144,7 +144,7 @@ get_header();
               </a>
         
               <a
-                href="https://wa.me/905452054356?text=Hello%20I%20would%20like%20to%20sell%20my%20property%20with%20Pera%20Property"
+                href="<?php echo esc_url( pera_get_whatsapp_url( 'Hello I would like to sell my property with Pera Property' ) ); ?>"
                 target="_blank"
                 rel="noopener"
                 class="btn btn-icon-circle btn-whatsapp"
@@ -708,7 +708,7 @@ get_header();
                                 Book a consultation
                             </a>
     
-                            <a href="https://wa.me/905452054356?text=Hello%20Pera%20Property%2C%20I%27d%20like%20to%20discuss%20Istanbul%20real%20estate."
+                            <a href="<?php echo esc_url( pera_get_whatsapp_url( 'Hello Pera Property, I\'d like to discuss Istanbul real estate.' ) ); ?>"
                                class="btn btn--solid btn--green"
                                data-whatsapp="1"
                                data-whatsapp-type="service_cta"

@@ -670,13 +670,12 @@ $has_further_reading = ! empty( $post_ids );
         <a class="btn btn--solid btn--blue" href="#contact-form">Request details</a>
 
         <?php
-        $whatsapp_number = '905452054356'; // international format, no "+"
         $wa_text = sprintf(
           'Hello Pera Property, I would like details for the listing: "%s". Ref: %d',
           $title,
           (int) $property_id
         );
-        $wa_url = 'https://wa.me/' . $whatsapp_number . '?text=' . rawurlencode( $wa_text );
+        $wa_url = pera_get_whatsapp_url( $wa_text );
         ?>
 
         <a
@@ -1377,8 +1376,8 @@ if ( ! empty( $yt_video ) ) {
                   if ( $number_digits ) {
                     $listing_id    = get_the_ID();
                     $listing_title = get_the_title();
-                    $wa_message    = rawurlencode( "Hello I'd like more info on listing {$listing_id} {$listing_title}" );
-                    $wa_href       = 'https://wa.me/' . $number_digits . '?text=' . $wa_message;
+                    $wa_message    = "Hello I'd like more info on listing {$listing_id} {$listing_title}";
+                    $wa_href       = pera_get_whatsapp_url( $wa_message );
                   } elseif ( isset( $wa_url ) && ! empty( $wa_url ) ) {
                     $wa_href = $wa_url;
                   }
@@ -1674,7 +1673,7 @@ if ( ! empty( $yt_video ) ) {
             </a>
 
             <a
-              href="https://wa.me/905452054356?text=Hello%20Pera%20Property%2C%20I%27d%20like%20to%20discuss%20Istanbul%20real%20estate."
+              href="<?php echo esc_url( pera_get_whatsapp_url( 'Hello Pera Property, I\'d like to discuss Istanbul real estate.' ) ); ?>"
               class="btn btn--solid btn--green"
               target="_blank"
               rel="noopener"

@@ -14,7 +14,7 @@ $whatsapp_message = isset( $cta_args['whatsapp_message'] ) && is_scalar( $cta_ar
 	? (string) $cta_args['whatsapp_message']
 	: "Hello Pera Property, I'd like to discuss Istanbul real estate.";
 
-$whatsapp_url = esc_url( 'https://wa.me/905452054356?text=' . rawurlencode( $whatsapp_message ) );
+$whatsapp_url = esc_url( pera_get_whatsapp_url( $whatsapp_message ) );
 $icon_sprite  = esc_url( get_stylesheet_directory_uri() . '/logos-icons/icons.svg#icon-check' );
 ?>
 <section class="section section-soft">
