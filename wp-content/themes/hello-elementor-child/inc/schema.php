@@ -85,13 +85,61 @@ if ( ! function_exists( 'pera_schema_should_emit_type' ) ) {
 	}
 }
 
+if ( ! function_exists( 'pera_prepare_manual_faq_schema_output' ) ) {
+	/**
+	 * Prepare legacy/manual FAQ schema field output.
+	 *
+	 * Supported field formats:
+	 * - A complete <script type="application/ld+json">...</script> element.
+	 * - Raw JSON only, which is wrapped in an application/ld+json script tag.
+	 *
+	 * Anything else is treated as unsafe/malformed legacy content and skipped.
+	 */
+	function pera_prepare_manual_faq_schema_output( string $schema ): string {
+		$schema = trim( $schema );
+		if ( $schema === '' ) {
+			return '';
+		}
+
+		if ( preg_match( '/^<script\\b(?P<attrs>[^>]*)>(?P<json>.*)<\\/script>$/is', $schema, $matches ) ) {
+			$attrs = isset( $matches['attrs'] ) ? (string) $matches['attrs'] : '';
+			$json  = isset( $matches['json'] ) ? trim( (string) $matches['json'] ) : '';
+
+			if ( stripos( $attrs, 'application/ld+json' ) === false || $json === '' ) {
+				return '';
+			}
+
+			json_decode( $json, true );
+			if ( json_last_error() !== JSON_ERROR_NONE ) {
+				return '';
+			}
+
+			return $schema;
+		}
+
+		if ( $schema[0] !== '{' && $schema[0] !== '[' ) {
+			return '';
+		}
+
+		json_decode( $schema, true );
+		if ( json_last_error() !== JSON_ERROR_NONE ) {
+			return '';
+		}
+
+		return '<script type="application/ld+json">' . $schema . '</script>';
+	}
+}
+
 if ( ! function_exists( 'pera_output_manual_faq_schema_field' ) ) {
 	/**
 	 * Temporarily output manually entered FAQ JSON-LD from the per-object field.
 	 *
-	 * The field is expected to contain the full script tag when needed, and is
-	 * intentionally echoed without wrapping so existing manual entries remain
-	 * compatible until schema ownership is consolidated.
+	 * The field supports either a full JSON-LD script tag or raw JSON. Raw JSON
+	 * is wrapped here so it never appears as visible body text after browser
+	 * parsing.
+	 *
+	 * Legacy/manual raw schema path: keep for backwards compatibility, but plan
+	 * to deprecate it once FAQ schema ownership is fully centralised.
 	 */
 	function pera_output_manual_faq_schema_field(): void {
 		if ( is_admin() || ! is_singular() ) {
@@ -137,14 +185,115 @@ if ( ! function_exists( 'pera_output_manual_faq_schema_field' ) ) {
 			return;
 		}
 
+		$schema_output = pera_prepare_manual_faq_schema_output( $schema );
+		if ( $schema_output === '' ) {
+			return;
+		}
+
 		$did_output = true;
 		$GLOBALS['pera_schema_faq_emitted'] = true;
 
 		echo "\n<!-- Pera: Manual FAQ Schema (temporary) -->\n";
-		echo $schema . "\n";
+		echo $schema_output . "\n";
 	}
 }
 add_action( 'wp_head', 'pera_output_manual_faq_schema_field', 35 );
+
+if ( ! function_exists( 'pera_get_single_post_faq_v2_items' ) ) {
+	/**
+	 * Return parsed FAQ rows from the authoritative single-post seo_faq_v2 field.
+	 *
+	 * @return array<int,array{question:string,answer:string}>
+	 */
+	function pera_get_single_post_faq_v2_items( int $post_id ): array {
+		if ( $post_id <= 0 || ! function_exists( 'pera_parse_faq_pipe_text' ) ) {
+			return array();
+		}
+
+		$post_faq_raw = '';
+
+		if ( function_exists( 'get_field' ) ) {
+			$post_faq_value = get_field( 'seo_faq_v2', $post_id );
+
+			if ( is_scalar( $post_faq_value ) ) {
+				$post_faq_raw = trim( (string) $post_faq_value );
+			}
+		}
+
+		if ( '' === $post_faq_raw ) {
+			$post_faq_value = get_post_meta( $post_id, 'seo_faq_v2', true );
+
+			if ( is_scalar( $post_faq_value ) ) {
+				$post_faq_raw = trim( (string) $post_faq_value );
+			}
+		}
+
+		if ( '' === $post_faq_raw ) {
+			return array();
+		}
+
+		return pera_parse_faq_pipe_text( $post_faq_raw );
+	}
+}
+
+if ( ! function_exists( 'pera_output_single_post_faq_schema_field' ) ) {
+	/**
+	 * Output FAQPage JSON-LD for the editable post FAQ field from wp_head.
+	 *
+	 * Visible FAQ HTML remains owned by single-post.php. This head-only schema
+	 * output mirrors the template's existing seo_faq_v2 lookup and pipe parser
+	 * while centralising JSON-LD output with the other schema guards.
+	 */
+	function pera_output_single_post_faq_schema_field(): void {
+		if ( is_admin() || ! is_singular( 'post' ) ) {
+			return;
+		}
+
+		if ( ! empty( $GLOBALS['pera_schema_faq_emitted'] ) ) {
+			return;
+		}
+
+		$post_id = (int) get_queried_object_id();
+		if ( $post_id <= 0 ) {
+			return;
+		}
+
+		if ( function_exists( 'pera_schema_has_plugin_faq_block' ) && pera_schema_has_plugin_faq_block( $post_id ) ) {
+			return;
+		}
+
+		if (
+			function_exists( 'pera_schema_should_emit_type' )
+			&& ! pera_schema_should_emit_type(
+				'FAQPage',
+				array(
+					'context' => 'single_post',
+					'post_id' => $post_id,
+				)
+			)
+		) {
+			return;
+		}
+
+		if ( ! function_exists( 'pera_render_faq_schema' ) ) {
+			return;
+		}
+
+		$post_faq_items = pera_get_single_post_faq_v2_items( $post_id );
+		if ( empty( $post_faq_items ) ) {
+			return;
+		}
+
+		pera_render_faq_schema(
+			$post_faq_items,
+			array(
+				'context' => 'single_post',
+				'post_id' => $post_id,
+			)
+		);
+	}
+}
+add_action( 'wp_head', 'pera_output_single_post_faq_schema_field', 36 );
 
 if ( ! function_exists( 'pera_schema_is_regional_guide_post' ) ) {
 	/**
@@ -445,6 +594,7 @@ if ( ! function_exists( 'pera_schema_extract_visible_faq_items_from_post' ) ) {
 	 * Parse visible FAQ content from post HTML when possible.
 	 *
 	 * Supports:
+	 * - details/summary FAQ accordions.
 	 * - Gutenberg details blocks with "faq" in class/anchor.
 	 * - Common FAQ wrappers/classes and heading+paragraph pairs.
 	 *
@@ -458,6 +608,11 @@ if ( ! function_exists( 'pera_schema_extract_visible_faq_items_from_post' ) ) {
 
 		// If plugin-specific FAQ blocks are present, let that plugin own FAQ schema.
 		if ( pera_schema_has_plugin_faq_block( $post_id ) ) {
+			return array();
+		}
+
+		// seo_faq_v2 is the authoritative theme FAQ source when populated.
+		if ( function_exists( 'pera_get_single_post_faq_v2_items' ) && ! empty( pera_get_single_post_faq_v2_items( $post_id ) ) ) {
 			return array();
 		}
 
@@ -475,11 +630,69 @@ if ( ! function_exists( 'pera_schema_extract_visible_faq_items_from_post' ) ) {
 
 		$xpath = new DOMXPath( $dom );
 
+		$details_nodes = $xpath->query(
+			"//details[contains(concat(' ', normalize-space(translate(@class,'FAQ','faq')), ' '), ' faq-item ')]"
+			. "|//*[contains(concat(' ', normalize-space(translate(@class,'FAQ','faq')), ' '), ' faq-section ') or contains(concat(' ', normalize-space(translate(@class,'FAQ','faq')), ' '), ' faq-accordion ')]//details"
+		);
+
+		if ( $details_nodes instanceof DOMNodeList ) {
+			foreach ( $details_nodes as $details_node ) {
+				if ( ! ( $details_node instanceof DOMElement ) ) {
+					continue;
+				}
+
+				$summary_nodes = $xpath->query( './summary', $details_node );
+				if ( ! ( $summary_nodes instanceof DOMNodeList ) || $summary_nodes->length < 1 ) {
+					continue;
+				}
+
+				$summary_node = $summary_nodes->item( 0 );
+				$question     = $summary_node ? trim( preg_replace( '/\s+/', ' ', wp_strip_all_tags( (string) $summary_node->textContent ) ) ) : '';
+				if ( $question === '' ) {
+					continue;
+				}
+
+				$answer = '';
+				$answer_nodes = $xpath->query(
+					".//*[contains(concat(' ', normalize-space(translate(@class,'FAQ','faq')), ' '), ' faq-answer ')]",
+					$details_node
+				);
+
+				if ( $answer_nodes instanceof DOMNodeList && $answer_nodes->length > 0 ) {
+					$answer_node = $answer_nodes->item( 0 );
+					$answer      = $answer_node ? trim( preg_replace( '/\s+/', ' ', wp_strip_all_tags( (string) $answer_node->textContent ) ) ) : '';
+				}
+
+				if ( $answer === '' ) {
+					$answer_parts = array();
+					foreach ( $details_node->childNodes as $child_node ) {
+						if ( $child_node instanceof DOMElement && strtolower( $child_node->tagName ) === 'summary' ) {
+							continue;
+						}
+
+						$text = trim( preg_replace( '/\s+/', ' ', wp_strip_all_tags( (string) $child_node->textContent ) ) );
+						if ( $text !== '' ) {
+							$answer_parts[] = $text;
+						}
+					}
+
+					$answer = trim( implode( ' ', $answer_parts ) );
+				}
+
+				if ( $answer !== '' ) {
+					$items[] = array(
+						'question' => $question,
+						'answer'   => $answer,
+					);
+				}
+			}
+		}
+
 		$faq_containers = $xpath->query(
 			"//*[contains(translate(@class,'FAQ','faq'),'faq') or contains(translate(@id,'FAQ','faq'),'faq')]"
 		);
 
-		if ( $faq_containers instanceof DOMNodeList ) {
+		if ( empty( $items ) && $faq_containers instanceof DOMNodeList ) {
 			foreach ( $faq_containers as $container ) {
 				$question_nodes = $xpath->query( ".//h2|.//h3|.//h4|.//strong", $container );
 
@@ -490,6 +703,14 @@ if ( ! function_exists( 'pera_schema_extract_visible_faq_items_from_post' ) ) {
 				foreach ( $question_nodes as $question_node ) {
 					$question = trim( wp_strip_all_tags( (string) $question_node->textContent ) );
 					if ( $question === '' ) {
+						continue;
+					}
+
+					if (
+						$question_node instanceof DOMElement
+						&& in_array( strtolower( $question_node->tagName ), array( 'h2', 'h3', 'h4' ), true )
+						&& preg_match( '/\\b(frequently\\s+asked\\s+questions|faq)\\b/i', $question )
+					) {
 						continue;
 					}
 
@@ -526,6 +747,13 @@ if ( ! function_exists( 'pera_schema_extract_visible_faq_items_from_post' ) ) {
 		);
 
 		$items = array_slice( $items, 0, 12 );
+
+		if ( count( $items ) === 1 ) {
+			$single_question = isset( $items[0]['question'] ) ? trim( (string) $items[0]['question'] ) : '';
+			if ( preg_match( '/\\bfrequently\\s+asked\\s+questions\\b/i', $single_question ) || preg_match( '/^faq$/i', $single_question ) ) {
+				$items = array();
+			}
+		}
 
 		$items = (array) apply_filters( 'pera_schema_guide_like_faq_items', $items, $post_id );
 

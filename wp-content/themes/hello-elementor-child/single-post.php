@@ -267,18 +267,6 @@ get_header();
                           <?php pera_render_faq_html( $post_faq_items, 'Frequently Asked Questions' ); ?>
                         <?php endif; ?>
 
-                        <?php
-                          if ( ! empty( $post_faq_items ) && function_exists( 'pera_render_faq_schema' ) ) {
-                            pera_render_faq_schema(
-                              $post_faq_items,
-                              array(
-                                'context' => 'single_post',
-                                'post_id' => get_the_ID(),
-                              )
-                            );
-                          }
-                        ?>
-
                         <?php if ( ! empty( $tag_terms ) && is_array( $tag_terms ) ) : ?>
                           <section class="post-tags" aria-label="Article tags">
                             <h2 class="post-tags__title">Tags</h2>
