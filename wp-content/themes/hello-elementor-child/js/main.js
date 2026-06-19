@@ -144,6 +144,21 @@ document.addEventListener('DOMContentLoaded', function () {
 
   trackWhatsAppDispatcher();
 
+  document.addEventListener('pera:track', function (event) {
+    var detail = event && event.detail ? event.detail : {};
+    var eventName = detail.event_name || '';
+    if (!eventName || typeof window.gtag !== 'function') return;
+
+    var payload = {};
+    Object.keys(detail).forEach(function (key) {
+      if (key !== 'event_name') {
+        payload[key] = detail[key];
+      }
+    });
+
+    window.gtag('event', eventName, payload);
+  });
+
 
   function openNav() {
     body.classList.add('is-nav-open');

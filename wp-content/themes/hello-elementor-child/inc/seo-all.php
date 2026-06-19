@@ -2,7 +2,7 @@
 if ( ! defined('ABSPATH') ) exit;
 
 /**
- * Pera SEO / Social meta (OG + Twitter) – No Yoast
+ * Pera SEO / Social meta (OG + Twitter)
  * - Applies to all public pages EXCEPT single Property CPT (handled separately)
  * - Adds <meta description>, canonical, OG, Twitter
  * - Adds document title filters (so <title> is correct)
@@ -490,6 +490,21 @@ if ( ! function_exists( 'pera_seo_all_get_term_manual_social_image' ) ) {
   }
 }
 
+
+if ( ! function_exists( 'pera_seo_all_is_property_map_page' ) ) {
+  function pera_seo_all_is_property_map_page( int $post_id = 0 ): bool {
+    if ( is_page_template( 'page-property-map.php' ) ) {
+      return true;
+    }
+
+    if ( $post_id <= 0 ) {
+      $post_id = (int) get_queried_object_id();
+    }
+
+    return $post_id > 0 && 'page-property-map.php' === (string) get_page_template_slug( $post_id );
+  }
+}
+
 if ( ! function_exists( 'pera_seo_all_is_citizenship_page' ) ) {
   function pera_seo_all_is_citizenship_page(): bool {
     return is_page( 'citizenship-by-investment' ) || is_page_template( 'page-citizenship.php' );
@@ -682,6 +697,10 @@ add_filter( 'pre_get_document_title', function ( $title ) {
   if ( in_array( $context, array( 'homepage', 'static_page' ), true ) ) {
     $post_id = (int) get_queried_object_id();
     if ( $post_id > 0 ) {
+      if ( pera_seo_all_is_property_map_page( $post_id ) ) {
+        return 'Istanbul Property Map | Apartments & Property for Sale';
+      }
+
       if ( pera_seo_all_is_rent_with_pera_page( $post_id ) ) {
         if ( current_user_can( 'manage_options' ) ) {
           return 'Property Management Istanbul | Rent Out Your Istanbul Property';
@@ -974,6 +993,11 @@ add_action( 'wp_head', function () {
           } else {
             $desc = 'Full-service property management in Istanbul for local and overseas owners. Pera Property handles tenant sourcing, contracts, rent collection, maintenance and renewals.';
           }
+          break;
+        }
+
+        if ( pera_seo_all_is_property_map_page( $post_id ) ) {
+          $desc = 'Explore apartments, villas and investment property for sale across Istanbul using our interactive map. Compare locations and contact our local property team.';
           break;
         }
 
