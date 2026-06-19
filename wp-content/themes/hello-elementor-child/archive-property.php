@@ -1079,6 +1079,45 @@ $pagination_html = function_exists( 'pera_render_property_pagination' )
   </section>
 <?php endif; ?>
 
+<?php if ( function_exists( 'pera_should_render_property_taxonomy_archive_cta' ) && pera_should_render_property_taxonomy_archive_cta( $qo ) ) : ?>
+  <?php
+    $taxonomy_archive_cta_heading          = function_exists( 'pera_get_property_taxonomy_archive_cta_heading' ) ? pera_get_property_taxonomy_archive_cta_heading( $qo ) : '';
+    $taxonomy_archive_cta_text             = function_exists( 'pera_get_property_taxonomy_archive_cta_text' ) ? pera_get_property_taxonomy_archive_cta_text( $qo ) : '';
+    $taxonomy_archive_cta_contact_url      = home_url( '/contact-us/' );
+    $taxonomy_archive_cta_all_property_url = get_post_type_archive_link( 'property' );
+
+    if ( ! $taxonomy_archive_cta_all_property_url ) {
+      $taxonomy_archive_cta_all_property_url = home_url( '/property/' );
+    }
+  ?>
+  <?php if ( $taxonomy_archive_cta_heading !== '' || $taxonomy_archive_cta_text !== '' ) : ?>
+    <section class="archive-cta section section-soft">
+      <div class="container">
+        <?php if ( $taxonomy_archive_cta_heading !== '' ) : ?>
+          <div class="section-header">
+            <h2><?php echo esc_html( $taxonomy_archive_cta_heading ); ?></h2>
+          </div>
+        <?php endif; ?>
+
+        <?php if ( $taxonomy_archive_cta_text !== '' ) : ?>
+          <div class="entry-content">
+            <p><?php echo esc_html( $taxonomy_archive_cta_text ); ?></p>
+          </div>
+        <?php endif; ?>
+
+        <div class="article-cta-actions">
+          <a class="btn btn--solid btn--green" href="<?php echo esc_url( $taxonomy_archive_cta_contact_url ); ?>">
+            <?php echo esc_html__( 'Speak to Pera Property', 'hello-elementor-child' ); ?>
+          </a>
+          <a class="btn btn--ghost btn--green" href="<?php echo esc_url( $taxonomy_archive_cta_all_property_url ); ?>">
+            <?php echo esc_html__( 'View all Istanbul property', 'hello-elementor-child' ); ?>
+          </a>
+        </div>
+      </div>
+    </section>
+  <?php endif; ?>
+<?php endif; ?>
+
 <?php
 $property_archive_faq_items = ( function_exists( 'pera_property_archive_is_indexable_faq_context' ) && pera_property_archive_is_indexable_faq_context() && function_exists( 'pera_get_property_archive_faq_items' ) )
   ? pera_get_property_archive_faq_items()
