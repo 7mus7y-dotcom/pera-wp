@@ -397,24 +397,11 @@ get_header();
             <?php endif; ?>
 
             <?php if ( have_posts() ) : ?>
-                <?php
-                $skip_featured_post_ids = array();
-                $is_archive_search      = '' !== trim( get_search_query() );
-
-                if ( ( is_category() || ( is_home() && ! is_front_page() ) ) && ! $is_archive_search && ! empty( $archive_featured_post_ids ) ) {
-                    $skip_featured_post_ids = $archive_featured_post_ids;
-                }
-                ?>
-
                 <div id="blog-post-list-anchor" class="blog-post-list-anchor" aria-hidden="true"></div>
                 <div id="blog-post-list" class="cards-masonry">
                       <?php
                       while ( have_posts() ) :
                         the_post();
-
-                        if ( ! empty( $skip_featured_post_ids ) && in_array( (int) get_the_ID(), $skip_featured_post_ids, true ) ) {
-                            continue;
-                        }
 
                         set_query_var( 'pera_post_card_args', array(
                           'variant'      => 'grid',
@@ -445,6 +432,9 @@ get_header();
                             'end_size'     => 1,
                             'prev_text'    => __( 'Previous', 'peraproperty' ),
                             'next_text'    => __( 'Next', 'peraproperty' ),
+                            'add_args'     => function_exists( 'pera_get_blog_archive_sort_key' ) && 'published' !== pera_get_blog_archive_sort_key()
+                                ? array( 'sort' => pera_get_blog_archive_sort_key() )
+                                : array(),
                         )
                     );
 

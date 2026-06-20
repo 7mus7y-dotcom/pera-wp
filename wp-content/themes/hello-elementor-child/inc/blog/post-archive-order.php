@@ -62,15 +62,88 @@ function pera_get_blog_archive_secondary_orderby_sql( $sort ) {
 
 	switch ( $sort ) {
 		case 'updated':
-			return "{$wpdb->posts}.post_modified DESC";
+			return "{$wpdb->posts}.post_modified DESC, {$wpdb->posts}.ID DESC";
 
 		case 'oldest':
-			return "{$wpdb->posts}.post_date ASC";
+			return "{$wpdb->posts}.post_date ASC, {$wpdb->posts}.ID ASC";
 
 		case 'published':
 		default:
-			return "{$wpdb->posts}.post_date DESC";
+			return "{$wpdb->posts}.post_date DESC, {$wpdb->posts}.ID DESC";
 	}
+}
+
+/**
+ * Get deterministic WP_Query orderby arguments for a blog archive sort key.
+ *
+ * @param string $sort Selected sort key.
+ * @return array<string,string>
+ */
+function pera_get_blog_archive_orderby_args( $sort ) {
+	switch ( $sort ) {
+		case 'updated':
+			return array(
+				'modified' => 'DESC',
+				'ID'       => 'DESC',
+			);
+
+		case 'oldest':
+			return array(
+				'date' => 'ASC',
+				'ID'   => 'ASC',
+			);
+
+		case 'published':
+		default:
+			return array(
+				'date' => 'DESC',
+				'ID'   => 'DESC',
+			);
+	}
+}
+
+/**
+ * Get normalized featured guide post IDs for the posts page.
+ *
+ * @return int[]
+ */
+function pera_get_posts_page_featured_guide_post_ids() {
+	$posts_page_id = (int) get_option( 'page_for_posts' );
+
+	if ( $posts_page_id <= 0 || ! function_exists( 'get_field' ) ) {
+		return array();
+	}
+
+	$raw_featured_links = get_field( 'featured_guide_links', $posts_page_id );
+	if ( ! is_array( $raw_featured_links ) || empty( $raw_featured_links ) ) {
+		return array();
+	}
+
+	$featured_post_ids = array();
+
+	foreach ( $raw_featured_links as $featured_item ) {
+		$candidate_post_id = 0;
+
+		if ( $featured_item instanceof WP_Post ) {
+			$candidate_post_id = (int) $featured_item->ID;
+		} elseif ( is_numeric( $featured_item ) ) {
+			$candidate_post_id = (int) $featured_item;
+		} elseif ( is_array( $featured_item ) ) {
+			if ( isset( $featured_item['ID'] ) && is_numeric( $featured_item['ID'] ) ) {
+				$candidate_post_id = (int) $featured_item['ID'];
+			} elseif ( isset( $featured_item['id'] ) && is_numeric( $featured_item['id'] ) ) {
+				$candidate_post_id = (int) $featured_item['id'];
+			}
+		}
+
+		if ( $candidate_post_id <= 0 || 'publish' !== get_post_status( $candidate_post_id ) ) {
+			continue;
+		}
+
+		$featured_post_ids[] = $candidate_post_id;
+	}
+
+	return array_values( array_unique( $featured_post_ids ) );
 }
 
 /**
@@ -168,8 +241,28 @@ function pera_order_blog_archives_by_selected_date( $query ) {
 		$query->set( 'post_type', 'post' );
 	}
 
-	$query->set( 'orderby', $choice['orderby'] );
+	$query->set( 'orderby', pera_get_blog_archive_orderby_args( $sort ) );
 	$query->set( 'order', $choice['order'] );
+
+	if ( '' !== trim( (string) $query->get( 's' ) ) ) {
+		return;
+	}
+
+	$featured_post_ids = array();
+
+	if ( $query->is_home() ) {
+		$featured_post_ids = pera_get_posts_page_featured_guide_post_ids();
+	} elseif ( $query->is_category() && function_exists( 'pera_get_category_featured_guide_post_ids' ) ) {
+		$term = get_queried_object();
+		if ( $term instanceof WP_Term ) {
+			$featured_post_ids = pera_get_category_featured_guide_post_ids( $term );
+		}
+	}
+
+	if ( ! empty( $featured_post_ids ) ) {
+		$existing_exclusions = array_filter( array_map( 'absint', (array) $query->get( 'post__not_in' ) ) );
+		$query->set( 'post__not_in', array_values( array_unique( array_merge( $existing_exclusions, $featured_post_ids ) ) ) );
+	}
 }
 
 /**
