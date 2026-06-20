@@ -32,10 +32,9 @@ function pera_blog_search_request_value( $key ) {
  * Render post cards for a blog search query.
  *
  * @param WP_Query $query Search query.
- * @param int[]    $skip_post_ids Post IDs to skip while rendering.
  * @return string
  */
-function pera_blog_search_render_grid( WP_Query $query, array $skip_post_ids = array() ) {
+function pera_blog_search_render_grid( WP_Query $query ) {
 	ob_start();
 	?>
 	<div id="blog-post-list-anchor" class="blog-post-list-anchor" aria-hidden="true"></div>
@@ -43,10 +42,6 @@ function pera_blog_search_render_grid( WP_Query $query, array $skip_post_ids = a
 		<?php
 		while ( $query->have_posts() ) :
 			$query->the_post();
-
-			if ( ! empty( $skip_post_ids ) && in_array( (int) get_the_ID(), $skip_post_ids, true ) ) {
-				continue;
-			}
 
 			set_query_var(
 				'pera_post_card_args',
@@ -154,7 +149,7 @@ function pera_ajax_blog_search() {
 		's'                   => $search,
 		'paged'               => $paged,
 		'ignore_sticky_posts' => true,
-		'orderby'             => $options[ $sort ]['orderby'],
+		'orderby'             => pera_get_blog_archive_orderby_args( $sort ),
 		'order'                 => $options[ $sort ]['order'],
 		'pera_blog_ajax_search' => true,
 	);
@@ -189,6 +184,23 @@ function pera_ajax_blog_search() {
 				$query_args['day'] = $day;
 			}
 			break;
+	}
+
+	if ( '' === trim( $search ) ) {
+		$featured_post_ids = array();
+
+		if ( 'home' === $archive_type ) {
+			$featured_post_ids = pera_get_posts_page_featured_guide_post_ids();
+		} elseif ( 'category' === $archive_type && $archive_id > 0 && function_exists( 'pera_get_category_featured_guide_post_ids' ) ) {
+			$category_term = get_term( $archive_id, 'category' );
+			if ( $category_term instanceof WP_Term ) {
+				$featured_post_ids = pera_get_category_featured_guide_post_ids( $category_term );
+			}
+		}
+
+		if ( ! empty( $featured_post_ids ) ) {
+			$query_args['post__not_in'] = array_values( array_unique( array_map( 'absint', $featured_post_ids ) ) );
+		}
 	}
 
 	$title_first_clauses_filter = null;
@@ -237,17 +249,8 @@ ELSE 3
 		remove_filter( 'posts_clauses', $title_first_clauses_filter, 10 );
 	}
 
-	$skip_featured_post_ids = array();
-
-	if ( 'category' === $archive_type && $archive_id > 0 && '' === trim( $search ) && function_exists( 'pera_get_category_featured_guide_post_ids' ) ) {
-		$category_term = get_term( $archive_id, 'category' );
-		if ( $category_term instanceof WP_Term ) {
-			$skip_featured_post_ids = pera_get_category_featured_guide_post_ids( $category_term );
-		}
-	}
-
 	if ( $blog_query->have_posts() ) {
-		$grid_html = pera_blog_search_render_grid( $blog_query, $skip_featured_post_ids );
+		$grid_html = pera_blog_search_render_grid( $blog_query );
 	} else {
 		$grid_html = '<div class="no-posts"><p>' . esc_html__( 'No articles found matching your search.', 'peraproperty' ) . '</p></div>';
 	}
