@@ -7,7 +7,7 @@ if ( ! defined( 'ABSPATH' ) ) exit;
 
 add_filter( 'template_include', 'pera_force_property_archive_template', 20 );
 
-add_filter( 'template_include', 'pera_force_property_map_template', 20 );
+add_filter( 'template_include', 'pera_force_property_map_template', 30 );
 
 /**
  * Force the public Property Map landing page to use its theme template.
