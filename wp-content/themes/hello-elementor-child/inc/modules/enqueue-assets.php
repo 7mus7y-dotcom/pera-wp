@@ -83,11 +83,13 @@ add_action( 'wp_enqueue_scripts', function () {
   $is_blog_archive = function_exists( 'pera_is_blog_archive' ) ? pera_is_blog_archive() : false;
 
   // Specific templates
+  $property_map_page_slug = 'view-all-our-property-for-sale-in-istanbul-on-this-map';
+  $is_property_map = is_page_template( 'page-property-map.php' ) || is_page( $property_map_page_slug );
+
   $is_contact_page = is_page_template( 'page-contact.php' );
   $is_vop_besiktas_page = is_page_template( 'page-vop-besiktas.php' );
   $is_about_new    = is_page_template( 'page-about-new.php' );
   $is_favourites_page = is_page_template( 'page-favourites.php' );
-  $is_property_map = is_page_template( 'page-property-map.php' );
   $is_luxury_property_page = is_page_template( 'page-luxury-property.php' );
   $is_citizenship_page = is_page_template( 'page-citizenship.php' ) || is_page_template( 'page-zh-citizenship.php' );
   $is_citizenship_properties_page = is_page_template( 'page-citizenship-properties.php' );
