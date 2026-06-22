@@ -274,7 +274,6 @@ META DATA
 @media (min-width: 1280px) {
   .home-districts-slider {
     overflow-x: visible;
-    justify-content: center;
     scroll-snap-type: none;
   }
 
