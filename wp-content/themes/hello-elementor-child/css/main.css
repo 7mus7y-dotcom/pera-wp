@@ -4343,7 +4343,7 @@ ol.pretty-list li::before {
 .checklist--columns {
   column-count: 2;
   column-gap: var(--space-md, 16px);
-
+}
 
 .checklist--columns > li {
   break-inside: avoid;
