@@ -284,12 +284,11 @@ if ( $citizenship_page instanceof WP_Post && 'publish' === $citizenship_page->po
         </div>
 
         <div class="hero-content">
-            <p class="eyebrow">Pera Property Istanbul</p>
             <h1>Istanbul Property Map</h1>
             <p class="lead">Explore apartments, villas and investment properties for sale across Istanbul. Use the interactive map to compare locations, neighbourhoods and available listings.</p>
             <div class="hero-actions">
                 <a class="btn btn--solid btn--green" href="#property-map-explorer" data-map-track="hero_explore_map">Explore the map</a>
-                <a class="btn btn--ghost" href="#property-map-assistance" data-map-track="hero_ask_where_to_buy">Ask us where to buy</a>
+                <a class="btn btn--solid btn--blue" href="#property-map-assistance" data-map-track="hero_ask_where_to_buy">Ask us where to buy</a>
             </div>
         </div>
     </section>
@@ -308,7 +307,7 @@ if ( $citizenship_page instanceof WP_Post && 'publish' === $citizenship_page->po
                     <div class="field"><label for="map-filter-max-price">Maximum price</label><input id="map-filter-max-price" name="max_price" type="number" inputmode="numeric" min="0" step="50000" placeholder="No max"></div>
                     <div class="field"><label for="map-filter-bedrooms">Bedrooms</label><select id="map-filter-bedrooms" name="bedrooms"><option value="">Any beds</option><?php foreach ( $bed_options as $beds ) : ?><option value="<?php echo esc_attr( (string) $beds ); ?>"><?php echo esc_html( (string) $beds ); ?>+</option><?php endforeach; ?></select></div>
                     <div class="field"><label for="map-filter-type">Property type</label><select id="map-filter-type" name="type"><option value="">All types</option><?php foreach ( $type_options as $slug => $name ) : ?><option value="<?php echo esc_attr( $slug ); ?>"><?php echo esc_html( $name ); ?></option><?php endforeach; ?></select></div>
-                    <button type="reset" class="btn btn--ghost property-map-filters__reset">Reset filters</button>
+                    <button type="reset" class="btn btn--solid btn--red property-map-filters__reset">Reset filters</button>
                 </form>
                 <p class="no-results property-map-empty" id="property-map-empty" hidden>No properties match these filters. Reset the filters or ask us to help shortlist options.</p>
 
@@ -334,7 +333,6 @@ if ( $citizenship_page instanceof WP_Post && 'publish' === $citizenship_page->po
 
     <?php if ( ! empty( $area_cards ) ) : ?><section class="section property-map-areas"><div class="container"><h2>Browse property by area</h2><div class="property-map-card-grid"><?php foreach ( $area_cards as $card ) : ?><article class="content-panel-box"><h3><?php echo esc_html( $card['name'] ); ?></h3><p class="text-soft"><?php echo esc_html( $card['copy'] ); ?></p><a href="<?php echo esc_url( $card['url'] ); ?>">View properties in <?php echo esc_html( $card['name'] ); ?></a></article><?php endforeach; ?></div></div></section><?php endif; ?>
 
-    <?php if ( ! empty( $intent_cards ) ) : ?><section class="section section-soft"><div class="container property-map-editorial"><h2>Where should you buy in Istanbul?</h2><div class="property-map-card-grid"><?php foreach ( $intent_cards as $intent_card ) : ?><a class="content-panel-box" href="<?php echo esc_url( $intent_card['url'] ); ?>"><?php echo esc_html( $intent_card['label'] ); ?></a><?php endforeach; ?></div></div></section><?php endif; ?>
 
     <section class="section"><div class="container property-map-two-col"><div><h2>Buying property in Istanbul</h2><p class="text-soft">Location, transport access and resale demand matter as much as the development itself. Before buying, checks should cover title deed status, planning, debts, valuation and any location-specific restrictions for foreign ownership.</p><p class="text-soft">Foreign buyers can generally purchase property in Turkey, subject to legal and location restrictions. Citizenship eligibility requires separate legal and valuation checks. Pera Property can help shortlist, inspect and compare suitable options before you travel.</p></div><div><h2>Why buy with Pera Property?</h2><ul class="property-map-checks"><li>Istanbul-based team</li><li>Operating since 2016</li><li>Access to properties from multiple developers and owners</li><li>Legal and due-diligence coordination</li><li>After-sales and rental-management support</li><li>Experience assisting international buyers</li></ul></div></div></section>
 
