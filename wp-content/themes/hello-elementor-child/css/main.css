@@ -671,10 +671,12 @@ section,
 ------------------------ */
 .btn--solid,
 .btn--ghost {
-  border: 1px solid var(--btn-color);
+  border: 1px solid var(--btn-color, var(--brand));
   transition: background-color 160ms ease,
               color 160ms ease,
-              border-color 160ms ease;
+              border-color 160ms ease,
+              box-shadow 160ms ease,
+              transform 160ms ease;
 }
 
 /* Solid */
@@ -689,16 +691,19 @@ section,
   border-color: var(--btn-color);
 }
 
-/* Ghost / Transparent */
+/* Ghost / Soft outline */
 .btn--ghost {
-  background-color: transparent;
-  color: var(--btn-color);
+  background-color: color-mix(in srgb, var(--btn-color, var(--brand)) 8%, transparent);
+  color: var(--btn-color, var(--brand));
+  border-color: color-mix(in srgb, var(--btn-color, var(--brand)) 35%, transparent);
 }
 
 .btn--ghost:hover {
-  background-color: var(--btn-color);
+  background-color: var(--btn-color, var(--brand));
   color: var(--inverse);
-  border-color: var(--btn-color);
+  border-color: var(--btn-color, var(--brand));
+  box-shadow: 0 8px 20px rgba(0, 45, 114, 0.16);
+  transform: translateY(-1px);
 }
 
 
