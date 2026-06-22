@@ -3175,7 +3175,7 @@ text-decoration:underline;
 }
 @media (max-width: 900px) {
   .content-panel--overlap-hero {
-    margin-top: -40px;
+    margin-top: -60px;
   }
 }
 
