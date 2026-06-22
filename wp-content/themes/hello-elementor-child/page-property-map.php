@@ -202,9 +202,6 @@ foreach ( $area_copy as $slug => $copy ) {
 ?>
 
 <main id="primary" class="site-main property-map-page">
-    <div class="container property-map-breadcrumbs" aria-label="Breadcrumb">
-        <a href="<?php echo esc_url( home_url( '/' ) ); ?>">Home</a><span>/</span><a href="<?php echo esc_url( $property_archive ); ?>">Property for Sale</a><span>/</span><span>Istanbul Property Map</span>
-    </div>
 
     <!-- =====================================================
      HERO – PROPERTY MAP PAGE
