@@ -240,6 +240,10 @@ if ( $citizenship_page instanceof WP_Post && 'publish' === $citizenship_page->po
 ?>
 
 <main id="primary" class="site-main property-map-page">
+    <div class="container property-map-breadcrumbs" aria-label="Breadcrumb">
+        <a href="<?php echo esc_url( home_url( '/' ) ); ?>">Home</a><span>/</span><a href="<?php echo esc_url( $property_archive ); ?>">Property for Sale</a><span>/</span><span>Istanbul Property Map</span>
+    </div>
+
     <!-- =====================================================
      HERO – PROPERTY MAP PAGE
      Canonical structure + WP image ID 55756 fallback
@@ -247,7 +251,8 @@ if ( $citizenship_page instanceof WP_Post && 'publish' === $citizenship_page->po
     <section class="hero hero--left hero--property-map" id="property-map-hero">
         <div class="hero__media" aria-hidden="true">
             <?php
-            // Prefer the page featured image; otherwise fallback to vopbesiktas.svg (ID 55756), matching the About page pattern.
+            // Prefer the page featured image; otherwise fallback to vopbesiktas.svg (ID 55756).
+            // TODO: Replace this fallback with a Property Map-specific Istanbul search hero image when one is available.
             $hero_img_id = get_post_thumbnail_id( $page_id );
 
             if ( $hero_img_id ) {
@@ -279,6 +284,7 @@ if ( $citizenship_page instanceof WP_Post && 'publish' === $citizenship_page->po
         </div>
 
         <div class="hero-content">
+            <p class="eyebrow">Pera Property Istanbul</p>
             <h1>Istanbul Property Map</h1>
             <p class="lead">Explore apartments, villas and investment properties for sale across Istanbul. Use the interactive map to compare locations, neighbourhoods and available listings.</p>
             <div class="hero-actions">
@@ -287,10 +293,6 @@ if ( $citizenship_page instanceof WP_Post && 'publish' === $citizenship_page->po
             </div>
         </div>
     </section>
-
-    <div class="container property-map-breadcrumbs" aria-label="Breadcrumb">
-        <a href="<?php echo esc_url( home_url( '/' ) ); ?>">Home</a><span>/</span><a href="<?php echo esc_url( $property_archive ); ?>">Property for Sale</a><span>/</span><span>Istanbul Property Map</span>
-    </div>
 
     <section class="section" id="property-map-explorer">
         <div class="container">
@@ -338,7 +340,7 @@ if ( $citizenship_page instanceof WP_Post && 'publish' === $citizenship_page->po
 
     <section class="section property-map-faq"><div class="container"><h2>Frequently asked questions</h2><?php foreach ( pera_property_map_faq_items() as $item ) : ?><details class="content-panel-box"><summary><?php echo esc_html( $item['q'] ); ?></summary><p class="text-soft"><?php echo esc_html( $item['a'] ); ?></p></details><?php endforeach; ?></div></section>
 
-    <section class="section property-map-final"><div class="container content-panel-box"><h2>Let us help you shortlist the right properties</h2><p class="text-soft">Share your budget and requirements, and we will prepare a focused selection before your viewing trip to Istanbul.</p><div class="property-map-hero__actions"><a class="btn btn--solid btn--green" href="<?php echo esc_url( $whatsapp_url ); ?>" target="_blank" rel="noopener" data-whatsapp="1" data-whatsapp-type="property_map_final" data-track-channel="whatsapp" data-track-intent="high" data-track-source="page" data-track-context="property_map_final" data-track-ga4-event="whatsapp_click" data-track-crm-event="whatsapp_click" data-map-track="final_whatsapp">Message us on WhatsApp</a><a class="btn btn--ghost" href="#property-map-assistance" data-map-track="final_shortlist">Request a property shortlist</a></div></div></section>
+    <section class="section property-map-final"><div class="container content-panel-box"><h2>Let us help you shortlist the right properties</h2><p class="text-soft">Share your budget and requirements, and we will prepare a focused selection before your viewing trip to Istanbul.</p><div class="hero-actions property-map-final__actions"><a class="btn btn--solid btn--green" href="<?php echo esc_url( $whatsapp_url ); ?>" target="_blank" rel="noopener" data-whatsapp="1" data-whatsapp-type="property_map_final" data-track-channel="whatsapp" data-track-intent="high" data-track-source="page" data-track-context="property_map_final" data-track-ga4-event="whatsapp_click" data-track-crm-event="whatsapp_click" data-map-track="final_whatsapp">Message us on WhatsApp</a><a class="btn btn--ghost" href="#property-map-assistance" data-map-track="final_shortlist">Request a property shortlist</a></div></div></section>
 </main>
 
 <?php get_footer(); ?>
