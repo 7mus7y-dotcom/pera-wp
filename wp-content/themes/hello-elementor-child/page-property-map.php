@@ -188,7 +188,6 @@ $area_copy = array(
     'atasehir'     => 'A modern Asian-side business and residential centre popular with professionals and families.',
     'umraniye'     => 'A practical Asian-side area with metro links, family housing and developing business demand.',
     'kucukcekmece' => 'A value-focused European-side district with larger projects and improving transport corridors.',
-    'basaksehir'   => 'A planned family district with hospitals, schools, green space and modern residential compounds.',
     'bahcesehir'   => 'Popular with families seeking newer developments, green surroundings and more internal space.',
     'beylikduzu'   => 'A spacious value area with coastal access, family compounds and lower entry prices than central Istanbul.',
 );
@@ -202,41 +201,6 @@ foreach ( $area_copy as $slug => $copy ) {
         }
     }
 }
-
-$intent_cards = array();
-$add_intent_term = static function ( string $label, string $slug ) use ( &$intent_cards ) {
-    $term = get_term_by( 'slug', $slug, 'district' );
-    if ( $term instanceof WP_Term ) {
-        $link = get_term_link( $term );
-        if ( ! is_wp_error( $link ) ) {
-            $intent_cards[] = array( 'label' => $label, 'url' => $link );
-        }
-    }
-};
-$add_intent_term( 'Central Istanbul living', 'besiktas' );
-$add_intent_term( 'Family-friendly areas', 'basaksehir' );
-$investment_term = get_term_by( 'slug', 'investment', 'property_tags' );
-if ( $investment_term instanceof WP_Term ) {
-    $link = get_term_link( $investment_term );
-    if ( ! is_wp_error( $link ) ) {
-        $intent_cards[] = array( 'label' => 'Rental investment', 'url' => $link );
-    }
-}
-$sea_view_term = get_term_by( 'slug', 'sea-view', 'property_tags' );
-if ( $sea_view_term instanceof WP_Term ) {
-    $link = get_term_link( $sea_view_term );
-    if ( ! is_wp_error( $link ) ) {
-        $intent_cards[] = array( 'label' => 'Bosphorus views', 'url' => $link );
-    }
-}
-if ( $property_archive ) {
-    $intent_cards[] = array( 'label' => 'Lower entry prices', 'url' => add_query_arg( 'sort', 'price_asc', $property_archive ) );
-}
-$citizenship_page = get_page_by_path( 'turkish-citizenship-by-investment' );
-if ( $citizenship_page instanceof WP_Post && 'publish' === $citizenship_page->post_status ) {
-    $intent_cards[] = array( 'label' => 'Turkish citizenship property', 'url' => get_permalink( $citizenship_page ) );
-}
-
 ?>
 
 <main id="primary" class="site-main property-map-page">
