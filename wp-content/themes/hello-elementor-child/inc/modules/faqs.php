@@ -152,7 +152,7 @@ if ( ! function_exists( 'pera_render_faq_html' ) ) {
 			return;
 		}
 		?>
-		<div class="faq-section article-body">
+		<section class="faq-section article-body">
 			<h2><?php echo esc_html( $heading ); ?></h2>
 			<div class="faq-accordion">
 				<?php
@@ -171,7 +171,7 @@ if ( ! function_exists( 'pera_render_faq_html' ) ) {
 					<?php $faq_index++; ?>
 				<?php endforeach; ?>
 			</div>
-		</div>
+		</section>
 		<?php
 	}
 }
