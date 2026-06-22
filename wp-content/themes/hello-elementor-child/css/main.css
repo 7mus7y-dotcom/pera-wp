@@ -184,7 +184,7 @@
   flex-wrap: wrap;
   justify-content: center;
   gap: var(--space-sm, 12px);
-  margin-top: var(--space-lg, 24px);
+  margin-top: var(--space-sm, 12px);
 }
 
 /* =======================================================
@@ -1279,7 +1279,7 @@ button.pill:focus-visible {
 }
 
 .hero.hero--fit .hero-content {
-  padding-bottom: var(--space-lg);
+  padding-bottom: var(--space-md);
 }
 
 /* Mobile tweaks */
@@ -3205,7 +3205,7 @@ text-decoration:underline;
 .content-panel-grid {
   display: grid;
   grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr);
-  gap: var(--space-lg);
+  gap: var(--space-md);
   align-items: flex-start;
   padding:var(--space-sm);
 }
@@ -4342,8 +4342,8 @@ ol.pretty-list li::before {
 
 .checklist--columns {
   column-count: 2;
-  column-gap: var(--space-lg, 32px);
-}
+  column-gap: var(--space-md, 16px);
+
 
 .checklist--columns > li {
   break-inside: avoid;
@@ -4391,7 +4391,7 @@ ol.pretty-list li::before {
    ======================================================= */
 
 .faq-section {
-  margin-block: var(--space-lg);
+  margin-block: var(--space-md);
 }
 
 .faq-accordion {
