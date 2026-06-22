@@ -240,24 +240,57 @@ if ( $citizenship_page instanceof WP_Post && 'publish' === $citizenship_page->po
 ?>
 
 <main id="primary" class="site-main property-map-page">
-    <div class="container property-map-breadcrumbs" aria-label="Breadcrumb">
-        <a href="<?php echo esc_url( home_url( '/' ) ); ?>">Home</a><span>/</span><a href="<?php echo esc_url( $property_archive ); ?>">Property for Sale</a><span>/</span><span>Istanbul Property Map</span>
-    </div>
+    <!-- =====================================================
+     HERO – PROPERTY MAP PAGE
+     Canonical structure + WP image ID 55756 fallback
+     ===================================================== -->
+    <section class="hero hero--left hero--property-map" id="property-map-hero">
+        <div class="hero__media" aria-hidden="true">
+            <?php
+            // Prefer the page featured image; otherwise fallback to vopbesiktas.svg (ID 55756), matching the About page pattern.
+            $hero_img_id = get_post_thumbnail_id( $page_id );
 
-    <section class="property-map-hero section section-soft" id="property-map-hero">
-        <div class="container property-map-hero__inner">
-            <p class="eyebrow">Pera Property Istanbul</p>
+            if ( $hero_img_id ) {
+                echo wp_get_attachment_image(
+                    $hero_img_id,
+                    'full',
+                    false,
+                    array(
+                        'class'    => 'hero-media',
+                        'loading'  => 'eager',
+                        'decoding' => 'async',
+                    )
+                );
+            } else {
+                echo wp_get_attachment_image(
+                    55756,
+                    'full',
+                    false,
+                    array(
+                        'class'         => 'hero-media',
+                        'fetchpriority' => 'high',
+                        'loading'       => 'eager',
+                        'decoding'      => 'async',
+                    )
+                );
+            }
+            ?>
+            <div class="hero-overlay" aria-hidden="true"></div>
+        </div>
+
+        <div class="hero-content">
             <h1>Istanbul Property Map</h1>
             <p class="lead">Explore apartments, villas and investment properties for sale across Istanbul. Use the interactive map to compare locations, neighbourhoods and available listings.</p>
-            <div class="property-map-hero__actions">
+            <div class="hero-actions">
                 <a class="btn btn--solid btn--green" href="#property-map-explorer" data-map-track="hero_explore_map">Explore the map</a>
                 <a class="btn btn--ghost" href="#property-map-assistance" data-map-track="hero_ask_where_to_buy">Ask us where to buy</a>
             </div>
-            <ul class="property-map-trust" aria-label="Trust points">
-                <li>Properties across Istanbul</li><li>Local English-speaking agents</li><li>Established in Istanbul since 2016</li>
-            </ul>
         </div>
     </section>
+
+    <div class="container property-map-breadcrumbs" aria-label="Breadcrumb">
+        <a href="<?php echo esc_url( home_url( '/' ) ); ?>">Home</a><span>/</span><a href="<?php echo esc_url( $property_archive ); ?>">Property for Sale</a><span>/</span><span>Istanbul Property Map</span>
+    </div>
 
     <section class="section" id="property-map-explorer">
         <div class="container">
