@@ -299,8 +299,25 @@ foreach ( $area_copy as $slug => $copy ) {
 
 
     <section class="section"><div class="container property-map-two-col"><div><h2>Buying property in Istanbul</h2><p class="text-soft">Location, transport access and resale demand matter as much as the development itself. Before buying, checks should cover title deed status, planning, debts, valuation and any location-specific restrictions for foreign ownership.</p><p class="text-soft">Foreign buyers can generally purchase property in Turkey, subject to legal and location restrictions. Citizenship eligibility requires separate legal and valuation checks. Pera Property can help shortlist, inspect and compare suitable options before you travel.</p></div><div><h2>Why buy with Pera Property?</h2><ul class="property-map-checks"><li>Istanbul-based team</li><li>Operating since 2016</li><li>Access to properties from multiple developers and owners</li><li>Legal and due-diligence coordination</li><li>After-sales and rental-management support</li><li>Experience assisting international buyers</li></ul></div></div></section>
-
-    <section class="section property-map-faq"><div class="container"><h2>Frequently asked questions</h2><?php foreach ( pera_property_map_faq_items() as $item ) : ?><details class="content-panel-box"><summary><?php echo esc_html( $item['q'] ); ?></summary><p class="text-soft"><?php echo esc_html( $item['a'] ); ?></p></details><?php endforeach; ?></div></section>
+    
+    <section class="faq-section mt-md property-map-faq">
+        <div class="container">
+            <div class="section-header mb-md">
+                <h2>Frequently Asked Questions</h2>
+            </div>
+    
+            <div class="faq-accordion">
+                <?php foreach ( pera_property_map_faq_items() as $index => $item ) : ?>
+                    <details class="faq-item" <?php echo 0 === $index ? 'open' : ''; ?>>
+                        <summary><?php echo esc_html( $item['q'] ); ?></summary>
+                        <div class="faq-answer">
+                            <p><?php echo esc_html( $item['a'] ); ?></p>
+                        </div>
+                    </details>
+                <?php endforeach; ?>
+            </div>
+        </div>
+    </section>
 
     <section class="section property-map-final"><div class="container content-panel-box"><h2>Let us help you shortlist the right properties</h2><p class="text-soft">Share your budget and requirements, and we will prepare a focused selection before your viewing trip to Istanbul.</p><div class="hero-actions property-map-final__actions"><a class="btn btn--solid btn--green" href="<?php echo esc_url( $whatsapp_url ); ?>" target="_blank" rel="noopener" data-whatsapp="1" data-whatsapp-type="property_map_final" data-track-channel="whatsapp" data-track-intent="high" data-track-source="page" data-track-context="property_map_final" data-track-ga4-event="whatsapp_click" data-track-crm-event="whatsapp_click" data-map-track="final_whatsapp">Message us on WhatsApp</a><a class="btn btn--ghost" href="#property-map-assistance" data-map-track="final_shortlist">Request a property shortlist</a></div></div></section>
 </main>
