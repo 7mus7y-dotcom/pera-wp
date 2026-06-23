@@ -83,6 +83,25 @@ if ( $region_term ) {
 /* Property type */
 $type_name = ( ! empty( $type_terms ) && ! is_wp_error( $type_terms ) ) ? (string) $type_terms[0]->name : '';
 $type_link = ( ! empty( $type_terms ) && ! is_wp_error( $type_terms ) ) ? get_term_link( $type_terms[0] ) : '';
+$is_villa_property = false;
+$villa_archive_url = home_url( '/property-type/villas/' );
+
+if ( ! empty( $type_terms ) && ! is_wp_error( $type_terms ) ) {
+  foreach ( $type_terms as $type_term ) {
+    $type_slug = sanitize_title( (string) $type_term->slug );
+
+    if ( in_array( $type_slug, array( 'villa', 'villas' ), true ) ) {
+      $is_villa_property = true;
+      $villa_term_link = get_term_link( $type_term );
+
+      if ( ! is_wp_error( $villa_term_link ) && $villa_term_link ) {
+        $villa_archive_url = $villa_term_link;
+      }
+
+      break;
+    }
+  }
+}
 
 /* Bedrooms (primary) */
 $bed_name = ( ! empty( $bed_terms ) && ! is_wp_error( $bed_terms ) ) ? (string) $bed_terms[0]->name : '';
@@ -990,6 +1009,17 @@ $custom_video_text = $custom_video_text ? wp_kses_post( wpautop( $custom_video_t
             
                   </div><!-- .property-facts -->
                 </div><!-- .card-shell -->
+
+                <?php if ( $is_villa_property ) : ?>
+                  <div class="card-shell card-shell--premium villa-explore-links">
+                    <h3>Explore More Villas</h3>
+                    <p class="text-soft">Looking for similar properties? Browse our collection of villas for sale in Istanbul or learn more about Istanbul's leading villa communities.</p>
+                    <div class="card-meta-row villa-explore-links__actions">
+                      <a class="btn btn--solid btn--blue" href="<?php echo esc_url( $villa_archive_url ); ?>">View Villas</a>
+                      <a class="btn btn--ghost btn--green" href="<?php echo esc_url( home_url( '/a-guide-to-istanbuls-villa-communities-where-to-find-luxury-and-space_52516/' ) ); ?>">Villa Area Guide</a>
+                    </div>
+                  </div><!-- .villa-explore-links -->
+                <?php endif; ?>
             
             </aside>
             <?php endif; ?>

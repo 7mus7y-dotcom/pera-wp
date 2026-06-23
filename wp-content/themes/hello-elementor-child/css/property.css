@@ -1719,3 +1719,23 @@ body.is-lightbox-open{ overflow: hidden; }
 .portfolio-theme-token-page .portfolio-theme-token-page__table-wrap {
   margin-top: 16px;
 }
+
+/* Villa-only internal links beneath single-property key figures */
+.villa-explore-links{
+  margin-top: var(--space-md, 16px);
+}
+
+.villa-explore-links > p{
+  margin: 0;
+}
+
+.villa-explore-links__actions{
+  justify-content: flex-start;
+}
+
+@media (max-width: 640px){
+  .villa-explore-links__actions .btn{
+    width: 100%;
+    justify-content: center;
+  }
+}
