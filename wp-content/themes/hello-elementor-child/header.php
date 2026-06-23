@@ -10,7 +10,11 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 ?>
 <!doctype html>
+<?php if ( function_exists( 'pera_is_chinese_content' ) && pera_is_chinese_content() ) : ?>
+<html lang="zh-CN">
+<?php else : ?>
 <html <?php language_attributes(); ?>>
+<?php endif; ?>
 <head>
   <meta charset="<?php bloginfo( 'charset' ); ?>">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">

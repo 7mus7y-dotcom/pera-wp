@@ -32,6 +32,31 @@ if ( ! function_exists( 'pera_is_standalone_auth_page' ) ) {
   }
 }
 
+if ( ! function_exists( 'pera_is_chinese_content' ) ) {
+  /**
+   * Detect singular Chinese-language content for the HTML lang attribute.
+   */
+  function pera_is_chinese_content(): bool {
+    if ( is_admin() || is_feed() || ! is_singular() ) {
+      return false;
+    }
+
+    $post_id = get_queried_object_id();
+
+    if ( ! $post_id ) {
+      return false;
+    }
+
+    if ( is_page_template( 'page-zh-citizenship.php' ) ) {
+      return true;
+    }
+
+    $slug = get_post_field( 'post_name', $post_id );
+
+    return is_string( $slug ) && 0 === strpos( $slug, 'zh-' );
+  }
+}
+
 
 if ( ! function_exists( 'pera_get_term_acf_field' ) ) {
   /**
