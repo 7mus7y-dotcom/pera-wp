@@ -4239,12 +4239,10 @@ ol.pretty-list li::before {
   color: var(--checklist-text);
 }
 .checklist li {
-  display: flex;
+  display: block;
   align-items: flex-start;
   gap: var(--checklist-gap);
   padding: var(--checklist-item-padding);
-  /*margin-bottom: 14px;
-  font-size: 16px;*/
   line-height: 1.5;
 }
 .checklist > li + li {
