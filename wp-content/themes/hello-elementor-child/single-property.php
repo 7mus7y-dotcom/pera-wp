@@ -1015,7 +1015,7 @@ $custom_video_text = $custom_video_text ? wp_kses_post( wpautop( $custom_video_t
                     <h3>Explore More Villas</h3>
                     <p class="text-soft">Looking for similar properties? Browse our collection of villas for sale in Istanbul or learn more about Istanbul's leading villa communities.</p>
                     <div class="card-meta-row villa-explore-links__actions">
-                      <a class="btn btn--solid btn--blue" href="<?php echo esc_url( $villa_archive_url ); ?>">View Villas</a>
+                      <a class="btn btn--solid btn--blue" href="<?php echo esc_url( $villa_archive_url ); ?>">Explore More Villas in Istanbul</a>
                       <a class="btn btn--ghost btn--green" href="<?php echo esc_url( home_url( '/a-guide-to-istanbuls-villa-communities-where-to-find-luxury-and-space_52516/' ) ); ?>">Villa Area Guide</a>
                     </div>
                   </div><!-- .villa-explore-links -->
