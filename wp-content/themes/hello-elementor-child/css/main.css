@@ -4303,6 +4303,34 @@ ol.pretty-list li::before {
   color: var(--checklist-icon-color);
 }
 
+.checklist.checklist--circle {
+  list-style: none;
+  padding-left: 0;
+}
+
+.checklist.checklist--circle li {
+  position: relative;
+  padding-left: 34px;
+}
+
+.checklist.checklist--circle li::before {
+  content: "✓";
+  position: absolute;
+  left: 0;
+  top: 0.05em;
+  width: 20px;
+  height: 20px;
+  border: 2px solid var(--brand-green, #008f5a);
+  border-radius: 999px;
+  color: var(--brand-green, #008f5a);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 13px;
+  font-weight: 700;
+  line-height: 1;
+}
+
 .checklist--card,
 .checklist--boxed,
 .checklist--premium {
