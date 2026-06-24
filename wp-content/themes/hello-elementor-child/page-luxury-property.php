@@ -101,73 +101,31 @@ $luxury_query = new WP_Query( $luxury_query_args );
 	
 	<section class="content-panel content-panel--overlap-hero">
 		<div class="container">
-			<div class="grid-2">
-			  <article class="card-shell">
-			    <h3>British-Turkish Consultants</h3>
-			    <p class="text-sm u-mb-0">Local market access with an international buyer perspective.</p>
-			  </article>
-			
-			  <article class="card-shell">
-			    <h3>Buyer-Side Guidance</h3>
-			    <p class="text-sm u-mb-0">Shortlists shaped around your budget, lifestyle and objectives.</p>
-			  </article>
-			
-			  <article class="card-shell">
-			    <h3>Selected Luxury Homes Only</h3>
-			    <p class="text-sm u-mb-0">No mass listings—only properties worth serious consideration.</p>
-			  </article>
-			
-			  <article class="card-shell">
-			    <h3>Property Management</h3>
-			    <p class="text-sm u-mb-0">Complete management of your home, including cleaning, bills, taxes and everyday practical matters, so you can concentrate on enjoying your property.</p>
-			  </article>
-			</div>
-		</div>
-	</section>
-
-	<section class="content-panel content-panel--overlap-hero">
-		<div class="container">
 			<div class="feature-card">
 				<p class="pill pill--green pill--sm">Luxury buyer advisory</p>
 				<h2>A Curated Route Into Istanbul&rsquo;s Prime Property Market</h2>
 				<p>Since 2016, Pera Property has helped international buyers compare Istanbul&rsquo;s strongest lifestyle and investment opportunities &mdash; from Bosphorus-view apartments and branded residences to private villas in established districts.</p>
-				<div class="feature-card-body grid-3">
-				  <article class="card-shell">
-				    <ul class="checklist checklist--circle">
-				      <li>
-				        <strong>British-Turkish consultants</strong>
-				      </li>
-				    </ul>
-				    <p class="text-sm">Local market access with international buyer perspective.</p>
-				  </article>
-				
-				  <article class="card-shell">
-				    <ul class="checklist checklist--circle">
-				      <li>
-				        <strong>Buyer-side guidance</strong>
-				      </li>
-				    </ul>
-				    <p class="text-sm">Shortlists shaped around your budget, lifestyle and objective.</p>
-				  </article>
-				
-				  <article class="card-shell">
-				    <ul class="checklist checklist--circle">
-				      <li>
-				        <strong>Selected luxury homes only</strong>
-				      </li>
-				    </ul>
-				    <p class="text-sm">No mass listings — only properties worth serious consideration.</p>
-				  </article>
-
-				 <article class="card-shell">
-				    <ul class="checklist checklist--circle">
-				      <li>
-				        <strong>Property management</strong>
-				      </li>
-				    </ul>
-				    <p class="text-sm">Full property management of your home including cleaning, dealing with bills, taxes and other small annoyances - so you can concentrate on enjoying your home.</p>
-				  </article>
-				</div>
+					<div class="grid-2">
+					  <article class="card-shell">
+					    <h3>British-Turkish Consultants</h3>
+					    <p class="text-sm u-mb-0">Local market access with an international buyer perspective.</p>
+					  </article>
+					
+					  <article class="card-shell">
+					    <h3>Buyer-Side Guidance</h3>
+					    <p class="text-sm u-mb-0">Shortlists shaped around your budget, lifestyle and objectives.</p>
+					  </article>
+					
+					  <article class="card-shell">
+					    <h3>Selected Luxury Homes Only</h3>
+					    <p class="text-sm u-mb-0">No mass listings—only properties worth serious consideration.</p>
+					  </article>
+					
+					  <article class="card-shell">
+					    <h3>Property Management</h3>
+					    <p class="text-sm u-mb-0">Complete management of your home, including cleaning, bills, taxes and everyday practical matters, so you can concentrate on enjoying your property.</p>
+					  </article>
+					</div>
 			</div>
 		</div>
 	</section>
