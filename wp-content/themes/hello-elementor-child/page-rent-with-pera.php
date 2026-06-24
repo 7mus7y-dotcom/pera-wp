@@ -643,7 +643,7 @@ get_header();
                             <h3 class="text-light">Speak with a Consultant</h3>
         
                             <div class="hero-actions flex-center">
-                                <a href="https://www.peraproperty.com/contact-us/" class="btn btn--solid btn--green">
+                                <a href="https://www.peraproperty.com/book-a-consultancy/" class="btn btn--solid btn--green">
                                     Book a consultation
                                 </a>
         
