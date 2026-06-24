@@ -1112,6 +1112,9 @@ $pagination_html = function_exists( 'pera_render_property_pagination' )
           <a class="btn btn--ghost btn--green" href="<?php echo esc_url( $taxonomy_archive_cta_all_property_url ); ?>">
             <?php echo esc_html__( 'View all Istanbul property', 'hello-elementor-child' ); ?>
           </a>
+          <a class="btn btn--solid btn--green" href="<?php echo esc_url( home_url( '/book-a-consultancy/' ) ); ?>">
+            <?php echo esc_html__( 'Book a Consultancy', 'hello-elementor-child' ); ?>
+        </a>
         </div>
       </div>
     </section>
