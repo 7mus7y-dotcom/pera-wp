@@ -1226,6 +1226,9 @@ $property_archive_faq_items = ( function_exists( 'pera_property_archive_is_index
         <a class="btn btn--solid btn--green" href="<?php echo esc_url( $archive_whatsapp_url ); ?>" target="_blank" rel="noopener">
           <?php echo esc_html__( 'Send us your requirements', 'hello-elementor-child' ); ?>
         </a>
+        <a class="btn btn--solid btn--green" href="<?php echo esc_url( home_url( '/book-a-consultancy/' ) ); ?>">
+            <?php echo esc_html__( 'Book a Consultancy', 'hello-elementor-child' ); ?>
+        </a>
       </div>
     </section>
   <?php endif; ?>
