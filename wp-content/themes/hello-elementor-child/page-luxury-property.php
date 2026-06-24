@@ -162,7 +162,7 @@ $luxury_query = new WP_Query( $luxury_query_args );
 	</section>
 	
 	<section class="section property-map-final"><div class="container content-panel-box">
-        <h2>Want a Private Shortlist Instead?<</h2>
+        <h2>Want a Private Shortlist Instead?</h2>
         <p class="text-soft">Tell us your preferred location, budget and purpose, and our Istanbul team will send you a focused shortlist instead of overwhelming you with unsuitable options.</p>
 			<div class="hero-actions">
             <a class="btn btn--solid btn--green" href="<?php echo esc_url( $whatsapp_url ); ?>" target="_blank" rel="noopener" data-whatsapp="1" data-whatsapp-type="property_map_final" data-track-channel="whatsapp" data-track-intent="high" data-track-source="page" data-track-context="property_map_final" data-track-ga4-event="whatsapp_click" data-track-crm-event="whatsapp_click" data-map-track="final_whatsapp">Message us on WhatsApp</a>
