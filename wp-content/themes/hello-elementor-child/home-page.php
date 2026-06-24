@@ -539,25 +539,10 @@ get_template_part( 'parts/home-editorial-posts' );
           </p>
         </header>
 
-        <ul class="checklist">
-          <li>
-            <svg class="icon icon-tick" aria-hidden="true">
-              <use href="<?php echo esc_url( get_stylesheet_directory_uri() . '/logos-icons/icons.svg#icon-check' ); ?>"></use>
-            </svg>
-            Realistic Istanbul property valuation and pricing strategy
-          </li>
-          <li>
-            <svg class="icon icon-tick" aria-hidden="true">
-              <use href="<?php echo esc_url( get_stylesheet_directory_uri() . '/logos-icons/icons.svg#icon-check' ); ?>"></use>
-            </svg>
-            Professional marketing and qualified buyer or tenant enquiries
-          </li>
-          <li>
-            <svg class="icon icon-tick" aria-hidden="true">
-              <use href="<?php echo esc_url( get_stylesheet_directory_uri() . '/logos-icons/icons.svg#icon-check' ); ?>"></use>
-            </svg>
-            End-to-end support through negotiation, contracts and handover
-          </li>
+        <ul class="checklist checklist--circle">
+          <li>Realistic Istanbul property valuation and pricing strategy</li>
+          <li>Professional marketing and qualified buyer or tenant enquiries</li>
+          <li>End-to-end support through negotiation, contracts and handover</li>
         </ul>
 
         <p style="margin-top: 12px; margin-bottom: 0;">
