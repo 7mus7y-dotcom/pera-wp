@@ -196,8 +196,8 @@ $luxury_query = new WP_Query( $luxury_query_args );
 
 			<div class="grid-2">
 				<article class="card-shell guide-grid-card">
-					<p class="pill pill--green pill--sm">Full guide</p>
 					<h3><?php echo esc_html( $luxury_guide_title ); ?></h3>
+					<p class="pill pill--green pill--sm">Full guide</p>
 					<p>Compare Istanbul&rsquo;s prime districts, property types, Bosphorus-view homes, villa markets and buyer considerations in our full luxury property guide.</p>
 					<p><a href="<?php echo esc_url( $luxury_guide_url ); ?>">Read the complete guide</a></p>
 				</article>
