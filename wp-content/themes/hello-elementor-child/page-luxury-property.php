@@ -160,31 +160,16 @@ $luxury_query = new WP_Query( $luxury_query_args );
 			</div>
 		</div>
 	</section>
-
-	<section class="section">
-		<div class="container">
-			<h2>Want a Private Shortlist Instead?</h2>
-			<p>Tell us your preferred location, budget and purpose, and our Istanbul team will send you a focused shortlist instead of overwhelming you with unsuitable options.</p>
-			<p>
-				<a
-				class="btn btn--solid btn--green js-meta-lead-cta"
-				data-meta-event="Lead"
-				data-meta-context="luxury_property_landing"
-				data-whatsapp="1"
-				data-whatsapp-type="luxury_shortlist"
-				data-track-channel="whatsapp"
-				data-track-intent="high"
-				data-track-source="template"
-				data-track-context="luxury_property_landing"
-				data-track-ga4-event="whatsapp_click"
-				data-track-crm-event="whatsapp_click"
-				href="<?php echo esc_url( $whatsapp_url ); ?>">Request a Private Shortlist on WhatsApp</a>
-				<a class="btn btn--solid btn--blue" href="<?php echo esc_url( home_url( '/book-a-consultancy/' ) ); ?>">
-					<?php echo esc_html__( 'Book a Consultancy', 'hello-elementor-child' ); ?>
-				</a>
-			</p>
-		</div>
-	</section>
+	
+	<section class="section property-map-final"><div class="container content-panel-box">
+        <h2>Want a Private Shortlist Instead?<</h2>
+        <p class="text-soft">Tell us your preferred location, budget and purpose, and our Istanbul team will send you a focused shortlist instead of overwhelming you with unsuitable options.</p>
+			<div class="hero-actions">
+            <a class="btn btn--solid btn--green" href="<?php echo esc_url( $whatsapp_url ); ?>" target="_blank" rel="noopener" data-whatsapp="1" data-whatsapp-type="property_map_final" data-track-channel="whatsapp" data-track-intent="high" data-track-source="page" data-track-context="property_map_final" data-track-ga4-event="whatsapp_click" data-track-crm-event="whatsapp_click" data-map-track="final_whatsapp">Message us on WhatsApp</a>
+            <a class="btn btn--ghost btn--green" href="<?php echo esc_url( home_url( '/book-a-consultancy/' ) ); ?>"><?php echo esc_html__( 'Book a consultancy', 'hello-elementor-child' ); ?></a>
+        </div>
+    </div>
+  </section>
 
 	<?php
 	$luxury_guide_id = 59250;
