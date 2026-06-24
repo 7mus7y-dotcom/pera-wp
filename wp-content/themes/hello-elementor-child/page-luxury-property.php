@@ -295,7 +295,7 @@ $luxury_query = new WP_Query( $luxury_query_args );
 		</div>
 	</section>
 
-	<section class="section section-soft">
+	<section class="section">
 		<div class="container">
 			<h2>Why Buyers Choose Istanbul</h2>
 			<div class="grid-2">
@@ -306,6 +306,76 @@ $luxury_query = new WP_Query( $luxury_query_args );
 			</div>
 		</div>
 	</section>
+
+	<?php
+	$luxury_posts_tag = get_term_by( 'slug', 'luxury-istanbul', 'post_tag' );
+	$luxury_posts_url = home_url( '/tag/luxury-istanbul/' );
+
+	if ( $luxury_posts_tag instanceof WP_Term ) {
+		$luxury_posts_term_link = get_term_link( $luxury_posts_tag );
+
+		if ( ! is_wp_error( $luxury_posts_term_link ) ) {
+			$luxury_posts_url = $luxury_posts_term_link;
+		}
+	}
+
+	$luxury_posts_query = new WP_Query(
+		array(
+			'post_type'           => 'post',
+			'post_status'         => 'publish',
+			'posts_per_page'      => 6,
+			'tax_query'           => array(
+				array(
+					'taxonomy' => 'post_tag',
+					'field'    => 'slug',
+					'terms'    => array( 'luxury-istanbul' ),
+				),
+			),
+			'orderby'             => 'modified',
+			'order'               => 'DESC',
+			'ignore_sticky_posts' => true,
+			'no_found_rows'       => true,
+		)
+	);
+	?>
+
+	<?php if ( $luxury_posts_query->have_posts() ) : ?>
+		<section class="section section-soft" aria-labelledby="luxury-property-guides-heading">
+			<div class="container">
+				<header class="section-header section-header--center">
+					<p class="u-eyebrow">Luxury property insights</p>
+					<h2 id="luxury-property-guides-heading">Luxury Property Guides and Market Insights</h2>
+					<p class="lead">Explore our latest guides to Istanbul&rsquo;s prime districts, luxury homes, villa communities, Bosphorus property and premium market trends.</p>
+				</header>
+
+				<div class="grid-3">
+					<?php while ( $luxury_posts_query->have_posts() ) : ?>
+						<?php
+						$luxury_posts_query->the_post();
+						set_query_var(
+							'pera_post_card_args',
+							array(
+								'variant'       => 'grid',
+								'card_classes'  => '',
+								'show_readmore' => true,
+							)
+						);
+						get_template_part( 'parts/post-card' );
+						?>
+					<?php endwhile; ?>
+				</div>
+
+				<div class="section-cta">
+					<a class="btn btn--ghost btn--blue" href="<?php echo esc_url( $luxury_posts_url ); ?>">View All Luxury Property Guides</a>
+				</div>
+			</div>
+		</section>
+	<?php endif; ?>
+
+	<?php
+	set_query_var( 'pera_post_card_args', null );
+	wp_reset_postdata();
+	?>
 
 	<section class="faq-section section">
 		<div class="container">
