@@ -314,7 +314,15 @@ foreach ( $area_copy as $slug => $copy ) {
         </div>
     </section>
 
-    <section class="section property-map-final"><div class="container content-panel-box"><h2>Let us help you shortlist the right properties</h2><p class="text-soft">Share your budget and requirements, and we will prepare a focused selection before your viewing trip to Istanbul.</p><div class="hero-actions property-map-final__actions"><a class="btn btn--solid btn--green" href="<?php echo esc_url( $whatsapp_url ); ?>" target="_blank" rel="noopener" data-whatsapp="1" data-whatsapp-type="property_map_final" data-track-channel="whatsapp" data-track-intent="high" data-track-source="page" data-track-context="property_map_final" data-track-ga4-event="whatsapp_click" data-track-crm-event="whatsapp_click" data-map-track="final_whatsapp">Message us on WhatsApp</a><a class="btn btn--solid btn--blue" href="#property-map-assistance" data-map-track="final_shortlist">Request a property shortlist</a></div></div></section>
+    <section class="section property-map-final"><div class="container content-panel-box">
+        <h2>Let us help you shortlist the right properties</h2>
+        <p class="text-soft">Share your budget and requirements, and we will prepare a focused selection before your viewing trip to Istanbul.</p><div class="hero-actions property-map-final__actions">
+            <a class="btn btn--solid btn--green" href="<?php echo esc_url( $whatsapp_url ); ?>" target="_blank" rel="noopener" data-whatsapp="1" data-whatsapp-type="property_map_final" data-track-channel="whatsapp" data-track-intent="high" data-track-source="page" data-track-context="property_map_final" data-track-ga4-event="whatsapp_click" data-track-crm-event="whatsapp_click" data-map-track="final_whatsapp">Message us on WhatsApp</a>
+            <a class="btn btn--solid btn--blue" href="#property-map-assistance" data-map-track="final_shortlist">Request a property shortlist</a>
+            <a class="btn btn--solid btn--green" href="<?php echo esc_url( home_url( '/book-a-consultancy/' ) ); ?>"><?php echo esc_html__( 'Send us your requirements', 'hello-elementor-child' ); ?></a>
+        </div>
+    </div>
+  </section>
 </main>
 
 <?php get_footer(); ?>
