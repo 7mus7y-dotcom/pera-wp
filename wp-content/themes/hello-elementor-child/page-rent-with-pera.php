@@ -572,8 +572,8 @@ get_header();
                 <div>
                     <div class="media-frame">
                         <img class="media-embed"
-                             src="<?php echo get_stylesheet_directory_uri(); ?>/images/airbnb-istanbul.jpg"
-                             alt="Airbnb management Istanbul – Pera Property">
+                         src="<?php echo esc_url( wp_get_attachment_image_url( 59614, 'full' ) ); ?>"
+                         alt="Airbnb management Istanbul – Pera Property">
                     </div>
                 </div>
 
