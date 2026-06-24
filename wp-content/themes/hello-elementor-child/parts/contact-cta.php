@@ -67,7 +67,7 @@ $icon_sprite  = esc_url( get_stylesheet_directory_uri() . '/logos-icons/icons.sv
 					<h3 class="text-light">Speak with a Consultant</h3>
 
 					<div class="hero-actions flex-center">
-						<a class="btn btn--solid btn--green" href="<?php echo esc_url( home_url( '/book-a-consultancy/' ) ); ?>">
+						<a class="btn btn--ghost btn--blue" href="<?php echo esc_url( home_url( '/book-a-consultancy/' ) ); ?>">
 						    <?php echo esc_html__( 'Book a Consultancy', 'hello-elementor-child' ); ?>
 						</a>
 						<a href="<?php echo $whatsapp_url; ?>" class="btn btn--solid btn--green" data-whatsapp="1" data-whatsapp-type="inline_cta" data-track-channel="whatsapp" data-track-intent="high" data-track-source="partial" data-track-context="reusable_contact_cta" data-track-ga4-event="whatsapp_click" data-track-crm-event="whatsapp_click">
