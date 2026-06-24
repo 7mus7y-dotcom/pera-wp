@@ -98,6 +98,32 @@ $luxury_query = new WP_Query( $luxury_query_args );
 			</div>
 		</div>
 	</section>
+	
+	<section class="content-panel content-panel--overlap-hero">
+		<div class="container">
+			<div class="grid-2">
+			  <article class="card-shell">
+			    <h3>British-Turkish Consultants</h3>
+			    <p class="text-sm u-mb-0">Local market access with an international buyer perspective.</p>
+			  </article>
+			
+			  <article class="card-shell">
+			    <h3>Buyer-Side Guidance</h3>
+			    <p class="text-sm u-mb-0">Shortlists shaped around your budget, lifestyle and objectives.</p>
+			  </article>
+			
+			  <article class="card-shell">
+			    <h3>Selected Luxury Homes Only</h3>
+			    <p class="text-sm u-mb-0">No mass listings—only properties worth serious consideration.</p>
+			  </article>
+			
+			  <article class="card-shell">
+			    <h3>Property Management</h3>
+			    <p class="text-sm u-mb-0">Complete management of your home, including cleaning, bills, taxes and everyday practical matters, so you can concentrate on enjoying your property.</p>
+			  </article>
+			</div>
+		</div>
+	</section>
 
 	<section class="content-panel content-panel--overlap-hero">
 		<div class="container">
