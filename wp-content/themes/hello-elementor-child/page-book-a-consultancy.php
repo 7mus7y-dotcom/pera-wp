@@ -91,23 +91,14 @@ get_header();
             <h3>Buyer Discovery Call</h3>
           </div>
           <div class="feature-card-body">
-            <ul class="checklist">
+            <ul class="checklist checklist--circle">
               <li>
-                <svg class="icon icon-tick" aria-hidden="true">
-                  <use href="<?php echo get_stylesheet_directory_uri(); ?>/logos-icons/icons.svg#icon-check"></use>
-                </svg>
                 Clarify lifestyle and budget priorities
               </li>
               <li>
-                <svg class="icon icon-tick" aria-hidden="true">
-                  <use href="<?php echo get_stylesheet_directory_uri(); ?>/logos-icons/icons.svg#icon-check"></use>
-                </svg>
                 Shortlist Istanbul districts that fit
               </li>
               <li>
-                <svg class="icon icon-tick" aria-hidden="true">
-                  <use href="<?php echo get_stylesheet_directory_uri(); ?>/logos-icons/icons.svg#icon-check"></use>
-                </svg>
                 Outline next steps for viewings
               </li>
             </ul>
@@ -123,23 +114,14 @@ get_header();
             <h3>Investor Strategy Call</h3>
           </div>
           <div class="feature-card-body">
-            <ul class="checklist">
+            <ul class="checklist checklist--circle">
               <li>
-                <svg class="icon icon-tick" aria-hidden="true">
-                  <use href="<?php echo get_stylesheet_directory_uri(); ?>/logos-icons/icons.svg#icon-check"></use>
-                </svg>
                 Yield, resale, and exit strategy review
               </li>
               <li>
-                <svg class="icon icon-tick" aria-hidden="true">
-                  <use href="<?php echo get_stylesheet_directory_uri(); ?>/logos-icons/icons.svg#icon-check"></use>
-                </svg>
                 Compare new-build vs. resale options
               </li>
               <li>
-                <svg class="icon icon-tick" aria-hidden="true">
-                  <use href="<?php echo get_stylesheet_directory_uri(); ?>/logos-icons/icons.svg#icon-check"></use>
-                </svg>
                 Funding and ownership structure guidance
               </li>
             </ul>
@@ -155,23 +137,14 @@ get_header();
             <h3>Residency / CBI Consultation</h3>
           </div>
           <div class="feature-card-body">
-            <ul class="checklist">
+            <ul class="checklist checklist--circle">
               <li>
-                <svg class="icon icon-tick" aria-hidden="true">
-                  <use href="<?php echo get_stylesheet_directory_uri(); ?>/logos-icons/icons.svg#icon-check"></use>
-                </svg>
                 Understand eligibility and timelines
               </li>
               <li>
-                <svg class="icon icon-tick" aria-hidden="true">
-                  <use href="<?php echo get_stylesheet_directory_uri(); ?>/logos-icons/icons.svg#icon-check"></use>
-                </svg>
                 Review qualifying property options
               </li>
               <li>
-                <svg class="icon icon-tick" aria-hidden="true">
-                  <use href="<?php echo get_stylesheet_directory_uri(); ?>/logos-icons/icons.svg#icon-check"></use>
-                </svg>
                 Coordinate legal and advisory steps
               </li>
             </ul>
@@ -346,23 +319,14 @@ get_header();
               </p>
             </header>
 
-            <ul class="checklist">
+            <ul class="checklist checklist--circle">
               <li>
-                <svg class="icon icon-tick" aria-hidden="true">
-                  <use href="<?php echo get_stylesheet_directory_uri(); ?>/logos-icons/icons.svg#icon-check"></use>
-                </svg>
                 Istanbul-specific insights from a dedicated advisory team
               </li>
               <li>
-                <svg class="icon icon-tick" aria-hidden="true">
-                  <use href="<?php echo get_stylesheet_directory_uri(); ?>/logos-icons/icons.svg#icon-check"></use>
-                </svg>
                 Multi-lingual support and clear documentation
               </li>
               <li>
-                <svg class="icon icon-tick" aria-hidden="true">
-                  <use href="<?php echo get_stylesheet_directory_uri(); ?>/logos-icons/icons.svg#icon-check"></use>
-                </svg>
                 Access to trusted legal, banking, and residency partners
               </li>
             </ul>

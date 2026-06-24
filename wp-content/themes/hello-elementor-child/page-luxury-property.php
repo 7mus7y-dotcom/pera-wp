@@ -107,11 +107,8 @@ $luxury_query = new WP_Query( $luxury_query_args );
 				<p>Since 2016, Pera Property has helped international buyers compare Istanbul&rsquo;s strongest lifestyle and investment opportunities &mdash; from Bosphorus-view apartments and branded residences to private villas in established districts.</p>
 				<div class="feature-card-body grid-3">
 				  <article class="card-shell">
-				    <ul class="checklist">
+				    <ul class="checklist checklist--circle">
 				      <li>
-				        <svg class="icon icon-tick" aria-hidden="true">
-				          <use href="#icon-check" xlink:href="#icon-check"></use>
-				        </svg>
 				        <strong>British-Turkish consultants</strong>
 				      </li>
 				    </ul>
@@ -119,11 +116,8 @@ $luxury_query = new WP_Query( $luxury_query_args );
 				  </article>
 				
 				  <article class="card-shell">
-				    <ul class="checklist">
+				    <ul class="checklist checklist--circle">
 				      <li>
-				        <svg class="icon icon-tick" aria-hidden="true">
-				          <use href="#icon-check" xlink:href="#icon-check"></use>
-				        </svg>
 				        <strong>Buyer-side guidance</strong>
 				      </li>
 				    </ul>
@@ -131,11 +125,8 @@ $luxury_query = new WP_Query( $luxury_query_args );
 				  </article>
 				
 				  <article class="card-shell">
-				    <ul class="checklist">
+				    <ul class="checklist checklist--circle">
 				      <li>
-				        <svg class="icon icon-tick" aria-hidden="true">
-				          <use href="#icon-check" xlink:href="#icon-check"></use>
-				        </svg>
 				        <strong>Selected luxury homes only</strong>
 				      </li>
 				    </ul>
@@ -143,11 +134,8 @@ $luxury_query = new WP_Query( $luxury_query_args );
 				  </article>
 
 				 <article class="card-shell">
-				    <ul class="checklist">
+				    <ul class="checklist checklist--circle">
 				      <li>
-				        <svg class="icon icon-tick" aria-hidden="true">
-				          <use href="#icon-check" xlink:href="#icon-check"></use>
-				        </svg>
 				        <strong>Property management</strong>
 				      </li>
 				    </ul>

@@ -50,32 +50,20 @@ get_header();
               <p>These are some of the most visited areas of the site.</p>
             </div>
 
-            <ul class="checklist">
+            <ul class="checklist checklist--circle">
               <li>
-                <svg class="icon icon-tick" aria-hidden="true" viewBox="0 0 24 24">
-                  <path d="M20 6L9 17l-5-5" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"></path>
-                </svg>
                 <a href="<?php echo esc_url( home_url( '/property/' ) ); ?>">Browse all listings</a>
               </li>
 
               <li>
-                <svg class="icon icon-tick" aria-hidden="true" viewBox="0 0 24 24">
-                  <path d="M20 6L9 17l-5-5" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"></path>
-                </svg>
                 <a href="<?php echo esc_url( home_url( '/category/buyer-guides' ) ); ?>">Buyer’s guide</a>
               </li>
 
               <li>
-                <svg class="icon icon-tick" aria-hidden="true" viewBox="0 0 24 24">
-                  <path d="M20 6L9 17l-5-5" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"></path>
-                </svg>
                 <a href="<?php echo esc_url( home_url( '/category/regional-guides/' ) ); ?>">Istanbul area guides</a>
               </li>
 
               <li>
-                <svg class="icon icon-tick" aria-hidden="true" viewBox="0 0 24 24">
-                  <path d="M20 6L9 17l-5-5" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"></path>
-                </svg>
                 <a href="<?php echo esc_url( home_url( '/about-us/' ) ); ?>">About Pera Property</a>
               </li>
             </ul>

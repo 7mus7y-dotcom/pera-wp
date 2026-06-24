@@ -175,32 +175,20 @@ get_header();
                         </p>
                     </header>
 
-                    <ul class="checklist">
+                    <ul class="checklist checklist--circle">
                         <li>
-                            <svg class="icon icon-tick" aria-hidden="true">
-                                <use href="<?php echo get_stylesheet_directory_uri(); ?>/logos-icons/icons.svg#icon-check"></use>
-                            </svg>
                             Honest valuation based on real comparable data
                         </li>
                     
                         <li>
-                            <svg class="icon icon-tick" aria-hidden="true">
-                                <use href="<?php echo get_stylesheet_directory_uri(); ?>/logos-icons/icons.svg#icon-check"></use>
-                            </svg>
                             Access to both local and international buyers
                         </li>
                     
                         <li>
-                            <svg class="icon icon-tick" aria-hidden="true">
-                                <use href="<?php echo get_stylesheet_directory_uri(); ?>/logos-icons/icons.svg#icon-check"></use>
-                            </svg>
                             Professional presentation: photos, videos, floor plans
                         </li>
                     
                         <li>
-                            <svg class="icon icon-tick" aria-hidden="true">
-                                <use href="<?php echo get_stylesheet_directory_uri(); ?>/logos-icons/icons.svg#icon-check"></use>
-                            </svg>
                             Negotiation, paperwork and follow-up handled end-to-end
                         </li>
                     </ul>
@@ -412,46 +400,28 @@ get_header();
                 </p>
             </div>
             <div>
-                <ul class="checklist">
+                <ul class="checklist checklist--circle">
                   <li>
-                    <svg class="icon icon-tick" aria-hidden="true">
-                      <use href="<?php echo get_stylesheet_directory_uri(); ?>/logos-icons/icons.svg#icon-check"></use>
-                    </svg>
                     Pre-sale advice on minor improvements that increase value
                   </li>
                 
                   <li>
-                    <svg class="icon icon-tick" aria-hidden="true">
-                      <use href="<?php echo get_stylesheet_directory_uri(); ?>/logos-icons/icons.svg#icon-check"></use>
-                    </svg>
                     Document check: tapu, plans, iskan, mortgage and encumbrances
                   </li>
                 
                   <li>
-                    <svg class="icon icon-tick" aria-hidden="true">
-                      <use href="<?php echo get_stylesheet_directory_uri(); ?>/logos-icons/icons.svg#icon-check"></use>
-                    </svg>
                     Professional photos and listing preparation
                   </li>
                 
                   <li>
-                    <svg class="icon icon-tick" aria-hidden="true">
-                      <use href="<?php echo get_stylesheet_directory_uri(); ?>/logos-icons/icons.svg#icon-check"></use>
-                    </svg>
                     Coordinating viewings with tenants or caretakers where relevant
                   </li>
                 
                   <li>
-                    <svg class="icon icon-tick" aria-hidden="true">
-                      <use href="<?php echo get_stylesheet_directory_uri(); ?>/logos-icons/icons.svg#icon-check"></use>
-                    </svg>
                     Negotiation strategy and best-offer analysis
                   </li>
                 
                   <li>
-                    <svg class="icon icon-tick" aria-hidden="true">
-                      <use href="<?php echo get_stylesheet_directory_uri(); ?>/logos-icons/icons.svg#icon-check"></use>
-                    </svg>
                     Guidance on tax, fees and timelines together with your advisors
                   </li>
                 </ul>
@@ -545,12 +515,12 @@ get_header();
 
             <div class="content-panel-box" style="margin-top:16px;">
                 <p><strong>Before we list your property, we usually review:</strong></p>
-                <ul class="checklist">
-                    <li><svg class="icon icon-tick" aria-hidden="true"><use href="<?php echo get_stylesheet_directory_uri(); ?>/logos-icons/icons.svg#icon-check"></use></svg>Tapu/title deed and ownership details</li>
-                    <li><svg class="icon icon-tick" aria-hidden="true"><use href="<?php echo get_stylesheet_directory_uri(); ?>/logos-icons/icons.svg#icon-check"></use></svg>Building age, condition and occupancy/tenant status</li>
-                    <li><svg class="icon icon-tick" aria-hidden="true"><use href="<?php echo get_stylesheet_directory_uri(); ?>/logos-icons/icons.svg#icon-check"></use></svg>Asking price expectations and launch strategy</li>
-                    <li><svg class="icon icon-tick" aria-hidden="true"><use href="<?php echo get_stylesheet_directory_uri(); ?>/logos-icons/icons.svg#icon-check"></use></svg>DASK and iskan where relevant</li>
-                    <li><svg class="icon icon-tick" aria-hidden="true"><use href="<?php echo get_stylesheet_directory_uri(); ?>/logos-icons/icons.svg#icon-check"></use></svg>Debts, mortgages or site-management dues</li>
+                <ul class="checklist checklist--circle">
+                    <li>Tapu/title deed and ownership details</li>
+                    <li>Building age, condition and occupancy/tenant status</li>
+                    <li>Asking price expectations and launch strategy</li>
+                    <li>DASK and iskan where relevant</li>
+                    <li>Debts, mortgages or site-management dues</li>
                 </ul>
             </div>
         </div>
@@ -563,14 +533,14 @@ get_header();
                 <p>Requirements can vary by property and ownership structure, but sellers should usually prepare the following before launch:</p>
             </div>
             <div>
-                <ul class="checklist">
-                    <li><svg class="icon icon-tick" aria-hidden="true"><use href="<?php echo get_stylesheet_directory_uri(); ?>/logos-icons/icons.svg#icon-check"></use></svg>Tapu (title deed)</li>
-                    <li><svg class="icon icon-tick" aria-hidden="true"><use href="<?php echo get_stylesheet_directory_uri(); ?>/logos-icons/icons.svg#icon-check"></use></svg>Passport or Turkish ID</li>
-                    <li><svg class="icon icon-tick" aria-hidden="true"><use href="<?php echo get_stylesheet_directory_uri(); ?>/logos-icons/icons.svg#icon-check"></use></svg>Tax number</li>
-                    <li><svg class="icon icon-tick" aria-hidden="true"><use href="<?php echo get_stylesheet_directory_uri(); ?>/logos-icons/icons.svg#icon-check"></use></svg>DASK (earthquake insurance), where applicable</li>
-                    <li><svg class="icon icon-tick" aria-hidden="true"><use href="<?php echo get_stylesheet_directory_uri(); ?>/logos-icons/icons.svg#icon-check"></use></svg>Iskan (habitation certificate), where relevant</li>
-                    <li><svg class="icon icon-tick" aria-hidden="true"><use href="<?php echo get_stylesheet_directory_uri(); ?>/logos-icons/icons.svg#icon-check"></use></svg>Mortgage, debt and encumbrance checks</li>
-                    <li><svg class="icon icon-tick" aria-hidden="true"><use href="<?php echo get_stylesheet_directory_uri(); ?>/logos-icons/icons.svg#icon-check"></use></svg>Power of attorney documents if the seller is based abroad</li>
+                <ul class="checklist checklist--circle">
+                    <li>Tapu (title deed)</li>
+                    <li>Passport or Turkish ID</li>
+                    <li>Tax number</li>
+                    <li>DASK (earthquake insurance), where applicable</li>
+                    <li>Iskan (habitation certificate), where relevant</li>
+                    <li>Mortgage, debt and encumbrance checks</li>
+                    <li>Power of attorney documents if the seller is based abroad</li>
                 </ul>
             </div>
         </div>
@@ -584,11 +554,11 @@ get_header();
                 <p>Every sale is different, so we recommend confirming your total transaction costs early and reviewing tax points with qualified advisors before signing.</p>
             </div>
             <div>
-                <ul class="checklist">
-                    <li><svg class="icon icon-tick" aria-hidden="true"><use href="<?php echo get_stylesheet_directory_uri(); ?>/logos-icons/icons.svg#icon-check"></use></svg>Title deed expenses and transfer costs</li>
-                    <li><svg class="icon icon-tick" aria-hidden="true"><use href="<?php echo get_stylesheet_directory_uri(); ?>/logos-icons/icons.svg#icon-check"></use></svg>Your capital gains tax position</li>
-                    <li><svg class="icon icon-tick" aria-hidden="true"><use href="<?php echo get_stylesheet_directory_uri(); ?>/logos-icons/icons.svg#icon-check"></use></svg>Independent legal and accounting advice</li>
-                    <li><svg class="icon icon-tick" aria-hidden="true"><use href="<?php echo get_stylesheet_directory_uri(); ?>/logos-icons/icons.svg#icon-check"></use></svg>Outstanding mortgage or site-management debts</li>
+                <ul class="checklist checklist--circle">
+                    <li>Title deed expenses and transfer costs</li>
+                    <li>Your capital gains tax position</li>
+                    <li>Independent legal and accounting advice</li>
+                    <li>Outstanding mortgage or site-management debts</li>
                 </ul>
                 <p>We provide practical sale guidance, but formal tax and legal advice should come from your lawyer or accountant.</p>
             </div>
@@ -654,25 +624,16 @@ get_header();
                         <p><?php echo esc_html( $hero_intro ); ?></p>
                     </header>
     
-                    <ul class="checklist">
+                    <ul class="checklist checklist--circle">
                         <li>
-                            <svg class="icon icon-tick" aria-hidden="true">
-                                <use href="<?php echo get_stylesheet_directory_uri(); ?>/logos-icons/icons.svg#icon-check"></use>
-                            </svg>
                             Reliable, data-driven advice.
                         </li>
     
                         <li>
-                            <svg class="icon icon-tick" aria-hidden="true">
-                                <use href="<?php echo get_stylesheet_directory_uri(); ?>/logos-icons/icons.svg#icon-check"></use>
-                            </svg>
                             On-the-ground Istanbul expertise.
                         </li>
     
                         <li>
-                            <svg class="icon icon-tick" aria-hidden="true">
-                                <use href="<?php echo get_stylesheet_directory_uri(); ?>/logos-icons/icons.svg#icon-check"></use>
-                            </svg>
                             Multi-lingual support.
                         </li>
                     </ul>

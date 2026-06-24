@@ -52,12 +52,9 @@ $citizenship_requirements = array(
             <div class="feature-card-body">
               <div class="citizenship-requirements-group">
                 <h3>投资与房产</h3>
-                <ul class="checklist">
+                <ul class="checklist checklist--circle">
                   <?php foreach ( array_slice( $citizenship_requirements, 0, 4 ) as $requirement ) : ?>
                     <li>
-                      <svg class="icon icon-tick" aria-hidden="true">
-                        <use href="<?php echo esc_url( get_stylesheet_directory_uri() . '/logos-icons/icons.svg#icon-check' ); ?>"></use>
-                      </svg>
                       <?php echo esc_html( $requirement ); ?>
                     </li>
                   <?php endforeach; ?>
@@ -65,12 +62,9 @@ $citizenship_requirements = array(
               </div>
               <div class="citizenship-requirements-group">
                 <h3>家庭与流程</h3>
-                <ul class="checklist">
+                <ul class="checklist checklist--circle">
                   <?php foreach ( array_slice( $citizenship_requirements, 4 ) as $requirement ) : ?>
                     <li>
-                      <svg class="icon icon-tick" aria-hidden="true">
-                        <use href="<?php echo esc_url( get_stylesheet_directory_uri() . '/logos-icons/icons.svg#icon-check' ); ?>"></use>
-                      </svg>
                       <?php echo esc_html( $requirement ); ?>
                     </li>
                   <?php endforeach; ?>

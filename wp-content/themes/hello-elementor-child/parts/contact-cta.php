@@ -28,25 +28,16 @@ $icon_sprite  = esc_url( get_stylesheet_directory_uri() . '/logos-icons/icons.sv
 					<p><?php echo esc_html( $text ); ?></p>
 				</header>
 
-				<ul class="checklist">
+				<ul class="checklist checklist--circle">
 					<li>
-						<svg class="icon icon-tick" aria-hidden="true">
-							<use href="<?php echo $icon_sprite; ?>"></use>
-						</svg>
 						Reliable, data-driven advice.
 					</li>
 
 					<li>
-						<svg class="icon icon-tick" aria-hidden="true">
-							<use href="<?php echo $icon_sprite; ?>"></use>
-						</svg>
 						On-the-ground Istanbul expertise.
 					</li>
 
 					<li>
-						<svg class="icon icon-tick" aria-hidden="true">
-							<use href="<?php echo $icon_sprite; ?>"></use>
-						</svg>
 						Multi-lingual support.
 					</li>
 				</ul>

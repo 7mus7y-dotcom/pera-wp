@@ -729,23 +729,17 @@ get_header();
 
                     <?php if ( $features ) : ?>
                         <div class="grid-2">
-                            <ul class="checklist">
+                            <ul class="checklist checklist--circle">
                                 <?php foreach ( $features_left as $feature ) : ?>
                                     <li>
-                                        <svg class="icon icon-tick" aria-hidden="true">
-                                            <use href="<?php echo esc_url( get_stylesheet_directory_uri() . '/logos-icons/icons.svg#icon-check' ); ?>"></use>
-                                        </svg>
                                         <?php echo esc_html( $feature ); ?>
                                     </li>
                                 <?php endforeach; ?>
                             </ul>
                             <?php if ( $features_right ) : ?>
-                                <ul class="checklist">
+                                <ul class="checklist checklist--circle">
                                     <?php foreach ( $features_right as $feature ) : ?>
                                         <li>
-                                            <svg class="icon icon-tick" aria-hidden="true">
-                                                <use href="<?php echo esc_url( get_stylesheet_directory_uri() . '/logos-icons/icons.svg#icon-check' ); ?>"></use>
-                                            </svg>
                                             <?php echo esc_html( $feature ); ?>
                                         </li>
                                     <?php endforeach; ?>
@@ -1003,12 +997,9 @@ get_header();
                             </div>
 
                             <div>
-                                <ul class="checklist">
+                                <ul class="checklist checklist--circle">
                                     <?php foreach ( $location_notes as $note ) : ?>
                                         <li>
-                                            <svg class="icon icon-tick" aria-hidden="true">
-                                                <use href="<?php echo esc_url( get_stylesheet_directory_uri() . '/logos-icons/icons.svg#icon-check' ); ?>"></use>
-                                            </svg>
                                             <?php echo esc_html( $note ); ?>
                                         </li>
                                     <?php endforeach; ?>
@@ -1036,12 +1027,9 @@ get_header();
                         </div>
                     <?php elseif ( $location_notes ) : ?>
                         <div>
-                            <ul class="checklist">
+                            <ul class="checklist checklist--circle">
                                 <?php foreach ( $location_notes as $note ) : ?>
                                     <li>
-                                        <svg class="icon icon-tick" aria-hidden="true">
-                                            <use href="<?php echo esc_url( get_stylesheet_directory_uri() . '/logos-icons/icons.svg#icon-check' ); ?>"></use>
-                                        </svg>
                                         <?php echo esc_html( $note ); ?>
                                     </li>
                                 <?php endforeach; ?>
