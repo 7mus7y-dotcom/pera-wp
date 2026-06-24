@@ -95,6 +95,7 @@ $luxury_query = new WP_Query( $luxury_query_args );
 					data-track-crm-event="whatsapp_click"
 					href="<?php echo esc_url( $whatsapp_url ); ?>">Request a Private Shortlist</a>
 				<a class="btn btn--solid btn--black" href="#selected-luxury-properties">View Selected Properties</a>
+				
 			</div>
 		</div>
 	</section>
@@ -164,7 +165,8 @@ $luxury_query = new WP_Query( $luxury_query_args );
 		<div class="container">
 			<h2>Want a Private Shortlist Instead?</h2>
 			<p>Tell us your preferred location, budget and purpose, and our Istanbul team will send you a focused shortlist instead of overwhelming you with unsuitable options.</p>
-			<p><a
+			<p>
+				<a
 				class="btn btn--solid btn--green js-meta-lead-cta"
 				data-meta-event="Lead"
 				data-meta-context="luxury_property_landing"
@@ -176,7 +178,11 @@ $luxury_query = new WP_Query( $luxury_query_args );
 				data-track-context="luxury_property_landing"
 				data-track-ga4-event="whatsapp_click"
 				data-track-crm-event="whatsapp_click"
-				href="<?php echo esc_url( $whatsapp_url ); ?>">Request a Private Shortlist on WhatsApp</a></p>
+				href="<?php echo esc_url( $whatsapp_url ); ?>">Request a Private Shortlist on WhatsApp</a>
+				<a class="btn btn--solid btn--blue" href="<?php echo esc_url( home_url( '/book-a-consultancy/' ) ); ?>">
+					<?php echo esc_html__( 'Book a Consultancy', 'hello-elementor-child' ); ?>
+				</a>
+			</p>
 		</div>
 	</section>
 
