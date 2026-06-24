@@ -1645,23 +1645,14 @@ if ( ! empty( $yt_video ) ) {
           <p class="mb-sm"><?php echo esc_html( $hero_intro ); ?></p>
         </header>
 
-        <ul class="checklist mb-md">
+        <ul class="checklist mb-md checklist--circle">
           <li>
-            <svg class="icon icon-tick" aria-hidden="true">
-              <use href="<?php echo esc_url( get_stylesheet_directory_uri() ); ?>/logos-icons/icons.svg#icon-check"></use>
-            </svg>
             Reliable, data-driven advice.
           </li>
           <li>
-            <svg class="icon icon-tick" aria-hidden="true">
-              <use href="<?php echo esc_url( get_stylesheet_directory_uri() ); ?>/logos-icons/icons.svg#icon-check"></use>
-            </svg>
             On-the-ground Istanbul expertise.
           </li>
           <li>
-            <svg class="icon icon-tick" aria-hidden="true">
-              <use href="<?php echo esc_url( get_stylesheet_directory_uri() ); ?>/logos-icons/icons.svg#icon-check"></use>
-            </svg>
             Multi-lingual support.
           </li>
         </ul>

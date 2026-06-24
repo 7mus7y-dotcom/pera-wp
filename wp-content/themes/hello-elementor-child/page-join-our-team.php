@@ -88,29 +88,17 @@ get_header();
                         </p>
                     </header>
 
-                    <ul class="checklist">
+                    <ul class="checklist checklist--circle">
                         <li>
-                            <svg class="icon icon-tick" aria-hidden="true">
-                                <use href="<?php echo get_stylesheet_directory_uri(); ?>/logos-icons/icons.svg#icon-check"></use>
-                            </svg>
                             Hands-on experience across sales, lettings and investment.
                         </li>
                         <li>
-                            <svg class="icon icon-tick" aria-hidden="true">
-                                <use href="<?php echo get_stylesheet_directory_uri(); ?>/logos-icons/icons.svg#icon-check"></use>
-                            </svg>
                             Work with international clients every day.
                         </li>
                         <li>
-                            <svg class="icon icon-tick" aria-hidden="true">
-                                <use href="<?php echo get_stylesheet_directory_uri(); ?>/logos-icons/icons.svg#icon-check"></use>
-                            </svg>
                             Training and mentoring from senior consultants.
                         </li>
                         <li>
-                            <svg class="icon icon-tick" aria-hidden="true">
-                                <use href="<?php echo get_stylesheet_directory_uri(); ?>/logos-icons/icons.svg#icon-check"></use>
-                            </svg>
                             Central Istanbul location, modern working environment.
                         </li>
                     </ul>
@@ -145,23 +133,14 @@ get_header();
                     <p class="price-tag">Full-time · Istanbul</p>
                 </div>
                 <div class="feature-card-body">
-                    <ul class="checklist">
+                    <ul class="checklist checklist--circle">
                         <li>
-                            <svg class="icon icon-tick" aria-hidden="true">
-                                <use href="<?php echo get_stylesheet_directory_uri(); ?>/logos-icons/icons.svg#icon-check"></use>
-                            </svg>
                             Advise international and local buyers on Istanbul property.
                         </li>
                         <li>
-                            <svg class="icon icon-tick" aria-hidden="true">
-                                <use href="<?php echo get_stylesheet_directory_uri(); ?>/logos-icons/icons.svg#icon-check"></use>
-                            </svg>
                             Manage a portfolio of new-build and resale listings.
                         </li>
                         <li>
-                            <svg class="icon icon-tick" aria-hidden="true">
-                                <use href="<?php echo get_stylesheet_directory_uri(); ?>/logos-icons/icons.svg#icon-check"></use>
-                            </svg>
                             Fluent English required; Turkish a strong advantage.
                         </li>
                     </ul>
@@ -178,23 +157,14 @@ get_header();
                     <p class="price-tag">Full-time · Istanbul</p>
                 </div>
                 <div class="feature-card-body">
-                    <ul class="checklist">
+                    <ul class="checklist checklist--circle">
                         <li>
-                            <svg class="icon icon-tick" aria-hidden="true">
-                                <use href="<?php echo get_stylesheet_directory_uri(); ?>/logos-icons/icons.svg#icon-check"></use>
-                            </svg>
                             Oversee day-to-day management of long-term rentals.
                         </li>
                         <li>
-                            <svg class="icon icon-tick" aria-hidden="true">
-                                <use href="<?php echo get_stylesheet_directory_uri(); ?>/logos-icons/icons.svg#icon-check"></use>
-                            </svg>
                             Coordinate maintenance, inspections and tenant relations.
                         </li>
                         <li>
-                            <svg class="icon icon-tick" aria-hidden="true">
-                                <use href="<?php echo get_stylesheet_directory_uri(); ?>/logos-icons/icons.svg#icon-check"></use>
-                            </svg>
                             Strong organisational skills and client focus.
                         </li>
                     </ul>

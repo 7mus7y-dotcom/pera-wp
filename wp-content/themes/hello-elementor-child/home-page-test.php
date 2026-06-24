@@ -535,23 +535,14 @@ $featured_query = new WP_Query( array(
           </p>
         </header>
 
-        <ul class="checklist">
+        <ul class="checklist checklist--circle">
           <li>
-            <svg class="icon icon-tick" aria-hidden="true">
-              <use href="<?php echo esc_url( get_stylesheet_directory_uri() . '/logos-icons/icons.svg#icon-check' ); ?>"></use>
-            </svg>
             Accurate pricing strategy (not guesswork)
           </li>
           <li>
-            <svg class="icon icon-tick" aria-hidden="true">
-              <use href="<?php echo esc_url( get_stylesheet_directory_uri() . '/logos-icons/icons.svg#icon-check' ); ?>"></use>
-            </svg>
             Strong visibility to local &amp; international buyers
           </li>
           <li>
-            <svg class="icon icon-tick" aria-hidden="true">
-              <use href="<?php echo esc_url( get_stylesheet_directory_uri() . '/logos-icons/icons.svg#icon-check' ); ?>"></use>
-            </svg>
             End-to-end negotiation and paperwork handling
           </li>
         </ul>

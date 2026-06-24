@@ -56,12 +56,9 @@ $citizenship_requirements = array(
             <div class="feature-card-body">
               <div class="citizenship-requirements-group">
                 <h3>Investment</h3>
-                <ul class="checklist">
+                <ul class="checklist checklist--circle">
                   <?php foreach ( array_slice( $citizenship_requirements, 0, 4 ) as $requirement ) : ?>
                     <li>
-                      <svg class="icon icon-tick" aria-hidden="true">
-                        <use href="<?php echo get_stylesheet_directory_uri(); ?>/logos-icons/icons.svg#icon-check"></use>
-                      </svg>
                       <?php echo esc_html( $requirement ); ?>
                     </li>
                   <?php endforeach; ?>
@@ -69,12 +66,9 @@ $citizenship_requirements = array(
               </div>
               <div class="citizenship-requirements-group">
                 <h3>Family &amp; process</h3>
-                <ul class="checklist">
+                <ul class="checklist checklist--circle">
                   <?php foreach ( array_slice( $citizenship_requirements, 4 ) as $requirement ) : ?>
                     <li>
-                      <svg class="icon icon-tick" aria-hidden="true">
-                        <use href="<?php echo get_stylesheet_directory_uri(); ?>/logos-icons/icons.svg#icon-check"></use>
-                      </svg>
                       <?php echo esc_html( $requirement ); ?>
                     </li>
                   <?php endforeach; ?>
@@ -1079,51 +1073,30 @@ $citizenship_requirements = array(
     </header>
 
     <h3>Standard Process:</h3>
-    <ul class="checklist">
+    <ul class="checklist checklist--circle">
       <li>
-        <svg class="icon icon-tick" aria-hidden="true">
-          <use href="<?php echo get_stylesheet_directory_uri(); ?>/logos-icons/icons.svg#icon-check"></use>
-        </svg>
         Residency application and approval
       </li>
       <li>
-        <svg class="icon icon-tick" aria-hidden="true">
-          <use href="<?php echo get_stylesheet_directory_uri(); ?>/logos-icons/icons.svg#icon-check"></use>
-        </svg>
         Separate citizenship application
       </li>
       <li>
-        <svg class="icon icon-tick" aria-hidden="true">
-          <use href="<?php echo get_stylesheet_directory_uri(); ?>/logos-icons/icons.svg#icon-check"></use>
-        </svg>
         Multiple steps and timelines
       </li>
     </ul>
 
     <h3>Fast-Track Option:</h3>
-    <ul class="checklist">
+    <ul class="checklist checklist--circle">
       <li>
-        <svg class="icon icon-tick" aria-hidden="true">
-          <use href="<?php echo get_stylesheet_directory_uri(); ?>/logos-icons/icons.svg#icon-check"></use>
-        </svg>
         Residency application, biometrics, and citizenship submission can be completed in one visit
       </li>
       <li>
-        <svg class="icon icon-tick" aria-hidden="true">
-          <use href="<?php echo get_stylesheet_directory_uri(); ?>/logos-icons/icons.svg#icon-check"></use>
-        </svg>
         Biometric processing completed on arrival
       </li>
       <li>
-        <svg class="icon icon-tick" aria-hidden="true">
-          <use href="<?php echo get_stylesheet_directory_uri(); ?>/logos-icons/icons.svg#icon-check"></use>
-        </svg>
         Citizenship submission may be completed the same day
       </li>
       <li>
-        <svg class="icon icon-tick" aria-hidden="true">
-          <use href="<?php echo get_stylesheet_directory_uri(); ?>/logos-icons/icons.svg#icon-check"></use>
-        </svg>
         Optional expedited service
       </li>
     </ul>

@@ -200,40 +200,25 @@ get_header();
                         </p>
                     </header>
 
-                    <ul class="checklist">
+                    <ul class="checklist checklist--circle">
 
                         <li>
-                            <svg class="icon icon-tick" aria-hidden="true">
-                                <use href="<?php echo get_stylesheet_directory_uri(); ?>/logos-icons/icons.svg#icon-check"></use>
-                            </svg>
                             Marketing on all major platforms.
                         </li>
 
                         <li>
-                            <svg class="icon icon-tick" aria-hidden="true">
-                                <use href="<?php echo get_stylesheet_directory_uri(); ?>/logos-icons/icons.svg#icon-check"></use>
-                            </svg>
                             Full tenant screening &amp; ID verification.
                         </li>
 
                         <li>
-                            <svg class="icon icon-tick" aria-hidden="true">
-                                <use href="<?php echo get_stylesheet_directory_uri(); ?>/logos-icons/icons.svg#icon-check"></use>
-                            </svg>
                             Maintenance, repairs and inspections.
                         </li>
 
                         <li>
-                            <svg class="icon icon-tick" aria-hidden="true">
-                                <use href="<?php echo get_stylesheet_directory_uri(); ?>/logos-icons/icons.svg#icon-check"></use>
-                            </svg>
                             24/7 support for tenants.
                         </li>
 
                         <li>
-                            <svg class="icon icon-tick" aria-hidden="true">
-                                <use href="<?php echo get_stylesheet_directory_uri(); ?>/logos-icons/icons.svg#icon-check"></use>
-                            </svg>
                             Monthly statements &amp; full transparency.
                         </li>
 
@@ -296,29 +281,17 @@ get_header();
                 </div>
 
                 <div class="feature-card-body">
-                    <ul class="checklist">
+                    <ul class="checklist checklist--circle">
                         <li>
-                            <svg class="icon icon-tick" aria-hidden="true">
-                                <use href="<?php echo get_stylesheet_directory_uri(); ?>/logos-icons/icons.svg#icon-check"></use>
-                            </svg>
                             Advertising on all major rental platforms
                         </li>
                         <li>
-                            <svg class="icon icon-tick" aria-hidden="true">
-                                <use href="<?php echo get_stylesheet_directory_uri(); ?>/logos-icons/icons.svg#icon-check"></use>
-                            </svg>
                             Tenant viewings and shortlisting
                         </li>
                         <li>
-                            <svg class="icon icon-tick" aria-hidden="true">
-                                <use href="<?php echo get_stylesheet_directory_uri(); ?>/logos-icons/icons.svg#icon-check"></use>
-                            </svg>
                             Full tenant screening &amp; ID verification
                         </li>
                         <li>
-                            <svg class="icon icon-tick" aria-hidden="true">
-                                <use href="<?php echo get_stylesheet_directory_uri(); ?>/logos-icons/icons.svg#icon-check"></use>
-                            </svg>
                             Tenancy agreement preparation and signing
                         </li>
                     </ul>
@@ -337,41 +310,23 @@ get_header();
                 </div>
 
                 <div class="feature-card-body">
-                    <ul class="checklist">
+                    <ul class="checklist checklist--circle">
                         <li>
-                            <svg class="icon icon-tick" aria-hidden="true">
-                                <use href="<?php echo get_stylesheet_directory_uri(); ?>/logos-icons/icons.svg#icon-check"></use>
-                            </svg>
                             Everything in Lettings Only
                         </li>
                         <li>
-                            <svg class="icon icon-tick" aria-hidden="true">
-                                <use href="<?php echo get_stylesheet_directory_uri(); ?>/logos-icons/icons.svg#icon-check"></use>
-                            </svg>
                             Dedicated property manager in Istanbul
                         </li>
                         <li>
-                            <svg class="icon icon-tick" aria-hidden="true">
-                                <use href="<?php echo get_stylesheet_directory_uri(); ?>/logos-icons/icons.svg#icon-check"></use>
-                            </svg>
                             Rent collection and arrears management
                         </li>
                         <li>
-                            <svg class="icon icon-tick" aria-hidden="true">
-                                <use href="<?php echo get_stylesheet_directory_uri(); ?>/logos-icons/icons.svg#icon-check"></use>
-                            </svg>
                             Organising repairs, quotes &amp; contractors
                         </li>
                         <li>
-                            <svg class="icon icon-tick" aria-hidden="true">
-                                <use href="<?php echo get_stylesheet_directory_uri(); ?>/logos-icons/icons.svg#icon-check"></use>
-                            </svg>
                             Regular inspections with condition reports
                         </li>
                         <li>
-                            <svg class="icon icon-tick" aria-hidden="true">
-                                <use href="<?php echo get_stylesheet_directory_uri(); ?>/logos-icons/icons.svg#icon-check"></use>
-                            </svg>
                             Utility transfers, deposits &amp; move-out checks
                         </li>
                     </ul>
@@ -398,11 +353,8 @@ get_header();
                         <h3>1) Rental valuation</h3>
                     </div>
                     <div class="feature-card-body">
-                        <ul class="checklist">
+                        <ul class="checklist checklist--circle">
                             <li>
-                                <svg class="icon icon-tick" aria-hidden="true">
-                                    <use href="<?php echo get_stylesheet_directory_uri(); ?>/logos-icons/icons.svg#icon-check"></use>
-                                </svg>
                                 We assess market demand, building profile, and district comparables in areas such as Beşiktaş, Şişli, Beyoğlu, and Kadıköy.
                             </li>
                         </ul>
@@ -414,11 +366,8 @@ get_header();
                         <h3>2) Marketing and tenant sourcing</h3>
                     </div>
                     <div class="feature-card-body">
-                        <ul class="checklist">
+                        <ul class="checklist checklist--circle">
                             <li>
-                                <svg class="icon icon-tick" aria-hidden="true">
-                                    <use href="<?php echo get_stylesheet_directory_uri(); ?>/logos-icons/icons.svg#icon-check"></use>
-                                </svg>
                                 We market your home across major channels to attract qualified long-term tenants quickly.
                             </li>
                         </ul>
@@ -430,11 +379,8 @@ get_header();
                         <h3>3) Tenant screening</h3>
                     </div>
                     <div class="feature-card-body">
-                        <ul class="checklist">
+                        <ul class="checklist checklist--circle">
                             <li>
-                                <svg class="icon icon-tick" aria-hidden="true">
-                                    <use href="<?php echo get_stylesheet_directory_uri(); ?>/logos-icons/icons.svg#icon-check"></use>
-                                </svg>
                                 We complete documentation and affordability checks before presenting tenants for your approval.
                             </li>
                         </ul>
@@ -446,11 +392,8 @@ get_header();
                         <h3>4) Contract and deposit setup</h3>
                     </div>
                     <div class="feature-card-body">
-                        <ul class="checklist">
+                        <ul class="checklist checklist--circle">
                             <li>
-                                <svg class="icon icon-tick" aria-hidden="true">
-                                    <use href="<?php echo get_stylesheet_directory_uri(); ?>/logos-icons/icons.svg#icon-check"></use>
-                                </svg>
                                 We prepare compliant tenancy contracts and organise deposit handling with clear owner sign-off.
                             </li>
                         </ul>
@@ -462,11 +405,8 @@ get_header();
                         <h3>5) Rent collection and maintenance</h3>
                     </div>
                     <div class="feature-card-body">
-                        <ul class="checklist">
+                        <ul class="checklist checklist--circle">
                             <li>
-                                <svg class="icon icon-tick" aria-hidden="true">
-                                    <use href="<?php echo get_stylesheet_directory_uri(); ?>/logos-icons/icons.svg#icon-check"></use>
-                                </svg>
                                 Our Istanbul rental management team supports collections, maintenance coordination, and tenant communication.
                             </li>
                         </ul>
@@ -478,11 +418,8 @@ get_header();
                         <h3>6) Renewal or exit management</h3>
                     </div>
                     <div class="feature-card-body">
-                        <ul class="checklist">
+                        <ul class="checklist checklist--circle">
                             <li>
-                                <svg class="icon icon-tick" aria-hidden="true">
-                                    <use href="<?php echo get_stylesheet_directory_uri(); ?>/logos-icons/icons.svg#icon-check"></use>
-                                </svg>
                                 We manage rent reviews, renewals, and move-out processes while keeping you informed at every stage.
                             </li>
                         </ul>
@@ -610,33 +547,21 @@ get_header();
                         </p>
                     </header>
 
-                    <ul class="checklist">
+                    <ul class="checklist checklist--circle">
 
                         <li>
-                            <svg class="icon icon-tick" aria-hidden="true">
-                                <use href="<?php echo get_stylesheet_directory_uri(); ?>/logos-icons/icons.svg#icon-check"></use>
-                            </svg>
                             Check-in / check-out management
                         </li>
 
                         <li>
-                            <svg class="icon icon-tick" aria-hidden="true">
-                                <use href="<?php echo get_stylesheet_directory_uri(); ?>/logos-icons/icons.svg#icon-check"></use>
-                            </svg>
                             Cleaning &amp; maintenance
                         </li>
 
                         <li>
-                            <svg class="icon icon-tick" aria-hidden="true">
-                                <use href="<?php echo get_stylesheet_directory_uri(); ?>/logos-icons/icons.svg#icon-check"></use>
-                            </svg>
                             Guest communication
                         </li>
 
                         <li>
-                            <svg class="icon icon-tick" aria-hidden="true">
-                                <use href="<?php echo get_stylesheet_directory_uri(); ?>/logos-icons/icons.svg#icon-check"></use>
-                            </svg>
                             Supplies &amp; inventory management
                         </li>
 
@@ -677,25 +602,16 @@ get_header();
                             <p><?php echo esc_html( $hero_intro ); ?></p>
                         </header>
         
-                        <ul class="checklist">
+                        <ul class="checklist checklist--circle">
                             <li>
-                                <svg class="icon icon-tick" aria-hidden="true">
-                                    <use href="<?php echo get_stylesheet_directory_uri(); ?>/logos-icons/icons.svg#icon-check"></use>
-                                </svg>
                                 Reliable, data-driven advice.
                             </li>
         
                             <li>
-                                <svg class="icon icon-tick" aria-hidden="true">
-                                    <use href="<?php echo get_stylesheet_directory_uri(); ?>/logos-icons/icons.svg#icon-check"></use>
-                                </svg>
                                 On-the-ground Istanbul expertise.
                             </li>
         
                             <li>
-                                <svg class="icon icon-tick" aria-hidden="true">
-                                    <use href="<?php echo get_stylesheet_directory_uri(); ?>/logos-icons/icons.svg#icon-check"></use>
-                                </svg>
                                 Multi-lingual support.
                             </li>
                         </ul>
