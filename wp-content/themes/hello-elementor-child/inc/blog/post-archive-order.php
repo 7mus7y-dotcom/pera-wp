@@ -11,8 +11,12 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-add_action( 'pre_get_posts', 'pera_order_blog_archives_by_selected_date' );
-add_filter( 'posts_clauses', 'pera_order_blog_archive_by_selected_date_clauses', 20, 2 );
+/**
+ * Run after generic archive/query customisations so the selected blog sort is
+ * the final order used by the public posts-page main loop.
+ */
+add_action( 'pre_get_posts', 'pera_order_blog_archives_by_selected_date', 999 );
+add_filter( 'posts_clauses', 'pera_order_blog_archive_by_selected_date_clauses', 999, 2 );
 
 /**
  * Get supported blog archive sort options.
@@ -45,8 +49,12 @@ function pera_get_blog_archive_sort_options() {
  * @return string
  */
 function pera_get_blog_archive_sort_key() {
-	$sort    = isset( $_GET['sort'] ) ? sanitize_key( wp_unslash( $_GET['sort'] ) ) : 'published';
 	$options = pera_get_blog_archive_sort_options();
+	$sort    = 'published';
+
+	if ( isset( $_GET['sort'] ) ) {
+		$sort = sanitize_key( wp_unslash( $_GET['sort'] ) );
+	}
 
 	return array_key_exists( $sort, $options ) ? $sort : 'published';
 }
@@ -241,6 +249,7 @@ function pera_order_blog_archives_by_selected_date( $query ) {
 		$query->set( 'post_type', 'post' );
 	}
 
+	$query->set( 'sort', $sort );
 	$query->set( 'pera_blog_archive_sort', $sort );
 	$query->set( 'orderby', pera_get_blog_archive_orderby_args( $sort ) );
 	$query->set( 'order', $choice['order'] );
