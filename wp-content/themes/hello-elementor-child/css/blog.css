@@ -543,6 +543,10 @@
 .article-body .card-shell > .article-cta-actions {
   margin-top: 4px;
 }
+.card-shell .article-cta-actions > .btn:first-child {
+  flex: 0 0 100%;
+  width: 100%;
+}
 
 @media (max-width: 640px) {
   .article-body > .card-shell {
