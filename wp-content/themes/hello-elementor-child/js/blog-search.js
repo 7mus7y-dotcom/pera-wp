@@ -15,19 +15,36 @@
   var debounceTimer = null;
   var controller = null;
 
-  function getActiveSort() {
-    var activeSort = sortInput ? sortInput.value : '';
-    var activeSortLink = document.querySelector('.blog-sort__link.is-active[href]');
+  function getSortFromUrl(url) {
+    try {
+      return new URL(url, window.location.href).searchParams.get('sort') || 'published';
+    } catch (error) {
+      return 'published';
+    }
+  }
 
-    if (activeSortLink) {
-      try {
-        activeSort = new URL(activeSortLink.href, window.location.href).searchParams.get('sort') || activeSort;
-      } catch (error) {
-        activeSort = activeSort || '';
-      }
+  function getActiveSort() {
+    return sortInput && sortInput.value ? sortInput.value : 'published';
+  }
+
+  function setActiveSort(sort) {
+    var normalizedSort = sort || 'published';
+
+    if (sortInput) {
+      sortInput.value = normalizedSort;
     }
 
-    return activeSort;
+    document.querySelectorAll('.blog-sort__link[href]').forEach(function (link) {
+      var isActive = getSortFromUrl(link.href) === normalizedSort;
+
+      link.classList.toggle('is-active', isActive);
+
+      if (isActive) {
+        link.setAttribute('aria-current', 'true');
+      } else {
+        link.removeAttribute('aria-current');
+      }
+    });
   }
 
   function getPageFromUrl(url) {
@@ -175,6 +192,20 @@
         setLoading(false);
       });
   }
+
+
+  document.addEventListener('click', function (event) {
+    var link = event.target.closest('.blog-sort__link[href]');
+
+    if (!link) {
+      return;
+    }
+
+    event.preventDefault();
+    window.clearTimeout(debounceTimer);
+    setActiveSort(getSortFromUrl(link.href));
+    runSearch(1);
+  });
 
   form.addEventListener('submit', function (event) {
     event.preventDefault();
