@@ -12,7 +12,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 add_action( 'pre_get_posts', 'pera_order_blog_archives_by_selected_date' );
-add_filter( 'posts_clauses', 'pera_order_blog_archive_search_by_title_priority', 10, 2 );
+add_filter( 'posts_clauses', 'pera_order_blog_archive_by_selected_date_clauses', 20, 2 );
 
 /**
  * Get supported blog archive sort options.
@@ -266,20 +266,28 @@ function pera_order_blog_archives_by_selected_date( $query ) {
 }
 
 /**
- * Order searched front-end main blog archive queries by title match priority.
+ * Order front-end main blog archive queries by the selected date option.
+ *
+ * Search results retain title-match priority before the selected date order.
  *
  * @param array<string,string> $clauses SQL clauses for the query.
  * @param WP_Query            $query   WordPress query instance.
  * @return array<string,string>
  */
-function pera_order_blog_archive_search_by_title_priority( $clauses, $query ) {
+function pera_order_blog_archive_by_selected_date_clauses( $clauses, $query ) {
 	if ( is_admin() || ! pera_is_blog_archive_query( $query ) ) {
 		return $clauses;
 	}
 
 	$search = trim( (string) $query->get( 's' ) );
 
+	$secondary_orderby = pera_get_blog_archive_secondary_orderby_sql(
+		pera_get_blog_archive_sort_key()
+	);
+
 	if ( '' === $search ) {
+		$clauses['orderby'] = $secondary_orderby;
+
 		return $clauses;
 	}
 
@@ -297,9 +305,7 @@ ELSE 3
 		'%' . $wpdb->esc_like( $search ) . '%'
 	);
 
-	$clauses['orderby'] = $title_match_orderby . ', ' . pera_get_blog_archive_secondary_orderby_sql(
-		pera_get_blog_archive_sort_key()
-	);
+	$clauses['orderby'] = $title_match_orderby . ', ' . $secondary_orderby;
 
 	return $clauses;
 }
