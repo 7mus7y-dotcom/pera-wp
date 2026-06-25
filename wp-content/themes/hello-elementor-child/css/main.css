@@ -4333,7 +4333,6 @@ ol.pretty-list li::before {
 .checklist--card,
 .checklist--boxed,
 .checklist--premium {
-  --checklist-item-gap: var(--space-xs, 8px);
   padding: var(--space-md, 20px);
   margin-bottom: var(--space-md, 20px);
   border: 1px solid var(--checklist-border);
@@ -4361,7 +4360,6 @@ ol.pretty-list li::before {
   --checklist-icon-size: 1.1rem;
   --checklist-gap: var(--space-xs, 8px);
   --checklist-item-gap: var(--space-2xs, 4px);
-
   font-size: var(--fs-ui-sm, 0.85rem);
 }
 
