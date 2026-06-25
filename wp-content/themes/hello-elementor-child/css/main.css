@@ -4256,6 +4256,7 @@ ol.pretty-list li::before {
   width: var(--checklist-icon-size);
   min-width: var(--checklist-icon-size);
   height: var(--checklist-icon-size);
+  margin-right: var(--checklist-gap);
   border-radius: var(--pill-radius, 999px);
   background: var(--checklist-icon-bg);
   color: var(--checklist-icon-color);
