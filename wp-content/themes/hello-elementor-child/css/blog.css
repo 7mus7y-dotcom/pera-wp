@@ -554,8 +554,8 @@
 
 .card-shell .article-cta-actions > .btn:nth-child(2),
 .card-shell .article-cta-actions > .btn:nth-child(3) {
-  flex: 1 1 calc(50% - var(--space-sm));
-  width: auto;
+  flex: 0 0 calc((100% - var(--space-sm)) / 2);
+  width: calc((100% - var(--space-sm)) / 2);
 }
 
 @media (max-width: 640px) {
