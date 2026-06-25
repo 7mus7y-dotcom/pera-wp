@@ -1142,6 +1142,27 @@
   color: #fff;
 }
 
+@media (max-width: 640px) {
+  .blog-sort__options {
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    scroll-snap-type: x proximity;
+    max-width: 100%;
+    padding-bottom: 2px;
+    scrollbar-width: none;
+  }
+
+  .blog-sort__options::-webkit-scrollbar {
+    display: none;
+  }
+
+  .blog-sort__link {
+    flex: 0 0 auto;
+    scroll-snap-align: start;
+  }
+}
+
 @media (prefers-color-scheme: dark) {
   .blog-sort__label {
     color: #f9fafb;
