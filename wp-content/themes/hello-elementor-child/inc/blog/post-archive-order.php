@@ -241,6 +241,7 @@ function pera_order_blog_archives_by_selected_date( $query ) {
 		$query->set( 'post_type', 'post' );
 	}
 
+	$query->set( 'pera_blog_archive_sort', $sort );
 	$query->set( 'orderby', pera_get_blog_archive_orderby_args( $sort ) );
 	$query->set( 'order', $choice['order'] );
 
@@ -281,9 +282,14 @@ function pera_order_blog_archive_by_selected_date_clauses( $clauses, $query ) {
 
 	$search = trim( (string) $query->get( 's' ) );
 
-	$secondary_orderby = pera_get_blog_archive_secondary_orderby_sql(
-		pera_get_blog_archive_sort_key()
-	);
+	$options = pera_get_blog_archive_sort_options();
+	$sort    = (string) $query->get( 'pera_blog_archive_sort' );
+
+	if ( ! array_key_exists( $sort, $options ) ) {
+		$sort = 'published';
+	}
+
+	$secondary_orderby = pera_get_blog_archive_secondary_orderby_sql( $sort );
 
 	if ( '' === $search ) {
 		$clauses['orderby'] = $secondary_orderby;
