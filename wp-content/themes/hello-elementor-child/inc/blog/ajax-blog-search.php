@@ -144,14 +144,15 @@ function pera_ajax_blog_search() {
 	}
 
 	$query_args = array(
-		'post_type'           => 'post',
-		'post_status'         => 'publish',
-		's'                   => $search,
-		'paged'               => $paged,
-		'ignore_sticky_posts' => true,
-		'orderby'             => pera_get_blog_archive_orderby_args( $sort ),
-		'order'                 => $options[ $sort ]['order'],
-		'pera_blog_ajax_search' => true,
+		'post_type'              => 'post',
+		'post_status'            => 'publish',
+		's'                      => $search,
+		'paged'                  => $paged,
+		'ignore_sticky_posts'    => true,
+		'orderby'                => pera_get_blog_archive_orderby_args( $sort ),
+		'order'                  => $options[ $sort ]['order'],
+		'pera_blog_archive_sort' => $sort,
+		'pera_blog_ajax_search'  => true,
 	);
 
 	switch ( $archive_type ) {
