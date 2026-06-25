@@ -547,6 +547,16 @@
   flex: 0 0 100%;
   width: 100%;
 }
+.card-shell .article-cta-actions > .btn:first-child {
+  flex: 0 0 100%;
+  width: 100%;
+}
+
+.card-shell .article-cta-actions > .btn:nth-child(2),
+.card-shell .article-cta-actions > .btn:nth-child(3) {
+  flex: 1 1 calc(50% - var(--space-sm));
+  width: auto;
+}
 
 @media (max-width: 640px) {
   .article-body > .card-shell {
@@ -555,6 +565,11 @@
 
   .article-body > .article-cta-actions {
     margin-bottom: 1.35em;
+  }
+  .card-shell .article-cta-actions > .btn:nth-child(2),
+  .card-shell .article-cta-actions > .btn:nth-child(3) {
+    flex: 0 0 100%;
+    width: 100%;
   }
 }
 
