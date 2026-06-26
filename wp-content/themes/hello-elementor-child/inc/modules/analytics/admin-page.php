@@ -125,7 +125,7 @@ if ( ! function_exists( 'pera_analytics_register_admin_page' ) ) {
 			'pera-site-performance',
 			'pera_analytics_render_admin_page',
 			'dashicons-chart-area',
-			6
+			5.1
 		);
 	}
 }
