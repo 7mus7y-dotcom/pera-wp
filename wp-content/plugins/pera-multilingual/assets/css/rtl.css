@@ -1,0 +1,4 @@
+/* Conservative RTL context. Site-specific component tuning should be added only after visual QA. */
+body.pera-ml-rtl { direction: rtl; text-align: right; }
+body.pera-ml-rtl input[type="email"], body.pera-ml-rtl input[type="tel"], body.pera-ml-rtl input[type="url"], body.pera-ml-rtl .property-reference { direction: ltr; text-align: left; }
+body.pera-ml-rtl .pera-ml-switcher ul { display: flex; flex-wrap: wrap; gap: .75rem; list-style: none; margin: 0; padding: 0; }
