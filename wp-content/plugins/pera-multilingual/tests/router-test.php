@@ -48,6 +48,8 @@ $cases = array(
 	array( 'https://external.example/foo/', 'zh', 'https://external.example/foo/', 'external URL' ),
 );
 
+array_push( $cases, array( 'https://www.peraproperty.com/wp-admin/admin-ajax.php?x=1#y', 'zh', 'https://www.peraproperty.com/wp-admin/admin-ajax.php?x=1#y', 'system URL helper safety' ) );
+
 foreach ( $cases as $case ) {
 	$router = new Pera_ML_Router( $registry );
 	pera_ml_expect( $case[2], $router->url_for_language( $case[0], $case[1] ), $case[3] );

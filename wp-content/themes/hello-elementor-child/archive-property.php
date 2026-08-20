@@ -432,11 +432,11 @@ if ( ! $is_filtered_search && ( $qo instanceof WP_Term ) && ! is_wp_error( $qo )
     $hero_title = pera_get_region_archive_heading( $qo );
   } elseif ( $qo->taxonomy === 'property_tags' ) {
     $property_tags_archive_h1 = (string) get_term_meta( $qo->term_id, 'archive_h1_title', true );
-    $hero_title               = trim( $property_tags_archive_h1 ) !== '' ? $property_tags_archive_h1 : $qo->name;
+    $hero_title               = trim( $property_tags_archive_h1 ) !== '' ? $property_tags_archive_h1 : ( function_exists( 'pera_ml_term' ) && $qo instanceof WP_Term ? pera_ml_term( $qo ) : $qo->name );
   } elseif ( $qo->taxonomy === 'property_type' && function_exists( 'pera_get_property_type_archive_heading' ) ) {
     $hero_title = pera_get_property_type_archive_heading( $qo );
   } else {
-    $hero_title = $qo->name;
+    $hero_title = ( function_exists( 'pera_ml_term' ) && $qo instanceof WP_Term ? pera_ml_term( $qo ) : $qo->name );
   }
 
   $term_excerpt = (string) get_term_meta( $qo->term_id, 'term_excerpt', true );
@@ -848,7 +848,7 @@ if ( ! $is_filtered_search && ( $qo instanceof WP_Term ) && ! is_wp_error( $qo )
                                                 value="<?php echo esc_attr( $district->slug ); ?>"
                                                 <?php checked( $is_active ); ?>
                                             >
-                                            <span><?php echo esc_html( $district->name ); ?> (<?php echo (int) $district->count; ?>)</span>
+                                            <span><?php echo esc_html( ( function_exists( 'pera_ml_term' ) ? pera_ml_term( $district ) : $district->name ) ); ?> (<?php echo (int) $district->count; ?>)</span>
                                         </label>
                                     <?php endforeach;
                                 endif;
@@ -1072,7 +1072,7 @@ $pagination_html = function_exists( 'pera_render_property_pagination' )
     <?php if ( $regional_guide_url !== '' ) : ?>
       <div class="taxonomy-intro__actions">
         <a class="btn btn--solid btn--green" href="<?php echo esc_url( $regional_guide_url ); ?>">
-          <?php echo esc_html( sprintf( 'Read %s area guide', $qo->name ) ); ?>
+          <?php echo esc_html( sprintf( 'Read %s area guide', ( function_exists( 'pera_ml_term' ) && $qo instanceof WP_Term ? pera_ml_term( $qo ) : $qo->name ) ) ); ?>
         </a>
       </div>
     <?php endif; ?>
@@ -1372,6 +1372,8 @@ $property_archive_faq_items = ( function_exists( 'pera_property_archive_is_index
   if (!form || !grid) return;
 
   const ajaxUrl = "<?php echo esc_js( admin_url('admin-ajax.php') ); ?>";
+  const peraMlLanguage = "<?php echo esc_js( function_exists( 'pera_ml_current_language' ) ? pera_ml_current_language() : 'en' ); ?>";
+  const peraMlNonce = "<?php echo esc_js( wp_create_nonce( 'pera_ml_property_filter' ) ); ?>";
   const debugParam = new URLSearchParams(window.location.search).get('pera_debug');
 
   let activeController = null;
@@ -1502,6 +1504,8 @@ $property_archive_faq_items = ( function_exists( 'pera_property_archive_is_index
 
     const fd = new FormData(form);
     fd.set('action', 'pera_filter_properties_v2');
+    fd.set('pera_ml_lang', peraMlLanguage);
+    fd.set('pera_ml_nonce', peraMlNonce);
     fd.set('paged', String(paged));
 
     const basePath = window.location.pathname

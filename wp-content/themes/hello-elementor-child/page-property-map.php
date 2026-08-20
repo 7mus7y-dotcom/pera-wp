@@ -144,9 +144,9 @@ if ( $acf_loaded ) {
             'price_min'     => $price_min,
             'price_max'     => $price_max > 0 ? $price_max : $price_min,
             'district'      => $district_term ? $district_term->slug : '',
-            'district_name' => $district_term ? $district_term->name : '',
+            'district_name' => $district_term ? ( function_exists( 'pera_ml_term' ) ? pera_ml_term( $district_term ) : $district_term->name ) : '',
             'type'          => $type_term instanceof WP_Term ? $type_term->slug : '',
-            'type_name'     => $type_term instanceof WP_Term ? $type_term->name : '',
+            'type_name'     => $type_term instanceof WP_Term ? ( function_exists( 'pera_ml_term' ) ? pera_ml_term( $type_term ) : $type_term->name ) : '',
             'bedrooms'      => array_values( array_unique( $bedrooms ) ),
         );
     }
@@ -195,7 +195,7 @@ foreach ( $area_copy as $slug => $copy ) {
     if ( $term instanceof WP_Term ) {
         $link = get_term_link( $term );
         if ( ! is_wp_error( $link ) ) {
-            $area_cards[] = array( 'name' => $term->name, 'copy' => $copy, 'url' => $link );
+            $area_cards[] = array( 'name' => ( function_exists( 'pera_ml_term' ) ? pera_ml_term( $term ) : $term->name ), 'copy' => $copy, 'url' => $link );
         }
     }
 }

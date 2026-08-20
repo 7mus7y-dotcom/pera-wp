@@ -186,7 +186,7 @@ $secondary_cta = isset($args['secondary_cta']) && is_array($args['secondary_cta'
           <div class="property-card__location">
             <?php if ( $district ) : ?>
               <a href="<?php echo esc_url( get_term_link( $district ) ); ?>" class="property-card__location-link">
-                <?php echo esc_html( $district->name ); ?>
+                <?php echo esc_html( ( function_exists( 'pera_ml_term' ) ? pera_ml_term( $district ) : $district->name ) ); ?>
               </a>
             <?php endif; ?>
 

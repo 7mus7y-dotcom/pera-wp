@@ -90,7 +90,7 @@ if ( ! empty( $specials_terms ) && ! is_wp_error( $specials_terms ) ) {
   }
 }
 
-$specials_label = $specials_term ? $specials_term->name : '';
+$specials_label = $specials_term ? ( function_exists( 'pera_ml_term' ) ? pera_ml_term( $specials_term ) : $specials_term->name ) : '';
 $specials_slug  = $specials_term ? $specials_term->slug : '';
 
 $specials_tooltip = '';
@@ -369,13 +369,13 @@ if ( $size_min > 0 ) {
 
           <?php if ( $district_term ) : ?>
             <a href="<?php echo esc_url( get_term_link( $district_term ) ); ?>" class="pill pill--subtle property-card__location-link">
-              <?php echo esc_html( $district_term->name ); ?>
+              <?php echo esc_html( ( function_exists( 'pera_ml_term' ) ? pera_ml_term( $district_term ) : $district_term->name ) ); ?>
             </a>
           <?php endif; ?>
 
           <?php if ( $region_term ) : ?>
             <a href="<?php echo esc_url( get_term_link( $region_term ) ); ?>" class="pill pill--subtle property-card__location-link">
-              <?php echo esc_html( $region_term->name ); ?>
+              <?php echo esc_html( ( function_exists( 'pera_ml_term' ) ? pera_ml_term( $region_term ) : $region_term->name ) ); ?>
             </a>
           <?php endif; ?>
 

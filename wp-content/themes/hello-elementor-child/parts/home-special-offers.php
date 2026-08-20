@@ -101,7 +101,7 @@ if ( $offers_query->have_posts() ) {
       'post_id'        => $property_id,
       'title'          => get_the_title( $property_id ),
       'permalink'      => get_permalink( $property_id ),
-      'district_label' => $district_term ? $district_term->name : '',
+      'district_label' => $district_term ? ( function_exists( 'pera_ml_term' ) ? pera_ml_term( $district_term ) : $district_term->name ) : '',
       'attachment_id'  => (int) $resolved_media['attachment_id'],
       'image_url'      => (string) $resolved_media['image_url'],
     );

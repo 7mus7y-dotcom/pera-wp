@@ -81,10 +81,10 @@ if ( $region_term ) {
 
 
 /* Property type */
-$type_name = ( ! empty( $type_terms ) && ! is_wp_error( $type_terms ) ) ? (string) $type_terms[0]->name : '';
+$type_name = ( ! empty( $type_terms ) && ! is_wp_error( $type_terms ) ) ? (string) ( function_exists( 'pera_ml_term' ) ? pera_ml_term( $type_terms[0] ) : $type_terms[0]->name ) : '';
 $type_link = ( ! empty( $type_terms ) && ! is_wp_error( $type_terms ) ) ? get_term_link( $type_terms[0] ) : '';
 $is_villa_property = false;
-$villa_archive_url = home_url( '/property-type/villas/' );
+$villa_archive_url = function_exists( 'pera_ml_url' ) ? pera_ml_url( home_url( '/property-type/villas/' ) ) : home_url( '/property-type/villas/' );
 
 if ( ! empty( $type_terms ) && ! is_wp_error( $type_terms ) ) {
   foreach ( $type_terms as $type_term ) {
@@ -555,20 +555,20 @@ $has_further_reading = ! empty( $post_ids );
       <?php if ( $district_term ) : ?>
         <?php if ( $district_link ) : ?>
           <a class="pill pill--green" href="<?php echo esc_url( $district_link ); ?>">
-            <?php echo esc_html( $district_term->name ); ?>
+            <?php echo esc_html( ( function_exists( 'pera_ml_term' ) ? pera_ml_term( $district_term ) : $district_term->name ) ); ?>
           </a>
         <?php else : ?>
-          <span class="pill pill--green"><?php echo esc_html( $district_term->name ); ?></span>
+          <span class="pill pill--green"><?php echo esc_html( ( function_exists( 'pera_ml_term' ) ? pera_ml_term( $district_term ) : $district_term->name ) ); ?></span>
         <?php endif; ?>
       <?php endif; ?>
 
       <?php if ( ! empty( $region ) && ! is_wp_error( $region ) ) : ?>
         <?php if ( $region_link && ! is_wp_error( $region_link ) ) : ?>
           <a class="pill pill--green" href="<?php echo esc_url( $region_link ); ?>">
-            <?php echo esc_html( $region[0]->name ); ?>
+            <?php echo esc_html( ( function_exists( 'pera_ml_term' ) ? pera_ml_term( $region[0] ) : $region[0]->name ) ); ?>
           </a>
         <?php else : ?>
-          <span class="pill pill--green"><?php echo esc_html( $region[0]->name ); ?></span>
+          <span class="pill pill--green"><?php echo esc_html( ( function_exists( 'pera_ml_term' ) ? pera_ml_term( $region[0] ) : $region[0]->name ) ); ?></span>
         <?php endif; ?>
       <?php endif; ?>
 
@@ -821,7 +821,7 @@ $custom_video_text = $custom_video_text ? wp_kses_post( wpautop( $custom_video_t
         $district_url = $district_link;
 
         if ( $district_url ) {
-          $district_name = $district_term->name;
+          $district_name = ( function_exists( 'pera_ml_term' ) ? pera_ml_term( $district_term ) : $district_term->name );
           ?>
           <p class="text-sm">
             Browse all <a href="<?php echo esc_url( $district_url ); ?>">
@@ -990,7 +990,7 @@ $custom_video_text = $custom_video_text ? wp_kses_post( wpautop( $custom_video_t
                           <use href="<?php echo esc_url( get_stylesheet_directory_uri() . '/logos-icons/icons.svg#icon-map' ); ?>"></use>
                         </svg>
                         <span class="fact-label">District</span>
-                        <span class="fact-value"><?php echo esc_html( $district_term->name ); ?></span>
+                        <span class="fact-value"><?php echo esc_html( ( function_exists( 'pera_ml_term' ) ? pera_ml_term( $district_term ) : $district_term->name ) ); ?></span>
                       </div>
                     <?php endif; ?>
             
@@ -1016,7 +1016,7 @@ $custom_video_text = $custom_video_text ? wp_kses_post( wpautop( $custom_video_t
                     <p class="text-soft">Looking for similar properties? Browse our collection of villas for sale in Istanbul or learn more about Istanbul's leading villa communities.</p>
                     <div class="card-meta-row villa-explore-links__actions">
                       <a class="btn btn--solid btn--blue" href="<?php echo esc_url( $villa_archive_url ); ?>">Explore More Villas in Istanbul</a>
-                      <a class="btn btn--ghost btn--green" href="<?php echo esc_url( home_url( '/a-guide-to-istanbuls-villa-communities-where-to-find-luxury-and-space_52516/' ) ); ?>">Villa Area Guide</a>
+                      <a class="btn btn--ghost btn--green" href="<?php echo esc_url( function_exists( 'pera_ml_url' ) ? pera_ml_url( home_url( '/a-guide-to-istanbuls-villa-communities-where-to-find-luxury-and-space_52516/' ) ) : home_url( '/a-guide-to-istanbuls-villa-communities-where-to-find-luxury-and-space_52516/' ) ); ?>">Villa Area Guide</a>
                     </div>
                   </div><!-- .villa-explore-links -->
                 <?php endif; ?>
@@ -1685,11 +1685,11 @@ if ( ! empty( $yt_video ) ) {
           </p>
 
           <div class="hero-actions flex-center">
-            <a href="<?php echo esc_url( home_url( '/sell-your-istanbul-real-estate/' ) ); ?>" class="btn btn--solid btn--blue">
+            <a href="<?php echo esc_url( function_exists( 'pera_ml_url' ) ? pera_ml_url( home_url( '/sell-your-istanbul-real-estate/' ) ) : home_url( '/sell-your-istanbul-real-estate/' ) ); ?>" class="btn btn--solid btn--blue">
               Get a Free Valuation
             </a>
 
-            <a href="<?php echo esc_url( home_url( '/rent-your-istanbul-real-estate/' ) ); ?>" class="btn btn--ghost btn--blue">
+            <a href="<?php echo esc_url( function_exists( 'pera_ml_url' ) ? pera_ml_url( home_url( '/rent-your-istanbul-real-estate/' ) ) : home_url( '/rent-your-istanbul-real-estate/' ) ); ?>" class="btn btn--ghost btn--blue">
               Explore Property Management
             </a>
 
