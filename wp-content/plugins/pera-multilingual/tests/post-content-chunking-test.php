@@ -139,6 +139,29 @@ $list_plan = $chunk_method->invoke( $translator, $large_list );
 foreach ( $list_plan as $piece ) if ( $piece['translate'] ) expect_chunk( chunk_html_is_balanced( $piece['text'] ), 'each oversized-list provider fragment contains balanced HTML' );
 $observed_maximum_tokens = max( $observed_maximum_tokens, $GLOBALS['chunk_test_provider']->maximum_tokens );
 
+$gutenberg_wrappers = array(
+	'group-attributes' => array( "<!-- wp:group {\"layout\":{\"type\":\"constrained\"}} -->\n", '<div class="wp-block-group">', "</div>\n<!-- /wp:group -->" ),
+	'columns' => array( " \n<!-- wp:columns -->\n", '<div class="wp-block-columns">', "</div>\n<!-- /wp:columns -->\n " ),
+);
+foreach ( $gutenberg_wrappers as $label => $wrapper ) {
+	$gutenberg_source = $wrapper[0] . $wrapper[1];
+	for ( $i = 0; $i < 20; $i++ ) $gutenberg_source .= '<p>Gutenberg child ' . $i . ' with <a href="https://example.com/gutenberg/' . $i . '">link</a>.</p>';
+	$gutenberg_source .= $wrapper[2];
+	$storage = new Chunk_Test_Storage();
+	$GLOBALS['chunk_test_provider'] = new Chunk_Test_Provider( 'zh' );
+	$translator = new Pera_ML_Translator( $registry, $storage );
+	$gutenberg_result = $translator->translate_and_store( 'post', 200, 'post_content', 'zh', $gutenberg_source, 'mock' );
+	expect_chunk( ! is_wp_error( $gutenberg_result ), "$label oversized Gutenberg wrapper subdivides without error" );
+	expect_chunk( 1 === substr_count( $gutenberg_result, trim( $wrapper[0] ) ), "$label opening Gutenberg comment survives exactly once" );
+	expect_chunk( 1 === substr_count( $gutenberg_result, trim( $wrapper[2] ) ), "$label closing Gutenberg comment survives exactly once" );
+	expect_chunk( substr( $gutenberg_result, 0, strlen( $wrapper[0] ) ) === $wrapper[0], "$label preserves whitespace around opening comment" );
+	expect_chunk( substr( $gutenberg_result, -strlen( $wrapper[2] ) ) === $wrapper[2], "$label preserves whitespace around closing comment" );
+	expect_chunk( $GLOBALS['chunk_test_provider']->maximum_tokens <= 50, "$label chunks respect protected-token limit" );
+	$gutenberg_plan = $chunk_method->invoke( $translator, $gutenberg_source );
+	foreach ( $gutenberg_plan as $piece ) if ( $piece['translate'] ) expect_chunk( chunk_html_is_balanced( $piece['text'] ), "$label child provider fragments contain balanced HTML" );
+	$observed_maximum_tokens = max( $observed_maximum_tokens, $GLOBALS['chunk_test_provider']->maximum_tokens );
+}
+
 $indivisible = '<p>' . str_repeat( '<a href="https://example.com">linked</a>', 30 ) . '</p>';
 $storage = new Chunk_Test_Storage();
 $GLOBALS['chunk_test_provider'] = new Chunk_Test_Provider( 'zh' );

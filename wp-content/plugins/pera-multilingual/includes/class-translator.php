@@ -104,8 +104,21 @@ final class Pera_ML_Translator {
 		$blocks = array();
 		$stack = array();
 		$start = 0;
+		$pending_end = 0;
 		foreach ( $matches[0] as $match ) {
 			$token = $match[0];
+			if ( $pending_end ) {
+				if ( '<!--' === substr( $token, 0, 4 ) && preg_match( '/^<!--\s*\/wp:[A-Za-z0-9_\/-]+\s*-->$/isu', $token ) ) {
+					$end = $match[1] + strlen( $token );
+					$blocks[] = substr( $source, $start, $end - $start );
+					$start = $end;
+					$pending_end = 0;
+					continue;
+				}
+				$blocks[] = substr( $source, $start, $pending_end - $start );
+				$start = $pending_end;
+				$pending_end = 0;
+			}
 			if ( '<' !== substr( $token, 0, 1 ) || '<!--' === substr( $token, 0, 4 ) ) continue;
 			if ( ! preg_match( '/^<\s*(\/?)\s*([A-Za-z0-9]+)/', $token, $tag_match ) ) continue;
 			$closing = '/' === $tag_match[1];
@@ -119,15 +132,23 @@ final class Pera_ML_Translator {
 				if ( false !== $position ) $stack = array_slice( $stack, 0, $position );
 			}
 			if ( empty( $stack ) ) {
-				$end = $match[1] + strlen( $token );
-				$blocks[] = substr( $source, $start, $end - $start );
-				$start = $end;
+				$pending_end = $match[1] + strlen( $token );
 			}
 		}
 		if ( $start < strlen( $source ) ) $blocks[] = substr( $source, $start );
 		return empty( $blocks ) ? array( $source ) : $blocks;
 	}
 	private function subdivide_compound_block( $block, $max_chars, $max_tokens ) {
+		$gutenberg = '/^(\s*<!--\s*wp:([A-Za-z0-9_\/-]+)(?:\s+.*?)?\s*-->\s*)(.*)(\s*<!--\s*\/wp:\2\s*-->\s*)$/isu';
+		if ( preg_match( $gutenberg, $block, $comments ) ) {
+			$wrapped = $this->subdivide_compound_block( $comments[3], $max_chars, $max_tokens );
+			if ( is_wp_error( $wrapped ) ) return $wrapped;
+			return array_merge(
+				array( array( 'translate' => false, 'text' => $comments[1] ) ),
+				$wrapped,
+				array( array( 'translate' => false, 'text' => $comments[4] ) )
+			);
+		}
 		$pattern = '/^(\s*)(<(div|ul|ol|table|thead|tbody|tfoot)\b[^>]*>)(.*)(<\/\3\s*>)(\s*)$/isu';
 		if ( ! preg_match( $pattern, $block, $parts ) ) {
 			return new WP_Error( 'pera_ml_chunk_too_large', __( 'A structural block exceeds the translation chunk limits and cannot be safely subdivided.', 'pera-multilingual' ) );
