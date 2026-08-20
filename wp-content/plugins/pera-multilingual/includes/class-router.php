@@ -6,6 +6,7 @@ final class Pera_ML_Router {
 	private $language = 'en';
 	private $original_uri = '';
 	private $stripped = false;
+	private $language_root = false;
 
 	public function __construct( $registry ) { $this->registry = $registry; }
 	public function hooks() {
@@ -36,6 +37,7 @@ final class Pera_ML_Router {
 		if ( $this->is_system_path( $canonical_relative ) ) return;
 		$this->language = $language['code'];
 		$this->original_uri = $uri;
+		$this->language_root = '' === $canonical_relative;
 		$without = trailingslashit( untrailingslashit( $site_path ) ) . $canonical_relative;
 		if ( '/' !== substr( $path, -1 ) && '' !== $canonical_relative ) $without = untrailingslashit( $without );
 		$query = wp_parse_url( $uri, PHP_URL_QUERY );
@@ -46,8 +48,28 @@ final class Pera_ML_Router {
 	public function restore_public_uri( $wp ) {
 		if ( $this->stripped ) {
 			$_SERVER['REQUEST_URI'] = $this->original_uri;
-			$wp->query_vars['pera_ml_lang'] = $this->language;
+			if ( $this->language_root ) {
+				$this->restore_front_page_query( $wp );
+			} else {
+				$wp->query_vars['pera_ml_lang'] = $this->language;
+			}
 		}
+	}
+
+	/**
+	 * Give a translated language root the same main-query target as the site root.
+	 *
+	 * WP_Query only performs its empty-query static-front-page conversion when the
+	 * original query is empty. Adding pera_ml_lang to /zh/ or /ar/ made it non-empty,
+	 * so WordPress left is_home set and loaded the posts page. The router already
+	 * owns the request language, so the language marker is deliberately omitted for
+	 * roots and the configured front-page ID is supplied instead.
+	 */
+	private function restore_front_page_query( $wp ) {
+		unset( $wp->query_vars['pera_ml_lang'] );
+		if ( 'page' !== get_option( 'show_on_front' ) ) return;
+		$front_page_id = (int) get_option( 'page_on_front' );
+		if ( $front_page_id > 0 ) $wp->query_vars['page_id'] = $front_page_id;
 	}
 
 	public function current_language() { return $this->language; }
