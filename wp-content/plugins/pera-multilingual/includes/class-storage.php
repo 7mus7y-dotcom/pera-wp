@@ -30,12 +30,39 @@ final class Pera_ML_Storage {
 		) {$charset};" );
 	}
 
+	/**
+	 * Normalize a translation field key without discarding its namespace.
+	 *
+	 * Field keys without a namespace retain their existing sanitize_key() behavior.
+	 * Structured keys sanitize the namespace and field name independently so that
+	 * keys such as meta:seo_title keep the delimiter used by readers.
+	 */
+	public static function normalize_field_key( $field ) {
+		$field = (string) $field;
+		if ( false === strpos( $field, ':' ) ) return sanitize_key( $field );
+
+		$parts = explode( ':', $field, 2 );
+		$namespace = sanitize_key( $parts[0] );
+		$name = sanitize_key( $parts[1] );
+		return '' !== $namespace && '' !== $name ? $namespace . ':' . $name : sanitize_key( $field );
+	}
+
 	public function get( $object_type, $object_id, $field, $language, $source = '' ) {
+		$field = self::normalize_field_key( $field );
 		$key = $this->cache_key( $object_type, $object_id, $field, $language );
 		$cached = wp_cache_get( $key, 'pera_ml' );
 		if ( false === $cached ) {
 			global $wpdb;
 			$cached = $wpdb->get_row( $wpdb->prepare( "SELECT * FROM {$this->table} WHERE object_type=%s AND object_id=%d AND field_key=%s AND language=%s", $object_type, $object_id, $field, $language ), ARRAY_A );
+			// Before structured keys were normalized component-by-component, put()
+			// collapsed their delimiter (meta:seo_title became metaseo_title).
+			// Keep those production translations readable without altering them.
+			if ( ! $cached && false !== strpos( $field, ':' ) ) {
+				$legacy_field = sanitize_key( $field );
+				if ( $legacy_field !== $field ) {
+					$cached = $wpdb->get_row( $wpdb->prepare( "SELECT * FROM {$this->table} WHERE object_type=%s AND object_id=%d AND field_key=%s AND language=%s", $object_type, $object_id, $legacy_field, $language ), ARRAY_A );
+				}
+			}
 			wp_cache_set( $key, $cached ? $cached : array(), 'pera_ml' );
 		}
 		if ( empty( $cached ) ) return null;
@@ -46,7 +73,8 @@ final class Pera_ML_Storage {
 	public function put( $object_type, $object_id, $field, $language, $source, $translation, $provider = 'manual' ) {
 		global $wpdb;
 		$now = current_time( 'mysql', true );
-		$data = array( 'object_type' => sanitize_key( $object_type ), 'object_id' => absint( $object_id ), 'field_key' => sanitize_key( $field ), 'language' => sanitize_key( $language ), 'source_hash' => hash( 'sha256', $source ), 'source_text' => $source, 'translated_text' => $translation, 'status' => 'current', 'provider' => sanitize_key( $provider ), 'translated_at' => $now, 'updated_at' => $now );
+		$field = self::normalize_field_key( $field );
+		$data = array( 'object_type' => sanitize_key( $object_type ), 'object_id' => absint( $object_id ), 'field_key' => $field, 'language' => sanitize_key( $language ), 'source_hash' => hash( 'sha256', $source ), 'source_text' => $source, 'translated_text' => $translation, 'status' => 'current', 'provider' => sanitize_key( $provider ), 'translated_at' => $now, 'updated_at' => $now );
 		$sql = "INSERT INTO {$this->table} (object_type,object_id,field_key,language,source_hash,source_text,translated_text,status,provider,translated_at,updated_at) VALUES (%s,%d,%s,%s,%s,%s,%s,%s,%s,%s,%s) ON DUPLICATE KEY UPDATE source_hash=VALUES(source_hash),source_text=VALUES(source_text),translated_text=VALUES(translated_text),status='current',provider=VALUES(provider),translated_at=VALUES(translated_at),updated_at=VALUES(updated_at)";
 		$result = $wpdb->query( $wpdb->prepare( $sql, array_values( $data ) ) );
 		wp_cache_delete( $this->cache_key( $object_type, $object_id, $field, $language ), 'pera_ml' );
