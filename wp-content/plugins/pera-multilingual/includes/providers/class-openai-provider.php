@@ -16,6 +16,7 @@ final class Pera_ML_OpenAI_Provider implements Pera_ML_Provider_Interface {
 		$code = wp_remote_retrieve_response_code( $response );
 		$body = json_decode( wp_remote_retrieve_body( $response ), true );
 		if ( 429 === $code ) return new WP_Error( 'pera_ml_rate_limited', __( 'Translation provider rate limit reached. Please retry later.', 'pera-multilingual' ) );
+		if ( in_array( $code, array( 408, 425 ), true ) || $code >= 500 ) return new WP_Error( 'pera_ml_provider_transient', sprintf( __( 'Translation provider returned transient HTTP %d.', 'pera-multilingual' ), $code ) );
 		if ( $code < 200 || $code >= 300 ) return new WP_Error( 'pera_ml_provider_error', sprintf( __( 'Translation provider returned HTTP %d.', 'pera-multilingual' ), $code ) );
 		if ( ! is_array( $body ) || empty( $body['output'] ) ) return new WP_Error( 'pera_ml_malformed_response', __( 'Translation provider returned an unreadable response.', 'pera-multilingual' ) );
 		foreach ( $body['output'] as $item ) foreach ( isset( $item['content'] ) && is_array( $item['content'] ) ? $item['content'] : array() as $part ) if ( 'output_text' === ( $part['type'] ?? '' ) && isset( $part['text'] ) ) return (string) $part['text'];
