@@ -9,8 +9,16 @@ final class Pera_ML_Admin {
 		if ( empty( $_GET['pera_ml_notice'] ) || empty( $_GET['post'] ) ) return;
 		$key = $this->notice_key( get_current_user_id(), absint( $_GET['post'] ), sanitize_key( wp_unslash( $_GET['pera_ml_notice'] ) ) );
 		$notice = get_transient( $key ); if ( ! is_array( $notice ) ) return; delete_transient( $key );
-		$failures = isset( $notice['failures'] ) && is_array( $notice['failures'] ) ? $notice['failures'] : array();
-		echo '<div class="notice ' . ( $failures ? 'notice-warning' : 'notice-success' ) . ' is-dismissible"><p>' . ( $failures ? esc_html( sprintf( __( 'Translation saved with field failures: %s', 'pera-multilingual' ), implode( '; ', $failures ) ) ) : esc_html__( 'Object translation saved.', 'pera-multilingual' ) ) . '</p></div>';
+		$failures = isset( $notice['failures'] ) && is_array( $notice['failures'] ) ? array_slice( $notice['failures'], 0, 50 ) : array();
+		$successes = isset( $notice['successes'] ) ? absint( $notice['successes'] ) : 0;
+		$message = sprintf(
+			/* translators: 1: successful field count, 2: failed field count */
+			__( 'Translation finished: %1$d fields succeeded; %2$d fields failed.', 'pera-multilingual' ),
+			$successes,
+			count( $failures )
+		);
+		if ( $failures ) $message .= ' ' . sprintf( __( 'Failed fields: %s', 'pera-multilingual' ), implode( ', ', $failures ) );
+		echo '<div class="notice ' . ( $failures ? 'notice-warning' : 'notice-success' ) . ' is-dismissible"><p>' . esc_html( $message ) . '</p></div>';
 	}
 	public function meta_box() { foreach ( get_post_types( array( 'public' => true ) ) as $type ) add_meta_box( 'pera-ml-translate', __( 'Pera Multilingual', 'pera-multilingual' ), array( $this, 'meta_box_html' ), $type, 'side' ); }
 	public function meta_box_html( $post ) { foreach ( $this->registry->enabled() as $code => $language ) { if ( 'en' === $code ) continue; $form_id = 'pera-ml-translate-' . (int) $post->ID . '-' . sanitize_html_class( $code ); $this->translation_forms[ $form_id ] = array( 'post_id' => (int) $post->ID, 'language' => $code ); echo '<p><button class="button" type="submit" form="' . esc_attr( $form_id ) . '">' . esc_html( sprintf( __( 'Translate this object → %s', 'pera-multilingual' ), $language['name'] ) ) . '</button></p>'; } }
@@ -20,17 +28,45 @@ final class Pera_ML_Admin {
 		$post_id = isset( $_POST['post_id'] ) ? absint( $_POST['post_id'] ) : 0; $language = isset( $_POST['language'] ) ? sanitize_key( wp_unslash( $_POST['language'] ) ) : '';
 		if ( ! $post_id || ! current_user_can( 'edit_post', $post_id ) ) wp_die( esc_html__( 'You cannot translate this object.', 'pera-multilingual' ), 403 );
 		check_admin_referer( 'pera_ml_translate_' . $post_id . '_' . $language ); $config = $this->registry->get( $language ); if ( ! $config || empty( $config['enabled'] ) || ! empty( $config['source'] ) ) wp_die( esc_html__( 'Invalid target language.', 'pera-multilingual' ), 400 );
-		$post = get_post( $post_id ); $sources = array( 'post_title' => $post->post_title, 'post_content' => $post->post_content, 'post_excerpt' => $post->post_excerpt );
+		$post = get_post( $post_id );
+		// Translate the largest and most important field first. A synchronous request that is
+		// terminated by the host can then no longer skip content after saving smaller fields.
+		$sources = array( 'post_content' => $post->post_content, 'post_title' => $post->post_title, 'post_excerpt' => $post->post_excerpt );
 		foreach ( Pera_ML_Plugin::instance()->fields()->approved() as $field ) { $value = get_post_meta( $post_id, $field, true ); if ( is_string( $value ) && '' !== trim( $value ) ) $sources[ 'meta:' . $field ] = $value; }
-		$failures = array(); foreach ( $sources as $field => $source ) { if ( '' === trim( $source ) ) continue; $result = Pera_ML_Plugin::instance()->translator()->translate_and_store( 'post', $post_id, $field, $language, $source ); if ( is_wp_error( $result ) ) $failures[] = $field; }
+		$summary = $this->translate_fields( $post_id, $language, $sources ); $failures = $summary['failures']; $successes = $summary['successes'];
 		foreach ( array( 'district', 'region', 'property_type', 'property_tags', 'special' ) as $taxonomy ) { $terms = wp_get_post_terms( $post_id, $taxonomy ); if ( is_wp_error( $terms ) ) { $failures[] = $taxonomy . ':terms'; continue; } foreach ( $terms as $term ) {
 			$name = Pera_ML_Plugin::instance()->vocabulary()->translate( $term->name, $language );
-			$result = $name !== $term->name ? Pera_ML_Plugin::instance()->storage()->put( 'term', $term->term_id, 'term_name', $language, $term->name, $name, 'vocabulary' ) : Pera_ML_Plugin::instance()->translator()->translate_and_store( 'term', $term->term_id, 'term_name', $language, $term->name ); if ( is_wp_error( $result ) ) $failures[] = $taxonomy . ':' . $term->term_id . ':name';
-			if ( '' !== trim( $term->description ) ) { $result = Pera_ML_Plugin::instance()->translator()->translate_and_store( 'term', $term->term_id, 'term_description', $language, $term->description ); if ( is_wp_error( $result ) ) $failures[] = $taxonomy . ':' . $term->term_id . ':description'; }
-			if ( 'district' === $taxonomy ) foreach ( array( 'district_archive_subtitle', 'district_archive_body' ) as $field ) { $source = get_term_meta( $term->term_id, $field, true ); if ( is_string( $source ) && '' !== trim( $source ) ) { $result = Pera_ML_Plugin::instance()->translator()->translate_and_store( 'term', $term->term_id, 'meta:' . $field, $language, $source ); if ( is_wp_error( $result ) ) $failures[] = $taxonomy . ':' . $term->term_id . ':' . $field; } }
+			$result = $name !== $term->name ? Pera_ML_Plugin::instance()->storage()->put( 'term', $term->term_id, 'term_name', $language, $term->name, $name, 'vocabulary' ) : $this->translate_with_retry( Pera_ML_Plugin::instance()->translator(), 'term', $term->term_id, 'term_name', $language, $term->name ); if ( is_wp_error( $result ) ) $failures[] = $taxonomy . ':' . $term->term_id . ':name'; else $successes++;
+			if ( '' !== trim( $term->description ) ) { $result = $this->translate_with_retry( Pera_ML_Plugin::instance()->translator(), 'term', $term->term_id, 'term_description', $language, $term->description ); if ( is_wp_error( $result ) ) $failures[] = $taxonomy . ':' . $term->term_id . ':description'; else $successes++; }
+			if ( 'district' === $taxonomy ) foreach ( array( 'district_archive_subtitle', 'district_archive_body' ) as $field ) { $source = get_term_meta( $term->term_id, $field, true ); if ( is_string( $source ) && '' !== trim( $source ) ) { $result = $this->translate_with_retry( Pera_ML_Plugin::instance()->translator(), 'term', $term->term_id, 'meta:' . $field, $language, $source ); if ( is_wp_error( $result ) ) $failures[] = $taxonomy . ':' . $term->term_id . ':' . $field; else $successes++; } }
 		} }
-		$notice_id = wp_generate_password( 12, false, false ); set_transient( $this->notice_key( get_current_user_id(), $post_id, $notice_id ), array( 'language' => $language, 'failures' => array_slice( $failures, 0, 50 ) ), 5 * MINUTE_IN_SECONDS );
+		$failures = array_slice( array_map( array( $this, 'bounded_field_identifier' ), $failures ), 0, 50 );
+		$notice_id = wp_generate_password( 12, false, false ); set_transient( $this->notice_key( get_current_user_id(), $post_id, $notice_id ), array( 'language' => $language, 'successes' => $successes, 'failures' => $failures ), 5 * MINUTE_IN_SECONDS );
 		$redirect = add_query_arg( 'pera_ml_notice', $notice_id, get_edit_post_link( $post_id, 'url' ) ); wp_safe_redirect( $redirect ); exit;
+	}
+	/** Run independent field writes, retaining every successful row when a sibling fails. */
+	public function translate_fields( $post_id, $language, array $sources, $translator = null ) {
+		$translator = $translator ? $translator : Pera_ML_Plugin::instance()->translator();
+		$summary = array( 'successes' => 0, 'failures' => array() );
+		foreach ( $sources as $field => $source ) {
+			if ( ! is_string( $source ) || '' === trim( $source ) ) continue;
+			$result = $this->translate_with_retry( $translator, 'post', $post_id, $field, $language, $source );
+			if ( is_wp_error( $result ) ) $summary['failures'][] = $this->bounded_field_identifier( $field );
+			else $summary['successes']++;
+		}
+		return $summary;
+	}
+	private function translate_with_retry( $translator, $type, $id, $field, $language, $source ) {
+		$result = $translator->translate_and_store( $type, $id, $field, $language, $source );
+		if ( ! is_wp_error( $result ) || ! in_array( $result->get_error_code(), array( 'pera_ml_rate_limited', 'pera_ml_provider_transient', 'http_request_failed' ), true ) ) return $result;
+		// One orchestration retry only; post_content source-echo segment retries remain inside the translator.
+		$delay = (int) apply_filters( 'pera_ml_admin_retry_delay', 1, $result, $field );
+		if ( $delay > 0 ) sleep( min( 2, $delay ) );
+		return $translator->translate_and_store( $type, $id, $field, $language, $source );
+	}
+	private function bounded_field_identifier( $field ) {
+		$field = preg_replace( '/[^a-zA-Z0-9_:-]/', '', (string) $field );
+		return substr( $field, 0, 100 );
 	}
 	private function notice_key( $user_id, $post_id, $notice_id ) { return 'pera_ml_notice_' . absint( $user_id ) . '_' . absint( $post_id ) . '_' . sanitize_key( $notice_id ); }
 	public function menu() { add_options_page( __( 'Pera Multilingual', 'pera-multilingual' ), __( 'Pera Multilingual', 'pera-multilingual' ), 'manage_options', 'pera-multilingual', array( $this, 'page' ) ); }
