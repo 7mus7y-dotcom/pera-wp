@@ -70,7 +70,7 @@ final class Pera_ML_Translator {
 	 */
 	private function bounded_structural_chunks( $source ) {
 		$source = (string) $source;
-		if ( '' === $source ) return array( '' );
+		if ( '' === $source ) return array( array( 'translate' => true, 'text' => '' ) );
 		$max_chars = max( 1, (int) apply_filters( 'pera_ml_post_content_chunk_max_chars', 10000 ) );
 		$max_tokens = max( 1, (int) apply_filters( 'pera_ml_post_content_chunk_max_tokens', 50 ) );
 		return $this->build_structural_chunk_plan( $source, $max_chars, $max_tokens );

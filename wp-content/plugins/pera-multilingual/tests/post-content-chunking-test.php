@@ -95,6 +95,8 @@ $fixture .= '<blockquote>Closing quotation</blockquote><table><tbody><tr><th>Lab
 preg_match_all( '/<!--.*?-->|<[^>]+>|\[[A-Za-z][^\]]*\]|https?:\/\/[^\s<"\']+/', $fixture, $original_tokens );
 expect_chunk( count( $original_tokens[0] ) > 300, 'fixture contains hundreds of protected tokens' );
 $chunk_method = new ReflectionMethod( Pera_ML_Translator::class, 'bounded_structural_chunks' );
+$empty_plan = $chunk_method->invoke( new Pera_ML_Translator( $registry, new Chunk_Test_Storage() ), '' );
+expect_chunk( array( array( 'translate' => true, 'text' => '' ) ) === $empty_plan, 'empty source uses the standard chunk-plan shape' );
 $wrapper_plan = $chunk_method->invoke( new Pera_ML_Translator( $registry, new Chunk_Test_Storage() ), $fixture );
 foreach ( $wrapper_plan as $piece ) if ( $piece['translate'] ) expect_chunk( chunk_html_is_balanced( $piece['text'] ), 'each oversized-wrapper provider fragment contains balanced HTML' );
 
