@@ -42,6 +42,30 @@ final class Pera_ML_Translation_Status {
 		return isset( $this->results[ $key ] ) ? $this->results[ $key ] : $this->empty_result();
 	}
 
+	/** Canonical English fields which are eligible for translation. */
+	public function applicable_sources( $object_id, $post_type = 'post' ) {
+		$post = get_post( $object_id );
+		if ( ! $post ) return array();
+		$definitions = array(
+			'post' => array( 'post_content' => false, 'post_title' => false, 'post_excerpt' => true, 'meta:seo_title' => true, 'meta:seo_meta_description' => true, 'meta:seo_faq_v2' => true ),
+		);
+		$definitions = apply_filters( 'pera_ml_status_field_definitions', $definitions, $post_type );
+		$fields = isset( $definitions[ $post_type ] ) ? $definitions[ $post_type ] : array();
+		$sources = array();
+		foreach ( $fields as $field => $optional ) {
+			$source = 0 === strpos( $field, 'meta:' ) ? get_post_meta( $object_id, substr( $field, 5 ), true ) : $post->$field;
+			if ( ! $optional || ( is_string( $source ) && '' !== trim( $source ) ) ) $sources[ $field ] = (string) $source;
+		}
+		return $sources;
+	}
+
+	/** Forget request-local results after a field is stored. */
+	public function invalidate( $object_id, $language = '' ) {
+		$prefix = absint( $object_id ) . '|';
+		if ( $language ) unset( $this->results[ $prefix . sanitize_key( $language ) ] );
+		else foreach ( array_keys( $this->results ) as $key ) if ( 0 === strpos( $key, $prefix ) ) unset( $this->results[ $key ] );
+	}
+
 	private function calculate( $object_id, $language, array $rows, $post_type ) {
 		$sources = $this->applicable_sources( $object_id, $post_type );
 		$result = $this->empty_result();
@@ -57,22 +81,6 @@ final class Pera_ML_Translation_Status {
 		$result['existing'] = $result['current'] + count( $result['stale'] );
 		$result['complete'] = $result['applicable'] > 0 && $result['current'] === $result['applicable'];
 		return $result;
-	}
-
-	private function applicable_sources( $object_id, $post_type ) {
-		$post = get_post( $object_id );
-		if ( ! $post ) return array();
-		$definitions = array(
-			'post' => array( 'post_content' => false, 'post_title' => false, 'post_excerpt' => true, 'meta:seo_title' => true, 'meta:seo_meta_description' => true, 'meta:seo_faq_v2' => true ),
-		);
-		$definitions = apply_filters( 'pera_ml_status_field_definitions', $definitions, $post_type );
-		$fields = isset( $definitions[ $post_type ] ) ? $definitions[ $post_type ] : array();
-		$sources = array();
-		foreach ( $fields as $field => $optional ) {
-			$source = 0 === strpos( $field, 'meta:' ) ? get_post_meta( $object_id, substr( $field, 5 ), true ) : $post->$field;
-			if ( ! $optional || ( is_string( $source ) && '' !== trim( $source ) ) ) $sources[ $field ] = (string) $source;
-		}
-		return $sources;
 	}
 
 	private function empty_result() { return array( 'applicable' => 0, 'current' => 0, 'existing' => 0, 'stale' => array(), 'missing' => array(), 'complete' => false ); }
