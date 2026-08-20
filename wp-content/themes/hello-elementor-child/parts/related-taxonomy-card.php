@@ -61,7 +61,7 @@ if ( $context_tax_label !== '' ) {
       <a
         href="<?php echo esc_url( $term_link ); ?>"
         class="property-card__media-link"
-        aria-label="<?php echo esc_attr( sprintf( 'View term: %s', $term->name ) ); ?>"
+        aria-label="<?php echo esc_attr( sprintf( 'View term: %s', ( function_exists( 'pera_ml_term' ) ? pera_ml_term( $term ) : $term->name ) ) ); ?>"
       >
         <?php if ( $term_image_id ) : ?>
           <?php
@@ -70,7 +70,7 @@ if ( $context_tax_label !== '' ) {
               'pera-card',
               false,
               array(
-                'alt'      => esc_attr( $term->name ),
+                'alt'      => esc_attr( ( function_exists( 'pera_ml_term' ) ? pera_ml_term( $term ) : $term->name ) ),
                 'loading'  => 'lazy',
                 'decoding' => 'async',
               )
@@ -85,7 +85,7 @@ if ( $context_tax_label !== '' ) {
     <div class="property-card__body">
       <h3 class="property-card__title">
         <a href="<?php echo esc_url( $term_link ); ?>" class="property-card__title-link">
-          <?php echo esc_html( $term->name ); ?>
+          <?php echo esc_html( ( function_exists( 'pera_ml_term' ) ? pera_ml_term( $term ) : $term->name ) ); ?>
         </a>
       </h3>
 

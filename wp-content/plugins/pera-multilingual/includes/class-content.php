@@ -6,7 +6,8 @@ final class Pera_ML_Content {
 	public function __construct( $registry, $router, $storage ) { $this->registry = $registry; $this->router = $router; $this->storage = $storage; }
 	public function hooks() {
 		add_filter( 'the_title', array( $this, 'title' ), 20, 2 );
-		add_filter( 'the_content', array( $this, 'content' ), 20 );
+		// Run before WordPress formatting so canonical content can be identified exactly.
+		add_filter( 'the_content', array( $this, 'content' ), 8 );
 		add_filter( 'get_the_excerpt', array( $this, 'excerpt' ), 20, 2 );
 		add_filter( 'body_class', array( $this, 'body_classes' ) );
 		add_filter( 'language_attributes', array( $this, 'language_attributes' ) );
@@ -16,12 +17,21 @@ final class Pera_ML_Content {
 		add_action( 'edited_term', array( $this, 'stale_term' ), 20 );
 	}
 	private function translated( $id, $field, $source ) {
-		if ( ! $this->router->is_translated() || $id <= 0 ) return $source;
+		if ( ! $this->should_translate( $id ) ) return $source;
 		$row = $this->storage->get( 'post', $id, $field, $this->router->current_language(), $source );
 		return $row && isset( $row['translated_text'] ) ? $row['translated_text'] : $source;
 	}
+	private function should_translate( $id ) {
+		if ( ! $this->router->is_translated() || $id <= 0 || is_admin() || is_feed() || ( defined( 'REST_REQUEST' ) && REST_REQUEST ) ) return false;
+		$post = get_post( $id ); if ( ! $post || 'nav_menu_item' === $post->post_type ) return false;
+		$type = get_post_type_object( $post->post_type ); return $type && ! empty( $type->public );
+	}
 	public function title( $title, $id = 0 ) { return $this->translated( (int) $id, 'post_title', $title ); }
-	public function content( $content ) { return $this->translated( (int) get_the_ID(), 'post_content', $content ); }
+	public function content( $content ) {
+		$post = get_post( get_the_ID() );
+		if ( ! $post || (string) $content !== (string) $post->post_content ) return $content;
+		return $this->translated( (int) $post->ID, 'post_content', $content );
+	}
 	public function excerpt( $excerpt, $post = null ) { $id = $post instanceof WP_Post ? $post->ID : get_the_ID(); return $this->translated( (int) $id, 'post_excerpt', $excerpt ); }
 	public function body_classes( $classes ) { $language = $this->registry->get( $this->router->current_language() ); $classes[] = 'pera-ml-lang-' . $this->router->current_language(); if ( $language && 'rtl' === $language['direction'] ) $classes[] = 'pera-ml-rtl'; return $classes; }
 	public function language_attributes( $output ) { $language = $this->registry->get( $this->router->current_language() ); return $language ? 'lang="' . esc_attr( $language['code'] ) . '" dir="' . esc_attr( $language['direction'] ) . '"' : $output; }

@@ -51,6 +51,11 @@ final class Pera_ML_Router {
 	}
 
 	public function current_language() { return $this->language; }
+	public function set_request_language( $code ) {
+		$language = $this->registry->get( sanitize_key( (string) $code ) );
+		$this->language = $language && ! empty( $language['enabled'] ) ? $language['code'] : 'en';
+		return $this->language;
+	}
 	public function is_translated() { return 'en' !== $this->language; }
 	public function prevent_prefix_loss( $redirect, $requested ) {
 		if ( ! $this->is_translated() || ! is_string( $redirect ) || '' === $redirect ) return $redirect;
@@ -76,6 +81,7 @@ final class Pera_ML_Router {
 				$relative = ltrim( substr( $relative, strlen( $candidate['prefix'] ) ), '/' ); break;
 			}
 		}
+		if ( $this->is_system_path( $relative ) ) return $url;
 		$new_path = $home_path . ( ! empty( $language['prefix'] ) ? trailingslashit( $language['prefix'] ) : '' ) . $relative;
 		$url = ( isset( $parts['scheme'] ) ? $parts['scheme'] . '://' : '//' ) . $parts['host'] . ( isset( $parts['port'] ) ? ':' . $parts['port'] : '' ) . '/' . ltrim( $new_path, '/' );
 		if ( isset( $parts['query'] ) ) $url .= '?' . $parts['query'];

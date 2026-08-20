@@ -53,14 +53,21 @@ echo do_shortcode( '[pera_language_switcher]' );
 
 ## Current milestone and production limitations
 
-Core title, excerpt, and content rows render when present, with safe English fallback. Arabic supplies `lang`, `dir`, body classes, and a deliberately conservative RTL stylesheet. Full production coverage still requires:
+Core title, excerpt, content, approved ACF/meta, and public property-taxonomy rows render when present, with safe English fallback. Arabic supplies `lang`, `dir`, body classes, and a deliberately conservative RTL stylesheet. The property field inventory and explicit per-object generation are implemented. Remaining production work includes:
 
-1. inventorying and approving translatable ACF/meta keys (property templates access these fields directly);
-2. a background/bulk queue and translation editor (the “automatic” setting is reserved and does not yet schedule jobs);
-3. term name/description, selected theme UI strings, SEO descriptions, OG fields, and structured-data field integration;
-4. adding translated URLs to the active sitemap provider/index;
-5. suppressing or filtering any duplicate canonical after validation against the exact production SEO plugin stack;
-6. page-cache configuration varying by full language-prefixed path and cache purging after imports;
-7. visual RTL QA for header/navigation, cards, specifications, forms, filters, archives, and mobile navigation.
+1. a background/bulk queue and full translation editor (the “automatic” setting is reserved and does not schedule jobs);
+2. remaining theme UI strings, Open Graph fields, and complete structured-data/SEO integration;
+3. adding translated URLs to the active sitemap provider/index;
+4. validating duplicate-canonical behavior against the exact production SEO plugin stack;
+5. page-cache configuration varying by full language-prefixed path and cache purging after imports;
+6. visual RTL QA for header/navigation, cards, specifications, forms, filters, archives, and mobile navigation.
 
 Missing translations and provider failures always fall back to English and do not affect the canonical site.
+
+## 0.2 content coverage
+
+Approved ACF strings are read through `acf/format_value/name=…` filters and `pera_ml_field()`, using `meta:<field>` rows. Taxonomies use `pera_ml_term()` without cloning canonical terms. `pera_ml_vocab()` provides filterable reviewed terms, and `pera_ml_url()` safely delegates visitor URLs to the router. See `docs/property-field-inventory.md` for the audit and exclusions.
+
+The post editor has explicit per-language generation buttons. Each request checks `edit_post` and a per-object/language nonce, regenerates core and approved scalar fields through the provider, and reports a failure count. Property archive AJAX sends a validated language plus nonce to unprefixed `admin-ajax.php`; the request-scoped router context localizes returned card permalinks.
+
+HTML-rich sources are tokenized before provider submission and restored only when every deterministic token occurs exactly once. The OpenAI adapter uses the Responses API, handles rate limiting and malformed output without logging response bodies, and keeps constant-based credentials/model configuration authoritative.

@@ -15,9 +15,11 @@ final class Pera_ML_Translator {
 		if ( ! $language_config || ! empty( $language_config['source'] ) ) return new WP_Error( 'pera_ml_invalid_language', __( 'Invalid target language.', 'pera-multilingual' ) );
 		$provider = $this->provider( $provider_id );
 		$context = array( 'target_language' => $language, 'target_name' => $language_config['name'], 'instructions' => apply_filters( 'pera_ml_language_instructions', '', $language ), 'glossary' => $this->glossary_prompt() );
-		$translated = $provider->translate( $source, $context );
+		$protected = $this->protect( $source );
+		$translated = $provider->translate( $protected['text'], $context );
 		if ( is_wp_error( $translated ) ) { do_action( 'pera_ml_translation_error', $translated, compact( 'type', 'id', 'field', 'language' ) ); return $translated; }
-		if ( ! $this->structure_is_safe( $source, $translated ) ) return new WP_Error( 'pera_ml_structure_changed', __( 'Translation changed protected markup or tokens.', 'pera-multilingual' ) );
+		$translated = $this->restore( $translated, $protected['tokens'] );
+		if ( is_wp_error( $translated ) ) return $translated;
 		$this->storage->put( $type, $id, $field, $language, $source, $translated, $provider->id() );
 		return $translated;
 	}
@@ -29,9 +31,15 @@ final class Pera_ML_Translator {
 		}
 		return implode( "\n", $lines );
 	}
-	private function structure_is_safe( $source, $translated ) {
-		$pattern = '/(?:<[^>]+>|<!--\s*wp:.*?-->|\[[^\]]+\]|https?:\/\/[^\s<"\']+|[\w.+-]+@[\w.-]+\.[A-Za-z]{2,})/s';
-		preg_match_all( $pattern, $source, $a ); preg_match_all( $pattern, $translated, $b );
-		return $a[0] === $b[0];
+	public function protect( $source ) {
+		$tokens = array();
+		$pattern = '/<!--\s*\/?wp:.*?-->|<[^>]+>|\[[A-Za-z][^\]]*\]|https?:\/\/[^\s<"\']+|[\w.+-]+@[\w.-]+\.[A-Za-z]{2,}|\{\{[^}]+\}\}|%\d*\$?[a-z]|(?:\+?\d[\d\s().-]{6,}\d)|(?:[$€£¥]\s?\d[\d,.]*|\d[\d,.]*\s?(?:USD|EUR|GBP|TRY|CNY|RMB|AED|SAR|TL|m²|sqm|sq\.?\s?m|ft²))/iu';
+		$text = preg_replace_callback( $pattern, static function ( $match ) use ( &$tokens ) { $key = 'PERAMLPROTECTED' . count( $tokens ) . 'TOKEN'; $tokens[ $key ] = $match[0]; return $key; }, (string) $source );
+		return array( 'text' => $text, 'tokens' => $tokens );
+	}
+	public function restore( $translated, array $tokens ) {
+		foreach ( $tokens as $key => $value ) if ( 1 !== substr_count( (string) $translated, $key ) ) return new WP_Error( 'pera_ml_structure_changed', __( 'Translation lost or duplicated protected content.', 'pera-multilingual' ) );
+		$restored = strtr( (string) $translated, $tokens );
+		return preg_match( '/PERAMLPROTECTED\d+TOKEN/', $restored ) ? new WP_Error( 'pera_ml_structure_changed', __( 'Translation contains an invalid protected token.', 'pera-multilingual' ) ) : $restored;
 	}
 }
