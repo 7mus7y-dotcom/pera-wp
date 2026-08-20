@@ -26,9 +26,79 @@ final class Pera_ML_Translator {
 		if ( is_wp_error( $translated ) ) { do_action( 'pera_ml_translation_error', $translated, compact( 'type', 'id', 'field', 'language' ) ); return $translated; }
 		$translated = $this->restore( $translated, $protected['tokens'] );
 		if ( is_wp_error( $translated ) ) return $translated;
-		if ( 'post_content' === $field ) $translated = $this->normalize_structural_html_whitespace( $translated );
+		if ( 'post_content' === $field ) {
+			$translated = $this->retry_echoed_html_segments( $source, $translated, $provider, $context, $language );
+			if ( is_wp_error( $translated ) ) {
+				do_action( 'pera_ml_translation_error', $translated, compact( 'type', 'id', 'field', 'language' ) );
+				return $translated;
+			}
+			$translated = $this->normalize_structural_html_whitespace( $translated );
+		}
 		$this->storage->put( $type, $id, $field, $language, $source, $translated, $provider->id() );
 		return $translated;
+	}
+	/** Retry only block-level HTML segments in which translated prose echoes its English source. */
+	private function retry_echoed_html_segments( $source, $translated, $provider, array $context, $language ) {
+		$pattern = '~(<(li|p|h[1-6]|blockquote|td|th)\b[^>]*>)(.*?)(</\2\s*>)~isu';
+		$glossary = isset( $context['glossary'] ) ? $context['glossary'] : '';
+		preg_match_all( $pattern, (string) $source, $source_segments, PREG_SET_ORDER );
+		preg_match_all( $pattern, (string) $translated, $translated_segments, PREG_SET_ORDER | PREG_OFFSET_CAPTURE );
+
+		if ( count( $source_segments ) !== count( $translated_segments ) ) {
+			return new WP_Error( 'pera_ml_structure_changed', __( 'Translation changed the HTML segment structure.', 'pera-multilingual' ) );
+		}
+
+		$replacements = array();
+		foreach ( $source_segments as $index => $source_segment ) {
+			$translated_segment = $translated_segments[ $index ];
+			if ( strtolower( $source_segment[2] ) !== strtolower( $translated_segment[2][0] ) ) {
+				return new WP_Error( 'pera_ml_structure_changed', __( 'Translation changed the HTML segment structure.', 'pera-multilingual' ) );
+			}
+			$source_text     = html_entity_decode( strip_tags( $source_segment[3] ), ENT_QUOTES | ENT_HTML5, 'UTF-8' );
+			$translated_text = html_entity_decode( strip_tags( $translated_segment[3][0] ), ENT_QUOTES | ENT_HTML5, 'UTF-8' );
+			if ( ! $this->has_source_echo( $source_text, $translated_text, $language, $glossary ) ) continue;
+
+			$retry_context = $context;
+			$strict = 'Return only the target-language translation. Do not repeat or include the English source text.';
+			$retry_context['instructions'] = trim( (string) $retry_context['instructions'] . "\n" . $strict );
+			$retry = $this->translate_fragment( $source_segment[3], $provider, $retry_context );
+			if ( is_wp_error( $retry ) ) return $retry;
+			$retry_text = html_entity_decode( strip_tags( $retry ), ENT_QUOTES | ENT_HTML5, 'UTF-8' );
+			if ( $this->has_source_echo( $source_text, $retry_text, $language, $glossary ) ) {
+				return new WP_Error( 'pera_ml_source_echo', __( 'Translation repeated substantial English source prose.', 'pera-multilingual' ) );
+			}
+			$replacements[] = array( $translated_segment[3][1], strlen( $translated_segment[3][0] ), $retry );
+		}
+
+		foreach ( array_reverse( $replacements ) as $replacement ) {
+			$translated = substr_replace( $translated, $replacement[2], $replacement[0], $replacement[1] );
+		}
+		return $translated;
+	}
+	/** Require target-script text plus an exact run of at least four English words and 20 characters. */
+	private function has_source_echo( $source, $translated, $language, $glossary = '' ) {
+		$target_pattern = 'zh' === $language ? '/\p{Han}/u' : ( 'ar' === $language ? '/\p{Arabic}/u' : '' );
+		if ( ! $target_pattern || ! preg_match( $target_pattern, (string) $translated ) ) return false;
+		$protected = $this->protect( $source );
+		$candidate_source = strtr( $protected['text'], array_fill_keys( array_keys( $protected['tokens'] ), ' ' ) );
+		foreach ( preg_split( '/\r\n|\r|\n/', (string) $glossary ) as $rule ) {
+			$separator = strpos( $rule, '=>' );
+			if ( false !== $separator ) $candidate_source = str_replace( trim( substr( $rule, 0, $separator ) ), ' ', $candidate_source );
+		}
+		// Acronyms and multi-word title-cased names are legitimate preserved content, not prose echoes.
+		$candidate_source = preg_replace( '/\b[A-Z]{2,}\b/u', ' ', $candidate_source );
+		$candidate_source = preg_replace( '/\b(?:[A-Z][a-z]+\s+){1,}[A-Z][a-z]+\b/u', ' ', $candidate_source );
+		preg_match_all( "/\b[A-Za-z][A-Za-z'’-]*(?:[ \t]+[A-Za-z][A-Za-z'’-]*){3,}\b/u", $candidate_source, $runs );
+		foreach ( $runs[0] as $run ) {
+			$words = preg_split( '/[ \t]+/', trim( $run ) );
+			for ( $start = 0; $start <= count( $words ) - 4; $start++ ) {
+				for ( $length = 4; $start + $length <= count( $words ); $length++ ) {
+					$phrase = implode( ' ', array_slice( $words, $start, $length ) );
+					if ( strlen( $phrase ) >= 20 && false !== strpos( (string) $translated, $phrase ) ) return true;
+				}
+			}
+		}
+		return false;
 	}
 	/** Translate pipe-delimited FAQ fields without exposing their row structure to the provider. */
 	private function translate_pipe_faq_and_store( $type, $id, $field, $language, $source, $provider, array $context ) {
