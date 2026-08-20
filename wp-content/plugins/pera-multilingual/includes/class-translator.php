@@ -149,7 +149,7 @@ final class Pera_ML_Translator {
 				array( array( 'translate' => false, 'text' => $comments[4] ) )
 			);
 		}
-		$pattern = '/^(\s*)(<(div|ul|ol|table|thead|tbody|tfoot)\b[^>]*>)(.*)(<\/\3\s*>)(\s*)$/isu';
+		$pattern = '/^(\s*)(<(div|figure|section|ul|ol|table|thead|tbody|tfoot)\b[^>]*>)(.*)(<\/\3\s*>)(\s*)$/isu';
 		if ( ! preg_match( $pattern, $block, $parts ) ) {
 			return new WP_Error( 'pera_ml_chunk_too_large', __( 'A structural block exceeds the translation chunk limits and cannot be safely subdivided.', 'pera-multilingual' ) );
 		}

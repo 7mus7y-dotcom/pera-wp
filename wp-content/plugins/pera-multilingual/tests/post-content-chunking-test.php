@@ -164,6 +164,56 @@ foreach ( $gutenberg_wrappers as $label => $wrapper ) {
 	$observed_maximum_tokens = max( $observed_maximum_tokens, $GLOBALS['chunk_test_provider']->maximum_tokens );
 }
 
+$large_figure_table = '<figure class="wp-block-table" data-layout="wide"><table class="property-market"><thead><tr><th>District</th><th>Property type</th><th>Guide price</th></tr></thead><tbody>';
+for ( $i = 0; $i < 90; $i++ ) {
+	$large_figure_table .= '<tr data-row="' . $i . '"><td>District ' . $i . '</td><td><a href="https://example.com/property/' . $i . '"><strong>Apartment ' . $i . '</strong></a></td><td>TRY ' . ( 1000000 + $i ) . '</td></tr>';
+}
+$large_figure_table .= '</tbody><tfoot><tr><td>Total markets</td><td colspan="2">90 entries</td></tr></tfoot></table></figure>';
+$protected_figure = ( new Pera_ML_Translator( $registry, new Chunk_Test_Storage() ) )->protect( $large_figure_table );
+expect_chunk( count( $protected_figure['tokens'] ) > 500, 'figure table fixture exceeds 500 protected tokens' );
+$storage = new Chunk_Test_Storage();
+$GLOBALS['chunk_test_provider'] = new Chunk_Test_Provider( 'zh' );
+$translator = new Pera_ML_Translator( $registry, $storage );
+$figure_result = $translator->translate_and_store( 'post', 58617, 'post_content', 'zh', $large_figure_table, 'mock' );
+expect_chunk( ! is_wp_error( $figure_result ), 'oversized figure-wrapped table subdivides without error' );
+expect_chunk( 1 === substr_count( $figure_result, '<figure class="wp-block-table" data-layout="wide">' ), 'figure wrapper appears exactly once' );
+expect_chunk( 1 === substr_count( $figure_result, '<table class="property-market">' ), 'table wrapper appears exactly once' );
+expect_chunk( $GLOBALS['chunk_test_provider']->maximum_tokens <= 50, 'figure table provider calls respect protected-token limit' );
+$figure_provider_html = implode( '', array_map( static function ( $call ) { return $call['source']; }, $GLOBALS['chunk_test_provider']->calls ) );
+expect_chunk( false === strpos( $figure_provider_html, 'wp-block-table' ), 'figure wrapper stays outside provider requests' );
+expect_chunk( false === strpos( $figure_provider_html, 'property-market' ), 'table wrapper stays outside provider requests' );
+foreach ( $GLOBALS['chunk_test_provider']->calls as $call ) expect_chunk( chunk_html_is_balanced( $call['source'] ), 'each figure-table provider fragment is balanced' );
+$figure_plan = $chunk_method->invoke( $translator, $large_figure_table );
+foreach ( $figure_plan as $piece ) if ( $piece['translate'] ) expect_chunk( chunk_html_is_balanced( $piece['text'] ), 'each unprotected figure-table provider fragment is balanced' );
+preg_match_all( '/<[^>]+>/', $large_figure_table, $figure_before_tags );
+preg_match_all( '/<[^>]+>/', $figure_result, $figure_after_tags );
+expect_chunk( $figure_before_tags[0] === $figure_after_tags[0], 'figure table preserves every row and cell in original order' );
+$observed_maximum_tokens = max( $observed_maximum_tokens, $GLOBALS['chunk_test_provider']->maximum_tokens );
+
+$large_section = "\n<section class=\"faq-content\" data-section=\"faq\">\n";
+for ( $i = 0; $i < 40; $i++ ) {
+	$large_section .= '<div class="faq-item" data-index="' . $i . '"><h2>Question ' . $i . '</h2><p>Answer ' . $i . ' with <a href="https://example.com/faq/' . $i . '">supporting details</a>.</p></div>' . "\n";
+}
+$large_section .= "</section>\n";
+$storage = new Chunk_Test_Storage();
+$GLOBALS['chunk_test_provider'] = new Chunk_Test_Provider( 'ar' );
+$translator = new Pera_ML_Translator( $registry, $storage );
+$section_result = $translator->translate_and_store( 'post', 58617, 'post_content', 'ar', $large_section, 'mock' );
+expect_chunk( ! is_wp_error( $section_result ), 'oversized section subdivides without error' );
+expect_chunk( count( $GLOBALS['chunk_test_provider']->calls ) > 1, 'oversized section children are recursively grouped' );
+expect_chunk( $GLOBALS['chunk_test_provider']->maximum_tokens <= 50, 'section provider calls respect protected-token limit' );
+$section_provider_html = implode( '', array_map( static function ( $call ) { return $call['source']; }, $GLOBALS['chunk_test_provider']->calls ) );
+expect_chunk( false === strpos( $section_provider_html, 'faq-content' ), 'section wrapper stays outside provider requests' );
+expect_chunk( substr( $section_result, 0, strlen( "\n<section class=\"faq-content\" data-section=\"faq\">\n" ) ) === "\n<section class=\"faq-content\" data-section=\"faq\">\n", 'section opening markup is preserved verbatim' );
+expect_chunk( substr( $section_result, -strlen( "</section>\n" ) ) === "</section>\n", 'section closing markup is preserved verbatim' );
+preg_match_all( '/<[^>]+>/', $large_section, $section_before_tags );
+preg_match_all( '/<[^>]+>/', $section_result, $section_after_tags );
+expect_chunk( $section_before_tags[0] === $section_after_tags[0], 'final section markup is preserved exactly' );
+foreach ( $GLOBALS['chunk_test_provider']->calls as $call ) expect_chunk( chunk_html_is_balanced( $call['source'] ), 'each section provider fragment is balanced' );
+$section_plan = $chunk_method->invoke( $translator, $large_section );
+foreach ( $section_plan as $piece ) if ( $piece['translate'] ) expect_chunk( chunk_html_is_balanced( $piece['text'] ), 'each unprotected section provider fragment is balanced' );
+$observed_maximum_tokens = max( $observed_maximum_tokens, $GLOBALS['chunk_test_provider']->maximum_tokens );
+
 $indivisible = '<p>' . str_repeat( '<a href="https://example.com">linked</a>', 30 ) . '</p>';
 $storage = new Chunk_Test_Storage();
 $GLOBALS['chunk_test_provider'] = new Chunk_Test_Provider( 'zh' );
