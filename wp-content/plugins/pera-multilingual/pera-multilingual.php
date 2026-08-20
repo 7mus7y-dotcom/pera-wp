@@ -16,6 +16,7 @@ define( 'PERA_ML_URL', plugin_dir_url( __FILE__ ) );
 
 require_once PERA_ML_DIR . 'includes/class-language-registry.php';
 require_once PERA_ML_DIR . 'includes/class-storage.php';
+require_once PERA_ML_DIR . 'includes/class-translation-status.php';
 require_once PERA_ML_DIR . 'includes/class-vocabulary.php';
 require_once PERA_ML_DIR . 'includes/class-fields.php';
 require_once PERA_ML_DIR . 'includes/class-ajax.php';
