@@ -59,6 +59,9 @@ get_header();
 
                   if ( '' === $post_faq_raw ) {
                     $post_faq_value = get_post_meta( get_the_ID(), 'seo_faq_v2', true );
+                    if ( function_exists( 'pera_ml_field' ) ) {
+                      $post_faq_value = pera_ml_field( get_the_ID(), 'seo_faq_v2', $post_faq_value );
+                    }
 
                     if ( is_scalar( $post_faq_value ) ) {
                       $post_faq_raw = trim( (string) $post_faq_value );
