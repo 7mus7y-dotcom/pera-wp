@@ -1485,6 +1485,82 @@ button.pill:focus-visible {
   color: #ffffff;
 }
 
+/* Route-preserving language navigation. */
+.header-language-switcher {
+  position: relative;
+  font-size: 0.78rem;
+  line-height: 1.2;
+}
+#site-header .header-language-switcher__toggle {
+  min-width: 42px;
+  min-height: 30px;
+  padding: 0 6px;
+  border: 0;
+  border-radius: 999px;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
+}
+.header-language-switcher__chevron { margin-inline-start: 3px; }
+.header-language-switcher__list {
+  margin: 0;
+  padding: 6px;
+  list-style: none;
+}
+.header-language-switcher--desktop .header-language-switcher__list {
+  position: absolute;
+  top: calc(100% + 8px);
+  inset-inline-end: 0;
+  z-index: 2;
+  display: none;
+  min-width: 150px;
+  border: 1px solid var(--glass-border-soft);
+  border-radius: var(--radius-md);
+  background: var(--brand);
+  box-shadow: var(--glass-shadow-soft);
+}
+.header-language-switcher--desktop.is-open .header-language-switcher__list,
+.header-language-switcher--desktop:focus-within .header-language-switcher__list { display: block; }
+.header-language-switcher__list a {
+  display: block;
+  padding: 9px 10px;
+  border-radius: calc(var(--radius-md) - 4px);
+  color: #fff;
+  line-height: 1.25;
+  text-decoration: none;
+  white-space: nowrap;
+}
+.header-language-switcher__list a:hover,
+.header-language-switcher__list a:focus-visible { background: rgba(255, 255, 255, 0.14); }
+.header-language-switcher__list a[aria-current="page"] { font-weight: 700; text-decoration: underline; text-underline-offset: 3px; }
+.header-language-switcher__toggle:focus-visible,
+.header-language-switcher__list a:focus-visible {
+  outline: 2px solid #ffed00;
+  outline-offset: 2px;
+}
+.header-language-switcher--mobile {
+  margin: -12px 0 24px;
+  padding-bottom: 14px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+}
+.header-language-switcher__title {
+  display: block;
+  margin-bottom: 8px;
+  color: rgba(255, 255, 255, 0.75);
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+.header-language-switcher--mobile .header-language-switcher__list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 10px;
+  padding: 0;
+}
+.header-language-switcher--mobile .header-language-switcher__list a { min-height: 40px; padding: 11px 8px; }
+
 /* LOGO container — no glass until scroll */
 #site-header .site-branding {
   display: flex;
