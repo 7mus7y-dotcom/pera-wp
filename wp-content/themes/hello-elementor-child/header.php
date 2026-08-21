@@ -78,6 +78,8 @@ $crm_label                  = $crm_overdue_count > 0
     <!-- RIGHT: ICONS -->
     <div class="header-icons">
 
+      <?php pera_render_header_language_switcher( 'desktop' ); ?>
+
       <?php if ( is_user_logged_in() && current_user_can( 'manage_options' ) ) : ?>
         <a href="<?php echo esc_url( admin_url() ); ?>"
            class="header-crm-toggle"
@@ -140,6 +142,8 @@ $crm_label                  = $crm_overdue_count > 0
              class="offcanvas-close"
              aria-label="Close menu">&times;</label>
     </div>
+
+    <?php pera_render_header_language_switcher( 'mobile' ); ?>
 
     <div class="offcanvas-main">
 

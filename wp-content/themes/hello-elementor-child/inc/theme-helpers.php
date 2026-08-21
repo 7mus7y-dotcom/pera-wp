@@ -806,3 +806,59 @@ if ( ! function_exists( 'pera_inject_related_properties_into_guide_content' ) ) 
 
   add_filter( 'the_content', 'pera_inject_related_properties_into_guide_content', 20 );
 }
+
+/**
+ * Render a route-preserving language navigation when Pera Multilingual is available.
+ *
+ * @param string $context Either "desktop" or "mobile".
+ * @return void
+ */
+function pera_render_header_language_switcher( $context = 'desktop' ) {
+  if ( ! is_user_logged_in() || ! current_user_can( 'manage_options' ) ) return;
+
+  if ( ! class_exists( 'Pera_ML_Plugin' ) ) {
+    return;
+  }
+
+  $plugin = Pera_ML_Plugin::instance();
+  if ( ! is_callable( array( $plugin, 'registry' ) ) || ! is_callable( array( $plugin, 'router' ) ) ) {
+    return;
+  }
+
+  $registry  = $plugin->registry();
+  $router    = $plugin->router();
+  $languages = $registry->enabled();
+  if ( count( $languages ) < 2 ) {
+    return;
+  }
+
+  $current_code = $router->current_language();
+  $current      = isset( $languages[ $current_code ] ) ? $languages[ $current_code ] : reset( $languages );
+  $request_uri = isset( $_SERVER['REQUEST_URI'] ) ? wp_unslash( (string) $_SERVER['REQUEST_URI'] ) : '/';
+  $current_url = home_url( $request_uri );
+  $is_mobile   = 'mobile' === $context;
+  ?>
+  <nav class="header-language-switcher header-language-switcher--<?php echo esc_attr( $context ); ?>" aria-label="<?php esc_attr_e( 'Select language', 'hello-elementor-child' ); ?>">
+    <?php if ( ! $is_mobile ) : ?>
+      <button class="header-language-switcher__toggle" type="button" aria-expanded="false" aria-haspopup="true">
+        <span><?php echo esc_html( $current['compact_name'] ); ?></span>
+        <span class="header-language-switcher__chevron" aria-hidden="true">▾</span>
+      </button>
+    <?php else : ?>
+      <span class="header-language-switcher__title"><?php esc_html_e( 'Language', 'hello-elementor-child' ); ?></span>
+    <?php endif; ?>
+    <ul class="header-language-switcher__list">
+      <?php foreach ( $languages as $code => $language ) : ?>
+        <li>
+          <a
+            href="<?php echo esc_url( $router->url_for_language( $current_url, $code ) ); ?>"
+            hreflang="<?php echo esc_attr( ! empty( $language['hreflang'] ) ? $language['hreflang'] : $code ); ?>"
+            lang="<?php echo esc_attr( $code ); ?>"
+            <?php echo $code === $current_code ? 'aria-current="page"' : ''; ?>
+          ><?php echo esc_html( $language['native_name'] ); ?></a>
+        </li>
+      <?php endforeach; ?>
+    </ul>
+  </nav>
+  <?php
+}

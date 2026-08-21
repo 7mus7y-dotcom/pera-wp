@@ -1,5 +1,39 @@
 document.addEventListener('DOMContentLoaded', function () {
 
+  /* Header language disclosure: links remain navigable without JavaScript. */
+  document.querySelectorAll('.header-language-switcher--desktop').forEach(function (switcher) {
+    var toggle = switcher.querySelector('.header-language-switcher__toggle');
+    if (!toggle) return;
+
+    function closeSwitcher() {
+      switcher.classList.remove('is-open');
+      toggle.setAttribute('aria-expanded', 'false');
+    }
+
+    toggle.addEventListener('click', function () {
+      var willOpen = !switcher.classList.contains('is-open');
+      switcher.classList.toggle('is-open', willOpen);
+      toggle.setAttribute('aria-expanded', String(willOpen));
+    });
+
+    switcher.addEventListener('keydown', function (event) {
+      if (event.key === 'Escape') {
+        closeSwitcher();
+        toggle.focus();
+      }
+    });
+
+    switcher.addEventListener('focusout', function () {
+      window.setTimeout(function () {
+        if (!switcher.contains(document.activeElement)) closeSwitcher();
+      }, 0);
+    });
+
+    document.addEventListener('click', function (event) {
+      if (!switcher.contains(event.target)) closeSwitcher();
+    });
+  });
+
   /* -----------------------------------------
      1. OFF-CANVAS NAV (open/close with body class)
      ----------------------------------------- */
