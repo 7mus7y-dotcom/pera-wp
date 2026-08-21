@@ -146,7 +146,7 @@ final class Pera_ML_Admin {
 	}
 	public function page() {
 		if ( ! current_user_can( 'manage_options' ) ) return;
-		$languages = $this->registry->all(); $enabled = get_option( 'pera_ml_enabled_languages', array( 'en', 'zh', 'ar' ) );
+		$languages = $this->registry->all(); $enabled = get_option( 'pera_ml_enabled_languages', array( 'en', 'zh', 'ar', 'de' ) );
 		?>
 		<div class="wrap"><h1><?php esc_html_e( 'Pera Multilingual', 'pera-multilingual' ); ?></h1>
 		<p><?php esc_html_e( 'Translated requests resolve the original English WordPress object. Frontend requests only read saved translations; they never call a provider.', 'pera-multilingual' ); ?></p>

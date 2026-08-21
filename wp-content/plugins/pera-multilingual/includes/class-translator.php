@@ -14,7 +14,8 @@ final class Pera_ML_Translator {
 		$language_config = $this->registry->get( $language );
 		if ( ! $language_config || ! empty( $language_config['source'] ) ) return new WP_Error( 'pera_ml_invalid_language', __( 'Invalid target language.', 'pera-multilingual' ) );
 		$provider = $this->provider( $provider_id );
-		$context = array( 'target_language' => $language, 'target_name' => $language_config['name'], 'instructions' => apply_filters( 'pera_ml_language_instructions', '', $language ), 'glossary' => $this->glossary_prompt() );
+		$default_instructions = isset( $language_config['instructions'] ) ? $language_config['instructions'] : '';
+		$context = array( 'target_language' => $language, 'target_name' => $language_config['name'], 'instructions' => apply_filters( 'pera_ml_language_instructions', $default_instructions, $language ), 'glossary' => $this->glossary_prompt() );
 		$pipe_faq_fields = apply_filters( 'pera_ml_pipe_faq_fields', array( 'meta:seo_faq_v2' ) );
 		if ( is_array( $pipe_faq_fields ) && in_array( $field, $pipe_faq_fields, true ) ) {
 			$translated = $this->translate_pipe_faq_and_store( $type, $id, $field, $language, $source, $provider, $context );
@@ -202,7 +203,11 @@ final class Pera_ML_Translator {
 		}
 		return $translated;
 	}
-	/** Require target-script text plus an exact run of at least four English words and 20 characters. */
+	/**
+	 * Require target-script text plus an exact run of at least four English words.
+	 * Deliberately limited to zh/ar: German and English both use Latin script, so a
+	 * script test would reject legitimate German. This does not weaken zh/ar checks.
+	 */
 	private function has_source_echo( $source, $translated, $language, $glossary = '' ) {
 		$target_pattern = 'zh' === $language ? '/\p{Han}/u' : ( 'ar' === $language ? '/\p{Arabic}/u' : '' );
 		if ( ! $target_pattern || ! preg_match( $target_pattern, (string) $translated ) ) return false;

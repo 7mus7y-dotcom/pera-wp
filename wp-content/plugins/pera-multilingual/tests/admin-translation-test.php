@@ -43,7 +43,8 @@ final class Admin_Test_Translator {
 }
 
 final class Admin_Test_Registry {
-	public function get( $language ) { return in_array( $language, array( 'zh', 'ar' ), true ) ? array( 'enabled' => true, 'source' => false ) : null; }
+	public function get( $language ) { return in_array( $language, array( 'zh', 'ar', 'de' ), true ) ? array( 'enabled' => true, 'source' => false ) : null; }
+	public function enabled() { return array( 'en' => array( 'source' => true ), 'zh' => array( 'source' => false ), 'ar' => array( 'source' => false ), 'de' => array( 'source' => false ) ); }
 }
 final class Admin_Test_Status {
 	public $sources = array();
@@ -80,6 +81,8 @@ expect_same( array( 'post_title', 'post_excerpt', 'post_content' ), array_keys( 
 expect_same( 'ar:Title', $translator->rows['post_title'], 'existing successful title remains stored' );
 
 $contract_admin = new Pera_ML_Admin( new Admin_Test_Registry() );
+$columns = $contract_admin->post_columns( array( 'title' => 'Title' ) );
+expect_same( 'DE', $columns['pera_ml_de'], 'Posts list automatically receives the German status column' );
 $GLOBALS['logged_in'] = true; $GLOBALS['can_edit'] = true; $GLOBALS['nonce_valid'] = true;
 $GLOBALS['posts'][59726] = (object) array( 'post_type' => 'post' );
 $_POST = array( 'post_id' => 59726, 'language' => 'zh', 'nonce' => 'valid' );
@@ -87,15 +90,18 @@ $request_method = new ReflectionMethod( 'Pera_ML_Admin', 'ajax_request' ); $requ
 expect_same( array( 59726, 'zh' ), $request_method->invoke( $contract_admin ), 'authenticated field request validation succeeds' );
 $GLOBALS['nonce_valid'] = false; expect_same( 'invalid_nonce', $request_method->invoke( $contract_admin )->get_error_code(), 'invalid nonce rejected' );
 $GLOBALS['nonce_valid'] = true; $GLOBALS['can_edit'] = false; expect_same( 'insufficient_capability', $request_method->invoke( $contract_admin )->get_error_code(), 'insufficient capability rejected' );
-$GLOBALS['can_edit'] = true; $_POST['language'] = 'de'; expect_same( 'invalid_language', $request_method->invoke( $contract_admin )->get_error_code(), 'invalid language rejected' );
+$GLOBALS['can_edit'] = true; $_POST['language'] = 'de'; expect_same( array( 59726, 'de' ), $request_method->invoke( $contract_admin ), 'German AJAX request validation succeeds' );
+$_POST['language'] = 'xx'; expect_same( 'invalid_language', $request_method->invoke( $contract_admin )->get_error_code(), 'invalid language rejected' );
 
 $status = new Admin_Test_Status();
 $status->sources = array( 'post_content' => 'Body', 'post_title' => 'Title', 'meta:seo_title' => 'SEO' );
 $status->statuses['zh'] = array( 'applicable' => 3, 'current' => 1, 'existing' => 2, 'missing' => array( 'post_content' ), 'stale' => array( 'meta:seo_title' ), 'complete' => false );
 $status->statuses['ar'] = array( 'applicable' => 3, 'current' => 2, 'existing' => 2, 'missing' => array( 'post_title' ), 'stale' => array(), 'complete' => false );
+$status->statuses['de'] = array( 'applicable' => 3, 'current' => 1, 'existing' => 1, 'missing' => array( 'post_content', 'post_title' ), 'stale' => array(), 'complete' => false );
 expect_same( array( 'post_content', 'meta:seo_title' ), $contract_admin->translation_queue( 59726, 'zh', 'complete', $status )['fields'], 'missing/stale queue only contains work and content is first' );
 expect_same( array_keys( $status->sources ), $contract_admin->translation_queue( 59726, 'zh', 'regenerate', $status )['fields'], 'regenerate queues every applicable field' );
 expect_same( array( 'post_title' ), $contract_admin->translation_queue( 59726, 'ar', 'complete', $status )['fields'], 'Chinese and Arabic queues are independent' );
+expect_same( array( 'post_content', 'post_title' ), $contract_admin->translation_queue( 59726, 'de', 'complete', $status )['fields'], 'German queue is independent from Chinese and Arabic' );
 
 $single = new Admin_Test_Translator();
 expect_same( 'zh:Body', $contract_admin->translate_field( 59726, 'zh', 'post_content', $single, $status ), 'post_content field request succeeds' );
