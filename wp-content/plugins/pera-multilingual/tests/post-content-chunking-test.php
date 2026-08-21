@@ -65,6 +65,17 @@ final class Closing_Strong_Drop_Provider extends Chunk_Test_Provider {
 		return $response;
 	}
 }
+final class Inline_Placeholder_Drop_Provider extends Chunk_Test_Provider {
+	public $normal_failures = 0;
+	public function translate( $source, array $context ) {
+		$response = parent::translate( $source, $context );
+		if ( preg_match( '/(?:16% increase|District performance varies|Linked inline text|Malformed)/', $source ) && preg_match_all( '/PERAMLPROTECTED\d+TOKEN/', $source, $tokens ) >= 2 ) {
+			$this->normal_failures++;
+			return str_replace( $tokens[0][0], '', $response );
+		}
+		return $response;
+	}
+}
 final class Chunk_Test_Storage {
 	public $puts = array();
 	public function put() { $this->puts[] = func_get_args(); return true; }
@@ -310,6 +321,49 @@ preg_match_all( '/<[^>]+>/', $recovered, $recovery_after_tags );
 expect_chunk( $recovery_before_tags[0] === $recovery_after_tags[0], 'recursive recovery preserves wrapper and tag order' );
 expect_chunk( 1 === count( $storage->puts ), 'structurally recovered HTML is stored once' );
 unset( $GLOBALS['chunk_test_max_chars'], $GLOBALS['chunk_test_max_tokens'] );
+
+$GLOBALS['chunk_test_max_chars'] = 135;
+$inline_before = '<p>Unaffected sibling before with independent prose for chunk planning.</p>';
+$inline_growth = '<li><strong>16% increase</strong> in housing sales compared to July 2023...</li>';
+$inline_districts = '<li>District performance varies: <strong>Beykoz</strong> up 22%, while <strong>Kağıthane</strong> falls by 8%.</li>';
+$inline_attributes = '<p><a href="https://example.com/report?q=1&amp;year=2023" class="report-link" id="market-report" data-track="inline" target="_blank" rel="noopener" aria-label="Market report"><span class="label" id="report-label" data-kind="market" aria-hidden="true">Linked inline text</span></a></p>';
+$inline_after = '<blockquote>Unaffected sibling after.</blockquote>';
+$inline_source = $inline_before . $inline_growth . $inline_districts . $inline_after;
+$storage = new Chunk_Test_Storage();
+$inline_provider = new Inline_Placeholder_Drop_Provider( 'zh' );
+$GLOBALS['chunk_test_provider'] = $inline_provider;
+$translator = new Pera_ML_Translator( $registry, $storage );
+$inline_result = $translator->translate_and_store( 'post', 50659, 'post_content', 'zh', $inline_source, 'mock' );
+expect_chunk( ! is_wp_error( $inline_result ), 'inline-markup leaf fallback translates production list shapes' );
+expect_chunk( $inline_provider->normal_failures >= 4, 'normal protected translations and strict leaf retries fail before inline fallback' );
+expect_chunk( 3 === substr_count( $inline_result, '<strong>' ) && 3 === substr_count( $inline_result, '</strong>' ), 'strong tags remain exactly paired' );
+expect_chunk( strpos( $inline_result, '<strong>' ) < strpos( $inline_result, '</strong>' ) && strpos( $inline_result, '<strong>Beykoz</strong>' ) === false, 'strong tags retain their original order around translated text' );
+preg_match_all( '/<\/?strong\b[^>]*>/', $inline_source, $inline_tags_before );
+preg_match_all( '/<\/?strong\b[^>]*>/', $inline_result, $inline_tags_after );
+expect_chunk( $inline_tags_before[0] === $inline_tags_after[0], 'strong tag order is preserved exactly' );
+expect_chunk( 1 === count( $storage->puts ), 'inline fallback translation is stored once' );
+unset( $GLOBALS['chunk_test_max_chars'] );
+$attribute_storage = new Chunk_Test_Storage();
+$attribute_provider = new Inline_Placeholder_Drop_Provider( 'zh' );
+$GLOBALS['chunk_test_provider'] = $attribute_provider;
+$translator = new Pera_ML_Translator( $registry, $attribute_storage );
+$attribute_result = $translator->translate_and_store( 'post', 50661, 'post_content', 'zh', $inline_attributes, 'mock' );
+expect_chunk( ! is_wp_error( $attribute_result ), 'nested link/span inline fallback succeeds' );
+preg_match_all( '/<\/?(?:a|span)\b[^>]*>/', $inline_attributes, $attribute_tags_before );
+preg_match_all( '/<\/?(?:a|span)\b[^>]*>/', $attribute_result, $attribute_tags_after );
+expect_chunk( $attribute_tags_before[0] === $attribute_tags_after[0], 'inline link/span attributes are preserved exactly' );
+expect_chunk( 1 === count( $attribute_storage->puts ), 'attribute fallback translation is stored once' );
+foreach ( array( $inline_before, $inline_after ) as $unaffected_inline_sibling ) {
+	$protected_sibling = $translator->protect( $unaffected_inline_sibling )['text'];
+	expect_chunk( 1 === count( array_filter( $inline_provider->calls, static function ( $call ) use ( $protected_sibling ) { return $call['source'] === $protected_sibling; } ) ), 'unaffected inline-recovery sibling is not retransmitted' );
+}
+
+$malformed_storage = new Chunk_Test_Storage();
+$GLOBALS['chunk_test_provider'] = new Inline_Placeholder_Drop_Provider( 'zh' );
+$translator = new Pera_ML_Translator( $registry, $malformed_storage );
+$malformed = $translator->translate_and_store( 'post', 50660, 'post_content', 'zh', '<li>Malformed <strong>markup</li>', 'mock' );
+expect_chunk( is_wp_error( $malformed ) && 'pera_ml_structure_changed' === $malformed->get_error_code(), 'unbalanced inline HTML retains strict structural failure' );
+expect_chunk( 0 === count( $malformed_storage->puts ), 'unbalanced inline HTML is never stored' );
 
 $storage = new Chunk_Test_Storage();
 $GLOBALS['chunk_test_provider'] = new Chunk_Test_Provider( 'ar', true );

@@ -91,7 +91,66 @@ final class Pera_ML_Translator {
 
 		$retry_context = $context;
 		$retry_context['instructions'] = trim( (string) $retry_context['instructions'] . "\n" . 'Preserve every placeholder matching PERAMLPROTECTED<number>TOKEN exactly once, unchanged, and in its original order. Return no additional placeholders.' );
-		return $this->translate_fragment( $source, $provider, $retry_context );
+		$retried = $this->translate_fragment( $source, $provider, $retry_context );
+		if ( ! is_wp_error( $retried ) || 'pera_ml_structure_changed' !== $retried->get_error_code() ) return $retried;
+
+		// Inline markup is reconstructed locally only after ordinary recovery has
+		// reached a leaf and its strict protected-placeholder retry has also failed.
+		$inline = $this->translate_inline_leaf( $source, $provider, $context );
+		return false === $inline ? $retried : $inline;
+	}
+	/**
+	 * Translate the text nodes of one balanced block leaf while retaining every
+	 * supported inline tag byte-for-byte. False means the input is not a safe leaf.
+	 */
+	private function translate_inline_leaf( $source, $provider, array $context ) {
+		$leaf_pattern = '/^(\s*)(<((?:li|p|h[1-6]|blockquote|td|th))\b(?:[^>"\']|"[^"]*"|\'[^\']*\')*>)(.*)(<\/\3\s*>)(\s*)$/isu';
+		if ( ! preg_match( $leaf_pattern, (string) $source, $leaf ) ) return false;
+
+		$inner = $leaf[4];
+		$tag_pattern = '/<\s*(\/?)\s*(strong|b|em|i|span|a|br)\b(?:[^>"\']|"[^"]*"|\'[^\']*\')*>/isu';
+		preg_match_all( $tag_pattern, $inner, $matches, PREG_SET_ORDER | PREG_OFFSET_CAPTURE );
+		$parts = array();
+		$stack = array();
+		$offset = 0;
+		foreach ( $matches as $match ) {
+			$tag_text = $match[0][0];
+			$tag_offset = $match[0][1];
+			$text = substr( $inner, $offset, $tag_offset - $offset );
+			if ( false !== strpos( $text, '<' ) || false !== strpos( $text, '>' ) ) return false;
+			if ( '' !== $text ) $parts[] = array( 'tag' => false, 'text' => $text );
+
+			$tag = strtolower( $match[2][0] );
+			$closing = '' !== $match[1][0];
+			$self_closing = preg_match( '/\/\s*>$/', $tag_text );
+			if ( 'br' === $tag ) {
+				if ( $closing ) return false;
+			} elseif ( $closing ) {
+				if ( empty( $stack ) || array_pop( $stack ) !== $tag || ! preg_match( '/^<\s*\/\s*' . preg_quote( $tag, '/' ) . '\s*>$/iu', $tag_text ) ) return false;
+			} elseif ( $self_closing ) {
+				return false;
+			} else {
+				$stack[] = $tag;
+			}
+			$parts[] = array( 'tag' => true, 'text' => $tag_text );
+			$offset = $tag_offset + strlen( $tag_text );
+		}
+		$tail = substr( $inner, $offset );
+		if ( false !== strpos( $tail, '<' ) || false !== strpos( $tail, '>' ) || ! empty( $stack ) ) return false;
+		if ( '' !== $tail ) $parts[] = array( 'tag' => false, 'text' => $tail );
+		if ( empty( $matches ) && false === strpos( $inner, '<' ) ) return false;
+
+		$translated_inner = '';
+		foreach ( $parts as $part ) {
+			if ( $part['tag'] || '' === trim( html_entity_decode( $part['text'], ENT_QUOTES | ENT_HTML5, 'UTF-8' ) ) ) {
+				$translated_inner .= $part['text'];
+				continue;
+			}
+			$translated = $this->translate_fragment( $part['text'], $provider, $context );
+			if ( is_wp_error( $translated ) ) return $translated;
+			$translated_inner .= $translated;
+		}
+		return $leaf[1] . $leaf[2] . $translated_inner . $leaf[5] . $leaf[6];
 	}
 	private function is_smaller_structural_plan( array $plan, $source ) {
 		$provider_fragments = array();
