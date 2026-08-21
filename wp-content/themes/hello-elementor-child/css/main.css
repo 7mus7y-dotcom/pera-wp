@@ -1516,8 +1516,9 @@ button.pill:focus-visible {
   left: 0;
   z-index: 2;
   display: none;
-  min-width: 150px;
+  width: max-content;
   max-width: calc(100vw - 16px);
+  box-sizing: border-box;
   border: 1px solid var(--glass-border-soft);
   border-radius: var(--radius-md);
   background: var(--brand);
@@ -1541,6 +1542,18 @@ button.pill:focus-visible {
 .header-language-switcher__list a:focus-visible {
   outline: 2px solid #ffed00;
   outline-offset: 2px;
+}
+@media (max-width: 767px) {
+  .header-language-switcher--desktop .header-language-switcher__list {
+    font-size: 1rem;
+  }
+  .header-language-switcher--desktop .header-language-switcher__list a {
+    display: flex;
+    align-items: center;
+    min-height: 44px;
+    padding: 11px 12px;
+    box-sizing: border-box;
+  }
 }
 .header-language-switcher--mobile {
   margin: -12px 0 24px;
