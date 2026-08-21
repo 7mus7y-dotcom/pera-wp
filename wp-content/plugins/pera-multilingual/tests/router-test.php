@@ -21,10 +21,11 @@ final class Pera_ML_Test_Registry {
 		'en' => array( 'code' => 'en', 'prefix' => '', 'enabled' => true ),
 		'zh' => array( 'code' => 'zh', 'prefix' => 'zh', 'enabled' => true ),
 		'ar' => array( 'code' => 'ar', 'prefix' => 'ar', 'enabled' => true ),
+		'de' => array( 'code' => 'de', 'prefix' => 'de', 'enabled' => true ),
 	);
 	public function get( $code ) { return isset( $this->languages[ $code ] ) ? $this->languages[ $code ] : null; }
 	public function all() { return $this->languages; }
-	public function from_prefix( $prefix ) { return 'zh' === $prefix || 'ar' === $prefix ? $this->languages[ $prefix ] : null; }
+	public function from_prefix( $prefix ) { return isset( $this->languages[ $prefix ] ) && 'en' !== $prefix ? $this->languages[ $prefix ] : null; }
 }
 
 function pera_ml_expect( $expected, $actual, $label ) {
@@ -47,6 +48,8 @@ $cases = array(
 	array( 'https://www.peraproperty.com/property/page/3/', 'zh', 'https://www.peraproperty.com/zh/property/page/3/', 'pagination' ),
 	array( 'https://www.peraproperty.com/foo', 'zh', 'https://www.peraproperty.com/zh/foo', 'no trailing slash' ),
 	array( 'https://www.peraproperty.com/', 'zh', 'https://www.peraproperty.com/zh/', 'homepage' ),
+	array( 'https://www.peraproperty.com/', 'de', 'https://www.peraproperty.com/de/', 'German homepage' ),
+	array( 'https://www.peraproperty.com/an-investment-guide/', 'de', 'https://www.peraproperty.com/de/an-investment-guide/', 'German normal post route' ),
 	array( 'https://external.example/foo/', 'zh', 'https://external.example/foo/', 'external URL' ),
 );
 
@@ -81,9 +84,11 @@ $route_cases = array(
 	array( '/', array(), 'front', 'English front page' ),
 	array( '/zh/', array(), 'front', 'Chinese front page' ),
 	array( '/ar/', array(), 'front', 'Arabic front page' ),
+	array( '/de/', array(), 'front', 'German front page' ),
 	array( '/blog/', array( 'pagename' => 'blog' ), 'posts', 'English posts page' ),
 	array( '/zh/blog/', array( 'pagename' => 'blog' ), 'posts', 'Chinese posts page' ),
 	array( '/ar/blog/', array( 'pagename' => 'blog' ), 'posts', 'Arabic posts page' ),
+	array( '/de/blog/', array( 'pagename' => 'blog' ), 'posts', 'German posts page' ),
 );
 foreach ( $route_cases as $case ) {
 	$router = new Pera_ML_Router( $registry );
@@ -107,12 +112,18 @@ $wp = (object) array( 'query_vars' => array() ); $router->restore_public_uri( $w
 pera_ml_expect( 12345, $wp->query_vars['page_id'], 'front page ID comes from WordPress configuration' );
 pera_ml_expect( false, $router->prevent_prefix_loss( 'https://www.peraproperty.com/', 'https://www.peraproperty.com/zh/' ), 'language root canonical does not redirect or loop' );
 pera_ml_expect( 'https://www.peraproperty.com/zh/', $router->url_for_language( 'https://www.peraproperty.com/', 'zh' ), 'language root canonical and hreflang URL' );
+pera_ml_expect( 'https://www.peraproperty.com/de/', $router->url_for_language( 'https://www.peraproperty.com/', 'de' ), 'German language root canonical and hreflang URL' );
 $GLOBALS['pera_ml_options']['page_on_front'] = 55858;
 
 $router = new Pera_ML_Router( $registry ); $_SERVER['REQUEST_URI'] = '/zh/property/foo/'; $router->detect_and_strip_prefix();
 $wp = (object) array( 'query_vars' => array( 'post_type' => 'property', 'name' => 'foo' ) ); $router->restore_public_uri( $wp );
 pera_ml_expect( 'foo', $wp->query_vars['name'], 'inner prefixed route query is preserved' );
 pera_ml_expect( 'zh', $wp->query_vars['pera_ml_lang'], 'inner prefixed route language marker is preserved' );
+
+$router = new Pera_ML_Router( $registry ); $_SERVER['REQUEST_URI'] = '/de/an-investment-guide/'; $router->detect_and_strip_prefix();
+$wp = (object) array( 'query_vars' => array( 'name' => 'an-investment-guide' ) ); $router->restore_public_uri( $wp );
+pera_ml_expect( 'an-investment-guide', $wp->query_vars['name'], 'German normal post resolves the canonical WordPress object' );
+pera_ml_expect( 'de', $wp->query_vars['pera_ml_lang'], 'German normal post language marker' );
 
 $GLOBALS['pera_ml_home'] = 'https://www.peraproperty.com/';
 foreach ( array( '/zh/wp-admin/', '/zh/wp-admin/admin-ajax.php', '/zh/wp-json/wp/v2/posts', '/zh/wp-cron.php', '/zh/xmlrpc.php', '/zh/wp-content/app.css', '/zh/wp-includes/app.js', '/zh/robots.txt' ) as $endpoint ) {

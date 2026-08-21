@@ -61,6 +61,12 @@ foreach ( array( 'meta:seo_title', 'meta:seo_meta_description', 'meta:seo_faq_v2
 $faq = $storage->get( 'post', 42, 'meta:seo_faq_v2', 'zh', 'source-2' );
 expect_same( 'translated-2', $faq['translated_text'], 'SEO FAQ structured-key regression' );
 
+foreach ( array( 'post_title', 'post_content', 'post_excerpt', 'meta:seo_title', 'meta:seo_meta_description', 'meta:seo_faq_v2' ) as $field ) {
+	$storage->put( 'post', 43, $field, 'de', 'German source ' . $field, 'German translation ' . $field );
+	$row = $storage->get( 'post', 43, $field, 'de', 'German source ' . $field );
+	expect_same( 'German translation ' . $field, $row['translated_text'], 'German field round trip: ' . $field );
+}
+
 $legacy_key = 'post|99|metaseo_faq_v2|ar';
 $wpdb->rows[ $legacy_key ] = array( 'field_key' => 'metaseo_faq_v2', 'source_hash' => hash( 'sha256', 'legacy source' ), 'translated_text' => 'ترجمة قديمة' );
 $legacy = $storage->get( 'post', 99, 'meta:seo_faq_v2', 'ar', 'legacy source' );
@@ -72,6 +78,9 @@ expect_same( 'translated-2', $fields->get( 42, 'seo_faq_v2', 'source-2' ), 'pera
 $storage->put( 'post', 42, 'meta:seo_faq_v2', 'ar', 'source-2', 'ترجمة عربية' );
 $router->language = 'ar';
 expect_same( 'ترجمة عربية', $fields->get( 42, 'seo_faq_v2', 'source-2' ), 'pera_ml_field path retrieves Arabic ACF value from canonical storage' );
+$storage->put( 'post', 42, 'meta:seo_faq_v2', 'de', 'source-2', 'Deutsche FAQ' );
+$router->language = 'de';
+expect_same( 'Deutsche FAQ', $fields->get( 42, 'seo_faq_v2', 'source-2' ), 'German translated metadata uses canonical storage' );
 
 $GLOBALS['deleted_cache_keys'] = array();
 $result = $storage->mark_object_stale( 'post', 42 );

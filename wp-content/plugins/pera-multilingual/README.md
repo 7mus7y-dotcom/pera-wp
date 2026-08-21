@@ -1,13 +1,13 @@
 # Pera Multilingual
 
-Standalone, server-rendered multilingual infrastructure for Pera Property. English remains the only WordPress content object; `/zh/` and `/ar/` requests resolve that same object and read structured translations from local storage.
+Standalone, server-rendered multilingual infrastructure for Pera Property. English remains the only WordPress content object; `/zh/`, `/ar/`, and `/de/` requests resolve that same object and read structured translations from local storage.
 
 ## Repository compatibility findings
 
 - The active child theme is template-heavy: dedicated home/page/blog/property/taxonomy templates render ACF and custom meta directly.
 - `property` and its `district`, `region`, `property_type`, `property_tags`, and `special` routes are consumed by a custom archive and AJAX filter implementation. Additional portal, portfolio, CRM, and LLMS routes exist.
 - Theme bootstrap conditionally loads property helpers by request path. The router therefore strips a recognized language prefix at `plugins_loaded`, lets all theme and WordPress routing see the canonical path, then restores the browser-facing URI at `parse_request`.
-- SEO, Open Graph, and JSON-LD are principally theme-owned. The plugin emits reciprocal hreflang links and supports Yoast/Rank Math canonical filters without requiring either. The current theme's URI-derived canonical naturally sees the restored translated URI.
+- SEO, Open Graph, and JSON-LD are principally theme-owned. The plugin emits reciprocal hreflang links and retains a Rank Math canonical compatibility filter without requiring Rank Math. The current theme's URI-derived canonical naturally sees the restored translated URI.
 - Elementor is the parent-theme ecosystem, but the child theme is largely custom PHP. The plugin has no Elementor dependency.
 
 ## Storage
