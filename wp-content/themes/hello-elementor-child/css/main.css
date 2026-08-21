@@ -1512,17 +1512,19 @@ button.pill:focus-visible {
 .header-language-switcher--desktop .header-language-switcher__list {
   position: absolute;
   top: calc(100% + 8px);
-  inset-inline-end: 0;
+  right: auto;
+  left: 0;
   z-index: 2;
   display: none;
   min-width: 150px;
+  max-width: calc(100vw - 16px);
   border: 1px solid var(--glass-border-soft);
   border-radius: var(--radius-md);
   background: var(--brand);
   box-shadow: var(--glass-shadow-soft);
 }
 .header-language-switcher--desktop.is-open .header-language-switcher__list,
-.header-language-switcher--desktop:focus-within .header-language-switcher__list { display: block; }
+.header-language-switcher--desktop:not(.is-enhanced):focus-within .header-language-switcher__list { display: block; }
 .header-language-switcher__list a {
   display: block;
   padding: 9px 10px;

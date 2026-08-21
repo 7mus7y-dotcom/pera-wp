@@ -5,6 +5,8 @@ document.addEventListener('DOMContentLoaded', function () {
     var toggle = switcher.querySelector('.header-language-switcher__toggle');
     if (!toggle) return;
 
+    switcher.classList.add('is-enhanced');
+
     function closeSwitcher() {
       switcher.classList.remove('is-open');
       toggle.setAttribute('aria-expanded', 'false');
@@ -32,6 +34,10 @@ document.addEventListener('DOMContentLoaded', function () {
     document.addEventListener('click', function (event) {
       if (!switcher.contains(event.target)) closeSwitcher();
     });
+
+    window.addEventListener('scroll', function () {
+      closeSwitcher();
+    }, { passive: true });
   });
 
   /* -----------------------------------------
