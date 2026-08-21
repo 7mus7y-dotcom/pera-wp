@@ -54,16 +54,49 @@ final class Pera_ML_Translator {
 				$output .= $chunk['text'];
 				continue;
 			}
-			$translated = $this->translate_fragment( $chunk['text'], $provider, $context );
-			if ( is_wp_error( $translated ) && 'pera_ml_structure_changed' === $translated->get_error_code() ) {
-				$retry_context = $context;
-				$retry_context['instructions'] = trim( (string) $retry_context['instructions'] . "\n" . 'Preserve every placeholder matching PERAMLPROTECTED<number>TOKEN exactly once, unchanged, and in its original order. Return no additional placeholders.' );
-				$translated = $this->translate_fragment( $chunk['text'], $provider, $retry_context );
-			}
+			$translated = $this->translate_structural_fragment( $chunk['text'], $provider, $context );
 			if ( is_wp_error( $translated ) ) return $translated;
 			$output .= $translated;
 		}
 		return $output;
+	}
+	/**
+	 * Recover a provider-damaged fragment by replanning only that fragment at
+	 * progressively smaller limits. A leaf gets the existing single strict retry.
+	 */
+	private function translate_structural_fragment( $source, $provider, array $context, $depth = 0 ) {
+		$translated = $this->translate_fragment( $source, $provider, $context );
+		if ( ! is_wp_error( $translated ) || 'pera_ml_structure_changed' !== $translated->get_error_code() ) return $translated;
+
+		$max_depth = 8;
+		if ( $depth < $max_depth ) {
+			$protected_count = count( $this->protect( $source )['tokens'] );
+			$smaller_chars = max( 1, (int) floor( strlen( $source ) / 2 ) );
+			$smaller_tokens = max( 1, (int) floor( $protected_count / 2 ) );
+			$subplan = $this->build_structural_chunk_plan( $source, $smaller_chars, $smaller_tokens );
+			if ( ! is_wp_error( $subplan ) && $this->is_smaller_structural_plan( $subplan, $source ) ) {
+				$output = '';
+				foreach ( $subplan as $piece ) {
+					if ( empty( $piece['translate'] ) ) {
+						$output .= $piece['text'];
+						continue;
+					}
+					$piece_translation = $this->translate_structural_fragment( $piece['text'], $provider, $context, $depth + 1 );
+					if ( is_wp_error( $piece_translation ) ) return $piece_translation;
+					$output .= $piece_translation;
+				}
+				return $output;
+			}
+		}
+
+		$retry_context = $context;
+		$retry_context['instructions'] = trim( (string) $retry_context['instructions'] . "\n" . 'Preserve every placeholder matching PERAMLPROTECTED<number>TOKEN exactly once, unchanged, and in its original order. Return no additional placeholders.' );
+		return $this->translate_fragment( $source, $provider, $retry_context );
+	}
+	private function is_smaller_structural_plan( array $plan, $source ) {
+		$provider_fragments = array();
+		foreach ( $plan as $piece ) if ( ! empty( $piece['translate'] ) ) $provider_fragments[] = $piece['text'];
+		return ! empty( $provider_fragments ) && ( 1 !== count( $provider_fragments ) || $provider_fragments[0] !== $source );
 	}
 	/**
 	 * Group complete sibling blocks. Oversized compound wrappers are emitted verbatim

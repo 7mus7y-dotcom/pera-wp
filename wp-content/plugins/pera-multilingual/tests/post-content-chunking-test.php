@@ -7,6 +7,8 @@ function do_action() {}
 function is_wp_error( $value ) { return $value instanceof WP_Error; }
 function apply_filters( $tag, $value ) {
 	if ( 'pera_ml_provider' === $tag ) return $GLOBALS['chunk_test_provider'];
+	if ( 'pera_ml_post_content_chunk_max_chars' === $tag && isset( $GLOBALS['chunk_test_max_chars'] ) ) return $GLOBALS['chunk_test_max_chars'];
+	if ( 'pera_ml_post_content_chunk_max_tokens' === $tag && isset( $GLOBALS['chunk_test_max_tokens'] ) ) return $GLOBALS['chunk_test_max_tokens'];
 	return $value;
 }
 class WP_Error {
@@ -22,7 +24,7 @@ require dirname( __DIR__ ) . '/includes/providers/interface-provider.php';
 require dirname( __DIR__ ) . '/includes/providers/class-mock-provider.php';
 require dirname( __DIR__ ) . '/includes/class-translator.php';
 
-final class Chunk_Test_Provider implements Pera_ML_Provider_Interface {
+class Chunk_Test_Provider implements Pera_ML_Provider_Interface {
 	public $calls = array();
 	public $maximum_tokens = 0;
 	private $language;
@@ -46,6 +48,19 @@ final class Chunk_Test_Provider implements Pera_ML_Provider_Interface {
 			// Drop the placeholder immediately before the affected item's text: its opening <li>.
 			preg_match( '/(PERAMLPROTECTED\d+TOKEN)Affected item/', $source, $lost_token );
 			$response = str_replace( $lost_token[1], '', $response );
+		}
+		return $response;
+	}
+}
+final class Closing_Strong_Drop_Provider extends Chunk_Test_Provider {
+	public $dropped_token = '';
+	private $dropped = false;
+	public function translate( $source, array $context ) {
+		$response = parent::translate( $source, $context );
+		if ( ! $this->dropped && preg_match( '/emphasis survives(PERAMLPROTECTED\d+TOKEN)/', $source, $closing_strong ) ) {
+			$this->dropped = true;
+			$this->dropped_token = $closing_strong[1];
+			$response = str_replace( $this->dropped_token, '', $response );
 		}
 		return $response;
 	}
@@ -108,14 +123,18 @@ foreach ( array( 'zh', 'ar' ) as $language ) {
 	expect_chunk( ! is_wp_error( $result ), "$language long translation succeeds" . ( is_wp_error( $result ) ? ': ' . $result->get_error_code() . ' calls=' . count( $GLOBALS['chunk_test_provider']->calls ) : '' ) );
 	$calls = $GLOBALS['chunk_test_provider']->calls;
 	$affected_calls = array_values( array_filter( $calls, static function ( $call ) { return false !== strpos( $call['source'], 'Affected item' ); } ) );
-	expect_chunk( 2 === count( $affected_calls ), "$language retries only affected list chunk" );
-	expect_chunk( count( $calls ) === count( array_unique( array_map( static function ( $call ) { return $call['source']; }, $calls ) ) ) + 1, "$language successful chunks called once" );
+	expect_chunk( count( $affected_calls ) >= 2, "$language recursively retries only affected list content" );
+	foreach ( $wrapper_plan as $planned_piece ) {
+		if ( empty( $planned_piece['translate'] ) || false !== strpos( $planned_piece['text'], 'Affected item' ) ) continue;
+		$planned_provider_source = $translator->protect( $planned_piece['text'] )['text'];
+		$matching_calls = array_filter( $calls, static function ( $call ) use ( $planned_provider_source ) { return $call['source'] === $planned_provider_source; } );
+		expect_chunk( 1 === count( $matching_calls ), "$language successful planned sibling chunks called once" );
+	}
 	expect_chunk( count( $calls ) <= 18, "$language giant wrapper uses a bounded number of calls" );
 	expect_chunk( $GLOBALS['chunk_test_provider']->maximum_tokens <= 35, "$language giant wrapper chunks respect protected-token limit" );
 	expect_chunk( 0 === count( array_filter( $calls, static function ( $call ) { return false !== strpos( $call['source'], 'article-wrapper' ); } ) ), "$language outer wrapper tags stay outside provider requests" );
 	$observed_calls[ $language ] = count( $calls );
 	$observed_maximum_tokens = max( $observed_maximum_tokens, $GLOBALS['chunk_test_provider']->maximum_tokens );
-	expect_chunk( false !== strpos( $affected_calls[1]['instructions'], 'exactly once' ), "$language retry uses stronger preservation instruction" );
 	preg_match_all( '/<!--.*?-->|<[^>]+>/', $fixture, $before_tags );
 	preg_match_all( '/<!--.*?-->|<[^>]+>/', $result, $after_tags );
 	expect_chunk( $before_tags[0] === $after_tags[0], "$language preserves every tag and comment in order" );
@@ -162,8 +181,7 @@ $checklist_result = $translator->translate_and_store( 'post', 58969, 'post_conte
 expect_chunk( ! is_wp_error( $checklist_result ), 'German repetitive checklist translation succeeds' );
 expect_chunk( $GLOBALS['chunk_test_provider']->maximum_tokens <= 35, 'no repetitive checklist provider call exceeds 35 protected tokens' );
 $checklist_affected_calls = array_values( array_filter( $GLOBALS['chunk_test_provider']->calls, static function ( $call ) { return false !== strpos( $call['source'], 'Affected item' ); } ) );
-expect_chunk( 2 === count( $checklist_affected_calls ), 'repetitive checklist retains the one-time structure retry' );
-expect_chunk( false !== strpos( $checklist_affected_calls[1]['instructions'], 'exactly once' ), 'repetitive checklist retry uses stronger preservation instruction' );
+expect_chunk( count( $checklist_affected_calls ) >= 2, 'repetitive checklist recursively retries damaged structure' );
 preg_match_all( '/<\/?li\b[^>]*>/', $checklist, $checklist_before_list_tags );
 preg_match_all( '/<\/?li\b[^>]*>/', $checklist_result, $checklist_after_list_tags );
 expect_chunk( $checklist_before_list_tags[0] === $checklist_after_list_tags[0], 'all checklist li tags remain in their original order' );
@@ -261,11 +279,45 @@ $simple = $translator->translate_and_store( 'post', 12, 'post_content', 'zh', '<
 expect_chunk( '<p>翻译内容.</p>' === $simple, 'simple post content translates normally' );
 expect_chunk( 1 === count( $GLOBALS['chunk_test_provider']->calls ), 'simple content needs one provider call' );
 
+$GLOBALS['chunk_test_max_chars'] = 260;
+$GLOBALS['chunk_test_max_tokens'] = 35;
+$recovery_before = '<div class="before"><p>Successful sibling before with enough prose to form its own planned chunk.</p><p>More sibling text before recovery.</p></div>';
+$recovery_chunk = '<section class="recovery"><p>Introductory recovery prose.</p><p>Recovery target<strong>emphasis survives</strong> with trailing prose.</p><p>Final recovery paragraph.</p></section>';
+$recovery_after = '<div class="after"><p>Successful sibling after with enough prose to remain a separate planned chunk.</p><p>More sibling text after recovery.</p></div>';
+$recovery_source = $recovery_before . $recovery_chunk . $recovery_after;
+$storage = new Chunk_Test_Storage();
+$closing_strong_provider = new Closing_Strong_Drop_Provider( 'zh' );
+$GLOBALS['chunk_test_provider'] = $closing_strong_provider;
+$translator = new Pera_ML_Translator( $registry, $storage );
+$protected_recovery = $translator->protect( $recovery_chunk );
+$recovery_plan = $chunk_method->invoke( $translator, $recovery_source );
+expect_chunk( 3 === count( array_filter( $recovery_plan, static function ( $piece ) { return ! empty( $piece['translate'] ); } ) ), 'recovery fixture starts as three planned chunks' );
+$recovered = $translator->translate_and_store( 'post', 50659, 'post_content', 'zh', $recovery_source, 'mock' );
+expect_chunk( ! is_wp_error( $recovered ), 'dropped closing strong token recovers through structural subdivision' );
+expect_chunk( isset( $protected_recovery['tokens'][ $closing_strong_provider->dropped_token ] ) && '</strong>' === $protected_recovery['tokens'][ $closing_strong_provider->dropped_token ], 'deliberately dropped protected token maps to closing strong tag' );
+$recovery_calls = $GLOBALS['chunk_test_provider']->calls;
+foreach ( array( $recovery_before, $recovery_after ) as $successful_sibling ) {
+	$successful_provider_source = $translator->protect( $successful_sibling )['text'];
+	expect_chunk( 1 === count( array_filter( $recovery_calls, static function ( $call ) use ( $successful_provider_source ) { return $call['source'] === $successful_provider_source; } ) ), 'successful sibling chunk is not retransmitted' );
+}
+$recovery_provider_source = $translator->protect( $recovery_chunk )['text'];
+expect_chunk( 1 === count( array_filter( $recovery_calls, static function ( $call ) use ( $recovery_provider_source ) { return $call['source'] === $recovery_provider_source; } ) ), 'only one full failing-chunk request is made before subdivision' );
+expect_chunk( count( $recovery_calls ) > 3, 'failing chunk is replaced by smaller provider fragments' );
+expect_chunk( $GLOBALS['chunk_test_provider']->maximum_tokens <= 35, 'recursive recovery respects configured token ceiling' );
+expect_chunk( 0 === count( array_filter( $recovery_calls, static function ( $call ) { return false !== strpos( $call['source'], 'class="recovery"' ) && false === strpos( $call['source'], 'Recovery target' ); } ) ), 'recovery wrapper is never translated separately' );
+preg_match_all( '/<[^>]+>/', $recovery_source, $recovery_before_tags );
+preg_match_all( '/<[^>]+>/', $recovered, $recovery_after_tags );
+expect_chunk( $recovery_before_tags[0] === $recovery_after_tags[0], 'recursive recovery preserves wrapper and tag order' );
+expect_chunk( 1 === count( $storage->puts ), 'structurally recovered HTML is stored once' );
+unset( $GLOBALS['chunk_test_max_chars'], $GLOBALS['chunk_test_max_tokens'] );
+
 $storage = new Chunk_Test_Storage();
 $GLOBALS['chunk_test_provider'] = new Chunk_Test_Provider( 'ar', true );
 $translator = new Pera_ML_Translator( $registry, $storage );
 $failed = $translator->translate_and_store( 'post', 13, 'post_content', 'ar', $fixture, 'mock' );
 expect_chunk( is_wp_error( $failed ) && 'pera_ml_structure_changed' === $failed->get_error_code(), 'persistent token loss fails after one chunk retry' );
 expect_chunk( 0 === count( $storage->puts ), 'failed reassembly is never stored' );
+$persistent_calls = $GLOBALS['chunk_test_provider']->calls;
+expect_chunk( false !== strpos( end( $persistent_calls )['instructions'], 'exactly once' ), 'indivisible persistent damage receives one strict retry' );
 
 echo 'Pera ML post_content chunking tests passed (calls: siblings=' . $observed_calls['siblings'] . ', zh=' . $observed_calls['zh'] . ', ar=' . $observed_calls['ar'] . '; max protected tokens/call=' . $observed_maximum_tokens . ")\n";
