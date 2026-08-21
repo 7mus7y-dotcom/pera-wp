@@ -82,7 +82,7 @@ $siblings_result = $translator->translate_and_store( 'post', 100, 'post_content'
 expect_chunk( ! is_wp_error( $siblings_result ), 'many sibling blocks translate successfully' );
 expect_chunk( count( $GLOBALS['chunk_test_provider']->calls ) > 1, 'many siblings are split into bounded chunks' );
 expect_chunk( count( $GLOBALS['chunk_test_provider']->calls ) <= 6, '48 sibling blocks do not cause approximately 48 calls' );
-expect_chunk( $GLOBALS['chunk_test_provider']->maximum_tokens <= 50, 'sibling chunks respect protected-token limit' );
+expect_chunk( $GLOBALS['chunk_test_provider']->maximum_tokens <= 35, 'sibling chunks respect protected-token limit' );
 $observed_calls = array( 'siblings' => count( $GLOBALS['chunk_test_provider']->calls ) );
 $observed_maximum_tokens = $GLOBALS['chunk_test_provider']->maximum_tokens;
 
@@ -110,8 +110,8 @@ foreach ( array( 'zh', 'ar' ) as $language ) {
 	$affected_calls = array_values( array_filter( $calls, static function ( $call ) { return false !== strpos( $call['source'], 'Affected item' ); } ) );
 	expect_chunk( 2 === count( $affected_calls ), "$language retries only affected list chunk" );
 	expect_chunk( count( $calls ) === count( array_unique( array_map( static function ( $call ) { return $call['source']; }, $calls ) ) ) + 1, "$language successful chunks called once" );
-	expect_chunk( count( $calls ) <= 12, "$language giant wrapper uses a bounded number of calls" );
-	expect_chunk( $GLOBALS['chunk_test_provider']->maximum_tokens <= 50, "$language giant wrapper chunks respect protected-token limit" );
+	expect_chunk( count( $calls ) <= 18, "$language giant wrapper uses a bounded number of calls" );
+	expect_chunk( $GLOBALS['chunk_test_provider']->maximum_tokens <= 35, "$language giant wrapper chunks respect protected-token limit" );
 	expect_chunk( 0 === count( array_filter( $calls, static function ( $call ) { return false !== strpos( $call['source'], 'article-wrapper' ); } ) ), "$language outer wrapper tags stay outside provider requests" );
 	$observed_calls[ $language ] = count( $calls );
 	$observed_maximum_tokens = max( $observed_maximum_tokens, $GLOBALS['chunk_test_provider']->maximum_tokens );
@@ -132,13 +132,44 @@ $translator = new Pera_ML_Translator( $registry, $storage );
 $large_list_result = $translator->translate_and_store( 'post', 101, 'post_content', 'ar', $large_list, 'mock' );
 expect_chunk( ! is_wp_error( $large_list_result ), 'single oversized list translates successfully' );
 expect_chunk( count( $GLOBALS['chunk_test_provider']->calls ) > 1, 'single oversized list is split between complete list items' );
-expect_chunk( $GLOBALS['chunk_test_provider']->maximum_tokens <= 50, 'oversized list provider calls respect hard token maximum' );
+expect_chunk( $GLOBALS['chunk_test_provider']->maximum_tokens <= 35, 'oversized list provider calls respect hard token maximum' );
 expect_chunk( false === strpos( implode( '', array_map( static function ( $call ) { return $call['source']; }, $GLOBALS['chunk_test_provider']->calls ) ), 'large-list' ), 'list wrapper stays outside provider requests' );
 preg_match_all( '/<[^>]+>/', $large_list, $large_list_before_tags );
 preg_match_all( '/<[^>]+>/', $large_list_result, $large_list_after_tags );
 expect_chunk( $large_list_before_tags[0] === $large_list_after_tags[0], 'oversized list reassembly preserves all tags' );
 $list_plan = $chunk_method->invoke( $translator, $large_list );
 foreach ( $list_plan as $piece ) if ( $piece['translate'] ) expect_chunk( chunk_html_is_balanced( $piece['text'] ), 'each oversized-list provider fragment contains balanced HTML' );
+$observed_maximum_tokens = max( $observed_maximum_tokens, $GLOBALS['chunk_test_provider']->maximum_tokens );
+
+$checklist = '<h2>Documents checklist</h2><p>Prepare every document before your appointment.</p><ul class="checklist">';
+for ( $i = 0; $i < 24; $i++ ) {
+	$label = 9 === $i ? 'Affected item' : 'Checklist item ' . $i;
+	$checklist .= '<li data-item="' . $i . '">' . $label . '</li>';
+}
+$checklist .= '</ul><p>Contact the team if you need assistance.</p><h3>Next steps</h3>';
+$protected_checklist = ( new Pera_ML_Translator( $registry, new Chunk_Test_Storage() ) )->protect( $checklist );
+expect_chunk( count( $protected_checklist['tokens'] ) > 35, 'repetitive checklist fixture exceeds the default grouping ceiling' );
+$storage = new Chunk_Test_Storage();
+$GLOBALS['chunk_test_provider'] = new Chunk_Test_Provider( 'de' );
+$translator = new Pera_ML_Translator( $registry, $storage );
+$checklist_plan = $chunk_method->invoke( $translator, $checklist );
+$checklist_fragments = array_values( array_filter( $checklist_plan, static function ( $piece ) { return $piece['translate']; } ) );
+expect_chunk( count( $checklist_fragments ) > 1, 'repetitive checklist splits before exceeding 35 protected tokens' );
+foreach ( $checklist_fragments as $piece ) {
+	expect_chunk( count( $translator->protect( $piece['text'] )['tokens'] ) <= 35, 'each repetitive checklist chunk plan fragment respects protected-token limit' );
+}
+$checklist_result = $translator->translate_and_store( 'post', 58969, 'post_content', 'de', $checklist, 'mock' );
+expect_chunk( ! is_wp_error( $checklist_result ), 'German repetitive checklist translation succeeds' );
+expect_chunk( $GLOBALS['chunk_test_provider']->maximum_tokens <= 35, 'no repetitive checklist provider call exceeds 35 protected tokens' );
+$checklist_affected_calls = array_values( array_filter( $GLOBALS['chunk_test_provider']->calls, static function ( $call ) { return false !== strpos( $call['source'], 'Affected item' ); } ) );
+expect_chunk( 2 === count( $checklist_affected_calls ), 'repetitive checklist retains the one-time structure retry' );
+expect_chunk( false !== strpos( $checklist_affected_calls[1]['instructions'], 'exactly once' ), 'repetitive checklist retry uses stronger preservation instruction' );
+preg_match_all( '/<\/?li\b[^>]*>/', $checklist, $checklist_before_list_tags );
+preg_match_all( '/<\/?li\b[^>]*>/', $checklist_result, $checklist_after_list_tags );
+expect_chunk( $checklist_before_list_tags[0] === $checklist_after_list_tags[0], 'all checklist li tags remain in their original order' );
+preg_match_all( '/<[^>]+>/', $checklist, $checklist_before_tags );
+preg_match_all( '/<[^>]+>/', $checklist_result, $checklist_after_tags );
+expect_chunk( $checklist_before_tags[0] === $checklist_after_tags[0], 'repetitive checklist final HTML structure is identical' );
 $observed_maximum_tokens = max( $observed_maximum_tokens, $GLOBALS['chunk_test_provider']->maximum_tokens );
 
 $gutenberg_wrappers = array(
@@ -158,7 +189,7 @@ foreach ( $gutenberg_wrappers as $label => $wrapper ) {
 	expect_chunk( 1 === substr_count( $gutenberg_result, trim( $wrapper[2] ) ), "$label closing Gutenberg comment survives exactly once" );
 	expect_chunk( substr( $gutenberg_result, 0, strlen( $wrapper[0] ) ) === $wrapper[0], "$label preserves whitespace around opening comment" );
 	expect_chunk( substr( $gutenberg_result, -strlen( $wrapper[2] ) ) === $wrapper[2], "$label preserves whitespace around closing comment" );
-	expect_chunk( $GLOBALS['chunk_test_provider']->maximum_tokens <= 50, "$label chunks respect protected-token limit" );
+	expect_chunk( $GLOBALS['chunk_test_provider']->maximum_tokens <= 35, "$label chunks respect protected-token limit" );
 	$gutenberg_plan = $chunk_method->invoke( $translator, $gutenberg_source );
 	foreach ( $gutenberg_plan as $piece ) if ( $piece['translate'] ) expect_chunk( chunk_html_is_balanced( $piece['text'] ), "$label child provider fragments contain balanced HTML" );
 	$observed_maximum_tokens = max( $observed_maximum_tokens, $GLOBALS['chunk_test_provider']->maximum_tokens );
@@ -178,7 +209,7 @@ $figure_result = $translator->translate_and_store( 'post', 58617, 'post_content'
 expect_chunk( ! is_wp_error( $figure_result ), 'oversized figure-wrapped table subdivides without error' );
 expect_chunk( 1 === substr_count( $figure_result, '<figure class="wp-block-table" data-layout="wide">' ), 'figure wrapper appears exactly once' );
 expect_chunk( 1 === substr_count( $figure_result, '<table class="property-market">' ), 'table wrapper appears exactly once' );
-expect_chunk( $GLOBALS['chunk_test_provider']->maximum_tokens <= 50, 'figure table provider calls respect protected-token limit' );
+expect_chunk( $GLOBALS['chunk_test_provider']->maximum_tokens <= 35, 'figure table provider calls respect protected-token limit' );
 $figure_provider_html = implode( '', array_map( static function ( $call ) { return $call['source']; }, $GLOBALS['chunk_test_provider']->calls ) );
 expect_chunk( false === strpos( $figure_provider_html, 'wp-block-table' ), 'figure wrapper stays outside provider requests' );
 expect_chunk( false === strpos( $figure_provider_html, 'property-market' ), 'table wrapper stays outside provider requests' );
@@ -201,7 +232,7 @@ $translator = new Pera_ML_Translator( $registry, $storage );
 $section_result = $translator->translate_and_store( 'post', 58617, 'post_content', 'ar', $large_section, 'mock' );
 expect_chunk( ! is_wp_error( $section_result ), 'oversized section subdivides without error' );
 expect_chunk( count( $GLOBALS['chunk_test_provider']->calls ) > 1, 'oversized section children are recursively grouped' );
-expect_chunk( $GLOBALS['chunk_test_provider']->maximum_tokens <= 50, 'section provider calls respect protected-token limit' );
+expect_chunk( $GLOBALS['chunk_test_provider']->maximum_tokens <= 35, 'section provider calls respect protected-token limit' );
 $section_provider_html = implode( '', array_map( static function ( $call ) { return $call['source']; }, $GLOBALS['chunk_test_provider']->calls ) );
 expect_chunk( false === strpos( $section_provider_html, 'faq-content' ), 'section wrapper stays outside provider requests' );
 expect_chunk( substr( $section_result, 0, strlen( "\n<section class=\"faq-content\" data-section=\"faq\">\n" ) ) === "\n<section class=\"faq-content\" data-section=\"faq\">\n", 'section opening markup is preserved verbatim' );
