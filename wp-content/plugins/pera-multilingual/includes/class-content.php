@@ -11,7 +11,9 @@ final class Pera_ML_Content {
 		add_filter( 'get_the_excerpt', array( $this, 'excerpt' ), 20, 2 );
 		add_filter( 'body_class', array( $this, 'body_classes' ) );
 		add_filter( 'language_attributes', array( $this, 'language_attributes' ) );
-		add_action( 'wp_enqueue_scripts', array( $this, 'rtl_style' ) );
+		// Run after the theme's late standalone-page asset cleanup so an optional
+		// dependency on its main stylesheet cannot prevent the RTL CSS loading.
+		add_action( 'wp_enqueue_scripts', array( $this, 'rtl_style' ), 110 );
 		add_shortcode( 'pera_language_switcher', array( $this, 'language_switcher' ) );
 		add_action( 'save_post', array( $this, 'stale_post' ), 20, 3 );
 		add_action( 'edited_term', array( $this, 'stale_term' ), 20 );
@@ -35,7 +37,12 @@ final class Pera_ML_Content {
 	public function excerpt( $excerpt, $post = null ) { $id = $post instanceof WP_Post ? $post->ID : get_the_ID(); return $this->translated( (int) $id, 'post_excerpt', $excerpt ); }
 	public function body_classes( $classes ) { $language = $this->registry->get( $this->router->current_language() ); $classes[] = 'pera-ml-lang-' . $this->router->current_language(); if ( $language && 'rtl' === $language['direction'] ) $classes[] = 'pera-ml-rtl'; return $classes; }
 	public function language_attributes( $output ) { $language = $this->registry->get( $this->router->current_language() ); return $language ? 'lang="' . esc_attr( $language['code'] ) . '" dir="' . esc_attr( $language['direction'] ) . '"' : $output; }
-	public function rtl_style() { $language = $this->registry->get( $this->router->current_language() ); if ( $language && 'rtl' === $language['direction'] ) wp_enqueue_style( 'pera-ml-rtl', PERA_ML_URL . 'assets/css/rtl.css', array(), PERA_ML_VERSION ); }
+	public function rtl_style() {
+		$language = $this->registry->get( $this->router->current_language() );
+		if ( ! $language || 'rtl' !== $language['direction'] ) return;
+		$dependencies = wp_style_is( 'pera-main-css', 'enqueued' ) ? array( 'pera-main-css' ) : array();
+		wp_enqueue_style( 'pera-ml-rtl', PERA_ML_URL . 'assets/css/rtl.css', $dependencies, PERA_ML_VERSION );
+	}
 	public function stale_post( $post_id, $post = null, $update = false ) {
 		if ( ! $update || ( defined( 'DOING_AUTOSAVE' ) && DOING_AUTOSAVE ) || wp_is_post_autosave( $post_id ) || wp_is_post_revision( $post_id ) ) return;
 		$post = $post instanceof WP_Post ? $post : get_post( $post_id );
