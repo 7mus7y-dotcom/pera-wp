@@ -7,6 +7,7 @@ $GLOBALS['pera_ml_test_cache'] = array();
 $GLOBALS['deleted_cache_keys'] = array();
 function sanitize_key( $value ) { return preg_replace( '/[^a-z0-9_\-]/', '', strtolower( $value ) ); }
 function absint( $value ) { return abs( (int) $value ); }
+function get_post_type( $id ) { return 'post'; }
 function current_time() { return '2026-08-19 00:00:00'; }
 function apply_filters( $tag, $value ) { return $value; }
 function wp_cache_get( $key, $group ) { $key = $group . ':' . $key; return array_key_exists( $key, $GLOBALS['pera_ml_test_cache'] ) ? $GLOBALS['pera_ml_test_cache'][ $key ] : false; }

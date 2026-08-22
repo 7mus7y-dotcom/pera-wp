@@ -21,7 +21,7 @@ final class Pera_ML_Admin {
 		echo '<div class="notice ' . ( $failures ? 'notice-warning' : 'notice-success' ) . ' is-dismissible"><p>' . esc_html( $message ) . '</p></div>';
 	}
 	public function meta_box() { foreach ( get_post_types( array( 'public' => true ) ) as $type ) add_meta_box( 'pera-ml-translate', __( 'Pera Multilingual', 'pera-multilingual' ), array( $this, 'meta_box_html' ), $type, 'side' ); }
-	public function meta_box_html( $post ) { foreach ( $this->registry->enabled() as $code => $language ) { if ( 'en' === $code ) continue; $form_id = 'pera-ml-translate-' . (int) $post->ID . '-' . sanitize_html_class( $code ); $this->translation_forms[ $form_id ] = array( 'post_id' => (int) $post->ID, 'language' => $code ); $status = 'post' === $post->post_type ? Pera_ML_Plugin::instance()->status()->get( $post->ID, $code ) : null; $queue_attributes = 'post' === $post->post_type ? ' data-pera-ml-queue data-post-id="' . (int) $post->ID . '" data-language="' . esc_attr( $code ) . '" data-language-name="' . esc_attr( $language['name'] ) . '" data-nonce="' . esc_attr( wp_create_nonce( 'pera_ml_translate_' . $post->ID . '_' . $code ) ) . '"' : ''; echo '<div class="pera-ml-language-status"' . $queue_attributes . '><p><strong>' . esc_html( $language['name'] ) . '</strong><br><span class="pera-ml-queue-status">'; if ( $status ) { echo esc_html( $this->status_summary( $status ) ); $details = $this->status_details( $status ); if ( $details ) echo '<br><small>' . esc_html( $details ) . '</small>'; } echo '</span></p><div class="pera-ml-queue-fields" aria-live="polite"></div><p><button class="button' . ( 'post' === $post->post_type ? ' pera-ml-queue-button' : '' ) . '" type="submit" form="' . esc_attr( $form_id ) . '" data-mode="' . esc_attr( $status && $status['complete'] ? 'regenerate' : 'complete' ) . '">' . esc_html( $status && $status['complete'] ? sprintf( __( 'Regenerate %s', 'pera-multilingual' ), $language['name'] ) : sprintf( __( 'Translate / complete %s', 'pera-multilingual' ), $language['name'] ) ) . '</button></p></div>'; } }
+	public function meta_box_html( $post ) { $supported = in_array( $post->post_type, array( 'post', 'property' ), true ); foreach ( $this->registry->enabled() as $code => $language ) { if ( 'en' === $code ) continue; $form_id = 'pera-ml-translate-' . (int) $post->ID . '-' . sanitize_html_class( $code ); $this->translation_forms[ $form_id ] = array( 'post_id' => (int) $post->ID, 'language' => $code ); $status = $supported ? Pera_ML_Plugin::instance()->status()->get( $post->ID, $code, $post->post_type ) : null; $queue_attributes = $supported ? ' data-pera-ml-queue data-post-id="' . (int) $post->ID . '" data-language="' . esc_attr( $code ) . '" data-language-name="' . esc_attr( $language['name'] ) . '" data-nonce="' . esc_attr( wp_create_nonce( 'pera_ml_translate_' . $post->ID . '_' . $code ) ) . '"' : ''; echo '<div class="pera-ml-language-status"' . $queue_attributes . '><p><strong>' . esc_html( $language['name'] ) . '</strong><br><span class="pera-ml-queue-status">'; if ( $status ) { echo esc_html( $this->status_summary( $status ) ); $details = $this->status_details( $status ); if ( $details ) echo '<br><small>' . esc_html( $details ) . '</small>'; } echo '</span></p><div class="pera-ml-queue-fields" aria-live="polite"></div><p><button class="button' . ( $supported ? ' pera-ml-queue-button' : '' ) . '" type="submit" form="' . esc_attr( $form_id ) . '" data-mode="' . esc_attr( $status && $status['complete'] ? 'regenerate' : 'complete' ) . '">' . esc_html( $status && $status['complete'] ? sprintf( __( 'Regenerate %s', 'pera-multilingual' ), $language['name'] ) : sprintf( __( 'Translate / complete %s', 'pera-multilingual' ), $language['name'] ) ) . '</button></p></div>'; } }
 	public function enqueue_translation_queue( $hook ) { if ( ! in_array( $hook, array( 'post.php', 'post-new.php' ), true ) ) return; wp_enqueue_script( 'pera-ml-admin-queue', PERA_ML_URL . 'admin/translation-queue.js', array(), PERA_ML_VERSION, true ); wp_localize_script( 'pera-ml-admin-queue', 'peraMLQueue', array( 'ajaxUrl' => admin_url( 'admin-ajax.php' ) ) ); }
 	public function post_columns( $columns ) { foreach ( $this->target_languages() as $code => $language ) $columns[ 'pera_ml_' . $code ] = strtoupper( $code ); return $columns; }
 	public function preload_post_statuses( $posts, $query ) { if ( ! is_admin() || ! $query->is_main_query() || ! isset( $GLOBALS['pagenow'] ) || 'edit.php' !== $GLOBALS['pagenow'] ) return $posts; $ids = array(); foreach ( $posts as $post ) if ( 'post' === $post->post_type ) $ids[] = $post->ID; Pera_ML_Plugin::instance()->status()->preload( $ids, array_keys( $this->target_languages() ) ); return $posts; }
@@ -40,8 +40,8 @@ final class Pera_ML_Admin {
 		$config = $this->registry->get( $language );
 		if ( ! $config || empty( $config['enabled'] ) || ! empty( $config['source'] ) ) return new WP_Error( 'invalid_language' );
 		$post = get_post( $post_id );
-		if ( ! $post || 'post' !== $post->post_type ) return new WP_Error( 'invalid_object' );
-		return array( $post_id, $language );
+		if ( ! $post || ! in_array( $post->post_type, array( 'post', 'property' ), true ) ) return new WP_Error( 'invalid_object' );
+		return array( $post_id, $language, $post->post_type );
 	}
 	private function ajax_error( $error, $field = '', $status = 400 ) { wp_send_json( array( 'success' => false, 'field' => $this->bounded_field_identifier( $field ), 'error_code' => $this->public_error_code( $error ) ), $status ); }
 	private function public_error_code( $error ) {
@@ -52,8 +52,9 @@ final class Pera_ML_Admin {
 	/** Queue contract shared by AJAX and tests; this method never calls the provider. */
 	public function translation_queue( $post_id, $language, $mode = 'complete', $status_service = null ) {
 		$status_service = $status_service ? $status_service : Pera_ML_Plugin::instance()->status();
-		$sources = $status_service->applicable_sources( $post_id, 'post' );
-		$status = $status_service->get( $post_id, $language, 'post' );
+		$post = get_post( $post_id ); $post_type = $post ? $post->post_type : 'post';
+		$sources = $status_service->applicable_sources( $post_id, $post_type );
+		$status = $status_service->get( $post_id, $language, $post_type );
 		$fields = 'regenerate' === $mode ? array_keys( $sources ) : array_values( array_unique( array_merge( $status['missing'], $status['stale'] ) ) );
 		// Content is deliberately first without changing the canonical inventory definitions.
 		if ( false !== ( $position = array_search( 'post_content', $fields, true ) ) ) { unset( $fields[ $position ] ); array_unshift( $fields, 'post_content' ); }
@@ -67,7 +68,8 @@ final class Pera_ML_Admin {
 	/** Translate and immediately store exactly one server-approved canonical field. */
 	public function translate_field( $post_id, $language, $field, $translator = null, $status_service = null ) {
 		$status_service = $status_service ? $status_service : Pera_ML_Plugin::instance()->status();
-		$sources = $status_service->applicable_sources( $post_id, 'post' );
+		$post = get_post( $post_id ); $post_type = $post ? $post->post_type : 'post';
+		$sources = $status_service->applicable_sources( $post_id, $post_type );
 		if ( ! isset( $sources[ $field ] ) ) return new WP_Error( 'invalid_field' );
 		$translator = $translator ? $translator : Pera_ML_Plugin::instance()->translator();
 		$result = $this->translate_with_retry( $translator, 'post', $post_id, $field, $language, $sources[ $field ] );
@@ -89,8 +91,7 @@ final class Pera_ML_Admin {
 		$post = get_post( $post_id );
 		// Translate the largest and most important field first. A synchronous request that is
 		// terminated by the host can then no longer skip content after saving smaller fields.
-		$sources = array( 'post_content' => $post->post_content, 'post_title' => $post->post_title, 'post_excerpt' => $post->post_excerpt );
-		foreach ( Pera_ML_Plugin::instance()->fields()->approved() as $field ) { $value = get_post_meta( $post_id, $field, true ); if ( is_string( $value ) && '' !== trim( $value ) ) $sources[ 'meta:' . $field ] = $value; }
+		$sources = Pera_ML_Plugin::instance()->status()->applicable_sources( $post_id, $post->post_type );
 		$summary = $this->translate_fields( $post_id, $language, $sources ); $failures = $summary['failures']; $successes = $summary['successes'];
 		foreach ( array( 'district', 'region', 'property_type', 'property_tags', 'special' ) as $taxonomy ) { $terms = wp_get_post_terms( $post_id, $taxonomy ); if ( is_wp_error( $terms ) ) { $failures[] = $taxonomy . ':terms'; continue; } foreach ( $terms as $term ) {
 			$name = Pera_ML_Plugin::instance()->vocabulary()->translate( $term->name, $language );

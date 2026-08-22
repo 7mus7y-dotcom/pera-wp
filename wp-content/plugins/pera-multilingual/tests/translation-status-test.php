@@ -21,6 +21,7 @@ $GLOBALS['posts'] = array(
 );
 $GLOBALS['meta'] = array( 1 => array(), 2 => array( 'seo_title' => 'SEO', 'seo_meta_description' => '', 'seo_faq_v2' => '' ) );
 $GLOBALS['meta_cache_calls'] = 0; $wpdb = new Status_WPDB();
+require dirname( __DIR__ ) . '/includes/class-fields.php';
 require dirname( __DIR__ ) . '/includes/class-translation-status.php';
 $status = new Pera_ML_Translation_Status( new stdClass() );
 $status->preload( array( 1, 2 ), array( 'zh', 'ar' ) );

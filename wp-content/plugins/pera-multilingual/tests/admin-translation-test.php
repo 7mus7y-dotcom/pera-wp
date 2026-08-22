@@ -87,10 +87,10 @@ $GLOBALS['logged_in'] = true; $GLOBALS['can_edit'] = true; $GLOBALS['nonce_valid
 $GLOBALS['posts'][59726] = (object) array( 'post_type' => 'post' );
 $_POST = array( 'post_id' => 59726, 'language' => 'zh', 'nonce' => 'valid' );
 $request_method = new ReflectionMethod( 'Pera_ML_Admin', 'ajax_request' ); $request_method->setAccessible( true );
-expect_same( array( 59726, 'zh' ), $request_method->invoke( $contract_admin ), 'authenticated field request validation succeeds' );
+expect_same( array( 59726, 'zh', 'post' ), $request_method->invoke( $contract_admin ), 'authenticated field request validation succeeds' );
 $GLOBALS['nonce_valid'] = false; expect_same( 'invalid_nonce', $request_method->invoke( $contract_admin )->get_error_code(), 'invalid nonce rejected' );
 $GLOBALS['nonce_valid'] = true; $GLOBALS['can_edit'] = false; expect_same( 'insufficient_capability', $request_method->invoke( $contract_admin )->get_error_code(), 'insufficient capability rejected' );
-$GLOBALS['can_edit'] = true; $_POST['language'] = 'de'; expect_same( array( 59726, 'de' ), $request_method->invoke( $contract_admin ), 'German AJAX request validation succeeds' );
+$GLOBALS['can_edit'] = true; $_POST['language'] = 'de'; expect_same( array( 59726, 'de', 'post' ), $request_method->invoke( $contract_admin ), 'German AJAX request validation succeeds' );
 $_POST['language'] = 'xx'; expect_same( 'invalid_language', $request_method->invoke( $contract_admin )->get_error_code(), 'invalid language rejected' );
 
 $status = new Admin_Test_Status();
@@ -110,6 +110,16 @@ expect_same( 'invalid_field', $contract_admin->translate_field( 59726, 'zh', 'me
 expect_same( array( 'post_content' ), $single->calls, 'provider is not called for invalid field' );
 $before_status_calls = count( $single->calls ); $contract_admin->translation_queue( 59726, 'zh', 'complete', $status );
 expect_same( $before_status_calls, count( $single->calls ), 'provider is never called for status-only queue request' );
+
+$GLOBALS['posts'][59727] = (object) array( 'post_type' => 'property' );
+$property_status = new Admin_Test_Status();
+$property_status->sources = array( 'meta:project_name' => 'Project', 'meta:custom_text' => 'Copy' );
+$property_status->statuses['zh'] = array( 'applicable' => 2, 'current' => 0, 'existing' => 0, 'missing' => array_keys( $property_status->sources ), 'stale' => array(), 'complete' => false );
+expect_same( array_keys( $property_status->sources ), $contract_admin->translation_queue( 59727, 'zh', 'complete', $property_status )['applicable_fields'], 'property queue uses the status API property inventory' );
+$property_translator = new Admin_Test_Translator();
+expect_same( 'zh:Project', $contract_admin->translate_field( 59727, 'zh', 'meta:project_name', $property_translator, $property_status ), 'approved property meta is translated' );
+expect_same( 'invalid_field', $contract_admin->translate_field( 59727, 'zh', 'meta:facilities', $property_translator, $property_status )->get_error_code(), 'property checkbox arrays cannot reach the provider' );
+expect_same( array( 'meta:project_name' ), $property_translator->calls, 'provider receives only approved scalar property meta' );
 
 $GLOBALS['transients']['pera_ml_notice_7_59726_result'] = array( 'successes' => 2, 'failures' => array( 'post_content' ) );
 $_GET = array( 'pera_ml_notice' => 'result', 'post' => '59726' );

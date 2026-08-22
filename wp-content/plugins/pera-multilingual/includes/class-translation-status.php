@@ -31,13 +31,14 @@ final class Pera_ML_Translation_Status {
 			$indexed[ $key ][ $row['field_key'] ] = $row;
 		}
 		foreach ( $object_ids as $object_id ) foreach ( $languages as $language ) {
-			$key = $object_id . '|' . $language;
-			$this->results[ $key ] = $this->calculate( $object_id, $language, isset( $indexed[ $key ] ) ? $indexed[ $key ] : array(), $post_type );
+			$row_key = $object_id . '|' . $language;
+			$key = $object_id . '|' . $language . '|' . sanitize_key( $post_type );
+			$this->results[ $key ] = $this->calculate( $object_id, $language, isset( $indexed[ $row_key ] ) ? $indexed[ $row_key ] : array(), $post_type );
 		}
 	}
 
 	public function get( $object_id, $language, $post_type = 'post' ) {
-		$key = absint( $object_id ) . '|' . sanitize_key( $language );
+		$key = absint( $object_id ) . '|' . sanitize_key( $language ) . '|' . sanitize_key( $post_type );
 		if ( ! isset( $this->results[ $key ] ) ) $this->preload( array( $object_id ), array( $language ), $post_type );
 		return isset( $this->results[ $key ] ) ? $this->results[ $key ] : $this->empty_result();
 	}
@@ -48,7 +49,9 @@ final class Pera_ML_Translation_Status {
 		if ( ! $post ) return array();
 		$definitions = array(
 			'post' => array( 'post_content' => false, 'post_title' => false, 'post_excerpt' => true, 'meta:seo_title' => true, 'meta:seo_meta_description' => true, 'meta:seo_faq_v2' => true ),
+			'property' => array( 'post_title' => true, 'post_content' => true, 'post_excerpt' => true ),
 		);
+		foreach ( Pera_ML_Fields::property_fields() as $field ) $definitions['property'][ 'meta:' . $field ] = true;
 		$definitions = apply_filters( 'pera_ml_status_field_definitions', $definitions, $post_type );
 		$fields = isset( $definitions[ $post_type ] ) ? $definitions[ $post_type ] : array();
 		$sources = array();
@@ -62,8 +65,8 @@ final class Pera_ML_Translation_Status {
 	/** Forget request-local results after a field is stored. */
 	public function invalidate( $object_id, $language = '' ) {
 		$prefix = absint( $object_id ) . '|';
-		if ( $language ) unset( $this->results[ $prefix . sanitize_key( $language ) ] );
-		else foreach ( array_keys( $this->results ) as $key ) if ( 0 === strpos( $key, $prefix ) ) unset( $this->results[ $key ] );
+		$language_prefix = $language ? $prefix . sanitize_key( $language ) . '|' : $prefix;
+		foreach ( array_keys( $this->results ) as $key ) if ( 0 === strpos( $key, $language_prefix ) ) unset( $this->results[ $key ] );
 	}
 
 	private function calculate( $object_id, $language, array $rows, $post_type ) {
