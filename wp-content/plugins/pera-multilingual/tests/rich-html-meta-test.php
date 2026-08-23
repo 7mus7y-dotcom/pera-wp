@@ -34,6 +34,11 @@ class Rich_HTML_Provider implements Pera_ML_Provider_Interface {
 		if ( ( $this->always_damage && $count ) || $count > $this->damage_above ) return preg_replace( '/PERAMLPROTECTED\d+TOKEN/', '', $source, 1 );
 		$target = strtoupper( $context['target_language'] );
 		return strtr( $source, array(
+			'Intro prose with ' => $target . '_INTRO ', 'Second paragraph of ordinary prose.' => $target . '_SECOND.',
+			'Transport includes ' => $target . '_TRANSPORT ', 'Elite ' => $target . '_ELITE ',
+			'Opening sentence with ' => $target . '_PROTECTED_OPEN ', 'Next sentence contact ' => $target . '_PROTECTED_NEXT ',
+			'One long sentence before ' => $target . '_LONG_ONE ', ' Another long sentence before ' => ' ' . $target . '_LONG_TWO ',
+			'Plain opening sentence. ' => $target . '_PLAIN_ONE ', 'Plain closing sentence.' => $target . '_PLAIN_TWO.',
 			'Next to Zeytinburnu Marmaray Station' => $target . '_STATION', 'One step away from:' => $target . '_PARENT',
 			'Diverse cuisines and world-famous cafés and restaurants' => $target . '_CUISINES', 'Seaside promenade' => $target . '_SEASIDE',
 			'Theatre and open-air cinema' => $target . '_THEATRE', 'Art galleries' => $target . '_GALLERIES',
@@ -217,6 +222,45 @@ foreach ( array( 'zh', 'ar', 'de' ) as $language ) {
 $GLOBALS['rich_max_chars'] = 30;
 list( $result ) = $run( '<ul><li>Parent prose<ul><li>First child</ul><li>Second child</li></ul></li></ul>' );
 expect_rich( is_wp_error( $result ) && 'pera_ml_chunk_too_large' === $result->get_error_code(), 'malformed oversized nested list fails safely' );
+unset( $GLOBALS['rich_max_chars'] );
+
+$property_29124 = "Intro prose with <a href=\"https://example.com/z\">Zeytinburnu</a>.\n\nSecond paragraph of ordinary prose.\n\nTransport includes <a href=\"https://example.com/m\">metro</a>, <a href=\"https://example.com/r\">high-speed rail</a>, and <a href=\"https://example.com/b\">Bosphorus road tunnel</a>.\n\nElite <a href=\"https://example.com/a\">Ataköy Marina</a> near <a href=\"https://example.com/t\">Taksim</a>, <a href=\"https://example.com/s\">Sultanahmet</a>, and <a href=\"https://example.com/n\">Nişantaşı</a>.";
+foreach ( array( 'zh', 'ar', 'de' ) as $language ) {
+	list( $result, $provider, $storage ) = $run( $property_29124, null, $language );
+	expect_rich( ! is_wp_error( $result ) && count( $provider->calls ) > 1, "$language property 29124 inline prose subdivides into multiple calls" );
+	foreach ( $provider->calls as $call ) expect_rich( preg_match_all( '/PERAMLPROTECTED\d+TOKEN/', $call['source'] ) <= 9, "$language property 29124 call stays within the token ceiling" );
+	expect_rich( 8 === substr_count( $result, '<a ' ) && 8 === substr_count( $result, '</a>' ), "$language preserves every complete link wrapper" );
+	foreach ( array( 'z', 'm', 'r', 'b', 'a', 't', 's', 'n' ) as $slug ) expect_rich( false !== strpos( $result, 'href="https://example.com/' . $slug . '"' ), "$language preserves link attribute $slug exactly" );
+	expect_rich( 3 === substr_count( $result, "\n\n" ) && strpos( $result, strtoupper( $language ) . '_INTRO' ) < strpos( $result, strtoupper( $language ) . '_SECOND' ) && strpos( $result, strtoupper( $language ) . '_SECOND' ) < strpos( $result, strtoupper( $language ) . '_TRANSPORT' ), "$language preserves paragraph spacing, order, and translates prose" );
+	expect_rich( 1 === count( $storage->puts ), "$language stores the complete property 29124 field once" );
+}
+
+$protected_prose = "Opening sentence with [gallery id=\"29124\"] and <strong>important wording</strong>.\nNext sentence contact team@example.com or https://example.com/path?q=1.";
+$GLOBALS['rich_max_chars'] = 90;
+$chunk_method = new ReflectionMethod( 'Pera_ML_Translator', 'build_structural_chunk_plan' );
+$chunk_method->setAccessible( true );
+$protected_plan = $chunk_method->invoke( $planning_translator, $protected_prose, 90, 9 );
+expect_rich( ! is_wp_error( $protected_plan ) && 2 === count( $protected_plan ), 'protected prose is planned as two safe newline-delimited fragments' );
+expect_rich( 1 === substr_count( $protected_plan[0]['text'], '[gallery id="29124"]' ) && false === strpos( $protected_plan[1]['text'], '[gallery id="29124"]' ), 'shortcode remains wholly inside one planned fragment' );
+$protected_first = $planning_translator->protect( $protected_plan[0]['text'] );
+$protected_second = $planning_translator->protect( $protected_plan[1]['text'] );
+expect_rich( in_array( '[gallery id="29124"]', $protected_first['tokens'], true ), 'shortcode is captured intact by existing protection rules' );
+expect_rich( in_array( 'team@example.com', $protected_second['tokens'], true ) && in_array( 'https://example.com/path?q=1.', $protected_second['tokens'], true ), 'email and bare URL are captured intact by existing protection rules' );
+list( $result, $provider, $storage ) = $run( $protected_prose );
+$protected_call_sources = array_map( static function ( $call ) { return $call['source']; }, $provider->calls );
+expect_rich( in_array( $protected_first['text'], $protected_call_sources, true ) && in_array( $protected_second['text'], $protected_call_sources, true ), 'each complete protected construct reaches its provider call as one intact placeholder' );
+expect_rich( false !== strpos( $result, '[gallery id="29124"]' ) && false !== strpos( $result, 'team@example.com' ) && false !== strpos( $result, 'https://example.com/path?q=1.' ), 'shortcode, email, and URL restore exactly after textual-run subdivision' );
+expect_rich( false !== strpos( $result, 'AR_PROTECTED_OPEN' ) && false !== strpos( $result, 'AR_PROTECTED_NEXT' ) && 1 === count( $storage->puts ), 'protected prose fragments translate and the restored result is stored once' );
+unset( $GLOBALS['rich_max_chars'] );
+
+$GLOBALS['rich_max_chars'] = 100;
+list( $result ) = $run( 'One long sentence before <a href="https://example.com/exact">linked words</a>. Another long sentence before <strong>important wording</strong>.' );
+expect_rich( ! is_wp_error( $result ) && false !== strpos( $result, '<a href="https://example.com/exact">linked words</a>' ) && false !== strpos( $result, '<strong>صياغة مهمة</strong>' ), 'single paragraph splits at a sentence boundary without detaching inline pairs' );
+$GLOBALS['rich_max_chars'] = 25;
+list( $result ) = $run( 'Plain opening sentence. Plain closing sentence.' );
+expect_rich( ! is_wp_error( $result ) && false !== strpos( $result, 'AR_PLAIN_ONE' ) && false !== strpos( $result, 'AR_PLAIN_TWO' ), 'oversized plain prose can use textual-run subdivision' );
+list( $result ) = $run( '<a href="https://example.com/unsplittable">This entire linked value is longer than the configured character ceiling and has no safe outside boundary.</a>' );
+expect_rich( is_wp_error( $result ) && 'pera_ml_chunk_too_large' === $result->get_error_code(), 'an oversized inline construct with no safe boundary still fails safely' );
 unset( $GLOBALS['rich_max_chars'] );
 
 echo "Pera ML rich HTML meta tests passed\n";

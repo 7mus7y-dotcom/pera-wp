@@ -268,7 +268,9 @@ final class Pera_ML_Translator {
 			}
 			if ( $this->exceeds_chunk_limits( $block, $max_chars, $max_tokens ) ) {
 				if ( '' !== $chunk ) { $plan[] = array( 'translate' => true, 'text' => $chunk ); $chunk = ''; $chunk_is_structural = null; }
-				$subplan = $this->subdivide_compound_block( $block, $max_chars, $max_tokens, $allow_compound_list_items );
+				$subplan = $block_is_structural
+					? $this->subdivide_compound_block( $block, $max_chars, $max_tokens, $allow_compound_list_items )
+					: $this->subdivide_inline_text_run( $block, $max_chars, $max_tokens );
 				if ( is_wp_error( $subplan ) ) return $subplan;
 				$plan = array_merge( $plan, $subplan );
 			} else {
@@ -363,6 +365,61 @@ final class Pera_ML_Translator {
 			}
 		}
 		return empty( $blocks ) ? array( $source ) : $blocks;
+	}
+	/** Split prose only at natural boundaries which occur outside balanced inline markup. */
+	private function subdivide_inline_text_run( $source, $max_chars, $max_tokens ) {
+		$void = array( 'area', 'base', 'br', 'col', 'embed', 'hr', 'img', 'input', 'link', 'meta', 'param', 'source', 'track', 'wbr' );
+		$stack = array();
+		$safe_ranges = array();
+		$cursor = 0;
+		preg_match_all( '/<!--.*?-->|<\/?[A-Za-z][^>]*>/s', $source, $markup, PREG_OFFSET_CAPTURE );
+		foreach ( $markup[0] as $token ) {
+			$offset = $token[1];
+			if ( empty( $stack ) && $offset > $cursor ) $safe_ranges[] = array( $cursor, $offset );
+			$cursor = $offset + strlen( $token[0] );
+			if ( '<!--' === substr( $token[0], 0, 4 ) ) continue;
+			if ( ! preg_match( '/^<\s*(\/?)\s*([A-Za-z0-9]+)/', $token[0], $tag_match ) ) continue;
+			$tag = strtolower( $tag_match[2] );
+			if ( '/' === $tag_match[1] ) {
+				if ( empty( $stack ) || array_pop( $stack ) !== $tag ) return new WP_Error( 'pera_ml_chunk_too_large', __( 'A textual run exceeds the translation chunk limits and cannot be safely subdivided.', 'pera-multilingual' ) );
+			} elseif ( ! in_array( $tag, $void, true ) && ! preg_match( '/\/\s*>$/', $token[0] ) ) {
+				$stack[] = $tag;
+			}
+		}
+		if ( ! empty( $stack ) ) return new WP_Error( 'pera_ml_chunk_too_large', __( 'A textual run exceeds the translation chunk limits and cannot be safely subdivided.', 'pera-multilingual' ) );
+		if ( $cursor < strlen( $source ) ) $safe_ranges[] = array( $cursor, strlen( $source ) );
+
+		$boundaries = array( array(), array(), array() );
+		foreach ( $safe_ranges as $range ) {
+			$text = substr( $source, $range[0], $range[1] - $range[0] );
+			foreach ( array( '/(?:\r?\n){2,}/', '/\r?\n/', '/[.!?](?:[\x20\t]+|(?=\r?\n|$))/u' ) as $priority => $pattern ) {
+				preg_match_all( $pattern, $text, $matches, PREG_OFFSET_CAPTURE );
+				foreach ( $matches[0] as $match ) $boundaries[ $priority ][] = $range[0] + $match[1] + strlen( $match[0] );
+			}
+		}
+
+		$plan = array();
+		$start = 0;
+		$length = strlen( $source );
+		while ( $start < $length ) {
+			$tail = substr( $source, $start );
+			if ( ! $this->exceeds_chunk_limits( $tail, $max_chars, $max_tokens ) ) {
+				$plan[] = array( 'translate' => true, 'text' => $tail );
+				break;
+			}
+			$end = null;
+			foreach ( $boundaries as $candidates ) {
+				foreach ( $candidates as $candidate ) {
+					if ( $candidate <= $start || $candidate >= $length ) continue;
+					if ( ! $this->exceeds_chunk_limits( substr( $source, $start, $candidate - $start ), $max_chars, $max_tokens ) ) $end = $candidate;
+				}
+				if ( null !== $end ) break;
+			}
+			if ( null === $end ) return new WP_Error( 'pera_ml_chunk_too_large', __( 'A textual run exceeds the translation chunk limits and cannot be safely subdivided.', 'pera-multilingual' ) );
+			$plan[] = array( 'translate' => true, 'text' => substr( $source, $start, $end - $start ) );
+			$start = $end;
+		}
+		return $plan;
 	}
 	private function subdivide_compound_block( $block, $max_chars, $max_tokens, $allow_compound_list_items = true ) {
 		$gutenberg = '/^(\s*<!--\s*wp:([A-Za-z0-9_\/-]+)(?:\s+.*?)?\s*-->\s*)(.*)(\s*<!--\s*\/wp:\2\s*-->\s*)$/isu';
