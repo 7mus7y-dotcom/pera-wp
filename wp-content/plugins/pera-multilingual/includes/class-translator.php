@@ -34,6 +34,12 @@ final class Pera_ML_Translator {
 				return $translated;
 			}
 			$translated = $this->normalize_structural_html_whitespace( $translated );
+		} elseif ( false !== ( $simple_list = $this->parse_simple_html_list( $source ) ) ) {
+			$translated = $this->translate_simple_html_list( $simple_list, $provider, $context );
+			if ( is_wp_error( $translated ) ) {
+				do_action( 'pera_ml_translation_error', $translated, compact( 'type', 'id', 'field', 'language' ) );
+				return $translated;
+			}
 		} else {
 			$protected = $this->protect( $source );
 			$translated = $provider->translate( $protected['text'], $context );
@@ -50,6 +56,42 @@ final class Pera_ML_Translator {
 		}
 		$this->storage->put( $type, $id, $field, $language, $source, $translated, $provider->id() );
 		return $translated;
+	}
+	/**
+	 * Parse exactly one flat ul/ol whose only children are plain-text li elements.
+	 * Returning false deliberately sends nested, inline, or malformed markup through
+	 * the existing generic protected-placeholder path.
+	 */
+	private function parse_simple_html_list( $source ) {
+		$attributes = '(?:\s+[A-Za-z_:][A-Za-z0-9_.:-]*(?:\s*=\s*(?:"[^"]*"|\'[^\']*\'|[^\s"\'=<>]+))?)*\s*';
+		$outer_pattern = '/^(\s*)(<((?:ul|ol))\b' . $attributes . '>)(.*)(<\/\3\s*>)(\s*)$/isu';
+		if ( ! preg_match( $outer_pattern, (string) $source, $outer ) ) return false;
+
+		$inner = $outer[4];
+		$item_pattern = '/\G(\s*)(<li\b' . $attributes . '>)([^<>]*)(<\/li\s*>)/isu';
+		$items = array();
+		$offset = 0;
+		while ( preg_match( $item_pattern, $inner, $item, 0, $offset ) ) {
+			$items[] = array( 'leading' => $item[1], 'open' => $item[2], 'content' => $item[3], 'close' => $item[4] );
+			$offset += strlen( $item[0] );
+		}
+		$trailing = substr( $inner, $offset );
+		if ( empty( $items ) || ! preg_match( '/^\s*$/u', $trailing ) ) return false;
+
+		return array(
+			'prefix' => $outer[1], 'open' => $outer[2], 'items' => $items,
+			'trailing' => $trailing, 'close' => $outer[5], 'suffix' => $outer[6],
+		);
+	}
+	/** Translate flat-list item text independently and rebuild every wrapper locally. */
+	private function translate_simple_html_list( array $list, $provider, array $context ) {
+		$output = $list['prefix'] . $list['open'];
+		foreach ( $list['items'] as $item ) {
+			$translated = '' === trim( $item['content'] ) ? $item['content'] : $this->translate_fragment( $item['content'], $provider, $context );
+			if ( is_wp_error( $translated ) ) return $translated;
+			$output .= $item['leading'] . $item['open'] . $translated . $item['close'];
+		}
+		return $output . $list['trailing'] . $list['close'] . $list['suffix'];
 	}
 	/** Translate complete top-level HTML blocks sequentially, retrying only a structurally damaged block. */
 	private function translate_post_content_chunks( $source, $provider, array $context ) {
