@@ -415,11 +415,129 @@ final class Pera_ML_Translator {
 				}
 				if ( null !== $end ) break;
 			}
-			if ( null === $end ) return new WP_Error( 'pera_ml_chunk_too_large', __( 'A textual run exceeds the translation chunk limits and cannot be safely subdivided.', 'pera-multilingual' ) );
+			if ( null === $end ) {
+				$compound = $this->subdivide_compound_inline_wrapper( $tail, $max_chars, $max_tokens );
+				if ( false === $compound ) $compound = $this->subdivide_compound_inline_run( $tail, $max_chars, $max_tokens );
+				if ( false !== $compound ) {
+					if ( is_wp_error( $compound ) ) return $compound;
+					return array_merge( $plan, $compound );
+				}
+				return new WP_Error( 'pera_ml_chunk_too_large', __( 'A textual run exceeds the translation chunk limits and cannot be safely subdivided.', 'pera-multilingual' ) );
+			}
 			$plan[] = array( 'translate' => true, 'text' => substr( $source, $start, $end - $start ) );
 			$start = $end;
 		}
 		return $plan;
+	}
+	/**
+	 * Rebuild a conservative inline wrapper locally while translating its complete,
+	 * balanced children. Anchors are deliberately atomic: only the wrapper allowlist
+	 * may be opened locally when one of its complete children exceeds the limits.
+	 */
+	private function subdivide_compound_inline_wrapper( $source, $max_chars, $max_tokens ) {
+		$pattern = '/^(\s*)(<((?:span|strong|b|em|i))\b(?:[^>"\']|"[^"]*"|\'[^\']*\')*>)(.*)(<\/\3\s*>)(\s*)$/isu';
+		if ( ! preg_match( $pattern, (string) $source, $wrapper ) ) return false;
+
+		$children = $this->top_level_inline_children( $wrapper[4] );
+		if ( false === $children || empty( $children ) ) {
+			return new WP_Error( 'pera_ml_chunk_too_large', __( 'A textual run exceeds the translation chunk limits and cannot be safely subdivided.', 'pera-multilingual' ) );
+		}
+
+		$plan = array( array( 'translate' => false, 'text' => $wrapper[1] . $wrapper[2] ) );
+		$chunk = '';
+		foreach ( $children as $child ) {
+			$candidate = $chunk . $child;
+			if ( '' !== $chunk && $this->exceeds_chunk_limits( $candidate, $max_chars, $max_tokens ) ) {
+				$plan[] = array( 'translate' => true, 'text' => $chunk );
+				$chunk = '';
+			}
+			if ( $this->exceeds_chunk_limits( $child, $max_chars, $max_tokens ) ) {
+				if ( '' !== $chunk ) { $plan[] = array( 'translate' => true, 'text' => $chunk ); $chunk = ''; }
+				$nested = false === strpos( $child, '<' )
+					? $this->subdivide_inline_text_run( $child, $max_chars, $max_tokens )
+					: $this->subdivide_compound_inline_wrapper( $child, $max_chars, $max_tokens );
+				if ( false === $nested || is_wp_error( $nested ) ) {
+					return is_wp_error( $nested ) ? $nested : new WP_Error( 'pera_ml_chunk_too_large', __( 'A textual run exceeds the translation chunk limits and cannot be safely subdivided.', 'pera-multilingual' ) );
+				}
+				$plan = array_merge( $plan, $nested );
+			} else {
+				$chunk .= $child;
+			}
+		}
+		if ( '' !== $chunk ) $plan[] = array( 'translate' => true, 'text' => $chunk );
+		$plan[] = array( 'translate' => false, 'text' => $wrapper[5] . $wrapper[6] );
+		return $plan;
+	}
+	/** Split a mixed run only when it contains an oversized supported wrapper. */
+	private function subdivide_compound_inline_run( $source, $max_chars, $max_tokens ) {
+		$children = $this->top_level_inline_children( $source );
+		if ( false === $children || count( $children ) < 2 ) return false;
+		$has_compound = false;
+		foreach ( $children as $child ) {
+			if ( $this->exceeds_chunk_limits( $child, $max_chars, $max_tokens ) && false !== $this->subdivide_compound_inline_wrapper( $child, $max_chars, $max_tokens ) ) {
+				$has_compound = true;
+				break;
+			}
+		}
+		if ( ! $has_compound ) return false;
+
+		$plan = array();
+		$chunk = '';
+		foreach ( $children as $child ) {
+			if ( '' !== $chunk && $this->exceeds_chunk_limits( $chunk . $child, $max_chars, $max_tokens ) ) {
+				$plan[] = array( 'translate' => true, 'text' => $chunk );
+				$chunk = '';
+			}
+			if ( $this->exceeds_chunk_limits( $child, $max_chars, $max_tokens ) ) {
+				$nested = $this->subdivide_compound_inline_wrapper( $child, $max_chars, $max_tokens );
+				if ( false === $nested || is_wp_error( $nested ) ) return false === $nested ? new WP_Error( 'pera_ml_chunk_too_large', __( 'A textual run exceeds the translation chunk limits and cannot be safely subdivided.', 'pera-multilingual' ) ) : $nested;
+				$plan = array_merge( $plan, $nested );
+			} else {
+				$chunk .= $child;
+			}
+		}
+		if ( '' !== $chunk ) $plan[] = array( 'translate' => true, 'text' => $chunk );
+		return $plan;
+	}
+	/** Return exact top-level text/tag children, or false for malformed markup. */
+	private function top_level_inline_children( $inner ) {
+		$void = array( 'br' );
+		$allowed = array( 'a', 'span', 'strong', 'b', 'em', 'i', 'br' );
+		preg_match_all( '/<\s*(\/?)\s*([A-Za-z0-9]+)\b(?:[^>"\']|"[^"]*"|\'[^\']*\')*>/s', $inner, $tags, PREG_SET_ORDER | PREG_OFFSET_CAPTURE );
+		$children = array();
+		$stack = array();
+		$cursor = 0;
+		$scan_cursor = 0;
+		$child_start = null;
+		foreach ( $tags as $match ) {
+			$token = $match[0][0];
+			$offset = $match[0][1];
+			if ( empty( $stack ) && $offset > $cursor ) $children[] = substr( $inner, $cursor, $offset - $cursor );
+			if ( false !== strpos( substr( $inner, $scan_cursor, $offset - $scan_cursor ), '<' ) || false !== strpos( substr( $inner, $scan_cursor, $offset - $scan_cursor ), '>' ) || ! in_array( strtolower( $match[2][0] ), $allowed, true ) ) return false;
+			$scan_cursor = $offset + strlen( $token );
+			$tag = strtolower( $match[2][0] );
+			$closing = '' !== $match[1][0];
+			if ( $closing ) {
+				if ( empty( $stack ) || array_pop( $stack ) !== $tag ) return false;
+				if ( empty( $stack ) ) {
+					$end = $offset + strlen( $token );
+					$children[] = substr( $inner, $child_start, $end - $child_start );
+					$cursor = $end;
+				}
+			} elseif ( in_array( $tag, $void, true ) || preg_match( '/\/\s*>$/', $token ) ) {
+				if ( ! empty( $stack ) ) continue;
+				$children[] = $token;
+				$cursor = $offset + strlen( $token );
+			} else {
+				if ( empty( $stack ) ) $child_start = $offset;
+				$stack[] = $tag;
+			}
+		}
+		if ( ! empty( $stack ) ) return false;
+		$tail = substr( $inner, $cursor );
+		if ( false !== strpos( $tail, '<' ) || false !== strpos( $tail, '>' ) ) return false;
+		if ( '' !== $tail ) $children[] = $tail;
+		return $children;
 	}
 	private function subdivide_compound_block( $block, $max_chars, $max_tokens, $allow_compound_list_items = true ) {
 		$gutenberg = '/^(\s*<!--\s*wp:([A-Za-z0-9_\/-]+)(?:\s+.*?)?\s*-->\s*)(.*)(\s*<!--\s*\/wp:\2\s*-->\s*)$/isu';

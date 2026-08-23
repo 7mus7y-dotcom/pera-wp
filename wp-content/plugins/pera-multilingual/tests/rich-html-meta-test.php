@@ -39,6 +39,8 @@ class Rich_HTML_Provider implements Pera_ML_Provider_Interface {
 			'Opening sentence with ' => $target . '_PROTECTED_OPEN ', 'Next sentence contact ' => $target . '_PROTECTED_NEXT ',
 			'One long sentence before ' => $target . '_LONG_ONE ', ' Another long sentence before ' => ' ' . $target . '_LONG_TWO ',
 			'Plain opening sentence. ' => $target . '_PLAIN_ONE ', 'Plain closing sentence.' => $target . '_PLAIN_TWO.',
+			'Walk to landmarks such as' => $target . '_WALK', 'Nisantasi' => $target . '_NISANTASI', 'Besiktas' => $target . '_BESIKTAS',
+			'Dolmabahce Palace' => $target . '_PALACE', '(and many other palaces)' => '(' . $target . '_OTHER)', 'and ' => $target . '_AND ', 'Akaretler' => $target . '_AKARETLER',
 			'Next to Zeytinburnu Marmaray Station' => $target . '_STATION', 'One step away from:' => $target . '_PARENT',
 			'Diverse cuisines and world-famous cafés and restaurants' => $target . '_CUISINES', 'Seaside promenade' => $target . '_SEASIDE',
 			'Theatre and open-air cinema' => $target . '_THEATRE', 'Art galleries' => $target . '_GALLERIES',
@@ -251,6 +253,31 @@ $protected_call_sources = array_map( static function ( $call ) { return $call['s
 expect_rich( in_array( $protected_first['text'], $protected_call_sources, true ) && in_array( $protected_second['text'], $protected_call_sources, true ), 'each complete protected construct reaches its provider call as one intact placeholder' );
 expect_rich( false !== strpos( $result, '[gallery id="29124"]' ) && false !== strpos( $result, 'team@example.com' ) && false !== strpos( $result, 'https://example.com/path?q=1.' ), 'shortcode, email, and URL restore exactly after textual-run subdivision' );
 expect_rich( false !== strpos( $result, 'AR_PROTECTED_OPEN' ) && false !== strpos( $result, 'AR_PROTECTED_NEXT' ) && 1 === count( $storage->puts ), 'protected prose fragments translate and the restored result is stored once' );
+unset( $GLOBALS['rich_max_chars'] );
+
+$property_46745 = "Walk to landmarks such as\n<span style=\"text-decoration: underline;\">\n<a href=\"https://example.com/n\">Nisantasi</a>,\n<a href=\"https://example.com/b\">Besiktas</a>,\n<a href=\"https://example.com/d\">Dolmabahce Palace</a>\n<a href=\"https://example.com/p\">(and many other palaces)</a>\n</span>,\nand <a href=\"https://example.com/a\">Akaretler</a>.";
+$GLOBALS['rich_max_chars'] = 105;
+foreach ( array( 'zh', 'ar', 'de' ) as $language ) {
+	list( $result, $provider, $storage ) = $run( $property_46745, null, $language );
+	$target = strtoupper( $language );
+	expect_rich( ! is_wp_error( $result ) && count( $provider->calls ) > 1, "$language property 46745 compound span subdivides into multiple calls" );
+	expect_rich( 1 === substr_count( $result, '<span style="text-decoration: underline;">' ) && 1 === substr_count( $result, '</span>' ), "$language preserves the compound span and its attributes exactly" );
+	foreach ( array( 'n', 'b', 'd', 'p', 'a' ) as $slug ) expect_rich( 1 === substr_count( $result, '<a href="https://example.com/' . $slug . '">' ), "$language preserves complete link $slug exactly once" );
+	expect_rich( strpos( $result, $target . '_NISANTASI' ) < strpos( $result, $target . '_BESIKTAS' ) && strpos( $result, $target . '_BESIKTAS' ) < strpos( $result, $target . '_PALACE' ), "$language preserves translated child and punctuation order" );
+	expect_rich( false !== strpos( $result, $target . '_WALK' ) && false !== strpos( $result, $target . '_AKARETLER' ), "$language translates prose inside and outside the wrapper" );
+	expect_rich( 1 === count( $storage->puts ), "$language stores the complete property 46745 field once" );
+}
+unset( $GLOBALS['rich_max_chars'] );
+
+$simple_span_provider = new Rich_HTML_Provider();
+list( $result, $provider ) = $run( '<span class="ordinary">Text</span>', $simple_span_provider );
+expect_rich( '<span class="ordinary">نص</span>' === $result && 1 === count( $provider->calls ), 'small plain span continues through one normal protected-fragment call' );
+
+$GLOBALS['rich_max_chars'] = 25;
+list( $result ) = $run( '<strong data-note="EXACT"><em>Plain opening sentence. Plain closing sentence.</em><span>Text with <b>important wording</b>.</span></strong>' );
+expect_rich( ! is_wp_error( $result ) && false !== strpos( $result, '<strong data-note="EXACT">' ) && false !== strpos( $result, '<em>AR_PLAIN_ONE AR_PLAIN_TWO.</em>' ), 'nested supported compound wrappers subdivide while retaining exact attributes' );
+list( $result, $provider, $storage ) = $run( '<span>Plain opening sentence. <em>Plain closing sentence.</span></em>' );
+expect_rich( is_wp_error( $result ) && 'pera_ml_chunk_too_large' === $result->get_error_code() && 0 === count( $storage->puts ), 'oversized mismatched inline wrappers fail safely without storing partial output' );
 unset( $GLOBALS['rich_max_chars'] );
 
 $GLOBALS['rich_max_chars'] = 100;
