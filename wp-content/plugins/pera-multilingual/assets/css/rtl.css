@@ -1,20 +1,123 @@
-/* Conservative RTL context. Site-specific component tuning should be added only after visual QA. */
+/*
+ * The theme's grids, flex rows and positioned elements were authored with LTR
+ * geometry. Keep that geometry independent from the document's semantic
+ * direction, then opt actual translated text back into RTL below.
+ */
 html[dir="rtl"],
 body.pera-ml-rtl {
 	overflow-x: hidden;
 	overflow-x: clip;
 }
 
-body.pera-ml-rtl { direction: rtl; text-align: right; }
-body.pera-ml-rtl input[type="email"], body.pera-ml-rtl input[type="tel"], body.pera-ml-rtl input[type="url"], body.pera-ml-rtl .property-reference { direction: ltr; text-align: left; }
-body.pera-ml-rtl .pera-ml-switcher ul { display: flex; flex-wrap: wrap; gap: .75rem; list-style: none; margin: 0; padding: 0; }
-
-body.pera-ml-rtl .offcanvas-nav {
-	left: 0;
-	right: auto;
-	transform: translateX(-100%);
+body.pera-ml-rtl {
+	direction: ltr;
+	text-align: left;
 }
 
-body.pera-ml-rtl.is-nav-open .offcanvas-nav {
-	transform: translateX(0);
+/* Shared textual UI: header/navigation, controls, forms, and footer copy. */
+body.pera-ml-rtl :where(
+	#site-header a,
+	#site-header button,
+	.offcanvas-nav a,
+	.offcanvas-nav button,
+	.offcanvas-director-title,
+	.offcanvas-director-text,
+	.offcanvas-director-name,
+	.offcanvas-contact h3,
+	.offcanvas-contact-text p,
+	.site-footer h3,
+	.site-footer p,
+	.site-footer .footer-links a,
+	.footer-disclaimer p,
+	.footer-disclaimer a,
+	form label,
+	form textarea,
+	form select,
+	form input:not([type="email"]):not([type="tel"]):not([type="url"]),
+	.btn
+) {
+	direction: rtl;
+	text-align: right;
+}
+
+/*
+ * Property text only. Deliberately do not set direction on .site-main,
+ * sections, containers, grids, flex rows, cards, or other layout wrappers.
+ */
+body.pera-ml-rtl .pera-single-property :where(
+	.property-hero__title,
+	.property-hero__excerpt,
+	.property-hero__pills .pill,
+	.property-hero__facts .pill,
+	.property-overview__main h2,
+	.property-overview__main p,
+	.property-overview__main li,
+	.property-overview__aside h3,
+	.property-overview__aside p,
+	.fact-label,
+	.property-location__main h2,
+	.property-location__about p,
+	.property-location__about li,
+	.property-facilities h3,
+	.property-facilities__pills .pill,
+	.property-map-card__title,
+	.property-map-card__address,
+	.property-map-card__distances-title,
+	.property-map-card__distances-content,
+	.property-pricing-advisors__pricing h2,
+	.property-pricing-advisors__pricing p,
+	.property-pricing-advisors__pricing th,
+	.property-pricing-advisors__pricing td,
+	.property-pricing-advisors__advisors h3,
+	.advisor-row__name,
+	.advisor-row__position,
+	.property-editorial-card h2,
+	.property-editorial-card h3,
+	.property-editorial-card p,
+	.property-editorial-card li,
+	.property-floor-plans h2,
+	.property-floor-plans__intro,
+	.section-header h2,
+	.section-header p,
+	.section-title,
+	.property-further-reading__head,
+	.property-further-reading__intro,
+	.property-further-reading__title,
+	.property-further-reading__card-title,
+	.property-further-reading__excerpt,
+	.faq-item,
+	.content-panel-box h2,
+	.content-panel-box h3,
+	.content-panel-box p,
+	.content-panel-box label
+) {
+	direction: rtl;
+	text-align: right;
+}
+
+/* Machine-readable and explicitly technical values retain LTR ordering. */
+body.pera-ml-rtl :where(
+	input[type="email"],
+	input[type="tel"],
+	input[type="url"],
+	.property-reference,
+	.property-price__current,
+	.property-price__range,
+	.property-hero__price-link,
+	.advisor-row__wa,
+	a[href^="tel:"],
+	a[href^="mailto:"]
+) {
+	direction: ltr;
+	text-align: left;
+	unicode-bidi: isolate;
+}
+
+body.pera-ml-rtl .pera-ml-switcher ul {
+	display: flex;
+	flex-wrap: wrap;
+	gap: .75rem;
+	list-style: none;
+	margin: 0;
+	padding: 0;
 }
