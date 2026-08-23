@@ -95,6 +95,73 @@ body.pera-ml-rtl .pera-single-property :where(
 	text-align: right;
 }
 
+/*
+ * Normal blog-post text. The hero, article/sidebar grid, sliders, card shells,
+ * media, tag row, and adjacent-navigation grid deliberately retain LTR
+ * geometry; only their human-readable content is opted back into RTL.
+ */
+body.pera-ml-rtl.single-post :where(
+	.hero--post .post-breadcrumbs__item,
+	.hero--post .article-meta-cat,
+	.hero--post h1,
+	.hero--post .lead,
+	.hero--post .article-meta-item,
+	.hero--post .article-meta-separator,
+	.article-body,
+	.faq-section > h2,
+	.faq-item > summary,
+	.faq-answer,
+	.post-tags__title,
+	.post-tags__item a,
+	.post-adjacent-nav__label,
+	.post-adjacent-nav__title,
+	.article-sidebar .sidebar-block > h3,
+	.article-sidebar .sidebar-text,
+	.article-sidebar .sidebar-cta .btn,
+	.article-sidebar .post-card-title,
+	.article-sidebar .post-card-excerpt,
+	.article-sidebar .post-card-subtitle,
+	.article-sidebar .post-card-thumb-overlay .pill,
+	.article-sidebar .post-card-meta-secondary .article-meta-item,
+	.article-sidebar .post-card-meta-secondary .article-meta-separator
+) {
+	direction: rtl;
+	text-align: right;
+}
+
+/*
+ * Article media and Gutenberg layout primitives are physical layout, not text.
+ * Their captions/table cells/buttons are opted back into RTL independently.
+ */
+body.pera-ml-rtl.single-post .article-body :where(
+	figure,
+	.wp-block-image,
+	.wp-block-gallery,
+	.wp-block-media-text,
+	.wp-block-columns,
+	.wp-block-group,
+	.wp-block-cover,
+	.wp-block-embed,
+	.wp-block-embed__wrapper,
+	.wp-block-table,
+	.wp-block-buttons,
+	.video-embed
+) {
+	direction: ltr;
+	text-align: left;
+}
+
+body.pera-ml-rtl.single-post .article-body :where(
+	figcaption,
+	.wp-element-caption,
+	.wp-block-table th,
+	.wp-block-table td,
+	.wp-block-button__link
+) {
+	direction: rtl;
+	text-align: right;
+}
+
 /* Machine-readable and explicitly technical values retain LTR ordering. */
 body.pera-ml-rtl :where(
 	input[type="email"],
@@ -107,6 +174,21 @@ body.pera-ml-rtl :where(
 	.advisor-row__wa,
 	a[href^="tel:"],
 	a[href^="mailto:"]
+) {
+	direction: ltr;
+	text-align: left;
+	unicode-bidi: isolate;
+}
+
+/* Blog dates, code, and explicitly marked technical values keep their order. */
+body.pera-ml-rtl.single-post :where(
+	time,
+	code,
+	pre,
+	kbd,
+	samp,
+	.wp-block-code,
+	[data-technical-value]
 ) {
 	direction: ltr;
 	text-align: left;
