@@ -15,6 +15,29 @@ function esc_attr( $value ) { return htmlspecialchars( $value, ENT_QUOTES, 'UTF-
 function wp_style_is( $handle, $status ) { return 'pera-main-css' === $handle && 'enqueued' === $status && $GLOBALS['pera_test_main_enqueued']; }
 function wp_enqueue_style( $handle, $source, $dependencies, $version ) { $GLOBALS['pera_test_styles'][] = compact( 'handle', 'source', 'dependencies', 'version' ); }
 function expect_same( $expected, $actual, $label ) { if ( $expected !== $actual ) { fwrite( STDERR, "FAIL $label\n" ); exit( 1 ); } }
+function css_selector_has_declaration( $css, $selector, $declaration ) {
+	$css = preg_replace( '!/\\*.*?\\*/!s', '', $css );
+	$pattern = '/([^{}]+)\\{([^{}]*)\\}/';
+	preg_match_all( $pattern, $css, $rules, PREG_SET_ORDER );
+	foreach ( $rules as $rule ) {
+		if ( false !== strpos( $rule[1], $selector ) && preg_match( '/(?:^|;)\\s*' . preg_quote( $declaration, '/' ) . '\\s*(?:;|$)/', trim( $rule[2] ) ) ) {
+			return true;
+		}
+	}
+	return false;
+}
+function css_exact_selector_has_declaration( $css, $selector, $declaration ) {
+	$css = preg_replace( '!/\\*.*?\\*/!s', '', $css );
+	$pattern = '/([^{}]+)\\{([^{}]*)\\}/';
+	preg_match_all( $pattern, $css, $rules, PREG_SET_ORDER );
+	foreach ( $rules as $rule ) {
+		$selectors = array_map( 'trim', explode( ',', $rule[1] ) );
+		if ( in_array( $selector, $selectors, true ) && preg_match( '/(?:^|;)\\s*' . preg_quote( $declaration, '/' ) . '\\s*(?:;|$)/', trim( $rule[2] ) ) ) {
+			return true;
+		}
+	}
+	return false;
+}
 
 class RTLAssetsRouter {
 	private $language;
@@ -55,6 +78,19 @@ expect_same( true, false !== strpos( $css, '.property-hero__title' ), 'property 
 expect_same( true, false !== strpos( $css, '.property-overview__main h2' ), 'property summary text opts into RTL' );
 expect_same( true, false !== strpos( $css, '.property-editorial-card h2' ), 'property editorial text opts into RTL' );
 expect_same( true, false !== strpos( $css, '.property-further-reading__title' ), 'further-reading text opts into RTL' );
+expect_same( true, css_selector_has_declaration( $css, '.article-body', 'direction: rtl' ), 'normal post body text opts into RTL' );
+expect_same( true, css_selector_has_declaration( $css, '.hero--post h1', 'direction: rtl' ), 'normal post hero title opts into RTL' );
+expect_same( true, css_selector_has_declaration( $css, '.hero--post .post-breadcrumbs__item', 'direction: rtl' ), 'normal post breadcrumbs opt into RTL' );
+expect_same( true, css_selector_has_declaration( $css, '.hero--post .article-meta-item', 'direction: rtl' ), 'normal post metadata opts into RTL' );
+expect_same( true, css_selector_has_declaration( $css, '.faq-item > summary', 'direction: rtl' ), 'normal post FAQ questions opt into RTL' );
+expect_same( true, css_selector_has_declaration( $css, '.post-adjacent-nav__title', 'direction: rtl' ), 'normal post navigation text opts into RTL' );
+expect_same( true, css_selector_has_declaration( $css, '.article-sidebar .sidebar-text', 'direction: rtl' ), 'normal post sidebar copy opts into RTL' );
+expect_same( true, css_selector_has_declaration( $css, '.article-sidebar .post-card-title', 'direction: rtl' ), 'related post-card text opts into RTL' );
+expect_same( true, css_selector_has_declaration( $css, 'pre', 'direction: ltr' ), 'normal post code retains LTR ordering' );
+expect_same( false, css_exact_selector_has_declaration( $css, 'body.pera-ml-rtl.single-post .article-layout', 'direction: rtl' ), 'article grid is not assigned RTL' );
+expect_same( false, css_exact_selector_has_declaration( $css, 'body.pera-ml-rtl.single-post .article-main', 'direction: rtl' ), 'article column is not assigned RTL' );
+expect_same( false, css_exact_selector_has_declaration( $css, 'body.pera-ml-rtl.single-post .article-sidebar', 'direction: rtl' ), 'sidebar column is not assigned RTL' );
+expect_same( false, css_exact_selector_has_declaration( $css, 'body.pera-ml-rtl.single-post .slider-track', 'direction: rtl' ), 'slider track is not assigned RTL' );
 expect_same( false, false !== strpos( $css, 'body.pera-ml-rtl main' ), 'RTL is not applied to the main structural wrapper' );
 expect_same( false, false !== strpos( $css, 'body.pera-ml-rtl .offcanvas-nav {' ), 'redundant drawer geometry override is removed' );
 expect_same( true, false !== strpos( $css, '.offcanvas-nav a' ), 'offcanvas translated text opts into RTL' );
