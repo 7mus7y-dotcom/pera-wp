@@ -249,19 +249,23 @@ final class Pera_ML_Translator {
 		$blocks = $this->top_level_structural_blocks( $source );
 		$plan = array();
 		$chunk = '';
+		$chunk_is_structural = null;
 		foreach ( $blocks as $block ) {
+			$block_is_structural = 1 === preg_match( '/^\s*(?:<!--\s*wp:|<(?:address|article|aside|blockquote|dd|details|div|dl|dt|fieldset|figcaption|figure|footer|form|h[1-6]|header|hr|li|main|nav|ol|p|pre|section|summary|table|tbody|td|tfoot|th|thead|tr|ul)\b)/iu', $block );
 			$candidate = $chunk . $block;
-			if ( '' !== $chunk && $this->exceeds_chunk_limits( $candidate, $max_chars, $max_tokens ) ) {
+			if ( '' !== $chunk && ( $block_is_structural !== $chunk_is_structural || $this->exceeds_chunk_limits( $candidate, $max_chars, $max_tokens ) ) ) {
 				$plan[] = array( 'translate' => true, 'text' => $chunk );
 				$chunk = '';
+				$chunk_is_structural = null;
 			}
 			if ( $this->exceeds_chunk_limits( $block, $max_chars, $max_tokens ) ) {
-				if ( '' !== $chunk ) { $plan[] = array( 'translate' => true, 'text' => $chunk ); $chunk = ''; }
+				if ( '' !== $chunk ) { $plan[] = array( 'translate' => true, 'text' => $chunk ); $chunk = ''; $chunk_is_structural = null; }
 				$subplan = $this->subdivide_compound_block( $block, $max_chars, $max_tokens );
 				if ( is_wp_error( $subplan ) ) return $subplan;
 				$plan = array_merge( $plan, $subplan );
 			} else {
 				$chunk .= $block;
+				$chunk_is_structural = $block_is_structural;
 			}
 		}
 		if ( '' !== $chunk || empty( $plan ) ) $plan[] = array( 'translate' => true, 'text' => $chunk );
@@ -270,42 +274,86 @@ final class Pera_ML_Translator {
 	private function top_level_structural_blocks( $source ) {
 		$source = (string) $source;
 		$void = array( 'area', 'base', 'br', 'col', 'embed', 'hr', 'img', 'input', 'link', 'meta', 'param', 'source', 'track', 'wbr' );
+		$block = array( 'address', 'article', 'aside', 'blockquote', 'dd', 'details', 'div', 'dl', 'dt', 'fieldset', 'figcaption', 'figure', 'footer', 'form', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'header', 'hr', 'li', 'main', 'nav', 'ol', 'p', 'pre', 'section', 'summary', 'table', 'tbody', 'td', 'tfoot', 'th', 'thead', 'tr', 'ul' );
 		preg_match_all( '/<!--.*?-->|\[[A-Za-z][^\]]*\]|<\/?[A-Za-z][^>]*>/s', $source, $matches, PREG_OFFSET_CAPTURE );
 		$blocks = array();
 		$stack = array();
 		$start = 0;
-		$pending_end = 0;
+		$structural_start = null;
+		$gutenberg_depth = 0;
 		foreach ( $matches[0] as $match ) {
 			$token = $match[0];
-			if ( $pending_end ) {
-				if ( '<!--' === substr( $token, 0, 4 ) && preg_match( '/^<!--\s*\/wp:[A-Za-z0-9_\/-]+\s*-->$/isu', $token ) ) {
-					$end = $match[1] + strlen( $token );
-					$blocks[] = substr( $source, $start, $end - $start );
-					$start = $end;
-					$pending_end = 0;
-					continue;
+			$offset = $match[1];
+			if ( '<!--' === substr( $token, 0, 4 ) ) {
+				if ( preg_match( '/^<!--\s*wp:[A-Za-z0-9_\/-]+(?:\s+.*?)?\s*(\/)?-->$/isu', $token, $comment ) ) {
+					if ( null === $structural_start ) {
+						$leading = substr( $source, $start, $offset - $start );
+						if ( '' !== $leading && ! preg_match( '/^\s*$/u', $leading ) ) $blocks[] = $leading;
+						$structural_start = '' === $leading || preg_match( '/^\s*$/u', $leading ) ? $start : $offset;
+						$gutenberg_depth = empty( $comment[1] ) ? 1 : 0;
+					} elseif ( $gutenberg_depth > 0 && empty( $comment[1] ) ) {
+						$gutenberg_depth++;
+					}
+					if ( ! empty( $comment[1] ) && 0 === $gutenberg_depth && empty( $stack ) ) {
+						$end = $offset + strlen( $token );
+						$blocks[] = substr( $source, $structural_start, $end - $structural_start );
+						$start = $end;
+						$structural_start = null;
+					}
+				} elseif ( null !== $structural_start && $gutenberg_depth > 0 && preg_match( '/^<!--\s*\/wp:[A-Za-z0-9_\/-]+\s*-->$/isu', $token ) ) {
+					$gutenberg_depth = max( 0, $gutenberg_depth - 1 );
+					if ( 0 === $gutenberg_depth ) {
+						$end = $offset + strlen( $token );
+						$blocks[] = substr( $source, $structural_start, $end - $structural_start );
+						$start = $end;
+						$structural_start = null;
+						$stack = array();
+					}
 				}
-				$blocks[] = substr( $source, $start, $pending_end - $start );
-				$start = $pending_end;
-				$pending_end = 0;
+				continue;
 			}
-			if ( '<' !== substr( $token, 0, 1 ) || '<!--' === substr( $token, 0, 4 ) ) continue;
+			if ( '<' !== substr( $token, 0, 1 ) ) continue;
 			if ( ! preg_match( '/^<\s*(\/?)\s*([A-Za-z0-9]+)/', $token, $tag_match ) ) continue;
 			$closing = '/' === $tag_match[1];
 			$tag = strtolower( $tag_match[2] );
 			if ( ! $closing ) {
+				if ( null === $structural_start && in_array( $tag, $block, true ) ) {
+					$leading = substr( $source, $start, $offset - $start );
+					if ( '' !== $leading && ! preg_match( '/^\s*$/u', $leading ) ) $blocks[] = $leading;
+					$structural_start = '' === $leading || preg_match( '/^\s*$/u', $leading ) ? $start : $offset;
+				}
+				if ( null === $structural_start ) continue;
 				if ( ! in_array( $tag, $void, true ) && ! preg_match( '/\/\s*>$/', $token ) ) $stack[] = $tag;
+				if ( empty( $stack ) && 0 === $gutenberg_depth ) {
+					$end = $offset + strlen( $token );
+					$blocks[] = substr( $source, $structural_start, $end - $structural_start );
+					$start = $end;
+					$structural_start = null;
+				}
 				continue;
 			}
-			if ( ! empty( $stack ) ) {
-				$position = array_search( $tag, array_reverse( $stack, true ), true );
-				if ( false !== $position ) $stack = array_slice( $stack, 0, $position );
+			if ( null === $structural_start ) continue;
+			for ( $position = count( $stack ) - 1; $position >= 0; $position-- ) {
+				if ( $tag === $stack[ $position ] ) {
+					$stack = array_slice( $stack, 0, $position );
+					break;
+				}
 			}
-			if ( empty( $stack ) ) {
-				$pending_end = $match[1] + strlen( $token );
+			if ( empty( $stack ) && 0 === $gutenberg_depth ) {
+				$end = $offset + strlen( $token );
+				$blocks[] = substr( $source, $structural_start, $end - $structural_start );
+				$start = $end;
+				$structural_start = null;
 			}
 		}
-		if ( $start < strlen( $source ) ) $blocks[] = substr( $source, $start );
+		if ( $start < strlen( $source ) ) {
+			$remainder = substr( $source, $start );
+			if ( ! empty( $blocks ) && preg_match( '/^\s*$/u', $remainder ) ) {
+				$blocks[ count( $blocks ) - 1 ] .= $remainder;
+			} else {
+				$blocks[] = $remainder;
+			}
+		}
 		return empty( $blocks ) ? array( $source ) : $blocks;
 	}
 	private function subdivide_compound_block( $block, $max_chars, $max_tokens ) {

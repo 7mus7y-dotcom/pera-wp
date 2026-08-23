@@ -56,7 +56,8 @@ $mixed = 'Text with <a href="https://example.com" target="_blank" rel="noopener"
 list( $result, $provider ) = $run( $mixed );
 expect_rich( false !== strpos( $result, '<a href="https://example.com" target="_blank" rel="noopener">فيريكوي</a>' ), 'link and attributes are preserved exactly' );
 expect_rich( false !== strpos( $result, '<h3>التميز المعماري</h3>' ) && false !== strpos( $result, '<strong>صياغة مهمة</strong>' ), 'heading and strong semantics are preserved' );
-expect_rich( 6 === preg_match_all( '/PERAMLPROTECTED\d+TOKEN/', $provider->calls[0]['source'] ), 'mixed HTML is structurally protected' );
+expect_rich( 2 === preg_match_all( '/PERAMLPROTECTED\d+TOKEN/', $provider->calls[0]['source'] ), 'inline link remains protected with its surrounding prose' );
+expect_rich( 3 === count( $provider->calls ), 'free text and the standalone heading are translated as separate structural runs' );
 
 $property = $mixed . '\n<h3>Life in Feriköy</h3><a href="https://example.com/area">Feriköy</a> ' . $mixed;
 list( $result, $provider ) = $run( $property );
@@ -123,6 +124,33 @@ foreach ( array( '<li>Parent<div>Nested block</div></li>', '<li>Malformed <stron
 	list( $result, $provider, $storage ) = $run( $unsafe, $damaged );
 	expect_rich( is_wp_error( $result ) && 'pera_ml_structure_changed' === $result->get_error_code(), 'unsafe or malformed leaf remains rejected' );
 	expect_rich( 0 === count( $storage->puts ), 'rejected leaf stores nothing' );
+}
+
+$plan_method = new ReflectionMethod( 'Pera_ML_Translator', 'top_level_structural_blocks' );
+$plan_method->setAccessible( true );
+$planning_translator = new Pera_ML_Translator( $registry, new Rich_HTML_Storage() );
+$planning_cases = array(
+	array( 'Introductory prose.<ul><li>One</li><li>Two</li></ul>', array( 'Introductory prose.', '<ul><li>One</li><li>Two</li></ul>' ), 'prose and EOF list' ),
+	array( 'Introductory prose.<ul><li>One</li><li>Two</li></ul>Closing prose.', array( 'Introductory prose.', '<ul><li>One</li><li>Two</li></ul>', 'Closing prose.' ), 'prose, list, and closing prose' ),
+	array( 'Intro text<h3>Heading</h3>More text<ul><li>One</li></ul>More text', array( 'Intro text', '<h3>Heading</h3>', 'More text', '<ul><li>One</li></ul>', 'More text' ), 'heading and list boundaries' ),
+	array( 'Apartments near <strong>Taksim</strong> are popular.', array( 'Apartments near <strong>Taksim</strong> are popular.' ), 'inline strong' ),
+	array( 'Visit <a href="https://example.com">Feriköy</a> for more information.', array( 'Visit <a href="https://example.com">Feriköy</a> for more information.' ), 'inline link' ),
+);
+foreach ( $planning_cases as $case ) {
+	$blocks = $plan_method->invoke( $planning_translator, $case[0] );
+	expect_rich( $case[1] === $blocks, $case[2] . ' produces the expected top-level fragments' );
+	expect_rich( $case[0] === implode( '', $blocks ), $case[2] . ' preserves every source byte in order' );
+}
+
+$distances = 'Transportation is easy in Topkapi. Metro, bus, and road connections are close by. The E5 highway is directly accessible from the compound.<ul>';
+foreach ( array( 'YTU University 2 mins', 'Sultanahmet 9 mins', 'Metro station 10 mins', 'City centre 12 mins', 'Airport 30 mins', 'Hospital 6 mins', 'Shopping centre 4 mins' ) as $distance ) $distances .= '<li>' . $distance . '</li>';
+$distances .= '</ul>';
+$about = 'This project combines homes, offices, and social spaces and creates:<ul class="checklist"><li>Business and the world of work,</li><li>Comfortable family life,</li><li>Green communal areas,</li><li>Convenient city access.</li></ul>The architectural setup and design was carried out for modern urban living. Apartments include <strong>important wording</strong> for buyers. Final project text.';
+foreach ( array( array( $distances, 'property 42524 distances-style EOF list' ), array( $about, 'property 42524 about-this-project-style checklist' ) ) as $regression ) {
+	list( $result, $provider, $storage ) = $run( $regression[0] );
+	expect_rich( ! is_wp_error( $result ), $regression[1] . ' does not return a chunk-too-large error' );
+	expect_rich( 1 === count( $storage->puts ), $regression[1] . ' is stored after complete translation' );
+	expect_rich( 1 === substr_count( $result, '<ul' ) && 1 === substr_count( $result, '</ul>' ), $regression[1] . ' emits one balanced list' );
 }
 
 $compound = '<h3>Ideal for:</h3><ul><li>Buyer one</li><li>Buyer two</li><li>Buyer three</li><li>Buyer four</li><li>Buyer five</li><li>Buyer six</li></ul>';
