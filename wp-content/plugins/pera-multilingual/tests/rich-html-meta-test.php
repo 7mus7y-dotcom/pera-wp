@@ -5,7 +5,11 @@ $GLOBALS['rich_provider'] = null;
 $GLOBALS['rich_errors'] = array();
 function __( $value ) { return $value; }
 function get_option( $key, $default = false ) { return $default; }
-function apply_filters( $tag, $value ) { return 'pera_ml_provider' === $tag ? $GLOBALS['rich_provider'] : $value; }
+function apply_filters( $tag, $value ) {
+	if ( 'pera_ml_provider' === $tag ) return $GLOBALS['rich_provider'];
+	if ( 'pera_ml_rich_html_chunk_max_chars' === $tag && isset( $GLOBALS['rich_max_chars'] ) ) return $GLOBALS['rich_max_chars'];
+	return $value;
+}
 function do_action( $tag ) { if ( 'pera_ml_translation_error' === $tag ) $GLOBALS['rich_errors'][] = func_get_args(); }
 function is_wp_error( $value ) { return $value instanceof WP_Error; }
 class WP_Error {
@@ -19,7 +23,7 @@ require dirname( __DIR__ ) . '/includes/providers/interface-provider.php';
 require dirname( __DIR__ ) . '/includes/providers/class-mock-provider.php';
 require dirname( __DIR__ ) . '/includes/class-translator.php';
 
-final class Rich_HTML_Provider implements Pera_ML_Provider_Interface {
+class Rich_HTML_Provider implements Pera_ML_Provider_Interface {
 	public $calls = array();
 	public $damage_above = PHP_INT_MAX;
 	public $always_damage = false;
@@ -27,11 +31,13 @@ final class Rich_HTML_Provider implements Pera_ML_Provider_Interface {
 	public function translate( $source, array $context ) {
 		$this->calls[] = array( 'source' => $source, 'context' => $context );
 		$count = preg_match_all( '/PERAMLPROTECTED\d+TOKEN/', $source );
-		if ( $this->always_damage || $count > $this->damage_above ) return preg_replace( '/PERAMLPROTECTED\d+TOKEN/', '', $source, 1 );
+		if ( ( $this->always_damage && $count ) || $count > $this->damage_above ) return preg_replace( '/PERAMLPROTECTED\d+TOKEN/', '', $source, 1 );
 		return strtr( $source, array(
 			'Text with ' => 'نص مع ', 'Feriköy' => 'فيريكوي', 'Architectural Excellence' => 'التميز المعماري',
 			'More text with ' => 'نص إضافي مع ', 'important wording' => 'صياغة مهمة', 'Life in Feriköy' => 'الحياة في فيريكوي',
 			'Modern apartments near the metro.' => 'شقق حديثة بالقرب من المترو.', 'Plain title' => 'عنوان عادي',
+			'Ideal for:' => 'مثالي لـ:', 'Text' => 'نص', 'Buyer one' => 'مشتري واحد', 'Buyer two' => 'مشتري اثنان',
+			'Buyer three' => 'مشتري ثلاثة', 'Buyer four' => 'مشتري أربعة', 'Buyer five' => 'مشتري خمسة', 'Buyer six' => 'مشتري ستة',
 		) );
 	}
 }
@@ -72,7 +78,73 @@ expect_rich( 1 === count( $storage->puts ), 'only the complete recovered transla
 $broken = new Rich_HTML_Provider();
 $broken->always_damage = true;
 list( $result, $provider, $storage ) = $run( '<p>Modern apartments near the metro.</p>', $broken );
-expect_rich( is_wp_error( $result ) && 'pera_ml_structure_changed' === $result->get_error_code(), 'unrecoverable structural damage returns the structure error' );
-expect_rich( 0 === count( $storage->puts ) && 1 === count( $GLOBALS['rich_errors'] ), 'failure stores nothing and emits one final error action' );
+expect_rich( '<p>شقق حديثة بالقرب من المترو.</p>' === $result, 'plain paragraph recovers locally after ordinary and strict structural damage' );
+expect_rich( 3 === count( $provider->calls ) && false !== strpos( $provider->calls[1]['context']['instructions'], 'exactly once' ), 'plain leaf fallback runs only after the strict retry' );
+expect_rich( 'Modern apartments near the metro.' === $provider->calls[2]['source'], 'plain leaf sends only inner text to the provider' );
+
+final class Rich_HTML_Bare_Text_Provider extends Rich_HTML_Provider {
+	private $bare_response;
+	public function __construct( $bare_response ) { $this->bare_response = $bare_response; }
+	public function translate( $source, array $context ) {
+		if ( 'Hello world' !== $source ) return parent::translate( $source, $context );
+		$this->calls[] = array( 'source' => $source, 'context' => $context );
+		return $this->bare_response;
+	}
+}
+
+$markup_injecting = new Rich_HTML_Bare_Text_Provider( 'مرحبا</p><script>alert(1)</script>' );
+$markup_injecting->always_damage = true;
+list( $result, $provider, $storage ) = $run( '<p>Hello world</p>', $markup_injecting );
+expect_rich( is_wp_error( $result ) && 'pera_ml_structure_changed' === $result->get_error_code(), 'raw markup introduced into bare translated text is rejected' );
+expect_rich( 0 === count( $storage->puts ) && 1 === count( $GLOBALS['rich_errors'] ), 'raw-markup rejection stores no partial translation and emits one final error' );
+
+$escaped_angles = new Rich_HTML_Bare_Text_Provider( 'مرحبا &lt;آمن&gt;' );
+$escaped_angles->always_damage = true;
+list( $result, $provider, $storage ) = $run( '<p>Hello world</p>', $escaped_angles );
+expect_rich( '<p>مرحبا &lt;آمن&gt;</p>' === $result, 'escaped angle-bracket entities remain valid bare translated text' );
+expect_rich( 1 === count( $storage->puts ), 'escaped angle-bracket translation is stored once' );
+
+foreach ( array(
+	array( '<li>Text</li>', '<li>نص</li>', 'plain list item' ),
+	array( '<h3>Ideal for:</h3>', '<h3>مثالي لـ:</h3>', 'heading' ),
+	array( '<li class="buyer-type">Text</li>', '<li class="buyer-type">نص</li>', 'opening-tag attributes' ),
+	array( '<p>Text with <strong>important wording</strong>.</p>', '<p>نص مع <strong>صياغة مهمة</strong>.</p>', 'existing inline leaf' ),
+) as $case ) {
+	$damaged = new Rich_HTML_Provider();
+	$damaged->always_damage = true;
+	list( $result, $provider, $storage ) = $run( $case[0], $damaged );
+	expect_rich( $case[1] === $result, $case[2] . ' reconstructs locally and preserves wrappers' );
+	expect_rich( 1 === count( $storage->puts ), $case[2] . ' stores the complete result once' );
+}
+
+foreach ( array( '<li>Parent<div>Nested block</div></li>', '<li>Malformed <strong>markup</li>' ) as $unsafe ) {
+	$damaged = new Rich_HTML_Provider();
+	$damaged->always_damage = true;
+	list( $result, $provider, $storage ) = $run( $unsafe, $damaged );
+	expect_rich( is_wp_error( $result ) && 'pera_ml_structure_changed' === $result->get_error_code(), 'unsafe or malformed leaf remains rejected' );
+	expect_rich( 0 === count( $storage->puts ), 'rejected leaf stores nothing' );
+}
+
+$compound = '<h3>Ideal for:</h3><ul><li>Buyer one</li><li>Buyer two</li><li>Buyer three</li><li>Buyer four</li><li>Buyer five</li><li>Buyer six</li></ul>';
+$GLOBALS['rich_max_chars'] = 25;
+$damaged = new Rich_HTML_Provider();
+$damaged->always_damage = true;
+list( $result, $provider, $storage ) = $run( $compound, $damaged );
+expect_rich( ! is_wp_error( $result ) && 6 === substr_count( $result, '<li>') && 6 === substr_count( $result, '</li>' ), 'compound list subdivides and recovers all plain leaves' );
+expect_rich( strpos( $result, 'مشتري واحد' ) < strpos( $result, 'مشتري ستة' ), 'compound list item order is unchanged' );
+expect_rich( 1 === count( $storage->puts ), 'complete compound recovery is stored once' );
+
+final class Rich_HTML_Leaf_Error_Provider extends Rich_HTML_Provider {
+	public function translate( $source, array $context ) {
+		if ( 'Buyer three' === $source ) return new WP_Error( 'provider_failure' );
+		return parent::translate( $source, $context );
+	}
+}
+$leaf_error = new Rich_HTML_Leaf_Error_Provider();
+$leaf_error->always_damage = true;
+list( $result, $provider, $storage ) = $run( $compound, $leaf_error );
+expect_rich( is_wp_error( $result ) && 'provider_failure' === $result->get_error_code(), 'local leaf provider error propagates' );
+expect_rich( 0 === count( $storage->puts ) && 1 === count( $GLOBALS['rich_errors'] ), 'leaf failure stores no partial HTML and emits only the final error action' );
+unset( $GLOBALS['rich_max_chars'] );
 
 echo "Pera ML rich HTML meta tests passed\n";
