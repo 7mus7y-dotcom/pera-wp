@@ -141,7 +141,15 @@ final class Pera_ML_Translator {
 		$max_depth = 8;
 		if ( $depth < $max_depth ) {
 			$protected_count = count( $this->protect( $source )['tokens'] );
-			$smaller_chars = max( 1, (int) floor( strlen( $source ) / 2 ) );
+			// The character limit here is only a recovery grouping hint. Do not let
+			// it become smaller than an otherwise safe, indivisible direct child:
+			// token reduction can still separate sibling leaves without falsely
+			// treating the longer sibling as a globally oversized compound block.
+			$largest_child = 1;
+			foreach ( $this->top_level_structural_blocks( $source ) as $child ) {
+				$largest_child = max( $largest_child, strlen( $child ) );
+			}
+			$smaller_chars = max( $largest_child, (int) floor( strlen( $source ) / 2 ) );
 			$smaller_tokens = max( 1, (int) floor( $protected_count / 2 ) );
 			$subplan = $this->build_structural_chunk_plan( $source, $smaller_chars, $smaller_tokens );
 			if ( ! is_wp_error( $subplan ) && $this->is_smaller_structural_plan( $subplan, $source ) ) {

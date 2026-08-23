@@ -38,6 +38,7 @@ class Rich_HTML_Provider implements Pera_ML_Provider_Interface {
 			'Modern apartments near the metro.' => 'شقق حديثة بالقرب من المترو.', 'Plain title' => 'عنوان عادي',
 			'Ideal for:' => 'مثالي لـ:', 'Text' => 'نص', 'Buyer one' => 'مشتري واحد', 'Buyer two' => 'مشتري اثنان',
 			'Buyer three' => 'مشتري ثلاثة', 'Buyer four' => 'مشتري أربعة', 'Buyer five' => 'مشتري خمسة', 'Buyer six' => 'مشتري ستة',
+			'Wellness center, clinic and medical residence,' => 'مركز عافية وعيادة وإقامة طبية،', 'Academic apartments.' => 'شقق أكاديمية.',
 		) );
 	}
 }
@@ -82,6 +83,18 @@ list( $result, $provider, $storage ) = $run( '<p>Modern apartments near the metr
 expect_rich( '<p>شقق حديثة بالقرب من المترو.</p>' === $result, 'plain paragraph recovers locally after ordinary and strict structural damage' );
 expect_rich( 3 === count( $provider->calls ) && false !== strpos( $provider->calls[1]['context']['instructions'], 'exactly once' ), 'plain leaf fallback runs only after the strict retry' );
 expect_rich( 'Modern apartments near the metro.' === $provider->calls[2]['source'], 'plain leaf sends only inner text to the provider' );
+
+$sibling_leaves = '<li>Wellness center, clinic and medical residence,</li><li>Academic apartments.</li>';
+expect_rich( strlen( '<li>Wellness center, clinic and medical residence,</li>' ) > strlen( $sibling_leaves ) / 2, 'recovery fixture first leaf exceeds the synthetic half-length ceiling' );
+$broken_siblings = new Rich_HTML_Provider();
+$broken_siblings->always_damage = true;
+list( $result, $provider, $storage ) = $run( $sibling_leaves, $broken_siblings );
+expect_rich( '<li>مركز عافية وعيادة وإقامة طبية،</li><li>شقق أكاديمية.</li>' === $result, 'damaged sibling leaves are split and reconstructed locally in order' );
+$protected_leaf_sources = array_map( static function ( $call ) { return $call['source']; }, $provider->calls );
+expect_rich( in_array( 'PERAMLPROTECTED0TOKENWellness center, clinic and medical residence,PERAMLPROTECTED1TOKEN', $protected_leaf_sources, true ), 'long first leaf remains independently translatable during recursive recovery' );
+expect_rich( in_array( 'PERAMLPROTECTED0TOKENAcademic apartments.PERAMLPROTECTED1TOKEN', $protected_leaf_sources, true ), 'short second leaf remains independently translatable during recursive recovery' );
+expect_rich( in_array( 'Wellness center, clinic and medical residence,', $protected_leaf_sources, true ) && in_array( 'Academic apartments.', $protected_leaf_sources, true ), 'both leaves reach bare-text local recovery after placeholder loss' );
+expect_rich( 1 === count( $storage->puts ), 'recovered sibling leaves are stored once' );
 
 final class Rich_HTML_Bare_Text_Provider extends Rich_HTML_Provider {
 	private $bare_response;
