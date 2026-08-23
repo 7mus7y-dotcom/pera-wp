@@ -221,6 +221,9 @@ final class Pera_ML_Translator {
 			}
 			$translated = $this->translate_fragment( $part['text'], $provider, $context );
 			if ( is_wp_error( $translated ) ) return $translated;
+			if ( false !== strpos( $translated, '<' ) || false !== strpos( $translated, '>' ) ) {
+				return new WP_Error( 'pera_ml_structure_changed', __( 'Translation introduced unexpected HTML structure.', 'pera-multilingual' ) );
+			}
 			$translated_inner .= $translated;
 		}
 		return $leaf[1] . $leaf[2] . $translated_inner . $leaf[5] . $leaf[6];

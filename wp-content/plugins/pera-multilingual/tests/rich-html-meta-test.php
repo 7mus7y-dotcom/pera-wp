@@ -82,6 +82,28 @@ expect_rich( '<p>شقق حديثة بالقرب من المترو.</p>' === $res
 expect_rich( 3 === count( $provider->calls ) && false !== strpos( $provider->calls[1]['context']['instructions'], 'exactly once' ), 'plain leaf fallback runs only after the strict retry' );
 expect_rich( 'Modern apartments near the metro.' === $provider->calls[2]['source'], 'plain leaf sends only inner text to the provider' );
 
+final class Rich_HTML_Bare_Text_Provider extends Rich_HTML_Provider {
+	private $bare_response;
+	public function __construct( $bare_response ) { $this->bare_response = $bare_response; }
+	public function translate( $source, array $context ) {
+		if ( 'Hello world' !== $source ) return parent::translate( $source, $context );
+		$this->calls[] = array( 'source' => $source, 'context' => $context );
+		return $this->bare_response;
+	}
+}
+
+$markup_injecting = new Rich_HTML_Bare_Text_Provider( 'مرحبا</p><script>alert(1)</script>' );
+$markup_injecting->always_damage = true;
+list( $result, $provider, $storage ) = $run( '<p>Hello world</p>', $markup_injecting );
+expect_rich( is_wp_error( $result ) && 'pera_ml_structure_changed' === $result->get_error_code(), 'raw markup introduced into bare translated text is rejected' );
+expect_rich( 0 === count( $storage->puts ) && 1 === count( $GLOBALS['rich_errors'] ), 'raw-markup rejection stores no partial translation and emits one final error' );
+
+$escaped_angles = new Rich_HTML_Bare_Text_Provider( 'مرحبا &lt;آمن&gt;' );
+$escaped_angles->always_damage = true;
+list( $result, $provider, $storage ) = $run( '<p>Hello world</p>', $escaped_angles );
+expect_rich( '<p>مرحبا &lt;آمن&gt;</p>' === $result, 'escaped angle-bracket entities remain valid bare translated text' );
+expect_rich( 1 === count( $storage->puts ), 'escaped angle-bracket translation is stored once' );
+
 foreach ( array(
 	array( '<li>Text</li>', '<li>نص</li>', 'plain list item' ),
 	array( '<h3>Ideal for:</h3>', '<h3>مثالي لـ:</h3>', 'heading' ),
