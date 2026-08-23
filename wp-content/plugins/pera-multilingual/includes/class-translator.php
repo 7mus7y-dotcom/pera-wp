@@ -39,7 +39,14 @@ final class Pera_ML_Translator {
 			$translated = $provider->translate( $protected['text'], $context );
 			if ( is_wp_error( $translated ) ) { do_action( 'pera_ml_translation_error', $translated, compact( 'type', 'id', 'field', 'language' ) ); return $translated; }
 			$translated = $this->restore( $translated, $protected['tokens'] );
-			if ( is_wp_error( $translated ) ) return $translated;
+			if ( is_wp_error( $translated ) && 'pera_ml_structure_changed' === $translated->get_error_code() ) {
+				$translated = $provider->translate( $protected['text'], $this->strict_placeholder_context( $context ) );
+				if ( ! is_wp_error( $translated ) ) $translated = $this->restore( $translated, $protected['tokens'] );
+			}
+			if ( is_wp_error( $translated ) ) {
+				do_action( 'pera_ml_translation_error', $translated, compact( 'type', 'id', 'field', 'language' ) );
+				return $translated;
+			}
 		}
 		$this->storage->put( $type, $id, $field, $language, $source, $translated, $provider->id() );
 		return $translated;
@@ -89,8 +96,7 @@ final class Pera_ML_Translator {
 			}
 		}
 
-		$retry_context = $context;
-		$retry_context['instructions'] = trim( (string) $retry_context['instructions'] . "\n" . 'Preserve every placeholder matching PERAMLPROTECTED<number>TOKEN exactly once, unchanged, and in its original order. Return no additional placeholders.' );
+		$retry_context = $this->strict_placeholder_context( $context );
 		$retried = $this->translate_fragment( $source, $provider, $retry_context );
 		if ( ! is_wp_error( $retried ) || 'pera_ml_structure_changed' !== $retried->get_error_code() ) return $retried;
 
@@ -98,6 +104,11 @@ final class Pera_ML_Translator {
 		// reached a leaf and its strict protected-placeholder retry has also failed.
 		$inline = $this->translate_inline_leaf( $source, $provider, $context );
 		return false === $inline ? $retried : $inline;
+	}
+	private function strict_placeholder_context( array $context ) {
+		$instruction = 'Preserve every placeholder matching PERAMLPROTECTED<number>TOKEN exactly once, unchanged, and in its original order. Do not remove, translate, reformat, split, duplicate, or add spaces inside these placeholders. Return all placeholders together with the translated text. Return no additional placeholders.';
+		$context['instructions'] = trim( (string) $context['instructions'] . "\n" . $instruction );
+		return $context;
 	}
 	/**
 	 * Translate the text nodes of one balanced block leaf while retaining every
