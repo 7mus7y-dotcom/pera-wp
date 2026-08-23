@@ -40,6 +40,14 @@ final class Pera_ML_Translator {
 				do_action( 'pera_ml_translation_error', $translated, compact( 'type', 'id', 'field', 'language' ) );
 				return $translated;
 			}
+		} elseif ( $this->contains_translatable_html( $source ) ) {
+			// Rich non-content fields use the same balanced-fragment recovery as
+			// post_content, without its source-echo or whitespace cleanup passes.
+			$translated = $this->translate_rich_html_chunks( $source, $provider, $context );
+			if ( is_wp_error( $translated ) ) {
+				do_action( 'pera_ml_translation_error', $translated, compact( 'type', 'id', 'field', 'language' ) );
+				return $translated;
+			}
 		} else {
 			$protected = $this->protect( $source );
 			$translated = $provider->translate( $protected['text'], $context );
@@ -56,6 +64,12 @@ final class Pera_ML_Translator {
 		}
 		$this->storage->put( $type, $id, $field, $language, $source, $translated, $provider->id() );
 		return $translated;
+	}
+	/** Detect a real, valid-looking HTML tag rather than comparison punctuation. */
+	private function contains_translatable_html( $source ) {
+		$tags = 'a|abbr|address|article|aside|b|blockquote|br|caption|cite|code|col|colgroup|dd|del|details|div|dl|dt|em|figcaption|figure|footer|h[1-6]|header|hr|i|img|ins|kbd|li|main|mark|nav|ol|p|pre|q|s|section|small|span|strong|sub|summary|sup|table|tbody|td|tfoot|th|thead|tr|u|ul';
+		$attributes = '(?:\s+[A-Za-z_:][A-Za-z0-9_.:-]*(?:\s*=\s*(?:"[^"]*"|\'[^\']*\'|[^\s"\'=<>`]+))?)*\s*';
+		return 1 === preg_match( '/<\/?(?:' . $tags . ')\b' . $attributes . '\/?\s*>/iu', (string) $source );
 	}
 	/**
 	 * Parse exactly one flat ul/ol whose only children are plain-text li elements.
@@ -95,8 +109,15 @@ final class Pera_ML_Translator {
 	}
 	/** Translate complete top-level HTML blocks sequentially, retrying only a structurally damaged block. */
 	private function translate_post_content_chunks( $source, $provider, array $context ) {
+		return $this->translate_structural_chunks( $source, $provider, $context, 'post_content' );
+	}
+	/** Translate rich meta in smaller balanced groups to limit provider exposure. */
+	private function translate_rich_html_chunks( $source, $provider, array $context ) {
+		return $this->translate_structural_chunks( $source, $provider, $context, 'rich_html' );
+	}
+	private function translate_structural_chunks( $source, $provider, array $context, $scope ) {
 		$output = '';
-		$chunks = $this->bounded_structural_chunks( $source );
+		$chunks = $this->bounded_structural_chunks( $source, $scope );
 		if ( is_wp_error( $chunks ) ) return $chunks;
 		foreach ( $chunks as $chunk ) {
 			if ( empty( $chunk['translate'] ) ) {
@@ -214,11 +235,12 @@ final class Pera_ML_Translator {
 	 * Group complete sibling blocks. Oversized compound wrappers are emitted verbatim
 	 * around recursively grouped, balanced children rather than sent unmatched.
 	 */
-	private function bounded_structural_chunks( $source ) {
+	private function bounded_structural_chunks( $source, $scope = 'post_content' ) {
 		$source = (string) $source;
 		if ( '' === $source ) return array( array( 'translate' => true, 'text' => '' ) );
-		$max_chars = max( 1, (int) apply_filters( 'pera_ml_post_content_chunk_max_chars', 10000 ) );
-		$max_tokens = max( 1, (int) apply_filters( 'pera_ml_post_content_chunk_max_tokens', 35 ) );
+		$prefix = 'rich_html' === $scope ? 'pera_ml_rich_html_chunk_' : 'pera_ml_post_content_chunk_';
+		$max_chars = max( 1, (int) apply_filters( $prefix . 'max_chars', 10000 ) );
+		$max_tokens = max( 1, (int) apply_filters( $prefix . 'max_tokens', 'rich_html' === $scope ? 9 : 35 ) );
 		return $this->build_structural_chunk_plan( $source, $max_chars, $max_tokens );
 	}
 	private function build_structural_chunk_plan( $source, $max_chars, $max_tokens ) {
