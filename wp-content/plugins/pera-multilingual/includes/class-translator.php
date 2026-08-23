@@ -163,8 +163,8 @@ final class Pera_ML_Translator {
 		$retried = $this->translate_fragment( $source, $provider, $retry_context );
 		if ( ! is_wp_error( $retried ) || 'pera_ml_structure_changed' !== $retried->get_error_code() ) return $retried;
 
-		// Inline markup is reconstructed locally only after ordinary recovery has
-		// reached a leaf and its strict protected-placeholder retry has also failed.
+		// A safe structural leaf is reconstructed locally only after ordinary recovery
+		// and its strict protected-placeholder retry have both failed.
 		$inline = $this->translate_inline_leaf( $source, $provider, $context );
 		return false === $inline ? $retried : $inline;
 	}
@@ -174,8 +174,9 @@ final class Pera_ML_Translator {
 		return $context;
 	}
 	/**
-	 * Translate the text nodes of one balanced block leaf while retaining every
-	 * supported inline tag byte-for-byte. False means the input is not a safe leaf.
+	 * Translate the text nodes of one balanced block leaf while retaining its block
+	 * wrapper and every supported inline tag byte-for-byte. Plain inner text is safe;
+	 * any unparsed angle bracket, malformed tag, or nested block rejects the leaf.
 	 */
 	private function translate_inline_leaf( $source, $provider, array $context ) {
 		$leaf_pattern = '/^(\s*)(<((?:li|p|h[1-6]|blockquote|td|th))\b(?:[^>"\']|"[^"]*"|\'[^\']*\')*>)(.*)(<\/\3\s*>)(\s*)$/isu';
@@ -212,8 +213,6 @@ final class Pera_ML_Translator {
 		$tail = substr( $inner, $offset );
 		if ( false !== strpos( $tail, '<' ) || false !== strpos( $tail, '>' ) || ! empty( $stack ) ) return false;
 		if ( '' !== $tail ) $parts[] = array( 'tag' => false, 'text' => $tail );
-		if ( empty( $matches ) && false === strpos( $inner, '<' ) ) return false;
-
 		$translated_inner = '';
 		foreach ( $parts as $part ) {
 			if ( $part['tag'] || '' === trim( html_entity_decode( $part['text'], ENT_QUOTES | ENT_HTML5, 'UTF-8' ) ) ) {

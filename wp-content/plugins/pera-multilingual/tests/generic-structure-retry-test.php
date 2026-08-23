@@ -60,11 +60,12 @@ expect_same( true, false !== strpos( $provider->calls[1]['context']['instruction
 expect_same( 1, count( $storage->puts ), 'recovered translation is stored' );
 expect_same( 0, count( $GLOBALS['translation_errors'] ), 'recoverable first failure is not logged' );
 
-list( $result, $provider, $storage ) = $run( '<p>Hello world</p>', array( 'مرحبا', 'مرحبا أيضاً' ) );
-expect_same( 'pera_ml_structure_changed', $result->get_error_code(), 'persistent structure loss returns structure error' );
-expect_same( 2, count( $provider->calls ), 'persistent structure loss stops after one retry' );
-expect_same( 0, count( $storage->puts ), 'failed translation is not stored' );
-expect_same( 1, count( $GLOBALS['translation_errors'] ), 'final structure failure is logged once' );
+list( $result, $provider, $storage ) = $run( '<p>Hello world</p>', array( 'مرحبا', 'مرحبا أيضاً', 'مرحبا بالعالم' ) );
+expect_same( '<p>مرحبا بالعالم</p>', $result, 'persistent wrapper loss recovers by translating plain leaf text' );
+expect_same( 3, count( $provider->calls ), 'local leaf recovery follows the ordinary and strict attempts' );
+expect_same( 'Hello world', $provider->calls[2]['source'], 'local leaf recovery does not expose its wrapper' );
+expect_same( 1, count( $storage->puts ), 'locally recovered translation is stored' );
+expect_same( 0, count( $GLOBALS['translation_errors'] ), 'recoverable wrapper failures are not logged' );
 
 list( $result, $provider, $storage ) = $run( 'Modern apartments in Istanbul', array( 'شقق حديثة في إسطنبول' ) );
 expect_same( 'شقق حديثة في إسطنبول', $result, 'plain text retains existing behavior' );
@@ -76,7 +77,7 @@ expect_same( $provider_error, $result, 'first provider error is returned unchang
 expect_same( 1, count( $provider->calls ), 'provider error does not trigger structure retry' );
 expect_same( 1, count( $GLOBALS['translation_errors'] ), 'provider error retains normal logging' );
 
-list( $result, $provider, $storage ) = $run( '<p>Hello world</p>', array(
+list( $result, $provider, $storage ) = $run( '<code>Hello world</code>', array(
 	'PERAMLPROTECTED0TOKENمرحباPERAMLPROTECTED1TOKENPERAMLPROTECTED1TOKEN',
 	'PERAMLPROTECTED0TOKENمرحباPERAMLPROTECTED1TOKENPERAMLPROTECTED9TOKEN',
 ) );
