@@ -151,7 +151,7 @@ final class Pera_ML_Translator {
 			}
 			$smaller_chars = max( $largest_child, (int) floor( strlen( $source ) / 2 ) );
 			$smaller_tokens = max( 1, (int) floor( $protected_count / 2 ) );
-			$subplan = $this->build_structural_chunk_plan( $source, $smaller_chars, $smaller_tokens );
+			$subplan = $this->build_structural_chunk_plan( $source, $smaller_chars, $smaller_tokens, false );
 			if ( ! is_wp_error( $subplan ) && $this->is_smaller_structural_plan( $subplan, $source ) ) {
 				$output = '';
 				foreach ( $subplan as $piece ) {
@@ -253,7 +253,7 @@ final class Pera_ML_Translator {
 		$max_tokens = max( 1, (int) apply_filters( $prefix . 'max_tokens', 'rich_html' === $scope ? 9 : 35 ) );
 		return $this->build_structural_chunk_plan( $source, $max_chars, $max_tokens );
 	}
-	private function build_structural_chunk_plan( $source, $max_chars, $max_tokens ) {
+	private function build_structural_chunk_plan( $source, $max_chars, $max_tokens, $allow_compound_list_items = true ) {
 		$blocks = $this->top_level_structural_blocks( $source );
 		$plan = array();
 		$chunk = '';
@@ -268,7 +268,7 @@ final class Pera_ML_Translator {
 			}
 			if ( $this->exceeds_chunk_limits( $block, $max_chars, $max_tokens ) ) {
 				if ( '' !== $chunk ) { $plan[] = array( 'translate' => true, 'text' => $chunk ); $chunk = ''; $chunk_is_structural = null; }
-				$subplan = $this->subdivide_compound_block( $block, $max_chars, $max_tokens );
+				$subplan = $this->subdivide_compound_block( $block, $max_chars, $max_tokens, $allow_compound_list_items );
 				if ( is_wp_error( $subplan ) ) return $subplan;
 				$plan = array_merge( $plan, $subplan );
 			} else {
@@ -364,10 +364,10 @@ final class Pera_ML_Translator {
 		}
 		return empty( $blocks ) ? array( $source ) : $blocks;
 	}
-	private function subdivide_compound_block( $block, $max_chars, $max_tokens ) {
+	private function subdivide_compound_block( $block, $max_chars, $max_tokens, $allow_compound_list_items = true ) {
 		$gutenberg = '/^(\s*<!--\s*wp:([A-Za-z0-9_\/-]+)(?:\s+.*?)?\s*-->\s*)(.*)(\s*<!--\s*\/wp:\2\s*-->\s*)$/isu';
 		if ( preg_match( $gutenberg, $block, $comments ) ) {
-			$wrapped = $this->subdivide_compound_block( $comments[3], $max_chars, $max_tokens );
+			$wrapped = $this->subdivide_compound_block( $comments[3], $max_chars, $max_tokens, $allow_compound_list_items );
 			if ( is_wp_error( $wrapped ) ) return $wrapped;
 			return array_merge(
 				array( array( 'translate' => false, 'text' => $comments[1] ) ),
@@ -375,17 +375,37 @@ final class Pera_ML_Translator {
 				array( array( 'translate' => false, 'text' => $comments[4] ) )
 			);
 		}
-		$pattern = '/^(\s*)(<(div|figure|section|ul|ol|table|thead|tbody|tfoot)\b[^>]*>)(.*)(<\/\3\s*>)(\s*)$/isu';
+		$pattern = '/^(\s*)(<(div|figure|section|ul|ol|table|thead|tbody|tfoot|li)\b[^>]*>)(.*)(<\/\3\s*>)(\s*)$/isu';
 		if ( ! preg_match( $pattern, $block, $parts ) ) {
 			return new WP_Error( 'pera_ml_chunk_too_large', __( 'A structural block exceeds the translation chunk limits and cannot be safely subdivided.', 'pera-multilingual' ) );
 		}
-		$children = $this->build_structural_chunk_plan( $parts[4], $max_chars, $max_tokens );
+		// List items remain ordinary leaves unless they contain a balanced child list.
+		if ( 'li' === strtolower( $parts[3] ) && ( ! $allow_compound_list_items || ! $this->has_balanced_list_child( $parts[4] ) ) ) {
+			return new WP_Error( 'pera_ml_chunk_too_large', __( 'A structural block exceeds the translation chunk limits and cannot be safely subdivided.', 'pera-multilingual' ) );
+		}
+		$children = $this->build_structural_chunk_plan( $parts[4], $max_chars, $max_tokens, $allow_compound_list_items );
 		if ( is_wp_error( $children ) ) return $children;
 		return array_merge(
 			array( array( 'translate' => false, 'text' => $parts[1] . $parts[2] ) ),
 			$children,
 			array( array( 'translate' => false, 'text' => $parts[5] . $parts[6] ) )
 		);
+	}
+	private function has_balanced_list_child( $html ) {
+		$void = array( 'area', 'base', 'br', 'col', 'embed', 'hr', 'img', 'input', 'link', 'meta', 'param', 'source', 'track', 'wbr' );
+		$stack = array();
+		$has_list = false;
+		preg_match_all( '/<\/?([A-Za-z0-9]+)\b[^>]*>/', $html, $tags, PREG_SET_ORDER );
+		foreach ( $tags as $token ) {
+			$tag = strtolower( $token[1] );
+			if ( '</' === substr( $token[0], 0, 2 ) ) {
+				if ( empty( $stack ) || array_pop( $stack ) !== $tag ) return false;
+				continue;
+			}
+			if ( 'ul' === $tag || 'ol' === $tag ) $has_list = true;
+			if ( ! in_array( $tag, $void, true ) && ! preg_match( '/\/\s*>$/', $token[0] ) ) $stack[] = $tag;
+		}
+		return $has_list && empty( $stack );
 	}
 	private function exceeds_chunk_limits( $text, $max_chars, $max_tokens ) {
 		return strlen( $text ) > $max_chars || count( $this->protect( $text )['tokens'] ) > $max_tokens;

@@ -32,7 +32,14 @@ class Rich_HTML_Provider implements Pera_ML_Provider_Interface {
 		$this->calls[] = array( 'source' => $source, 'context' => $context );
 		$count = preg_match_all( '/PERAMLPROTECTED\d+TOKEN/', $source );
 		if ( ( $this->always_damage && $count ) || $count > $this->damage_above ) return preg_replace( '/PERAMLPROTECTED\d+TOKEN/', '', $source, 1 );
+		$target = strtoupper( $context['target_language'] );
 		return strtr( $source, array(
+			'Next to Zeytinburnu Marmaray Station' => $target . '_STATION', 'One step away from:' => $target . '_PARENT',
+			'Diverse cuisines and world-famous cafés and restaurants' => $target . '_CUISINES', 'Seaside promenade' => $target . '_SEASIDE',
+			'Theatre and open-air cinema' => $target . '_THEATRE', 'Art galleries' => $target . '_GALLERIES',
+			'Organic bazaar' => $target . '_BAZAAR', 'Concert area' => $target . '_CONCERT', 'After the amenities' => $target . '_AFTER',
+			'Hospitals &amp; Education' => $target . '_HOSPITALS_EDUCATION', 'Yedikule Armenian Hospital' => $target . '_YEDIKULE',
+			'Nearby university' => $target . '_UNIVERSITY',
 			'Text with ' => 'نص مع ', 'Feriköy' => 'فيريكوي', 'Architectural Excellence' => 'التميز المعماري',
 			'More text with ' => 'نص إضافي مع ', 'important wording' => 'صياغة مهمة', 'Life in Feriköy' => 'الحياة في فيريكوي',
 			'Modern apartments near the metro.' => 'شقق حديثة بالقرب من المترو.', 'Plain title' => 'عنوان عادي',
@@ -44,12 +51,12 @@ class Rich_HTML_Provider implements Pera_ML_Provider_Interface {
 }
 final class Rich_HTML_Storage { public $puts = array(); public function put() { $this->puts[] = func_get_args(); } }
 $registry = new class { public function get() { return array( 'name' => 'Arabic', 'source' => false, 'instructions' => 'Translate.' ); } };
-$run = static function ( $source, $provider = null ) use ( $registry ) {
+$run = static function ( $source, $provider = null, $language = 'ar' ) use ( $registry ) {
 	$GLOBALS['rich_provider'] = $provider ? $provider : new Rich_HTML_Provider();
 	$GLOBALS['rich_errors'] = array();
 	$storage = new Rich_HTML_Storage();
 	$translator = new Pera_ML_Translator( $registry, $storage );
-	$result = $translator->translate_and_store( 'post', 37728, 'meta:about_this_project', 'ar', $source, 'mock' );
+	$result = $translator->translate_and_store( 'post', 37728, 'meta:about_this_project', $language, $source, 'mock' );
 	return array( $result, $GLOBALS['rich_provider'], $storage );
 };
 
@@ -186,6 +193,30 @@ $leaf_error->always_damage = true;
 list( $result, $provider, $storage ) = $run( $compound, $leaf_error );
 expect_rich( is_wp_error( $result ) && 'provider_failure' === $result->get_error_code(), 'local leaf provider error propagates' );
 expect_rich( 0 === count( $storage->puts ) && 1 === count( $GLOBALS['rich_errors'] ), 'leaf failure stores no partial HTML and emits only the final error action' );
+unset( $GLOBALS['rich_max_chars'] );
+
+$nested_distances = '<ul class="distances"><li>Next to Zeytinburnu Marmaray Station</li><li class="nearby">One step away from: <ul data-kind="amenities"><li>Diverse cuisines and world-famous cafés and restaurants</li><li>Seaside promenade</li><li>Theatre and open-air cinema</li><li>Art galleries</li><li>Organic bazaar</li><li>Concert area</li></ul> After the amenities</li></ul>';
+$nested_distances .= "\n\n<ul class=\"institutions\"><li><strong>Hospitals &amp; Education</strong></li><li>Yedikule Armenian Hospital</li><li>Nearby university</li></ul>";
+$GLOBALS['rich_max_chars'] = 120;
+foreach ( array( 'zh', 'ar', 'de' ) as $language ) {
+	list( $result, $provider, $storage ) = $run( $nested_distances, null, $language );
+	$target = strtoupper( $language );
+	expect_rich( ! is_wp_error( $result ), "$language nested distances field does not return chunk-too-large" );
+	expect_rich( 3 === substr_count( $result, '<ul' ) && 3 === substr_count( $result, '</ul>' ), "$language emits both outer lists and the nested list exactly once" );
+	expect_rich( 11 === substr_count( $result, '<li' ) && 11 === substr_count( $result, '</li>' ), "$language preserves every list item" );
+	expect_rich( false !== strpos( $result, '<li class="nearby">' . $target . '_PARENT <ul data-kind="amenities">' ), "$language translates parent prose while preserving its wrapper, attributes, and whitespace" );
+	expect_rich( false !== strpos( $result, '</ul> ' . $target . '_AFTER</li>' ), "$language translates prose after the nested list inside the parent item" );
+	expect_rich( strpos( $result, $target . '_CUISINES' ) < strpos( $result, $target . '_CONCERT' ) && strpos( $result, $target . '_CONCERT' ) < strpos( $result, $target . '_HOSPITALS_EDUCATION' ), "$language translates nested children and preserves consecutive-list ordering" );
+	expect_rich( 1 === substr_count( $result, '<li><strong>' . $target . '_HOSPITALS_EDUCATION</strong></li>' ), "$language translates the inline-rich list item while preserving strong markup" );
+	$inline_rich_calls = array_filter( $provider->calls, static function ( $call ) { return false !== strpos( $call['source'], 'Hospitals &amp; Education' ) && preg_match_all( '/PERAMLPROTECTED\d+TOKEN/', $call['source'] ) >= 4; } );
+	expect_rich( 1 === count( $inline_rich_calls ), "$language inline-rich list item reaches the protected rich-HTML provider path" );
+	foreach ( array( 'One step away from:', 'Diverse cuisines', 'Seaside promenade', 'Concert area', 'After the amenities', 'Hospitals &amp; Education', 'Yedikule Armenian Hospital', 'Nearby university' ) as $english ) expect_rich( false === strpos( $result, $english ), "$language output does not echo representative source text: $english" );
+	expect_rich( 1 === count( $storage->puts ), "$language stores the complete nested-list translation once" );
+}
+
+$GLOBALS['rich_max_chars'] = 30;
+list( $result ) = $run( '<ul><li>Parent prose<ul><li>First child</ul><li>Second child</li></ul></li></ul>' );
+expect_rich( is_wp_error( $result ) && 'pera_ml_chunk_too_large' === $result->get_error_code(), 'malformed oversized nested list fails safely' );
 unset( $GLOBALS['rich_max_chars'] );
 
 echo "Pera ML rich HTML meta tests passed\n";
