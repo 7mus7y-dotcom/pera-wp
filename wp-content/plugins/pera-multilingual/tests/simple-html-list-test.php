@@ -68,13 +68,13 @@ expect_list_same( 0, count( $storage->puts ), 'partial list is never stored' );
 
 $nested = '<ul><li>Parent<ul><li>Child</li></ul></li></ul>';
 list( $result, $provider ) = $run( $nested );
-expect_list_same( 1, count( $provider->calls ), 'nested list falls back to generic path' );
-expect_list( false !== strpos( $provider->calls[0]['source'], 'PERAMLPROTECTED'), 'nested list uses protected placeholders' );
+expect_list_same( 1, count( $provider->calls ), 'nested list uses the structural HTML path' );
+expect_list( false !== strpos( $provider->calls[0]['source'], 'PERAMLPROTECTED'), 'nested list structurally protects markup' );
 
 $inline = '<ul><li><strong>Metro:</strong> 5 minutes</li></ul>';
 list( $result, $provider ) = $run( $inline );
-expect_list_same( 1, count( $provider->calls ), 'inline markup intentionally falls back in V1' );
-expect_list( substr_count( $provider->calls[0]['source'], 'PERAMLPROTECTED' ) >= 4, 'inline fallback retains generic protection' );
+expect_list_same( 1, count( $provider->calls ), 'inline-rich list uses the structural HTML path' );
+expect_list( substr_count( $provider->calls[0]['source'], 'PERAMLPROTECTED' ) >= 4, 'inline structural translation retains protection' );
 
 $malformed = '<ul><li>Broken</ul>';
 list( $result, $provider ) = $run( $malformed );
