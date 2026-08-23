@@ -11,17 +11,34 @@ $GLOBALS['pera_test_actions'] = array();
 function add_filter() {}
 function add_shortcode() {}
 function add_action( $hook, $callback, $priority = 10 ) { $GLOBALS['pera_test_actions'][] = array( $hook, $callback, $priority ); }
+function esc_attr( $value ) { return htmlspecialchars( $value, ENT_QUOTES, 'UTF-8' ); }
 function wp_style_is( $handle, $status ) { return 'pera-main-css' === $handle && 'enqueued' === $status && $GLOBALS['pera_test_main_enqueued']; }
 function wp_enqueue_style( $handle, $source, $dependencies, $version ) { $GLOBALS['pera_test_styles'][] = compact( 'handle', 'source', 'dependencies', 'version' ); }
 function expect_same( $expected, $actual, $label ) { if ( $expected !== $actual ) { fwrite( STDERR, "FAIL $label\n" ); exit( 1 ); } }
 
-class RTLAssetsRouter { function current_language() { return 'ar'; } }
-class RTLAssetsRegistry { function get() { return array( 'direction' => 'rtl' ); } }
+class RTLAssetsRouter {
+	private $language;
+	function __construct( $language = 'ar' ) { $this->language = $language; }
+	function current_language() { return $this->language; }
+}
+class RTLAssetsRegistry {
+	function get( $language = 'ar' ) {
+		return 'ar' === $language
+			? array( 'code' => 'ar', 'direction' => 'rtl' )
+			: array( 'code' => $language, 'direction' => 'ltr' );
+	}
+}
 
 require dirname( __DIR__ ) . '/includes/class-content.php';
 $content = new Pera_ML_Content( new RTLAssetsRegistry(), new RTLAssetsRouter(), null );
 $content->hooks();
 expect_same( 110, $GLOBALS['pera_test_actions'][0][2], 'RTL enqueue runs after theme cleanup' );
+expect_same( 'lang="ar" dir="rtl"', $content->language_attributes( '' ), 'Arabic document retains semantic RTL direction' );
+expect_same( array( 'base', 'pera-ml-lang-ar', 'pera-ml-rtl' ), $content->body_classes( array( 'base' ) ), 'Arabic body receives RTL content class' );
+
+$english_content = new Pera_ML_Content( new RTLAssetsRegistry(), new RTLAssetsRouter( 'en' ), null );
+expect_same( 'lang="en" dir="ltr"', $english_content->language_attributes( '' ), 'non-Arabic document remains LTR' );
+expect_same( array( 'base', 'pera-ml-lang-en' ), $english_content->body_classes( array( 'base' ) ), 'non-Arabic body does not receive RTL class' );
 
 $GLOBALS['pera_test_main_enqueued'] = true;
 $content->rtl_style();
@@ -32,7 +49,16 @@ $content->rtl_style();
 expect_same( array(), $GLOBALS['pera_test_styles'][1]['dependencies'], 'RTL CSS remains loadable without theme CSS' );
 
 $css = file_get_contents( dirname( __DIR__ ) . '/assets/css/rtl.css' );
-expect_same( true, false !== strpos( $css, 'body.pera-ml-rtl .offcanvas-nav' ), 'drawer override is RTL-scoped' );
-expect_same( true, false !== strpos( $css, 'transform: translateX(-100%)' ), 'drawer hides to physical left' );
+$theme_css = file_get_contents( dirname( __DIR__, 3 ) . '/themes/hello-elementor-child/css/main.css' );
+expect_same( true, false !== strpos( $css, "body.pera-ml-rtl {\n\tdirection: ltr;" ), 'Arabic body preserves LTR structural geometry' );
+expect_same( true, false !== strpos( $css, '.property-hero__title' ), 'property hero text opts into RTL' );
+expect_same( true, false !== strpos( $css, '.property-overview__main h2' ), 'property summary text opts into RTL' );
+expect_same( true, false !== strpos( $css, '.property-editorial-card h2' ), 'property editorial text opts into RTL' );
+expect_same( true, false !== strpos( $css, '.property-further-reading__title' ), 'further-reading text opts into RTL' );
+expect_same( false, false !== strpos( $css, 'body.pera-ml-rtl main' ), 'RTL is not applied to the main structural wrapper' );
+expect_same( false, false !== strpos( $css, 'body.pera-ml-rtl .offcanvas-nav {' ), 'redundant drawer geometry override is removed' );
+expect_same( true, false !== strpos( $css, '.offcanvas-nav a' ), 'offcanvas translated text opts into RTL' );
+expect_same( true, false !== strpos( $theme_css, 'transform: translateX(100%);' ), 'closed offcanvas remains translated fully out of view' );
+expect_same( true, false !== strpos( $theme_css, 'body.is-nav-open .offcanvas-nav' ), 'open offcanvas state remains available' );
 expect_same( true, false !== strpos( $css, 'overflow-x: clip' ), 'RTL overflow is clipped' );
 echo "Pera ML RTL asset tests passed\n";
