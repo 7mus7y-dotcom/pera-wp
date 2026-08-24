@@ -64,10 +64,14 @@ file_put_contents( $root . '/archive/single-property-v2.php', "<?php pera_ml_ui(
 file_put_contents( $root . '/home-page-test.php', "<?php pera_ml_ui( 'Test template', 'theme.template.test' );\n" );
 file_put_contents( $root . '/page-v2-query-test.php', "<?php pera_ml_ui( 'Dev template', 'theme.template.dev' );\n" );
 file_put_contents( $root . '/page-zh-citizenship.php', "<?php pera_ml_ui( 'Language template', 'theme.template.language' );\n" );
-$approved = $tool->run( Pera_ML_Theme_UI_Discovery::approved_directories( $root ), true );
+file_put_contents( $root . '/page-client-login.php', "<?php pera_ml_ui( 'Client login', 'theme.template.client_login' );\n" );
+file_put_contents( $root . '/page-client-portal.php', "<?php pera_ml_ui( 'Client portal', 'theme.template.client_portal' );\n" );
+$GLOBALS['ui_registry_option'] = array();
+$approved = $tool->run( Pera_ML_Theme_UI_Discovery::approved_directories( $root ) );
 expect_discovery( 4, $approved['discovered'], 'approved directories plus root and template-subdirectory calls are discovered' );
-expect_discovery( false, false !== array_search( 'theme.template.test', array_column( $GLOBALS['ui_registry_option'], 'semantic_key' ), true ), 'test template is excluded' );
-expect_discovery( false, false !== array_search( 'theme.template.language', array_column( $GLOBALS['ui_registry_option'], 'semantic_key' ), true ), 'language-specific template is excluded' );
+$keys = array_column( $GLOBALS['ui_registry_option'], 'semantic_key' );
+foreach ( array( 'theme.key', 'theme.dry', 'theme.template.404.root', 'theme.template.archive.approved' ) as $key ) expect_discovery( true, in_array( $key, $keys, true ), 'approved registration discovered: ' . $key );
+foreach ( array( 'theme.template.test', 'theme.template.dev', 'theme.template.language', 'theme.template.client_login', 'theme.template.client_portal', 'theme.archived' ) as $key ) expect_discovery( false, in_array( $key, $keys, true ), 'excluded registration ignored: ' . $key );
 $admin_source = file_get_contents( dirname( __DIR__ ) . '/admin/class-admin.php' );
 $cli_source = file_get_contents( dirname( __DIR__ ) . '/tools/register-theme-ui-strings.php' );
 expect_discovery( true, false !== strpos( $admin_source, 'Pera_ML_Theme_UI_Discovery::approved_directories()' ), 'admin scan uses shared approved discovery scope' );

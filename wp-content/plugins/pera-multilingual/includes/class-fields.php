@@ -69,4 +69,16 @@ final class Pera_ML_Fields {
 		$row = $this->storage->get( 'term', $term->term_id, 'term_' . $field, $language, (string) $source );
 		return $row ? $row['translated_text'] : ( 'name' === $field ? $this->vocabulary->translate( $source, $language ) : $source );
 	}
+	/** Read one approved taxonomy meta translation without invoking a provider. */
+	public function term_meta( $term, $field, $source, $language = null ) {
+		if ( ! $term instanceof WP_Term ) return $source;
+		$field = Pera_ML_Storage::normalize_field_key( $field );
+		if ( 0 !== strpos( $field, 'meta:' ) ) $field = 'meta:' . sanitize_key( $field );
+		if ( ! in_array( $field, self::taxonomy_fields( $term->taxonomy ), true ) ) return $source;
+		$language = $language ? sanitize_key( $language ) : $this->router->current_language();
+		if ( 'en' === $language ) return $source;
+		$row = $this->storage->get( 'term', $term->term_id, $field, $language, (string) $source );
+		if ( ! is_array( $row ) || ! empty( $row['is_stale'] ) || ( isset( $row['status'] ) && 'current' !== $row['status'] ) || ! isset( $row['translated_text'] ) || '' === trim( (string) $row['translated_text'] ) ) return $source;
+		return $row['translated_text'];
+	}
 }
