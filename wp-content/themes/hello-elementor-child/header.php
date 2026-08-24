@@ -37,7 +37,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 <body <?php body_class(); ?>>
 <?php wp_body_open(); ?>
 
-<a href="#primary" class="skip-link">Skip to content</a>
+<a href="#primary" class="skip-link"><?php echo esc_html( pera_ml_ui( 'Skip to content', 'theme.template.header.skip_to_content' ) ); ?></a>
 
 <input type="checkbox" id="nav-toggle" class="nav-toggle" hidden>
 
@@ -54,7 +54,7 @@ $crm_overdue_count          = $show_crm_header_button && function_exists( 'pera_
   ? (int) pera_crm_get_overdue_reminders_count_for_current_user()
   : 0;
 $crm_label                  = $crm_overdue_count > 0
-  ? sprintf( 'CRM (%d overdue reminders)', $crm_overdue_count )
+  ? sprintf( pera_ml_ui( 'CRM (%d overdue reminders)', 'theme.template.header.crm_overdue_reminders' ), $crm_overdue_count )
   : 'CRM';
 
 ?>
@@ -83,7 +83,7 @@ $crm_label                  = $crm_overdue_count > 0
       <?php if ( is_user_logged_in() && current_user_can( 'manage_options' ) ) : ?>
         <a href="<?php echo esc_url( admin_url() ); ?>"
            class="header-crm-toggle"
-           aria-label="Open WordPress admin">
+           aria-label="<?php echo esc_attr( pera_ml_ui( 'Open WordPress admin', 'theme.template.header.aria_label.open_wordpress_admin' ) ); ?>">
           <svg class="icon" aria-hidden="true">
             <use href="<?php echo esc_url( get_stylesheet_directory_uri() . '/logos-icons/icons.svg#icon-wp-admin' ); ?>"></use>
           </svg>
@@ -105,7 +105,7 @@ $crm_label                  = $crm_overdue_count > 0
 
       <a href="<?php echo esc_url( get_post_type_archive_link( 'property' ) ); ?>"
          class="header-search-toggle"
-         aria-label="Browse Istanbul properties">
+         aria-label="<?php echo esc_attr( pera_ml_ui( 'Browse Istanbul properties', 'theme.template.header.aria_label.browse_istanbul_properties' ) ); ?>">
         <svg class="icon" aria-hidden="true">
           <use href="<?php echo esc_url( get_stylesheet_directory_uri() . '/logos-icons/icons.svg#icon-search' ); ?>"></use>
         </svg>
@@ -113,7 +113,7 @@ $crm_label                  = $crm_overdue_count > 0
 
       <label for="nav-toggle"
              class="header-menu-toggle"
-             aria-label="Open main menu">
+             aria-label="<?php echo esc_attr( pera_ml_ui( 'Open main menu', 'theme.template.header.aria_label.open_main_menu' ) ); ?>">
         <svg class="icon" aria-hidden="true">
           <use href="<?php echo esc_url( get_stylesheet_directory_uri() . '/logos-icons/icons.svg#icon-bars' ); ?>"></use>
         </svg>
@@ -125,7 +125,7 @@ $crm_label                  = $crm_overdue_count > 0
 </header>
 
 <!-- OFF-CANVAS MENU -->
-<nav class="offcanvas-nav" aria-label="Main">
+<nav class="offcanvas-nav" aria-label="<?php echo esc_attr( pera_ml_ui( 'Main', 'theme.template.header.aria_label.main' ) ); ?>">
   <div class="offcanvas-inner">
 
     <div class="offcanvas-top">
@@ -140,7 +140,7 @@ $crm_label                  = $crm_overdue_count > 0
 
       <label for="nav-toggle"
              class="offcanvas-close"
-             aria-label="Close menu">&times;</label>
+             aria-label="<?php echo esc_attr( pera_ml_ui( 'Close menu', 'theme.template.header.aria_label.close_menu' ) ); ?>">&times;</label>
     </div>
 
     <?php pera_render_header_language_switcher( 'mobile' ); ?>
@@ -181,13 +181,13 @@ $crm_label                  = $crm_overdue_count > 0
 
         <section id="offcanvas-user-panel" class="offcanvas-user-panel">
           <?php if ( is_user_logged_in() ) : ?>
-            <h2 class="offcanvas-director-title">Welcome back</h2>
+            <h2 class="offcanvas-director-title"><?php echo esc_html( pera_ml_ui( 'Welcome back', 'theme.template.header.welcome_back' ) ); ?></h2>
             <div class="offcanvas-contact-details">
               <a href="<?php echo esc_url( $logout_url ); ?>" class="btn btn--solid btn--green" rel="nofollow">
-                Log out
+                <?php echo esc_html( pera_ml_ui( 'Log out', 'theme.template.header.log_out' ) ); ?>
               </a>
               <a href="<?php echo esc_url( $favourites_url ); ?>" class="btn btn--solid btn--black">
-                Favourites
+                <?php echo esc_html( pera_ml_ui( 'Favourites', 'theme.template.header.favourites' ) ); ?>
               </a>
             </div>
             <?php if ( ! empty( $recent_favourite_ids ) ) : ?>
@@ -203,7 +203,7 @@ $crm_label                  = $crm_overdue_count > 0
               );
               ?>
               <?php if ( $recent_query->have_posts() ) : ?>
-                <h3 class="offcanvas-director-title offcanvas-user-heading">Your latest favourites</h3>
+                <h3 class="offcanvas-director-title offcanvas-user-heading"><?php echo esc_html( pera_ml_ui( 'Your latest favourites', 'theme.template.header.your_latest_favourites' ) ); ?></h3>
                 <div class="offcanvas-favourites-summary">
                   <ul class="offcanvas-menu">
                     <?php while ( $recent_query->have_posts() ) : ?>
@@ -220,11 +220,11 @@ $crm_label                  = $crm_overdue_count > 0
               <?php wp_reset_postdata(); ?>
             <?php endif; ?>
           <?php else : ?>
-            <h2 class="offcanvas-director-title">Client area</h2>
-            <p class="offcanvas-director-text">Log in to keep your favourites synced across devices.</p>
+            <h2 class="offcanvas-director-title"><?php echo esc_html( pera_ml_ui( 'Client area', 'theme.template.header.client_area' ) ); ?></h2>
+            <p class="offcanvas-director-text"><?php echo esc_html( pera_ml_ui( 'Log in to keep your favourites synced across devices.', 'theme.template.header.log_in_to_keep_your_favourites_synced_across_devices' ) ); ?></p>
             <div class="offcanvas-contact-details">
               <a href="<?php echo esc_url( $login_url ); ?>" class="btn btn--solid btn--green">
-                Client login
+                <?php echo esc_html( pera_ml_ui( 'Client login', 'theme.template.header.client_login' ) ); ?>
               </a>
               <a
                 href="<?php echo esc_url( $favourites_url ); ?>"
@@ -232,11 +232,11 @@ $crm_label                  = $crm_overdue_count > 0
                 data-guest-fav-link
                 hidden
               >
-                Favourites
+                <?php echo esc_html( pera_ml_ui( 'Favourites', 'theme.template.header.favourites' ) ); ?>
               </a>
             </div>
             <div class="offcanvas-latest-favs" data-guest-latest-favs hidden>
-              <h3 class="offcanvas-director-title offcanvas-user-heading">Your latest favourites</h3>
+              <h3 class="offcanvas-director-title offcanvas-user-heading"><?php echo esc_html( pera_ml_ui( 'Your latest favourites', 'theme.template.header.your_latest_favourites' ) ); ?></h3>
               <div class="offcanvas-favourites-summary">
                 <ul class="offcanvas-menu" data-guest-latest-favs-list></ul>
               </div>
@@ -244,18 +244,18 @@ $crm_label                  = $crm_overdue_count > 0
           <?php endif; ?>
         </section>
 
-        <h2 class="offcanvas-director-title">Message from our Director</h2>
+        <h2 class="offcanvas-director-title"><?php echo esc_html( pera_ml_ui( 'Message from our Director', 'theme.template.header.message_from_our_director' ) ); ?></h2>
         <p class="offcanvas-director-text">
-          Istanbul real estate is a long-term, relationship-based business.
-          Our team has been advising local and international buyers since 2016.
+          <?php echo esc_html( pera_ml_ui( 'Istanbul real estate is a long-term, relationship-based business.
+          Our team has been advising local and international buyers since 2016.', 'theme.template.header.istanbul_real_estate_is_a_long_term_relationship_based_business_our_team' ) ); ?>
         </p>
         <p class="offcanvas-director-text">
-          If you have questions about any property or neighbourhood,
-          reach us directly via WhatsApp or a quick call.
+          <?php echo esc_html( pera_ml_ui( 'If you have questions about any property or neighbourhood,
+          reach us directly via WhatsApp or a quick call.', 'theme.template.header.if_you_have_questions_about_any_property_or_neighbourhood_reach_us_direc' ) ); ?>
         </p>
         <p class="offcanvas-director-name">
           — D. Koray Dillioglu<br>
-          Founder &amp; CEO, Pera Property
+          <?php echo esc_html( pera_ml_ui( 'Founder & CEO, Pera Property', 'theme.template.header.founder_and_ceo_pera_property' ) ); ?>
         </p>
       </aside>
 
@@ -264,13 +264,13 @@ $crm_label                  = $crm_overdue_count > 0
     <div class="offcanvas-contact">
 
       <div class="offcanvas-contact-text">
-        <p>Reach our Istanbul team by phone, WhatsApp or social media.</p>
+        <p><?php echo esc_html( pera_ml_ui( 'Reach our Istanbul team by phone, WhatsApp or social media.', 'theme.template.header.reach_our_istanbul_team_by_phone_whatsapp_or_social_media' ) ); ?></p>
       </div>
 
       <div class="offcanvas-contact-social footer-social">
-        <a href="<?php echo esc_url( pera_get_whatsapp_url( 'Hello Pera Property, I\'d like to learn more about your Istanbul properties.' ) ); ?>"
+        <a href="<?php echo esc_url( pera_get_whatsapp_url( pera_ml_ui( 'Hello Pera Property, I\'d like to learn more about your Istanbul properties.', 'theme.template.header.whatsapp_prefill' ) ) ); ?>"
            class="footer-social-link"
-           aria-label="WhatsApp Pera Property"
+           aria-label="<?php echo esc_attr( pera_ml_ui( 'WhatsApp Pera Property', 'theme.template.header.aria_label.whatsapp_pera_property' ) ); ?>"
            target="_blank"
            rel="noopener"
            data-whatsapp="1"
@@ -288,7 +288,7 @@ $crm_label                  = $crm_overdue_count > 0
 
         <a href="https://instagram.com/peraproperty"
            class="footer-social-link"
-           aria-label="Pera Property on Instagram"
+           aria-label="<?php echo esc_attr( pera_ml_ui( 'Pera Property on Instagram', 'theme.template.header.aria_label.pera_property_on_instagram' ) ); ?>"
            target="_blank"
            rel="noopener">
           <svg class="icon" aria-hidden="true">
@@ -298,7 +298,7 @@ $crm_label                  = $crm_overdue_count > 0
 
         <a href="https://www.youtube.com/channel/UCCCiEx5X14mJizqXcsYh1fQ"
            class="footer-social-link"
-           aria-label="Pera Property on YouTube"
+           aria-label="<?php echo esc_attr( pera_ml_ui( 'Pera Property on YouTube', 'theme.template.header.aria_label.pera_property_on_youtube' ) ); ?>"
            target="_blank"
            rel="noopener">
           <svg class="icon" aria-hidden="true">
@@ -308,7 +308,7 @@ $crm_label                  = $crm_overdue_count > 0
 
         <a href="https://facebook.com/perapropertycom"
            class="footer-social-link"
-           aria-label="Pera Property on Facebook"
+           aria-label="<?php echo esc_attr( pera_ml_ui( 'Pera Property on Facebook', 'theme.template.header.aria_label.pera_property_on_facebook' ) ); ?>"
            target="_blank"
            rel="noopener">
           <svg class="icon" aria-hidden="true">
@@ -318,7 +318,7 @@ $crm_label                  = $crm_overdue_count > 0
 
         <a href="https://tr.linkedin.com/company/peraproperty"
            class="footer-social-link"
-           aria-label="Pera Property on LinkedIn"
+           aria-label="<?php echo esc_attr( pera_ml_ui( 'Pera Property on LinkedIn', 'theme.template.header.aria_label.pera_property_on_linkedin' ) ); ?>"
            target="_blank"
            rel="noopener">
           <svg class="icon" aria-hidden="true">
@@ -328,7 +328,7 @@ $crm_label                  = $crm_overdue_count > 0
 
         <a href="mailto:info@peraproperty.com"
            class="footer-social-link"
-           aria-label="Email Pera Property">
+           aria-label="<?php echo esc_attr( pera_ml_ui( 'Email Pera Property', 'theme.template.header.aria_label.email_pera_property' ) ); ?>">
           <svg class="icon" aria-hidden="true">
             <use href="<?php echo esc_url( get_stylesheet_directory_uri() . '/logos-icons/icons.svg#icon-envelope' ); ?>"></use>
           </svg>

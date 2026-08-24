@@ -54,17 +54,17 @@ get_header();
           </div>
         
           <div class="hero-content">
-            <h1>About Pera Property</h1>
+            <h1><?php echo esc_html( pera_ml_ui( 'About Pera Property', 'theme.template.page_about_new.about_pera_property' ) ); ?></h1>
         
             <p class="lead">
-              Our focus is Istanbul and Turkish real estate. We combine decades of market
+              <?php echo esc_html( pera_ml_ui( 'Our focus is Istanbul and Turkish real estate. We combine decades of market
               experience with independent advice to help our clients buy, sell and invest
-              with confidence.
+              with confidence.', 'theme.template.page_about_new.our_focus_is_istanbul_and_turkish_real_estate_we_combine_decades_of_mark' ) ); ?>
             </p>
         
             <div class="hero-actions">
-              <a href="/property/" class="btn btn--solid btn--blue">View properties</a>
-              <a href="#meet_the_team" class="btn btn--solid btn-whatsapp">Meet the team</a>
+              <a href="/property/" class="btn btn--solid btn--blue"><?php echo esc_html( pera_ml_ui( 'View properties', 'theme.template.page_about_new.view_properties' ) ); ?></a>
+              <a href="#meet_the_team" class="btn btn--solid btn-whatsapp"><?php echo esc_html( pera_ml_ui( 'Meet the team', 'theme.template.page_about_new.meet_the_team' ) ); ?></a>
             </div>
           </div>
         
@@ -81,13 +81,13 @@ get_header();
             <div class="content-panel-left">
     
               <div class="section-header">
-                <h2>ABOUT OUR COMPANY</h2>
+                <h2><?php echo esc_html( pera_ml_ui( 'ABOUT OUR COMPANY', 'theme.template.page_about_new.about_our_company' ) ); ?></h2>
                 <p>
-                  Pera Property brings together the most experienced minds of the real estate industry.
+                  <?php echo esc_html( pera_ml_ui( 'Pera Property brings together the most experienced minds of the real estate industry.
                   It is a strategy which has created a large portfolio of new build as well as unique
-                  property in Turkey.
+                  property in Turkey.', 'theme.template.page_about_new.pera_property_brings_together_the_most_experienced_minds_of_the_real_est' ) ); ?>
                 </p>
-                <p><em>Our impartial whole of market approach ensures our clients achieve the optimal end goal.</em></p>
+                <p><em><?php echo esc_html( pera_ml_ui( 'Our impartial whole of market approach ensures our clients achieve the optimal end goal.', 'theme.template.page_about_new.our_impartial_whole_of_market_approach_ensures_our_clients_achieve_the_o' ) ); ?></em></p>
               </div>
     
               <div class="signoff-card">
@@ -108,7 +108,7 @@ get_header();
                 </div>
                 <div class="signoff-text">
                   <h5>D Koray Dillioglu</h5>
-                  <p>– Director @ Pera Property</p>
+                  <p><?php echo esc_html( pera_ml_ui( '– Director @ Pera Property', 'theme.template.page_about_new.director_pera_property' ) ); ?></p>
                 </div>
               </div>
     
@@ -137,10 +137,10 @@ get_header();
         <div class="container">
     
           <header class="section-header section-header--center">
-            <h2>WHY PERA</h2>
+            <h2><?php echo esc_html( pera_ml_ui( 'WHY PERA', 'theme.template.page_about_new.why_pera' ) ); ?></h2>
             <p>
-              Our experienced founders and team have focussed on the real estate sector in Istanbul since 2016.
-              We pride ourselves on delivering exceptional real estate services tailored to unique needs.
+              <?php echo esc_html( pera_ml_ui( 'Our experienced founders and team have focussed on the real estate sector in Istanbul since 2016.
+              We pride ourselves on delivering exceptional real estate services tailored to unique needs.', 'theme.template.page_about_new.our_experienced_founders_and_team_have_focussed_on_the_real_estate_secto' ) ); ?>
             </p>
           </header>
     
@@ -150,14 +150,14 @@ get_header();
             <!-- SINCE 2016 -->
             <article class="slider-card feature-card">
               <div class="feature-card-header">
-                <h3>SINCE 2016</h3>
+                <h3><?php echo esc_html( pera_ml_ui( 'SINCE 2016', 'theme.template.page_about_new.since_2016' ) ); ?></h3>
               </div>
               <div class="feature-card-body">
                 <p>
-                  With over a combined 50 years in the real estate industry amongst our team, Pera brings
+                  <?php echo esc_html( pera_ml_ui( 'With over a combined 50 years in the real estate industry amongst our team, Pera brings
                   unparalleled knowledge and expertise to every transaction. Whether you’re a first-time
                   homebuyer or a seasoned investor, we have the insights to help you navigate the tricky
-                  Istanbul market with confidence.
+                  Istanbul market with confidence.', 'theme.template.page_about_new.with_over_a_combined_50_years_in_the_real_estate_industry_amongst_our_te' ) ); ?>
                 </p>
               </div>
             </article>
@@ -165,34 +165,34 @@ get_header();
             <!-- IMPARTIAL -->
             <article class="slider-card feature-card">
               <div class="feature-card-header">
-                <h3>IMPARTIAL</h3>
+                <h3><?php echo esc_html( pera_ml_ui( 'IMPARTIAL', 'theme.template.page_about_new.impartial' ) ); ?></h3>
               </div>
               <div class="feature-card-body">
                 <p>
-                  Our experienced property advisors ensure our clients are given the facts to ensure
+                  <?php echo esc_html( pera_ml_ui( 'Our experienced property advisors ensure our clients are given the facts to ensure
                   a safe and reliable investment. This impartiality ensures our firm looks after our
-                  investors’ best interests at all times.
+                  investors’ best interests at all times.', 'theme.template.page_about_new.our_experienced_property_advisors_ensure_our_clients_are_given_the_facts' ) ); ?>
                 </p>
               </div>
               <div class="feature-card-footer">
-                <a href="#" class="btn btn--solid btn--black">Read more &gt;&gt;</a>
+                <a href="#" class="btn btn--solid btn--black"><?php echo esc_html( pera_ml_ui( 'Read more >>', 'theme.template.page_about_new.read_more' ) ); ?></a>
               </div>
             </article>
     
             <!-- MANAGEMENT -->
             <article class="slider-card feature-card">
               <div class="feature-card-header">
-                <h3>MANAGEMENT</h3>
+                <h3><?php echo esc_html( pera_ml_ui( 'MANAGEMENT', 'theme.template.page_about_new.management' ) ); ?></h3>
               </div>
               <div class="feature-card-body">
                 <p>
-                  Pera provides full property management to ensure your investment is looked after from A to Z.
-                  Our firm employs specialist staff to look after the $100m+ portfolio currently under our management.
+                  <?php echo esc_html( pera_ml_ui( 'Pera provides full property management to ensure your investment is looked after from A to Z.
+                  Our firm employs specialist staff to look after the $100m+ portfolio currently under our management.', 'theme.template.page_about_new.pera_provides_full_property_management_to_ensure_your_investment_is_look' ) ); ?>
                 </p>
               </div>
               <div class="feature-card-footer">
                 <a href="https://www.peraproperty.com/rent-your-istanbul-real-estate/" class="btn btn--solid btn--black">
-                  Read more &gt;&gt;
+                  <?php echo esc_html( pera_ml_ui( 'Read more >>', 'theme.template.page_about_new.read_more' ) ); ?>
                 </a>
               </div>
             </article>
@@ -200,13 +200,13 @@ get_header();
             <!-- EXCLUSIVE -->
             <article class="slider-card feature-card">
               <div class="feature-card-header">
-                <h3>EXCLUSIVE</h3>
+                <h3><?php echo esc_html( pera_ml_ui( 'EXCLUSIVE', 'theme.template.page_about_new.exclusive' ) ); ?></h3>
               </div>
               <div class="feature-card-body">
                 <p>
-                  We offer an extensive portfolio of property for sale in Istanbul, including exclusive listings
+                  <?php echo esc_html( pera_ml_ui( 'We offer an extensive portfolio of property for sale in Istanbul, including exclusive listings
                   you won’t find anywhere else. From waterfront villas to city centre apartments, our selection
-                  caters to a range of tastes and budgets.
+                  caters to a range of tastes and budgets.', 'theme.template.page_about_new.we_offer_an_extensive_portfolio_of_property_for_sale_in_istanbul_includi' ) ); ?>
                 </p>
               </div>
             </article>
@@ -214,17 +214,17 @@ get_header();
             <!-- TAILORED -->
             <article class="slider-card feature-card">
               <div class="feature-card-header">
-                <h3>TAILORED</h3>
+                <h3><?php echo esc_html( pera_ml_ui( 'TAILORED', 'theme.template.page_about_new.tailored' ) ); ?></h3>
               </div>
               <div class="feature-card-body">
                 <p>
-                  Every search for the ideal property for sale in Istanbul is personal, and we treat it that way.
-                  Our dedicated agents work closely with you to understand your needs and preferences.
+                  <?php echo esc_html( pera_ml_ui( 'Every search for the ideal property for sale in Istanbul is personal, and we treat it that way.
+                  Our dedicated agents work closely with you to understand your needs and preferences.', 'theme.template.page_about_new.every_search_for_the_ideal_property_for_sale_in_istanbul_is_personal_and' ) ); ?>
                 </p>
               </div>
               <div class="feature-card-footer">
                 <a href="https://www.peraproperty.com/taxes-expenses-and-costs-when-buying_3098/" class="btn btn--solid btn--black">
-                  Read more &gt;&gt;
+                  <?php echo esc_html( pera_ml_ui( 'Read more >>', 'theme.template.page_about_new.read_more' ) ); ?>
                 </a>
               </div>
             </article>
@@ -232,12 +232,12 @@ get_header();
             <!-- LOCAL -->
             <article class="slider-card feature-card">
               <div class="feature-card-header">
-                <h3>LOCAL</h3>
+                <h3><?php echo esc_html( pera_ml_ui( 'LOCAL', 'theme.template.page_about_new.local' ) ); ?></h3>
               </div>
               <div class="feature-card-body">
                 <p>
-                  Pera demands that every team member has a deep understanding of Istanbul’s diverse
-                  neighborhoods. This allows us to provide valuable insights into the best areas to buy property.
+                  <?php echo esc_html( pera_ml_ui( 'Pera demands that every team member has a deep understanding of Istanbul’s diverse
+                  neighborhoods. This allows us to provide valuable insights into the best areas to buy property.', 'theme.template.page_about_new.pera_demands_that_every_team_member_has_a_deep_understanding_of_istanbul' ) ); ?>
                 </p>
               </div>
             </article>
@@ -256,9 +256,9 @@ get_header();
           <div class="container">
         
             <header class="section-header section-header--center">
-              <h2>MEET THE TEAM</h2>
+              <h2><?php echo esc_html( pera_ml_ui( 'MEET THE TEAM', 'theme.template.page_about_new.meet_the_team_2' ) ); ?></h2>
               <p>
-                Pera Property has brought together the best and most experienced minds of the industry.
+                <?php echo esc_html( pera_ml_ui( 'Pera Property has brought together the best and most experienced minds of the industry.', 'theme.template.page_about_new.pera_property_has_brought_together_the_best_and_most_experienced_minds_o' ) ); ?>
               </p>
             </header>
         

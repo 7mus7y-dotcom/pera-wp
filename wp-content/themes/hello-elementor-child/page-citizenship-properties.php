@@ -73,8 +73,8 @@ if ( ! is_string( $map_json ) ) {
 	$map_json = '[]';
 }
 
-$hero_title     = __( 'Turkish Citizenship Properties in Istanbul', 'hello-elementor-child' );
-$hero_desc_html = '<p class="text-light">' . esc_html__( 'Browse selected Istanbul properties suitable for Turkish citizenship by investment. All listings on this page are selected for the citizenship route and reviewed for price, location, title deed status, valuation logic and resale potential before recommendation.', 'hello-elementor-child' ) . '</p>';
+$hero_title     = pera_ml_ui( 'Turkish Citizenship Properties in Istanbul', 'theme.template.page_citizenship_properties.turkish_citizenship_properties_in_istanbul' );
+$hero_desc_html = '<p class="text-light">' . esc_html( pera_ml_ui( 'Browse selected Istanbul properties suitable for Turkish citizenship by investment. All listings on this page are selected for the citizenship route and reviewed for price, location, title deed status, valuation logic and resale potential before recommendation.', 'theme.template.page_citizenship_properties.browse_selected_istanbul_properties_suitable_for_turkish_citizenship_by_' ) ) . '</p>';
 ?>
 
 <main id="primary" class="site-main">
@@ -152,11 +152,11 @@ $hero_desc_html = '<p class="text-light">' . esc_html__( 'Browse selected Istanb
 			<?php if ( '' !== $hero_desc_html ) : ?>
 				<?php echo $hero_desc_html; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>
 			<?php endif; ?>
-			<div class="citizenship-hero-trust-strip" aria-label="<?php esc_attr_e( 'Citizenship property highlights', 'hello-elementor-child' ); ?>">
-				<span><?php esc_html_e( '$400,000+ citizenship route', 'hello-elementor-child' ); ?></span>
-				<span><?php esc_html_e( 'Istanbul-focused shortlist', 'hello-elementor-child' ); ?></span>
-				<span><?php esc_html_e( 'Eligibility checked before reservation', 'hello-elementor-child' ); ?></span>
-				<span><?php esc_html_e( 'Family application support', 'hello-elementor-child' ); ?></span>
+			<div class="citizenship-hero-trust-strip" aria-label="<?php echo esc_attr( pera_ml_ui( 'Citizenship property highlights', 'theme.template.page_citizenship_properties.citizenship_property_highlights' ) ); ?>">
+				<span><?php echo esc_html( pera_ml_ui( '$400,000+ citizenship route', 'theme.template.page_citizenship_properties.400_000_citizenship_route' ) ); ?></span>
+				<span><?php echo esc_html( pera_ml_ui( 'Istanbul-focused shortlist', 'theme.template.page_citizenship_properties.istanbul_focused_shortlist' ) ); ?></span>
+				<span><?php echo esc_html( pera_ml_ui( 'Eligibility checked before reservation', 'theme.template.page_citizenship_properties.eligibility_checked_before_reservation' ) ); ?></span>
+				<span><?php echo esc_html( pera_ml_ui( 'Family application support', 'theme.template.page_citizenship_properties.family_application_support' ) ); ?></span>
 			</div>
 		</div>
 	</section>
@@ -165,40 +165,40 @@ $hero_desc_html = '<p class="text-light">' . esc_html__( 'Browse selected Istanb
 		<div class="container">
 			<div class="content-panel-box citizenship-properties-intro-panel">
 				<div class="section-header">
-					<p class="u-eyebrow"><?php esc_html_e( 'Citizenship property shortlist', 'hello-elementor-child' ); ?></p>
-					<h2><?php esc_html_e( 'Need help choosing the right citizenship property?', 'hello-elementor-child' ); ?></h2>
-					<p><?php esc_html_e( 'Every property listed here is selected for Turkish citizenship buyers, but the best option depends on your budget, family plans, preferred location and exit strategy. Tell us what you are looking for and we will prepare a focused shortlist.', 'hello-elementor-child' ); ?></p>
+					<p class="u-eyebrow"><?php echo esc_html( pera_ml_ui( 'Citizenship property shortlist', 'theme.template.page_citizenship_properties.citizenship_property_shortlist' ) ); ?></p>
+					<h2><?php echo esc_html( pera_ml_ui( 'Need help choosing the right citizenship property?', 'theme.template.page_citizenship_properties.need_help_choosing_the_right_citizenship_property' ) ); ?></h2>
+					<p><?php echo esc_html( pera_ml_ui( 'Every property listed here is selected for Turkish citizenship buyers, but the best option depends on your budget, family plans, preferred location and exit strategy. Tell us what you are looking for and we will prepare a focused shortlist.', 'theme.template.page_citizenship_properties.every_property_listed_here_is_selected_for_turkish_citizenship_buyers_bu' ) ); ?></p>
 				</div>
 				<div class="hero-actions">
-					<a href="<?php echo esc_url( 'https://www.peraproperty.com/citizenship-by-investment/#citizenship-callback' ); ?>" class="btn btn--solid btn--green"><?php esc_html_e( 'Get a citizenship-safe property shortlist', 'hello-elementor-child' ); ?></a>
-					<a href="<?php echo esc_url( pera_get_whatsapp_url( 'Hello Pera Property, I\'m interested in Turkish citizenship properties. Can you send me a shortlist?' ) ); ?>" class="btn btn--solid btn--blue" target="_blank" rel="noopener" data-whatsapp="1" data-whatsapp-type="citizenship_properties_page" data-track-channel="whatsapp" data-track-intent="high" data-track-source="page" data-track-context="citizenship_properties_intro" data-track-ga4-event="whatsapp_click" data-track-crm-event="whatsapp_click"><?php esc_html_e( 'WhatsApp our citizenship team', 'hello-elementor-child' ); ?></a>
-					<a href="<?php echo esc_url( 'https://www.peraproperty.com/citizenship-by-investment/' ); ?>" class="btn btn--ghost btn--black"><?php esc_html_e( 'Read the Turkish citizenship guide', 'hello-elementor-child' ); ?></a>
+					<a href="<?php echo esc_url( 'https://www.peraproperty.com/citizenship-by-investment/#citizenship-callback' ); ?>" class="btn btn--solid btn--green"><?php echo esc_html( pera_ml_ui( 'Get a citizenship-safe property shortlist', 'theme.template.page_citizenship_properties.get_a_citizenship_safe_property_shortlist' ) ); ?></a>
+					<a href="<?php echo esc_url( pera_get_whatsapp_url( pera_ml_ui( 'Hello Pera Property, I\'m interested in Turkish citizenship properties. Can you send me a shortlist?', 'theme.template.page_citizenship_properties.whatsapp_prefill' ) ) ); ?>" class="btn btn--solid btn--blue" target="_blank" rel="noopener" data-whatsapp="1" data-whatsapp-type="citizenship_properties_page" data-track-channel="whatsapp" data-track-intent="high" data-track-source="page" data-track-context="citizenship_properties_intro" data-track-ga4-event="whatsapp_click" data-track-crm-event="whatsapp_click"><?php echo esc_html( pera_ml_ui( 'WhatsApp our citizenship team', 'theme.template.page_citizenship_properties.whatsapp_our_citizenship_team' ) ); ?></a>
+					<a href="<?php echo esc_url( 'https://www.peraproperty.com/citizenship-by-investment/' ); ?>" class="btn btn--ghost btn--black"><?php echo esc_html( pera_ml_ui( 'Read the Turkish citizenship guide', 'theme.template.page_citizenship_properties.read_the_turkish_citizenship_guide' ) ); ?></a>
 				</div>
 			</div>
 
 			<div class="feature-grid feature-grid--tablet-3 citizenship-properties-check-grid">
 				<article class="feature-card">
 					<div class="feature-card-header">
-						<h3><?php esc_html_e( 'Citizenship-ready budget', 'hello-elementor-child' ); ?></h3>
+						<h3><?php echo esc_html( pera_ml_ui( 'Citizenship-ready budget', 'theme.template.page_citizenship_properties.citizenship_ready_budget' ) ); ?></h3>
 					</div>
 					<div class="feature-card-body">
-						<p><?php esc_html_e( 'Listings are selected around the Turkish citizenship property route and the USD 400,000+ investment requirement.', 'hello-elementor-child' ); ?></p>
+						<p><?php echo esc_html( pera_ml_ui( 'Listings are selected around the Turkish citizenship property route and the USD 400,000+ investment requirement.', 'theme.template.page_citizenship_properties.listings_are_selected_around_the_turkish_citizenship_property_route_and_' ) ); ?></p>
 					</div>
 				</article>
 				<article class="feature-card">
 					<div class="feature-card-header">
-						<h3><?php esc_html_e( 'Eligibility reviewed', 'hello-elementor-child' ); ?></h3>
+						<h3><?php echo esc_html( pera_ml_ui( 'Eligibility reviewed', 'theme.template.page_citizenship_properties.eligibility_reviewed' ) ); ?></h3>
 					</div>
 					<div class="feature-card-body">
-						<p><?php esc_html_e( 'Before recommendation, we check title deed status, seller suitability, valuation logic and payment-route requirements.', 'hello-elementor-child' ); ?></p>
+						<p><?php echo esc_html( pera_ml_ui( 'Before recommendation, we check title deed status, seller suitability, valuation logic and payment-route requirements.', 'theme.template.page_citizenship_properties.before_recommendation_we_check_title_deed_status_seller_suitability_valu' ) ); ?></p>
 					</div>
 				</article>
 				<article class="feature-card">
 					<div class="feature-card-header">
-						<h3><?php esc_html_e( 'Exit and rental logic', 'hello-elementor-child' ); ?></h3>
+						<h3><?php echo esc_html( pera_ml_ui( 'Exit and rental logic', 'theme.template.page_citizenship_properties.exit_and_rental_logic' ) ); ?></h3>
 					</div>
 					<div class="feature-card-body">
-						<p><?php esc_html_e( 'We prioritise Istanbul properties with practical resale potential, rental demand and long-term ownership logic.', 'hello-elementor-child' ); ?></p>
+						<p><?php echo esc_html( pera_ml_ui( 'We prioritise Istanbul properties with practical resale potential, rental demand and long-term ownership logic.', 'theme.template.page_citizenship_properties.we_prioritise_istanbul_properties_with_practical_resale_potential_rental' ) ); ?></p>
 					</div>
 				</article>
 			</div>
@@ -206,14 +206,14 @@ $hero_desc_html = '<p class="text-light">' . esc_html__( 'Browse selected Istanb
 			
 
 			<div class="citizenship-properties-toolbar">
-				<div class="citizenship-properties-view-toggle" role="group" aria-label="<?php esc_attr_e( 'Property view mode', 'hello-elementor-child' ); ?>">
+				<div class="citizenship-properties-view-toggle" role="group" aria-label="<?php echo esc_attr( pera_ml_ui( 'Property view mode', 'theme.template.page_citizenship_properties.property_view_mode' ) ); ?>">
 					<button
 						type="button"
 						class="btn btn--solid btn--black citizenship-view-btn"
 						data-citizenship-view="cards"
 						aria-pressed="<?php echo 'cards' === $initial_view ? 'true' : 'false'; ?>"
 					>
-						<?php esc_html_e( 'Cards', 'hello-elementor-child' ); ?>
+						<?php echo esc_html( pera_ml_ui( 'Cards', 'theme.template.page_citizenship_properties.cards' ) ); ?>
 					</button>
 					<button
 						type="button"
@@ -221,7 +221,7 @@ $hero_desc_html = '<p class="text-light">' . esc_html__( 'Browse selected Istanb
 						data-citizenship-view="map"
 						aria-pressed="<?php echo 'map' === $initial_view ? 'true' : 'false'; ?>"
 					>
-						<?php esc_html_e( 'Map', 'hello-elementor-child' ); ?>
+						<?php echo esc_html( pera_ml_ui( 'Map', 'theme.template.page_citizenship_properties.map' ) ); ?>
 					</button>
 				</div>
 
@@ -239,15 +239,15 @@ $hero_desc_html = '<p class="text-light">' . esc_html__( 'Browse selected Istanb
 						<svg class="icon" aria-hidden="true" width="18" height="18">
 							<use href="#icon-sort" xlink:href="#icon-sort"></use>
 						</svg>
-						<?php esc_html_e( 'Sort', 'hello-elementor-child' ); ?>
+						<?php echo esc_html( pera_ml_ui( 'Sort', 'theme.template.page_citizenship_properties.sort' ) ); ?>
 					</button>
 					<div class="property-sort__menu" id="property-sort-menu" role="menu" data-sort-dropdown hidden>
 						<?php
 						$citizenship_sort_options = array(
-							'date_desc'  => __( 'Newest', 'hello-elementor-child' ),
-							'date_asc'   => __( 'Oldest', 'hello-elementor-child' ),
-							'price_asc'  => __( 'Price ↑', 'hello-elementor-child' ),
-							'price_desc' => __( 'Price ↓', 'hello-elementor-child' ),
+							'date_desc'  => pera_ml_ui( 'Newest', 'theme.template.page_citizenship_properties.newest' ),
+							'date_asc'   => pera_ml_ui( 'Oldest', 'theme.template.page_citizenship_properties.oldest' ),
+							'price_asc'  => pera_ml_ui( 'Price ↑', 'theme.template.page_citizenship_properties.price' ),
+							'price_desc' => pera_ml_ui( 'Price ↓', 'theme.template.page_citizenship_properties.price' ),
 						);
 						foreach ( $citizenship_sort_options as $sort_value => $sort_label ) :
 							$is_active = $selected_sort === $sort_value;
@@ -289,7 +289,7 @@ $hero_desc_html = '<p class="text-light">' . esc_html__( 'Browse selected Istanb
 					<div class="flex-center mt-sm mb-sm">
 						<nav
 							class="property-pagination <?php echo $pagination_html !== '' ? '' : 'is-hidden'; ?>"
-							aria-label="<?php esc_attr_e( 'Citizenship property results pages', 'hello-elementor-child' ); ?>"
+							aria-label="<?php echo esc_attr( pera_ml_ui( 'Citizenship property results pages', 'theme.template.page_citizenship_properties.citizenship_property_results_pages' ) ); ?>"
 						>
 							<?php if ( $pagination_html !== '' ) : ?>
 								<?php echo $pagination_html; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>
@@ -300,14 +300,14 @@ $hero_desc_html = '<p class="text-light">' . esc_html__( 'Browse selected Istanb
 				</div>
 
 				<div id="citizenship-properties-map-panel" <?php echo 'cards' === $initial_view ? 'hidden' : ''; ?>>
-					<div id="citizenship-properties-map-canvas" aria-label="<?php esc_attr_e( 'Property map', 'hello-elementor-child' ); ?>"></div>
+					<div id="citizenship-properties-map-canvas" aria-label="<?php echo esc_attr( pera_ml_ui( 'Property map', 'theme.template.page_citizenship_properties.property_map' ) ); ?>"></div>
 					<p id="citizenship-properties-map-empty" hidden>
-						<?php esc_html_e( 'No mappable citizenship properties are available right now.', 'hello-elementor-child' ); ?>
+						<?php echo esc_html( pera_ml_ui( 'No mappable citizenship properties are available right now.', 'theme.template.page_citizenship_properties.no_mappable_citizenship_properties_are_available_right_now' ) ); ?>
 					</p>
 						<script type="application/json" id="citizenship-properties-map-data"><?php echo $map_json; ?></script>
 					</div>
 			<?php else : ?>
-				<p><?php esc_html_e( 'No citizenship-tagged property offers are available right now. Please check back soon.', 'hello-elementor-child' ); ?></p>
+				<p><?php echo esc_html( pera_ml_ui( 'No citizenship-tagged property offers are available right now. Please check back soon.', 'theme.template.page_citizenship_properties.no_citizenship_tagged_property_offers_are_available_right_now_please_che' ) ); ?></p>
 			<?php endif; ?>
 		</div>
 			
@@ -318,30 +318,30 @@ $hero_desc_html = '<p class="text-light">' . esc_html__( 'Browse selected Istanb
 			<div class="content-panel-box citizenship-properties-process-panel">
 				<div class="section-header">
 					<p class="u-eyebrow">
-						<?php esc_html_e( 'Before we recommend a citizenship property', 'hello-elementor-child' ); ?>
+						<?php echo esc_html( pera_ml_ui( 'Before we recommend a citizenship property', 'theme.template.page_citizenship_properties.before_we_recommend_a_citizenship_property' ) ); ?>
 					</p>
 	
 					<h2>
-						<?php esc_html_e( 'How we check citizenship property suitability', 'hello-elementor-child' ); ?>
+						<?php echo esc_html( pera_ml_ui( 'How we check citizenship property suitability', 'theme.template.page_citizenship_properties.how_we_check_citizenship_property_suitability' ) ); ?>
 					</h2>
 	
 					<p>
-						<?php esc_html_e( 'A property can look suitable on price alone, but citizenship buyers need more than a listing. Before we recommend an option, we check the legal, valuation and exit-risk details that affect the application.', 'hello-elementor-child' ); ?>
+						<?php echo esc_html( pera_ml_ui( 'A property can look suitable on price alone, but citizenship buyers need more than a listing. Before we recommend an option, we check the legal, valuation and exit-risk details that affect the application.', 'theme.template.page_citizenship_properties.a_property_can_look_suitable_on_price_alone_but_citizenship_buyers_need_' ) ); ?>
 					</p>
 				</div>
 	
 				<ul class="checklist">
-					<li><?php esc_html_e( 'Title deed status and seller suitability', 'hello-elementor-child' ); ?></li>
-					<li><?php esc_html_e( 'Whether the property can support the Turkish citizenship route', 'hello-elementor-child' ); ?></li>
-					<li><?php esc_html_e( 'Valuation logic against the declared sale price', 'hello-elementor-child' ); ?></li>
-					<li><?php esc_html_e( 'Payment route, bank transfer and DAB requirements', 'hello-elementor-child' ); ?></li>
-					<li><?php esc_html_e( 'Rental and resale potential after the holding period', 'hello-elementor-child' ); ?></li>
-					<li><?php esc_html_e( 'Whether the property fits your family application plan', 'hello-elementor-child' ); ?></li>
+					<li><?php echo esc_html( pera_ml_ui( 'Title deed status and seller suitability', 'theme.template.page_citizenship_properties.title_deed_status_and_seller_suitability' ) ); ?></li>
+					<li><?php echo esc_html( pera_ml_ui( 'Whether the property can support the Turkish citizenship route', 'theme.template.page_citizenship_properties.whether_the_property_can_support_the_turkish_citizenship_route' ) ); ?></li>
+					<li><?php echo esc_html( pera_ml_ui( 'Valuation logic against the declared sale price', 'theme.template.page_citizenship_properties.valuation_logic_against_the_declared_sale_price' ) ); ?></li>
+					<li><?php echo esc_html( pera_ml_ui( 'Payment route, bank transfer and DAB requirements', 'theme.template.page_citizenship_properties.payment_route_bank_transfer_and_dab_requirements' ) ); ?></li>
+					<li><?php echo esc_html( pera_ml_ui( 'Rental and resale potential after the holding period', 'theme.template.page_citizenship_properties.rental_and_resale_potential_after_the_holding_period' ) ); ?></li>
+					<li><?php echo esc_html( pera_ml_ui( 'Whether the property fits your family application plan', 'theme.template.page_citizenship_properties.whether_the_property_fits_your_family_application_plan' ) ); ?></li>
 				</ul>
 	
 				<p class="content-note">
-					<strong><?php esc_html_e( 'Important:', 'hello-elementor-child' ); ?></strong>
-					<?php esc_html_e( 'The listings below are examples of properties we currently consider suitable for citizenship buyers. Final suitability depends on availability, title deed status, valuation, payment route and your personal application structure.', 'hello-elementor-child' ); ?>
+					<strong><?php echo esc_html( pera_ml_ui( 'Important:', 'theme.template.page_citizenship_properties.important' ) ); ?></strong>
+					<?php echo esc_html( pera_ml_ui( 'The listings below are examples of properties we currently consider suitable for citizenship buyers. Final suitability depends on availability, title deed status, valuation, payment route and your personal application structure.', 'theme.template.page_citizenship_properties.the_listings_below_are_examples_of_properties_we_currently_consider_suit' ) ); ?>
 				</p>
 			</div>
 		</div>
@@ -350,58 +350,58 @@ $hero_desc_html = '<p class="text-light">' . esc_html__( 'Browse selected Istanb
 	<section id="citizenship-property-faq" class="section section-soft citizenship-properties-faq">
 		<div class="container">
 			<div class="section-header">
-				<p class="u-eyebrow"><?php esc_html_e( 'Citizenship property FAQ', 'hello-elementor-child' ); ?></p>
-				<h2><?php esc_html_e( 'Common questions before choosing a citizenship property', 'hello-elementor-child' ); ?></h2>
-				<p><?php esc_html_e( 'These are the questions most buyers ask before reserving a property for Turkish citizenship by investment.', 'hello-elementor-child' ); ?></p>
+				<p class="u-eyebrow"><?php echo esc_html( pera_ml_ui( 'Citizenship property FAQ', 'theme.template.page_citizenship_properties.citizenship_property_faq' ) ); ?></p>
+				<h2><?php echo esc_html( pera_ml_ui( 'Common questions before choosing a citizenship property', 'theme.template.page_citizenship_properties.common_questions_before_choosing_a_citizenship_property' ) ); ?></h2>
+				<p><?php echo esc_html( pera_ml_ui( 'These are the questions most buyers ask before reserving a property for Turkish citizenship by investment.', 'theme.template.page_citizenship_properties.these_are_the_questions_most_buyers_ask_before_reserving_a_property_for_' ) ); ?></p>
 			</div>
 
 			<div class="faq-accordion">
 				<details class="faq-item" open>
-					<summary><?php esc_html_e( 'Are all properties on this page suitable for citizenship?', 'hello-elementor-child' ); ?></summary>
+					<summary><?php echo esc_html( pera_ml_ui( 'Are all properties on this page suitable for citizenship?', 'theme.template.page_citizenship_properties.are_all_properties_on_this_page_suitable_for_citizenship' ) ); ?></summary>
 					<div class="faq-answer">
-						<p><?php esc_html_e( 'They are selected for citizenship buyers, but final suitability must be confirmed before reservation. Availability, title deed status, valuation and payment route all need to be checked.', 'hello-elementor-child' ); ?></p>
+						<p><?php echo esc_html( pera_ml_ui( 'They are selected for citizenship buyers, but final suitability must be confirmed before reservation. Availability, title deed status, valuation and payment route all need to be checked.', 'theme.template.page_citizenship_properties.they_are_selected_for_citizenship_buyers_but_final_suitability_must_be_c' ) ); ?></p>
 					</div>
 				</details>
 			
 				<details class="faq-item">
-					<summary><?php esc_html_e( 'Can I buy more than one property to reach $400,000?', 'hello-elementor-child' ); ?></summary>
+					<summary><?php echo esc_html( pera_ml_ui( 'Can I buy more than one property to reach $400,000?', 'theme.template.page_citizenship_properties.can_i_buy_more_than_one_property_to_reach_400_000' ) ); ?></summary>
 					<div class="faq-answer">
-						<p><?php esc_html_e( 'Yes, buyers can often combine more than one eligible property, provided the total qualifying value and legal process meet the citizenship requirements.', 'hello-elementor-child' ); ?></p>
+						<p><?php echo esc_html( pera_ml_ui( 'Yes, buyers can often combine more than one eligible property, provided the total qualifying value and legal process meet the citizenship requirements.', 'theme.template.page_citizenship_properties.yes_buyers_can_often_combine_more_than_one_eligible_property_provided_th' ) ); ?></p>
 					</div>
 				</details>
 			
 				<details class="faq-item">
-					<summary><?php esc_html_e( 'How do you check valuation report risk?', 'hello-elementor-child' ); ?></summary>
+					<summary><?php echo esc_html( pera_ml_ui( 'How do you check valuation report risk?', 'theme.template.page_citizenship_properties.how_do_you_check_valuation_report_risk' ) ); ?></summary>
 					<div class="faq-answer">
-						<p><?php esc_html_e( 'We look at comparable sales, the declared purchase price, project pricing, district liquidity and whether the property value is likely to support the citizenship file.', 'hello-elementor-child' ); ?></p>
+						<p><?php echo esc_html( pera_ml_ui( 'We look at comparable sales, the declared purchase price, project pricing, district liquidity and whether the property value is likely to support the citizenship file.', 'theme.template.page_citizenship_properties.we_look_at_comparable_sales_the_declared_purchase_price_project_pricing_' ) ); ?></p>
 					</div>
 				</details>
 			
 				<details class="faq-item">
-					<summary><?php esc_html_e( 'Can my family be included in the application?', 'hello-elementor-child' ); ?></summary>
+					<summary><?php echo esc_html( pera_ml_ui( 'Can my family be included in the application?', 'theme.template.page_citizenship_properties.can_my_family_be_included_in_the_application' ) ); ?></summary>
 					<div class="faq-answer">
-						<p><?php esc_html_e( 'In most standard cases, the main applicant can include a spouse and children under 18. Family structure should be reviewed before choosing the property route.', 'hello-elementor-child' ); ?></p>
+						<p><?php echo esc_html( pera_ml_ui( 'In most standard cases, the main applicant can include a spouse and children under 18. Family structure should be reviewed before choosing the property route.', 'theme.template.page_citizenship_properties.in_most_standard_cases_the_main_applicant_can_include_a_spouse_and_child' ) ); ?></p>
 					</div>
 				</details>
 			
 				<details class="faq-item">
-					<summary><?php esc_html_e( 'How long must I keep the property after obtaining citizenship?', 'hello-elementor-child' ); ?></summary>
+					<summary><?php echo esc_html( pera_ml_ui( 'How long must I keep the property after obtaining citizenship?', 'theme.template.page_citizenship_properties.how_long_must_i_keep_the_property_after_obtaining_citizenship' ) ); ?></summary>
 					<div class="faq-answer">
-						<p><?php esc_html_e( 'The qualifying property must generally be held for at least three years. The required restriction is registered on the title deed as part of the citizenship process.', 'hello-elementor-child' ); ?></p>
+						<p><?php echo esc_html( pera_ml_ui( 'The qualifying property must generally be held for at least three years. The required restriction is registered on the title deed as part of the citizenship process.', 'theme.template.page_citizenship_properties.the_qualifying_property_must_generally_be_held_for_at_least_three_years_' ) ); ?></p>
 					</div>
 				</details>
 			
 				<details class="faq-item">
-					<summary><?php esc_html_e( 'Can I rent out the property during the three-year holding period?', 'hello-elementor-child' ); ?></summary>
+					<summary><?php echo esc_html( pera_ml_ui( 'Can I rent out the property during the three-year holding period?', 'theme.template.page_citizenship_properties.can_i_rent_out_the_property_during_the_three_year_holding_period' ) ); ?></summary>
 					<div class="faq-answer">
-						<p><?php esc_html_e( 'Yes, the property can normally be rented during the mandatory holding period, provided the title deed restriction remains in place and the rental arrangement does not conflict with the citizenship file.', 'hello-elementor-child' ); ?></p>
+						<p><?php echo esc_html( pera_ml_ui( 'Yes, the property can normally be rented during the mandatory holding period, provided the title deed restriction remains in place and the rental arrangement does not conflict with the citizenship file.', 'theme.template.page_citizenship_properties.yes_the_property_can_normally_be_rented_during_the_mandatory_holding_per' ) ); ?></p>
 					</div>
 				</details>
 			</div>
 
 			<div class="section-cta">
-				<a href="<?php echo esc_url( 'https://www.peraproperty.com/citizenship-by-investment/' ); ?>" class="btn btn--solid btn--blue"><?php esc_html_e( 'Read the full citizenship guide', 'hello-elementor-child' ); ?></a>
-				<a href="<?php echo esc_url( 'https://www.peraproperty.com/citizenship-by-investment/#citizenship-callback' ); ?>" class="btn btn--solid btn--green"><?php esc_html_e( 'Request a private shortlist', 'hello-elementor-child' ); ?></a>
+				<a href="<?php echo esc_url( 'https://www.peraproperty.com/citizenship-by-investment/' ); ?>" class="btn btn--solid btn--blue"><?php echo esc_html( pera_ml_ui( 'Read the full citizenship guide', 'theme.template.page_citizenship_properties.read_the_full_citizenship_guide' ) ); ?></a>
+				<a href="<?php echo esc_url( 'https://www.peraproperty.com/citizenship-by-investment/#citizenship-callback' ); ?>" class="btn btn--solid btn--green"><?php echo esc_html( pera_ml_ui( 'Request a private shortlist', 'theme.template.page_citizenship_properties.request_a_private_shortlist' ) ); ?></a>
 			</div>
 		</div>
 	</section>

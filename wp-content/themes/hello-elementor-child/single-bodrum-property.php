@@ -135,7 +135,7 @@ get_header();
             ?>
             <section class="section">
                 <div class="container">
-                    <p><?php echo esc_html__( 'This template is for Bodrum Property posts only.', 'hello-elementor-child' ); ?></p>
+                    <p><?php echo esc_html( pera_ml_ui( 'This template is for Bodrum Property posts only.', 'theme.template.single_bodrum_property.this_template_is_for_bodrum_property_posts_only' ) ); ?></p>
                 </div>
             </section>
             <?php
@@ -176,19 +176,19 @@ get_header();
 
         switch ( $status_badge ) {
             case 'for_sale':
-                $status_label = __( 'For sale', 'hello-elementor-child' );
+                $status_label = pera_ml_ui( 'For sale', 'theme.template.single_bodrum_property.for_sale' );
                 $status_class = 'pill pill--green';
                 break;
             case 'off_market':
-                $status_label = __( 'Off market', 'hello-elementor-child' );
+                $status_label = pera_ml_ui( 'Off market', 'theme.template.single_bodrum_property.off_market' );
                 $status_class = 'pill pill--outline';
                 break;
             case 'sold':
-                $status_label = __( 'Sold', 'hello-elementor-child' );
+                $status_label = pera_ml_ui( 'Sold', 'theme.template.single_bodrum_property.sold' );
                 $status_class = 'pill pill--red';
                 break;
             case 'price_on_request':
-                $status_label = __( 'Price on request', 'hello-elementor-child' );
+                $status_label = pera_ml_ui( 'Price on request', 'theme.template.single_bodrum_property.price_on_request' );
                 $status_class = 'pill pill--brand';
                 break;
         }
@@ -276,9 +276,9 @@ get_header();
         $enquiry_recipient   = function_exists( 'get_field' ) ? get_field( 'bp_enquiry_recipient', $post_id ) : '';
         $enquiry_gating_note = function_exists( 'get_field' ) ? get_field( 'bp_enquiry_gating_note', $post_id ) : '';
 
-        $hero_cta_label      = $primary_cta_label ? $primary_cta_label : __( 'Request details', 'hello-elementor-child' );
-        $primary_cta_label   = $primary_cta_label ? $primary_cta_label : __( 'Request details', 'hello-elementor-child' );
-        $secondary_cta_label = $secondary_cta_label ? $secondary_cta_label : __( 'Arrange viewing', 'hello-elementor-child' );
+        $hero_cta_label      = $primary_cta_label ? $primary_cta_label : pera_ml_ui( 'Request details', 'theme.template.single_bodrum_property.request_details' );
+        $primary_cta_label   = $primary_cta_label ? $primary_cta_label : pera_ml_ui( 'Request details', 'theme.template.single_bodrum_property.request_details' );
+        $secondary_cta_label = $secondary_cta_label ? $secondary_cta_label : pera_ml_ui( 'Arrange viewing', 'theme.template.single_bodrum_property.arrange_viewing' );
         $primary_cta_url     = esc_url( site_url( '/book-a-consultancy/' ) );
         $secondary_cta_url   = '#enquiry';
 
@@ -378,7 +378,7 @@ get_header();
             
               <?php if ( $discretion_note ) : ?>
                 <p class="text-light text-sm mb-md">
-                  <?php echo esc_html__( 'Discreet marketing. Further details on request.', 'hello-elementor-child' ); ?>
+                  <?php echo esc_html( pera_ml_ui( 'Discreet marketing. Further details on request.', 'theme.template.single_bodrum_property.discreet_marketing_further_details_on_request' ) ); ?>
                 </p>
               <?php endif; ?>
             
@@ -408,21 +408,21 @@ get_header();
                     <svg class="icon pill__icon" aria-hidden="true" width="16" height="16">
                       <use href="#icon-gallery-stack" xlink:href="#icon-gallery-stack"></use>
                     </svg>
-                    <span class="hero-pill__text">Gallery</span>
+                    <span class="hero-pill__text"><?php echo esc_html( pera_ml_ui( 'Gallery', 'theme.template.single_bodrum_property.gallery' ) ); ?></span>
                   </a>
             
                   <a class="pill pill--green" href="#location">
                     <svg class="icon pill__icon" aria-hidden="true" width="16" height="16">
                       <use href="#icon-map" xlink:href="#icon-map"></use>
                     </svg>
-                    <span class="hero-pill__text">Map</span>
+                    <span class="hero-pill__text"><?php echo esc_html( pera_ml_ui( 'Map', 'theme.template.single_bodrum_property.map' ) ); ?></span>
                   </a>
             
                   <a class="pill pill--green" href="#floorplans">
                     <svg class="icon pill__icon" aria-hidden="true" width="16" height="16">
                       <use href="#icon-floor-plan" xlink:href="#icon-floor-plan"></use>
                     </svg>
-                    <span class="hero-pill__text">Floorplans</span>
+                    <span class="hero-pill__text"><?php echo esc_html( pera_ml_ui( 'Floorplans', 'theme.template.single_bodrum_property.floorplans' ) ); ?></span>
                   </a>
                 </div>
             
@@ -444,7 +444,7 @@ get_header();
             <section class="section">
                 <div class="container">
                     <header class="section-header">
-                        <h2><?php echo esc_html__( 'Key facts', 'hello-elementor-child' ); ?></h2>
+                        <h2><?php echo esc_html( pera_ml_ui( 'Key facts', 'theme.template.single_bodrum_property.key_facts' ) ); ?></h2>
                     </header>
 
                     <div class="table-wrap">
@@ -452,31 +452,31 @@ get_header();
                             <tbody>
                                 <?php if ( $location_line ) : ?>
                                     <tr>
-                                        <th><?php echo esc_html__( 'Location', 'hello-elementor-child' ); ?></th>
+                                        <th><?php echo esc_html( pera_ml_ui( 'Location', 'theme.template.single_bodrum_property.location' ) ); ?></th>
                                         <td><?php echo esc_html( $location_line ); ?></td>
                                     </tr>
                                 <?php endif; ?>
                                 <?php if ( $plot_area ) : ?>
                                     <tr>
-                                        <th><?php echo esc_html__( 'Plot area (sqm)', 'hello-elementor-child' ); ?></th>
+                                        <th><?php echo esc_html( pera_ml_ui( 'Plot area (sqm)', 'theme.template.single_bodrum_property.plot_area_sqm' ) ); ?></th>
                                         <td><?php echo esc_html( $plot_area ); ?></td>
                                     </tr>
                                 <?php endif; ?>
                                 <?php if ( $internal_area ) : ?>
                                     <tr>
-                                        <th><?php echo esc_html__( 'Internal area (sqm)', 'hello-elementor-child' ); ?></th>
+                                        <th><?php echo esc_html( pera_ml_ui( 'Internal area (sqm)', 'theme.template.single_bodrum_property.internal_area_sqm' ) ); ?></th>
                                         <td><?php echo esc_html( $internal_area ); ?></td>
                                     </tr>
                                 <?php endif; ?>
                                 <?php if ( $total_units ) : ?>
                                     <tr>
-                                        <th><?php echo esc_html__( 'Total units', 'hello-elementor-child' ); ?></th>
+                                        <th><?php echo esc_html( pera_ml_ui( 'Total units', 'theme.template.single_bodrum_property.total_units' ) ); ?></th>
                                         <td><?php echo esc_html( $total_units ); ?></td>
                                     </tr>
                                 <?php endif; ?>
                                 <?php if ( $config_summary ) : ?>
                                     <tr>
-                                        <th><?php echo esc_html__( 'Configuration', 'hello-elementor-child' ); ?></th>
+                                        <th><?php echo esc_html( pera_ml_ui( 'Configuration', 'theme.template.single_bodrum_property.configuration' ) ); ?></th>
                                         <td><?php echo esc_html( $config_summary ); ?></td>
                                     </tr>
                                 <?php endif; ?>
@@ -540,14 +540,14 @@ get_header();
                 <section class="section property-gallery" id="gallery">
                     <div class="container">
                         <header class="section-header">
-                            <h2><?php echo esc_html__( 'Gallery', 'hello-elementor-child' ); ?></h2>
+                            <h2><?php echo esc_html( pera_ml_ui( 'Gallery', 'theme.template.single_bodrum_property.gallery' ) ); ?></h2>
                         </header>
 
-                        <div class="property-gallery-shell" aria-label="Property photos">
+                        <div class="property-gallery-shell" aria-label="<?php echo esc_attr( pera_ml_ui( 'Property photos', 'theme.template.single_bodrum_property.aria_label.property_photos' ) ); ?>">
                             <button
                                 class="property-gallery-nav property-gallery-nav--prev"
                                 type="button"
-                                aria-label="Scroll left"
+                                aria-label="<?php echo esc_attr( pera_ml_ui( 'Scroll left', 'theme.template.single_bodrum_property.aria_label.scroll_left' ) ); ?>"
                             >
                                 <svg aria-hidden="true" width="22" height="22">
                                     <use href="<?php echo esc_url( get_stylesheet_directory_uri() . '/logos-icons/icons.svg#icon-chevron-left' ); ?>"></use>
@@ -557,14 +557,14 @@ get_header();
                             <button
                                 class="property-gallery-nav property-gallery-nav--next"
                                 type="button"
-                                aria-label="Scroll right"
+                                aria-label="<?php echo esc_attr( pera_ml_ui( 'Scroll right', 'theme.template.single_bodrum_property.aria_label.scroll_right' ) ); ?>"
                             >
                                 <svg aria-hidden="true" width="22" height="22">
                                     <use href="<?php echo esc_url( get_stylesheet_directory_uri() . '/logos-icons/icons.svg#icon-chevron-right' ); ?>"></use>
                                 </svg>
                             </button>
 
-                            <div class="property-gallery-strip" aria-label="Gallery photos">
+                            <div class="property-gallery-strip" aria-label="<?php echo esc_attr( pera_ml_ui( 'Gallery photos', 'theme.template.single_bodrum_property.aria_label.gallery_photos' ) ); ?>">
                                 <?php
                                 $render_gallery_row( $row1, $display_title );
                                 $render_gallery_row( $row2, $display_title );
@@ -575,7 +575,7 @@ get_header();
                         <?php if ( $gallery_download_url ) : ?>
                             <div class="hero-actions">
                                 <a class="btn btn--solid btn--blue" href="<?php echo esc_url( $gallery_download_url ); ?>">
-                                    <?php echo esc_html__( 'Download gallery', 'hello-elementor-child' ); ?>
+                                    <?php echo esc_html( pera_ml_ui( 'Download gallery', 'theme.template.single_bodrum_property.download_gallery' ) ); ?>
                                 </a>
                             </div>
                         <?php endif; ?>
@@ -724,7 +724,7 @@ get_header();
             <section class="section section-soft">
                 <div class="container">
                     <header class="section-header">
-                        <h2><?php echo esc_html__( 'Features & amenities', 'hello-elementor-child' ); ?></h2>
+                        <h2><?php echo esc_html( pera_ml_ui( 'Features & amenities', 'theme.template.single_bodrum_property.features_amenities' ) ); ?></h2>
                     </header>
 
                     <?php if ( $features ) : ?>
@@ -768,7 +768,7 @@ get_header();
                             <?php if ( $dual_use_heading ) : ?>
                                 <h2><?php echo esc_html( $dual_use_heading ); ?></h2>
                             <?php else : ?>
-                                <h2><?php echo esc_html__( 'Dual-use & hospitality capability', 'hello-elementor-child' ); ?></h2>
+                                <h2><?php echo esc_html( pera_ml_ui( 'Dual-use & hospitality capability', 'theme.template.single_bodrum_property.dual_use_hospitality_capability' ) ); ?></h2>
                             <?php endif; ?>
                         </header>
 
@@ -777,7 +777,7 @@ get_header();
                         <?php endif; ?>
 
                         <?php if ( $hospitality_assets ) : ?>
-                            <div class="property-facilities__pills mb-md" aria-label="<?php echo esc_attr__( 'Hospitality-grade infrastructure', 'hello-elementor-child' ); ?>">
+                            <div class="property-facilities__pills mb-md" aria-label="<?php echo esc_attr( pera_ml_ui( 'Hospitality-grade infrastructure', 'theme.template.single_bodrum_property.hospitality_grade_infrastructure' ) ); ?>">
                                 <?php foreach ( $hospitality_assets as $asset ) : ?>
                                     <span class="pill pill--outline"><?php echo esc_html( $asset ); ?></span>
                                 <?php endforeach; ?>
@@ -823,14 +823,14 @@ get_header();
                         ?>
                         <div class="section" id="property-interior-gallery">
                             <header class="section-header">
-                                <h2><?php echo esc_html__( 'Interior gallery', 'hello-elementor-child' ); ?></h2>
+                                <h2><?php echo esc_html( pera_ml_ui( 'Interior gallery', 'theme.template.single_bodrum_property.interior_gallery' ) ); ?></h2>
                             </header>
 
-                            <div class="property-gallery-shell" aria-label="<?php echo esc_attr__( 'Interior gallery photos', 'hello-elementor-child' ); ?>">
+                            <div class="property-gallery-shell" aria-label="<?php echo esc_attr( pera_ml_ui( 'Interior gallery photos', 'theme.template.single_bodrum_property.interior_gallery_photos' ) ); ?>">
                                 <button
                                     class="property-gallery-nav property-gallery-nav--prev"
                                     type="button"
-                                    aria-label="<?php echo esc_attr__( 'Scroll left', 'hello-elementor-child' ); ?>"
+                                    aria-label="<?php echo esc_attr( pera_ml_ui( 'Scroll left', 'theme.template.single_bodrum_property.scroll_left' ) ); ?>"
                                 >
                                     <svg aria-hidden="true" width="22" height="22">
                                         <use href="<?php echo esc_url( get_stylesheet_directory_uri() . '/logos-icons/icons.svg#icon-chevron-left' ); ?>"></use>
@@ -840,14 +840,14 @@ get_header();
                                 <button
                                     class="property-gallery-nav property-gallery-nav--next"
                                     type="button"
-                                    aria-label="<?php echo esc_attr__( 'Scroll right', 'hello-elementor-child' ); ?>"
+                                    aria-label="<?php echo esc_attr( pera_ml_ui( 'Scroll right', 'theme.template.single_bodrum_property.scroll_right' ) ); ?>"
                                 >
                                     <svg aria-hidden="true" width="22" height="22">
                                         <use href="<?php echo esc_url( get_stylesheet_directory_uri() . '/logos-icons/icons.svg#icon-chevron-right' ); ?>"></use>
                                     </svg>
                                 </button>
 
-                                <div class="property-gallery-strip" aria-label="<?php echo esc_attr__( 'Interior gallery photos', 'hello-elementor-child' ); ?>">
+                                <div class="property-gallery-strip" aria-label="<?php echo esc_attr( pera_ml_ui( 'Interior gallery photos', 'theme.template.single_bodrum_property.interior_gallery_photos' ) ); ?>">
                                     <?php
                                     $render_gallery_row( $interior_row1, $display_title );
                                     $render_gallery_row( $interior_row2, $display_title );
@@ -868,7 +868,7 @@ get_header();
             <section class="section section-soft" id="floorplans">
                 <div class="container">
                     <header class="section-header">
-                        <h2><?php echo esc_html__( 'Floorplans', 'hello-elementor-child' ); ?></h2>
+                        <h2><?php echo esc_html( pera_ml_ui( 'Floorplans', 'theme.template.single_bodrum_property.floorplans' ) ); ?></h2>
                     </header>
 
                     <div class="grid-3">
@@ -972,7 +972,7 @@ get_header();
             <section class="section" id="location">
                 <div class="container">
                     <header class="section-header">
-                        <h2><?php echo esc_html__( 'Location', 'hello-elementor-child' ); ?></h2>
+                        <h2><?php echo esc_html( pera_ml_ui( 'Location', 'theme.template.single_bodrum_property.location' ) ); ?></h2>
                     </header>
 
                     <?php if ( $has_map_content && $location_notes ) : ?>
@@ -1049,8 +1049,8 @@ get_header();
             <div class="container">
                 <div class="content-panel-box" id="enquiry">
                     <header class="section-header">
-                        <h2><?php echo esc_html__( 'Start your Bodrum enquiry', 'hello-elementor-child' ); ?></h2>
-                        <p><?php echo esc_html__( 'Speak with a consultant to receive full details, pricing, and availability.', 'hello-elementor-child' ); ?></p>
+                        <h2><?php echo esc_html( pera_ml_ui( 'Start your Bodrum enquiry', 'theme.template.single_bodrum_property.start_your_bodrum_enquiry' ) ); ?></h2>
+                        <p><?php echo esc_html( pera_ml_ui( 'Speak with a consultant to receive full details, pricing, and availability.', 'theme.template.single_bodrum_property.speak_with_a_consultant_to_receive_full_details_pricing_and_availability' ) ); ?></p>
                     </header>
 
                     <?php if ( $enquiry_gating_note ) : ?>
@@ -1067,7 +1067,7 @@ get_header();
                             'context'        => 'property',
                             'heading'        => '',
                             'intro'          => '',
-                            'submit_label'   => __( 'Send enquiry', 'hello-elementor-child' ),
+                            'submit_label'   => pera_ml_ui( 'Send enquiry', 'theme.template.single_bodrum_property.send_enquiry' ),
                             'form_context'   => 'property',
                             'property_id'    => $post_id,
                             'property_title' => $display_title,
@@ -1080,7 +1080,7 @@ get_header();
 
                     <?php if ( isset( $_GET['sr_status'] ) && $_GET['sr_status'] === 'sent' ) : ?>
                         <div class="form-success">
-                            <?php echo esc_html__( 'Thank you – we have received your details. A Pera consultant will contact you shortly.', 'hello-elementor-child' ); ?>
+                            <?php echo esc_html( pera_ml_ui( 'Thank you – we have received your details. A Pera consultant will contact you shortly.', 'theme.template.single_bodrum_property.thank_you_we_have_received_your_details_a_pera_consultant_will_contact_y' ) ); ?>
                         </div>
                     <?php endif; ?>
                 </div>

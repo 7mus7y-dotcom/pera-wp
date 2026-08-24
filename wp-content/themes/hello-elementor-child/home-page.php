@@ -39,7 +39,7 @@ if ( function_exists( 'get_field' ) ) {
 
 // Budget presets still work in V2 because your V2 SSR/AJAX reads min_price/max_price
 ?>
-<section class="hero hero--center" aria-label="Homepage hero search">
+<section class="hero hero--center" aria-label="<?php echo esc_attr( pera_ml_ui( 'Homepage hero search', 'theme.template.home_page.aria_label.homepage_hero_search' ) ); ?>">
     <?php if ( $hero_img_url ) : ?>
       <img class="hero-media" src="<?php echo esc_url( $hero_img_url ); ?>" alt="" aria-hidden="true">
     <?php endif; ?>
@@ -47,13 +47,13 @@ if ( function_exists( 'get_field' ) ) {
 
     <div class="hero-content">
 
-      <h1>Find Property in Istanbul</h1>
+      <h1><?php echo esc_html( pera_ml_ui( 'Find Property in Istanbul', 'theme.template.home_page.find_property_in_istanbul' ) ); ?></h1>
 
       <div class="lead">
         <p>
           <?php echo $homepage_hero_subtext !== ''
             ? esc_html( $homepage_hero_subtext )
-            : 'Explore the best property for sale in Istanbul, including modern apartments, luxury residences, and high-yield investment opportunities across the city’s most desirable districts.'; ?>
+            : esc_html( pera_ml_ui( 'Explore the best property for sale in Istanbul, including modern apartments, luxury residences, and high-yield investment opportunities across the city’s most desirable districts.', 'theme.template.home_page.hero_subtext_fallback' ) ); ?>
         </p>
       </div>
 
@@ -67,9 +67,9 @@ if ( function_exists( 'get_field' ) ) {
 
           <!-- BEDROOMS (V2: v2_beds radio integer; NOT bedrooms[] taxonomy) -->
           <div class="filter-group text-center">
-            <div class="filter-group__label">Bedrooms</div>
+            <div class="filter-group__label"><?php echo esc_html( pera_ml_ui( 'Bedrooms', 'theme.template.home_page.bedrooms' ) ); ?></div>
 
-            <div class="filter-pill-row flex-center" role="radiogroup" aria-label="Bedrooms">
+            <div class="filter-pill-row flex-center" role="radiogroup" aria-label="<?php echo esc_attr( pera_ml_ui( 'Bedrooms', 'theme.template.home_page.aria_label.bedrooms' ) ); ?>">
 
               <label class="pill pill--outline filter-pill pill--active">
                 <input type="radio" name="v2_beds" value="" checked>
@@ -77,7 +77,7 @@ if ( function_exists( 'get_field' ) ) {
                   <svg class="icon icon-bed" aria-hidden="true">
                     <use href="<?php echo esc_url( get_stylesheet_directory_uri() . '/logos-icons/icons.svg#icon-bed' ); ?>"></use>
                   </svg>
-                  Any
+                  <?php echo esc_html( pera_ml_ui( 'Any', 'theme.template.home_page.any' ) ); ?>
                 </span>
               </label>
 
@@ -98,7 +98,7 @@ if ( function_exists( 'get_field' ) ) {
 
           <!-- LOCATION (district[] taxonomy; V2 supports district[] IN) -->
           <div class="filter-group text-center">
-            <div class="filter-group__label">Location</div>
+            <div class="filter-group__label"><?php echo esc_html( pera_ml_ui( 'Location', 'theme.template.home_page.location' ) ); ?></div>
 
             <div class="filter-pill-row flex-center">
               <button
@@ -106,7 +106,7 @@ if ( function_exists( 'get_field' ) ) {
                 class="pill pill--outline filter-pill filter-pill--all pill--active"
                 data-clear-group="district"
               >
-                <span>Any</span>
+                <span><?php echo esc_html( pera_ml_ui( 'Any', 'theme.template.home_page.any' ) ); ?></span>
               </button>
 
               <?php
@@ -125,33 +125,33 @@ if ( function_exists( 'get_field' ) ) {
               <?php endforeach; ?>
 
               <a class="pill pill--outline" href="<?php echo esc_url( $archive_base_url ); ?>">
-                More areas
+                <?php echo esc_html( pera_ml_ui( 'More areas', 'theme.template.home_page.more_areas' ) ); ?>
               </a>
             </div>
           </div>
 
           <!-- BUDGET (V2 uses min_price/max_price; overlap logic on v2_price_usd_min/max) -->
           <div class="filter-group text-center">
-            <div class="filter-group__label">Budget (USD)</div>
+            <div class="filter-group__label"><?php echo esc_html( pera_ml_ui( 'Budget (USD)', 'theme.template.home_page.budget_usd' ) ); ?></div>
 
             <input type="hidden" name="min_price" id="hero-min-price" value="">
             <input type="hidden" name="max_price" id="hero-max-price" value="">
 
-            <div class="filter-pill-row flex-center" role="radiogroup" aria-label="Budget presets">
-              <button type="button" class="pill pill--outline filter-pill pill--active" data-budget="">Any</button>
-              <button type="button" class="pill pill--outline filter-pill" data-budget="0,250000">Up to $250k</button>
-              <button type="button" class="pill pill--outline filter-pill" data-budget="250000,500000">$250k–$500k</button>
-              <button type="button" class="pill pill--outline filter-pill" data-budget="500000,1000000">$500k–$1m</button>
-              <button type="button" class="pill pill--outline filter-pill" data-budget="1000000,">$1m+</button>
+            <div class="filter-pill-row flex-center" role="radiogroup" aria-label="<?php echo esc_attr( pera_ml_ui( 'Budget presets', 'theme.template.home_page.aria_label.budget_presets' ) ); ?>">
+              <button type="button" class="pill pill--outline filter-pill pill--active" data-budget=""><?php echo esc_html( pera_ml_ui( 'Any', 'theme.template.home_page.any' ) ); ?></button>
+              <button type="button" class="pill pill--outline filter-pill" data-budget="0,250000"><?php echo esc_html( pera_ml_ui( 'Up to $250k', 'theme.template.home_page.up_to_250k' ) ); ?></button>
+              <button type="button" class="pill pill--outline filter-pill" data-budget="250000,500000"><?php echo esc_html( pera_ml_ui( '$250k–$500k', 'theme.template.home_page.250k_500k' ) ); ?></button>
+              <button type="button" class="pill pill--outline filter-pill" data-budget="500000,1000000"><?php echo esc_html( pera_ml_ui( '$500k–$1m', 'theme.template.home_page.500k_1m' ) ); ?></button>
+              <button type="button" class="pill pill--outline filter-pill" data-budget="1000000,"><?php echo esc_html( pera_ml_ui( '$1m+', 'theme.template.home_page.1m' ) ); ?></button>
             </div>
           </div>
 
           <!-- ACTIONS -->
           <div class="filter-row filter-row--footer flex-center" style="margin-top: 16px;">
             <div class="form-actions flex-center">
-              <button type="submit" class="btn btn--solid btn--green">Search</button>
+              <button type="submit" class="btn btn--solid btn--green"><?php echo esc_html( pera_ml_ui( 'Search', 'theme.template.home_page.search' ) ); ?></button>
               <a class="btn btn btn--solid btn--blue" href="<?php echo esc_url( $archive_base_url . '#results' ); ?>">
-                All filters
+                <?php echo esc_html( pera_ml_ui( 'All filters', 'theme.template.home_page.all_filters' ) ); ?>
               </a>
             </div>
           </div>
@@ -166,51 +166,51 @@ if ( function_exists( 'get_field' ) ) {
     <div class="container">
 
       <header class="section-header section-header--center">
-        <span class="pill pill--brand pill--sm">Buyer routes</span>
-        <h2 id="home-buyer-routes-title">Start your Istanbul property journey</h2>
+        <span class="pill pill--brand pill--sm"><?php echo esc_html( pera_ml_ui( 'Buyer routes', 'theme.template.home_page.buyer_routes' ) ); ?></span>
+        <h2 id="home-buyer-routes-title"><?php echo esc_html( pera_ml_ui( 'Start your Istanbul property journey', 'theme.template.home_page.start_your_istanbul_property_journey' ) ); ?></h2>
         <p class="lead">
-          Choose the route that best matches your reason for buying in Istanbul.
+          <?php echo esc_html( pera_ml_ui( 'Choose the route that best matches your reason for buying in Istanbul.', 'theme.template.home_page.choose_the_route_that_best_matches_your_reason_for_buying_in_istanbul' ) ); ?>
         </p>
       </header>
 
-      <div class="cards-slider cards-slider--wide cards-slider--snap cards-slider--grid-2" aria-label="Buyer routes">
+      <div class="cards-slider cards-slider--wide cards-slider--snap cards-slider--grid-2" aria-label="<?php echo esc_attr( pera_ml_ui( 'Buyer routes', 'theme.template.home_page.aria_label.buyer_routes' ) ); ?>">
         <article class="card-shell slider-card">
-          <span class="pill pill--brand pill--sm">Citizenship</span>
-          <h3>Citizenship by Investment</h3>
-          <p class="muted">Approved real estate routes for buyers planning to apply for Turkish citizenship through property investment.</p>
+          <span class="pill pill--brand pill--sm"><?php echo esc_html( pera_ml_ui( 'Citizenship', 'theme.template.home_page.citizenship' ) ); ?></span>
+          <h3><?php echo esc_html( pera_ml_ui( 'Citizenship by Investment', 'theme.template.home_page.citizenship_by_investment' ) ); ?></h3>
+          <p class="muted"><?php echo esc_html( pera_ml_ui( 'Approved real estate routes for buyers planning to apply for Turkish citizenship through property investment.', 'theme.template.home_page.approved_real_estate_routes_for_buyers_planning_to_apply_for_turkish_cit' ) ); ?></p>
           <div class="hero-actions">
-            <a class="btn btn--solid btn--blue" href="<?php echo esc_url( home_url( '/citizenship-by-investment/' ) ); ?>">Explore citizenship</a>
-            <a class="btn btn--ghost btn--blue" href="<?php echo esc_url( home_url( '/turkish-citizenship-properties/' ) ); ?>">Request shortlist</a>
+            <a class="btn btn--solid btn--blue" href="<?php echo esc_url( home_url( '/citizenship-by-investment/' ) ); ?>"><?php echo esc_html( pera_ml_ui( 'Explore citizenship', 'theme.template.home_page.explore_citizenship' ) ); ?></a>
+            <a class="btn btn--ghost btn--blue" href="<?php echo esc_url( home_url( '/turkish-citizenship-properties/' ) ); ?>"><?php echo esc_html( pera_ml_ui( 'Request shortlist', 'theme.template.home_page.request_shortlist' ) ); ?></a>
           </div>
         </article>
 
         <article class="card-shell slider-card">
-          <span class="pill pill--brand pill--sm">Investment</span>
-          <h3>Istanbul Investment Property</h3>
-          <p class="muted">Districts, projects and market insight for buyers focused on capital growth, rental demand and long-term value.</p>
+          <span class="pill pill--brand pill--sm"><?php echo esc_html( pera_ml_ui( 'Investment', 'theme.template.home_page.investment' ) ); ?></span>
+          <h3><?php echo esc_html( pera_ml_ui( 'Istanbul Investment Property', 'theme.template.home_page.istanbul_investment_property' ) ); ?></h3>
+          <p class="muted"><?php echo esc_html( pera_ml_ui( 'Districts, projects and market insight for buyers focused on capital growth, rental demand and long-term value.', 'theme.template.home_page.districts_projects_and_market_insight_for_buyers_focused_on_capital_grow' ) ); ?></p>
           <div class="hero-actions">
-            <a class="btn btn--solid btn--green" href="<?php echo esc_url( home_url( '/category/investment-advice/' ) ); ?>">Read investment advice</a>
-            <a class="btn btn--ghost btn--green" href="<?php echo esc_url( home_url( '/property_tags/istanbul-investment-property-for-sale/' ) ); ?>">View properties</a>
+            <a class="btn btn--solid btn--green" href="<?php echo esc_url( home_url( '/category/investment-advice/' ) ); ?>"><?php echo esc_html( pera_ml_ui( 'Read investment advice', 'theme.template.home_page.read_investment_advice' ) ); ?></a>
+            <a class="btn btn--ghost btn--green" href="<?php echo esc_url( home_url( '/property_tags/istanbul-investment-property-for-sale/' ) ); ?>"><?php echo esc_html( pera_ml_ui( 'View properties', 'theme.template.home_page.view_properties' ) ); ?></a>
           </div>
         </article>
 
         <article class="card-shell slider-card">
-          <span class="pill pill--brand pill--sm">Luxury</span>
-          <h3>Luxury Homes &amp; Branded Residences</h3>
-          <p class="muted">Bosphorus homes, branded residences and premium Istanbul addresses for lifestyle-led and high-value buyers.</p>
+          <span class="pill pill--brand pill--sm"><?php echo esc_html( pera_ml_ui( 'Luxury', 'theme.template.home_page.luxury' ) ); ?></span>
+          <h3><?php echo esc_html( pera_ml_ui( 'Luxury Homes & Branded Residences', 'theme.template.home_page.luxury_homes_and_branded_residences' ) ); ?></h3>
+          <p class="muted"><?php echo esc_html( pera_ml_ui( 'Bosphorus homes, branded residences and premium Istanbul addresses for lifestyle-led and high-value buyers.', 'theme.template.home_page.bosphorus_homes_branded_residences_and_premium_istanbul_addresses_for_li' ) ); ?></p>
           <div class="hero-actions">
-            <a class="btn btn--solid btn--blue" href="<?php echo esc_url( home_url( '/istanbul-luxury-property/' ) ); ?>">View luxury homes</a>
-            <a class="btn btn--ghost btn--blue" href="<?php echo esc_url( home_url( '/contact-us/' ) ); ?>">Request shortlist</a>
+            <a class="btn btn--solid btn--blue" href="<?php echo esc_url( home_url( '/istanbul-luxury-property/' ) ); ?>"><?php echo esc_html( pera_ml_ui( 'View luxury homes', 'theme.template.home_page.view_luxury_homes' ) ); ?></a>
+            <a class="btn btn--ghost btn--blue" href="<?php echo esc_url( home_url( '/contact-us/' ) ); ?>"><?php echo esc_html( pera_ml_ui( 'Request shortlist', 'theme.template.home_page.request_shortlist' ) ); ?></a>
           </div>
         </article>
 
         <article class="card-shell slider-card">
-          <span class="pill pill--brand pill--sm">Buyer guide</span>
-          <h3>First-Time Foreign Buyers</h3>
-          <p class="muted">Practical guidance on title deed transfer, legal checks, taxes and safe property purchasing in Istanbul.</p>
+          <span class="pill pill--brand pill--sm"><?php echo esc_html( pera_ml_ui( 'Buyer guide', 'theme.template.home_page.buyer_guide' ) ); ?></span>
+          <h3><?php echo esc_html( pera_ml_ui( 'First-Time Foreign Buyers', 'theme.template.home_page.first_time_foreign_buyers' ) ); ?></h3>
+          <p class="muted"><?php echo esc_html( pera_ml_ui( 'Practical guidance on title deed transfer, legal checks, taxes and safe property purchasing in Istanbul.', 'theme.template.home_page.practical_guidance_on_title_deed_transfer_legal_checks_taxes_and_safe_pr' ) ); ?></p>
           <div class="hero-actions">
-            <a class="btn btn--solid btn--green" href="<?php echo esc_url( home_url( '/category/buyer-guides/' ) ); ?>">Read buyer guide</a>
-            <a class="btn btn--ghost btn--green" href="<?php echo esc_url( home_url( '/book-a-consultancy/' ) ); ?>">Book consultancy</a>
+            <a class="btn btn--solid btn--green" href="<?php echo esc_url( home_url( '/category/buyer-guides/' ) ); ?>"><?php echo esc_html( pera_ml_ui( 'Read buyer guide', 'theme.template.home_page.read_buyer_guide' ) ); ?></a>
+            <a class="btn btn--ghost btn--green" href="<?php echo esc_url( home_url( '/book-a-consultancy/' ) ); ?>"><?php echo esc_html( pera_ml_ui( 'Book consultancy', 'theme.template.home_page.book_consultancy' ) ); ?></a>
           </div>
         </article>
       </div>
@@ -238,11 +238,11 @@ $featured_query = new WP_Query( array(
   <div class="container">
 
     <div class="section-header section-header--center">
-      <h2>Latest property for sale in Istanbul</h2>
-      <p class="lead">The newest apartments, villas and investment opportunities recently added to our website.</p>
+      <h2><?php echo esc_html( pera_ml_ui( 'Latest property for sale in Istanbul', 'theme.template.home_page.latest_property_for_sale_in_istanbul' ) ); ?></h2>
+      <p class="lead"><?php echo esc_html( pera_ml_ui( 'The newest apartments, villas and investment opportunities recently added to our website.', 'theme.template.home_page.the_newest_apartments_villas_and_investment_opportunities_recently_added' ) ); ?></p>
     </div>
 
-    <div class="cards-slider cards-slider--features cards-slider--snap cards-slider--grid-lg" aria-label="Featured properties">
+    <div class="cards-slider cards-slider--features cards-slider--snap cards-slider--grid-lg" aria-label="<?php echo esc_attr( pera_ml_ui( 'Featured properties', 'theme.template.home_page.aria_label.featured_properties' ) ); ?>">
       <?php if ( $featured_query->have_posts() ) : ?>
         <?php $featured_index = 0; ?>
         <?php while ( $featured_query->have_posts() ) : $featured_query->the_post(); ?>
@@ -259,14 +259,14 @@ $featured_query = new WP_Query( array(
                 <div class="property-card__inner property-card__inner--catalogue">
                   <div class="property-card__catalogue-body">
                     <span class="pill pill--brand pill--sm property-card__catalogue-kicker">
-                      <span class="property-card__catalogue-kicker-default">FULL CATALOGUE</span>
-                      <span class="property-card__catalogue-kicker-hover" aria-hidden="true">→ Browse all listings</span>
+                      <span class="property-card__catalogue-kicker-default"><?php echo esc_html( pera_ml_ui( 'FULL CATALOGUE', 'theme.template.home_page.full_catalogue' ) ); ?></span>
+                      <span class="property-card__catalogue-kicker-hover" aria-hidden="true"><?php echo esc_html( pera_ml_ui( '→ Browse all listings', 'theme.template.home_page.browse_all_listings' ) ); ?></span>
                     </span>
-                    <h3>Browse all property for sale in Istanbul</h3>
-                    <p class="text-sm">Apartments • Villas • Projects</p>
+                    <h3><?php echo esc_html( pera_ml_ui( 'Browse all property for sale in Istanbul', 'theme.template.home_page.browse_all_property_for_sale_in_istanbul' ) ); ?></h3>
+                    <p class="text-sm"><?php echo esc_html( pera_ml_ui( 'Apartments • Villas • Projects', 'theme.template.home_page.apartments_villas_projects' ) ); ?></p>
                     <div class="hero-actions">
-                      <a class="btn btn--solid btn--blue" href="/property/">See all listings</a>
-                      <a class="btn btn--ghost btn--blue" href="/property/#results">Advanced search</a>
+                      <a class="btn btn--solid btn--blue" href="/property/"><?php echo esc_html( pera_ml_ui( 'See all listings', 'theme.template.home_page.see_all_listings' ) ); ?></a>
+                      <a class="btn btn--ghost btn--blue" href="/property/#results"><?php echo esc_html( pera_ml_ui( 'Advanced search', 'theme.template.home_page.advanced_search' ) ); ?></a>
                     </div>
                   </div>
                 </div>
@@ -277,7 +277,7 @@ $featured_query = new WP_Query( array(
           <?php $featured_index++; ?>
         <?php endwhile; ?>
       <?php else : ?>
-        <p class="no-results">No featured properties available at the moment.</p>
+        <p class="no-results"><?php echo esc_html( pera_ml_ui( 'No featured properties available at the moment.', 'theme.template.home_page.no_featured_properties_available_at_the_moment' ) ); ?></p>
       <?php endif; ?>
     </div>
 
@@ -292,7 +292,7 @@ $featured_query = new WP_Query( array(
       <?php echo wp_kses_post( $homepage_listing_intro ); ?>
     <?php else : ?>
       <p class="text-soft">
-        Explore a wide range of <strong>property for sale in Istanbul</strong>, from centrally located apartments to carefully selected investment opportunities across the city. Our portfolio includes both ready properties and off-market deals, allowing buyers to compare options based on location, budget, and long-term potential. Below, you can view some of our latest opportunities, chosen for their value, positioning, and investment appeal.
+        <?php echo esc_html( pera_ml_ui( 'Explore a wide range of', 'theme.template.home_page.explore_a_wide_range_of' ) ); ?> <strong><?php echo esc_html( pera_ml_ui( 'property for sale in Istanbul', 'theme.template.home_page.property_for_sale_in_istanbul' ) ); ?></strong><?php echo esc_html( pera_ml_ui( ', from centrally located apartments to carefully selected investment opportunities across the city. Our portfolio includes both ready properties and off-market deals, allowing buyers to compare options based on location, budget, and long-term potential. Below, you can view some of our latest opportunities, chosen for their value, positioning, and investment appeal.', 'theme.template.home_page.from_centrally_located_apartments_to_carefully_selected_investment_oppor' ) ); ?>
       </p>
     <?php endif; ?>
   </div>
@@ -316,109 +316,109 @@ get_template_part( 'partials/home-latest-offers' );
           <div class="container">
         
             <div class="section-header section-header--center">
-              <h2>Best districts to buy property in Istanbul</h2>
+              <h2><?php echo esc_html( pera_ml_ui( 'Best districts to buy property in Istanbul', 'theme.template.home_page.best_districts_to_buy_property_in_istanbul' ) ); ?></h2>
               <p class="lead">
-                Compare central and lifestyle-led areas where international buyers search for apartments for sale in Istanbul, with direct access to district listings and practical local guides.
+                <?php echo esc_html( pera_ml_ui( 'Compare central and lifestyle-led areas where international buyers search for apartments for sale in Istanbul, with direct access to district listings and practical local guides.', 'theme.template.home_page.compare_central_and_lifestyle_led_areas_where_international_buyers_searc' ) ); ?>
               </p>
               <p class="text-soft">
-                If you are planning to buy Istanbul investment property, start with districts that match your goals for rental demand, resale potential, and day-to-day lifestyle. The districts below are among the most searched by Pera Property clients.
+                <?php echo esc_html( pera_ml_ui( 'If you are planning to buy Istanbul investment property, start with districts that match your goals for rental demand, resale potential, and day-to-day lifestyle. The districts below are among the most searched by Pera Property clients.', 'theme.template.home_page.if_you_are_planning_to_buy_istanbul_investment_property_start_with_distr' ) ); ?>
               </p>
             </div>
         
-            <div class="pera-latest-offers-card-list pera-latest-offers-card-list--home cards-slider cards-slider--snap home-editorial-posts__slider home-districts-slider" aria-label="Featured districts in Istanbul for property buyers">
+            <div class="pera-latest-offers-card-list pera-latest-offers-card-list--home cards-slider cards-slider--snap home-editorial-posts__slider home-districts-slider" aria-label="<?php echo esc_attr( pera_ml_ui( 'Featured districts in Istanbul for property buyers', 'theme.template.home_page.aria_label.featured_districts_in_istanbul_for_property_buyers' ) ); ?>">
         
           <!-- Beşiktaş -->
           <article class="card-shell slider-card">
-            <span class="pill pill--brand pill--sm">Central</span>
+            <span class="pill pill--brand pill--sm"><?php echo esc_html( pera_ml_ui( 'Central', 'theme.template.home_page.central' ) ); ?></span>
         
-            <h3 style="margin-top: 10px;">Beşiktaş property</h3>
+            <h3 style="margin-top: 10px;"><?php echo esc_html( pera_ml_ui( 'Beşiktaş property', 'theme.template.home_page.be_ikta_property' ) ); ?></h3>
         
             <p class="muted" style="margin: 0;">
-              Beşiktaş is a top choice for property for sale in Istanbul, offering Bosphorus access, established neighbourhoods, and strong long-term demand.
+              <?php echo esc_html( pera_ml_ui( 'Beşiktaş is a top choice for property for sale in Istanbul, offering Bosphorus access, established neighbourhoods, and strong long-term demand.', 'theme.template.home_page.be_ikta_is_a_top_choice_for_property_for_sale_in_istanbul_offering_bosph' ) ); ?>
             </p>
         
             <div class="property-facilities__pills" style="margin-top: 12px;">
-              <span class="pill pill--outline">Bosphorus</span>
-              <span class="pill pill--outline">Universities</span>
-              <span class="pill pill--outline">City life</span>
+              <span class="pill pill--outline"><?php echo esc_html( pera_ml_ui( 'Bosphorus', 'theme.template.home_page.bosphorus' ) ); ?></span>
+              <span class="pill pill--outline"><?php echo esc_html( pera_ml_ui( 'Universities', 'theme.template.home_page.universities' ) ); ?></span>
+              <span class="pill pill--outline"><?php echo esc_html( pera_ml_ui( 'City life', 'theme.template.home_page.city_life' ) ); ?></span>
             </div>
         
             <div class="hero-actions" style="margin-top: 14px;">
-              <a class="btn btn--solid btn--blue" href="<?php echo esc_url( home_url('/district/istanbul/besiktas/#results') ); ?>">View listings</a>
+              <a class="btn btn--solid btn--blue" href="<?php echo esc_url( home_url('/district/istanbul/besiktas/#results') ); ?>"><?php echo esc_html( pera_ml_ui( 'View listings', 'theme.template.home_page.view_listings' ) ); ?></a>
               <a class="btn btn--ghost btn--blue" href="https://www.peraproperty.com/besiktas-from-bronze-age-to-ottoman-palaces_51249/">
-                Area guide
+                <?php echo esc_html( pera_ml_ui( 'Area guide', 'theme.template.home_page.area_guide' ) ); ?>
               </a>
             </div>
           </article>
         
           <!-- Şişli -->
           <article class="card-shell slider-card">
-            <span class="pill pill--brand pill--sm">Business &amp; Lifestyle</span>
+            <span class="pill pill--brand pill--sm"><?php echo esc_html( pera_ml_ui( 'Business & Lifestyle', 'theme.template.home_page.business_and_lifestyle' ) ); ?></span>
         
-            <h3 style="margin-top: 10px;">Şişli property</h3>
+            <h3 style="margin-top: 10px;"><?php echo esc_html( pera_ml_ui( 'Şişli property', 'theme.template.home_page.i_li_property' ) ); ?></h3>
         
             <p class="muted" style="margin: 0;">
-              Şişli property attracts buyers seeking central Istanbul property close to business districts, shopping streets, and metro connections.
+              <?php echo esc_html( pera_ml_ui( 'Şişli property attracts buyers seeking central Istanbul property close to business districts, shopping streets, and metro connections.', 'theme.template.home_page.i_li_property_attracts_buyers_seeking_central_istanbul_property_close_to' ) ); ?>
             </p>
         
             <div class="property-facilities__pills" style="margin-top: 12px;">
               <span class="pill pill--outline">Nişantaşı</span>
-              <span class="pill pill--outline">Metro</span>
-              <span class="pill pill--outline">Urban living</span>
+              <span class="pill pill--outline"><?php echo esc_html( pera_ml_ui( 'Metro', 'theme.template.home_page.metro' ) ); ?></span>
+              <span class="pill pill--outline"><?php echo esc_html( pera_ml_ui( 'Urban living', 'theme.template.home_page.urban_living' ) ); ?></span>
             </div>
         
             <div class="hero-actions" style="margin-top: 14px;">
-              <a class="btn btn--solid btn--blue" href="<?php echo esc_url( home_url('/district/istanbul/sisli/#results') ); ?>">View listings</a>
+              <a class="btn btn--solid btn--blue" href="<?php echo esc_url( home_url('/district/istanbul/sisli/#results') ); ?>"><?php echo esc_html( pera_ml_ui( 'View listings', 'theme.template.home_page.view_listings' ) ); ?></a>
               <a class="btn btn--ghost btn--blue" href="https://www.peraproperty.com/sisli-the-heart-of-modern-istanbul_51392/">
-                Area guide
+                <?php echo esc_html( pera_ml_ui( 'Area guide', 'theme.template.home_page.area_guide' ) ); ?>
               </a>
             </div>
           </article>
         
           <!-- Kadıköy -->
           <article class="card-shell slider-card">
-            <span class="pill pill--brand pill--sm">Residential &amp; Cultural</span>
+            <span class="pill pill--brand pill--sm"><?php echo esc_html( pera_ml_ui( 'Residential & Cultural', 'theme.template.home_page.residential_and_cultural' ) ); ?></span>
         
-            <h3 style="margin-top: 10px;">Kadıköy property</h3>
+            <h3 style="margin-top: 10px;"><?php echo esc_html( pera_ml_ui( 'Kadıköy property', 'theme.template.home_page.kad_k_y_property' ) ); ?></h3>
         
             <p class="muted" style="margin: 0;">
-              Kadıköy property is popular with buyers who want a residential environment, walkable neighbourhoods, and steady local demand on the Anatolian side.
+              <?php echo esc_html( pera_ml_ui( 'Kadıköy property is popular with buyers who want a residential environment, walkable neighbourhoods, and steady local demand on the Anatolian side.', 'theme.template.home_page.kad_k_y_property_is_popular_with_buyers_who_want_a_residential_environme' ) ); ?>
             </p>
         
             <div class="property-facilities__pills" style="margin-top: 12px;">
-              <span class="pill pill--outline">Walkable streets</span>
-              <span class="pill pill--outline">Local demand</span>
-              <span class="pill pill--outline">Anatolian side</span>
+              <span class="pill pill--outline"><?php echo esc_html( pera_ml_ui( 'Walkable streets', 'theme.template.home_page.walkable_streets' ) ); ?></span>
+              <span class="pill pill--outline"><?php echo esc_html( pera_ml_ui( 'Local demand', 'theme.template.home_page.local_demand' ) ); ?></span>
+              <span class="pill pill--outline"><?php echo esc_html( pera_ml_ui( 'Anatolian side', 'theme.template.home_page.anatolian_side' ) ); ?></span>
             </div>
         
             <div class="hero-actions" style="margin-top: 14px;">
-              <a class="btn btn--solid btn--green" href="<?php echo esc_url( home_url('/district/istanbul/kadikoy/#results') ); ?>">View listings</a>
+              <a class="btn btn--solid btn--green" href="<?php echo esc_url( home_url('/district/istanbul/kadikoy/#results') ); ?>"><?php echo esc_html( pera_ml_ui( 'View listings', 'theme.template.home_page.view_listings' ) ); ?></a>
               <a class="btn btn--ghost btn--green" href="<?php echo esc_url( home_url('/kadikoy-regional-guide-a-vibrant-hub-on-istanbuls-asian-side_51561/') ); ?>">
-                Area guide
+                <?php echo esc_html( pera_ml_ui( 'Area guide', 'theme.template.home_page.area_guide' ) ); ?>
               </a>
             </div>
           </article>
 
           <!-- Sarıyer -->
           <article class="card-shell slider-card">
-            <span class="pill pill--brand pill--sm">Bosphorus &amp; Luxury</span>
+            <span class="pill pill--brand pill--sm"><?php echo esc_html( pera_ml_ui( 'Bosphorus & Luxury', 'theme.template.home_page.bosphorus_and_luxury' ) ); ?></span>
 
-            <h3 style="margin-top: 10px;">Sarıyer property</h3>
+            <h3 style="margin-top: 10px;"><?php echo esc_html( pera_ml_ui( 'Sarıyer property', 'theme.template.home_page.sar_yer_property' ) ); ?></h3>
 
             <p class="muted" style="margin: 0;">
-              Sarıyer property appeals to buyers seeking Bosphorus lifestyle, green residential neighbourhoods, luxury compounds, and long-term prestige on Istanbul’s European side.
+              <?php echo esc_html( pera_ml_ui( 'Sarıyer property appeals to buyers seeking Bosphorus lifestyle, green residential neighbourhoods, luxury compounds, and long-term prestige on Istanbul’s European side.', 'theme.template.home_page.sar_yer_property_appeals_to_buyers_seeking_bosphorus_lifestyle_green_res' ) ); ?>
             </p>
 
             <div class="property-facilities__pills" style="margin-top: 12px;">
-              <span class="pill pill--outline">Bosphorus</span>
-              <span class="pill pill--outline">Luxury homes</span>
-              <span class="pill pill--outline">European side</span>
+              <span class="pill pill--outline"><?php echo esc_html( pera_ml_ui( 'Bosphorus', 'theme.template.home_page.bosphorus' ) ); ?></span>
+              <span class="pill pill--outline"><?php echo esc_html( pera_ml_ui( 'Luxury homes', 'theme.template.home_page.luxury_homes' ) ); ?></span>
+              <span class="pill pill--outline"><?php echo esc_html( pera_ml_ui( 'European side', 'theme.template.home_page.european_side' ) ); ?></span>
             </div>
 
             <div class="hero-actions" style="margin-top: 14px;">
-              <a class="btn btn--solid btn--blue" href="<?php echo esc_url( home_url('/district/istanbul/sariyer/#results') ); ?>">View listings</a>
+              <a class="btn btn--solid btn--blue" href="<?php echo esc_url( home_url('/district/istanbul/sariyer/#results') ); ?>"><?php echo esc_html( pera_ml_ui( 'View listings', 'theme.template.home_page.view_listings' ) ); ?></a>
               <a class="btn btn--ghost btn--blue" href="<?php echo esc_url( home_url('/istanbul-luxury-property/') ); ?>">
-                Luxury guide
+                <?php echo esc_html( pera_ml_ui( 'Luxury guide', 'theme.template.home_page.luxury_guide' ) ); ?>
               </a>
             </div>
           </article>
@@ -427,8 +427,8 @@ get_template_part( 'partials/home-latest-offers' );
 
 
     <div class="hero-actions flex-center" style="margin-top: 18px;">
-      <a class="btn btn--solid btn--blue" href="/property/">Browse all Istanbul property listings</a>
-      <a class="btn btn--solid btn--green" href="/contact-us/">Get district advice</a>
+      <a class="btn btn--solid btn--blue" href="/property/"><?php echo esc_html( pera_ml_ui( 'Browse all Istanbul property listings', 'theme.template.home_page.browse_all_istanbul_property_listings' ) ); ?></a>
+      <a class="btn btn--solid btn--green" href="/contact-us/"><?php echo esc_html( pera_ml_ui( 'Get district advice', 'theme.template.home_page.get_district_advice' ) ); ?></a>
     </div>
 
   </div>
@@ -449,10 +449,10 @@ get_template_part( 'parts/home-editorial-posts' );
   <div class="container">
 
     <header class="section-header section-header--center">
-      <h2>Buyer journey</h2>
+      <h2><?php echo esc_html( pera_ml_ui( 'Buyer journey', 'theme.template.home_page.buyer_journey' ) ); ?></h2>
       <p>
-        A clear, structured process from initial consultation to ownership —
-        designed to reduce risk and remove uncertainty.
+        <?php echo esc_html( pera_ml_ui( 'A clear, structured process from initial consultation to ownership —
+        designed to reduce risk and remove uncertainty.', 'theme.template.home_page.a_clear_structured_process_from_initial_consultation_to_ownership_design' ) ); ?>
       </p>
     </header>
 
@@ -464,10 +464,10 @@ get_template_part( 'parts/home-editorial-posts' );
           <span class="info-step-number">1</span>
         </div>
         <div class="info-step-body">
-          <h3 class="info-step-title">Strategy &amp; shortlist</h3>
+          <h3 class="info-step-title"><?php echo esc_html( pera_ml_ui( 'Strategy & shortlist', 'theme.template.home_page.strategy_and_shortlist' ) ); ?></h3>
           <p class="info-step-text">
-            We define your objectives — lifestyle, rental yield, or capital growth —
-            and curate suitable projects and resale opportunities across Istanbul.
+            <?php echo esc_html( pera_ml_ui( 'We define your objectives — lifestyle, rental yield, or capital growth —
+            and curate suitable projects and resale opportunities across Istanbul.', 'theme.template.home_page.we_define_your_objectives_lifestyle_rental_yield_or_capital_growth_and_c' ) ); ?>
           </p>
         </div>
       </article>
@@ -478,10 +478,10 @@ get_template_part( 'parts/home-editorial-posts' );
           <span class="info-step-number">2</span>
         </div>
         <div class="info-step-body">
-          <h3 class="info-step-title">Viewings &amp; due diligence</h3>
+          <h3 class="info-step-title"><?php echo esc_html( pera_ml_ui( 'Viewings & due diligence', 'theme.template.home_page.viewings_and_due_diligence' ) ); ?></h3>
           <p class="info-step-text">
-            We coordinate viewings (in person or remotely), explain pricing,
-            and guide legal and technical checks with trusted professionals.
+            <?php echo esc_html( pera_ml_ui( 'We coordinate viewings (in person or remotely), explain pricing,
+            and guide legal and technical checks with trusted professionals.', 'theme.template.home_page.we_coordinate_viewings_in_person_or_remotely_explain_pricing_and_guide_l' ) ); ?>
           </p>
         </div>
       </article>
@@ -492,10 +492,10 @@ get_template_part( 'parts/home-editorial-posts' );
           <span class="info-step-number">3</span>
         </div>
         <div class="info-step-body">
-          <h3 class="info-step-title">Negotiation &amp; purchase</h3>
+          <h3 class="info-step-title"><?php echo esc_html( pera_ml_ui( 'Negotiation & purchase', 'theme.template.home_page.negotiation_and_purchase' ) ); ?></h3>
           <p class="info-step-text">
-            We manage negotiations, payment milestones, and the purchase process
-            through to title deed registration.
+            <?php echo esc_html( pera_ml_ui( 'We manage negotiations, payment milestones, and the purchase process
+            through to title deed registration.', 'theme.template.home_page.we_manage_negotiations_payment_milestones_and_the_purchase_process_throu' ) ); ?>
           </p>
         </div>
       </article>
@@ -506,10 +506,10 @@ get_template_part( 'parts/home-editorial-posts' );
           <span class="info-step-number">4</span>
         </div>
         <div class="info-step-body">
-          <h3 class="info-step-title">After-sales support</h3>
+          <h3 class="info-step-title"><?php echo esc_html( pera_ml_ui( 'After-sales support', 'theme.template.home_page.after_sales_support' ) ); ?></h3>
           <p class="info-step-text">
-            Beyond completion, we assist with rentals, property management,
-            resale strategy, and ongoing advisory support as your plans evolve.
+            <?php echo esc_html( pera_ml_ui( 'Beyond completion, we assist with rentals, property management,
+            resale strategy, and ongoing advisory support as your plans evolve.', 'theme.template.home_page.beyond_completion_we_assist_with_rentals_property_management_resale_stra' ) ); ?>
           </p>
         </div>
       </article>
@@ -517,7 +517,7 @@ get_template_part( 'parts/home-editorial-posts' );
     </div>
 
     <div class="hero-actions flex-center" style="margin-top: 16px;">
-      <a class="btn btn--solid btn--green" href="/contact-us/">Speak to an advisor</a>
+      <a class="btn btn--solid btn--green" href="/contact-us/"><?php echo esc_html( pera_ml_ui( 'Speak to an advisor', 'theme.template.home_page.speak_to_an_advisor' ) ); ?></a>
     </div>
 
   </div>
@@ -533,20 +533,20 @@ get_template_part( 'parts/home-editorial-posts' );
 
       <div class="content-panel-left">
         <header class="section-header">
-          <h2>Own property in Istanbul?</h2>
+          <h2><?php echo esc_html( pera_ml_ui( 'Own property in Istanbul?', 'theme.template.home_page.own_property_in_istanbul' ) ); ?></h2>
           <p>
-            Whether you plan to sell your Istanbul property or rent it out, Pera Property supports local and overseas owners with clear pricing advice, qualified demand and practical, hands-on execution.
+            <?php echo esc_html( pera_ml_ui( 'Whether you plan to sell your Istanbul property or rent it out, Pera Property supports local and overseas owners with clear pricing advice, qualified demand and practical, hands-on execution.', 'theme.template.home_page.whether_you_plan_to_sell_your_istanbul_property_or_rent_it_out_pera_prop' ) ); ?>
           </p>
         </header>
 
         <ul class="checklist checklist--circle">
-          <li>Realistic Istanbul property valuation and pricing strategy</li>
-          <li>Professional marketing and qualified buyer or tenant enquiries</li>
-          <li>End-to-end support through negotiation, contracts and handover</li>
+          <li><?php echo esc_html( pera_ml_ui( 'Realistic Istanbul property valuation and pricing strategy', 'theme.template.home_page.realistic_istanbul_property_valuation_and_pricing_strategy' ) ); ?></li>
+          <li><?php echo esc_html( pera_ml_ui( 'Professional marketing and qualified buyer or tenant enquiries', 'theme.template.home_page.professional_marketing_and_qualified_buyer_or_tenant_enquiries' ) ); ?></li>
+          <li><?php echo esc_html( pera_ml_ui( 'End-to-end support through negotiation, contracts and handover', 'theme.template.home_page.end_to_end_support_through_negotiation_contracts_and_handover' ) ); ?></li>
         </ul>
 
         <p style="margin-top: 12px; margin-bottom: 0;">
-          <a href="/sell-your-istanbul-real-estate/">Sell your property in Istanbul with local experts</a>
+          <a href="/sell-your-istanbul-real-estate/"><?php echo esc_html( pera_ml_ui( 'Sell your property in Istanbul with local experts', 'theme.template.home_page.sell_your_property_in_istanbul_with_local_experts' ) ); ?></a>
         </p>
       </div>
 
@@ -568,17 +568,17 @@ get_template_part( 'parts/home-editorial-posts' );
           </div>
           <div class="signoff-text">
             <h5>D Koray Dillioglu</h5>
-            <p>– Director @ Pera Property</p>
+            <p><?php echo esc_html( pera_ml_ui( '– Director @ Pera Property', 'theme.template.home_page.director_pera_property' ) ); ?></p>
           </div>
         </div>
 
         <p class="muted" style="margin-top: 10px; margin-bottom: 0;">
-          Need full support as an owner? Explore <a href="<?php echo esc_url( home_url( '/rent-your-istanbul-real-estate/' ) ); ?>">property management in Istanbul</a> or request a valuation.
+          <?php echo esc_html( pera_ml_ui( 'Need full support as an owner? Explore', 'theme.template.home_page.need_full_support_as_an_owner_explore' ) ); ?> <a href="<?php echo esc_url( home_url( '/rent-your-istanbul-real-estate/' ) ); ?>"><?php echo esc_html( pera_ml_ui( 'property management in Istanbul', 'theme.template.home_page.property_management_in_istanbul' ) ); ?></a> <?php echo esc_html( pera_ml_ui( 'or request a valuation.', 'theme.template.home_page.or_request_a_valuation' ) ); ?>
         </p>
 
         <div class="hero-actions flex-center">
-          <a class="btn btn--solid btn--green" href="<?php echo esc_url( home_url( '/sell-your-istanbul-real-estate/' ) ); ?>">Get a Free Valuation</a>
-          <a class="btn btn--ghost btn--blue" href="<?php echo esc_url( home_url( '/rent-your-istanbul-real-estate/' ) ); ?>">Explore Property Management</a>
+          <a class="btn btn--solid btn--green" href="<?php echo esc_url( home_url( '/sell-your-istanbul-real-estate/' ) ); ?>"><?php echo esc_html( pera_ml_ui( 'Get a Free Valuation', 'theme.template.home_page.get_a_free_valuation' ) ); ?></a>
+          <a class="btn btn--ghost btn--blue" href="<?php echo esc_url( home_url( '/rent-your-istanbul-real-estate/' ) ); ?>"><?php echo esc_html( pera_ml_ui( 'Explore Property Management', 'theme.template.home_page.explore_property_management' ) ); ?></a>
         </div>
       </div>
 
@@ -595,19 +595,19 @@ get_template_part( 'parts/home-editorial-posts' );
       <div class="content-panel-left">
 
         <div class="section-header">
-          <h2>ABOUT OUR COMPANY</h2>
+          <h2><?php echo esc_html( pera_ml_ui( 'ABOUT OUR COMPANY', 'theme.template.home_page.about_our_company' ) ); ?></h2>
 
           <p>
-            Pera Property is a consultancy-led real estate agency focused exclusively on Istanbul.
+            <?php echo esc_html( pera_ml_ui( 'Pera Property is a consultancy-led real estate agency focused exclusively on Istanbul.
             We work with both new developments and resale properties, advising clients from initial
-            strategy through to title deed. Prefer a structured, free strategy session first?
-            <a href="/book-a-consultancy/">Book a consultancy</a> to validate your plan before viewing properties.
+            strategy through to title deed. Prefer a structured, free strategy session first?', 'theme.template.home_page.pera_property_is_a_consultancy_led_real_estate_agency_focused_exclusivel' ) ); ?>
+            <a href="/book-a-consultancy/"><?php echo esc_html( pera_ml_ui( 'Book a consultancy', 'theme.template.home_page.book_a_consultancy' ) ); ?></a> <?php echo esc_html( pera_ml_ui( 'to validate your plan before viewing properties.', 'theme.template.home_page.to_validate_your_plan_before_viewing_properties' ) ); ?>
           </p>
 
           <p>
             <em>
-              Our impartial, whole-of-market approach ensures each client reaches the optimal outcome
-              based on their goals — not sales pressure.
+              <?php echo esc_html( pera_ml_ui( 'Our impartial, whole-of-market approach ensures each client reaches the optimal outcome
+              based on their goals — not sales pressure.', 'theme.template.home_page.our_impartial_whole_of_market_approach_ensures_each_client_reaches_the_o' ) ); ?>
             </em>
           </p>
         </div>
@@ -630,7 +630,7 @@ get_template_part( 'parts/home-editorial-posts' );
 
           <div class="signoff-text">
             <h5>D Koray Dillioglu</h5>
-            <p>– Director @ Pera Property</p>
+            <p><?php echo esc_html( pera_ml_ui( '– Director @ Pera Property', 'theme.template.home_page.director_pera_property' ) ); ?></p>
           </div>
         </div>
 
@@ -640,36 +640,36 @@ get_template_part( 'parts/home-editorial-posts' );
       <div class="content-panel-right">
 
         <div class="section-header">
-          <h3>How we help you buy in Istanbul</h3>
+          <h3><?php echo esc_html( pera_ml_ui( 'How we help you buy in Istanbul', 'theme.template.home_page.how_we_help_you_buy_in_istanbul' ) ); ?></h3>
           <p>
-            A clear, structured process designed to reduce risk and remove uncertainty.
+            <?php echo esc_html( pera_ml_ui( 'A clear, structured process designed to reduce risk and remove uncertainty.', 'theme.template.home_page.a_clear_structured_process_designed_to_reduce_risk_and_remove_uncertaint' ) ); ?>
           </p>
         </div>
 
         <ol class="process-steps">
           <li>
-            <strong>Understand your objectives</strong>
+            <strong><?php echo esc_html( pera_ml_ui( 'Understand your objectives', 'theme.template.home_page.understand_your_objectives' ) ); ?></strong>
 
           </li>
 
           <li>
-            <strong>Shortlist the right options</strong>
+            <strong><?php echo esc_html( pera_ml_ui( 'Shortlist the right options', 'theme.template.home_page.shortlist_the_right_options' ) ); ?></strong>
           
           </li>
 
           <li>
-            <strong>Guide you through to completion</strong>
+            <strong><?php echo esc_html( pera_ml_ui( 'Guide you through to completion', 'theme.template.home_page.guide_you_through_to_completion' ) ); ?></strong>
          
           </li>
           <li>
-            <strong>Manage your investment for as long as you need it</strong>
+            <strong><?php echo esc_html( pera_ml_ui( 'Manage your investment for as long as you need it', 'theme.template.home_page.manage_your_investment_for_as_long_as_you_need_it' ) ); ?></strong>
          
           </li>
         </ol>
 
         <div class="hero-actions" style="margin-top: 16px;">
-          <a class="btn btn--solid btn--green" href="/contact-us/">Speak to an advisor</a>
-          <a class="btn btn--ghost btn--blue" href="/book-a-consultancy/">Book a consultancy</a>
+          <a class="btn btn--solid btn--green" href="/contact-us/"><?php echo esc_html( pera_ml_ui( 'Speak to an advisor', 'theme.template.home_page.speak_to_an_advisor' ) ); ?></a>
+          <a class="btn btn--ghost btn--blue" href="/book-a-consultancy/"><?php echo esc_html( pera_ml_ui( 'Book a consultancy', 'theme.template.home_page.book_a_consultancy' ) ); ?></a>
         </div>
 
       </div>
@@ -706,27 +706,27 @@ if ( function_exists( 'get_field' ) ) {
 <section class="section section-soft">
   <div class="container">
     <div class="section-header">
-      <h2>Property for Sale in Istanbul: Investment &amp; Lifestyle Opportunities</h2>
+      <h2><?php echo esc_html( pera_ml_ui( 'Property for Sale in Istanbul: Investment & Lifestyle Opportunities', 'theme.template.home_page.property_for_sale_in_istanbul_investment_and_lifestyle_opportunities' ) ); ?></h2>
     </div>
 
     <p class="text-soft">
-      At Pera Property, we advise buyers on how to navigate <strong>property for sale in Istanbul</strong> with a clear strategy first — then shortlist options that match lifestyle goals, rental expectations, and budget. From central homes to investment-led developments, the market offers opportunities on both the European and Asian sides, each with different upside depending on your priorities.
+      <?php echo esc_html( pera_ml_ui( 'At Pera Property, we advise buyers on how to navigate', 'theme.template.home_page.at_pera_property_we_advise_buyers_on_how_to_navigate' ) ); ?> <strong><?php echo esc_html( pera_ml_ui( 'property for sale in Istanbul', 'theme.template.home_page.property_for_sale_in_istanbul' ) ); ?></strong> <?php echo esc_html( pera_ml_ui( 'with a clear strategy first — then shortlist options that match lifestyle goals, rental expectations, and budget. From central homes to investment-led developments, the market offers opportunities on both the European and Asian sides, each with different upside depending on your priorities.', 'theme.template.home_page.with_a_clear_strategy_first_then_shortlist_options_that_match_lifestyle_' ) ); ?>
     </p>
 
     <?php if ( trim( wp_strip_all_tags( $homepage_bottom_seo_text ) ) !== '' ) : ?>
       <?php echo wp_kses_post( $homepage_bottom_seo_text ); ?>
     <?php else : ?>
       <p class="text-soft">
-        For clients focused on long-term value, <strong>apartments for sale in Istanbul</strong> in districts such as <a href="<?php echo esc_url( home_url('/district/istanbul/besiktas/') ); ?>">Beşiktaş</a> and <a href="<?php echo esc_url( home_url('/district/istanbul/sisli/') ); ?>">Şişli</a> are often preferred for access to business hubs and daily convenience, while <a href="<?php echo esc_url( home_url('/district/istanbul/kadikoy/') ); ?>">Kadıköy</a> suits buyers who want a stronger residential and cultural profile.
+        <?php echo esc_html( pera_ml_ui( 'For clients focused on long-term value,', 'theme.template.home_page.for_clients_focused_on_long_term_value' ) ); ?> <strong><?php echo esc_html( pera_ml_ui( 'apartments for sale in Istanbul', 'theme.template.home_page.apartments_for_sale_in_istanbul' ) ); ?></strong> <?php echo esc_html( pera_ml_ui( 'in districts such as', 'theme.template.home_page.in_districts_such_as' ) ); ?> <a href="<?php echo esc_url( home_url('/district/istanbul/besiktas/') ); ?>">Beşiktaş</a> <?php echo esc_html( pera_ml_ui( 'and', 'theme.template.home_page.and' ) ); ?> <a href="<?php echo esc_url( home_url('/district/istanbul/sisli/') ); ?>">Şişli</a> <?php echo esc_html( pera_ml_ui( 'are often preferred for access to business hubs and daily convenience, while', 'theme.template.home_page.are_often_preferred_for_access_to_business_hubs_and_daily_convenience_wh' ) ); ?> <a href="<?php echo esc_url( home_url('/district/istanbul/kadikoy/') ); ?>">Kadıköy</a> <?php echo esc_html( pera_ml_ui( 'suits buyers who want a stronger residential and cultural profile.', 'theme.template.home_page.suits_buyers_who_want_a_stronger_residential_and_cultural_profile' ) ); ?>
       </p>
     <?php endif; ?>
 
     <p class="text-soft">
-      If you plan to <strong>buy property in Istanbul</strong>, we recommend assessing location fundamentals, developer track record, exit liquidity, and realistic rental performance before committing. New projects can offer modern amenities and appreciation potential, while selected resale stock may provide faster income stability.
+      <?php echo esc_html( pera_ml_ui( 'If you plan to', 'theme.template.home_page.if_you_plan_to' ) ); ?> <strong><?php echo esc_html( pera_ml_ui( 'buy property in Istanbul', 'theme.template.home_page.buy_property_in_istanbul' ) ); ?></strong><?php echo esc_html( pera_ml_ui( ', we recommend assessing location fundamentals, developer track record, exit liquidity, and realistic rental performance before committing. New projects can offer modern amenities and appreciation potential, while selected resale stock may provide faster income stability.', 'theme.template.home_page.we_recommend_assessing_location_fundamentals_developer_track_record_exit' ) ); ?>
     </p>
 
     <p class="text-soft">
-      Istanbul is also a major destination for buyers interested in residency and citizenship options. Through the <a href="<?php echo esc_url( home_url('/citizenship-by-investment/') ); ?>">Turkish Citizenship by Investment</a> program, eligible property purchases can qualify investors for a Turkish passport, making real estate not only a lifestyle decision but also a strategic investment.
+      <?php echo esc_html( pera_ml_ui( 'Istanbul is also a major destination for buyers interested in residency and citizenship options. Through the', 'theme.template.home_page.istanbul_is_also_a_major_destination_for_buyers_interested_in_residency_' ) ); ?> <a href="<?php echo esc_url( home_url('/citizenship-by-investment/') ); ?>"><?php echo esc_html( pera_ml_ui( 'Turkish Citizenship by Investment', 'theme.template.home_page.turkish_citizenship_by_investment' ) ); ?></a> <?php echo esc_html( pera_ml_ui( 'program, eligible property purchases can qualify investors for a Turkish passport, making real estate not only a lifestyle decision but also a strategic investment.', 'theme.template.home_page.program_eligible_property_purchases_can_qualify_investors_for_a_turkish_' ) ); ?>
     </p>
   </div>
 </section>
@@ -734,7 +734,7 @@ if ( function_exists( 'get_field' ) ) {
 <?php if ( ! empty( $homepage_faq_items ) ) : ?>
   <section class="faq-section section">
     <div class="container">
-      <h2>FAQs About Buying Property in Istanbul</h2>
+      <h2><?php echo esc_html( pera_ml_ui( 'FAQs About Buying Property in Istanbul', 'theme.template.home_page.faqs_about_buying_property_in_istanbul' ) ); ?></h2>
 
       <div class="faq-accordion">
         <?php foreach ( $homepage_faq_items as $faq_index => $faq_item ) : ?>

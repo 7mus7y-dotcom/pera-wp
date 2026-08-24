@@ -34,16 +34,16 @@ get_header();
   <div class="hero-overlay"></div>
 
   <div class="hero-content">
-    <h1>Beşiktaş Collection</h1>
+    <h1><?php echo esc_html( pera_ml_ui( 'Beşiktaş Collection', 'theme.template.page_vop_besiktas.be_ikta_collection' ) ); ?></h1>
 
     <p class="lead">
-      Three brand new boutique residences redefining modern living
-      in the heart of Istanbul.
+      <?php echo esc_html( pera_ml_ui( 'Three brand new boutique residences redefining modern living
+      in the heart of Istanbul.', 'theme.template.page_vop_besiktas.three_brand_new_boutique_residences_redefining_modern_living_in_the_hear' ) ); ?>
     </p>
 
     <div class="hero-actions">
-      <a href="#projects" class="btn btn--solid btn--blue">Explore projects</a>
-      <a href="#contact" class="btn btn--solid btn--green">Contact us</a>
+      <a href="#projects" class="btn btn--solid btn--blue"><?php echo esc_html( pera_ml_ui( 'Explore projects', 'theme.template.page_vop_besiktas.explore_projects' ) ); ?></a>
+      <a href="#contact" class="btn btn--solid btn--green"><?php echo esc_html( pera_ml_ui( 'Contact us', 'theme.template.page_vop_besiktas.contact_us' ) ); ?></a>
     </div>
   </div>
 </section>
@@ -56,24 +56,24 @@ get_header();
   <section id="about" class="section">
     <div class="container two-col">
       <div>
-        <h2>Lifestyle engineering</h2>
+        <h2><?php echo esc_html( pera_ml_ui( 'Lifestyle engineering', 'theme.template.page_vop_besiktas.lifestyle_engineering' ) ); ?></h2>
         <p>
-          Human-focused planning, solid construction and central Beşiktaş addresses.
-          Each project is designed for both living and investment.
+          <?php echo esc_html( pera_ml_ui( 'Human-focused planning, solid construction and central Beşiktaş addresses.
+          Each project is designed for both living and investment.', 'theme.template.page_vop_besiktas.human_focused_planning_solid_construction_and_central_be_ikta_addresses_' ) ); ?>
         </p>
 
         <div class="pillars">
-          <div>Earthquake-resistant</div>
-          <div>Energy efficient</div>
-          <div>Smart layouts</div>
-          <div>Central Beşiktaş</div>
+          <div><?php echo esc_html( pera_ml_ui( 'Earthquake-resistant', 'theme.template.page_vop_besiktas.earthquake_resistant' ) ); ?></div>
+          <div><?php echo esc_html( pera_ml_ui( 'Energy efficient', 'theme.template.page_vop_besiktas.energy_efficient' ) ); ?></div>
+          <div><?php echo esc_html( pera_ml_ui( 'Smart layouts', 'theme.template.page_vop_besiktas.smart_layouts' ) ); ?></div>
+          <div><?php echo esc_html( pera_ml_ui( 'Central Beşiktaş', 'theme.template.page_vop_besiktas.central_be_ikta' ) ); ?></div>
         </div>
       </div>
 
       <div>
         <img
           src="<?php echo content_url( '/uploads/vop/vop-concept-thumb.jpg' ); ?>"
-          alt="VOP concept"
+          alt="<?php echo esc_attr( pera_ml_ui( 'VOP concept', 'theme.template.page_vop_besiktas.alt.vop_concept' ) ); ?>"
           loading="lazy"
           decoding="async"
         >
@@ -90,10 +90,10 @@ get_header();
       <div class="grid-2">
         <!-- LEFT: TEXT -->
         <div>
-          <h2>In the heart of Beşiktaş</h2>
+          <h2><?php echo esc_html( pera_ml_ui( 'In the heart of Beşiktaş', 'theme.template.page_vop_besiktas.in_the_heart_of_be_ikta' ) ); ?></h2>
           <p>
-            All three residences sit within minutes of world-famous landmarks —
-            ideal for the short rental market or as a vacation home (or both).
+            <?php echo esc_html( pera_ml_ui( 'All three residences sit within minutes of world-famous landmarks —
+            ideal for the short rental market or as a vacation home (or both).', 'theme.template.page_vop_besiktas.all_three_residences_sit_within_minutes_of_world_famous_landmarks_ideal_' ) ); ?>
           </p>
         </div>
 
@@ -101,7 +101,7 @@ get_header();
         <div>
           <img
             src="<?php echo content_url( '/uploads/vop/vop-map.webp' ); ?>"
-            alt="Map of Beşiktaş projects"
+            alt="<?php echo esc_attr( pera_ml_ui( 'Map of Beşiktaş projects', 'theme.template.page_vop_besiktas.alt.map_of_be_ikta_projects' ) ); ?>"
             class="rounded"
             loading="lazy"
             decoding="async"
@@ -117,7 +117,7 @@ get_header();
        ====================================================== -->
   <section id="projects" class="section">
     <div class="container">
-      <h2 class="center">Our projects</h2>
+      <h2 class="center"><?php echo esc_html( pera_ml_ui( 'Our projects', 'theme.template.page_vop_besiktas.our_projects' ) ); ?></h2>
 
       <div class="cards">
           
@@ -132,12 +132,12 @@ get_header();
 
           <div class="content">
             <h3>Ihlamur</h3>
-            <p>Ihlamurdere Caddesi, Beşiktaş</p>
+            <p><?php echo esc_html( pera_ml_ui( 'Ihlamurdere Caddesi, Beşiktaş', 'theme.template.page_vop_besiktas.ihlamurdere_caddesi_be_ikta' ) ); ?></p>
             <ul>
-              <li>32 apartments + 2 shops</li>
-              <li>1+1 to 4+1 duplex</li>
-              <li>Next to Dünya Barış Park</li>
-              <li>Delivery: Feb 2026</li>
+              <li><?php echo esc_html( pera_ml_ui( '32 apartments + 2 shops', 'theme.template.page_vop_besiktas.32_apartments_2_shops' ) ); ?></li>
+              <li><?php echo esc_html( pera_ml_ui( '1+1 to 4+1 duplex', 'theme.template.page_vop_besiktas.1_1_to_4_1_duplex' ) ); ?></li>
+              <li><?php echo esc_html( pera_ml_ui( 'Next to Dünya Barış Park', 'theme.template.page_vop_besiktas.next_to_d_nya_bar_park' ) ); ?></li>
+              <li><?php echo esc_html( pera_ml_ui( 'Delivery: Feb 2026', 'theme.template.page_vop_besiktas.delivery_feb_2026' ) ); ?></li>
             </ul>
 
             <div class="card-actions">
@@ -150,7 +150,7 @@ get_header();
                 <svg class="icon" aria-hidden="true">
                   <use href="<?php echo get_stylesheet_directory_uri(); ?>/logos-icons/icons.svg#icon-pdf"></use>
                 </svg>
-                Brochure
+                <?php echo esc_html( pera_ml_ui( 'Brochure', 'theme.template.page_vop_besiktas.brochure' ) ); ?>
               </a>
 
               <!-- Location -->
@@ -163,7 +163,7 @@ get_header();
                 <svg class="icon" aria-hidden="true">
                   <use href="<?php echo get_stylesheet_directory_uri(); ?>/logos-icons/icons.svg#icon-map"></use>
                 </svg>
-                Location
+                <?php echo esc_html( pera_ml_ui( 'Location', 'theme.template.page_vop_besiktas.location' ) ); ?>
               </a>
             </div>
           </div>
@@ -181,12 +181,12 @@ get_header();
 
           <div class="content">
             <h3>Dikilitaş</h3>
-            <p>Mukataacı Sokak No: 3</p>
+            <p><?php echo esc_html( pera_ml_ui( 'Mukataacı Sokak No: 3', 'theme.template.page_vop_besiktas.mukataac_sokak_no_3' ) ); ?></p>
             <ul>
-              <li>29 boutique apartments</li>
-              <li>Next to Dikilitaş Park</li>
-              <li>1+1 – 4+1 duplex</li>
-              <li>Delivery: Jan 2026</li>
+              <li><?php echo esc_html( pera_ml_ui( '29 boutique apartments', 'theme.template.page_vop_besiktas.29_boutique_apartments' ) ); ?></li>
+              <li><?php echo esc_html( pera_ml_ui( 'Next to Dikilitaş Park', 'theme.template.page_vop_besiktas.next_to_dikilita_park' ) ); ?></li>
+              <li><?php echo esc_html( pera_ml_ui( '1+1 – 4+1 duplex', 'theme.template.page_vop_besiktas.1_1_4_1_duplex' ) ); ?></li>
+              <li><?php echo esc_html( pera_ml_ui( 'Delivery: Jan 2026', 'theme.template.page_vop_besiktas.delivery_jan_2026' ) ); ?></li>
             </ul>
 
             <div class="card-actions">
@@ -199,7 +199,7 @@ get_header();
                 <svg class="icon" aria-hidden="true">
                   <use href="<?php echo get_stylesheet_directory_uri(); ?>/logos-icons/icons.svg#icon-pdf"></use>
                 </svg>
-                Brochure
+                <?php echo esc_html( pera_ml_ui( 'Brochure', 'theme.template.page_vop_besiktas.brochure' ) ); ?>
               </a>
 
               <!-- Location -->
@@ -212,7 +212,7 @@ get_header();
                 <svg class="icon" aria-hidden="true">
                   <use href="<?php echo get_stylesheet_directory_uri(); ?>/logos-icons/icons.svg#icon-map"></use>
                 </svg>
-                Location
+                <?php echo esc_html( pera_ml_ui( 'Location', 'theme.template.page_vop_besiktas.location' ) ); ?>
               </a>
             </div>
           </div>
@@ -230,11 +230,11 @@ get_header();
 
           <div class="content">
             <h3>Abbasağa</h3>
-            <p>Zafer Sokak, Abbasağa</p>
+            <p><?php echo esc_html( pera_ml_ui( 'Zafer Sokak, Abbasağa', 'theme.template.page_vop_besiktas.zafer_sokak_abbasa_a' ) ); ?></p>
             <ul>
-              <li>28 apartments</li>
-              <li>Opposite Dünya Barış Park</li>
-              <li>Delivery: Feb 2026</li>
+              <li><?php echo esc_html( pera_ml_ui( '28 apartments', 'theme.template.page_vop_besiktas.28_apartments' ) ); ?></li>
+              <li><?php echo esc_html( pera_ml_ui( 'Opposite Dünya Barış Park', 'theme.template.page_vop_besiktas.opposite_d_nya_bar_park' ) ); ?></li>
+              <li><?php echo esc_html( pera_ml_ui( 'Delivery: Feb 2026', 'theme.template.page_vop_besiktas.delivery_feb_2026' ) ); ?></li>
             </ul>
 
             <div class="card-actions">
@@ -247,7 +247,7 @@ get_header();
                 <svg class="icon" aria-hidden="true">
                   <use href="<?php echo get_stylesheet_directory_uri(); ?>/logos-icons/icons.svg#icon-pdf"></use>
                 </svg>
-                Brochure
+                <?php echo esc_html( pera_ml_ui( 'Brochure', 'theme.template.page_vop_besiktas.brochure' ) ); ?>
               </a>
 
               <!-- Location -->
@@ -260,7 +260,7 @@ get_header();
                 <svg class="icon" aria-hidden="true">
                   <use href="<?php echo get_stylesheet_directory_uri(); ?>/logos-icons/icons.svg#icon-map"></use>
                 </svg>
-                Location
+                <?php echo esc_html( pera_ml_ui( 'Location', 'theme.template.page_vop_besiktas.location' ) ); ?>
               </a>
             </div>
           </div>
@@ -276,35 +276,35 @@ get_header();
        ====================================================== -->
   <section id="comparison" class="section section-soft">
     <div class="container">
-      <h2 class="center">Project overview</h2>
+      <h2 class="center"><?php echo esc_html( pera_ml_ui( 'Project overview', 'theme.template.page_vop_besiktas.project_overview' ) ); ?></h2>
 
       <div class="table-wrap">
         <table>
           <thead>
             <tr>
-              <th>Project</th>
-              <th>Units</th>
-              <th>Delivery</th>
-              <th>Nearby</th>
+              <th><?php echo esc_html( pera_ml_ui( 'Project', 'theme.template.page_vop_besiktas.project' ) ); ?></th>
+              <th><?php echo esc_html( pera_ml_ui( 'Units', 'theme.template.page_vop_besiktas.units' ) ); ?></th>
+              <th><?php echo esc_html( pera_ml_ui( 'Delivery', 'theme.template.page_vop_besiktas.delivery' ) ); ?></th>
+              <th><?php echo esc_html( pera_ml_ui( 'Nearby', 'theme.template.page_vop_besiktas.nearby' ) ); ?></th>
             </tr>
           </thead>
           <tbody>
             <tr>
               <td>Ihlamur</td>
-              <td>32 + 2 shops</td>
-              <td>Feb 2026</td>
+              <td><?php echo esc_html( pera_ml_ui( '32 + 2 shops', 'theme.template.page_vop_besiktas.32_2_shops' ) ); ?></td>
+              <td><?php echo esc_html( pera_ml_ui( 'Feb 2026', 'theme.template.page_vop_besiktas.feb_2026' ) ); ?></td>
               <td>Ihlamurdere Cad.</td>
             </tr>
             <tr>
               <td>Dikilitaş</td>
-              <td>29 units</td>
-              <td>Jan 2026</td>
+              <td><?php echo esc_html( pera_ml_ui( '29 units', 'theme.template.page_vop_besiktas.29_units' ) ); ?></td>
+              <td><?php echo esc_html( pera_ml_ui( 'Jan 2026', 'theme.template.page_vop_besiktas.jan_2026' ) ); ?></td>
               <td>Dikilitaş Park</td>
             </tr>
             <tr>
               <td>Abbasağa</td>
-              <td>28 units</td>
-              <td>Feb 2026</td>
+              <td><?php echo esc_html( pera_ml_ui( '28 units', 'theme.template.page_vop_besiktas.28_units' ) ); ?></td>
+              <td><?php echo esc_html( pera_ml_ui( 'Feb 2026', 'theme.template.page_vop_besiktas.feb_2026' ) ); ?></td>
               <td>Abbasağa Park</td>
             </tr>
           </tbody>
@@ -320,13 +320,13 @@ get_header();
   <section id="lifestyle" class="section">
     <div class="container two-col">
       <div>
-        <h2>Life in Beşiktaş</h2>
+        <h2><?php echo esc_html( pera_ml_ui( 'Life in Beşiktaş', 'theme.template.page_vop_besiktas.life_in_be_ikta' ) ); ?></h2>
         <p>
-          Walk to cafés, parks and the Bosphorus. Close to Nişantaşı,
-          transport links and universities.
+          <?php echo esc_html( pera_ml_ui( 'Walk to cafés, parks and the Bosphorus. Close to Nişantaşı,
+          transport links and universities.', 'theme.template.page_vop_besiktas.walk_to_caf_s_parks_and_the_bosphorus_close_to_ni_anta_transport_links_a' ) ); ?>
         </p>
         <p>
-          We combine central locations with boutique, low-unit buildings.
+          <?php echo esc_html( pera_ml_ui( 'We combine central locations with boutique, low-unit buildings.', 'theme.template.page_vop_besiktas.we_combine_central_locations_with_boutique_low_unit_buildings' ) ); ?>
         </p>
       </div>
 
@@ -353,8 +353,8 @@ get_header();
        ====================================================== -->
   <section id="contact" class="section section-soft">
     <div class="container center">
-      <h2>Request full details</h2>
-      <p>Get floor plans, availability and current pricing.</p>
+      <h2><?php echo esc_html( pera_ml_ui( 'Request full details', 'theme.template.page_vop_besiktas.request_full_details' ) ); ?></h2>
+      <p><?php echo esc_html( pera_ml_ui( 'Get floor plans, availability and current pricing.', 'theme.template.page_vop_besiktas.get_floor_plans_availability_and_current_pricing' ) ); ?></p>
 
       <div class="hero-actions">
         <a
@@ -363,14 +363,14 @@ get_header();
           target="_blank"
           rel="noopener" data-whatsapp="1" data-whatsapp-type="project_cta" data-track-channel="whatsapp" data-track-intent="high" data-track-source="template" data-track-context="vop_besiktas" data-track-ga4-event="whatsapp_click" data-track-crm-event="whatsapp_click"
         >
-          WhatsApp us
+          <?php echo esc_html( pera_ml_ui( 'WhatsApp us', 'theme.template.page_vop_besiktas.whatsapp_us' ) ); ?>
         </a>
 
         <a
           href="mailto:info@peraproperty.com"
           class="btn btn-secondary"
         >
-          Email us
+          <?php echo esc_html( pera_ml_ui( 'Email us', 'theme.template.page_vop_besiktas.email_us' ) ); ?>
         </a>
       </div>
     </div>

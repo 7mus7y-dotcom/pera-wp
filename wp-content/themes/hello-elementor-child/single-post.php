@@ -187,7 +187,7 @@ get_header();
             
               <div class="hero-content">
                 <?php if ( ! empty( $breadcrumb_items ) ) : ?>
-                  <nav class="post-breadcrumbs" aria-label="Breadcrumb">
+                  <nav class="post-breadcrumbs" aria-label="<?php echo esc_attr( pera_ml_ui( 'Breadcrumb', 'theme.template.single_post.aria_label.breadcrumb' ) ); ?>">
                     <ol class="post-breadcrumbs__list">
                       <?php foreach ( $breadcrumb_items as $index => $breadcrumb_item ) : ?>
                         <?php
@@ -229,7 +229,7 @@ get_header();
             
                 <div class="article-meta-secondary">
                   <span class="article-meta-item">
-                    Date uploaded
+                    <?php echo esc_html( pera_ml_ui( 'Date uploaded', 'theme.template.single_post.date_uploaded' ) ); ?>
                     <time datetime="<?php echo esc_attr( get_the_date( DATE_W3C ) ); ?>">
                       <?php echo esc_html( get_the_date() ); ?>
                     </time>
@@ -237,7 +237,7 @@ get_header();
                   <?php if ( $show_updated ) : ?>
                     <span class="article-meta-separator"> / </span>
                     <span class="article-meta-item">
-                      Updated
+                      <?php echo esc_html( pera_ml_ui( 'Updated', 'theme.template.single_post.updated' ) ); ?>
                       <time datetime="<?php echo esc_attr( $updated_datetime ); ?>">
                         <?php echo esc_html( $updated_date_display ); ?>
                       </time>
@@ -245,7 +245,7 @@ get_header();
                   <?php endif; ?>
                   <span class="article-meta-separator"> / </span>
                   <span class="article-meta-item author vcard">
-                    Written by
+                    <?php echo esc_html( pera_ml_ui( 'Written by', 'theme.template.single_post.written_by' ) ); ?>
                     <a class="url fn n" rel="author" href="<?php echo esc_url( get_author_posts_url( $author_id ) ); ?>">
                       <?php echo esc_html( get_the_author() ); ?>
                     </a>
@@ -271,8 +271,8 @@ get_header();
                         <?php endif; ?>
 
                         <?php if ( ! empty( $tag_terms ) && is_array( $tag_terms ) ) : ?>
-                          <section class="post-tags" aria-label="Article tags">
-                            <h2 class="post-tags__title">Tags</h2>
+                          <section class="post-tags" aria-label="<?php echo esc_attr( pera_ml_ui( 'Article tags', 'theme.template.single_post.aria_label.article_tags' ) ); ?>">
+                            <h2 class="post-tags__title"><?php echo esc_html( pera_ml_ui( 'Tags', 'theme.template.single_post.tags' ) ); ?></h2>
                             <ul class="post-tags__list">
                               <?php foreach ( $tag_terms as $tag_term ) : ?>
                                 <?php $tag_link = get_tag_link( $tag_term->term_id ); ?>
@@ -293,17 +293,17 @@ get_header();
                           $next_post     = get_next_post();
                         ?>
                         <?php if ( $previous_post || $next_post ) : ?>
-                          <nav class="post-adjacent-nav" aria-label="Article navigation">
+                          <nav class="post-adjacent-nav" aria-label="<?php echo esc_attr( pera_ml_ui( 'Article navigation', 'theme.template.single_post.aria_label.article_navigation' ) ); ?>">
                             <?php if ( $previous_post instanceof WP_Post ) : ?>
                               <a class="post-adjacent-nav__link post-adjacent-nav__link--prev" href="<?php echo esc_url( get_permalink( $previous_post ) ); ?>">
-                                <span class="post-adjacent-nav__label">Previous article</span>
+                                <span class="post-adjacent-nav__label"><?php echo esc_html( pera_ml_ui( 'Previous article', 'theme.template.single_post.previous_article' ) ); ?></span>
                                 <span class="post-adjacent-nav__title"><?php echo esc_html( get_the_title( $previous_post ) ); ?></span>
                               </a>
                             <?php endif; ?>
 
                             <?php if ( $next_post instanceof WP_Post ) : ?>
                               <a class="post-adjacent-nav__link post-adjacent-nav__link--next" href="<?php echo esc_url( get_permalink( $next_post ) ); ?>">
-                                <span class="post-adjacent-nav__label">Next article</span>
+                                <span class="post-adjacent-nav__label"><?php echo esc_html( pera_ml_ui( 'Next article', 'theme.template.single_post.next_article' ) ); ?></span>
                                 <span class="post-adjacent-nav__title"><?php echo esc_html( get_the_title( $next_post ) ); ?></span>
                               </a>
                             <?php endif; ?>
@@ -313,12 +313,12 @@ get_header();
 
 
                     <!-- RIGHT: SIDEBAR -->
-                    <aside class="article-sidebar" aria-label="Article sidebar">
+                    <aside class="article-sidebar" aria-label="<?php echo esc_attr( pera_ml_ui( 'Article sidebar', 'theme.template.single_post.aria_label.article_sidebar' ) ); ?>">
 
                       <?php if ( isset( $related_query ) && $related_query instanceof WP_Query && $related_query->have_posts() ) : ?>
                     
                         <section class="sidebar-block sidebar-block--related">
-                          <h3>Related articles</h3>
+                          <h3><?php echo esc_html( pera_ml_ui( 'Related articles', 'theme.template.single_post.related_articles' ) ); ?></h3>
                     
                           <div class="cards-slider cards-slider--sidebar">
                             <div class="slider-track">
@@ -345,7 +345,7 @@ get_header();
                     
                           <div class="sidebar-cta">
                             <a class="btn btn--solid btn--blue" href="<?php echo esc_url( $primary_link ? $primary_link : $posts_page_link ); ?>">
-                              See all posts
+                              <?php echo esc_html( pera_ml_ui( 'See all posts', 'theme.template.single_post.see_all_posts' ) ); ?>
                             </a>
                           </div>
                     
@@ -357,28 +357,28 @@ get_header();
                     
                         <!-- 2. SELL WITH PERA -->
                         <section class="sidebar-block sidebar-block--sell">
-                            <h3>Sell Your Property in Istanbul</h3>
+                            <h3><?php echo esc_html( pera_ml_ui( 'Sell Your Property in Istanbul', 'theme.template.single_post.sell_your_property_in_istanbul' ) ); ?></h3>
                             <p class="sidebar-text">
-                                Get a realistic Istanbul property valuation, professional marketing, qualified buyer viewings and end-to-end support through negotiation and the title deed process.
+                                <?php echo esc_html( pera_ml_ui( 'Get a realistic Istanbul property valuation, professional marketing, qualified buyer viewings and end-to-end support through negotiation and the title deed process.', 'theme.template.single_post.get_a_realistic_istanbul_property_valuation_professional_marketing_quali' ) ); ?>
                             </p>
                             <div class="sidebar-cta">
                                 <a class="btn btn--solid btn--blue"
                                    href="<?php echo esc_url( home_url( '/sell-your-istanbul-real-estate/' ) ); ?>">
-                                    Get a Free Valuation
+                                    <?php echo esc_html( pera_ml_ui( 'Get a Free Valuation', 'theme.template.single_post.get_a_free_valuation' ) ); ?>
                                 </a>
                             </div>
                         </section>
                     
                         <!-- 3. RENT WITH PERA -->
                         <section class="sidebar-block sidebar-block--rent">
-                            <h3>Rent Out Your Property in Istanbul</h3>
+                            <h3><?php echo esc_html( pera_ml_ui( 'Rent Out Your Property in Istanbul', 'theme.template.single_post.rent_out_your_property_in_istanbul' ) ); ?></h3>
                             <p class="sidebar-text">
-                                Pera Property helps local and overseas owners find reliable tenants, manage contracts, coordinate maintenance and protect rental income with hands-on Istanbul property management.
+                                <?php echo esc_html( pera_ml_ui( 'Pera Property helps local and overseas owners find reliable tenants, manage contracts, coordinate maintenance and protect rental income with hands-on Istanbul property management.', 'theme.template.single_post.pera_property_helps_local_and_overseas_owners_find_reliable_tenants_mana' ) ); ?>
                             </p>
                             <div class="sidebar-cta">
                                 <a class="btn btn--solid btn--blue"
                                    href="<?php echo esc_url( home_url( '/rent-your-istanbul-real-estate/' ) ); ?>">
-                                    Explore Property Management
+                                    <?php echo esc_html( pera_ml_ui( 'Explore Property Management', 'theme.template.single_post.explore_property_management' ) ); ?>
                                 </a>
                             </div>
                         </section>
@@ -391,7 +391,7 @@ get_header();
                         <?php if ( ! $is_guide_like_post ) : ?>
                           <!-- 4. LATEST PROPERTIES -->
                           <section class="sidebar-block sidebar-block--properties">
-                            <h3>Latest properties</h3>
+                            <h3><?php echo esc_html( pera_ml_ui( 'Latest properties', 'theme.template.single_post.latest_properties' ) ); ?></h3>
                           
                             <?php
                             $properties = new WP_Query( array(
@@ -451,8 +451,8 @@ get_header();
 
         <section class="section section-article">
             <div class="container narrow">
-                <p>Sorry, we couldn’t find this article.</p>
-                <a class="btn btn--ghost btn--blue" href="<?php echo esc_url( home_url( '/' ) ); ?>">Go to homepage</a>
+                <p><?php echo esc_html( pera_ml_ui( 'Sorry, we couldn’t find this article.', 'theme.template.single_post.sorry_we_couldn_t_find_this_article' ) ); ?></p>
+                <a class="btn btn--ghost btn--blue" href="<?php echo esc_url( home_url( '/' ) ); ?>"><?php echo esc_html( pera_ml_ui( 'Go to homepage', 'theme.template.single_post.go_to_homepage' ) ); ?></a>
             </div>
         </section>
 
