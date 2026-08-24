@@ -34,7 +34,8 @@ final class Pera_ML_Fields {
 	public function definitions() {
 		$legacy = array( 'project_name', 'floor_plans_heading', 'floor_plans_custom_text', 'property_editorial_intro', 'property_highlights_text', 'property_district_analysis', 'property_investment_potential', 'property_buyer_suitability', 'property_developer_profile', 'property_faq_text', 'further_reading_heading', 'further_reading_text', 'custom_video_heading', 'custom_video_text', 'project_summary_heading', 'project_summary', 'yt_heading', 'whats_special_heading', 'about_this_project', 'location_info_heading', 'distances', 'archive_h1', 'archive_subtitle', 'archive_intro_content', 'archive_bottom_content', 'archive_cta_heading', 'archive_cta_text', 'district_archive_subtitle', 'district_archive_body', 'post_subtitle', 'seo_title', 'seo_meta_description', 'seo_faq_v2' );
 		$property = self::property_fields();
-		return apply_filters( 'pera_ml_translatable_meta_fields_by_post_type', array( 'post' => apply_filters( 'pera_ml_translatable_meta_fields', $legacy ), 'property' => $property ) );
+		$page = array( 'seo_title', 'seo_meta_description', 'seo_faq_v2' );
+		return apply_filters( 'pera_ml_translatable_meta_fields_by_post_type', array( 'post' => apply_filters( 'pera_ml_translatable_meta_fields', $legacy ), 'page' => $page, 'property' => $property ) );
 	}
 	/** Get the contract for one post type, or the union used to register ACF filters. */
 	public function approved( $post_type = null ) {

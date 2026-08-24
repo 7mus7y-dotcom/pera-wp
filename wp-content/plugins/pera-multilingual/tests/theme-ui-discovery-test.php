@@ -68,5 +68,9 @@ $approved = $tool->run( Pera_ML_Theme_UI_Discovery::approved_directories( $root 
 expect_discovery( 4, $approved['discovered'], 'approved directories plus root and template-subdirectory calls are discovered' );
 expect_discovery( false, false !== array_search( 'theme.template.test', array_column( $GLOBALS['ui_registry_option'], 'semantic_key' ), true ), 'test template is excluded' );
 expect_discovery( false, false !== array_search( 'theme.template.language', array_column( $GLOBALS['ui_registry_option'], 'semantic_key' ), true ), 'language-specific template is excluded' );
+$admin_source = file_get_contents( dirname( __DIR__ ) . '/admin/class-admin.php' );
+$cli_source = file_get_contents( dirname( __DIR__ ) . '/tools/register-theme-ui-strings.php' );
+expect_discovery( true, false !== strpos( $admin_source, 'Pera_ML_Theme_UI_Discovery::approved_directories()' ), 'admin scan uses shared approved discovery scope' );
+expect_discovery( true, false !== strpos( $cli_source, 'Pera_ML_Theme_UI_Discovery::approved_directories()' ), 'CLI uses shared approved discovery scope' );
 
 echo "Pera ML theme UI discovery tests passed\n";
