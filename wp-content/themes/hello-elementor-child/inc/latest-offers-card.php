@@ -177,7 +177,7 @@ if ( ! function_exists( 'pera_latest_offers_property_title' ) ) {
 	function pera_latest_offers_property_title( int $property_id ): string {
 		$title = trim( (string) get_the_title( $property_id ) );
 		if ( '' === $title ) {
-			return __( 'Untitled property', 'hello-elementor-child' );
+			return pera_ml_ui( 'Untitled property', 'theme.inc.latest-offers-card.untitled_property' );
 		}
 
 		return $title;
@@ -191,7 +191,7 @@ if ( ! function_exists( 'pera_latest_offers_format_floor' ) ) {
 			return '';
 		}
 
-		return sprintf( __( 'Floor %s', 'hello-elementor-child' ), $floor );
+		return sprintf( pera_ml_ui( 'Floor %s', 'theme.inc.latest-offers-card.floor_value' ), $floor );
 	}
 }
 
@@ -207,8 +207,8 @@ if ( ! function_exists( 'pera_latest_offers_whatsapp_url' ) ) {
 
 		$is_citizenship = 'citizenship_property_card' === $context || ( function_exists( 'is_page_template' ) && is_page_template( 'page-citizenship-properties.php' ) );
 		$message        = $is_citizenship
-			? sprintf( 'Hello Pera Property, I’m interested in this citizenship property: %s. Can you confirm availability and citizenship suitability? %s', $property_title, $property_url )
-			: sprintf( 'Hello Pera Property, I’m interested in this property: %s. Can you confirm availability and send more details? %s', $property_title, $property_url );
+			? sprintf( pera_ml_ui( 'Hello Pera Property, I’m interested in this citizenship property: %s. Can you confirm availability and citizenship suitability? %s', 'theme.latest_offers.citizenship_whatsapp_message' ), $property_title, $property_url )
+			: sprintf( pera_ml_ui( 'Hello Pera Property, I’m interested in this property: %s. Can you confirm availability and send more details? %s', 'theme.latest_offers.whatsapp_message' ), $property_title, $property_url );
 
 		return pera_get_whatsapp_url( $message );
 	}
@@ -216,7 +216,7 @@ if ( ! function_exists( 'pera_latest_offers_whatsapp_url' ) ) {
 
 if ( ! function_exists( 'pera_latest_offers_citizenship_mid_list_whatsapp_url' ) ) {
 	function pera_latest_offers_citizenship_mid_list_whatsapp_url(): string {
-		$message = 'Hello Pera Property, I’m comparing Turkish citizenship properties. My budget is [budget] and preferred location is [location]. Can you help me choose the best options?';
+		$message = pera_ml_ui( 'Hello Pera Property, I’m comparing Turkish citizenship properties. My budget is [budget] and preferred location is [location]. Can you help me choose the best options?', 'theme.latest_offers.shortlist_whatsapp_message' );
 		return pera_get_whatsapp_url( $message );
 	}
 }
@@ -225,15 +225,15 @@ if ( ! function_exists( 'pera_latest_offers_render_citizenship_mid_list_cta' ) )
 	function pera_latest_offers_render_citizenship_mid_list_cta(): void {
 		$whatsapp_url = pera_latest_offers_citizenship_mid_list_whatsapp_url();
 		?>
-		<article class="pera-latest-offer-card pera-card-shell pera-latest-offer-card--cta" aria-label="<?php echo esc_attr__( 'Citizenship property shortlist help', 'hello-elementor-child' ); ?>">
-			<span class="pill pill--brand pill--sm pera-latest-offer-card--cta__eyebrow"><?php esc_html_e( 'Shortlist help', 'hello-elementor-child' ); ?></span>
+		<article class="pera-latest-offer-card pera-card-shell pera-latest-offer-card--cta" aria-label="<?php echo esc_attr( pera_ml_ui( 'Citizenship property shortlist help', 'theme.inc.latest-offers-card.citizenship_property_shortlist_help' ) ); ?>">
+			<span class="pill pill--brand pill--sm pera-latest-offer-card--cta__eyebrow"><?php echo esc_html( pera_ml_ui( 'Shortlist help', 'theme.inc.latest-offers-card.shortlist_help' ) ); ?></span>
 			<div class="pera-latest-offer-card--cta__body">
-				<h3 class="pera-latest-offer-card__title pera-latest-offer-card--cta__title"><?php esc_html_e( 'Need help comparing these citizenship properties?', 'hello-elementor-child' ); ?></h3>
-				<p><?php esc_html_e( 'Send your budget and preferred location. We’ll confirm which options best fit your citizenship application, rental goals and resale plan before you reserve.', 'hello-elementor-child' ); ?></p>
+				<h3 class="pera-latest-offer-card__title pera-latest-offer-card--cta__title"><?php echo esc_html( pera_ml_ui( 'Need help comparing these citizenship properties?', 'theme.inc.latest-offers-card.need_help_comparing_these_citizenship_properties' ) ); ?></h3>
+				<p><?php echo esc_html( pera_ml_ui( 'Send your budget and preferred location. We’ll confirm which options best fit your citizenship application, rental goals and resale plan before you reserve.', 'theme.inc.latest-offers-card.send_your_budget_and_preferred_location_we_ll_confirm_which_options_be' ) ); ?></p>
 			</div>
 			<div class="pera-latest-offer-card--cta__actions">
-				<a class="btn btn--solid btn--green pera-latest-offer-card--cta__button" href="<?php echo esc_url( 'https://www.peraproperty.com/citizenship-by-investment/#citizenship-callback' ); ?>"><?php esc_html_e( 'Request eligibility check', 'hello-elementor-child' ); ?></a>
-				<a class="btn btn--solid btn--black pera-latest-offer-card--cta__button" href="<?php echo esc_url( $whatsapp_url ); ?>" target="_blank" rel="noopener noreferrer" data-whatsapp="1" data-whatsapp-type="citizenship_mid_list_cta" data-track-channel="whatsapp" data-track-intent="high" data-track-source="page" data-track-context="citizenship_mid_list_cta" data-track-ga4-event="whatsapp_click" data-track-crm-event="whatsapp_click"><?php esc_html_e( 'WhatsApp us', 'hello-elementor-child' ); ?></a>
+				<a class="btn btn--solid btn--green pera-latest-offer-card--cta__button" href="<?php echo esc_url( 'https://www.peraproperty.com/citizenship-by-investment/#citizenship-callback' ); ?>"><?php echo esc_html( pera_ml_ui( 'Request eligibility check', 'theme.inc.latest-offers-card.request_eligibility_check' ) ); ?></a>
+				<a class="btn btn--solid btn--black pera-latest-offer-card--cta__button" href="<?php echo esc_url( $whatsapp_url ); ?>" target="_blank" rel="noopener noreferrer" data-whatsapp="1" data-whatsapp-type="citizenship_mid_list_cta" data-track-channel="whatsapp" data-track-intent="high" data-track-source="page" data-track-context="citizenship_mid_list_cta" data-track-ga4-event="whatsapp_click" data-track-crm-event="whatsapp_click"><?php echo esc_html( pera_ml_ui( 'WhatsApp us', 'theme.inc.latest-offers-card.whatsapp_us' ) ); ?></a>
 			</div>
 		</article>
 		<?php

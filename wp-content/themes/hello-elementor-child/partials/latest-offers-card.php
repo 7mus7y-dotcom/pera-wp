@@ -27,7 +27,7 @@ $card_context   = isset( $card['tracking_context'] ) ? sanitize_key( (string) $c
 $whatsapp_url   = function_exists( 'pera_latest_offers_whatsapp_url' ) ? pera_latest_offers_whatsapp_url( $property_title, $property_url, $card_context ) : '';
 $whatsapp_type  = 'citizenship_property_card' === $card_context ? 'citizenship_property_card' : 'latest_offer_card';
 ?>
-<article class="pera-latest-offer-card slider-card pera-card-shell" aria-label="<?php echo esc_attr__( 'Latest offer card', 'hello-elementor-child' ); ?>">
+<article class="pera-latest-offer-card slider-card pera-card-shell" aria-label="<?php echo esc_attr( pera_ml_ui( 'Latest offer card', 'theme.partials.latest-offers-card.latest_offer_card' ) ); ?>">
 	<div class="pera-latest-offer-card__pills">
 		<?php if ( '' !== $region_name ) : ?>
 			<span class="pill pill--green"><?php echo esc_html( $region_name ); ?></span>
@@ -46,15 +46,15 @@ $whatsapp_type  = 'citizenship_property_card' === $card_context ? 'citizenship_p
 	</h3>
 
 	<div class="pera-latest-offer-card__summary">
-		<p class="pera-latest-offer-card__heading"><?php esc_html_e( 'Apartment details', 'hello-elementor-child' ); ?></p>
-		<p class="pera-latest-offer-card__list"><?php echo esc_html( sprintf( __( 'List price: %s', 'hello-elementor-child' ), $list_price ) ); ?></p>
-		<p class="pera-latest-offer-card__cash"><?php echo esc_html( sprintf( __( 'Cash price: %s', 'hello-elementor-child' ), $cash_price ) ); ?></p>
+		<p class="pera-latest-offer-card__heading"><?php echo esc_html( pera_ml_ui( 'Apartment details', 'theme.partials.latest-offers-card.apartment_details' ) ); ?></p>
+		<p class="pera-latest-offer-card__list"><?php echo esc_html( sprintf( pera_ml_ui( 'List price: %s', 'theme.partials.latest-offers-card.list_price_value' ), $list_price ) ); ?></p>
+		<p class="pera-latest-offer-card__cash"><?php echo esc_html( sprintf( pera_ml_ui( 'Cash price: %s', 'theme.partials.latest-offers-card.cash_price_value' ), $cash_price ) ); ?></p>
 		<p class="pera-latest-offer-card__meta">
-			<span><?php echo esc_html( sprintf( __( 'Type: %s', 'hello-elementor-child' ), $type ) ); ?></span>
+			<span><?php echo esc_html( sprintf( pera_ml_ui( 'Type: %s', 'theme.partials.latest-offers-card.type_value' ), $type ) ); ?></span>
 			<span aria-hidden="true">•</span>
-			<span><?php echo esc_html( sprintf( __( 'Net: %s', 'hello-elementor-child' ), $net_sqm ) ); ?></span>
+			<span><?php echo esc_html( sprintf( pera_ml_ui( 'Net: %s', 'theme.partials.latest-offers-card.net_value' ), $net_sqm ) ); ?></span>
 			<span aria-hidden="true">•</span>
-			<span><?php echo esc_html( sprintf( __( 'Gross: %s', 'hello-elementor-child' ), $gross_sqm ) ); ?></span>
+			<span><?php echo esc_html( sprintf( pera_ml_ui( 'Gross: %s', 'theme.partials.latest-offers-card.gross_value' ), $gross_sqm ) ); ?></span>
 			<?php if ( '' !== $floor ) : ?>
 				<span aria-hidden="true">•</span>
 				<span><?php echo esc_html( $floor ); ?></span>
@@ -73,13 +73,13 @@ $whatsapp_type  = 'citizenship_property_card' === $card_context ? 'citizenship_p
 				<svg class="icon pera-latest-offer-card__icon" aria-hidden="true" width="16" height="16">
 					<use href="#icon-map" xlink:href="#icon-map"></use>
 				</svg>
-				<span><?php esc_html_e( 'Map', 'hello-elementor-child' ); ?></span>
+				<span><?php echo esc_html( pera_ml_ui( 'Map', 'theme.partials.latest-offers-card.map' ) ); ?></span>
 			</a>
 		<?php endif; ?>
 
 			<?php if ( '' !== $whatsapp_url ) : ?>
 				<a class="pill pill--subtle pera-latest-offer-card__pill pera-latest-offer-card__pill--blue pera-latest-offer-card__cta" href="<?php echo esc_url( $whatsapp_url ); ?>" target="_blank" rel="noopener noreferrer" data-whatsapp="1" data-whatsapp-type="<?php echo esc_attr( $whatsapp_type ); ?>" data-track-channel="whatsapp" data-track-intent="high" data-track-source="card" data-track-context="<?php echo esc_attr( $whatsapp_type ); ?>" data-track-ga4-event="whatsapp_click" data-track-crm-event="whatsapp_click">
-				<span><?php esc_html_e( 'Ask about this property', 'hello-elementor-child' ); ?></span>
+				<span><?php echo esc_html( pera_ml_ui( 'Ask about this property', 'theme.partials.latest-offers-card.ask_about_this_property' ) ); ?></span>
 				<svg class="icon pera-latest-offer-card__icon" aria-hidden="true" width="16" height="16">
 					<use href="#icon-whatsapp" xlink:href="#icon-whatsapp"></use>
 				</svg>
@@ -110,7 +110,7 @@ $whatsapp_type  = 'citizenship_property_card' === $card_context ? 'citizenship_p
 				<svg class="icon pera-latest-offer-card__icon" aria-hidden="true" width="16" height="16">
 					<use href="#icon-floor-plan" xlink:href="#icon-floor-plan"></use>
 				</svg>
-				<span><?php esc_html_e( 'Floor plan', 'hello-elementor-child' ); ?></span>
+				<span><?php echo esc_html( pera_ml_ui( 'Floor plan', 'theme.partials.latest-offers-card.floor_plan' ) ); ?></span>
 			</a>
 		<?php endif; ?>
 
@@ -120,7 +120,7 @@ $whatsapp_type  = 'citizenship_property_card' === $card_context ? 'citizenship_p
 					<svg class="icon pera-latest-offer-card__icon" aria-hidden="true" width="16" height="16">
 						<use href="#icon-notes" xlink:href="#icon-notes"></use>
 					</svg>
-					<span><?php esc_html_e( 'Notes', 'hello-elementor-child' ); ?></span>
+					<span><?php echo esc_html( pera_ml_ui( 'Notes', 'theme.partials.latest-offers-card.notes' ) ); ?></span>
 				</summary>
 				<div class="pera-latest-offer-card__note-panel"><?php echo nl2br( esc_html( $notes ) ); ?></div>
 			</details>

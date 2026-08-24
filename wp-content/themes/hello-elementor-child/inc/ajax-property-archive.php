@@ -443,7 +443,7 @@ if ( ! function_exists( 'pera_ajax_filter_properties_v2' ) ) {
           }
         }
       } else {
-        echo '<p class="no-results">No properties found.</p>';
+        echo '<p class="no-results">' . esc_html( pera_ml_ui( 'No properties found.', 'theme.property_archive.no_results' ) ) . '</p>';
       }
 
       $grid_html = ob_get_clean();
@@ -569,12 +569,12 @@ if ( ! function_exists( 'pera_ajax_get_map_property_card' ) ) {
 
     $property_id = isset( $_POST['property_id'] ) ? absint( wp_unslash( $_POST['property_id'] ) ) : 0;
     if ( $property_id <= 0 || 'property' !== get_post_type( $property_id ) || 'publish' !== get_post_status( $property_id ) ) {
-      wp_send_json_error( array( 'message' => 'Property not found.' ), 404 );
+      wp_send_json_error( array( 'message' => pera_ml_ui( 'Property not found.', 'theme.property_archive.property_not_found' ) ), 404 );
     }
 
     $post = get_post( $property_id );
     if ( ! $post instanceof WP_Post ) {
-      wp_send_json_error( array( 'message' => 'Property not found.' ), 404 );
+      wp_send_json_error( array( 'message' => pera_ml_ui( 'Property not found.', 'theme.property_archive.property_not_found' ) ), 404 );
     }
 
     $GLOBALS['post'] = $post;
@@ -604,7 +604,7 @@ if ( ! function_exists( 'pera_ajax_get_map_property_card' ) ) {
     wp_reset_postdata();
 
     if ( '' === $card_html ) {
-      wp_send_json_error( array( 'message' => 'Property card unavailable.' ), 404 );
+      wp_send_json_error( array( 'message' => pera_ml_ui( 'Property card unavailable.', 'theme.property_archive.card_unavailable' ) ), 404 );
     }
 
     $response = array(

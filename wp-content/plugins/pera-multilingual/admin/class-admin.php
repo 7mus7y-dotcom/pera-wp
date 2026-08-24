@@ -4,7 +4,7 @@ defined( 'ABSPATH' ) || exit;
 final class Pera_ML_Admin {
 	private $registry; private $translation_forms = array();
 	public function __construct( $registry ) { $this->registry = $registry; }
-	public function hooks() { add_action( 'admin_menu', array( $this, 'menu' ) ); add_action( 'admin_init', array( $this, 'settings' ) ); add_action( 'add_meta_boxes', array( $this, 'meta_box' ) ); add_action( 'admin_enqueue_scripts', array( $this, 'enqueue_translation_queue' ) ); add_action( 'admin_footer-post.php', array( $this, 'translation_forms' ) ); add_action( 'admin_footer-post-new.php', array( $this, 'translation_forms' ) ); add_action( 'admin_post_pera_ml_translate_object', array( $this, 'translate_object' ) ); add_action( 'wp_ajax_pera_ml_translation_queue', array( $this, 'ajax_translation_queue' ) ); add_action( 'wp_ajax_pera_ml_translate_field', array( $this, 'ajax_translate_field' ) ); add_action( 'admin_notices', array( $this, 'translation_notice' ) ); add_filter( 'manage_post_posts_columns', array( $this, 'post_columns' ) ); add_action( 'manage_post_posts_custom_column', array( $this, 'post_column' ), 10, 2 ); add_action( 'the_posts', array( $this, 'preload_post_statuses' ), 10, 2 ); }
+	public function hooks() { add_action( 'admin_menu', array( $this, 'menu' ) ); add_action( 'admin_init', array( $this, 'settings' ) ); add_action( 'add_meta_boxes', array( $this, 'meta_box' ) ); add_action( 'admin_enqueue_scripts', array( $this, 'enqueue_translation_queue' ) ); add_action( 'admin_footer-post.php', array( $this, 'translation_forms' ) ); add_action( 'admin_footer-post-new.php', array( $this, 'translation_forms' ) ); add_action( 'admin_post_pera_ml_translate_object', array( $this, 'translate_object' ) ); add_action( 'admin_post_pera_ml_translate_ui', array( $this, 'translate_ui' ) ); add_action( 'admin_post_pera_ml_complete_ui', array( $this, 'complete_ui' ) ); add_action( 'wp_ajax_pera_ml_translation_queue', array( $this, 'ajax_translation_queue' ) ); add_action( 'wp_ajax_pera_ml_translate_field', array( $this, 'ajax_translate_field' ) ); add_action( 'admin_notices', array( $this, 'translation_notice' ) ); add_filter( 'manage_post_posts_columns', array( $this, 'post_columns' ) ); add_action( 'manage_post_posts_custom_column', array( $this, 'post_column' ), 10, 2 ); add_action( 'the_posts', array( $this, 'preload_post_statuses' ), 10, 2 ); }
 	public function translation_notice() {
 		if ( empty( $_GET['pera_ml_notice'] ) || empty( $_GET['post'] ) ) return;
 		$key = $this->notice_key( get_current_user_id(), absint( $_GET['post'] ), sanitize_key( wp_unslash( $_GET['pera_ml_notice'] ) ) );
@@ -128,7 +128,52 @@ final class Pera_ML_Admin {
 		return substr( $field, 0, 100 );
 	}
 	private function notice_key( $user_id, $post_id, $notice_id ) { return 'pera_ml_notice_' . absint( $user_id ) . '_' . absint( $post_id ) . '_' . sanitize_key( $notice_id ); }
-	public function menu() { add_options_page( __( 'Pera Multilingual', 'pera-multilingual' ), __( 'Pera Multilingual', 'pera-multilingual' ), 'manage_options', 'pera-multilingual', array( $this, 'page' ) ); }
+	public function menu() {
+		add_menu_page( __( 'Pera Multilingual', 'pera-multilingual' ), __( 'Pera Multilingual', 'pera-multilingual' ), 'manage_options', 'pera-multilingual', array( $this, 'page' ), 'dashicons-translation' );
+		add_submenu_page( 'pera-multilingual', __( 'Settings', 'pera-multilingual' ), __( 'Settings', 'pera-multilingual' ), 'manage_options', 'pera-multilingual', array( $this, 'page' ) );
+		add_submenu_page( 'pera-multilingual', __( 'UI Strings', 'pera-multilingual' ), __( 'UI Strings', 'pera-multilingual' ), 'manage_options', 'pera-multilingual-ui', array( $this, 'ui_strings_page' ) );
+	}
+	public function ui_strings_page() {
+		if ( ! current_user_can( 'manage_options' ) ) return;
+		$items = Pera_ML_Plugin::instance()->ui()->inventory();
+		$labels = array( 'current' => __( 'Current', 'pera-multilingual' ), 'missing' => __( 'Missing', 'pera-multilingual' ), 'stale' => __( 'Stale', 'pera-multilingual' ) );
+		?>
+		<div class="wrap"><h1><?php esc_html_e( 'UI Strings', 'pera-multilingual' ); ?></h1>
+		<p><?php esc_html_e( 'This inventory contains only copy registered through pera_ml_ui(). Viewing frontend pages can register copy, but never creates translations or calls a provider.', 'pera-multilingual' ); ?></p>
+		<?php if ( isset( $_GET['pera_ml_ui_updated'] ) ) : ?><div class="notice notice-success is-dismissible"><p><?php esc_html_e( 'UI-string translation work completed.', 'pera-multilingual' ); ?></p></div><?php endif; ?>
+		<form method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>"><input type="hidden" name="action" value="pera_ml_complete_ui"><?php wp_nonce_field( 'pera_ml_complete_ui' ); ?><?php submit_button( __( 'Complete all Missing / Stale', 'pera-multilingual' ), 'primary', 'submit', false ); ?></form>
+		<table class="widefat striped" style="margin-top:16px"><thead><tr><th><?php esc_html_e( 'Semantic key', 'pera-multilingual' ); ?></th><th><?php esc_html_e( 'Canonical English source', 'pera-multilingual' ); ?></th><?php foreach ( array( 'zh', 'ar', 'de' ) as $language ) : ?><th><?php echo esc_html( strtoupper( $language ) ); ?></th><?php endforeach; ?></tr></thead><tbody>
+		<?php if ( ! $items ) : ?><tr><td colspan="5"><?php esc_html_e( 'No UI strings have been registered yet.', 'pera-multilingual' ); ?></td></tr><?php endif; ?>
+		<?php foreach ( $items as $identity => $item ) : ?><tr><td><code><?php echo esc_html( $item['semantic_key'] ); ?></code></td><td><?php echo esc_html( $item['source'] ); ?></td>
+		<?php foreach ( array( 'zh', 'ar', 'de' ) as $language ) : $status = $item['statuses'][ $language ]; ?><td><strong><?php echo esc_html( $labels[ $status ] ); ?></strong><form method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>" style="margin-top:6px"><input type="hidden" name="action" value="pera_ml_translate_ui"><input type="hidden" name="identity" value="<?php echo esc_attr( $identity ); ?>"><input type="hidden" name="language" value="<?php echo esc_attr( $language ); ?>"><?php wp_nonce_field( 'pera_ml_translate_ui_' . $identity . '_' . $language ); ?><button class="button button-small" type="submit"><?php echo esc_html( 'current' === $status ? __( 'Regenerate', 'pera-multilingual' ) : __( 'Translate', 'pera-multilingual' ) ); ?></button></form></td><?php endforeach; ?></tr><?php endforeach; ?>
+		</tbody></table></div><?php
+	}
+	private function ui_admin_request( $bulk = false ) {
+		if ( 'POST' !== strtoupper( isset( $_SERVER['REQUEST_METHOD'] ) ? sanitize_text_field( wp_unslash( $_SERVER['REQUEST_METHOD'] ) ) : '' ) ) wp_die( esc_html__( 'Translation requests must use POST.', 'pera-multilingual' ), 405 );
+		if ( ! current_user_can( 'manage_options' ) ) wp_die( esc_html__( 'You cannot translate UI strings.', 'pera-multilingual' ), 403 );
+		if ( $bulk ) { check_admin_referer( 'pera_ml_complete_ui' ); return array(); }
+		$identity = isset( $_POST['identity'] ) ? sanitize_text_field( wp_unslash( $_POST['identity'] ) ) : '';
+		$language = isset( $_POST['language'] ) ? sanitize_key( wp_unslash( $_POST['language'] ) ) : '';
+		check_admin_referer( 'pera_ml_translate_ui_' . $identity . '_' . $language );
+		if ( ! in_array( $language, array( 'zh', 'ar', 'de' ), true ) || ! Pera_ML_Plugin::instance()->ui_registry()->find( $identity ) ) wp_die( esc_html__( 'Invalid UI-string translation request.', 'pera-multilingual' ), 400 );
+		return array( $identity, $language );
+	}
+	public function translate_ui() {
+		list( $identity, $language ) = $this->ui_admin_request();
+		Pera_ML_Plugin::instance()->ui()->translate_registered( $identity, $language );
+		$this->redirect_ui_strings();
+	}
+	/** Complete exactly the registered Missing/Stale rows. Public for focused orchestration tests. */
+	public function complete_ui_translations( $ui = null ) {
+		$ui = $ui ? $ui : Pera_ML_Plugin::instance()->ui(); $summary = array( 'attempted' => 0, 'failures' => 0 );
+		foreach ( $ui->inventory() as $identity => $item ) foreach ( array( 'zh', 'ar', 'de' ) as $language ) {
+			if ( 'current' === $item['statuses'][ $language ] ) continue;
+			$summary['attempted']++; if ( is_wp_error( $ui->translate_registered( $identity, $language ) ) ) $summary['failures']++;
+		}
+		return $summary;
+	}
+	public function complete_ui() { $this->ui_admin_request( true ); $this->complete_ui_translations(); $this->redirect_ui_strings(); }
+	private function redirect_ui_strings() { wp_safe_redirect( add_query_arg( 'pera_ml_ui_updated', '1', admin_url( 'admin.php?page=pera-multilingual-ui' ) ) ); exit; }
 	public function settings() {
 		register_setting( 'pera_ml', 'pera_ml_enabled_languages', array( 'type' => 'array', 'sanitize_callback' => array( $this, 'sanitize_languages' ) ) );
 		register_setting( 'pera_ml', 'pera_ml_provider', array( 'type' => 'string', 'sanitize_callback' => array( $this, 'sanitize_provider' ), 'default' => 'openai' ) );

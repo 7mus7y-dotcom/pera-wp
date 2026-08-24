@@ -7,13 +7,13 @@ $citizenship_guide_args = wp_parse_args(
   isset( $args ) && is_array( $args ) ? $args : array(),
   array(
     'category_slug'      => 'citizenship',
-    'section_aria_label' => 'Turkish citizenship guide posts',
-    'eyebrow'            => 'Turkish citizenship guide series',
-    'heading'            => 'Continue reading our Turkish citizenship property guides',
-    'intro'              => 'These guides explain the key property, valuation, DAB and Certificate of Conformity checks that matter before buying property for Turkish citizenship.',
+    'section_aria_label' => pera_ml_ui( 'Turkish citizenship guide posts', 'theme.citizenship_guides.section_label' ),
+    'eyebrow'            => pera_ml_ui( 'Turkish citizenship guide series', 'theme.citizenship_guides.eyebrow' ),
+    'heading'            => pera_ml_ui( 'Continue reading our Turkish citizenship property guides', 'theme.citizenship_guides.heading' ),
+    'intro'              => pera_ml_ui( 'These guides explain the key property, valuation, DAB and Certificate of Conformity checks that matter before buying property for Turkish citizenship.', 'theme.citizenship_guides.intro' ),
     'slider_id'          => 'citizenship-guide-posts-slider',
-    'prev_aria_label'    => 'Previous citizenship guide posts',
-    'next_aria_label'    => 'Next citizenship guide posts',
+    'prev_aria_label'    => pera_ml_ui( 'Previous citizenship guide posts', 'theme.citizenship_guides.previous' ),
+    'next_aria_label'    => pera_ml_ui( 'Next citizenship guide posts', 'theme.citizenship_guides.next' ),
   )
 );
 

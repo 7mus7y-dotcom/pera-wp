@@ -6,14 +6,14 @@ if ( ! defined( 'ABSPATH' ) ) {
 $args = is_array( $args ?? null ) ? $args : array();
 
 $defaults = array(
-	'aria_label'          => __( 'Current Istanbul property offers for citizenship buyers', 'hello-elementor-child' ),
-	'eyebrow'             => __( 'Citizenship property shortlist', 'hello-elementor-child' ),
-	'heading'             => __( 'Current Istanbul property offers for citizenship buyers', 'hello-elementor-child' ),
-	'intro'               => __( 'Selected Istanbul property offers that may suit buyers applying for Turkish citizenship through real estate investment, reviewed for citizenship suitability, valuation logic, title deed status, location quality, and resale potential.', 'hello-elementor-child' ),
-	'view_all_label'      => __( 'View all citizenship properties', 'hello-elementor-child' ),
-	'request_label'       => __( 'Request a private shortlist', 'hello-elementor-child' ),
-	'previous_aria_label' => __( 'Previous offers', 'hello-elementor-child' ),
-	'next_aria_label'     => __( 'Next offers', 'hello-elementor-child' ),
+	'aria_label'          => pera_ml_ui( 'Current Istanbul property offers for citizenship buyers', 'theme.partials.citizenship-latest-offers.current_istanbul_property_offers_for_citizenship_buyers' ),
+	'eyebrow'             => pera_ml_ui( 'Citizenship property shortlist', 'theme.partials.citizenship-latest-offers.citizenship_property_shortlist' ),
+	'heading'             => pera_ml_ui( 'Current Istanbul property offers for citizenship buyers', 'theme.partials.citizenship-latest-offers.current_istanbul_property_offers_for_citizenship_buyers' ),
+	'intro'               => pera_ml_ui( 'Selected Istanbul property offers that may suit buyers applying for Turkish citizenship through real estate investment, reviewed for citizenship suitability, valuation logic, title deed status, location quality, and resale potential.', 'theme.partials.citizenship-latest-offers.selected_istanbul_property_offers_that_may_suit_buyers_applying_for_tu' ),
+	'view_all_label'      => pera_ml_ui( 'View all citizenship properties', 'theme.partials.citizenship-latest-offers.view_all_citizenship_properties' ),
+	'request_label'       => pera_ml_ui( 'Request a private shortlist', 'theme.partials.citizenship-latest-offers.request_a_private_shortlist' ),
+	'previous_aria_label' => pera_ml_ui( 'Previous offers', 'theme.partials.citizenship-latest-offers.previous_offers' ),
+	'next_aria_label'     => pera_ml_ui( 'Next offers', 'theme.partials.citizenship-latest-offers.next_offers' ),
 );
 
 $copy = wp_parse_args( $args, $defaults );

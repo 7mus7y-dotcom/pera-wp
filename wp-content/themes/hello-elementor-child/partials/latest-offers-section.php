@@ -17,8 +17,8 @@ $cards              = isset( $args['cards'] ) && is_array( $args['cards'] ) ? $a
 $card_list_modifier = isset( $args['card_list_modifier'] ) ? sanitize_html_class( (string) $args['card_list_modifier'] ) : '';
 $primary_cta        = isset( $args['primary_cta'] ) && is_array( $args['primary_cta'] ) ? $args['primary_cta'] : array();
 $secondary_cta      = isset( $args['secondary_cta'] ) && is_array( $args['secondary_cta'] ) ? $args['secondary_cta'] : array();
-$previous_aria_label = isset( $args['previous_aria_label'] ) ? trim( (string) $args['previous_aria_label'] ) : __( 'Previous offers', 'hello-elementor-child' );
-$next_aria_label     = isset( $args['next_aria_label'] ) ? trim( (string) $args['next_aria_label'] ) : __( 'Next offers', 'hello-elementor-child' );
+$previous_aria_label = isset( $args['previous_aria_label'] ) ? trim( (string) $args['previous_aria_label'] ) : pera_ml_ui( 'Previous offers', 'theme.partials.latest-offers-section.previous_offers' );
+$next_aria_label     = isset( $args['next_aria_label'] ) ? trim( (string) $args['next_aria_label'] ) : pera_ml_ui( 'Next offers', 'theme.partials.latest-offers-section.next_offers' );
 
 if ( empty( $cards ) ) {
 	return;
@@ -85,7 +85,7 @@ $ctas = array_filter(
 			<div
 				class="<?php echo esc_attr( implode( ' ', $card_list_classes ) ); ?>"
 				id="<?php echo esc_attr( $slider_id ); ?>"
-				aria-label="<?php echo esc_attr( '' !== $aria_label ? $aria_label : __( 'Latest offers list', 'hello-elementor-child' ) ); ?>"
+				aria-label="<?php echo esc_attr( '' !== $aria_label ? $aria_label : pera_ml_ui( 'Latest offers list', 'theme.partials.latest-offers-section.latest_offers_list' ) ); ?>"
 			>
 				<?php foreach ( $cards as $card ) : ?>
 					<?php pera_latest_offers_render_card( $card ); ?>

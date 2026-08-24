@@ -59,7 +59,7 @@ if ( ! function_exists( 'pera_get_whatsapp_context' ) ) {
 			'post_id'       => 0,
 			'post_title'    => '',
 			'page_url'      => $page_url,
-			'message_text'  => "Hi, I'd like more information about property in Istanbul.",
+			'message_text'  => pera_ml_ui( "Hi, I'd like more information about property in Istanbul.", 'theme.whatsapp.default_message' ),
 			'whatsapp_url'  => '',
 		);
 
@@ -75,20 +75,20 @@ if ( ! function_exists( 'pera_get_whatsapp_context' ) ) {
 			$context['page_url']   = esc_url_raw( $page_url );
 
 			$context['message_text'] = sprintf(
-				'Hi, I\'d like more info on property called "%s" with reference %s. %s',
+				pera_ml_ui( 'Hi, I\'d like more info on property called "%s" with reference %s. %s', 'theme.whatsapp.property_message' ),
 				$post_title,
 				$reference !== '' ? $reference : (string) $post_id,
 				$context['page_url']
 			);
 		} elseif ( is_page( 'citizenship-by-investment' ) ) {
 			$context['page_type']    = 'citizenship-by-investment';
-			$context['message_text'] = "Hi, I'd like more info on citizenship by investment.";
+			$context['message_text'] = pera_ml_ui( "Hi, I'd like more info on citizenship by investment.", 'theme.whatsapp.citizenship_message' );
 		} elseif ( is_page( 'sell-with-pera' ) || is_page_template( 'page-sell-with-pera.php' ) ) {
 			$context['page_type']    = 'sell-with-pera';
-			$context['message_text'] = "Hi, I'm interested in selling my property in Istanbul with Pera Property. Can you provide more information about your sales service?";
+			$context['message_text'] = pera_ml_ui( "Hi, I'm interested in selling my property in Istanbul with Pera Property. Can you provide more information about your sales service?", 'theme.whatsapp.sell_message' );
 		} elseif ( is_page( 'rent-with-pera' ) || is_page_template( 'page-rent-with-pera.php' ) ) {
 			$context['page_type']    = 'rent-with-pera';
-			$context['message_text'] = "Hi, I'm interested in renting out my property in Istanbul with Pera Property. Can you provide more information about your rental service?";
+			$context['message_text'] = pera_ml_ui( "Hi, I'm interested in renting out my property in Istanbul with Pera Property. Can you provide more information about your rental service?", 'theme.whatsapp.rent_message' );
 		}
 
 		$context['whatsapp_url'] = pera_get_whatsapp_url( $context['message_text'] );
@@ -136,7 +136,7 @@ if ( ! function_exists( 'pera_floating_whatsapp_button' ) ) {
 		<a href="<?php echo esc_url( $whatsapp_context['whatsapp_url'] ); ?>"
 		   class="floating-whatsapp"
 		   id="floating-whatsapp"
-		   aria-label="Chat on WhatsApp"
+		   aria-label="<?php echo esc_attr( pera_ml_ui( 'Chat on WhatsApp', 'theme.whatsapp.floating_button_label' ) ); ?>"
 		   target="_blank"
 		   rel="noopener"
 		   data-whatsapp="1"

@@ -20,7 +20,7 @@ $post_permalink = get_permalink( $post_id );
 $post_title     = wp_strip_all_tags( get_the_title( $post_id ) );
 $read_more_aria_label = sprintf(
   /* translators: %s: post title. */
-  __( 'Read more about %s', 'peraproperty' ),
+  pera_ml_ui( 'Read more about %s', 'theme.parts.post-card.read_more_about_value' ),
   $post_title
 );
 $cats        = get_the_category( $post_id );
@@ -95,7 +95,7 @@ if ( function_exists( 'pera_get_public_updated_date' ) ) {
 
     <div class="article-meta-secondary post-card-meta-secondary">
       <span class="article-meta-item">
-        <?php esc_html_e( 'Published:', 'peraproperty' ); ?>
+        <?php echo esc_html( pera_ml_ui( 'Published:', 'theme.parts.post-card.published' ) ); ?>
         <time datetime="<?php echo esc_attr( get_the_date( DATE_W3C ) ); ?>">
           <?php echo esc_html( get_the_date( 'M j, Y' ) ); ?>
         </time>
@@ -104,7 +104,7 @@ if ( function_exists( 'pera_get_public_updated_date' ) ) {
       <span class="article-meta-separator"> / </span>
 
       <span class="article-meta-item">
-        <?php esc_html_e( 'Updated:', 'peraproperty' ); ?>
+        <?php echo esc_html( pera_ml_ui( 'Updated:', 'theme.parts.post-card.updated' ) ); ?>
         <time datetime="<?php echo esc_attr( $updated_datetime ); ?>">
           <?php echo esc_html( $updated_date_display ); ?>
         </time>
@@ -114,7 +114,7 @@ if ( function_exists( 'pera_get_public_updated_date' ) ) {
     <?php if ( $show_readmore ) : ?>
       <div class="post-card-readmore">
         <a href="<?php echo esc_url( $post_permalink ); ?>" class="btn btn--solid btn--blue" aria-label="<?php echo esc_attr( $read_more_aria_label ); ?>">
-          <?php esc_html_e( 'Read more', 'peraproperty' ); ?>
+          <?php echo esc_html( pera_ml_ui( 'Read more', 'theme.parts.post-card.read_more' ) ); ?>
         </a>
       </div>
     <?php endif; ?>

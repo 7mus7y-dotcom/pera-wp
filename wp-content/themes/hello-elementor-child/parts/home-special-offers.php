@@ -119,8 +119,8 @@ if ( empty( $offers ) ) {
   <div class="container">
 
     <header class="section-header section-header--center">
-      <p class="text-xs text-upper muted">Home highlights</p>
-      <h2>Special Offers</h2>
+      <p class="text-xs text-upper muted"><?php echo esc_html( pera_ml_ui( 'Home highlights', 'theme.home_special_offers.eyebrow' ) ); ?></p>
+      <h2><?php echo esc_html( pera_ml_ui( 'Special Offers', 'theme.home_special_offers.heading' ) ); ?></h2>
     </header>
 
     <div class="cards-slider-shell--nav">
@@ -128,21 +128,21 @@ if ( empty( $offers ) ) {
         type="button"
         class="cards-slider-nav cards-slider-nav--prev"
         data-slider-target="special-offers-slider"
-        aria-label="Previous special offers"
+        aria-label="<?php echo esc_attr( pera_ml_ui( 'Previous special offers', 'theme.home_special_offers.previous' ) ); ?>"
       >
         <svg width="22" height="22" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
           <use href="<?php echo esc_url( get_stylesheet_directory_uri() . '/logos-icons/icons.svg#icon-chevron-left' ); ?>"></use>
         </svg>
       </button>
 
-      <div class="cards-slider cards-slider--snap home-special-offers__slider" id="special-offers-slider" aria-label="Special offers">
+      <div class="cards-slider cards-slider--snap home-special-offers__slider" id="special-offers-slider" aria-label="<?php echo esc_attr( pera_ml_ui( 'Special offers', 'theme.home_special_offers.slider_label' ) ); ?>">
         <?php foreach ( $offers as $offer ) : ?>
           <article class="slider-card special-offers-card">
 
             <a
               href="<?php echo esc_url( $offer['permalink'] ); ?>"
               class="special-offers-card__media"
-              aria-label="<?php echo esc_attr( sprintf( 'View special offer: %s', $offer['title'] ) ); ?>"
+              aria-label="<?php echo esc_attr( sprintf( pera_ml_ui( 'View special offer: %s', 'theme.home_special_offers.view_offer' ), $offer['title'] ) ); ?>"
             >
               <?php if ( $offer['attachment_id'] > 0 ) : ?>
                 <?php
@@ -187,7 +187,7 @@ if ( empty( $offers ) ) {
         type="button"
         class="cards-slider-nav cards-slider-nav--next"
         data-slider-target="special-offers-slider"
-        aria-label="Next special offers"
+        aria-label="<?php echo esc_attr( pera_ml_ui( 'Next special offers', 'theme.home_special_offers.next' ) ); ?>"
       >
         <svg width="22" height="22" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
           <use href="<?php echo esc_url( get_stylesheet_directory_uri() . '/logos-icons/icons.svg#icon-chevron-right' ); ?>"></use>

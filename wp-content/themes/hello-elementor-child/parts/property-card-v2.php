@@ -95,9 +95,9 @@ $specials_slug  = $specials_term ? $specials_term->slug : '';
 
 $specials_tooltip = '';
 if ( $specials_slug === 'resales' || $specials_slug === 'resale' ) {
-  $specials_tooltip = 'Resale: offered by an individual owner (private seller).';
+  $specials_tooltip = pera_ml_ui( 'Resale: offered by an individual owner (private seller).', 'theme.property_card.resale_tooltip' );
 } elseif ( $specials_slug === 'project' || $specials_slug === 'projects' ) {
-  $specials_tooltip = 'Project: sold by the developer; multiple unit types may be available.';
+  $specials_tooltip = pera_ml_ui( 'Project: sold by the developer; multiple unit types may be available.', 'theme.property_card.project_tooltip' );
 }
 
 // Image ID
@@ -211,7 +211,7 @@ $is_project = ( $specials_slug === 'project' || $specials_slug === 'projects' );
 if ( $price_min > 0 ) {
 
   if ( $is_project ) {
-    $price_txt = 'From ' . $fmt_usd( $price_min );
+    $price_txt = sprintf( pera_ml_ui( 'From %s', 'theme.property_card.price_from' ), $fmt_usd( $price_min ) );
   } else {
     if ( $price_max > 0 && $price_max !== $price_min ) {
       $price_txt = $fmt_usd( $price_min ) . '–' . $fmt_usd( $price_max );
@@ -263,7 +263,7 @@ if ( $size_min > 0 ) {
                   <button
                     type="button"
                     class="property-card__tooltip-btn"
-                    aria-label="<?php echo esc_attr( 'More info about ' . $specials_label ); ?>"
+                    aria-label="<?php echo esc_attr( sprintf( pera_ml_ui( 'More info about %s', 'theme.property_card.more_info' ), $specials_label ) ); ?>"
                   >
                     i
                   </button>
@@ -285,7 +285,7 @@ if ( $size_min > 0 ) {
           class="fav-toggle"
           type="button"
           aria-pressed="false"
-          aria-label="Add to favourites"
+          aria-label="<?php echo esc_attr( pera_ml_ui( 'Add to favourites', 'theme.property_card.add_favourite' ) ); ?>"
           data-post-id="<?php echo esc_attr( $post_id ); ?>"
         >
           <span class="fav-toggle__icon" aria-hidden="true">
@@ -332,7 +332,7 @@ if ( $size_min > 0 ) {
       <a
         href="<?php echo esc_url( $card_url ); ?>"
         class="property-card__media-link"
-        aria-label="<?php echo esc_attr( sprintf( 'View property: %s', $title ) ); ?>"
+        aria-label="<?php echo esc_attr( sprintf( pera_ml_ui( 'View property: %s', 'theme.property_card.view_property' ), $title ) ); ?>"
       >
         <?php if ( $image_id ) : ?>
           <?php

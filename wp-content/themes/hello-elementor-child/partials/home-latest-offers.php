@@ -16,9 +16,9 @@ get_template_part(
 	null,
 	array(
 		'section_class'      => 'section pera-home-latest-offers',
-		'aria_label'         => __( 'Latest opportunities in Istanbul', 'hello-elementor-child' ),
-		'title'              => __( 'Curated Opportunities in Istanbul', 'hello-elementor-child' ),
-		'description'        => __( 'Handpicked current offers from selected Istanbul projects.', 'hello-elementor-child' ),
+		'aria_label'         => pera_ml_ui( 'Latest opportunities in Istanbul', 'theme.partials.home-latest-offers.latest_opportunities_in_istanbul' ),
+		'title'              => pera_ml_ui( 'Curated Opportunities in Istanbul', 'theme.partials.home-latest-offers.curated_opportunities_in_istanbul' ),
+		'description'        => pera_ml_ui( 'Handpicked current offers from selected Istanbul projects.', 'theme.partials.home-latest-offers.handpicked_current_offers_from_selected_istanbul_projects' ),
 		'slider_id'          => 'home-latest-offers-slider',
 		'cards'              => $cards,
 		'card_list_modifier' => 'home',
