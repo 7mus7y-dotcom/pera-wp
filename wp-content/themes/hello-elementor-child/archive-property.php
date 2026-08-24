@@ -342,8 +342,10 @@ if ( $qo instanceof WP_Term ) {
     }
   }
 
-  $generic_archive_subtitle = (string) get_term_meta( (int) $qo->term_id, 'archive_subtitle', true );
-  $generic_archive_body      = (string) get_term_meta( (int) $qo->term_id, 'archive_body_content', true );
+  $generic_archive_subtitle_source = (string) get_term_meta( (int) $qo->term_id, 'archive_subtitle', true );
+  $generic_archive_body_source     = (string) get_term_meta( (int) $qo->term_id, 'archive_body_content', true );
+  $generic_archive_subtitle = function_exists( 'pera_ml_term_meta' ) ? (string) pera_ml_term_meta( $qo, 'meta:archive_subtitle', $generic_archive_subtitle_source ) : $generic_archive_subtitle_source;
+  $generic_archive_body     = function_exists( 'pera_ml_term_meta' ) ? (string) pera_ml_term_meta( $qo, 'meta:archive_body_content', $generic_archive_body_source ) : $generic_archive_body_source;
 
   if ( $qo->taxonomy === 'district' && trim( $district_archive_body ) !== '' ) {
     $term_description_html = wpautop( wp_kses_post( $district_archive_body ) );

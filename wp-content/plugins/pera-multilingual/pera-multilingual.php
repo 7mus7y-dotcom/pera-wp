@@ -26,6 +26,9 @@ require_once PERA_ML_DIR . 'includes/providers/class-openai-provider.php';
 require_once PERA_ML_DIR . 'includes/class-translator.php';
 require_once PERA_ML_DIR . 'includes/class-ui-registry.php';
 require_once PERA_ML_DIR . 'includes/class-ui.php';
+require_once PERA_ML_DIR . 'includes/class-theme-ui-discovery.php';
+require_once PERA_ML_DIR . 'includes/class-translation-health.php';
+require_once PERA_ML_DIR . 'includes/class-translation-health-orchestrator.php';
 require_once PERA_ML_DIR . 'includes/class-router.php';
 require_once PERA_ML_DIR . 'includes/class-content.php';
 require_once PERA_ML_DIR . 'includes/class-seo.php';
@@ -65,6 +68,8 @@ function pera_ml_store_translation( $object_type, $object_id, $field, $language,
 function pera_ml_field( $post_id, $field, $source_value, $language = null ) { return Pera_ML_Plugin::instance()->fields()->get( $post_id, $field, $source_value, $language ); }
 /** Read the translated display name or description of the canonical term. */
 function pera_ml_term( $term, $field = 'name', $language = null ) { return Pera_ML_Plugin::instance()->fields()->term( $term, $field, $language ); }
+/** Read approved translated taxonomy metadata without provider traffic. */
+function pera_ml_term_meta( $term, $field, $source, $language = null ) { return Pera_ML_Plugin::instance()->fields()->term_meta( $term, $field, $source, $language ); }
 /** Localize a visitor-facing URL without changing external or system URLs. */
 function pera_ml_url( $url, $language = null ) { $plugin = Pera_ML_Plugin::instance(); return $plugin->router()->url_for_language( $url, $language ? $language : $plugin->router()->current_language() ); }
 /** Translate a controlled property label without provider traffic. */

@@ -8,6 +8,13 @@ final class Pera_ML_Fields {
 		return apply_filters( 'pera_ml_property_translatable_meta_fields', array( 'project_name', 'custom_text', 'project_summary_heading', 'project_summary', 'whats_special_heading', 'about_this_project', 'location_info_heading', 'distances', 'yt_heading', 'custom_video_heading', 'custom_video_button', 'custom_video_text', 'floor_plans_heading', 'floor_plans_custom_text', 'further_reading_heading', 'further_reading_text', 'kd_custom_text', 'v2_custom_text', 'seo_title', 'seo_meta_description', 'seo_faq_v2', 'property_editorial_intro', 'property_highlights_text', 'property_district_analysis', 'property_investment_potential', 'property_buyer_suitability', 'property_developer_profile', 'property_faq_text' ) );
 	}
 	public static function controlled_property_fields() { return array( 'facilities', 'target_buyer_type', 'property_key_advantages' ); }
+	/** Canonical term contract consumed by term() and the registered ACF formatting layer. */
+	public static function taxonomy_fields( $taxonomy ) {
+		$fields = array( 'term_name', 'term_description' );
+		if ( in_array( $taxonomy, array( 'region', 'property_tags' ), true ) ) $fields = array_merge( $fields, array( 'meta:archive_subtitle', 'meta:archive_body_content' ) );
+		if ( 'district' === $taxonomy ) $fields = array_merge( $fields, array( 'meta:district_archive_subtitle', 'meta:district_archive_body' ) );
+		return apply_filters( 'pera_ml_taxonomy_translatable_fields', $fields, $taxonomy );
+	}
 	public function __construct( $router, $storage, $vocabulary ) { $this->router = $router; $this->storage = $storage; $this->vocabulary = $vocabulary; }
 	public function hooks() { foreach ( array_unique( array_merge( $this->approved(), self::controlled_property_fields() ) ) as $field ) add_filter( 'acf/format_value/name=' . $field, array( $this, 'acf_value' ), 20, 3 ); }
 	public function acf_value( $value, $post_id, $field ) {
@@ -27,7 +34,8 @@ final class Pera_ML_Fields {
 	public function definitions() {
 		$legacy = array( 'project_name', 'floor_plans_heading', 'floor_plans_custom_text', 'property_editorial_intro', 'property_highlights_text', 'property_district_analysis', 'property_investment_potential', 'property_buyer_suitability', 'property_developer_profile', 'property_faq_text', 'further_reading_heading', 'further_reading_text', 'custom_video_heading', 'custom_video_text', 'project_summary_heading', 'project_summary', 'yt_heading', 'whats_special_heading', 'about_this_project', 'location_info_heading', 'distances', 'archive_h1', 'archive_subtitle', 'archive_intro_content', 'archive_bottom_content', 'archive_cta_heading', 'archive_cta_text', 'district_archive_subtitle', 'district_archive_body', 'post_subtitle', 'seo_title', 'seo_meta_description', 'seo_faq_v2' );
 		$property = self::property_fields();
-		return apply_filters( 'pera_ml_translatable_meta_fields_by_post_type', array( 'post' => apply_filters( 'pera_ml_translatable_meta_fields', $legacy ), 'property' => $property ) );
+		$page = array( 'seo_title', 'seo_meta_description', 'seo_faq_v2' );
+		return apply_filters( 'pera_ml_translatable_meta_fields_by_post_type', array( 'post' => apply_filters( 'pera_ml_translatable_meta_fields', $legacy ), 'page' => $page, 'property' => $property ) );
 	}
 	/** Get the contract for one post type, or the union used to register ACF filters. */
 	public function approved( $post_type = null ) {
@@ -60,5 +68,17 @@ final class Pera_ML_Fields {
 		if ( 'en' === $language ) return $source;
 		$row = $this->storage->get( 'term', $term->term_id, 'term_' . $field, $language, (string) $source );
 		return $row ? $row['translated_text'] : ( 'name' === $field ? $this->vocabulary->translate( $source, $language ) : $source );
+	}
+	/** Read one approved taxonomy meta translation without invoking a provider. */
+	public function term_meta( $term, $field, $source, $language = null ) {
+		if ( ! $term instanceof WP_Term ) return $source;
+		$field = Pera_ML_Storage::normalize_field_key( $field );
+		if ( 0 !== strpos( $field, 'meta:' ) ) $field = 'meta:' . sanitize_key( $field );
+		if ( ! in_array( $field, self::taxonomy_fields( $term->taxonomy ), true ) ) return $source;
+		$language = $language ? sanitize_key( $language ) : $this->router->current_language();
+		if ( 'en' === $language ) return $source;
+		$row = $this->storage->get( 'term', $term->term_id, $field, $language, (string) $source );
+		if ( ! is_array( $row ) || ! empty( $row['is_stale'] ) || ( isset( $row['status'] ) && 'current' !== $row['status'] ) || ! isset( $row['translated_text'] ) || '' === trim( (string) $row['translated_text'] ) ) return $source;
+		return $row['translated_text'];
 	}
 }
