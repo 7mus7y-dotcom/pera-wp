@@ -8,6 +8,13 @@ final class Pera_ML_Fields {
 		return apply_filters( 'pera_ml_property_translatable_meta_fields', array( 'project_name', 'custom_text', 'project_summary_heading', 'project_summary', 'whats_special_heading', 'about_this_project', 'location_info_heading', 'distances', 'yt_heading', 'custom_video_heading', 'custom_video_button', 'custom_video_text', 'floor_plans_heading', 'floor_plans_custom_text', 'further_reading_heading', 'further_reading_text', 'kd_custom_text', 'v2_custom_text', 'seo_title', 'seo_meta_description', 'seo_faq_v2', 'property_editorial_intro', 'property_highlights_text', 'property_district_analysis', 'property_investment_potential', 'property_buyer_suitability', 'property_developer_profile', 'property_faq_text' ) );
 	}
 	public static function controlled_property_fields() { return array( 'facilities', 'target_buyer_type', 'property_key_advantages' ); }
+	/** Canonical term contract consumed by term() and the registered ACF formatting layer. */
+	public static function taxonomy_fields( $taxonomy ) {
+		$fields = array( 'term_name', 'term_description' );
+		if ( in_array( $taxonomy, array( 'region', 'property_tags' ), true ) ) $fields = array_merge( $fields, array( 'meta:archive_subtitle', 'meta:archive_body_content' ) );
+		if ( 'district' === $taxonomy ) $fields = array_merge( $fields, array( 'meta:district_archive_subtitle', 'meta:district_archive_body' ) );
+		return apply_filters( 'pera_ml_taxonomy_translatable_fields', $fields, $taxonomy );
+	}
 	public function __construct( $router, $storage, $vocabulary ) { $this->router = $router; $this->storage = $storage; $this->vocabulary = $vocabulary; }
 	public function hooks() { foreach ( array_unique( array_merge( $this->approved(), self::controlled_property_fields() ) ) as $field ) add_filter( 'acf/format_value/name=' . $field, array( $this, 'acf_value' ), 20, 3 ); }
 	public function acf_value( $value, $post_id, $field ) {

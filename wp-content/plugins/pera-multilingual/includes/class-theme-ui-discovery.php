@@ -6,9 +6,23 @@ final class Pera_ML_Theme_UI_Discovery {
 	private $registry;
 	public function __construct( Pera_ML_UI_Registry $registry ) { $this->registry = $registry; }
 
-	public static function approved_directories() {
-		$theme = dirname( dirname( dirname( __DIR__ ) ) ) . '/themes/hello-elementor-child';
-		return array( $theme . '/inc', $theme . '/partials', $theme . '/parts' );
+	public static function approved_directories( $theme = '' ) {
+		$theme = $theme ? rtrim( $theme, '/\\' ) : dirname( dirname( dirname( __DIR__ ) ) ) . '/themes/hello-elementor-child';
+		$paths = array( $theme . '/inc', $theme . '/partials', $theme . '/parts' );
+		// This is the reviewed template inventory from the visitor-copy translation pass.
+		// Deliberately do not broaden this to every root PHP file: test/dev templates,
+		// language-specific templates and unrelated bootstrap files are not approved copy.
+		foreach ( array(
+			'404.php', 'archive.php', 'archive-property.php', 'archive/single-property-v2.php',
+			'attachment.php', 'footer.php', 'header.php', 'home-page.php', 'home.php',
+			'page-about-new.php', 'page-book-a-consultancy.php', 'page-citizenship.php',
+			'page-citizenship-properties.php', 'page-contact.php', 'page-favourites.php',
+			'page-join-our-team.php', 'page-luxury-property.php', 'page-posts.php',
+			'page-privacy-policy.php', 'page-property-map.php', 'page-register.php',
+			'page-rent-with-pera.php', 'page-sell-with-pera.php', 'page-vop-besiktas.php',
+			'single-bodrum-property.php', 'single-post.php', 'single-property.php',
+		) as $template ) $paths[] = $theme . '/' . $template;
+		return $paths;
 	}
 
 	/** @return array<string,int> */
@@ -33,6 +47,7 @@ final class Pera_ML_Theme_UI_Discovery {
 	private function php_files( array $directories ) {
 		$files = array();
 		foreach ( $directories as $directory ) {
+			if ( is_file( $directory ) ) { if ( 'php' === strtolower( pathinfo( $directory, PATHINFO_EXTENSION ) ) ) $files[] = $directory; continue; }
 			if ( ! is_dir( $directory ) ) continue;
 			$iterator = new RecursiveIteratorIterator( new RecursiveCallbackFilterIterator( new RecursiveDirectoryIterator( $directory, FilesystemIterator::SKIP_DOTS ), function ( $item ) { return ! $item->isDir() || '_archive' !== $item->getFilename(); } ) );
 			foreach ( $iterator as $file ) if ( $file->isFile() && 'php' === strtolower( $file->getExtension() ) ) $files[] = $file->getPathname();

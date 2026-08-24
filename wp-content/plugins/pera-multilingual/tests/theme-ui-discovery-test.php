@@ -56,4 +56,17 @@ $dry = $tool->run( array( $dry_root ), true );
 expect_discovery( 1, $dry['newly_registered'], 'dry run reports prospective registration' );
 expect_discovery( 1, count( $GLOBALS['ui_registry_option'] ), 'dry run does not write registry' );
 
+// The shared approved scope includes reviewed root/templates, without broadening
+// into test/dev or language-specific templates.
+mkdir( $root . '/archive' );
+file_put_contents( $root . '/404.php', "<?php pera_ml_ui( 'Root template', 'theme.template.404.root' );\n" );
+file_put_contents( $root . '/archive/single-property-v2.php', "<?php pera_ml_ui( 'Approved subdirectory', 'theme.template.archive.approved' );\n" );
+file_put_contents( $root . '/home-page-test.php', "<?php pera_ml_ui( 'Test template', 'theme.template.test' );\n" );
+file_put_contents( $root . '/page-v2-query-test.php', "<?php pera_ml_ui( 'Dev template', 'theme.template.dev' );\n" );
+file_put_contents( $root . '/page-zh-citizenship.php', "<?php pera_ml_ui( 'Language template', 'theme.template.language' );\n" );
+$approved = $tool->run( Pera_ML_Theme_UI_Discovery::approved_directories( $root ), true );
+expect_discovery( 4, $approved['discovered'], 'approved directories plus root and template-subdirectory calls are discovered' );
+expect_discovery( false, false !== array_search( 'theme.template.test', array_column( $GLOBALS['ui_registry_option'], 'semantic_key' ), true ), 'test template is excluded' );
+expect_discovery( false, false !== array_search( 'theme.template.language', array_column( $GLOBALS['ui_registry_option'], 'semantic_key' ), true ), 'language-specific template is excluded' );
+
 echo "Pera ML theme UI discovery tests passed\n";

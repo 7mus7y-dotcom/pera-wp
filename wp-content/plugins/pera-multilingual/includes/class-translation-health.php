@@ -26,7 +26,17 @@ final class Pera_ML_Translation_Health {
 		}
 		return array( 'ui_total' => count( $ui_items ), 'rows' => $rows, 'counts' => $this->counts( $rows ) );
 	}
-	private function term_sources( $term, $taxonomy ) { $sources = array( 'term_name' => (string) $term->name ); if ( '' !== trim( (string) $term->description ) ) $sources['term_description'] = (string) $term->description; if ( 'district' === $taxonomy ) foreach ( array( 'district_archive_subtitle', 'district_archive_body' ) as $key ) { $value = get_term_meta( $term->term_id, $key, true ); if ( is_string( $value ) && '' !== trim( $value ) ) $sources[ 'meta:' . $key ] = $value; } return $sources; }
+	private function term_sources( $term, $taxonomy ) {
+		$sources = array();
+		foreach ( Pera_ML_Fields::taxonomy_fields( $taxonomy ) as $field ) {
+			if ( 'term_name' === $field ) $value = (string) $term->name;
+			elseif ( 'term_description' === $field ) $value = (string) $term->description;
+			elseif ( 0 === strpos( $field, 'meta:' ) ) $value = get_term_meta( $term->term_id, substr( $field, 5 ), true );
+			else continue;
+			if ( is_string( $value ) && '' !== trim( $value ) ) $sources[ $field ] = $value;
+		}
+		return $sources;
+	}
 	private function row( $type, $id, $title, $field, $language, $status ) { return array( 'object_type' => $type, 'object_id' => (int) $id, 'title' => (string) $title, 'field' => $field, 'language' => $language, 'status' => $status ); }
 	private function counts( $rows ) { $counts = array(); foreach ( $rows as $row ) { $group = 'ui' === $row['object_type'] ? 'ui' : ( 0 === strpos( $row['object_type'], 'taxonomy:' ) ? 'taxonomies' : 'content' ); if ( ! isset( $counts[ $group ][ $row['language'] ] ) ) $counts[ $group ][ $row['language'] ] = array( 'current' => 0, 'missing' => 0, 'stale' => 0 ); $counts[ $group ][ $row['language'] ][ $row['status'] ]++; } return $counts; }
 }
