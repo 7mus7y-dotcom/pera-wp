@@ -1727,6 +1727,12 @@ button.pill:focus-visible {
   color: var(--brand);
 }
 
+/* Keep dropdown links legible against their brand-coloured panel after the
+   icon cluster switches to the brand colour in the scrolled state. */
+#site-header.is-scrolled .header-language-switcher--desktop .header-language-switcher__list a {
+  color: #ffffff;
+}
+
 /* Glass shell on scroll */
 #site-header.is-scrolled .site-branding {
   background: var(--glass-bg);
