@@ -48,6 +48,7 @@ final class Pera_ML_Translation_Status {
 		$post = get_post( $object_id );
 		if ( ! $post ) return array();
 		$definitions = array(
+			'page' => array( 'post_content' => false, 'post_title' => false, 'post_excerpt' => true, 'meta:seo_title' => true, 'meta:seo_meta_description' => true, 'meta:seo_faq_v2' => true ),
 			'post' => array( 'post_content' => false, 'post_title' => false, 'post_excerpt' => true, 'meta:seo_title' => true, 'meta:seo_meta_description' => true, 'meta:seo_faq_v2' => true ),
 			'property' => array( 'post_title' => true, 'post_content' => true, 'post_excerpt' => true ),
 		);
