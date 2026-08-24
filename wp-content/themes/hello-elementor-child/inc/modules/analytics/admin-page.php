@@ -4,9 +4,27 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 if ( ! function_exists( 'pera_analytics_get_reporting_window' ) ) {
-	function pera_analytics_get_reporting_window( string $period_key ): array {
+	function pera_analytics_get_reporting_window( string $period_key, ?string $selected_date = null ): array {
 		$tz  = wp_timezone();
 		$now = new DateTimeImmutable( 'now', $tz );
+
+		if ( 'selected_day' === $period_key ) {
+			$date = DateTimeImmutable::createFromFormat( '!Y-m-d', (string) $selected_date, $tz );
+			$errors = DateTimeImmutable::getLastErrors();
+			if ( ! $date || ( is_array( $errors ) && ( ! empty( $errors['warning_count'] ) || ! empty( $errors['error_count'] ) ) ) ) {
+				$period_key = 'this_month';
+			} else {
+				$current_start = $date->setTime( 0, 0, 0 );
+				$current_end = $current_start->modify( '+1 day' );
+				$previous_start = $current_start->modify( '-1 day' );
+				$previous_end = $current_start;
+				return array(
+					'key' => 'selected_day',
+					'current' => array( 'start' => $current_start->format( 'Y-m-d H:i:s' ), 'end' => $current_end->format( 'Y-m-d H:i:s' ) ),
+					'previous' => array( 'start' => $previous_start->format( 'Y-m-d H:i:s' ), 'end' => $previous_end->format( 'Y-m-d H:i:s' ) ),
+				);
+			}
+		}
 
 		switch ( $period_key ) {
 			case 'all_time':
@@ -617,6 +635,7 @@ if ( ! function_exists( 'pera_analytics_render_admin_page' ) ) {
 			'this_month' => __( 'This month', 'hello-elementor-child' ),
 			'last_month' => __( 'Last month', 'hello-elementor-child' ),
 			'all_time'   => __( 'All time', 'hello-elementor-child' ),
+			'selected_day' => __( 'Selected day', 'hello-elementor-child' ),
 		);
 
 		$period_input = isset( $_GET['period'] ) ? sanitize_key( wp_unslash( $_GET['period'] ) ) : 'this_month';
@@ -624,7 +643,8 @@ if ( ! function_exists( 'pera_analytics_render_admin_page' ) ) {
 			$period_input = 'this_month';
 		}
 
-		$window = pera_analytics_get_reporting_window( $period_input );
+		$selected_date = isset( $_GET['report_date'] ) ? sanitize_text_field( wp_unslash( $_GET['report_date'] ) ) : '';
+		$window = pera_analytics_get_reporting_window( $period_input, $selected_date );
 		$show_previous_comparison = 'all_time' !== $window['key'];
 		$totals_current  = pera_analytics_get_period_totals( $window['current']['start'], $window['current']['end'] );
 		$totals_previous = $show_previous_comparison
@@ -703,6 +723,8 @@ if ( ! function_exists( 'pera_analytics_render_admin_page' ) ) {
 						<option value="<?php echo esc_attr( $period_key ); ?>" <?php selected( $window['key'], $period_key ); ?>><?php echo esc_html( $period_label ); ?></option>
 					<?php endforeach; ?>
 				</select>
+				<label for="pera-report-date"><strong><?php echo esc_html__( 'Date', 'hello-elementor-child' ); ?>:</strong></label>
+				<input id="pera-report-date" name="report_date" type="date" value="<?php echo esc_attr( $selected_date ); ?>" />
 				<?php submit_button( __( 'Apply', 'hello-elementor-child' ), 'secondary', '', false ); ?>
 			</form>
 			<p class="description"><?php echo esc_html__( 'Unique visitor counts are calculated from recent raw visit data and may be unavailable for older periods after raw data is pruned.', 'hello-elementor-child' ); ?></p>
@@ -739,7 +761,7 @@ if ( ! function_exists( 'pera_analytics_render_admin_page' ) ) {
 						<?php else : ?>
 							<?php foreach ( $daily_totals as $daily_total ) : ?>
 								<tr>
-									<td><?php echo esc_html( (string) ( $daily_total['summary_date'] ?? '' ) ); ?></td>
+									<td><a href="<?php echo esc_url( add_query_arg( array( 'page' => 'pera-site-performance', 'period' => 'selected_day', 'report_date' => (string) ( $daily_total['summary_date'] ?? '' ) ), admin_url( 'admin.php' ) ) ); ?>"><?php echo esc_html( (string) ( $daily_total['summary_date'] ?? '' ) ); ?></a></td>
 									<td class="pera-performance-table__number"><?php echo esc_html( number_format_i18n( (int) ( $daily_total['visits'] ?? 0 ) ) ); ?></td>
 									<td class="pera-performance-table__number"><?php echo esc_html( number_format_i18n( (int) ( $daily_total['unique_visitors'] ?? 0 ) ) ); ?></td>
 								</tr>
