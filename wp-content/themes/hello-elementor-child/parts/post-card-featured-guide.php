@@ -42,12 +42,12 @@ $post_title      = wp_strip_all_tags( get_the_title( $post_id ) );
 $post_excerpt    = wp_trim_words( wp_strip_all_tags( get_the_excerpt( $post_id ) ), 24, '…' );
 $read_article_aria_label = sprintf(
     /* translators: %s: post title. */
-    __( 'Read article: %s', 'peraproperty' ),
+    pera_ml_ui( 'Read article: %s', 'theme.parts.post-card-featured-guide.read_article_value' ),
     $post_title
 );
 ?>
 <article class="<?php echo esc_attr( $article_classes ); ?>">
   <h3 class="post-card-title"><a href="<?php echo esc_url( $post_permalink ); ?>"><?php echo esc_html( $post_title ); ?></a></h3>
   <p class="archive-cat-desc"><?php echo esc_html( $post_excerpt ); ?></p>
-  <div class="card-meta-row"><a href="<?php echo esc_url( $post_permalink ); ?>" class="btn btn--solid btn--black btn-card" aria-label="<?php echo esc_attr( $read_article_aria_label ); ?>"><?php esc_html_e( 'Read article', 'peraproperty' ); ?></a></div>
+  <div class="card-meta-row"><a href="<?php echo esc_url( $post_permalink ); ?>" class="btn btn--solid btn--black btn-card" aria-label="<?php echo esc_attr( $read_article_aria_label ); ?>"><?php echo esc_html( pera_ml_ui( 'Read article', 'theme.parts.post-card-featured-guide.read_article' ) ); ?></a></div>
 </article>

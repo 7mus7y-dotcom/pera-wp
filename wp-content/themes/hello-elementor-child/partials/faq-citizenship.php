@@ -2,11 +2,8 @@
   <div class="container">
 
     <header class="section-header section-header--center">
-      <h2>Turkish Citizenship by Investment FAQs</h2>
-      <p>
-        Common questions about the Turkish Citizenship by Investment process,
-        documents and practical requirements.
-      </p>
+      <h2><?php echo esc_html( pera_ml_ui( 'Turkish Citizenship by Investment FAQs', 'theme.citizenship_faq.heading' ) ); ?></h2>
+      <p><?php echo esc_html( pera_ml_ui( 'Common questions about the Turkish Citizenship by Investment process, documents and practical requirements.', 'theme.citizenship_faq.intro' ) ); ?></p>
     </header>
 
     <div class="faq-accordion">

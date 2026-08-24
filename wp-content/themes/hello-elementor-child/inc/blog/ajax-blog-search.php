@@ -94,8 +94,8 @@ function pera_blog_search_render_pagination( WP_Query $query, $paged, array $que
 			'add_fragment' => '#blog-post-list-anchor',
 			'mid_size'     => 1,
 			'end_size'     => 1,
-			'prev_text'    => __( 'Previous', 'peraproperty' ),
-			'next_text'    => __( 'Next', 'peraproperty' ),
+			'prev_text'    => pera_ml_ui( 'Previous', 'theme.inc.blog.ajax-blog-search.previous' ),
+			'next_text'    => pera_ml_ui( 'Next', 'theme.inc.blog.ajax-blog-search.next' ),
 			'add_args'     => array_filter(
 				$query_args,
 				static function ( $value ) {
@@ -111,7 +111,7 @@ function pera_blog_search_render_pagination( WP_Query $query, $paged, array $que
 
 	ob_start();
 	?>
-	<nav class="posts-pagination" aria-label="<?php esc_attr_e( 'Posts pagination', 'peraproperty' ); ?>">
+	<nav class="posts-pagination" aria-label="<?php echo esc_attr( pera_ml_ui( 'Posts pagination', 'theme.inc.blog.ajax-blog-search.posts_pagination' ) ); ?>">
 		<ul>
 			<?php foreach ( $links as $link ) : ?>
 				<li><?php echo $link; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?></li>
@@ -253,7 +253,7 @@ ELSE 3
 	if ( $blog_query->have_posts() ) {
 		$grid_html = pera_blog_search_render_grid( $blog_query );
 	} else {
-		$grid_html = '<div class="no-posts"><p>' . esc_html__( 'No articles found matching your search.', 'peraproperty' ) . '</p></div>';
+		$grid_html = '<div class="no-posts"><p>' . esc_html( pera_ml_ui( 'No articles found matching your search.', 'theme.inc.blog.ajax-blog-search.no_articles_found_matching_your_search' ) ) . '</p></div>';
 	}
 
 	$pagination_args = array(

@@ -21,9 +21,9 @@ if ( ! defined( 'ABSPATH' ) ) exit;
 global $wp;
 
 $context      = isset( $args['context'] ) ? (string) $args['context'] : 'general';
-$heading      = isset( $args['heading'] ) ? (string) $args['heading'] : 'Send an enquiry';
+$heading      = isset( $args['heading'] ) ? (string) $args['heading'] : pera_ml_ui( 'Send an enquiry', 'theme.enquiry_form.heading' );
 $intro        = isset( $args['intro'] ) ? (string) $args['intro'] : '';
-$submit_label = isset( $args['submit_label'] ) ? (string) $args['submit_label'] : 'Send my details';
+$submit_label = isset( $args['submit_label'] ) ? (string) $args['submit_label'] : pera_ml_ui( 'Send my details', 'theme.enquiry_form.submit' );
 
 $property_id    = isset( $args['property_id'] ) ? (int) $args['property_id'] : 0;
 $property_title = isset( $args['property_title'] ) ? (string) $args['property_title'] : '';
@@ -85,7 +85,7 @@ $form_context = ( $context === 'property' )
 
   <?php if ( $sr_status === 'failed' ) : ?>
     <div class="citizenship-alert citizenship-alert--error">
-      <p><?php esc_html_e( 'Sorry, your enquiry could not be submitted. Please try again.', 'hello-elementor-child' ); ?></p>
+      <p><?php echo esc_html( pera_ml_ui( 'Sorry, your enquiry could not be submitted. Please try again.', 'theme.parts.enquiry-form.sorry_your_enquiry_could_not_be_submitted_please_try_again' ) ); ?></p>
     </div>
   <?php endif; ?>
 
@@ -120,7 +120,7 @@ $form_context = ( $context === 'property' )
         <?php wp_nonce_field( 'pera_seller_landlord_enquiry', 'sr_nonce' ); ?>
         <!-- Honeypot field (spam bots only) -->
         <div class="sr-hp-field" aria-hidden="true">
-          <label for="sr_company">Company</label>
+          <label for="sr_company"><?php echo esc_html( pera_ml_ui( 'Company', 'theme.enquiry_form.company' ) ); ?></label>
           <input
             type="text"
             name="sr_company"
@@ -152,21 +152,21 @@ $form_context = ( $context === 'property' )
     <div class="cta-fieldset">
 
       <div class="cta-field">
-        <label class="cta-label" for="sr_name">Full name</label>
-        <input type="text" id="sr_name" name="sr_name" class="cta-control" required placeholder="Your full name">
+        <label class="cta-label" for="sr_name"><?php echo esc_html( pera_ml_ui( 'Full name', 'theme.enquiry_form.full_name' ) ); ?></label>
+        <input type="text" id="sr_name" name="sr_name" class="cta-control" required placeholder="<?php echo esc_attr( pera_ml_ui( 'Your full name', 'theme.enquiry_form.full_name_placeholder' ) ); ?>">
       </div>
 
       <div class="cta-field">
-        <label class="cta-label" for="sr_email">Email</label>
+        <label class="cta-label" for="sr_email"><?php echo esc_html( pera_ml_ui( 'Email', 'theme.enquiry_form.email' ) ); ?></label>
         <input type="email" id="sr_email" name="sr_email" class="cta-control" required placeholder="name@example.com">
       </div>
 
       <div class="cta-field">
-        <span class="cta-label">Mobile / WhatsApp</span>
+        <span class="cta-label"><?php echo esc_html( pera_ml_ui( 'Mobile / WhatsApp', 'theme.enquiry_form.mobile_whatsapp' ) ); ?></span>
         <div class="cta-phone-row sr-phone-row">
           <!-- phone helper: <?php echo function_exists( 'peracrm_phone_dial_code_options' ) ? 'yes' : 'no'; ?> -->
           <!-- phone count: <?php echo (int) count( $available_phone_countries ); ?> -->
-          <select id="sr_phone_country" name="sr_phone_country" class="cta-control cta-control--phone-country" required aria-label="Country code" data-phone-country-select="1">
+          <select id="sr_phone_country" name="sr_phone_country" class="cta-control cta-control--phone-country" required aria-label="<?php echo esc_attr( pera_ml_ui( 'Country code', 'theme.enquiry_form.country_code' ) ); ?>" data-phone-country-select="1">
             <?php foreach ( $available_phone_countries as $country_row ) :
               $country_value = isset( $country_row['dial_code'] ) ? (string) $country_row['dial_code'] : '';
               $country_label = isset( $country_row['label'] ) ? (string) $country_row['label'] : $country_value;
@@ -188,8 +188,8 @@ $form_context = ( $context === 'property' )
             required
             inputmode="tel"
             autocomplete="tel-national"
-            placeholder="Phone number"
-            aria-label="Phone number"
+            placeholder="<?php echo esc_attr( pera_ml_ui( 'Phone number', 'theme.enquiry_form.phone_placeholder' ) ); ?>"
+            aria-label="<?php echo esc_attr( pera_ml_ui( 'Phone number', 'theme.enquiry_form.phone_label' ) ); ?>"
             value="<?php echo esc_attr( $phone_national_value ); ?>"
           >
         </div>
@@ -198,15 +198,15 @@ $form_context = ( $context === 'property' )
       <?php if ( $context === 'rent' ) : ?>
 
         <div class="cta-field">
-          <span class="cta-label">Rental type</span>
+          <span class="cta-label"><?php echo esc_html( pera_ml_ui( 'Rental type', 'theme.enquiry_form.rental_type' ) ); ?></span>
           <div class="cta-options">
             <label class="cta-checkbox">
               <input type="radio" name="sr_intent" value="rent" checked>
-              <span>Long-term rental</span>
+              <span><?php echo esc_html( pera_ml_ui( 'Long-term rental', 'theme.enquiry_form.long_term_rental' ) ); ?></span>
             </label>
             <label class="cta-checkbox">
               <input type="radio" name="sr_intent" value="short-term">
-              <span>Short-term rental / Airbnb</span>
+              <span><?php echo esc_html( pera_ml_ui( 'Short-term rental / Airbnb', 'theme.enquiry_form.short_term_rental' ) ); ?></span>
             </label>
           </div>
         </div>
@@ -214,19 +214,19 @@ $form_context = ( $context === 'property' )
       <?php elseif ( $context === 'general' ) : ?>
 
         <div class="cta-field">
-          <span class="cta-label">I would like to</span>
+          <span class="cta-label"><?php echo esc_html( pera_ml_ui( 'I would like to', 'theme.enquiry_form.intent' ) ); ?></span>
           <div class="cta-options">
             <label class="cta-checkbox">
               <input type="radio" name="sr_intent" value="sell" checked>
-              <span>Sell my property</span>
+              <span><?php echo esc_html( pera_ml_ui( 'Sell my property', 'theme.enquiry_form.sell_property' ) ); ?></span>
             </label>
             <label class="cta-checkbox">
               <input type="radio" name="sr_intent" value="rent">
-              <span>Rent out my property (long-term)</span>
+              <span><?php echo esc_html( pera_ml_ui( 'Rent out my property (long-term)', 'theme.enquiry_form.rent_property' ) ); ?></span>
             </label>
             <label class="cta-checkbox">
               <input type="radio" name="sr_intent" value="short-term">
-              <span>Short-term rental / Airbnb</span>
+              <span><?php echo esc_html( pera_ml_ui( 'Short-term rental / Airbnb', 'theme.enquiry_form.short_term_rental' ) ); ?></span>
             </label>
           </div>
         </div>
@@ -236,32 +236,32 @@ $form_context = ( $context === 'property' )
       <?php if ( $context !== 'property' ) : ?>
 
         <div class="cta-field">
-          <label class="cta-label">Property location</label>
-          <input type="text" name="sr_location" class="cta-control" placeholder="District / neighbourhood (e.g. Beşiktaş – Dikilitaş)">
+          <label class="cta-label"><?php echo esc_html( pera_ml_ui( 'Property location', 'theme.enquiry_form.property_location' ) ); ?></label>
+          <input type="text" name="sr_location" class="cta-control" placeholder="<?php echo esc_attr( pera_ml_ui( 'District / neighbourhood (e.g. Beşiktaş – Dikilitaş)', 'theme.enquiry_form.location_placeholder' ) ); ?>">
         </div>
 
         <div class="cta-field">
-          <label class="cta-label">Property details</label>
-          <textarea name="sr_details" rows="4" class="cta-control" placeholder="Apartment or villa, number of bedrooms, approximate size, building age, tenancy status, etc."></textarea>
+          <label class="cta-label"><?php echo esc_html( pera_ml_ui( 'Property details', 'theme.enquiry_form.property_details' ) ); ?></label>
+          <textarea name="sr_details" rows="4" class="cta-control" placeholder="<?php echo esc_attr( pera_ml_ui( 'Apartment or villa, number of bedrooms, approximate size, building age, tenancy status, etc.', 'theme.enquiry_form.details_placeholder' ) ); ?>"></textarea>
         </div>
 
         <div class="cta-field">
           <label class="cta-label">
-            <?php echo ( $context === 'rent' ) ? 'Rent expectations (optional)' : 'Price expectations (optional)'; ?>
+            <?php echo esc_html( ( $context === 'rent' ) ? pera_ml_ui( 'Rent expectations (optional)', 'theme.enquiry_form.rent_expectations' ) : pera_ml_ui( 'Price expectations (optional)', 'theme.enquiry_form.price_expectations' ) ); ?>
           </label>
-          <input type="text" name="sr_expectations" class="cta-control" placeholder="<?php echo esc_attr( ( $context === 'rent' ) ? 'Your target monthly rent (if you have one)' : 'Your target sale price (if you have one)' ); ?>">
+          <input type="text" name="sr_expectations" class="cta-control" placeholder="<?php echo esc_attr( ( $context === 'rent' ) ? pera_ml_ui( 'Your target monthly rent (if you have one)', 'theme.enquiry_form.rent_target_placeholder' ) : pera_ml_ui( 'Your target sale price (if you have one)', 'theme.enquiry_form.sale_target_placeholder' ) ); ?>">
         </div>
 
         <div class="cta-field">
-          <label class="cta-label" for="sr_message">Message (optional)</label>
-          <textarea id="sr_message" name="sr_message" rows="4" class="cta-control" placeholder="Anything else we should know?"></textarea>
+          <label class="cta-label" for="sr_message"><?php echo esc_html( pera_ml_ui( 'Message (optional)', 'theme.enquiry_form.message_optional' ) ); ?></label>
+          <textarea id="sr_message" name="sr_message" rows="4" class="cta-control" placeholder="<?php echo esc_attr( pera_ml_ui( 'Anything else we should know?', 'theme.enquiry_form.message_optional_placeholder' ) ); ?>"></textarea>
         </div>
 
       <?php else : ?>
 
         <div class="cta-field">
-          <label class="cta-label" for="sr_message">Message</label>
-          <textarea id="sr_message" name="sr_message" rows="4" class="cta-control" placeholder="Tell us what you need (availability, brochure request, viewing, questions, etc.)."></textarea>
+          <label class="cta-label" for="sr_message"><?php echo esc_html( pera_ml_ui( 'Message', 'theme.enquiry_form.message' ) ); ?></label>
+          <textarea id="sr_message" name="sr_message" rows="4" class="cta-control" placeholder="<?php echo esc_attr( pera_ml_ui( 'Tell us what you need (availability, brochure request, viewing, questions, etc.).', 'theme.enquiry_form.message_placeholder' ) ); ?>"></textarea>
         </div>
 
       <?php endif; ?>

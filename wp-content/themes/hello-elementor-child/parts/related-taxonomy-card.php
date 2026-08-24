@@ -49,9 +49,9 @@ if ( $excerpt === '' ) {
 
 $excerpt = $excerpt !== '' ? wp_trim_words( $excerpt, 24, '…' ) : '';
 
-$button_label = 'View';
+$button_label = pera_ml_ui( 'View', 'theme.related_taxonomy.view' );
 if ( $context_tax_label !== '' ) {
-  $button_label = sprintf( 'View %s', $context_tax_label );
+  $button_label = sprintf( pera_ml_ui( 'View %s', 'theme.related_taxonomy.view_type' ), $context_tax_label );
 }
 ?>
 
@@ -61,7 +61,7 @@ if ( $context_tax_label !== '' ) {
       <a
         href="<?php echo esc_url( $term_link ); ?>"
         class="property-card__media-link"
-        aria-label="<?php echo esc_attr( sprintf( 'View term: %s', ( function_exists( 'pera_ml_term' ) ? pera_ml_term( $term ) : $term->name ) ) ); ?>"
+        aria-label="<?php echo esc_attr( sprintf( pera_ml_ui( 'View term: %s', 'theme.related_taxonomy.view_term' ), ( function_exists( 'pera_ml_term' ) ? pera_ml_term( $term ) : $term->name ) ) ); ?>"
       >
         <?php if ( $term_image_id ) : ?>
           <?php

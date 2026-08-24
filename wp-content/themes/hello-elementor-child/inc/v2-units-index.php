@@ -942,13 +942,13 @@ if ( ! function_exists( 'pera_v2_render_units_price_table' ) ) {
         </header>
 
         
-          <div class="table-wrap" role="region" aria-label="Price range table">
+          <div class="table-wrap" role="region" aria-label="<?php echo esc_attr( pera_ml_ui( 'Price range table', 'theme.property_price_range.table_label' ) ); ?>">
             <table>
               <thead>
                 <tr>
-                  <th scope="col">Type</th>
-                  <th scope="col">Gross size</th>
-                  <th scope="col">Price (USD)</th>
+                  <th scope="col"><?php echo esc_html( pera_ml_ui( 'Type', 'theme.property_price_range.type' ) ); ?></th>
+                  <th scope="col"><?php echo esc_html( pera_ml_ui( 'Gross size', 'theme.property_price_range.gross_size' ) ); ?></th>
+                  <th scope="col"><?php echo esc_html( pera_ml_ui( 'Price (USD)', 'theme.property_price_range.price_usd' ) ); ?></th>
                 </tr>
               </thead>
               <tbody>
@@ -998,15 +998,15 @@ if ( ! function_exists( 'pera_v2_render_units_price_table' ) ) {
 
                 $closing_txt = sprintf(
                   /* translators: %s: listing last updated date. */
-                  __( 'This price range was last updated on %s.', 'hello-elementor-child' ),
+                  pera_ml_ui( 'This price range was last updated on %s.', 'theme.inc.v2-units-index.this_price_range_was_last_updated_on_value' ),
                   $updated_date_txt
                 );
 
                 if ( $is_older_than_month ) {
-                  $closing_txt .= ' ' . __( 'As this price range is more than a month old, please contact us for latest prices.', 'hello-elementor-child' );
+                  $closing_txt .= ' ' . pera_ml_ui( 'As this price range is more than a month old, please contact us for latest prices.', 'theme.inc.v2-units-index.as_this_price_range_is_more_than_a_month_old_please_contact_us_for_lat' );
                 }
             
-                $project_txt = __( 'This is a project with multiple options. Please contact us for specific pricing, images, and floor plans.', 'hello-elementor-child' );
+                $project_txt = pera_ml_ui( 'This is a project with multiple options. Please contact us for specific pricing, images, and floor plans.', 'theme.inc.v2-units-index.this_is_a_project_with_multiple_options_please_contact_us_for_specific' );
               ?>
             
               <div class="property-price-range__note p-sm">

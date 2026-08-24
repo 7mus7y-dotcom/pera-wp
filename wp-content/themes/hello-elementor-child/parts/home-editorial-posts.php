@@ -35,11 +35,11 @@ $regional_url = ( $regional_category && ! is_wp_error( $regional_category ) )
   : home_url( '/category/regional-guides/' );
 ?>
 
-<section class="section home-editorial-posts" aria-label="Latest Istanbul property insights">
+<section class="section home-editorial-posts" aria-label="<?php echo esc_attr( pera_ml_ui( 'Latest Istanbul property insights', 'theme.home_editorial.section_label' ) ); ?>">
   <div class="container">
     <header class="section-header section-header--center">
-      <h2>Latest Istanbul property insights</h2>
-      <p class="lead">Regional guides, buyer guidance, and investment articles to help you navigate the Istanbul market with confidence.</p>
+      <h2><?php echo esc_html( pera_ml_ui( 'Latest Istanbul property insights', 'theme.home_editorial.heading' ) ); ?></h2>
+      <p class="lead"><?php echo esc_html( pera_ml_ui( 'Regional guides, buyer guidance, and investment articles to help you navigate the Istanbul market with confidence.', 'theme.home_editorial.intro' ) ); ?></p>
     </header>
 
     <div class="cards-slider-shell--nav">
@@ -47,14 +47,14 @@ $regional_url = ( $regional_category && ! is_wp_error( $regional_category ) )
         type="button"
         class="cards-slider-nav cards-slider-nav--prev"
         data-slider-target="home-editorial-posts-slider"
-        aria-label="Previous editorial posts"
+        aria-label="<?php echo esc_attr( pera_ml_ui( 'Previous editorial posts', 'theme.home_editorial.previous' ) ); ?>"
       >
         <svg width="22" height="22" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
           <use href="<?php echo esc_url( get_stylesheet_directory_uri() . '/logos-icons/icons.svg#icon-chevron-left' ); ?>"></use>
         </svg>
       </button>
 
-      <div class="cards-slider cards-slider--snap home-editorial-posts__slider" id="home-editorial-posts-slider" aria-label="Latest editorial posts">
+      <div class="cards-slider cards-slider--snap home-editorial-posts__slider" id="home-editorial-posts-slider" aria-label="<?php echo esc_attr( pera_ml_ui( 'Latest editorial posts', 'theme.home_editorial.slider_label' ) ); ?>">
         <?php
         while ( $editorial_query->have_posts() ) :
           $editorial_query->the_post();
@@ -71,15 +71,15 @@ $regional_url = ( $regional_category && ! is_wp_error( $regional_category ) )
         wp_reset_postdata();
         ?>
 
-        <article class="slider-card post-card post-card--cta home-editorial-posts__cta" aria-label="More editorial content links">
+        <article class="slider-card post-card post-card--cta home-editorial-posts__cta" aria-label="<?php echo esc_attr( pera_ml_ui( 'More editorial content links', 'theme.home_editorial.more_links_label' ) ); ?>">
           <div class="post-card-body">
-            <h3 class="post-card-title">Want to see more?</h3>
-            <p class="post-card-excerpt">Explore more guides, insights, and market articles.</p>
+            <h3 class="post-card-title"><?php echo esc_html( pera_ml_ui( 'Want to see more?', 'theme.home_editorial.more_heading' ) ); ?></h3>
+            <p class="post-card-excerpt"><?php echo esc_html( pera_ml_ui( 'Explore more guides, insights, and market articles.', 'theme.home_editorial.more_intro' ) ); ?></p>
 
             <div class="home-editorial-posts__cta-actions">
-              <a class="btn btn--solid btn--blue" href="<?php echo esc_url( $posts_page_url ); ?>">See all blog posts</a>
-              <a class="btn btn--ghost btn--blue" href="<?php echo esc_url( $investment_url ); ?>">See investment advice</a>
-              <a class="btn btn--ghost btn--green" href="<?php echo esc_url( $regional_url ); ?>">See regional guides</a>
+              <a class="btn btn--solid btn--blue" href="<?php echo esc_url( $posts_page_url ); ?>"><?php echo esc_html( pera_ml_ui( 'See all blog posts', 'theme.home_editorial.all_posts' ) ); ?></a>
+              <a class="btn btn--ghost btn--blue" href="<?php echo esc_url( $investment_url ); ?>"><?php echo esc_html( pera_ml_ui( 'See investment advice', 'theme.home_editorial.investment_advice' ) ); ?></a>
+              <a class="btn btn--ghost btn--green" href="<?php echo esc_url( $regional_url ); ?>"><?php echo esc_html( pera_ml_ui( 'See regional guides', 'theme.home_editorial.regional_guides' ) ); ?></a>
             </div>
           </div>
         </article>
@@ -89,7 +89,7 @@ $regional_url = ( $regional_category && ! is_wp_error( $regional_category ) )
         type="button"
         class="cards-slider-nav cards-slider-nav--next"
         data-slider-target="home-editorial-posts-slider"
-        aria-label="Next editorial posts"
+        aria-label="<?php echo esc_attr( pera_ml_ui( 'Next editorial posts', 'theme.home_editorial.next' ) ); ?>"
       >
         <svg width="22" height="22" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
           <use href="<?php echo esc_url( get_stylesheet_directory_uri() . '/logos-icons/icons.svg#icon-chevron-right' ); ?>"></use>

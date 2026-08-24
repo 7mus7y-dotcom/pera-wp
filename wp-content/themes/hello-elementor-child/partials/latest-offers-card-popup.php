@@ -22,7 +22,7 @@ $notes          = isset( $card['notes'] ) ? (string) $card['notes'] : '';
 $floor_plan_url = isset( $card['floor_plan_url'] ) ? (string) $card['floor_plan_url'] : '';
 $map_url        = isset( $card['map_url'] ) ? (string) $card['map_url'] : '';
 ?>
-<article class="citizenship-map-popup" aria-label="<?php echo esc_attr__( 'Latest offer popup', 'hello-elementor-child' ); ?>">
+<article class="citizenship-map-popup" aria-label="<?php echo esc_attr( pera_ml_ui( 'Latest offer popup', 'theme.partials.latest-offers-card-popup.latest_offer_popup' ) ); ?>">
 	<?php if ( '' !== $region_name || '' !== $district_name ) : ?>
 		<div class="pera-latest-offer-card__pills">
 			<?php if ( '' !== $district_name ) : ?>
@@ -43,12 +43,12 @@ $map_url        = isset( $card['map_url'] ) ? (string) $card['map_url'] : '';
 	</h4>
 
 	<div class="pera-latest-offer-card__summary">
-		<p class="pera-latest-offer-card__list"><?php echo esc_html( sprintf( __( 'List price: %s', 'hello-elementor-child' ), $list_price ) ); ?></p>
-		<p class="pera-latest-offer-card__cash"><?php echo esc_html( sprintf( __( 'Cash price: %s', 'hello-elementor-child' ), $cash_price ) ); ?></p>
+		<p class="pera-latest-offer-card__list"><?php echo esc_html( sprintf( pera_ml_ui( 'List price: %s', 'theme.partials.latest-offers-card-popup.list_price_value' ), $list_price ) ); ?></p>
+		<p class="pera-latest-offer-card__cash"><?php echo esc_html( sprintf( pera_ml_ui( 'Cash price: %s', 'theme.partials.latest-offers-card-popup.cash_price_value' ), $cash_price ) ); ?></p>
 		<p class="pera-latest-offer-card__meta">
-			<span><?php echo esc_html( sprintf( __( 'Net: %s', 'hello-elementor-child' ), $net_sqm ) ); ?></span>
+			<span><?php echo esc_html( sprintf( pera_ml_ui( 'Net: %s', 'theme.partials.latest-offers-card-popup.net_value' ), $net_sqm ) ); ?></span>
 			<span aria-hidden="true">•</span>
-			<span><?php echo esc_html( sprintf( __( 'Gross: %s', 'hello-elementor-child' ), $gross_sqm ) ); ?></span>
+			<span><?php echo esc_html( sprintf( pera_ml_ui( 'Gross: %s', 'theme.partials.latest-offers-card-popup.gross_value' ), $gross_sqm ) ); ?></span>
 			<?php if ( '' !== $floor ) : ?>
 				<span aria-hidden="true">•</span>
 				<span><?php echo esc_html( $floor ); ?></span>
@@ -78,13 +78,13 @@ $map_url        = isset( $card['map_url'] ) ? (string) $card['map_url'] : '';
 
 	<div class="pera-latest-offer-card__utility">
 		<?php if ( '' !== $floor_plan_url ) : ?>
-			<a class="pill pill--subtle pera-latest-offer-card__pill" href="<?php echo esc_url( $floor_plan_url ); ?>" target="_blank" rel="noopener noreferrer"><?php esc_html_e( 'Floor plan', 'hello-elementor-child' ); ?></a>
+			<a class="pill pill--subtle pera-latest-offer-card__pill" href="<?php echo esc_url( $floor_plan_url ); ?>" target="_blank" rel="noopener noreferrer"><?php echo esc_html( pera_ml_ui( 'Floor plan', 'theme.partials.latest-offers-card-popup.floor_plan' ) ); ?></a>
 		<?php endif; ?>
 		<?php if ( '' !== $map_url ) : ?>
-			<a class="pill pill--subtle pera-latest-offer-card__pill" href="<?php echo esc_url( $map_url ); ?>" target="_blank" rel="noopener noreferrer"><?php esc_html_e( 'Map', 'hello-elementor-child' ); ?></a>
+			<a class="pill pill--subtle pera-latest-offer-card__pill" href="<?php echo esc_url( $map_url ); ?>" target="_blank" rel="noopener noreferrer"><?php echo esc_html( pera_ml_ui( 'Map', 'theme.partials.latest-offers-card-popup.map' ) ); ?></a>
 		<?php endif; ?>
 		<?php if ( '' !== $property_url ) : ?>
-			<a class="pill pill--subtle pera-latest-offer-card__pill pera-latest-offer-card__pill--blue" href="<?php echo esc_url( $property_url ); ?>" target="_blank" rel="noopener noreferrer"><?php esc_html_e( 'Project details', 'hello-elementor-child' ); ?></a>
+			<a class="pill pill--subtle pera-latest-offer-card__pill pera-latest-offer-card__pill--blue" href="<?php echo esc_url( $property_url ); ?>" target="_blank" rel="noopener noreferrer"><?php echo esc_html( pera_ml_ui( 'Project details', 'theme.partials.latest-offers-card-popup.project_details' ) ); ?></a>
 		<?php endif; ?>
 	</div>
 </article>

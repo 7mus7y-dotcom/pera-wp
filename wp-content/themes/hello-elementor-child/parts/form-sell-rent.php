@@ -16,11 +16,11 @@
  * );
  */
 
-$hero_heading = $args['hero_heading'] ?? 'Talk to Pera about your Istanbul plans';
-$hero_intro   = $args['hero_intro']   ?? 'Whether you’re buying, selling, or renting in Istanbul, our team can walk you through the numbers, the legal steps, and the neighbourhoods that fit your strategy.';
+$hero_heading = $args['hero_heading'] ?? pera_ml_ui( 'Talk to Pera about your Istanbul plans', 'theme.contact_cta.default_heading' );
+$hero_intro   = $args['hero_intro']   ?? pera_ml_ui( 'Whether you’re buying, selling, or renting in Istanbul, our team can walk you through the numbers, the legal steps, and the neighbourhoods that fit your strategy.', 'theme.contact_cta.default_intro' );
 
-$form_heading = $args['form_heading'] ?? 'Request a valuation / rental appraisal';
-$form_intro   = $args['form_intro']   ?? 'Share a few details and we will prepare an initial sale strategy and price guidance for your apartment or villa.';
+$form_heading = $args['form_heading'] ?? pera_ml_ui( 'Request a valuation / rental appraisal', 'theme.sell_rent.default_form_heading' );
+$form_intro   = $args['form_intro']   ?? pera_ml_ui( 'Share a few details and we will prepare an initial sale strategy and price guidance for your apartment or villa.', 'theme.sell_rent.default_form_intro' );
 
 $form_context = $args['form_context'] ?? 'general-contact';
 ?>
@@ -42,15 +42,15 @@ $form_context = $args['form_context'] ?? 'general-contact';
 
                 <ul class="checklist checklist--circle">
                     <li>
-                        Reliable, data-driven advice.
+                        <?php echo esc_html( pera_ml_ui( 'Reliable, data-driven advice.', 'theme.contact_cta.reliable_advice' ) ); ?>
                     </li>
 
                     <li>
-                        On-the-ground Istanbul expertise.
+                        <?php echo esc_html( pera_ml_ui( 'On-the-ground Istanbul expertise.', 'theme.contact_cta.istanbul_expertise' ) ); ?>
                     </li>
 
                     <li>
-                        Multi-lingual support.
+                        <?php echo esc_html( pera_ml_ui( 'Multi-lingual support.', 'theme.contact_cta.multilingual_support' ) ); ?>
                     </li>
                 </ul>
             </div>
@@ -78,14 +78,14 @@ $form_context = $args['form_context'] ?? 'general-contact';
                 <div class="hero-overlay"></div>
 
                 <div class="hero-content section--center">
-                    <h3 class="text-light">Speak with a Consultant</h3>
+                    <h3 class="text-light"><?php echo esc_html( pera_ml_ui( 'Speak with a Consultant', 'theme.contact_cta.speak_with_consultant' ) ); ?></h3>
 
                     <div class="hero-actions flex-center">
                         <a href="https://www.peraproperty.com/contact-us/" class="btn btn-primary">
-                            Book a consultation
+                            <?php echo esc_html( pera_ml_ui( 'Book a consultation', 'theme.contact_cta.book_consultation' ) ); ?>
                         </a>
 
-                        <a href="<?php echo esc_url( pera_get_whatsapp_url( 'Hello Pera Property, I\'d like to discuss Istanbul real estate.' ) ); ?>"
+                        <a href="<?php echo esc_url( pera_get_whatsapp_url( pera_ml_ui( 'Hello Pera Property, I\'d like to discuss Istanbul real estate.', 'theme.contact_cta.whatsapp_message' ) ) ); ?>"
                            class="btn btn-secondary"
                            data-whatsapp="1"
                            data-whatsapp-type="service_cta"
@@ -95,7 +95,7 @@ $form_context = $args['form_context'] ?? 'general-contact';
                            data-track-context="sell_rent_form_side"
                            data-track-ga4-event="whatsapp_click"
                            data-track-crm-event="whatsapp_click">
-                            Chat on WhatsApp
+                            <?php echo esc_html( pera_ml_ui( 'Chat on WhatsApp', 'theme.contact_cta.chat_whatsapp' ) ); ?>
                         </a>
                     </div>
                 </div>
@@ -112,7 +112,7 @@ $form_context = $args['form_context'] ?? 'general-contact';
 
             <?php if ( isset( $_GET['sr_status'] ) && $_GET['sr_status'] === 'sent' ) : ?>
                 <div class="form-success">
-                    Thank you – we have received your details. A Pera consultant will contact you shortly.
+                    <?php echo esc_html( pera_ml_ui( 'Thank you – we have received your details. A Pera consultant will contact you shortly.', 'theme.sell_rent.success' ) ); ?>
                 </div>
             <?php endif; ?>
 
@@ -129,7 +129,7 @@ $form_context = $args['form_context'] ?? 'general-contact';
                 'context'      => $form_context === 'sell-page' ? 'sell' : 'rent',
                 'heading'      => $form_heading,
                 'intro'        => $form_intro,
-                'submit_label' => 'Send my details',
+                'submit_label' => pera_ml_ui( 'Send my details', 'theme.enquiry_form.submit' ),
                 'form_context' => $form_context,
               )
             );

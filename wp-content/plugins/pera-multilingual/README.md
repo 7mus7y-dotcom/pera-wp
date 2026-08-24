@@ -44,6 +44,78 @@ pera_ml_store_translation( 'post', 123, 'post_title', 'zh', 'English title', '�
 $row = pera_ml_get_translation( 'post', 123, 'post_title', 'zh', 'English title' );
 ```
 
+### Stored UI strings
+
+Visitor-facing interface copy has its own stored API. English is canonical and
+reads only query the translation table, so rendering never calls a provider:
+
+```php
+echo esc_html(
+    pera_ml_ui(
+        'No properties found.',
+        'property_archive.no_results'
+    )
+);
+```
+
+Use stable semantic keys wherever the same English copy can have different meanings.
+When the key is omitted, the service deterministically derives one from the full
+SHA-256 hash of the exact English source. UI rows have `object_type = 'ui'`; their
+`field_key` is `key:<normalized-semantic-key>_<original-key-digest>` (or
+`source:<source-sha256>`), and
+their positive `object_id` is the first 60 bits of the identity's SHA-256 hash.
+Both values participate in the existing unique row identity, without changing post
+or term rows.
+
+Reviewed translations can be imported explicitly, or generated explicitly from an
+administrative/offline workflow:
+
+```php
+pera_ml_store_ui_translation(
+    'property_archive.no_results',
+    'No properties found.',
+    'zh',
+    '未找到房产。'
+);
+
+pera_ml_translate_ui(
+    'property_archive.no_results',
+    'No properties found.',
+    'de'
+);
+```
+
+`pera_ml_vocab()` remains the code-owned, reviewed dictionary for controlled domain
+values such as property types, facilities, buyer types, and property advantages.
+`pera_ml_ui()` is the general UI-copy layer backed by `{prefix}pera_ml_translations`.
+Missing, stale, or unavailable UI rows safely return their English source.
+
+#### Registration and admin workflow
+
+Every non-empty call to `pera_ml_ui()` registers that explicit Pera ML UI string in
+the lightweight `pera_ml_ui_registry` option. The registry records its semantic
+identity, canonical English source and hash, and first/last-seen timestamps. It does
+not create a translation row and does not contact the provider. Last-seen writes are
+coalesced to at most once per string per UTC day unless its canonical source changes.
+This is runtime registration from actual API usage—not a scan of arbitrary PHP,
+theme, plugin, or WordPress admin text. Consequently, a newly added theme string
+appears after code containing its `pera_ml_ui()` call executes; no child-theme mass
+conversion or request-time source-code scanning is involved.
+
+Administrators can open **Pera Multilingual → UI Strings** to see every registered
+semantic key and English source with ZH, AR, and DE status:
+
+- **Missing** means no usable translation row exists;
+- **Current** means the stored row's source hash matches the registered English copy;
+- **Stale** means a row remains stored but its source hash no longer matches, or it
+  has otherwise been marked stale.
+
+Each status cell can translate or regenerate that one language. **Complete all
+Missing / Stale** submits only non-current registered rows to the existing provider
+infrastructure. Both workflows require a `manage_options` user, POST, and a verified
+nonce. Provider requests therefore happen only in these explicit admin actions;
+ordinary frontend registration and reads remain provider-free.
+
 Switcher:
 
 ```php

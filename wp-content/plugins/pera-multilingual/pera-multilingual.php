@@ -24,6 +24,8 @@ require_once PERA_ML_DIR . 'includes/providers/interface-provider.php';
 require_once PERA_ML_DIR . 'includes/providers/class-mock-provider.php';
 require_once PERA_ML_DIR . 'includes/providers/class-openai-provider.php';
 require_once PERA_ML_DIR . 'includes/class-translator.php';
+require_once PERA_ML_DIR . 'includes/class-ui-registry.php';
+require_once PERA_ML_DIR . 'includes/class-ui.php';
 require_once PERA_ML_DIR . 'includes/class-router.php';
 require_once PERA_ML_DIR . 'includes/class-content.php';
 require_once PERA_ML_DIR . 'includes/class-seo.php';
@@ -67,4 +69,10 @@ function pera_ml_term( $term, $field = 'name', $language = null ) { return Pera_
 function pera_ml_url( $url, $language = null ) { $plugin = Pera_ML_Plugin::instance(); return $plugin->router()->url_for_language( $url, $language ? $language : $plugin->router()->current_language() ); }
 /** Translate a controlled property label without provider traffic. */
 function pera_ml_vocab( $value, $language = null ) { $plugin = Pera_ML_Plugin::instance(); return $plugin->vocabulary()->translate( $value, $language ? $language : $plugin->router()->current_language() ); }
+/** Read stored visitor-facing copy, falling back to its canonical English source. */
+function pera_ml_ui( $source, $key = '', $language = null ) { return Pera_ML_Plugin::instance()->ui()->get( $source, $key, $language ); }
+/** Explicitly import a reviewed UI translation. This never invokes a provider. */
+function pera_ml_store_ui_translation( $key, $source, $language, $translation, $provider = 'manual' ) { return Pera_ML_Plugin::instance()->ui()->store( $key, $source, $language, $translation, $provider ); }
+/** Explicitly generate one UI translation; call only from administrative/offline workflows. */
+function pera_ml_translate_ui( $key, $source, $language, $provider_id = '' ) { return Pera_ML_Plugin::instance()->ui()->translate_and_store( $key, $source, $language, $provider_id ); }
 function pera_ml_current_language() { return Pera_ML_Plugin::instance()->router()->current_language(); }

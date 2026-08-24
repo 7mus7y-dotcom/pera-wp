@@ -127,19 +127,19 @@ $special_terms = get_the_terms( $property_id, 'special' );
 $special       = ( ! empty($special_terms) && ! is_wp_error($special_terms) ) ? $special_terms[0]->name : '';
 
 /* Args */
-$kicker      = isset($args['kicker']) ? (string) $args['kicker'] : 'Featured property';
+$kicker      = isset($args['kicker']) ? (string) $args['kicker'] : pera_ml_ui( 'Featured property', 'theme.home_featured_property.default_kicker' );
 $guide_url   = isset($args['guide_url']) ? (string) $args['guide_url'] : '';
-$guide_label = isset($args['guide_label']) ? (string) $args['guide_label'] : 'Read area guide';
+$guide_label = isset($args['guide_label']) ? (string) $args['guide_label'] : pera_ml_ui( 'Read area guide', 'theme.home_featured_property.read_area_guide' );
 
 $points = ( isset($args['points']) && is_array($args['points']) ) ? $args['points'] : array();
 
 $primary_cta = isset($args['primary_cta']) && is_array($args['primary_cta'])
   ? $args['primary_cta']
-  : array('label' => 'View listing', 'url' => $permalink);
+  : array('label' => pera_ml_ui( 'View listing', 'theme.home_featured_property.view_listing' ), 'url' => $permalink);
 
 $secondary_cta = isset($args['secondary_cta']) && is_array($args['secondary_cta'])
   ? $args['secondary_cta']
-  : array('label' => 'Request details', 'url' => $permalink . '#contact-form');
+  : array('label' => pera_ml_ui( 'Request details', 'theme.home_featured_property.request_details' ), 'url' => $permalink . '#contact-form');
 ?>
 
 
@@ -161,7 +161,7 @@ $secondary_cta = isset($args['secondary_cta']) && is_array($args['secondary_cta'
           <a
             href="<?php echo esc_url( $permalink ); ?>"
             class="property-card__media-link"
-            aria-label="<?php echo esc_attr( sprintf( 'View property: %s', $title ) ); ?>"
+            aria-label="<?php echo esc_attr( sprintf( pera_ml_ui( 'View property: %s', 'theme.home_featured_property.view_property' ), $title ) ); ?>"
           >
             <?php
               echo wp_get_attachment_image(

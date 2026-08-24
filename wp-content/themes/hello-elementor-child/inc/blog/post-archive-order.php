@@ -26,17 +26,17 @@ add_filter( 'posts_clauses', 'pera_order_blog_archive_by_selected_date_clauses',
 function pera_get_blog_archive_sort_options() {
 	return array(
 		'updated'   => array(
-			'label'   => __( 'Last updated', 'peraproperty' ),
+			'label'   => pera_ml_ui( 'Last updated', 'theme.inc.blog.post-archive-order.last_updated' ),
 			'orderby' => 'modified',
 			'order'   => 'DESC',
 		),
 		'published' => array(
-			'label'   => __( 'Newest published', 'peraproperty' ),
+			'label'   => pera_ml_ui( 'Newest published', 'theme.inc.blog.post-archive-order.newest_published' ),
 			'orderby' => 'date',
 			'order'   => 'DESC',
 		),
 		'oldest'    => array(
-			'label'   => __( 'Oldest published', 'peraproperty' ),
+			'label'   => pera_ml_ui( 'Oldest published', 'theme.inc.blog.post-archive-order.oldest_published' ),
 			'orderby' => 'date',
 			'order'   => 'ASC',
 		),
@@ -339,8 +339,8 @@ function pera_render_blog_archive_sort_control() {
 	$current_sort = pera_get_blog_archive_sort_key();
 	$base_url     = remove_query_arg( array( 'paged', 'page' ), get_pagenum_link( 1, false ) );
 	?>
-	<nav class="blog-sort" aria-label="<?php esc_attr_e( 'Sort posts', 'peraproperty' ); ?>">
-		<span class="blog-sort__label"><?php esc_html_e( 'Sort by:', 'peraproperty' ); ?></span>
+	<nav class="blog-sort" aria-label="<?php echo esc_attr( pera_ml_ui( 'Sort posts', 'theme.inc.blog.post-archive-order.sort_posts' ) ); ?>">
+		<span class="blog-sort__label"><?php echo esc_html( pera_ml_ui( 'Sort by:', 'theme.inc.blog.post-archive-order.sort_by' ) ); ?></span>
 		<div class="blog-sort__options">
 			<?php foreach ( $options as $key => $option ) : ?>
 				<?php

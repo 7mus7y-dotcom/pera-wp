@@ -698,8 +698,8 @@ if ( ! function_exists( 'pera_render_related_guide_property_block' ) ) {
 
       ob_start();
       ?>
-      <section class="<?php echo esc_attr( $args['container_class'] ); ?>" aria-label="<?php echo esc_attr( sprintf( 'Latest properties for sale in %s', $district_term->name ) ); ?>">
-        <h2><?php echo esc_html( sprintf( 'Latest Properties for Sale in %s', $district_term->name ) ); ?></h2>
+      <section class="<?php echo esc_attr( $args['container_class'] ); ?>" aria-label="<?php echo esc_attr( sprintf( pera_ml_ui( 'Latest properties for sale in %s', 'theme.related_properties.section_label' ), $district_term->name ) ); ?>">
+        <h2><?php echo esc_html( sprintf( pera_ml_ui( 'Latest Properties for Sale in %s', 'theme.related_properties.heading' ), $district_term->name ) ); ?></h2>
 
         <div class="cards-slider cards-slider--sidebar cards-slider--snap">
           <div class="slider-track">
@@ -717,12 +717,12 @@ if ( ! function_exists( 'pera_render_related_guide_property_block' ) ) {
               ?>
             <?php endwhile; ?>
 
-            <article class="slider-card post-card post-card--cta home-editorial-posts__cta pera-card-shell" aria-label="<?php echo esc_attr( sprintf( 'Property actions for %s', $district_term->name ) ); ?>">
+            <article class="slider-card post-card post-card--cta home-editorial-posts__cta pera-card-shell" aria-label="<?php echo esc_attr( sprintf( pera_ml_ui( 'Property actions for %s', 'theme.related_properties.actions_label' ), $district_term->name ) ); ?>">
               <div class="post-card-body">
-                <h3 class="post-card-title"><?php echo esc_html__( 'Like what you see?', 'hello-elementor-child' ); ?></h3>
+                <h3 class="post-card-title"><?php echo esc_html( pera_ml_ui( 'Like what you see?', 'theme.inc.theme-helpers.like_what_you_see' ) ); ?></h3>
                 <div class="home-editorial-posts__cta-actions">
-                  <a class="btn btn--solid btn--blue" href="<?php echo esc_url( $district_link ); ?>"><?php echo esc_html( sprintf( 'See all property for sale in %s', $district_term->name ) ); ?></a>
-                  <a class="btn btn--ghost btn--green" href="<?php echo esc_url( home_url( '/contact-us/' ) ); ?>"><?php echo esc_html__( 'Contact us', 'hello-elementor-child' ); ?></a>
+                  <a class="btn btn--solid btn--blue" href="<?php echo esc_url( $district_link ); ?>"><?php echo esc_html( sprintf( pera_ml_ui( 'See all property for sale in %s', 'theme.related_properties.view_all' ), $district_term->name ) ); ?></a>
+                  <a class="btn btn--ghost btn--green" href="<?php echo esc_url( home_url( '/contact-us/' ) ); ?>"><?php echo esc_html( pera_ml_ui( 'Contact us', 'theme.inc.theme-helpers.contact_us' ) ); ?></a>
                 </div>
               </div>
             </article>
@@ -838,14 +838,14 @@ function pera_render_header_language_switcher( $context = 'desktop' ) {
   $current_url = home_url( $request_uri );
   $is_mobile   = 'mobile' === $context;
   ?>
-  <nav class="header-language-switcher header-language-switcher--<?php echo esc_attr( $context ); ?>" aria-label="<?php esc_attr_e( 'Select language', 'hello-elementor-child' ); ?>">
+  <nav class="header-language-switcher header-language-switcher--<?php echo esc_attr( $context ); ?>" aria-label="<?php echo esc_attr( pera_ml_ui( 'Select language', 'theme.inc.theme-helpers.select_language' ) ); ?>">
     <?php if ( ! $is_mobile ) : ?>
       <button class="header-language-switcher__toggle" type="button" aria-expanded="false" aria-haspopup="true">
         <span><?php echo esc_html( $current['compact_name'] ); ?></span>
         <span class="header-language-switcher__chevron" aria-hidden="true">▾</span>
       </button>
     <?php else : ?>
-      <span class="header-language-switcher__title"><?php esc_html_e( 'Language', 'hello-elementor-child' ); ?></span>
+      <span class="header-language-switcher__title"><?php echo esc_html( pera_ml_ui( 'Language', 'theme.inc.theme-helpers.language' ) ); ?></span>
     <?php endif; ?>
     <ul class="header-language-switcher__list">
       <?php foreach ( $languages as $code => $language ) : ?>
