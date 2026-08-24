@@ -115,7 +115,7 @@ get_header();
         }
 
         if ( $archive_title === '' ) {
-            $archive_title = __( 'Blog', 'peraproperty' );
+            $archive_title = pera_ml_ui( 'Blog', 'theme.template.archive.blog' );
         }
 
     } elseif ( is_category() ) {
@@ -178,10 +178,10 @@ get_header();
 
         $author_obj          = get_queried_object();
         $archive_title       = sprintf(
-            __( 'Articles by %s', 'peraproperty' ),
+            pera_ml_ui( 'Articles by %s', 'theme.template.archive.articles_by_s' ),
             esc_html( $author_obj->display_name )
         );
-        $archive_subtitle    = __( 'Insights and commentary from this author', 'peraproperty' );
+        $archive_subtitle    = pera_ml_ui( 'Insights and commentary from this author', 'theme.template.archive.insights_and_commentary_from_this_author' );
         $archive_description = (string) get_the_author_meta( 'description', $author_obj->ID );
 
     } elseif ( is_year() ) {
@@ -199,11 +199,11 @@ get_header();
     } elseif ( is_post_type_archive() && 'post' !== get_post_type() ) {
 
         $archive_title    = post_type_archive_title( '', false );
-        $archive_subtitle = __( 'Archive', 'peraproperty' );
+        $archive_subtitle = pera_ml_ui( 'Archive', 'theme.template.archive.archive' );
 
     } else {
 
-        $archive_title = __( 'Articles & Insights', 'peraproperty' );
+        $archive_title = pera_ml_ui( 'Articles & Insights', 'theme.template.archive.articles_insights' );
 
     }
 
@@ -270,10 +270,10 @@ get_header();
 
 
         <?php if ( is_home() && ! is_front_page() ) : ?>
-          <p class="lead"><?php esc_html_e( 'Stay up to date with the latest developments in the Istanbul real estate market. Our blog covers everything from district guides and new developments to investment strategies and legal considerations for buying property in Istanbul.', 'peraproperty' ); ?></p>
+          <p class="lead"><?php echo esc_html( pera_ml_ui( 'Stay up to date with the latest developments in the Istanbul real estate market. Our blog covers everything from district guides and new developments to investment strategies and legal considerations for buying property in Istanbul.', 'theme.template.archive.stay_up_to_date_with_the_latest_developments_in_the_istanbul_real_estate' ) ); ?></p>
 
           <?php if ( ! empty( $blog_quick_links ) ) : ?>
-            <nav class="archive-quick-links" aria-label="<?php esc_attr_e( 'Blog quick links', 'peraproperty' ); ?>">
+            <nav class="archive-quick-links" aria-label="<?php echo esc_attr( pera_ml_ui( 'Blog quick links', 'theme.template.archive.blog_quick_links' ) ); ?>">
               <?php foreach ( $blog_quick_links as $blog_quick_link ) : ?>
                 <a class="archive-quick-links__link" href="<?php echo esc_url( $blog_quick_link['url'] ); ?>"><?php echo esc_html( $blog_quick_link['name'] ); ?></a>
               <?php endforeach; ?>
@@ -296,7 +296,7 @@ get_header();
 
     <?php
     if ( ( is_category() || ( is_home() && ! is_front_page() ) ) && ! empty( $archive_featured_post_ids ) ) :
-        $featured_heading = trim( $archive_featured_heading ) !== '' ? $archive_featured_heading : __( 'Start with these guides', 'peraproperty' );
+        $featured_heading = trim( $archive_featured_heading ) !== '' ? $archive_featured_heading : pera_ml_ui( 'Start with these guides', 'theme.template.archive.start_with_these_guides' );
         ?>
         <section class="section">
           <div class="container">
@@ -369,19 +369,19 @@ get_header();
                     data-archive-month="<?php echo esc_attr( (string) $blog_archive_month ); ?>"
                     data-archive-day="<?php echo esc_attr( (string) $blog_archive_day ); ?>"
                 >
-                    <label class="screen-reader-text" for="blog-archive-search"><?php esc_html_e( 'Search blog articles', 'peraproperty' ); ?></label>
+                    <label class="screen-reader-text" for="blog-archive-search"><?php echo esc_html( pera_ml_ui( 'Search blog articles', 'theme.template.archive.search_blog_articles' ) ); ?></label>
                     <input
                         id="blog-archive-search"
                         type="search"
                         name="s"
                         value="<?php echo esc_attr( $blog_search_term ); ?>"
-                        placeholder="<?php esc_attr_e( 'Search articles', 'peraproperty' ); ?>"
+                        placeholder="<?php echo esc_attr( pera_ml_ui( 'Search articles', 'theme.template.archive.search_articles' ) ); ?>"
                         autocomplete="off"
                     >
                     <?php if ( function_exists( 'pera_get_blog_archive_sort_key' ) ) : ?>
                         <input type="hidden" name="sort" value="<?php echo esc_attr( pera_get_blog_archive_sort_key() ); ?>" data-blog-sort-input>
                     <?php endif; ?>
-                    <button class="btn btn--solid btn--blue" type="submit"><?php esc_html_e( 'Search', 'peraproperty' ); ?></button>
+                    <button class="btn btn--solid btn--blue" type="submit"><?php echo esc_html( pera_ml_ui( 'Search', 'theme.template.archive.search' ) ); ?></button>
                     <span class="blog-search__count" data-blog-search-count aria-live="polite"></span>
                 </form>
             <?php endif; ?>
@@ -430,8 +430,8 @@ get_header();
                             'add_fragment' => '#blog-post-list-anchor',
                             'mid_size'     => 1,
                             'end_size'     => 1,
-                            'prev_text'    => __( 'Previous', 'peraproperty' ),
-                            'next_text'    => __( 'Next', 'peraproperty' ),
+                            'prev_text'    => pera_ml_ui( 'Previous', 'theme.template.archive.previous' ),
+                            'next_text'    => pera_ml_ui( 'Next', 'theme.template.archive.next' ),
                             'add_args'     => function_exists( 'pera_get_blog_archive_sort_key' ) && 'published' !== pera_get_blog_archive_sort_key()
                                 ? array( 'sort' => pera_get_blog_archive_sort_key() )
                                 : array(),
@@ -439,7 +439,7 @@ get_header();
                     );
 
                     if ( ! empty( $links ) ) : ?>
-                    <nav class="posts-pagination" aria-label="<?php esc_attr_e( 'Posts pagination', 'peraproperty' ); ?>">
+                    <nav class="posts-pagination" aria-label="<?php echo esc_attr( pera_ml_ui( 'Posts pagination', 'theme.template.archive.posts_pagination' ) ); ?>">
                         <ul>
                             <?php foreach ( $links as $link ) : ?>
                                 <li><?php echo $link; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?></li>
@@ -451,9 +451,9 @@ get_header();
             <?php else : ?>
 
                 <div class="no-posts">
-                    <p><?php esc_html_e( 'No articles found in this archive.', 'peraproperty' ); ?></p>
+                    <p><?php echo esc_html( pera_ml_ui( 'No articles found in this archive.', 'theme.template.archive.no_articles_found_in_this_archive' ) ); ?></p>
                     <a class="btn btn--ghost btn--blue" href="<?php echo esc_url( home_url( '/' ) ); ?>">
-                        <?php esc_html_e( 'Back to homepage', 'peraproperty' ); ?>
+                        <?php echo esc_html( pera_ml_ui( 'Back to homepage', 'theme.template.archive.back_to_homepage' ) ); ?>
                     </a>
                 </div>
 
@@ -476,11 +476,11 @@ get_header();
     <?php endif; ?>
 
     <?php if ( ( is_category() || ( is_home() && ! is_front_page() ) ) && trim( wp_strip_all_tags( $archive_faq_html ) ) !== '' ) : ?>
-      <section class="section" aria-label="<?php esc_attr_e( 'Frequently asked questions', 'peraproperty' ); ?>">
+      <section class="section" aria-label="<?php echo esc_attr( pera_ml_ui( 'Frequently asked questions', 'theme.template.archive.frequently_asked_questions' ) ); ?>">
         <div class="container">
           <div class="content-panel-box">
             <?php if ( ! preg_match( '/^\s*<h[1-6][^>]*>/i', trim( $archive_faq_html ) ) ) : ?>
-              <h2><?php esc_html_e( 'Frequently asked questions', 'peraproperty' ); ?></h2>
+              <h2><?php echo esc_html( pera_ml_ui( 'Frequently asked questions', 'theme.template.archive.frequently_asked_questions' ) ); ?></h2>
             <?php endif; ?>
             <?php echo wp_kses_post( apply_filters( 'the_content', $archive_faq_html ) ); ?>
           </div>
@@ -514,7 +514,7 @@ get_header();
       if ( ! empty( $other_cats ) ) : ?>
         <section class="section section-archive-cats">
           <div class="container archive-cats">
-            <h2 class="archive-cats-title"><?php esc_html_e( 'Explore other topics', 'peraproperty' ); ?></h2>
+            <h2 class="archive-cats-title"><?php echo esc_html( pera_ml_ui( 'Explore other topics', 'theme.template.archive.explore_other_topics' ) ); ?></h2>
 
             <div class="archive-cats-grid cards-scroll-mobile">
               <?php foreach ( $other_cats as $cat ) :
@@ -523,7 +523,7 @@ get_header();
 
                 $desc = ! empty( $cat->description )
                   ? wp_trim_words( wp_strip_all_tags( $cat->description ), 24, '…' )
-                  : sprintf( '%d post%s', (int) $cat->count, $cat->count === 1 ? '' : 's' );
+                  : sprintf( pera_ml_ui( '%d post%s', 'theme.template.archive.post_count' ), (int) $cat->count, $cat->count === 1 ? '' : 's' );
                 ?>
                 <article class="archive-cat-card card-shell">
 
@@ -538,8 +538,8 @@ get_header();
                   </p>
 
                   <div class="card-meta-row">
-                      <a href="<?php echo esc_url( $cat_link ); ?>" class="btn btn--solid btn--black btn-card" aria-label="<?php echo esc_attr( sprintf( __( 'View posts in %s', 'peraproperty' ), $cat->name ) ); ?>">
-                        <?php esc_html_e( 'View posts', 'peraproperty' ); ?>
+                      <a href="<?php echo esc_url( $cat_link ); ?>" class="btn btn--solid btn--black btn-card" aria-label="<?php echo esc_attr( sprintf( pera_ml_ui( 'View posts in %s', 'theme.template.archive.view_posts_in_s' ), $cat->name ) ); ?>">
+                        <?php echo esc_html( pera_ml_ui( 'View posts', 'theme.template.archive.view_posts' ) ); ?>
                       </a>
                   </div>
 

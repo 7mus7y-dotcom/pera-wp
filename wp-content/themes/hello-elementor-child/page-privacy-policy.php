@@ -24,7 +24,7 @@ get_header();
               <p class="lead"><?php echo get_the_excerpt(); ?></p>
             <?php else : ?>
               <p class="lead">
-                How we collect, use, and protect your personal data.
+                <?php echo esc_html( pera_ml_ui( 'How we collect, use, and protect your personal data.', 'theme.template.page_privacy_policy.how_we_collect_use_and_protect_your_personal_data' ) ); ?>
               </p>
             <?php endif; ?>
           </div>

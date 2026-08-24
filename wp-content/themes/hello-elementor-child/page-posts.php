@@ -28,15 +28,15 @@ get_header();
               <p class="lead"><?php echo get_the_excerpt(); ?></p>
             <?php else : ?>
               <p class="lead">
-                Insights, market updates and guides from the Pera Property team.
+                <?php echo esc_html( pera_ml_ui( 'Insights, market updates and guides from the Pera Property team.', 'theme.template.page_posts.insights_market_updates_and_guides_from_the_pera_property_team' ) ); ?>
               </p>
             <?php endif; ?>
         
             <!-- Optional: remove this block entirely if you don't want CTAs on blog hero -->
             <!--
             <div class="hero-actions">
-              <a href="/property/" class="btn btn-primary">View properties</a>
-              <a href="/contact/" class="btn btn-secondary">Contact us</a>
+              <a href="/property/" class="btn btn-primary"><?php echo esc_html( pera_ml_ui( 'View properties', 'theme.template.page_posts.view_properties' ) ); ?></a>
+              <a href="/contact/" class="btn btn-secondary"><?php echo esc_html( pera_ml_ui( 'Contact us', 'theme.template.page_posts.contact_us' ) ); ?></a>
             </div>
             -->
           </div>
@@ -90,7 +90,7 @@ get_header();
 
 
                 if ( $pagination ) : ?>
-                    <nav class="posts-pagination" aria-label="Blog navigation">
+                    <nav class="posts-pagination" aria-label="<?php echo esc_attr( pera_ml_ui( 'Blog navigation', 'theme.template.page_posts.aria_label.blog_navigation' ) ); ?>">
                         <?php echo $pagination; ?>
                     </nav>
                 <?php endif; ?>
@@ -98,7 +98,7 @@ get_header();
             <?php
             else :
                 ?>
-                <p>No articles found yet. Please check back soon.</p>
+                <p><?php echo esc_html( pera_ml_ui( 'No articles found yet. Please check back soon.', 'theme.template.page_posts.no_articles_found_yet_please_check_back_soon' ) ); ?></p>
             <?php
             endif;
 

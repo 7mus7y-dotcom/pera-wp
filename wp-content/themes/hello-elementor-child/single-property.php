@@ -16,11 +16,11 @@ get_header();
 /* -------------------------------------------------------
    CTA copy (safe defaults; replace with ACF options later if needed)
 -------------------------------------------------------- */
-$hero_heading = 'Talk to Pera about your Istanbul plans';
-$hero_intro   = 'Whether you’re buying, selling, or renting in Istanbul, our team can walk you through the numbers, the legal steps, and the neighbourhoods that fit your strategy.';
+$hero_heading = pera_ml_ui( 'Talk to Pera about your Istanbul plans', 'theme.template.single_property.hero_heading_fallback' );
+$hero_intro   = pera_ml_ui( 'Whether you’re buying, selling, or renting in Istanbul, our team can walk you through the numbers, the legal steps, and the neighbourhoods that fit your strategy.', 'theme.template.single_property.hero_intro_fallback' );
 
-$form_heading = 'Request full details';
-$form_intro   = 'Ask about availability, pricing, floor plans, or arrange a viewing.';
+$form_heading = pera_ml_ui( 'Request full details', 'theme.template.single_property.form_heading_fallback' );
+$form_intro   = pera_ml_ui( 'Ask about availability, pricing, floor plans, or arrange a viewing.', 'theme.template.single_property.form_intro_fallback' );
 ?>
 
 <main id="primary" class="site-main pera-single-property content-rail">
@@ -36,7 +36,7 @@ $property_id = get_the_ID();
 
 if ( get_post_type( $property_id ) !== 'property' ) : ?>
   <div class="container">
-    <p>This template is for Property posts only.</p>
+    <p><?php echo esc_html( pera_ml_ui( 'This template is for Property posts only.', 'theme.template.single_property.this_template_is_for_property_posts_only' ) ); ?></p>
   </div>
   <?php continue; ?>
 <?php endif; ?>
@@ -132,9 +132,9 @@ if ( $type_name ) {
 $quick_facts_intro = '';
 
 if ( $is_resale ) {
-  $quick_facts_intro = 'This is a resale property exclusive to Pera Property.';
+  $quick_facts_intro = pera_ml_ui( 'This is a resale property exclusive to Pera Property.', 'theme.template.single_property.resale_quick_facts_intro' );
 } elseif ( $is_project ) {
-  $quick_facts_intro = 'This is a project with several options available. Contact us for a specific offer.';
+  $quick_facts_intro = pera_ml_ui( 'This is a project with several options available. Contact us for a specific offer.', 'theme.template.single_property.project_quick_facts_intro' );
 }
 
 
@@ -266,8 +266,8 @@ if ( ! empty( $completion_raw ) ) {
   if ( $ready_date instanceof DateTime ) {
     $today = new DateTime( 'today', wp_timezone() );
     $ready_label = ( $ready_date <= $today )
-      ? 'Key-ready'
-      : 'Ready on ' . $ready_date->format( 'm/y' );
+      ? pera_ml_ui( 'Key-ready', 'theme.template.single_property.key_ready' )
+      : sprintf( pera_ml_ui( 'Ready on %s', 'theme.template.single_property.ready_on_date' ), $ready_date->format( 'm/y' ) );
   }
 }
 /* ======================================================
@@ -595,7 +595,7 @@ $has_further_reading = ! empty( $post_ids );
             <span class="property-price__current">
               <?php if ( $hero_show_from ) : ?>
                 <span class="property-price__from">
-                  <?php echo esc_html__( 'From', 'hello-elementor-child' ); ?>
+                  <?php echo esc_html( pera_ml_ui( 'From', 'theme.template.single_property.from' ) ); ?>
                 </span>
               <?php endif; ?>
         
@@ -604,7 +604,7 @@ $has_further_reading = ! empty( $post_ids );
 
             <?php if ( is_array( $v2_units_by_beds ) && count( $v2_units_by_beds ) > 1 ) : ?>
               <a class="property-hero__price-link text-light text-sm" href="#property-price-range">
-                <?php esc_html_e( 'See all prices', 'hello-elementor-child' ); ?>
+                <?php echo esc_html( pera_ml_ui( 'See all prices', 'theme.template.single_property.see_all_prices' ) ); ?>
               </a>
             <?php endif; ?>
         
@@ -618,7 +618,7 @@ $has_further_reading = ! empty( $post_ids );
           <?php else : ?>
         
             <span class="property-price__current">
-              <?php echo esc_html__( 'Contact us for pricing', 'hello-elementor-child' ); ?>
+              <?php echo esc_html( pera_ml_ui( 'Contact us for pricing', 'theme.template.single_property.contact_us_for_pricing' ) ); ?>
             </span>
         
           <?php endif; ?>
@@ -638,7 +638,7 @@ $has_further_reading = ! empty( $post_ids );
           <?php endif; ?>
         
           <?php if ( $selected_size_text ) : ?>
-            <span class="pill pill--green" aria-label="<?php echo esc_attr__( 'Selected unit gross size', 'hello-elementor-child' ); ?>">
+            <span class="pill pill--green" aria-label="<?php echo esc_attr( pera_ml_ui( 'Selected unit gross size', 'theme.template.single_property.selected_unit_gross_size' ) ); ?>">
               <svg class="pill__icon" aria-hidden="true" focusable="false" width="14" height="14" style="margin-right:6px; vertical-align:-2px;">
                 <use href="<?php echo esc_url( get_stylesheet_directory_uri() . '/logos-icons/icons.svg#icon-arrows-expand' ); ?>"></use>
               </svg>
@@ -664,7 +664,7 @@ $has_further_reading = ! empty( $post_ids );
           class="fav-toggle"
           type="button"
           aria-pressed="false"
-          aria-label="Add to favourites"
+          aria-label="<?php echo esc_attr( pera_ml_ui( 'Add to favourites', 'theme.template.single_property.aria_label.add_to_favourites' ) ); ?>"
           data-post-id="<?php echo esc_attr( $property_id ); ?>"
         >
           <span class="fav-toggle__icon" aria-hidden="true">
@@ -686,11 +686,11 @@ $has_further_reading = ! empty( $post_ids );
           </span>
         </button>
 
-        <a class="btn btn--solid btn--blue" href="#contact-form">Request details</a>
+        <a class="btn btn--solid btn--blue" href="#contact-form"><?php echo esc_html( pera_ml_ui( 'Request details', 'theme.template.single_property.request_details' ) ); ?></a>
 
         <?php
         $wa_text = sprintf(
-          'Hello Pera Property, I would like details for the listing: "%s". Ref: %d',
+          pera_ml_ui( 'Hello Pera Property, I would like details for the listing: "%s". Ref: %d', 'theme.template.single_property.hero_whatsapp_message' ),
           $title,
           (int) $property_id
         );
@@ -713,7 +713,7 @@ $has_further_reading = ! empty( $post_ids );
         >
           <svg class="icon" aria-hidden="true" width="18" height="18">
             <use href="<?php echo esc_url( get_stylesheet_directory_uri() . '/logos-icons/icons.svg#icon-whatsapp' ); ?>"></use>
-          </svg> WhatsApp
+          </svg> <?php echo esc_html( pera_ml_ui( 'WhatsApp', 'theme.template.single_property.whatsapp' ) ); ?>
         </a>
       </div>
 
@@ -773,7 +773,7 @@ $custom_video_text = $custom_video_text ? wp_kses_post( wpautop( $custom_video_t
   <section class="section section-soft property-video-tour" id="property-video-tour">
     <div class="container">
       <header class="section-header">
-        <h2><?php echo esc_html( $custom_video_heading ?: 'Apartment tour' ); ?></h2>
+        <h2><?php echo esc_html( $custom_video_heading ?: pera_ml_ui( 'Apartment tour', 'theme.template.single_property.apartment_tour_heading' ) ); ?></h2>
         <?php if ( $custom_video_text ) : ?>
           <div class="property-video-tour__intro text-soft">
             <?php echo $custom_video_text; ?>
@@ -814,7 +814,7 @@ $custom_video_text = $custom_video_text ? wp_kses_post( wpautop( $custom_video_t
     <!-- LEFT -->
     <div class="property-overview__main">
 
-      <h2><?php echo esc_html( $summary_heading ?: 'Overview' ); ?></h2>
+      <h2><?php echo esc_html( $summary_heading ?: pera_ml_ui( 'Overview', 'theme.template.single_property.overview_heading' ) ); ?></h2>
 
       <?php
       if ( $district_term ) {
@@ -824,7 +824,7 @@ $custom_video_text = $custom_video_text ? wp_kses_post( wpautop( $custom_video_t
           $district_name = ( function_exists( 'pera_ml_term' ) ? pera_ml_term( $district_term ) : $district_term->name );
           ?>
           <p class="text-sm">
-            Browse all <a href="<?php echo esc_url( $district_url ); ?>">
+            <?php echo esc_html( pera_ml_ui( 'Browse all', 'theme.template.single_property.browse_all' ) ); ?> <a href="<?php echo esc_url( $district_url ); ?>">
               <?php echo esc_html( 'property for sale in ' . $district_name ); ?>
             </a>.
           </p>
@@ -877,7 +877,7 @@ $custom_video_text = $custom_video_text ? wp_kses_post( wpautop( $custom_video_t
             
                 <div class="card-shell">
             
-                  <h3 style="margin:0;">Key figures</h3>
+                  <h3 style="margin:0;"><?php echo esc_html( pera_ml_ui( 'Key figures', 'theme.template.single_property.key_figures' ) ); ?></h3>
             
                   <?php if ( $quick_facts_intro ) : ?>
                     <p class="text-soft" style="margin:4px 0 12px;">
@@ -895,7 +895,7 @@ $custom_video_text = $custom_video_text ? wp_kses_post( wpautop( $custom_video_t
                         <svg class="icon" aria-hidden="true" width="18" height="18">
                           <use href="<?php echo esc_url( get_stylesheet_directory_uri() . '/logos-icons/icons.svg#icon-home' ); ?>"></use>
                         </svg>
-                        <span class="fact-label">Type</span>
+                        <span class="fact-label"><?php echo esc_html( pera_ml_ui( 'Type', 'theme.template.single_property.type' ) ); ?></span>
                         <span class="fact-value"><?php echo esc_html( $display_type ); ?></span>
                       </div>
                     <?php endif; ?>
@@ -908,7 +908,7 @@ $custom_video_text = $custom_video_text ? wp_kses_post( wpautop( $custom_video_t
                         <svg class="icon" aria-hidden="true" width="18" height="18">
                           <use href="<?php echo esc_url( get_stylesheet_directory_uri() . '/logos-icons/icons.svg#icon-bed' ); ?>"></use>
                         </svg>
-                        <span class="fact-label">Bedrooms</span>
+                        <span class="fact-label"><?php echo esc_html( pera_ml_ui( 'Bedrooms', 'theme.template.single_property.bedrooms' ) ); ?></span>
                         <span class="fact-value">
                           <span class="pill pill--green"><?php echo esc_html( (int) $key_beds_int ); ?></span>
                         </span>
@@ -923,7 +923,7 @@ $custom_video_text = $custom_video_text ? wp_kses_post( wpautop( $custom_video_t
                         <svg class="icon" aria-hidden="true" width="18" height="18">
                           <use href="<?php echo esc_url( get_stylesheet_directory_uri() . '/logos-icons/icons.svg#icon-arrows-expand' ); ?>"></use>
                         </svg>
-                        <span class="fact-label">Gross size</span>
+                        <span class="fact-label"><?php echo esc_html( pera_ml_ui( 'Gross size', 'theme.template.single_property.gross_size' ) ); ?></span>
                         <span class="fact-value"><?php echo esc_html( $key_size_text ); ?></span>
                       </div>
                     <?php endif; ?>
@@ -939,7 +939,7 @@ $custom_video_text = $custom_video_text ? wp_kses_post( wpautop( $custom_video_t
                           <svg class="icon" aria-hidden="true" width="18" height="18">
                             <use href="<?php echo esc_url( get_stylesheet_directory_uri() . '/logos-icons/icons.svg#icon-bed' ); ?>"></use>
                           </svg>
-                          <span class="fact-label">Other types</span>
+                          <span class="fact-label"><?php echo esc_html( pera_ml_ui( 'Other types', 'theme.template.single_property.other_types' ) ); ?></span>
                           <span class="fact-value">
                             <span class="fact-pills fact-pills--row">
                               <?php foreach ( $key_other_beds as $beds_int ) : ?>
@@ -958,7 +958,7 @@ $custom_video_text = $custom_video_text ? wp_kses_post( wpautop( $custom_video_t
                             <svg class="icon" aria-hidden="true" width="18" height="18">
                               <use href="<?php echo esc_url( get_stylesheet_directory_uri() . '/logos-icons/icons.svg#icon-building' ); ?>"></use>
                             </svg>
-                            <span class="fact-label">Units</span>
+                            <span class="fact-label"><?php echo esc_html( pera_ml_ui( 'Units', 'theme.template.single_property.units' ) ); ?></span>
                             <span class="fact-value"><?php echo esc_html( number_format_i18n( $number_of_units ) ); ?></span>
                           </div>
                         <?php endif; ?>
@@ -973,7 +973,7 @@ $custom_video_text = $custom_video_text ? wp_kses_post( wpautop( $custom_video_t
                           <svg class="icon" aria-hidden="true" width="18" height="18">
                             <use href="<?php echo esc_url( get_stylesheet_directory_uri() . '/logos-icons/icons.svg#icon-layout-grid' ); ?>"></use>
                           </svg>
-                          <span class="fact-label">Compound size</span>
+                          <span class="fact-label"><?php echo esc_html( pera_ml_ui( 'Compound size', 'theme.template.single_property.compound_size' ) ); ?></span>
                           <span class="fact-value"><?php echo esc_html( number_format_i18n( $compound_size ) ); ?> m²</span>
                         </div>
                       <?php endif; ?>
@@ -989,7 +989,7 @@ $custom_video_text = $custom_video_text ? wp_kses_post( wpautop( $custom_video_t
                         <svg class="icon" aria-hidden="true" width="18" height="18">
                           <use href="<?php echo esc_url( get_stylesheet_directory_uri() . '/logos-icons/icons.svg#icon-map' ); ?>"></use>
                         </svg>
-                        <span class="fact-label">District</span>
+                        <span class="fact-label"><?php echo esc_html( pera_ml_ui( 'District', 'theme.template.single_property.district' ) ); ?></span>
                         <span class="fact-value"><?php echo esc_html( ( function_exists( 'pera_ml_term' ) ? pera_ml_term( $district_term ) : $district_term->name ) ); ?></span>
                       </div>
                     <?php endif; ?>
@@ -1002,7 +1002,7 @@ $custom_video_text = $custom_video_text ? wp_kses_post( wpautop( $custom_video_t
                         <svg class="icon" aria-hidden="true" width="18" height="18">
                           <use href="<?php echo esc_url( get_stylesheet_directory_uri() . '/logos-icons/icons.svg#icon-door-open' ); ?>"></use>
                         </svg>
-                        <span class="fact-label">Status</span>
+                        <span class="fact-label"><?php echo esc_html( pera_ml_ui( 'Status', 'theme.template.single_property.status' ) ); ?></span>
                         <span class="fact-value"><?php echo esc_html( $ready_label ); ?></span>
                       </div>
                     <?php endif; ?>
@@ -1012,11 +1012,11 @@ $custom_video_text = $custom_video_text ? wp_kses_post( wpautop( $custom_video_t
 
                 <?php if ( $is_villa_property ) : ?>
                   <div class="card-shell card-shell--premium villa-explore-links">
-                    <h3>Explore More Villas</h3>
-                    <p class="text-soft">Looking for similar properties? Browse our collection of villas for sale in Istanbul or learn more about Istanbul's leading villa communities.</p>
+                    <h3><?php echo esc_html( pera_ml_ui( 'Explore More Villas', 'theme.template.single_property.explore_more_villas' ) ); ?></h3>
+                    <p class="text-soft"><?php echo esc_html( pera_ml_ui( 'Looking for similar properties? Browse our collection of villas for sale in Istanbul or learn more about Istanbul\'s leading villa communities.', 'theme.template.single_property.looking_for_similar_properties_browse_our_collection_of_villas_for_sale_' ) ); ?></p>
                     <div class="card-meta-row villa-explore-links__actions">
-                      <a class="btn btn--solid btn--blue" href="<?php echo esc_url( $villa_archive_url ); ?>">Explore More Villas in Istanbul</a>
-                      <a class="btn btn--ghost btn--green" href="<?php echo esc_url( function_exists( 'pera_ml_url' ) ? pera_ml_url( home_url( '/a-guide-to-istanbuls-villa-communities-where-to-find-luxury-and-space_52516/' ) ) : home_url( '/a-guide-to-istanbuls-villa-communities-where-to-find-luxury-and-space_52516/' ) ); ?>">Villa Area Guide</a>
+                      <a class="btn btn--solid btn--blue" href="<?php echo esc_url( $villa_archive_url ); ?>"><?php echo esc_html( pera_ml_ui( 'Explore More Villas in Istanbul', 'theme.template.single_property.explore_more_villas_in_istanbul' ) ); ?></a>
+                      <a class="btn btn--ghost btn--green" href="<?php echo esc_url( function_exists( 'pera_ml_url' ) ? pera_ml_url( home_url( '/a-guide-to-istanbuls-villa-communities-where-to-find-luxury-and-space_52516/' ) ) : home_url( '/a-guide-to-istanbuls-villa-communities-where-to-find-luxury-and-space_52516/' ) ); ?>"><?php echo esc_html( pera_ml_ui( 'Villa Area Guide', 'theme.template.single_property.villa_area_guide' ) ); ?></a>
                     </div>
                   </div><!-- .villa-explore-links -->
                 <?php endif; ?>
@@ -1083,7 +1083,7 @@ $custom_video_text = $custom_video_text ? wp_kses_post( wpautop( $custom_video_t
 
       if ( ! empty( $gallery_items ) ) :
     ?>
-      <div class="property-gallery__strip" aria-label="Property photos" role="list">
+      <div class="property-gallery__strip" aria-label="<?php echo esc_attr( pera_ml_ui( 'Property photos', 'theme.template.single_property.aria_label.property_photos' ) ); ?>" role="list">
         <?php foreach ( $gallery_items as $gallery_item ) :
           $img_id    = $gallery_item['id'];
           $alt_label = $gallery_item['alt'];
@@ -1105,11 +1105,11 @@ $custom_video_text = $custom_video_text ? wp_kses_post( wpautop( $custom_video_t
         <?php endforeach; ?>
       </div>
     <?php else :
-      echo '<p class="text-soft" style="margin:0;">No gallery images available.</p>';
+      echo '<p class="text-soft" style="margin:0;">' . esc_html( pera_ml_ui( 'No gallery images available.', 'theme.template.single_property.no_gallery_images_available' ) ) . '</p>';
     endif;
 
     else :
-      echo '<p class="text-soft" style="margin:0;">No gallery images available.</p>';
+      echo '<p class="text-soft" style="margin:0;">' . esc_html( pera_ml_ui( 'No gallery images available.', 'theme.template.single_property.no_gallery_images_available' ) ) . '</p>';
     endif;
     ?>
   </div><!-- /.container -->
@@ -1141,8 +1141,8 @@ if ( ! empty( $yt_video ) ) {
   <section class="section section-soft property-youtube-tour" id="property-video-tour">
     <div class="container">
       <header class="section-header">
-        <h2><?php echo esc_html( $yt_heading ?: 'Property Video Tour' ); ?></h2>
-        <p class="text-soft">Take a closer look at this property and explore the layout, finishes and surrounding area in our video tour.</p>
+        <h2><?php echo esc_html( $yt_heading ?: pera_ml_ui( 'Property Video Tour', 'theme.template.single_property.property_video_tour_heading' ) ); ?></h2>
+        <p class="text-soft"><?php echo esc_html( pera_ml_ui( 'Take a closer look at this property and explore the layout, finishes and surrounding area in our video tour.', 'theme.template.single_property.take_a_closer_look_at_this_property_and_explore_the_layout_finishes_and_' ) ); ?></p>
       </header>
 
       <div class="card-shell property-youtube-tour__media">
@@ -1192,7 +1192,7 @@ if ( ! empty( $yt_video ) ) {
     <!-- LEFT: TEXT -->
     <div class="property-location__main">
       <?php if ( $has_about ) : ?>
-        <h2><?php echo esc_html( $about_heading ?: 'About this project' ); ?></h2>
+        <h2><?php echo esc_html( $about_heading ?: pera_ml_ui( 'About this project', 'theme.template.single_property.about_project_heading' ) ); ?></h2>
         <div class="property-location__about">
           <?php echo apply_filters( 'the_content', $about_html ); ?>
         </div>
@@ -1200,7 +1200,7 @@ if ( ! empty( $yt_video ) ) {
 
       <?php if ( $has_facilities ) : ?>
         <div class="property-facilities">
-          <h3>Facilities</h3>
+          <h3><?php echo esc_html( pera_ml_ui( 'Facilities', 'theme.template.single_property.facilities' ) ); ?></h3>
           <div class="property-facilities__pills">
             <?php foreach ( $facilities as $facility ) : ?>
               <span class="pill pill--green">
@@ -1225,7 +1225,7 @@ if ( ! empty( $yt_video ) ) {
     ?>
 
     <div class="card-shell property-map-card">
-      <h3 class="property-map-card__title">Map</h3>
+      <h3 class="property-map-card__title"><?php echo esc_html( pera_ml_ui( 'Map', 'theme.template.single_property.map' ) ); ?></h3>
 
       <?php if ( $address ) : ?>
         <p class="property-map-card__address text-soft">
@@ -1240,7 +1240,7 @@ if ( ! empty( $yt_video ) ) {
           loading="lazy"
           referrerpolicy="no-referrer-when-downgrade"
           allowfullscreen
-          title="Location map"
+          title="<?php echo esc_attr( pera_ml_ui( 'Location map', 'theme.template.single_property.title.location_map' ) ); ?>"
         ></iframe>
       </div>
 
@@ -1251,14 +1251,14 @@ if ( ! empty( $yt_video ) ) {
           target="_blank"
           rel="noopener"
         >
-          Open in Google Maps
+          <?php echo esc_html( pera_ml_ui( 'Open in Google Maps', 'theme.template.single_property.open_in_google_maps' ) ); ?>
         </a>
       </div>
 
       <?php if ( $has_distances ) : ?>
         <div class="property-map-card__distances">
           <h4 class="property-map-card__distances-title">
-            <?php echo esc_html( $location_heading ?: 'Location & distances' ); ?>
+            <?php echo esc_html( $location_heading ?: pera_ml_ui( 'Location & distances', 'theme.template.single_property.location_distances_heading' ) ); ?>
           </h4>
 
           <div class="property-map-card__distances-content text-soft">
@@ -1271,9 +1271,9 @@ if ( ! empty( $yt_video ) ) {
   <?php else : ?>
 
     <div class="card-shell property-map-card">
-      <h3 class="property-map-card__title">Map</h3>
+      <h3 class="property-map-card__title"><?php echo esc_html( pera_ml_ui( 'Map', 'theme.template.single_property.map' ) ); ?></h3>
       <p class="text-soft" style="margin:0;">
-        Map location is not available for this listing.
+        <?php echo esc_html( pera_ml_ui( 'Map location is not available for this listing.', 'theme.template.single_property.map_location_is_not_available_for_this_listing' ) ); ?>
       </p>
     </div>
 
@@ -1300,7 +1300,7 @@ if ( ! empty( $yt_video ) ) {
         ?>
       </div>
 
-      <aside class="property-pricing-advisors__advisors" aria-label="Contact an agent">
+      <aside class="property-pricing-advisors__advisors" aria-label="<?php echo esc_attr( pera_ml_ui( 'Contact an agent', 'theme.template.single_property.aria_label.contact_an_agent' ) ); ?>">
         <?php
         $advisors = function_exists( 'get_field' ) ? get_field( 'advisors', $property_id ) : array();
         if ( ! is_array( $advisors ) ) {
@@ -1352,8 +1352,8 @@ if ( ! empty( $yt_video ) ) {
         ?>
           <div class="card-shell">
             <header class="section-header">
-              <h3>Contact an agent</h3>
-              <p>Message us on WhatsApp for availability, pricing, and floor plans.</p>
+              <h3><?php echo esc_html( pera_ml_ui( 'Contact an agent', 'theme.template.single_property.contact_an_agent' ) ); ?></h3>
+              <p><?php echo esc_html( pera_ml_ui( 'Message us on WhatsApp for availability, pricing, and floor plans.', 'theme.template.single_property.message_us_on_whatsapp_for_availability_pricing_and_floor_plans' ) ); ?></p>
             </header>
 
             <div class="property-pricing-advisors__list">
@@ -1406,7 +1406,11 @@ if ( ! empty( $yt_video ) ) {
                   if ( $number_digits ) {
                     $listing_id    = get_the_ID();
                     $listing_title = get_the_title();
-                    $wa_message    = "Hello I'd like more info on listing {$listing_id} {$listing_title}";
+                    $wa_message    = sprintf(
+                      pera_ml_ui( 'Hello I\'d like more info on listing %1$s %2$s', 'theme.template.single_property.advisor_whatsapp_message' ),
+                      $listing_id,
+                      $listing_title
+                    );
                     $wa_href       = pera_get_whatsapp_url( $wa_message );
                   } elseif ( isset( $wa_url ) && ! empty( $wa_url ) ) {
                     $wa_href = $wa_url;
@@ -1431,7 +1435,7 @@ if ( ! empty( $yt_video ) ) {
                         <svg class="icon" aria-hidden="true">
                           <use href="<?php echo esc_url( get_stylesheet_directory_uri() . '/logos-icons/icons.svg#icon-whatsapp' ); ?>"></use>
                         </svg>
-                        Contact
+                        <?php echo esc_html( pera_ml_ui( 'Contact', 'theme.template.single_property.contact' ) ); ?>
                       </a>
                     </div>
                   <?php endif; ?>
@@ -1453,7 +1457,7 @@ if ( ! empty( $yt_video ) ) {
 
       <?php if ( $has_property_editorial_intro_card ) : ?>
         <div class="card-shell property-editorial-card property-editorial-card--wide">
-          <h2>Why this property?</h2>
+          <h2><?php echo esc_html( pera_ml_ui( 'Why this property?', 'theme.template.single_property.why_this_property' ) ); ?></h2>
 
           <?php if ( $has_property_editorial_intro ) : ?>
             <div>
@@ -1471,7 +1475,7 @@ if ( ! empty( $yt_video ) ) {
 
           <?php if ( ! empty( $property_key_advantages_items ) ) : ?>
             <div>
-              <h3>Key advantages</h3>
+              <h3><?php echo esc_html( pera_ml_ui( 'Key advantages', 'theme.template.single_property.key_advantages' ) ); ?></h3>
               <div class="property-facilities__pills">
                 <?php foreach ( $property_key_advantages_items as $advantage_item ) : ?>
                   <span class="pill pill--green"><?php echo esc_html( $advantage_item ); ?></span>
@@ -1482,7 +1486,7 @@ if ( ! empty( $yt_video ) ) {
 
           <?php if ( ! empty( $target_buyer_type_items ) ) : ?>
             <div>
-              <h3>Suitable for</h3>
+              <h3><?php echo esc_html( pera_ml_ui( 'Suitable for', 'theme.template.single_property.suitable_for' ) ); ?></h3>
               <div class="property-facilities__pills">
                 <?php foreach ( $target_buyer_type_items as $buyer_type_item ) : ?>
                   <span class="pill pill--green"><?php echo esc_html( $buyer_type_item ); ?></span>
@@ -1495,7 +1499,7 @@ if ( ! empty( $yt_video ) ) {
 
       <?php if ( $has_property_district_analysis ) : ?>
         <div class="card-shell property-editorial-card">
-          <h2>Location and district analysis</h2>
+          <h2><?php echo esc_html( pera_ml_ui( 'Location and district analysis', 'theme.template.single_property.location_and_district_analysis' ) ); ?></h2>
           <div>
             <?php echo wp_kses_post( wpautop( $property_district_analysis ) ); ?>
           </div>
@@ -1504,7 +1508,7 @@ if ( ! empty( $yt_video ) ) {
 
       <?php if ( $has_property_investment_potential || $has_estimated_rental_yield ) : ?>
         <div class="card-shell property-editorial-card">
-          <h2>Investment and rental potential</h2>
+          <h2><?php echo esc_html( pera_ml_ui( 'Investment and rental potential', 'theme.template.single_property.investment_and_rental_potential' ) ); ?></h2>
 
           <?php if ( $has_property_investment_potential ) : ?>
             <div>
@@ -1513,11 +1517,11 @@ if ( ! empty( $yt_video ) ) {
           <?php endif; ?>
 
           <?php if ( $has_estimated_rental_yield ) : ?>
-            <p><strong>Indicative rental yield:</strong> <?php echo esc_html( $estimated_rental_yield ); ?></p>
+            <p><strong><?php echo esc_html( pera_ml_ui( 'Indicative rental yield:', 'theme.template.single_property.indicative_rental_yield' ) ); ?></strong> <?php echo esc_html( $estimated_rental_yield ); ?></p>
           
 
           <p class="text-soft">
-            Rental figures are indicative only and are not a guaranteed return.
+            <?php echo esc_html( pera_ml_ui( 'Rental figures are indicative only and are not a guaranteed return.', 'theme.template.single_property.rental_figures_are_indicative_only_and_are_not_a_guaranteed_return' ) ); ?>
           </p>
           <?php endif; ?>
         </div>
@@ -1525,7 +1529,7 @@ if ( ! empty( $yt_video ) ) {
 
       <?php if ( $has_property_buyer_suitability ) : ?>
         <div class="card-shell property-editorial-card">
-          <h2>Who this property is suitable for</h2>
+          <h2><?php echo esc_html( pera_ml_ui( 'Who this property is suitable for', 'theme.template.single_property.who_this_property_is_suitable_for' ) ); ?></h2>
           <div>
             <?php echo wp_kses_post( wpautop( $property_buyer_suitability ) ); ?>
           </div>
@@ -1534,7 +1538,7 @@ if ( ! empty( $yt_video ) ) {
 
       <?php if ( $has_property_developer_profile ) : ?>
         <div class="card-shell property-editorial-card">
-          <h2>Developer and construction credibility</h2>
+          <h2><?php echo esc_html( pera_ml_ui( 'Developer and construction credibility', 'theme.template.single_property.developer_and_construction_credibility' ) ); ?></h2>
           <div>
             <?php echo wp_kses_post( wpautop( $property_developer_profile ) ); ?>
           </div>
@@ -1543,7 +1547,7 @@ if ( ! empty( $yt_video ) ) {
 
       <?php if ( ! empty( $property_faq_items ) ) : ?>
         <div class="card-shell property-editorial-card property-editorial-card--wide">
-          <h2>Property questions</h2>
+          <h2><?php echo esc_html( pera_ml_ui( 'Property questions', 'theme.template.single_property.property_questions' ) ); ?></h2>
 
           <div class="faq-accordion">
             <?php foreach ( $property_faq_items as $faq_index => $faq_item ) : ?>
@@ -1568,7 +1572,7 @@ if ( ! empty( $yt_video ) ) {
 <section class="section section-soft property-floor-plans" id="property-floor-plans">
   <div class="container">
 
-    <h2><?php echo esc_html( $floor_plans_heading ?: 'Floor plans' ); ?></h2>
+    <h2><?php echo esc_html( $floor_plans_heading ?: pera_ml_ui( 'Floor plans', 'theme.template.single_property.floor_plans_heading' ) ); ?></h2>
 
     <?php if ( ! empty( $floor_plans_text ) ) : ?>
       <div class="property-floor-plans__intro text-soft">
@@ -1617,7 +1621,7 @@ if ( ! empty( $yt_video ) ) {
 
     <?php else : ?>
 
-      <p class="text-soft" style="margin:0;">Floor plans are available on request.</p>
+      <p class="text-soft" style="margin:0;"><?php echo esc_html( pera_ml_ui( 'Floor plans are available on request.', 'theme.template.single_property.floor_plans_are_available_on_request' ) ); ?></p>
 
     <?php endif; ?>
 
@@ -1647,13 +1651,13 @@ if ( ! empty( $yt_video ) ) {
 
         <ul class="checklist mb-md checklist--circle">
           <li>
-            Reliable, data-driven advice.
+            <?php echo esc_html( pera_ml_ui( 'Reliable, data-driven advice.', 'theme.template.single_property.reliable_data_driven_advice' ) ); ?>
           </li>
           <li>
-            On-the-ground Istanbul expertise.
+            <?php echo esc_html( pera_ml_ui( 'On-the-ground Istanbul expertise.', 'theme.template.single_property.on_the_ground_istanbul_expertise' ) ); ?>
           </li>
           <li>
-            Multi-lingual support.
+            <?php echo esc_html( pera_ml_ui( 'Multi-lingual support.', 'theme.template.single_property.multi_lingual_support' ) ); ?>
           </li>
         </ul>
       </div>
@@ -1679,22 +1683,22 @@ if ( ! empty( $yt_video ) ) {
         <div class="hero-overlay"></div>
 
         <div class="hero-content section--center">
-          <h3 class="text-light">Own a similar property in Istanbul?</h3>
+          <h3 class="text-light"><?php echo esc_html( pera_ml_ui( 'Own a similar property in Istanbul?', 'theme.template.single_property.own_a_similar_property_in_istanbul' ) ); ?></h3>
           <p class="text-light">
-            Get a free valuation and see how Pera can market your property to local and international buyers, or let us manage your Istanbul rental with hands-on owner support.
+            <?php echo esc_html( pera_ml_ui( 'Get a free valuation and see how Pera can market your property to local and international buyers, or let us manage your Istanbul rental with hands-on owner support.', 'theme.template.single_property.get_a_free_valuation_and_see_how_pera_can_market_your_property_to_local_' ) ); ?>
           </p>
 
           <div class="hero-actions flex-center">
             <a href="<?php echo esc_url( function_exists( 'pera_ml_url' ) ? pera_ml_url( home_url( '/sell-your-istanbul-real-estate/' ) ) : home_url( '/sell-your-istanbul-real-estate/' ) ); ?>" class="btn btn--solid btn--blue">
-              Get a Free Valuation
+              <?php echo esc_html( pera_ml_ui( 'Get a Free Valuation', 'theme.template.single_property.get_a_free_valuation' ) ); ?>
             </a>
 
             <a href="<?php echo esc_url( function_exists( 'pera_ml_url' ) ? pera_ml_url( home_url( '/rent-your-istanbul-real-estate/' ) ) : home_url( '/rent-your-istanbul-real-estate/' ) ); ?>" class="btn btn--ghost btn--blue">
-              Explore Property Management
+              <?php echo esc_html( pera_ml_ui( 'Explore Property Management', 'theme.template.single_property.explore_property_management' ) ); ?>
             </a>
 
             <a
-              href="<?php echo esc_url( pera_get_whatsapp_url( 'Hello Pera Property, I\'d like to discuss Istanbul real estate.' ) ); ?>"
+              href="<?php echo esc_url( pera_get_whatsapp_url( pera_ml_ui( 'Hello Pera Property, I\'d like to discuss Istanbul real estate.', 'theme.template.single_property.whatsapp_prefill' ) ) ); ?>"
               class="btn btn--solid btn--green"
               target="_blank"
               rel="noopener"
@@ -1707,7 +1711,7 @@ if ( ! empty( $yt_video ) ) {
               data-track-ga4-event="whatsapp_click"
               data-track-crm-event="whatsapp_click"
             >
-              Chat on WhatsApp
+              <?php echo esc_html( pera_ml_ui( 'Chat on WhatsApp', 'theme.template.single_property.chat_on_whatsapp' ) ); ?>
             </a>
           </div>
         </div>
@@ -1737,7 +1741,7 @@ if ( ! empty( $yt_video ) ) {
 
         <?php if ( isset( $_GET['sr_status'] ) && $_GET['sr_status'] === 'sent' ) : ?>
           <div class="form-success">
-            Thank you – we have received your details. A Pera consultant will contact you shortly.
+            <?php echo esc_html( pera_ml_ui( 'Thank you – we have received your details. A Pera consultant will contact you shortly.', 'theme.template.single_property.thank_you_we_have_received_your_details_a_pera_consultant_will_contact_y' ) ); ?>
           </div>
         <?php endif; ?>
   </div><!-- /.content-panel-box -->
@@ -1746,10 +1750,10 @@ if ( ! empty( $yt_video ) ) {
     <!-- =====================================
    OTHER PROPERTIES IN THIS REGION
    ===================================== -->
-<section class="section section-related-properties" aria-label="Other properties in this region">
+<section class="section section-related-properties" aria-label="<?php echo esc_attr( pera_ml_ui( 'Other properties in this region', 'theme.template.single_property.aria_label.other_properties_in_this_region' ) ); ?>">
   <div class="container">
 
-    <h2 class="section-title">Other properties in this region</h2>
+    <h2 class="section-title"><?php echo esc_html( pera_ml_ui( 'Other properties in this region', 'theme.template.single_property.other_properties_in_this_region' ) ); ?></h2>
 
     <?php
     $current_id = get_the_ID();
@@ -1809,13 +1813,13 @@ if ( ! empty( $yt_video ) ) {
 
       <?php else : ?>
 
-        <p class="text-soft" style="margin:0;">No other properties found in this region.</p>
+        <p class="text-soft" style="margin:0;"><?php echo esc_html( pera_ml_ui( 'No other properties found in this region.', 'theme.template.single_property.no_other_properties_found_in_this_region' ) ); ?></p>
 
       <?php endif; ?>
 
     <?php else : ?>
 
-      <p class="text-soft" style="margin:0;">No region set for this property.</p>
+      <p class="text-soft" style="margin:0;"><?php echo esc_html( pera_ml_ui( 'No region set for this property.', 'theme.template.single_property.no_region_set_for_this_property' ) ); ?></p>
 
     <?php endif; ?>
 
@@ -1844,7 +1848,7 @@ if ( $has_further_reading ) :
       <div class="container">
 
         <div class="property-further-reading__head">
-          <h2><?php echo esc_html( $further_reading_heading ?: 'Further reading' ); ?></h2>
+          <h2><?php echo esc_html( $further_reading_heading ?: pera_ml_ui( 'Further reading', 'theme.template.single_property.further_reading_heading' ) ); ?></h2>
 
           <?php if ( $further_reading_text ) : ?>
             <div class="text-soft property-further-reading__intro">
@@ -1890,7 +1894,7 @@ endif;
 <?php else : ?>
 
   <div class="container">
-    <p>Listing not found.</p>
+    <p><?php echo esc_html( pera_ml_ui( 'Listing not found.', 'theme.template.single_property.listing_not_found' ) ); ?></p>
   </div>
 
 <?php endif; ?>

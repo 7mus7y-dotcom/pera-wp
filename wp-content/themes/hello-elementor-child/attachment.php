@@ -27,9 +27,9 @@ $hero_img_id = wp_attachment_is_image( $attachment_id ) ? $attachment_id : 0;
   <section class="hero hero--left hero--fit">
     
      <div class="hero-content">
-      <nav aria-label="Breadcrumb">
+      <nav aria-label="<?php echo esc_attr( pera_ml_ui( 'Breadcrumb', 'theme.template.attachment.aria_label.breadcrumb' ) ); ?>">
         <div class="inline-row" role="list">
-          <a class="pill pill--green" href="<?php echo esc_url( home_url( '/' ) ); ?>">Home</a>
+          <a class="pill pill--green" href="<?php echo esc_url( home_url( '/' ) ); ?>"><?php echo esc_html( pera_ml_ui( 'Home', 'theme.template.attachment.home' ) ); ?></a>
           <?php if ( $parent_id && $parent_link ) : ?>
             <a class="pill pill--green" href="<?php echo esc_url( $parent_link ); ?>">
               <?php echo esc_html( $parent_title ); ?>
@@ -46,12 +46,12 @@ $hero_img_id = wp_attachment_is_image( $attachment_id ) ? $attachment_id : 0;
       <div class="hero-actions">
         <?php if ( $parent_id && $parent_link ) : ?>
           <a class="btn btn--solid btn--red" href="<?php echo esc_url( $parent_link ); ?>">
-            View property
+            <?php echo esc_html( pera_ml_ui( 'View property', 'theme.template.attachment.view_property' ) ); ?>
           </a>
         <?php endif; ?>
         <?php if ( $full_url ) : ?>
           <a class="btn btn--ghost btn--green" href="<?php echo esc_url( $full_url ); ?>" target="_blank" rel="noopener">
-            View original
+            <?php echo esc_html( pera_ml_ui( 'View original', 'theme.template.attachment.view_original' ) ); ?>
           </a>
         <?php endif; ?>
       </div>
@@ -75,7 +75,7 @@ $hero_img_id = wp_attachment_is_image( $attachment_id ) ? $attachment_id : 0;
             );
             ?>
           <?php else : ?>
-            <p class="text-sm text-muted">This attachment is not an image.</p>
+            <p class="text-sm text-muted"><?php echo esc_html( pera_ml_ui( 'This attachment is not an image.', 'theme.template.attachment.this_attachment_is_not_an_image' ) ); ?></p>
           <?php endif; ?>
         </div>
 

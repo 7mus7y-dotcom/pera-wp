@@ -35,8 +35,8 @@ $property_archive_get_field = static function ( string $field_name ) use ( $prop
   return is_string( $value ) ? trim( $value ) : $value;
 };
 
-$archive_title_fallback       = 'Property for sale in Istanbul';
-$archive_description_fallback = 'With access to a wide range of property for sale in Istanbul, from central apartments to family homes, villas and investment opportunities, we can help you find options that match your budget and requirements. Tell us what you are looking for — including your preferred areas, property type, budget and purchase goals — and our team will prepare a focused shortlist for you.';
+$archive_title_fallback       = pera_ml_ui( 'Property for sale in Istanbul', 'theme.template.archive_property.title_fallback' );
+$archive_description_fallback = pera_ml_ui( 'With access to a wide range of property for sale in Istanbul, from central apartments to family homes, villas and investment opportunities, we can help you find options that match your budget and requirements. Tell us what you are looking for — including your preferred areas, property type, budget and purchase goals — and our team will prepare a focused shortlist for you.', 'theme.template.archive_property.description_fallback' );
 
 $archive_title = (string) $property_archive_get_field( 'archive_h1' );
 if ( $archive_title === '' ) {
@@ -211,7 +211,7 @@ $args = pera_property_archive_build_args_from_context( $ctx );
 
 $property_query = new WP_Query( $args );
 $initial_count_text = sprintf(
-  '%d properties found',
+  pera_ml_ui( '%d properties found', 'theme.template.archive_property.properties_found' ),
   (int) $property_query->found_posts
 );
                             
@@ -246,13 +246,13 @@ $is_clean_main_property_archive = function_exists( 'pera_property_archive_is_cle
   ? pera_property_archive_is_clean_main_archive()
   : ( is_post_type_archive( 'property' ) && ! is_tax() && ! is_search() && ! is_paged() && empty( $_GET ) );
 $listings_section_heading = $is_clean_main_property_archive
-  ? __( 'View Property for Sale in Istanbul', 'hello-elementor-child' )
-  : __( 'Available Properties', 'hello-elementor-child' );
+  ? pera_ml_ui( 'View Property for Sale in Istanbul', 'theme.template.archive_property.view_property_for_sale_in_istanbul' )
+  : pera_ml_ui( 'Available Properties', 'theme.template.archive_property.available_properties' );
 
 // Build heading (no count here — count belongs in #results-count. change heading based on taxonomy pages and search)
 if ( $is_filtered_search ) {
-  $hero_title = 'Here are your search results';
-  $hero_desc  = 'Use the filters below to refine your results.';
+  $hero_title = pera_ml_ui( 'Here are your search results', 'theme.template.archive_property.search_results_title' );
+  $hero_desc  = pera_ml_ui( 'Use the filters below to refine your results.', 'theme.template.archive_property.search_results_description' );
 } elseif ( $is_clean_main_property_archive ) {
   $hero_title = $archive_title;
   $hero_desc  = $archive_intro_content;
@@ -537,7 +537,7 @@ if ( ! $is_filtered_search && ( $qo instanceof WP_Term ) && ! is_wp_error( $qo )
             <div class="property-filters-wrapper">
                 <header class="section-header">
                             <h2><?php echo esc_html( $listings_section_heading ); ?></h2>
-                            <p>Use the filters below to refine by district, property type, bedrooms and budget.</p>
+                            <p><?php echo esc_html( pera_ml_ui( 'Use the filters below to refine by district, property type, bedrooms and budget.', 'theme.template.archive_property.use_the_filters_below_to_refine_by_district_property_type_bedrooms_and_b' ) ); ?></p>
                 </header>
 
                 <div class="property-filters-toolbar">
@@ -552,7 +552,7 @@ if ( ! $is_filtered_search && ( $qo instanceof WP_Term ) && ! is_wp_error( $qo )
                     <svg class="icon" aria-hidden="true" width="18" height="18" viewBox="0 0 24 24" focusable="false">
                       <path d="M3 5h18l-7 8v5l-4 1v-6L3 5z" fill="currentColor"></path>
                     </svg>
-                    Filters
+                    <?php echo esc_html( pera_ml_ui( 'Filters', 'theme.template.archive_property.filters' ) ); ?>
                   </button>
 
                   <div class="property-sort" data-sort-menu>
@@ -567,7 +567,7 @@ if ( ! $is_filtered_search && ( $qo instanceof WP_Term ) && ! is_wp_error( $qo )
                       <svg class="icon" aria-hidden="true" width="18" height="18">
                         <use href="#icon-sort" xlink:href="#icon-sort"></use>
                       </svg>
-                      Sort
+                      <?php echo esc_html( pera_ml_ui( 'Sort', 'theme.template.archive_property.sort' ) ); ?>
                     </button>
                     <div class="property-sort__menu" id="property-sort-menu" role="menu" data-sort-dropdown hidden>
                       <button
@@ -578,7 +578,7 @@ if ( ! $is_filtered_search && ( $qo instanceof WP_Term ) && ! is_wp_error( $qo )
                         data-sort-option
                         data-sort="date_desc"
                       >
-                        Newest
+                        <?php echo esc_html( pera_ml_ui( 'Newest', 'theme.template.archive_property.newest' ) ); ?>
                       </button>
                       <button
                         type="button"
@@ -588,7 +588,7 @@ if ( ! $is_filtered_search && ( $qo instanceof WP_Term ) && ! is_wp_error( $qo )
                         data-sort-option
                         data-sort="date_asc"
                       >
-                        Oldest
+                        <?php echo esc_html( pera_ml_ui( 'Oldest', 'theme.template.archive_property.oldest' ) ); ?>
                       </button>
                       <button
                         type="button"
@@ -598,7 +598,7 @@ if ( ! $is_filtered_search && ( $qo instanceof WP_Term ) && ! is_wp_error( $qo )
                         data-sort-option
                         data-sort="price_asc"
                       >
-                        Price ↑
+                        <?php echo esc_html( pera_ml_ui( 'Price ↑', 'theme.template.archive_property.price' ) ); ?>
                       </button>
                       <button
                         type="button"
@@ -608,7 +608,7 @@ if ( ! $is_filtered_search && ( $qo instanceof WP_Term ) && ! is_wp_error( $qo )
                         data-sort-option
                         data-sort="price_desc"
                       >
-                        Price ↓
+                        <?php echo esc_html( pera_ml_ui( 'Price ↓', 'theme.template.archive_property.price_2' ) ); ?>
                       </button>
                     </div>
                   </div>
@@ -636,17 +636,17 @@ if ( ! $is_filtered_search && ( $qo instanceof WP_Term ) && ! is_wp_error( $qo )
                   <div class="property-filter-dialog__panel" role="document">
                     <div class="property-filter-dialog__content">
                       <div class="property-filter-dialog__header">
-                        <h3 id="property-filters-title">Filters</h3>
+                        <h3 id="property-filters-title"><?php echo esc_html( pera_ml_ui( 'Filters', 'theme.template.archive_property.filters' ) ); ?></h3>
                         <button
                           type="button"
                           class="btn btn--ghost btn--black property-filter-dialog__close"
                           data-filter-close
-                          aria-label="Close filters"
+                          aria-label="<?php echo esc_attr( pera_ml_ui( 'Close filters', 'theme.template.archive_property.aria_label.close_filters' ) ); ?>"
                         >
                           <svg class="icon" aria-hidden="true" width="16" height="16">
                             <use href="<?php echo esc_url( get_stylesheet_directory_uri() . '/logos-icons/icons.svg#icon-close' ); ?>"></use>
                           </svg>
-                          Close
+                          <?php echo esc_html( pera_ml_ui( 'Close', 'theme.template.archive_property.close' ) ); ?>
                         </button>
                       </div>
 
@@ -678,7 +678,7 @@ if ( ! $is_filtered_search && ( $qo instanceof WP_Term ) && ! is_wp_error( $qo )
                         <div class="filter-row">
                             <!-- PRICE RANGE (V2, based on v2_price_usd_min) -->
                             <div class="filter-group">
-                              <div class="filter-group__label">Price range (USD)</div>
+                              <div class="filter-group__label"><?php echo esc_html( pera_ml_ui( 'Price range (USD)', 'theme.template.archive_property.price_range_usd' ) ); ?></div>
                             
                               <div class="filter-price">
                                 <div class="filter-price__slider">
@@ -730,13 +730,13 @@ if ( ! $is_filtered_search && ( $qo instanceof WP_Term ) && ! is_wp_error( $qo )
                             
                             <!-- PROPERTY TYPE (pills, single-select) -->
                             <div class="filter-group">
-                                <div class="filter-group__label">Property type</div>
+                                <div class="filter-group__label"><?php echo esc_html( pera_ml_ui( 'Property type', 'theme.template.archive_property.property_type' ) ); ?></div>
                         
-                                <div class="filter-pill-row" role="radiogroup" aria-label="Property type">
+                                <div class="filter-pill-row" role="radiogroup" aria-label="<?php echo esc_attr( pera_ml_ui( 'Property type', 'theme.template.archive_property.aria_label.property_type' ) ); ?>">
                             <?php
                               $desired_types = array(
-                                'apartments' => 'Apartment',
-                                'villas'     => 'Villa',
+                                'apartments' => pera_ml_vocab( 'Apartment' ),
+                                'villas'     => pera_ml_vocab( 'Villa' ),
                               );
                         
                               $all_active = empty( $current_type );
@@ -749,7 +749,7 @@ if ( ! $is_filtered_search && ( $qo instanceof WP_Term ) && ! is_wp_error( $qo )
                                 value=""
                                 <?php checked( $all_active ); ?>
                               >
-                              <span>All types</span>
+                              <span><?php echo esc_html( pera_ml_ui( 'All types', 'theme.template.archive_property.all_types' ) ); ?></span>
                             </label>
                         
                             <?php foreach ( $desired_types as $slug => $label ) :
@@ -774,9 +774,9 @@ if ( ! $is_filtered_search && ( $qo instanceof WP_Term ) && ! is_wp_error( $qo )
                              
                             <!-- Bedrooms (V2 driver) -->
                             <div class="filter-group">
-                              <div class="filter-group__label">Bedrooms</div>
+                              <div class="filter-group__label"><?php echo esc_html( pera_ml_ui( 'Bedrooms', 'theme.template.archive_property.bedrooms' ) ); ?></div>
                             
-                              <div class="filter-pill-row" role="radiogroup" aria-label="Bedrooms">
+                              <div class="filter-pill-row" role="radiogroup" aria-label="<?php echo esc_attr( pera_ml_ui( 'Bedrooms', 'theme.template.archive_property.aria_label.bedrooms' ) ); ?>">
                             
                                 <?php
                                   $beds_options  = array(1,2,3,4,5,6);
@@ -814,14 +814,14 @@ if ( ! $is_filtered_search && ( $qo instanceof WP_Term ) && ! is_wp_error( $qo )
 
                         <!-- LOCATION (district pills) -->
                         <div class="filter-group filter-group--full">
-                            <div class="filter-group__label">Location</div>
+                            <div class="filter-group__label"><?php echo esc_html( pera_ml_ui( 'Location', 'theme.template.archive_property.location' ) ); ?></div>
 
                             <div class="filter-pill-row">
                                 <button
                                     type="button"
                                     class="pill pill--outline filter-pill filter-pill--all <?php echo empty( $current_district ) ? 'pill--active' : ''; ?>"
                                 >
-                                    <span>All locations</span>
+                                    <span><?php echo esc_html( pera_ml_ui( 'All locations', 'theme.template.archive_property.all_locations' ) ); ?></span>
                                 </button>
 
                                 <?php
@@ -858,14 +858,14 @@ if ( ! $is_filtered_search && ( $qo instanceof WP_Term ) && ! is_wp_error( $qo )
 
                         <!-- TAGS (property_tags pills) -->
                         <div class="filter-group filter-group--full">
-                            <div class="filter-group__label">Tags</div>
+                            <div class="filter-group__label"><?php echo esc_html( pera_ml_ui( 'Tags', 'theme.template.archive_property.tags' ) ); ?></div>
 
                             <div class="filter-pill-row">
                                 <button
                                     type="button"
                                     class="pill pill--outline filter-pill filter-pill--all <?php echo empty( $current_tag ) ? 'pill--active' : ''; ?>"
                                 >
-                                    <span>All tags</span>
+                                    <span><?php echo esc_html( pera_ml_ui( 'All tags', 'theme.template.archive_property.all_tags' ) ); ?></span>
                                 </button>
 
                                 <?php
@@ -904,23 +904,23 @@ if ( ! $is_filtered_search && ( $qo instanceof WP_Term ) && ! is_wp_error( $qo )
                         <div class="filter-row filter-row--footer">
     
                             <div class="filter-group filter-group--grow">
-                                <div class="filter-group__label">Keyword</div>
+                                <div class="filter-group__label"><?php echo esc_html( pera_ml_ui( 'Keyword', 'theme.template.archive_property.keyword' ) ); ?></div>
                                 <input
                                     id="filter-keyword"
                                     type="text"
                                     name="s"
                                     value="<?php echo esc_attr( $current_keyword ); ?>"
-                                    placeholder="Search by title or description"
+                                    placeholder="<?php echo esc_attr( pera_ml_ui( 'Search by title or description', 'theme.template.archive_property.placeholder.search_by_title_or_description' ) ); ?>"
                                 >
                             </div>
                             <div class="form-actions">
-                                <button type="submit" class="btn btn-primary">Apply</button>
+                                <button type="submit" class="btn btn-primary"><?php echo esc_html( pera_ml_ui( 'Apply', 'theme.template.archive_property.apply' ) ); ?></button>
                                 <button
                                   type="button"
                                   id="filter-reset-btn"
                                   class="btn btn--solid btn--black"
                                 >
-                                  Reset
+                                  <?php echo esc_html( pera_ml_ui( 'Reset', 'theme.template.archive_property.reset' ) ); ?>
                                 </button>
 
                             
@@ -965,7 +965,7 @@ if ( ! $is_filtered_search && ( $qo instanceof WP_Term ) && ! is_wp_error( $qo )
 
     <?php endwhile; ?>
   <?php else : ?>
-    <p class="no-results">No properties found.</p>
+    <p class="no-results"><?php echo esc_html( pera_ml_ui( 'No properties found.', 'theme.template.archive_property.no_properties_found' ) ); ?></p>
   <?php endif; ?>
 </div>
 
@@ -1007,7 +1007,7 @@ if ( ! empty( $sort ) && $sort !== 'date_desc' ) {
 }
 
 $total_pages = (int) $property_query->max_num_pages;
-$load_more_done_label = 'That’s it for now, folks.';
+$load_more_done_label = pera_ml_ui( 'That’s it for now, folks.', 'theme.template.archive_property.load_more_complete' );
 $pagination_html = function_exists( 'pera_render_property_pagination' )
   ? pera_render_property_pagination( $property_query, (int) $paged, $add_args )
   : '';
@@ -1017,7 +1017,7 @@ $pagination_html = function_exists( 'pera_render_property_pagination' )
 <div class="flex-center mt-sm mb-sm">
   <nav
     class="property-pagination <?php echo $pagination_html !== '' ? '' : 'is-hidden'; ?>"
-    aria-label="Property results pages"
+    aria-label="<?php echo esc_attr( pera_ml_ui( 'Property results pages', 'theme.template.archive_property.aria_label.property_results_pages' ) ); ?>"
   >
     <?php if ( $pagination_html !== '' ) : ?>
       <?php echo $pagination_html; ?>
@@ -1032,7 +1032,7 @@ $pagination_html = function_exists( 'pera_render_property_pagination' )
           id="load-more-btn"
           data-next-page="<?php echo esc_attr( $paged + 1 ); ?>"
         >
-          Load more
+          <?php echo esc_html( pera_ml_ui( 'Load more', 'theme.template.archive_property.load_more' ) ); ?>
         </button>
       </div>
     <?php elseif ( $total_pages <= 1 ) : ?>
@@ -1057,7 +1057,7 @@ $pagination_html = function_exists( 'pera_render_property_pagination' )
           id="load-more-btn"
           data-next-page="2"
         >
-          Load more
+          <?php echo esc_html( pera_ml_ui( 'Load more', 'theme.template.archive_property.load_more' ) ); ?>
         </button>
       </div>
     <?php endif; ?>
@@ -1072,7 +1072,7 @@ $pagination_html = function_exists( 'pera_render_property_pagination' )
     <?php if ( $regional_guide_url !== '' ) : ?>
       <div class="taxonomy-intro__actions">
         <a class="btn btn--solid btn--green" href="<?php echo esc_url( $regional_guide_url ); ?>">
-          <?php echo esc_html( sprintf( 'Read %s area guide', ( function_exists( 'pera_ml_term' ) && $qo instanceof WP_Term ? pera_ml_term( $qo ) : $qo->name ) ) ); ?>
+          <?php echo esc_html( sprintf( pera_ml_ui( 'Read %s area guide', 'theme.template.archive_property.read_area_guide' ), ( function_exists( 'pera_ml_term' ) && $qo instanceof WP_Term ? pera_ml_term( $qo ) : $qo->name ) ) ); ?>
         </a>
       </div>
     <?php endif; ?>
@@ -1107,13 +1107,13 @@ $pagination_html = function_exists( 'pera_render_property_pagination' )
 
         <div class="article-cta-actions">
           <a class="btn btn--solid btn--green" href="<?php echo esc_url( $taxonomy_archive_cta_contact_url ); ?>">
-            <?php echo esc_html__( 'Speak to Pera Property', 'hello-elementor-child' ); ?>
+            <?php echo esc_html( pera_ml_ui( 'Speak to Pera Property', 'theme.template.archive_property.speak_to_pera_property' ) ); ?>
           </a>
           <a class="btn btn--ghost btn--green" href="<?php echo esc_url( $taxonomy_archive_cta_all_property_url ); ?>">
-            <?php echo esc_html__( 'View all Istanbul property', 'hello-elementor-child' ); ?>
+            <?php echo esc_html( pera_ml_ui( 'View all Istanbul property', 'theme.template.archive_property.view_all_istanbul_property' ) ); ?>
           </a>
           <a class="btn btn--solid btn--blue" href="<?php echo esc_url( home_url( '/book-a-consultancy/' ) ); ?>">
-            <?php echo esc_html__( 'Book a Consultancy', 'hello-elementor-child' ); ?>
+            <?php echo esc_html( pera_ml_ui( 'Book a Consultancy', 'theme.template.archive_property.book_a_consultancy' ) ); ?>
         </a>
         </div>
       </div>
@@ -1133,7 +1133,7 @@ $property_archive_faq_items = ( function_exists( 'pera_property_archive_is_index
   ?>
   <section class="related-taxonomy section <?php echo $is_single_row_related ? 'related-taxonomy--single-row' : ''; ?>">
     <div class="section-header">
-      <h2>Related areas</h2>
+      <h2><?php echo esc_html( pera_ml_ui( 'Related areas', 'theme.template.archive_property.related_areas' ) ); ?></h2>
     </div>
 
     <?php if ( $is_single_row_related ) : ?>
@@ -1190,7 +1190,7 @@ $property_archive_faq_items = ( function_exists( 'pera_property_archive_is_index
     $archive_whatsapp_message    = (string) $property_archive_get_field( 'archive_whatsapp_message' );
     $archive_whatsapp_message    = $archive_whatsapp_message !== ''
       ? $archive_whatsapp_message
-      : 'Hello Pera Property, I am interested in property for sale in Istanbul. My budget, preferred area and requirements are as follows:';
+      : pera_ml_ui( 'Hello Pera Property, I am interested in property for sale in Istanbul. My budget, preferred area and requirements are as follows:', 'theme.template.archive_property.whatsapp_fallback_message' );
     $archive_whatsapp_url = pera_get_whatsapp_url( $archive_whatsapp_message );
   ?>
   <section class="archive-seo-content section section-soft">
@@ -1199,14 +1199,14 @@ $property_archive_faq_items = ( function_exists( 'pera_property_archive_is_index
         <?php echo wp_kses_post( wpautop( $archive_bottom_content ) ); ?>
       <?php else : ?>
       <div class="section-header">
-        <h2>Property for sale in Istanbul: where to buy and how to choose</h2>
+        <h2><?php echo esc_html( pera_ml_ui( 'Property for sale in Istanbul: where to buy and how to choose', 'theme.template.archive_property.property_for_sale_in_istanbul_where_to_buy_and_how_to_choose' ) ); ?></h2>
       </div>
-      <p class="text-soft">Istanbul gives buyers one of the broadest real estate selections in the region, from city-centre apartments to spacious family villas and investment-focused homes. Whether you are searching for a primary residence, a second home, or a property with long-term rental potential, the market offers options at very different price points and lifestyles. The key is matching location, building quality and ownership goals rather than choosing by price alone. On this page, you can compare listings and then narrow your search by district, property type, bedroom count and budget.</p>
-      <p class="text-soft">Apartments remain the most popular entry point for buyers who want central access and easier management. In premium neighbourhoods, modern apartments in secure complexes can attract strong demand from both local and international tenants. Family buyers who need more privacy and larger internal space often prefer villas in quieter residential areas with better access to schools and green spaces. For many clients, the best approach is to shortlist two or three districts first, then compare properties by transport links, construction standard, title status and resale liquidity.</p>
-      <p class="text-soft">Among the most searched locations are <a href="<?php echo esc_url( home_url( '/district/istanbul/besiktas/' ) ); ?>">Beşiktaş</a>, <a href="<?php echo esc_url( home_url( '/district/istanbul/sisli/' ) ); ?>">Şişli</a> and <a href="<?php echo esc_url( home_url( '/district/istanbul/kadikoy/' ) ); ?>">Kadıköy</a>. Beşiktaş is often preferred by buyers who want central living, waterfront access and established neighbourhoods. Şişli attracts professionals and investors looking for central convenience, business access and modern regeneration projects. Kadıköy, on the Anatolian side, is popular with lifestyle buyers who value culture, walkable streets and strong local demand. Bomonti and Nişantaşı are also frequently considered by premium urban buyers.</p>
-      <p class="text-soft">For investment property, buyers usually focus on future resale depth, achievable rental yields and the profile of end users in each micro-location. New developments can be attractive when developer quality and delivery track record are strong, while completed resale units can reduce timeline risk and provide immediate rental data. A practical investment review should include total acquisition cost, expected net rental income, management assumptions and likely exit scenarios over a multi-year horizon. This helps buyers avoid decisions based only on headline marketing figures.</p>
-      <p class="text-soft">Lifestyle buyers typically prioritise daily convenience: commute times, nearby amenities, schools, medical access and neighbourhood character. These factors influence long-term satisfaction as much as the apartment plan or finishing materials. In Istanbul, even adjacent streets can differ significantly in noise, traffic and tenant profile, so local guidance and physical viewing remain essential. Buyers who define non-negotiables early—such as building age, parking, security and walkability—tend to make faster and more confident decisions.</p>
-      <p class="text-soft">Citizenship-focused buyers should evaluate each property through both legal eligibility and market fundamentals. If your objective includes the Turkish passport route, requirements must be met precisely and documented correctly during purchase and transfer. You can review the process in detail on our <a href="<?php echo esc_url( home_url( '/citizenship-by-investment/' ) ); ?>">Turkish Citizenship by Investment</a> page. Even when citizenship is the primary driver, asset quality and location still matter for future resale and rental performance. A structured due-diligence process—valuation review, title checks and eligibility verification—helps ensure your purchase supports both personal and financial goals.</p>
+      <p class="text-soft"><?php echo esc_html( pera_ml_ui( 'Istanbul gives buyers one of the broadest real estate selections in the region, from city-centre apartments to spacious family villas and investment-focused homes. Whether you are searching for a primary residence, a second home, or a property with long-term rental potential, the market offers options at very different price points and lifestyles. The key is matching location, building quality and ownership goals rather than choosing by price alone. On this page, you can compare listings and then narrow your search by district, property type, bedroom count and budget.', 'theme.template.archive_property.istanbul_gives_buyers_one_of_the_broadest_real_estate_selections_in_the_' ) ); ?></p>
+      <p class="text-soft"><?php echo esc_html( pera_ml_ui( 'Apartments remain the most popular entry point for buyers who want central access and easier management. In premium neighbourhoods, modern apartments in secure complexes can attract strong demand from both local and international tenants. Family buyers who need more privacy and larger internal space often prefer villas in quieter residential areas with better access to schools and green spaces. For many clients, the best approach is to shortlist two or three districts first, then compare properties by transport links, construction standard, title status and resale liquidity.', 'theme.template.archive_property.apartments_remain_the_most_popular_entry_point_for_buyers_who_want_centr' ) ); ?></p>
+      <p class="text-soft"><?php echo esc_html( pera_ml_ui( 'Among the most searched locations are', 'theme.template.archive_property.among_the_most_searched_locations_are' ) ); ?> <a href="<?php echo esc_url( home_url( '/district/istanbul/besiktas/' ) ); ?>">Beşiktaş</a>, <a href="<?php echo esc_url( home_url( '/district/istanbul/sisli/' ) ); ?>">Şişli</a> <?php echo esc_html( pera_ml_ui( 'and', 'theme.template.archive_property.and' ) ); ?> <a href="<?php echo esc_url( home_url( '/district/istanbul/kadikoy/' ) ); ?>">Kadıköy</a><?php echo esc_html( pera_ml_ui( '. Beşiktaş is often preferred by buyers who want central living, waterfront access and established neighbourhoods. Şişli attracts professionals and investors looking for central convenience, business access and modern regeneration projects. Kadıköy, on the Anatolian side, is popular with lifestyle buyers who value culture, walkable streets and strong local demand. Bomonti and Nişantaşı are also frequently considered by premium urban buyers.', 'theme.template.archive_property.be_ikta_is_often_preferred_by_buyers_who_want_central_living_waterfront_' ) ); ?></p>
+      <p class="text-soft"><?php echo esc_html( pera_ml_ui( 'For investment property, buyers usually focus on future resale depth, achievable rental yields and the profile of end users in each micro-location. New developments can be attractive when developer quality and delivery track record are strong, while completed resale units can reduce timeline risk and provide immediate rental data. A practical investment review should include total acquisition cost, expected net rental income, management assumptions and likely exit scenarios over a multi-year horizon. This helps buyers avoid decisions based only on headline marketing figures.', 'theme.template.archive_property.for_investment_property_buyers_usually_focus_on_future_resale_depth_achi' ) ); ?></p>
+      <p class="text-soft"><?php echo esc_html( pera_ml_ui( 'Lifestyle buyers typically prioritise daily convenience: commute times, nearby amenities, schools, medical access and neighbourhood character. These factors influence long-term satisfaction as much as the apartment plan or finishing materials. In Istanbul, even adjacent streets can differ significantly in noise, traffic and tenant profile, so local guidance and physical viewing remain essential. Buyers who define non-negotiables early—such as building age, parking, security and walkability—tend to make faster and more confident decisions.', 'theme.template.archive_property.lifestyle_buyers_typically_prioritise_daily_convenience_commute_times_ne' ) ); ?></p>
+      <p class="text-soft"><?php echo esc_html( pera_ml_ui( 'Citizenship-focused buyers should evaluate each property through both legal eligibility and market fundamentals. If your objective includes the Turkish passport route, requirements must be met precisely and documented correctly during purchase and transfer. You can review the process in detail on our', 'theme.template.archive_property.citizenship_focused_buyers_should_evaluate_each_property_through_both_le' ) ); ?> <a href="<?php echo esc_url( home_url( '/citizenship-by-investment/' ) ); ?>"><?php echo esc_html( pera_ml_ui( 'Turkish Citizenship by Investment', 'theme.template.archive_property.turkish_citizenship_by_investment' ) ); ?></a> <?php echo esc_html( pera_ml_ui( 'page. Even when citizenship is the primary driver, asset quality and location still matter for future resale and rental performance. A structured due-diligence process—valuation review, title checks and eligibility verification—helps ensure your purchase supports both personal and financial goals.', 'theme.template.archive_property.page_even_when_citizenship_is_the_primary_driver_asset_quality_and_locat' ) ); ?></p>
       <?php endif; ?>
     </div>
   </section>
@@ -1227,10 +1227,10 @@ $property_archive_faq_items = ( function_exists( 'pera_property_archive_is_index
         <?php endif; ?>
 
         <a class="btn btn--solid btn--green" href="<?php echo esc_url( $archive_whatsapp_url ); ?>" target="_blank" rel="noopener">
-          <?php echo esc_html__( 'Send us your requirements', 'hello-elementor-child' ); ?>
+          <?php echo esc_html( pera_ml_ui( 'Send us your requirements', 'theme.template.archive_property.send_us_your_requirements' ) ); ?>
         </a>
         <a class="btn btn--ghost btn--blue" href="<?php echo esc_url( home_url( '/book-a-consultancy/' ) ); ?>">
-            <?php echo esc_html__( 'Book a Consultancy', 'hello-elementor-child' ); ?>
+            <?php echo esc_html( pera_ml_ui( 'Book a Consultancy', 'theme.template.archive_property.book_a_consultancy' ) ); ?>
         </a>
       </div>
     </section>
@@ -1244,7 +1244,7 @@ $property_archive_faq_items = ( function_exists( 'pera_property_archive_is_index
       <?php
         $property_archive_faq_heading = function_exists( 'pera_get_property_archive_faq_heading' )
           ? pera_get_property_archive_faq_heading()
-          : 'Frequently Asked Questions About Property in Istanbul';
+          : pera_ml_ui( 'Frequently Asked Questions About Property in Istanbul', 'theme.template.archive_property.faq_heading' );
         pera_render_faq_html( $property_archive_faq_items, $property_archive_faq_heading );
       ?>
     </div>
@@ -1388,7 +1388,7 @@ $property_archive_faq_items = ( function_exists( 'pera_property_archive_is_index
   function setLoading(on, append) {
     if (loadMoreBtn) loadMoreBtn.disabled = !!on;
     if (on && !append) {
-      grid.innerHTML = '<p class="text-soft">Loading…</p>';
+      grid.innerHTML = '<p class="text-soft">' + <?php echo wp_json_encode( pera_ml_ui( 'Loading…', 'theme.template.archive_property.loading' ) ); ?> + '</p>';
     }
   }
 
@@ -1402,7 +1402,7 @@ $property_archive_faq_items = ( function_exists( 'pera_property_archive_is_index
 
   function setLoadMoreDefaultState() {
     if (!loadMoreBtn) return;
-    loadMoreBtn.textContent = 'Load more';
+    loadMoreBtn.textContent = <?php echo wp_json_encode( pera_ml_ui( 'Load more', 'theme.template.archive_property.load_more' ) ); ?>;
     loadMoreBtn.disabled = false;
     loadMoreBtn.removeAttribute('aria-disabled');
   }
@@ -1613,7 +1613,7 @@ $property_archive_faq_items = ( function_exists( 'pera_property_archive_is_index
         grid.innerHTML = d.grid_html;
       }
     } else if (!append) {
-      grid.innerHTML = '<p class="text-soft">No results.</p>';
+      grid.innerHTML = '<p class="text-soft">' + <?php echo wp_json_encode( pera_ml_ui( 'No results.', 'theme.template.archive_property.no_results' ) ); ?> + '</p>';
     }
 
     if (countEl) countEl.textContent = d.count_text ? d.count_text : '';
@@ -1632,7 +1632,7 @@ $property_archive_faq_items = ( function_exists( 'pera_property_archive_is_index
     if (!paginationNav) {
       paginationNav = document.createElement('nav');
       paginationNav.className = 'property-pagination is-hidden';
-      paginationNav.setAttribute('aria-label', 'Property results pages');
+      paginationNav.setAttribute('aria-label', <?php echo wp_json_encode( pera_ml_ui( 'Property results pages', 'theme.template.archive_property.aria_label.property_results_pages' ) ); ?>);
 
       const loadMoreWrap = loadMoreBtn ? loadMoreBtn.closest('.property-load-more-wrap') : null;
       if (loadMoreWrap && loadMoreWrap.parentNode) {
@@ -1680,7 +1680,7 @@ $property_archive_faq_items = ( function_exists( 'pera_property_archive_is_index
       setLoading(false, append);
 
       if (!resp || !resp.success || !resp.data) {
-        if (!append) grid.innerHTML = '<p class="text-soft">No results.</p>';
+        if (!append) grid.innerHTML = '<p class="text-soft">' + <?php echo wp_json_encode( pera_ml_ui( 'No results.', 'theme.template.archive_property.no_results' ) ); ?> + '</p>';
         if (countEl) countEl.textContent = '';
         if (loadMoreBtn) setLoadMoreDoneState();
         return;
@@ -1692,7 +1692,7 @@ $property_archive_faq_items = ( function_exists( 'pera_property_archive_is_index
       if (err && err.name === 'AbortError') return;
 
       setLoading(false, append);
-      if (!append) grid.innerHTML = '<p class="text-soft">Error loading results.</p>';
+      if (!append) grid.innerHTML = '<p class="text-soft">' + <?php echo wp_json_encode( pera_ml_ui( 'Error loading results.', 'theme.template.archive_property.error_loading_results' ) ); ?> + '</p>';
       if (loadMoreBtn) setLoadMoreDoneState();
       console.error('V2 AJAX error', err);
     });
