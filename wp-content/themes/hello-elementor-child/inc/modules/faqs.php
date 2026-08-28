@@ -66,7 +66,9 @@ if ( ! function_exists( 'pera_property_archive_term_raw_faq_value' ) ) {
 		$raw = '';
 
 		if ( function_exists( 'get_field' ) ) {
-			$value = get_field( 'seo_faq_v2', $term );
+			// Read the canonical value, bypassing ACF's formatting filters. The
+			// multilingual lookup below owns translated-term resolution and fallback.
+			$value = get_field( 'seo_faq_v2', $term, false );
 			if ( is_scalar( $value ) ) {
 				$raw = trim( (string) $value );
 			}
@@ -77,6 +79,11 @@ if ( ! function_exists( 'pera_property_archive_term_raw_faq_value' ) ) {
 			if ( is_scalar( $value ) ) {
 				$raw = trim( (string) $value );
 			}
+		}
+
+		if ( function_exists( 'pera_ml_term_meta' ) ) {
+			$value = pera_ml_term_meta( $term, 'seo_faq_v2', $raw );
+			return is_scalar( $value ) ? trim( (string) $value ) : $raw;
 		}
 
 		return $raw;
