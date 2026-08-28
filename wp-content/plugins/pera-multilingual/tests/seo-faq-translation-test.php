@@ -9,13 +9,18 @@ function __( $value ) { return $value; }
 function get_option( $key, $default = null ) { return $default; }
 function is_wp_error( $value ) { return $value instanceof WP_Error; }
 function do_action() {}
+function get_field( $field, $term, $format_value = true ) { $GLOBALS['faq_acf_format_value'] = $format_value; return $GLOBALS['faq_term_source']; }
+function get_term_meta() { return ''; }
+function pera_ml_term_meta( $term, $field, $source, $language = null ) { return $GLOBALS['faq_fields']->term_meta( $term, $field, $source, $language ); }
 class WP_Error { private $code; public function __construct( $code ) { $this->code = $code; } public function get_error_code() { return $this->code; } }
+class WP_Term { public $term_id = 91; public $taxonomy = 'region'; }
 function expect_same( $expected, $actual, $label ) { if ( $expected !== $actual ) { fwrite( STDERR, "FAIL $label\n" . var_export( $actual, true ) . "\n" ); exit( 1 ); } }
 
 require dirname( __DIR__ ) . '/includes/providers/interface-provider.php';
 require dirname( __DIR__ ) . '/includes/providers/class-mock-provider.php';
 require dirname( __DIR__ ) . '/includes/providers/class-openai-provider.php';
 require dirname( __DIR__ ) . '/includes/class-vocabulary.php';
+require dirname( __DIR__ ) . '/includes/class-storage.php';
 require dirname( __DIR__ ) . '/includes/class-fields.php';
 require dirname( __DIR__ ) . '/includes/class-translator.php';
 
@@ -46,6 +51,7 @@ $source = 'Minimum investment? | It is $400,000.' . "\n" . 'When can I apply? | 
 
 $zh = $translator->translate_and_store( 'post', 77, 'meta:seo_faq_v2', 'zh', $source, 'test' );
 $ar = $translator->translate_and_store( 'post', 77, 'meta:seo_faq_v2', 'ar', $source, 'test' );
+$term_zh = $translator->translate_and_store( 'term', 91, 'meta:seo_faq_v2', 'zh', $source, 'test' );
 $zh_lines = explode( "\n", $zh );
 expect_same( 3, count( $zh_lines ), 'two FAQ entries and malformed row retain their order' );
 expect_same( 1, substr_count( $zh_lines[0], '|' ), 'first FAQ has exactly one separator' );
@@ -53,6 +59,7 @@ expect_same( 1, substr_count( $zh_lines[1], '|' ), 'second FAQ has exactly one s
 expect_same( true, strpos( $zh_lines[0], '$400,000' ) !== false, 'protected currency amount remains exact' );
 expect_same( 'This malformed row', $zh_lines[2], 'malformed line safely remains English' );
 expect_same( true, strpos( $zh_lines[0], '中Minimum investment?' ) === 0, 'FAQ order starts with first Chinese question' );
+expect_same( 1, substr_count( explode( "\n", $term_zh )[0], '|' ), 'taxonomy FAQ uses the structure-aware pipe translator' );
 
 $router = new FAQ_Test_Router();
 $fields = new Pera_ML_Fields( $router, $storage, new Pera_ML_Vocabulary() );
@@ -63,7 +70,27 @@ expect_same( $ar, $fields->get( 77, 'seo_faq_v2', $source ), 'Arabic FAQ retriev
 expect_same( $source, $fields->get( 77, 'seo_faq_v2', $source, 'en' ), 'English request returns canonical FAQ' );
 expect_same( 'Fallback English', $fields->get( 78, 'seo_faq_v2', 'Fallback English', 'zh' ), 'missing translation falls back to English' );
 
+$term = new WP_Term();
+$router->language = 'zh';
+expect_same( $term_zh, $fields->term_meta( $term, 'seo_faq_v2', $source ), 'current taxonomy FAQ translation is retrieved' );
+$storage->rows['term|91|meta:seo_faq_v2|zh']['is_stale'] = true;
+expect_same( $source, $fields->term_meta( $term, 'seo_faq_v2', $source ), 'stale taxonomy FAQ falls back to canonical English' );
+unset( $storage->rows['term|91|meta:seo_faq_v2|zh'] );
+expect_same( $source, $fields->term_meta( $term, 'seo_faq_v2', $source ), 'missing taxonomy FAQ falls back to canonical English' );
+expect_same( $source, $fields->term_meta( $term, 'seo_faq_v2', $source, 'en' ), 'English taxonomy FAQ remains canonical' );
+
 $theme_dir = dirname( dirname( dirname( __DIR__ ) ) ) . '/themes/hello-elementor-child/';
+$GLOBALS['faq_fields'] = $fields;
+$GLOBALS['faq_term_source'] = $source;
+$storage->rows['term|91|meta:seo_faq_v2|zh'] = array( 'source'=>$source, 'translated_text'=>$term_zh, 'is_stale'=>false, 'status'=>'current' );
+require $theme_dir . 'inc/modules/faqs.php';
+expect_same( $term_zh, pera_property_archive_term_raw_faq_value( $term ), 'frontend taxonomy FAQ lookup returns the current translation' );
+expect_same( false, $GLOBALS['faq_acf_format_value'], 'frontend taxonomy FAQ lookup reads unformatted canonical ACF content' );
+$storage->rows['term|91|meta:seo_faq_v2|zh']['is_stale'] = true;
+expect_same( $source, pera_property_archive_term_raw_faq_value( $term ), 'frontend taxonomy FAQ lookup falls back to canonical source when stale' );
+$faq_module_source = file_get_contents( $theme_dir . 'inc/modules/faqs.php' );
+expect_same( true, strpos( $faq_module_source, "get_field( 'seo_faq_v2', \$term, false )" ) !== false, 'taxonomy FAQ renderer explicitly reads canonical unformatted ACF source' );
+expect_same( true, strpos( $faq_module_source, "pera_ml_term_meta( \$term, 'seo_faq_v2', \$raw )" ) !== false, 'taxonomy FAQ renderer resolves translations through public term-meta helper' );
 $schema_source = file_get_contents( $theme_dir . 'inc/schema.php' );
 expect_same( true, strpos( $schema_source, "pera_ml_field( \$post_id, 'seo_faq_v2', \$post_faq_value )" ) !== false, 'FAQPage raw-meta fallback uses multilingual field retrieval' );
 expect_same( true, strpos( $schema_source, 'pera_get_single_post_faq_v2_items( $post_id )' ) !== false, 'FAQPage schema receives parsed post SEO FAQ rows' );

@@ -11,6 +11,7 @@ final class Pera_ML_Fields {
 	/** Canonical term contract consumed by term() and the registered ACF formatting layer. */
 	public static function taxonomy_fields( $taxonomy ) {
 		$fields = array( 'term_name', 'term_description' );
+		if ( in_array( $taxonomy, array( 'district', 'region', 'property_type', 'property_tags', 'special' ), true ) ) $fields[] = 'meta:seo_faq_v2';
 		if ( in_array( $taxonomy, array( 'region', 'property_tags' ), true ) ) $fields = array_merge( $fields, array( 'meta:archive_subtitle', 'meta:archive_body_content' ) );
 		if ( 'district' === $taxonomy ) $fields = array_merge( $fields, array( 'meta:district_archive_subtitle', 'meta:district_archive_body' ) );
 		return apply_filters( 'pera_ml_taxonomy_translatable_fields', $fields, $taxonomy );

@@ -4,7 +4,7 @@ define( 'ABSPATH', __DIR__ );
 function __( $v ) { return $v; } function sanitize_text_field( $v ) { return (string) $v; } function sanitize_key( $v ) { return preg_replace( '/[^a-z0-9_-]/', '', strtolower( $v ) ); } function absint( $v ) { return abs( (int) $v ); } function apply_filters( $h, $v ) { return $v; } function is_wp_error( $v ) { return $v instanceof WP_Error; }
 class WP_Error { private $code; public function __construct( $code ) { $this->code=$code; } public function get_error_code() { return $this->code; } }
 class WP_Term { public $term_id=8; public $taxonomy='region'; public $name='Region'; public $description='Description'; }
-$GLOBALS['health_term']=new WP_Term(); $GLOBALS['health_post']=(object) array( 'ID'=>9, 'post_type'=>'page' ); $GLOBALS['health_meta']=array( 'archive_subtitle'=>'Canonical subtitle', 'secret'=>'Private' );
+$GLOBALS['health_term']=new WP_Term(); $GLOBALS['health_post']=(object) array( 'ID'=>9, 'post_type'=>'page' ); $GLOBALS['health_meta']=array( 'archive_subtitle'=>'Canonical subtitle', 'seo_faq_v2'=>'Question|Answer', 'secret'=>'Private' );
 function get_term() { return $GLOBALS['health_term']; } function get_post() { return $GLOBALS['health_post']; } function get_term_meta( $id, $key ) { return isset( $GLOBALS['health_meta'][$key] ) ? $GLOBALS['health_meta'][$key] : ''; }
 function health_assert( $expected, $actual, $label ) { if ( $expected !== $actual ) { fwrite( STDERR, "FAIL {$label}\n" . var_export( $actual, true ) . "\n" ); exit(1); } }
 final class Health_Orch_Status { public $source='Page'; public $missing=array('post_title'); public $stale=array(); public function applicable_sources(){return array('post_title'=>$this->source);} public function get(){return array('missing'=>$this->missing,'stale'=>$this->stale);} }
@@ -23,4 +23,6 @@ $term['object_type']='taxonomy:region'; $storage->row=array('translated_text'=>'
 $translator->result=true; $translator->write=false; health_assert('translation_not_stored',$orch->translate($term)->get_error_code(),'success requires a valid stored row'); health_assert('Old',$storage->row['translated_text'],'stale row remains when storage is not replaced');
 $translator->write=true; health_assert(true,$orch->translate($term),'approved stale row succeeds'); health_assert(3,count($translator->calls),'only approved missing/stale rows reached provider');
 $storage->row=array('translated_text'=>'Current','is_stale'=>false,'status'=>'current'); health_assert('invalid_row',$orch->translate($term)->get_error_code(),'current taxonomy row rejected'); health_assert(3,count($translator->calls),'current taxonomy never reaches provider');
+$storage->row=null; $faq=$term; $faq['field']='meta:seo_faq_v2'; $faq['status']='missing'; health_assert(true,$orch->translate($faq),'approved taxonomy FAQ row succeeds');
+health_assert(array('term',8,'meta:seo_faq_v2','zh','Question|Answer'),array_slice($translator->calls[3],0,5),'taxonomy FAQ uses canonical source and dedicated field key');
 echo "Pera ML translation health orchestrator tests passed\n";
