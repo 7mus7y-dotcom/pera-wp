@@ -1739,3 +1739,16 @@ body.is-lightbox-open{ overflow: hidden; }
     justify-content: center;
   }
 }
+
+/* Property taxonomy archive CTA buttons */
+.archive-cta .article-cta-actions{
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-sm);
+}
+
+@media (max-width: 640px){
+  .archive-cta .article-cta-actions{
+    flex-direction: column;
+  }
+}
