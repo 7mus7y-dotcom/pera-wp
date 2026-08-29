@@ -43,11 +43,11 @@ get_header();
 
 <main id="primary" class="site-main section">
   <div class="container" style="max-width:720px;">
-    <h1>My Account</h1>
-    <p class="text-soft">Manage your profile and preferences for property updates.</p>
+    <h1><?php echo esc_html( pera_ml_ui( 'My Account', 'theme.template.page_client_portal.my_account' ) ); ?></h1>
+    <p class="text-soft"><?php echo esc_html( pera_ml_ui( 'Manage your profile and preferences for property updates.', 'theme.template.page_client_portal.profile_intro' ) ); ?></p>
 
     <?php if ( $updated ) : ?>
-      <div class="form-success">Your profile has been updated.</div>
+      <div class="form-success"><?php echo esc_html( pera_ml_ui( 'Your profile has been updated.', 'theme.template.page_client_portal.profile_updated' ) ); ?></div>
     <?php endif; ?>
 
     <form method="post" action="<?php echo esc_url( home_url( '/wp-admin/admin-post.php' ) ); ?>" class="enquiry-cta-form">
@@ -56,49 +56,49 @@ get_header();
 
       <div class="cta-fieldset">
         <div class="cta-field">
-          <label class="cta-label" for="first_name">First name</label>
+          <label class="cta-label" for="first_name"><?php echo esc_html( pera_ml_ui( 'First name', 'theme.template.page_client_portal.first_name_label' ) ); ?></label>
           <input class="cta-control" type="text" id="first_name" name="first_name" value="<?php echo esc_attr( $first_name ); ?>" required>
         </div>
 
         <div class="cta-field">
-          <label class="cta-label" for="last_name">Last name</label>
+          <label class="cta-label" for="last_name"><?php echo esc_html( pera_ml_ui( 'Last name', 'theme.template.page_client_portal.last_name_label' ) ); ?></label>
           <input class="cta-control" type="text" id="last_name" name="last_name" value="<?php echo esc_attr( $last_name ); ?>" required>
         </div>
 
         <div class="cta-field">
-          <label class="cta-label" for="email">Email</label>
+          <label class="cta-label" for="email"><?php echo esc_html( pera_ml_ui( 'Email', 'theme.template.page_client_portal.email_label' ) ); ?></label>
           <input class="cta-control" type="email" id="email" value="<?php echo esc_attr( $current_user->user_email ); ?>" disabled>
         </div>
 
         <div class="cta-field">
-          <label class="cta-label" for="phone">Phone</label>
-          <input class="cta-control" type="text" id="phone" name="phone" value="<?php echo esc_attr( $phone ); ?>" placeholder="+90...">
+          <label class="cta-label" for="phone"><?php echo esc_html( pera_ml_ui( 'Phone', 'theme.template.page_client_portal.phone_label' ) ); ?></label>
+          <input class="cta-control" type="text" id="phone" name="phone" value="<?php echo esc_attr( $phone ); ?>" placeholder="<?php echo esc_attr( pera_ml_ui( '+90...', 'theme.template.page_client_portal.phone_placeholder' ) ); ?>">
         </div>
 
         <div class="cta-field">
-          <label class="cta-label" for="preferred_contact">Preferred contact</label>
+          <label class="cta-label" for="preferred_contact"><?php echo esc_html( pera_ml_ui( 'Preferred contact', 'theme.template.page_client_portal.preferred_contact_label' ) ); ?></label>
           <select class="cta-control" id="preferred_contact" name="preferred_contact">
-            <option value="">Select</option>
-            <option value="phone" <?php selected( $preferred_contact, 'phone' ); ?>>Phone</option>
-            <option value="whatsapp" <?php selected( $preferred_contact, 'whatsapp' ); ?>>WhatsApp</option>
-            <option value="email" <?php selected( $preferred_contact, 'email' ); ?>>Email</option>
+            <option value=""><?php echo esc_html( pera_ml_ui( 'Select', 'theme.template.page_client_portal.select_contact_option' ) ); ?></option>
+            <option value="phone" <?php selected( $preferred_contact, 'phone' ); ?>><?php echo esc_html( pera_ml_ui( 'Phone', 'theme.template.page_client_portal.phone_option' ) ); ?></option>
+            <option value="whatsapp" <?php selected( $preferred_contact, 'whatsapp' ); ?>><?php echo esc_html( pera_ml_ui( 'WhatsApp', 'theme.template.page_client_portal.whatsapp_option' ) ); ?></option>
+            <option value="email" <?php selected( $preferred_contact, 'email' ); ?>><?php echo esc_html( pera_ml_ui( 'Email', 'theme.template.page_client_portal.email_option' ) ); ?></option>
           </select>
         </div>
 
         <div class="cta-field">
-          <label class="cta-label" for="budget_min_usd">Budget min (USD)</label>
+          <label class="cta-label" for="budget_min_usd"><?php echo esc_html( pera_ml_ui( 'Budget min (USD)', 'theme.template.page_client_portal.budget_min_label' ) ); ?></label>
           <input class="cta-control" type="number" id="budget_min_usd" name="budget_min_usd" min="0" step="1000" value="<?php echo esc_attr( $budget_min_usd ); ?>">
         </div>
 
         <div class="cta-field">
-          <label class="cta-label" for="budget_max_usd">Budget max (USD)</label>
+          <label class="cta-label" for="budget_max_usd"><?php echo esc_html( pera_ml_ui( 'Budget max (USD)', 'theme.template.page_client_portal.budget_max_label' ) ); ?></label>
           <input class="cta-control" type="number" id="budget_max_usd" name="budget_max_usd" min="0" step="1000" value="<?php echo esc_attr( $budget_max_usd ); ?>">
         </div>
       </div>
 
       <p>
-        <button type="submit" class="btn btn--solid btn--blue">Save profile</button>
-        <a class="btn btn--solid btn--black" href="<?php echo esc_url( home_url( '/my-favourites/' ) ); ?>">Go to favourites</a>
+        <button type="submit" class="btn btn--solid btn--blue"><?php echo esc_html( pera_ml_ui( 'Save profile', 'theme.template.page_client_portal.save_profile' ) ); ?></button>
+        <a class="btn btn--solid btn--black" href="<?php echo esc_url( home_url( '/my-favourites/' ) ); ?>"><?php echo esc_html( pera_ml_ui( 'Go to favourites', 'theme.template.page_client_portal.go_to_favourites' ) ); ?></a>
       </p>
     </form>
   </div>

@@ -110,7 +110,7 @@ if ( ! function_exists( 'pera_v2_add_term_counts_for_posts' ) ) {
       $slug = (string) $t->slug;
       if ( ! isset( $counts[ $slug ] ) ) {
         $counts[ $slug ] = array(
-          'name'  => (string) $t->name,
+          'name'  => (string) ( function_exists( 'pera_ml_term' ) ? pera_ml_term( $t ) : $t->name ),
           'count' => 0,
         );
       }

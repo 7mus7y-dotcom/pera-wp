@@ -104,7 +104,7 @@ if ( ! empty( $type_terms ) && ! is_wp_error( $type_terms ) ) {
 }
 
 /* Bedrooms (primary) */
-$bed_name = ( ! empty( $bed_terms ) && ! is_wp_error( $bed_terms ) ) ? (string) $bed_terms[0]->name : '';
+$bed_name = ( ! empty( $bed_terms ) && ! is_wp_error( $bed_terms ) ) ? (string) ( function_exists( 'pera_ml_term' ) ? pera_ml_term( $bed_terms[0] ) : $bed_terms[0]->name ) : '';
 $bed_link = ( ! empty( $bed_terms ) && ! is_wp_error( $bed_terms ) ) ? get_term_link( $bed_terms[0] ) : '';
 
 /* 3) SPECIAL FLAGS */

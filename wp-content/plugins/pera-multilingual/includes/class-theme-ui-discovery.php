@@ -17,6 +17,7 @@ final class Pera_ML_Theme_UI_Discovery {
 			'attachment.php', 'footer.php', 'header.php', 'home-page.php', 'home.php',
 			'page-about-new.php', 'page-book-a-consultancy.php', 'page-citizenship.php',
 			'page-citizenship-properties.php', 'page-contact.php', 'page-favourites.php',
+			'page-client-forgot-password.php', 'page-client-login.php', 'page-client-portal.php',
 			'page-join-our-team.php', 'page-luxury-property.php', 'page-posts.php',
 			'page-privacy-policy.php', 'page-property-map.php', 'page-register.php',
 			'page-rent-with-pera.php', 'page-sell-with-pera.php', 'page-vop-besiktas.php',

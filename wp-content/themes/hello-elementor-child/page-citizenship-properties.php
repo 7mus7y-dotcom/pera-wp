@@ -246,8 +246,8 @@ $hero_desc_html = '<p class="text-light">' . esc_html( pera_ml_ui( 'Browse selec
 						$citizenship_sort_options = array(
 							'date_desc'  => pera_ml_ui( 'Newest', 'theme.template.page_citizenship_properties.newest' ),
 							'date_asc'   => pera_ml_ui( 'Oldest', 'theme.template.page_citizenship_properties.oldest' ),
-							'price_asc'  => pera_ml_ui( 'Price ↑', 'theme.template.page_citizenship_properties.price' ),
-							'price_desc' => pera_ml_ui( 'Price ↓', 'theme.template.page_citizenship_properties.price' ),
+							'price_asc'  => pera_ml_ui( 'Price ↑', 'theme.template.page_citizenship_properties.price_ascending' ),
+							'price_desc' => pera_ml_ui( 'Price ↓', 'theme.template.page_citizenship_properties.price_descending' ),
 						);
 						foreach ( $citizenship_sort_options as $sort_value => $sort_label ) :
 							$is_active = $selected_sort === $sort_value;

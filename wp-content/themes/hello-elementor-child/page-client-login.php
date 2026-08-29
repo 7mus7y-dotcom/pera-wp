@@ -47,19 +47,19 @@ $background_image = function_exists( 'pera_get_login_background_image_url' )
                         echo pera_get_site_logo_markup(
                             array(
                                 'link_class' => 'site-logo logo-pera',
-                                'aria_label' => 'Pera Property',
-                                'title'      => 'Pera Property',
+                                'aria_label' => pera_ml_ui( 'Pera Property', 'theme.template.page_client_login.logo_aria_label' ),
+                                'title'      => pera_ml_ui( 'Pera Property', 'theme.template.page_client_login.logo_title' ),
                                 'home_url'   => home_url( '/' ),
                                 'show_since' => true,
                             )
                         );
                     } else {
                         ?>
-                        <a class="site-logo logo-pera" href="<?php echo esc_url( home_url( '/' ) ); ?>" aria-label="<?php esc_attr_e( 'Pera Property', 'hello-elementor-child' ); ?>" title="<?php esc_attr_e( 'Pera Property', 'hello-elementor-child' ); ?>">
+                        <a class="site-logo logo-pera" href="<?php echo esc_url( home_url( '/' ) ); ?>" aria-label="<?php echo esc_attr( pera_ml_ui( 'Pera Property', 'theme.template.page_client_login.logo_aria_label' ) ); ?>" title="<?php echo esc_attr( pera_ml_ui( 'Pera Property', 'theme.template.page_client_login.logo_title' ) ); ?>">
                             <span class="site-logo__mark" aria-hidden="true">
                                 <img class="pera-site-logo-image" src="<?php echo esc_url( get_stylesheet_directory_uri() . '/logos-icons/logo-white.svg' ); ?>" alt="" width="200" loading="eager">
                             </span>
-                            <span class="site-logo__since"><?php esc_html_e( 'SINCE 2016', 'hello-elementor-child' ); ?></span>
+                            <span class="site-logo__since"><?php echo esc_html( pera_ml_ui( 'SINCE 2016', 'theme.template.page_client_login.since_2016' ) ); ?></span>
                         </a>
                         <?php
                     }
@@ -70,52 +70,52 @@ $background_image = function_exists( 'pera_get_login_background_image_url' )
 
                     <?php $current_user = wp_get_current_user(); ?>
                     <p class="client-login-subtitle">
-                        Hello <?php echo esc_html( $current_user->display_name ); ?>, you are already logged in.
+                        <?php echo esc_html( sprintf( pera_ml_ui( 'Hello %s, you are already logged in.', 'theme.template.page_client_login.already_logged_in' ), $current_user->display_name ) ); ?>
                     </p>
 
                     <p>
                         <a class="button button-primary" href="<?php echo esc_url( home_url( '/client-portal/' ) ); ?>">
-                            Go to client portal
+                            <?php echo esc_html( pera_ml_ui( 'Go to client portal', 'theme.template.page_client_login.go_to_client_portal' ) ); ?>
                         </a>
                     </p>
 
                     <div class="client-login-links">
                         <a href="<?php echo esc_url( wp_logout_url( get_permalink() ) ); ?>">
-                            Log out
+                            <?php echo esc_html( pera_ml_ui( 'Log out', 'theme.template.page_client_login.log_out' ) ); ?>
                         </a>
                     </div>
 
                 <?php else : ?>
                     <p class="client-login-subtitle">
-                        Sign in to access your reserved project documents and reports.
+                        <?php echo esc_html( pera_ml_ui( 'Sign in to access your reserved project documents and reports.', 'theme.template.page_client_login.sign_in_intro' ) ); ?>
                     </p>
 
                     <?php if ( isset( $_GET['registered'] ) && '1' === sanitize_key( wp_unslash( $_GET['registered'] ) ) ) : ?>
                         <?php $crm_sync = isset( $_GET['crm_sync'] ) ? sanitize_key( wp_unslash( $_GET['crm_sync'] ) ) : 'ok'; ?>
                         <div class="client-login-success" role="status">
                             <?php if ( 'pending' === $crm_sync ) : ?>
-                                <?php esc_html_e( 'Your account has been created. Please sign in. If account linking is still processing, our team will complete it shortly.', 'hello-elementor-child' ); ?>
+                                <?php echo esc_html( pera_ml_ui( 'Your account has been created. Please sign in. If account linking is still processing, our team will complete it shortly.', 'theme.template.page_client_login.registration_pending' ) ); ?>
                             <?php else : ?>
-                                <?php esc_html_e( 'Your account has been created. Please sign in.', 'hello-elementor-child' ); ?>
+                                <?php echo esc_html( pera_ml_ui( 'Your account has been created. Please sign in.', 'theme.template.page_client_login.registration_success' ) ); ?>
                             <?php endif; ?>
                         </div>
                     <?php endif; ?>
                     <?php $verify_status = isset( $_GET['verify_status'] ) ? sanitize_key( wp_unslash( $_GET['verify_status'] ) ) : ''; ?>
                     <?php if ( 'success' === $verify_status ) : ?>
                         <div class="client-login-success" role="status">
-                            <?php esc_html_e( 'Email verified successfully. You can now access the client portal.', 'hello-elementor-child' ); ?>
+                            <?php echo esc_html( pera_ml_ui( 'Email verified successfully. You can now access the client portal.', 'theme.template.page_client_login.email_verified' ) ); ?>
                         </div>
                     <?php elseif ( 'required' === $verify_status ) : ?>
                         <div class="client-login-error" role="alert">
-                            <?php esc_html_e( 'Please verify your email before accessing the client portal.', 'hello-elementor-child' ); ?>
+                            <?php echo esc_html( pera_ml_ui( 'Please verify your email before accessing the client portal.', 'theme.template.page_client_login.email_verification_required' ) ); ?>
                         </div>
                     <?php elseif ( 'invalid' === $verify_status ) : ?>
                         <div class="client-login-error" role="alert">
-                            <?php esc_html_e( 'Verification link is invalid or expired. Please contact support.', 'hello-elementor-child' ); ?>
+                            <?php echo esc_html( pera_ml_ui( 'Verification link is invalid or expired. Please contact support.', 'theme.template.page_client_login.verification_link_invalid' ) ); ?>
                         </div>
                     <?php elseif ( 'expired' === $verify_status ) : ?>
                         <div class="client-login-error" role="alert">
-                            <?php esc_html_e( 'Verification link has expired (48 hours). Please contact support for a new verification email.', 'hello-elementor-child' ); ?>
+                            <?php echo esc_html( pera_ml_ui( 'Verification link has expired (48 hours). Please contact support for a new verification email.', 'theme.template.page_client_login.verification_link_expired' ) ); ?>
                         </div>
                     <?php endif; ?>
 
@@ -128,10 +128,10 @@ $background_image = function_exists( 'pera_get_login_background_image_url' )
                         'echo'           => true,
                         'redirect'       => $redirect_target,
                         'form_id'        => 'pera-client-login-form',
-                        'label_username' => __( 'Email or Username', 'pera' ),
-                        'label_password' => __( 'Password', 'pera' ),
-                        'label_remember' => __( 'Remember me', 'pera' ),
-                        'label_log_in'   => __( 'Login', 'pera' ),
+                        'label_username' => pera_ml_ui( 'Email or Username', 'theme.template.page_client_login.email_or_username_label' ),
+                        'label_password' => pera_ml_ui( 'Password', 'theme.template.page_client_login.password_label' ),
+                        'label_remember' => pera_ml_ui( 'Remember me', 'theme.template.page_client_login.remember_me_label' ),
+                        'label_log_in'   => pera_ml_ui( 'Login', 'theme.template.page_client_login.login_button' ),
                         'id_username'    => 'user_login',
                         'id_password'    => 'user_pass',
                         'id_remember'    => 'rememberme',
@@ -146,7 +146,7 @@ $background_image = function_exists( 'pera_get_login_background_image_url' )
 
                     <div class="client-login-links">
                         <a href="<?php echo esc_url( get_permalink( get_page_by_path( 'client-forgot-password' ) ) ); ?>">
-                          Lost your password?
+                          <?php echo esc_html( pera_ml_ui( 'Lost your password?', 'theme.template.page_client_login.lost_password' ) ); ?>
                         </a>
                     </div>
 

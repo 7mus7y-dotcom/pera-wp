@@ -25,7 +25,7 @@ $read_more_aria_label = sprintf(
 );
 $cats        = get_the_category( $post_id );
 $primary_cat = ( ! empty( $cats ) && ! is_wp_error( $cats ) ) ? $cats[0] : null;
-$cat_name    = $primary_cat ? $primary_cat->name : '';
+$cat_name    = $primary_cat ? ( function_exists( 'pera_ml_term' ) ? pera_ml_term( $primary_cat ) : $primary_cat->name ) : '';
 $cat_link    = $primary_cat ? get_category_link( $primary_cat->term_id ) : '';
 
 $post_subtitle = trim( (string) get_post_meta( $post_id, 'post_subtitle', true ) );

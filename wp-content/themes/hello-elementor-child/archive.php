@@ -122,7 +122,7 @@ get_header();
 
         $term = get_queried_object();
 
-        $archive_title = single_cat_title( '', false );
+        $archive_title = ( $term instanceof WP_Term && function_exists( 'pera_ml_term' ) ) ? pera_ml_term( $term ) : single_cat_title( '', false );
 
         if ( $term instanceof WP_Term ) {
             $term_id      = (int) $term->term_id;
@@ -138,7 +138,7 @@ get_header();
                 $archive_subtitle = $term_excerpt;
             }
 
-            $archive_description = (string) term_description( $term->term_id, $term->taxonomy );
+            $archive_description = (string) ( function_exists( 'pera_ml_term' ) ? pera_ml_term( $term, 'description' ) : term_description( $term->term_id, $term->taxonomy ) );
 
             if ( function_exists( 'pera_get_term_acf_field' ) ) {
                 $acf_h1 = pera_get_term_acf_field( 'archive_h1', $term );
@@ -237,7 +237,7 @@ get_header();
 
             $blog_quick_links[] = array(
                 'url'  => $blog_quick_link_url,
-                'name' => $blog_quick_link_term->name,
+                'name' => function_exists( 'pera_ml_term' ) ? pera_ml_term( $blog_quick_link_term ) : $blog_quick_link_term->name,
             );
         }
     }
@@ -522,14 +522,14 @@ get_header();
                 $cat_link = get_category_link( $cat->term_id );
 
                 $desc = ! empty( $cat->description )
-                  ? wp_trim_words( wp_strip_all_tags( $cat->description ), 24, '…' )
+                  ? wp_trim_words( wp_strip_all_tags( function_exists( 'pera_ml_term' ) ? pera_ml_term( $cat, 'description' ) : $cat->description ), 24, '…' )
                   : sprintf( pera_ml_ui( '%d post%s', 'theme.template.archive.post_count' ), (int) $cat->count, $cat->count === 1 ? '' : 's' );
                 ?>
                 <article class="archive-cat-card card-shell">
 
                   <h3 class="post-card-title">
                     <a href="<?php echo esc_url( $cat_link ); ?>">
-                      <?php echo esc_html( $cat->name ); ?>
+                      <?php echo esc_html( function_exists( 'pera_ml_term' ) ? pera_ml_term( $cat ) : $cat->name ); ?>
                     </a>
                   </h3>
 
@@ -538,7 +538,7 @@ get_header();
                   </p>
 
                   <div class="card-meta-row">
-                      <a href="<?php echo esc_url( $cat_link ); ?>" class="btn btn--solid btn--black btn-card" aria-label="<?php echo esc_attr( sprintf( pera_ml_ui( 'View posts in %s', 'theme.template.archive.view_posts_in_s' ), $cat->name ) ); ?>">
+                      <a href="<?php echo esc_url( $cat_link ); ?>" class="btn btn--solid btn--black btn-card" aria-label="<?php echo esc_attr( sprintf( pera_ml_ui( 'View posts in %s', 'theme.template.archive.view_posts_in_s' ), ( function_exists( 'pera_ml_term' ) ? pera_ml_term( $cat ) : $cat->name ) ) ); ?>">
                         <?php echo esc_html( pera_ml_ui( 'View posts', 'theme.template.archive.view_posts' ) ); ?>
                       </a>
                   </div>

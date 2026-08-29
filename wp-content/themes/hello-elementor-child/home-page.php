@@ -120,7 +120,7 @@ if ( function_exists( 'get_field' ) ) {
                 ?>
                 <label class="pill pill--outline filter-pill">
                   <input type="checkbox" name="district[]" value="<?php echo esc_attr( $term->slug ); ?>">
-                  <span><?php echo esc_html( $term->name ); ?></span>
+                  <span><?php echo esc_html( function_exists( 'pera_ml_term' ) ? pera_ml_term( $term ) : $term->name ); ?></span>
                 </label>
               <?php endforeach; ?>
 

@@ -121,10 +121,10 @@ if ( function_exists( 'pera_get_property_card_location_terms' ) ) {
 }
 
 $bed_terms = get_the_terms( $property_id, 'bedrooms' );
-$beds      = ( ! empty($bed_terms) && ! is_wp_error($bed_terms) ) ? $bed_terms[0]->name : '';
+$beds      = ( ! empty($bed_terms) && ! is_wp_error($bed_terms) ) ? ( function_exists( 'pera_ml_term' ) ? pera_ml_term( $bed_terms[0] ) : $bed_terms[0]->name ) : '';
 
 $special_terms = get_the_terms( $property_id, 'special' );
-$special       = ( ! empty($special_terms) && ! is_wp_error($special_terms) ) ? $special_terms[0]->name : '';
+$special       = ( ! empty($special_terms) && ! is_wp_error($special_terms) ) ? ( function_exists( 'pera_ml_term' ) ? pera_ml_term( $special_terms[0] ) : $special_terms[0]->name ) : '';
 
 /* Args */
 $kicker      = isset($args['kicker']) ? (string) $args['kicker'] : pera_ml_ui( 'Featured property', 'theme.home_featured_property.default_kicker' );
@@ -192,7 +192,7 @@ $secondary_cta = isset($args['secondary_cta']) && is_array($args['secondary_cta'
 
             <?php if ( $region ) : ?>
               <a href="<?php echo esc_url( get_term_link( $region ) ); ?>" class="property-card__location-link">
-                <?php echo esc_html( $region->name ); ?>
+                <?php echo esc_html( function_exists( 'pera_ml_term' ) ? pera_ml_term( $region ) : $region->name ); ?>
               </a>
             <?php endif; ?>
           </div>

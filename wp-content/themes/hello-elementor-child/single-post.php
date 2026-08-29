@@ -20,7 +20,7 @@ get_header();
 	                // Primary category (for hero + related posts)
 	                $cats         = get_the_category();
 	                $primary_cat  = ! empty( $cats ) ? $cats[0] : null;
-	                $primary_name = $primary_cat ? $primary_cat->name : '';
+	                $primary_name = $primary_cat ? ( function_exists( 'pera_ml_term' ) ? pera_ml_term( $primary_cat ) : $primary_cat->name ) : '';
 	                $primary_link = $primary_cat ? get_category_link( $primary_cat->term_id ) : '';
                   $posts_page_id = (int) get_option( 'page_for_posts' );
                   $posts_page_link = $posts_page_id > 0 ? get_permalink( $posts_page_id ) : get_post_type_archive_link( 'post' );
@@ -279,7 +279,7 @@ get_header();
                                 <?php if ( ! is_wp_error( $tag_link ) ) : ?>
                                   <li class="post-tags__item">
                                     <a href="<?php echo esc_url( $tag_link ); ?>">
-                                      <?php echo esc_html( $tag_term->name ); ?>
+                                      <?php echo esc_html( function_exists( 'pera_ml_term' ) ? pera_ml_term( $tag_term ) : $tag_term->name ); ?>
                                     </a>
                                   </li>
                                 <?php endif; ?>
