@@ -2002,6 +2002,10 @@ add_action( 'wp_head', function () {
     return;
   }
 
+  if ( $front_page_id > 0 && function_exists( 'pera_ml_homepage_faq' ) ) {
+    $faq_rows = pera_ml_homepage_faq( $front_page_id, $faq_rows );
+  }
+
   $faq_entities = array();
 
   foreach ( $faq_rows as $faq_row ) {

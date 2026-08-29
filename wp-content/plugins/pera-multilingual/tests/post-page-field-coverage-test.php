@@ -62,9 +62,12 @@ $GLOBALS['coverage_meta'] = array( 20 => array(
 	'homepage_bottom_seo_text'   => '<p>Canonical SEO copy</p>',
 	'faq'                        => array( array( 'question' => 'Structured question' ) ),
 ) );
-$status_sources = ( new Pera_ML_Translation_Status( null ) )->applicable_sources( 20, 'page' );
+$page_status = new Pera_ML_Translation_Status( null );
+$status_sources = $page_status->applicable_sources( 20, 'page' );
 foreach ( $homepage_fields as $field ) coverage_expect( true, isset( $status_sources[ 'meta:' . $field ] ), "Translation Health discovers {$field} from the page contract" );
 coverage_expect( false, isset( $status_sources['meta:faq'] ), 'Translation Health does not treat the FAQ repeater as scalar meta' );
+coverage_expect( 'Structured question', $status_sources['meta:homepage_faq_0_question'], 'Translation Health discovers the FAQ question as a structured leaf' );
+coverage_expect( 'Structured question', $page_status->source_for_field( 20, 'page', 'meta:homepage_faq_0_question' ), 'canonical source resolver reads a synthetic FAQ leaf from its repeater' );
 
 $theme = dirname( dirname( dirname( __DIR__ ) ) ) . '/themes/hello-elementor-child';
 $post_card = file_get_contents( $theme . '/parts/post-card.php' );

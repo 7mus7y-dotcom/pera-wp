@@ -95,6 +95,7 @@ foreach ( $candidates as $candidate ) {
     echo "\n==================================================\n";
     echo "POST {$post->ID}: {$post->post_title}\n";
     echo "==================================================\n";
+    $sources = $status_api->applicable_sources( $post->ID, $post->post_type );
 
     foreach ( $languages as $language ) {
         $status = $status_api->get( $post->ID, $language );
@@ -133,12 +134,7 @@ foreach ( $candidates as $candidate ) {
         echo "\n" . strtoupper( $language ) . ":\n";
 
         foreach ( $needed as $field ) {
-            if ( 0 === strpos( $field, 'meta:' ) ) {
-                $meta_key = substr( $field, 5 );
-                $source   = get_post_meta( $post->ID, $meta_key, true );
-            } else {
-                $source = isset( $post->$field ) ? $post->$field : '';
-            }
+            $source = isset( $sources[ $field ] ) ? $sources[ $field ] : '';
 
             if ( ! is_string( $source ) || '' === trim( $source ) ) {
                 echo "  SKIP {$field} (empty source)\n";

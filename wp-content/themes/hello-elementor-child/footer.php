@@ -17,12 +17,12 @@ if ( ! defined( 'ABSPATH' ) ) {
       <h3><?php echo esc_html( pera_ml_ui( 'ABOUT PERA', 'theme.template.footer.about_pera' ) ); ?></h3>
       <p><?php echo esc_html( pera_ml_ui( 'Pera has helped hundreds of people buy, sell, and rent property in Istanbul!', 'theme.template.footer.pera_has_helped_hundreds_of_people_buy_sell_and_rent_property_in_istanbu' ) ); ?></p>
       <ul class="footer-links">
-        <li><a href="https://www.peraproperty.com/about-us/"><?php echo esc_html( pera_ml_ui( 'About Pera Property', 'theme.template.footer.about_pera_property' ) ); ?></a></li>
-        <li><a href="https://www.peraproperty.com/about-us/#meet_the_team"><?php echo esc_html( pera_ml_ui( 'Meet the team', 'theme.template.footer.meet_the_team' ) ); ?></a></li>
-        <li><a href="https://www.peraproperty.com/about-us/#why_pera"><?php echo esc_html( pera_ml_ui( 'Why Pera Property?', 'theme.template.footer.why_pera_property' ) ); ?></a></li>
-        <li><a href="https://www.peraproperty.com/about-us/#our_services"><?php echo esc_html( pera_ml_ui( 'Our services', 'theme.template.footer.our_services' ) ); ?></a></li>
-        <li><a href="https://www.peraproperty.com/join-our-team/"><?php echo esc_html( pera_ml_ui( 'Join us', 'theme.template.footer.join_us' ) ); ?></a></li>
-        <li><a href="https://www.peraproperty.com/contact-us/"><?php echo esc_html( pera_ml_ui( 'Contact us', 'theme.template.footer.contact_us' ) ); ?></a></li>
+        <li><a href="<?php echo esc_url( pera_ml_url( home_url( '/about-us/' ) ) ); ?>"><?php echo esc_html( pera_ml_ui( 'About Pera Property', 'theme.template.footer.about_pera_property' ) ); ?></a></li>
+        <li><a href="<?php echo esc_url( pera_ml_url( home_url( '/about-us/#meet_the_team' ) ) ); ?>"><?php echo esc_html( pera_ml_ui( 'Meet the team', 'theme.template.footer.meet_the_team' ) ); ?></a></li>
+        <li><a href="<?php echo esc_url( pera_ml_url( home_url( '/about-us/#why_pera' ) ) ); ?>"><?php echo esc_html( pera_ml_ui( 'Why Pera Property?', 'theme.template.footer.why_pera_property' ) ); ?></a></li>
+        <li><a href="<?php echo esc_url( pera_ml_url( home_url( '/about-us/#our_services' ) ) ); ?>"><?php echo esc_html( pera_ml_ui( 'Our services', 'theme.template.footer.our_services' ) ); ?></a></li>
+        <li><a href="<?php echo esc_url( pera_ml_url( home_url( '/join-our-team/' ) ) ); ?>"><?php echo esc_html( pera_ml_ui( 'Join us', 'theme.template.footer.join_us' ) ); ?></a></li>
+        <li><a href="<?php echo esc_url( pera_ml_url( home_url( '/contact-us/' ) ) ); ?>"><?php echo esc_html( pera_ml_ui( 'Contact us', 'theme.template.footer.contact_us' ) ); ?></a></li>
       </ul>
 
       <div class="footer-social">
@@ -133,9 +133,9 @@ if ( ! defined( 'ABSPATH' ) ) {
   <div class="footer-inner disclaimer-inner">
     <p>
       <?php echo esc_html( pera_ml_ui( 'PeraProperty.com is a licensed real estate agency in Turkey. Our fees are set at 4% for property sales and vary for rental services depending on the level of service required. Please refer to our dedicated', 'theme.template.footer.peraproperty_com_is_a_licensed_real_estate_agency_in_turkey_our_fees_are' ) ); ?>
-      <a href="https://www.peraproperty.com/sell-your-istanbul-real-estate/"><?php echo esc_html( pera_ml_ui( 'Sales', 'theme.template.footer.sales' ) ); ?></a>
+      <a href="<?php echo esc_url( pera_ml_url( home_url( '/sell-your-istanbul-real-estate/' ) ) ); ?>"><?php echo esc_html( pera_ml_ui( 'Sales', 'theme.template.footer.sales' ) ); ?></a>
       <?php echo esc_html( pera_ml_ui( 'and', 'theme.template.footer.and' ) ); ?>
-      <a href="https://www.peraproperty.com/rent-your-istanbul-real-estate/"><?php echo esc_html( pera_ml_ui( 'Rental', 'theme.template.footer.rental' ) ); ?></a>
+      <a href="<?php echo esc_url( pera_ml_url( home_url( '/rent-your-istanbul-real-estate/' ) ) ); ?>"><?php echo esc_html( pera_ml_ui( 'Rental', 'theme.template.footer.rental' ) ); ?></a>
       <?php echo esc_html( pera_ml_ui( 'pages for the most current advice and information. While we strive to provide accurate and up-to-date content, all information on our website is subject to change. For specific queries, we recommend contacting our team directly.', 'theme.template.footer.pages_for_the_most_current_advice_and_information_while_we_strive_to_pro' ) ); ?>
     </p>
 
@@ -144,7 +144,7 @@ if ( ! defined( 'ABSPATH' ) ) {
       <span class="footer-separator">¦</span>
 
       <a class="cookie-settings-link"
-         href="https://www.peraproperty.com/privacy-policy/"
+         href="<?php echo esc_url( pera_ml_url( home_url( '/privacy-policy/' ) ) ); ?>"
          target="_blank"
          rel="noopener">
         <?php echo esc_html( pera_ml_ui( 'Privacy policy', 'theme.template.footer.privacy_policy' ) ); ?>

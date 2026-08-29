@@ -20,6 +20,7 @@ final class Pera_ML_Router {
 		add_filter( 'term_link', array( $this, 'localize_url' ), 20 );
 		add_filter( 'author_link', array( $this, 'localize_url' ), 20 );
 		add_filter( 'get_pagenum_link', array( $this, 'localize_url' ), 20 );
+		add_filter( 'nav_menu_link_attributes', array( $this, 'localize_footer_menu_link' ), 20, 4 );
 	}
 
 	public function detect_and_strip_prefix() {
@@ -88,8 +89,15 @@ final class Pera_ML_Router {
 	}
 
 	public function url_for_language( $url, $code ) {
+		if ( ! is_string( $url ) || '' === $url || '#' === substr( $url, 0, 1 ) || preg_match( '/^(?:mailto|tel|javascript):/i', $url ) ) return $url;
 		$language = $this->registry->get( $code );
 		if ( ! $language || empty( $language['enabled'] ) ) return $url;
+		$root_relative = '/' === substr( $url, 0, 1 ) && 0 !== strpos( $url, '//' );
+		if ( $root_relative ) {
+			$home_origin = wp_parse_url( home_url( '/' ) );
+			if ( empty( $home_origin['host'] ) ) return $url;
+			$url = ( isset( $home_origin['scheme'] ) ? $home_origin['scheme'] . '://' : '//' ) . $home_origin['host'] . ( isset( $home_origin['port'] ) ? ':' . $home_origin['port'] : '' ) . $url;
+		}
 		$parts = wp_parse_url( $url );
 		if ( ! is_array( $parts ) || empty( $parts['host'] ) ) return $url;
 		$home = wp_parse_url( home_url( '/' ) );
@@ -108,10 +116,19 @@ final class Pera_ML_Router {
 		$url = ( isset( $parts['scheme'] ) ? $parts['scheme'] . '://' : '//' ) . $parts['host'] . ( isset( $parts['port'] ) ? ':' . $parts['port'] : '' ) . '/' . ltrim( $new_path, '/' );
 		if ( isset( $parts['query'] ) ) $url .= '?' . $parts['query'];
 		if ( isset( $parts['fragment'] ) ) $url .= '#' . $parts['fragment'];
+		if ( $root_relative ) {
+			$localized = wp_parse_url( $url );
+			return ( isset( $localized['path'] ) ? $localized['path'] : '/' ) . ( isset( $localized['query'] ) ? '?' . $localized['query'] : '' ) . ( isset( $localized['fragment'] ) ? '#' . $localized['fragment'] : '' );
+		}
 		return $url;
 	}
 
 	public function localize_url( $url ) { return $this->is_translated() ? $this->url_for_language( $url, $this->language ) : $url; }
+	public function localize_footer_menu_link( $atts, $item, $args, $depth ) {
+		$location = is_object( $args ) && isset( $args->theme_location ) ? $args->theme_location : '';
+		if ( $this->is_translated() && in_array( $location, array( 'footer_menu', 'guidance' ), true ) && isset( $atts['href'] ) ) $atts['href'] = $this->url_for_language( $atts['href'], $this->language );
+		return $atts;
+	}
 
 	private function is_eligible_request() {
 		if ( is_admin() || ( defined( 'DOING_AJAX' ) && DOING_AJAX ) || ( defined( 'DOING_CRON' ) && DOING_CRON ) || ( defined( 'XMLRPC_REQUEST' ) && XMLRPC_REQUEST ) || ( defined( 'REST_REQUEST' ) && REST_REQUEST ) ) return false;

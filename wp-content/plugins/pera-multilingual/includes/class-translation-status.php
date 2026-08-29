@@ -59,10 +59,26 @@ final class Pera_ML_Translation_Status {
 		$fields = isset( $definitions[ $post_type ] ) ? $definitions[ $post_type ] : array();
 		$sources = array();
 		foreach ( $fields as $field => $optional ) {
-			$source = 0 === strpos( $field, 'meta:' ) ? get_post_meta( $object_id, substr( $field, 5 ), true ) : $post->$field;
+			$source = $this->source_for_field( $object_id, $post_type, $field, $post );
 			if ( ! $optional || ( is_string( $source ) && '' !== trim( $source ) ) ) $sources[ $field ] = (string) $source;
 		}
+		if ( 'page' === $post_type ) $sources = array_merge( $sources, Pera_ML_Fields::homepage_faq_sources( $object_id ) );
 		return $sources;
+	}
+
+	/**
+	 * Resolve one canonical English source, including synthetic structured keys.
+	 * Generation workflows must use this contract rather than assuming every
+	 * meta:-prefixed field maps directly to a WordPress post_meta row.
+	 */
+	public function source_for_field( $object_id, $post_type, $field, $post = null ) {
+		if ( 0 === strpos( $field, 'meta:homepage_faq_' ) ) {
+			$sources = Pera_ML_Fields::homepage_faq_sources( $object_id );
+			return isset( $sources[ $field ] ) ? $sources[ $field ] : null;
+		}
+		if ( 0 === strpos( $field, 'meta:' ) ) return get_post_meta( $object_id, substr( $field, 5 ), true );
+		$post = $post ? $post : get_post( $object_id );
+		return $post && isset( $post->$field ) ? $post->$field : null;
 	}
 
 	/** Forget request-local results after a field is stored. */

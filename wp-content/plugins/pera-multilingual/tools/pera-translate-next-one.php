@@ -29,6 +29,7 @@ foreach ( $posts as $post ) {
     }
 
     echo "POST {$post->ID}: {$post->post_title}\n";
+    $sources = $status_api->applicable_sources( $post->ID, $post->post_type );
 
     foreach ( $languages as $language ) {
         $status = $status_api->get( $post->ID, $language );
@@ -43,11 +44,7 @@ foreach ( $posts as $post ) {
         );
 
         foreach ( $fields as $field ) {
-            if ( 0 === strpos( $field, 'meta:' ) ) {
-                $source = get_post_meta( $post->ID, substr( $field, 5 ), true );
-            } else {
-                $source = isset( $post->$field ) ? $post->$field : '';
-            }
+            $source = isset( $sources[ $field ] ) ? $sources[ $field ] : '';
 
             if ( ! is_string( $source ) || '' === trim( $source ) ) {
                 continue;

@@ -48,6 +48,44 @@ final class Pera_ML_Fields {
 	public function get( $post_id, $field, $source, $language = null ) {
 		return $this->get_for_object( 'post', (int) $post_id, $field, $source, $language );
 	}
+	/** Translate each FAQ leaf independently without adding the repeater to the scalar field contract. */
+	public function homepage_faq( $post_id, array $rows, $language = null ) {
+		$language = $language ? sanitize_key( $language ) : $this->router->current_language();
+		if ( 'en' === $language || (int) $post_id <= 0 ) return $rows;
+		foreach ( $rows as $index => &$row ) {
+			if ( ! is_array( $row ) ) continue;
+			foreach ( array( 'question', 'answer' ) as $leaf ) {
+				if ( ! isset( $row[ $leaf ] ) || ! is_string( $row[ $leaf ] ) || '' === trim( $row[ $leaf ] ) ) continue;
+				$source = $row[ $leaf ];
+				$stored = $this->storage->get( 'post', (int) $post_id, self::homepage_faq_field( $index, $leaf ), $language, $source );
+				if ( is_array( $stored ) && empty( $stored['is_stale'] ) && ( ! isset( $stored['status'] ) || 'current' === $stored['status'] ) && isset( $stored['translated_text'] ) && '' !== trim( (string) $stored['translated_text'] ) ) $row[ $leaf ] = $stored['translated_text'];
+			}
+		}
+		unset( $row );
+		return $rows;
+	}
+	public static function homepage_faq_field( $index, $leaf ) { return 'meta:homepage_faq_' . absint( $index ) . '_' . sanitize_key( $leaf ); }
+	public static function homepage_faq_sources( $post_id ) {
+		$rows = function_exists( 'get_field' ) ? get_field( 'faq', (int) $post_id ) : null;
+		if ( ! is_array( $rows ) ) {
+			$raw = get_post_meta( (int) $post_id, 'faq', true );
+			if ( is_array( $raw ) ) {
+				$rows = $raw;
+			} else {
+				$rows = array();
+				for ( $index = 0, $count = absint( $raw ); $index < $count; $index++ ) {
+					$rows[] = array(
+						'question' => get_post_meta( (int) $post_id, 'faq_' . $index . '_question', true ),
+						'answer'   => get_post_meta( (int) $post_id, 'faq_' . $index . '_answer', true ),
+					);
+				}
+			}
+		}
+		$sources = array();
+		if ( ! is_array( $rows ) ) return $sources;
+		foreach ( $rows as $index => $row ) foreach ( array( 'question', 'answer' ) as $leaf ) if ( isset( $row[ $leaf ] ) && is_string( $row[ $leaf ] ) && '' !== trim( $row[ $leaf ] ) ) $sources[ self::homepage_faq_field( $index, $leaf ) ] = $row[ $leaf ];
+		return $sources;
+	}
 	public function get_for_object( $object_type, $object_id, $field, $source, $language = null, $post_type = null ) {
 		$language = $language ? sanitize_key( $language ) : $this->router->current_language();
 		if ( 'post' === $object_type && null === $post_type ) $post_type = function_exists( 'get_post_type' ) ? get_post_type( $object_id ) : 'post';

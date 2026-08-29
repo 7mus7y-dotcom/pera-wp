@@ -72,6 +72,10 @@ function pera_ml_term( $term, $field = 'name', $language = null ) { return Pera_
 function pera_ml_term_meta( $term, $field, $source, $language = null ) { return Pera_ML_Plugin::instance()->fields()->term_meta( $term, $field, $source, $language ); }
 /** Localize a visitor-facing URL without changing external or system URLs. */
 function pera_ml_url( $url, $language = null ) { $plugin = Pera_ML_Plugin::instance(); return $plugin->router()->url_for_language( $url, $language ? $language : $plugin->router()->current_language() ); }
+/** Return the canonical site home localized for the active frontend language. */
+function pera_ml_home_url( $language = null ) { return pera_ml_url( home_url( '/' ), $language ); }
+/** Translate the text leaves of the canonical homepage FAQ repeater. */
+function pera_ml_homepage_faq( $post_id, array $rows, $language = null ) { return Pera_ML_Plugin::instance()->fields()->homepage_faq( $post_id, $rows, $language ); }
 /** Translate a controlled property label without provider traffic. */
 function pera_ml_vocab( $value, $language = null ) { $plugin = Pera_ML_Plugin::instance(); return $plugin->vocabulary()->translate( $value, $language ? $language : $plugin->router()->current_language() ); }
 /** Read stored visitor-facing copy, falling back to its canonical English source. */
