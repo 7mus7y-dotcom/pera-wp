@@ -66,7 +66,22 @@ final class Pera_ML_Fields {
 	}
 	public static function homepage_faq_field( $index, $leaf ) { return 'meta:homepage_faq_' . absint( $index ) . '_' . sanitize_key( $leaf ); }
 	public static function homepage_faq_sources( $post_id ) {
-		$rows = get_post_meta( (int) $post_id, 'faq', true ); $sources = array();
+		$rows = function_exists( 'get_field' ) ? get_field( 'faq', (int) $post_id ) : null;
+		if ( ! is_array( $rows ) ) {
+			$raw = get_post_meta( (int) $post_id, 'faq', true );
+			if ( is_array( $raw ) ) {
+				$rows = $raw;
+			} else {
+				$rows = array();
+				for ( $index = 0, $count = absint( $raw ); $index < $count; $index++ ) {
+					$rows[] = array(
+						'question' => get_post_meta( (int) $post_id, 'faq_' . $index . '_question', true ),
+						'answer'   => get_post_meta( (int) $post_id, 'faq_' . $index . '_answer', true ),
+					);
+				}
+			}
+		}
+		$sources = array();
 		if ( ! is_array( $rows ) ) return $sources;
 		foreach ( $rows as $index => $row ) foreach ( array( 'question', 'answer' ) as $leaf ) if ( isset( $row[ $leaf ] ) && is_string( $row[ $leaf ] ) && '' !== trim( $row[ $leaf ] ) ) $sources[ self::homepage_faq_field( $index, $leaf ) ] = $row[ $leaf ];
 		return $sources;

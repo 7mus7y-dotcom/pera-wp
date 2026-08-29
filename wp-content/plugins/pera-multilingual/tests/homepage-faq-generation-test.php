@@ -13,10 +13,12 @@ function get_posts() { return array( 20 ); }
 function get_post( $id ) { return 20 === (int) $id ? (object) array( 'ID' => 20, 'post_type' => 'page', 'post_title' => 'Home', 'post_content' => '', 'post_excerpt' => '' ) : null; }
 function get_the_title() { return 'Home'; }
 function get_terms() { return array(); }
-function get_post_meta( $id, $key ) { return 'faq' === $key ? $GLOBALS['faq_generation_rows'] : ''; }
+function get_field( $key, $id ) { $GLOBALS['faq_generation_acf_calls'][] = array( $key, $id ); return 'faq' === $key ? $GLOBALS['faq_generation_rows'] : null; }
+function get_post_meta( $id, $key ) { return 'faq' === $key ? 1 : ''; }
 function generation_expect( $expected, $actual, $label ) { if ( $expected !== $actual ) { fwrite( STDERR, "FAIL {$label}\n" . var_export( $actual, true ) . "\n" ); exit( 1 ); } }
 
 $GLOBALS['faq_generation_rows'] = array( array( 'question' => 'Actual English question', 'answer' => 'Actual English answer' ) );
+$GLOBALS['faq_generation_acf_calls'] = array();
 final class Pera_ML_Storage { public static function normalize_field_key( $field ) { return $field; } }
 final class FAQ_Generation_Storage {
 	public $rows = array( 'meta:homepage_faq_0_answer|de' => array( 'translated_text' => 'Old answer', 'is_stale' => true, 'status' => 'current' ) );
@@ -43,6 +45,10 @@ final class FAQ_Generation_Router { public function current_language() { return 
 require dirname( __DIR__ ) . '/includes/class-fields.php';
 require dirname( __DIR__ ) . '/includes/class-translation-health.php';
 require dirname( __DIR__ ) . '/includes/class-translation-health-orchestrator.php';
+$acf_sources = Pera_ML_Fields::homepage_faq_sources( 20 );
+generation_expect( 'Actual English question', $acf_sources['meta:homepage_faq_0_question'], 'ACF repeater question becomes a structured source' );
+generation_expect( 'Actual English answer', $acf_sources['meta:homepage_faq_0_answer'], 'ACF repeater answer becomes a structured source' );
+generation_expect( array( array( 'faq', 20 ) ), $GLOBALS['faq_generation_acf_calls'], 'structured source loader requests real rows through ACF' );
 $storage = new FAQ_Generation_Storage(); $status = new FAQ_Generation_Status(); $translator = new FAQ_Generation_Translator( $storage );
 $health = new Pera_ML_Translation_Health( $status, $storage, new FAQ_Generation_UI() );
 $inventory = $health->inventory();
