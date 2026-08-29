@@ -67,15 +67,15 @@ $terms_url          = home_url( '/terms-and-conditions/' );
                         echo pera_get_site_logo_markup(
                             array(
                                 'link_class' => 'site-logo logo-pera',
-                                'aria_label' => 'Pera Property',
-                                'title'      => 'Pera Property',
+                                'aria_label' => pera_ml_ui( 'Pera Property', 'theme.template.page_register.logo_aria_label' ),
+                                'title'      => pera_ml_ui( 'Pera Property', 'theme.template.page_register.logo_title' ),
                                 'home_url'   => home_url( '/' ),
                                 'show_since' => true,
                             )
                         );
                     } else {
                         ?>
-                        <a class="site-logo logo-pera" href="<?php echo esc_url( home_url( '/' ) ); ?>" aria-label="<?php esc_attr_e( 'Pera Property', 'hello-elementor-child' ); ?>" title="<?php esc_attr_e( 'Pera Property', 'hello-elementor-child' ); ?>">
+                        <a class="site-logo logo-pera" href="<?php echo esc_url( home_url( '/' ) ); ?>" aria-label="<?php echo esc_attr( pera_ml_ui( 'Pera Property', 'theme.template.page_register.logo_aria_label' ) ); ?>" title="<?php echo esc_attr( pera_ml_ui( 'Pera Property', 'theme.template.page_register.logo_title' ) ); ?>">
                             <span class="site-logo__mark" aria-hidden="true">
                                 <img class="pera-site-logo-image" src="<?php echo esc_url( get_stylesheet_directory_uri() . '/logos-icons/logo-white.svg' ); ?>" alt="" width="200" loading="eager">
                             </span>

@@ -49,19 +49,19 @@ $back_to_login_url  = $back_to_login_page ? get_permalink( $back_to_login_page )
                         echo pera_get_site_logo_markup(
                             array(
                                 'link_class' => 'site-logo logo-pera',
-                                'aria_label' => 'Pera Property',
-                                'title'      => 'Pera Property',
+                                'aria_label' => pera_ml_ui( 'Pera Property', 'theme.template.page_client_forgot_password.logo_aria_label' ),
+                                'title'      => pera_ml_ui( 'Pera Property', 'theme.template.page_client_forgot_password.logo_title' ),
                                 'home_url'   => home_url( '/' ),
                                 'show_since' => true,
                             )
                         );
                     } else {
                         ?>
-                        <a class="site-logo logo-pera" href="<?php echo esc_url( home_url( '/' ) ); ?>" aria-label="<?php esc_attr_e( 'Pera Property', 'hello-elementor-child' ); ?>" title="<?php esc_attr_e( 'Pera Property', 'hello-elementor-child' ); ?>">
+                        <a class="site-logo logo-pera" href="<?php echo esc_url( home_url( '/' ) ); ?>" aria-label="<?php echo esc_attr( pera_ml_ui( 'Pera Property', 'theme.template.page_client_forgot_password.logo_aria_label' ) ); ?>" title="<?php echo esc_attr( pera_ml_ui( 'Pera Property', 'theme.template.page_client_forgot_password.logo_title' ) ); ?>">
                             <span class="site-logo__mark" aria-hidden="true">
                                 <img class="pera-site-logo-image" src="<?php echo esc_url( get_stylesheet_directory_uri() . '/logos-icons/logo-white.svg' ); ?>" alt="" width="200" loading="eager">
                             </span>
-                            <span class="site-logo__since"><?php esc_html_e( 'SINCE 2016', 'hello-elementor-child' ); ?></span>
+                            <span class="site-logo__since"><?php echo esc_html( pera_ml_ui( 'SINCE 2016', 'theme.template.page_client_forgot_password.since_2016' ) ); ?></span>
                         </a>
                         <?php
                     }
@@ -69,24 +69,24 @@ $back_to_login_url  = $back_to_login_page ? get_permalink( $back_to_login_page )
                 </div>
 
                 <div class="client-login-container">
-                    <h1 class="client-login-title"><?php esc_html_e( 'Reset your password', 'hello-elementor-child' ); ?></h1>
-                    <p class="client-login-subtitle"><?php esc_html_e( 'Enter your username or email address and we’ll send you a link to reset your password.', 'hello-elementor-child' ); ?></p>
+                    <h1 class="client-login-title"><?php echo esc_html( pera_ml_ui( 'Reset your password', 'theme.template.page_client_forgot_password.heading' ) ); ?></h1>
+                    <p class="client-login-subtitle"><?php echo esc_html( pera_ml_ui( 'Enter your username or email address and we’ll send you a link to reset your password.', 'theme.template.page_client_forgot_password.instructions' ) ); ?></p>
 
                     <form name="lostpasswordform" id="lostpasswordform" action="<?php echo esc_url( wp_lostpassword_url() ); ?>" method="post">
                         <p>
-                            <label for="user_login"><?php esc_html_e( 'Username or Email', 'hello-elementor-child' ); ?></label>
+                            <label for="user_login"><?php echo esc_html( pera_ml_ui( 'Username or Email', 'theme.template.page_client_forgot_password.username_or_email_label' ) ); ?></label>
                             <input type="text" name="user_login" id="user_login" class="input" autocomplete="username">
                         </p>
 
                         <?php do_action( 'lostpassword_form' ); ?>
 
                         <p class="submit">
-                            <input type="submit" name="wp-submit" id="wp-submit" class="button button-primary" value="<?php esc_attr_e( 'Get new password', 'hello-elementor-child' ); ?>">
+                            <input type="submit" name="wp-submit" id="wp-submit" class="button button-primary" value="<?php echo esc_attr( pera_ml_ui( 'Get new password', 'theme.template.page_client_forgot_password.submit_button' ) ); ?>">
                         </p>
                     </form>
 
                     <div class="client-login-links">
-                        <a href="<?php echo esc_url( $back_to_login_url ); ?>"><?php esc_html_e( 'Back to client login', 'hello-elementor-child' ); ?></a>
+                        <a href="<?php echo esc_url( $back_to_login_url ); ?>"><?php echo esc_html( pera_ml_ui( 'Back to client login', 'theme.template.page_client_forgot_password.back_to_login' ) ); ?></a>
                     </div>
                 </div>
             </div>

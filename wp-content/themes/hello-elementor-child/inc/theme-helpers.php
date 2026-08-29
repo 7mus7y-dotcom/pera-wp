@@ -126,7 +126,7 @@ if ( ! function_exists( 'pera_get_term_short_label' ) ) {
 
     $label = is_string( $label ) ? trim( $label ) : '';
 
-    return $label !== '' ? $label : (string) $term->name;
+    return $label !== '' ? $label : (string) ( function_exists( 'pera_ml_term' ) ? pera_ml_term( $term ) : $term->name );
   }
 }
 
@@ -698,8 +698,8 @@ if ( ! function_exists( 'pera_render_related_guide_property_block' ) ) {
 
       ob_start();
       ?>
-      <section class="<?php echo esc_attr( $args['container_class'] ); ?>" aria-label="<?php echo esc_attr( sprintf( pera_ml_ui( 'Latest properties for sale in %s', 'theme.related_properties.section_label' ), $district_term->name ) ); ?>">
-        <h2><?php echo esc_html( sprintf( pera_ml_ui( 'Latest Properties for Sale in %s', 'theme.related_properties.heading' ), $district_term->name ) ); ?></h2>
+      <section class="<?php echo esc_attr( $args['container_class'] ); ?>" aria-label="<?php echo esc_attr( sprintf( pera_ml_ui( 'Latest properties for sale in %s', 'theme.related_properties.section_label' ), ( function_exists( 'pera_ml_term' ) ? pera_ml_term( $district_term ) : $district_term->name ) ) ); ?>">
+        <h2><?php echo esc_html( sprintf( pera_ml_ui( 'Latest Properties for Sale in %s', 'theme.related_properties.heading' ), ( function_exists( 'pera_ml_term' ) ? pera_ml_term( $district_term ) : $district_term->name ) ) ); ?></h2>
 
         <div class="cards-slider cards-slider--sidebar cards-slider--snap">
           <div class="slider-track">
@@ -717,11 +717,11 @@ if ( ! function_exists( 'pera_render_related_guide_property_block' ) ) {
               ?>
             <?php endwhile; ?>
 
-            <article class="slider-card post-card post-card--cta home-editorial-posts__cta pera-card-shell" aria-label="<?php echo esc_attr( sprintf( pera_ml_ui( 'Property actions for %s', 'theme.related_properties.actions_label' ), $district_term->name ) ); ?>">
+            <article class="slider-card post-card post-card--cta home-editorial-posts__cta pera-card-shell" aria-label="<?php echo esc_attr( sprintf( pera_ml_ui( 'Property actions for %s', 'theme.related_properties.actions_label' ), ( function_exists( 'pera_ml_term' ) ? pera_ml_term( $district_term ) : $district_term->name ) ) ); ?>">
               <div class="post-card-body">
                 <h3 class="post-card-title"><?php echo esc_html( pera_ml_ui( 'Like what you see?', 'theme.inc.theme-helpers.like_what_you_see' ) ); ?></h3>
                 <div class="home-editorial-posts__cta-actions">
-                  <a class="btn btn--solid btn--blue" href="<?php echo esc_url( $district_link ); ?>"><?php echo esc_html( sprintf( pera_ml_ui( 'See all property for sale in %s', 'theme.related_properties.view_all' ), $district_term->name ) ); ?></a>
+                  <a class="btn btn--solid btn--blue" href="<?php echo esc_url( $district_link ); ?>"><?php echo esc_html( sprintf( pera_ml_ui( 'See all property for sale in %s', 'theme.related_properties.view_all' ), ( function_exists( 'pera_ml_term' ) ? pera_ml_term( $district_term ) : $district_term->name ) ) ); ?></a>
                   <a class="btn btn--ghost btn--green" href="<?php echo esc_url( home_url( '/contact-us/' ) ); ?>"><?php echo esc_html( pera_ml_ui( 'Contact us', 'theme.inc.theme-helpers.contact_us' ) ); ?></a>
                 </div>
               </div>

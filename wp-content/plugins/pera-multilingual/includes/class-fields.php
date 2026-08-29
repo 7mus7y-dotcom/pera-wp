@@ -68,7 +68,8 @@ final class Pera_ML_Fields {
 		$language = $language ? sanitize_key( $language ) : $this->router->current_language(); $source = 'description' === $field ? $term->description : $term->name;
 		if ( 'en' === $language ) return $source;
 		$row = $this->storage->get( 'term', $term->term_id, 'term_' . $field, $language, (string) $source );
-		return $row ? $row['translated_text'] : ( 'name' === $field ? $this->vocabulary->translate( $source, $language ) : $source );
+		if ( is_array( $row ) && empty( $row['is_stale'] ) && ( ! isset( $row['status'] ) || 'current' === $row['status'] ) && isset( $row['translated_text'] ) && '' !== trim( (string) $row['translated_text'] ) ) return $row['translated_text'];
+		return 'name' === $field ? $this->vocabulary->translate( $source, $language ) : $source;
 	}
 	/** Read one approved taxonomy meta translation without invoking a provider. */
 	public function term_meta( $term, $field, $source, $language = null ) {

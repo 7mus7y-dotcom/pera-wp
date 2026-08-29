@@ -8,7 +8,7 @@ class WP_Term { public $term_id=4; public $taxonomy='region'; public $name='Vill
 class WP_Post { public $ID=9; }
 function expect_same($e,$a,$l){if($e!==$a){fwrite(STDERR,"FAIL $l\n".var_export($a,true)."\n");exit(1);}}
 class TestRouter { public $language='zh'; function current_language(){return $this->language;} }
-class TestStorage { public $rows=array(); function get($t,$id,$f,$l,$s=''){ $k="$t|$id|$f|$l"; return isset($this->rows[$k])?array('translated_text'=>$this->rows[$k]):null;} function put(){return true;} }
+class TestStorage { public $rows=array(); function get($t,$id,$f,$l,$s=''){ $k="$t|$id|$f|$l"; if ( ! isset( $this->rows[$k] ) ) return null; return is_array( $this->rows[$k] ) ? $this->rows[$k] : array( 'translated_text' => $this->rows[$k] ); } function put(){return true;} }
 require dirname(__DIR__).'/includes/class-storage.php'; require dirname(__DIR__).'/includes/class-vocabulary.php'; require dirname(__DIR__).'/includes/class-fields.php'; require dirname(__DIR__).'/includes/class-translator.php'; require dirname(__DIR__).'/includes/class-ajax.php';
 $router=new TestRouter();$storage=new TestStorage();$vocab=new Pera_ML_Vocabulary();$fields=new Pera_ML_Fields($router,$storage,$vocab);
 $storage->rows['post|9|meta:project_name|zh']='海景项目'; expect_same('海景项目',$fields->get(9,'project_name','Sea Project'),'translated field');
@@ -21,7 +21,13 @@ expect_same('Options copy',$fields->acf_value('Options copy','option',array('nam
 expect_same('别墅',$vocab->translate('Villa','zh'),'Chinese vocabulary'); expect_same('فيلا',$vocab->translate('Villa','ar'),'Arabic vocabulary');
 expect_same('Wohnung',$vocab->translate('Apartment','de'),'German apartment vocabulary'); expect_same('Bosporusblick',$vocab->translate('Bosphorus View','de'),'German property vocabulary');
 expect_same('Pool',$vocab->translate('Swimming Pool','de'),'German swimming pool vocabulary'); expect_same('Für die Staatsbürgerschaft geeignet',$vocab->translate('Citizenship Suitable','de'),'German citizenship vocabulary');
-$term=new WP_Term(); expect_same('别墅',$fields->term($term,'name','zh'),'term vocabulary fallback'); $storage->rows['term|4|term_name|ar']='فيلا مراجعة'; expect_same('فيلا مراجعة',$fields->term($term,'name','ar'),'stored taxonomy name');
+$term=new WP_Term();
+$storage->rows['term|4|term_name|ar']=array('translated_text'=>'فيلا مراجعة','is_stale'=>false,'status'=>'current'); expect_same('فيلا مراجعة',$fields->term($term,'name','ar'),'current non-empty taxonomy name returned');
+$storage->rows['term|4|term_name|zh']=array('translated_text'=>'旧别墅','is_stale'=>true,'status'=>'current'); expect_same('别墅',$fields->term($term,'name','zh'),'stale taxonomy name rejected and vocabulary used');
+$storage->rows['term|4|term_name|zh']=array('translated_text'=>'旧别墅','is_stale'=>false,'status'=>'pending'); expect_same('别墅',$fields->term($term,'name','zh'),'non-current taxonomy name rejected and vocabulary used');
+$storage->rows['term|4|term_name|zh']=array('translated_text'=>'   ','is_stale'=>false,'status'=>'current'); expect_same('别墅',$fields->term($term,'name','zh'),'empty taxonomy name rejected and vocabulary used');
+unset($storage->rows['term|4|term_name|zh']); expect_same('别墅',$fields->term($term,'name','zh'),'term name fallback still uses vocabulary');
+$storage->rows['term|4|term_description|zh']=array('is_stale'=>false,'status'=>'current'); expect_same('English description',$fields->term($term,'description','zh'),'term description without translation falls back to canonical source');
 $storage->rows['term|4|meta:archive_subtitle|zh']='地区副标题'; expect_same('地区副标题',$fields->term_meta($term,'meta:archive_subtitle','Region subtitle','zh'),'approved taxonomy meta translation');
 expect_same('Private',$fields->term_meta($term,'meta:private_copy','Private','zh'),'unapproved taxonomy meta preserved'); expect_same('Region subtitle',$fields->term_meta($term,'meta:archive_subtitle','Region subtitle','en'),'English taxonomy meta preserved');
 $ajax_registry=new class { function enabled(){return array('en'=>array(),'zh'=>array(),'ar'=>array(),'de'=>array());} }; $ajax=new Pera_ML_Ajax($ajax_registry,$router); expect_same('zh',$ajax->validate_language('zh'),'AJAX Chinese accepted'); expect_same('de',$ajax->validate_language('de'),'AJAX German accepted'); expect_same('en',$ajax->validate_language('evil'),'AJAX invalid fallback');

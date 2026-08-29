@@ -257,7 +257,7 @@ if ( ! function_exists( 'pera_latest_offers_card_view_model' ) ) {
 				return '';
 			}
 
-			return trim( (string) $term->name );
+			return trim( (string) ( function_exists( 'pera_ml_term' ) ? pera_ml_term( $term ) : $term->name ) );
 		}
 	}
 
@@ -275,10 +275,10 @@ if ( ! function_exists( 'pera_latest_offers_card_view_model' ) ) {
 				$district_term  = $location_terms['district_term'] ?? null;
 
 				if ( $region_term instanceof WP_Term ) {
-					$region_name = trim( (string) $region_term->name );
+					$region_name = trim( (string) ( function_exists( 'pera_ml_term' ) ? pera_ml_term( $region_term ) : $region_term->name ) );
 				}
 				if ( $district_term instanceof WP_Term ) {
-					$district_name = trim( (string) $district_term->name );
+					$district_name = trim( (string) ( function_exists( 'pera_ml_term' ) ? pera_ml_term( $district_term ) : $district_term->name ) );
 				}
 			}
 
