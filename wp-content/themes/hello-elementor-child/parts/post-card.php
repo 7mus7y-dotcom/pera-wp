@@ -28,7 +28,11 @@ $primary_cat = ( ! empty( $cats ) && ! is_wp_error( $cats ) ) ? $cats[0] : null;
 $cat_name    = $primary_cat ? ( function_exists( 'pera_ml_term' ) ? pera_ml_term( $primary_cat ) : $primary_cat->name ) : '';
 $cat_link    = $primary_cat ? get_category_link( $primary_cat->term_id ) : '';
 
-$post_subtitle = trim( (string) get_post_meta( $post_id, 'post_subtitle', true ) );
+$post_subtitle = (string) get_post_meta( $post_id, 'post_subtitle', true );
+if ( function_exists( 'pera_ml_field' ) ) {
+  $post_subtitle = pera_ml_field( $post_id, 'post_subtitle', $post_subtitle );
+}
+$post_subtitle = trim( $post_subtitle );
 
 if ( function_exists( 'pera_get_public_updated_date' ) ) {
   $updated_date_display = pera_get_public_updated_date( 'M j, Y', $post_id );

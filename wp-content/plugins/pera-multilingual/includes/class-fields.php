@@ -35,7 +35,7 @@ final class Pera_ML_Fields {
 	public function definitions() {
 		$legacy = array( 'project_name', 'floor_plans_heading', 'floor_plans_custom_text', 'property_editorial_intro', 'property_highlights_text', 'property_district_analysis', 'property_investment_potential', 'property_buyer_suitability', 'property_developer_profile', 'property_faq_text', 'further_reading_heading', 'further_reading_text', 'custom_video_heading', 'custom_video_text', 'project_summary_heading', 'project_summary', 'yt_heading', 'whats_special_heading', 'about_this_project', 'location_info_heading', 'distances', 'archive_h1', 'archive_subtitle', 'archive_intro_content', 'archive_bottom_content', 'archive_cta_heading', 'archive_cta_text', 'district_archive_subtitle', 'district_archive_body', 'post_subtitle', 'seo_title', 'seo_meta_description', 'seo_faq_v2' );
 		$property = self::property_fields();
-		$page = array( 'seo_title', 'seo_meta_description', 'seo_faq_v2' );
+		$page = array( 'seo_title', 'seo_meta_description', 'seo_faq_v2', 'homepage_hero_subtext', 'homepage_listing_intro', 'homepage_bottom_seo_text' );
 		return apply_filters( 'pera_ml_translatable_meta_fields_by_post_type', array( 'post' => apply_filters( 'pera_ml_translatable_meta_fields', $legacy ), 'page' => $page, 'property' => $property ) );
 	}
 	/** Get the contract for one post type, or the union used to register ACF filters. */
@@ -54,7 +54,8 @@ final class Pera_ML_Fields {
 		$approved = 'post' === $object_type ? $this->approved( $post_type ? $post_type : 'post' ) : $this->approved();
 		if ( 'en' === $language || $object_id <= 0 || ! in_array( $field, $approved, true ) ) return $source;
 		$row = $this->storage->get( $object_type, (int) $object_id, 'meta:' . sanitize_key( $field ), $language, (string) $source );
-		return $row && isset( $row['translated_text'] ) ? $row['translated_text'] : $source;
+		if ( ! is_array( $row ) || ! empty( $row['is_stale'] ) || ( isset( $row['status'] ) && 'current' !== $row['status'] ) || ! isset( $row['translated_text'] ) || '' === trim( (string) $row['translated_text'] ) ) return $source;
+		return $row['translated_text'];
 	}
 	public function identify_acf_object( $post_id ) {
 		if ( $post_id instanceof WP_Term ) return array( 'type' => 'term', 'id' => (int) $post_id->term_id );

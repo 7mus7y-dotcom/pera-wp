@@ -81,7 +81,7 @@ expect_same( array( 'Indoor swimming pool', 'Gym' ), $GLOBALS['meta'][80]['facil
 
 $wpdb->rows = array();
 $cache_status = new Pera_ML_Translation_Status( new stdClass() );
-expect_same( 3, $cache_status->get( 80, 'zh', 'post' )['applicable'], 'default post status uses the post contract' );
+expect_same( 9, $cache_status->get( 80, 'zh', 'post' )['applicable'], 'default post status discovers populated fields from the post contract' );
 expect_same( 8, $cache_status->get( 80, 'zh', 'property' )['applicable'], 'post cache entry cannot contaminate property status for the same object' );
 
 $wpdb->rows = array( array( 'object_id' => 80, 'field_key' => 'meta:project_name', 'language' => 'zh', 'source_hash' => hash( 'sha256', 'Old project name' ), 'translated_text' => '旧名称', 'status' => 'current' ) );

@@ -27,7 +27,7 @@ final class Health_Storage {
 require dirname( __DIR__ ) . '/includes/class-fields.php';
 require dirname( __DIR__ ) . '/includes/class-translation-health.php';
 $fields_service = new Pera_ML_Fields( null, null, null );
-health_expect( array( 'seo_title', 'seo_meta_description', 'seo_faq_v2' ), $fields_service->approved( 'page' ), 'page health meta is readable through the frontend field contract' );
+health_expect( array( 'seo_title', 'seo_meta_description', 'seo_faq_v2', 'homepage_hero_subtext', 'homepage_listing_intro', 'homepage_bottom_seo_text' ), $fields_service->approved( 'page' ), 'page health meta is readable through the frontend field contract' );
 foreach ( array( 'district', 'region', 'property_type', 'property_tags', 'special' ) as $taxonomy ) health_expect( true, in_array( 'meta:seo_faq_v2', Pera_ML_Fields::taxonomy_fields( $taxonomy ), true ), $taxonomy . ' FAQ is in the taxonomy contract' );
 health_expect( false, in_array( 'meta:seo_faq_v2', Pera_ML_Fields::taxonomy_fields( 'category' ), true ), 'FAQ is not added outside the supported taxonomy contract' );
 $status = new Health_Status();
