@@ -54,7 +54,8 @@ final class Pera_ML_Fields {
 		$approved = 'post' === $object_type ? $this->approved( $post_type ? $post_type : 'post' ) : $this->approved();
 		if ( 'en' === $language || $object_id <= 0 || ! in_array( $field, $approved, true ) ) return $source;
 		$row = $this->storage->get( $object_type, (int) $object_id, 'meta:' . sanitize_key( $field ), $language, (string) $source );
-		return $row && isset( $row['translated_text'] ) ? $row['translated_text'] : $source;
+		if ( ! is_array( $row ) || ! empty( $row['is_stale'] ) || ( isset( $row['status'] ) && 'current' !== $row['status'] ) || ! isset( $row['translated_text'] ) || '' === trim( (string) $row['translated_text'] ) ) return $source;
+		return $row['translated_text'];
 	}
 	public function identify_acf_object( $post_id ) {
 		if ( $post_id instanceof WP_Term ) return array( 'type' => 'term', 'id' => (int) $post_id->term_id );
