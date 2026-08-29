@@ -69,7 +69,7 @@ $crm_label                  = $crm_overdue_count > 0
         'link_class' => 'site-logo logo-pera',
         'aria_label' => 'Pera Property',
         'title'      => 'Pera Property',
-        'home_url'   => home_url( '/' ),
+        'home_url'   => function_exists( 'pera_ml_home_url' ) ? pera_ml_home_url() : home_url( '/' ),
         'show_since' => true,
       ) );
       ?>
@@ -165,7 +165,7 @@ $crm_label                  = $crm_overdue_count > 0
         $login_url = function_exists( 'pera_get_public_client_login_url' )
           ? pera_get_public_client_login_url( $favourites_url )
           : add_query_arg( 'redirect_to', $favourites_url, home_url( '/client-login/' ) );
-        $logout_url = wp_logout_url( home_url( '/' ) );
+        $logout_url = wp_logout_url( function_exists( 'pera_ml_home_url' ) ? pera_ml_home_url() : home_url( '/' ) );
         $recent_favourite_ids = array();
 
         if ( is_user_logged_in() && function_exists( 'pera_get_user_favourites' ) ) {

@@ -62,6 +62,7 @@ final class Pera_ML_Translation_Status {
 			$source = 0 === strpos( $field, 'meta:' ) ? get_post_meta( $object_id, substr( $field, 5 ), true ) : $post->$field;
 			if ( ! $optional || ( is_string( $source ) && '' !== trim( $source ) ) ) $sources[ $field ] = (string) $source;
 		}
+		if ( 'page' === $post_type ) $sources = array_merge( $sources, Pera_ML_Fields::homepage_faq_sources( $object_id ) );
 		return $sources;
 	}
 

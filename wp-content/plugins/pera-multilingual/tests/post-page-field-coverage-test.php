@@ -65,6 +65,7 @@ $GLOBALS['coverage_meta'] = array( 20 => array(
 $status_sources = ( new Pera_ML_Translation_Status( null ) )->applicable_sources( 20, 'page' );
 foreach ( $homepage_fields as $field ) coverage_expect( true, isset( $status_sources[ 'meta:' . $field ] ), "Translation Health discovers {$field} from the page contract" );
 coverage_expect( false, isset( $status_sources['meta:faq'] ), 'Translation Health does not treat the FAQ repeater as scalar meta' );
+coverage_expect( 'Structured question', $status_sources['meta:homepage_faq_0_question'], 'Translation Health discovers the FAQ question as a structured leaf' );
 
 $theme = dirname( dirname( dirname( __DIR__ ) ) ) . '/themes/hello-elementor-child';
 $post_card = file_get_contents( $theme . '/parts/post-card.php' );

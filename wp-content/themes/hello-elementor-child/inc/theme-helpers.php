@@ -144,7 +144,7 @@ if ( ! function_exists( 'pera_get_site_logo_markup' ) ) {
       'img_class'   => '',
       'aria_label'  => get_bloginfo( 'name' ),
       'title'       => get_bloginfo( 'name' ),
-      'home_url'      => home_url( '/' ),
+      'home_url'      => function_exists( 'pera_ml_home_url' ) ? pera_ml_home_url() : home_url( '/' ),
       'fallback_width' => 120,
       'show_since'     => false,
       'since_text'     => 'SINCE 2016',

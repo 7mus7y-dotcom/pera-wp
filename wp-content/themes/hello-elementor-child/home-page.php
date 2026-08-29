@@ -686,6 +686,10 @@ if ( function_exists( 'get_field' ) ) {
     ? get_field( 'faq', $front_page_id )
     : get_field( 'faq' );
 
+  if ( is_array( $faq_rows ) && $front_page_id > 0 && function_exists( 'pera_ml_homepage_faq' ) ) {
+    $faq_rows = pera_ml_homepage_faq( $front_page_id, $faq_rows );
+  }
+
   if ( is_array( $faq_rows ) ) {
     foreach ( $faq_rows as $faq_row ) {
       $question = isset( $faq_row['question'] ) ? trim( (string) $faq_row['question'] ) : '';
