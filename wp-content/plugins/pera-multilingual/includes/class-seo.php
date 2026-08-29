@@ -14,9 +14,19 @@ final class Pera_ML_SEO {
 	public function document_title( $title ) {
 		if ( ! $this->router->is_translated() || ! is_singular() ) return $title;
 		$id = get_queried_object_id(); $source = get_post_meta( $id, 'seo_title', true );
-		if ( '' === $source ) $source = get_the_title( $id );
-		$row = $this->storage->get( 'post', $id, 'meta:seo_title', $this->router->current_language(), $source );
-		return $row ? wp_strip_all_tags( $row['translated_text'] ) : $title;
+		if ( '' === $source ) $source = function_exists( 'get_post_field' ) ? get_post_field( 'post_title', $id ) : get_the_title( $id );
+		$translated = $source;
+		if ( function_exists( 'pera_ml_field' ) ) {
+			$translated = pera_ml_field( $id, 'seo_title', $source );
+		} else {
+			// Keep the service independently testable while applying the same
+			// current/non-blank contract as the public field reader.
+			$row = $this->storage->get( 'post', $id, 'meta:seo_title', $this->router->current_language(), $source );
+			if ( is_array( $row ) && empty( $row['is_stale'] ) && ( ! isset( $row['status'] ) || 'current' === $row['status'] ) && isset( $row['translated_text'] ) && '' !== trim( (string) $row['translated_text'] ) ) {
+				$translated = $row['translated_text'];
+			}
+		}
+		return (string) $translated !== (string) $source ? wp_strip_all_tags( $translated ) : $title;
 	}
 	public function alternates() {
 		if ( is_404() || is_admin() ) return;

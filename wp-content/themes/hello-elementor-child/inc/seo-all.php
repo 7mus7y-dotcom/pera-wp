@@ -165,7 +165,10 @@ if ( ! function_exists( 'pera_seo_all_get_manual_post_text_field' ) ) {
 
     $value = '';
     if ( function_exists( 'get_field' ) ) {
-      $acf_value = get_field( $field_name, $post_id );
+      // Read the canonical ACF value before routing it through Pera ML. Using
+      // the formatted value here can make an already-translated value look
+      // like the source and incorrectly mark an otherwise-current row stale.
+      $acf_value = get_field( $field_name, $post_id, false );
       if ( is_scalar( $acf_value ) ) {
         $value = (string) $acf_value;
       }
@@ -173,6 +176,10 @@ if ( ! function_exists( 'pera_seo_all_get_manual_post_text_field' ) ) {
 
     if ( $value === '' ) {
       $value = (string) get_post_meta( $post_id, $field_name, true );
+    }
+
+    if ( function_exists( 'pera_ml_field' ) ) {
+      $value = (string) pera_ml_field( $post_id, $field_name, $value );
     }
 
     return pera_seo_all_normalize_description( $value, 300 );
