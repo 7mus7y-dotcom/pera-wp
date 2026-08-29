@@ -337,8 +337,10 @@ if ( $qo instanceof WP_Term ) {
     if ( $qo->taxonomy === 'district' ) {
       $district_term_acf_key = 'district_' . (int) $qo->term_id;
 
-      $district_archive_subtitle = (string) get_field( 'district_archive_subtitle', $district_term_acf_key );
-      $district_archive_body = (string) get_field( 'district_archive_body', $district_term_acf_key );
+      $district_archive_subtitle_source = (string) get_field( 'district_archive_subtitle', $district_term_acf_key );
+      $district_archive_body_source     = (string) get_field( 'district_archive_body', $district_term_acf_key );
+      $district_archive_subtitle = function_exists( 'pera_ml_term_meta' ) ? (string) pera_ml_term_meta( $qo, 'meta:district_archive_subtitle', $district_archive_subtitle_source ) : $district_archive_subtitle_source;
+      $district_archive_body     = function_exists( 'pera_ml_term_meta' ) ? (string) pera_ml_term_meta( $qo, 'meta:district_archive_body', $district_archive_body_source ) : $district_archive_body_source;
     }
   }
 
