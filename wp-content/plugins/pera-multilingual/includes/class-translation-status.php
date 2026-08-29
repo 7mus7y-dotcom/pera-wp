@@ -52,7 +52,9 @@ final class Pera_ML_Translation_Status {
 			'post' => array( 'post_content' => false, 'post_title' => false, 'post_excerpt' => true, 'meta:seo_title' => true, 'meta:seo_meta_description' => true, 'meta:seo_faq_v2' => true ),
 			'property' => array( 'post_title' => true, 'post_content' => true, 'post_excerpt' => true ),
 		);
-		foreach ( Pera_ML_Fields::property_fields() as $field ) $definitions['property'][ 'meta:' . $field ] = true;
+		foreach ( array( 'page', 'post', 'property' ) as $type ) {
+			foreach ( ( new Pera_ML_Fields( null, null, null ) )->approved( $type ) as $field ) $definitions[ $type ][ 'meta:' . $field ] = true;
+		}
 		$definitions = apply_filters( 'pera_ml_status_field_definitions', $definitions, $post_type );
 		$fields = isset( $definitions[ $post_type ] ) ? $definitions[ $post_type ] : array();
 		$sources = array();
