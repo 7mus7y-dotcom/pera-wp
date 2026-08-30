@@ -1,192 +1,129 @@
 <?php
 
-$limit     = 10;
-$languages = array( 'zh', 'ar', 'de' );
-$dry_run   = false;
+$limit   = 500;
+$dry_run = false;
 
-$plugin     = Pera_ML_Plugin::instance();
-$status_api = $plugin->status();
-$translator = $plugin->translator();
+$cli_args = isset( $args ) && is_array( $args )
+    ? $args
+    : array();
 
-$posts = get_posts( array(
-    'post_type'      => 'post',
-    'post_status'    => 'publish',
-    'posts_per_page' => 100,
-    'orderby'        => 'date',
-    'order'          => 'DESC',
-) );
+foreach ( $cli_args as $arg ) {
+    if ( 'dry-run' === $arg ) {
+        $dry_run = true;
+        continue;
+    }
 
-$candidates = array();
+    if ( 0 === strpos( $arg, 'limit=' ) ) {
+        $requested = absint( substr( $arg, 6 ) );
 
-foreach ( $posts as $post ) {
-    $needs_translation = false;
-    $statuses = array();
-
-    foreach ( $languages as $language ) {
-        $status = $status_api->get( $post->ID, $language );
-        $statuses[ $language ] = $status;
-
-        if ( ! $status['complete'] ) {
-            $needs_translation = true;
+        if ( $requested > 0 ) {
+            $limit = min( 5000, $requested );
         }
     }
+}
 
-    if ( $needs_translation ) {
-        $candidates[] = array(
-            'post'     => $post,
-            'statuses' => $statuses,
-        );
+$p = Pera_ML_Plugin::instance();
+
+$health = new Pera_ML_Translation_Health(
+    $p->status(),
+    $p->storage(),
+    $p->ui()
+);
+
+$orchestrator = new Pera_ML_Translation_Health_Orchestrator(
+    $p->status(),
+    $p->storage(),
+    $p->translator(),
+    $p->ui(),
+    $p->ui_registry()
+);
+
+$inventory = $health->inventory();
+$rows      = isset( $inventory['rows'] ) && is_array( $inventory['rows'] )
+    ? $inventory['rows']
+    : array();
+
+$pending = array();
+
+foreach ( $rows as $row ) {
+    if (
+        ! isset( $row['status'] ) ||
+        ! in_array( $row['status'], array( 'missing', 'stale' ), true )
+    ) {
+        continue;
     }
 
-    if ( count( $candidates ) >= $limit ) {
+    $pending[] = $row;
+}
+
+if ( ! $pending ) {
+    echo "No incomplete translations found." . PHP_EOL;
+    return;
+}
+
+$success = 0;
+$errors  = 0;
+$skipped = 0;
+$shown   = 0;
+
+foreach ( $pending as $row ) {
+    if ( $dry_run ) {
+        if ( $shown >= $limit ) {
+            break;
+        }
+    } elseif ( $success >= $limit ) {
         break;
     }
-}
 
-if ( ! $candidates ) {
-    echo "No incomplete translations found.\n";
-    return;
-}
+    $number = $dry_run ? $shown + 1 : $success + 1;
 
-echo "Selected posts:\n\n";
+    echo '[' . $number . '/' . $limit . '] '
+        . strtoupper( isset( $row['language'] ) ? $row['language'] : '' )
+        . ' | '
+        . ( isset( $row['object_type'] ) ? $row['object_type'] : '' )
+        . ' #'
+        . ( isset( $row['object_id'] ) ? $row['object_id'] : 0 )
+        . ' | '
+        . ( isset( $row['field'] ) ? $row['field'] : '' )
+        . ' | '
+        . $row['status']
+        . PHP_EOL;
 
-foreach ( $candidates as $candidate ) {
-    $post = $candidate['post'];
-
-    echo "#{$post->ID} - {$post->post_title}\n";
-
-    foreach ( $languages as $language ) {
-        $status = $candidate['statuses'][ $language ];
-
-        echo "  " . strtoupper( $language ) . ': ';
-
-        if ( $status['complete'] ) {
-            echo "COMPLETE\n";
-            continue;
-        }
-
-        echo "{$status['current']}/{$status['applicable']} current";
-
-        if ( $status['missing'] ) {
-            echo ' | missing: ' . implode( ', ', $status['missing'] );
-        }
-
-        if ( $status['stale'] ) {
-            echo ' | stale: ' . implode( ', ', $status['stale'] );
-        }
-
-        echo "\n";
+    if ( $dry_run ) {
+        echo "  DRY RUN" . PHP_EOL;
+        $shown++;
+        continue;
     }
 
-    echo "\n";
+    $result = $orchestrator->translate( $row );
+
+    if ( is_wp_error( $result ) ) {
+        echo '  ERROR: ' . $result->get_error_code() . PHP_EOL;
+        $errors++;
+
+        if ( $errors >= 10 ) {
+            echo "STOPPED: 10 errors" . PHP_EOL;
+            break;
+        }
+
+        continue;
+    }
+
+    echo "  OK" . PHP_EOL;
+    $success++;
 }
+
+if ( ! $dry_run ) {
+    wp_cache_flush();
+}
+
+echo PHP_EOL;
 
 if ( $dry_run ) {
-    echo "DRY RUN ONLY - nothing translated.\n";
-    return;
+    echo 'Dry run: ' . $shown . ' row(s) shown | Limit: ' . $limit . PHP_EOL;
+} else {
+    echo 'Completed: ' . $success
+        . ' | Errors: ' . $errors
+        . ' | Skipped: ' . $skipped
+        . PHP_EOL;
 }
-
-/*
- * Translation phase.
- */
-foreach ( $candidates as $candidate ) {
-    $post = $candidate['post'];
-
-    echo "\n==================================================\n";
-    echo "POST {$post->ID}: {$post->post_title}\n";
-    echo "==================================================\n";
-    $sources = $status_api->applicable_sources( $post->ID, $post->post_type );
-
-    foreach ( $languages as $language ) {
-        $status = $status_api->get( $post->ID, $language );
-
-        if ( $status['complete'] ) {
-            echo strtoupper( $language ) . ": already complete - skipped\n";
-            continue;
-        }
-
-        $needed = array_unique(
-            array_merge( $status['missing'], $status['stale'] )
-        );
-
-        /*
-         * Keep expensive/important body translation first.
-         */
-        $priority = array(
-            'post_content',
-            'post_title',
-            'post_excerpt',
-            'meta:seo_title',
-            'meta:seo_meta_description',
-            'meta:seo_faq_v2',
-        );
-
-        usort( $needed, static function ( $a, $b ) use ( $priority ) {
-            $pa = array_search( $a, $priority, true );
-            $pb = array_search( $b, $priority, true );
-
-            $pa = false === $pa ? 999 : $pa;
-            $pb = false === $pb ? 999 : $pb;
-
-            return $pa <=> $pb;
-        } );
-
-        echo "\n" . strtoupper( $language ) . ":\n";
-
-        foreach ( $needed as $field ) {
-            $source = isset( $sources[ $field ] ) ? $sources[ $field ] : '';
-
-            if ( ! is_string( $source ) || '' === trim( $source ) ) {
-                echo "  SKIP {$field} (empty source)\n";
-                continue;
-            }
-
-            echo "  Translating {$field}... ";
-
-            $result = $translator->translate_and_store(
-                'post',
-                $post->ID,
-                $field,
-                $language,
-                $source
-            );
-
-            /*
-             * One retry for transient provider errors.
-             */
-            if (
-                is_wp_error( $result ) &&
-                in_array(
-                    $result->get_error_code(),
-                    array(
-                        'pera_ml_rate_limited',
-                        'pera_ml_provider_transient',
-                        'http_request_failed',
-                    ),
-                    true
-                )
-            ) {
-                echo "transient failure [" . $result->get_error_code() . "] - retrying... ";
-                sleep( 5 );
-
-                $result = $translator->translate_and_store(
-                    'post',
-                    $post->ID,
-                    $field,
-                    $language,
-                    $source
-                );
-            }
-
-            if ( is_wp_error( $result ) ) {
-                echo "FAILED [" . $result->get_error_code() . "]\n";
-            } else {
-                echo "OK\n";
-            }
-        }
-    }
-}
-
-wp_cache_flush();
-
-echo "\nFinished.\n";
