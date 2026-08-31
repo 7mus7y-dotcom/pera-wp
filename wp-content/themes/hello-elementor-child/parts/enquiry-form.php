@@ -80,6 +80,20 @@ if ( ! isset( $country_lookup[ $phone_country_value ] ) ) {
 $form_context = ( $context === 'property' )
   ? 'property'
   : ( isset( $args['form_context'] ) ? (string) $args['form_context'] : $context );
+
+$privacy_policy_url = function_exists( 'pera_ml_url' )
+  ? pera_ml_url( home_url( '/privacy-policy/' ) )
+  : home_url( '/privacy-policy/' );
+$privacy_policy_link = sprintf(
+  '<a href="%s" target="_blank" rel="noopener">%s</a>',
+  esc_url( $privacy_policy_url ),
+  esc_html( pera_ml_ui( 'Privacy Policy', 'theme.enquiry_form.privacy_policy' ) )
+);
+$consent_html = sprintf(
+  /* translators: %s: linked Privacy Policy label. */
+  pera_ml_ui( 'I agree for Pera Property to contact me regarding this enquiry and to process my personal data in accordance with the %s.', 'theme.enquiry_form.consent_with_privacy_policy' ),
+  $privacy_policy_link
+);
 ?>
 
 
@@ -270,11 +284,7 @@ $form_context = ( $context === 'property' )
             <label class="cta-checkbox">
               <input type="checkbox" name="sr_consent" value="1" required>
               <span>
-                I agree for Pera Property to contact me regarding this enquiry and to
-                process my personal data in accordance with the
-                <a href="<?php echo esc_url( home_url( '/privacy-policy/' ) ); ?>" target="_blank" rel="noopener">
-                  Privacy Policy
-                </a>.
+                <?php echo wp_kses( $consent_html, array( 'a' => array( 'href' => array(), 'target' => array(), 'rel' => array() ) ) ); ?>
               </span>
             </label>
     

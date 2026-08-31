@@ -395,17 +395,17 @@ if ( ( is_tax( array( 'district', 'region', 'property_tags' ) ) || ( $qo instanc
 
   $related_taxonomy_groups = array(
     'district' => array(
-      'heading' => 'Related districts',
+      'heading' => pera_ml_ui( 'Related districts', 'theme.template.archive_property.related_districts' ),
       'label'   => 'district',
       'terms'   => $normalize_related_terms( $related_districts_raw, 'district' ),
     ),
     'region' => array(
-      'heading' => 'Related regions',
+      'heading' => pera_ml_ui( 'Related regions', 'theme.template.archive_property.related_regions' ),
       'label'   => 'region',
       'terms'   => $normalize_related_terms( $related_regions_raw, 'region' ),
     ),
     'property_tags' => array(
-      'heading' => 'Related tags',
+      'heading' => pera_ml_ui( 'Related tags', 'theme.template.archive_property.related_tags' ),
       'label'   => 'tag',
       'terms'   => $normalize_related_terms( $related_tags_raw, 'property_tags' ),
     ),

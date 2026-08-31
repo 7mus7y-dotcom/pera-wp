@@ -49,10 +49,14 @@ if ( $excerpt === '' ) {
 
 $excerpt = $excerpt !== '' ? wp_trim_words( $excerpt, 24, '…' ) : '';
 
-$button_label = pera_ml_ui( 'View', 'theme.related_taxonomy.view' );
-if ( $context_tax_label !== '' ) {
-  $button_label = sprintf( pera_ml_ui( 'View %s', 'theme.related_taxonomy.view_type' ), $context_tax_label );
-}
+$button_labels = array(
+  'district' => pera_ml_ui( 'View district', 'theme.related_taxonomy.view_district' ),
+  'region'   => pera_ml_ui( 'View region', 'theme.related_taxonomy.view_region' ),
+  'tag'      => pera_ml_ui( 'View tag', 'theme.related_taxonomy.view_tag' ),
+);
+$button_label = isset( $button_labels[ $context_tax_label ] )
+  ? $button_labels[ $context_tax_label ]
+  : pera_ml_ui( 'View', 'theme.related_taxonomy.view' );
 ?>
 
 <article class="property-card property-card--archive related-taxonomy-card">
