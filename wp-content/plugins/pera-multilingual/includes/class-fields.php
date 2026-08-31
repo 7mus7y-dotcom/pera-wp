@@ -22,7 +22,27 @@ final class Pera_ML_Fields {
 		$object = $this->identify_acf_object( $post_id );
 		if ( is_array( $value ) ) return $this->controlled_array_value( $value, $object, isset( $field['name'] ) ? $field['name'] : '' );
 		if ( ! is_string( $value ) ) return $value;
-		return $object ? $this->get_for_object( $object['type'], $object['id'], $field['name'], $value, null, isset( $object['post_type'] ) ? $object['post_type'] : null ) : $value;
+		if ( ! $object || ! isset( $field['name'] ) ) return $value;
+		$source = $value;
+		$has_raw_source = false;
+		// ACF type formatters can run before this name-specific filter. Translation
+		// storage, generation, and health all hash the unformatted database value.
+		if ( 'post' === $object['type'] && function_exists( 'get_field' ) ) {
+			$raw = get_field( $field['name'], $object['id'], false );
+			if ( is_string( $raw ) ) { $source = $raw; $has_raw_source = true; }
+		}
+		$translated = $this->get_for_object( $object['type'], $object['id'], $field['name'], $source, null, isset( $object['post_type'] ) ? $object['post_type'] : null );
+		if ( $translated === $source ) return $value;
+		return $has_raw_source ? $this->format_translated_acf_value( $translated, $post_id, $field ) : $translated;
+	}
+	/** Run translated raw content through the same ACF formatting pipeline without re-entering this filter. */
+	private function format_translated_acf_value( $value, $post_id, $field ) {
+		if ( ! function_exists( 'acf_format_value' ) || ! function_exists( 'remove_filter' ) ) return $value;
+		$hook = 'acf/format_value/name=' . $field['name'];
+		remove_filter( $hook, array( $this, 'acf_value' ), 20 );
+		$value = acf_format_value( $value, $post_id, $field );
+		add_filter( $hook, array( $this, 'acf_value' ), 20, 3 );
+		return $value;
 	}
 	private function controlled_array_value( array $value, $object, $field ) {
 		if ( ! $object || 'post' !== $object['type'] || 'property' !== $object['post_type'] || ! in_array( $field, self::controlled_property_fields(), true ) ) return $value;
