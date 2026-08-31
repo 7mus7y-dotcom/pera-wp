@@ -680,9 +680,9 @@ if ( ! function_exists( 'pera_portfolio_token_get_document_title' ) ) {
 			? pera_portfolio_token_get_request_context()
 			: pera_theme_portfolio_token_get_request_context();
 		$client  = isset( $context['client_name'] ) ? trim( (string) $context['client_name'] ) : '';
-		$prefix  = '' !== $client ? $client : __( 'Portfolio', 'hello-elementor-child' );
+		$prefix  = '' !== $client ? $client : pera_ml_ui( 'Portfolio', 'theme.template.portfolio_token.document_title_fallback' );
 
-		return sprintf( '%s - A custom portfolio | Pera Property', $prefix );
+		return sprintf( pera_ml_ui( '%s - A custom portfolio | Pera Property', 'theme.template.portfolio_token.document_title' ), $prefix );
 	}
 }
 add_filter( 'pre_get_document_title', 'pera_portfolio_token_get_document_title', 999 );

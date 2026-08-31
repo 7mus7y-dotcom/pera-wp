@@ -36,24 +36,24 @@ get_header();
 <main id="primary" class="site-main content-rail portfolio-token-page">
 	<section class="hero hero--left hero--fit" id="crm-hero">
 		<div class="hero-content container">
-			<h1>A Custom Portfolio</h1>
+			<h1><?php echo esc_html( pera_ml_ui( 'A Custom Portfolio', 'theme.template.portfolio_token.heading' ) ); ?></h1>
 			<?php if ( ! empty( $context['is_valid'] ) ) : ?>
 				<?php
 				$client_name  = isset( $context['client_name'] ) ? trim( (string) $context['client_name'] ) : '';
 				$advisor_name = isset( $context['advisor_name'] ) ? trim( (string) $context['advisor_name'] ) : '';
 
-				$prepared_for = '';
-				if ( '' !== $client_name ) {
-					$prepared_for = ' for ' . $client_name;
-				}
-
-				$advisor_byline = '';
-				if ( '' !== $advisor_name ) {
-					$advisor_byline = ' by your advisor ' . $advisor_name;
+				if ( '' !== $client_name && '' !== $advisor_name ) {
+					$lead = sprintf( pera_ml_ui( 'A custom portfolio prepared for %1$s by your advisor %2$s. Let us know what you think!', 'theme.template.portfolio_token.lead_client_advisor' ), $client_name, $advisor_name );
+				} elseif ( '' !== $client_name ) {
+					$lead = sprintf( pera_ml_ui( 'A custom portfolio prepared for %s. Let us know what you think!', 'theme.template.portfolio_token.lead_client' ), $client_name );
+				} elseif ( '' !== $advisor_name ) {
+					$lead = sprintf( pera_ml_ui( 'A custom portfolio prepared by your advisor %s. Let us know what you think!', 'theme.template.portfolio_token.lead_advisor' ), $advisor_name );
+				} else {
+					$lead = pera_ml_ui( 'A custom portfolio prepared for you. Let us know what you think!', 'theme.template.portfolio_token.lead' );
 				}
 				?>
 				<p class="lead">
-					<?php echo esc_html( 'A custom portfolio prepared' . $prepared_for . $advisor_byline . '. Let us know what you think!' ); ?>
+					<?php echo esc_html( $lead ); ?>
 				</p>
 			<?php endif; ?>
 		</div>
@@ -121,21 +121,26 @@ get_header();
 			<div class="container">
 				<div class="pb-md portfolio-token-summary">
 					<p>
-						<?php echo esc_html( sprintf( '%d properties', (int) $properties_query->post_count ) ); ?>
+						<?php
+						$count_format = 1 === (int) $properties_query->post_count
+							? pera_ml_ui( '%d property', 'theme.template.portfolio_token.property_count_singular' )
+							: pera_ml_ui( '%d properties', 'theme.template.portfolio_token.property_count_plural' );
+						echo esc_html( sprintf( $count_format, (int) $properties_query->post_count ) );
+						?>
 						<?php if ( $expires_at > 0 ) : ?>
-							<span> · <?php echo esc_html( sprintf( 'Valid until %s', wp_date( get_option( 'date_format' ), $expires_at ) ) ); ?></span>
+							<span> · <?php echo esc_html( sprintf( pera_ml_ui( 'Valid until %s', 'theme.template.portfolio_token.valid_until' ), wp_date( get_option( 'date_format' ), $expires_at ) ) ); ?></span>
 						<?php endif; ?>
 					</p>
 
-					<div class="portfolio-view-toggle" role="group" aria-label="Portfolio view">
-						<button type="button" class="btn btn--ghost btn--blue is-active" data-portfolio-view-btn="card" aria-pressed="true">CARD</button>
-						<button type="button" class="btn btn--ghost btn--blue" data-portfolio-view-btn="table" aria-pressed="false">TABLE</button>
+					<div class="portfolio-view-toggle" role="group" aria-label="<?php echo esc_attr( pera_ml_ui( 'Portfolio view', 'theme.template.portfolio_token.view_label' ) ); ?>">
+						<button type="button" class="btn btn--ghost btn--blue is-active" data-portfolio-view-btn="card" aria-pressed="true"><?php echo esc_html( pera_ml_ui( 'CARD', 'theme.template.portfolio_token.card_view' ) ); ?></button>
+						<button type="button" class="btn btn--ghost btn--blue" data-portfolio-view-btn="table" aria-pressed="false"><?php echo esc_html( pera_ml_ui( 'TABLE', 'theme.template.portfolio_token.table_view' ) ); ?></button>
 					</div>
 				</div>
 
 				<section data-portfolio-view="card">
 					<div class="cards-slider-shell--nav peracrm-portfolio-card-shell">
-						<div id="property-grid" class="peracrm-portfolio-card-grid cards-slider cards-slider--snap" aria-label="<?php esc_attr_e( 'Portfolio properties', 'hello-elementor-child' ); ?>">
+						<div id="property-grid" class="peracrm-portfolio-card-grid cards-slider cards-slider--snap" aria-label="<?php echo esc_attr( pera_ml_ui( 'Portfolio properties', 'theme.template.portfolio_token.properties_label' ) ); ?>">
 						<?php if ( $properties_query->have_posts() ) : ?>
 							<?php while ( $properties_query->have_posts() ) : $properties_query->the_post(); ?>
 								<?php
@@ -152,7 +157,7 @@ get_header();
 								?>
 							<?php endwhile; ?>
 						<?php else : ?>
-							<p class="no-results">No properties available in this portfolio right now.</p>
+							<p class="no-results"><?php echo esc_html( pera_ml_ui( 'No properties available in this portfolio right now.', 'theme.template.portfolio_token.empty_state' ) ); ?></p>
 						<?php endif; ?>
 						</div>
 					</div>
@@ -165,15 +170,15 @@ get_header();
 						<table class="portfolio-table">
 							<thead>
 								<tr>
-									<th scope="col"><?php esc_html_e( 'Project / Property', 'hello-elementor-child' ); ?></th>
-									<th scope="col"><?php esc_html_e( 'Type', 'hello-elementor-child' ); ?></th>
-									<th scope="col"><?php esc_html_e( 'Floor', 'hello-elementor-child' ); ?></th>
-									<th scope="col"><?php esc_html_e( 'Net (m²)', 'hello-elementor-child' ); ?></th>
-									<th scope="col"><?php esc_html_e( 'Gross (m²)', 'hello-elementor-child' ); ?></th>
-									<th scope="col"><?php esc_html_e( 'List ($)', 'hello-elementor-child' ); ?></th>
-									<th scope="col"><?php esc_html_e( 'Cash ($)', 'hello-elementor-child' ); ?></th>
-									<th scope="col"><?php esc_html_e( 'Floor plan', 'hello-elementor-child' ); ?></th>
-									<th scope="col" class="portfolio-notes-col"><?php esc_html_e( 'Notes', 'hello-elementor-child' ); ?></th>
+									<th scope="col"><?php echo esc_html( pera_ml_ui( 'Project / Property', 'theme.template.portfolio_token.table.project_property' ) ); ?></th>
+									<th scope="col"><?php echo esc_html( pera_ml_ui( 'Type', 'theme.template.portfolio_token.table.type' ) ); ?></th>
+									<th scope="col"><?php echo esc_html( pera_ml_ui( 'Floor', 'theme.template.portfolio_token.table.floor' ) ); ?></th>
+									<th scope="col"><?php echo esc_html( pera_ml_ui( 'Net (m²)', 'theme.template.portfolio_token.table.net' ) ); ?></th>
+									<th scope="col"><?php echo esc_html( pera_ml_ui( 'Gross (m²)', 'theme.template.portfolio_token.table.gross' ) ); ?></th>
+									<th scope="col"><?php echo esc_html( pera_ml_ui( 'List ($)', 'theme.template.portfolio_token.table.list_price' ) ); ?></th>
+									<th scope="col"><?php echo esc_html( pera_ml_ui( 'Cash ($)', 'theme.template.portfolio_token.table.cash_price' ) ); ?></th>
+									<th scope="col"><?php echo esc_html( pera_ml_ui( 'Floor plan', 'theme.template.portfolio_token.table.floor_plan' ) ); ?></th>
+									<th scope="col" class="portfolio-notes-col"><?php echo esc_html( pera_ml_ui( 'Notes', 'theme.template.portfolio_token.table.notes' ) ); ?></th>
 								</tr>
 							</thead>
 							<tbody>
@@ -216,14 +221,14 @@ get_header();
 											</td>
 											<td>
 												<?php if ( '' !== $floor_plan_url ) : ?>
-													<a href="<?php echo esc_url( $floor_plan_url ); ?>" target="_blank" rel="noopener noreferrer"><?php esc_html_e( 'View', 'hello-elementor-child' ); ?></a>
+													<a href="<?php echo esc_url( $floor_plan_url ); ?>" target="_blank" rel="noopener noreferrer"><?php echo esc_html( pera_ml_ui( 'View', 'theme.template.portfolio_token.table.view_floor_plan' ) ); ?></a>
 												<?php else : ?>
 													—
 												<?php endif; ?>
 											</td>
 											<td class="portfolio-note-cell">
 												<?php if ( '' !== $portfolio_note ) : ?>
-													<button type="button" class="portfolio-note-trigger" data-portfolio-note-trigger aria-label="<?php esc_attr_e( 'View notes', 'hello-elementor-child' ); ?>" aria-expanded="false">
+													<button type="button" class="portfolio-note-trigger" data-portfolio-note-trigger aria-label="<?php echo esc_attr( pera_ml_ui( 'View notes', 'theme.template.portfolio_token.table.view_notes' ) ); ?>" aria-expanded="false">
 														<svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
 															<path d="M4 5.5A2.5 2.5 0 0 1 6.5 3h11A2.5 2.5 0 0 1 20 5.5v7A2.5 2.5 0 0 1 17.5 15H9l-4.7 4.1a.8.8 0 0 1-1.3-.6V5.5Zm2.5-1a1 1 0 0 0-1 1v11.3L8.2 14a.8.8 0 0 1 .5-.2h8.8a1 1 0 0 0 1-1v-7a1 1 0 0 0-1-1h-11Z"/>
 															<path d="M8 8.25h8a.75.75 0 0 1 0 1.5H8a.75.75 0 0 1 0-1.5Zm0 3h5a.75.75 0 0 1 0 1.5H8a.75.75 0 0 1 0-1.5Z"/>
@@ -236,7 +241,7 @@ get_header();
 									<?php endwhile; ?>
 								<?php else : ?>
 									<tr>
-										<td colspan="9"><?php esc_html_e( 'No properties available in this portfolio right now.', 'hello-elementor-child' ); ?></td>
+										<td colspan="9"><?php echo esc_html( pera_ml_ui( 'No properties available in this portfolio right now.', 'theme.template.portfolio_token.empty_state' ) ); ?></td>
 									</tr>
 								<?php endif; ?>
 							</tbody>
@@ -356,7 +361,7 @@ get_header();
 		<?php wp_reset_postdata(); ?>
 	<?php else : ?>
 		<div class="content-block">
-			<p>We couldn't find that portfolio. Please contact your advisor for a fresh link.</p>
+			<p><?php echo esc_html( pera_ml_ui( 'We couldn\'t find that portfolio. Please contact your advisor for a fresh link.', 'theme.template.portfolio_token.invalid_token' ) ); ?></p>
 		</div>
 	<?php endif; ?>
 </main>

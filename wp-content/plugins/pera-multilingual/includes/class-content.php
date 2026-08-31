@@ -21,7 +21,8 @@ final class Pera_ML_Content {
 	private function translated( $id, $field, $source ) {
 		if ( ! $this->should_translate( $id ) ) return $source;
 		$row = $this->storage->get( 'post', $id, $field, $this->router->current_language(), $source );
-		return $row && isset( $row['translated_text'] ) ? $row['translated_text'] : $source;
+		if ( ! is_array( $row ) || ! empty( $row['is_stale'] ) || ( isset( $row['status'] ) && 'current' !== $row['status'] ) || ! isset( $row['translated_text'] ) || '' === trim( (string) $row['translated_text'] ) ) return $source;
+		return $row['translated_text'];
 	}
 	private function should_translate( $id ) {
 		if ( ! $this->router->is_translated() || $id <= 0 || is_admin() || is_feed() || ( defined( 'REST_REQUEST' ) && REST_REQUEST ) ) return false;
