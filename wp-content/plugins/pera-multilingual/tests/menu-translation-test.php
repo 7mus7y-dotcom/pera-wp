@@ -7,7 +7,7 @@ function absint( $value ) { return abs( (int) $value ); }
 function is_wp_error() { return false; }
 function add_filter() {}
 function get_post_field( $field, $id ) { return 41 === (int) $id ? 'Canonical page' : ''; }
-class WP_Term { public $term_id = 51; public $name = 'Canonical district'; }
+class WP_Term { public $term_id = 51; public $taxonomy = 'category'; public $name = 'Canonical category'; }
 function get_term( $id ) { return 51 === (int) $id ? new WP_Term() : null; }
 function menu_expect( $expected, $actual, $label ) { if ( $expected !== $actual ) { fwrite( STDERR, "FAIL {$label}\n" . var_export( $actual, true ) . "\n" ); exit( 1 ); } }
 
@@ -35,7 +35,7 @@ $ui = new Menu_UI();
 $menu = new Pera_ML_Menu( $GLOBALS['menu_router'], new Menu_Content(), new Menu_Fields(), $ui );
 $items = array(
 	(object) array( 'ID' => 60, 'type' => 'post_type', 'object_id' => 41, 'title' => 'Edited menu label', 'url' => 'https://pera.test/about/', 'classes' => array( 'menu-item', 'current-menu-item' ) ),
-	(object) array( 'ID' => 62, 'type' => 'taxonomy', 'object' => 'district', 'object_id' => 51, 'title' => 'Edited term label', 'url' => 'https://pera.test/district/' ),
+	(object) array( 'ID' => 62, 'type' => 'taxonomy', 'object' => 'category', 'object_id' => 51, 'title' => 'Edited term label', 'url' => 'https://pera.test/category/guides/' ),
 	(object) array( 'ID' => 61, 'type' => 'custom', 'object_id' => 61, 'title' => 'Custom label', 'url' => 'https://external.test/path' ),
 	(object) array( 'ID' => 63, 'type' => 'custom', 'title' => 'Missing label', 'url' => '#section' ),
 	(object) array( 'ID' => 64, 'type' => 'custom', 'title' => 'Blank label', 'url' => 'mailto:test@example.com' ),
@@ -47,6 +47,7 @@ foreach ( array( 'zh', 'ar', 'de' ) as $language ) {
 		$out = $menu->translate_items( $items, (object) array( 'theme_location' => $location ) );
 		menu_expect( 'zh' === $language ? '页面标题' : strtoupper( $language ) . ' page', $out[0]->title, "{$language} {$location} page title" );
 		menu_expect( 'zh' === $language ? '行政区' : strtoupper( $language ) . ' term', $out[1]->title, "{$language} {$location} term title" );
+		menu_expect( 'https://pera.test/' . $language . '/category/guides/', $out[1]->url, "{$language} {$location} category URL localized" );
 		menu_expect( 'zh' === $language ? '自定义标签' : strtoupper( $language ) . ' custom', $out[2]->title, "{$language} {$location} custom title" );
 		menu_expect( 'Missing label', $out[3]->title, 'missing/stale/non-current custom translation fallback' );
 		menu_expect( 'Blank label', $out[4]->title, 'blank custom translation fallback' );
