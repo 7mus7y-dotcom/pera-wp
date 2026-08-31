@@ -1,4 +1,9 @@
 <?php
+if ( PHP_SAPI !== 'cli' ) {
+	http_response_code( 404 );
+	exit;
+}
+
 /** Focused regression coverage for shared V2 property-card pricing semantics. */
 
 define( 'ABSPATH', __DIR__ );
