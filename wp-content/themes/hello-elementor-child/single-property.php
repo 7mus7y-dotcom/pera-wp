@@ -665,6 +665,8 @@ $has_further_reading = ! empty( $post_ids );
           type="button"
           aria-pressed="false"
           aria-label="<?php echo esc_attr( pera_ml_ui( 'Add to favourites', 'theme.template.single_property.aria_label.add_to_favourites' ) ); ?>"
+          data-label-add="<?php echo esc_attr( pera_ml_ui( 'Add to favourites', 'theme.template.single_property.aria_label.add_to_favourites' ) ); ?>"
+          data-label-remove="<?php echo esc_attr( pera_ml_ui( 'Remove from favourites', 'theme.template.single_property.aria_label.remove_from_favourites' ) ); ?>"
           data-post-id="<?php echo esc_attr( $property_id ); ?>"
         >
           <span class="fav-toggle__icon" aria-hidden="true">
@@ -1552,7 +1554,7 @@ if ( ! empty( $yt_video ) ) {
           <div class="faq-accordion">
             <?php foreach ( $property_faq_items as $faq_index => $faq_item ) : ?>
               <details class="faq-item" <?php echo 0 === (int) $faq_index ? 'open' : ''; ?>>
-                <summary>Q: <?php echo esc_html( $faq_item['question'] ); ?></summary>
+                <summary><?php echo esc_html( $faq_item['question'] ); ?></summary>
                 <div class="faq-answer">
                   <?php echo wp_kses_post( wpautop( $faq_item['answer'] ) ); ?>
                 </div>
@@ -1730,7 +1732,7 @@ if ( ! empty( $yt_video ) ) {
               'context'        => 'property',
               'heading'        => $form_heading,
               'intro'          => $form_intro,
-              'submit_label'   => 'Request details',
+              'submit_label'   => pera_ml_ui( 'Request details', 'theme.template.single_property.request_details' ),
               'form_context'   => 'property',
               'property_id'    => $property_id,
               'property_title' => $title,

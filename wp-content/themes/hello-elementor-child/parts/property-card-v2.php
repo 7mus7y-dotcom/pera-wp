@@ -208,6 +208,8 @@ $size_txt = function_exists( 'pera_v2_units_format_size_text' )
           type="button"
           aria-pressed="false"
           aria-label="<?php echo esc_attr( pera_ml_ui( 'Add to favourites', 'theme.property_card.add_favourite' ) ); ?>"
+          data-label-add="<?php echo esc_attr( pera_ml_ui( 'Add to favourites', 'theme.property_card.add_favourite' ) ); ?>"
+          data-label-remove="<?php echo esc_attr( pera_ml_ui( 'Remove from favourites', 'theme.property_card.remove_favourite' ) ); ?>"
           data-post-id="<?php echo esc_attr( $post_id ); ?>"
         >
           <span class="fav-toggle__icon" aria-hidden="true">

@@ -154,7 +154,7 @@
     button.setAttribute('aria-pressed', isFav ? 'true' : 'false');
     button.setAttribute(
       'aria-label',
-      isFav ? 'Remove from favourites' : 'Add to favourites'
+      isFav ? button.dataset.labelRemove : button.dataset.labelAdd
     );
   };
 

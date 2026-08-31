@@ -526,7 +526,10 @@ if ( ! function_exists( 'pera_ajax_filter_properties_v2' ) ) {
 
       wp_send_json_success( array(
         'grid_html'            => $grid_html,
-        'count_text'           => $found . ' properties found',
+        'count_text'           => sprintf(
+          pera_ml_ui( '%d properties found', 'theme.template.archive_property.properties_found' ),
+          $found
+        ),
         'has_more'             => ( $paged < (int) $q->max_num_pages ),
         'next_page' => ( $paged < (int) $q->max_num_pages ) ? $paged + 1 : null,
 

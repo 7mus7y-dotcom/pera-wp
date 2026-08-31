@@ -919,17 +919,17 @@ if ( ! function_exists( 'pera_v2_render_units_price_table' ) ) {
     $custom_text = function_exists( 'get_field' ) ? (string) get_field( 'v2_custom_text', $post_id ) : '';
     $custom_text = trim( $custom_text );
 
-    $pricing_title    = 'Price range';
-    $pricing_subtitle = 'Indicative prices by unit type. Availability may change. Contact us for specific pricing and floor plans.';
+    $pricing_title    = pera_ml_ui( 'Price range', 'theme.property_price_range.title' );
+    $pricing_subtitle = pera_ml_ui( 'Indicative prices by unit type. Availability may change. Contact us for specific pricing and floor plans.', 'theme.property_price_range.indicative_prices_disclaimer' );
 
     $has_resales = has_term( 'resales', 'special', $post_id );
     $has_project = has_term( 'project', 'special', $post_id );
 
     if ( $has_resales ) {
-      $pricing_title    = 'Pricing';
-      $pricing_subtitle = 'Final pricing is subject to negotiation with the seller and contract.';
+      $pricing_title    = pera_ml_ui( 'Pricing', 'theme.property_price_range.resale_title' );
+      $pricing_subtitle = pera_ml_ui( 'Final pricing is subject to negotiation with the seller and contract.', 'theme.property_price_range.resale_final_pricing_disclaimer' );
     } elseif ( $has_project ) {
-      $pricing_subtitle = 'Indicative prices by unit type. Availability may change. Contact us for specific pricing and floor plans. Final pricing subject to negotiation with the developer';
+      $pricing_subtitle = pera_ml_ui( 'Indicative prices by unit type. Availability may change. Contact us for specific pricing and floor plans. Final pricing subject to negotiation with the developer', 'theme.property_price_range.project_final_pricing_disclaimer' );
     }
 
     ?>
