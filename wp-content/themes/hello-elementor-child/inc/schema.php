@@ -509,7 +509,7 @@ if ( ! function_exists( 'pera_schema_guide_like_breadcrumb_items' ) ) {
 			$guide_url = get_category_link( $guide_category->term_id );
 			if ( ! is_wp_error( $guide_url ) && is_string( $guide_url ) && $guide_url !== '' ) {
 				$items[] = array(
-					'name' => $guide_category->name,
+					'name' => function_exists( 'pera_ml_term' ) ? pera_ml_term( $guide_category ) : $guide_category->name,
 					'url'  => $guide_url,
 				);
 			}
@@ -574,7 +574,7 @@ if ( ! function_exists( 'pera_schema_regional_guide_breadcrumb_items' ) ) {
 			$regional_url = get_category_link( $regional_category->term_id );
 			if ( ! is_wp_error( $regional_url ) && is_string( $regional_url ) && $regional_url !== '' ) {
 				$items[] = array(
-					'name' => $regional_category->name,
+					'name' => function_exists( 'pera_ml_term' ) ? pera_ml_term( $regional_category ) : $regional_category->name,
 					'url'  => $regional_url,
 				);
 			}

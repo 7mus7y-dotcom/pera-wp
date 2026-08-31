@@ -130,8 +130,8 @@ if ( ! function_exists( 'pera_get_property_archive_faq_heading' ) ) {
     $term = get_queried_object();
     if ( $term instanceof WP_Term && ! is_wp_error( $term ) ) {
       $name = function_exists( 'pera_seo_normalize_meta_text' )
-        ? pera_seo_normalize_meta_text( (string) $term->name )
-        : trim( wp_strip_all_tags( (string) $term->name ) );
+        ? pera_seo_normalize_meta_text( pera_seo_term_name( $term ) )
+        : trim( wp_strip_all_tags( pera_seo_term_name( $term ) ) );
 
       if ( '' !== $name ) {
         return sprintf( 'Frequently Asked Questions About %s Property', $name );
@@ -157,7 +157,7 @@ if ( ! function_exists( 'pera_property_archive_schema_title' ) ) {
           return $generated;
         }
 
-        return pera_seo_normalize_meta_text( (string) $term->name );
+        return pera_seo_normalize_meta_text( pera_seo_term_name( $term ) );
       }
     }
 
@@ -237,7 +237,7 @@ if ( ! function_exists( 'pera_property_archive_schema_breadcrumb_items' ) ) {
         $items[] = array(
           '@type'    => 'ListItem',
           'position' => 3,
-          'name'     => $title !== '' ? $title : pera_seo_normalize_meta_text( (string) $term->name ),
+          'name'     => $title !== '' ? $title : pera_seo_normalize_meta_text( pera_seo_term_name( $term ) ),
           'item'     => $canonical,
         );
       }
@@ -488,7 +488,7 @@ if ( ! function_exists( 'pera_property_archive_social_image' ) ) {
           if ( $url !== '' ) {
             return array(
               'url' => esc_url( $url ),
-              'alt' => pera_seo_normalize_meta_text( (string) $term->name ),
+              'alt' => pera_seo_normalize_meta_text( pera_seo_term_name( $term ) ),
             );
           }
         }

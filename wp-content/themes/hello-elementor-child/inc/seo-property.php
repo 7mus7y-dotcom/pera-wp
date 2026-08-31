@@ -187,7 +187,7 @@ if ( ! function_exists( 'pera_property_get_district_name' ) ) {
     if ( function_exists( 'pera_get_deepest_term' ) ) {
       $term = pera_get_deepest_term( $post_id, 'district' );
       if ( $term instanceof WP_Term && ! is_wp_error( $term ) ) {
-        $name = trim( (string) $term->name );
+        $name = trim( function_exists( 'pera_ml_term' ) ? (string) pera_ml_term( $term ) : (string) $term->name );
         if ( strcasecmp( $name, 'Istanbul' ) === 0 ) {
           return '';
         }
@@ -200,7 +200,7 @@ if ( ! function_exists( 'pera_property_get_district_name' ) ) {
     if ( is_array( $terms ) && ! empty( $terms ) ) {
       $term = $terms[0];
       if ( $term instanceof WP_Term ) {
-        $name = trim( (string) $term->name );
+        $name = trim( function_exists( 'pera_ml_term' ) ? (string) pera_ml_term( $term ) : (string) $term->name );
         if ( strcasecmp( $name, 'Istanbul' ) === 0 ) {
           return '';
         }
@@ -225,7 +225,7 @@ if ( ! function_exists( 'pera_property_get_region_name' ) ) {
       return '';
     }
 
-    $name = trim( (string) $term->name );
+    $name = trim( function_exists( 'pera_ml_term' ) ? (string) pera_ml_term( $term ) : (string) $term->name );
     if ( $name === '' || strcasecmp( $name, 'Istanbul' ) === 0 ) {
       return '';
     }
@@ -246,7 +246,8 @@ if ( ! function_exists( 'pera_property_get_type_name' ) ) {
       return '';
     }
 
-    return pera_property_normalize_whitespace( (string) $term->name );
+    $name = function_exists( 'pera_ml_term' ) ? pera_ml_term( $term ) : $term->name;
+    return pera_property_normalize_whitespace( (string) $name );
   }
 }
 
@@ -537,7 +538,8 @@ if ( ! function_exists( 'pera_property_get_bedroom_label' ) ) {
       return '';
     }
 
-    $label = pera_property_normalize_whitespace( (string) $term->name );
+    $name = function_exists( 'pera_ml_term' ) ? pera_ml_term( $term ) : $term->name;
+    $label = pera_property_normalize_whitespace( (string) $name );
     if ( $label === '' ) {
       return '';
     }
@@ -670,7 +672,7 @@ if ( ! function_exists( 'pera_property_get_breadcrumb_term_item' ) ) {
     $item = array(
       '@type'    => 'ListItem',
       'position' => $position,
-      'name'     => pera_property_normalize_whitespace( (string) $term->name ),
+      'name'     => pera_property_normalize_whitespace( (string) ( function_exists( 'pera_ml_term' ) ? pera_ml_term( $term ) : $term->name ) ),
     );
 
     $term_link = get_term_link( $term );
@@ -809,9 +811,9 @@ if ( ! function_exists( 'pera_property_build_schema_graph' ) ) {
 
     $address_locality = '';
     if ( $district_term instanceof WP_Term ) {
-      $address_locality = pera_property_normalize_whitespace( (string) $district_term->name );
+      $address_locality = pera_property_normalize_whitespace( (string) ( function_exists( 'pera_ml_term' ) ? pera_ml_term( $district_term ) : $district_term->name ) );
     } elseif ( $region_term instanceof WP_Term ) {
-      $address_locality = pera_property_normalize_whitespace( (string) $region_term->name );
+      $address_locality = pera_property_normalize_whitespace( (string) ( function_exists( 'pera_ml_term' ) ? pera_ml_term( $region_term ) : $region_term->name ) );
     }
 
     if ( $address_locality !== '' ) {

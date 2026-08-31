@@ -449,7 +449,7 @@ if ( ! function_exists( 'pera_seo_all_get_term_manual_text_field' ) ) {
       );
 
       foreach ( $candidates as $candidate ) {
-        $candidate_value = get_field( $field_name, $candidate );
+        $candidate_value = get_field( $field_name, $candidate, false );
         if ( is_scalar( $candidate_value ) ) {
           $value = (string) $candidate_value;
           if ( trim( $value ) !== '' ) break;
@@ -459,6 +459,10 @@ if ( ! function_exists( 'pera_seo_all_get_term_manual_text_field' ) ) {
 
     if ( trim( $value ) === '' ) {
       $value = (string) get_term_meta( $term->term_id, $field_name, true );
+    }
+
+    if ( function_exists( 'pera_ml_term_meta' ) ) {
+      $value = (string) pera_ml_term_meta( $term, 'meta:' . $field_name, $value );
     }
 
     return pera_seo_all_normalize_description( $value, 300 );
@@ -1054,7 +1058,9 @@ add_action( 'wp_head', function () {
             : '';
         }
         if ( $manual === '' && ! empty( $term->description ) ) {
-          $manual = (string) $term->description;
+          $manual = function_exists( 'pera_ml_term' )
+            ? (string) pera_ml_term( $term, 'description' )
+            : (string) $term->description;
         }
         $desc = pera_seo_all_normalize_description( $manual );
       }
