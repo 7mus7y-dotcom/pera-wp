@@ -814,8 +814,6 @@ if ( ! function_exists( 'pera_inject_related_properties_into_guide_content' ) ) 
  * @return void
  */
 function pera_render_header_language_switcher( $context = 'desktop' ) {
-  if ( ! is_user_logged_in() || ! current_user_can( 'manage_options' ) ) return;
-
   if ( ! class_exists( 'Pera_ML_Plugin' ) ) {
     return;
   }
