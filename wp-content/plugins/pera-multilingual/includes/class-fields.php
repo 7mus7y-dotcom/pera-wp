@@ -86,7 +86,8 @@ final class Pera_ML_Fields {
 	}
 	public static function homepage_faq_field( $index, $leaf ) { return 'meta:homepage_faq_' . absint( $index ) . '_' . sanitize_key( $leaf ); }
 	public static function homepage_faq_sources( $post_id ) {
-		$rows = function_exists( 'get_field' ) ? get_field( 'faq', (int) $post_id ) : null;
+		// Translation generation/status hashes canonical unformatted ACF leaves.
+		$rows = function_exists( 'get_field' ) ? get_field( 'faq', (int) $post_id, false ) : null;
 		if ( ! is_array( $rows ) ) {
 			$raw = get_post_meta( (int) $post_id, 'faq', true );
 			if ( is_array( $raw ) ) {

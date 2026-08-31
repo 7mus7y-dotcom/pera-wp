@@ -39,8 +39,14 @@ $theme = dirname( dirname( dirname( __DIR__ ) ) ) . '/themes/hello-elementor-chi
 $header = file_get_contents( $theme . '/header.php' );
 $helper = file_get_contents( $theme . '/inc/theme-helpers.php' );
 $footer = file_get_contents( $theme . '/footer.php' );
+$homepage = file_get_contents( $theme . '/home-page.php' );
+$schema = file_get_contents( $theme . '/inc/seo-all.php' );
 frontend_expect( true, false !== strpos( $header, "'home_url'   => function_exists( 'pera_ml_home_url' )" ), 'desktop logo explicitly uses multilingual home' );
 frontend_expect( true, false !== strpos( $helper, "function_exists( 'pera_ml_home_url' ) ? pera_ml_home_url()" ), 'mobile logo default uses multilingual home' );
 frontend_expect( 0, preg_match_all( '/href="https:\/\/www\\.peraproperty\\.com\/(?:about-us|join-our-team|contact-us|sell-your|rent-your|privacy-policy)/', $footer ), 'footer has no canonical hardcoded internal links' );
 frontend_expect( true, substr_count( $footer, 'pera_ml_ui(' ) >= 30, 'footer visitor copy remains routed through UI discovery calls' );
+frontend_expect( true, false !== strpos( $homepage, "get_field( 'faq', \$front_page_id, false )" ), 'visible FAQ reads the canonical unformatted ACF repeater' );
+frontend_expect( true, false !== strpos( $schema, "get_field( 'faq', \$front_page_id, false )" ), 'FAQ schema reads the same canonical unformatted ACF repeater' );
+frontend_expect( true, false !== strpos( $homepage, 'pera_ml_homepage_faq( $front_page_id, $faq_rows )' ), 'visible FAQ uses structured helper' );
+frontend_expect( true, false !== strpos( $schema, 'pera_ml_homepage_faq( $front_page_id, $faq_rows )' ), 'schema uses structured helper' );
 echo "Pera ML homepage FAQ/footer/logo tests passed\n";

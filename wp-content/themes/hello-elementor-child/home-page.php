@@ -683,8 +683,8 @@ $homepage_faq_items = array();
 
 if ( function_exists( 'get_field' ) ) {
   $faq_rows = $front_page_id > 0
-    ? get_field( 'faq', $front_page_id )
-    : get_field( 'faq' );
+    ? get_field( 'faq', $front_page_id, false )
+    : get_field( 'faq', false, false );
 
   if ( is_array( $faq_rows ) && $front_page_id > 0 && function_exists( 'pera_ml_homepage_faq' ) ) {
     $faq_rows = pera_ml_homepage_faq( $front_page_id, $faq_rows );
