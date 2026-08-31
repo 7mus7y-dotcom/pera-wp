@@ -4,7 +4,6 @@ defined( 'ABSPATH' ) || exit;
 /** Translate exactly one server-approved health row; HTTP concerns remain in the admin adapter. */
 final class Pera_ML_Translation_Health_Orchestrator {
 	private $status; private $storage; private $translator; private $ui; private $ui_registry;
-	private $taxonomies = array( 'district', 'region', 'property_type', 'property_tags', 'special' );
 	public function __construct( $status, $storage, $translator, $ui, $ui_registry ) { $this->status = $status; $this->storage = $storage; $this->translator = $translator; $this->ui = $ui; $this->ui_registry = $ui_registry; }
 
 	public function translate( array $row ) {
@@ -16,7 +15,7 @@ final class Pera_ML_Translation_Health_Orchestrator {
 	}
 	private function translate_ui( $identity, $language ) { $item = $this->ui_registry->find( $identity ); if ( ! $item || 'current' === $this->ui->status( $item, $language ) ) return new WP_Error( 'invalid_row' ); $result = $this->ui->translate_registered( $identity, $language ); if ( is_wp_error( $result ) ) return $result; return 'current' === $this->ui->status( $item, $language ) ? $result : new WP_Error( 'translation_not_stored' ); }
 	private function translate_term( $taxonomy, $id, $field, $language ) {
-		if ( ! in_array( $taxonomy, $this->taxonomies, true ) ) return new WP_Error( 'invalid_row' );
+		if ( ! in_array( $taxonomy, Pera_ML_Fields::supported_taxonomies(), true ) ) return new WP_Error( 'invalid_row' );
 		$term = get_term( $id ); if ( ! $term instanceof WP_Term || $taxonomy !== $term->taxonomy || ! in_array( $field, Pera_ML_Fields::taxonomy_fields( $term->taxonomy ), true ) ) return new WP_Error( 'invalid_row' );
 		if ( 'term_name' === $field ) $source = $term->name; elseif ( 'term_description' === $field ) $source = $term->description; elseif ( 0 === strpos( $field, 'meta:' ) ) $source = get_term_meta( $id, substr( $field, 5 ), true ); else return new WP_Error( 'invalid_row' );
 		if ( ! is_string( $source ) || '' === trim( $source ) ) return new WP_Error( 'invalid_row' );

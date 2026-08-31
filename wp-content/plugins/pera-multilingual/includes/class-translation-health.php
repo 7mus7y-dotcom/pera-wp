@@ -19,7 +19,7 @@ final class Pera_ML_Translation_Health {
 			$sources = array_filter( $this->status->applicable_sources( $id, $post->post_type ), static function ( $source ) { return is_string( $source ) && '' !== trim( $source ); } ); if ( ! $sources ) continue;
 			foreach ( self::LANGUAGES as $language ) { $state = $this->status->get( $id, $language, $post->post_type ); foreach ( $sources as $field => $source ) { $status = in_array( $field, $state['missing'], true ) ? 'missing' : ( in_array( $field, $state['stale'], true ) ? 'stale' : 'current' ); $rows[] = $this->row( $post->post_type, $id, get_the_title( $id ), $field, $language, $status ); } }
 		}
-		foreach ( array( 'district', 'region', 'property_type', 'property_tags', 'special' ) as $taxonomy ) {
+		foreach ( Pera_ML_Fields::supported_taxonomies() as $taxonomy ) {
 			$terms = get_terms( array( 'taxonomy' => $taxonomy, 'hide_empty' => false ) ); if ( is_wp_error( $terms ) ) continue;
 			foreach ( $terms as $term ) foreach ( $this->term_sources( $term, $taxonomy ) as $field => $source ) foreach ( self::LANGUAGES as $language ) {
 				$stored = $this->storage->get( 'term', $term->term_id, $field, $language, $source );

@@ -8,6 +8,10 @@ final class Pera_ML_Fields {
 		return apply_filters( 'pera_ml_property_translatable_meta_fields', array( 'project_name', 'custom_text', 'project_summary_heading', 'project_summary', 'whats_special_heading', 'about_this_project', 'location_info_heading', 'distances', 'yt_heading', 'custom_video_heading', 'custom_video_button', 'custom_video_text', 'floor_plans_heading', 'floor_plans_custom_text', 'further_reading_heading', 'further_reading_text', 'kd_custom_text', 'v2_custom_text', 'seo_title', 'seo_meta_description', 'seo_faq_v2', 'property_editorial_intro', 'property_highlights_text', 'property_district_analysis', 'property_investment_potential', 'property_buyer_suitability', 'property_developer_profile', 'property_faq_text' ) );
 	}
 	public static function controlled_property_fields() { return array( 'facilities', 'target_buyer_type', 'property_key_advantages' ); }
+	/** Taxonomies whose canonical terms are included in translation generation and health. */
+	public static function supported_taxonomies() {
+		return apply_filters( 'pera_ml_translatable_taxonomies', array( 'district', 'region', 'property_type', 'property_tags', 'special', 'category' ) );
+	}
 	/** Canonical term contract consumed by term() and the registered ACF formatting layer. */
 	public static function taxonomy_fields( $taxonomy ) {
 		$fields = array( 'term_name', 'term_description' );
@@ -120,7 +124,7 @@ final class Pera_ML_Fields {
 		if ( $post_id instanceof WP_Term ) return array( 'type' => 'term', 'id' => (int) $post_id->term_id );
 		if ( $post_id instanceof WP_Post ) return array( 'type' => 'post', 'id' => (int) $post_id->ID, 'post_type' => $post_id->post_type );
 		if ( is_numeric( $post_id ) && (int) $post_id > 0 ) return array( 'type' => 'post', 'id' => (int) $post_id, 'post_type' => function_exists( 'get_post_type' ) ? get_post_type( (int) $post_id ) : 'post' );
-		if ( is_string( $post_id ) && preg_match( '/^(term|district|region|property_type|property_tags|special)_(\d+)$/i', $post_id, $match ) ) return array( 'type' => 'term', 'id' => (int) $match[2] );
+		if ( is_string( $post_id ) && preg_match( '/^(term|district|region|property_type|property_tags|special|category)_(\d+)$/i', $post_id, $match ) ) return array( 'type' => 'term', 'id' => (int) $match[2] );
 		return null;
 	}
 	public function term( $term, $field = 'name', $language = null ) {

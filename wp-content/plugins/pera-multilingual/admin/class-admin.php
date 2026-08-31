@@ -93,7 +93,7 @@ final class Pera_ML_Admin {
 		// terminated by the host can then no longer skip content after saving smaller fields.
 		$sources = Pera_ML_Plugin::instance()->status()->applicable_sources( $post_id, $post->post_type );
 		$summary = $this->translate_fields( $post_id, $language, $sources ); $failures = $summary['failures']; $successes = $summary['successes'];
-		foreach ( array( 'district', 'region', 'property_type', 'property_tags', 'special' ) as $taxonomy ) { $terms = wp_get_post_terms( $post_id, $taxonomy ); if ( is_wp_error( $terms ) ) { $failures[] = $taxonomy . ':terms'; continue; } foreach ( $terms as $term ) {
+		foreach ( Pera_ML_Fields::supported_taxonomies() as $taxonomy ) { $terms = wp_get_post_terms( $post_id, $taxonomy ); if ( is_wp_error( $terms ) ) { $failures[] = $taxonomy . ':terms'; continue; } foreach ( $terms as $term ) {
 			$name = Pera_ML_Plugin::instance()->vocabulary()->translate( $term->name, $language );
 			$result = $name !== $term->name ? Pera_ML_Plugin::instance()->storage()->put( 'term', $term->term_id, 'term_name', $language, $term->name, $name, 'vocabulary' ) : $this->translate_with_retry( Pera_ML_Plugin::instance()->translator(), 'term', $term->term_id, 'term_name', $language, $term->name ); if ( is_wp_error( $result ) ) $failures[] = $taxonomy . ':' . $term->term_id . ':name'; else $successes++;
 			if ( '' !== trim( $term->description ) ) { $result = $this->translate_with_retry( Pera_ML_Plugin::instance()->translator(), 'term', $term->term_id, 'term_description', $language, $term->description ); if ( is_wp_error( $result ) ) $failures[] = $taxonomy . ':' . $term->term_id . ':description'; else $successes++; }
