@@ -51,9 +51,8 @@ if ( $v2_beds_selected > 0 ) {
 $main_image   = function_exists( 'get_field' ) ? get_field( 'main_image', $post_id ) : null;
 $project_name = function_exists( 'get_field' ) ? (string) get_field( 'project_name', $post_id ) : '';
 
-// Repeater
-$units = function_exists( 'get_field' ) ? get_field( 'v2_units', $post_id ) : array();
-$units = is_array( $units ) ? $units : array();
+// Repeater (use the shared reader so every card rendering path uses the same data rules).
+$units = function_exists( 'pera_v2_get_units_rows' ) ? pera_v2_get_units_rows( $post_id ) : array();
 
 // District / Region
 if ( function_exists( 'pera_get_property_card_location_terms' ) ) {
@@ -71,20 +70,19 @@ if ( function_exists( 'pera_get_property_card_location_terms' ) ) {
 // Specials (optional pill + tooltip, kept)
 $specials_terms = get_the_terms( $post_id, 'special' );
 $specials_term  = null;
+$specials_by_slug = array();
 
 if ( ! empty( $specials_terms ) && ! is_wp_error( $specials_terms ) ) {
-  $specials_by_slug = array();
-
   foreach ( $specials_terms as $term ) {
     if ( isset( $term->slug ) && $term->slug !== 'citizenship' ) {
       $specials_by_slug[ $term->slug ] = $term;
     }
   }
 
-  if ( isset( $specials_by_slug['project'] ) ) {
-    $specials_term = $specials_by_slug['project'];
-  } elseif ( isset( $specials_by_slug['resales'] ) ) {
+  if ( isset( $specials_by_slug['resales'] ) ) {
     $specials_term = $specials_by_slug['resales'];
+  } elseif ( isset( $specials_by_slug['project'] ) ) {
+    $specials_term = $specials_by_slug['project'];
   } elseif ( ! empty( $specials_by_slug ) ) {
     $specials_term = reset( $specials_by_slug );
   }
@@ -92,6 +90,9 @@ if ( ! empty( $specials_terms ) && ! is_wp_error( $specials_terms ) ) {
 
 $specials_label = $specials_term ? ( function_exists( 'pera_ml_term' ) ? pera_ml_term( $specials_term ) : $specials_term->name ) : '';
 $specials_slug  = $specials_term ? $specials_term->slug : '';
+$has_project    = isset( $specials_by_slug['project'] );
+$has_resale     = isset( $specials_by_slug['resales'] );
+$show_project_price = $has_project && ! $has_resale;
 
 $specials_tooltip = '';
 if ( $specials_slug === 'resales' || $specials_slug === 'resale' ) {
@@ -109,22 +110,6 @@ $last_update_txt = $published_ts ? date_i18n( 'M d, Y', $published_ts ) : '';
 
 
 
-/* ============================================================
-   HELPERS
-   ============================================================ */
-
-$fmt_usd = function( $n ) {
-  $n = (int) $n;
-  if ( $n <= 0 ) return '';
-  return '$' . number_format_i18n( $n );
-};
-
-$fmt_m2 = function( $n ) {
-  $n = (float) $n;
-  if ( $n <= 0 ) return '';
-  return number_format_i18n( (int) round( $n ) ) . ' m²';
-};
-
 $bed_label = function( int $beds ) {
   return (string) $beds;
 };
@@ -135,61 +120,16 @@ $bed_label = function( int $beds ) {
    - Single mode (v2_beds): compute ranges across matching rows
    ============================================================ */
 
-$rows_to_use = array();
+$unit_totals = function_exists( 'pera_v2_units_aggregate' )
+  ? pera_v2_units_aggregate( $units, $v2_beds_selected )
+  : array();
 
-if ( $v2_beds_selected > 0 ) {
-  foreach ( $units as $row ) {
-    $b = isset( $row['v2_bedrooms'] ) ? (int) $row['v2_bedrooms'] : 0;
-    if ( $b === $v2_beds_selected ) {
-      $rows_to_use[] = $row;
-    }
-  }
-} else {
-  $rows_to_use = $units;
-}
-
-// Collect mins/maxes safely
-$beds_min  = 0; $beds_max  = 0;
-$price_min = 0; $price_max = 0;
-$size_min  = 0; $size_max  = 0;
-
-$beds_vals = array();
-
-foreach ( $rows_to_use as $row ) {
-
-  $b = isset( $row['v2_bedrooms'] ) ? (int) $row['v2_bedrooms'] : 0;
-  if ( $b > 0 ) $beds_vals[] = $b;
-
-  $pmin = isset( $row['v2_price_usd_min'] ) ? (int) $row['v2_price_usd_min'] : 0;
-  $pmax = isset( $row['v2_price_usd_max'] ) ? (int) $row['v2_price_usd_max'] : 0;
-
-  // If max not provided, treat max as min (resale behaviour)
-  if ( $pmin > 0 && $pmax <= 0 ) $pmax = $pmin;
-
-  if ( $pmin > 0 ) {
-    $price_min = ( $price_min === 0 ) ? $pmin : min( $price_min, $pmin );
-  }
-  if ( $pmax > 0 ) {
-    $price_max = ( $price_max === 0 ) ? $pmax : max( $price_max, $pmax );
-  }
-
-  $smin = isset( $row['v2_gross_size_min'] ) ? (float) $row['v2_gross_size_min'] : 0;
-  $smax = isset( $row['v2_gross_size_max'] ) ? (float) $row['v2_gross_size_max'] : 0;
-
-  if ( $smin > 0 && $smax <= 0 ) $smax = $smin;
-
-  if ( $smin > 0 ) {
-    $size_min = ( $size_min === 0 ) ? $smin : min( $size_min, $smin );
-  }
-  if ( $smax > 0 ) {
-    $size_max = ( $size_max === 0 ) ? $smax : max( $size_max, $smax );
-  }
-}
-
-if ( ! empty( $beds_vals ) ) {
-  $beds_min = min( $beds_vals );
-  $beds_max = max( $beds_vals );
-}
+$beds_min  = isset( $unit_totals['beds_min'] ) ? (int) $unit_totals['beds_min'] : 0;
+$beds_max  = isset( $unit_totals['beds_max'] ) ? (int) $unit_totals['beds_max'] : 0;
+$price_min = isset( $unit_totals['price_min'] ) ? (int) $unit_totals['price_min'] : 0;
+$price_max = isset( $unit_totals['price_max'] ) ? (int) $unit_totals['price_max'] : 0;
+$size_min  = isset( $unit_totals['size_min'] ) ? (float) $unit_totals['size_min'] : 0;
+$size_max  = isset( $unit_totals['size_max'] ) ? (float) $unit_totals['size_max'] : 0;
 
 // Build badge text
 $beds_badge_txt = '';
@@ -204,32 +144,14 @@ if ( $v2_beds_selected > 0 ) {
 // Price display (V2 rules)
 // - Project: "From $MIN" only
 // - Resale: "$MIN" or "$MIN–$MAX" (no "From")
-$price_txt = '';
-
-$is_project = ( $specials_slug === 'project' || $specials_slug === 'projects' );
-
-if ( $price_min > 0 ) {
-
-  if ( $is_project ) {
-    $price_txt = sprintf( pera_ml_ui( 'From %s', 'theme.property_card.price_from' ), $fmt_usd( $price_min ) );
-  } else {
-    if ( $price_max > 0 && $price_max !== $price_min ) {
-      $price_txt = $fmt_usd( $price_min ) . '–' . $fmt_usd( $price_max );
-    } else {
-      $price_txt = $fmt_usd( $price_min );
-    }
-  }
-}
+$price_txt = function_exists( 'pera_v2_units_format_price_text' )
+  ? pera_v2_units_format_price_text( $price_min, $price_max, $show_project_price )
+  : '';
 
 // Size display
-$size_txt = '';
-if ( $size_min > 0 ) {
-  if ( $size_max > 0 && (int) $size_max !== (int) $size_min ) {
-    $size_txt = $fmt_m2( $size_min ) . '–' . $fmt_m2( $size_max );
-  } else {
-    $size_txt = $fmt_m2( $size_min );
-  }
-}
+$size_txt = function_exists( 'pera_v2_units_format_size_text' )
+  ? pera_v2_units_format_size_text( $size_min, $size_max )
+  : '';
 ?>
 
 <article <?php post_class( $card_classes ); ?>>
