@@ -2,6 +2,7 @@
 
 $limit   = 500;
 $dry_run = false;
+$status  = 'all';
 
 $cli_args = isset( $args ) && is_array( $args )
     ? $args
@@ -19,6 +20,21 @@ foreach ( $cli_args as $arg ) {
         if ( $requested > 0 ) {
             $limit = min( 5000, $requested );
         }
+
+        continue;
+    }
+
+    if ( 0 === strpos( $arg, 'status=' ) ) {
+        $requested_status = substr( $arg, 7 );
+
+        if ( ! in_array( $requested_status, array( 'missing', 'stale', 'all' ), true ) ) {
+            echo 'ERROR: Invalid status filter "' . $requested_status
+                . '". Expected missing, stale, or all.'
+                . PHP_EOL;
+            return;
+        }
+
+        $status = $requested_status;
     }
 }
 
@@ -48,7 +64,8 @@ $pending = array();
 foreach ( $rows as $row ) {
     if (
         ! isset( $row['status'] ) ||
-        ! in_array( $row['status'], array( 'missing', 'stale' ), true )
+        ! in_array( $row['status'], array( 'missing', 'stale' ), true ) ||
+        ( 'all' !== $status && $status !== $row['status'] )
     ) {
         continue;
     }
@@ -57,7 +74,7 @@ foreach ( $rows as $row ) {
 }
 
 if ( ! $pending ) {
-    echo "No incomplete translations found." . PHP_EOL;
+    echo 'No incomplete translations found. Status filter: ' . $status . PHP_EOL;
     return;
 }
 
@@ -120,10 +137,14 @@ if ( ! $dry_run ) {
 echo PHP_EOL;
 
 if ( $dry_run ) {
-    echo 'Dry run: ' . $shown . ' row(s) shown | Limit: ' . $limit . PHP_EOL;
+    echo 'Dry run: ' . $shown
+        . ' row(s) shown | Limit: ' . $limit
+        . ' | Status filter: ' . $status
+        . PHP_EOL;
 } else {
     echo 'Completed: ' . $success
         . ' | Errors: ' . $errors
         . ' | Skipped: ' . $skipped
+        . ' | Status filter: ' . $status
         . PHP_EOL;
 }
