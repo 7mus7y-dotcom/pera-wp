@@ -26,6 +26,7 @@ require_once PERA_ML_DIR . 'includes/providers/class-openai-provider.php';
 require_once PERA_ML_DIR . 'includes/class-translator.php';
 require_once PERA_ML_DIR . 'includes/class-ui-registry.php';
 require_once PERA_ML_DIR . 'includes/class-ui.php';
+require_once PERA_ML_DIR . 'includes/class-menu.php';
 require_once PERA_ML_DIR . 'includes/class-theme-ui-discovery.php';
 require_once PERA_ML_DIR . 'includes/class-translation-health.php';
 require_once PERA_ML_DIR . 'includes/class-translation-health-orchestrator.php';
