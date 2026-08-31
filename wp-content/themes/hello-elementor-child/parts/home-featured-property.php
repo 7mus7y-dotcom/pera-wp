@@ -87,7 +87,9 @@ if ( ! empty( $project_summary ) ) {
 }
 
 $price_label = '';
-$is_project = has_term( 'project', 'special', $property_id );
+$has_project = has_term( 'project', 'special', $property_id );
+$has_resale  = has_term( 'resales', 'special', $property_id );
+$is_project  = $has_project && ! $has_resale;
 
 if ( ! function_exists( 'pera_units_get_display_data' ) ) {
   $v2_helper_path = get_stylesheet_directory() . '/inc/v2-units-index.php';

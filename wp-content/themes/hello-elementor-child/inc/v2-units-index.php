@@ -449,7 +449,10 @@ if ( ! function_exists( 'pera_v2_units_format_price_text' ) ) {
     };
 
     if ( $is_project ) {
-      return 'From ' . $fmt( $price_min );
+      $from_format = function_exists( 'pera_ml_ui' )
+        ? pera_ml_ui( 'From %s', 'theme.property_card.price_from' )
+        : 'From %s';
+      return sprintf( $from_format, $fmt( $price_min ) );
     }
 
     if ( $price_max > 0 && $price_max !== $price_min ) {

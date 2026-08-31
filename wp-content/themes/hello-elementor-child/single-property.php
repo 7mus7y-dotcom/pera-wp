@@ -168,7 +168,7 @@ $units_data = function_exists( 'pera_units_get_display_data' )
       array(
         'context'    => 'single',
         'unit_key'   => $unit_key,
-        'is_project' => $is_project,
+        'is_project' => $is_project && ! $is_resale,
       )
     )
   : array();
