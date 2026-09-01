@@ -4,10 +4,14 @@ function cleanup_expect( $condition, $label ) { if ( ! $condition ) { fwrite( ST
 define( 'ABSPATH', __DIR__ );
 function wp_date( $format, $timestamp ) { return gmdate( $format, $timestamp ); }
 function wp_strip_all_tags( $value ) { return strip_tags( $value ); }
-function get_field( $field, $object, $formatted = true ) { return "  Canonical <strong>SEO</strong>\n\n title  "; }
+function get_field( $field, $object, $formatted = true ) {
+	if ( 'archive_h1' === $field ) return '<p><br></p>';
+	if ( 'archive_heading' === $field ) return "  Canonical <strong>archive heading</strong>\n second line  ";
+	return "  Canonical <strong>SEO</strong>\n\n title  ";
+}
 function get_term_meta() { return ''; }
 function pera_ml_term_meta( $term, $field, $source ) {
-	$GLOBALS['cleanup_term_lookup'] = array( $field, $source );
+	$GLOBALS['cleanup_term_lookups'][] = array( $field, $source );
 	return "  Übersetzter <em>Titel</em>\n mit   Abstand ";
 }
 function pera_ml_term( $term ) { return '伊斯坦布尔'; }
@@ -25,7 +29,9 @@ foreach ( array( 'de', 'ar', 'zh' ) as $language ) cleanup_expect( false === str
 $term = new WP_Term();
 cleanup_expect( '伊斯坦布尔' === pera_get_district_archive_location_name( $term ), 'translated canonical Istanbul is not suffixed with canonical Istanbul' );
 cleanup_expect( 'Übersetzter Titel mit Abstand' === pera_get_property_archive_term_manual_seo_title( $term ), 'translated taxonomy SEO renders after normalization' );
-cleanup_expect( array( 'meta:seo_title', "  Canonical <strong>SEO</strong>\n\n title  " ) === $GLOBALS['cleanup_term_lookup'], 'taxonomy SEO hashes the exact raw canonical markup and whitespace source' );
+cleanup_expect( array( 'meta:seo_title', "  Canonical <strong>SEO</strong>\n\n title  " ) === $GLOBALS['cleanup_term_lookups'][0], 'taxonomy SEO hashes the exact raw canonical markup and whitespace source' );
+cleanup_expect( 'Übersetzter Titel mit Abstand' === pera_get_property_archive_term_manual_heading( $term ), 'markup-only earlier heading candidate is skipped for a later visible heading' );
+cleanup_expect( array( 'meta:archive_heading', "  Canonical <strong>archive heading</strong>\n second line  " ) === $GLOBALS['cleanup_term_lookups'][1], 'later valid heading preserves its exact raw canonical source for hashing' );
 $single = file_get_contents( $theme . '/single-property.php' );
 cleanup_expect( false !== strpos( $single, "pera_ml_ui( 'This listing was last updated on', 'theme.template.single_property.last_updated_label' )" ), 'listing update label uses discoverable UI identity' );
 cleanup_expect( false !== strpos( $single, "pera_ml_ui( 'Ref:', 'theme.template.single_property.reference_label' )" ), 'reference label uses discoverable UI identity' );

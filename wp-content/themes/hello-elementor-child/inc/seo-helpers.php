@@ -304,7 +304,9 @@ if ( ! function_exists( 'pera_get_property_archive_term_acf_field' ) ) {
       // Select and hash the canonical raw value; translated ACF formatting must
       // not become the source for a second translation lookup.
       $value = get_field( $field_name, $candidate, false );
-      if ( is_string( $value ) && trim( $value ) !== '' ) {
+      // Use normalized text only as an emptiness check. The untranslated raw
+      // value remains the source passed to Pera ML for source hashing.
+      if ( is_string( $value ) && pera_seo_normalize_meta_text( $value ) !== '' ) {
         return $value;
       }
     }
