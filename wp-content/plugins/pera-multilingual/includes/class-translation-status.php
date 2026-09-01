@@ -55,6 +55,9 @@ final class Pera_ML_Translation_Status {
 		foreach ( array( 'page', 'post', 'property' ) as $type ) {
 			foreach ( ( new Pera_ML_Fields( null, null, null ) )->approved( $type ) as $field ) $definitions[ $type ][ 'meta:' . $field ] = true;
 		}
+		if ( 'page' === $post_type && Pera_ML_Fields::is_archive_settings_object( $object_id ) ) {
+			foreach ( Pera_ML_Fields::archive_settings_fields() as $field ) $definitions['page'][ 'meta:' . $field ] = true;
+		}
 		$definitions = apply_filters( 'pera_ml_status_field_definitions', $definitions, $post_type );
 		$fields = isset( $definitions[ $post_type ] ) ? $definitions[ $post_type ] : array();
 		$sources = array();

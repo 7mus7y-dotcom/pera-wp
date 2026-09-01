@@ -3,6 +3,19 @@ defined( 'ABSPATH' ) || exit;
 
 final class Pera_ML_Fields {
 	private $router; private $storage; private $vocabulary;
+	const ARCHIVE_SETTINGS_SLUG = 'property-archive-seo-settings';
+	public static function archive_settings_fields() {
+		return array( 'archive_h1', 'archive_subtitle', 'archive_intro_content', 'archive_bottom_content', 'archive_cta_heading', 'archive_cta_text', 'archive_whatsapp_message' );
+	}
+	/** The archive copy belongs to one deliberately private page, not to all pages. */
+	public static function is_archive_settings_object( $object_id ) {
+		$post = function_exists( 'get_post' ) ? get_post( absint( $object_id ) ) : null;
+		return $post && isset( $post->post_type, $post->post_name ) && 'page' === $post->post_type && self::ARCHIVE_SETTINGS_SLUG === $post->post_name;
+	}
+	public static function archive_settings_object_id() {
+		$page = function_exists( 'get_page_by_path' ) ? get_page_by_path( self::ARCHIVE_SETTINGS_SLUG, 'OBJECT', 'page' ) : null;
+		return $page ? (int) $page->ID : 0;
+	}
 	public static function property_fields() {
 		// Structured fields such as price_list_kd and canonical checkbox arrays are intentionally absent.
 		return apply_filters( 'pera_ml_property_translatable_meta_fields', array( 'project_name', 'custom_text', 'project_summary_heading', 'project_summary', 'whats_special_heading', 'about_this_project', 'location_info_heading', 'distances', 'yt_heading', 'custom_video_heading', 'custom_video_button', 'custom_video_text', 'floor_plans_heading', 'floor_plans_custom_text', 'further_reading_heading', 'further_reading_text', 'kd_custom_text', 'v2_custom_text', 'seo_title', 'seo_meta_description', 'seo_faq_v2', 'property_editorial_intro', 'property_highlights_text', 'property_district_analysis', 'property_investment_potential', 'property_buyer_suitability', 'property_developer_profile', 'property_faq_text' ) );
@@ -66,7 +79,14 @@ final class Pera_ML_Fields {
 	public function approved( $post_type = null ) {
 		$definitions = $this->definitions();
 		if ( null !== $post_type ) return isset( $definitions[ $post_type ] ) ? $definitions[ $post_type ] : array();
-		$fields = array(); foreach ( $definitions as $type_fields ) $fields = array_merge( $fields, $type_fields );
+		$fields = self::archive_settings_fields(); foreach ( $definitions as $type_fields ) $fields = array_merge( $fields, $type_fields );
+		return array_values( array_unique( $fields ) );
+	}
+	/** Resolve the scalar field contract for a concrete post object. */
+	public function approved_for_object( $object_id, $post_type = null ) {
+		$post_type = $post_type ? $post_type : ( function_exists( 'get_post_type' ) ? get_post_type( $object_id ) : 'post' );
+		$fields = $this->approved( $post_type );
+		if ( self::is_archive_settings_object( $object_id ) ) $fields = array_merge( $fields, self::archive_settings_fields() );
 		return array_values( array_unique( $fields ) );
 	}
 	public function get( $post_id, $field, $source, $language = null ) {
@@ -114,7 +134,7 @@ final class Pera_ML_Fields {
 	public function get_for_object( $object_type, $object_id, $field, $source, $language = null, $post_type = null ) {
 		$language = $language ? sanitize_key( $language ) : $this->router->current_language();
 		if ( 'post' === $object_type && null === $post_type ) $post_type = function_exists( 'get_post_type' ) ? get_post_type( $object_id ) : 'post';
-		$approved = 'post' === $object_type ? $this->approved( $post_type ? $post_type : 'post' ) : $this->approved();
+		$approved = 'post' === $object_type ? $this->approved_for_object( $object_id, $post_type ? $post_type : 'post' ) : $this->approved();
 		if ( 'en' === $language || $object_id <= 0 || ! in_array( $field, $approved, true ) ) return $source;
 		$row = $this->storage->get( $object_type, (int) $object_id, 'meta:' . sanitize_key( $field ), $language, (string) $source );
 		if ( ! is_array( $row ) || ! empty( $row['is_stale'] ) || ( isset( $row['status'] ) && 'current' !== $row['status'] ) || ! isset( $row['translated_text'] ) || '' === trim( (string) $row['translated_text'] ) ) return $source;
