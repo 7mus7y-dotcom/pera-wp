@@ -95,10 +95,21 @@ if ( ! function_exists( 'pera_get_property_taxonomy_archive_cta_heading' ) ) {
     $exceptions = pera_get_property_taxonomy_archive_cta_heading_exceptions();
     $slug       = sanitize_title( (string) $term->slug );
 
-    if ( isset( $exceptions[ $slug ] ) && is_string( $exceptions[ $slug ] ) && trim( $exceptions[ $slug ] ) !== '' ) {
-      $heading = trim( $exceptions[ $slug ] );
+    $translated_exceptions = array(
+      'bosphorus'     => pera_ml_ui( 'Looking for property on the Bosphorus?', 'theme.archive.taxonomy.cta_heading.bosphorus' ),
+      'anatolia'      => pera_ml_ui( 'Looking for property on Istanbul’s Asian side?', 'theme.archive.taxonomy.cta_heading.anatolia' ),
+      'media-highway' => pera_ml_ui( 'Looking for property along Istanbul’s Media Highway?', 'theme.archive.taxonomy.cta_heading.media_highway' ),
+      'central-coast' => pera_ml_ui( 'Looking for property on Istanbul’s central coast?', 'theme.archive.taxonomy.cta_heading.central_coast' ),
+      'golden-horn'   => pera_ml_ui( 'Looking for property around the Golden Horn?', 'theme.archive.taxonomy.cta_heading.golden_horn' ),
+      'old-city'      => pera_ml_ui( 'Looking for property in Istanbul’s Old City?', 'theme.archive.taxonomy.cta_heading.old_city' ),
+      'city-centre'   => pera_ml_ui( 'Looking for property in Istanbul city centre?', 'theme.archive.taxonomy.cta_heading.city_centre' ),
+    );
+
+    if ( isset( $exceptions[ $slug ], $translated_exceptions[ $slug ] ) && is_string( $exceptions[ $slug ] ) && trim( $exceptions[ $slug ] ) !== '' ) {
+      $heading = $translated_exceptions[ $slug ];
     } else {
-      $heading = sprintf( 'Looking for property in %s?', $term->name );
+      $term_name = function_exists( 'pera_ml_term' ) ? pera_ml_term( $term, 'name' ) : $term->name;
+      $heading = sprintf( pera_ml_ui( 'Looking for property in %s?', 'theme.archive.taxonomy.cta_heading' ), $term_name );
     }
 
     return (string) apply_filters( 'pera_property_taxonomy_archive_cta_heading', $heading, $term );
@@ -110,7 +121,7 @@ if ( ! function_exists( 'pera_get_property_taxonomy_archive_cta_text' ) ) {
    * Build the contextual taxonomy archive CTA body text.
    */
   function pera_get_property_taxonomy_archive_cta_text( WP_Term $term ): string {
-    $text = 'Speak to Pera Property for current availability, suitable developments and advice based on your budget and requirements.';
+    $text = pera_ml_ui( 'Speak to Pera Property for current availability, suitable developments and advice based on your budget and requirements.', 'theme.archive.taxonomy.cta_text' );
 
     return (string) apply_filters( 'pera_property_taxonomy_archive_cta_text', $text, $term );
   }
@@ -176,8 +187,13 @@ if ( ! function_exists( 'pera_get_district_archive_location_name' ) ) {
 
 if ( ! function_exists( 'pera_get_district_archive_heading' ) ) {
   function pera_get_district_archive_heading( WP_Term $term ): string {
-    $location = pera_get_district_archive_location_name( $term );
-    return sprintf( 'Property for sale in %s', $location );
+    $name = function_exists( 'pera_ml_term' ) ? pera_ml_term( $term, 'name' ) : $term->name;
+    $canonical_name = trim( (string) $term->name );
+    $normalized = function_exists( 'mb_strtolower' ) ? mb_strtolower( $canonical_name, 'UTF-8' ) : strtolower( $canonical_name );
+    if ( $canonical_name === '' || in_array( $normalized, array( 'istanbul', 'i̇stanbul' ), true ) ) {
+      return pera_ml_ui( 'Property for sale in Istanbul', 'theme.archive.taxonomy.property_for_sale_in_istanbul' );
+    }
+    return sprintf( pera_ml_ui( 'Property for sale in %s, Istanbul', 'theme.archive.taxonomy.property_for_sale_in_term_istanbul' ), $name );
   }
 }
 
@@ -210,8 +226,13 @@ if ( ! function_exists( 'pera_get_region_archive_location_name' ) ) {
 
 if ( ! function_exists( 'pera_get_region_archive_heading' ) ) {
   function pera_get_region_archive_heading( WP_Term $term ): string {
-    $location = pera_get_region_archive_location_name( $term );
-    return sprintf( 'Property for sale in %s', $location );
+    $name = function_exists( 'pera_ml_term' ) ? pera_ml_term( $term, 'name' ) : $term->name;
+    $canonical_name = trim( (string) $term->name );
+    $normalized = function_exists( 'mb_strtolower' ) ? mb_strtolower( $canonical_name, 'UTF-8' ) : strtolower( $canonical_name );
+    if ( $canonical_name === '' || in_array( $normalized, array( 'istanbul', 'i̇stanbul' ), true ) ) {
+      return pera_ml_ui( 'Property for sale in Istanbul', 'theme.archive.taxonomy.property_for_sale_in_istanbul' );
+    }
+    return sprintf( pera_ml_ui( 'Property for sale in %s, Istanbul', 'theme.archive.taxonomy.property_for_sale_in_term_istanbul' ), $name );
   }
 }
 
@@ -276,7 +297,9 @@ if ( ! function_exists( 'pera_get_property_archive_term_acf_field' ) ) {
     );
 
     foreach ( $candidates as $candidate ) {
-      $value = get_field( $field_name, $candidate );
+      // Select and hash the canonical raw value; translated ACF formatting must
+      // not become the source for a second translation lookup.
+      $value = get_field( $field_name, $candidate, false );
       if ( is_string( $value ) ) {
         $value = pera_seo_normalize_meta_text( $value );
         if ( $value !== '' ) {
@@ -330,14 +353,14 @@ if ( ! function_exists( 'pera_get_property_archive_term_manual_heading' ) ) {
     foreach ( $field_candidates as $field_name ) {
       $manual = pera_get_property_archive_term_acf_field( $term, $field_name );
       if ( $manual !== '' ) {
-        return $manual;
+        return function_exists( 'pera_ml_term_meta' ) ? (string) pera_ml_term_meta( $term, 'meta:' . $field_name, $manual ) : $manual;
       }
     }
 
     foreach ( $field_candidates as $field_name ) {
       $manual = pera_seo_normalize_meta_text( (string) get_term_meta( $term->term_id, $field_name, true ) );
       if ( $manual !== '' ) {
-        return $manual;
+        return function_exists( 'pera_ml_term_meta' ) ? (string) pera_ml_term_meta( $term, 'meta:' . $field_name, $manual ) : $manual;
       }
     }
 
@@ -351,18 +374,19 @@ if ( ! function_exists( 'pera_get_property_type_archive_heading' ) ) {
     $slug = sanitize_title( (string) $term->slug );
 
     if ( in_array( $slug, array( 'apartment', 'apartments' ), true ) ) {
-      return 'Apartments for Sale in Istanbul';
+      return pera_ml_ui( 'Apartments for Sale in Istanbul', 'theme.archive.taxonomy.apartments_for_sale_in_istanbul' );
     }
 
     if ( in_array( $slug, array( 'villa', 'villas' ), true ) ) {
-      return 'Villas for Sale in Istanbul';
+      return pera_ml_ui( 'Villas for Sale in Istanbul', 'theme.archive.taxonomy.villas_for_sale_in_istanbul' );
     }
 
     if ( $name !== '' ) {
-      return sprintf( '%s for Sale in Istanbul', $name );
+      $translated_name = function_exists( 'pera_ml_term' ) ? pera_ml_term( $term, 'name' ) : $name;
+      return sprintf( pera_ml_ui( '%s for Sale in Istanbul', 'theme.archive.taxonomy.term_for_sale_in_istanbul' ), $translated_name );
     }
 
-    return 'Property for sale in Istanbul';
+    return pera_ml_ui( 'Property for sale in Istanbul', 'theme.archive.taxonomy.property_for_sale_in_istanbul' );
   }
 }
 
