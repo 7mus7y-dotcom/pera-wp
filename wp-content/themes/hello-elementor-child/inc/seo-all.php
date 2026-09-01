@@ -1443,7 +1443,7 @@ add_action( 'wp_head', function () {
       ),
       'address' => array(
         '@type' => 'PostalAddress',
-        'streetAddress' => 'Gümüşsuyu Mah. Ankara Palas, İnönü Cd. No 59/1',
+        'streetAddress' => 'Ömer Avni, Balçık Sk. No:6',
         'postalCode' => '34437',
         'addressLocality' => 'Beyoğlu',
         'addressRegion' => 'İstanbul',
@@ -1784,9 +1784,10 @@ add_action( 'wp_head', function () {
       'email' => 'info@peraproperty.com',
       'address' => array(
         '@type' => 'PostalAddress',
-        'streetAddress' => 'Gümüşsuyu Mah. Ankara Palas, İnönü Cd. No 59/1',
+        'streetAddress' => 'Ömer Avni, Balçık Sk. No:6',
         'postalCode' => '34437',
-        'addressLocality' => 'Beyoğlu / İstanbul',
+        'addressLocality' => 'Beyoğlu',
+        'addressRegion' => 'İstanbul',
         'addressCountry' => 'TR',
       ),
       'areaServed' => array(
