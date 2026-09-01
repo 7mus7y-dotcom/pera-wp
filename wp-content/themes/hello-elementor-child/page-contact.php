@@ -23,7 +23,7 @@ $contact_faq_items = array(
     ),
     array(
         'question' => 'Can I visit your Istanbul office?',
-        'answer'   => 'Yes. Our office is in Gümüşsuyu, Beyoğlu, close to Taksim and Dolmabahçe. Appointments are recommended so the right consultant is available for your enquiry.',
+        'answer'   => 'Yes. Our office is at Ömer Avni, Balçık Sk. No:6, 34437 Beyoğlu/İstanbul. Appointments are recommended so the right consultant is available for your enquiry.',
     ),
     array(
         'question' => 'Can you help sell or rent out my Istanbul property?',
@@ -261,8 +261,7 @@ get_header();
           <div class="section-header">
             <h2><?php echo esc_html( pera_ml_ui( 'Visit Our Istanbul Office', 'theme.template.page_contact.visit_our_istanbul_office' ) ); ?></h2>
             <p>
-              <?php echo esc_html( pera_ml_ui( 'Our consultants are based in Gümüşsuyu, just above the Bosphorus and
-              a short walk from Taksim Square and Dolmabahçe.', 'theme.template.page_contact.our_consultants_are_based_in_g_m_suyu_just_above_the_bosphorus_and_a_sho' ) ); ?>
+              <?php echo esc_html( pera_ml_ui( 'Our consultants are based at Ömer Avni, Balçık Sk. No:6, 34437 Beyoğlu/İstanbul.', 'theme.template.page_contact.our_consultants_are_based_at_omer_avni_balcik_sk_no_6' ) ); ?>
             </p>
           </div>
 
@@ -337,8 +336,7 @@ get_header();
         
           <h3><?php echo esc_html( pera_ml_ui( 'Address', 'theme.template.page_contact.address' ) ); ?></h3>
           <p>
-            <?php echo esc_html( pera_ml_ui( 'Gümüşsuyu Mah. Ankara Palas,', 'theme.template.page_contact.g_m_suyu_mah_ankara_palas' ) ); ?> <br>
-            <?php echo esc_html( pera_ml_ui( 'İnönü Cd. No 59/1, 34437 Beyoğlu / İstanbul', 'theme.template.page_contact.i_n_n_cd_no_59_1_34437_beyo_lu_i_stanbul' ) ); ?>
+            <?php echo esc_html( pera_ml_ui( 'Ömer Avni, Balçık Sk. No:6, 34437 Beyoğlu/İstanbul', 'theme.template.page_contact.omer_avni_balcik_sk_no_6_34437_beyoglu_istanbul' ) ); ?>
           </p>
         
           <h3><?php echo esc_html( pera_ml_ui( 'Working hours', 'theme.template.page_contact.working_hours' ) ); ?></h3>
@@ -347,7 +345,7 @@ get_header();
             <?php echo esc_html( pera_ml_ui( 'Saturday & Sunday: By appointment only', 'theme.template.page_contact.saturday_and_sunday_by_appointment_only' ) ); ?>
           </p>
         
-          <a href="https://maps.app.goo.gl/QkLhU1YnNGQvEGr59"
+          <a href="https://www.google.com/maps/search/?api=1&amp;query=%C3%96mer%20Avni%2C%20Bal%C3%A7%C4%B1k%20Sk.%20No%3A6%2C%2034437%20Beyo%C4%9Flu%2F%C4%B0stanbul"
              class="btn btn--solid btn--blue btn-card"
              target="_blank" rel="noopener">
             <?php echo esc_html( pera_ml_ui( 'Get Directions', 'theme.template.page_contact.get_directions' ) ); ?>
@@ -362,7 +360,7 @@ get_header();
             <div class="media-frame media-frame--map">
                 <iframe
                 class="media-embed media-embed--map"
-                src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3009.4841913041314!2d28.989965700000003!3d41.036539499999996!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x14cab71b29d934f5%3A0x50e7f6acdbad5b91!2sPera%20Property!5e0!3m2!1sen!2str!4v1764243753511!5m2!1sen!2str"
+                src="https://www.google.com/maps?q=%C3%96mer%20Avni%2C%20Bal%C3%A7%C4%B1k%20Sk.%20No%3A6%2C%2034437%20Beyo%C4%9Flu%2F%C4%B0stanbul&amp;output=embed"
                   style="border:0;"
                   allowfullscreen=""
                   loading="lazy"
