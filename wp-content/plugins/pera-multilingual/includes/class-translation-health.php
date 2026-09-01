@@ -11,6 +11,8 @@ final class Pera_ML_Translation_Health {
 		$rows = array(); $ui_items = $this->ui->inventory( self::LANGUAGES );
 		foreach ( $ui_items as $identity => $item ) foreach ( self::LANGUAGES as $language ) $rows[] = $this->row( 'ui', Pera_ML_UI::object_id( $identity ), $item['semantic_key'], $identity, $language, $item['statuses'][ $language ] );
 		$ids = get_posts( array( 'post_type' => array( 'post', 'page', 'property' ), 'post_status' => 'publish', 'numberposts' => -1, 'fields' => 'ids', 'orderby' => 'ID', 'order' => 'ASC', 'suppress_filters' => true ) );
+		$archive_settings_id = Pera_ML_Fields::archive_settings_object_id();
+		if ( $archive_settings_id && ! in_array( $archive_settings_id, $ids, true ) ) $ids[] = $archive_settings_id;
 		$grouped = array( 'post' => array(), 'page' => array(), 'property' => array() );
 		foreach ( $ids as $id ) { $post = get_post( $id ); if ( $post && isset( $grouped[ $post->post_type ] ) ) $grouped[ $post->post_type ][] = (int) $id; }
 		foreach ( $grouped as $post_type => $post_ids ) if ( $post_ids ) $this->status->preload( $post_ids, self::LANGUAGES, $post_type );
