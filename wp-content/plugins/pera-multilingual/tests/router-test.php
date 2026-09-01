@@ -50,10 +50,18 @@ $cases = array(
 	array( 'https://www.peraproperty.com/', 'zh', 'https://www.peraproperty.com/zh/', 'homepage' ),
 	array( 'https://www.peraproperty.com/', 'de', 'https://www.peraproperty.com/de/', 'German homepage' ),
 	array( 'https://www.peraproperty.com/an-investment-guide/', 'de', 'https://www.peraproperty.com/de/an-investment-guide/', 'German normal post route' ),
+	array( 'https://www.peraproperty.com/property/example-property/', 'de', 'https://www.peraproperty.com/de/property/example-property/', 'German property permalink navigation' ),
+	array( 'https://www.peraproperty.com/property/example-property/', 'ar', 'https://www.peraproperty.com/ar/property/example-property/', 'Arabic property permalink navigation' ),
+	array( 'https://www.peraproperty.com/district/istanbul/besiktas/', 'zh', 'https://www.peraproperty.com/zh/district/istanbul/besiktas/', 'Chinese taxonomy navigation' ),
+	array( 'https://www.peraproperty.com/property/?district=besiktas#results', 'de', 'https://www.peraproperty.com/de/property/?district=besiktas#results', 'property query and fragment' ),
 	array( 'https://external.example/foo/', 'zh', 'https://external.example/foo/', 'external URL' ),
 	array( '/about-us/?ref=footer#team', 'de', '/de/about-us/?ref=footer#team', 'root-relative query and fragment' ),
 	array( '/de/about-us/', 'de', '/de/about-us/', 'root-relative localized idempotence' ),
 	array( 'mailto:info@peraproperty.com', 'zh', 'mailto:info@peraproperty.com', 'mailto untouched' ),
+	array( 'tel:+902129999999', 'ar', 'tel:+902129999999', 'telephone untouched' ),
+	array( 'https://wa.me/905551234567', 'de', 'https://wa.me/905551234567', 'WhatsApp untouched' ),
+	array( 'https://www.peraproperty.com/wp-json/wp/v2/property', 'de', 'https://www.peraproperty.com/wp-json/wp/v2/property', 'REST URL untouched' ),
+	array( 'https://www.peraproperty.com/wp-content/uploads/property.jpg', 'ar', 'https://www.peraproperty.com/wp-content/uploads/property.jpg', 'upload URL untouched' ),
 	array( '#contact', 'ar', '#contact', 'fragment-only untouched' ),
 );
 
