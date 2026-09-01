@@ -1,8 +1,9 @@
 <?php
 
-$limit   = 500;
-$dry_run = false;
-$status  = 'all';
+$limit       = 500;
+$dry_run     = false;
+$status      = 'all';
+$object_type = null;
 
 $cli_args = isset( $args ) && is_array( $args )
     ? $args
@@ -35,8 +36,27 @@ foreach ( $cli_args as $arg ) {
         }
 
         $status = $requested_status;
+        continue;
+    }
+
+    if ( 0 === strpos( $arg, 'object_type=' ) ) {
+        $requested_object_type = substr( $arg, 12 );
+
+        if (
+            '' === $requested_object_type ||
+            ! preg_match( '/^[A-Za-z0-9_-]+(?::[A-Za-z0-9_-]+)?$/', $requested_object_type )
+        ) {
+            echo 'ERROR: Invalid object_type filter "' . $requested_object_type . '".' . PHP_EOL;
+            return;
+        }
+
+        $object_type = $requested_object_type;
     }
 }
+
+$object_type_summary = null === $object_type
+    ? ''
+    : ' | Object type: ' . $object_type;
 
 $p = Pera_ML_Plugin::instance();
 
@@ -65,7 +85,8 @@ foreach ( $rows as $row ) {
     if (
         ! isset( $row['status'] ) ||
         ! in_array( $row['status'], array( 'missing', 'stale' ), true ) ||
-        ( 'all' !== $status && $status !== $row['status'] )
+        ( 'all' !== $status && $status !== $row['status'] ) ||
+        ( null !== $object_type && ( ! isset( $row['object_type'] ) || $object_type !== $row['object_type'] ) )
     ) {
         continue;
     }
@@ -74,7 +95,7 @@ foreach ( $rows as $row ) {
 }
 
 if ( ! $pending ) {
-    echo 'No incomplete translations found. Status filter: ' . $status . PHP_EOL;
+    echo 'No incomplete translations found. Status filter: ' . $status . $object_type_summary . PHP_EOL;
     return;
 }
 
@@ -140,11 +161,13 @@ if ( $dry_run ) {
     echo 'Dry run: ' . $shown
         . ' row(s) shown | Limit: ' . $limit
         . ' | Status filter: ' . $status
+        . $object_type_summary
         . PHP_EOL;
 } else {
     echo 'Completed: ' . $success
         . ' | Errors: ' . $errors
         . ' | Skipped: ' . $skipped
         . ' | Status filter: ' . $status
+        . $object_type_summary
         . PHP_EOL;
 }
