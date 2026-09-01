@@ -167,18 +167,20 @@ if ( ! function_exists( 'pera_is_property_archive_context' ) ) {
 
 if ( ! function_exists( 'pera_get_district_archive_location_name' ) ) {
   function pera_get_district_archive_location_name( WP_Term $term ): string {
-    $name = trim( (string) $term->name );
+    $canonical_name = trim( (string) $term->name );
 
-    if ( $name === '' ) {
+    if ( $canonical_name === '' ) {
       return 'Istanbul';
     }
 
     $normalized = function_exists( 'mb_strtolower' )
-      ? mb_strtolower( $name, 'UTF-8' )
-      : strtolower( $name );
+      ? mb_strtolower( $canonical_name, 'UTF-8' )
+      : strtolower( $canonical_name );
+
+    $name = function_exists( 'pera_ml_term' ) ? pera_ml_term( $term, 'name' ) : $canonical_name;
 
     if ( in_array( $normalized, array( 'istanbul', 'i̇stanbul' ), true ) ) {
-      return 'Istanbul';
+      return $name;
     }
 
     return $name . ', Istanbul';
@@ -206,18 +208,20 @@ if ( ! function_exists( 'pera_get_district_archive_title' ) ) {
 
 if ( ! function_exists( 'pera_get_region_archive_location_name' ) ) {
   function pera_get_region_archive_location_name( WP_Term $term ): string {
-    $name = trim( (string) $term->name );
+    $canonical_name = trim( (string) $term->name );
 
-    if ( $name === '' ) {
+    if ( $canonical_name === '' ) {
       return 'Istanbul';
     }
 
     $normalized = function_exists( 'mb_strtolower' )
-      ? mb_strtolower( $name, 'UTF-8' )
-      : strtolower( $name );
+      ? mb_strtolower( $canonical_name, 'UTF-8' )
+      : strtolower( $canonical_name );
+
+    $name = function_exists( 'pera_ml_term' ) ? pera_ml_term( $term, 'name' ) : $canonical_name;
 
     if ( in_array( $normalized, array( 'istanbul', 'i̇stanbul' ), true ) ) {
-      return 'Istanbul';
+      return $name;
     }
 
     return $name . ', Istanbul';
@@ -300,11 +304,10 @@ if ( ! function_exists( 'pera_get_property_archive_term_acf_field' ) ) {
       // Select and hash the canonical raw value; translated ACF formatting must
       // not become the source for a second translation lookup.
       $value = get_field( $field_name, $candidate, false );
-      if ( is_string( $value ) ) {
-        $value = pera_seo_normalize_meta_text( $value );
-        if ( $value !== '' ) {
-          return $value;
-        }
+      // Use normalized text only as an emptiness check. The untranslated raw
+      // value remains the source passed to Pera ML for source hashing.
+      if ( is_string( $value ) && pera_seo_normalize_meta_text( $value ) !== '' ) {
+        return $value;
       }
     }
 
@@ -316,11 +319,11 @@ if ( ! function_exists( 'pera_get_property_archive_term_manual_seo_title' ) ) {
   function pera_get_property_archive_term_manual_seo_title( WP_Term $term ): string {
     $manual = pera_get_property_archive_term_acf_field( $term, 'seo_title' );
 
-    if ( $manual === '' ) {
-      $manual = pera_seo_normalize_meta_text( (string) get_term_meta( $term->term_id, 'seo_title', true ) );
-    }
+    if ( $manual === '' ) $manual = (string) get_term_meta( $term->term_id, 'seo_title', true );
+    if ( trim( $manual ) === '' ) return '';
+    if ( function_exists( 'pera_ml_term_meta' ) ) $manual = (string) pera_ml_term_meta( $term, 'meta:seo_title', $manual );
 
-    return $manual;
+    return pera_seo_normalize_meta_text( $manual );
   }
 }
 
@@ -328,11 +331,11 @@ if ( ! function_exists( 'pera_get_property_archive_term_manual_meta_description'
   function pera_get_property_archive_term_manual_meta_description( WP_Term $term ): string {
     $manual = pera_get_property_archive_term_acf_field( $term, 'seo_meta_description' );
 
-    if ( $manual === '' ) {
-      $manual = pera_seo_normalize_meta_text( (string) get_term_meta( $term->term_id, 'seo_meta_description', true ) );
-    }
+    if ( $manual === '' ) $manual = (string) get_term_meta( $term->term_id, 'seo_meta_description', true );
+    if ( trim( $manual ) === '' ) return '';
+    if ( function_exists( 'pera_ml_term_meta' ) ) $manual = (string) pera_ml_term_meta( $term, 'meta:seo_meta_description', $manual );
 
-    return $manual;
+    return pera_seo_normalize_meta_text( $manual );
   }
 }
 
@@ -353,14 +356,16 @@ if ( ! function_exists( 'pera_get_property_archive_term_manual_heading' ) ) {
     foreach ( $field_candidates as $field_name ) {
       $manual = pera_get_property_archive_term_acf_field( $term, $field_name );
       if ( $manual !== '' ) {
-        return function_exists( 'pera_ml_term_meta' ) ? (string) pera_ml_term_meta( $term, 'meta:' . $field_name, $manual ) : $manual;
+        $resolved = function_exists( 'pera_ml_term_meta' ) ? (string) pera_ml_term_meta( $term, 'meta:' . $field_name, $manual ) : $manual;
+        return pera_seo_normalize_meta_text( $resolved );
       }
     }
 
     foreach ( $field_candidates as $field_name ) {
-      $manual = pera_seo_normalize_meta_text( (string) get_term_meta( $term->term_id, $field_name, true ) );
-      if ( $manual !== '' ) {
-        return function_exists( 'pera_ml_term_meta' ) ? (string) pera_ml_term_meta( $term, 'meta:' . $field_name, $manual ) : $manual;
+      $manual = (string) get_term_meta( $term->term_id, $field_name, true );
+      if ( trim( $manual ) !== '' ) {
+        $resolved = function_exists( 'pera_ml_term_meta' ) ? (string) pera_ml_term_meta( $term, 'meta:' . $field_name, $manual ) : $manual;
+        return pera_seo_normalize_meta_text( $resolved );
       }
     }
 

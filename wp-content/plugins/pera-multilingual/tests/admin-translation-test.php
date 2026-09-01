@@ -28,7 +28,7 @@ require dirname( __DIR__ ) . '/includes/class-fields.php';
 require dirname( __DIR__ ) . '/admin/class-admin.php';
 
 $admin_source = file_get_contents( dirname( __DIR__ ) . '/admin/class-admin.php' );
-expect_same( array( 'district', 'region', 'property_type', 'property_tags', 'special', 'category' ), Pera_ML_Fields::supported_taxonomies(), 'per-object taxonomy contract retains existing taxonomies and includes WordPress categories' );
+expect_same( array( 'district', 'region', 'property_type', 'property_tags', 'special', 'category', 'post_tag' ), Pera_ML_Fields::supported_taxonomies(), 'per-object taxonomy contract retains existing taxonomies and includes WordPress categories' );
 expect_same( true, false !== strpos( $admin_source, 'foreach ( Pera_ML_Fields::supported_taxonomies() as $taxonomy )' ), 'per-object translation consumes the shared taxonomy contract, including category' );
 expect_same( false, false !== strpos( $admin_source, "foreach ( array( 'district', 'region', 'property_type', 'property_tags', 'special' ) as \$taxonomy )" ), 'per-object translation has no duplicated legacy taxonomy allowlist' );
 expect_same( true, false !== strpos( $admin_source, "'term_name', \$language, \$term->name" ), 'assigned taxonomy terms still translate their canonical names' );

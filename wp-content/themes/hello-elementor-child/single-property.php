@@ -1050,9 +1050,9 @@ $custom_video_text = $custom_video_text ? wp_kses_post( wpautop( $custom_video_t
 
       <!-- RIGHT: META -->
       <div class="text-soft text-xs">
-        <?php $updated_date = get_the_modified_date( 'j F Y', $property_id ); ?>
-        This listing was last updated on <?php echo esc_html( $updated_date ); ?>.
-        Ref: <?php echo esc_html( $property_id ); ?>
+        <?php $updated_date = pera_ml_format_property_date( get_post_modified_time( 'U', true, $property_id ) ); ?>
+        <?php echo esc_html( pera_ml_ui( 'This listing was last updated on', 'theme.template.single_property.last_updated_label' ) ); ?> <?php echo esc_html( $updated_date ); ?>.
+        <?php echo esc_html( pera_ml_ui( 'Ref:', 'theme.template.single_property.reference_label' ) ); ?> <?php echo esc_html( $property_id ); ?>
       </div>
     </div>
 

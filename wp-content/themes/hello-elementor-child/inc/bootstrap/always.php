@@ -32,6 +32,7 @@ require_once get_stylesheet_directory() . '/inc/favourites.php';
 require_once get_stylesheet_directory() . '/inc/form-spam-guard.php';
 
 require_once get_stylesheet_directory() . '/inc/property-card-helpers.php';
+require_once get_stylesheet_directory() . '/inc/multilingual-date.php';
 require_once get_stylesheet_directory() . '/inc/latest-offers-card.php';
 require_once get_stylesheet_directory() . '/inc/blog/editorial-updated-date.php';
 require_once get_stylesheet_directory() . '/inc/blog/ajax-blog-search.php';

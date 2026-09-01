@@ -25,14 +25,14 @@ final class Pera_ML_Fields {
 	public static function controlled_property_fields() { return array( 'facilities', 'target_buyer_type', 'property_key_advantages' ); }
 	/** Taxonomies whose canonical terms are included in translation generation and health. */
 	public static function supported_taxonomies() {
-		return apply_filters( 'pera_ml_translatable_taxonomies', array( 'district', 'region', 'property_type', 'property_tags', 'special', 'category' ) );
+		return apply_filters( 'pera_ml_translatable_taxonomies', array( 'district', 'region', 'property_type', 'property_tags', 'special', 'category', 'post_tag' ) );
 	}
 	/** Canonical term contract consumed by term() and the registered ACF formatting layer. */
 	public static function taxonomy_fields( $taxonomy ) {
 		$fields = array( 'term_name', 'term_description' );
 		$property_taxonomies = array_values( array_intersect( self::supported_taxonomies(), array( 'district', 'region', 'property_type', 'property_tags', 'special' ) ) );
 		if ( in_array( $taxonomy, $property_taxonomies, true ) ) {
-			$fields = array_merge( $fields, array( 'meta:seo_faq_v2', 'meta:archive_h1', 'meta:archive_heading', 'meta:h1_title', 'meta:display_title', 'meta:hero_title', 'meta:term_excerpt', 'meta:pera_term_excerpt' ) );
+			$fields = array_merge( $fields, array( 'meta:seo_title', 'meta:seo_meta_description', 'meta:seo_faq_v2', 'meta:archive_h1', 'meta:archive_heading', 'meta:h1_title', 'meta:display_title', 'meta:hero_title', 'meta:term_excerpt', 'meta:pera_term_excerpt' ) );
 		}
 		if ( in_array( $taxonomy, array( 'region', 'property_tags' ), true ) ) $fields = array_merge( $fields, array( 'meta:archive_subtitle', 'meta:archive_body_content' ) );
 		if ( 'district' === $taxonomy ) $fields = array_merge( $fields, array( 'meta:district_archive_subtitle', 'meta:district_archive_body' ) );
@@ -150,7 +150,7 @@ final class Pera_ML_Fields {
 		if ( $post_id instanceof WP_Term ) return array( 'type' => 'term', 'id' => (int) $post_id->term_id );
 		if ( $post_id instanceof WP_Post ) return array( 'type' => 'post', 'id' => (int) $post_id->ID, 'post_type' => $post_id->post_type );
 		if ( is_numeric( $post_id ) && (int) $post_id > 0 ) return array( 'type' => 'post', 'id' => (int) $post_id, 'post_type' => function_exists( 'get_post_type' ) ? get_post_type( (int) $post_id ) : 'post' );
-		if ( is_string( $post_id ) && preg_match( '/^(term|district|region|property_type|property_tags|special|category)_(\d+)$/i', $post_id, $match ) ) return array( 'type' => 'term', 'id' => (int) $match[2] );
+		if ( is_string( $post_id ) && preg_match( '/^(term|district|region|property_type|property_tags|special|category|post_tag)_(\d+)$/i', $post_id, $match ) ) return array( 'type' => 'term', 'id' => (int) $match[2] );
 		return null;
 	}
 	public function term( $term, $field = 'name', $language = null ) {
