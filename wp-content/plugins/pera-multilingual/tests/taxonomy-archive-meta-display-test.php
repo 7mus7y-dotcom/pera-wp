@@ -73,9 +73,9 @@ $storage->rows['term:20:meta:district_archive_subtitle:zh'] = array( 'translated
 expect_taxonomy_archive_meta( $source, $fields->term_meta( $district, 'meta:district_archive_subtitle', $source ), 'stale translations fall back to the canonical source' );
 
 $expected_contract = array(
-	'district'      => array( 'term_name', 'term_description', 'meta:seo_faq_v2', 'meta:archive_h1', 'meta:archive_heading', 'meta:h1_title', 'meta:display_title', 'meta:hero_title', 'meta:term_excerpt', 'meta:pera_term_excerpt', 'meta:district_archive_subtitle', 'meta:district_archive_body' ),
-	'region'        => array( 'term_name', 'term_description', 'meta:seo_faq_v2', 'meta:archive_h1', 'meta:archive_heading', 'meta:h1_title', 'meta:display_title', 'meta:hero_title', 'meta:term_excerpt', 'meta:pera_term_excerpt', 'meta:archive_subtitle', 'meta:archive_body_content' ),
-	'property_tags' => array( 'term_name', 'term_description', 'meta:seo_faq_v2', 'meta:archive_h1', 'meta:archive_heading', 'meta:h1_title', 'meta:display_title', 'meta:hero_title', 'meta:term_excerpt', 'meta:pera_term_excerpt', 'meta:archive_subtitle', 'meta:archive_body_content', 'meta:archive_h1_title' ),
+	'district'      => array( 'term_name', 'term_description', 'meta:seo_title', 'meta:seo_meta_description', 'meta:seo_faq_v2', 'meta:archive_h1', 'meta:archive_heading', 'meta:h1_title', 'meta:display_title', 'meta:hero_title', 'meta:term_excerpt', 'meta:pera_term_excerpt', 'meta:district_archive_subtitle', 'meta:district_archive_body' ),
+	'region'        => array( 'term_name', 'term_description', 'meta:seo_title', 'meta:seo_meta_description', 'meta:seo_faq_v2', 'meta:archive_h1', 'meta:archive_heading', 'meta:h1_title', 'meta:display_title', 'meta:hero_title', 'meta:term_excerpt', 'meta:pera_term_excerpt', 'meta:archive_subtitle', 'meta:archive_body_content' ),
+	'property_tags' => array( 'term_name', 'term_description', 'meta:seo_title', 'meta:seo_meta_description', 'meta:seo_faq_v2', 'meta:archive_h1', 'meta:archive_heading', 'meta:h1_title', 'meta:display_title', 'meta:hero_title', 'meta:term_excerpt', 'meta:pera_term_excerpt', 'meta:archive_subtitle', 'meta:archive_body_content', 'meta:archive_h1_title' ),
 );
 foreach ( $expected_contract as $taxonomy => $contract ) {
 	expect_taxonomy_archive_meta( $contract, Pera_ML_Fields::taxonomy_fields( $taxonomy ), "{$taxonomy} taxonomy contract contains only approved visible archive fields" );

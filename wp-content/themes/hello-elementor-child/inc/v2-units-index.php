@@ -995,7 +995,7 @@ if ( ! function_exists( 'pera_v2_render_units_price_table' ) ) {
                   : '';
             
                 $updated_ts       = (int) get_post_modified_time( 'U', true, $post_id );
-                $updated_date_txt = get_the_modified_date( 'j F Y', $post_id );
+                $updated_date_txt = pera_ml_format_property_date( get_post_modified_time( 'U', true, $post_id ) );
                 $now_ts           = (int) current_time( 'timestamp', true );
                 $is_older_than_month = ( $updated_ts > 0 ) && ( ( $now_ts - $updated_ts ) > ( 30 * DAY_IN_SECONDS ) );
 
