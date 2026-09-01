@@ -406,26 +406,27 @@ function pera_get_term_excerpt_raw( int $term_id, string $taxonomy = '' ): strin
   $term_id = (int) $term_id;
   if ( $term_id <= 0 ) return '';
 
-  $excerpt = (string) get_term_meta( $term_id, PERA_TERM_EXCERPT_KEY, true );
+  $field_key = PERA_TERM_EXCERPT_KEY;
+  $excerpt = (string) get_term_meta( $term_id, $field_key, true );
 
   // Back-compat: category old key
   if ( $excerpt === '' && $taxonomy === 'category' ) {
     $old = (string) get_term_meta( $term_id, 'category_excerpt', true );
-    if ( $old !== '' ) $excerpt = $old;
+    if ( $old !== '' ) { $field_key = 'category_excerpt'; $excerpt = $old; }
+  }
+
+  $term = $taxonomy ? get_term( $term_id, $taxonomy ) : get_term( $term_id );
+  if ( $excerpt !== '' && $term instanceof WP_Term && function_exists( 'pera_ml_term_meta' ) ) {
+    $excerpt = (string) pera_ml_term_meta( $term, 'meta:' . $field_key, $excerpt );
   }
 
   $excerpt = trim( wp_strip_all_tags( $excerpt ) );
   if ( $excerpt !== '' ) return $excerpt;
 
   // Fallback: term description
-  if ( $taxonomy ) {
-    $term = get_term( $term_id, $taxonomy );
-  } else {
-    $term = get_term( $term_id );
-  }
-
   if ( $term && ! is_wp_error( $term ) && ! empty( $term->description ) ) {
-    return trim( wp_strip_all_tags( (string) $term->description ) );
+    $description = function_exists( 'pera_ml_term' ) ? pera_ml_term( $term, 'description' ) : $term->description;
+    return trim( wp_strip_all_tags( (string) $description ) );
   }
 
   return '';

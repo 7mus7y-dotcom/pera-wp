@@ -98,10 +98,19 @@ if ( ! function_exists( 'pera_get_property_taxonomy_archive_cta_heading' ) ) {
     if ( isset( $exceptions[ $slug ] ) && is_string( $exceptions[ $slug ] ) && trim( $exceptions[ $slug ] ) !== '' ) {
       $heading = trim( $exceptions[ $slug ] );
     } else {
-      $heading = sprintf( 'Looking for property in %s?', $term->name );
+      $heading = sprintf( 'Looking for property in %s?', pera_seo_term_name( $term ) );
     }
 
     return (string) apply_filters( 'pera_property_taxonomy_archive_cta_heading', $heading, $term );
+  }
+}
+
+if ( ! function_exists( 'pera_seo_term_name' ) ) {
+  /** Resolve a rendered taxonomy label without changing the canonical term object. */
+  function pera_seo_term_name( WP_Term $term ): string {
+    return function_exists( 'pera_ml_term' )
+      ? (string) pera_ml_term( $term )
+      : (string) $term->name;
   }
 }
 
@@ -156,7 +165,7 @@ if ( ! function_exists( 'pera_is_property_archive_context' ) ) {
 
 if ( ! function_exists( 'pera_get_district_archive_location_name' ) ) {
   function pera_get_district_archive_location_name( WP_Term $term ): string {
-    $name = trim( (string) $term->name );
+    $name = trim( pera_seo_term_name( $term ) );
 
     if ( $name === '' ) {
       return 'Istanbul';
@@ -190,7 +199,7 @@ if ( ! function_exists( 'pera_get_district_archive_title' ) ) {
 
 if ( ! function_exists( 'pera_get_region_archive_location_name' ) ) {
   function pera_get_region_archive_location_name( WP_Term $term ): string {
-    $name = trim( (string) $term->name );
+    $name = trim( pera_seo_term_name( $term ) );
 
     if ( $name === '' ) {
       return 'Istanbul';
@@ -224,7 +233,7 @@ if ( ! function_exists( 'pera_get_region_archive_title' ) ) {
 
 if ( ! function_exists( 'pera_get_property_tags_archive_heading' ) ) {
   function pera_get_property_tags_archive_heading( WP_Term $term ): string {
-    $tag = trim( (string) $term->name );
+    $tag = trim( pera_seo_term_name( $term ) );
 
     if ( $tag === '' ) {
       return 'Property for sale in Istanbul';
@@ -236,7 +245,7 @@ if ( ! function_exists( 'pera_get_property_tags_archive_heading' ) ) {
 
 if ( ! function_exists( 'pera_get_property_tags_archive_title' ) ) {
   function pera_get_property_tags_archive_title( WP_Term $term ): string {
-    $tag = trim( (string) $term->name );
+    $tag = trim( pera_seo_term_name( $term ) );
 
     if ( $tag === '' ) {
       return 'Property for sale in Istanbul | Pera Property';
@@ -276,7 +285,7 @@ if ( ! function_exists( 'pera_get_property_archive_term_acf_field' ) ) {
     );
 
     foreach ( $candidates as $candidate ) {
-      $value = get_field( $field_name, $candidate );
+      $value = get_field( $field_name, $candidate, false );
       if ( is_string( $value ) ) {
         $value = pera_seo_normalize_meta_text( $value );
         if ( $value !== '' ) {
@@ -297,7 +306,11 @@ if ( ! function_exists( 'pera_get_property_archive_term_manual_seo_title' ) ) {
       $manual = pera_seo_normalize_meta_text( (string) get_term_meta( $term->term_id, 'seo_title', true ) );
     }
 
-    return $manual;
+    if ( function_exists( 'pera_ml_term_meta' ) ) {
+      $manual = (string) pera_ml_term_meta( $term, 'meta:seo_title', $manual );
+    }
+
+    return pera_seo_normalize_meta_text( $manual );
   }
 }
 
@@ -309,7 +322,11 @@ if ( ! function_exists( 'pera_get_property_archive_term_manual_meta_description'
       $manual = pera_seo_normalize_meta_text( (string) get_term_meta( $term->term_id, 'seo_meta_description', true ) );
     }
 
-    return $manual;
+    if ( function_exists( 'pera_ml_term_meta' ) ) {
+      $manual = (string) pera_ml_term_meta( $term, 'meta:seo_meta_description', $manual );
+    }
+
+    return pera_seo_normalize_meta_text( $manual );
   }
 }
 
@@ -347,7 +364,7 @@ if ( ! function_exists( 'pera_get_property_archive_term_manual_heading' ) ) {
 
 if ( ! function_exists( 'pera_get_property_type_archive_heading' ) ) {
   function pera_get_property_type_archive_heading( WP_Term $term ): string {
-    $name = trim( (string) $term->name );
+    $name = trim( pera_seo_term_name( $term ) );
     $slug = sanitize_title( (string) $term->slug );
 
     if ( in_array( $slug, array( 'apartment', 'apartments' ), true ) ) {
@@ -371,10 +388,18 @@ if ( ! function_exists( 'pera_get_property_archive_term_excerpt_fallback' ) ) {
    * Existing term-description fallback chain for taxonomy archive meta descriptions.
    */
   function pera_get_property_archive_term_excerpt_fallback( WP_Term $term ): string {
-    $value = (string) get_term_meta( $term->term_id, 'term_excerpt', true );
-    if ( $value === '' ) $value = (string) get_term_meta( $term->term_id, 'excerpt', true );
-    if ( $value === '' ) $value = (string) get_term_meta( $term->term_id, 'pera_term_excerpt', true );
-    if ( $value === '' ) $value = (string) term_description( $term->term_id, $term->taxonomy );
+    $field = 'term_excerpt';
+    $value = (string) get_term_meta( $term->term_id, $field, true );
+    if ( $value === '' ) { $field = 'excerpt'; $value = (string) get_term_meta( $term->term_id, $field, true ); }
+    if ( $value === '' ) { $field = 'pera_term_excerpt'; $value = (string) get_term_meta( $term->term_id, $field, true ); }
+    if ( $value !== '' && function_exists( 'pera_ml_term_meta' ) ) {
+      $value = (string) pera_ml_term_meta( $term, 'meta:' . $field, $value );
+    }
+    if ( $value === '' ) {
+      $value = function_exists( 'pera_ml_term' )
+        ? (string) pera_ml_term( $term, 'description' )
+        : (string) term_description( $term->term_id, $term->taxonomy );
+    }
 
     return pera_seo_normalize_meta_text( $value );
   }
@@ -399,7 +424,7 @@ if ( ! function_exists( 'pera_property_archive_human_label_from_term_name' ) ) {
 
 if ( ! function_exists( 'pera_get_property_archive_generated_title' ) ) {
   function pera_get_property_archive_generated_title( WP_Term $term ): string {
-    $name = pera_seo_normalize_meta_text( (string) $term->name );
+    $name = pera_seo_normalize_meta_text( pera_seo_term_name( $term ) );
     $taxonomy = (string) $term->taxonomy;
 
     if ( $taxonomy === 'district' ) {
@@ -442,7 +467,7 @@ if ( ! function_exists( 'pera_get_property_archive_generated_title' ) ) {
 if ( ! function_exists( 'pera_get_property_archive_generated_term_description' ) ) {
   function pera_get_property_archive_generated_term_description( WP_Term $term ): string {
     $taxonomy = (string) $term->taxonomy;
-    $name     = pera_property_archive_human_label_from_term_name( (string) $term->name );
+    $name     = pera_property_archive_human_label_from_term_name( pera_seo_term_name( $term ) );
 
     if ( $taxonomy === 'property_type' ) {
       if ( $name !== '' ) {

@@ -15,6 +15,9 @@ final class Pera_ML_Fields {
 	/** Canonical term contract consumed by term() and the registered ACF formatting layer. */
 	public static function taxonomy_fields( $taxonomy ) {
 		$fields = array( 'term_name', 'term_description' );
+		if ( in_array( $taxonomy, array( 'category', 'post_tag', 'district', 'region', 'property_type', 'property_tags', 'special' ), true ) ) $fields = array_merge( $fields, array( 'meta:seo_title', 'meta:seo_meta_description' ) );
+		if ( in_array( $taxonomy, array( 'district', 'region', 'property_type', 'property_tags' ), true ) ) $fields = array_merge( $fields, array( 'meta:term_excerpt', 'meta:excerpt', 'meta:pera_term_excerpt' ) );
+		if ( 'category' === $taxonomy ) $fields = array_merge( $fields, array( 'meta:pera_term_excerpt', 'meta:category_excerpt' ) );
 		if ( in_array( $taxonomy, array( 'district', 'region', 'property_type', 'property_tags', 'special' ), true ) ) $fields[] = 'meta:seo_faq_v2';
 		if ( in_array( $taxonomy, array( 'region', 'property_tags' ), true ) ) $fields = array_merge( $fields, array( 'meta:archive_subtitle', 'meta:archive_body_content' ) );
 		if ( 'district' === $taxonomy ) $fields = array_merge( $fields, array( 'meta:district_archive_subtitle', 'meta:district_archive_body' ) );
