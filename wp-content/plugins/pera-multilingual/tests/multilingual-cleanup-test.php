@@ -14,7 +14,7 @@ function pera_ml_term_meta( $term, $field, $source ) {
 	$GLOBALS['cleanup_term_lookups'][] = array( $field, $source );
 	return "  Übersetzter <em>Titel</em>\n mit   Abstand ";
 }
-function pera_ml_term( $term ) { return '伊斯坦布尔'; }
+function pera_ml_term( $term ) { return isset( $GLOBALS['cleanup_term_translation'] ) ? $GLOBALS['cleanup_term_translation'] : '伊斯坦布尔'; }
 class WP_Term { public $term_id = 7; public $taxonomy = 'district'; public $name = 'Istanbul'; public $slug = 'istanbul'; }
 require dirname( dirname( dirname( __DIR__ ) ) ) . '/themes/hello-elementor-child/inc/multilingual-date.php';
 $theme = dirname( dirname( dirname( __DIR__ ) ) ) . '/themes/hello-elementor-child';
@@ -27,7 +27,11 @@ cleanup_expect( '2026年3月14日' === pera_ml_format_property_date( $timestamp,
 foreach ( array( 'de', 'ar', 'zh' ) as $language ) cleanup_expect( false === strpos( pera_ml_format_property_date( $timestamp, $language ), 'March' ), "{$language} date has no English month" );
 
 $term = new WP_Term();
-cleanup_expect( '伊斯坦布尔' === pera_get_district_archive_location_name( $term ), 'translated canonical Istanbul is not suffixed with canonical Istanbul' );
+foreach ( array( '伊斯坦布尔', 'Istanbul', 'إسطنبول' ) as $translated_istanbul ) {
+	$GLOBALS['cleanup_term_translation'] = $translated_istanbul;
+	cleanup_expect( $translated_istanbul === pera_get_district_archive_location_name( $term ), 'district canonical Istanbul is returned without a suffix' );
+	cleanup_expect( $translated_istanbul === pera_get_region_archive_location_name( $term ), 'region canonical Istanbul is returned without a suffix' );
+}
 cleanup_expect( 'Übersetzter Titel mit Abstand' === pera_get_property_archive_term_manual_seo_title( $term ), 'translated taxonomy SEO renders after normalization' );
 cleanup_expect( array( 'meta:seo_title', "  Canonical <strong>SEO</strong>\n\n title  " ) === $GLOBALS['cleanup_term_lookups'][0], 'taxonomy SEO hashes the exact raw canonical markup and whitespace source' );
 cleanup_expect( 'Übersetzter Titel mit Abstand' === pera_get_property_archive_term_manual_heading( $term ), 'markup-only earlier heading candidate is skipped for a later visible heading' );
