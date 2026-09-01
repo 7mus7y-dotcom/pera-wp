@@ -25,7 +25,7 @@ final class Pera_ML_Translation_Health_Orchestrator {
 		return $this->confirm_stored( $result, 'term', $id, $field, $language, $source );
 	}
 	private function translate_post( $type, $id, $field, $language ) {
-		$post = get_post( $id ); if ( ! $post || ! in_array( $post->post_type, array( 'post', 'page', 'property' ), true ) || $type !== $post->post_type ) return new WP_Error( 'invalid_row' );
+		$post = get_post( $id ); if ( ! $post || ! in_array( $post->post_type, array( 'post', 'page', 'property', 'team' ), true ) || $type !== $post->post_type ) return new WP_Error( 'invalid_row' );
 		$sources = $this->status->applicable_sources( $id, $post->post_type ); $state = $this->status->get( $id, $language, $post->post_type ); $eligible = in_array( $field, array_merge( $state['missing'], $state['stale'] ), true ); $source = isset( $sources[ $field ] ) && is_string( $sources[ $field ] ) ? $sources[ $field ] : '';
 		if ( ! $eligible || '' === trim( $source ) ) return new WP_Error( 'invalid_row' );
 		$result = $this->translator->translate_and_store( 'post', $id, $field, $language, $source );

@@ -51,8 +51,9 @@ final class Pera_ML_Translation_Status {
 			'page' => array( 'post_content' => false, 'post_title' => false, 'post_excerpt' => true, 'meta:seo_title' => true, 'meta:seo_meta_description' => true, 'meta:seo_faq_v2' => true ),
 			'post' => array( 'post_content' => false, 'post_title' => false, 'post_excerpt' => true, 'meta:seo_title' => true, 'meta:seo_meta_description' => true, 'meta:seo_faq_v2' => true ),
 			'property' => array( 'post_title' => true, 'post_content' => true, 'post_excerpt' => true ),
+			'team' => array(),
 		);
-		foreach ( array( 'page', 'post', 'property' ) as $type ) {
+		foreach ( array( 'page', 'post', 'property', 'team' ) as $type ) {
 			foreach ( ( new Pera_ML_Fields( null, null, null ) )->approved( $type ) as $field ) $definitions[ $type ][ 'meta:' . $field ] = true;
 		}
 		if ( 'page' === $post_type && Pera_ML_Fields::is_archive_settings_object( $object_id ) ) {

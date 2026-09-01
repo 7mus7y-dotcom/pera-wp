@@ -19,6 +19,7 @@ seo_paths_expect( false !== strpos( $plugin_seo, "pera_ml_field( \$id, 'seo_titl
 seo_paths_expect( false !== strpos( $plugin_seo, "empty( \$row['is_stale'] )" ), 'standalone document-title fallback rejects stale rows' );
 seo_paths_expect( false !== strpos( $plugin_seo, "'' !== trim( (string) \$row['translated_text'] )" ), 'standalone document-title fallback rejects blank rows' );
 seo_paths_expect( false === strpos( $fields, "'_wp_attachment_image_alt'" ), 'attachment alt was not added to post scalar contracts' );
-seo_paths_expect( false === strpos( $fields, "'team'" ), 'structured team data was not added to post scalar contracts' );
+seo_paths_expect( false !== strpos( $fields, "'team' => self::team_fields()" ), 'team metadata uses its own canonical object contract' );
+seo_paths_expect( false !== strpos( $fields, "return array( 'position' )" ), 'the team contract is narrowly limited to position' );
 
 echo "Pera ML SEO parallel-path tests passed\n";

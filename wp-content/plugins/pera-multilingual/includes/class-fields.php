@@ -20,6 +20,8 @@ final class Pera_ML_Fields {
 		// Structured fields such as price_list_kd and canonical checkbox arrays are intentionally absent.
 		return apply_filters( 'pera_ml_property_translatable_meta_fields', array( 'project_name', 'custom_text', 'project_summary_heading', 'project_summary', 'whats_special_heading', 'about_this_project', 'location_info_heading', 'distances', 'yt_heading', 'custom_video_heading', 'custom_video_button', 'custom_video_text', 'floor_plans_heading', 'floor_plans_custom_text', 'further_reading_heading', 'further_reading_text', 'kd_custom_text', 'v2_custom_text', 'seo_title', 'seo_meta_description', 'seo_faq_v2', 'property_editorial_intro', 'property_highlights_text', 'property_district_analysis', 'property_investment_potential', 'property_buyer_suitability', 'property_developer_profile', 'property_faq_text' ) );
 	}
+	/** Human-readable metadata owned by the canonical Team post. */
+	public static function team_fields() { return array( 'position' ); }
 	public static function controlled_property_fields() { return array( 'facilities', 'target_buyer_type', 'property_key_advantages' ); }
 	/** Taxonomies whose canonical terms are included in translation generation and health. */
 	public static function supported_taxonomies() {
@@ -77,7 +79,7 @@ final class Pera_ML_Fields {
 		$legacy = array( 'project_name', 'floor_plans_heading', 'floor_plans_custom_text', 'property_editorial_intro', 'property_highlights_text', 'property_district_analysis', 'property_investment_potential', 'property_buyer_suitability', 'property_developer_profile', 'property_faq_text', 'further_reading_heading', 'further_reading_text', 'custom_video_heading', 'custom_video_text', 'project_summary_heading', 'project_summary', 'yt_heading', 'whats_special_heading', 'about_this_project', 'location_info_heading', 'distances', 'archive_h1', 'archive_subtitle', 'archive_intro_content', 'archive_bottom_content', 'archive_cta_heading', 'archive_cta_text', 'district_archive_subtitle', 'district_archive_body', 'post_subtitle', 'seo_title', 'seo_meta_description', 'seo_faq_v2' );
 		$property = self::property_fields();
 		$page = array( 'seo_title', 'seo_meta_description', 'seo_faq_v2', 'homepage_hero_subtext', 'homepage_listing_intro', 'homepage_bottom_seo_text' );
-		return apply_filters( 'pera_ml_translatable_meta_fields_by_post_type', array( 'post' => apply_filters( 'pera_ml_translatable_meta_fields', $legacy ), 'page' => $page, 'property' => $property ) );
+		return apply_filters( 'pera_ml_translatable_meta_fields_by_post_type', array( 'post' => apply_filters( 'pera_ml_translatable_meta_fields', $legacy ), 'page' => $page, 'property' => $property, 'team' => self::team_fields() ) );
 	}
 	/** Get the contract for one post type, or the union used to register ACF filters. */
 	public function approved( $post_type = null ) {

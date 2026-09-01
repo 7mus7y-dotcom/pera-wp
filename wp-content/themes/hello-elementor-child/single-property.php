@@ -1363,6 +1363,8 @@ if ( ! empty( $yt_video ) ) {
               <?php
               $name_field = function_exists( 'get_field' ) ? get_field( 'name', $advisor_id ) : '';
               $name       = $name_field ? $name_field : get_the_title( $advisor_id );
+              // Pera ML translates only the Team-owned position; identity and
+              // contact fields below remain canonical and selection is complete.
               $position   = function_exists( 'get_field' ) ? get_field( 'position', $advisor_id ) : '';
               $photo      = function_exists( 'get_field' ) ? get_field( 'photo', $advisor_id ) : '';
               $number     = function_exists( 'get_field' ) ? get_field( 'number', $advisor_id ) : '';
