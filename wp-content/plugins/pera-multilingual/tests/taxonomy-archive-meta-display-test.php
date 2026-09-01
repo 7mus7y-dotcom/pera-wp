@@ -73,18 +73,28 @@ $storage->rows['term:20:meta:district_archive_subtitle:zh'] = array( 'translated
 expect_taxonomy_archive_meta( $source, $fields->term_meta( $district, 'meta:district_archive_subtitle', $source ), 'stale translations fall back to the canonical source' );
 
 $expected_contract = array(
-	'district'      => array( 'term_name', 'term_description', 'meta:seo_faq_v2', 'meta:district_archive_subtitle', 'meta:district_archive_body' ),
-	'region'        => array( 'term_name', 'term_description', 'meta:seo_faq_v2', 'meta:archive_subtitle', 'meta:archive_body_content' ),
-	'property_tags' => array( 'term_name', 'term_description', 'meta:seo_faq_v2', 'meta:archive_subtitle', 'meta:archive_body_content' ),
+	'district'      => array( 'term_name', 'term_description', 'meta:seo_faq_v2', 'meta:archive_h1', 'meta:archive_heading', 'meta:h1_title', 'meta:display_title', 'meta:hero_title', 'meta:term_excerpt', 'meta:pera_term_excerpt', 'meta:district_archive_subtitle', 'meta:district_archive_body' ),
+	'region'        => array( 'term_name', 'term_description', 'meta:seo_faq_v2', 'meta:archive_h1', 'meta:archive_heading', 'meta:h1_title', 'meta:display_title', 'meta:hero_title', 'meta:term_excerpt', 'meta:pera_term_excerpt', 'meta:archive_subtitle', 'meta:archive_body_content' ),
+	'property_tags' => array( 'term_name', 'term_description', 'meta:seo_faq_v2', 'meta:archive_h1', 'meta:archive_heading', 'meta:h1_title', 'meta:display_title', 'meta:hero_title', 'meta:term_excerpt', 'meta:pera_term_excerpt', 'meta:archive_subtitle', 'meta:archive_body_content', 'meta:archive_h1_title' ),
 );
 foreach ( $expected_contract as $taxonomy => $contract ) {
-	expect_taxonomy_archive_meta( $contract, Pera_ML_Fields::taxonomy_fields( $taxonomy ), "{$taxonomy} taxonomy contract was not expanded" );
+	expect_taxonomy_archive_meta( $contract, Pera_ML_Fields::taxonomy_fields( $taxonomy ), "{$taxonomy} taxonomy contract contains only approved visible archive fields" );
 }
+expect_taxonomy_archive_meta( false, in_array( 'meta:regional_guide', Pera_ML_Fields::taxonomy_fields( 'district' ), true ), 'structural relationship metadata is excluded' );
+expect_taxonomy_archive_meta( false, in_array( 'meta:district_image', Pera_ML_Fields::taxonomy_fields( 'district' ), true ), 'media metadata is excluded' );
 
 // Template wiring is kept deliberately narrow; helper behaviour above is tested independently.
 $template = file_get_contents( dirname( dirname( dirname( __DIR__ ) ) ) . '/themes/hello-elementor-child/archive-property.php' );
 foreach ( array_merge( ...array_values( $approved ) ) as $field_name ) {
 	expect_taxonomy_archive_meta( true, false !== strpos( $template, "pera_ml_term_meta( \$qo, '{$field_name}'," ), "archive template routes {$field_name} through pera_ml_term_meta" );
 }
+expect_taxonomy_archive_meta( true, false !== strpos( $template, "pera_ml_term( \$qo, 'description' )" ), 'native term descriptions use the term translation contract' );
+expect_taxonomy_archive_meta( true, false !== strpos( $template, "pera_ml_term_meta( \$qo, 'meta:archive_h1_title'" ), 'property-tag manual H1 uses the term-meta contract' );
+expect_taxonomy_archive_meta( true, false !== strpos( $template, "pera_ml_term_meta( \$qo, 'meta:term_excerpt'" ), 'the selected canonical excerpt uses the term-meta contract' );
+
+$helpers = file_get_contents( dirname( dirname( dirname( __DIR__ ) ) ) . '/themes/hello-elementor-child/inc/seo-helpers.php' );
+expect_taxonomy_archive_meta( true, false !== strpos( $helpers, "'theme.archive.taxonomy.cta_heading'" ), 'contextual CTA uses a stable complete-phrase UI identity' );
+expect_taxonomy_archive_meta( true, false !== strpos( $helpers, "pera_ml_term( \$term, 'name' )" ), 'dynamic CTA and generated headings translate the term independently' );
+expect_taxonomy_archive_meta( false, (bool) preg_match( '/theme\\.archive\\.taxonomy[^\'\"]*\\.\\s*\\$term/u', $helpers ), 'UI semantic keys do not contain dynamic taxonomy values' );
 
 echo "Pera ML taxonomy archive metadata display tests passed\n";

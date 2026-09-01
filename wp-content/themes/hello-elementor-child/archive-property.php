@@ -317,7 +317,7 @@ $generic_archive_subtitle            = '';
 $generic_archive_body                = '';
 
 if ( $qo instanceof WP_Term ) {
-  $term_description_raw = term_description( $qo );
+  $term_description_raw = function_exists( 'pera_ml_term' ) ? pera_ml_term( $qo, 'description' ) : term_description( $qo );
 
   if ( trim( wp_strip_all_tags( $term_description_raw ) ) !== '' ) {
     $term_description_html = wpautop( wp_kses_post( $term_description_raw ) );
@@ -436,7 +436,9 @@ if ( ! $is_filtered_search && ( $qo instanceof WP_Term ) && ! is_wp_error( $qo )
     $hero_title = pera_get_region_archive_heading( $qo );
   } elseif ( $qo->taxonomy === 'property_tags' ) {
     $property_tags_archive_h1 = (string) get_term_meta( $qo->term_id, 'archive_h1_title', true );
-    $hero_title               = trim( $property_tags_archive_h1 ) !== '' ? $property_tags_archive_h1 : ( function_exists( 'pera_ml_term' ) && $qo instanceof WP_Term ? pera_ml_term( $qo ) : $qo->name );
+    $hero_title               = trim( $property_tags_archive_h1 ) !== '' && function_exists( 'pera_ml_term_meta' )
+      ? pera_ml_term_meta( $qo, 'meta:archive_h1_title', $property_tags_archive_h1 )
+      : ( trim( $property_tags_archive_h1 ) !== '' ? $property_tags_archive_h1 : ( function_exists( 'pera_ml_term' ) ? pera_ml_term( $qo, 'name' ) : $qo->name ) );
   } elseif ( $qo->taxonomy === 'property_type' && function_exists( 'pera_get_property_type_archive_heading' ) ) {
     $hero_title = pera_get_property_type_archive_heading( $qo );
   } else {
@@ -445,8 +447,15 @@ if ( ! $is_filtered_search && ( $qo instanceof WP_Term ) && ! is_wp_error( $qo )
 
   $term_excerpt = (string) get_term_meta( $qo->term_id, 'term_excerpt', true );
 
+  if ( trim( wp_strip_all_tags( $term_excerpt ) ) !== '' && function_exists( 'pera_ml_term_meta' ) ) {
+    $term_excerpt = (string) pera_ml_term_meta( $qo, 'meta:term_excerpt', $term_excerpt );
+  }
+
   if ( trim( wp_strip_all_tags( $term_excerpt ) ) === '' ) {
     $term_excerpt = (string) get_term_meta( $qo->term_id, 'pera_term_excerpt', true );
+    if ( trim( wp_strip_all_tags( $term_excerpt ) ) !== '' && function_exists( 'pera_ml_term_meta' ) ) {
+      $term_excerpt = (string) pera_ml_term_meta( $qo, 'meta:pera_term_excerpt', $term_excerpt );
+    }
   }
 
   if ( $qo->taxonomy === 'district' && trim( wp_strip_all_tags( $district_archive_subtitle ) ) !== '' ) {
@@ -461,7 +470,7 @@ if ( ! $is_filtered_search && ( $qo instanceof WP_Term ) && ! is_wp_error( $qo )
 
     $hero_desc_html = $excerpt_html;
   } else {
-    $term_desc_raw      = term_description( $qo->term_id, $qo->taxonomy );
+    $term_desc_raw      = function_exists( 'pera_ml_term' ) ? pera_ml_term( $qo, 'description' ) : term_description( $qo->term_id, $qo->taxonomy );
     $term_desc_fallback = wp_trim_words( wp_strip_all_tags( (string) $term_desc_raw ), 35, '…' );
 
     if ( trim( $term_desc_fallback ) !== '' ) {

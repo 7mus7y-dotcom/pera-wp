@@ -28,9 +28,13 @@ final class Pera_ML_Fields {
 	/** Canonical term contract consumed by term() and the registered ACF formatting layer. */
 	public static function taxonomy_fields( $taxonomy ) {
 		$fields = array( 'term_name', 'term_description' );
-		if ( in_array( $taxonomy, array( 'district', 'region', 'property_type', 'property_tags', 'special' ), true ) ) $fields[] = 'meta:seo_faq_v2';
+		$property_taxonomies = array_values( array_intersect( self::supported_taxonomies(), array( 'district', 'region', 'property_type', 'property_tags', 'special' ) ) );
+		if ( in_array( $taxonomy, $property_taxonomies, true ) ) {
+			$fields = array_merge( $fields, array( 'meta:seo_faq_v2', 'meta:archive_h1', 'meta:archive_heading', 'meta:h1_title', 'meta:display_title', 'meta:hero_title', 'meta:term_excerpt', 'meta:pera_term_excerpt' ) );
+		}
 		if ( in_array( $taxonomy, array( 'region', 'property_tags' ), true ) ) $fields = array_merge( $fields, array( 'meta:archive_subtitle', 'meta:archive_body_content' ) );
 		if ( 'district' === $taxonomy ) $fields = array_merge( $fields, array( 'meta:district_archive_subtitle', 'meta:district_archive_body' ) );
+		if ( 'property_tags' === $taxonomy ) $fields[] = 'meta:archive_h1_title';
 		return apply_filters( 'pera_ml_taxonomy_translatable_fields', $fields, $taxonomy );
 	}
 	public function __construct( $router, $storage, $vocabulary ) { $this->router = $router; $this->storage = $storage; $this->vocabulary = $vocabulary; }
