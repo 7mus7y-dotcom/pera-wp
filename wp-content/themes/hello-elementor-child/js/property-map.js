@@ -34,6 +34,7 @@
     const layoutEl = document.querySelector('.property-map-layout');
     const mapConfig = window.peraPropertyMap || {};
     const markerIconUrl = mapConfig.marker_icon || null;
+    const mapPrice = window.PeraPropertyMapPrice || null;
     const defaultCenter = { lat: 41.0082, lng: 28.9784 };
     const map = new window.google.maps.Map(mapEl, {
       center: defaultCenter,
@@ -55,6 +56,9 @@
     const setResultsHtml = (html) => {
       if (resultsEl) {
         resultsEl.innerHTML = html;
+        if (window.PeraCurrency && typeof window.PeraCurrency.render === 'function') {
+          window.PeraCurrency.render(resultsEl);
+        }
       }
     };
 
@@ -159,6 +163,7 @@
               <div>
                 <p class="text-xs muted text-upper" style="margin:0 0 6px;">Property</p>
                 <h3 class="text-base" style="margin:0; line-height:1.2;">${escapeHtml(this.data.title || '')}</h3>
+                <p style="margin:6px 0 0;"><span data-map-price-prefix hidden></span><span data-map-price-money dir="ltr"></span><span data-map-price-suffix hidden></span></p>
               </div>
               <button type="button" class="btn btn--ghost" aria-label="Close" style="padding:6px 10px; line-height:1;">×</button>
             </div>
@@ -178,6 +183,10 @@
             pointer-events:none;
           "></div>
         `;
+
+        if (mapPrice && typeof mapPrice.render === 'function') {
+          mapPrice.render(this.div, this.data, mapConfig.price_from || '');
+        }
 
         const bubble = this.div.querySelector('[data-map-bubble="1"]');
         if (bubble) {
@@ -246,6 +255,15 @@
         activeOverlay = null;
       }
     };
+
+    window.addEventListener('pera:currency-change', () => {
+      if (activeOverlay && mapPrice && typeof mapPrice.render === 'function') {
+        mapPrice.render(activeOverlay.div, activeOverlay.data, mapConfig.price_from || '');
+      }
+      if (resultsEl && window.PeraCurrency && typeof window.PeraCurrency.render === 'function') {
+        window.PeraCurrency.render(resultsEl);
+      }
+    });
 
     window.google.maps.event.addListener(map, 'click', () => {
       closeActiveOverlay();

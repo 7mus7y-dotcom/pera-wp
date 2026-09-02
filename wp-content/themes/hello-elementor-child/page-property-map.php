@@ -108,17 +108,23 @@ if ( $acf_loaded ) {
 
         $special_terms = get_the_terms( $property_id, 'special' );
         $is_project    = false;
+        $is_resale     = false;
         if ( ! empty( $special_terms ) && ! is_wp_error( $special_terms ) ) {
             foreach ( $special_terms as $term ) {
                 if ( in_array( $term->slug, array( 'project', 'projects' ), true ) ) {
                     $is_project = true;
-                    break;
+                }
+                if ( in_array( $term->slug, array( 'resale', 'resales' ), true ) ) {
+                    $is_resale = true;
                 }
             }
         }
 
+        // Match the shared property-card rule: resale wins if both terms exist.
+        $show_project_price = $is_project && ! $is_resale;
+
         if ( function_exists( 'pera_units_get_display_data' ) ) {
-            $units_data = pera_units_get_display_data( (int) $property_id, array( 'context' => 'map', 'unit_key' => 0, 'is_project' => $is_project ) );
+            $units_data = pera_units_get_display_data( (int) $property_id, array( 'context' => 'map', 'unit_key' => 0, 'is_project' => $show_project_price ) );
             $price_text = (string) ( $units_data['price_text'] ?? '' );
             if ( $price_min < 1 ) {
                 $price_min = (int) ( $units_data['price_min'] ?? 0 );
@@ -143,6 +149,7 @@ if ( $acf_loaded ) {
             'price_text'    => $price_text,
             'price_min'     => $price_min,
             'price_max'     => $price_max > 0 ? $price_max : $price_min,
+            'price_mode'    => $show_project_price ? 'from' : ( $price_max > 0 && $price_max !== $price_min ? 'range' : 'single' ),
             'district'      => $district_term ? $district_term->slug : '',
             'district_name' => $district_term ? ( function_exists( 'pera_ml_term' ) ? pera_ml_term( $district_term ) : $district_term->name ) : '',
             'type'          => $type_term instanceof WP_Term ? $type_term->slug : '',
