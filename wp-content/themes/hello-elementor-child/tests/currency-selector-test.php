@@ -59,6 +59,6 @@ selector_expect( false !== strpos( $css_source, '.pera-currency-selector__list b
 selector_expect( false === strpos( $css_source, '.pera-currency-selector__icon' ), 'currency icon CSS is absent' );
 selector_expect( false === strpos( $css_source, '.pera-currency-selector__code,' ), 'mobile CSS does not hide the currency code' );
 selector_expect( false === strpos( $css_source, 'min-width: 30px; width: 30px;' ), 'mobile CSS has no icon-only fixed trigger' );
-selector_expect( false !== strpos( $plugin_source, 'Version: 1.0.1' ) && false !== strpos( $plugin_source, "PERA_CURRENCY_VERSION', '1.0.1'" ), 'plugin header and asset version are 1.0.1' );
+selector_expect( false !== strpos( $plugin_source, 'Version: 1.0.2' ) && false !== strpos( $plugin_source, "PERA_CURRENCY_VERSION', '1.0.2'" ), 'plugin header and asset version are 1.0.2' );
 
 echo "Currency selector tests passed\n";
