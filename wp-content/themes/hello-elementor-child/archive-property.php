@@ -737,8 +737,8 @@ if ( ! $is_filtered_search && ( $qo instanceof WP_Term ) && ! is_wp_error( $qo )
                                 <div class="filter-price__summary">
                                   <span id="price-summary-text" dir="ltr">
                                     <?php
-                                      $min_label = '$' . number_format_i18n($slider_min);
-                                      $max_label = '$' . number_format_i18n($slider_max);
+                                      $min_label = '$' . number_format( $slider_min, 0, '.', ',' );
+                                      $max_label = '$' . number_format( $slider_max, 0, '.', ',' );
                                       echo esc_html("{$min_label} — {$max_label}");
                                     ?>
                                   </span>

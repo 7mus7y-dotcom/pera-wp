@@ -17,5 +17,7 @@ expect(archive.includes("window.addEventListener('pera:currency-change'") && arc
 expect(archive.includes("window.addEventListener('popstate'") && archive.includes("params.get('min_price')"), 'history restores canonical USD state');
 expect(archive.includes('canonicalMinUsd = null') && archive.includes('canonicalMaxUsd = null'), 'reset clears canonical price state');
 expect(archive.includes('window.PeraCurrency;'), 'plugin integration is guarded');
+expect(archive.includes("number_format( $slider_min, 0, '.', ',' )") && archive.includes("number_format( $slider_max, 0, '.', ',' )"), 'SSR USD summary uses deterministic Western-digit formatting');
+expect(!archive.includes('number_format_i18n($slider_min)') && !archive.includes('number_format_i18n($slider_max)'), 'SSR USD summary is independent of WordPress locale');
 
 console.log('Archive currency price filter tests passed');
