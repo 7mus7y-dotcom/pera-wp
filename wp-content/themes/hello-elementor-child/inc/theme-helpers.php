@@ -872,19 +872,18 @@ function pera_render_currency_selector( $context = 'header' ) {
   $is_offcanvas = 'offcanvas' === $context;
   $list_id      = 'pera-currency-options-' . $context;
   ?>
-  <div class="pera-currency-selector pera-currency-selector--<?php echo esc_attr( $context ); ?>" data-pera-currency-selector data-pera-currency-label="<?php echo esc_attr( pera_ml_ui( 'Currency', 'theme.inc.theme-helpers.currency' ) ); ?>" data-pera-currency-selected-label="<?php echo esc_attr( pera_ml_ui( 'selected', 'theme.inc.theme-helpers.selected' ) ); ?>">
+  <div class="pera-currency-selector pera-currency-selector--<?php echo esc_attr( $context ); ?>" data-pera-currency-selector data-pera-currency-label="<?php echo esc_attr( pera_ml_ui( 'Currency', 'theme.inc.theme-helpers.currency' ) ); ?>">
     <?php if ( $is_offcanvas ) : ?>
       <span class="pera-currency-selector__title"><?php echo esc_html( pera_ml_ui( 'Currency', 'theme.inc.theme-helpers.currency' ) ); ?></span>
     <?php else : ?>
-      <button class="pera-currency-selector__trigger" type="button" aria-expanded="false" aria-haspopup="listbox" aria-controls="<?php echo esc_attr( $list_id ); ?>" aria-label="<?php echo esc_attr( pera_ml_ui( 'Currency: USD', 'theme.inc.theme-helpers.currency_usd' ) ); ?>" data-pera-currency-trigger>
+      <button class="pera-currency-selector__trigger" type="button" aria-expanded="false" aria-controls="<?php echo esc_attr( $list_id ); ?>" aria-label="<?php echo esc_attr( pera_ml_ui( 'Currency: USD', 'theme.inc.theme-helpers.currency_usd' ) ); ?>" data-pera-currency-trigger>
         <bdi class="pera-currency-selector__code" data-pera-currency-code>USD</bdi>
         <span class="pera-currency-selector__chevron" aria-hidden="true">▾</span>
-        <svg class="icon pera-currency-selector__icon" aria-hidden="true"><use href="<?php echo esc_url( get_stylesheet_directory_uri() . '/logos-icons/icons.svg#icon-currency' ); ?>"></use></svg>
       </button>
     <?php endif; ?>
-    <div id="<?php echo esc_attr( $list_id ); ?>" class="pera-currency-selector__list" role="listbox" aria-label="<?php echo esc_attr( pera_ml_ui( 'Select currency', 'theme.inc.theme-helpers.select_currency' ) ); ?>">
+    <div id="<?php echo esc_attr( $list_id ); ?>" class="pera-currency-selector__list" aria-label="<?php echo esc_attr( pera_ml_ui( 'Select currency', 'theme.inc.theme-helpers.select_currency' ) ); ?>">
       <?php foreach ( $codes as $code ) : ?>
-        <button type="button" role="option" dir="ltr" data-pera-currency-option="<?php echo esc_attr( $code ); ?>" aria-selected="<?php echo 'USD' === $code ? 'true' : 'false'; ?>" class="<?php echo 'USD' === $code ? 'is-active' : ''; ?>"><?php echo esc_html( $code ); ?><span class="screen-reader-text" data-pera-currency-selected-text><?php echo 'USD' === $code ? esc_html( pera_ml_ui( ' (selected)', 'theme.inc.theme-helpers.selected' ) ) : ''; ?></span></button>
+        <button type="button" dir="ltr" data-pera-currency-option="<?php echo esc_attr( $code ); ?>"<?php echo 'USD' === $code ? ' aria-current="true" class="is-active"' : ''; ?>><?php echo esc_html( $code ); ?></button>
       <?php endforeach; ?>
     </div>
   </div>

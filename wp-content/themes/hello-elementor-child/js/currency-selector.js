@@ -24,9 +24,8 @@
       Array.prototype.forEach.call(selector.querySelectorAll('[data-pera-currency-option]'), function (option) {
         var active = option.getAttribute('data-pera-currency-option') === code;
         option.classList.toggle('is-active', active);
-        option.setAttribute('aria-selected', String(active));
-        var selectedText = option.querySelector('[data-pera-currency-selected-text]');
-        if (selectedText) selectedText.textContent = active ? ' (' + (selector.getAttribute('data-pera-currency-selected-label') || 'selected') + ')' : '';
+        if (active) option.setAttribute('aria-current', 'true');
+        else option.removeAttribute('aria-current');
       });
     });
   }
