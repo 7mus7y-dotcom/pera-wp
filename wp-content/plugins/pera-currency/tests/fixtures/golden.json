@@ -1,0 +1,9 @@
+[
+  {"usd":450000,"currency":"USD","rate":1,"expected":"$450,000"},
+  {"usd":450000,"currency":"EUR","rate":0.86,"expected":"€387,000"},
+  {"usd":450000,"currency":"GBP","rate":0.75,"expected":"£338,000"},
+  {"usd":1,"currency":"USD","rate":1,"expected":"$1"},
+  {"usd":337500,"currency":"GBP","rate":1,"expected":"£338,000"},
+  {"usd":337499,"currency":"GBP","rate":1,"expected":"£337,000"},
+  {"usd":999999999,"currency":"EUR","rate":0.86,"expected":"€860,000,000"}
+]
