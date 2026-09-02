@@ -666,6 +666,10 @@ class RegenerateThumbnails_REST_Controller extends WP_REST_Controller {
 			return array( 'status' => 'cleared', 'missing_sizes' => array() );
 		}
 
+		if ( ! function_exists( 'wp_get_missing_image_subsizes' ) ) {
+			require_once ABSPATH . 'wp-admin/includes/image.php';
+		}
+
 		$missing = wp_get_missing_image_subsizes( $attachment_id );
 		if ( empty( $missing ) ) {
 			$this->clear_missing_meta_for_attachment( $attachment_id );
