@@ -2,6 +2,7 @@
 
 final class Pera_Currency_ECB_Provider implements Pera_Currency_Provider_Interface {
 	const ENDPOINT = 'https://www.ecb.europa.eu/stats/eurofxref/eurofxref-daily.xml';
+	const MAX_PROVIDER_AGE = 7 * DAY_IN_SECONDS;
 
 	public function fetch_rates() {
 		$response = wp_safe_remote_get(
@@ -34,7 +35,14 @@ final class Pera_Currency_ECB_Provider implements Pera_Currency_Provider_Interfa
 		}
 		$date = (string) $dated[0]['time'];
 		$dt   = DateTimeImmutable::createFromFormat( '!Y-m-d', $date, new DateTimeZone( 'UTC' ) );
-		if ( ! $dt || $dt->format( 'Y-m-d' ) !== $date || $dt->getTimestamp() > time() + DAY_IN_SECONDS ) {
+		$now  = time();
+		$today = new DateTimeImmutable( 'today', new DateTimeZone( 'UTC' ) );
+		if (
+			! $dt ||
+			$dt->format( 'Y-m-d' ) !== $date ||
+			$dt->getTimestamp() > $now + DAY_IN_SECONDS ||
+			$dt->getTimestamp() < $today->getTimestamp() - self::MAX_PROVIDER_AGE
+		) {
 			return new WP_Error( 'pera_currency_date', 'ECB provider date is invalid.' );
 		}
 		$eur_rates = array();

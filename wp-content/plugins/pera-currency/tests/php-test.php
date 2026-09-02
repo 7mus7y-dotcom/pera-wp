@@ -47,9 +47,20 @@ ok( Pera_Currency_Rates::state( $snapshot, $now + 86400 ) === 'stale', 'stale st
 ok( Pera_Currency_Rates::state( $snapshot, $now + 700000 ) === 'expired', 'expired state' );
 $id = Pera_Currency_Rates::make_snapshot( $snapshot['rates'], 'test', '2026-09-02', $now );
 ok( $id['snapshot_id'] === $snapshot['snapshot_id'], 'deterministic identifier' );
-$xml = '<?xml version="1.0"?><Envelope><Cube><Cube time="2026-09-02"><Cube currency="USD" rate="1.2"/><Cube currency="GBP" rate="0.9"/></Cube></Cube></Envelope>';
+$provider_date = gmdate( 'Y-m-d', $now );
+$xml = '<?xml version="1.0"?><Envelope><Cube><Cube time="' . $provider_date . '"><Cube currency="USD" rate="1.2"/><Cube currency="GBP" rate="0.9"/></Cube></Cube></Envelope>';
 $ecb = Pera_Currency_ECB_Provider::parse( $xml, $now );
 ok( ! is_wp_error( $ecb ) && abs( $ecb['rates']['EUR'] - ( 1 / 1.2 ) ) < 0.000001 && abs( $ecb['rates']['GBP'] - .75 ) < 0.000001, 'ECB normalization' );
+$xml_with_date = static function ( $date ) use ( $xml, $provider_date ) {
+	return str_replace( 'time="' . $provider_date . '"', 'time="' . $date . '"', $xml );
+};
+ok( ! is_wp_error( Pera_Currency_ECB_Provider::parse( $xml_with_date( gmdate( 'Y-m-d', $now - DAY_IN_SECONDS ) ), $now ) ), 'previous business day provider date' );
+ok( ! is_wp_error( Pera_Currency_ECB_Provider::parse( $xml_with_date( gmdate( 'Y-m-d', $now - ( 3 * DAY_IN_SECONDS ) ) ), $now ) ), 'weekend-gap provider date' );
+ok( ! is_wp_error( Pera_Currency_ECB_Provider::parse( $xml_with_date( gmdate( 'Y-m-d', $now - ( 6 * DAY_IN_SECONDS ) ) ), $now ) ), 'holiday-gap provider date within limit' );
+ok( ! is_wp_error( Pera_Currency_ECB_Provider::parse( $xml_with_date( gmdate( 'Y-m-d', $now - Pera_Currency_ECB_Provider::MAX_PROVIDER_AGE ) ), $now ) ), 'provider date at age limit' );
+ok( is_wp_error( Pera_Currency_ECB_Provider::parse( $xml_with_date( gmdate( 'Y-m-d', $now - ( 8 * DAY_IN_SECONDS ) ) ), $now ) ), 'provider date older than limit' );
+ok( is_wp_error( Pera_Currency_ECB_Provider::parse( $xml_with_date( gmdate( 'Y-m-d', $now + ( 2 * DAY_IN_SECONDS ) ) ), $now ) ), 'future provider date' );
+ok( is_wp_error( Pera_Currency_ECB_Provider::parse( $xml_with_date( '2026-02-30' ), $now ) ), 'malformed provider date' );
 ok( is_wp_error( Pera_Currency_ECB_Provider::parse( str_replace( 'currency="GBP"', 'currency="JPY"', $xml ), $now ) ), 'partial rejection' );
 $GLOBALS['http_response'] = array( 'response' => array( 'code' => 503 ), 'body' => '' );
 ok( is_wp_error( ( new Pera_Currency_ECB_Provider() )->fetch_rates() ), 'HTTP failure' );
