@@ -14,6 +14,17 @@ add_action( 'wp_enqueue_scripts', function () {
   $is_standalone_auth_page = function_exists( 'pera_is_standalone_auth_page' ) ? (bool) pera_is_standalone_auth_page() : false;
 
   if ( ! $is_crm_route && ! $is_standalone_auth_page ) {
+    if ( class_exists( 'Pera_Currency_Assets' ) && is_callable( array( 'Pera_Currency_Assets', 'enqueue' ) ) ) {
+      // The selector is in the site-wide header; this remains one cache-neutral runtime/config enqueue.
+      Pera_Currency_Assets::enqueue();
+      wp_enqueue_script(
+        'pera-currency-selector',
+        get_stylesheet_directory_uri() . '/js/currency-selector.js',
+        array( 'pera-currency' ),
+        pera_get_asset_version( '/js/currency-selector.js' ),
+        true
+      );
+    }
     // main.css everywhere except plugin-owned CRM shell routes and standalone auth pages.
     wp_enqueue_style(
       'pera-main-css',

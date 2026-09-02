@@ -26,7 +26,7 @@ function loadRuntime(options = {}) {
     CustomEvent: function () {},
     PeraCurrencyConfig: {
       storageKey: 'pera_currency',
-      state: 'fresh',
+      state: options.state || 'fresh',
       snapshotId: 'fixture',
       supported: {
         USD: { symbol: '$', rounding: 1 },
@@ -66,6 +66,11 @@ for (const fixture of ranges) {
 
 if (api.convert(-1, 'USD') !== null || api.convert(1, 'CAD') !== null) {
   throw new Error('invalid input accepted');
+}
+
+const unavailableFx = loadRuntime({ selected: 'EUR', state: 'expired', rates: { USD: 1 } });
+if (unavailableFx.api.selected() !== 'EUR' || unavailableFx.api.effectiveSelected() !== 'USD') {
+  throw new Error('effective selection did not preserve the requested preference while falling back to USD');
 }
 
 const inputApi = loadRuntime({ rates: { USD: 1, EUR: .86, GBP: .75 } }).api;
