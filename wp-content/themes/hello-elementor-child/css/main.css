@@ -1492,6 +1492,9 @@ button.pill:focus-visible {
   line-height: 1.2;
 }
 #site-header .header-language-switcher__toggle {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   min-width: 42px;
   min-height: 30px;
   padding: 0 6px;
@@ -1538,6 +1541,8 @@ button.pill:focus-visible {
 }
 .header-language-switcher__list a:hover,
 .header-language-switcher__list a:focus-visible { background: rgba(255, 255, 255, 0.14); }
+.header-language-switcher__list a:not([aria-current="page"]):hover,
+.header-language-switcher__list a:not([aria-current="page"]):focus { font-weight: 400; }
 .header-language-switcher__list a[aria-current="page"] { font-weight: 700; text-decoration: underline; text-underline-offset: 3px; }
 .header-language-switcher__toggle:focus-visible,
 .header-language-switcher__list a:focus-visible {
@@ -1635,7 +1640,7 @@ button.pill:focus-visible {
 .pera-currency-selector__trigger:focus-visible,
 .pera-currency-selector__list button:focus-visible { outline: 2px solid #ffed00; outline-offset: 2px; }
 .pera-currency-selector--offcanvas {
-  margin: -16px 0 24px;
+  margin: -12px 0 24px;
   padding-block-end: 14px;
   border-block-end: 1px solid rgba(255, 255, 255, 0.2);
 }
@@ -1648,7 +1653,13 @@ button.pill:focus-visible {
   text-transform: uppercase;
 }
 .pera-currency-selector--offcanvas .pera-currency-selector__list { flex-wrap: wrap; gap: 4px 10px; }
-.pera-currency-selector--offcanvas .pera-currency-selector__list button { min-width: 54px; padding-inline: 8px; }
+.pera-currency-selector--offcanvas .pera-currency-selector__list button {
+  min-width: 0;
+  padding: 11px 8px;
+  line-height: 1.25;
+  text-align: start;
+  white-space: nowrap;
+}
 
 @media (max-width: 640px) {
   .pera-currency-selector--header .pera-currency-selector__list { inset-inline-start: auto; inset-inline-end: 0; }
@@ -1750,7 +1761,7 @@ button.pill:focus-visible {
 }
 
 /* Icon buttons inside pill */
-#site-header .header-icons a,
+#site-header .header-icons > a,
 #site-header .header-icons .header-menu-toggle {
   display: inline-flex;
   align-items: center;
@@ -1833,7 +1844,7 @@ button.pill:focus-visible {
 }
 
 /* Hover in scrolled state – keep it subtle */
-#site-header.is-scrolled .header-icons a:hover,
+#site-header.is-scrolled .header-icons > a:hover,
 #site-header.is-scrolled .header-icons .header-menu-toggle:hover {
   opacity: 0.85;
 }
