@@ -35,6 +35,8 @@
     const mapConfig = window.peraPropertyMap || {};
     const markerIconUrl = mapConfig.marker_icon || null;
     const mapPrice = window.PeraPropertyMapPrice || null;
+    const displayPriceInputs = filtersForm ? filtersForm.querySelectorAll('[data-map-display-price]') : [];
+    const currencyLabels = filtersForm ? filtersForm.querySelectorAll('[data-map-filter-currency]') : [];
     const defaultCenter = { lat: 41.0082, lng: 28.9784 };
     const map = new window.google.maps.Map(mapEl, {
       center: defaultCenter,
@@ -256,7 +258,31 @@
       }
     };
 
+    const syncCanonicalPrice = (displayInput) => {
+      if (!displayInput || !mapPrice || typeof mapPrice.filterCanonicalFromDisplay !== 'function') return;
+      const boundary = displayInput.getAttribute('data-map-display-price');
+      const canonicalInput = filtersForm.querySelector(`[data-map-canonical-price="${boundary}"]`);
+      if (canonicalInput) canonicalInput.value = mapPrice.filterCanonicalFromDisplay(displayInput.value, boundary);
+    };
+
+    const renderPriceFilters = () => {
+      let effectiveCurrency = 'USD';
+      displayPriceInputs.forEach((displayInput) => {
+        const boundary = displayInput.getAttribute('data-map-display-price');
+        const canonicalInput = filtersForm.querySelector(`[data-map-canonical-price="${boundary}"]`);
+        const canonical = canonicalInput ? canonicalInput.value : '';
+        const display = mapPrice && typeof mapPrice.filterDisplayFromUsd === 'function'
+          ? mapPrice.filterDisplayFromUsd(canonical)
+          : { value: canonical, formatted: canonical ? `$${canonical}` : '', currency: 'USD' };
+        displayInput.value = display.value;
+        displayInput.title = display.formatted;
+        effectiveCurrency = display.currency || effectiveCurrency;
+      });
+      currencyLabels.forEach((label) => { label.textContent = `(${effectiveCurrency})`; });
+    };
+
     window.addEventListener('pera:currency-change', () => {
+      renderPriceFilters();
       if (activeOverlay && mapPrice && typeof mapPrice.render === 'function') {
         mapPrice.render(activeOverlay.div, activeOverlay.data, mapConfig.price_from || '');
       }
@@ -392,10 +418,12 @@
     }
 
     if (filtersForm) {
+      renderPriceFilters();
       let filterTimer = null;
       filtersForm.addEventListener('input', (event) => {
         const target = event.target;
         if (!target || !target.matches || !target.matches('input')) return;
+        if (target.matches('[data-map-display-price]')) syncCanonicalPrice(target);
         window.clearTimeout(filterTimer);
         filterTimer = window.setTimeout(() => applyFilters(true, false), 250);
       });
@@ -405,7 +433,10 @@
         applyFilters(true, true);
       });
       filtersForm.addEventListener('reset', () => {
-        window.setTimeout(() => applyFilters(true, true), 0);
+        window.setTimeout(() => {
+          renderPriceFilters();
+          applyFilters(true, true);
+        }, 0);
       });
     }
 

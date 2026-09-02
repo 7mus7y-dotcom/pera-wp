@@ -48,5 +48,44 @@
     }
   };
 
-  window.PeraPropertyMapPrice = { format, render };
+  const selectedCurrency = () => {
+    const currency = window.PeraCurrency;
+    if (!currency || typeof currency.selected !== 'function') return 'USD';
+    return currency.selected();
+  };
+
+  const effectiveInputCurrency = () => {
+    const currency = window.PeraCurrency;
+    if (!currency || typeof currency.convertInputFromUsd !== 'function') return 'USD';
+    const result = currency.convertInputFromUsd(0, selectedCurrency());
+    return result && result.currency ? result.currency : 'USD';
+  };
+
+  const filterDisplayFromUsd = (canonical) => {
+    if (canonical === '') return { value: '', formatted: '', currency: effectiveInputCurrency() };
+    const amount = Number(canonical);
+    const currency = window.PeraCurrency;
+    if (!Number.isFinite(amount) || amount < 0) return { value: '', formatted: '', currency: effectiveInputCurrency() };
+    if (currency && typeof currency.convertInputFromUsd === 'function' && typeof currency.formatInput === 'function') {
+      const result = currency.convertInputFromUsd(amount, selectedCurrency());
+      if (result) {
+        return { value: String(Math.trunc(result.amount)), formatted: currency.formatInput(amount, selectedCurrency()), currency: result.currency };
+      }
+    }
+    return { value: String(Math.trunc(amount)), formatted: usd(amount), currency: 'USD' };
+  };
+
+  const filterCanonicalFromDisplay = (display, boundary) => {
+    if (display === '') return '';
+    const amount = Number(display);
+    if (!Number.isFinite(amount) || amount < 0) return '';
+    const currency = window.PeraCurrency;
+    if (currency && typeof currency.convertInputToUsd === 'function') {
+      const result = currency.convertInputToUsd(amount, selectedCurrency(), boundary);
+      return result ? String(Math.trunc(result.amount)) : '';
+    }
+    return String(boundary === 'min' ? Math.floor(amount) : Math.ceil(amount));
+  };
+
+  window.PeraPropertyMapPrice = { format, render, filterDisplayFromUsd, filterCanonicalFromDisplay };
 }(window));
