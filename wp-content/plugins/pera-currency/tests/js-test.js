@@ -68,6 +68,19 @@ if (api.convert(-1, 'USD') !== null || api.convert(1, 'CAD') !== null) {
   throw new Error('invalid input accepted');
 }
 
+const inputApi = loadRuntime({ rates: { USD: 1, EUR: .86, GBP: .75 } }).api;
+if (inputApi.convertInputFromUsd(300000, 'EUR').amount !== 258000 || inputApi.formatInput(300000, 'EUR') !== '€258,000') {
+  throw new Error('filter input USD-to-EUR conversion failed');
+}
+if (inputApi.convertInputToUsd(258000, 'EUR', 'min').amount !== 300000 || inputApi.convertInputToUsd(337501, 'GBP', 'max').amount !== 450002) {
+  throw new Error('filter input inverse boundary conversion failed');
+}
+let canonicalUsd = 300000;
+for (const code of ['USD', 'EUR', 'GBP', 'USD']) {
+  inputApi.convertInputFromUsd(canonicalUsd, code);
+}
+if (canonicalUsd !== 300000) throw new Error('display currency switching mutated canonical USD');
+
 const node = {
   textContent: '$450,000',
   attributes: { 'data-usd-min': '450000' },
