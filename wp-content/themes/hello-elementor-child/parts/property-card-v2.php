@@ -144,9 +144,10 @@ if ( $v2_beds_selected > 0 ) {
 // Price display (V2 rules)
 // - Project: "From $MIN" only
 // - Resale: "$MIN" or "$MIN–$MAX" (no "From")
-$price_txt = function_exists( 'pera_v2_units_format_price_text' )
-  ? pera_v2_units_format_price_text( $price_min, $price_max, $show_project_price )
-  : '';
+$price_mode = $show_project_price ? 'from' : ( $price_max > 0 && $price_max !== $price_min ? 'range' : 'single' );
+$display_price = function_exists( 'pera_property_display_price' )
+  ? pera_property_display_price( $price_min, $price_max, $price_mode )
+  : array();
 
 // Size display
 $size_txt = function_exists( 'pera_v2_units_format_size_text' )
@@ -323,9 +324,12 @@ $size_txt = function_exists( 'pera_v2_units_format_size_text' )
     <div class="property-card__footer">
 
       <div class="property-card__footer-row property-card__footer-row--top">
-        <?php if ( $price_txt ) : ?>
+        <?php if ( ! empty( $display_price['valid'] ) ) : ?>
           <span class="property-card__price">
-            <?php echo esc_html( $price_txt ); ?>
+            <?php if ( 'from' === $price_mode ) : ?>
+              <span class="price-prefix"><?php echo esc_html( pera_ml_ui( 'From', 'theme.template.single_property.from' ) ); ?></span>
+            <?php endif; ?>
+            <?php echo pera_property_display_price_html( $display_price ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>
           </span>
         <?php endif; ?>
     

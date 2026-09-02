@@ -86,7 +86,7 @@ if ( ! empty( $project_summary ) ) {
   }
 }
 
-$price_label = '';
+$display_price = array();
 $has_project = has_term( 'project', 'special', $property_id );
 $has_resale  = has_term( 'resales', 'special', $property_id );
 $is_project  = $has_project && ! $has_resale;
@@ -107,7 +107,12 @@ if ( function_exists( 'pera_units_get_display_data' ) ) {
       'is_project' => $is_project,
     )
   );
-  $price_label = $units_data['price_text'] ?? '';
+  $price_min = isset( $units_data['price_min'] ) ? (int) $units_data['price_min'] : 0;
+  $price_max = isset( $units_data['price_max'] ) ? (int) $units_data['price_max'] : 0;
+  $price_mode = $is_project ? 'from' : ( $price_max > 0 && $price_max !== $price_min ? 'range' : 'single' );
+  $display_price = function_exists( 'pera_property_display_price' )
+    ? pera_property_display_price( $price_min, $price_max, $price_mode )
+    : array();
 }
 
 /* Taxonomies (optional output) */
@@ -210,10 +215,13 @@ $secondary_cta = isset($args['secondary_cta']) && is_array($args['secondary_cta'
 
       <div class="property-card__footer">
 
-        <?php if ( $price_label ) : ?>
+        <?php if ( ! empty( $display_price['valid'] ) ) : ?>
           <div class="property-card__footer-row property-card__footer-row--top">
             <span class="property-card__price">
-              <?php echo esc_html( $price_label ); ?>
+              <?php if ( 'from' === $display_price['mode'] ) : ?>
+                <span class="price-prefix"><?php echo esc_html( pera_ml_ui( 'From', 'theme.template.single_property.from' ) ); ?></span>
+              <?php endif; ?>
+              <?php echo pera_property_display_price_html( $display_price ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>
             </span>
           </div>
         <?php endif; ?>

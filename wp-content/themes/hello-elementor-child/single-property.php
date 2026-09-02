@@ -180,6 +180,10 @@ $price_text = $units_data['price_text'] ?? '';
 $price_bounds = $units_data['price_bounds'] ?? array();
 $hero_price_min = isset( $units_data['price_min'] ) ? (int) $units_data['price_min'] : 0;
 $hero_price_max = isset( $units_data['price_max'] ) ? (int) $units_data['price_max'] : 0;
+$hero_price_mode = ( $is_project && ! $is_resale ) ? 'from' : 'single';
+$hero_display_price = function_exists( 'pera_property_display_price' )
+  ? pera_property_display_price( $hero_price_min, $hero_price_max, $hero_price_mode )
+  : array();
 
 /* -----------------------------
    Beds label for hero pills
@@ -599,7 +603,7 @@ $has_further_reading = ! empty( $post_ids );
                 </span>
               <?php endif; ?>
         
-              <?php echo '$' . number_format_i18n( $hero_price_min ); ?>
+              <?php echo pera_property_display_price_html( $hero_display_price ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>
             </span>
 
             <?php if ( is_array( $v2_units_by_beds ) && count( $v2_units_by_beds ) > 1 ) : ?>
