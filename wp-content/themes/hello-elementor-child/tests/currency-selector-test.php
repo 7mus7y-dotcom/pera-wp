@@ -19,6 +19,7 @@ $helper_source = file_get_contents( $theme . '/inc/theme-helpers.php' );
 $header_source = file_get_contents( $theme . '/header.php' );
 $js_source     = file_get_contents( $theme . '/js/currency-selector.js' );
 $css_source    = file_get_contents( $theme . '/css/main.css' );
+$plugin_source = file_get_contents( dirname( dirname( $theme ) ) . '/plugins/pera-currency/pera-currency.php' );
 $start         = strpos( $helper_source, 'function pera_render_currency_selector' );
 $function      = substr( $helper_source, $start );
 
@@ -41,7 +42,8 @@ foreach ( array( 'header', 'offcanvas' ) as $context ) {
 	selector_expect( 3 === substr_count( $html, 'data-pera-currency-option=' ), "{$context}: exactly three options render" );
 	selector_expect( false !== strpos( $html, '>USD<' ) && false !== strpos( $html, '>EUR<' ) && false !== strpos( $html, '>GBP<' ), "{$context}: USD, EUR, and GBP render" );
 	selector_expect( false === strpos( $html, '>TRY<' ), "{$context}: unsupported option is absent" );
-	selector_expect( false !== strpos( $html, 'data-pera-currency-option="USD" aria-selected="true" class="is-active"' ), "{$context}: neutral SSR state is USD" );
+	selector_expect( false !== strpos( $html, 'data-pera-currency-option="USD" aria-current="true" class="is-active"' ), "{$context}: neutral SSR state is USD" );
+	selector_expect( false === strpos( $html, 'role="listbox"' ) && false === strpos( $html, 'role="option"' ) && false === strpos( $html, 'aria-selected' ), "{$context}: selector uses disclosure button semantics" );
 	selector_expect( false === strpos( $html, '<svg' ) && false === strpos( $html, 'icon-currency' ), "{$context}: currency icon is absent" );
 	selector_expect( false === strpos( $html, '(selected)' ) && false === strpos( $html, 'data-pera-currency-selected-text' ) && false === strpos( $html, 'data-pera-currency-selected-label' ), "{$context}: selected label plumbing is absent" );
 }
@@ -49,12 +51,14 @@ foreach ( array( 'header', 'offcanvas' ) as $context ) {
 selector_expect( false !== strpos( $js_source, 'api().setSelected(' ), 'selection delegates to PeraCurrency.setSelected' );
 selector_expect( false !== strpos( $js_source, "window.addEventListener('pera:currency-change', sync)" ), 'all instances synchronize on the shared event' );
 selector_expect( false !== strpos( $js_source, "event.key === 'Escape'" ), 'Escape closes the disclosure' );
-selector_expect( false !== strpos( $js_source, "option.setAttribute('aria-selected', String(active))" ), 'selection synchronizes aria-selected' );
+selector_expect( false !== strpos( $js_source, "option.setAttribute('aria-current', 'true')" ) && false !== strpos( $js_source, "option.removeAttribute('aria-current')" ), 'selection synchronizes aria-current' );
+selector_expect( false === strpos( $js_source, 'aria-selected' ), 'JavaScript does not advertise listbox selection semantics' );
 selector_expect( false === strpos( $js_source, 'currency-selected-text' ) && false === strpos( $js_source, 'currency-selected-label' ), 'JavaScript has no selected label plumbing' );
 selector_expect( false === strpos( $js_source, 'localStorage') && false === strpos( $js_source, 'location.reload') && false === strpos( $js_source, 'location.href'), 'selector creates no persistence, reload, or navigation state' );
 selector_expect( false !== strpos( $css_source, '.pera-currency-selector__list button.is-active { font-weight: 700; text-decoration: underline;' ), 'active option remains bold and underlined' );
 selector_expect( false === strpos( $css_source, '.pera-currency-selector__icon' ), 'currency icon CSS is absent' );
 selector_expect( false === strpos( $css_source, '.pera-currency-selector__code,' ), 'mobile CSS does not hide the currency code' );
 selector_expect( false === strpos( $css_source, 'min-width: 30px; width: 30px;' ), 'mobile CSS has no icon-only fixed trigger' );
+selector_expect( false !== strpos( $plugin_source, 'Version: 1.0.1' ) && false !== strpos( $plugin_source, "PERA_CURRENCY_VERSION', '1.0.1'" ), 'plugin header and asset version are 1.0.1' );
 
 echo "Currency selector tests passed\n";
