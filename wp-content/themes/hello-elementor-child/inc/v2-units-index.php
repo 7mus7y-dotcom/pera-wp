@@ -463,6 +463,87 @@ if ( ! function_exists( 'pera_v2_units_format_price_text' ) ) {
   }
 }
 
+if ( ! function_exists( 'pera_property_display_price_enqueue_assets' ) ) {
+  /** Enqueue the Phase 1 runtime/config at most once during this request. */
+  function pera_property_display_price_enqueue_assets(): void {
+    static $enqueued = false;
+
+    if ( $enqueued ) return;
+
+    if ( class_exists( 'Pera_Currency_Assets' ) && is_callable( array( 'Pera_Currency_Assets', 'enqueue' ) ) ) {
+      Pera_Currency_Assets::enqueue();
+      $enqueued = true;
+    }
+  }
+}
+
+if ( ! function_exists( 'pera_property_display_price' ) ) {
+  /**
+   * Build cache-neutral presentation data for a visitor-facing property price.
+   *
+   * Prices passed to this boundary are always canonical USD. The SSR text is
+   * deliberately formatted as USD; Pera Currency may rehydrate the monetary
+   * node in the browser without changing the semantic text around it.
+   */
+  function pera_property_display_price( int $price_min, int $price_max = 0, string $mode = 'single' ): array {
+    $mode = in_array( $mode, array( 'from', 'single', 'range' ), true ) ? $mode : 'single';
+
+    if ( $price_min <= 0 ) {
+      return array( 'mode' => $mode, 'usd_min' => 0, 'usd_max' => 0, 'text' => '', 'valid' => false );
+    }
+
+    $price_max = $price_max > 0 ? $price_max : $price_min;
+    if ( $price_max < $price_min ) {
+      $swap = $price_min; $price_min = $price_max; $price_max = $swap;
+    }
+
+    if ( 'range' !== $mode || $price_max === $price_min ) {
+      $price_max = $price_min;
+      $mode = 'range' === $mode ? 'single' : $mode;
+    }
+
+    $min_text = '$' . number_format_i18n( $price_min );
+    $max_text = $price_max !== $price_min ? '$' . number_format_i18n( $price_max ) : '';
+
+    // Use only the deterministic USD branch of the plugin formatter.
+    if ( function_exists( 'pera_currency_format_range' ) ) {
+      $formatted = pera_currency_format_range( $price_min, $max_text ? $price_max : null, 'USD' );
+      if ( ! empty( $formatted['valid'] ) ) {
+        $min_text = (string) $formatted['min'];
+        $max_text = (string) $formatted['max'];
+      }
+    }
+
+    pera_property_display_price_enqueue_assets();
+
+    return array(
+      'mode'    => $mode,
+      'usd_min' => $price_min,
+      'usd_max' => $price_max,
+      'text'    => $max_text ? $min_text . '–' . $max_text : $min_text,
+      'valid'   => true,
+    );
+  }
+}
+
+if ( ! function_exists( 'pera_property_display_price_html' ) ) {
+  /** Render only the isolated money node; callers retain semantic prose. */
+  function pera_property_display_price_html( array $price ): string {
+    if ( empty( $price['valid'] ) ) return '';
+
+    $attributes = sprintf(
+      ' data-pera-money data-usd-min="%s" data-price-mode="%s" dir="ltr"',
+      esc_attr( (string) $price['usd_min'] ),
+      esc_attr( (string) $price['mode'] )
+    );
+    if ( 'range' === $price['mode'] && $price['usd_max'] !== $price['usd_min'] ) {
+      $attributes .= ' data-usd-max="' . esc_attr( (string) $price['usd_max'] ) . '"';
+    }
+
+    return '<bdi' . $attributes . '>' . esc_html( (string) $price['text'] ) . '</bdi>';
+  }
+}
+
 if ( ! function_exists( 'pera_v2_units_format_size_text' ) ) {
   /**
    * Format size range "X–Y m²" (or single value).
@@ -951,7 +1032,7 @@ if ( ! function_exists( 'pera_v2_render_units_price_table' ) ) {
                 <tr>
                   <th scope="col"><?php echo esc_html( pera_ml_ui( 'Type', 'theme.property_price_range.type' ) ); ?></th>
                   <th scope="col"><?php echo esc_html( pera_ml_ui( 'Gross size', 'theme.property_price_range.gross_size' ) ); ?></th>
-                  <th scope="col"><?php echo esc_html( pera_ml_ui( 'Price (USD)', 'theme.property_price_range.price_usd' ) ); ?></th>
+                  <th scope="col"><?php echo esc_html( pera_ml_ui( 'Price', 'theme.property_price_range.price' ) ); ?></th>
                 </tr>
               </thead>
               <tbody>
@@ -963,14 +1044,21 @@ if ( ! function_exists( 'pera_v2_render_units_price_table' ) ) {
                       ? pera_v2_units_format_size_text( (float) $r['size_min'], (float) $r['size_max'] )
                       : '';
 
-                    $price_txt = function_exists( 'pera_v2_units_format_price_text' )
-                      ? pera_v2_units_format_price_text( (int) $r['price_min'], (int) $r['price_max'], false )
-                      : '';
+                    $row_price_mode = (int) $r['price_max'] !== (int) $r['price_min'] ? 'range' : 'single';
+                    $row_display_price = function_exists( 'pera_property_display_price' )
+                      ? pera_property_display_price( (int) $r['price_min'], (int) $r['price_max'], $row_price_mode )
+                      : array();
                   ?>
                   <tr>
                     <td><?php echo esc_html( $type ); ?></td>
                     <td><?php echo esc_html( $size_txt ?: '—' ); ?></td>
-                    <td><?php echo esc_html( $price_txt ?: '—' ); ?></td>
+                    <td>
+                      <?php
+                      echo ! empty( $row_display_price['valid'] )
+                        ? pera_property_display_price_html( $row_display_price )
+                        : esc_html( '—' ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
+                      ?>
+                    </td>
                   </tr>
                 <?php endforeach; ?>
               </tbody>

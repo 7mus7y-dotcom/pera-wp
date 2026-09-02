@@ -59,7 +59,7 @@ expect_card_pricing( false !== strpos( $card, 'pera_v2_get_units_rows( $post_id 
 expect_card_pricing( false !== strpos( $card, 'pera_v2_units_aggregate( $units, $v2_beds_selected )' ), 'card uses shared bedroom-aware aggregation' );
 expect_card_pricing( false !== strpos( $card, '$show_project_price = $has_project && ! $has_resale;' ), 'card separates effective pricing semantics' );
 expect_card_pricing( strpos( $card, "isset( \$specials_by_slug['resales'] )" ) < strpos( $card, "isset( \$specials_by_slug['project'] )" ), 'resale badge has precedence' );
-expect_card_pricing( false !== strpos( $card, 'if ( $price_txt )' ), 'empty price only omits price element' );
+expect_card_pricing( false !== strpos( $card, "! empty( \$display_price['valid'] )" ), 'empty price only omits price element' );
 expect_card_pricing( false !== strpos( $card, 'property-card__updated' ), 'footer update content remains independent' );
 expect_card_pricing( false !== strpos( $archive, 'pera_render_property_card(' ), 'SSR archive uses shared renderer' );
 expect_card_pricing( false !== strpos( $ajax, 'pera_render_property_card(' ), 'AJAX archive uses shared renderer' );
