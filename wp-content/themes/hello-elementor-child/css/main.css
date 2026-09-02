@@ -1605,7 +1605,6 @@ button.pill:focus-visible {
   box-shadow: var(--glass-shadow-soft);
 }
 .pera-currency-selector--header.is-open .pera-currency-selector__list { display: flex; gap: 4px; }
-.pera-currency-selector--header.is-open .pera-currency-selector__list { column-gap: 4px; }
 .pera-currency-selector__list button {
   display: block;
   min-width: 58px;
