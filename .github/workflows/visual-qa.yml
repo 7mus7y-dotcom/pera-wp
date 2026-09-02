@@ -1,0 +1,30 @@
+name: Visual QA
+
+on:
+  workflow_dispatch:
+
+jobs:
+  capture-homepage:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - name: Install Playwright and Chromium
+        run: npx --yes playwright@1.55.0 install --with-deps chromium
+
+      - name: Capture mobile homepage screenshot
+        run: |
+          mkdir -p visual-qa
+          npx --yes playwright@1.55.0 screenshot \
+            --browser chromium \
+            --viewport-size "390,844" \
+            --wait-for-timeout 3000 \
+            https://www.peraproperty.com/ \
+            visual-qa/mobile-390-home.png
+
+      - name: Upload visual QA artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: pera-visual-qa
+          path: visual-qa/mobile-390-home.png
+          if-no-files-found: error
