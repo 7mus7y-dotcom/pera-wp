@@ -1,1 +1,37 @@
 [data-pera-money] { direction: ltr; unicode-bidi: isolate; }
+
+.pera-currency-toast {
+  position: fixed;
+  z-index: 9997;
+  bottom: max(16px, env(safe-area-inset-bottom));
+  left: max(16px, calc((100vw - var(--container, calc(100vw - 32px))) / 2));
+  box-sizing: border-box;
+  width: max-content;
+  max-width: min(360px, calc(100vw - 32px));
+  padding: 10px 14px;
+  border: 1px solid var(--border-neutral, #e5e7eb);
+  border-radius: var(--radius-sm, 6px);
+  background: var(--bg, #fff);
+  color: var(--text, #222);
+  box-shadow: var(--shadow-panel-soft, 0 8px 24px rgba(0, 0, 0, .12));
+  font-size: var(--fs-ui-sm, .85rem);
+  line-height: 1.4;
+  opacity: 0;
+  transform: translateY(6px);
+  transition: opacity 200ms ease, transform 200ms ease;
+  pointer-events: none;
+}
+
+.pera-currency-toast.is-visible { opacity: 1; transform: translateY(0); }
+.pera-currency-toast__title,
+.pera-currency-toast__body { display: block; }
+.pera-currency-toast__title { font-weight: 600; }
+.pera-currency-toast__body { color: var(--text-soft, #555); }
+
+@media (max-width: 1024px) {
+  .pera-currency-toast { left: 16px; bottom: max(16px, env(safe-area-inset-bottom)); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .pera-currency-toast { transform: none; transition: none; }
+}

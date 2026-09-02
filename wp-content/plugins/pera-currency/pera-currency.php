@@ -2,7 +2,7 @@
 /**
  * Plugin Name: Pera Currency
  * Description: Cache-safe USD property currency conversion infrastructure.
- * Version: 1.0.1
+ * Version: 1.0.2
  * Author: Pera Property
  * Text Domain: pera-currency
  */
@@ -11,7 +11,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-define( 'PERA_CURRENCY_VERSION', '1.0.1' );
+define( 'PERA_CURRENCY_VERSION', '1.0.2' );
 define( 'PERA_CURRENCY_FILE', __FILE__ );
 define( 'PERA_CURRENCY_DIR', plugin_dir_path( __FILE__ ) );
 
