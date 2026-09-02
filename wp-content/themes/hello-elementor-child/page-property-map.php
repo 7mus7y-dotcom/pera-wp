@@ -108,17 +108,23 @@ if ( $acf_loaded ) {
 
         $special_terms = get_the_terms( $property_id, 'special' );
         $is_project    = false;
+        $is_resale     = false;
         if ( ! empty( $special_terms ) && ! is_wp_error( $special_terms ) ) {
             foreach ( $special_terms as $term ) {
                 if ( in_array( $term->slug, array( 'project', 'projects' ), true ) ) {
                     $is_project = true;
-                    break;
+                }
+                if ( in_array( $term->slug, array( 'resale', 'resales' ), true ) ) {
+                    $is_resale = true;
                 }
             }
         }
 
+        // Match the shared property-card rule: resale wins if both terms exist.
+        $show_project_price = $is_project && ! $is_resale;
+
         if ( function_exists( 'pera_units_get_display_data' ) ) {
-            $units_data = pera_units_get_display_data( (int) $property_id, array( 'context' => 'map', 'unit_key' => 0, 'is_project' => $is_project ) );
+            $units_data = pera_units_get_display_data( (int) $property_id, array( 'context' => 'map', 'unit_key' => 0, 'is_project' => $show_project_price ) );
             $price_text = (string) ( $units_data['price_text'] ?? '' );
             if ( $price_min < 1 ) {
                 $price_min = (int) ( $units_data['price_min'] ?? 0 );
@@ -143,6 +149,7 @@ if ( $acf_loaded ) {
             'price_text'    => $price_text,
             'price_min'     => $price_min,
             'price_max'     => $price_max > 0 ? $price_max : $price_min,
+            'price_mode'    => $show_project_price ? 'from' : ( $price_max > 0 && $price_max !== $price_min ? 'range' : 'single' ),
             'district'      => $district_term ? $district_term->slug : '',
             'district_name' => $district_term ? ( function_exists( 'pera_ml_term' ) ? pera_ml_term( $district_term ) : $district_term->name ) : '',
             'type'          => $type_term instanceof WP_Term ? $type_term->slug : '',
@@ -262,8 +269,8 @@ foreach ( $area_copy as $slug => $copy ) {
 
                 <form class="property-map-filters" id="property-map-filters" aria-label="<?php echo esc_attr( pera_ml_ui( 'Filter map properties', 'theme.template.page_property_map.aria_label.filter_map_properties' ) ); ?>">
                     <div class="field"><label for="map-filter-district"><?php echo esc_html( pera_ml_ui( 'District', 'theme.template.page_property_map.district' ) ); ?></label><select id="map-filter-district" name="district"><option value=""><?php echo esc_html( pera_ml_ui( 'All districts', 'theme.template.page_property_map.all_districts' ) ); ?></option><?php foreach ( $district_options as $slug => $name ) : ?><option value="<?php echo esc_attr( $slug ); ?>"><?php echo esc_html( $name ); ?></option><?php endforeach; ?></select></div>
-                    <div class="field"><label for="map-filter-min-price"><?php echo esc_html( pera_ml_ui( 'Minimum price', 'theme.template.page_property_map.minimum_price' ) ); ?></label><input id="map-filter-min-price" name="min_price" type="number" inputmode="numeric" min="0" step="50000" placeholder="<?php echo esc_attr( pera_ml_ui( 'No min', 'theme.template.page_property_map.placeholder.no_min' ) ); ?>"></div>
-                    <div class="field"><label for="map-filter-max-price"><?php echo esc_html( pera_ml_ui( 'Maximum price', 'theme.template.page_property_map.maximum_price' ) ); ?></label><input id="map-filter-max-price" name="max_price" type="number" inputmode="numeric" min="0" step="50000" placeholder="<?php echo esc_attr( pera_ml_ui( 'No max', 'theme.template.page_property_map.placeholder.no_max' ) ); ?>"></div>
+                    <div class="field"><label for="map-filter-min-price"><?php echo esc_html( pera_ml_ui( 'Minimum price', 'theme.template.page_property_map.minimum_price' ) ); ?> <span data-map-filter-currency dir="ltr">(USD)</span></label><input id="map-filter-min-price" data-map-display-price="min" type="number" inputmode="numeric" min="0" step="1000" placeholder="<?php echo esc_attr( pera_ml_ui( 'No min', 'theme.template.page_property_map.placeholder.no_min' ) ); ?>"><input data-map-canonical-price="min" name="min_price" type="hidden" value=""></div>
+                    <div class="field"><label for="map-filter-max-price"><?php echo esc_html( pera_ml_ui( 'Maximum price', 'theme.template.page_property_map.maximum_price' ) ); ?> <span data-map-filter-currency dir="ltr">(USD)</span></label><input id="map-filter-max-price" data-map-display-price="max" type="number" inputmode="numeric" min="0" step="1000" placeholder="<?php echo esc_attr( pera_ml_ui( 'No max', 'theme.template.page_property_map.placeholder.no_max' ) ); ?>"><input data-map-canonical-price="max" name="max_price" type="hidden" value=""></div>
                     <div class="field"><label for="map-filter-bedrooms"><?php echo esc_html( pera_ml_ui( 'Bedrooms', 'theme.template.page_property_map.bedrooms' ) ); ?></label><select id="map-filter-bedrooms" name="bedrooms"><option value=""><?php echo esc_html( pera_ml_ui( 'Any beds', 'theme.template.page_property_map.any_beds' ) ); ?></option><?php foreach ( $bed_options as $beds ) : ?><option value="<?php echo esc_attr( (string) $beds ); ?>"><?php echo esc_html( (string) $beds ); ?>+</option><?php endforeach; ?></select></div>
                     <div class="field"><label for="map-filter-type"><?php echo esc_html( pera_ml_ui( 'Property type', 'theme.template.page_property_map.property_type' ) ); ?></label><select id="map-filter-type" name="type"><option value=""><?php echo esc_html( pera_ml_ui( 'All types', 'theme.template.page_property_map.all_types' ) ); ?></option><?php foreach ( $type_options as $slug => $name ) : ?><option value="<?php echo esc_attr( $slug ); ?>"><?php echo esc_html( $name ); ?></option><?php endforeach; ?></select></div>
                     <button type="reset" class="btn btn--solid btn--red property-map-filters__reset"><?php echo esc_html( pera_ml_ui( 'Reset filters', 'theme.template.page_property_map.reset_filters' ) ); ?></button>
