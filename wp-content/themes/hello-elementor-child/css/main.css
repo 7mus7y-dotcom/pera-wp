@@ -1549,14 +1549,6 @@ button.pill:focus-visible {
   outline: 2px solid #ffed00;
   outline-offset: 2px;
 }
-@media (max-width: 767px) {
-
-  .header-language-switcher--desktop .header-language-switcher__list a {
-    display: flex;
-    align-items: center;
-    box-sizing: border-box;
-  }
-}
 .header-language-switcher--mobile {
   margin: -12px 0 24px;
   padding-bottom: 14px;
@@ -1626,12 +1618,17 @@ button.pill:focus-visible {
   text-align: center;
   cursor: pointer;
 }
+.header-language-switcher--desktop .header-language-switcher__list a,
 .pera-currency-selector--header .pera-currency-selector__list button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  box-sizing: border-box;
   min-width: 0;
   min-height: 20px;
-  padding: 11px 12px;
-  line-height: 1.25;
-  text-align: start;
+  padding: 0;
+  line-height: 0;
+  text-align: center;
   white-space: nowrap;
 }
 .pera-currency-selector__list button:hover,
