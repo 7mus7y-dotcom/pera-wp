@@ -697,7 +697,7 @@ if ( ! $is_filtered_search && ( $qo instanceof WP_Term ) && ! is_wp_error( $qo )
                         <div class="filter-row">
                             <!-- PRICE RANGE (V2, based on v2_price_usd_min) -->
                             <div class="filter-group">
-                              <div class="filter-group__label"><?php echo esc_html( pera_ml_ui( 'Price range (USD)', 'theme.template.archive_property.price_range_usd' ) ); ?></div>
+                              <div class="filter-group__label"><?php echo esc_html( pera_ml_ui( 'Price range', 'theme.template.archive_property.price_range' ) ); ?> <span id="price-currency-code" dir="ltr">(USD)</span></div>
                             
                               <div class="filter-price">
                                 <div class="filter-price__slider">
@@ -735,10 +735,10 @@ if ( ! $is_filtered_search && ( $qo instanceof WP_Term ) && ! is_wp_error( $qo )
             
                             
                                 <div class="filter-price__summary">
-                                  <span id="price-summary-text">
+                                  <span id="price-summary-text" dir="ltr">
                                     <?php
-                                      $min_label = '$' . number_format_i18n($slider_min);
-                                      $max_label = '$' . number_format_i18n($slider_max);
+                                      $min_label = '$' . number_format( $slider_min, 0, '.', ',' );
+                                      $max_label = '$' . number_format( $slider_max, 0, '.', ',' );
                                       echo esc_html("{$min_label} — {$max_label}");
                                     ?>
                                   </span>
@@ -1291,6 +1291,7 @@ $property_archive_faq_items = ( function_exists( 'pera_property_archive_is_index
   const priceMinHidden = document.getElementById('price-min-hidden');
   const priceMaxHidden = document.getElementById('price-max-hidden');
   const priceSummary   = document.getElementById('price-summary-text');
+  const priceCurrencyCode = document.getElementById('price-currency-code');
   const districtCsvInput = document.getElementById('district-csv');
   const propertyTagsCsvInput = document.getElementById('property-tags-csv');
 
@@ -1403,6 +1404,8 @@ $property_archive_faq_items = ( function_exists( 'pera_property_archive_is_index
 
   // “Price filter active” only after touch, or URL already had it
   let priceTouched = HAS_PRICE_QS;
+  let canonicalMinUsd = priceTouched ? parseInt(priceMinHidden.value, 10) : null;
+  let canonicalMaxUsd = priceTouched ? parseInt(priceMaxHidden.value, 10) : null;
 
   function setLoading(on, append) {
     if (loadMoreBtn) loadMoreBtn.disabled = !!on;
@@ -1426,13 +1429,16 @@ $property_archive_faq_items = ( function_exists( 'pera_property_archive_is_index
     loadMoreBtn.removeAttribute('aria-disabled');
   }
 
-  function formatUsd(n) {
-    n = Number(n) || 0;
-    try {
-      return new Intl.NumberFormat(undefined, { maximumFractionDigits: 0 }).format(n);
-    } catch (e) {
-      return String(Math.round(n));
-    }
+  function currencyApi() {
+    const api = window.PeraCurrency;
+    return api && typeof api.selected === 'function' &&
+      typeof api.convertInputFromUsd === 'function' &&
+      typeof api.convertInputToUsd === 'function' &&
+      typeof api.formatInput === 'function' ? api : null;
+  }
+
+  function westernInteger(n) {
+    return String(Math.round(Number(n) || 0)).replace(/\B(?=(\d{3})+(?!\d))/g, ',');
   }
 
   // ---------------------------
@@ -1472,44 +1478,49 @@ $property_archive_faq_items = ( function_exists( 'pera_property_archive_is_index
   // ---------------------------
   // PRICE UI SYNC
   // ---------------------------
-  function syncPriceUi(triggerAjax = false) {
+  function renderPriceUi() {
     if (!priceMinRange || !priceMaxRange || !priceMinHidden || !priceMaxHidden) return;
+    const api = currencyApi();
+    const code = api ? api.selected() : 'USD';
+    const minUsd = canonicalMinUsd === null ? GLOBAL_MIN_PRICE : canonicalMinUsd;
+    const maxUsd = canonicalMaxUsd === null ? GLOBAL_MAX_PRICE : canonicalMaxUsd;
+    const displayBoundMin = api ? api.convertInputFromUsd(GLOBAL_MIN_PRICE, code).amount : GLOBAL_MIN_PRICE;
+    const displayBoundMax = api ? api.convertInputFromUsd(GLOBAL_MAX_PRICE, code).amount : GLOBAL_MAX_PRICE;
+    const displayMin = api ? api.convertInputFromUsd(minUsd, code).amount : minUsd;
+    const displayMax = api ? api.convertInputFromUsd(maxUsd, code).amount : maxUsd;
 
-    let minV = parseInt(priceMinRange.value || String(GLOBAL_MIN_PRICE), 10);
-    let maxV = parseInt(priceMaxRange.value || String(GLOBAL_MAX_PRICE), 10);
+    priceMinRange.min = String(displayBoundMin);
+    priceMinRange.max = String(displayBoundMax);
+    priceMaxRange.min = String(displayBoundMin);
+    priceMaxRange.max = String(displayBoundMax);
+    // Whole display units preserve exact URL-derived values; pixel width still governs thumb granularity.
+    priceMinRange.step = priceMaxRange.step = '1';
+    priceMinRange.value = String(displayMin);
+    priceMaxRange.value = String(displayMax);
+    priceMinHidden.value = priceTouched && canonicalMinUsd !== null ? String(canonicalMinUsd) : '';
+    priceMaxHidden.value = priceTouched && canonicalMaxUsd !== null ? String(canonicalMaxUsd) : '';
+    if (priceCurrencyCode) priceCurrencyCode.textContent = '(' + code + ')';
+    if (priceSummary) priceSummary.textContent = api ? api.formatInput(minUsd, code) + ' — ' + api.formatInput(maxUsd, code) : '$' + westernInteger(minUsd) + ' — $' + westernInteger(maxUsd);
+  }
 
-    // Clamp
-    if (!Number.isFinite(minV)) minV = GLOBAL_MIN_PRICE;
-    if (!Number.isFinite(maxV)) maxV = GLOBAL_MAX_PRICE;
-
-    if (minV < GLOBAL_MIN_PRICE) minV = GLOBAL_MIN_PRICE;
-    if (maxV > GLOBAL_MAX_PRICE) maxV = GLOBAL_MAX_PRICE;
-
-    // Prevent crossing
-    if (minV > maxV) {
-      minV = maxV;
-      priceMinRange.value = String(minV);
-    }
-
-    if (priceTouched) {
-      priceMinHidden.value = String(minV);
-      priceMaxHidden.value = String(maxV);
-    } else {
-      priceMinHidden.value = '';
-      priceMaxHidden.value = '';
-    }
-
-    if (priceSummary) {
-      priceSummary.textContent = '$' + formatUsd(minV) + ' — $' + formatUsd(maxV);
-    }
-
-    if (triggerAjax) runAjaxFilter(1, false);
+  function updateCanonicalPriceFromDisplay() {
+    const api = currencyApi();
+    let displayMin = parseInt(priceMinRange.value, 10);
+    let displayMax = parseInt(priceMaxRange.value, 10);
+    if (displayMin > displayMax) displayMin = displayMax;
+    let minUsd = api ? api.convertInputToUsd(displayMin, api.selected(), 'min').amount : displayMin;
+    let maxUsd = api ? api.convertInputToUsd(displayMax, api.selected(), 'max').amount : displayMax;
+    canonicalMinUsd = Math.max(GLOBAL_MIN_PRICE, Math.min(GLOBAL_MAX_PRICE, minUsd));
+    canonicalMaxUsd = Math.max(canonicalMinUsd, Math.min(GLOBAL_MAX_PRICE, maxUsd));
+    priceTouched = true;
+    renderPriceUi();
   }
 
   function syncPriceUiDebounced() {
     if (sliderDebounceT) clearTimeout(sliderDebounceT);
     sliderDebounceT = setTimeout(function () {
-      syncPriceUi(true);
+      updateCanonicalPriceFromDisplay();
+      runAjaxFilter(1, false);
     }, 180);
   }
 
@@ -1518,7 +1529,7 @@ $property_archive_faq_items = ( function_exists( 'pera_property_archive_is_index
   // ---------------------------
   function buildPayload(paged) {
     // IMPORTANT: do price sync first so hidden inputs are correct before FormData reads them
-    syncPriceUi(false);
+    renderPriceUi();
     syncTaxCsvInputs();
 
     const fd = new FormData(form);
@@ -1888,12 +1899,10 @@ $property_archive_faq_items = ( function_exists( 'pera_property_archive_is_index
       });
 
       // Reset slider to bounds + mark as untouched
-      if (priceMinRange && priceMaxRange) {
-        priceMinRange.value = String(GLOBAL_MIN_PRICE);
-        priceMaxRange.value = String(GLOBAL_MAX_PRICE);
-      }
       priceTouched = false;
-      syncPriceUi(false);
+      canonicalMinUsd = null;
+      canonicalMaxUsd = null;
+      renderPriceUi();
 
       runAjaxFilter(1, false);
     });
@@ -1902,23 +1911,23 @@ $property_archive_faq_items = ( function_exists( 'pera_property_archive_is_index
   // Slider listeners
   if (priceMinRange) {
     priceMinRange.addEventListener('input', function () {
-      priceTouched = true;
       syncPriceUiDebounced();
     });
     priceMinRange.addEventListener('change', function () {
-      priceTouched = true;
-      syncPriceUi(true);
+      if (sliderDebounceT) clearTimeout(sliderDebounceT);
+      updateCanonicalPriceFromDisplay();
+      runAjaxFilter(1, false);
     });
   }
 
   if (priceMaxRange) {
     priceMaxRange.addEventListener('input', function () {
-      priceTouched = true;
       syncPriceUiDebounced();
     });
     priceMaxRange.addEventListener('change', function () {
-      priceTouched = true;
-      syncPriceUi(true);
+      if (sliderDebounceT) clearTimeout(sliderDebounceT);
+      updateCanonicalPriceFromDisplay();
+      runAjaxFilter(1, false);
     });
   }
 
@@ -1968,8 +1977,27 @@ $property_archive_faq_items = ( function_exists( 'pera_property_archive_is_index
   bindPillRows();
 
   // Initial UI sync: if URL had price params, hidden inputs should be populated
-  syncPriceUi(false);
+  renderPriceUi();
   syncTaxCsvInputs();
+
+  window.addEventListener('pera:currency-change', function () {
+    renderPriceUi();
+  });
+  document.addEventListener('DOMContentLoaded', function () {
+    renderPriceUi();
+  });
+
+  window.addEventListener('popstate', function () {
+    const params = new URLSearchParams(window.location.search);
+    const minRaw = params.get('min_price');
+    const maxRaw = params.get('max_price');
+    priceTouched = minRaw !== null || maxRaw !== null;
+    canonicalMinUsd = minRaw && /^\d+$/.test(minRaw) ? Math.max(GLOBAL_MIN_PRICE, Math.min(GLOBAL_MAX_PRICE, parseInt(minRaw, 10))) : (priceTouched ? GLOBAL_MIN_PRICE : null);
+    canonicalMaxUsd = maxRaw && /^\d+$/.test(maxRaw) ? Math.max(GLOBAL_MIN_PRICE, Math.min(GLOBAL_MAX_PRICE, parseInt(maxRaw, 10))) : (priceTouched ? GLOBAL_MAX_PRICE : null);
+    if (canonicalMinUsd !== null && canonicalMaxUsd !== null && canonicalMinUsd > canonicalMaxUsd) canonicalMinUsd = canonicalMaxUsd;
+    renderPriceUi();
+    runAjaxFilter(1, false);
+  });
 
   // Decide whether to run initial AJAX refresh (keep SSR for empty state)
   const keywordEl  = form.querySelector('input[name="s"]');
