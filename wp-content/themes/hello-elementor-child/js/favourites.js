@@ -318,6 +318,9 @@
       const count = parseInt(payload.data && payload.data.count, 10) || 0;
 
       favouritesGrid.innerHTML = html;
+      if (window.PeraCurrency && typeof window.PeraCurrency.render === 'function') {
+        window.PeraCurrency.render(favouritesGrid);
+      }
       updateAllButtons();
       updateFavouritesHero(count);
       updateFavouritesIdsInput();

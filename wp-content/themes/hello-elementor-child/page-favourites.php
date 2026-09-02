@@ -83,6 +83,11 @@ $phone      = trim( (string) $phone );
 $favourites_success = isset( $_GET['enquiry'] ) && $_GET['enquiry'] === 'sent';
 $favourites_failed  = isset( $_GET['enquiry'] ) && $_GET['enquiry'] === 'failed';
 
+// Guest favourites can add the first property cards over AJAX after page load.
+if ( function_exists( 'pera_property_display_price_enqueue_assets' ) ) {
+  pera_property_display_price_enqueue_assets();
+}
+
 get_header();
 ?>
 

@@ -463,6 +463,20 @@ if ( ! function_exists( 'pera_v2_units_format_price_text' ) ) {
   }
 }
 
+if ( ! function_exists( 'pera_property_display_price_enqueue_assets' ) ) {
+  /** Enqueue the Phase 1 runtime/config at most once during this request. */
+  function pera_property_display_price_enqueue_assets(): void {
+    static $enqueued = false;
+
+    if ( $enqueued ) return;
+
+    if ( class_exists( 'Pera_Currency_Assets' ) && is_callable( array( 'Pera_Currency_Assets', 'enqueue' ) ) ) {
+      Pera_Currency_Assets::enqueue();
+      $enqueued = true;
+    }
+  }
+}
+
 if ( ! function_exists( 'pera_property_display_price' ) ) {
   /**
    * Build cache-neutral presentation data for a visitor-facing property price.
@@ -500,9 +514,7 @@ if ( ! function_exists( 'pera_property_display_price' ) ) {
       }
     }
 
-    if ( class_exists( 'Pera_Currency_Assets' ) && is_callable( array( 'Pera_Currency_Assets', 'enqueue' ) ) ) {
-      Pera_Currency_Assets::enqueue();
-    }
+    pera_property_display_price_enqueue_assets();
 
     return array(
       'mode'    => $mode,

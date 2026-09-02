@@ -16,6 +16,11 @@ $archive_base_url = trim( $archive_base_candidate ) !== ''
   : trailingslashit( home_url( '/property/' ) );
 $archive_base_url = function_exists( 'pera_ml_url' ) ? pera_ml_url( $archive_base_url ) : $archive_base_url;
 
+// AJAX may add the first price nodes after page load, so enqueue independently of SSR results.
+if ( function_exists( 'pera_property_display_price_enqueue_assets' ) ) {
+  pera_property_display_price_enqueue_assets();
+}
+
 get_header();
 
 /* ------------------------------------------------------------
@@ -1628,6 +1633,10 @@ $property_archive_faq_items = ( function_exists( 'pera_property_archive_is_index
       }
     } else if (!append) {
       grid.innerHTML = '<p class="text-soft">' + <?php echo wp_json_encode( pera_ml_ui( 'No results.', 'theme.template.archive_property.no_results' ) ); ?> + '</p>';
+    }
+
+    if (window.PeraCurrency && typeof window.PeraCurrency.render === 'function') {
+      window.PeraCurrency.render(grid);
     }
 
     if (countEl) countEl.textContent = d.count_text ? d.count_text : '';
