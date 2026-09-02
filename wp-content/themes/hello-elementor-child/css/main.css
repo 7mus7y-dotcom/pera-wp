@@ -1579,9 +1579,9 @@ button.pill:focus-visible {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  min-width: 48px;
+  min-width: 42px;
   min-height: 30px;
-  padding: 0 6px;
+  padding: 0;
   border: 0;
   border-radius: 999px;
   background: transparent;
@@ -1591,7 +1591,6 @@ button.pill:focus-visible {
   cursor: pointer;
 }
 .pera-currency-selector__chevron { margin-inline-start: 3px; }
-#site-header .pera-currency-selector__icon { display: none; }
 .pera-currency-selector__list { display: flex; margin: 0; padding: 0; }
 .pera-currency-selector--header .pera-currency-selector__list {
   position: absolute;
@@ -1642,10 +1641,6 @@ button.pill:focus-visible {
 .pera-currency-selector--offcanvas .pera-currency-selector__list button { min-width: 54px; padding-inline: 8px; }
 
 @media (max-width: 640px) {
-  #site-header .pera-currency-selector__trigger { min-width: 30px; width: 30px; padding: 0; }
-  #site-header .pera-currency-selector__code,
-  #site-header .pera-currency-selector__chevron { display: none; }
-  #site-header .pera-currency-selector__icon { display: block; }
   .pera-currency-selector--header .pera-currency-selector__list { inset-inline-start: auto; inset-inline-end: 0; }
 }
 

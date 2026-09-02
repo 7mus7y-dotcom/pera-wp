@@ -18,6 +18,7 @@ $theme         = dirname( __DIR__ );
 $helper_source = file_get_contents( $theme . '/inc/theme-helpers.php' );
 $header_source = file_get_contents( $theme . '/header.php' );
 $js_source     = file_get_contents( $theme . '/js/currency-selector.js' );
+$css_source    = file_get_contents( $theme . '/css/main.css' );
 $start         = strpos( $helper_source, 'function pera_render_currency_selector' );
 $function      = substr( $helper_source, $start );
 
@@ -41,11 +42,19 @@ foreach ( array( 'header', 'offcanvas' ) as $context ) {
 	selector_expect( false !== strpos( $html, '>USD<' ) && false !== strpos( $html, '>EUR<' ) && false !== strpos( $html, '>GBP<' ), "{$context}: USD, EUR, and GBP render" );
 	selector_expect( false === strpos( $html, '>TRY<' ), "{$context}: unsupported option is absent" );
 	selector_expect( false !== strpos( $html, 'data-pera-currency-option="USD" aria-selected="true" class="is-active"' ), "{$context}: neutral SSR state is USD" );
+	selector_expect( false === strpos( $html, '<svg' ) && false === strpos( $html, 'icon-currency' ), "{$context}: currency icon is absent" );
+	selector_expect( false === strpos( $html, '(selected)' ) && false === strpos( $html, 'data-pera-currency-selected-text' ) && false === strpos( $html, 'data-pera-currency-selected-label' ), "{$context}: selected label plumbing is absent" );
 }
 
 selector_expect( false !== strpos( $js_source, 'api().setSelected(' ), 'selection delegates to PeraCurrency.setSelected' );
 selector_expect( false !== strpos( $js_source, "window.addEventListener('pera:currency-change', sync)" ), 'all instances synchronize on the shared event' );
 selector_expect( false !== strpos( $js_source, "event.key === 'Escape'" ), 'Escape closes the disclosure' );
+selector_expect( false !== strpos( $js_source, "option.setAttribute('aria-selected', String(active))" ), 'selection synchronizes aria-selected' );
+selector_expect( false === strpos( $js_source, 'currency-selected-text' ) && false === strpos( $js_source, 'currency-selected-label' ), 'JavaScript has no selected label plumbing' );
 selector_expect( false === strpos( $js_source, 'localStorage') && false === strpos( $js_source, 'location.reload') && false === strpos( $js_source, 'location.href'), 'selector creates no persistence, reload, or navigation state' );
+selector_expect( false !== strpos( $css_source, '.pera-currency-selector__list button.is-active { font-weight: 700; text-decoration: underline;' ), 'active option remains bold and underlined' );
+selector_expect( false === strpos( $css_source, '.pera-currency-selector__icon' ), 'currency icon CSS is absent' );
+selector_expect( false === strpos( $css_source, '.pera-currency-selector__code,' ), 'mobile CSS does not hide the currency code' );
+selector_expect( false === strpos( $css_source, 'min-width: 30px; width: 30px;' ), 'mobile CSS has no icon-only fixed trigger' );
 
 echo "Currency selector tests passed\n";
