@@ -38,7 +38,7 @@ php tests/php-test.php
 node tests/js-test.js
 ```
 
-Both runners consume shared golden fixtures. They cover exact allowlisting, ECB cross-rate normalization and incomplete rejection, deterministic snapshots, fresh/stale/expired states, durable-option restoration, invalid inputs, unsupported codes, large values, and half-up boundaries.
+Both runners consume shared golden fixtures. They cover exact allowlisting, ECB cross-rate normalization and incomplete rejection, deterministic snapshots, fresh/stale/expired states, durable-option restoration, invalid inputs, unsupported codes, range validation, runtime preference rehydration, large values, and half-up boundaries.
 
 ## Explicit exclusions
 

@@ -31,6 +31,14 @@ foreach ( json_decode( file_get_contents( __DIR__ . '/fixtures/golden.json' ), t
 	$ref = new ReflectionProperty( Pera_Currency_Rates::class, 'runtime' ); $ref->setAccessible( true ); $ref->setValue( null, null );
 	ok( pera_currency_format( $fixture['usd'], $fixture['currency'] ) === $fixture['expected'], 'golden ' . $fixture['currency'] );
 }
+foreach ( json_decode( file_get_contents( __DIR__ . '/fixtures/ranges.json' ), true ) as $fixture ) {
+	$max    = array_key_exists( 'max', $fixture ) ? $fixture['max'] : null;
+	$result = pera_currency_format_range( $fixture['min'], $max, 'EUR' );
+	ok( $result['valid'] === $fixture['valid'], 'range validity: ' . $fixture['name'] );
+	if ( $fixture['valid'] ) {
+		ok( $result['min'] === $fixture['minText'] && $result['max'] === $fixture['maxText'], 'range text: ' . $fixture['name'] );
+	}
+}
 ok( array_keys( pera_currency_get_supported() ) === array( 'USD', 'EUR', 'GBP' ), 'exact allowlist' );
 ok( null === pera_currency_convert( -1 ) && null === pera_currency_convert( '1,000' ) && null === pera_currency_convert( INF ), 'invalid amounts' );
 ok( null === pera_currency_get_rate( 'CAD' ), 'unsupported currency' );

@@ -1,0 +1,8 @@
+[
+  {"name":"invalid string max","min":"450000","max":"invalid","valid":false},
+  {"name":"negative max","min":"450000","max":-1,"valid":false},
+  {"name":"malformed numeric max","min":"450000","max":"525,000","valid":false},
+  {"name":"omitted max","min":"450000","valid":true,"minText":"€387,000","maxText":""},
+  {"name":"valid max","min":"450000","max":"525000","valid":true,"minText":"€387,000","maxText":"€452,000"},
+  {"name":"reversed range","min":"525000","max":"450000","valid":false}
+]

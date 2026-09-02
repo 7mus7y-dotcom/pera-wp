@@ -38,9 +38,10 @@ function pera_currency_format( $amount_usd, ?string $currency = null, array $opt
 
 function pera_currency_format_range( $min_usd, $max_usd = null, ?string $currency = null, array $options = array() ): array {
 	$options['details'] = true;
-	$min = pera_currency_convert( $min_usd, $currency, $options );
-	$max = null === $max_usd || '' === $max_usd ? null : pera_currency_convert( $max_usd, $currency, $options );
-	if ( ! is_array( $min ) || ( null !== $max && ! is_array( $max ) ) || ( null !== $max && (float) $max_usd < (float) $min_usd ) ) {
+	$has_max = null !== $max_usd && '' !== $max_usd;
+	$min     = pera_currency_convert( $min_usd, $currency, $options );
+	$max     = $has_max ? pera_currency_convert( $max_usd, $currency, $options ) : null;
+	if ( ! is_array( $min ) || ( $has_max && ! is_array( $max ) ) || ( $has_max && (float) $max_usd < (float) $min_usd ) ) {
 		return array( 'min' => '', 'max' => '', 'currency' => 'USD', 'snapshot_id' => null, 'fallback' => true, 'valid' => false );
 	}
 	if ( null !== $max && $max['amount'] === $min['amount'] ) $max = null;
