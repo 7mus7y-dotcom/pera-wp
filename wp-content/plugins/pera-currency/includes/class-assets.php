@@ -26,6 +26,9 @@ final class Pera_Currency_Assets {
 	}
 
 	public static function enqueue() {
+		static $enqueued = false;
+		if ( $enqueued ) return;
+		$enqueued = true;
 		self::register();
 		wp_enqueue_script( 'pera-currency' );
 		wp_enqueue_style( 'pera-currency' );

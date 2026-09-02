@@ -1573,6 +1573,82 @@ button.pill:focus-visible {
 }
 .header-language-switcher--mobile .header-language-switcher__list a { min-height: 40px; padding: 11px 8px; }
 
+/* Pera Currency uses the same compact disclosure language without sharing state. */
+.pera-currency-selector { position: relative; font-size: 0.78rem; line-height: 1.2; }
+#site-header .pera-currency-selector__trigger {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 48px;
+  min-height: 30px;
+  padding: 0 6px;
+  border: 0;
+  border-radius: 999px;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
+}
+.pera-currency-selector__chevron { margin-inline-start: 3px; }
+#site-header .pera-currency-selector__icon { display: none; }
+.pera-currency-selector__list { display: flex; margin: 0; padding: 0; }
+.pera-currency-selector--header .pera-currency-selector__list {
+  position: absolute;
+  inset-block-start: calc(100% + 8px);
+  inset-inline-start: 0;
+  z-index: 2;
+  display: none;
+  width: max-content;
+  padding: 6px;
+  border: 1px solid var(--glass-border-soft);
+  border-radius: var(--radius-md);
+  background: var(--brand);
+  box-shadow: var(--glass-shadow-soft);
+}
+.pera-currency-selector--header.is-open .pera-currency-selector__list { display: block; }
+.pera-currency-selector__list button {
+  display: block;
+  min-width: 58px;
+  min-height: 40px;
+  padding: 10px 12px;
+  border: 0;
+  border-radius: calc(var(--radius-md) - 4px);
+  background: transparent;
+  color: #fff;
+  font: inherit;
+  text-align: center;
+  cursor: pointer;
+}
+.pera-currency-selector__list button:hover,
+.pera-currency-selector__list button:focus-visible { background: rgba(255, 255, 255, 0.14); }
+.pera-currency-selector__list button.is-active { font-weight: 700; text-decoration: underline; text-underline-offset: 3px; }
+.pera-currency-selector__trigger:focus-visible,
+.pera-currency-selector__list button:focus-visible { outline: 2px solid #ffed00; outline-offset: 2px; }
+.pera-currency-selector--offcanvas {
+  margin: -16px 0 24px;
+  padding-block-end: 14px;
+  border-block-end: 1px solid rgba(255, 255, 255, 0.2);
+}
+.pera-currency-selector__title {
+  display: block;
+  margin-block-end: 8px;
+  color: rgba(255, 255, 255, 0.75);
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+.pera-currency-selector--offcanvas .pera-currency-selector__list { flex-wrap: wrap; gap: 4px 10px; }
+.pera-currency-selector--offcanvas .pera-currency-selector__list button { min-width: 54px; padding-inline: 8px; }
+
+@media (max-width: 640px) {
+  #site-header .pera-currency-selector__trigger { min-width: 30px; width: 30px; padding: 0; }
+  #site-header .pera-currency-selector__code,
+  #site-header .pera-currency-selector__chevron { display: none; }
+  #site-header .pera-currency-selector__icon { display: block; }
+  .pera-currency-selector--header .pera-currency-selector__list { inset-inline-start: auto; inset-inline-end: 0; }
+}
+
 /* LOGO container — no glass until scroll */
 #site-header .site-branding {
   display: flex;
