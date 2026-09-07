@@ -1181,6 +1181,45 @@ body.crm-route .crm-page--client-view .crm-portfolio-actions .peracrm-linked-pro
   gap: 6px;
 }
 
+/*
+ * Timeline entries can contain a table (and other user-supplied, unbroken
+ * values). Reset the automatic minimum size at each nested grid boundary so
+ * that the entry is sized by the client column rather than its contents.
+ */
+.crm-page--client-view .crm-client-timeline,
+.crm-page--client-view .crm-client-timeline > .crm-section__body,
+.crm-page--client-view .crm-client-timeline .archive-hero-desc,
+.crm-page--client-view .crm-client-timeline .archive-hero-desc__content,
+.crm-page--client-view .crm-client-timeline__list,
+.crm-page--client-view .crm-client-timeline__item,
+.crm-page--client-view .crm-client-timeline__details,
+.crm-page--client-view .crm-client-timeline .peracrm-enquiry-details,
+.crm-page--client-view .crm-client-timeline .peracrm-enquiry-details__body {
+  box-sizing: border-box;
+  min-width: 0;
+  max-width: 100%;
+  width: 100%;
+}
+
+.crm-page--client-view .crm-client-timeline :is(
+  .crm-activity-list__summary,
+  .crm-client-timeline__detail,
+  .crm-client-timeline__meta,
+  .crm-client-timeline__details,
+  .peracrm-enquiry-details summary,
+  .peracrm-enquiry-details__table th,
+  .peracrm-enquiry-details__table td
+) {
+  overflow-wrap: anywhere;
+  word-break: break-word;
+}
+
+.crm-page--client-view .crm-client-timeline__details :is(pre, code) {
+  max-width: 100%;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
 .crm-client-timeline__header {
   align-items: center;
   display: flex;
@@ -1223,6 +1262,8 @@ body.crm-route .crm-page--client-view .crm-portfolio-actions .peracrm-linked-pro
 
 .crm-client-timeline .peracrm-enquiry-details__table {
   border-collapse: collapse;
+  table-layout: fixed;
+  max-width: 100%;
   width: 100%;
 }
 
@@ -1237,7 +1278,7 @@ body.crm-route .crm-page--client-view .crm-portfolio-actions .peracrm-linked-pro
 .crm-client-timeline .peracrm-enquiry-details__table th {
   color: #646970;
   font-weight: 600;
-  width: 160px;
+  width: min(160px, 35%);
 }
 
 .crm-client-timeline .peracrm-enquiry-details__table td {
