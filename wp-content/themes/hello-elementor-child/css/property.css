@@ -1278,41 +1278,6 @@ body.is-lightbox-open{ overflow: hidden; }
    PROPERTY HERO – CTA BUTTON ALIGNMENT (equal width/height)
    ======================================================= */
 
-.property-hero__video-action{
-  display: flex;
-  justify-content: flex-start;
-  margin: 8px 0 10px;
-}
-
-.property-hero__video-action .property-hero__video-button{
-  width: auto;
-  min-height: 36px;
-  padding: 7px 12px;
-  gap: 7px;
-  background: rgba(255, 255, 255, 0.1);
-  border-color: rgba(255, 255, 255, 0.55);
-  font-size: 0.875rem;
-  line-height: 1;
-  white-space: nowrap;
-}
-
-.property-hero__video-action .property-hero__video-button:hover{
-  background: rgba(255, 255, 255, 0.2);
-  border-color: #fff;
-  color: #fff;
-}
-
-.property-hero__video-action .property-hero__video-button:focus-visible{
-  outline: 2px solid #fff;
-  outline-offset: 3px;
-  box-shadow: 0 0 0 2px rgba(0, 45, 114, 0.8);
-}
-
-.property-hero__video-icon{
-  display: block;
-  flex: 0 0 auto;
-}
-
 .property-hero__cta{
   display: flex;
   gap: 12px;
