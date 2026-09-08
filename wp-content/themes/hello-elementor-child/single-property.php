@@ -366,6 +366,7 @@ if ( is_array( $main_gallery ) && ! empty( $main_gallery ) ) {
 
 /* Uploaded apartment tour: only expose canonical WordPress video attachments. */
 $custom_video_heading       = function_exists( 'get_field' ) ? trim( (string) get_field( 'custom_video_heading', $property_id ) ) : '';
+$custom_video_button        = function_exists( 'get_field' ) ? trim( (string) get_field( 'custom_video_button', $property_id ) ) : '';
 $custom_video_file          = function_exists( 'get_field' ) ? get_field( 'video_file', $property_id ) : null;
 $custom_video_label         = $custom_video_heading ?: pera_ml_ui( 'Apartment tour', 'theme.template.single_property.apartment_tour_heading' );
 $custom_video_url           = '';
@@ -724,6 +725,15 @@ $has_further_reading = ! empty( $post_ids );
             </svg>
           </span>
         </button>
+
+        <?php if ( $custom_video_url && $custom_video_button !== '' ) : ?>
+          <button
+            class="btn btn--ghost btn--blue"
+            type="button"
+            data-open-property-video
+            aria-label="<?php echo esc_attr( $custom_video_button ); ?>"
+          ><?php echo esc_html( $custom_video_button ); ?></button>
+        <?php endif; ?>
 
         <a class="btn btn--solid btn--blue" href="#contact-form"><?php echo esc_html( pera_ml_ui( 'Request details', 'theme.template.single_property.request_details' ) ); ?></a>
 
