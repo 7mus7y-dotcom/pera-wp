@@ -367,6 +367,9 @@ if ( is_array( $main_gallery ) && ! empty( $main_gallery ) ) {
 /* Uploaded apartment tour: only expose canonical WordPress video attachments. */
 $custom_video_heading       = function_exists( 'get_field' ) ? trim( (string) get_field( 'custom_video_heading', $property_id ) ) : '';
 $custom_video_button        = function_exists( 'get_field' ) ? trim( (string) get_field( 'custom_video_button', $property_id ) ) : '';
+$video_button_label         = $custom_video_button !== ''
+  ? $custom_video_button
+  : pera_ml_ui( 'Watch video', 'theme.template.single_property.watch_video' );
 $custom_video_file          = function_exists( 'get_field' ) ? get_field( 'video_file', $property_id ) : null;
 $custom_video_label         = $custom_video_heading ?: pera_ml_ui( 'Apartment tour', 'theme.template.single_property.apartment_tour_heading' );
 $custom_video_url           = '';
@@ -695,6 +698,22 @@ $has_further_reading = ! empty( $post_ids );
         
         </div>
 
+        <?php if ( $custom_video_url ) : ?>
+          <div class="property-hero__video-action">
+            <button
+              class="btn btn--ghost btn--white property-hero__video-button"
+              type="button"
+              data-open-property-video
+              aria-label="<?php echo esc_attr( $video_button_label ); ?>"
+            >
+              <svg class="property-hero__video-icon" aria-hidden="true" focusable="false" viewBox="0 0 16 16" width="14" height="14">
+                <path fill="currentColor" d="M4 2.75v10.5L13 8z"></path>
+              </svg>
+              <span><?php echo esc_html( $video_button_label ); ?></span>
+            </button>
+          </div>
+        <?php endif; ?>
+
      
       <!-- CTA -->
       <div class="property-hero__cta">
@@ -725,15 +744,6 @@ $has_further_reading = ! empty( $post_ids );
             </svg>
           </span>
         </button>
-
-        <?php if ( $custom_video_url && $custom_video_button !== '' ) : ?>
-          <button
-            class="btn btn--ghost btn--blue"
-            type="button"
-            data-open-property-video
-            aria-label="<?php echo esc_attr( $custom_video_button ); ?>"
-          ><?php echo esc_html( $custom_video_button ); ?></button>
-        <?php endif; ?>
 
         <a class="btn btn--solid btn--blue" href="#contact-form"><?php echo esc_html( pera_ml_ui( 'Request details', 'theme.template.single_property.request_details' ) ); ?></a>
 
