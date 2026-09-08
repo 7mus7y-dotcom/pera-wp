@@ -2824,9 +2824,9 @@ body.crm-route .table-wrap,
 }
 
 /* Make tables grow naturally */
-#crm-app table:not(.crm-page--client-view table),
-body.page-template-page-crm table:not(.crm-page--client-view table),
-body.crm-route table:not(.crm-page--client-view table),
+#crm-app table:not(.peracrm-enquiry-details__table),
+body.page-template-page-crm table:not(.peracrm-enquiry-details__table),
+body.crm-route table:not(.peracrm-enquiry-details__table),
 .crm-page:not(.crm-page--client-view) table {
   table-layout: auto !important;
   width: max-content !important;
@@ -2834,12 +2834,12 @@ body.crm-route table:not(.crm-page--client-view table),
 }
 
 /* Apply to ALL headers/cells (every column) */
-#crm-app table:not(.crm-page--client-view table) th,
-#crm-app table:not(.crm-page--client-view table) td,
-body.page-template-page-crm table:not(.crm-page--client-view table) th,
-body.page-template-page-crm table:not(.crm-page--client-view table) td,
-body.crm-route table:not(.crm-page--client-view table) th,
-body.crm-route table:not(.crm-page--client-view table) td,
+#crm-app table:not(.peracrm-enquiry-details__table) th,
+#crm-app table:not(.peracrm-enquiry-details__table) td,
+body.page-template-page-crm table:not(.peracrm-enquiry-details__table) th,
+body.page-template-page-crm table:not(.peracrm-enquiry-details__table) td,
+body.crm-route table:not(.peracrm-enquiry-details__table) th,
+body.crm-route table:not(.peracrm-enquiry-details__table) td,
 .crm-page:not(.crm-page--client-view) table th,
 .crm-page:not(.crm-page--client-view) table td {
   white-space: nowrap !important;
@@ -2852,9 +2852,9 @@ body.crm-route table:not(.crm-page--client-view table) td,
 }
 
 /* If any column sizing is forced via colgroup */
-#crm-app table:not(.crm-page--client-view table) col,
-body.page-template-page-crm table:not(.crm-page--client-view table) col,
-body.crm-route table:not(.crm-page--client-view table) col,
+#crm-app table:not(.peracrm-enquiry-details__table) col,
+body.page-template-page-crm table:not(.peracrm-enquiry-details__table) col,
+body.crm-route table:not(.peracrm-enquiry-details__table) col,
 .crm-page:not(.crm-page--client-view) table col {
   width: auto !important;
 }
