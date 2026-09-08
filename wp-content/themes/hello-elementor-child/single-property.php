@@ -699,14 +699,14 @@ $has_further_reading = ! empty( $post_ids );
         </div>
 
         <?php if ( $custom_video_url ) : ?>
-          <div class="property-hero__video-action">
+          <div class="property-hero__video-action property-hero__cta">
             <button
-              class="btn btn--ghost btn--white property-hero__video-button"
+              class="btn btn--ghost btn--white"
               type="button"
               data-open-property-video
               aria-label="<?php echo esc_attr( $video_button_label ); ?>"
             >
-              <svg class="property-hero__video-icon" aria-hidden="true" focusable="false" viewBox="0 0 16 16" width="14" height="14">
+              <svg class="icon" aria-hidden="true" focusable="false" viewBox="0 0 16 16" width="14" height="14">
                 <path fill="currentColor" d="M4 2.75v10.5L13 8z"></path>
               </svg>
               <span><?php echo esc_html( $video_button_label ); ?></span>
