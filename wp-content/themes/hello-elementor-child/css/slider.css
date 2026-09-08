@@ -274,6 +274,64 @@
   object-fit: cover;
 }
 
+.property-gallery__trigger{
+  position: relative;
+  display: block;
+  height: 100%;
+  width: 100%;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: #fff;
+  cursor: pointer;
+}
+
+.property-gallery__trigger:focus-visible{
+  outline: 3px solid var(--blue, #1769aa);
+  outline-offset: -3px;
+}
+
+.property-gallery__item--video{
+  width: min(82vw, 520px);
+  min-width: 220px;
+  background: #17324d;
+}
+
+.property-gallery__item--video img{
+  width: 100%;
+  max-width: none;
+  filter: brightness(.7);
+}
+
+.property-gallery__play{
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 64px;
+  height: 64px;
+  transform: translate(-50%, -50%);
+  display: grid;
+  place-items: center;
+  border: 2px solid rgba(255,255,255,.9);
+  border-radius: 50%;
+  background: rgba(0,0,0,.5);
+  box-shadow: 0 4px 18px rgba(0,0,0,.35);
+}
+
+.property-gallery__play svg{ width: 30px; height: 30px; fill: currentColor; }
+
+.property-gallery__video-label{
+  position: absolute;
+  left: 12px;
+  bottom: 12px;
+  padding: 6px 10px;
+  border-radius: 999px;
+  background: rgba(0,0,0,.62);
+  font-size: .8rem;
+  font-weight: 700;
+  line-height: 1.2;
+}
+
 /* Shared shell for card sliders with chevron navigation */
 .cards-slider-shell--nav {
   position: relative;
