@@ -21,14 +21,21 @@ function property_video_test_media_order( $photos, $has_video ) {
 	return $media;
 }
 
-/** Mirror the hero control's strict, validated-video-and-visible-label rule. */
-function property_video_test_show_hero_button( $validated_video_url, $button_text ) {
-	return $validated_video_url !== '' && trim( $button_text ) !== '';
+/** Mirror the hero control's validated-video display rule. */
+function property_video_test_show_hero_button( $validated_video_url ) {
+	return $validated_video_url !== '';
+}
+
+/** Mirror the hero control's custom-text-or-fallback label rule. */
+function property_video_test_button_label( $button_text, $fallback ) {
+	$button_text = trim( $button_text );
+	return $button_text !== '' ? $button_text : $fallback;
 }
 
 $theme_dir = dirname( __DIR__ );
 $template  = file_get_contents( $theme_dir . '/single-property.php' );
 $script    = file_get_contents( $theme_dir . '/js/main.js' );
+$styles    = file_get_contents( $theme_dir . '/css/property.css' );
 
 expect_property_video( false === strpos( $template, 'wp_get_attachment_mime_type(' ), 'nonexistent MIME function is absent' );
 expect_property_video( false !== strpos( $template, 'get_post_mime_type( $custom_video_attachment_id )' ), 'WordPress post MIME API validates the attachment' );
@@ -67,16 +74,33 @@ expect_property_video( false !== strpos( $template, 'esc_attr( $custom_video_mim
 expect_property_video( false !== strpos( $template, '$custom_video_heading ?: pera_ml_ui(' ), 'custom heading has a translated Apartment tour fallback' );
 
 expect_property_video( false !== strpos( $template, "trim( (string) get_field( 'custom_video_button', \$property_id ) )" ), 'translated custom video button text is read and trimmed' );
-expect_property_video( false !== strpos( $template, "if ( \$custom_video_url && \$custom_video_button !== '' ) :" ), 'hero video button requires a validated video URL and visible text' );
+expect_property_video( false !== strpos( $template, "\$video_button_label         = \$custom_video_button !== ''" ), 'non-empty custom video button text controls the label' );
+expect_property_video( false !== strpos( $template, "pera_ml_ui( 'Watch video', 'theme.template.single_property.watch_video' )" ), 'empty custom text uses the translated Watch video fallback' );
+expect_property_video( false !== strpos( $template, 'if ( $custom_video_url ) :' ), 'hero video button requires only a validated video URL' );
 expect_property_video( false === strpos( $template, "get_field( 'custom_video_checkbox'" ), 'hero button does not depend on the retired checkbox field' );
 expect_property_video( false !== strpos( $template, 'data-open-property-video' ), 'hero video button has a stable selector' );
-expect_property_video( false !== strpos( $template, 'aria-label="<?php echo esc_attr( $custom_video_button ); ?>"' ), 'hero video button accessible label is escaped' );
-expect_property_video( false !== strpos( $template, 'esc_html( $custom_video_button )' ), 'translated hero video button text is escaped visibly' );
-expect_property_video( false !== strpos( $template, 'class="btn btn--ghost btn--blue"' ), 'hero video button uses the existing ghost button design' );
+expect_property_video( false !== strpos( $template, 'aria-label="<?php echo esc_attr( $video_button_label ); ?>"' ), 'hero video button has an escaped accessible label' );
+expect_property_video( false !== strpos( $template, 'esc_html( $video_button_label )' ), 'resolved hero video button label is escaped visibly' );
+expect_property_video( false !== strpos( $template, 'class="btn btn--ghost btn--white property-hero__video-button"' ), 'hero video button uses a restrained existing ghost design' );
+expect_property_video( false !== strpos( $template, 'class="property-hero__video-icon" aria-hidden="true" focusable="false"' ), 'play icon is decorative and removed from the accessibility tree' );
 expect_property_video( false !== strpos( $template, 'type="button"' ), 'hero video control is a semantic non-submitting button' );
-expect_property_video( property_video_test_show_hero_button( 'https://example.test/tour.mp4', 'Watch tour' ), 'valid video and non-empty translated text render the hero control' );
-expect_property_video( ! property_video_test_show_hero_button( 'https://example.test/tour.mp4', " \t\n" ), 'empty trimmed button text suppresses the hero control' );
-expect_property_video( ! property_video_test_show_hero_button( '', 'Watch tour' ), 'absent or invalid video suppresses the hero control' );
+expect_property_video( property_video_test_show_hero_button( 'https://example.test/tour.mp4' ), 'valid video renders the hero control even without custom text' );
+expect_property_video( 'Watch video' === property_video_test_button_label( '', 'Watch video' ), 'empty custom text selects the fallback' );
+expect_property_video( 'Watch video' === property_video_test_button_label( " \t\n", 'Watch video' ), 'whitespace-only custom text selects the fallback' );
+expect_property_video( 'Watch tour' === property_video_test_button_label( ' Watch tour ', 'Watch video' ), 'non-empty trimmed custom text overrides the fallback' );
+expect_property_video( ! property_video_test_show_hero_button( '' ), 'absent or invalid video suppresses the hero control' );
+
+$facts_position        = strpos( $template, '<div class="property-hero__facts"' );
+$video_action_position = strpos( $template, '<div class="property-hero__video-action">' );
+$cta_position          = strpos( $template, '<div class="property-hero__cta">' );
+expect_property_video( $facts_position < $video_action_position && $video_action_position < $cta_position, 'video action follows facts and precedes the CTA row' );
+$cta_request_details_position = strpos( $template, '<a class="btn btn--solid btn--blue"', $cta_position );
+$cta_leading_controls         = substr( $template, $cta_position, $cta_request_details_position - $cta_position );
+expect_property_video( false === strpos( $cta_leading_controls, 'data-open-property-video' ), 'video button is not inside the CTA row' );
+expect_property_video( false !== strpos( $styles, '.property-hero__video-action{' ), 'video action has dedicated desktop styling' );
+expect_property_video( false !== strpos( $styles, 'justify-content: flex-start;' ), 'video action stays left aligned' );
+expect_property_video( false !== strpos( $styles, '.property-hero__video-action .property-hero__video-button{' ), 'video button styling is scoped outside the CTA layout' );
+expect_property_video( false !== strpos( $styles, 'width: auto;' ), 'video control remains compact on desktop and mobile' );
 
 expect_property_video( false !== strpos( $script, 'lightboxVideo.pause();' ), 'closing or changing media pauses video' );
 expect_property_video( false !== strpos( $script, 'lightboxVideo.currentTime = 0;' ), 'closing or changing media resets video' );
