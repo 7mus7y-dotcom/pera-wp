@@ -1046,10 +1046,33 @@ $has_further_reading = ! empty( $post_ids );
         );
       }
 
-      if ( ! empty( $gallery_items ) || $custom_video_url ) :
+      $gallery_media_items = $gallery_items;
+      if ( $custom_video_url ) {
+        array_splice(
+          $gallery_media_items,
+          empty( $gallery_items ) ? 0 : 1,
+          0,
+          array( array( 'type' => 'video' ) )
+        );
+      }
+
+      if ( ! empty( $gallery_media_items ) ) :
     ?>
       <div class="property-gallery__strip" aria-label="<?php echo esc_attr( pera_ml_ui( 'Property photos', 'theme.template.single_property.aria_label.property_photos' ) ); ?>" role="list">
-        <?php foreach ( $gallery_items as $gallery_item ) :
+        <?php foreach ( $gallery_media_items as $gallery_item ) : ?>
+          <?php if ( isset( $gallery_item['type'] ) && 'video' === $gallery_item['type'] ) : ?>
+            <div class="property-gallery__item property-gallery__item--video<?php echo $custom_video_poster_url ? '' : ' property-gallery__item--video-fallback'; ?>" role="listitem">
+              <button class="property-gallery__trigger property-gallery__video-trigger" type="button" data-gallery-type="video" aria-label="<?php echo esc_attr( $custom_video_label ); ?>">
+                <?php if ( $custom_video_poster_url ) : ?>
+                  <img src="<?php echo esc_url( $custom_video_poster_url ); ?>" alt="" loading="lazy" decoding="async">
+                <?php endif; ?>
+                <span class="property-gallery__play" aria-hidden="true">
+                  <svg viewBox="0 0 24 24" focusable="false"><path d="M8 5v14l11-7z"></path></svg>
+                </span>
+                <span class="property-gallery__video-label"><?php echo esc_html( $custom_video_label ); ?></span>
+              </button>
+            </div>
+          <?php else :
           $img_id    = $gallery_item['id'];
           $alt_label = $gallery_item['alt'];
           $image_html = wp_get_attachment_image(
@@ -1069,20 +1092,8 @@ $has_further_reading = ! empty( $post_ids );
               <?php echo $image_html; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>
             </button>
           </div>
+          <?php endif; ?>
         <?php endforeach; ?>
-        <?php if ( $custom_video_url ) : ?>
-          <div class="property-gallery__item property-gallery__item--video<?php echo $custom_video_poster_url ? '' : ' property-gallery__item--video-fallback'; ?>" role="listitem">
-            <button class="property-gallery__trigger property-gallery__video-trigger" type="button" data-gallery-type="video" aria-label="<?php echo esc_attr( $custom_video_label ); ?>">
-              <?php if ( $custom_video_poster_url ) : ?>
-                <img src="<?php echo esc_url( $custom_video_poster_url ); ?>" alt="" loading="lazy" decoding="async">
-              <?php endif; ?>
-              <span class="property-gallery__play" aria-hidden="true">
-                <svg viewBox="0 0 24 24" focusable="false"><path d="M8 5v14l11-7z"></path></svg>
-              </span>
-              <span class="property-gallery__video-label"><?php echo esc_html( $custom_video_label ); ?></span>
-            </button>
-          </div>
-        <?php endif; ?>
       </div>
     <?php else :
       echo '<p class="text-soft" style="margin:0;">' . esc_html( pera_ml_ui( 'No gallery images available.', 'theme.template.single_property.no_gallery_images_available' ) ) . '</p>';
