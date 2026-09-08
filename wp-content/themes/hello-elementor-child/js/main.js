@@ -653,4 +653,92 @@ document.addEventListener('DOMContentLoaded', function () {
     window.addEventListener('resize', requestTick);
   }
 
+  /* Property gallery: images and an optional uploaded apartment tour share one lightbox. */
+  var propertyLightbox = document.getElementById('property-lightbox');
+  if (propertyLightbox) {
+    var galleryTriggers = Array.prototype.slice.call(document.querySelectorAll('.property-gallery__trigger'));
+    var lightboxImage = propertyLightbox.querySelector('.lightbox__img');
+    var lightboxVideo = propertyLightbox.querySelector('.lightbox__video');
+    var lightboxCaption = propertyLightbox.querySelector('.lightbox__caption');
+    var lightboxClose = propertyLightbox.querySelector('.lightbox__close');
+    var lightboxPrev = propertyLightbox.querySelector('[data-gallery-prev]');
+    var lightboxNext = propertyLightbox.querySelector('[data-gallery-next]');
+    var activeGalleryIndex = 0;
+    var galleryReturnFocus = null;
+
+    function stopGalleryVideo() {
+      if (!lightboxVideo) return;
+      lightboxVideo.pause();
+      lightboxVideo.currentTime = 0;
+    }
+
+    function showGalleryItem(index) {
+      var trigger = galleryTriggers[index];
+      if (!trigger) return;
+      activeGalleryIndex = index;
+      stopGalleryVideo();
+
+      var isVideo = trigger.dataset.galleryType === 'video';
+      var label = trigger.dataset.galleryLabel || trigger.getAttribute('aria-label') || '';
+      lightboxImage.hidden = isVideo;
+      if (lightboxVideo) lightboxVideo.hidden = !isVideo;
+
+      if (!isVideo) {
+        lightboxImage.src = trigger.dataset.gallerySrc;
+        lightboxImage.alt = label;
+      }
+      lightboxCaption.textContent = label;
+      lightboxPrev.hidden = galleryTriggers.length < 2;
+      lightboxNext.hidden = galleryTriggers.length < 2;
+    }
+
+    function openPropertyGallery(index, trigger) {
+      galleryReturnFocus = trigger;
+      showGalleryItem(index);
+      propertyLightbox.classList.add('is-open');
+      propertyLightbox.setAttribute('aria-hidden', 'false');
+      document.body.classList.add('is-lightbox-open');
+      lightboxClose.focus();
+    }
+
+    function closePropertyGallery() {
+      stopGalleryVideo();
+      propertyLightbox.classList.remove('is-open');
+      propertyLightbox.setAttribute('aria-hidden', 'true');
+      document.body.classList.remove('is-lightbox-open');
+      if (galleryReturnFocus) galleryReturnFocus.focus();
+    }
+
+    galleryTriggers.forEach(function (trigger, index) {
+      trigger.addEventListener('click', function () { openPropertyGallery(index, trigger); });
+    });
+    propertyLightbox.querySelectorAll('[data-gallery-close]').forEach(function (control) {
+      control.addEventListener('click', closePropertyGallery);
+    });
+    lightboxPrev.addEventListener('click', function () {
+      showGalleryItem((activeGalleryIndex - 1 + galleryTriggers.length) % galleryTriggers.length);
+    });
+    lightboxNext.addEventListener('click', function () {
+      showGalleryItem((activeGalleryIndex + 1) % galleryTriggers.length);
+    });
+    propertyLightbox.addEventListener('keydown', function (event) {
+      if (event.key === 'Escape') closePropertyGallery();
+      if (event.key === 'ArrowLeft' && galleryTriggers.length > 1) lightboxPrev.click();
+      if (event.key === 'ArrowRight' && galleryTriggers.length > 1) lightboxNext.click();
+      if (event.key === 'Tab') {
+        var focusable = Array.prototype.slice.call(propertyLightbox.querySelectorAll('button:not([hidden]), video:not([hidden])'));
+        if (!focusable.length) return;
+        var first = focusable[0];
+        var last = focusable[focusable.length - 1];
+        if (event.shiftKey && document.activeElement === first) {
+          event.preventDefault();
+          last.focus();
+        } else if (!event.shiftKey && document.activeElement === last) {
+          event.preventDefault();
+          first.focus();
+        }
+      }
+    });
+  }
+
 });

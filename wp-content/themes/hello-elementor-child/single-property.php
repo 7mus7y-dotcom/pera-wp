@@ -364,6 +364,37 @@ if ( is_array( $main_gallery ) && ! empty( $main_gallery ) ) {
   $photo_count = count( $gallery_ids );
 }
 
+/* Uploaded apartment tour: only expose canonical WordPress video attachments. */
+$custom_video_heading       = function_exists( 'get_field' ) ? trim( (string) get_field( 'custom_video_heading', $property_id ) ) : '';
+$custom_video_file          = function_exists( 'get_field' ) ? get_field( 'video_file', $property_id ) : null;
+$custom_video_label         = $custom_video_heading ?: pera_ml_ui( 'Apartment tour', 'theme.template.single_property.apartment_tour_heading' );
+$custom_video_url           = '';
+$custom_video_attachment_id = 0;
+$custom_video_mime_type     = '';
+$custom_video_poster_url    = $hero_img_id ? wp_get_attachment_image_url( $hero_img_id, 'full' ) : $hero_img_url;
+
+if ( is_array( $custom_video_file ) ) {
+  $custom_video_attachment_id = ! empty( $custom_video_file['ID'] ) ? (int) $custom_video_file['ID'] : 0;
+  $custom_video_candidate_url = ! empty( $custom_video_file['url'] ) ? (string) $custom_video_file['url'] : '';
+  if ( ! $custom_video_attachment_id && $custom_video_candidate_url ) {
+    $custom_video_attachment_id = (int) attachment_url_to_postid( $custom_video_candidate_url );
+  }
+} elseif ( is_numeric( $custom_video_file ) ) {
+  $custom_video_attachment_id = (int) $custom_video_file;
+} elseif ( is_string( $custom_video_file ) && $custom_video_file !== '' ) {
+  $custom_video_attachment_id = (int) attachment_url_to_postid( $custom_video_file );
+}
+
+if ( $custom_video_attachment_id ) {
+  $validated_video_url  = wp_get_attachment_url( $custom_video_attachment_id );
+  $validated_video_mime = get_post_mime_type( $custom_video_attachment_id );
+
+  if ( $validated_video_url && wp_http_validate_url( $validated_video_url ) && $validated_video_mime && 0 === strpos( $validated_video_mime, 'video/' ) ) {
+    $custom_video_url       = $validated_video_url;
+    $custom_video_mime_type = $validated_video_mime;
+  }
+}
+
 
 /* 10) FACILITIES (ACF checkbox) */
 $facilities = function_exists( 'get_field' ) ? get_field( 'facilities', $property_id ) : array();
@@ -732,96 +763,6 @@ $has_further_reading = ! empty( $post_ids );
 
 
 
-<?php
-/* ======================================================
-   APARTMENT TOUR VIDEO
-   ====================================================== */
-$custom_video_heading = function_exists( 'get_field' ) ? (string) get_field( 'custom_video_heading', $property_id ) : '';
-$custom_video_text    = function_exists( 'get_field' ) ? get_field( 'custom_video_text', $property_id ) : '';
-$custom_video_file    = function_exists( 'get_field' ) ? get_field( 'video_file', $property_id ) : null;
-
-$custom_video_url          = '';
-$custom_video_attachment_id = 0;
-$custom_video_mime_type     = 'video/mp4';
-
-if ( $custom_video_file ) {
-  if ( is_array( $custom_video_file ) ) {
-    $custom_video_attachment_id = ! empty( $custom_video_file['ID'] ) ? (int) $custom_video_file['ID'] : 0;
-    $custom_video_url = ! empty( $custom_video_file['url'] ) ? (string) $custom_video_file['url'] : '';
-    if ( ! $custom_video_attachment_id && $custom_video_url ) {
-      $custom_video_attachment_id = (int) attachment_url_to_postid( $custom_video_url );
-    }
-  } elseif ( is_numeric( $custom_video_file ) ) {
-    $custom_video_attachment_id = (int) $custom_video_file;
-  } elseif ( is_string( $custom_video_file ) ) {
-    $custom_video_url = $custom_video_file;
-    $custom_video_attachment_id = (int) attachment_url_to_postid( $custom_video_url );
-  }
-}
-
-if ( $custom_video_attachment_id ) {
-  $validated_video_url  = wp_get_attachment_url( $custom_video_attachment_id );
-  $validated_video_mime = wp_get_attachment_mime_type( $custom_video_attachment_id );
-
-  if ( wp_http_validate_url( $validated_video_url ) && $validated_video_mime && 0 === strpos( $validated_video_mime, 'video/' ) ) {
-    $custom_video_url       = $validated_video_url;
-    $custom_video_mime_type = $validated_video_mime;
-  } else {
-    $custom_video_url = '';
-  }
-} else {
-  $custom_video_url = '';
-}
-
-$custom_video_width  = 0;
-$custom_video_height = 0;
-
-if ( $custom_video_attachment_id ) {
-  $custom_video_meta = wp_get_attachment_metadata( $custom_video_attachment_id );
-  if ( is_array( $custom_video_meta ) ) {
-    $custom_video_width  = (int) ( $custom_video_meta['width'] ?? 0 );
-    $custom_video_height = (int) ( $custom_video_meta['height'] ?? 0 );
-  }
-}
-
-$custom_video_aspect_ratio = '9 / 16';
-if ( $custom_video_width > 0 && $custom_video_height > 0 ) {
-  $custom_video_aspect_ratio = $custom_video_width . ' / ' . $custom_video_height;
-}
-
-$custom_video_text = $custom_video_text ? wp_kses_post( wpautop( $custom_video_text ) ) : '';
-?>
-
-<?php if ( $custom_video_url ) : ?>
-  <section class="section section-soft property-video-tour" id="property-video-tour">
-    <div class="container">
-      <header class="section-header">
-        <h2><?php echo esc_html( $custom_video_heading ?: pera_ml_ui( 'Apartment tour', 'theme.template.single_property.apartment_tour_heading' ) ); ?></h2>
-        <?php if ( $custom_video_text ) : ?>
-          <div class="property-video-tour__intro text-soft">
-            <?php echo $custom_video_text; ?>
-          </div>
-        <?php endif; ?>
-      </header>
-
-      <div
-        class="property-video-tour__media card-shell"
-        style="aspect-ratio: <?php echo esc_attr( $custom_video_aspect_ratio ); ?>;"
-      >
-        <video
-          class="property-video-tour__video"
-          controls
-          playsinline
-          preload="metadata"
-        >
-          <source src="<?php echo esc_url( $custom_video_url ); ?>" type="<?php echo esc_attr( $custom_video_mime_type ); ?>">
-        </video>
-      </div>
-    </div>
-  </section>
-<?php endif; ?>
-
-
 <!-- =====================================
   OVERVIEW
   ===================================== -->
@@ -1089,8 +1030,9 @@ $custom_video_text = $custom_video_text ? wp_kses_post( wpautop( $custom_video_t
   <div class="container">
     <?php
     $has_gallery = ( ! empty( $gallery_ids ) && is_array( $gallery_ids ) && (int) $photo_count > 0 );
+    $has_gallery_media = $has_gallery || $custom_video_url;
 
-    if ( $has_gallery ) :
+    if ( $has_gallery_media ) :
       $gallery_items = array();
       foreach ( $gallery_ids as $img_id ) {
         $img_id = absint( $img_id );
@@ -1104,7 +1046,7 @@ $custom_video_text = $custom_video_text ? wp_kses_post( wpautop( $custom_video_t
         );
       }
 
-      if ( ! empty( $gallery_items ) ) :
+      if ( ! empty( $gallery_items ) || $custom_video_url ) :
     ?>
       <div class="property-gallery__strip" aria-label="<?php echo esc_attr( pera_ml_ui( 'Property photos', 'theme.template.single_property.aria_label.property_photos' ) ); ?>" role="list">
         <?php foreach ( $gallery_items as $gallery_item ) :
@@ -1122,10 +1064,25 @@ $custom_video_text = $custom_video_text ? wp_kses_post( wpautop( $custom_video_t
           );
           if ( ! $image_html ) { continue; }
         ?>
-          <div class="property-gallery__item" role="listitem" aria-label="<?php echo esc_attr( $alt_label ); ?>">
-            <?php echo $image_html; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>
+          <div class="property-gallery__item" role="listitem">
+            <button class="property-gallery__trigger" type="button" data-gallery-type="image" data-gallery-src="<?php echo esc_url( wp_get_attachment_image_url( $img_id, 'full' ) ); ?>" data-gallery-label="<?php echo esc_attr( $alt_label ); ?>" aria-label="<?php echo esc_attr( $alt_label ); ?>">
+              <?php echo $image_html; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>
+            </button>
           </div>
         <?php endforeach; ?>
+        <?php if ( $custom_video_url ) : ?>
+          <div class="property-gallery__item property-gallery__item--video<?php echo $custom_video_poster_url ? '' : ' property-gallery__item--video-fallback'; ?>" role="listitem">
+            <button class="property-gallery__trigger property-gallery__video-trigger" type="button" data-gallery-type="video" aria-label="<?php echo esc_attr( $custom_video_label ); ?>">
+              <?php if ( $custom_video_poster_url ) : ?>
+                <img src="<?php echo esc_url( $custom_video_poster_url ); ?>" alt="" loading="lazy" decoding="async">
+              <?php endif; ?>
+              <span class="property-gallery__play" aria-hidden="true">
+                <svg viewBox="0 0 24 24" focusable="false"><path d="M8 5v14l11-7z"></path></svg>
+              </span>
+              <span class="property-gallery__video-label"><?php echo esc_html( $custom_video_label ); ?></span>
+            </button>
+          </div>
+        <?php endif; ?>
       </div>
     <?php else :
       echo '<p class="text-soft" style="margin:0;">' . esc_html( pera_ml_ui( 'No gallery images available.', 'theme.template.single_property.no_gallery_images_available' ) ) . '</p>';
@@ -1137,6 +1094,26 @@ $custom_video_text = $custom_video_text ? wp_kses_post( wpautop( $custom_video_t
     ?>
   </div><!-- /.container -->
 </section>
+
+<?php if ( $has_gallery_media ) : ?>
+  <div class="lightbox" id="property-lightbox" role="dialog" aria-modal="true" aria-label="<?php echo esc_attr( pera_ml_ui( 'Property gallery', 'theme.template.single_property.aria_label.property_photos' ) ); ?>" aria-hidden="true">
+    <div class="lightbox__backdrop" data-gallery-close></div>
+    <div class="lightbox__content">
+      <div class="lightbox__frame">
+        <button class="lightbox__close" type="button" data-gallery-close aria-label="<?php echo esc_attr( pera_ml_ui( 'Close gallery', 'theme.template.single_property.aria_label.close_gallery' ) ); ?>"><span aria-hidden="true">&times;</span></button>
+        <button class="lightbox__nav lightbox__nav--prev" type="button" data-gallery-prev aria-label="<?php echo esc_attr( pera_ml_ui( 'Previous image', 'theme.template.single_property.aria_label.previous_image' ) ); ?>"><span aria-hidden="true">&#8249;</span></button>
+        <img class="lightbox__img" src="" alt="" hidden>
+        <?php if ( $custom_video_url ) : ?>
+          <video class="lightbox__video" controls playsinline preload="metadata"<?php echo $custom_video_poster_url ? ' poster="' . esc_url( $custom_video_poster_url ) . '"' : ''; ?> hidden aria-label="<?php echo esc_attr( $custom_video_label ); ?>">
+            <source src="<?php echo esc_url( $custom_video_url ); ?>" type="<?php echo esc_attr( $custom_video_mime_type ); ?>">
+          </video>
+        <?php endif; ?>
+        <button class="lightbox__nav lightbox__nav--next" type="button" data-gallery-next aria-label="<?php echo esc_attr( pera_ml_ui( 'Next image', 'theme.template.single_property.aria_label.next_image' ) ); ?>"><span aria-hidden="true">&#8250;</span></button>
+        <p class="lightbox__caption" aria-live="polite"></p>
+      </div>
+    </div>
+  </div>
+<?php endif; ?>
 
 
 <?php
