@@ -21,6 +21,11 @@ function property_video_test_media_order( $photos, $has_video ) {
 	return $media;
 }
 
+/** Mirror the hero control's strict, validated-video-and-visible-label rule. */
+function property_video_test_show_hero_button( $validated_video_url, $button_text ) {
+	return $validated_video_url !== '' && trim( $button_text ) !== '';
+}
+
 $theme_dir = dirname( __DIR__ );
 $template  = file_get_contents( $theme_dir . '/single-property.php' );
 $script    = file_get_contents( $theme_dir . '/js/main.js' );
@@ -61,11 +66,29 @@ expect_property_video( false !== strpos( $template, '<video class="lightbox__vid
 expect_property_video( false !== strpos( $template, 'esc_attr( $custom_video_mime_type )' ), 'validated MIME type is escaped' );
 expect_property_video( false !== strpos( $template, '$custom_video_heading ?: pera_ml_ui(' ), 'custom heading has a translated Apartment tour fallback' );
 
+expect_property_video( false !== strpos( $template, "trim( (string) get_field( 'custom_video_button', \$property_id ) )" ), 'translated custom video button text is read and trimmed' );
+expect_property_video( false !== strpos( $template, "if ( \$custom_video_url && \$custom_video_button !== '' ) :" ), 'hero video button requires a validated video URL and visible text' );
+expect_property_video( false === strpos( $template, "get_field( 'custom_video_checkbox'" ), 'hero button does not depend on the retired checkbox field' );
+expect_property_video( false !== strpos( $template, 'data-open-property-video' ), 'hero video button has a stable selector' );
+expect_property_video( false !== strpos( $template, 'aria-label="<?php echo esc_attr( $custom_video_button ); ?>"' ), 'hero video button accessible label is escaped' );
+expect_property_video( false !== strpos( $template, 'esc_html( $custom_video_button )' ), 'translated hero video button text is escaped visibly' );
+expect_property_video( false !== strpos( $template, 'class="btn btn--ghost btn--blue"' ), 'hero video button uses the existing ghost button design' );
+expect_property_video( false !== strpos( $template, 'type="button"' ), 'hero video control is a semantic non-submitting button' );
+expect_property_video( property_video_test_show_hero_button( 'https://example.test/tour.mp4', 'Watch tour' ), 'valid video and non-empty translated text render the hero control' );
+expect_property_video( ! property_video_test_show_hero_button( 'https://example.test/tour.mp4', " \t\n" ), 'empty trimmed button text suppresses the hero control' );
+expect_property_video( ! property_video_test_show_hero_button( '', 'Watch tour' ), 'absent or invalid video suppresses the hero control' );
+
 expect_property_video( false !== strpos( $script, 'lightboxVideo.pause();' ), 'closing or changing media pauses video' );
 expect_property_video( false !== strpos( $script, 'lightboxVideo.currentTime = 0;' ), 'closing or changing media resets video' );
 expect_property_video( false !== strpos( $script, "event.key === 'Escape'" ), 'Escape closes the modal' );
 expect_property_video( false !== strpos( $script, "querySelectorAll('[data-gallery-close]')" ), 'close button and backdrop share close handling' );
 expect_property_video( false !== strpos( $script, 'galleryReturnFocus.focus();' ), 'focus returns to the gallery trigger' );
+expect_property_video( false !== strpos( $script, "document.querySelector('[data-open-property-video]')" ), 'hero video control is progressively enhanced' );
+expect_property_video( false !== strpos( $script, "document.querySelector('.property-gallery__video-trigger')" ), 'hero control locates the actual gallery video tile' );
+expect_property_video( false !== strpos( $script, 'galleryTriggers.indexOf(videoTrigger)' ), 'hero control derives the video index instead of hard-coding it' );
+expect_property_video( false !== strpos( $script, 'if (!videoTrigger || videoIndex === -1) return;' ), 'missing gallery video trigger fails safely' );
+expect_property_video( false !== strpos( $script, 'openPropertyGallery(videoIndex, heroVideoButton);' ), 'hero control uses the shared modal path and records itself for focus restoration' );
+expect_property_video( false !== strpos( $script, 'openPropertyGallery(index, trigger);' ), 'gallery tiles retain their independent shared-modal behavior' );
 
 expect_property_video( false !== strpos( $template, '$photo_count = count( $gallery_ids );' ), 'photo count remains based only on image IDs' );
 expect_property_video( false !== strpos( $template, 'data-gallery-type="image"' ), 'existing images remain in the shared lightbox' );

@@ -712,6 +712,15 @@ document.addEventListener('DOMContentLoaded', function () {
     galleryTriggers.forEach(function (trigger, index) {
       trigger.addEventListener('click', function () { openPropertyGallery(index, trigger); });
     });
+    var heroVideoButton = document.querySelector('[data-open-property-video]');
+    if (heroVideoButton) {
+      heroVideoButton.addEventListener('click', function () {
+        var videoTrigger = document.querySelector('.property-gallery__video-trigger');
+        var videoIndex = galleryTriggers.indexOf(videoTrigger);
+        if (!videoTrigger || videoIndex === -1) return;
+        openPropertyGallery(videoIndex, heroVideoButton);
+      });
+    }
     propertyLightbox.querySelectorAll('[data-gallery-close]').forEach(function (control) {
       control.addEventListener('click', closePropertyGallery);
     });
