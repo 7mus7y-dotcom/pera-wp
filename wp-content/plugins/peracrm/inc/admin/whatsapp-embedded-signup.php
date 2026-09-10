@@ -26,15 +26,15 @@ function peracrm_whatsapp_embedded_signup_config()
 /**
  * Builds the non-OAuth Embedded Signup extras payload.
  *
- * This is the single location for a future Coexistence-specific parameter once
- * its exact current syntax is verified in official Meta documentation. No
- * feature_type/featureType candidate is enabled by this diagnostic scaffold.
+ * This is the single location for the Coexistence-specific parameter used by
+ * the diagnostic launcher.
  */
 function peracrm_whatsapp_embedded_signup_extras()
 {
     return [
         'setup' => (object) [],
         'sessionInfoVersion' => '3',
+        'feature_type' => 'COEXISTENCE',
     ];
 }
 
