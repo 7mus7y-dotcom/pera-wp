@@ -11,6 +11,16 @@
     if (target) target.textContent = value === undefined || value === null || value === '' ? '—' : String(value);
   }
 
+  function resetLaunchDiagnostics() {
+    show('launch', 'Opening');
+    show('event', '—');
+    show('waba', '—');
+    show('phone', '—');
+    show('business', '—');
+    show('code', 'No');
+    show('outcome', '—');
+  }
+
   function metaOrigin(origin) {
     try {
       var url = new URL(origin);
@@ -70,8 +80,7 @@
   show('sdk', 'Yes');
 
   launchButton.addEventListener('click', function () {
-    show('launch', 'Opening');
-    show('outcome', '—');
+    resetLaunchDiagnostics();
     window.FB.login(function (response) {
       var code = response && response.authResponse && response.authResponse.code;
       if (!code) {
