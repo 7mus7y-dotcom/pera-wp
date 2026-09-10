@@ -8,6 +8,7 @@ require_once PERACRM_INC . '/admin/actions.php';
 require_once PERACRM_INC . '/admin/metaboxes.php';
 require_once PERACRM_INC . '/admin/pages.php';
 require_once PERACRM_INC . '/admin/assets.php';
+require_once PERACRM_INC . '/admin/whatsapp-embedded-signup.php';
 
 add_action('admin_menu', 'peracrm_register_admin_menu');
 add_action('load-post.php', 'peracrm_admin_audit_crm_client_update_request', 1);
@@ -45,6 +46,7 @@ add_action('admin_notices', 'peracrm_admin_notices');
 add_action('admin_enqueue_scripts', 'peracrm_admin_enqueue_assets');
 add_action('wp_ajax_peracrm_whatsapp_logs_table', 'peracrm_ajax_whatsapp_logs_table');
 add_action('wp_ajax_peracrm_whatsapp_delete_logs', 'peracrm_ajax_whatsapp_delete_logs');
+add_action('wp_ajax_peracrm_whatsapp_embedded_signup_code', 'peracrm_whatsapp_embedded_signup_receive_code');
 
 add_filter('manage_crm_client_posts_columns', 'peracrm_admin_add_client_columns');
 add_action('manage_crm_client_posts_custom_column', 'peracrm_admin_render_client_columns', 10, 2);
