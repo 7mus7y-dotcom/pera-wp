@@ -45,6 +45,10 @@ function peracrm_render_whatsapp_page()
     echo '<h1 class="peracrm-whatsapp-admin__title">' . esc_html__('CRM WhatsApp', 'peracrm') . '</h1>';
     echo '<p class="peracrm-whatsapp-admin__intro">' . esc_html__('Manage WhatsApp Business webhook credentials, verify inbound delivery status, and review recent synced CRM messages. This page is reserved for CRM WhatsApp integration settings and diagnostics.', 'peracrm') . '</p>';
 
+    if (current_user_can('manage_options') && function_exists('peracrm_whatsapp_embedded_signup_render_panel')) {
+        peracrm_whatsapp_embedded_signup_render_panel();
+    }
+
     if (isset($_GET['updated'])) {
         echo '<div class="notice notice-success peracrm-whatsapp-admin__notice"><p>' . esc_html__('WhatsApp settings saved.', 'peracrm') . '</p></div>';
     }

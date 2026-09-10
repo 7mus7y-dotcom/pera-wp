@@ -26,6 +26,7 @@ function peracrm_admin_enqueue_assets($hook)
         && !peracrm_admin_is_pipeline_screen($hook)
         && !peracrm_admin_is_client_view_screen($hook)
         && !peracrm_admin_is_import_data_screen($hook)
+        && !peracrm_admin_is_whatsapp_settings_screen($hook)
         && !peracrm_admin_is_real_whatsapp_logs_screen($hook)
     ) {
         return;
@@ -40,6 +41,10 @@ function peracrm_admin_enqueue_assets($hook)
         [],
         $version
     );
+
+    if (peracrm_admin_is_whatsapp_settings_screen($hook) && current_user_can('manage_options')) {
+        peracrm_whatsapp_embedded_signup_enqueue_assets($version);
+    }
 
 
     if (peracrm_admin_is_real_whatsapp_logs_screen($hook)) {
