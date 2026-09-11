@@ -26,9 +26,9 @@ get_header();
         </p>
 
         <div class="hero-actions">
-          <a class="btn btn--solid btn--black" href="<?php echo esc_url( home_url( '/' ) ); ?>"><?php echo esc_html( pera_ml_ui( 'Back to Home', 'theme.template.404.back_to_home' ) ); ?></a>
-          <a class="btn btn--solid btn--black" href="<?php echo esc_url( home_url( '/property/' ) ); ?>"><?php echo esc_html( pera_ml_ui( 'View Properties', 'theme.template.404.view_properties' ) ); ?></a>
-          <a class="btn btn--solid btn--green" href="<?php echo esc_url( home_url( '/contact-us/' ) ); ?>"><?php echo esc_html( pera_ml_ui( 'Contact Us', 'theme.template.404.contact_us' ) ); ?></a>
+          <a class="btn btn--solid btn--black" href="<?php echo esc_url( pera_ml_url( home_url( '/' ) ) ); ?>"><?php echo esc_html( pera_ml_ui( 'Back to Home', 'theme.template.404.back_to_home' ) ); ?></a>
+          <a class="btn btn--solid btn--black" href="<?php echo esc_url( pera_ml_url( home_url( '/property/' ) ) ); ?>"><?php echo esc_html( pera_ml_ui( 'View Properties', 'theme.template.404.view_properties' ) ); ?></a>
+          <a class="btn btn--solid btn--green" href="<?php echo esc_url( pera_ml_url( home_url( '/contact-us/' ) ) ); ?>"><?php echo esc_html( pera_ml_ui( 'Contact Us', 'theme.template.404.contact_us' ) ); ?></a>
         </div>
 
       </div>
@@ -52,19 +52,19 @@ get_header();
 
             <ul class="checklist checklist--circle">
               <li>
-                <a href="<?php echo esc_url( home_url( '/property/' ) ); ?>"><?php echo esc_html( pera_ml_ui( 'Browse all listings', 'theme.template.404.browse_all_listings' ) ); ?></a>
+                <a href="<?php echo esc_url( pera_ml_url( home_url( '/property/' ) ) ); ?>"><?php echo esc_html( pera_ml_ui( 'Browse all listings', 'theme.template.404.browse_all_listings' ) ); ?></a>
               </li>
 
               <li>
-                <a href="<?php echo esc_url( home_url( '/category/buyer-guides' ) ); ?>"><?php echo esc_html( pera_ml_ui( 'Buyer’s guide', 'theme.template.404.buyer_s_guide' ) ); ?></a>
+                <a href="<?php echo esc_url( pera_ml_url( home_url( '/category/buyer-guides' ) ) ); ?>"><?php echo esc_html( pera_ml_ui( 'Buyer’s guide', 'theme.template.404.buyer_s_guide' ) ); ?></a>
               </li>
 
               <li>
-                <a href="<?php echo esc_url( home_url( '/category/regional-guides/' ) ); ?>"><?php echo esc_html( pera_ml_ui( 'Istanbul area guides', 'theme.template.404.istanbul_area_guides' ) ); ?></a>
+                <a href="<?php echo esc_url( pera_ml_url( home_url( '/category/regional-guides/' ) ) ); ?>"><?php echo esc_html( pera_ml_ui( 'Istanbul area guides', 'theme.template.404.istanbul_area_guides' ) ); ?></a>
               </li>
 
               <li>
-                <a href="<?php echo esc_url( home_url( '/about-us/' ) ); ?>"><?php echo esc_html( pera_ml_ui( 'About Pera Property', 'theme.template.404.about_pera_property' ) ); ?></a>
+                <a href="<?php echo esc_url( pera_ml_url( home_url( '/about-us/' ) ) ); ?>"><?php echo esc_html( pera_ml_ui( 'About Pera Property', 'theme.template.404.about_pera_property' ) ); ?></a>
               </li>
             </ul>
 

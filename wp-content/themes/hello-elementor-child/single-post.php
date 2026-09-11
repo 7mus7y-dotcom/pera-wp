@@ -25,7 +25,7 @@ get_header();
                   $posts_page_id = (int) get_option( 'page_for_posts' );
                   $posts_page_link = $posts_page_id > 0 ? get_permalink( $posts_page_id ) : get_post_type_archive_link( 'post' );
                   if ( ! $posts_page_link ) {
-                    $posts_page_link = home_url( '/' );
+                    $posts_page_link = pera_ml_url( home_url( '/' ) );
                   }
                   $breadcrumb_items = function_exists( 'pera_seo_post_breadcrumb_items' )
                     ? pera_seo_post_breadcrumb_items( get_the_ID() )
@@ -363,7 +363,7 @@ get_header();
                             </p>
                             <div class="sidebar-cta">
                                 <a class="btn btn--solid btn--blue"
-                                   href="<?php echo esc_url( home_url( '/sell-your-istanbul-real-estate/' ) ); ?>">
+                                   href="<?php echo esc_url( pera_ml_url( home_url( '/sell-your-istanbul-real-estate/' ) ) ); ?>">
                                     <?php echo esc_html( pera_ml_ui( 'Get a Free Valuation', 'theme.template.single_post.get_a_free_valuation' ) ); ?>
                                 </a>
                             </div>
@@ -377,7 +377,7 @@ get_header();
                             </p>
                             <div class="sidebar-cta">
                                 <a class="btn btn--solid btn--blue"
-                                   href="<?php echo esc_url( home_url( '/rent-your-istanbul-real-estate/' ) ); ?>">
+                                   href="<?php echo esc_url( pera_ml_url( home_url( '/rent-your-istanbul-real-estate/' ) ) ); ?>">
                                     <?php echo esc_html( pera_ml_ui( 'Explore Property Management', 'theme.template.single_post.explore_property_management' ) ); ?>
                                 </a>
                             </div>
@@ -452,7 +452,7 @@ get_header();
         <section class="section section-article">
             <div class="container narrow">
                 <p><?php echo esc_html( pera_ml_ui( 'Sorry, we couldn’t find this article.', 'theme.template.single_post.sorry_we_couldn_t_find_this_article' ) ); ?></p>
-                <a class="btn btn--ghost btn--blue" href="<?php echo esc_url( home_url( '/' ) ); ?>"><?php echo esc_html( pera_ml_ui( 'Go to homepage', 'theme.template.single_post.go_to_homepage' ) ); ?></a>
+                <a class="btn btn--ghost btn--blue" href="<?php echo esc_url( pera_ml_url( home_url( '/' ) ) ); ?>"><?php echo esc_html( pera_ml_ui( 'Go to homepage', 'theme.template.single_post.go_to_homepage' ) ); ?></a>
             </div>
         </section>
 

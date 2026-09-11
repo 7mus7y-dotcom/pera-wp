@@ -508,7 +508,7 @@ if ( ! function_exists( 'pera_ajax_filter_properties_v2' ) ) {
         }
         
         // Build base URL
-        $pagination_base = home_url( trailingslashit( ltrim( $base_path, '/' ) ) );
+        $pagination_base = pera_ml_url( home_url( trailingslashit( ltrim( $base_path, '/' ) ) ) );
 
         $pagination_html = function_exists( 'pera_render_property_pagination' )
           ? pera_render_property_pagination( $q, (int) $paged, $add_args, $pagination_base )

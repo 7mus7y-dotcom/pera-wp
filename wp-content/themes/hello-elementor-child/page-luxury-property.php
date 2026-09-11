@@ -12,7 +12,7 @@ get_header();
 
 $whatsapp_url = pera_get_whatsapp_url( pera_ml_ui( 'Hello Pera Property, I\'m interested in luxury property in Istanbul. Can you send me a private shortlist?', 'theme.template.page_luxury_property.whatsapp_prefill' ) );
 $luxury_term = get_term_by( 'slug', 'istanbul-luxury-property-for-sale', 'property_tags' );
-$all_luxury_url = home_url( '/property_tags/istanbul-luxury-property-for-sale/' );
+$all_luxury_url = pera_ml_url( home_url( '/property_tags/istanbul-luxury-property-for-sale/' ) );
 
 if ( $luxury_term instanceof WP_Term ) {
 	$luxury_term_link = get_term_link( $luxury_term );
@@ -166,7 +166,7 @@ $luxury_query = new WP_Query( $luxury_query_args );
         <p class="text-soft"><?php echo esc_html( pera_ml_ui( 'Tell us your preferred location, budget and purpose, and our Istanbul team will send you a focused shortlist instead of overwhelming you with unsuitable options.', 'theme.template.page_luxury_property.tell_us_your_preferred_location_budget_and_purpose_and_our_istanbul_team' ) ); ?></p>
 			<div class="hero-actions">
             <a class="btn btn--solid btn--green" href="<?php echo esc_url( $whatsapp_url ); ?>" target="_blank" rel="noopener" data-whatsapp="1" data-whatsapp-type="property_map_final" data-track-channel="whatsapp" data-track-intent="high" data-track-source="page" data-track-context="property_map_final" data-track-ga4-event="whatsapp_click" data-track-crm-event="whatsapp_click" data-map-track="final_whatsapp"><?php echo esc_html( pera_ml_ui( 'Message us on WhatsApp', 'theme.template.page_luxury_property.message_us_on_whatsapp' ) ); ?></a>
-            <a class="btn btn--ghost btn--green" href="<?php echo esc_url( home_url( '/book-a-consultancy/' ) ); ?>"><?php echo esc_html( pera_ml_ui( 'Book a consultancy', 'theme.template.page_luxury_property.book_a_consultancy' ) ); ?></a>
+            <a class="btn btn--ghost btn--green" href="<?php echo esc_url( pera_ml_url( home_url( '/book-a-consultancy/' ) ) ); ?>"><?php echo esc_html( pera_ml_ui( 'Book a consultancy', 'theme.template.page_luxury_property.book_a_consultancy' ) ); ?></a>
         </div>
     </div>
   </section>
@@ -175,7 +175,7 @@ $luxury_query = new WP_Query( $luxury_query_args );
 	$luxury_guide_id = 59250;
 	$luxury_guide    = get_post( $luxury_guide_id );
 
-	$luxury_guide_url   = $luxury_guide ? get_permalink( $luxury_guide ) : home_url( '/luxury-property-in-istanbul-the-complete-guide-to-prime-real-estate_59250/' );
+	$luxury_guide_url   = $luxury_guide ? get_permalink( $luxury_guide ) : pera_ml_url( home_url( '/luxury-property-in-istanbul-the-complete-guide-to-prime-real-estate_59250/' ) );
 	$luxury_guide_title = $luxury_guide ? get_the_title( $luxury_guide ) : pera_ml_ui( 'Luxury Property in Istanbul: The Complete Guide to Prime Real Estate', 'theme.template.page_luxury_property.guide_title_fallback' );
 	?>
 
@@ -300,7 +300,7 @@ $luxury_query = new WP_Query( $luxury_query_args );
 
 	<?php
 	$luxury_posts_tag = get_term_by( 'slug', 'luxury-istanbul', 'post_tag' );
-	$luxury_posts_url = home_url( '/tag/luxury-istanbul/' );
+	$luxury_posts_url = pera_ml_url( home_url( '/tag/luxury-istanbul/' ) );
 
 	if ( $luxury_posts_tag instanceof WP_Term ) {
 		$luxury_posts_term_link = get_term_link( $luxury_posts_tag );

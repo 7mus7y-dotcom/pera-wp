@@ -452,7 +452,7 @@ get_header();
 
                 <div class="no-posts">
                     <p><?php echo esc_html( pera_ml_ui( 'No articles found in this archive.', 'theme.template.archive.no_articles_found_in_this_archive' ) ); ?></p>
-                    <a class="btn btn--ghost btn--blue" href="<?php echo esc_url( home_url( '/' ) ); ?>">
+                    <a class="btn btn--ghost btn--blue" href="<?php echo esc_url( pera_ml_url( home_url( '/' ) ) ); ?>">
                         <?php echo esc_html( pera_ml_ui( 'Back to homepage', 'theme.template.archive.back_to_homepage' ) ); ?>
                     </a>
                 </div>

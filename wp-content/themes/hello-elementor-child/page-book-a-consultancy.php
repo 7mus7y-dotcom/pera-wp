@@ -250,7 +250,7 @@ get_header();
                     <span>
                       <?php echo esc_html( pera_ml_ui( 'I agree for Pera Property to contact me regarding this enquiry and to
                       process my personal data in accordance with the', 'theme.template.page_book_a_consultancy.i_agree_for_pera_property_to_contact_me_regarding_this_enquiry_and_to_pr' ) ); ?>
-                      <a href="<?php echo esc_url( home_url( '/privacy-policy/' ) ); ?>" target="_blank" rel="noopener">
+                      <a href="<?php echo esc_url( pera_ml_url( home_url( '/privacy-policy/' ) ) ); ?>" target="_blank" rel="noopener">
                         <?php echo esc_html( pera_ml_ui( 'Privacy Policy', 'theme.template.page_book_a_consultancy.privacy_policy' ) ); ?>
                       </a>.
                     </span>
