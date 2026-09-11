@@ -3,17 +3,18 @@ defined( 'ABSPATH' ) || exit;
 
 /** Translate exactly one server-approved health row; HTTP concerns remain in the admin adapter. */
 final class Pera_ML_Translation_Health_Orchestrator {
-	private $status; private $storage; private $translator; private $ui; private $ui_registry;
-	public function __construct( $status, $storage, $translator, $ui, $ui_registry ) { $this->status = $status; $this->storage = $storage; $this->translator = $translator; $this->ui = $ui; $this->ui_registry = $ui_registry; }
+	private $status; private $storage; private $translator; private $ui; private $ui_registry; private $registry;
+	public function __construct( $status, $storage, $translator, $ui, $ui_registry, $registry ) { $this->status = $status; $this->storage = $storage; $this->translator = $translator; $this->ui = $ui; $this->ui_registry = $ui_registry; $this->registry = $registry; }
 
 	public function translate( array $row, $regenerate = false ) {
 		$allowed_statuses = $regenerate ? array( 'missing', 'stale', 'current' ) : array( 'missing', 'stale' );
-		if ( ! isset( $row['object_type'], $row['object_id'], $row['field'], $row['language'], $row['status'] ) || ! in_array( $row['language'], Pera_ML_Translation_Health::LANGUAGES, true ) || ! in_array( $row['status'], $allowed_statuses, true ) ) return new WP_Error( 'invalid_row' );
+		if ( ! isset( $row['object_type'], $row['object_id'], $row['field'], $row['language'], $row['status'] ) || ! $this->is_target_language( $row['language'] ) || ! in_array( $row['status'], $allowed_statuses, true ) ) return new WP_Error( 'invalid_row' );
 		$type = sanitize_text_field( $row['object_type'] ); $id = absint( $row['object_id'] ); $field = Pera_ML_Storage::normalize_field_key( $row['field'] ); $language = sanitize_key( $row['language'] );
 		if ( 'ui' === $type ) return $this->translate_ui( $row['field'], $language );
 		if ( 0 === strpos( $type, 'taxonomy:' ) ) return $this->translate_term( substr( $type, 9 ), $id, $field, $language, $regenerate );
 		return $this->translate_post( $type, $id, $field, $language );
 	}
+	private function is_target_language( $language ) { $config = $this->registry->get( sanitize_key( $language ) ); return $config && ! empty( $config['enabled'] ) && empty( $config['source'] ); }
 	private function translate_ui( $identity, $language ) { $item = $this->ui_registry->find( $identity ); if ( ! $item || 'current' === $this->ui->status( $item, $language ) ) return new WP_Error( 'invalid_row' ); $result = $this->ui->translate_registered( $identity, $language ); if ( is_wp_error( $result ) ) return $result; return 'current' === $this->ui->status( $item, $language ) ? $result : new WP_Error( 'translation_not_stored' ); }
 	private function translate_term( $taxonomy, $id, $field, $language, $regenerate = false ) {
 		if ( ! in_array( $taxonomy, Pera_ML_Fields::supported_taxonomies(), true ) ) return new WP_Error( 'invalid_row' );
