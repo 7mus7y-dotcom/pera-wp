@@ -16,6 +16,7 @@ function esc_url( $value ) { return (string) $value; }
 function home_url( $path = '/' ) { return 'https://example.test/' . ltrim( $path, '/' ); }
 function pera_ml_ui( $source ) { return $source; }
 function wp_unslash( $value ) { return $value; }
+function get_stylesheet_directory_uri() { return 'https://example.test/theme'; }
 
 final class Public_Switcher_Test_Registry {
 	public function enabled() {
@@ -72,6 +73,16 @@ foreach ( array( 'logged-out visitor', 'logged-in normal visitor', 'administrato
 		public_switcher_expect( 4 === substr_count( $html, '<a' ), "{$visitor}: enabled language list remains English, Chinese, Arabic, and German" );
 		public_switcher_expect( false !== strpos( $html, 'href="https://example.test/de/current-property/"' ), "{$visitor}: links use the route-preserving router" );
 		public_switcher_expect( false !== strpos( $html, 'lang="zh"' ) && false !== strpos( $html, 'aria-current="page"' ), "{$visitor}: current language remains selected" );
+		if ( 'desktop' === $context ) {
+			preg_match( '/<button class="header-language-switcher__toggle".*?<\/button>/s', $html, $toggle_match );
+			$toggle = isset( $toggle_match[0] ) ? $toggle_match[0] : '';
+			public_switcher_expect( false !== strpos( $toggle, 'aria-label="Select language"' ), "{$visitor}: desktop toggle has an accessible label" );
+			public_switcher_expect( false !== strpos( $toggle, '<svg class="icon" aria-hidden="true">' ) && false !== strpos( $toggle, '#icon-language' ), "{$visitor}: desktop toggle renders the language sprite icon" );
+			public_switcher_expect( false !== strpos( $toggle, 'header-language-switcher__chevron' ), "{$visitor}: desktop toggle retains its chevron" );
+			public_switcher_expect( false === strpos( $toggle, '>中文<' ) && false === strpos( $toggle, "compact_name" ), "{$visitor}: desktop toggle does not visibly render the compact language name" );
+		} else {
+			public_switcher_expect( false === strpos( $html, '<svg' ) && false !== strpos( $html, 'header-language-switcher__title">Language</span>' ), "{$visitor}: mobile switcher remains textual" );
+		}
 	}
 }
 

@@ -18,8 +18,6 @@
     var code = effectiveCode();
     Array.prototype.forEach.call(selectors(), function (selector) {
       var trigger = selector.querySelector('[data-pera-currency-trigger]');
-      var current = selector.querySelector('[data-pera-currency-code]');
-      if (current) current.textContent = code;
       if (trigger) trigger.setAttribute('aria-label', (selector.getAttribute('data-pera-currency-label') || 'Currency') + ': ' + code);
       Array.prototype.forEach.call(selector.querySelectorAll('[data-pera-currency-option]'), function (option) {
         var active = option.getAttribute('data-pera-currency-option') === code;
