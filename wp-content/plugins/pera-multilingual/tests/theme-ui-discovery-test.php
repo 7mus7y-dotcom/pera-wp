@@ -67,13 +67,14 @@ file_put_contents( $root . '/page-zh-citizenship.php', "<?php pera_ml_ui( 'Langu
 file_put_contents( $root . '/page-client-login.php', "<?php pera_ml_ui( 'Client login', 'theme.template.client_login' );\n" );
 file_put_contents( $root . '/page-client-forgot-password.php', "<?php pera_ml_ui( 'Forgot password', 'theme.template.client_forgot_password' );\n" );
 file_put_contents( $root . '/page-client-portal.php', "<?php pera_ml_ui( 'Client portal', 'theme.template.client_portal' );\n" );
+file_put_contents( $root . '/page-developer-sales-office.php', "<?php pera_ml_ui( 'Developer sales office', 'theme.template.page_developer_sales_office.heading' );\n" );
 file_put_contents( $root . '/page-register.php', "<?php pera_ml_ui( 'Register', 'theme.template.register' );\n" );
 file_put_contents( $root . '/page-portfolio-token.php', "<?php pera_ml_ui( 'Portfolio token', 'theme.template.portfolio_token.heading' );\n" );
 $GLOBALS['ui_registry_option'] = array();
 $approved = $tool->run( Pera_ML_Theme_UI_Discovery::approved_directories( $root ) );
-expect_discovery( 9, $approved['discovered'], 'approved directories plus root and template-subdirectory calls are discovered' );
+expect_discovery( 10, $approved['discovered'], 'approved directories plus root and template-subdirectory calls are discovered' );
 $keys = array_column( $GLOBALS['ui_registry_option'], 'semantic_key' );
-foreach ( array( 'theme.key', 'theme.dry', 'theme.template.404.root', 'theme.template.archive.approved', 'theme.template.client_login', 'theme.template.client_forgot_password', 'theme.template.client_portal', 'theme.template.register', 'theme.template.portfolio_token.heading' ) as $key ) expect_discovery( true, in_array( $key, $keys, true ), 'approved registration discovered: ' . $key );
+foreach ( array( 'theme.key', 'theme.dry', 'theme.template.404.root', 'theme.template.archive.approved', 'theme.template.client_login', 'theme.template.client_forgot_password', 'theme.template.client_portal', 'theme.template.page_developer_sales_office.heading', 'theme.template.register', 'theme.template.portfolio_token.heading' ) as $key ) expect_discovery( true, in_array( $key, $keys, true ), 'approved registration discovered: ' . $key );
 foreach ( array( 'theme.template.test', 'theme.template.dev', 'theme.template.language', 'theme.archived' ) as $key ) expect_discovery( false, in_array( $key, $keys, true ), 'excluded registration ignored: ' . $key );
 $admin_source = file_get_contents( dirname( __DIR__ ) . '/admin/class-admin.php' );
 $cli_source = file_get_contents( dirname( __DIR__ ) . '/tools/register-theme-ui-strings.php' );
