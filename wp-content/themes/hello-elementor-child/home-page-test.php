@@ -507,7 +507,7 @@ $featured_query = new WP_Query( array(
         </ol>
 
         <div class="hero-actions">
-          <a class="btn btn--solid btn--green" href="/contact/">Speak to an advisor</a>
+          <a class="btn btn--solid btn--green" href="/contact-us/">Speak to an advisor</a>
           <a class="btn btn--ghost btn--blue" href="/book-a-consultancy/">Book a consultancy</a>
         </div>
 
@@ -575,7 +575,7 @@ $featured_query = new WP_Query( array(
         </div>
 
         <p class="muted" style="margin-top: 10px; margin-bottom: 0;">
-          If you already have a property in mind, <a href="/contact/">request a valuation</a>.
+          If you already have a property in mind, <a href="/contact-us/">request a valuation</a>.
         </p>
       </div>
 

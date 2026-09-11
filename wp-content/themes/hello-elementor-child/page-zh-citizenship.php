@@ -360,7 +360,7 @@ $citizenship_requirements = array(
     <div class="container">
       <header class="section-header section-header--center"><h2>土耳其投资入籍路径比较</h2><p>房地产路径是许多国际投资者常用的方式，但并非唯一方式。具体选择应根据投资目标、文件情况、时间计划和资产偏好决定。</p></header>
       <div class="citizenship-table-wrap" role="region" aria-label="土耳其投资入籍路径比较" tabindex="0"><table class="citizenship-route-table"><thead><tr><th scope="col">路径</th><th scope="col">常见最低投资额</th><th scope="col">适用场景</th><th scope="col">备注</th></tr></thead><tbody><tr><th scope="row">房地产</th><td>USD 400,000</td><td>常见选择</td><td>符合条件房产通常需持有至少 3 年</td></tr><tr><th scope="row">银行存款</th><td>USD 500,000</td><td>资本保全</td><td>银行要求、锁定规则和文件流程不同</td></tr><tr><th scope="row">政府债券</th><td>USD 500,000</td><td>被动投资</td><td>对房地产市场表现的直接敞口较低</td></tr><tr><th scope="row">商业或就业路径</th><td>视情况而定</td><td>运营型投资者</td><td>通常更复杂，需要个案评估</td></tr></tbody></table></div>
-      <p class="citizenship-route-note">投资门槛和申请实践可能变化。做出投资决定前，应由持牌土耳其法律顾问确认最新要求。您也可以 <a href="<?php echo esc_url( home_url( '/contact/' ) ); ?>">联系 Pera Property</a> 讨论您的目标。</p>
+      <p class="citizenship-route-note">投资门槛和申请实践可能变化。做出投资决定前，应由持牌土耳其法律顾问确认最新要求。您也可以 <a href="<?php echo esc_url( home_url( '/contact-us/' ) ); ?>">联系 Pera Property</a> 讨论您的目标。</p>
     </div>
   </section>
 

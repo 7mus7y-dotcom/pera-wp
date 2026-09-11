@@ -36,7 +36,7 @@ get_header();
             <!--
             <div class="hero-actions">
               <a href="/property/" class="btn btn-primary"><?php echo esc_html( pera_ml_ui( 'View properties', 'theme.template.page_posts.view_properties' ) ); ?></a>
-              <a href="/contact/" class="btn btn-secondary"><?php echo esc_html( pera_ml_ui( 'Contact us', 'theme.template.page_posts.contact_us' ) ); ?></a>
+              <a href="/contact-us/" class="btn btn-secondary"><?php echo esc_html( pera_ml_ui( 'Contact us', 'theme.template.page_posts.contact_us' ) ); ?></a>
             </div>
             -->
           </div>

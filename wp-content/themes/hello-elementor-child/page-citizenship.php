@@ -1380,7 +1380,7 @@ $citizenship_requirements = array(
     </div>
 
     <p class="citizenship-route-note">
-      <?php echo esc_html( pera_ml_ui( 'Investment thresholds and application practice can change. Requirements should be checked with a licensed Turkish legal adviser before making an investment decision. To discuss your objectives,', 'theme.template.page_citizenship.investment_thresholds_and_application_practice_can_change_requirements_s' ) ); ?> <a href="<?php echo esc_url( pera_ml_url( home_url( '/contact/' ) ) ); ?>"><?php echo esc_html( pera_ml_ui( 'speak to Pera Property', 'theme.template.page_citizenship.speak_to_pera_property' ) ); ?></a>.
+      <?php echo esc_html( pera_ml_ui( 'Investment thresholds and application practice can change. Requirements should be checked with a licensed Turkish legal adviser before making an investment decision. To discuss your objectives,', 'theme.template.page_citizenship.investment_thresholds_and_application_practice_can_change_requirements_s' ) ); ?> <a href="<?php echo esc_url( pera_ml_url( home_url( '/contact-us/' ) ) ); ?>"><?php echo esc_html( pera_ml_ui( 'speak to Pera Property', 'theme.template.page_citizenship.speak_to_pera_property' ) ); ?></a>.
     </p>
   </div>
 </section>
