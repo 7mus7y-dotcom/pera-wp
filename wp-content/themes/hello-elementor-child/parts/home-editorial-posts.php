@@ -20,7 +20,7 @@ if ( ! $editorial_query->have_posts() ) {
 
 $posts_page_url = get_permalink( (int) get_option( 'page_for_posts' ) );
 if ( ! $posts_page_url ) {
-  $posts_page_url = home_url( '/blog/' );
+  $posts_page_url = pera_ml_url( home_url( '/blog/' ) );
 }
 
 $investment_category = get_category_by_slug( 'investment-advice' );
@@ -28,11 +28,11 @@ $regional_category   = get_category_by_slug( 'regional-guides' );
 
 $investment_url = ( $investment_category && ! is_wp_error( $investment_category ) )
   ? get_category_link( $investment_category->term_id )
-  : home_url( '/category/investment-advice/' );
+  : pera_ml_url( home_url( '/category/investment-advice/' ) );
 
 $regional_url = ( $regional_category && ! is_wp_error( $regional_category ) )
   ? get_category_link( $regional_category->term_id )
-  : home_url( '/category/regional-guides/' );
+  : pera_ml_url( home_url( '/category/regional-guides/' ) );
 ?>
 
 <section class="section home-editorial-posts" aria-label="<?php echo esc_attr( pera_ml_ui( 'Latest Istanbul property insights', 'theme.home_editorial.section_label' ) ); ?>">

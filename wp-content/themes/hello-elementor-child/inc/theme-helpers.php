@@ -1,4 +1,27 @@
 <?php
+
+/**
+ * Localize visitor-facing links in editor-authored HTML at render time.
+ *
+ * Pera Multilingual remains the authority for deciding whether a URL is local,
+ * technical, external, or already localized. Stored ACF content is not mutated.
+ *
+ * @param string $html Editor-authored HTML.
+ * @return string
+ */
+function pera_localize_visitor_links( $html ) {
+  if ( ! is_string( $html ) || '' === $html || ! function_exists( 'pera_ml_url' ) ) {
+    return $html;
+  }
+
+  return (string) preg_replace_callback(
+    '/(<a\b[^>]*\bhref\s*=\s*)(["\'])(.*?)(\2)/is',
+    static function ( $matches ) {
+      return $matches[1] . $matches[2] . pera_ml_url( html_entity_decode( $matches[3], ENT_QUOTES, 'UTF-8' ) ) . $matches[4];
+    },
+    $html
+  );
+}
 if ( ! defined( 'ABSPATH' ) ) exit;
 
 /**

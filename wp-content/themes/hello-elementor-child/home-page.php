@@ -13,7 +13,7 @@ get_header();
 
 <main id="primary" class="site-main 2025-home-page">
 <?php
-$archive_base_url = get_post_type_archive_link('property'); // /property/
+$archive_base_url = get_post_type_archive_link('property'); // Localized by the Pera router's post-type archive filter.
 $hero_img_id      = 55484;
 $hero_img_url     = wp_get_attachment_image_url($hero_img_id, 'pera-card');
 
@@ -179,8 +179,8 @@ if ( function_exists( 'get_field' ) ) {
           <h3><?php echo esc_html( pera_ml_ui( 'Citizenship by Investment', 'theme.template.home_page.citizenship_by_investment' ) ); ?></h3>
           <p class="muted"><?php echo esc_html( pera_ml_ui( 'Approved real estate routes for buyers planning to apply for Turkish citizenship through property investment.', 'theme.template.home_page.approved_real_estate_routes_for_buyers_planning_to_apply_for_turkish_cit' ) ); ?></p>
           <div class="hero-actions">
-            <a class="btn btn--solid btn--blue" href="<?php echo esc_url( home_url( '/citizenship-by-investment/' ) ); ?>"><?php echo esc_html( pera_ml_ui( 'Explore citizenship', 'theme.template.home_page.explore_citizenship' ) ); ?></a>
-            <a class="btn btn--ghost btn--blue" href="<?php echo esc_url( home_url( '/turkish-citizenship-properties/' ) ); ?>"><?php echo esc_html( pera_ml_ui( 'Request shortlist', 'theme.template.home_page.request_shortlist' ) ); ?></a>
+            <a class="btn btn--solid btn--blue" href="<?php echo esc_url( pera_ml_url( home_url( '/citizenship-by-investment/' ) ) ); ?>"><?php echo esc_html( pera_ml_ui( 'Explore citizenship', 'theme.template.home_page.explore_citizenship' ) ); ?></a>
+            <a class="btn btn--ghost btn--blue" href="<?php echo esc_url( pera_ml_url( home_url( '/turkish-citizenship-properties/' ) ) ); ?>"><?php echo esc_html( pera_ml_ui( 'Request shortlist', 'theme.template.home_page.request_shortlist' ) ); ?></a>
           </div>
         </article>
 
@@ -189,8 +189,8 @@ if ( function_exists( 'get_field' ) ) {
           <h3><?php echo esc_html( pera_ml_ui( 'Istanbul Investment Property', 'theme.template.home_page.istanbul_investment_property' ) ); ?></h3>
           <p class="muted"><?php echo esc_html( pera_ml_ui( 'Districts, projects and market insight for buyers focused on capital growth, rental demand and long-term value.', 'theme.template.home_page.districts_projects_and_market_insight_for_buyers_focused_on_capital_grow' ) ); ?></p>
           <div class="hero-actions">
-            <a class="btn btn--solid btn--green" href="<?php echo esc_url( home_url( '/category/investment-advice/' ) ); ?>"><?php echo esc_html( pera_ml_ui( 'Read investment advice', 'theme.template.home_page.read_investment_advice' ) ); ?></a>
-            <a class="btn btn--ghost btn--green" href="<?php echo esc_url( home_url( '/property_tags/istanbul-investment-property-for-sale/' ) ); ?>"><?php echo esc_html( pera_ml_ui( 'View properties', 'theme.template.home_page.view_properties' ) ); ?></a>
+            <a class="btn btn--solid btn--green" href="<?php echo esc_url( pera_ml_url( home_url( '/category/investment-advice/' ) ) ); ?>"><?php echo esc_html( pera_ml_ui( 'Read investment advice', 'theme.template.home_page.read_investment_advice' ) ); ?></a>
+            <a class="btn btn--ghost btn--green" href="<?php echo esc_url( pera_ml_url( home_url( '/property_tags/istanbul-investment-property-for-sale/' ) ) ); ?>"><?php echo esc_html( pera_ml_ui( 'View properties', 'theme.template.home_page.view_properties' ) ); ?></a>
           </div>
         </article>
 
@@ -199,8 +199,8 @@ if ( function_exists( 'get_field' ) ) {
           <h3><?php echo esc_html( pera_ml_ui( 'Luxury Homes & Branded Residences', 'theme.template.home_page.luxury_homes_and_branded_residences' ) ); ?></h3>
           <p class="muted"><?php echo esc_html( pera_ml_ui( 'Bosphorus homes, branded residences and premium Istanbul addresses for lifestyle-led and high-value buyers.', 'theme.template.home_page.bosphorus_homes_branded_residences_and_premium_istanbul_addresses_for_li' ) ); ?></p>
           <div class="hero-actions">
-            <a class="btn btn--solid btn--blue" href="<?php echo esc_url( home_url( '/istanbul-luxury-property/' ) ); ?>"><?php echo esc_html( pera_ml_ui( 'View luxury homes', 'theme.template.home_page.view_luxury_homes' ) ); ?></a>
-            <a class="btn btn--ghost btn--blue" href="<?php echo esc_url( home_url( '/contact-us/' ) ); ?>"><?php echo esc_html( pera_ml_ui( 'Request shortlist', 'theme.template.home_page.request_shortlist' ) ); ?></a>
+            <a class="btn btn--solid btn--blue" href="<?php echo esc_url( pera_ml_url( home_url( '/istanbul-luxury-property/' ) ) ); ?>"><?php echo esc_html( pera_ml_ui( 'View luxury homes', 'theme.template.home_page.view_luxury_homes' ) ); ?></a>
+            <a class="btn btn--ghost btn--blue" href="<?php echo esc_url( pera_ml_url( home_url( '/contact-us/' ) ) ); ?>"><?php echo esc_html( pera_ml_ui( 'Request shortlist', 'theme.template.home_page.request_shortlist' ) ); ?></a>
           </div>
         </article>
 
@@ -209,8 +209,8 @@ if ( function_exists( 'get_field' ) ) {
           <h3><?php echo esc_html( pera_ml_ui( 'First-Time Foreign Buyers', 'theme.template.home_page.first_time_foreign_buyers' ) ); ?></h3>
           <p class="muted"><?php echo esc_html( pera_ml_ui( 'Practical guidance on title deed transfer, legal checks, taxes and safe property purchasing in Istanbul.', 'theme.template.home_page.practical_guidance_on_title_deed_transfer_legal_checks_taxes_and_safe_pr' ) ); ?></p>
           <div class="hero-actions">
-            <a class="btn btn--solid btn--green" href="<?php echo esc_url( home_url( '/category/buyer-guides/' ) ); ?>"><?php echo esc_html( pera_ml_ui( 'Read buyer guide', 'theme.template.home_page.read_buyer_guide' ) ); ?></a>
-            <a class="btn btn--ghost btn--green" href="<?php echo esc_url( home_url( '/book-a-consultancy/' ) ); ?>"><?php echo esc_html( pera_ml_ui( 'Book consultancy', 'theme.template.home_page.book_consultancy' ) ); ?></a>
+            <a class="btn btn--solid btn--green" href="<?php echo esc_url( pera_ml_url( home_url( '/category/buyer-guides/' ) ) ); ?>"><?php echo esc_html( pera_ml_ui( 'Read buyer guide', 'theme.template.home_page.read_buyer_guide' ) ); ?></a>
+            <a class="btn btn--ghost btn--green" href="<?php echo esc_url( pera_ml_url( home_url( '/book-a-consultancy/' ) ) ); ?>"><?php echo esc_html( pera_ml_ui( 'Book consultancy', 'theme.template.home_page.book_consultancy' ) ); ?></a>
           </div>
         </article>
       </div>
@@ -265,8 +265,8 @@ $featured_query = new WP_Query( array(
                     <h3><?php echo esc_html( pera_ml_ui( 'Browse all property for sale in Istanbul', 'theme.template.home_page.browse_all_property_for_sale_in_istanbul' ) ); ?></h3>
                     <p class="text-sm"><?php echo esc_html( pera_ml_ui( 'Apartments • Villas • Projects', 'theme.template.home_page.apartments_villas_projects' ) ); ?></p>
                     <div class="hero-actions">
-                      <a class="btn btn--solid btn--blue" href="/property/"><?php echo esc_html( pera_ml_ui( 'See all listings', 'theme.template.home_page.see_all_listings' ) ); ?></a>
-                      <a class="btn btn--ghost btn--blue" href="/property/#results"><?php echo esc_html( pera_ml_ui( 'Advanced search', 'theme.template.home_page.advanced_search' ) ); ?></a>
+                      <a class="btn btn--solid btn--blue" href="<?php echo esc_url( pera_ml_url( home_url( '/property/' ) ) ); ?>"><?php echo esc_html( pera_ml_ui( 'See all listings', 'theme.template.home_page.see_all_listings' ) ); ?></a>
+                      <a class="btn btn--ghost btn--blue" href="<?php echo esc_url( pera_ml_url( home_url( '/property/#results' ) ) ); ?>"><?php echo esc_html( pera_ml_ui( 'Advanced search', 'theme.template.home_page.advanced_search' ) ); ?></a>
                     </div>
                   </div>
                 </div>
@@ -289,7 +289,7 @@ $featured_query = new WP_Query( array(
 <section class="section section-soft">
   <div class="container">
     <?php if ( trim( wp_strip_all_tags( $homepage_listing_intro ) ) !== '' ) : ?>
-      <?php echo wp_kses_post( $homepage_listing_intro ); ?>
+      <?php echo wp_kses_post( pera_localize_visitor_links( $homepage_listing_intro ) ); ?>
     <?php else : ?>
       <p class="text-soft">
         <?php echo esc_html( pera_ml_ui( 'Explore a wide range of', 'theme.template.home_page.explore_a_wide_range_of' ) ); ?> <strong><?php echo esc_html( pera_ml_ui( 'property for sale in Istanbul', 'theme.template.home_page.property_for_sale_in_istanbul' ) ); ?></strong><?php echo esc_html( pera_ml_ui( ', from centrally located apartments to carefully selected investment opportunities across the city. Our portfolio includes both ready properties and off-market deals, allowing buyers to compare options based on location, budget, and long-term potential. Below, you can view some of our latest opportunities, chosen for their value, positioning, and investment appeal.', 'theme.template.home_page.from_centrally_located_apartments_to_carefully_selected_investment_oppor' ) ); ?>
@@ -344,8 +344,8 @@ get_template_part( 'partials/home-latest-offers' );
             </div>
         
             <div class="hero-actions" style="margin-top: 14px;">
-              <a class="btn btn--solid btn--blue" href="<?php echo esc_url( home_url('/district/istanbul/besiktas/#results') ); ?>"><?php echo esc_html( pera_ml_ui( 'View listings', 'theme.template.home_page.view_listings' ) ); ?></a>
-              <a class="btn btn--ghost btn--blue" href="https://www.peraproperty.com/besiktas-from-bronze-age-to-ottoman-palaces_51249/">
+              <a class="btn btn--solid btn--blue" href="<?php echo esc_url( pera_ml_url( home_url('/district/istanbul/besiktas/#results') ) ); ?>"><?php echo esc_html( pera_ml_ui( 'View listings', 'theme.template.home_page.view_listings' ) ); ?></a>
+              <a class="btn btn--ghost btn--blue" href="<?php echo esc_url( pera_ml_url( home_url( '/besiktas-from-bronze-age-to-ottoman-palaces_51249/' ) ) ); ?>">
                 <?php echo esc_html( pera_ml_ui( 'Area guide', 'theme.template.home_page.area_guide' ) ); ?>
               </a>
             </div>
@@ -368,8 +368,8 @@ get_template_part( 'partials/home-latest-offers' );
             </div>
         
             <div class="hero-actions" style="margin-top: 14px;">
-              <a class="btn btn--solid btn--blue" href="<?php echo esc_url( home_url('/district/istanbul/sisli/#results') ); ?>"><?php echo esc_html( pera_ml_ui( 'View listings', 'theme.template.home_page.view_listings' ) ); ?></a>
-              <a class="btn btn--ghost btn--blue" href="https://www.peraproperty.com/sisli-the-heart-of-modern-istanbul_51392/">
+              <a class="btn btn--solid btn--blue" href="<?php echo esc_url( pera_ml_url( home_url('/district/istanbul/sisli/#results') ) ); ?>"><?php echo esc_html( pera_ml_ui( 'View listings', 'theme.template.home_page.view_listings' ) ); ?></a>
+              <a class="btn btn--ghost btn--blue" href="<?php echo esc_url( pera_ml_url( home_url( '/sisli-the-heart-of-modern-istanbul_51392/' ) ) ); ?>">
                 <?php echo esc_html( pera_ml_ui( 'Area guide', 'theme.template.home_page.area_guide' ) ); ?>
               </a>
             </div>
@@ -392,8 +392,8 @@ get_template_part( 'partials/home-latest-offers' );
             </div>
         
             <div class="hero-actions" style="margin-top: 14px;">
-              <a class="btn btn--solid btn--green" href="<?php echo esc_url( home_url('/district/istanbul/kadikoy/#results') ); ?>"><?php echo esc_html( pera_ml_ui( 'View listings', 'theme.template.home_page.view_listings' ) ); ?></a>
-              <a class="btn btn--ghost btn--green" href="<?php echo esc_url( home_url('/kadikoy-regional-guide-a-vibrant-hub-on-istanbuls-asian-side_51561/') ); ?>">
+              <a class="btn btn--solid btn--green" href="<?php echo esc_url( pera_ml_url( home_url('/district/istanbul/kadikoy/#results') ) ); ?>"><?php echo esc_html( pera_ml_ui( 'View listings', 'theme.template.home_page.view_listings' ) ); ?></a>
+              <a class="btn btn--ghost btn--green" href="<?php echo esc_url( pera_ml_url( home_url('/kadikoy-regional-guide-a-vibrant-hub-on-istanbuls-asian-side_51561/') ) ); ?>">
                 <?php echo esc_html( pera_ml_ui( 'Area guide', 'theme.template.home_page.area_guide' ) ); ?>
               </a>
             </div>
@@ -416,8 +416,8 @@ get_template_part( 'partials/home-latest-offers' );
             </div>
 
             <div class="hero-actions" style="margin-top: 14px;">
-              <a class="btn btn--solid btn--blue" href="<?php echo esc_url( home_url('/district/istanbul/sariyer/#results') ); ?>"><?php echo esc_html( pera_ml_ui( 'View listings', 'theme.template.home_page.view_listings' ) ); ?></a>
-              <a class="btn btn--ghost btn--blue" href="<?php echo esc_url( home_url('/istanbul-luxury-property/') ); ?>">
+              <a class="btn btn--solid btn--blue" href="<?php echo esc_url( pera_ml_url( home_url('/district/istanbul/sariyer/#results') ) ); ?>"><?php echo esc_html( pera_ml_ui( 'View listings', 'theme.template.home_page.view_listings' ) ); ?></a>
+              <a class="btn btn--ghost btn--blue" href="<?php echo esc_url( pera_ml_url( home_url('/istanbul-luxury-property/') ) ); ?>">
                 <?php echo esc_html( pera_ml_ui( 'Luxury guide', 'theme.template.home_page.luxury_guide' ) ); ?>
               </a>
             </div>
@@ -427,8 +427,8 @@ get_template_part( 'partials/home-latest-offers' );
 
 
     <div class="hero-actions flex-center" style="margin-top: 18px;">
-      <a class="btn btn--solid btn--blue" href="/property/"><?php echo esc_html( pera_ml_ui( 'Browse all Istanbul property listings', 'theme.template.home_page.browse_all_istanbul_property_listings' ) ); ?></a>
-      <a class="btn btn--solid btn--green" href="/contact-us/"><?php echo esc_html( pera_ml_ui( 'Get district advice', 'theme.template.home_page.get_district_advice' ) ); ?></a>
+      <a class="btn btn--solid btn--blue" href="<?php echo esc_url( pera_ml_url( home_url( '/property/' ) ) ); ?>"><?php echo esc_html( pera_ml_ui( 'Browse all Istanbul property listings', 'theme.template.home_page.browse_all_istanbul_property_listings' ) ); ?></a>
+      <a class="btn btn--solid btn--green" href="<?php echo esc_url( pera_ml_url( home_url( '/contact-us/' ) ) ); ?>"><?php echo esc_html( pera_ml_ui( 'Get district advice', 'theme.template.home_page.get_district_advice' ) ); ?></a>
     </div>
 
   </div>
@@ -517,7 +517,7 @@ get_template_part( 'parts/home-editorial-posts' );
     </div>
 
     <div class="hero-actions flex-center" style="margin-top: 16px;">
-      <a class="btn btn--solid btn--green" href="/contact-us/"><?php echo esc_html( pera_ml_ui( 'Speak to an advisor', 'theme.template.home_page.speak_to_an_advisor' ) ); ?></a>
+      <a class="btn btn--solid btn--green" href="<?php echo esc_url( pera_ml_url( home_url( '/contact-us/' ) ) ); ?>"><?php echo esc_html( pera_ml_ui( 'Speak to an advisor', 'theme.template.home_page.speak_to_an_advisor' ) ); ?></a>
     </div>
 
   </div>
@@ -546,7 +546,7 @@ get_template_part( 'parts/home-editorial-posts' );
         </ul>
 
         <p style="margin-top: 12px; margin-bottom: 0;">
-          <a href="/sell-your-istanbul-real-estate/"><?php echo esc_html( pera_ml_ui( 'Sell your property in Istanbul with local experts', 'theme.template.home_page.sell_your_property_in_istanbul_with_local_experts' ) ); ?></a>
+          <a href="<?php echo esc_url( pera_ml_url( home_url( '/sell-your-istanbul-real-estate/' ) ) ); ?>"><?php echo esc_html( pera_ml_ui( 'Sell your property in Istanbul with local experts', 'theme.template.home_page.sell_your_property_in_istanbul_with_local_experts' ) ); ?></a>
         </p>
       </div>
 
@@ -573,12 +573,12 @@ get_template_part( 'parts/home-editorial-posts' );
         </div>
 
         <p class="muted" style="margin-top: 10px; margin-bottom: 0;">
-          <?php echo esc_html( pera_ml_ui( 'Need full support as an owner? Explore', 'theme.template.home_page.need_full_support_as_an_owner_explore' ) ); ?> <a href="<?php echo esc_url( home_url( '/rent-your-istanbul-real-estate/' ) ); ?>"><?php echo esc_html( pera_ml_ui( 'property management in Istanbul', 'theme.template.home_page.property_management_in_istanbul' ) ); ?></a> <?php echo esc_html( pera_ml_ui( 'or request a valuation.', 'theme.template.home_page.or_request_a_valuation' ) ); ?>
+          <?php echo esc_html( pera_ml_ui( 'Need full support as an owner? Explore', 'theme.template.home_page.need_full_support_as_an_owner_explore' ) ); ?> <a href="<?php echo esc_url( pera_ml_url( home_url( '/rent-your-istanbul-real-estate/' ) ) ); ?>"><?php echo esc_html( pera_ml_ui( 'property management in Istanbul', 'theme.template.home_page.property_management_in_istanbul' ) ); ?></a> <?php echo esc_html( pera_ml_ui( 'or request a valuation.', 'theme.template.home_page.or_request_a_valuation' ) ); ?>
         </p>
 
         <div class="hero-actions flex-center">
-          <a class="btn btn--solid btn--green" href="<?php echo esc_url( home_url( '/sell-your-istanbul-real-estate/' ) ); ?>"><?php echo esc_html( pera_ml_ui( 'Get a Free Valuation', 'theme.template.home_page.get_a_free_valuation' ) ); ?></a>
-          <a class="btn btn--ghost btn--blue" href="<?php echo esc_url( home_url( '/rent-your-istanbul-real-estate/' ) ); ?>"><?php echo esc_html( pera_ml_ui( 'Explore Property Management', 'theme.template.home_page.explore_property_management' ) ); ?></a>
+          <a class="btn btn--solid btn--green" href="<?php echo esc_url( pera_ml_url( home_url( '/sell-your-istanbul-real-estate/' ) ) ); ?>"><?php echo esc_html( pera_ml_ui( 'Get a Free Valuation', 'theme.template.home_page.get_a_free_valuation' ) ); ?></a>
+          <a class="btn btn--ghost btn--blue" href="<?php echo esc_url( pera_ml_url( home_url( '/rent-your-istanbul-real-estate/' ) ) ); ?>"><?php echo esc_html( pera_ml_ui( 'Explore Property Management', 'theme.template.home_page.explore_property_management' ) ); ?></a>
         </div>
       </div>
 
@@ -601,7 +601,7 @@ get_template_part( 'parts/home-editorial-posts' );
             <?php echo esc_html( pera_ml_ui( 'Pera Property is a consultancy-led real estate agency focused exclusively on Istanbul.
             We work with both new developments and resale properties, advising clients from initial
             strategy through to title deed. Prefer a structured, free strategy session first?', 'theme.template.home_page.pera_property_is_a_consultancy_led_real_estate_agency_focused_exclusivel' ) ); ?>
-            <a href="/book-a-consultancy/"><?php echo esc_html( pera_ml_ui( 'Book a consultancy', 'theme.template.home_page.book_a_consultancy' ) ); ?></a> <?php echo esc_html( pera_ml_ui( 'to validate your plan before viewing properties.', 'theme.template.home_page.to_validate_your_plan_before_viewing_properties' ) ); ?>
+            <a href="<?php echo esc_url( pera_ml_url( home_url( '/book-a-consultancy/' ) ) ); ?>"><?php echo esc_html( pera_ml_ui( 'Book a consultancy', 'theme.template.home_page.book_a_consultancy' ) ); ?></a> <?php echo esc_html( pera_ml_ui( 'to validate your plan before viewing properties.', 'theme.template.home_page.to_validate_your_plan_before_viewing_properties' ) ); ?>
           </p>
 
           <p>
@@ -668,8 +668,8 @@ get_template_part( 'parts/home-editorial-posts' );
         </ol>
 
         <div class="hero-actions" style="margin-top: 16px;">
-          <a class="btn btn--solid btn--green" href="/contact-us/"><?php echo esc_html( pera_ml_ui( 'Speak to an advisor', 'theme.template.home_page.speak_to_an_advisor' ) ); ?></a>
-          <a class="btn btn--ghost btn--blue" href="/book-a-consultancy/"><?php echo esc_html( pera_ml_ui( 'Book a consultancy', 'theme.template.home_page.book_a_consultancy' ) ); ?></a>
+          <a class="btn btn--solid btn--green" href="<?php echo esc_url( pera_ml_url( home_url( '/contact-us/' ) ) ); ?>"><?php echo esc_html( pera_ml_ui( 'Speak to an advisor', 'theme.template.home_page.speak_to_an_advisor' ) ); ?></a>
+          <a class="btn btn--ghost btn--blue" href="<?php echo esc_url( pera_ml_url( home_url( '/book-a-consultancy/' ) ) ); ?>"><?php echo esc_html( pera_ml_ui( 'Book a consultancy', 'theme.template.home_page.book_a_consultancy' ) ); ?></a>
         </div>
 
       </div>
@@ -718,10 +718,10 @@ if ( function_exists( 'get_field' ) ) {
     </p>
 
     <?php if ( trim( wp_strip_all_tags( $homepage_bottom_seo_text ) ) !== '' ) : ?>
-      <?php echo wp_kses_post( $homepage_bottom_seo_text ); ?>
+      <?php echo wp_kses_post( pera_localize_visitor_links( $homepage_bottom_seo_text ) ); ?>
     <?php else : ?>
       <p class="text-soft">
-        <?php echo esc_html( pera_ml_ui( 'For clients focused on long-term value,', 'theme.template.home_page.for_clients_focused_on_long_term_value' ) ); ?> <strong><?php echo esc_html( pera_ml_ui( 'apartments for sale in Istanbul', 'theme.template.home_page.apartments_for_sale_in_istanbul' ) ); ?></strong> <?php echo esc_html( pera_ml_ui( 'in districts such as', 'theme.template.home_page.in_districts_such_as' ) ); ?> <a href="<?php echo esc_url( home_url('/district/istanbul/besiktas/') ); ?>">Beşiktaş</a> <?php echo esc_html( pera_ml_ui( 'and', 'theme.template.home_page.and' ) ); ?> <a href="<?php echo esc_url( home_url('/district/istanbul/sisli/') ); ?>">Şişli</a> <?php echo esc_html( pera_ml_ui( 'are often preferred for access to business hubs and daily convenience, while', 'theme.template.home_page.are_often_preferred_for_access_to_business_hubs_and_daily_convenience_wh' ) ); ?> <a href="<?php echo esc_url( home_url('/district/istanbul/kadikoy/') ); ?>">Kadıköy</a> <?php echo esc_html( pera_ml_ui( 'suits buyers who want a stronger residential and cultural profile.', 'theme.template.home_page.suits_buyers_who_want_a_stronger_residential_and_cultural_profile' ) ); ?>
+        <?php echo esc_html( pera_ml_ui( 'For clients focused on long-term value,', 'theme.template.home_page.for_clients_focused_on_long_term_value' ) ); ?> <strong><?php echo esc_html( pera_ml_ui( 'apartments for sale in Istanbul', 'theme.template.home_page.apartments_for_sale_in_istanbul' ) ); ?></strong> <?php echo esc_html( pera_ml_ui( 'in districts such as', 'theme.template.home_page.in_districts_such_as' ) ); ?> <a href="<?php echo esc_url( pera_ml_url( home_url('/district/istanbul/besiktas/') ) ); ?>">Beşiktaş</a> <?php echo esc_html( pera_ml_ui( 'and', 'theme.template.home_page.and' ) ); ?> <a href="<?php echo esc_url( pera_ml_url( home_url('/district/istanbul/sisli/') ) ); ?>">Şişli</a> <?php echo esc_html( pera_ml_ui( 'are often preferred for access to business hubs and daily convenience, while', 'theme.template.home_page.are_often_preferred_for_access_to_business_hubs_and_daily_convenience_wh' ) ); ?> <a href="<?php echo esc_url( pera_ml_url( home_url('/district/istanbul/kadikoy/') ) ); ?>">Kadıköy</a> <?php echo esc_html( pera_ml_ui( 'suits buyers who want a stronger residential and cultural profile.', 'theme.template.home_page.suits_buyers_who_want_a_stronger_residential_and_cultural_profile' ) ); ?>
       </p>
     <?php endif; ?>
 
@@ -730,7 +730,7 @@ if ( function_exists( 'get_field' ) ) {
     </p>
 
     <p class="text-soft">
-      <?php echo esc_html( pera_ml_ui( 'Istanbul is also a major destination for buyers interested in residency and citizenship options. Through the', 'theme.template.home_page.istanbul_is_also_a_major_destination_for_buyers_interested_in_residency_' ) ); ?> <a href="<?php echo esc_url( home_url('/citizenship-by-investment/') ); ?>"><?php echo esc_html( pera_ml_ui( 'Turkish Citizenship by Investment', 'theme.template.home_page.turkish_citizenship_by_investment' ) ); ?></a> <?php echo esc_html( pera_ml_ui( 'program, eligible property purchases can qualify investors for a Turkish passport, making real estate not only a lifestyle decision but also a strategic investment.', 'theme.template.home_page.program_eligible_property_purchases_can_qualify_investors_for_a_turkish_' ) ); ?>
+      <?php echo esc_html( pera_ml_ui( 'Istanbul is also a major destination for buyers interested in residency and citizenship options. Through the', 'theme.template.home_page.istanbul_is_also_a_major_destination_for_buyers_interested_in_residency_' ) ); ?> <a href="<?php echo esc_url( pera_ml_url( home_url('/citizenship-by-investment/') ) ); ?>"><?php echo esc_html( pera_ml_ui( 'Turkish Citizenship by Investment', 'theme.template.home_page.turkish_citizenship_by_investment' ) ); ?></a> <?php echo esc_html( pera_ml_ui( 'program, eligible property purchases can qualify investors for a Turkish passport, making real estate not only a lifestyle decision but also a strategic investment.', 'theme.template.home_page.program_eligible_property_purchases_can_qualify_investors_for_a_turkish_' ) ); ?>
     </p>
   </div>
 </section>
