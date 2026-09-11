@@ -2,17 +2,17 @@
 
 ## Executive summary
 
-Audit date: 2026-09-11. Scope was recursively inventoried across `wp-content/themes/hello-elementor-child/`, `wp-content/plugins/peracrm/`, and `wp-content/plugins/pera-multilingual/`. The inventory contains **771 files** (**591 PHP/JS/TS/HTML source/render candidates**). A combined search for URL constructors, literal internal links, redirects, permalink APIs, and JavaScript navigation produced **844 unique candidate lines**, all of which were triaged.
+Audit date: 2026-09-11. Scope was recursively inventoried across `wp-content/themes/hello-elementor-child/`, `wp-content/plugins/peracrm/`, and `wp-content/plugins/pera-multilingual/`. The inventory contains **771 files** (**591 PHP/JS/TS/HTML source/render candidates**). A combined search for URL constructors, literal internal links, redirects, permalink APIs, and JavaScript navigation produced **844 unique candidate lines**. Expanding the one source line that contains four distinct destinations yields **847 URL candidate occurrences**, all of which were triaged.
 
 | Classification | Candidate occurrences |
 |---|---:|
-| Confirmed unsafe (fixed) | 44 |
+| Confirmed unsafe (fixed) | 47 |
 | Safe / no action | 688 |
 | Intentional exclusions | 109 |
 | Uncertain / manual review | 3 |
-| **Total reviewed** | **844** |
+| **Total reviewed** | **847** |
 
-The confirmed bug remained in 44 low-risk visitor destinations across 17 theme rendering files. They now delegate to `pera_ml_url( home_url( ... ) )`; no second routing system was added. No confirmed language-dropping visitor link remains in the audited code. Three content-driven cases remain a production-content review concern, not a confirmed source-code defect.
+The confirmed bug remained in 47 low-risk visitor destinations across 17 theme rendering files. They now delegate to `pera_ml_url( home_url( ... ) )`; no second routing system was added. No confirmed language-dropping visitor link remains in the audited code. Three content-driven cases remain a production-content review concern, not a confirmed source-code defect.
 
 ## Method
 
@@ -21,6 +21,31 @@ The recursive review covered PHP templates/includes/partials, frontend and AJAX 
 ## P0 Critical
 
 None.
+
+## Count reconciliation
+
+The previous summary incorrectly used **44**, the number of changed production **source lines**, as the unsafe URL count. The exact patch contains **47 distinct visitor destinations**: `page-sell-with-pera.php` line 576 holds four separate links on one changed line. No unsafe group was duplicated, and no single construction fans out into multiple counted destinations. The candidate denominator is consequently 847 URL occurrences rather than 844 unique matching lines.
+
+| ID | File | Previous count | Verified exact count | Reconciliation |
+|---|---|---:|---:|---|
+| URL-001 | `404.php` | 7 | 7 | Seven distinct rendered links. |
+| URL-002 | `page-contact.php` | 12 | 12 | Six district links and six CTA-card links. |
+| URL-003 | `page-sell-with-pera.php` | 4 | 4 | Four distinct anchors share one physical source line; this is the three-occurrence line-count discrepancy. |
+| URL-004 | `single-post.php` | 4 | 4 | One archive fallback plus three rendered CTA/home destinations. |
+| URL-005 | `page-luxury-property.php` | 4 | 4 | Four independent URL assignments/rendered destinations. |
+| URL-006 | `page-zh-citizenship.php` | 4 | 4 | Four Chinese-context links; the two intentional English links are excluded. |
+| URL-007 | `inc/ajax-property-archive.php` | 1 | 1 | One computed AJAX pagination base; it can render many page numbers but is counted once syntactically. |
+| URL-008 | `inc/property-pagination.php` | 1 | 1 | One path-to-absolute pagination fallback; counted once syntactically. |
+| URL-009 | `page-citizenship.php` | 2 | 2 | Two distinct in-copy links. |
+| URL-010 | `page-book-a-consultancy.php` | 1 | 1 | One privacy-policy link. |
+| URL-011 | `page-property-map.php` | 1 | 1 | One consultancy CTA. |
+| URL-012 | `parts/contact-cta.php` | 1 | 1 | One shared-part CTA; inclusion at multiple pages is not double-counted. |
+| URL-013 | `partials/citizenship-latest-offers.php` | 1 | 1 | One URL array value, counted once even if reused while rendering. |
+| URL-014 | `partials/portfolio-citizenship-cta.php` | 1 | 1 | One guide URL assignment. |
+| URL-015 | `single-bodrum-property.php` | 1 | 1 | One primary CTA URL assignment. |
+| URL-016 | `attachment.php` | 1 | 1 | One Home link. |
+| URL-017 | `archive.php` | 1 | 1 | One empty-state Home link. |
+| **Total** |  | **47** | **47** | Verified against the production patch. |
 
 ## P1 High — confirmed unsafe and fixed
 
@@ -85,20 +110,72 @@ Each row is a confirmed occurrence group; the count identifies every call in tha
 | REVIEW-002 | Repeater/link-type ACF values consumed by generic CTA components | WordPress ACF link fields may hold an editor-entered absolute internal URL. Most explicit WYSIWYG homepage fields are covered, but production field values cannot be proven from source. | Inventory live field values; if defects exist, apply the existing render-time helper only at the uncovered renderer. | No. |
 | REVIEW-003 | User-authored menu/custom-link records | Dynamic menu custom links are database values and absent from this repository. Router filters appear authoritative for generated items, but custom absolute links require production-data validation. | Audit translated menus in production; do not hard-code or mutate menu records in this PR. | No. |
 
+## Production-data verification procedures
+
+The repository includes `tools/audit/multilingual-production-data-audit.php`, a read-only WP-CLI report covering REVIEW-001 through REVIEW-003. It calls only WordPress read APIs (`WP_Query`, raw ACF reads, and menu reads), performs no update/delete operation, generates no translations, and requires no cache flush. From the production WordPress root, run:
+
+```bash
+cd /home/peraukco/public_html
+wp eval-file tools/audit/multilingual-production-data-audit.php | tee /tmp/pera-ml-production-url-audit.tsv
+```
+
+`tee` writes only the report file under `/tmp`; it does not modify WordPress or its database. Remove `| tee ...` if no report file is desired. Review findings rather than feeding this output into an update command.
+
+### REVIEW-001 — published `post_content` anchors
+
+The script queries all published public post types, extracts anchor `href` values directly from stored `post_content`, and reports same-site absolute (`peraproperty.com`/`www.peraproperty.com`) or root-relative visitor URLs. It excludes fragments, `mailto:`, `tel:`, external domains, protocol-relative external URLs, `wp-admin`, `wp-json`, uploads, and common media/document extensions. It does **not** render shortcodes or change content.
+
+Expected tab-separated output shape:
+
+```text
+SECTION  POST_ID  POST_TYPE  TITLE_OR_FIELD  URL
+CONTENT  12345    page       About us       /contact-us/
+CONTENT  23456    post       Buyer guide    https://www.peraproperty.com/property/
+```
+
+A clean result has no `CONTENT` rows. Any `CONTENT` row means the stored link needs manual context review: confirm whether the actual frontend renderer localizes it. If not, remediation is needed at render time using the existing router/helper; this audit command must not be changed into a database rewrite.
+
+### REVIEW-002 — ACF URL/link/repeater values
+
+When ACF is active, the same command calls `get_field_objects( $post_id, false, false )` for published public objects and recursively inspects raw values. Array paths retain repeater row indexes and link-array keys, so URL fields, Link fields, groups, flexible content, and nested repeater values can be traced.
+
+Expected output shape:
+
+```text
+ACF  34567  page  hero_ctas[0].link.url  /book-a-consultancy/
+ACF  45678  property  sidebar_cta.url    https://www.peraproperty.com/contact-us/
+```
+
+A clean result has no `ACF` rows and no `NOTICE` row. An `ACF` row means manual renderer inspection is required; it is not automatically a defect because that renderer may already call `pera_localize_visitor_links()` or `pera_ml_url()`. `NOTICE ACF is not active` means the check was incomplete and must be rerun in the production context where ACF is loaded. Limitation: generic ACF discovery can only see fields registered in the active production field configuration and attached to published public posts; orphaned meta, options-page fields, draft content, and unregistered historical field keys are intentionally not inferred from arbitrary `postmeta`. If production uses visitor-facing ACF options, audit those known option field names separately with a reviewed read-only script rather than scanning and guessing at all metadata.
+
+### REVIEW-003 — custom nav-menu links
+
+The menu portion reads every menu and reports only items whose WordPress menu-item type is exactly `custom` and whose stored URL is same-site absolute or root-relative. Object-backed post, taxonomy, archive, and other generated menu items are not reported.
+
+Expected output shape:
+
+```text
+SECTION  MENU          ITEM_ID  LABEL         URL
+MENU     Primary menu  9876     Properties    /property/
+MENU     Footer        9877     Contact us    https://www.peraproperty.com/contact-us/
+```
+
+A clean result has no `MENU` rows. A `MENU` row means that custom link needs manual language-context review and remediation is needed if it bypasses the router on translated pages. Prefer existing render-time menu/router handling; do not edit menu records as part of this audit.
+
 ## ACF/editor HTML conclusion
 
 The audited homepage WYSIWYG fields already call `pera_localize_visitor_links()` at output, and that helper delegates URL classification to `pera_ml_url()`. It preserves external/technical destinations according to the router and avoids storage mutation. No second pass was added. Generic database-authored content is documented above because repository-only evidence cannot establish its live values.
 
 ## Regression coverage
 
-`tests/multilingual-url-routing-audit-test.php` protects all 17 changed render files from reintroducing a direct `home_url()`/`site_url()` visitor destination, explicitly allowlisting only the two English-language links. It also requires the 44 routed constructions to remain present. The router suite provides behavior coverage for `/de/`, `/ar/`, `/zh/`, query strings, fragments, already-prefixed URLs, external and technical URLs, and prefix idempotency.
+`tests/multilingual-url-routing-audit-test.php` protects all 17 changed render files from reintroducing a direct `home_url()`/`site_url()` visitor destination, explicitly allowlisting only the two English-language links. It also requires at least 47 routed constructions to remain present. The router suite provides behavior coverage for `/de/`, `/ar/`, `/zh/`, query strings, fragments, already-prefixed URLs, external and technical URLs, and prefix idempotency.
 
 ## PR accounting
 
 - Files recursively inventoried: **771**.
 - Source/render files scanned: **591**.
-- Candidate URL occurrences reviewed: **844**.
-- Confirmed unsafe occurrences: **44**, all fixed.
+- Candidate URL occurrences reviewed: **847** (from 844 unique candidate source lines).
+- Confirmed unsafe occurrences: **47**, all fixed.
 - Safe occurrences: **688**.
 - Intentional exclusions: **109**.
 - Uncertain/manual-review items: **3**.

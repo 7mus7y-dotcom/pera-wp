@@ -45,8 +45,8 @@ foreach ( $files as $relative ) {
 	}
 }
 
-if ( $routed_calls < 44 ) {
-	$failures[] = sprintf( 'Expected at least 44 audited routed calls; found %d', $routed_calls );
+if ( $routed_calls < 47 ) {
+	$failures[] = sprintf( 'Expected at least 47 audited routed calls; found %d', $routed_calls );
 }
 
 if ( $failures ) {
