@@ -20,7 +20,6 @@ final class Pera_ML_Router {
 		add_filter( 'term_link', array( $this, 'localize_url' ), 20 );
 		add_filter( 'author_link', array( $this, 'localize_url' ), 20 );
 		add_filter( 'get_pagenum_link', array( $this, 'localize_url' ), 20 );
-		add_filter( 'nav_menu_link_attributes', array( $this, 'localize_footer_menu_link' ), 20, 4 );
 	}
 
 	public function detect_and_strip_prefix() {
@@ -124,12 +123,6 @@ final class Pera_ML_Router {
 	}
 
 	public function localize_url( $url ) { return $this->is_translated() ? $this->url_for_language( $url, $this->language ) : $url; }
-	public function localize_footer_menu_link( $atts, $item, $args, $depth ) {
-		$location = is_object( $args ) && isset( $args->theme_location ) ? $args->theme_location : '';
-		if ( $this->is_translated() && in_array( $location, array( 'footer_menu', 'guidance' ), true ) && isset( $atts['href'] ) ) $atts['href'] = $this->url_for_language( $atts['href'], $this->language );
-		return $atts;
-	}
-
 	private function is_eligible_request() {
 		if ( is_admin() || ( defined( 'DOING_AJAX' ) && DOING_AJAX ) || ( defined( 'DOING_CRON' ) && DOING_CRON ) || ( defined( 'XMLRPC_REQUEST' ) && XMLRPC_REQUEST ) || ( defined( 'REST_REQUEST' ) && REST_REQUEST ) ) return false;
 		if ( isset( $_GET['rest_route'] ) ) return false;

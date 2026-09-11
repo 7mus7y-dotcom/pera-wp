@@ -15,7 +15,11 @@ final class Menu_Router {
 	public $language = 'zh';
 	public function current_language() { return $this->language; }
 	public function is_translated() { return 'en' !== $this->language; }
-	public function url_for_language( $url, $language ) { return 0 === strpos( $url, 'https://pera.test/' ) ? 'https://pera.test/' . $language . '/' . substr( $url, 18 ) : $url; }
+	public function url_for_language( $url, $language ) {
+		if ( 0 === strpos( $url, 'https://pera.test/' ) ) return 'https://pera.test/' . $language . '/' . substr( $url, 18 );
+		if ( 0 === strpos( $url, '/' ) ) return '/' . $language . $url;
+		return $url;
+	}
 }
 final class Menu_Content { public function title( $source, $id ) { return 'zh' === $GLOBALS['menu_router']->language ? '页面标题' : strtoupper( $GLOBALS['menu_router']->language ) . ' page'; } }
 final class Menu_Fields { public function term() { return 'zh' === $GLOBALS['menu_router']->language ? '行政区' : strtoupper( $GLOBALS['menu_router']->language ) . ' term'; } }
@@ -39,6 +43,11 @@ $items = array(
 	(object) array( 'ID' => 61, 'type' => 'custom', 'object_id' => 61, 'title' => 'Custom label', 'url' => 'https://external.test/path' ),
 	(object) array( 'ID' => 63, 'type' => 'custom', 'title' => 'Missing label', 'url' => '#section' ),
 	(object) array( 'ID' => 64, 'type' => 'custom', 'title' => 'Blank label', 'url' => 'mailto:test@example.com' ),
+	(object) array( 'ID' => 65, 'type' => 'custom', 'title' => 'Search', 'url' => '/property/' ),
+	(object) array( 'ID' => 66, 'type' => 'custom', 'title' => 'Blog', 'url' => '/blog' ),
+	(object) array( 'ID' => 67, 'type' => 'custom', 'title' => 'Services', 'url' => '/about-us/#our_services' ),
+	(object) array( 'ID' => 68, 'type' => 'custom', 'title' => 'Placeholder', 'url' => '/#' ),
+	(object) array( 'ID' => 69, 'type' => 'custom', 'title' => 'Absolute search', 'url' => 'https://pera.test/property/' ),
 );
 
 foreach ( array( 'zh', 'ar', 'de' ) as $language ) {
@@ -47,12 +56,17 @@ foreach ( array( 'zh', 'ar', 'de' ) as $language ) {
 		$out = $menu->translate_items( $items, (object) array( 'theme_location' => $location ) );
 		menu_expect( 'zh' === $language ? '页面标题' : strtoupper( $language ) . ' page', $out[0]->title, "{$language} {$location} page title" );
 		menu_expect( 'zh' === $language ? '行政区' : strtoupper( $language ) . ' term', $out[1]->title, "{$language} {$location} term title" );
-		menu_expect( 'https://pera.test/' . $language . '/category/guides/', $out[1]->url, "{$language} {$location} category URL localized" );
+		menu_expect( 'https://pera.test/category/guides/', $out[1]->url, "{$language} {$location} object-backed category URL untouched" );
 		menu_expect( 'zh' === $language ? '自定义标签' : strtoupper( $language ) . ' custom', $out[2]->title, "{$language} {$location} custom title" );
 		menu_expect( 'Missing label', $out[3]->title, 'missing/stale/non-current custom translation fallback' );
 		menu_expect( 'Blank label', $out[4]->title, 'blank custom translation fallback' );
-		menu_expect( 'https://pera.test/' . $language . '/about/', $out[0]->url, 'internal URL localized' );
+		menu_expect( 'https://pera.test/about/', $out[0]->url, 'object-backed permalink item untouched' );
 		menu_expect( 'https://external.test/path', $out[2]->url, 'external URL unchanged' );
+		menu_expect( '/' . $language . '/property/', $out[5]->url, 'root-relative custom URL localized' );
+		menu_expect( '/' . $language . '/blog', $out[6]->url, 'custom blog URL localized' );
+		menu_expect( '/' . $language . '/about-us/#our_services', $out[7]->url, 'custom URL fragment preserved' );
+		menu_expect( '/#', $out[8]->url, 'intentional placeholder unchanged' );
+		menu_expect( 'https://pera.test/' . $language . '/property/', $out[9]->url, 'absolute same-site custom URL localized' );
 		menu_expect( $items[0]->classes, $out[0]->classes, 'classes/current state unchanged' );
 		menu_expect( 60, $out[0]->ID, 'menu item ID unchanged' );
 		menu_expect( 'Edited menu label', $items[0]->title, 'canonical object not mutated' );

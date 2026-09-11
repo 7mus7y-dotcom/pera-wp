@@ -136,12 +136,6 @@ $router = new Pera_ML_Router( $registry ); $_SERVER['REQUEST_URI'] = '/de/an-inv
 $wp = (object) array( 'query_vars' => array( 'name' => 'an-investment-guide' ) ); $router->restore_public_uri( $wp );
 pera_ml_expect( 'an-investment-guide', $wp->query_vars['name'], 'German normal post resolves the canonical WordPress object' );
 pera_ml_expect( 'de', $wp->query_vars['pera_ml_lang'], 'German normal post language marker' );
-$footer_args = (object) array( 'theme_location' => 'footer_menu' );
-$footer_atts = $router->localize_footer_menu_link( array( 'href' => 'https://www.peraproperty.com/about-us/' ), null, $footer_args, 0 );
-pera_ml_expect( 'https://www.peraproperty.com/de/about-us/', $footer_atts['href'], 'footer menu link retains active language' );
-$social_atts = $router->localize_footer_menu_link( array( 'href' => 'https://instagram.com/peraproperty' ), null, $footer_args, 0 );
-pera_ml_expect( 'https://instagram.com/peraproperty', $social_atts['href'], 'external footer menu URL untouched' );
-
 $GLOBALS['pera_ml_home'] = 'https://www.peraproperty.com/';
 foreach ( array( '/zh/wp-admin/', '/zh/wp-admin/admin-ajax.php', '/zh/wp-json/wp/v2/posts', '/zh/wp-cron.php', '/zh/xmlrpc.php', '/zh/wp-content/app.css', '/zh/wp-includes/app.js', '/zh/robots.txt' ) as $endpoint ) {
 	$router = new Pera_ML_Router( $registry ); $_SERVER['REQUEST_URI'] = $endpoint; unset( $_GET['rest_route'] );

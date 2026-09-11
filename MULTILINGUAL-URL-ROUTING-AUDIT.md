@@ -108,13 +108,13 @@ Each row is a confirmed occurrence group; the count identifies every call in tha
 | EX-004 | `page-zh-citizenship.php` “View this page in English” destinations | Explicit cross-language English navigation is intentionally unprefixed. |
 | EX-005 | `wa.me`, `tel:`, `mailto:`, map/social hosts and third-party integration/webhook URLs | External destinations remain untouched. |
 
-## Uncertain / manual review (3)
+## Closed production-data reviews (3)
 
 | ID | File / source | Concern | Recommendation | Production change |
 |---|---|---|---|---|
-| REVIEW-001 | Generic post/page `the_content` output | Stored block/editor HTML can contain legacy same-site absolute anchors; core/router filters do not necessarily rewrite arbitrary anchor markup. | Sample production translated content for legacy anchors before adding any broad content filter. Avoid stored-value mutation. | No. |
-| REVIEW-002 | Repeater/link-type ACF values consumed by generic CTA components | WordPress ACF link fields may hold an editor-entered absolute internal URL. Most explicit WYSIWYG homepage fields are covered, but production field values cannot be proven from source. | Inventory live field values; if defects exist, apply the existing render-time helper only at the uncovered renderer. | No. |
-| REVIEW-003 | User-authored menu/custom-link records | Dynamic menu custom links are database values and absent from this repository. Router filters appear authoritative for generated items, but custom absolute links require production-data validation. | Audit translated menus in production; do not hard-code or mutate menu records in this PR. | No. |
+| REVIEW-001 | Generic post/page `the_content` output | The production report confirmed historical same-site anchors in published editor content. | Closed: the existing Pera multilingual `the_content` translation path now passes only canonical post/page output in the main loop/query through `pera_localize_visitor_links()` after translation selection. Admin, feeds, REST, non-canonical `the_content` uses, ACF fragments, and SEO/schema calls remain outside that path. | Yes, render time only. |
+| REVIEW-002 | Service `button_link` ACF values | The production report confirmed six canonical absolute URLs on `service` records. | Closed: the field-name-specific formatted-value renderer localizes `button_link` only for frontend `service` reads through `pera_ml_url()`. Raw reads (`format_value = false`), storage, admin, and REST remain canonical. | Yes, render time only. |
+| REVIEW-003 | User-authored menu/custom-link records | The production report confirmed genuine same-site custom links as well as intentional `/#` parent placeholders. | Closed: the existing multilingual menu object-copy path localizes URLs only when `type` is `custom`; `/#`, external URLs, and object-backed WordPress permalink items remain untouched. The redundant footer attribute pass was removed so this is the single menu path. | Yes, render time only. |
 
 ## Production-data verification procedures
 
@@ -170,7 +170,7 @@ A clean result has no `MENU` rows. A `MENU` row means that custom link needs man
 
 ## ACF/editor HTML conclusion
 
-The audited homepage WYSIWYG fields already call `pera_localize_visitor_links()` at output, and that helper delegates URL classification to `pera_ml_url()`. It preserves external/technical destinations according to the router and avoids storage mutation. No second pass was added. Generic database-authored content is documented above because repository-only evidence cannot establish its live values.
+The audited homepage WYSIWYG fields continue to call `pera_localize_visitor_links()` at output, and the confirmed generic post/page gap is handled inside the multilingual plugin's canonical `the_content` translation path. The helper delegates URL classification to `pera_ml_url()`, preserving external/technical destinations and avoiding storage mutation. Confirmed service button URLs use the narrow ACF formatted-value hook documented in REVIEW-002; the production audit TSV files remain unchanged as evidence of the canonical stored values.
 
 ## Regression coverage
 

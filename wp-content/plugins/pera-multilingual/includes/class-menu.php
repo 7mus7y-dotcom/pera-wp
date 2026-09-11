@@ -38,7 +38,11 @@ final class Pera_ML_Menu {
 			}
 			$copy = clone $item;
 			$copy->title = $this->translated_title( $copy );
-			if ( isset( $copy->url ) ) $copy->url = $this->router->url_for_language( $copy->url, $this->router->current_language() );
+			// Object-backed destinations already pass through WordPress permalink
+			// filters. Only stored custom destinations need menu-level routing.
+			if ( 'custom' === ( isset( $copy->type ) ? $copy->type : '' ) && isset( $copy->url ) && '/#' !== $copy->url ) {
+				$copy->url = $this->router->url_for_language( $copy->url, $this->router->current_language() );
+			}
 			$translated[] = $copy;
 		}
 		return $translated;
