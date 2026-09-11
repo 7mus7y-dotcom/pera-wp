@@ -1631,6 +1631,10 @@ button.pill:focus-visible {
   text-align: center;
   white-space: nowrap;
 }
+.header-language-switcher--desktop .header-language-switcher__list a {
+  font-size: var(--fs-ui-sm);
+  padding: var(--space-sm);
+}
 .pera-currency-selector__list button:hover,
 .pera-currency-selector__list button:focus-visible { background: rgba(255, 255, 255, 0.14); }
 .pera-currency-selector__list button.is-active { font-weight: 700; text-decoration: underline; text-underline-offset: 3px; }
