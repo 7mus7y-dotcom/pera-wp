@@ -59,7 +59,7 @@ get_header();
 ?>
 
 <main id="primary" class="site-main">
-	<section class="hero hero--left">
+	<section class="hero hero--left hero--compact">
 		<div class="hero__media" aria-hidden="true">
 			<?php
 			$hero_image_id = get_post_thumbnail_id() ?: 55756;
@@ -77,12 +77,12 @@ get_header();
 			<div class="hero-overlay" aria-hidden="true"></div>
 		</div>
 		<div class="hero-content">
-			<p><?php echo esc_html( pera_ml_ui( 'For Istanbul developers', 'theme.template.page_developer_sales_office.eyebrow' ) ); ?></p>
-			<h1><?php echo esc_html( pera_ml_ui( 'Your project deserves a sales operation — not just a marketing campaign.', 'theme.template.page_developer_sales_office.heading' ) ); ?></h1>
-			<p class="lead"><?php echo esc_html( pera_ml_ui( 'Pera plans and operates the commercial function behind a development: positioning, buyer acquisition, sales conversion, broker management and clear reporting from launch to closing.', 'theme.template.page_developer_sales_office.intro' ) ); ?></p>
+			<p>For Istanbul developers</p>
+			<h1>Your project deserves a sales operation — not just a marketing campaign.</h1>
+			<p class="lead">Pera plans and operates the commercial function behind a development: positioning, buyer acquisition, sales conversion, broker management and clear reporting from launch to closing.</p>
 			<div class="hero-actions">
-				<a class="btn btn--solid btn--green" href="#contact"><?php echo esc_html( pera_ml_ui( 'Discuss your project', 'theme.template.page_developer_sales_office.discuss_project' ) ); ?></a>
-				<a class="btn btn--solid btn--blue" href="#solution"><?php echo esc_html( pera_ml_ui( 'Explore the solution', 'theme.template.page_developer_sales_office.explore_solution' ) ); ?></a>
+				<a class="btn btn--solid btn--green" href="#contact">Discuss your project</a>
+				<a class="btn btn--solid btn--blue" href="#solution">Explore the solution</a>
 			</div>
 		</div>
 	</section>
