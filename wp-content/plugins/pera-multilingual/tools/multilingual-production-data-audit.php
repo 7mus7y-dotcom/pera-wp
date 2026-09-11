@@ -3,7 +3,7 @@
  * Read-only production-data audit for visitor-facing internal URLs.
  *
  * Run from the WordPress root:
- *   wp eval-file tools/audit/multilingual-production-data-audit.php
+ *   wp eval-file wp-content/plugins/pera-multilingual/tools/multilingual-production-data-audit.php
  */
 
 if ( ! defined( 'ABSPATH' ) ) {
@@ -88,7 +88,7 @@ function pera_ml_audit_acf_value( $post, $path, $value ) {
 if ( function_exists( 'get_field_objects' ) ) {
 	foreach ( $query->posts as $post_id ) {
 		$post   = get_post( $post_id );
-		$fields = get_field_objects( $post_id, false, false );
+		$fields = get_field_objects( $post_id, false, true );
 		foreach ( is_array( $fields ) ? $fields : array() as $name => $field ) {
 			pera_ml_audit_acf_value( $post, (string) $name, isset( $field['value'] ) ? $field['value'] : null );
 		}

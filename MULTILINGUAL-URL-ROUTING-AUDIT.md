@@ -112,11 +112,11 @@ Each row is a confirmed occurrence group; the count identifies every call in tha
 
 ## Production-data verification procedures
 
-The repository includes `tools/audit/multilingual-production-data-audit.php`, a read-only WP-CLI report covering REVIEW-001 through REVIEW-003. It calls only WordPress read APIs (`WP_Query`, raw ACF reads, and menu reads), performs no update/delete operation, generates no translations, and requires no cache flush. From the production WordPress root, run:
+The repository includes `wp-content/plugins/pera-multilingual/tools/multilingual-production-data-audit.php`, a read-only WP-CLI report covering REVIEW-001 through REVIEW-003. It calls only WordPress read APIs (`WP_Query`, raw ACF reads, and menu reads), performs no update/delete operation, generates no translations, and requires no cache flush. From the production WordPress root, run:
 
 ```bash
 cd /home/peraukco/public_html
-wp eval-file tools/audit/multilingual-production-data-audit.php | tee /tmp/pera-ml-production-url-audit.tsv
+wp eval-file wp-content/plugins/pera-multilingual/tools/multilingual-production-data-audit.php | tee /tmp/pera-ml-production-url-audit.tsv
 ```
 
 `tee` writes only the report file under `/tmp`; it does not modify WordPress or its database. Remove `| tee ...` if no report file is desired. Review findings rather than feeding this output into an update command.
@@ -137,7 +137,7 @@ A clean result has no `CONTENT` rows. Any `CONTENT` row means the stored link ne
 
 ### REVIEW-002 — ACF URL/link/repeater values
 
-When ACF is active, the same command calls `get_field_objects( $post_id, false, false )` for published public objects and recursively inspects raw values. Array paths retain repeater row indexes and link-array keys, so URL fields, Link fields, groups, flexible content, and nested repeater values can be traced.
+When ACF is active, the same command calls `get_field_objects( $post_id, false, true )` (`format_value = false`, `load_value = true`) for published public objects and recursively inspects raw values. Array paths retain repeater row indexes and link-array keys, so URL fields, Link fields, groups, flexible content, and nested repeater values can be traced.
 
 Expected output shape:
 
