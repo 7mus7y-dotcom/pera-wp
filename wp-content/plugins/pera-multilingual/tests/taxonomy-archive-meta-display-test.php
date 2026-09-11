@@ -81,6 +81,12 @@ foreach ( $expected_contract as $taxonomy => $contract ) {
 	expect_taxonomy_archive_meta( $contract, Pera_ML_Fields::taxonomy_fields( $taxonomy ), "{$taxonomy} taxonomy contract contains only approved visible archive fields" );
 }
 expect_taxonomy_archive_meta( false, in_array( 'meta:regional_guide', Pera_ML_Fields::taxonomy_fields( 'district' ), true ), 'structural relationship metadata is excluded' );
+$category_contract = Pera_ML_Fields::taxonomy_fields( 'category' );
+foreach ( array( 'meta:seo_title', 'meta:seo_meta_description', 'meta:archive_h1', 'meta:archive_subtitle', 'meta:archive_intro_content', 'meta:archive_bottom_content', 'meta:featured_links_heading', 'meta:featured_links_intro', 'meta:archive_cta_heading', 'meta:archive_cta_text', 'meta:archive_whatsapp_message', 'meta:seo_faq_v2' ) as $field_name ) {
+	expect_taxonomy_archive_meta( true, in_array( $field_name, $category_contract, true ), "category contract includes {$field_name}" );
+}
+expect_taxonomy_archive_meta( false, in_array( 'meta:seo_social_image', $category_contract, true ), 'category social image remains media, not translated text' );
+expect_taxonomy_archive_meta( false, in_array( 'meta:featured_guide_links', $category_contract, true ), 'category guide relationships continue to reference canonical posts' );
 expect_taxonomy_archive_meta( false, in_array( 'meta:district_image', Pera_ML_Fields::taxonomy_fields( 'district' ), true ), 'media metadata is excluded' );
 
 // Template wiring is kept deliberately narrow; helper behaviour above is tested independently.
@@ -91,6 +97,13 @@ foreach ( array_merge( ...array_values( $approved ) ) as $field_name ) {
 expect_taxonomy_archive_meta( true, false !== strpos( $template, "pera_ml_term( \$qo, 'description' )" ), 'native term descriptions use the term translation contract' );
 expect_taxonomy_archive_meta( true, false !== strpos( $template, "pera_ml_term_meta( \$qo, 'meta:archive_h1_title'" ), 'property-tag manual H1 uses the term-meta contract' );
 expect_taxonomy_archive_meta( true, false !== strpos( $template, "pera_ml_term_meta( \$qo, 'meta:term_excerpt'" ), 'the selected canonical excerpt uses the term-meta contract' );
+
+$category_template = file_get_contents( dirname( dirname( dirname( __DIR__ ) ) ) . '/themes/hello-elementor-child/archive.php' );
+foreach ( array( 'archive_h1', 'archive_subtitle', 'archive_intro_content', 'archive_bottom_content', 'featured_links_heading', 'featured_links_intro', 'archive_cta_heading', 'archive_cta_text', 'archive_whatsapp_message', 'seo_faq_v2' ) as $field_name ) {
+	expect_taxonomy_archive_meta( true, false !== strpos( $category_template, "pera_get_term_acf_field( '{$field_name}', \$term )" ), "category archive reads {$field_name} through the translated term ACF helper" );
+}
+expect_taxonomy_archive_meta( true, false !== strpos( $category_template, 'pera_parse_faq_pipe_text( $category_faq_raw )' ), 'category FAQ keeps the pipe-delimited structured parser' );
+expect_taxonomy_archive_meta( true, false !== strpos( $category_template, 'pera_render_faq_schema( $archive_faq_items' ), 'category translated FAQ feeds schema output' );
 
 $helpers = file_get_contents( dirname( dirname( dirname( __DIR__ ) ) ) . '/themes/hello-elementor-child/inc/seo-helpers.php' );
 expect_taxonomy_archive_meta( true, false !== strpos( $helpers, "'theme.archive.taxonomy.cta_heading'" ), 'contextual CTA uses a stable complete-phrase UI identity' );
