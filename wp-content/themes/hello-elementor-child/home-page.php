@@ -586,6 +586,31 @@ get_template_part( 'parts/home-editorial-posts' );
   </div>
 </section>
 
+<!-- DEVELOPER SALES OFFICE -->
+<section class="section section-soft" id="developer-sales-office">
+  <div class="container">
+    <div class="content-panel-box">
+      <div class="grid-2">
+        <div>
+          <span class="pill pill--brand pill--sm"><?php echo esc_html( pera_ml_ui( 'For developers', 'theme.template.home_page.developer_sales_office.eyebrow' ) ); ?></span>
+          <h2><?php echo esc_html( pera_ml_ui( 'Developing in Istanbul?', 'theme.template.home_page.developer_sales_office.heading' ) ); ?></h2>
+          <p class="lead"><?php echo esc_html( pera_ml_ui( 'Pera can build and operate the commercial function behind your project — from positioning and buyer acquisition to qualification, broker coordination, reservations and reporting.', 'theme.template.home_page.developer_sales_office.intro' ) ); ?></p>
+        </div>
+        <div>
+          <ul class="checklist checklist--circle">
+            <li><?php echo esc_html( pera_ml_ui( 'Marketing, launch and demand-generation strategy', 'theme.template.home_page.developer_sales_office.marketing_strategy' ) ); ?></li>
+            <li><?php echo esc_html( pera_ml_ui( 'Digital sales office, CRM and buyer qualification', 'theme.template.home_page.developer_sales_office.digital_sales_office' ) ); ?></li>
+            <li><?php echo esc_html( pera_ml_ui( 'Broker coordination, reservations and commercial reporting', 'theme.template.home_page.developer_sales_office.broker_reporting' ) ); ?></li>
+          </ul>
+          <div class="hero-actions">
+            <a class="btn btn--solid btn--blue" href="<?php echo esc_url( pera_ml_url( home_url( '/developer-sales-office/' ) ) ); ?>"><?php echo esc_html( pera_ml_ui( 'Explore developer sales solutions', 'theme.template.home_page.developer_sales_office.cta' ) ); ?></a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
 <!-- ABOUT + HOW WE WORK -->
 <section class="section">
   <div class="container">
