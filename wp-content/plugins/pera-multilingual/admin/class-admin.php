@@ -27,6 +27,8 @@ final class Pera_ML_Admin {
 	public function term_translation_panel( $term ) {
 		$taxonomy = isset( $term->taxonomy ) ? $term->taxonomy : '';
 		if ( ! in_array( $taxonomy, Pera_ML_Fields::supported_taxonomies(), true ) ) return;
+		$term = get_term( absint( $term->term_id ), $taxonomy, OBJECT, 'raw' );
+		if ( is_wp_error( $term ) || ! $term instanceof WP_Term || $taxonomy !== $term->taxonomy ) return;
 		$health = $this->term_health();
 		echo '<tr class="form-field"><th scope="row">' . esc_html__( 'Pera Multilingual', 'pera-multilingual' ) . '</th><td>';
 		foreach ( $this->target_languages() as $code => $language ) {

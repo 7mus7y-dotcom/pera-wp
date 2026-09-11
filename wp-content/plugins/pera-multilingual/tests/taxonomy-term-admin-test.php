@@ -1,6 +1,7 @@
 <?php
 /** Focused individual taxonomy-term translation admin regression tests. */
 define( 'ABSPATH', __DIR__ );
+define( 'OBJECT', 'OBJECT' );
 $GLOBALS['actions'] = array(); $GLOBALS['logged_in'] = true; $GLOBALS['can_edit'] = true; $GLOBALS['nonce_valid'] = true; $GLOBALS['filtered_taxonomy'] = false; $GLOBALS['capability_calls'] = array();
 define( 'PERA_ML_DIR', dirname( __DIR__ ) . '/' ); define( 'PERA_ML_URL', 'https://example.test/plugins/pera-multilingual/' ); define( 'PERA_ML_VERSION', '0.2.0' );
 function add_action( $hook, $callback, $priority = 10 ) { $GLOBALS['actions'][] = array( $hook, $callback, $priority ); }
@@ -14,13 +15,17 @@ function is_user_logged_in() { return $GLOBALS['logged_in']; }
 function current_user_can( $capability, $term_id = null ) { $GLOBALS['capability_calls'][] = array( $capability, $term_id ); return $GLOBALS['can_edit']; }
 function check_ajax_referer() { return $GLOBALS['nonce_valid']; }
 function is_wp_error( $value ) { return $value instanceof WP_Error; }
-function get_term( $id, $taxonomy = '' ) { return isset( $GLOBALS['terms'][ $id ] ) ? $GLOBALS['terms'][ $id ] : null; }
+function get_term( $id, $taxonomy = '', $output = OBJECT, $filter = 'raw' ) { $GLOBALS['get_term_calls'][] = array( $id, $taxonomy, $output, $filter ); return isset( $GLOBALS['terms'][ $id ] ) ? $GLOBALS['terms'][ $id ] : null; }
 function get_post( $id ) { return null; }
 function get_term_meta( $id, $field ) { return isset( $GLOBALS['term_meta'][ $id ][ $field ] ) ? $GLOBALS['term_meta'][ $id ][ $field ] : ''; }
 function apply_filters( $tag, $value ) { if ( 'pera_ml_translatable_taxonomies' === $tag && $GLOBALS['filtered_taxonomy'] ) $value[] = 'later_taxonomy'; return $value; }
 function wp_enqueue_script( $handle, $source, $dependencies, $version ) { $GLOBALS['enqueued_script'] = compact( 'handle', 'source', 'dependencies', 'version' ); }
 function wp_localize_script() {}
 function admin_url( $path ) { return 'https://example.test/wp-admin/' . $path; }
+function esc_html__( $value ) { return $value; }
+function esc_html( $value ) { return htmlspecialchars( $value, ENT_QUOTES, 'UTF-8' ); }
+function esc_attr( $value ) { return htmlspecialchars( $value, ENT_QUOTES, 'UTF-8' ); }
+function wp_create_nonce() { return 'nonce'; }
 class WP_Term { public $term_id; public $taxonomy; public $name; public $description; }
 class WP_Error { private $code; public function __construct( $code ) { $this->code = $code; } public function get_error_code() { return $this->code; } }
 function term_expect( $expected, $actual, $label ) { if ( $expected !== $actual ) { fwrite( STDERR, "FAIL {$label}\n" . var_export( $actual, true ) . "\n" ); exit( 1 ); } }
@@ -34,8 +39,8 @@ final class Term_Test_Registry {
 	public function enabled() { return array( 'en' => array( 'name' => 'English', 'source' => true ), 'zh' => array( 'name' => 'Chinese', 'source' => false ), 'de' => array( 'name' => 'German', 'source' => false ), 'fr' => array( 'name' => 'French', 'source' => false ) ); }
 }
 final class Term_Test_Storage {
-	public $rows = array();
-	public function get( $type, $id, $field, $language, $source ) { return isset( $this->rows[ $language ][ $field ] ) ? $this->rows[ $language ][ $field ] : null; }
+	public $rows = array(); public $canonical_sources = array();
+	public function get( $type, $id, $field, $language, $source ) { if ( ! isset( $this->rows[ $language ][ $field ] ) ) return null; $row = $this->rows[ $language ][ $field ]; if ( isset( $this->canonical_sources[ $field ] ) && $this->canonical_sources[ $field ] !== $source ) { $row['is_stale'] = true; $row['status'] = 'stale'; } return $row; }
 }
 final class Term_Test_Health {
 	public $sources; public $status;
@@ -45,6 +50,13 @@ final class Term_Test_Health {
 final class Term_Test_Orchestrator {
 	public $calls = array();
 	public function translate( array $row, $regenerate = false ) { $this->calls[] = array( $row, $regenerate ); return 'translated'; }
+}
+final class Pera_ML_Plugin {
+	public static $storage;
+	public static function instance() { return new self(); }
+	public function status() { return new stdClass(); }
+	public function storage() { return self::$storage; }
+	public function ui() { return new stdClass(); }
 }
 
 $admin = new Pera_ML_Admin( new Term_Test_Registry() ); $admin->hooks();
@@ -70,6 +82,18 @@ $status = $health->term_status( $term, 'category', 'zh' );
 term_expect( array( 'term_name' ), $status['stale'], 'stale canonical term fields are reported' ); term_expect( false, $status['complete'], 'stale translation is incomplete' );
 $storage->rows['zh']['term_name'] = array( 'translated_text' => '新闻', 'is_stale' => false, 'status' => 'current' );
 term_expect( true, $health->term_status( $term, 'category', 'zh' )['complete'], 'all-current translation is complete' );
+
+$raw_term = new WP_Term(); $raw_term->term_id = 102; $raw_term->taxonomy = 'category'; $raw_term->name = 'Research & Development'; $raw_term->description = 'The "buyer\'s" guide';
+$edit_term = clone $raw_term; $edit_term->name = 'Research &amp; Development'; $edit_term->description = 'The &quot;buyer&#039;s&quot; guide';
+$GLOBALS['terms'][102] = $raw_term; $raw_storage = new Term_Test_Storage(); $raw_storage->canonical_sources = array( 'term_name' => $raw_term->name, 'term_description' => $raw_term->description );
+$raw_storage->rows['zh'] = array( 'term_name' => array( 'translated_text'=>'研发','is_stale'=>false,'status'=>'current' ), 'term_description' => array( 'translated_text'=>'买家指南','is_stale'=>false,'status'=>'current' ) ); Pera_ML_Plugin::$storage = $raw_storage;
+ob_start(); $admin->term_translation_panel( $edit_term ); $panel = ob_get_clean();
+term_expect( true, false !== strpos( $panel, '✅ Complete' ), 'entity-escaped edit-context ampersands and quotes do not make current translations stale' );
+term_expect( array( 102, 'category', OBJECT, 'raw' ), end( $GLOBALS['get_term_calls'] ), 'term panel explicitly re-fetches canonical term data in raw context' );
+$raw_health = new Pera_ML_Translation_Health( new stdClass(), $raw_storage, new stdClass(), new Term_Test_Registry() );
+term_expect( $raw_health->term_status( $raw_term, 'category', 'zh' ), $admin->term_translation_queue( $raw_term, 'category', 'zh', 'complete', $raw_health )['status'], 'AJAX queue and edit-screen raw status use the same canonical sources' );
+$raw_term->name = 'Research & Product Development'; term_expect( array( 'term_name' ), $raw_health->term_status( $raw_term, 'category', 'zh' )['stale'], 'actual canonical source changes remain stale' );
+$GLOBALS['terms'][102] = $term;
 
 $fake_health = new Term_Test_Health(); $fake_health->sources = array( 'term_name' => 'News', 'term_description' => 'Updates' ); $fake_health->status = array( 'applicable' => 2, 'current' => 0, 'existing' => 1, 'missing' => array( 'term_description' ), 'stale' => array( 'term_name' ), 'complete' => false );
 term_expect( array( 'term_description', 'term_name' ), $admin->term_translation_queue( $term, 'category', 'zh', 'complete', $fake_health )['fields'], 'complete queues only missing and stale canonical fields' );
