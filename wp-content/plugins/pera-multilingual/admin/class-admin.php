@@ -4,7 +4,7 @@ defined( 'ABSPATH' ) || exit;
 final class Pera_ML_Admin {
 	private $registry; private $translation_forms = array();
 	public function __construct( $registry ) { $this->registry = $registry; }
-	public function hooks() { add_action( 'admin_menu', array( $this, 'menu' ) ); add_action( 'admin_init', array( $this, 'settings' ) ); add_action( 'add_meta_boxes', array( $this, 'meta_box' ) ); add_action( 'admin_enqueue_scripts', array( $this, 'enqueue_translation_queue' ) ); add_action( 'admin_footer-post.php', array( $this, 'translation_forms' ) ); add_action( 'admin_footer-post-new.php', array( $this, 'translation_forms' ) ); add_action( 'admin_post_pera_ml_translate_object', array( $this, 'translate_object' ) ); add_action( 'admin_post_pera_ml_translate_ui', array( $this, 'translate_ui' ) ); add_action( 'admin_post_pera_ml_complete_ui', array( $this, 'complete_ui' ) ); add_action( 'admin_post_pera_ml_scan_theme_ui', array( $this, 'scan_theme_ui' ) ); add_action( 'wp_ajax_pera_ml_health_translate', array( $this, 'ajax_health_translate' ) ); add_action( 'wp_ajax_pera_ml_translation_queue', array( $this, 'ajax_translation_queue' ) ); add_action( 'wp_ajax_pera_ml_translate_field', array( $this, 'ajax_translate_field' ) ); add_action( 'admin_notices', array( $this, 'translation_notice' ) ); add_filter( 'manage_post_posts_columns', array( $this, 'post_columns' ) ); add_action( 'manage_post_posts_custom_column', array( $this, 'post_column' ), 10, 2 ); add_action( 'the_posts', array( $this, 'preload_post_statuses' ), 10, 2 ); }
+	public function hooks() { add_action( 'admin_menu', array( $this, 'menu' ) ); add_action( 'admin_init', array( $this, 'settings' ) ); add_action( 'add_meta_boxes', array( $this, 'meta_box' ) ); add_action( 'admin_enqueue_scripts', array( $this, 'enqueue_translation_queue' ) ); add_action( 'admin_footer-post.php', array( $this, 'translation_forms' ) ); add_action( 'admin_footer-post-new.php', array( $this, 'translation_forms' ) ); add_action( 'admin_post_pera_ml_translate_object', array( $this, 'translate_object' ) ); add_action( 'admin_post_pera_ml_translate_ui', array( $this, 'translate_ui' ) ); add_action( 'admin_post_pera_ml_complete_ui', array( $this, 'complete_ui' ) ); add_action( 'admin_post_pera_ml_scan_theme_ui', array( $this, 'scan_theme_ui' ) ); add_action( 'wp_ajax_pera_ml_health_translate', array( $this, 'ajax_health_translate' ) ); add_action( 'wp_ajax_pera_ml_translation_queue', array( $this, 'ajax_translation_queue' ) ); add_action( 'wp_ajax_pera_ml_translate_field', array( $this, 'ajax_translate_field' ) ); add_action( 'wp_ajax_pera_ml_term_translation_queue', array( $this, 'ajax_term_translation_queue' ) ); add_action( 'wp_ajax_pera_ml_translate_term_field', array( $this, 'ajax_translate_term_field' ) ); add_action( 'admin_notices', array( $this, 'translation_notice' ) ); add_filter( 'manage_post_posts_columns', array( $this, 'post_columns' ) ); add_action( 'manage_post_posts_custom_column', array( $this, 'post_column' ), 10, 2 ); add_action( 'the_posts', array( $this, 'preload_post_statuses' ), 10, 2 ); foreach ( Pera_ML_Fields::supported_taxonomies() as $taxonomy ) add_action( $taxonomy . '_edit_form_fields', array( $this, 'term_translation_panel' ), 20, 2 ); }
 	public function translation_notice() {
 		if ( empty( $_GET['pera_ml_notice'] ) || empty( $_GET['post'] ) ) return;
 		$key = $this->notice_key( get_current_user_id(), absint( $_GET['post'] ), sanitize_key( wp_unslash( $_GET['pera_ml_notice'] ) ) );
@@ -22,7 +22,22 @@ final class Pera_ML_Admin {
 	}
 	public function meta_box() { foreach ( get_post_types( array( 'public' => true ) ) as $type ) add_meta_box( 'pera-ml-translate', __( 'Pera Multilingual', 'pera-multilingual' ), array( $this, 'meta_box_html' ), $type, 'side' ); }
 	public function meta_box_html( $post ) { $supported = in_array( $post->post_type, array( 'post', 'property', 'team' ), true ); foreach ( $this->registry->enabled() as $code => $language ) { if ( 'en' === $code ) continue; $form_id = 'pera-ml-translate-' . (int) $post->ID . '-' . sanitize_html_class( $code ); $this->translation_forms[ $form_id ] = array( 'post_id' => (int) $post->ID, 'language' => $code ); $status = $supported ? Pera_ML_Plugin::instance()->status()->get( $post->ID, $code, $post->post_type ) : null; $queue_attributes = $supported ? ' data-pera-ml-queue data-post-id="' . (int) $post->ID . '" data-language="' . esc_attr( $code ) . '" data-language-name="' . esc_attr( $language['name'] ) . '" data-nonce="' . esc_attr( wp_create_nonce( 'pera_ml_translate_' . $post->ID . '_' . $code ) ) . '"' : ''; echo '<div class="pera-ml-language-status"' . $queue_attributes . '><p><strong>' . esc_html( $language['name'] ) . '</strong><br><span class="pera-ml-queue-status">'; if ( $status ) { echo esc_html( $this->status_summary( $status ) ); $details = $this->status_details( $status ); if ( $details ) echo '<br><small>' . esc_html( $details ) . '</small>'; } echo '</span></p><div class="pera-ml-queue-fields" aria-live="polite"></div><p><button class="button' . ( $supported ? ' pera-ml-queue-button' : '' ) . '" type="submit" form="' . esc_attr( $form_id ) . '" data-mode="' . esc_attr( $status && $status['complete'] ? 'regenerate' : 'complete' ) . '">' . esc_html( $status && $status['complete'] ? sprintf( __( 'Regenerate %s', 'pera-multilingual' ), $language['name'] ) : sprintf( __( 'Translate / complete %s', 'pera-multilingual' ), $language['name'] ) ) . '</button></p></div>'; } }
-	public function enqueue_translation_queue( $hook ) { if ( ! in_array( $hook, array( 'post.php', 'post-new.php' ), true ) ) return; wp_enqueue_script( 'pera-ml-admin-queue', PERA_ML_URL . 'admin/translation-queue.js', array(), PERA_ML_VERSION, true ); wp_localize_script( 'pera-ml-admin-queue', 'peraMLQueue', array( 'ajaxUrl' => admin_url( 'admin-ajax.php' ) ) ); }
+	public function enqueue_translation_queue( $hook ) { if ( ! in_array( $hook, array( 'post.php', 'post-new.php', 'term.php' ), true ) ) return; wp_enqueue_script( 'pera-ml-admin-queue', PERA_ML_URL . 'admin/translation-queue.js', array(), PERA_ML_VERSION, true ); wp_localize_script( 'pera-ml-admin-queue', 'peraMLQueue', array( 'ajaxUrl' => admin_url( 'admin-ajax.php' ) ) ); }
+	public function term_translation_panel( $term, $taxonomy ) {
+		if ( ! $term instanceof WP_Term || ! in_array( $taxonomy, Pera_ML_Fields::supported_taxonomies(), true ) || $term->taxonomy !== $taxonomy ) return;
+		$taxonomy_object = get_taxonomy( $taxonomy );
+		if ( ! $taxonomy_object || ! current_user_can( $taxonomy_object->cap->edit_terms ) ) return;
+		$plugin = Pera_ML_Plugin::instance(); $health = new Pera_ML_Translation_Health( $plugin->status(), $plugin->storage(), $plugin->ui() );
+		echo '<tr class="form-field pera-ml-term-translation"><th scope="row"><h2>' . esc_html__( 'Pera Multilingual', 'pera-multilingual' ) . '</h2></th><td>';
+		foreach ( $this->target_languages() as $code => $language ) {
+			$status = $health->term_status( $term, $taxonomy, $code );
+			$attributes = ' data-pera-ml-queue data-object-type="term" data-term-id="' . (int) $term->term_id . '" data-taxonomy="' . esc_attr( $taxonomy ) . '" data-language="' . esc_attr( $code ) . '" data-language-name="' . esc_attr( $language['name'] ) . '" data-nonce="' . esc_attr( wp_create_nonce( 'pera_ml_translate_term_' . $term->term_id . '_' . $taxonomy . '_' . $code ) ) . '"';
+			echo '<div class="pera-ml-language-status"' . $attributes . '><p><strong>' . esc_html( $language['name'] ) . '</strong><br><span class="pera-ml-queue-status">' . esc_html( $this->status_summary( $status ) );
+			$details = $this->status_details( $status ); if ( $details ) echo '<br><small>' . esc_html( $details ) . '</small>';
+			echo '</span></p><div class="pera-ml-queue-fields" aria-live="polite"></div><p><button class="button pera-ml-queue-button" type="button" data-mode="' . esc_attr( $status['complete'] ? 'regenerate' : 'complete' ) . '">' . esc_html( $status['complete'] ? sprintf( __( 'Regenerate %s', 'pera-multilingual' ), $language['name'] ) : sprintf( __( 'Translate / complete %s', 'pera-multilingual' ), $language['name'] ) ) . '</button></p></div>';
+		}
+		echo '</td></tr>';
+	}
 	public function post_columns( $columns ) { foreach ( $this->target_languages() as $code => $language ) $columns[ 'pera_ml_' . $code ] = strtoupper( $code ); return $columns; }
 	public function preload_post_statuses( $posts, $query ) { if ( ! is_admin() || ! $query->is_main_query() || ! isset( $GLOBALS['pagenow'] ) || 'edit.php' !== $GLOBALS['pagenow'] ) return $posts; $ids = array(); foreach ( $posts as $post ) if ( 'post' === $post->post_type ) $ids[] = $post->ID; Pera_ML_Plugin::instance()->status()->preload( $ids, array_keys( $this->target_languages() ) ); return $posts; }
 	public function post_column( $column, $post_id ) { if ( 0 !== strpos( $column, 'pera_ml_' ) ) return; $code = substr( $column, 8 ); $languages = $this->target_languages(); if ( ! isset( $languages[ $code ] ) ) return; $status = Pera_ML_Plugin::instance()->status()->get( $post_id, $code ); $label = $this->accessible_status( $languages[ $code ]['name'], $status ); if ( $status['complete'] ) $indicator = '✅'; elseif ( $status['stale'] ) $indicator = '⚠'; elseif ( $status['existing'] ) $indicator = $status['existing'] . '/' . $status['applicable']; else $indicator = '—'; echo '<a href="' . esc_url( get_edit_post_link( $post_id ) ) . '" title="' . esc_attr( $label ) . '" aria-label="' . esc_attr( $label ) . '">' . esc_html( $indicator ) . '</a>'; }
@@ -42,6 +57,42 @@ final class Pera_ML_Admin {
 		$post = get_post( $post_id );
 		if ( ! $post || ! in_array( $post->post_type, array( 'post', 'property', 'team' ), true ) ) return new WP_Error( 'invalid_object' );
 		return array( $post_id, $language, $post->post_type );
+	}
+	private function term_ajax_request() {
+		$term_id = isset( $_POST['term_id'] ) ? absint( $_POST['term_id'] ) : 0; $taxonomy = isset( $_POST['taxonomy'] ) ? sanitize_key( wp_unslash( $_POST['taxonomy'] ) ) : ''; $language = isset( $_POST['language'] ) ? sanitize_key( wp_unslash( $_POST['language'] ) ) : '';
+		if ( ! is_user_logged_in() ) return new WP_Error( 'not_authenticated' );
+		$taxonomy_object = in_array( $taxonomy, Pera_ML_Fields::supported_taxonomies(), true ) ? get_taxonomy( $taxonomy ) : null;
+		if ( ! $term_id || ! $taxonomy_object || ! current_user_can( $taxonomy_object->cap->edit_terms ) ) return new WP_Error( 'insufficient_capability' );
+		if ( ! check_ajax_referer( 'pera_ml_translate_term_' . $term_id . '_' . $taxonomy . '_' . $language, 'nonce', false ) ) return new WP_Error( 'invalid_nonce' );
+		$config = $this->registry->get( $language ); if ( ! $config || empty( $config['enabled'] ) || ! empty( $config['source'] ) ) return new WP_Error( 'invalid_language' );
+		$term = get_term( $term_id, $taxonomy ); if ( ! $term instanceof WP_Term || $term->taxonomy !== $taxonomy ) return new WP_Error( 'invalid_object' );
+		return array( $term, $taxonomy, $language );
+	}
+	private function term_health() { $plugin = Pera_ML_Plugin::instance(); return new Pera_ML_Translation_Health( $plugin->status(), $plugin->storage(), $plugin->ui() ); }
+	/** Build a per-term queue exclusively from Translation Health's canonical inventory. */
+	public function term_translation_queue( $term, $taxonomy, $language, $mode = 'complete', $health = null ) {
+		$health = $health ? $health : $this->term_health(); $sources = $health->term_sources( $term, $taxonomy ); $status = $health->term_status( $term, $taxonomy, $language );
+		$fields = 'regenerate' === $mode ? array_keys( $sources ) : array_values( array_unique( array_merge( $status['missing'], $status['stale'] ) ) );
+		return array( 'fields' => $fields, 'applicable_fields' => array_keys( $sources ), 'status' => $status );
+	}
+	public function ajax_term_translation_queue() {
+		$request = $this->term_ajax_request(); if ( is_wp_error( $request ) ) $this->ajax_error( $request, '', in_array( $request->get_error_code(), array( 'not_authenticated', 'insufficient_capability' ), true ) ? 403 : 400 );
+		list( $term, $taxonomy, $language ) = $request; $mode = isset( $_POST['mode'] ) && 'regenerate' === sanitize_key( wp_unslash( $_POST['mode'] ) ) ? 'regenerate' : 'complete';
+		wp_send_json( array_merge( array( 'success' => true ), $this->term_translation_queue( $term, $taxonomy, $language, $mode ) ) );
+	}
+	/** Delegate one approved term field to the existing Health orchestrator. */
+	public function translate_term_field( $term, $taxonomy, $language, $field, $mode = 'complete', $health = null, $orchestrator = null ) {
+		$health = $health ? $health : $this->term_health(); $queue = $this->term_translation_queue( $term, $taxonomy, $language, $mode, $health );
+		if ( ! in_array( $field, $queue['applicable_fields'], true ) || ( 'regenerate' !== $mode && ! in_array( $field, $queue['fields'], true ) ) ) return new WP_Error( 'invalid_field' );
+		if ( ! $orchestrator ) { $plugin = Pera_ML_Plugin::instance(); $orchestrator = new Pera_ML_Translation_Health_Orchestrator( $plugin->status(), $plugin->storage(), $plugin->translator(), $plugin->ui(), $plugin->ui_registry() ); }
+		$status = 'regenerate' === $mode ? 'regenerate' : ( in_array( $field, $queue['status']['stale'], true ) ? 'stale' : 'missing' );
+		return $orchestrator->translate( array( 'object_type' => 'taxonomy:' . $taxonomy, 'object_id' => $term->term_id, 'field' => $field, 'language' => $language, 'status' => $status ) );
+	}
+	public function ajax_translate_term_field() {
+		$request = $this->term_ajax_request(); $field = isset( $_POST['field'] ) ? $this->bounded_field_identifier( wp_unslash( $_POST['field'] ) ) : '';
+		if ( is_wp_error( $request ) ) $this->ajax_error( $request, $field, in_array( $request->get_error_code(), array( 'not_authenticated', 'insufficient_capability' ), true ) ? 403 : 400 );
+		list( $term, $taxonomy, $language ) = $request; $mode = isset( $_POST['mode'] ) && 'regenerate' === sanitize_key( wp_unslash( $_POST['mode'] ) ) ? 'regenerate' : 'complete'; $result = $this->translate_term_field( $term, $taxonomy, $language, $field, $mode );
+		if ( is_wp_error( $result ) ) $this->ajax_error( $result, $field ); wp_send_json( array( 'success' => true, 'field' => $field, 'status' => 'current' ) );
 	}
 	private function ajax_error( $error, $field = '', $status = 400 ) { wp_send_json( array( 'success' => false, 'field' => $this->bounded_field_identifier( $field ), 'error_code' => $this->public_error_code( $error ) ), $status ); }
 	private function public_error_code( $error ) {

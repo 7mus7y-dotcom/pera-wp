@@ -31,7 +31,9 @@ final class Pera_ML_Translation_Health {
 		}
 		return array( 'ui_total' => count( $ui_items ), 'rows' => $rows, 'counts' => $this->counts( $rows ) );
 	}
-	private function term_sources( $term, $taxonomy ) {
+	/** Canonical, non-empty sources for one supported term. */
+	public function term_sources( $term, $taxonomy ) {
+		if ( ! is_object( $term ) || ! in_array( $taxonomy, Pera_ML_Fields::supported_taxonomies(), true ) ) return array();
 		$sources = array();
 		foreach ( Pera_ML_Fields::taxonomy_fields( $taxonomy ) as $field ) {
 			if ( 'term_name' === $field ) $value = (string) $term->name;
@@ -41,6 +43,20 @@ final class Pera_ML_Translation_Health {
 			if ( is_string( $value ) && '' !== trim( $value ) ) $sources[ $field ] = $value;
 		}
 		return $sources;
+	}
+	/** Status summary for one term, using the same rows as the site-wide inventory. */
+	public function term_status( $term, $taxonomy, $language ) {
+		$result = array( 'applicable' => 0, 'current' => 0, 'existing' => 0, 'stale' => array(), 'missing' => array(), 'complete' => false );
+		$sources = $this->term_sources( $term, $taxonomy ); $result['applicable'] = count( $sources );
+		foreach ( $sources as $field => $source ) {
+			$stored = $this->storage->get( 'term', $term->term_id, $field, $language, $source );
+			if ( ! is_array( $stored ) || '' === trim( (string) $stored['translated_text'] ) ) $result['missing'][] = $field;
+			elseif ( ! empty( $stored['is_stale'] ) || ( isset( $stored['status'] ) && 'current' !== $stored['status'] ) ) $result['stale'][] = $field;
+			else $result['current']++;
+		}
+		$result['existing'] = $result['current'] + count( $result['stale'] );
+		$result['complete'] = $result['applicable'] > 0 && $result['current'] === $result['applicable'];
+		return $result;
 	}
 	private function row( $type, $id, $title, $field, $language, $status ) { return array( 'object_type' => $type, 'object_id' => (int) $id, 'title' => (string) $title, 'field' => $field, 'language' => $language, 'status' => $status ); }
 	private function counts( $rows ) { $counts = array(); foreach ( $rows as $row ) { $group = 'ui' === $row['object_type'] ? 'ui' : ( 0 === strpos( $row['object_type'], 'taxonomy:' ) ? 'taxonomies' : 'content' ); if ( ! isset( $counts[ $group ][ $row['language'] ] ) ) $counts[ $group ][ $row['language'] ] = array( 'current' => 0, 'missing' => 0, 'stale' => 0 ); $counts[ $group ][ $row['language'] ][ $row['status'] ]++; } return $counts; }
