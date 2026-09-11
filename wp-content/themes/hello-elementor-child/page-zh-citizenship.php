@@ -74,7 +74,7 @@ $citizenship_requirements = array(
           </article>
           <div class="hero-actions">
             <a href="#citizenship-callback" class="btn btn--solid btn--green">预约中文咨询</a>
-            <a href="<?php echo esc_url( pera_ml_url( home_url( '/turkish-citizenship-properties/?view=cards' ) ) ); ?>" class="btn btn--solid btn--blue">查看适合入籍的土耳其房产</a>
+            <a href="<?php echo esc_url( home_url( '/turkish-citizenship-properties/?view=cards' ) ); ?>" class="btn btn--solid btn--blue">查看适合入籍的土耳其房产</a>
             <a href="<?php echo esc_url( home_url( '/citizenship-by-investment/' ) ); ?>" class="btn btn--ghost btn--green">View this page in English</a>
           </div>
           <p class="citizenship-trust-strip text-light">自 2016 年起服务国际买家 • 伊斯坦布尔本地团队 • 房产与法律流程清晰协作</p>
@@ -272,7 +272,7 @@ $citizenship_requirements = array(
               </div>
             </div>
             <div class="enquiry-cta-footer">
-              <label class="cta-checkbox"><input type="checkbox" name="policy" required><span>我同意 <a href="<?php echo esc_url( pera_ml_url( home_url( '/privacy-policy/' ) ) ); ?>" target="_blank" rel="noopener">隐私政策</a> 条款。</span></label>
+              <label class="cta-checkbox"><input type="checkbox" name="policy" required><span>我同意 <a href="<?php echo esc_url( home_url( '/privacy-policy/' ) ); ?>" target="_blank" rel="noopener">隐私政策</a> 条款。</span></label>
               <?php $turnstile_site_key = defined( 'PERA_TURNSTILE_SITE_KEY' ) ? sanitize_text_field( (string) PERA_TURNSTILE_SITE_KEY ) : ''; ?>
               <?php if ( $turnstile_site_key !== '' ) : ?>
                 <script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>
@@ -343,7 +343,7 @@ $citizenship_requirements = array(
     <div class="container">
       <header class="section-header section-header--center"><h2>购房前必须完成的法律与合规检查</h2><p>用于土耳其投资入籍的房产，不应只看价格是否达到 USD 400,000。产权、估值、付款、卖方资格和登记限制都可能影响申请。</p></header>
       <div class="content-panel-box citizenship-advisory-panel">
-        <div class="citizenship-advisory-copy"><p>Pera Property 会与持牌土耳其法律合作伙伴协调，在投资者付款或签署重要文件前，对房产和交易结构进行必要审查。</p><p>常见检查包括：产权证审查、抵押或限制查询、卖方及项目资格、估值报告、DAB 外币换汇文件、土地登记中的 3 年持有限制，以及合格证明相关步骤。</p><p>如果您正在比较 <a href="<?php echo esc_url( pera_ml_url( home_url( '/property/' ) ) ); ?>">伊斯坦布尔房产</a>，我们的团队可以说明哪些房产在入籍方面需要进一步法律确认。</p></div>
+        <div class="citizenship-advisory-copy"><p>Pera Property 会与持牌土耳其法律合作伙伴协调，在投资者付款或签署重要文件前，对房产和交易结构进行必要审查。</p><p>常见检查包括：产权证审查、抵押或限制查询、卖方及项目资格、估值报告、DAB 外币换汇文件、土地登记中的 3 年持有限制，以及合格证明相关步骤。</p><p>如果您正在比较 <a href="<?php echo esc_url( home_url( '/property/' ) ); ?>">伊斯坦布尔房产</a>，我们的团队可以说明哪些房产在入籍方面需要进一步法律确认。</p></div>
         <div class="content-note" role="note" aria-label="法律服务免责声明"><strong>Pera Property 不是律师事务所。</strong> 入籍申请由持牌土耳其法律合作伙伴处理。Pera Property 会协助核查所推荐房产的入籍适用性，并建议投资者在估值、产权和资格未确认前不要支付不可退还款项。</div>
       </div>
     </div>
@@ -360,7 +360,7 @@ $citizenship_requirements = array(
     <div class="container">
       <header class="section-header section-header--center"><h2>土耳其投资入籍路径比较</h2><p>房地产路径是许多国际投资者常用的方式，但并非唯一方式。具体选择应根据投资目标、文件情况、时间计划和资产偏好决定。</p></header>
       <div class="citizenship-table-wrap" role="region" aria-label="土耳其投资入籍路径比较" tabindex="0"><table class="citizenship-route-table"><thead><tr><th scope="col">路径</th><th scope="col">常见最低投资额</th><th scope="col">适用场景</th><th scope="col">备注</th></tr></thead><tbody><tr><th scope="row">房地产</th><td>USD 400,000</td><td>常见选择</td><td>符合条件房产通常需持有至少 3 年</td></tr><tr><th scope="row">银行存款</th><td>USD 500,000</td><td>资本保全</td><td>银行要求、锁定规则和文件流程不同</td></tr><tr><th scope="row">政府债券</th><td>USD 500,000</td><td>被动投资</td><td>对房地产市场表现的直接敞口较低</td></tr><tr><th scope="row">商业或就业路径</th><td>视情况而定</td><td>运营型投资者</td><td>通常更复杂，需要个案评估</td></tr></tbody></table></div>
-      <p class="citizenship-route-note">投资门槛和申请实践可能变化。做出投资决定前，应由持牌土耳其法律顾问确认最新要求。您也可以 <a href="<?php echo esc_url( pera_ml_url( home_url( '/contact/' ) ) ); ?>">联系 Pera Property</a> 讨论您的目标。</p>
+      <p class="citizenship-route-note">投资门槛和申请实践可能变化。做出投资决定前，应由持牌土耳其法律顾问确认最新要求。您也可以 <a href="<?php echo esc_url( home_url( '/contact/' ) ); ?>">联系 Pera Property</a> 讨论您的目标。</p>
     </div>
   </section>
 

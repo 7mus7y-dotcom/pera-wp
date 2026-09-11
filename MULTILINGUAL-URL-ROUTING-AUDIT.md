@@ -6,13 +6,14 @@ Audit date: 2026-09-11. Scope was recursively inventoried across `wp-content/the
 
 | Classification | Candidate occurrences |
 |---|---:|
-| Confirmed unsafe (fixed) | 47 |
+| Confirmed unsafe — maintained code (fixed) | 43 |
+| Confirmed unsafe — legacy/pending deletion (not fixed) | 4 |
 | Safe / no action | 688 |
 | Intentional exclusions | 109 |
 | Uncertain / manual review | 3 |
 | **Total reviewed** | **847** |
 
-The confirmed bug remained in 47 low-risk visitor destinations across 17 theme rendering files. They now delegate to `pera_ml_url( home_url( ... ) )`; no second routing system was added. No confirmed language-dropping visitor link remains in the audited code. Three content-driven cases remain a production-content review concern, not a confirmed source-code defect.
+The audit confirmed 47 unsafe visitor destinations: 43 in active maintained code across 16 theme rendering files were fixed through `pera_ml_url( home_url( ... ) )`, while four belong to the legacy standalone Chinese template and are intentionally left unchanged pending deletion. No second routing system was added. No confirmed language-dropping visitor link remains in the maintained translated architecture. Three content-driven cases remain a production-content review concern, not a confirmed source-code defect.
 
 ## Method
 
@@ -24,7 +25,7 @@ None.
 
 ## Count reconciliation
 
-The previous summary incorrectly used **44**, the number of changed production **source lines**, as the unsafe URL count. The exact patch contains **47 distinct visitor destinations**: `page-sell-with-pera.php` line 576 holds four separate links on one changed line. No unsafe group was duplicated, and no single construction fans out into multiple counted destinations. The candidate denominator is consequently 847 URL occurrences rather than 844 unique matching lines.
+The original summary incorrectly used **44**, the number of production **source lines initially changed**, as the unsafe URL count. The audit contains **47 distinct visitor destinations**: `page-sell-with-pera.php` line 576 holds four separate links on one source line. URL-006 accounts for four genuine unsafe occurrences but, after review, they are not production fixes: that standalone legacy template will be deleted. The maintained-code patch therefore fixes 43 destinations on 40 source lines. No unsafe group is duplicated, and no single construction fans out into multiple counted destinations. The candidate denominator remains 847 URL occurrences rather than 844 unique matching lines.
 
 | ID | File | Previous count | Verified exact count | Reconciliation |
 |---|---|---:|---:|---|
@@ -33,7 +34,7 @@ The previous summary incorrectly used **44**, the number of changed production *
 | URL-003 | `page-sell-with-pera.php` | 4 | 4 | Four distinct anchors share one physical source line; this is the three-occurrence line-count discrepancy. |
 | URL-004 | `single-post.php` | 4 | 4 | One archive fallback plus three rendered CTA/home destinations. |
 | URL-005 | `page-luxury-property.php` | 4 | 4 | Four independent URL assignments/rendered destinations. |
-| URL-006 | `page-zh-citizenship.php` | 4 | 4 | Four Chinese-context links; the two intentional English links are excluded. |
+| URL-006 | `page-zh-citizenship.php` | 4 | 4 | Four genuinely unsafe Chinese-context links, but this legacy template predates multilingual routing and is pending deletion; no fix is retained. The two explicit English links remain unchanged. |
 | URL-007 | `inc/ajax-property-archive.php` | 1 | 1 | One computed AJAX pagination base; it can render many page numbers but is counted once syntactically. |
 | URL-008 | `inc/property-pagination.php` | 1 | 1 | One path-to-absolute pagination fallback; counted once syntactically. |
 | URL-009 | `page-citizenship.php` | 2 | 2 | Two distinct in-copy links. |
@@ -45,7 +46,7 @@ The previous summary incorrectly used **44**, the number of changed production *
 | URL-015 | `single-bodrum-property.php` | 1 | 1 | One primary CTA URL assignment. |
 | URL-016 | `attachment.php` | 1 | 1 | One Home link. |
 | URL-017 | `archive.php` | 1 | 1 | One empty-state Home link. |
-| **Total** |  | **47** | **47** | Verified against the production patch. |
+| **Total** |  | **47** | **47** | Verified audit total: 43 maintained-code fixes plus 4 legacy findings pending deletion. |
 
 ## P1 High — confirmed unsafe and fixed
 
@@ -58,9 +59,14 @@ Each row is a confirmed occurrence group; the count identifies every call in tha
 | URL-003 | P1 | `page-sell-with-pera.php` closing related links | 4 | `home_url( '/about-us/' )` | Inline visitor links returned translated visitors to English. | UNSAFE; route at render time. Production change: yes. | None before fix. |
 | URL-004 | P1 | `single-post.php` archive fallback, owner CTAs, empty-state home | 4 | `home_url( '/sell-your-istanbul-real-estate/' )` | Blog navigation/CTAs lost the prefix when using fallbacks or fixed paths. | UNSAFE; route fixed/fallback destinations. Production change: yes. | `get_permalink()` branch remains router-filtered; only raw fallback changed. |
 | URL-005 | P1 | `page-luxury-property.php` taxonomy/guide/blog/consultancy destinations | 4 | `home_url( '/tag/luxury-istanbul/' )` | Luxury landing-page CTAs and fallback links lost language. | UNSAFE; route raw fixed/fallback destinations. Production change: yes. | Dynamic `get_permalink()` branch remains unchanged and filtered. |
-| URL-006 | P1 | `page-zh-citizenship.php` Chinese visitor destinations | 4 | `home_url( '/privacy-policy/' )` | Chinese property, privacy and contact links left `/zh/`. | UNSAFE; route four Chinese-context links. Production change: yes. | Two “View this page in English” links intentionally remain unwrapped. |
 | URL-007 | P1 | `inc/ajax-property-archive.php` AJAX pagination base | 1 | `$pagination_base = home_url( ... )` | AJAX pagination could emit English `/page/N/` links. Query arguments could survive while the language prefix did not. | UNSAFE; localize the completed base once. Production change: yes. | Shared pagination renderer did not localize an absolute base. |
 | URL-008 | P1 | `inc/property-pagination.php` path-to-URL fallback | 1 | `$base = home_url( ... )` | A caller supplying a path could produce unprefixed pagination. | UNSAFE; localize after converting the path. Production change: yes. | Existing absolute URLs and `get_pagenum_link()` remain untouched. |
+
+## Legacy / pending deletion — confirmed unsafe, intentionally not fixed
+
+| ID | Severity | File / section | Count | URL source and example | Current behavior / architecture status | Classification and disposition | Existing handling |
+|---|---|---|---:|---|---|---|---|
+| URL-006 | P1 legacy | `page-zh-citizenship.php` Chinese visitor destinations | 4 | `home_url( '/privacy-policy/' )` | The links can lose `/zh/` under the current router contract. The standalone template predates Pera Multilingual and sits outside the maintained translated architecture. | **LEGACY / PENDING DELETION.** Confirmed unsafe, but the template will be deleted rather than remediated; no production fix is required or retained. | The two explicit “View this page in English” links also remain unchanged and intentionally unprefixed. |
 
 ## P2 Medium — confirmed unsafe and fixed
 
@@ -168,17 +174,17 @@ The audited homepage WYSIWYG fields already call `pera_localize_visitor_links()`
 
 ## Regression coverage
 
-`tests/multilingual-url-routing-audit-test.php` protects all 17 changed render files from reintroducing a direct `home_url()`/`site_url()` visitor destination, explicitly allowlisting only the two English-language links. It also requires at least 47 routed constructions to remain present. The router suite provides behavior coverage for `/de/`, `/ar/`, `/zh/`, query strings, fragments, already-prefixed URLs, external and technical URLs, and prefix idempotency.
+`tests/multilingual-url-routing-audit-test.php` protects all 16 maintained render files from reintroducing a direct `home_url()`/`site_url()` visitor destination. It also requires at least 43 routed constructions to remain present. The router suite provides behavior coverage for `/de/`, `/ar/`, `/zh/`, query strings, fragments, already-prefixed URLs, external and technical URLs, and prefix idempotency.
 
 ## PR accounting
 
 - Files recursively inventoried: **771**.
 - Source/render files scanned: **591**.
 - Candidate URL occurrences reviewed: **847** (from 844 unique candidate source lines).
-- Confirmed unsafe occurrences: **47**, all fixed.
+- Confirmed unsafe occurrences: **47** total — **43 fixed in maintained code**, **4 legacy/pending deletion and intentionally not fixed**.
 - Safe occurrences: **688**.
 - Intentional exclusions: **109**.
 - Uncertain/manual-review items: **3**.
-- Production files changed: **17** (theme only).
+- Production routing files changed: **16** maintained theme files; the legacy Chinese template is unchanged from its pre-audit behavior.
 - Tests added: **1** focused static regression test.
-- Remaining status: **no confirmed instance of this bug remains in repository visitor-facing code**; the three production-data questions above require live content review.
+- Remaining status: **no confirmed instance remains in maintained repository visitor-facing code**. Four confirmed unsafe links remain only in the legacy template pending deletion; the three production-data questions above still require live content review.
