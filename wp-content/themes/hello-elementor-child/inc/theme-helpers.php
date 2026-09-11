@@ -22,6 +22,21 @@ function pera_localize_visitor_links( $html ) {
     $html
   );
 }
+
+/**
+ * Localize the service card button URL when ACF formats it for the frontend.
+ *
+ * The field-name-specific hook is the render seam used by the service cards;
+ * raw ACF reads and the stored field value remain canonical.
+ */
+function pera_localize_service_button_link( $value, $post_id ) {
+  if ( is_admin() || ( defined( 'REST_REQUEST' ) && REST_REQUEST ) || ! function_exists( 'pera_ml_url' ) || 'service' !== get_post_type( $post_id ) ) {
+    return $value;
+  }
+
+  return is_string( $value ) ? pera_ml_url( $value ) : $value;
+}
+add_filter( 'acf/format_value/name=button_link', 'pera_localize_service_button_link', 20, 2 );
 if ( ! defined( 'ABSPATH' ) ) exit;
 
 /**

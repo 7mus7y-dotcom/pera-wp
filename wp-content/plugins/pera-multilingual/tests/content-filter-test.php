@@ -1,11 +1,14 @@
 <?php
 /** Regression tests for canonical post_content discrimination. */
 define( 'ABSPATH', __DIR__ );
-class WP_Post { public $ID; public $post_content; public $post_type = 'property'; public function __construct( $id, $content ) { $this->ID = $id; $this->post_content = $content; } }
+class WP_Post { public $ID; public $post_content; public $post_type = 'page'; public function __construct( $id, $content ) { $this->ID = $id; $this->post_content = $content; } }
 $GLOBALS['pera_test_post'] = new WP_Post( 17, '<p>Canonical English body.</p>' );
 function add_filter() {} function add_action() {} function add_shortcode() {} function is_admin(){return false;} function is_feed(){return false;}
+$GLOBALS['content_in_loop'] = true; $GLOBALS['content_main_query'] = true;
+function in_the_loop(){return $GLOBALS['content_in_loop'];} function is_main_query(){return $GLOBALS['content_main_query'];}
 function get_the_ID(){return 17;} function get_post($id){return 17===(int)$id?$GLOBALS['pera_test_post']:null;} function get_post_type_object(){return (object)array('public'=>true);}
 function expect_same($expected,$actual,$label){if($expected!==$actual){fwrite(STDERR,"FAIL $label\n");exit(1);}}
+function pera_localize_visitor_links($html){return str_replace(array('href="/property/"','href="/de/property/"'), 'href="/de/property/"', $html);}
 class ContentTestRouter { function is_translated(){return true;} function current_language(){return 'zh';} }
 class ContentTestStorage {
 	public $rows = array();
@@ -21,6 +24,14 @@ $storage->rows = array(
 $content = new Pera_ML_Content( null, new ContentTestRouter(), $storage );
 expect_same('当前标题',$content->title('Canonical English title',17),'current title translates');
 expect_same('<p>规范中文正文。</p>',$content->content('<p>Canonical English body.</p>'),'canonical post content translates');
+$storage->rows['post_content'] = array( 'translated_text' => '<a href="/property/">Property</a>', 'status' => 'current', 'is_stale' => false );
+expect_same('<a href="/de/property/">Property</a>',$content->content('<p>Canonical English body.</p>'),'translated page content localizes visitor links');
+$storage->rows['post_content'] = array( 'translated_text' => '<a href="/de/property/">Property</a>', 'status' => 'current', 'is_stale' => false );
+expect_same('<a href="/de/property/">Property</a>',$content->content('<p>Canonical English body.</p>'),'translated page content localization is idempotent');
+$GLOBALS['content_in_loop'] = false;
+$storage->rows['post_content'] = array( 'translated_text' => '<a href="/property/">Property</a>', 'status' => 'current', 'is_stale' => false );
+expect_same('<a href="/property/">Property</a>',$content->content('<p>Canonical English body.</p>'),'non-loop schema-style content does not localize links');
+$GLOBALS['content_in_loop'] = true;
 expect_same('当前摘要',$content->excerpt('Canonical English excerpt',$GLOBALS['pera_test_post']),'current excerpt translates');
 expect_same('<section>Translated ACF project summary.</section>',$content->content('<section>Translated ACF project summary.</section>'),'manual ACF the_content value is untouched');
 

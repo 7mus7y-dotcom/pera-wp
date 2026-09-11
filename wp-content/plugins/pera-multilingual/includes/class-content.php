@@ -33,7 +33,11 @@ final class Pera_ML_Content {
 	public function content( $content ) {
 		$post = get_post( get_the_ID() );
 		if ( ! $post || (string) $content !== (string) $post->post_content ) return $content;
-		return $this->translated( (int) $post->ID, 'post_content', $content );
+		$output = $this->translated( (int) $post->ID, 'post_content', $content );
+		if ( in_array( $post->post_type, array( 'post', 'page' ), true ) && in_the_loop() && is_main_query() && $this->should_translate( (int) $post->ID ) && function_exists( 'pera_localize_visitor_links' ) ) {
+			$output = pera_localize_visitor_links( $output );
+		}
+		return $output;
 	}
 	public function excerpt( $excerpt, $post = null ) { $id = $post instanceof WP_Post ? $post->ID : get_the_ID(); return $this->translated( (int) $id, 'post_excerpt', $excerpt ); }
 	public function body_classes( $classes ) { $language = $this->registry->get( $this->router->current_language() ); $classes[] = 'pera-ml-lang-' . $this->router->current_language(); if ( $language && 'rtl' === $language['direction'] ) $classes[] = 'pera-ml-rtl'; return $classes; }
