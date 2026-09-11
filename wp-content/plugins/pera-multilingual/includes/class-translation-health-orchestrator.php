@@ -6,21 +6,22 @@ final class Pera_ML_Translation_Health_Orchestrator {
 	private $status; private $storage; private $translator; private $ui; private $ui_registry;
 	public function __construct( $status, $storage, $translator, $ui, $ui_registry ) { $this->status = $status; $this->storage = $storage; $this->translator = $translator; $this->ui = $ui; $this->ui_registry = $ui_registry; }
 
-	public function translate( array $row ) {
-		if ( ! isset( $row['object_type'], $row['object_id'], $row['field'], $row['language'], $row['status'] ) || ! in_array( $row['language'], Pera_ML_Translation_Health::LANGUAGES, true ) || ! in_array( $row['status'], array( 'missing', 'stale' ), true ) ) return new WP_Error( 'invalid_row' );
+	public function translate( array $row, $regenerate = false ) {
+		$allowed_statuses = $regenerate ? array( 'missing', 'stale', 'current' ) : array( 'missing', 'stale' );
+		if ( ! isset( $row['object_type'], $row['object_id'], $row['field'], $row['language'], $row['status'] ) || ! in_array( $row['language'], Pera_ML_Translation_Health::LANGUAGES, true ) || ! in_array( $row['status'], $allowed_statuses, true ) ) return new WP_Error( 'invalid_row' );
 		$type = sanitize_text_field( $row['object_type'] ); $id = absint( $row['object_id'] ); $field = Pera_ML_Storage::normalize_field_key( $row['field'] ); $language = sanitize_key( $row['language'] );
 		if ( 'ui' === $type ) return $this->translate_ui( $row['field'], $language );
-		if ( 0 === strpos( $type, 'taxonomy:' ) ) return $this->translate_term( substr( $type, 9 ), $id, $field, $language );
+		if ( 0 === strpos( $type, 'taxonomy:' ) ) return $this->translate_term( substr( $type, 9 ), $id, $field, $language, $regenerate );
 		return $this->translate_post( $type, $id, $field, $language );
 	}
 	private function translate_ui( $identity, $language ) { $item = $this->ui_registry->find( $identity ); if ( ! $item || 'current' === $this->ui->status( $item, $language ) ) return new WP_Error( 'invalid_row' ); $result = $this->ui->translate_registered( $identity, $language ); if ( is_wp_error( $result ) ) return $result; return 'current' === $this->ui->status( $item, $language ) ? $result : new WP_Error( 'translation_not_stored' ); }
-	private function translate_term( $taxonomy, $id, $field, $language ) {
+	private function translate_term( $taxonomy, $id, $field, $language, $regenerate = false ) {
 		if ( ! in_array( $taxonomy, Pera_ML_Fields::supported_taxonomies(), true ) ) return new WP_Error( 'invalid_row' );
 		$term = get_term( $id ); if ( ! $term instanceof WP_Term || $taxonomy !== $term->taxonomy || ! in_array( $field, Pera_ML_Fields::taxonomy_fields( $term->taxonomy ), true ) ) return new WP_Error( 'invalid_row' );
 		if ( 'term_name' === $field ) $source = $term->name; elseif ( 'term_description' === $field ) $source = $term->description; elseif ( 0 === strpos( $field, 'meta:' ) ) $source = get_term_meta( $id, substr( $field, 5 ), true ); else return new WP_Error( 'invalid_row' );
 		if ( ! is_string( $source ) || '' === trim( $source ) ) return new WP_Error( 'invalid_row' );
 		$stored = $this->storage->get( 'term', $id, $field, $language, $source );
-		if ( is_array( $stored ) && '' !== trim( (string) $stored['translated_text'] ) && empty( $stored['is_stale'] ) && ( ! isset( $stored['status'] ) || 'current' === $stored['status'] ) ) return new WP_Error( 'invalid_row' );
+		if ( ! $regenerate && is_array( $stored ) && '' !== trim( (string) $stored['translated_text'] ) && empty( $stored['is_stale'] ) && ( ! isset( $stored['status'] ) || 'current' === $stored['status'] ) ) return new WP_Error( 'invalid_row' );
 		$result = $this->translator->translate_and_store( 'term', $id, $field, $language, $source );
 		return $this->confirm_stored( $result, 'term', $id, $field, $language, $source );
 	}

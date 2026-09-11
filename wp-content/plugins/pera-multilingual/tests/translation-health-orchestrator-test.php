@@ -29,6 +29,7 @@ $term['object_type']='taxonomy:region'; $storage->row=array('translated_text'=>'
 $translator->result=true; $translator->write=false; health_assert('translation_not_stored',$orch->translate($term)->get_error_code(),'success requires a valid stored row'); health_assert('Old',$storage->row['translated_text'],'stale row remains when storage is not replaced');
 $translator->write=true; health_assert(true,$orch->translate($term),'approved stale row succeeds'); health_assert(7,count($translator->calls),'only approved missing/stale rows reached provider');
 $storage->row=array('translated_text'=>'Current','is_stale'=>false,'status'=>'current'); health_assert('invalid_row',$orch->translate($term)->get_error_code(),'current taxonomy row rejected'); health_assert(7,count($translator->calls),'current taxonomy never reaches provider');
+$term['status']='current'; health_assert(true,$orch->translate($term,true),'explicit regeneration retranslates a current canonical taxonomy row'); health_assert(8,count($translator->calls),'regeneration reaches the provider exactly once'); $term['status']='missing';
 $storage->row=null; $faq=$term; $faq['field']='meta:seo_faq_v2'; $faq['status']='missing'; health_assert(true,$orch->translate($faq),'approved taxonomy FAQ row succeeds');
-health_assert(array('term',8,'meta:seo_faq_v2','zh','Question|Answer'),array_slice($translator->calls[7],0,5),'taxonomy FAQ uses canonical source and dedicated field key');
+health_assert(array('term',8,'meta:seo_faq_v2','zh','Question|Answer'),array_slice($translator->calls[8],0,5),'taxonomy FAQ uses canonical source and dedicated field key');
 echo "Pera ML translation health orchestrator tests passed\n";

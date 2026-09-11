@@ -30,8 +30,12 @@
 		button.disabled = true;
 		output.textContent = '';
 		summary.textContent = 'Preparing translation…';
-		var common = {post_id: container.dataset.postId, language: container.dataset.language, nonce: container.dataset.nonce};
-		request(Object.assign({action: 'pera_ml_translation_queue', mode: button.dataset.mode}, common)).then(function (inventory) {
+		var isTerm = container.dataset.objectType === 'term';
+		var common = isTerm ? {term_id: container.dataset.termId, taxonomy: container.dataset.taxonomy, language: container.dataset.language, nonce: container.dataset.nonce} : {post_id: container.dataset.postId, language: container.dataset.language, nonce: container.dataset.nonce};
+		var queueAction = isTerm ? 'pera_ml_term_translation_queue' : 'pera_ml_translation_queue';
+		var fieldAction = isTerm ? 'pera_ml_translate_term_field' : 'pera_ml_translate_field';
+		var requestedMode = button.dataset.mode;
+		request(Object.assign({action: queueAction, mode: requestedMode}, common)).then(function (inventory) {
 			if (!inventory.success) throw inventory;
 			var retryFields = container.dataset.retryFields ? JSON.parse(container.dataset.retryFields) : [];
 			var fields = retryFields.length ? retryFields.filter(function (field) { return inventory.applicable_fields.indexOf(field) !== -1; }) : inventory.fields;
@@ -41,7 +45,7 @@
 			fields.forEach(function (field) {
 				chain = chain.then(function () {
 					summary.textContent = 'Translating ' + (completed + 1) + ' / ' + fields.length + '\nCurrently: ' + field;
-					return request(Object.assign({action: 'pera_ml_translate_field', field: field}, common)).then(function (result) {
+					return request(Object.assign({action: fieldAction, field: field, mode: requestedMode}, common)).then(function (result) {
 						completed++;
 						var line = document.createElement('div');
 						line.textContent = (result.success ? '✓ ' : '✗ ') + field;
@@ -54,7 +58,7 @@
 				});
 			});
 			return chain.then(function () {
-				return request(Object.assign({action: 'pera_ml_translation_queue', mode: 'complete'}, common)).then(function (fresh) {
+				return request(Object.assign({action: queueAction, mode: 'complete'}, common)).then(function (fresh) {
 					if (fresh.success) summary.textContent = statusText(fresh.status);
 					else summary.textContent = completed + ' / ' + fields.length + ' complete';
 					if (failed.length) summary.textContent += '\nFailed: ' + failed.join(', ');

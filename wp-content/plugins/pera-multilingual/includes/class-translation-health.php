@@ -23,15 +23,20 @@ final class Pera_ML_Translation_Health {
 		}
 		foreach ( Pera_ML_Fields::supported_taxonomies() as $taxonomy ) {
 			$terms = get_terms( array( 'taxonomy' => $taxonomy, 'hide_empty' => false ) ); if ( is_wp_error( $terms ) ) continue;
-			foreach ( $terms as $term ) foreach ( $this->term_sources( $term, $taxonomy ) as $field => $source ) foreach ( self::LANGUAGES as $language ) {
-				$stored = $this->storage->get( 'term', $term->term_id, $field, $language, $source );
-				$status = ! is_array( $stored ) || '' === trim( (string) $stored['translated_text'] ) ? 'missing' : ( ! empty( $stored['is_stale'] ) || ( isset( $stored['status'] ) && 'current' !== $stored['status'] ) ? 'stale' : 'current' );
-				$rows[] = $this->row( 'taxonomy:' . $taxonomy, $term->term_id, $term->name, $field, $language, $status );
+			foreach ( $terms as $term ) {
+				$sources = $this->term_sources( $term, $taxonomy ); $states = array();
+				foreach ( self::LANGUAGES as $language ) $states[ $language ] = $this->term_status( $term, $taxonomy, $language );
+				foreach ( $sources as $field => $source ) foreach ( self::LANGUAGES as $language ) {
+					$state = $states[ $language ];
+					$status = in_array( $field, $state['missing'], true ) ? 'missing' : ( in_array( $field, $state['stale'], true ) ? 'stale' : 'current' );
+					$rows[] = $this->row( 'taxonomy:' . $taxonomy, $term->term_id, $term->name, $field, $language, $status );
+				}
 			}
 		}
 		return array( 'ui_total' => count( $ui_items ), 'rows' => $rows, 'counts' => $this->counts( $rows ) );
 	}
-	private function term_sources( $term, $taxonomy ) {
+	/** Return only non-empty canonical sources from the shared taxonomy field contract. */
+	public function term_sources( $term, $taxonomy ) {
 		$sources = array();
 		foreach ( Pera_ML_Fields::taxonomy_fields( $taxonomy ) as $field ) {
 			if ( 'term_name' === $field ) $value = (string) $term->name;
@@ -41,6 +46,19 @@ final class Pera_ML_Translation_Health {
 			if ( is_string( $value ) && '' !== trim( $value ) ) $sources[ $field ] = $value;
 		}
 		return $sources;
+	}
+	/** Build the same per-language state used by the site-wide inventory. */
+	public function term_status( $term, $taxonomy, $language ) {
+		$sources = $this->term_sources( $term, $taxonomy );
+		$missing = array(); $stale = array(); $current = array(); $existing = 0;
+		foreach ( $sources as $field => $source ) {
+			$stored = $this->storage->get( 'term', $term->term_id, $field, $language, $source );
+			if ( ! is_array( $stored ) || '' === trim( (string) $stored['translated_text'] ) ) { $missing[] = $field; continue; }
+			$existing++;
+			if ( ! empty( $stored['is_stale'] ) || ( isset( $stored['status'] ) && 'current' !== $stored['status'] ) ) $stale[] = $field;
+			else $current[] = $field;
+		}
+		return array( 'applicable' => count( $sources ), 'current' => count( $current ), 'existing' => $existing, 'missing' => $missing, 'stale' => $stale, 'complete' => count( $sources ) === count( $current ) );
 	}
 	private function row( $type, $id, $title, $field, $language, $status ) { return array( 'object_type' => $type, 'object_id' => (int) $id, 'title' => (string) $title, 'field' => $field, 'language' => $language, 'status' => $status ); }
 	private function counts( $rows ) { $counts = array(); foreach ( $rows as $row ) { $group = 'ui' === $row['object_type'] ? 'ui' : ( 0 === strpos( $row['object_type'], 'taxonomy:' ) ? 'taxonomies' : 'content' ); if ( ! isset( $counts[ $group ][ $row['language'] ] ) ) $counts[ $group ][ $row['language'] ] = array( 'current' => 0, 'missing' => 0, 'stale' => 0 ); $counts[ $group ][ $row['language'] ][ $row['status'] ]++; } return $counts; }
