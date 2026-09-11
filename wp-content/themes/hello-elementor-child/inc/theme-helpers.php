@@ -831,15 +831,16 @@ function pera_render_header_language_switcher( $context = 'desktop' ) {
   }
 
   $current_code = $router->current_language();
-  $current      = isset( $languages[ $current_code ] ) ? $languages[ $current_code ] : reset( $languages );
   $request_uri = isset( $_SERVER['REQUEST_URI'] ) ? wp_unslash( (string) $_SERVER['REQUEST_URI'] ) : '/';
   $current_url = home_url( $request_uri );
   $is_mobile   = 'mobile' === $context;
   ?>
   <nav class="header-language-switcher header-language-switcher--<?php echo esc_attr( $context ); ?>" aria-label="<?php echo esc_attr( pera_ml_ui( 'Select language', 'theme.inc.theme-helpers.select_language' ) ); ?>">
     <?php if ( ! $is_mobile ) : ?>
-      <button class="header-language-switcher__toggle" type="button" aria-expanded="false" aria-haspopup="true">
-        <span><?php echo esc_html( $current['compact_name'] ); ?></span>
+      <button class="header-language-switcher__toggle" type="button" aria-expanded="false" aria-haspopup="true" aria-label="<?php echo esc_attr( pera_ml_ui( 'Select language', 'theme.inc.theme-helpers.select_language' ) ); ?>">
+        <svg class="icon" aria-hidden="true">
+          <use href="<?php echo esc_url( get_stylesheet_directory_uri() . '/logos-icons/icons.svg#icon-language' ); ?>"></use>
+        </svg>
         <span class="header-language-switcher__chevron" aria-hidden="true">▾</span>
       </button>
     <?php else : ?>
@@ -876,8 +877,10 @@ function pera_render_currency_selector( $context = 'header' ) {
     <?php if ( $is_offcanvas ) : ?>
       <span class="pera-currency-selector__title"><?php echo esc_html( pera_ml_ui( 'Currency', 'theme.inc.theme-helpers.currency' ) ); ?></span>
     <?php else : ?>
-      <button class="pera-currency-selector__trigger" type="button" aria-expanded="false" aria-controls="<?php echo esc_attr( $list_id ); ?>" aria-label="<?php echo esc_attr( pera_ml_ui( 'Currency: USD', 'theme.inc.theme-helpers.currency_usd' ) ); ?>" data-pera-currency-trigger>
-        <bdi class="pera-currency-selector__code" data-pera-currency-code>USD</bdi>
+      <button class="pera-currency-selector__trigger" type="button" aria-expanded="false" aria-controls="<?php echo esc_attr( $list_id ); ?>" aria-label="<?php echo esc_attr( pera_ml_ui( 'Select currency', 'theme.inc.theme-helpers.select_currency' ) ); ?>" data-pera-currency-trigger>
+        <svg class="icon" aria-hidden="true">
+          <use href="<?php echo esc_url( get_stylesheet_directory_uri() . '/logos-icons/icons.svg#icon-currency' ); ?>"></use>
+        </svg>
         <span class="pera-currency-selector__chevron" aria-hidden="true">▾</span>
       </button>
     <?php endif; ?>
