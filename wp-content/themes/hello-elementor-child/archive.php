@@ -23,6 +23,7 @@ get_header();
     $archive_featured_post_ids = array();
     $archive_bottom_content   = '';
     $archive_faq_html         = '';
+    $archive_faq_items        = array();
     $archive_cta_heading      = '';
     $archive_cta_text         = '';
     $archive_cta_whatsapp     = '';
@@ -162,7 +163,8 @@ get_header();
                     $archive_featured_post_ids = pera_get_category_featured_guide_post_ids( $term );
                 }
                 $archive_bottom_content   = (string) ( pera_get_term_acf_field( 'archive_bottom_content', $term ) ?? '' );
-                $archive_faq_html         = (string) ( pera_get_term_acf_field( 'seo_faq_schema_2', $term ) ?? '' );
+                $category_faq_raw         = (string) ( pera_get_term_acf_field( 'seo_faq_v2', $term ) ?? '' );
+                $archive_faq_items        = function_exists( 'pera_parse_faq_pipe_text' ) ? pera_parse_faq_pipe_text( $category_faq_raw ) : array();
                 $archive_cta_heading      = (string) ( pera_get_term_acf_field( 'archive_cta_heading', $term ) ?? '' );
                 $archive_cta_text         = (string) ( pera_get_term_acf_field( 'archive_cta_text', $term ) ?? '' );
                 $archive_cta_whatsapp     = (string) ( pera_get_term_acf_field( 'archive_whatsapp_message', $term ) ?? '' );
@@ -486,6 +488,11 @@ get_header();
           </div>
         </div>
       </section>
+    <?php endif; ?>
+
+    <?php if ( is_category() && ! empty( $archive_faq_items ) && function_exists( 'pera_render_faq_html' ) ) : ?>
+      <?php pera_render_faq_html( $archive_faq_items, pera_ml_ui( 'Frequently asked questions', 'theme.template.archive.frequently_asked_questions' ) ); ?>
+      <?php if ( function_exists( 'pera_render_faq_schema' ) ) pera_render_faq_schema( $archive_faq_items, array( 'context' => 'category_archive', 'term_id' => (int) get_queried_object_id() ) ); ?>
     <?php endif; ?>
 
     <?php

@@ -8,7 +8,8 @@ function remove_filter( $tag ) { $GLOBALS['active_acf_filter'] = false; return t
 function get_post_type( $id ) { return isset( $GLOBALS['post_types'][ $id ] ) ? $GLOBALS['post_types'][ $id ] : false; }
 function get_field( $name, $id, $format_value = true ) {
 	$GLOBALS['raw_reads'][] = array( $name, $id, $format_value );
-	return $GLOBALS['raw_acf'][ $id ][ $name ];
+	$key = $id instanceof WP_Term ? 'term_' . $id->term_id : $id;
+	return $GLOBALS['raw_acf'][ $key ][ $name ];
 }
 function acf_format_value( $value, $post_id, $field ) {
 	if ( ! empty( $GLOBALS['active_acf_filter'] ) ) { fwrite( STDERR, "FAIL translated formatting recursed into the Pera ML filter\n" ); exit( 1 ); }
@@ -21,7 +22,7 @@ function expect_acf( $expected, $actual, $label ) {
 	if ( $expected !== $actual ) { fwrite( STDERR, "FAIL {$label}\nExpected: " . var_export( $expected, true ) . "\nActual: " . var_export( $actual, true ) . "\n" ); exit( 1 ); }
 }
 class WP_Post { public $ID; public $post_type; public function __construct( $id, $type ) { $this->ID = $id; $this->post_type = $type; } }
-class WP_Term {}
+class WP_Term { public $term_id; public $taxonomy; public function __construct( $id, $taxonomy ) { $this->term_id = $id; $this->taxonomy = $taxonomy; } }
 final class Raw_Source_Storage {
 	public $rows = array(); public $gets = array();
 	public function get( $type, $id, $field, $language, $source ) {
@@ -70,4 +71,13 @@ expect_acf( '<p>Canonical summary<br />second line</p>', $fields->acf_value( '<p
 $router->language = 'en';
 expect_acf( 'English already formatted', $fields->acf_value( 'English already formatted', $post, array( 'name' => 'project_summary', 'type' => 'wysiwyg' ) ), 'English frontend output is unchanged' );
 expect_acf( false, $GLOBALS['raw_reads'][0][2], 'canonical source is fetched with ACF formatting disabled' );
+
+$router->language = 'zh';
+$category = new WP_Term( 77, 'category' );
+$GLOBALS['raw_acf']['term_77'] = array( 'archive_intro_content' => "Canonical category intro\nsecond line", 'seo_social_image' => 'Image caption-like value' );
+$storage->rows['77|meta:archive_intro_content|zh'] = $current( $GLOBALS['raw_acf']['term_77']['archive_intro_content'], '翻译分类介绍' );
+expect_acf( '<p>翻译分类介绍</p>', $fields->acf_value( '<p>Canonical category intro<br />second line</p>', $category, array( 'name' => 'archive_intro_content', 'type' => 'wysiwyg' ) ), 'category term ACF output uses the translation hashed against its unformatted canonical value' );
+expect_acf( $GLOBALS['raw_acf']['term_77']['archive_intro_content'], end( $storage->gets )[4], 'category ACF storage lookup receives the raw canonical source' );
+$unsupported = $fields->acf_value( 'Image caption-like value', $category, array( 'name' => 'seo_social_image', 'type' => 'text' ) );
+expect_acf( 'Image caption-like value', $unsupported, 'unsupported category media fields are never translated by the ACF layer' );
 echo "Pera ML ACF raw-source tests passed\n";

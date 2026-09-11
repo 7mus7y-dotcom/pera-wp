@@ -30,6 +30,12 @@ final class Pera_ML_Fields {
 	/** Canonical term contract consumed by term() and the registered ACF formatting layer. */
 	public static function taxonomy_fields( $taxonomy ) {
 		$fields = array( 'term_name', 'term_description' );
+		// Categories own a distinct editorial archive field group. Keep this
+		// explicit so relationship/media fields from that group can never enter
+		// the translation contract by inference.
+		if ( 'category' === $taxonomy ) {
+			$fields = array_merge( $fields, array( 'meta:seo_title', 'meta:seo_meta_description', 'meta:archive_h1', 'meta:archive_subtitle', 'meta:archive_intro_content', 'meta:archive_bottom_content', 'meta:featured_links_heading', 'meta:featured_links_intro', 'meta:archive_cta_heading', 'meta:archive_cta_text', 'meta:archive_whatsapp_message', 'meta:seo_faq_v2' ) );
+		}
 		$property_taxonomies = array_values( array_intersect( self::supported_taxonomies(), array( 'district', 'region', 'property_type', 'property_tags', 'special' ) ) );
 		if ( in_array( $taxonomy, $property_taxonomies, true ) ) {
 			$fields = array_merge( $fields, array( 'meta:seo_title', 'meta:seo_meta_description', 'meta:seo_faq_v2', 'meta:archive_h1', 'meta:archive_heading', 'meta:h1_title', 'meta:display_title', 'meta:hero_title', 'meta:term_excerpt', 'meta:pera_term_excerpt' ) );
@@ -40,7 +46,11 @@ final class Pera_ML_Fields {
 		return apply_filters( 'pera_ml_taxonomy_translatable_fields', $fields, $taxonomy );
 	}
 	public function __construct( $router, $storage, $vocabulary ) { $this->router = $router; $this->storage = $storage; $this->vocabulary = $vocabulary; }
-	public function hooks() { foreach ( array_unique( array_merge( $this->approved(), self::controlled_property_fields() ) ) as $field ) add_filter( 'acf/format_value/name=' . $field, array( $this, 'acf_value' ), 20, 3 ); }
+	public function hooks() {
+		$fields = array_merge( $this->approved(), self::controlled_property_fields() );
+		foreach ( self::supported_taxonomies() as $taxonomy ) foreach ( self::taxonomy_fields( $taxonomy ) as $field ) if ( 0 === strpos( $field, 'meta:' ) ) $fields[] = substr( $field, 5 );
+		foreach ( array_unique( $fields ) as $field ) add_filter( 'acf/format_value/name=' . $field, array( $this, 'acf_value' ), 20, 3 );
+	}
 	public function acf_value( $value, $post_id, $field ) {
 		$object = $this->identify_acf_object( $post_id );
 		if ( is_array( $value ) ) return $this->controlled_array_value( $value, $object, isset( $field['name'] ) ? $field['name'] : '' );
@@ -50,11 +60,13 @@ final class Pera_ML_Fields {
 		$has_raw_source = false;
 		// ACF type formatters can run before this name-specific filter. Translation
 		// storage, generation, and health all hash the unformatted database value.
-		if ( 'post' === $object['type'] && function_exists( 'get_field' ) ) {
-			$raw = get_field( $field['name'], $object['id'], false );
+		if ( function_exists( 'get_field' ) ) {
+			$raw_reference = 'post' === $object['type'] ? $object['id'] : $post_id;
+			$raw = get_field( $field['name'], $raw_reference, false );
 			if ( is_string( $raw ) ) { $source = $raw; $has_raw_source = true; }
 		}
-		$translated = $this->get_for_object( $object['type'], $object['id'], $field['name'], $source, null, isset( $object['post_type'] ) ? $object['post_type'] : null );
+		$object_contract = isset( $object['post_type'] ) ? $object['post_type'] : ( isset( $object['taxonomy'] ) ? $object['taxonomy'] : null );
+		$translated = $this->get_for_object( $object['type'], $object['id'], $field['name'], $source, null, $object_contract );
 		if ( $translated === $source ) return $value;
 		return $has_raw_source ? $this->format_translated_acf_value( $translated, $post_id, $field ) : $translated;
 	}
@@ -140,17 +152,34 @@ final class Pera_ML_Fields {
 	public function get_for_object( $object_type, $object_id, $field, $source, $language = null, $post_type = null ) {
 		$language = $language ? sanitize_key( $language ) : $this->router->current_language();
 		if ( 'post' === $object_type && null === $post_type ) $post_type = function_exists( 'get_post_type' ) ? get_post_type( $object_id ) : 'post';
-		$approved = 'post' === $object_type ? $this->approved_for_object( $object_id, $post_type ? $post_type : 'post' ) : $this->approved();
+		if ( 'post' === $object_type ) {
+			$approved = $this->approved_for_object( $object_id, $post_type ? $post_type : 'post' );
+		} else {
+			$taxonomy_fields = array();
+			if ( $post_type ) {
+				$taxonomy_fields = self::taxonomy_fields( $post_type );
+			} else {
+				// ACF's generic term_N reference does not encode the taxonomy. Limit
+				// it to the union of explicit taxonomy contracts rather than falling
+				// back to the broader post-meta field set.
+				foreach ( self::supported_taxonomies() as $taxonomy ) $taxonomy_fields = array_merge( $taxonomy_fields, self::taxonomy_fields( $taxonomy ) );
+			}
+			$approved = array_map( static function ( $field ) { return 0 === strpos( $field, 'meta:' ) ? substr( $field, 5 ) : $field; }, array_unique( $taxonomy_fields ) );
+		}
 		if ( 'en' === $language || $object_id <= 0 || ! in_array( $field, $approved, true ) ) return $source;
 		$row = $this->storage->get( $object_type, (int) $object_id, 'meta:' . sanitize_key( $field ), $language, (string) $source );
 		if ( ! is_array( $row ) || ! empty( $row['is_stale'] ) || ( isset( $row['status'] ) && 'current' !== $row['status'] ) || ! isset( $row['translated_text'] ) || '' === trim( (string) $row['translated_text'] ) ) return $source;
 		return $row['translated_text'];
 	}
 	public function identify_acf_object( $post_id ) {
-		if ( $post_id instanceof WP_Term ) return array( 'type' => 'term', 'id' => (int) $post_id->term_id );
+		if ( $post_id instanceof WP_Term ) return array( 'type' => 'term', 'id' => (int) $post_id->term_id, 'taxonomy' => $post_id->taxonomy );
 		if ( $post_id instanceof WP_Post ) return array( 'type' => 'post', 'id' => (int) $post_id->ID, 'post_type' => $post_id->post_type );
 		if ( is_numeric( $post_id ) && (int) $post_id > 0 ) return array( 'type' => 'post', 'id' => (int) $post_id, 'post_type' => function_exists( 'get_post_type' ) ? get_post_type( (int) $post_id ) : 'post' );
-		if ( is_string( $post_id ) && preg_match( '/^(term|district|region|property_type|property_tags|special|category|post_tag)_(\d+)$/i', $post_id, $match ) ) return array( 'type' => 'term', 'id' => (int) $match[2] );
+		if ( is_string( $post_id ) && preg_match( '/^(term|district|region|property_type|property_tags|special|category|post_tag)_(\d+)$/i', $post_id, $match ) ) {
+			$term = function_exists( 'get_term' ) ? get_term( (int) $match[2] ) : null;
+			$taxonomy = 'term' !== $match[1] ? strtolower( $match[1] ) : ( $term instanceof WP_Term ? $term->taxonomy : '' );
+			return array( 'type' => 'term', 'id' => (int) $match[2], 'taxonomy' => $taxonomy );
+		}
 		return null;
 	}
 	public function term( $term, $field = 'name', $language = null ) {
