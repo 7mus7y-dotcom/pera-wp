@@ -67,7 +67,7 @@ $icon_sprite  = esc_url( get_stylesheet_directory_uri() . '/logos-icons/icons.sv
 					<h3 class="text-light"><?php echo esc_html( pera_ml_ui( 'Speak with a Consultant', 'theme.contact_cta.speak_with_consultant' ) ); ?></h3>
 
 					<div class="hero-actions flex-center">
-						<a class="btn btn--solid btn--blue" href="<?php echo esc_url( home_url( '/book-a-consultancy/' ) ); ?>">
+						<a class="btn btn--solid btn--blue" href="<?php echo esc_url( pera_ml_url( home_url( '/book-a-consultancy/' ) ) ); ?>">
 						    <?php echo esc_html( pera_ml_ui( 'Book a Consultancy', 'theme.contact_cta.book_consultancy' ) ); ?>
 						</a>
 						<a href="<?php echo $whatsapp_url; ?>" class="btn btn--solid btn--green" data-whatsapp="1" data-whatsapp-type="inline_cta" data-track-channel="whatsapp" data-track-intent="high" data-track-source="partial" data-track-context="reusable_contact_cta" data-track-ga4-event="whatsapp_click" data-track-crm-event="whatsapp_click">

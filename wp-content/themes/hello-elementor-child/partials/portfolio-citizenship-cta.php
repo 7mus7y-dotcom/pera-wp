@@ -10,7 +10,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 $advisor_contact_url = isset( $advisor_contact_url ) ? trim( (string) $advisor_contact_url ) : '';
-$guide_url           = home_url( '/citizenship-by-investment/' );
+$guide_url           = pera_ml_url( home_url( '/citizenship-by-investment/' ) );
 ?>
 <section class="section section-soft portfolio-citizenship-guidance" aria-label="<?php echo esc_attr( pera_ml_ui( 'Turkish Citizenship Guidance', 'theme.portfolio_citizenship.section_label' ) ); ?>">
 	<div class="container">

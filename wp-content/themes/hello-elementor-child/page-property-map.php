@@ -326,7 +326,7 @@ foreach ( $area_copy as $slug => $copy ) {
         <p class="text-soft"><?php echo esc_html( pera_ml_ui( 'Share your budget and requirements, and we will prepare a focused selection before your viewing trip to Istanbul.', 'theme.template.page_property_map.share_your_budget_and_requirements_and_we_will_prepare_a_focused_selecti' ) ); ?></p><div class="hero-actions property-map-final__actions">
             <a class="btn btn--solid btn--green" href="<?php echo esc_url( $whatsapp_url ); ?>" target="_blank" rel="noopener" data-whatsapp="1" data-whatsapp-type="property_map_final" data-track-channel="whatsapp" data-track-intent="high" data-track-source="page" data-track-context="property_map_final" data-track-ga4-event="whatsapp_click" data-track-crm-event="whatsapp_click" data-map-track="final_whatsapp"><?php echo esc_html( pera_ml_ui( 'Message us on WhatsApp', 'theme.template.page_property_map.message_us_on_whatsapp' ) ); ?></a>
             <a class="btn btn--solid btn--blue" href="#property-map-assistance" data-map-track="final_shortlist"><?php echo esc_html( pera_ml_ui( 'Request a property shortlist', 'theme.template.page_property_map.request_a_property_shortlist' ) ); ?></a>
-            <a class="btn btn--ghost btn--green" href="<?php echo esc_url( home_url( '/book-a-consultancy/' ) ); ?>"><?php echo esc_html( pera_ml_ui( 'Book a consultancy', 'theme.template.page_property_map.book_a_consultancy' ) ); ?></a>
+            <a class="btn btn--ghost btn--green" href="<?php echo esc_url( pera_ml_url( home_url( '/book-a-consultancy/' ) ) ); ?>"><?php echo esc_html( pera_ml_ui( 'Book a consultancy', 'theme.template.page_property_map.book_a_consultancy' ) ); ?></a>
         </div>
     </div>
   </section>

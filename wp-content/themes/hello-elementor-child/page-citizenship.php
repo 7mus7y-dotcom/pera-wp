@@ -1272,7 +1272,7 @@ $citizenship_requirements = array(
           <?php echo esc_html( pera_ml_ui( 'These checks typically include an independent Turkish lawyer review, title deed checks, seller and property eligibility checks, official valuation report review, DAB / foreign currency compliance, land registry annotation for the mandatory 3-year holding period, and the Certificate of Conformity stage.', 'theme.template.page_citizenship.these_checks_typically_include_an_independent_turkish_lawyer_review_titl' ) ); ?>
         </p>
         <p>
-          <?php echo esc_html( pera_ml_ui( 'If you are comparing', 'theme.template.page_citizenship.if_you_are_comparing' ) ); ?> <a href="<?php echo esc_url( home_url( '/property/' ) ); ?>"><?php echo esc_html( pera_ml_ui( 'citizenship-eligible properties in Istanbul', 'theme.template.page_citizenship.citizenship_eligible_properties_in_istanbul' ) ); ?></a><?php echo esc_html( pera_ml_ui( ', our team can explain which items need legal confirmation before reservation, title deed transfer and citizenship filing.', 'theme.template.page_citizenship.our_team_can_explain_which_items_need_legal_confirmation_before_reservat' ) ); ?>
+          <?php echo esc_html( pera_ml_ui( 'If you are comparing', 'theme.template.page_citizenship.if_you_are_comparing' ) ); ?> <a href="<?php echo esc_url( pera_ml_url( home_url( '/property/' ) ) ); ?>"><?php echo esc_html( pera_ml_ui( 'citizenship-eligible properties in Istanbul', 'theme.template.page_citizenship.citizenship_eligible_properties_in_istanbul' ) ); ?></a><?php echo esc_html( pera_ml_ui( ', our team can explain which items need legal confirmation before reservation, title deed transfer and citizenship filing.', 'theme.template.page_citizenship.our_team_can_explain_which_items_need_legal_confirmation_before_reservat' ) ); ?>
         </p>
       </div>
 
@@ -1380,7 +1380,7 @@ $citizenship_requirements = array(
     </div>
 
     <p class="citizenship-route-note">
-      <?php echo esc_html( pera_ml_ui( 'Investment thresholds and application practice can change. Requirements should be checked with a licensed Turkish legal adviser before making an investment decision. To discuss your objectives,', 'theme.template.page_citizenship.investment_thresholds_and_application_practice_can_change_requirements_s' ) ); ?> <a href="<?php echo esc_url( home_url( '/contact/' ) ); ?>"><?php echo esc_html( pera_ml_ui( 'speak to Pera Property', 'theme.template.page_citizenship.speak_to_pera_property' ) ); ?></a>.
+      <?php echo esc_html( pera_ml_ui( 'Investment thresholds and application practice can change. Requirements should be checked with a licensed Turkish legal adviser before making an investment decision. To discuss your objectives,', 'theme.template.page_citizenship.investment_thresholds_and_application_practice_can_change_requirements_s' ) ); ?> <a href="<?php echo esc_url( pera_ml_url( home_url( '/contact/' ) ) ); ?>"><?php echo esc_html( pera_ml_ui( 'speak to Pera Property', 'theme.template.page_citizenship.speak_to_pera_property' ) ); ?></a>.
     </p>
   </div>
 </section>

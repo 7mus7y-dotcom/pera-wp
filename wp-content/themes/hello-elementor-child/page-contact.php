@@ -208,37 +208,37 @@ get_header();
           <tbody>
             <tr>
               <td>
-                <a href="<?php echo esc_url( home_url( '/district/istanbul/besiktas/' ) ); ?>"><?php echo esc_html( pera_ml_ui( 'Beşiktaş property', 'theme.template.page_contact.be_ikta_property' ) ); ?></a>
+                <a href="<?php echo esc_url( pera_ml_url( home_url( '/district/istanbul/besiktas/' ) ) ); ?>"><?php echo esc_html( pera_ml_ui( 'Beşiktaş property', 'theme.template.page_contact.be_ikta_property' ) ); ?></a>
               </td>
               <td><?php echo esc_html( pera_ml_ui( 'Central Bosphorus living close to Nişantaşı, Dolmabahçe and business districts.', 'theme.template.page_contact.central_bosphorus_living_close_to_ni_anta_dolmabah_e_and_business_distri' ) ); ?></td>
             </tr>
             <tr>
               <td>
-                <a href="<?php echo esc_url( home_url( '/district/istanbul/sisli/' ) ); ?>"><?php echo esc_html( pera_ml_ui( 'Şişli property', 'theme.template.page_contact.i_li_property' ) ); ?></a>
+                <a href="<?php echo esc_url( pera_ml_url( home_url( '/district/istanbul/sisli/' ) ) ); ?>"><?php echo esc_html( pera_ml_ui( 'Şişli property', 'theme.template.page_contact.i_li_property' ) ); ?></a>
               </td>
               <td><?php echo esc_html( pera_ml_ui( 'Modern city living with luxury residences, offices and shopping districts.', 'theme.template.page_contact.modern_city_living_with_luxury_residences_offices_and_shopping_districts' ) ); ?></td>
             </tr>
             <tr>
               <td>
-                <a href="<?php echo esc_url( home_url( '/district/istanbul/sariyer/' ) ); ?>"><?php echo esc_html( pera_ml_ui( 'Sarıyer property', 'theme.template.page_contact.sar_yer_property' ) ); ?></a>
+                <a href="<?php echo esc_url( pera_ml_url( home_url( '/district/istanbul/sariyer/' ) ) ); ?>"><?php echo esc_html( pera_ml_ui( 'Sarıyer property', 'theme.template.page_contact.sar_yer_property' ) ); ?></a>
               </td>
               <td><?php echo esc_html( pera_ml_ui( 'Bosphorus villas, waterfront homes and premium northern Istanbul districts.', 'theme.template.page_contact.bosphorus_villas_waterfront_homes_and_premium_northern_istanbul_district' ) ); ?></td>
             </tr>
             <tr>
               <td>
-                <a href="<?php echo esc_url( home_url( '/district/istanbul/beyoglu/' ) ); ?>"><?php echo esc_html( pera_ml_ui( 'Beyoğlu property', 'theme.template.page_contact.beyo_lu_property' ) ); ?></a>
+                <a href="<?php echo esc_url( pera_ml_url( home_url( '/district/istanbul/beyoglu/' ) ) ); ?>"><?php echo esc_html( pera_ml_ui( 'Beyoğlu property', 'theme.template.page_contact.beyo_lu_property' ) ); ?></a>
               </td>
               <td><?php echo esc_html( pera_ml_ui( 'Historic Istanbul neighbourhoods including Galata, Cihangir and Taksim.', 'theme.template.page_contact.historic_istanbul_neighbourhoods_including_galata_cihangir_and_taksim' ) ); ?></td>
             </tr>
             <tr>
               <td>
-                <a href="<?php echo esc_url( home_url( '/district/istanbul/kadikoy/' ) ); ?>"><?php echo esc_html( pera_ml_ui( 'Kadıköy property', 'theme.template.page_contact.kad_k_y_property' ) ); ?></a>
+                <a href="<?php echo esc_url( pera_ml_url( home_url( '/district/istanbul/kadikoy/' ) ) ); ?>"><?php echo esc_html( pera_ml_ui( 'Kadıköy property', 'theme.template.page_contact.kad_k_y_property' ) ); ?></a>
               </td>
               <td><?php echo esc_html( pera_ml_ui( 'Popular Asian-side lifestyle districts with strong long-term demand.', 'theme.template.page_contact.popular_asian_side_lifestyle_districts_with_strong_long_term_demand' ) ); ?></td>
             </tr>
             <tr>
               <td>
-                <a href="<?php echo esc_url( home_url( '/district/istanbul/uskudar/' ) ); ?>"><?php echo esc_html( pera_ml_ui( 'Üsküdar property', 'theme.template.page_contact.sk_dar_property' ) ); ?></a>
+                <a href="<?php echo esc_url( pera_ml_url( home_url( '/district/istanbul/uskudar/' ) ) ); ?>"><?php echo esc_html( pera_ml_ui( 'Üsküdar property', 'theme.template.page_contact.sk_dar_property' ) ); ?></a>
               </td>
               <td><?php echo esc_html( pera_ml_ui( 'Traditional Bosphorus neighbourhoods including Kandilli and Çengelköy.', 'theme.template.page_contact.traditional_bosphorus_neighbourhoods_including_kandilli_and_engelk_y' ) ); ?></td>
             </tr>
@@ -395,7 +395,7 @@ get_header();
             <p><?php echo esc_html( pera_ml_ui( 'Review current listings before asking our team about suitable districts, budgets and availability.', 'theme.template.page_contact.review_current_listings_before_asking_our_team_about_suitable_districts_' ) ); ?></p>
           </div>
           <div class="feature-card-footer">
-            <a href="<?php echo esc_url( home_url( '/property/' ) ); ?>" class="btn btn--solid btn--blue"><?php echo esc_html( pera_ml_ui( 'Search property for sale in Istanbul', 'theme.template.page_contact.search_property_for_sale_in_istanbul' ) ); ?></a>
+            <a href="<?php echo esc_url( pera_ml_url( home_url( '/property/' ) ) ); ?>" class="btn btn--solid btn--blue"><?php echo esc_html( pera_ml_ui( 'Search property for sale in Istanbul', 'theme.template.page_contact.search_property_for_sale_in_istanbul' ) ); ?></a>
           </div>
         </article>
 
@@ -407,7 +407,7 @@ get_header();
             <p><?php echo esc_html( pera_ml_ui( 'Read market explainers, buying advice and local insight before speaking with a consultant.', 'theme.template.page_contact.read_market_explainers_buying_advice_and_local_insight_before_speaking_w' ) ); ?></p>
           </div>
           <div class="feature-card-footer">
-            <a href="<?php echo esc_url( home_url( '/blog/' ) ); ?>" class="btn btn--solid btn--blue"><?php echo esc_html( pera_ml_ui( 'Read Istanbul real estate guides', 'theme.template.page_contact.read_istanbul_real_estate_guides' ) ); ?></a>
+            <a href="<?php echo esc_url( pera_ml_url( home_url( '/blog/' ) ) ); ?>" class="btn btn--solid btn--blue"><?php echo esc_html( pera_ml_ui( 'Read Istanbul real estate guides', 'theme.template.page_contact.read_istanbul_real_estate_guides' ) ); ?></a>
           </div>
         </article>
 
@@ -419,7 +419,7 @@ get_header();
             <p><?php echo esc_html( pera_ml_ui( 'Explore one of Istanbul’s most requested central districts before discussing neighbourhood fit.', 'theme.template.page_contact.explore_one_of_istanbul_s_most_requested_central_districts_before_discus' ) ); ?></p>
           </div>
           <div class="feature-card-footer">
-            <a href="<?php echo esc_url( home_url( '/district/istanbul/besiktas/' ) ); ?>" class="btn btn--solid btn--blue"><?php echo esc_html( pera_ml_ui( 'View Beşiktaş property guidance', 'theme.template.page_contact.view_be_ikta_property_guidance' ) ); ?></a>
+            <a href="<?php echo esc_url( pera_ml_url( home_url( '/district/istanbul/besiktas/' ) ) ); ?>" class="btn btn--solid btn--blue"><?php echo esc_html( pera_ml_ui( 'View Beşiktaş property guidance', 'theme.template.page_contact.view_be_ikta_property_guidance' ) ); ?></a>
           </div>
         </article>
 
@@ -431,7 +431,7 @@ get_header();
             <p><?php echo esc_html( pera_ml_ui( 'Understand the Turkish citizenship by investment property route before sending your enquiry.', 'theme.template.page_contact.understand_the_turkish_citizenship_by_investment_property_route_before_s' ) ); ?></p>
           </div>
           <div class="feature-card-footer">
-            <a href="<?php echo esc_url( home_url( '/turkish-citizenship-by-real-estate-investment_6292/' ) ); ?>" class="btn btn--solid btn--blue"><?php echo esc_html( pera_ml_ui( 'Read Turkish citizenship property guidance', 'theme.template.page_contact.read_turkish_citizenship_property_guidance' ) ); ?></a>
+            <a href="<?php echo esc_url( pera_ml_url( home_url( '/turkish-citizenship-by-real-estate-investment_6292/' ) ) ); ?>" class="btn btn--solid btn--blue"><?php echo esc_html( pera_ml_ui( 'Read Turkish citizenship property guidance', 'theme.template.page_contact.read_turkish_citizenship_property_guidance' ) ); ?></a>
           </div>
         </article>
 
@@ -443,7 +443,7 @@ get_header();
             <p><?php echo esc_html( pera_ml_ui( 'Learn how Pera Property supports owners who want valuation, marketing and sales advice.', 'theme.template.page_contact.learn_how_pera_property_supports_owners_who_want_valuation_marketing_and' ) ); ?></p>
           </div>
           <div class="feature-card-footer">
-            <a href="<?php echo esc_url( home_url( '/sell-your-istanbul-real-estate/' ) ); ?>" class="btn btn--solid btn--blue"><?php echo esc_html( pera_ml_ui( 'Get help selling property in Istanbul', 'theme.template.page_contact.get_help_selling_property_in_istanbul' ) ); ?></a>
+            <a href="<?php echo esc_url( pera_ml_url( home_url( '/sell-your-istanbul-real-estate/' ) ) ); ?>" class="btn btn--solid btn--blue"><?php echo esc_html( pera_ml_ui( 'Get help selling property in Istanbul', 'theme.template.page_contact.get_help_selling_property_in_istanbul' ) ); ?></a>
           </div>
         </article>
 
@@ -455,7 +455,7 @@ get_header();
             <p><?php echo esc_html( pera_ml_ui( 'See how our rental and management service helps landlords protect and manage Istanbul homes.', 'theme.template.page_contact.see_how_our_rental_and_management_service_helps_landlords_protect_and_ma' ) ); ?></p>
           </div>
           <div class="feature-card-footer">
-            <a href="<?php echo esc_url( home_url( '/rent-your-istanbul-real-estate/' ) ); ?>" class="btn btn--solid btn--blue"><?php echo esc_html( pera_ml_ui( 'Explore Istanbul rental management services', 'theme.template.page_contact.explore_istanbul_rental_management_services' ) ); ?></a>
+            <a href="<?php echo esc_url( pera_ml_url( home_url( '/rent-your-istanbul-real-estate/' ) ) ); ?>" class="btn btn--solid btn--blue"><?php echo esc_html( pera_ml_ui( 'Explore Istanbul rental management services', 'theme.template.page_contact.explore_istanbul_rental_management_services' ) ); ?></a>
           </div>
         </article>
       </div>

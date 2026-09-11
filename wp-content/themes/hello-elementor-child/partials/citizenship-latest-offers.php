@@ -42,7 +42,7 @@ get_template_part(
 		'next_aria_label'     => $copy['next_aria_label'],
 		'primary_cta'         => array(
 			'label' => $copy['view_all_label'],
-			'url'   => home_url( '/turkish-citizenship-properties/?view=cards' ),
+			'url'   => pera_ml_url( home_url( '/turkish-citizenship-properties/?view=cards' ) ),
 			'class' => 'btn btn--solid btn--blue',
 		),
 		'secondary_cta'       => array(

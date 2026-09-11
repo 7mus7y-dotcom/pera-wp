@@ -29,7 +29,7 @@ $hero_img_id = wp_attachment_is_image( $attachment_id ) ? $attachment_id : 0;
      <div class="hero-content">
       <nav aria-label="<?php echo esc_attr( pera_ml_ui( 'Breadcrumb', 'theme.template.attachment.aria_label.breadcrumb' ) ); ?>">
         <div class="inline-row" role="list">
-          <a class="pill pill--green" href="<?php echo esc_url( home_url( '/' ) ); ?>"><?php echo esc_html( pera_ml_ui( 'Home', 'theme.template.attachment.home' ) ); ?></a>
+          <a class="pill pill--green" href="<?php echo esc_url( pera_ml_url( home_url( '/' ) ) ); ?>"><?php echo esc_html( pera_ml_ui( 'Home', 'theme.template.attachment.home' ) ); ?></a>
           <?php if ( $parent_id && $parent_link ) : ?>
             <a class="pill pill--green" href="<?php echo esc_url( $parent_link ); ?>">
               <?php echo esc_html( $parent_title ); ?>

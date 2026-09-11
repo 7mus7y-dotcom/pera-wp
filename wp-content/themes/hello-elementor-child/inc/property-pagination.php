@@ -32,7 +32,7 @@ if ( ! function_exists( 'pera_render_property_pagination' ) ) {
     $base = $base_url !== '' ? $base_url : get_pagenum_link( 1 );
 
     if ( $base_url !== '' && ! preg_match( '#^https?://#i', $base ) ) {
-      $base = home_url( trailingslashit( ltrim( $base, '/' ) ) );
+      $base = pera_ml_url( home_url( trailingslashit( ltrim( $base, '/' ) ) ) );
     }
 
     $format = '';

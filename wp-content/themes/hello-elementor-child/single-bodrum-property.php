@@ -279,7 +279,7 @@ get_header();
         $hero_cta_label      = $primary_cta_label ? $primary_cta_label : pera_ml_ui( 'Request details', 'theme.template.single_bodrum_property.request_details' );
         $primary_cta_label   = $primary_cta_label ? $primary_cta_label : pera_ml_ui( 'Request details', 'theme.template.single_bodrum_property.request_details' );
         $secondary_cta_label = $secondary_cta_label ? $secondary_cta_label : pera_ml_ui( 'Arrange viewing', 'theme.template.single_bodrum_property.arrange_viewing' );
-        $primary_cta_url     = esc_url( site_url( '/book-a-consultancy/' ) );
+        $primary_cta_url     = esc_url( pera_ml_url( home_url( '/book-a-consultancy/' ) ) );
         $secondary_cta_url   = '#enquiry';
 
         $render_gallery_row = function( array $row_ids, $fallback_title ) {
