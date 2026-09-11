@@ -63,7 +63,8 @@ $p = Pera_ML_Plugin::instance();
 $health = new Pera_ML_Translation_Health(
     $p->status(),
     $p->storage(),
-    $p->ui()
+    $p->ui(),
+    $p->registry()
 );
 
 $orchestrator = new Pera_ML_Translation_Health_Orchestrator(
@@ -71,7 +72,8 @@ $orchestrator = new Pera_ML_Translation_Health_Orchestrator(
     $p->storage(),
     $p->translator(),
     $p->ui(),
-    $p->ui_registry()
+    $p->ui_registry(),
+    $p->registry()
 );
 
 $inventory = $health->inventory();

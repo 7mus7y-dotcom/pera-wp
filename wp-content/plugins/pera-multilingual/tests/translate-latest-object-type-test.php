@@ -15,6 +15,7 @@ if ( isset( $argv[1] ) && 'scenario' === $argv[1] ) {
 		public function translator() { return new Latest_Test_Dependency(); }
 		public function ui() { return new Latest_Test_Dependency(); }
 		public function ui_registry() { return new Latest_Test_Dependency(); }
+		public function registry() { return new Latest_Test_Dependency(); }
 	}
 	final class Pera_ML_Translation_Health {
 		public function __construct() {}

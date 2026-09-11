@@ -11,8 +11,9 @@ final class Health_Orch_Status { public $field='post_title'; public $source='Pag
 final class Health_Orch_Storage { public $row=null; public function get(){return $this->row;} }
 final class Health_Orch_Translator { public $calls=array(); public $result=true; public $storage; public $write=true; public function translate_and_store(){ $this->calls[]=func_get_args(); if ( true === $this->result && $this->write ) $this->storage->row=array('translated_text'=>'New','is_stale'=>false,'status'=>'current'); return $this->result; } }
 final class Health_Orch_UI { public function status(){return 'missing';} public function translate_registered(){return true;} } final class Health_Orch_Registry { public function find(){return null;} }
+final class Health_Orch_Languages { public function get($code){return in_array($code,array('zh','fr'),true)?array('enabled'=>true,'source'=>false):null;} }
 require dirname(__DIR__).'/includes/class-storage.php'; require dirname(__DIR__).'/includes/class-fields.php'; require dirname(__DIR__).'/includes/class-translation-health.php'; require dirname(__DIR__).'/includes/class-translation-health-orchestrator.php';
-$status=new Health_Orch_Status(); $storage=new Health_Orch_Storage(); $translator=new Health_Orch_Translator(); $translator->storage=$storage; $orch=new Pera_ML_Translation_Health_Orchestrator($status,$storage,$translator,new Health_Orch_UI(),new Health_Orch_Registry());
+$status=new Health_Orch_Status(); $storage=new Health_Orch_Storage(); $translator=new Health_Orch_Translator(); $translator->storage=$storage; $orch=new Pera_ML_Translation_Health_Orchestrator($status,$storage,$translator,new Health_Orch_UI(),new Health_Orch_Registry(),new Health_Orch_Languages());
 $base=array('object_type'=>'page','object_id'=>9,'field'=>'post_title','language'=>'zh','status'=>'missing');
 $status->source='  '; health_assert('invalid_row',$orch->translate($base)->get_error_code(),'whitespace source rejected'); health_assert(0,count($translator->calls),'whitespace never reaches provider');
 $status->source='Page'; $status->missing=array(); health_assert('invalid_row',$orch->translate($base)->get_error_code(),'current content rejected'); health_assert(0,count($translator->calls),'current content never reaches provider'); $status->missing=array('post_title');
@@ -32,4 +33,5 @@ $storage->row=array('translated_text'=>'Current','is_stale'=>false,'status'=>'cu
 $term['status']='current'; health_assert(true,$orch->translate($term,true),'explicit regeneration retranslates a current canonical taxonomy row'); health_assert(8,count($translator->calls),'regeneration reaches the provider exactly once'); $term['status']='missing';
 $storage->row=null; $faq=$term; $faq['field']='meta:seo_faq_v2'; $faq['status']='missing'; health_assert(true,$orch->translate($faq),'approved taxonomy FAQ row succeeds');
 health_assert(array('term',8,'meta:seo_faq_v2','zh','Question|Answer'),array_slice($translator->calls[8],0,5),'taxonomy FAQ uses canonical source and dedicated field key');
+$storage->row=null; $faq['language']='fr'; health_assert(true,$orch->translate($faq),'additional enabled registry target reaches taxonomy orchestration'); health_assert('fr',$translator->calls[9][3],'orchestrator uses the registry language contract');
 echo "Pera ML translation health orchestrator tests passed\n";

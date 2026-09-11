@@ -33,6 +33,7 @@ final class Health_Storage {
 		return null;
 	}
 }
+final class Health_Languages { public function enabled() { return array( 'en'=>array('source'=>true), 'zh'=>array('source'=>false), 'ar'=>array('source'=>false), 'de'=>array('source'=>false) ); } }
 require dirname( __DIR__ ) . '/includes/class-fields.php';
 require dirname( __DIR__ ) . '/includes/class-translation-health.php';
 $fields_service = new Pera_ML_Fields( null, null, null );
@@ -44,7 +45,7 @@ health_expect( true, in_array( 'post_tag', Pera_ML_Fields::supported_taxonomies(
 health_expect( array( 'term_name', 'term_description' ), Pera_ML_Fields::taxonomy_fields( 'category' ), 'category uses the existing name and description contract' );
 health_expect( array( 'term_name', 'term_description' ), Pera_ML_Fields::taxonomy_fields( 'post_tag' ), 'post_tag uses the existing name and description contract' );
 $status = new Health_Status();
-$inventory = ( new Pera_ML_Translation_Health( $status, new Health_Storage(), new Health_UI() ) )->inventory();
+$inventory = ( new Pera_ML_Translation_Health( $status, new Health_Storage(), new Health_UI(), new Health_Languages() ) )->inventory();
 health_expect( array( 'post', 'page', 'property', 'team' ), array_column( $status->preloads, 2 ), 'status is preloaded once per non-empty post-type group' );
 health_expect( array( 1, 2 ), $status->preloads[0][0], 'post IDs are grouped into one preload' );
 health_expect( 12, $status->gets, 'preloaded request-local status is read only for objects with canonical copy' );
@@ -68,7 +69,7 @@ $faq_rows = array_filter( $inventory['rows'], static function ( $row ) { return 
 health_expect( array( 'zh', 'ar', 'de' ), array_values( array_column( $faq_rows, 'language' ) ), 'canonical taxonomy FAQ creates one health row per target language' );
 health_expect( array( 'missing', 'missing', 'missing' ), array_values( array_column( $faq_rows, 'status' ) ), 'untranslated taxonomy FAQ rows are missing' );
 $GLOBALS['term_meta']['seo_faq_v2'] = '   ';
-$empty_inventory = ( new Pera_ML_Translation_Health( $status, new Health_Storage(), new Health_UI() ) )->inventory();
+$empty_inventory = ( new Pera_ML_Translation_Health( $status, new Health_Storage(), new Health_UI(), new Health_Languages() ) )->inventory();
 $empty_faq_rows = array_filter( $empty_inventory['rows'], static function ( $row ) { return 'meta:seo_faq_v2' === $row['field']; } );
 health_expect( 0, count( $empty_faq_rows ), 'empty taxonomy FAQ does not create missing rows' );
 $fields = array_column( $inventory['rows'], 'field' );

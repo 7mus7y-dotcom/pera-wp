@@ -40,6 +40,7 @@ final class FAQ_Generation_Translator {
 }
 final class FAQ_Generation_UI { public function inventory() { return array(); } }
 final class FAQ_Generation_UI_Registry {}
+final class FAQ_Generation_Languages { public function enabled() { return array( 'de'=>array('enabled'=>true,'source'=>false) ); } public function get( $code ) { return 'de' === $code ? array('enabled'=>true,'source'=>false) : null; } }
 final class FAQ_Generation_Router { public function current_language() { return 'de'; } }
 
 require dirname( __DIR__ ) . '/includes/class-fields.php';
@@ -50,12 +51,12 @@ generation_expect( 'Actual English question', $acf_sources['meta:homepage_faq_0_
 generation_expect( 'Actual English answer', $acf_sources['meta:homepage_faq_0_answer'], 'ACF repeater answer becomes a structured source' );
 generation_expect( array( array( 'faq', 20 ) ), $GLOBALS['faq_generation_acf_calls'], 'structured source loader requests real rows through ACF' );
 $storage = new FAQ_Generation_Storage(); $status = new FAQ_Generation_Status(); $translator = new FAQ_Generation_Translator( $storage );
-$health = new Pera_ML_Translation_Health( $status, $storage, new FAQ_Generation_UI() );
+$health = new Pera_ML_Translation_Health( $status, $storage, new FAQ_Generation_UI(), new FAQ_Generation_Languages() );
 $inventory = $health->inventory();
 $question_rows = array_values( array_filter( $inventory['rows'], static function ( $row ) { return 'meta:homepage_faq_0_question' === $row['field'] && 'de' === $row['language']; } ) );
 generation_expect( 'missing', $question_rows[0]['status'], 'Translation Health reports the FAQ question missing' );
 
-$orchestrator = new Pera_ML_Translation_Health_Orchestrator( $status, $storage, $translator, null, new FAQ_Generation_UI_Registry() );
+$orchestrator = new Pera_ML_Translation_Health_Orchestrator( $status, $storage, $translator, null, new FAQ_Generation_UI_Registry(), new FAQ_Generation_Languages() );
 generation_expect( 'Deutsche Frage', $orchestrator->translate( array( 'object_type' => 'page', 'object_id' => 20, 'field' => 'meta:homepage_faq_0_question', 'language' => 'de', 'status' => 'missing' ) ), 'missing question generation succeeds' );
 generation_expect( 'Deutsche Antwort', $orchestrator->translate( array( 'object_type' => 'page', 'object_id' => 20, 'field' => 'meta:homepage_faq_0_answer', 'language' => 'de', 'status' => 'stale' ) ), 'stale answer regeneration succeeds' );
 generation_expect( array( 'post', 20, 'meta:homepage_faq_0_question', 'de', 'Actual English question' ), $translator->calls[0], 'question generator receives exact structured key and canonical source' );
