@@ -56,6 +56,12 @@ $crm_overdue_count          = $show_crm_header_button && function_exists( 'pera_
 $crm_label                  = $crm_overdue_count > 0
   ? sprintf( pera_ml_ui( 'CRM (%d overdue reminders)', 'theme.template.header.crm_overdue_reminders' ), $crm_overdue_count )
   : 'CRM';
+$show_new_leads_pill        = is_user_logged_in()
+  && function_exists( 'pera_is_frontend_admin_equivalent' )
+  && pera_is_frontend_admin_equivalent();
+$new_leads_count            = $show_new_leads_pill && function_exists( 'pera_crm_count_new_leads_for_user' )
+  ? (int) pera_crm_count_new_leads_for_user( 0, 72 )
+  : 0;
 
 ?>
 
@@ -76,7 +82,8 @@ $crm_label                  = $crm_overdue_count > 0
     </div>
 
     <!-- RIGHT: ICONS -->
-    <div class="header-icons">
+    <div class="flex flex-col items-end">
+      <div class="header-icons">
 
       <?php pera_render_header_language_switcher( 'desktop' ); ?>
 
@@ -121,6 +128,14 @@ $crm_label                  = $crm_overdue_count > 0
         </svg>
       </label>
 
+      </div>
+
+      <?php if ( $show_new_leads_pill ) : ?>
+        <a href="<?php echo esc_url( home_url( '/crm/clients/?type=leads&filter=new72' ) ); ?>"
+           class="pill pill--red mt-2xs">
+          <?php echo esc_html( sprintf( pera_ml_ui( 'New leads: %d', 'theme.template.header.new_leads_count' ), $new_leads_count ) ); ?>
+        </a>
+      <?php endif; ?>
     </div>
 
   </div>
