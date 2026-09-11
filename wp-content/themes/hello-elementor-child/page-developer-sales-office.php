@@ -77,7 +77,7 @@ get_header();
 			<div class="hero-overlay" aria-hidden="true"></div>
 		</div>
 		<div class="hero-content">
-			<p><?php echo esc_html( pera_ml_ui( 'For Istanbul developers', 'theme.template.page_developer_sales_office.hero_eyebrow' ) ); ?></p>
+			<span class="pill pill--brand pill--sm"><?php echo esc_html( pera_ml_ui( 'For developers', 'theme.template.page_developer_sales_office.hero_eyebrow' ) ); ?></span>
 			<h1><?php echo esc_html( pera_ml_ui( 'Your project deserves a sales operation — not just a marketing campaign.', 'theme.template.page_developer_sales_office.hero_heading' ) ); ?></h1>
 			<p class="lead"><?php echo esc_html( pera_ml_ui( 'Pera plans and operates the commercial function behind a development: positioning, buyer acquisition, sales conversion, broker management and clear reporting from launch to closing.', 'theme.template.page_developer_sales_office.hero_intro' ) ); ?></p>
 			<div class="hero-actions">
