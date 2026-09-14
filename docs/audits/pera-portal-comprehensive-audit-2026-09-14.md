@@ -13,7 +13,7 @@ The plugin is physically structured as a standard WordPress plugin. It has a val
 The main blockers are:
 
 1. **No activation/deactivation rewrite lifecycle.** Routes are added on `init`, but there is no activation/deactivation hook and no automatic `flush_rewrite_rules()`. A clean activation can leave all virtual portal routes returning 404 until an administrator manually saves Permalinks (`includes/routing/portal-pages.php`, lines 7-25 and 56-82).
-2. **Portal CPT authorization uses generic post capabilities.** Buildings, floors, and units use `capability_type => post`, expose UI, and set `show_in_rest => true`; hiding menu entries is not an access-control boundary (`includes/cpt/*.php`; `includes/admin/menu.php`, lines 30-45).
+2. **Portal CPT authorization uses generic post capabilities.** Buildings, floors, units, and quotes (`pera_quote`) use `capability_type => post` and `show_ui => true`; buildings, floors, and units also set `show_in_rest => true`. The menu-hiding code covers buildings, floors, and units but not `pera_quote`, so—depending on installed role capabilities—ordinary Editors may be able to administer quotes directly (`includes/cpt/building.php`, `includes/cpt/floor.php`, `includes/cpt/unit.php`, and `includes/cpt/quote.php`, lines 21-29; `includes/admin/menu.php`, lines 30-45).
 3. **Published floor metadata and SVG plans are public through REST.** Anonymous callers can enumerate published buildings/floors and retrieve floor-plan SVGs even though the portal HTML routes are staff-only (`includes/rest/routes.php`, lines 69-127, 379-447, and 595-660).
 4. **SVG delivery needs hardening.** The floor endpoint serves stored SVG bytes as same-origin `image/svg+xml` and may fetch an ACF-supplied URL server-side. Viewer-side sanitation does not protect direct requests to the raw endpoint (`includes/rest/routes.php`, lines 17-66 and 175-246; `assets/dist/portal-viewer.js`, lines 104-138).
 5. **`/portal-test/` is not a standalone route and is probably non-operational.** It requires an existing WordPress Page with slug `portal-test`, invokes the legacy shortcode without building/floor attributes, and renders a shell with no building selector (`includes/frontend/template-routing.php`, lines 7-25; `templates/page-portal-test.php`, lines 7-13).
@@ -118,7 +118,7 @@ No Critical issue was confirmed statically.
 | Severity | Confidence | Area | Evidence | Impact | Recommended fix |
 |---|---|---|---|---|---|
 | **High** | Confirmed | Plugin lifecycle/rewrite rules | Routes are added on `init`; no activation/deactivation hook or rewrite flush exists. The plugin only warns on the Permalinks screen (`includes/routing/portal-pages.php`, lines 7-25 and 56-82). | Clean activation can leave every virtual route at 404. | Add activation and deactivation callbacks. Activation should register rules and flush once; deactivation should flush once. Never flush per request. |
-| **High** | Confirmed behavior; exploitability depends on installed roles | CPT authorization | Buildings, floors, and units use generic `post` capabilities, show UI, and expose core REST (`includes/cpt/building.php`, `floor.php`, and `unit.php`, lines 21-29). Disallowed menus are only removed (`includes/admin/menu.php`, lines 30-45). | Ordinary post editors may reach direct edit URLs or core REST without portal access and alter inventory. | Define explicit CPT capabilities with `map_meta_cap`, assign only to approved roles, and align `show_in_rest` with policy. |
+| **High** | Confirmed behavior; exploitability depends on installed roles | CPT authorization | Buildings, floors, units, and quotes use generic `post` capabilities and show UI (`includes/cpt/building.php`, `includes/cpt/floor.php`, `includes/cpt/unit.php`, and `includes/cpt/quote.php`, lines 21-29). Buildings, floors, and units expose core REST; `pera_quote` does not, but it is also absent from the disallowed-menu removals (`includes/admin/menu.php`, lines 30-45). | Depending on installed role capabilities, ordinary post editors may reach direct edit URLs without portal access, alter inventory, or edit/trash live quotes; core REST may additionally expose CRUD for the three REST-enabled CPTs. | Define explicit capabilities with `map_meta_cap` for all four CPTs, migrate only approved roles, test direct-admin access for each CPT, and set an explicit REST policy for each CPT including `pera_quote`. |
 | **High** | Confirmed exposure; sensitivity needs business confirmation | Floor/SVG REST disclosure | `/floor` and `/floors` allow anonymous access to published records and return IDs, labels, direct SVG URLs, and SVG content (`includes/rest/routes.php`, lines 69-127, 379-447, and 595-660). | Anonymous building/floor enumeration and floor-plan disclosure conflict with the staff-only HTML portal. Unit prices remain protected. | Decide whether plans are public. If private, require portal access and use authenticated file delivery rather than public Media Library URLs. |
 | **High** | Confirmed risk; exploitability requires SVG/content control | SVG serving and remote retrieval | The endpoint reads and serves raw SVG and may use `wp_remote_get()` on the field URL (`includes/rest/routes.php`, lines 17-66). Client sanitation happens only inside the viewer (`assets/dist/portal-viewer.js`, lines 104-138). | Direct same-origin SVG requests do not benefit from client sanitation; externally controlled URLs could induce server-side requests. | Sanitize at upload/save and response, restrict delivery context, eliminate arbitrary remote fetches or enforce a host allowlist and safe HTTP API. |
 | **Medium** | Confirmed | `/portal-test/` | Requires a database Page and invokes the shortcode with building/floor zero; shared shell has no building selector. | Route can be 404 or render a non-operational viewer; unauthorized response is not HTTP 403. | Register and seed a deterministic QA route or remove it and its compatibility path. |
@@ -148,7 +148,7 @@ No Critical issue was confirmed statically.
 | Quote creation | Any portal/CRM user |
 | Quote revocation | Any portal/CRM user |
 | Public quote | Anyone holding the high-entropy token |
-| CPT admin/core REST | Generic WordPress post capabilities |
+| CPT admin/core REST | Buildings, floors, units, and `pera_quote` use generic WordPress post capabilities in admin; core REST is enabled for the first three and disabled for `pera_quote` |
 | Units Manager writes/import/delete | Any portal/CRM user plus a valid nonce |
 
 The Units Manager custom handlers do consistently check portal access and nonces. Destructive unit deletion additionally verifies post type and floor membership (`includes/admin/units-manager-page.php`, lines 895-923). CSV preview verifies access, nonce, selected context, filename/type, and `is_uploaded_file()` (`includes/admin/units-manager-page.php`, lines 1023-1059).
@@ -255,7 +255,7 @@ Browser testing remains necessary for:
 9. Confirm `/portal-test/` works according to its approved purpose or is removed.
 10. Verify anonymous REST exposure matches the approved floor-plan policy.
 11. Verify `/units` denies anonymous access and core REST does not bypass portal policy.
-12. Verify ordinary Author/Editor/CRM roles against direct CPT edit URLs.
+12. Verify Subscriber/Author/Editor/CRM/administrator roles against direct list/create/edit/trash URLs for `pera_building`, `pera_floor`, `pera_unit`, and `pera_quote`.
 13. Create, open, expire, revoke, and remove a quote; verify PII and attachment retention behavior.
 14. Verify malicious SVG constructs cannot execute through direct upload or REST URLs.
 15. Confirm CSS/JS URLs return HTTP 200 with updated `?ver=` values after deployment.
@@ -407,8 +407,8 @@ Use a staging hostname in place of `https://staging.example.com`.
 
 ### Admin and CSV
 
-- Direct CPT list/create/edit endpoints for all roles.
-- Core REST create/update/delete for all roles.
+- Direct building, floor, unit, and quote CPT list/create/edit/trash endpoints as Subscriber, Author, Editor, CRM user, and administrator.
+- Core REST create/read/update/delete attempts for `pera_building`, `pera_floor`, `pera_unit`, and `pera_quote` as Subscriber, Author, Editor, CRM user, and administrator, including confirmation that the current `pera_quote` REST policy remains disabled unless intentionally changed.
 - Units Manager actions with missing, invalid, reused, and valid nonces.
 - Cross-building floor/unit tampering.
 - CSV wrong extension/MIME, empty/large file, missing/unexpected columns, duplicate codes, bad numeric/status/currency data, commas/newlines, BOM, and high row count.
@@ -436,4 +436,3 @@ Use a staging hostname in place of `https://staging.example.com`.
 - `git status --short` — clean at audit time.
 - `wp plugin status pera-portal` — not available because this checkout has no runnable WordPress/WP-CLI environment.
 - Live `curl` and authenticated browser checks — not run because no staging/live runtime was supplied.
-
