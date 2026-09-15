@@ -20,12 +20,8 @@ function peracrm_whatsapp_default_settings()
 
 function peracrm_whatsapp_get_settings()
 {
-    $saved = get_option('peracrm_whatsapp_settings', []);
-    if (!is_array($saved)) {
-        $saved = [];
-    }
+    $settings = peracrm_whatsapp_get_saved_settings();
 
-    $settings = wp_parse_args($saved, peracrm_whatsapp_default_settings());
     $overrides = [
         'enabled' => 'PERACRM_WHATSAPP_ENABLED',
         'test_mode' => 'PERACRM_WHATSAPP_TEST_MODE',
@@ -42,6 +38,16 @@ function peracrm_whatsapp_get_settings()
         }
     }
     return $settings;
+}
+
+function peracrm_whatsapp_get_saved_settings()
+{
+    $saved = get_option('peracrm_whatsapp_settings', []);
+    if (!is_array($saved)) {
+        $saved = [];
+    }
+
+    return wp_parse_args($saved, peracrm_whatsapp_default_settings());
 }
 
 function peracrm_whatsapp_is_enabled()
@@ -68,7 +74,9 @@ function peracrm_whatsapp_mask_secret($value)
 
 function peracrm_whatsapp_save_settings(array $input)
 {
-    $existing = peracrm_whatsapp_get_settings();
+    // Read the stored option directly. Runtime constant overrides must never be
+    // copied from wp-config.php/environment into the database on a blank field.
+    $existing = peracrm_whatsapp_get_saved_settings();
 
     $settings = [
         'enabled' => !empty($input['enabled']) ? 1 : 0,
@@ -506,15 +514,17 @@ function peracrm_whatsapp_get_messages(array $args = [])
 
     $rows = $wpdb->get_results(
         $wpdb->prepare(
-            "SELECT id, client_id, phone_e164, sender_wa_id, recipient_phone_number_id, whatsapp_contact_name, direction, message_type, message_body, whatsapp_message_id, message_status, meta_timestamp, created_at FROM {$table}{$where} ORDER BY COALESCE(meta_timestamp, created_at) ASC, id ASC LIMIT %d OFFSET %d",
+            "SELECT id, client_id, phone_e164, sender_wa_id, recipient_phone_number_id, whatsapp_contact_name, direction, message_type, message_body, whatsapp_message_id, message_status, meta_timestamp, created_at FROM {$table}{$where} ORDER BY COALESCE(meta_timestamp, created_at) DESC, id DESC LIMIT %d OFFSET %d",
             $per_page,
             $offset
         ),
         ARRAY_A
     );
 
+    $rows = is_array($rows) ? array_reverse($rows) : [];
+
     return [
-        'rows' => is_array($rows) ? $rows : [],
+        'rows' => $rows,
         'pagination' => [
             'total' => $total,
             'total_pages' => $total_pages,
@@ -543,14 +553,14 @@ function peracrm_whatsapp_delete_messages_by_ids(array $ids)
     ];
 }
 
-function peracrm_whatsapp_user_can_access_client($client_id, $user_id = 0)
+function peracrm_whatsapp_user_can_access_client_on_current_blog($client_id, $user_id = 0)
 {
     $client_id = absint($client_id);
     $user_id = $user_id > 0 ? absint($user_id) : get_current_user_id();
     if ($client_id <= 0 || $user_id <= 0 || get_post_type($client_id) !== 'crm_client') {
         return false;
     }
-    if (user_can($user_id, 'manage_options') || user_can($user_id, 'peracrm_manage_all_reminders')) {
+    if (user_can($user_id, 'manage_options') || user_can($user_id, 'peracrm_manage_all_clients')) {
         return true;
     }
     if (!user_can($user_id, 'edit_crm_clients')) {
@@ -558,6 +568,13 @@ function peracrm_whatsapp_user_can_access_client($client_id, $user_id = 0)
     }
     return function_exists('peracrm_client_get_assigned_advisor_id')
         && (int) peracrm_client_get_assigned_advisor_id($client_id) === $user_id;
+}
+
+function peracrm_whatsapp_user_can_access_client($client_id, $user_id = 0)
+{
+    return (bool) peracrm_with_target_blog(static function () use ($client_id, $user_id) {
+        return peracrm_whatsapp_user_can_access_client_on_current_blog($client_id, $user_id);
+    });
 }
 
 function peracrm_whatsapp_client_phone($client_id)

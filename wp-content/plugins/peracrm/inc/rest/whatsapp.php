@@ -41,9 +41,7 @@ function peracrm_rest_whatsapp_client_permission(WP_REST_Request $request)
         return false;
     }
 
-    return (bool) peracrm_with_target_blog(static function () use ($request) {
-        return peracrm_whatsapp_user_can_access_client((int) $request['client_id']);
-    });
+    return peracrm_whatsapp_user_can_access_client((int) $request['client_id']);
 }
 
 function peracrm_whatsapp_verify_meta_signature($raw, $signature, $secret)
