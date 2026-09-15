@@ -487,8 +487,9 @@ function peracrm_whatsapp_store_message_result(array $record)
         'source' => sanitize_key((string) ($record['source'] ?? 'whatsapp')),
         'linked_by' => sanitize_key((string) ($record['linked_by'] ?? 'phone')),
         'created_at' => peracrm_now_mysql(),
+        'created_at_utc' => current_time('mysql', true),
     ], [
-        '%d', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s',
+        '%d', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s',
     ]);
 
     if (!$inserted && $whatsapp_message_id !== '') {
@@ -543,16 +544,41 @@ function peracrm_whatsapp_get_messages_on_current_blog(array $args = [])
     $paged = min($paged, $total_pages);
     $offset = ($paged - 1) * $per_page;
 
-    $rows = $wpdb->get_results(
-        $wpdb->prepare(
-            "SELECT id, client_id, phone_e164, sender_wa_id, recipient_phone_number_id, whatsapp_contact_name, direction, message_type, message_body, whatsapp_message_id, message_status, meta_timestamp, created_at FROM {$table}{$where} ORDER BY COALESCE(meta_timestamp, created_at) DESC, id DESC LIMIT %d OFFSET %d",
-            $per_page,
-            $offset
-        ),
-        ARRAY_A
-    );
+    $window_size = $per_page + $offset;
+    $fields = 'id, client_id, phone_e164, sender_wa_id, recipient_phone_number_id, whatsapp_contact_name, direction, message_type, message_body, whatsapp_message_id, message_status, meta_timestamp, status_timestamp, created_at, created_at_utc';
+    $timestamped_where = $where . ($where === '' ? ' WHERE ' : ' AND ') . "(meta_timestamp IS NOT NULL OR created_at_utc IS NOT NULL)";
+    $legacy_where = $where . ($where === '' ? ' WHERE ' : ' AND ') . 'meta_timestamp IS NULL AND created_at_utc IS NULL';
 
-    $rows = is_array($rows) ? array_reverse($rows) : [];
+    // Pull enough rows from each independently ordered timestamp population to
+    // contain the requested combined page. Legacy created_at is site-local;
+    // normalize it with WordPress timezone rules in PHP before the final limit.
+    $timestamped = $wpdb->get_results($wpdb->prepare(
+        "SELECT {$fields} FROM {$table}{$timestamped_where} ORDER BY COALESCE(meta_timestamp, created_at_utc) DESC, id DESC LIMIT %d",
+        $window_size
+    ), ARRAY_A);
+    $legacy = $wpdb->get_results($wpdb->prepare(
+        "SELECT {$fields} FROM {$table}{$legacy_where} ORDER BY created_at DESC, id DESC LIMIT %d",
+        $window_size
+    ), ARRAY_A);
+    $rows = array_merge(is_array($timestamped) ? $timestamped : [], is_array($legacy) ? $legacy : []);
+    foreach ($rows as &$row) {
+        if (!empty($row['meta_timestamp'])) {
+            $row['_order_timestamp_utc'] = (string) $row['meta_timestamp'];
+        } elseif (!empty($row['created_at_utc'])) {
+            $row['_order_timestamp_utc'] = (string) $row['created_at_utc'];
+        } else {
+            $row['_order_timestamp_utc'] = get_gmt_from_date((string) ($row['created_at'] ?? ''), 'Y-m-d H:i:s');
+        }
+    }
+    unset($row);
+    usort($rows, static function ($left, $right) {
+        $timestamp_order = strcmp((string) $right['_order_timestamp_utc'], (string) $left['_order_timestamp_utc']);
+        return $timestamp_order !== 0 ? $timestamp_order : ((int) $right['id'] <=> (int) $left['id']);
+    });
+    $rows = array_slice($rows, $offset, $per_page);
+    foreach ($rows as &$row) unset($row['_order_timestamp_utc']);
+    unset($row);
+    $rows = array_reverse($rows);
 
     return [
         'rows' => $rows,
@@ -679,42 +705,51 @@ function peracrm_whatsapp_apply_status($wamid, $status, $timestamp = null)
         if ($wamid === '' || !in_array($status, ['sent', 'delivered', 'read', 'failed'], true)) return false;
 
         $table = peracrm_whatsapp_messages_table_name();
-        $row = $wpdb->get_row($wpdb->prepare(
-            "SELECT message_status, status_timestamp FROM {$table} WHERE whatsapp_message_id = %s LIMIT 1",
-            $wamid
-        ), ARRAY_A);
-        if (!is_array($row)) return false;
-
-        $current = sanitize_key((string) ($row['message_status'] ?? ''));
-        $current_timestamp = (string) ($row['status_timestamp'] ?? '');
         $incoming_timestamp = peracrm_whatsapp_meta_datetime($timestamp);
-        $is_older = $incoming_timestamp !== null && $current_timestamp !== '' && $incoming_timestamp < $current_timestamp;
         $ranks = ['sent' => 1, 'delivered' => 2, 'read' => 3];
 
-        if ($status === 'failed') {
-            // Once Meta confirms delivery/read, a delayed failure must not corrupt
-            // that terminal evidence. Before delivery, retain only a newer failure.
-            if (in_array($current, ['delivered', 'read'], true) || $is_older) return false;
-        } elseif (isset($ranks[$current])) {
-            if ($ranks[$status] < $ranks[$current] || $is_older) return false;
-        } elseif ($current === 'failed' && $is_older) {
-            return false;
+        // A competing webhook can change the state between SELECT and UPDATE.
+        // Re-read and re-evaluate a bounded number of times on a zero-row CAS.
+        for ($attempt = 0; $attempt < 3; $attempt++) {
+            $row = $wpdb->get_row($wpdb->prepare(
+                "SELECT message_status, status_timestamp FROM {$table} WHERE whatsapp_message_id = %s LIMIT 1",
+                $wamid
+            ), ARRAY_A);
+            if (!is_array($row)) return false;
+
+            $current = sanitize_key((string) ($row['message_status'] ?? ''));
+            $current_timestamp_value = $row['status_timestamp'] ?? null;
+            $current_timestamp = (string) $current_timestamp_value;
+            $is_older = $incoming_timestamp !== null && $current_timestamp !== '' && $incoming_timestamp < $current_timestamp;
+
+            if ($status === 'failed') {
+                if (in_array($current, ['delivered', 'read'], true) || $is_older) return false;
+                if ($current === 'failed' && ($incoming_timestamp === null || $incoming_timestamp <= $current_timestamp)) return true;
+            } elseif (isset($ranks[$current])) {
+                if ($ranks[$status] < $ranks[$current] || $is_older) return false;
+                if ($status === $current && ($incoming_timestamp === null || $incoming_timestamp <= $current_timestamp)) return true;
+            } elseif ($current === 'failed' && $is_older) {
+                return false;
+            }
+
+            $update = ['message_status' => $status];
+            $formats = ['%s'];
+            if ($incoming_timestamp !== null && ($current_timestamp === '' || $incoming_timestamp >= $current_timestamp)) {
+                $update['status_timestamp'] = $incoming_timestamp;
+                $formats[] = '%s';
+            }
+            $updated = $wpdb->update(
+                $table,
+                $update,
+                ['whatsapp_message_id' => $wamid, 'message_status' => $current, 'status_timestamp' => $current_timestamp_value],
+                $formats,
+                ['%s', '%s', '%s']
+            );
+            if ($updated === false) return false;
+            if ($updated > 0) return true;
         }
 
-        $update = ['message_status' => $status];
-        $formats = ['%s'];
-        if ($incoming_timestamp !== null && ($current_timestamp === '' || $incoming_timestamp >= $current_timestamp)) {
-            $update['status_timestamp'] = $incoming_timestamp;
-            $formats[] = '%s';
-        }
-
-        return $wpdb->update(
-            $table,
-            $update,
-            ['whatsapp_message_id' => $wamid, 'message_status' => $current],
-            $formats,
-            ['%s', '%s']
-        ) !== false;
+        return false;
     });
 }
 

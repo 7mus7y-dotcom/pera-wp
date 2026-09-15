@@ -28,7 +28,7 @@ Runtime constant overrides are never copied into the target-blog WordPress optio
 
 ## Setup
 
-1. Deploy and visit an authorised CRM/admin request so schema version 18 creates/evolves the existing `peracrm_whatsapp_messages` table.
+1. Deploy and visit an authorised CRM/admin request so schema version 19 creates/evolves the existing `peracrm_whatsapp_messages` table.
 2. Open **CRM Clients → CRM WhatsApp**. Confirm the prominent **META TEST MODE** warning.
 3. Enter only the test Phone Number ID/WABA and secrets, select **Enabled** and **Require Meta TEST assets**, then save. Prefer constants above on shared environments.
 4. In Meta, configure callback `https://YOUR-SITE/wp-json/peracrm/v1/whatsapp/webhook`, enter the same verify token, verify, and subscribe the test WABA to `messages`.
@@ -66,12 +66,15 @@ A free-form text message can only be sent inside Meta's current customer-service
 * Provider failures do not create successful message rows; errors returned to browsers are generic and credentials/message bodies are not logged.
 * Meta is called before local persistence. If Meta accepts a message and the local insert then fails, delivery may already have occurred. The UI explicitly warns that delivery is unknown and must not be retried automatically; operators must verify the recipient and Meta history first. A durable outbox is intentionally deferred.
 * Delivery statuses advance monotonically from `sent` to `delivered` to `read`, using Meta timestamps to reject older events. A failure can be retained before confirmed delivery, but cannot overwrite a confirmed `delivered` or `read` state.
+* Status writes use a bounded compare/re-read/retry operation so a concurrent forward transition cannot cause a later state to be silently lost.
 
-## Schema version 18
+## Schema version 19
 
-The existing message table is evolved non-destructively with `sender_wa_id`, `recipient_phone_number_id`, `message_status`, `meta_timestamp`, and `status_timestamp`; an index is added for `sender_wa_id`. Existing `client_id`, `phone_e164`, direction/type/body, WAMID, created time, and unique WAMID index remain. Raw payload storage for this slice is `{}` to minimise unnecessary webhook/customer data retention.
+The existing message table is evolved non-destructively with `sender_wa_id`, `recipient_phone_number_id`, `message_status`, `meta_timestamp`, `status_timestamp`, and `created_at_utc`; an index is added for `sender_wa_id`. Existing `client_id`, `phone_e164`, direction/type/body, WAMID, local created time, and unique WAMID index remain. New rows receive an explicit UTC creation timestamp, while Meta message/status timestamps are also UTC. Raw payload storage for this slice is `{}` to minimise unnecessary webhook/customer data retention.
 
-Conversation and recent-message queries select the newest limited window first, then return that window in chronological order. The client UI therefore displays the newest 100 messages rather than the oldest 100.
+Conversation and recent-message queries compare Meta/new-row UTC timestamps with legacy `created_at` values converted from the configured WordPress timezone via `get_gmt_from_date()`. They select enough newest rows from each timestamp population, merge in UTC, limit, and return the result chronologically. Existing legacy rows are not rewritten. The client UI therefore displays the genuinely newest 100 messages rather than the oldest or timezone-shifted rows.
+
+The conversation remains a full-width section outside the established two-column client-detail grid. Initial load and successful sends scroll to the latest message; polling follows the latest only while the operator is already near the bottom and preserves position while they read older messages.
 
 ## Intentionally out of scope
 

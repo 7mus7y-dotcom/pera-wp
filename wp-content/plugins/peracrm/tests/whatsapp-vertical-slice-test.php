@@ -6,6 +6,8 @@ $core = file_get_contents(__DIR__ . '/../inc/whatsapp.php');
 $table = file_get_contents(__DIR__ . '/../inc/db/whatsapp_messages_table.php');
 $embed = file_get_contents(__DIR__ . '/../inc/admin/whatsapp-embedded-signup.php');
 $admin_assets = file_get_contents(__DIR__ . '/../inc/admin/assets.php');
+$client_view = file_get_contents(__DIR__ . '/../inc/views/pages/crm-client.php');
+$conversation_js = file_get_contents(__DIR__ . '/../assets/frontend/whatsapp-conversation.js');
 $fixture = file_get_contents(__DIR__ . '/fixtures/meta-text-webhook.json');
 $payload = json_decode($fixture, true);
 check(is_array($payload) && $payload['object'] === 'whatsapp_business_account', 'representative Meta fixture is valid');
@@ -28,5 +30,7 @@ check(strpos($send, '$code < 200 || $code >= 300 || $wamid ===') !== false && st
 check(strpos($core, "'whatsapp_message_id' => \$wamid") !== false, 'successful outbound persists returned WAMID');
 check(strpos($embed, "'featureType' => 'whatsapp_business_app_onboarding'") !== false && strpos($embed, "'sessionInfoVersion' => '3'") !== false, 'Embedded Signup Coexistence launcher contract preserved');
 check(strpos($embed, "current_user_can('manage_options')") === false && strpos($admin_assets, 'peracrm_whatsapp_current_user_can_manage_target()') !== false, 'Embedded Signup panel and outer asset enqueue use target-blog authorization');
+check(strpos($client_view, '<!-- /.crm-client-detail-layout -->') < strpos($client_view, 'peracrm_whatsapp_render_client_conversation'), 'WhatsApp panel renders after the established two-column client grid');
+check(strpos($conversation_js, 'wasNearBottom') !== false && strpos($conversation_js, 'refresh(true)') !== false, 'conversation scrolling preserves history position and follows latest when appropriate');
 check(strpos($core, 'pera_get_whatsapp_number') === false && strpos($core, 'pera_whatsapp_number') === false, 'Cloud API transport has no website-number fallback');
 echo "All static WhatsApp contract checks passed.\n";

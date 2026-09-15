@@ -33,6 +33,7 @@ function peracrm_whatsapp_messages_create_table()
         message_status VARCHAR(32) NOT NULL DEFAULT 'received',
         meta_timestamp DATETIME NULL,
         status_timestamp DATETIME NULL,
+        created_at_utc DATETIME NULL,
         raw_payload_json LONGTEXT NULL,
         source VARCHAR(32) NOT NULL DEFAULT 'whatsapp',
         linked_by VARCHAR(32) NOT NULL DEFAULT 'phone',

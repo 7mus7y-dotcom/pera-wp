@@ -39,7 +39,7 @@ class WP_REST_Request implements ArrayAccess {
     public function offsetSet($o,$v):void{$this->params[$o]=$v;} public function offsetUnset($o):void{unset($this->params[$o]);}
 }
 class FakeWpdb {
-    public $rows=[]; public $insert_id=0; public $fail_next_insert=false;
+    public $rows=[]; public $insert_id=0; public $fail_next_insert=false; public $simulate_status_race=false; public $status_race_rechecks=0;
     public function prepare($query,...$args){ if(count($args)===1 && is_array($args[0]))$args=$args[0]; foreach($args as $arg){$replacement=is_int($arg)?(string)$arg:"'".addslashes((string)$arg)."'";$query=preg_replace('/%[ds]/',$replacement,$query,1);} return $query; }
     public function get_var($query){
         if (preg_match("/whatsapp_message_id = '([^']+)'/",$query,$m)) foreach($this->rows as $row) if($row['whatsapp_message_id']===$m[1]) return $row['id'];
@@ -50,7 +50,18 @@ class FakeWpdb {
         foreach($this->rows as $row) if(($data['whatsapp_message_id']??'')!=='' && $row['whatsapp_message_id']===$data['whatsapp_message_id']) return false;
         $data['id']=++$this->insert_id; $this->rows[]=$data; return 1;
     }
-    public function update($table,$data,$where,$formats=[],$where_formats=[]){foreach($this->rows as &$row){$match=true;foreach($where as $k=>$v)if(($row[$k]??null)!==$v)$match=false;if($match){$row=array_merge($row,$data);return 1;}}return 0;}
+    public function update($table,$data,$where,$formats=[],$where_formats=[]){
+        foreach($this->rows as &$row){
+            $match=true;foreach($where as $k=>$v)if(($row[$k]??null)!==$v)$match=false;
+            if($match){
+                if($this->simulate_status_race && ($where['message_status']??'')==='sent' && ($data['message_status']??'')==='read'){
+                    $this->simulate_status_race=false;$this->status_race_rechecks++;$row['message_status']='delivered';$row['status_timestamp']='2023-11-14 22:15:00';return 0;
+                }
+                $row=array_merge($row,$data);return 1;
+            }
+        }
+        return 0;
+    }
     public function get_row($query){
         if(preg_match("/whatsapp_message_id = '([^']+)'/",$query,$m)) foreach($this->rows as $row) if(($row['whatsapp_message_id']??'')===$m[1]) return $row;
         return null;
@@ -58,8 +69,10 @@ class FakeWpdb {
     public function get_results($query){
         $rows=$this->rows;
         if(preg_match('/WHERE client_id = (\d+)/',$query,$m)) $rows=array_values(array_filter($rows,function($row)use($m){return (int)($row['client_id']??0)===(int)$m[1];}));
-        usort($rows,function($a,$b){$at=$a['meta_timestamp']??$a['created_at']??'';$bt=$b['meta_timestamp']??$b['created_at']??'';$time=strcmp($bt,$at);return $time!==0?$time:(((int)$b['id'])<=>((int)$a['id']));});
-        $limit=count($rows);$offset=0;if(preg_match('/LIMIT (\d+) OFFSET (\d+)/',$query,$m)){ $limit=(int)$m[1];$offset=(int)$m[2]; }
+        if(strpos($query,'(meta_timestamp IS NOT NULL OR created_at_utc IS NOT NULL)')!==false) $rows=array_values(array_filter($rows,function($row){return !empty($row['meta_timestamp'])||!empty($row['created_at_utc']);}));
+        if(strpos($query,'meta_timestamp IS NULL AND created_at_utc IS NULL')!==false) $rows=array_values(array_filter($rows,function($row){return empty($row['meta_timestamp'])&&empty($row['created_at_utc']);}));
+        usort($rows,function($a,$b){$at=$a['meta_timestamp']??$a['created_at_utc']??$a['created_at']??'';$bt=$b['meta_timestamp']??$b['created_at_utc']??$b['created_at']??'';$time=strcmp($bt,$at);return $time!==0?$time:(((int)$b['id'])<=>((int)$a['id']));});
+        $limit=count($rows);$offset=0;if(preg_match('/LIMIT (\d+)(?: OFFSET (\d+))?/',$query,$m)){ $limit=(int)$m[1];$offset=isset($m[2])?(int)$m[2]:0; }
         return array_slice($rows,$offset,$limit);
     } public function query(){return 0;}
 }
@@ -76,7 +89,7 @@ $GLOBALS['http_code']=200; $GLOBALS['http_body']='{"messages":[{"id":"wamid.OUTB
 function get_option($key,$default=[]){return $key==='peracrm_whatsapp_settings'?($GLOBALS['settings_by_blog'][$GLOBALS['current_blog_id']]??$default):$default;} function update_option($key,$value){if($key==='peracrm_whatsapp_settings'){$GLOBALS['saved_option']=$value;$GLOBALS['settings_by_blog'][$GLOBALS['current_blog_id']]=$value;}return true;}
 function wp_parse_args($a,$b=[]){return array_merge($b,$a);} function sanitize_text_field($v){return trim(strip_tags((string)$v));} function sanitize_textarea_field($v){return trim(strip_tags((string)$v));}
 function sanitize_key($v){return preg_replace('/[^a-z0-9_\-]/','',strtolower((string)$v));} function absint($v){return abs((int)$v);} function esc_url_raw($v){return (string)$v;}
-function wp_json_encode($v){return json_encode($v);} function peracrm_json_encode($v){return json_encode($v);} function peracrm_now_mysql(){return '2026-09-15 12:00:00';} function current_time(){return '2026-09-15 12:00:00';}
+function wp_json_encode($v){return json_encode($v);} function peracrm_json_encode($v){return json_encode($v);} function peracrm_now_mysql(){return '2026-09-15 12:00:00';} function current_time(){return '2026-09-15 12:00:00';} function get_gmt_from_date($date){return gmdate('Y-m-d H:i:s',strtotime($date)-((int)($GLOBALS['site_utc_offset_hours']??0)*3600));}
 function peracrm_table(){return 'wp_peracrm_whatsapp_messages';} function get_posts(){return [];} function get_post_type($id){return $GLOBALS['current_blog_id']===$GLOBALS['target_blog_id'] && $id===123?'crm_client':false;}
 function get_the_title($id){return $GLOBALS['titles_by_blog'][$GLOBALS['current_blog_id']][$id]??'';} function get_edit_post_link($id,$context='display'){return 'https://blog-'.$GLOBALS['current_blog_id'].'.test/wp-admin/post.php?post='.$id.'&action=edit';}
 function get_post_meta($id,$key){return $GLOBALS['post_meta_by_blog'][$GLOBALS['current_blog_id']][$id][$key]??'';} function get_current_user_id(){return 7;} function is_user_logged_in(){return $GLOBALS['logged_in'];}
@@ -187,6 +200,11 @@ assert_same($before,count($GLOBALS['wpdb']->rows),'signed payload for a differen
 $GLOBALS['wpdb']->rows=[['id'=>1,'whatsapp_message_id'=>'wamid.STATUS','message_status'=>'sent','status_timestamp'=>'2023-11-14 22:13:20']];
 peracrm_whatsapp_apply_status('wamid.STATUS','delivered',1700000100);peracrm_whatsapp_apply_status('wamid.STATUS','read',1700000200);
 assert_same('read',$GLOBALS['wpdb']->rows[0]['message_status'],'sent to delivered to read remains read');
+$GLOBALS['wpdb']->rows=[['id'=>4,'whatsapp_message_id'=>'wamid.RACE','message_status'=>'sent','status_timestamp'=>'2023-11-14 22:13:20']];$GLOBALS['wpdb']->simulate_status_race=true;
+peracrm_whatsapp_apply_status('wamid.RACE','read',1700000200);
+assert_same('read',$GLOBALS['wpdb']->rows[0]['message_status'],'concurrent delivered update is re-read before applying read');
+assert_same(1,$GLOBALS['wpdb']->status_race_rechecks,'zero-row conditional update triggers bounded re-evaluation');
+$GLOBALS['wpdb']->rows=[['id'=>1,'whatsapp_message_id'=>'wamid.STATUS','message_status'=>'read','status_timestamp'=>'2023-11-14 22:16:40']];
 peracrm_whatsapp_apply_status('wamid.STATUS','delivered',1700000150);
 assert_same('read',$GLOBALS['wpdb']->rows[0]['message_status'],'read ignores delayed delivered');
 peracrm_whatsapp_apply_status('wamid.STATUS','sent',1700000050);
@@ -203,6 +221,20 @@ peracrm_whatsapp_apply_status('wamid.FAILED','failed',1700000100);
 assert_same('failed',$GLOBALS['wpdb']->rows[0]['message_status'],'new failure before delivery is retained');
 peracrm_whatsapp_apply_status('wamid.FAILED','delivered',1700000200);peracrm_whatsapp_apply_status('wamid.FAILED','failed',1700000300);
 assert_same('delivered',$GLOBALS['wpdb']->rows[0]['message_status'],'failure cannot overwrite confirmed delivery');
+$GLOBALS['site_utc_offset_hours']=3;
+$GLOBALS['wpdb']->rows=[
+ ['id'=>10,'client_id'=>123,'message_body'=>'legacy older','meta_timestamp'=>null,'created_at_utc'=>null,'created_at'=>'2023-11-15 01:15:00'],
+ ['id'=>11,'client_id'=>123,'message_body'=>'Meta newer','meta_timestamp'=>'2023-11-14 22:20:00','created_at_utc'=>null,'created_at'=>'2023-11-15 01:20:00'],
+];
+$timezone_window=peracrm_whatsapp_get_messages(['client_id'=>123,'per_page'=>1,'paged'=>1]);
+assert_same(11,$timezone_window['rows'][0]['id'],'non-UTC legacy offset cannot outrank newer Meta message');
+$GLOBALS['site_utc_offset_hours']=0;
+$GLOBALS['wpdb']->rows=[
+ ['id'=>12,'client_id'=>123,'message_body'=>'UTC legacy older','meta_timestamp'=>null,'created_at_utc'=>null,'created_at'=>'2023-11-14 22:15:00'],
+ ['id'=>13,'client_id'=>123,'message_body'=>'UTC Meta newer','meta_timestamp'=>'2023-11-14 22:20:00','created_at_utc'=>null,'created_at'=>'2023-11-14 22:20:00'],
+];
+$utc_window=peracrm_whatsapp_get_messages(['client_id'=>123,'per_page'=>1,'paged'=>1]);
+assert_same(13,$utc_window['rows'][0]['id'],'UTC site message ordering remains correct');
 $GLOBALS['wpdb']->rows=[];
 for($id=1;$id<=105;$id++) $GLOBALS['wpdb']->rows[]=['id'=>$id,'client_id'=>123,'message_body'=>'message-'.$id,'meta_timestamp'=>gmdate('Y-m-d H:i:s',1700000000+$id),'created_at'=>gmdate('Y-m-d H:i:s',1700000000+$id)];
 $window=peracrm_whatsapp_get_messages(['client_id'=>123,'per_page'=>100,'paged'=>1]);
