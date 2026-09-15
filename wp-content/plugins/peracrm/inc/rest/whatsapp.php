@@ -24,12 +24,34 @@ function peracrm_rest_register_whatsapp_routes()
             'permission_callback' => '__return_true',
         ],
     ]);
+    register_rest_route('peracrm/v1', '/whatsapp/clients/(?P<client_id>\d+)/messages', [
+        ['methods' => WP_REST_Server::READABLE, 'callback' => 'peracrm_rest_whatsapp_client_messages', 'permission_callback' => 'peracrm_rest_whatsapp_client_permission'],
+        ['methods' => WP_REST_Server::CREATABLE, 'callback' => 'peracrm_rest_whatsapp_send_message', 'permission_callback' => 'peracrm_rest_whatsapp_client_permission'],
+    ]);
+    register_rest_route('peracrm/v1', '/whatsapp/associate', [
+        'methods' => WP_REST_Server::EDITABLE,
+        'callback' => 'peracrm_rest_whatsapp_associate_sender',
+        'permission_callback' => static function () { return current_user_can('manage_options'); },
+    ]);
+}
+
+function peracrm_rest_whatsapp_client_permission(WP_REST_Request $request)
+{
+    return is_user_logged_in() && peracrm_whatsapp_user_can_access_client((int) $request['client_id']);
+}
+
+function peracrm_whatsapp_verify_meta_signature($raw, $signature, $secret)
+{
+    $signature = trim((string) $signature);
+    $secret = (string) $secret;
+    if ($secret === '' || !preg_match('/^sha256=([a-f0-9]{64})$/i', $signature, $matches)) return false;
+    return hash_equals(hash_hmac('sha256', (string) $raw, $secret), strtolower($matches[1]));
 }
 
 function peracrm_rest_whatsapp_verify_webhook(WP_REST_Request $request)
 {
     $settings = peracrm_whatsapp_get_settings();
-    if (empty($settings['enabled'])) {
+    if (empty($settings['enabled']) || empty($settings['test_mode']) || empty($settings['verify_token'])) {
         return new WP_REST_Response(['ok' => false, 'message' => 'disabled'], 403);
     }
 
@@ -66,11 +88,19 @@ function peracrm_rest_whatsapp_verify_webhook(WP_REST_Request $request)
 function peracrm_rest_whatsapp_receive_webhook(WP_REST_Request $request)
 {
     $settings = peracrm_whatsapp_get_settings();
-    if (empty($settings['enabled'])) {
+    if (empty($settings['enabled']) || empty($settings['test_mode']) || empty($settings['phone_number_id'])) {
         return new WP_REST_Response(['ok' => false, 'message' => 'disabled'], 403);
     }
 
-    $payload = $request->get_json_params();
+    $secret = (string) ($settings['app_secret'] ?? '');
+    $raw = (string) $request->get_body();
+    $signature = trim((string) $request->get_header('X-Hub-Signature-256'));
+    if (!peracrm_whatsapp_verify_meta_signature($raw, $signature, $secret)) {
+        peracrm_whatsapp_set_diagnostic('signature_failed', 'invalid or missing webhook signature');
+        return new WP_REST_Response(['ok' => false], 401);
+    }
+    if ($raw === '' || strlen($raw) > 1048576) return new WP_REST_Response(['ok' => false], 400);
+    $payload = json_decode($raw, true);
     if (!is_array($payload)) {
         peracrm_whatsapp_set_diagnostic('ingest_failed', 'invalid json payload');
         return new WP_REST_Response(['ok' => false], 400);
@@ -95,6 +125,35 @@ function peracrm_rest_whatsapp_receive_webhook(WP_REST_Request $request)
 
         return new WP_REST_Response(['ok' => false], 500);
     }
+}
+
+function peracrm_rest_whatsapp_client_messages(WP_REST_Request $request)
+{
+    $result = peracrm_with_target_blog(static function () use ($request) {
+        return peracrm_whatsapp_get_messages(['client_id' => (int) $request['client_id'], 'per_page' => 100]);
+    });
+    return new WP_REST_Response(['messages' => $result['rows'], 'test_mode' => true], 200);
+}
+
+function peracrm_rest_whatsapp_send_message(WP_REST_Request $request)
+{
+    $result = peracrm_with_target_blog(static function () use ($request) {
+        return peracrm_whatsapp_send_client_text((int) $request['client_id'], (string) $request->get_param('message'));
+    });
+    return is_wp_error($result) ? $result : new WP_REST_Response($result, 201);
+}
+
+function peracrm_rest_whatsapp_associate_sender(WP_REST_Request $request)
+{
+    global $wpdb;
+    $client_id = absint($request->get_param('client_id'));
+    $wa_id = preg_replace('/\D+/', '', (string) $request->get_param('wa_id'));
+    if ($client_id <= 0 || get_post_type($client_id) !== 'crm_client' || $wa_id === '') return new WP_Error('invalid_association', 'Valid client and sender are required.', ['status' => 400]);
+    $updated = peracrm_with_target_blog(static function () use ($wpdb, $client_id, $wa_id) {
+        $table = peracrm_whatsapp_messages_table_name();
+        return $wpdb->query($wpdb->prepare("UPDATE {$table} SET client_id = %d, linked_by = 'admin' WHERE sender_wa_id = %s AND client_id IS NULL", $client_id, $wa_id));
+    });
+    return new WP_REST_Response(['associated' => max(0, (int) $updated)], 200);
 }
 
 

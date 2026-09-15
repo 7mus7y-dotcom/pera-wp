@@ -700,6 +700,8 @@ peracrm_frontend_render_shell_header();
             </section>
           </div>
 
+          <?php if ( function_exists( 'peracrm_whatsapp_render_client_conversation' ) ) { peracrm_whatsapp_render_client_conversation( $client_id ); } ?>
+
           <div class="crm-client-detail-layout__column crm-client-detail-layout__column--secondary">
             <article id="crm-client-next-actions" class="crm-section crm-section--flush crm-client-reminders" data-crm-panel="reminders">
               <header class="crm-section__header">
