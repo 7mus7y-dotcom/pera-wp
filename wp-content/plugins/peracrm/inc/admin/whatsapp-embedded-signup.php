@@ -40,7 +40,7 @@ function peracrm_whatsapp_embedded_signup_extras()
 
 function peracrm_whatsapp_embedded_signup_enqueue_assets($version = null)
 {
-    if (!current_user_can('manage_options')) {
+    if (!peracrm_whatsapp_current_user_can_manage_target()) {
         return;
     }
 
@@ -65,7 +65,7 @@ function peracrm_whatsapp_embedded_signup_enqueue_assets($version = null)
 
 function peracrm_whatsapp_embedded_signup_render_panel()
 {
-    if (!current_user_can('manage_options')) {
+    if (!peracrm_whatsapp_current_user_can_manage_target()) {
         return;
     }
 
@@ -100,7 +100,7 @@ function peracrm_whatsapp_embedded_signup_render_panel()
 
 function peracrm_whatsapp_embedded_signup_receive_code()
 {
-    if (!current_user_can('manage_options')) {
+    if (!peracrm_whatsapp_current_user_can_manage_target()) {
         wp_send_json_error(['message' => __('Unauthorized.', 'peracrm')], 403);
     }
 

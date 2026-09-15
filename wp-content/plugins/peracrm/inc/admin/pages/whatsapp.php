@@ -25,14 +25,14 @@ function peracrm_admin_is_real_whatsapp_logs_screen($hook = '')
 
 function peracrm_render_whatsapp_page()
 {
-    if (!peracrm_admin_user_can_manage()) {
+    if (!peracrm_whatsapp_current_user_can_manage_target()) {
         wp_die('Unauthorized');
     }
 
     $settings = peracrm_whatsapp_get_settings();
     $diag = peracrm_whatsapp_get_diagnostic();
-    $messages = function_exists('peracrm_whatsapp_get_messages')
-        ? peracrm_whatsapp_get_messages(['per_page' => 10, 'paged' => 1])
+    $messages = function_exists('peracrm_whatsapp_get_admin_preview_messages')
+        ? peracrm_whatsapp_get_admin_preview_messages(10)
         : ['rows' => [], 'pagination' => ['total' => 0]];
     $message_rows = isset($messages['rows']) && is_array($messages['rows']) ? $messages['rows'] : [];
     $message_total = isset($messages['pagination']['total']) ? (int) $messages['pagination']['total'] : 0;
@@ -43,9 +43,10 @@ function peracrm_render_whatsapp_page()
 
     echo '<div class="wrap peracrm-whatsapp-admin">';
     echo '<h1 class="peracrm-whatsapp-admin__title">' . esc_html__('CRM WhatsApp', 'peracrm') . '</h1>';
+    echo '<div class="notice notice-warning inline"><p><strong>' . esc_html__('META TEST MODE', 'peracrm') . '</strong> — ' . esc_html__('This slice must only use Meta test WABA and test Phone Number ID assets.', 'peracrm') . '</p></div>';
     echo '<p class="peracrm-whatsapp-admin__intro">' . esc_html__('Manage WhatsApp Business webhook credentials, verify inbound delivery status, and review recent synced CRM messages. This page is reserved for CRM WhatsApp integration settings and diagnostics.', 'peracrm') . '</p>';
 
-    if (current_user_can('manage_options') && function_exists('peracrm_whatsapp_embedded_signup_render_panel')) {
+    if (peracrm_whatsapp_current_user_can_manage_target() && function_exists('peracrm_whatsapp_embedded_signup_render_panel')) {
         peracrm_whatsapp_embedded_signup_render_panel();
     }
 
@@ -63,8 +64,10 @@ function peracrm_render_whatsapp_page()
     echo '<tr><th scope="row">' . esc_html__('Webhook endpoint', 'peracrm') . '</th><td><code>' . esc_html($endpoint) . '</code></td></tr>';
     echo '<tr><th scope="row">' . esc_html__('Integration enabled', 'peracrm') . '</th><td>' . (!empty($settings['enabled']) ? esc_html__('Yes', 'peracrm') : esc_html__('No', 'peracrm')) . '</td></tr>';
     echo '<tr><th scope="row">' . esc_html__('Phone number ID', 'peracrm') . '</th><td>' . ($settings['phone_number_id'] !== '' ? esc_html($settings['phone_number_id']) : esc_html__('Missing', 'peracrm')) . '</td></tr>';
-    echo '<tr><th scope="row">' . esc_html__('Access token', 'peracrm') . '</th><td>' . ($settings['access_token'] !== '' ? esc_html(peracrm_whatsapp_mask_secret($settings['access_token'])) : esc_html__('Missing', 'peracrm')) . '</td></tr>';
-    echo '<tr><th scope="row">' . esc_html__('Verify token', 'peracrm') . '</th><td>' . ($settings['verify_token'] !== '' ? esc_html(peracrm_whatsapp_mask_secret($settings['verify_token'])) : esc_html__('Missing', 'peracrm')) . '</td></tr>';
+    echo '<tr><th scope="row">' . esc_html__('WABA ID', 'peracrm') . '</th><td>' . ($settings['waba_id'] !== '' ? esc_html($settings['waba_id']) : esc_html__('Missing (optional allow-list)', 'peracrm')) . '</td></tr>';
+    echo '<tr><th scope="row">' . esc_html__('Access token', 'peracrm') . '</th><td>' . ($settings['access_token'] !== '' ? esc_html__('Configured', 'peracrm') : esc_html__('Missing', 'peracrm')) . '</td></tr>';
+    echo '<tr><th scope="row">' . esc_html__('Verify token', 'peracrm') . '</th><td>' . ($settings['verify_token'] !== '' ? esc_html__('Configured', 'peracrm') : esc_html__('Missing', 'peracrm')) . '</td></tr>';
+    echo '<tr><th scope="row">' . esc_html__('Meta App Secret', 'peracrm') . '</th><td>' . ($settings['app_secret'] !== '' ? esc_html__('Configured', 'peracrm') : esc_html__('Missing', 'peracrm')) . '</td></tr>';
     echo '<tr><th scope="row">' . esc_html__('Graph API version', 'peracrm') . '</th><td>' . esc_html((string) ($settings['graph_api_version'] ?? 'v22.0')) . '</td></tr>';
     echo '<tr><th scope="row">' . esc_html__('Test mode', 'peracrm') . '</th><td>' . (!empty($settings['test_mode']) ? esc_html__('Enabled', 'peracrm') : esc_html__('Disabled', 'peracrm')) . '</td></tr>';
     echo '<tr><th scope="row">' . esc_html__('Last inbound webhook received', 'peracrm') . '</th><td>' . ($diag['last_received_at'] ? esc_html($diag['last_received_at']) : '—') . '</td></tr>';
@@ -82,10 +85,12 @@ function peracrm_render_whatsapp_page()
     echo '<table class="form-table peracrm-whatsapp-form-table peracrm-whatsapp-form-table--settings" role="presentation"><tbody>';
     echo '<tr><th scope="row">' . esc_html__('Enable inbound webhook', 'peracrm') . '</th><td><label><input type="checkbox" name="peracrm_whatsapp[enabled]" value="1" ' . checked(!empty($settings['enabled']), true, false) . ' /> ' . esc_html__('Enabled', 'peracrm') . '</label><p class="description">' . esc_html__('Turn on WhatsApp Business webhook processing for CRM ingestion.', 'peracrm') . '</p></td></tr>';
     echo '<tr><th scope="row">' . esc_html__('Phone Number ID', 'peracrm') . '</th><td><input type="text" name="peracrm_whatsapp[phone_number_id]" class="regular-text" value="' . esc_attr((string) $settings['phone_number_id']) . '" /><p class="description">' . esc_html__('Meta WhatsApp Business phone number identifier used by the integration.', 'peracrm') . '</p></td></tr>';
+    echo '<tr><th scope="row">' . esc_html__('Test WABA ID', 'peracrm') . '</th><td><input type="text" name="peracrm_whatsapp[waba_id]" class="regular-text" value="' . esc_attr((string) $settings['waba_id']) . '" /><p class="description">' . esc_html__('Optional but recommended inbound account allow-list.', 'peracrm') . '</p></td></tr>';
     echo '<tr><th scope="row">' . esc_html__('Access Token', 'peracrm') . '</th><td><input type="password" name="peracrm_whatsapp[access_token]" class="regular-text" value="" autocomplete="new-password" /><p class="description">' . esc_html__('Leave blank to keep the existing token. Paste a new token only when rotating credentials.', 'peracrm') . '</p></td></tr>';
-    echo '<tr><th scope="row">' . esc_html__('Verify Token', 'peracrm') . '</th><td><input type="text" name="peracrm_whatsapp[verify_token]" class="regular-text" value="" placeholder="' . esc_attr(peracrm_whatsapp_mask_secret((string) $settings['verify_token'])) . '" /><p class="description">' . esc_html__('Used by Meta during webhook verification requests.', 'peracrm') . '</p></td></tr>';
+    echo '<tr><th scope="row">' . esc_html__('Verify Token', 'peracrm') . '</th><td><input type="password" name="peracrm_whatsapp[verify_token]" class="regular-text" value="" autocomplete="new-password" /><p class="description">' . esc_html__('Leave blank to retain it. Used only for Meta GET verification.', 'peracrm') . '</p></td></tr>';
+    echo '<tr><th scope="row">' . esc_html__('Meta App Secret', 'peracrm') . '</th><td><input type="password" name="peracrm_whatsapp[app_secret]" class="regular-text" value="" autocomplete="new-password" /><p class="description">' . esc_html__('Leave blank to retain it. Signs webhook POST bodies; prefer the wp-config.php override.', 'peracrm') . '</p></td></tr>';
     echo '<tr><th scope="row">' . esc_html__('Graph API version', 'peracrm') . '</th><td><input type="text" name="peracrm_whatsapp[graph_api_version]" class="regular-text" value="' . esc_attr((string) ($settings['graph_api_version'] ?? 'v22.0')) . '" /><p class="description">' . esc_html__('Version for outbound WhatsApp Cloud API calls (example: v22.0).', 'peracrm') . '</p></td></tr>';
-    echo '<tr><th scope="row">' . esc_html__('Test mode', 'peracrm') . '</th><td><label><input type="checkbox" name="peracrm_whatsapp[test_mode]" value="1" ' . checked(!empty($settings['test_mode']), true, false) . ' /> ' . esc_html__('Enable non-production handling', 'peracrm') . '</label><p class="description">' . esc_html__('Keep this enabled while validating the integration outside production traffic.', 'peracrm') . '</p></td></tr>';
+    echo '<tr><th scope="row">' . esc_html__('Test mode', 'peracrm') . '</th><td><label><input type="checkbox" name="peracrm_whatsapp[test_mode]" value="1" ' . checked(!empty($settings['test_mode']), true, false) . ' /> ' . esc_html__('Require Meta TEST assets', 'peracrm') . '</label><p class="description">' . esc_html__('Required for this slice. Sending fails closed when disabled.', 'peracrm') . '</p></td></tr>';
     echo '</tbody></table>';
     submit_button(__('Save WhatsApp settings', 'peracrm'));
     echo '</form>';
@@ -120,11 +125,9 @@ function peracrm_render_whatsapp_page()
             $client_id = isset($row['client_id']) ? (int) $row['client_id'] : 0;
             $client_label = '—';
             if ($client_id > 0) {
-                $client_label = get_the_title($client_id);
-                if ($client_label === '') {
-                    $client_label = 'Client #' . $client_id;
-                }
-                $client_url = get_edit_post_link($client_id);
+                $client_label = (string) ($row['client_label'] ?? '');
+                $client_label = $client_label !== '' ? $client_label : ('Client #' . $client_id);
+                $client_url = (string) ($row['client_edit_url'] ?? '');
                 $client_label = $client_url ? '<a href="' . esc_url($client_url) . '">' . esc_html($client_label) . '</a>' : esc_html($client_label);
             }
 

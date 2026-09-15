@@ -50,7 +50,7 @@ function peracrm_admin_user_can_manage()
 
 function peracrm_handle_whatsapp_settings_save()
 {
-    if (!peracrm_admin_user_can_manage()) {
+    if (!peracrm_whatsapp_current_user_can_manage_target()) {
         wp_die('Unauthorized');
     }
 
