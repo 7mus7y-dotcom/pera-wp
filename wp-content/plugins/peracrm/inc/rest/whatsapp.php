@@ -37,7 +37,13 @@ function peracrm_rest_register_whatsapp_routes()
 
 function peracrm_rest_whatsapp_client_permission(WP_REST_Request $request)
 {
-    return is_user_logged_in() && peracrm_whatsapp_user_can_access_client((int) $request['client_id']);
+    if (!is_user_logged_in()) {
+        return false;
+    }
+
+    return (bool) peracrm_with_target_blog(static function () use ($request) {
+        return peracrm_whatsapp_user_can_access_client((int) $request['client_id']);
+    });
 }
 
 function peracrm_whatsapp_verify_meta_signature($raw, $signature, $secret)
@@ -145,14 +151,18 @@ function peracrm_rest_whatsapp_send_message(WP_REST_Request $request)
 
 function peracrm_rest_whatsapp_associate_sender(WP_REST_Request $request)
 {
-    global $wpdb;
     $client_id = absint($request->get_param('client_id'));
     $wa_id = preg_replace('/\D+/', '', (string) $request->get_param('wa_id'));
-    if ($client_id <= 0 || get_post_type($client_id) !== 'crm_client' || $wa_id === '') return new WP_Error('invalid_association', 'Valid client and sender are required.', ['status' => 400]);
-    $updated = peracrm_with_target_blog(static function () use ($wpdb, $client_id, $wa_id) {
+    if ($client_id <= 0 || $wa_id === '') return new WP_Error('invalid_association', 'Valid client and sender are required.', ['status' => 400]);
+    $updated = peracrm_with_target_blog(static function () use ($client_id, $wa_id) {
+        global $wpdb;
+        if (get_post_type($client_id) !== 'crm_client') {
+            return new WP_Error('invalid_association', 'Valid client and sender are required.', ['status' => 400]);
+        }
         $table = peracrm_whatsapp_messages_table_name();
         return $wpdb->query($wpdb->prepare("UPDATE {$table} SET client_id = %d, linked_by = 'admin' WHERE sender_wa_id = %s AND client_id IS NULL", $client_id, $wa_id));
     });
+    if (is_wp_error($updated)) return $updated;
     return new WP_REST_Response(['associated' => max(0, (int) $updated)], 200);
 }
 

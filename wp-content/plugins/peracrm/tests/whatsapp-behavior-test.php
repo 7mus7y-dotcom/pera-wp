@@ -1,0 +1,123 @@
+<?php
+/** Executable tests of the real WhatsApp functions with small WordPress boundary fakes. */
+define('ABSPATH', __DIR__ . '/tmp-wordpress/');
+if (!defined('ARRAY_A')) define('ARRAY_A', 'ARRAY_A');
+
+function assert_same($expected, $actual, $label) {
+    if ($expected !== $actual) {
+        fwrite(STDERR, "FAIL: {$label}\nExpected: " . var_export($expected, true) . "\nActual: " . var_export($actual, true) . "\n");
+        exit(1);
+    }
+    echo "PASS: {$label}\n";
+}
+class WP_Error {
+    private $code; private $message; private $data;
+    public function __construct($code, $message, $data = []) { $this->code=$code; $this->message=$message; $this->data=$data; }
+    public function get_error_code(){ return $this->code; } public function get_error_message(){ return $this->message; }
+    public function get_error_data(){ return $this->data; }
+}
+function is_wp_error($value){ return $value instanceof WP_Error; }
+class WP_REST_Response {
+    private $data; private $status;
+    public function __construct($data=null,$status=200){$this->data=$data;$this->status=$status;}
+    public function get_data(){return $this->data;} public function get_status(){return $this->status;}
+}
+class WP_HTTP_Response extends WP_REST_Response {}
+class WP_REST_Server { const READABLE='GET'; const CREATABLE='POST'; const EDITABLE='PUT'; }
+class WP_REST_Request implements ArrayAccess {
+    private $method; private $route; private $params=[]; private $headers=[]; private $body='';
+    public function __construct($method='GET',$route=''){ $this->method=$method; $this->route=$route; }
+    public function set_body($body){$this->body=$body;} public function get_body(){return $this->body;}
+    public function set_header($key,$value){$this->headers[strtolower($key)]=$value;} public function get_header($key){return $this->headers[strtolower($key)]??'';}
+    public function set_param($key,$value){$this->params[$key]=$value;} public function get_param($key){return $this->params[$key]??null;}
+    public function get_method(){return $this->method;} public function get_route(){return $this->route;}
+    public function offsetExists($o):bool{return isset($this->params[$o]);} public function offsetGet($o):mixed{return $this->params[$o]??null;}
+    public function offsetSet($o,$v):void{$this->params[$o]=$v;} public function offsetUnset($o):void{unset($this->params[$o]);}
+}
+class FakeWpdb {
+    public $rows=[]; public $insert_id=0; public $fail_next_insert=false;
+    public function prepare($query,...$args){ if(count($args)===1 && is_array($args[0]))$args=$args[0]; foreach($args as $arg){$replacement=is_int($arg)?(string)$arg:"'".addslashes((string)$arg)."'";$query=preg_replace('/%[ds]/',$replacement,$query,1);} return $query; }
+    public function get_var($query){
+        if (preg_match("/whatsapp_message_id = '([^']+)'/",$query,$m)) foreach($this->rows as $row) if($row['whatsapp_message_id']===$m[1]) return $row['id'];
+        if(strpos($query,'COUNT(*)')!==false) return count($this->rows); return null;
+    }
+    public function insert($table,$data,$formats=[]){
+        if ($this->fail_next_insert) { $this->fail_next_insert=false; return false; }
+        foreach($this->rows as $row) if(($data['whatsapp_message_id']??'')!=='' && $row['whatsapp_message_id']===$data['whatsapp_message_id']) return false;
+        $data['id']=++$this->insert_id; $this->rows[]=$data; return 1;
+    }
+    public function update($table,$data,$where,$formats=[],$where_formats=[]){foreach($this->rows as &$row){$match=true;foreach($where as $k=>$v)if(($row[$k]??null)!==$v)$match=false;if($match){$row=array_merge($row,$data);return 1;}}return 0;}
+    public function get_results(){return [];} public function query(){return 0;}
+}
+$GLOBALS['wpdb']=new FakeWpdb();
+$GLOBALS['settings']=['enabled'=>1,'test_mode'=>1,'phone_number_id'=>'TEST_PHONE_ID','waba_id'=>'TEST_WABA','access_token'=>'test-token','verify_token'=>'verify-me','app_secret'=>'test-secret','graph_api_version'=>'v22.0'];
+$GLOBALS['logged_in']=true; $GLOBALS['caps']=['manage_options'=>true]; $GLOBALS['post_meta']=[123=>['_peracrm_phone'=>'+15551112222']];
+$GLOBALS['http_code']=200; $GLOBALS['http_body']='{"messages":[{"id":"wamid.OUTBOUND_1"}]}'; $GLOBALS['captured_http']=null; $GLOBALS['created_clients']=0;
+function get_option($key,$default=[]){return $key==='peracrm_whatsapp_settings'?$GLOBALS['settings']:$default;} function update_option(){return true;}
+function wp_parse_args($a,$b=[]){return array_merge($b,$a);} function sanitize_text_field($v){return trim(strip_tags((string)$v));} function sanitize_textarea_field($v){return trim(strip_tags((string)$v));}
+function sanitize_key($v){return preg_replace('/[^a-z0-9_\-]/','',strtolower((string)$v));} function absint($v){return abs((int)$v);} function esc_url_raw($v){return (string)$v;}
+function wp_json_encode($v){return json_encode($v);} function peracrm_json_encode($v){return json_encode($v);} function peracrm_now_mysql(){return '2026-09-15 12:00:00';} function current_time(){return '2026-09-15 12:00:00';}
+function peracrm_table(){return 'wp_peracrm_whatsapp_messages';} function get_posts(){return [];} function get_post_type($id){return $id===123?'crm_client':false;}
+function get_post_meta($id,$key){return $GLOBALS['post_meta'][$id][$key]??'';} function get_current_user_id(){return 7;} function is_user_logged_in(){return $GLOBALS['logged_in'];}
+function user_can($id,$cap){return !empty($GLOBALS['caps'][$cap]);} function current_user_can($cap){return user_can(7,$cap);} function peracrm_client_get_assigned_advisor_id(){return 0;}
+function peracrm_with_target_blog($cb){return $cb();} function peracrm_log_event(){return true;} function wp_insert_post(){ $GLOBALS['created_clients']++; return 999; }
+function wp_remote_post($url,$args){$GLOBALS['captured_http']=[$url,$args];return ['response'=>['code'=>$GLOBALS['http_code']],'body'=>$GLOBALS['http_body']];}
+function wp_remote_retrieve_response_code($r){return $r['response']['code'];} function wp_remote_retrieve_body($r){return $r['body'];}
+function add_action(){} function add_filter(){} function register_rest_route($namespace,$route,$args){$GLOBALS['routes'][$route]=$args;} function __return_true(){return true;}
+
+require __DIR__ . '/../inc/db/whatsapp_messages_table.php';
+require __DIR__ . '/../inc/whatsapp.php';
+require __DIR__ . '/../inc/rest/whatsapp.php';
+peracrm_rest_register_whatsapp_routes();
+$associate_permission=$GLOBALS['routes']['/whatsapp/associate']['permission_callback'];
+$GLOBALS['caps']['manage_options']=false;
+assert_same(false,$associate_permission(),'associate route remains admin-only');
+$GLOBALS['caps']['manage_options']=true;
+
+$fixture=file_get_contents(__DIR__.'/fixtures/meta-text-webhook.json');
+$fixture=str_replace(['TEST_PHONE_NUMBER_ID','TEST_WABA_ID'],['TEST_PHONE_ID','TEST_WABA'],$fixture);
+$signature='sha256='.hash_hmac('sha256',$fixture,'test-secret');
+$request=new WP_REST_Request('POST','/peracrm/v1/whatsapp/webhook'); $request->set_body($fixture); $request->set_header('X-Hub-Signature-256',$signature);
+$response=peracrm_rest_whatsapp_receive_webhook($request);
+assert_same(200,$response->get_status(),'valid signature is accepted by the real REST callback');
+assert_same(1,count($GLOBALS['wpdb']->rows),'valid inbound message is persisted');
+assert_same(null,$GLOBALS['wpdb']->rows[0]['client_id'],'unknown sender remains unlinked');
+assert_same(0,$GLOBALS['created_clients'],'unknown sender does not create a crm_client');
+peracrm_rest_whatsapp_receive_webhook($request);
+assert_same(1,count($GLOBALS['wpdb']->rows),'duplicate WAMID does not create a duplicate row');
+
+$bad=new WP_REST_Request('POST');$bad->set_body($fixture);$bad->set_header('X-Hub-Signature-256','sha256='.str_repeat('0',64));
+assert_same(401,peracrm_rest_whatsapp_receive_webhook($bad)->get_status(),'invalid signature is rejected');
+$missing=new WP_REST_Request('POST');$missing->set_body($fixture);
+assert_same(401,peracrm_rest_whatsapp_receive_webhook($missing)->get_status(),'missing signature is rejected');
+$malformed='{bad json';$mal=new WP_REST_Request('POST');$mal->set_body($malformed);$mal->set_header('X-Hub-Signature-256','sha256='.hash_hmac('sha256',$malformed,'test-secret'));
+assert_same(400,peracrm_rest_whatsapp_receive_webhook($mal)->get_status(),'authenticated malformed JSON is rejected');
+
+$client_request=new WP_REST_Request('POST');$client_request['client_id']=123;
+$GLOBALS['logged_in']=false;
+assert_same(false,peracrm_rest_whatsapp_client_permission($client_request),'unauthorised client messaging request is rejected');
+$GLOBALS['logged_in']=true;
+$client_request->set_param('message','Hello test recipient');$client_request->set_param('recipient','19999999999');
+$before=count($GLOBALS['wpdb']->rows);$GLOBALS['http_code']=400;$GLOBALS['http_body']='{"error":{"message":"rejected"}}';
+$result=peracrm_rest_whatsapp_send_message($client_request);
+assert_same('meta_rejected',$result->get_error_code(),'Graph API non-2xx is returned as an error');
+assert_same($before,count($GLOBALS['wpdb']->rows),'Graph API non-2xx does not persist outbound success');
+$sent_payload=json_decode($GLOBALS['captured_http'][1]['body'],true);
+assert_same('15551112222',$sent_payload['to'],'request cannot override recipient derived from crm_client');
+$GLOBALS['http_code']=200;$GLOBALS['http_body']='{"messages":[{"id":"wamid.OUTBOUND_REAL"}]}';
+$result=peracrm_rest_whatsapp_send_message($client_request);
+assert_same(201,$result->get_status(),'successful Graph response returns created');
+assert_same('wamid.OUTBOUND_REAL',end($GLOBALS['wpdb']->rows)['whatsapp_message_id'],'successful Graph response persists returned WAMID');
+$GLOBALS['http_body']='{"messages":[{"id":"wamid.ACCEPTED_NOT_STORED"}]}';$GLOBALS['wpdb']->fail_next_insert=true;
+$result=peracrm_whatsapp_send_client_text(123,'accepted but not stored');
+assert_same('persistence_failed',$result->get_error_code(),'post-acceptance persistence failure is explicit');
+assert_same(true,strpos($result->get_error_message(),'do not retry automatically')!==false,'post-acceptance error discourages an unsafe retry');
+
+$GLOBALS['settings']['test_mode']=0;
+$result=peracrm_whatsapp_send_client_text(123,'must fail closed');
+assert_same('not_configured',$result->get_error_code(),'outbound fails closed when test_mode is disabled');
+$GLOBALS['settings']['test_mode']=1;
+$wrong=str_replace('TEST_PHONE_ID','PRODUCTION_PHONE_ID',$fixture);$wrong_req=new WP_REST_Request('POST');$wrong_req->set_body($wrong);$wrong_req->set_header('X-Hub-Signature-256','sha256='.hash_hmac('sha256',$wrong,'test-secret'));
+$before=count($GLOBALS['wpdb']->rows);peracrm_rest_whatsapp_receive_webhook($wrong_req);
+assert_same($before,count($GLOBALS['wpdb']->rows),'signed payload for a different Phone Number ID is ignored');
+echo "All executable WhatsApp behavior tests passed.\n";

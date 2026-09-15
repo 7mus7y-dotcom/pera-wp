@@ -669,7 +669,7 @@ function peracrm_whatsapp_send_client_text($client_id, $body)
         'whatsapp_message_id' => $wamid, 'message_status' => 'sent', 'meta_timestamp' => current_time('mysql', true),
         'raw_payload_json' => '{}', 'source' => 'whatsapp', 'linked_by' => 'client',
     ]);
-    if (empty($write['row_id'])) return new WP_Error('persistence_failed', 'Meta accepted the message but CRM persistence failed.', ['status' => 500]);
+    if (empty($write['row_id'])) return new WP_Error('persistence_failed', 'Meta may already have accepted this message, but CRM persistence failed. Delivery state is unknown; do not retry automatically. Verify the recipient and Meta history first.', ['status' => 500]);
     if (function_exists('peracrm_log_event')) peracrm_log_event($client_id, 'whatsapp_outbound', ['message_id' => $wamid, 'row_id' => (int) $write['row_id']]);
     return ['wamid' => $wamid, 'row_id' => (int) $write['row_id']];
 }

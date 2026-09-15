@@ -58,6 +58,7 @@ A free-form text message can only be sent inside Meta's current customer-service
 * Client-scoped REST permission checks enforce administrator/global manager access or assigned-adviser access. Cookie requests use WordPress REST nonces.
 * Outbound phone comes from the selected CRM client; no arbitrary recipient endpoint. Credentials remain server-side.
 * Provider failures do not create successful message rows; errors returned to browsers are generic and credentials/message bodies are not logged.
+* Meta is called before local persistence. If Meta accepts a message and the local insert then fails, delivery may already have occurred. The UI explicitly warns that delivery is unknown and must not be retried automatically; operators must verify the recipient and Meta history first. A durable outbox is intentionally deferred.
 
 ## Schema version 17
 
@@ -65,4 +66,4 @@ The existing message table is evolved non-destructively with `sender_wa_id`, `re
 
 ## Intentionally out of scope
 
-No production Coexistence onboarding, templates, media, global/adviser inbox, new-client creation, identity/merge service, attribution, search, unread counters, broadcasts, campaigns, assignment UI, history import, or production rollout. Status webhooks update the basic state when straightforward, but there is no full status/error history. The synchronous webhook/table architecture is a minimal slice, not the eventual durable event queue. International phone handling is limited; use explicit E.164 for test clients. Retention/privacy policy and operational retry/dead-letter tooling remain future work.
+No production Coexistence onboarding, templates, media, global/adviser inbox, new-client creation, identity/merge service, attribution, search, unread counters, broadcasts, campaigns, assignment UI, history import, or production rollout. Status webhooks update the basic state when straightforward, but there is no full status/error history. The synchronous webhook/table architecture and send-before-persist sequence are minimal-slice limitations, not the eventual durable event queue/outbox. International phone handling is limited; use explicit E.164 for test clients. Retention/privacy policy and operational retry/dead-letter tooling remain future work.

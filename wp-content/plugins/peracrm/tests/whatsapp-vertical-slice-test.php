@@ -20,10 +20,11 @@ check(strpos($rest, 'hash_equals((string) $settings[\'verify_token\'], $verify_t
 check(strpos($rest, 'json_decode($raw, true)') > strpos($rest, 'peracrm_whatsapp_verify_meta_signature'), 'payload parsing occurs only after HMAC authentication');
 check(strpos($core, "if (\$wamid === ''") !== false && strpos($table, 'UNIQUE KEY whatsapp_message_id') !== false, 'WAMID is required and database-unique');
 check(strpos($rest, 'if (!is_array($payload))') !== false, 'malformed JSON fails safely');
-check(strpos($rest, 'return is_user_logged_in() && peracrm_whatsapp_user_can_access_client') !== false, 'unauthorised outbound REST requests are rejected');
+check(strpos($rest, 'return peracrm_whatsapp_user_can_access_client') !== false && strpos($rest, 'peracrm_with_target_blog') !== false, 'unauthorised outbound REST requests are rejected');
 check(strpos($core, 'peracrm_whatsapp_client_phone($client_id)') !== false && strpos($core, "new WP_Error('invalid_recipient'") !== false, 'authorised outbound validates selected client recipient');
 $send = substr($core, strpos($core, 'function peracrm_whatsapp_send_client_text'));
 check(strpos($send, '$code < 200 || $code >= 300 || $wamid ===') !== false && strpos($send, 'peracrm_whatsapp_store_message_result([') > strpos($send, '$code < 200'), 'Graph failure cannot persist a falsely successful outbound row');
 check(strpos($core, "'whatsapp_message_id' => \$wamid") !== false, 'successful outbound persists returned WAMID');
 check(strpos($embed, "'featureType' => 'whatsapp_business_app_onboarding'") !== false && strpos($embed, "'sessionInfoVersion' => '3'") !== false, 'Embedded Signup Coexistence launcher contract preserved');
-echo "All WhatsApp vertical-slice checks passed.\n";
+check(strpos($core, 'pera_get_whatsapp_number') === false && strpos($core, 'pera_whatsapp_number') === false, 'Cloud API transport has no website-number fallback');
+echo "All static WhatsApp contract checks passed.\n";
