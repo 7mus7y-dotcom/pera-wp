@@ -42,6 +42,11 @@ function peracrm_whatsapp_get_settings()
 
 function peracrm_whatsapp_get_saved_settings()
 {
+    return peracrm_with_target_blog('peracrm_whatsapp_get_saved_settings_on_current_blog');
+}
+
+function peracrm_whatsapp_get_saved_settings_on_current_blog()
+{
     $saved = get_option('peracrm_whatsapp_settings', []);
     if (!is_array($saved)) {
         $saved = [];
@@ -55,6 +60,13 @@ function peracrm_whatsapp_is_enabled()
     $settings = peracrm_whatsapp_get_settings();
 
     return !empty($settings['enabled']);
+}
+
+function peracrm_whatsapp_current_user_can_manage_target()
+{
+    return (bool) peracrm_with_target_blog(static function () {
+        return current_user_can('manage_options');
+    });
 }
 
 function peracrm_whatsapp_mask_secret($value)
@@ -74,9 +86,16 @@ function peracrm_whatsapp_mask_secret($value)
 
 function peracrm_whatsapp_save_settings(array $input)
 {
+    return peracrm_with_target_blog(static function () use ($input) {
+        return peracrm_whatsapp_save_settings_on_current_blog($input);
+    });
+}
+
+function peracrm_whatsapp_save_settings_on_current_blog(array $input)
+{
     // Read the stored option directly. Runtime constant overrides must never be
     // copied from wp-config.php/environment into the database on a blank field.
-    $existing = peracrm_whatsapp_get_saved_settings();
+    $existing = peracrm_whatsapp_get_saved_settings_on_current_blog();
 
     $settings = [
         'enabled' => !empty($input['enabled']) ? 1 : 0,
@@ -217,27 +236,31 @@ function peracrm_whatsapp_log($message, array $context = [])
 
 function peracrm_whatsapp_set_diagnostic($status, $message = '')
 {
-    $diag = [
-        'last_received_at' => peracrm_now_mysql(),
-        'last_status' => sanitize_key((string) $status),
-        'last_error' => sanitize_text_field((string) $message),
-    ];
+    return peracrm_with_target_blog(static function () use ($status, $message) {
+        $diag = [
+            'last_received_at' => peracrm_now_mysql(),
+            'last_status' => sanitize_key((string) $status),
+            'last_error' => sanitize_text_field((string) $message),
+        ];
 
-    update_option('peracrm_whatsapp_last_diag', $diag, false);
+        update_option('peracrm_whatsapp_last_diag', $diag, false);
+    });
 }
 
 function peracrm_whatsapp_get_diagnostic()
 {
-    $saved = get_option('peracrm_whatsapp_last_diag', []);
-    if (!is_array($saved)) {
-        $saved = [];
-    }
+    return peracrm_with_target_blog(static function () {
+        $saved = get_option('peracrm_whatsapp_last_diag', []);
+        if (!is_array($saved)) {
+            $saved = [];
+        }
 
-    return wp_parse_args($saved, [
-        'last_received_at' => '',
-        'last_status' => '',
-        'last_error' => '',
-    ]);
+        return wp_parse_args($saved, [
+            'last_received_at' => '',
+            'last_status' => '',
+            'last_error' => '',
+        ]);
+    });
 }
 
 function peracrm_whatsapp_normalize_phone($phone_raw)
@@ -500,6 +523,13 @@ function peracrm_whatsapp_count_messages()
 
 function peracrm_whatsapp_get_messages(array $args = [])
 {
+    return peracrm_with_target_blog(static function () use ($args) {
+        return peracrm_whatsapp_get_messages_on_current_blog($args);
+    });
+}
+
+function peracrm_whatsapp_get_messages_on_current_blog(array $args = [])
+{
     global $wpdb;
 
     $per_page = isset($args['per_page']) ? max(1, (int) $args['per_page']) : 20;
@@ -578,6 +608,13 @@ function peracrm_whatsapp_user_can_access_client($client_id, $user_id = 0)
 }
 
 function peracrm_whatsapp_client_phone($client_id)
+{
+    return (string) peracrm_with_target_blog(static function () use ($client_id) {
+        return peracrm_whatsapp_client_phone_on_current_blog($client_id);
+    });
+}
+
+function peracrm_whatsapp_client_phone_on_current_blog($client_id)
 {
     $phone = (string) get_post_meta((int) $client_id, '_peracrm_phone', true);
     if ($phone === '') {
@@ -691,11 +728,21 @@ function peracrm_whatsapp_send_client_text($client_id, $body)
     return ['wamid' => $wamid, 'row_id' => (int) $write['row_id']];
 }
 
+function peracrm_whatsapp_get_client_panel_context($client_id)
+{
+    return peracrm_with_target_blog(static function () use ($client_id) {
+        return [
+            'allowed' => peracrm_whatsapp_user_can_access_client_on_current_blog($client_id),
+            'phone' => peracrm_whatsapp_client_phone_on_current_blog($client_id),
+        ];
+    });
+}
+
 function peracrm_whatsapp_render_client_conversation($client_id)
 {
-    if (!peracrm_whatsapp_user_can_access_client($client_id)) return;
-    $settings = peracrm_whatsapp_get_settings();
-    $phone = peracrm_whatsapp_client_phone($client_id);
+    $panel = peracrm_whatsapp_get_client_panel_context($client_id);
+    if (empty($panel['allowed'])) return;
+    $phone = (string) $panel['phone'];
     echo '<section class="crm-section crm-whatsapp" data-peracrm-whatsapp-conversation data-client-id="' . esc_attr((string) $client_id) . '">';
     echo '<header class="crm-section__header"><div class="crm-section__heading-group"><h3 class="crm-section__title">' . esc_html__('WhatsApp conversation', 'peracrm') . '</h3>';
     echo '<p class="crm-section__description"><strong class="crm-whatsapp__test">' . esc_html__('META TEST MODE', 'peracrm') . '</strong> ' . esc_html($phone !== '' ? $phone : __('Client phone missing', 'peracrm')) . '</p></div></header>';

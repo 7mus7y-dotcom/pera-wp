@@ -22,7 +22,9 @@ Obtain from the Meta App's WhatsApp **API Setup** and App Settings screens:
 
 Never commit these values. Prefer environment/deployment constants in `wp-config.php`: `PERACRM_WHATSAPP_ENABLED`, `PERACRM_WHATSAPP_TEST_MODE`, `PERACRM_WHATSAPP_PHONE_NUMBER_ID`, `PERACRM_WHATSAPP_WABA_ID`, `PERACRM_WHATSAPP_ACCESS_TOKEN`, `PERACRM_WHATSAPP_VERIFY_TOKEN`, `PERACRM_WHATSAPP_APP_SECRET`, and `PERACRM_WHATSAPP_GRAPH_API_VERSION`. Constants override the non-autoloaded WordPress option. Secret fields are write-only in the UI and diagnostics show only Configured/Missing.
 
-Runtime constant overrides are never copied into the WordPress option when the write-only secret fields are left blank. Blank fields retain only values that were already stored in the option.
+`peracrm_whatsapp_settings`, WhatsApp diagnostics, message storage, and associated CRM client data are owned by the configured PeraCRM target blog. Requests and admin screens may originate on another multisite blog, but reads and writes resolve to that single target-blog owner; the plugin does not create a second source-blog configuration.
+
+Runtime constant overrides are never copied into the target-blog WordPress option when the write-only secret fields are left blank. Blank fields retain only values that were already stored in that option.
 
 ## Setup
 

@@ -31,8 +31,13 @@ function peracrm_rest_register_whatsapp_routes()
     register_rest_route('peracrm/v1', '/whatsapp/associate', [
         'methods' => WP_REST_Server::EDITABLE,
         'callback' => 'peracrm_rest_whatsapp_associate_sender',
-        'permission_callback' => static function () { return current_user_can('manage_options'); },
+        'permission_callback' => 'peracrm_rest_whatsapp_admin_permission',
     ]);
+}
+
+function peracrm_rest_whatsapp_admin_permission()
+{
+    return peracrm_whatsapp_current_user_can_manage_target();
 }
 
 function peracrm_rest_whatsapp_client_permission(WP_REST_Request $request)

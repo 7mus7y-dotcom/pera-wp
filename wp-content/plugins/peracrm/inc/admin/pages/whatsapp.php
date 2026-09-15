@@ -25,7 +25,7 @@ function peracrm_admin_is_real_whatsapp_logs_screen($hook = '')
 
 function peracrm_render_whatsapp_page()
 {
-    if (!peracrm_admin_user_can_manage()) {
+    if (!peracrm_whatsapp_current_user_can_manage_target()) {
         wp_die('Unauthorized');
     }
 
