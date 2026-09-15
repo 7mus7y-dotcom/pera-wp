@@ -42,7 +42,7 @@ function peracrm_admin_enqueue_assets($hook)
         $version
     );
 
-    if (peracrm_admin_is_whatsapp_settings_screen($hook) && current_user_can('manage_options')) {
+    if (peracrm_admin_is_whatsapp_settings_screen($hook) && peracrm_whatsapp_current_user_can_manage_target()) {
         peracrm_whatsapp_embedded_signup_enqueue_assets($version);
     }
 

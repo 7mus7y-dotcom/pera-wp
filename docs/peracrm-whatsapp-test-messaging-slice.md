@@ -28,7 +28,7 @@ Runtime constant overrides are never copied into the target-blog WordPress optio
 
 ## Setup
 
-1. Deploy and visit an authorised CRM/admin request so schema version 17 creates/evolves the existing `peracrm_whatsapp_messages` table.
+1. Deploy and visit an authorised CRM/admin request so schema version 18 creates/evolves the existing `peracrm_whatsapp_messages` table.
 2. Open **CRM Clients → CRM WhatsApp**. Confirm the prominent **META TEST MODE** warning.
 3. Enter only the test Phone Number ID/WABA and secrets, select **Enabled** and **Require Meta TEST assets**, then save. Prefer constants above on shared environments.
 4. In Meta, configure callback `https://YOUR-SITE/wp-json/peracrm/v1/whatsapp/webhook`, enter the same verify token, verify, and subscribe the test WABA to `messages`.
@@ -61,13 +61,15 @@ A free-form text message can only be sent inside Meta's current customer-service
 * Unknown senders remain unlinked; no webhook-driven client creation, merging, notifications, or media processing.
 * Client-scoped REST permission checks enforce administrator/global manager access or assigned-adviser access. Cookie requests use WordPress REST nonces.
 * The complete client access decision runs in the configured PeraCRM target-blog context. Global conversation access uses `manage_options` or `peracrm_manage_all_clients`; reminder-management permission alone does not grant client access.
+* WhatsApp administration and Embedded Signup eligibility require `manage_options` on the target blog. Admin message previews also resolve client titles and edit links on that blog, so colliding source-blog post IDs cannot affect presentation.
 * Outbound phone comes from the selected CRM client; no arbitrary recipient endpoint. Credentials remain server-side.
 * Provider failures do not create successful message rows; errors returned to browsers are generic and credentials/message bodies are not logged.
 * Meta is called before local persistence. If Meta accepts a message and the local insert then fails, delivery may already have occurred. The UI explicitly warns that delivery is unknown and must not be retried automatically; operators must verify the recipient and Meta history first. A durable outbox is intentionally deferred.
+* Delivery statuses advance monotonically from `sent` to `delivered` to `read`, using Meta timestamps to reject older events. A failure can be retained before confirmed delivery, but cannot overwrite a confirmed `delivered` or `read` state.
 
-## Schema version 17
+## Schema version 18
 
-The existing message table is evolved non-destructively with `sender_wa_id`, `recipient_phone_number_id`, `message_status`, and `meta_timestamp`; an index is added for `sender_wa_id`. Existing `client_id`, `phone_e164`, direction/type/body, WAMID, created time, and unique WAMID index remain. Raw payload storage for this slice is `{}` to minimise unnecessary webhook/customer data retention.
+The existing message table is evolved non-destructively with `sender_wa_id`, `recipient_phone_number_id`, `message_status`, `meta_timestamp`, and `status_timestamp`; an index is added for `sender_wa_id`. Existing `client_id`, `phone_e164`, direction/type/body, WAMID, created time, and unique WAMID index remain. Raw payload storage for this slice is `{}` to minimise unnecessary webhook/customer data retention.
 
 Conversation and recent-message queries select the newest limited window first, then return that window in chronological order. The client UI therefore displays the newest 100 messages rather than the oldest 100.
 

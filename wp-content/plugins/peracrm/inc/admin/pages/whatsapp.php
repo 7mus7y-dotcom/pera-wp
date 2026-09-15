@@ -31,8 +31,8 @@ function peracrm_render_whatsapp_page()
 
     $settings = peracrm_whatsapp_get_settings();
     $diag = peracrm_whatsapp_get_diagnostic();
-    $messages = function_exists('peracrm_whatsapp_get_messages')
-        ? peracrm_whatsapp_get_messages(['per_page' => 10, 'paged' => 1])
+    $messages = function_exists('peracrm_whatsapp_get_admin_preview_messages')
+        ? peracrm_whatsapp_get_admin_preview_messages(10)
         : ['rows' => [], 'pagination' => ['total' => 0]];
     $message_rows = isset($messages['rows']) && is_array($messages['rows']) ? $messages['rows'] : [];
     $message_total = isset($messages['pagination']['total']) ? (int) $messages['pagination']['total'] : 0;
@@ -46,7 +46,7 @@ function peracrm_render_whatsapp_page()
     echo '<div class="notice notice-warning inline"><p><strong>' . esc_html__('META TEST MODE', 'peracrm') . '</strong> — ' . esc_html__('This slice must only use Meta test WABA and test Phone Number ID assets.', 'peracrm') . '</p></div>';
     echo '<p class="peracrm-whatsapp-admin__intro">' . esc_html__('Manage WhatsApp Business webhook credentials, verify inbound delivery status, and review recent synced CRM messages. This page is reserved for CRM WhatsApp integration settings and diagnostics.', 'peracrm') . '</p>';
 
-    if (current_user_can('manage_options') && function_exists('peracrm_whatsapp_embedded_signup_render_panel')) {
+    if (peracrm_whatsapp_current_user_can_manage_target() && function_exists('peracrm_whatsapp_embedded_signup_render_panel')) {
         peracrm_whatsapp_embedded_signup_render_panel();
     }
 
@@ -125,11 +125,9 @@ function peracrm_render_whatsapp_page()
             $client_id = isset($row['client_id']) ? (int) $row['client_id'] : 0;
             $client_label = '—';
             if ($client_id > 0) {
-                $client_label = get_the_title($client_id);
-                if ($client_label === '') {
-                    $client_label = 'Client #' . $client_id;
-                }
-                $client_url = get_edit_post_link($client_id);
+                $client_label = (string) ($row['client_label'] ?? '');
+                $client_label = $client_label !== '' ? $client_label : ('Client #' . $client_id);
+                $client_url = (string) ($row['client_edit_url'] ?? '');
                 $client_label = $client_url ? '<a href="' . esc_url($client_url) . '">' . esc_html($client_label) . '</a>' : esc_html($client_label);
             }
 

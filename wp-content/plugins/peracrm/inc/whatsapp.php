@@ -482,12 +482,13 @@ function peracrm_whatsapp_store_message_result(array $record)
         'whatsapp_message_id' => $whatsapp_message_id,
         'message_status' => sanitize_key((string) ($record['message_status'] ?? 'received')),
         'meta_timestamp' => !empty($record['meta_timestamp']) ? sanitize_text_field((string) $record['meta_timestamp']) : null,
+        'status_timestamp' => !empty($record['status_timestamp']) ? sanitize_text_field((string) $record['status_timestamp']) : null,
         'raw_payload_json' => isset($record['raw_payload_json']) ? (string) $record['raw_payload_json'] : '{}',
         'source' => sanitize_key((string) ($record['source'] ?? 'whatsapp')),
         'linked_by' => sanitize_key((string) ($record['linked_by'] ?? 'phone')),
         'created_at' => peracrm_now_mysql(),
     ], [
-        '%d', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s',
+        '%d', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s',
     ]);
 
     if (!$inserted && $whatsapp_message_id !== '') {
@@ -562,6 +563,32 @@ function peracrm_whatsapp_get_messages_on_current_blog(array $args = [])
             'paged' => $paged,
         ],
     ];
+}
+
+function peracrm_whatsapp_get_admin_preview_messages($limit = 10)
+{
+    return peracrm_with_target_blog(static function () use ($limit) {
+        $messages = peracrm_whatsapp_get_messages_on_current_blog([
+            'per_page' => max(1, (int) $limit),
+            'paged' => 1,
+        ]);
+
+        foreach ($messages['rows'] as &$row) {
+            $client_id = (int) ($row['client_id'] ?? 0);
+            $row['client_label'] = '';
+            $row['client_edit_url'] = '';
+            if ($client_id > 0 && get_post_type($client_id) === 'crm_client') {
+                $row['client_label'] = (string) get_the_title($client_id);
+                if ($row['client_label'] === '') {
+                    $row['client_label'] = 'Client #' . $client_id;
+                }
+                $row['client_edit_url'] = (string) get_edit_post_link($client_id, 'raw');
+            }
+        }
+        unset($row);
+
+        return $messages;
+    });
 }
 
 function peracrm_whatsapp_delete_messages_by_ids(array $ids)
@@ -643,6 +670,54 @@ function peracrm_whatsapp_meta_datetime($timestamp)
     return $timestamp && $timestamp > 0 ? gmdate('Y-m-d H:i:s', $timestamp) : null;
 }
 
+function peracrm_whatsapp_apply_status($wamid, $status, $timestamp = null)
+{
+    return (bool) peracrm_with_target_blog(static function () use ($wamid, $status, $timestamp) {
+        global $wpdb;
+        $wamid = sanitize_text_field((string) $wamid);
+        $status = sanitize_key((string) $status);
+        if ($wamid === '' || !in_array($status, ['sent', 'delivered', 'read', 'failed'], true)) return false;
+
+        $table = peracrm_whatsapp_messages_table_name();
+        $row = $wpdb->get_row($wpdb->prepare(
+            "SELECT message_status, status_timestamp FROM {$table} WHERE whatsapp_message_id = %s LIMIT 1",
+            $wamid
+        ), ARRAY_A);
+        if (!is_array($row)) return false;
+
+        $current = sanitize_key((string) ($row['message_status'] ?? ''));
+        $current_timestamp = (string) ($row['status_timestamp'] ?? '');
+        $incoming_timestamp = peracrm_whatsapp_meta_datetime($timestamp);
+        $is_older = $incoming_timestamp !== null && $current_timestamp !== '' && $incoming_timestamp < $current_timestamp;
+        $ranks = ['sent' => 1, 'delivered' => 2, 'read' => 3];
+
+        if ($status === 'failed') {
+            // Once Meta confirms delivery/read, a delayed failure must not corrupt
+            // that terminal evidence. Before delivery, retain only a newer failure.
+            if (in_array($current, ['delivered', 'read'], true) || $is_older) return false;
+        } elseif (isset($ranks[$current])) {
+            if ($ranks[$status] < $ranks[$current] || $is_older) return false;
+        } elseif ($current === 'failed' && $is_older) {
+            return false;
+        }
+
+        $update = ['message_status' => $status];
+        $formats = ['%s'];
+        if ($incoming_timestamp !== null && ($current_timestamp === '' || $incoming_timestamp >= $current_timestamp)) {
+            $update['status_timestamp'] = $incoming_timestamp;
+            $formats[] = '%s';
+        }
+
+        return $wpdb->update(
+            $table,
+            $update,
+            ['whatsapp_message_id' => $wamid, 'message_status' => $current],
+            $formats,
+            ['%s', '%s']
+        ) !== false;
+    });
+}
+
 function peracrm_whatsapp_process_inbound_payload(array $payload)
 {
     $settings = peracrm_whatsapp_get_settings();
@@ -685,8 +760,7 @@ function peracrm_whatsapp_process_inbound_payload(array $payload)
                 $wamid = sanitize_text_field((string) ($status['id'] ?? ''));
                 $state = sanitize_key((string) ($status['status'] ?? ''));
                 if ($wamid !== '' && in_array($state, ['sent', 'delivered', 'read', 'failed'], true)) {
-                    global $wpdb;
-                    $wpdb->update(peracrm_whatsapp_messages_table_name(), ['message_status' => $state], ['whatsapp_message_id' => $wamid], ['%s'], ['%s']);
+                    peracrm_whatsapp_apply_status($wamid, $state, $status['timestamp'] ?? null);
                 }
             }
         }
