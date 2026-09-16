@@ -4,6 +4,8 @@ $limit       = 500;
 $dry_run     = false;
 $status      = 'all';
 $object_type = null;
+$object_id   = null;
+$field       = null;
 
 $cli_args = isset( $args ) && is_array( $args )
     ? $args
@@ -51,12 +53,54 @@ foreach ( $cli_args as $arg ) {
         }
 
         $object_type = $requested_object_type;
+        continue;
+    }
+
+    if ( 0 === strpos( $arg, 'object_id=' ) ) {
+        $requested_object_id = substr( $arg, 10 );
+
+        if (
+            '' === $requested_object_id ||
+            ! ctype_digit( $requested_object_id ) ||
+            (int) $requested_object_id <= 0
+        ) {
+            echo 'ERROR: Invalid object_id filter "' . $requested_object_id . '".' . PHP_EOL;
+            return;
+        }
+
+        $object_id = (int) $requested_object_id;
+        continue;
+    }
+
+    if ( 0 === strpos( $arg, 'field=' ) ) {
+        $requested_field = substr( $arg, 6 );
+
+        if (
+            '' === $requested_field ||
+            ! preg_match( '/^[A-Za-z0-9_-]+(?::[A-Za-z0-9_-]+)?$/', $requested_field )
+        ) {
+            echo 'ERROR: Invalid field filter "' . $requested_field . '".' . PHP_EOL;
+            return;
+        }
+
+        $field = $requested_field;
+        continue;
     }
 }
 
-$object_type_summary = null === $object_type
-    ? ''
-    : ' | Object type: ' . $object_type;
+$filter_summary = '';
+
+if ( null !== $object_type ) {
+    $filter_summary .= ' | Object type: ' . $object_type;
+}
+
+if ( null !== $object_id ) {
+    $filter_summary .= ' | Object ID: ' . $object_id;
+}
+
+if ( null !== $field ) {
+    $filter_summary .= ' | Field: ' . $field;
+}
 
 $p = Pera_ML_Plugin::instance();
 
@@ -88,7 +132,27 @@ foreach ( $rows as $row ) {
         ! isset( $row['status'] ) ||
         ! in_array( $row['status'], array( 'missing', 'stale' ), true ) ||
         ( 'all' !== $status && $status !== $row['status'] ) ||
-        ( null !== $object_type && ( ! isset( $row['object_type'] ) || $object_type !== $row['object_type'] ) )
+        (
+            null !== $object_type &&
+            (
+                ! isset( $row['object_type'] ) ||
+                $object_type !== $row['object_type']
+            )
+        ) ||
+        (
+            null !== $object_id &&
+            (
+                ! isset( $row['object_id'] ) ||
+                $object_id !== (int) $row['object_id']
+            )
+        ) ||
+        (
+            null !== $field &&
+            (
+                ! isset( $row['field'] ) ||
+                $field !== $row['field']
+            )
+        )
     ) {
         continue;
     }
@@ -97,7 +161,10 @@ foreach ( $rows as $row ) {
 }
 
 if ( ! $pending ) {
-    echo 'No incomplete translations found. Status filter: ' . $status . $object_type_summary . PHP_EOL;
+    echo 'No incomplete translations found. Status filter: '
+        . $status
+        . $filter_summary
+        . PHP_EOL;
     return;
 }
 
@@ -163,13 +230,13 @@ if ( $dry_run ) {
     echo 'Dry run: ' . $shown
         . ' row(s) shown | Limit: ' . $limit
         . ' | Status filter: ' . $status
-        . $object_type_summary
+        . $filter_summary
         . PHP_EOL;
 } else {
     echo 'Completed: ' . $success
         . ' | Errors: ' . $errors
         . ' | Skipped: ' . $skipped
         . ' | Status filter: ' . $status
-        . $object_type_summary
+        . $filter_summary
         . PHP_EOL;
 }
