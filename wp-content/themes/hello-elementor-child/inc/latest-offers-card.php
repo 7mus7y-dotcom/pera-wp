@@ -10,6 +10,17 @@ if ( ! function_exists( 'pera_latest_offers_meta_key' ) ) {
 }
 
 if ( ! function_exists( 'pera_latest_offers_get_rows' ) ) {
+	if ( ! function_exists( 'pera_latest_offers_validate_video_id' ) ) {
+		function pera_latest_offers_validate_video_id( $video_id ): int {
+			$video_id = absint( $video_id );
+			if ( $video_id < 1 || 'attachment' !== get_post_type( $video_id ) || 'video/mp4' !== get_post_mime_type( $video_id ) ) {
+				return 0;
+			}
+
+			return $video_id;
+		}
+	}
+
 	/**
 	 * @return array<int,array<string,mixed>>
 	 */
@@ -38,6 +49,8 @@ if ( ! function_exists( 'pera_latest_offers_get_rows' ) ) {
 				'cash_price'    => isset( $row['cash_price'] ) ? trim( (string) $row['cash_price'] ) : '',
 				'notes'         => isset( $row['notes'] ) ? trim( (string) $row['notes'] ) : '',
 				'floor_plan_id' => isset( $row['floor_plan_id'] ) ? (int) $row['floor_plan_id'] : 0,
+				'video_id'      => isset( $row['video_id'] ) ? pera_latest_offers_validate_video_id( $row['video_id'] ) : 0,
+				'video_text'    => isset( $row['video_text'] ) ? sanitize_text_field( (string) $row['video_text'] ) : '',
 			);
 		}
 
@@ -152,6 +165,18 @@ if ( ! function_exists( 'pera_latest_offers_format_size' ) ) {
 if ( ! function_exists( 'pera_latest_offers_floor_plan_url' ) ) {
 	function pera_latest_offers_floor_plan_url( int $attachment_id ): string {
 		if ( $attachment_id <= 0 ) {
+			return '';
+		}
+
+		$attachment_url = wp_get_attachment_url( $attachment_id );
+		return is_string( $attachment_url ) ? $attachment_url : '';
+	}
+}
+
+if ( ! function_exists( 'pera_latest_offers_video_url' ) ) {
+	function pera_latest_offers_video_url( int $attachment_id ): string {
+		$attachment_id = pera_latest_offers_validate_video_id( $attachment_id );
+		if ( $attachment_id < 1 ) {
 			return '';
 		}
 
@@ -505,6 +530,9 @@ if ( ! function_exists( 'pera_latest_offers_property_map_coords' ) ) {
 
 		$floor_plan_id  = isset( $offer_row['floor_plan_id'] ) ? (int) $offer_row['floor_plan_id'] : 0;
 		$floor_plan_url = pera_latest_offers_floor_plan_url( $floor_plan_id );
+		$video_id       = isset( $offer_row['video_id'] ) ? pera_latest_offers_validate_video_id( $offer_row['video_id'] ) : 0;
+		$video_url      = pera_latest_offers_video_url( $video_id );
+		$video_text     = isset( $offer_row['video_text'] ) ? sanitize_text_field( (string) $offer_row['video_text'] ) : '';
 
 		return array(
 			'property_id'     => $property_id,
@@ -523,6 +551,9 @@ if ( ! function_exists( 'pera_latest_offers_property_map_coords' ) ) {
 			'sort_price'      => null !== $cash_price_value ? $cash_price_value : $list_price_value,
 			'notes'           => $notes,
 			'floor_plan_url'  => $floor_plan_url,
+			'video_id'       => $video_id,
+			'video_url'      => $video_url,
+			'video_text'     => $video_text,
 			'map_url'         => $map_url,
 		);
 	}
@@ -597,8 +628,39 @@ if ( ! function_exists( 'pera_latest_offers_enqueue_card_styles' ) ) {
 			array( 'pera-main-css', 'pera-card-typography' ),
 			pera_get_asset_version( '/css/latest-offers-card.css' )
 		);
+
+		wp_enqueue_script(
+			'pera-latest-offers-video',
+			get_stylesheet_directory_uri() . '/js/latest-offers-video.js',
+			array(),
+			pera_get_asset_version( '/js/latest-offers-video.js' ),
+			true
+		);
 	}
 }
+
+if ( ! function_exists( 'pera_latest_offers_render_video_modal' ) ) {
+	function pera_latest_offers_render_video_modal(): void {
+		if ( ! pera_latest_offers_should_enqueue_card_styles() ) {
+			return;
+		}
+		?>
+		<div class="pera-offer-video-modal" data-pera-offer-video-modal hidden>
+			<div class="pera-offer-video-modal__backdrop" data-pera-offer-video-close></div>
+			<div class="pera-offer-video-modal__dialog" role="dialog" aria-modal="true" aria-labelledby="pera-offer-video-title" tabindex="-1">
+				<h2 class="screen-reader-text" id="pera-offer-video-title"><?php echo esc_html( pera_ml_ui( 'Property video', 'theme.latest_offers.property_video' ) ); ?></h2>
+				<button class="pera-offer-video-modal__close" type="button" data-pera-offer-video-close aria-label="<?php echo esc_attr( pera_ml_ui( 'Close video', 'theme.latest_offers.close_video' ) ); ?>">&times;</button>
+				<div class="pera-offer-video-modal__media">
+					<video controls playsinline preload="metadata" data-pera-offer-video-player></video>
+					<p class="pera-offer-video-modal__caption" data-pera-offer-video-caption hidden></p>
+				</div>
+			</div>
+		</div>
+		<?php
+	}
+}
+// WordPress prints footer-enqueued scripts at priority 20; the modal must exist first.
+add_action( 'wp_footer', 'pera_latest_offers_render_video_modal', 19 );
 
 if ( ! function_exists( 'pera_latest_offers_should_enqueue_card_styles' ) ) {
 	function pera_latest_offers_should_enqueue_card_styles(): bool {

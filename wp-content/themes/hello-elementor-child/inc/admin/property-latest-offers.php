@@ -10,6 +10,17 @@ if ( ! function_exists( 'pera_property_latest_offers_meta_key' ) ) {
 }
 
 if ( ! function_exists( 'pera_property_latest_offers_get_rows' ) ) {
+	if ( ! function_exists( 'pera_property_latest_offers_validate_video_id' ) ) {
+		function pera_property_latest_offers_validate_video_id( $video_id ): int {
+			$video_id = absint( $video_id );
+			if ( $video_id < 1 || 'attachment' !== get_post_type( $video_id ) || 'video/mp4' !== get_post_mime_type( $video_id ) ) {
+				return 0;
+			}
+
+			return $video_id;
+		}
+	}
+
 	/**
 	 * @return array<int,array<string,mixed>>
 	 */
@@ -35,6 +46,8 @@ if ( ! function_exists( 'pera_property_latest_offers_get_rows' ) ) {
 				'cash_price'    => isset( $row['cash_price'] ) ? (string) $row['cash_price'] : '',
 				'notes'         => isset( $row['notes'] ) ? (string) $row['notes'] : '',
 				'floor_plan_id' => isset( $row['floor_plan_id'] ) ? (int) $row['floor_plan_id'] : 0,
+				'video_id'      => isset( $row['video_id'] ) ? pera_property_latest_offers_validate_video_id( $row['video_id'] ) : 0,
+				'video_text'    => isset( $row['video_text'] ) ? sanitize_text_field( (string) $row['video_text'] ) : '',
 			);
 		}
 
@@ -95,6 +108,8 @@ if ( ! function_exists( 'pera_property_latest_offers_render_meta_box' ) ) {
 						<th><?php esc_html_e( 'Cash price ($)', 'hello-elementor-child' ); ?></th>
 						<th><?php esc_html_e( 'Notes', 'hello-elementor-child' ); ?></th>
 						<th><?php esc_html_e( 'Floor plan', 'hello-elementor-child' ); ?></th>
+						<th><?php esc_html_e( 'MP4 video', 'hello-elementor-child' ); ?></th>
+						<th><?php esc_html_e( 'Video text', 'hello-elementor-child' ); ?></th>
 						<th><?php esc_html_e( 'Actions', 'hello-elementor-child' ); ?></th>
 					</tr>
 					</thead>
@@ -110,6 +125,8 @@ if ( ! function_exists( 'pera_property_latest_offers_render_meta_box' ) ) {
 							'cash_price'    => '',
 							'notes'         => '',
 							'floor_plan_id' => 0,
+							'video_id'      => 0,
+							'video_text'    => '',
 						);
 					}
 
@@ -117,6 +134,9 @@ if ( ! function_exists( 'pera_property_latest_offers_render_meta_box' ) ) {
 						$floor_plan_id    = isset( $row['floor_plan_id'] ) ? (int) $row['floor_plan_id'] : 0;
 						$floor_plan_label = pera_property_latest_offers_get_attachment_label( $floor_plan_id );
 						$floor_plan_url   = $floor_plan_id > 0 ? wp_get_attachment_url( $floor_plan_id ) : '';
+						$video_id          = isset( $row['video_id'] ) ? (int) $row['video_id'] : 0;
+						$video_label       = pera_property_latest_offers_get_attachment_label( $video_id );
+						$video_url         = $video_id > 0 ? wp_get_attachment_url( $video_id ) : '';
 						?>
 						<tr class="pera-latest-offers-row">
 							<td><input type="text" class="pera-offer-type-field" maxlength="8" name="pera_latest_offers[<?php echo esc_attr( (string) $index ); ?>][type]" value="<?php echo esc_attr( (string) $row['type'] ); ?>" /></td>
@@ -139,6 +159,16 @@ if ( ! function_exists( 'pera_property_latest_offers_render_meta_box' ) ) {
 									<button type="button" class="button button-small pera-floor-plan-remove" <?php disabled( $floor_plan_id < 1 ); ?>><?php esc_html_e( 'Remove', 'hello-elementor-child' ); ?></button>
 								</div>
 							</td>
+							<td>
+								<input type="hidden" class="pera-video-id" name="pera_latest_offers[<?php echo esc_attr( (string) $index ); ?>][video_id]" value="<?php echo esc_attr( (string) $video_id ); ?>" />
+								<div class="pera-video-label"><?php echo esc_html( $video_label !== '' ? $video_label : __( 'No file selected', 'hello-elementor-child' ) ); ?></div>
+								<div class="pera-video-preview"><?php if ( is_string( $video_url ) && $video_url !== '' ) : ?><a href="<?php echo esc_url( $video_url ); ?>" target="_blank" rel="noopener noreferrer"><?php esc_html_e( 'View', 'hello-elementor-child' ); ?></a><?php endif; ?></div>
+								<div class="pera-video-actions">
+									<button type="button" class="button button-small pera-video-select"><?php esc_html_e( 'Select MP4', 'hello-elementor-child' ); ?></button>
+									<button type="button" class="button button-small pera-video-remove" <?php disabled( $video_id < 1 ); ?>><?php esc_html_e( 'Remove', 'hello-elementor-child' ); ?></button>
+								</div>
+							</td>
+							<td><input type="text" class="pera-video-text-field" name="pera_latest_offers[<?php echo esc_attr( (string) $index ); ?>][video_text]" value="<?php echo esc_attr( (string) $row['video_text'] ); ?>" /></td>
 							<td>
 								<button type="button" class="button-link-delete pera-latest-offers-delete-row"><?php esc_html_e( 'Delete row', 'hello-elementor-child' ); ?></button>
 							</td>
@@ -172,6 +202,16 @@ if ( ! function_exists( 'pera_property_latest_offers_render_meta_box' ) ) {
 						<button type="button" class="button button-small pera-floor-plan-remove" disabled><?php esc_html_e( 'Remove', 'hello-elementor-child' ); ?></button>
 					</div>
 				</td>
+				<td>
+					<input type="hidden" class="pera-video-id" name="pera_latest_offers[__index__][video_id]" value="" />
+					<div class="pera-video-label"><?php esc_html_e( 'No file selected', 'hello-elementor-child' ); ?></div>
+					<div class="pera-video-preview"></div>
+					<div class="pera-video-actions">
+						<button type="button" class="button button-small pera-video-select"><?php esc_html_e( 'Select MP4', 'hello-elementor-child' ); ?></button>
+						<button type="button" class="button button-small pera-video-remove" disabled><?php esc_html_e( 'Remove', 'hello-elementor-child' ); ?></button>
+					</div>
+				</td>
+				<td><input type="text" class="pera-video-text-field" name="pera_latest_offers[__index__][video_text]" value="" /></td>
 				<td><button type="button" class="button-link-delete pera-latest-offers-delete-row"><?php esc_html_e( 'Delete row', 'hello-elementor-child' ); ?></button></td>
 			</tr>
 		</script>
@@ -295,6 +335,7 @@ if ( ! function_exists( 'pera_property_latest_offers_save' ) ) {
 					$floor_plan_id = 0;
 				}
 			}
+			$video_id = isset( $row['video_id'] ) ? pera_property_latest_offers_validate_video_id( $row['video_id'] ) : 0;
 
 			$item = array(
 				'type'          => isset( $row['type'] ) ? sanitize_text_field( (string) $row['type'] ) : '',
@@ -305,6 +346,8 @@ if ( ! function_exists( 'pera_property_latest_offers_save' ) ) {
 				'cash_price'    => isset( $row['cash_price'] ) ? pera_property_latest_offers_sanitize_price( $row['cash_price'] ) : '',
 				'notes'         => isset( $row['notes'] ) ? sanitize_textarea_field( (string) $row['notes'] ) : '',
 				'floor_plan_id' => $floor_plan_id,
+				'video_id'      => $video_id,
+				'video_text'    => isset( $row['video_text'] ) ? sanitize_text_field( (string) $row['video_text'] ) : '',
 			);
 
 			$is_empty =
@@ -315,7 +358,9 @@ if ( ! function_exists( 'pera_property_latest_offers_save' ) ) {
 				&& $item['list_price'] === ''
 				&& $item['cash_price'] === ''
 				&& $item['notes'] === ''
-				&& (int) $item['floor_plan_id'] < 1;
+				&& (int) $item['floor_plan_id'] < 1
+				&& (int) $item['video_id'] < 1
+				&& $item['video_text'] === '';
 
 			if ( $is_empty ) {
 				continue;

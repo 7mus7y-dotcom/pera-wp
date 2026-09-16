@@ -3,7 +3,7 @@
 }
 
 .pera-latest-offers-table {
-  min-width: 1080px;
+  min-width: 1420px;
 }
 
 .pera-latest-offers-table td,
@@ -15,16 +15,22 @@
   min-width: 180px;
 }
 
-.pera-floor-plan-label {
+.pera-floor-plan-label,
+.pera-video-label {
   margin-bottom: 6px;
   font-size: 12px;
   line-height: 1.4;
 }
 
-.pera-floor-plan-actions {
+.pera-floor-plan-actions,
+.pera-video-actions {
   display: flex;
   gap: 6px;
   margin-top: 6px;
+}
+
+.pera-video-text-field {
+  width: 180px;
 }
 
 .pera-offer-type-field {

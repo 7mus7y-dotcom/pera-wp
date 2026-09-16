@@ -62,6 +62,31 @@
     frame.open();
   }
 
+  function openVideoFrame($row) {
+    var frame = wp.media({
+      title: 'Select MP4 video',
+      library: { type: ['video/mp4'] },
+      button: { text: 'Use this video' },
+      multiple: false
+    });
+
+    frame.on('select', function () {
+      var attachment = frame.state().get('selection').first().toJSON();
+      var label = attachment.title || attachment.filename || ('Attachment #' + attachment.id);
+
+      $row.find('.pera-video-id').val(attachment.id);
+      $row.find('.pera-video-label').text(label);
+      $row.find('.pera-video-preview').empty();
+      if (attachment.url) {
+        $('<a>', { href: attachment.url, target: '_blank', rel: 'noopener noreferrer', text: 'View' })
+          .appendTo($row.find('.pera-video-preview'));
+      }
+      $row.find('.pera-video-remove').prop('disabled', false);
+    });
+
+    frame.open();
+  }
+
   $(document).on('click', '[data-pera-latest-offers-add-row]', function (e) {
     e.preventDefault();
     addRow($(this).closest('.pera-latest-offers-wrap'));
@@ -90,6 +115,21 @@
     $row.find('.pera-floor-plan-id').val('');
     $row.find('.pera-floor-plan-label').text('No file selected');
     $row.find('.pera-floor-plan-preview').empty();
+    $(this).prop('disabled', true);
+  });
+
+  $(document).on('click', '.pera-video-select', function (e) {
+    e.preventDefault();
+    openVideoFrame($(this).closest('tr.pera-latest-offers-row'));
+  });
+
+  $(document).on('click', '.pera-video-remove', function (e) {
+    e.preventDefault();
+
+    var $row = $(this).closest('tr.pera-latest-offers-row');
+    $row.find('.pera-video-id').val('');
+    $row.find('.pera-video-label').text('No file selected');
+    $row.find('.pera-video-preview').empty();
     $(this).prop('disabled', true);
   });
 })(jQuery);

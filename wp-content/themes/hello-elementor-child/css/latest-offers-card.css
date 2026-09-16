@@ -139,12 +139,105 @@
   line-height: 1;
 }
 
-.pera-latest-offer-card__pill--map {
+.pera-latest-offer-card__media-actions {
   position: absolute;
   top: 6px;
   right: 6px;
   z-index: 3;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 6px;
+}
+
+.pera-latest-offer-card__pill--map,
+.pera-latest-offer-card__pill--video {
   margin-left: 0;
+}
+
+.pera-latest-offer-card__pill--video {
+  appearance: none;
+  font: inherit;
+}
+
+body.pera-offer-video-modal-open {
+  overflow: hidden;
+}
+
+.pera-offer-video-modal[hidden] {
+  display: none;
+}
+
+.pera-offer-video-modal {
+  position: fixed;
+  inset: 0;
+  z-index: 100000;
+  display: grid;
+  place-items: center;
+  padding: clamp(16px, 4vw, 48px);
+}
+
+.pera-offer-video-modal__backdrop {
+  position: absolute;
+  inset: 0;
+  background: rgba(2, 6, 23, 0.88);
+}
+
+.pera-offer-video-modal__dialog {
+  position: relative;
+  z-index: 1;
+  width: min(960px, 100%);
+  max-height: calc(100vh - 32px);
+  outline: none;
+}
+
+.pera-offer-video-modal__media {
+  position: relative;
+}
+
+.pera-offer-video-modal__media video {
+  display: block;
+  width: 100%;
+  max-height: calc(100vh - 64px);
+  object-fit: contain;
+  background: #000;
+  border-radius: 10px;
+}
+
+.pera-offer-video-modal__close {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  z-index: 2;
+  display: grid;
+  place-items: center;
+  width: 40px;
+  height: 40px;
+  padding: 0;
+  border: 1px solid rgba(255, 255, 255, 0.75);
+  border-radius: 999px;
+  background: rgba(0, 0, 0, 0.72);
+  color: #fff;
+  font-size: 28px;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.pera-offer-video-modal__caption {
+  position: absolute;
+  right: 16px;
+  bottom: 52px;
+  left: 16px;
+  margin: 0 auto;
+  max-width: 760px;
+  padding: 10px 14px;
+  border-radius: 8px;
+  background: rgba(0, 0, 0, 0.72);
+  color: #fff;
+  font-size: clamp(0.875rem, 2vw, 1rem);
+  line-height: 1.4;
+  text-align: center;
+  text-shadow: 0 1px 2px #000;
 }
 
 .pera-latest-offer-card__note {
