@@ -210,6 +210,10 @@ function peracrm_upgrade_schema_to($target_version, $installed_version = 0)
             peracrm_migrate_stage_taxonomy_v4();
             update_option('peracrm_migration_v4_done', 1);
         }
+
+        if ($installed_version < 20 && $target_version >= 20 && function_exists('peracrm_upgrade_roles_and_caps_v20')) {
+            peracrm_upgrade_roles_and_caps_v20();
+        }
     });
 }
 

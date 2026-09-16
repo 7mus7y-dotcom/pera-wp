@@ -79,6 +79,12 @@ function peracrm_ensure_roles_and_caps()
     });
 }
 
+/** Version 20: install the authorization-management capabilities. */
+function peracrm_upgrade_roles_and_caps_v20()
+{
+    peracrm_ensure_roles_and_caps();
+}
+
 /**
  * Remove the temporary role only after operators have migrated every account.
  * Keeping the role while users remain is deliberate: silently deleting a role
@@ -107,10 +113,17 @@ add_action('init', 'peracrm_maybe_remove_legacy_advisor_role', 100);
 
 function peracrm_legacy_advisor_migration_notice()
 {
-    if (!current_user_can('manage_options')) {
-        return;
-    }
-    $ids = (array) get_option('peracrm_legacy_advisor_user_ids', []);
+    $ids = peracrm_with_target_blog(static function () {
+        // Evaluate the real user's authority in the same blog whose migration
+        // state is being read. peracrm_with_target_blog always restores the
+        // originating admin context, including on an early return.
+        if (!current_user_can('manage_options')) {
+            return [];
+        }
+
+        return (array) get_option('peracrm_legacy_advisor_user_ids', []);
+    });
+
     if (empty($ids)) {
         return;
     }

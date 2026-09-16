@@ -17,6 +17,9 @@ $search = file_get_contents($root . '/inc/services/header_search_service.php');
 $whatsapp = file_get_contents($root . '/inc/whatsapp.php');
 $admin = file_get_contents($root . '/inc/admin/actions.php');
 $roles = file_get_contents($root . '/inc/roles.php');
+$schema = file_get_contents($root . '/inc/schema.php');
+$bootstrap = file_get_contents($root . '/inc/bootstrap.php');
+$plugin = file_get_contents($root . '/peracrm.php');
 
 surface_expect(substr_count($rest, 'peracrm_get_client_access_scope(get_current_user_id())') >= 3, 'all custom REST collections resolve canonical scope');
 surface_expect(strpos($rest, "party_id IN") !== false, 'deal REST collection is scoped through party_id');
@@ -32,5 +35,7 @@ surface_expect(strpos($search, 'peracrm_get_client_access_scope') !== false, 'he
 surface_expect(strpos($whatsapp, 'peracrm_user_can_access_client') !== false, 'WhatsApp client access uses canonical policy');
 surface_expect(strpos($admin, "\$query->set('post__in'") !== false, 'WordPress admin client collection receives a server-side ID boundary');
 surface_expect(strpos($roles, "get_users(['role' => 'advisor'") !== false && strpos($roles, "remove_role('advisor')") !== false, 'legacy advisor role removal is conditional on user inventory');
+surface_expect(strpos($plugin, "PERACRM_SCHEMA_VERSION', 20") !== false && strpos($schema, 'peracrm_upgrade_roles_and_caps_v20') !== false, 'role capabilities use the versioned schema upgrade path');
+surface_expect(strpos($bootstrap, "add_action('init', function ()") !== false && strpos($bootstrap, 'peracrm_maybe_upgrade_schema();') !== false, 'schema upgrade is checked on normal init without requiring wp-admin');
 
 echo "PeraCRM authorization surface checks passed\n";
