@@ -21,7 +21,9 @@ function peracrm_register_cpt_crm_client()
         'show_in_menu' => true,
         'menu_icon' => 'dashicons-id',
         'supports' => ['title'],
-        'show_in_rest' => true,
+        // PeraCRM has purpose-built, assignment-scoped REST endpoints. The
+        // generic wp/v2 controller cannot express that boundary safely.
+        'show_in_rest' => false,
         'capability_type' => ['crm_client', 'crm_clients'],
         'map_meta_cap' => true,
         'has_archive' => false,

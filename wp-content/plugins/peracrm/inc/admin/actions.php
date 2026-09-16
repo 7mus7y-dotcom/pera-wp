@@ -2135,6 +2135,13 @@ function peracrm_admin_client_list_query($query)
         return;
     }
 
+    if (function_exists('peracrm_get_client_access_scope')) {
+        $scope = peracrm_get_client_access_scope(get_current_user_id());
+        if ($scope['type'] !== 'full') {
+            $query->set('post__in', $scope['type'] === 'assigned' && !empty($scope['ids']) ? $scope['ids'] : [0]);
+        }
+    }
+
     if ($context['health'] !== '') {
         if (!$context['has_reminders_table'] && in_array($context['health'], ['at_risk', 'hot'], true)) {
             $query->set('post__in', [0]);

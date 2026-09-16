@@ -95,11 +95,11 @@ function peracrm_rest_get_pagination(WP_REST_Request $request)
     return [$page, $per_page];
 }
 
-function peracrm_rest_get_client_ids_by_type($type, $per_page, $offset)
+function peracrm_rest_get_client_ids_by_type($type, $per_page, $offset, array $scope)
 {
     global $wpdb;
 
-    return peracrm_with_target_blog(static function () use ($wpdb, $type, $per_page, $offset) {
+    return peracrm_with_target_blog(static function () use ($wpdb, $type, $per_page, $offset, $scope) {
         $posts_table = $wpdb->posts;
         $deals_table = peracrm_table('peracrm_deals');
 
@@ -109,24 +109,39 @@ function peracrm_rest_get_client_ids_by_type($type, $per_page, $offset)
             ? 'COALESCE(d.completed_count, 0) > 0'
             : 'COALESCE(d.completed_count, 0) = 0';
 
+        if ($scope['type'] === 'empty') {
+            return [0, []];
+        }
+
+        $scope_sql = '';
+        $scope_params = [];
+        if ($scope['type'] === 'assigned') {
+            $allowed_ids = array_values(array_filter(array_map('intval', $scope['ids'])));
+            if (empty($allowed_ids)) {
+                return [0, []];
+            }
+            $scope_sql = ' AND p.ID IN (' . implode(',', array_fill(0, count($allowed_ids), '%d')) . ')';
+            $scope_params = $allowed_ids;
+        }
+
         $total_sql = "SELECT COUNT(1)
             FROM {$posts_table} p
             LEFT JOIN ({$completed_subquery}) d ON d.party_id = p.ID
             WHERE p.post_type = %s
               AND p.post_status = %s
-              AND {$condition}";
-        $total = (int) $wpdb->get_var($wpdb->prepare($total_sql, 'crm_client', 'publish'));
+              AND {$condition}{$scope_sql}";
+        $total = (int) $wpdb->get_var($wpdb->prepare($total_sql, array_merge(['crm_client', 'publish'], $scope_params)));
 
         $rows_sql = "SELECT p.ID AS party_id, COALESCE(d.completed_count, 0) AS completed_count
             FROM {$posts_table} p
             LEFT JOIN ({$completed_subquery}) d ON d.party_id = p.ID
             WHERE p.post_type = %s
               AND p.post_status = %s
-              AND {$condition}
+              AND {$condition}{$scope_sql}
             ORDER BY p.post_date DESC, p.ID DESC
             LIMIT %d OFFSET %d";
 
-        $rows = $wpdb->get_results($wpdb->prepare($rows_sql, 'crm_client', 'publish', $per_page, $offset), ARRAY_A);
+        $rows = $wpdb->get_results($wpdb->prepare($rows_sql, array_merge(['crm_client', 'publish'], $scope_params, [$per_page, $offset])), ARRAY_A);
 
         return [$total, (array) $rows];
     });
@@ -137,7 +152,8 @@ function peracrm_rest_get_leads(WP_REST_Request $request)
     [$page, $per_page] = peracrm_rest_get_pagination($request);
     $offset = ($page - 1) * $per_page;
 
-    [$total, $rows] = peracrm_rest_get_client_ids_by_type('leads', $per_page, $offset);
+    $scope = peracrm_get_client_access_scope(get_current_user_id());
+    [$total, $rows] = peracrm_rest_get_client_ids_by_type('leads', $per_page, $offset, $scope);
 
     $items = [];
     foreach ((array) $rows as $row) {
@@ -172,7 +188,8 @@ function peracrm_rest_get_clients(WP_REST_Request $request)
     [$page, $per_page] = peracrm_rest_get_pagination($request);
     $offset = ($page - 1) * $per_page;
 
-    [$total, $rows] = peracrm_rest_get_client_ids_by_type('clients', $per_page, $offset);
+    $scope = peracrm_get_client_access_scope(get_current_user_id());
+    [$total, $rows] = peracrm_rest_get_client_ids_by_type('clients', $per_page, $offset, $scope);
 
     $items = [];
     foreach ((array) $rows as $row) {
@@ -209,13 +226,27 @@ function peracrm_rest_get_deals(WP_REST_Request $request)
 
     $offset = ($page - 1) * $per_page;
 
-    $result = peracrm_with_target_blog(static function () use ($wpdb, $per_page, $offset) {
+    $scope = peracrm_get_client_access_scope(get_current_user_id());
+    $result = peracrm_with_target_blog(static function () use ($wpdb, $per_page, $offset, $scope) {
         $table = peracrm_table('peracrm_deals');
-        $total = (int) $wpdb->get_var("SELECT COUNT(*) FROM {$table}");
+        if ($scope['type'] === 'empty') {
+            return [0, []];
+        }
+        $where = '';
+        $params = [];
+        if ($scope['type'] === 'assigned') {
+            $ids = array_values(array_filter(array_map('intval', $scope['ids'])));
+            if (empty($ids)) {
+                return [0, []];
+            }
+            $where = ' WHERE party_id IN (' . implode(',', array_fill(0, count($ids), '%d')) . ')';
+            $params = $ids;
+        }
+        $total_sql = "SELECT COUNT(*) FROM {$table}{$where}";
+        $total = (int) ($params ? $wpdb->get_var($wpdb->prepare($total_sql, $params)) : $wpdb->get_var($total_sql));
         $sql = $wpdb->prepare(
-            "SELECT id, party_id, title, stage, closed_reason, deal_value, currency, owner_user_id, updated_at FROM {$table} ORDER BY updated_at DESC LIMIT %d OFFSET %d",
-            $per_page,
-            $offset
+            "SELECT id, party_id, title, stage, closed_reason, deal_value, currency, owner_user_id, updated_at FROM {$table}{$where} ORDER BY updated_at DESC LIMIT %d OFFSET %d",
+            array_merge($params, [$per_page, $offset])
         );
         $rows = $wpdb->get_results($sql, ARRAY_A);
 

@@ -451,7 +451,13 @@ if (!function_exists('pera_crm_get_client_detail_document_title')) {
             ? pera_crm_client_view_get_client_id()
             : (int) get_query_var('pera_crm_client_id', 0);
 
-        if ($client_id <= 0 || 'crm_client' !== get_post_type($client_id)) {
+        if ($client_id <= 0) {
+            return '';
+        }
+
+        // This runs before the body template gate. Authorize before reading
+        // the title or any client metadata to avoid leaking denial-page data.
+        if (!function_exists('peracrm_user_can_access_client') || !peracrm_user_can_access_client(get_current_user_id(), $client_id)) {
             return '';
         }
 

@@ -638,6 +638,9 @@ function peracrm_whatsapp_delete_messages_by_ids(array $ids)
 
 function peracrm_whatsapp_user_can_access_client_on_current_blog($client_id, $user_id = 0)
 {
+    if (function_exists('peracrm_user_can_access_client')) {
+        return peracrm_user_can_access_client($user_id > 0 ? (int) $user_id : get_current_user_id(), (int) $client_id);
+    }
     $client_id = absint($client_id);
     $user_id = $user_id > 0 ? absint($user_id) : get_current_user_id();
     if ($client_id <= 0 || $user_id <= 0 || get_post_type($client_id) !== 'crm_client') {
