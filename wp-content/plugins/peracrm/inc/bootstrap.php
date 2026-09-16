@@ -79,32 +79,11 @@ if (is_admin()) {
     }
 }
 
-add_action('admin_init', function () {
-    if (!current_user_can('manage_options')) {
-        return;
-    }
-
-    peracrm_maybe_upgrade_schema();
-});
-
 add_action('init', function () {
-    if (!is_user_logged_in()) {
-        return;
-    }
-
-    if (!current_user_can('manage_options') && !current_user_can('edit_crm_clients')) {
-        return;
-    }
-
+    // The version check is cheap and the migration runs only once. Running it
+    // on normal init ensures deployed upgrades do not depend on reactivation or
+    // a later wp-admin visit.
     peracrm_maybe_upgrade_schema();
 }, 5);
-
-add_action('admin_init', function () {
-    if (!current_user_can('manage_options')) {
-        return;
-    }
-
-    peracrm_ensure_roles_and_caps();
-});
 
 add_action('init', 'peracrm_register_cpt_crm_client', 5);

@@ -59,14 +59,15 @@ function peracrm_client_get_assigned_advisor_id($client_id)
     $assigned_id = (int) get_post_meta($client_id, 'assigned_advisor_user_id', true);
     $crm_id = (int) get_post_meta($client_id, 'crm_assigned_advisor', true);
 
-    if (function_exists('peracrm_user_is_valid_advisor')) {
-        if (peracrm_user_is_valid_advisor($assigned_id)) {
-            return $assigned_id;
-        }
+    // Two populated fields are one assignment only when they agree. Never
+    // choose the first valid value and conceal inconsistent ownership data.
+    if ($assigned_id > 0 && $crm_id > 0 && $assigned_id !== $crm_id) {
+        return 0;
+    }
 
-        if (peracrm_user_is_valid_advisor($crm_id)) {
-            return $crm_id;
-        }
+    $resolved_id = $assigned_id > 0 ? $assigned_id : $crm_id;
+    if ($resolved_id > 0 && function_exists('peracrm_user_is_valid_advisor') && peracrm_user_is_valid_advisor($resolved_id)) {
+        return $resolved_id;
     }
 
     return 0;

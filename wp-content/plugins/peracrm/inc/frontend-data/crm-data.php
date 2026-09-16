@@ -1251,6 +1251,11 @@ if ( ! function_exists( 'pera_crm_get_allowed_client_ids_for_user' ) ) {
 			return array();
 		}
 
+		if ( function_exists( 'peracrm_get_client_access_scope' ) ) {
+			$scope = peracrm_get_client_access_scope( $user_id );
+			return 'assigned' === $scope['type'] ? $scope['ids'] : array();
+		}
+
 		if ( ! pera_crm_user_is_employee( $user_id ) ) {
 			return array();
 		}

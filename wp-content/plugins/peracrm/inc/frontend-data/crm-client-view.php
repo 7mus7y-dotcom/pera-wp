@@ -98,25 +98,8 @@ if ( ! function_exists( 'pera_crm_client_view_access_state' ) ) {
 			return array( 'allowed' => false, 'message' => __( 'Client not found.', 'peracrm' ) );
 		}
 
-		if ( ! current_user_can( 'edit_post', $client_id ) ) {
-			return array( 'allowed' => false, 'message' => __( 'You do not have permission to view this client.', 'peracrm' ) );
-		}
-
-		$can_manage_all = current_user_can( 'manage_options' ) || current_user_can( 'peracrm_manage_all_clients' );
-		if ( ! $can_manage_all ) {
-			$assigned_id = pera_crm_client_view_with_target_blog(
-				static function () use ( $client_id ) {
-					if ( function_exists( 'peracrm_client_get_assigned_advisor_id' ) ) {
-						return (int) peracrm_client_get_assigned_advisor_id( $client_id );
-					}
-
-					return 0;
-				}
-			);
-
-			if ( $assigned_id !== get_current_user_id() ) {
-				return array( 'allowed' => false, 'message' => __( 'Access denied. You are not assigned to this client.', 'peracrm' ) );
-			}
+		if ( ! function_exists( 'peracrm_user_can_access_client' ) || ! peracrm_user_can_access_client( get_current_user_id(), $client_id ) ) {
+			return array( 'allowed' => false, 'message' => __( 'Access denied. You are not assigned to this client.', 'peracrm' ) );
 		}
 
 		return array( 'allowed' => true, 'message' => '' );

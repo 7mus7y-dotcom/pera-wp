@@ -40,19 +40,9 @@ if (!function_exists('peracrm_header_search_scope_client_ids')) {
         $real_user_id = get_current_user_id();
         $effective_user_id = function_exists('peracrm_get_effective_crm_user_id') ? peracrm_get_effective_crm_user_id() : $real_user_id;
         $is_impersonating = function_exists('peracrm_is_impersonating_crm_user') && peracrm_is_impersonating_crm_user();
-        $effective_is_employee = function_exists('pera_crm_user_is_employee') && pera_crm_user_is_employee((int) $effective_user_id);
-        $can_manage_all = current_user_can('manage_options') || current_user_can('peracrm_manage_all_clients');
-
-        if ($can_manage_all && !$is_impersonating && !$effective_is_employee) {
-            return null;
-        }
-
-        if (!$is_impersonating && !$effective_is_employee) {
-            return null;
-        }
-
-        if (function_exists('pera_crm_get_allowed_client_ids_for_user')) {
-            return array_values(array_unique(array_filter(array_map('absint', pera_crm_get_allowed_client_ids_for_user((int) $effective_user_id)))));
+        if (function_exists('peracrm_get_client_access_scope')) {
+            $scope = peracrm_get_client_access_scope((int) $effective_user_id);
+            return $scope['type'] === 'full' && !$is_impersonating ? null : (array) $scope['ids'];
         }
 
         $allowed_ids = apply_filters('peracrm_allowed_client_ids_for_user', null, (int) $effective_user_id);

@@ -148,6 +148,8 @@ $GLOBALS['caps_by_blog'][2]=['peracrm_manage_all_reminders'=>true,'edit_crm_clie
 assert_same(false,peracrm_whatsapp_user_can_access_client(123),'manage_all_reminders alone does not grant global client access');
 $GLOBALS['caps_by_blog'][2]=['edit_crm_clients'=>true];$GLOBALS['assigned_advisor']=7;
 assert_same(true,peracrm_whatsapp_user_can_access_client(123),'assigned adviser retains access to own client');
+$GLOBALS['assigned_advisor']=8;
+assert_same(false,peracrm_whatsapp_user_can_access_client(123),'substituted client ID assigned to another adviser is rejected');
 $GLOBALS['assigned_advisor']=0;$GLOBALS['caps_by_blog'][2]=['manage_options'=>true];
 
 $fixture=file_get_contents(__DIR__.'/fixtures/meta-text-webhook.json');
