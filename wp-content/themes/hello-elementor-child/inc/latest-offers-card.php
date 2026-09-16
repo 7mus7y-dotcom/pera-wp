@@ -659,7 +659,8 @@ if ( ! function_exists( 'pera_latest_offers_render_video_modal' ) ) {
 		<?php
 	}
 }
-add_action( 'wp_footer', 'pera_latest_offers_render_video_modal', 20 );
+// WordPress prints footer-enqueued scripts at priority 20; the modal must exist first.
+add_action( 'wp_footer', 'pera_latest_offers_render_video_modal', 19 );
 
 if ( ! function_exists( 'pera_latest_offers_should_enqueue_card_styles' ) ) {
 	function pera_latest_offers_should_enqueue_card_styles(): bool {

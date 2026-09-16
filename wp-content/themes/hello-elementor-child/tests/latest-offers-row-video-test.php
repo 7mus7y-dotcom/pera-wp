@@ -46,6 +46,7 @@ latest_offer_video_expect( false !== strpos( $partial, "if ( '' !== \$video_url 
 latest_offer_video_expect( false !== strpos( $partial, "data-video-text=\"<?php echo esc_attr( \$video_text ); ?>\"" ), 'card carries safely escaped row caption data' );
 latest_offer_video_expect( false !== strpos( $model, 'data-pera-offer-video-caption hidden' ), 'empty caption is hidden in reusable modal markup' );
 latest_offer_video_expect( false !== strpos( $model, 'controls playsinline preload="metadata"' ), 'modal uses required native video attributes' );
+latest_offer_video_expect( false !== strpos( $model, "add_action( 'wp_footer', 'pera_latest_offers_render_video_modal', 19 )" ), 'modal renders before WordPress footer scripts at priority 20' );
 latest_offer_video_expect( false !== strpos( $script, "document.addEventListener('click'" ), 'delegated click handling supports dynamically inserted cards' );
 latest_offer_video_expect( false === strpos( $script, 'querySelectorAll(\'[data-pera-offer-video-open]\')' ), 'video controls are not bound only at initial load' );
 latest_offer_video_expect( false !== strpos( $script, 'player.pause();' ) && false !== strpos( $script, 'player.currentTime = 0;' ), 'close stops and resets playback' );
