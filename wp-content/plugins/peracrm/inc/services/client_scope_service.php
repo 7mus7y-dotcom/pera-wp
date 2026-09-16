@@ -24,7 +24,13 @@ function peracrm_get_client_access_scope($user_id)
             return ['type' => 'full', 'ids' => []];
         }
 
-        if (!peracrm_user_can_access_crm($user_id)) {
+        // Client assignment is ownership, not a substitute for WordPress
+        // permission. Require a client read/edit primitive, but deliberately do
+        // not use edit_post: its author-sensitive mapping would make post
+        // authorship a second, accidental CRM ownership boundary.
+        $has_client_baseline = user_can($user_id, 'read_crm_client')
+            || user_can($user_id, 'edit_crm_clients');
+        if (!peracrm_user_can_access_crm($user_id) || !$has_client_baseline) {
             return ['type' => 'empty', 'ids' => []];
         }
 

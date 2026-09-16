@@ -7,6 +7,14 @@ them. Conflicting or missing assignment data fails closed. Generic `wp/v2`
 exposure is disabled because no repository consumer requires it and its generic
 controller is not an assignment-aware PeraCRM boundary.
 
+Direct client pages intentionally no longer use `current_user_can( 'edit_post',
+$client_id )` as a second ownership check. WordPress maps that meta capability
+through post authorship and `edit_others_crm_clients`, while CRM ownership is
+assignment metadata. The canonical policy instead requires baseline
+`read_crm_client` or `edit_crm_clients` permission before applying assignment;
+assignment alone therefore grants nothing, without reintroducing authorship as
+an authorization boundary.
+
 ## Legacy role migration
 
 The plugin does not silently delete `advisor` while an account still has that
