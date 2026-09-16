@@ -455,39 +455,45 @@ if (!function_exists('pera_crm_get_client_detail_document_title')) {
             return '';
         }
 
-        // This runs before the body template gate. Authorize before reading
-        // the title or any client metadata to avoid leaking denial-page data.
-        if (!function_exists('peracrm_user_can_access_client') || !peracrm_user_can_access_client(get_current_user_id(), $client_id)) {
+        if (!function_exists('peracrm_user_can_access_client') || !function_exists('peracrm_with_target_blog')) {
             return '';
         }
 
-        $client_name = trim(wp_strip_all_tags((string) get_the_title($client_id)));
-        if ($client_name === '') {
-            $client_name = 'Client #' . $client_id;
-        }
-
-        $raw_client_type = trim((string) get_post_meta($client_id, '_peracrm_client_type', true));
-        if ($raw_client_type === '') {
-            $raw_client_type = trim((string) get_post_meta($client_id, 'peracrm_client_type', true));
-        }
-
-        $client_type = '';
-        if ($raw_client_type !== '') {
-            $client_type_options = function_exists('peracrm_client_type_options') ? (array) peracrm_client_type_options() : [];
-            if (isset($client_type_options[$raw_client_type])) {
-                $client_type = trim((string) $client_type_options[$raw_client_type]);
-            } else {
-                $normalized = str_replace(['_', '-'], ' ', $raw_client_type);
-                $client_type = ($normalized !== '' && strtolower($normalized) === $normalized) ? ucwords($normalized) : $normalized;
-                $client_type = trim(wp_strip_all_tags($client_type));
+        return (string) peracrm_with_target_blog(static function () use ($client_id): string {
+            // This runs before the body template gate. Authorize in the same
+            // target-blog context used for every subsequent metadata read.
+            if (!peracrm_user_can_access_client(get_current_user_id(), $client_id)) {
+                return '';
             }
-        }
 
-        if ($client_type === '') {
-            return $client_name;
-        }
+            $client_name = trim(wp_strip_all_tags((string) get_the_title($client_id)));
+            if ($client_name === '') {
+                $client_name = 'Client #' . $client_id;
+            }
 
-        return $client_name . ' - ' . $client_type;
+            $raw_client_type = trim((string) get_post_meta($client_id, '_peracrm_client_type', true));
+            if ($raw_client_type === '') {
+                $raw_client_type = trim((string) get_post_meta($client_id, 'peracrm_client_type', true));
+            }
+
+            $client_type = '';
+            if ($raw_client_type !== '') {
+                $client_type_options = function_exists('peracrm_client_type_options') ? (array) peracrm_client_type_options() : [];
+                if (isset($client_type_options[$raw_client_type])) {
+                    $client_type = trim((string) $client_type_options[$raw_client_type]);
+                } else {
+                    $normalized = str_replace(['_', '-'], ' ', $raw_client_type);
+                    $client_type = ($normalized !== '' && strtolower($normalized) === $normalized) ? ucwords($normalized) : $normalized;
+                    $client_type = trim(wp_strip_all_tags($client_type));
+                }
+            }
+
+            if ($client_type === '') {
+                return $client_name;
+            }
+
+            return $client_name . ' - ' . $client_type;
+        });
     }
 }
 if (!function_exists('pera_crm_filter_client_document_title')) {
