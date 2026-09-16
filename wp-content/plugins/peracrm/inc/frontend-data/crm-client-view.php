@@ -790,6 +790,11 @@ if ( ! function_exists( 'pera_crm_client_view_theme_offer_rows_for_property' ) )
 
 if ( ! function_exists( 'pera_crm_client_view_normalize_theme_offer_row' ) ) {
 	function pera_crm_client_view_normalize_theme_offer_row( int $property_id, array $offer_row ): array {
+		$video_id = absint( $offer_row['video_id'] ?? 0 );
+		if ( $video_id > 0 && ( 'attachment' !== get_post_type( $video_id ) || 'video/mp4' !== get_post_mime_type( $video_id ) ) ) {
+			$video_id = 0;
+		}
+
 		return array(
 			'property_id'        => $property_id,
 			'offer_type'         => sanitize_text_field( (string) ( $offer_row['type'] ?? '' ) ),
@@ -800,6 +805,8 @@ if ( ! function_exists( 'pera_crm_client_view_normalize_theme_offer_row' ) ) {
 			'cash_price'         => sanitize_text_field( (string) ( $offer_row['cash_price'] ?? '' ) ),
 			'notes'              => sanitize_textarea_field( (string) ( $offer_row['notes'] ?? '' ) ),
 			'floor_plan_id'      => absint( $offer_row['floor_plan_id'] ?? 0 ),
+			'video_id'           => $video_id,
+			'video_text'         => sanitize_text_field( (string) ( $offer_row['video_text'] ?? '' ) ),
 			'offer_source'       => 'theme_latest_offers',
 			'offer_storage_meta' => '_pera_latest_offers',
 		);

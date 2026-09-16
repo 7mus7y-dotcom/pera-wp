@@ -23,6 +23,8 @@ $cash_price     = isset( $card['cash_price'] ) ? (string) $card['cash_price'] : 
 $notes          = isset( $card['notes'] ) ? (string) $card['notes'] : '';
 $floor_plan_url = isset( $card['floor_plan_url'] ) ? (string) $card['floor_plan_url'] : '';
 $map_url        = isset( $card['map_url'] ) ? (string) $card['map_url'] : '';
+$video_url      = isset( $card['video_url'] ) ? (string) $card['video_url'] : '';
+$video_text     = isset( $card['video_text'] ) ? (string) $card['video_text'] : '';
 $card_context   = isset( $card['tracking_context'] ) ? sanitize_key( (string) $card['tracking_context'] ) : 'latest_offer_card';
 $whatsapp_url   = function_exists( 'pera_latest_offers_whatsapp_url' ) ? pera_latest_offers_whatsapp_url( $property_title, $property_url, $card_context ) : '';
 $whatsapp_type  = 'citizenship_property_card' === $card_context ? 'citizenship_property_card' : 'latest_offer_card';
@@ -68,6 +70,8 @@ $whatsapp_type  = 'citizenship_property_card' === $card_context ? 'citizenship_p
 					<?php echo esc_html( $project_name ); ?>
 				</span>
 			<?php endif; ?>
+		<?php if ( '' !== $map_url || '' !== $video_url ) : ?>
+			<div class="pera-latest-offer-card__media-actions">
 			<?php if ( '' !== $map_url ) : ?>
 				<a class="pill pill--subtle pera-latest-offer-card__pill pera-latest-offer-card__pill--map" href="<?php echo esc_url( $map_url ); ?>" target="_blank" rel="noopener noreferrer">
 				<svg class="icon pera-latest-offer-card__icon" aria-hidden="true" width="16" height="16">
@@ -75,6 +79,14 @@ $whatsapp_type  = 'citizenship_property_card' === $card_context ? 'citizenship_p
 				</svg>
 				<span><?php echo esc_html( pera_ml_ui( 'Map', 'theme.partials.latest-offers-card.map' ) ); ?></span>
 			</a>
+			<?php endif; ?>
+			<?php if ( '' !== $video_url ) : ?>
+				<button type="button" class="pill pill--subtle pera-latest-offer-card__pill pera-latest-offer-card__pill--video" data-pera-offer-video-open data-video-url="<?php echo esc_url( $video_url ); ?>" data-video-text="<?php echo esc_attr( $video_text ); ?>" aria-label="<?php echo esc_attr( sprintf( pera_ml_ui( 'Watch video for %s', 'theme.partials.latest-offers-card.watch_video_for' ), $property_title ) ); ?>">
+					<svg class="icon pera-latest-offer-card__icon" aria-hidden="true" width="16" height="16" viewBox="0 0 16 16"><path d="M5 3.5v9l7-4.5-7-4.5z"></path></svg>
+					<span><?php echo esc_html( pera_ml_ui( 'Watch video', 'theme.partials.latest-offers-card.watch_video' ) ); ?></span>
+				</button>
+			<?php endif; ?>
+			</div>
 		<?php endif; ?>
 
 			<?php if ( '' !== $whatsapp_url ) : ?>
