@@ -736,6 +736,7 @@ document.addEventListener('DOMContentLoaded', function () {
     var lightboxVideo = propertyLightbox.querySelector('.lightbox__video');
     var lightboxContent = propertyLightbox.querySelector('.lightbox__content');
     var lightboxPlay = propertyLightbox.querySelector('.lightbox__video-play');
+    var lightboxPause = propertyLightbox.querySelector('.lightbox__video-pause');
     var lightboxCaption = propertyLightbox.querySelector('.lightbox__caption');
     var lightboxClose = propertyLightbox.querySelector('.lightbox__close');
     var lightboxPrev = propertyLightbox.querySelector('[data-gallery-prev]');
@@ -760,6 +761,7 @@ document.addEventListener('DOMContentLoaded', function () {
       lightboxImage.hidden = isVideo;
       if (lightboxVideo) lightboxVideo.hidden = !isVideo;
       if (lightboxPlay) lightboxPlay.hidden = !isVideo;
+      if (lightboxPause) lightboxPause.hidden = true;
 
       if (!isVideo) {
         lightboxImage.src = trigger.dataset.gallerySrc;
@@ -782,6 +784,7 @@ document.addEventListener('DOMContentLoaded', function () {
     function closePropertyGallery() {
       stopGalleryVideo();
       if (lightboxPlay) lightboxPlay.hidden = true;
+      if (lightboxPause) lightboxPause.hidden = true;
       propertyLightbox.classList.remove('is-open');
       propertyLightbox.setAttribute('aria-hidden', 'true');
       document.body.classList.remove('is-lightbox-open');
@@ -801,20 +804,24 @@ document.addEventListener('DOMContentLoaded', function () {
           });
         }
       });
-      lightboxVideo.addEventListener('playing', function () { lightboxPlay.hidden = true; });
+      if (lightboxPause) {
+        lightboxPause.addEventListener('click', function () { lightboxVideo.pause(); });
+      }
+      lightboxVideo.addEventListener('playing', function () {
+        lightboxPlay.hidden = true;
+        if (lightboxPause) lightboxPause.hidden = false;
+      });
       lightboxVideo.addEventListener('pause', function () {
+        if (lightboxPause) lightboxPause.hidden = true;
         if (propertyLightbox.classList.contains('is-open') && !lightboxVideo.hidden && !lightboxVideo.ended) {
           lightboxPlay.hidden = false;
+          if (document.activeElement === lightboxPause) lightboxPlay.focus();
         }
       });
-      lightboxVideo.addEventListener('ended', function () { lightboxPlay.hidden = false; });
-      lightboxVideo.addEventListener('click', function (event) {
-        if (lightboxVideo.paused || lightboxVideo.hidden) return;
-        var bounds = lightboxVideo.getBoundingClientRect();
-        // Leave the native controls along the bottom available for seeking and volume.
-        var y = event.clientY - bounds.top;
-        var controlsArea = Math.min(64, bounds.height * 0.25);
-        if (y >= 0 && y < bounds.height - controlsArea) lightboxVideo.pause();
+      lightboxVideo.addEventListener('ended', function () {
+        if (lightboxPause) lightboxPause.hidden = true;
+        lightboxPlay.hidden = false;
+        if (document.activeElement === lightboxPause) lightboxPlay.focus();
       });
     }
 
