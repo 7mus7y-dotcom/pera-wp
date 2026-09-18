@@ -734,6 +734,7 @@ document.addEventListener('DOMContentLoaded', function () {
     var galleryTriggers = Array.prototype.slice.call(document.querySelectorAll('.property-gallery__trigger'));
     var lightboxImage = propertyLightbox.querySelector('.lightbox__img');
     var lightboxVideo = propertyLightbox.querySelector('.lightbox__video');
+    var lightboxPlay = propertyLightbox.querySelector('.lightbox__video-play');
     var lightboxCaption = propertyLightbox.querySelector('.lightbox__caption');
     var lightboxClose = propertyLightbox.querySelector('.lightbox__close');
     var lightboxPrev = propertyLightbox.querySelector('[data-gallery-prev]');
@@ -757,6 +758,7 @@ document.addEventListener('DOMContentLoaded', function () {
       var label = trigger.dataset.galleryLabel || trigger.getAttribute('aria-label') || '';
       lightboxImage.hidden = isVideo;
       if (lightboxVideo) lightboxVideo.hidden = !isVideo;
+      if (lightboxPlay) lightboxPlay.hidden = !isVideo;
 
       if (!isVideo) {
         lightboxImage.src = trigger.dataset.gallerySrc;
@@ -778,10 +780,28 @@ document.addEventListener('DOMContentLoaded', function () {
 
     function closePropertyGallery() {
       stopGalleryVideo();
+      if (lightboxPlay) lightboxPlay.hidden = true;
       propertyLightbox.classList.remove('is-open');
       propertyLightbox.setAttribute('aria-hidden', 'true');
       document.body.classList.remove('is-lightbox-open');
       if (galleryReturnFocus) galleryReturnFocus.focus();
+    }
+
+    if (lightboxVideo && lightboxPlay) {
+      lightboxPlay.addEventListener('click', function () {
+        var playback = lightboxVideo.play();
+        lightboxVideo.focus();
+        if (playback && typeof playback.catch === 'function') {
+          playback.catch(function () {
+            if (propertyLightbox.classList.contains('is-open') && !lightboxVideo.hidden) {
+              lightboxPlay.hidden = false;
+              lightboxPlay.focus();
+            }
+          });
+        }
+      });
+      lightboxVideo.addEventListener('playing', function () { lightboxPlay.hidden = true; });
+      lightboxVideo.addEventListener('ended', function () { lightboxPlay.hidden = false; });
     }
 
     galleryTriggers.forEach(function (trigger, index) {
