@@ -670,7 +670,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
     function updateStripControls() {
       stateFrame = null;
-      var hasOverflow = stripItems.length > 1 && strip.scrollWidth > shell.clientWidth + scrollTolerance;
+      var hasOverflow = stripItems.length > 1 && strip.scrollWidth > strip.clientWidth + scrollTolerance;
 
       shell.classList.toggle('is-scrollable', hasOverflow);
       previousButton.hidden = !hasOverflow;
