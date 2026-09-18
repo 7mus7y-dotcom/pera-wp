@@ -653,6 +653,81 @@ document.addEventListener('DOMContentLoaded', function () {
     window.addEventListener('resize', requestTick);
   }
 
+  /* Property gallery strip: retain native scrolling while adding tile-aware controls. */
+  document.querySelectorAll('.property-gallery__strip-shell').forEach(function (shell) {
+    var strip = shell.querySelector('.property-gallery__strip');
+    var previousButton = shell.querySelector('.property-gallery__strip-nav--prev');
+    var nextButton = shell.querySelector('.property-gallery__strip-nav--next');
+    var stripItems = strip ? Array.prototype.slice.call(strip.querySelectorAll('.property-gallery__item')) : [];
+    var scrollTolerance = 2;
+    var stateFrame = null;
+
+    if (!strip || !previousButton || !nextButton) return;
+
+    function itemPosition(item) {
+      return item.getBoundingClientRect().left - strip.getBoundingClientRect().left + strip.scrollLeft;
+    }
+
+    function updateStripControls() {
+      stateFrame = null;
+      var hasOverflow = stripItems.length > 1 && strip.scrollWidth > shell.clientWidth + scrollTolerance;
+
+      shell.classList.toggle('is-scrollable', hasOverflow);
+      previousButton.hidden = !hasOverflow;
+      nextButton.hidden = !hasOverflow;
+
+      if (!hasOverflow) {
+        previousButton.disabled = true;
+        nextButton.disabled = true;
+        return;
+      }
+
+      var maximumScroll = Math.max(0, strip.scrollWidth - strip.clientWidth);
+      previousButton.disabled = strip.scrollLeft <= scrollTolerance;
+      nextButton.disabled = strip.scrollLeft >= maximumScroll - scrollTolerance;
+    }
+
+    function requestControlUpdate() {
+      if (stateFrame !== null) return;
+      stateFrame = window.requestAnimationFrame(updateStripControls);
+    }
+
+    function scrollToAdjacentItem(direction) {
+      var currentPosition = strip.scrollLeft;
+      var target = null;
+
+      if (direction > 0) {
+        target = stripItems.find(function (item) {
+          return itemPosition(item) > currentPosition + scrollTolerance;
+        });
+      } else {
+        for (var index = stripItems.length - 1; index >= 0; index -= 1) {
+          if (itemPosition(stripItems[index]) < currentPosition - scrollTolerance) {
+            target = stripItems[index];
+            break;
+          }
+        }
+      }
+
+      if (!target) return;
+      strip.scrollTo({ left: itemPosition(target), behavior: 'smooth' });
+      requestControlUpdate();
+    }
+
+    previousButton.addEventListener('click', function () { scrollToAdjacentItem(-1); });
+    nextButton.addEventListener('click', function () { scrollToAdjacentItem(1); });
+    strip.addEventListener('scroll', requestControlUpdate, { passive: true });
+    window.addEventListener('resize', requestControlUpdate);
+
+    if ('ResizeObserver' in window) {
+      var stripResizeObserver = new ResizeObserver(requestControlUpdate);
+      stripResizeObserver.observe(strip);
+      stripItems.forEach(function (item) { stripResizeObserver.observe(item); });
+    }
+
+    updateStripControls();
+  });
+
   /* Property gallery: images and an optional uploaded apartment tour share one lightbox. */
   var propertyLightbox = document.getElementById('property-lightbox');
   if (propertyLightbox) {
