@@ -1020,6 +1020,33 @@ body.has-open-dialog{
 .lightbox__video[hidden],
 .lightbox__img[hidden]{ display: none; }
 
+.lightbox__video-play{
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  z-index: 5;
+  display: grid;
+  place-items: center;
+  width: 72px;
+  height: 72px;
+  padding: 0;
+  transform: translate(-50%, -50%);
+  border: 2px solid rgba(255,255,255,.9);
+  border-radius: 50%;
+  background: rgba(0,0,0,.65);
+  color: #fff;
+  box-shadow: 0 4px 18px rgba(0,0,0,.35);
+  cursor: pointer;
+}
+
+.lightbox__video-play[hidden]{ display: none; }
+.lightbox__video-play svg{ width: 34px; height: 34px; fill: currentColor; }
+.lightbox__video-play:hover{ background: rgba(0,0,0,.8); }
+.lightbox__video-play:focus-visible{
+  outline: 3px solid #fff;
+  outline-offset: 3px;
+}
+
 body.is-lightbox-open{ overflow: hidden; }
 
 .lightbox__close{
