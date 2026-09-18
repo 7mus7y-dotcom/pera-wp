@@ -734,6 +734,7 @@ document.addEventListener('DOMContentLoaded', function () {
     var galleryTriggers = Array.prototype.slice.call(document.querySelectorAll('.property-gallery__trigger'));
     var lightboxImage = propertyLightbox.querySelector('.lightbox__img');
     var lightboxVideo = propertyLightbox.querySelector('.lightbox__video');
+    var lightboxContent = propertyLightbox.querySelector('.lightbox__content');
     var lightboxPlay = propertyLightbox.querySelector('.lightbox__video-play');
     var lightboxCaption = propertyLightbox.querySelector('.lightbox__caption');
     var lightboxClose = propertyLightbox.querySelector('.lightbox__close');
@@ -801,7 +802,20 @@ document.addEventListener('DOMContentLoaded', function () {
         }
       });
       lightboxVideo.addEventListener('playing', function () { lightboxPlay.hidden = true; });
+      lightboxVideo.addEventListener('pause', function () {
+        if (propertyLightbox.classList.contains('is-open') && !lightboxVideo.hidden && !lightboxVideo.ended) {
+          lightboxPlay.hidden = false;
+        }
+      });
       lightboxVideo.addEventListener('ended', function () { lightboxPlay.hidden = false; });
+      lightboxVideo.addEventListener('click', function (event) {
+        if (lightboxVideo.paused || lightboxVideo.hidden) return;
+        var bounds = lightboxVideo.getBoundingClientRect();
+        // Leave the native controls along the bottom available for seeking and volume.
+        var y = event.clientY - bounds.top;
+        var controlsArea = Math.min(64, bounds.height * 0.25);
+        if (y >= 0 && y < bounds.height - controlsArea) lightboxVideo.pause();
+      });
     }
 
     galleryTriggers.forEach(function (trigger, index) {
@@ -819,6 +833,11 @@ document.addEventListener('DOMContentLoaded', function () {
     propertyLightbox.querySelectorAll('[data-gallery-close]').forEach(function (control) {
       control.addEventListener('click', closePropertyGallery);
     });
+    if (lightboxContent) {
+      lightboxContent.addEventListener('click', function (event) {
+        if (event.target === lightboxContent) closePropertyGallery();
+      });
+    }
     lightboxPrev.addEventListener('click', function () {
       showGalleryItem((activeGalleryIndex - 1 + galleryTriggers.length) % galleryTriggers.length);
     });
