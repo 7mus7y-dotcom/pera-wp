@@ -1150,6 +1150,9 @@ $has_further_reading = ! empty( $post_ids );
           <video class="lightbox__video" controls playsinline preload="metadata"<?php echo $custom_video_poster_url ? ' poster="' . esc_url( $custom_video_poster_url ) . '"' : ''; ?> hidden aria-label="<?php echo esc_attr( $custom_video_label ); ?>">
             <source src="<?php echo esc_url( $custom_video_url ); ?>" type="<?php echo esc_attr( $custom_video_mime_type ); ?>">
           </video>
+          <button class="lightbox__video-play" type="button" aria-label="<?php echo esc_attr( pera_ml_ui( 'Play apartment tour', 'theme.template.single_property.aria_label.play_apartment_tour' ) ); ?>" hidden>
+            <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M8 5v14l11-7z"></path></svg>
+          </button>
         <?php endif; ?>
         <button class="lightbox__nav lightbox__nav--next" type="button" data-gallery-next aria-label="<?php echo esc_attr( pera_ml_ui( 'Next image', 'theme.template.single_property.aria_label.next_image' ) ); ?>"><span aria-hidden="true">&#8250;</span></button>
         <p class="lightbox__caption" aria-live="polite"></p>
