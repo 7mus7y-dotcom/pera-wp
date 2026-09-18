@@ -1738,7 +1738,7 @@ if ( ! empty( $yt_video ) ) {
               <?php echo esc_html( pera_ml_ui( 'Get a Free Valuation', 'theme.template.single_property.get_a_free_valuation' ) ); ?>
             </a>
 
-            <a href="<?php echo esc_url( function_exists( 'pera_ml_url' ) ? pera_ml_url( home_url( '/rent-your-istanbul-real-estate/' ) ) : home_url( '/rent-your-istanbul-real-estate/' ) ); ?>" class="btn btn--ghost btn--blue">
+            <a href="<?php echo esc_url( function_exists( 'pera_ml_url' ) ? pera_ml_url( home_url( '/rent-your-istanbul-real-estate/' ) ) : home_url( '/rent-your-istanbul-real-estate/' ) ); ?>" class="btn btn--solid btn--green">
               <?php echo esc_html( pera_ml_ui( 'Explore Property Management', 'theme.template.single_property.explore_property_management' ) ); ?>
             </a>
 
