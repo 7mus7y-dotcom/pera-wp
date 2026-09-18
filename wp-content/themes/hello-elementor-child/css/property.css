@@ -1020,6 +1020,27 @@ body.has-open-dialog{
 .lightbox__video[hidden],
 .lightbox__img[hidden]{ display: none; }
 
+.lightbox__video-pause{
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: min(64px, 25%);
+  left: 0;
+  z-index: 4;
+  display: block;
+  width: 100%;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  cursor: pointer;
+}
+
+.lightbox__video-pause[hidden]{ display: none; }
+.lightbox__video-pause:focus-visible{
+  outline: 3px solid #fff;
+  outline-offset: -6px;
+}
+
 .lightbox__video-play{
   position: absolute;
   top: 50%;
