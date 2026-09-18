@@ -1078,7 +1078,13 @@ $has_further_reading = ! empty( $post_ids );
 
       if ( ! empty( $gallery_media_items ) ) :
     ?>
-      <div class="property-gallery__strip" aria-label="<?php echo esc_attr( pera_ml_ui( 'Property photos', 'theme.template.single_property.aria_label.property_photos' ) ); ?>" role="list">
+      <div class="property-gallery__strip-shell">
+        <button class="property-gallery__strip-nav property-gallery__strip-nav--prev" type="button" aria-label="<?php echo esc_attr( pera_ml_ui( 'Previous gallery item', 'theme.template.single_property.aria_label.previous_gallery_item' ) ); ?>" aria-controls="property-gallery-strip" hidden>
+          <svg width="22" height="22" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+            <use href="<?php echo esc_url( get_stylesheet_directory_uri() . '/logos-icons/icons.svg#icon-chevron-left' ); ?>"></use>
+          </svg>
+        </button>
+        <div class="property-gallery__strip" id="property-gallery-strip" aria-label="<?php echo esc_attr( pera_ml_ui( 'Property photos', 'theme.template.single_property.aria_label.property_photos' ) ); ?>" role="list">
         <?php foreach ( $gallery_media_items as $gallery_item ) : ?>
           <?php if ( isset( $gallery_item['type'] ) && 'video' === $gallery_item['type'] ) : ?>
             <div class="property-gallery__item property-gallery__item--video<?php echo $custom_video_poster_url ? '' : ' property-gallery__item--video-fallback'; ?>" role="listitem">
@@ -1114,6 +1120,12 @@ $has_further_reading = ! empty( $post_ids );
           </div>
           <?php endif; ?>
         <?php endforeach; ?>
+        </div>
+        <button class="property-gallery__strip-nav property-gallery__strip-nav--next" type="button" aria-label="<?php echo esc_attr( pera_ml_ui( 'Next gallery item', 'theme.template.single_property.aria_label.next_gallery_item' ) ); ?>" aria-controls="property-gallery-strip" hidden>
+          <svg width="22" height="22" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+            <use href="<?php echo esc_url( get_stylesheet_directory_uri() . '/logos-icons/icons.svg#icon-chevron-right' ); ?>"></use>
+          </svg>
+        </button>
       </div>
     <?php else :
       echo '<p class="text-soft" style="margin:0;">' . esc_html( pera_ml_ui( 'No gallery images available.', 'theme.template.single_property.no_gallery_images_available' ) ) . '</p>';

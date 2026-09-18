@@ -242,6 +242,49 @@
 /* =======================================================
    Property Gallery: production filmstrip
    ======================================================= */
+.property-gallery__strip-shell.is-scrollable{
+  display: grid;
+  grid-template-columns: 44px minmax(0, 1fr) 44px;
+  align-items: center;
+  gap: 8px;
+}
+
+.property-gallery__strip-nav{
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  padding: 0;
+  border: 1px solid rgba(23, 50, 77, .14);
+  border-radius: var(--pill-radius, 999px);
+  background: var(--surface, #fff);
+  box-shadow: 0 6px 16px rgba(0, 0, 0, .12);
+  color: var(--text, #17324d);
+  cursor: pointer;
+  transition: opacity .2s ease, background-color .2s ease;
+}
+
+.property-gallery__strip-nav[hidden]{
+  display: none;
+}
+
+.property-gallery__strip-nav svg{
+  display: block;
+  fill: currentColor;
+  stroke: currentColor;
+}
+
+.property-gallery__strip-nav:focus-visible{
+  outline: 3px solid var(--blue, #1769aa);
+  outline-offset: 3px;
+}
+
+.property-gallery__strip-nav:disabled{
+  opacity: .38;
+  cursor: default;
+}
+
 .property-gallery__strip{
   display: flex;
   align-items: flex-start;
@@ -253,6 +296,7 @@
   scroll-snap-type: x proximity;
   scroll-padding-inline: 2px;
   padding-bottom: 2px;
+  min-width: 0;
 }
 
 .property-gallery__item{
@@ -406,6 +450,18 @@
 
   .property-gallery__item img{
     max-width: min(68vw, 760px);
+  }
+}
+
+@media (max-width: 480px){
+  .property-gallery__strip-shell.is-scrollable{
+    grid-template-columns: 36px minmax(0, 1fr) 36px;
+    gap: 5px;
+  }
+
+  .property-gallery__strip-nav{
+    width: 36px;
+    height: 44px;
   }
 }
 
