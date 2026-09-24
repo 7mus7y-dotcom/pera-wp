@@ -38,4 +38,6 @@ check(strpos($admin_page, "if (!empty(\$settings['test_mode']))") < strpos($admi
 check(strpos($admin_page, "esc_html__('Test WABA ID'") === false, 'WABA setting uses environment-neutral wording');
 check(strpos($core, "'lead_pipeline_stage' => 'new_enquiry'") !== false && strpos($core, 'peracrm_party_upsert_status($post_id') !== false, 'WhatsApp-created clients initialize canonical party pipeline state');
 check(strpos($core, "\$client_state === 'created'") !== false && strpos($core, 'peracrm_whatsapp_rollback_created_client($client_id)') !== false, 'new client is compensated when inbound message persistence fails');
+check(strpos($core, "return 'existing';") !== false && strpos($core, "return 'failed';") !== false, 'message writes distinguish durable duplicates from genuine failures');
+check(strpos($core, "throw new RuntimeException('WhatsApp echo persistence failed.')") !== false, 'echo persistence failures propagate for webhook retry');
 echo "All static WhatsApp contract checks passed.\n";

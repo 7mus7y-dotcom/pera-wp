@@ -39,7 +39,7 @@ class WP_REST_Request implements ArrayAccess {
     public function offsetSet($o,$v):void{$this->params[$o]=$v;} public function offsetUnset($o):void{unset($this->params[$o]);}
 }
 class FakeWpdb {
-    public $rows=[]; public $insert_id=0; public $fail_next_insert=false; public $simulate_status_race=false; public $status_race_rechecks=0; public $options='wp_options';
+    public $rows=[]; public $insert_id=0; public $fail_next_insert=false; public $simulate_concurrent_insert=false; public $simulate_status_race=false; public $status_race_rechecks=0; public $options='wp_options';
     public function prepare($query,...$args){ if(count($args)===1 && is_array($args[0]))$args=$args[0]; foreach($args as $arg){$replacement=is_int($arg)?(string)$arg:"'".addslashes((string)$arg)."'";$query=preg_replace('/%[ds]/',$replacement,$query,1);} return $query; }
     public function get_var($query){
         if (preg_match("/whatsapp_message_id = '([^']+)'/",$query,$m)) foreach($this->rows as $row) if($row['whatsapp_message_id']===$m[1]) return $row['id'];
@@ -47,6 +47,7 @@ class FakeWpdb {
     }
     public function insert($table,$data,$formats=[]){
         if ($this->fail_next_insert) { $this->fail_next_insert=false; return false; }
+        if ($this->simulate_concurrent_insert) { $this->simulate_concurrent_insert=false;$data['id']=++$this->insert_id;$this->rows[]=$data;return false; }
         foreach($this->rows as $row) if(($data['whatsapp_message_id']??'')!=='' && $row['whatsapp_message_id']===$data['whatsapp_message_id']) return false;
         $data['id']=++$this->insert_id; $this->rows[]=$data; return 1;
     }
@@ -192,6 +193,14 @@ peracrm_rest_whatsapp_receive_webhook($competing_request);
 assert_same(1,$GLOBALS['created_clients'],'competing first-message path reuses the claimed phone identity');
 assert_same(999,end($GLOBALS['wpdb']->rows)['client_id'],'competing message attaches to the single client');
 
+$race_fixture=str_replace(['905551112233','wamid.TEST_INBOUND_001'],['905551119999','wamid.CONCURRENT_WINNER'],$fixture);
+$race_request=new WP_REST_Request('POST','/peracrm/v1/whatsapp/webhook');$race_request->set_body($race_fixture);$race_request->set_header('X-Hub-Signature-256','sha256='.hash_hmac('sha256',$race_fixture,'environment-app-secret'));
+$deletions_before=count($GLOBALS['deleted_clients']);$events_before=count($GLOBALS['events']);$rows_before=count($GLOBALS['wpdb']->rows);$GLOBALS['wpdb']->simulate_concurrent_insert=true;
+assert_same(200,peracrm_rest_whatsapp_receive_webhook($race_request)->get_status(),'concurrent WAMID winner is acknowledged as idempotent success');
+assert_same($rows_before+1,count($GLOBALS['wpdb']->rows),'concurrent WAMID winner leaves exactly one durable message');
+$race_row=end($GLOBALS['wpdb']->rows);assert_same('wamid.CONCURRENT_WINNER',$race_row['whatsapp_message_id'],'concurrent winner preserves WAMID');assert_same(true,(int)$race_row['client_id']>0,'concurrent winner message remains linked to resolved client');
+assert_same($deletions_before,count($GLOBALS['deleted_clients']),'existing durable WAMID never rolls back newly resolved client');assert_same($events_before,count($GLOBALS['events']),'idempotent concurrent outcome emits no duplicate activity');
+
 $failure_fixture=str_replace(['905551112233','wamid.TEST_INBOUND_001'],['905551110000','wamid.PERSIST_FAIL'],$fixture);
 $failure_request=new WP_REST_Request('POST','/peracrm/v1/whatsapp/webhook');$failure_request->set_body($failure_fixture);$failure_request->set_header('X-Hub-Signature-256','sha256='.hash_hmac('sha256',$failure_fixture,'environment-app-secret'));
 $events_before=count($GLOBALS['events']);$GLOBALS['wpdb']->fail_next_insert=true;
@@ -257,6 +266,10 @@ assert_same('wamid.ECHO_1',$echo_row['whatsapp_message_id'],'text echo preserves
 assert_same(123,$echo_row['client_id'],'text echo links customer using to');
 assert_same(0,peracrm_with_target_blog(function()use($echo_payload){return peracrm_whatsapp_process_inbound_payload($echo_payload); }),'duplicate echo is ignored');
 assert_same($before_events+1,count($GLOBALS['events']),'duplicate echo emits no duplicate activity');
+$echo_json=json_encode($echo_payload);$echo_request=new WP_REST_Request('POST','/peracrm/v1/whatsapp/webhook');$echo_request->set_body($echo_json);$echo_request->set_header('X-Hub-Signature-256','sha256='.hash_hmac('sha256',$echo_json,'environment-app-secret'));
+$echo_events=count($GLOBALS['events']);assert_same(200,peracrm_rest_whatsapp_receive_webhook($echo_request)->get_status(),'duplicate echo WAMID is acknowledged successfully');assert_same($echo_events,count($GLOBALS['events']),'REST duplicate echo emits no activity');
+$failed_echo=$echo_payload;$failed_echo['entry'][0]['changes'][0]['value']['message_echoes'][0]['id']='wamid.ECHO_STORE_FAIL';$failed_echo_json=json_encode($failed_echo);$failed_echo_request=new WP_REST_Request('POST','/peracrm/v1/whatsapp/webhook');$failed_echo_request->set_body($failed_echo_json);$failed_echo_request->set_header('X-Hub-Signature-256','sha256='.hash_hmac('sha256',$failed_echo_json,'environment-app-secret'));$GLOBALS['wpdb']->fail_next_insert=true;
+assert_same(500,peracrm_rest_whatsapp_receive_webhook($failed_echo_request)->get_status(),'echo persistence failure is propagated as retryable');
 $GLOBALS['post_meta_by_blog'][2][125]=['_peracrm_phone'=>'4712345678'];
 $international_echo=$echo_payload;$international_echo['entry'][0]['changes'][0]['value']['message_echoes'][0]['id']='wamid.ECHO_NO';$international_echo['entry'][0]['changes'][0]['value']['message_echoes'][0]['to']='4712345678';
 assert_same(1,peracrm_with_target_blog(function()use($international_echo){return peracrm_whatsapp_process_inbound_payload($international_echo); }),'international Meta echo matches canonical CRM client');

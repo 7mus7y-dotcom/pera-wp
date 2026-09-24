@@ -644,6 +644,15 @@ function peracrm_whatsapp_store_message_result(array $record)
     ];
 }
 
+/** Distinguish a new insert, an already durable WAMID, and a failed write. */
+function peracrm_whatsapp_message_write_state(array $write)
+{
+    $row_id = (int) ($write['row_id'] ?? 0);
+    if (!empty($write['inserted']) && $row_id > 0) return 'inserted';
+    if (empty($write['inserted']) && $row_id > 0) return 'existing';
+    return 'failed';
+}
+
 function peracrm_whatsapp_count_messages()
 {
     global $wpdb;
@@ -949,10 +958,17 @@ function peracrm_whatsapp_process_inbound_payload(array $payload)
                     'meta_timestamp' => peracrm_whatsapp_meta_datetime($message['timestamp'] ?? 0),
                     'raw_payload_json' => '{}', 'source' => 'whatsapp', 'linked_by' => $client_id ? 'phone' : 'unlinked',
                 ]);
-                if (empty($write['inserted'])) {
-                    if ($client_state === 'created') peracrm_whatsapp_rollback_created_client($client_id);
-                    if (empty($write['row_id'])) throw new RuntimeException('Inbound WhatsApp message persistence failed.');
+                $write_state = peracrm_whatsapp_message_write_state($write);
+                if ($write_state === 'existing') {
                     continue;
+                }
+                if ($write_state === 'failed') {
+                    // Recheck immediately before compensation: another request may
+                    // have committed this WAMID after store_message_result checked.
+                    $durable_row_id = peracrm_whatsapp_find_message_row_id_by_message_id($wamid);
+                    if ($durable_row_id > 0) continue;
+                    if ($client_state === 'created') peracrm_whatsapp_rollback_created_client($client_id);
+                    throw new RuntimeException('Inbound WhatsApp message persistence failed.');
                 }
                 $processed++;
                 if ($client_id && function_exists('peracrm_log_event')) {
@@ -1003,10 +1019,12 @@ function peracrm_whatsapp_process_message_echoes(array $value, $recipient_id)
             'meta_timestamp' => peracrm_whatsapp_meta_datetime($echo['timestamp'] ?? 0),
             'raw_payload_json' => '{}', 'source' => 'whatsapp_business_app', 'linked_by' => 'business_app_echo',
         ]);
-        if (empty($write['inserted'])) {
+        $write_state = peracrm_whatsapp_message_write_state($write);
+        if ($write_state === 'existing') {
             peracrm_whatsapp_log('Ignored duplicate WhatsApp echo', ['wamid_hash' => substr(hash('sha256', $wamid), 0, 12)]);
             continue;
         }
+        if ($write_state === 'failed') throw new RuntimeException('WhatsApp echo persistence failed.');
         $processed++;
         if (function_exists('peracrm_log_event')) peracrm_log_event($client_id, 'whatsapp_outbound', ['message_id' => $wamid, 'row_id' => (int) $write['row_id']]);
     }
