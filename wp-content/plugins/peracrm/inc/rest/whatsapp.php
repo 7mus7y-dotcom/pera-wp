@@ -60,7 +60,7 @@ function peracrm_whatsapp_verify_meta_signature($raw, $signature, $secret)
 function peracrm_rest_whatsapp_verify_webhook(WP_REST_Request $request)
 {
     $settings = peracrm_whatsapp_get_settings();
-    if (empty($settings['enabled']) || empty($settings['test_mode']) || empty($settings['verify_token'])) {
+    if (empty($settings['enabled']) || empty($settings['verify_token'])) {
         return new WP_REST_Response(['ok' => false, 'message' => 'disabled'], 403);
     }
 
@@ -97,7 +97,7 @@ function peracrm_rest_whatsapp_verify_webhook(WP_REST_Request $request)
 function peracrm_rest_whatsapp_receive_webhook(WP_REST_Request $request)
 {
     $settings = peracrm_whatsapp_get_settings();
-    if (empty($settings['enabled']) || empty($settings['test_mode']) || empty($settings['phone_number_id'])) {
+    if (empty($settings['enabled']) || empty($settings['phone_number_id']) || empty($settings['app_secret'])) {
         return new WP_REST_Response(['ok' => false, 'message' => 'disabled'], 403);
     }
 

@@ -85,16 +85,17 @@ $GLOBALS['saved_option']=null;$GLOBALS['current_blog_id']=1;$GLOBALS['target_blo
 $GLOBALS['logged_in']=true;$GLOBALS['caps_by_blog']=[1=>['manage_options'=>true],2=>['manage_options'=>false]];
 $GLOBALS['post_meta_by_blog']=[1=>[123=>['_peracrm_phone'=>'+19999999999']],2=>[123=>['_peracrm_phone'=>'+15551112222']]];
 $GLOBALS['titles_by_blog']=[1=>[123=>'Source-blog collision'],2=>[123=>'Target CRM Client']];$GLOBALS['enqueued']=[];$GLOBALS['localized']=[];
-$GLOBALS['http_code']=200; $GLOBALS['http_body']='{"messages":[{"id":"wamid.OUTBOUND_1"}]}'; $GLOBALS['captured_http']=null; $GLOBALS['created_clients']=0;
-function get_option($key,$default=[]){return $key==='peracrm_whatsapp_settings'?($GLOBALS['settings_by_blog'][$GLOBALS['current_blog_id']]??$default):$default;} function update_option($key,$value){if($key==='peracrm_whatsapp_settings'){$GLOBALS['saved_option']=$value;$GLOBALS['settings_by_blog'][$GLOBALS['current_blog_id']]=$value;}return true;}
+$GLOBALS['http_code']=200; $GLOBALS['http_body']='{"messages":[{"id":"wamid.OUTBOUND_1"}]}'; $GLOBALS['captured_http']=null; $GLOBALS['created_clients']=0;$GLOBALS['options']=[];$GLOBALS['events']=[];$GLOBALS['next_post_id']=999;
+function get_option($key,$default=[]){if($key==='peracrm_whatsapp_settings')return $GLOBALS['settings_by_blog'][$GLOBALS['current_blog_id']]??$default;return $GLOBALS['options'][$GLOBALS['current_blog_id']][$key]??$default;} function update_option($key,$value){if($key==='peracrm_whatsapp_settings'){$GLOBALS['saved_option']=$value;$GLOBALS['settings_by_blog'][$GLOBALS['current_blog_id']]=$value;}else{$GLOBALS['options'][$GLOBALS['current_blog_id']][$key]=$value;}return true;}
+function add_option($key,$value){if(isset($GLOBALS['options'][$GLOBALS['current_blog_id']][$key]))return false;$GLOBALS['options'][$GLOBALS['current_blog_id']][$key]=$value;return true;} function delete_option($key){unset($GLOBALS['options'][$GLOBALS['current_blog_id']][$key]);return true;}
 function wp_parse_args($a,$b=[]){return array_merge($b,$a);} function sanitize_text_field($v){return trim(strip_tags((string)$v));} function sanitize_textarea_field($v){return trim(strip_tags((string)$v));}
 function sanitize_key($v){return preg_replace('/[^a-z0-9_\-]/','',strtolower((string)$v));} function absint($v){return abs((int)$v);} function esc_url_raw($v){return (string)$v;}
 function wp_json_encode($v){return json_encode($v);} function peracrm_json_encode($v){return json_encode($v);} function peracrm_now_mysql(){return '2026-09-15 12:00:00';} function current_time(){return '2026-09-15 12:00:00';} function get_gmt_from_date($date){return gmdate('Y-m-d H:i:s',strtotime($date)-((int)($GLOBALS['site_utc_offset_hours']??0)*3600));}
-function peracrm_table(){return 'wp_peracrm_whatsapp_messages';} function get_posts(){return [];} function get_post_type($id){return $GLOBALS['current_blog_id']===$GLOBALS['target_blog_id'] && $id===123?'crm_client':false;}
+function peracrm_table(){return 'wp_peracrm_whatsapp_messages';} function get_posts($args=[]){foreach(($GLOBALS['post_meta_by_blog'][$GLOBALS['current_blog_id']]??[]) as $id=>$meta)foreach((array)($args['meta_query']??[]) as $query)if(in_array($meta[$query['key']]??null,(array)$query['value'],true))return [$id];return [];} function get_post_type($id){return isset($GLOBALS['post_meta_by_blog'][$GLOBALS['current_blog_id']][$id])?'crm_client':false;}
 function get_the_title($id){return $GLOBALS['titles_by_blog'][$GLOBALS['current_blog_id']][$id]??'';} function get_edit_post_link($id,$context='display'){return 'https://blog-'.$GLOBALS['current_blog_id'].'.test/wp-admin/post.php?post='.$id.'&action=edit';}
 function get_post_meta($id,$key){return $GLOBALS['post_meta_by_blog'][$GLOBALS['current_blog_id']][$id][$key]??'';} function get_current_user_id(){return 7;} function is_user_logged_in(){return $GLOBALS['logged_in'];}
 function user_can($id,$cap){return !empty($GLOBALS['caps_by_blog'][$GLOBALS['current_blog_id']][$cap]);} function current_user_can($cap){return user_can(7,$cap);} function peracrm_client_get_assigned_advisor_id(){return $GLOBALS['current_blog_id']===$GLOBALS['target_blog_id']?$GLOBALS['assigned_advisor']:0;}
-function peracrm_with_target_blog($cb){$before=$GLOBALS['current_blog_id'];if($before!==$GLOBALS['target_blog_id']){$GLOBALS['current_blog_id']=$GLOBALS['target_blog_id'];$GLOBALS['target_switches']++;}try{return $cb();}finally{$GLOBALS['current_blog_id']=$before;}} function peracrm_log_event(){return true;} function wp_insert_post(){ $GLOBALS['created_clients']++; return 999; }
+function peracrm_with_target_blog($cb){$before=$GLOBALS['current_blog_id'];if($before!==$GLOBALS['target_blog_id']){$GLOBALS['current_blog_id']=$GLOBALS['target_blog_id'];$GLOBALS['target_switches']++;}try{return $cb();}finally{$GLOBALS['current_blog_id']=$before;}} function peracrm_log_event($id,$type,$data=[]){$GLOBALS['events'][]=[$id,$type,$data];return true;} function wp_insert_post(){ $GLOBALS['created_clients']++;$id=$GLOBALS['next_post_id']++;$GLOBALS['post_meta_by_blog'][$GLOBALS['current_blog_id']][$id]=[];return $id; } function update_post_meta($id,$key,$value){$GLOBALS['post_meta_by_blog'][$GLOBALS['current_blog_id']][$id][$key]=$value;return true;} function get_users(){return [1];} function wp_generate_uuid4(){return uniqid('uuid',true);}
 function wp_remote_post($url,$args){$GLOBALS['captured_http']=[$url,$args];return ['response'=>['code'=>$GLOBALS['http_code']],'body'=>$GLOBALS['http_body']];}
 function wp_remote_retrieve_response_code($r){return $r['response']['code'];} function wp_remote_retrieve_body($r){return $r['body'];}
 function wp_enqueue_script($handle){$GLOBALS['enqueued'][]=$handle;} function wp_localize_script($handle,$name,$data){$GLOBALS['localized'][$name]=$data;} function wp_create_nonce(){return 'nonce';} function admin_url($path=''){return 'https://example.test/wp-admin/'.$path;} function __($v){return $v;} function esc_html__($v){return $v;} function esc_html($v){return htmlspecialchars((string)$v);} function esc_attr($v){return htmlspecialchars((string)$v);} function esc_url($v){return (string)$v;}
@@ -132,6 +133,12 @@ assert_same('SAVED_TARGET_PHONE_ID',$GLOBALS['settings_by_blog'][2]['phone_numbe
 assert_same('SOURCE_PHONE_ID',$GLOBALS['settings_by_blog'][1]['phone_number_id'],'admin save does not create or overwrite source-blog configuration');
 $verify_request=new WP_REST_Request('GET');$verify_request->set_param('hub_mode','subscribe');$verify_request->set_param('hub_verify_token','environment-verify-token');$verify_request->set_param('hub_challenge','target-config-ok');
 assert_same(200,peracrm_rest_whatsapp_verify_webhook($verify_request)->get_status(),'inbound verification reads effective target-blog configuration');
+$GLOBALS['settings_by_blog'][2]['test_mode']=0;
+assert_same(200,peracrm_rest_whatsapp_verify_webhook($verify_request)->get_status(),'GET verification remains enabled when test_mode is disabled');
+$GLOBALS['settings_by_blog'][2]['enabled']=0;
+assert_same(403,peracrm_rest_whatsapp_verify_webhook($verify_request)->get_status(),'disabled integration refuses webhook verification');
+assert_same(true,in_array('enabled',peracrm_whatsapp_configuration_errors(),true),'disabled integration refuses outbound configuration');
+$GLOBALS['settings_by_blog'][2]['enabled']=1;$GLOBALS['settings_by_blog'][2]['test_mode']=1;
 assert_same(1,$GLOBALS['current_blog_id'],'test begins outside target blog');
 assert_same(true,peracrm_whatsapp_user_can_access_client(123),'target-only client is authorised after switching blogs');
 assert_same(1,$GLOBALS['current_blog_id'],'client authorization restores originating blog');
@@ -154,15 +161,47 @@ $GLOBALS['assigned_advisor']=0;$GLOBALS['caps_by_blog'][2]=['manage_options'=>tr
 
 $fixture=file_get_contents(__DIR__.'/fixtures/meta-text-webhook.json');
 $fixture=str_replace(['TEST_PHONE_NUMBER_ID','TEST_WABA_ID'],['SAVED_TARGET_PHONE_ID','TEST_WABA'],$fixture);
+$fixture=str_replace('15551112222','905551112233',$fixture);
 $signature='sha256='.hash_hmac('sha256',$fixture,'environment-app-secret');
 $request=new WP_REST_Request('POST','/peracrm/v1/whatsapp/webhook'); $request->set_body($fixture); $request->set_header('X-Hub-Signature-256',$signature);
 $response=peracrm_rest_whatsapp_receive_webhook($request);
 assert_same(200,$response->get_status(),'valid signature is accepted by the real REST callback');
 assert_same(1,count($GLOBALS['wpdb']->rows),'valid inbound message is persisted');
-assert_same(null,$GLOBALS['wpdb']->rows[0]['client_id'],'unknown sender remains unlinked');
-assert_same(0,$GLOBALS['created_clients'],'unknown sender does not create a crm_client');
+assert_same(999,$GLOBALS['wpdb']->rows[0]['client_id'],'unknown sender is linked to its new client');
+assert_same('+905551112233',$GLOBALS['post_meta_by_blog'][2][999]['_peracrm_phone'],'new client stores canonical phone');
+assert_same(1,$GLOBALS['created_clients'],'first inbound creates one crm_client');
 peracrm_rest_whatsapp_receive_webhook($request);
 assert_same(1,count($GLOBALS['wpdb']->rows),'duplicate WAMID does not create a duplicate row');
+assert_same(1,$GLOBALS['created_clients'],'duplicate WAMID does not create another client');
+$competing_fixture=str_replace('wamid.TEST_INBOUND_001','wamid.TEST_INBOUND_002',$fixture);
+$competing_request=new WP_REST_Request('POST','/peracrm/v1/whatsapp/webhook');$competing_request->set_body($competing_fixture);$competing_request->set_header('X-Hub-Signature-256','sha256='.hash_hmac('sha256',$competing_fixture,'environment-app-secret'));
+peracrm_rest_whatsapp_receive_webhook($competing_request);
+assert_same(1,$GLOBALS['created_clients'],'competing first-message path reuses the claimed phone identity');
+assert_same(999,end($GLOBALS['wpdb']->rows)['client_id'],'competing message attaches to the single client');
+assert_same('+905452054356',peracrm_whatsapp_normalize_phone('+90 545 205 4356'),'formatted Turkish number canonicalizes');
+assert_same('+905452054356',peracrm_whatsapp_normalize_phone('905452054356'),'international Turkish digits canonicalize');
+assert_same('+905452054356',peracrm_whatsapp_normalize_phone('05452054356'),'trunk-prefixed Turkish number canonicalizes');
+assert_same('+905452054356',peracrm_whatsapp_normalize_phone('5452054356'),'local Turkish number canonicalizes');
+$GLOBALS['settings_by_blog'][2]['business_phone_e164']='+90 545 205 4356';
+assert_same(true,peracrm_whatsapp_is_business_phone('05452054356'),'business-number guard compares canonical identities');
+assert_same(0,peracrm_whatsapp_find_or_create_client('5452054356'),'business number cannot become a client');
+$GLOBALS['post_meta_by_blog'][2][124]=['_peracrm_phone'=>'05452050000'];
+assert_same(124,peracrm_with_target_blog(function(){return peracrm_whatsapp_find_client_by_phone('+905452050000');}),'alternate Turkish representation reuses existing client');
+
+$echo_payload=['object'=>'whatsapp_business_account','entry'=>[['id'=>'TEST_WABA','changes'=>[['field'=>'smb_message_echoes','value'=>['metadata'=>['phone_number_id'=>'SAVED_TARGET_PHONE_ID'],'message_echoes'=>[['id'=>'wamid.ECHO_1','to'=>'15551112222','timestamp'=>'1700000200','type'=>'text','text'=>['body'=>'Business App reply']]]]]]]]];
+$before_events=count($GLOBALS['events']);
+assert_same(1,peracrm_with_target_blog(function()use($echo_payload){return peracrm_whatsapp_process_inbound_payload($echo_payload); }),'text echo is processed');
+$echo_row=end($GLOBALS['wpdb']->rows);
+assert_same('outbound',$echo_row['direction'],'text echo is stored outbound');
+assert_same('wamid.ECHO_1',$echo_row['whatsapp_message_id'],'text echo preserves WAMID');
+assert_same(123,$echo_row['client_id'],'text echo links customer using to');
+assert_same(0,peracrm_with_target_blog(function()use($echo_payload){return peracrm_whatsapp_process_inbound_payload($echo_payload); }),'duplicate echo is ignored');
+assert_same($before_events+1,count($GLOBALS['events']),'duplicate echo emits no duplicate activity');
+$unsupported=$echo_payload;$unsupported['entry'][0]['changes'][0]['value']['message_echoes'][0]['id']='wamid.MEDIA';$unsupported['entry'][0]['changes'][0]['value']['message_echoes'][0]['type']='image';
+assert_same(0,peracrm_with_target_blog(function()use($unsupported){return peracrm_whatsapp_process_inbound_payload($unsupported); }),'unsupported echo type is acknowledged without persistence');
+$unmatched=$echo_payload;$unmatched['entry'][0]['changes'][0]['value']['message_echoes'][0]['id']='wamid.UNMATCHED';$unmatched['entry'][0]['changes'][0]['value']['message_echoes'][0]['to']='905000000000';
+$clients_before=$GLOBALS['created_clients'];assert_same(0,peracrm_with_target_blog(function()use($unmatched){return peracrm_whatsapp_process_inbound_payload($unmatched); }),'unmatched echo is ignored');assert_same($clients_before,$GLOBALS['created_clients'],'unmatched echo creates no client');
+foreach(['history','smb_app_state_sync','account_update','unknown_field'] as $ignored_field){$ignored=['object'=>'whatsapp_business_account','entry'=>[['id'=>'TEST_WABA','changes'=>[['field'=>$ignored_field,'value'=>[]]]]]];assert_same(0,peracrm_with_target_blog(function()use($ignored){return peracrm_whatsapp_process_inbound_payload($ignored); }),$ignored_field.' is an explicit no-op');}
 
 $bad=new WP_REST_Request('POST');$bad->set_body($fixture);$bad->set_header('X-Hub-Signature-256','sha256='.str_repeat('0',64));
 assert_same(401,peracrm_rest_whatsapp_receive_webhook($bad)->get_status(),'invalid signature is rejected');
@@ -193,8 +232,11 @@ assert_same('persistence_failed',$result->get_error_code(),'post-acceptance pers
 assert_same(true,strpos($result->get_error_message(),'do not retry automatically')!==false,'post-acceptance error discourages an unsafe retry');
 
 $GLOBALS['settings_by_blog'][2]['test_mode']=0;
-$result=peracrm_whatsapp_send_client_text(123,'must fail closed');
-assert_same('not_configured',$result->get_error_code(),'outbound fails closed when test_mode is disabled');
+$GLOBALS['http_body']='{"messages":[{"id":"wamid.PRODUCTION_MODE"}]}';
+$result=peracrm_whatsapp_send_client_text(123,'production mode');
+assert_same('wamid.PRODUCTION_MODE',$result['wamid'],'outbound remains enabled when test_mode is disabled');
+$production_response=peracrm_rest_whatsapp_receive_webhook($request);
+assert_same(200,$production_response->get_status(),'signed webhook remains enabled when test_mode is disabled');
 $GLOBALS['settings_by_blog'][2]['test_mode']=1;
 $wrong=str_replace('SAVED_TARGET_PHONE_ID','OTHER_PHONE_ID',$fixture);$wrong_req=new WP_REST_Request('POST');$wrong_req->set_body($wrong);$wrong_req->set_header('X-Hub-Signature-256','sha256='.hash_hmac('sha256',$wrong,'environment-app-secret'));
 $before=count($GLOBALS['wpdb']->rows);peracrm_rest_whatsapp_receive_webhook($wrong_req);
