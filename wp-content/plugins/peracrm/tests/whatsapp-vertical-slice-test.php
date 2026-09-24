@@ -6,6 +6,7 @@ $core = file_get_contents(__DIR__ . '/../inc/whatsapp.php');
 $table = file_get_contents(__DIR__ . '/../inc/db/whatsapp_messages_table.php');
 $embed = file_get_contents(__DIR__ . '/../inc/admin/whatsapp-embedded-signup.php');
 $admin_assets = file_get_contents(__DIR__ . '/../inc/admin/assets.php');
+$admin_page = file_get_contents(__DIR__ . '/../inc/admin/pages/whatsapp.php');
 $client_view = file_get_contents(__DIR__ . '/../inc/views/pages/crm-client.php');
 $conversation_js = file_get_contents(__DIR__ . '/../assets/frontend/whatsapp-conversation.js');
 $fixture = file_get_contents(__DIR__ . '/fixtures/meta-text-webhook.json');
@@ -33,4 +34,6 @@ check(strpos($embed, "current_user_can('manage_options')") === false && strpos($
 check(strpos($client_view, '<!-- /.crm-client-detail-layout -->') < strpos($client_view, 'peracrm_whatsapp_render_client_conversation'), 'WhatsApp panel renders after the established two-column client grid');
 check(strpos($conversation_js, 'wasNearBottom') !== false && strpos($conversation_js, 'refresh(true)') !== false, 'conversation scrolling preserves history position and follows latest when appropriate');
 check(strpos($core, 'pera_get_whatsapp_number') === false && strpos($core, 'pera_whatsapp_number') === false, 'Cloud API transport has no website-number fallback');
+check(strpos($admin_page, "if (!empty(\$settings['test_mode']))") < strpos($admin_page, "esc_html__('META TEST MODE'"), 'admin test warning is conditional on test_mode');
+check(strpos($admin_page, "esc_html__('Test WABA ID'") === false, 'WABA setting uses environment-neutral wording');
 echo "All static WhatsApp contract checks passed.\n";

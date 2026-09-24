@@ -1020,6 +1020,7 @@ function peracrm_whatsapp_get_client_panel_context($client_id)
         return [
             'allowed' => peracrm_whatsapp_user_can_access_client_on_current_blog($client_id),
             'phone' => peracrm_whatsapp_client_phone_on_current_blog($client_id),
+            'test_mode' => !empty(peracrm_whatsapp_get_settings()['test_mode']),
         ];
     });
 }
@@ -1031,7 +1032,13 @@ function peracrm_whatsapp_render_client_conversation($client_id)
     $phone = (string) $panel['phone'];
     echo '<section class="crm-section crm-whatsapp" data-peracrm-whatsapp-conversation data-client-id="' . esc_attr((string) $client_id) . '">';
     echo '<header class="crm-section__header"><div class="crm-section__heading-group"><h3 class="crm-section__title">' . esc_html__('WhatsApp conversation', 'peracrm') . '</h3>';
-    echo '<p class="crm-section__description"><strong class="crm-whatsapp__test">' . esc_html__('META TEST MODE', 'peracrm') . '</strong> ' . esc_html($phone !== '' ? $phone : __('Client phone missing', 'peracrm')) . '</p></div></header>';
+    echo '<p class="crm-section__description">';
+    if (!empty($panel['test_mode'])) {
+        echo '<strong class="crm-whatsapp__test">' . esc_html__('META TEST MODE', 'peracrm') . '</strong> ';
+    } else {
+        echo '<strong class="crm-whatsapp__platform">' . esc_html__('WhatsApp Business', 'peracrm') . '</strong> ';
+    }
+    echo esc_html($phone !== '' ? $phone : __('Client phone missing', 'peracrm')) . '</p></div></header>';
     echo '<div class="crm-section__body"><div class="crm-whatsapp__messages" data-wa-messages aria-live="polite"></div><p data-wa-feedback></p>';
     echo '<form class="crm-whatsapp__composer" data-wa-composer><label class="screen-reader-text" for="peracrm-wa-message">' . esc_html__('WhatsApp message', 'peracrm') . '</label><textarea id="peracrm-wa-message" name="message" rows="3" maxlength="4096" required></textarea><button class="btn btn--green" type="submit">' . esc_html__('Send WhatsApp text', 'peracrm') . '</button><button class="btn btn--ghost" type="button" data-wa-refresh>' . esc_html__('Refresh', 'peracrm') . '</button></form></div></section>';
 }
