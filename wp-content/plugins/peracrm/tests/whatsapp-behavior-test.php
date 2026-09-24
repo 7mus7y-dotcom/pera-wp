@@ -39,7 +39,7 @@ class WP_REST_Request implements ArrayAccess {
     public function offsetSet($o,$v):void{$this->params[$o]=$v;} public function offsetUnset($o):void{unset($this->params[$o]);}
 }
 class FakeWpdb {
-    public $rows=[]; public $insert_id=0; public $fail_next_insert=false; public $simulate_status_race=false; public $status_race_rechecks=0;
+    public $rows=[]; public $insert_id=0; public $fail_next_insert=false; public $simulate_status_race=false; public $status_race_rechecks=0; public $options='wp_options';
     public function prepare($query,...$args){ if(count($args)===1 && is_array($args[0]))$args=$args[0]; foreach($args as $arg){$replacement=is_int($arg)?(string)$arg:"'".addslashes((string)$arg)."'";$query=preg_replace('/%[ds]/',$replacement,$query,1);} return $query; }
     public function get_var($query){
         if (preg_match("/whatsapp_message_id = '([^']+)'/",$query,$m)) foreach($this->rows as $row) if($row['whatsapp_message_id']===$m[1]) return $row['id'];
@@ -51,6 +51,7 @@ class FakeWpdb {
         $data['id']=++$this->insert_id; $this->rows[]=$data; return 1;
     }
     public function update($table,$data,$where,$formats=[],$where_formats=[]){
+        if($table===$this->options){$name=$where['option_name']??'';$current=$GLOBALS['options'][$GLOBALS['current_blog_id']][$name]??null;if(maybe_serialize($current)!==($where['option_value']??null))return 0;$GLOBALS['options'][$GLOBALS['current_blog_id']][$name]=unserialize($data['option_value']);return 1;}
         foreach($this->rows as &$row){
             $match=true;foreach($where as $k=>$v)if(($row[$k]??null)!==$v)$match=false;
             if($match){
@@ -74,7 +75,7 @@ class FakeWpdb {
         usort($rows,function($a,$b){$at=$a['meta_timestamp']??$a['created_at_utc']??$a['created_at']??'';$bt=$b['meta_timestamp']??$b['created_at_utc']??$b['created_at']??'';$time=strcmp($bt,$at);return $time!==0?$time:(((int)$b['id'])<=>((int)$a['id']));});
         $limit=count($rows);$offset=0;if(preg_match('/LIMIT (\d+)(?: OFFSET (\d+))?/',$query,$m)){ $limit=(int)$m[1];$offset=isset($m[2])?(int)$m[2]:0; }
         return array_slice($rows,$offset,$limit);
-    } public function query(){return 0;}
+    } public function delete($table,$where,$formats=[]){if($table!==$this->options)return 0;$name=$where['option_name']??'';$current=$GLOBALS['options'][$GLOBALS['current_blog_id']][$name]??null;if(maybe_serialize($current)!==($where['option_value']??null))return 0;unset($GLOBALS['options'][$GLOBALS['current_blog_id']][$name]);return 1;} public function query(){return 0;}
 }
 $GLOBALS['wpdb']=new FakeWpdb();
 $GLOBALS['settings_by_blog']=[
@@ -89,6 +90,7 @@ $GLOBALS['http_code']=200; $GLOBALS['http_body']='{"messages":[{"id":"wamid.OUTB
 function get_option($key,$default=[]){if($key==='peracrm_whatsapp_settings')return $GLOBALS['settings_by_blog'][$GLOBALS['current_blog_id']]??$default;return $GLOBALS['options'][$GLOBALS['current_blog_id']][$key]??$default;} function update_option($key,$value){if($key==='peracrm_whatsapp_settings'){$GLOBALS['saved_option']=$value;$GLOBALS['settings_by_blog'][$GLOBALS['current_blog_id']]=$value;}else{$GLOBALS['options'][$GLOBALS['current_blog_id']][$key]=$value;}return true;}
 function add_option($key,$value){if(isset($GLOBALS['options'][$GLOBALS['current_blog_id']][$key]))return false;$GLOBALS['options'][$GLOBALS['current_blog_id']][$key]=$value;return true;} function delete_option($key){unset($GLOBALS['options'][$GLOBALS['current_blog_id']][$key]);return true;}
 function wp_parse_args($a,$b=[]){return array_merge($b,$a);} function sanitize_text_field($v){return trim(strip_tags((string)$v));} function sanitize_textarea_field($v){return trim(strip_tags((string)$v));}
+function maybe_serialize($value){return is_array($value)||is_object($value)?serialize($value):$value;}
 function sanitize_key($v){return preg_replace('/[^a-z0-9_\-]/','',strtolower((string)$v));} function absint($v){return abs((int)$v);} function esc_url_raw($v){return (string)$v;}
 function wp_json_encode($v){return json_encode($v);} function peracrm_json_encode($v){return json_encode($v);} function peracrm_now_mysql(){return '2026-09-15 12:00:00';} function current_time(){return '2026-09-15 12:00:00';} function get_gmt_from_date($date){return gmdate('Y-m-d H:i:s',strtotime($date)-((int)($GLOBALS['site_utc_offset_hours']??0)*3600));}
 function peracrm_table(){return 'wp_peracrm_whatsapp_messages';} function get_posts($args=[]){foreach(($GLOBALS['post_meta_by_blog'][$GLOBALS['current_blog_id']]??[]) as $id=>$meta)foreach((array)($args['meta_query']??[]) as $query)if(in_array($meta[$query['key']]??null,(array)$query['value'],true))return [$id];return [];} function get_post_type($id){return isset($GLOBALS['post_meta_by_blog'][$GLOBALS['current_blog_id']][$id])?'crm_client':false;}
@@ -187,6 +189,34 @@ assert_same(true,peracrm_whatsapp_is_business_phone('05452054356'),'business-num
 assert_same(0,peracrm_whatsapp_find_or_create_client('5452054356'),'business number cannot become a client');
 $GLOBALS['post_meta_by_blog'][2][124]=['_peracrm_phone'=>'05452050000'];
 assert_same(124,peracrm_with_target_blog(function(){return peracrm_whatsapp_find_client_by_phone('+905452050000');}),'alternate Turkish representation reuses existing client');
+
+peracrm_with_target_blog(function(){
+    $lock_name=peracrm_whatsapp_client_lock_option_name('+905001112233');
+    $owner=peracrm_whatsapp_acquire_client_lock($lock_name);
+    $other=['owner'=>'different-owner','created_at'=>$owner['created_at']];
+    assert_same(false,peracrm_whatsapp_release_client_lock($lock_name,$other),'one request cannot release another owner active lock');
+    assert_same($owner,get_option($lock_name,null),'failed foreign release preserves active lock');
+    assert_same(true,peracrm_whatsapp_release_client_lock($lock_name,$owner),'lock owner can release its claim');
+
+    $stale_name=peracrm_whatsapp_client_lock_option_name('+905001112244');
+    $stale=['owner'=>'expired-owner','created_at'=>time()-121];add_option($stale_name,$stale,'',false);
+    $replacement=peracrm_whatsapp_acquire_client_lock($stale_name);
+    assert_same(true,is_array($replacement)&&$replacement['owner']!==$stale['owner'],'stale lock is recovered with a new owner');
+    assert_same($replacement,get_option($stale_name,null),'stale recovery installs the exact new claim');
+    peracrm_whatsapp_release_client_lock($stale_name,$replacement);
+});
+
+$contended_phone='905009998877';
+$contended_fixture=str_replace(['905551112233','wamid.TEST_INBOUND_001'],[$contended_phone,'wamid.CONTENDED'],$fixture);
+$contended_request=new WP_REST_Request('POST','/peracrm/v1/whatsapp/webhook');$contended_request->set_body($contended_fixture);$contended_request->set_header('X-Hub-Signature-256','sha256='.hash_hmac('sha256',$contended_fixture,'environment-app-secret'));
+$contended_claim=peracrm_with_target_blog(function()use($contended_phone){return peracrm_whatsapp_acquire_client_lock(peracrm_whatsapp_client_lock_option_name($contended_phone));});
+$rows_before=count($GLOBALS['wpdb']->rows);$clients_before=$GLOBALS['created_clients'];$events_before=count($GLOBALS['events']);
+assert_same(200,peracrm_rest_whatsapp_receive_webhook($contended_request)->get_status(),'lock contention still acknowledges valid inbound webhook');
+assert_same($rows_before+1,count($GLOBALS['wpdb']->rows),'lock contention still persists inbound message');
+$contended_row=end($GLOBALS['wpdb']->rows);assert_same(null,$contended_row['client_id'],'contended inbound message remains unlinked');assert_same('wamid.CONTENDED',$contended_row['whatsapp_message_id'],'contended inbound preserves WAMID');
+assert_same($clients_before,$GLOBALS['created_clients'],'active identity lock prevents duplicate client creation');assert_same($events_before,count($GLOBALS['events']),'unlinked inbound emits no timeline activity');
+peracrm_rest_whatsapp_receive_webhook($contended_request);assert_same($rows_before+1,count($GLOBALS['wpdb']->rows),'contended webhook retry does not duplicate WAMID');
+peracrm_with_target_blog(function()use($contended_phone,$contended_claim){peracrm_whatsapp_release_client_lock(peracrm_whatsapp_client_lock_option_name($contended_phone),$contended_claim);});
 
 $echo_payload=['object'=>'whatsapp_business_account','entry'=>[['id'=>'TEST_WABA','changes'=>[['field'=>'smb_message_echoes','value'=>['metadata'=>['phone_number_id'=>'SAVED_TARGET_PHONE_ID'],'message_echoes'=>[['id'=>'wamid.ECHO_1','to'=>'15551112222','timestamp'=>'1700000200','type'=>'text','text'=>['body'=>'Business App reply']]]]]]]]];
 $before_events=count($GLOBALS['events']);

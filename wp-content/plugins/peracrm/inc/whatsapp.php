@@ -445,6 +445,57 @@ function peracrm_whatsapp_client_lock_option_name($phone)
     return $phone === '' ? '' : 'peracrm_wa_client_lock_' . md5($phone);
 }
 
+function peracrm_whatsapp_client_lock_value()
+{
+    return [
+        'owner' => sanitize_text_field((string) wp_generate_uuid4()),
+        'created_at' => time(),
+    ];
+}
+
+function peracrm_whatsapp_client_lock_is_stale($lock)
+{
+    return !is_array($lock) || empty($lock['owner']) || !is_numeric($lock['created_at'] ?? null)
+        || (time() - (int) $lock['created_at']) > 120;
+}
+
+/** Atomically replace the exact stale value observed by this request. */
+function peracrm_whatsapp_replace_stale_client_lock($lock_name, $observed, array $replacement)
+{
+    global $wpdb;
+    if (!peracrm_whatsapp_client_lock_is_stale($observed)) return false;
+    $updated = $wpdb->update(
+        $wpdb->options,
+        ['option_value' => maybe_serialize($replacement)],
+        ['option_name' => $lock_name, 'option_value' => maybe_serialize($observed)],
+        ['%s'],
+        ['%s', '%s']
+    );
+    if ($updated === 1 && function_exists('wp_cache_delete')) wp_cache_delete($lock_name, 'options');
+    return $updated === 1;
+}
+
+function peracrm_whatsapp_acquire_client_lock($lock_name)
+{
+    $claim = peracrm_whatsapp_client_lock_value();
+    if (add_option($lock_name, $claim, '', false)) return $claim;
+    $observed = get_option($lock_name, null);
+    return peracrm_whatsapp_replace_stale_client_lock($lock_name, $observed, $claim) ? $claim : false;
+}
+
+/** Release only when the persisted value still belongs to this request. */
+function peracrm_whatsapp_release_client_lock($lock_name, array $claim)
+{
+    global $wpdb;
+    $deleted = $wpdb->delete(
+        $wpdb->options,
+        ['option_name' => $lock_name, 'option_value' => maybe_serialize($claim)],
+        ['%s', '%s']
+    );
+    if ($deleted === 1 && function_exists('wp_cache_delete')) wp_cache_delete($lock_name, 'options');
+    return $deleted === 1;
+}
+
 /**
  * Find or atomically create the client owning a canonical phone identity.
  * add_option is a database-backed unique-name claim, rather than a request-local lock.
@@ -458,16 +509,15 @@ function peracrm_whatsapp_find_or_create_client($phone, $contact_name = '')
 
     $lock_name = peracrm_whatsapp_client_lock_option_name($phone);
     for ($attempt = 0; $attempt < 10; $attempt++) {
-        if (add_option($lock_name, time(), '', false)) {
+        $claim = peracrm_whatsapp_acquire_client_lock($lock_name);
+        if (is_array($claim)) {
             try {
                 $client_id = peracrm_whatsapp_find_client_by_phone($phone);
                 return $client_id ?: peracrm_whatsapp_create_client_from_inbound($phone, $contact_name);
             } finally {
-                delete_option($lock_name);
+                peracrm_whatsapp_release_client_lock($lock_name, $claim);
             }
         }
-        $created_at = (int) get_option($lock_name, 0);
-        if ($created_at > 0 && (time() - $created_at) > 120) delete_option($lock_name);
         $client_id = peracrm_whatsapp_find_client_by_phone($phone);
         if ($client_id) return $client_id;
         usleep(50000);
@@ -856,8 +906,7 @@ function peracrm_whatsapp_process_inbound_payload(array $payload)
                 }
                 $client_id = peracrm_whatsapp_find_or_create_client($phone, $names[$wa_id] ?? '');
                 if (!$client_id) {
-                    peracrm_whatsapp_log('Inbound client creation failed', ['phone_hash' => substr(hash('sha256', $phone), 0, 12)]);
-                    continue;
+                    peracrm_whatsapp_log('Inbound client association pending', ['phone_hash' => substr(hash('sha256', $phone), 0, 12)]);
                 }
                 $write = peracrm_whatsapp_store_message_result([
                     'client_id' => $client_id, 'phone_e164' => $phone, 'sender_wa_id' => $wa_id,
