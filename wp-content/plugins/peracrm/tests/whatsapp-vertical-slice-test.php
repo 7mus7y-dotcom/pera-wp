@@ -40,4 +40,6 @@ check(strpos($core, "'lead_pipeline_stage' => 'new_enquiry'") !== false && strpo
 check(strpos($core, "\$client_state === 'created'") !== false && strpos($core, 'peracrm_whatsapp_rollback_created_client($client_id)') !== false, 'new client is compensated when inbound message persistence fails');
 check(strpos($core, "return 'existing';") !== false && strpos($core, "return 'failed';") !== false, 'message writes distinguish durable duplicates from genuine failures');
 check(strpos($core, "throw new RuntimeException('WhatsApp echo persistence failed.')") !== false, 'echo persistence failures propagate for webhook retry');
+check(strpos($core, 'function peracrm_whatsapp_resolve_and_persist_inbound_text') !== false && strpos($core, 'peracrm_whatsapp_release_client_lock($lock_name, $claim)') !== false, 'first-message critical section owns the phone claim through persistence');
+check(strpos($core, "\$client_state = 'contention'") !== false && strpos($core, "\$client_state = 'creation_failed'") !== false, 'client resolution distinguishes contention from creation failure');
 echo "All static WhatsApp contract checks passed.\n";

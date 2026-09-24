@@ -519,44 +519,6 @@ function peracrm_whatsapp_release_client_lock($lock_name, array $claim)
     return $deleted === 1;
 }
 
-/**
- * Find or atomically create the client owning a canonical phone identity.
- * add_option is a database-backed unique-name claim, rather than a request-local lock.
- */
-function peracrm_whatsapp_find_or_create_client_result($phone, $contact_name = '')
-{
-    $phone = peracrm_whatsapp_normalize_phone($phone);
-    if ($phone === '' || peracrm_whatsapp_is_business_phone($phone)) return ['client_id' => 0, 'state' => 'unresolved'];
-    $client_id = peracrm_whatsapp_find_client_by_phone($phone);
-    if ($client_id) return ['client_id' => $client_id, 'state' => 'existing'];
-
-    $lock_name = peracrm_whatsapp_client_lock_option_name($phone);
-    for ($attempt = 0; $attempt < 10; $attempt++) {
-        $claim = peracrm_whatsapp_acquire_client_lock($lock_name);
-        if (is_array($claim)) {
-            try {
-                $client_id = peracrm_whatsapp_find_client_by_phone($phone);
-                if ($client_id) return ['client_id' => $client_id, 'state' => 'existing'];
-                $client_id = peracrm_whatsapp_create_client_from_inbound($phone, $contact_name);
-                return ['client_id' => $client_id, 'state' => $client_id ? 'created' : 'unresolved'];
-            } finally {
-                peracrm_whatsapp_release_client_lock($lock_name, $claim);
-            }
-        }
-        $client_id = peracrm_whatsapp_find_client_by_phone($phone);
-        if ($client_id) return ['client_id' => $client_id, 'state' => 'existing'];
-        usleep(50000);
-    }
-    peracrm_whatsapp_log('Client creation lock unavailable', ['phone_hash' => substr(hash('sha256', $phone), 0, 12)]);
-    return ['client_id' => 0, 'state' => 'unresolved'];
-}
-
-function peracrm_whatsapp_find_or_create_client($phone, $contact_name = '')
-{
-    $result = peracrm_whatsapp_find_or_create_client_result($phone, $contact_name);
-    return (int) ($result['client_id'] ?? 0);
-}
-
 function peracrm_whatsapp_find_message_row_id_by_message_id($whatsapp_message_id)
 {
     global $wpdb;
@@ -651,6 +613,66 @@ function peracrm_whatsapp_message_write_state(array $write)
     if (!empty($write['inserted']) && $row_id > 0) return 'inserted';
     if (empty($write['inserted']) && $row_id > 0) return 'existing';
     return 'failed';
+}
+
+/** Resolve identity and persist a first/live inbound text while owning its phone claim. */
+function peracrm_whatsapp_resolve_and_persist_inbound_text($phone, $contact_name, array $record)
+{
+    $phone = peracrm_whatsapp_normalize_phone($phone);
+    $wamid = sanitize_text_field((string) ($record['whatsapp_message_id'] ?? ''));
+    if ($phone === '' || $wamid === '' || peracrm_whatsapp_is_business_phone($phone)) return 0;
+
+    $lock_name = peracrm_whatsapp_client_lock_option_name($phone);
+    $claim = false;
+    $client_state = 'contention';
+    for ($attempt = 0; $attempt < 10; $attempt++) {
+        $claim = peracrm_whatsapp_acquire_client_lock($lock_name);
+        if (is_array($claim)) break;
+        if (peracrm_whatsapp_find_message_row_id_by_message_id($wamid) > 0) return 0;
+        usleep(50000);
+    }
+    if (!is_array($claim)) {
+        peracrm_whatsapp_log('Inbound client resolution failed', ['state' => $client_state, 'phone_hash' => substr(hash('sha256', $phone), 0, 12)]);
+        throw new RuntimeException('Inbound WhatsApp client identity is temporarily unavailable.');
+    }
+
+    $client_id = 0;
+    $client_state = 'existing';
+    try {
+        if (peracrm_whatsapp_find_message_row_id_by_message_id($wamid) > 0) return 0;
+        $client_id = peracrm_whatsapp_find_client_by_phone($phone);
+        if (!$client_id) {
+            $client_state = 'created';
+            $client_id = peracrm_whatsapp_create_client_from_inbound($phone, $contact_name);
+            if (!$client_id) {
+                $client_state = 'creation_failed';
+                peracrm_whatsapp_log('Inbound client resolution failed', ['state' => $client_state, 'phone_hash' => substr(hash('sha256', $phone), 0, 12)]);
+                throw new RuntimeException('Inbound WhatsApp client creation failed.');
+            }
+        }
+
+        $record['client_id'] = $client_id;
+        $record['phone_e164'] = $phone;
+        $record['linked_by'] = 'phone';
+        $write = peracrm_whatsapp_store_message_result($record);
+        $write_state = peracrm_whatsapp_message_write_state($write);
+        if ($write_state === 'existing') return 0;
+        if ($write_state === 'failed') {
+            if (peracrm_whatsapp_find_message_row_id_by_message_id($wamid) > 0) return 0;
+            if ($client_state === 'created') peracrm_whatsapp_rollback_created_client($client_id);
+            throw new RuntimeException('Inbound WhatsApp message persistence failed.');
+        }
+
+        if (function_exists('peracrm_log_event')) {
+            if ($client_state === 'created') {
+                peracrm_log_event($client_id, 'client_created', ['source' => 'whatsapp_inbound', 'phone' => $phone]);
+            }
+            peracrm_log_event($client_id, 'whatsapp_inbound', ['message_id' => $wamid, 'row_id' => (int) $write['row_id']]);
+        }
+        return 1;
+    } finally {
+        peracrm_whatsapp_release_client_lock($lock_name, $claim);
+    }
 }
 
 function peracrm_whatsapp_count_messages()
@@ -940,43 +962,14 @@ function peracrm_whatsapp_process_inbound_payload(array $payload)
                 if ($wamid === '' || $wa_id === '' || $body === '') continue;
                 $phone = peracrm_whatsapp_normalize_meta_wa_id($wa_id);
                 if (peracrm_whatsapp_is_business_phone($phone)) continue;
-                if (peracrm_whatsapp_find_message_row_id_by_message_id($wamid)) {
-                    peracrm_whatsapp_log('Ignored duplicate WhatsApp message', ['wamid_hash' => substr(hash('sha256', $wamid), 0, 12)]);
-                    continue;
-                }
-                $client_result = peracrm_whatsapp_find_or_create_client_result($phone, $names[$wa_id] ?? '');
-                $client_id = (int) ($client_result['client_id'] ?? 0);
-                $client_state = (string) ($client_result['state'] ?? 'unresolved');
-                if (!$client_id) {
-                    peracrm_whatsapp_log('Inbound client association pending', ['phone_hash' => substr(hash('sha256', $phone), 0, 12)]);
-                }
-                $write = peracrm_whatsapp_store_message_result([
-                    'client_id' => $client_id, 'phone_e164' => $phone, 'sender_wa_id' => $wa_id,
+                $processed += peracrm_whatsapp_resolve_and_persist_inbound_text($phone, $names[$wa_id] ?? '', [
+                    'sender_wa_id' => $wa_id,
                     'recipient_phone_number_id' => $recipient_id, 'whatsapp_contact_name' => $names[$wa_id] ?? '',
                     'direction' => 'inbound', 'message_type' => 'text', 'message_body' => $body,
                     'whatsapp_message_id' => $wamid, 'message_status' => 'received',
                     'meta_timestamp' => peracrm_whatsapp_meta_datetime($message['timestamp'] ?? 0),
-                    'raw_payload_json' => '{}', 'source' => 'whatsapp', 'linked_by' => $client_id ? 'phone' : 'unlinked',
+                    'raw_payload_json' => '{}', 'source' => 'whatsapp',
                 ]);
-                $write_state = peracrm_whatsapp_message_write_state($write);
-                if ($write_state === 'existing') {
-                    continue;
-                }
-                if ($write_state === 'failed') {
-                    // Recheck immediately before compensation: another request may
-                    // have committed this WAMID after store_message_result checked.
-                    $durable_row_id = peracrm_whatsapp_find_message_row_id_by_message_id($wamid);
-                    if ($durable_row_id > 0) continue;
-                    if ($client_state === 'created') peracrm_whatsapp_rollback_created_client($client_id);
-                    throw new RuntimeException('Inbound WhatsApp message persistence failed.');
-                }
-                $processed++;
-                if ($client_id && function_exists('peracrm_log_event')) {
-                    if ($client_state === 'created') {
-                        peracrm_log_event($client_id, 'client_created', ['source' => 'whatsapp_inbound', 'phone' => $phone]);
-                    }
-                    peracrm_log_event($client_id, 'whatsapp_inbound', ['message_id' => $wamid, 'row_id' => (int) $write['row_id']]);
-                }
             }
             foreach ((array) ($value['statuses'] ?? []) as $status) {
                 $wamid = sanitize_text_field((string) ($status['id'] ?? ''));
