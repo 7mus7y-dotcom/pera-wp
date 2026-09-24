@@ -36,4 +36,6 @@ check(strpos($conversation_js, 'wasNearBottom') !== false && strpos($conversatio
 check(strpos($core, 'pera_get_whatsapp_number') === false && strpos($core, 'pera_whatsapp_number') === false, 'Cloud API transport has no website-number fallback');
 check(strpos($admin_page, "if (!empty(\$settings['test_mode']))") < strpos($admin_page, "esc_html__('META TEST MODE'"), 'admin test warning is conditional on test_mode');
 check(strpos($admin_page, "esc_html__('Test WABA ID'") === false, 'WABA setting uses environment-neutral wording');
+check(strpos($core, "'lead_pipeline_stage' => 'new_enquiry'") !== false && strpos($core, 'peracrm_party_upsert_status($post_id') !== false, 'WhatsApp-created clients initialize canonical party pipeline state');
+check(strpos($core, "\$client_state === 'created'") !== false && strpos($core, 'peracrm_whatsapp_rollback_created_client($client_id)') !== false, 'new client is compensated when inbound message persistence fails');
 echo "All static WhatsApp contract checks passed.\n";

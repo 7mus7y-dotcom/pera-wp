@@ -75,7 +75,7 @@ class FakeWpdb {
         usort($rows,function($a,$b){$at=$a['meta_timestamp']??$a['created_at_utc']??$a['created_at']??'';$bt=$b['meta_timestamp']??$b['created_at_utc']??$b['created_at']??'';$time=strcmp($bt,$at);return $time!==0?$time:(((int)$b['id'])<=>((int)$a['id']));});
         $limit=count($rows);$offset=0;if(preg_match('/LIMIT (\d+)(?: OFFSET (\d+))?/',$query,$m)){ $limit=(int)$m[1];$offset=isset($m[2])?(int)$m[2]:0; }
         return array_slice($rows,$offset,$limit);
-    } public function delete($table,$where,$formats=[]){if($table!==$this->options)return 0;$name=$where['option_name']??'';$current=$GLOBALS['options'][$GLOBALS['current_blog_id']][$name]??null;if(maybe_serialize($current)!==($where['option_value']??null))return 0;unset($GLOBALS['options'][$GLOBALS['current_blog_id']][$name]);return 1;} public function query(){return 0;}
+    } public function delete($table,$where,$formats=[]){if($table==='wp_peracrm_party'){$id=(int)($where['party_id']??0);if(!isset($GLOBALS['party_rows'][$id]))return 0;unset($GLOBALS['party_rows'][$id]);return 1;}if($table!==$this->options)return 0;$name=$where['option_name']??'';$current=$GLOBALS['options'][$GLOBALS['current_blog_id']][$name]??null;if(maybe_serialize($current)!==($where['option_value']??null))return 0;unset($GLOBALS['options'][$GLOBALS['current_blog_id']][$name]);return 1;} public function query(){return 0;}
 }
 $GLOBALS['wpdb']=new FakeWpdb();
 $GLOBALS['settings_by_blog']=[
@@ -86,18 +86,19 @@ $GLOBALS['saved_option']=null;$GLOBALS['current_blog_id']=1;$GLOBALS['target_blo
 $GLOBALS['logged_in']=true;$GLOBALS['caps_by_blog']=[1=>['manage_options'=>true],2=>['manage_options'=>false]];
 $GLOBALS['post_meta_by_blog']=[1=>[123=>['_peracrm_phone'=>'+19999999999']],2=>[123=>['_peracrm_phone'=>'+15551112222']]];
 $GLOBALS['titles_by_blog']=[1=>[123=>'Source-blog collision'],2=>[123=>'Target CRM Client']];$GLOBALS['enqueued']=[];$GLOBALS['localized']=[];
-$GLOBALS['http_code']=200; $GLOBALS['http_body']='{"messages":[{"id":"wamid.OUTBOUND_1"}]}'; $GLOBALS['captured_http']=null; $GLOBALS['created_clients']=0;$GLOBALS['options']=[];$GLOBALS['events']=[];$GLOBALS['next_post_id']=999;
+$GLOBALS['http_code']=200; $GLOBALS['http_body']='{"messages":[{"id":"wamid.OUTBOUND_1"}]}'; $GLOBALS['captured_http']=null; $GLOBALS['created_clients']=0;$GLOBALS['options']=[];$GLOBALS['events']=[];$GLOBALS['next_post_id']=999;$GLOBALS['party_rows']=[];$GLOBALS['deleted_clients']=[];
 function get_option($key,$default=[]){if($key==='peracrm_whatsapp_settings')return $GLOBALS['settings_by_blog'][$GLOBALS['current_blog_id']]??$default;return $GLOBALS['options'][$GLOBALS['current_blog_id']][$key]??$default;} function update_option($key,$value){if($key==='peracrm_whatsapp_settings'){$GLOBALS['saved_option']=$value;$GLOBALS['settings_by_blog'][$GLOBALS['current_blog_id']]=$value;}else{$GLOBALS['options'][$GLOBALS['current_blog_id']][$key]=$value;}return true;}
 function add_option($key,$value){if(isset($GLOBALS['options'][$GLOBALS['current_blog_id']][$key]))return false;$GLOBALS['options'][$GLOBALS['current_blog_id']][$key]=$value;return true;} function delete_option($key){unset($GLOBALS['options'][$GLOBALS['current_blog_id']][$key]);return true;}
 function wp_parse_args($a,$b=[]){return array_merge($b,$a);} function sanitize_text_field($v){return trim(strip_tags((string)$v));} function sanitize_textarea_field($v){return trim(strip_tags((string)$v));}
 function maybe_serialize($value){return is_array($value)||is_object($value)?serialize($value):$value;}
 function sanitize_key($v){return preg_replace('/[^a-z0-9_\-]/','',strtolower((string)$v));} function absint($v){return abs((int)$v);} function esc_url_raw($v){return (string)$v;}
 function wp_json_encode($v){return json_encode($v);} function peracrm_json_encode($v){return json_encode($v);} function peracrm_now_mysql(){return '2026-09-15 12:00:00';} function current_time(){return '2026-09-15 12:00:00';} function get_gmt_from_date($date){return gmdate('Y-m-d H:i:s',strtotime($date)-((int)($GLOBALS['site_utc_offset_hours']??0)*3600));}
-function peracrm_table(){return 'wp_peracrm_whatsapp_messages';} function get_posts($args=[]){foreach(($GLOBALS['post_meta_by_blog'][$GLOBALS['current_blog_id']]??[]) as $id=>$meta)foreach((array)($args['meta_query']??[]) as $query)if(in_array($meta[$query['key']]??null,(array)$query['value'],true))return [$id];return [];} function get_post_type($id){return isset($GLOBALS['post_meta_by_blog'][$GLOBALS['current_blog_id']][$id])?'crm_client':false;}
+function peracrm_table($name=''){return $name==='peracrm_party'?'wp_peracrm_party':'wp_peracrm_whatsapp_messages';} function get_posts($args=[]){foreach(($GLOBALS['post_meta_by_blog'][$GLOBALS['current_blog_id']]??[]) as $id=>$meta)foreach((array)($args['meta_query']??[]) as $query)if(in_array($meta[$query['key']]??null,(array)$query['value'],true))return [$id];return [];} function get_post_type($id){return isset($GLOBALS['post_meta_by_blog'][$GLOBALS['current_blog_id']][$id])?'crm_client':false;}
 function get_the_title($id){return $GLOBALS['titles_by_blog'][$GLOBALS['current_blog_id']][$id]??'';} function get_edit_post_link($id,$context='display'){return 'https://blog-'.$GLOBALS['current_blog_id'].'.test/wp-admin/post.php?post='.$id.'&action=edit';}
 function get_post_meta($id,$key){return $GLOBALS['post_meta_by_blog'][$GLOBALS['current_blog_id']][$id][$key]??'';} function get_current_user_id(){return 7;} function is_user_logged_in(){return $GLOBALS['logged_in'];}
 function user_can($id,$cap){return !empty($GLOBALS['caps_by_blog'][$GLOBALS['current_blog_id']][$cap]);} function current_user_can($cap){return user_can(7,$cap);} function peracrm_client_get_assigned_advisor_id(){return $GLOBALS['current_blog_id']===$GLOBALS['target_blog_id']?$GLOBALS['assigned_advisor']:0;}
 function peracrm_with_target_blog($cb){$before=$GLOBALS['current_blog_id'];if($before!==$GLOBALS['target_blog_id']){$GLOBALS['current_blog_id']=$GLOBALS['target_blog_id'];$GLOBALS['target_switches']++;}try{return $cb();}finally{$GLOBALS['current_blog_id']=$before;}} function peracrm_log_event($id,$type,$data=[]){$GLOBALS['events'][]=[$id,$type,$data];return true;} function wp_insert_post(){ $GLOBALS['created_clients']++;$id=$GLOBALS['next_post_id']++;$GLOBALS['post_meta_by_blog'][$GLOBALS['current_blog_id']][$id]=[];return $id; } function update_post_meta($id,$key,$value){$GLOBALS['post_meta_by_blog'][$GLOBALS['current_blog_id']][$id][$key]=$value;return true;} function get_users(){return [1];} function wp_generate_uuid4(){return uniqid('uuid',true);}
+function peracrm_party_upsert_status($id,$data){$GLOBALS['party_rows'][(int)$id]=$data;return true;} function peracrm_party_table_exists(){return true;} function wp_delete_post($id,$force=false){unset($GLOBALS['post_meta_by_blog'][$GLOBALS['current_blog_id']][(int)$id],$GLOBALS['party_rows'][(int)$id]);$GLOBALS['deleted_clients'][]=(int)$id;return (object)['ID'=>(int)$id];}
 function wp_remote_post($url,$args){$GLOBALS['captured_http']=[$url,$args];return ['response'=>['code'=>$GLOBALS['http_code']],'body'=>$GLOBALS['http_body']];}
 function wp_remote_retrieve_response_code($r){return $r['response']['code'];} function wp_remote_retrieve_body($r){return $r['body'];}
 function wp_enqueue_script($handle){$GLOBALS['enqueued'][]=$handle;} function wp_localize_script($handle,$name,$data){$GLOBALS['localized'][$name]=$data;} function wp_create_nonce(){return 'nonce';} function admin_url($path=''){return 'https://example.test/wp-admin/'.$path;} function __($v){return $v;} function esc_html__($v){return $v;} function esc_html($v){return htmlspecialchars((string)$v);} function esc_attr($v){return htmlspecialchars((string)$v);} function esc_url($v){return (string)$v;}
@@ -179,6 +180,9 @@ assert_same(1,count($GLOBALS['wpdb']->rows),'valid inbound message is persisted'
 assert_same(999,$GLOBALS['wpdb']->rows[0]['client_id'],'unknown sender is linked to its new client');
 assert_same('+905551112233',$GLOBALS['post_meta_by_blog'][2][999]['_peracrm_phone'],'new client stores canonical phone');
 assert_same(1,$GLOBALS['created_clients'],'first inbound creates one crm_client');
+assert_same('new_enquiry',$GLOBALS['party_rows'][999]['lead_pipeline_stage'],'new WhatsApp client receives canonical New enquiry stage');
+$new_enquiry_count=count(array_filter($GLOBALS['party_rows'],function($party){return ($party['lead_pipeline_stage']??'')==='new_enquiry';}));
+assert_same(1,$new_enquiry_count,'new WhatsApp client participates in the canonical New enquiry stage-count path');
 peracrm_rest_whatsapp_receive_webhook($request);
 assert_same(1,count($GLOBALS['wpdb']->rows),'duplicate WAMID does not create a duplicate row');
 assert_same(1,$GLOBALS['created_clients'],'duplicate WAMID does not create another client');
@@ -187,6 +191,23 @@ $competing_request=new WP_REST_Request('POST','/peracrm/v1/whatsapp/webhook');$c
 peracrm_rest_whatsapp_receive_webhook($competing_request);
 assert_same(1,$GLOBALS['created_clients'],'competing first-message path reuses the claimed phone identity');
 assert_same(999,end($GLOBALS['wpdb']->rows)['client_id'],'competing message attaches to the single client');
+
+$failure_fixture=str_replace(['905551112233','wamid.TEST_INBOUND_001'],['905551110000','wamid.PERSIST_FAIL'],$fixture);
+$failure_request=new WP_REST_Request('POST','/peracrm/v1/whatsapp/webhook');$failure_request->set_body($failure_fixture);$failure_request->set_header('X-Hub-Signature-256','sha256='.hash_hmac('sha256',$failure_fixture,'environment-app-secret'));
+$events_before=count($GLOBALS['events']);$GLOBALS['wpdb']->fail_next_insert=true;
+assert_same(500,peracrm_rest_whatsapp_receive_webhook($failure_request)->get_status(),'new-client message persistence failure is retryable');
+$failed_client_id=end($GLOBALS['deleted_clients']);
+assert_same(false,isset($GLOBALS['post_meta_by_blog'][2][$failed_client_id]),'failed inbound persistence rolls back only its newly created client');
+assert_same(false,isset($GLOBALS['party_rows'][$failed_client_id]),'failed inbound persistence removes the new canonical party row');
+assert_same($events_before,count($GLOBALS['events']),'failed inbound persistence leaves no durable client-created activity');
+assert_same(200,peracrm_rest_whatsapp_receive_webhook($failure_request)->get_status(),'retry after rolled-back creation succeeds');
+$retry_row=end($GLOBALS['wpdb']->rows);assert_same('wamid.PERSIST_FAIL',$retry_row['whatsapp_message_id'],'retry durably stores the original WAMID');assert_same(false,in_array((int)$retry_row['client_id'],$GLOBALS['deleted_clients'],true),'retry links a fresh single client');
+$retry_count=count(array_filter($GLOBALS['wpdb']->rows,function($row){return ($row['whatsapp_message_id']??'')==='wamid.PERSIST_FAIL';}));assert_same(1,$retry_count,'retry creates exactly one message row');
+
+$existing_failure=str_replace(['905551112233','wamid.TEST_INBOUND_001'],['15551112222','wamid.EXISTING_FAIL'],$fixture);
+$existing_failure_request=new WP_REST_Request('POST','/peracrm/v1/whatsapp/webhook');$existing_failure_request->set_body($existing_failure);$existing_failure_request->set_header('X-Hub-Signature-256','sha256='.hash_hmac('sha256',$existing_failure,'environment-app-secret'));
+$GLOBALS['wpdb']->fail_next_insert=true;assert_same(500,peracrm_rest_whatsapp_receive_webhook($existing_failure_request)->get_status(),'existing-client message persistence failure is retryable');
+assert_same(false,in_array(123,$GLOBALS['deleted_clients'],true),'existing matched client is never rolled back');assert_same(true,isset($GLOBALS['post_meta_by_blog'][2][123]),'existing matched client remains intact');
 assert_same('+905452054356',peracrm_whatsapp_normalize_phone('+90 545 205 4356'),'formatted Turkish number canonicalizes');
 assert_same('+905452054356',peracrm_whatsapp_normalize_phone('905452054356'),'international Turkish digits canonicalize');
 assert_same('+905452054356',peracrm_whatsapp_normalize_phone('05452054356'),'trunk-prefixed Turkish number canonicalizes');
