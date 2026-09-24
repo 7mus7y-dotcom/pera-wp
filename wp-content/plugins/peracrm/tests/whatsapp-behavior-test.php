@@ -184,6 +184,8 @@ assert_same('+905452054356',peracrm_whatsapp_normalize_phone('+90 545 205 4356')
 assert_same('+905452054356',peracrm_whatsapp_normalize_phone('905452054356'),'international Turkish digits canonicalize');
 assert_same('+905452054356',peracrm_whatsapp_normalize_phone('05452054356'),'trunk-prefixed Turkish number canonicalizes');
 assert_same('+905452054356',peracrm_whatsapp_normalize_phone('5452054356'),'local Turkish number canonicalizes');
+assert_same('+4712345678',peracrm_whatsapp_normalize_meta_wa_id('4712345678'),'Meta WA ID preserves non-Turkish international country code');
+assert_same('+905452054356',peracrm_whatsapp_normalize_meta_wa_id('905452054356'),'Meta Turkish WA ID remains canonical');
 $GLOBALS['settings_by_blog'][2]['business_phone_e164']='+90 545 205 4356';
 assert_same(true,peracrm_whatsapp_is_business_phone('05452054356'),'business-number guard compares canonical identities');
 assert_same(0,peracrm_whatsapp_find_or_create_client('5452054356'),'business number cannot become a client');
@@ -227,6 +229,12 @@ assert_same('wamid.ECHO_1',$echo_row['whatsapp_message_id'],'text echo preserves
 assert_same(123,$echo_row['client_id'],'text echo links customer using to');
 assert_same(0,peracrm_with_target_blog(function()use($echo_payload){return peracrm_whatsapp_process_inbound_payload($echo_payload); }),'duplicate echo is ignored');
 assert_same($before_events+1,count($GLOBALS['events']),'duplicate echo emits no duplicate activity');
+$GLOBALS['post_meta_by_blog'][2][125]=['_peracrm_phone'=>'4712345678'];
+$international_echo=$echo_payload;$international_echo['entry'][0]['changes'][0]['value']['message_echoes'][0]['id']='wamid.ECHO_NO';$international_echo['entry'][0]['changes'][0]['value']['message_echoes'][0]['to']='4712345678';
+assert_same(1,peracrm_with_target_blog(function()use($international_echo){return peracrm_whatsapp_process_inbound_payload($international_echo); }),'international Meta echo matches canonical CRM client');
+$international_row=end($GLOBALS['wpdb']->rows);assert_same('+4712345678',$international_row['phone_e164'],'international Meta echo stores canonical E.164 without Turkish-local interpretation');assert_same(125,$international_row['client_id'],'international Meta echo links the matching CRM client');
+$own_echo=$echo_payload;$own_echo['entry'][0]['changes'][0]['value']['message_echoes'][0]['id']='wamid.ECHO_OWN';$own_echo['entry'][0]['changes'][0]['value']['message_echoes'][0]['to']='905452054356';$own_before=count($GLOBALS['wpdb']->rows);
+assert_same(0,peracrm_with_target_blog(function()use($own_echo){return peracrm_whatsapp_process_inbound_payload($own_echo); }),'Meta echo business WA ID remains protected');assert_same($own_before,count($GLOBALS['wpdb']->rows),'business-number echo creates no message row');
 $unsupported=$echo_payload;$unsupported['entry'][0]['changes'][0]['value']['message_echoes'][0]['id']='wamid.MEDIA';$unsupported['entry'][0]['changes'][0]['value']['message_echoes'][0]['type']='image';
 assert_same(0,peracrm_with_target_blog(function()use($unsupported){return peracrm_whatsapp_process_inbound_payload($unsupported); }),'unsupported echo type is acknowledged without persistence');
 $unmatched=$echo_payload;$unmatched['entry'][0]['changes'][0]['value']['message_echoes'][0]['id']='wamid.UNMATCHED';$unmatched['entry'][0]['changes'][0]['value']['message_echoes'][0]['to']='905000000000';

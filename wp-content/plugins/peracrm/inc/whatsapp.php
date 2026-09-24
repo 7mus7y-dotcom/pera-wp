@@ -301,6 +301,13 @@ function peracrm_whatsapp_normalize_phone($phone_raw)
     return '+' . $digits;
 }
 
+/** Normalize a Meta WA identity, whose digit-only value already includes its country code. */
+function peracrm_whatsapp_normalize_meta_wa_id($wa_id)
+{
+    $digits = preg_replace('/\D+/', '', (string) $wa_id);
+    return $digits === '' ? '' : peracrm_whatsapp_normalize_phone('+' . $digits);
+}
+
 function peracrm_whatsapp_phone_match_candidates($phone_raw)
 {
     $normalized = peracrm_whatsapp_normalize_phone($phone_raw);
@@ -898,7 +905,7 @@ function peracrm_whatsapp_process_inbound_payload(array $payload)
                 $wa_id = preg_replace('/\D+/', '', (string) ($message['from'] ?? ''));
                 $body = isset($message['text']['body']) ? trim((string) $message['text']['body']) : '';
                 if ($wamid === '' || $wa_id === '' || $body === '') continue;
-                $phone = peracrm_whatsapp_normalize_phone('+' . $wa_id);
+                $phone = peracrm_whatsapp_normalize_meta_wa_id($wa_id);
                 if (peracrm_whatsapp_is_business_phone($phone)) continue;
                 if (peracrm_whatsapp_find_message_row_id_by_message_id($wamid)) {
                     peracrm_whatsapp_log('Ignored duplicate WhatsApp message', ['wamid_hash' => substr(hash('sha256', $wamid), 0, 12)]);
@@ -947,7 +954,7 @@ function peracrm_whatsapp_process_message_echoes(array $value, $recipient_id)
             continue;
         }
         $wamid = sanitize_text_field((string) ($echo['id'] ?? ''));
-        $customer = peracrm_whatsapp_normalize_phone((string) ($echo['to'] ?? ''));
+        $customer = peracrm_whatsapp_normalize_meta_wa_id((string) ($echo['to'] ?? ''));
         $body = isset($echo['text']['body']) ? trim((string) $echo['text']['body']) : '';
         if ($wamid === '' || $customer === '' || $body === '' || peracrm_whatsapp_is_business_phone($customer)) continue;
         $client_id = peracrm_whatsapp_find_client_by_phone($customer);
