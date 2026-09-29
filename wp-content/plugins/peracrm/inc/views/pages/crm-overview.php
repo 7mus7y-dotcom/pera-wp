@@ -802,13 +802,15 @@ peracrm_frontend_render_shell_header();
       </section>
       <?php endif; ?>
 
-      <section class="crm-section crm-section--flush crm-list-workspace crm-list-workspace--table-first" data-crm-view="table" aria-labelledby="crm-leads-table-heading">
+      <section class="crm-section crm-section--flush crm-list-workspace crm-list-workspace--table-first" data-crm-view="table" <?php echo $is_header_search ? 'aria-label="' . esc_attr__( 'Search results', 'peracrm' ) . '"' : 'aria-labelledby="crm-leads-table-heading"'; ?>>
+        <?php if ( ! $is_header_search ) : ?>
         <header class="crm-section__header">
           <div class="crm-section__heading-group">
             <h2 id="crm-leads-table-heading" class="crm-section__title"><?php echo esc_html__( 'Record list', 'peracrm' ); ?></h2>
             <p class="crm-section__description"><?php echo esc_html__( 'Desktop defaults to a table-first list so names, status, source, owner, and recency remain visible in a single scan path.', 'peracrm' ); ?></p>
           </div>
         </header>
+        <?php endif; ?>
         <div class="crm-section__body">
           <div class="crm-leads-table-wrap crm-table-wrap crm-table-wrap--primitive crm-list-workspace__table-wrap">
             <table class="crm-leads-table crm-table crm-list-workspace__table" data-crm-sort-table>

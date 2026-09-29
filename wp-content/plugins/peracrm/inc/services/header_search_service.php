@@ -82,14 +82,14 @@ if (!function_exists('peracrm_header_search_label_from_key')) {
 
 if (!function_exists('peracrm_header_search_matching_ids')) {
     /**
-     * Return every accessible matching record ID in the canonical search order.
+     * Return accessible matching record IDs in the canonical search order.
      *
      * This is deliberately shared by the AJAX preview and the full results page,
      * so matching fields, statuses, effective-user scope and ordering cannot drift.
      *
      * @return int[]
      */
-    function peracrm_header_search_matching_ids(string $term): array
+    function peracrm_header_search_matching_ids(string $term, ?int $limit = null): array
     {
         global $wpdb;
 
@@ -123,6 +123,13 @@ if (!function_exists('peracrm_header_search_matching_ids')) {
 
         $params[] = $prefix_like;
         $params[] = $like;
+        $limit_sql = '';
+        if (null !== $limit) {
+            $limit = max(1, absint($limit));
+            $limit_sql = ' LIMIT %d';
+            $params[] = $limit;
+        }
+
         $sql = "
             SELECT DISTINCT p.ID
             FROM {$wpdb->posts} p
@@ -137,6 +144,7 @@ if (!function_exists('peracrm_header_search_matching_ids')) {
                 WHEN p.post_title LIKE %s THEN 1
                 ELSE 2
             END, p.post_title ASC, p.ID DESC
+            {$limit_sql}
         ";
 
         return array_values(array_filter(array_map('absint', (array) $wpdb->get_col($wpdb->prepare($sql, $params))))); // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching,WordPress.DB.PreparedSQL.NotPrepared
@@ -155,7 +163,7 @@ if (!function_exists('peracrm_header_search_results')) {
         }
 
         $limit = max(1, min(10, absint($limit)));
-        $ids = array_slice(peracrm_header_search_matching_ids($term), 0, $limit);
+        $ids = peracrm_header_search_matching_ids($term, $limit);
         if (empty($ids)) {
             return [];
         }
