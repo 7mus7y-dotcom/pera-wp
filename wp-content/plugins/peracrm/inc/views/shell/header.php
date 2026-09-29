@@ -56,9 +56,9 @@ $show_header_search = is_user_logged_in()
     </div>
 
     <?php if ($show_header_search) : ?>
-    <form class="peracrm-header-search" data-peracrm-header-search role="search" action="<?php echo esc_url(home_url('/crm/clients/')); ?>" method="get">
+    <form class="peracrm-header-search" data-peracrm-header-search role="search" action="<?php echo esc_url(home_url('/crm/clients/')); ?>" method="get" autocomplete="off">
       <input type="hidden" name="type" value="leads">
-      <label class="screen-reader-text" for="peracrm-header-search-input"><?php esc_html_e('Search CRM clients', 'peracrm'); ?></label>
+      <label class="screen-reader-text" for="peracrm-header-search-input"><?php esc_html_e('Search clients', 'peracrm'); ?></label>
       <input
         id="peracrm-header-search-input"
         class="crm-search-control peracrm-header-search__input"
