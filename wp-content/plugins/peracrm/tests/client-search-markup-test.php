@@ -12,13 +12,26 @@ function client_search_markup_expect( $condition, $message ) {
 $root           = dirname( __DIR__ );
 $shell_header   = file_get_contents( $root . '/inc/views/shell/header.php' );
 $client_filters = file_get_contents( $root . '/inc/views/partials/crm-header.php' );
+$crm_data       = file_get_contents( $root . '/inc/frontend-data/crm-data.php' );
+$crm_script     = file_get_contents( $root . '/assets/frontend/crm.js' );
+
+preg_match( '/(<form class="peracrm-header-search".*?)<input type="hidden"/s', $shell_header, $header_form_match );
+preg_match( '/(<input\s+id="peracrm-header-client-search-input".*?)<div/s', $shell_header, $header_input_match );
+$header_form  = $header_form_match[1] ?? '';
+$header_input = $header_input_match[1] ?? '';
 
 client_search_markup_expect( false !== strpos( $shell_header, 'data-peracrm-header-search role="search"' ), 'live client search keeps search landmark semantics' );
-client_search_markup_expect( false !== strpos( $shell_header, 'method="get" autocomplete="off"' ), 'live client search form disables autocomplete' );
-client_search_markup_expect( false !== strpos( $shell_header, 'type="search"' ), 'live client search uses a search input' );
-client_search_markup_expect( false !== strpos( $shell_header, 'name="q"' ), 'live client search preserves the q backend parameter' );
-client_search_markup_expect( false !== strpos( $shell_header, "esc_html_e('Search clients', 'peracrm')" ), 'live client search has a clear accessible label' );
-client_search_markup_expect( false !== strpos( $shell_header, 'autocomplete="off"' ), 'live client search input disables autocomplete' );
+client_search_markup_expect( '' !== $header_form && false !== strpos( $header_form, 'method="get"' ), 'live client search supports native GET submission' );
+client_search_markup_expect( false !== strpos( $header_form, 'autocomplete="off"' ), 'live client search form disables autocomplete' );
+client_search_markup_expect( '' !== $header_input && false !== strpos( $header_input, 'type="search"' ), 'live client search uses a search input' );
+client_search_markup_expect( false !== strpos( $header_input, 'name="crm_client_search"' ), 'live client search uses a client-specific GET parameter' );
+client_search_markup_expect( false !== strpos( $header_input, 'id="peracrm-header-client-search-input"' ), 'live client search uses a client-specific id' );
+client_search_markup_expect( false !== strpos( $shell_header, 'for="peracrm-header-client-search-input"' ), 'live client search label is associated with its input' );
+client_search_markup_expect( false !== strpos( $header_input, 'autocomplete="off"' ), 'live client search input disables autocomplete independently of its form' );
+client_search_markup_expect( 1 === substr_count( $shell_header, 'id="peracrm-header-client-search-input"' ), 'live client search input id is unique in the shell' );
+client_search_markup_expect( false !== strpos( $crm_script, "form.querySelector('[data-peracrm-header-search-input]')" ) && false !== strpos( $crm_script, "payload.append('q', term)" ), 'live search keeps its data selector and AJAX q contract' );
+client_search_markup_expect( false !== strpos( $crm_data, "isset( \$_GET['crm_client_search'] )" ) && false !== strpos( $crm_data, "isset( \$_GET['q'] )" ), 'client list parsing accepts the new parameter and existing q URLs' );
+client_search_markup_expect( false !== strpos( $crm_data, '$q               = pera_crm_get_client_search_term();' ), 'client list filtering uses the compatible search parser' );
 
 client_search_markup_expect( false !== strpos( $client_filters, 'class="crm-client-filters"' ), 'client list search form is present' );
 client_search_markup_expect( false !== strpos( $client_filters, 'class="crm-client-filters" aria-label=' ) && false !== strpos( $client_filters, 'autocomplete="off"' ), 'client list search form disables autocomplete' );
