@@ -80,11 +80,16 @@ if (!function_exists('peracrm_header_search_label_from_key')) {
     }
 }
 
-if (!function_exists('peracrm_header_search_results')) {
+if (!function_exists('peracrm_header_search_matching_ids')) {
     /**
-     * @return array<int,array{id:int,title:string,url:string,type_label:string,stage_label:string,email:string,phone:string}>
+     * Return every accessible matching record ID in the canonical search order.
+     *
+     * This is deliberately shared by the AJAX preview and the full results page,
+     * so matching fields, statuses, effective-user scope and ordering cannot drift.
+     *
+     * @return int[]
      */
-    function peracrm_header_search_results(string $term, int $limit = 8): array
+    function peracrm_header_search_matching_ids(string $term): array
     {
         global $wpdb;
 
@@ -93,31 +98,23 @@ if (!function_exists('peracrm_header_search_results')) {
             return [];
         }
 
-        $limit = max(1, min(10, absint($limit)));
         $scoped_ids = peracrm_header_search_scope_client_ids();
         if (is_array($scoped_ids) && empty($scoped_ids)) {
             return [];
         }
 
         $meta_keys = [
-            '_peracrm_email',
-            'crm_primary_email',
-            'primary_email',
-            '_peracrm_phone',
-            'crm_phone',
-            'crm_primary_phone',
-            'primary_phone',
-            'phone',
+            '_peracrm_email', 'crm_primary_email', 'primary_email',
+            '_peracrm_phone', 'crm_phone', 'crm_primary_phone', 'primary_phone', 'phone',
         ];
         $post_statuses = ['publish', 'private', 'draft', 'pending', 'future'];
         $like = '%' . $wpdb->esc_like($term) . '%';
         $prefix_like = $wpdb->esc_like($term) . '%';
-
         $meta_placeholders = implode(',', array_fill(0, count($meta_keys), '%s'));
         $status_placeholders = implode(',', array_fill(0, count($post_statuses), '%s'));
         $params = array_merge($meta_keys, $post_statuses, [$like, $like]);
-
         $scope_sql = '';
+
         if (is_array($scoped_ids)) {
             $scope_placeholders = implode(',', array_fill(0, count($scoped_ids), '%d'));
             $scope_sql = " AND p.ID IN ({$scope_placeholders})";
@@ -126,31 +123,39 @@ if (!function_exists('peracrm_header_search_results')) {
 
         $params[] = $prefix_like;
         $params[] = $like;
-        $params[] = $limit;
-
         $sql = "
             SELECT DISTINCT p.ID
             FROM {$wpdb->posts} p
             LEFT JOIN {$wpdb->postmeta} pm
-                ON pm.post_id = p.ID
-                AND pm.meta_key IN ({$meta_placeholders})
+                ON pm.post_id = p.ID AND pm.meta_key IN ({$meta_placeholders})
             WHERE p.post_type = 'crm_client'
                 AND p.post_status IN ({$status_placeholders})
                 AND (p.post_title LIKE %s OR pm.meta_value LIKE %s)
                 {$scope_sql}
-            ORDER BY
-                CASE
-                    WHEN p.post_title LIKE %s THEN 0
-                    WHEN p.post_title LIKE %s THEN 1
-                    ELSE 2
-                END,
-                p.post_title ASC,
-                p.ID DESC
-            LIMIT %d
+            ORDER BY CASE
+                WHEN p.post_title LIKE %s THEN 0
+                WHEN p.post_title LIKE %s THEN 1
+                ELSE 2
+            END, p.post_title ASC, p.ID DESC
         ";
 
-        $ids = $wpdb->get_col($wpdb->prepare($sql, $params)); // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching,WordPress.DB.PreparedSQL.NotPrepared
-        $ids = array_values(array_filter(array_map('absint', (array) $ids)));
+        return array_values(array_filter(array_map('absint', (array) $wpdb->get_col($wpdb->prepare($sql, $params))))); // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching,WordPress.DB.PreparedSQL.NotPrepared
+    }
+}
+
+if (!function_exists('peracrm_header_search_results')) {
+    /**
+     * @return array<int,array{id:int,title:string,url:string,type_label:string,stage_label:string,email:string,phone:string}>
+     */
+    function peracrm_header_search_results(string $term, int $limit = 8): array
+    {
+        $term = trim(wp_strip_all_tags($term));
+        if (strlen($term) < 2) {
+            return [];
+        }
+
+        $limit = max(1, min(10, absint($limit)));
+        $ids = array_slice(peracrm_header_search_matching_ids($term), 0, $limit);
         if (empty($ids)) {
             return [];
         }

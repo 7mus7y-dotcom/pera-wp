@@ -26,6 +26,9 @@ $show_header_search = is_user_logged_in()
         || current_user_can('edit_crm_leads')
         || current_user_can('edit_crm_deals')
     );
+$header_search_term = isset($_GET['crm_client_search'])
+    ? sanitize_text_field(wp_unslash((string) $_GET['crm_client_search']))
+    : '';
 ?>
 <!doctype html>
 <html <?php language_attributes(); ?>>
@@ -57,13 +60,13 @@ $show_header_search = is_user_logged_in()
 
     <?php if ($show_header_search) : ?>
     <form class="peracrm-header-search" data-peracrm-header-search role="search" action="<?php echo esc_url(home_url('/crm/clients/')); ?>" method="get" autocomplete="off">
-      <input type="hidden" name="type" value="leads">
       <label class="screen-reader-text" for="peracrm-header-client-search-input"><?php esc_html_e('Search CRM clients', 'peracrm'); ?></label>
       <input
         id="peracrm-header-client-search-input"
         class="crm-search-control peracrm-header-search__input"
         type="search"
         name="crm_client_search"
+        value="<?php echo esc_attr($header_search_term); ?>"
         placeholder="<?php esc_attr_e('Search CRM clients', 'peracrm'); ?>"
         autocomplete="off"
         data-peracrm-header-search-input

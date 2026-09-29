@@ -55,4 +55,13 @@ $results = peracrm_header_search_results('Client', 8);
 search_expect([101], array_column($results, 'id'), 'employee A header search returns only assigned Client A');
 search_expect(false, strpos($GLOBALS['wpdb']->last_query, '106') !== false, 'header search SQL does not include Client B');
 
+
+$ids = peracrm_header_search_matching_ids('Client');
+search_expect([101], $ids, 'full-page search uses the same employee scope as the dropdown');
+search_expect(false, strpos($GLOBALS['wpdb']->last_query, 'LIMIT') !== false, 'full-page matcher is not capped at the dropdown limit');
+search_expect(true, strpos($GLOBALS['wpdb']->last_query, "'_peracrm_email'") !== false, 'matcher searches canonical email metadata');
+search_expect(true, strpos($GLOBALS['wpdb']->last_query, "'_peracrm_phone'") !== false, 'matcher searches canonical phone metadata');
+search_expect([], peracrm_header_search_matching_ids(' '), 'blank terms cannot produce an unbounded result set');
+search_expect([], peracrm_header_search_matching_ids('x'), 'terms shorter than the live-search minimum do not query records');
+
 echo "PeraCRM header search authorization behavior tests passed\n";

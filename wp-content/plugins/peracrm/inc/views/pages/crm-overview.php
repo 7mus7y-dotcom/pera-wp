@@ -11,6 +11,8 @@ $view         = sanitize_key( (string) get_query_var( 'pera_crm_view', 'overview
 $current_page = max( 1, (int) get_query_var( 'paged', 1 ) );
 $is_leads     = 'leads' === $view;
 $is_tasks     = 'tasks' === $view;
+$header_search_term = isset( $_GET['crm_client_search'] ) ? trim( sanitize_text_field( wp_unslash( (string) $_GET['crm_client_search'] ) ) ) : '';
+$is_header_search   = $is_leads && '' !== $header_search_term;
 $clients_type_view = isset( $_GET['type'] ) ? sanitize_key( wp_unslash( (string) $_GET['type'] ) ) : 'leads'; // phpcs:ignore WordPress.Security.NonceVerification.Recommended
 $clients_type_view = in_array( $clients_type_view, array( 'leads', 'clients', 'inactive', 'agent' ), true ) ? $clients_type_view : 'leads';
 $derived_type_filter = 'clients' === $clients_type_view
@@ -88,7 +90,7 @@ if ( ! $is_leads && ! $is_tasks && function_exists( 'pera_crm_get_new_lead_ids_f
 		: array();
 }
 
-if ( $is_leads && 'leads' === $clients_type_view && function_exists( 'pera_crm_get_new_lead_ids_for_user' ) ) {
+if ( $is_leads && ! $is_header_search && 'leads' === $clients_type_view && function_exists( 'pera_crm_get_new_lead_ids_for_user' ) ) {
 	$new_lead_ids = array_map( 'intval', pera_crm_get_new_lead_ids_for_user( 0, 72 ) );
 	$new_lead_ids = array_values( array_filter( $new_lead_ids ) );
 	$new_lead_ids = array_slice( $new_lead_ids, 0, 8 );
@@ -192,11 +194,18 @@ peracrm_frontend_render_shell_header();
 
 <main id="primary" class="site-main crm-page crm-page--<?php echo esc_attr( $is_leads ? 'leads' : ( $is_tasks ? 'tasks' : 'overview' ) ); ?>">
   <?php
-  $header_title = $is_leads ? ( $clients_type_view === 'clients' ? __( 'Clients', 'peracrm' ) : ( $clients_type_view === 'inactive' ? __( 'Inactive records', 'peracrm' ) : ( $clients_type_view === 'agent' ? __( 'Agents', 'peracrm' ) : __( 'Leads', 'peracrm' ) ) ) ) : ( $is_tasks ? __( 'Tasks', 'peracrm' ) : __( 'CRM overview', 'peracrm' ) );
-  $header_description = $is_leads ? __( 'Manage lead and client records without hero-framed filters.', 'peracrm' ) : ( $is_tasks ? __( 'Track open reminders and due work in a compact workspace shell.', 'peracrm' ) : __( 'Staff workspace for daily pipeline, workload, and account visibility.', 'peracrm' ) );
-  $header_meta = $is_leads ? sprintf( __( '%d total records', 'peracrm' ), (int) ( $leads_data['total'] ?? 0 ) ) : ( $is_tasks ? sprintf( __( '%d open tasks', 'peracrm' ), count( is_array( $tasks_data['all'] ?? null ) ? $tasks_data['all'] : array() ) ) : __( 'Operational workspace', 'peracrm' ) );
+  $header_title = $is_header_search ? sprintf( __( 'Search results for ‘%s’', 'peracrm' ), $header_search_term ) : ( $is_leads ? ( $clients_type_view === 'clients' ? __( 'Clients', 'peracrm' ) : ( $clients_type_view === 'inactive' ? __( 'Inactive records', 'peracrm' ) : ( $clients_type_view === 'agent' ? __( 'Agents', 'peracrm' ) : __( 'Leads', 'peracrm' ) ) ) ) : ( $is_tasks ? __( 'Tasks', 'peracrm' ) : __( 'CRM overview', 'peracrm' ) ) );
+  $header_description = $is_header_search ? ( ! empty( $leads_data['is_short_search'] ) ? __( 'Enter at least two characters to search CRM records.', 'peracrm' ) : __( 'Matching permitted CRM records by name, email or phone.', 'peracrm' ) ) : ( $is_leads ? __( 'Manage lead and client records without hero-framed filters.', 'peracrm' ) : ( $is_tasks ? __( 'Track open reminders and due work in a compact workspace shell.', 'peracrm' ) : __( 'Staff workspace for daily pipeline, workload, and account visibility.', 'peracrm' ) ) );
+  $header_meta = $is_header_search ? sprintf( __( '%d matching records', 'peracrm' ), (int) ( $leads_data['total'] ?? 0 ) ) : ( $is_leads ? sprintf( __( '%d total records', 'peracrm' ), (int) ( $leads_data['total'] ?? 0 ) ) : ( $is_tasks ? sprintf( __( '%d open tasks', 'peracrm' ), count( is_array( $tasks_data['all'] ?? null ) ? $tasks_data['all'] : array() ) ) : __( 'Operational workspace', 'peracrm' ) ) );
   $header_actions = array();
-  if ( $is_leads || ! $is_tasks ) {
+  if ( $is_header_search ) {
+	  $header_actions[] = array(
+		  'label' => __( 'Clear search', 'peracrm' ),
+		  'url'   => home_url( '/crm/clients/' ),
+		  'class' => 'btn btn--ghost btn--blue',
+		  'type'  => 'secondary',
+	  );
+  } elseif ( $is_leads || ! $is_tasks ) {
 	  $header_actions[] = array(
 		  'label' => __( 'Create lead', 'peracrm' ),
 		  'url'   => $new_lead_url,
@@ -212,7 +221,7 @@ peracrm_frontend_render_shell_header();
 	  'date_pill_label' => __( 'Today', 'peracrm' ),
 	  'actions'     => $header_actions,
 	  'active_view' => $crm_active_view,
-	  'show_client_filters' => $is_leads,
+	  'show_client_filters' => $is_leads && ! $is_header_search,
 	  'stages'      => $stages,
 	  'advisors'    => $advisors,
 	  'clients_type_view' => $clients_type_view,
@@ -757,6 +766,7 @@ peracrm_frontend_render_shell_header();
       </section>
       <?php endif; ?>
 
+      <?php if ( ! $is_header_search ) : ?>
       <section class="crm-toolbar crm-toolbar--content crm-list-workspace-toolbar crm-list-workspace-toolbar--leads" aria-label="<?php echo esc_attr__( 'Lead and client workspace controls', 'peracrm' ); ?>">
         <div class="crm-toolbar__row crm-list-workspace-toolbar__row">
           <div class="crm-list-workspace-toolbar__summary">
@@ -790,6 +800,7 @@ peracrm_frontend_render_shell_header();
           </div>
         </div>
       </section>
+      <?php endif; ?>
 
       <section class="crm-section crm-section--flush crm-list-workspace crm-list-workspace--table-first" data-crm-view="table" aria-labelledby="crm-leads-table-heading">
         <header class="crm-section__header">
@@ -817,7 +828,7 @@ peracrm_frontend_render_shell_header();
               <tbody>
 					<?php if ( empty( $items ) ) : ?>
                 <tr>
-                  <td class="crm-table__empty" colspan="9"><?php echo esc_html__( 'No records found for this scope.', 'peracrm' ); ?></td>
+                  <td class="crm-table__empty" colspan="9"><?php echo esc_html( $is_header_search ? ( ! empty( $leads_data['is_short_search'] ) ? __( 'Enter at least two characters to search.', 'peracrm' ) : __( 'No matching records', 'peracrm' ) ) : __( 'No records found for this scope.', 'peracrm' ) ); ?></td>
                 </tr>
 					<?php else : ?>
 					<?php foreach ( $items as $lead ) : ?>
@@ -832,7 +843,8 @@ peracrm_frontend_render_shell_header();
                       <span class="crm-table__subtext"><?php echo esc_html( (string) $lead['engagement_state'] ); ?></span>
                     </div>
                   </td>
-                  <td><span class="crm-chip crm-chip--status"><?php echo esc_html( (string) $status_label ); ?></span></td>
+                  <td><?php if ( $is_header_search && '' !== (string) ( $lead['client_type_label'] ?? '' ) ) : ?><span class="crm-chip"><?php echo esc_html( (string) $lead['client_type_label'] ); ?></span><?php endif; ?>
+                        <span class="crm-chip crm-chip--status"><?php echo esc_html( (string) $status_label ); ?></span></td>
                   <td><?php echo esc_html( '' !== (string) ( $lead['source'] ?? '' ) ? (string) $lead['source'] : '—' ); ?></td>
                   <td><?php echo esc_html( '' !== (string) ( $lead['assigned_to'] ?? '' ) ? (string) $lead['assigned_to'] : '—' ); ?></td>
                   <td>
@@ -874,7 +886,7 @@ peracrm_frontend_render_shell_header();
           </header>
           <div class="crm-section__body">
             <?php if ( empty( $items ) ) : ?>
-              <p class="crm-overview-empty"><?php echo esc_html__( 'No leads found for this scope.', 'peracrm' ); ?></p>
+              <p class="crm-overview-empty"><?php echo esc_html( $is_header_search ? ( ! empty( $leads_data['is_short_search'] ) ? __( 'Enter at least two characters to search.', 'peracrm' ) : __( 'No matching records', 'peracrm' ) ) : __( 'No leads found for this scope.', 'peracrm' ) ); ?></p>
             <?php else : ?>
               <ul class="crm-row-list crm-list-workspace__rows">
 					<?php foreach ( $items as $lead ) : ?>
@@ -887,6 +899,7 @@ peracrm_frontend_render_shell_header();
                     <div class="crm-row-list__content">
                       <div class="crm-row-list__header">
                         <h3 class="crm-row-list__title"><a href="<?php echo esc_url( (string) $lead['crm_url'] ); ?>"><?php echo esc_html( (string) $lead['title'] ); ?></a></h3>
+                        <?php if ( $is_header_search && '' !== (string) ( $lead['client_type_label'] ?? '' ) ) : ?><span class="crm-chip"><?php echo esc_html( (string) $lead['client_type_label'] ); ?></span><?php endif; ?>
                         <span class="crm-chip crm-chip--status"><?php echo esc_html( (string) $status_label ); ?></span>
                       </div>
                       <div class="crm-meta-line">
@@ -920,7 +933,7 @@ peracrm_frontend_render_shell_header();
 					'type'      => 'list',
 					'prev_text' => __( 'Previous', 'peracrm' ),
 					'next_text' => __( 'Next', 'peracrm' ),
-					'add_args'  => array( 'type' => $clients_type_view ),
+					'add_args'  => $is_header_search ? array( 'crm_client_search' => $header_search_term ) : array( 'type' => $clients_type_view ),
 				)
 			);
 			if ( is_string( $pagination ) ) {

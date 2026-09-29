@@ -1465,6 +1465,8 @@ if ( ! function_exists( 'pera_crm_get_leads_view_data' ) ) {
 		$derived_type    = in_array( $derived_type, array( 'lead', 'client', 'agent' ), true ) ? $derived_type : 'lead';
 		$list_view       = in_array( $list_view, array( 'leads', 'clients', 'inactive', 'agent' ), true ) ? $list_view : 'leads';
 		$q               = pera_crm_get_client_search_term();
+		$is_header_search = isset( $_GET['crm_client_search'] ) && '' !== trim( $q );
+		$is_short_search  = $is_header_search && strlen( trim( $q ) ) < 2;
 		$stage           = isset( $_GET['stage'] ) ? sanitize_key( wp_unslash( (string) $_GET['stage'] ) ) : '';
 		$advisor         = isset( $_GET['advisor'] ) ? absint( wp_unslash( (string) $_GET['advisor'] ) ) : 0;
 		$active_filter   = pera_crm_get_request_filter( array( 'unassigned', 'stale', 'new72', 'open_scope' ) );
@@ -1483,7 +1485,9 @@ if ( ! function_exists( 'pera_crm_get_leads_view_data' ) ) {
 			$query_args['post__in'] = empty( $allowed_ids ) ? array( 0 ) : $allowed_ids;
 		}
 
-		$post_ids = array_values( array_map( 'intval', get_posts( $query_args ) ) );
+		$post_ids = $is_header_search && function_exists( 'peracrm_header_search_matching_ids' )
+			? peracrm_header_search_matching_ids( $q )
+			: array_values( array_map( 'intval', get_posts( $query_args ) ) );
 		if ( empty( $post_ids ) ) {
 			return array(
 				'items'         => array(),
@@ -1495,7 +1499,9 @@ if ( ! function_exists( 'pera_crm_get_leads_view_data' ) ) {
 				'derived_type'  => $derived_type,
 				'active_filter' => $active_filter,
 				'is_employee'   => pera_crm_user_is_employee( $current_user_id ),
-				'scoped_ids'    => $allowed_ids,
+				'scoped_ids'       => $allowed_ids,
+				'is_header_search' => $is_header_search,
+				'is_short_search'  => $is_short_search,
 			);
 		}
 
@@ -1503,7 +1509,7 @@ if ( ! function_exists( 'pera_crm_get_leads_view_data' ) ) {
 			? array_map( 'intval', peracrm_party_batch_get_closed_won_client_ids( $post_ids ) )
 			: array();
 		$client_lookup = array_flip( $client_ids );
-		$base_ids = array_values(
+		$base_ids = $is_header_search ? $post_ids : array_values(
 			array_filter(
 				$post_ids,
 				static function ( int $lead_id ) use ( $derived_type, $client_lookup, $list_view ): bool {
@@ -1518,7 +1524,7 @@ if ( ! function_exists( 'pera_crm_get_leads_view_data' ) ) {
 		);
 
 		$party_map_full = function_exists( 'peracrm_party_get_status_by_ids' ) ? peracrm_party_get_status_by_ids( $base_ids ) : array();
-		$filtered_ids   = array_values(
+		$filtered_ids   = $is_header_search ? $base_ids : array_values(
 			array_filter(
 				$base_ids,
 				static function ( int $lead_id ) use ( $list_view, $party_map_full ): bool {
@@ -1531,7 +1537,7 @@ if ( ! function_exists( 'pera_crm_get_leads_view_data' ) ) {
 			)
 		);
 
-		if ( 'agent' === $list_view ) {
+		if ( ! $is_header_search && 'agent' === $list_view ) {
 			$filtered_ids = array_values(
 				array_filter(
 					$filtered_ids,
@@ -1547,7 +1553,7 @@ if ( ! function_exists( 'pera_crm_get_leads_view_data' ) ) {
 			);
 		}
 
-		if ( '' !== $stage ) {
+		if ( ! $is_header_search && '' !== $stage ) {
 			$filtered_ids = array_values(
 				array_filter(
 					$filtered_ids,
@@ -1559,7 +1565,7 @@ if ( ! function_exists( 'pera_crm_get_leads_view_data' ) ) {
 			);
 		}
 
-		if ( $advisor > 0 ) {
+		if ( ! $is_header_search && $advisor > 0 ) {
 			$filtered_ids = array_values(
 				array_filter(
 					$filtered_ids,
@@ -1571,7 +1577,7 @@ if ( ! function_exists( 'pera_crm_get_leads_view_data' ) ) {
 			);
 		}
 
-		if ( '' !== $active_filter && 'leads' === $list_view && 'lead' === $derived_type ) {
+		if ( ! $is_header_search && '' !== $active_filter && 'leads' === $list_view && 'lead' === $derived_type ) {
 			$stale_cutoff_ts = current_time( 'timestamp' ) - ( 7 * DAY_IN_SECONDS );
 			$new_cutoff_ts   = current_time( 'timestamp' ) - ( 72 * HOUR_IN_SECONDS );
 			$filtered_ids    = array_values(
@@ -1606,7 +1612,7 @@ if ( ! function_exists( 'pera_crm_get_leads_view_data' ) ) {
 			);
 		}
 
-		if ( '' !== $q ) {
+		if ( ! $is_header_search && '' !== $q ) {
 			$term = function_exists( 'mb_strtolower' ) ? mb_strtolower( $q ) : strtolower( $q );
 			$filtered_ids = array_values(
 				array_filter(
@@ -1687,6 +1693,18 @@ if ( ! function_exists( 'pera_crm_get_leads_view_data' ) ) {
 			$next_task_today   = $next_task_due_ts >= $today_start_ts && $next_task_due_ts <= $today_end_ts;
 			$next_task_future  = $next_task_due_ts > $today_end_ts;
 
+			$client_type_key = sanitize_key( (string) get_post_meta( $lead_id, '_peracrm_client_type', true ) );
+			if ( '' === $client_type_key ) {
+				$client_type_key = sanitize_key( (string) get_post_meta( $lead_id, 'peracrm_client_type', true ) );
+			}
+			$type_options = function_exists( 'peracrm_client_type_options' ) ? (array) peracrm_client_type_options() : array();
+			$client_type_label = function_exists( 'peracrm_header_search_label_from_key' )
+				? peracrm_header_search_label_from_key( $client_type_key, $type_options )
+				: ucwords( str_replace( array( '_', '-' ), ' ', $client_type_key ) );
+			if ( '' === $client_type_label ) {
+				$client_type_label = isset( $client_lookup[ $lead_id ] ) ? __( 'Client', 'peracrm' ) : __( 'Lead', 'peracrm' );
+			}
+
 			$items[] = array(
 				'id'               => $lead_id,
 				'title'            => get_the_title( $lead_id ),
@@ -1702,6 +1720,7 @@ if ( ! function_exists( 'pera_crm_get_leads_view_data' ) ) {
 				'updated'          => $updated_ts > 0 ? pera_crm_format_datetime_dmy_hm( $updated_ts ) : '',
 				'updated_ts'       => $updated_ts,
 				'derived_type'     => isset( $client_lookup[ $lead_id ] ) ? 'client' : 'lead',
+				'client_type_label' => $client_type_label,
 				'crm_url'          => function_exists( 'pera_crm_get_client_view_url' ) ? pera_crm_get_client_view_url( $lead_id ) : home_url( '/crm/client/' . $lead_id . '/' ),
 				'record_health'    => isset( $health['label'] ) ? (string) $health['label'] : '',
 				'record_health_badge_html' => function_exists( 'peracrm_client_health_badge_html' ) ? (string) peracrm_client_health_badge_html( $health ) : '',
@@ -1718,7 +1737,7 @@ if ( ! function_exists( 'pera_crm_get_leads_view_data' ) ) {
 			);
 		}
 
-		if ( function_exists( 'wp_list_sort' ) ) {
+		if ( ! $is_header_search && function_exists( 'wp_list_sort' ) ) {
 			$items = wp_list_sort( $items, 'last_activity_ts', 'DESC', true );
 		}
 
@@ -1733,6 +1752,8 @@ if ( ! function_exists( 'pera_crm_get_leads_view_data' ) ) {
 			'active_filter' => $active_filter,
 			'is_employee'   => pera_crm_user_is_employee( $current_user_id ),
 			'scoped_ids'    => $allowed_ids,
+			'is_header_search' => $is_header_search,
+			'is_short_search'  => $is_short_search,
 		);
 	}
 
