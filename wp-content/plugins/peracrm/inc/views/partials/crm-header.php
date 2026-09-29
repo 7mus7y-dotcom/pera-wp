@@ -18,7 +18,11 @@ $advisors            = is_array( $args['advisors'] ?? null ) ? $args['advisors']
 $clients_type_view   = isset( $args['clients_type_view'] ) ? sanitize_key( (string) $args['clients_type_view'] ) : 'leads';
 $actions             = is_array( $args['actions'] ?? null ) ? $args['actions'] : array();
 $toolbar_content     = isset( $args['toolbar_content'] ) ? (string) $args['toolbar_content'] : '';
-$filter_q            = isset( $_GET['q'] ) ? sanitize_text_field( wp_unslash( (string) $_GET['q'] ) ) : '';
+$filter_q            = function_exists( 'pera_crm_get_client_search_term' )
+	? pera_crm_get_client_search_term()
+	: ( isset( $_GET['crm_client_search'] )
+		? sanitize_text_field( wp_unslash( (string) $_GET['crm_client_search'] ) )
+		: ( isset( $_GET['q'] ) ? sanitize_text_field( wp_unslash( (string) $_GET['q'] ) ) : '' ) );
 $filter_stage        = isset( $_GET['stage'] ) ? sanitize_key( wp_unslash( (string) $_GET['stage'] ) ) : '';
 $filter_advisor      = isset( $_GET['advisor'] ) ? absint( wp_unslash( (string) $_GET['advisor'] ) ) : 0;
 

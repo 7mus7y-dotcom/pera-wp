@@ -58,13 +58,13 @@ $show_header_search = is_user_logged_in()
     <?php if ($show_header_search) : ?>
     <form class="peracrm-header-search" data-peracrm-header-search role="search" action="<?php echo esc_url(home_url('/crm/clients/')); ?>" method="get" autocomplete="off">
       <input type="hidden" name="type" value="leads">
-      <label class="screen-reader-text" for="peracrm-header-search-input"><?php esc_html_e('Search clients', 'peracrm'); ?></label>
+      <label class="screen-reader-text" for="peracrm-header-client-search-input"><?php esc_html_e('Search CRM clients', 'peracrm'); ?></label>
       <input
-        id="peracrm-header-search-input"
+        id="peracrm-header-client-search-input"
         class="crm-search-control peracrm-header-search__input"
         type="search"
-        name="q"
-        placeholder="<?php esc_attr_e('Search clients', 'peracrm'); ?>"
+        name="crm_client_search"
+        placeholder="<?php esc_attr_e('Search CRM clients', 'peracrm'); ?>"
         autocomplete="off"
         data-peracrm-header-search-input
         aria-controls="peracrm-header-search-results"

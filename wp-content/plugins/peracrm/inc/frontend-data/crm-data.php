@@ -1436,6 +1436,23 @@ if ( ! function_exists( 'pera_crm_get_leads_view_data' ) ) {
 	}
 
 	/**
+	 * Read the client-list search term.
+	 *
+	 * The header uses a CRM-specific field name to avoid presenting a generic
+	 * "q" field to browser autofill heuristics. Keep q as a fallback for saved
+	 * URLs and the client-list filter form.
+	 *
+	 * @return string
+	 */
+	function pera_crm_get_client_search_term(): string {
+		if ( isset( $_GET['crm_client_search'] ) ) {
+			return sanitize_text_field( wp_unslash( (string) $_GET['crm_client_search'] ) );
+		}
+
+		return isset( $_GET['q'] ) ? sanitize_text_field( wp_unslash( (string) $_GET['q'] ) ) : '';
+	}
+
+	/**
 	 * Build paginated leads data for the CRM leads view.
 	 *
 	 * @return array<string,mixed>
@@ -1447,7 +1464,7 @@ if ( ! function_exists( 'pera_crm_get_leads_view_data' ) ) {
 		$allowed_ids     = pera_crm_get_allowed_client_ids_for_user( $current_user_id );
 		$derived_type    = in_array( $derived_type, array( 'lead', 'client', 'agent' ), true ) ? $derived_type : 'lead';
 		$list_view       = in_array( $list_view, array( 'leads', 'clients', 'inactive', 'agent' ), true ) ? $list_view : 'leads';
-		$q               = isset( $_GET['q'] ) ? sanitize_text_field( wp_unslash( (string) $_GET['q'] ) ) : '';
+		$q               = pera_crm_get_client_search_term();
 		$stage           = isset( $_GET['stage'] ) ? sanitize_key( wp_unslash( (string) $_GET['stage'] ) ) : '';
 		$advisor         = isset( $_GET['advisor'] ) ? absint( wp_unslash( (string) $_GET['advisor'] ) ) : 0;
 		$active_filter   = pera_crm_get_request_filter( array( 'unassigned', 'stale', 'new72', 'open_scope' ) );
