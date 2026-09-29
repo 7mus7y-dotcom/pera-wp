@@ -179,12 +179,12 @@ $has_toolbar = $show_client_filters || '' !== $toolbar_content;
     <?php if ( $has_toolbar ) : ?>
     <div class="crm-toolbar">
       <?php if ( $show_client_filters ) : ?>
-      <form method="get" action="<?php echo esc_url( home_url( '/crm/clients/' ) ); ?>" class="crm-client-filters" aria-label="<?php echo esc_attr__( 'Client filters', 'peracrm' ); ?>">
+      <form method="get" action="<?php echo esc_url( home_url( '/crm/clients/' ) ); ?>" class="crm-client-filters" aria-label="<?php echo esc_attr__( 'Client filters', 'peracrm' ); ?>" autocomplete="off">
         <input type="hidden" name="type" value="<?php echo esc_attr( $clients_type_view ); ?>">
         <div class="crm-toolbar__row crm-client-filters__grid<?php echo $is_impersonating ? ' crm-client-filters__grid--impersonating' : ''; ?>">
           <label>
             <span class="screen-reader-text"><?php esc_html_e( 'Search clients', 'peracrm' ); ?></span>
-            <input class="crm-search-control" type="search" name="q" value="<?php echo esc_attr( $filter_q ); ?>" placeholder="<?php echo esc_attr__( 'Search clients', 'peracrm' ); ?>">
+            <input class="crm-search-control" type="search" name="q" value="<?php echo esc_attr( $filter_q ); ?>" placeholder="<?php echo esc_attr__( 'Search clients', 'peracrm' ); ?>" autocomplete="off">
           </label>
 
           <label>
