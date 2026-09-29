@@ -7970,6 +7970,7 @@ body.crm-route #site-header.peracrm-shell-header .peracrm-header-search__results
   right: 0;
   left: 0;
   z-index: 1001;
+  max-width: calc(100vw - 32px);
   overflow: hidden;
   border: 1px solid var(--border, #e8ecf2);
   border-radius: 14px;
@@ -7978,8 +7979,11 @@ body.crm-route #site-header.peracrm-shell-header .peracrm-header-search__results
 }
 
 body.crm-route #site-header.peracrm-shell-header .peracrm-header-search__list {
-  max-height: min(360px, calc(100vh - 120px));
+  max-height: min(360px, calc(100vh - 150px));
+  max-height: min(360px, calc(100dvh - 150px));
   overflow-y: auto;
+  overscroll-behavior: contain;
+  -webkit-overflow-scrolling: touch;
 }
 
 body.crm-route #site-header.peracrm-shell-header .peracrm-header-search__result,
@@ -8032,21 +8036,43 @@ body.crm-route #site-header.peracrm-shell-header .peracrm-header-search__status 
 }
 
 @media (max-width: 640px) {
+  body.crm-route #site-header.peracrm-shell-header {
+    overflow: visible;
+  }
+
+  body.crm-route #site-header.peracrm-shell-header .header-inner {
+    flex-wrap: wrap;
+    gap: 10px 16px;
+  }
+
+  body.crm-route #site-header.peracrm-shell-header .peracrm-shell-branding {
+    order: 1;
+  }
+
+  body.crm-route #site-header.peracrm-shell-header .peracrm-header-actions {
+    order: 2;
+  }
+
   body.crm-route #site-header.peracrm-shell-header .peracrm-header-search {
-    flex: 1 1 140px;
+    order: 3;
+    flex: 1 0 100%;
+    width: 100%;
     min-width: 0;
     max-width: none;
+    margin-left: 0;
+  }
+
+  body.crm-route #site-header.peracrm-shell-header .peracrm-header-search__input {
+    width: 100%;
+    max-width: 100%;
+    box-sizing: border-box;
   }
 
   body.crm-route #site-header.peracrm-shell-header .peracrm-header-search__results {
-    left: auto;
-    width: min(88vw, 340px);
-  }
-}
-
-@media (max-width: 420px) {
-  body.crm-route #site-header.peracrm-shell-header .peracrm-header-search {
-    display: none;
+    right: 0;
+    left: 0;
+    width: auto;
+    max-width: none;
   }
 }
 .crm-whatsapp__test {
