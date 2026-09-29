@@ -16,7 +16,7 @@ $crm_data       = file_get_contents( $root . '/inc/frontend-data/crm-data.php' )
 $crm_script     = file_get_contents( $root . '/assets/frontend/crm.js' );
 $crm_styles     = file_get_contents( $root . '/assets/frontend/crm.css' );
 
-preg_match( '/(<form class="peracrm-header-search".*?)<input type="hidden"/s', $shell_header, $header_form_match );
+preg_match( '/(<form class="peracrm-header-search".*?)<label/s', $shell_header, $header_form_match );
 preg_match( '/(<input\s+id="peracrm-header-client-search-input".*?)<div/s', $shell_header, $header_input_match );
 $header_form  = $header_form_match[1] ?? '';
 $header_input = $header_input_match[1] ?? '';
@@ -24,8 +24,10 @@ $header_input = $header_input_match[1] ?? '';
 client_search_markup_expect( false !== strpos( $shell_header, 'data-peracrm-header-search role="search"' ), 'live client search keeps search landmark semantics' );
 client_search_markup_expect( '' !== $header_form && false !== strpos( $header_form, 'method="get"' ), 'live client search supports native GET submission' );
 client_search_markup_expect( false !== strpos( $header_form, 'autocomplete="off"' ), 'live client search form disables autocomplete' );
+client_search_markup_expect( false === strpos( $header_form, 'name="type"' ), 'header submission does not force the leads listing' );
 client_search_markup_expect( '' !== $header_input && false !== strpos( $header_input, 'type="search"' ), 'live client search uses a search input' );
 client_search_markup_expect( false !== strpos( $header_input, 'name="crm_client_search"' ), 'live client search uses a client-specific GET parameter' );
+client_search_markup_expect( false !== strpos( $header_input, 'value="<?php echo esc_attr($header_search_term); ?>"' ), 'submitted header term remains visible' );
 client_search_markup_expect( false !== strpos( $header_input, 'id="peracrm-header-client-search-input"' ), 'live client search uses a client-specific id' );
 client_search_markup_expect( false !== strpos( $shell_header, 'for="peracrm-header-client-search-input"' ), 'live client search label is associated with its input' );
 client_search_markup_expect( false !== strpos( $header_input, 'autocomplete="off"' ), 'live client search input disables autocomplete independently of its form' );

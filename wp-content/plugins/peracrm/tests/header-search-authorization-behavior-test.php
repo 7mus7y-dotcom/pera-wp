@@ -16,8 +16,12 @@ class Header_Search_Test_WPDB {
     }
     public function get_col($sql) {
         $this->last_query = $sql;
-        // Model the database enforcing the generated post__in equivalent.
-        return strpos($sql, 'p.ID IN (101)') !== false ? [101] : [101, 106];
+        // Model scope enforcement, canonical database ordering and SQL LIMIT.
+        $ids = strpos($sql, 'p.ID IN (101,102,103)') !== false ? [101, 102, 103] : [101, 102, 103, 106];
+        if (preg_match('/LIMIT ([0-9]+)/', $sql, $matches)) {
+            $ids = array_slice($ids, 0, (int) $matches[1]);
+        }
+        return $ids;
     }
 }
 
@@ -28,11 +32,11 @@ function is_user_logged_in() { return true; }
 function get_current_user_id() { return 7; }
 function peracrm_get_effective_crm_user_id() { return 7; }
 function peracrm_is_impersonating_crm_user() { return false; }
-function peracrm_get_client_access_scope() { return ['type' => 'assigned', 'ids' => [101]]; }
+function peracrm_get_client_access_scope() { return ['type' => 'assigned', 'ids' => [101, 102, 103]]; }
 function wp_strip_all_tags($value) { return strip_tags($value); }
 function absint($value) { return abs((int) $value); }
 function sanitize_key($value) { return strtolower(preg_replace('/[^a-z0-9_\-]/i', '', (string) $value)); }
-function get_the_title($id) { return (int) $id === 101 ? 'Client A' : 'Client B'; }
+function get_the_title($id) { return 'Client ' . (int) $id; }
 function get_post_meta($id, $key) {
     $values = [101 => ['_peracrm_email' => 'a@example.test', '_peracrm_phone' => '+1001']];
     return $values[(int) $id][$key] ?? '';
@@ -51,8 +55,19 @@ function search_expect($expected, $actual, $message) {
     echo "PASS: {$message}\n";
 }
 
-$results = peracrm_header_search_results('Client', 8);
-search_expect([101], array_column($results, 'id'), 'employee A header search returns only assigned Client A');
+$results = peracrm_header_search_results('Client', 2);
+search_expect([101, 102], array_column($results, 'id'), 'employee preview returns no more than its requested limit');
+search_expect(true, false !== strpos($GLOBALS['wpdb']->last_query, 'LIMIT 2'), 'preview limit is applied in prepared SQL');
 search_expect(false, strpos($GLOBALS['wpdb']->last_query, '106') !== false, 'header search SQL does not include Client B');
+
+
+$ids = peracrm_header_search_matching_ids('Client');
+search_expect([101, 102, 103], $ids, 'full-page search uses the same employee scope without the preview cap');
+search_expect(false, strpos($GLOBALS['wpdb']->last_query, 'LIMIT') !== false, 'full-page matcher is not capped at the dropdown limit');
+search_expect(array_slice($ids, 0, 2), array_column($results, 'id'), 'preview records are the first records in full-page order');
+search_expect(true, strpos($GLOBALS['wpdb']->last_query, "'_peracrm_email'") !== false, 'matcher searches canonical email metadata');
+search_expect(true, strpos($GLOBALS['wpdb']->last_query, "'_peracrm_phone'") !== false, 'matcher searches canonical phone metadata');
+search_expect([], peracrm_header_search_matching_ids(' '), 'blank terms cannot produce an unbounded result set');
+search_expect([], peracrm_header_search_matching_ids('x'), 'terms shorter than the live-search minimum do not query records');
 
 echo "PeraCRM header search authorization behavior tests passed\n";
