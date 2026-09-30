@@ -462,12 +462,16 @@ peracrm_frontend_render_shell_header();
                 </div>
                 <?php endforeach; ?>
               </dl>
-              <div class="crm-summary-header__actions">
-                <a class="btn btn--solid btn--blue" href="#crm-add-reminder"><?php esc_html_e( 'Add reminder', 'peracrm' ); ?></a>
-                <a class="btn btn--ghost btn--blue" href="#peracrm_note_body_frontend"><?php esc_html_e( 'Add note', 'peracrm' ); ?></a>
-                <?php if ( '' !== $call_link ) : ?><a class="btn btn--ghost btn--blue" href="<?php echo esc_url( $call_link ); ?>"><?php esc_html_e( 'Call', 'peracrm' ); ?></a><?php endif; ?>
-                <?php if ( '' !== $whatsapp_link ) : ?><a class="btn btn--ghost btn--green" href="<?php echo esc_url( $whatsapp_link ); ?>" target="_blank" rel="noopener noreferrer"><?php esc_html_e( 'WhatsApp', 'peracrm' ); ?></a><?php endif; ?>
-                <?php if ( '' !== $email_link ) : ?><a class="btn btn--ghost btn--blue" href="<?php echo esc_url( $email_link ); ?>"><?php esc_html_e( 'Email', 'peracrm' ); ?></a><?php endif; ?>
+              <div class="crm-summary-header__actions-panel">
+                <div class="crm-summary-header__actions crm-summary-header__actions--workflow">
+                  <a class="btn btn--solid btn--blue" href="#crm-add-reminder"><?php esc_html_e( 'Add reminder', 'peracrm' ); ?></a>
+                  <a class="btn btn--ghost btn--blue" href="#peracrm_note_body_frontend"><?php esc_html_e( 'Add note', 'peracrm' ); ?></a>
+                </div>
+                <div class="crm-summary-header__actions crm-summary-header__actions--contact">
+                  <?php if ( '' !== $call_link ) : ?><a class="btn btn--ghost btn--blue" href="<?php echo esc_url( $call_link ); ?>"><?php esc_html_e( 'Call', 'peracrm' ); ?></a><?php endif; ?>
+                  <?php if ( '' !== $whatsapp_link ) : ?><a class="btn btn--ghost btn--green" href="<?php echo esc_url( $whatsapp_link ); ?>" target="_blank" rel="noopener noreferrer"><?php esc_html_e( 'WhatsApp', 'peracrm' ); ?></a><?php endif; ?>
+                  <?php if ( '' !== $email_link ) : ?><a class="btn btn--ghost btn--blue" href="<?php echo esc_url( $email_link ); ?>" target="_blank" rel="noopener noreferrer"><?php esc_html_e( 'Email', 'peracrm' ); ?></a><?php endif; ?>
+                </div>
               </div>
             </div>
           </div>
@@ -543,13 +547,6 @@ peracrm_frontend_render_shell_header();
                           <?php endforeach; ?>
                         </div>
                       </fieldset>
-                      <?php if ( '' !== $call_link || '' !== $whatsapp_link || '' !== $email_link ) : ?>
-                      <div class="crm-client-quick-actions crm-field crm-field--inline">
-                        <?php if ( '' !== $call_link ) : ?><a class="btn btn--ghost btn--blue" href="<?php echo esc_url( $call_link ); ?>"><?php esc_html_e( 'Call', 'peracrm' ); ?></a><?php endif; ?>
-                        <?php if ( '' !== $whatsapp_link ) : ?><a class="btn btn--ghost btn--green" href="<?php echo esc_url( $whatsapp_link ); ?>" target="_blank" rel="noopener noreferrer"><?php esc_html_e( 'WhatsApp', 'peracrm' ); ?></a><?php endif; ?>
-                        <?php if ( '' !== $email_link ) : ?><a class="btn btn--ghost btn--blue" href="<?php echo esc_url( $email_link ); ?>"><?php esc_html_e( 'Email', 'peracrm' ); ?></a><?php endif; ?>
-                      </div>
-                      <?php endif; ?>
                     </div>
                     <div class="crm-keyfacts-grid crm-form-grid crm-form-grid--keyfacts">
                       <div class="crm-field crm-field--half">
@@ -575,8 +572,13 @@ peracrm_frontend_render_shell_header();
             </article>
 
             <div class="crm-client-profile-sidecards">
-              <section class="crm-client-subsection">
-                <h4><?php esc_html_e( 'CRM status', 'peracrm' ); ?></h4>
+              <section class="crm-section crm-section--flush crm-client-status-panel">
+                <header class="crm-section__header">
+                  <div class="crm-section__heading-group">
+                    <h3 class="crm-section__title"><?php esc_html_e( 'CRM status', 'peracrm' ); ?></h3>
+                  </div>
+                </header>
+                <div class="crm-section__body">
                 <form method="post" action="<?php echo esc_url( home_url( '/wp-admin/admin-post.php' ) ); ?>" class="crm-form-stack crm-status-form" id="crm-status-form" data-crm-ajax-form="status">
                   <?php wp_nonce_field( 'peracrm_save_party_status' ); ?>
                   <input type="hidden" name="action" value="peracrm_save_party_status" />
@@ -604,100 +606,11 @@ peracrm_frontend_render_shell_header();
                   </form>
                   <?php endif; ?>
                 </div>
+                </div>
               </section>
 
             </div>
 
-            <article class="crm-section crm-section--flush" data-crm-panel="notes">
-              <header class="crm-section__header">
-                <div class="crm-section__heading-group">
-                  <h3 class="crm-section__title"><?php esc_html_e( 'Advisor notes', 'peracrm' ); ?></h3>
-                </div>
-              </header>
-              <div class="crm-section__body">
-                <?php if ( empty( $notes ) ) : ?>
-                  <p><?php esc_html_e( 'No notes yet.', 'peracrm' ); ?></p>
-                <?php else : ?>
-                  <div class="archive-hero-desc crm-client-notes-truncate" data-collapsed="true">
-                    <div id="crm-client-notes-content" class="archive-hero-desc__content">
-                      <ul class="crm-row-list crm-client-notes-list">
-                        <?php foreach ( $notes as $note ) : ?>
-                          <?php $note_author = isset( $note['advisor_user_id'] ) ? get_userdata( (int) $note['advisor_user_id'] ) : false; $note_author_name = $note_author instanceof WP_User ? $note_author->display_name : __( 'Advisor', 'peracrm' ); $note_created_at = isset( $note['created_at'] ) ? (string) $note['created_at'] : ''; $note_created_at = '' !== $note_created_at ? mysql2date( 'Y-m-d H:i', $note_created_at ) : __( 'Unknown time', 'peracrm' ); ?>
-                          <li class="crm-row-list__item">
-                            <div class="crm-row-list__content">
-                              <div class="crm-row-list__header">
-                                <h4 class="crm-row-list__title"><?php echo esc_html( (string) $note_author_name ); ?></h4>
-                                <span class="crm-chip crm-chip--neutral"><?php echo esc_html( (string) $note_created_at ); ?></span>
-                              </div>
-                              <p class="crm-row-list__summary"><?php echo esc_html( (string) ( $note['note_body'] ?? '' ) ); ?></p>
-                            </div>
-                            <?php if ( ! empty( $note['id'] ) ) : ?>
-                            <div class="crm-row-list__aside">
-                              <form method="post" action="<?php echo esc_url( home_url( '/wp-admin/admin-post.php' ) ); ?>" class="crm-note-delete-form" data-crm-ajax-form="note-delete">
-                                <?php wp_nonce_field( 'peracrm_delete_note', 'peracrm_delete_note_nonce' ); ?>
-                                <input type="hidden" name="peracrm_client_id" value="<?php echo esc_attr( (string) $client_id ); ?>" />
-                                <input type="hidden" name="peracrm_note_id" value="<?php echo esc_attr( (string) absint( $note['id'] ) ); ?>" />
-                                <button type="submit" class="btn btn--ghost btn--red mini-btn" data-crm-confirm-text="<?php echo esc_attr__( 'Delete this note?', 'peracrm' ); ?>"><?php esc_html_e( 'Delete', 'peracrm' ); ?></button>
-                              </form>
-                            </div>
-                            <?php endif; ?>
-                          </li>
-                        <?php endforeach; ?>
-                      </ul>
-                      <button type="button" class="btn btn--ghost btn--blue mini-btn archive-hero-desc__toggle archive-hero-desc__toggle--bottom" aria-expanded="false" aria-controls="crm-client-notes-content" data-label-more="<?php echo esc_attr__( 'See more', 'peracrm' ); ?>" data-label-less="<?php echo esc_attr__( 'See less', 'peracrm' ); ?>" hidden><?php esc_html_e( 'See more', 'peracrm' ); ?></button>
-                    </div>
-                    <button type="button" class="btn btn--ghost btn--blue mini-btn archive-hero-desc__toggle archive-hero-desc__toggle--top" aria-expanded="false" aria-controls="crm-client-notes-content" data-label-more="<?php echo esc_attr__( 'See more', 'peracrm' ); ?>" data-label-less="<?php echo esc_attr__( 'See less', 'peracrm' ); ?>" hidden><?php esc_html_e( 'See more', 'peracrm' ); ?></button>
-                  </div>
-                <?php endif; ?>
-              </div>
-              <div class="crm-section__footer">
-                <form method="post" action="<?php echo esc_url( home_url( '/wp-admin/admin-post.php' ) ); ?>" class="crm-form-stack" data-crm-ajax-form="note">
-                  <?php wp_nonce_field( 'peracrm_add_note', 'peracrm_add_note_nonce' ); ?>
-                  <input type="hidden" name="action" value="peracrm_add_note" />
-                  <input type="hidden" name="peracrm_client_id" value="<?php echo esc_attr( (string) $client_id ); ?>" />
-                  <input type="hidden" name="peracrm_redirect" value="<?php echo esc_url( $frontend_url ); ?>" />
-                  <label for="peracrm_note_body_frontend"><?php esc_html_e( 'Add note', 'peracrm' ); ?></label>
-                  <textarea name="peracrm_note_body" id="peracrm_note_body_frontend" rows="4"></textarea>
-                  <button type="submit" class="btn btn--solid btn--blue"><?php esc_html_e( 'Add note', 'peracrm' ); ?></button>
-                </form>
-              </div>
-            </article>
-
-            <section class="crm-section crm-section--flush crm-client-timeline">
-              <header class="crm-section__header">
-                <div class="crm-section__heading-group">
-                  <h3 class="crm-section__title"><?php esc_html_e( 'Activity and timeline', 'peracrm' ); ?></h3>
-                </div>
-                <div class="crm-section__actions crm-client-timeline__filters">
-                  <?php foreach ( array( 'all' => 'All', 'activity' => 'Activity', 'notes' => 'Notes', 'reminders' => 'Reminders' ) as $key => $label ) : $url = add_query_arg( 'peracrm_timeline', $key, $frontend_url ); ?>
-                    <a class="crm-chip <?php echo esc_attr( $timeline_filter === $key ? 'crm-chip--selected' : 'crm-chip--neutral' ); ?>" href="<?php echo esc_url( $url ); ?>"><?php echo esc_html( $label ); ?></a>
-                  <?php endforeach; ?>
-                </div>
-              </header>
-              <div class="crm-section__body">
-                <div class="archive-hero-desc" data-collapsed="true">
-                  <div id="crm-client-timeline-content" class="archive-hero-desc__content">
-                    <ul class="crm-activity-list crm-client-timeline__list">
-                    <?php if ( empty( $timeline_items ) ) : ?>
-                      <li class="crm-activity-list__item"><?php esc_html_e( 'No timeline items yet.', 'peracrm' ); ?></li>
-                    <?php else : foreach ( $timeline_items as $item ) : $item_type_label = (string) ( $item['type_label'] ?? ( $item['type'] ?? '' ) ); $item_time = is_array( $item['time'] ?? null ) ? (array) $item['time'] : array( 'relative' => '', 'title' => '' ); $item_meta_line = (string) ( $item['meta_line'] ?? '' ); ?>
-                      <li class="crm-activity-list__item crm-client-timeline__item">
-                        <div class="crm-activity-list__meta">
-                          <span class="crm-chip crm-chip--neutral"><?php echo esc_html( $item_type_label ); ?></span>
-                          <?php if ( ! empty( $item_time['relative'] ) ) : ?><span class="crm-client-timeline__time" title="<?php echo esc_attr( (string) ( $item_time['title'] ?? '' ) ); ?>"><?php echo esc_html( (string) $item_time['relative'] ); ?></span><?php endif; ?>
-                        </div>
-                        <p class="crm-activity-list__summary"><strong><?php echo esc_html( (string) ( $item['title'] ?? '' ) ); ?></strong></p>
-                        <?php if ( ! empty( $item['detail'] ) ) : ?><span class="crm-client-timeline__detail"><?php echo esc_html( (string) $item['detail'] ); ?></span><?php endif; ?>
-                        <?php if ( ! empty( $item['details_html'] ) ) : ?><div class="crm-client-timeline__details peracrm-timeline-detail peracrm-timeline-detail--structured"><?php echo wp_kses_post( (string) $item['details_html'] ); ?></div><?php endif; ?>
-                        <?php if ( '' !== $item_meta_line ) : ?><span class="crm-client-timeline__meta"><?php echo esc_html( $item_meta_line ); ?></span><?php endif; ?>
-                      </li>
-                    <?php endforeach; endif; ?>
-                    </ul>
-                  </div>
-                  <button type="button" class="btn btn--ghost btn--blue mini-btn archive-hero-desc__toggle" aria-expanded="false" aria-controls="crm-client-timeline-content" data-label-more="<?php echo esc_attr__( 'See more', 'peracrm' ); ?>" data-label-less="<?php echo esc_attr__( 'See less', 'peracrm' ); ?>"><?php esc_html_e( 'See more', 'peracrm' ); ?></button>
-                </div>
-              </div>
-            </section>
           </div>
 
 
@@ -850,6 +763,100 @@ peracrm_frontend_render_shell_header();
 
           </div>
         </div>
+
+        <div class="crm-client-full-width-panels">
+            <article class="crm-section crm-section--flush" data-crm-panel="notes">
+              <header class="crm-section__header">
+                <div class="crm-section__heading-group">
+                  <h3 class="crm-section__title"><?php esc_html_e( 'Advisor notes', 'peracrm' ); ?></h3>
+                </div>
+              </header>
+              <div class="crm-section__body">
+                <?php if ( empty( $notes ) ) : ?>
+                  <p><?php esc_html_e( 'No notes yet.', 'peracrm' ); ?></p>
+                <?php else : ?>
+                  <div class="archive-hero-desc crm-client-notes-truncate" data-collapsed="true">
+                    <div id="crm-client-notes-content" class="archive-hero-desc__content">
+                      <ul class="crm-row-list crm-client-notes-list">
+                        <?php foreach ( $notes as $note ) : ?>
+                          <?php $note_author = isset( $note['advisor_user_id'] ) ? get_userdata( (int) $note['advisor_user_id'] ) : false; $note_author_name = $note_author instanceof WP_User ? $note_author->display_name : __( 'Advisor', 'peracrm' ); $note_created_at = isset( $note['created_at'] ) ? (string) $note['created_at'] : ''; $note_created_at = '' !== $note_created_at ? mysql2date( 'Y-m-d H:i', $note_created_at ) : __( 'Unknown time', 'peracrm' ); ?>
+                          <li class="crm-row-list__item">
+                            <div class="crm-row-list__content">
+                              <div class="crm-row-list__header">
+                                <h4 class="crm-row-list__title"><?php echo esc_html( (string) $note_author_name ); ?></h4>
+                                <span class="crm-chip crm-chip--neutral"><?php echo esc_html( (string) $note_created_at ); ?></span>
+                              </div>
+                              <p class="crm-row-list__summary"><?php echo esc_html( (string) ( $note['note_body'] ?? '' ) ); ?></p>
+                            </div>
+                            <?php if ( ! empty( $note['id'] ) ) : ?>
+                            <div class="crm-row-list__aside">
+                              <form method="post" action="<?php echo esc_url( home_url( '/wp-admin/admin-post.php' ) ); ?>" class="crm-note-delete-form" data-crm-ajax-form="note-delete">
+                                <?php wp_nonce_field( 'peracrm_delete_note', 'peracrm_delete_note_nonce' ); ?>
+                                <input type="hidden" name="peracrm_client_id" value="<?php echo esc_attr( (string) $client_id ); ?>" />
+                                <input type="hidden" name="peracrm_note_id" value="<?php echo esc_attr( (string) absint( $note['id'] ) ); ?>" />
+                                <button type="submit" class="btn btn--ghost btn--red mini-btn" data-crm-confirm-text="<?php echo esc_attr__( 'Delete this note?', 'peracrm' ); ?>"><?php esc_html_e( 'Delete', 'peracrm' ); ?></button>
+                              </form>
+                            </div>
+                            <?php endif; ?>
+                          </li>
+                        <?php endforeach; ?>
+                      </ul>
+                      <button type="button" class="btn btn--ghost btn--blue mini-btn archive-hero-desc__toggle archive-hero-desc__toggle--bottom" aria-expanded="false" aria-controls="crm-client-notes-content" data-label-more="<?php echo esc_attr__( 'See more', 'peracrm' ); ?>" data-label-less="<?php echo esc_attr__( 'See less', 'peracrm' ); ?>" hidden><?php esc_html_e( 'See more', 'peracrm' ); ?></button>
+                    </div>
+                    <button type="button" class="btn btn--ghost btn--blue mini-btn archive-hero-desc__toggle archive-hero-desc__toggle--top" aria-expanded="false" aria-controls="crm-client-notes-content" data-label-more="<?php echo esc_attr__( 'See more', 'peracrm' ); ?>" data-label-less="<?php echo esc_attr__( 'See less', 'peracrm' ); ?>" hidden><?php esc_html_e( 'See more', 'peracrm' ); ?></button>
+                  </div>
+                <?php endif; ?>
+              </div>
+              <div class="crm-section__footer">
+                <form method="post" action="<?php echo esc_url( home_url( '/wp-admin/admin-post.php' ) ); ?>" class="crm-form-stack" data-crm-ajax-form="note">
+                  <?php wp_nonce_field( 'peracrm_add_note', 'peracrm_add_note_nonce' ); ?>
+                  <input type="hidden" name="action" value="peracrm_add_note" />
+                  <input type="hidden" name="peracrm_client_id" value="<?php echo esc_attr( (string) $client_id ); ?>" />
+                  <input type="hidden" name="peracrm_redirect" value="<?php echo esc_url( $frontend_url ); ?>" />
+                  <label for="peracrm_note_body_frontend"><?php esc_html_e( 'Add note', 'peracrm' ); ?></label>
+                  <textarea name="peracrm_note_body" id="peracrm_note_body_frontend" rows="4"></textarea>
+                  <button type="submit" class="btn btn--solid btn--blue"><?php esc_html_e( 'Add note', 'peracrm' ); ?></button>
+                </form>
+              </div>
+            </article>
+
+            <section class="crm-section crm-section--flush crm-client-timeline">
+              <header class="crm-section__header">
+                <div class="crm-section__heading-group">
+                  <h3 class="crm-section__title"><?php esc_html_e( 'Activity and timeline', 'peracrm' ); ?></h3>
+                </div>
+                <div class="crm-section__actions crm-client-timeline__filters">
+                  <?php foreach ( array( 'all' => 'All', 'activity' => 'Activity', 'notes' => 'Notes', 'reminders' => 'Reminders' ) as $key => $label ) : $url = add_query_arg( 'peracrm_timeline', $key, $frontend_url ); ?>
+                    <a class="crm-chip <?php echo esc_attr( $timeline_filter === $key ? 'crm-chip--selected' : 'crm-chip--neutral' ); ?>" href="<?php echo esc_url( $url ); ?>"><?php echo esc_html( $label ); ?></a>
+                  <?php endforeach; ?>
+                </div>
+              </header>
+              <div class="crm-section__body">
+                <div class="archive-hero-desc" data-collapsed="true">
+                  <div id="crm-client-timeline-content" class="archive-hero-desc__content">
+                    <ul class="crm-activity-list crm-client-timeline__list">
+                    <?php if ( empty( $timeline_items ) ) : ?>
+                      <li class="crm-activity-list__item"><?php esc_html_e( 'No timeline items yet.', 'peracrm' ); ?></li>
+                    <?php else : foreach ( $timeline_items as $item ) : $item_type_label = (string) ( $item['type_label'] ?? ( $item['type'] ?? '' ) ); $item_time = is_array( $item['time'] ?? null ) ? (array) $item['time'] : array( 'relative' => '', 'title' => '' ); $item_meta_line = (string) ( $item['meta_line'] ?? '' ); ?>
+                      <li class="crm-activity-list__item crm-client-timeline__item">
+                        <div class="crm-activity-list__meta">
+                          <span class="crm-chip crm-chip--neutral"><?php echo esc_html( $item_type_label ); ?></span>
+                          <?php if ( ! empty( $item_time['relative'] ) ) : ?><span class="crm-client-timeline__time" title="<?php echo esc_attr( (string) ( $item_time['title'] ?? '' ) ); ?>"><?php echo esc_html( (string) $item_time['relative'] ); ?></span><?php endif; ?>
+                        </div>
+                        <p class="crm-activity-list__summary"><strong><?php echo esc_html( (string) ( $item['title'] ?? '' ) ); ?></strong></p>
+                        <?php if ( ! empty( $item['detail'] ) ) : ?><span class="crm-client-timeline__detail"><?php echo esc_html( (string) $item['detail'] ); ?></span><?php endif; ?>
+                        <?php if ( ! empty( $item['details_html'] ) ) : ?><div class="crm-client-timeline__details peracrm-timeline-detail peracrm-timeline-detail--structured"><?php echo wp_kses_post( (string) $item['details_html'] ); ?></div><?php endif; ?>
+                        <?php if ( '' !== $item_meta_line ) : ?><span class="crm-client-timeline__meta"><?php echo esc_html( $item_meta_line ); ?></span><?php endif; ?>
+                      </li>
+                    <?php endforeach; endif; ?>
+                    </ul>
+                  </div>
+                  <button type="button" class="btn btn--ghost btn--blue mini-btn archive-hero-desc__toggle" aria-expanded="false" aria-controls="crm-client-timeline-content" data-label-more="<?php echo esc_attr__( 'See more', 'peracrm' ); ?>" data-label-less="<?php echo esc_attr__( 'See less', 'peracrm' ); ?>"><?php esc_html_e( 'See more', 'peracrm' ); ?></button>
+                </div>
+              </div>
+            </section>
+        </div>
+
         <div class="crm-client-profile-stack">
 <?php /*
         <article class="crm-section crm-section--flush crm-client-related crm-client-related--portfolio" data-client-id="<?php echo esc_attr( (string) $client_id ); ?>">
