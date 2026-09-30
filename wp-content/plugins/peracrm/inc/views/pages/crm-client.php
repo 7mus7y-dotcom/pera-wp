@@ -819,41 +819,6 @@ peracrm_frontend_render_shell_header();
               </div>
             </article>
 
-            <section class="crm-section crm-section--flush crm-client-timeline">
-              <header class="crm-section__header">
-                <div class="crm-section__heading-group">
-                  <h3 class="crm-section__title"><?php esc_html_e( 'Activity and timeline', 'peracrm' ); ?></h3>
-                </div>
-                <div class="crm-section__actions crm-client-timeline__filters">
-                  <?php foreach ( array( 'all' => 'All', 'activity' => 'Activity', 'notes' => 'Notes', 'reminders' => 'Reminders' ) as $key => $label ) : $url = add_query_arg( 'peracrm_timeline', $key, $frontend_url ); ?>
-                    <a class="crm-chip <?php echo esc_attr( $timeline_filter === $key ? 'crm-chip--selected' : 'crm-chip--neutral' ); ?>" href="<?php echo esc_url( $url ); ?>"><?php echo esc_html( $label ); ?></a>
-                  <?php endforeach; ?>
-                </div>
-              </header>
-              <div class="crm-section__body">
-                <div class="archive-hero-desc" data-collapsed="true">
-                  <div id="crm-client-timeline-content" class="archive-hero-desc__content">
-                    <ul class="crm-activity-list crm-client-timeline__list">
-                    <?php if ( empty( $timeline_items ) ) : ?>
-                      <li class="crm-activity-list__item"><?php esc_html_e( 'No timeline items yet.', 'peracrm' ); ?></li>
-                    <?php else : foreach ( $timeline_items as $item ) : $item_type_label = (string) ( $item['type_label'] ?? ( $item['type'] ?? '' ) ); $item_time = is_array( $item['time'] ?? null ) ? (array) $item['time'] : array( 'relative' => '', 'title' => '' ); $item_meta_line = (string) ( $item['meta_line'] ?? '' ); ?>
-                      <li class="crm-activity-list__item crm-client-timeline__item">
-                        <div class="crm-activity-list__meta">
-                          <span class="crm-chip crm-chip--neutral"><?php echo esc_html( $item_type_label ); ?></span>
-                          <?php if ( ! empty( $item_time['relative'] ) ) : ?><span class="crm-client-timeline__time" title="<?php echo esc_attr( (string) ( $item_time['title'] ?? '' ) ); ?>"><?php echo esc_html( (string) $item_time['relative'] ); ?></span><?php endif; ?>
-                        </div>
-                        <p class="crm-activity-list__summary"><strong><?php echo esc_html( (string) ( $item['title'] ?? '' ) ); ?></strong></p>
-                        <?php if ( ! empty( $item['detail'] ) ) : ?><span class="crm-client-timeline__detail"><?php echo esc_html( (string) $item['detail'] ); ?></span><?php endif; ?>
-                        <?php if ( ! empty( $item['details_html'] ) ) : ?><div class="crm-client-timeline__details peracrm-timeline-detail peracrm-timeline-detail--structured"><?php echo wp_kses_post( (string) $item['details_html'] ); ?></div><?php endif; ?>
-                        <?php if ( '' !== $item_meta_line ) : ?><span class="crm-client-timeline__meta"><?php echo esc_html( $item_meta_line ); ?></span><?php endif; ?>
-                      </li>
-                    <?php endforeach; endif; ?>
-                    </ul>
-                  </div>
-                  <button type="button" class="btn btn--ghost btn--blue mini-btn archive-hero-desc__toggle" aria-expanded="false" aria-controls="crm-client-timeline-content" data-label-more="<?php echo esc_attr__( 'See more', 'peracrm' ); ?>" data-label-less="<?php echo esc_attr__( 'See less', 'peracrm' ); ?>"><?php esc_html_e( 'See more', 'peracrm' ); ?></button>
-                </div>
-              </div>
-            </section>
         </div>
 
         <div class="crm-client-profile-stack">
@@ -1075,6 +1040,42 @@ peracrm_frontend_render_shell_header();
                 </section>
               </section>
             </article>
+
+            <section class="crm-section crm-section--flush crm-client-timeline">
+              <header class="crm-section__header">
+                <div class="crm-section__heading-group">
+                  <h3 class="crm-section__title"><?php esc_html_e( 'Activity and timeline', 'peracrm' ); ?></h3>
+                </div>
+                <div class="crm-section__actions crm-client-timeline__filters">
+                  <?php foreach ( array( 'all' => 'All', 'activity' => 'Activity', 'notes' => 'Notes', 'reminders' => 'Reminders' ) as $key => $label ) : $url = add_query_arg( 'peracrm_timeline', $key, $frontend_url ); ?>
+                    <a class="crm-chip <?php echo esc_attr( $timeline_filter === $key ? 'crm-chip--selected' : 'crm-chip--neutral' ); ?>" href="<?php echo esc_url( $url ); ?>"><?php echo esc_html( $label ); ?></a>
+                  <?php endforeach; ?>
+                </div>
+              </header>
+              <div class="crm-section__body">
+                <div class="archive-hero-desc" data-collapsed="true">
+                  <div id="crm-client-timeline-content" class="archive-hero-desc__content">
+                    <ul class="crm-activity-list crm-client-timeline__list">
+                    <?php if ( empty( $timeline_items ) ) : ?>
+                      <li class="crm-activity-list__item"><?php esc_html_e( 'No timeline items yet.', 'peracrm' ); ?></li>
+                    <?php else : foreach ( $timeline_items as $item ) : $item_type_label = (string) ( $item['type_label'] ?? ( $item['type'] ?? '' ) ); $item_time = is_array( $item['time'] ?? null ) ? (array) $item['time'] : array( 'relative' => '', 'title' => '' ); $item_meta_line = (string) ( $item['meta_line'] ?? '' ); ?>
+                      <li class="crm-activity-list__item crm-client-timeline__item">
+                        <div class="crm-activity-list__meta">
+                          <span class="crm-chip crm-chip--neutral"><?php echo esc_html( $item_type_label ); ?></span>
+                          <?php if ( ! empty( $item_time['relative'] ) ) : ?><span class="crm-client-timeline__time" title="<?php echo esc_attr( (string) ( $item_time['title'] ?? '' ) ); ?>"><?php echo esc_html( (string) $item_time['relative'] ); ?></span><?php endif; ?>
+                        </div>
+                        <p class="crm-activity-list__summary"><strong><?php echo esc_html( (string) ( $item['title'] ?? '' ) ); ?></strong></p>
+                        <?php if ( ! empty( $item['detail'] ) ) : ?><span class="crm-client-timeline__detail"><?php echo esc_html( (string) $item['detail'] ); ?></span><?php endif; ?>
+                        <?php if ( ! empty( $item['details_html'] ) ) : ?><div class="crm-client-timeline__details peracrm-timeline-detail peracrm-timeline-detail--structured"><?php echo wp_kses_post( (string) $item['details_html'] ); ?></div><?php endif; ?>
+                        <?php if ( '' !== $item_meta_line ) : ?><span class="crm-client-timeline__meta"><?php echo esc_html( $item_meta_line ); ?></span><?php endif; ?>
+                      </li>
+                    <?php endforeach; endif; ?>
+                    </ul>
+                  </div>
+                  <button type="button" class="btn btn--ghost btn--blue mini-btn archive-hero-desc__toggle" aria-expanded="false" aria-controls="crm-client-timeline-content" data-label-more="<?php echo esc_attr__( 'See more', 'peracrm' ); ?>" data-label-less="<?php echo esc_attr__( 'See less', 'peracrm' ); ?>"><?php esc_html_e( 'See more', 'peracrm' ); ?></button>
+                </div>
+              </div>
+            </section>
 
             <article class="crm-section crm-section--flush crm-client-deals" data-crm-panel="deals">
               <header class="crm-section__header">
