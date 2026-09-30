@@ -665,7 +665,15 @@ document.addEventListener('DOMContentLoaded', function () {
     if (!strip || !previousButton || !nextButton) return;
 
     function itemPosition(item) {
-      return item.getBoundingClientRect().left - strip.getBoundingClientRect().left + strip.scrollLeft;
+      var scrollPadding = parseFloat(window.getComputedStyle(strip).scrollPaddingLeft) || 0;
+      var position = item.getBoundingClientRect().left -
+        strip.getBoundingClientRect().left -
+        strip.clientLeft +
+        strip.scrollLeft -
+        scrollPadding;
+      var maximumScroll = Math.max(0, strip.scrollWidth - strip.clientWidth);
+
+      return Math.max(0, Math.min(position, maximumScroll));
     }
 
     function updateStripControls() {
@@ -710,7 +718,8 @@ document.addEventListener('DOMContentLoaded', function () {
       }
 
       if (!target) return;
-      strip.scrollTo({ left: itemPosition(target), behavior: 'smooth' });
+      var targetPosition = itemPosition(target);
+      strip.scrollTo({ left: targetPosition, behavior: 'smooth' });
       requestControlUpdate();
     }
 
