@@ -174,7 +174,7 @@ if ( function_exists( 'get_field' ) ) {
       </header>
 
       <div class="cards-slider cards-slider--wide cards-slider--snap cards-slider--grid-2 home-buyer-routes" aria-label="<?php echo esc_attr( pera_ml_ui( 'Buyer routes', 'theme.template.home_page.aria_label.buyer_routes' ) ); ?>">
-        <article class="card-shell slider-card">
+        <article class="card-shell slider-card panel-gradient-cool">
           <span class="pill pill--brand pill--sm"><?php echo esc_html( pera_ml_ui( 'Citizenship', 'theme.template.home_page.citizenship' ) ); ?></span>
           <h3><?php echo esc_html( pera_ml_ui( 'Citizenship by Investment', 'theme.template.home_page.citizenship_by_investment' ) ); ?></h3>
           <p class="muted"><?php echo esc_html( pera_ml_ui( 'Approved real estate routes for buyers planning to apply for Turkish citizenship through property investment.', 'theme.template.home_page.approved_real_estate_routes_for_buyers_planning_to_apply_for_turkish_cit' ) ); ?></p>
@@ -184,7 +184,7 @@ if ( function_exists( 'get_field' ) ) {
           </div>
         </article>
 
-        <article class="card-shell slider-card">
+        <article class="card-shell slider-card panel-gradient-cool">
           <span class="pill pill--brand pill--sm"><?php echo esc_html( pera_ml_ui( 'Investment', 'theme.template.home_page.investment' ) ); ?></span>
           <h3><?php echo esc_html( pera_ml_ui( 'Istanbul Investment Property', 'theme.template.home_page.istanbul_investment_property' ) ); ?></h3>
           <p class="muted"><?php echo esc_html( pera_ml_ui( 'Districts, projects and market insight for buyers focused on capital growth, rental demand and long-term value.', 'theme.template.home_page.districts_projects_and_market_insight_for_buyers_focused_on_capital_grow' ) ); ?></p>
@@ -194,7 +194,7 @@ if ( function_exists( 'get_field' ) ) {
           </div>
         </article>
 
-        <article class="card-shell slider-card">
+        <article class="card-shell slider-card panel-gradient-cool">
           <span class="pill pill--brand pill--sm"><?php echo esc_html( pera_ml_ui( 'Luxury', 'theme.template.home_page.luxury' ) ); ?></span>
           <h3><?php echo esc_html( pera_ml_ui( 'Luxury Homes & Branded Residences', 'theme.template.home_page.luxury_homes_and_branded_residences' ) ); ?></h3>
           <p class="muted"><?php echo esc_html( pera_ml_ui( 'Bosphorus homes, branded residences and premium Istanbul addresses for lifestyle-led and high-value buyers.', 'theme.template.home_page.bosphorus_homes_branded_residences_and_premium_istanbul_addresses_for_li' ) ); ?></p>
@@ -204,7 +204,7 @@ if ( function_exists( 'get_field' ) ) {
           </div>
         </article>
 
-        <article class="card-shell slider-card">
+        <article class="card-shell slider-card panel-gradient-cool">
           <span class="pill pill--brand pill--sm"><?php echo esc_html( pera_ml_ui( 'Buyer guide', 'theme.template.home_page.buyer_guide' ) ); ?></span>
           <h3><?php echo esc_html( pera_ml_ui( 'First-Time Foreign Buyers', 'theme.template.home_page.first_time_foreign_buyers' ) ); ?></h3>
           <p class="muted"><?php echo esc_html( pera_ml_ui( 'Practical guidance on title deed transfer, legal checks, taxes and safe property purchasing in Istanbul.', 'theme.template.home_page.practical_guidance_on_title_deed_transfer_legal_checks_taxes_and_safe_pr' ) ); ?></p>

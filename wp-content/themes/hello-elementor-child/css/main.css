@@ -40,6 +40,15 @@
   --bg-soft: #f7f7f7;
   --brand: #002d72;
   --accent: #0056b3;
+
+  /* Brand palette constants */
+  --brand-yellow: #ffed00;
+  --brand-blue: #043673;
+  --brand-green: #008453;
+  --brand-white: #ffffff;
+  --brand-black: #000000;
+  --brand-red: #cd163f;
+
   --radius: 8px;
   --container: 1200px;
   --fs-ui-xs: 0.8rem;
@@ -203,25 +212,57 @@
 }
 
 @media (prefers-color-scheme: light) {
-  .home-buyer-routes > .card-shell {
+  .panel-gradient-cool {
     background:
       radial-gradient(
         ellipse at 0% 0%,
-        rgba(96, 165, 250, 0.20),
-        transparent 55%
+        color-mix(in srgb, var(--brand-blue) 16%, transparent),
+        transparent 60%
       ),
       radial-gradient(
-        ellipse at 100% 10%,
-        rgba(167, 139, 250, 0.16),
-        transparent 50%
+        ellipse at 100% 100%,
+        color-mix(in srgb, var(--brand-green) 14%, transparent),
+        transparent 58%
+      ),
+      var(--brand-white);
+  }
+
+  .panel-gradient-warm {
+    background:
+      radial-gradient(
+        ellipse at 0% 0%,
+        color-mix(in srgb, var(--brand-yellow) 18%, transparent),
+        transparent 62%
+      ),
+      radial-gradient(
+        ellipse at 100% 100%,
+        color-mix(in srgb, var(--brand-red) 12%, transparent),
+        transparent 56%
+      ),
+      var(--brand-white);
+  }
+
+  .panel-gradient-brand {
+    background:
+      radial-gradient(
+        ellipse at 0% 0%,
+        color-mix(in srgb, var(--brand-blue) 15%, transparent),
+        transparent 60%
+      ),
+      radial-gradient(
+        ellipse at 100% 5%,
+        color-mix(in srgb, var(--brand-yellow) 18%, transparent),
+        transparent 55%
       ),
       radial-gradient(
         ellipse at 70% 100%,
-        rgba(45, 212, 191, 0.10),
-        transparent 55%
+        color-mix(in srgb, var(--brand-green) 12%, transparent),
+        transparent 62%
       ),
-      #ffffff;
+      var(--brand-white);
+  }
 
+  .home-buyer-routes > .card-shell {
     border-color: #dce5f2;
     box-shadow:
       0 8px 28px rgba(0, 45, 114, 0.06),
