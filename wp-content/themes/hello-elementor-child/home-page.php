@@ -173,7 +173,7 @@ if ( function_exists( 'get_field' ) ) {
         </p>
       </header>
 
-      <div class="cards-slider cards-slider--wide cards-slider--snap cards-slider--grid-2" aria-label="<?php echo esc_attr( pera_ml_ui( 'Buyer routes', 'theme.template.home_page.aria_label.buyer_routes' ) ); ?>">
+      <div class="cards-slider cards-slider--wide cards-slider--snap cards-slider--grid-2 home-buyer-routes" aria-label="<?php echo esc_attr( pera_ml_ui( 'Buyer routes', 'theme.template.home_page.aria_label.buyer_routes' ) ); ?>">
         <article class="card-shell slider-card">
           <span class="pill pill--brand pill--sm"><?php echo esc_html( pera_ml_ui( 'Citizenship', 'theme.template.home_page.citizenship' ) ); ?></span>
           <h3><?php echo esc_html( pera_ml_ui( 'Citizenship by Investment', 'theme.template.home_page.citizenship_by_investment' ) ); ?></h3>
