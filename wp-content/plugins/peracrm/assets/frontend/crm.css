@@ -8174,16 +8174,25 @@ body.crm-route #site-header.peracrm-shell-header .peracrm-header-search__status 
 }
 
 @media (min-width: 1025px) {
-  .crm-page--client-view .crm-layout > .crm-side-nav:not(.crm-side-nav--drawer) {
+  .crm-page--client-view .crm-layout > .crm-nav-shell {
     position: sticky;
     top: var(--crm-shell-sticky-offset, 88px);
+    align-self: start;
+  }
+
+  .crm-page--client-view .crm-layout > .crm-nav-shell > .crm-side-nav:not(.crm-side-nav--drawer) {
+    position: static;
+    top: auto;
     max-height: calc(100vh - var(--crm-shell-sticky-offset, 88px) - 16px);
     overflow-y: auto;
     overscroll-behavior: contain;
   }
 
-  #wpadminbar ~ .crm-page--client-view .crm-layout > .crm-side-nav:not(.crm-side-nav--drawer) {
+  #wpadminbar ~ .crm-page--client-view .crm-layout > .crm-nav-shell {
     top: calc(var(--crm-shell-sticky-offset, 88px) + 32px);
+  }
+
+  #wpadminbar ~ .crm-page--client-view .crm-layout > .crm-nav-shell > .crm-side-nav:not(.crm-side-nav--drawer) {
     max-height: calc(100vh - var(--crm-shell-sticky-offset, 88px) - 48px);
   }
 }

@@ -470,7 +470,7 @@ peracrm_frontend_render_shell_header();
                 <div class="crm-summary-header__actions crm-summary-header__actions--contact">
                   <?php if ( '' !== $call_link ) : ?><a class="btn btn--ghost btn--blue" href="<?php echo esc_url( $call_link ); ?>"><?php esc_html_e( 'Call', 'peracrm' ); ?></a><?php endif; ?>
                   <?php if ( '' !== $whatsapp_link ) : ?><a class="btn btn--ghost btn--green" href="<?php echo esc_url( $whatsapp_link ); ?>" target="_blank" rel="noopener noreferrer"><?php esc_html_e( 'WhatsApp', 'peracrm' ); ?></a><?php endif; ?>
-                  <?php if ( '' !== $email_link ) : ?><a class="btn btn--ghost btn--blue" href="<?php echo esc_url( $email_link ); ?>"><?php esc_html_e( 'Email', 'peracrm' ); ?></a><?php endif; ?>
+                  <?php if ( '' !== $email_link ) : ?><a class="btn btn--ghost btn--blue" href="<?php echo esc_url( $email_link ); ?>" target="_blank" rel="noopener noreferrer"><?php esc_html_e( 'Email', 'peracrm' ); ?></a><?php endif; ?>
                 </div>
               </div>
             </div>
