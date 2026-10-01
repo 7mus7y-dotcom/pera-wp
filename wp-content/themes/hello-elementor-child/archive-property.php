@@ -973,19 +973,14 @@ if ( ! $is_filtered_search && ( $qo instanceof WP_Term ) && ! is_wp_error( $qo )
 
 <!-- Results Grid (SSR baseline; AJAX will replace/append) -->
 <div id="property-grid" class="cards-grid">
-  <?php if ( $property_query->have_posts() ) : ?>
-    <?php while ( $property_query->have_posts() ) : $property_query->the_post(); ?>
-
-      <?php
-        pera_render_property_card( array(
-          'variant' => 'archive',
-        ) );
-      ?>
-
-    <?php endwhile; ?>
-  <?php else : ?>
-    <p class="no-results"><?php echo esc_html( pera_ml_ui( 'No properties found.', 'theme.template.archive_property.no_properties_found' ) ); ?></p>
-  <?php endif; ?>
+  <?php
+  pera_render_property_archive_results(
+    $property_query,
+    $paged,
+    array( 'variant' => 'archive' ),
+    'theme.template.archive_property.no_properties_found'
+  );
+  ?>
 </div>
 
 <?php wp_reset_postdata(); ?>

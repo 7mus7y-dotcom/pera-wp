@@ -421,30 +421,17 @@ if ( ! function_exists( 'pera_ajax_filter_properties_v2' ) ) {
 
       ob_start();
 
-      if ( $q->have_posts() ) {
-        while ( $q->have_posts() ) {
-          $q->the_post();
-
-          $card_args = array(
-            'variant'      => 'archive',
-            'v2_beds'      => (int) $v2_beds,
-            'show_badges'  => true,
-            'show_admin'   => true,
-            'show_excerpt' => true,
-          );
-
-          if ( function_exists( 'pera_render_property_card' ) ) {
-            pera_render_property_card( $card_args );
-          } else {
-            // Fallback: preserve legacy behaviour if helper is unavailable
-            set_query_var( 'pera_property_card_args', $card_args );
-            get_template_part( 'parts/property-card-v2' );
-            set_query_var( 'pera_property_card_args', null );
-          }
-        }
-      } else {
-        echo '<p class="no-results">' . esc_html( pera_ml_ui( 'No properties found.', 'theme.property_archive.no_results' ) ) . '</p>';
-      }
+      pera_render_property_archive_results(
+        $q,
+        $paged,
+        array(
+          'variant'      => 'archive',
+          'v2_beds'      => (int) $v2_beds,
+          'show_badges'  => true,
+          'show_admin'   => true,
+          'show_excerpt' => true,
+        )
+      );
 
       $grid_html = ob_get_clean();
       wp_reset_postdata();

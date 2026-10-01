@@ -54,6 +54,7 @@ $home = file_get_contents( $theme . '/parts/home-featured-property.php' );
 $single = file_get_contents( $theme . '/single-property.php' );
 $archive = file_get_contents( $theme . '/archive-property.php' );
 $ajax = file_get_contents( $theme . '/inc/ajax-property-archive.php' );
+$card_helpers = file_get_contents( $theme . '/inc/property-card-helpers.php' );
 
 expect_card_pricing( false !== strpos( $card, 'pera_v2_get_units_rows( $post_id )' ), 'card uses shared row reader' );
 expect_card_pricing( false !== strpos( $card, 'pera_v2_units_aggregate( $units, $v2_beds_selected )' ), 'card uses shared bedroom-aware aggregation' );
@@ -61,8 +62,9 @@ expect_card_pricing( false !== strpos( $card, '$show_project_price = $has_projec
 expect_card_pricing( strpos( $card, "isset( \$specials_by_slug['resales'] )" ) < strpos( $card, "isset( \$specials_by_slug['project'] )" ), 'resale badge has precedence' );
 expect_card_pricing( false !== strpos( $card, "! empty( \$display_price['valid'] )" ), 'empty price only omits price element' );
 expect_card_pricing( false !== strpos( $card, 'property-card__updated' ), 'footer update content remains independent' );
-expect_card_pricing( false !== strpos( $archive, 'pera_render_property_card(' ), 'SSR archive uses shared renderer' );
-expect_card_pricing( false !== strpos( $ajax, 'pera_render_property_card(' ), 'AJAX archive uses shared renderer' );
+expect_card_pricing( false !== strpos( $archive, 'pera_render_property_archive_results(' ), 'SSR archive uses shared results renderer' );
+expect_card_pricing( false !== strpos( $ajax, 'pera_render_property_archive_results(' ), 'AJAX archive uses shared results renderer' );
+expect_card_pricing( false !== strpos( $card_helpers, 'pera_render_property_card( $card_args )' ), 'shared archive results retain the property-card renderer' );
 expect_card_pricing( false !== strpos( $home, '$is_project  = $has_project && ! $has_resale;' ), 'featured component gives resale precedence' );
 expect_card_pricing( false !== strpos( $single, "'is_project' => \$is_project && ! \$is_resale" ), 'single helper receives effective project flag' );
 expect_card_pricing( false !== strpos( $single, 'pera_render_property_card(' ), 'related properties use shared renderer' );
