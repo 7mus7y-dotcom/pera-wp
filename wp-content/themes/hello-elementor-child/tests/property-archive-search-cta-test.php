@@ -8,6 +8,20 @@ if ( PHP_SAPI !== 'cli' ) {
 
 define( 'ABSPATH', __DIR__ );
 
+class WP_Query {
+	public $found_posts = 0;
+	public $max_num_pages = 0;
+	private $query_vars = array();
+
+	public function __construct( array $query_vars = array() ) {
+		$this->query_vars = $query_vars;
+	}
+
+	public function get( $key ) {
+		return $this->query_vars[ $key ] ?? null;
+	}
+}
+
 function expect_archive_cta( $condition, $label ) {
 	if ( ! $condition ) {
 		fwrite( STDERR, "FAIL {$label}\n" );
@@ -29,6 +43,19 @@ function esc_html( $value ) {
 }
 function pera_ml_ui( $source ) {
 	return $source;
+}
+function get_option() {
+	return '';
+}
+function get_pagenum_link() {
+	return 'https://example.test/property/';
+}
+function add_query_arg( $key, $value, $url ) {
+	return $url . '?paged=' . $value;
+}
+function paginate_links( $args ) {
+	$GLOBALS['pera_test_paginate_args'] = $args;
+	return '<pagination total="' . (int) $args['total'] . '"></pagination>';
 }
 function wp_unslash( $value ) {
 	return $value;
@@ -62,6 +89,7 @@ final class Pera_Cta_Fake_Query {
 $theme = dirname( __DIR__ );
 require_once $theme . '/inc/property-card-helpers.php';
 require_once $theme . '/inc/property-archive-query.php';
+require_once $theme . '/inc/property-pagination.php';
 
 $render = static function ( int $count, int $page ): string {
 	ob_start();
@@ -123,12 +151,31 @@ foreach ( array( 11 => 1, 12 => 2, 23 => 2, 24 => 3 ) as $found => $pages ) {
 	expect_archive_cta( $pages === pera_property_archive_total_pages( $found ), "{$found} properties produce {$pages} page(s)" );
 }
 
+$synthetic_query                = new WP_Query();
+$synthetic_query->found_posts   = 0;
+$synthetic_query->max_num_pages = 5;
+$synthetic_html = pera_render_property_pagination( $synthetic_query, 2, array( 'view' => 'map' ), 'https://example.test/citizenship/' );
+expect_archive_cta( false !== strpos( $synthetic_html, 'total="5"' ), 'unmarked synthetic queries retain max_num_pages pagination' );
+expect_archive_cta( 'Prev' === $GLOBALS['pera_test_paginate_args']['prev_text'] && 'Next' === $GLOBALS['pera_test_paginate_args']['next_text'], 'pagination labels remain unchanged' );
+expect_archive_cta( array( 'view' => 'map' ) === $GLOBALS['pera_test_paginate_args']['add_args'], 'pagination query arguments remain unchanged' );
+expect_archive_cta( false !== strpos( $GLOBALS['pera_test_paginate_args']['base'], 'https://example.test/citizenship/' ), 'pagination base URL remains unchanged' );
+
+$archive_query                = new WP_Query( array( 'pera_mixed_archive_pagination' => true ) );
+$archive_query->found_posts   = 24;
+$archive_query->max_num_pages = 2;
+$archive_html = pera_render_property_pagination( $archive_query, 1, array(), 'https://example.test/property/' );
+expect_archive_cta( false !== strpos( $archive_html, 'total="3"' ), 'marked archive queries use the mixed total-page formula' );
+
 $archive = file_get_contents( $theme . '/archive-property.php' );
 $ajax    = file_get_contents( $theme . '/inc/ajax-property-archive.php' );
 $helper  = file_get_contents( $theme . '/inc/property-card-helpers.php' );
 $partial = file_get_contents( $theme . '/parts/property-search-cta-card.php' );
 $query   = file_get_contents( $theme . '/inc/property-archive-query.php' );
 $schema  = file_get_contents( $theme . '/inc/seo-property-archive.php' );
+$pagination = file_get_contents( $theme . '/inc/property-pagination.php' );
+$citizenship = file_get_contents( $theme . '/page-citizenship-properties.php' );
+$latest_offers = file_get_contents( $theme . '/inc/latest-offers-card.php' );
+$card_css = file_get_contents( $theme . '/css/property-card.css' );
 
 expect_archive_cta( false !== strpos( $archive, 'pera_render_property_archive_results(' ), 'SSR uses shared archive renderer' );
 expect_archive_cta( false !== strpos( $ajax, 'pera_render_property_archive_results(' ), 'AJAX uses shared archive renderer' );
@@ -144,11 +191,28 @@ expect_archive_cta( false !== strpos( $partial, 'data-whatsapp="1"' ) && false !
 expect_archive_cta( false !== strpos( $partial, 'esc_url( $consultancy_url )' ) && false !== strpos( $partial, 'esc_url( $whatsapp_url )' ), 'CTA URLs are escaped' );
 expect_archive_cta( false !== strpos( $archive, 'pera_property_archive_build_args_from_context( $ctx )' ), 'SSR uses the shared query builder' );
 expect_archive_cta( false !== strpos( $ajax, 'pera_property_archive_build_args_from_context( $ctx, $overrides )' ), 'AJAX uses the shared query builder' );
+expect_archive_cta( false !== strpos( $query, "'pera_mixed_archive_pagination' => true" ), 'shared archive queries explicitly opt into mixed pagination' );
+expect_archive_cta( false !== strpos( $pagination, "\$query->get( 'pera_mixed_archive_pagination' )" ), 'shared pagination requires the explicit query marker' );
+expect_archive_cta( false === strpos( $citizenship, 'pera_mixed_archive_pagination' ), 'citizenship pagination does not opt in' );
+expect_archive_cta( false === strpos( $latest_offers, 'pera_mixed_archive_pagination' ), 'Latest Offers pagination does not opt in' );
+expect_archive_cta( false !== strpos( $ajax, "unset( \$facet_args['offset'], \$facet_args['pera_mixed_archive_pagination'] )" ), 'facet queries remove offsets and the pagination marker' );
 expect_archive_cta( false !== strpos( $schema, 'pera_property_archive_position_offset( $paged )' ), 'schema uses the continuous property position offset' );
 expect_archive_cta( 0 === pera_property_archive_position_offset( 1 ), 'page-one schema starts at position one' );
 expect_archive_cta( 11 === pera_property_archive_position_offset( 2 ), 'page-two schema starts at position twelve' );
 expect_archive_cta( 23 === pera_property_archive_position_offset( 3 ), 'page-three schema starts at position twenty-four' );
 expect_archive_cta( 35 === pera_property_archive_position_offset( 4 ), 'page-four schema starts at position thirty-six' );
 expect_archive_cta( false === strpos( $helper, 'found_posts =' ) && false === strpos( $helper, 'max_num_pages =' ), 'renderer does not alter totals or pagination' );
+
+$cta_start = strpos( $card_css, '.property-search-cta {' );
+$cta_gradient = strpos( $card_css, 'radial-gradient', $cta_start );
+$cta_fallback = strpos( $card_css, 'background: var(--bg-soft);', $cta_start );
+expect_archive_cta( false !== $cta_fallback && $cta_fallback < $cta_gradient, 'CTA has a solid light background fallback before its gradient' );
+$os_dark_start = strpos( $card_css, '@media (prefers-color-scheme: dark)', $cta_start );
+$explicit_dark_start = strpos( $card_css, '[data-theme="dark"] .property-search-cta', $os_dark_start );
+$os_dark_rule = substr( $card_css, $os_dark_start, $explicit_dark_start - $os_dark_start );
+expect_archive_cta( false !== $os_dark_start && false !== strpos( $os_dark_rule, '.property-search-cta' ), 'CTA supports OS-driven dark mode' );
+expect_archive_cta( false !== strpos( $os_dark_rule, 'background: var(--pill-bg-dark);' ) && false === strpos( $os_dark_rule, 'var(--inverse)' ), 'OS dark mode uses a solid dark surface fallback' );
+expect_archive_cta( false !== $explicit_dark_start && false !== strpos( $card_css, '.dark .property-search-cta', $explicit_dark_start ), 'CTA retains explicit dark-mode selectors' );
+expect_archive_cta( false === strpos( $card_css, '--bg-soft:' ) && false === strpos( $card_css, '--pill-bg-dark:' ), 'CTA styling does not redefine global colour tokens' );
 
 echo "Property archive search CTA tests passed\n";

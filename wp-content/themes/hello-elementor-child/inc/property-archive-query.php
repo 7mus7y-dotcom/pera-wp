@@ -130,6 +130,7 @@ if ( ! function_exists( 'pera_property_archive_build_args_from_context' ) ) {
 		$args = array(
 			'post_type'              => 'property',
 			'post_status'            => 'publish',
+			'pera_mixed_archive_pagination' => true,
 			'posts_per_page'         => $page_window['posts_per_page'],
 			'paged'                  => $paged,
 			'offset'                 => $page_window['offset'],

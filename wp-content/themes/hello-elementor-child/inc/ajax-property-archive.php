@@ -375,7 +375,7 @@ if ( ! function_exists( 'pera_ajax_filter_properties_v2' ) ) {
       $facet_args['no_found_rows']  = true;
 
       // Facets cover the complete filtered set, not the current page window.
-      unset( $facet_args['offset'] );
+      unset( $facet_args['offset'], $facet_args['pera_mixed_archive_pagination'] );
 
       // For facets, ordering doesn't matter; strip meta_key/orderby just in case
       unset( $facet_args['orderby'], $facet_args['order'], $facet_args['meta_key'] );

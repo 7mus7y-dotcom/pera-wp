@@ -16,9 +16,10 @@
 /* Property archive personalised-search card. */
 .property-search-cta {
   min-width: 0;
+  background: var(--bg-soft);
   background:
     radial-gradient(circle at 100% 0%, color-mix(in srgb, var(--brand) 14%, transparent), transparent 58%),
-    var(--inverse);
+    var(--bg-soft);
 }
 
 .property-search-cta__inner {
@@ -67,11 +68,28 @@
   text-align: center;
 }
 
+@media (prefers-color-scheme: dark) {
+  .property-search-cta {
+    background: var(--pill-bg-dark);
+    background:
+      radial-gradient(circle at 100% 0%, color-mix(in srgb, var(--brand) 28%, transparent), transparent 58%),
+      var(--pill-bg-dark);
+  }
+}
+
 [data-theme="dark"] .property-search-cta,
 .dark .property-search-cta {
+  background: var(--pill-bg-dark);
   background:
     radial-gradient(circle at 100% 0%, color-mix(in srgb, var(--brand) 28%, transparent), transparent 58%),
-    var(--inverse);
+    var(--pill-bg-dark);
+}
+
+[data-theme="dark"] .property-search-cta__heading,
+[data-theme="dark"] .property-search-cta__content p,
+.dark .property-search-cta__heading,
+.dark .property-search-cta__content p {
+  color: var(--pill-text-dark);
 }
 
 .property-card__media {
