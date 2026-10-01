@@ -13,7 +13,14 @@ final class Pera_ML_Plugin {
 		$this->ui_registry = new Pera_ML_UI_Registry(); $this->ui = new Pera_ML_UI( $this->router, $this->storage, $this->translator, $this->ui_registry );
 		$this->menu = new Pera_ML_Menu( $this->router, $this->content, $this->fields, $this->ui );
 	}
-	public function boot() { $this->router->hooks(); $this->content->hooks(); $this->fields->hooks(); $this->menu->hooks(); $this->seo->hooks(); $this->ajax->hooks(); if ( is_admin() ) ( new Pera_ML_Admin( $this->registry ) )->hooks(); }
+	public function boot() { $this->upgrade(); $this->router->hooks(); $this->content->hooks(); $this->fields->hooks(); $this->menu->hooks(); $this->seo->hooks(); $this->ajax->hooks(); if ( is_admin() ) ( new Pera_ML_Admin( $this->registry ) )->hooks(); }
+	/** Enable newly shipped languages once, without rewriting translation rows or source hashes. */
+	private function upgrade() {
+		if ( version_compare( (string) get_option( 'pera_ml_db_version', '0' ), '0.3.0', '>=' ) ) return;
+		$enabled = get_option( 'pera_ml_enabled_languages', null );
+		if ( is_array( $enabled ) && ! in_array( 'ru', $enabled, true ) ) { $enabled[] = 'ru'; update_option( 'pera_ml_enabled_languages', array_values( array_unique( $enabled ) ) ); }
+		update_option( 'pera_ml_db_version', PERA_ML_VERSION );
+	}
 	public static function activate() { Pera_ML_Storage::install(); update_option( 'pera_ml_db_version', PERA_ML_VERSION ); flush_rewrite_rules( false ); }
 	public static function deactivate() { flush_rewrite_rules( false ); }
 	public function storage() { return $this->storage; } public function content() { return $this->content; } public function translator() { return $this->translator; } public function router() { return $this->router; } public function registry() { return $this->registry; }

@@ -61,6 +61,7 @@ function latest_run( $args ) {
 		array( 'object_type' => 'post', 'object_id' => 4, 'field' => 'post_title', 'language' => 'de', 'status' => 'stale' ),
 		array( 'object_type' => 'taxonomy:region', 'object_id' => 5, 'field' => 'term_name', 'language' => 'de', 'status' => 'stale' ),
 		array( 'object_type' => 'ui', 'object_id' => 6, 'field' => 'label', 'language' => 'de', 'status' => 'stale' ),
+		array( 'object_type' => 'ui', 'object_id' => 7, 'field' => 'label', 'language' => 'ru', 'status' => 'missing' ),
 	);
 	$command = 'PERA_LATEST_ROWS=' . escapeshellarg( json_encode( $rows ) )
 		. ' PERA_LATEST_ARGS=' . escapeshellarg( json_encode( $args ) )
@@ -70,7 +71,8 @@ function latest_run( $args ) {
 }
 
 $unfiltered = latest_run( array( 'dry-run' ) );
-latest_expect( 6, substr_count( $unfiltered['output'], '  DRY RUN' ), 'no object_type preserves the unfiltered pending queue' );
+latest_expect( 7, substr_count( $unfiltered['output'], '  DRY RUN' ), 'no object_type preserves the unfiltered pending queue' );
+latest_expect( true, false !== strpos( $unfiltered['output'], 'RU | ui #7 | label | missing' ), 'CLI inventory exposes Russian missing rows without a special flag' );
 latest_expect( false, false !== strpos( $unfiltered['output'], 'Object type:' ), 'no object_type preserves the existing summary' );
 
 $property_dry_run = latest_run( array( 'dry-run', 'object_type=property' ) );

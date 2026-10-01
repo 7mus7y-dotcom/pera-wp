@@ -62,6 +62,12 @@ expect_same( array( 'base', 'pera-ml-lang-ar', 'pera-ml-rtl' ), $content->body_c
 $english_content = new Pera_ML_Content( new RTLAssetsRegistry(), new RTLAssetsRouter( 'en' ), null );
 expect_same( 'lang="en" dir="ltr"', $english_content->language_attributes( '' ), 'non-Arabic document remains LTR' );
 expect_same( array( 'base', 'pera-ml-lang-en' ), $english_content->body_classes( array( 'base' ) ), 'non-Arabic body does not receive RTL class' );
+$russian_content = new Pera_ML_Content( new RTLAssetsRegistry(), new RTLAssetsRouter( 'ru' ), null );
+expect_same( 'lang="ru" dir="ltr"', $russian_content->language_attributes( '' ), 'Russian document is explicitly LTR' );
+expect_same( array( 'base', 'pera-ml-lang-ru' ), $russian_content->body_classes( array( 'base' ) ), 'Russian body does not receive RTL class' );
+$styles_before_russian = count( $GLOBALS['pera_test_styles'] );
+$russian_content->rtl_style();
+expect_same( $styles_before_russian, count( $GLOBALS['pera_test_styles'] ), 'Russian does not enqueue Arabic RTL CSS' );
 
 $GLOBALS['pera_test_main_enqueued'] = true;
 $content->rtl_style();

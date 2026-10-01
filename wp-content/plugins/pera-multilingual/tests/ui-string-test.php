@@ -62,10 +62,10 @@ expect_same( '', $ui->get( '', 'empty' ), 'empty source passthrough' );
 expect_same( 0, count( $translator->calls ), 'English reads do not call provider path' );
 $registered = $ui->inventory();
 $registered_item = reset( $registered );
-expect_same( array( 'zh' => 'missing', 'ar' => 'missing', 'de' => 'missing' ), $registered_item['statuses'], 'registered untranslated string is missing in every target language' );
+expect_same( array( 'zh' => 'missing', 'ar' => 'missing', 'de' => 'missing', 'ru' => 'missing' ), $registered_item['statuses'], 'registered untranslated string is missing in every target language' );
 expect_same( 1, count( $registered ), 'arbitrary unregistered strings do not enter inventory' );
 
-foreach ( array( 'zh' => '未找到房产。', 'ar' => 'لم يتم العثور على عقارات.', 'de' => 'Keine Immobilien gefunden.' ) as $language => $translation ) {
+foreach ( array( 'zh' => '未找到房产。', 'ar' => 'لم يتم العثور على عقارات.', 'de' => 'Keine Immobilien gefunden.', 'ru' => 'Объекты не найдены.' ) as $language => $translation ) {
 	$ui->store( 'property_archive.no_results', $source, $language, $translation );
 	$router->language = $language;
 	expect_same( $translation, $ui->get( $source, 'property_archive.no_results' ), "{$language} stored UI string" );
@@ -73,12 +73,12 @@ foreach ( array( 'zh' => '未找到房产。', 'ar' => 'لم يتم العثور
 expect_same( 'ui', $storage->puts[0][0], 'UI rows use ui object type' );
 $archive_identity = Pera_ML_UI::identity( $source, 'property_archive.no_results' );
 expect_same( $archive_identity, $storage->puts[0][2], 'semantic key is normalized and namespaced' );
-expect_same( array( 'zh' => 'current', 'ar' => 'current', 'de' => 'current' ), $ui->inventory()[ $archive_identity ]['statuses'], 'stored translations are current' );
+expect_same( array( 'zh' => 'current', 'ar' => 'current', 'de' => 'current', 'ru' => 'current' ), $ui->inventory()[ $archive_identity ]['statuses'], 'stored translations are current' );
 
 $row_count = count( $storage->rows );
 $ui->get( 'No matching properties found.', 'property_archive.no_results', 'en' );
 $changed = $ui->inventory()[ $archive_identity ];
-expect_same( array( 'zh' => 'stale', 'ar' => 'stale', 'de' => 'stale' ), $changed['statuses'], 'changed canonical source makes every old translation stale' );
+expect_same( array( 'zh' => 'stale', 'ar' => 'stale', 'de' => 'stale', 'ru' => 'stale' ), $changed['statuses'], 'changed canonical source makes every old translation stale' );
 expect_same( $row_count, count( $storage->rows ), 'stale translation rows remain stored' );
 $ui->get( $source, 'property_archive.no_results', 'en' );
 

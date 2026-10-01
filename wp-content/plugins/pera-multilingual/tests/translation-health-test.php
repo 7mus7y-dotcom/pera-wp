@@ -38,7 +38,7 @@ final class Health_Storage {
 		return null;
 	}
 }
-final class Health_Languages { public function enabled() { return array( 'en'=>array('source'=>true), 'zh'=>array('source'=>false), 'ar'=>array('source'=>false), 'de'=>array('source'=>false) ); } }
+final class Health_Languages { public function enabled() { return array( 'en'=>array('source'=>true), 'zh'=>array('source'=>false), 'ar'=>array('source'=>false), 'de'=>array('source'=>false), 'ru'=>array('source'=>false) ); } }
 require dirname( __DIR__ ) . '/includes/class-fields.php';
 require dirname( __DIR__ ) . '/includes/class-translation-health.php';
 $fields_service = new Pera_ML_Fields( null, null, null );
@@ -56,30 +56,31 @@ $status = new Health_Status();
 $inventory = ( new Pera_ML_Translation_Health( $status, new Health_Storage(), new Health_UI(), new Health_Languages() ) )->inventory();
 health_expect( array( 'post', 'page', 'property', 'team' ), array_column( $status->preloads, 2 ), 'status is preloaded once per non-empty post-type group' );
 health_expect( array( 1, 2 ), $status->preloads[0][0], 'post IDs are grouped into one preload' );
-health_expect( 12, $status->gets, 'preloaded request-local status is read only for objects with canonical copy' );
+health_expect( 16, $status->gets, 'preloaded request-local status is read only for objects with canonical copy' );
 $empty_rows = array_filter( $inventory['rows'], static function ( $row ) { return 2 === $row['object_id']; } );
 health_expect( 0, count( $empty_rows ), 'whitespace and empty canonical content is not offered' );
 $position_rows = array_values( array_filter( $inventory['rows'], static function ( $row ) { return 5 === $row['object_id'] && 'meta:position' === $row['field']; } ) );
-health_expect( array( 'zh', 'ar', 'de' ), array_column( $position_rows, 'language' ), 'populated Team position is inventoried for every target language' );
-health_expect( array( 'missing', 'missing', 'missing' ), array_column( $position_rows, 'status' ), 'untranslated Team position is reported missing' );
+health_expect( array( 'zh', 'ar', 'de', 'ru' ), array_column( $position_rows, 'language' ), 'populated Team position is inventoried for every target language' );
+health_expect( array( 'missing', 'missing', 'missing', 'missing' ), array_column( $position_rows, 'status' ), 'untranslated Team position is reported missing' );
 $empty_position_rows = array_filter( $inventory['rows'], static function ( $row ) { return 6 === $row['object_id']; } );
 health_expect( 0, count( $empty_position_rows ), 'empty Team position does not generate translation work' );
 health_expect( 2, $inventory['counts']['taxonomies']['zh']['current'], 'supported taxonomy and category meta current count' );
 health_expect( 1, $inventory['counts']['taxonomies']['ar']['stale'], 'supported taxonomy meta stale count' );
 health_expect( 10, $inventory['counts']['taxonomies']['de']['missing'], 'supported taxonomy missing counts include populated category fields' );
+health_expect( 10, $inventory['counts']['taxonomies']['ru']['missing'], 'Russian taxonomy backlog is naturally reported missing' );
 $category_rows = array_values( array_filter( $inventory['rows'], static function ( $row ) { return 'taxonomy:category' === $row['object_type']; } ) );
-health_expect( 12, count( $category_rows ), 'populated category text fields create health rows for every target language' );
-health_expect( array( 'term_name', 'term_name', 'term_name', 'term_description', 'term_description', 'term_description', 'meta:seo_title', 'meta:seo_title', 'meta:seo_title', 'meta:archive_h1', 'meta:archive_h1', 'meta:archive_h1' ), array_column( $category_rows, 'field' ), 'category health inventories each populated canonical field for every target language' );
-health_expect( array( 'missing', 'missing', 'missing', 'missing', 'missing', 'missing', 'current', 'missing', 'missing', 'stale', 'missing', 'missing' ), array_column( $category_rows, 'status' ), 'category ACF translations distinguish missing, stale, and current states' );
+health_expect( 16, count( $category_rows ), 'populated category text fields create health rows for every target language' );
+health_expect( array( 'term_name', 'term_name', 'term_name', 'term_name', 'term_description', 'term_description', 'term_description', 'term_description', 'meta:seo_title', 'meta:seo_title', 'meta:seo_title', 'meta:seo_title', 'meta:archive_h1', 'meta:archive_h1', 'meta:archive_h1', 'meta:archive_h1' ), array_column( $category_rows, 'field' ), 'category health inventories each populated canonical field for every target language' );
+health_expect( array( 'missing', 'missing', 'missing', 'missing', 'missing', 'missing', 'missing', 'missing', 'current', 'missing', 'missing', 'missing', 'stale', 'missing', 'missing', 'missing' ), array_column( $category_rows, 'status' ), 'category ACF translations distinguish missing, stale, and current states' );
 $category_state = ( new Pera_ML_Translation_Health( $status, new Health_Storage(), new Health_UI(), new Health_Languages() ) )->term_status( get_terms( array( 'taxonomy' => 'category' ) )[0], 'category', 'zh' );
 health_expect( 1, $category_state['current'], 'populated category ACF field can be current' );
 health_expect( array( 'meta:archive_h1' ), $category_state['stale'], 'changed category ACF source is stale' );
 health_expect( true, in_array( 'term_name', $category_state['missing'], true ), 'untranslated category source is missing' );
 $tag_rows = array_values( array_filter( $inventory['rows'], static function ( $row ) { return 'taxonomy:post_tag' === $row['object_type']; } ) );
-health_expect( 6, count( $tag_rows ), 'post_tag name and description create health rows for every target language' );
+health_expect( 8, count( $tag_rows ), 'post_tag name and description create health rows for every target language' );
 $faq_rows = array_filter( $inventory['rows'], static function ( $row ) { return 'meta:seo_faq_v2' === $row['field']; } );
-health_expect( array( 'zh', 'ar', 'de' ), array_values( array_column( $faq_rows, 'language' ) ), 'canonical taxonomy FAQ creates one health row per target language' );
-health_expect( array( 'missing', 'missing', 'missing' ), array_values( array_column( $faq_rows, 'status' ) ), 'untranslated taxonomy FAQ rows are missing' );
+health_expect( array( 'zh', 'ar', 'de', 'ru' ), array_values( array_column( $faq_rows, 'language' ) ), 'canonical taxonomy FAQ creates one health row per target language' );
+health_expect( array( 'missing', 'missing', 'missing', 'missing' ), array_values( array_column( $faq_rows, 'status' ) ), 'untranslated taxonomy FAQ rows are missing' );
 $GLOBALS['term_meta'][42]['seo_faq_v2'] = '   ';
 $empty_inventory = ( new Pera_ML_Translation_Health( $status, new Health_Storage(), new Health_UI(), new Health_Languages() ) )->inventory();
 $empty_faq_rows = array_filter( $empty_inventory['rows'], static function ( $row ) { return 'meta:seo_faq_v2' === $row['field']; } );
