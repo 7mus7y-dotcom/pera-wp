@@ -38,6 +38,7 @@ final class Echo_Test_Storage {
 
 $source = "<ul>\n  <li>Title deed and ownership information;</li>\n  <li>Whether the seller and transaction structure are suitable for citizenship;</li>\n  <li>Whether the property has previously been used for a citizenship application in a way that affects eligibility;</li>\n  <li>Planning, occupancy and property-specific documentation where relevant;</li>\n  <li>Whether the proposed price is likely to be supported by the official valuation; and</li>\n  <li>Whether the payment route can be documented correctly.</li>\n</ul>";
 $registry = new class { public function get( $language ) { return array( 'name' => $language, 'source' => false ); } };
+$initial_responses = array();
 
 foreach ( array(
 	'zh' => array(
@@ -48,12 +49,17 @@ foreach ( array(
 		array( 'Title deed and ownership information; سند الملكية ومعلوماتها؛', 'ما إذا كان البائع وهيكل المعاملة مناسبين للجنسية؛', 'ما إذا كان العقار قد استُخدم سابقاً في طلب جنسية يؤثر في الأهلية؛', 'وثائق التخطيط والإشغال والعقار ذات الصلة؛', 'ما إذا كان السعر المقترح مدعوماً بالتقييم الرسمي؛ و', 'ما إذا كان يمكن توثيق مسار الدفع بشكل صحيح.' ),
 		'سند الملكية ومعلوماتها؛',
 	),
+	'ru' => array(
+		array( 'Title deed and ownership information; Информация о праве собственности;', 'Подходит ли продавец и структура сделки для гражданства;', 'Использовалась ли недвижимость ранее для заявления на гражданство таким образом, который влияет на право участия;', 'Соответствующая документация по планированию, вводу в эксплуатацию и недвижимости;', 'Вероятно ли, что предложенная цена будет подтверждена официальной оценкой; и', 'Можно ли правильно документировать маршрут платежа.' ),
+		'Информация о праве собственности;',
+	),
 ) as $language => $responses ) {
 	$storage = new Echo_Test_Storage();
 	$translator = new Pera_ML_Translator( $registry, $storage );
 	$protected_source = $translator->protect( $source );
 	$english_items = array( 'Title deed and ownership information;', 'Whether the seller and transaction structure are suitable for citizenship;', 'Whether the property has previously been used for a citizenship application in a way that affects eligibility;', 'Planning, occupancy and property-specific documentation where relevant;', 'Whether the proposed price is likely to be supported by the official valuation; and', 'Whether the payment route can be documented correctly.' );
 	$initial_response = str_replace( $english_items, $responses[0], $protected_source['text'] );
+	$initial_responses[ $language ] = $initial_response;
 	$GLOBALS['echo_test_provider'] = new Echo_Test_Provider( array( $initial_response, $responses[1] ) );
 	$result = $translator->translate_and_store( 'post', 10, 'post_content', $language, $source, 'mock' );
 	expect_same( false, is_wp_error( $result ), $language . ' translation succeeds after retry' );
@@ -61,15 +67,34 @@ foreach ( array(
 	expect_same( 'Title deed and ownership information;', $GLOBALS['echo_test_provider']->calls[1]['source'], $language . ' retries exact affected text' );
 	expect_same( true, false !== strpos( $GLOBALS['echo_test_provider']->calls[1]['instructions'], 'Return only the target-language translation. Do not repeat or include the English source text.' ), $language . ' strict retry instruction' );
 	expect_same( true, false !== strpos( $result, $responses[1] ), $language . ' retry replaces echoed item' );
-	expect_same( true, false !== strpos( $result, '<li>' . ( 'zh' === $language ? '卖方和交易结构是否适合入籍；' : 'ما إذا كان البائع وهيكل المعاملة مناسبين للجنسية؛' ) . '</li>' ), $language . ' successful sibling remains unchanged' );
+	$successful_siblings = array( 'zh' => '卖方和交易结构是否适合入籍；', 'ar' => 'ما إذا كان البائع وهيكل المعاملة مناسبين للجنسية؛', 'ru' => 'Подходит ли продавец и структура сделки для гражданства;' );
+	expect_same( true, false !== strpos( $result, '<li>' . $successful_siblings[ $language ] . '</li>' ), $language . ' successful sibling remains unchanged' );
 	expect_same( 1, count( $storage->puts ), $language . ' stores only successful final result' );
 }
 
 $storage = new Echo_Test_Storage();
-$GLOBALS['echo_test_provider'] = new Echo_Test_Provider( array( $initial_response, 'Title deed and ownership information; سند الملكية ومعلوماتها؛' ) );
+$GLOBALS['echo_test_provider'] = new Echo_Test_Provider( array( $initial_responses['ar'], 'Title deed and ownership information; سند الملكية ومعلوماتها؛' ) );
 $translator = new Pera_ML_Translator( $registry, $storage );
 $failed = $translator->translate_and_store( 'post', 11, 'post_content', 'ar', $source, 'mock' );
 expect_same( 'pera_ml_source_echo', $failed->get_error_code(), 'persistent source echo fails safely' );
 expect_same( 0, count( $storage->puts ), 'persistent source echo is not stored' );
+
+$storage = new Echo_Test_Storage();
+$valid_russian = str_replace( $english_items, array( 'Информация о праве собственности;', 'Подходит ли продавец и структура сделки для гражданства;', 'Использовалась ли недвижимость ранее для заявления на гражданство;', 'Документация по планированию и недвижимости;', 'Цена должна подтверждаться официальной оценкой;', 'Маршрут платежа должен быть документирован.' ), $protected_source['text'] );
+$GLOBALS['echo_test_provider'] = new Echo_Test_Provider( array( $valid_russian ) );
+$translator = new Pera_ML_Translator( $registry, $storage );
+$valid = $translator->translate_and_store( 'post', 12, 'post_content', 'ru', $source, 'mock' );
+expect_same( false, is_wp_error( $valid ), 'valid Russian translation passes source-echo validation' );
+expect_same( 1, count( $GLOBALS['echo_test_provider']->calls ), 'valid Russian translation does not retry' );
+expect_same( 1, count( $storage->puts ), 'valid Russian translation is stored' );
+
+$storage = new Echo_Test_Storage();
+$russian_echo = $initial_responses['ru'];
+$GLOBALS['echo_test_provider'] = new Echo_Test_Provider( array( $russian_echo, 'Title deed and ownership information; Информация о праве собственности;' ) );
+$translator = new Pera_ML_Translator( $registry, $storage );
+$failed = $translator->translate_and_store( 'post', 13, 'post_content', 'ru', $source, 'mock' );
+expect_same( 'pera_ml_source_echo', $failed->get_error_code(), 'persistent Russian source echo fails safely after retry' );
+expect_same( 2, count( $GLOBALS['echo_test_provider']->calls ), 'Russian source echo invokes the strict retry' );
+expect_same( 0, count( $storage->puts ), 'persistent Russian source echo is not stored' );
 
 echo "Pera ML source-echo retry tests passed\n";

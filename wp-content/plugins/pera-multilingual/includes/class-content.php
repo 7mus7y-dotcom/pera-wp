@@ -62,7 +62,7 @@ final class Pera_ML_Content {
 		$request = isset( $_SERVER['REQUEST_URI'] ) ? wp_unslash( (string) $_SERVER['REQUEST_URI'] ) : '/';
 		$url = home_url( $request );
 		$html = '<nav class="pera-ml-switcher" aria-label="' . esc_attr__( 'Language', 'pera-multilingual' ) . '"><ul>';
-		foreach ( $this->registry->enabled() as $code => $language ) {
+		foreach ( $this->registry->publicly_available() as $code => $language ) {
 			$html .= '<li><a hreflang="' . esc_attr( $code ) . '" lang="' . esc_attr( $code ) . '"' . ( $code === $current ? ' aria-current="page"' : '' ) . ' href="' . esc_url( $this->router->url_for_language( $url, $code ) ) . '">' . esc_html( $language['native_name'] ) . '</a></li>';
 		}
 		return $html . '</ul></nav>';

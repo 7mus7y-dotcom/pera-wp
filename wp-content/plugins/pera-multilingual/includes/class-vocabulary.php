@@ -3,7 +3,7 @@ defined( 'ABSPATH' ) || exit;
 
 final class Pera_ML_Vocabulary {
 	public function facility_terms() {
-		return array(
+		$terms = array(
 			'24 7 security' => array( 'zh' => '全天候安保', 'ar' => 'أمن على مدار الساعة', 'de' => 'Rund-um-die-Uhr-Sicherheitsdienst' ),
 			'5 star hotel' => array( 'zh' => '五星级酒店', 'ar' => 'فندق خمس نجوم', 'de' => 'Fünf-Sterne-Hotel' ),
 			'Art room' => array( 'zh' => '艺术室', 'ar' => 'غرفة فنون', 'de' => 'Kunstraum' ),
@@ -79,6 +79,34 @@ final class Pera_ML_Vocabulary {
 			'Water Sports' => array( 'zh' => '水上运动', 'ar' => 'رياضات مائية', 'de' => 'Wassersportangebot' ),
 			'Yacht Marina' => array( 'zh' => '游艇码头', 'ar' => 'مرسى يخوت', 'de' => 'Yachthafen' ),
 		);
+		$russian = array(
+			'24 7 security' => 'Круглосуточная охрана', '5 star hotel' => 'Пятизвёздочный отель', 'Art room' => 'Художественная студия',
+			'Basketball courts' => 'Баскетбольные площадки', 'Bicycle Path' => 'Велосипедная дорожка', 'Botanic park' => 'Ботанический парк',
+			'Café' => 'Кафе', 'Car rental' => 'Прокат автомобилей', 'Central Satellite System' => 'Центральная спутниковая система',
+			'Child play areas' => 'Детские игровые площадки', 'Child swimming pool' => 'Детский бассейн', 'Commercial space' => 'Коммерческие помещения',
+			'Concierge' => 'Консьерж-сервис', 'Creche' => 'Детские ясли', 'Elevator' => 'Лифт', 'Football courts' => 'Футбольные поля',
+			'Forest View' => 'Вид на лес', 'Games Room' => 'Игровая комната', 'Generator' => 'Электрогенератор',
+			'Guest bedrooms' => 'Гостевые спальни', 'Guest Rooms' => 'Гостевые комнаты', 'Gym' => 'Тренажёрный зал',
+			'Helipad' => 'Вертолётная площадка', 'Hobby room' => 'Комната для хобби', 'House Keeping' => 'Услуги по уборке',
+			'Indoor Cinema' => 'Крытый кинотеатр', 'Indoor swimming pool' => 'Крытый бассейн', 'Kids club' => 'Детский клуб',
+			'Table tennis' => 'Настольный теннис', 'Lake' => 'Озеро', 'Lake View' => 'Вид на озеро', 'Landscaped gardens' => 'Ландшафтные сады',
+			'Lobby' => 'Лобби', 'Mall' => 'Торговый центр', 'Meeting Area' => 'Зона для встреч', 'Meeting rooms' => 'Переговорные комнаты',
+			'Metro station' => 'Станция метро', 'Music room' => 'Музыкальная комната', 'Open air cinema' => 'Кинотеатр под открытым небом',
+			'Ornamental fountains' => 'Декоративные фонтаны', 'Outdoor exercise area' => 'Открытая спортивная площадка',
+			'Outdoor Parking' => 'Открытая парковка', 'Outdoor swimming pool' => 'Открытый бассейн', 'Party room' => 'Зал для мероприятий',
+			'Playstation room' => 'Комната с игровыми приставками', 'Private garden' => 'Частный сад', 'Promenade' => 'Прогулочная набережная',
+			'Reception' => 'Стойка регистрации', 'Recreation areas' => 'Зоны отдыха', 'Restaurant' => 'Ресторан',
+			'Rooftop restaurant' => 'Ресторан на крыше', 'Rooftop terrace' => 'Терраса на крыше', 'Sauna' => 'Сауна', 'Sea View' => 'Вид на море',
+			'Skateboarding park' => 'Скейт-парк', 'Smart home system' => 'Система «умный дом»', 'Spa' => 'Спа-центр',
+			'Sports hall' => 'Спортивный зал', 'Squash' => 'Корт для сквоша', 'Sunbathing terraces' => 'Террасы для загара',
+			'Tennis Court' => 'Теннисный корт', 'Turkish baths' => 'Турецкие бани', 'Underfloor heating' => 'Тёплый пол',
+			'Underground parking' => 'Подземная парковка', 'University' => 'Университет', 'Valet parking' => 'Парковка с услугами парковщика',
+			'Vehicle Charger Station' => 'Зарядная станция для электромобилей', 'Vitamin Bar' => 'Витамин-бар',
+			'Volleyball courts' => 'Волейбольные площадки', 'Walking parkour' => 'Прогулочная дорожка', 'Water depot' => 'Резервуар для воды',
+			'Water Park' => 'Аквапарк', 'Water Sports' => 'Водные виды спорта', 'Yacht Marina' => 'Яхтенная марина',
+		);
+		foreach ( $russian as $source => $translation ) $terms[ $source ]['ru'] = $translation;
+		return $terms;
 	}
 	public function terms() {
 		$terms = array(
@@ -107,6 +135,19 @@ final class Pera_ML_Vocabulary {
 			'Family Concept' => array( 'zh' => '家庭社区理念', 'ar' => 'مفهوم عائلي', 'de' => 'Familienkonzept' ),
 			'Restored Building' => array( 'zh' => '修复建筑', 'ar' => 'مبنى مُرمم', 'de' => 'Restauriertes Gebäude' ),
 		);
+		$russian = array(
+			'Apartment' => 'Квартира', 'Villa' => 'Вилла', 'Commercial' => 'Коммерческая недвижимость', 'For Sale' => 'На продажу',
+			'For Rent' => 'В аренду', 'Sea View' => 'Вид на море', 'Bosphorus View' => 'Вид на Босфор', 'Furnished' => 'С мебелью',
+			'Unfurnished' => 'Без мебели', 'Parking' => 'Парковка', 'Swimming Pool' => 'Бассейн',
+			'Citizenship Suitable' => 'Подходит для получения гражданства', 'Investment Suitable' => 'Подходит для инвестиций',
+			'Investor' => 'Инвестор', 'Family' => 'Семья', 'Luxury Buyer' => 'Покупатель элитной недвижимости',
+			'Citizenship Buyer' => 'Покупатель для получения гражданства', 'Holiday Home Buyer' => 'Покупатель дома для отдыха',
+			'Second Home Buyer' => 'Покупатель второго жилья', 'Retiree' => 'Пенсионер', 'Professional' => 'Специалист',
+			'City Centre' => 'Центр города', 'Citizenship Eligible' => 'Подходит для получения гражданства', 'Metro Access' => 'Рядом с метро',
+			'Luxury Residence' => 'Элитный жилой комплекс', 'Hotel Residence' => 'Резиденция гостиничного типа', 'Key Ready' => 'Готово к заселению',
+			'Payment Plan' => 'Рассрочка платежа', 'Family Concept' => 'Семейная концепция', 'Restored Building' => 'Отреставрированное здание',
+		);
+		foreach ( $russian as $source => $translation ) $terms[ $source ]['ru'] = $translation;
 		return apply_filters( 'pera_ml_controlled_vocabulary', $terms );
 	}
 	public function translate_for_field( $field, $value, $language ) {

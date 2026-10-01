@@ -625,11 +625,12 @@ final class Pera_ML_Translator {
 	}
 	/**
 	 * Require target-script text plus an exact run of at least four English words.
-	 * Deliberately limited to zh/ar: German and English both use Latin script, so a
-	 * script test would reject legitimate German. This does not weaken zh/ar checks.
+	 * Deliberately limited to target languages with a distinct script. German and
+	 * English both use Latin script, so a script test would reject legitimate German.
 	 */
 	private function has_source_echo( $source, $translated, $language, $glossary = '' ) {
-		$target_pattern = 'zh' === $language ? '/\p{Han}/u' : ( 'ar' === $language ? '/\p{Arabic}/u' : '' );
+		$target_patterns = array( 'zh' => '/\p{Han}/u', 'ar' => '/\p{Arabic}/u', 'ru' => '/\p{Cyrillic}/u' );
+		$target_pattern = isset( $target_patterns[ $language ] ) ? $target_patterns[ $language ] : '';
 		if ( ! $target_pattern || ! preg_match( $target_pattern, (string) $translated ) ) return false;
 		$protected = $this->protect( $source );
 		$candidate_source = strtr( $protected['text'], array_fill_keys( array_keys( $protected['tokens'] ), ' ' ) );

@@ -863,7 +863,7 @@ function pera_render_header_language_switcher( $context = 'desktop' ) {
 
   $registry  = $plugin->registry();
   $router    = $plugin->router();
-  $languages = $registry->enabled();
+  $languages = $registry->publicly_available();
   if ( count( $languages ) < 2 ) {
     return;
   }

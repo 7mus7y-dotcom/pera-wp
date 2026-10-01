@@ -31,10 +31,15 @@ $facility_values = array(
 );
 $vocabulary = new Pera_ML_Vocabulary();
 expect_same( 74, count( $facility_values ), 'the production facility fixture contains every canonical value' );
-foreach ( $facility_values as $facility ) foreach ( array( 'zh', 'ar', 'de' ) as $language ) {
+foreach ( $facility_values as $facility ) foreach ( array( 'zh', 'ar', 'de', 'ru' ) as $language ) {
 	expect_same( false, $facility === $vocabulary->translate_for_field( 'facilities', $facility, $language ), $facility . ' has a distinct ' . strtoupper( $language ) . ' controlled translation' );
 }
+foreach ( $vocabulary->terms() as $source => $translations ) {
+	expect_same( true, isset( $translations['ru'] ) && '' !== $translations['ru'] && $source !== $translations['ru'], $source . ' has a distinct Russian controlled translation' );
+}
 expect_same( 'Unknown production facility', $vocabulary->translate_for_field( 'facilities', 'Unknown production facility', 'de' ), 'unknown facility falls back unchanged' );
+expect_same( 'Unknown production facility', $vocabulary->translate_for_field( 'facilities', 'Unknown production facility', 'ru' ), 'unknown Russian facility falls back unchanged' );
+expect_same( 'Unknown advantage', $vocabulary->translate_for_field( 'property_key_advantages', 'Unknown advantage', 'ru' ), 'unknown Russian general vocabulary falls back unchanged' );
 expect_same( 'Empfangsbereich', $vocabulary->translate_for_field( 'facilities', 'Reception', 'de' ), 'Reception uses its facility-specific translation' );
 expect_same( 'Reception', $vocabulary->translate( 'Reception', 'de' ), 'facility vocabulary does not affect global translation' );
 
@@ -73,6 +78,11 @@ $router->language = 'ar';
 expect_same( array( 'إطلالة بحرية', 'جاهز للتسليم' ), $fields->acf_value( array( 'Sea View', 'Key Ready' ), new WP_Post( 80, 'property' ), array( 'name' => 'property_key_advantages' ) ), 'advantage labels are formatted in Arabic' );
 $router->language = 'de';
 expect_same( array( 'Investor', 'Familie' ), $fields->acf_value( array( 'Investor', 'Family' ), new WP_Post( 80, 'property' ), array( 'name' => 'target_buyer_type' ) ), 'buyer labels are formatted in German' );
+$router->language = 'ru';
+expect_same( array( 'Крытый бассейн', 'Тренажёрный зал' ), $fields->acf_value( $GLOBALS['meta'][80]['facilities'], new WP_Post( 80, 'property' ), array( 'name' => 'facilities' ) ), 'facility labels are formatted in Russian' );
+expect_same( array( 'Инвестор', 'Семья' ), $fields->acf_value( array( 'Investor', 'Family' ), new WP_Post( 80, 'property' ), array( 'name' => 'target_buyer_type' ) ), 'buyer labels are formatted in Russian' );
+expect_same( array( 'Вид на море', 'Готово к заселению' ), $fields->acf_value( array( 'Sea View', 'Key Ready' ), new WP_Post( 80, 'property' ), array( 'name' => 'property_key_advantages' ) ), 'advantage labels are formatted in Russian' );
+expect_same( array( 'Unknown advantage' ), $fields->acf_value( array( 'Unknown advantage' ), new WP_Post( 80, 'property' ), array( 'name' => 'property_key_advantages' ) ), 'unknown controlled values remain canonical in Russian arrays' );
 expect_same( array( 'Swimming Pool' ), $fields->acf_value( array( 'Swimming Pool' ), new WP_Post( 80, 'post' ), array( 'name' => 'facilities' ) ), 'controlled rendering is property-specific' );
 expect_same( array( 10, 11 ), $fields->acf_value( array( 10, 11 ), new WP_Post( 80, 'property' ), array( 'name' => 'gallery' ) ), 'other property arrays remain untouched' );
 $router->language = 'en';

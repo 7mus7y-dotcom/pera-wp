@@ -2,17 +2,20 @@
 /**
  * Plugin Name: Pera Multilingual
  * Description: Server-rendered, stored multilingual versions of Pera Property content.
- * Version: 0.2.0
+ * Version: 0.3.0
  * Author: Pera Property
  * Text Domain: pera-multilingual
  */
 
 defined( 'ABSPATH' ) || exit;
 
-define( 'PERA_ML_VERSION', '0.2.0' );
+define( 'PERA_ML_VERSION', '0.3.0' );
 define( 'PERA_ML_FILE', __FILE__ );
 define( 'PERA_ML_DIR', plugin_dir_path( __FILE__ ) );
 define( 'PERA_ML_URL', plugin_dir_url( __FILE__ ) );
+
+// Temporary launch control: Russian remains internally enabled and directly routable.
+if ( ! defined( 'PERA_ML_PUBLIC_RUSSIAN_ENABLED' ) ) define( 'PERA_ML_PUBLIC_RUSSIAN_ENABLED', false );
 
 require_once PERA_ML_DIR . 'includes/class-language-registry.php';
 require_once PERA_ML_DIR . 'includes/class-storage.php';

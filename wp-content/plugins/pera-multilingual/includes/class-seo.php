@@ -31,7 +31,7 @@ final class Pera_ML_SEO {
 	public function alternates() {
 		if ( is_404() || is_admin() ) return;
 		$current = $this->current_url();
-		foreach ( $this->registry->enabled() as $code => $language ) {
+		foreach ( $this->registry->publicly_available() as $code => $language ) {
 			$hreflang = isset( $language['hreflang'] ) ? $language['hreflang'] : $code;
 			echo '<link rel="alternate" hreflang="' . esc_attr( $hreflang ) . '" href="' . esc_url( $this->router->url_for_language( $current, $code ) ) . '" />' . "\n";
 		}

@@ -2,6 +2,8 @@
 /** Focused standalone regression tests for the two public header switchers. */
 
 define( 'ABSPATH', __DIR__ );
+$public_russian = isset( $argv[1] ) && 'public-russian' === $argv[1];
+define( 'PERA_ML_PUBLIC_RUSSIAN_ENABLED', $public_russian );
 
 function public_switcher_expect( $condition, $label ) {
 	if ( ! $condition ) {
@@ -25,14 +27,20 @@ final class Public_Switcher_Test_Registry {
 			'zh' => array( 'native_name' => '中文', 'compact_name' => '中文', 'hreflang' => 'zh-CN' ),
 			'ar' => array( 'native_name' => 'العربية', 'compact_name' => 'AR', 'hreflang' => 'ar' ),
 			'de' => array( 'native_name' => 'Deutsch', 'compact_name' => 'DE', 'hreflang' => 'de-DE' ),
+			'ru' => array( 'native_name' => 'Русский', 'compact_name' => 'RU', 'hreflang' => 'ru' ),
 		);
+	}
+	public function publicly_available() {
+		$languages = $this->enabled();
+		if ( ! PERA_ML_PUBLIC_RUSSIAN_ENABLED ) unset( $languages['ru'] );
+		return $languages;
 	}
 }
 
 final class Public_Switcher_Test_Router {
 	public function current_language() { return 'zh'; }
 	public function url_for_language( $url, $code ) {
-		$path = preg_replace( '#^/(?:zh|ar|de)(?=/|$)#', '', (string) parse_url( $url, PHP_URL_PATH ) );
+		$path = preg_replace( '#^/(?:zh|ar|de|ru)(?=/|$)#', '', (string) parse_url( $url, PHP_URL_PATH ) );
 		return 'https://example.test/' . ( 'en' === $code ? '' : $code . '/' ) . ltrim( $path, '/' );
 	}
 }
@@ -70,8 +78,10 @@ foreach ( array( 'logged-out visitor', 'logged-in normal visitor', 'administrato
 		pera_render_header_language_switcher( $context );
 		$html = ob_get_clean();
 		public_switcher_expect( false !== strpos( $html, 'header-language-switcher--' . $context ), "{$visitor}: {$context} switcher renders" );
-		public_switcher_expect( 4 === substr_count( $html, '<a' ), "{$visitor}: enabled language list remains English, Chinese, Arabic, and German" );
+		public_switcher_expect( ( $public_russian ? 5 : 4 ) === substr_count( $html, '<a' ), "{$visitor}: public language list respects the Russian launch gate" );
 		public_switcher_expect( false !== strpos( $html, 'href="https://example.test/de/current-property/"' ), "{$visitor}: links use the route-preserving router" );
+		$russian_visible = false !== strpos( $html, 'href="https://example.test/ru/current-property/"' ) && false !== strpos( $html, '>Русский</a>' );
+		public_switcher_expect( $public_russian === $russian_visible, "{$visitor}: Russian selector visibility respects the launch gate" );
 		public_switcher_expect( false !== strpos( $html, 'lang="zh"' ) && false !== strpos( $html, 'aria-current="page"' ), "{$visitor}: current language remains selected" );
 		if ( 'desktop' === $context ) {
 			preg_match( '/<button class="header-language-switcher__toggle".*?<\/button>/s', $html, $toggle_match );
@@ -84,6 +94,11 @@ foreach ( array( 'logged-out visitor', 'logged-in normal visitor', 'administrato
 			public_switcher_expect( false === strpos( $html, '<svg' ) && false !== strpos( $html, 'header-language-switcher__title">Language</span>' ), "{$visitor}: mobile switcher remains textual" );
 		}
 	}
+}
+
+if ( ! $public_russian ) {
+	$command = escapeshellarg( PHP_BINARY ) . ' ' . escapeshellarg( __FILE__ ) . ' public-russian';
+	public_switcher_expect( false !== strpos( (string) shell_exec( $command ), 'tests passed' ), 'selectors include Russian when the public gate is enabled' );
 }
 
 echo "Pera ML public header switcher tests passed\n";

@@ -17,6 +17,7 @@ if ( ! function_exists( 'pera_ml_format_property_date' ) ) {
 			'en' => array( 1 => 'January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December' ),
 			'de' => array( 1 => 'Januar', 'Februar', 'März', 'April', 'Mai', 'Juni', 'Juli', 'August', 'September', 'Oktober', 'November', 'Dezember' ),
 			'ar' => array( 1 => 'يناير', 'فبراير', 'مارس', 'أبريل', 'مايو', 'يونيو', 'يوليو', 'أغسطس', 'سبتمبر', 'أكتوبر', 'نوفمبر', 'ديسمبر' ),
+			'ru' => array( 1 => 'января', 'февраля', 'марта', 'апреля', 'мая', 'июня', 'июля', 'августа', 'сентября', 'октября', 'ноября', 'декабря' ),
 		);
 		$language = isset( $months[ $language ] ) ? $language : 'en';
 		return sprintf( '%d %s %s', $day, $months[ $language ][ $month ], $year );

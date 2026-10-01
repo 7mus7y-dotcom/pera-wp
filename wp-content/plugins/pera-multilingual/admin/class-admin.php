@@ -194,17 +194,18 @@ final class Pera_ML_Admin {
 	}
 	public function ui_strings_page() {
 		if ( ! current_user_can( 'manage_options' ) ) return;
-		$items = Pera_ML_Plugin::instance()->ui()->inventory();
+		$target_languages = array_keys( $this->target_languages() );
+		$items = Pera_ML_Plugin::instance()->ui()->inventory( $target_languages );
 		$labels = array( 'current' => __( 'Current', 'pera-multilingual' ), 'missing' => __( 'Missing', 'pera-multilingual' ), 'stale' => __( 'Stale', 'pera-multilingual' ) );
 		?>
 		<div class="wrap"><h1><?php esc_html_e( 'UI Strings', 'pera-multilingual' ); ?></h1>
 		<p><?php esc_html_e( 'This inventory contains only copy registered through pera_ml_ui(). Viewing frontend pages can register copy, but never creates translations or calls a provider.', 'pera-multilingual' ); ?></p>
 		<?php if ( isset( $_GET['pera_ml_ui_updated'] ) ) : ?><div class="notice notice-success is-dismissible"><p><?php esc_html_e( 'UI-string translation work completed.', 'pera-multilingual' ); ?></p></div><?php endif; ?>
 		<form method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>"><input type="hidden" name="action" value="pera_ml_complete_ui"><?php wp_nonce_field( 'pera_ml_complete_ui' ); ?><?php submit_button( __( 'Complete all Missing / Stale', 'pera-multilingual' ), 'primary', 'submit', false ); ?></form>
-		<table class="widefat striped" style="margin-top:16px"><thead><tr><th><?php esc_html_e( 'Semantic key', 'pera-multilingual' ); ?></th><th><?php esc_html_e( 'Canonical English source', 'pera-multilingual' ); ?></th><?php foreach ( array( 'zh', 'ar', 'de' ) as $language ) : ?><th><?php echo esc_html( strtoupper( $language ) ); ?></th><?php endforeach; ?></tr></thead><tbody>
-		<?php if ( ! $items ) : ?><tr><td colspan="5"><?php esc_html_e( 'No UI strings have been registered yet.', 'pera-multilingual' ); ?></td></tr><?php endif; ?>
+		<table class="widefat striped" style="margin-top:16px"><thead><tr><th><?php esc_html_e( 'Semantic key', 'pera-multilingual' ); ?></th><th><?php esc_html_e( 'Canonical English source', 'pera-multilingual' ); ?></th><?php foreach ( $target_languages as $language ) : ?><th><?php echo esc_html( strtoupper( $language ) ); ?></th><?php endforeach; ?></tr></thead><tbody>
+		<?php if ( ! $items ) : ?><tr><td colspan="<?php echo esc_attr( 2 + count( $target_languages ) ); ?>"><?php esc_html_e( 'No UI strings have been registered yet.', 'pera-multilingual' ); ?></td></tr><?php endif; ?>
 		<?php foreach ( $items as $identity => $item ) : ?><tr><td><code><?php echo esc_html( $item['semantic_key'] ); ?></code></td><td><?php echo esc_html( $item['source'] ); ?></td>
-		<?php foreach ( array( 'zh', 'ar', 'de' ) as $language ) : $status = $item['statuses'][ $language ]; ?><td><strong><?php echo esc_html( $labels[ $status ] ); ?></strong><form method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>" style="margin-top:6px"><input type="hidden" name="action" value="pera_ml_translate_ui"><input type="hidden" name="identity" value="<?php echo esc_attr( $identity ); ?>"><input type="hidden" name="language" value="<?php echo esc_attr( $language ); ?>"><?php wp_nonce_field( 'pera_ml_translate_ui_' . $identity . '_' . $language ); ?><button class="button button-small" type="submit"><?php echo esc_html( 'current' === $status ? __( 'Regenerate', 'pera-multilingual' ) : __( 'Translate', 'pera-multilingual' ) ); ?></button></form></td><?php endforeach; ?></tr><?php endforeach; ?>
+		<?php foreach ( $target_languages as $language ) : $status = $item['statuses'][ $language ]; ?><td><strong><?php echo esc_html( $labels[ $status ] ); ?></strong><form method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>" style="margin-top:6px"><input type="hidden" name="action" value="pera_ml_translate_ui"><input type="hidden" name="identity" value="<?php echo esc_attr( $identity ); ?>"><input type="hidden" name="language" value="<?php echo esc_attr( $language ); ?>"><?php wp_nonce_field( 'pera_ml_translate_ui_' . $identity . '_' . $language ); ?><button class="button button-small" type="submit"><?php echo esc_html( 'current' === $status ? __( 'Regenerate', 'pera-multilingual' ) : __( 'Translate', 'pera-multilingual' ) ); ?></button></form></td><?php endforeach; ?></tr><?php endforeach; ?>
 		</tbody></table></div><?php
 	}
 	private function ui_admin_request( $bulk = false ) {
@@ -214,7 +215,7 @@ final class Pera_ML_Admin {
 		$identity = isset( $_POST['identity'] ) ? sanitize_text_field( wp_unslash( $_POST['identity'] ) ) : '';
 		$language = isset( $_POST['language'] ) ? sanitize_key( wp_unslash( $_POST['language'] ) ) : '';
 		check_admin_referer( 'pera_ml_translate_ui_' . $identity . '_' . $language );
-		if ( ! in_array( $language, array( 'zh', 'ar', 'de' ), true ) || ! Pera_ML_Plugin::instance()->ui_registry()->find( $identity ) ) wp_die( esc_html__( 'Invalid UI-string translation request.', 'pera-multilingual' ), 400 );
+		if ( ! isset( $this->target_languages()[ $language ] ) || ! Pera_ML_Plugin::instance()->ui_registry()->find( $identity ) ) wp_die( esc_html__( 'Invalid UI-string translation request.', 'pera-multilingual' ), 400 );
 		return array( $identity, $language );
 	}
 	public function translate_ui() {
@@ -225,7 +226,8 @@ final class Pera_ML_Admin {
 	/** Complete exactly the registered Missing/Stale rows. Public for focused orchestration tests. */
 	public function complete_ui_translations( $ui = null ) {
 		$ui = $ui ? $ui : Pera_ML_Plugin::instance()->ui(); $summary = array( 'attempted' => 0, 'failures' => 0 );
-		foreach ( $ui->inventory() as $identity => $item ) foreach ( array( 'zh', 'ar', 'de' ) as $language ) {
+		$languages = array_keys( $this->target_languages() );
+		foreach ( $ui->inventory( $languages ) as $identity => $item ) foreach ( $languages as $language ) {
 			if ( 'current' === $item['statuses'][ $language ] ) continue;
 			$summary['attempted']++; if ( is_wp_error( $ui->translate_registered( $identity, $language ) ) ) $summary['failures']++;
 		}
@@ -293,7 +295,7 @@ final class Pera_ML_Admin {
 	}
 	public function page() {
 		if ( ! current_user_can( 'manage_options' ) ) return;
-		$languages = $this->registry->all(); $enabled = get_option( 'pera_ml_enabled_languages', array( 'en', 'zh', 'ar', 'de' ) );
+		$languages = $this->registry->all(); $enabled = get_option( 'pera_ml_enabled_languages', array( 'en', 'zh', 'ar', 'de', 'ru' ) );
 		?>
 		<div class="wrap"><h1><?php esc_html_e( 'Pera Multilingual', 'pera-multilingual' ); ?></h1>
 		<p><?php esc_html_e( 'Translated requests resolve the original English WordPress object. Frontend requests only read saved translations; they never call a provider.', 'pera-multilingual' ); ?></p>

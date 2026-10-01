@@ -8,10 +8,10 @@ class WP_Error {}
 
 final class UI_Admin_Test_Service {
 	public $calls = array();
-	public function inventory() {
+	public function inventory( $languages = array() ) {
 		return array(
-			'key:first' => array( 'statuses' => array( 'zh' => 'current', 'ar' => 'missing', 'de' => 'stale' ) ),
-			'key:second' => array( 'statuses' => array( 'zh' => 'current', 'ar' => 'current', 'de' => 'current' ) ),
+			'key:first' => array( 'statuses' => array( 'zh' => 'current', 'ar' => 'missing', 'de' => 'stale', 'ru' => 'missing' ) ),
+			'key:second' => array( 'statuses' => array( 'zh' => 'current', 'ar' => 'current', 'de' => 'current', 'ru' => 'current' ) ),
 		);
 	}
 	public function translate_registered( $identity, $language ) { $this->calls[] = array( $identity, $language ); return 'translated'; }
@@ -19,8 +19,9 @@ final class UI_Admin_Test_Service {
 
 require dirname( __DIR__ ) . '/admin/class-admin.php';
 $ui = new UI_Admin_Test_Service();
-$admin = new Pera_ML_Admin( new stdClass() );
+$registry = new class() { public function enabled() { return array( 'en' => array( 'source' => true ), 'zh' => array( 'source' => false ), 'ar' => array( 'source' => false ), 'de' => array( 'source' => false ), 'ru' => array( 'source' => false ) ); } };
+$admin = new Pera_ML_Admin( $registry );
 $summary = $admin->complete_ui_translations( $ui );
-expect_same( array( array( 'key:first', 'ar' ), array( 'key:first', 'de' ) ), $ui->calls, 'bulk completion targets only missing and stale rows' );
-expect_same( array( 'attempted' => 2, 'failures' => 0 ), $summary, 'bulk completion summary' );
+expect_same( array( array( 'key:first', 'ar' ), array( 'key:first', 'de' ), array( 'key:first', 'ru' ) ), $ui->calls, 'bulk completion targets only missing and stale rows, including Russian' );
+expect_same( array( 'attempted' => 3, 'failures' => 0 ), $summary, 'bulk completion summary' );
 echo "Pera ML UI admin tests passed\n";

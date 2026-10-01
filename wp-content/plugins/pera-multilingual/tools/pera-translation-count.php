@@ -1,6 +1,6 @@
 <?php
 
-$languages = array( 'zh', 'ar', 'de' );
+$languages = array_keys( array_filter( Pera_ML_Plugin::instance()->registry()->enabled(), static function ( $language ) { return empty( $language['source'] ); } ) );
 
 $plugin     = Pera_ML_Plugin::instance();
 $status_api = $plugin->status();
