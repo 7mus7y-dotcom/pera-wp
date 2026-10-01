@@ -374,6 +374,9 @@ if ( ! function_exists( 'pera_ajax_filter_properties_v2' ) ) {
       $facet_args['fields']         = 'ids';
       $facet_args['no_found_rows']  = true;
 
+      // Facets cover the complete filtered set, not the current page window.
+      unset( $facet_args['offset'], $facet_args['pera_mixed_archive_pagination'] );
+
       // For facets, ordering doesn't matter; strip meta_key/orderby just in case
       unset( $facet_args['orderby'], $facet_args['order'], $facet_args['meta_key'] );
 
@@ -421,35 +424,23 @@ if ( ! function_exists( 'pera_ajax_filter_properties_v2' ) ) {
 
       ob_start();
 
-      if ( $q->have_posts() ) {
-        while ( $q->have_posts() ) {
-          $q->the_post();
-
-          $card_args = array(
-            'variant'      => 'archive',
-            'v2_beds'      => (int) $v2_beds,
-            'show_badges'  => true,
-            'show_admin'   => true,
-            'show_excerpt' => true,
-          );
-
-          if ( function_exists( 'pera_render_property_card' ) ) {
-            pera_render_property_card( $card_args );
-          } else {
-            // Fallback: preserve legacy behaviour if helper is unavailable
-            set_query_var( 'pera_property_card_args', $card_args );
-            get_template_part( 'parts/property-card-v2' );
-            set_query_var( 'pera_property_card_args', null );
-          }
-        }
-      } else {
-        echo '<p class="no-results">' . esc_html( pera_ml_ui( 'No properties found.', 'theme.property_archive.no_results' ) ) . '</p>';
-      }
+      pera_render_property_archive_results(
+        $q,
+        $paged,
+        array(
+          'variant'      => 'archive',
+          'v2_beds'      => (int) $v2_beds,
+          'show_badges'  => true,
+          'show_admin'   => true,
+          'show_excerpt' => true,
+        )
+      );
 
       $grid_html = ob_get_clean();
       wp_reset_postdata();
 
       $found = (int) $q->found_posts;
+      $total_pages = pera_property_archive_total_pages( $found );
         
         // -----------------------------
         // 4B) Pagination HTML (so UI updates after AJAX)
@@ -530,15 +521,15 @@ if ( ! function_exists( 'pera_ajax_filter_properties_v2' ) ) {
           pera_ml_ui( '%d properties found', 'theme.template.archive_property.properties_found' ),
           $found
         ),
-        'has_more'             => ( $paged < (int) $q->max_num_pages ),
-        'next_page' => ( $paged < (int) $q->max_num_pages ) ? $paged + 1 : null,
+        'has_more'             => ( $paged < $total_pages ),
+        'next_page' => ( $paged < $total_pages ) ? $paged + 1 : null,
 
         'district_counts'      => $district_counts,
         'bedroom_counts'       => $bedroom_counts,
         'tag_counts'           => $tag_counts,
         'property_type_counts' => $property_type_counts,
         'pagination_html' => $pagination_html ? $pagination_html : '',
-        'max_pages'       => (int) $q->max_num_pages,
+        'max_pages'       => $total_pages,
         'current_page'    => (int) $paged,
         'debug_html'      => $debug_html,
 

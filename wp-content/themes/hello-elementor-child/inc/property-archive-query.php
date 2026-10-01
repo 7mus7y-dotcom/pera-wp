@@ -7,6 +7,51 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
+if ( ! function_exists( 'pera_property_archive_page_window' ) ) {
+	/**
+	 * Return the query window for the archive's 11-item first page and 12-item later pages.
+	 *
+	 * @param int $paged Requested archive page.
+	 * @return array{posts_per_page:int,offset:int}
+	 */
+	function pera_property_archive_page_window( int $paged ): array {
+		$first_page_per_page = 11;
+		$later_page_per_page = 12;
+		$paged               = max( 1, $paged );
+
+		return array(
+			'posts_per_page' => 1 === $paged ? $first_page_per_page : $later_page_per_page,
+			'offset'         => 1 === $paged ? 0 : $first_page_per_page + ( ( $paged - 2 ) * $later_page_per_page ),
+		);
+	}
+}
+
+if ( ! function_exists( 'pera_property_archive_total_pages' ) ) {
+	/**
+	 * Calculate page totals for an 11-item first page and 12-item later pages.
+	 */
+	function pera_property_archive_total_pages( int $found_posts ): int {
+		$first_page_per_page = 11;
+		$later_page_per_page = 12;
+		$found_posts         = max( 0, $found_posts );
+
+		if ( $found_posts <= $first_page_per_page ) {
+			return 1;
+		}
+
+		return 1 + (int) ceil( ( $found_posts - $first_page_per_page ) / $later_page_per_page );
+	}
+}
+
+if ( ! function_exists( 'pera_property_archive_position_offset' ) ) {
+	/** Return the number of properties appearing before a page (the CTA is excluded). */
+	function pera_property_archive_position_offset( int $paged ): int {
+		$window = pera_property_archive_page_window( $paged );
+
+		return (int) $window['offset'];
+	}
+}
+
 if ( ! function_exists( 'pera_property_archive_build_args_from_context' ) ) {
 	function pera_property_archive_build_args_from_context( array $ctx, array $overrides = array() ): array {
 		$paged                       = $ctx['paged'] ?? null;
@@ -79,12 +124,16 @@ if ( ! function_exists( 'pera_property_archive_build_args_from_context' ) ) {
 		$qs_min       = isset($qs_min) ? (int) $qs_min : 0;
 		$qs_max       = isset($qs_max) ? (int) $qs_max : 0;
 
+		$page_window = pera_property_archive_page_window( (int) $paged );
+
 		// Base args
 		$args = array(
 			'post_type'              => 'property',
 			'post_status'            => 'publish',
-			'posts_per_page'         => 12,
+			'pera_mixed_archive_pagination' => true,
+			'posts_per_page'         => $page_window['posts_per_page'],
 			'paged'                  => $paged,
+			'offset'                 => $page_window['offset'],
 			'orderby'                => 'date',
 			'order'                  => 'DESC',
 			'update_post_meta_cache' => false,

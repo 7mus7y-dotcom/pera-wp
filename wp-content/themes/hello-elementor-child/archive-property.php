@@ -973,19 +973,14 @@ if ( ! $is_filtered_search && ( $qo instanceof WP_Term ) && ! is_wp_error( $qo )
 
 <!-- Results Grid (SSR baseline; AJAX will replace/append) -->
 <div id="property-grid" class="cards-grid">
-  <?php if ( $property_query->have_posts() ) : ?>
-    <?php while ( $property_query->have_posts() ) : $property_query->the_post(); ?>
-
-      <?php
-        pera_render_property_card( array(
-          'variant' => 'archive',
-        ) );
-      ?>
-
-    <?php endwhile; ?>
-  <?php else : ?>
-    <p class="no-results"><?php echo esc_html( pera_ml_ui( 'No properties found.', 'theme.template.archive_property.no_properties_found' ) ); ?></p>
-  <?php endif; ?>
+  <?php
+  pera_render_property_archive_results(
+    $property_query,
+    $paged,
+    array( 'variant' => 'archive' ),
+    'theme.template.archive_property.no_properties_found'
+  );
+  ?>
 </div>
 
 <?php wp_reset_postdata(); ?>
@@ -1025,7 +1020,7 @@ if ( ! empty( $sort ) && $sort !== 'date_desc' ) {
   $add_args['sort'] = $sort;
 }
 
-$total_pages = (int) $property_query->max_num_pages;
+$total_pages = pera_property_archive_total_pages( (int) $property_query->found_posts );
 $load_more_done_label = pera_ml_ui( 'That’s it for now, folks.', 'theme.template.archive_property.load_more_complete' );
 $pagination_html = function_exists( 'pera_render_property_pagination' )
   ? pera_render_property_pagination( $property_query, (int) $paged, $add_args )

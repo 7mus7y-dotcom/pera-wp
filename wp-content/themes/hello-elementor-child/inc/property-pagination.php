@@ -18,7 +18,14 @@ if ( ! function_exists( 'pera_render_property_pagination' ) ) {
    * @return string Pagination HTML or empty string.
    */
   function pera_render_property_pagination( WP_Query $query, int $paged, array $add_args = array(), string $base_url = '' ): string {
-    $total_pages = (int) $query->max_num_pages;
+    if (
+      function_exists( 'pera_property_archive_total_pages' )
+      && $query->get( 'pera_mixed_archive_pagination' )
+    ) {
+      $total_pages = pera_property_archive_total_pages( (int) $query->found_posts );
+    } else {
+      $total_pages = (int) $query->max_num_pages;
+    }
     if ( $total_pages <= 1 ) {
       return '';
     }
