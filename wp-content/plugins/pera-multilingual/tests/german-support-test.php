@@ -1,6 +1,7 @@
 <?php
 /** German registry, SEO, instructions, glossary and source-echo regression tests. */
 define( 'ABSPATH', __DIR__ );
+define( 'PERA_ML_PUBLIC_RUSSIAN_ENABLED', true );
 $GLOBALS['saved_enabled_languages'] = null;
 $GLOBALS['german_provider'] = null;
 $GLOBALS['seo_filters'] = array();

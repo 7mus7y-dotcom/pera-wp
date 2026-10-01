@@ -55,7 +55,7 @@ final class Pera_ML_UI {
 	}
 
 	/** Inventory registered canonical strings and their stored status by language. */
-	public function inventory( array $languages = array( 'zh', 'ar', 'de', 'ru' ) ) {
+	public function inventory( array $languages ) {
 		$inventory = array();
 		foreach ( $this->registry->all() as $identity => $item ) {
 			$item['statuses'] = array();

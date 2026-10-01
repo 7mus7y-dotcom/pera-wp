@@ -39,6 +39,16 @@ final class Pera_ML_Language_Registry {
 		return array_filter( $this->all(), static function ( $language ) { return ! empty( $language['enabled'] ); } );
 	}
 
+	/** Languages advertised through public discovery surfaces such as selectors and hreflang. */
+	public function publicly_available() {
+		return array_filter( $this->enabled(), array( $this, 'is_publicly_available' ) );
+	}
+
+	public function is_publicly_available( $language ) {
+		if ( 'ru' !== $language['code'] ) return true;
+		return defined( 'PERA_ML_PUBLIC_RUSSIAN_ENABLED' ) && PERA_ML_PUBLIC_RUSSIAN_ENABLED;
+	}
+
 	public function from_prefix( $prefix ) {
 		foreach ( $this->enabled() as $language ) {
 			if ( ! empty( $language['prefix'] ) && $language['prefix'] === $prefix ) {
