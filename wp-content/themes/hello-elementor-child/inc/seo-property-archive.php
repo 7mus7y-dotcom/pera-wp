@@ -332,8 +332,9 @@ if ( ! function_exists( 'pera_property_archive_schema_item_list_elements' ) ) {
       return array();
     }
 
-    $posts_per_page = isset( $args['posts_per_page'] ) ? max( 1, (int) $args['posts_per_page'] ) : 12;
-    $position       = ( max( 1, $paged ) - 1 ) * $posts_per_page;
+    $position = function_exists( 'pera_property_archive_position_offset' )
+      ? pera_property_archive_position_offset( $paged )
+      : ( max( 1, $paged ) - 1 ) * ( isset( $args['posts_per_page'] ) ? max( 1, (int) $args['posts_per_page'] ) : 12 );
     $items          = array();
 
     foreach ( $query->posts as $post_id ) {

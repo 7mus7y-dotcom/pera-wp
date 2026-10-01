@@ -1020,7 +1020,7 @@ if ( ! empty( $sort ) && $sort !== 'date_desc' ) {
   $add_args['sort'] = $sort;
 }
 
-$total_pages = (int) $property_query->max_num_pages;
+$total_pages = pera_property_archive_total_pages( (int) $property_query->found_posts );
 $load_more_done_label = pera_ml_ui( 'That’s it for now, folks.', 'theme.template.archive_property.load_more_complete' );
 $pagination_html = function_exists( 'pera_render_property_pagination' )
   ? pera_render_property_pagination( $property_query, (int) $paged, $add_args )

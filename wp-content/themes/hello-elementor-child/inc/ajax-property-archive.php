@@ -374,6 +374,9 @@ if ( ! function_exists( 'pera_ajax_filter_properties_v2' ) ) {
       $facet_args['fields']         = 'ids';
       $facet_args['no_found_rows']  = true;
 
+      // Facets cover the complete filtered set, not the current page window.
+      unset( $facet_args['offset'] );
+
       // For facets, ordering doesn't matter; strip meta_key/orderby just in case
       unset( $facet_args['orderby'], $facet_args['order'], $facet_args['meta_key'] );
 
@@ -437,6 +440,7 @@ if ( ! function_exists( 'pera_ajax_filter_properties_v2' ) ) {
       wp_reset_postdata();
 
       $found = (int) $q->found_posts;
+      $total_pages = pera_property_archive_total_pages( $found );
         
         // -----------------------------
         // 4B) Pagination HTML (so UI updates after AJAX)
@@ -517,15 +521,15 @@ if ( ! function_exists( 'pera_ajax_filter_properties_v2' ) ) {
           pera_ml_ui( '%d properties found', 'theme.template.archive_property.properties_found' ),
           $found
         ),
-        'has_more'             => ( $paged < (int) $q->max_num_pages ),
-        'next_page' => ( $paged < (int) $q->max_num_pages ) ? $paged + 1 : null,
+        'has_more'             => ( $paged < $total_pages ),
+        'next_page' => ( $paged < $total_pages ) ? $paged + 1 : null,
 
         'district_counts'      => $district_counts,
         'bedroom_counts'       => $bedroom_counts,
         'tag_counts'           => $tag_counts,
         'property_type_counts' => $property_type_counts,
         'pagination_html' => $pagination_html ? $pagination_html : '',
-        'max_pages'       => (int) $q->max_num_pages,
+        'max_pages'       => $total_pages,
         'current_page'    => (int) $paged,
         'debug_html'      => $debug_html,
 
