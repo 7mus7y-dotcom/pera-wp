@@ -3,6 +3,7 @@
 function cleanup_expect( $condition, $label ) { if ( ! $condition ) { fwrite( STDERR, "FAIL {$label}\n" ); exit( 1 ); } }
 define( 'ABSPATH', __DIR__ );
 function wp_date( $format, $timestamp ) { return gmdate( $format, $timestamp ); }
+function pera_ml_current_language() { return 'ru'; }
 function wp_strip_all_tags( $value ) { return strip_tags( $value ); }
 function get_field( $field, $object, $formatted = true ) {
 	if ( 'archive_h1' === $field ) return '<p><br></p>';
@@ -24,7 +25,9 @@ cleanup_expect( '14 March 2026' === pera_ml_format_property_date( $timestamp, 'e
 cleanup_expect( '14 März 2026' === pera_ml_format_property_date( $timestamp, 'de' ), 'German property date uses a German month' );
 cleanup_expect( '14 مارس 2026' === pera_ml_format_property_date( $timestamp, 'ar' ), 'Arabic property date uses an Arabic month' );
 cleanup_expect( '2026年3月14日' === pera_ml_format_property_date( $timestamp, 'zh' ), 'Chinese property date uses a natural numeric representation' );
-foreach ( array( 'de', 'ar', 'zh' ) as $language ) cleanup_expect( false === strpos( pera_ml_format_property_date( $timestamp, $language ), 'March' ), "{$language} date has no English month" );
+cleanup_expect( '14 марта 2026' === pera_ml_format_property_date( $timestamp, 'ru' ), 'Russian property date uses the genitive Russian month name' );
+cleanup_expect( '14 марта 2026' === pera_ml_format_property_date( $timestamp ), 'property renderers use Russian formatting from the active routed language' );
+foreach ( array( 'de', 'ar', 'zh', 'ru' ) as $language ) cleanup_expect( false === strpos( pera_ml_format_property_date( $timestamp, $language ), 'March' ), "{$language} date has no English month" );
 
 $term = new WP_Term();
 foreach ( array( '伊斯坦布尔', 'Istanbul', 'إسطنبول' ) as $translated_istanbul ) {
@@ -43,6 +46,10 @@ cleanup_expect( false !== strpos( $single, 'esc_html( $property_id )' ), 'canoni
 cleanup_expect( false !== strpos( $single, 'pera_ml_format_property_date(' ), 'single property uses deterministic date formatter' );
 $units = file_get_contents( $theme . '/inc/v2-units-index.php' );
 cleanup_expect( false !== strpos( $units, 'pera_ml_format_property_date(' ), 'unit price date uses deterministic date formatter' );
+$property_card = file_get_contents( $theme . '/parts/property-card-v2.php' );
+cleanup_expect( false !== strpos( $property_card, 'pera_ml_format_property_date(' ), 'current public property card uses routed-language date formatter' );
+$legacy_property_card = file_get_contents( $theme . '/parts/_archive/property-card.php' );
+cleanup_expect( false !== strpos( $legacy_property_card, 'pera_ml_format_property_date(' ), 'legacy public property card uses routed-language date formatter' );
 $pagination = file_get_contents( $theme . '/inc/property-pagination.php' );
 cleanup_expect( false !== strpos( $pagination, "pera_ml_ui( 'Prev', 'theme.property.pagination.previous' )" ), 'previous pagination label uses UI identity' );
 cleanup_expect( false !== strpos( $pagination, "pera_ml_ui( 'Next', 'theme.property.pagination.next' )" ), 'next pagination label uses UI identity' );

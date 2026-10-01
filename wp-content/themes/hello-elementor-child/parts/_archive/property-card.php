@@ -50,9 +50,9 @@ if ( $price_usd !== '' && $price_usd !== null ) {
   $price_txt = sprintf( 'From $%s', number_format_i18n( (float) $price_usd ) );
 }
 
-// Last updated text – formatted as "M d, Y"
+// Last updated text in the active routed language.
 $last_update_ts  = get_the_modified_time( 'U', $post_id );
-$last_update_txt = $last_update_ts ? date_i18n( 'M d, Y', $last_update_ts ) : '';
+$last_update_txt = $last_update_ts ? pera_ml_format_property_date( $last_update_ts ) : '';
 
 // Specials (pill + tooltip)
 $specials_terms = get_the_terms( $post_id, 'special' );

@@ -106,7 +106,7 @@ $image_id = ( is_array( $main_image ) && ! empty( $main_image['ID'] ) ) ? (int) 
 
 // Published date
 $published_ts  = get_the_time( 'U', $post_id );
-$last_update_txt = $published_ts ? date_i18n( 'M d, Y', $published_ts ) : '';
+$last_update_txt = $published_ts ? pera_ml_format_property_date( $published_ts ) : '';
 
 
 
