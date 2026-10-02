@@ -81,4 +81,23 @@ $cli_source = file_get_contents( dirname( __DIR__ ) . '/tools/register-theme-ui-
 expect_discovery( true, false !== strpos( $admin_source, 'Pera_ML_Theme_UI_Discovery::approved_directories()' ), 'admin scan uses shared approved discovery scope' );
 expect_discovery( true, false !== strpos( $cli_source, 'Pera_ML_Theme_UI_Discovery::approved_directories()' ), 'CLI uses shared approved discovery scope' );
 
+// Citizenship hero registrations must remain literal so the production
+// discovery mechanism can add them to the UI-string inventory.
+$GLOBALS['ui_registry_option'] = array();
+$citizenship_template = dirname( dirname( dirname( __DIR__ ) ) ) . '/themes/hello-elementor-child/page-citizenship.php';
+$citizenship = $tool->run( array( $citizenship_template ) );
+$citizenship_rows = array();
+foreach ( $GLOBALS['ui_registry_option'] as $row ) $citizenship_rows[ $row['semantic_key'] ] = $row['source'];
+$expected_citizenship_hero = array(
+	'theme.template.page_citizenship.requirement_minimum_investment' => 'Minimum real estate investment: $400,000',
+	'theme.template.page_citizenship.requirement_holding_period'     => 'Property must be held for at least 3 years',
+	'theme.template.page_citizenship.requirement_foreign_currency'   => 'Investment must be paid in foreign currency (DAB required)',
+	'theme.template.page_citizenship.requirement_expertise_report'   => 'Must obtain a valid expertise report',
+	'theme.template.page_citizenship.requirement_family'             => 'Application includes spouse and children under 18',
+	'theme.template.page_citizenship.requirement_process_time'       => 'Process typically takes 3–6 months',
+	'theme.template.page_citizenship.hero_image_alt'                 => 'Turkish citizenship by investment through Istanbul real estate',
+);
+expect_discovery( true, $citizenship['discovered'] >= count( $expected_citizenship_hero ), 'citizenship template registrations are discovered' );
+foreach ( $expected_citizenship_hero as $key => $source ) expect_discovery( $source, isset( $citizenship_rows[ $key ] ) ? $citizenship_rows[ $key ] : null, 'citizenship hero registration discovered: ' . $key );
+
 echo "Pera ML theme UI discovery tests passed\n";

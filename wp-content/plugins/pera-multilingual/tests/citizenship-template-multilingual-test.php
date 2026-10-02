@@ -54,6 +54,21 @@ $page_source = file_get_contents( $theme_dir . 'page-citizenship.php' );
 citizenship_expect( true, substr_count( $seo_source, '$faq_items = pera_seo_all_citizenship_faq_items();' ) >= 1, 'FAQ schema consumes the canonical translated FAQ function' );
 citizenship_expect( true, false !== strpos( $partial_source, '? pera_seo_all_citizenship_faq_items()' ), 'visible FAQ consumes the same canonical translated FAQ function' );
 citizenship_expect( true, false !== strpos( $page_source, "pera_ml_ui( 'Chat on WhatsApp', 'theme.template.page_citizenship.chat_on_whatsapp' )" ), 'final WhatsApp CTA uses a literal discoverable UI registration' );
+$hero_ui_strings = array(
+	'Minimum real estate investment: $400,000'                         => 'theme.template.page_citizenship.requirement_minimum_investment',
+	'Property must be held for at least 3 years'                       => 'theme.template.page_citizenship.requirement_holding_period',
+	'Investment must be paid in foreign currency (DAB required)'       => 'theme.template.page_citizenship.requirement_foreign_currency',
+	'Must obtain a valid expertise report'                             => 'theme.template.page_citizenship.requirement_expertise_report',
+	'Application includes spouse and children under 18'                => 'theme.template.page_citizenship.requirement_family',
+	'Process typically takes 3–6 months'                               => 'theme.template.page_citizenship.requirement_process_time',
+	'Turkish citizenship by investment through Istanbul real estate'  => 'theme.template.page_citizenship.hero_image_alt',
+);
+citizenship_expect( count( $hero_ui_strings ), count( array_unique( array_values( $hero_ui_strings ) ) ), 'hero requirements and image alt use unique semantic keys' );
+foreach ( $hero_ui_strings as $source => $key ) {
+	$literal_call = "pera_ml_ui( '" . $source . "', '" . $key . "' )";
+	citizenship_expect( true, false !== strpos( $page_source, $literal_call ), 'hero string retains canonical English and uses a literal UI registration: ' . $key );
+	citizenship_expect( true, 0 === strpos( $key, 'theme.template.page_citizenship.' ), 'hero semantic key uses the generic citizenship namespace' );
+}
 citizenship_expect( 0, preg_match( '/[\x{0400}-\x{04FF}]/u', $seo_source . $page_source ), 'citizenship implementation contains no Russian-specific copy' );
 
 echo "Pera ML citizenship template multilingual tests passed\n";
