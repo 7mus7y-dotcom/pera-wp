@@ -6,6 +6,7 @@ $status      = 'all';
 $object_type = null;
 $object_id   = null;
 $field       = null;
+$language    = null;
 
 $cli_args = isset( $args ) && is_array( $args )
     ? $args
@@ -86,6 +87,11 @@ foreach ( $cli_args as $arg ) {
         $field = $requested_field;
         continue;
     }
+
+    if ( 0 === strpos( $arg, 'language=' ) ) {
+        $language = substr( $arg, 9 );
+        continue;
+    }
 }
 
 $filter_summary = '';
@@ -103,6 +109,25 @@ if ( null !== $field ) {
 }
 
 $p = Pera_ML_Plugin::instance();
+
+if ( null !== $language ) {
+    $language_config = $p->registry()->get( $language );
+
+    if (
+        ! $language_config ||
+        empty( $language_config['enabled'] ) ||
+        ! empty( $language_config['source'] )
+    ) {
+        echo 'ERROR: Invalid target language filter "' . $language
+            . '". Expected an enabled, non-source language.'
+            . PHP_EOL;
+        return;
+    }
+
+    $filter_summary .= ' | Language: '
+        . ( isset( $language_config['name'] ) ? $language_config['name'] : $language )
+        . ' (' . $language . ')';
+}
 
 $health = new Pera_ML_Translation_Health(
     $p->status(),
@@ -132,6 +157,13 @@ foreach ( $rows as $row ) {
         ! isset( $row['status'] ) ||
         ! in_array( $row['status'], array( 'missing', 'stale' ), true ) ||
         ( 'all' !== $status && $status !== $row['status'] ) ||
+        (
+            null !== $language &&
+            (
+                ! isset( $row['language'] ) ||
+                $language !== $row['language']
+            )
+        ) ||
         (
             null !== $object_type &&
             (
