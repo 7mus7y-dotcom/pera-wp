@@ -417,21 +417,28 @@ For an uploaded MP4, use the `video_file` ACF field and a valid Media Library at
 
 ## Translation workflow
 
-Editing English source fields can make existing translations stale. After the English listing passes validation, preview the affected translation queue for the exact post:
+The translation inventory currently includes published content only. Therefore:
+
+- For an approved update to an existing published property, translate after the English fields pass validation.
+- For a newly created draft, do not run translation yet. Record translation as a post-publication task and run it only after a human publishes the listing.
+
+For a published property, preview the affected translation queue for that exact Property CPT post:
 
 ```bash
 wp eval-file wp-content/plugins/pera-multilingual/tools/pera-translate-latest.php \
-  dry-run status=all object_id=PROPERTY_ID limit=5000
+  dry-run status=all object_type=property object_id=PROPERTY_ID limit=5000
 ```
 
 After reviewing the dry run, translate the missing and stale fields for that post:
 
 ```bash
 wp eval-file wp-content/plugins/pera-multilingual/tools/pera-translate-latest.php \
-  status=all object_id=PROPERTY_ID limit=5000
+  status=all object_type=property object_id=PROPERTY_ID limit=5000
 ```
 
-Do not run an unfiltered site-wide translation merely to update one listing. The tool accepts `status=missing|stale|all` and optional `object_type`, `object_id` and `field` filters.
+Both `object_type=property` and `object_id=PROPERTY_ID` are required here. An ID alone is not unique across the translation inventory because a taxonomy object may have the same numeric ID as a post. Do not run an unfiltered site-wide translation merely to update one listing.
+
+The tool accepts `status=missing|stale|all` and optional `object_type`, `object_id` and `field` filters.
 
 ## Validation checklist
 
@@ -460,8 +467,9 @@ Before handoff, verify:
 21. SEO title and description contain no confidential name; any public compound name is explicitly approved
 22. Uploaded video values resolve to playable media or a valid listing-specific URL
 23. A published-post update has a verified rollback snapshot covering every changed value
-24. Translation dry run was reviewed and the exact post's stale/missing translations were processed when required
-25. A new post remains a draft; an approved existing post retains its original status
+24. For a published property, translation was filtered by both `object_type=property` and its exact `object_id`
+25. For a new draft, translation is explicitly deferred until after human publication
+26. A new post remains a draft; an approved existing post retains its original status
 
 ## Recommended execution pattern
 
@@ -476,7 +484,8 @@ Before handoff, verify:
 9. Write `v2_units` and run reindexing
 10. Assign media attachment IDs
 11. Run automated validation and the applicable project-name audit
-12. Preview and process translations for the exact post when required
-13. Provide a concise visual-review checklist; do not publish a new draft
+12. For an existing published property, preview and process translations using both object-type and object-ID filters
+13. For a new draft, record translation as a post-publication task instead of running it
+14. Provide a concise visual-review checklist; do not publish a new draft
 
 All importer commands should be idempotent: rerunning them should replace intended values rather than duplicate rows, galleries or taxonomy terms.
