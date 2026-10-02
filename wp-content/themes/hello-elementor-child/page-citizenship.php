@@ -1425,7 +1425,7 @@ $citizenship_requirements = array(
           data-track-ga4-event="whatsapp_click"
           data-track-crm-event="whatsapp_click"
         >
-          Chat on WhatsApp
+          <?php echo esc_html( pera_ml_ui( 'Chat on WhatsApp', 'theme.template.page_citizenship.chat_on_whatsapp' ) ); ?>
         </a>
       </div>
     </div>

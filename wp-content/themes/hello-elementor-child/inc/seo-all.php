@@ -540,60 +540,60 @@ if ( ! function_exists( 'pera_seo_all_citizenship_faq_items' ) ) {
   function pera_seo_all_citizenship_faq_items(): array {
     return array(
       array(
-        'question' => 'Q: Can I buy multiple properties to qualify?',
-        'answer'   => 'Yes. You can combine multiple eligible properties as long as the total qualifying value is at least USD 400,000 and the purchases comply with current citizenship rules.',
+        'question' => pera_ml_ui( 'Q: Can I buy multiple properties to qualify?', 'theme.template.page_citizenship.faq_01_question' ),
+        'answer'   => pera_ml_ui( 'Yes. You can combine multiple eligible properties as long as the total qualifying value is at least USD 400,000 and the purchases comply with current citizenship rules.', 'theme.template.page_citizenship.faq_01_answer' ),
       ),
       array(
-        'question' => 'Q: Can off-plan property qualify for citizenship?',
-        'answer'   => 'In many cases, yes. Off-plan units may qualify if the project and title status meet the legal criteria in force at the time of application, and the investment is properly documented. Because eligibility can vary by project structure, legal checks should be completed before committing.',
+        'question' => pera_ml_ui( 'Q: Can off-plan property qualify for citizenship?', 'theme.template.page_citizenship.faq_02_question' ),
+        'answer'   => pera_ml_ui( 'In many cases, yes. Off-plan units may qualify if the project and title status meet the legal criteria in force at the time of application, and the investment is properly documented. Because eligibility can vary by project structure, legal checks should be completed before committing.', 'theme.template.page_citizenship.faq_02_answer' ),
       ),
       array(
-        'question' => 'Q: Can I buy commercial property?',
-        'answer'   => 'Commercial property may qualify, provided it meets the applicable valuation, transfer and compliance requirements in force at the time of application.',
+        'question' => pera_ml_ui( 'Q: Can I buy commercial property?', 'theme.template.page_citizenship.faq_03_question' ),
+        'answer'   => pera_ml_ui( 'Commercial property may qualify, provided it meets the applicable valuation, transfer and compliance requirements in force at the time of application.', 'theme.template.page_citizenship.faq_03_answer' ),
       ),
       array(
-        'question' => 'Q: What is the Certificate of Conformity?',
-        'answer'   => 'The Certificate of Conformity is an official confirmation that your investment meets the legal conditions of the citizenship-by-investment program. It is a key document required before citizenship approval.',
+        'question' => pera_ml_ui( 'Q: What is the Certificate of Conformity?', 'theme.template.page_citizenship.faq_04_question' ),
+        'answer'   => pera_ml_ui( 'The Certificate of Conformity is an official confirmation that your investment meets the legal conditions of the citizenship-by-investment program. It is a key document required before citizenship approval.', 'theme.template.page_citizenship.faq_04_answer' ),
       ),
       array(
-        'question' => 'Q: What is the foreign currency requirement (DAB)?',
-        'answer'   => 'For Turkish citizenship by investment, the purchase funds are generally required to be brought in as foreign currency and converted through the banking system in line with current rules. The DAB (Döviz Alım Belgesi) is the supporting currency-exchange document typically requested in the title transfer and conformity process.',
+        'question' => pera_ml_ui( 'Q: What is the foreign currency requirement (DAB)?', 'theme.template.page_citizenship.faq_05_question' ),
+        'answer'   => pera_ml_ui( 'For Turkish citizenship by investment, the purchase funds are generally required to be brought in as foreign currency and converted through the banking system in line with current rules. The DAB (Döviz Alım Belgesi) is the supporting currency-exchange document typically requested in the title transfer and conformity process.', 'theme.template.page_citizenship.faq_05_answer' ),
       ),
       array(
-        'question' => 'Q: What happens if the valuation is below $400,000?',
-        'answer'   => 'If the official valuation used for your application is below USD 400,000, the property will not qualify under the real estate citizenship route.',
+        'question' => pera_ml_ui( 'Q: What happens if the valuation is below $400,000?', 'theme.template.page_citizenship.faq_06_question' ),
+        'answer'   => pera_ml_ui( 'If the official valuation used for your application is below USD 400,000, the property will not qualify under the real estate citizenship route.', 'theme.template.page_citizenship.faq_06_answer' ),
       ),
       array(
-        'question' => 'Q: Can I sell the property after 3 years?',
-        'answer'   => 'Yes. Once the mandatory 3-year holding period and registry commitment are completed, you can usually sell the property without cancelling citizenship already granted.',
+        'question' => pera_ml_ui( 'Q: Can I sell the property after 3 years?', 'theme.template.page_citizenship.faq_07_question' ),
+        'answer'   => pera_ml_ui( 'Yes. Once the mandatory 3-year holding period and registry commitment are completed, you can usually sell the property without cancelling citizenship already granted.', 'theme.template.page_citizenship.faq_07_answer' ),
       ),
       array(
-        'question' => 'Q: Do I need to visit Turkey during the process?',
-        'answer'   => 'In most cases, applicants must be physically present in Turkey for biometric processing connected to the investor residency stage. With the fast-track option, the residency application, biometrics, and citizenship submission can often be completed during a single visit.',
+        'question' => pera_ml_ui( 'Q: Do I need to visit Turkey during the process?', 'theme.template.page_citizenship.faq_08_question' ),
+        'answer'   => pera_ml_ui( 'In most cases, applicants must be physically present in Turkey for biometric processing connected to the investor residency stage. With the fast-track option, the residency application, biometrics, and citizenship submission can often be completed during a single visit.', 'theme.template.page_citizenship.faq_08_answer' ),
       ),
       array(
-        'question' => 'Q: Is there a fast-track option for Turkish citizenship by investment?',
-        'answer'   => 'Yes. A fast-track option is now available for investor residency applications linked to citizenship-by-investment cases. This can reduce the number of in-person steps by allowing residency processing, biometrics, and citizenship submission to be handled in a shorter timeframe.',
+        'question' => pera_ml_ui( 'Q: Is there a fast-track option for Turkish citizenship by investment?', 'theme.template.page_citizenship.faq_09_question' ),
+        'answer'   => pera_ml_ui( 'Yes. A fast-track option is now available for investor residency applications linked to citizenship-by-investment cases. This can reduce the number of in-person steps by allowing residency processing, biometrics, and citizenship submission to be handled in a shorter timeframe.', 'theme.template.page_citizenship.faq_09_answer' ),
       ),
       array(
-        'question' => 'Q: How many times do I need to visit Turkey?',
-        'answer'   => 'At least one visit is usually required for biometric processing. With the fast-track option, the required in-person stages can often be completed in a single visit.',
+        'question' => pera_ml_ui( 'Q: How many times do I need to visit Turkey?', 'theme.template.page_citizenship.faq_10_question' ),
+        'answer'   => pera_ml_ui( 'At least one visit is usually required for biometric processing. With the fast-track option, the required in-person stages can often be completed in a single visit.', 'theme.template.page_citizenship.faq_10_answer' ),
       ),
       array(
-        'question' => 'Q: Can I include my family?',
-        'answer'   => 'Yes. The main applicant’s spouse and dependent children under 18 are generally included in the same citizenship-by-investment application.',
+        'question' => pera_ml_ui( 'Q: Can I include my family?', 'theme.template.page_citizenship.faq_11_question' ),
+        'answer'   => pera_ml_ui( 'Yes. The main applicant’s spouse and dependent children under 18 are generally included in the same citizenship-by-investment application.', 'theme.template.page_citizenship.faq_11_answer' ),
       ),
       array(
-        'question' => 'Q: Does Turkey allow dual nationality?',
-        'answer'   => 'Turkey generally permits dual nationality. Whether you can keep your original nationality also depends on the laws of your current country.',
+        'question' => pera_ml_ui( 'Q: Does Turkey allow dual nationality?', 'theme.template.page_citizenship.faq_12_question' ),
+        'answer'   => pera_ml_ui( 'Turkey generally permits dual nationality. Whether you can keep your original nationality also depends on the laws of your current country.', 'theme.template.page_citizenship.faq_12_answer' ),
       ),
       array(
-        'question' => 'Q: Do I need to learn Turkish or take a test?',
-        'answer'   => 'No language exam is usually required under the real-estate citizenship route. Applicants should still verify current documentation and interview practice at the time of submission.',
+        'question' => pera_ml_ui( 'Q: Do I need to learn Turkish or take a test?', 'theme.template.page_citizenship.faq_13_question' ),
+        'answer'   => pera_ml_ui( 'No language exam is usually required under the real-estate citizenship route. Applicants should still verify current documentation and interview practice at the time of submission.', 'theme.template.page_citizenship.faq_13_answer' ),
       ),
       array(
-        'question' => 'Q: How long does Turkish citizenship by investment take?',
-        'answer'   => 'The overall process typically takes several months from property purchase to passport issuance. With the fast-track route, the residency and citizenship submission stages can be completed much faster at the start of the process, reducing delays and the need for multiple appointments.',
+        'question' => pera_ml_ui( 'Q: How long does Turkish citizenship by investment take?', 'theme.template.page_citizenship.faq_14_question' ),
+        'answer'   => pera_ml_ui( 'The overall process typically takes several months from property purchase to passport issuance. With the fast-track route, the residency and citizenship submission stages can be completed much faster at the start of the process, reducing delays and the need for multiple appointments.', 'theme.template.page_citizenship.faq_14_answer' ),
       ),
     );
   }
