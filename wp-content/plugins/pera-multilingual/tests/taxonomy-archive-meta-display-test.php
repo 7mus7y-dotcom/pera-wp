@@ -72,6 +72,17 @@ expect_taxonomy_archive_meta( $source, $fields->term_meta( $district, 'meta:dist
 $storage->rows['term:20:meta:district_archive_subtitle:zh'] = array( 'translated_text' => 'Stale subtitle', 'status' => 'stale', 'is_stale' => 1 );
 expect_taxonomy_archive_meta( $source, $fields->term_meta( $district, 'meta:district_archive_subtitle', $source ), 'stale translations fall back to the canonical source' );
 
+$excerpt_source = 'Canonical district card excerpt';
+$storage->rows['term:20:meta:pera_term_excerpt:zh'] = array( 'translated_text' => 'Translated card excerpt', 'status' => 'current', 'is_stale' => 0 );
+expect_taxonomy_archive_meta( 'Translated card excerpt', $fields->term_meta( $district, 'meta:pera_term_excerpt', $excerpt_source ), 'taxonomy card excerpt uses the shared term-meta translation contract' );
+$router->language = 'en';
+expect_taxonomy_archive_meta( $excerpt_source, $fields->term_meta( $district, 'meta:pera_term_excerpt', $excerpt_source ), 'English taxonomy card excerpt remains canonical' );
+$router->language = 'zh';
+$storage->rows['term:20:meta:pera_term_excerpt:zh']['is_stale'] = 1;
+expect_taxonomy_archive_meta( $excerpt_source, $fields->term_meta( $district, 'meta:pera_term_excerpt', $excerpt_source ), 'stale taxonomy card excerpt falls back to canonical English' );
+unset( $storage->rows['term:20:meta:pera_term_excerpt:zh'] );
+expect_taxonomy_archive_meta( $excerpt_source, $fields->term_meta( $district, 'meta:pera_term_excerpt', $excerpt_source ), 'missing taxonomy card excerpt falls back to canonical English' );
+
 $expected_contract = array(
 	'district'      => array( 'term_name', 'term_description', 'meta:seo_title', 'meta:seo_meta_description', 'meta:seo_faq_v2', 'meta:archive_h1', 'meta:archive_heading', 'meta:h1_title', 'meta:display_title', 'meta:hero_title', 'meta:term_excerpt', 'meta:pera_term_excerpt', 'meta:district_archive_subtitle', 'meta:district_archive_body' ),
 	'region'        => array( 'term_name', 'term_description', 'meta:seo_title', 'meta:seo_meta_description', 'meta:seo_faq_v2', 'meta:archive_h1', 'meta:archive_heading', 'meta:h1_title', 'meta:display_title', 'meta:hero_title', 'meta:term_excerpt', 'meta:pera_term_excerpt', 'meta:archive_subtitle', 'meta:archive_body_content' ),
@@ -82,7 +93,7 @@ foreach ( $expected_contract as $taxonomy => $contract ) {
 }
 expect_taxonomy_archive_meta( false, in_array( 'meta:regional_guide', Pera_ML_Fields::taxonomy_fields( 'district' ), true ), 'structural relationship metadata is excluded' );
 $category_contract = Pera_ML_Fields::taxonomy_fields( 'category' );
-foreach ( array( 'meta:seo_title', 'meta:seo_meta_description', 'meta:archive_h1', 'meta:archive_subtitle', 'meta:archive_intro_content', 'meta:archive_bottom_content', 'meta:featured_links_heading', 'meta:featured_links_intro', 'meta:archive_cta_heading', 'meta:archive_cta_text', 'meta:archive_whatsapp_message', 'meta:seo_faq_v2' ) as $field_name ) {
+foreach ( array( 'meta:seo_title', 'meta:seo_meta_description', 'meta:archive_h1', 'meta:archive_subtitle', 'meta:archive_intro_content', 'meta:archive_bottom_content', 'meta:featured_links_heading', 'meta:featured_links_intro', 'meta:archive_cta_heading', 'meta:archive_cta_text', 'meta:archive_whatsapp_message', 'meta:seo_faq_v2', 'meta:pera_term_excerpt' ) as $field_name ) {
 	expect_taxonomy_archive_meta( true, in_array( $field_name, $category_contract, true ), "category contract includes {$field_name}" );
 }
 expect_taxonomy_archive_meta( false, in_array( 'meta:seo_social_image', $category_contract, true ), 'category social image remains media, not translated text' );
@@ -97,6 +108,12 @@ foreach ( array_merge( ...array_values( $approved ) ) as $field_name ) {
 expect_taxonomy_archive_meta( true, false !== strpos( $template, "pera_ml_term( \$qo, 'description' )" ), 'native term descriptions use the term translation contract' );
 expect_taxonomy_archive_meta( true, false !== strpos( $template, "pera_ml_term_meta( \$qo, 'meta:archive_h1_title'" ), 'property-tag manual H1 uses the term-meta contract' );
 expect_taxonomy_archive_meta( true, false !== strpos( $template, "pera_ml_term_meta( \$qo, 'meta:term_excerpt'" ), 'the selected canonical excerpt uses the term-meta contract' );
+
+$card_template = file_get_contents( dirname( dirname( dirname( __DIR__ ) ) ) . '/themes/hello-elementor-child/parts/related-taxonomy-card.php' );
+expect_taxonomy_archive_meta( true, false !== strpos( $card_template, "pera_ml_term_meta( \$term, 'meta:pera_term_excerpt', \$excerpt )" ), 'related district, region, and property-tag cards translate their canonical term excerpt' );
+expect_taxonomy_archive_meta( true, false !== strpos( $card_template, "pera_ml_term( \$term, 'description' )" ), 'card description fallback uses the taxonomy translation contract' );
+expect_taxonomy_archive_meta( true, substr_count( $card_template, 'pera_ml_term( $term )' ) >= 3, 'card title, image alt, and aria label retain translated taxonomy names' );
+expect_taxonomy_archive_meta( false, (bool) preg_match( '/\b(?:zh|ar|de|ru)\b/', $card_template ), 'taxonomy card implementation contains no language-specific branches' );
 
 $category_template = file_get_contents( dirname( dirname( dirname( __DIR__ ) ) ) . '/themes/hello-elementor-child/archive.php' );
 foreach ( array( 'archive_h1', 'archive_subtitle', 'archive_intro_content', 'archive_bottom_content', 'featured_links_heading', 'featured_links_intro', 'archive_cta_heading', 'archive_cta_text', 'archive_whatsapp_message', 'seo_faq_v2' ) as $field_name ) {

@@ -42,8 +42,14 @@ if ( ! $term_image_id ) {
 $excerpt_meta_key = defined( 'PERA_TERM_EXCERPT_KEY' ) ? PERA_TERM_EXCERPT_KEY : 'pera_term_excerpt';
 $excerpt          = trim( (string) get_term_meta( (int) $term->term_id, $excerpt_meta_key, true ) );
 
+if ( $excerpt !== '' && function_exists( 'pera_ml_term_meta' ) ) {
+  $excerpt = trim( (string) pera_ml_term_meta( $term, 'meta:pera_term_excerpt', $excerpt ) );
+}
+
 if ( $excerpt === '' ) {
-  $description = term_description( (int) $term->term_id, (string) $term->taxonomy );
+  $description = function_exists( 'pera_ml_term' )
+    ? pera_ml_term( $term, 'description' )
+    : term_description( (int) $term->term_id, (string) $term->taxonomy );
   $excerpt     = trim( wp_strip_all_tags( (string) $description ) );
 }
 

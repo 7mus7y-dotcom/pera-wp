@@ -131,7 +131,7 @@ Example:
 wp eval-file wp-content/plugins/pera-multilingual/tools/pera-translate-latest.php dry-run status=missing object_type=taxonomy:category language=LANG
 ```
 
-Taxonomy fields are explicit in `Pera_ML_Fields::taxonomy_fields()`. They include canonical term name/description plus approved taxonomy-specific SEO/archive ACF meta. Relationship IDs and media fields must not be sent to the provider.
+Taxonomy fields are explicit in `Pera_ML_Fields::taxonomy_fields()`. They include canonical term name/description, the visitor-facing `pera_term_excerpt` term meta used by taxonomy cards, and approved taxonomy-specific SEO/archive ACF meta. The excerpt remains English canonical term meta and is translated through the same taxonomy-meta storage, Health, stale-hash, admin, and orchestration path; it is not a UI string. Relationship IDs and media fields must not be sent to the provider.
 
 ### F. Theme templates, partials, parts and inc files
 

@@ -37,4 +37,7 @@ $term['status']='current'; health_assert(true,$orch->translate($term,true),'expl
 $storage->row=null; $faq=$term; $faq['field']='meta:seo_faq_v2'; $faq['status']='missing'; health_assert(true,$orch->translate($faq),'approved taxonomy FAQ row succeeds');
 health_assert(array('term',8,'meta:seo_faq_v2','zh','Question|Answer'),array_slice($translator->calls[9],0,5),'taxonomy FAQ uses canonical source and dedicated field key');
 $storage->row=null; $faq['language']='fr'; health_assert(true,$orch->translate($faq),'additional enabled registry target reaches taxonomy orchestration'); health_assert('fr',$translator->calls[10][3],'orchestrator uses the registry language contract');
+$GLOBALS['health_meta']['pera_term_excerpt']='Canonical card excerpt'; $excerpt=$term; $excerpt['field']='meta:pera_term_excerpt'; $excerpt['status']='missing'; $storage->row=null;
+health_assert(true,$orch->translate($excerpt),'visitor-facing term excerpt reaches the taxonomy orchestrator');
+health_assert(array('term',8,'meta:pera_term_excerpt','zh','Canonical card excerpt'),array_slice($translator->calls[11],0,5),'term excerpt generation uses its canonical term-meta source and shared field key');
 echo "Pera ML translation health orchestrator tests passed\n";

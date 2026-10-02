@@ -38,8 +38,11 @@ final class Pera_ML_Fields {
 		}
 		$property_taxonomies = array_values( array_intersect( self::supported_taxonomies(), array( 'district', 'region', 'property_type', 'property_tags', 'special' ) ) );
 		if ( in_array( $taxonomy, $property_taxonomies, true ) ) {
-			$fields = array_merge( $fields, array( 'meta:seo_title', 'meta:seo_meta_description', 'meta:seo_faq_v2', 'meta:archive_h1', 'meta:archive_heading', 'meta:h1_title', 'meta:display_title', 'meta:hero_title', 'meta:term_excerpt', 'meta:pera_term_excerpt' ) );
+			$fields = array_merge( $fields, array( 'meta:seo_title', 'meta:seo_meta_description', 'meta:seo_faq_v2', 'meta:archive_h1', 'meta:archive_heading', 'meta:h1_title', 'meta:display_title', 'meta:hero_title', 'meta:term_excerpt' ) );
 		}
+		// The child theme registers pera_term_excerpt for every public taxonomy.
+		// Limit its translation contract to the supported taxonomy inventory.
+		if ( in_array( $taxonomy, self::supported_taxonomies(), true ) ) $fields[] = 'meta:pera_term_excerpt';
 		if ( in_array( $taxonomy, array( 'region', 'property_tags' ), true ) ) $fields = array_merge( $fields, array( 'meta:archive_subtitle', 'meta:archive_body_content' ) );
 		if ( 'district' === $taxonomy ) $fields = array_merge( $fields, array( 'meta:district_archive_subtitle', 'meta:district_archive_body' ) );
 		if ( 'property_tags' === $taxonomy ) $fields[] = 'meta:archive_h1_title';
