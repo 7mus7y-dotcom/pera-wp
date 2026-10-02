@@ -47,11 +47,11 @@ foreach ( array( 'district', 'region', 'property_type', 'property_tags', 'specia
 health_expect( true, in_array( 'meta:seo_faq_v2', Pera_ML_Fields::taxonomy_fields( 'category' ), true ), 'category FAQ uses the shared structured FAQ field' );
 health_expect( true, in_array( 'category', Pera_ML_Fields::supported_taxonomies(), true ), 'category is in the supported taxonomy inventory' );
 health_expect( true, in_array( 'post_tag', Pera_ML_Fields::supported_taxonomies(), true ), 'post_tag is in the shared supported taxonomy inventory' );
-$category_contract = array( 'term_name', 'term_description', 'meta:seo_title', 'meta:seo_meta_description', 'meta:archive_h1', 'meta:archive_subtitle', 'meta:archive_intro_content', 'meta:archive_bottom_content', 'meta:featured_links_heading', 'meta:featured_links_intro', 'meta:archive_cta_heading', 'meta:archive_cta_text', 'meta:archive_whatsapp_message', 'meta:seo_faq_v2' );
+$category_contract = array( 'term_name', 'term_description', 'meta:seo_title', 'meta:seo_meta_description', 'meta:archive_h1', 'meta:archive_subtitle', 'meta:archive_intro_content', 'meta:archive_bottom_content', 'meta:featured_links_heading', 'meta:featured_links_intro', 'meta:archive_cta_heading', 'meta:archive_cta_text', 'meta:archive_whatsapp_message', 'meta:seo_faq_v2', 'meta:pera_term_excerpt' );
 health_expect( $category_contract, Pera_ML_Fields::taxonomy_fields( 'category' ), 'category has its deliberate visitor-facing text contract' );
 health_expect( false, in_array( 'meta:seo_social_image', $category_contract, true ), 'category media is excluded' );
 health_expect( false, in_array( 'meta:featured_guide_links', $category_contract, true ), 'category relationships are excluded' );
-health_expect( array( 'term_name', 'term_description' ), Pera_ML_Fields::taxonomy_fields( 'post_tag' ), 'post_tag uses the existing name and description contract' );
+health_expect( array( 'term_name', 'term_description', 'meta:pera_term_excerpt' ), Pera_ML_Fields::taxonomy_fields( 'post_tag' ), 'post_tag includes its visitor-facing term excerpt' );
 $status = new Health_Status();
 $inventory = ( new Pera_ML_Translation_Health( $status, new Health_Storage(), new Health_UI(), new Health_Languages() ) )->inventory();
 health_expect( array( 'post', 'page', 'property', 'team' ), array_column( $status->preloads, 2 ), 'status is preloaded once per non-empty post-type group' );
@@ -87,4 +87,9 @@ $empty_faq_rows = array_filter( $empty_inventory['rows'], static function ( $row
 health_expect( 0, count( $empty_faq_rows ), 'empty taxonomy FAQ does not create missing rows' );
 $fields = array_column( $inventory['rows'], 'field' );
 health_expect( false, in_array( 'meta:arbitrary_private_copy', $fields, true ), 'unsupported arbitrary term meta is ignored' );
+$region = get_terms( array( 'taxonomy' => 'region' ) )[0];
+$GLOBALS['term_meta'][42]['pera_term_excerpt'] = 'Canonical card excerpt';
+$excerpt_sources = ( new Pera_ML_Translation_Health( $status, new Health_Storage(), new Health_UI(), new Health_Languages() ) )->term_sources( $region, 'region' );
+health_expect( 'Canonical card excerpt', $excerpt_sources['meta:pera_term_excerpt'], 'term excerpt is discovered from its canonical term-meta key' );
+health_expect( false, in_array( 'meta:pera_term_excerpt', Pera_ML_Fields::taxonomy_fields( 'unsupported_taxonomy' ), true ), 'term excerpt is scoped to supported taxonomies' );
 echo "Pera ML translation health tests passed\n";
