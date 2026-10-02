@@ -13,12 +13,12 @@ get_header();
 
 <?php
 $citizenship_requirements = array(
-    'Minimum real estate investment: $400,000',
-    'Property must be held for at least 3 years',
-    'Investment must be paid in foreign currency (DAB required)',
-    'Must obtain a valid expertise report',
-    'Application includes spouse and children under 18',
-    'Process typically takes 3–6 months',
+    pera_ml_ui( 'Minimum real estate investment: $400,000', 'theme.template.page_citizenship.requirement_minimum_investment' ),
+    pera_ml_ui( 'Property must be held for at least 3 years', 'theme.template.page_citizenship.requirement_holding_period' ),
+    pera_ml_ui( 'Investment must be paid in foreign currency (DAB required)', 'theme.template.page_citizenship.requirement_foreign_currency' ),
+    pera_ml_ui( 'Must obtain a valid expertise report', 'theme.template.page_citizenship.requirement_expertise_report' ),
+    pera_ml_ui( 'Application includes spouse and children under 18', 'theme.template.page_citizenship.requirement_family' ),
+    pera_ml_ui( 'Process typically takes 3–6 months', 'theme.template.page_citizenship.requirement_process_time' ),
 );
 ?>
 
@@ -33,7 +33,7 @@ $citizenship_requirements = array(
           false,
           array(
               'class'         => 'hero-media',
-              'alt'           => 'Turkish citizenship by investment through Istanbul real estate',
+              'alt'           => pera_ml_ui( 'Turkish citizenship by investment through Istanbul real estate', 'theme.template.page_citizenship.hero_image_alt' ),
               'fetchpriority' => 'high',
               'loading'       => 'eager',
               'decoding'      => 'async',
