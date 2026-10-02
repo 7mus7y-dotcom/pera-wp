@@ -336,25 +336,65 @@ Use visual hierarchy intentionally: one obvious primary action, then secondary a
 
 ## 11. Internal links
 
-Internal links should be contextual and useful.
+Internal links should be contextual, useful and based on the current WordPress inventories in `docs/`.
 
-Preferred new-post convention:
+### 11.1 Link inventories
+
+Before authoring internal links, consult the relevant inventory:
+
+- `docs/blog-post-inventory.csv` — published editorial posts
+- `docs/page-inventory.csv` — published static pages and service pages
+- `docs/property-inventory.csv` — published Property CPT entries, including property type, special, region, district and property-tag assignments
+- `docs/taxonomy-inventory.csv` — property taxonomy archives for `property_type`, `special`, `region`, `district` and `property_tags`
+
+The `permalink` column is the source of truth for the live destination.
+
+Do **not** construct a URL from `post_name`, a post title, a taxonomy slug or an assumed WordPress URL pattern. Pera has legacy and custom permalink behaviour, including blog URLs that may append the post ID even when `post_name` does not.
+
+If a required destination is absent from the inventories, verify it against the current WordPress installation before linking to it. Do not invent the URL.
+
+### 11.2 Preferred HTML form
+
+After verifying the destination from the inventory, a relative internal URL may be used in article HTML for portability:
 
 ```html
-<a href="/relevant-slug/">descriptive anchor text</a>
+<a href="/verified-path-from-permalink/">descriptive anchor text</a>
 ```
 
-Relative URLs are preferred for new internal links because they remain portable between environments.
+For example, if the inventory contains:
+
+```text
+https://www.peraproperty.com/example-article_12345/
+```
+
+the article HTML may use:
+
+```html
+<a href="/example-article_12345/">descriptive anchor text</a>
+```
+
+The path must come from the resolved `permalink`; it must not be reconstructed from `post_name`.
+
+### 11.3 Choosing destinations
+
+Use the inventory that matches the reader's next step:
+
+- blog post → deeper editorial explanation or supporting guide
+- page → service, contact, consultation or other permanent site destination
+- property → a specific live listing when it is genuinely relevant
+- taxonomy → a durable collection of relevant properties, districts, regions or property categories
+
+For evergreen editorial content, prefer a relevant taxonomy/archive over an individual property when the article should continue to work after a particular listing is sold or removed.
 
 Rules:
 
 - Link where the reader naturally needs deeper information.
 - Use descriptive anchor text.
-- Do not force links to every remotely related article.
+- Do not force links to every remotely related article, page, property or taxonomy.
 - Do not repeatedly link the same destination without a reader benefit.
 - Avoid generic anchors such as “click here”.
-- Check the actual WordPress slug before authoring the link.
-- Preserve established URLs; do not infer a slug from the current title because older posts often retain legacy slugs.
+- Preserve the exact verified permalink path, including legacy slugs and post-ID suffixes.
+- Re-check the inventories when revising an older article rather than assuming its existing internal URLs remain current.
 
 ## 12. External links and factual sourcing
 
@@ -503,7 +543,7 @@ As a rule of thumb:
 
 Before creating a new article:
 
-- inspect the existing article inventory
+- inspect `docs/blog-post-inventory.csv` for existing editorial coverage
 - identify the primary search intent
 - check for an existing article serving the same intent
 - update/expand an existing article instead of creating a cannibalising duplicate where appropriate
@@ -584,7 +624,7 @@ Before returning or publishing article HTML, verify:
 - [ ] All classes used already exist in the theme.
 - [ ] Premium classes are used only where editorially appropriate.
 - [ ] Components are not overused.
-- [ ] Internal URLs use verified existing slugs.
+- [ ] Internal URLs were verified against the relevant `docs/*-inventory.csv` file and use the resolved `permalink` path.
 - [ ] Anchor text is descriptive.
 - [ ] Regulatory/legal/tax claims have been checked against current authoritative sources.
 - [ ] CTA copy matches the article's reader intent.
