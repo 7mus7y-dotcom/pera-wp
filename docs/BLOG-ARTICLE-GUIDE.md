@@ -270,6 +270,8 @@ The reusable article button group is:
 
 The CSS deliberately makes the first CTA inside a `card-shell` full width, with second and third actions sharing the next row on larger screens and stacking on mobile.
 
+**Required component rule:** whenever `article-cta-actions` is used, it must contain exactly three buttons. The component is designed as a 1 + 2 layout: the first button occupies the full first row, while the second and third buttons share the second row on larger screens and stack on mobile. Do not use `article-cta-actions` with only one or two buttons.
+
 Choose button colours and variants from existing theme classes. Do not invent inline colours.
 
 ### 9.2 Section CTA
