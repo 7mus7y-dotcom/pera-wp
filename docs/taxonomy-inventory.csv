@@ -1,0 +1,58 @@
+taxonomy,term_id,name,slug,permalink,count
+property_type,86,Apartments,apartments,https://www.peraproperty.com/property_type/apartments/,117
+property_type,85,Residential,residential,https://www.peraproperty.com/property_type/residential/,125
+property_type,88,Villas,villas,https://www.peraproperty.com/property_type/villas/,8
+special,217,Citizenship,citizenship,https://www.peraproperty.com/special/citizenship/,41
+special,94,Featured,featured,https://www.peraproperty.com/special/featured/,2
+special,169,Project,project,https://www.peraproperty.com/special/project/,72
+special,180,Resales,resales,https://www.peraproperty.com/special/resales/,53
+special,216,"Special offer",special,https://www.peraproperty.com/special/special/,11
+region,24,Anatolia,istanbul-anatolia-property-for-sale,https://www.peraproperty.com/region/istanbul-anatolia-property-for-sale/,82
+region,25,Bahcesehir,bahcesehir-istanbul-property-for-sale,https://www.peraproperty.com/region/bahcesehir-istanbul-property-for-sale/,20
+region,26,Bosphorus,bosphorus-view-property-for-sale-in-istanbul,https://www.peraproperty.com/region/bosphorus-view-property-for-sale-in-istanbul/,67
+region,27,"Central Coast",central_coast-istanbul-property-for-sale,https://www.peraproperty.com/region/central_coast-istanbul-property-for-sale/,21
+region,28,"City Centre",city_centre-istanbul-property-for-sale,https://www.peraproperty.com/region/city_centre-istanbul-property-for-sale/,75
+region,29,"Golden Horn",golden_horn,https://www.peraproperty.com/region/golden_horn/,32
+region,107,Maslak,istanbul-maslak-property-for-sale,https://www.peraproperty.com/region/istanbul-maslak-property-for-sale/,16
+region,30,"Media Highway",media_highway-istanbul-property-for-sale,https://www.peraproperty.com/region/media_highway-istanbul-property-for-sale/,53
+region,223,"Old City",old-city,https://www.peraproperty.com/region/old-city/,6
+region,31,"West Istanbul",west-istanbul-property-for-sale,https://www.peraproperty.com/region/west-istanbul-property-for-sale/,78
+district,229,Atasehir,atasehir,https://www.peraproperty.com/district/istanbul/atasehir/,1
+district,36,Bagcilar,bagcilar,https://www.peraproperty.com/district/istanbul/bagcilar/,4
+district,37,Bahcelievler,bahcelievler,https://www.peraproperty.com/district/istanbul/bahcelievler/,1
+district,38,Bakirkoy,bakirkoy,https://www.peraproperty.com/district/istanbul/bakirkoy/,2
+district,227,Basaksehir,basaksehir,https://www.peraproperty.com/district/istanbul/basaksehir/,0
+district,40,Bayrampasa,bayrampasa,https://www.peraproperty.com/district/istanbul/bayrampasa/,0
+district,225,Besiktas,besiktas,https://www.peraproperty.com/district/istanbul/besiktas/,15
+district,42,Beykoz,beykoz,https://www.peraproperty.com/district/istanbul/beykoz/,4
+district,44,Beyoglu,beyoglu,https://www.peraproperty.com/district/istanbul/beyoglu/,1
+district,45,Buyukcekmece,buyukcekmece,https://www.peraproperty.com/district/istanbul/buyukcekmece/,4
+district,139,Cekmekoy,cekmekoy,https://www.peraproperty.com/district/istanbul/cekmekoy/,0
+district,49,Eyup,eyup,https://www.peraproperty.com/district/istanbul/eyup/,7
+district,50,Fatih,fatih,https://www.peraproperty.com/district/istanbul/fatih/,1
+district,52,Gaziosmanpasa,gaziosmanpasa,https://www.peraproperty.com/district/istanbul/gaziosmanpasa/,1
+district,226,Istanbul,istanbul,https://www.peraproperty.com/district/istanbul/,107
+district,54,Kadikoy,kadikoy,https://www.peraproperty.com/district/istanbul/kadikoy/,5
+district,55,Kagithane,kagithane,https://www.peraproperty.com/district/istanbul/kagithane/,12
+district,56,Kartal,kartal,https://www.peraproperty.com/district/istanbul/kartal/,4
+district,57,Kucukcekmece,kucukcekmece,https://www.peraproperty.com/district/istanbul/kucukcekmece/,13
+district,58,Maltepe,maltepe,https://www.peraproperty.com/district/istanbul/maltepe/,1
+district,59,Pendik,pendik,https://www.peraproperty.com/district/istanbul/pendik/,0
+district,61,Sariyer,sariyer,https://www.peraproperty.com/district/istanbul/sariyer/,14
+district,64,Sisli,sisli,https://www.peraproperty.com/district/istanbul/sisli/,11
+district,68,Umraniye,umraniye,https://www.peraproperty.com/district/istanbul/umraniye/,4
+district,69,Uskudar,uskudar,https://www.peraproperty.com/district/istanbul/uskudar/,6
+district,70,Zeytinburnu,zeytinburnu,https://www.peraproperty.com/district/istanbul/zeytinburnu/,12
+property_tags,71,"Bosphorous views",istanbul-bosphorous-view-property-for-sale,https://www.peraproperty.com/property_tags/istanbul-bosphorous-view-property-for-sale/,28
+property_tags,112,"Forest views property for sale in Northern Istanbul",forest-homes-for-sale-in-northern-istanbul,https://www.peraproperty.com/property_tags/forest-homes-for-sale-in-northern-istanbul/,26
+property_tags,74,"Golden Horn Istanbul Property for sale",istanbul-golden-horn-view-property-for-sale,https://www.peraproperty.com/property_tags/istanbul-golden-horn-view-property-for-sale/,11
+property_tags,75,"Istanbul Investment property for sale",istanbul-investment-property-for-sale,https://www.peraproperty.com/property_tags/istanbul-investment-property-for-sale/,82
+property_tags,111,"Istanbul Lake views apartments for sale",istanbul-lake-views-apartments-for-sale,https://www.peraproperty.com/property_tags/istanbul-lake-views-apartments-for-sale/,10
+property_tags,79,"Istanbul Marina apartments for sale",marina,https://www.peraproperty.com/property_tags/marina/,3
+property_tags,82,"Istanbul Sea views for sale",istanbul-property-for-sale-with-sea-views,https://www.peraproperty.com/property_tags/istanbul-property-for-sale-with-sea-views/,36
+property_tags,123,"Istanbul Villas for sale",villas-for-sale-in-istanbul,https://www.peraproperty.com/property_tags/villas-for-sale-in-istanbul/,9
+property_tags,76,"Key ready apartments for sale in Istanbul",istanbul-key-ready-apartments-for-sale,https://www.peraproperty.com/property_tags/istanbul-key-ready-apartments-for-sale/,40
+property_tags,78,"Luxury Property for Sale in Istanbul",istanbul-luxury-property-for-sale,https://www.peraproperty.com/property_tags/istanbul-luxury-property-for-sale/,45
+property_tags,73,"Property for sale in Istanbul City Centre",istanbul-city-centre-property-for-sale,https://www.peraproperty.com/property_tags/istanbul-city-centre-property-for-sale/,50
+property_tags,129,"Property for sale near Bagdat Avenue, Istanbul",baghdad-avenue-homes-for-sale-in-istanbul,https://www.peraproperty.com/property_tags/baghdad-avenue-homes-for-sale-in-istanbul/,6
+property_tags,222,"Property for sale near Old City Istanbul",old-city,https://www.peraproperty.com/property_tags/old-city/,7
