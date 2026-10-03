@@ -212,7 +212,9 @@
 }
 
 @media (prefers-color-scheme: light) {
-  .panel-gradient-cool {
+  .panel-gradient-cool,
+  .content-panel-box.panel-gradient-cool,
+  .card-shell.panel-gradient-cool {
     background:
       radial-gradient(
         ellipse at 0% 0%,
@@ -227,7 +229,9 @@
       var(--brand-white);
   }
 
-  .panel-gradient-warm {
+  .panel-gradient-warm,
+  .content-panel-box.panel-gradient-warm,
+  .card-shell.panel-gradient-warm {
     background:
       radial-gradient(
         ellipse at 0% 0%,
@@ -242,7 +246,9 @@
       var(--brand-white);
   }
 
-  .panel-gradient-brand {
+  .panel-gradient-brand,
+  .content-panel-box.panel-gradient-brand,
+  .card-shell.panel-gradient-brand {
     background:
       radial-gradient(
         ellipse at 0% 0%,
