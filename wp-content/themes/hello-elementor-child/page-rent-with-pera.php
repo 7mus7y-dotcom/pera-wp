@@ -386,9 +386,6 @@ get_header();
     <!-- ABOUT PERA -->
     <?php get_template_part( 'parts/about-pera' ); ?>
 
-    <!-- ABOUT PERA V2 — TEMPORARY VISUAL COMPARISON -->
-    <?php get_template_part( 'parts/about-pera-v2' ); ?>
-
 
     <section class="section section-soft" id="contact">
             <div class="content-panel-box">
