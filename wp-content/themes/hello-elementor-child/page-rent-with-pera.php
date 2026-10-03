@@ -5,13 +5,6 @@
 
 if ( ! defined( 'ABSPATH' ) ) exit;
 
-$is_rent_page_seo_preview = current_user_can( 'manage_options' );
-if ( $is_rent_page_seo_preview && isset( $_GET['rent_page_version'] ) && 'seo' === sanitize_key( wp_unslash( $_GET['rent_page_version'] ) ) ) {
-    if ( ! defined( 'DONOTCACHEPAGE' ) ) {
-        define( 'DONOTCACHEPAGE', true );
-    }
-    nocache_headers();
-}
 
 $hero_heading = $args['hero_heading'] ?? pera_ml_ui( 'Talk to Pera about your Istanbul plans', 'theme.template.page_rent_with_pera.hero_heading_fallback' );
 $hero_intro   = $args['hero_intro']   ?? pera_ml_ui( 'Whether you’re buying, selling, or renting in Istanbul, our team can walk you through the numbers, the legal steps, and the neighbourhoods that fit your strategy.', 'theme.template.page_rent_with_pera.hero_intro_fallback' );
@@ -21,7 +14,6 @@ if ( ! function_exists( 'pera_rent_with_pera_faq_schema' ) ) {
         if ( ! is_page_template( 'page-rent-with-pera.php' ) ) {
             return;
         }
-        $is_preview = current_user_can( 'manage_options' );
 
         $faq_entities = array(
             array(
@@ -78,18 +70,6 @@ if ( ! function_exists( 'pera_rent_with_pera_faq_schema' ) ) {
             ),
         );
 
-        if ( $is_preview ) {
-            $faq_entities = array(
-                array( 'question' => 'Can foreigners rent out property in Istanbul?', 'answer' => 'Yes. Foreign owners can rent out eligible property in Istanbul. We help with practical steps, tenancy setup, and ongoing landlord support.' ),
-                array( 'question' => 'What does property management in Istanbul include?', 'answer' => 'Our property management service covers rental valuation, marketing, tenant sourcing, screening, tenancy coordination, rent collection, maintenance oversight, inspections, and owner reporting.' ),
-                array( 'question' => 'Do you provide long-term rental management?', 'answer' => 'Yes. Long-term rental management is our core service, with optional short-term support only where suitable for the property and location.' ),
-                array( 'question' => 'Can you manage my Istanbul apartment if I live overseas?', 'answer' => 'Yes. We support overseas landlords with day-to-day tenant communication, maintenance coordination, approvals, and regular updates.' ),
-                array( 'question' => 'Do you help with utilities, DASK and property tax?', 'answer' => 'Yes. We coordinate utility setup and support owners with DASK and annual property tax practicalities as part of our landlord services.' ),
-                array( 'question' => 'How do you handle repairs and maintenance costs?', 'answer' => 'We coordinate contractors, share quotes, and secure owner approval before third-party costs are committed.' ),
-                array( 'question' => 'Which Istanbul areas are best for rental demand?', 'answer' => 'Demand is often strong in central and well-connected districts such as Beşiktaş, Şişli, Nişantaşı, Bomonti, Kağıthane, Kadıköy, Üsküdar, Bakırköy and Atakent/Küçükçekmece.' ),
-                array( 'question' => 'Do you help furnish or prepare a property for rent?', 'answer' => 'Yes. We advise on furnishing, presentation, and practical setup to improve rental demand and tenant quality.' ),
-            );
-        }
 
         $main_entity = array_map(
             static function ( array $item ): array {
@@ -165,13 +145,9 @@ get_header();
 
         
             <h1><?php echo esc_html( pera_ml_ui( 'Property management in Istanbul for overseas and local owners', 'theme.template.page_rent_with_pera.property_management_in_istanbul_for_overseas_and_local_owners' ) ); ?></h1>
-            <?php if ( $is_rent_page_seo_preview ) : ?>
-                <p class="lead"><?php echo esc_html( pera_ml_ui( 'Rent out property in Istanbul with a trusted Istanbul property management company. We focus on long-term rental management in Istanbul for local and foreign owners, covering tenant sourcing, rent collection, property care, and clear owner reporting.', 'theme.template.page_rent_with_pera.rent_out_property_in_istanbul_with_a_trusted_istanbul_property_managemen' ) ); ?></p>
-            <?php else : ?>
-                <p class="lead">
-                  <?php echo esc_html( pera_ml_ui( 'Pera provides full-service rental and property management in Istanbul, including tenant sourcing, contracts, rent collection, maintenance coordination, renewals, and dedicated owner support.', 'theme.template.page_rent_with_pera.pera_provides_full_service_rental_and_property_management_in_istanbul_in' ) ); ?>
-                </p>
-            <?php endif; ?>
+            <p class="lead">
+              <?php echo esc_html( pera_ml_ui( 'Pera provides full-service rental and property management in Istanbul, including tenant sourcing, contracts, rent collection, maintenance coordination, renewals, and dedicated owner support.', 'theme.template.page_rent_with_pera.pera_provides_full_service_rental_and_property_management_in_istanbul_in' ) ); ?>
+            </p>
         
             <div class="hero-actions">
               <a href="#pricing" class="btn btn--solid btn--blue"><?php echo esc_html( pera_ml_ui( 'See pricing', 'theme.template.page_rent_with_pera.see_pricing' ) ); ?></a>
@@ -248,21 +224,6 @@ get_header();
             </div>
         </div>
     </section>
-    <?php if ( $is_rent_page_seo_preview ) : ?>
-    <section class="section section-soft">
-        <div class="content-panel-box">
-            <header class="section-header section-header--center"><h2><?php echo esc_html( pera_ml_ui( 'Property Management Services in Istanbul', 'theme.template.page_rent_with_pera.property_management_services_in_istanbul' ) ); ?></h2></header>
-            <div class="feature-grid">
-                <article class="feature-card"><div class="feature-card-header"><h3><?php echo esc_html( pera_ml_ui( 'Long-term rental management', 'theme.template.page_rent_with_pera.long_term_rental_management' ) ); ?></h3></div><div class="feature-card-body"><p><?php echo esc_html( pera_ml_ui( 'Our Istanbul rental management service includes valuation, marketing, tenant sourcing, tenancy coordination, Istanbul rent collection, and ongoing apartment management for local and overseas owners.', 'theme.template.page_rent_with_pera.our_istanbul_rental_management_service_includes_valuation_marketing_tena' ) ); ?></p></div></article>
-                <article class="feature-card"><div class="feature-card-header"><h3><?php echo esc_html( pera_ml_ui( 'Landlord administration', 'theme.template.page_rent_with_pera.landlord_administration' ) ); ?></h3></div><div class="feature-card-body"><p><?php echo esc_html( pera_ml_ui( 'We support Istanbul landlord services including utility setup, DASK and annual property tax support, deposit handling, and owner reporting tailored to overseas landlords with property in Istanbul.', 'theme.template.page_rent_with_pera.we_support_istanbul_landlord_services_including_utility_setup_dask_and_a' ) ); ?></p></div></article>
-                <article class="feature-card"><div class="feature-card-header"><h3><?php echo esc_html( pera_ml_ui( 'Asset care and approvals', 'theme.template.page_rent_with_pera.asset_care_and_approvals' ) ); ?></h3></div><div class="feature-card-body"><p><?php echo esc_html( pera_ml_ui( 'Maintenance coordination, inspections, and contractor management are handled with owner approvals before third-party costs are committed.', 'theme.template.page_rent_with_pera.maintenance_coordination_inspections_and_contractor_management_are_handl' ) ); ?></p></div></article>
-            </div>
-        </div>
-    </section>
-    <section class="section"><div class="content-panel-box"><header class="section-header"><h2><?php echo esc_html( pera_ml_ui( 'Long-Term Rental Management for Foreign Owners', 'theme.template.page_rent_with_pera.long_term_rental_management_for_foreign_owners' ) ); ?></h2><p><?php echo esc_html( pera_ml_ui( 'As a property management company in Istanbul, we are set up for foreign owners who need dependable local execution. If you are abroad, we can manage your Istanbul apartment end-to-end and keep decisions clear, documented, and approval-led.', 'theme.template.page_rent_with_pera.as_a_property_management_company_in_istanbul_we_are_set_up_for_foreign_o' ) ); ?></p></header></div></section>
-    <section class="section section-soft"><div class="content-panel-box"><header class="section-header section-header--center"><h2><?php echo esc_html( pera_ml_ui( 'Best Istanbul Areas for Rental Demand', 'theme.template.page_rent_with_pera.best_istanbul_areas_for_rental_demand' ) ); ?></h2><p><?php echo esc_html( pera_ml_ui( 'We regularly manage and let homes in', 'theme.template.page_rent_with_pera.we_regularly_manage_and_let_homes_in' ) ); ?> <a href="/district/istanbul/besiktas/">Beşiktaş</a>, <a href="/district/istanbul/sisli/">Şişli</a> <?php echo esc_html( pera_ml_ui( '(including Bomonti and Nişantaşı),', 'theme.template.page_rent_with_pera.including_bomonti_and_ni_anta' ) ); ?> <a href="/district/istanbul/kagithane/">Kağıthane</a>, <a href="/district/istanbul/kadikoy/">Kadıköy</a>, <a href="/district/istanbul/uskudar/">Üsküdar</a>, <a href="/district/istanbul/bakirkoy/">Bakırköy</a><?php echo esc_html( pera_ml_ui( ', and Atakent / Küçükçekmece. Explore our', 'theme.template.page_rent_with_pera.and_atakent_k_k_ekmece_explore_our' ) ); ?> <a href="/property/"><?php echo esc_html( pera_ml_ui( 'property listings', 'theme.template.page_rent_with_pera.property_listings' ) ); ?></a> <?php echo esc_html( pera_ml_ui( 'and', 'theme.template.page_rent_with_pera.and' ) ); ?> <a href="/buyer-guides/"><?php echo esc_html( pera_ml_ui( 'buyer guides', 'theme.template.page_rent_with_pera.buyer_guides' ) ); ?></a> <?php echo esc_html( pera_ml_ui( 'for district context.', 'theme.template.page_rent_with_pera.for_district_context' ) ); ?></p></header></div></section>
-    <section class="section"><div class="content-panel-box"><header class="section-header section-header--center"><h2><?php echo esc_html( pera_ml_ui( 'Why International Owners Choose Pera Property', 'theme.template.page_rent_with_pera.why_international_owners_choose_pera_property' ) ); ?></h2><p><?php echo esc_html( pera_ml_ui( 'Owners choose us for practical execution, transparent communication, and reliable process controls across tenant checks, rent collection, maintenance, and reporting. Contact us through', 'theme.template.page_rent_with_pera.owners_choose_us_for_practical_execution_transparent_communication_and_r' ) ); ?> <a href="/contact-us/"><?php echo esc_html( pera_ml_ui( 'our contact page', 'theme.template.page_rent_with_pera.our_contact_page' ) ); ?></a> <?php echo esc_html( pera_ml_ui( 'to discuss your rental plan.', 'theme.template.page_rent_with_pera.to_discuss_your_rental_plan' ) ); ?></p></header></div></section>
-    <?php endif; ?>
 
     <!-- PRICING -->
     <section id="pricing" class="section section-soft">
@@ -431,9 +392,7 @@ get_header();
 
     <section class="faq-section section" id="rental-management-faq">
         <div class="container">
-            <h2><?php echo esc_html( $is_rent_page_seo_preview
-              ? pera_ml_ui( 'Istanbul Property Management FAQ', 'theme.template.page_rent_with_pera.property_management_faq_heading' )
-              : pera_ml_ui( 'Rental management FAQ', 'theme.template.page_rent_with_pera.rental_management_faq_heading' ) ); ?></h2>
+            <h2><?php echo esc_html( pera_ml_ui( 'Rental management FAQ', 'theme.template.page_rent_with_pera.rental_management_faq_heading' ) ); ?></h2>
             <p><?php echo esc_html( pera_ml_ui( 'Everything you need to know about property management in Istanbul and how our rental management service works in practice.', 'theme.template.page_rent_with_pera.everything_you_need_to_know_about_property_management_in_istanbul_and_ho' ) ); ?></p>
 
             <div class="faq-accordion">
