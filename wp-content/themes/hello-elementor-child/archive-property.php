@@ -1492,6 +1492,15 @@ $property_archive_faq_items = ( function_exists( 'pera_property_archive_is_index
     priceMinRange.step = priceMaxRange.step = '1';
     priceMinRange.value = String(displayMin);
     priceMaxRange.value = String(displayMax);
+    const displaySpan = displayBoundMax - displayBoundMin;
+    const fillLeft = displaySpan > 0 ? ((displayMin - displayBoundMin) / displaySpan) * 100 : 0;
+    const fillRight = displaySpan > 0 ? ((displayMax - displayBoundMin) / displaySpan) * 100 : 100;
+    const priceSlider = priceMinRange.closest('.filter-price__slider');
+    if (priceSlider) {
+      priceSlider.style.setProperty('--fill-left', fillLeft + '%');
+      priceSlider.style.setProperty('--fill-right', fillRight + '%');
+      priceSlider.classList.add('fill-active');
+    }
     priceMinHidden.value = priceTouched && canonicalMinUsd !== null ? String(canonicalMinUsd) : '';
     priceMaxHidden.value = priceTouched && canonicalMaxUsd !== null ? String(canonicalMaxUsd) : '';
     if (priceCurrencyCode) priceCurrencyCode.textContent = '(' + code + ')';

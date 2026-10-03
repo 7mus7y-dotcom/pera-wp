@@ -611,6 +611,21 @@ body.has-open-dialog{
 .filter-price__slider{
   position: relative;
   height: 30px; /* space for 30px thumbs */
+  isolation: isolate;
+}
+
+/* One neutral track sits below the selected-range fill and both thumbs. */
+.filter-price__slider::after{
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 50%;
+  transform: translateY(-50%);
+  height: 8px;
+  background: #d1d5db;
+  border-radius: var(--radius-xs, 4px);
+  z-index: 0;
 }
 
 /* Both range inputs share identical geometry */
@@ -625,18 +640,19 @@ body.has-open-dialog{
   background: transparent;
   -webkit-appearance: none;
   appearance: none;
+  pointer-events: none;
   z-index: 2;
 }
 
-/* Track */
+/* Native tracks must not paint over the other input's thumb. */
 .filter-price__slider input[type="range"]::-webkit-slider-runnable-track{
   height: 8px;
-  background: #d1d5db;
+  background: transparent;
   border-radius: var(--radius-xs, 4px);
 }
 .filter-price__slider input[type="range"]::-moz-range-track{
   height: 8px;
-  background: #d1d5db;
+  background: transparent;
   border-radius: var(--radius-xs, 4px);
 }
 
@@ -665,9 +681,9 @@ body.has-open-dialog{
 .filter-price__slider input[type="range"]::-webkit-slider-thumb{ pointer-events: auto; }
 .filter-price__slider input[type="range"]::-moz-range-thumb{ pointer-events: auto; }
 
-/* Keep MAX (right/active) above MIN so its thumb never dips under the track */
-#price-min-range{ z-index: 2; }
-#price-max-range{ z-index: 3; }
+/* The inputs share a thumb layer; only their native thumbs accept pointers. */
+#price-min-range,
+#price-max-range{ z-index: 2; }
 
 /* Thumb styling (Chrome / Safari / Edge) */
 .filter-price__slider input[type="range"]::-webkit-slider-thumb{
@@ -1602,10 +1618,7 @@ body.is-lightbox-open{ overflow: hidden; }
   }
 
   /* Slider track in dark mode */
-  .filter-price__slider input[type="range"]::-webkit-slider-runnable-track{
-    background: #1f2937;
-  }
-  .filter-price__slider input[type="range"]::-moz-range-track{
+  .filter-price__slider::after{
     background: #1f2937;
   }
 
