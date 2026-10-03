@@ -74,9 +74,22 @@ if ( ! function_exists( 'pera_whatsapp_log_allowed_page_types' ) ) {
 		return array(
 			'generic',
 			'single-property',
+			'blog-article',
+			'property-search',
+			'citizenship-properties',
+			'property-taxonomy',
+			'blog-archive',
+			'blog-category',
+			'blog-tag',
 			'citizenship-by-investment',
 			'sell-with-pera',
 			'rent-with-pera',
+			'developer-sales-office',
+			'book-consultancy',
+			'property-map',
+			'luxury-property',
+			'contact',
+			'content-page',
 		);
 	}
 }
@@ -248,9 +261,22 @@ if ( ! function_exists( 'pera_whatsapp_logs_page_type_label' ) ) {
 	function pera_whatsapp_logs_page_type_label( string $page_type ): string {
 		$labels = array(
 			'single-property'           => __( 'Single Property', 'hello-elementor-child' ),
+			'blog-article'               => __( 'Blog Article', 'hello-elementor-child' ),
+			'property-search'            => __( 'Property Search', 'hello-elementor-child' ),
+			'citizenship-properties'     => __( 'Citizenship Properties', 'hello-elementor-child' ),
+			'property-taxonomy'          => __( 'Property Taxonomy', 'hello-elementor-child' ),
+			'blog-archive'               => __( 'Blog Archive', 'hello-elementor-child' ),
+			'blog-category'              => __( 'Blog Category', 'hello-elementor-child' ),
+			'blog-tag'                   => __( 'Blog Tag', 'hello-elementor-child' ),
 			'sell-with-pera'            => __( 'Sell With Pera', 'hello-elementor-child' ),
 			'rent-with-pera'            => __( 'Rent With Pera', 'hello-elementor-child' ),
 			'citizenship-by-investment' => __( 'Citizenship by Investment', 'hello-elementor-child' ),
+			'developer-sales-office'    => __( 'Developer Sales Office', 'hello-elementor-child' ),
+			'book-consultancy'           => __( 'Book a Consultancy', 'hello-elementor-child' ),
+			'property-map'               => __( 'Property Map', 'hello-elementor-child' ),
+			'luxury-property'            => __( 'Luxury Property', 'hello-elementor-child' ),
+			'contact'                    => __( 'Contact', 'hello-elementor-child' ),
+			'content-page'               => __( 'Content Page', 'hello-elementor-child' ),
 			'generic'                   => __( 'Generic Page', 'hello-elementor-child' ),
 		);
 
@@ -321,13 +347,11 @@ if ( ! function_exists( 'pera_whatsapp_logs_stats' ) ) {
 			$counts[ $type ] = (int) ( $row['count'] ?? 0 );
 		}
 
-		return array(
-			'total'                     => $total,
-			'single-property'           => $counts['single-property'] ?? 0,
-			'sell-with-pera'            => $counts['sell-with-pera'] ?? 0,
-			'rent-with-pera'            => $counts['rent-with-pera'] ?? 0,
-			'citizenship-by-investment' => $counts['citizenship-by-investment'] ?? 0,
-		);
+		$stats = array( 'total' => $total );
+		foreach ( pera_whatsapp_log_allowed_page_types() as $page_type ) {
+			$stats[ $page_type ] = $counts[ $page_type ] ?? 0;
+		}
+		return $stats;
 	}
 }
 
