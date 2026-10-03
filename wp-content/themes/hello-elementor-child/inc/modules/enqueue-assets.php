@@ -106,7 +106,6 @@ add_action( 'wp_enqueue_scripts', function () {
   $is_citizenship_properties_page = is_page_template( 'page-citizenship-properties.php' );
   $is_enquiry_page = $is_citizenship_page ||
     is_page_template( 'page-rent-with-pera.php' ) ||
-    is_page_template( 'page-rent-with-pera-v2.php' ) ||
     is_page_template( 'page-sell-with-pera.php' ) ||
     is_page_template( 'page-book-a-consultancy.php' ) ||
     $is_favourites_page ||
