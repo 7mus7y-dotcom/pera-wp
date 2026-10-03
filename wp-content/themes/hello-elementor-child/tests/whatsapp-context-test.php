@@ -22,7 +22,7 @@ $GLOBALS['wa_state'] = array();
 $GLOBALS['wa_options'] = array();
 function wa_expect( $condition, $label ) { if ( ! $condition ) { fwrite( STDERR, "FAIL {$label}\n" ); exit( 1 ); } }
 function wa_set( array $state ) {
-	$GLOBALS['wa_state'] = array_merge( array( 'kind' => 'fallback', 'id' => 0, 'title' => '', 'template' => '', 'slug' => '', 'taxonomy' => '', 'post_type' => '' ), $state );
+	$GLOBALS['wa_state'] = array_merge( array( 'kind' => 'fallback', 'id' => 0, 'title' => '', 'term_translation' => null, 'template' => '', 'slug' => '', 'taxonomy' => '', 'post_type' => '' ), $state );
 	$_SERVER['REQUEST_URI'] = $state['request'] ?? '/';
 }
 function wa_kind( $kind ) { return $GLOBALS['wa_state']['kind'] === $kind; }
@@ -61,6 +61,9 @@ function sanitize_text_field( $value ) { return trim( strip_tags( (string) $valu
 function sanitize_textarea_field( $value ) { return trim( strip_tags( (string) $value ) ); }
 function apply_filters( $tag, $value ) { return $value; }
 function pera_ml_ui( $source, $key = '' ) { $GLOBALS['wa_translation_keys'][] = $key; return $source; }
+if ( ! in_array( '--without-ml-term', $argv, true ) ) {
+	function pera_ml_term( $term, $field = 'name' ) { return $GLOBALS['wa_state']['term_translation']; }
+}
 function get_option( $key, $default = '' ) { return $GLOBALS['wa_options'][ $key ] ?? $default; }
 function esc_url( $value ) { return htmlspecialchars( $value, ENT_QUOTES, 'UTF-8' ); }
 function esc_attr( $value ) { return htmlspecialchars( $value, ENT_QUOTES, 'UTF-8' ); }
@@ -73,16 +76,24 @@ $theme = dirname( __DIR__ );
 require_once $theme . '/inc/whatsapp-helpers.php';
 require_once $theme . '/inc/whatsapp.php';
 
+if ( in_array( '--without-ml-term', $argv, true ) ) {
+	wa_set( array( 'kind' => 'taxonomy', 'taxonomy' => 'region', 'title' => 'Canonical Region', 'request' => '/region/canonical/' ) );
+	$without_plugin = pera_get_whatsapp_context();
+	wa_expect( false !== strpos( $without_plugin['message_text'], 'Canonical Region' ), 'canonical term name is used when multilingual accessor is unavailable' );
+	echo "WhatsApp term fallback without multilingual plugin passed.\n";
+	exit( 0 );
+}
+
 $cases = array(
 	array( array( 'kind' => 'property', 'post_type' => 'property', 'id' => 12345, 'title' => 'Bosphorus &amp; Home', 'request' => '/tr/property/ignored/?utm_source=x' ), 'single-property', array( 'Bosphorus & Home', '12345', 'https://example.test/canonical/12345/' ) ),
 	array( array( 'kind' => 'post', 'post_type' => 'post', 'id' => 88, 'title' => '<b>Buying Guide</b>', 'request' => '/de/blog/kaufen/' ), 'blog-article', array( 'Buying Guide', 'https://example.test/canonical/88/' ) ),
 	array( array( 'kind' => 'property_archive', 'request' => '/fr/property/?district%5B%5D=besiktas&min_price=100000&_wpnonce=secret&debug=1' ), 'property-search', array( 'district%5B0%5D=besiktas', 'min_price=100000' ) ),
 	array( array( 'kind' => 'page', 'post_type' => 'page', 'id' => 10, 'title' => 'Eligible homes', 'template' => 'page-citizenship-properties.php', 'request' => '/tr/turkish-citizenship-properties/?view=cards' ), 'citizenship-properties', array( 'citizenship-eligible', '/tr/turkish-citizenship-properties/?view=cards' ) ),
-	array( array( 'kind' => 'taxonomy', 'taxonomy' => 'region', 'title' => 'European Side', 'request' => '/region/european-side/' ), 'property-taxonomy', array( 'European Side' ) ),
+	array( array( 'kind' => 'taxonomy', 'taxonomy' => 'region', 'title' => 'European Side', 'term_translation' => 'Avrupa Yakası', 'request' => '/region/european-side/' ), 'property-taxonomy', array( 'Avrupa Yakası' ), array( 'European Side' ) ),
 	array( array( 'kind' => 'taxonomy', 'taxonomy' => 'district', 'title' => 'Beşiktaş', 'request' => '/district/besiktas/' ), 'property-taxonomy', array( 'Beşiktaş' ) ),
 	array( array( 'kind' => 'taxonomy', 'taxonomy' => 'property_tags', 'title' => 'Sea View', 'request' => '/property_tags/sea-view/' ), 'property-taxonomy', array( 'Sea View' ) ),
-	array( array( 'kind' => 'category', 'taxonomy' => 'category', 'title' => 'Area Guides', 'request' => '/category/areas/' ), 'blog-category', array( 'Area Guides' ) ),
-	array( array( 'kind' => 'tag', 'taxonomy' => 'post_tag', 'title' => 'Investing', 'request' => '/tag/investing/' ), 'blog-tag', array( 'Investing' ) ),
+	array( array( 'kind' => 'category', 'taxonomy' => 'category', 'title' => 'Area Guides', 'term_translation' => 'Bölge Rehberleri', 'request' => '/category/areas/' ), 'blog-category', array( 'Bölge Rehberleri' ), array( 'Area Guides' ) ),
+	array( array( 'kind' => 'tag', 'taxonomy' => 'post_tag', 'title' => 'Investing', 'term_translation' => 'Yatırım', 'request' => '/tag/investing/' ), 'blog-tag', array( 'Yatırım' ), array( 'Investing' ) ),
 	array( array( 'kind' => 'home', 'title' => 'Blog', 'request' => '/blog/' ), 'blog-archive', array( '/blog/' ) ),
 	array( array( 'kind' => 'page', 'post_type' => 'page', 'template' => 'page-citizenship.php', 'id' => 11, 'title' => 'Citizenship', 'request' => '/citizenship-by-investment/' ), 'citizenship-by-investment', array( '/citizenship-by-investment/' ) ),
 	array( array( 'kind' => 'page', 'post_type' => 'page', 'template' => 'page-sell-with-pera.php', 'id' => 12, 'title' => 'Sell', 'request' => '/sell-with-pera/' ), 'sell-with-pera', array( 'selling my property', '/sell-with-pera/' ) ),
@@ -101,9 +112,18 @@ foreach ( $cases as $index => $case ) {
 	$context = pera_get_whatsapp_context();
 	wa_expect( $case[1] === $context['page_type'], "case {$index} page type" );
 	foreach ( $case[2] as $needle ) wa_expect( false !== strpos( $context['message_text'], $needle ), "case {$index} contains {$needle}" );
+	foreach ( $case[3] ?? array() as $needle ) wa_expect( false === strpos( $context['message_text'], $needle ), "case {$index} excludes canonical {$needle}" );
 	wa_expect( 0 === strpos( $context['whatsapp_url'], 'https://wa.me/905452054356?text=' ), "case {$index} uses configured builder/default number" );
 	wa_expect( $context['message_text'] === rawurldecode( substr( $context['whatsapp_url'], strpos( $context['whatsapp_url'], '?text=' ) + 6 ) ), "case {$index} message encoding round trips" );
 }
+
+wa_set( array( 'kind' => 'taxonomy', 'taxonomy' => 'district', 'title' => 'Canonical District', 'term_translation' => '', 'request' => '/district/canonical/' ) );
+$empty_translation = pera_get_whatsapp_context();
+wa_expect( false !== strpos( $empty_translation['message_text'], 'Canonical District' ), 'canonical term name is used when multilingual accessor returns no usable translation' );
+
+$fallback_command = escapeshellarg( PHP_BINARY ) . ' ' . escapeshellarg( __FILE__ ) . ' --without-ml-term';
+exec( $fallback_command, $fallback_output, $fallback_status );
+wa_expect( 0 === $fallback_status && in_array( 'WhatsApp term fallback without multilingual plugin passed.', $fallback_output, true ), 'fallback works when multilingual plugin is unavailable' );
 
 wa_set( array( 'kind' => 'post', 'post_type' => 'post', 'id' => 20, 'title' => 'Article', 'request' => '/article/' ) );
 $article = pera_get_whatsapp_context();

@@ -78,7 +78,11 @@ if ( ! function_exists( 'pera_whatsapp_queried_title' ) ) {
 	function pera_whatsapp_queried_title(): string {
 		$object = get_queried_object();
 		if ( $object instanceof WP_Term ) {
-			return pera_whatsapp_clean_text( $object->name );
+			$term_name = function_exists( 'pera_ml_term' ) ? pera_ml_term( $object, 'name' ) : $object->name;
+			$term_name = pera_whatsapp_clean_text( $term_name );
+
+			// The multilingual accessor normally falls back itself; guard custom/partial implementations too.
+			return '' !== $term_name ? $term_name : pera_whatsapp_clean_text( $object->name );
 		}
 		if ( $object instanceof WP_Post ) {
 			return pera_whatsapp_clean_text( get_the_title( $object->ID ) );
