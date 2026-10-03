@@ -343,7 +343,7 @@ get_header();
 
     <!-- SECOND HOME MANAGEMENT -->
     <section class="section" id="second-home-management">
-        <div class="content-panel-box">
+        <div class="content-panel-box panel-gradient-brand">
             <div class="content-panel-grid">
                 <div>
                     <header class="section-header">
