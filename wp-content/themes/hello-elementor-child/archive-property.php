@@ -706,7 +706,7 @@ if ( ! $is_filtered_search && ( $qo instanceof WP_Term ) && ! is_wp_error( $qo )
                                     type="range"
                                     min="<?php echo esc_attr($global_min_price); ?>"
                                     max="<?php echo esc_attr($global_max_price); ?>"
-                                    step="10000"
+                                    step="1000"
                                     value="<?php echo esc_attr($slider_min); ?>"
                                   >
                                   <input
@@ -714,7 +714,7 @@ if ( ! $is_filtered_search && ( $qo instanceof WP_Term ) && ! is_wp_error( $qo )
                                     type="range"
                                     min="<?php echo esc_attr($global_min_price); ?>"
                                     max="<?php echo esc_attr($global_max_price); ?>"
-                                    step="10000"
+                                    step="1000"
                                     value="<?php echo esc_attr($slider_max); ?>"
                                   >
                                 </div>
@@ -1473,6 +1473,13 @@ $property_archive_faq_items = ( function_exists( 'pera_property_archive_is_index
   // ---------------------------
   // PRICE UI SYNC
   // ---------------------------
+  function normalizeDisplayPrice(value, boundMin, boundMax) {
+    const step = 1000;
+    const attainableMax = boundMin + Math.floor(Math.max(0, boundMax - boundMin) / step) * step;
+    const clamped = Math.max(boundMin, Math.min(attainableMax, value));
+    return boundMin + Math.round((clamped - boundMin) / step) * step;
+  }
+
   function renderPriceUi() {
     if (!priceMinRange || !priceMaxRange || !priceMinHidden || !priceMaxHidden) return;
     const api = currencyApi();
@@ -1481,15 +1488,17 @@ $property_archive_faq_items = ( function_exists( 'pera_property_archive_is_index
     const maxUsd = canonicalMaxUsd === null ? GLOBAL_MAX_PRICE : canonicalMaxUsd;
     const displayBoundMin = api ? api.convertInputFromUsd(GLOBAL_MIN_PRICE, code).amount : GLOBAL_MIN_PRICE;
     const displayBoundMax = api ? api.convertInputFromUsd(GLOBAL_MAX_PRICE, code).amount : GLOBAL_MAX_PRICE;
-    const displayMin = api ? api.convertInputFromUsd(minUsd, code).amount : minUsd;
-    const displayMax = api ? api.convertInputFromUsd(maxUsd, code).amount : maxUsd;
+    const convertedDisplayMin = api ? api.convertInputFromUsd(minUsd, code).amount : minUsd;
+    const convertedDisplayMax = api ? api.convertInputFromUsd(maxUsd, code).amount : maxUsd;
+    const displayMax = normalizeDisplayPrice(convertedDisplayMax, displayBoundMin, displayBoundMax);
+    const displayMin = Math.min(displayMax, normalizeDisplayPrice(convertedDisplayMin, displayBoundMin, displayBoundMax));
 
     priceMinRange.min = String(displayBoundMin);
     priceMinRange.max = String(displayBoundMax);
     priceMaxRange.min = String(displayBoundMin);
     priceMaxRange.max = String(displayBoundMax);
-    // Whole display units preserve exact URL-derived values; pixel width still governs thumb granularity.
-    priceMinRange.step = priceMaxRange.step = '1';
+    // Keep mouse, touch, and keyboard changes on attainable values in the display currency.
+    priceMinRange.step = priceMaxRange.step = '1000';
     priceMinRange.value = String(displayMin);
     priceMaxRange.value = String(displayMax);
     const displaySpan = displayBoundMax - displayBoundMin;
