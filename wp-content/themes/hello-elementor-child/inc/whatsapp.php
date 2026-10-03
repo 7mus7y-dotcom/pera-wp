@@ -88,7 +88,7 @@ if ( ! function_exists( 'pera_get_whatsapp_context' ) ) {
 			$context['message_text'] = pera_ml_ui( "Hi, I'm interested in selling my property in Istanbul with Pera Property. Can you provide more information about your sales service?", 'theme.whatsapp.sell_message' );
 		} elseif ( is_page( 'rent-with-pera' ) || is_page_template( 'page-rent-with-pera.php' ) || is_page_template( 'page-rent-with-pera-v2.php' ) ) {
 			$context['page_type']    = 'rent-with-pera';
-			$context['message_text'] = pera_ml_ui( "Hi, I'm interested in renting out my property in Istanbul with Pera Property. Can you provide more information about your rental service?", 'theme.whatsapp.rent_message' );
+			$context['message_text'] = pera_ml_ui( "Hi, I'm interested in property management for my property in Istanbul. Can you provide more information about your services?", 'theme.whatsapp.rent_message' );
 		}
 
 		$context['whatsapp_url'] = pera_get_whatsapp_url( $context['message_text'] );
