@@ -42,6 +42,7 @@ add_action( 'init', function () {
     is_page_template( 'page-citizenship.php' ) ||
     is_page_template( 'page-zh-citizenship.php' ) ||
     is_page_template( 'page-rent-with-pera.php' ) ||
+    is_page_template( 'page-rent-with-pera-v2.php' ) ||
     is_page_template( 'page-sell-with-pera.php' ) ||
     is_page_template( 'page-book-a-consultancy.php' ) ||
     is_page_template( 'page-favourites.php' )
