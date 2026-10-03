@@ -24,56 +24,24 @@ if ( ! function_exists( 'pera_rent_with_pera_v2_faq_schema' ) ) {
 
         $faq_entities = array(
             array(
-                'question' => 'What does your full property management in Istanbul service include?',
-                'answer'   => 'Our service is fully hands-off for Istanbul property owners. We handle tenant sourcing, marketing, viewings, lease preparation, tenant screening, contract negotiation, renewals, maintenance coordination, and ongoing tenant communication. We also assist with utility setup, tax guidance, and end-of-tenancy processes.',
+                'question' => 'Can you manage my Istanbul property if I live overseas?',
+                'answer'   => 'Yes. The service is designed for owners who need a reliable local point of contact in Istanbul. We can manage a long-term tenancy or look after a second home that is not rented.',
             ),
             array(
-                'question' => 'What is your rental management fee?',
-                'answer'   => 'Our full property management service in Istanbul is charged at 12% + VAT. This covers the ongoing management of the property throughout the tenancy, including renewals and day-to-day tenant management.',
+                'question' => 'Do I have to rent out my property to use your management service?',
+                'answer'   => 'No. Second Home Care is for owner-occupied apartments and villas that need local oversight while the owner is away. The scope is agreed around the property and the level of support you require.',
             ),
             array(
-                'question' => 'Are there any additional costs?',
-                'answer'   => 'Yes — the management fee covers our service only. Property-related costs such as maintenance, repairs, taxes, insurance, utilities, or building charges are separate and always subject to your approval before any work is carried out.',
+                'question' => 'What is the difference between Lettings Only and Full Management?',
+                'answer'   => 'Lettings Only is for finding, screening and establishing the tenant. Full Management keeps Pera involved after move-in as the local contact for the ongoing tenancy, property issues and tenant communication.',
             ),
             array(
-                'question' => 'How do you find and select tenants?',
-                'answer'   => 'As part of our rental management in Istanbul, we market your property across our network and screen all applicants carefully. This typically includes employment and income checks, documentation review, and — where appropriate — requiring a Turkish guarantor. Our focus is always on placing reliable, financially stable tenants.',
+                'question' => 'What happens if a repair is needed while I am abroad?',
+                'answer'   => 'We can establish the issue, coordinate suitable contractors and keep you updated. Chargeable third-party work is referred to you for approval unless a different authority has been agreed in advance.',
             ),
             array(
-                'question' => 'Will I approve the tenant before the contract is signed?',
-                'answer'   => 'Yes. We present you with the proposed tenant and agreed terms before any contract is finalised. No tenancy is confirmed without your approval.',
-            ),
-            array(
-                'question' => 'Do you provide the rental contract in English?',
-                'answer'   => 'Yes. We can prepare bilingual Turkish and English contracts so that you fully understand the terms of the agreement while ensuring compliance with local regulations.',
-            ),
-            array(
-                'question' => 'How are rent increases handled?',
-                'answer'   => 'Rent increases are managed in line with Turkish law, typically based on the official CPI (TÜFE) cap. We handle negotiations with the tenant and advise you on the optimal approach at each renewal period.',
-            ),
-            array(
-                'question' => 'Do you use any legal protection for the landlord?',
-                'answer'   => 'Yes. Where appropriate, we arrange a notarised exit undertaking (tahliye taahhütnamesi), which provides additional legal protection in case the tenant does not vacate at the end of the agreed term.',
-            ),
-            array(
-                'question' => 'How is the tenant deposit handled?',
-                'answer'   => 'We typically secure a two-month deposit, which is held in accordance with Turkish rental practices. At the end of the tenancy, the property is inspected and any agreed deductions are applied before the remaining balance is returned.',
-            ),
-            array(
-                'question' => 'How are utilities managed?',
-                'answer'   => 'For tenanted properties, utilities are usually transferred into the tenant’s name. For new properties, the owner may need to open the accounts initially. We manage and coordinate this process on your behalf.',
-            ),
-            array(
-                'question' => 'How do you handle maintenance and repairs?',
-                'answer'   => 'If an issue arises, we coordinate with trusted contractors, obtain quotes where necessary, and seek your approval before proceeding. No expense is incurred without your consent, so Istanbul property owners stay in control.',
-            ),
-            array(
-                'question' => 'Do I receive reports or updates?',
-                'answer'   => 'Rent is typically paid directly to the owner, so formal monthly reporting is not always required. However, we keep you informed of any key developments and can provide structured reporting if you prefer a more hands-on overview.',
-            ),
-            array(
-                'question' => 'Can I take over management myself later?',
-                'answer'   => 'Yes. You are free to take over management at any time with reasonable notice. We will ensure a smooth handover of all relevant documents and tenant information.',
+                'question' => 'How much does property management cost?',
+                'answer'   => 'Our Lettings Only service is 8% + VAT and Full Management is 12% + VAT. Second Home Care is quoted separately because the required level of inspection, access and ongoing property support varies considerably between homes.',
             ),
         );
 
