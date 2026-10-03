@@ -6,8 +6,8 @@
 if ( ! defined( 'ABSPATH' ) ) exit;
 
 
-$hero_heading = $args['hero_heading'] ?? pera_ml_ui( 'Talk to Pera about your Istanbul plans', 'theme.template.page_rent_with_pera.hero_heading_fallback' );
-$hero_intro   = $args['hero_intro']   ?? pera_ml_ui( 'Whether you’re buying, selling, or renting in Istanbul, our team can walk you through the numbers, the legal steps, and the neighbourhoods that fit your strategy.', 'theme.template.page_rent_with_pera.hero_intro_fallback' );
+$hero_heading = $args['hero_heading'] ?? pera_ml_ui( 'Tell us what you need managed in Istanbul', 'theme.template.page_rent_with_pera_v2.contact_heading' );
+$hero_intro   = $args['hero_intro']   ?? pera_ml_ui( 'Tell us whether the property is currently rented, ready to let, or kept for your own use. We can then recommend the appropriate level of local support.', 'theme.template.page_rent_with_pera_v2.contact_intro' );
 
 if ( ! function_exists( 'pera_rent_with_pera_faq_schema' ) ) {
     function pera_rent_with_pera_faq_schema() {
@@ -17,56 +17,24 @@ if ( ! function_exists( 'pera_rent_with_pera_faq_schema' ) ) {
 
         $faq_entities = array(
             array(
-                'question' => 'What does your full property management in Istanbul service include?',
-                'answer'   => 'Our service is fully hands-off for Istanbul property owners. We handle tenant sourcing, marketing, viewings, lease preparation, tenant screening, contract negotiation, renewals, maintenance coordination, and ongoing tenant communication. We also assist with utility setup, tax guidance, and end-of-tenancy processes.',
+                'question' => 'Can you manage my Istanbul property if I live overseas?',
+                'answer'   => 'Yes. The service is designed for owners who need a reliable local point of contact in Istanbul. We can manage a long-term tenancy or look after a second home that is not rented.',
             ),
             array(
-                'question' => 'What is your rental management fee?',
-                'answer'   => 'Our full property management service in Istanbul is charged at 12% + VAT. This covers the ongoing management of the property throughout the tenancy, including renewals and day-to-day tenant management.',
+                'question' => 'Do I have to rent out my property to use your management service?',
+                'answer'   => 'No. Second Home Care is for owner-occupied apartments and villas that need local oversight while the owner is away. The scope is agreed around the property and the level of support you require.',
             ),
             array(
-                'question' => 'Are there any additional costs?',
-                'answer'   => 'Yes — the management fee covers our service only. Property-related costs such as maintenance, repairs, taxes, insurance, utilities, or building charges are separate and always subject to your approval before any work is carried out.',
+                'question' => 'What is the difference between Lettings Only and Full Management?',
+                'answer'   => 'Lettings Only is for finding, screening and establishing the tenant. Full Management keeps Pera involved after move-in as the local contact for the ongoing tenancy, property issues and tenant communication.',
             ),
             array(
-                'question' => 'How do you find and select tenants?',
-                'answer'   => 'As part of our rental management in Istanbul, we market your property across our network and screen all applicants carefully. This typically includes employment and income checks, documentation review, and — where appropriate — requiring a Turkish guarantor. Our focus is always on placing reliable, financially stable tenants.',
+                'question' => 'What happens if a repair is needed while I am abroad?',
+                'answer'   => 'We can establish the issue, coordinate suitable contractors and keep you updated. Chargeable third-party work is referred to you for approval unless a different authority has been agreed in advance.',
             ),
             array(
-                'question' => 'Will I approve the tenant before the contract is signed?',
-                'answer'   => 'Yes. We present you with the proposed tenant and agreed terms before any contract is finalised. No tenancy is confirmed without your approval.',
-            ),
-            array(
-                'question' => 'Do you provide the rental contract in English?',
-                'answer'   => 'Yes. We can prepare bilingual Turkish and English contracts so that you fully understand the terms of the agreement while ensuring compliance with local regulations.',
-            ),
-            array(
-                'question' => 'How are rent increases handled?',
-                'answer'   => 'Rent increases are managed in line with Turkish law, typically based on the official CPI (TÜFE) cap. We handle negotiations with the tenant and advise you on the optimal approach at each renewal period.',
-            ),
-            array(
-                'question' => 'Do you use any legal protection for the landlord?',
-                'answer'   => 'Yes. Where appropriate, we arrange a notarised exit undertaking (tahliye taahhütnamesi), which provides additional legal protection in case the tenant does not vacate at the end of the agreed term.',
-            ),
-            array(
-                'question' => 'How is the tenant deposit handled?',
-                'answer'   => 'We typically secure a two-month deposit, which is held in accordance with Turkish rental practices. At the end of the tenancy, the property is inspected and any agreed deductions are applied before the remaining balance is returned.',
-            ),
-            array(
-                'question' => 'How are utilities managed?',
-                'answer'   => 'For tenanted properties, utilities are usually transferred into the tenant’s name. For new properties, the owner may need to open the accounts initially. We manage and coordinate this process on your behalf.',
-            ),
-            array(
-                'question' => 'How do you handle maintenance and repairs?',
-                'answer'   => 'If an issue arises, we coordinate with trusted contractors, obtain quotes where necessary, and seek your approval before proceeding. No expense is incurred without your consent, so Istanbul property owners stay in control.',
-            ),
-            array(
-                'question' => 'Do I receive reports or updates?',
-                'answer'   => 'Rent is typically paid directly to the owner, so formal monthly reporting is not always required. However, we keep you informed of any key developments and can provide structured reporting if you prefer a more hands-on overview.',
-            ),
-            array(
-                'question' => 'Can I take over management myself later?',
-                'answer'   => 'Yes. You are free to take over management at any time with reasonable notice. We will ensure a smooth handover of all relevant documents and tenant information.',
+                'question' => 'How much does property management cost?',
+                'answer'   => 'Our Lettings Only service is 8% + VAT and Full Management is 12% + VAT. Second Home Care is quoted separately because the required level of inspection, access and ongoing property support varies considerably between homes.',
             ),
         );
 
@@ -144,64 +112,39 @@ get_header();
           <div class="hero-content">
 
         
-            <h1><?php echo esc_html( pera_ml_ui( 'Property management in Istanbul for overseas and local owners', 'theme.template.page_rent_with_pera.property_management_in_istanbul_for_overseas_and_local_owners' ) ); ?></h1>
+            <h1><?php echo esc_html( pera_ml_ui( 'Property management in Istanbul for overseas owners', 'theme.template.page_rent_with_pera_v2.hero_heading' ) ); ?></h1>
             <p class="lead">
-              <?php echo esc_html( pera_ml_ui( 'Pera provides full-service rental and property management in Istanbul, including tenant sourcing, contracts, rent collection, maintenance coordination, renewals, and dedicated owner support.', 'theme.template.page_rent_with_pera.pera_provides_full_service_rental_and_property_management_in_istanbul_in' ) ); ?>
+              <?php echo esc_html( pera_ml_ui( 'Own property in Istanbul but live elsewhere? Pera acts as your local property manager, handling tenants, repairs, inspections and the day-to-day work while keeping you informed and in control.', 'theme.template.page_rent_with_pera_v2.hero_lead' ) ); ?>
             </p>
-        
+
             <div class="hero-actions">
-              <a href="#pricing" class="btn btn--solid btn--blue"><?php echo esc_html( pera_ml_ui( 'See pricing', 'theme.template.page_rent_with_pera.see_pricing' ) ); ?></a>
-              <a href="#contact" class="btn btn--solid btn--green"><?php echo esc_html( pera_ml_ui( 'Get a valuation', 'theme.template.page_rent_with_pera.get_a_valuation' ) ); ?></a>
+              <a href="#pricing" class="btn btn--solid btn--blue"><?php echo esc_html( pera_ml_ui( 'Compare services', 'theme.template.page_rent_with_pera_v2.compare_services' ) ); ?></a>
+              <a href="#contact" class="btn btn--solid btn--green"><?php echo esc_html( pera_ml_ui( 'Get a rental assessment', 'theme.template.page_rent_with_pera_v2.get_rental_assessment' ) ); ?></a>
             </div>
           </div>
-        
+
         </section>
 
-
-
-    <!-- WHY RENT WITH PERA -->
+    <!-- OVERSEAS OWNER POSITIONING -->
     <section class="content-panel content-panel--overlap-hero">
         <div class="content-panel-box">
             <div class="content-panel-grid">
-
-                <!-- LEFT -->
                 <div>
                     <header class="section-header">
-                        <h2><?php echo esc_html( pera_ml_ui( 'Why choose Pera for property management in Istanbul?', 'theme.template.page_rent_with_pera.why_choose_pera_for_property_management_in_istanbul' ) ); ?></h2>
-                        <p>
-                            <?php echo esc_html( pera_ml_ui( 'We deliver rental management for Istanbul property owners through professional marketing,
-                            strong tenant checks, and hands-on service that protects your time and your investment.
-                            If you are preparing', 'theme.template.page_rent_with_pera.we_deliver_rental_management_for_istanbul_property_owners_through_profes' ) ); ?> <a href="/property/"><?php echo esc_html( pera_ml_ui( 'a property for rent in Istanbul', 'theme.template.page_rent_with_pera.a_property_for_rent_in_istanbul' ) ); ?></a><?php echo esc_html( pera_ml_ui( ', or considering', 'theme.template.page_rent_with_pera.or_considering' ) ); ?>
-                            <a href="/sell-your-istanbul-real-estate/"><?php echo esc_html( pera_ml_ui( 'selling your Istanbul property', 'theme.template.page_rent_with_pera.selling_your_istanbul_property' ) ); ?></a><?php echo esc_html( pera_ml_ui( ', our team can advise on the best route.', 'theme.template.page_rent_with_pera.our_team_can_advise_on_the_best_route' ) ); ?>
-                        </p>
+                        <h2><?php echo esc_html( pera_ml_ui( 'Your property manager is in Istanbul when you are not', 'theme.template.page_rent_with_pera_v2.local_manager_heading' ) ); ?></h2>
+                        <p><?php echo esc_html( pera_ml_ui( 'Managing an Istanbul property from another country is rarely difficult when everything is going well. The problem is dealing with the things that need somebody on the ground: a new tenant, a repair, a building-management issue, an inspection, a missed payment or a property that needs preparing before it can be rented.', 'theme.template.page_rent_with_pera_v2.local_manager_intro' ) ); ?></p>
+                        <p><?php echo esc_html( pera_ml_ui( 'Pera provides that local point of contact. Our Istanbul team can manage the tenancy from initial rental valuation through to renewal or check-out, with important decisions and third-party costs referred back to you for approval.', 'theme.template.page_rent_with_pera_v2.local_manager_body' ) ); ?></p>
                     </header>
 
                     <ul class="checklist checklist--circle">
-
-                        <li>
-                            <?php echo esc_html( pera_ml_ui( 'Marketing on all major platforms.', 'theme.template.page_rent_with_pera.marketing_on_all_major_platforms' ) ); ?>
-                        </li>
-
-                        <li>
-                            <?php echo esc_html( pera_ml_ui( 'Full tenant screening & ID verification.', 'theme.template.page_rent_with_pera.full_tenant_screening_and_id_verification' ) ); ?>
-                        </li>
-
-                        <li>
-                            <?php echo esc_html( pera_ml_ui( 'Maintenance, repairs and inspections.', 'theme.template.page_rent_with_pera.maintenance_repairs_and_inspections' ) ); ?>
-                        </li>
-
-                        <li>
-                            <?php echo esc_html( pera_ml_ui( '24/7 support for tenants.', 'theme.template.page_rent_with_pera.24_7_support_for_tenants' ) ); ?>
-                        </li>
-
-                        <li>
-                            <?php echo esc_html( pera_ml_ui( 'Monthly statements & full transparency.', 'theme.template.page_rent_with_pera.monthly_statements_and_full_transparency' ) ); ?>
-                        </li>
-
+                        <li><?php echo esc_html( pera_ml_ui( 'Istanbul-based property manager and owner support', 'theme.template.page_rent_with_pera_v2.local_team' ) ); ?></li>
+                        <li><?php echo esc_html( pera_ml_ui( 'Tenant sourcing, screening and tenancy coordination', 'theme.template.page_rent_with_pera_v2.tenant_coordination' ) ); ?></li>
+                        <li><?php echo esc_html( pera_ml_ui( 'Repairs, contractors and property inspections', 'theme.template.page_rent_with_pera_v2.repairs_inspections' ) ); ?></li>
+                        <li><?php echo esc_html( pera_ml_ui( 'Rent, renewal and tenant communication support', 'theme.template.page_rent_with_pera_v2.rent_renewal' ) ); ?></li>
+                        <li><?php echo esc_html( pera_ml_ui( 'Clear owner approval before third-party costs are committed', 'theme.template.page_rent_with_pera_v2.owner_approval' ) ); ?></li>
                     </ul>
                 </div>
-                
-                <!-- RIGHT: MEDIA / VISUAL -->
+
                 <div>
                     <div class="media-frame media-frame--image-fill">
                         <?php
@@ -210,12 +153,10 @@ get_header();
                             'full',
                             false,
                             array(
-                                'class'    => 'media-image', // IMPORTANT: this class
+                                'class'    => 'media-image',
                                 'loading'  => 'lazy',
                                 'decoding' => 'async',
-                                'alt'      => esc_attr(
-                                    'Istanbul real estate market overview by Pera Property'
-                                ),
+                                'alt'      => esc_attr( 'Property management in Istanbul for overseas owners' ),
                             )
                         );
                         ?>
@@ -225,324 +166,222 @@ get_header();
         </div>
     </section>
 
-    <!-- PRICING -->
+    <!-- SERVICE CHOICE -->
     <section id="pricing" class="section section-soft">
         <div class="section-header section-header--center">
-            <h2><?php echo esc_html( pera_ml_ui( 'Our rental management services', 'theme.template.page_rent_with_pera.our_rental_management_services' ) ); ?></h2>
-            <p><?php echo esc_html( pera_ml_ui( 'Choose the service level that fits your investment strategy.', 'theme.template.page_rent_with_pera.choose_the_service_level_that_fits_your_investment_strategy' ) ); ?></p>
+            <h2><?php echo esc_html( pera_ml_ui( 'Do you need a tenant or full property management?', 'theme.template.page_rent_with_pera_v2.service_choice_heading' ) ); ?></h2>
+            <p><?php echo esc_html( pera_ml_ui( 'The difference is simple. Lettings Only gets the tenancy established. Full Management keeps Pera involved as your local property manager after the tenant moves in.', 'theme.template.page_rent_with_pera_v2.service_choice_intro' ) ); ?></p>
         </div>
 
         <div class="feature-grid">
-
-            <!-- LETTINGS ONLY -->
             <article class="feature-card">
                 <div class="feature-card-header">
                     <h3><?php echo esc_html( pera_ml_ui( 'Lettings Only', 'theme.template.page_rent_with_pera.lettings_only' ) ); ?></h3>
                     <p class="price-tag"><?php echo esc_html( pera_ml_ui( '8% + VAT', 'theme.template.page_rent_with_pera.8_vat' ) ); ?></p>
                 </div>
-
                 <div class="feature-card-body">
+                    <p><?php echo esc_html( pera_ml_ui( 'For owners who want Pera to find and establish a suitable tenant, but are comfortable managing the property themselves once the tenancy begins.', 'theme.template.page_rent_with_pera_v2.lettings_only_intro' ) ); ?></p>
                     <ul class="checklist checklist--circle">
-                        <li>
-                            <?php echo esc_html( pera_ml_ui( 'Advertising on all major rental platforms', 'theme.template.page_rent_with_pera.advertising_on_all_major_rental_platforms' ) ); ?>
-                        </li>
-                        <li>
-                            <?php echo esc_html( pera_ml_ui( 'Tenant viewings and shortlisting', 'theme.template.page_rent_with_pera.tenant_viewings_and_shortlisting' ) ); ?>
-                        </li>
-                        <li>
-                            <?php echo esc_html( pera_ml_ui( 'Full tenant screening & ID verification', 'theme.template.page_rent_with_pera.full_tenant_screening_and_id_verification_2' ) ); ?>
-                        </li>
-                        <li>
-                            <?php echo esc_html( pera_ml_ui( 'Tenancy agreement preparation and signing', 'theme.template.page_rent_with_pera.tenancy_agreement_preparation_and_signing' ) ); ?>
-                        </li>
+                        <li><?php echo esc_html( pera_ml_ui( 'Rental valuation and marketing', 'theme.template.page_rent_with_pera_v2.rental_valuation_marketing' ) ); ?></li>
+                        <li><?php echo esc_html( pera_ml_ui( 'Tenant viewings and shortlisting', 'theme.template.page_rent_with_pera.tenant_viewings_and_shortlisting' ) ); ?></li>
+                        <li><?php echo esc_html( pera_ml_ui( 'Tenant screening and ID verification', 'theme.template.page_rent_with_pera_v2.tenant_screening' ) ); ?></li>
+                        <li><?php echo esc_html( pera_ml_ui( 'Tenancy agreement preparation and signing', 'theme.template.page_rent_with_pera.tenancy_agreement_preparation_and_signing' ) ); ?></li>
                     </ul>
                 </div>
-
                 <div class="feature-card-footer">
-                    <a href="#contact" class="btn btn--solid btn--green"><?php echo esc_html( pera_ml_ui( 'Get valuation', 'theme.template.page_rent_with_pera.get_valuation' ) ); ?></a>
+                    <a href="#contact" class="btn btn--solid btn--green"><?php echo esc_html( pera_ml_ui( 'Request an assessment', 'theme.template.page_rent_with_pera_v2.request_assessment' ) ); ?></a>
                 </div>
             </article>
 
-            <!-- FULL MANAGEMENT -->
             <article class="feature-card">
                 <div class="feature-card-header">
                     <h3><?php echo esc_html( pera_ml_ui( 'Full Management', 'theme.template.page_rent_with_pera.full_management' ) ); ?></h3>
                     <p class="price-tag"><?php echo esc_html( pera_ml_ui( '12% + VAT', 'theme.template.page_rent_with_pera.12_vat' ) ); ?></p>
                 </div>
-
                 <div class="feature-card-body">
+                    <p><?php echo esc_html( pera_ml_ui( 'For overseas owners and landlords who want an Istanbul-based team to remain responsible for the day-to-day tenancy and property coordination.', 'theme.template.page_rent_with_pera_v2.full_management_intro' ) ); ?></p>
                     <ul class="checklist checklist--circle">
-                        <li>
-                            <?php echo esc_html( pera_ml_ui( 'Everything in Lettings Only', 'theme.template.page_rent_with_pera.everything_in_lettings_only' ) ); ?>
-                        </li>
-                        <li>
-                            <?php echo esc_html( pera_ml_ui( 'Dedicated property manager in Istanbul', 'theme.template.page_rent_with_pera.dedicated_property_manager_in_istanbul' ) ); ?>
-                        </li>
-                        <li>
-                            <?php echo esc_html( pera_ml_ui( 'Rent collection and arrears management', 'theme.template.page_rent_with_pera.rent_collection_and_arrears_management' ) ); ?>
-                        </li>
-                        <li>
-                            <?php echo esc_html( pera_ml_ui( 'Organising repairs, quotes & contractors', 'theme.template.page_rent_with_pera.organising_repairs_quotes_and_contractors' ) ); ?>
-                        </li>
-                        <li>
-                            <?php echo esc_html( pera_ml_ui( 'Regular inspections with condition reports', 'theme.template.page_rent_with_pera.regular_inspections_with_condition_reports' ) ); ?>
-                        </li>
-                        <li>
-                            <?php echo esc_html( pera_ml_ui( 'Utility transfers, deposits & move-out checks', 'theme.template.page_rent_with_pera.utility_transfers_deposits_and_move_out_checks' ) ); ?>
-                        </li>
+                        <li><?php echo esc_html( pera_ml_ui( 'Everything included in Lettings Only', 'theme.template.page_rent_with_pera_v2.everything_lettings' ) ); ?></li>
+                        <li><?php echo esc_html( pera_ml_ui( 'Dedicated property manager in Istanbul', 'theme.template.page_rent_with_pera.dedicated_property_manager_in_istanbul' ) ); ?></li>
+                        <li><?php echo esc_html( pera_ml_ui( 'Rent monitoring, arrears follow-up and tenant communication', 'theme.template.page_rent_with_pera_v2.rent_monitoring' ) ); ?></li>
+                        <li><?php echo esc_html( pera_ml_ui( 'Repairs, quotes and contractor coordination', 'theme.template.page_rent_with_pera_v2.contractor_coordination' ) ); ?></li>
+                        <li><?php echo esc_html( pera_ml_ui( 'Property inspections and condition reporting', 'theme.template.page_rent_with_pera_v2.condition_reporting' ) ); ?></li>
+                        <li><?php echo esc_html( pera_ml_ui( 'Utility coordination, deposits and move-out checks', 'theme.template.page_rent_with_pera_v2.utility_coordination' ) ); ?></li>
                     </ul>
                 </div>
-
                 <div class="feature-card-footer">
-                    <a href="#contact" class="btn btn--solid btn--green"><?php echo esc_html( pera_ml_ui( 'Get valuation', 'theme.template.page_rent_with_pera.get_valuation' ) ); ?></a>
+                    <a href="#contact" class="btn btn--solid btn--green"><?php echo esc_html( pera_ml_ui( 'Discuss full management', 'theme.template.page_rent_with_pera_v2.discuss_full_management' ) ); ?></a>
                 </div>
             </article>
 
+            <article class="feature-card">
+                <div class="feature-card-header">
+                    <h3><?php echo esc_html( pera_ml_ui( 'Second Home Care', 'theme.template.page_rent_with_pera_v2.second_home_care' ) ); ?></h3>
+                    <p class="price-tag"><?php echo esc_html( pera_ml_ui( 'Bespoke', 'theme.template.page_rent_with_pera_v2.bespoke' ) ); ?></p>
+                </div>
+                <div class="feature-card-body">
+                    <p><?php echo esc_html( pera_ml_ui( 'For owners who use their Istanbul property themselves but need somebody local to look after it while they are away.', 'theme.template.page_rent_with_pera_v2.second_home_intro' ) ); ?></p>
+                    <ul class="checklist checklist--circle">
+                        <li><?php echo esc_html( pera_ml_ui( 'Scheduled property checks while the home is empty', 'theme.template.page_rent_with_pera_v2.second_home_checks' ) ); ?></li>
+                        <li><?php echo esc_html( pera_ml_ui( 'Local access for maintenance and contractors', 'theme.template.page_rent_with_pera_v2.second_home_access' ) ); ?></li>
+                        <li><?php echo esc_html( pera_ml_ui( 'Building-management and practical property coordination', 'theme.template.page_rent_with_pera_v2.second_home_building' ) ); ?></li>
+                        <li><?php echo esc_html( pera_ml_ui( 'Utility and property issue coordination', 'theme.template.page_rent_with_pera_v2.second_home_utilities' ) ); ?></li>
+                        <li><?php echo esc_html( pera_ml_ui( 'Preparing the property before you return to Istanbul', 'theme.template.page_rent_with_pera_v2.second_home_return' ) ); ?></li>
+                    </ul>
+                </div>
+                <div class="feature-card-footer">
+                    <a href="#contact" class="btn btn--solid btn--green"><?php echo esc_html( pera_ml_ui( 'Discuss home care', 'theme.template.page_rent_with_pera_v2.discuss_home_care' ) ); ?></a>
+                </div>
+            </article>
         </div>
     </section>
 
-    <section class="section section-soft" id="rental-management-process">
+    <!-- MANAGEMENT PROCESS -->
+    <section class="section" id="rental-management-process">
         <div class="content-panel-box">
             <header class="section-header section-header--center">
-                <h2><?php echo esc_html( pera_ml_ui( 'How our Istanbul property management service works', 'theme.template.page_rent_with_pera.how_our_istanbul_property_management_service_works' ) ); ?></h2>
-                <p><?php echo esc_html( pera_ml_ui( 'Our process is designed to keep rental management straightforward for Istanbul property owners.', 'theme.template.page_rent_with_pera.our_process_is_designed_to_keep_rental_management_straightforward_for_is' ) ); ?></p>
+                <h2><?php echo esc_html( pera_ml_ui( 'From an empty property to an established tenancy', 'theme.template.page_rent_with_pera_v2.process_heading' ) ); ?></h2>
+                <p><?php echo esc_html( pera_ml_ui( 'We can become involved before the property is advertised and remain involved for the full tenancy if you choose Full Management.', 'theme.template.page_rent_with_pera_v2.process_intro' ) ); ?></p>
             </header>
 
             <div class="feature-grid">
                 <article class="feature-card">
-                    <div class="feature-card-header">
-                        <h3><?php echo esc_html( pera_ml_ui( '1) Rental valuation', 'theme.template.page_rent_with_pera.1_rental_valuation' ) ); ?></h3>
-                    </div>
-                    <div class="feature-card-body">
-                        <ul class="checklist checklist--circle">
-                            <li>
-                                <?php echo esc_html( pera_ml_ui( 'We assess market demand, building profile, and district comparables in areas such as Beşiktaş, Şişli, Beyoğlu, and Kadıköy.', 'theme.template.page_rent_with_pera.we_assess_market_demand_building_profile_and_district_comparables_in_are' ) ); ?>
-                            </li>
-                        </ul>
-                    </div>
+                    <div class="feature-card-header"><h3><?php echo esc_html( pera_ml_ui( '1) Assess the property', 'theme.template.page_rent_with_pera_v2.process_1_heading' ) ); ?></h3></div>
+                    <div class="feature-card-body"><p><?php echo esc_html( pera_ml_ui( 'We assess the property, building and local rental market, then give you realistic rental guidance before marketing begins.', 'theme.template.page_rent_with_pera_v2.process_1_body' ) ); ?></p></div>
                 </article>
-
                 <article class="feature-card">
-                    <div class="feature-card-header">
-                        <h3><?php echo esc_html( pera_ml_ui( '2) Marketing and tenant sourcing', 'theme.template.page_rent_with_pera.2_marketing_and_tenant_sourcing' ) ); ?></h3>
-                    </div>
-                    <div class="feature-card-body">
-                        <ul class="checklist checklist--circle">
-                            <li>
-                                <?php echo esc_html( pera_ml_ui( 'We market your home across major channels to attract qualified long-term tenants quickly.', 'theme.template.page_rent_with_pera.we_market_your_home_across_major_channels_to_attract_qualified_long_term' ) ); ?>
-                            </li>
-                        </ul>
-                    </div>
+                    <div class="feature-card-header"><h3><?php echo esc_html( pera_ml_ui( '2) Prepare and market', 'theme.template.page_rent_with_pera_v2.process_2_heading' ) ); ?></h3></div>
+                    <div class="feature-card-body"><p><?php echo esc_html( pera_ml_ui( 'We identify practical preparation required for letting, arrange the marketing and manage enquiries and viewings.', 'theme.template.page_rent_with_pera_v2.process_2_body' ) ); ?></p></div>
                 </article>
-
                 <article class="feature-card">
-                    <div class="feature-card-header">
-                        <h3><?php echo esc_html( pera_ml_ui( '3) Tenant screening', 'theme.template.page_rent_with_pera.3_tenant_screening' ) ); ?></h3>
-                    </div>
-                    <div class="feature-card-body">
-                        <ul class="checklist checklist--circle">
-                            <li>
-                                <?php echo esc_html( pera_ml_ui( 'We complete documentation and affordability checks before presenting tenants for your approval.', 'theme.template.page_rent_with_pera.we_complete_documentation_and_affordability_checks_before_presenting_ten' ) ); ?>
-                            </li>
-                        </ul>
-                    </div>
+                    <div class="feature-card-header"><h3><?php echo esc_html( pera_ml_ui( '3) Select the tenant', 'theme.template.page_rent_with_pera_v2.process_3_heading' ) ); ?></h3></div>
+                    <div class="feature-card-body"><p><?php echo esc_html( pera_ml_ui( 'Applicants are screened and the proposed tenant and commercial terms are presented to you before a tenancy is agreed.', 'theme.template.page_rent_with_pera_v2.process_3_body' ) ); ?></p></div>
                 </article>
-
                 <article class="feature-card">
-                    <div class="feature-card-header">
-                        <h3><?php echo esc_html( pera_ml_ui( '4) Contract and deposit setup', 'theme.template.page_rent_with_pera.4_contract_and_deposit_setup' ) ); ?></h3>
-                    </div>
-                    <div class="feature-card-body">
-                        <ul class="checklist checklist--circle">
-                            <li>
-                                <?php echo esc_html( pera_ml_ui( 'We prepare compliant tenancy contracts and organise deposit handling with clear owner sign-off.', 'theme.template.page_rent_with_pera.we_prepare_compliant_tenancy_contracts_and_organise_deposit_handling_wit' ) ); ?>
-                            </li>
-                        </ul>
-                    </div>
+                    <div class="feature-card-header"><h3><?php echo esc_html( pera_ml_ui( '4) Establish the tenancy', 'theme.template.page_rent_with_pera_v2.process_4_heading' ) ); ?></h3></div>
+                    <div class="feature-card-body"><p><?php echo esc_html( pera_ml_ui( 'We coordinate the tenancy agreement, deposit, handover and the practical steps required for the tenant to move in.', 'theme.template.page_rent_with_pera_v2.process_4_body' ) ); ?></p></div>
                 </article>
-
                 <article class="feature-card">
-                    <div class="feature-card-header">
-                        <h3><?php echo esc_html( pera_ml_ui( '5) Rent collection and maintenance', 'theme.template.page_rent_with_pera.5_rent_collection_and_maintenance' ) ); ?></h3>
-                    </div>
-                    <div class="feature-card-body">
-                        <ul class="checklist checklist--circle">
-                            <li>
-                                <?php echo esc_html( pera_ml_ui( 'Our Istanbul rental management team supports collections, maintenance coordination, and tenant communication.', 'theme.template.page_rent_with_pera.our_istanbul_rental_management_team_supports_collections_maintenance_coo' ) ); ?>
-                            </li>
-                        </ul>
-                    </div>
+                    <div class="feature-card-header"><h3><?php echo esc_html( pera_ml_ui( '5) Manage the tenancy', 'theme.template.page_rent_with_pera_v2.process_5_heading' ) ); ?></h3></div>
+                    <div class="feature-card-body"><p><?php echo esc_html( pera_ml_ui( 'With Full Management, Pera remains the local contact for tenant communication, payment follow-up, inspections, maintenance and contractor coordination.', 'theme.template.page_rent_with_pera_v2.process_5_body' ) ); ?></p></div>
                 </article>
-
                 <article class="feature-card">
-                    <div class="feature-card-header">
-                        <h3><?php echo esc_html( pera_ml_ui( '6) Renewal or exit management', 'theme.template.page_rent_with_pera.6_renewal_or_exit_management' ) ); ?></h3>
-                    </div>
-                    <div class="feature-card-body">
-                        <ul class="checklist checklist--circle">
-                            <li>
-                                <?php echo esc_html( pera_ml_ui( 'We manage rent reviews, renewals, and move-out processes while keeping you informed at every stage.', 'theme.template.page_rent_with_pera.we_manage_rent_reviews_renewals_and_move_out_processes_while_keeping_you' ) ); ?>
-                            </li>
-                        </ul>
-                    </div>
+                    <div class="feature-card-header"><h3><?php echo esc_html( pera_ml_ui( '6) Renew or check out', 'theme.template.page_rent_with_pera_v2.process_6_heading' ) ); ?></h3></div>
+                    <div class="feature-card-body"><p><?php echo esc_html( pera_ml_ui( 'We coordinate renewal discussions or the move-out process, including property checks and the next steps for re-letting where required.', 'theme.template.page_rent_with_pera_v2.process_6_body' ) ); ?></p></div>
                 </article>
             </div>
         </div>
     </section>
 
-    <section class="faq-section section" id="rental-management-faq">
-        <div class="container">
-            <h2><?php echo esc_html( pera_ml_ui( 'Rental management FAQ', 'theme.template.page_rent_with_pera.rental_management_faq_heading' ) ); ?></h2>
-            <p><?php echo esc_html( pera_ml_ui( 'Everything you need to know about property management in Istanbul and how our rental management service works in practice.', 'theme.template.page_rent_with_pera.everything_you_need_to_know_about_property_management_in_istanbul_and_ho' ) ); ?></p>
+    <!-- PROBLEM HANDLING -->
+    <section class="section section-soft" id="property-management-problems">
+        <div class="content-panel-box">
+            <header class="section-header">
+                <h2><?php echo esc_html( pera_ml_ui( 'What happens when there is a problem?', 'theme.template.page_rent_with_pera_v2.problems_heading' ) ); ?></h2>
+                <p><?php echo esc_html( pera_ml_ui( 'This is where local management matters most. Instead of trying to solve an Istanbul property problem from another country, you have a team here that can establish what has happened, speak to the relevant people and coordinate the next step.', 'theme.template.page_rent_with_pera_v2.problems_intro' ) ); ?></p>
+            </header>
 
-            <div class="faq-accordion">
+            <div class="feature-grid">
+                <article class="feature-card">
+                    <div class="feature-card-header"><h3><?php echo esc_html( pera_ml_ui( 'A tenant pays late', 'theme.template.page_rent_with_pera_v2.problem_late_heading' ) ); ?></h3></div>
+                    <div class="feature-card-body"><p><?php echo esc_html( pera_ml_ui( 'We follow up with the tenant, establish the reason for the delay and keep you informed if further action is required.', 'theme.template.page_rent_with_pera_v2.problem_late_body' ) ); ?></p></div>
+                </article>
+                <article class="feature-card">
+                    <div class="feature-card-header"><h3><?php echo esc_html( pera_ml_ui( 'Something needs repairing', 'theme.template.page_rent_with_pera_v2.problem_repair_heading' ) ); ?></h3></div>
+                    <div class="feature-card-body"><p><?php echo esc_html( pera_ml_ui( 'We assess the issue, coordinate contractors and obtain approval before chargeable third-party work proceeds.', 'theme.template.page_rent_with_pera_v2.problem_repair_body' ) ); ?></p></div>
+                </article>
+                <article class="feature-card">
+                    <div class="feature-card-header"><h3><?php echo esc_html( pera_ml_ui( 'The building contacts the owner', 'theme.template.page_rent_with_pera_v2.problem_building_heading' ) ); ?></h3></div>
+                    <div class="feature-card-body"><p><?php echo esc_html( pera_ml_ui( 'We can communicate locally about practical building-management and property matters and explain anything that requires your decision.', 'theme.template.page_rent_with_pera_v2.problem_building_body' ) ); ?></p></div>
+                </article>
+                <article class="feature-card">
+                    <div class="feature-card-header"><h3><?php echo esc_html( pera_ml_ui( 'The tenant wants to leave', 'theme.template.page_rent_with_pera_v2.problem_leave_heading' ) ); ?></h3></div>
+                    <div class="feature-card-body"><p><?php echo esc_html( pera_ml_ui( 'We coordinate communication, the property check and handover, then discuss the most practical route to getting the property rented again.', 'theme.template.page_rent_with_pera_v2.problem_leave_body' ) ); ?></p></div>
+                </article>
+            </div>
+        </div>
+    </section>
 
-                <details class="faq-item" open>
-                    <summary><?php echo esc_html( pera_ml_ui( 'What does your full property management in Istanbul service include?', 'theme.template.page_rent_with_pera.what_does_your_full_property_management_in_istanbul_service_include' ) ); ?></summary>
-                    <div class="faq-answer">
-                        <p><?php echo esc_html( pera_ml_ui( 'Our service is fully hands-off for Istanbul property owners. We handle tenant sourcing, marketing, viewings, lease preparation, tenant screening, contract negotiation, renewals, maintenance coordination, and ongoing tenant communication. We also assist with utility setup, tax guidance, and end-of-tenancy processes.', 'theme.template.page_rent_with_pera.our_service_is_fully_hands_off_for_istanbul_property_owners_we_handle_te' ) ); ?></p>
-                    </div>
-                </details>
+    <!-- SECOND HOME MANAGEMENT -->
+    <section class="section" id="second-home-management">
+        <div class="content-panel-box panel-gradient-brand">
+            <div class="content-panel-grid">
+                <div>
+                    <header class="section-header">
+                        <h2><?php echo esc_html( pera_ml_ui( 'Property management for your Istanbul second home', 'theme.template.page_rent_with_pera_v2.second_home_heading' ) ); ?></h2>
+                        <p><?php echo esc_html( pera_ml_ui( 'Not every property needs a tenant. Many overseas owners bought an Istanbul apartment or villa for their own use and simply need somebody they trust to take care of it between visits.', 'theme.template.page_rent_with_pera_v2.second_home_body_1' ) ); ?></p>
+                        <p><?php echo esc_html( pera_ml_ui( 'An empty home still needs attention. A leak, power issue, building notice or maintenance problem is much easier to deal with when somebody can physically visit the property. We can provide an Istanbul-based point of contact, arrange scheduled checks and coordinate access when work is required.', 'theme.template.page_rent_with_pera_v2.second_home_body_2' ) ); ?></p>
+                    </header>
+                </div>
+                <div>
+                    <ul class="checklist checklist--circle">
+                        <li><?php echo esc_html( pera_ml_ui( 'Periodic visual checks and owner updates', 'theme.template.page_rent_with_pera_v2.home_periodic_checks' ) ); ?></li>
+                        <li><?php echo esc_html( pera_ml_ui( 'Key holding and agreed property access', 'theme.template.page_rent_with_pera_v2.home_key_holding' ) ); ?></li>
+                        <li><?php echo esc_html( pera_ml_ui( 'Contractor access and repair coordination', 'theme.template.page_rent_with_pera_v2.home_contractors' ) ); ?></li>
+                        <li><?php echo esc_html( pera_ml_ui( 'Communication on practical building-management matters', 'theme.template.page_rent_with_pera_v2.home_building_management' ) ); ?></li>
+                        <li><?php echo esc_html( pera_ml_ui( 'Pre-arrival checks and property preparation by agreement', 'theme.template.page_rent_with_pera_v2.home_prearrival' ) ); ?></li>
+                    </ul>
+                    <a href="#contact" class="btn btn--solid btn--green"><?php echo esc_html( pera_ml_ui( 'Tell us about your property', 'theme.template.page_rent_with_pera_v2.tell_us_property' ) ); ?></a>
+                </div>
+            </div>
+        </div>
+    </section>
 
-                <details class="faq-item">
-                    <summary><?php echo esc_html( pera_ml_ui( 'What is your rental management fee?', 'theme.template.page_rent_with_pera.what_is_your_rental_management_fee' ) ); ?></summary>
-                    <div class="faq-answer">
-                        <p><?php echo esc_html( pera_ml_ui( 'Our full property management service in Istanbul is charged at', 'theme.template.page_rent_with_pera.our_full_property_management_service_in_istanbul_is_charged_at' ) ); ?> <strong><?php echo esc_html( pera_ml_ui( '12% + VAT', 'theme.template.page_rent_with_pera.12_vat' ) ); ?></strong><?php echo esc_html( pera_ml_ui( '. This covers the ongoing management of the property throughout the tenancy, including renewals and day-to-day tenant management.', 'theme.template.page_rent_with_pera.this_covers_the_ongoing_management_of_the_property_throughout_the_tenanc' ) ); ?></p>
-                    </div>
-                </details>
+    <!-- OWNER PRACTICALITIES -->
+    <section class="section section-soft">
+        <div class="content-panel-box">
+            <header class="section-header section-header--center">
+                <h2><?php echo esc_html( pera_ml_ui( 'One local contact for your Istanbul property', 'theme.template.page_rent_with_pera_v2.one_local_contact' ) ); ?></h2>
+                <p><?php echo esc_html( pera_ml_ui( 'Whether the property is rented or kept for your own use, the value of management is having somebody in Istanbul who knows the property and can coordinate practical issues when you cannot be here.', 'theme.template.page_rent_with_pera_v2.one_local_contact_intro' ) ); ?></p>
+            </header>
+            <div class="feature-grid">
+                <article class="feature-card"><div class="feature-card-header"><h3><?php echo esc_html( pera_ml_ui( 'Property access', 'theme.template.page_rent_with_pera_v2.access_heading' ) ); ?></h3></div><div class="feature-card-body"><p><?php echo esc_html( pera_ml_ui( 'We can attend the property or coordinate agreed access when an inspection, contractor visit or practical issue requires somebody on site.', 'theme.template.page_rent_with_pera_v2.access_body' ) ); ?></p></div></article>
+                <article class="feature-card"><div class="feature-card-header"><h3><?php echo esc_html( pera_ml_ui( 'Maintenance coordination', 'theme.template.page_rent_with_pera_v2.maintenance_heading' ) ); ?></h3></div><div class="feature-card-body"><p><?php echo esc_html( pera_ml_ui( 'We can obtain information or quotes, coordinate the work and keep you updated rather than leaving you to manage contractors remotely.', 'theme.template.page_rent_with_pera_v2.maintenance_body' ) ); ?></p></div></article>
+                <article class="feature-card"><div class="feature-card-header"><h3><?php echo esc_html( pera_ml_ui( 'Owner control', 'theme.template.page_rent_with_pera_v2.control_heading' ) ); ?></h3></div><div class="feature-card-body"><p><?php echo esc_html( pera_ml_ui( 'You remain the decision-maker. We handle the local execution and refer material decisions and chargeable third-party work to you for approval.', 'theme.template.page_rent_with_pera_v2.control_body' ) ); ?></p></div></article>
+            </div>
+        </div>
+    </section>
 
-                <details class="faq-item">
-                    <summary><?php echo esc_html( pera_ml_ui( 'Are there any additional costs?', 'theme.template.page_rent_with_pera.are_there_any_additional_costs' ) ); ?></summary>
-                    <div class="faq-answer">
-                        <p><?php echo esc_html( pera_ml_ui( 'Yes — the management fee covers our service only. Property-related costs such as maintenance, repairs, taxes, insurance, utilities, or building charges are separate and always subject to your approval before any work is carried out.', 'theme.template.page_rent_with_pera.yes_the_management_fee_covers_our_service_only_property_related_costs_su' ) ); ?></p>
-                    </div>
-                </details>
-
-                <details class="faq-item">
-                    <summary><?php echo esc_html( pera_ml_ui( 'How do you find and select tenants?', 'theme.template.page_rent_with_pera.how_do_you_find_and_select_tenants' ) ); ?></summary>
-                    <div class="faq-answer">
-                        <p><?php echo esc_html( pera_ml_ui( 'As part of our rental management in Istanbul, we market your property across our network and screen all applicants carefully. This typically includes employment and income checks, documentation review, and — where appropriate — requiring a Turkish guarantor. Our focus is always on placing reliable, financially stable tenants.', 'theme.template.page_rent_with_pera.as_part_of_our_rental_management_in_istanbul_we_market_your_property_acr' ) ); ?></p>
-                    </div>
-                </details>
-
-                <details class="faq-item">
-                    <summary><?php echo esc_html( pera_ml_ui( 'Will I approve the tenant before the contract is signed?', 'theme.template.page_rent_with_pera.will_i_approve_the_tenant_before_the_contract_is_signed' ) ); ?></summary>
-                    <div class="faq-answer">
-                        <p><?php echo esc_html( pera_ml_ui( 'Yes. We present you with the proposed tenant and agreed terms before any contract is finalised. No tenancy is confirmed without your approval.', 'theme.template.page_rent_with_pera.yes_we_present_you_with_the_proposed_tenant_and_agreed_terms_before_any_' ) ); ?></p>
-                    </div>
-                </details>
-
-                <details class="faq-item">
-                    <summary><?php echo esc_html( pera_ml_ui( 'Do you provide the rental contract in English?', 'theme.template.page_rent_with_pera.do_you_provide_the_rental_contract_in_english' ) ); ?></summary>
-                    <div class="faq-answer">
-                        <p><?php echo esc_html( pera_ml_ui( 'Yes. We can prepare bilingual Turkish and English contracts so that you fully understand the terms of the agreement while ensuring compliance with local regulations.', 'theme.template.page_rent_with_pera.yes_we_can_prepare_bilingual_turkish_and_english_contracts_so_that_you_f' ) ); ?></p>
-                    </div>
-                </details>
-
-                <details class="faq-item">
-                    <summary><?php echo esc_html( pera_ml_ui( 'How are rent increases handled?', 'theme.template.page_rent_with_pera.how_are_rent_increases_handled' ) ); ?></summary>
-                    <div class="faq-answer">
-                        <p><?php echo esc_html( pera_ml_ui( 'Rent increases are managed in line with Turkish law, typically based on the official CPI (TÜFE) cap. We handle negotiations with the tenant and advise you on the optimal approach at each renewal period.', 'theme.template.page_rent_with_pera.rent_increases_are_managed_in_line_with_turkish_law_typically_based_on_t' ) ); ?></p>
-                    </div>
-                </details>
-
-                <details class="faq-item">
-                    <summary><?php echo esc_html( pera_ml_ui( 'Do you use any legal protection for the landlord?', 'theme.template.page_rent_with_pera.do_you_use_any_legal_protection_for_the_landlord' ) ); ?></summary>
-                    <div class="faq-answer">
-                        <p><?php echo esc_html( pera_ml_ui( 'Yes. Where appropriate, we arrange a notarised exit undertaking (tahliye taahhütnamesi), which provides additional legal protection in case the tenant does not vacate at the end of the agreed term.', 'theme.template.page_rent_with_pera.yes_where_appropriate_we_arrange_a_notarised_exit_undertaking_tahliye_ta' ) ); ?></p>
-                    </div>
-                </details>
-
-                <details class="faq-item">
-                    <summary><?php echo esc_html( pera_ml_ui( 'How is the tenant deposit handled?', 'theme.template.page_rent_with_pera.how_is_the_tenant_deposit_handled' ) ); ?></summary>
-                    <div class="faq-answer">
-                        <p><?php echo esc_html( pera_ml_ui( 'We typically secure a two-month deposit, which is held in accordance with Turkish rental practices. At the end of the tenancy, the property is inspected and any agreed deductions are applied before the remaining balance is returned.', 'theme.template.page_rent_with_pera.we_typically_secure_a_two_month_deposit_which_is_held_in_accordance_with' ) ); ?></p>
-                    </div>
-                </details>
-
-                <details class="faq-item">
-                    <summary><?php echo esc_html( pera_ml_ui( 'How are utilities managed?', 'theme.template.page_rent_with_pera.how_are_utilities_managed' ) ); ?></summary>
-                    <div class="faq-answer">
-                        <p><?php echo esc_html( pera_ml_ui( 'For tenanted properties, utilities are usually transferred into the tenant’s name. For new properties, the owner may need to open the accounts initially. We manage and coordinate this process on your behalf.', 'theme.template.page_rent_with_pera.for_tenanted_properties_utilities_are_usually_transferred_into_the_tenan' ) ); ?></p>
-                    </div>
-                </details>
-
-                <details class="faq-item">
-                    <summary><?php echo esc_html( pera_ml_ui( 'How do you handle maintenance and repairs?', 'theme.template.page_rent_with_pera.how_do_you_handle_maintenance_and_repairs' ) ); ?></summary>
-                    <div class="faq-answer">
-                        <p><?php echo esc_html( pera_ml_ui( 'If an issue arises, we coordinate with trusted contractors, obtain quotes where necessary, and seek your approval before proceeding. No expense is incurred without your consent, so Istanbul property owners stay in control.', 'theme.template.page_rent_with_pera.if_an_issue_arises_we_coordinate_with_trusted_contractors_obtain_quotes_' ) ); ?></p>
-                    </div>
-                </details>
-
-                <details class="faq-item">
-                    <summary><?php echo esc_html( pera_ml_ui( 'Do I receive reports or updates?', 'theme.template.page_rent_with_pera.do_i_receive_reports_or_updates' ) ); ?></summary>
-                    <div class="faq-answer">
-                        <p><?php echo esc_html( pera_ml_ui( 'Rent is typically paid directly to the owner, so formal monthly reporting is not always required. However, we keep you informed of any key developments and can provide structured reporting if you prefer a more hands-on overview.', 'theme.template.page_rent_with_pera.rent_is_typically_paid_directly_to_the_owner_so_formal_monthly_reporting' ) ); ?></p>
-                    </div>
-                </details>
-
-                <details class="faq-item">
-                    <summary><?php echo esc_html( pera_ml_ui( 'Can I take over management myself later?', 'theme.template.page_rent_with_pera.can_i_take_over_management_myself_later' ) ); ?></summary>
-                    <div class="faq-answer">
-                        <p><?php echo esc_html( pera_ml_ui( 'Yes. You are free to take over management at any time with reasonable notice. We will ensure a smooth handover of all relevant documents and tenant information.', 'theme.template.page_rent_with_pera.yes_you_are_free_to_take_over_management_at_any_time_with_reasonable_not' ) ); ?></p>
-                    </div>
-                </details>
-
+    <!-- LANDLORD GUIDES -->
+    <section class="section">
+        <div class="content-panel-box">
+            <header class="section-header">
+                <h2><?php echo esc_html( pera_ml_ui( 'Guides for Istanbul property owners', 'theme.template.page_rent_with_pera_v2.guides_heading' ) ); ?></h2>
+                <p><?php echo esc_html( pera_ml_ui( 'If you are deciding whether to rent your property, these Pera guides cover the practical issues overseas owners most often ask us about.', 'theme.template.page_rent_with_pera_v2.guides_intro' ) ); ?></p>
+            </header>
+            <div class="feature-grid">
+                <article class="feature-card"><div class="feature-card-header"><h3><?php echo esc_html( pera_ml_ui( 'How to rent out property in Istanbul', 'theme.template.page_rent_with_pera_v2.guide_rent_heading' ) ); ?></h3></div><div class="feature-card-body"><p><?php echo esc_html( pera_ml_ui( 'Our landlord guide covers the practical process of preparing, marketing and renting an Istanbul property.', 'theme.template.page_rent_with_pera_v2.guide_rent_body' ) ); ?></p></div><div class="feature-card-footer"><a class="btn btn--ghost btn--green" href="/how-to-rent-out-property-in-istanbul-2026-landlord-guide_58969/"><?php echo esc_html( pera_ml_ui( 'Read the landlord guide', 'theme.template.page_rent_with_pera_v2.read_landlord_guide' ) ); ?></a></div></article>
+                <article class="feature-card"><div class="feature-card-header"><h3><?php echo esc_html( pera_ml_ui( 'Common mistakes foreign owners make', 'theme.template.page_rent_with_pera_v2.guide_mistakes_heading' ) ); ?></h3></div><div class="feature-card-body"><p><?php echo esc_html( pera_ml_ui( 'A practical look at avoidable problems when an overseas owner rents property in Istanbul.', 'theme.template.page_rent_with_pera_v2.guide_mistakes_body' ) ); ?></p></div><div class="feature-card-footer"><a class="btn btn--ghost btn--green" href="/common-mistakes-foreign-owners-make-when-renting-property-in-istanbul_58964/"><?php echo esc_html( pera_ml_ui( 'Read the guide', 'theme.template.page_rent_with_pera_v2.read_guide' ) ); ?></a></div></article>
+                <article class="feature-card"><div class="feature-card-header"><h3><?php echo esc_html( pera_ml_ui( 'Running costs and maintenance fees', 'theme.template.page_rent_with_pera_v2.guide_costs_heading' ) ); ?></h3></div><div class="feature-card-body"><p><?php echo esc_html( pera_ml_ui( 'Understand the recurring costs that continue whether an Istanbul property is rented or used as a second home.', 'theme.template.page_rent_with_pera_v2.guide_costs_body' ) ); ?></p></div><div class="feature-card-footer"><a class="btn btn--ghost btn--green" href="/maintenance-fees-and-annual-running-costs_3100/"><?php echo esc_html( pera_ml_ui( 'Read about running costs', 'theme.template.page_rent_with_pera_v2.read_running_costs' ) ); ?></a></div></article>
             </div>
         </div>
     </section>
 
     <!-- SHORT TERM RENTALS -->
-    <section class="section">
+    <section class="section section-soft">
         <div class="content-panel-box">
-            <div class="content-panel-grid">
-
-                <!-- LEFT -->
-                <div>
-                    <header class="section-header">
-                        <h2><?php echo esc_html( pera_ml_ui( 'The short term rental market (“Airbnb”)', 'theme.template.page_rent_with_pera.the_short_term_rental_market_airbnb' ) ); ?></h2>
-                        <p>
-                            <?php echo esc_html( pera_ml_ui( 'Our core service is long-term property management in Istanbul, while short-term rental support is available where suitable for the asset and location.
-                            If you need dedicated holiday-let support, see our', 'theme.template.page_rent_with_pera.our_core_service_is_long_term_property_management_in_istanbul_while_shor' ) ); ?>
-                            <a href="/short-term-rental-airbnb-in-istanbul_49220/"><?php echo esc_html( pera_ml_ui( 'short-term rental and Airbnb management service', 'theme.template.page_rent_with_pera.short_term_rental_and_airbnb_management_service' ) ); ?></a>.
-                        </p>
-                    </header>
-
-                    <ul class="checklist checklist--circle">
-
-                        <li>
-                            <?php echo esc_html( pera_ml_ui( 'Check-in / check-out management', 'theme.template.page_rent_with_pera.check_in_check_out_management' ) ); ?>
-                        </li>
-
-                        <li>
-                            <?php echo esc_html( pera_ml_ui( 'Cleaning & maintenance', 'theme.template.page_rent_with_pera.cleaning_and_maintenance' ) ); ?>
-                        </li>
-
-                        <li>
-                            <?php echo esc_html( pera_ml_ui( 'Guest communication', 'theme.template.page_rent_with_pera.guest_communication' ) ); ?>
-                        </li>
-
-                        <li>
-                            <?php echo esc_html( pera_ml_ui( 'Supplies & inventory management', 'theme.template.page_rent_with_pera.supplies_and_inventory_management' ) ); ?>
-                        </li>
-
-                    </ul>
-                </div>
-
-                <!-- RIGHT -->
-                <div>
-                    <div class="media-frame">
-                        <img class="media-embed"
-                         src="<?php echo esc_url( wp_get_attachment_image_url( 59614, 'full' ) ); ?>"
-                         alt="<?php echo esc_attr( pera_ml_ui( 'Airbnb management Istanbul – Pera Property', 'theme.template.page_rent_with_pera.alt.airbnb_management_istanbul_pera_property' ) ); ?>">
-                    </div>
-                </div>
-
-            </div>
+            <header class="section-header">
+                <h2><?php echo esc_html( pera_ml_ui( 'Looking for short-term rental management?', 'theme.template.page_rent_with_pera_v2.airbnb_heading' ) ); ?></h2>
+                <p><?php echo esc_html( pera_ml_ui( 'Short-term letting is a separate service with different operational and regulatory requirements. Our main property management service on this page is designed around long-term tenancies and second-home care.', 'theme.template.page_rent_with_pera_v2.airbnb_intro' ) ); ?></p>
+                <p><a href="/short-term-rental-airbnb-in-istanbul_49220/"><?php echo esc_html( pera_ml_ui( 'Read about Pera short-term rental and Airbnb management in Istanbul.', 'theme.template.page_rent_with_pera_v2.airbnb_link' ) ); ?></a></p>
+            </header>
         </div>
     </section>
 
-
+    <!-- FAQ -->
+    <section class="faq-section section" id="rental-management-faq">
+        <div class="container">
+            <h2><?php echo esc_html( pera_ml_ui( 'Istanbul property management FAQ', 'theme.template.page_rent_with_pera_v2.faq_heading' ) ); ?></h2>
+            <p><?php echo esc_html( pera_ml_ui( 'Practical questions about long-term rental management and looking after an Istanbul home while you are overseas.', 'theme.template.page_rent_with_pera_v2.faq_intro' ) ); ?></p>
+            <div class="faq-accordion">
+                <details class="faq-item" open><summary><?php echo esc_html( pera_ml_ui( 'Can you manage my Istanbul property if I live overseas?', 'theme.template.page_rent_with_pera_v2.faq_overseas_q' ) ); ?></summary><div class="faq-answer"><p><?php echo esc_html( pera_ml_ui( 'Yes. The service is designed for owners who need a reliable local point of contact in Istanbul. We can manage a long-term tenancy or look after a second home that is not rented.', 'theme.template.page_rent_with_pera_v2.faq_overseas_a' ) ); ?></p></div></details>
+                <details class="faq-item"><summary><?php echo esc_html( pera_ml_ui( 'Do I have to rent out my property to use your management service?', 'theme.template.page_rent_with_pera_v2.faq_second_q' ) ); ?></summary><div class="faq-answer"><p><?php echo esc_html( pera_ml_ui( 'No. Second Home Care is for owner-occupied apartments and villas that need local oversight while the owner is away. The scope is agreed around the property and the level of support you require.', 'theme.template.page_rent_with_pera_v2.faq_second_a' ) ); ?></p></div></details>
+                <details class="faq-item"><summary><?php echo esc_html( pera_ml_ui( 'What is the difference between Lettings Only and Full Management?', 'theme.template.page_rent_with_pera_v2.faq_difference_q' ) ); ?></summary><div class="faq-answer"><p><?php echo esc_html( pera_ml_ui( 'Lettings Only is for finding, screening and establishing the tenant. Full Management keeps Pera involved after move-in as the local contact for the ongoing tenancy, property issues and tenant communication.', 'theme.template.page_rent_with_pera_v2.faq_difference_a' ) ); ?></p></div></details>
+                <details class="faq-item"><summary><?php echo esc_html( pera_ml_ui( 'What happens if a repair is needed while I am abroad?', 'theme.template.page_rent_with_pera_v2.faq_repair_q' ) ); ?></summary><div class="faq-answer"><p><?php echo esc_html( pera_ml_ui( 'We can establish the issue, coordinate suitable contractors and keep you updated. Chargeable third-party work is referred to you for approval unless a different authority has been agreed in advance.', 'theme.template.page_rent_with_pera_v2.faq_repair_a' ) ); ?></p></div></details>
+                <details class="faq-item"><summary><?php echo esc_html( pera_ml_ui( 'How much does property management cost?', 'theme.template.page_rent_with_pera_v2.faq_cost_q' ) ); ?></summary><div class="faq-answer"><p><?php echo esc_html( pera_ml_ui( 'Our Lettings Only service is 8% + VAT and Full Management is 12% + VAT. Second Home Care is quoted separately because the required level of inspection, access and ongoing property support varies considerably between homes.', 'theme.template.page_rent_with_pera_v2.faq_cost_a' ) ); ?></p></div></details>
+            </div>
+        </div>
+    </section>
 
     <!-- ABOUT PERA -->
     <?php get_template_part( 'parts/about-pera' ); ?>
@@ -639,9 +478,9 @@ get_header();
                      <?php
                     get_template_part('parts/enquiry-form', null, array(
                       'context'      => 'rent',
-                      'heading'      => 'Request a free appraisal',
-                      'intro'        => 'Share a few details and we will prepare an initial rent strategy and price guidance for your property in Istanbul.',
-                      'submit_label' => 'Send my details',
+                      'heading'      => 'Get a rental and management assessment',
+                      'intro'        => 'Share a few details about your Istanbul property and tell us whether you need tenant sourcing, full rental management or second-home care while you are away.',
+                      'submit_label' => 'Request an assessment',
                       'form_context' => 'rent-page',
                     ));
             
