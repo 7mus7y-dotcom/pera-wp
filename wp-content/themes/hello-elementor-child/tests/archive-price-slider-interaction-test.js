@@ -21,6 +21,11 @@ expect(/\.filter-price__slider::after\{[\s\S]*?z-index:\s*0;/.test(css), 'one ne
 expect(/\.filter-price__slider::before\{[\s\S]*?z-index:\s*1;/.test(css), 'selected-range fill occupies the middle layer');
 expect(/#price-min-range,\s*\n#price-max-range\{\s*z-index:\s*2;/.test(css), 'both interactive thumbs occupy the top layer');
 expect(archive.includes("style.setProperty('--fill-left'") && archive.includes("style.setProperty('--fill-right'"), 'selected-range fill follows both slider values');
+expect(archive.includes("priceMinRange.step = priceMaxRange.step = '1000'"), 'both rendered sliders move in 1,000-unit increments');
+expect(!archive.includes("priceMinRange.step = priceMaxRange.step = '1'"), 'single-unit slider increments are not restored');
+expect((archive.match(/step="1000"/g) || []).length >= 2, 'both server-rendered price sliders declare a 1,000-unit step');
+expect(archive.includes('normalizeDisplayPrice(convertedDisplayMin') && archive.includes('normalizeDisplayPrice(convertedDisplayMax'), 'URL-derived and converted prices are normalized to attainable slider values');
+expect(archive.includes('Math.min(displayMax, normalizeDisplayPrice(convertedDisplayMin'), 'the displayed minimum cannot exceed the displayed maximum');
 
 for (const id of ['priceMinRange', 'priceMaxRange']) {
   expect(archive.includes(`${id}.addEventListener('input'`), `${id} retains its input listener`);
