@@ -567,10 +567,11 @@ $has_further_reading = ! empty( $post_ids );
         'full',
         false,
         array(
-          'class'    => 'hero-media',
-          'loading'  => 'eager',
-          'decoding' => 'async',
-          'alt'      => $hero_img_alt,
+          'class'         => 'hero-media',
+          'loading'       => 'eager',
+          'fetchpriority' => 'high',
+          'decoding'      => 'async',
+          'alt'           => $hero_img_alt,
         )
       );
     } else {
@@ -580,6 +581,7 @@ $has_further_reading = ! empty( $post_ids );
         src="<?php echo esc_url( $hero_img_url ); ?>"
         alt="<?php echo esc_attr( $hero_img_alt ); ?>"
         loading="eager"
+        fetchpriority="high"
         decoding="async"
       />
       <?php
@@ -1103,7 +1105,7 @@ $has_further_reading = ! empty( $post_ids );
           $alt_label = $gallery_item['alt'];
           $image_html = wp_get_attachment_image(
             $img_id,
-            'full',
+            'pera-card',
             false,
             array(
               'loading'  => 'lazy',
