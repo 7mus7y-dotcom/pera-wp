@@ -1639,10 +1639,13 @@ button.pill:focus-visible {
 .header-language-switcher--mobile .header-language-switcher__list {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 4px 10px;
+  gap: 0 var(--space-sm);
   padding: 0;
 }
-.header-language-switcher--mobile .header-language-switcher__list a { min-height: 32px; padding: 6px 8px; }
+.header-language-switcher--mobile .header-language-switcher__list a {
+  min-height: 0;
+  padding: var(--space-2xs) var(--space-xs);
+}
 
 /* Pera Currency uses the same compact disclosure language without sharing state. */
 .pera-currency-selector { position: relative; font-size: 0.78rem; line-height: 1.2; }
