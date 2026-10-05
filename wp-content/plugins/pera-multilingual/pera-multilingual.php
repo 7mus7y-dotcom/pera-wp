@@ -14,8 +14,8 @@ define( 'PERA_ML_FILE', __FILE__ );
 define( 'PERA_ML_DIR', plugin_dir_path( __FILE__ ) );
 define( 'PERA_ML_URL', plugin_dir_url( __FILE__ ) );
 
-// Temporary launch control: Russian remains internally enabled and directly routable.
-if ( ! defined( 'PERA_ML_PUBLIC_RUSSIAN_ENABLED' ) ) define( 'PERA_ML_PUBLIC_RUSSIAN_ENABLED', false );
+// Public launch control: Russian is publicly available by default and remains configurable.
+if ( ! defined( 'PERA_ML_PUBLIC_RUSSIAN_ENABLED' ) ) define( 'PERA_ML_PUBLIC_RUSSIAN_ENABLED', true );
 
 require_once PERA_ML_DIR . 'includes/class-language-registry.php';
 require_once PERA_ML_DIR . 'includes/class-storage.php';
