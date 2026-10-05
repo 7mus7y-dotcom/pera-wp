@@ -57,6 +57,8 @@ expect_same( '<p>مرحبا بالعالم</p>', $result, 'strict retry restores
 expect_same( 2, count( $provider->calls ), 'dropped placeholders cause exactly one retry' );
 expect_same( $provider->calls[0]['source'], $provider->calls[1]['source'], 'retry uses identical protected source' );
 expect_same( true, false !== strpos( $provider->calls[1]['context']['instructions'], 'Do not remove, translate, reformat, split, duplicate, or add spaces inside these placeholders.' ), 'retry includes strict placeholder instructions' );
+expect_same( 'post', $provider->calls[1]['context']['object_type'], 'strict retry retains object type context' );
+expect_same( 'meta:property_editorial_intro', $provider->calls[1]['context']['field'], 'strict retry retains field context' );
 expect_same( 1, count( $storage->puts ), 'recovered translation is stored' );
 expect_same( 0, count( $GLOBALS['translation_errors'] ), 'recoverable first failure is not logged' );
 

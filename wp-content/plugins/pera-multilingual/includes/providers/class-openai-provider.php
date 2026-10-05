@@ -9,6 +9,9 @@ final class Pera_ML_OpenAI_Provider implements Pera_ML_Provider_Interface {
 		$model = defined( 'PERA_ML_OPENAI_MODEL' ) ? PERA_ML_OPENAI_MODEL : get_option( 'pera_ml_openai_model', 'gpt-4.1-mini' );
 		$target = isset( $context['target_name'] ) ? $context['target_name'] : $context['target_language'];
 		$system = 'You are a professional property and real-estate translator. Translate into ' . $target . '. Preserve every HTML tag and attribute, Gutenberg comment, shortcode, URL, ID, class, price, currency, measurement, phone number, email, placeholder, and factual claim exactly. Do not add or remove claims. Return only the translation.';
+		if ( isset( $context['object_type'] ) && 'ui' === $context['object_type'] ) {
+			$system .= "\nThis is a visitor-facing UI string, such as a button, label, heading, navigation item, short message, or interface copy. Translate only the supplied source and preserve its function and meaning. Keep the result concise and proportional to the source: a short source must produce a short translation. Do not explain or define the phrase. Do not elaborate. Do not add examples, headings, or lists. Do not introduce markdown or any information absent from the source. Return only the translated UI string.";
+		}
 		if ( ! empty( $context['instructions'] ) ) $system .= "\nLanguage instructions: " . $context['instructions'];
 		if ( ! empty( $context['glossary'] ) ) $system .= "\nTerminology and protected-term rules:\n" . $context['glossary'];
 		$response = wp_safe_remote_post( 'https://api.openai.com/v1/responses', array( 'timeout' => 300, 'headers' => array( 'Authorization' => 'Bearer ' . trim( $key ), 'Content-Type' => 'application/json' ), 'body' => wp_json_encode( array( 'model' => sanitize_text_field( $model ), 'instructions' => $system, 'input' => (string) $source ) ) ) );
