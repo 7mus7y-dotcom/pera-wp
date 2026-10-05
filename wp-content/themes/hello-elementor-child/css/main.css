@@ -1647,7 +1647,8 @@ button.pill:focus-visible {
   padding: var(--space-2xs) var(--space-xs);
 }
 
-.header-language-switcher--mobile .header-language-switcher__list li:nth-child(even) {
+.header-language-switcher--mobile .header-language-switcher__title,
+.header-language-switcher--mobile .header-language-switcher__list li {
   text-align: right;
 }
 
