@@ -5518,6 +5518,15 @@ body.crm-route #site-header.peracrm-shell-header.is-scrolled .peracrm-header-act
   }
 }
 
+@media (max-width: 1080px) {
+  .crm-page--client-view .crm-summary-header__kpis,
+  .crm-page--client-view .crm-client-kpis {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    gap: 10px;
+  }
+}
+
 /* Mobile collapse only */
 @media (max-width: 640px) {
   .crm-page--client-view .crm-summary-header__facts {
