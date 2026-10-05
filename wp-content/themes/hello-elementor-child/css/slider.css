@@ -100,6 +100,19 @@
   scroll-snap-align: start;
 }
 
+/* Rent management steps: near-full-width cards retain a discoverable next card. */
+@media (max-width: 767px) {
+  #rental-management-process .cards-slider {
+    min-width: 0;
+    scroll-padding-inline: 1px;
+  }
+
+  #rental-management-process .slider-card {
+    flex-basis: calc(100% - clamp(24px, 10vw, 72px));
+    max-width: calc(100% - clamp(24px, 10vw, 72px));
+  }
+}
+
 /* ===========================================
    4. SCROLLBAR TWEAKS
    =========================================== */
