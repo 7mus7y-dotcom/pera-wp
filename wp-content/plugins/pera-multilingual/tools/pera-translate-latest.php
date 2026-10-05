@@ -2,6 +2,7 @@
 
 $limit       = 500;
 $dry_run     = false;
+$force       = false; // <-- ADDED: Force re-translation flag
 $status      = 'all';
 $object_type = null;
 $object_id   = null;
@@ -15,6 +16,12 @@ $cli_args = isset( $args ) && is_array( $args )
 foreach ( $cli_args as $arg ) {
     if ( 'dry-run' === $arg ) {
         $dry_run = true;
+        continue;
+    }
+
+    // <-- ADDED: Parse the force flag
+    if ( 'force' === $arg ) {
+        $force = true;
         continue;
     }
 
@@ -155,8 +162,9 @@ $pending = array();
 foreach ( $rows as $row ) {
     if (
         ! isset( $row['status'] ) ||
-        ! in_array( $row['status'], array( 'missing', 'stale' ), true ) ||
-        ( 'all' !== $status && $status !== $row['status'] ) ||
+        // MODIFIED: If $force is true, skip checking for 'missing' or 'stale' status
+        ( ! $force && ! in_array( $row['status'], array( 'missing', 'stale' ), true ) ) ||
+        ( ! $force && 'all' !== $status && $status !== $row['status'] ) ||
         (
             null !== $language &&
             (
