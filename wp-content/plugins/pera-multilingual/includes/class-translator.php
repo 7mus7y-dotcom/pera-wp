@@ -15,7 +15,7 @@ final class Pera_ML_Translator {
 		if ( ! $language_config || ! empty( $language_config['source'] ) ) return new WP_Error( 'pera_ml_invalid_language', __( 'Invalid target language.', 'pera-multilingual' ) );
 		$provider = $this->provider( $provider_id );
 		$default_instructions = isset( $language_config['instructions'] ) ? $language_config['instructions'] : '';
-		$context = array( 'target_language' => $language, 'target_name' => $language_config['name'], 'instructions' => apply_filters( 'pera_ml_language_instructions', $default_instructions, $language ), 'glossary' => $this->glossary_prompt() );
+		$context = array( 'target_language' => $language, 'target_name' => $language_config['name'], 'instructions' => apply_filters( 'pera_ml_language_instructions', $default_instructions, $language ), 'glossary' => $this->glossary_prompt(), 'object_type' => $type, 'field' => $field );
 		$pipe_faq_fields = apply_filters( 'pera_ml_pipe_faq_fields', array( 'meta:seo_faq_v2' ) );
 		if ( is_array( $pipe_faq_fields ) && in_array( $field, $pipe_faq_fields, true ) ) {
 			$translated = $this->translate_pipe_faq_and_store( $type, $id, $field, $language, $source, $provider, $context );
@@ -62,8 +62,38 @@ final class Pera_ML_Translator {
 				return $translated;
 			}
 		}
+		if ( 'ui' === $type && ! $this->is_reasonable_ui_translation( $source, $translated ) ) {
+			$error = new WP_Error( 'pera_ml_ui_translation_expanded', __( 'The UI translation was rejected because it expanded far beyond the source.', 'pera-multilingual' ) );
+			do_action( 'pera_ml_translation_error', $error, compact( 'type', 'id', 'field', 'language' ) );
+			return $error;
+		}
 		$this->storage->put( $type, $id, $field, $language, $source, $translated, $provider->id() );
 		return $translated;
+	}
+	/**
+	 * Reject only gross UI-copy expansion, while leaving ample room for languages
+	 * that need substantially more characters or words than the source language.
+	 */
+	private function is_reasonable_ui_translation( $source, $translated ) {
+		$source_chars = $this->unicode_length( trim( wp_strip_all_tags( (string) $source ) ) );
+		$translated_text = trim( wp_strip_all_tags( (string) $translated ) );
+		$translated_chars = $this->unicode_length( $translated_text );
+		$source_words = $this->word_count( $source );
+		$translated_words = $this->word_count( $translated_text );
+
+		$character_ceiling = max( 400, ( $source_chars * 6 ) + 160 );
+		$word_ceiling = max( 60, ( $source_words * 8 ) + 20 );
+		return $translated_chars <= $character_ceiling && $translated_words <= $word_ceiling;
+	}
+	private function unicode_length( $value ) {
+		$count = preg_match_all( '/./us', (string) $value, $matches );
+		return false === $count ? strlen( (string) $value ) : $count;
+	}
+	private function word_count( $value ) {
+		$value = trim( wp_strip_all_tags( (string) $value ) );
+		if ( '' === $value ) return 0;
+		$words = preg_split( '/[\s\p{Z}]+/u', $value, -1, PREG_SPLIT_NO_EMPTY );
+		return false === $words ? str_word_count( $value ) : count( $words );
 	}
 	/** Detect a real, valid-looking HTML tag rather than comparison punctuation. */
 	private function contains_translatable_html( $source ) {
