@@ -130,8 +130,8 @@ peracrm_frontend_render_shell_header( array( 'show_crm_nav_toggle' => false ) );
           </div>
           <div class="crm-form-workspace__meta">
             <div class="crm-meta-line">
-              <span><strong><?php esc_html_e( 'Required:', 'peracrm' ); ?></strong> <?php esc_html_e( 'First name, last name, email, and source', 'peracrm' ); ?></span>
-              <span><strong><?php esc_html_e( 'Optional:', 'peracrm' ); ?></strong> <?php esc_html_e( 'Phone and notes', 'peracrm' ); ?></span>
+              <span><strong><?php esc_html_e( 'Required:', 'peracrm' ); ?></strong> <?php esc_html_e( 'First name, last name, and source', 'peracrm' ); ?></span>
+              <span><strong><?php esc_html_e( 'Optional:', 'peracrm' ); ?></strong> <?php esc_html_e( 'Email, phone, and notes', 'peracrm' ); ?></span>
             </div>
           </div>
         </header>
@@ -139,7 +139,7 @@ peracrm_frontend_render_shell_header( array( 'show_crm_nav_toggle' => false ) );
         <?php if ( 'invalid_nonce' === $error ) : ?>
           <div class="crm-inline-notice crm-inline-notice--error" role="alert"><?php echo esc_html__( 'Security check failed. Please try again.', 'peracrm' ); ?></div>
         <?php elseif ( 'missing_required' === $error ) : ?>
-          <div class="crm-inline-notice crm-inline-notice--error" role="alert"><?php echo esc_html__( 'First name, last name, email, and source are required.', 'peracrm' ); ?></div>
+          <div class="crm-inline-notice crm-inline-notice--error" role="alert"><?php echo esc_html__( 'First name, last name, and source are required.', 'peracrm' ); ?></div>
         <?php elseif ( 'invalid_email' === $error ) : ?>
           <div class="crm-inline-notice crm-inline-notice--error" role="alert"><?php echo esc_html__( 'Please enter a valid email address.', 'peracrm' ); ?></div>
         <?php elseif ( 'invalid_source' === $error ) : ?>
@@ -162,7 +162,7 @@ peracrm_frontend_render_shell_header( array( 'show_crm_nav_toggle' => false ) );
             <header class="crm-section__header">
               <div class="crm-section__heading-group">
                 <h3 id="crm-new-lead-identity-heading" class="crm-section__title"><?php esc_html_e( 'Basic identity', 'peracrm' ); ?></h3>
-                <p class="crm-section__description"><?php esc_html_e( 'Capture the lead name and primary email first so duplicate checks and follow-up routing stay reliable.', 'peracrm' ); ?></p>
+                <p class="crm-section__description"><?php esc_html_e( 'Capture the lead name and add a primary email when available to support duplicate checks and follow-up routing.', 'peracrm' ); ?></p>
               </div>
             </header>
             <div class="crm-section__body">
@@ -179,8 +179,8 @@ peracrm_frontend_render_shell_header( array( 'show_crm_nav_toggle' => false ) );
               </div>
 
               <div class="crm-form-field">
-                <label for="crm-email"><?php echo esc_html__( 'Email *', 'peracrm' ); ?></label>
-                <input id="crm-email" name="email" type="email" required value="<?php echo esc_attr( $prefill_email ); ?>" />
+                <label for="crm-email"><?php echo esc_html__( 'Email', 'peracrm' ); ?></label>
+                <input id="crm-email" name="email" type="email" value="<?php echo esc_attr( $prefill_email ); ?>" />
               </div>
             </div>
           </section>
