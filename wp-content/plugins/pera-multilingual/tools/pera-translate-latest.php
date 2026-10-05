@@ -206,31 +206,6 @@ foreach ( $rows as $row ) {
     $pending[] = $row;
 }
 
-// FORCE OVERRIDE: If force is active and inventory returned zero rows for specific target, construct manually
-if ( empty( $pending ) && $force && null !== $object_id && null !== $object_type ) {
-    $target_langs = array();
-    if ( null !== $language ) {
-        $target_langs = array( $language );
-    } else {
-        $all_langs = $p->registry()->all();
-        foreach ( $all_langs as $lang_code => $lang_cfg ) {
-            if ( ! empty( $lang_cfg['enabled'] ) && empty( $lang_cfg['source'] ) ) {
-                $target_langs[] = $lang_code;
-            }
-        }
-    }
-
-    foreach ( $target_langs as $target_lang ) {
-        $pending[] = array(
-            'object_type' => $object_type,
-            'object_id'   => $object_id,
-            'language'    => $target_lang,
-            'field'       => $field ?: 'all',
-            'status'      => 'forced',
-        );
-    }
-}
-
 if ( ! $pending ) {
     echo 'No incomplete translations found. Status filter: '
         . $status
@@ -273,7 +248,7 @@ foreach ( $pending as $row ) {
         continue;
     }
 
-    $result = $orchestrator->translate( $row );
+    $result = $orchestrator->translate( $row, $force );
 
     if ( is_wp_error( $result ) ) {
         echo '  ERROR: ' . $result->get_error_code() . PHP_EOL;

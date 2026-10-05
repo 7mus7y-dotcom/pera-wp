@@ -10,10 +10,10 @@ function health_assert( $expected, $actual, $label ) { if ( $expected !== $actua
 final class Health_Orch_Status { public $field='post_title'; public $source='Page'; public $missing=array('post_title'); public $stale=array(); public function applicable_sources(){return array($this->field=>$this->source);} public function get(){return array('missing'=>$this->missing,'stale'=>$this->stale);} }
 final class Health_Orch_Storage { public $row=null; public function get(){return $this->row;} }
 final class Health_Orch_Translator { public $calls=array(); public $result=true; public $storage; public $write=true; public function translate_and_store(){ $this->calls[]=func_get_args(); if ( true === $this->result && $this->write ) $this->storage->row=array('translated_text'=>'New','is_stale'=>false,'status'=>'current'); return $this->result; } }
-final class Health_Orch_UI { public function status(){return 'missing';} public function translate_registered(){return true;} } final class Health_Orch_Registry { public function find(){return null;} }
+final class Health_Orch_UI { public $state='missing'; public $result=true; public $calls=array(); public function status(){return $this->state;} public function translate_registered(){ $this->calls[]=func_get_args(); if ( true === $this->result ) $this->state='current'; return $this->result; } } final class Health_Orch_Registry { public $items=array(); public function find($identity){return isset($this->items[$identity])?$this->items[$identity]:null;} }
 final class Health_Orch_Languages { public function get($code){return in_array($code,array('zh','fr'),true)?array('enabled'=>true,'source'=>false):null;} }
 require dirname(__DIR__).'/includes/class-storage.php'; require dirname(__DIR__).'/includes/class-fields.php'; require dirname(__DIR__).'/includes/class-translation-health.php'; require dirname(__DIR__).'/includes/class-translation-health-orchestrator.php';
-$status=new Health_Orch_Status(); $storage=new Health_Orch_Storage(); $translator=new Health_Orch_Translator(); $translator->storage=$storage; $orch=new Pera_ML_Translation_Health_Orchestrator($status,$storage,$translator,new Health_Orch_UI(),new Health_Orch_Registry(),new Health_Orch_Languages());
+$status=new Health_Orch_Status(); $storage=new Health_Orch_Storage(); $translator=new Health_Orch_Translator(); $translator->storage=$storage; $ui=new Health_Orch_UI(); $ui_registry=new Health_Orch_Registry(); $orch=new Pera_ML_Translation_Health_Orchestrator($status,$storage,$translator,$ui,$ui_registry,new Health_Orch_Languages());
 $base=array('object_type'=>'page','object_id'=>9,'field'=>'post_title','language'=>'zh','status'=>'missing');
 $status->source='  '; health_assert('invalid_row',$orch->translate($base)->get_error_code(),'whitespace source rejected'); health_assert(0,count($translator->calls),'whitespace never reaches provider');
 $status->source='Page'; $status->missing=array(); health_assert('invalid_row',$orch->translate($base)->get_error_code(),'current content rejected'); health_assert(0,count($translator->calls),'current content never reaches provider'); $status->missing=array('post_title');
@@ -40,4 +40,31 @@ $storage->row=null; $faq['language']='fr'; health_assert(true,$orch->translate($
 $GLOBALS['health_meta']['pera_term_excerpt']='Canonical card excerpt'; $excerpt=$term; $excerpt['field']='meta:pera_term_excerpt'; $excerpt['status']='missing'; $storage->row=null;
 health_assert(true,$orch->translate($excerpt),'visitor-facing term excerpt reaches the taxonomy orchestrator');
 health_assert(array('term',8,'meta:pera_term_excerpt','zh','Canonical card excerpt'),array_slice($translator->calls[11],0,5),'term excerpt generation uses its canonical term-meta source and shared field key');
+
+$ui_row=array('object_type'=>'ui','object_id'=>42,'field'=>'registered_label','language'=>'zh','status'=>'current');
+$ui_registry->items['registered_label']=array('identity'=>'registered_label'); $ui->state='current';
+health_assert('invalid_row',$orch->translate($ui_row)->get_error_code(),'normal current UI row is rejected');
+health_assert(0,count($ui->calls),'normal current UI row never reaches translation');
+health_assert(true,$orch->translate($ui_row,true),'current registered UI row can be regenerated');
+health_assert(1,count($ui->calls),'UI regeneration reaches registered translation exactly once');
+$invalid_ui=$ui_row; $invalid_ui['field']='unknown_label';
+health_assert('invalid_row',$orch->translate($invalid_ui,true)->get_error_code(),'regeneration does not bypass UI registration');
+$ui_row['status']='missing'; $ui->state='missing';
+health_assert(true,$orch->translate($ui_row),'normal missing UI behavior remains enabled');
+$ui_row['status']='stale'; $ui->state='stale';
+health_assert(true,$orch->translate($ui_row),'normal stale UI behavior remains enabled');
+$ui->state='stale'; $ui->result='unstored';
+health_assert('translation_not_stored',$orch->translate($ui_row)->get_error_code(),'UI success is rejected unless the translation becomes current');
+$ui->result=true;
+
+foreach(array('post','page','property','team') as $post_type){
+	$GLOBALS['health_post']->post_type=$post_type; $post_row=$base; $post_row['object_type']=$post_type; $post_row['status']='current';
+	$status->field='post_title'; $status->source='Canonical '.$post_type; $status->missing=array(); $status->stale=array(); $storage->row=array('translated_text'=>'Old','is_stale'=>false,'status'=>'current');
+	health_assert('invalid_row',$orch->translate($post_row)->get_error_code(),'normal current '.$post_type.' field is rejected');
+	health_assert(true,$orch->translate($post_row,true),'current canonical '.$post_type.' field can be regenerated');
+	$unsupported=$post_row; $unsupported['field']='meta:unsupported';
+	health_assert('invalid_row',$orch->translate($unsupported,true)->get_error_code(),'regeneration rejects unsupported '.$post_type.' fields');
+	$status->source='  ';
+	health_assert('invalid_row',$orch->translate($post_row,true)->get_error_code(),'regeneration rejects empty '.$post_type.' canonical sources');
+}
 echo "Pera ML translation health orchestrator tests passed\n";
