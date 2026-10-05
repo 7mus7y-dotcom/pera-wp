@@ -133,7 +133,7 @@ add_action( 'wp_enqueue_scripts', function () {
 
 /* =========================
    2) slider.css
-   Rule: home, single-property, single-post, contact, about-new, single-bodrum-property
+   Rule: home, single-property, single-post, contact, about-new, rent-with-pera, single-bodrum-property
    NOT on property archives / general archives
 ========================= */
 
@@ -147,6 +147,7 @@ $needs_slider = (
   $is_featured_guides_archive ||
   $is_contact_page ||
   $is_about_new ||
+  is_page_template( 'page-rent-with-pera.php' ) ||
   $is_citizenship_page ||
   $is_citizenship_properties_page
 );

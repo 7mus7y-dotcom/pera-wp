@@ -240,32 +240,32 @@ get_header();
     <section class="section" id="rental-management-process">
         <div class="content-panel-box">
             <header class="section-header section-header--center">
-                <h2><?php echo esc_html( pera_ml_ui( 'From an empty property to an established tenancy', 'theme.template.page_rent_with_pera_v2.process_heading' ) ); ?></h2>
+                <h2 id="rental-management-process-heading"><?php echo esc_html( pera_ml_ui( 'From an empty property to an established tenancy', 'theme.template.page_rent_with_pera_v2.process_heading' ) ); ?></h2>
                 <p><?php echo esc_html( pera_ml_ui( 'We can become involved before the property is advertised and remain involved for the full tenancy if you choose Full Management.', 'theme.template.page_rent_with_pera_v2.process_intro' ) ); ?></p>
             </header>
 
-            <div class="feature-grid">
-                <article class="feature-card">
+            <div class="cards-slider cards-slider--snap cards-slider--grid-2" role="region" aria-labelledby="rental-management-process-heading" tabindex="0">
+                <article class="feature-card slider-card">
                     <div class="feature-card-header"><h3><?php echo esc_html( pera_ml_ui( '1) Assess the property', 'theme.template.page_rent_with_pera_v2.process_1_heading' ) ); ?></h3></div>
                     <div class="feature-card-body"><p><?php echo esc_html( pera_ml_ui( 'We assess the property, building and local rental market, then give you realistic rental guidance before marketing begins.', 'theme.template.page_rent_with_pera_v2.process_1_body' ) ); ?></p></div>
                 </article>
-                <article class="feature-card">
+                <article class="feature-card slider-card">
                     <div class="feature-card-header"><h3><?php echo esc_html( pera_ml_ui( '2) Prepare and market', 'theme.template.page_rent_with_pera_v2.process_2_heading' ) ); ?></h3></div>
                     <div class="feature-card-body"><p><?php echo esc_html( pera_ml_ui( 'We identify practical preparation required for letting, arrange the marketing and manage enquiries and viewings.', 'theme.template.page_rent_with_pera_v2.process_2_body' ) ); ?></p></div>
                 </article>
-                <article class="feature-card">
+                <article class="feature-card slider-card">
                     <div class="feature-card-header"><h3><?php echo esc_html( pera_ml_ui( '3) Select the tenant', 'theme.template.page_rent_with_pera_v2.process_3_heading' ) ); ?></h3></div>
                     <div class="feature-card-body"><p><?php echo esc_html( pera_ml_ui( 'Applicants are screened and the proposed tenant and commercial terms are presented to you before a tenancy is agreed.', 'theme.template.page_rent_with_pera_v2.process_3_body' ) ); ?></p></div>
                 </article>
-                <article class="feature-card">
+                <article class="feature-card slider-card">
                     <div class="feature-card-header"><h3><?php echo esc_html( pera_ml_ui( '4) Establish the tenancy', 'theme.template.page_rent_with_pera_v2.process_4_heading' ) ); ?></h3></div>
                     <div class="feature-card-body"><p><?php echo esc_html( pera_ml_ui( 'We coordinate the tenancy agreement, deposit, handover and the practical steps required for the tenant to move in.', 'theme.template.page_rent_with_pera_v2.process_4_body' ) ); ?></p></div>
                 </article>
-                <article class="feature-card">
+                <article class="feature-card slider-card">
                     <div class="feature-card-header"><h3><?php echo esc_html( pera_ml_ui( '5) Manage the tenancy', 'theme.template.page_rent_with_pera_v2.process_5_heading' ) ); ?></h3></div>
                     <div class="feature-card-body"><p><?php echo esc_html( pera_ml_ui( 'With Full Management, Pera remains the local contact for tenant communication, payment follow-up, inspections, maintenance and contractor coordination.', 'theme.template.page_rent_with_pera_v2.process_5_body' ) ); ?></p></div>
                 </article>
-                <article class="feature-card">
+                <article class="feature-card slider-card">
                     <div class="feature-card-header"><h3><?php echo esc_html( pera_ml_ui( '6) Renew or check out', 'theme.template.page_rent_with_pera_v2.process_6_heading' ) ); ?></h3></div>
                     <div class="feature-card-body"><p><?php echo esc_html( pera_ml_ui( 'We coordinate renewal discussions or the move-out process, including property checks and the next steps for re-letting where required.', 'theme.template.page_rent_with_pera_v2.process_6_body' ) ); ?></p></div>
                 </article>
