@@ -2,7 +2,7 @@
 
 $limit       = 500;
 $dry_run     = false;
-$force       = false; // <-- ADDED: Force re-translation flag
+$force       = false;
 $status      = 'all';
 $object_type = null;
 $object_id   = null;
@@ -19,7 +19,6 @@ foreach ( $cli_args as $arg ) {
         continue;
     }
 
-    // <-- ADDED: Parse the force flag
     if ( 'force' === $arg ) {
         $force = true;
         continue;
@@ -160,11 +159,18 @@ $rows      = isset( $inventory['rows'] ) && is_array( $inventory['rows'] )
 $pending = array();
 
 foreach ( $rows as $row ) {
+    // When $force is set, ignore all status/missing checks
+    if ( ! $force ) {
+        if (
+            ! isset( $row['status'] ) ||
+            ! in_array( $row['status'], array( 'missing', 'stale' ), true ) ||
+            ( 'all' !== $status && $status !== $row['status'] )
+        ) {
+            continue;
+        }
+    }
+
     if (
-        ! isset( $row['status'] ) ||
-        // MODIFIED: If $force is true, skip checking for 'missing' or 'stale' status
-        ( ! $force && ! in_array( $row['status'], array( 'missing', 'stale' ), true ) ) ||
-        ( ! $force && 'all' !== $status && $status !== $row['status'] ) ||
         (
             null !== $language &&
             (
@@ -198,6 +204,31 @@ foreach ( $rows as $row ) {
     }
 
     $pending[] = $row;
+}
+
+// FORCE OVERRIDE: If force is active and inventory returned zero rows for specific target, construct manually
+if ( empty( $pending ) && $force && null !== $object_id && null !== $object_type ) {
+    $target_langs = array();
+    if ( null !== $language ) {
+        $target_langs = array( $language );
+    } else {
+        $all_langs = $p->registry()->all();
+        foreach ( $all_langs as $lang_code => $lang_cfg ) {
+            if ( ! empty( $lang_cfg['enabled'] ) && empty( $lang_cfg['source'] ) ) {
+                $target_langs[] = $lang_code;
+            }
+        }
+    }
+
+    foreach ( $target_langs as $target_lang ) {
+        $pending[] = array(
+            'object_type' => $object_type,
+            'object_id'   => $object_id,
+            'language'    => $target_lang,
+            'field'       => $field ?: 'all',
+            'status'      => 'forced',
+        );
+    }
 }
 
 if ( ! $pending ) {
