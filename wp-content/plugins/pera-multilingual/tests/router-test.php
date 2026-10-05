@@ -23,6 +23,7 @@ final class Pera_ML_Test_Registry {
 		'ar' => array( 'code' => 'ar', 'prefix' => 'ar', 'enabled' => true ),
 		'de' => array( 'code' => 'de', 'prefix' => 'de', 'enabled' => true ),
 		'ru' => array( 'code' => 'ru', 'prefix' => 'ru', 'enabled' => true ),
+		'tr' => array( 'code' => 'tr', 'prefix' => 'tr', 'enabled' => true ),
 	);
 	public function get( $code ) { return isset( $this->languages[ $code ] ) ? $this->languages[ $code ] : null; }
 	public function all() { return $this->languages; }
@@ -54,6 +55,7 @@ $cases = array(
 	array( 'https://www.peraproperty.com/property/example-property/', 'de', 'https://www.peraproperty.com/de/property/example-property/', 'German property permalink navigation' ),
 	array( 'https://www.peraproperty.com/property/example-property/', 'ru', 'https://www.peraproperty.com/ru/property/example-property/', 'Russian property permalink navigation' ),
 	array( 'https://www.peraproperty.com/de/an-investment-guide/', 'ru', 'https://www.peraproperty.com/ru/an-investment-guide/', 'German to Russian route switching' ),
+	array( 'https://www.peraproperty.com/developer-sales-office/', 'tr', 'https://www.peraproperty.com/tr/developer-sales-office/', 'Turkish developer sales office route' ),
 	array( 'https://www.peraproperty.com/property/example-property/', 'ar', 'https://www.peraproperty.com/ar/property/example-property/', 'Arabic property permalink navigation' ),
 	array( 'https://www.peraproperty.com/district/istanbul/besiktas/', 'zh', 'https://www.peraproperty.com/zh/district/istanbul/besiktas/', 'Chinese taxonomy navigation' ),
 	array( 'https://www.peraproperty.com/property/?district=besiktas#results', 'de', 'https://www.peraproperty.com/de/property/?district=besiktas#results', 'property query and fragment' ),
@@ -101,11 +103,13 @@ $route_cases = array(
 	array( '/ar/', array(), 'front', 'Arabic front page' ),
 	array( '/de/', array(), 'front', 'German front page' ),
 	array( '/ru/', array(), 'front', 'Russian front page' ),
+	array( '/tr/', array(), 'front', 'Turkish front page' ),
 	array( '/blog/', array( 'pagename' => 'blog' ), 'posts', 'English posts page' ),
 	array( '/zh/blog/', array( 'pagename' => 'blog' ), 'posts', 'Chinese posts page' ),
 	array( '/ar/blog/', array( 'pagename' => 'blog' ), 'posts', 'Arabic posts page' ),
 	array( '/de/blog/', array( 'pagename' => 'blog' ), 'posts', 'German posts page' ),
 	array( '/ru/blog/', array( 'pagename' => 'blog' ), 'posts', 'Russian posts page' ),
+	array( '/tr/blog/', array( 'pagename' => 'blog' ), 'posts', 'Turkish posts page' ),
 );
 foreach ( $route_cases as $case ) {
 	$router = new Pera_ML_Router( $registry );
@@ -131,6 +135,7 @@ pera_ml_expect( false, $router->prevent_prefix_loss( 'https://www.peraproperty.c
 pera_ml_expect( 'https://www.peraproperty.com/zh/', $router->url_for_language( 'https://www.peraproperty.com/', 'zh' ), 'language root canonical and hreflang URL' );
 pera_ml_expect( 'https://www.peraproperty.com/de/', $router->url_for_language( 'https://www.peraproperty.com/', 'de' ), 'German language root canonical and hreflang URL' );
 pera_ml_expect( 'https://www.peraproperty.com/ru/', $router->url_for_language( 'https://www.peraproperty.com/', 'ru' ), 'Russian language root canonical and hreflang URL' );
+pera_ml_expect( 'https://www.peraproperty.com/tr/', $router->url_for_language( 'https://www.peraproperty.com/', 'tr' ), 'Turkish language root URL' );
 $GLOBALS['pera_ml_options']['page_on_front'] = 55858;
 
 $router = new Pera_ML_Router( $registry ); $_SERVER['REQUEST_URI'] = '/zh/property/foo/'; $router->detect_and_strip_prefix();
@@ -146,6 +151,11 @@ $router = new Pera_ML_Router( $registry ); $_SERVER['REQUEST_URI'] = '/ru/an-inv
 $wp = (object) array( 'query_vars' => array( 'name' => 'an-investment-guide' ) ); $router->restore_public_uri( $wp );
 pera_ml_expect( 'ru', $router->current_language(), 'Russian current-language detection' );
 pera_ml_expect( 'ru', $wp->query_vars['pera_ml_lang'], 'Russian normal post language marker' );
+$router = new Pera_ML_Router( $registry ); $_SERVER['REQUEST_URI'] = '/tr/developer-sales-office/'; $router->detect_and_strip_prefix();
+$wp = (object) array( 'query_vars' => array( 'pagename' => 'developer-sales-office' ) ); $router->restore_public_uri( $wp );
+pera_ml_expect( 'developer-sales-office', $wp->query_vars['pagename'], 'Turkish sales-office route resolves the canonical page' );
+pera_ml_expect( 'tr', $router->current_language(), 'Turkish current-language detection' );
+pera_ml_expect( 'tr', $wp->query_vars['pera_ml_lang'], 'Turkish sales-office language marker' );
 $GLOBALS['pera_ml_home'] = 'https://www.peraproperty.com/';
 foreach ( array( '/zh/wp-admin/', '/zh/wp-admin/admin-ajax.php', '/zh/wp-json/wp/v2/posts', '/zh/wp-cron.php', '/zh/xmlrpc.php', '/zh/wp-content/app.css', '/zh/wp-includes/app.js', '/zh/robots.txt' ) as $endpoint ) {
 	$router = new Pera_ML_Router( $registry ); $_SERVER['REQUEST_URI'] = $endpoint; unset( $_GET['rest_route'] );

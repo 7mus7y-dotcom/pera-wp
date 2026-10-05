@@ -16,9 +16,10 @@ final class Pera_ML_Plugin {
 	public function boot() { $this->upgrade(); $this->router->hooks(); $this->content->hooks(); $this->fields->hooks(); $this->menu->hooks(); $this->seo->hooks(); $this->ajax->hooks(); if ( is_admin() ) ( new Pera_ML_Admin( $this->registry ) )->hooks(); }
 	/** Enable newly shipped languages once, without rewriting translation rows or source hashes. */
 	private function upgrade() {
-		if ( version_compare( (string) get_option( 'pera_ml_db_version', '0' ), '0.3.0', '>=' ) ) return;
+		if ( version_compare( (string) get_option( 'pera_ml_db_version', '0' ), PERA_ML_VERSION, '>=' ) ) return;
 		$enabled = get_option( 'pera_ml_enabled_languages', null );
 		if ( is_array( $enabled ) && ! in_array( 'ru', $enabled, true ) ) { $enabled[] = 'ru'; update_option( 'pera_ml_enabled_languages', array_values( array_unique( $enabled ) ) ); }
+		if ( is_array( $enabled ) && ! in_array( 'tr', $enabled, true ) ) { $enabled[] = 'tr'; update_option( 'pera_ml_enabled_languages', array_values( array_unique( $enabled ) ) ); }
 		update_option( 'pera_ml_db_version', PERA_ML_VERSION );
 	}
 	public static function activate() { Pera_ML_Storage::install(); update_option( 'pera_ml_db_version', PERA_ML_VERSION ); flush_rewrite_rules( false ); }

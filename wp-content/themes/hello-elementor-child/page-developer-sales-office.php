@@ -83,6 +83,9 @@ get_header();
 			<div class="hero-actions">
 				<a class="btn btn--solid btn--green" href="#contact"><?php echo esc_html( pera_ml_ui( 'Discuss your project', 'theme.template.page_developer_sales_office.hero_discuss_project' ) ); ?></a>
 				<a class="btn btn--solid btn--blue" href="#solution"><?php echo esc_html( pera_ml_ui( 'Explore the solution', 'theme.template.page_developer_sales_office.hero_explore_solution' ) ); ?></a>
+				<?php if ( 'tr' !== pera_ml_current_language() ) : ?>
+					<a class="btn btn--ghost btn--white" href="<?php echo esc_url( pera_ml_url( get_permalink(), 'tr' ) ); ?>" hreflang="tr-TR" lang="tr">Türkçe oku</a>
+				<?php endif; ?>
 			</div>
 		</div>
 	</section>

@@ -28,6 +28,11 @@ require dirname( __DIR__ ) . '/includes/class-seo.php';
 $registry = new Pera_ML_Language_Registry();
 gate_expect( isset( $registry->enabled()['ru'] ), 'Russian remains enabled internally' );
 gate_expect( ! isset( $registry->publicly_available()['ru'] ), 'Russian is hidden from public discovery by default' );
+gate_expect( isset( $registry->enabled()['tr'] ), 'Turkish is enabled internally' );
+gate_expect( 'tr', $registry->enabled()['tr']['prefix'], 'Turkish uses the /tr/ prefix' );
+gate_expect( 'tr-TR', $registry->enabled()['tr']['hreflang'], 'Turkish has the tr-TR hreflang' );
+gate_expect( 'Türkçe', $registry->enabled()['tr']['native_name'], 'Turkish has its native name' );
+gate_expect( ! isset( $registry->publicly_available()['tr'] ), 'Turkish is hidden from public discovery by default' );
 
 $_SERVER['REQUEST_URI'] = '/page/';
 $seo = new Pera_ML_SEO( $registry, new Public_Gate_Router(), new Public_Gate_Storage() );
@@ -35,6 +40,7 @@ ob_start();
 $seo->alternates();
 $alternates = ob_get_clean();
 gate_expect( false === strpos( $alternates, 'hreflang="ru"' ), 'public hreflang omits Russian while gated' );
+gate_expect( false === strpos( $alternates, 'hreflang="tr-TR"' ), 'public hreflang omits Turkish while gated' );
 gate_expect( false !== strpos( $alternates, 'hreflang="de-DE"' ), 'public hreflang retains launched languages' );
 gate_expect( false !== strpos( $alternates, 'hreflang="x-default"' ), 'public hreflang retains x-default' );
 
