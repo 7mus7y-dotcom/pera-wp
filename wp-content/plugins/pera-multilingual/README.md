@@ -123,6 +123,19 @@ pera_ml_language_switcher();
 echo do_shortcode( '[pera_language_switcher]' );
 ```
 
+### Developer sales-office Turkish refresh
+
+Turkish is internally enabled and directly available at `/tr/` routes, while it
+remains absent from the global language switcher and hreflang output unless
+`PERA_ML_PUBLIC_TURKISH_ENABLED` is explicitly enabled. Refresh only the UI strings
+owned by the developer sales-office page template with:
+
+```sh
+wp eval-file wp-content/plugins/pera-multilingual/tools/register-theme-ui-strings.php
+wp eval-file wp-content/plugins/pera-multilingual/tools/pera-translate-latest.php dry-run status=all object_type=ui field_prefix=key:theme_template_page_developer_sales_office language=tr limit=500
+wp eval-file wp-content/plugins/pera-multilingual/tools/pera-translate-latest.php status=all object_type=ui field_prefix=key:theme_template_page_developer_sales_office language=tr limit=500
+```
+
 ## Current milestone and production limitations
 
 Core title, excerpt, content, approved ACF/meta, and public property-taxonomy rows render when present, with safe English fallback. Arabic supplies `lang`, `dir`, body classes, and a deliberately conservative RTL stylesheet. The property field inventory and explicit per-object generation are implemented. Remaining production work includes:

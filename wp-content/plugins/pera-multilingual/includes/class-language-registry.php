@@ -18,8 +18,13 @@ final class Pera_ML_Language_Registry {
 				'direction' => 'ltr', 'enabled' => true, 'source' => false, 'hreflang' => 'ru',
 				'instructions' => 'Translate into natural, professional Russian suitable for a Russian-speaking property buyer or investor. Preserve proper nouns, Turkish place names, project names, company names and glossary-protected terms exactly as instructed. Use natural Russian real-estate and investment terminology rather than literal English calques.',
 			),
+			'tr' => array(
+				'code' => 'tr', 'name' => 'Turkish', 'native_name' => 'Türkçe', 'compact_name' => 'TR', 'prefix' => 'tr',
+				'direction' => 'ltr', 'enabled' => true, 'source' => false, 'hreflang' => 'tr-TR',
+				'instructions' => 'Translate into natural, professional Turkish suitable for a Turkish property developer, buyer or investor. Preserve proper nouns, project names, company names and glossary-protected terms exactly as instructed. Use natural Turkish real-estate and commercial terminology rather than literal English calques.',
+			),
 		);
-		$enabled = get_option( 'pera_ml_enabled_languages', array( 'en', 'zh', 'ar', 'de', 'ru' ) );
+		$enabled = get_option( 'pera_ml_enabled_languages', array( 'en', 'zh', 'ar', 'de', 'ru', 'tr' ) );
 		$enabled = is_array( $enabled ) ? array_map( 'sanitize_key', $enabled ) : array( 'en' );
 		$enabled[] = 'en';
 		foreach ( $languages as $code => &$language ) {
@@ -45,8 +50,9 @@ final class Pera_ML_Language_Registry {
 	}
 
 	public function is_publicly_available( $language ) {
-		if ( 'ru' !== $language['code'] ) return true;
-		return defined( 'PERA_ML_PUBLIC_RUSSIAN_ENABLED' ) && PERA_ML_PUBLIC_RUSSIAN_ENABLED;
+		if ( 'ru' === $language['code'] ) return defined( 'PERA_ML_PUBLIC_RUSSIAN_ENABLED' ) && PERA_ML_PUBLIC_RUSSIAN_ENABLED;
+		if ( 'tr' === $language['code'] ) return defined( 'PERA_ML_PUBLIC_TURKISH_ENABLED' ) && PERA_ML_PUBLIC_TURKISH_ENABLED;
+		return true;
 	}
 
 	public function from_prefix( $prefix ) {

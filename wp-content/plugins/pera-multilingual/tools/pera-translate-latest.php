@@ -7,6 +7,7 @@ $status      = 'all';
 $object_type = null;
 $object_id   = null;
 $field       = null;
+$field_prefix = null;
 $language    = null;
 
 $cli_args = isset( $args ) && is_array( $args )
@@ -94,6 +95,21 @@ foreach ( $cli_args as $arg ) {
         continue;
     }
 
+    if ( 0 === strpos( $arg, 'field_prefix=' ) ) {
+        $requested_field_prefix = substr( $arg, 13 );
+
+        if (
+            '' === $requested_field_prefix ||
+            ! preg_match( '/^[A-Za-z0-9_-]+(?::[A-Za-z0-9_-]+)?$/', $requested_field_prefix )
+        ) {
+            echo 'ERROR: Invalid field_prefix filter "' . $requested_field_prefix . '".' . PHP_EOL;
+            return;
+        }
+
+        $field_prefix = $requested_field_prefix;
+        continue;
+    }
+
     if ( 0 === strpos( $arg, 'language=' ) ) {
         $language = substr( $arg, 9 );
         continue;
@@ -112,6 +128,10 @@ if ( null !== $object_id ) {
 
 if ( null !== $field ) {
     $filter_summary .= ' | Field: ' . $field;
+}
+
+if ( null !== $field_prefix ) {
+    $filter_summary .= ' | Field prefix: ' . $field_prefix;
 }
 
 $p = Pera_ML_Plugin::instance();
@@ -197,6 +217,13 @@ foreach ( $rows as $row ) {
             (
                 ! isset( $row['field'] ) ||
                 $field !== $row['field']
+            )
+        ) ||
+        (
+            null !== $field_prefix &&
+            (
+                ! isset( $row['field'] ) ||
+                0 !== strpos( $row['field'], $field_prefix )
             )
         )
     ) {
