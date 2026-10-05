@@ -1642,7 +1642,7 @@ button.pill:focus-visible {
   gap: 4px 10px;
   padding: 0;
 }
-.header-language-switcher--mobile .header-language-switcher__list a { min-height: 40px; padding: 11px 8px; }
+.header-language-switcher--mobile .header-language-switcher__list a { min-height: 32px; padding: 6px 8px; }
 
 /* Pera Currency uses the same compact disclosure language without sharing state. */
 .pera-currency-selector { position: relative; font-size: 0.78rem; line-height: 1.2; }
