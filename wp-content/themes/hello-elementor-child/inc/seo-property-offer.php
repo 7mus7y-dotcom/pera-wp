@@ -155,6 +155,7 @@ if ( ! function_exists( 'pera_property_offer_schema_print' ) ) {
       '@context' => 'https://schema.org',
       '@type'    => 'Product',
       '@id'      => esc_url_raw( $url ) . '#product',
+      'isRelatedTo' => array( '@id' => esc_url_raw( $url ) . '#residence' ),
       'name'     => $name,
       'url'      => esc_url_raw( $url ),
       'offers'   => array(
@@ -163,8 +164,6 @@ if ( ! function_exists( 'pera_property_offer_schema_print' ) ) {
         'url'           => esc_url_raw( $url ),
         'price'         => (string) $price,
         'priceCurrency' => 'USD',
-        'availability'  => 'https://schema.org/InStock',
-        'itemCondition' => 'https://schema.org/NewCondition',
       ),
     );
 

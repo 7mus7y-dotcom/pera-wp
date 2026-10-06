@@ -769,6 +769,7 @@ if ( ! function_exists( 'pera_property_build_schema_graph' ) ) {
     $webpage = array(
       '@type' => 'WebPage',
       '@id'   => $url . '#webpage',
+      'mainEntity' => array( '@id' => $url . '#residence' ),
       'url'   => $url,
       'name'  => $name,
     );
@@ -788,7 +789,7 @@ if ( ! function_exists( 'pera_property_build_schema_graph' ) ) {
 
     // Residence is the safest primary entity currently supported by real fields
     // (name, url, image, district/region, bedrooms, size) without fabricating
-    // commerce-specific values. Product/Offer is intentionally deferred.
+    // commerce-specific values. The conditional Product/Offer module references this entity.
     $residence = array(
       '@type'     => 'Residence',
       '@id'       => $url . '#residence',
