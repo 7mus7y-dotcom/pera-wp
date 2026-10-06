@@ -3,6 +3,9 @@
 if ( ! defined( 'WP_CLI' ) || ! WP_CLI ) {
     exit( "Run this script with wp eval-file.\n" );
 }
+// The frontend SEO loader only runs on singular property requests, not eval-file.
+require_once dirname( __DIR__ ) . '/inc/property-faq.php';
+
 if ( ! function_exists( 'get_field' ) || ! function_exists( 'pera_property_get_faq_items' ) ) {
     WP_CLI::error( 'Load ACF and the active Pera child theme (do not use --skip-themes/--skip-plugins).' );
 }
