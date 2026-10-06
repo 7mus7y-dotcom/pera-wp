@@ -107,7 +107,8 @@ while IFS= read -r -d '' img; do
     tmp=$(mktemp "${out}.tmp.XXXXXX")
 
     if convert "$img" -strip -quality 82 "webp:$tmp" &&
-       [[ -s "$tmp" ]]; then
+       [[ -s "$tmp" ]] &&
+       chmod --reference="$img" "$tmp"; then
         mv -- "$tmp" "$out"
         tmp=""
         converted=$((converted + 1))
