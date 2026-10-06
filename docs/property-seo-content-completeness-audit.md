@@ -1,6 +1,6 @@
 # Property SEO content completeness audit
 
-Run from the WordPress root with WP-CLI, ACF, and the Pera child theme loaded:
+Run from the WordPress root with WP-CLI, ACF, and the Pera child theme loaded. The script explicitly loads the shared FAQ parser; no frontend or singular-property query context is required:
 
 ```sh
 wp eval-file wp-content/themes/hello-elementor-child/tools/audit-property-seo-content.php -- --status=publish --limit=100
