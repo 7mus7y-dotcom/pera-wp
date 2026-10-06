@@ -1,5 +1,5 @@
 <?php
-/** Read-only audit. Run with wp eval-file; arguments are passed after --. */
+/** Read-only audit. Run with wp eval-file; options are positional name=value arguments. */
 if ( ! defined( 'WP_CLI' ) || ! WP_CLI ) {
     exit( "Run this script with wp eval-file.\n" );
 }
@@ -13,8 +13,8 @@ if ( ! function_exists( 'get_field' ) || ! function_exists( 'pera_property_get_f
 // eval-file exposes positional arguments as $args, not PHP's process argv.
 $options = array( 'status' => 'publish,draft', 'limit' => '100', 'offset' => '0' );
 foreach ( isset( $args ) ? $args : array() as $argument ) {
-    if ( ! preg_match( '/^--(status|limit|offset)=(.+)$/', $argument, $match ) ) {
-        WP_CLI::error( 'Supported arguments: --status=publish,draft --limit=100 --offset=0' );
+    if ( ! preg_match( '/^(?:--)?(status|limit|offset)=(.+)$/', $argument, $match ) ) {
+        WP_CLI::error( 'Supported positional arguments: status=publish,draft limit=100 offset=0' );
     }
     $options[ $match[1] ] = $match[2];
 }

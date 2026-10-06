@@ -3,9 +3,11 @@
 Run from the WordPress root with WP-CLI, ACF, and the Pera child theme loaded. The script explicitly loads the shared FAQ parser; no frontend or singular-property query context is required:
 
 ```sh
-wp eval-file wp-content/themes/hello-elementor-child/tools/audit-property-seo-content.php -- --status=publish --limit=100
-wp eval-file wp-content/themes/hello-elementor-child/tools/audit-property-seo-content.php -- --status=publish,draft --limit=100 --offset=100
+wp eval-file wp-content/themes/hello-elementor-child/tools/audit-property-seo-content.php status=publish limit=100
+wp eval-file wp-content/themes/hello-elementor-child/tools/audit-property-seo-content.php status=publish,draft limit=100 offset=100
 ```
+
+Pass audit options as positional `name=value` arguments. WP-CLI treats `--status` and `--limit` as command flags and rejects them before the script runs, including with a `--` separator.
 
 Defaults: published and draft properties, limit 100, offset 0. Results are ordered by post ID ascending. Increase offset in batches until all properties are covered; run against a stable dataset for consistent pagination. Do not use `--skip-themes` or `--skip-plugins`. The script only reads posts, ACF fields, attachment metadata, and taxonomy relationships; it never updates content or rebuilds pricing indexes.
 
