@@ -59,7 +59,7 @@ failed=0
 echo "Scanning: $target"
 
 while IFS= read -r -d '' img; do
-    out="${img}.webp"
+    out="${img%.*}.webp"
 
     if [[ -s "$out" ]]; then
         skipped=$((skipped + 1))
