@@ -1823,7 +1823,7 @@ if ( ! empty( $yt_video ) ) {
         'no_found_rows'       => true,
         'ignore_sticky_posts' => true,
         'post__not_in'        => array( $current_id ),
-        'orderby'             => 'rand',
+        'orderby'             => array( 'modified' => 'DESC', 'date' => 'DESC', 'ID' => 'DESC' ),
         'tax_query'           => array(
           array(
             'taxonomy' => 'region',
