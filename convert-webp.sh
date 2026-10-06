@@ -51,6 +51,34 @@ trap cleanup EXIT
 trap 'echo; echo "Stopped."; exit 130' INT
 trap 'exit 143' TERM
 
+# Refuse ambiguous conversions such as hero.jpg and hero.png, because both
+# would otherwise map to hero.webp and could display the wrong attachment.
+declare -A source_for_output=()
+collision_found=0
+
+while IFS= read -r -d '' img; do
+    out="${img%.*}.webp"
+
+    if [[ -n ${source_for_output["$out"]+present} ]] &&
+       [[ ${source_for_output["$out"]} != "$img" ]]; then
+        printf 'COLLISION: %s and %s both map to %s\n' \
+            "${source_for_output["$out"]}" "$img" "$out" >&2
+        collision_found=1
+        continue
+    fi
+
+    source_for_output["$out"]="$img"
+done < <(
+    find "$target" -type f \
+        \( -iname '*.jpg' -o -iname '*.jpeg' -o -iname '*.png' \) \
+        -print0
+)
+
+if (( collision_found )); then
+    echo "No files converted because ambiguous WebP output names were found." >&2
+    exit 1
+fi
+
 converted=0
 skipped=0
 pending=0
