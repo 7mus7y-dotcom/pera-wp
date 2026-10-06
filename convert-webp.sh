@@ -90,6 +90,14 @@ while IFS= read -r -d '' img; do
     out="${img%.*}.webp"
 
     if [[ -s "$out" ]]; then
+        if (( dry_run )); then
+            printf 'Would ensure permissions: %s\n' "$out"
+        elif ! chmod --reference="$img" "$out"; then
+            printf 'FAILED to repair permissions: %s\n' "$out" >&2
+            failed=$((failed + 1))
+            continue
+        fi
+
         skipped=$((skipped + 1))
         continue
     fi
