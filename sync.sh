@@ -1,8 +1,8 @@
 #!/bin/bash
 set -e
 
-REPO="/home/peraukco/_work/pera-wp"
-LIVE="/home/peraukco/public_html"
+REPO="/home/d21882/_work/pera-wp"
+LIVE="/home/d21882/public_html"
 
 cd "$REPO"
 
