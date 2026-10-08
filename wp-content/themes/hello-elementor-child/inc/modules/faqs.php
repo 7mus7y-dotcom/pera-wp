@@ -137,34 +137,6 @@ if ( ! function_exists( 'pera_get_property_archive_faq_items' ) ) {
 			return $faq_items_by_context[ $context_key ];
 		}
 
-		// Main-archive defaults are shared by the visible FAQ and its JSON-LD.
-		// Editor-provided FAQs and taxonomy FAQs keep their existing priority.
-		if ( 'main' === $context_key && '' === $raw ) {
-			$faq_items_by_context[ $context_key ] = array(
-				array(
-					'question' => pera_ml_ui( 'How do I choose the right district?', 'theme.template.archive_property.buyer_faq_1_question' ),
-					'answer' => pera_ml_ui( 'Start with your commute, preferred side of the city, transport links and nearby amenities. Compare homes in two or three districts against your budget, building requirements and plans for living or renting.', 'theme.template.archive_property.buyer_faq_1_answer' ),
-				),
-				array(
-					'question' => pera_ml_ui( 'What costs should I budget for beyond the asking price?', 'theme.template.archive_property.buyer_faq_2_question' ),
-					'answer' => pera_ml_ui( 'Allow for applicable transfer taxes, legal advice, valuation, agency fees and any currency conversion costs. Ongoing costs may include building service charges, insurance and maintenance. Ask for an itemised estimate for the property before committing.', 'theme.template.archive_property.buyer_faq_2_answer' ),
-				),
-				array(
-					'question' => pera_ml_ui( 'Can foreign buyers purchase a property in Istanbul?', 'theme.template.archive_property.buyer_faq_3_question' ),
-					'answer' => pera_ml_ui( 'Many foreign nationals can buy property in Turkey, subject to nationality rules and restrictions on certain locations and properties. Have an independent lawyer confirm your eligibility, title deed status and required documents before paying a deposit.', 'theme.template.archive_property.buyer_faq_3_answer' ),
-				),
-				array(
-					'question' => pera_ml_ui( 'Can I buy a property for Turkish citizenship?', 'theme.template.archive_property.buyer_faq_4_question' ),
-					'answer' => pera_ml_ui( 'Some purchases may qualify for citizenship by investment, but not every listing is eligible. Current programme rules, valuation, title restrictions and documentation must be checked for the specific property with qualified legal advice.', 'theme.template.archive_property.buyer_faq_4_answer' ),
-				),
-				array(
-					'question' => pera_ml_ui( 'How can I request a property shortlist?', 'theme.template.archive_property.buyer_faq_5_question' ),
-					'answer' => pera_ml_ui( 'Send us your budget, preferred districts, property type, bedroom needs and buying timeframe. Include whether you plan to live in the home or rent it out, and our team will prepare suitable options for you to compare.', 'theme.template.archive_property.buyer_faq_5_answer' ),
-				),
-			);
-			return $faq_items_by_context[ $context_key ];
-		}
-
 		if ( '' === $raw ) {
 			$faq_items_by_context[ $context_key ] = array();
 			return $faq_items_by_context[ $context_key ];

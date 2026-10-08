@@ -6,6 +6,8 @@
 
 if ( ! defined( 'ABSPATH' ) ) exit;
 
+$seo_archive_preview = pera_property_archive_seo_preview_enabled();
+
 $archive_base_candidate = function_exists( 'pera_property_archive_base_url' )
   ? (string) pera_property_archive_base_url()
   : '';
@@ -54,7 +56,7 @@ $archive_subtitle = (string) $property_archive_get_field( 'archive_subtitle' );
 
 $archive_intro_content = (string) $property_archive_get_field( 'archive_intro_content' );
 if ( $archive_intro_content === '' ) {
-  $archive_intro_content = $archive_intro_fallback;
+  $archive_intro_content = $seo_archive_preview ? $archive_intro_fallback : $archive_description_fallback;
 }
 
 $archive_description = $archive_subtitle !== '' ? $archive_subtitle : wp_strip_all_tags( $archive_intro_content );
@@ -252,8 +254,14 @@ $is_filtered_search = function_exists( 'pera_property_archive_is_filtered_reques
 $is_clean_main_property_archive = function_exists( 'pera_property_archive_is_clean_main_archive' )
   ? pera_property_archive_is_clean_main_archive()
   : ( is_post_type_archive( 'property' ) && ! is_tax() && ! is_search() && ! is_paged() && empty( $_GET ) );
+// Ignore only the preview marker for presentation; do not mutate request/query or SEO context.
+if ( isset( $_GET['seo_archive_preview'] ) && pera_property_archive_seo_preview_is_main_request() ) {
+  $is_clean_main_property_archive = true;
+}
 $listings_section_heading = $is_clean_main_property_archive
-  ? pera_ml_ui( 'Explore available properties', 'theme.template.archive_property.explore_available_properties' )
+  ? ( $seo_archive_preview
+      ? pera_ml_ui( 'Explore available properties', 'theme.template.archive_property.explore_available_properties' )
+      : pera_ml_ui( 'View Property for Sale in Istanbul', 'theme.template.archive_property.view_property_for_sale_in_istanbul' ) )
   : pera_ml_ui( 'Available Properties', 'theme.template.archive_property.available_properties' );
 
 // Build heading (no count here — count belongs in #results-count. change heading based on taxonomy pages and search)
@@ -541,6 +549,9 @@ if ( ! $is_filtered_search && ( $qo instanceof WP_Term ) && ! is_wp_error( $qo )
         
           <div class="hero-content">
         
+            <?php if ( $seo_archive_preview ) : ?>
+              <p class="text-light"><?php echo esc_html( pera_ml_ui( 'SEO preview', 'theme.template.archive_property.seo_preview' ) ); ?></p>
+            <?php endif; ?>
             <h1><?php echo esc_html( $hero_title ); ?></h1>
         
                 <?php if ( $hero_desc_html !== '' ) : ?>
@@ -560,7 +571,7 @@ if ( ! $is_filtered_search && ( $qo instanceof WP_Term ) && ! is_wp_error( $qo )
                             <p><?php echo esc_html( pera_ml_ui( 'Use the filters below to refine by district, property type, bedrooms and budget.', 'theme.template.archive_property.use_the_filters_below_to_refine_by_district_property_type_bedrooms_and_b' ) ); ?></p>
                 </header>
 
-                <?php if ( $is_clean_main_property_archive ) : ?>
+                <?php if ( $seo_archive_preview ) : ?>
                   <p class="text-soft">
                     <?php echo esc_html( pera_ml_ui( 'Explore properties by district:', 'theme.template.archive_property.explore_districts' ) ); ?>
                     <?php
@@ -1163,6 +1174,10 @@ $pagination_html = function_exists( 'pera_render_property_pagination' )
 $property_archive_faq_items = ( function_exists( 'pera_property_archive_is_indexable_faq_context' ) && pera_property_archive_is_indexable_faq_context() && function_exists( 'pera_get_property_archive_faq_items' ) )
   ? pera_get_property_archive_faq_items()
   : array();
+// A non-admin using only the preview marker still sees the normal archive FAQ copy.
+if ( ! $seo_archive_preview && isset( $_GET['seo_archive_preview'] ) && $is_clean_main_property_archive ) {
+  $property_archive_faq_items = pera_parse_faq_pipe_text( (string) $property_archive_get_field( 'seo_faq_v2' ) );
+}
 ?>
 
 <?php if ( $related_taxonomy_total > 0 ) : ?>
@@ -1220,17 +1235,14 @@ $property_archive_faq_items = ( function_exists( 'pera_property_archive_is_index
   </div>
 </section>
 
+<?php if ( $seo_archive_preview ) : ?>
+  <?php require get_stylesheet_directory() . '/parts/property-archive-seo-preview.php'; ?>
+<?php else : ?>
 <?php if ( $is_clean_main_property_archive ) : ?>
   <?php
     $archive_bottom_content      = (string) $property_archive_get_field( 'archive_bottom_content' );
     $archive_cta_heading         = (string) $property_archive_get_field( 'archive_cta_heading' );
     $archive_cta_text            = (string) $property_archive_get_field( 'archive_cta_text' );
-    $archive_cta_heading = $archive_cta_heading !== ''
-      ? $archive_cta_heading
-      : pera_ml_ui( 'Get your Istanbul property shortlist', 'theme.template.archive_property.shortlist_heading' );
-    $archive_cta_text = $archive_cta_text !== ''
-      ? $archive_cta_text
-      : pera_ml_ui( 'Tell us your budget, preferred districts, bedroom needs and buying timeframe. We will prepare a tailored shortlist for you to review and help arrange viewings of the homes that suit your plans.', 'theme.template.archive_property.shortlist_text' );
     $archive_whatsapp_message    = (string) $property_archive_get_field( 'archive_whatsapp_message' );
     $archive_whatsapp_message    = $archive_whatsapp_message !== ''
       ? $archive_whatsapp_message
@@ -1243,10 +1255,14 @@ $property_archive_faq_items = ( function_exists( 'pera_property_archive_is_index
         <?php echo wp_kses_post( wpautop( $archive_bottom_content ) ); ?>
       <?php else : ?>
       <div class="section-header">
-        <h2><?php echo esc_html( pera_ml_ui( 'Choosing where to buy in Istanbul', 'theme.template.archive_property.choosing_where_to_buy' ) ); ?></h2>
+        <h2><?php echo esc_html( pera_ml_ui( 'Property for sale in Istanbul: where to buy and how to choose', 'theme.template.archive_property.property_for_sale_in_istanbul_where_to_buy_and_how_to_choose' ) ); ?></h2>
       </div>
-      <p class="text-soft"><?php echo esc_html( pera_ml_ui( 'Start with your daily needs: commute, schools, transport and access to the waterfront. Compare central European-side locations such as Beşiktaş and Şişli with Kadıköy and Üsküdar on the Asian side. Zeytinburnu offers options along the Marmara coast, while Sarıyer includes Bosphorus neighbourhoods and greener residential areas. Building quality, amenities and prices vary within each district, so compare individual homes as well as locations.', 'theme.template.archive_property.compare_locations' ) ); ?></p>
-      <p class="text-soft"><?php echo esc_html( pera_ml_ui( 'Before making an offer, review title deed status, building documentation, ongoing fees and the full purchase budget with qualified advisers. For an investment, compare realistic net rental income and resale prospects rather than relying on advertised returns. A shortlist of suitable homes makes it easier to compare these details and arrange viewings.', 'theme.template.archive_property.before_making_an_offer' ) ); ?></p>
+      <p class="text-soft"><?php echo esc_html( pera_ml_ui( 'Istanbul gives buyers one of the broadest real estate selections in the region, from city-centre apartments to spacious family villas and investment-focused homes. Whether you are searching for a primary residence, a second home, or a property with long-term rental potential, the market offers options at very different price points and lifestyles. The key is matching location, building quality and ownership goals rather than choosing by price alone. On this page, you can compare listings and then narrow your search by district, property type, bedroom count and budget.', 'theme.template.archive_property.istanbul_gives_buyers_one_of_the_broadest_real_estate_selections_in_the_' ) ); ?></p>
+      <p class="text-soft"><?php echo esc_html( pera_ml_ui( 'Apartments remain the most popular entry point for buyers who want central access and easier management. In premium neighbourhoods, modern apartments in secure complexes can attract strong demand from both local and international tenants. Family buyers who need more privacy and larger internal space often prefer villas in quieter residential areas with better access to schools and green spaces. For many clients, the best approach is to shortlist two or three districts first, then compare properties by transport links, construction standard, title status and resale liquidity.', 'theme.template.archive_property.apartments_remain_the_most_popular_entry_point_for_buyers_who_want_centr' ) ); ?></p>
+      <p class="text-soft"><?php echo esc_html( pera_ml_ui( 'Among the most searched locations are', 'theme.template.archive_property.among_the_most_searched_locations_are' ) ); ?> <a href="<?php echo esc_url( function_exists( 'pera_ml_url' ) ? pera_ml_url( home_url( '/district/istanbul/besiktas/' ) ) : home_url( '/district/istanbul/besiktas/' ) ); ?>">Beşiktaş</a>, <a href="<?php echo esc_url( function_exists( 'pera_ml_url' ) ? pera_ml_url( home_url( '/district/istanbul/sisli/' ) ) : home_url( '/district/istanbul/sisli/' ) ); ?>">Şişli</a> <?php echo esc_html( pera_ml_ui( 'and', 'theme.template.archive_property.and' ) ); ?> <a href="<?php echo esc_url( function_exists( 'pera_ml_url' ) ? pera_ml_url( home_url( '/district/istanbul/kadikoy/' ) ) : home_url( '/district/istanbul/kadikoy/' ) ); ?>">Kadıköy</a><?php echo esc_html( pera_ml_ui( '. Beşiktaş is often preferred by buyers who want central living, waterfront access and established neighbourhoods. Şişli attracts professionals and investors looking for central convenience, business access and modern regeneration projects. Kadıköy, on the Anatolian side, is popular with lifestyle buyers who value culture, walkable streets and strong local demand. Bomonti and Nişantaşı are also frequently considered by premium urban buyers.', 'theme.template.archive_property.be_ikta_is_often_preferred_by_buyers_who_want_central_living_waterfront_' ) ); ?></p>
+      <p class="text-soft"><?php echo esc_html( pera_ml_ui( 'For investment property, buyers usually focus on future resale depth, achievable rental yields and the profile of end users in each micro-location. New developments can be attractive when developer quality and delivery track record are strong, while completed resale units can reduce timeline risk and provide immediate rental data. A practical investment review should include total acquisition cost, expected net rental income, management assumptions and likely exit scenarios over a multi-year horizon. This helps buyers avoid decisions based only on headline marketing figures.', 'theme.template.archive_property.for_investment_property_buyers_usually_focus_on_future_resale_depth_achi' ) ); ?></p>
+      <p class="text-soft"><?php echo esc_html( pera_ml_ui( 'Lifestyle buyers typically prioritise daily convenience: commute times, nearby amenities, schools, medical access and neighbourhood character. These factors influence long-term satisfaction as much as the apartment plan or finishing materials. In Istanbul, even adjacent streets can differ significantly in noise, traffic and tenant profile, so local guidance and physical viewing remain essential. Buyers who define non-negotiables early—such as building age, parking, security and walkability—tend to make faster and more confident decisions.', 'theme.template.archive_property.lifestyle_buyers_typically_prioritise_daily_convenience_commute_times_ne' ) ); ?></p>
+      <p class="text-soft"><?php echo esc_html( pera_ml_ui( 'Citizenship-focused buyers should evaluate each property through both legal eligibility and market fundamentals. If your objective includes the Turkish passport route, requirements must be met precisely and documented correctly during purchase and transfer. You can review the process in detail on our', 'theme.template.archive_property.citizenship_focused_buyers_should_evaluate_each_property_through_both_le' ) ); ?> <a href="<?php echo esc_url( function_exists( 'pera_ml_url' ) ? pera_ml_url( home_url( '/citizenship-by-investment/' ) ) : home_url( '/citizenship-by-investment/' ) ); ?>"><?php echo esc_html( pera_ml_ui( 'Turkish Citizenship by Investment', 'theme.template.archive_property.turkish_citizenship_by_investment' ) ); ?></a> <?php echo esc_html( pera_ml_ui( 'page. Even when citizenship is the primary driver, asset quality and location still matter for future resale and rental performance. A structured due-diligence process—valuation review, title checks and eligibility verification—helps ensure your purchase supports both personal and financial goals.', 'theme.template.archive_property.page_even_when_citizenship_is_the_primary_driver_asset_quality_and_locat' ) ); ?></p>
       <?php endif; ?>
     </div>
   </section>
@@ -1266,17 +1282,17 @@ $property_archive_faq_items = ( function_exists( 'pera_property_archive_is_index
           </div>
         <?php endif; ?>
 
-        <div class="btn-group">
-          <a class="btn btn--solid btn--green" href="<?php echo esc_url( $archive_whatsapp_url ); ?>" target="_blank" rel="noopener noreferrer">
-            <?php echo esc_html( pera_ml_ui( 'Request my shortlist', 'theme.template.archive_property.request_my_shortlist' ) ); ?>
-          </a>
-          <a class="btn btn--ghost btn--blue" href="<?php echo esc_url( function_exists( 'pera_ml_url' ) ? pera_ml_url( home_url( '/book-a-consultancy/' ) ) : home_url( '/book-a-consultancy/' ) ); ?>">
-              <?php echo esc_html( pera_ml_ui( 'Book a Consultancy', 'theme.template.archive_property.book_a_consultancy' ) ); ?>
-          </a>
-        </div>
+        <a class="btn btn--solid btn--green" href="<?php echo esc_url( $archive_whatsapp_url ); ?>" target="_blank" rel="noopener">
+          <?php echo esc_html( pera_ml_ui( 'Send us your requirements', 'theme.template.archive_property.send_us_your_requirements' ) ); ?>
+        </a>
+        <a class="btn btn--ghost btn--blue" href="<?php echo esc_url( function_exists( 'pera_ml_url' ) ? pera_ml_url( home_url( '/book-a-consultancy/' ) ) : home_url( '/book-a-consultancy/' ) ); ?>">
+            <?php echo esc_html( pera_ml_ui( 'Book a Consultancy', 'theme.template.archive_property.book_a_consultancy' ) ); ?>
+        </a>
       </div>
     </section>
   <?php endif; ?>
+
+<?php endif; ?>
 
 <?php endif; ?>
 
