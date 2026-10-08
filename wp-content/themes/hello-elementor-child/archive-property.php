@@ -6,6 +6,8 @@
 
 if ( ! defined( 'ABSPATH' ) ) exit;
 
+$seo_archive_preview = pera_property_archive_seo_preview_enabled();
+
 $archive_base_candidate = function_exists( 'pera_property_archive_base_url' )
   ? (string) pera_property_archive_base_url()
   : '';
@@ -43,6 +45,7 @@ $property_archive_get_field = static function ( string $field_name ) use ( $prop
 
 $archive_title_fallback       = pera_ml_ui( 'Property for sale in Istanbul', 'theme.template.archive_property.title_fallback' );
 $archive_description_fallback = pera_ml_ui( 'With access to a wide range of property for sale in Istanbul, from central apartments to family homes, villas and investment opportunities, we can help you find options that match your budget and requirements. Tell us what you are looking for — including your preferred areas, property type, budget and purchase goals — and our team will prepare a focused shortlist for you.', 'theme.template.archive_property.description_fallback' );
+$archive_intro_fallback = pera_ml_ui( 'Explore property for sale in Istanbul, from central apartments to family homes and Bosphorus villas. Compare locations, property types and asking prices, then narrow your search by bedrooms and budget. Buying a home or investing? Share your preferred districts and purchase plans with our team for a tailored shortlist.', 'theme.template.archive_property.intro_fallback' );
 
 $archive_title = (string) $property_archive_get_field( 'archive_h1' );
 if ( $archive_title === '' ) {
@@ -53,7 +56,7 @@ $archive_subtitle = (string) $property_archive_get_field( 'archive_subtitle' );
 
 $archive_intro_content = (string) $property_archive_get_field( 'archive_intro_content' );
 if ( $archive_intro_content === '' ) {
-  $archive_intro_content = $archive_description_fallback;
+  $archive_intro_content = $seo_archive_preview ? $archive_intro_fallback : $archive_description_fallback;
 }
 
 $archive_description = $archive_subtitle !== '' ? $archive_subtitle : wp_strip_all_tags( $archive_intro_content );
@@ -251,8 +254,14 @@ $is_filtered_search = function_exists( 'pera_property_archive_is_filtered_reques
 $is_clean_main_property_archive = function_exists( 'pera_property_archive_is_clean_main_archive' )
   ? pera_property_archive_is_clean_main_archive()
   : ( is_post_type_archive( 'property' ) && ! is_tax() && ! is_search() && ! is_paged() && empty( $_GET ) );
+// Ignore only the preview marker for presentation; do not mutate request/query or SEO context.
+if ( isset( $_GET['seo_archive_preview'] ) && pera_property_archive_seo_preview_is_main_request() ) {
+  $is_clean_main_property_archive = true;
+}
 $listings_section_heading = $is_clean_main_property_archive
-  ? pera_ml_ui( 'View Property for Sale in Istanbul', 'theme.template.archive_property.view_property_for_sale_in_istanbul' )
+  ? ( $seo_archive_preview
+      ? pera_ml_ui( 'Explore available properties', 'theme.template.archive_property.explore_available_properties' )
+      : pera_ml_ui( 'View Property for Sale in Istanbul', 'theme.template.archive_property.view_property_for_sale_in_istanbul' ) )
   : pera_ml_ui( 'Available Properties', 'theme.template.archive_property.available_properties' );
 
 // Build heading (no count here — count belongs in #results-count. change heading based on taxonomy pages and search)
@@ -540,6 +549,9 @@ if ( ! $is_filtered_search && ( $qo instanceof WP_Term ) && ! is_wp_error( $qo )
         
           <div class="hero-content">
         
+            <?php if ( $seo_archive_preview ) : ?>
+              <p class="text-light"><?php echo esc_html( pera_ml_ui( 'SEO preview', 'theme.template.archive_property.seo_preview' ) ); ?></p>
+            <?php endif; ?>
             <h1><?php echo esc_html( $hero_title ); ?></h1>
         
                 <?php if ( $hero_desc_html !== '' ) : ?>
@@ -558,6 +570,29 @@ if ( ! $is_filtered_search && ( $qo instanceof WP_Term ) && ! is_wp_error( $qo )
                             <h2><?php echo esc_html( $listings_section_heading ); ?></h2>
                             <p><?php echo esc_html( pera_ml_ui( 'Use the filters below to refine by district, property type, bedrooms and budget.', 'theme.template.archive_property.use_the_filters_below_to_refine_by_district_property_type_bedrooms_and_b' ) ); ?></p>
                 </header>
+
+                <?php if ( $seo_archive_preview ) : ?>
+                  <p class="text-soft">
+                    <?php echo esc_html( pera_ml_ui( 'Explore properties by district:', 'theme.template.archive_property.explore_districts' ) ); ?>
+                    <?php
+                      $priority_districts = array(
+                        'besiktas' => 'Beşiktaş',
+                        'sisli' => 'Şişli',
+                        'kadikoy' => 'Kadıköy',
+                        'zeytinburnu' => 'Zeytinburnu',
+                        'uskudar' => 'Üsküdar',
+                        'sariyer' => 'Sarıyer',
+                      );
+                      $district_links = array();
+                      foreach ( $priority_districts as $slug => $name ) {
+                        $district_url = home_url( '/district/istanbul/' . $slug . '/' );
+                        $district_url = function_exists( 'pera_ml_url' ) ? pera_ml_url( $district_url ) : $district_url;
+                        $district_links[] = '<a href="' . esc_url( $district_url ) . '">' . esc_html( $name ) . '</a>';
+                      }
+                      echo implode( ', ', $district_links );
+                    ?>.
+                  </p>
+                <?php endif; ?>
 
                 <div class="property-filters-toolbar">
                   <button
@@ -1139,6 +1174,10 @@ $pagination_html = function_exists( 'pera_render_property_pagination' )
 $property_archive_faq_items = ( function_exists( 'pera_property_archive_is_indexable_faq_context' ) && pera_property_archive_is_indexable_faq_context() && function_exists( 'pera_get_property_archive_faq_items' ) )
   ? pera_get_property_archive_faq_items()
   : array();
+// A non-admin using only the preview marker still sees the normal archive FAQ copy.
+if ( ! $seo_archive_preview && isset( $_GET['seo_archive_preview'] ) && $is_clean_main_property_archive ) {
+  $property_archive_faq_items = pera_parse_faq_pipe_text( (string) $property_archive_get_field( 'seo_faq_v2' ) );
+}
 ?>
 
 <?php if ( $related_taxonomy_total > 0 ) : ?>
@@ -1196,6 +1235,9 @@ $property_archive_faq_items = ( function_exists( 'pera_property_archive_is_index
   </div>
 </section>
 
+<?php if ( $seo_archive_preview ) : ?>
+  <?php require get_stylesheet_directory() . '/parts/property-archive-seo-preview.php'; ?>
+<?php else : ?>
 <?php if ( $is_clean_main_property_archive ) : ?>
   <?php
     $archive_bottom_content      = (string) $property_archive_get_field( 'archive_bottom_content' );
@@ -1249,6 +1291,8 @@ $property_archive_faq_items = ( function_exists( 'pera_property_archive_is_index
       </div>
     </section>
   <?php endif; ?>
+
+<?php endif; ?>
 
 <?php endif; ?>
 
