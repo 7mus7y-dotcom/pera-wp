@@ -1,9 +1,16 @@
 """OSM name/alias storage contract, mirrored by pera_nearby_place_text_error()."""
 import json
 import re
+import unicodedata
 
-NAME_KEY = re.compile(r'name(?::[A-Za-z0-9_-]+)*')
 OSM_ID = re.compile(r'(node|way|relation)/[1-9][0-9]{0,18}')
+
+
+def valid_name_key(key):
+    segments = key.split(':')
+    return segments[0] == 'name' and all(segment and all(
+        char in '_-' or unicodedata.category(char)[0] in 'LMN' for char in segment)
+        for segment in segments[1:])
 
 
 def fail(identity, key, reason):
@@ -28,10 +35,16 @@ def validate_text(place):
     if not isinstance(names.get('name'), str) or names['name'] == '':
         fail(identity, 'name', 'primary name must be a nonempty string')
     for key, value in names.items():
-        if not isinstance(key, str) or not NAME_KEY.fullmatch(key):
-            fail(identity, key, 'invalid name key; use name or nonempty ASCII name: segments')
-        if len(key) > 255:
+        if not isinstance(key, str):
+            fail(identity, key, 'name key must be a string')
+        try:
+            key_size = len(key.encode('utf-8'))
+        except UnicodeEncodeError:
+            fail(identity, key, 'name key must be valid UTF-8')
+        if key_size > 255:
             fail(identity, key, 'name key exceeds 255 bytes')
+        if not valid_name_key(key):
+            fail(identity, key, 'invalid name key; use name or nonempty Unicode letter/mark/number/_/- name: segments')
         if not isinstance(value, str):
             fail(identity, key, 'name value must be a string')
         try:

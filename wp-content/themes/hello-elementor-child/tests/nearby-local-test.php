@@ -49,7 +49,7 @@ function must_fail_import( $records, $meta = array() ) {
 }
 check( pera_nearby_cached( array( 41, 29 ) ) === array() && ! $events && ! $requests, 'Missing local dataset neither fetches nor schedules' );
 check( pera_nearby_refresh( array( 41, 29 ) ) === 'failed' && ! $requests, 'Previously queued refresh cannot make an external request by default' );
-$fixture = array( 'id' => 'node/1', 'group' => 'schools', 'point' => array( 41.06, 28.99 ), 'names' => array( 'name' => 'Synthetic school', 'name:tr' => 'Örnek okul', 'name:ar' => 'مدرسة', 'name:sr-Latn' => 'Škola', 'name:en:pronunciation' => '/skuːl/' ) );
+$fixture = array( 'id' => 'node/1', 'group' => 'schools', 'point' => array( 41.06, 28.99 ), 'names' => array( 'name' => 'Synthetic school', 'name:tr' => 'Örnek okul', 'name:ar' => 'مدرسة', 'name:sr-Latn' => 'Škola', 'name:en:pronunciation' => '/skuːl/', 'name:İETT' => 'İETT' ) );
 $first = import_records( array( $fixture ) );
 check( count( pera_nearby_cached( $fixture['point'] ) ) === 1, 'Published local record returned' );
 check( pera_nearby_cached( $fixture['point'] )[0]['names'] === $fixture['names'], 'Importer preserves script and colon-qualified OSM names exactly' );
@@ -59,6 +59,7 @@ try { import_records( array( $invalid ) ); throw new LogicException( 'Expected i
 }
 check( pera_nearby_dataset_state() === $first, 'Invalid-name import preserves active generation' );
 $invalid = $fixture; $invalid['names']['name:tr'] = str_repeat( 'ğ', 2049 ); must_fail_import( array( $invalid ) );
+$invalid = $fixture; $invalid['names']["name:İETT\n"] = 'Invalid control key'; must_fail_import( array( $invalid ) );
 $invalid = $fixture; $invalid['point'][0] = 91; must_fail_import( array( $invalid ) );
 $invalid = $fixture; $invalid['names']['name'] = array(); must_fail_import( array( $invalid ) );
 $invalid = $fixture; $invalid['id'] = array(); must_fail_import( array( $invalid ) );

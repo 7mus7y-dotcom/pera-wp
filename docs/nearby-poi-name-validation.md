@@ -2,24 +2,24 @@
 
 Run [38387490352](https://github.com/7mus7y-dotcom/pera-wp/actions/runs/38387490352) downloaded Geofabrik Türkiye, extracted metropolitan Istanbul and built **28,880 POIs from 47,616 candidates**. Offline validation then raised `Invalid source name/translation`. Database acceptance and delivery were skipped. The failed run used commit `96084871f2101f9433ae406f5e92e288dda796bf`.
 
-The old diagnostics do not identify the actual failing OSM ID/key/value, and the rejected dataset was not retained. **The exact offending record is therefore unknown.** No OSM download was retried in Codex.
+The first run did not identify its offending record. Follow-up [run 38391463918](https://github.com/7mus7y-dotcom/pera-wp/actions/runs/38391463918), confirmed on commit `495697f`, now identifies **node/12773099578, key `name:İETT`**. The ASCII-only key rule was too restrictive for this real OSM Unicode key. No OSM download was retried in Codex.
 
 ## Cause and targeted correction
 
 `build.py::tags_of()` keeps `name` and all `name:*` tags. `normalize.php` passes those tags to the existing PHP classifier/normalizer; the classifier uses primary/Turkish names for category detection, while normalization copies every string `name:*` tag. Python and PHP validators previously allowed only one colon. Real OSM compound keys such as `name:en:pronunciation` or `name:tr:loc` could therefore be emitted but rejected. Non-string values or values over 4,096 UTF-8 bytes were the other possible causes of the same generic error. Normal OSM tag values are usually much shorter; the logs cannot distinguish these causes.
 
-The shared offline text contract and matching production PHP contract now use these rules:
+The shared offline text contract and matching production PHP contract now use these rules. Unicode keys are preserved exactly, without normalization or transliteration (so precomposed and decomposed keys do not collide):
 
 | Field | Rule |
 | --- | --- |
-| Name key | `name`, or `name:` followed by one or more nonempty colon-separated ASCII `[A-Za-z0-9_-]+` segments; maximum 255 bytes. |
+| Name key | `name`, or `name:` followed by one or more nonempty colon-separated segments containing Unicode letters/marks/numbers (categories L/M/N), `_` or `-`; maximum **255 UTF-8 bytes**, not characters. Reject malformed UTF-8, controls, format characters, separators/whitespace, private-use/unassigned characters and other punctuation/symbols. |
 | Primary name | Nonempty UTF-8 string; the literal string `0` is valid. |
 | Translation/qualified value | UTF-8 string, including empty optional strings; maximum **4,096 UTF-8 bytes**. No truncation or value rewriting. |
 | Encoded names | At most **65,535 bytes** using the production PHP JSON encoding, including escaped slashes/control characters/line separators. |
 | Aliases | List of valid `node/`, `way/`, or `relation/` positive OSM IDs, each with at most 19 digits; encoded aliases also fit the existing TEXT limit. |
 | Artifact line | Existing **65,536-byte** line limit remains in force. |
 
-Examples preserved unchanged: `name:zh-Hant`, `name:sr-Latn`, `name:be-tarask`, `name:zh_pinyin`, `name:en:pronunciation`, Arabic/Turkish values and slash-containing names. This validates the safe OSM name namespace, not membership in a fixed language registry. Keys are data, never SQL identifiers or filesystem paths. Additional qualifiers do not alter category selection or renderer language lookup.
+Examples preserved unchanged: `name:İETT`, decomposed `name:İETT`, `name:日本語`, `name:zh-Hant`, `name:sr-Latn`, `name:be-tarask`, `name:zh_pinyin`, `name:en:pronunciation`, Arabic/Turkish values and slash-containing names. This validates the safe OSM name namespace, not membership in a fixed language registry. Keys are data, never SQL identifiers or filesystem paths. Additional qualifiers do not alter category selection or renderer language lookup.
 
 The offline PHP adapter validates normalized text before returning it. The builder validates incoming POIs, merged translations/aliases and final serialized records. The offline validator checks the same text rules independently of the body checksum. Production PHP validates cached/local records and streamed manual/batched imports with the matching grammar, UTF-8 and column budgets.
 
@@ -37,11 +37,11 @@ python3 tools/nearby-poi/create-test-fixtures.py work/update-fixtures
 NEARBY_UPDATE_FIXTURES="$PWD/work/update-fixtures" php wp-content/themes/hello-elementor-child/tests/nearby-updates-test.php
 ```
 
-Coverage includes unusual multilingual/compound keys through PHP normalization, builder storage and a rechecksummed accepted synthetic artifact; Python/PHP contract parity; UTF-8 byte boundaries; invalid keys/types/UTF-8; per-value and encoded-column limits; dedup overflow; alias constraints; bounded diagnostics; importer preservation and failure isolation. Existing provider/render/airport/import/replay/rollback/cache contracts also pass. PHP lint, Python compilation and workflow YAML/Bash syntax are checked. These are synthetic and simulated-DB tests; the first real artifact and MariaDB acceptance must run again on GitHub.
+All **22 focused Python tests** pass. Coverage includes the exact `name:İETT` regression, ordinary multilingual/compound keys, Unicode combining forms, malformed surrogate/UTF-8 sequences, C0/C1 controls, invisible format/bidi characters and 255-byte Unicode key boundaries through PHP normalization, builder storage and a rechecksummed accepted synthetic artifact; Python/PHP contract parity; UTF-8 byte boundaries; invalid keys/types/UTF-8; per-value and encoded-column limits; dedup overflow; alias constraints; bounded diagnostics; importer preservation and failure isolation. Existing provider/render/airport/import/replay/rollback/cache contracts also pass. PHP lint, Python compilation and workflow YAML/Bash syntax are checked. These are synthetic and simulated-DB tests; the first real artifact and MariaDB acceptance must run again on GitHub.
 
 ## Exact GitHub Actions run with the fix
 
-**Do not click Re-run jobs on run 38387490352:** GitHub reruns the original commit, which lacks this fix. Start a new manual run on the fix branch. No merge is needed for this test because the dispatch workflow already exists on `main`.
+**Do not click Re-run jobs on runs 38387490352 or 38391463918:** GitHub reruns the original commit, which lacks this fix. Start a new manual run on the fix branch. No merge is needed for this test because the dispatch workflow already exists on `main`.
 
 1. Open [Monthly Istanbul POI refresh](https://github.com/7mus7y-dotcom/pera-wp/actions/workflows/nearby-poi-monthly.yml).
 2. Click **Run workflow** and set **Use workflow from** to **`fix/nearby-poi-name-validation`**. Confirm the branch includes this PR's latest commit.

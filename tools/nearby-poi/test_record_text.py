@@ -33,11 +33,13 @@ class RecordTextTests(unittest.TestCase):
     def test_name_namespace_and_php_normalizer_roundtrip(self):
         names = {'name': '0', 'name:zh-Hant': '繁體中文', 'name:sr-Latn': 'Škola',
             'name:be-tarask': 'Школа', 'name:zh_pinyin': 'xuéxiào', 'name:en:pronunciation': '/skuːl/',
-            'name:tr:loc': 'Örnek', 'name:ar': 'مدرسة', 'name:en': 'A/B\u2028C\u2029D', 'name:fr': ''}
-        obj = dict(type='node', id=123, lat=41.06, lon=28.99, tags=dict(names, amenity='school'))
+            'name:tr:loc': 'Örnek', 'name:ar': 'مدرسة', 'name:en': 'A/B\u2028C\u2029D', 'name:fr': '',
+            'name:İETT': 'İETT', 'name:I\u0307ETT': 'decomposed key', 'name:日本語': '学校'}
+        obj = dict(type='node', id=12773099578, lat=41.06, lon=28.99, tags=dict(names, amenity='school'))
         result = subprocess.run([PHP, str(ROOT/'tools/nearby-poi/normalize.php')],
             input=json.dumps(obj)+'\n', text=True, capture_output=True, timeout=10, check=True)
         place = json.loads(result.stdout)[0]
+        self.assertEqual(place['id'], 'node/12773099578')
         self.assertEqual(place['names'], names)
         validate_text(place)
         self.assertEqual(php_errors([place]), [None])
@@ -55,9 +57,14 @@ class RecordTextTests(unittest.TestCase):
             if names is not None: place['names'] = names
             if aliases is not None: place['aliases'] = aliases
             places.append(place); reasons.append(reason)
-        for key in ('name:', 'name::en', 'name:en:', 'name:en US', 'name:../en', 'name:en\n', 'name:日本語', 'other:en'):
+        for key in ('name:', 'name::en', 'name:en:', 'name:en US', 'name:../en', 'name:en\n', 'other:en',
+                    'name:en\x00', 'name:en\t', 'name:en\r', 'name:en\x7f', 'name:en\x85',
+                    'name:en\u200d', 'name:en\u202e', 'name:en\u2028', 'name:en\ue000',
+                    'name:en\uffff', 'name:en"', 'name:en\\', 'name:🚉'):
             add(dict(BASE['names'], **{key: 'never log this value'}), reason='invalid name key')
         add({'name': 'ok', 'name:'+'x'*251: 'ok'}, reason='255 bytes')
+        add({'name': 'ok', 'name:'+'İ'*125: 'ok'})  # Exactly 255 UTF-8 bytes, not characters.
+        add({'name': 'ok', 'name:'+'İ'*126: 'ok'}, reason='255 bytes')
         add({'name': 'ok', 'name:tr': 'ğ'*2048})  # Exactly 4096 UTF-8 bytes.
         add({'name': 'ok', 'name:tr': 'ğ'*2049}, reason='4096 UTF-8 bytes')
         add({'name': 'ok', 'name:en': 'x'*4097}, reason='4096 UTF-8 bytes')
@@ -95,6 +102,27 @@ echo pera_nearby_place_text_error(array('id'=>'node/123','names'=>array('name'=>
         result = subprocess.run([PHP, '-r', harness], env=dict(os.environ, POI_CODE_ROOT=str(ROOT)), capture_output=True, text=True, timeout=10, check=True)
         self.assertIn('name:en', result.stdout); self.assertIn('UTF-8', result.stdout)
 
+    def test_malformed_unicode_keys_rejected_before_encoding(self):
+        for key in ('name:\ud800', 'name:\udfff'):
+            place = copy.deepcopy(BASE); place['names'][key] = 'hidden'
+            with self.assertRaisesRegex(ValueError, 'node/123.*name key must be valid UTF-8'):
+                validate_text(place)
+        # Exercise invalid UTF-8 bytes PHP cannot obtain from valid JSON (JSON decoding rejects them too).
+        harness = r'''
+define('ABSPATH',getcwd());function add_action(...$args){}
+require getenv('POI_CODE_ROOT').'/wp-content/themes/hello-elementor-child/inc/modules/nearby-amenities.php';
+$errors=array();
+foreach(array("\xff","\xc0\xaf","\xc4","\xed\xa0\x80") as $bad) {
+    $errors[]=pera_nearby_place_text_error(array('id'=>'node/123','names'=>array('name'=>'ok','name:'.$bad=>'hidden')));
+}
+echo json_encode($errors,JSON_THROW_ON_ERROR);
+'''
+        result = subprocess.run([PHP, '-r', harness], env=dict(os.environ, POI_CODE_ROOT=str(ROOT)),
+            capture_output=True, text=True, timeout=10, check=True)
+        for error in json.loads(result.stdout):
+            self.assertIn('node/123', error); self.assertIn('name key must be valid UTF-8', error)
+            self.assertNotIn('hidden', error); self.assertLess(len(error), 650)
+
     def test_offline_php_adapter_rejects_bad_text_with_bounded_diagnostics(self):
         for key, value, reason in [('name::en', 'private value', 'invalid name key'),
                                   ('name:tr', 'ğ'*2049, '4096 UTF-8 bytes')]:
@@ -122,6 +150,7 @@ echo pera_nearby_place_text_error(array('id'=>'node/123','names'=>array('name'=>
             header, *records = path.read_text().splitlines()
             places = [json.loads(row) for row in records]
             places[0]['names']['name:en:pronunciation'] = '/skuːl/'
+            places[0]['names']['name:İETT'] = 'İETT'
             output_db = sqlite3.connect(':memory:'); build.schema(output_db)
             for place in places: build.store_place(output_db, place)
             build.write_artifact(output_db, path, json.loads(header))

@@ -86,8 +86,10 @@ function pera_nearby_place_text_error( $place ) {
     if ( ! is_array( $names ) ) return pera_nearby_text_error( $id, '<names>', 'names must be an object' );
     if ( ! is_string( $names['name'] ?? null ) || $names['name'] === '' ) return pera_nearby_text_error( $id, 'name', 'primary name must be a nonempty string' );
     foreach ( $names as $key => $value ) {
-        if ( ! is_string( $key ) || ! preg_match( '/^name(?::[A-Za-z0-9_-]+)*$/D', $key ) ) return pera_nearby_text_error( $id, $key, 'invalid name key; use name or nonempty ASCII name: segments' );
+        if ( ! is_string( $key ) ) return pera_nearby_text_error( $id, $key, 'name key must be a string' );
+        if ( preg_match( '//u', $key ) !== 1 ) return pera_nearby_text_error( $id, $key, 'name key must be valid UTF-8' );
         if ( strlen( $key ) > 255 ) return pera_nearby_text_error( $id, $key, 'name key exceeds 255 bytes' );
+        if ( ! preg_match( '/^name(?::[\p{L}\p{M}\p{N}_-]+)*$/uD', $key ) ) return pera_nearby_text_error( $id, $key, 'invalid name key; use name or nonempty Unicode letter/mark/number/_/- name: segments' );
         if ( ! is_string( $value ) ) return pera_nearby_text_error( $id, $key, 'name value must be a string' );
         if ( preg_match( '//u', $value ) !== 1 ) return pera_nearby_text_error( $id, $key, 'name value must be valid UTF-8' );
         if ( strlen( $value ) > 4096 ) return pera_nearby_text_error( $id, $key, 'name value exceeds 4096 UTF-8 bytes (' . strlen( $value ) . ' bytes)' );
