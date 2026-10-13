@@ -5455,3 +5455,31 @@ ol.pretty-list li::before {
   .property-map-card-grid { grid-template-columns:1fr; }
   .property-map-assist-form { grid-template-columns:1fr; }
 }
+
+/* Reusable category tabs: existing pills supply appearance and focus. */
+.component-tabs [role="tab"] {
+  min-block-size: var(--space-xl);
+  cursor: pointer;
+}
+[data-component-tabs] [role="tabpanel"][hidden] { display: none; }
+
+.component-tabs [role="tab"]:focus-visible {
+  outline: var(--space-2xs) solid var(--brand);
+  outline-offset: var(--space-2xs);
+}
+
+/* Reusable compact POI lists; card/grid/typography come from existing utilities. */
+.poi-list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: grid;
+  gap: var(--space-xs);
+}
+.poi-list > li {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) max-content;
+  gap: var(--space-sm);
+  align-items: baseline;
+  overflow-wrap: anywhere;
+}

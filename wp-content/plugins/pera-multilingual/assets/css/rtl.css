@@ -203,3 +203,9 @@ body.pera-ml-rtl .pera-ml-switcher ul {
 	margin: 0;
 	padding: 0;
 }
+
+/* Logical tab components opt back into RTL after the shared LTR layout reset. */
+body.pera-ml-rtl [data-component-tabs] {
+	direction: rtl;
+	text-align: start;
+}

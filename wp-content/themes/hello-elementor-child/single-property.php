@@ -1331,6 +1331,7 @@ if ( ! empty( $yt_video ) ) {
 
 
   </div>
+  <?php pera_render_nearby_amenities( $map ); ?>
 </section>
 
   <section id="property-price-range" class="section section-soft property-price-range">
