@@ -125,3 +125,23 @@ function pera_nearby_warm_command( $args, $assoc_args ) {
     WP_CLI::log( wp_json_encode( $result ) );
 }
 WP_CLI::add_command( 'pera nearby warm', 'pera_nearby_warm_command' );
+
+/** Import a compact, validated artifact: wp pera nearby import /absolute/path/dataset.ndjson */
+WP_CLI::add_command( 'pera nearby import', function ( $args ) {
+    try {
+        if ( count( $args ) !== 1 || ! is_file( $args[0] ) ) throw new RuntimeException( 'Provide one local dataset file.' );
+        WP_CLI::log( wp_json_encode( pera_nearby_import( $args[0] ) ) );
+    } catch ( Throwable $error ) { WP_CLI::error( $error->getMessage() ); }
+} );
+WP_CLI::add_command( 'pera nearby rollback', function () {
+    try { WP_CLI::log( wp_json_encode( pera_nearby_rollback() ) ); }
+    catch ( Throwable $error ) { WP_CLI::error( $error->getMessage() ); }
+} );
+WP_CLI::add_command( 'pera nearby dataset', function () {
+    global $wpdb;
+    $active = pera_nearby_dataset_state();
+    if ( ! $active ) WP_CLI::error( 'No valid local dataset installed.' );
+    $count = $wpdb->get_var( "SELECT COUNT(*) FROM `{$active['table']}`" );
+    if ( $wpdb->last_error || (int) $count !== $active['metadata']['count'] ) WP_CLI::error( 'Dataset table missing or count differs.' );
+    WP_CLI::log( wp_json_encode( $active ) );
+} );
