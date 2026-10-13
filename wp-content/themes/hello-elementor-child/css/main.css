@@ -5467,3 +5467,19 @@ ol.pretty-list li::before {
   outline: var(--space-2xs) solid var(--brand);
   outline-offset: var(--space-2xs);
 }
+
+/* Reusable compact POI lists; card/grid/typography come from existing utilities. */
+.poi-list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: grid;
+  gap: var(--space-xs);
+}
+.poi-list > li {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) max-content;
+  gap: var(--space-sm);
+  align-items: baseline;
+  overflow-wrap: anywhere;
+}
