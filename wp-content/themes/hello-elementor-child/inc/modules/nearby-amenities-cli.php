@@ -169,7 +169,7 @@ WP_CLI::add_command( 'pera nearby benchmark', function () {
     $active = pera_nearby_dataset_state(); if ( ! $active ) WP_CLI::error( 'Import an accepted real dataset on staging first.' );
     $measurements = array();
     foreach ( $policy['districts'] as $name => $point ) {
-        $key = 'pera_poi_local_c1_' . md5( $active['table'] . serialize( $point ) ); delete_transient( $key );
+        $key = 'pera_poi_local_c2_' . md5( $active['table'] . serialize( $point ) ); delete_transient( $key );
         $queries = $wpdb->num_queries; $time = microtime( true ); $before = memory_get_usage( true );
         $places = pera_nearby_local_places( $point ); $cold = microtime( true ) - $time; $cold_queries = $wpdb->num_queries - $queries;
         $queries = $wpdb->num_queries; $time = microtime( true ); $warm = pera_nearby_local_places( $point );

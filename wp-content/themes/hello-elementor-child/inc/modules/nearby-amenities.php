@@ -2,6 +2,7 @@
 /** Cached, demand-driven OSM nearby places. No HTTP during rendering. */
 if ( ! defined( 'ABSPATH' ) ) exit;
 
+require_once __DIR__ . '/nearby-amenities-transport.php';
 require_once __DIR__ . '/nearby-amenities-local.php';
 
 function pera_nearby_coordinates( $map ) {
@@ -13,7 +14,7 @@ function pera_nearby_coordinates( $map ) {
 function pera_nearby_cell( array $coordinates ) {
     // A shared ~1km cell. Query coverage includes the maximum cell offset.
     $center = array( round( $coordinates[0], 2 ), round( $coordinates[1], 2 ) );
-    return array( 'center' => $center, 'key' => 'pera_poi_v1_' . md5( implode( ',', $center ) ) );
+    return array( 'center' => $center, 'key' => 'pera_poi_v2_' . md5( implode( ',', $center ) ) );
 }
 
 function pera_nearby_distance( array $a, array $b ) {
@@ -22,16 +23,9 @@ function pera_nearby_distance( array $a, array $b ) {
     return 6371000 * 2 * asin( sqrt( min( 1, max( 0, $h ) ) ) );
 }
 
-function pera_nearby_group( array $tags ) {
-    $identity = implode( ' ', array_intersect_key( $tags, array_flip( array( 'name', 'name:tr', 'network', 'operator', 'brand', 'route_names' ) ) ) );
-    $station = in_array( $tags['railway'] ?? '', array( 'station', 'halt' ), true ) || ( ( $tags['public_transport'] ?? '' ) === 'station' && ( ( $tags['train'] ?? '' ) === 'yes' || ( $tags['subway'] ?? '' ) === 'yes' || ( $tags['station'] ?? '' ) === 'subway' ) );
-    $bus = ( $tags['highway'] ?? '' ) === 'bus_stop' || ( $tags['bus'] ?? '' ) === 'yes';
-    if ( $station && preg_match( '/marmaray/iu', $identity ) ) return 'marmaray';
-    if ( ( $bus || $station ) && preg_match( '/metrob[üu]s|metrobus/iu', $identity ) ) return 'metrobus';
-    if ( $station && ( ( $tags['station'] ?? '' ) === 'subway' || ( $tags['subway'] ?? '' ) === 'yes' || ( $tags['route_subway'] ?? '' ) === 'yes' ) ) return 'metro';
-    if ( $station ) return 'rail';
-    if ( $bus ) return 'bus';
-    if ( ( $tags['amenity'] ?? '' ) === 'ferry_terminal' ) return 'ferry';
+function pera_nearby_group( array $tags, array $routes = array() ) {
+    $transport = pera_nearby_transport_group( $tags, $routes );
+    if ( $transport ) return $transport;
     $mapping = array( 'school' => 'schools', 'kindergarten' => 'schools', 'college' => 'universities', 'university' => 'universities', 'hospital' => 'hospitals', 'clinic' => 'clinics', 'doctors' => 'clinics', 'pharmacy' => 'pharmacies' );
     if ( isset( $mapping[ $tags['amenity'] ?? '' ] ) ) return $mapping[ $tags['amenity'] ];
     if ( in_array( $tags['leisure'] ?? '', array( 'park', 'garden', 'nature_reserve' ), true ) ) return 'parks';
@@ -46,37 +40,43 @@ function pera_nearby_normalize( array $elements ) {
     foreach ( $elements as $element ) {
         if ( ! is_array( $element ) || ! is_array( $element['tags'] ?? null ) ) continue;
         $element['tags'] = array_filter( $element['tags'], 'is_string' );
-        if ( ( $element['type'] ?? '' ) !== 'relation' || empty( $element['tags']['route'] ) ) continue;
+        if ( ( $element['type'] ?? '' ) !== 'relation' || ! is_scalar( $element['id'] ?? null ) || ! preg_match( '/^[1-9][0-9]{0,18}$/D', (string) $element['id'] ) || ( $element['tags']['type'] ?? '' ) !== 'route' || empty( $element['tags']['route'] ) ) continue;
         foreach ( is_array( $element['members'] ?? null ) ? $element['members'] : array() as $member ) {
             if ( ! is_array( $member ) || ! in_array( $member['type'] ?? '', array( 'node', 'way', 'relation' ), true ) || ! is_scalar( $member['ref'] ?? null ) || ! preg_match( '/^[1-9][0-9]*$/', (string) $member['ref'] ) ) continue;
             $id = ( $member['type'] ?? '' ) . '/' . ( $member['ref'] ?? '' );
-            $routes[$id]['route_names'] = ( $routes[$id]['route_names'] ?? '' ) . ' ' . implode( ' ', array_intersect_key( $element['tags'], array_flip( array( 'name', 'network', 'operator' ) ) ) );
-            if ( $element['tags']['route'] === 'subway' ) $routes[$id]['route_subway'] = 'yes';
+            $routes[$id][] = array( 'id' => 'relation/' . $element['id'], 'role' => $member['role'] ?? '', 'tags' => pera_nearby_transport_tags( $element['tags'] ) );
         }
     }
     foreach ( $elements as $element ) {
         if ( ! is_array( $element ) ) continue;
         $type = $element['type'] ?? ''; $id = $element['id'] ?? null;
         if ( ! in_array( $type, array( 'node', 'way', 'relation' ), true ) || ! is_scalar( $id ) || ! preg_match( '/^[1-9][0-9]*$/', (string) $id ) ) continue;
-        $tags = array_merge( is_array( $element['tags'] ?? null ) ? $element['tags'] : array(), $routes[$type . '/' . $id] ?? array() );
+        $tags = is_array( $element['tags'] ?? null ) ? $element['tags'] : array();
+        $memberships = pera_nearby_transport_memberships( $element['routes'] ?? ( $routes[$type . '/' . $id] ?? array() ) );
         $tags = array_filter( $tags, 'is_string' );
-        $group = pera_nearby_group( $tags );
+        $group = pera_nearby_group( $tags, $memberships );
         $location = is_array( $element['center'] ?? null ) ? $element['center'] : $element;
         $point = pera_nearby_coordinates( array( 'lat' => $location['lat'] ?? null, 'lng' => $location['lon'] ?? null ) );
         if ( ! $group || ! $point || ! isset( $tags['name'] ) || $tags['name'] === '' ) continue;
         $names = array_filter( $tags, function ( $value, $key ) { return is_string( $value ) && ( $key === 'name' || strpos( $key, 'name:' ) === 0 ); }, ARRAY_FILTER_USE_BOTH );
         if ( ! isset( $names['name'] ) || $names['name'] === '' ) continue;
-        $places[$type . '/' . $id] = array( 'id' => $type . '/' . $id, 'point' => $point, 'names' => $names, 'group' => $group );
+        $identity = $type . '/' . $id;
+        $place = array( 'id' => $identity, 'point' => $point, 'names' => $names, 'group' => $group );
+        if ( in_array( $group, pera_nearby_transport_groups(), true ) ) {
+            $place['transport'] = array( 'sources' => array( array( 'id' => $identity, 'tags' => pera_nearby_transport_tags( $tags ), 'routes' => $memberships ) ), 'lines' => array() );
+            $place['transport']['lines'] = pera_nearby_transport_lines( $place['transport'], $group );
+        }
+        $places[$identity] = $place;
     }
     return array_values( $places );
 }
 
 function pera_nearby_query( array $center ) {
     $around = '(around:4300,' . implode( ',', $center ) . ')';
-    $selectors = array( '[railway~"^(station|halt)$"]', '[public_transport="station"]', '[highway="bus_stop"]', '[public_transport="platform"][bus="yes"]', '[amenity~"^(ferry_terminal|school|kindergarten|college|university|hospital|clinic|doctors|pharmacy)$"]', '[leisure~"^(park|garden|nature_reserve|sports_centre|stadium|pitch|fitness_centre)$"]', '[shop~"^(mall|supermarket)$"]' );
+    $selectors = array( '[railway~"^(station|halt|tram_stop|funicular)$"]', '[public_transport="station"]', '[highway="bus_stop"]', '[public_transport="platform"][bus="yes"]', '[amenity~"^(ferry_terminal|school|kindergarten|college|university|hospital|clinic|doctors|pharmacy)$"]', '[leisure~"^(park|garden|nature_reserve|sports_centre|stadium|pitch|fitness_centre)$"]', '[shop~"^(mall|supermarket)$"]' );
     $query = '[out:json][timeout:20][maxsize:16777216];(';
     foreach ( $selectors as $selector ) $query .= 'nwr' . $selector . $around . ';';
-    return $query . ')->.places;.places out body center;rel(bn.places)[route~"^(subway|train|bus)$"];out body;';
+    return $query . ')->.places;.places out body center;rel(bn.places)[route~"^(subway|tram|funicular|train|bus)$"];out body;';
 }
 
 function pera_nearby_cached( array $coordinates ) {
@@ -166,7 +166,7 @@ function pera_nearby_airports( array $coordinates ) {
 
 function pera_nearby_categories() {
     return array(
-        'transport' => array( pera_ml_ui( 'Transport', 'theme.nearby.transport' ), array( 'metro', 'marmaray', 'metrobus', 'rail', 'bus', 'ferry', 'airports' ) ),
+        'transport' => array( pera_ml_ui( 'Transport', 'theme.nearby.transport' ), array( 'metro', 'tram', 'funicular', 'marmaray', 'metrobus', 'rail', 'bus', 'ferry', 'airports' ) ),
         'education' => array( pera_ml_ui( 'Education', 'theme.nearby.education' ), array( 'schools', 'universities' ) ),
         'healthcare' => array( pera_ml_ui( 'Healthcare', 'theme.nearby.healthcare' ), array( 'hospitals', 'clinics', 'pharmacies' ) ),
         'parks' => array( pera_ml_ui( 'Parks & Sport', 'theme.nearby.parks_sport' ), array( 'parks', 'sport' ) ),
@@ -177,6 +177,8 @@ function pera_nearby_categories() {
 function pera_nearby_group_labels() {
     return array(
         'metro' => pera_ml_ui( 'Metro', 'theme.nearby.metro' ),
+        'tram' => pera_ml_ui( 'Tramway', 'theme.nearby.tram' ),
+        'funicular' => pera_ml_ui( 'Funicular', 'theme.nearby.funicular' ),
         'marmaray' => pera_ml_ui( 'Marmaray', 'theme.nearby.marmaray' ),
         'metrobus' => pera_ml_ui( 'Metrobüs', 'theme.nearby.metrobus' ),
         'rail' => pera_ml_ui( 'Rail stations', 'theme.nearby.rail' ),
@@ -201,7 +203,7 @@ function pera_nearby_groups( array $places, array $coordinates ) {
         // Ignore aerodromes retained in older ordinary-POI caches.
         if ( ( $place['group'] ?? '' ) === 'airports' ) continue;
         $distance = pera_nearby_distance( $coordinates, $place['point'] );
-        if ( $distance > 3500 ) continue;
+        if ( $distance > pera_nearby_radius( $place['group'] ) + 0.000001 ) continue;
         $place['distance'] = $distance; $groups[$place['group']][] = $place;
     }
     foreach ( $groups as &$group ) {
@@ -235,7 +237,7 @@ function pera_render_nearby_amenities( $map ) {
     ?>
     <section class="card-shell mt-md" data-component-tabs aria-labelledby="<?php echo esc_attr( $id ); ?>-heading">
         <h2 class="inline-row" id="<?php echo esc_attr( $id ); ?>-heading"><svg class="icon" aria-hidden="true" focusable="false"><use href="#icon-map"></use></svg><?php echo esc_html( pera_ml_ui( 'Nearby amenities', 'theme.nearby.heading' ) ); ?></h2>
-        <p class="text-soft"><?php echo esc_html( pera_ml_ui( 'Approximate straight-line distances, not walking or driving distances. Local places: within 3.5 km. Airports: within 150 km.', 'theme.nearby.distance_notice' ) ); ?></p>
+        <p class="text-soft"><?php echo esc_html( pera_ml_ui( 'Approximate straight-line distances, not walking or driving distances. Local places: within 3.5 km; Marmaray and Metrobüs: within 500 m. Airports: within 150 km.', 'theme.nearby.distance_notice' ) ); ?></p>
         <div class="section-cta justify-start component-tabs" role="tablist" aria-label="<?php echo esc_attr( pera_ml_ui( 'Amenity categories', 'theme.nearby.categories' ) ); ?>">
         <?php foreach ( $categories as $key => $category ) : ?>
             <button type="button" class="pill pill--lg <?php echo $active === $key ? 'pill--active' : ''; ?>" role="tab" id="<?php echo esc_attr( $id . '-' . $key ); ?>-tab" aria-controls="<?php echo esc_attr( $id . '-' . $key ); ?>-panel" aria-selected="<?php echo $active === $key ? 'true' : 'false'; ?>" tabindex="<?php echo $active === $key ? '0' : '-1'; ?>"><?php echo esc_html( $category[0] ); ?></button>
@@ -251,6 +253,8 @@ function pera_render_nearby_amenities( $map ) {
                 <div class="card-shell p-sm"><h3><?php echo esc_html( $labels[$group] ); ?></h3><ul class="poi-list" role="list">
                 <?php foreach ( $groups[$group] as $place ) :
                     $name = $place['names']['name:' . $language] ?? $place['names']['name'];
+                    $lines = isset( $place['transport'] ) && pera_nearby_transport_error( $place ) === null ? $place['transport']['lines'] : array();
+                    if ( $lines ) $name .= ' (' . implode( ', ', $lines ) . ')';
                     $distance = $place['distance'] < 1000
                         ? sprintf( pera_ml_ui( '%s m', 'theme.nearby.metres' ), number_format_i18n( round( $place['distance'] ) ) )
                         : sprintf( pera_ml_ui( '%s km', 'theme.nearby.kilometres' ), number_format_i18n( $place['distance'] / 1000, 1 ) ); ?>

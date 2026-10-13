@@ -14,6 +14,7 @@ import subprocess
 import tempfile
 import unicodedata
 from record_text import validate_text
+from transport import tags_of as transport_tags, validate_transport, lines as transport_lines
 
 TAGS = {'railway', 'public_transport', 'highway', 'amenity', 'leisure', 'shop',
         'train', 'subway', 'station', 'bus', 'network', 'operator', 'brand', 'name',
@@ -21,11 +22,12 @@ TAGS = {'railway', 'public_transport', 'highway', 'amenity', 'leisure', 'shop',
 
 
 def tags_of(obj):
-    return {t.k: t.v for t in obj.tags if t.k in TAGS or t.k.startswith('name:')}
+    raw = {t.k: t.v for t in obj.tags}
+    return {k: v for k, v in raw.items() if k in TAGS or k.startswith('name:') or k in transport_tags(raw)}
 
 
 def wanted(tags):
-    return (tags.get('railway') in ('station', 'halt') or tags.get('public_transport') == 'station'
+    return (tags.get('railway') in ('station', 'halt', 'tram_stop', 'funicular') or tags.get('public_transport') in ('station', 'platform', 'stop_position')
             or tags.get('highway') == 'bus_stop' or tags.get('bus') == 'yes'
             or tags.get('amenity') in ('ferry_terminal', 'school', 'kindergarten', 'college',
                 'university', 'hospital', 'clinic', 'doctors', 'pharmacy')
@@ -42,6 +44,7 @@ def distance(a, b):
 def store_place(db, place):
     """Conservative same-subgroup/same-name/<100m dedup; retain aliases and translations."""
     validate_text(place)
+    if 'transport' in place: validate_transport(place)
     lat, lon = place['point']
     if not math.isfinite(lat) or not math.isfinite(lon) or abs(lat) > 90 or abs(lon) > 180:
         raise ValueError('Invalid coordinates')
@@ -54,6 +57,10 @@ def store_place(db, place):
             for key, value in place['names'].items():
                 old['names'].setdefault(key, value)
             old.setdefault('aliases', []).append(place['id'])
+            if 'transport' in place:
+                old['transport']['sources'] += place['transport']['sources']
+                old['transport']['lines'] = transport_lines(old['transport'], old['group'])
+                validate_transport(old)
             validate_text(old)  # Merged translations/aliases must still fit the importer columns.
             db.execute('UPDATE pois SET payload=? WHERE id=?', (json.dumps(old, ensure_ascii=False), osm_id))
             return False
@@ -72,13 +79,14 @@ def write_artifact(db, output, metadata):
             for (payload,) in db.execute('SELECT payload FROM pois ORDER BY id'):
                 place = json.loads(payload)
                 validate_text(place)
+                validate_transport(place, metadata.get('schema', metadata.get('classification_version', 1)))
                 line = (json.dumps(place, ensure_ascii=False, separators=(',', ':'))+'\n').encode()
                 if len(line) > 65536:
                     raise ValueError('OSM '+place['id']+': record exceeds importer limit (65536 bytes)')
                 stream.write(line)
                 digest.update(line)
                 count += 1
-        metadata.update(schema=1, license='ODbL-1.0', count=count, sha256=digest.hexdigest(),
+        metadata.update(schema=metadata.get('schema', metadata.get('classification_version', 1)), license='ODbL-1.0', count=count, sha256=digest.hexdigest(),
                         attribution='© OpenStreetMap contributors',
                         generated_at=datetime.datetime.now(datetime.timezone.utc).isoformat())
         temporary = output.with_suffix('.tmp')
@@ -94,7 +102,7 @@ def write_artifact(db, output, metadata):
 
 def schema(db):
     db.executescript('''CREATE TABLE refs(id TEXT PRIMARY KEY);
-        CREATE TABLE routes(id TEXT, names TEXT, subway TEXT);
+        CREATE TABLE routes(id TEXT, payload TEXT);
         CREATE INDEX routes_id ON routes(id);
         CREATE TABLE points(id TEXT PRIMARY KEY,lat REAL,lon REAL);
         CREATE TABLE pois(id TEXT PRIMARY KEY,grp TEXT,identity TEXT,lat REAL,lon REAL,payload TEXT);
@@ -120,11 +128,14 @@ def build(args):
             def relation(self, relation):
                 tags = tags_of(relation)
                 route = relation.tags.get('route', '')
-                if route in ('subway', 'train', 'bus', 'ferry'):
+                if tags.get('type') == 'route' and route in ('subway', 'tram', 'funicular', 'train', 'bus', 'ferry'):
                     for member in relation.members:
                         osm_id = {'n': 'node', 'w': 'way', 'r': 'relation'}[member.type]+'/'+str(member.ref)
-                        db.execute('INSERT INTO routes VALUES(?,?,?)',
-                                   (osm_id, ' '.join(relation.tags.get(k, '') for k in ('name','network','operator')), 'yes' if route == 'subway' else ''))
+                        evidence = dict(id='relation/'+str(relation.id), role=member.role, tags=transport_tags(tags))
+                        # Ordinary bus route prose is neither needed nor admissible Metrobüs evidence.
+                        from transport import system
+                        if route != 'bus' or system(evidence['tags'], 'metrobus'):
+                            db.execute('INSERT INTO routes VALUES(?,?)', (osm_id, json.dumps(evidence, ensure_ascii=False)))
                 if wanted(tags):
                     for member in relation.members:
                         osm_id = {'n': 'node', 'w': 'way', 'r': 'relation'}[member.type]+'/'+str(member.ref)
@@ -147,19 +158,16 @@ def build(args):
                 stats['outside_bounds'] += 1
                 return
             stats['candidate_objects'] += 1
-            for names, subway in db.execute('SELECT names,subway FROM routes WHERE id=?', (identity,)):
-                tags['route_names'] = tags.get('route_names', '')+' '+names
-                if subway:
-                    tags['route_subway'] = subway
-            element = {'type': kind, 'id': osm_id, 'tags': tags, 'lat': point[0], 'lon': point[1]}
+            memberships = [json.loads(payload) for (payload,) in db.execute('SELECT payload FROM routes WHERE id=? LIMIT 33', (identity,))]
+            if len(memberships) > 32:
+                raise ValueError('Too many direct transport memberships: '+identity)
+            element = {'type': kind, 'id': osm_id, 'tags': tags, 'routes': memberships, 'lat': point[0], 'lon': point[1]}
             php.stdin.write(json.dumps(element, ensure_ascii=False)+'\n')
             php.stdin.flush()
             line = php.stdout.readline()
             if not line:
                 raise RuntimeError('PHP normalizer terminated')
             for place in json.loads(line):
-                if place['group'] in ('metro', 'marmaray', 'metrobus', 'ferry', 'rail'):
-                    place['classification_tags'] = {k: v for k, v in tags.items() if k in ('railway', 'station', 'subway', 'route_subway', 'route_names', 'network', 'operator', 'amenity', 'highway', 'bus')}
                 if not store_place(db, place):
                     stats['deduplicated'] += 1
 
@@ -215,7 +223,7 @@ def build(args):
         db.commit()
         metadata = write_artifact(db, output, dict(source=args.source, source_sha256=args.source_sha256,
             source_timestamp=args.source_timestamp, version=args.version, bounds=args.bounds, statistics=stats,
-            builder='pera-nearby-v1', classification_version=1, refresh_period=getattr(args, 'refresh_period', None), geometry='source bounding-box/member-centre approximation'))
+            builder='pera-nearby-v2', schema=2, classification_version=2, refresh_period=getattr(args, 'refresh_period', None), geometry='source bounding-box/member-centre approximation'))
         print(json.dumps(metadata, ensure_ascii=False))
 
 

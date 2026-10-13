@@ -27,7 +27,7 @@ if ( $previous && is_file( $previous ) ) {
 $time = microtime( true );
 while ( ! ( $import = pera_nearby_import_batch( $artifact, $report, 1000 ) )['complete'] ) {}
 $import_seconds = microtime( true ) - $time;
-$active = pera_nearby_dataset_state(); $table = $active['table'];
+$active = pera_nearby_dataset_state(); $table = $active['table']; $extra = $active['metadata']['schema'] === 2 ? ',aliases,transport' : '';
 $wpdb->query( "ANALYZE TABLE `$table`" );
 $policy = json_decode( file_get_contents( $code_root . '/wp-content/themes/hello-elementor-child/inc/data/nearby-poi-policy.json' ), true );
 $metrics = array();
@@ -36,16 +36,19 @@ foreach ( $policy['districts'] as $district => $point ) {
     // followed by the original PHP radius/sort/dedup grouping. Only staging uses this full candidate array.
     $bounds = pera_nearby_bounds( $point ); $reference = array(); $after = '';
     do {
-        $rows = $wpdb->get_results( $wpdb->prepare( "SELECT osm_id,poi_group,lat,lng,names FROM `$table` WHERE lat BETWEEN %s AND %s AND lng BETWEEN %s AND %s AND osm_id > %s ORDER BY osm_id LIMIT 256", json_encode( $bounds[0] ), json_encode( $bounds[1] ), json_encode( $bounds[2] ), json_encode( $bounds[3] ), $after ), ARRAY_A );
+        $rows = $wpdb->get_results( $wpdb->prepare( "SELECT osm_id,poi_group,lat,lng,names$extra FROM `$table` WHERE lat BETWEEN %s AND %s AND lng BETWEEN %s AND %s AND osm_id > %s ORDER BY osm_id LIMIT 256", json_encode( $bounds[0] ), json_encode( $bounds[1] ), json_encode( $bounds[2] ), json_encode( $bounds[3] ), $after ), ARRAY_A );
         if ( $wpdb->last_error ) throw new RuntimeException( $wpdb->last_error );
         foreach ( $rows as $row ) {
-            $after = $row['osm_id']; $reference[] = array( 'id' => $row['osm_id'], 'group' => $row['poi_group'], 'point' => array( (float) $row['lat'], (float) $row['lng'] ), 'names' => json_decode( $row['names'], true ) );
+            $after = $row['osm_id']; $place = array( 'id' => $row['osm_id'], 'group' => $row['poi_group'], 'point' => array( (float) $row['lat'], (float) $row['lng'] ), 'names' => json_decode( $row['names'], true ) );
+            if ( $extra ) $place['aliases'] = json_decode( $row['aliases'], true );
+            if ( $extra && in_array( $row['poi_group'], pera_nearby_transport_groups(), true ) ) $place['transport'] = json_decode( $row['transport'], true );
+            $reference[] = $active['metadata']['schema'] === 1 ? pera_nearby_legacy_transport( $place ) : $place;
         }
     } while ( count( $rows ) === 256 );
     $expected = pera_nearby_groups( $reference, $point ); unset( $reference );
     $times = array(); $warm_times = array(); $plans = array();
     for ( $i = 0; $i < 10; $i++ ) {
-        $key = 'pera_poi_local_c1_' . md5( $table . serialize( $point ) ); delete_transient( $key );
+        $key = 'pera_poi_local_c2_' . md5( $table . serialize( $point ) ); delete_transient( $key );
         $sql = array();
         $probe = function ( $query ) use ( &$sql, $table ) { if ( strpos( $query, "FROM `$table`" ) !== false && strpos( $query, 'SELECT osm_id' ) === 0 ) $sql[] = $query; return $query; };
         add_filter( 'query', $probe );

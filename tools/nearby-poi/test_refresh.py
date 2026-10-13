@@ -12,25 +12,34 @@ from unittest.mock import patch
 import build
 import refresh
 from validate import check_source, validate
+import transport
 
 POLICY = json.loads((refresh.ROOT.parents[1]/'wp-content/themes/hello-elementor-child/inc/data/nearby-poi-policy.json').read_text())
 NOW = dt.datetime.now(dt.timezone.utc)
 SOURCE_TIME = NOW.isoformat()
 
 
-def fixture(path, version='synthetic_test', drop=None, previous=None):
+def fixture(path, version='synthetic_test', drop=None, previous=None, schema=2):
+    policy = POLICY if schema == 2 else json.loads((refresh.ROOT.parents[1]/'wp-content/themes/hello-elementor-child/inc/data/nearby-poi-policy-v1.json').read_text())
     db = sqlite3.connect(':memory:'); build.schema(db); number = 0
-    for district, origin in POLICY['districts'].items():
-        for group in POLICY['required_groups']:
+    for district, origin in policy['districts'].items():
+        for group in policy['required_groups']:
             for i in range(5):
                 number += 1
                 place = {'id': 'node/'+str(number), 'point': [origin[0]+i*.000001, origin[1]],
                          'group': group, 'names': {'name': 'Synthetic '+district+' '+group+' '+str(i), 'name:tr': 'Örnek'}}
+                if schema == 2 and group in transport.GROUPS:
+                    tags = {'metro': {'railway':'station','subway':'yes','ref':'M2'}, 'tram': {'railway':'tram_stop','ref':'T1'},
+                        'funicular': {'railway':'station','station':'funicular','ref':'F2'}, 'marmaray': {'railway':'station','network':'Marmaray'},
+                        'metrobus': {'highway':'bus_stop','network':'Metrobüs'}, 'rail': {'railway':'station'},
+                        'bus': {'highway':'bus_stop'}, 'ferry': {'amenity':'ferry_terminal'}}[group]
+                    place['transport'] = dict(sources=[dict(id=place['id'],tags=tags,routes=[])],lines=[])
+                    place['transport']['lines'] = transport.lines(place['transport'],group)
                 if not drop or not drop(place):
                     build.store_place(db, place)
     return build.write_artifact(db, pathlib.Path(path), dict(source=refresh.SOURCES['geofabrik'][0],
         source_sha256='0'*64, source_timestamp=SOURCE_TIME, version=version, bounds=POLICY['bounds'],
-        classification_version=1, refresh_period=NOW.strftime('%Y-%m')))
+        schema=schema, classification_version=schema, refresh_period=NOW.strftime('%Y-%m')))
 
 
 class RefreshTests(unittest.TestCase):
@@ -38,7 +47,7 @@ class RefreshTests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as directory:
             path = pathlib.Path(directory)/'fixture.poi.ndjson'; fixture(path)
             report = validate(path, POLICY, bootstrap=True)
-            self.assertTrue(report['passed']); self.assertEqual(report['count'], 770)
+            self.assertTrue(report['passed']); self.assertEqual(report['count'], 880)
             self.assertEqual(len(report['districts']), 11)
             self.assertEqual(validate(path, POLICY, previous=report)['previous_body_sha256'], report['body_sha256'])
             with self.assertRaisesRegex(ValueError, 'baseline'):
@@ -91,7 +100,7 @@ class RefreshTests(unittest.TestCase):
 
     def test_duplicate_monthly_execution_skips_download(self):
         with tempfile.TemporaryDirectory() as directory, patch('refresh.fetch') as fetch:
-            previous = {'passed': True, 'refresh_period': NOW.strftime('%Y-%m'), 'version': 'synthetic_previous'}
+            previous = {'passed': True, 'refresh_period': NOW.strftime('%Y-%m'), 'version': 'synthetic_previous', 'classification_version': 2}
             self.assertTrue(refresh.refresh(directory, 'synthetic_new', previous=previous)['skipped'])
             fetch.assert_not_called()
 
@@ -119,7 +128,7 @@ class RefreshTests(unittest.TestCase):
                 result = refresh.refresh(root, 'synthetic_monthly', bootstrap=True)
             self.assertFalse(result['skipped'])
             report = json.loads((root/'report.json').read_text()); self.assertTrue(report['passed'])
-            self.assertEqual(report['count'], 770)
+            self.assertEqual(report['count'], 880)
             self.assertEqual(len((root/'SHA256SUMS').read_text().splitlines()), 3)
             self.assertFalse((root/'turkey-latest.osm.pbf').exists())
 

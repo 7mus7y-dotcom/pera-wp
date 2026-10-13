@@ -1,22 +1,83 @@
 {
   "schema": 1,
-  "classification_version": 1,
-  "bounds": [27.8, 40.7, 30.1, 41.7],
+  "classification_version": 2,
+  "bounds": [
+    27.8,
+    40.7,
+    30.1,
+    41.7
+  ],
   "max_source_age_days": 14,
   "max_artifact_bytes": 104857600,
   "min_total": 500,
   "max_total": 500000,
   "minimum_ratio": 0.8,
   "maximum_ratio": 1.5,
-  "required_groups": {"metro": 5, "marmaray": 5, "metrobus": 5, "ferry": 5, "bus": 20, "schools": 20, "universities": 5, "hospitals": 5, "clinics": 5, "pharmacies": 20, "parks": 20, "sport": 10, "malls": 5, "supermarkets": 20},
+  "required_groups": {
+    "metro": 5,
+    "marmaray": 5,
+    "metrobus": 5,
+    "ferry": 5,
+    "bus": 20,
+    "schools": 20,
+    "universities": 5,
+    "hospitals": 5,
+    "clinics": 5,
+    "pharmacies": 20,
+    "parks": 20,
+    "sport": 10,
+    "malls": 5,
+    "supermarkets": 20,
+    "tram": 5,
+    "funicular": 2
+  },
   "district_min_pois": 10,
   "district_min_categories": 3,
   "districts": {
-    "Şişli": [41.060, 28.987], "Beşiktaş": [41.043, 29.009],
-    "Kadıköy": [40.990, 29.025], "Üsküdar": [41.025, 29.015],
-    "Zeytinburnu": [40.994, 28.903], "Bakırköy": [40.980, 28.873],
-    "Sarıyer": [41.167, 29.056], "Maslak": [41.111, 29.021],
-    "Beykoz": [41.134, 29.096], "Ataşehir": [40.984, 29.125],
-    "Ümraniye": [41.026, 29.096]
-  }
+    "Şişli": [
+      41.06,
+      28.987
+    ],
+    "Beşiktaş": [
+      41.043,
+      29.009
+    ],
+    "Kadıköy": [
+      40.99,
+      29.025
+    ],
+    "Üsküdar": [
+      41.025,
+      29.015
+    ],
+    "Zeytinburnu": [
+      40.994,
+      28.903
+    ],
+    "Bakırköy": [
+      40.98,
+      28.873
+    ],
+    "Sarıyer": [
+      41.167,
+      29.056
+    ],
+    "Maslak": [
+      41.111,
+      29.021
+    ],
+    "Beykoz": [
+      41.134,
+      29.096
+    ],
+    "Ataşehir": [
+      40.984,
+      29.125
+    ],
+    "Ümraniye": [
+      41.026,
+      29.096
+    ]
+  },
+  "dataset_schema": 2
 }
