@@ -5455,3 +5455,15 @@ ol.pretty-list li::before {
   .property-map-card-grid { grid-template-columns:1fr; }
   .property-map-assist-form { grid-template-columns:1fr; }
 }
+
+/* Reusable category tabs: existing pills supply appearance and focus. */
+.component-tabs [role="tab"] {
+  min-block-size: var(--space-xl);
+  cursor: pointer;
+}
+[data-component-tabs] [role="tabpanel"][hidden] { display: none; }
+
+.component-tabs [role="tab"]:focus-visible {
+  outline: var(--space-2xs) solid var(--brand);
+  outline-offset: var(--space-2xs);
+}
