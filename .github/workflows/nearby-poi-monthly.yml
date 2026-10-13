@@ -12,6 +12,10 @@ on:
         description: 'Rebuild even if this calendar month was already accepted'
         type: boolean
         default: false
+      deliver:
+        description: 'Production delivery opt-in; ignored for bootstrap and also requires POI_DELIVERY_ENABLED=true'
+        type: boolean
+        default: false
 permissions:
   contents: read
 concurrency:
@@ -59,7 +63,7 @@ jobs:
           if [ "$BOOTSTRAP" = true ]; then args+=(--bootstrap); fi
           if [ "$FORCE" = true ]; then args+=(--force); fi
           version="$(date -u +%Y%m%dT%H%M%SZ)-${GITHUB_RUN_ID}"
-          python tools/nearby-poi/refresh.py --directory=work/monthly --version="$version" "${args[@]}"
+          python tools/nearby-poi/refresh.py --source=geofabrik --directory=work/monthly --version="$version" "${args[@]}" 2>&1 | tee work/monthly/build.log
           echo "version=$version" >> "$GITHUB_OUTPUT"
           python -c 'import json,os; r=json.load(open("work/monthly/result.json")); open(os.environ["GITHUB_OUTPUT"],"a").write("skipped="+str(r["skipped"]).lower()+"\n")'
           if [ -f work/monthly/summary.txt ]; then cat work/monthly/summary.txt >> "$GITHUB_STEP_SUMMARY"; fi
@@ -86,6 +90,9 @@ jobs:
           path: |
             work/monthly/source-info.json
             work/monthly/source-checksum.txt
+            work/monthly/failure.json
+            work/monthly/build.log
+            work/monthly/report.json
   database-acceptance:
     needs: build
     if: needs.build.outputs.skipped == 'false'
@@ -114,7 +121,7 @@ jobs:
         run: |
           sudo apt-get update
           sudo apt-get install -y php-cli php-mysql php-mbstring mariadb-client
-          curl --fail --proto '=https' https://raw.githubusercontent.com/wp-cli/builds/gh-pages/phar/wp-cli.phar -o work/wp-cli.phar
+          curl --fail --proto '=https' --connect-timeout 20 --max-time 120 --retry 3 https://raw.githubusercontent.com/wp-cli/builds/gh-pages/phar/wp-cli.phar -o work/wp-cli.phar
           mkdir -p work/wordpress work/baseline
           php work/wp-cli.phar --path=work/wordpress core download
           php work/wp-cli.phar --path=work/wordpress config create --dbname=poi_acceptance --dbuser=root --dbpass='' --dbhost=127.0.0.1:3306
@@ -130,20 +137,23 @@ jobs:
           fi
       - name: Test real artifact, query plans, correctness, cache and PHP memory
         run: |
-          POI_ARTIFACT="$PWD/work/monthly/dataset.poi.ndjson" POI_REPORT="$PWD/work/monthly/report.json" \
+          POI_CODE_ROOT="$PWD" POI_ARTIFACT="$PWD/work/monthly/dataset.poi.ndjson" POI_REPORT="$PWD/work/monthly/report.json" \
           POI_BASELINE="$PWD/work/baseline/dataset.poi.ndjson" POI_BASELINE_REPORT="$PWD/work/baseline/report.json" \
           POI_DB_REPORT="$PWD/work/monthly/database-report.json" \
-            php -d memory_limit=128M work/wp-cli.phar --path=work/wordpress eval-file tools/nearby-poi/staging-check.php
+            php -d memory_limit=128M work/wp-cli.phar --path=work/wordpress eval-file tools/nearby-poi/staging-check.php 2>&1 | tee work/monthly/database-acceptance.log
       - name: Retain real database acceptance evidence
+        if: always()
         uses: actions/upload-artifact@v4
         with:
           name: nearby-poi-db-${{ needs.build.outputs.version }}
           retention-days: 90
-          path: work/monthly/database-report.json
+          path: |
+            work/monthly/database-report.json
+            work/monthly/database-acceptance.log
           if-no-files-found: error
   deliver:
     needs: [build, database-acceptance]
-    if: needs.build.outputs.skipped == 'false' && vars.POI_DELIVERY_ENABLED == 'true'
+    if: needs.build.outputs.skipped == 'false' && vars.POI_DELIVERY_ENABLED == 'true' && (github.event_name == 'schedule' || (github.event_name == 'workflow_dispatch' && inputs.deliver && !inputs.bootstrap))
     environment: nearby-poi-production
     runs-on: ubuntu-24.04
     timeout-minutes: 45
@@ -203,7 +213,8 @@ jobs:
           GH_REPO: ${{ github.repository }}
           RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
           BUILD_RESULT: ${{ needs.build.result }}
+          DATABASE_RESULT: ${{ needs.database-acceptance.result }}
           DELIVER_RESULT: ${{ needs.deliver.result }}
         run: |
-          printf 'Monthly POI refresh failed or was cancelled. Inspect logs: %s\n\nBuild: %s\nDelivery: %s\nThe prior active dataset is retained on failures before activation. For a post-activation failure, inspect WP-CLI status before retrying.\n' "$RUN_URL" "$BUILD_RESULT" "$DELIVER_RESULT" > failure.md
+          printf 'Monthly POI refresh failed or was cancelled. Inspect logs and retained diagnostic artifacts: %s\n\nBuild: %s\nDatabase acceptance: %s\nDelivery: %s\nBootstrap never delivers to production. The prior active dataset is retained on failures before activation. For a post-activation delivery failure, inspect WP-CLI status before retrying.\n' "$RUN_URL" "$BUILD_RESULT" "$DATABASE_RESULT" "$DELIVER_RESULT" > failure.md
           gh issue create --title "Nearby POI refresh needs attention (run $GITHUB_RUN_ID)" --body-file failure.md

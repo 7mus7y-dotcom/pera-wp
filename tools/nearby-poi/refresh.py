@@ -91,7 +91,7 @@ def refresh(directory, version, source='geofabrik', previous=None, bootstrap=Fal
     summary = (f"Version: {version}\nSource snapshot: {source_date}\nBuild: {report['generated_at']}\n"
                f"POIs: {report['count']}\nArtifact bytes: {report['artifact_bytes']}\n"
                f"District checks: {len(report['districts'])} passed\nGroups: {json.dumps(report['groups'])}\n"
-               'Acceptance: passed. Transport samples in report require first-time human spot review.\n')
+               'Artifact validation: passed. Separate database acceptance and first-time human transport review are still required.\n')
     (directory/'summary.txt').write_text(summary)
     result = dict(skipped=False, version=version)
     (directory/'result.json').write_text(json.dumps(result)+'\n')
@@ -104,5 +104,14 @@ if __name__ == '__main__':
     parser.add_argument('--source', choices=SOURCES, default='geofabrik')
     parser.add_argument('--previous'); parser.add_argument('--bootstrap', action='store_true'); parser.add_argument('--force', action='store_true')
     args = parser.parse_args()
-    print(json.dumps(refresh(args.directory, args.version, args.source,
-        json.loads(pathlib.Path(args.previous).read_text()) if args.previous else None, args.bootstrap, args.force)))
+    try:
+        print(json.dumps(refresh(args.directory, args.version, args.source,
+            json.loads(pathlib.Path(args.previous).read_text()) if args.previous else None, args.bootstrap, args.force)))
+    except Exception as error:
+        directory = pathlib.Path(args.directory)
+        directory.mkdir(parents=True, exist_ok=True)
+        (directory/'failure.json').write_text(json.dumps(dict(passed=False, version=args.version,
+            source=SOURCES[args.source][0], bootstrap=args.bootstrap,
+            failed_at=dt.datetime.now(dt.timezone.utc).isoformat(),
+            error_type=type(error).__name__, error=str(error)), indent=2)+'\n')
+        raise

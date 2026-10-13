@@ -63,6 +63,10 @@ function pera_nearby_preflight( $path, $report_path ) {
         foreach ( $districts as $name => $summary ) if ( $summary['count'] < $policy['district_min_pois'] || count( $summary['categories'] ) < $policy['district_min_categories'] || $summary['count'] !== ( $report['districts'][$name]['count'] ?? null ) ) throw new RuntimeException( 'District coverage validation failed: ' . $name );
         foreach ( $groups as $group => $number ) if ( $number !== ( $report['groups'][$group] ?? null ) ) throw new RuntimeException( 'Group count/report mismatch.' );
         $active = pera_nearby_dataset_state();
+        // A receiver retry after activation validates the identical artifact, not a new transition.
+        if ( $active && ( $active['metadata']['sha256'] ?? null ) === $metadata['sha256'] && ( $active['metadata']['version'] ?? null ) === $metadata['version'] && ( $active['validation']['artifact_sha256'] ?? null ) === $report['artifact_sha256'] ) {
+            return array( 'metadata' => $metadata, 'offset' => $offset, 'validation' => $report );
+        }
         if ( ( $active['metadata']['sha256'] ?? null ) !== ( $report['previous_body_sha256'] ?? null ) ) throw new RuntimeException( 'Accepted baseline differs from current production dataset; reconcile before retry.' );
         if ( $active ) {
             if ( $source_time < strtotime( $active['metadata']['source_timestamp'] ?? '' ) ) throw new RuntimeException( 'Source date regressed.' );

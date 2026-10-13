@@ -58,6 +58,7 @@ check( $result['count'] === 770 && ! get_option( 'pera_nearby_import_session' ),
 $status = pera_nearby_update_status();
 check( $status['active_version'] === 'synthetic_first' && $status['poi_count'] === 770 && $status['last_successful_import'] && ! $status['last_error'] && $status['next_scheduled_refresh'], 'Status contains version/count/success/schedule/error fields' );
 check( pera_nearby_import_batch( $path, $report, 100 )['already_active'], 'Duplicate delivery of same accepted version is idempotent' );
+check( pera_nearby_preflight( $path, $report )['metadata']['version'] === 'synthetic_first', 'Receiver preflight permits identical accepted version after activation' );
 $active = pera_nearby_dataset_state();
 $next_path = $directory . '/next.poi.ndjson'; $next_report = $directory . '/next-report.json';
 $next = pera_nearby_import_batch( $next_path, $next_report, 100 );

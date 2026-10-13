@@ -2,9 +2,18 @@
 /** Run with WP-CLI eval-file against disposable/staging WordPress+MariaDB only. */
 if ( ! defined( 'ABSPATH' ) || ! defined( 'WP_CLI' ) || ! WP_CLI ) exit( 2 );
 if ( ! defined( 'PERA_POI_STAGING_CHECK' ) || ! PERA_POI_STAGING_CHECK ) throw new RuntimeException( 'Define PERA_POI_STAGING_CHECK=true on the disposable acceptance installation.' );
+global $wpdb; // eval-file runs inside a method, not the WordPress global scope.
+$output = getenv( 'POI_DB_REPORT' );
+if ( ! $output ) throw new RuntimeException( 'Set POI_DB_REPORT to a local report path.' );
+$metrics = array();
+// eval-file evaluates this source inside WP-CLI; __DIR__ is not this script's directory.
+$code_root = getenv( 'POI_CODE_ROOT' );
+file_put_contents( $output, wp_json_encode( array( 'schema' => 1, 'passed' => false, 'error' => 'Acceptance interrupted before completion.' ) ) . "\n" );
+try {
+if ( ! $code_root || ! is_file( $code_root . '/wp-content/themes/hello-elementor-child/inc/modules/nearby-amenities.php' ) ) throw new RuntimeException( 'Set POI_CODE_ROOT to the checked-out repository root.' );
 function pera_ml_ui( $text, $key ) { return $text; }
 function pera_get_asset_version( $path ) { return 'acceptance'; }
-require dirname( __DIR__, 2 ) . '/wp-content/themes/hello-elementor-child/inc/modules/nearby-amenities.php';
+require $code_root . '/wp-content/themes/hello-elementor-child/inc/modules/nearby-amenities.php';
 $http_calls = 0;
 add_filter( 'pre_http_request', function () use ( &$http_calls ) { $http_calls++; return new WP_Error( 'acceptance_http', 'Unexpected rendering HTTP' ); } );
 $artifact = getenv( 'POI_ARTIFACT' ); $report = getenv( 'POI_REPORT' );
@@ -20,7 +29,7 @@ while ( ! ( $import = pera_nearby_import_batch( $artifact, $report, 1000 ) )['co
 $import_seconds = microtime( true ) - $time;
 $active = pera_nearby_dataset_state(); $table = $active['table'];
 $wpdb->query( "ANALYZE TABLE `$table`" );
-$policy = json_decode( file_get_contents( dirname( __DIR__, 2 ) . '/wp-content/themes/hello-elementor-child/inc/data/nearby-poi-policy.json' ), true );
+$policy = json_decode( file_get_contents( $code_root . '/wp-content/themes/hello-elementor-child/inc/data/nearby-poi-policy.json' ), true );
 $metrics = array();
 foreach ( $policy['districts'] as $district => $point ) {
     // Independent reference: geographic candidate read without calculated-distance SQL ordering,
@@ -66,7 +75,10 @@ $result = array( 'schema' => 1, 'passed' => true, 'version' => $active['metadata
     'database_version' => $wpdb->get_var( 'SELECT VERSION()' ), 'import_seconds' => $import_seconds,
     'http_calls' => $http_calls, 'districts' => $metrics,
     'boundary' => 'Real dataset on disposable WordPress/MariaDB; production plugins, traffic and cPanel resources still need acceptance.' );
-$output = getenv( 'POI_DB_REPORT' );
-if ( ! $output ) throw new RuntimeException( 'Set POI_DB_REPORT to a local report path.' );
 file_put_contents( $output, wp_json_encode( $result, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE ) . "\n" );
 WP_CLI::log( 'WordPress/MariaDB real-artifact acceptance passed.' );
+} catch ( Throwable $error ) {
+    file_put_contents( $output, wp_json_encode( array( 'schema' => 1, 'passed' => false,
+        'error' => $error->getMessage(), 'districts' => $metrics ), JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE ) . "\n" );
+    throw $error;
+}
