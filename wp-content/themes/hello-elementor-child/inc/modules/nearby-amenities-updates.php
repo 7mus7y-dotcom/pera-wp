@@ -48,7 +48,7 @@ function pera_nearby_preflight( $path, $report_path ) {
         while ( false !== ( $line = fgets( $file, 65537 ) ) ) {
             if ( strlen( $line ) > 65536 || substr( $line, -1 ) !== "\n" ) throw new RuntimeException( 'Truncated/oversized record.' );
             hash_update( $digest, $line ); $place = json_decode( $line, true );
-            if ( ! pera_nearby_valid_place( $place ) || strcmp( $place['id'], $last_id ) <= 0 ) throw new RuntimeException( 'Invalid, duplicate or unsorted OSM identity.' );
+            if ( ! pera_nearby_valid_place( $place ) || strcmp( $place['id'], $last_id ) <= 0 ) throw new RuntimeException( pera_nearby_place_text_error( $place ) ?? 'Invalid, duplicate or unsorted OSM identity.' );
             $last_id = $place['id']; $p = $place['point'];
             if ( $p[0] < 40.7 || $p[0] > 41.7 || $p[1] < 27.8 || $p[1] > 30.1 ) throw new RuntimeException( 'Record outside metropolitan envelope.' );
             $groups[$place['group']] = ( $groups[$place['group']] ?? 0 ) + 1; $count++;
@@ -107,7 +107,7 @@ function pera_nearby_import_batch( $path, $report_path, $batch_size = 1000 ) {
         if ( ! preg_match( '/^' . preg_quote( $wpdb->prefix, '/' ) . 'pera_poi_[a-f0-9]{24}$/D', $table ) ) throw new RuntimeException( 'Invalid staging table name.' );
         $file = fopen( $path, 'rb' ); if ( ! $file || fseek( $file, $session['offset'] ) !== 0 ) throw new RuntimeException( 'Cannot resume artifact.' );
         for ( $i = 0; $i < $batch_size && false !== ( $line = fgets( $file, 65537 ) ); $i++ ) {
-            $place = json_decode( $line, true ); if ( ! pera_nearby_valid_place( $place ) ) throw new RuntimeException( 'Artifact record invalid during resume.' );
+            $place = json_decode( $line, true ); if ( ! pera_nearby_valid_place( $place ) ) throw new RuntimeException( pera_nearby_place_text_error( $place ) ?? 'Artifact record invalid during resume.' );
             $names = wp_json_encode( $place['names'], JSON_UNESCAPED_UNICODE ); $aliases = wp_json_encode( $place['aliases'] ?? array(), JSON_UNESCAPED_UNICODE );
             if ( strlen( $names ) > 65535 || strlen( $aliases ) > 65535 ) throw new RuntimeException( 'Record exceeds database column capacity.' );
             if ( false === $wpdb->replace( $table, array( 'osm_id' => $place['id'], 'poi_group' => $place['group'], 'lat' => json_encode( (float) $place['point'][0] ), 'lng' => json_encode( (float) $place['point'][1] ), 'names' => $names, 'aliases' => $aliases ), array( '%s', '%s', '%s', '%s', '%s', '%s' ) ) ) throw new RuntimeException( 'Staging insert failed; resume or abort.' );
