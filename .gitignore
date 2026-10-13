@@ -20,3 +20,9 @@ error_log
 wp-content/mu-plugins/add-webp-conv-to-medialibrary.php
 wp-content/mu-plugins/disable-comments.php
 wp-content/mu-plugins/modify-admin-panel-code.php
+
+# Generated OSM artifacts and offline build scratch
+work/
+*.poi.ndjson
+
+__pycache__/

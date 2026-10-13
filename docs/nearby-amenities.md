@@ -1,182 +1,154 @@
-# Nearby Amenities: implementation audit and operations
+# Nearby Amenities: local OSM provider and operations
 
-This is a targeted follow-up on draft PR #1419 and its existing `feature/nearby-amenities` branch. No deployment, merge, property-data edits, taxonomy changes or alteration of existing map/listing functionality is included.
+The monthly follow-up adds exact-coordinate/versioned caching, guarded resumable imports, status/monitoring, safe cleanup and GitHub Actions build + real MariaDB acceptance + disabled-by-default delivery. See [monthly setup, source blockers and recovery](nearby-poi-monthly.md) for the current operations workflow. No real OSM or MariaDB validation was possible locally.
 
-## Audit findings and corrections
+## Status and audit
 
-| Area | Finding in the initial PR | Targeted correction |
+This branch replaces ordinary POI retrieval from merged PR #1419. Implemented: local MySQL provider, streamed and checksummed imports, independent generations, rollback, offline builder and tests. **No production deployment, property/ACF edits or frontend redesign. No real Istanbul artifact has been built or imported in this environment.** Source download/PBF processing, real MySQL integration, production query plans and coverage acceptance are release gates, not completed validation. The monthly Actions workflow includes executable real MariaDB acceptance; it has not been dispatched here.
+
+The audit inspected `inc/modules/nearby-amenities.php`, `nearby-amenities-cli.php`, `inc/data/nearby-airports.php`, `single-property.php`, `js/component-tabs.js` and the prior guide.
+
+| Existing function/path | Live Overpass dependency before replacement | Behavior now |
 | --- | --- | --- |
-| Placement | Already immediately after the location grid and before pricing; shares the existing content rail. | Preserve the exact template placement and map markup. |
-| Hierarchy | Component `h3` and subgroup `h4` incorrectly implied subordination to “About this project”; that heading is optional. | Component `h2` peers with other property sections; subgroup `h3`. |
-| Presentation | Plain lists lacked group boundaries and inline distances were hard to scan. | Existing compact cards and responsive two-column grid; reusable POI lists with distance at the opposite edge. |
-| Airports | Ordinary 3.5 km POI filtering usually excluded Istanbul's airports. | Independently cached, versioned local IST/SAW reference data with a 150 km relevance range. Remove airports from the ordinary query; ignore old cached aerodromes. |
-| RTL | Initial browser checks used document direction alone. Existing Pera RTL CSS resets body layout to LTR. | Explicit reusable component opt-in in the existing RTL stylesheet; test the actual stylesheet and body class. |
-| Cron | Scheduling works with `DISABLE_WP_CRON=1`, but visitor-triggered execution does not. | Document system cron and add bounded, resumable WP-CLI warming using the existing provider gate. |
-| Readiness | Initial documentation overstated the need for manual UI registration. | Real Pera UI automatically registers encountered labels and supplies English fallback. Bulk discovery/translation is maintenance, not a requirement for basic display. |
-| Provider handling | Some malformed element/tag/member shapes could generate warnings. | Guard shapes, string tags, positive numeric OSM IDs and valid route-member references before normalization. |
+| `pera_nearby_query()` | Builds the 4.3 km query and direct route-membership requests. | Retained for explicit external mode only. |
+| `pera_nearby_refresh()` | Sole HTTP caller: `wp_remote_post()`, 25-second timeout, 8 MiB cap, rate gate, failure backoff. Called by `pera_nearby_refresh` cron hook. | Checks selected provider before reading legacy caches or making requests. Local mode never calls HTTP. Old queued jobs therefore cannot continue Overpass requests. |
+| `pera_nearby_cached()` | Reads seven-day cell caches, schedules background Overpass refreshes on cold/stale data. No synchronous HTTP. | Defaults to indexed local queries; no scheduling, external call, legacy cell cache or failure backoff in local mode. |
+| `pera_nearby_warm()` / `pera nearby warm` | Bounded property/cell scan calls the same refresh function directly. | Existing external warmer retained; unnecessary for local data. Use `pera nearby dataset` to inspect local readiness. |
+| `pera_nearby_normalize()` / `pera_nearby_group()` | Interprets provider data; neither makes requests. | Same production code is reused offline, including conservative transport classification. |
+| `pera_render_nearby_amenities()` | Calls cache read, nearest grouping, separate airports. | Markup unchanged. Calls now resolve ordinary POIs locally. |
+| Airport file / `pera_nearby_airports()` | No Overpass dependency. | Unchanged IST/SAW points, exact-coordinate cache and 150 km relevance radius. |
+| Template / tabs JS | Existing ACF map, PHP render placement, keyboard/ARIA tab behavior. | Unchanged, as are CSS, RTL, map functionality and JS dependencies. |
 
-## Exact template placement and rendering conditions
+Production diagnostics supplied by the requester (406, timeout, valid coordinates and cron) are evidence of external-provider failure, not reproduced measurements here. Cycling public endpoints would not remove this dependency.
 
-`wp-content/themes/hello-elementor-child/single-property.php:1334` calls `pera_render_nearby_amenities($map)` directly inside `section#property-location`, after the closing tag of the existing `div.grid-2--tight` containing `.property-location__main` and `.property-location__aside`, and before the section closes. The next section is `#property-price-range`. No markup in the map, description, facilities, address, map actions or distance description changes.
+## Alternatives and sources
 
-The outer `main.content-rail` and existing `.content-rail > section:not(.hero) > *` rule constrain both the original grid and the component to `--container`. Existing section padding and `mt-md` separate it from the map. The component is not placed inside the map column and spans the same rail as the location content. Desktop/tablet group cards use the existing `grid-2`; at the existing 768 px breakpoint they stack into one column.
+Sources reviewed on 2026-10-13:
 
-The renderer reads only the existing ACF `map` field's `lat` and `lng`. Coordinates must be numeric, finite, and within world bounds; zero is valid. Invalid/missing coordinates render nothing and create no cache or job. Valid coordinates read shared ordinary-POI caches and the separate airport cache. If neither contains usable relevant results, nothing renders. Istanbul properties can render verified airports immediately even with a cold/empty/unavailable ordinary cache; other categories show translated empty states until usable data exists. Transport is selected when it has data; otherwise the first nonempty category is selected. No browser-side insertion, external POI fetch or fabricated empty-state places.
+- [Geofabrik Türkiye](https://download.geofabrik.de/europe/turkey.html): approximately 620 MB current PBF as displayed on the source page; no Türkiye subregions listed. Reliable legitimate regional source and update files. Download/crop only on a separate build machine. Never download/process this national file on cPanel.
+- [BBBike Istanbul](https://download.bbbike.org/osm/bbbike/Istanbul/): city PBF advertised at approximately 45 MB. Its canned city bounds must be checked; a city label does not establish full metropolitan coverage. [Custom BBBike extracts](https://extract.bbbike.org/) are an alternative for a reviewed rectangle spanning both continents.
+- [Osmium tooling](https://osmcode.org/osmium-tool/manual.html) and [Pyosmium handlers](https://docs.osmcode.org/pyosmium/latest/reference/Handler-Processing/) support source geometry and disk-backed location indexing. The builder uses the original PBF, not simplified shapefiles that could omit translations or source identities.
 
-## Frontend appearance and CSS reuse
+| Approach | Reliability/resource/maintenance assessment |
+| --- | --- |
+| Filtered local OSM | No page-time external dependency or API cost; shared storage; deliberate refreshes. OSM completeness and transport tags vary. Requires offline build and ODbL compliance. Recommended. |
+| Managed commercial POI service (e.g. Google Places or Foursquare) | Could replace volunteer endpoint availability with managed service and vendor data. Requires credentials, billing, background fetch/error handling, a separate adapter and review of retention, display and attribution terms. Exact prices/contracts/coverage have not been evaluated; do not assume indefinite caching is permitted. Proposal only. |
+| Managed/self-hosted Overpass | Preserves query semantics but still adds service administration or vendor cost. City-only instance is possible; hosting a broad OSM database on this 3.6 GB cPanel host is not recommended. Proposal only. |
+| Public live Overpass | Existing production failure mode; external mode is retained only for intentional use. No endpoint cycling. |
 
-Each category contains clearly separated subgroup cards with an `h3` and up to three nearest rows. Each row links the original/localised source name to its OSM location and aligns the distance to the opposite edge. Names wrap without pushing distance outside the card. RTL reverses the row geometry and tab arrow navigation; `bdi` protects original names and formatted distances.
+Source sizes above are advertised compressed inputs, **not measured artifact sizes or POI counts**. A planning envelope of tens of thousands of relevant named facilities and a few to tens of MB of NDJSON is a capacity estimate only. Import prints exact count; source/build stats and artifact byte size must replace these estimates before release. Allow disk space for active, previous and staging indexed tables plus backups; reserve at least three times measured table size. Historical generations are deliberately retained, so storage grows until reviewed cleanup.
 
-Existing classes reused:
+## Storage, queries and provider selection
 
-- `card-shell`, `p-sm`: card surface, border, radius, shadow, stacked gap and compact padding.
-- `grid-2`: existing desktop/tablet two-column layout and mobile single column, with a smaller existing gap than `grid-2--tight`.
-- `mt-md`, `text-soft`, `text-nowrap`: component spacing, secondary typography and stable distance labels.
-- `section-cta`, `justify-start`: responsive wrapping tabs aligned to the start.
-- `pill`, `pill--lg`, `pill--active`: tab appearance and selected state.
-- `inline-row`, `icon`, `#icon-map`: existing heading/icon infrastructure.
+One purpose-built InnoDB table per generation, with primary OSM ID and `(poi_group,lat,lng)` geographic index, stores only ID, subgroup, representative point, names/translations and duplicate aliases. One non-autoloaded WordPress option `pera_nearby_dataset` contains the coherent `active` and `previous` descriptors. Existing WordPress DB access avoids requiring SQLite/PDO extensions on cPanel. No per-property files, property edits, national import, full-city PHP loads or new browser dependency.
 
-All selectors added by this feature, including the initial PR:
+Default `pera_nearby_provider` is `local`. A deliberately small provider selection boundary dispatches local reads or the existing cached external implementation; unknown providers return no ordinary amenities. No automatic external fallback. To opt into the existing background external provider, install a reviewed server-side configuration:
 
-| Selector | File | Why an existing rule was insufficient |
-| --- | --- | --- |
-| `.component-tabs [role="tab"]` | Theme `css/main.css` | Generic pills do not guarantee a token-based 48 px touch target or pointer cursor. |
-| `[data-component-tabs] [role="tabpanel"][hidden]` | Theme `css/main.css` | Keeps inactive panels hidden if other layout styles set display. |
-| `.component-tabs [role="tab"]:focus-visible` | Theme `css/main.css` | Brand-token outline and spacing-token offset are clearer than the existing pale pill focus shadow. |
-| `.poi-list` | Theme `css/main.css` — new in follow-up | Existing reset lists belong to navigation/timelines; checklists add tick icons. None supplies a clean semantic POI list with token-based row gaps. |
-| `.poi-list > li` | Theme `css/main.css` — new in follow-up | A `minmax(0,1fr) max-content` grid keeps long names and opposite-edge distances in the same row. Existing `card-meta-row` wraps and adds margins; flex utilities alone do not provide this column constraint, gap or long-name wrapping. |
-| `body.pera-ml-rtl [data-component-tabs]` | Plugin `assets/css/rtl.css` — new in follow-up | Opts the reusable component back into RTL after the existing body LTR reset, following the plugin's convention. Document `dir` alone was insufficient. |
+```php
+add_filter( 'pera_nearby_provider', function () { return 'overpass'; } );
+add_filter( 'pera_nearby_overpass_endpoint', function () { return 'https://your-approved-provider.example/api/interpreter'; } );
+```
 
-No new property-specific CSS, copied card/grid/pill declarations, hardcoded new colour/spacing values, inline styles, framework or JS dependencies. Native `ul`/`li` remain semantic; `role="list"` preserves list announcement with marker-free styling. Existing unrelated card/pill/grid styles remain unchanged in computed-style tests.
+The endpoint filter alone does not enable external mode. Any future managed provider must supply the same normalized place shape, use explicit selection and cache/background retrieval; it must never add page-render HTTP. Current implementation supports local and explicit Overpass, not a commercial adapter.
 
-## Verified, separately cached airports
+Local retrieval captures one generation pointer per call. For each of 15 ordinary subgroups, use a conservative spherical bounding box for 3.5 km and SQL ordering by the Haversine intermediate value, then compute exact distances using the existing PHP Haversine function. Fetch at most 256 rows per batch; discard duplicates and keep three nearest. The existing grouping/renderer receives at most 45 places. SQL ordering ensures facility dedup happens nearest-first. Polar and antimeridian bounds are supported. Exact-coordinate results are cached for seven days under the active generation and classification version; there is no cell-centre reuse. Numeric SQL/DOUBLE values preserve round-trip coordinates. No result truncation silently drops all later facilities: if duplicates fill a batch, continue until three distinct places or exhausted results.
 
-`inc/data/nearby-airports.php` contains only these two large airports with scheduled service, checked against `airports.csv` in [OurAirports revision 132fc8c3471c96cfffe3ece8a89f9f252f670243](https://github.com/davidmegginson/ourairports-data/blob/132fc8c3471c96cfffe3ece8a89f9f252f670243/airports.csv) on 2026-10-13:
+Memory is bounded by a batch plus selected results, not the dataset size. SQL may sort all candidates inside a subgroup bounding box; the index bounds the candidate set. Pathological duplicates increase batched queries; offline dedup mitigates this. Production EXPLAIN/latency remain mandatory. Missing pointer, missing table or invalid row names yields no ordinary data; airports stay available. A missing local dataset never consults old Overpass caches. Installed tables are immutable; filesystem/page caches may still show older pages until purged.
 
-| Airport | ICAO / IATA | Latitude | Longitude |
-| --- | --- | --- | --- |
-| İstanbul Airport | LTFM / IST | 41.274874 | 28.732136 |
-| Istanbul Sabiha Gökçen International Airport | LTFJ / SAW | 40.898602 | 29.3092 |
+## Offline build workflow
 
-These are dataset reference coordinates, not terminal entrances or walking/driving endpoints. Names remain source names, with IATA identifiers appended. Source verification means matching the pinned published dataset, not independently surveying the coordinates. [OurAirports data terms](https://ourairports.com/data/) release the data to the public domain.
-
-`pera_nearby_airports()` sorts the two real records by Haversine distance from the exact property coordinates, excludes those beyond 150 km and caches the computed results (including empty results) for 30 days. Its versioned cache namespace `pera_airports_20261013_*` is independent of ordinary OSM cell caches; no runtime third-party airport requests. Both airports remain in Transport. Airport records in older ordinary caches are ignored to prevent duplicates. The visible distance notice differentiates the ordinary 3.5 km range from the airport range and explicitly says straight-line, not walking/driving distance. OSM attribution and separate OurAirports attribution are visible.
-
-Maintenance: review these exact two source records when updating the dataset; update coordinates/names and source revision/date, bump the dataset `version` to invalidate airport caches, then rerun distance tests. No expansion of the general query radius or automatic worldwide-airport import.
-
-## Ordinary POIs and provider limits
-
-Ordinary OSM data remains shared between properties rounded to a 0.01-degree geographic cell. A 4.3 km Overpass circle covers the 3.5 km property range plus maximum cell-rounding offset. Distances are computed from each property's actual coordinates. Only three nearest distinct same-name/nearby places per group enter HTML; no full hidden provider dataset.
-
-The endpoint defaults to `https://overpass-api.de/api/interpreter` and supports `pera_nearby_overpass_endpoint` for an operator-managed service. Query timeout: 20 seconds; HTTP timeout: 25 seconds; query memory: 16 MiB; response cap: 8 MiB; no redirects. Site URL identifies the User-Agent. No routing geometry, recursive route expansion, city-wide fetch or frontend HTTP.
-
-Seven-day freshness; up to 30-day stale retention; successful empty responses cached. The atomic option gate allows one provider request per minute across cron and CLI. Compare-and-delete prevents expired lock holders removing a newer worker's lock. Provider errors, timeout remarks/partial responses, 429s and bad JSON preserve stale successful data and set a one-hour minimum failure backoff, extended for a longer provider `Retry-After` (seconds or HTTP date). Cron deferrals reschedule with jitter; CLI deferrals preserve their checkpoint without creating new jobs. Public Overpass is shared and has no SLA; do not rotate endpoints to evade limits. At most approximately 1,440 requests/day per site, typically much less after shared-cell reuse. Operators must still monitor shared-service capacity and choose managed/self-hosted service if needed.
-
-Explicit service tags and direct route memberships distinguish Metro, Marmaray and Metrobüs. Unknown rail stays “Rail stations”; unknown bus stops stay Bus. OSM completeness and direct-route tagging remain limitations requiring representative Istanbul staging checks.
-
-## Bounded, resumable WP-CLI warming
-
-The CLI-only module `inc/modules/nearby-amenities-cli.php` is loaded by the nearby module only when `WP_CLI` is active. It retains read-only `wp pera nearby audit` and adds `wp pera nearby warm`.
-
-The warmer reads published `property` IDs in ascending ID order using read-only keyset pagination. It validates ACF map coordinates, deduplicates shared cells within a batch and skips fresh/backoff cells across batches. It neither edits posts/meta/taxonomies nor bypasses provider limits. One provider attempt per invocation by default; it never sleeps. Deferred cells are not checkpointed as handled. A five-minute maintenance lock prevents concurrent warmers from corrupting the resume cursor.
-
-Parameters:
-
-- `--limit=100`: maximum IDs examined, 1–500.
-- `--max-cells=1`: maximum provider attempts, 1–10; increasing it does not lift the global one-per-minute gate.
-- `--after-id=0`: explicit checkpoint; use returned `next_after_id` on the next invocation.
-- `--resume`: persist the checkpoint in non-autoloaded `pera_nearby_warm_cursor`.
-- `--restart`: start a new `--resume` pass from zero; use once when a fresh pass is needed, not on every minute invocation.
-- `--dry-run`: no HTTP, locks, cache writes or cursor changes.
-
-JSON reports `successful`, `failed`, `skipped` (fresh/backoff cells), `deferred` (rate/batch limits), `planned` (dry-run), `properties_scanned`, `invalid_properties`, `duplicate_properties`, `next_after_id`, `complete`, `reason` and bounded per-cell outcomes. Scanned IDs can include the deferred lookahead; the checkpoint remains the last handled ID. A batch exactly equal to `--limit` needs another invocation to confirm completion. Failures progress the cursor after applying backoff: start another pass after backoff expires to retry them. An exit code of zero means the command ran; inspect JSON failure counts for provider success.
-
-Deployment/operator commands, run as the WordPress filesystem owner with the active theme, ACF and Pera ML loaded:
+Use a dedicated machine with Python 3.11+, PHP CLI, Osmium Tool and disk space for the PBF, disk-backed node-location index and intermediate SQLite. No Docker requirement. Pin the Python dependency with `tools/nearby-poi/requirements.txt` (`osmium==4.3.1`); record the exact PHP/Osmium versions in the build log. Retain the downloaded input and SHA-256 to reproduce a source snapshot: `latest` URLs change over time.
 
 ```sh
-# Read-only counts and warmup preview.
-wp --path=/path/to/wordpress pera nearby audit
-wp --path=/path/to/wordpress pera nearby warm --dry-run --limit=100 --max-cells=1
-
-# First bounded pass; creates only caches, rate gate and maintenance cursor.
-wp --path=/path/to/wordpress pera nearby warm --resume --restart --limit=100 --max-cells=1
-
-# Repeat at most once a minute; stop initial warmup when complete=true.
-wp --path=/path/to/wordpress pera nearby warm --resume --limit=100 --max-cells=1
-
-# Alternatively, manage the checkpoint externally; substitute next_after_id.
-wp --path=/path/to/wordpress pera nearby warm --after-id=123 --limit=100 --max-cells=1
+python3 -m venv work/poi-venv
+work/poi-venv/bin/pip install -r tools/nearby-poi/requirements.txt
+bash tools/nearby-poi/download.sh
+osmium fileinfo -e work/nearby-poi/Istanbul.osm.pbf
 ```
 
-Run a new `--resume --restart` pass after freshness expires or after a failed-cell backoff; ordinary demand-driven cron refresh also continues. Do not automatically reset the cursor on every execution. Cache eviction can discard ordinary stale data early; independently computed airports remain available for relevant properties.
+Default required rectangle: **27.8–30.1° E, 40.7–41.7° N**, spanning metropolitan European and Asian Istanbul plus ordinary-radius margin. Review this rectangle against the 127 actual property coordinates using the existing read-only audit; it is a proposed geographic envelope, not proof of coverage. The builder checks actual source-node bounds and refuses a source that does not span the chosen rectangle. Extents alone cannot detect holes or clipping; review the extract polygon and spot checks too.
 
-## System cron with DISABLE_WP_CRON=1
-
-The constant disables automatic browser-triggered cron spawning; it does not prevent scheduling or WP-CLI running due events. Without an external runner, ordinary POIs will not warm themselves. The warmer can populate ordinary caches directly without cron, but ongoing demand refresh needs a runner.
-
-Example entries to adapt to the deployment paths/user; these were documented, not installed:
-
-```cron
-# Persistent WordPress due-event runner (all normal WordPress jobs, including Nearby).
-* * * * * /usr/bin/flock -n /tmp/pera-wp-cron.lock /usr/local/bin/wp --path=/path/to/wordpress cron event run --due-now >> /path/to/logs/wp-cron.log 2>&1
-# Temporary initial warming; remove when complete=true. Uses the SAME provider gate.
-* * * * * /usr/bin/flock -n /tmp/pera-nearby-warm.lock /usr/local/bin/wp --path=/path/to/wordpress pera nearby warm --resume --limit=100 --max-cells=1 >> /path/to/logs/nearby-warm.log 2>&1
-```
-
-Verify as the cron user:
+If BBBike's canned file is too small, request a custom rectangular extract with padding, or download Geofabrik Türkiye **on the separate build machine** and crop it with complete ways/relation references, e.g.:
 
 ```sh
-wp --path=/path/to/wordpress config get DISABLE_WP_CRON --type=constant
-crontab -l
-wp --path=/path/to/wordpress cron event list --fields=hook,next_run_gmt,next_run_relative --format=table
-# Controlled execution check; this runs due WordPress background jobs.
-wp --path=/path/to/wordpress cron event run --due-now
-# Inspect a cache key returned by the warmer (replace placeholder).
-wp --path=/path/to/wordpress transient get <cell-key-from-json>
+osmium extract --bbox=27.75,40.65,30.15,41.75 --strategy=smart \
+  turkey-latest.osm.pbf -o work/nearby-poi/istanbul-reviewed.osm.pbf
 ```
 
-Check the actual system cron/service logs over successive minute ticks, not merely that a crontab entry exists. Scheduled `pera_nearby_refresh` events should run or move to deferred timestamps; a successful cache's `updated` timestamp advances. Failed requests instead leave stale data and `<cell-key>_retry` backoff. `wp cron test` can report disabled spawning with this constant; that alone does not demonstrate failure of the system runner. Ensure outbound HTTPS POST to the chosen endpoint. Full-page caching must expire/purge existing property HTML after warming via the site's established cache operations; this feature does not purge unrelated pages.
-
-## Frontend readiness: code audit versus production verification
-
-Source audit confirms:
-
-- `functions.php` loads `inc/theme-modules.php`, which unconditionally loads the nearby module. The airport data file is local; CLI code is conditional.
-- Existing enqueue code loads `pera-main-css` and property styles on normal property pages. No additional style dependency is required.
-- The renderer enqueues `pera-component-tabs` with no dependencies, a versioned URL and footer loading; the existing footer calls `wp_footer()`. Browser tests execute that same shipped JS file.
-- Existing Pera ML `Pera_ML_UI::get()` registers encountered literal strings and returns stored current translations or English fallback. The module is already inside approved theme UI discovery scope. It never calls a translation provider during rendering.
-- Names, labels, IDs, URLs and distances are escaped; malformed provider record shapes are excluded. List/panel IDs and ARIA relationships are unique. OSM/ODbL attribution and airport source attribution are separate.
-
-Therefore, with the existing required theme/ACF/Pera ML infrastructure active, basic display requires no new API key, field, JS configuration or manual string registration: relevant Istanbul properties can show airports immediately. Ordinary local results require a successful cached provider fetch, and fully translated copy requires current translation rows. This is code-level readiness, not a claim that the production database, cron or outbound access has been verified.
-
-Optional registration and translation maintenance:
+`smart` extraction helps preserve relation members; nested/incomplete relations still need review. Supply reviewed source URL, actual source checksum and extract/source timestamp (from source metadata, not build time):
 
 ```sh
-wp eval-file wp-content/plugins/pera-multilingual/tools/register-theme-ui-strings.php -- --dry-run
-wp eval-file wp-content/plugins/pera-multilingual/tools/register-theme-ui-strings.php
-# Preview only; generate/import reviewed translations through the existing workflow.
-wp eval-file wp-content/plugins/pera-multilingual/tools/pera-translate-latest.php dry-run status=all object_type=ui field_prefix=key:theme_nearby language=ar limit=100
+work/poi-venv/bin/python tools/nearby-poi/build.py \
+  work/nearby-poi/istanbul-reviewed.osm.pbf work/nearby-poi/20261013.poi.ndjson \
+  --source=https://download.geofabrik.de/europe/turkey-latest.osm.pbf \
+  --source-sha256=ACTUAL_SHA256_OF_INPUT_EXTRACT \
+  --source-timestamp=ACTUAL_SOURCE_TIMESTAMP --version=20261013-reviewed
 ```
 
-The revised distance notice invalidates translations of the old source; Pera ML falls back safely until refreshed. Airport proper names remain unchanged unless the dataset gains a reliable localised name.
+The command intentionally uses placeholders requiring real measurements. Download script is only for BBBike; alternative acquisition must retain source and crop logs. No synthetic fixture is a deployment dataset. Generated artifacts/scratch are ignored by Git.
 
-## Test results and remaining production checks
+Builder steps:
 
-Standalone suite:
+1. Verify input SHA-256 with streaming reads and check source extents.
+2. First relation pass records direct subway/train/bus/ferry memberships and references of tagged facilities in temporary SQLite.
+3. Stream nodes and ways with a disk-backed location index. Retain only relevant tags/names for the production classifier. Preserve stable node/way/relation identities.
+4. Read tagged facility relations, including multipolygons, using available direct-member points. Incomplete or nested unresolved relations are skipped and counted; no partial relation centre is published.
+5. Call the shipped PHP normalizer through a streaming adapter. Explicit route tags/memberships distinguish Metro/Marmaray/Metrobüs; unidentified rail stays generic. Ferry terminals retain their existing classification. No name guesses fabricate transport types.
+6. Dedup same normalized name and subgroup within 100 m. Merge missing translations and retain alias OSM IDs. This conservative heuristic can merge similarly named nearby branches or miss differently named representations; audit spot samples. It is not a universal facility-resolution algorithm.
+7. Sort records by stable ID and write versioned compact NDJSON with schema, source, source SHA/timestamp, build date, license, bounds, counts, geometry convention and statistics. Header includes exact record count and body SHA-256. Artifact replacement is a same-directory rename after body completion.
+
+Way points are source bounding-box centres, consistent with previous Overpass centre approximation; relation points derive from direct-member centres. They are approximate source-derived reference positions, not entrances, routing endpoints or surveyed POIs. Arbitrary nested relation geometry and route-master inheritance are outstanding improvements; present transport classification uses explicit tags/direct memberships. No source names or POIs are invented. PHP importer validates the normalized coordinate/name/group/ID contract again and rejects duplicate canonical IDs or checksum/count mismatch.
+
+## cPanel deployment, rollback and updates
+
+Do not merge or deploy this branch as part of this task. When approved after release gates, the existing `sync.sh` copies changed `wp-content` files from `/home/d21882/_work/pera-wp` to `/home/d21882/public_html`. Tools/docs at repository root remain offline/operational resources and are not copied into the theme. Generated dataset files must be transferred separately to a directory outside the public web root, e.g. `/home/d21882/nearby-poi/`.
+
+Check WordPress DB credentials/privileges allow CREATE/INSERT/DROP and the filesystem owner can read the artifact. Back up the WordPress DB. First deploy code, then explicitly import:
 
 ```sh
-php wp-content/themes/hello-elementor-child/tests/nearby-amenities-test.php
-mkdir -p work/fixtures
-NEARBY_FIXTURE_DIR="$PWD/work/fixtures" php wp-content/themes/hello-elementor-child/tests/nearby-amenities-test.php
-CHROMIUM_PATH=/usr/bin/chromium NEARBY_FIXTURE_DIR="$PWD/work/fixtures" node wp-content/themes/hello-elementor-child/tests/component-tabs-test.js
+wp --path=/home/d21882/public_html pera nearby audit
+wp --path=/home/d21882/public_html pera nearby import /home/d21882/nearby-poi/20261013.poi.ndjson
+wp --path=/home/d21882/public_html pera nearby dataset
 ```
 
-Requires PHP with tokenizer for the real UI discovery assertions, and Playwright with Chromium. If Playwright's own Chromium is installed, omit `CHROMIUM_PATH`.
+Import creates a random, unpublished table and inserts one validated row at a time (bounded PHP memory). Record count and checksum are checked before one option update publishes it. Readers use the old complete table until publication. No DDL renaming of active tables, no partially populated table visibility. The shared import/rollback option lock excludes normal concurrent jobs; imports have a one-hour lease and refuse publication if their lease expires or ownership changes. Run these commands with one supervised operator/system job; do not run competing jobs around lease expiry. Failed imports drop their staging table and preserve the active pointer. A killed process can leave an orphan table, but the active dataset remains available.
 
-Passed PHP contracts: coordinate validation/zero, shared cells, Haversine calculation, transport classification/enrichment, malformed provider shapes and output escaping, nearest-three/radius filtering, old airport-cache exclusion, hits/misses/empty/refresh/error/429/partial-response/bad-JSON/backoff/stale behavior, one global provider gate and longer provider Retry-After, footer JS enqueue contract, independent airport caches/reference coordinates/no HTTP/range/sort, cold airport rendering and empty states outside coverage, read-only audit, bounded warming/dedup/resume/checkpoints/failure counts/dry-run/concurrency/CLI option validation under `DISABLE_WP_CRON=1`, and real Pera UI discovery/current/stale/fallback logic in memory.
+Rollback swaps the coherent active/previous descriptors:
 
-Passed real Chromium checks across nine English/Turkish/Arabic × 390/834/1440 px cases using the actual PHP renderer, production component JS, existing main/property/RTL CSS and sprite: group columns, max-three rows, opposite-edge distances, long names, hierarchy, preserved map/location geometry, touch/click/Enter/Space, Home/End/Left/Right and RTL arrows, roving tabindex/panel focus, unique ARIA relationships, no horizontal overflow, no console/page errors. Unrelated card/pill/grid computed styles unchanged; independent tab instances remain isolated. Screenshots visually reviewed for desktop and mobile RTL. Existing multilingual property-template, UI discovery and RTL asset suites passed; PHP/JS syntax and whitespace checks passed.
+```sh
+wp --path=/home/d21882/public_html pera nearby rollback
+wp --path=/home/d21882/public_html pera nearby dataset
+```
 
-Simulation boundary: ordinary POI fixtures use realistic Istanbul names with deliberately synthetic positions and sample facilities; they are not fetched OSM results, not production listing records and never enter shipped provider data. UI translations/registry/storage and the WordPress database/HTTP/cron functions are simulated; airport source records alone were checked against the real pinned dataset. Browser map iframe is a placeholder, external map requests are not exercised, and local fonts are excluded from the test harness. There is no `wp-config.php`, `wp-load.php` or connected production database in this workspace.
+It checks the previous table still exists; repeating rollback toggles the last two generations. Purge property page caches after import/rollback using the site's normal cache tooling. Retain old tables while in-flight requests may still reference them. For automated updates, `pera nearby cleanup` safely removes only unreferenced generation tables older than seven days. Manual inspection remains available: list only tables matching this site's `PREFIXpera_poi_<24 hex>` pattern, compare them with both descriptors, back up and drop reviewed orphan/historical tables after a safe retention interval. No automatic cleanup may remove the active/previous table. Multi-site prefixes produce separate datasets.
 
-Remaining production checks: actual published-property counts, active ACF/Pera ML and translated catalogs, real Overpass tag coverage, successful system-cron ticks/outbound access, page-cache warmup visibility, complete live property-page visuals and Core Web Vitals. No live WordPress record, deployment configuration or system crontab was changed.
+Schedule weekly or monthly **offline rebuilds** depending on accepted data freshness. Each job: acquire snapshot, retain source/build logs, validate bounds/counts/subgroup drift and district spot checks, produce checksum manifest, transfer privately, import once, run status and page checks, purge caches. Automate deployment only after a real successful acceptance pass. Monitoring should alert on failed jobs, unexpectedly empty or sharply changed subgroup counts, missing table, stale source timestamp and slow geographic queries. Log CLI exit code/output and metadata. `pera nearby dataset` validates presence/count; it reports metadata for monitoring and does not implement an alert service or per-row corruption scan. OSM public-source schedules vary; site refresh schedule is independently chosen.
+
+Existing cron remains useful for other WordPress features and explicit external mode. Ordinary local retrieval needs neither cache warming nor WP cron. No production crontab was changed. `pera nearby warm` is retained for backwards compatibility, but its legacy cache statuses are not authoritative local readiness.
+
+## Attribution and licensing
+
+[OSM copyright guidance](https://www.openstreetmap.org/copyright) and [ODbL 1.0](https://opendatacommons.org/licenses/odbl/1-0/) apply. Visible OSM contributor attribution and ODbL notice remain in the renderer. Dataset metadata preserves source and license; source aliases/translations remain in the table/artifact. Keep license/source information with distributed artifacts.
+
+Treat the filtered dataset as an OSM-derived database: when publicly using it, provide the applicable ODbL database offer/share-alike access and attribution. Operationally publish the exact filtered artifact and a source/build/license notice at a stable data-download URL (or a compliant written offer) alongside the site's licensing page; keep database availability separate from public executable/import paths. The monthly receiver now publishes the entire filtered database and source/licence notice at `/poi-data/VERSION/` before activation. First-time setup must link the offer from the existing legal page and verify public access; no production artifact has been published here. Commercial-provider terms need a separate review if that proposal is chosen. Independently sourced OurAirports coordinates retain their existing public-domain attribution and pinned reference revision.
+
+## Tests, evidence and release gates
+
+```sh
+php wp-content/themes/hello-elementor-child/tests/nearby-local-test.php
+PHP=php python3 tools/nearby-poi/test_build.py
+```
+
+Passed here with PHP 8.4.24:
+
+- Existing external-provider cache/error/backoff/gate, categories, airports, renderer and CLI warmer regression suite, explicitly selecting external mode only in that test harness.
+- Local missing dataset/table, valid/empty imports, invalid coordinates/names/IDs/schema, duplicate canonical IDs, count/checksum mismatch, simulated insert failure, staging cleanup and rollback contracts.
+- Synthetic fixtures centred on Şişli, Beşiktaş, Kadıköy and Zeytinburnu: bounding boxes, radius filtering, nearest-three sorting, multilingual output and existing five-tab output. These verify geography logic, **not real district POI coverage**.
+- Local rendering and old queued refresh jobs make no HTTP calls or new cron jobs; airports survive missing ordinary store.
+- Offline dedup merges translations/alias IDs; deterministic body ordering, checksum/count/empty-artifact writing; adapter uses real PHP Metro/Marmaray/Metrobüs/ferry/generic rail classification.
+- Generated 100,002-candidate stream: 256-row maximum batch, three output places, 405 simulated queries, approximately 0.21 seconds; allocator peak did not rise above the prior regression-suite peak. This proves bounded retention in the harness, **not production SQL timing or absolute PHP worker memory**.
+- PHP/Python syntax and Git whitespace checks. No UI assets changed; browser redesign verification is unnecessary for this backend-only diff.
+
+This workspace has no running WordPress/MySQL database, Osmium Tool or Pyosmium package. Shell network proxy is unreachable; GitHub connector recovered merged PR #1419 for the correct baseline and is used to publish the draft. Thus PBF end-to-end execution, real dataset sizes/counts/coverage, actual MySQL SQL/index/collation behavior, cPanel import duration/resource usage, crash/concurrency behavior, live page caches and production coordinates were **not tested**.
+
+Before production approval: run the builder on a real reviewed extract; preserve artifact/license offer; import on staging WordPress/MySQL; EXPLAIN the indexed subgroup box queries for all four districts; measure p50/p95 latency and PHP peak memory under the real table (target candidate reads under 256 per normal subgroup and an agreed page-query budget); verify 3.5 km boundary cases, real route classifications and names against OSM; exercise failure during import and simultaneous read/rollback; inspect all 127 property coordinates against chosen source coverage; validate count changes; confirm old-generation retention and page-cache purge. No benchmark/coverage or production-readiness claim is made from synthetic fixtures.

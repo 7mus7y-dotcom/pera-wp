@@ -2,6 +2,8 @@
 /** Cached, demand-driven OSM nearby places. No HTTP during rendering. */
 if ( ! defined( 'ABSPATH' ) ) exit;
 
+require_once __DIR__ . '/nearby-amenities-local.php';
+
 function pera_nearby_coordinates( $map ) {
     if ( ! is_array( $map ) || ! isset( $map['lat'], $map['lng'] ) || ! is_numeric( $map['lat'] ) || ! is_numeric( $map['lng'] ) ) return null;
     $lat = (float) $map['lat']; $lng = (float) $map['lng'];
@@ -78,6 +80,8 @@ function pera_nearby_query( array $center ) {
 }
 
 function pera_nearby_cached( array $coordinates ) {
+    if ( pera_nearby_provider() === 'local' ) return pera_nearby_local_places( $coordinates );
+    if ( pera_nearby_provider() !== 'overpass' ) return array();
     $cell = pera_nearby_cell( $coordinates ); $cached = get_transient( $cell['key'] );
     if ( ( ! is_array( $cached ) || ( $cached['updated'] ?? 0 ) < time() - 7 * DAY_IN_SECONDS ) && ! get_transient( $cell['key'] . '_retry' ) && ! wp_next_scheduled( 'pera_nearby_refresh', array( $cell['center'] ) ) ) {
         wp_schedule_single_event( time() + 10, 'pera_nearby_refresh', array( $cell['center'] ) );
@@ -104,6 +108,8 @@ function pera_nearby_unlock( $name, $expires ) {
 function pera_nearby_refresh( $center, $schedule_deferred = true ) {
     $center = pera_nearby_coordinates( array( 'lat' => $center[0] ?? null, 'lng' => $center[1] ?? null ) );
     if ( ! $center ) return 'invalid';
+    if ( pera_nearby_provider() === 'local' ) return pera_nearby_dataset_state() ? 'fresh' : 'failed';
+    if ( pera_nearby_provider() !== 'overpass' ) return 'failed';
     $cell = pera_nearby_cell( $center ); $key = $cell['key'];
     if ( get_transient( $key . '_retry' ) ) return 'backoff';
     $cached = get_transient( $key );

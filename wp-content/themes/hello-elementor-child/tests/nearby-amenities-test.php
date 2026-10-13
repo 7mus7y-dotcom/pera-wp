@@ -20,12 +20,12 @@ function set_transient( $key, $value, $ttl ) { global $cache; $cache[$key] = arr
 function delete_transient( $key ) { global $cache; unset( $cache[$key] ); }
 function wp_next_scheduled( $hook, $args ) { global $events; return $events[serialize( $args )] ?? false; }
 function wp_schedule_single_event( $time, $hook, $args ) { global $events; $events[serialize( $args )] = $time; }
-function update_option( $key, $value, $autoload = null ) { global $options; $options[$key] = $value; return true; }
+function update_option( $key, $value, $autoload = null ) { if ( ( $GLOBALS['fail_update_option'] ?? null ) === $key ) return false; global $options; $options[$key] = $value; return true; }
 function get_option( $key, $default = false ) { global $options; return $options[$key] ?? $default; }
 function add_option( $key, $value, ...$rest ) { global $options; if ( isset( $options[$key] ) ) return false; $options[$key] = $value; return true; }
 function wp_cache_delete( ...$args ) {}
 function wp_rand( $a, $b ) { return $a; }
-function apply_filters( $key, $value ) { return $value; }
+function apply_filters( $key, $value ) { return $key === 'pera_nearby_provider' ? ( $GLOBALS['test_provider'] ?? 'overpass' ) : $value; }
 function home_url( $path ) { return 'https://example.test' . $path; }
 function wp_remote_post( $url, $args ) { global $response, $requests; $requests[] = $args; return $response; }
 function is_wp_error( $value ) { return $value === 'error'; }
