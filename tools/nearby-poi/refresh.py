@@ -39,12 +39,14 @@ def verify_download(path, checksum_text, filename):
         raise ValueError('Source checksum mismatch (including latest-file rotation)')
 
 
-def refresh(directory, version, source='geofabrik', previous=None, bootstrap=False, force=False):
+def refresh(directory, version, source='geofabrik', previous=None, bootstrap=False, force=False, migration=False):
     directory = pathlib.Path(directory)
     directory.mkdir(parents=True, exist_ok=True)
     policy = json.loads((ROOT.parents[1]/'wp-content/themes/hello-elementor-child/inc/data/nearby-poi-policy.json').read_text())
     period = dt.datetime.now(dt.timezone.utc).strftime('%Y-%m')
-    if previous and previous.get('passed') and previous.get('refresh_period') == period and not force:
+    if previous and previous.get('classification_version', 1) != policy['classification_version'] and not migration:
+        raise ValueError('Classification version changed; require explicit --classification-migration')
+    if previous and previous.get('passed') and previous.get('refresh_period') == period and not force and not migration:
         result = dict(skipped=True, reason='This month already accepted', version=previous['version'])
         (directory/'result.json').write_text(json.dumps(result)+'\n')
         return result
@@ -76,7 +78,7 @@ def refresh(directory, version, source='geofabrik', previous=None, bootstrap=Fal
     subprocess.run(['python3', str(ROOT/'build.py'), str(pbf), str(artifact), '--source='+url,
                     '--source-sha256='+input_sha256, '--source-timestamp='+source_date,
                     '--version='+version, '--refresh-period='+period], check=True)
-    report = validate(artifact, policy, previous, bootstrap)
+    report = validate(artifact, policy, previous, bootstrap, migration=migration)
     report['download_sha256'] = download_sha256
     report['source_integrity'] = 'HTTPS + published MD5 + full PBF parse; SHA-256 records identity, not a source signature'
     (directory/'report.json').write_text(json.dumps(report, ensure_ascii=False, indent=2)+'\n')
@@ -102,11 +104,11 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--directory', required=True); parser.add_argument('--version', required=True)
     parser.add_argument('--source', choices=SOURCES, default='geofabrik')
-    parser.add_argument('--previous'); parser.add_argument('--bootstrap', action='store_true'); parser.add_argument('--force', action='store_true')
+    parser.add_argument('--classification-migration', action='store_true'); parser.add_argument('--previous'); parser.add_argument('--bootstrap', action='store_true'); parser.add_argument('--force', action='store_true')
     args = parser.parse_args()
     try:
         print(json.dumps(refresh(args.directory, args.version, args.source,
-            json.loads(pathlib.Path(args.previous).read_text()) if args.previous else None, args.bootstrap, args.force)))
+            json.loads(pathlib.Path(args.previous).read_text()) if args.previous else None, args.bootstrap, args.force, args.classification_migration)))
     except Exception as error:
         directory = pathlib.Path(args.directory)
         directory.mkdir(parents=True, exist_ok=True)

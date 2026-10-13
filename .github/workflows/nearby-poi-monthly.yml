@@ -12,6 +12,10 @@ on:
         description: 'Rebuild even if this calendar month was already accepted'
         type: boolean
         default: false
+      classification_migration:
+        description: 'Reviewed v1 to v2 transport rebuild; keeps delivery disabled'
+        type: boolean
+        default: false
       deliver:
         description: 'Production delivery opt-in; ignored for bootstrap and also requires POI_DELIVERY_ENABLED=true'
         type: boolean
@@ -56,12 +60,14 @@ jobs:
         id: refresh
         env:
           BOOTSTRAP: ${{ github.event_name == 'workflow_dispatch' && inputs.bootstrap }}
+          MIGRATION: ${{ github.event_name == 'workflow_dispatch' && inputs.classification_migration }}
           FORCE: ${{ github.event_name == 'workflow_dispatch' && inputs.force }}
         run: |
           set -euo pipefail
           args=()
           if [ -f work/baseline/report.json ]; then args+=(--previous=work/baseline/report.json); fi
           if [ "$BOOTSTRAP" = true ]; then args+=(--bootstrap); fi
+          if [ "$MIGRATION" = true ]; then args+=(--classification-migration); fi
           if [ "$FORCE" = true ]; then args+=(--force); fi
           version="$(date -u +%Y%m%dT%H%M%SZ)-${GITHUB_RUN_ID}"
           python tools/nearby-poi/refresh.py --source=geofabrik --directory=work/monthly --version="$version" "${args[@]}" 2>&1 | tee work/monthly/build.log
@@ -154,7 +160,7 @@ jobs:
           if-no-files-found: error
   deliver:
     needs: [build, database-acceptance]
-    if: needs.build.outputs.skipped == 'false' && vars.POI_DELIVERY_ENABLED == 'true' && (github.event_name == 'schedule' || (github.event_name == 'workflow_dispatch' && inputs.deliver && !inputs.bootstrap))
+    if: needs.build.outputs.skipped == 'false' && vars.POI_DELIVERY_ENABLED == 'true' && (github.event_name == 'schedule' || (github.event_name == 'workflow_dispatch' && inputs.deliver && !inputs.bootstrap && !inputs.classification_migration))
     environment: nearby-poi-production
     runs-on: ubuntu-24.04
     timeout-minutes: 45

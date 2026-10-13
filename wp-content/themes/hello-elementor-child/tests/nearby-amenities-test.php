@@ -87,7 +87,7 @@ foreach ( array( null, array(), array( 'lat' => '', 'lng' => 2 ), array( 'lat' =
 check( pera_nearby_coordinates( array( 'lat' => 0, 'lng' => 0 ) ) === array( 0.0, 0.0 ), 'Zero is a valid coordinate' );
 check( pera_nearby_cell( array( 41.011, 29.011 ) )['key'] === $key, 'Nearby properties share cell' );
 check( abs( pera_nearby_distance( array( 0, 0 ), array( 0, 1 ) ) - 111195 ) < 2, 'Haversine distance' );
-check( pera_nearby_group( array( 'railway' => 'station', 'name' => 'Marmaray' ) ) === 'marmaray', 'Marmaray explicit classification' );
+check( pera_nearby_group( array( 'railway' => 'station', 'network' => 'Marmaray', 'name' => 'Marmaray' ) ) === 'marmaray', 'Marmaray explicit classification' );
 check( pera_nearby_group( array( 'highway' => 'bus_stop', 'network' => 'Metrobüs' ) ) === 'metrobus', 'Metrobus classification' );
 check( pera_nearby_group( array( 'railway' => 'station', 'name' => 'Unclassified' ) ) === 'rail', 'Generic rail not assumed Metro' );
 check( pera_nearby_cached( $coordinates ) === array() && count( $requests ) === 0 && count( $events ) === 1, 'Miss schedules without HTTP' );
@@ -97,7 +97,7 @@ check( $requests[0]['timeout'] === 25 && $requests[0]['limit_response_size'] ===
 $events = array(); pera_nearby_cached( $coordinates ); check( ! $events, 'Fresh empty cache not refreshed' );
 $elements = array(
     array( 'type' => 'node', 'id' => 1, 'lat' => 41.011, 'lon' => 29.01, 'tags' => array( 'railway' => 'station', 'name' => 'Original', 'name:tr' => 'Yerel', 'name:ar' => 'محطة' ) ),
-    array( 'type' => 'relation', 'id' => 2, 'tags' => array( 'route' => 'subway', 'name' => 'M2' ), 'members' => array( array( 'type' => 'node', 'ref' => 1 ) ) ),
+    array( 'type' => 'relation', 'id' => 2, 'tags' => array( 'type' => 'route', 'route' => 'subway', 'name' => 'M2' ), 'members' => array( array( 'type' => 'node', 'ref' => 1 ) ) ),
     array( 'type' => 'way', 'id' => 3, 'center' => array( 'lat' => 41.02, 'lon' => 29.01 ), 'tags' => array( 'amenity' => 'school', 'name' => 'School <unsafe>' ) ),
     array( 'type' => 'node', 'id' => 4, 'lat' => 41.01, 'lon' => 29.01, 'tags' => array( 'shop' => 'mall' ) ),
 );

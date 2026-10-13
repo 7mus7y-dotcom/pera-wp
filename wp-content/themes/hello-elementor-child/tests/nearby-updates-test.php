@@ -54,9 +54,9 @@ $options['pera_nearby_import_lock'] = time() + 300;
 try { pera_nearby_import_batch( $path, $report, 100 ); throw new LogicException( 'Expected duplicate job rejection' ); } catch ( RuntimeException $expected ) {}
 unset( $options['pera_nearby_import_lock'] );
 while ( ! ( $result = pera_nearby_import_batch( $path, $report, 100 ) )['complete'] ) {}
-check( $result['count'] === 770 && ! get_option( 'pera_nearby_import_session' ), 'Replay safely completes 770 synthetic rows after interruption' );
+check( $result['count'] === 880 && ! get_option( 'pera_nearby_import_session' ), 'Replay safely completes 880 synthetic rows after interruption' );
 $status = pera_nearby_update_status();
-check( $status['active_version'] === 'synthetic_first' && $status['poi_count'] === 770 && $status['last_successful_import'] && ! $status['last_error'] && $status['next_scheduled_refresh'], 'Status contains version/count/success/schedule/error fields' );
+check( $status['active_version'] === 'synthetic_first' && $status['poi_count'] === 880 && $status['last_successful_import'] && ! $status['last_error'] && $status['next_scheduled_refresh'], 'Status contains version/count/success/schedule/error fields' );
 check( pera_nearby_import_batch( $path, $report, 100 )['already_active'], 'Duplicate delivery of same accepted version is idempotent' );
 check( pera_nearby_preflight( $path, $report )['metadata']['version'] === 'synthetic_first', 'Receiver preflight permits identical accepted version after activation' );
 $active = pera_nearby_dataset_state();
@@ -71,7 +71,7 @@ $complete = pera_nearby_import_batch( $next_path, $next_report, 2000 );
 check( $complete['complete'] && pera_nearby_update_status()['previous_version'] === 'synthetic_first', 'New generation activates with coherent previous descriptor' );
 // Simulate crash AFTER activation but BEFORE deleting the checkpoint.
 $activated = pera_nearby_dataset_state();
-$options['pera_nearby_import_session'] = array_merge( $checkpoint, array( 'path' => realpath( $next_path ), 'report_path' => realpath( $next_report ), 'artifact_sha256' => hash_file( 'sha256', $next_path ), 'report_sha256' => hash_file( 'sha256', $next_report ), 'table' => $activated['table'], 'metadata' => $activated['metadata'], 'validation' => $activated['validation'], 'offset' => filesize( $next_path ), 'count' => 770 ) );
+$options['pera_nearby_import_session'] = array_merge( $checkpoint, array( 'path' => realpath( $next_path ), 'report_path' => realpath( $next_report ), 'artifact_sha256' => hash_file( 'sha256', $next_path ), 'report_sha256' => hash_file( 'sha256', $next_report ), 'table' => $activated['table'], 'metadata' => $activated['metadata'], 'validation' => $activated['validation'], 'offset' => filesize( $next_path ), 'count' => 880 ) );
 check( pera_nearby_import_batch( $next_path, $next_report, 100 )['complete'] && pera_nearby_update_status()['previous_version'] === 'synthetic_first', 'Post-activation crash recovery never overwrites previous-generation rollback' );
 pera_nearby_rollback(); check( pera_nearby_update_status()['active_version'] === 'synthetic_first', 'Accepted generation rollback restores version/status' );
 // A staging session must protect itself from cleanup and abort must preserve active data.

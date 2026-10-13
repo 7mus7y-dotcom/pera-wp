@@ -35,8 +35,8 @@ class BuildTests(unittest.TestCase):
 
     def test_php_classifier(self):
         adapter = pathlib.Path(__file__).with_name('normalize.php')
-        for tags, expected in [({'railway': 'station', 'route_subway': 'yes'}, 'metro'),
-                               ({'railway': 'station', 'route_names': 'Marmaray'}, 'marmaray'),
+        for tags, expected in [({'railway': 'station', 'subway': 'yes'}, 'metro'),
+                               ({'railway': 'station', 'network': 'Marmaray'}, 'marmaray'),
                                ({'highway': 'bus_stop', 'network': 'Metrobüs'}, 'metrobus'),
                                ({'amenity': 'ferry_terminal'}, 'ferry'),
                                ({'railway': 'station'}, 'rail'),

@@ -17,15 +17,15 @@ class BootstrapTests(unittest.TestCase):
         workflow = yaml.load((ROOT/'.github/workflows/nearby-poi-monthly.yml').read_text(), Loader=yaml.BaseLoader)
         inputs = workflow['on']['workflow_dispatch']['inputs']
         self.assertEqual(inputs['deliver']['default'], 'false')
-        expression = workflow['jobs']['deliver']['if'].replace('&&', ' and ').replace('||', ' or ').replace('!inputs.bootstrap', 'not inputs.bootstrap')
-        for event, enabled, bootstrap, deliver, skipped in itertools.product(
-                ('schedule', 'workflow_dispatch', 'push'), (False, True), (False, True), (False, True), (False, True)):
+        expression = workflow['jobs']['deliver']['if'].replace('&&', ' and ').replace('||', ' or ').replace('!inputs.bootstrap', 'not inputs.bootstrap').replace('!inputs.classification_migration', 'not inputs.classification_migration')
+        for event, enabled, bootstrap, deliver, skipped, migration in itertools.product(
+                ('schedule', 'workflow_dispatch', 'push'), (False, True), (False, True), (False, True), (False, True), (False, True)):
             namespace = dict(github=types.SimpleNamespace(event_name=event),
                 vars=types.SimpleNamespace(POI_DELIVERY_ENABLED=str(enabled).lower()),
-                inputs=types.SimpleNamespace(bootstrap=bootstrap, deliver=deliver),
+                inputs=types.SimpleNamespace(bootstrap=bootstrap, deliver=deliver, classification_migration=migration),
                 needs=types.SimpleNamespace(build=types.SimpleNamespace(outputs=types.SimpleNamespace(skipped=str(skipped).lower()))))
             actual = eval(expression, {'__builtins__': {}}, namespace)
-            expected = enabled and not skipped and (event == 'schedule' or (event == 'workflow_dispatch' and deliver and not bootstrap))
+            expected = enabled and not skipped and (event == 'schedule' or (event == 'workflow_dispatch' and deliver and not bootstrap and not migration))
             self.assertEqual(actual, expected, namespace)
         for name in ('build', 'database-acceptance'):
             job = workflow['jobs'][name]
