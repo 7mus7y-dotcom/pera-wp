@@ -1,0 +1,209 @@
+name: Monthly Istanbul POI refresh
+on:
+  schedule:
+    - cron: '0 4 1 * *' # 07:00 Europe/Istanbul, first day of each month.
+  workflow_dispatch:
+    inputs:
+      bootstrap:
+        description: 'First accepted dataset only; requires initial coverage/transport review before enabling delivery'
+        type: boolean
+        default: false
+      force:
+        description: 'Rebuild even if this calendar month was already accepted'
+        type: boolean
+        default: false
+permissions:
+  contents: read
+concurrency:
+  group: pera-nearby-poi-monthly
+  cancel-in-progress: false
+jobs:
+  build:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 120
+    outputs:
+      version: ${{ steps.refresh.outputs.version }}
+      skipped: ${{ steps.refresh.outputs.skipped }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install offline tools
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y osmium-tool php-cli
+          python -m pip install -r tools/nearby-poi/requirements.txt
+          osmium --version
+          php --version
+      - name: Fetch last accepted baseline (never a merely built artifact)
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+        run: |
+          mkdir -p work/baseline work/monthly
+          gh api --paginate "repos/$GH_REPO/releases?per_page=100" --jq '.[] | select(.draft==false and .prerelease==false and (.tag_name | startswith("poi-accepted-"))) | .tag_name' > work/accepted-tags
+          tag=$(LC_ALL=C sort -r work/accepted-tags | head -n 1)
+          if [ -n "$tag" ]; then
+            gh release download "$tag" --pattern report.json --pattern dataset.poi.ndjson --pattern SHA256SUMS --pattern LICENSE.txt --dir work/baseline
+            (cd work/baseline && sha256sum --check --strict SHA256SUMS)
+          fi
+      - name: Build, compare and accept
+        id: refresh
+        env:
+          BOOTSTRAP: ${{ github.event_name == 'workflow_dispatch' && inputs.bootstrap }}
+          FORCE: ${{ github.event_name == 'workflow_dispatch' && inputs.force }}
+        run: |
+          args=()
+          if [ -f work/baseline/report.json ]; then args+=(--previous=work/baseline/report.json); fi
+          if [ "$BOOTSTRAP" = true ]; then args+=(--bootstrap); fi
+          if [ "$FORCE" = true ]; then args+=(--force); fi
+          version="$(date -u +%Y%m%dT%H%M%SZ)-${GITHUB_RUN_ID}"
+          python tools/nearby-poi/refresh.py --directory=work/monthly --version="$version" "${args[@]}"
+          echo "version=$version" >> "$GITHUB_OUTPUT"
+          python -c 'import json,os; r=json.load(open("work/monthly/result.json")); open(os.environ["GITHUB_OUTPUT"],"a").write("skipped="+str(r["skipped"]).lower()+"\n")'
+          if [ -f work/monthly/summary.txt ]; then cat work/monthly/summary.txt >> "$GITHUB_STEP_SUMMARY"; fi
+      - name: Retain validated compact bundle (source PBF is excluded)
+        if: steps.refresh.outputs.skipped == 'false'
+        uses: actions/upload-artifact@v4
+        with:
+          name: nearby-poi-${{ steps.refresh.outputs.version }}
+          retention-days: 90
+          if-no-files-found: error
+          path: |
+            work/monthly/dataset.poi.ndjson
+            work/monthly/report.json
+            work/monthly/LICENSE.txt
+            work/monthly/SHA256SUMS
+            work/monthly/summary.txt
+      - name: Retain diagnostic logs on failed builds
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: nearby-poi-failed-${{ github.run_id }}
+          retention-days: 30
+          if-no-files-found: ignore
+          path: |
+            work/monthly/source-info.json
+            work/monthly/source-checksum.txt
+  database-acceptance:
+    needs: build
+    if: needs.build.outputs.skipped == 'false'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    services:
+      mariadb:
+        image: mariadb:10.11
+        env:
+          MARIADB_ALLOW_EMPTY_ROOT_PASSWORD: 'yes' # Disposable CI database only; no production credential.
+        ports:
+          - 3306:3306
+        options: >-
+          --health-cmd="healthcheck.sh --connect --innodb_initialized"
+          --health-interval=10s --health-timeout=5s --health-retries=10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
+        with:
+          name: nearby-poi-${{ needs.build.outputs.version }}
+          path: work/monthly
+      - name: Install disposable WordPress and its DB runtime
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y php-cli php-mysql php-mbstring mariadb-client
+          curl --fail --proto '=https' https://raw.githubusercontent.com/wp-cli/builds/gh-pages/phar/wp-cli.phar -o work/wp-cli.phar
+          mkdir -p work/wordpress work/baseline
+          php work/wp-cli.phar --path=work/wordpress core download
+          php work/wp-cli.phar --path=work/wordpress config create --dbname=poi_acceptance --dbuser=root --dbpass='' --dbhost=127.0.0.1:3306
+          php work/wp-cli.phar --path=work/wordpress db create
+          php work/wp-cli.phar --path=work/wordpress config set PERA_POI_STAGING_CHECK true --raw
+          php work/wp-cli.phar --path=work/wordpress core install --url=http://pera-poi.invalid --title='Disposable POI acceptance' --admin_user=ci --admin_password="$(openssl rand -hex 24)" --admin_email=ci@example.invalid --skip-email
+          previous=$(python3 -c 'import json; print(json.load(open("work/monthly/report.json")).get("previous_body_sha256") or "")')
+          if [ -n "$previous" ]; then
+            gh api --paginate "repos/$GH_REPO/releases?per_page=100" --jq '.[] | select(.draft==false and .prerelease==false and (.tag_name | startswith("poi-accepted-"))) | .tag_name' > work/accepted-tags
+            tag=$(LC_ALL=C sort -r work/accepted-tags | head -n 1)
+            gh release download "$tag" --pattern report.json --pattern dataset.poi.ndjson --pattern SHA256SUMS --pattern LICENSE.txt --dir work/baseline
+            (cd work/baseline && sha256sum --check --strict SHA256SUMS)
+          fi
+      - name: Test real artifact, query plans, correctness, cache and PHP memory
+        run: |
+          POI_ARTIFACT="$PWD/work/monthly/dataset.poi.ndjson" POI_REPORT="$PWD/work/monthly/report.json" \
+          POI_BASELINE="$PWD/work/baseline/dataset.poi.ndjson" POI_BASELINE_REPORT="$PWD/work/baseline/report.json" \
+          POI_DB_REPORT="$PWD/work/monthly/database-report.json" \
+            php -d memory_limit=128M work/wp-cli.phar --path=work/wordpress eval-file tools/nearby-poi/staging-check.php
+      - name: Retain real database acceptance evidence
+        uses: actions/upload-artifact@v4
+        with:
+          name: nearby-poi-db-${{ needs.build.outputs.version }}
+          retention-days: 90
+          path: work/monthly/database-report.json
+          if-no-files-found: error
+  deliver:
+    needs: [build, database-acceptance]
+    if: needs.build.outputs.skipped == 'false' && vars.POI_DELIVERY_ENABLED == 'true'
+    environment: nearby-poi-production
+    runs-on: ubuntu-24.04
+    timeout-minutes: 45
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          name: nearby-poi-${{ needs.build.outputs.version }}
+          path: bundle
+      - uses: actions/download-artifact@v4
+        with:
+          name: nearby-poi-db-${{ needs.build.outputs.version }}
+          path: bundle
+      - name: Verify and deliver through a restricted SSH command
+        env:
+          POI_SSH_KEY: ${{ secrets.POI_SSH_KEY }}
+          POI_KNOWN_HOSTS: ${{ secrets.POI_KNOWN_HOSTS }}
+          POI_SSH_HOST: ${{ secrets.POI_SSH_HOST }}
+          POI_SSH_USER: ${{ secrets.POI_SSH_USER }}
+          POI_SSH_PORT: ${{ secrets.POI_SSH_PORT }}
+          VERSION: ${{ needs.build.outputs.version }}
+        run: |
+          set -euo pipefail
+          [[ "$VERSION" =~ ^[A-Za-z0-9_-]{1,80}$ ]]
+          [[ "$POI_SSH_HOST" =~ ^[A-Za-z0-9.-]+$ && "$POI_SSH_USER" =~ ^[A-Za-z0-9_-]+$ && "$POI_SSH_PORT" =~ ^[0-9]+$ ]]
+          test -n "$POI_SSH_KEY" && test -n "$POI_KNOWN_HOSTS"
+          mkdir -p ~/.ssh
+          chmod 700 ~/.ssh
+          printf '%s\n' "$POI_SSH_KEY" > ~/.ssh/poi-key
+          printf '%s\n' "$POI_KNOWN_HOSTS" > ~/.ssh/known_hosts
+          chmod 600 ~/.ssh/poi-key ~/.ssh/known_hosts
+          trap 'rm -f ~/.ssh/poi-key' EXIT
+          (cd bundle && sha256sum --check --strict SHA256SUMS)
+          tar -czf bundle.tar.gz -C bundle dataset.poi.ndjson report.json LICENSE.txt SHA256SUMS summary.txt
+          ssh -T -i ~/.ssh/poi-key -p "$POI_SSH_PORT" -o BatchMode=yes -o IdentitiesOnly=yes -o StrictHostKeyChecking=yes -o ConnectTimeout=20 \
+            "$POI_SSH_USER@$POI_SSH_HOST" "receive $VERSION" < bundle.tar.gz
+      - name: Retain accepted production baseline for rollback and next comparison
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+          VERSION: ${{ needs.build.outputs.version }}
+        run: |
+          gh release create "poi-accepted-$VERSION" --latest=false --target "$GITHUB_SHA" --title "Accepted POI dataset $VERSION" --notes-file bundle/summary.txt \
+            bundle/dataset.poi.ndjson bundle/report.json bundle/LICENSE.txt bundle/SHA256SUMS bundle/database-report.json
+  notify-failure:
+    needs: [build, database-acceptance, deliver]
+    if: always() && (needs.database-acceptance.result == 'failure' || needs.build.result == 'failure' || needs.deliver.result == 'failure' || needs.database-acceptance.result == 'cancelled' || needs.build.result == 'cancelled' || needs.deliver.result == 'cancelled')
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    permissions:
+      issues: write
+    steps:
+      - name: Open an actionable failure issue (repository watchers receive notifications)
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+          BUILD_RESULT: ${{ needs.build.result }}
+          DELIVER_RESULT: ${{ needs.deliver.result }}
+        run: |
+          printf 'Monthly POI refresh failed or was cancelled. Inspect logs: %s\n\nBuild: %s\nDelivery: %s\nThe prior active dataset is retained on failures before activation. For a post-activation failure, inspect WP-CLI status before retrying.\n' "$RUN_URL" "$BUILD_RESULT" "$DELIVER_RESULT" > failure.md
+          gh issue create --title "Nearby POI refresh needs attention (run $GITHUB_RUN_ID)" --body-file failure.md

@@ -42,28 +42,31 @@ function pera_nearby_local_places( array $point ) {
     global $wpdb;
     $active = pera_nearby_dataset_state();
     if ( ! $active ) return array();
+    $cache_key = 'pera_poi_local_c1_' . md5( $active['table'] . serialize( $point ) );
+    $cached = get_transient( $cache_key );
+    if ( is_array( $cached ) && count( $cached ) <= 45 && count( array_filter( $cached, 'pera_nearby_valid_place' ) ) === count( $cached ) ) return $cached;
     $table = $active['table']; $bounds = pera_nearby_bounds( $point ); $places = array();
-    $longitude = 'lng BETWEEN %f AND %f'; $west = $bounds[2]; $east = $bounds[3];
-    if ( $west < -180 ) { $longitude = '(lng >= %f OR lng <= %f)'; $west += 360; }
-    elseif ( $east > 180 ) { $longitude = '(lng >= %f OR lng <= %f)'; $east -= 360; }
+    $longitude = 'lng BETWEEN %s AND %s'; $west = $bounds[2]; $east = $bounds[3];
+    if ( $west < -180 ) { $longitude = '(lng >= %s OR lng <= %s)'; $west += 360; }
+    elseif ( $east > 180 ) { $longitude = '(lng >= %s OR lng <= %s)'; $east -= 360; }
     foreach ( pera_nearby_local_groups() as $group ) {
         $best = array(); $offset = 0;
         do {
             $rows = $wpdb->get_results( $wpdb->prepare(
-                "SELECT osm_id,lat,lng,names, POW(SIN(RADIANS(lat - %f)/2),2) + COS(RADIANS(%f))*COS(RADIANS(lat))*POW(SIN(RADIANS(lng - %f)/2),2) AS proximity FROM `$table` WHERE poi_group = %s AND lat BETWEEN %f AND %f AND $longitude ORDER BY proximity,osm_id LIMIT 256 OFFSET %d",
-                $point[0], $point[0], $point[1], $group, $bounds[0], $bounds[1], $west, $east, $offset
+                "SELECT osm_id,lat,lng,names, POW(SIN(RADIANS(lat - %s)/2),2) + COS(RADIANS(%s))*COS(RADIANS(lat))*POW(SIN(RADIANS(lng - %s)/2),2) AS proximity FROM `$table` WHERE poi_group = %s AND lat BETWEEN %s AND %s AND $longitude ORDER BY proximity,osm_id LIMIT 256 OFFSET %d",
+                json_encode( (float) $point[0] ), json_encode( (float) $point[0] ), json_encode( (float) $point[1] ), $group, json_encode( $bounds[0] ), json_encode( $bounds[1] ), json_encode( $west ), json_encode( $east ), $offset
             ), ARRAY_A );
             if ( $wpdb->last_error ) return array(); // Missing/corrupt store fails gracefully; airports remain independent.
             foreach ( $rows as $row ) {
-
                 $place = array( 'id' => $row['osm_id'], 'point' => array( (float) $row['lat'], (float) $row['lng'] ), 'group' => $group, 'names' => json_decode( $row['names'], true ) );
                 if ( pera_nearby_valid_place( $place ) ) $best = pera_nearby_keep_nearest( $best, $place, $point );
                 if ( count( $best ) === 3 ) break;
             }
-        $offset += 256;
+            $offset += 256;
         } while ( count( $best ) < 3 && count( $rows ) === 256 );
         $places = array_merge( $places, $best );
     }
+    if ( strlen( wp_json_encode( $places ) ) <= 131072 ) set_transient( $cache_key, $places, 7 * DAY_IN_SECONDS );
     return $places;
 }
 
@@ -81,6 +84,7 @@ function pera_nearby_valid_place( $place ) {
 
 /** Stream into an unpublished generation. Failed validation never changes the active pointer. */
 function pera_nearby_import( $path ) {
+    if ( get_option( 'pera_nearby_import_session' ) ) throw new RuntimeException( 'A resumable import is pending; resume or abort it first.' );
     global $wpdb;
     $lock = pera_nearby_lock( 'pera_nearby_import_lock', 3600 );
     if ( ! $lock ) throw new RuntimeException( 'Another import/rollback is running.' );
@@ -99,16 +103,17 @@ function pera_nearby_import( $path ) {
             $names_json = wp_json_encode( $place['names'], JSON_UNESCAPED_UNICODE );
             $aliases_json = wp_json_encode( $place['aliases'] ?? array(), JSON_UNESCAPED_UNICODE );
             if ( ! is_string( $names_json ) || ! is_string( $aliases_json ) || strlen( $names_json ) > 65535 || strlen( $aliases_json ) > 65535 ) throw new RuntimeException( 'Encoded record exceeds database column capacity.' );
-            if ( false === $wpdb->insert( $table, array( 'osm_id' => $place['id'], 'poi_group' => $place['group'], 'lat' => $place['point'][0], 'lng' => $place['point'][1], 'names' => $names_json, 'aliases' => $aliases_json ), array( '%s', '%s', '%f', '%f', '%s', '%s' ) ) ) throw new RuntimeException( 'Insert failed (including duplicate OSM identifier).' );
+            if ( false === $wpdb->insert( $table, array( 'osm_id' => $place['id'], 'poi_group' => $place['group'], 'lat' => json_encode( (float) $place['point'][0] ), 'lng' => json_encode( (float) $place['point'][1] ), 'names' => $names_json, 'aliases' => $aliases_json ), array( '%s', '%s', '%s', '%s', '%s', '%s' ) ) ) throw new RuntimeException( 'Insert failed (including duplicate OSM identifier).' );
             $count++;
         }
         if ( ! feof( $file ) || $count !== $metadata['count'] || ! hash_equals( $metadata['sha256'], hash_final( $hash ) ) ) throw new RuntimeException( 'Dataset count/checksum mismatch.' );
         // Refuse to publish after losing our lease; no partially filled generation can become visible.
         if ( (int) get_option( 'pera_nearby_import_lock' ) !== $lock || $lock <= time() ) throw new RuntimeException( 'Import lease expired; retry with a smaller artifact.' );
         $old = pera_nearby_dataset_state();
-        $state = array( 'active' => array( 'table' => $table, 'metadata' => $metadata ), 'previous' => $old );
+        $state = array( 'active' => array( 'table' => $table, 'metadata' => $metadata, 'imported_at' => gmdate( 'c' ) ), 'previous' => $old );
         if ( ! update_option( 'pera_nearby_dataset', $state, false ) ) throw new RuntimeException( 'Dataset publication failed.' );
         $published = true;
+        update_option( 'pera_nearby_update_status', array( 'last_error' => null, 'last_attempt' => gmdate( 'c' ), 'last_successful_import' => $state['active']['imported_at'] ), false );
         return $state['active'];
     } finally {
         if ( is_resource( $file ) ) fclose( $file );
@@ -118,6 +123,7 @@ function pera_nearby_import( $path ) {
 }
 
 function pera_nearby_rollback() {
+    if ( get_option( 'pera_nearby_import_session' ) ) throw new RuntimeException( 'Abort/resume the pending import before rollback.' );
     $lock = pera_nearby_lock( 'pera_nearby_import_lock', 60 );
     if ( ! $lock ) throw new RuntimeException( 'Import/rollback is running.' );
     try {
@@ -128,3 +134,5 @@ function pera_nearby_rollback() {
         return $previous;
     } finally { pera_nearby_unlock( 'pera_nearby_import_lock', $lock ); }
 }
+
+require_once __DIR__ . '/nearby-amenities-updates.php';

@@ -83,6 +83,7 @@ foreach ( array( 'en', 'tr', 'ar' ) as $language ) {
     check( substr_count( $html, 'role="tab"' ) === 5 && strpos( $html, $language === 'ar' ? 'مدرسة' : ( $language === 'tr' ? 'Örnek okul' : 'Sisli fixture 0' ) ) !== false, 'Local output preserves tabs and multilingual names' );
 }
 check( ! $requests && ! $events, 'Local rendering and refresh make no external HTTP or cron jobs' );
+$cache = array();
 $table = pera_nearby_dataset_state()['table']; unset( $wpdb->tables[$table] );
 check( ! pera_nearby_cached( array( 41, 29 ) ), 'Missing table fails gracefully' );
 ob_start(); pera_render_nearby_amenities( array( 'lat' => 41, 'lng' => 29 ) ); check( strpos( ob_get_clean(), '(SAW)' ) !== false, 'Airports remain independently available' );
@@ -100,6 +101,7 @@ class Streaming_Test_DB extends Local_Test_DB {
         $this->peak_batch = max( $this->peak_batch, count( $rows ) ); return $rows;
     }
 }
+$cache = array();
 $wpdb = new Streaming_Test_DB();
 $before = memory_get_usage( true ); $started = microtime( true );
 $places = pera_nearby_cached( array( 41, 29 ) );

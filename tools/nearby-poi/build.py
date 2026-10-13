@@ -153,6 +153,8 @@ def build(args):
             if not line:
                 raise RuntimeError('PHP normalizer terminated')
             for place in json.loads(line):
+                if place['group'] in ('metro', 'marmaray', 'metrobus', 'ferry', 'rail'):
+                    place['classification_tags'] = {k: v for k, v in tags.items() if k in ('railway', 'station', 'subway', 'route_subway', 'route_names', 'network', 'operator', 'amenity', 'highway', 'bus')}
                 if not store_place(db, place):
                     stats['deduplicated'] += 1
 
@@ -208,7 +210,7 @@ def build(args):
         db.commit()
         metadata = write_artifact(db, output, dict(source=args.source, source_sha256=args.source_sha256,
             source_timestamp=args.source_timestamp, version=args.version, bounds=args.bounds, statistics=stats,
-            builder='pera-nearby-v1', geometry='source bounding-box/member-centre approximation'))
+            builder='pera-nearby-v1', classification_version=1, refresh_period=getattr(args, 'refresh_period', None), geometry='source bounding-box/member-centre approximation'))
         print(json.dumps(metadata, ensure_ascii=False))
 
 
@@ -220,6 +222,7 @@ if __name__ == '__main__':
     parser.add_argument('--source-sha256', required=True)
     parser.add_argument('--source-timestamp', required=True)
     parser.add_argument('--version', required=True)
+    parser.add_argument('--refresh-period')
     parser.add_argument('--php', default='php')
     parser.add_argument('--bounds', nargs=4, type=float, default=[27.8, 40.7, 30.1, 41.7], metavar=('W','S','E','N'))
     args = parser.parse_args()

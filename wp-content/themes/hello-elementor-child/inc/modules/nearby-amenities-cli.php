@@ -127,11 +127,15 @@ function pera_nearby_warm_command( $args, $assoc_args ) {
 WP_CLI::add_command( 'pera nearby warm', 'pera_nearby_warm_command' );
 
 /** Import a compact, validated artifact: wp pera nearby import /absolute/path/dataset.ndjson */
-WP_CLI::add_command( 'pera nearby import', function ( $args ) {
+WP_CLI::add_command( 'pera nearby import', function ( $args, $assoc_args ) {
     try {
         if ( count( $args ) !== 1 || ! is_file( $args[0] ) ) throw new RuntimeException( 'Provide one local dataset file.' );
-        WP_CLI::log( wp_json_encode( pera_nearby_import( $args[0] ) ) );
-    } catch ( Throwable $error ) { WP_CLI::error( $error->getMessage() ); }
+        if ( isset( $assoc_args['report'] ) ) {
+            if ( ! is_file( $assoc_args['report'] ) ) throw new RuntimeException( 'Acceptance report unavailable.' );
+            $result = pera_nearby_import_batch( $args[0], $assoc_args['report'], (int) ( $assoc_args['batch-size'] ?? 1000 ) );
+        } else { $result = pera_nearby_import( $args[0] ); }
+        WP_CLI::log( wp_json_encode( $result ) );
+    } catch ( Throwable $error ) { pera_nearby_update_error( $error->getMessage() ); WP_CLI::error( $error->getMessage() ); }
 } );
 WP_CLI::add_command( 'pera nearby rollback', function () {
     try { WP_CLI::log( wp_json_encode( pera_nearby_rollback() ) ); }
@@ -144,4 +148,46 @@ WP_CLI::add_command( 'pera nearby dataset', function () {
     $count = $wpdb->get_var( "SELECT COUNT(*) FROM `{$active['table']}`" );
     if ( $wpdb->last_error || (int) $count !== $active['metadata']['count'] ) WP_CLI::error( 'Dataset table missing or count differs.' );
     WP_CLI::log( wp_json_encode( $active ) );
+} );
+
+WP_CLI::add_command( 'pera nearby status', function () { WP_CLI::log( wp_json_encode( pera_nearby_update_status() ) ); } );
+WP_CLI::add_command( 'pera nearby abort-import', function () {
+    try { pera_nearby_abort_import(); WP_CLI::log( 'Pending staging generation removed; active dataset preserved.' ); }
+    catch ( Throwable $error ) { WP_CLI::error( $error->getMessage() ); }
+} );
+WP_CLI::add_command( 'pera nearby cleanup', function () {
+    try { WP_CLI::log( wp_json_encode( pera_nearby_cleanup() ) ); }
+    catch ( Throwable $error ) { WP_CLI::error( $error->getMessage() ); }
+} );
+WP_CLI::add_command( 'pera nearby record-error', function ( $args ) {
+    if ( count( $args ) !== 1 ) WP_CLI::error( 'Provide one error summary.' );
+    pera_nearby_update_error( $args[0] ); pera_nearby_monitor();
+} );
+WP_CLI::add_command( 'pera nearby benchmark', function () {
+    global $wpdb;
+    $policy = json_decode( file_get_contents( dirname( __DIR__ ) . '/data/nearby-poi-policy.json' ), true );
+    $active = pera_nearby_dataset_state(); if ( ! $active ) WP_CLI::error( 'Import an accepted real dataset on staging first.' );
+    $measurements = array();
+    foreach ( $policy['districts'] as $name => $point ) {
+        $key = 'pera_poi_local_c1_' . md5( $active['table'] . serialize( $point ) ); delete_transient( $key );
+        $queries = $wpdb->num_queries; $time = microtime( true ); $before = memory_get_usage( true );
+        $places = pera_nearby_local_places( $point ); $cold = microtime( true ) - $time; $cold_queries = $wpdb->num_queries - $queries;
+        $queries = $wpdb->num_queries; $time = microtime( true ); $warm = pera_nearby_local_places( $point );
+        $measurements[$name] = array( 'cold_seconds' => $cold, 'cold_queries' => $cold_queries, 'warm_seconds' => microtime( true ) - $time,
+            'warm_queries' => $wpdb->num_queries - $queries, 'memory_delta_bytes' => memory_get_usage( true ) - $before,
+            'php_process_peak_bytes' => memory_get_peak_usage( true ), 'output_count' => count( $places ), 'cache_output_equal' => $places === $warm );
+    }
+    WP_CLI::log( wp_json_encode( array( 'version' => $active['metadata']['version'], 'districts' => $measurements ) ) );
+} );
+
+WP_CLI::add_command( 'pera nearby validate-import', function ( $args, $assoc_args ) {
+    try {
+        if ( count( $args ) !== 1 || empty( $assoc_args['report'] ) ) throw new RuntimeException( 'Provide a local artifact and --report path.' );
+        $active = pera_nearby_dataset_state();
+        $report = json_decode( file_get_contents( $assoc_args['report'] ), true );
+        if ( ( $report['passed'] ?? null ) === true && ( $active['metadata']['version'] ?? null ) === ( $report['version'] ?? '' ) && ( $active['metadata']['sha256'] ?? null ) === ( $report['body_sha256'] ?? '' ) && hash_equals( hash_file( 'sha256', $args[0] ), $report['artifact_sha256'] ?? '' ) ) {
+            WP_CLI::log( 'Identical accepted dataset already active.' ); return;
+        }
+        pera_nearby_preflight( $args[0], $assoc_args['report'] ); WP_CLI::log( 'Production artifact preflight passed.' );
+    } catch ( Throwable $error ) { pera_nearby_update_error( $error->getMessage() ); WP_CLI::error( $error->getMessage() ); }
 } );
