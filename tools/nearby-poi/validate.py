@@ -11,6 +11,7 @@ import re
 import sqlite3
 import tempfile
 from build import distance
+from record_text import validate_text
 
 GROUPS = {'metro': 'transport', 'marmaray': 'transport', 'metrobus': 'transport', 'rail': 'transport',
           'bus': 'transport', 'ferry': 'transport', 'schools': 'education', 'universities': 'education',
@@ -113,11 +114,8 @@ def validate(path, policy, previous=None, bootstrap=False, now=None):
             w, s, e, n = policy['bounds']
             if not s <= point[0] <= n or not w <= point[1] <= e:
                 raise ValueError('POI outside accepted envelope')
-            if not isinstance(names, dict) or not names.get('name'):
-                raise ValueError('Missing source name')
+            validate_text(place)
             for key, value in names.items():
-                if not re.fullmatch(r'name(?::[A-Za-z0-9_-]+)?', key) or not isinstance(value, str) or len(value.encode()) > 4096:
-                    raise ValueError('Invalid source name/translation')
                 if key != 'name':
                     translations[key] += 1
             counts[group] += 1; total += 1

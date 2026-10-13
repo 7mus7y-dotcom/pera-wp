@@ -74,12 +74,37 @@ function pera_nearby_local_groups() {
     return array( 'metro', 'marmaray', 'metrobus', 'rail', 'bus', 'ferry', 'schools', 'universities', 'hospitals', 'clinics', 'pharmacies', 'parks', 'sport', 'malls', 'supermarkets' );
 }
 
+/** Bounded diagnostics: never include source values or raw control characters. */
+function pera_nearby_text_error( $id, $key, $reason ) {
+    return 'OSM ' . json_encode( substr( is_string( $id ) ? $id : '<unknown>', 0, 80 ), JSON_INVALID_UTF8_SUBSTITUTE | JSON_UNESCAPED_SLASHES ) . ' key ' . json_encode( substr( is_string( $key ) ? $key : '<non-string>', 0, 80 ), JSON_INVALID_UTF8_SUBSTITUTE | JSON_UNESCAPED_SLASHES ) . ': ' . $reason;
+}
+
+/** Mirror tools/nearby-poi/record_text.py; preserve safe colon-qualified OSM name keys. */
+function pera_nearby_place_text_error( $place ) {
+    if ( ! is_array( $place ) ) return 'POI must be an object.';
+    $id = $place['id'] ?? null; $names = $place['names'] ?? null;
+    if ( ! is_array( $names ) ) return pera_nearby_text_error( $id, '<names>', 'names must be an object' );
+    if ( ! is_string( $names['name'] ?? null ) || $names['name'] === '' ) return pera_nearby_text_error( $id, 'name', 'primary name must be a nonempty string' );
+    foreach ( $names as $key => $value ) {
+        if ( ! is_string( $key ) ) return pera_nearby_text_error( $id, $key, 'name key must be a string' );
+        if ( preg_match( '//u', $key ) !== 1 ) return pera_nearby_text_error( $id, $key, 'name key must be valid UTF-8' );
+        if ( strlen( $key ) > 255 ) return pera_nearby_text_error( $id, $key, 'name key exceeds 255 bytes' );
+        if ( ! preg_match( '/^name(?::[\p{L}\p{M}\p{N}_-]+)*$/uD', $key ) ) return pera_nearby_text_error( $id, $key, 'invalid name key; use name or nonempty Unicode letter/mark/number/_/- name: segments' );
+        if ( ! is_string( $value ) ) return pera_nearby_text_error( $id, $key, 'name value must be a string' );
+        if ( preg_match( '//u', $value ) !== 1 ) return pera_nearby_text_error( $id, $key, 'name value must be valid UTF-8' );
+        if ( strlen( $value ) > 4096 ) return pera_nearby_text_error( $id, $key, 'name value exceeds 4096 UTF-8 bytes (' . strlen( $value ) . ' bytes)' );
+    }
+    if ( strlen( json_encode( $names, JSON_UNESCAPED_UNICODE ) ) > 65535 ) return pera_nearby_text_error( $id, '<names>', 'encoded names exceed MariaDB TEXT capacity (65535 bytes)' );
+    $aliases = array_key_exists( 'aliases', $place ) ? $place['aliases'] : array();
+    if ( ! is_array( $aliases ) || ( $aliases && array_keys( $aliases ) !== range( 0, count( $aliases ) - 1 ) ) ) return pera_nearby_text_error( $id, 'aliases', 'aliases must be a list' );
+    foreach ( $aliases as $alias ) if ( ! is_string( $alias ) || ! preg_match( '~^(node|way|relation)/[1-9][0-9]{0,18}$~D', $alias ) ) return pera_nearby_text_error( $id, 'aliases', 'invalid alias OSM identity' );
+    if ( strlen( json_encode( $aliases, JSON_UNESCAPED_UNICODE ) ) > 65535 ) return pera_nearby_text_error( $id, 'aliases', 'encoded aliases exceed MariaDB TEXT capacity (65535 bytes)' );
+    return null;
+}
+
 function pera_nearby_valid_place( $place ) {
-    if ( ! is_array( $place ) || ! is_string( $place['id'] ?? null ) || ! preg_match( '~^(node|way|relation)/[1-9][0-9]{0,18}$~D', $place['id'] ?? '' ) || ! in_array( $place['group'] ?? '', pera_nearby_local_groups(), true ) || ! is_array( $place['point'] ?? null ) || count( $place['point'] ) !== 2 || ! pera_nearby_coordinates( array( 'lat' => $place['point'][0] ?? null, 'lng' => $place['point'][1] ?? null ) ) || ! is_array( $place['names'] ?? null ) || empty( $place['names']['name'] ) || ! is_string( $place['names']['name'] ) ) return false;
-    foreach ( $place['names'] as $key => $value ) if ( ! is_string( $value ) || strlen( $value ) > 4096 || ! preg_match( '/^name(?::[a-zA-Z0-9_-]+)?$/D', $key ) ) return false;
-    if ( isset( $place['aliases'] ) && ! is_array( $place['aliases'] ) ) return false;
-    foreach ( $place['aliases'] ?? array() as $alias ) if ( ! is_string( $alias ) || ! preg_match( '~^(node|way|relation)/[1-9][0-9]{0,18}$~D', $alias ) ) return false;
-    return true;
+    if ( ! is_array( $place ) || ! is_string( $place['id'] ?? null ) || ! preg_match( '~^(node|way|relation)/[1-9][0-9]{0,18}$~D', $place['id'] ?? '' ) || ! in_array( $place['group'] ?? '', pera_nearby_local_groups(), true ) || ! is_array( $place['point'] ?? null ) || count( $place['point'] ) !== 2 || ! pera_nearby_coordinates( array( 'lat' => $place['point'][0] ?? null, 'lng' => $place['point'][1] ?? null ) ) ) return false;
+    return pera_nearby_place_text_error( $place ) === null;
 }
 
 /** Stream into an unpublished generation. Failed validation never changes the active pointer. */
@@ -99,7 +124,7 @@ function pera_nearby_import( $path ) {
         while ( false !== ( $line = fgets( $file, 65537 ) ) ) {
             if ( strlen( $line ) > 65536 || substr( $line, -1 ) !== "\n" ) throw new RuntimeException( 'Oversized or truncated record.' );
             hash_update( $hash, $line ); $place = json_decode( $line, true );
-            if ( ! pera_nearby_valid_place( $place ) ) throw new RuntimeException( 'Invalid POI at record ' . ( $count + 1 ) );
+            if ( ! pera_nearby_valid_place( $place ) ) throw new RuntimeException( pera_nearby_place_text_error( $place ) ?? ( 'Invalid POI at record ' . ( $count + 1 ) ) );
             $names_json = wp_json_encode( $place['names'], JSON_UNESCAPED_UNICODE );
             $aliases_json = wp_json_encode( $place['aliases'] ?? array(), JSON_UNESCAPED_UNICODE );
             if ( ! is_string( $names_json ) || ! is_string( $aliases_json ) || strlen( $names_json ) > 65535 || strlen( $aliases_json ) > 65535 ) throw new RuntimeException( 'Encoded record exceeds database column capacity.' );

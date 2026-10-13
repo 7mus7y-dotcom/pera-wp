@@ -63,9 +63,9 @@ function pera_nearby_normalize( array $elements ) {
         $group = pera_nearby_group( $tags );
         $location = is_array( $element['center'] ?? null ) ? $element['center'] : $element;
         $point = pera_nearby_coordinates( array( 'lat' => $location['lat'] ?? null, 'lng' => $location['lon'] ?? null ) );
-        if ( ! $group || ! $point || empty( $tags['name'] ) ) continue;
+        if ( ! $group || ! $point || ! isset( $tags['name'] ) || $tags['name'] === '' ) continue;
         $names = array_filter( $tags, function ( $value, $key ) { return is_string( $value ) && ( $key === 'name' || strpos( $key, 'name:' ) === 0 ); }, ARRAY_FILTER_USE_BOTH );
-        if ( empty( $names['name'] ) ) continue;
+        if ( ! isset( $names['name'] ) || $names['name'] === '' ) continue;
         $places[$type . '/' . $id] = array( 'id' => $type . '/' . $id, 'point' => $point, 'names' => $names, 'group' => $group );
     }
     return array_values( $places );

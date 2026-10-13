@@ -58,6 +58,7 @@ jobs:
           BOOTSTRAP: ${{ github.event_name == 'workflow_dispatch' && inputs.bootstrap }}
           FORCE: ${{ github.event_name == 'workflow_dispatch' && inputs.force }}
         run: |
+          set -euo pipefail
           args=()
           if [ -f work/baseline/report.json ]; then args+=(--previous=work/baseline/report.json); fi
           if [ "$BOOTSTRAP" = true ]; then args+=(--bootstrap); fi

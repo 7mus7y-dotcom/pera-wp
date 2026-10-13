@@ -13,6 +13,7 @@ import sqlite3
 import subprocess
 import tempfile
 import unicodedata
+from record_text import validate_text
 
 TAGS = {'railway', 'public_transport', 'highway', 'amenity', 'leisure', 'shop',
         'train', 'subway', 'station', 'bus', 'network', 'operator', 'brand', 'name',
@@ -40,6 +41,7 @@ def distance(a, b):
 
 def store_place(db, place):
     """Conservative same-subgroup/same-name/<100m dedup; retain aliases and translations."""
+    validate_text(place)
     lat, lon = place['point']
     if not math.isfinite(lat) or not math.isfinite(lon) or abs(lat) > 90 or abs(lon) > 180:
         raise ValueError('Invalid coordinates')
@@ -52,6 +54,7 @@ def store_place(db, place):
             for key, value in place['names'].items():
                 old['names'].setdefault(key, value)
             old.setdefault('aliases', []).append(place['id'])
+            validate_text(old)  # Merged translations/aliases must still fit the importer columns.
             db.execute('UPDATE pois SET payload=? WHERE id=?', (json.dumps(old, ensure_ascii=False), osm_id))
             return False
     db.execute('INSERT INTO pois VALUES(?,?,?,?,?,?)',
@@ -67,9 +70,11 @@ def write_artifact(db, output, metadata):
     try:
         with body.open('wb') as stream:
             for (payload,) in db.execute('SELECT payload FROM pois ORDER BY id'):
-                line = (json.dumps(json.loads(payload), ensure_ascii=False, separators=(',', ':'))+'\n').encode()
+                place = json.loads(payload)
+                validate_text(place)
+                line = (json.dumps(place, ensure_ascii=False, separators=(',', ':'))+'\n').encode()
                 if len(line) > 65536:
-                    raise ValueError('Record exceeds importer limit')
+                    raise ValueError('OSM '+place['id']+': record exceeds importer limit (65536 bytes)')
                 stream.write(line)
                 digest.update(line)
                 count += 1
