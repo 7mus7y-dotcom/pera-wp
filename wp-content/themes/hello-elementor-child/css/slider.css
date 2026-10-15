@@ -337,6 +337,19 @@
   object-fit: cover;
 }
 
+/* Reserve variable photo widths before loading; contain at either width limit. */
+.property-gallery__item--image{
+  aspect-ratio: var(--image-ratio, 4 / 3);
+  min-width: min(120px, 100%);
+  max-width: min(82vw, 520px, 100%);
+}
+
+.property-gallery__item--image img{
+  width: 100%;
+  max-width: 100%;
+  object-fit: contain;
+}
+
 .property-gallery__trigger{
   position: relative;
   display: block;
@@ -470,6 +483,10 @@
   .property-gallery__item img{
     max-width: min(68vw, 760px);
   }
+
+  .property-gallery__item--image{
+    max-width: min(68vw, 760px, 100%);
+  }
 }
 
 @media (max-width: 480px){
@@ -489,6 +506,10 @@
 
   .property-gallery__item img{
     max-width: min(56vw, 900px);
+  }
+
+  .property-gallery__item--image{
+    max-width: min(56vw, 900px, 100%);
   }
 }
 

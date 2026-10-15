@@ -346,6 +346,7 @@ $has_facts_v2 = (
 /* 9) MAIN GALLERY (ACF: main_gallery) — returns image arrays */
 $gallery_ids   = array();
 $gallery_items = array();
+$gallery_image_dimensions = array();
 $photo_count   = 0;
 
 $main_gallery = function_exists( 'get_field' ) ? get_field( 'main_gallery', $property_id ) : array();
@@ -357,6 +358,7 @@ if ( is_array( $main_gallery ) && ! empty( $main_gallery ) ) {
     if ( is_array( $img ) && ! empty( $img['ID'] ) ) {
       $gallery_ids[]   = (int) $img['ID'];
       $gallery_items[] = $img;
+      $gallery_image_dimensions[ (int) $img['ID'] ] = $img;
     }
   }
 
@@ -1103,19 +1105,35 @@ $has_further_reading = ! empty( $post_ids );
           <?php else :
           $img_id    = $gallery_item['id'];
           $alt_label = $gallery_item['alt'];
+          // Resolve the full photograph's ratio before image loading, never the cropped card size.
+          $dimensions = isset( $gallery_image_dimensions[ $img_id ] ) ? $gallery_image_dimensions[ $img_id ] : array();
+          $valid_dimensions = static function ( $value ) {
+            return is_array( $value ) && isset( $value['width'], $value['height'] )
+              && is_numeric( $value['width'] ) && is_numeric( $value['height'] )
+              && is_finite( (float) $value['width'] ) && is_finite( (float) $value['height'] )
+              && (float) $value['width'] >= 1 && (float) $value['height'] >= 1
+              && (float) $value['width'] < PHP_INT_MAX && (float) $value['height'] < PHP_INT_MAX;
+          };
+          if ( ! $valid_dimensions( $dimensions ) ) {
+            $dimensions = wp_get_attachment_metadata( $img_id );
+          }
+          $image_ratio = $valid_dimensions( $dimensions )
+            ? sprintf( '%d / %d', (int) $dimensions['width'], (int) $dimensions['height'] )
+            : '4 / 3';
           $image_html = wp_get_attachment_image(
             $img_id,
-            'pera-card',
+            'full',
             false,
             array(
               'loading'  => 'lazy',
               'decoding' => 'async',
+              'sizes'    => '(min-width: 1024px) 56vw, (min-width: 768px) 68vw, 82vw',
               'alt'      => $alt_label,
             )
           );
           if ( ! $image_html ) { continue; }
         ?>
-          <div class="property-gallery__item" role="listitem">
+          <div class="property-gallery__item property-gallery__item--image" role="listitem" style="<?php echo esc_attr( '--image-ratio: ' . $image_ratio . ';' ); ?>">
             <button class="property-gallery__trigger" type="button" data-gallery-type="image" data-gallery-src="<?php echo esc_url( wp_get_attachment_image_url( $img_id, 'full' ) ); ?>" data-gallery-label="<?php echo esc_attr( $alt_label ); ?>" aria-label="<?php echo esc_attr( $alt_label ); ?>">
               <?php echo $image_html; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>
             </button>

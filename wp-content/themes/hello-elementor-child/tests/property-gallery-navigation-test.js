@@ -117,3 +117,17 @@ listeners.scroll();
 expect(nextButton.disabled, 'resizing keeps the end state accurate');
 
 console.log('Property gallery navigation tests passed');
+
+// Real destinations remain tile-aware with mixed portrait, landscape and video widths.
+[2, 132, 662, 892, 1650, 1780, 2300, 2600].forEach((offset, index) => {
+  stripItems[index].offset = offset;
+});
+strip.scrollWidth = 2900;
+strip.scrollLeft = 0;
+resizeObservers[0].callback();
+nextButton.click();
+expect(strip.scrollLeft === 130, 'next targets a narrow portrait tile');
+nextButton.click();
+expect(strip.scrollLeft === 660, 'next targets a wide landscape tile');
+previousButton.click();
+expect(strip.scrollLeft === 130, 'previous handles unequal tile widths');
