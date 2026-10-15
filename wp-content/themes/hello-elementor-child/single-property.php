@@ -1127,6 +1127,7 @@ $has_further_reading = ! empty( $post_ids );
             array(
               'loading'  => 'lazy',
               'decoding' => 'async',
+              'sizes'    => '(min-width: 1024px) 56vw, (min-width: 768px) 68vw, 82vw',
               'alt'      => $alt_label,
             )
           );

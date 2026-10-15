@@ -32,6 +32,12 @@ foreach ( array(
 }
 expect_gallery_ratio( false !== strpos( $template, "esc_attr( '--image-ratio: ' . \$image_ratio . ';' )" ), 'ratio attribute escaped' );
 expect_gallery_ratio( false !== strpos( substr( $template, $end, 150 ), "'full'" ), 'uncropped WordPress source requested' );
+// Keep WordPress responsible for srcset generation; only override its sizes hint.
+$image_call_end = strpos( $template, '          if ( ! $image_html )', $end );
+$image_call = substr( $template, $end, $image_call_end - $end );
+expect_gallery_ratio( false !== strpos( $image_call, "'sizes'    => '(min-width: 1024px) 56vw, (min-width: 768px) 68vw, 82vw'" ), 'inline image sizes match gallery breakpoints' );
+expect_gallery_ratio( false === strpos( $image_call, "'srcset'" ), 'WordPress generated srcset is not overridden or disabled' );
+expect_gallery_ratio( false !== strpos( $template, 'data-gallery-src="<?php echo esc_url( wp_get_attachment_image_url( $img_id, \'full\' ) ); ?>"' ), 'lightbox still opens the full attachment URL' );
 expect_gallery_ratio( 1 === preg_match( '/\.property-gallery__item--image img\{[^}]*width: 100%;[^}]*object-fit: contain;/s', $css ), 'only photographs use contain' );
 foreach ( array( 260, 340, 420 ) as $height ) {
   expect_gallery_ratio( 1 === preg_match( '/\.property-gallery__strip\{[^}]*height: ' . $height . 'px;/s', $css ), 'stable responsive height ' . $height );
