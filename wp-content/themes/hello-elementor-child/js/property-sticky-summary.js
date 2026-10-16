@@ -1,8 +1,8 @@
-/* Administrator layout preview only; no scroll listeners or pricing calculations. */
+/* Permanent property summary; no scroll listeners or pricing calculations. */
 (function () {
   'use strict';
   function init() {
-    var bar = document.querySelector('[data-property-sticky-preview]');
+    var bar = document.querySelector('[data-property-sticky-summary]');
     var hero = document.querySelector('.property-hero');
     var overview = document.getElementById('property-overview');
     var contact = document.getElementById('contact-form');
@@ -11,7 +11,7 @@
     var floating = document.getElementById('floating-whatsapp');
     if (!bar || !hero || !overview || !form || !header || !window.IntersectionObserver || !window.ResizeObserver) return;
     var mobile = window.matchMedia('(max-width: 768px)');
-    var slot = bar.querySelector('.property-sticky-preview__whatsapp');
+    var slot = bar.querySelector('.property-sticky-summary__whatsapp');
     var home = document.createComment('Floating WhatsApp home');
     if (floating) floating.before(home);
     var headerBottom = 0;

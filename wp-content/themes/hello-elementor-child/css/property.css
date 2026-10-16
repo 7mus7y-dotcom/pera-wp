@@ -1230,8 +1230,7 @@ body.is-lightbox-open{ overflow: hidden; }
   border: 0;
 }
 
-.property-location__about,
-.property-location__distances{
+.property-location__about{
   line-height: 1.6;
 }
 
