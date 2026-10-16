@@ -5483,3 +5483,26 @@ ol.pretty-list li::before {
   align-items: baseline;
   overflow-wrap: anywhere;
 }
+
+/* Temporary admin layout preview; live layout selectors are unaffected. */
+.property-location--preview .property-location-preview__grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 16px;
+  align-items: start;
+  margin-top: 16px;
+}
+.property-location--preview .property-location-preview__grid > * {
+  min-width: 0;
+}
+@media (min-width: 769px) {
+  .property-location--preview .property-location-preview__grid {
+    gap: 40px;
+  }
+  .property-location--preview .property-location-preview__grid--paired {
+    grid-template-columns: minmax(0, 2fr) minmax(0, 3fr);
+  }
+  .property-location--preview .property-location-preview__nearby > .card-shell {
+    margin-top: 0;
+  }
+}

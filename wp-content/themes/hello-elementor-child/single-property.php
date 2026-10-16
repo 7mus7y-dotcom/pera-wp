@@ -11,6 +11,8 @@ if ( ! defined( 'ABSPATH' ) ) {
   exit;
 }
 
+$layout_preview = function_exists( 'pera_property_layout_preview_enabled' ) && pera_property_layout_preview_enabled();
+
 get_header();
 
 /* -------------------------------------------------------
@@ -1240,7 +1242,7 @@ if ( ! empty( $yt_video ) ) {
 <!-- =====================================
   ABOUT + LOCATION
   ===================================== -->
-<section class="section section-soft property-location" id="property-location">
+<section class="section section-soft property-location<?php if ( $layout_preview ) echo ' property-location--preview'; ?>" id="property-location">
 
   <?php
   $about_heading     = function_exists( 'get_field' ) ? (string) get_field( 'whats_special_heading', $property_id ) : '';
@@ -1254,9 +1256,22 @@ if ( ! empty( $yt_video ) ) {
   $has_map       = is_array( $map ) && ( ! empty( $map['lat'] ) && ! empty( $map['lng'] ) );
   ?>
 
+  <?php
+  $nearby_html = '';
+  if ( $layout_preview ) {
+    ob_start();
+    pera_render_nearby_amenities( $map );
+    $nearby_html = trim( ob_get_clean() );
+  }
+  ?>
+  <?php if ( $layout_preview ) : ?>
+    <p class="text-soft"><span class="pill"><?php echo esc_html( pera_ml_ui( 'Layout preview', 'theme.template.single_property.layout_preview' ) ); ?></span></p>
+  <?php else : ?>
   <div class="grid-2--tight" style="align-items:start;">
+  <?php endif; ?>
 
     <!-- LEFT: TEXT -->
+    <?php if ( ! $layout_preview || $has_about || $has_facilities ) : ?>
     <div class="property-location__main">
       <?php if ( $has_about ) : ?>
         <h2><?php echo esc_html( $about_heading ?: pera_ml_ui( 'About this project', 'theme.template.single_property.about_project_heading' ) ); ?></h2>
@@ -1280,7 +1295,12 @@ if ( ! empty( $yt_video ) ) {
 
     </div>
 
+    <?php endif; ?>
+    <?php if ( $layout_preview && ( $has_map || $has_distances || $nearby_html !== '' ) ) : ?>
+      <div class="property-location-preview__grid<?php if ( ( $has_map || $has_distances ) && $nearby_html !== '' ) echo ' property-location-preview__grid--paired'; ?>">
+    <?php endif; ?>
     <!-- RIGHT: MAP -->
+<?php if ( ! $layout_preview || $has_map || $has_distances ) : ?>
 <aside class="property-location__aside">
   <?php if ( $has_map ) : ?>
     <?php
@@ -1342,14 +1362,26 @@ if ( ! empty( $yt_video ) ) {
       <p class="text-soft" style="margin:0;">
         <?php echo esc_html( pera_ml_ui( 'Map location is not available for this listing.', 'theme.template.single_property.map_location_is_not_available_for_this_listing' ) ); ?>
       </p>
+      <?php if ( $layout_preview && $has_distances ) : ?>
+        <div class="property-map-card__distances">
+          <h4 class="property-map-card__distances-title"><?php echo esc_html( $location_heading ?: pera_ml_ui( 'Location & distances', 'theme.template.single_property.location_distances_heading' ) ); ?></h4>
+          <div class="property-map-card__distances-content text-soft"><?php echo apply_filters( 'the_content', $distances_html ); ?></div>
+        </div>
+      <?php endif; ?>
     </div>
 
   <?php endif; ?>
 </aside>
+<?php endif; ?>
 
 
+  <?php if ( $layout_preview && $nearby_html !== '' ) : ?>
+    <div class="property-location-preview__nearby"><?php echo $nearby_html; // Trusted markup from the existing POI renderer. ?></div>
+  <?php endif; ?>
+  <?php if ( ! $layout_preview || $has_map || $has_distances || $nearby_html !== '' ) : ?>
   </div>
-  <?php pera_render_nearby_amenities( $map ); ?>
+  <?php endif; ?>
+  <?php if ( ! $layout_preview ) pera_render_nearby_amenities( $map ); ?>
 </section>
 
   <section id="property-price-range" class="section section-soft property-price-range">
