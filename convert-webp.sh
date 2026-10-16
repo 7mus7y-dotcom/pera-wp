@@ -47,37 +47,27 @@ tmp=""
 cleanup() {
     [[ -z "$tmp" ]] || rm -f -- "$tmp"
 }
-trap cleanup EXIT
+file_list=""
+finish() {
+    cleanup
+    [[ -z "$file_list" ]] || rm -f -- "$file_list"
+}
+trap finish EXIT
 trap 'echo; echo "Stopped."; exit 130' INT
 trap 'exit 143' TERM
 
-# Refuse ambiguous conversions such as hero.jpg and hero.png, because both
-# would otherwise map to hero.webp and could display the wrong attachment.
-declare -A source_for_output=()
-collision_found=0
+# Materialize once: process substitution is unavailable on some cPanel hosts.
+file_list=$(mktemp)
+find "$target" -type f \
+    \( -iname '*.jpg' -o -iname '*.jpeg' -o -iname '*.png' \) \
+    -print0 > "$file_list"
 
+# Reuse legacy basename.webp only if exactly one original maps to it.
+declare -A source_count=()
 while IFS= read -r -d '' img; do
-    out="${img%.*}.webp"
-
-    if [[ -n ${source_for_output["$out"]+present} ]] &&
-       [[ ${source_for_output["$out"]} != "$img" ]]; then
-        printf 'COLLISION: %s and %s both map to %s\n' \
-            "${source_for_output["$out"]}" "$img" "$out" >&2
-        collision_found=1
-        continue
-    fi
-
-    source_for_output["$out"]="$img"
-done < <(
-    find "$target" -type f \
-        \( -iname '*.jpg' -o -iname '*.jpeg' -o -iname '*.png' \) \
-        -print0
-)
-
-if (( collision_found )); then
-    echo "No files converted because ambiguous WebP output names were found." >&2
-    exit 1
-fi
+    legacy="${img%.*}.webp"
+    source_count["$legacy"]=$(( ${source_count["$legacy"]:-0} + 1 ))
+done < "$file_list"
 
 converted=0
 skipped=0
@@ -87,7 +77,11 @@ failed=0
 echo "Scanning: $target"
 
 while IFS= read -r -d '' img; do
-    out="${img%.*}.webp"
+    out="${img}.webp"
+    legacy="${img%.*}.webp"
+    if [[ ! -s "$out" && -s "$legacy" && ${source_count["$legacy"]} -eq 1 ]]; then
+        out="$legacy"
+    fi
 
     if [[ -s "$out" ]]; then
         if (( dry_run )); then
@@ -126,11 +120,7 @@ while IFS= read -r -d '' img; do
         printf 'FAILED: %s\n' "$img" >&2
         failed=$((failed + 1))
     fi
-done < <(
-    find "$target" -type f \
-        \( -iname '*.jpg' -o -iname '*.jpeg' -o -iname '*.png' \) \
-        -print0
-)
+done < "$file_list"
 
 printf '\nPending found: %d | Converted: %d | Skipped: %d | Failed: %d\n' \
     "$pending" "$converted" "$skipped" "$failed"
