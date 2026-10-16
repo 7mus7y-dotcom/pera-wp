@@ -5516,6 +5516,9 @@ ol.pretty-list li::before {
   padding: 0;
   margin: 0;
 }
+.property-location--preview .property-map-card__actions {
+  margin-top: 16px;
+}
 .property-location--preview .property-map-card__actions .btn {
   max-width: 100%;
   white-space: normal;
@@ -5529,6 +5532,10 @@ ol.pretty-list li::before {
 @media (min-width: 769px) {
   .property-location--preview .property-location-preview__grid--paired {
     grid-template-columns: minmax(0, 2fr) minmax(0, 3fr);
+  }
+  .property-location--preview .property-map-card .media-embed--map {
+    /* 25% taller than the default 16:9 map at the same width. */
+    aspect-ratio: 64 / 45;
   }
 }
 @media (max-width: 768px) {
