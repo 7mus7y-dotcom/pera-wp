@@ -1,8 +1,9 @@
 # Permanent property-page layout
 
 `single-property.php` renders the approved layout for all visitors. There is no
-role or query-string gate. `layout_preview` has no rendering or cache-header
-meaning in this feature; the experimental MU plugin has been removed.
+role or query-string rendering gate. The reusable MU plugin protects requests
+containing `layout_preview` from caching but activates no experimental layout;
+see [property layout preview infrastructure](property-layout-preview.md).
 
 ## Rendering
 
