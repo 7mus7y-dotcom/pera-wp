@@ -5485,26 +5485,40 @@ ol.pretty-list li::before {
 }
 
 /* Temporary admin layout preview; live layout selectors are unaffected. */
+.property-location--preview .property-location-preview__panel {
+  margin-top: var(--space-md);
+}
+.property-location--preview .property-location-preview__heading {
+  align-items: center;
+  margin-block: 0 var(--space-md);
+}
+.property-location--preview .property-location-preview__heading .icon {
+  width: 1em;
+  height: 1em;
+  flex-shrink: 0;
+}
 .property-location--preview .property-location-preview__grid {
   display: grid;
   grid-template-columns: minmax(0, 1fr);
-  gap: 16px;
+  gap: var(--space-md);
   align-items: start;
-  margin-top: var(--space-md);
+  overflow-wrap: anywhere;
 }
 .property-location--preview .property-location-preview__grid > * {
   min-width: 0;
 }
-@media (min-width: 769px) {
-  .property-location--preview .property-location-preview__grid {
-    gap: 40px;
-  }
+.property-location--preview .property-map-card,
+.property-location--preview .property-location-preview__nearby > [data-component-tabs] {
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+  padding: 0;
+  margin: 0;
 }
-.property-location--preview .property-location-preview__nearby > .card-shell {
-  margin-top: 0;
-}
-.property-location--preview .property-location-preview__nearby [data-component-tabs] > h2 {
-  margin-block: var(--space-xs) var(--space-md);
+.property-location--preview .property-map-card__actions .btn {
+  max-width: 100%;
+  white-space: normal;
 }
 .property-location--preview .property-location-preview__nearby .component-tabs {
   margin-block: var(--space-md);
@@ -5512,8 +5526,16 @@ ol.pretty-list li::before {
 .property-location--preview .property-location-preview__nearby [role="tabpanel"] h3 {
   margin-block-end: var(--space-sm);
 }
-.property-location--preview .property-location-preview__nearby [data-component-tabs] > h2 .icon {
-  width: 1em;
-  height: 1em;
-  flex-shrink: 0;
+@media (min-width: 769px) {
+  .property-location--preview .property-location-preview__grid--paired {
+    grid-template-columns: minmax(0, 2fr) minmax(0, 3fr);
+  }
+}
+@media (max-width: 768px) {
+  .property-location--preview .property-location-preview__nearby .grid-2 {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .property-location--preview .poi-list > li {
+    grid-template-columns: minmax(0, 1fr);
+  }
 }

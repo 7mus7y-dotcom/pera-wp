@@ -1260,7 +1260,7 @@ if ( ! empty( $yt_video ) ) {
   $nearby_html = '';
   if ( $layout_preview ) {
     ob_start();
-    pera_render_nearby_amenities( $map );
+    pera_render_nearby_amenities( $map, 'property-location-preview-heading' );
     $nearby_html = trim( ob_get_clean() );
   }
   ?>
@@ -1297,7 +1297,9 @@ if ( ! empty( $yt_video ) ) {
 
     <?php endif; ?>
     <?php if ( $layout_preview && ( $has_map || $nearby_html !== '' ) ) : ?>
-      <div class="property-location-preview__grid">
+      <div class="card-shell property-location-preview__panel" role="region" aria-labelledby="property-location-preview-heading">
+        <h2 class="inline-row property-location-preview__heading" id="property-location-preview-heading"><svg class="icon" aria-hidden="true" focusable="false"><use href="#icon-map"></use></svg><?php echo esc_html( pera_ml_ui( 'Nearby amenities', 'theme.nearby.heading' ) ); ?></h2>
+        <div class="property-location-preview__grid<?php if ( $has_map && $nearby_html !== '' ) echo ' property-location-preview__grid--paired'; ?>">
     <?php endif; ?>
     <!-- RIGHT: MAP -->
 <?php if ( ! $layout_preview || $has_map ) : ?>
@@ -1311,8 +1313,8 @@ if ( ! empty( $yt_video ) ) {
       $embed_url = 'https://www.google.com/maps?q=' . rawurlencode( $lat . ',' . $lng ) . '&z=15&output=embed';
     ?>
 
-    <div class="card-shell property-map-card">
-      <h3 class="property-map-card__title"><?php echo esc_html( pera_ml_ui( 'Map', 'theme.template.single_property.map' ) ); ?></h3>
+    <div class="<?php echo $layout_preview ? 'property-map-card' : 'card-shell property-map-card'; ?>">
+      <?php if ( ! $layout_preview ) : ?><h3 class="property-map-card__title"><?php echo esc_html( pera_ml_ui( 'Map', 'theme.template.single_property.map' ) ); ?></h3><?php endif; ?>
 
       <?php if ( $address ) : ?>
         <p class="property-map-card__address text-soft">
@@ -1375,6 +1377,7 @@ if ( ! empty( $yt_video ) ) {
   <?php if ( ! $layout_preview || $has_map || $nearby_html !== '' ) : ?>
   </div>
   <?php endif; ?>
+  <?php if ( $layout_preview && ( $has_map || $nearby_html !== '' ) ) : ?></div><?php endif; ?>
   <?php if ( ! $layout_preview ) pera_render_nearby_amenities( $map ); ?>
 </section>
 

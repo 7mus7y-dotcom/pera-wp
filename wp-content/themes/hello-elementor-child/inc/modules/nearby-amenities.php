@@ -222,7 +222,8 @@ function pera_nearby_groups( array $places, array $coordinates ) {
     return $groups;
 }
 
-function pera_render_nearby_amenities( $map ) {
+// A shared heading lets the preview own the outer panel; default output stays unchanged.
+function pera_render_nearby_amenities( $map, $shared_heading_id = '' ) {
     $coordinates = pera_nearby_coordinates( $map );
     if ( ! $coordinates ) return;
     $groups = pera_nearby_groups( pera_nearby_cached( $coordinates ), $coordinates );
@@ -235,8 +236,10 @@ function pera_render_nearby_amenities( $map ) {
     $language = function_exists( 'pera_ml_current_language' ) ? pera_ml_current_language() : substr( get_locale(), 0, 2 );
     wp_enqueue_script( 'pera-component-tabs', get_stylesheet_directory_uri() . '/js/component-tabs.js', array(), pera_get_asset_version( '/js/component-tabs.js' ), true );
     ?>
-    <section class="card-shell mt-md" data-component-tabs aria-labelledby="<?php echo esc_attr( $id ); ?>-heading">
+    <section<?php if ( ! $shared_heading_id ) : ?> class="card-shell mt-md"<?php endif; ?> data-component-tabs aria-labelledby="<?php echo esc_attr( $shared_heading_id ?: $id . '-heading' ); ?>">
+        <?php if ( ! $shared_heading_id ) : ?>
         <h2 class="inline-row" id="<?php echo esc_attr( $id ); ?>-heading"><svg class="icon" aria-hidden="true" focusable="false"><use href="#icon-map"></use></svg><?php echo esc_html( pera_ml_ui( 'Nearby amenities', 'theme.nearby.heading' ) ); ?></h2>
+        <?php endif; ?>
         <p class="text-soft"><?php echo esc_html( pera_ml_ui( 'Approximate straight-line distances, not walking or driving distances. Local places: within 3.5 km; Marmaray and Metrobüs: within 500 m. Airports: within 150 km.', 'theme.nearby.distance_notice' ) ); ?></p>
         <div class="section-cta justify-start component-tabs" role="tablist" aria-label="<?php echo esc_attr( pera_ml_ui( 'Amenity categories', 'theme.nearby.categories' ) ); ?>">
         <?php foreach ( $categories as $key => $category ) : ?>

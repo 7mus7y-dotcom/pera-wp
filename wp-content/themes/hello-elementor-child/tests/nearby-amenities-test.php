@@ -126,6 +126,16 @@ $many[] = array( 'id' => 'node/99', 'point' => array( 42, 29 ), 'names' => array
 $groups = pera_nearby_groups( $many, $coordinates ); check( count( $groups['bus'] ) === 3 && $groups['bus'][0]['distance'] === 0.0, 'Nearest three, radius filter' );
 foreach ( array( 'en', 'tr', 'ar' ) as $language ) {
     ob_start(); pera_render_nearby_amenities( $map ); $html = ob_get_clean();
+    ob_start(); pera_render_nearby_amenities( $map, 'property-location-preview-heading' ); $shared_html = ob_get_clean();
+    check( strpos( $shared_html, '<h2' ) === false, 'Shared panel renderer omits duplicate H2 in every language' );
+    check( preg_match( '/<section data-component-tabs aria-labelledby="property-location-preview-heading">/', $shared_html ), 'Shared renderer removes only outer card and references shared heading' );
+    check( strpos( $shared_html, 'class="card-shell p-sm"' ) !== false && strpos( $shared_html, 'role="tab"' ) !== false && strpos( $shared_html, 'role="tabpanel"' ) !== false, 'Shared renderer preserves subgroup cards and accessible tabs' );
+    // Strip only wrapper and heading differences, then normalize generated IDs.
+    $normal_body = preg_replace( '/<h2\b[^>]*>.*?<\/h2>/s', '', $html );
+    $normal_body = preg_replace( '/^\s*<section[^>]*>/', '', $normal_body );
+    $shared_body = preg_replace( '/^\s*<section[^>]*>/', '', $shared_html );
+    $normalize = function ( $value ) { return preg_replace( '/\s+/', ' ', preg_replace( '/nearby-\d+/', 'nearby-ID', trim( $value ) ) ); };
+    check( $normalize( $normal_body ) === $normalize( $shared_body ), 'Shared renderer preserves links, distances, translations and all internal markup' );
     check( substr_count( $html, 'role="tab"' ) === 5 && substr_count( $html, 'role="tabpanel"' ) === 5, 'Five connected tabs' );
     check( strpos( $html, 'School &lt;unsafe&gt;' ) !== false, 'OSM names escaped' );
     check( strpos( $html, $language === 'en' ? 'Original' : ( $language === 'tr' ? 'Yerel' : 'محطة' ) ) !== false, 'Reliable local name selected' );
