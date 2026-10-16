@@ -18,9 +18,7 @@ function pera_property_layout_preview_requested() {
 }
 
 function pera_property_layout_preview_enabled() {
-    return defined( 'PERA_PROPERTY_LAYOUT_PREVIEW_CACHE_BYPASS_VERIFIED' )
-        && true === PERA_PROPERTY_LAYOUT_PREVIEW_CACHE_BYPASS_VERIFIED
-        && pera_property_layout_preview_requested()
+    return pera_property_layout_preview_requested()
         && is_user_logged_in()
         && current_user_can( 'manage_options' )
         && is_singular( 'property' );
