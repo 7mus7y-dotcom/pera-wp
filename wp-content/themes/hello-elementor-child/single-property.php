@@ -1552,10 +1552,10 @@ if ( ! empty( $yt_video ) ) {
 <?php if ( $has_property_editorial_content ) : ?>
 <section class="section section-soft property-editorial-content" id="property-editorial-content">
   <div class="container">
-    <div class="grid-2--tight property-editorial-grid">
+    <div class="grid-2--tight property-editorial-grid<?php if ( $layout_preview ) echo ' property-editorial-grid--preview'; ?>">
 
       <?php if ( $has_property_editorial_intro_card ) : ?>
-        <div class="card-shell property-editorial-card property-editorial-card--wide">
+        <div class="card-shell property-editorial-card<?php if ( ! $layout_preview ) echo ' property-editorial-card--wide'; ?>">
           <h2><?php echo esc_html( pera_ml_ui( 'Why this property?', 'theme.template.single_property.why_this_property' ) ); ?></h2>
 
           <?php if ( $has_property_editorial_intro ) : ?>
