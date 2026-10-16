@@ -6,7 +6,9 @@ const path = require('path');
 const { execFileSync } = require('child_process');
 const assert = require('node:assert/strict');
 const theme = path.resolve(__dirname, '..');
-const markup = execFileSync(process.env.PHP_BIN || 'php', [path.join(__dirname, 'property-sticky-summary-test.php'), '--fixture'], { encoding: 'utf8' });
+const render = mode => execFileSync(process.env.PHP_BIN || 'php', [path.join(__dirname, 'property-sticky-summary-test.php'), mode], {encoding:'utf8'});
+const markup = render('--fixture');
+const headerMarkup = render('--header-fixture');
 const css = ['main.css', 'property.css'].map(file => fs.readFileSync(path.join(theme, 'css', file), 'utf8')).join('\n');
 const script = fs.readFileSync(path.join(theme, 'js/property-sticky-summary.js'), 'utf8');
 // Use the actual floating component's opening tag: no independent URL/tracking fixture.
@@ -15,12 +17,12 @@ const floatingTag = whatsappSource.match(/<a href="<\?php echo esc_url\( \$whats
   .replace(/<\?php.*?\?>/g, 'property-context-fixture');
 const fixture = `<style>${css}</style><style>
   /* Page geometry fixture; production styles above are unchanged. */
-  #site-header { height: 80px; background: white; } .property-hero { margin: 0; min-height: 0; height: 500px; }
+  .property-hero { margin: 0; min-height: 0; height: 500px; }
   #property-overview { height: 650px; } #middle { height: 1800px; } #contact-form { padding: 30px; }
   .enquiry-cta-form { height: 500px; } #after { height: 1800px; }
-  </style><header id="site-header"><a href="#">Home</a><button aria-expanded="false">Menu</button></header>
+  </style>${headerMarkup}
   <section class="property-hero">Hero</section><section id="property-overview">Quick facts</section>${markup}
-  <div id="middle"></div><section id="contact-form"><h2>Request full details</h2><form class="enquiry-cta-form"><input id="name"></form></section><div id="after"></div>
+  <div id="middle"><div class="container" id="alignment-reference"><button id="content-control">Page action</button></div></div><section id="contact-form"><h2>Request full details</h2><form class="enquiry-cta-form"><input id="name"></form></section><div id="after"></div>
   <div id="cookie-banner"></div><div id="floating-home">${floatingTag}<svg class="icon"></svg></a></div><dialog>Modal</dialog>`;
 (async () => {
   const browser = await chromium.launch({ executablePath: process.env.CHROMIUM_PATH || '/usr/bin/chromium', headless: true, args: ['--no-sandbox'] });
@@ -32,7 +34,7 @@ const fixture = `<style>${css}</style><style>
   const bar = page.locator('[data-property-sticky-preview]');
   async function scroll(y) { await page.evaluate(y => scrollTo(0, y), y); await page.waitForTimeout(130); }
   async function visible(value) { await (value ? bar.waitFor({state:'visible'}) : bar.waitFor({state:'hidden'})); }
-  for (const width of [320, 375, 430, 1280]) {
+  for (const width of [320, 375, 430, 1024, 1280, 1440]) {
     for (const dir of ['ltr', 'rtl']) {
       await page.setViewportSize({ width, height: 800 });
       await page.setContent(fixture);
@@ -56,6 +58,11 @@ const fixture = `<style>${css}</style><style>
       if (width <= 768) {
         assert(Math.abs(rect.y + rect.height - 800) < 1, 'fixed mobile bottom');
         assert(rect.height >= 65 && rect.height <= 90, 'compact height');
+        const enquire = await bar.locator('a[href="#contact-form"]').boundingBox();
+        const whatsapp = await page.locator('#floating-whatsapp').boundingBox();
+        assert(Math.abs(enquire.height - whatsapp.height) < 1, 'mobile action heights match');
+        const inner = await bar.locator('.property-sticky-preview__inner').boundingBox();
+        assert.equal(Math.round(inner.x), 16, '16px mobile side padding');
         assert.equal(await bar.locator('#floating-whatsapp').count(), 1);
         assert.equal(await page.locator('#floating-whatsapp').count(), 1);
         assert.equal(await page.locator('#floating-whatsapp').evaluate(e => e === window.originalWhatsApp), true);
@@ -66,9 +73,28 @@ const fixture = `<style>${css}</style><style>
         assert(await bar.evaluate(e => [...e.querySelectorAll('a')].every(a => { const r = a.getBoundingClientRect(); return r.left >= 0 && r.right <= innerWidth; })), 'actions fit');
       } else {
         const header = await page.locator('#site-header').boundingBox();
-        assert(Math.abs(rect.y - header.y - header.height) < 1, 'below header');
+        assert(Math.abs(rect.y - header.y - header.height - 20) < 1, '20px below real header shell');
+        assert(rect.width >= 290 && rect.width <= 310 && rect.width < width / 2, 'compact card, no full-width band');
+        const reference = await page.locator('#alignment-reference').boundingBox();
+        assert(Math.abs(rect.x + rect.width - Math.min(width - 16, reference.x + reference.width)) < 1, 'right edge follows content container');
+        assert(rect.x >= 0 && rect.x + rect.width <= width, 'card remains inside viewport');
+        const button = await bar.locator('a[href="#contact-form"]').boundingBox();
+        assert(Math.abs(button.width - (rect.width - 34)) < 1, 'full-width desktop Enquire');
+        const details = await bar.locator('.property-sticky-preview__details').boundingBox();
+        assert(button.y >= details.y + details.height, 'button below price and facts');
+        assert.equal(await page.evaluate(() => document.elementFromPoint(innerWidth - 1, document.getElementById('site-header').getBoundingClientRect().bottom + 2)?.closest('[data-property-sticky-preview]') !== null), false, 'no full-width separator');
+        assert(await page.locator('#language-toggle').isVisible(), 'header controls remain available');
+        assert(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth), 'no desktop overflow');
         assert.equal(await bar.locator('#floating-whatsapp').count(), 0);
+        const floating = await page.locator('#floating-whatsapp').boundingBox();
+        assert(rect.y + rect.height <= floating.y || floating.y + floating.height <= rect.y || rect.x + rect.width <= floating.x || floating.x + floating.width <= rect.x, 'desktop floating controls do not overlap');
+        const headerControl = await page.locator('#currency-toggle').boundingBox();
+        assert(await page.evaluate(({x,y}) => document.elementFromPoint(x,y)?.closest('#currency-toggle') !== null, {x:headerControl.x+headerControl.width/2,y:headerControl.y+headerControl.height/2}), 'header currency control unobstructed');
       }
+      assert.equal(await bar.locator('.property-sticky-preview__title').count(), 0, 'title removed');
+      await page.evaluate(() => document.getElementById('language-toggle').setAttribute('aria-expanded','true')); await visible(false);
+      await page.locator('#language-toggle').click();
+      await page.evaluate(() => document.getElementById('language-toggle').setAttribute('aria-expanded','false')); await visible(true);
       await page.evaluate(() => document.body.classList.add('is-nav-open')); await visible(false);
       assert.equal(await page.locator('#floating-home #floating-whatsapp').count(), 1);
       await page.evaluate(() => document.body.classList.remove('is-nav-open')); await visible(true);
@@ -85,7 +111,8 @@ const fixture = `<style>${css}</style><style>
       await bar.locator('a[href="#contact-form"]').click();
       await page.waitForTimeout(150);
       assert.equal(await page.evaluate(() => document.activeElement.id), 'name');
-      assert(Math.abs((await page.locator('#contact-form').boundingBox()).y - 96) < 2, 'header offset and reduced motion');
+      const headerHeight = await page.locator('#site-header').evaluate(e => e.getBoundingClientRect().height);
+      assert(Math.abs((await page.locator('#contact-form').boundingBox()).y - headerHeight - 16) < 2, 'header offset and reduced motion');
       await scroll(await page.locator('.enquiry-cta-form').evaluate(e => e.getBoundingClientRect().top + scrollY - 150)); await visible(false);
       await scroll(await page.locator('.enquiry-cta-form').evaluate(e => e.getBoundingClientRect().bottom + scrollY + 20)); await visible(true);
       await scroll(0); await visible(false);
@@ -106,10 +133,17 @@ const fixture = `<style>${css}</style><style>
   await page.setViewportSize({width:1280,height:800}); await page.waitForTimeout(150);
   assert.equal(await page.locator('#floating-home #floating-whatsapp').count(), 1, 'desktop restores floating link');
   await page.evaluate(() => document.getElementById('site-header').style.height = '55px'); await page.waitForTimeout(150);
-  assert.equal(Math.round((await bar.boundingBox()).y), 55, 'header resize tracked');
+  assert.equal(Math.round((await bar.boundingBox()).y), 75, 'header resize plus card offset tracked');
+  await page.setContent(fixture.replace(markup, render('--type-fixture')));
+  assert((await bar.locator('.property-sticky-preview__facts').textContent()).includes('69 m² · Apartment'), 'gross size and property-type fallback');
+  await page.setContent(fixture.replace(markup, render('--normal-fixture')));
+  await page.addScriptTag({content:script});
+  assert.equal(await bar.count(), 0, 'normal visitor markup has no summary');
+  assert.equal(await page.locator('body').evaluate(e => getComputedStyle(e).paddingBottom), '0px', 'no preview spacing on normal pages');
+  assert.equal(await page.locator('#floating-home #floating-whatsapp').count(), 1, 'normal floating link untouched');
   assert(css.includes('env(safe-area-inset-bottom)'), 'safe-area padding');
   assert(!script.includes("addEventListener('scroll'"), 'no scroll polling');
   assert.deepEqual(errors, []);
   await browser.close();
-  console.log('Sticky summary Chromium tests passed (4 widths × LTR/RTL, scroll, focus, WhatsApp, overlays, dark mode, header resize).');
+  console.log('Sticky summary Chromium tests passed (6 widths × LTR/RTL, scroll, focus, WhatsApp, overlays, dark mode, header resize).');
 })().catch(e => { console.error(e); process.exit(1); });

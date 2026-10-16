@@ -793,11 +793,10 @@ $has_further_reading = ! empty( $post_ids );
   <?php
   wp_enqueue_script( 'pera-property-sticky-summary', get_stylesheet_directory_uri() . '/js/property-sticky-summary.js', array(), pera_get_asset_version( '/js/property-sticky-summary.js' ), true );
   ?>
-  <aside class="property-sticky-preview" data-property-sticky-preview hidden inert aria-label="<?php echo esc_attr( pera_ml_ui( 'Property summary', 'theme.template.single_property.property_summary' ) ); ?>">
-    <div class="container property-sticky-preview__inner">
-      <span class="property-sticky-preview__title"><?php echo esc_html( $title ); ?></span>
+  <aside class="card-shell property-sticky-preview" data-property-sticky-preview hidden inert aria-label="<?php echo esc_attr( pera_ml_ui( 'Property summary', 'theme.template.single_property.property_summary' ) ); ?>">
+    <div class="property-sticky-preview__inner">
       <div class="property-sticky-preview__details">
-        <div class="property-sticky-preview__price">
+        <div class="property-sticky-preview__price text-base text-bold">
           <?php if ( $hero_price_min > 0 ) : ?>
             <?php if ( $hero_show_from ) : ?><span><?php echo esc_html( pera_ml_ui( 'From', 'theme.template.single_property.from' ) ); ?></span><?php endif; ?>
             <?php echo pera_property_display_price_html( $hero_display_price ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>
@@ -805,8 +804,8 @@ $has_further_reading = ! empty( $post_ids );
             <?php echo esc_html( pera_ml_ui( 'Contact us for pricing', 'theme.template.single_property.contact_us_for_pricing' ) ); ?>
           <?php endif; ?>
         </div>
-        <?php if ( $selected_size_text || $hero_bed_label_v2 ) : ?>
-          <div class="property-sticky-preview__facts"><?php echo esc_html( implode( ' · ', array_filter( array( $selected_size_text, $hero_bed_label_v2 ) ) ) ); ?></div>
+        <?php if ( $selected_size_text || $hero_bed_label_v2 || $type_name ) : ?>
+          <div class="property-sticky-preview__facts text-xs text-soft"><?php echo esc_html( implode( ' · ', array_filter( array( $selected_size_text, $hero_bed_label_v2 ) ) ) ); ?><?php if ( ! $hero_bed_label_v2 && $type_name ) : ?><span class="property-sticky-preview__type"><?php echo esc_html( ( $selected_size_text ? ' · ' : '' ) . $type_name ); ?></span><?php endif; ?></div>
         <?php endif; ?>
       </div>
       <div class="property-sticky-preview__actions">
