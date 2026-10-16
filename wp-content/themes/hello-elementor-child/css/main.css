@@ -5565,3 +5565,66 @@ ol.pretty-list li::before {
     align-items: start;
   }
 }
+
+/* Administrator-only property summary markup is emitted by the existing preview gate. */
+.property-sticky-preview {
+  position: fixed;
+  inset-inline: 0;
+  top: var(--property-sticky-header, 0px);
+  z-index: 990; /* Header and its dropdowns remain above the summary. */
+  background: var(--bg);
+  color: var(--text);
+  border-bottom: 1px solid var(--border-neutral);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, .08);
+}
+.property-sticky-preview[hidden] { display: none; }
+.property-sticky-preview__inner {
+  display: flex;
+  align-items: center;
+  gap: 24px;
+  min-height: 66px;
+  padding-block: 10px;
+}
+.property-sticky-preview__title {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.property-sticky-preview__details,
+.property-sticky-preview__actions { display: flex; align-items: center; gap: 16px; }
+.property-sticky-preview__price { font-weight: 700; }
+.property-sticky-preview__facts { font-size: var(--fs-ui-sm); }
+.property-sticky-preview__whatsapp { display: none; }
+.property-sticky-preview a:focus-visible { outline: 3px solid var(--accent); outline-offset: 3px; }
+@media (max-width: 768px) {
+  body:has([data-property-sticky-preview]) { padding-bottom: calc(96px + env(safe-area-inset-bottom)); }
+  .property-sticky-preview {
+    top: auto;
+    bottom: 0;
+    border-bottom: 0;
+    border-top: 1px solid var(--border-neutral);
+    padding-bottom: env(safe-area-inset-bottom);
+    box-shadow: 0 -4px 12px rgba(0, 0, 0, .08);
+  }
+  .property-sticky-preview__inner { min-height: 76px; gap: 8px; }
+  .property-sticky-preview__title { display: none; }
+  .property-sticky-preview__details { display: block; flex: 1; min-width: 0; }
+  .property-sticky-preview__price { font-size: .9rem; overflow-wrap: anywhere; line-height: 1.25; }
+  .property-sticky-preview__facts { font-size: .7rem; overflow-wrap: anywhere; }
+  .property-sticky-preview__actions { gap: 6px; flex-shrink: 0; max-width: 60%; }
+  .property-sticky-preview__actions .btn { padding: 10px 8px; min-height: 44px; max-width: 100px; font-size: .75rem; letter-spacing: normal; white-space: normal; overflow-wrap: anywhere; text-align: center; }
+  .property-sticky-preview__whatsapp { display: block; }
+  .property-sticky-preview .floating-whatsapp {
+    position: static;
+    width: 44px;
+    height: 44px;
+    background: var(--brand-green);
+    border-radius: var(--radius);
+    box-shadow: none;
+    transition: none;
+    transform: none;
+  }
+  .property-sticky-preview .floating-whatsapp__tooltip { display: none; }
+}
