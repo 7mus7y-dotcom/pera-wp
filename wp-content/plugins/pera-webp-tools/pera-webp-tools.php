@@ -2,7 +2,7 @@
 /**
  * Plugin Name: Pera WebP Tools
  * Description: WebP conversion tools for the Media Library, including conversion actions and a review screen.
- * Version: 1.0.0
+ * Version: 1.1.0
  * Author: Pera
  */
 
@@ -16,7 +16,7 @@ if ( ! class_exists( 'Pera_WebP_Tools' ) ) {
 		const LAST_RESULT_META_KEY    = '_pera_webp_last_result';
 		const LAST_ERROR_META_KEY     = '_pera_webp_last_error';
 		const LAST_RESULT_CONVERTED   = 'converted';
-		const STATS_CACHE_KEY         = 'pera_webp_tools_stats_v1';
+		const STATS_CACHE_KEY         = 'pera_webp_tools_stats_v2';
 		const STATS_CACHE_TTL         = 60;
 		const DEFAULT_BATCH_SIZE      = 30;
 		const ACTION_CONVERT_SELECTED = 'pera_webp_tools_convert_selected';
@@ -78,28 +78,64 @@ if ( ! class_exists( 'Pera_WebP_Tools' ) ) {
 			return $attr;
 		}
 
+		/** Resolve new sidecars first; legacy names are safe only for a unique source. */
+		public static function existing_webp_path( $source_path ) {
+			if ( ! preg_match( '/\.(jpe?g|png)$/i', $source_path ) ) {
+				return '';
+			}
+			$sidecar = $source_path . '.webp';
+			if ( is_file( $sidecar ) && filesize( $sidecar ) > 0 ) {
+				return $sidecar;
+			}
+			$legacy = preg_replace( '/\.(jpe?g|png)$/i', '.webp', $source_path );
+			if ( ! is_file( $source_path ) || ! is_file( $legacy ) || filesize( $legacy ) <= 0 ) {
+				return '';
+			}
+
+			// Cache the source inventory per directory for this request, not per image.
+			static $inventories = array();
+			$directory = dirname( $source_path );
+			if ( ! isset( $inventories[ $directory ] ) ) {
+				$entries = @scandir( $directory );
+				if ( false === $entries ) {
+					return '';
+				}
+				$inventories[ $directory ] = array();
+				foreach ( $entries as $entry ) {
+					if ( preg_match( '/\.(jpe?g|png)$/i', $entry ) && is_file( $directory . '/' . $entry ) ) {
+						$key = preg_replace( '/\.(jpe?g|png)$/i', '.webp', $entry );
+						$inventories[ $directory ][ $key ] = ( $inventories[ $directory ][ $key ] ?? 0 ) + 1;
+					}
+				}
+			}
+			return 1 === ( $inventories[ $directory ][ basename( $legacy ) ] ?? 0 ) ? $legacy : '';
+		}
+
 		protected static function maybe_swap_single_url_to_webp( $url ) {
-			if ( '' === $url ) {
+			$parts = preg_split( '/(?=[?#])/', $url, 2 );
+			$plain = $parts[0];
+			$suffix = $parts[1] ?? '';
+			if ( ! preg_match( '/\.(jpe?g|png)$/i', $plain ) ) {
 				return $url;
 			}
-
-			if ( ! preg_match( '/\.(jpe?g|png)(\?.*)?$/i', $url ) ) {
-				return $url;
-			}
-
 			$uploads = wp_upload_dir();
 			if ( empty( $uploads['baseurl'] ) || empty( $uploads['basedir'] ) ) {
 				return $url;
 			}
-
-			$webp_url  = preg_replace( '/\.(jpe?g|png)(\?.*)?$/i', '.webp$2', $url );
-			$webp_path = str_replace( $uploads['baseurl'], $uploads['basedir'], (string) $webp_url );
-
-			if ( $webp_path && file_exists( $webp_path ) ) {
-				return (string) $webp_url;
+			$prefix = rtrim( $uploads['baseurl'], '/' ) . '/';
+			if ( 0 !== strpos( $plain, $prefix ) ) {
+				return $url;
 			}
-
-			return $url;
+			$relative = rawurldecode( substr( $plain, strlen( $prefix ) ) );
+			if ( preg_match( '#(^|/)\.\.(/|$)#', $relative ) || false !== strpos( $relative, "\0" ) ) {
+				return $url;
+			}
+			$source = rtrim( $uploads['basedir'], '/' ) . '/' . $relative;
+			$existing = self::existing_webp_path( $source );
+			if ( '' === $existing ) {
+				return $url;
+			}
+			return ( $existing === $source . '.webp' ? $plain . '.webp' : preg_replace( '/\.(jpe?g|png)$/i', '.webp', $plain ) ) . $suffix;
 		}
 
 		public static function can_encode() {
@@ -207,12 +243,12 @@ if ( ! class_exists( 'Pera_WebP_Tools' ) ) {
 				return false;
 			}
 
-			$webp_path = preg_replace( '/\.(jpe?g|png)$/i', '.webp', $filepath );
+			$webp_path = $filepath . '.webp';
 			if ( ! $webp_path ) {
 				return false;
 			}
 
-			if ( file_exists( $webp_path ) ) {
+			if ( '' !== self::existing_webp_path( $filepath ) ) {
 				return true;
 			}
 
@@ -297,13 +333,13 @@ if ( ! class_exists( 'Pera_WebP_Tools' ) ) {
 		}
 
 		protected static function convert_single_image_with_fallback( $source_path, $quality, $cwebp_path, $label, &$log ) {
-			$webp_path = preg_replace( '/\.(jpe?g|png)$/i', '.webp', $source_path );
+			$webp_path = $source_path . '.webp';
 			if ( ! $webp_path ) {
 				$log['details'][] = "Skip {$label}: could not derive WebP path.";
 				return false;
 			}
 
-			if ( file_exists( $webp_path ) ) {
+			if ( '' !== self::existing_webp_path( $source_path ) ) {
 				$log['details'][] = "OK {$label}: WebP already exists.";
 				return true;
 			}
@@ -346,7 +382,7 @@ if ( ! class_exists( 'Pera_WebP_Tools' ) ) {
 
 			$last_result = self::get_last_result_meta( $attachment_id );
 
-			$original_webp_exists = file_exists( preg_replace( '/\.(jpe?g|png)$/i', '.webp', $file ) );
+			$original_webp_exists = ( '' !== self::existing_webp_path( $file ) );
 			if ( ! $original_webp_exists ) {
 				$meta = wp_get_attachment_metadata( $attachment_id );
 				if ( is_array( $meta ) && ! empty( $meta['sizes'] ) ) {
@@ -360,7 +396,7 @@ if ( ! class_exists( 'Pera_WebP_Tools' ) ) {
 						}
 						$has_sizes = true;
 						$size_file = $base_dir . $info['file'];
-						if ( file_exists( $size_file ) && file_exists( preg_replace( '/\.(jpe?g|png)$/i', '.webp', $size_file ) ) ) {
+						if ( file_exists( $size_file ) && ( '' !== self::existing_webp_path( $size_file ) ) ) {
 							$has_existing_size_webp = true;
 						}
 					}
@@ -389,7 +425,7 @@ if ( ! class_exists( 'Pera_WebP_Tools' ) ) {
 						continue;
 					}
 					$size_file = $base_dir . $info['file'];
-					if ( file_exists( $size_file ) && ! file_exists( preg_replace( '/\.(jpe?g|png)$/i', '.webp', $size_file ) ) ) {
+					if ( file_exists( $size_file ) && ( '' === self::existing_webp_path( $size_file ) ) ) {
 						$missing_sizes[] = wp_basename( $size_file );
 					}
 				}
