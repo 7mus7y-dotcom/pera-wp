@@ -1296,11 +1296,11 @@ if ( ! empty( $yt_video ) ) {
     </div>
 
     <?php endif; ?>
-    <?php if ( $layout_preview && ( $has_map || $has_distances || $nearby_html !== '' ) ) : ?>
-      <div class="property-location-preview__grid<?php if ( ( $has_map || $has_distances ) && $nearby_html !== '' ) echo ' property-location-preview__grid--paired'; ?>">
+    <?php if ( $layout_preview && ( $has_map || $nearby_html !== '' ) ) : ?>
+      <div class="property-location-preview__grid<?php if ( $has_map && $nearby_html !== '' ) echo ' property-location-preview__grid--paired'; ?>">
     <?php endif; ?>
     <!-- RIGHT: MAP -->
-<?php if ( ! $layout_preview || $has_map || $has_distances ) : ?>
+<?php if ( ! $layout_preview || $has_map ) : ?>
 <aside class="property-location__aside">
   <?php if ( $has_map ) : ?>
     <?php
@@ -1342,7 +1342,7 @@ if ( ! empty( $yt_video ) ) {
         </a>
       </div>
 
-      <?php if ( $has_distances ) : ?>
+      <?php if ( ! $layout_preview && $has_distances ) : ?>
         <div class="property-map-card__distances">
           <h4 class="property-map-card__distances-title">
             <?php echo esc_html( $location_heading ?: pera_ml_ui( 'Location & distances', 'theme.template.single_property.location_distances_heading' ) ); ?>
@@ -1362,12 +1362,6 @@ if ( ! empty( $yt_video ) ) {
       <p class="text-soft" style="margin:0;">
         <?php echo esc_html( pera_ml_ui( 'Map location is not available for this listing.', 'theme.template.single_property.map_location_is_not_available_for_this_listing' ) ); ?>
       </p>
-      <?php if ( $layout_preview && $has_distances ) : ?>
-        <div class="property-map-card__distances">
-          <h4 class="property-map-card__distances-title"><?php echo esc_html( $location_heading ?: pera_ml_ui( 'Location & distances', 'theme.template.single_property.location_distances_heading' ) ); ?></h4>
-          <div class="property-map-card__distances-content text-soft"><?php echo apply_filters( 'the_content', $distances_html ); ?></div>
-        </div>
-      <?php endif; ?>
     </div>
 
   <?php endif; ?>
@@ -1378,7 +1372,7 @@ if ( ! empty( $yt_video ) ) {
   <?php if ( $layout_preview && $nearby_html !== '' ) : ?>
     <div class="property-location-preview__nearby"><?php echo $nearby_html; // Trusted markup from the existing POI renderer. ?></div>
   <?php endif; ?>
-  <?php if ( ! $layout_preview || $has_map || $has_distances || $nearby_html !== '' ) : ?>
+  <?php if ( ! $layout_preview || $has_map || $nearby_html !== '' ) : ?>
   </div>
   <?php endif; ?>
   <?php if ( ! $layout_preview ) pera_render_nearby_amenities( $map ); ?>
