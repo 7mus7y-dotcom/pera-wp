@@ -85,8 +85,10 @@ while IFS= read -r -d '' img; do
 
     if [[ -s "$out" ]]; then
         if (( dry_run )); then
-            printf 'Would ensure permissions: %s\n' "$out"
-        elif ! chmod --reference="$img" "$out"; then
+            if [[ $(stat -c '%a' -- "$out") != 644 ]]; then
+                printf 'Would ensure permissions: %s\n' "$out"
+            fi
+        elif ! chmod 644 -- "$out"; then
             printf 'FAILED to repair permissions: %s\n' "$out" >&2
             failed=$((failed + 1))
             continue
@@ -110,7 +112,7 @@ while IFS= read -r -d '' img; do
 
     if convert "$img" -strip -quality 82 "webp:$tmp" &&
        [[ -s "$tmp" ]] &&
-       chmod --reference="$img" "$tmp"; then
+       chmod 644 -- "$tmp"; then
         mv -- "$tmp" "$out"
         tmp=""
         converted=$((converted + 1))
