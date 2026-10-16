@@ -57,5 +57,5 @@ foreach ( array( 'single', 'from' ) as $mode ) {
 $html = render_summary( $section, 'single', 0, '', '' );
 check_summary( false !== strpos( $html, 'Contact us for pricing' ), 'missing price fallback' );
 check_summary( false === strpos( $html, 'property-sticky-preview__facts' ), 'missing facts omitted' );
-if ( in_array( '--fixture', $argv, true ) ) echo render_summary( $section );
+if ( in_array( '--fixture', $argv, true ) ) echo render_summary( $section, 'from' );
 else echo "Sticky summary PHP tests passed (32 gate combinations, project/resale and missing data)\n";

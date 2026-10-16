@@ -5613,8 +5613,8 @@ ol.pretty-list li::before {
   .property-sticky-preview__details { display: block; flex: 1; min-width: 0; }
   .property-sticky-preview__price { font-size: .9rem; overflow-wrap: anywhere; line-height: 1.25; }
   .property-sticky-preview__facts { font-size: .7rem; overflow-wrap: anywhere; }
-  .property-sticky-preview__actions { gap: 6px; flex-shrink: 0; }
-  .property-sticky-preview__actions .btn { padding: 10px 8px; min-height: 44px; font-size: .75rem; letter-spacing: normal; }
+  .property-sticky-preview__actions { gap: 6px; flex-shrink: 0; max-width: 60%; }
+  .property-sticky-preview__actions .btn { padding: 10px 8px; min-height: 44px; max-width: 100px; font-size: .75rem; letter-spacing: normal; white-space: normal; overflow-wrap: anywhere; text-align: center; }
   .property-sticky-preview__whatsapp { display: block; }
   .property-sticky-preview .floating-whatsapp {
     position: static;

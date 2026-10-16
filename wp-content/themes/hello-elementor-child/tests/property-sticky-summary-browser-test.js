@@ -6,18 +6,8 @@ const path = require('path');
 const { execFileSync } = require('child_process');
 const assert = require('node:assert/strict');
 const theme = path.resolve(__dirname, '..');
-let markup;
-try {
-  markup = execFileSync('php', [path.join(__dirname, 'property-sticky-summary-test.php'), '--fixture'], { encoding: 'utf8' });
-} catch (error) {
-  if (error.code !== 'ENOENT') throw error;
-  console.log('PHP unavailable: browser layout harness uses representative summary markup; PHP rendering test must run separately.');
-  markup = `<aside class="property-sticky-preview" data-property-sticky-preview hidden inert aria-label="Property summary">
-    <div class="container property-sticky-preview__inner"><span class="property-sticky-preview__title">Large Furnished Studio · Bomonti</span>
-    <div class="property-sticky-preview__details"><div class="property-sticky-preview__price">From <span data-pera-money data-usd-min="299000" data-price-mode="from" dir="ltr">$299,000</span></div><div class="property-sticky-preview__facts">69 m² · 1+1</div></div>
-    <div class="property-sticky-preview__actions"><span class="property-sticky-preview__whatsapp"></span><a class="btn btn--solid btn--blue" href="#contact-form">Enquire</a></div></div></aside>`;
-}
-const css = fs.readFileSync(path.join(theme, 'css/main.css'), 'utf8');
+const markup = execFileSync(process.env.PHP_BIN || 'php', [path.join(__dirname, 'property-sticky-summary-test.php'), '--fixture'], { encoding: 'utf8' });
+const css = ['main.css', 'property.css'].map(file => fs.readFileSync(path.join(theme, 'css', file), 'utf8')).join('\n');
 const script = fs.readFileSync(path.join(theme, 'js/property-sticky-summary.js'), 'utf8');
 // Use the actual floating component's opening tag: no independent URL/tracking fixture.
 const whatsappSource = fs.readFileSync(path.join(theme, 'inc/whatsapp.php'), 'utf8');
@@ -35,6 +25,8 @@ const fixture = `<style>${css}</style><style>
 (async () => {
   const browser = await chromium.launch({ executablePath: process.env.CHROMIUM_PATH || '/usr/bin/chromium', headless: true, args: ['--no-sandbox'] });
   const page = await browser.newPage({ reducedMotion: 'reduce' });
+  await page.route('https://property.test/**', route => route.fulfill({body:'<html></html>',contentType:'text/html'}));
+  await page.goto('https://property.test/');
   const errors = [];
   page.on('pageerror', e => errors.push(e.message));
   const bar = page.locator('[data-property-sticky-preview]');
@@ -51,6 +43,11 @@ const fixture = `<style>${css}</style><style>
         originalWhatsApp.addEventListener('click', e => { e.preventDefault(); window.waClicks++; });
       });
       const attributes = await page.locator('#floating-whatsapp').evaluate(e => e.outerHTML);
+      await page.evaluate(() => {
+        localStorage.clear();
+        window.PeraCurrencyConfig = { storageKey:'pera_currency', state:'fresh', supported:{USD:{symbol:'$',rounding:1},EUR:{symbol:'€',rounding:1}}, rates:{EUR:0.9} };
+      });
+      await page.addScriptTag({content:fs.readFileSync(path.join(theme, '../../plugins/pera-currency/assets/js/currency.js'),'utf8')});
       await page.addScriptTag({content: script});
       await visible(false);
       assert(await bar.evaluate(e => e.inert));
@@ -81,8 +78,10 @@ const fixture = `<style>${css}</style><style>
       await page.evaluate(() => document.querySelector('dialog').close()); await visible(true);
       await page.emulateMedia({colorScheme:'dark'});
       assert.notEqual(await bar.evaluate(e => getComputedStyle(e).backgroundColor), 'rgb(255, 255, 255)');
-      // The actual currency runtime should update the summary's canonical money node.
-      await page.evaluate(() => localStorage?.clear()).catch(() => {});
+      await page.evaluate(() => window.PeraCurrency.setSelected('EUR'));
+      assert.equal(await bar.locator('[data-pera-money]').textContent(), '€269,100', 'existing currency runtime updates summary');
+      assert((await bar.locator('.property-sticky-preview__price').textContent()).includes('From'), 'starting price semantics retained');
+      await page.evaluate(() => window.PeraCurrency.setSelected('USD'));
       await bar.locator('a[href="#contact-form"]').click();
       await page.waitForTimeout(150);
       assert.equal(await page.evaluate(() => document.activeElement.id), 'name');
@@ -93,6 +92,15 @@ const fixture = `<style>${css}</style><style>
       assert.equal(await page.locator('#floating-home #floating-whatsapp').count(), 1);
       await page.emulateMedia({colorScheme:'light'});
     }
+  }
+  for (const width of [320,375,430]) {
+    await page.setViewportSize({width,height:800});
+    await bar.locator('.property-sticky-preview__price').evaluate(e => e.textContent = 'Contact us for pricing');
+    await bar.locator('.property-sticky-preview__facts').evaluate(e => e.textContent = '');
+    await bar.locator('a[href="#contact-form"]').evaluate(e => e.textContent = 'Запросить информацию');
+    await scroll(1300); await visible(true);
+    assert(await bar.evaluate(e => e.scrollWidth <= innerWidth), 'missing price and translated action fit');
+    await scroll(0); await visible(false);
   }
   await page.setViewportSize({width:375,height:800}); await scroll(1300); await visible(true);
   await page.setViewportSize({width:1280,height:800}); await page.waitForTimeout(150);
