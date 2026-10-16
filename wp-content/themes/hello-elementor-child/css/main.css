@@ -5499,26 +5499,21 @@ ol.pretty-list li::before {
   .property-location--preview .property-location-preview__grid {
     gap: 40px;
   }
-  .property-location--preview .property-location-preview__grid--paired {
-    grid-template-columns: minmax(0, 9fr) minmax(0, 11fr);
-  }
-  .property-location--preview .property-location-preview__nearby > .card-shell {
-    margin-top: 0;
-  }
 }
-
+.property-location--preview .property-location-preview__nearby > .card-shell {
+  margin-top: 0;
+}
 .property-location--preview .property-location-preview__nearby [data-component-tabs] > h2 {
   margin-block: var(--space-xs) var(--space-md);
 }
 .property-location--preview .property-location-preview__nearby .component-tabs {
   margin-block: var(--space-md);
 }
-.property-location--preview .property-location-preview__nearby [role="tabpanel"] .grid-2 {
-  gap: var(--space-lg);
-}
-.property-location--preview .property-location-preview__nearby [role="tabpanel"] .card-shell {
-  padding: var(--space-md);
-}
 .property-location--preview .property-location-preview__nearby [role="tabpanel"] h3 {
   margin-block-end: var(--space-sm);
+}
+.property-location--preview .property-location-preview__nearby [data-component-tabs] > h2 .icon {
+  width: 1em;
+  height: 1em;
+  flex-shrink: 0;
 }

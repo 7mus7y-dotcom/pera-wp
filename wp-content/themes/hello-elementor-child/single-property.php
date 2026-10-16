@@ -1297,7 +1297,7 @@ if ( ! empty( $yt_video ) ) {
 
     <?php endif; ?>
     <?php if ( $layout_preview && ( $has_map || $nearby_html !== '' ) ) : ?>
-      <div class="property-location-preview__grid<?php if ( $has_map && $nearby_html !== '' ) echo ' property-location-preview__grid--paired'; ?>">
+      <div class="property-location-preview__grid">
     <?php endif; ?>
     <!-- RIGHT: MAP -->
 <?php if ( ! $layout_preview || $has_map ) : ?>
