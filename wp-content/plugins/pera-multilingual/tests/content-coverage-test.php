@@ -1,4 +1,5 @@
 <?php
+function wp_strip_all_tags( $text ) { return strip_tags( $text ); }
 /** Standalone coverage tests: php tests/content-coverage-test.php */
 define( 'ABSPATH', __DIR__ );
 function apply_filters( $tag, $value ) { return $value; } function sanitize_key( $v ) { return preg_replace( '/[^a-z0-9_:-]/', '', strtolower( $v ) ); }

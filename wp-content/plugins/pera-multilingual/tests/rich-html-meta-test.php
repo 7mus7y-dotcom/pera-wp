@@ -1,4 +1,5 @@
 <?php
+function wp_strip_all_tags( $text ) { return strip_tags( $text ); }
 /** Focused structural translation tests for HTML-bearing non-post_content fields. */
 define( 'ABSPATH', __DIR__ );
 $GLOBALS['rich_provider'] = null;

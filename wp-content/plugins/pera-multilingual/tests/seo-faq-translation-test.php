@@ -1,4 +1,5 @@
 <?php
+function wp_strip_all_tags( $text ) { return strip_tags( $text ); }
 /** Standalone SEO FAQ translation tests: php tests/faq-translation-test.php */
 define( 'ABSPATH', __DIR__ );
 

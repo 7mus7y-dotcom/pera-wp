@@ -52,10 +52,10 @@ final class Pera_ML_Translator {
 			$protected = $this->protect( $source );
 			$translated = $provider->translate( $protected['text'], $context );
 			if ( is_wp_error( $translated ) ) { do_action( 'pera_ml_translation_error', $translated, compact( 'type', 'id', 'field', 'language' ) ); return $translated; }
-			$translated = $this->restore( $translated, $protected['tokens'] );
+			$translated = $this->restore( $translated, $protected['tokens'], $source );
 			if ( is_wp_error( $translated ) && 'pera_ml_structure_changed' === $translated->get_error_code() ) {
 				$translated = $provider->translate( $protected['text'], $this->strict_placeholder_context( $context ) );
-				if ( ! is_wp_error( $translated ) ) $translated = $this->restore( $translated, $protected['tokens'] );
+				if ( ! is_wp_error( $translated ) ) $translated = $this->restore( $translated, $protected['tokens'], $source );
 			}
 			if ( is_wp_error( $translated ) ) {
 				do_action( 'pera_ml_translation_error', $translated, compact( 'type', 'id', 'field', 'language' ) );
@@ -727,7 +727,7 @@ final class Pera_ML_Translator {
 	private function translate_fragment( $source, $provider, array $context ) {
 		$protected  = $this->protect( $source );
 		$translated = $provider->translate( $protected['text'], $context );
-		return is_wp_error( $translated ) ? $translated : $this->restore( $translated, $protected['tokens'] );
+		return is_wp_error( $translated ) ? $translated : $this->restore( $translated, $protected['tokens'], $source );
 	}
 	/** Remove indentation-only text nodes in lists without changing whitespace in prose. */
 	private function normalize_structural_html_whitespace( $html ) {
@@ -749,9 +749,20 @@ final class Pera_ML_Translator {
 		$text = preg_replace_callback( $pattern, static function ( $match ) use ( &$tokens ) { $key = 'PERAMLPROTECTED' . count( $tokens ) . 'TOKEN'; $tokens[ $key ] = $match[0]; return $key; }, (string) $source );
 		return array( 'text' => $text, 'tokens' => $tokens );
 	}
-	public function restore( $translated, array $tokens ) {
+	private function has_unprotected_text( $text, array $tokens ) {
+		$text = strtr( $text, array_fill_keys( array_keys( $tokens ), '' ) );
+		$text = html_entity_decode( wp_strip_all_tags( $text ), ENT_QUOTES | ENT_HTML5, 'UTF-8' );
+		return 1 === preg_match( '/[\p{L}\p{N}]/u', $text );
+	}
+	public function restore( $translated, array $tokens, $source = '' ) {
 		if ( ! is_string( $translated ) || '' === trim( $translated ) ) return new WP_Error( 'pera_ml_empty_translation', __( 'Translation is empty or invalid.', 'pera-multilingual' ) );
 		foreach ( $tokens as $key => $value ) if ( 1 !== substr_count( (string) $translated, $key ) ) return new WP_Error( 'pera_ml_structure_changed', __( 'Translation lost or duplicated protected content.', 'pera-multilingual' ) );
+		// Prose must survive translation independently of preserved tags and values.
+		// A single Unicode letter or digit is sufficient; do not impose length or script limits.
+		$protected_source = $this->protect( $source );
+		if ( $this->has_unprotected_text( $protected_source['text'], $protected_source['tokens'] ) && ! $this->has_unprotected_text( $translated, $tokens ) ) {
+			return new WP_Error( 'pera_ml_empty_translation', __( 'Translation lost the source text.', 'pera-multilingual' ) );
+		}
 		$restored = strtr( (string) $translated, $tokens );
 		return preg_match( '/PERAMLPROTECTED\d+TOKEN/', $restored ) ? new WP_Error( 'pera_ml_structure_changed', __( 'Translation contains an invalid protected token.', 'pera-multilingual' ) ) : $restored;
 	}
