@@ -243,5 +243,5 @@ check( pera_ml_ui( 'Nearby amenities', 'theme.nearby.heading' ) === 'Nearby amen
 $storage->row = array( 'translated_text' => 'المرافق القريبة', 'status' => 'current', 'is_stale' => false );
 check( pera_ml_ui( 'Nearby amenities', 'theme.nearby.heading' ) === 'المرافق القريبة', 'Real Pera UI reads current translation' );
 $storage->row['is_stale'] = true;
-check( pera_ml_ui( 'Nearby amenities', 'theme.nearby.heading' ) === 'Nearby amenities', 'Revised distance copy and stale UI translations fall back safely' );
+check( pera_ml_ui( 'Nearby amenities', 'theme.nearby.heading' ) === 'المرافق القريبة', 'Stale UI translation remains visible after source changes' );
 echo "Nearby amenities contract tests passed (provider, airports, renderer, audit, resumable warming, real UI registration/fallback).\n";

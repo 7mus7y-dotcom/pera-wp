@@ -42,8 +42,8 @@ $fields = new Pera_ML_Fields( $router, new Coverage_Storage(), null );
 coverage_expect( true, in_array( 'post_subtitle', $fields->approved( 'post' ), true ), 'post subtitle remains in the post contract' );
 coverage_expect( '翻译副标题', $fields->get( 10, 'post_subtitle', 'Canonical subtitle' ), 'post subtitle uses its translated display value' );
 coverage_expect( 'Canonical subtitle', $fields->get( 10, 'post_subtitle', 'Canonical subtitle', 'en' ), 'English post subtitle stays canonical' );
-coverage_expect( 'Source-hash changed', $fields->get( 10, 'post_subtitle', 'Source-hash changed' ), 'source-hash stale post subtitle falls back to canonical source' );
-coverage_expect( 'Stale-status canonical', $fields->get( 10, 'post_subtitle', 'Stale-status canonical' ), 'stale-status post subtitle falls back to canonical source' );
+coverage_expect( 'Obsolete hash translation', $fields->get( 10, 'post_subtitle', 'Source-hash changed' ), 'source-hash stale post subtitle remains visible' );
+coverage_expect( 'Obsolete status translation', $fields->get( 10, 'post_subtitle', 'Stale-status canonical' ), 'stale-status post subtitle remains visible' );
 coverage_expect( 'Pending-status canonical', $fields->get( 10, 'post_subtitle', 'Pending-status canonical' ), 'another non-current status falls back to canonical source' );
 coverage_expect( 'Blank-translation canonical', $fields->get( 10, 'post_subtitle', 'Blank-translation canonical' ), 'blank post subtitle translation falls back to canonical source' );
 coverage_expect( 'Missing canonical', $fields->get( 10, 'post_subtitle', 'Missing canonical' ), 'missing post subtitle translation falls back to canonical source' );
@@ -52,8 +52,8 @@ $homepage_fields = array( 'homepage_hero_subtext', 'homepage_listing_intro', 'ho
 foreach ( $homepage_fields as $field ) coverage_expect( true, in_array( $field, $fields->approved( 'page' ), true ), "{$field} is in the page contract" );
 foreach ( array( 'faq', 'name', 'position', 'description' ) as $field ) coverage_expect( false, in_array( $field, $fields->approved( 'page' ), true ), "structured or team field {$field} is not in the page contract" );
 coverage_expect( '翻译首页文案', $fields->get_for_object( 'post', 20, 'homepage_hero_subtext', 'Canonical hero copy', 'zh', 'page' ), 'current homepage translation is returned' );
-coverage_expect( '<p>Canonical listing copy</p>', $fields->get_for_object( 'post', 20, 'homepage_listing_intro', '<p>Canonical listing copy</p>', 'zh', 'page' ), 'source-hash stale homepage translation is rejected' );
-coverage_expect( '<p>Canonical SEO copy</p>', $fields->get_for_object( 'post', 20, 'homepage_bottom_seo_text', '<p>Canonical SEO copy</p>', 'zh', 'page' ), 'stale-status homepage translation is rejected' );
+coverage_expect( '<p>Obsolete listing copy</p>', $fields->get_for_object( 'post', 20, 'homepage_listing_intro', '<p>Canonical listing copy</p>', 'zh', 'page' ), 'source-hash stale homepage translation remains visible' );
+coverage_expect( '<p>Obsolete SEO copy</p>', $fields->get_for_object( 'post', 20, 'homepage_bottom_seo_text', '<p>Canonical SEO copy</p>', 'zh', 'page' ), 'stale-status homepage translation remains visible' );
 
 $GLOBALS['coverage_posts'] = array( 20 => new WP_Post( 20, 'page' ) );
 $GLOBALS['coverage_meta'] = array( 20 => array(

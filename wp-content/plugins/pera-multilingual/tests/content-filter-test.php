@@ -9,7 +9,7 @@ function in_the_loop(){return $GLOBALS['content_in_loop'];} function is_main_que
 function get_the_ID(){return 17;} function get_post($id){return 17===(int)$id?$GLOBALS['pera_test_post']:null;} function get_post_type_object(){return (object)array('public'=>true);}
 function expect_same($expected,$actual,$label){if($expected!==$actual){fwrite(STDERR,"FAIL $label\n");exit(1);}}
 function pera_localize_visitor_links($html){return str_replace(array('href="/property/"','href="/de/property/"'), 'href="/de/property/"', $html);}
-class ContentTestRouter { function is_translated(){return true;} function current_language(){return 'zh';} }
+class ContentTestRouter { function is_translated(){return empty($GLOBALS['english_visitor']);} function current_language(){return 'zh';} }
 class ContentTestStorage {
 	public $rows = array();
 	function get($type,$id,$field,$language,$source=''){return array_key_exists($field,$this->rows)?$this->rows[$field]:null;}
@@ -36,7 +36,7 @@ expect_same('当前摘要',$content->excerpt('Canonical English excerpt',$GLOBAL
 expect_same('<section>Translated ACF project summary.</section>',$content->content('<section>Translated ACF project summary.</section>'),'manual ACF the_content value is untouched');
 
 $storage->rows['post_title'] = array( 'translated_text' => '旧标题', 'status' => 'current', 'is_stale' => true );
-expect_same('Canonical English title',$content->title('Canonical English title',17),'source hash mismatch falls back for title');
+expect_same('旧标题',$content->title('Canonical English title',17),'source hash mismatch keeps title');
 $storage->rows['post_content'] = array( 'translated_text' => '<p>待审核正文。</p>', 'status' => 'pending', 'is_stale' => false );
 expect_same('<p>Canonical English body.</p>',$content->content('<p>Canonical English body.</p>'),'non-current content falls back');
 $storage->rows['post_excerpt'] = array( 'translated_text' => " \n\t ", 'status' => 'current', 'is_stale' => false );
@@ -44,3 +44,22 @@ expect_same('Canonical English excerpt',$content->excerpt('Canonical English exc
 unset($storage->rows['post_title']);
 expect_same('Canonical English title',$content->title('Canonical English title',17),'missing title falls back');
 echo "Pera ML content filter tests passed\n";
+
+foreach ( array( 'current', 'stale' ) as $status ) {
+    foreach ( array( false, true ) as $mismatch ) {
+        $row = array( 'translated_text' => 'Stored translation', 'status' => $status, 'is_stale' => $mismatch );
+        $storage->rows = array_fill_keys( array( 'post_title', 'post_content', 'post_excerpt' ), $row );
+        expect_same( 'Stored translation', $content->title( 'English title', 17 ), 'title survives status/hash change' );
+        expect_same( 'Stored translation', $content->content( '<p>Canonical English body.</p>' ), 'body survives status/hash change' );
+        expect_same( 'Stored translation', $content->excerpt( 'English excerpt', $GLOBALS['pera_test_post'] ), 'excerpt survives status/hash change' );
+    }
+}
+foreach ( array( '', '   ', null, array(), false ) as $invalid ) {
+    $storage->rows['post_title'] = array( 'translated_text' => $invalid, 'status' => 'stale', 'is_stale' => true );
+    expect_same( 'English title', $content->title( 'English title', 17 ), 'invalid stored title falls back' );
+}
+$storage->rows = array_fill_keys( array( 'post_title', 'post_content', 'post_excerpt' ), $row );
+$GLOBALS['english_visitor'] = true;
+expect_same( 'English title', $content->title( 'English title', 17 ), 'English title unchanged' );
+expect_same( '<p>Canonical English body.</p>', $content->content( '<p>Canonical English body.</p>' ), 'English body unchanged' );
+expect_same( 'English excerpt', $content->excerpt( 'English excerpt', $GLOBALS['pera_test_post'] ), 'English excerpt unchanged' );

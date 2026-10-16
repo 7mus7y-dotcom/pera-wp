@@ -52,7 +52,9 @@ archive_expect( '你好 & 欢迎', $fields->get( 91, 'archive_whatsapp_message',
 archive_expect( '%E4%BD%A0%E5%A5%BD%20%26%20%E6%AC%A2%E8%BF%8E', rawurlencode( $fields->get( 91, 'archive_whatsapp_message', 'Hello & welcome' ) ), 'the selected translated message can then be URL encoded' );
 foreach ( array( null, array( 'translated_text'=>'', 'status'=>'current', 'source_hash'=>$current['source_hash'] ), array( 'translated_text'=>'旧', 'status'=>'stale', 'source_hash'=>$current['source_hash'] ), array( 'translated_text'=>'待定', 'status'=>'pending', 'source_hash'=>$current['source_hash'] ), array( 'translated_text'=>'旧源', 'status'=>'current', 'source_hash'=>hash( 'sha256', 'Old source' ) ) ) as $row ) {
 	if ( null === $row ) unset( $storage->rows['91|meta:archive_whatsapp_message|zh'] ); else $storage->rows['91|meta:archive_whatsapp_message|zh'] = $row;
-	archive_expect( 'Hello & welcome', $fields->get( 91, 'archive_whatsapp_message', 'Hello & welcome' ), 'missing, blank, stale, or non-current translations fall back to raw English' );
+
+	$expected = is_array( $row ) && in_array( $row['translated_text'], array( '旧', '旧源' ), true ) ? $row['translated_text'] : 'Hello & welcome';
+	archive_expect( $expected, $fields->get( 91, 'archive_whatsapp_message', 'Hello & welcome' ), 'stale translations display while missing, blank and pending translations fall back' );
 }
 
 $template = file_get_contents( dirname( __DIR__, 3 ) . '/themes/hello-elementor-child/archive-property.php' );

@@ -60,7 +60,7 @@ expect_acf( '翻译项目名称', $fields->acf_value( 'Canonical project name', 
 expect_acf( $GLOBALS['raw_acf'][ $id ]['project_summary'], $storage->gets[0][4], 'formatted English is never used for the storage staleness check' );
 
 $GLOBALS['raw_acf'][ $id ]['project_summary'] = 'Changed canonical summary';
-expect_acf( '<p>Changed canonical summary</p>', $fields->acf_value( '<p>Changed canonical summary</p>', $post, array( 'name' => 'project_summary', 'type' => 'wysiwyg' ) ), 'changed raw canonical source rejects the old translation' );
+expect_acf( '<p>翻译摘要</p>', $fields->acf_value( '<p>Changed canonical summary</p>', $post, array( 'name' => 'project_summary', 'type' => 'wysiwyg' ) ), 'changed raw canonical source retains the old translation' );
 $GLOBALS['raw_acf'][ $id ]['project_summary'] = "Canonical summary\nsecond line";
 $storage->rows[ "$id|meta:project_summary|zh" ]['status'] = 'pending';
 expect_acf( '<p>Canonical summary<br />second line</p>', $fields->acf_value( '<p>Canonical summary<br />second line</p>', $post, array( 'name' => 'project_summary', 'type' => 'wysiwyg' ) ), 'pending translation falls back to already formatted canonical value' );

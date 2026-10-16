@@ -111,3 +111,19 @@ expect_same( '公寓', $vocabulary->translate( 'Apartment', 'zh' ), 'controlled 
 expect_same( 'Apartment', $vocabulary->translate( 'Apartment', 'en' ), 'English vocabulary passthrough remains unchanged' );
 
 echo "Pera ML UI-string tests passed\n";
+
+foreach ( array( 'current', 'stale' ) as $status ) {
+    foreach ( array( $source, 'Changed English source' ) as $canonical ) {
+        $ui->store( 'stable.key', $source, 'de', 'Gespeicherte Übersetzung' );
+        $identity = Pera_ML_UI::identity( $source, 'stable.key' );
+        $storage->rows['ui|' . Pera_ML_UI::object_id( $identity ) . '|' . $identity . '|de']['status'] = $status;
+        $before = count( $translator->calls );
+        expect_same( 'Gespeicherte Übersetzung', $ui->get( $canonical, 'stable.key', 'de' ), 'UI survives status/hash change' );
+        expect_same( $canonical, $ui->get( $canonical, 'stable.key', 'en' ), 'English UI remains canonical' );
+        expect_same( $before, count( $translator->calls ), 'stale UI rendering never generates translations' );
+    }
+}
+foreach ( array( '', '   ', null, false, array() ) as $invalid ) {
+    $ui->store( 'invalid.key', $source, 'de', $invalid );
+    expect_same( $source, $ui->get( $source, 'invalid.key', 'de' ), 'invalid or empty UI falls back' );
+}

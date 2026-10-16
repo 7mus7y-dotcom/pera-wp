@@ -67,7 +67,7 @@ final class Pera_ML_Translator {
 			do_action( 'pera_ml_translation_error', $error, compact( 'type', 'id', 'field', 'language' ) );
 			return $error;
 		}
-		$this->storage->put( $type, $id, $field, $language, $source, $translated, $provider->id() );
+		if ( ! $this->storage->put( $type, $id, $field, $language, $source, $translated, $provider->id() ) ) return new WP_Error( 'pera_ml_translation_not_stored', __( 'Translation could not be stored.', 'pera-multilingual' ) );
 		return $translated;
 	}
 	/**
@@ -715,14 +715,13 @@ final class Pera_ML_Translator {
 
 			// A provider must not introduce row delimiters or merge entries.
 			if ( preg_match( '/[|\r\n]/', $translated_question ) || preg_match( '/[|\r\n]/', $translated_answer ) ) {
-				$output[] = $line;
-				continue;
+				return new WP_Error( 'pera_ml_structure_changed', __( 'Translation changed the FAQ row structure.', 'pera-multilingual' ) );
 			}
 			$output[] = trim( $translated_question ) . ' | ' . trim( $translated_answer );
 		}
 
 		$translated = implode( "\n", $output );
-		$this->storage->put( $type, $id, $field, $language, $source, $translated, $provider->id() );
+		if ( ! $this->storage->put( $type, $id, $field, $language, $source, $translated, $provider->id() ) ) return new WP_Error( 'pera_ml_translation_not_stored', __( 'Translation could not be stored.', 'pera-multilingual' ) );
 		return $translated;
 	}
 	private function translate_fragment( $source, $provider, array $context ) {
@@ -751,6 +750,7 @@ final class Pera_ML_Translator {
 		return array( 'text' => $text, 'tokens' => $tokens );
 	}
 	public function restore( $translated, array $tokens ) {
+		if ( ! is_string( $translated ) || '' === trim( $translated ) ) return new WP_Error( 'pera_ml_empty_translation', __( 'Translation is empty or invalid.', 'pera-multilingual' ) );
 		foreach ( $tokens as $key => $value ) if ( 1 !== substr_count( (string) $translated, $key ) ) return new WP_Error( 'pera_ml_structure_changed', __( 'Translation lost or duplicated protected content.', 'pera-multilingual' ) );
 		$restored = strtr( (string) $translated, $tokens );
 		return preg_match( '/PERAMLPROTECTED\d+TOKEN/', $restored ) ? new WP_Error( 'pera_ml_structure_changed', __( 'Translation contains an invalid protected token.', 'pera-multilingual' ) ) : $restored;

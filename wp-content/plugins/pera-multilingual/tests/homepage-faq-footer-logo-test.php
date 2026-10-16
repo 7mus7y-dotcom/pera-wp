@@ -29,8 +29,8 @@ $canonical = array(
 $translated = $fields->homepage_faq( 20, $canonical, 'zh' );
 frontend_expect( '翻译问题', $translated[0]['question'], 'translated FAQ question' );
 frontend_expect( '<p>翻译答案</p>', $translated[0]['answer'], 'translated FAQ answer' );
-frontend_expect( 'Changed English question', $translated[1]['question'], 'changed English source rejects old hash translation' );
-frontend_expect( 'English stale-status answer', $translated[1]['answer'], 'non-current translation falls back' );
+frontend_expect( '旧问题', $translated[1]['question'], 'changed English source retains old translation' );
+frontend_expect( '旧答案', $translated[1]['answer'], 'stale translation remains visible' );
 frontend_expect( $canonical[2], $translated[2], 'missing translations fall back leaf-by-leaf' );
 frontend_expect( $canonical, $fields->homepage_faq( 20, $canonical, 'en' ), 'English FAQ remains canonical' );
 frontend_expect( false, in_array( 'faq', $fields->approved( 'page' ), true ), 'FAQ remains outside scalar page contract' );

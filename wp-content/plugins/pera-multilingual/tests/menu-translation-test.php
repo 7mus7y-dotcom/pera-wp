@@ -29,7 +29,7 @@ final class Menu_UI {
 		$this->calls[] = array( $source, $key );
 		if ( 61 === (int) substr( $key, 10 ) ) return 'zh' === $GLOBALS['menu_router']->language ? '自定义标签' : strtoupper( $GLOBALS['menu_router']->language ) . ' custom';
 		if ( 64 === (int) substr( $key, 10 ) ) return '   ';
-		return $source; // missing, stale and non-current stored rows all reach this safe contract.
+		return $source; // missing and invalid stored rows all reach this safe contract.
 	}
 }
 
@@ -58,7 +58,7 @@ foreach ( array( 'zh', 'ar', 'de' ) as $language ) {
 		menu_expect( 'zh' === $language ? '行政区' : strtoupper( $language ) . ' term', $out[1]->title, "{$language} {$location} term title" );
 		menu_expect( 'https://pera.test/category/guides/', $out[1]->url, "{$language} {$location} object-backed category URL untouched" );
 		menu_expect( 'zh' === $language ? '自定义标签' : strtoupper( $language ) . ' custom', $out[2]->title, "{$language} {$location} custom title" );
-		menu_expect( 'Missing label', $out[3]->title, 'missing/stale/non-current custom translation fallback' );
+		menu_expect( 'Missing label', $out[3]->title, 'missing/invalid custom translation fallback' );
 		menu_expect( 'Blank label', $out[4]->title, 'blank custom translation fallback' );
 		menu_expect( 'https://pera.test/about/', $out[0]->url, 'object-backed permalink item untouched' );
 		menu_expect( 'https://external.test/path', $out[2]->url, 'external URL unchanged' );

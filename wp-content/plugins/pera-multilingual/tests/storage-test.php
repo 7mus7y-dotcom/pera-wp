@@ -9,7 +9,7 @@ function sanitize_key( $value ) { return preg_replace( '/[^a-z0-9_\-]/', '', str
 function absint( $value ) { return abs( (int) $value ); }
 function get_post_type( $id ) { return 'post'; }
 function current_time() { return '2026-08-19 00:00:00'; }
-function apply_filters( $tag, $value ) { return $value; }
+function apply_filters( $tag, $value ) { return 'pera_ml_provider' === $tag && isset( $GLOBALS['refresh_provider'] ) ? $GLOBALS['refresh_provider'] : $value; }
 function wp_cache_get( $key, $group ) { $key = $group . ':' . $key; return array_key_exists( $key, $GLOBALS['pera_ml_test_cache'] ) ? $GLOBALS['pera_ml_test_cache'][ $key ] : false; }
 function wp_cache_set( $key, $value, $group ) { $GLOBALS['pera_ml_test_cache'][ $group . ':' . $key ] = $value; return true; }
 function wp_cache_delete( $key, $group ) { unset( $GLOBALS['pera_ml_test_cache'][ $group . ':' . $key ] ); $GLOBALS['deleted_cache_keys'][] = $group . ':' . $key; return true; }
@@ -17,6 +17,7 @@ function expect_same( $expected, $actual, $label ) { if ( $expected !== $actual 
 
 final class Pera_ML_Test_WPDB {
 	public $prefix = 'wp_';
+	public $fail_write = false;
 	public $queries = array();
 	public $rows = array();
 	public function prepare( $query ) {
@@ -33,12 +34,13 @@ final class Pera_ML_Test_WPDB {
 	public function get_results( $query ) { $this->queries[] = $query; return array( array( 'field_key' => 'post_title', 'language' => 'zh' ), array( 'field_key' => 'post_content', 'language' => 'ar' ) ); }
 	public function query( $query ) {
 		$this->queries[] = $query;
+		if ( $this->fail_write && 0 === strpos( $query, 'INSERT INTO ' ) ) return false;
 		if ( 0 === strpos( $query, 'INSERT INTO ' ) && preg_match( '/VALUES \((.*?)\) ON DUPLICATE/s', $query, $matches ) ) {
 			$values = str_getcsv( $matches[1], ',', "'" );
 			$key = $values[0] . '|' . $values[1] . '|' . $values[2] . '|' . $values[3];
 			$this->rows[ $key ] = array(
 				'object_type' => $values[0], 'object_id' => (int) $values[1], 'field_key' => $values[2], 'language' => $values[3],
-				'source_hash' => $values[4], 'source_text' => $values[5], 'translated_text' => $values[6],
+				'source_hash' => $values[4], 'source_text' => $values[5], 'translated_text' => $values[6], 'status' => $values[7],
 			);
 			return 1;
 		}
@@ -90,3 +92,55 @@ expect_same( 2, count( $GLOBALS['deleted_cache_keys'] ), 'stale row cache entrie
 expect_same( true, false !== strpos( end( $wpdb->queries ), "status<>'stale'" ), 'only non-stale rows are updated' );
 
 echo "Pera ML storage tests passed\n";
+
+// Exercise refreshes through the real translator and storage, including cached reads.
+function __( $text ) { return $text; }
+function do_action() {}
+function is_wp_error( $value ) { return $value instanceof WP_Error; }
+function wp_strip_all_tags( $text ) { return strip_tags( $text ); }
+function get_option( $key, $default = false ) { return $default; }
+class WP_Error { private $code; public function __construct( $code, $message = '' ) { $this->code = $code; } public function get_error_code() { return $this->code; } }
+require dirname( __DIR__ ) . '/includes/providers/interface-provider.php';
+require dirname( __DIR__ ) . '/includes/providers/class-mock-provider.php';
+require dirname( __DIR__ ) . '/includes/class-translator.php';
+$registry = new class { public function get( $language ) { return array( 'name' => 'German', 'source' => false ); } };
+$translator = new Pera_ML_Translator( $registry, $storage );
+$storage->put( 'post', 100, 'post_title', 'de', 'Old title', 'Alter Titel' );
+$wpdb->rows['post|100|post_title|de']['status'] = 'stale';
+$before = $storage->get( 'post', 100, 'post_title', 'de', 'New title' );
+expect_same( true, $before['is_stale'], 'source mismatch remains identifiable' );
+expect_same( 'stale', $before['status'], 'stale status remains identifiable' );
+foreach ( array( '', " \n\t ", null, false, array( 'invalid' ) ) as $invalid ) {
+    expect_same( false, $storage->put( 'post', 100, 'post_title', 'de', 'New title', $invalid ), 'invalid writes rejected' );
+    expect_same( $before, $storage->get( 'post', 100, 'post_title', 'de', 'New title' ), 'invalid write preserves entire cached record' );
+}
+$provider = new class implements Pera_ML_Provider_Interface {
+    public $response;
+    public function id() { return 'refresh-test'; }
+    public function translate( $source, array $context ) { return $this->response; }
+};
+$GLOBALS['refresh_provider'] = $provider;
+foreach ( array( new WP_Error( 'provider_failed' ), '', '   ', null, array( 'invalid' ), 'PERAMLPROTECTED9TOKEN' ) as $response ) {
+    $provider->response = $response;
+    expect_same( true, is_wp_error( $translator->translate_and_store( 'post', 100, 'post_title', 'de', 'New title', 'mock' ) ), 'failed refresh returns an error' );
+    expect_same( $before, $storage->get( 'post', 100, 'post_title', 'de', 'New title' ), 'failed refresh preserves translation, hashes and stale status' );
+}
+$provider->response = 'Neuer Titel';
+expect_same( 'Neuer Titel', $translator->translate_and_store( 'post', 100, 'post_title', 'de', 'New title', 'mock' ), 'successful refresh returns replacement' );
+$after = $storage->get( 'post', 100, 'post_title', 'de', 'New title' );
+expect_same( 'Neuer Titel', $after['translated_text'], 'successful refresh replaces cached translation' );
+expect_same( 'current', $after['status'], 'successful refresh restores current status' );
+expect_same( false, $after['is_stale'], 'successful refresh stores new hash' );
+echo "Pera ML refresh preservation tests passed\n";
+
+$wpdb->fail_write = true;
+expect_same( true, is_wp_error( $translator->translate_and_store( 'post', 100, 'post_title', 'de', 'Another title', 'mock' ) ), 'database failure is reported' );
+expect_same( $after, $storage->get( 'post', 100, 'post_title', 'de', 'New title' ), 'database failure preserves last valid row' );
+$wpdb->fail_write = false;
+$storage->put( 'post', 100, 'meta:seo_faq_v2', 'de', 'Old FAQ', 'Alte Frage | Alte Antwort' );
+$faq_before = $storage->get( 'post', 100, 'meta:seo_faq_v2', 'de', 'Question? | Answer.' );
+foreach ( array( new WP_Error( 'provider_failed' ), '', 'Invalid | separator', "Invalid\nrow" ) as $response ) {
+    $provider->response = $response;
+    expect_same( true, is_wp_error( $translator->translate_and_store( 'post', 100, 'meta:seo_faq_v2', 'de', 'Question? | Answer.', 'mock' ) ), 'invalid FAQ refresh returns error' );
+    expect_same( $faq_before, $storage->get( 'post', 100, 'meta:seo_faq_v2', 'de', 'Question? | Answer.' ), 'failed FAQ refresh preserves existing translation' );
+}
