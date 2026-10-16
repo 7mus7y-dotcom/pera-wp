@@ -49,7 +49,10 @@ foreach ( array( array(), array( 'Pool' ) ) as $facilities ) {
     expect_preview( false === strpos( $preview, 'property-map-card__distances' ) && false === strpos( $preview, 'Saved distance fixture' ) && false === strpos( $preview, 'Location &amp; distances' ), 'preview suppresses distances heading and content' );
     expect_preview( $map_present === ( false !== strpos( $preview, '<aside' ) ), 'only coordinates produce a preview map column' );
     expect_preview( ( $map_present || '' !== $nearby ) === ( false !== strpos( $preview, 'class="property-location-preview__grid' ) ), 'no empty preview row' );
-    expect_preview( ( $map_present && '' !== $nearby ) === ( false !== strpos( $preview, 'grid--paired' ) ), 'only map and amenities together produce paired columns' );
+    expect_preview( false === strpos( $preview, 'grid--paired' ), 'preview always uses stacked layout' );
+    if ( $map_present && '' !== $nearby ) {
+        expect_preview( strpos( $preview, '<aside' ) < strpos( $preview, $nearby ), 'map appears before nearby amenities' );
+    }
     expect_preview( ( $about_present || ! empty( $facilities ) ) === ( false !== strpos( $preview, 'class="property-location__main"' ) ), 'no empty description block' );
     if ( $map_present ) {
         expect_preview( false !== strpos( $preview, '&amp;output=embed' ) && false !== strpos( $preview, 'Open in Google Maps' ), 'Google Maps embed and link preserved' );
@@ -70,9 +73,11 @@ foreach ( array( array(), array( 'lat' => 41.01 ), array( 'lng' => 28.97 ), 'inv
     expect_preview( false === strpos( $html, '<aside' ) && false === strpos( $html, 'grid--paired' ), 'incomplete coordinates cannot retain a map column via distances' );
 }
 $css = file_get_contents( $theme . '/css/main.css' );
-expect_preview( 1 === preg_match( '/@media \(min-width: 769px\)\s*\{\s*\.property-location--preview .*?\.property-location--preview \.property-location-preview__grid--paired\s*\{\s*grid-template-columns: minmax\(0, 9fr\) minmax\(0, 11fr\);/s', $css ), 'desktop preview has 45/55 columns at the existing breakpoint' );
-expect_preview( 1 === preg_match( '/\.property-location--preview \.property-location-preview__grid\s*\{[^}]*grid-template-columns: minmax\(0, 1fr\);[^}]*margin-top: var\(--space-md\);/s', $css ), 'mobile stacks and row uses spacing token' );
-foreach ( array( '[data-component-tabs] > h2', '.component-tabs', '[role="tabpanel"] .grid-2', '[role="tabpanel"] .card-shell', '[role="tabpanel"] h3' ) as $selector ) {
+expect_preview( false === strpos( $css, '.property-location-preview__grid--paired' ), 'no desktop paired-column override' );
+expect_preview( 1 === preg_match( '/\.property-location--preview \.property-location-preview__grid\s*\{[^}]*grid-template-columns: minmax\(0, 1fr\);[^}]*margin-top: var\(--space-md\);/s', $css ), 'preview stacks at every viewport and row uses spacing token' );
+foreach ( array( '[data-component-tabs] > h2', '.component-tabs', '[role="tabpanel"] h3' ) as $selector ) {
     expect_preview( false !== strpos( $css, '.property-location--preview .property-location-preview__nearby ' . $selector . ' {' ), 'amenity spacing scoped to preview: ' . $selector );
 }
+expect_preview( 1 === preg_match( '/\.property-location--preview \.property-location-preview__nearby \[data-component-tabs\] > h2 \.icon\s*\{\s*width: 1em;\s*height: 1em;\s*flex-shrink: 0;/s', $css ), 'preview heading icon scales with heading and cannot shrink' );
+expect_preview( false === strpos( $css, '.property-location--preview .property-location-preview__nearby [role="tabpanel"] .card-shell {' ), 'amenity group padding uses original compact utility' );
 echo "Property layout preview tests passed (32 content combinations plus normal baseline comparisons)\n";
