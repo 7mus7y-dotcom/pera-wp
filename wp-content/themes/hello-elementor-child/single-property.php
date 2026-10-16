@@ -789,6 +789,34 @@ $has_further_reading = ! empty( $post_ids );
 
 
 
+<?php if ( $layout_preview ) : ?>
+  <?php
+  wp_enqueue_script( 'pera-property-sticky-summary', get_stylesheet_directory_uri() . '/js/property-sticky-summary.js', array(), pera_get_asset_version( '/js/property-sticky-summary.js' ), true );
+  ?>
+  <aside class="property-sticky-preview" data-property-sticky-preview hidden inert aria-label="<?php echo esc_attr( pera_ml_ui( 'Property summary', 'theme.template.single_property.property_summary' ) ); ?>">
+    <div class="container property-sticky-preview__inner">
+      <span class="property-sticky-preview__title"><?php echo esc_html( $title ); ?></span>
+      <div class="property-sticky-preview__details">
+        <div class="property-sticky-preview__price">
+          <?php if ( $hero_price_min > 0 ) : ?>
+            <?php if ( $hero_show_from ) : ?><span><?php echo esc_html( pera_ml_ui( 'From', 'theme.template.single_property.from' ) ); ?></span><?php endif; ?>
+            <?php echo pera_property_display_price_html( $hero_display_price ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>
+          <?php else : ?>
+            <?php echo esc_html( pera_ml_ui( 'Contact us for pricing', 'theme.template.single_property.contact_us_for_pricing' ) ); ?>
+          <?php endif; ?>
+        </div>
+        <?php if ( $selected_size_text || $hero_bed_label_v2 ) : ?>
+          <div class="property-sticky-preview__facts"><?php echo esc_html( implode( ' · ', array_filter( array( $selected_size_text, $hero_bed_label_v2 ) ) ) ); ?></div>
+        <?php endif; ?>
+      </div>
+      <div class="property-sticky-preview__actions">
+        <span class="property-sticky-preview__whatsapp"></span>
+        <a class="btn btn--solid btn--blue" href="#contact-form"><?php echo esc_html( pera_ml_ui( 'Enquire', 'theme.template.single_property.enquire' ) ); ?></a>
+      </div>
+    </div>
+  </aside>
+<?php endif; ?>
+
 <!-- =====================================
   OVERVIEW
   ===================================== -->
