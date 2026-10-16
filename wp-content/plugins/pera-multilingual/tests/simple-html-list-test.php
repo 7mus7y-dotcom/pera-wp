@@ -1,4 +1,5 @@
 <?php
+function wp_strip_all_tags( $text ) { return strip_tags( $text ); }
 /** Focused tests for locally reconstructed simple HTML lists. */
 define( 'ABSPATH', __DIR__ );
 $GLOBALS['list_provider'] = null;

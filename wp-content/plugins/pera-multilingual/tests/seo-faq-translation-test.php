@@ -1,4 +1,5 @@
 <?php
+function wp_strip_all_tags( $text ) { return strip_tags( $text ); }
 /** Standalone SEO FAQ translation tests: php tests/faq-translation-test.php */
 define( 'ABSPATH', __DIR__ );
 
@@ -74,7 +75,7 @@ $term = new WP_Term();
 $router->language = 'zh';
 expect_same( $term_zh, $fields->term_meta( $term, 'seo_faq_v2', $source ), 'current taxonomy FAQ translation is retrieved' );
 $storage->rows['term|91|meta:seo_faq_v2|zh']['is_stale'] = true;
-expect_same( $source, $fields->term_meta( $term, 'seo_faq_v2', $source ), 'stale taxonomy FAQ falls back to canonical English' );
+expect_same( $term_zh, $fields->term_meta( $term, 'seo_faq_v2', $source ), 'stale taxonomy FAQ remains visible' );
 unset( $storage->rows['term|91|meta:seo_faq_v2|zh'] );
 expect_same( $source, $fields->term_meta( $term, 'seo_faq_v2', $source ), 'missing taxonomy FAQ falls back to canonical English' );
 expect_same( $source, $fields->term_meta( $term, 'seo_faq_v2', $source, 'en' ), 'English taxonomy FAQ remains canonical' );
@@ -87,7 +88,7 @@ require $theme_dir . 'inc/modules/faqs.php';
 expect_same( $term_zh, pera_property_archive_term_raw_faq_value( $term ), 'frontend taxonomy FAQ lookup returns the current translation' );
 expect_same( false, $GLOBALS['faq_acf_format_value'], 'frontend taxonomy FAQ lookup reads unformatted canonical ACF content' );
 $storage->rows['term|91|meta:seo_faq_v2|zh']['is_stale'] = true;
-expect_same( $source, pera_property_archive_term_raw_faq_value( $term ), 'frontend taxonomy FAQ lookup falls back to canonical source when stale' );
+expect_same( $term_zh, pera_property_archive_term_raw_faq_value( $term ), 'frontend taxonomy FAQ remains visible when stale' );
 $faq_module_source = file_get_contents( $theme_dir . 'inc/modules/faqs.php' );
 expect_same( true, strpos( $faq_module_source, "get_field( 'seo_faq_v2', \$term, false )" ) !== false, 'taxonomy FAQ renderer explicitly reads canonical unformatted ACF source' );
 expect_same( true, strpos( $faq_module_source, "pera_ml_term_meta( \$term, 'seo_faq_v2', \$raw )" ) !== false, 'taxonomy FAQ renderer resolves translations through public term-meta helper' );

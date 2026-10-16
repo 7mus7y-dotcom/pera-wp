@@ -16,7 +16,7 @@ $fields = file_get_contents( __DIR__ . '/../includes/class-fields.php' );
 seo_paths_expect( false !== strpos( $theme_seo, "get_field( \$field_name, \$post_id, false )" ), 'SEO reads the canonical unformatted ACF source' );
 seo_paths_expect( false !== strpos( $theme_seo, "pera_ml_field( \$post_id, \$field_name, \$value )" ), 'theme SEO fields use the existing multilingual field contract' );
 seo_paths_expect( false !== strpos( $plugin_seo, "pera_ml_field( \$id, 'seo_title', \$source )" ), 'late document-title filter uses the validated field reader' );
-seo_paths_expect( false !== strpos( $plugin_seo, "empty( \$row['is_stale'] )" ), 'standalone document-title fallback rejects stale rows' );
+seo_paths_expect( false === strpos( $plugin_seo, "empty( \$row['is_stale'] )" ), 'standalone document-title fallback allows stale rows' );
 seo_paths_expect( false !== strpos( $plugin_seo, "'' !== trim( (string) \$row['translated_text'] )" ), 'standalone document-title fallback rejects blank rows' );
 seo_paths_expect( false === strpos( $fields, "'_wp_attachment_image_alt'" ), 'attachment alt was not added to post scalar contracts' );
 seo_paths_expect( false !== strpos( $fields, "'team' => self::team_fields()" ), 'team metadata uses its own canonical object contract' );

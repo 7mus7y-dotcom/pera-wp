@@ -1,4 +1,5 @@
 <?php
+function wp_strip_all_tags( $text ) { return strip_tags( $text ); }
 /** Standalone coverage tests: php tests/content-coverage-test.php */
 define( 'ABSPATH', __DIR__ );
 function apply_filters( $tag, $value ) { return $value; } function sanitize_key( $v ) { return preg_replace( '/[^a-z0-9_:-]/', '', strtolower( $v ) ); }
@@ -23,14 +24,14 @@ expect_same('Wohnung',$vocab->translate('Apartment','de'),'German apartment voca
 expect_same('Pool',$vocab->translate('Swimming Pool','de'),'German swimming pool vocabulary'); expect_same('Für die Staatsbürgerschaft geeignet',$vocab->translate('Citizenship Suitable','de'),'German citizenship vocabulary');
 $term=new WP_Term();
 $storage->rows['term|4|term_name|ar']=array('translated_text'=>'فيلا مراجعة','is_stale'=>false,'status'=>'current'); expect_same('فيلا مراجعة',$fields->term($term,'name','ar'),'current non-empty taxonomy name returned');
-$storage->rows['term|4|term_name|zh']=array('translated_text'=>'旧别墅','is_stale'=>true,'status'=>'current'); expect_same('别墅',$fields->term($term,'name','zh'),'stale taxonomy name rejected and vocabulary used');
+$storage->rows['term|4|term_name|zh']=array('translated_text'=>'旧别墅','is_stale'=>true,'status'=>'current'); expect_same('旧别墅',$fields->term($term,'name','zh'),'stale taxonomy name remains visible');
 $storage->rows['term|4|term_name|zh']=array('translated_text'=>'旧别墅','is_stale'=>false,'status'=>'pending'); expect_same('别墅',$fields->term($term,'name','zh'),'non-current taxonomy name rejected and vocabulary used');
 $storage->rows['term|4|term_name|zh']=array('translated_text'=>'   ','is_stale'=>false,'status'=>'current'); expect_same('别墅',$fields->term($term,'name','zh'),'empty taxonomy name rejected and vocabulary used');
 unset($storage->rows['term|4|term_name|zh']); expect_same('别墅',$fields->term($term,'name','zh'),'term name fallback still uses vocabulary');
 $storage->rows['term|4|term_description|zh']=array('is_stale'=>false,'status'=>'current'); expect_same('English description',$fields->term($term,'description','zh'),'term description without translation falls back to canonical source');
 $category=new WP_Term(); $category->term_id=102; $category->taxonomy='category'; $category->name='Buyer guides'; $category->description='Canonical category description';
 $storage->rows['term|102|term_name|de']=array('translated_text'=>'Kaufratgeber','is_stale'=>false,'status'=>'current'); expect_same('Kaufratgeber',$fields->term($category,'name','de'),'current category name translation returned');
-$storage->rows['term|102|term_name|de']=array('translated_text'=>'Alter Kaufratgeber','is_stale'=>true,'status'=>'current'); expect_same('Buyer guides',$fields->term($category,'name','de'),'stale category name falls back to canonical source');
+$storage->rows['term|102|term_name|de']=array('translated_text'=>'Alter Kaufratgeber','is_stale'=>true,'status'=>'current'); expect_same('Alter Kaufratgeber',$fields->term($category,'name','de'),'stale category name remains visible');
 $storage->rows['term|102|term_description|de']=array('translated_text'=>'Kategorie Beschreibung','is_stale'=>false,'status'=>'current'); expect_same('Kategorie Beschreibung',$fields->term($category,'description','de'),'current category description translation returned');
 $storage->rows['term|102|term_description|de']=array('translated_text'=>'Alt','is_stale'=>false,'status'=>'pending'); expect_same('Canonical category description',$fields->term($category,'description','de'),'non-current category description falls back to canonical source');
 $storage->rows['term|4|meta:archive_subtitle|zh']='地区副标题'; expect_same('地区副标题',$fields->term_meta($term,'meta:archive_subtitle','Region subtitle','zh'),'approved taxonomy meta translation');

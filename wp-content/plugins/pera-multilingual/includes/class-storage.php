@@ -71,6 +71,8 @@ final class Pera_ML_Storage {
 	}
 
 	public function put( $object_type, $object_id, $field, $language, $source, $translation, $provider = 'manual' ) {
+		// Never replace the last valid translation with an empty or invalid refresh.
+		if ( ! is_string( $translation ) || '' === trim( $translation ) ) return false;
 		global $wpdb;
 		$now = current_time( 'mysql', true );
 		$field = self::normalize_field_key( $field );

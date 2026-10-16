@@ -1,4 +1,5 @@
 <?php
+function wp_strip_all_tags( $text ) { return strip_tags( $text ); }
 /** Standalone structural post_content chunk tests: php tests/post-content-chunking-test.php */
 define( 'ABSPATH', __DIR__ );
 function __( $value ) { return $value; }

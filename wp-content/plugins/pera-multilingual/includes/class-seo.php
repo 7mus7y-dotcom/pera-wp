@@ -20,9 +20,9 @@ final class Pera_ML_SEO {
 			$translated = pera_ml_field( $id, 'seo_title', $source );
 		} else {
 			// Keep the service independently testable while applying the same
-			// current/non-blank contract as the public field reader.
+			// stored/non-blank contract as the public field reader.
 			$row = $this->storage->get( 'post', $id, 'meta:seo_title', $this->router->current_language(), $source );
-			if ( is_array( $row ) && empty( $row['is_stale'] ) && ( ! isset( $row['status'] ) || 'current' === $row['status'] ) && isset( $row['translated_text'] ) && '' !== trim( (string) $row['translated_text'] ) ) {
+			if ( is_array( $row ) && ( ! isset( $row['status'] ) || in_array( $row['status'], array( 'current', 'stale' ), true ) ) && isset( $row['translated_text'] ) && is_string( $row['translated_text'] ) && '' !== trim( (string) $row['translated_text'] ) ) {
 				$translated = $row['translated_text'];
 			}
 		}

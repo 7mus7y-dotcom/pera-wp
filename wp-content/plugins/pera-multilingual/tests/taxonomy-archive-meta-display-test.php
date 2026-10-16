@@ -70,7 +70,7 @@ $district = new WP_Term( 20, 'district' );
 $source   = 'Canonical district subtitle';
 expect_taxonomy_archive_meta( $source, $fields->term_meta( $district, 'meta:district_archive_subtitle', $source ), 'missing translations fall back to the canonical source' );
 $storage->rows['term:20:meta:district_archive_subtitle:zh'] = array( 'translated_text' => 'Stale subtitle', 'status' => 'stale', 'is_stale' => 1 );
-expect_taxonomy_archive_meta( $source, $fields->term_meta( $district, 'meta:district_archive_subtitle', $source ), 'stale translations fall back to the canonical source' );
+expect_taxonomy_archive_meta( 'Stale subtitle', $fields->term_meta( $district, 'meta:district_archive_subtitle', $source ), 'stale translations remain visible' );
 
 $excerpt_source = 'Canonical district card excerpt';
 $storage->rows['term:20:meta:pera_term_excerpt:zh'] = array( 'translated_text' => 'Translated card excerpt', 'status' => 'current', 'is_stale' => 0 );
@@ -79,7 +79,7 @@ $router->language = 'en';
 expect_taxonomy_archive_meta( $excerpt_source, $fields->term_meta( $district, 'meta:pera_term_excerpt', $excerpt_source ), 'English taxonomy card excerpt remains canonical' );
 $router->language = 'zh';
 $storage->rows['term:20:meta:pera_term_excerpt:zh']['is_stale'] = 1;
-expect_taxonomy_archive_meta( $excerpt_source, $fields->term_meta( $district, 'meta:pera_term_excerpt', $excerpt_source ), 'stale taxonomy card excerpt falls back to canonical English' );
+expect_taxonomy_archive_meta( 'Translated card excerpt', $fields->term_meta( $district, 'meta:pera_term_excerpt', $excerpt_source ), 'stale taxonomy card excerpt remains visible' );
 unset( $storage->rows['term:20:meta:pera_term_excerpt:zh'] );
 expect_taxonomy_archive_meta( $excerpt_source, $fields->term_meta( $district, 'meta:pera_term_excerpt', $excerpt_source ), 'missing taxonomy card excerpt falls back to canonical English' );
 

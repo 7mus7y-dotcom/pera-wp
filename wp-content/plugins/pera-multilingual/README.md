@@ -88,7 +88,7 @@ pera_ml_translate_ui(
 `pera_ml_vocab()` remains the code-owned, reviewed dictionary for controlled domain
 values such as property types, facilities, buyer types, and property advantages.
 `pera_ml_ui()` is the general UI-copy layer backed by `{prefix}pera_ml_translations`.
-Missing, stale, or unavailable UI rows safely return their English source.
+Valid, non-empty UI translations remain visible even when stale or when the source hash changes. Missing, blank, invalid, or unavailable UI rows safely return their English source.
 
 #### Registration and admin workflow
 

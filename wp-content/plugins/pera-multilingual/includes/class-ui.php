@@ -16,7 +16,7 @@ final class Pera_ML_UI {
 	}
 
 	/**
-	 * Return a current stored UI translation, or the canonical English source.
+	 * Return a non-blank stored UI translation, or the canonical English source.
 	 *
 	 * This read path deliberately has no provider access. UI translations use
 	 * object_type `ui`, a 60-bit SHA-256-derived object_id, and the normalized
@@ -33,9 +33,9 @@ final class Pera_ML_UI {
 
 		$identity = self::identity( $source, $key );
 		$row = $this->storage->get( 'ui', self::object_id( $identity ), $identity, $language, $source );
-		if ( ! is_array( $row ) || ! empty( $row['is_stale'] ) ) return $source;
-		if ( isset( $row['status'] ) && 'current' !== $row['status'] ) return $source;
-		return isset( $row['translated_text'] ) && is_string( $row['translated_text'] ) ? $row['translated_text'] : $source;
+		if ( ! is_array( $row ) ) return $source;
+		if ( isset( $row['status'] ) && ! in_array( $row['status'], array( 'current', 'stale' ), true ) ) return $source;
+		return isset( $row['translated_text'] ) && is_string( $row['translated_text'] ) && '' !== trim( $row['translated_text'] ) ? $row['translated_text'] : $source;
 	}
 
 	/** Import a reviewed UI translation without contacting a provider. */

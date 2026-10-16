@@ -123,7 +123,7 @@ final class Pera_ML_Fields {
 				if ( ! isset( $row[ $leaf ] ) || ! is_string( $row[ $leaf ] ) || '' === trim( $row[ $leaf ] ) ) continue;
 				$source = $row[ $leaf ];
 				$stored = $this->storage->get( 'post', (int) $post_id, self::homepage_faq_field( $index, $leaf ), $language, $source );
-				if ( is_array( $stored ) && empty( $stored['is_stale'] ) && ( ! isset( $stored['status'] ) || 'current' === $stored['status'] ) && isset( $stored['translated_text'] ) && '' !== trim( (string) $stored['translated_text'] ) ) $row[ $leaf ] = $stored['translated_text'];
+				if ( is_array( $stored ) && ( ! isset( $stored['status'] ) || in_array( $stored['status'], array( 'current', 'stale' ), true ) ) && isset( $stored['translated_text'] ) && is_string( $stored['translated_text'] ) && '' !== trim( (string) $stored['translated_text'] ) ) $row[ $leaf ] = $stored['translated_text'];
 			}
 		}
 		unset( $row );
@@ -171,7 +171,7 @@ final class Pera_ML_Fields {
 		}
 		if ( 'en' === $language || $object_id <= 0 || ! in_array( $field, $approved, true ) ) return $source;
 		$row = $this->storage->get( $object_type, (int) $object_id, 'meta:' . sanitize_key( $field ), $language, (string) $source );
-		if ( ! is_array( $row ) || ! empty( $row['is_stale'] ) || ( isset( $row['status'] ) && 'current' !== $row['status'] ) || ! isset( $row['translated_text'] ) || '' === trim( (string) $row['translated_text'] ) ) return $source;
+		if ( ! is_array( $row ) || ( isset( $row['status'] ) && ! in_array( $row['status'], array( 'current', 'stale' ), true ) ) || ! isset( $row['translated_text'] ) || ! is_string( $row['translated_text'] ) || '' === trim( (string) $row['translated_text'] ) ) return $source;
 		return $row['translated_text'];
 	}
 	public function identify_acf_object( $post_id ) {
@@ -190,7 +190,7 @@ final class Pera_ML_Fields {
 		$language = $language ? sanitize_key( $language ) : $this->router->current_language(); $source = 'description' === $field ? $term->description : $term->name;
 		if ( 'en' === $language ) return $source;
 		$row = $this->storage->get( 'term', $term->term_id, 'term_' . $field, $language, (string) $source );
-		if ( is_array( $row ) && empty( $row['is_stale'] ) && ( ! isset( $row['status'] ) || 'current' === $row['status'] ) && isset( $row['translated_text'] ) && '' !== trim( (string) $row['translated_text'] ) ) return $row['translated_text'];
+		if ( is_array( $row ) && ( ! isset( $row['status'] ) || in_array( $row['status'], array( 'current', 'stale' ), true ) ) && isset( $row['translated_text'] ) && is_string( $row['translated_text'] ) && '' !== trim( (string) $row['translated_text'] ) ) return $row['translated_text'];
 		return 'name' === $field ? $this->vocabulary->translate( $source, $language ) : $source;
 	}
 	/** Read one approved taxonomy meta translation without invoking a provider. */
@@ -202,7 +202,7 @@ final class Pera_ML_Fields {
 		$language = $language ? sanitize_key( $language ) : $this->router->current_language();
 		if ( 'en' === $language ) return $source;
 		$row = $this->storage->get( 'term', $term->term_id, $field, $language, (string) $source );
-		if ( ! is_array( $row ) || ! empty( $row['is_stale'] ) || ( isset( $row['status'] ) && 'current' !== $row['status'] ) || ! isset( $row['translated_text'] ) || '' === trim( (string) $row['translated_text'] ) ) return $source;
+		if ( ! is_array( $row ) || ( isset( $row['status'] ) && ! in_array( $row['status'], array( 'current', 'stale' ), true ) ) || ! isset( $row['translated_text'] ) || ! is_string( $row['translated_text'] ) || '' === trim( (string) $row['translated_text'] ) ) return $source;
 		return $row['translated_text'];
 	}
 }

@@ -1,4 +1,5 @@
 <?php
+function wp_strip_all_tags( $text ) { return strip_tags( $text ); }
 /** Focused structural translation tests for HTML-bearing non-post_content fields. */
 define( 'ABSPATH', __DIR__ );
 $GLOBALS['rich_provider'] = null;
@@ -56,7 +57,7 @@ class Rich_HTML_Provider implements Pera_ML_Provider_Interface {
 		) );
 	}
 }
-final class Rich_HTML_Storage { public $puts = array(); public function put() { $this->puts[] = func_get_args(); } }
+final class Rich_HTML_Storage { public $puts = array(); public function put() { $this->puts[] = func_get_args(); return true; } }
 $registry = new class { public function get() { return array( 'name' => 'Arabic', 'source' => false, 'instructions' => 'Translate.' ); } };
 $run = static function ( $source, $provider = null, $language = 'ar' ) use ( $registry ) {
 	$GLOBALS['rich_provider'] = $provider ? $provider : new Rich_HTML_Provider();
