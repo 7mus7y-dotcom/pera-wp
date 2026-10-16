@@ -17,14 +17,12 @@ function pera_get_asset_version( $path ) { return 'test'; }
 function wp_enqueue_script() { $GLOBALS['enqueues']++; }
 function check_summary( $condition, $label ) { if ( ! $condition ) { throw new Exception( $label ); } }
 $theme = dirname( __DIR__ );
-require $theme . '/../../mu-plugins/pera-property-layout-preview.php';
 require $theme . '/inc/v2-units-index.php';
 $template = file_get_contents( $theme . '/single-property.php' );
-$start = strpos( $template, '<?php if ( $layout_preview ) : ?>', strpos( $template, '</section>' ) );
+$start = strpos( $template, "  <?php\n  wp_enqueue_script" );
 $end = strpos( $template, '<!-- =====================================' . "\n  OVERVIEW", $start );
 $section = substr( $template, $start, $end - $start );
 function render_summary( $section, $mode = 'single', $price = 299000, $size = '69 m²', $beds = '1+1', $type_name = 'Apartment' ) {
-    $layout_preview = pera_property_layout_preview_enabled();
     $hero_price_min = $price;
     $hero_display_price = pera_property_display_price( $price, $price + ( 'from' === $mode ? 100000 : 0 ), $mode );
     $hero_show_from = 'from' === $mode;
@@ -40,10 +38,10 @@ foreach ( array( false, true ) as $property ) {
 foreach ( array( null, '1', '0', array( '1' ) ) as $query ) {
     $GLOBALS['logged_in'] = $logged_in; $GLOBALS['admin'] = $admin; $GLOBALS['property'] = $property;
     $_GET = null === $query ? array() : array( 'layout_preview' => $query );
-    $expected = $logged_in && $admin && $property && '1' === $query;
+    $expected = true;
     $html = render_summary( $section );
-    check_summary( $expected === ( false !== strpos( $html, 'data-property-sticky-preview' ) ), 'preview isolation' );
-    check_summary( ( $expected ? 1 : 0 ) === $GLOBALS['enqueues'], 'script isolation' );
+    check_summary( $expected === ( false !== strpos( $html, 'data-property-sticky-summary' ) ), 'summary present for every visitor and query value' );
+    check_summary( ( $expected ? 1 : 0 ) === $GLOBALS['enqueues'], 'script enqueued once' );
 }}}}
 $GLOBALS['logged_in'] = $GLOBALS['admin'] = $GLOBALS['property'] = true;
 $_GET = array( 'layout_preview' => '1' );
@@ -57,11 +55,11 @@ foreach ( array( 'single', 'from' ) as $mode ) {
 }
 $html = render_summary( $section, 'single', 0, '', '', '' );
 check_summary( false !== strpos( $html, 'Contact us for pricing' ), 'missing price fallback' );
-check_summary( false === strpos( $html, 'property-sticky-preview__facts' ), 'missing facts omitted' );
+check_summary( false === strpos( $html, 'property-sticky-summary__facts' ), 'missing facts omitted' );
 $type_html = render_summary( $section, 'single', 299000, '69 m²', '', 'Apartment' );
 check_summary( false !== strpos( $type_html, ' · Apartment' ), 'existing translated property type used when beds unavailable' );
 check_summary( false === strpos( $type_html, 'Large Furnished Studio' ), 'no sticky title' );
-check_summary( false !== strpos( $type_html, 'card-shell property-sticky-preview' ), 'existing card design system reused' );
+check_summary( false !== strpos( $type_html, 'card-shell property-sticky-summary' ), 'existing card design system reused' );
 if ( in_array( '--type-fixture', $argv, true ) ) { echo $type_html; exit; }
 if ( in_array( '--normal-fixture', $argv, true ) ) {
     $_GET = array(); echo render_summary( $section ); exit;
@@ -81,4 +79,4 @@ if ( in_array( '--header-fixture', $argv, true ) ) {
     exit;
 }
 if ( in_array( '--fixture', $argv, true ) ) echo render_summary( $section, 'from' );
-else echo "Sticky summary PHP tests passed (32 gate combinations, project/resale and missing data)\n";
+else echo "Sticky summary PHP tests passed (32 visitor/query combinations, project/resale and missing data)\n";

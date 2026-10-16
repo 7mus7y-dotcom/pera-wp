@@ -11,7 +11,6 @@ if ( ! defined( 'ABSPATH' ) ) {
   exit;
 }
 
-$layout_preview = function_exists( 'pera_property_layout_preview_enabled' ) && pera_property_layout_preview_enabled();
 
 get_header();
 
@@ -789,14 +788,13 @@ $has_further_reading = ! empty( $post_ids );
 
 
 
-<?php if ( $layout_preview ) : ?>
   <?php
   wp_enqueue_script( 'pera-property-sticky-summary', get_stylesheet_directory_uri() . '/js/property-sticky-summary.js', array(), pera_get_asset_version( '/js/property-sticky-summary.js' ), true );
   ?>
-  <aside class="card-shell property-sticky-preview" data-property-sticky-preview hidden inert aria-label="<?php echo esc_attr( pera_ml_ui( 'Property summary', 'theme.template.single_property.property_summary' ) ); ?>">
-    <div class="property-sticky-preview__inner">
-      <div class="property-sticky-preview__details">
-        <div class="property-sticky-preview__price text-base text-bold">
+  <aside class="card-shell property-sticky-summary" data-property-sticky-summary hidden inert aria-label="<?php echo esc_attr( pera_ml_ui( 'Property summary', 'theme.template.single_property.property_summary' ) ); ?>">
+    <div class="property-sticky-summary__inner">
+      <div class="property-sticky-summary__details">
+        <div class="property-sticky-summary__price text-base text-bold">
           <?php if ( $hero_price_min > 0 ) : ?>
             <?php if ( $hero_show_from ) : ?><span><?php echo esc_html( pera_ml_ui( 'From', 'theme.template.single_property.from' ) ); ?></span><?php endif; ?>
             <?php echo pera_property_display_price_html( $hero_display_price ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>
@@ -805,16 +803,16 @@ $has_further_reading = ! empty( $post_ids );
           <?php endif; ?>
         </div>
         <?php if ( $selected_size_text || $hero_bed_label_v2 || $type_name ) : ?>
-          <div class="property-sticky-preview__facts text-xs text-soft"><?php echo esc_html( implode( ' · ', array_filter( array( $selected_size_text, $hero_bed_label_v2 ) ) ) ); ?><?php if ( ! $hero_bed_label_v2 && $type_name ) : ?><span class="property-sticky-preview__type"><?php echo esc_html( ( $selected_size_text ? ' · ' : '' ) . $type_name ); ?></span><?php endif; ?></div>
+          <div class="property-sticky-summary__facts text-xs text-soft"><?php echo esc_html( implode( ' · ', array_filter( array( $selected_size_text, $hero_bed_label_v2 ) ) ) ); ?><?php if ( ! $hero_bed_label_v2 && $type_name ) : ?><span class="property-sticky-summary__type"><?php echo esc_html( ( $selected_size_text ? ' · ' : '' ) . $type_name ); ?></span><?php endif; ?></div>
         <?php endif; ?>
       </div>
-      <div class="property-sticky-preview__actions">
-        <span class="property-sticky-preview__whatsapp"></span>
+      <div class="property-sticky-summary__actions">
+        <span class="property-sticky-summary__whatsapp"></span>
         <a class="btn btn--solid btn--blue" href="#contact-form"><?php echo esc_html( pera_ml_ui( 'Enquire', 'theme.template.single_property.enquire' ) ); ?></a>
       </div>
     </div>
   </aside>
-<?php endif; ?>
+
 
 <!-- =====================================
   OVERVIEW
@@ -1269,36 +1267,24 @@ if ( ! empty( $yt_video ) ) {
 <!-- =====================================
   ABOUT + LOCATION
   ===================================== -->
-<section class="section section-soft property-location<?php if ( $layout_preview ) echo ' property-location--preview'; ?>" id="property-location">
+<section class="section section-soft property-location" id="property-location">
 
   <?php
   $about_heading     = function_exists( 'get_field' ) ? (string) get_field( 'whats_special_heading', $property_id ) : '';
   $about_html        = function_exists( 'get_field' ) ? get_field( 'about_this_project', $property_id ) : '';
-  $location_heading  = function_exists( 'get_field' ) ? (string) get_field( 'location_info_heading', $property_id ) : '';
-  $distances_html    = function_exists( 'get_field' ) ? get_field( 'distances', $property_id ) : '';
   $map               = function_exists( 'get_field' ) ? get_field( 'map', $property_id ) : null;
 
   $has_about     = ! empty( $about_html );
-  $has_distances = ! empty( $distances_html );
   $has_map       = is_array( $map ) && ( ! empty( $map['lat'] ) && ! empty( $map['lng'] ) );
   ?>
 
   <?php
-  $nearby_html = '';
-  if ( $layout_preview ) {
-    ob_start();
-    pera_render_nearby_amenities( $map, 'property-location-preview-heading' );
-    $nearby_html = trim( ob_get_clean() );
-  }
+  ob_start();
+  pera_render_nearby_amenities( $map, 'property-location-heading' );
+  $nearby_html = trim( ob_get_clean() );
   ?>
-  <?php if ( $layout_preview ) : ?>
-    <p class="text-soft"><span class="pill"><?php echo esc_html( pera_ml_ui( 'Layout preview', 'theme.template.single_property.layout_preview' ) ); ?></span></p>
-  <?php else : ?>
-  <div class="grid-2--tight" style="align-items:start;">
-  <?php endif; ?>
-
-    <!-- LEFT: TEXT -->
-    <?php if ( ! $layout_preview || $has_about || $has_facilities ) : ?>
+    <!-- Full-width description and facilities -->
+    <?php if ( $has_about || $has_facilities ) : ?>
     <div class="property-location__main">
       <?php if ( $has_about ) : ?>
         <h2><?php echo esc_html( $about_heading ?: pera_ml_ui( 'About this project', 'theme.template.single_property.about_project_heading' ) ); ?></h2>
@@ -1323,15 +1309,14 @@ if ( ! empty( $yt_video ) ) {
     </div>
 
     <?php endif; ?>
-    <?php if ( $layout_preview && ( $has_map || $nearby_html !== '' ) ) : ?>
-      <div class="card-shell property-location-preview__panel" role="region" aria-labelledby="property-location-preview-heading">
-        <h2 class="inline-row property-location-preview__heading" id="property-location-preview-heading"><svg class="icon" aria-hidden="true" focusable="false"><use href="#icon-map"></use></svg><?php echo esc_html( pera_ml_ui( 'Nearby amenities', 'theme.nearby.heading' ) ); ?></h2>
-        <div class="property-location-preview__grid<?php if ( $has_map && $nearby_html !== '' ) echo ' property-location-preview__grid--paired'; ?>">
+    <?php if ( $has_map || $nearby_html !== '' ) : ?>
+      <div class="card-shell property-location__panel" role="region" aria-labelledby="property-location-heading">
+        <h2 class="inline-row property-location__heading" id="property-location-heading"><svg class="icon" aria-hidden="true" focusable="false"><use href="#icon-map"></use></svg><?php echo esc_html( pera_ml_ui( 'Nearby amenities', 'theme.nearby.heading' ) ); ?></h2>
+        <div class="property-location__grid<?php if ( $has_map && $nearby_html !== '' ) echo ' property-location__grid--paired'; ?>">
     <?php endif; ?>
-    <!-- RIGHT: MAP -->
-<?php if ( ! $layout_preview || $has_map ) : ?>
+    <!-- Map column, when coordinates are available -->
+<?php if ( $has_map ) : ?>
 <aside class="property-location__aside">
-  <?php if ( $has_map ) : ?>
     <?php
       $lat       = (float) $map['lat'];
       $lng       = (float) $map['lng'];
@@ -1340,8 +1325,7 @@ if ( ! empty( $yt_video ) ) {
       $embed_url = 'https://www.google.com/maps?q=' . rawurlencode( $lat . ',' . $lng ) . '&z=15&output=embed';
     ?>
 
-    <div class="<?php echo $layout_preview ? 'property-map-card' : 'card-shell property-map-card'; ?>">
-      <?php if ( ! $layout_preview ) : ?><h3 class="property-map-card__title"><?php echo esc_html( pera_ml_ui( 'Map', 'theme.template.single_property.map' ) ); ?></h3><?php endif; ?>
+    <div class="property-map-card">
 
       <?php if ( $address ) : ?>
         <p class="property-map-card__address text-soft">
@@ -1371,41 +1355,18 @@ if ( ! empty( $yt_video ) ) {
         </a>
       </div>
 
-      <?php if ( ! $layout_preview && $has_distances ) : ?>
-        <div class="property-map-card__distances">
-          <h4 class="property-map-card__distances-title">
-            <?php echo esc_html( $location_heading ?: pera_ml_ui( 'Location & distances', 'theme.template.single_property.location_distances_heading' ) ); ?>
-          </h4>
-
-          <div class="property-map-card__distances-content text-soft">
-            <?php echo apply_filters( 'the_content', $distances_html ); ?>
-          </div>
-        </div>
-      <?php endif; ?>
     </div>
-
-  <?php else : ?>
-
-    <div class="card-shell property-map-card">
-      <h3 class="property-map-card__title"><?php echo esc_html( pera_ml_ui( 'Map', 'theme.template.single_property.map' ) ); ?></h3>
-      <p class="text-soft" style="margin:0;">
-        <?php echo esc_html( pera_ml_ui( 'Map location is not available for this listing.', 'theme.template.single_property.map_location_is_not_available_for_this_listing' ) ); ?>
-      </p>
-    </div>
-
-  <?php endif; ?>
 </aside>
 <?php endif; ?>
 
 
-  <?php if ( $layout_preview && $nearby_html !== '' ) : ?>
-    <div class="property-location-preview__nearby"><?php echo $nearby_html; // Trusted markup from the existing POI renderer. ?></div>
+  <?php if ( $nearby_html !== '' ) : ?>
+    <div class="property-location__nearby"><?php echo $nearby_html; // Trusted markup from the existing POI renderer. ?></div>
   <?php endif; ?>
-  <?php if ( ! $layout_preview || $has_map || $nearby_html !== '' ) : ?>
+  <?php if ( $has_map || $nearby_html !== '' ) : ?>
   </div>
   <?php endif; ?>
-  <?php if ( $layout_preview && ( $has_map || $nearby_html !== '' ) ) : ?></div><?php endif; ?>
-  <?php if ( ! $layout_preview ) pera_render_nearby_amenities( $map ); ?>
+  <?php if ( $has_map || $nearby_html !== '' ) : ?></div><?php endif; ?>
 </section>
 
   <section id="property-price-range" class="section section-soft property-price-range">
@@ -1579,10 +1540,10 @@ if ( ! empty( $yt_video ) ) {
 <?php if ( $has_property_editorial_content ) : ?>
 <section class="section section-soft property-editorial-content" id="property-editorial-content">
   <div class="container">
-    <div class="grid-2--tight property-editorial-grid<?php if ( $layout_preview ) echo ' property-editorial-grid--preview'; ?>">
+    <div class="grid-2--tight property-editorial-grid">
 
       <?php if ( $has_property_editorial_intro_card ) : ?>
-        <div class="card-shell property-editorial-card<?php if ( ! $layout_preview ) echo ' property-editorial-card--wide'; ?>">
+        <div class="card-shell property-editorial-card">
           <h2><?php echo esc_html( pera_ml_ui( 'Why this property?', 'theme.template.single_property.why_this_property' ) ); ?></h2>
 
           <?php if ( $has_property_editorial_intro ) : ?>

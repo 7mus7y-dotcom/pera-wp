@@ -31,7 +31,7 @@ const fixture = `<style>${css}</style><style>
   await page.goto('https://property.test/');
   const errors = [];
   page.on('pageerror', e => errors.push(e.message));
-  const bar = page.locator('[data-property-sticky-preview]');
+  const bar = page.locator('[data-property-sticky-summary]');
   async function scroll(y) { await page.evaluate(y => scrollTo(0, y), y); await page.waitForTimeout(130); }
   async function visible(value) { await (value ? bar.waitFor({state:'visible'}) : bar.waitFor({state:'hidden'})); }
   for (const width of [320, 375, 430, 1024, 1280, 1440]) {
@@ -61,7 +61,7 @@ const fixture = `<style>${css}</style><style>
         const enquire = await bar.locator('a[href="#contact-form"]').boundingBox();
         const whatsapp = await page.locator('#floating-whatsapp').boundingBox();
         assert(Math.abs(enquire.height - whatsapp.height) < 1, 'mobile action heights match');
-        const inner = await bar.locator('.property-sticky-preview__inner').boundingBox();
+        const inner = await bar.locator('.property-sticky-summary__inner').boundingBox();
         assert.equal(Math.round(inner.x), 16, '16px mobile side padding');
         assert.equal(await bar.locator('#floating-whatsapp').count(), 1);
         assert.equal(await page.locator('#floating-whatsapp').count(), 1);
@@ -80,9 +80,9 @@ const fixture = `<style>${css}</style><style>
         assert(rect.x >= 0 && rect.x + rect.width <= width, 'card remains inside viewport');
         const button = await bar.locator('a[href="#contact-form"]').boundingBox();
         assert(Math.abs(button.width - (rect.width - 34)) < 1, 'full-width desktop Enquire');
-        const details = await bar.locator('.property-sticky-preview__details').boundingBox();
+        const details = await bar.locator('.property-sticky-summary__details').boundingBox();
         assert(button.y >= details.y + details.height, 'button below price and facts');
-        assert.equal(await page.evaluate(() => document.elementFromPoint(innerWidth - 1, document.getElementById('site-header').getBoundingClientRect().bottom + 2)?.closest('[data-property-sticky-preview]') !== null), false, 'no full-width separator');
+        assert.equal(await page.evaluate(() => document.elementFromPoint(innerWidth - 1, document.getElementById('site-header').getBoundingClientRect().bottom + 2)?.closest('[data-property-sticky-summary]') !== null), false, 'no full-width separator');
         assert(await page.locator('#language-toggle').isVisible(), 'header controls remain available');
         assert(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth), 'no desktop overflow');
         assert.equal(await bar.locator('#floating-whatsapp').count(), 0);
@@ -91,7 +91,7 @@ const fixture = `<style>${css}</style><style>
         const headerControl = await page.locator('#currency-toggle').boundingBox();
         assert(await page.evaluate(({x,y}) => document.elementFromPoint(x,y)?.closest('#currency-toggle') !== null, {x:headerControl.x+headerControl.width/2,y:headerControl.y+headerControl.height/2}), 'header currency control unobstructed');
       }
-      assert.equal(await bar.locator('.property-sticky-preview__title').count(), 0, 'title removed');
+      assert.equal(await bar.locator('.property-sticky-summary__title').count(), 0, 'title removed');
       await page.evaluate(() => document.getElementById('language-toggle').setAttribute('aria-expanded','true')); await visible(false);
       await page.locator('#language-toggle').click();
       await page.evaluate(() => document.getElementById('language-toggle').setAttribute('aria-expanded','false')); await visible(true);
@@ -106,7 +106,7 @@ const fixture = `<style>${css}</style><style>
       assert.notEqual(await bar.evaluate(e => getComputedStyle(e).backgroundColor), 'rgb(255, 255, 255)');
       await page.evaluate(() => window.PeraCurrency.setSelected('EUR'));
       assert.equal(await bar.locator('[data-pera-money]').textContent(), '€269,100', 'existing currency runtime updates summary');
-      assert((await bar.locator('.property-sticky-preview__price').textContent()).includes('From'), 'starting price semantics retained');
+      assert((await bar.locator('.property-sticky-summary__price').textContent()).includes('From'), 'starting price semantics retained');
       await page.evaluate(() => window.PeraCurrency.setSelected('USD'));
       await bar.locator('a[href="#contact-form"]').click();
       await page.waitForTimeout(150);
@@ -122,8 +122,8 @@ const fixture = `<style>${css}</style><style>
   }
   for (const width of [320,375,430]) {
     await page.setViewportSize({width,height:800});
-    await bar.locator('.property-sticky-preview__price').evaluate(e => e.textContent = 'Contact us for pricing');
-    await bar.locator('.property-sticky-preview__facts').evaluate(e => e.textContent = '');
+    await bar.locator('.property-sticky-summary__price').evaluate(e => e.textContent = 'Contact us for pricing');
+    await bar.locator('.property-sticky-summary__facts').evaluate(e => e.textContent = '');
     await bar.locator('a[href="#contact-form"]').evaluate(e => e.textContent = 'Запросить информацию');
     await scroll(1300); await visible(true);
     assert(await bar.evaluate(e => e.scrollWidth <= innerWidth), 'missing price and translated action fit');
@@ -135,12 +135,14 @@ const fixture = `<style>${css}</style><style>
   await page.evaluate(() => document.getElementById('site-header').style.height = '55px'); await page.waitForTimeout(150);
   assert.equal(Math.round((await bar.boundingBox()).y), 75, 'header resize plus card offset tracked');
   await page.setContent(fixture.replace(markup, render('--type-fixture')));
-  assert((await bar.locator('.property-sticky-preview__facts').textContent()).includes('69 m² · Apartment'), 'gross size and property-type fallback');
+  assert((await bar.locator('.property-sticky-summary__facts').textContent()).includes('69 m² · Apartment'), 'gross size and property-type fallback');
+  await page.setViewportSize({width:375,height:800});
   await page.setContent(fixture.replace(markup, render('--normal-fixture')));
   await page.addScriptTag({content:script});
-  assert.equal(await bar.count(), 0, 'normal visitor markup has no summary');
-  assert.equal(await page.locator('body').evaluate(e => getComputedStyle(e).paddingBottom), '0px', 'no preview spacing on normal pages');
-  assert.equal(await page.locator('#floating-home #floating-whatsapp').count(), 1, 'normal floating link untouched');
+  assert.equal(await bar.count(), 1, 'normal visitor receives permanent summary');
+  assert.equal(await page.locator('body').evaluate(e => getComputedStyle(e).paddingBottom), '96px', 'mobile summary space is reserved on normal pages');
+  await scroll(0); await visible(false);
+  assert.equal(await page.locator('#floating-home #floating-whatsapp').count(), 1, 'normal visitor floating link restored');
   assert(css.includes('env(safe-area-inset-bottom)'), 'safe-area padding');
   assert(!script.includes("addEventListener('scroll'"), 'no scroll polling');
   assert.deepEqual(errors, []);
