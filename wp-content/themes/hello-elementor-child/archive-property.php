@@ -1284,9 +1284,11 @@ $property_archive_faq_items = ( function_exists( 'pera_property_archive_is_index
   <section class="archive-faq section">
     <div class="container">
       <?php
-        $property_archive_faq_heading = function_exists( 'pera_get_property_archive_faq_heading' )
-          ? pera_get_property_archive_faq_heading()
-          : pera_ml_ui( 'Frequently Asked Questions About Property in Istanbul', 'theme.template.archive_property.faq_heading' );
+        $property_archive_faq_heading = $is_clean_main_property_archive
+          ? pera_ml_ui( 'Frequently Asked Questions About Property in Istanbul', 'theme.template.archive_property.faq_heading' )
+          : ( function_exists( 'pera_get_property_archive_faq_heading' )
+              ? pera_get_property_archive_faq_heading()
+              : pera_ml_ui( 'Frequently Asked Questions About Property in Istanbul', 'theme.template.archive_property.faq_heading' ) );
         pera_render_faq_html( $property_archive_faq_items, $property_archive_faq_heading );
       ?>
     </div>

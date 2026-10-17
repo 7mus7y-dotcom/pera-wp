@@ -56,7 +56,7 @@ function wp_kses_post( $text ) { return $text; }
 function wpautop( $text ) { return '<p>' . $text . '</p>'; }
 function esc_html( $text ) { return htmlspecialchars( $text, ENT_QUOTES, 'UTF-8' ); }
 function esc_url( $text ) { return htmlspecialchars( $text, ENT_QUOTES, 'UTF-8' ); }
-function pera_ml_ui( $text, $key ) { return $text; }
+function pera_ml_ui( $text, $key ) { return 'theme.template.archive_property.faq_heading' === $key ? 'Translated FAQ heading' : $text; }
 function home_url( $path ) { return 'https://example.test' . $path; }
 function pera_ml_url( $url ) { return str_replace( 'example.test/', 'example.test/de/', $url ); }
 function pera_get_whatsapp_url( $message ) { return 'https://wa.me/123?text=' . rawurlencode( $message ); }
@@ -124,3 +124,15 @@ foreach ( array( 'besiktas', 'sisli', 'kadikoy', 'zeytinburnu', 'uskudar', 'sari
 $is_clean_main_property_archive = false;
 ob_start(); eval( '?>' . substr( $template, $start, $end - $start ) ); $districts = ob_get_clean();
 preview_expect( '' === trim( $districts ), 'district navigation excluded on other contexts' );
+
+// Exercise the template's actual heading selection, including the existing helper path.
+function pera_get_property_archive_faq_heading() { return 'Taxonomy FAQ heading'; }
+$property_archive_faq_items = $items;
+$is_clean_main_property_archive = true;
+$start = strpos( $template, '<?php if ( ! empty( $property_archive_faq_items )' );
+$end = strpos( $template, '</main>', $start );
+ob_start(); eval( '?>' . substr( $template, $start, $end - $start ) ); $faq_html = ob_get_clean();
+preview_expect( false !== strpos( $faq_html, 'Translated FAQ heading' ), 'public main FAQ heading is translated' );
+$is_clean_main_property_archive = false;
+ob_start(); eval( '?>' . substr( $template, $start, $end - $start ) ); $faq_html = ob_get_clean();
+preview_expect( false !== strpos( $faq_html, 'Taxonomy FAQ heading' ), 'taxonomy FAQ heading behavior retained' );
