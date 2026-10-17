@@ -47,6 +47,8 @@ const fs = require('fs');
  if (!response.headers()['cache-control'].includes('no-store') || response.headers()['referrer-policy']!=='no-referrer') throw Error('Public privacy headers');
  await publicPage.getByRole('button',{name:'Unsubscribe from all marketing email'}).waitFor();
  await publicPage.reload(); // Scanner/repeated GET must leave deliberate POST available.
+ await page.goto(staff+'&search=phase2-real');
+ if((await page.locator('tbody tr').filter({hasText:'phase2-real@example.test'}).locator('td').nth(1).innerText())!=='subscribed') throw Error('Scanner GET mutated consent');
  await publicPage.setViewportSize({width:390,height:844});
  await publicPage.screenshot({path:'/evidence/preferences-mobile.png',fullPage:true});
  // Submit to the canonical form action; pretty endpoint must resolve on the target blog.
@@ -58,7 +60,8 @@ const fs = require('fs');
  if (await publicPage.getByRole('button',{name:'Unsubscribe from all marketing email'}).count()) throw Error('Invalid token revealed form');
  response=await publicPage.goto(staff);
  if (response.status()!==403) throw Error('Anonymous staff read accepted');
- await page.goto(target+'/?pera_crm=1&pera_crm_view=subscribers');
+ await page.goto(staff+'&search=phase2-real');
+ if((await page.locator('tbody tr').filter({hasText:'phase2-real@example.test'}).locator('td').nth(1).innerText())!=='unsubscribed') throw Error('Public POST failed to withdraw');
  await page.screenshot({path:'/evidence/subscribers-after-public-post.png',fullPage:true});
  if(failures.length) throw Error(failures.join('\n'));
  await browser.close(); console.log('PASS browser: desktop/mobile subscribers, import, suppression; default theme; public GET/privacy, repeated POST, invalid token and anonymous route denial');

@@ -1,10 +1,10 @@
 # Integrated email campaigns: repository review and living implementation plan
 
-Review status: **complete** (2026-10-17). Implementation: **Phase 1 in progress**; Phases 2–7 not started.
+Review status: **complete** (2026-10-17). Implementation: **Phase 1 complete (technical acceptance)**; **Phase 2 in progress**; Phases 3–7 not started.
 
 ## Purpose, scope and maintenance
 
-Let Pera staff prepare newsletters and targeted campaigns inside the existing CRM, with an external provider delivering mail. This document is the authoritative review and implementation plan. The Phase 1 implementation adds isolated subscriber foundations only. No campaign delivery paths, public endpoints, imports, production data changes, merging or deployment are authorized.
+Let Pera staff prepare newsletters and targeted campaigns inside the existing CRM, with an external provider delivering mail. This document is the authoritative review and implementation plan. Phase 2 adds plugin-owned subscriber management, isolated preview/import services, suppression intake and public preferences with real intake gated off. No campaign editor, provider, queue, scheduling, delivery, production contacts, merge or deployment is included.
 
 Future implementation PRs must update phase status, validation evidence, decisions and the progress log here. A phase must not be marked complete solely because code exists when required verification remains outstanding. Use only `not started`, `in progress`, `blocked` or `complete` for phase status. Keep repository checks distinct from external verification; record outstanding evidence explicitly.
 
@@ -131,11 +131,11 @@ Unresolved decisions: expected monthly volume/peak batch and budget; approved le
 
 ## Numbered implementation phases
 
-Each phase should be a focused PR, split further if review size grows. Phase 1 is **in progress** for acceptance review after isolated integration checks passed; Phases 2–7 remain **not started**. Repository checks use synthetic addresses/fixtures; external checks require controlled environments.
+Each phase should be a focused PR, split further if review size grows. Phase 1 technical acceptance is **complete** based on merged #1447 and its passed integration evidence. Phase 2 is **in progress**; Phases 3–7 remain **not started**. Repository checks use synthetic addresses/fixtures; external checks require controlled environments.
 
 ### 1. Subscriber, consent, suppression and permission foundations
 
-- **Status:** in progress. Awaiting acceptance review. Code, standalone checks and disposable real WordPress/MySQL single-site/multisite migration, unique-key, concurrency and target-blog capability checks have passed (CI evidence below). Historical evidence/suppression-source inventory and retention approval remain outstanding before production intake.
+- **Status:** complete (technical acceptance recorded in Phase 2 below). Code, standalone checks and disposable real WordPress/MySQL single-site/multisite migration, unique-key, concurrency and target-blog capability checks have passed (CI evidence below). Historical evidence/suppression-source inventory and retention approval remain outstanding before production intake.
 - **Goal/outcome:** staff data has an independent marketing identity; opt-outs cannot be lost by lead edits. Sending remains disabled.
 - **Prerequisites:** agree normalization, consent states, permission policy and target-blog scope; inventory historical suppression sources without importing them yet.
 - **Work/components:** new subscriber/eligibility repositories and services under `inc/campaigns/`; bootstrap wiring, `inc/schema.php`, schema constant, `inc/roles.php`; dedicated caps and impersonation denial; synthetic fixtures in `tests/`.
@@ -177,7 +177,7 @@ Standalone regression tests dispatch the production callback through `init`, inj
 
 Reproducible real integration setup and exact commands: [`tests/integration/campaigns/README.md`](../tests/integration/campaigns/README.md). It uses disposable WordPress 6.8.3/PHP 8.3, WP-CLI 2.12.0 and MySQL 8.0.43 single-site/multisite volumes, blocks email/outgoing WP HTTP, and exposes no host ports. It covers fresh/schema-20/repeated migrations, real SQL mailbox uniqueness, separate-process concurrent mutations/lock contention, target-blog capabilities/isolation/context, and contained assertion failure/recovery. Executed `sh tests/integration/campaigns/run.sh` from the plugin root: runtime stopped before container creation because the local Docker socket returned `connect: operation not permitted` (UID 1000; daemon running). No real integration assertion passed. Compose configuration and shell syntax validation alone do not establish SQL/multisite correctness.
 
-**Phase 1 remains in progress for acceptance review.** Both disposable fixtures have now passed on a GitHub-hosted Docker runner, as recorded below; the earlier local Docker limitation remains unchanged. Historical evidence/retention policy and production topology remain outstanding. Sending remains disabled; Phases 2–7 are unstarted. No merge, deployment or production-data change.
+**Historical Phase 1 status (superseded by technical acceptance below): in progress for acceptance review.** Both disposable fixtures have now passed on a GitHub-hosted Docker runner, as recorded below; the earlier local Docker limitation remains unchanged. Historical evidence/retention policy and production topology remain outstanding. Sending remains disabled; Phases 2–7 are unstarted. No merge, deployment or production-data change.
 
 #### Consent-evidence review follow-up (2026-10-17)
 

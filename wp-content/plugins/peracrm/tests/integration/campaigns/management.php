@@ -35,7 +35,7 @@ $counts_before = array_map('management_count', ['peracrm_subscribers','peracrm_s
 $id = management_preview([
     management_row('phase2-yes@example.test'), management_row('PHASE2-YES@example.test'),
     management_row('phase2-conflict@example.test'), management_row('phase2-conflict@example.test','unsubscribe'),
-    management_row('phase2-unknown@example.test','subscribed',''), management_row('bad email'),
+    management_row('phase2-unknown@example.test','subscribed',''), management_row('bad email@example.test'),
     management_row('phase2-complaint@example.test','complaint'), management_row('phase2-bounce@example.test','hard_bounce'),
 ]);
 management_expect($counts_before === array_map('management_count', ['peracrm_subscribers','peracrm_subscription_events','peracrm_email_suppressions','peracrm_email_suppression_events']), 'preview changes no subscriber, consent or suppression tables');

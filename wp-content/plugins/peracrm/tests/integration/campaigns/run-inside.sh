@@ -72,5 +72,14 @@ wp eval-file /tests/import-worker.php import &
 phase2_import_pid=$!
 wait "$phase2_withdraw_pid"
 wait "$phase2_import_pid"
+wp eval-file /tests/import-worker.php setup-public-race
+rm -f /tmp/peracrm-phase2-import-held
+PERACRM_PHASE2_IMPORT_PAUSE=1 wp eval-file /tests/import-worker.php import-first &
+phase2_import_pid=$!
+wait_for_migration_marker /tmp/peracrm-phase2-import-held
+wp eval-file /tests/import-worker.php public-withdraw &
+phase2_public_pid=$!
+wait "$phase2_import_pid"
+wait "$phase2_public_pid"
 wp eval-file /tests/import-worker.php verify
 printf 'PASS disposable %s WordPress/MySQL fixtures\n' "$fixture_mode"

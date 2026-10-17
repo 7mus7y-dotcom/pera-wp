@@ -6,7 +6,10 @@ function peracrm_subscribers_issue_token($address, $expires_at = null)
 {
     peracrm_subscribers_require_staff(true);
     $email = peracrm_campaigns_normalize_email($address);
-    if ($expires_at !== null && (!is_string($expires_at) || !preg_match('/^\d{4}-\d\d-\d\d \d\d:\d\d:\d\d$/D', $expires_at) || $expires_at <= gmdate('Y-m-d H:i:s'))) { throw new InvalidArgumentException('Invalid token expiry.'); }
+    if ($expires_at !== null) {
+        $date = is_string($expires_at) ? DateTimeImmutable::createFromFormat('!Y-m-d H:i:s', $expires_at, new DateTimeZone('UTC')) : false;
+        if (!$date || $date->format('Y-m-d H:i:s') !== $expires_at || $expires_at <= gmdate('Y-m-d H:i:s')) { throw new InvalidArgumentException('Invalid token expiry.'); }
+    }
     return peracrm_with_target_blog(static function () use ($email, $expires_at) {
         global $wpdb;
         if (!peracrm_campaigns_repository_identity($email)) { throw new InvalidArgumentException('Existing mailbox required.'); }
@@ -109,4 +112,19 @@ function peracrm_subscribers_public_rate_allowed($key, $limit)
     if ($count >= $limit) { return false; }
     set_transient($key, $count + 1, 3600);
     return true;
+}
+
+/** Token-authorized display data contains topic keys only, never mailbox/client identity. */
+function peracrm_subscribers_public_topics($token)
+{
+    if (!peracrm_campaigns_module_enabled()) { return []; }
+    try {
+        return peracrm_with_target_blog(static function () use ($token) {
+            $authorization = peracrm_subscribers_resolve_token($token);
+            if (!$authorization) { return []; }
+            $row = peracrm_campaigns_repository_identity($authorization['normalized_email']);
+            $topics = json_decode($row['preferences_json'] ?? '[]', true);
+            return is_array($topics) ? $topics : [];
+        });
+    } catch (Throwable $error) { return []; }
 }
