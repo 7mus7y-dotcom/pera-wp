@@ -25,7 +25,7 @@ Coverage:
 
 ## Current execution evidence (2026-10-17)
 
-Compose configuration validation and shell syntax checks pass. Runtime execution is **outstanding**: this managed executor's local Docker socket returns `connect: operation not permitted`; UID 1000 cannot restart the running daemon. No WordPress/MySQL containers were started and no integration assertion has been claimed as passed. Run the commands above on an executor with Docker socket access and attach both single-site and multisite output before marking Phase 1 complete. This setup does not establish historical consent/retention policy, production topology or production compatibility.
+Compose configuration validation and shell syntax checks pass. Local runtime execution is blocked: this managed executor's local Docker socket returns `connect: operation not permitted`; UID 1000 cannot restart the running daemon. No local WordPress/MySQL containers were started. The first actual GitHub-hosted run [39049115966](https://github.com/7mus7y-dotcom/pera-wp/actions/runs/39049115966) passed all multisite assertions. Single-site reached the schema-20 upgrade, then exposed a fixture call to multisite-only `ms_is_switched()`. That assertion is now topology-guarded; rerun pending. Both topologies must pass before marking the integration checks complete. This setup does not establish historical consent/retention policy, production topology or production compatibility.
 
 ## Administrator migration recovery
 

@@ -8,7 +8,7 @@ function fixture_expect($condition, $message) {
     echo 'PASS: ' . $message . "\n";
 }
 function fixture_context() {
-    fixture_expect(get_current_blog_id() === 1 && !ms_is_switched(), 'originating blog restored');
+    fixture_expect(get_current_blog_id() === 1 && (!is_multisite() || !ms_is_switched()), 'originating blog restored');
 }
 function fixture_mailbox($email) {
     return peracrm_with_target_blog(static function () use ($email) { return peracrm_campaigns_repository_identity($email); });
