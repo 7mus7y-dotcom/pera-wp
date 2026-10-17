@@ -4,18 +4,48 @@ if (!defined('ABSPATH')) {
     exit;
 }
 
+/** Normal init must never let an additive campaign migration take down the site. */
 function peracrm_maybe_upgrade_schema()
 {
-    peracrm_with_target_blog(static function () {
+    return peracrm_with_target_blog(static function () {
+        global $wpdb;
         $installed = (int) get_option('peracrm_schema_version', 0);
-        if ($installed >= PERACRM_SCHEMA_VERSION) {
-            return;
+        $status = get_option('peracrm_campaigns_schema_status', []);
+        if (in_array($status['state'] ?? '', ['failed', 'checking'], true)) {
+            return false; // Persistent circuit breaker; administrator retry only.
         }
-
-        peracrm_upgrade_schema_to(PERACRM_SCHEMA_VERSION, $installed);
-        update_option('peracrm_schema_version', PERACRM_SCHEMA_VERSION);
+        if ($installed >= PERACRM_SCHEMA_VERSION && peracrm_campaigns_schema_ready()) {
+            return true;
+        }
+        update_option('peracrm_campaigns_schema_status', [
+            'state' => 'checking', 'version' => 21, 'checked_at' => gmdate('Y-m-d H:i:s'),
+        ], false);
+        $previous_errors = $wpdb->suppress_errors(true);
+        try {
+            if ($installed < PERACRM_SCHEMA_VERSION) {
+                peracrm_upgrade_schema_to(PERACRM_SCHEMA_VERSION, $installed);
+            } else {
+                // An old version marker alone is not proof of campaign readiness.
+                peracrm_campaigns_assert_schema();
+            }
+            update_option('peracrm_schema_version', max($installed, PERACRM_SCHEMA_VERSION));
+            update_option('peracrm_campaigns_schema_status', [
+                'state' => 'ready', 'version' => 21, 'checked_at' => gmdate('Y-m-d H:i:s'),
+            ], false);
+            return peracrm_campaigns_schema_ready();
+        } catch (Throwable $error) {
+            // Never store/display exception text, SQL, addresses or credentials.
+            update_option('peracrm_campaigns_schema_status', [
+                'state' => 'failed', 'version' => 21, 'code' => 'schema_verification_failed',
+                'checked_at' => gmdate('Y-m-d H:i:s'),
+            ], false);
+            return false;
+        } finally {
+            $wpdb->suppress_errors($previous_errors);
+        }
     });
 }
+add_action('init', 'peracrm_maybe_upgrade_schema', 5);
 
 function peracrm_upgrade_schema_to($target_version, $installed_version = 0)
 {

@@ -5,12 +5,11 @@ if (!defined('ABSPATH')) {
 }
 
 /** Additive only. InnoDB is required for atomic evidence/current-state writes. */
-function peracrm_campaigns_install_schema()
+function peracrm_campaigns_schema_definitions()
 {
     global $wpdb;
-    $collate = $wpdb->get_charset_collate();
     $mailbox = 'VARCHAR(254) CHARACTER SET ascii COLLATE ascii_bin';
-    $definitions = [
+    return [
         'peracrm_subscribers' => "id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
             email VARCHAR(254) NOT NULL,
             normalized_email {$mailbox} NOT NULL,
@@ -71,14 +70,29 @@ function peracrm_campaigns_install_schema()
             PRIMARY KEY  (id),
             KEY mailbox_recorded (normalized_email, recorded_at)",
     ];
-    foreach ($definitions as $name => $definition) {
+}
+
+/** Additive installer. Failure is contained by the normal upgrade entry point. */
+function peracrm_campaigns_install_schema()
+{
+    global $wpdb;
+    $collate = $wpdb->get_charset_collate();
+    foreach (peracrm_campaigns_schema_definitions() as $name => $definition) {
         $table = peracrm_table($name);
         dbDelta("CREATE TABLE {$table} (\n            {$definition}\n        ) ENGINE=InnoDB {$collate};");
-        // dbDelta does not throw on SQL failure. Do not advance the schema marker
-        // until every required column, unique mailbox key and engine is present.
         if ($wpdb->last_error) {
             throw new RuntimeException('PeraCRM campaign schema could not be installed.');
         }
+    }
+    peracrm_campaigns_assert_schema();
+}
+
+/** Read-only verification, also used for sites already marked version 21. */
+function peracrm_campaigns_assert_schema()
+{
+    global $wpdb;
+    foreach (peracrm_campaigns_schema_definitions() as $name => $definition) {
+        $table = peracrm_table($name);
         $columns = $wpdb->get_col("SHOW COLUMNS FROM {$table}");
         preg_match_all('/^\s*([a-z_]+) (?:BIGINT|VARCHAR|DATETIME|LONGTEXT|TINYINT)/m', $definition, $matches);
         $indexes = $wpdb->get_results("SHOW INDEX FROM {$table}", ARRAY_A);

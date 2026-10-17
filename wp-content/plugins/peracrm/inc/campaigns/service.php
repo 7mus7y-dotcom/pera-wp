@@ -19,7 +19,8 @@ function peracrm_campaigns_normalize_email($email)
 
 function peracrm_campaigns_module_enabled()
 {
-    return !defined('PERACRM_CAMPAIGNS_ENABLED') || PERACRM_CAMPAIGNS_ENABLED;
+    return (!defined('PERACRM_CAMPAIGNS_ENABLED') || PERACRM_CAMPAIGNS_ENABLED)
+        && peracrm_campaigns_schema_ready();
 }
 
 /** Dedicated target-blog authority. Never use effective/impersonated identity. */

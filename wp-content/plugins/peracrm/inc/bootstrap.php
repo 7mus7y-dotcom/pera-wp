@@ -11,6 +11,7 @@ require_once PERACRM_INC . '/stages.php';
 require_once PERACRM_INC . '/campaigns/schema.php';
 require_once PERACRM_INC . '/campaigns/repository.php';
 require_once PERACRM_INC . '/campaigns/service.php';
+require_once PERACRM_INC . '/campaigns/readiness.php';
 require_once PERACRM_INC . '/schema.php';
 require_once PERACRM_INC . '/roles.php';
 require_once PERACRM_INC . '/lifecycle.php';
@@ -81,12 +82,5 @@ if (is_admin()) {
         }
     }
 }
-
-add_action('init', function () {
-    // The version check is cheap and the migration runs only once. Running it
-    // on normal init ensures deployed upgrades do not depend on reactivation or
-    // a later wp-admin visit.
-    peracrm_maybe_upgrade_schema();
-}, 5);
 
 add_action('init', 'peracrm_register_cpt_crm_client', 5);

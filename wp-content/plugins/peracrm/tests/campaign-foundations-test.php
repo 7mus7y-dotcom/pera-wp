@@ -26,7 +26,21 @@ class Campaign_Test_Role {
     public function add_cap($cap) { $this->caps[$cap] = true; }
     public function remove_cap($cap) { unset($this->caps[$cap]); }
 }
-function add_action() {}
+$GLOBALS['campaign_hooks'] = [];
+function add_action($hook, $callback, $priority = 10) { $GLOBALS['campaign_hooks'][$hook][$priority][] = $callback; }
+function do_action($hook) {
+    $priorities = $GLOBALS['campaign_hooks'][$hook] ?? [];
+    ksort($priorities);
+    foreach ($priorities as $callbacks) { foreach ($callbacks as $callback) { $callback(); } }
+}
+function delete_option($key) { unset($GLOBALS['campaign_options'][get_current_blog_id()][$key]); }
+function esc_html($text) { return htmlspecialchars($text, ENT_QUOTES); }
+function esc_url($text) { return $text; }
+function admin_url($path = '') { return '/wp-admin/' . $path; }
+function wp_die($message, $title = '', $args = []) { throw new RuntimeException('request_rejected'); }
+function check_admin_referer($action) { throw new RuntimeException('nonce_rejected'); }
+function wp_nonce_field($action) { echo '<input type="hidden" name="_wpnonce" value="synthetic-nonce">'; }
+
 function is_multisite() { return true; }
 function get_current_blog_id() { return $GLOBALS['campaign_blog']; }
 function switch_to_blog($id) { $GLOBALS['campaign_stack'][] = get_current_blog_id(); $GLOBALS['campaign_blog'] = $id; $GLOBALS['wpdb']->prefix = 'wp_' . $id . '_'; }
@@ -49,8 +63,9 @@ function get_post_status($id) { return $GLOBALS['campaign_client_status']; }
 function get_post_type($id) { return $GLOBALS['campaign_client_status'] === 'deleted' ? false : 'crm_client'; }
 function dbDelta($sql) {
     $db = $GLOBALS['wpdb'];
-    if ($db->fail_schema) { throw new RuntimeException('synthetic DDL failure'); }
+    $db->ddl_calls++;
     preg_match('/CREATE TABLE (\w+)/', $sql, $m);
+    if ($db->fail_schema && str_contains($m[1], 'peracrm_subscribers')) { throw new RuntimeException('synthetic DDL failure'); }
     $db->ddl[$m[1]] = $sql;
 }
 $root = dirname(__DIR__);
@@ -60,6 +75,8 @@ require $root . '/inc/schema.php';
 require $root . '/inc/campaigns/schema.php';
 require $root . '/inc/campaigns/repository.php';
 require $root . '/inc/campaigns/service.php';
+require $root . '/inc/campaigns/readiness.php';
+require $root . '/inc/notifications/providers/class-peracrm-email-provider.php';
 function campaign_expect($condition, $message) {
     if (!$condition) { fwrite(STDERR, "FAIL: {$message}\n"); exit(1); }
     if (get_current_blog_id() !== 1 || $GLOBALS['campaign_stack']) { throw new RuntimeException('Blog context leaked: ' . $message); }
@@ -69,31 +86,74 @@ function campaign_identity($email) { return peracrm_with_target_blog(static func
 function campaign_count($suffix) { return count($GLOBALS['wpdb']->tables['wp_2_' . $suffix] ?? []); }
 $wpdb = $GLOBALS['wpdb'];
 $GLOBALS['campaign_roles'][2]['administrator'] = new Campaign_Test_Role();
+$GLOBALS['campaign_roles'][2]['administrator']->add_cap('manage_options');
 // Skip unrelated historical v4 migration work in the fresh-install stub.
 $GLOBALS['campaign_options'][2]['peracrm_migration_v4_done'] = 1;
-peracrm_maybe_upgrade_schema();
+do_action('init');
 campaign_expect(get_option('peracrm_schema_version') === false && $GLOBALS['campaign_options'][2]['peracrm_schema_version'] === 21, 'fresh schema marker and tables are target-scoped');
 $ddl = $wpdb->ddl;
 peracrm_upgrade_schema_to(21, 21);
 campaign_expect($ddl === $wpdb->ddl, 'repeated DDL definitions are stable (stub only)');
 $GLOBALS['campaign_options'][2]['peracrm_schema_version'] = 20;
-peracrm_maybe_upgrade_schema();
+do_action('init');
 campaign_expect($GLOBALS['campaign_options'][2]['peracrm_schema_version'] === 21, 'previous-schema upgrade wires v21');
+// This is the same callback registration executed by normal plugin init.
+$GLOBALS['campaign_existing_init_ran'] = 0;
+add_action('init', static function () { $GLOBALS['campaign_existing_init_ran']++; }, 6);
 foreach (['fail_schema', 'missing_unique'] as $failure) {
     $GLOBALS['campaign_options'][2]['peracrm_schema_version'] = 20;
     $wpdb->$failure = true;
-    $thrown = false;
-    try { peracrm_maybe_upgrade_schema(); } catch (RuntimeException $error) { $thrown = true; }
+    $before = $GLOBALS['campaign_existing_init_ran'];
+    do_action('init');
+    campaign_expect($GLOBALS['campaign_existing_init_ran'] === $before + 1
+        && $GLOBALS['campaign_options'][2]['peracrm_schema_version'] === 20,
+        'actual init contains ' . $failure . ', preserves marker and continues later website/CRM hooks');
+    campaign_expect(!peracrm_campaigns_schema_ready() && !peracrm_campaigns_is_eligible('fixture@example.test')
+        && is_wp_error(peracrm_campaigns_save_subscriber('fixture@example.test')), 'campaign services denied after migration failure');
+    campaign_expect(!$wpdb->suppress_errors, 'SQL error display setting restored after failure');
+    $operational_during_failure = (new PeraCRM_Email_Provider())->send(['source_label' => 'Synthetic enquiry'], 'ops@example.test');
+    campaign_expect($operational_during_failure['ok'], 'existing operational email provider remains callable during campaign failure (fake mail)');
+    $calls = $wpdb->ddl_calls;
+    do_action('init');
+    campaign_expect($wpdb->ddl_calls === $calls, 'public init does not repeat expensive failed migration');
+    ob_start(); peracrm_campaigns_schema_admin_notice(); $notice = ob_get_clean();
+    campaign_expect(str_contains($notice, 'schema_verification_failed') && !str_contains($notice, 'synthetic DDL failure'), 'administrator sees sanitized diagnostic and retry form');
+    foreach ([0, 2, 3] as $actor) {
+        $GLOBALS['campaign_actor'] = $actor;
+        campaign_expect(is_wp_error(peracrm_campaigns_retry_schema()), 'nonadministrator retry denied');
+        ob_start(); peracrm_campaigns_schema_admin_notice(); $hidden = ob_get_clean();
+        campaign_expect($hidden === '', 'diagnostic is administrator-only');
+    }
+    $GLOBALS['campaign_actor'] = 1;
+    $GLOBALS['campaign_impersonating'] = true;
+    campaign_expect(is_wp_error(peracrm_campaigns_retry_schema()), 'impersonated administrator retry denied');
+    $GLOBALS['campaign_impersonating'] = false;
+    $calls = $wpdb->ddl_calls;
+    foreach (['GET' => 'request_rejected', 'POST' => 'nonce_rejected'] as $method => $expected_error) {
+        $_SERVER['REQUEST_METHOD'] = $method;
+        $rejected = false;
+        try { peracrm_campaigns_handle_schema_retry(); } catch (RuntimeException $error) { $rejected = $error->getMessage() === $expected_error; }
+        campaign_expect($rejected && $wpdb->ddl_calls === $calls, 'retry endpoint requires POST and valid nonce before migration');
+    }
+    unset($_SERVER['REQUEST_METHOD']);
     $wpdb->$failure = false;
-    campaign_expect($thrown && $GLOBALS['campaign_options'][2]['peracrm_schema_version'] === 20, 'failed ' . $failure . ' keeps prior version and restores blog');
+    campaign_expect(peracrm_campaigns_retry_schema() === true && peracrm_campaigns_schema_ready(), 'controlled administrator retry recovers services');
+    campaign_expect($GLOBALS['campaign_options'][2]['peracrm_campaigns_schema_status']['retry_actor_user_id'] === 1, 'retry preserves real actor');
 }
-peracrm_maybe_upgrade_schema();
+// A marker from the earlier PR revision without readiness must be verified.
+unset($GLOBALS['campaign_options'][2]['peracrm_campaigns_schema_status']);
+$wpdb->missing_unique = true;
+do_action('init');
+campaign_expect(!peracrm_campaigns_schema_ready(), 'existing v21 marker alone cannot enable campaigns');
+$wpdb->missing_unique = false;
+campaign_expect(peracrm_campaigns_retry_schema() === true, 'existing v21 schema read-only verification recovers');
 foreach (['peracrm_manage_campaigns', 'peracrm_manage_subscribers', 'peracrm_view_campaign_reports'] as $cap) {
     foreach ([1 => true, 2 => true, 3 => false, 0 => false] as $actor => $expected) {
         $GLOBALS['campaign_actor'] = $actor;
         campaign_expect(peracrm_campaigns_staff_can($cap) === $expected, 'dedicated capability ' . $cap . ' actor ' . $actor);
     }
 }
+$mail_before_foundations = count($GLOBALS['campaign_mail']);
 $evidence = ['source' => 'synthetic', 'source_ref' => 'fixture-1', 'evidence_ref' => 'consent-1', 'policy_version' => 'v1', 'occurred_at' => '2026-01-01 00:00:00'];
 foreach ([0, 3] as $actor) {
     $GLOBALS['campaign_actor'] = $actor;
@@ -178,11 +238,10 @@ $wpdb->fail_insert = '';
 campaign_expect(!isset($wpdb->tables['wp_1_peracrm_subscribers']), 'all mailbox storage is target-blog scoped');
 $events = $wpdb->tables['wp_2_peracrm_subscription_events'];
 campaign_expect(count(array_filter($events, static function ($row) { return $row['actor_user_id'] === 2; })) > 0, 'audit records real manager actor');
-campaign_expect($GLOBALS['campaign_mail'] === [], 'foundation operations never send mail');
-require $root . '/inc/notifications/providers/class-peracrm-email-provider.php';
+campaign_expect(count($GLOBALS['campaign_mail']) === $mail_before_foundations, 'foundation operations never send mail');
 $provider = new PeraCRM_Email_Provider();
 $operational = $provider->send(['source_label' => 'Synthetic enquiry', 'event_key' => 'fixture'], 'first.last+news@example.test');
-campaign_expect($operational['ok'] && count($GLOBALS['campaign_mail']) === 1, 'operational enquiry provider retains behavior independently of newsletter suppression (fake wp_mail)');
+campaign_expect($operational['ok'] && count($GLOBALS['campaign_mail']) === $mail_before_foundations + 1, 'operational enquiry provider retains behavior independently of newsletter suppression (fake wp_mail)');
 $invalid = $provider->send([], 'invalid');
-campaign_expect(!$invalid['ok'] && count($GLOBALS['campaign_mail']) === 1, 'operational provider still rejects invalid recipient');
+campaign_expect(!$invalid['ok'] && count($GLOBALS['campaign_mail']) === $mail_before_foundations + 1, 'operational provider still rejects invalid recipient');
 echo "Campaign foundations behavior checks passed (stub DB/WP; real integration outstanding).\n";

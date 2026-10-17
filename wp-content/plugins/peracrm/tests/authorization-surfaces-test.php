@@ -36,6 +36,6 @@ surface_expect(strpos($whatsapp, 'peracrm_user_can_access_client') !== false, 'W
 surface_expect(strpos($admin, "\$query->set('post__in'") !== false, 'WordPress admin client collection receives a server-side ID boundary');
 surface_expect(strpos($roles, "get_users(['role' => 'advisor'") !== false && strpos($roles, "remove_role('advisor')") !== false, 'legacy advisor role removal is conditional on user inventory');
 surface_expect(strpos($plugin, "PERACRM_SCHEMA_VERSION', 21") !== false && strpos($schema, 'peracrm_upgrade_roles_and_caps_v20') !== false && strpos($schema, 'peracrm_upgrade_roles_and_caps_v21') !== false, 'role capabilities use the versioned schema upgrade path');
-surface_expect(strpos($bootstrap, "add_action('init', function ()") !== false && strpos($bootstrap, 'peracrm_maybe_upgrade_schema();') !== false, 'schema upgrade is checked on normal init without requiring wp-admin');
+surface_expect(strpos($schema, "add_action('init', 'peracrm_maybe_upgrade_schema', 5)") !== false, 'schema upgrade is checked on normal init without requiring wp-admin');
 
 echo "PeraCRM authorization surface checks passed\n";

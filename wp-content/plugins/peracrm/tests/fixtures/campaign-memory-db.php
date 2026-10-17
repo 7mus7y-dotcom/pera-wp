@@ -9,6 +9,9 @@ class Campaign_Memory_DB
     public $ddl = [];
     public $fail_insert = '';
     public $fail_schema = false;
+    public $ddl_calls = 0;
+    public $suppress_errors = false;
+    public function suppress_errors($value) { $previous = $this->suppress_errors; $this->suppress_errors = $value; return $previous; }
     public $missing_unique = false;
     private $snapshot;
     private $sequence = 0;
