@@ -147,3 +147,14 @@ peracrm_subscribers_apply_batch($amb);
 management_expect(empty(management_identity('phase2-ambiguous@example.test')['client_id']), 'import never automatically links ambiguous CRM records');
 management_expect(is_wp_error(peracrm_campaigns_save_subscriber('phase2-ambiguous@example.test',['client_id'=>(int)$ambiguous[0]])), 'explicit ambiguous client link rejected');
 management_expect(management_target(static function () use ($ambiguous) { return get_post_status($ambiguous[0]) === 'draft' && get_post_status($ambiguous[1]) === 'draft'; }), 'ambiguity never republishes, merges or trashes clients');
+
+// Apache fixture owns no host port; these rules only serve synthetic browser checks.
+file_put_contents('/var/www/html/.htaccess', "<IfModule mod_rewrite.c>\nRewriteEngine On\nRewriteBase /\nRewriteRule ^index\\.php$ - [L]\nRewriteRule ^([_0-9a-zA-Z-]+/)?(wp-(content|admin|includes).*) $2 [L]\nRewriteRule ^([_0-9a-zA-Z-]+/)?(.*\\.php)$ $2 [L]\nRewriteCond %{REQUEST_FILENAME} !-f\nRewriteCond %{REQUEST_FILENAME} !-d\nRewriteRule . /index.php [L]\n</IfModule>\n");
+
+management_target(static function () use ($employee) { wp_set_password('fixture-employee-only', $employee); });
+$_SERVER['HTTP_HOST'] = 'fixture.test';
+management_expect(management_target(static function () { return peracrm_subscribers_on_authoritative_domain(); }), 'public endpoint accepts authoritative target host');
+$_SERVER['HTTP_HOST'] = 'wrong.example.test';
+management_expect(!management_target(static function () { return peracrm_subscribers_on_authoritative_domain(); }), 'public endpoint rejects alternate host before mutation');
+$_SERVER['HTTP_HOST'] = 'fixture.test';
+if (is_multisite()) { management_expect(!peracrm_subscribers_on_authoritative_domain(), 'public endpoint rejects originating blog even on same network domain'); }

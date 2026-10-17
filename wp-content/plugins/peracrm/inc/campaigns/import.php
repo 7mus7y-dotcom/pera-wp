@@ -117,7 +117,7 @@ function peracrm_subscribers_preview($stream, $mapping, $synthetic = false, $sup
             foreach ($rows as $entry) {
                 $row = $entry['row'];
                 if ($row) { $row['preview']['batch_suppressed'] = isset($suppressed[$row['email']]); }
-                peracrm_campaigns_db_require($wpdb->insert($table, ['batch_id' => $id, 'row_number' => $entry['number'],
+                peracrm_campaigns_db_require($wpdb->insert($table, ['batch_id' => $id, 'line_number' => $entry['number'],
                     'priority' => in_array($row['state'] ?? '', ['unsubscribe', 'complaint', 'hard_bounce'], true) ? 0 : 1,
                     'payload_json' => wp_json_encode($row), 'status' => $entry['status'], 'result' => $entry['result']]));
             }
@@ -147,7 +147,7 @@ function peracrm_subscribers_batch_rows($id, $page = 1)
     return peracrm_with_target_blog(static function () use ($id, $page) {
         global $wpdb;
         $table = peracrm_table('peracrm_subscriber_import_rows');
-        $rows = $wpdb->get_results($wpdb->prepare("SELECT * FROM {$table} WHERE batch_id=%s ORDER BY row_number LIMIT 50 OFFSET %d", $id, (max(1, min(100, (int) $page)) - 1) * 50), ARRAY_A);
+        $rows = $wpdb->get_results($wpdb->prepare("SELECT * FROM {$table} WHERE batch_id=%s ORDER BY line_number LIMIT 50 OFFSET %d", $id, (max(1, min(100, (int) $page)) - 1) * 50), ARRAY_A);
         peracrm_campaigns_db_require(true);
         return $rows;
     });
@@ -194,7 +194,7 @@ function peracrm_subscribers_apply_row($entry)
                 'confirmed_at' => $consented ? $evidence['occurred_at'] : null, 'preferred_language' => $row['language'],
                 'preferences_json' => wp_json_encode($row['topics']), 'created_at' => $now, 'updated_at' => $now, 'version' => 1];
             peracrm_campaigns_db_require($wpdb->insert(peracrm_table('peracrm_subscribers'), $data));
-            peracrm_campaigns_repository_event($email, ['id' => (int) $wpdb->insert_id], 'imported', $data['subscription_state'], $evidence, $actor, ['batch' => $entry['batch_id'], 'row' => (int) $entry['row_number']]);
+            peracrm_campaigns_repository_event($email, ['id' => (int) $wpdb->insert_id], 'imported', $data['subscription_state'], $evidence, $actor, ['batch' => $entry['batch_id'], 'row' => (int) $entry['line_number']]);
             $result = $consented ? 'imported_subscribed' : 'imported_unknown';
         }
         peracrm_campaigns_db_require($wpdb->update($rows, ['status' => 'done', 'result' => $result, 'attempts' => (int) $entry['attempts'] + 1], ['id' => $entry['id']]));
@@ -216,9 +216,10 @@ function peracrm_subscribers_apply_batch($id)
             $table = peracrm_table('peracrm_subscriber_import_rows');
             $batches = peracrm_table('peracrm_subscriber_batches');
             peracrm_campaigns_db_require($wpdb->update($batches, ['status' => 'applying'], ['id' => $id]));
-            $entries = $wpdb->get_results($wpdb->prepare("SELECT * FROM {$table} WHERE batch_id=%s AND status='pending' ORDER BY priority, row_number LIMIT 25", $id), ARRAY_A);
+            $entries = $wpdb->get_results($wpdb->prepare("SELECT * FROM {$table} WHERE batch_id=%s AND status='pending' ORDER BY priority, line_number LIMIT 25", $id), ARRAY_A);
             peracrm_campaigns_db_require(true);
             foreach ($entries as $entry) {
+                if (!peracrm_subscribers_intake_allowed((bool) $batch['synthetic'])) { throw new RuntimeException('Intake gate was closed.'); }
                 if ((int) $entry['priority'] === 1) {
                     $failed_suppression = (int) $wpdb->get_var($wpdb->prepare("SELECT COUNT(*) FROM {$table} WHERE batch_id=%s AND priority=0 AND status IN ('pending','failed')", $id));
                     peracrm_campaigns_db_require(true);
@@ -249,6 +250,8 @@ function peracrm_subscribers_summarize_batch($id, $terminal = '')
     global $wpdb;
     $rows = peracrm_table('peracrm_subscriber_import_rows');
     $batches = peracrm_table('peracrm_subscriber_batches');
+    peracrm_campaigns_db_require($wpdb->query('START TRANSACTION'));
+    try {
     $counts = $wpdb->get_results($wpdb->prepare("SELECT status, result, COUNT(*) AS total FROM {$rows} WHERE batch_id=%s GROUP BY status,result", $id), ARRAY_A);
     peracrm_campaigns_db_require(true);
     $pending = 0; $failed = 0;
@@ -257,7 +260,9 @@ function peracrm_subscribers_summarize_batch($id, $terminal = '')
     $summary = wp_json_encode($counts);
     peracrm_campaigns_db_require($wpdb->update($batches, ['status' => $status, 'summary_json' => $summary], ['id' => $id]));
     if (!in_array($status, ['preview', 'applying'], true)) { peracrm_campaigns_db_require($wpdb->delete($rows, ['batch_id' => $id])); }
+    peracrm_campaigns_db_require($wpdb->query('COMMIT'));
     return ['status' => $status, 'counts' => $counts];
+    } catch (Throwable $error) { $wpdb->query('ROLLBACK'); throw $error; }
 }
 
 function peracrm_subscribers_cancel_batch($id)
@@ -280,7 +285,11 @@ function peracrm_subscribers_expire_batches()
         $table = peracrm_table('peracrm_subscriber_batches');
         $ids = $wpdb->get_col($wpdb->prepare("SELECT id FROM {$table} WHERE status IN ('preview','applying') AND expires_at<=%s LIMIT 50", gmdate('Y-m-d H:i:s')));
         foreach ((array) $ids as $id) {
-            try { peracrm_subscribers_batch_lock($id, static function () use ($id) { peracrm_subscribers_summarize_batch($id, 'expired'); }); }
+            try { peracrm_subscribers_batch_lock($id, static function () use ($id, $table, $wpdb) {
+                $batch = $wpdb->get_row($wpdb->prepare("SELECT status, expires_at FROM {$table} WHERE id=%s", $id), ARRAY_A);
+                peracrm_campaigns_db_require(true);
+                if ($batch && in_array($batch['status'], ['preview','applying'], true) && $batch['expires_at'] <= gmdate('Y-m-d H:i:s')) { peracrm_subscribers_summarize_batch($id, 'expired'); }
+            }); }
             catch (Throwable $error) { /* Busy batches are retried by the next maintenance pass. */ }
         }
     });

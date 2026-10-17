@@ -44,7 +44,7 @@ if (!$batch) : ?><p>Batch unavailable.</p><?php else : ?>
 foreach (['duplicate','conflict','existing','suppressed','missing_evidence','batch_suppressed'] as $flag) { if (!empty($preview[$flag])) { $flags[] = str_replace('_', ' ', $flag); } }
 if (isset($preview['client_match'])) { $flags[] = 'client: ' . $preview['client_match']; }
 ?>
-<tr><td><?php echo (int) $entry['row_number']; ?></td><td><?php echo esc_html($row['email'] ?? 'Invalid row'); ?></td><td><?php echo esc_html($row['state'] ?? ''); ?></td><td><?php echo esc_html(implode('; ', $flags) ?: 'Valid'); ?></td><td><?php echo esc_html($entry['status'] . ' ' . $entry['result']); ?></td></tr>
+<tr><td><?php echo (int) $entry['line_number']; ?></td><td><?php echo esc_html($row['email'] ?? 'Invalid row'); ?></td><td><?php echo esc_html($row['state'] ?? ''); ?></td><td><?php echo esc_html(implode('; ', $flags) ?: 'Valid'); ?></td><td><?php echo esc_html($entry['status'] . ' ' . $entry['result']); ?></td></tr>
 <?php endforeach; ?></tbody></table></div>
 <?php $preview_page = max(1, (int) ($_GET['preview_page'] ?? 1)); if ($preview_page > 1) : ?><a href="<?php echo esc_url(add_query_arg(['batch' => $batch_id, 'preview_page' => $preview_page - 1], peracrm_subscribers_url('import/'))); ?>">Previous rows</a><?php endif; ?>
 <?php if (count($entries) === 50) : ?><a href="<?php echo esc_url(add_query_arg(['batch' => $batch_id, 'preview_page' => $preview_page + 1], peracrm_subscribers_url('import/'))); ?>">Next rows</a><?php endif; ?>

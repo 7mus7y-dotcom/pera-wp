@@ -47,15 +47,16 @@ add_action('template_redirect', static function () {
         exit;
     }
     $method = $_SERVER['REQUEST_METHOD'] ?? 'GET';
-    $token = (string) wp_unslash($_POST['token'] ?? $_GET['token'] ?? '');
+    $raw_token = $_POST['token'] ?? $_GET['token'] ?? '';
+    $token = is_string($raw_token) ? wp_unslash($raw_token) : '';
     $valid = peracrm_subscribers_public_valid($token);
     $message = '';
     if ($method === 'POST') {
-        $action = (string) ($_POST['preference_action'] ?? '');
+        $action = isset($_POST['preference_action']) && is_string($_POST['preference_action']) ? $_POST['preference_action'] : '';
         // A later provider phase can map its tested one-click POST format to withdraw.
         // Repeated valid opt-outs always pass; idempotence bounds storage work.
         $allowed = $valid && ($action === 'withdraw' || peracrm_subscribers_public_rate_allowed('token:' . hash('sha256', $token), 30));
-        if (!$valid) { peracrm_subscribers_public_rate_allowed('invalid:' . ($_SERVER['REMOTE_ADDR'] ?? ''), 60); }
+        if (!$valid && !peracrm_subscribers_public_rate_allowed('invalid:' . ($_SERVER['REMOTE_ADDR'] ?? ''), 60)) { status_header(429); }
         $topics = isset($_POST['topics']) && is_string($_POST['topics']) ? explode('|', trim(wp_unslash($_POST['topics']))) : [];
         if ($topics === ['']) { $topics = []; }
         $success = $allowed && peracrm_subscribers_public_post($token, $action, $topics);
@@ -113,7 +114,7 @@ function peracrm_subscribers_staff_post()
                 $rows = peracrm_subscribers_batch_rows($id, $page);
                 foreach ($rows as $entry) {
                     $row = json_decode($entry['payload_json'], true);
-                    fputcsv($out, array_map('peracrm_subscribers_csv_cell', [$entry['row_number'], $row['email'] ?? '', $row['state'] ?? '', $entry['status'], $entry['result']]), ',', '"', '');
+                    fputcsv($out, array_map('peracrm_subscribers_csv_cell', [$entry['line_number'], $row['email'] ?? '', $row['state'] ?? '', $entry['status'], $entry['result']]), ',', '"', '');
                 }
                 if (count($rows) < 50) { break; }
             }
