@@ -3047,6 +3047,24 @@ body:not(.single-post) tr:nth-child(even) {
   font-weight: 500;
   text-decoration: underline;
 }
+/* Reset only the action button; the privacy policy remains a link. */
+.footer-rights button.cookie-settings-link {
+  appearance: none;
+  background: transparent;
+  border: 0;
+  border-radius: 0;
+  margin: 0;
+  padding: 0;
+  font: inherit;
+  font-weight: 500;
+  letter-spacing: inherit;
+  text-transform: none;
+  cursor: pointer;
+}
+.footer-rights button.cookie-settings-link:focus-visible {
+  outline: 2px solid currentColor;
+  outline-offset: 3px;
+}
 .footer-rights .cookie-settings-link:hover {
   opacity: 0.75;
 }

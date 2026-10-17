@@ -151,14 +151,14 @@ if ( ! defined( 'ABSPATH' ) ) {
       </a>
       <span class="footer-separator">¦</span>
 
-      <a href="javascript:void(0)"
+      <button type="button"
          class="cookie-settings-link"
          onclick="if (window.peraOpenCookieSettings) { window.peraOpenCookieSettings(); }">
         <svg class="icon cookie-icon" aria-hidden="true">
           <use href="<?php echo esc_url( get_stylesheet_directory_uri() . '/logos-icons/icons.svg#icon-cookie' ); ?>"></use>
         </svg>
         <?php echo esc_html( pera_ml_ui( 'Cookie settings', 'theme.template.footer.cookie_settings' ) ); ?>
-      </a>
+      </button>
     </p>
   </div>
 </div>
