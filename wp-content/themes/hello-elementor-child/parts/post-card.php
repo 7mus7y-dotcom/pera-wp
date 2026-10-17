@@ -17,7 +17,10 @@ $card_classes = trim( $extra_classes . ' post-card post-card--' . $variant );
 
 $post_id = get_the_ID();
 $post_permalink = get_permalink( $post_id );
-$post_title     = wp_strip_all_tags( get_the_title( $post_id ) );
+$post_title     = trim( wp_strip_all_tags( get_the_title( $post_id ) ) );
+if ( '' === $post_title ) {
+  $post_title = pera_ml_ui( 'Article', 'theme.parts.post-card.article' ) . ' #' . $post_id;
+}
 $read_more_aria_label = sprintf(
   /* translators: %s: post title. */
   pera_ml_ui( 'Read more about %s', 'theme.parts.post-card.read_more_about_value' ),
@@ -47,7 +50,7 @@ if ( function_exists( 'pera_get_public_updated_date' ) ) {
 
   <div class="post-card-media">
     <?php if ( has_post_thumbnail( $post_id ) ) : ?>
-      <a href="<?php echo esc_url( $post_permalink ); ?>" class="post-card-thumb">
+      <a href="<?php echo esc_url( $post_permalink ); ?>" class="post-card-thumb" aria-label="<?php echo esc_attr( $read_more_aria_label ); ?>">
         <?php
         echo get_the_post_thumbnail(
           $post_id,

@@ -2023,6 +2023,20 @@ button.pill:focus-visible {
 /* =======================================================
    10. GRAND OFF-CANVAS MENU
    ======================================================= */
+/* Reset only the two native menu controls; retain their existing geometry. */
+button.header-menu-toggle,
+button.offcanvas-close {
+  appearance: none;
+  background: none;
+  border: 0;
+  border-radius: 0;
+  box-shadow: none;
+  margin: 0;
+  font-family: inherit;
+  text-transform: none;
+  letter-spacing: inherit;
+}
+
 .offcanvas-nav {
   position: fixed;
   top: 0;
@@ -2094,6 +2108,7 @@ button.pill:focus-visible {
 /* Closed state */
 .offcanvas-menu .sub-menu {
   max-height: 0;
+  visibility: hidden;
   overflow: hidden;
   opacity: 0;
   padding-left: 12px;
@@ -2105,6 +2120,7 @@ button.pill:focus-visible {
 /* Open state */
 .offcanvas-menu li.is-open > .sub-menu {
   max-height: 900px;
+  visibility: visible;
   opacity: 1;
 }
 

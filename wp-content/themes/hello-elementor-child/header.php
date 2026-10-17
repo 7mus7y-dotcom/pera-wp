@@ -120,13 +120,15 @@ $new_leads_count            = $show_new_leads_pill && function_exists( 'pera_crm
         </svg>
       </a>
 
-      <label for="nav-toggle"
+      <button type="button"
              class="header-menu-toggle"
+             aria-controls="pera-offcanvas-menu"
+             aria-expanded="false"
              aria-label="<?php echo esc_attr( pera_ml_ui( 'Open main menu', 'theme.template.header.aria_label.open_main_menu' ) ); ?>">
         <svg class="icon" aria-hidden="true">
           <use href="<?php echo esc_url( get_stylesheet_directory_uri() . '/logos-icons/icons.svg#icon-bars' ); ?>"></use>
         </svg>
-      </label>
+      </button>
 
       </div>
 
@@ -142,7 +144,7 @@ $new_leads_count            = $show_new_leads_pill && function_exists( 'pera_crm
 </header>
 
 <!-- OFF-CANVAS MENU -->
-<nav class="offcanvas-nav" aria-label="<?php echo esc_attr( pera_ml_ui( 'Main', 'theme.template.header.aria_label.main' ) ); ?>">
+<nav id="pera-offcanvas-menu" class="offcanvas-nav" inert aria-hidden="true" aria-label="<?php echo esc_attr( pera_ml_ui( 'Main', 'theme.template.header.aria_label.main' ) ); ?>">
   <div class="offcanvas-inner">
 
     <div class="offcanvas-top">
@@ -155,9 +157,10 @@ $new_leads_count            = $show_new_leads_pill && function_exists( 'pera_crm
       ) );
       ?>
 
-      <label for="nav-toggle"
+      <button type="button"
              class="offcanvas-close"
-             aria-label="<?php echo esc_attr( pera_ml_ui( 'Close menu', 'theme.template.header.aria_label.close_menu' ) ); ?>">&times;</label>
+             aria-controls="pera-offcanvas-menu"
+             aria-label="<?php echo esc_attr( pera_ml_ui( 'Close menu', 'theme.template.header.aria_label.close_menu' ) ); ?>">&times;</button>
     </div>
 
     <?php pera_render_header_language_switcher( 'mobile' ); ?>
