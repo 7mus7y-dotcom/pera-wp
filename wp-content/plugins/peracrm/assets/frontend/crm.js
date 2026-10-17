@@ -2456,3 +2456,10 @@
     });
   });
 })();
+
+// Withdrawal remains a deliberate native form POST; this prompt adds staff context.
+document.addEventListener('click', function (event) {
+  if (event.target.closest('[data-subscriber-withdraw]') && !window.confirm('Withdraw marketing permission and add a global unsubscribe suppression?')) {
+    event.preventDefault();
+  }
+});

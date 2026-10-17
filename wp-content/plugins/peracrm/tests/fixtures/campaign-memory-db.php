@@ -105,7 +105,14 @@ class Campaign_Memory_DB
     }
     public function get_results($sql, $format) {
         if (str_starts_with($sql, 'SHOW INDEX')) {
-            return $this->missing_unique ? [] : [['Non_unique' => 0, 'Key_name' => 'mailbox', 'Column_name' => 'normalized_email', 'Sub_part' => null]];
+            if ($this->missing_unique) { return []; }
+            preg_match('/FROM (\w+)/', $sql, $table);
+            preg_match_all('/(?:PRIMARY KEY|UNIQUE KEY (\w+))\s+\(([^)]+)\)/', $this->ddl[$table[1]], $matches, PREG_SET_ORDER);
+            $indexes = [];
+            foreach ($matches as $match) {
+                foreach (array_map('trim', explode(',', $match[2])) as $column) { $indexes[] = ['Non_unique'=>0,'Key_name'=>$match[1] ?: 'PRIMARY','Column_name'=>$column,'Sub_part'=>null]; }
+            }
+            return $indexes;
         }
         return [];
     }

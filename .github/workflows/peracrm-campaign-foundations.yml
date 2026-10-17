@@ -33,9 +33,14 @@ jobs:
           sh -n wp-content/plugins/peracrm/tests/integration/campaigns/run.sh
           sh -n wp-content/plugins/peracrm/tests/integration/campaigns/run-inside.sh
           docker compose -f wp-content/plugins/peracrm/tests/integration/campaigns/compose.yaml config --quiet
+      - name: Prepare disposable browser tooling
+        run: npm install --prefix /tmp/peracrm-browser playwright@1.55.0
       - name: Run synthetic WordPress/MySQL fixtures
         env:
           FIXTURE_TOPOLOGY: ${{ matrix.topology }}
+          PERACRM_BROWSER_QA: '1'
+          PERACRM_BROWSER_DEPS: /tmp/peracrm-browser
+          PERACRM_BROWSER_EVIDENCE: ${{ github.workspace }}/campaign-evidence
         run: |
           set -euo pipefail
           mkdir -p campaign-evidence
@@ -45,6 +50,6 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: peracrm-campaign-${{ matrix.topology }}-${{ github.run_id }}
-          path: campaign-evidence/*.log
+          path: campaign-evidence/
           if-no-files-found: warn
           retention-days: 14

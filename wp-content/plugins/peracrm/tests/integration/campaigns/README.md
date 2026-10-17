@@ -41,3 +41,37 @@ wp --user=ADMIN_ID eval '$result = peracrm_campaigns_retry_schema(); if (is_wp_e
 When the stored schema marker is already 21, retry is read-only verification; a missing key/table must be repaired explicitly before verification can succeed. When the marker is below 21, retry runs the additive upgrade again. Neither path clears consent history or suppressions. No campaign sending feature exists in this phase.
 
 Atomic migration-slot follow-up: [run 39050763912](https://github.com/7mus7y-dotcom/pera-wp/actions/runs/39050763912) on `8ea4f9dc337e2231cc000660fb79190f7edc587d` passed both single-site (`117448694512`) and multisite (`117448694858`), including the real pre-acquisition race, sole DDL connection, competing-request availability, stale status/marker/release fencing and interrupted administrator recovery. All earlier fixture checks also passed. Logs: [single](https://github.com/7mus7y-dotcom/pera-wp/actions/runs/39050763912/artifacts/12107677276), [multi](https://github.com/7mus7y-dotcom/pera-wp/actions/runs/39050763912/artifacts/12107906044), retained until 2026-10-31. Phase 1 remains in progress for acceptance review.
+
+## Phase 2 coverage
+
+The same disposable runner now checks schema 22 and upgrades from Phase 1,
+subscriber/consent-free previews, bounded and retry-safe imports, suppression-first
+ordering and readiness, permission/impersonation and owner isolation, cleanup
+(including injected storage failures), historical evidence, ambiguous links and
+absence of client/user side effects, token lifecycle and public authority. Two
+independent connection races cover withdrawal before import and token-authorized
+withdrawal while import owns the mailbox transaction.
+
+CI also runs Chromium at 1440px and 390px on the bundled default theme. It visits
+subscriber list/detail/import/suppression screens, performs an actual mapped CSV
+upload/preview/export/apply, checks formula-safe download, rejects employee reads
+and writes and missing staff nonce, and exercises anonymous public GET/scanner,
+POST/repeated POST, invalid-token and cache/referrer behavior. Screenshots and
+logs are retained as workflow artifacts for 14 days. Small synthetic-only JPEG
+review copies are emitted in logs for API-only review; there are no production
+identities, credentials or tokens in these review images.
+
+Optional local browser reproduction (Docker required):
+
+```sh
+npm install --prefix /tmp/peracrm-browser playwright@1.55.0
+mkdir -p /tmp/peracrm-browser-evidence
+PERACRM_BROWSER_QA=1 PERACRM_BROWSER_DEPS=/tmp/peracrm-browser PERACRM_BROWSER_EVIDENCE=/tmp/peracrm-browser-evidence sh wp-content/plugins/peracrm/tests/integration/campaigns/run.sh
+```
+
+The browser container joins only the disposable internal network; no host port,
+production WordPress or live contacts are used. Browser fixture passwords and
+`phase2-fixture.json` are deliberately synthetic, confined to disposable volumes,
+and removed by the runner's cleanup. Firefox/Safari, assistive-technology review,
+approved translations/copy, production HTTPS/reverse-proxy/cache/log behavior and
+actual scheduler availability remain separate checks.

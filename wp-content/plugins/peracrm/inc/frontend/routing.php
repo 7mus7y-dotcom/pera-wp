@@ -392,6 +392,10 @@ if (!function_exists('peracrm_frontend_resolve_crm_template')) {
             return peracrm_frontend_view_path('pages/crm-new.php');
         }
 
+        if ($view === 'subscribers') {
+            return peracrm_frontend_view_path('pages/crm-subscribers.php');
+        }
+
         if ($view === 'client') {
             return peracrm_frontend_view_path('pages/crm-client.php');
         }
@@ -543,7 +547,7 @@ add_filter('body_class', 'pera_crm_add_body_class');
 if (!function_exists('peracrm_rewrite_version')) {
     function peracrm_rewrite_version(): string
     {
-        return 'peracrm-' . PERACRM_VERSION . '-crm-routes-v2';
+        return 'peracrm-' . PERACRM_VERSION . '-crm-routes-v3';
     }
 }
 

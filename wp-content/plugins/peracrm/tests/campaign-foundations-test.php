@@ -2,7 +2,7 @@
 /** Standalone behavior harness: synthetic identities and stub DB/WP only. */
 define('ABSPATH', __DIR__ . '/fixtures/campaign-wp/');
 define('PERACRM_TARGET_BLOG_ID', 2);
-define('PERACRM_SCHEMA_VERSION', 21);
+define('PERACRM_SCHEMA_VERSION', 22);
 define('ARRAY_A', 'ARRAY_A');
 require __DIR__ . '/fixtures/campaign-memory-db.php';
 $GLOBALS['wpdb'] = new Campaign_Memory_DB();
@@ -76,6 +76,7 @@ $root = dirname(__DIR__);
 require $root . '/inc/helpers.php';
 require $root . '/inc/roles.php';
 require $root . '/inc/schema.php';
+require $root . '/inc/campaigns/management-schema.php';
 require $root . '/inc/campaigns/schema.php';
 require $root . '/inc/campaigns/repository.php';
 require $root . '/inc/campaigns/service.php';
@@ -95,13 +96,13 @@ $GLOBALS['campaign_roles'][2]['administrator']->add_cap('manage_options');
 // Skip unrelated historical v4 migration work in the fresh-install stub.
 $GLOBALS['campaign_options'][2]['peracrm_migration_v4_done'] = 1;
 do_action('init');
-campaign_expect(get_option('peracrm_schema_version') === false && (int) $GLOBALS['campaign_options'][2]['peracrm_schema_version'] === 21, 'fresh schema marker and tables are target-scoped');
+campaign_expect(get_option('peracrm_schema_version') === false && (int) $GLOBALS['campaign_options'][2]['peracrm_schema_version'] === 22, 'fresh schema marker and tables are target-scoped');
 $ddl = $wpdb->ddl;
-peracrm_upgrade_schema_to(21, 21);
+peracrm_upgrade_schema_to(22, 22);
 campaign_expect($ddl === $wpdb->ddl, 'repeated DDL definitions are stable (stub only)');
 $GLOBALS['campaign_options'][2]['peracrm_schema_version'] = 20;
 do_action('init');
-campaign_expect((int) $GLOBALS['campaign_options'][2]['peracrm_schema_version'] === 21, 'previous-schema upgrade wires v21');
+campaign_expect((int) $GLOBALS['campaign_options'][2]['peracrm_schema_version'] === 22, 'previous-schema upgrade wires v21');
 // This is the same callback registration executed by normal plugin init.
 $GLOBALS['campaign_existing_init_ran'] = 0;
 add_action('init', static function () { $GLOBALS['campaign_existing_init_ran']++; }, 6);
@@ -170,7 +171,7 @@ $lock_checks = peracrm_with_target_blog(static function () use ($wpdb) {
     return [$nested, $stale_write, $stale_marker, $stale_release, $intact];
 });
 campaign_expect($lock_checks === [null, false, false, false, true], 'non-reentrant ownership and stale-token publication/release fencing');
-$GLOBALS['campaign_options'][2]['peracrm_campaigns_schema_status'] = ['state' => 'checking', 'version' => 21, 'checked_at' => gmdate('Y-m-d H:i:s')];
+$GLOBALS['campaign_options'][2]['peracrm_campaigns_schema_status'] = ['state' => 'checking', 'version' => 22, 'checked_at' => gmdate('Y-m-d H:i:s')];
 campaign_expect(is_wp_error(peracrm_campaigns_retry_schema()), 'recent interrupted attempt cannot be retried early');
 $GLOBALS['campaign_options'][2]['peracrm_campaigns_schema_status']['checked_at'] = '2020-01-01 00:00:00';
 $held_name = peracrm_with_target_blog(static function () { return peracrm_campaigns_schema_lock_name(); });
