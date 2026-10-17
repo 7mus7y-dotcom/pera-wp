@@ -32,7 +32,8 @@ function peracrm_subscribers_on_authoritative_domain()
     $url = wp_parse_url(peracrm_subscribers_preferences_url());
     $host = strtolower((string) ($_SERVER['HTTP_HOST'] ?? ''));
     $authority = strtolower($url['host'] ?? '') . (isset($url['port']) ? ':' . $url['port'] : '');
-    return get_current_blog_id() === peracrm_get_target_blog_id() && hash_equals($authority, $host) && (($url['scheme'] ?? '') !== 'https' || is_ssl());
+    $target_blog = peracrm_with_target_blog(static function () { return get_current_blog_id(); });
+    return get_current_blog_id() === $target_blog && hash_equals($authority, $host) && (($url['scheme'] ?? '') !== 'https' || is_ssl());
 }
 
 /** Public rendering bypasses staff routing and all theme templates/hooks/assets. */

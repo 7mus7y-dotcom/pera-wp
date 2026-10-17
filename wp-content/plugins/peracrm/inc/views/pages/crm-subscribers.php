@@ -41,6 +41,7 @@ if (!$batch) : ?><p>Batch unavailable.</p><?php else : ?>
 <pre class="peracrm-batch-summary"><?php echo esc_html($batch['summary_json']); ?></pre>
 <div class="peracrm-subscriber-table" tabindex="0" role="region" aria-label="Import preview"><table><thead><tr><th>Row</th><th>Mailbox</th><th>State</th><th>Preview / exclusions</th><th>Apply result</th></tr></thead><tbody>
 <?php foreach ($entries as $entry) : $row = json_decode($entry['payload_json'], true); $preview = $row['preview'] ?? []; $flags = [];
+if ($entry['status'] === 'excluded') { $flags[] = 'Excluded: invalid identity, source, evidence format or date'; }
 foreach (['duplicate','conflict','existing','suppressed','missing_evidence','batch_suppressed'] as $flag) { if (!empty($preview[$flag])) { $flags[] = str_replace('_', ' ', $flag); } }
 if (isset($preview['client_match'])) { $flags[] = 'client: ' . $preview['client_match']; }
 ?>

@@ -8,7 +8,7 @@ Let Pera staff prepare newsletters and targeted campaigns inside the existing CR
 
 Future implementation PRs must update phase status, validation evidence, decisions and the progress log here. A phase must not be marked complete solely because code exists when required verification remains outstanding. Use only `not started`, `in progress`, `blocked` or `complete` for phase status. Keep repository checks distinct from external verification; record outstanding evidence explicitly.
 
-**First implementation task:** Phase 1, subscriber identity, consent and suppression foundations, with sending disabled. Do not start with a campaign send button.
+**Current implementation task:** finish Phase 2 acceptance with sending and new public collection disabled. Phase 1 technical foundations are accepted; Phases 3–7 remain unstarted.
 
 ## Review baseline and method
 
