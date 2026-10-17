@@ -8261,8 +8261,8 @@ body.crm-route #site-header.peracrm-shell-header .peracrm-header-search__status 
 .peracrm-subscriber-table th, .peracrm-subscriber-table td { padding: .8rem; border-bottom: 1px solid #d7dfe5; vertical-align: top; overflow-wrap: anywhere; min-width: 9rem; }
 .peracrm-subscriber-table th { background: #edf2f5; color: #182b37; }
 .peracrm-batch-summary { white-space: pre-wrap; overflow-wrap: anywhere; font-size: .85rem; }
-.peracrm-preferences { width: min(100% - 2rem, 42rem); margin: 3rem auto; padding: 1.5rem; color: #182b37; background: #fff; border-radius: .75rem; font: 1rem/1.6 system-ui, sans-serif; }
-.peracrm-preferences .btn { padding: .7rem 1rem; border: 1px solid #164450; border-radius: .35rem; background: #164450; color: #fff; font: inherit; cursor: pointer; }
+.peracrm-preferences { --crm-font-family: system-ui, sans-serif; width: min(calc(100% - 2rem), 42rem); margin: 3rem auto; padding: 1.5rem; color: #182b37; background: #fff; border-radius: .75rem; font: 1rem/1.6 system-ui, sans-serif; }
+.crm-page.peracrm-preferences .btn { white-space: normal; max-height: none; padding: .7rem 1rem; border: 1px solid #164450; border-radius: .35rem; background: #164450; color: #fff; font: inherit; cursor: pointer; }
 .peracrm-preferences :focus-visible, .peracrm-subscribers :focus-visible { outline: 3px solid #087b9a; outline-offset: 3px; }
 @media (max-width: 600px) { .peracrm-preferences { margin: 1rem auto; padding: 1rem; } .peracrm-subscriber-form button { width: 100%; } }
 .peracrm-subscribers, .peracrm-subscribers *, .peracrm-preferences, .peracrm-preferences * { box-sizing: border-box; }

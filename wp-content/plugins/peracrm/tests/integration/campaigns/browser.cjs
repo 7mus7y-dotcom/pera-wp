@@ -83,6 +83,7 @@ const fs = require('fs');
  await page.goto(staff+'&search=phase2-real');
  if((await page.locator('tbody tr').filter({hasText:'phase2-real@example.test'}).locator('td').nth(1).innerText())!=='subscribed') throw Error('Scanner GET mutated consent');
  await publicPage.setViewportSize({width:390,height:844});
+ if(await publicPage.evaluate(()=>document.documentElement.scrollWidth>innerWidth+1)) throw Error('Public preference page horizontal overflow');
  await publicPage.screenshot({path:'/evidence/preferences-mobile.png',fullPage:true});
  await publicPage.getByLabel('Property updates',{exact:true}).uncheck();
  await publicPage.getByRole('button',{name:'Save topic choices',exact:true}).click();
