@@ -320,7 +320,7 @@ Phase 1's technical foundation acceptance passed: all 11 standalone scripts, 377
 
 ### Phase 2 validation ledger
 
-Local: all existing 11 standalone scripts pass after schema-version updates; new bounded parser/validation/export-safety regression passes. Plugin PHP lint, shell syntax, Compose config, JavaScript syntax and whitespace checks are being run on the final tree. Local Docker socket access is denied (`operation not permitted`), UID 1000; no daemon restart or production connection attempted.
+Local: all existing 11 standalone scripts pass after schema-version updates; new bounded parser/validation/export-safety regression passes. All 381 plugin PHP syntax checks, shell syntax, Compose config, JavaScript syntax and whitespace checks passed. Local Docker socket access is denied (`operation not permitted`), UID 1000; no daemon restart or production connection attempted.
 
 Real fixture additions cover migrations from Phase 1; preview isolation; permissions and cross-user access; suppression-first, duplicate/repeated/partial application; missing evidence and historical timestamps; readiness; expiry/cancel/permanent failure cleanup; opaque token binding/purpose/version/revocation/expiry; idempotent public POST; independent topic/global state; client/user side effects and ambiguous matches; originating-blog restoration; separate MySQL connections racing withdrawal/import. Disposable browser checks are wired for desktop/mobile plugin screens and public GET/POST on the bundled default theme. Actual run results and any unavailable browser checks will be recorded before acceptance. Phase 2 remains **in progress** until required results are available.
 
@@ -330,3 +330,22 @@ Outstanding production decisions: historical list/legal-basis inventory, evidenc
 | --- | --- | --- |
 | 2026-10-17 | Phase 1 technical acceptance recorded | Merged #1447 and passed final single/multisite run; historical consent/retention/readiness prerequisites retained. |
 | 2026-10-17 | Phase 2 in progress | Plugin-owned subscriber management, isolated CSV previews/application, suppression intake, readiness gate and public token-authorized preferences; sending and new collection stay disabled. |
+
+### Passed Phase 2 technical validation
+
+Both real topologies and Chromium browser flows passed in [run 39070911377](https://github.com/7mus7y-dotcom/pera-wp/actions/runs/39070911377), runtime commit `857d8ffc52e0535939284c9fa402c0d4bdc0acec`:
+
+- Multisite job `117508193531`: success; [logs/screenshots](https://github.com/7mus7y-dotcom/pera-wp/actions/runs/39070911377/artifacts/12115197526).
+- Single-site job `117508193669`: success; [logs/screenshots](https://github.com/7mus7y-dotcom/pera-wp/actions/runs/39070911377/artifacts/12115131536).
+
+The jobs include all existing foundation migration/contention tests; actual Phase 1→22 migration; new unique-key assertions; preview changing no subscriber/consent/suppression tables; duplicates, conflicts, repeated/partial apply; missing evidence/historical times; suppression ordering and both import/withdrawal transaction orders; real-data readiness and suppression confirmation; employee/anonymous/impersonation/owner restrictions; injected storage failures and transactional cleanup retry; cancellation/expiry; ambiguous CRM links with no client/user side effects; token binding/purpose/version/expiry/revocation; topic/global separation; target URLs/host isolation and context restoration.
+
+Browser flows passed on a bundled default WordPress theme at 1440×1000 and 390×844: list/detail/import/suppression rendering, horizontal overflow assertion, actual CSV upload/explicit mapping/preview/apply, preview subscriber-count invariant, formula-safe downloaded CSV, employee GET/POST denial, missing nonce rejection, public GET/reload leaving consent subscribed, valid/repeated POST immediately unsubscribing, invalid tokens, anonymous staff read denial and no-store/no-referrer response headers. Screenshot artifacts expire 2026-10-31. A mobile content-box overflow was found and fixed in plugin `crm.css`; a single-site target-ID sentinel bug was found and fixed in plugin public routing. Earlier invalid synthetic/owner-switch fixture errors were corrected without relaxing guardrails. No failed service check was waived.
+
+A final fixture-only change emits small synthetic review images in CI logs for visual inspection through API-only tooling and expands reproduction documentation; tested runtime behavior is unchanged. Local browser execution remains unavailable because the Docker socket is blocked. Hosted Chromium desktop/mobile checks ran successfully. Safari/Firefox, manual assistive-technology/copy approval and production HTTPS/cache/log-redaction checks were not available and are explicitly outstanding.
+
+**Phase 2 remains in progress for external acceptance:** historical legal-basis/evidence mapping, suppression inventory/completion, approved retention, translated/canonical topic copy, actual topology and production HTTPS/cache/log/scheduler verification remain required before real intake/future delivery. Technical acceptance is passed; this PR does not approve those operational prerequisites. Phases 3–7 remain not started.
+
+| Date | Status | Evidence / decision |
+| --- | --- | --- |
+| 2026-10-17 | Phase 2 technical checks passed | Run 39070911377: real single-site/multisite plus default-theme Chromium desktop/mobile and actual upload/public POST flows passed. Gate remains closed by default; external acceptance outstanding. |

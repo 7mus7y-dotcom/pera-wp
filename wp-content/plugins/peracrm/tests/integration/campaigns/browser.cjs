@@ -90,5 +90,13 @@ const fs = require('fs');
  if((await page.locator('tbody tr').filter({hasText:'phase2-real@example.test'}).locator('td').nth(1).innerText())!=='unsubscribed') throw Error('Public POST failed to withdraw');
  await page.screenshot({path:'/evidence/subscribers-after-public-post.png',fullPage:true});
  if(failures.length) throw Error(failures.join('\n'));
+ // Emit small synthetic-only review images so an API-only reviewer can inspect them.
+ for(const name of ['subscribers-desktop','subscribers-mobile','detail-mobile','import-mobile','suppression-mobile','preferences-mobile']) {
+  const review = await browser.newPage({viewport:{width:name.includes('desktop')?720:390,height:844}});
+  await review.setContent('<html><body style="margin:0"><img style="width:100%;display:block" src="data:image/png;base64,'+fs.readFileSync('/evidence/'+name+'.png').toString('base64')+'"></body></html>');
+  await review.locator('img').evaluate(img=>img.decode());
+  console.log('RENDER_REVIEW '+name+' '+(await review.screenshot({type:'jpeg',quality:30,fullPage:true})).toString('base64'));
+  await review.close();
+ }
  await browser.close(); console.log('PASS browser: desktop/mobile subscribers, import, suppression; default theme; public GET/privacy, repeated POST, invalid token and anonymous route denial');
 })().catch(error=>{console.error(error);process.exit(1)});
