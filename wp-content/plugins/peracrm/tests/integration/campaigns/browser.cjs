@@ -72,6 +72,7 @@ const fs = require('fs');
  let response=await publicPage.goto(url);
  if (!response.headers()['cache-control'].includes('no-store') || response.headers()['referrer-policy']!=='no-referrer') throw Error('Public privacy headers');
  await publicPage.getByRole('button',{name:'Unsubscribe from all marketing email'}).waitFor();
+ if(!(await publicPage.locator('main').evaluate(el=>getComputedStyle(el).fontFamily.includes('system-ui')))) throw Error('Public plugin stylesheet was not applied');
  await publicPage.reload(); // Scanner/repeated GET must leave deliberate POST available.
  await page.goto(staff+'&search=phase2-real');
  if((await page.locator('tbody tr').filter({hasText:'phase2-real@example.test'}).locator('td').nth(1).innerText())!=='subscribed') throw Error('Scanner GET mutated consent');

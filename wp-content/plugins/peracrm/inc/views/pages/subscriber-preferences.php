@@ -1,6 +1,9 @@
-<?php if (!defined('ABSPATH')) { exit; } ?>
+<?php
+if (!defined('ABSPATH')) { exit; }
+$stylesheet = peracrm_frontend_get_asset_file('assets/frontend/crm.css');
+?>
 <!doctype html>
-<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="referrer" content="no-referrer"><title>Email preferences</title><link rel="stylesheet" href="<?php echo esc_url(PERACRM_URL . 'assets/frontend/crm.css'); ?>"></head>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="referrer" content="no-referrer"><title>Email preferences</title><link rel="stylesheet" href="<?php echo esc_url(add_query_arg('ver', (string) filemtime($stylesheet['path']), $stylesheet['url'])); ?>"></head>
 <body class="crm-route"><main id="primary" class="crm-page peracrm-preferences"><h1>Email preferences</h1>
 <?php if ($message !== '') : ?><p role="status"><?php echo esc_html($message); ?></p><?php endif; ?>
 <?php if ($valid) : ?>
