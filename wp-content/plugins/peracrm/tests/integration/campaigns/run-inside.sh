@@ -34,4 +34,33 @@ done
 wait "$holder_pid"
 for worker_pid in $worker_pids; do wait "$worker_pid"; done
 wp eval-file /tests/assertions.php concurrency
+# Race before acquisition, during DDL, and after a newer successful publication.
+wait_for_migration_marker() {
+    for attempt in $(seq 1 600); do
+        [ -f "$1" ] && return 0
+        sleep 0.05
+    done
+    echo "Missing migration barrier: $1" >&2
+    return 1
+}
+rm -f /tmp/peracrm-migration-*
+wp eval-file /tests/migration-worker.php prepare
+PERACRM_MIGRATION_WORKER_MODE=race-loser wp eval-file /tests/migration-worker.php race-loser &
+migration_loser_pid=$!
+wait_for_migration_marker /tmp/peracrm-migration-loser-paused
+PERACRM_MIGRATION_WORKER_MODE=race-owner wp eval-file /tests/migration-worker.php race-owner &
+migration_owner_pid=$!
+wait_for_migration_marker /tmp/peracrm-migration-owner-ready
+wait_for_migration_marker /tmp/peracrm-migration-loser-returned
+touch /tmp/peracrm-migration-owner-release
+wait "$migration_owner_pid"
+wait "$migration_loser_pid"
+PERACRM_MIGRATION_WORKER_MODE=stale-owner wp eval-file /tests/migration-worker.php stale-owner &
+migration_stale_pid=$!
+wait_for_migration_marker /tmp/peracrm-migration-stale-released
+PERACRM_MIGRATION_WORKER_MODE=successor wp eval-file /tests/migration-worker.php successor &
+migration_successor_pid=$!
+wait "$migration_stale_pid"
+wait "$migration_successor_pid"
+wp eval-file /tests/migration-worker.php verify
 printf 'PASS disposable %s WordPress/MySQL fixtures\n' "$fixture_mode"

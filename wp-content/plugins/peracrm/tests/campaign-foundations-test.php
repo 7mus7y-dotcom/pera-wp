@@ -52,6 +52,10 @@ function get_role($slug) { return $GLOBALS['campaign_roles'][get_current_blog_id
 function add_role($slug, $label, $caps) { $GLOBALS['campaign_roles'][get_current_blog_id()][$slug] = new Campaign_Test_Role(); }
 function get_option($key, $default = false) { return $GLOBALS['campaign_options'][get_current_blog_id()][$key] ?? $default; }
 function update_option($key, $value, $autoload = true) { $GLOBALS['campaign_options'][get_current_blog_id()][$key] = $value; }
+function wp_generate_uuid4() { static $id = 0; return sprintf('00000000-0000-4000-8000-%012d', ++$id); }
+function maybe_serialize($v) { return is_array($v) ? serialize($v) : (string) $v; }
+function maybe_unserialize($v) { return is_string($v) && str_starts_with($v, 'a:') ? unserialize($v) : $v; }
+function wp_cache_delete($key, $group) {}
 function wp_json_encode($v) { return json_encode($v); }
 function is_email($v) { return filter_var($v, FILTER_VALIDATE_EMAIL); }
 function is_wp_error($v) { return $v instanceof WP_Error; }
@@ -75,6 +79,7 @@ require $root . '/inc/schema.php';
 require $root . '/inc/campaigns/schema.php';
 require $root . '/inc/campaigns/repository.php';
 require $root . '/inc/campaigns/service.php';
+require $root . '/inc/campaigns/schema-lock.php';
 require $root . '/inc/campaigns/readiness.php';
 require $root . '/inc/notifications/providers/class-peracrm-email-provider.php';
 function campaign_expect($condition, $message) {
@@ -90,13 +95,13 @@ $GLOBALS['campaign_roles'][2]['administrator']->add_cap('manage_options');
 // Skip unrelated historical v4 migration work in the fresh-install stub.
 $GLOBALS['campaign_options'][2]['peracrm_migration_v4_done'] = 1;
 do_action('init');
-campaign_expect(get_option('peracrm_schema_version') === false && $GLOBALS['campaign_options'][2]['peracrm_schema_version'] === 21, 'fresh schema marker and tables are target-scoped');
+campaign_expect(get_option('peracrm_schema_version') === false && (int) $GLOBALS['campaign_options'][2]['peracrm_schema_version'] === 21, 'fresh schema marker and tables are target-scoped');
 $ddl = $wpdb->ddl;
 peracrm_upgrade_schema_to(21, 21);
 campaign_expect($ddl === $wpdb->ddl, 'repeated DDL definitions are stable (stub only)');
 $GLOBALS['campaign_options'][2]['peracrm_schema_version'] = 20;
 do_action('init');
-campaign_expect($GLOBALS['campaign_options'][2]['peracrm_schema_version'] === 21, 'previous-schema upgrade wires v21');
+campaign_expect((int) $GLOBALS['campaign_options'][2]['peracrm_schema_version'] === 21, 'previous-schema upgrade wires v21');
 // This is the same callback registration executed by normal plugin init.
 $GLOBALS['campaign_existing_init_ran'] = 0;
 add_action('init', static function () { $GLOBALS['campaign_existing_init_ran']++; }, 6);
@@ -106,7 +111,7 @@ foreach (['fail_schema', 'missing_unique'] as $failure) {
     $before = $GLOBALS['campaign_existing_init_ran'];
     do_action('init');
     campaign_expect($GLOBALS['campaign_existing_init_ran'] === $before + 1
-        && $GLOBALS['campaign_options'][2]['peracrm_schema_version'] === 20,
+        && (int) $GLOBALS['campaign_options'][2]['peracrm_schema_version'] === 20,
         'actual init contains ' . $failure . ', preserves marker and continues later website/CRM hooks');
     campaign_expect(!peracrm_campaigns_schema_ready() && !peracrm_campaigns_is_eligible('fixture@example.test')
         && is_wp_error(peracrm_campaigns_save_subscriber('fixture@example.test')), 'campaign services denied after migration failure');
@@ -147,6 +152,32 @@ do_action('init');
 campaign_expect(!peracrm_campaigns_schema_ready(), 'existing v21 marker alone cannot enable campaigns');
 $wpdb->missing_unique = false;
 campaign_expect(peracrm_campaigns_retry_schema() === true, 'existing v21 schema read-only verification recovers');
+// Model ownership loss/re-entry. Real connection races are covered in Docker.
+$lock_checks = peracrm_with_target_blog(static function () use ($wpdb) {
+    $old = peracrm_campaigns_schema_acquire_slot();
+    $nested = peracrm_campaigns_schema_acquire_slot();
+    peracrm_campaigns_schema_release_slot($old);
+    $new = peracrm_campaigns_schema_acquire_slot();
+    $current = peracrm_campaigns_schema_option('peracrm_campaigns_schema_status');
+    peracrm_campaigns_schema_publish($new, 'peracrm_campaigns_schema_status', array_merge($current, ['attempt_token' => $new['token']]));
+    $before = peracrm_campaigns_schema_option('peracrm_campaigns_schema_status');
+    $stale_write = peracrm_campaigns_schema_publish($old, 'peracrm_campaigns_schema_status', ['state' => 'failed']);
+    $stale_marker = peracrm_campaigns_schema_publish($old, 'peracrm_schema_version', 20);
+    $stale_release = peracrm_campaigns_schema_release_slot($old);
+    $intact = $before === peracrm_campaigns_schema_option('peracrm_campaigns_schema_status')
+        && peracrm_campaigns_schema_owns_slot($new);
+    peracrm_campaigns_schema_release_slot($new);
+    return [$nested, $stale_write, $stale_marker, $stale_release, $intact];
+});
+campaign_expect($lock_checks === [null, false, false, false, true], 'non-reentrant ownership and stale-token publication/release fencing');
+$GLOBALS['campaign_options'][2]['peracrm_campaigns_schema_status'] = ['state' => 'checking', 'version' => 21, 'checked_at' => gmdate('Y-m-d H:i:s')];
+campaign_expect(is_wp_error(peracrm_campaigns_retry_schema()), 'recent interrupted attempt cannot be retried early');
+$GLOBALS['campaign_options'][2]['peracrm_campaigns_schema_status']['checked_at'] = '2020-01-01 00:00:00';
+$held_name = peracrm_with_target_blog(static function () { return peracrm_campaigns_schema_lock_name(); });
+$wpdb->schema_locks[$held_name] = 2;
+campaign_expect(is_wp_error(peracrm_campaigns_retry_schema()), 'even an old attempt cannot be taken over while its connection holds the slot');
+unset($wpdb->schema_locks[$held_name]);
+campaign_expect(peracrm_campaigns_retry_schema() === true && peracrm_campaigns_schema_ready(), 'interrupted old attempt recovers after the native slot is free');
 foreach (['peracrm_manage_campaigns', 'peracrm_manage_subscribers', 'peracrm_view_campaign_reports'] as $cap) {
     foreach ([1 => true, 2 => true, 3 => false, 0 => false] as $actor => $expected) {
         $GLOBALS['campaign_actor'] = $actor;

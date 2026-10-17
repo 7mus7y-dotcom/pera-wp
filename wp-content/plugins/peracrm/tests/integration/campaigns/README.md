@@ -19,6 +19,7 @@ Coverage:
 
 - Fresh activation, schema-20 upgrade through registered `init`, repeated real `dbDelta`/init, schema assertions and record preservation.
 - Full unique mailbox keys in both subscriber and suppression tables reject raw SQL duplicate inserts. Services normalize case/whitespace and preserve plus-tags/dots.
+- A separate migration race pauses a losing request before native lock acquisition, lets one owner enter real DDL, and requires the competing ordinary request to return before that owner is released. Exactly one connection must run all four campaign installers. A genuine stale attempt then loses its native lock and resumes only after a newer administrator retry publishes readiness; all late status/marker writes and successor-lock release must be rejected.
 - Four independent WP-CLI processes concurrently create/update one mailbox and add all four suppression reasons. A fifth process deliberately holds the mailbox mutex for eight seconds. Assertions require actual contention, one subscriber, four audited reasons, no lost version increments and continued ineligibility.
 - Real target-blog administrator/manager/employee roles and manager/employee/anonymous service checks, originating-blog isolation, and blog restoration. The manager is a target-only user, not a super administrator.
 - A real missing-key assertion failure through `init` leaves later hooks running, denies campaign services and recovers after explicit key repair and administrator retry. Standalone tests additionally inject installation errors, test the failure latch, impersonation, diagnostic redaction and retry authorization.
@@ -29,7 +30,7 @@ Compose configuration validation and shell syntax checks pass. Local runtime exe
 
 ## Administrator migration recovery
 
-On a real installation, a failed migration leaves campaigns unavailable, retains the previous schema marker and stores only `schema_verification_failed` plus a UTC timestamp. Ordinary requests stop retrying. A real administrator can use the WordPress admin notice's **Retry campaign schema verification** POST form (nonce protected; impersonation denied). Repair database permissions/table definitions first. A stuck `checking` attempt is manually retryable after 15 minutes; it is never retried automatically by public traffic.
+On a real installation, a failed migration leaves campaigns unavailable, retains the previous schema marker and stores only `schema_verification_failed` plus a UTC timestamp. Ordinary requests stop retrying. A real administrator can use the WordPress admin notice's **Retry campaign schema verification** POST form (nonce protected; impersonation denied). Repair database permissions/table definitions first. A stuck `checking` attempt is manually retryable after 15 minutes only when its native MySQL migration slot is free; it is never retried automatically by public traffic and a live owner cannot be taken over. Publication/release require both the current attempt token and native connection ownership.
 
 For an authenticated CLI alternative, use a real target-blog administrator ID (not a manager or an impersonated session):
 
@@ -38,3 +39,5 @@ wp --user=ADMIN_ID eval '$result = peracrm_campaigns_retry_schema(); if (is_wp_e
 ```
 
 When the stored schema marker is already 21, retry is read-only verification; a missing key/table must be repaired explicitly before verification can succeed. When the marker is below 21, retry runs the additive upgrade again. Neither path clears consent history or suppressions. No campaign sending feature exists in this phase.
+
+Atomic migration-slot follow-up: the new real acquisition-race and stale-owner tests are pending hosted execution; the previously linked successful run predates this regression.

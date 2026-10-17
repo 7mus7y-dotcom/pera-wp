@@ -11,6 +11,7 @@ require_once PERACRM_INC . '/stages.php';
 require_once PERACRM_INC . '/campaigns/schema.php';
 require_once PERACRM_INC . '/campaigns/repository.php';
 require_once PERACRM_INC . '/campaigns/service.php';
+require_once PERACRM_INC . '/campaigns/schema-lock.php';
 require_once PERACRM_INC . '/campaigns/readiness.php';
 require_once PERACRM_INC . '/schema.php';
 require_once PERACRM_INC . '/roles.php';

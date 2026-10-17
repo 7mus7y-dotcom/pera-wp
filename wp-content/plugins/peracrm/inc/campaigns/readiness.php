@@ -8,9 +8,9 @@ if (!defined('ABSPATH')) {
 function peracrm_campaigns_schema_ready()
 {
     return peracrm_with_target_blog(static function () {
-        $status = get_option('peracrm_campaigns_schema_status', []);
+        $status = peracrm_campaigns_schema_option('peracrm_campaigns_schema_status', []);
         return ($status['state'] ?? '') === 'ready' && (int) ($status['version'] ?? 0) === 21
-            && (int) get_option('peracrm_schema_version', 0) >= 21;
+            && (int) peracrm_campaigns_schema_option('peracrm_schema_version', 0) >= 21;
     });
 }
 
@@ -29,21 +29,7 @@ function peracrm_campaigns_retry_schema()
     if (!peracrm_campaigns_can_retry_schema()) {
         return new WP_Error('campaign_forbidden', 'Only an administrator may retry the campaign schema.');
     }
-    return peracrm_with_target_blog(static function () {
-        $status = get_option('peracrm_campaigns_schema_status', []);
-        // A request may still be running. An interrupted attempt becomes manually
-        // retryable after 15 minutes; public requests never clear the breaker.
-        if (($status['state'] ?? '') === 'checking'
-            && ($status['checked_at'] ?? '') > gmdate('Y-m-d H:i:s', time() - 900)) {
-            return new WP_Error('campaign_schema_busy', 'Schema verification is already running.');
-        }
-        delete_option('peracrm_campaigns_schema_status');
-        $result = peracrm_maybe_upgrade_schema();
-        $status = get_option('peracrm_campaigns_schema_status', []);
-        $status['retry_actor_user_id'] = peracrm_get_actor_user_id();
-        update_option('peracrm_campaigns_schema_status', $status, false);
-        return $result;
-    });
+    return peracrm_campaigns_run_schema_upgrade(true);
 }
 
 /** Plugin-owned WordPress admin notice; no exception/SQL text is rendered. */
@@ -53,7 +39,7 @@ function peracrm_campaigns_schema_admin_notice()
         return;
     }
     $status = peracrm_with_target_blog(static function () {
-        return get_option('peracrm_campaigns_schema_status', []);
+        return peracrm_campaigns_schema_option('peracrm_campaigns_schema_status', []);
     });
     if (!in_array($status['state'] ?? '', ['failed', 'checking'], true)) {
         return;

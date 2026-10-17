@@ -3,6 +3,9 @@
 class Campaign_Memory_DB
 {
     public $prefix = 'wp_1_';
+    public $schema_locks = [];
+    public function __get($name) { return $name === 'options' ? $this->prefix . 'options' : null; }
+    private function quoted($sql) { preg_match_all("/'((?:''|[^'])*)'/", $sql, $matches); return array_map(static function ($v) { return str_replace("''", "'", $v); }, $matches[1]); }
     public $last_error = '';
     public $insert_id = 0;
     public $tables = [];
@@ -26,6 +29,18 @@ class Campaign_Memory_DB
     public function get_charset_collate() { return 'DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci'; }
     public function query($sql) {
         $this->last_error = '';
+        if (str_contains($sql, '(option_name, option_value, autoload)')) {
+            $v = $this->quoted($sql);
+            $guarded = str_contains($sql, ' AS owner');
+            $name = $guarded ? $v[5] : $v[3];
+            $owned = ($this->schema_locks[$name] ?? null) === 1;
+            if ($guarded) {
+                $owned = $owned && (get_option($v[3]) === $v[4]);
+            }
+            if (!$owned) { return 0; }
+            update_option($v[0], maybe_unserialize($v[1]));
+            return 1;
+        }
         if ($sql === 'START TRANSACTION') { $this->snapshot = $this->tables; return 0; }
         if ($sql === 'ROLLBACK') { $this->tables = $this->snapshot; return 0; }
         if ($sql === 'COMMIT') { return 0; }
@@ -95,6 +110,26 @@ class Campaign_Memory_DB
         return [];
     }
     public function get_var($sql) {
+        $v = $this->quoted($sql);
+        if (str_starts_with($sql, 'SELECT option_value')) {
+            $value = get_option($v[0], null);
+            return $value === null ? null : maybe_serialize($value);
+        }
+        if (str_contains($sql, 'GET_LOCK(')) {
+            if (isset($this->schema_locks[$v[0]])) { return 0; }
+            $this->schema_locks[$v[0]] = 1;
+            return 1;
+        }
+        if (str_starts_with($sql, 'SELECT COUNT(*)')) {
+            return get_option($v[0]) === $v[1] && ($this->schema_locks[$v[2]] ?? null) === 1 ? 1 : 0;
+        }
+        if (str_contains($sql, 'RELEASE_LOCK(')) {
+            $guarded = str_contains($sql, 'EXISTS(');
+            $name = $guarded ? $v[2] : $v[0];
+            if (($this->schema_locks[$name] ?? null) !== 1 || ($guarded && get_option($v[0]) !== $v[1])) { return 0; }
+            unset($this->schema_locks[$name]);
+            return 1;
+        }
         if (str_contains($sql, 'SELECT disposition')) { return $GLOBALS['campaign_disposition']; }
         return 'closed_reason';
     }
