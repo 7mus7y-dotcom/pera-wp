@@ -8265,3 +8265,5 @@ body.crm-route #site-header.peracrm-shell-header .peracrm-header-search__status 
 .peracrm-preferences .btn { padding: .7rem 1rem; border: 1px solid #164450; border-radius: .35rem; background: #164450; color: #fff; font: inherit; cursor: pointer; }
 .peracrm-preferences :focus-visible, .peracrm-subscribers :focus-visible { outline: 3px solid #087b9a; outline-offset: 3px; }
 @media (max-width: 600px) { .peracrm-preferences { margin: 1rem auto; padding: 1rem; } .peracrm-subscriber-form button { width: 100%; } }
+.peracrm-subscribers, .peracrm-subscribers *, .peracrm-preferences, .peracrm-preferences * { box-sizing: border-box; }
+.peracrm-subscriber-form, .peracrm-subscriber-form label, .peracrm-subscriber-form input, .peracrm-subscriber-grid > *, .peracrm-subscriber-table { min-width: 0; }

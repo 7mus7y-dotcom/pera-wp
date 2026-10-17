@@ -180,6 +180,7 @@ function peracrm_subscribers_apply_row($entry)
                 peracrm_campaigns_db_require($wpdb->update(peracrm_table('peracrm_subscribers'), ['subscription_state' => 'unsubscribed', 'withdrawn_at' => $evidence['occurred_at'], 'updated_at' => gmdate('Y-m-d H:i:s'), 'version' => (int) $subscriber['version'] + 1], ['id' => $subscriber['id']]));
                 peracrm_campaigns_repository_event($email, $subscriber, 'withdrawn', 'unsubscribed', $evidence, $actor);
             }
+            peracrm_campaigns_repository_event($email, $subscriber, 'suppression_imported', $subscriber['subscription_state'] ?? '', $evidence, $actor, ['batch' => $entry['batch_id'], 'row' => (int) $entry['line_number'], 'reason' => $row['state']]);
             $result = 'suppression_recorded';
         } elseif (peracrm_campaigns_has_suppression($suppression) || ($subscriber['subscription_state'] ?? '') === 'unsubscribed' || !empty($subscriber['withdrawn_at'])) {
             $result = 'excluded_suppressed';

@@ -19,7 +19,11 @@ const fs = require('fs');
   await page.setViewportSize({width,height});
   await page.goto(staff);
   await page.getByRole('heading',{name:'Subscribers',exact:true}).waitFor();
-  if (await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth+1)) throw Error('Subscriber page horizontal overflow '+name);
+  if (await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth+1)) {
+   await page.screenshot({path:'/evidence/overflow-'+name+'.png',fullPage:true});
+   console.log(await page.evaluate(()=>JSON.stringify([...document.querySelectorAll('body *')].filter(el=>el.getBoundingClientRect().right>innerWidth+1).slice(0,12).map(el=>({tag:el.tagName,cls:el.className,right:el.getBoundingClientRect().right})))));
+   throw Error('Subscriber page horizontal overflow '+name);
+  }
   await page.screenshot({path:'/evidence/subscribers-'+name+'.png',fullPage:true});
   await page.locator('.peracrm-subscriber-table tbody a').first().click();
   await page.getByRole('button',{name:'Save profile',exact:true}).waitFor();

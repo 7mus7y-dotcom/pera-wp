@@ -48,6 +48,7 @@ management_expect($result['status'] === 'complete', 'bounded batch applies');
 management_expect(peracrm_campaigns_is_eligible('phase2-yes@example.test'), 'complete evidence eligible after import');
 management_expect(!management_identity('phase2-conflict@example.test'), 'suppression rows precede conflicting opt-in');
 management_expect(management_identity('phase2-unknown@example.test')['subscription_state'] === 'unknown', 'missing evidence stays unknown');
+management_target(static function () { global $wpdb; $events = peracrm_table('peracrm_subscription_events'); management_expect((int) $wpdb->get_var("SELECT COUNT(*) FROM {$events} WHERE event_type='suppression_imported' AND occurred_at='2020-01-02 03:04:05'") === 3, 'suppression intake retains historical batch audit even without a subscriber'); });
 management_expect(management_identity('phase2-yes@example.test')['confirmed_at'] === '2020-01-02 03:04:05', 'historical consent time preserved');
 management_expect(peracrm_subscribers_batch_rows($id) === [] && peracrm_subscribers_apply_batch($id) === $result, 'terminal payload cleanup and repeated apply is stable');
 $id2 = management_preview([management_row('phase2-yes@example.test'),management_row('phase2-conflict@example.test')]);
