@@ -36,29 +36,17 @@ if ( ! function_exists( 'pera_llms_build_txt_content' ) ) {
 	 * Build concise llms.txt content.
 	 */
 	function pera_llms_build_txt_content(): string {
-		$updated = gmdate( 'Y-m-d' );
-		$lines   = array(
-			'Site Name: Pera Property',
-			'Canonical Domain: https://www.peraproperty.com',
-			'Business Summary: Istanbul real estate consultancy focused on residential and investment property guidance for local and international buyers.',
-			'Geographic Focus: Istanbul, Turkiye',
-			'Main Services: Property search and acquisition consultancy; Turkish Citizenship by Investment property consultancy; rental and resale consultancy; investment advisory support.',
-			'Key Content Types: Property listings; citizenship by investment pages; district guides; buyer guides; service pages.',
-			'Important Canonical URLs:',
-			'- https://www.peraproperty.com/',
-			'- https://www.peraproperty.com/property/',
-			'- https://www.peraproperty.com/citizenship-by-investment/',
-			'- https://www.peraproperty.com/turkish-citizenship-properties/',
-			'- https://www.peraproperty.com/buyer-guides/',
-			'- https://www.peraproperty.com/district/istanbul/besiktas/',
-			'- https://www.peraproperty.com/district/istanbul/sisli/',
-			'- https://www.peraproperty.com/district/istanbul/kadikoy/',
-			'- https://www.peraproperty.com/contact-us/',
-			'Sitemap: https://www.peraproperty.com/sitemap_index.xml',
-			'Preferred Terminology: Istanbul property for sale; Turkish Citizenship by Investment; Istanbul investment apartments; district guides; buyer guides; property listings; rental and resale consultancy.',
-			'About: https://www.peraproperty.com/',
-			'Contact: https://www.peraproperty.com/contact-us/',
-			'Last Updated: ' . $updated,
+		$lines = array(
+			'# Pera Property',
+			'',
+			'Pera Property is an Istanbul real estate consultancy advising local and international buyers on residential and investment property.',
+			'',
+			'## Public resources',
+			'',
+			'- [Property listings](https://www.peraproperty.com/property/)',
+			'- [Turkish citizenship by investment](https://www.peraproperty.com/citizenship-by-investment/)',
+			'- [Blog](https://www.peraproperty.com/blog/)',
+			'- [Book a consultation](https://www.peraproperty.com/book-a-consultancy/)',
 		);
 
 		$content = implode( "\n", $lines ) . "\n";
@@ -157,8 +145,9 @@ if ( ! function_exists( 'pera_llms_maybe_render' ) ) {
 	 */
 	function pera_llms_maybe_render(): void {
 		if ( get_query_var( 'pera_llms' ) ) {
+			status_header( 200 );
 			pera_llms_send_headers();
-			echo wp_strip_all_tags( pera_llms_build_txt_content(), true );
+			echo wp_strip_all_tags( pera_llms_build_txt_content() );
 			exit;
 		}
 

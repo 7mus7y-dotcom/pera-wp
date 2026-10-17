@@ -47,6 +47,8 @@ document.addEventListener('DOMContentLoaded', function () {
   var menuToggle  = document.querySelector('.header-menu-toggle');
   var navBackdrop = document.querySelector('.offcanvas-backdrop');
   var navCloseBtn = document.querySelector('.offcanvas-close');
+  var navPanel = document.getElementById('pera-offcanvas-menu');
+  var navCheckbox = document.getElementById('nav-toggle');
 
   // -----------------------------------------
   // Tracking helpers (GA4 + Meta Pixel)
@@ -273,12 +275,34 @@ document.addEventListener('DOMContentLoaded', function () {
   });
 
 
+  function syncNav(isOpen) {
+    body.classList.toggle('is-nav-open', isOpen);
+    if (navCheckbox) navCheckbox.checked = isOpen;
+    if (menuToggle) menuToggle.setAttribute('aria-expanded', String(isOpen));
+    if (navPanel) {
+      navPanel.inert = !isOpen;
+      navPanel.setAttribute('aria-hidden', String(!isOpen));
+    }
+  }
+
   function openNav() {
-    body.classList.add('is-nav-open');
+    syncNav(true);
+    if (navCloseBtn) navCloseBtn.focus();
   }
 
   function closeNav() {
-    body.classList.remove('is-nav-open');
+    var wasOpen = body.classList.contains('is-nav-open');
+    // Move focus out before hiding the panel from assistive technology.
+    if (wasOpen && menuToggle) menuToggle.focus();
+    syncNav(false);
+  }
+
+  syncNav(Boolean(navCheckbox && navCheckbox.checked));
+  if (navCheckbox) {
+    navCheckbox.addEventListener('change', function () {
+      if (navCheckbox.checked) openNav();
+      else closeNav();
+    });
   }
 
   // Toggle from burger button
