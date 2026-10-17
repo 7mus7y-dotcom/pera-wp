@@ -63,7 +63,9 @@ management_expect(management_throws(static function () { peracrm_subscribers_rea
 wp_set_current_user($admin);
 management_expect(management_throws(static function () { peracrm_subscribers_readiness(['enabled' => true]); }), 'administrator cannot enable without decisions');
 peracrm_subscribers_readiness(['enabled' => true,'consent_mapping' => 'fixture-map','suppression_sources' => 'fixture-inventory','retention' => 'fixture-retention']);
+wp_set_current_user($manager);
 management_expect(peracrm_subscribers_apply_batch($real)['status'] === 'complete', 'administrator decisions enable real-mode synthetic fixture');
+wp_set_current_user($admin);
 peracrm_subscribers_readiness(['enabled' => false,'consent_mapping' => 'fixture-map','suppression_sources' => 'fixture-inventory','retention' => 'fixture-retention']);
 wp_set_current_user($manager);
 // Partial requests, cancellation, expiry and bounded retry failures.
@@ -73,6 +75,14 @@ management_expect(peracrm_subscribers_apply_batch($partial)['status'] === 'apply
 management_expect(peracrm_subscribers_apply_batch($partial)['status'] === 'complete', 'second request resumes remaining rows');
 $cancel = management_preview([management_row('phase2-cancel@example.test')]); peracrm_subscribers_cancel_batch($cancel);
 management_expect(peracrm_subscribers_batch_rows($cancel) === [] && !management_identity('phase2-cancel@example.test'), 'cancel cleans payload without applying');
+$cleanup_retry = management_preview([management_row('phase2-cleanup-retry@example.test')]);
+$fail_cleanup = static function ($sql) use ($cleanup_retry) { return str_starts_with($sql,'DELETE FROM') && str_contains($sql,'peracrm_subscriber_import_rows') && str_contains($sql,$cleanup_retry) ? 'DELETE FROM peracrm_fixture_nonexistent' : $sql; };
+add_filter('query',$fail_cleanup);
+management_expect(management_throws(static function () use ($cleanup_retry) { peracrm_subscribers_cancel_batch($cleanup_retry); }), 'cleanup storage failure is reported');
+remove_filter('query',$fail_cleanup);
+management_expect(peracrm_subscribers_batch($cleanup_retry)['status'] === 'preview' && count(peracrm_subscribers_batch_rows($cleanup_retry)) === 1, 'failed cleanup rolls back terminal status and remains retryable');
+peracrm_subscribers_cancel_batch($cleanup_retry);
+management_expect(peracrm_subscribers_batch_rows($cleanup_retry) === [], 'retried cancellation removes payload');
 $expiry = management_preview([management_row('phase2-expiry@example.test')]);
 management_target(static function () use ($expiry) { global $wpdb; $wpdb->update(peracrm_table('peracrm_subscriber_batches'), ['expires_at' => '2000-01-01 00:00:00'], ['id' => $expiry]); });
 peracrm_subscribers_expire_batches();

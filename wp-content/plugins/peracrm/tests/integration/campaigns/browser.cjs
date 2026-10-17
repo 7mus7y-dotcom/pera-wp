@@ -31,6 +31,28 @@ const fs = require('fs');
   await page.getByRole('heading',{name:'Record a historical suppression'}).waitFor();
   await page.screenshot({path:'/evidence/suppression-'+name+'.png',fullPage:true});
  }
+ // Exercise the real upload/nonce/preview/apply path, with a formula-like mailbox.
+ await page.goto(target+'/crm/subscribers/import/');
+ await page.locator('input[name="csv"]').setInputFiles({name:'synthetic.csv',mimeType:'text/csv',buffer:Buffer.from('email,state,source,source_ref,evidence_ref,policy_version,occurred_at\n=browser@example.test,subscribed,fixture,src,consent,v1,2020-01-01 00:00:00\n')});
+ for(const [i,key] of ['email','state','source','source_ref','evidence_ref','policy_version','occurred_at'].entries()) await page.locator('input[name="mapping['+key+']"]').fill(String(i));
+ await page.locator('input[name="synthetic"]').check();
+ await page.locator('input[name="suppression_complete"]').check();
+ await page.getByRole('button',{name:'Create preview only',exact:true}).click();
+ await page.getByRole('heading',{name:'Batch preview',exact:true}).waitFor();
+ await page.screenshot({path:'/evidence/actual-upload-preview.png',fullPage:true});
+ const previewURL=page.url();
+ await page.goto(staff+'&search=browser%40example.test');
+ if(!(await page.locator('main').innerText()).includes('0 subscribers')) throw Error('Upload preview changed subscriber list');
+ await page.goto(previewURL);
+ const downloadEvent=page.waitForEvent('download');
+ await page.getByRole('button',{name:'Download safe preview CSV',exact:true}).click();
+ const download=await downloadEvent;
+ const csv=fs.readFileSync(await download.path(),'utf8');
+ if(!csv.includes("'=browser@example.test")) throw Error('Download formula injection defense missing');
+ await page.getByRole('button',{name:'Apply next 25 rows',exact:true}).click();
+ if(!(await page.locator('main').innerText()).includes('Status: complete')) throw Error('Browser batch apply did not complete');
+ await page.goto(staff+'&search=browser%40example.test');
+ if(!(await page.locator('main').innerText()).includes('1 subscribers')) throw Error('Browser batch apply missing subscriber');
  const missingNonce=await context.request.post(target+'/wp-admin/admin-post.php',{form:{action:'peracrm_subscribers',operation:'withdraw',subscriber_id:'1'}});
  if(missingNonce.status()!==403) throw Error('Missing staff nonce accepted');
  const employeeContext=await browser.newContext(); const employeePage=await employeeContext.newPage();
