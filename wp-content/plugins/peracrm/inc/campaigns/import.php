@@ -219,6 +219,7 @@ function peracrm_subscribers_apply_batch($id)
             peracrm_campaigns_db_require($wpdb->update($batches, ['status' => 'applying'], ['id' => $id]));
             $entries = $wpdb->get_results($wpdb->prepare("SELECT * FROM {$table} WHERE batch_id=%s AND status='pending' ORDER BY priority, line_number LIMIT 25", $id), ARRAY_A);
             peracrm_campaigns_db_require(true);
+            try {
             foreach ($entries as $entry) {
                 if (!peracrm_subscribers_intake_allowed((bool) $batch['synthetic'])) { throw new RuntimeException('Intake gate was closed.'); }
                 if ((int) $entry['priority'] === 1) {
@@ -238,6 +239,10 @@ function peracrm_subscribers_apply_batch($id)
                     peracrm_campaigns_db_require($wpdb->update($table, ['attempts' => $attempts, 'status' => $attempts >= 3 ? 'failed' : 'pending', 'result' => 'storage_failed'], ['id' => $entry['id']]));
                     break; // A failing row never silently advances to opted-in rows.
                 }
+            }
+            } catch (Throwable $error) {
+                peracrm_subscribers_summarize_batch($id);
+                throw $error;
             }
             $failed = (int) $wpdb->get_var($wpdb->prepare("SELECT COUNT(*) FROM {$table} WHERE batch_id=%s AND priority=0 AND status='failed'", $id));
             return peracrm_subscribers_summarize_batch($id, $failed ? 'partial_failed' : '');

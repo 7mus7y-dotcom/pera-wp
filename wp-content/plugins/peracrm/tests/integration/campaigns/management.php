@@ -58,6 +58,12 @@ management_expect($events === management_count('peracrm_subscription_events'), '
 // Confirmation and readiness are independent gates.
 $not_confirmed = management_preview([management_row('phase2-unconfirmed@example.test')], true, false);
 management_expect(management_throws(static function () use ($not_confirmed) { peracrm_subscribers_apply_batch($not_confirmed); }) && !management_identity('phase2-unconfirmed@example.test'), 'suppression-source confirmation required');
+$blocked_partial = management_preview([management_row('phase2-partial-unknown@example.test','unknown',''),management_row('phase2-partial-optin@example.test')], true, false);
+management_expect(management_throws(static function () use ($blocked_partial) { peracrm_subscribers_apply_batch($blocked_partial); }), 'later confirmation failure reports partial application');
+management_expect(management_identity('phase2-partial-unknown@example.test')['subscription_state'] === 'unknown' && !management_identity('phase2-partial-optin@example.test'), 'confirmation failure never grants permission');
+$blocked_summary = json_decode(peracrm_subscribers_batch($blocked_partial)['summary_json'],true);
+management_expect(count(array_filter($blocked_summary, static function ($row) { return $row['status'] === 'done' && (int) $row['total'] === 1; })) === 1, 'partial application summary persists even when a later eligibility guard throws');
+peracrm_subscribers_cancel_batch($blocked_partial);
 $real = management_preview([management_row('phase2-real@example.test')], false);
 management_expect(management_throws(static function () use ($real) { peracrm_subscribers_apply_batch($real); }), 'real-data gate disabled by default, previews remain available');
 management_expect(management_throws(static function () { peracrm_subscribers_readiness(['enabled' => true]); }), 'manager cannot open readiness gate');

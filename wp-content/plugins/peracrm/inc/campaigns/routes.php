@@ -99,6 +99,7 @@ function peracrm_subscribers_staff_post()
             $destination = add_query_arg('batch', $id, peracrm_subscribers_url('import/'));
         } elseif ($operation === 'apply' || $operation === 'cancel') {
             $id = (string) ($_POST['batch'] ?? '');
+            $destination = add_query_arg('batch', $id, peracrm_subscribers_url('import/'));
             if ($operation === 'apply') { peracrm_subscribers_apply_batch($id); } else { peracrm_subscribers_cancel_batch($id); }
             $destination = add_query_arg('batch', $id, peracrm_subscribers_url('import/'));
         } elseif ($operation === 'readiness') {
