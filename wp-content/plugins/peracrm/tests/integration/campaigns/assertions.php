@@ -94,6 +94,20 @@ peracrm_with_target_blog(static function () use ($wpdb) {
 });
 do_action('init');
 fixture_expect(peracrm_campaigns_schema_ready(), 'repeated init stays ready');
+foreach (['source', 'source_ref', 'evidence_ref', 'policy_version'] as $field) {
+    $address = 'zero-' . $field . '@example.test';
+    $evidence = ['source' => 'fixture', 'source_ref' => 'fixture-1', 'evidence_ref' => 'consent-1',
+        'policy_version' => 'v1', 'occurred_at' => '2026-01-01 00:00:00'];
+    $evidence[$field] = '0';
+    fixture_expect(!is_wp_error(peracrm_campaigns_save_subscriber($address)), 'synthetic zero-evidence identity created');
+    fixture_expect(peracrm_campaigns_record_consent($address, 'subscribed', $evidence) === true
+        && peracrm_campaigns_is_eligible($address), 'real DB string zero accepted and eligible for ' . $field);
+    foreach (['missing', 'null', 'empty'] as $case) {
+        $invalid = $evidence;
+        if ($case === 'missing') { unset($invalid[$field]); } else { $invalid[$field] = $case === 'null' ? null : ''; }
+        fixture_expect(is_wp_error(peracrm_campaigns_record_consent($address, 'subscribed', $invalid)), 'real service rejects ' . $case . ' ' . $field);
+    }
+}
 // Fail a real assertion without a fake wpdb, then exercise recovery from init.
 peracrm_with_target_blog(static function () use ($wpdb) {
     $wpdb->query('ALTER TABLE ' . peracrm_table('peracrm_subscribers') . ' DROP INDEX normalized_email');

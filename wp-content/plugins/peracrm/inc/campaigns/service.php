@@ -58,6 +58,28 @@ function peracrm_campaigns_staff_mutate($address, callable $callback)
     }
 }
 
+/** Shared write/read rules: the string "0" is populated evidence, never missing. */
+function peracrm_campaigns_evidence_reference_limits()
+{
+    return ['source' => 64, 'source_ref' => 191, 'evidence_ref' => 191, 'policy_version' => 64];
+}
+
+function peracrm_campaigns_valid_evidence_reference($value, $limit, $required = false)
+{
+    return is_string($value) && strlen($value) <= $limit
+        && sanitize_text_field($value) === $value && (!$required || trim($value) !== '');
+}
+
+function peracrm_campaigns_has_required_evidence($row)
+{
+    foreach (peracrm_campaigns_evidence_reference_limits() as $key => $limit) {
+        if (!peracrm_campaigns_valid_evidence_reference($row[$key] ?? null, $limit, true)) {
+            return false;
+        }
+    }
+    return true;
+}
+
 /** @internal Bounded references only; no enquiry payloads, IPs or arbitrary audit actor. */
 function peracrm_campaigns_evidence($input, $required = false)
 {
@@ -65,15 +87,12 @@ function peracrm_campaigns_evidence($input, $required = false)
         throw new InvalidArgumentException('Invalid evidence fields.');
     }
     $output = [];
-    foreach (['source' => 64, 'source_ref' => 191, 'evidence_ref' => 191, 'policy_version' => 64] as $key => $limit) {
+    foreach (peracrm_campaigns_evidence_reference_limits() as $key => $limit) {
         $value = $input[$key] ?? '';
-        if (!is_string($value) || strlen($value) > $limit || sanitize_text_field($value) !== $value) {
+        if (!peracrm_campaigns_valid_evidence_reference($value, $limit, $required || $key === 'source')) {
             throw new InvalidArgumentException('Invalid evidence reference.');
         }
         $output[$key] = trim($value);
-        if (($required || $key === 'source') && $output[$key] === '') {
-            throw new InvalidArgumentException('Documented marketing evidence is required.');
-        }
     }
     $time = $input['occurred_at'] ?? gmdate('Y-m-d H:i:s');
     $date = is_string($time) ? DateTimeImmutable::createFromFormat('!Y-m-d H:i:s', $time, new DateTimeZone('UTC')) : false;
@@ -263,8 +282,8 @@ function peracrm_campaigns_is_eligible($address, $filters = [])
             $row = peracrm_campaigns_repository_identity($email);
             if (!$row || empty($row['suppression_mailbox']) || peracrm_campaigns_has_suppression($row)
                 || $row['subscription_state'] !== 'subscribed' || empty($row['confirmed_at'])
-                || empty($row['recorded_at']) || empty($row['source']) || empty($row['source_ref'])
-                || empty($row['evidence_ref']) || empty($row['policy_version']) || !empty($row['withdrawn_at'])) {
+                || empty($row['recorded_at']) || !peracrm_campaigns_has_required_evidence($row)
+                || !empty($row['withdrawn_at'])) {
                 return false;
             }
             if (!empty($row['client_id'])) {

@@ -11,6 +11,8 @@ docker compose -f wp-content/plugins/peracrm/tests/integration/campaigns/compose
 sh wp-content/plugins/peracrm/tests/integration/campaigns/run.sh
 ```
 
+To run one topology, pass `single` or `multi` to the same runner. The path-scoped `.github/workflows/peracrm-campaign-foundations.yml` invokes these modes on GitHub-hosted Ubuntu 24.04 runners for pull requests and manual runs. It grants only repository read permission, uses no secrets or production environment, and retains synthetic integration logs for 14 days. A workflow being configured is not evidence of a successful run; record its actual result below and in the living plan.
+
 The runner creates a unique Compose project, runs both fixtures, exits nonzero on any failed assertion/worker, and removes only its own containers/volumes on exit. It publishes no host ports, mounts the plugin read-only, uses an internal Docker network and synthetic fixture-only passwords. The fixture-only MU plugin blocks `wp_mail` and outgoing WordPress HTTP; `DISABLE_WP_CRON` prevents background execution. The fixture guard constant is required before any test can write/drop data. These tests deliberately drop campaign tables **only in disposable fixtures**; PeraCRM has no down migration.
 
 Coverage:

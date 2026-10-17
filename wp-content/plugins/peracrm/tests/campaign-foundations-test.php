@@ -238,6 +238,25 @@ $wpdb->fail_insert = '';
 campaign_expect(!isset($wpdb->tables['wp_1_peracrm_subscribers']), 'all mailbox storage is target-blog scoped');
 $events = $wpdb->tables['wp_2_peracrm_subscription_events'];
 campaign_expect(count(array_filter($events, static function ($row) { return $row['actor_user_id'] === 2; })) > 0, 'audit records real manager actor');
+foreach (['source', 'source_ref', 'evidence_ref', 'policy_version'] as $field) {
+    $address = 'zero-' . $field . '@example.test';
+    $zero_evidence = $evidence;
+    $zero_evidence[$field] = '0';
+    $zero_id = peracrm_campaigns_save_subscriber($address);
+    campaign_expect(peracrm_campaigns_record_consent($address, 'subscribed', $zero_evidence) === true
+        && peracrm_campaigns_is_eligible($address), 'accepted string zero remains eligible for ' . $field);
+    foreach (['missing', 'null', 'empty', 'whitespace', 'integer', 'boolean'] as $case) {
+        $invalid = $zero_evidence;
+        $bad_value = ['null' => null, 'empty' => '', 'whitespace' => ' ', 'integer' => 0, 'boolean' => false][$case] ?? null;
+        if ($case === 'missing') { unset($invalid[$field]); } else { $invalid[$field] = $bad_value; }
+        campaign_expect(is_wp_error(peracrm_campaigns_record_consent($address, 'subscribed', $invalid)), 'consent rejects ' . $case . ' ' . $field);
+        $stored = &$wpdb->tables['wp_2_peracrm_subscribers'][$zero_id];
+        if ($case === 'missing') { unset($stored[$field]); } else { $stored[$field] = $bad_value; }
+        campaign_expect(!peracrm_campaigns_is_eligible($address), 'eligibility rejects stored ' . $case . ' ' . $field);
+        $stored[$field] = '0';
+        unset($stored);
+    }
+}
 campaign_expect(count($GLOBALS['campaign_mail']) === $mail_before_foundations, 'foundation operations never send mail');
 $provider = new PeraCRM_Email_Provider();
 $operational = $provider->send(['source_label' => 'Synthetic enquiry', 'event_key' => 'fixture'], 'first.last+news@example.test');

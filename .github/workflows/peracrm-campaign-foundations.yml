@@ -1,0 +1,50 @@
+name: PeraCRM campaign foundations
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - 'wp-content/plugins/peracrm/**'
+      - '.github/workflows/peracrm-campaign-foundations.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: peracrm-campaign-foundations-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  integration:
+    name: WordPress/MySQL (${{ matrix.topology }})
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    strategy:
+      fail-fast: false
+      matrix:
+        topology: [single, multi]
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: Validate disposable configuration
+        run: |
+          sh -n wp-content/plugins/peracrm/tests/integration/campaigns/run.sh
+          sh -n wp-content/plugins/peracrm/tests/integration/campaigns/run-inside.sh
+          docker compose -f wp-content/plugins/peracrm/tests/integration/campaigns/compose.yaml config --quiet
+      - name: Run synthetic WordPress/MySQL fixtures
+        env:
+          FIXTURE_TOPOLOGY: ${{ matrix.topology }}
+        run: |
+          set -euo pipefail
+          mkdir -p campaign-evidence
+          sh wp-content/plugins/peracrm/tests/integration/campaigns/run.sh "$FIXTURE_TOPOLOGY" 2>&1 | tee "campaign-evidence/$FIXTURE_TOPOLOGY.log"
+      - name: Retain integration evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: peracrm-campaign-${{ matrix.topology }}-${{ github.run_id }}
+          path: campaign-evidence/*.log
+          if-no-files-found: warn
+          retention-days: 14

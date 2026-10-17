@@ -5,7 +5,12 @@ cd "$(dirname "$0")"
 fixture_project="peracrm-campaigns-$(date +%s)-$$"
 cleanup() { docker compose -p "$fixture_project" down --volumes --remove-orphans; }
 trap cleanup EXIT HUP INT TERM
-for fixture_mode in single multi; do
+case "${1:-both}" in
+    both) fixture_modes='single multi' ;;
+    single|multi) fixture_modes="$1" ;;
+    *) echo 'Usage: sh run.sh [both|single|multi]' >&2; exit 2 ;;
+esac
+for fixture_mode in $fixture_modes; do
     docker compose -p "$fixture_project" up -d --wait db wordpress
     docker compose -p "$fixture_project" run --rm cli "$fixture_mode"
     cleanup
