@@ -19,7 +19,7 @@ peracrm_frontend_render_shell_header();
 ?>
 <main id="primary" class="site-main crm-page crm-page--subscribers">
 <?php peracrm_frontend_render_partial('crm-header', ['title' => $title, 'active_view' => 'subscribers']); ?>
-<div class="container peracrm-subscribers">
+<section class="content-panel content-panel--overlap-hero"><div class="content-panel-box border-dm crm-layout"><div class="crm-layout__main peracrm-subscribers">
 <nav class="peracrm-subscriber-links" aria-label="Subscriber tools"><a href="<?php echo esc_url(peracrm_subscribers_url()); ?>">Subscribers</a><a href="<?php echo esc_url(peracrm_subscribers_url('import/')); ?>">CSV preview and import</a><a href="<?php echo esc_url(peracrm_subscribers_url('suppression/')); ?>">Suppression intake</a></nav>
 <?php if (isset($_GET['subscriber_notice'])) : ?><p role="status" class="crm-notice"><?php echo esc_html($_GET['subscriber_notice'] === 'saved' ? 'Request saved. Review the result below.' : 'Request was not accepted. Check permissions, readiness, mapping and evidence.'); ?></p><?php endif; ?>
 <?php if (!$can_write) : ?><p class="crm-notice">Read only while impersonating. Return to your own identity to make changes.</p><?php endif; ?>
@@ -86,5 +86,5 @@ $page = max(1, (int) ($_GET['subscriber_page'] ?? 1)); $result = peracrm_subscri
 <?php if (!$result['rows']) : ?><tr><td colspan="6">No subscribers match these filters.</td></tr><?php endif; ?></tbody></table></div>
 <nav aria-label="Subscriber pages"><?php if ($page > 1) : ?><a href="<?php echo esc_url(add_query_arg($filters + ['subscriber_page' => $page - 1], peracrm_subscribers_url())); ?>">Previous</a><?php endif; ?> <span>Page <?php echo (int) $page; ?></span> <?php if ($page * 25 < $result['total']) : ?><a href="<?php echo esc_url(add_query_arg($filters + ['subscriber_page' => $page + 1], peracrm_subscribers_url())); ?>">Next</a><?php endif; ?></nav>
 <?php endif; ?>
-</div></main>
+</div><?php peracrm_frontend_render_partial('crm-side-nav', ['active_view' => 'subscribers']); ?></div></section></main>
 <?php peracrm_frontend_render_shell_footer(); ?>

@@ -19,6 +19,12 @@ const fs = require('fs');
   await page.setViewportSize({width,height});
   await page.goto(staff);
   await page.getByRole('heading',{name:'Subscribers',exact:true}).waitFor();
+  if(name==='mobile') {
+   await page.locator('[data-crm-nav-toggle]').click();
+   await page.locator('[data-crm-nav-drawer]').waitFor({state:'visible'});
+   await page.locator('[data-crm-nav-close]').click();
+   await page.locator('[data-crm-nav-drawer]').waitFor({state:'hidden'});
+  }
   if (await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth+1)) {
    await page.screenshot({path:'/evidence/overflow-'+name+'.png',fullPage:true});
    console.log(await page.evaluate(()=>JSON.stringify([...document.querySelectorAll('body *')].filter(el=>el.getBoundingClientRect().right>innerWidth+1).slice(0,12).map(el=>({tag:el.tagName,cls:el.className,right:el.getBoundingClientRect().right})))));
