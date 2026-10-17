@@ -8271,3 +8271,4 @@ body.crm-route #site-header.peracrm-shell-header .peracrm-header-search__status 
 .peracrm-topic-choices { border: 0; padding: 0; margin: 0; display: grid; gap: .8rem; min-width: 0; }
 .peracrm-topic-choices legend { font-weight: 600; margin-bottom: .8rem; }
 .peracrm-topic-choices label { display: flex; align-items: center; gap: .6rem; }
+.crm-page--subscribers [data-crm-nav-drawer][hidden], .crm-page--subscribers [data-crm-nav-overlay][hidden] { display: none !important; }
