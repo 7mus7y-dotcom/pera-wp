@@ -1,0 +1,188 @@
+<?php
+/** Standalone behavior harness: synthetic identities and stub DB/WP only. */
+define('ABSPATH', __DIR__ . '/fixtures/campaign-wp/');
+define('PERACRM_TARGET_BLOG_ID', 2);
+define('PERACRM_SCHEMA_VERSION', 21);
+define('ARRAY_A', 'ARRAY_A');
+require __DIR__ . '/fixtures/campaign-memory-db.php';
+$GLOBALS['wpdb'] = new Campaign_Memory_DB();
+$GLOBALS['campaign_blog'] = 1;
+$GLOBALS['campaign_stack'] = [];
+$GLOBALS['campaign_actor'] = 1;
+$GLOBALS['campaign_impersonating'] = false;
+$GLOBALS['campaign_roles'] = [];
+$GLOBALS['campaign_options'] = [];
+$GLOBALS['campaign_matches'] = [];
+$GLOBALS['campaign_legacy'] = [];
+$GLOBALS['campaign_client_status'] = 'publish';
+$GLOBALS['campaign_disposition'] = 'none';
+$GLOBALS['campaign_mail'] = [];
+function sanitize_email($email) { return filter_var($email, FILTER_SANITIZE_EMAIL); }
+function esc_url_raw($url) { return $url; }
+function wp_mail(...$args) { $GLOBALS['campaign_mail'][] = $args; return true; }
+class WP_Error { public $code; public function __construct($code, $message) { $this->code = $code; } }
+class Campaign_Test_Role {
+    public $caps = [];
+    public function add_cap($cap) { $this->caps[$cap] = true; }
+    public function remove_cap($cap) { unset($this->caps[$cap]); }
+}
+function add_action() {}
+function is_multisite() { return true; }
+function get_current_blog_id() { return $GLOBALS['campaign_blog']; }
+function switch_to_blog($id) { $GLOBALS['campaign_stack'][] = get_current_blog_id(); $GLOBALS['campaign_blog'] = $id; $GLOBALS['wpdb']->prefix = 'wp_' . $id . '_'; }
+function restore_current_blog() { $GLOBALS['campaign_blog'] = array_pop($GLOBALS['campaign_stack']); $GLOBALS['wpdb']->prefix = 'wp_' . get_current_blog_id() . '_'; }
+function peracrm_get_actor_user_id() { return $GLOBALS['campaign_actor']; }
+function peracrm_is_impersonating_crm_user() { return $GLOBALS['campaign_impersonating']; }
+function user_can($id, $cap) { return !empty($GLOBALS['campaign_roles'][get_current_blog_id()][[1 => 'administrator', 2 => 'manager', 3 => 'employee'][$id] ?? 'anonymous']->caps[$cap]); }
+function get_role($slug) { return $GLOBALS['campaign_roles'][get_current_blog_id()][$slug] ?? null; }
+function add_role($slug, $label, $caps) { $GLOBALS['campaign_roles'][get_current_blog_id()][$slug] = new Campaign_Test_Role(); }
+function get_option($key, $default = false) { return $GLOBALS['campaign_options'][get_current_blog_id()][$key] ?? $default; }
+function update_option($key, $value, $autoload = true) { $GLOBALS['campaign_options'][get_current_blog_id()][$key] = $value; }
+function wp_json_encode($v) { return json_encode($v); }
+function is_email($v) { return filter_var($v, FILTER_VALIDATE_EMAIL); }
+function is_wp_error($v) { return $v instanceof WP_Error; }
+function sanitize_text_field($v) { return trim(strip_tags($v)); }
+function peracrm_user_can_access_client($actor, $id) { return in_array($actor, [1, 2], true) && $id > 0; }
+function peracrm_find_all_client_ids_by_email($email) { return $GLOBALS['campaign_matches']; }
+function get_posts($args) { return $GLOBALS['campaign_legacy']; }
+function get_post_status($id) { return $GLOBALS['campaign_client_status']; }
+function get_post_type($id) { return $GLOBALS['campaign_client_status'] === 'deleted' ? false : 'crm_client'; }
+function dbDelta($sql) {
+    $db = $GLOBALS['wpdb'];
+    if ($db->fail_schema) { throw new RuntimeException('synthetic DDL failure'); }
+    preg_match('/CREATE TABLE (\w+)/', $sql, $m);
+    $db->ddl[$m[1]] = $sql;
+}
+$root = dirname(__DIR__);
+require $root . '/inc/helpers.php';
+require $root . '/inc/roles.php';
+require $root . '/inc/schema.php';
+require $root . '/inc/campaigns/schema.php';
+require $root . '/inc/campaigns/repository.php';
+require $root . '/inc/campaigns/service.php';
+function campaign_expect($condition, $message) {
+    if (!$condition) { fwrite(STDERR, "FAIL: {$message}\n"); exit(1); }
+    if (get_current_blog_id() !== 1 || $GLOBALS['campaign_stack']) { throw new RuntimeException('Blog context leaked: ' . $message); }
+    echo "PASS: {$message}\n";
+}
+function campaign_identity($email) { return peracrm_with_target_blog(static function () use ($email) { return peracrm_campaigns_repository_identity($email); }); }
+function campaign_count($suffix) { return count($GLOBALS['wpdb']->tables['wp_2_' . $suffix] ?? []); }
+$wpdb = $GLOBALS['wpdb'];
+$GLOBALS['campaign_roles'][2]['administrator'] = new Campaign_Test_Role();
+// Skip unrelated historical v4 migration work in the fresh-install stub.
+$GLOBALS['campaign_options'][2]['peracrm_migration_v4_done'] = 1;
+peracrm_maybe_upgrade_schema();
+campaign_expect(get_option('peracrm_schema_version') === false && $GLOBALS['campaign_options'][2]['peracrm_schema_version'] === 21, 'fresh schema marker and tables are target-scoped');
+$ddl = $wpdb->ddl;
+peracrm_upgrade_schema_to(21, 21);
+campaign_expect($ddl === $wpdb->ddl, 'repeated DDL definitions are stable (stub only)');
+$GLOBALS['campaign_options'][2]['peracrm_schema_version'] = 20;
+peracrm_maybe_upgrade_schema();
+campaign_expect($GLOBALS['campaign_options'][2]['peracrm_schema_version'] === 21, 'previous-schema upgrade wires v21');
+foreach (['fail_schema', 'missing_unique'] as $failure) {
+    $GLOBALS['campaign_options'][2]['peracrm_schema_version'] = 20;
+    $wpdb->$failure = true;
+    $thrown = false;
+    try { peracrm_maybe_upgrade_schema(); } catch (RuntimeException $error) { $thrown = true; }
+    $wpdb->$failure = false;
+    campaign_expect($thrown && $GLOBALS['campaign_options'][2]['peracrm_schema_version'] === 20, 'failed ' . $failure . ' keeps prior version and restores blog');
+}
+peracrm_maybe_upgrade_schema();
+foreach (['peracrm_manage_campaigns', 'peracrm_manage_subscribers', 'peracrm_view_campaign_reports'] as $cap) {
+    foreach ([1 => true, 2 => true, 3 => false, 0 => false] as $actor => $expected) {
+        $GLOBALS['campaign_actor'] = $actor;
+        campaign_expect(peracrm_campaigns_staff_can($cap) === $expected, 'dedicated capability ' . $cap . ' actor ' . $actor);
+    }
+}
+$evidence = ['source' => 'synthetic', 'source_ref' => 'fixture-1', 'evidence_ref' => 'consent-1', 'policy_version' => 'v1', 'occurred_at' => '2026-01-01 00:00:00'];
+foreach ([0, 3] as $actor) {
+    $GLOBALS['campaign_actor'] = $actor;
+    foreach ([peracrm_campaigns_save_subscriber('denied@example.test'), peracrm_campaigns_record_consent('denied@example.test', 'subscribed', $evidence),
+        peracrm_campaigns_add_suppression('denied@example.test', 'complaint', $evidence), peracrm_campaigns_withdraw('denied@example.test', $evidence),
+        peracrm_campaigns_delete_subscriber('denied@example.test')] as $result) {
+        campaign_expect(is_wp_error($result), 'anonymous/employee mutation denied');
+    }
+}
+$GLOBALS['campaign_actor'] = 1;
+$GLOBALS['campaign_impersonating'] = true;
+foreach ([peracrm_campaigns_save_subscriber('denied@example.test'), peracrm_campaigns_record_consent('denied@example.test', 'subscribed', $evidence),
+    peracrm_campaigns_add_suppression('denied@example.test', 'complaint', $evidence), peracrm_campaigns_withdraw('denied@example.test', $evidence),
+    peracrm_campaigns_delete_subscriber('denied@example.test')] as $result) {
+    campaign_expect(is_wp_error($result), 'impersonated mutation denied');
+}
+$GLOBALS['campaign_impersonating'] = false;
+campaign_expect(campaign_count('peracrm_subscribers') === 0 && campaign_count('peracrm_email_suppressions') === 0, 'denied operations write nothing');
+$id = peracrm_campaigns_save_subscriber('  First.Last+News@Example.test  ');
+campaign_expect(is_int($id) && $id > 0, 'newsletter-only independent identity created');
+$id2 = peracrm_campaigns_save_subscriber('FIRST.LAST+NEWS@example.test');
+campaign_expect($id === $id2 && campaign_count('peracrm_subscribers') === 1, 'case and whitespace duplicates resolve to same mailbox');
+campaign_expect(campaign_identity('first.last+news@example.test')['client_id'] === null, 'no automatic client/user link or creation');
+peracrm_campaigns_save_subscriber('firstlast@example.test');
+campaign_expect(campaign_count('peracrm_subscribers') === 2, 'plus tags and dots remain distinct');
+campaign_expect(is_wp_error(peracrm_campaigns_save_subscriber('broken @example.test')), 'invalid address rejected before writing');
+campaign_expect(!peracrm_campaigns_is_eligible('first.last+news@example.test'), 'unknown consent denied');
+peracrm_campaigns_record_consent('first.last+news@example.test', 'pending', $evidence);
+campaign_expect(!peracrm_campaigns_is_eligible('first.last+news@example.test'), 'pending consent denied');
+campaign_expect(is_wp_error(peracrm_campaigns_record_consent('first.last+news@example.test', 'subscribed', ['source' => 'enquiry'])), 'missing marketing evidence cannot subscribe');
+campaign_expect(peracrm_campaigns_record_consent('first.last+news@example.test', 'subscribed', $evidence) === true, 'documented explicit consent accepted');
+$GLOBALS['campaign_actor'] = 0;
+campaign_expect(peracrm_campaigns_is_eligible('first.last+news@example.test'), 'internal eligibility read needs no staff user');
+$GLOBALS['campaign_actor'] = 2;
+campaign_expect(!peracrm_campaigns_is_eligible('first.last+news@example.test', ['language' => 'en']) && !peracrm_campaigns_is_eligible('first.last+news@example.test', ['topic' => 'property']), 'missing positive audience data denied');
+peracrm_campaigns_save_subscriber('first.last+news@example.test', ['preferred_language' => 'EN', 'preferences' => ['property']]);
+campaign_expect(peracrm_campaigns_is_eligible('first.last+news@example.test', ['language' => 'en', 'topic' => 'property']) && !peracrm_campaigns_is_eligible('first.last+news@example.test', ['budget' => '100']), 'explicit preferences match and unsupported filters fail closed');
+$GLOBALS['campaign_matches'] = [5, 6];
+campaign_expect(is_wp_error(peracrm_campaigns_save_subscriber('first.last+news@example.test', ['client_id' => 5])), 'ambiguous client match remains unresolved');
+$GLOBALS['campaign_matches'] = [5];
+$GLOBALS['campaign_legacy'] = [6];
+campaign_expect(is_wp_error(peracrm_campaigns_save_subscriber('first.last+news@example.test', ['client_id' => 5])), 'legacy alias ambiguity remains unresolved');
+$GLOBALS['campaign_legacy'] = [];
+peracrm_campaigns_save_subscriber('first.last+news@example.test', ['client_id' => 5]);
+$GLOBALS['campaign_disposition'] = 'duplicate';
+campaign_expect(!peracrm_campaigns_is_eligible('first.last+news@example.test'), 'duplicate linked sales record excluded');
+$GLOBALS['campaign_disposition'] = 'none';
+campaign_expect(peracrm_campaigns_is_eligible('first.last+news@example.test'), 'valid linked client evaluated');
+foreach (['hard_bounce', 'complaint', 'administrative'] as $reason) {
+    campaign_expect(peracrm_campaigns_add_suppression('FIRST.LAST+NEWS@example.test', $reason, $evidence) === true, $reason . ' recorded distinctly');
+    campaign_expect(campaign_identity('first.last+news@example.test')['subscription_state'] === 'subscribed' && !peracrm_campaigns_is_eligible('first.last+news@example.test'), 'suppression overrides still-subscribed permission');
+}
+peracrm_campaigns_withdraw('first.last+news@example.test', $evidence);
+$row = campaign_identity('first.last+news@example.test');
+campaign_expect($row['unsubscribe'] && $row['hard_bounce'] && $row['complaint'] && $row['administrative'], 'all active reasons preserved');
+campaign_expect(!peracrm_campaigns_is_eligible('first.last+news@example.test'), 'suppression wins over permission');
+foreach (['subscription_state' => 'subscribed', 'unsubscribe' => 0, 'email' => 'new@example.test'] as $field => $value) {
+    campaign_expect(is_wp_error(peracrm_campaigns_save_subscriber('first.last+news@example.test', [$field => $value])), 'ordinary update cannot bypass identity or suppression via ' . $field);
+}
+campaign_expect(is_wp_error(peracrm_campaigns_record_consent('first.last+news@example.test', 'subscribed', $evidence)), 'explicit consent cannot bypass suppression');
+$history = campaign_count('peracrm_subscription_events');
+peracrm_campaigns_save_subscriber('first.last+news@example.test', ['client_id' => null]);
+$GLOBALS['campaign_client_status'] = 'deleted';
+campaign_expect(!peracrm_campaigns_is_eligible('first.last+news@example.test') && campaign_count('peracrm_subscription_events') === $history + 1, 'unlink/deleted client leaves history and suppression intact');
+peracrm_campaigns_delete_subscriber('first.last+news@example.test');
+$new_id = peracrm_campaigns_save_subscriber('first.last+news@example.test');
+campaign_expect($new_id !== $id && !peracrm_campaigns_is_eligible('first.last+news@example.test') && campaign_identity('first.last+news@example.test')['complaint'], 'subscriber deletion/recreation preserves suppression and starts unknown');
+peracrm_campaigns_save_subscriber('new-address@example.test');
+campaign_expect(!peracrm_campaigns_is_eligible('new-address@example.test'), 'new address requires independent permission');
+peracrm_campaigns_withdraw('absent@example.test', $evidence);
+peracrm_campaigns_save_subscriber('absent@example.test');
+campaign_expect(campaign_identity('absent@example.test')['unsubscribe'] === 1, 'withdrawal before identity creates durable tombstone');
+peracrm_campaigns_save_subscriber('suppression-failure@example.test');
+$wpdb->fail_insert = 'peracrm_email_suppression_events';
+campaign_expect(is_wp_error(peracrm_campaigns_add_suppression('suppression-failure@example.test', 'complaint', $evidence))
+    && !campaign_identity('suppression-failure@example.test')['complaint'], 'suppression history failure rolls back active reason');
+$wpdb->fail_insert = '';
+$count = campaign_count('peracrm_subscribers');
+$wpdb->fail_insert = 'peracrm_subscription_events';
+campaign_expect(is_wp_error(peracrm_campaigns_save_subscriber('failure@example.test')) && campaign_count('peracrm_subscribers') === $count, 'audit failure rolls back current state and restores context');
+$wpdb->fail_insert = '';
+campaign_expect(!isset($wpdb->tables['wp_1_peracrm_subscribers']), 'all mailbox storage is target-blog scoped');
+$events = $wpdb->tables['wp_2_peracrm_subscription_events'];
+campaign_expect(count(array_filter($events, static function ($row) { return $row['actor_user_id'] === 2; })) > 0, 'audit records real manager actor');
+campaign_expect($GLOBALS['campaign_mail'] === [], 'foundation operations never send mail');
+require $root . '/inc/notifications/providers/class-peracrm-email-provider.php';
+$provider = new PeraCRM_Email_Provider();
+$operational = $provider->send(['source_label' => 'Synthetic enquiry', 'event_key' => 'fixture'], 'first.last+news@example.test');
+campaign_expect($operational['ok'] && count($GLOBALS['campaign_mail']) === 1, 'operational enquiry provider retains behavior independently of newsletter suppression (fake wp_mail)');
+$invalid = $provider->send([], 'invalid');
+campaign_expect(!$invalid['ok'] && count($GLOBALS['campaign_mail']) === 1, 'operational provider still rejects invalid recipient');
+echo "Campaign foundations behavior checks passed (stub DB/WP; real integration outstanding).\n";

@@ -25,6 +25,11 @@ function peracrm_ensure_roles_and_caps()
         ];
 
         $caps_reports = ['view_crm_reports'];
+        $caps_campaigns = [
+            'peracrm_manage_campaigns',
+            'peracrm_manage_subscribers',
+            'peracrm_view_campaign_reports',
+        ];
 
         $caps_management = [
             'peracrm_manage_all_clients',
@@ -57,14 +62,14 @@ function peracrm_ensure_roles_and_caps()
 
         $admin_role = get_role('administrator');
         if ($admin_role) {
-            foreach (array_merge($caps_common, $caps_reports, $caps_management, $caps_cpt_admin) as $cap) {
+            foreach (array_merge($caps_common, $caps_reports, $caps_campaigns, $caps_management, $caps_cpt_admin) as $cap) {
                 $admin_role->add_cap($cap);
             }
         }
 
         $manager_role = get_role('manager');
         if ($manager_role) {
-            foreach (array_merge($caps_common, $caps_reports, $caps_management, $caps_cpt_employee) as $cap) {
+            foreach (array_merge($caps_common, $caps_reports, $caps_campaigns, $caps_management, $caps_cpt_employee) as $cap) {
                 $manager_role->add_cap($cap);
             }
         }
@@ -75,8 +80,17 @@ function peracrm_ensure_roles_and_caps()
                 $employee_role->add_cap($cap);
             }
             $employee_role->remove_cap('view_crm_reports');
+            foreach ($caps_campaigns as $cap) {
+                $employee_role->remove_cap($cap);
+            }
         }
     });
+}
+
+/** Version 21: campaign authority is independent of ordinary client editing. */
+function peracrm_upgrade_roles_and_caps_v21()
+{
+    peracrm_ensure_roles_and_caps();
 }
 
 /** Version 20: install the authorization-management capabilities. */
