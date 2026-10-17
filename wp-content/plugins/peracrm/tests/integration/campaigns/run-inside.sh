@@ -63,4 +63,14 @@ migration_successor_pid=$!
 wait "$migration_stale_pid"
 wait "$migration_successor_pid"
 wp eval-file /tests/migration-worker.php verify
+wp eval-file /tests/management.php
+rm -f /tmp/peracrm-phase2-held
+wp eval-file /tests/import-worker.php withdraw &
+phase2_withdraw_pid=$!
+wait_for_migration_marker /tmp/peracrm-phase2-held
+wp eval-file /tests/import-worker.php import &
+phase2_import_pid=$!
+wait "$phase2_withdraw_pid"
+wait "$phase2_import_pid"
+wp eval-file /tests/import-worker.php verify
 printf 'PASS disposable %s WordPress/MySQL fixtures\n' "$fixture_mode"

@@ -52,6 +52,7 @@ if (!function_exists('peracrm_on_deactivation')) {
     {
         if (function_exists('wp_clear_scheduled_hook')) {
             wp_clear_scheduled_hook('peracrm_push_digest');
+            peracrm_with_target_blog(static function () { wp_clear_scheduled_hook('peracrm_subscriber_cleanup'); });
         }
 
         flush_rewrite_rules(false);

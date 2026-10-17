@@ -9,7 +9,7 @@ function peracrm_campaigns_schema_definitions()
 {
     global $wpdb;
     $mailbox = 'VARCHAR(254) CHARACTER SET ascii COLLATE ascii_bin';
-    return [
+    return peracrm_campaigns_phase2_definitions() + [
         'peracrm_subscribers' => "id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
             email VARCHAR(254) NOT NULL,
             normalized_email {$mailbox} NOT NULL,
