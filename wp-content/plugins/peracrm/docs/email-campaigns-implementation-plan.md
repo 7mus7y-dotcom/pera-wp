@@ -342,10 +342,29 @@ The jobs include all existing foundation migration/contention tests; actual Phas
 
 Browser flows passed on a bundled default WordPress theme at 1440×1000 and 390×844: list/detail/import/suppression rendering, horizontal overflow assertion, actual CSV upload/explicit mapping/preview/apply, preview subscriber-count invariant, formula-safe downloaded CSV, employee GET/POST denial, missing nonce rejection, public GET/reload leaving consent subscribed, valid/repeated POST immediately unsubscribing, invalid tokens, anonymous staff read denial and no-store/no-referrer response headers. Screenshot artifacts expire 2026-10-31. A mobile content-box overflow was found and fixed in plugin `crm.css`; a single-site target-ID sentinel bug was found and fixed in plugin public routing. Earlier invalid synthetic/owner-switch fixture errors were corrected without relaxing guardrails. No failed service check was waived.
 
-A final fixture-only change emits small synthetic review images in CI logs for visual inspection through API-only tooling and expands reproduction documentation; tested runtime behavior is unchanged. Local browser execution remains unavailable because the Docker socket is blocked. Hosted Chromium desktop/mobile checks ran successfully. Safari/Firefox, manual assistive-technology/copy approval and production HTTPS/cache/log-redaction checks were not available and are explicitly outstanding.
+Subsequent checks also cover partial summaries after a later eligibility guard throws, the CRM sidebar/mobile drawer, plugin-resolved public assets and checkbox topic POSTs. Final runtime evidence below supersedes the earlier intermediate run. Small synthetic review images in CI logs enable visual inspection through API-only tooling. Local browser execution remains unavailable because the Docker socket is blocked. Hosted Chromium desktop/mobile checks ran successfully. Safari/Firefox, manual assistive-technology/copy approval and production HTTPS/cache/log-redaction checks were not available and are explicitly outstanding.
 
 **Phase 2 remains in progress for external acceptance:** historical legal-basis/evidence mapping, suppression inventory/completion, approved retention, translated/canonical topic copy, actual topology and production HTTPS/cache/log/scheduler verification remain required before real intake/future delivery. Technical acceptance is passed; this PR does not approve those operational prerequisites. Phases 3–7 remain not started.
 
 | Date | Status | Evidence / decision |
 | --- | --- | --- |
 | 2026-10-17 | Phase 2 technical checks passed | Run 39070911377: real single-site/multisite plus default-theme Chromium desktop/mobile and actual upload/public POST flows passed. Gate remains closed by default; external acceptance outstanding. |
+
+### Final runtime acceptance evidence
+
+All required technical checks passed on final runtime commit `1861cb58a4613b0cf8043097f21b2d9933e372f9` in [run 39072151825](https://github.com/7mus7y-dotcom/pera-wp/actions/runs/39072151825):
+
+| Topology | Actual result | Retained evidence (until 2026-10-31) |
+| --- | --- | --- |
+| Single-site | Job `117511809241`: success, including Chromium flows | [Logs and screenshots](https://github.com/7mus7y-dotcom/pera-wp/actions/runs/39072151825/artifacts/12115835403) |
+| Multisite | Job `117511809415`: success, including Chromium flows | [Logs and screenshots](https://github.com/7mus7y-dotcom/pera-wp/actions/runs/39072151825/artifacts/12115597512) |
+
+The final run additionally verifies durable summaries when a later confirmation guard rejects a partially applied batch; subscriber-page mobile drawer open/close; public stylesheet application and mobile overflow; and real checkbox topic POST preserving global permission before global/repeated unsubscribe. Visual review of the emitted desktop/mobile list and mobile detail/import/suppression/public screenshots confirmed plugin rendering and responsive forms/table scroll regions on the bundled default theme. It caught and corrected a missing public asset URL separator, inherited public font specificity and the shared drawer CSS overriding its hidden attribute; fixes remain plugin-owned and scoped. The public form uses provisional human-readable News / Property updates choices, with final taxonomy/translation approval still outstanding. No failed behavior check was waived.
+
+All 12 local standalone scripts, 381 PHP syntax checks, JavaScript/shell syntax, Compose configuration and whitespace checks pass. Both connection race orders pass against actual MySQL. Batches missing suppression confirmation must be cancelled and re-previewed with confirmation after source intake; the confirmation is immutable on an existing batch. Earlier committed unknown rows remain unknown and retry summaries remain accurate. Failure redirects retain the batch review location.
+
+Phase 2 technical implementation and validation are complete. The phase's overall status remains **in progress** for the explicitly outstanding external acceptance / production readiness decisions above; public collection and real-data application default off, and no delivery exists. Safari/Firefox, manual assistive-technology/copy approval, actual topology and production HTTPS/cache/referrer/log/scheduler verification are unavailable in these disposable fixtures. Historical evidence/legal basis, suppression-source completeness and retention approval are not inferred from technical tests. Phases 3–7 remain not started.
+
+| Date | Status | Evidence / decision |
+| --- | --- | --- |
+| 2026-10-17 | Final Phase 2 technical acceptance passed | Run 39072151825 passed single-site/multisite database and default-theme browser checks on final runtime 1861cb58; visual screenshots reviewed; external readiness gates retained. Non-draft PR #1448 targets main; no merge/deploy. |
