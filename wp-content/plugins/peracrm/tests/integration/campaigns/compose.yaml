@@ -1,0 +1,49 @@
+# Disposable fixtures only: no host ports, production paths or external network.
+services:
+  db:
+    image: mysql:8.0.43
+    environment:
+      MYSQL_DATABASE: campaign_fixture
+      MYSQL_USER: fixture
+      MYSQL_PASSWORD: fixture-only
+      MYSQL_ROOT_PASSWORD: fixture-root-only
+    healthcheck:
+      test: [CMD-SHELL, 'mysqladmin ping -h localhost -uroot -pfixture-root-only --silent']
+      interval: 2s
+      timeout: 5s
+      retries: 30
+    volumes:
+      - database:/var/lib/mysql
+  wordpress:
+    image: wordpress:6.8.3-php8.3-apache
+    depends_on:
+      db:
+        condition: service_healthy
+    environment: &wp_environment
+      WORDPRESS_DB_HOST: db
+      WORDPRESS_DB_NAME: campaign_fixture
+      WORDPRESS_DB_USER: fixture
+      WORDPRESS_DB_PASSWORD: fixture-only
+      WORDPRESS_CONFIG_EXTRA: |
+        define('PERACRM_DISPOSABLE_CAMPAIGN_FIXTURE', true);
+        define('DISABLE_WP_CRON', true);
+        define('WP_ENVIRONMENT_TYPE', 'local');
+    volumes: &wp_volumes
+      - core:/var/www/html
+      - ../../..:/var/www/html/wp-content/plugins/peracrm:ro
+      - ./fixture-guard.php:/var/www/html/wp-content/mu-plugins/campaign-fixture-guard.php:ro
+      - .:/tests:ro
+  cli:
+    image: wordpress:cli-2.12.0-php8.3
+    user: '33:33'
+    depends_on:
+      - wordpress
+    environment: *wp_environment
+    volumes: *wp_volumes
+    entrypoint: [/bin/sh, /tests/run-inside.sh]
+volumes:
+  core:
+  database:
+networks:
+  default:
+    internal: true

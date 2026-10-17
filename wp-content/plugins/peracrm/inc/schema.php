@@ -4,18 +4,80 @@ if (!defined('ABSPATH')) {
     exit;
 }
 
+/** Normal init must never let an additive campaign migration take down the site. */
 function peracrm_maybe_upgrade_schema()
 {
-    peracrm_with_target_blog(static function () {
-        $installed = (int) get_option('peracrm_schema_version', 0);
-        if ($installed >= PERACRM_SCHEMA_VERSION) {
-            return;
-        }
+    return peracrm_campaigns_run_schema_upgrade(false);
+}
 
-        peracrm_upgrade_schema_to(PERACRM_SCHEMA_VERSION, $installed);
-        update_option('peracrm_schema_version', PERACRM_SCHEMA_VERSION);
+/** @internal Retry is invoked only by the administrator-authorized service. */
+function peracrm_campaigns_run_schema_upgrade($retry)
+{
+    return peracrm_with_target_blog(static function () use ($retry) {
+        global $wpdb;
+        $previous_errors = $wpdb->suppress_errors(true);
+        $slot = null;
+        try {
+            $installed = (int) peracrm_campaigns_schema_option('peracrm_schema_version', 0);
+            $status = peracrm_campaigns_schema_option('peracrm_campaigns_schema_status', []);
+            if (!$retry && in_array($status['state'] ?? '', ['failed', 'checking'], true)) {
+                return false; // Persistent circuit breaker; administrator retry only.
+            }
+            if (!$retry && $installed >= PERACRM_SCHEMA_VERSION && peracrm_campaigns_schema_ready()) {
+                return true;
+            }
+            $slot = peracrm_campaigns_schema_acquire_slot();
+            if (!$slot) {
+                return $retry ? new WP_Error('campaign_schema_busy', 'Schema verification is already running.') : false;
+            }
+            // A different request may have completed between our first read
+            // and lock acquisition. Re-read from SQL, never a cached snapshot.
+            $installed = (int) peracrm_campaigns_schema_option('peracrm_schema_version', 0);
+            $status = peracrm_campaigns_schema_option('peracrm_campaigns_schema_status', []);
+            if (!$retry && in_array($status['state'] ?? '', ['failed', 'checking'], true)) {
+                return false;
+            }
+            if (!$retry && $installed >= PERACRM_SCHEMA_VERSION && peracrm_campaigns_schema_ready()) {
+                return true;
+            }
+            if ($retry && ($status['state'] ?? '') === 'checking'
+                && ($status['checked_at'] ?? '') > gmdate('Y-m-d H:i:s', time() - 900)) {
+                return new WP_Error('campaign_schema_busy', 'Schema verification is already running.');
+            }
+            $attempt = ['version' => 21, 'attempt_token' => $slot['token'], 'checked_at' => gmdate('Y-m-d H:i:s')];
+            if ($retry) {
+                $attempt['retry_actor_user_id'] = peracrm_get_actor_user_id();
+            }
+            if (!peracrm_campaigns_schema_publish($slot, 'peracrm_campaigns_schema_status', ['state' => 'checking'] + $attempt)) {
+                return false;
+            }
+            try {
+                if ($installed < PERACRM_SCHEMA_VERSION) {
+                    peracrm_upgrade_schema_to(PERACRM_SCHEMA_VERSION, $installed);
+                } else {
+                    peracrm_campaigns_assert_schema();
+                }
+                if (!peracrm_campaigns_schema_publish($slot, 'peracrm_schema_version', max($installed, PERACRM_SCHEMA_VERSION))) {
+                    return false;
+                }
+                return peracrm_campaigns_schema_publish($slot, 'peracrm_campaigns_schema_status', ['state' => 'ready'] + $attempt);
+            } catch (Throwable $error) {
+                // A disconnected/stale attempt must not replace a newer result.
+                peracrm_campaigns_schema_publish($slot, 'peracrm_campaigns_schema_status',
+                    ['state' => 'failed', 'code' => 'schema_verification_failed'] + $attempt);
+                return false;
+            }
+        } catch (Throwable $error) {
+            return false; // No slot: no status/marker writes and no public fatal.
+        } finally {
+            if ($slot) {
+                peracrm_campaigns_schema_release_slot($slot);
+            }
+            $wpdb->suppress_errors($previous_errors);
+        }
     });
 }
+add_action('init', 'peracrm_maybe_upgrade_schema', 5);
 
 function peracrm_upgrade_schema_to($target_version, $installed_version = 0)
 {
@@ -209,6 +271,11 @@ function peracrm_upgrade_schema_to($target_version, $installed_version = 0)
         if ($target_version >= 4 && ($installed_version < 4 || $v4_done !== 1)) {
             peracrm_migrate_stage_taxonomy_v4();
             update_option('peracrm_migration_v4_done', 1);
+        }
+
+        if ($target_version >= 21) {
+            peracrm_campaigns_install_schema();
+            peracrm_upgrade_roles_and_caps_v21();
         }
 
         if ($installed_version < 20 && $target_version >= 20 && function_exists('peracrm_upgrade_roles_and_caps_v20')) {

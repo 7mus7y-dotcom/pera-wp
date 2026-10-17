@@ -1,0 +1,100 @@
+<?php
+
+if (!defined('ABSPATH')) {
+    exit;
+}
+
+/** @internal Persistence primitives; no request routes call these directly. */
+function peracrm_campaigns_db_require($result)
+{
+    global $wpdb;
+    if ($result === false || $wpdb->last_error !== '') {
+        throw new RuntimeException('Campaign persistence failed.');
+    }
+    return $result;
+}
+
+/** @internal Caller must already be in target-blog context; serializes one mailbox. */
+function peracrm_campaigns_repository_mutate($email, callable $callback)
+{
+    global $wpdb;
+    $table = peracrm_table('peracrm_email_suppressions');
+    peracrm_campaigns_db_require($wpdb->query('START TRANSACTION'));
+    try {
+        $now = gmdate('Y-m-d H:i:s');
+        peracrm_campaigns_db_require($wpdb->query($wpdb->prepare(
+            "INSERT INTO {$table} (normalized_email, created_at, updated_at) VALUES (%s, %s, %s)
+             ON DUPLICATE KEY UPDATE normalized_email = VALUES(normalized_email)", $email, $now, $now
+        )));
+        $suppression = $wpdb->get_row($wpdb->prepare("SELECT * FROM {$table} WHERE normalized_email = %s FOR UPDATE", $email), ARRAY_A);
+        peracrm_campaigns_db_require($suppression ?: false);
+        $subscriber_table = peracrm_table('peracrm_subscribers');
+        $subscriber = $wpdb->get_row($wpdb->prepare("SELECT * FROM {$subscriber_table} WHERE normalized_email = %s FOR UPDATE", $email), ARRAY_A);
+        peracrm_campaigns_db_require(true);
+        $result = $callback($subscriber, $suppression);
+        peracrm_campaigns_db_require($wpdb->query('COMMIT'));
+        return $result;
+    } catch (Throwable $error) {
+        $wpdb->query('ROLLBACK');
+        throw $error;
+    }
+}
+
+/** @internal Append only: never update/delete audit rows, including on unlink/delete. */
+function peracrm_campaigns_repository_event($email, $subscriber, $type, $state, $evidence, $actor, $details = [])
+{
+    global $wpdb;
+    $now = gmdate('Y-m-d H:i:s');
+    peracrm_campaigns_db_require($wpdb->insert(peracrm_table('peracrm_subscription_events'), [
+        'subscriber_id' => $subscriber['id'] ?? null,
+        'normalized_email' => $email,
+        'event_type' => $type,
+        'previous_state' => $subscriber['subscription_state'] ?? '',
+        'subscription_state' => $state,
+        'source' => $evidence['source'] ?? 'staff',
+        'source_ref' => $evidence['source_ref'] ?? '',
+        'evidence_ref' => $evidence['evidence_ref'] ?? '',
+        'policy_version' => $evidence['policy_version'] ?? '',
+        'actor_user_id' => $actor,
+        'occurred_at' => $evidence['occurred_at'] ?? $now,
+        'recorded_at' => $now,
+        'details_json' => wp_json_encode($details),
+    ]));
+}
+
+/** @internal There is deliberately no suppression-clear operation in Phase 1. */
+function peracrm_campaigns_repository_suppress($email, $reason, $evidence, $actor)
+{
+    global $wpdb;
+    // $reason is selected from the service's fixed allowlist, never request SQL.
+    $table = peracrm_table('peracrm_email_suppressions');
+    $now = gmdate('Y-m-d H:i:s');
+    peracrm_campaigns_db_require($wpdb->query($wpdb->prepare(
+        "UPDATE {$table} SET {$reason} = 1, version = version + 1, updated_at = %s WHERE normalized_email = %s", $now, $email
+    )));
+    peracrm_campaigns_db_require($wpdb->insert(peracrm_table('peracrm_email_suppression_events'), [
+        'normalized_email' => $email,
+        'reason' => $reason,
+        'source' => $evidence['source'],
+        'source_ref' => $evidence['source_ref'],
+        'actor_user_id' => $actor,
+        'occurred_at' => $evidence['occurred_at'],
+        'recorded_at' => $now,
+    ]));
+}
+
+/** Internal eligibility read. One statement sees permission and suppression together. */
+function peracrm_campaigns_repository_identity($email)
+{
+    global $wpdb;
+    $subscribers = peracrm_table('peracrm_subscribers');
+    $suppressions = peracrm_table('peracrm_email_suppressions');
+    $row = $wpdb->get_row($wpdb->prepare(
+        "SELECT s.*, x.unsubscribe, x.hard_bounce, x.complaint, x.administrative,
+         x.normalized_email AS suppression_mailbox FROM {$subscribers} s
+         LEFT JOIN {$suppressions} x ON x.normalized_email = s.normalized_email
+         WHERE s.normalized_email = %s", $email
+    ), ARRAY_A);
+    peracrm_campaigns_db_require(true);
+    return $row;
+}
