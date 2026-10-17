@@ -175,7 +175,7 @@ get_header();
                 </p>
               </div>
               <div class="feature-card-footer">
-                <a href="#" class="btn btn--solid btn--black"><?php echo esc_html( pera_ml_ui( 'Read more >>', 'theme.template.page_about_new.read_more' ) ); ?></a>
+                <a href="#" class="btn btn--solid btn--black"><?php echo esc_html( pera_ml_ui( 'Read more >>', 'theme.template.page_about_new.read_more' ) ); ?><span class="screen-reader-text">: <?php echo esc_html( pera_ml_ui( 'IMPARTIAL', 'theme.template.page_about_new.impartial' ) ); ?></span></a>
               </div>
             </article>
     
@@ -192,7 +192,7 @@ get_header();
               </div>
               <div class="feature-card-footer">
                 <a href="https://www.peraproperty.com/rent-your-istanbul-real-estate/" class="btn btn--solid btn--black">
-                  <?php echo esc_html( pera_ml_ui( 'Read more >>', 'theme.template.page_about_new.read_more' ) ); ?>
+                  <?php echo esc_html( pera_ml_ui( 'Read more >>', 'theme.template.page_about_new.read_more' ) ); ?><span class="screen-reader-text">: <?php echo esc_html( pera_ml_ui( 'MANAGEMENT', 'theme.template.page_about_new.management' ) ); ?></span>
                 </a>
               </div>
             </article>
@@ -224,7 +224,7 @@ get_header();
               </div>
               <div class="feature-card-footer">
                 <a href="https://www.peraproperty.com/taxes-expenses-and-costs-when-buying_3098/" class="btn btn--solid btn--black">
-                  <?php echo esc_html( pera_ml_ui( 'Read more >>', 'theme.template.page_about_new.read_more' ) ); ?>
+                  <?php echo esc_html( pera_ml_ui( 'Read more >>', 'theme.template.page_about_new.read_more' ) ); ?><span class="screen-reader-text">: <?php echo esc_html( pera_ml_ui( 'TAILORED', 'theme.template.page_about_new.tailored' ) ); ?></span>
                 </a>
               </div>
             </article>

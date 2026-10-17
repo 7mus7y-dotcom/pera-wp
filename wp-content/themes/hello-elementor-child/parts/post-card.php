@@ -120,8 +120,8 @@ if ( function_exists( 'pera_get_public_updated_date' ) ) {
 
     <?php if ( $show_readmore ) : ?>
       <div class="post-card-readmore">
-        <a href="<?php echo esc_url( $post_permalink ); ?>" class="btn btn--solid btn--blue" aria-label="<?php echo esc_attr( $read_more_aria_label ); ?>">
-          <?php echo esc_html( pera_ml_ui( 'Read more', 'theme.parts.post-card.read_more' ) ); ?>
+        <a href="<?php echo esc_url( $post_permalink ); ?>" class="btn btn--solid btn--blue">
+          <?php echo esc_html( pera_ml_ui( 'Read more', 'theme.parts.post-card.read_more' ) ); ?><span class="screen-reader-text">: <?php echo esc_html( $post_title ); ?></span>
         </a>
       </div>
     <?php endif; ?>
