@@ -84,6 +84,11 @@ const fs = require('fs');
  if((await page.locator('tbody tr').filter({hasText:'phase2-real@example.test'}).locator('td').nth(1).innerText())!=='subscribed') throw Error('Scanner GET mutated consent');
  await publicPage.setViewportSize({width:390,height:844});
  await publicPage.screenshot({path:'/evidence/preferences-mobile.png',fullPage:true});
+ await publicPage.getByLabel('Property updates',{exact:true}).uncheck();
+ await publicPage.getByRole('button',{name:'Save topic choices',exact:true}).click();
+ await publicPage.getByRole('status').filter({hasText:'topic preferences have been saved'}).waitFor();
+ await page.goto(staff+'&search=phase2-real');
+ if((await page.locator('tbody tr').filter({hasText:'phase2-real@example.test'}).locator('td').nth(1).innerText())!=='subscribed') throw Error('Topic POST changed global consent');
  // Submit to the canonical form action; pretty endpoint must resolve on the target blog.
  await publicPage.getByRole('button',{name:'Unsubscribe from all marketing email'}).click();
  await publicPage.getByRole('status').filter({hasText:'withdrawn'}).waitFor();

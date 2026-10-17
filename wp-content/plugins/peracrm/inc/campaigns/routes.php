@@ -58,8 +58,7 @@ add_action('template_redirect', static function () {
         // Repeated valid opt-outs always pass; idempotence bounds storage work.
         $allowed = $valid && ($action === 'withdraw' || peracrm_subscribers_public_rate_allowed('token:' . hash('sha256', $token), 30));
         if (!$valid && !peracrm_subscribers_public_rate_allowed('invalid:' . ($_SERVER['REMOTE_ADDR'] ?? ''), 60)) { status_header(429); }
-        $topics = isset($_POST['topics']) && is_string($_POST['topics']) ? explode('|', trim(wp_unslash($_POST['topics']))) : [];
-        if ($topics === ['']) { $topics = []; }
+        $topics = isset($_POST['topics']) && is_array($_POST['topics']) ? array_values(wp_unslash($_POST['topics'])) : [];
         $success = $allowed && peracrm_subscribers_public_post($token, $action, $topics);
         $message = $success ? ($action === 'withdraw' ? 'Your permission to receive marketing email has been withdrawn.' : 'Your topic preferences have been saved. This does not change global email permission.') : 'This request could not be completed. Please use the original preferences link.';
     } elseif ($method !== 'GET' && $method !== 'HEAD') { status_header(405); header('Allow: GET, HEAD, POST'); exit; }

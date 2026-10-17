@@ -8267,3 +8267,7 @@ body.crm-route #site-header.peracrm-shell-header .peracrm-header-search__status 
 @media (max-width: 600px) { .peracrm-preferences { margin: 1rem auto; padding: 1rem; } .peracrm-subscriber-form button { width: 100%; } }
 .peracrm-subscribers, .peracrm-subscribers *, .peracrm-preferences, .peracrm-preferences * { box-sizing: border-box; }
 .peracrm-subscriber-form, .peracrm-subscriber-form label, .peracrm-subscriber-form input, .peracrm-subscriber-grid > *, .peracrm-subscriber-table { min-width: 0; }
+
+.peracrm-topic-choices { border: 0; padding: 0; margin: 0; display: grid; gap: .8rem; min-width: 0; }
+.peracrm-topic-choices legend { font-weight: 600; margin-bottom: .8rem; }
+.peracrm-topic-choices label { display: flex; align-items: center; gap: .6rem; }
