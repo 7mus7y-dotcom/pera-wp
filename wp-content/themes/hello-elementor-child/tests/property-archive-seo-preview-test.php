@@ -26,41 +26,29 @@ function preview_expect( $condition, $message ) {
 }
 require dirname( __DIR__ ) . '/inc/modules/property-archive-settings.php';
 $defaults = array( 'admin_screen' => false, 'ajax' => false, 'archive' => true, 'tax' => false, 'search' => false, 'paged' => false, 'logged_in' => true, 'manage_options' => true );
-$cases = array(
-	'admin must opt in' => array( array(), array(), false ),
-	'admin explicit preview' => array( array( 'seo_archive_preview' => '1' ), array(), true ),
-	'anonymous preview denied' => array( array( 'seo_archive_preview' => '1' ), array( 'logged_in' => false, 'manage_options' => false ), false ),
-	'logged-out capability denied' => array( array( 'seo_archive_preview' => '1' ), array( 'logged_in' => false ), false ),
-	'employee without manage_options denied' => array( array( 'seo_archive_preview' => '1' ), array( 'manage_options' => false ), false ),
-	'zero flag denied' => array( array( 'seo_archive_preview' => '0' ), array(), false ),
-	'array flag denied' => array( array( 'seo_archive_preview' => array( '1' ) ), array(), false ),
-	'taxonomy denied' => array( array( 'seo_archive_preview' => '1' ), array( 'tax' => true ), false ),
-	'other page denied' => array( array( 'seo_archive_preview' => '1' ), array( 'archive' => false ), false ),
-	'paged archive denied' => array( array( 'seo_archive_preview' => '1' ), array( 'paged' => true ), false ),
-	'search denied' => array( array( 'seo_archive_preview' => '1' ), array( 'search' => true ), false ),
-	'admin screen denied' => array( array( 'seo_archive_preview' => '1' ), array( 'admin_screen' => true ), false ),
-	'AJAX denied' => array( array( 'seo_archive_preview' => '1' ), array( 'ajax' => true ), false ),
-	'filter denied' => array( array( 'seo_archive_preview' => '1', 'district' => 'besiktas' ), array(), false ),
-	'query pagination denied' => array( array( 'seo_archive_preview' => '1', 'paged' => '2' ), array(), false ),
-);
-foreach ( $cases as $label => $case ) {
-	list( $_GET, $overrides, $expected ) = $case;
-	$state = array_merge( $defaults, $overrides );
-	$original_query = $_GET;
-	preview_expect( $expected === pera_property_archive_seo_preview_enabled(), $label );
-	preview_expect( $_GET === $original_query, $label . ' leaves the request intact' );
+// Exercise the existing clean-archive helper used by the public template and schema.
+$seo_source = file_get_contents( dirname( __DIR__ ) . '/inc/seo-property-archive.php' );
+$start = strpos( $seo_source, "if ( ! function_exists( 'pera_property_archive_is_clean_main_archive' ) )" );
+$end = strpos( $seo_source, "if ( ! function_exists( 'pera_property_archive_settings_field' ) )", $start );
+eval( substr( $seo_source, $start, $end - $start ) );
+foreach ( array(
+    array( array(), array( 'logged_in' => false, 'manage_options' => false ), true ),
+    array( array(), array(), true ),
+    array( array(), array( 'tax' => true ), false ),
+    array( array(), array( 'search' => true ), false ),
+    array( array(), array( 'paged' => true ), false ),
+    array( array(), array( 'archive' => false ), false ),
+    array( array( 'district' => 'sisli' ), array(), false ),
+    array( array( 'paged' => '2' ), array(), false ),
+    array( array( 'seo_archive_preview' => '1' ), array(), false ),
+) as $case ) {
+    list( $_GET, $overrides, $expected ) = $case;
+    $state = array_merge( $defaults, $overrides );
+    $original = $_GET;
+    preview_expect( $expected === pera_property_archive_is_clean_main_archive(), 'public archive context' );
+    preview_expect( $_GET === $original, 'request remains intact' );
 }
-// Cache protection must be sent before template output, and only for an authorised preview.
-preview_expect( 0 === $hooks['template_redirect'][1], 'cache protection runs early' );
-$_GET = array( 'seo_archive_preview' => '1' );
-$state = array_merge( $defaults, array( 'manage_options' => false ) );
-$hooks['template_redirect'][0]();
-preview_expect( 0 === $cache_calls && ! defined( 'DONOTCACHEPAGE' ), 'public request receives no preview cache mutation' );
-preview_expect( pera_property_archive_seo_preview_is_main_request(), 'public preview marker still uses normal archive presentation' );
-$state = $defaults;
-$hooks['template_redirect'][0]();
-preview_expect( 1 === $cache_calls && DONOTCACHEPAGE, 'authorised preview sends no-cache headers and cache opt-out' );
-echo "Property archive SEO preview gate tests passed\n";
+preview_expect( empty( $hooks ) && ! defined( 'DONOTCACHEPAGE' ), 'settings no longer register preview cache handling' );
 
 // Exercise the isolated partial with the real FAQ parser and renderer.
 function wp_strip_all_tags( $text ) { return strip_tags( $text ); }
@@ -68,33 +56,83 @@ function wp_kses_post( $text ) { return $text; }
 function wpautop( $text ) { return '<p>' . $text . '</p>'; }
 function esc_html( $text ) { return htmlspecialchars( $text, ENT_QUOTES, 'UTF-8' ); }
 function esc_url( $text ) { return htmlspecialchars( $text, ENT_QUOTES, 'UTF-8' ); }
-function pera_ml_ui( $text, $key ) { return $text; }
+function pera_ml_ui( $text, $key ) { return 'theme.template.archive_property.faq_heading' === $key ? 'Translated FAQ heading' : $text; }
 function home_url( $path ) { return 'https://example.test' . $path; }
 function pera_ml_url( $url ) { return str_replace( 'example.test/', 'example.test/de/', $url ); }
 function pera_get_whatsapp_url( $message ) { return 'https://wa.me/123?text=' . rawurlencode( $message ); }
 require dirname( __DIR__ ) . '/inc/modules/faqs.php';
-function render_preview_partial( $fields, $enabled = true ) {
-	$seo_archive_preview = $enabled;
-	$property_archive_get_field = static function ( $key ) use ( $fields ) { return $fields[ $key ] ?? ''; };
-	ob_start();
-	require dirname( __DIR__ ) . '/parts/property-archive-seo-preview.php';
-	return ob_get_clean();
+function get_queried_object() { return null; }
+function pera_property_archive_settings_field( $field ) { return $GLOBALS['editor_faq'] ?? ''; }
+function wp_json_encode( $value, $flags = 0 ) { return json_encode( $value, $flags ); }
+function pera_schema_should_emit_type( $type, $context ) { return empty( $GLOBALS['block_schema'] ); }
+
+// Separate processes cover the provider's per-request memoization and editor priority.
+$_GET = array();
+$state = $defaults;
+$editor_faq = $argv[1] ?? '';
+$items = pera_get_property_archive_faq_items();
+preview_expect( ( $editor_faq ? 1 : 5 ) === count( $items ), 'editor FAQs replace defaults' );
+ob_start();
+pera_render_faq_html( $items, 'FAQ' );
+$html = ob_get_clean();
+preview_expect( count( $items ) === substr_count( $html, '<details ' ), 'visible questions use provider rows' );
+$block_schema = true;
+ob_start(); pera_render_faq_schema( $items ); $blocked = ob_get_clean();
+preview_expect( '' === $blocked, 'schema ownership suppression retained' );
+$block_schema = false;
+ob_start(); pera_render_faq_schema( $items ); pera_render_faq_schema( $items ); $schema = ob_get_clean();
+preview_expect( 1 === substr_count( $schema, 'application/ld+json' ), 'duplicate schema suppressed' );
+preg_match( '~<script[^>]*>(.*?)</script>~s', $schema, $matches );
+$decoded = json_decode( $matches[1], true );
+foreach ( $items as $index => $item ) {
+    preview_expect( $item['question'] === $decoded['mainEntity'][$index]['name'], 'schema and HTML share question' );
+    preview_expect( false !== strpos( $html, esc_html( $item['question'] ) ), 'provider question visible' );
 }
-$html = render_preview_partial( array() );
-preview_expect( 5 === substr_count( $html, '<details ' ), 'preview renders five default FAQs' );
-preview_expect( false === strpos( $html, 'application/ld+json' ), 'preview emits no schema' );
-preview_expect( false !== strpos( $html, '/de/book-a-consultancy/' ), 'consultancy URL follows language routing' );
-preview_expect( '' === render_preview_partial( array(), false ), 'disabled partial produces no output' );
-$html = render_preview_partial( array(
-	'archive_bottom_content' => 'Editor bottom',
-	'archive_cta_heading' => 'Editor heading',
-	'archive_cta_text' => 'Editor text',
-	'archive_whatsapp_message' => 'Editor message',
-	'seo_faq_v2' => 'Editor question|Editor answer',
-) );
-foreach ( array( 'Editor bottom', 'Editor heading', 'Editor text', 'Editor%20message', 'Editor question', 'Editor answer' ) as $value ) {
-	preview_expect( false !== strpos( $html, $value ), 'editor value retained: ' . $value );
+
+function render_public_content( $fields ) {
+    $property_archive_get_field = static function ( $key ) use ( $fields ) { return $fields[ $key ] ?? ''; };
+    $is_clean_main_property_archive = true;
+    $source = file_get_contents( dirname( __DIR__ ) . '/archive-property.php' );
+    $start = strpos( $source, '<?php if ( $is_clean_main_property_archive ) : ?>', strpos( $source, 'related_taxonomy_total > 0' ) );
+    // Locate the bottom content by its first field read, avoiding unrelated conditionals.
+    $field = strpos( $source, '    $archive_bottom_content' );
+    $start = strrpos( substr( $source, 0, $field ), '<?php if' );
+    $end = strpos( $source, '<?php if ( ! empty( $property_archive_faq_items )', $field );
+    ob_start(); eval( '?>' . substr( $source, $start, $end - $start ) ); return ob_get_clean();
 }
-preview_expect( 1 === substr_count( $html, '<details ' ), 'editor FAQs replace all preview defaults' );
+$html = render_public_content( array() );
+foreach ( array( 'Choosing where to buy', 'Get your Istanbul property shortlist', '/de/book-a-consultancy/', 'Request my shortlist' ) as $copy ) {
+    preview_expect( false !== strpos( $html, $copy ), 'public default: ' . $copy );
+}
+$html = render_public_content( array( 'archive_bottom_content' => 'Editor bottom', 'archive_cta_heading' => 'Editor heading', 'archive_cta_text' => 'Editor text', 'archive_whatsapp_message' => 'Editor message' ) );
+foreach ( array( 'Editor bottom', 'Editor heading', 'Editor text', 'Editor%20message' ) as $copy ) {
+    preview_expect( false !== strpos( $html, $copy ), 'editor override: ' . $copy );
+}
 preview_expect( false === strpos( $html, 'Choosing where to buy' ), 'editor bottom replaces fallback' );
-echo "Property archive SEO preview rendering tests passed\n";
+echo "Public archive content and shared FAQ tests passed\n";
+
+$template = file_get_contents( dirname( __DIR__ ) . '/archive-property.php' );
+preview_expect( false === strpos( $template, 'seo_archive_preview' ), 'template has no obsolete preview gate or indicator' );
+$start = strpos( $template, '                <?php if ( $is_clean_main_property_archive ) : ?>' );
+$end = strpos( $template, '<div class="property-filters-toolbar">', $start );
+$is_clean_main_property_archive = true;
+ob_start(); eval( '?>' . substr( $template, $start, $end - $start ) ); $districts = ob_get_clean();
+preview_expect( 6 === substr_count( $districts, '<a href=' ), 'six public district links' );
+foreach ( array( 'besiktas', 'sisli', 'kadikoy', 'zeytinburnu', 'uskudar', 'sariyer' ) as $slug ) {
+    preview_expect( false !== strpos( $districts, '/de/district/istanbul/' . $slug . '/' ), 'district uses language URL helper' );
+}
+$is_clean_main_property_archive = false;
+ob_start(); eval( '?>' . substr( $template, $start, $end - $start ) ); $districts = ob_get_clean();
+preview_expect( '' === trim( $districts ), 'district navigation excluded on other contexts' );
+
+// Exercise the template's actual heading selection, including the existing helper path.
+function pera_get_property_archive_faq_heading() { return 'Taxonomy FAQ heading'; }
+$property_archive_faq_items = $items;
+$is_clean_main_property_archive = true;
+$start = strpos( $template, '<?php if ( ! empty( $property_archive_faq_items )' );
+$end = strpos( $template, '</main>', $start );
+ob_start(); eval( '?>' . substr( $template, $start, $end - $start ) ); $faq_html = ob_get_clean();
+preview_expect( false !== strpos( $faq_html, 'Translated FAQ heading' ), 'public main FAQ heading is translated' );
+$is_clean_main_property_archive = false;
+ob_start(); eval( '?>' . substr( $template, $start, $end - $start ) ); $faq_html = ob_get_clean();
+preview_expect( false !== strpos( $faq_html, 'Taxonomy FAQ heading' ), 'taxonomy FAQ heading behavior retained' );

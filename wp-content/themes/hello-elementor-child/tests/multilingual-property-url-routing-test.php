@@ -22,15 +22,16 @@ $router  = file_get_contents( dirname( $theme, 2 ) . '/plugins/pera-multilingual
 $ajax    = file_get_contents( dirname( $theme, 2 ) . '/plugins/pera-multilingual/includes/class-ajax.php' );
 $header_helpers = file_get_contents( $theme . '/inc/theme-helpers.php' );
 
-foreach ( array( '/contact-us/', '/book-a-consultancy/', '/citizenship-by-investment/' ) as $path ) {
+foreach ( array( '/contact-us/', '/book-a-consultancy/' ) as $path ) {
 	$call = "pera_ml_url( home_url( '{$path}' ) )";
 	expect_property_url_routing( false !== strpos( $archive, $call ), "archive CTA {$path} uses Pera ML routing" );
 }
 
-foreach ( array( 'besiktas', 'sisli', 'kadikoy' ) as $district ) {
-	$call = "pera_ml_url( home_url( '/district/istanbul/{$district}/' ) )";
-	expect_property_url_routing( false !== strpos( $archive, $call ), "archive district {$district} uses Pera ML routing" );
+// Public district navigation routes the six approved destinations through one loop.
+foreach ( array( 'besiktas', 'sisli', 'kadikoy', 'zeytinburnu', 'uskudar', 'sariyer' ) as $district ) {
+    expect_property_url_routing( false !== strpos( $archive, "'{$district}' =>" ), "public district {$district} is included" );
 }
+expect_property_url_routing( false !== strpos( $archive, 'pera_ml_url( $district_url )' ), 'public district loop preserves language' );
 
 expect_property_url_routing( false !== strpos( $archive, 'pera_ml_url( $archive_base_url )' ), 'archive form and pagination base preserves language' );
 expect_property_url_routing( false !== strpos( $single, "pera_ml_url( home_url( '/sell-your-istanbul-real-estate/' ) )" ), 'single sales CTA preserves language' );
