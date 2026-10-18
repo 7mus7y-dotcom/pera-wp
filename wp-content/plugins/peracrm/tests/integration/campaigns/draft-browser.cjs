@@ -58,6 +58,7 @@ module.exports = async function ({browser,page,target}) {
     await page.getByRole('button',{name:'Save draft',exact:true}).click();
     // Two actual editor tabs: stale browser input must not replace saved content.
     const other=await page.context().newPage();
+    await other.setViewportSize({width,height});
     await other.goto(draftURL);
     await page.getByLabel('Subject',{exact:true}).fill('Winner '+name);
     await page.getByRole('button',{name:'Save draft',exact:true}).click();
