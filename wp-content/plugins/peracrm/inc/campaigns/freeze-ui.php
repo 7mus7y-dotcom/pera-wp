@@ -46,6 +46,7 @@ function peracrm_campaign_freeze_panel($id, $selected = 0, $before = 0, $after =
     $history = peracrm_campaign_freeze_history($id, $before);
     $attempt = $selected ? peracrm_campaign_freeze_get($id, $selected) : ($history[0] ?? null);
     ob_start();
+    try {
     echo '<h3 tabindex="-1" data-freeze-heading>Review and freeze</h3><p>Freeze revision prepares an immutable version; it does not send anything. Eligibility is evaluated during materialization and will be checked again before future delivery. Historical inclusion is not current sending permission.</p>';
     echo '<p>Saved revision '.(int)$draft['revision'].' · '.esc_html($draft['status']).'</p>';
     if ($draft['status'] === 'draft') { peracrm_campaign_freeze_button('review','Review saved revision'); }
@@ -90,6 +91,7 @@ function peracrm_campaign_freeze_panel($id, $selected = 0, $before = 0, $after =
     if (count($history)===20) { echo '<button type="button" class="btn btn--ghost" data-freeze-action="older" data-before="'.(int)end($history)['id'].'">Older freeze attempts</button>'; }
     peracrm_campaign_freeze_button('state','Reload current state');
     return ob_get_clean();
+    } catch (Throwable $error) { ob_end_clean(); throw $error; }
 }
 
 /** Authenticated POST adapter. Service nonce, actor, locks and version fences remain authoritative. */
@@ -129,8 +131,9 @@ function peracrm_campaign_freeze_route()
         if (is_wp_error($result)) { wp_send_json_error(['message'=>$result->get_error_message().' Reload current state before retrying.'], $result->get_error_code()==='campaign_conflict' ? 409 : 422); }
         if ($operation==='new_revision') { wp_send_json_success(['reload'=>true]); }
         if ($operation==='review') {
+            $advisory=peracrm_campaign_audience_preview($id,$revision,$input['audience'] ?? []);
             ob_start(); echo '<h4>Review saved revision '.(int)$revision.'</h4>'; peracrm_campaign_freeze_output($review['content']);
-            echo '<p>Audience counts above are advisory. Freeze evaluates eligibility in bounded batches.</p>'; peracrm_campaign_freeze_button('start','Freeze revision');
+            echo '<p>'.esc_html(($advisory['complete'] ? 'Complete' : 'Partial (first 200 candidates)').' advisory count · As of '.$advisory['as_of'].' UTC · Considered '.$advisory['considered'].' · Eligible '.$advisory['eligible'].' · Excluded '.array_sum($advisory['exclusions'])).'. These are advisory counts; freeze reevaluates eligibility.</p>'; peracrm_campaign_freeze_button('start','Freeze revision');
             wp_send_json_success(['review_html'=>ob_get_clean(),'proof'=>$review['review_proof'],'capture_nonce'=>wp_create_nonce('peracrm_campaign_snapshot_'.$id.'_'.$revision)]);
         }
         wp_send_json_success(['html'=>peracrm_campaign_freeze_panel($id,in_array($operation,['history','recipients'],true) ? $attempt : 0,(int)($_POST['before'] ?? 0),(int)($_POST['after'] ?? 0))]);

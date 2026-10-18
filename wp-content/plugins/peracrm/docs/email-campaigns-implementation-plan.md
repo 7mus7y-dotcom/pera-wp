@@ -1374,7 +1374,9 @@ mailbox/evaluation time, at most 200 per page. Attempt metadata history is at mo
 20 per page. Cancelled revision tombstones remain intact; no cleanup UI exists.
 
 Narrow service gap: a bounded authorized target-blog attempt metadata read was
-needed for reload/history discovery; no freeze engine or schema rewrite.
+needed for reload/history discovery. Recipient ledger reads now independently
+require subscriber capability inside the existing service as well as the UI;
+this closes a narrow authority gap. No freeze engine or schema rewrite.
 
 Validation pending: both complete hosted real single-site/multisite suites,
 existing standalone regressions/PHP lint and actual desktop/mobile screenshot

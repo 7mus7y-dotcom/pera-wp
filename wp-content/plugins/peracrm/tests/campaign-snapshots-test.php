@@ -96,3 +96,6 @@ $corrupt = $saved; $corrupt['payload_json'] = str_replace('Reviewed subject', 't
 campaign_expect(snapshot_rejects(static function () use ($corrupt) { peracrm_with_target_blog(static function () use ($corrupt) { peracrm_campaign_snapshot_decode($corrupt); }); }), 'stored hash corruption fails closed');
 campaign_expect(str_contains($saved['payload']['content']['output']['text'], '{{recipient_unsubscribe_url}}') && $GLOBALS['snapshot_draft']['status'] === 'draft' && campaign_count('peracrm_subscribers') === 0 && campaign_count('peracrm_subscriber_tokens') === 0, 'capture preserves placeholders and creates no frozen status, subscribers or public tokens');
 echo "PASS snapshot foundations (synthetic; not SQL/concurrency acceptance)\n";
+
+$captured_output=$saved['payload']['content']['output'];
+campaign_expect(str_contains($captured_output['text'],'REVIEWED CONTENT') && !str_contains($captured_output['text'],'Current editable content'),'new captures identify prepared immutable content without editable-preview claims');

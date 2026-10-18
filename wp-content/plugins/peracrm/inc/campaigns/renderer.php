@@ -28,7 +28,8 @@ function peracrm_campaign_render_model($input, $configuration = null)
 /** HTML and text both consume this same normalized section list, in the same order. */
 function peracrm_campaign_render($model)
 {
-    $sections=[['heading'=>'PERA · Property & perspective','text'=>'DRAFT PREVIEW · Current editable content. Domain/provider readiness unverified.'],['heading'=>$model['subject'] ?: 'Subject missing','text'=>$model['preheader']],['text'=>$model['sender'] ?: 'Approved sender missing'],['text'=>$model['introduction']],['text'=>$model['main_text']]];
+    $captured=($model['content_context'] ?? '')==='immutable_capture';
+    $sections=[['heading'=>'PERA · Property & perspective','text'=>$captured ? 'REVIEWED CONTENT · Prepared immutable revision. No email is sent. Domain/provider readiness unverified.' : 'DRAFT PREVIEW · Current editable content. Domain/provider readiness unverified.'],['heading'=>$model['subject'] ?: 'Subject missing','text'=>$model['preheader']],['text'=>$model['sender'] ?: 'Approved sender missing'],['text'=>$model['introduction']],['text'=>$model['main_text']]];
     foreach ($model['notices'] as $notice) { $sections[]=['text'=>'Missing: '.$notice]; }
     $destinations=[];
     foreach ($model['blocks'] as $block) {
@@ -46,7 +47,7 @@ function peracrm_campaign_render($model)
         if (!empty($section['url'])) { $destinations[]=['label'=>$section['heading'] ?: 'Content destination','url'=>$section['url']]; }
     }
     $sections[]=['heading'=>'Pera · Identity & address','text'=>$model['footer'] ?: 'Approved mandatory identity/address footer missing.'];
-    $sections[]=['text'=>'Preferences: {{recipient_preferences_url}}' . "\nUnsubscribe: {{recipient_unsubscribe_url}}\nPlaceholder links only. No subscriber data or public tokens are issued.\nDraft content and image URLs are live; image files are not frozen."];
+    $sections[]=['text'=>'Preferences: {{recipient_preferences_url}}' . "\nUnsubscribe: {{recipient_unsubscribe_url}}\nPlaceholder links only. No subscriber data or public tokens are issued.\n" . ($captured ? 'Content bytes and image URLs are stored; image files are not frozen.' : 'Draft content and image URLs are live; image files are not frozen.')];
     $html='<!doctype html><html lang="'.esc_attr($model['language'] ?: 'und').'"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>'.esc_html($model['subject']).'</title></head><body style="margin:0;background:#f3f1eb;color:#162e2c;font-family:Arial,sans-serif;line-height:1.6"><table role="presentation" style="width:100%;border-collapse:collapse"><tr><td style="padding:16px 8px"><table role="presentation" style="width:100%;max-width:640px;margin:auto;background:#fff;border-top:6px solid #234d45;border-collapse:collapse;table-layout:fixed">';
     $text=[];
     foreach ($sections as $section) {

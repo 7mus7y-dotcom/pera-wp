@@ -41,6 +41,7 @@ function peracrm_campaign_snapshot_candidate($draft)
     }
     $sender = null;
     foreach ($configuration['document']['senders'] as $identity) { if ($identity['id'] === $doc['sender_id']) { $sender = $identity; } }
+    $model['content_context'] = 'immutable_capture';
     $content = [
         'schema_version' => 1, 'template_version' => $model['template_version'],
         'document_hash' => hash('sha256', peracrm_campaign_snapshot_json($doc)),

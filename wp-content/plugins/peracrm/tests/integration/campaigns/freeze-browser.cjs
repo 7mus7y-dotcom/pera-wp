@@ -51,7 +51,7 @@ module.exports = async function ({page,target,context,employeeContext,browser}) 
   await feedback().filter({hasText:'Save your changes'}).waitFor();
   if(await page.getByLabel('Subject',{exact:true}).inputValue()!=='Unsaved retained subject') throw Error('Review discarded unsaved text');
   await page.reload();
-  await click('Review saved revision');
+  const reviewed=await click('Review saved revision');
   await page.locator('[data-freeze-review]').getByText('Immutable saved subject '+size,{exact:true}).waitFor();
   await screenshot('review',size);
   // Server rejects an exact old review after a competing tab saves a new revision.
@@ -65,6 +65,8 @@ module.exports = async function ({page,target,context,employeeContext,browser}) 
   await other.locator('[data-campaign-status]').filter({hasText:'Saved'}).waitFor();
   const denied=await context.request.post(endpoint,{form:{...Object.fromEntries(staleData.fields),action:'peracrm_campaign_freeze',operation:'review',nonce:staleData.nonce,id:staleData.id}});
   if(denied.status()!==409) throw Error('Stale saved review accepted');
+  const staleProof=await context.request.post(endpoint,{form:{...Object.fromEntries(staleData.fields),action:'peracrm_campaign_freeze',operation:'start',nonce:staleData.nonce,id:staleData.id,service_nonce:staleData.service_nonce,proof:reviewed.proof,capture_nonce:reviewed.capture_nonce}});
+  if(staleProof.status()!==409) throw Error('Stale review proof accepted');
   await other.close(); await page.reload();
   await click('Review saved revision');
   await click('Freeze revision');
@@ -112,12 +114,14 @@ module.exports = async function ({page,target,context,employeeContext,browser}) 
   await page.locator('[data-freeze-panel]').getByText('Resolved plain-text preview',{exact:true}).click();
   if(!(await page.locator('[data-freeze-panel] pre').innerText()).includes('{{recipient_unsubscribe_url}}')) throw Error('Stored plain text missing controlled placeholder');
   const frozenText=await page.locator('[data-freeze-panel] pre').innerText();
+  const frozenMembers=await page.locator('[data-freeze-attempt] ul').innerText();
   await click('Start new editable revision');
   await page.waitForLoadState('load'); await action('Review saved revision').waitFor();
   await page.getByLabel('Main text',{exact:true}).fill('New editable content');
   await page.getByRole('button',{name:'Save draft',exact:true}).click();
   await page.locator('[data-freeze-panel] pre').waitFor({state:'attached'});
   if(await page.locator('[data-freeze-panel] pre').innerText()!==frozenText) throw Error('New draft changed frozen content');
+  if(await page.locator('[data-freeze-attempt] ul').innerText()!==frozenMembers) throw Error('New draft changed frozen membership');
   await screenshot('history',size);
   // Cancellation is terminal and never appears frozen.
   await click('Review saved revision'); await click('Freeze revision');

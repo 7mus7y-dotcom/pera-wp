@@ -212,6 +212,7 @@ function peracrm_campaign_frozen_get($campaign_id, $revision)
 function peracrm_campaign_freeze_recipients($campaign_id, $attempt_id, $after=0, $evaluations=false)
 {
     peracrm_campaign_drafts_require(true);
+    if (!peracrm_campaigns_staff_can('peracrm_manage_subscribers',true)) { throw new RuntimeException('Subscriber access is required for recipient details.'); }
     return peracrm_with_target_blog(static function () use ($campaign_id,$attempt_id,$after,$evaluations) {
         global $wpdb;
         if (!peracrm_campaign_freeze_get($campaign_id,$attempt_id)) { return []; }
