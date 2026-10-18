@@ -13,5 +13,12 @@ esac
 for fixture_mode in $fixture_modes; do
     docker compose -p "$fixture_project" up -d --wait db wordpress
     docker compose -p "$fixture_project" run --rm cli "$fixture_mode"
+    if [ "${PERACRM_BROWSER_QA:-0}" = 1 ]; then
+        docker compose -p "$fixture_project" run --rm --entrypoint wp cli rewrite structure '/%postname%/' --hard
+        if [ "$fixture_mode" = multi ]; then
+            docker compose -p "$fixture_project" run --rm --entrypoint wp cli --url=http://fixture.test/crm rewrite structure '/%postname%/' --hard
+        fi
+        docker compose -p "$fixture_project" run --rm browser
+    fi
     cleanup
 done

@@ -2,7 +2,7 @@
 /** Standalone behavior harness: synthetic identities and stub DB/WP only. */
 define('ABSPATH', __DIR__ . '/fixtures/campaign-wp/');
 define('PERACRM_TARGET_BLOG_ID', 2);
-define('PERACRM_SCHEMA_VERSION', 21);
+define('PERACRM_SCHEMA_VERSION', 22);
 define('ARRAY_A', 'ARRAY_A');
 require __DIR__ . '/fixtures/campaign-memory-db.php';
 $GLOBALS['wpdb'] = new Campaign_Memory_DB();
@@ -60,7 +60,7 @@ function wp_json_encode($v) { return json_encode($v); }
 function is_email($v) { return filter_var($v, FILTER_VALIDATE_EMAIL); }
 function is_wp_error($v) { return $v instanceof WP_Error; }
 function sanitize_text_field($v) { return trim(strip_tags($v)); }
-function peracrm_user_can_access_client($actor, $id) { return in_array($actor, [1, 2], true) && $id > 0; }
+function peracrm_user_can_access_client($actor, $id) { return in_array($actor, [1, 2], true) && $id > 0 && !in_array($id, $GLOBALS['campaign_denied_clients'] ?? [], true); }
 function peracrm_find_all_client_ids_by_email($email) { return $GLOBALS['campaign_matches']; }
 function get_posts($args) { return $GLOBALS['campaign_legacy']; }
 function get_post_status($id) { return $GLOBALS['campaign_client_status']; }
@@ -76,6 +76,7 @@ $root = dirname(__DIR__);
 require $root . '/inc/helpers.php';
 require $root . '/inc/roles.php';
 require $root . '/inc/schema.php';
+require $root . '/inc/campaigns/management-schema.php';
 require $root . '/inc/campaigns/schema.php';
 require $root . '/inc/campaigns/repository.php';
 require $root . '/inc/campaigns/service.php';
@@ -95,13 +96,13 @@ $GLOBALS['campaign_roles'][2]['administrator']->add_cap('manage_options');
 // Skip unrelated historical v4 migration work in the fresh-install stub.
 $GLOBALS['campaign_options'][2]['peracrm_migration_v4_done'] = 1;
 do_action('init');
-campaign_expect(get_option('peracrm_schema_version') === false && (int) $GLOBALS['campaign_options'][2]['peracrm_schema_version'] === 21, 'fresh schema marker and tables are target-scoped');
+campaign_expect(get_option('peracrm_schema_version') === false && (int) $GLOBALS['campaign_options'][2]['peracrm_schema_version'] === 22, 'fresh schema marker and tables are target-scoped');
 $ddl = $wpdb->ddl;
-peracrm_upgrade_schema_to(21, 21);
+peracrm_upgrade_schema_to(22, 22);
 campaign_expect($ddl === $wpdb->ddl, 'repeated DDL definitions are stable (stub only)');
 $GLOBALS['campaign_options'][2]['peracrm_schema_version'] = 20;
 do_action('init');
-campaign_expect((int) $GLOBALS['campaign_options'][2]['peracrm_schema_version'] === 21, 'previous-schema upgrade wires v21');
+campaign_expect((int) $GLOBALS['campaign_options'][2]['peracrm_schema_version'] === 22, 'previous-schema upgrade wires v21');
 // This is the same callback registration executed by normal plugin init.
 $GLOBALS['campaign_existing_init_ran'] = 0;
 add_action('init', static function () { $GLOBALS['campaign_existing_init_ran']++; }, 6);
@@ -170,7 +171,7 @@ $lock_checks = peracrm_with_target_blog(static function () use ($wpdb) {
     return [$nested, $stale_write, $stale_marker, $stale_release, $intact];
 });
 campaign_expect($lock_checks === [null, false, false, false, true], 'non-reentrant ownership and stale-token publication/release fencing');
-$GLOBALS['campaign_options'][2]['peracrm_campaigns_schema_status'] = ['state' => 'checking', 'version' => 21, 'checked_at' => gmdate('Y-m-d H:i:s')];
+$GLOBALS['campaign_options'][2]['peracrm_campaigns_schema_status'] = ['state' => 'checking', 'version' => 22, 'checked_at' => gmdate('Y-m-d H:i:s')];
 campaign_expect(is_wp_error(peracrm_campaigns_retry_schema()), 'recent interrupted attempt cannot be retried early');
 $GLOBALS['campaign_options'][2]['peracrm_campaigns_schema_status']['checked_at'] = '2020-01-01 00:00:00';
 $held_name = peracrm_with_target_blog(static function () { return peracrm_campaigns_schema_lock_name(); });
@@ -229,6 +230,17 @@ $GLOBALS['campaign_legacy'] = [6];
 campaign_expect(is_wp_error(peracrm_campaigns_save_subscriber('first.last+news@example.test', ['client_id' => 5])), 'legacy alias ambiguity remains unresolved');
 $GLOBALS['campaign_legacy'] = [];
 peracrm_campaigns_save_subscriber('first.last+news@example.test', ['client_id' => 5]);
+$GLOBALS['campaign_denied_clients'] = [5];
+foreach ([null, ''] as $empty) {
+    campaign_expect(!is_wp_error(peracrm_campaigns_save_subscriber('first.last+news@example.test', ['client_id' => $empty, 'preferred_language' => 'fr', 'preferences' => ['news']])), 'masked profile edit accepted');
+    campaign_expect(campaign_identity('first.last+news@example.test')['client_id'] === 5, 'language/topics preserve inaccessible link');
+}
+campaign_expect(is_wp_error(peracrm_campaigns_unlink_subscriber_client('first.last+news@example.test')), 'inaccessible stored link cannot be unlinked');
+$GLOBALS['campaign_matches'] = [6];
+campaign_expect(is_wp_error(peracrm_campaigns_save_subscriber('first.last+news@example.test', ['client_id' => 6])), 'accessible replacement cannot remove inaccessible stored link');
+campaign_expect(campaign_identity('first.last+news@example.test')['client_id'] === 5, 'crafted replacement preserves original link');
+$GLOBALS['campaign_denied_clients'] = [];
+$GLOBALS['campaign_matches'] = [5];
 $GLOBALS['campaign_disposition'] = 'duplicate';
 campaign_expect(!peracrm_campaigns_is_eligible('first.last+news@example.test'), 'duplicate linked sales record excluded');
 $GLOBALS['campaign_disposition'] = 'none';
@@ -246,7 +258,7 @@ foreach (['subscription_state' => 'subscribed', 'unsubscribe' => 0, 'email' => '
 }
 campaign_expect(is_wp_error(peracrm_campaigns_record_consent('first.last+news@example.test', 'subscribed', $evidence)), 'explicit consent cannot bypass suppression');
 $history = campaign_count('peracrm_subscription_events');
-peracrm_campaigns_save_subscriber('first.last+news@example.test', ['client_id' => null]);
+peracrm_campaigns_unlink_subscriber_client('first.last+news@example.test');
 $GLOBALS['campaign_client_status'] = 'deleted';
 campaign_expect(!peracrm_campaigns_is_eligible('first.last+news@example.test') && campaign_count('peracrm_subscription_events') === $history + 1, 'unlink/deleted client leaves history and suppression intact');
 peracrm_campaigns_delete_subscriber('first.last+news@example.test');

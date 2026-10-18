@@ -1,14 +1,14 @@
 # Integrated email campaigns: repository review and living implementation plan
 
-Review status: **complete** (2026-10-17). Implementation: **Phase 1 in progress**; Phases 2–7 not started.
+Review status: **complete** (2026-10-17). Implementation: **Phase 1 complete (technical acceptance)**; **Phase 2 in progress**; Phases 3–7 not started.
 
 ## Purpose, scope and maintenance
 
-Let Pera staff prepare newsletters and targeted campaigns inside the existing CRM, with an external provider delivering mail. This document is the authoritative review and implementation plan. The Phase 1 implementation adds isolated subscriber foundations only. No campaign delivery paths, public endpoints, imports, production data changes, merging or deployment are authorized.
+Let Pera staff prepare newsletters and targeted campaigns inside the existing CRM, with an external provider delivering mail. This document is the authoritative review and implementation plan. Phase 2 adds plugin-owned subscriber management, isolated preview/import services, suppression intake and public preferences with real intake gated off. No campaign editor, provider, queue, scheduling, delivery, production contacts, merge or deployment is included.
 
 Future implementation PRs must update phase status, validation evidence, decisions and the progress log here. A phase must not be marked complete solely because code exists when required verification remains outstanding. Use only `not started`, `in progress`, `blocked` or `complete` for phase status. Keep repository checks distinct from external verification; record outstanding evidence explicitly.
 
-**First implementation task:** Phase 1, subscriber identity, consent and suppression foundations, with sending disabled. Do not start with a campaign send button.
+**Current implementation task:** finish Phase 2 acceptance with sending and new public collection disabled. Phase 1 technical foundations are accepted; Phases 3–7 remain unstarted.
 
 ## Review baseline and method
 
@@ -131,11 +131,11 @@ Unresolved decisions: expected monthly volume/peak batch and budget; approved le
 
 ## Numbered implementation phases
 
-Each phase should be a focused PR, split further if review size grows. Phase 1 is **in progress** for acceptance review after isolated integration checks passed; Phases 2–7 remain **not started**. Repository checks use synthetic addresses/fixtures; external checks require controlled environments.
+Each phase should be a focused PR, split further if review size grows. Phase 1 technical acceptance is **complete** based on merged #1447 and its passed integration evidence. Phase 2 is **in progress**; Phases 3–7 remain **not started**. Repository checks use synthetic addresses/fixtures; external checks require controlled environments.
 
 ### 1. Subscriber, consent, suppression and permission foundations
 
-- **Status:** in progress. Awaiting acceptance review. Code, standalone checks and disposable real WordPress/MySQL single-site/multisite migration, unique-key, concurrency and target-blog capability checks have passed (CI evidence below). Historical evidence/suppression-source inventory and retention approval remain outstanding before production intake.
+- **Status:** complete (technical acceptance recorded in Phase 2 below). Code, standalone checks and disposable real WordPress/MySQL single-site/multisite migration, unique-key, concurrency and target-blog capability checks have passed (CI evidence below). Historical evidence/suppression-source inventory and retention approval remain outstanding before production intake.
 - **Goal/outcome:** staff data has an independent marketing identity; opt-outs cannot be lost by lead edits. Sending remains disabled.
 - **Prerequisites:** agree normalization, consent states, permission policy and target-blog scope; inventory historical suppression sources without importing them yet.
 - **Work/components:** new subscriber/eligibility repositories and services under `inc/campaigns/`; bootstrap wiring, `inc/schema.php`, schema constant, `inc/roles.php`; dedicated caps and impersonation denial; synthetic fixtures in `tests/`.
@@ -177,7 +177,7 @@ Standalone regression tests dispatch the production callback through `init`, inj
 
 Reproducible real integration setup and exact commands: [`tests/integration/campaigns/README.md`](../tests/integration/campaigns/README.md). It uses disposable WordPress 6.8.3/PHP 8.3, WP-CLI 2.12.0 and MySQL 8.0.43 single-site/multisite volumes, blocks email/outgoing WP HTTP, and exposes no host ports. It covers fresh/schema-20/repeated migrations, real SQL mailbox uniqueness, separate-process concurrent mutations/lock contention, target-blog capabilities/isolation/context, and contained assertion failure/recovery. Executed `sh tests/integration/campaigns/run.sh` from the plugin root: runtime stopped before container creation because the local Docker socket returned `connect: operation not permitted` (UID 1000; daemon running). No real integration assertion passed. Compose configuration and shell syntax validation alone do not establish SQL/multisite correctness.
 
-**Phase 1 remains in progress for acceptance review.** Both disposable fixtures have now passed on a GitHub-hosted Docker runner, as recorded below; the earlier local Docker limitation remains unchanged. Historical evidence/retention policy and production topology remain outstanding. Sending remains disabled; Phases 2–7 are unstarted. No merge, deployment or production-data change.
+**Historical Phase 1 status (superseded by technical acceptance below): in progress for acceptance review.** Both disposable fixtures have now passed on a GitHub-hosted Docker runner, as recorded below; the earlier local Docker limitation remains unchanged. Historical evidence/retention policy and production topology remain outstanding. Sending remains disabled; Phases 2–7 are unstarted. No merge, deployment or production-data change.
 
 #### Consent-evidence review follow-up (2026-10-17)
 
@@ -207,7 +207,7 @@ Verified hosted evidence: [run `39050763912`](https://github.com/7mus7y-dotcom/p
 
 ### 2. Subscriber management, safe import and public preferences
 
-- **Status:** not started.
+- **Status:** in progress.
 - **Goal/outcome:** managers can preview/import subscribers and staff or recipients can withdraw permission safely.
 - **Prerequisites:** Phase 1; approved source/evidence mapping, import limits and token policy.
 - **Work/components:** subscriber views/nav, campaign REST/admin-post handlers, public preference endpoint, importer parsing reuse from `inc/admin/importer.php`; independent subscriber apply service, expiry cleanup and audit.
@@ -295,3 +295,86 @@ Rollout order: migrations/permissions with sending off → subscriber preview an
 | 2026-10-17 | Phase 1 in progress — hosted integrations passed | Run 39049422823 on 7df6669dc6b63a07e4fd487bb8ed136ea271c318 passed both real WordPress/MySQL single-site and multisite suites, including migration/unique-key/concurrency/target-capability/evidence checks. Fixed the initial single-site fixture defect. Evidence finding resolved; acceptance review and historical evidence/retention decisions remain open. |
 | 2026-10-17 | Phase 1 in progress — atomic migration-slot review | Implemented target-blog native SQL lock, attempt-token/connection-fenced status and marker publication/release, owner-only retry metadata and fresh SQL reads. Added standalone and separate-connection migration race/stale-owner regressions; hosted results pending. |
 | 2026-10-17 | Phase 1 in progress — migration serialization verified | Run 39050763912 on 8ea4f9dc337e2231cc000660fb79190f7edc587d passed single-site/multisite, including real competing migration, sole DDL owner, available loser, stale-result fencing and administrator interrupted-attempt recovery. 11 standalone tests / 377 PHP files plus shell/Compose/whitespace checks passed. |
+
+
+## Phase 2 implementation record (2026-10-17)
+
+PR #1447 merged at 2026-10-17 19:05 UTC; latest main checked through GitHub is `afc16f1ae4347a7e3f6484caaf268fd66863ce04`. Phase 2 starts on that content and targets main. Shell network permissions blocked fetch; the connector supplied the merged patch and main metadata. No AGENTS.md was found in workspace or repository ancestors.
+
+### Phase 1 technical acceptance
+
+Phase 1's technical foundation acceptance passed: all 11 standalone scripts, 377 PHP syntax checks, and real single-site/multisite WordPress/MySQL suites on final Phase 1 runtime commit `271c3c21d5214a3ae6caaa12fd119115355b79e1`, [run 39050980823](https://github.com/7mus7y-dotcom/pera-wp/actions/runs/39050980823), jobs `117449332828` and `117449333103`. Earlier contention/migration acceptance evidence remains in the Phase 1 ledger. This accepts technical dependencies for Phase 2; it does **not** approve historical marketing permission, suppression-source completeness, retention, production topology or real-data intake. Those prerequisites remain open. Phases 3–7 remain not started.
+
+### Architecture and operating policy
+
+- Schema 22 additively adds target-blog InnoDB batches, import rows and token digests. The existing fenced schema owner performs migration/assertions; Phase 1 mailbox transactions serialize consent/suppression and import completion. Staff listing/detail/suppression reads require `peracrm_manage_subscribers`; writes independently reject impersonation. Employees have no list/import authority. All routing, rendering, CSS/JS, navigation and assets belong to PeraCRM.
+- Routes: `/crm/subscribers/`, numeric detail, `import/`, `suppression/`; public `/email-preferences/` on the configured target-blog home domain. Profile edits only change explicit language, topics and an authorized unambiguous link. They cannot change identity, consent or suppression. Staff withdrawal is separate. No public collection, confirmation delivery, campaign editor, provider, delivery worker, scheduling or sending is introduced. The hourly task only expires temporary previews.
+- CSV format: UTF-8-compatible comma-separated CSV with heading row; explicit zero-based column mapping, 1 MiB, 1000 data rows, 64 columns, 25 apply rows/request, 50 preview rows/page, at most 10 active batches/owner. Required mappings: mailbox, state, source/reference, evidence reference, policy version and UTC occurrence time; optional explicit language and pipe-separated topic keys. No names, phones or raw enquiry payloads are retained. Missing source or occurrence time excludes a row; missing consent reference/policy remains unknown. States: unknown, subscribed, unsubscribe, complaint, hard_bounce. Preview reports duplicates, conflicting states, existing identities, missing evidence, existing/batch suppression and unresolved client matches.
+- Preview changes **temporary batch bookkeeping only**, never subscriber/consent/suppression tables. Uploaded PHP temporary files are read directly, checked for real upload ownership and bounds, and unlinked after parse or failure; no file is moved to uploads, webroot, or a predictable shared directory. Mapped rows are stored in target-blog tables scoped to their authenticated owner. Even administrators cannot view another owner's batch. No filename, bearer URL or filesystem path is accepted as a batch identity.
+- Apply rechecks authority, readiness and live suppression. Suppression rows commit before contact rows, including conflicts in the same file. Opted-in contact rows require an explicit batch confirmation that all historical suppression sources were imported. Unknown/previously existing/withdrawn identities are never promoted by reimport. Suppressions always win; all client matches remain unlinked until an explicit authorized profile edit. No client/user creation, republishing, merging, trashing or automatic linking occurs. Historical occurrence timestamps are retained while audit receipt times remain current.
+- Each row's mailbox mutation and completion marker share a transaction; connection loss rolls both back. Native batch locks serialize apply/cancel/cleanup. Earlier committed rows survive a later failure; retries process pending rows only, at most three storage failures/row. Permanent suppression failures block all remaining contacts. Terminal summaries retain counts/results without mailbox payloads; completion, cancellation, permanent partial failure and 24-hour expiry delete mapped rows. Interrupted batches retain pending work until retry or expiry. Cleanup runs hourly (bounded to 50 batches/pass), requiring a functioning WordPress scheduler; reads hide expired payloads immediately. No rollback removes suppression. Downloaded CSV cells neutralize formula prefixes, including leading whitespace/control characters.
+- Real-data intake defaults **off**. A target-blog administrator, outside impersonation, must record historical evidence mapping, suppression-source inventory/intake and approved retention decision references and explicitly enable the gate. Managers cannot enable it. Each real batch apply rechecks fresh SQL gate state. Previews work while closed. Synthetic apply is restricted by the server to example.test mailboxes, regardless of checkbox claims. Manual historical suppression intake uses the same gate; immediate withdrawal remains available.
+- Public tokens contain 256 random bits encoded as opaque hex; database stores SHA-256 digests, fixed `preferences` purpose, version 1, mailbox binding, creation time, optional expiry and revocation. No addresses/CRM IDs occur in links. Internal issuance/revocation is staff-authorized only; no public mint endpoint exists. Default expiry is **none**, to honor opt-out links in old emails; tokens remain valid only for that mailbox and purpose until staff revocation/version retirement. Deployments may set explicit future expiry at issuance. Tokens never grant consent, and deletion/recreation cannot remove mailbox suppression. Production token retention/revocation policy still requires approval before messages exist.
+- GET/HEAD only validate and display; no state mutation or consent audit occurs. Deliberate POST separates global withdrawal from topic replacement. Public service fixes identity/reason/actor/evidence server-side and reuses Phase 1 atomic persistence/audit, without staff-authorized methods or permission weakening. Repeated opt-outs return success with no duplicate consent/suppression audit. Topics cannot grant consent or clear global suppression. Invalid/revoked/expired/purpose/version errors use the same generic response. Public renderer omits theme hooks, analytics and third-party assets; responses set no-store, no-referrer, noindex and restrictive CSP. Bounded hourly hashed counters constrain topic updates; valid repeated withdrawals remain available. No raw IPs/bearers are retained by abuse counters. Reverse proxies must honor no-store and redact token query strings in access logs before future delivery.
+- The public POST service is deliberately shaped for later one-click integration, but no provider/header/one-click compatibility is claimed or enabled. It does not accept a generic caller-selected mailbox, reason, evidence or audit actor.
+
+### Phase 2 validation ledger
+
+Local: all existing 11 standalone scripts pass after schema-version updates; new bounded parser/validation/export-safety regression passes. All 381 plugin PHP syntax checks, shell syntax, Compose config, JavaScript syntax and whitespace checks passed. Local Docker socket access is denied (`operation not permitted`), UID 1000; no daemon restart or production connection attempted.
+
+Real fixture additions cover migrations from Phase 1; preview isolation; permissions and cross-user access; suppression-first, duplicate/repeated/partial application; missing evidence and historical timestamps; readiness; expiry/cancel/permanent failure cleanup; opaque token binding/purpose/version/revocation/expiry; idempotent public POST; independent topic/global state; client/user side effects and ambiguous matches; originating-blog restoration; separate MySQL connections racing withdrawal/import. Disposable browser checks are wired for desktop/mobile plugin screens and public GET/POST on the bundled default theme. Actual run results and any unavailable browser checks will be recorded before acceptance. Phase 2 remains **in progress** until required results are available.
+
+Outstanding production decisions: historical list/legal-basis inventory, evidence mapping, suppression sources/intake completion, approved retention periods (including summary/token/audit lifetimes), language/topic taxonomy and translated/approved preference copy, actual target-blog topology, HTTPS/cache/log-redaction behavior and scheduler ownership. No production contacts were imported and no mail was sent. Phases 3–7 remain unstarted.
+
+| Date | Status | Evidence / decision |
+| --- | --- | --- |
+| 2026-10-17 | Phase 1 technical acceptance recorded | Merged #1447 and passed final single/multisite run; historical consent/retention/readiness prerequisites retained. |
+| 2026-10-17 | Phase 2 in progress | Plugin-owned subscriber management, isolated CSV previews/application, suppression intake, readiness gate and public token-authorized preferences; sending and new collection stay disabled. |
+
+### Passed Phase 2 technical validation
+
+Both real topologies and Chromium browser flows passed in [run 39070911377](https://github.com/7mus7y-dotcom/pera-wp/actions/runs/39070911377), runtime commit `857d8ffc52e0535939284c9fa402c0d4bdc0acec`:
+
+- Multisite job `117508193531`: success; [logs/screenshots](https://github.com/7mus7y-dotcom/pera-wp/actions/runs/39070911377/artifacts/12115197526).
+- Single-site job `117508193669`: success; [logs/screenshots](https://github.com/7mus7y-dotcom/pera-wp/actions/runs/39070911377/artifacts/12115131536).
+
+The jobs include all existing foundation migration/contention tests; actual Phase 1→22 migration; new unique-key assertions; preview changing no subscriber/consent/suppression tables; duplicates, conflicts, repeated/partial apply; missing evidence/historical times; suppression ordering and both import/withdrawal transaction orders; real-data readiness and suppression confirmation; employee/anonymous/impersonation/owner restrictions; injected storage failures and transactional cleanup retry; cancellation/expiry; ambiguous CRM links with no client/user side effects; token binding/purpose/version/expiry/revocation; topic/global separation; target URLs/host isolation and context restoration.
+
+Browser flows passed on a bundled default WordPress theme at 1440×1000 and 390×844: list/detail/import/suppression rendering, horizontal overflow assertion, actual CSV upload/explicit mapping/preview/apply, preview subscriber-count invariant, formula-safe downloaded CSV, employee GET/POST denial, missing nonce rejection, public GET/reload leaving consent subscribed, valid/repeated POST immediately unsubscribing, invalid tokens, anonymous staff read denial and no-store/no-referrer response headers. Screenshot artifacts expire 2026-10-31. A mobile content-box overflow was found and fixed in plugin `crm.css`; a single-site target-ID sentinel bug was found and fixed in plugin public routing. Earlier invalid synthetic/owner-switch fixture errors were corrected without relaxing guardrails. No failed service check was waived.
+
+Subsequent checks also cover partial summaries after a later eligibility guard throws, the CRM sidebar/mobile drawer, plugin-resolved public assets and checkbox topic POSTs. Final runtime evidence below supersedes the earlier intermediate run. Small synthetic review images in CI logs enable visual inspection through API-only tooling. Local browser execution remains unavailable because the Docker socket is blocked. Hosted Chromium desktop/mobile checks ran successfully. Safari/Firefox, manual assistive-technology/copy approval and production HTTPS/cache/log-redaction checks were not available and are explicitly outstanding.
+
+**Phase 2 remains in progress for external acceptance:** historical legal-basis/evidence mapping, suppression inventory/completion, approved retention, translated/canonical topic copy, actual topology and production HTTPS/cache/log/scheduler verification remain required before real intake/future delivery. Technical acceptance is passed; this PR does not approve those operational prerequisites. Phases 3–7 remain not started.
+
+| Date | Status | Evidence / decision |
+| --- | --- | --- |
+| 2026-10-17 | Phase 2 technical checks passed | Run 39070911377: real single-site/multisite plus default-theme Chromium desktop/mobile and actual upload/public POST flows passed. Gate remains closed by default; external acceptance outstanding. |
+
+### Final runtime acceptance evidence
+
+All required technical checks passed on final runtime commit `1861cb58a4613b0cf8043097f21b2d9933e372f9` in [run 39072151825](https://github.com/7mus7y-dotcom/pera-wp/actions/runs/39072151825):
+
+| Topology | Actual result | Retained evidence (until 2026-10-31) |
+| --- | --- | --- |
+| Single-site | Job `117511809241`: success, including Chromium flows | [Logs and screenshots](https://github.com/7mus7y-dotcom/pera-wp/actions/runs/39072151825/artifacts/12115835403) |
+| Multisite | Job `117511809415`: success, including Chromium flows | [Logs and screenshots](https://github.com/7mus7y-dotcom/pera-wp/actions/runs/39072151825/artifacts/12115597512) |
+
+The final run additionally verifies durable summaries when a later confirmation guard rejects a partially applied batch; subscriber-page mobile drawer open/close; public stylesheet application and mobile overflow; and real checkbox topic POST preserving global permission before global/repeated unsubscribe. Visual review of the emitted desktop/mobile list and mobile detail/import/suppression/public screenshots confirmed plugin rendering and responsive forms/table scroll regions on the bundled default theme. It caught and corrected a missing public asset URL separator, inherited public font specificity and the shared drawer CSS overriding its hidden attribute; fixes remain plugin-owned and scoped. The public form uses provisional human-readable News / Property updates choices, with final taxonomy/translation approval still outstanding. No failed behavior check was waived.
+
+All 12 local standalone scripts, 381 PHP syntax checks, JavaScript/shell syntax, Compose configuration and whitespace checks pass. Both connection race orders pass against actual MySQL. Batches missing suppression confirmation must be cancelled and re-previewed with confirmation after source intake; the confirmation is immutable on an existing batch. Earlier committed unknown rows remain unknown and retry summaries remain accurate. Failure redirects retain the batch review location.
+
+Phase 2 technical implementation and validation are complete. The phase's overall status remains **in progress** for the explicitly outstanding external acceptance / production readiness decisions above; public collection and real-data application default off, and no delivery exists. Safari/Firefox, manual assistive-technology/copy approval, actual topology and production HTTPS/cache/referrer/log/scheduler verification are unavailable in these disposable fixtures. Historical evidence/legal basis, suppression-source completeness and retention approval are not inferred from technical tests. Phases 3–7 remain not started.
+
+| Date | Status | Evidence / decision |
+| --- | --- | --- |
+| 2026-10-17 | Final Phase 2 technical acceptance passed | Run 39072151825 passed single-site/multisite database and default-theme browser checks on final runtime 1861cb58; visual screenshots reviewed; external readiness gates retained. Non-draft PR #1448 targets main; no merge/deploy. |
+
+### PR #1448 review follow-up: hidden client links
+
+Profile POSTs now update only language/topics; empty or masked legacy client fields preserve stored links. Linking is a separate explicit form/action, and unlinking uses a dedicated staff service. Both replacement and unlink authorize the actual stored client inside the mailbox transaction, independently of submitted flags or masked reads. Permission/impersonation checks, audit, target-blog context, consent and suppression remain unchanged. No schema change; all changes remain plugin-owned. Real intake/public collection remain disabled; Phases 3–7 remain unstarted.
+
+New standalone and real WordPress/browser regressions cover masked profile edits, crafted unlink/replacement requests, explicit authorized linking/unlinking, idempotence and suppression/eligibility preservation. Follow-up validation passed on runtime `cf2c1601ee59b7461a673810af245173a9b85e55`: [run 39101954999](https://github.com/7mus7y-dotcom/pera-wp/actions/runs/39101954999), single-site job `117599870238` and multisite job `117599870177`, both including default-theme Chromium desktop/mobile and forged-request checks. All 12 standalone scripts, 387 PHP syntax checks, browser JavaScript syntax and whitespace checks passed locally. The mobile detail screenshot was visually reviewed. The first multisite browser attempt exposed synthetic registration assigning the lead role before staff capabilities existed; fixture setup now explicitly initializes its scoped staff role, and both complete suites passed afterward. Production permissions were not relaxed. Local Docker remains socket-blocked; Safari/Firefox/manual assistive-technology checks remain unavailable. No readiness prerequisite was waived.
+
+| Date | Status | Evidence / decision |
+| --- | --- | --- |
+| 2026-10-18 | Hidden-client-link review fix verified | Run 39101954999 passed both database/browser suites; explicit stored-link authorization replaces masked-field unlink semantics. Real intake/public collection remain disabled; Phase 2 external acceptance pending. |

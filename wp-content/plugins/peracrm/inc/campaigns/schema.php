@@ -9,7 +9,7 @@ function peracrm_campaigns_schema_definitions()
 {
     global $wpdb;
     $mailbox = 'VARCHAR(254) CHARACTER SET ascii COLLATE ascii_bin';
-    return [
+    return peracrm_campaigns_phase2_definitions() + [
         'peracrm_subscribers' => "id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
             email VARCHAR(254) NOT NULL,
             normalized_email {$mailbox} NOT NULL,
@@ -109,7 +109,18 @@ function peracrm_campaigns_assert_schema()
             }
         }
         $engine = $wpdb->get_row($wpdb->prepare('SHOW TABLE STATUS WHERE Name = %s', $table), ARRAY_A);
-        $needs_unique = in_array($name, ['peracrm_subscribers', 'peracrm_email_suppressions'], true);
+        $expected_keys = [
+            'peracrm_subscribers' => ['normalized_email'], 'peracrm_email_suppressions' => ['normalized_email'],
+            'peracrm_subscriber_batches' => ['id'], 'peracrm_subscriber_tokens' => ['digest'],
+            'peracrm_subscriber_import_rows' => ['batch_id', 'line_number'],
+        ];
+        $needs_unique = isset($expected_keys[$name]);
+        if ($needs_unique) {
+            $unique_mailbox = false;
+            foreach ($keys as $key) {
+                if (array_column($key, 'Column_name') === $expected_keys[$name] && !array_filter(array_column($key, 'Sub_part'))) { $unique_mailbox = true; }
+            }
+        }
         if (array_diff($matches[1], (array) $columns) || ($needs_unique && !$unique_mailbox)
             || strtolower($engine['Engine'] ?? '') !== 'innodb') {
             throw new RuntimeException('PeraCRM campaign schema assertions failed.');

@@ -44,3 +44,11 @@ add_filter('query', static function ($query) {
     }
     return $query;
 });
+
+add_filter('query', static function ($query) {
+    if (getenv('PERACRM_PHASE2_IMPORT_PAUSE') === '1' && str_contains($query, 'INSERT INTO') && str_contains($query, 'peracrm_subscribers') && str_contains($query, 'race-phase2-public@example.test')) {
+        file_put_contents('/tmp/peracrm-phase2-import-held','inside mailbox transaction');
+        usleep(1500000);
+    }
+    return $query;
+});

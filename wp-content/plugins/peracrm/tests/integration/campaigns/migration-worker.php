@@ -39,7 +39,7 @@ if ($mode === 'race-owner') {
         $slot = peracrm_campaigns_schema_acquire_slot();
         migration_expect((bool) $slot, 'stale fixture initially owns a real native slot');
         migration_expect(peracrm_campaigns_schema_publish($slot, 'peracrm_campaigns_schema_status', [
-            'state' => 'checking', 'version' => 21, 'checked_at' => '2020-01-01 00:00:00', 'attempt_token' => $slot['token'],
+            'state' => 'checking', 'version' => 22, 'checked_at' => '2020-01-01 00:00:00', 'attempt_token' => $slot['token'],
         ]), 'interrupted attempt records checking');
         // Simulate loss of the original DB connection's advisory lock. The PHP
         // attempt resumes later; its old token must never affect its successor.
