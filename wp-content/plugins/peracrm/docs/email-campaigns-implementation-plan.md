@@ -8,7 +8,7 @@ Let Pera staff prepare newsletters and targeted campaigns inside the existing CR
 
 Future implementation PRs must update phase status, validation evidence, decisions and the progress log here. A phase must not be marked complete solely because code exists when required verification remains outstanding. Use only `not started`, `in progress`, `blocked` or `complete` for phase status. Keep repository checks distinct from external verification; record outstanding evidence explicitly.
 
-**Current implementation task:** limited Phase 3C unpublished content-capture storage/service checkpoint, based on merged #1451. Review/freeze UI, recipient materialization and atomic frozen publication remain outstanding for a dependent PR. Sending and new public collection stay disabled. Phase 1 technical foundations are accepted; Phase 2 external acceptance remains open; Phases 4–7 remain unstarted.
+**Current implementation task:** Phase 3C recipient-freeze services on the immutable content-capture foundation, based on merged #1453. Review/freeze/history UI and Phase 3C browser acceptance remain outstanding. Sending and new public collection stay disabled. Phase 1 technical foundations are accepted; Phase 2 external acceptance remains open; Phases 4–7 remain unstarted.
 
 ## Review baseline and method
 
@@ -1122,3 +1122,107 @@ publication, UI/browser acceptance and previously recorded external readiness
 remain outstanding. No theme dependency, UI, route, migration, recipient,
 delivery, scheduling or worker is added. Sending, real intake and public
 collection gates remain disabled/unchanged. No merge or deployment is performed.
+
+## Phase 3C recipient-freeze service (2026-10-18)
+
+Status: **in progress; Phase 3 remains incomplete**. No new UI or browser
+acceptance. #1453 merged at 16:31:28 UTC; latest main at task start was
+`625f48fa64436b45359b091cca829a6b8117aefe`. Branch
+`feat/campaign-recipient-freeze` targets main. No applicable AGENTS.md was found.
+Shell Git fetch failed once because proxy:8080 was unreachable; no shell network
+retry was made. Connected GitHub supplied the five changed baseline files and
+signed commit. Their complete local tree and reconstructed commit SHA match
+GitHub main exactly. The original checkout was clean; no work was discarded.
+
+### Storage, operation and temporal contract
+
+Schema 25 additively adds attempt, candidate-evaluation, frozen-recipient and
+published-revision tables using the existing target-blog migration readiness,
+InnoDB assertions and migration locking. An attempt ID identifies one membership
+revision; a unique campaign/draft revision prevents competing attempts for the
+same saved revision. Unique attempt/subscriber evaluation and attempt/mailbox
+membership constraints protect replay and deduplication. Only complete,
+reconciled, nonempty membership may receive a published-revision row.
+
+Internal services require campaign management capability, readiness and a real
+actor, deny impersonation and enter authoritative target storage. Mutations also
+require the campaign-specific `peracrm_campaign_freeze_{campaign_id}` nonce.
+Start takes the saved document/revision and immutable capture ID/hash, checks
+capture actor/blog/revision/document/rules/configuration binding and fixes the
+maximum subscriber ID. It never rerenders stored content. Duplicate starts return
+the existing materializing attempt only for the same actor and binding. A
+cancelled attempt requires a new saved draft revision before starting again.
+
+All start/continue/resume/cancel/publish operations lock the draft first, then
+the attempt, then configuration when needed. Existing draft-save locks that same
+draft and rejects any materializing attempt inside the service. An initiating
+actor and monotonically increasing attempt version fence stale operations.
+Duplicate continuation/publish requests with an old version return a conflict;
+they cannot advance twice. There is no expiring worker lease or implicit takeover.
+Each continuation handles 1–200 candidates using keyset order, one shared batched
+eligibility read and one bounded existing-mailbox read. No audience-sized load or
+per-candidate client/profile SELECT occurs. Inserts, counters and cursor commit
+together. A failed batch rolls back, then attempts a separate version-fenced
+transition to failed; storage loss may also prevent that transition, in which
+case an authorized actor reads current state and retries or cancels. Process loss
+before commit rolls back; a lost successful response is recovered by reading the
+new version. No request can assume ownership from a timeout.
+
+States are materializing, failed, cancelled and frozen. Failed/cancelled attempts
+release draft editing; resume is allowed only for failed attempts with the exact
+original draft/content/configuration binding. Any later saved revision prevents
+resumption. Cancelled/frozen attempts are terminal. Abandoned materializing
+attempts can be explicitly cancelled; administrators can fence them through the
+retention service after 30 days. There are no workers or automatic transitions.
+
+Eligibility is evaluated **during materialization against a fixed candidate ID
+boundary**, not at one database instant. Shared policy uses suppression, consent,
+linked-client, language, topic and invalid-rule precedence; an otherwise eligible
+mailbox already materialized receives the mutually exclusive duplicate exclusion.
+Deleted candidates before evaluation are absent from considered counts. Frozen
+mailbox, subscriber/client IDs, explicit language personalization, outcome,
+subscriber/evaluation version and evaluation time persist in the ledger. Current
+templates require no personal name. Client email is never substituted. Later
+sending MUST recheck live consent and suppression; frozen inclusion is historical
+evidence, not permission to send. No subscriber/consent/suppression record or
+preference token is created or modified by freeze services, and personal data is
+never inserted into shared captured HTML.
+
+Publication rechecks bindings under locks, exhaustion, persisted reason counts,
+considered = included + mutually exclusive exclusions, and included membership
+count. It inserts the unique publication and marks the attempt/draft frozen in
+one transaction. Partial, failed, cancelled and zero-included attempts cannot
+publish. Publication has no application update/delete path. Subsequent saves
+create a distinct draft revision; published captures and recipient records remain
+unchanged. Reads authorize and return stored capture bytes plus bounded keyset
+recipient/evaluation pages. No current-source rendering occurs.
+
+### Manual retention policy and validation
+
+The administrator-only cleanup service accepts one campaign/attempt and nonce.
+Only unpublished attempts untouched for more than 30 days qualify. Under the
+same draft/attempt locks it rechecks publication, cancels/fences any abandoned
+owner, and deletes at most 100 child ledger rows per call; a later empty call
+removes the attempt. Repeated manual calls finish cleanup. Published history,
+content captures and all subscriber/consent/suppression evidence are retained.
+There is no scheduled deletion. This is an explicit service policy for synthetic
+validation; production retention/legal-basis approval remains outstanding.
+
+Validation is in progress. Focused standalone freeze regressions pass, including
+inherited content/draft/foundation checks, authority, impersonation, bounded
+input and the draft-save guard. New real WordPress/MySQL fixtures cover v24
+upgrade/repeat, bindings, fixed boundaries, shared eligibility/counts, withdrawal,
+changed client/subscriber email, deduplication, rollback/resume, zero/partial/
+failed/cancelled publication denial, safe later revisions and manual retention.
+Separate-process fixtures cover competing start/start, start/save,
+continue/cancel, cancel/continue, continue/continue, publish/cancel and
+cancel/publish with actual blocking and stale-version rejection.
+
+Local Docker socket access failed `connect: operation not permitted`; UID 1000,
+dockerd running. No restart or repeated socket access was attempted. Hosted
+single-site/multisite execution is required; fixture availability is not passing
+evidence. Results will be recorded here before delivery. No new browser acceptance
+is claimed. Review/history UI, desktop/mobile review controls and Phase 3C browser
+acceptance remain outstanding, as do prior external readiness requirements.
+Sending, real intake and public collection remain disabled. No Phase 4, test
+emails, providers, scheduling, background workers, merge or deployment.

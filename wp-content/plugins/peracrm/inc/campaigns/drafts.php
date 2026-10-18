@@ -182,6 +182,11 @@ function peracrm_campaign_draft_save($id, $expected_revision, $input)
             $row = $wpdb->get_row($wpdb->prepare("SELECT revision FROM {$table} WHERE id=%d FOR UPDATE",$id),ARRAY_A);
             peracrm_campaigns_db_require(true);
             if (!$row || (int)$row['revision'] !== $expected_revision) { throw new UnexpectedValueException(); }
+            // The draft lock serializes this guard with every freeze operation. Failed/cancelled
+            // attempts release editing; any new saved revision permanently invalidates resumption.
+            $active = $wpdb->get_var($wpdb->prepare("SELECT id FROM " . peracrm_table('peracrm_campaign_freeze_attempts') . " WHERE campaign_id=%d AND state='materializing' LIMIT 1", $id));
+            peracrm_campaigns_db_require(true);
+            if ($active) { throw new InvalidArgumentException('Cancel the active recipient freeze before editing this draft.'); }
         }
         $revision = $expected_revision + 1;
         $now = gmdate('Y-m-d H:i:s'); $actor = peracrm_get_actor_user_id();

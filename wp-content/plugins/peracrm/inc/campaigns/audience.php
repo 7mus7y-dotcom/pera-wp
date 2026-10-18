@@ -48,8 +48,7 @@ function peracrm_campaign_audience_preview($id,$revision,$rules,$cursor='')
             $boundary=(int)$wpdb->get_var("SELECT COALESCE(MAX(id),0) FROM {$subscribers}");peracrm_campaigns_db_require(true);
             $state=$binding+['boundary'=>$boundary,'last'=>0,'as_of'=>gmdate('Y-m-d H:i:s'),'expires'=>time()+1800,'considered'=>0,'counts'=>array_fill_keys(['eligible','suppression','consent','linked_client','language','topic','rules'],0)];
         }
-        $rows=$wpdb->get_results($wpdb->prepare("SELECT s.*, x.normalized_email AS suppression_mailbox,x.unsubscribe,x.hard_bounce,x.complaint,x.administrative,p.post_type AS linked_type,p.post_status AS linked_status,t.disposition AS linked_disposition FROM {$subscribers} s LEFT JOIN {$suppression} x ON x.normalized_email=s.normalized_email LEFT JOIN {$wpdb->posts} p ON p.ID=s.client_id LEFT JOIN {$party} t ON t.party_id=s.client_id WHERE s.id>%d AND s.id<=%d ORDER BY s.id ASC LIMIT 201",$state['last'],$state['boundary']),ARRAY_A);
-        peracrm_campaigns_db_require(true);
+        $rows=peracrm_campaign_audience_batch($state['last'],$state['boundary'],201);
         $more=count($rows)>200;
         $filters=$rules;unset($filters['version']);
         foreach (array_slice($rows,0,200) as $row) {
@@ -61,4 +60,14 @@ function peracrm_campaign_audience_preview($id,$revision,$rules,$cursor='')
         if ((int)$current!==$revision) { throw new UnexpectedValueException('Draft changed; restart audience preview.'); }
         return ['considered'=>$state['considered'],'eligible'=>$state['counts']['eligible'],'exclusions'=>array_diff_key($state['counts'],['eligible'=>true]),'as_of'=>$state['as_of'],'checked_at'=>gmdate('Y-m-d H:i:s'),'complete'=>!$more,'cursor'=>$more ? peracrm_campaign_audience_pack($state) : '', 'notice'=>'Advisory counts; recheck at freeze/send. Fixed candidate ID boundary; concurrent edits/deletions can affect results. This is not a transactional snapshot. Exclusions use suppression, consent, linked client, language, then topic precedence.'];
     });
+}
+
+/** @internal One shared batched read, no per-recipient client/profile queries. */
+function peracrm_campaign_audience_batch($last, $boundary, $limit)
+{
+    global $wpdb;
+    $subscribers=peracrm_table('peracrm_subscribers'); $suppression=peracrm_table('peracrm_email_suppressions'); $party=peracrm_table('peracrm_party');
+    $rows=$wpdb->get_results($wpdb->prepare("SELECT s.*, x.normalized_email AS suppression_mailbox,x.unsubscribe,x.hard_bounce,x.complaint,x.administrative,p.post_type AS linked_type,p.post_status AS linked_status,t.disposition AS linked_disposition FROM {$subscribers} s LEFT JOIN {$suppression} x ON x.normalized_email=s.normalized_email LEFT JOIN {$wpdb->posts} p ON p.ID=s.client_id LEFT JOIN {$party} t ON t.party_id=s.client_id WHERE s.id>%d AND s.id<=%d ORDER BY s.id ASC LIMIT %d", $last, $boundary, $limit), ARRAY_A);
+    peracrm_campaigns_db_require(true);
+    return $rows;
 }
