@@ -609,3 +609,43 @@ or deployment is included or authorized by this record.
 | Date | Status | Evidence / decision |
 | --- | --- | --- |
 | 2026-10-18 | Phase 3A technical acceptance passed | Non-draft [PR #1450](https://github.com/7mus7y-dotcom/pera-wp/pull/1450); run 39112405507 passed both database/browser suites on e8fde98; actual screenshot review recorded above. Phase 3 remains incomplete; external approvals and readiness remain open; no merge/deploy. |
+
+
+## PR #1450 acceptance review closure (2026-10-18)
+
+Verified the implementation head `87d89ca8a539aa4ddf869fc7583378d860da40ef`
+against the three original findings and the final hosted [run 39112678562](https://github.com/7mus7y-dotcom/pera-wp/actions/runs/39112678562).
+The run belongs to that exact SHA and concluded **success**. Both full jobs passed:
+[single-site 117631934436](https://github.com/7mus7y-dotcom/pera-wp/actions/runs/39112678562/job/117631934436)
+and [multisite 117631934683](https://github.com/7mus7y-dotcom/pera-wp/actions/runs/39112678562/job/117631934683).
+The suites use real WordPress/MySQL and desktop/mobile Chromium (1440×1000 /
+390×844) on bundled Twenty Twenty-Five with only PeraCRM mounted.
+
+| Original finding | Confirmed fix at 87d89ca | Passing acceptance coverage / thread reply |
+| --- | --- | --- |
+| Campaign rewrite rules must persist automatically on upgrade | Rewrite version advances from v3 to v4; the shared CRM registrar includes campaign routes for activation and the init-time versioned flush. | Real fixtures set the old v3 marker, run init and inspect the persisted marker and `rewrite_rules`; fresh activation is checked separately. Multisite covers origin blog 1 and target blog 2. [Fix/evidence reply](https://github.com/7mus7y-dotcom/pera-wp/pull/1450#discussion_r4306828547); thread resolved. |
+| Preserve HTTP 422/409 through template loading | The campaign POST handler records its controlled `http_status`; the CRM template loader preserves campaign 422/409 instead of replacing them with 200. | Actual browser POSTs require 422 for an invalid CTA and 409 for a stale second-tab save after template loading; submitted content remains visible and the winning saved subject is unchanged. Both sizes/topologies pass. [Fix/evidence reply](https://github.com/7mus7y-dotcom/pera-wp/pull/1450#discussion_r4306828825); thread resolved. |
+| Retained failed submissions must start dirty and warn before navigation | Editor initialization derives dirty state from the rendered campaign error marker used by both validation and conflict responses. | Immediately after a 422, without another input event, the browser clicks Campaigns and requires a real `beforeunload` dialog. The same suite verifies the retained subject/error marker after 409. Desktop/mobile and single-site/multisite pass. [Fix/evidence reply](https://github.com/7mus7y-dotcom/pera-wp/pull/1450#discussion_r4306828949); thread resolved. |
+
+All three findings received individual fix-and-validation replies before their
+threads were resolved. [Re-review was requested](https://github.com/7mus7y-dotcom/pera-wp/pull/1450#issuecomment-6249343480)
+with `@codex review` while `87d89ca` was still the PR head, explicitly naming the
+full implementation SHA. GitHub's review summary confirmed the manual review
+running on that exact SHA. This follow-up changes only this living plan; runtime,
+routes, views, assets, tests and configuration gates remain exactly as at that
+validated implementation head. A review request is not a claim of reviewer
+approval; any subsequent review outcome must be recorded separately.
+
+Final-head screenshot/log bundles: [single-site](https://github.com/7mus7y-dotcom/pera-wp/actions/runs/39112678562/artifacts/12131600157)
+and [multisite](https://github.com/7mus7y-dotcom/pera-wp/actions/runs/39112678562/artifacts/12130966927),
+retained until 2026-11-01. The refreshed captures were inspected during implementation
+acceptance: desktop/mobile list/editor/configuration, mobile conflict state and
+multisite mobile editor/configuration review copies. No new screenshot inspection
+is claimed by this documentation-only closure; the existing recorded inspection
+and actual browser assertions are the evidence.
+
+**Phase 3 remains in progress and incomplete.** Phase 3B is not begun. The next
+portions remain (1) content selectors, email renderer and bounded language/topic
+audience preview; (2) review and immutable content/recipient freeze. All ownership
+remains in PeraCRM. Sending, real intake and public collection remain disabled;
+no provider, scheduling, queue/worker, merge or deployment is introduced or performed.
