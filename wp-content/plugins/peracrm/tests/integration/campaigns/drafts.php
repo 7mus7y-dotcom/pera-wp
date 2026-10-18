@@ -103,7 +103,7 @@ $ddl=0; $watch=static function ($query) use (&$ddl) { if (str_starts_with($query
 draft_target(static function () { global $wpdb; $wpdb->query('ALTER TABLE '.peracrm_table('peracrm_campaign_draft_revisions').' ADD UNIQUE KEY campaign_revision (campaign_id,revision)'); });
 draft_expect(peracrm_campaigns_retry_schema()===true,'administrator recovers draft schema assertion');
 draft_target(static function () { peracrm_upgrade_schema_to(23,23); });
-draft_expect(peracrm_campaign_draft_get($empty['id'])['revision']==='3' && count(peracrm_campaign_draft_history($empty['id']))===3,'repeated migration preserves all immutable revisions');
+draft_expect((int)peracrm_campaign_draft_get($empty['id'])['revision']===3 && count(peracrm_campaign_draft_history($empty['id']))===3,'repeated migration preserves all immutable revisions');
 wp_set_current_user($manager);
 $race=peracrm_campaign_draft_save(0,0,['internal_name'=>'Concurrency fixture','subject'=>'Original']);
 draft_target(static function () use ($race) { update_option('campaign_draft_race_id',$race['id']); });

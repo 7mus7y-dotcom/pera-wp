@@ -33,7 +33,7 @@ function peracrm_campaign_draft_document($input)
     }
     if ($out['language'] !== '' && !preg_match('/^[a-zA-Z]{2,8}(?:-[a-zA-Z0-9]{1,8})*$/D', $out['language'])) { throw new InvalidArgumentException('Use an explicit language tag, for example en or de.'); }
     $out['language'] = strtolower($out['language']);
-    if ($out['sender_id'] !== '' && !preg_match('/^[a-z][a-z0-9_-]{0,63}$/D', $out['sender_id'])) { throw new InvalidArgumentException('Invalid sender identity key.'); }
+    if ($out['sender_id'] !== '' && (!preg_match('/^[a-z][a-z0-9_-]{0,63}$/D', $out['sender_id']) || $out['sender_id'] !== ($input['sender_id'] ?? ''))) { throw new InvalidArgumentException('Invalid sender identity key.'); }
     $blocks = $input['blocks'] ?? [];
     if (!is_array($blocks) || array_values($blocks) !== $blocks || count($blocks) > 20) { throw new InvalidArgumentException('Use at most 20 ordered blocks.'); }
     $out['blocks'] = [];
@@ -64,7 +64,7 @@ function peracrm_campaign_configuration_document($input)
     foreach ($senders as $sender) {
         if (!is_array($sender) || array_diff(array_keys($sender), ['id','name','email','reply_to','approved'])) { throw new InvalidArgumentException('Unsupported sender fields.'); }
         $id = peracrm_campaign_draft_text($sender['id'] ?? '',64);
-        if (!preg_match('/^[a-z][a-z0-9_-]{0,63}$/D', $id) || isset($out['senders'][$id])) { throw new InvalidArgumentException('Sender keys must be unique, stable lowercase identifiers.'); }
+        if (!preg_match('/^[a-z][a-z0-9_-]{0,63}$/D', $id) || $id !== ($sender['id'] ?? '') || isset($out['senders'][$id])) { throw new InvalidArgumentException('Sender keys must be unique, stable lowercase identifiers.'); }
         $name = peracrm_campaign_draft_text($sender['name'] ?? '',160);
         $email = peracrm_campaign_draft_text($sender['email'] ?? '',254);
         $reply = peracrm_campaign_draft_text($sender['reply_to'] ?? '',254);
