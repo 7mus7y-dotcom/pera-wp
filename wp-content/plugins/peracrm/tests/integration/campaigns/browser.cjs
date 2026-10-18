@@ -148,6 +148,13 @@ const fs = require('fs');
  await page.goto(staff+'&search=phase2-real');
  if((await page.locator('tbody tr').filter({hasText:'phase2-real@example.test'}).locator('td').nth(1).innerText())!=='unsubscribed') throw Error('Public POST failed to withdraw');
  await page.screenshot({path:'/evidence/subscribers-after-public-post.png',fullPage:true});
+ for (const route of ['/crm/campaigns/','/crm/campaigns/new/','/crm/campaigns/configuration/','/?pera_crm=1&pera_crm_view=campaigns']) {
+  if ((await employeePage.goto(target+route)).status()!==403) throw Error('Employee campaign read accepted '+route);
+ }
+ const employeeCampaignPost=await employeeContext.request.post(target+'/crm/campaigns/new/',{form:{operation:'save',revision:'0','document[subject]':'Forbidden'}});
+ if(employeeCampaignPost.status()!==403) throw Error('Employee campaign write accepted');
+ const campaignNonce=await context.request.post(target+'/crm/campaigns/new/',{form:{operation:'save',revision:'0','document[subject]':'No nonce'}});
+ if(campaignNonce.status()!==403) throw Error('Campaign save without nonce accepted');
  await require('./draft-browser.cjs')({browser,page,target});
  if(failures.length) throw Error(failures.join('\n'));
  // Emit small synthetic-only review images so an API-only reviewer can inspect them.

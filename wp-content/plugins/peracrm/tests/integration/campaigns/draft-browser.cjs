@@ -47,6 +47,13 @@ module.exports = async function ({browser,page,target}) {
     if((await invalidResponse).status()!==422) throw Error('Invalid draft did not return 422');
     await page.locator('[data-campaign-error]').waitFor();
     if(await page.getByLabel('Link URL',{exact:true}).inputValue()!=='javascript:alert(1)' || await page.getByLabel('Subject',{exact:true}).inputValue()!=='Browser subject '+name) throw Error('Validation lost user input');
+    let retainedWarning=0;
+    const warning=dialog=>{if(dialog.type()==='beforeunload') retainedWarning++;};
+    page.on('dialog',warning);
+    await page.getByRole('link',{name:'Campaigns',exact:true}).first().click();
+    page.off('dialog',warning);
+    if(!retainedWarning) throw Error('Retained failed input did not warn before navigating away');
+    await page.goto(draftURL);
     await page.getByLabel('Link URL',{exact:true}).fill('https://example.test/corrected');
     await page.getByRole('button',{name:'Save draft',exact:true}).click();
     // Two actual editor tabs: stale browser input must not replace saved content.

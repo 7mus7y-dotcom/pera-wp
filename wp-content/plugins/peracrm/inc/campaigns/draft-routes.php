@@ -37,8 +37,9 @@ add_action('template_redirect', static function () {
         $result = is_string($raw_id) && ctype_digit($raw_id) ? peracrm_campaign_draft_duplicate((int)$raw_id) : new WP_Error('campaign_invalid','Invalid campaign.');
     } else { $result = new WP_Error('campaign_invalid','Invalid operation.'); }
     if (is_wp_error($result)) {
-        $GLOBALS['peracrm_campaign_form'] = ['document'=>$input,'revision'=>$revision,'error'=>$result->get_error_message()];
-        status_header($result->get_error_code() === 'campaign_conflict' ? 409 : 422);
+        $http_status = $result->get_error_code() === 'campaign_conflict' ? 409 : 422;
+        $GLOBALS['peracrm_campaign_form'] = ['document'=>$input,'revision'=>$revision,'error'=>$result->get_error_message(),'http_status'=>$http_status];
+        status_header($http_status);
         return;
     }
     wp_safe_redirect(add_query_arg('campaign_saved','1',peracrm_campaign_drafts_url($configuration ? 'configuration/' : $result['id'].'/')));

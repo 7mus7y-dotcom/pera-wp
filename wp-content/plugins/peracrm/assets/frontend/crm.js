@@ -2468,7 +2468,7 @@ document.addEventListener('click', function (event) {
 document.addEventListener('DOMContentLoaded', function () {
   document.querySelectorAll('[data-campaign-editor]').forEach(function (form) {
     var status = form.querySelector('[data-campaign-status]');
-    var dirty = false;
+    var dirty = Boolean(document.querySelector('[data-campaign-error]'));
     var submitted = false;
     var blocks = form.querySelector('[data-campaign-blocks]');
     var senders = form.querySelector('[data-campaign-senders]');

@@ -1,6 +1,7 @@
 <?php
 /** Real WordPress/MySQL Phase 3A only; never production data. */
 if (!defined('PERACRM_DISPOSABLE_CAMPAIGN_FIXTURE')) { throw new RuntimeException('Disposable fixture required.'); }
+global $wpdb, $wp_rewrite;
 function draft_expect($ok,$label) { if (!$ok) { throw new RuntimeException('FAIL Phase 3A: '.$label); } echo 'PASS Phase 3A: '.$label."\n"; }
 function draft_target(callable $fn) { return peracrm_with_target_blog($fn); }
 function draft_throws(callable $fn) { try { $fn(); return false; } catch (Throwable $error) { return true; } }
@@ -16,7 +17,23 @@ draft_target(static function () {
     update_option('peracrm_schema_version',22);
     update_option('peracrm_campaigns_schema_status',['state'=>'ready','version'=>22]);
 });
+// Simulate an existing v3 rewrite marker on each actual blog, without manual permalink refresh.
+foreach (array_unique([get_current_blog_id(),peracrm_get_target_blog_id()]) as $blog) {
+    if (is_multisite()) { switch_to_blog($blog); }
+    update_option('permalink_structure','/%postname%/');
+    update_option('peracrm_rewrite_version','peracrm-'.PERACRM_VERSION.'-crm-routes-v3');
+    if (is_multisite()) { restore_current_blog(); }
+}
 do_action('init');
+foreach (array_unique([get_current_blog_id(),peracrm_get_target_blog_id()]) as $blog) {
+    if (is_multisite()) { switch_to_blog($blog); }
+    $wp_rewrite->init();
+    do_action('init');
+    $rules=get_option('rewrite_rules',[]);
+    draft_expect(get_option('peracrm_rewrite_version')===peracrm_rewrite_version() && isset($rules['^crm/campaigns/?$']),'v3 upgrade automatically persists campaign rewrite rules on blog '.$blog);
+    if (is_multisite()) { restore_current_blog(); }
+}
+$wp_rewrite->init();
 draft_expect(peracrm_campaigns_schema_ready(),'actual v22 to v23 upgrade');
 draft_target(static function () { peracrm_campaigns_assert_schema(); });
 $empty=peracrm_campaign_draft_save(0,0,[]);
