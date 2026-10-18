@@ -1073,3 +1073,44 @@ Checkpoint file inventory (all relative to `wp-content/plugins/peracrm/`):
 | Standalone contracts and schema expectations | `tests/authorization-surfaces-test.php`, `tests/campaign-foundations-test.php`, `tests/campaign-theme-independence-test.php`, new `tests/campaign-snapshots-test.php` |
 | Real fixtures, wired but not locally run | `tests/integration/campaigns/assertions.php`, `tests/integration/campaigns/run-inside.sh`, new `tests/integration/campaigns/snapshots.php` |
 | Decisions/evidence/remaining work | this living plan |
+
+### Configuration-consistency review fix (2026-10-18)
+
+Based on merged #1452, current main `5fcbd6c651df6cf16776f132ef2a9b99bf53356d`.
+Connected GitHub supplied the changed baseline files; each blob, the complete
+main tree and signed merge commit were SHA-verified locally. The initial `work`
+checkout was clean at outdated `5b009f56`; no existing work was discarded. No
+applicable AGENTS.md was found in the repository/workspace tree or ancestors.
+Fix branch: `fix/campaign-review-configuration`, targeting main.
+
+Snapshot candidate construction now reads approved configuration once and passes
+that exact document to model rendering. Configuration revision/document/approver,
+structured sender, sender/footer output and the signed content hash therefore
+describe one coherent configuration revision. Ordinary editable previews retain
+their current-configuration read and existing authorization checks. Capture still
+locks draft/configuration, freshly constructs a candidate, compares its complete
+hash to the review proof and checks the locked configuration revision. A change
+after review still rejects an uncaptured stale review; stored replay semantics
+and immutable stored bytes are unchanged. Evaluation remains an interval, not a
+claim that all content sources share a single-time database snapshot.
+
+The standalone regression replaces configuration immediately after its first
+read, verifies one read and coherent revision/approver/sender/footer/HTML/text/
+proof, and requires stale capture to fail without writing. It fails against the
+original implementation and passes with this fix. The real WordPress fixture
+changes the configuration row between the first SELECT and the next query,
+checks the same coherence and stale-capture contract, and restores configuration
+through the authorized save service. It runs in both existing hosted topology
+jobs. Focused snapshot regressions (including inherited draft/preview/foundation
+contracts), ownership/authorization guards, syntax checks for all four changed
+PHP files and whitespace checks pass locally. Hosted results will be recorded
+after the fix PR's existing integration workflow runs; fixture availability alone
+is not acceptance evidence. No local Docker integration run is claimed.
+
+Changed files are `inc/campaigns/renderer.php`, `inc/campaigns/snapshots.php`,
+`tests/campaign-snapshots-test.php`, `tests/integration/campaigns/snapshots.php`
+and this plan. **Phase 3 remains in progress and incomplete.** Recipient freezing,
+publication, UI/browser acceptance and previously recorded external readiness
+remain outstanding. No theme dependency, UI, route, migration, recipient,
+delivery, scheduling or worker is added. Sending, real intake and public
+collection gates remain disabled/unchanged. No merge or deployment is performed.

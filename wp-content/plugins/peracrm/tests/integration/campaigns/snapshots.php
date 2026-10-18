@@ -28,6 +28,43 @@ $draft = peracrm_campaign_draft_save(0, 0, $document);
 snapshot_expect(!is_wp_error($draft), 'saved snapshot source draft');
 $document = $draft['document']; $id = $draft['id'];
 $nonce = wp_create_nonce('peracrm_campaign_snapshot_' . $id . '_1');
+// Change configuration after its first SELECT has returned, before the next
+// query (normally content cache priming). A second configuration read would see
+// this new revision and mix it with the first read's metadata.
+$configuration_reads = 0; $configuration_changed = false;
+$concurrent_configuration = $configuration;
+$concurrent_configuration['senders'][0]['name'] = 'Concurrent sender';
+$concurrent_configuration['senders'][0]['email'] = 'concurrent@example.org';
+$concurrent_configuration['senders'][0]['reply_to'] = 'concurrent-reply@example.org';
+$concurrent_configuration['footer'] = 'Concurrent footer and address';
+$race = static function ($sql) use (&$configuration_reads, &$configuration_changed, $concurrent_configuration, $configured) {
+    global $wpdb;
+    $configuration_select = 'SELECT * FROM ' . peracrm_table('peracrm_campaign_configuration') . ' WHERE id=1';
+    if ($configuration_reads > 0 && !$configuration_changed) {
+        $configuration_changed = true; // Guard the nested fixture UPDATE query.
+        snapshot_expect($wpdb->update(peracrm_table('peracrm_campaign_configuration'), ['revision' => $configured['revision'] + 1, 'document_json' => wp_json_encode($concurrent_configuration)], ['id' => 1]) === 1, 'fixture configuration changes after first read');
+    }
+    if ($sql === $configuration_select) { $configuration_reads++; }
+    return $sql;
+};
+add_filter('query', $race);
+try { $racing_review = peracrm_campaign_snapshot_review($id, 1, $document); }
+finally { remove_filter('query', $race); }
+$racing_content = $racing_review['content'];
+$racing_binding = peracrm_campaign_audience_unpack($racing_review['review_proof']);
+snapshot_expect($configuration_changed && $configuration_reads === 1, 'review reads configuration once during concurrent change');
+snapshot_expect($racing_content['configuration_revision'] === $configured['revision'] && $racing_content['configuration'] === $configured['document']
+    && $racing_content['sender'] === $configured['document']['senders'][0] && $racing_content['configuration_approved_by'] === $admin
+    && $racing_content['model']['sender'] === 'Pera <news@example.org> · Reply-to: reply@example.org' && $racing_content['model']['footer'] === $configuration['footer']
+    && str_contains($racing_content['output']['html'], $configuration['footer']) && str_contains($racing_content['output']['text'], 'Pera <news@example.org>')
+    && !str_contains($racing_content['output']['text'], 'Concurrent')
+    && $racing_binding['content_hash'] === hash('sha256', peracrm_campaign_snapshot_json($racing_content)), 'review output and signed proof describe the same configuration revision');
+snapshot_expect(is_wp_error(peracrm_campaign_snapshot_capture($id, 1, $document, $racing_review['review_proof'], $nonce))
+    && peracrm_with_target_blog(static function () use ($id) { global $wpdb; return (int)$wpdb->get_var($wpdb->prepare('SELECT COUNT(*) FROM ' . peracrm_table('peracrm_campaign_content_snapshots') . ' WHERE campaign_id=%d', $id)); }) === 0, 'changed configuration rejects stale capture without a partial artifact');
+wp_set_current_user($admin);
+$configured = peracrm_campaign_configuration_save($configured['revision'] + 1, $configuration);
+snapshot_expect(!is_wp_error($configured), 'restore configuration through authorized save after race');
+wp_set_current_user($manager);
 $review = peracrm_campaign_snapshot_review($id, 1, $document);
 $translated = peracrm_campaign_draft_save(0, 0, array_replace($document, ['language' => 'de']));
 snapshot_expect(!is_wp_error($translated) && snapshot_throws(static function () use ($translated) { peracrm_campaign_snapshot_review($translated['id'], 1, $translated['document']); }), 'missing required translation cannot be reviewed');
