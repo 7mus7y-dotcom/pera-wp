@@ -1,14 +1,14 @@
 # Integrated email campaigns: repository review and living implementation plan
 
-Review status: **complete** (2026-10-17). Implementation: **Phase 1 complete (technical acceptance)**; **Phase 2 in progress**; **Phase 3 in progress (Phase 3A draft/editor implementation)**; Phases 4–7 not started.
+Review status: **complete** (2026-10-17). Implementation: **Phase 1 complete (technical acceptance)**; **Phase 2 in progress**; **Phase 3 in progress (3A/3B technical acceptance; 3C remaining)**; Phases 4–7 not started.
 
 ## Purpose, scope and maintenance
 
-Let Pera staff prepare newsletters and targeted campaigns inside the existing CRM, with an external provider delivering mail. This document is the authoritative review and implementation plan. Phase 2 adds plugin-owned subscriber management, isolated preview/import services, suppression intake and public preferences with real intake gated off. Phase 3A adds draft/revision storage, approved configuration and the structured editor. No provider, queue, scheduling, delivery, production contacts, merge or deployment is included.
+Let Pera staff prepare newsletters and targeted campaigns inside the existing CRM, with an external provider delivering mail. This document is the authoritative review and implementation plan. Phase 2 adds plugin-owned subscriber management, isolated preview/import services, suppression intake and public preferences with real intake gated off. Phase 3A adds draft/revision storage, approved configuration and the structured editor. Phase 3B adds public content references, current-draft rendering and advisory language/topic audience previews. No provider, queue, scheduling, delivery, production contacts, merge or deployment is included.
 
 Future implementation PRs must update phase status, validation evidence, decisions and the progress log here. A phase must not be marked complete solely because code exists when required verification remains outstanding. Use only `not started`, `in progress`, `blocked` or `complete` for phase status. Keep repository checks distinct from external verification; record outstanding evidence explicitly.
 
-**Current implementation task:** Phase 3, split into reviewable dependent PRs, continuing with Phase 3A draft storage and the structured editor after merged #1449. Sending and new public collection stay disabled. Phase 1 technical foundations are accepted; Phase 2 external acceptance remains open; Phases 4–7 remain unstarted.
+**Current implementation task:** Phase 3, split into reviewable dependent PRs, Phase 3B technical implementation and checks are complete on merged #1450; Phase 3C review/freeze remains outstanding. Sending and new public collection stay disabled. Phase 1 technical foundations are accepted; Phase 2 external acceptance remains open; Phases 4–7 remain unstarted.
 
 ## Review baseline and method
 
@@ -644,7 +644,7 @@ multisite mobile editor/configuration review copies. No new screenshot inspectio
 is claimed by this documentation-only closure; the existing recorded inspection
 and actual browser assertions are the evidence.
 
-**Phase 3 remains in progress and incomplete.** Phase 3B is not begun. The next
+**Phase 3 remains in progress and incomplete.** At Phase 3A closure, Phase 3B was not begun. The next
 portions remain (1) content selectors, email renderer and bounded language/topic
 audience preview; (2) review and immutable content/recipient freeze. All ownership
 remains in PeraCRM. Sending, real intake and public collection remain disabled;
@@ -652,7 +652,7 @@ no provider, scheduling, queue/worker, merge or deployment is introduced or perf
 
 ## Phase 3B — content, draft rendering and audience preview (2026-10-18)
 
-Status: **in progress**. Phase 3 remains **in progress**; Phase 3C remains **not started**.
+Status: **complete** (Phase 3B technical acceptance). Phase 3 remains **in progress**; Phase 3C remains **not started**.
 PR #1450 merged at 11:35:13 UTC as `5b009f562b5a76811ff7e007dd99472097b2f953`;
 Phase 3B starts at that latest main, branch `feat/campaign-phase3b`. No dependent
 unmerged PR is required. No applicable AGENTS.md exists in the searched repository
@@ -762,3 +762,86 @@ bounded resumable/cancellable freeze and atomic publication. No review/freeze,
 recipient materialization, test emails, delivery, scheduling, providers, queues,
 workers, merge or deployment is implemented or authorized here. Phase 3 stays
 incomplete; Phase 4–7 remain not started.
+
+
+### Phase 3B final acceptance evidence
+
+Non-draft [PR #1451](https://github.com/7mus7y-dotcom/pera-wp/pull/1451) targets main.
+Final runtime and test commit `d4b1cafc02e6e59125b762492830707674a223a6` passed
+[run 39128396228](https://github.com/7mus7y-dotcom/pera-wp/actions/runs/39128396228):
+
+| Topology | Result | Screenshots and logs (retained until November 1) |
+| --- | --- | --- |
+| Single-site | Job 117678291498: success | [Artifact 12137490605](https://github.com/7mus7y-dotcom/pera-wp/actions/runs/39128396228/artifacts/12137490605) |
+| Multisite | Job 117678291323: success | [Artifact 12137276655](https://github.com/7mus7y-dotcom/pera-wp/actions/runs/39128396228/artifacts/12137276655) |
+
+Both jobs include the existing regressions and real WordPress/MySQL suites, then
+Chromium controls at 1440×1000 and 390×844 on a bundled default theme. Actual
+selectors paginate and exclude private/draft/pending/future/trash/password posts;
+selected blocks reorder, save/reload and remove; searching preserves unsaved text.
+HTML and plain-text controls render unsaved current text. Tests assert no-store,
+empty iframe sandbox, restrictive CSP, no active links/scripts/forms, separate
+validated destinations and no horizontal overflow in page or frame. Audience
+controls require saved rules, handle multiple bounded requests and show zero
+eligible recipients. No subscriber or consent/suppression change, public token
+issuance, recipient ledger or sending is introduced. New candidates after the
+initial maximum-ID boundary are excluded; signed foreign actor/blog, changed
+rules/revision, tampering and expiry invalidate progress.
+
+Visually inspected emitted synthetic JPEG review copies of
+`campaign-preview-desktop/mobile.png`, `campaign-content-desktop/mobile.png`,
+`campaign-missing-mobile.png` and `campaign-audience-mobile.png`, including
+multisite desktop/mobile controls. Full PNGs are retained in both artifacts.
+Long unbroken text wraps; v2 USD ranges, missing images/prices and unavailable
+German translations remain readable inside the mobile frame. The zero-audience
+example reconciles 441 considered = 0 eligible + 62 suppression + 60 consent +
+58 linked-client + 261 topic exclusions (language/rules exclusions both zero).
+Only component screenshot capture temporarily hides the existing sticky shell
+header/admin bar to avoid overlaying the captured region; controls and overflow
+assertions run with the ordinary shell. Missing-data captures explicitly scroll
+inside the frame; this changes no product styles or behavior.
+
+Initial hosted checks caught a fixture `future` post without a future timestamp,
+which WordPress published immediately. The fixture now assigns tomorrow's date;
+pagination assertions remain intact. A subsequent actual browser check caught
+ambiguous content-kind labeling; the selector now has an explicit accessible
+name. Both complete suites pass after those corrections; no failed assertion
+was waived. Earlier passing run 39128140889 validated the same production code;
+final run adds fixed-boundary/token assertions and clearer screenshot coverage.
+All 14 standalone scripts, 394 plugin PHP syntax checks, CRM/browser JavaScript,
+both shell runners, Compose configuration and whitespace checks pass locally.
+The final follow-up updates documentation only; runtime/test trees stay identical
+to the validated commit above.
+
+Remaining verification: Gmail/Outlook inbox rendering; Safari/Firefox; manual
+assistive-technology and copy/translation approval; actual production topology,
+HTTPS/cache/log behavior, approved identities/address, domain/provider readiness,
+suppression-source completeness and retention/legal-basis decisions. These are
+not established by browser previews. Real intake/public collection stay gated
+and sending stays absent. Phase 3C explicit review, content/recipient snapshots,
+bounded resumable freeze and atomic publication remain unimplemented. Phase 3
+is incomplete; Phases 4–7 remain not started. No merge or deployment occurred.
+
+Changed files, all relative to `wp-content/plugins/peracrm/`:
+
+```text
+assets/frontend/crm.css
+assets/frontend/crm.js
+docs/email-campaigns-implementation-plan.md
+inc/bootstrap.php
+inc/campaigns/audience.php
+inc/campaigns/content.php
+inc/campaigns/drafts.php
+inc/campaigns/preview-routes.php
+inc/campaigns/renderer.php
+inc/campaigns/service.php
+inc/views/pages/crm-campaigns.php
+tests/campaign-drafts-test.php
+tests/campaign-previews-test.php
+tests/integration/campaigns/browser.cjs
+tests/integration/campaigns/compose.yaml
+tests/integration/campaigns/fixture-guard.php
+tests/integration/campaigns/preview-browser.cjs
+tests/integration/campaigns/previews.php
+tests/integration/campaigns/run-inside.sh
+```
