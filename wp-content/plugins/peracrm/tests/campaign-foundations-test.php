@@ -2,7 +2,7 @@
 /** Standalone behavior harness: synthetic identities and stub DB/WP only. */
 define('ABSPATH', __DIR__ . '/fixtures/campaign-wp/');
 define('PERACRM_TARGET_BLOG_ID', 2);
-define('PERACRM_SCHEMA_VERSION', 23);
+define('PERACRM_SCHEMA_VERSION', 24);
 define('ARRAY_A', 'ARRAY_A');
 require __DIR__ . '/fixtures/campaign-memory-db.php';
 $GLOBALS['wpdb'] = new Campaign_Memory_DB();
@@ -78,6 +78,7 @@ require $root . '/inc/roles.php';
 require $root . '/inc/schema.php';
 require $root . '/inc/campaigns/management-schema.php';
 require $root . '/inc/campaigns/draft-schema.php';
+require $root . '/inc/campaigns/snapshot-schema.php';
 require $root . '/inc/campaigns/schema.php';
 require $root . '/inc/campaigns/repository.php';
 require $root . '/inc/campaigns/service.php';
@@ -97,13 +98,13 @@ $GLOBALS['campaign_roles'][2]['administrator']->add_cap('manage_options');
 // Skip unrelated historical v4 migration work in the fresh-install stub.
 $GLOBALS['campaign_options'][2]['peracrm_migration_v4_done'] = 1;
 do_action('init');
-campaign_expect(get_option('peracrm_schema_version') === false && (int) $GLOBALS['campaign_options'][2]['peracrm_schema_version'] === 23, 'fresh schema marker and tables are target-scoped');
+campaign_expect(get_option('peracrm_schema_version') === false && (int) $GLOBALS['campaign_options'][2]['peracrm_schema_version'] === 24, 'fresh schema marker and tables are target-scoped');
 $ddl = $wpdb->ddl;
-peracrm_upgrade_schema_to(23, 23);
+peracrm_upgrade_schema_to(24, 24);
 campaign_expect($ddl === $wpdb->ddl, 'repeated DDL definitions are stable (stub only)');
 $GLOBALS['campaign_options'][2]['peracrm_schema_version'] = 20;
 do_action('init');
-campaign_expect((int) $GLOBALS['campaign_options'][2]['peracrm_schema_version'] === 23, 'previous-schema upgrade wires v21');
+campaign_expect((int) $GLOBALS['campaign_options'][2]['peracrm_schema_version'] === 24, 'previous-schema upgrade wires v21');
 // This is the same callback registration executed by normal plugin init.
 $GLOBALS['campaign_existing_init_ran'] = 0;
 add_action('init', static function () { $GLOBALS['campaign_existing_init_ran']++; }, 6);
