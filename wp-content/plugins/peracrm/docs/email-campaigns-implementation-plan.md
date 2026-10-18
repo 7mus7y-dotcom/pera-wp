@@ -1309,7 +1309,39 @@ retained/recaptured old content, repeated empty cleanup, resume/publication deni
 new-revision success and unchanged published content/membership. Two additional
 separate-connection races pause cleanup under its locks while start/resume wait,
 then verify the retained cancelled row and rejection of both stale and current
-versions. Focused checks and both real hosted topology suites are pending for
-this follow-up; results will be recorded after execution. Phase 3 remains
+versions. Focused checks and both real hosted topology suites passed for
+this follow-up; actual evidence is recorded below. Phase 3 remains
 incomplete; review/history UI and Phase 3C browser acceptance stay outstanding.
 Sending, real intake and public collection remain disabled. No merge/deployment.
+
+
+Follow-up validation on implementation/test head
+`896c52993242dec61181b23260762842b4cd77e0`:
+
+- The new focused regression fails against the pre-fix cleanup and passes with
+  the fix. All 16 standalone regression scripts, changed PHP syntax, integration
+  runner shell syntax and whitespace checks pass locally.
+- [Hosted run 39149899957](https://github.com/7mus7y-dotcom/pera-wp/actions/runs/39149899957)
+  passed both complete real WordPress/MySQL suites:
+  [single-site job 117741206517](https://github.com/7mus7y-dotcom/pera-wp/actions/runs/39149899957/job/117741206517)
+  and [multisite job 117741206727](https://github.com/7mus7y-dotcom/pera-wp/actions/runs/39149899957/job/117741206727).
+  Retained [single-site artifact 12145230236](https://github.com/7mus7y-dotcom/pera-wp/actions/runs/39149899957/artifacts/12145230236)
+  and [multisite artifact 12144588521](https://github.com/7mus7y-dotcom/pera-wp/actions/runs/39149899957/artifacts/12144588521)
+  include the synthetic logs and existing browser regression evidence.
+- Fetched logs from both jobs explicitly confirm complete multi-batch payload
+  deletion with a retained cancelled campaign/revision row, repeated zero-delete
+  cleanup with identical tombstone metadata, retained/recaptured content restart
+  denial, resume/publication denial, old capture rejection for the next revision,
+  successful new-revision freezing and unchanged published content/membership.
+  Both new cleanup/start and cleanup/resume races pass with distinct connections,
+  actual blocking and rejection after cleanup commits, including current-version
+  resume rejection. All seven previous race scenarios and existing regression
+  suites also pass. No new browser acceptance is claimed.
+
+This follow-up changes only `inc/campaigns/freeze.php`, the focused freeze test,
+the two real freeze fixture files, their shell runner and this plan. The final
+validation-record commit is documentation-only; runtime/tests match the passing
+head above. Local Docker and shell Git networking remain unavailable as recorded
+earlier; connected GitHub tools supplied publication and hosted execution.
+Phase 3 remains incomplete, all disabled gates unchanged, and no UI, merge or
+deployment is included.
