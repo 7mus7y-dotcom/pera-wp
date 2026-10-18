@@ -9,8 +9,8 @@ function peracrm_campaigns_schema_ready()
 {
     return peracrm_with_target_blog(static function () {
         $status = peracrm_campaigns_schema_option('peracrm_campaigns_schema_status', []);
-        return ($status['state'] ?? '') === 'ready' && (int) ($status['version'] ?? 0) === 22
-            && (int) peracrm_campaigns_schema_option('peracrm_schema_version', 0) >= 22;
+        return ($status['state'] ?? '') === 'ready' && (int) ($status['version'] ?? 0) === PERACRM_SCHEMA_VERSION
+            && (int) peracrm_campaigns_schema_option('peracrm_schema_version', 0) >= PERACRM_SCHEMA_VERSION;
     });
 }
 

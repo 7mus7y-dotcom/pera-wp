@@ -26,6 +26,9 @@ $items = array(
 	'pipeline' => array( 'label' => __( 'Pipeline', 'peracrm' ), 'url' => home_url( '/crm/pipeline/' ) ),
 	'performance' => array( 'label' => __( 'Performance', 'peracrm' ), 'url' => home_url( '/crm/performance/' ) ),
 );
+if ( function_exists('peracrm_campaigns_staff_can') && peracrm_campaigns_staff_can('peracrm_manage_campaigns') ) {
+    $items['campaigns'] = array('label' => __('Campaigns', 'peracrm'), 'url' => peracrm_campaign_drafts_url());
+}
 if ( function_exists('peracrm_campaigns_staff_can') && peracrm_campaigns_staff_can('peracrm_manage_subscribers') ) {
     $items['subscribers'] = array('label' => __('Subscribers', 'peracrm'), 'url' => peracrm_subscribers_url());
 }

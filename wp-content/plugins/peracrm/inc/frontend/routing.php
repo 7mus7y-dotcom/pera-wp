@@ -77,6 +77,11 @@ if (!function_exists('pera_crm_register_route')) {
         add_rewrite_rule('^' . $crm_route_prefix . '/performance/?$', 'index.php?pera_crm=1&pera_crm_view=performance', 'top');
         add_rewrite_rule('^' . $crm_route_prefix . '/whatsapp-logs/?$', 'index.php?pera_crm=1&pera_crm_view=whatsapp_logs', 'top');
         add_rewrite_rule('^' . $crm_route_prefix . '/email-logs/?$', 'index.php?pera_crm=1&pera_crm_view=email_logs', 'top');
+
+        // The lifecycle calls this registrar before flushing on fresh activation.
+        if (function_exists('peracrm_campaign_drafts_register_routes')) {
+            peracrm_campaign_drafts_register_routes();
+        }
     }
 }
 add_action('init', 'pera_crm_register_route');
@@ -392,6 +397,10 @@ if (!function_exists('peracrm_frontend_resolve_crm_template')) {
             return peracrm_frontend_view_path('pages/crm-new.php');
         }
 
+        if ($view === 'campaigns') {
+            return peracrm_frontend_view_path('pages/crm-campaigns.php');
+        }
+
         if ($view === 'subscribers') {
             return peracrm_frontend_view_path('pages/crm-subscribers.php');
         }
@@ -440,7 +449,8 @@ if (!function_exists('pera_crm_maybe_load_template')) {
         $crm_template = peracrm_frontend_resolve_crm_template($action, $view);
 
         if ($crm_template !== '' && file_exists($crm_template)) {
-            status_header(200);
+            $campaign_status = $view === 'campaigns' ? (int) ($GLOBALS['peracrm_campaign_form']['http_status'] ?? 200) : 200;
+            status_header(in_array($campaign_status, [409, 422], true) ? $campaign_status : 200);
             return $crm_template;
         }
 
@@ -547,7 +557,7 @@ add_filter('body_class', 'pera_crm_add_body_class');
 if (!function_exists('peracrm_rewrite_version')) {
     function peracrm_rewrite_version(): string
     {
-        return 'peracrm-' . PERACRM_VERSION . '-crm-routes-v3';
+        return 'peracrm-' . PERACRM_VERSION . '-crm-routes-v4';
     }
 }
 

@@ -27,7 +27,7 @@ add_filter('query', static function ($query) {
         file_put_contents('/tmp/peracrm-migration-loser-paused', 'before atomic acquisition');
         peracrm_fixture_wait_for('/tmp/peracrm-migration-owner-ready');
     }
-    if (str_starts_with($query, 'CREATE TABLE ') && preg_match('/peracrm_(?:subscribers|subscription_events|email_suppressions|email_suppression_events) /', $query)
+    if (str_starts_with($query, 'CREATE TABLE ') && preg_match('/peracrm_(?:subscribers|subscription_events|email_suppressions|email_suppression_events|campaign_drafts|campaign_draft_revisions|campaign_configuration) /', $query)
         && in_array($mode, ['race-owner', 'race-loser'], true)) {
         file_put_contents('/tmp/peracrm-migration-installers', $mode . ':' . $wpdb->get_var('SELECT CONNECTION_ID()') . "\n", FILE_APPEND | LOCK_EX);
         if (str_contains($query, 'peracrm_subscribers ')) {

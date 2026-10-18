@@ -44,7 +44,7 @@ function peracrm_campaigns_run_schema_upgrade($retry)
                 && ($status['checked_at'] ?? '') > gmdate('Y-m-d H:i:s', time() - 900)) {
                 return new WP_Error('campaign_schema_busy', 'Schema verification is already running.');
             }
-            $attempt = ['version' => 22, 'attempt_token' => $slot['token'], 'checked_at' => gmdate('Y-m-d H:i:s')];
+            $attempt = ['version' => PERACRM_SCHEMA_VERSION, 'attempt_token' => $slot['token'], 'checked_at' => gmdate('Y-m-d H:i:s')];
             if ($retry) {
                 $attempt['retry_actor_user_id'] = peracrm_get_actor_user_id();
             }

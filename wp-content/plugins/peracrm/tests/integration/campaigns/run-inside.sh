@@ -12,9 +12,12 @@ if [ "$fixture_mode" = multi ]; then
     wp core multisite-install --url=http://fixture.test --title=Fixture --admin_user=fixture-admin --admin_password=fixture-admin-only --admin_email=admin@example.test --skip-email
     wp site create --slug=crm --title=CRM --email=admin@example.test
     wp config set PERACRM_TARGET_BLOG_ID 2 --raw
+    wp rewrite structure '/%postname%/' --hard
+    wp --url=http://fixture.test/crm rewrite structure '/%postname%/' --hard
     wp plugin activate peracrm --network
 else
     wp core install --url=http://fixture.test --title=Fixture --admin_user=fixture-admin --admin_password=fixture-admin-only --admin_email=admin@example.test --skip-email
+    wp rewrite structure '/%postname%/' --hard
     wp plugin activate peracrm
 fi
 wp eval-file /tests/assertions.php migrations
@@ -82,4 +85,14 @@ phase2_public_pid=$!
 wait "$phase2_import_pid"
 wait "$phase2_public_pid"
 wp eval-file /tests/import-worker.php verify
+wp eval-file /tests/drafts.php
+rm -f /tmp/peracrm-draft-held /tmp/peracrm-draft-result-*
+wp eval-file /tests/draft-worker.php first &
+draft_first_pid=$!
+wait_for_migration_marker /tmp/peracrm-draft-held
+wp eval-file /tests/draft-worker.php second &
+draft_second_pid=$!
+wait "$draft_first_pid"
+wait "$draft_second_pid"
+wp eval-file /tests/draft-worker.php verify
 printf 'PASS disposable %s WordPress/MySQL fixtures\n' "$fixture_mode"
