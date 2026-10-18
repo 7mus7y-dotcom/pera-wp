@@ -165,6 +165,36 @@ management_expect(empty(management_identity('phase2-ambiguous@example.test')['cl
 management_expect(is_wp_error(peracrm_campaigns_save_subscriber('phase2-ambiguous@example.test',['client_id'=>(int)$ambiguous[0]])), 'explicit ambiguous client link rejected');
 management_expect(management_target(static function () use ($ambiguous) { return get_post_status($ambiguous[0]) === 'draft' && get_post_status($ambiguous[1]) === 'draft'; }), 'ambiguity never republishes, merges or trashes clients');
 
+// A subscriber manager with assigned-client scope must preserve masked links.
+$link_fixture = management_target(static function () use ($manager) {
+    $restricted = wp_insert_user(['user_login' => 'fixture-subscriber-scoped', 'user_pass' => 'fixture-scoped-only', 'role' => 'subscriber']);
+    $user = new WP_User($restricted);
+    $user->add_cap('peracrm_manage_subscribers'); $user->add_cap('edit_crm_clients');
+    $client = wp_insert_post(['post_type' => 'crm_client', 'post_status' => 'draft', 'post_title' => 'Synthetic hidden client']);
+    update_post_meta($client, '_peracrm_email', 'phase2-hidden@example.test');
+    $replacement = wp_insert_post(['post_type' => 'crm_client', 'post_status' => 'draft', 'post_title' => 'Synthetic accessible replacement']);
+    update_post_meta($replacement, 'assigned_advisor_user_id', $restricted);
+    return ['user' => $restricted, 'client' => $client, 'replacement' => $replacement];
+});
+$hidden_id = peracrm_campaigns_save_subscriber('phase2-hidden@example.test', ['client_id' => (int) $link_fixture['client']]);
+management_expect(!is_wp_error($hidden_id), 'authorized explicit link succeeds');
+wp_set_current_user($link_fixture['user']);
+management_expect(peracrm_subscribers_detail($hidden_id)['client_id'] === null, 'inaccessible client masked on read');
+management_expect(!is_wp_error(peracrm_campaigns_save_subscriber('phase2-hidden@example.test', ['client_id' => null, 'preferred_language' => 'fr', 'preferences' => ['news']])), 'masked profile edit accepted');
+management_expect((int) management_identity('phase2-hidden@example.test')['client_id'] === (int) $link_fixture['client'], 'language/topics retain inaccessible stored link');
+management_expect(is_wp_error(peracrm_campaigns_unlink_subscriber_client('phase2-hidden@example.test')), 'scoped manager cannot explicitly unlink hidden client');
+management_expect(is_wp_error(peracrm_campaigns_save_subscriber('phase2-hidden@example.test', ['client_id' => (int) $link_fixture['replacement']])), 'scoped manager cannot replace hidden client');
+peracrm_campaigns_withdraw('phase2-hidden@example.test', ['source' => 'fixture']);
+wp_set_current_user($manager);
+management_expect(peracrm_campaigns_unlink_subscriber_client('phase2-hidden@example.test') === true, 'authorized explicit unlink succeeds');
+management_expect(peracrm_campaigns_unlink_subscriber_client('phase2-hidden@example.test') === true, 'authorized repeated unlink idempotent');
+management_expect(!peracrm_campaigns_is_eligible('phase2-hidden@example.test') && management_identity('phase2-hidden@example.test')['unsubscribe'], 'unlink preserves suppression and ineligibility');
+peracrm_campaigns_save_subscriber('phase2-hidden@example.test', ['client_id' => (int) $link_fixture['client']]);
+$browser_fixture = json_decode(file_get_contents('/var/www/html/phase2-fixture.json'), true);
+$browser_fixture['hidden_id'] = $hidden_id;
+$browser_fixture['replacement'] = $link_fixture['replacement'];
+file_put_contents('/var/www/html/phase2-fixture.json', wp_json_encode($browser_fixture));
+
 // Apache fixture owns no host port; these rules only serve synthetic browser checks.
 file_put_contents('/var/www/html/.htaccess', "<IfModule mod_rewrite.c>\nRewriteEngine On\nRewriteBase /\nRewriteRule ^index\\.php$ - [L]\nRewriteRule ^([_0-9a-zA-Z-]+/)?(wp-(content|admin|includes).*) $2 [L]\nRewriteRule ^([_0-9a-zA-Z-]+/)?(.*\\.php)$ $2 [L]\nRewriteCond %{REQUEST_FILENAME} !-f\nRewriteCond %{REQUEST_FILENAME} !-d\nRewriteRule . /index.php [L]\n</IfModule>\n");
 

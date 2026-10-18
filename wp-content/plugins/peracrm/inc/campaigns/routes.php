@@ -74,13 +74,18 @@ function peracrm_subscribers_staff_post()
     $operation = (string) ($_POST['operation'] ?? '');
     $destination = peracrm_subscribers_url();
     try {
-        if ($operation === 'profile' || $operation === 'withdraw') {
+        if (in_array($operation, ['profile', 'withdraw', 'link_client', 'unlink_client'], true)) {
             $row = peracrm_subscribers_detail((int) ($_POST['subscriber_id'] ?? 0));
             if (!$row) { throw new RuntimeException('Subscriber unavailable.'); }
             if ($operation === 'profile') {
                 $topics = trim((string) wp_unslash($_POST['topics'] ?? ''));
-                $client = trim((string) ($_POST['client_id'] ?? ''));
-                $result = peracrm_campaigns_save_subscriber($row['normalized_email'], ['preferred_language' => (string) wp_unslash($_POST['language'] ?? ''), 'preferences' => $topics === '' ? [] : explode('|', $topics), 'client_id' => $client === '' ? null : (int) $client]);
+                $result = peracrm_campaigns_save_subscriber($row['normalized_email'], ['preferred_language' => (string) wp_unslash($_POST['language'] ?? ''), 'preferences' => $topics === '' ? [] : explode('|', $topics)]);
+            } elseif ($operation === 'link_client') {
+                $client = (string) ($_POST['client_id'] ?? '');
+                if (!ctype_digit($client) || (int) $client < 1) { throw new RuntimeException('Client required.'); }
+                $result = peracrm_campaigns_save_subscriber($row['normalized_email'], ['client_id' => (int) $client]);
+            } elseif ($operation === 'unlink_client') {
+                $result = peracrm_campaigns_unlink_subscriber_client($row['normalized_email']);
             } else { $result = peracrm_campaigns_withdraw($row['normalized_email'], ['source' => 'staff_withdrawal']); }
             if (is_wp_error($result)) { throw new RuntimeException('Change was not accepted.'); }
             $destination = peracrm_subscribers_url($row['id'] . '/');

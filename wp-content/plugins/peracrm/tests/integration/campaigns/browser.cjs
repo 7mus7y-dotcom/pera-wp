@@ -41,6 +41,36 @@ const fs = require('fs');
   await page.getByRole('heading',{name:'Record a historical suppression'}).waitFor();
   await page.screenshot({path:'/evidence/suppression-'+name+'.png',fullPage:true});
  }
+ // Real staff forms: unrelated edits and crafted requests preserve masked links.
+ const scopedContext=await browser.newContext();
+ const scoped=await scopedContext.newPage();
+ await scoped.goto(target+'/wp-login.php');
+ await scoped.locator('#user_login').fill('fixture-subscriber-scoped');
+ await scoped.locator('#user_pass').fill('fixture-scoped-only');
+ await Promise.all([scoped.waitForURL(url=>!url.pathname.endsWith('wp-login.php')),scoped.locator('#wp-submit').click()]);
+ const hiddenURL=target+'/crm/subscribers/'+fixture.hidden_id+'/';
+ await scoped.goto(hiddenURL);
+ if(await scoped.getByRole('button',{name:'Unlink client',exact:true}).count()) throw Error('Hidden client exposes unlink control');
+ await scoped.locator('input[name="language"]').fill('de');
+ await scoped.locator('input[name="topics"]').fill('news|property');
+ await scoped.getByRole('button',{name:'Save profile',exact:true}).click();
+ await scoped.locator('input[name="language"][value="de"]').waitFor();
+ const crafted=async(operation,client)=>scoped.evaluate(async({operation,client})=>{
+  const form=document.querySelector('input[name="operation"][value="profile"]').form;
+  const body=new URLSearchParams(new FormData(form));
+  body.set('operation',operation); body.set('client_id',String(client)); body.set('client_hidden','0');
+  await fetch(form.action,{method:'POST',body});
+ },{operation,client});
+ await crafted('profile','');
+ await crafted('unlink_client','');
+ await crafted('link_client',fixture.replacement);
+ await page.goto(hiddenURL);
+ if(!(await page.getByRole('link',{name:'Open linked client',exact:true}).count())) throw Error('Crafted scoped request removed hidden client');
+ if(await page.locator('input[name="language"]').inputValue()!=='de') throw Error('Profile edit missing');
+ await page.getByRole('button',{name:'Unlink client',exact:true}).click();
+ if(await page.getByRole('link',{name:'Open linked client',exact:true}).count()) throw Error('Authorized explicit unlink failed');
+ if(!(await page.locator('main').innerText()).includes('unsubscribe')) throw Error('Unlink cleared suppression');
+ await scopedContext.close();
  // Exercise the real upload/nonce/preview/apply path, with a formula-like mailbox.
  await page.goto(target+'/crm/subscribers/import/');
  await page.locator('input[name="csv"]').setInputFiles({name:'synthetic.csv',mimeType:'text/csv',buffer:Buffer.from('email,state,source,source_ref,evidence_ref,policy_version,occurred_at\n=browser@example.test,subscribed,fixture,src,consent,v1,2020-01-01 00:00:00\n')});

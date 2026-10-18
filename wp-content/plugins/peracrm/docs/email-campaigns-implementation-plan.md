@@ -368,3 +368,9 @@ Phase 2 technical implementation and validation are complete. The phase's overal
 | Date | Status | Evidence / decision |
 | --- | --- | --- |
 | 2026-10-17 | Final Phase 2 technical acceptance passed | Run 39072151825 passed single-site/multisite database and default-theme browser checks on final runtime 1861cb58; visual screenshots reviewed; external readiness gates retained. Non-draft PR #1448 targets main; no merge/deploy. |
+
+### PR #1448 review follow-up: hidden client links
+
+Profile POSTs now update only language/topics; empty or masked legacy client fields preserve stored links. Linking is a separate explicit form/action, and unlinking uses a dedicated staff service. Both replacement and unlink authorize the actual stored client inside the mailbox transaction, independently of submitted flags or masked reads. Permission/impersonation checks, audit, target-blog context, consent and suppression remain unchanged. No schema change; all changes remain plugin-owned. Real intake/public collection remain disabled; Phases 3–7 remain unstarted.
+
+New standalone and real WordPress/browser regressions cover masked profile edits, crafted unlink/replacement requests, explicit authorized linking/unlinking, idempotence and suppression/eligibility preservation. Validation of this follow-up is pending; prior technical evidence above applies to the earlier runtime only.

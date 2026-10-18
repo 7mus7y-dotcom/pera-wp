@@ -116,7 +116,11 @@ function peracrm_campaigns_save_subscriber($address, $profile = [])
             throw new InvalidArgumentException('Only explicit profile fields may be updated.');
         }
         $data = [];
-        if (array_key_exists('client_id', $profile)) {
+        // Empty legacy/masked fields are never an unlink instruction.
+        if (isset($profile['client_id']) && $profile['client_id'] !== '') {
+            if (!empty($subscriber['client_id']) && !peracrm_user_can_access_client($actor, (int) $subscriber['client_id'])) {
+                throw new InvalidArgumentException('Existing client link is not authorized.');
+            }
             $client_id = $profile['client_id'];
             if ($client_id !== null) {
                 if (!is_int($client_id) || $client_id <= 0 || !peracrm_user_can_access_client($actor, $client_id)) {
@@ -178,6 +182,24 @@ function peracrm_campaigns_save_subscriber($address, $profile = [])
             ['before' => $subscriber ? array_intersect_key($subscriber, array_flip(['client_id', 'preferred_language', 'preferences_json'])) : [],
              'after' => array_intersect_key($data, array_flip(['client_id', 'preferred_language', 'preferences_json']))]);
         return $id;
+    });
+}
+
+/** Explicit staff unlink; authorize the actual stored link inside its mailbox lock. */
+function peracrm_campaigns_unlink_subscriber_client($address)
+{
+    return peracrm_campaigns_staff_mutate($address, static function ($email, $subscriber, $suppression, $actor) {
+        global $wpdb;
+        if (!$subscriber || (!empty($subscriber['client_id']) && !peracrm_user_can_access_client($actor, (int) $subscriber['client_id']))) {
+            throw new InvalidArgumentException('Existing client link is not authorized.');
+        }
+        if (empty($subscriber['client_id'])) { return true; }
+        peracrm_campaigns_db_require($wpdb->update(peracrm_table('peracrm_subscribers'), [
+            'client_id' => null, 'updated_at' => gmdate('Y-m-d H:i:s'), 'version' => (int) $subscriber['version'] + 1,
+        ], ['id' => $subscriber['id']]));
+        peracrm_campaigns_repository_event($email, $subscriber, 'profile_updated', $subscriber['subscription_state'], [], $actor,
+            ['before' => ['client_id' => (int) $subscriber['client_id']], 'after' => ['client_id' => null]]);
+        return true;
     });
 }
 

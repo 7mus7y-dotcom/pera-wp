@@ -60,7 +60,7 @@ function wp_json_encode($v) { return json_encode($v); }
 function is_email($v) { return filter_var($v, FILTER_VALIDATE_EMAIL); }
 function is_wp_error($v) { return $v instanceof WP_Error; }
 function sanitize_text_field($v) { return trim(strip_tags($v)); }
-function peracrm_user_can_access_client($actor, $id) { return in_array($actor, [1, 2], true) && $id > 0; }
+function peracrm_user_can_access_client($actor, $id) { return in_array($actor, [1, 2], true) && $id > 0 && !in_array($id, $GLOBALS['campaign_denied_clients'] ?? [], true); }
 function peracrm_find_all_client_ids_by_email($email) { return $GLOBALS['campaign_matches']; }
 function get_posts($args) { return $GLOBALS['campaign_legacy']; }
 function get_post_status($id) { return $GLOBALS['campaign_client_status']; }
@@ -230,6 +230,17 @@ $GLOBALS['campaign_legacy'] = [6];
 campaign_expect(is_wp_error(peracrm_campaigns_save_subscriber('first.last+news@example.test', ['client_id' => 5])), 'legacy alias ambiguity remains unresolved');
 $GLOBALS['campaign_legacy'] = [];
 peracrm_campaigns_save_subscriber('first.last+news@example.test', ['client_id' => 5]);
+$GLOBALS['campaign_denied_clients'] = [5];
+foreach ([null, ''] as $empty) {
+    campaign_expect(!is_wp_error(peracrm_campaigns_save_subscriber('first.last+news@example.test', ['client_id' => $empty, 'preferred_language' => 'fr', 'preferences' => ['news']])), 'masked profile edit accepted');
+    campaign_expect(campaign_identity('first.last+news@example.test')['client_id'] === 5, 'language/topics preserve inaccessible link');
+}
+campaign_expect(is_wp_error(peracrm_campaigns_unlink_subscriber_client('first.last+news@example.test')), 'inaccessible stored link cannot be unlinked');
+$GLOBALS['campaign_matches'] = [6];
+campaign_expect(is_wp_error(peracrm_campaigns_save_subscriber('first.last+news@example.test', ['client_id' => 6])), 'accessible replacement cannot remove inaccessible stored link');
+campaign_expect(campaign_identity('first.last+news@example.test')['client_id'] === 5, 'crafted replacement preserves original link');
+$GLOBALS['campaign_denied_clients'] = [];
+$GLOBALS['campaign_matches'] = [5];
 $GLOBALS['campaign_disposition'] = 'duplicate';
 campaign_expect(!peracrm_campaigns_is_eligible('first.last+news@example.test'), 'duplicate linked sales record excluded');
 $GLOBALS['campaign_disposition'] = 'none';
@@ -247,7 +258,7 @@ foreach (['subscription_state' => 'subscribed', 'unsubscribe' => 0, 'email' => '
 }
 campaign_expect(is_wp_error(peracrm_campaigns_record_consent('first.last+news@example.test', 'subscribed', $evidence)), 'explicit consent cannot bypass suppression');
 $history = campaign_count('peracrm_subscription_events');
-peracrm_campaigns_save_subscriber('first.last+news@example.test', ['client_id' => null]);
+peracrm_campaigns_unlink_subscriber_client('first.last+news@example.test');
 $GLOBALS['campaign_client_status'] = 'deleted';
 campaign_expect(!peracrm_campaigns_is_eligible('first.last+news@example.test') && campaign_count('peracrm_subscription_events') === $history + 1, 'unlink/deleted client leaves history and suppression intact');
 peracrm_campaigns_delete_subscriber('first.last+news@example.test');
