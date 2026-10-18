@@ -50,7 +50,9 @@ preview_expect(array_column($reloaded['document']['blocks'],'type')===['article'
 $duplicate=peracrm_campaign_draft_duplicate($draft['id']);
 preview_expect(!is_wp_error($duplicate) && $duplicate['document']['blocks']===$reloaded['document']['blocks'],'duplication preserves references/rules');
 preview_expect(is_wp_error(peracrm_campaign_draft_save($draft['id'],0,$document)),'new block saves retain stale protection');
+$render_tokens_before=peracrm_with_target_blog(static function () { global $wpdb;return (int)$wpdb->get_var('SELECT COUNT(*) FROM '.peracrm_table('peracrm_subscriber_tokens')); });
 $output=peracrm_campaign_render(peracrm_campaign_render_model($document));
+preview_expect($render_tokens_before===peracrm_with_target_blog(static function () { global $wpdb;return (int)$wpdb->get_var('SELECT COUNT(*) FROM '.peracrm_table('peracrm_subscriber_tokens')); }),'renderer issues no preference tokens');
 preview_expect(str_contains($output['html'],'USD 350,000') && str_contains($output['text'],'USD 350,000') && str_contains($output['text'],'{{recipient_unsubscribe_url}}') && !preg_match('/<(?:script|form|a|iframe)\b/i',$output['html']),'one HTML/plain text model, inert preview and placeholders');
 peracrm_with_target_blog(static function () use ($ids) { wp_update_post(['ID'=>$ids['articles'][1],'post_status'=>'private']); });
 $output=peracrm_campaign_render(peracrm_campaign_render_model($document));
@@ -85,6 +87,14 @@ $queries=[];$capture=static function ($sql) use (&$queries) { $queries[]=$sql;re
 add_filter('query',$capture);$batch=peracrm_campaign_audience_preview($draft['id'],1,$document['audience']);remove_filter('query',$capture);
 preview_expect(!$batch['complete'] && $batch['considered']===200 && count($queries)<=10,'first bounded batch, constant query count');
 $cursor=$batch['cursor'];
+$concurrent_id=peracrm_with_target_blog(static function () {
+    global $wpdb;
+    $row=$wpdb->get_row("SELECT * FROM ".peracrm_table('peracrm_subscribers')." WHERE normalized_email='phase3b-405@example.test'",ARRAY_A);
+    unset($row['id']);$row['email']=$row['normalized_email']='phase3b-concurrent@example.test';
+    $wpdb->insert(peracrm_table('peracrm_subscribers'),$row);$id=(int)$wpdb->insert_id;
+    $wpdb->insert(peracrm_table('peracrm_email_suppressions'),['normalized_email'=>$row['normalized_email'],'created_at'=>gmdate('Y-m-d H:i:s'),'updated_at'=>gmdate('Y-m-d H:i:s')]);return $id;
+});
+
 $bound_state=peracrm_campaign_audience_unpack($cursor);
 $other_rules=$document['audience'];$other_rules['topic']='properties';
 preview_expect(preview_throws(static function () use ($draft,$other_rules,$cursor) { peracrm_campaign_audience_preview($draft['id'],1,$other_rules,$cursor); }),'rule changes invalidate progress');
@@ -98,6 +108,8 @@ $replay=peracrm_campaign_audience_preview($draft['id'],1,$document['audience']);
 preview_expect($replay['considered']===$batch['considered'],'restart/retry does not mutate subscribers');
 while (!$batch['complete']) { $batch=peracrm_campaign_audience_preview($draft['id'],1,$document['audience'],$batch['cursor']); }
 preview_expect($batch['eligible']===$expected && $batch['considered']===$batch['eligible']+array_sum($batch['exclusions']),'batched eligibility exact parity and mutually exclusive reconciliation');
+preview_expect($concurrent_id>$bound_state['boundary'],'new candidate excluded by fixed boundary');
+peracrm_with_target_blog(static function () use ($concurrent_id) { global $wpdb; $wpdb->delete(peracrm_table('peracrm_subscribers'),['id'=>$concurrent_id]);$wpdb->delete(peracrm_table('peracrm_email_suppressions'),['normalized_email'=>'phase3b-concurrent@example.test']); });
 preview_expect(preview_throws(static function () use ($draft,$document,$cursor) { peracrm_campaign_audience_preview($draft['id'],1,$document['audience'],$cursor.'x'); }),'tampered progress denied');
 $next=peracrm_campaign_draft_save($draft['id'],1,$document);
 preview_expect(preview_throws(static function () use ($draft,$document,$cursor) { peracrm_campaign_audience_preview($draft['id'],2,$document['audience'],$cursor); }),'revision invalidates multi-request progress');

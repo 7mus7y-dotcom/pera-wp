@@ -3,6 +3,7 @@ module.exports = async function ({page,target,employeeContext,context}) {
   const anonResult=await anonymous.request.post(target+'/wp-admin/admin-ajax.php',{form:{action:'peracrm_campaign_preview',operation:'audience'}});
   if(anonResult.status()!==403) throw Error('Anonymous audience route accepted');
   await anonymous.close();
+  const captureStyle='#site-header, #wpadminbar { visibility: hidden !important; }';
   const endpoint=target+'/wp-admin/admin-ajax.php';
   const denied=await employeeContext.request.post(endpoint,{form:{action:'peracrm_campaign_preview',operation:'audience'}});
   if(denied.status()!==403) throw Error('Employee preview counts exposed');
@@ -53,6 +54,7 @@ module.exports = async function ({page,target,employeeContext,context}) {
       await page.waitForFunction(()=>!document.querySelector('[data-audience-result]').textContent.includes('Counting a bounded'));
     }
     if(!(await page.locator('[data-audience-result]').innerText()).includes('eligible: 0')) throw Error('Zero audience did not reconcile');
+    await page.locator('[data-audience-result]').screenshot({path:'/evidence/campaign-audience-'+size+'.png',style:captureStyle});
     // Unsaved form preview, same renderer, no storage mutation, no active links.
     await page.getByLabel('Main text',{exact:true}).fill('UNSAVED PREVIEW '+ 'x'.repeat(250));
     const responsePromise=page.waitForResponse(r=>r.url()===endpoint && r.request().postData()?.includes('render'));
@@ -70,14 +72,18 @@ module.exports = async function ({page,target,employeeContext,context}) {
     const iframe=await page.locator('[data-email-frame]').elementHandle();
     const inside=await iframe.contentFrame();
     if(await inside.evaluate(()=>document.documentElement.scrollWidth>innerWidth+1)) throw Error('Email preview overflow');
-    await page.locator('[data-campaign-preview-tools]').screenshot({path:'/evidence/campaign-preview-'+size+'.png'});
+    await page.locator('[data-campaign-preview-tools]').screenshot({path:'/evidence/campaign-preview-'+size+'.png',style:captureStyle});
+    await frame.getByText('USD 350,000',{exact:false}).scrollIntoViewIfNeeded();
+    await page.locator('[data-preview-container]').screenshot({path:'/evidence/campaign-content-'+size+'.png',style:captureStyle});
     await page.getByRole('button',{name:'Plain-text view',exact:true}).click();
     await page.locator('[data-email-text]').filter({hasText:'UNSAVED PREVIEW'}).waitFor();
     await page.getByLabel('Explicit language (for example en)',{exact:true}).fill('de');
     await page.getByRole('button',{name:'Mobile preview',exact:true}).click();
     await frame.getByText('Current translation unavailable',{exact:false}).first().waitFor();
-    await page.locator('[data-preview-container]').screenshot({path:'/evidence/campaign-missing-'+size+'.png'});
+    await frame.getByText('Current translation unavailable',{exact:false}).first().scrollIntoViewIfNeeded();
+    await page.locator('[data-preview-container]').screenshot({path:'/evidence/campaign-missing-'+size+'.png',style:captureStyle});
     await page.locator('[data-campaign-block]').first().getByRole('button',{name:'Remove block',exact:true}).click();
     if(await page.locator('[data-campaign-block]').count()!==1) throw Error('Remove selected block failed');
   }
+  console.log('PASS Phase 3B browser: actual public selectors/pagination, content order/save/reload/remove, unsaved HTML/text previews, sandbox/CSP/no-store, zero audience, missing content metadata/translations and desktop/mobile overflow');
 };
