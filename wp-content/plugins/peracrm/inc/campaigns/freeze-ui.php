@@ -44,19 +44,22 @@ function peracrm_campaign_freeze_panel($id, $selected = 0, $before = 0, $after =
     $draft = peracrm_campaign_draft_get($id);
     if (!$draft) { throw new InvalidArgumentException('Campaign unavailable.'); }
     $history = peracrm_campaign_freeze_history($id, $before);
+    $latest = $before ? peracrm_campaign_freeze_history($id) : $history;
+    $current_attempt = isset($latest[0]) && (int)$latest[0]['draft_revision']===(int)$draft['revision'] ? $latest[0] : null;
     $attempt = $selected ? peracrm_campaign_freeze_get($id, $selected) : ($history[0] ?? null);
     ob_start();
     try {
     echo '<h3 tabindex="-1" data-freeze-heading>Review and freeze</h3><p>Freeze revision prepares an immutable version; it does not send anything. Eligibility is evaluated during materialization and will be checked again before future delivery. Historical inclusion is not current sending permission.</p>';
     echo '<p>Saved revision '.(int)$draft['revision'].' · '.esc_html($draft['status']).'</p>';
-    if ($draft['status'] === 'draft') { peracrm_campaign_freeze_button('review','Review saved revision'); }
+    if ($draft['status'] === 'draft' && !$current_attempt) { peracrm_campaign_freeze_button('review','Review saved revision'); }
     if ($attempt) {
         $counts = json_decode($attempt['counts_json'], true);
         $owner = (int)$attempt['actor_user_id'] === peracrm_get_actor_user_id();
         echo '<section data-freeze-attempt="'.(int)$attempt['id'].'" data-freeze-version="'.(int)$attempt['version'].'"><h4>Revision '.(int)$attempt['draft_revision'].' · '.esc_html($attempt['state']).'</h4>';
         echo '<p data-freeze-counts>Considered: '.(int)$attempt['considered'].' · Included: '.(int)$counts['eligible'].' · Excluded: '.((int)$attempt['considered']-(int)$counts['eligible']).'</p>';
         echo '<p>'.esc_html((int)$attempt['complete'] ? 'Materialization complete' : 'Materialization incomplete').' · Candidate cursor '.(int)$attempt['last_id'].' of ID boundary '.(int)$attempt['boundary_id'].' · Actor '.(int)$attempt['actor_user_id'].' · Updated '.esc_html(peracrm_campaign_freeze_time($attempt['updated_at'])).'</p>';
-        echo '<dl>'; foreach ($counts as $reason=>$total) { echo '<dt>'.esc_html($reason).'</dt><dd>'.(int)$total.'</dd>'; } echo '</dl>';
+        $reasons=['eligible'=>'Included','suppression'=>'Suppressed','consent'=>'No current consent','linked_client'=>'Linked CRM client ineligible','language'=>'Language mismatch or missing','topic'=>'Topic mismatch or missing','rules'=>'Invalid audience rules','duplicate'=>'Duplicate mailbox'];
+        echo '<dl>'; foreach ($counts as $reason=>$total) { echo '<dt>'.esc_html($reasons[$reason] ?? $reason).'</dt><dd>'.(int)$total.'</dd>'; } echo '</dl>';
         if ($attempt['state'] === 'failed') { echo '<p role="alert">A batch failed and was rolled back. Reload current state, then resume this exact saved revision or cancel. Changed configuration or a later saved revision requires cancellation and a new revision.</p>'; }
         if ($attempt['state'] === 'cancelled') { echo '<p>Cancelled permanently. Save a new draft revision before reviewing and freezing again. The cancelled revision tombstone remains intact.</p>'; }
         if ($owner && $attempt['state'] === 'materializing') {
@@ -70,7 +73,7 @@ function peracrm_campaign_freeze_panel($id, $selected = 0, $before = 0, $after =
         if ($attempt['state'] === 'frozen') {
             $frozen = peracrm_campaign_frozen_get($id, (int)$attempt['draft_revision']);
             if (!$frozen) { throw new RuntimeException('Published revision unavailable.'); }
-            echo '<h4>Stored immutable frozen revision '.(int)$frozen['draft_revision'].'</h4><p>Published by actor '.(int)$frozen['published_by'].' · '.esc_html(peracrm_campaign_freeze_time($frozen['published_at'])).' (stored UTC)</p>';
+            echo '<h4>Stored immutable frozen revision '.(int)$frozen['draft_revision'].'</h4><p>Published by actor '.(int)$frozen['published_by'].' · '.esc_html(peracrm_campaign_freeze_time($frozen['published_at'])).' (Istanbul; stored UTC)</p>';
             $capture = $frozen['content'];
             echo '<p>Content evaluation: '.esc_html(peracrm_campaign_freeze_time($capture['payload']['evaluation_started_at'])).' to '.esc_html(peracrm_campaign_freeze_time($capture['payload']['evaluation_completed_at'])).'. Membership evaluated during '.esc_html(peracrm_campaign_freeze_time($attempt['created_at'])).' to '.esc_html(peracrm_campaign_freeze_time($attempt['updated_at'])).'.</p>';
             peracrm_campaign_freeze_output($capture['payload']['content']);
@@ -84,7 +87,7 @@ function peracrm_campaign_freeze_panel($id, $selected = 0, $before = 0, $after =
         }
         echo '</section>';
     }
-    if ($draft['status']==='frozen' || ($attempt && $attempt['state']==='cancelled' && (int)$attempt['draft_revision']===(int)$draft['revision'])) { peracrm_campaign_freeze_button('new_revision','Start new editable revision'); }
+    if ($draft['status']==='frozen' || ($current_attempt && $current_attempt['state']==='cancelled')) { peracrm_campaign_freeze_button('new_revision','Start new editable revision'); }
     echo '<h4>Freeze revision history</h4><ul>';
     foreach ($history as $entry) { echo '<li><button type="button" class="btn btn--ghost" data-freeze-action="history" data-attempt="'.(int)$entry['id'].'">'.esc_html('Revision '.$entry['draft_revision'].' · '.$entry['state'].' · '.peracrm_campaign_freeze_time($entry['created_at'])).'</button></li>'; }
     echo '</ul>';

@@ -75,7 +75,7 @@ module.exports = async function ({page,target,employeeContext,context}) {
     await page.locator('[data-campaign-preview-tools]').screenshot({path:'/evidence/campaign-preview-'+size+'.png',style:captureStyle});
     await page.locator('[data-preview-container]').scrollIntoViewIfNeeded();
     await frame.getByText('USD 350,000',{exact:false}).evaluate(el=>el.scrollIntoView({behavior:'instant',block:'center'}));
-    await inside.evaluate(()=>new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve))));
+    await page.evaluate(()=>new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve))));
     await page.locator('[data-preview-container]').screenshot({path:'/evidence/campaign-content-'+size+'.png',style:captureStyle});
     await page.getByRole('button',{name:'Plain-text view',exact:true}).click();
     await page.locator('[data-email-text]').filter({hasText:'UNSAVED PREVIEW'}).waitFor();

@@ -128,6 +128,10 @@ module.exports = async function ({page,target,context,employeeContext,browser}) 
   page.once('dialog',dialog=>dialog.accept()); await click('Cancel materialization');
   await page.getByText('Cancelled permanently.',{exact:false}).waitFor(); await screenshot('cancelled',size);
   if(await action('Publish frozen revision').count()) throw Error('Cancelled attempt publish control');
+  const historyName=await page.locator('[data-freeze-action=history]').filter({hasText:'· frozen ·'}).first().innerText();
+  await click(historyName);
+  if(await page.locator('[data-freeze-panel] pre').innerText()!==frozenText) throw Error('History action did not return stored bytes');
+  await click('Reload current state');
   // Empty audience cannot publish, including a crafted POST.
   await draft(size,true); await click('Review saved revision'); await click('Freeze revision'); await finish();
   if(await action('Publish frozen revision').count()) throw Error('Zero audience publication control');
