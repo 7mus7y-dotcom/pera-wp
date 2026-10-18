@@ -81,6 +81,11 @@ function peracrm_campaign_content_resolve_target($type,$id,$language)
     $url=peracrm_campaign_public_url($url);
     if ($url==='') { return ['type'=>$type,'notice'=>'Canonical public destination unavailable.']; }
     $image_id=get_post_thumbnail_id($id);
+    if ($image_id) {
+        $attachment=get_post($image_id);
+        $parent=$attachment && $attachment->post_parent ? get_post($attachment->post_parent) : null;
+        if (!$attachment || $attachment->post_type!=='attachment' || !is_post_publicly_viewable($attachment) || $attachment->post_password!=='' || ($parent && ($parent->post_password!=='' || !is_post_publicly_viewable($parent)))) { $image_id=0; }
+    }
     $image=$image_id ? peracrm_campaign_public_url(wp_get_attachment_image_url($image_id,'large')) : '';
     $alt=$image_id ? (string)get_post_meta($image_id,'_wp_attachment_image_alt',true) : '';
     if ($language!=='en' && $alt!=='') {

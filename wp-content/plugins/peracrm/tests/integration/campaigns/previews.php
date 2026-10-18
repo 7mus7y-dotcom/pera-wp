@@ -6,7 +6,8 @@ $origin=get_current_blog_id();
 $manager=peracrm_with_target_blog(static function () { return (int)get_option('campaign_fixture_manager'); });
 $employee=peracrm_with_target_blog(static function () { return (int)get_option('campaign_fixture_employee'); });
 wp_set_current_user($manager);
-preview_expect(isset(peracrm_campaign_content_search('property','',0,'en')['notice']),'default theme property unavailable explicitly');
+$unavailable=peracrm_campaign_content_search('property','',0,'en');
+preview_expect($unavailable['items']===[] && str_contains($unavailable['notice'],'not registered'),'default theme property unavailable explicitly');
 peracrm_with_target_blog(static function () {
     Pera_ML_Storage::install();
     update_option('campaign_fixture_property_enabled',1);
@@ -15,7 +16,7 @@ peracrm_with_target_blog(static function () {
 $ids=peracrm_with_target_blog(static function () {
     $ids=[];
     foreach (range(1,25) as $i) { $ids[]=wp_insert_post(['post_type'=>'post','post_status'=>'publish','post_title'=>'Phase3B Article '.$i,'post_content'=>'Published story '.str_repeat('long-text ',90)]); }
-    foreach (['draft','private','trash','pending','future'] as $status) { wp_insert_post(['post_type'=>'post','post_status'=>$status,'post_title'=>'Phase3B SECRET '.$status,'post_content'=>'secret']); }
+    foreach (['draft','private','trash','pending','future'] as $status) { wp_insert_post(['post_type'=>'post','post_status'=>$status,'post_title'=>'Phase3B SECRET '.$status,'post_content'=>'secret','post_date'=>gmdate('Y-m-d H:i:s',time()+86400),'post_date_gmt'=>gmdate('Y-m-d H:i:s',time()+86400)]); }
     wp_insert_post(['post_type'=>'post','post_status'=>'publish','post_password'=>'secret','post_title'=>'Phase3B SECRET password']);
     $property=wp_insert_post(['post_type'=>'property','post_status'=>'publish','post_title'=>'Phase3B Property','post_content'=>'A public v2 property.']);
     update_post_meta($property,'v2_units',2);
@@ -26,6 +27,7 @@ $ids=peracrm_with_target_blog(static function () {
 });
 $first=peracrm_campaign_content_search('article','Phase3B',0,'en');
 $second=peracrm_campaign_content_search('article','Phase3B',$first['next'],'en');
+echo 'Selector page diagnostics: '.wp_json_encode(['first'=>array_column($first['items'],'id'),'second'=>array_column($second['items'],'id'),'next'=>$second['next']])."\n";
 preview_expect(count($first['items'])===20 && count($second['items'])===5 && $second['next']===null,'public selector stable bounded pagination excludes private/draft/password/deleted');
 preview_expect(!array_intersect(array_column($first['items'],'id'),array_column($second['items'],'id')),'selector pages do not overlap');
 $p=peracrm_campaign_content_resolve('property',$ids['property'],'en');
@@ -56,6 +58,9 @@ preview_expect(str_contains($output['text'],'no longer public') && !str_contains
 wp_set_current_user($employee);
 foreach ([static function () { peracrm_campaign_content_search('article','',0,'en'); },static function () use ($document) { peracrm_campaign_render_model($document); },static function () use ($draft) { peracrm_campaign_audience_preview($draft['id'],1,[]); }] as $fn) { preview_expect(preview_throws($fn),'employee denied services'); }
 wp_set_current_user($manager);
+peracrm_with_target_blog(static function () use ($manager,$employee) { update_user_meta($manager,PERACRM_VIEW_AS_USER_META_KEY,$employee); });
+preview_expect(preview_throws(static function () use ($document) { peracrm_campaign_render_model($document); }) && preview_throws(static function () { peracrm_campaign_content_search('article','',0,'en'); }),'impersonation denies selector and renderer');
+delete_user_meta($manager,PERACRM_VIEW_AS_USER_META_KEY);
 // Batched synthetic subscribers cover every exclusion and no linked-client inference.
 peracrm_with_target_blog(static function () {
     global $wpdb;
@@ -70,7 +75,7 @@ peracrm_with_target_blog(static function () {
         $wpdb->insert(peracrm_table('peracrm_email_suppressions'),['normalized_email'=>$email,'unsubscribe'=>$i%7===4 ? 1 : 0,'created_at'=>gmdate('Y-m-d H:i:s'),'updated_at'=>gmdate('Y-m-d H:i:s')]);
     }
 });
-$before=peracrm_with_target_blog(static function () { global $wpdb; $out=[];foreach (['peracrm_subscribers','peracrm_subscription_events','peracrm_email_suppressions','peracrm_email_suppression_events'] as $table) { $out[$table]=$wpdb->get_results('SELECT * FROM '.peracrm_table($table).' ORDER BY normalized_email',ARRAY_A); } return wp_json_encode($out); });
+$before=peracrm_with_target_blog(static function () { global $wpdb; $out=[];foreach (['peracrm_subscribers','peracrm_subscription_events','peracrm_email_suppressions','peracrm_email_suppression_events'] as $table) { $out[$table]=$wpdb->get_results('SELECT * FROM '.peracrm_table($table).' ORDER BY normalized_email',ARRAY_A); } $out['token_count']=(int)$wpdb->get_var('SELECT COUNT(*) FROM '.peracrm_table('peracrm_subscriber_tokens')); return wp_json_encode($out); });
 $expected=peracrm_with_target_blog(static function () use ($document) {
     global $wpdb;$emails=$wpdb->get_col('SELECT normalized_email FROM '.peracrm_table('peracrm_subscribers'));$count=0;
     foreach ($emails as $email) { if (peracrm_campaigns_is_eligible($email,['language'=>'en','topic'=>'news'])) { $count++; } }
@@ -79,14 +84,25 @@ $expected=peracrm_with_target_blog(static function () use ($document) {
 $queries=[];$capture=static function ($sql) use (&$queries) { $queries[]=$sql;return $sql; };
 add_filter('query',$capture);$batch=peracrm_campaign_audience_preview($draft['id'],1,$document['audience']);remove_filter('query',$capture);
 preview_expect(!$batch['complete'] && $batch['considered']===200 && count($queries)<=10,'first bounded batch, constant query count');
-$cursor=$batch['cursor'];$replay=peracrm_campaign_audience_preview($draft['id'],1,$document['audience']);
+$cursor=$batch['cursor'];
+$bound_state=peracrm_campaign_audience_unpack($cursor);
+$other_rules=$document['audience'];$other_rules['topic']='properties';
+preview_expect(preview_throws(static function () use ($draft,$other_rules,$cursor) { peracrm_campaign_audience_preview($draft['id'],1,$other_rules,$cursor); }),'rule changes invalidate progress');
+$forged_state=$bound_state;$forged_state['actor']++;
+preview_expect(preview_throws(static function () use ($draft,$document,$forged_state) { peracrm_campaign_audience_preview($draft['id'],1,$document['audience'],peracrm_campaign_audience_pack($forged_state)); }),'actor binding invalidates correctly signed foreign progress');
+$forged_state=$bound_state;$forged_state['blog']++;
+preview_expect(preview_throws(static function () use ($draft,$document,$forged_state) { peracrm_campaign_audience_preview($draft['id'],1,$document['audience'],peracrm_campaign_audience_pack($forged_state)); }),'blog binding invalidates correctly signed foreign progress');
+$forged_state=$bound_state;$forged_state['expires']=time()-1;
+preview_expect(preview_throws(static function () use ($draft,$document,$forged_state) { peracrm_campaign_audience_preview($draft['id'],1,$document['audience'],peracrm_campaign_audience_pack($forged_state)); }),'expired progress rejected');
+$replay=peracrm_campaign_audience_preview($draft['id'],1,$document['audience']);
 preview_expect($replay['considered']===$batch['considered'],'restart/retry does not mutate subscribers');
 while (!$batch['complete']) { $batch=peracrm_campaign_audience_preview($draft['id'],1,$document['audience'],$batch['cursor']); }
 preview_expect($batch['eligible']===$expected && $batch['considered']===$batch['eligible']+array_sum($batch['exclusions']),'batched eligibility exact parity and mutually exclusive reconciliation');
 preview_expect(preview_throws(static function () use ($draft,$document,$cursor) { peracrm_campaign_audience_preview($draft['id'],1,$document['audience'],$cursor.'x'); }),'tampered progress denied');
 $next=peracrm_campaign_draft_save($draft['id'],1,$document);
 preview_expect(preview_throws(static function () use ($draft,$document,$cursor) { peracrm_campaign_audience_preview($draft['id'],2,$document['audience'],$cursor); }),'revision invalidates multi-request progress');
-$after=peracrm_with_target_blog(static function () { global $wpdb;$out=[];foreach (['peracrm_subscribers','peracrm_subscription_events','peracrm_email_suppressions','peracrm_email_suppression_events'] as $table) { $out[$table]=$wpdb->get_results('SELECT * FROM '.peracrm_table($table).' ORDER BY normalized_email',ARRAY_A); }return wp_json_encode($out); });
-preview_expect($before===$after,'preview performs no subscriber/consent/suppression mutations');
+$after=peracrm_with_target_blog(static function () { global $wpdb;$out=[];foreach (['peracrm_subscribers','peracrm_subscription_events','peracrm_email_suppressions','peracrm_email_suppression_events'] as $table) { $out[$table]=$wpdb->get_results('SELECT * FROM '.peracrm_table($table).' ORDER BY normalized_email',ARRAY_A); }$out['token_count']=(int)$wpdb->get_var('SELECT COUNT(*) FROM '.peracrm_table('peracrm_subscriber_tokens')); return wp_json_encode($out); });
+preview_expect($before===$after,'preview performs no subscriber/consent/suppression mutations or public token issuance');
+peracrm_with_target_blog(static function () { global $wpdb; preview_expect($wpdb->get_var($wpdb->prepare('SHOW TABLES LIKE %s',$wpdb->esc_like(peracrm_table('peracrm_campaign_recipients'))))===null,'no recipient ledger exists'); });
 preview_expect(get_current_blog_id()===$origin,'target context restored');
 peracrm_with_target_blog(static function () use ($draft) { update_option('campaign_fixture_preview_draft',$draft['id']); });

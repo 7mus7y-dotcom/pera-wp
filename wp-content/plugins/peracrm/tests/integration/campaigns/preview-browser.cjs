@@ -1,4 +1,8 @@
 module.exports = async function ({page,target,employeeContext,context}) {
+  const anonymous=await context.browser().newContext();
+  const anonResult=await anonymous.request.post(target+'/wp-admin/admin-ajax.php',{form:{action:'peracrm_campaign_preview',operation:'audience'}});
+  if(anonResult.status()!==403) throw Error('Anonymous audience route accepted');
+  await anonymous.close();
   const endpoint=target+'/wp-admin/admin-ajax.php';
   const denied=await employeeContext.request.post(endpoint,{form:{action:'peracrm_campaign_preview',operation:'audience'}});
   if(denied.status()!==403) throw Error('Employee preview counts exposed');

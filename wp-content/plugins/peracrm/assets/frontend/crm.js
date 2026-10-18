@@ -2473,7 +2473,7 @@ document.addEventListener('DOMContentLoaded', function () {
     var blocks = form.querySelector('[data-campaign-blocks]');
     var senders = form.querySelector('[data-campaign-senders]');
     var senderTemplate = senders && senders.firstElementChild ? senders.firstElementChild.cloneNode(true) : null;
-    function changed() { dirty = true; if (status) status.textContent = 'Unsaved changes'; }
+    function changed(event) { if (event && event.target && !String(event.target.name || '').startsWith('document[')) return; dirty = true; if (status) status.textContent = 'Unsaved changes'; }
     function reindex(container, selector, key) {
       if (!container) return;
       var items = Array.from(container.querySelectorAll(selector));
@@ -2525,7 +2525,8 @@ document.addEventListener('DOMContentLoaded', function () {
       var searchGeneration = 0;
       var audienceNext = tools.querySelector('[data-audience-next]');
       var audienceResult = tools.querySelector('[data-audience-result]');
-      function invalidateAudience() {
+      function invalidateAudience(event) {
+        if (event && event.target && !String(event.target.name || '').startsWith('document[')) return;
         audienceGeneration++; cursor = ''; audienceNext.hidden = true;
         audienceResult.textContent = 'Form changed. Save the current draft and restart audience preview.';
       }
