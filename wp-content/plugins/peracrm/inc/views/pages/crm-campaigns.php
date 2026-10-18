@@ -40,7 +40,7 @@ peracrm_frontend_render_shell_header();
 <?php peracrm_frontend_render_partial('crm-header',['title'=>$title,'active_view'=>'campaigns']); ?>
 <section class="content-panel content-panel--overlap-hero"><div class="content-panel-box border-dm crm-layout"><div class="crm-layout__main peracrm-campaigns">
 <nav class="peracrm-campaign-actions" aria-label="Campaign tools"><a href="<?php echo esc_url(peracrm_campaign_drafts_url()); ?>">Campaigns</a><?php if ($can_write) : ?><a href="<?php echo esc_url(peracrm_campaign_drafts_url('new/')); ?>">Create campaign</a><?php endif; ?><?php if ($can_config) : ?><a href="<?php echo esc_url(peracrm_campaign_drafts_url('configuration/')); ?>">Sender and footer configuration</a><?php endif; ?></nav>
-<p>Draft preparation only. Content selection, email preview and review/freeze follow in dependent work.</p>
+<p>Prepare and save campaign drafts.</p>
 <?php if (!$can_write) : ?><p class="crm-notice">Read only while impersonating. Return to your own identity to edit.</p><?php endif; ?>
 <?php if ($form) : ?><p role="alert" class="crm-notice" data-campaign-error><?php echo esc_html($form['error']); ?></p><a target="_blank" rel="noopener" href="<?php echo esc_url(peracrm_campaign_drafts_url($is_config ? 'configuration/' : ($id ? $id.'/' : 'new/'))); ?>">Open saved version in another tab</a><?php endif; ?>
 <?php if ($storage_error || !$config) : ?><p role="alert">Campaign storage is unavailable. No changes were accepted.</p>
@@ -56,14 +56,14 @@ foreach ($senders as $i=>$sender) : if (!is_array($sender)) { continue; } ?><fie
 <button type="button" class="btn btn--ghost" data-sender-add>Add identity</button>
 <?php peracrm_campaign_view_field('document[footer]','Mandatory footer: legal identity, postal address and required wording',$doc['footer'] ?? '',4000,true); ?>
 <label><input type="checkbox" name="document[footer_approved]" value="1" <?php checked(!empty($doc['footer_approved'])); ?>> Approve mandatory footer</label>
-<p>Preference-link handling and language-specific rendering remain deferred. No public token is created.</p>
+<p>Sender and footer approval does not enable email delivery.</p>
 <button type="submit" class="btn">Save configuration</button><p role="status" data-campaign-status><?php echo $form ? 'Unsaved — request failed' : (isset($_GET['campaign_saved']) ? 'Saved' : 'Saved configuration revision '.(int)$revision); ?></p></fieldset></form>
 <?php elseif ($id || $screen === 'new') : if ($id && !$row) : ?><p>Campaign unavailable.</p><?php else :
 $doc = $form['document'] ?? ($row['document'] ?? peracrm_campaign_draft_document([]));
 $revision = $form['revision'] ?? (int)($row['revision'] ?? 0);
 $missing = []; try { $missing = peracrm_campaign_draft_missing(peracrm_campaign_draft_document($doc),$config['document']); } catch (Throwable $error) { $missing=['Correct the invalid fields before saving']; } ?>
 <h2><?php echo $id ? 'Edit draft #'.(int)$id : 'New draft'; ?></h2>
-<p class="crm-notice" data-campaign-missing><?php echo esc_html($missing ? 'Missing requirements: '.implode('; ',$missing).'. You can still save an incomplete draft.' : 'Draft fields complete. Review and freeze remain unavailable.'); ?></p>
+<p class="crm-notice" data-campaign-missing><?php echo esc_html($missing ? 'Missing requirements: '.implode('; ',$missing).'. You can still save an incomplete draft.' : 'Draft fields complete.'); ?></p>
 <?php peracrm_campaign_view_form('save',$revision,true); ?><fieldset <?php disabled(!$can_write); ?>>
 <div class="peracrm-campaign-grid"><?php foreach (['internal_name'=>['Internal name',160],'subject'=>['Subject',200],'preheader'=>['Preheader',300],'language'=>['Explicit language (for example en)',35]] as $key=>$setting) { peracrm_campaign_view_field('document['.$key.']',$setting[0],$doc[$key] ?? '',$setting[1]); } ?></div>
 <label>Approved sender identity<select name="document[sender_id]"><option value="">Choose an approved sender</option>
@@ -71,10 +71,10 @@ $missing = []; try { $missing = peracrm_campaign_draft_missing(peracrm_campaign_
 <option value="<?php echo esc_attr($sender['id']); ?>" <?php selected($selected_sender,$sender['id']); ?>><?php echo esc_html($sender['name'].' <'.$sender['email'].'> · Reply-to: '.$sender['reply_to']); ?></option><?php endforeach; ?>
 <?php if ($selected_sender !== '' && !$found) : ?><option selected value="<?php echo esc_attr($selected_sender); ?>"><?php echo esc_html($selected_sender.' — approval unavailable'); ?></option><?php endif; ?></select></label>
 <?php foreach (['introduction'=>['Introduction',4000],'main_text'=>['Main text',16000]] as $key=>$setting) { peracrm_campaign_view_field('document['.$key.']',$setting[0],$doc[$key] ?? '',$setting[1],true); } ?>
-<h3>Ordered content blocks</h3><p>Plain text and CTA links, up to 20 blocks. Limits are bytes. Article/property selectors are deferred.</p><noscript><p>JavaScript is required to add, move or remove structured blocks. Existing blocks and text can still be saved.</p></noscript>
+<h3>Ordered content blocks</h3><p>Use up to 20 plain text or CTA blocks. Field limits are measured in bytes.</p><noscript><p>JavaScript is required to add, move or remove structured blocks. Existing blocks and text can still be saved.</p></noscript>
 <div data-campaign-blocks><?php $blocks = isset($doc['blocks']) && is_array($doc['blocks']) ? array_slice(array_values($doc['blocks']),0,20) : []; foreach ($blocks as $i=>$block) { if (is_array($block)) { peracrm_campaign_view_block($i,$block); } } ?></div>
 <div class="peracrm-campaign-actions"><button type="button" class="btn btn--ghost" data-block-add="text">Add text block</button><button type="button" class="btn btn--ghost" data-block-add="cta">Add CTA block</button></div>
-<h3>Mandatory approved footer</h3><p class="peracrm-campaign-footer"><?php echo esc_html($config['document']['footer_approved'] ? $config['document']['footer'] : 'No approved footer. Draft saving remains available.'); ?></p><p>Footer and sender approvals are read from configuration, not frozen into this draft. Revisions preserve authored content only.</p>
+<h3>Mandatory approved footer</h3><p class="peracrm-campaign-footer"><?php echo esc_html($config['document']['footer_approved'] ? $config['document']['footer'] : 'No approved footer. Draft saving remains available.'); ?></p><p>Sender and footer use current administrator approvals. Updating configuration can change these values without changing your saved text.</p>
 <button type="submit" class="btn">Save draft</button><p role="status" data-campaign-status><?php echo $form ? 'Unsaved — request failed' : (isset($_GET['campaign_saved']) ? 'Saved' : ($id ? 'Saved revision '.(int)$revision : 'Unsaved new draft')); ?></p>
 </fieldset></form>
 <template data-block-template="text"><?php peracrm_campaign_view_block(0,['type'=>'text']); ?></template><template data-block-template="cta"><?php peracrm_campaign_view_block(0,['type'=>'cta']); ?></template>
