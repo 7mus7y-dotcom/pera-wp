@@ -101,4 +101,5 @@ else
     wp plugin activate pera-multilingual
 fi
 wp eval-file /tests/previews.php
+wp eval-file /tests/snapshots.php
 printf 'PASS disposable %s WordPress/MySQL fixtures\n' "$fixture_mode"

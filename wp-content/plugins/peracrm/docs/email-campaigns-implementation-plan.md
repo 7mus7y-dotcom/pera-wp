@@ -1,6 +1,6 @@
 # Integrated email campaigns: repository review and living implementation plan
 
-Review status: **complete** (2026-10-17). Implementation: **Phase 1 complete (technical acceptance)**; **Phase 2 in progress**; **Phase 3 in progress (3A/3B technical acceptance; 3C remaining)**; Phases 4–7 not started.
+Review status: **complete** (2026-10-17). Implementation: **Phase 1 complete (technical acceptance)**; **Phase 2 in progress**; **Phase 3 in progress (3A/3B technical acceptance; limited 3C content-capture foundation)**; Phases 4–7 not started.
 
 ## Purpose, scope and maintenance
 
@@ -8,7 +8,7 @@ Let Pera staff prepare newsletters and targeted campaigns inside the existing CR
 
 Future implementation PRs must update phase status, validation evidence, decisions and the progress log here. A phase must not be marked complete solely because code exists when required verification remains outstanding. Use only `not started`, `in progress`, `blocked` or `complete` for phase status. Keep repository checks distinct from external verification; record outstanding evidence explicitly.
 
-**Current implementation task:** Phase 3, split into reviewable dependent PRs, Phase 3B technical implementation and checks are complete on merged #1450; Phase 3C review/freeze remains outstanding. Sending and new public collection stay disabled. Phase 1 technical foundations are accepted; Phase 2 external acceptance remains open; Phases 4–7 remain unstarted.
+**Current implementation task:** limited Phase 3C unpublished content-capture storage/service checkpoint, based on merged #1451. Review/freeze UI, recipient materialization and atomic frozen publication remain outstanding for a dependent PR. Sending and new public collection stay disabled. Phase 1 technical foundations are accepted; Phase 2 external acceptance remains open; Phases 4–7 remain unstarted.
 
 ## Review baseline and method
 
@@ -908,3 +908,168 @@ Follow-up files: `assets/frontend/crm.js`, the browser harness, new
 remains **in progress and incomplete**, Phase 3C remains **not started**, and
 all existing disabled collection/intake gates and absent sending stay unchanged.
 No merge, deployment, provider, queue, scheduling, delivery or freeze work occurred.
+
+## Phase 3C checkpoint: unpublished content-capture foundation (2026-10-18)
+
+Status: **in progress**, not technically complete. The user narrowed the task
+before any Phase 3C implementation to a limited, reviewable checkpoint; full
+review/freeze UI and browser acceptance belong in a dependent PR. This section
+supersedes the historical “3C not started” entries above. No frozen campaign or
+recipient membership can be produced by this checkpoint.
+
+Baseline and preservation: #1451 is merged (13:39:32 UTC), merge commit
+`e526a2605d11acc0bbad6c7c9be8a0c0a9da7941`; connected GitHub comparison confirmed
+it was latest main at task start. Initial clean branch `work` was at `5b009f56`.
+No AGENTS.md was found under /workspace or in repository ancestors. Shell fetch
+failed because its configured proxy could not be reached. A subsequent fetch
+with additional network permission stayed blocked and was aborted by the user;
+no further shell fetch/push retries are planned. Connected GitHub supplied the
+20 merged files and signed merge object: the local index tree matches main's
+`960cac5cf9662c8394be90cede78fd2c8138f1db`, and reconstructed commit bytes match
+GitHub's merge SHA. No pre-existing edits were discarded. Implementation branch:
+`feat/campaign-snapshot-foundation`, based on that actual main, with no unmerged
+prerequisite. Publication uses the GitHub connector because shell networking is
+unavailable.
+
+### Phase 3B prerequisite evidence
+
+Merged #1451 records full real single-site/multisite and default-theme Chromium
+acceptance, including the final selector/cursor change-tracking corrections on
+runtime/test head `d9026aa` in [run 39129444264](https://github.com/7mus7y-dotcom/pera-wp/actions/runs/39129444264).
+Its final head `348a823` changed only documentation. The two topology job and
+artifact links are recorded immediately above. This evidence validates Phase 3B,
+not this checkpoint or Phase 3C acceptance.
+
+### Implemented boundary and validation contract
+
+- Schema 24 additively introduces only `peracrm_campaign_content_snapshots` with
+  an InnoDB primary key and full unique `(campaign_id, draft_revision,
+  binding_hash)` constraint. Readiness assertions require that unique key;
+  existing target-blog migration ownership, failure containment and administrator
+  recovery apply. No recipient, freeze-attempt or dispatch table is added.
+- Internal review/capture/read services require target-blog campaign capability,
+  schema readiness, real actors and denial of impersonation. No HTTP route,
+  CLI command, UI control or public read is registered. Capture additionally
+  requires the campaign/revision-specific WordPress nonce. Future UI integration
+  must submit its actual current document; server normalization/equality rejects
+  unsaved content and stale saved revisions. No server can detect browser edits
+  that a future caller omits from its request; client integration remains required.
+- A signed proof expires after 15 minutes and binds a purpose/version, actor,
+  target blog, campaign, saved revision and exact content/configuration/output
+  hash. Capture locks the draft and singleton configuration in that order, then
+  freshly resolves the bounded selected content using Phase 3B adapters/renderer.
+  A changed source, renderer, configuration, rules or document invalidates an
+  uncaptured review. Insert/readback/commit use the existing rollback wrapper;
+  errors remain sanitized. There is no partial artifact returned on failure.
+- Required authored name, subject, language, body, complete text/CTA blocks and
+  approved sender/reply-to/footer follow existing draft rules. Selected public
+  content additionally requires nonempty resolved title and summary, canonical
+  public URL and exact requested language/current translation. No fallback or
+  translation generation. Every selected property unit requires canonical v2
+  beds (zero allowed), positive minimum gross size and USD price; optional maxima
+  may be absent but cannot be below minima. Missing canonical unit data blocks
+  capture. Optional image/translated-alt absence is a warning, not a blocker.
+  Incomplete drafts remain saveable; these stricter rules apply only to capture.
+- Stored payload includes schema/template/validation versions, normalized
+  document hash, language/topic rules and hash, configuration revision and approved
+  configuration/approver, structured sender, ordered resolved model with source
+  IDs/public URLs/image URLs/alt text/canonical property values and labels, exact
+  renderer HTML/text/destinations, warnings, real reviewing actor, target blog,
+  UTC capture timestamp and resolution start/end timestamps. The content hash
+  covers the stored content bundle. Reads verify it and return stored bytes;
+  they do not invoke the current renderer, configuration or content adapters.
+- Duplicate requests for the same actor/blog/content and saved revision return
+  the original artifact after permission, nonce, proof and current draft checks.
+  That replay does not reapprove current sources or publish anything. Later
+  source/configuration changes cannot rewrite the record. No update/delete or
+  restoration API exists. Later draft saves and duplicates retain earlier
+  captures. Database administrators remain outside application immutability.
+- Artifacts are explicitly `unpublished_content`, not editorial approval of a
+  frozen revision, a recipient freeze, or sending authorization. Output retains
+  the Phase 3B inert draft-preview presentation. Editorial sender/footer approval
+  does not verify DNS/provider readiness. Shared HTML contains only controlled
+  recipient-link placeholders, no subscriber details or public bearer tokens.
+  **Storing an image URL does not make the underlying image file immutable.**
+
+### Temporal semantics and dependent work
+
+Source resolution is a bounded evaluation interval, not a single-time database
+snapshot of WordPress objects, caches, translations and configuration. Draft and
+configuration writes serialize with capture; source changes are not globally
+locked. Content is bound to exactly the model/output bytes reviewed and freshly
+resolved at capture. Concurrent changes that invalidate that binding fail closed.
+Once stored, output never silently follows live posts/prices/templates/config.
+
+The dependent freeze work must add versioned attempt state, exact draft/content/
+configuration/rule binding, initiating actor, fixed maximum candidate subscriber
+ID, stable keyset batches, transactional recipient writes and progress, unique
+revision/mailbox membership, mutually exclusive eligibility outcomes and exact
+count reconciliation. Membership will be evaluated **during materialization**
+against that fixed boundary, not automatically at one database instant; persist
+policy versions and evaluation timing. Freeze must never substitute client email
+for the frozen normalized subscriber mailbox. Historical membership remains
+unchanged by later unsubscribe; any future delivery must recheck live permission
+and suppression. No such materialization or later delivery is implemented here.
+
+Before frozen publication exists, dependent work must implement draft editing
+locks, serialized start/continue/resume/cancel/publish, stale-owner fencing,
+failed/cancelled recovery, zero-included rejection, complete-counter/binding
+rechecks and one atomic publication only after all content/recipient rows exist.
+Published history/new-draft behavior and desktop/mobile review, actual controls,
+read-only HTML/text previews and screenshots also remain outstanding. Independent
+connection concurrency/failure tests and both real topology suites are mandatory
+for that work. Browser previews never establish Gmail/Outlook inbox rendering.
+
+Retention is deliberately not automated in this checkpoint: unpublished content
+captures are retained, with no cleanup endpoint/worker. Before production use,
+approve a retention period and implement bounded manual cleanup (proposed: at
+most 100 records per administrator request, abandoned unpublished artifacts older
+than 30 days, locked and rechecked to exclude any published/referenced artifact).
+Freeze-attempt cleanup must cancel/fence active attempts first. Published history,
+consent and suppression evidence must never be deleted by such cleanup. This is
+an outstanding implementation/policy requirement, not a claim that cleanup runs.
+
+### Checkpoint verification and limitations
+
+All 15 standalone PHP regressions pass, including the new synthetic snapshot
+service tests for authority, impersonation, nonce/proof expiry and binding,
+unsaved/stale review rejection, failed insertion/rollback/retry, duplicate capture,
+stored-byte stability after configuration changes, corruption rejection and no
+subscriber/public-token/frozen-status mutation. Existing migration regression
+fixtures now expect schema 24. Stub DB tests do not prove real SQL or concurrency.
+
+New disposable WordPress/MySQL fixtures are wired into both existing topology
+suites: v23 upgrade/repeated readiness, raw unique-key rejection, unavailable
+translation/public content, real insert failure/retry/idempotency, stored output
+after source/config changes, employee/impersonation denial, campaign read binding,
+later draft/history preservation and no subscriber/evidence/token changes.
+These new real fixtures have **not run locally**: Docker's explicit local socket
+check failed `connect: operation not permitted`; UID is 1000 and dockerd is running.
+No daemon restart or repeated socket retry was attempted. Real single-site and
+multisite checks, separate-connection capture/save concurrency, source/price/
+template variation coverage and Phase 3C browser acceptance remain outstanding.
+No new screenshots/artifacts are claimed. Existing Phase 3B artifacts above are
+prerequisite evidence only.
+
+Phase 3 must remain **in progress**. Editorial copy/translations/identity approvals,
+historical consent/evidence and retention policy, real intake, suppression-source
+completeness and production topology/domain/provider readiness remain outstanding.
+All changes belong to PeraCRM. No theme, CSS/JS, existing route or collection gate
+is changed. Real intake/public collection and campaign sending stay disabled;
+Phases 4–7 remain not started. No test email, scheduling, provider, worker, merge
+or deployment is included.
+
+Additional bounded checks passed: all 398 plugin PHP files parse under the bundled
+PHP 8.4 runtime; both integration runners pass shell syntax; Compose configuration
+validation and staged whitespace checks pass. These are repository checks, not
+real database/browser acceptance. Existing CSS/JavaScript are unchanged.
+
+Checkpoint file inventory (all relative to `wp-content/plugins/peracrm/`):
+
+| Purpose | Changed files |
+| --- | --- |
+| Additive storage and loading | `peracrm.php`, `inc/bootstrap.php`, `inc/campaigns/schema.php`, new `inc/campaigns/snapshot-schema.php` |
+| Internal review/capture/stored-read service | new `inc/campaigns/snapshots.php` |
+| Standalone contracts and schema expectations | `tests/authorization-surfaces-test.php`, `tests/campaign-foundations-test.php`, `tests/campaign-theme-independence-test.php`, new `tests/campaign-snapshots-test.php` |
+| Real fixtures, wired but not locally run | `tests/integration/campaigns/assertions.php`, `tests/integration/campaigns/run-inside.sh`, new `tests/integration/campaigns/snapshots.php` |
+| Decisions/evidence/remaining work | this living plan |
