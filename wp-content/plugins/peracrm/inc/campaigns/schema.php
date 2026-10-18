@@ -9,7 +9,7 @@ function peracrm_campaigns_schema_definitions()
 {
     global $wpdb;
     $mailbox = 'VARCHAR(254) CHARACTER SET ascii COLLATE ascii_bin';
-    return peracrm_campaigns_snapshot_definitions() + peracrm_campaigns_draft_definitions() + peracrm_campaigns_phase2_definitions() + [
+    return peracrm_campaigns_freeze_definitions() + peracrm_campaigns_snapshot_definitions() + peracrm_campaigns_draft_definitions() + peracrm_campaigns_phase2_definitions() + [
         'peracrm_subscribers' => "id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
             email VARCHAR(254) NOT NULL,
             normalized_email {$mailbox} NOT NULL,
@@ -110,6 +110,10 @@ function peracrm_campaigns_assert_schema()
         }
         $engine = $wpdb->get_row($wpdb->prepare('SHOW TABLE STATUS WHERE Name = %s', $table), ARRAY_A);
         $expected_keys = [
+            'peracrm_campaign_freeze_attempts' => ['campaign_id', 'draft_revision'],
+            'peracrm_campaign_recipient_evaluations' => ['attempt_id', 'subscriber_id'],
+            'peracrm_campaign_frozen_recipients' => ['attempt_id', 'mailbox'],
+            'peracrm_campaign_frozen_revisions' => ['campaign_id', 'draft_revision'],
             'peracrm_campaign_content_snapshots' => ['campaign_id', 'draft_revision', 'binding_hash'],
             'peracrm_campaign_drafts' => ['id'], 'peracrm_campaign_configuration' => ['id'],
             'peracrm_campaign_draft_revisions' => ['campaign_id', 'revision'],
@@ -123,6 +127,13 @@ function peracrm_campaigns_assert_schema()
             foreach ($keys as $key) {
                 if (array_column($key, 'Column_name') === $expected_keys[$name] && !array_filter(array_column($key, 'Sub_part'))) { $unique_mailbox = true; }
             }
+        }
+        if ($name === 'peracrm_campaign_frozen_revisions') {
+            $unique_attempt = false;
+            foreach ($keys as $key) {
+                if (array_column($key, 'Column_name') === ['attempt_id'] && !array_filter(array_column($key, 'Sub_part'))) { $unique_attempt = true; }
+            }
+            if (!$unique_attempt) { throw new RuntimeException('PeraCRM campaign publication uniqueness assertion failed.'); }
         }
         if (array_diff($matches[1], (array) $columns) || ($needs_unique && !$unique_mailbox)
             || strtolower($engine['Engine'] ?? '') !== 'innodb') {

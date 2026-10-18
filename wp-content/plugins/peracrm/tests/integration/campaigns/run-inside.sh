@@ -102,4 +102,18 @@ else
 fi
 wp eval-file /tests/previews.php
 wp eval-file /tests/snapshots.php
+wp eval-file /tests/freeze.php
+for freeze_race in start-start start-save continue-cancel cancel-continue continue-continue publish-cancel cancel-publish cleanup-start cleanup-resume; do
+    rm -f /tmp/peracrm-freeze-held /tmp/peracrm-freeze-winner /tmp/peracrm-freeze-loser
+    wp eval-file /tests/freeze-worker.php prepare "$freeze_race"
+    wp eval-file /tests/freeze-worker.php winner "$freeze_race" &
+    freeze_winner_pid=$!
+    wait_for_migration_marker /tmp/peracrm-freeze-held
+    wp eval-file /tests/freeze-worker.php loser "$freeze_race" &
+    freeze_loser_pid=$!
+    wait "$freeze_winner_pid"
+    wait "$freeze_loser_pid"
+    wp eval-file /tests/freeze-worker.php verify "$freeze_race"
+done
+wp eval-file /tests/freeze-worker.php restore
 printf 'PASS disposable %s WordPress/MySQL fixtures\n' "$fixture_mode"
