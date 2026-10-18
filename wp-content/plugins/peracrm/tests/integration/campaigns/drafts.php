@@ -24,6 +24,7 @@ foreach (array_unique([get_current_blog_id(),peracrm_get_target_blog_id()]) as $
     update_option('peracrm_rewrite_version','peracrm-'.PERACRM_VERSION.'-crm-routes-v3');
     if (is_multisite()) { restore_current_blog(); }
 }
+$wp_rewrite->init();
 do_action('init');
 foreach (array_unique([get_current_blog_id(),peracrm_get_target_blog_id()]) as $blog) {
     if (is_multisite()) { switch_to_blog($blog); }

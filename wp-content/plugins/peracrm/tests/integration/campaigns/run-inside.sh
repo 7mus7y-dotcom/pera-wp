@@ -12,9 +12,12 @@ if [ "$fixture_mode" = multi ]; then
     wp core multisite-install --url=http://fixture.test --title=Fixture --admin_user=fixture-admin --admin_password=fixture-admin-only --admin_email=admin@example.test --skip-email
     wp site create --slug=crm --title=CRM --email=admin@example.test
     wp config set PERACRM_TARGET_BLOG_ID 2 --raw
+    wp rewrite structure '/%postname%/' --hard
+    wp --url=http://fixture.test/crm rewrite structure '/%postname%/' --hard
     wp plugin activate peracrm --network
 else
     wp core install --url=http://fixture.test --title=Fixture --admin_user=fixture-admin --admin_password=fixture-admin-only --admin_email=admin@example.test --skip-email
+    wp rewrite structure '/%postname%/' --hard
     wp plugin activate peracrm
 fi
 wp eval-file /tests/assertions.php migrations

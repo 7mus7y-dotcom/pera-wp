@@ -32,7 +32,9 @@ if ($phase === 'concurrency') {
     return;
 }
 fixture_expect($phase === 'migrations', 'known fixture phase');
+fixture_expect(str_starts_with(wp_get_theme()->get_stylesheet(), 'twentytwenty'), 'bundled default WordPress theme: ' . wp_get_theme()->get_stylesheet());
 fixture_expect(peracrm_campaigns_schema_ready(), 'fresh activation verifies schema readiness');
+fixture_expect(isset(get_option('rewrite_rules', [])['^crm/campaigns/?$']), 'fresh activation persists campaign routes through the shared registrar');
 peracrm_with_target_blog(static function () use ($wpdb) {
     peracrm_campaigns_assert_schema();
     fixture_expect((int) get_option('peracrm_schema_version') === 23, 'fresh migration marker is 23');

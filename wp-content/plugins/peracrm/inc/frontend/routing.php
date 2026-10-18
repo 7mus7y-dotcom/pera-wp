@@ -77,6 +77,11 @@ if (!function_exists('pera_crm_register_route')) {
         add_rewrite_rule('^' . $crm_route_prefix . '/performance/?$', 'index.php?pera_crm=1&pera_crm_view=performance', 'top');
         add_rewrite_rule('^' . $crm_route_prefix . '/whatsapp-logs/?$', 'index.php?pera_crm=1&pera_crm_view=whatsapp_logs', 'top');
         add_rewrite_rule('^' . $crm_route_prefix . '/email-logs/?$', 'index.php?pera_crm=1&pera_crm_view=email_logs', 'top');
+
+        // The lifecycle calls this registrar before flushing on fresh activation.
+        if (function_exists('peracrm_campaign_drafts_register_routes')) {
+            peracrm_campaign_drafts_register_routes();
+        }
     }
 }
 add_action('init', 'pera_crm_register_route');

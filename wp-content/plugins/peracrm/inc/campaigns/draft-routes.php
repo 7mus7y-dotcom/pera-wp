@@ -1,10 +1,11 @@
 <?php
 if (!defined('ABSPATH')) { exit; }
-add_action('init', static function () {
+function peracrm_campaign_drafts_register_routes()
+{
     add_rewrite_rule('^crm/campaigns/(new|configuration)/?$', 'index.php?pera_crm=1&pera_crm_view=campaigns&peracrm_campaign_screen=$matches[1]', 'top');
     add_rewrite_rule('^crm/campaigns/([0-9]+)/?$', 'index.php?pera_crm=1&pera_crm_view=campaigns&peracrm_campaign_id=$matches[1]', 'top');
     add_rewrite_rule('^crm/campaigns/?$', 'index.php?pera_crm=1&pera_crm_view=campaigns', 'top');
-});
+}
 add_filter('query_vars', static function ($vars) { return array_merge($vars,['peracrm_campaign_id','peracrm_campaign_screen']); });
 
 /** Same-page errors retain submitted fields and original revision; never put draft content in URLs/session. */
