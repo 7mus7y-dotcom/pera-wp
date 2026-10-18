@@ -137,12 +137,12 @@ module.exports = async function ({page,target,context,employeeContext,browser}) 
   await frame.getByText('Stored long content',{exact:false}).waitFor();
   if(await page.locator('[data-freeze-panel] iframe').getAttribute('sandbox')!=='') throw Error('Stored HTML missing sandbox');
   await page.locator('[data-freeze-panel]').getByText('Resolved plain-text preview',{exact:true}).click();
-  if(!(await page.locator('[data-freeze-panel] pre').innerText()).includes('{{recipient_unsubscribe_url}}')) throw Error('Stored plain text missing controlled placeholder');
+  if(!(await page.locator('[data-freeze-panel] pre').textContent()).includes('{{recipient_unsubscribe_url}}')) throw Error('Stored plain text missing controlled placeholder');
   if(await frame.locator('script,a,form,iframe').count()) throw Error('Stored preview has active elements');
   if(!(await frame.locator('meta[http-equiv="Content-Security-Policy"]').getAttribute('content')).includes("script-src 'none'")) throw Error('Stored preview CSP missing');
   await page.locator('[data-freeze-panel] iframe').scrollIntoViewIfNeeded();
   await page.locator('[data-freeze-panel] iframe').screenshot({path:'/evidence/freeze-content-'+size+'.png',style:'#site-header, #wpadminbar { visibility:hidden !important; }'});
-  const frozenText=await page.locator('[data-freeze-panel] pre').innerText();
+  const frozenText=await page.locator('[data-freeze-panel] pre').textContent();
   await page.getByText('Historical recipient membership (up to 200)',{exact:true}).click();
   const firstPage=await page.locator('[data-freeze-attempt] ul li').allTextContents();
   if(firstPage.length>200) throw Error('Unbounded recipient page');
@@ -153,15 +153,15 @@ module.exports = async function ({page,target,context,employeeContext,browser}) 
     await click('Reload current state');
   }
 
-  const frozenMembers=await page.locator('[data-freeze-attempt] ul').innerText();
+  const frozenMembers=await page.locator('[data-freeze-attempt] ul').textContent();
   await click('Start new editable revision');
   await page.waitForLoadState('load'); await action('Review saved revision').waitFor();
   await page.screenshot({path:'/evidence/freeze-newdraft-'+size+'.png',fullPage:true});
   await page.getByLabel('Main text',{exact:true}).fill('New editable content');
   await page.getByRole('button',{name:'Save draft',exact:true}).click();
   await page.locator('[data-freeze-panel] pre').waitFor({state:'attached'});
-  if(await page.locator('[data-freeze-panel] pre').innerText()!==frozenText) throw Error('New draft changed frozen content');
-  if(await page.locator('[data-freeze-attempt] ul').innerText()!==frozenMembers) throw Error('New draft changed frozen membership');
+  if(await page.locator('[data-freeze-panel] pre').textContent()!==frozenText) throw Error('New draft changed frozen content');
+  if(await page.locator('[data-freeze-attempt] ul').textContent()!==frozenMembers) throw Error('New draft changed frozen membership');
   await screenshot('history',size);
   // Cancellation is terminal and never appears frozen.
   await click('Review saved revision'); await click('Freeze revision');
@@ -170,7 +170,7 @@ module.exports = async function ({page,target,context,employeeContext,browser}) 
   if(await action('Publish frozen revision').count()) throw Error('Cancelled attempt publish control');
   const historyName=await page.locator('[data-freeze-action=history]').filter({hasText:'· frozen ·'}).first().innerText();
   await click(historyName);
-  if(await page.locator('[data-freeze-panel] pre').innerText()!==frozenText) throw Error('History action did not return stored bytes');
+  if(await page.locator('[data-freeze-panel] pre').textContent()!==frozenText) throw Error('History action did not return stored bytes');
   await click('Reload current state');
   // Empty audience cannot publish, including a crafted POST.
   await draft(size,true); await click('Review saved revision'); await click('Freeze revision'); await finish();
