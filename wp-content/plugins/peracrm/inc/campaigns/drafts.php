@@ -23,7 +23,7 @@ function peracrm_campaign_draft_text($input, $limit, $multiline = false)
 
 function peracrm_campaign_draft_document($input)
 {
-    $keys = ['schema_version','internal_name','subject','preheader','language','sender_id','introduction','main_text','blocks'];
+    $keys = ['schema_version','internal_name','subject','preheader','language','sender_id','introduction','main_text','blocks','audience'];
     if (!is_array($input) || array_diff(array_keys($input), $keys) || (isset($input['schema_version']) && $input['schema_version'] !== 1)) {
         throw new InvalidArgumentException('Unsupported campaign document.');
     }
@@ -36,9 +36,15 @@ function peracrm_campaign_draft_document($input)
     if ($out['sender_id'] !== '' && (!preg_match('/^[a-z][a-z0-9_-]{0,63}$/D', $out['sender_id']) || $out['sender_id'] !== ($input['sender_id'] ?? ''))) { throw new InvalidArgumentException('Invalid sender identity key.'); }
     $blocks = $input['blocks'] ?? [];
     if (!is_array($blocks) || array_values($blocks) !== $blocks || count($blocks) > 20) { throw new InvalidArgumentException('Use at most 20 ordered blocks.'); }
+    $out['audience'] = peracrm_campaign_audience_rules($input['audience'] ?? ['version'=>1]);
     $out['blocks'] = [];
     foreach ($blocks as $block) {
-        if (!is_array($block) || !in_array($block['type'] ?? '', ['text','cta'], true)) { throw new InvalidArgumentException('Unsupported block type.'); }
+        if (!is_array($block) || !in_array($block['type'] ?? '', ['text','cta','article','property'], true)) { throw new InvalidArgumentException('Unsupported block type.'); }
+        if (in_array($block['type'], ['article','property'], true)) {
+            if (array_diff(array_keys($block), ['type','id']) || !isset($block['id']) || !(is_int($block['id']) || (is_string($block['id']) && preg_match('/^[0-9]{1,10}$/D',$block['id']))) || (int)$block['id'] < 1) { throw new InvalidArgumentException('A content block requires a positive content ID only.'); }
+            $out['blocks'][] = ['type'=>$block['type'],'id'=>(int)$block['id']];
+            continue;
+        }
         $allowed = $block['type'] === 'text' ? ['type','heading','text'] : ['type','label','url'];
         if (array_diff(array_keys($block), $allowed)) { throw new InvalidArgumentException('Unsupported block fields.'); }
         if ($block['type'] === 'text') {

@@ -649,3 +649,116 @@ portions remain (1) content selectors, email renderer and bounded language/topic
 audience preview; (2) review and immutable content/recipient freeze. All ownership
 remains in PeraCRM. Sending, real intake and public collection remain disabled;
 no provider, scheduling, queue/worker, merge or deployment is introduced or performed.
+
+## Phase 3B — content, draft rendering and audience preview (2026-10-18)
+
+Status: **in progress**. Phase 3 remains **in progress**; Phase 3C remains **not started**.
+PR #1450 merged at 11:35:13 UTC as `5b009f562b5a76811ff7e007dd99472097b2f953`;
+Phase 3B starts at that latest main, branch `feat/campaign-phase3b`. No dependent
+unmerged PR is required. No applicable AGENTS.md exists in the searched repository
+or workspace ancestors. The clean initial branch was `work` at `04a7d93a`.
+Shell fetch could not connect to its proxy. Connected GitHub reads supplied the
+26 changed blobs and exact signed merge commit; local blob/tree/commit SHAs were
+verified before switching. No existing work was replaced.
+
+### Phase 3A acceptance
+
+Merged #1450 records passing real single-site/multisite and bundled Twenty
+Twenty-Five Chromium checks at 1440×1000 and 390×844, including actual create,
+save/reload, duplication, block ordering, input retention and 409 conflicts.
+[Run 39112678562](https://github.com/7mus7y-dotcom/pera-wp/actions/runs/39112678562)
+validated runtime `87d89ca8`; documentation-only head `c972cd7a` retained identical
+runtime files. [Single-site evidence](https://github.com/7mus7y-dotcom/pera-wp/actions/runs/39112678562/artifacts/12131600157)
+and [multisite evidence](https://github.com/7mus7y-dotcom/pera-wp/actions/runs/39112678562/artifacts/12130966927)
+are retained until November 1. This is Phase 3A evidence, not validation of 3B.
+
+### Decisions and actual supported data
+
+- Existing schema version 1 draft documents gain optional version 1 `audience`
+  rules; old revisions remain byte-for-byte unchanged. Current save/duplicate
+  paths normalize defaults. Only exact explicit `language` and one `topic` key
+  are supported, combined with AND. Empty means no filter; positive missing data
+  cannot match. No budget, advisor, pipeline or inferred interests.
+- Article/property blocks store only kind and positive ID. Published, publicly
+  viewable, password-free title search uses stable ascending ID pagination,
+  21 candidates / 20 results and bounded metadata priming. Preview rechecks IDs;
+  inaccessible titles, private portfolio URLs and credentials are never returned.
+  Selector labels explicitly use canonical source titles, with requested-language
+  availability alongside them. Content IDs remain references, not snapshots.
+- Actual Pera Multilingual APIs define English as canonical source. With that
+  plugin active, current non-stale stored title and excerpt (or content, when no
+  excerpt) translations must exist in a publicly available requested language.
+  A new storage reader is constructed inside target context (the singleton caches
+  its construction prefix), preserving multisite translation isolation. No fallback,
+  language inference, provider request or translation generation.
+  Without the plugin, explicit content language is unavailable. Russian/Turkish
+  public discovery gates are honored. Image alt translations use current stored
+  attachment metadata translations; missing alt text stays empty. Authored draft
+  text/footer is not automatically translated.
+- Property registration and helper functions currently belong to the theme.
+  PeraCRM neither registers the production CPT nor loads those helpers. The
+  bundled default-theme fixture first asserts an explicit unavailable state,
+  then uses a synthetic registered property. The adapter reads raw canonical
+  ACF repeater metadata `v2_units` (maximum 100 rows), `v2_units_N_v2_beds`,
+  `v2_gross_size_min/max` and `v2_price_usd_min/max` subkeys. It displays individual
+  unit rows and USD values, with explicit missing size/price data. It never reads
+  deprecated `price`/`price_usd`, uses no derived theme index, and does not infer
+  inventory availability. Unknown units or metadata remain unavailable.
+- One normalized Pera-branded model generates inline-styled HTML and plain text
+  in the same order, with approved current sender/footer, introduction, content,
+  CTA and mandatory preference placeholders. It escapes text/attributes and
+  rejects non-HTTP(S), credentials, local/reserved hosts and token/portfolio URLs.
+  Email images come only from selected public content thumbnails; no arbitrary
+  HTML, scripts, forms, embeds, authored tracking pixels or subscriber data.
+  Shared HTML contains inert CTA labels; separately validated destinations open
+  outside the sandbox for staff verification. Later freeze consumes the model;
+  a later delivery implementation must deliberately resolve recipient links.
+- Preview AJAX routes require campaign authority, real actor (no impersonation),
+  POST and nonce; replies use private/no-store/no-referrer and restrictive CSP.
+  Visual HTML is injected into an empty-sandbox iframe with its own CSP,
+  no-referrer policy and no active navigation. Desktop/mobile and plain-text
+  controls render current form input without saving. Preview refresh is explicit.
+  Draft status, preference placeholders, live image URLs and unverified
+  domain/provider readiness remain visible. Images/URLs are not frozen files.
+- Audience uses the same pure eligibility-reason policy as existing live
+  single-address eligibility. A suppression registry mailbox must exist; active
+  suppression takes precedence, then consent/evidence, invalid linked-client
+  state, language, topic. Newsletter-only identities need no CRM link. Existing
+  unresolved/deleted/disposition policy is unchanged; no automatic link inference.
+  Unique subscriber mailbox keys count shared mailboxes once.
+- Per request: at most 200 evaluated rows plus one lookahead, joined suppression,
+  linked post and party disposition in one query. No subscriber query loops or
+  whole-audience reads in implementation. Signed aggregate-only cursor progress
+  binds actor, target blog, draft ID/revision, normalized rules hash, fixed maximum
+  candidate ID and 30-minute expiry. No server progress/recipient ledger or public
+  token is created. Draft changes invalidate; errors fail closed. Counts reconcile
+  considered = eligible + mutually exclusive exclusions. Partial counts are
+  explicitly partial. As-of/check timing is advisory; concurrent edits/deletions
+  affect traversal and no transactional snapshot is claimed.
+
+### Validation and outstanding evidence
+
+All 13 pre-existing standalone regressions passed after the shared policy change;
+new pure Phase 3B contracts also pass. PHP/JavaScript/shell syntax, Compose
+configuration and whitespace checks are being run on final changes. Real suites
+extend existing single-site/multisite regressions with actual ML stored
+translations, synthetic property v2 metadata, selector exclusions/pagination,
+HTML/text parity, draft compatibility/duplication/stale writes, eligibility
+parity/count reconciliation, constant query bounds, signed progress invalidation
+and no subscriber mutations. Browser fixtures exercise actual selection,
+reordering, save/reload, current unsaved preview, CSP/sandbox, zero eligible
+recipients and missing translations/images/prices at both desktop/mobile sizes.
+
+Local Docker socket health check is blocked (`operation not permitted`, UID 1000,
+daemon running). No local database/browser success or screenshot review is
+claimed. Hosted CI must establish the new runtime results; the final evidence
+entry below will record actual results and inspected screenshot artifacts.
+Gmail/Outlook inbox rendering, Safari/Firefox, manual assistive technology,
+approved translations/copy and production domain/provider readiness remain later
+verification. Real intake/public collection and all sending stay disabled.
+
+**Phase 3C remaining:** explicit review, immutable content and recipient snapshots,
+bounded resumable/cancellable freeze and atomic publication. No review/freeze,
+recipient materialization, test emails, delivery, scheduling, providers, queues,
+workers, merge or deployment is implemented or authorized here. Phase 3 stays
+incomplete; Phase 4–7 remain not started.
