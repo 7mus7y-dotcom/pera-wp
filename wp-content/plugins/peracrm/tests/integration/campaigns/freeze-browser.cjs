@@ -36,7 +36,11 @@ module.exports = async function ({page,target,context,employeeContext,browser}) 
   return json.data;
  }
  async function screenshot(label,size) {
-  if(await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth+1)) throw Error('Freeze overflow '+label+' '+size);
+  if(await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth+1)) {
+    await page.screenshot({path:'/evidence/freeze-overflow-'+label+'-'+size+'.png',fullPage:true});
+    console.log('Freeze overflow elements',await page.evaluate(()=>[...document.querySelectorAll('body *')].filter(el=>el.getBoundingClientRect().right>innerWidth+1).slice(0,10).map(el=>({tag:el.tagName,cls:el.className,right:el.getBoundingClientRect().right,whiteSpace:getComputedStyle(el).whiteSpace}))));
+    throw Error('Freeze overflow '+label+' '+size);
+  }
   const html=page.locator('[data-campaign-freeze] details').filter({has:page.getByText('Resolved HTML preview',{exact:true})}).first();
   const overview=['frozen','history'].includes(label);
   if(overview) await html.evaluate(el=>{el.open=false;});

@@ -8300,7 +8300,7 @@ body.crm-route #site-header.peracrm-shell-header .peracrm-header-search__status 
 [data-campaign-freeze] { border-top: 1px solid #ccd5d1; margin-top: 2rem; padding-top: 1rem; min-width: 0; overflow-wrap: anywhere; }
 [data-campaign-freeze] dl { display: grid; grid-template-columns: minmax(6rem, 1fr) minmax(0, 3fr); gap: .4rem 1rem; }
 [data-campaign-freeze] dd { margin: 0; white-space: pre-wrap; }
-[data-campaign-freeze] button { white-space: normal; max-width: 100%; margin: .3rem; }
+.crm-page [data-campaign-freeze] button.btn { white-space: normal; max-width: calc(100% - .3rem); min-width: 0; box-sizing: border-box; margin: .3rem .3rem .3rem 0; overflow-wrap: anywhere; }
 [data-campaign-freeze] pre { white-space: pre-wrap; overflow-wrap: anywhere; max-width: 100%; }
 [data-campaign-freeze] :focus-visible { outline: 3px solid #266c58; outline-offset: 3px; }
 [data-campaign-freeze] summary { cursor: pointer; padding: .6rem 0; }
