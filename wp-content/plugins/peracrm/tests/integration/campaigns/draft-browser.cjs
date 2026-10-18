@@ -95,7 +95,7 @@ module.exports = async function ({browser,page,target}) {
     await assertNoOverflow('configuration '+name);
     await page.screenshot({path:'/evidence/campaign-configuration-'+name+'.png',fullPage:true});
     await page.goto(draftURL);
-    await page.getByLabel('Approved sender identity',{exact:true}).selectOption('browser');
+    await page.locator('select[name="document[sender_id]"]').selectOption('browser');
     await page.getByRole('button',{name:'Save draft',exact:true}).click();
     if(!(await page.locator('[data-campaign-missing]').innerText()).includes('Draft fields complete')) throw Error('Approved configuration not reflected');
     await page.screenshot({path:'/evidence/campaign-approved-'+name+'.png',fullPage:true});
