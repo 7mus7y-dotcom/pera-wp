@@ -839,6 +839,7 @@ inc/views/pages/crm-campaigns.php
 tests/campaign-drafts-test.php
 tests/campaign-previews-test.php
 tests/integration/campaigns/browser.cjs
+tests/integration/campaigns/change-tracking-browser.cjs
 tests/integration/campaigns/compose.yaml
 tests/integration/campaigns/fixture-guard.php
 tests/integration/campaigns/preview-browser.cjs
@@ -868,8 +869,42 @@ subject/block-text edits and audience-rule edits. Every mutation must mark dirty
 clear continuation, replace stale counts, and refuse an audience HTTP request
 until the document is saved.
 
-Local JavaScript syntax and whitespace checks pass. New hosted browser evidence
-is pending; the finding remains unresolved until those regressions pass.
+Local JavaScript syntax and whitespace checks pass. Both complete hosted suites
+and every new browser regression passed; evidence is recorded below.
 Phase 3 remains **in progress and incomplete**; Phase 3C is **not started**.
 Existing disabled real intake/public collection gates and absent sending remain
 unchanged. No merge or deployment is included.
+
+
+Acceptance verified on runtime/test head
+`d9026aa99e77f6d81c82349a8051fc3a750a3d3f` in
+[run 39129444264](https://github.com/7mus7y-dotcom/pera-wp/actions/runs/39129444264):
+
+| Topology | Result | Retained logs and screenshots |
+| --- | --- | --- |
+| Single-site | Job 117681407797: success | [Artifact 12137103987](https://github.com/7mus7y-dotcom/pera-wp/actions/runs/39129444264/artifacts/12137103987) |
+| Multisite | Job 117681407880: success | [Artifact 12137985104](https://github.com/7mus7y-dotcom/pera-wp/actions/runs/39129444264/artifacts/12137985104) |
+
+Each topology logs two selector-preservation/continuation passes and twenty
+independent mutation passes, covering both desktop and mobile. The posted signed
+cursor is checked against the one issued before selector interactions; considered
+counts advance from 200 to 400. Mutation checks assert dirty status, replaced
+counts, hidden continuation and zero audience HTTP requests for unsaved input.
+The first attempt passed selector/cursor and structural cases, then stopped at a
+prefilled-textarea exact-label lookup in the new test. The test now locates the
+actual textarea through its persisted `document[blocks][...][text]` name; its
+state assertions were preserved. Both full suites pass after this correction;
+no failed assertion was waived.
+
+The selector-only guards were already in requested head `29ea3b7`. Follow-up
+`08edfc04` also invalidates progress for Add text/Add CTA; `d9026aa` corrects only
+the regression locator. The final acceptance record is documentation-only, so
+runtime/test files remain identical to the passing head above. Finding closure
+is supported by this evidence; review of the acceptance follow-up is requested
+separately and does not imply reviewer approval.
+
+Follow-up files: `assets/frontend/crm.js`, the browser harness, new
+`tests/integration/campaigns/change-tracking-browser.cjs`, and this plan. Phase 3
+remains **in progress and incomplete**, Phase 3C remains **not started**, and
+all existing disabled collection/intake gates and absent sending stay unchanged.
+No merge, deployment, provider, queue, scheduling, delivery or freeze work occurred.
