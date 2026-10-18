@@ -2630,6 +2630,7 @@ document.addEventListener('DOMContentLoaded', function () {
       var panel = freeze.querySelector('[data-freeze-panel]');
       var review = freeze.querySelector('[data-freeze-review]');
       var channel = typeof BroadcastChannel === 'function' ? new BroadcastChannel('peracrm-freeze-' + location.origin + '-' + freeze.dataset.id) : null;
+      function focusFeedback() { feedback.focus({preventScroll:true}); feedback.scrollIntoView({block:'center',behavior:'instant'}); }
       function invalidateReview() { proof = ''; captureNonce = ''; review.replaceChildren(); }
       form.addEventListener('input', function (event) { if (String(event.target.name || '').startsWith('document[')) invalidateReview(); });
       form.addEventListener('change', function (event) { if (String(event.target.name || '').startsWith('document[')) invalidateReview(); });
@@ -2638,14 +2639,14 @@ document.addEventListener('DOMContentLoaded', function () {
       if (channel) channel.onmessage = function () {
         generation++; if (controller) controller.abort(); busy = false; invalidateReview();
         controls(true); var reload = panel.querySelector('[data-freeze-action="state"]'); if (reload) reload.disabled = false;
-        feedback.textContent = 'Another tab changed this campaign. Reload current state before acting.'; feedback.focus();
+        feedback.textContent = 'Another tab changed this campaign. Reload current state before acting.'; focusFeedback();
       };
       window.addEventListener('pagehide', function () { generation++; if (controller) controller.abort(); if (channel) channel.close(); });
       freeze.addEventListener('click', function (event) {
         var button = event.target.closest('[data-freeze-action]');
         if (!button || busy) return;
         var operation = button.dataset.freezeAction;
-        if (['review','start','new_revision'].includes(operation) && dirty) { invalidateReview(); feedback.textContent = 'Save your changes before review, freeze or starting a new revision.'; feedback.focus(); return; }
+        if (['review','start','new_revision'].includes(operation) && dirty) { invalidateReview(); feedback.textContent = 'Save your changes before review, freeze or starting a new revision.'; focusFeedback(); return; }
         if (operation === 'start' && !proof) { feedback.textContent = 'Review the saved revision again before freezing.'; return; }
         if (operation === 'publish' && !window.confirm('Publish this complete immutable revision? This does not send anything.')) return;
         if (operation === 'cancel' && !window.confirm('Cancel this materialization permanently? A new saved revision will be required.')) return;
@@ -2669,10 +2670,10 @@ document.addEventListener('DOMContentLoaded', function () {
             else { panel.innerHTML = json.data.html; invalidateReview(); }
             feedback.textContent = operation === 'review' ? 'Saved revision reviewed. Review proof expires after 15 minutes; source or configuration changes require a fresh review.' : 'Server state loaded. Choose the next action explicitly.';
             if (channel && ['start','continue','resume','cancel','publish','new_revision'].includes(operation)) channel.postMessage('changed');
-            feedback.focus();
+            focusFeedback();
           }).catch(function (error) {
             if (current !== generation) return;
-            failed = true; invalidateReview(); feedback.textContent = error.message; feedback.focus();
+            failed = true; invalidateReview(); feedback.textContent = error.message; focusFeedback();
             // Do not act on the old version following any error or lost response.
             controls(true); var reload = panel.querySelector('[data-freeze-action="state"]'); if (reload) reload.disabled = false;
           }).finally(function () { if (current === generation) { busy = false; if (!failed) controls(false); } });

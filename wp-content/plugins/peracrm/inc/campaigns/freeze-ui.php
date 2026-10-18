@@ -26,7 +26,7 @@ function peracrm_campaign_freeze_output($content)
     foreach (['language'=>'Language','subject'=>'Subject','preheader'=>'Preheader','sender'=>'Sender / reply-to','footer'=>'Approved footer'] as $key=>$label) {
         echo '<dt>'.esc_html($label).'</dt><dd>'.esc_html($content['model'][$key]).'</dd>';
     }
-    echo '<dt>Audience rules</dt><dd>'.esc_html(wp_json_encode($content['rules'])).'</dd></dl>';
+    echo '<dt>Audience rules</dt><dd>'.esc_html('Language: '.($content['rules']['language'] ?? 'Any').' · Topic: '.($content['rules']['topic'] ?? 'Any')).'</dd></dl>';
     echo '<p>Editorial configuration approval does not verify provider, DNS or domain readiness. Preference links remain controlled placeholders. Image URLs do not guarantee immutable image files.</p>';
     foreach ($content['warnings'] as $warning) { echo '<p>'.esc_html($warning).'</p>'; }
     echo '<details open><summary>Resolved HTML preview</summary><div class="peracrm-email-preview"><iframe title="Isolated saved campaign HTML" sandbox="" referrerpolicy="no-referrer" srcdoc="'.esc_attr(str_replace('<head>','<head>'.$meta,$output['html'])).'"></iframe></div></details>';

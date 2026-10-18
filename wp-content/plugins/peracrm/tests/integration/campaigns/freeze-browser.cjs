@@ -16,6 +16,15 @@ module.exports = async function ({page,target,context,employeeContext,browser}) 
  const feedback=()=>page.locator('[data-freeze-feedback]');
  const responseFor=p=>p.url().includes('admin-ajax.php') && p.request().postData()?.includes('peracrm_campaign_freeze');
  async function click(name,ok=true) {
+  if(name==='Start new editable revision') {
+    const revision=Number(await page.locator('input[name=revision]').inputValue());
+    const pending=page.waitForResponse(responseFor);
+    await Promise.all([page.waitForNavigation({waitUntil:'load'}),action(name).click()]);
+    const response=await pending;
+    if(!response.ok() || !/no-store/.test(response.headers()['cache-control']||'')) throw Error('New revision response failed or cacheable');
+    if(Number(await page.locator('input[name=revision]').inputValue())!==revision+1) throw Error('New editable revision did not increment exactly once');
+    return {reload:true};
+  }
   const pending=page.waitForResponse(responseFor);
   if(name==='Review saved revision') { await action(name).focus(); await page.keyboard.press('Enter'); } else { await action(name).click(); }
   const response=await pending;
@@ -28,7 +37,7 @@ module.exports = async function ({page,target,context,employeeContext,browser}) 
  }
  async function screenshot(label,size) {
   if(await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth+1)) throw Error('Freeze overflow '+label+' '+size);
-  await page.locator('[data-campaign-freeze]').screenshot({path:'/evidence/freeze-'+label+'-'+size+'.png'});
+  await page.locator('[data-campaign-freeze]').screenshot({path:'/evidence/freeze-'+label+'-'+size+'.png',style:'#site-header, #wpadminbar { visibility:hidden !important; }'});
  }
  async function draft(size,zero=false) {
   await page.goto(target+'/crm/campaigns/new/');
@@ -130,6 +139,16 @@ module.exports = async function ({page,target,context,employeeContext,browser}) 
   await page.locator('[data-freeze-panel] iframe').scrollIntoViewIfNeeded();
   await page.locator('[data-freeze-panel] iframe').screenshot({path:'/evidence/freeze-content-'+size+'.png'});
   const frozenText=await page.locator('[data-freeze-panel] pre').innerText();
+  await page.getByText('Historical recipient membership (up to 200)',{exact:true}).click();
+  const firstPage=await page.locator('[data-freeze-attempt] ul li').allTextContents();
+  if(firstPage.length>200) throw Error('Unbounded recipient page');
+  if(await action('Next recipient page').isVisible()) {
+    await click('Next recipient page');
+    const secondPage=await page.locator('[data-freeze-attempt] ul li').allTextContents();
+    if(secondPage.length>200 || secondPage.some(row=>firstPage.includes(row))) throw Error('Recipient pagination overlap or unbounded page');
+    await click('Reload current state');
+  }
+
   const frozenMembers=await page.locator('[data-freeze-attempt] ul').innerText();
   await click('Start new editable revision');
   await page.waitForLoadState('load'); await action('Review saved revision').waitFor();

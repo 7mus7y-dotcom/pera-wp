@@ -8305,3 +8305,5 @@ body.crm-route #site-header.peracrm-shell-header .peracrm-header-search__status 
 [data-campaign-freeze] :focus-visible { outline: 3px solid #266c58; outline-offset: 3px; }
 [data-campaign-freeze] summary { cursor: pointer; padding: .6rem 0; }
 @media (max-width: 600px) { [data-campaign-freeze] dl { grid-template-columns: minmax(0, 1fr); } }
+
+[data-freeze-feedback], [data-freeze-heading] { scroll-margin-top: 10rem; }
