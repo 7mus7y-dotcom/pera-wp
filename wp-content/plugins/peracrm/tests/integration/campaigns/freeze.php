@@ -40,6 +40,7 @@ freeze_target(static function () {
 freeze_expect(!peracrm_campaigns_schema_ready() && peracrm_maybe_upgrade_schema() && peracrm_maybe_upgrade_schema(),'additive v24 upgrade and repeated readiness');
 freeze_target(static function () { peracrm_campaigns_assert_schema(); });
 $config=peracrm_campaign_configuration(true);
+freeze_target(static function () use ($config) { update_option('campaign_freeze_previous_configuration',$config['document'],false); });
 $config=peracrm_campaign_configuration_save($config['revision'],['senders'=>[['id'=>'freeze','name'=>'Synthetic Pera','email'=>'freeze@example.test','reply_to'=>'reply@example.test','approved'=>true]],'footer'=>'Synthetic approved identity/address','footer_approved'=>true]);
 freeze_expect(!is_wp_error($config),'freeze approved configuration');
 wp_set_current_user($manager);

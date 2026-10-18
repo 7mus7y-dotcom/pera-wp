@@ -4,6 +4,15 @@ if (!defined('PERACRM_DISPOSABLE_CAMPAIGN_FIXTURE')) { throw new RuntimeExceptio
 $mode=$args[0] ?? ''; $scenario=$args[1] ?? '';
 $manager=peracrm_with_target_blog(static function () { return (int)get_option('campaign_fixture_manager'); });
 wp_set_current_user($manager);
+if ($mode==='restore') {
+    $admin=peracrm_with_target_blog(static function () { return (int)get_option('campaign_fixture_administrator'); });
+    wp_set_current_user($admin);
+    $previous=peracrm_with_target_blog(static function () { return get_option('campaign_freeze_previous_configuration'); });
+    $current=peracrm_campaign_configuration(true);
+    if (is_wp_error(peracrm_campaign_configuration_save($current['revision'],$previous))) { throw new RuntimeException('Fixture configuration restoration failed.'); }
+    echo "PASS freeze: restored pre-suite configuration for existing browser fixtures\n";
+    return;
+}
 $pairs=['start-start'=>['start','start'],'start-save'=>['start','save'],'continue-cancel'=>['continue','cancel'],
     'cancel-continue'=>['cancel','continue'],'continue-continue'=>['continue','continue'],'publish-cancel'=>['publish','cancel'],'cancel-publish'=>['cancel','publish']];
 if (!isset($pairs[$scenario])) { throw new RuntimeException('Invalid race scenario.'); }
