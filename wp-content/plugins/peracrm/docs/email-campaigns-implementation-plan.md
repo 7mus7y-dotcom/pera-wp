@@ -1,14 +1,14 @@
 # Integrated email campaigns: repository review and living implementation plan
 
-Review status: **complete** (2026-10-17). Implementation: **Phase 1 complete (technical acceptance)**; **Phase 2 in progress**; **Phase 3 in progress (prerequisite review fixes only)**; Phases 4–7 not started.
+Review status: **complete** (2026-10-17). Implementation: **Phase 1 complete (technical acceptance)**; **Phase 2 in progress**; **Phase 3 in progress (Phase 3A draft/editor implementation)**; Phases 4–7 not started.
 
 ## Purpose, scope and maintenance
 
-Let Pera staff prepare newsletters and targeted campaigns inside the existing CRM, with an external provider delivering mail. This document is the authoritative review and implementation plan. Phase 2 adds plugin-owned subscriber management, isolated preview/import services, suppression intake and public preferences with real intake gated off. No campaign editor, provider, queue, scheduling, delivery, production contacts, merge or deployment is included.
+Let Pera staff prepare newsletters and targeted campaigns inside the existing CRM, with an external provider delivering mail. This document is the authoritative review and implementation plan. Phase 2 adds plugin-owned subscriber management, isolated preview/import services, suppression intake and public preferences with real intake gated off. Phase 3A adds draft/revision storage, approved configuration and the structured editor. No provider, queue, scheduling, delivery, production contacts, merge or deployment is included.
 
 Future implementation PRs must update phase status, validation evidence, decisions and the progress log here. A phase must not be marked complete solely because code exists when required verification remains outstanding. Use only `not started`, `in progress`, `blocked` or `complete` for phase status. Keep repository checks distinct from external verification; record outstanding evidence explicitly.
 
-**Current implementation task:** Phase 3, split into reviewable dependent PRs, starting with the outstanding #1448 review fixes. Sending and new public collection stay disabled. Phase 1 technical foundations are accepted; Phase 2 external acceptance remains open; Phases 4–7 remain unstarted.
+**Current implementation task:** Phase 3, split into reviewable dependent PRs, continuing with Phase 3A draft storage and the structured editor after merged #1449. Sending and new public collection stay disabled. Phase 1 technical foundations are accepted; Phase 2 external acceptance remains open; Phases 4–7 remain unstarted.
 
 ## Review baseline and method
 
@@ -218,7 +218,7 @@ Verified hosted evidence: [run `39050763912`](https://github.com/7mus7y-dotcom/p
 
 ### 3. Draft campaigns, audience preview and frozen content
 
-- **Status:** in progress (prerequisite fixes only; editor/audience/freeze not implemented).
+- **Status:** in progress (Phase 3A draft/editor implemented; selectors, renderer, audience and freeze deferred).
 - **Goal/outcome:** managers build and review a newsletter with public articles/properties and an accurate exclusion preview; no external delivery yet.
 - **Prerequisites:** Phases 1–2; template/footer approval and explicit language/topic rules.
 - **Work/components:** campaign repositories/editor, paginated selectors/content adapter, email HTML/text renderer, plugin routing/views/nav/assets and capability checks. Reuse plugin profile/party/assignment accessors; retrieve content/price metadata through WordPress/plugin APIs and plugin-owned adapters. Do not call or include theme card/pricing helpers or templates.
@@ -467,3 +467,103 @@ footer / translations, domain readiness and production topology/readiness gates
 remain outstanding. Phases 4–7 stay **not started**. No email delivery/test sends,
 provider integration, attempts/leases/retries, queue, worker, scheduling,
 production subscribers, merge or deployment is authorized by this record.
+
+
+## Phase 3A: campaign draft storage and structured editor (2026-10-18)
+
+Baseline: #1449 merged at `04a7d93aa0c6b584dbb875c94cd9d51849cc17f4`.
+Connected GitHub confirmed this was latest main at task start. The initial branch
+was clean `work` at `413fcbfd`. Shell fetch failed once because the configured
+proxy was unreachable. The local synchronization tree exactly matches main tree
+`a37c485b83c3b94cf0ef609b7aa37fbba405cb8e`; the publication commit is parented
+on actual merged main, excluding the local synchronization commit. Work branch:
+`feat/campaign-draft-editor`. No AGENTS.md was found in repository/workspace
+ancestors or tree. #1449 is no longer an unmerged dependency.
+
+### Prerequisite acceptance evidence
+
+[#1449 CI run 39108549138](https://github.com/7mus7y-dotcom/pera-wp/actions/runs/39108549138)
+passed on `54049e6fa1dc5575ecde2fa9800d7260b02362aa`: multisite job
+`117619543524`, single-site job `117619543740`, including disposable MySQL and
+bundled-default-theme desktop/mobile browser controls. The [Codex review summary](https://github.com/7mus7y-dotcom/pera-wp/pull/1449#issuecomment-6247238443)
+completed at 07:42:10 UTC with no findings/unresolved findings on that same head.
+There were no formal review submissions. This records prerequisite evidence;
+it does not establish Phase 3A runtime acceptance or production readiness.
+
+### Implementation decisions
+
+- Schema 23 adds only target-blog InnoDB campaign drafts, immutable draft
+  revisions and a singleton approved configuration table. Existing nonblocking
+  connection-owned migration slot, fenced publication, readiness assertions,
+  circuit breaker, sanitized failure notices and administrator retry are reused.
+  Assertions require draft/config primary keys and the full unique
+  `(campaign_id, revision)` revision key. No recipients, snapshots, delivery
+  tables, campaign public tokens or machinery are created.
+- Dedicated `peracrm_manage_campaigns` checks protect routes, reads and writes.
+  Real actors are audited; all impersonated writes fail. Configuration editing
+  and administrative reads additionally require target-blog `manage_options`.
+  Editor reads expose only approved identities/footer; employees cannot access
+  campaigns. All URLs and storage use the authoritative target-blog wrapper.
+- Creation and explicit saves transact current document plus append-only history.
+  Locked current revision and conditional updates reject stale saves with HTTP
+  409, without adding history or changing newer content. Revision-insert failures
+  roll back current content. Configuration also uses revision checks. No history
+  update/delete or restore endpoint exists. Duplication creates a new draft at
+  revision one with copied authored fields only, a new real author and no source
+  history, recipients or tokens.
+- Structured document schema version 1 permits plain text/CTA blocks only; later
+  block types require explicit versioned validation. Bounds (bytes): name 160,
+  subject 200, preheader 300, explicit language 35, sender key 64, introduction
+  4,000, main text 16,000, at most 20 blocks (text heading/CTA label 160,
+  block text 4,000, HTTP(S) URL 2,048), total encoded document 128 KiB. Unknown
+  fields/types fail; HTML is sanitized to plain text; credential-bearing and
+  non-HTTP(S) CTA URLs fail. No article/property selectors are present.
+- Configuration supports up to ten stable sender keys, From/reply-to approval,
+  mandatory plain-text footer approval, real approving actor and revision.
+  Approval records an editorial decision, never DNS/domain/provider verification.
+  Drafts reference sender keys and display current approved footer; revisions
+  preserve authored content, not an immutable configuration/email snapshot.
+  Changed/revoked/missing approvals appear as missing requirements and never
+  prevent a draft save or erase content. Language is explicit, with no inference.
+- `/crm/campaigns/`, `/new/`, numeric detail/editor and `/configuration/` use the
+  existing plugin CRM shell/navigation/enqueue conventions. All CSS/JavaScript
+  additions are in `assets/frontend/crm.css` and `crm.js`. Explicit Save shows
+  unsaved/saving/saved/error status; before-unload warns on edited content.
+  Validation errors (422) and conflicts retain submitted content and its original
+  revision in the same response; a separate saved-version link supports manual
+  reconciliation. No autosave. JavaScript adds/moves/removes blocks and identities;
+  existing content remains editable without it. List and history are paginated.
+
+### Phase 3A verification record
+
+Local standalone regressions, new draft validation/authority contracts, PHP lint,
+JavaScript/shell syntax, Compose configuration and whitespace checks pass.
+Real fixture coverage adds fresh/22-upgrade/repeated migrations, unique-revision
+assertion failure containment and recovery; authorization/impersonation/target
+isolation; create/save/reload/order/duplicate; history/real actor; two independent
+connections contending on one draft; revision-insert rollback; sanitization and
+bounds; administrator configuration; missing/revoked approvals preserving drafts.
+Browser fixtures exercise actual controls, invalid-input retention and two-tab
+stale-save conflicts at desktop/mobile sizes, and save screenshots on the bundled
+default WordPress theme with no repository theme mounted.
+
+Local Docker socket check failed `connect: operation not permitted` (UID 1000;
+daemon running). No repeated Docker retry was made. Hosted Phase 3A integration
+and browser results and screenshot inspection are pending at this checkpoint.
+No Phase 3A screenshot inspection or runtime acceptance is claimed yet.
+
+### Remaining dependent portions — Phase 3 remains incomplete
+
+1. Content selectors, email renderer and bounded language/topic audience preview:
+   paginated public article/property adapters, explicit language/availability,
+   plugin-owned email-safe HTML/text renderer and reconciled bounded audience
+   evaluation. No CRM segmentation without separately verified semantics.
+2. Review and immutable content/recipient freeze: fresh source/eligibility checks,
+   immutable resolved content/configuration snapshots and bounded atomic
+   membership publication, concurrency protection and failure/cancellation rules.
+
+Historical consent, suppression-source completeness, retention, approved copy /
+sender/footer/translations and production topology/domain readiness stay open.
+Real intake/public collection remain disabled by existing gates. Phases 4–7 stay
+not started. No sending, test email, scheduling, provider, queue, worker, merge
+or deployment is included or authorized by this record.

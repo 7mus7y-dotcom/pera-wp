@@ -82,4 +82,14 @@ phase2_public_pid=$!
 wait "$phase2_import_pid"
 wait "$phase2_public_pid"
 wp eval-file /tests/import-worker.php verify
+wp eval-file /tests/drafts.php
+rm -f /tmp/peracrm-draft-held /tmp/peracrm-draft-result-*
+wp eval-file /tests/draft-worker.php first &
+draft_first_pid=$!
+wait_for_migration_marker /tmp/peracrm-draft-held
+wp eval-file /tests/draft-worker.php second &
+draft_second_pid=$!
+wait "$draft_first_pid"
+wait "$draft_second_pid"
+wp eval-file /tests/draft-worker.php verify
 printf 'PASS disposable %s WordPress/MySQL fixtures\n' "$fixture_mode"

@@ -60,8 +60,8 @@ if ($mode === 'race-owner') {
     migration_expect(peracrm_campaigns_retry_schema() === true && peracrm_campaigns_schema_ready(), 'controlled administrator retry recovers interrupted attempt');
 } elseif ($mode === 'verify') {
     $installers = file('/tmp/peracrm-migration-installers', FILE_IGNORE_NEW_LINES);
-    migration_expect(count($installers) === 4 && count(array_unique($installers)) === 1
-        && str_starts_with($installers[0], 'race-owner:'), 'exactly one real connection ran all four campaign table installers');
+    migration_expect(count($installers) === 7 && count(array_unique($installers)) === 1
+        && str_starts_with($installers[0], 'race-owner:'), 'exactly one real connection ran all seven foundation/draft table installers');
     migration_expect(is_file('/tmp/peracrm-migration-loser-returned'), 'competing ordinary request stayed available before owner finished');
     migration_expect(peracrm_campaigns_schema_ready(), 'migration race and stale completion preserve final readiness');
     peracrm_with_target_blog(static function () {

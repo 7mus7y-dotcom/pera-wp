@@ -2463,3 +2463,61 @@ document.addEventListener('click', function (event) {
     event.preventDefault();
   }
 });
+
+// Campaign structured drafts. No HTML authoring, remote selectors or delivery actions.
+document.addEventListener('DOMContentLoaded', function () {
+  document.querySelectorAll('[data-campaign-editor]').forEach(function (form) {
+    var status = form.querySelector('[data-campaign-status]');
+    var dirty = false;
+    var submitted = false;
+    var blocks = form.querySelector('[data-campaign-blocks]');
+    var senders = form.querySelector('[data-campaign-senders]');
+    var senderTemplate = senders && senders.firstElementChild ? senders.firstElementChild.cloneNode(true) : null;
+    function changed() { dirty = true; if (status) status.textContent = 'Unsaved changes'; }
+    function reindex(container, selector, key) {
+      if (!container) return;
+      var items = Array.from(container.querySelectorAll(selector));
+      items.forEach(function (item, index) {
+        item.querySelectorAll('[name]').forEach(function (field) { field.name = field.name.replace(new RegExp('\\[' + key + '\\]\\[\\d+\\]'), '[' + key + '][' + index + ']'); });
+        var up = item.querySelector('[data-block-up]');
+        var down = item.querySelector('[data-block-down]');
+        if (up) up.disabled = index === 0;
+        if (down) down.disabled = index === items.length - 1;
+      });
+      form.querySelectorAll(key === 'blocks' ? '[data-block-add]' : '[data-sender-add]').forEach(function (button) { button.disabled = items.length >= (key === 'blocks' ? 20 : 10); });
+    }
+    form.addEventListener('input', changed);
+    form.addEventListener('change', changed);
+    form.addEventListener('click', function (event) {
+      var button = event.target.closest('button');
+      if (!button) return;
+      var block = button.closest('[data-campaign-block]');
+      if (button.hasAttribute('data-block-add') && blocks && blocks.children.length < 20) {
+        var template = document.querySelector('[data-block-template="' + button.dataset.blockAdd + '"]');
+        if (!template) return;
+        blocks.appendChild(template.content.cloneNode(true));
+        blocks.lastElementChild.querySelector('input:not([type=hidden]),textarea').focus();
+      } else if (block && button.hasAttribute('data-block-remove')) {
+        block.remove();
+      } else if (block && button.hasAttribute('data-block-up') && block.previousElementSibling) {
+        blocks.insertBefore(block, block.previousElementSibling);
+      } else if (block && button.hasAttribute('data-block-down') && block.nextElementSibling) {
+        blocks.insertBefore(block.nextElementSibling, block);
+      } else if (button.hasAttribute('data-sender-add') && senders && senders.children.length < 10 && senderTemplate) {
+        var sender = senderTemplate.cloneNode(true);
+        sender.querySelectorAll('input').forEach(function (input) { input.value = input.type === 'checkbox' ? '1' : ''; input.checked = false; });
+        senders.appendChild(sender);
+        sender.querySelector('input').focus();
+      } else if (button.hasAttribute('data-sender-remove')) {
+        button.closest('[data-campaign-sender]').remove();
+      } else return;
+      reindex(blocks, '[data-campaign-block]', 'blocks');
+      reindex(senders, '[data-campaign-sender]', 'senders');
+      changed();
+    });
+    form.addEventListener('submit', function () { submitted = true; if (status) status.textContent = 'Saving…'; });
+    window.addEventListener('beforeunload', function (event) { if (dirty && !submitted) { event.preventDefault(); event.returnValue = ''; } });
+    reindex(blocks, '[data-campaign-block]', 'blocks');
+    reindex(senders, '[data-campaign-sender]', 'senders');
+  });
+});

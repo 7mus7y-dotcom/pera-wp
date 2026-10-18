@@ -148,9 +148,10 @@ const fs = require('fs');
  await page.goto(staff+'&search=phase2-real');
  if((await page.locator('tbody tr').filter({hasText:'phase2-real@example.test'}).locator('td').nth(1).innerText())!=='unsubscribed') throw Error('Public POST failed to withdraw');
  await page.screenshot({path:'/evidence/subscribers-after-public-post.png',fullPage:true});
+ await require('./draft-browser.cjs')({browser,page,target});
  if(failures.length) throw Error(failures.join('\n'));
  // Emit small synthetic-only review images so an API-only reviewer can inspect them.
- for(const name of ['subscribers-desktop','subscribers-mobile','detail-mobile','import-mobile','suppression-mobile','preferences-mobile']) {
+ for(const name of ['subscribers-desktop','subscribers-mobile','detail-mobile','import-mobile','suppression-mobile','preferences-mobile','campaign-list-desktop','campaign-list-mobile','campaign-editor-desktop','campaign-editor-mobile','campaign-configuration-desktop','campaign-configuration-mobile','campaign-conflict-mobile','campaign-approved-mobile']) {
   const review = await browser.newPage({viewport:{width:name.includes('desktop')?720:390,height:844}});
   await review.setContent('<html><body style="margin:0"><img style="width:100%;display:block" src="data:image/png;base64,'+fs.readFileSync('/evidence/'+name+'.png').toString('base64')+'"></body></html>');
   await review.locator('img').evaluate(img=>img.decode());

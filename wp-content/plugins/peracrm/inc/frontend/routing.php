@@ -392,6 +392,10 @@ if (!function_exists('peracrm_frontend_resolve_crm_template')) {
             return peracrm_frontend_view_path('pages/crm-new.php');
         }
 
+        if ($view === 'campaigns') {
+            return peracrm_frontend_view_path('pages/crm-campaigns.php');
+        }
+
         if ($view === 'subscribers') {
             return peracrm_frontend_view_path('pages/crm-subscribers.php');
         }

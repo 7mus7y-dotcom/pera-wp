@@ -9,7 +9,7 @@ function peracrm_campaigns_schema_definitions()
 {
     global $wpdb;
     $mailbox = 'VARCHAR(254) CHARACTER SET ascii COLLATE ascii_bin';
-    return peracrm_campaigns_phase2_definitions() + [
+    return peracrm_campaigns_draft_definitions() + peracrm_campaigns_phase2_definitions() + [
         'peracrm_subscribers' => "id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
             email VARCHAR(254) NOT NULL,
             normalized_email {$mailbox} NOT NULL,
@@ -110,6 +110,8 @@ function peracrm_campaigns_assert_schema()
         }
         $engine = $wpdb->get_row($wpdb->prepare('SHOW TABLE STATUS WHERE Name = %s', $table), ARRAY_A);
         $expected_keys = [
+            'peracrm_campaign_drafts' => ['id'], 'peracrm_campaign_configuration' => ['id'],
+            'peracrm_campaign_draft_revisions' => ['campaign_id', 'revision'],
             'peracrm_subscribers' => ['normalized_email'], 'peracrm_email_suppressions' => ['normalized_email'],
             'peracrm_subscriber_batches' => ['id'], 'peracrm_subscriber_tokens' => ['digest'],
             'peracrm_subscriber_import_rows' => ['batch_id', 'line_number'],
