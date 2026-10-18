@@ -157,6 +157,7 @@ const fs = require('fs');
  if(campaignNonce.status()!==403) throw Error('Campaign save without nonce accepted');
  await require('./draft-browser.cjs')({browser,page,target});
  await require('./preview-browser.cjs')({page,target,employeeContext,context});
+ await require('./change-tracking-browser.cjs')({page,target});
  if(failures.length) throw Error(failures.join('\n'));
  // Emit small synthetic-only review images so an API-only reviewer can inspect them.
  for(const name of ['campaign-audience-desktop','campaign-audience-mobile','campaign-content-desktop','campaign-content-mobile','campaign-preview-desktop','campaign-preview-mobile','campaign-missing-desktop','campaign-missing-mobile','subscribers-desktop','subscribers-mobile','detail-mobile','import-mobile','suppression-mobile','preferences-mobile','campaign-list-desktop','campaign-list-mobile','campaign-editor-desktop','campaign-editor-mobile','campaign-configuration-desktop','campaign-configuration-mobile','campaign-conflict-mobile','campaign-approved-mobile']) {

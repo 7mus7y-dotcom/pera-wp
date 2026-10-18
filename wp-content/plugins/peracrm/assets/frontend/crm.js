@@ -2621,7 +2621,7 @@ document.addEventListener('DOMContentLoaded', function () {
       }
       tools.querySelector('[data-audience-start]').addEventListener('click', function () { audience(true); });
       audienceNext.addEventListener('click', function () { audience(false); });
-      form.addEventListener('click', function (event) { if (event.target.closest('[data-block-up],[data-block-down],[data-block-remove]')) invalidateAudience(); });
+      form.addEventListener('click', function (event) { if (event.target.closest('[data-block-add],[data-block-up],[data-block-down],[data-block-remove]')) invalidateAudience(); });
     }
     form.addEventListener('submit', function () { submitted = true; if (status) status.textContent = 'Saving…'; });
     window.addEventListener('beforeunload', function (event) { if (dirty && !submitted) { event.preventDefault(); event.returnValue = ''; } });

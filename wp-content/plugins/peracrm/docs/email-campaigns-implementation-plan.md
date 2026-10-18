@@ -845,3 +845,31 @@ tests/integration/campaigns/preview-browser.cjs
 tests/integration/campaigns/previews.php
 tests/integration/campaigns/run-inside.sh
 ```
+
+### PR #1451 acceptance follow-up: selector change tracking
+
+Acceptance starts from head `29ea3b722fc76acf03bedf59aeffc3cfd2d6f9b2`.
+The existing finding is [selector-only controls must not dirty the draft](https://github.com/7mus7y-dotcom/pera-wp/pull/1451#discussion_r4306975597).
+That head already limits input/change tracking to named `document[...]` fields,
+so search text and content-kind controls do not dirty the draft or clear its
+signed aggregate cursor. Explicit article/property selection remains a document
+mutation. Follow-up inspection found that Add text/Add CTA marked dirty but did
+not invalidate audience progress; the structural invalidation selector now also
+includes `data-block-add`.
+
+New actual browser regressions run at 1440×1000 and 390×844. Starting with a
+saved draft and a 200-row partial audience result, typing search text, changing
+kind, searching both kinds and paginating must preserve the exact saved-status
+text, partial counts and visible continuation. Continuing must post the original
+signed cursor and reach 400 considered, proving that progress was neither
+cleared nor silently restarted. Independent reload/prime/mutate cases cover
+article/property selection, text/CTA additions, removal, both reorder directions,
+subject/block-text edits and audience-rule edits. Every mutation must mark dirty,
+clear continuation, replace stale counts, and refuse an audience HTTP request
+until the document is saved.
+
+Local JavaScript syntax and whitespace checks pass. New hosted browser evidence
+is pending; the finding remains unresolved until those regressions pass.
+Phase 3 remains **in progress and incomplete**; Phase 3C is **not started**.
+Existing disabled real intake/public collection gates and absent sending remain
+unchanged. No merge or deployment is included.
