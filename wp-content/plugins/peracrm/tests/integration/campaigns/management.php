@@ -169,6 +169,8 @@ management_expect(management_target(static function () use ($ambiguous) { return
 $link_fixture = management_target(static function () use ($manager) {
     $restricted = wp_insert_user(['user_login' => 'fixture-subscriber-scoped', 'user_pass' => 'fixture-scoped-only', 'role' => 'subscriber']);
     $user = new WP_User($restricted);
+    // Multisite user_register assigns the lead role before fixture staff caps exist.
+    $user->set_role('subscriber');
     $user->add_cap('peracrm_manage_subscribers'); $user->add_cap('edit_crm_clients');
     $client = wp_insert_post(['post_type' => 'crm_client', 'post_status' => 'draft', 'post_title' => 'Synthetic hidden client']);
     update_post_meta($client, '_peracrm_email', 'phase2-hidden@example.test');

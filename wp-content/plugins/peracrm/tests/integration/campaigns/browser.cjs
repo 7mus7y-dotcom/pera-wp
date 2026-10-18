@@ -54,7 +54,7 @@ const fs = require('fs');
  await scoped.locator('input[name="language"]').fill('de');
  await scoped.locator('input[name="topics"]').fill('news|property');
  await scoped.getByRole('button',{name:'Save profile',exact:true}).click();
- await scoped.locator('input[name="language"][value="de"]').waitFor();
+ await scoped.locator('input[name="language"][value="de"]').waitFor().catch(async(error)=>{throw Error('Scoped profile submission: '+scoped.url()+' '+(await scoped.locator('body').innerText()).slice(0,1000)+' '+error.message);});
  const crafted=async(operation,client)=>scoped.evaluate(async({operation,client})=>{
   const form=document.querySelector('input[name="operation"][value="profile"]').form;
   const body=new URLSearchParams(new FormData(form));
