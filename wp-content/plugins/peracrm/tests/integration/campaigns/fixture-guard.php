@@ -62,7 +62,7 @@ add_filter('post_type_link',static function ($url,$post) { return str_starts_wit
 
 // Phase 3C browser-only fault and evidence controls, confined to disposable fixtures.
 add_filter('query', static function ($sql) {
-    if (($_COOKIE['freeze_fixture_failure'] ?? '')==='1' && str_starts_with($sql,'UPDATE') && str_contains($sql,'peracrm_campaign_freeze_attempts') && str_contains($sql,'`last_id`')) {
+    if (($_COOKIE['freeze_fixture_failure'] ?? '')==='1' && str_starts_with($sql,'UPDATE') && str_contains($sql,'peracrm_campaign_freeze_attempts') && str_contains($sql,'`last_id`') && str_contains($sql,"'materializing'")) {
         return 'UPDATE peracrm_fixture_missing SET id=1';
     }
     return $sql;
