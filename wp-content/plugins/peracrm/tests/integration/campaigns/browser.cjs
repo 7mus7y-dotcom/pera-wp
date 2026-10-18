@@ -70,6 +70,22 @@ const fs = require('fs');
  await page.getByRole('button',{name:'Unlink client',exact:true}).click();
  if(await page.getByRole('link',{name:'Open linked client',exact:true}).count()) throw Error('Authorized explicit unlink failed');
  if(!(await page.locator('main').innerText()).includes('unsubscribe')) throw Error('Unlink cleared suppression');
+ const staleURL=target+'/crm/subscribers/'+fixture.stale_id+'/';
+ await scoped.goto(staleURL);
+ if(await scoped.getByRole('button',{name:'Unlink client',exact:true}).count()) throw Error('Scoped staff exposed deleted-link repair');
+ await crafted('unlink_client','');
+ for(const [name,width,height] of [['desktop',1440,1000],['mobile',390,844]]) {
+  await page.setViewportSize({width,height});
+  await page.goto(staleURL);
+  await page.getByRole('button',{name:'Unlink client',exact:true}).waitFor();
+  if(await page.getByRole('link',{name:'Open linked client',exact:true}).count()) throw Error('Deleted link exposes client URL');
+  if(await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth+1)) throw Error('Deleted-link repair horizontal overflow '+name);
+  await page.screenshot({path:'/evidence/deleted-link-'+name+'.png',fullPage:true});
+ }
+ await page.getByRole('button',{name:'Unlink client',exact:true}).click();
+ await page.reload();
+ if(await page.getByRole('button',{name:'Unlink client',exact:true}).count()) throw Error('Deleted-link repair did not persist');
+ if(!(await page.locator('main').innerText()).includes('unknown')) throw Error('Deleted-link repair changed consent');
  await scopedContext.close();
  // Exercise the real upload/nonce/preview/apply path, with a formula-like mailbox.
  await page.goto(target+'/crm/subscribers/import/');

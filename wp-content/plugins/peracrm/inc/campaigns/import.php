@@ -54,14 +54,47 @@ function peracrm_subscribers_validate_import_row($row)
     return $row;
 }
 
-/** Read-only client matching, including legacy alias. Never chooses or edits a client. */
-function peracrm_subscribers_client_match($email)
+/** Read-only bounded preview lookup; never loads client IDs or chooses a link. */
+function peracrm_subscribers_preview_states(array $emails)
 {
-    $ids = array_unique(array_map('intval', array_merge(peracrm_find_all_client_ids_by_email($email), get_posts([
-        'post_type' => 'crm_client', 'post_status' => 'any', 'posts_per_page' => -1, 'fields' => 'ids', 'no_found_rows' => true,
-        'meta_query' => [['key' => '_peracrm_email', 'value' => $email, 'compare' => '=']],
-    ]))));
-    return count($ids) > 1 ? 'ambiguous_unresolved' : (count($ids) === 1 ? 'available_unlinked' : 'none');
+    peracrm_subscribers_require_staff(true);
+    if (count($emails) > PERACRM_SUBSCRIBER_CSV_ROWS) { throw new InvalidArgumentException('Too many preview identities.'); }
+    $emails = array_values(array_unique(array_map('peracrm_campaigns_normalize_email', $emails)));
+    return peracrm_with_target_blog(static function () use ($emails) {
+        global $wpdb;
+        $states = [];
+        $s = peracrm_table('peracrm_subscribers');
+        $x = peracrm_table('peracrm_email_suppressions');
+        // Match WP_Query post_status=any, without materializing matching posts.
+        $statuses = array_values(get_post_stati(['exclude_from_search' => false]));
+        foreach (array_chunk($emails, 100) as $chunk) {
+            foreach ($chunk as $email) { $states[$email] = ['existing' => false, 'suppressed' => false, 'client_match' => 'none']; }
+            $in = implode(',', array_fill(0, count($chunk), '%s'));
+            // Union keeps suppressions for mailboxes without a subscriber.
+            $rows = $wpdb->get_results($wpdb->prepare("SELECT s.normalized_email, 1 AS existing, x.unsubscribe, x.hard_bounce, x.complaint, x.administrative
+                FROM {$s} s LEFT JOIN {$x} x ON x.normalized_email=s.normalized_email WHERE s.normalized_email IN ({$in})
+                UNION ALL SELECT x.normalized_email, 0 AS existing, x.unsubscribe, x.hard_bounce, x.complaint, x.administrative
+                FROM {$x} x WHERE x.normalized_email IN ({$in})", ...array_merge($chunk, $chunk)), ARRAY_A);
+            peracrm_campaigns_db_require(true);
+            foreach ($rows as $row) {
+                $email = $row['normalized_email'];
+                $states[$email]['existing'] = $states[$email]['existing'] || (bool) $row['existing'];
+                $states[$email]['suppressed'] = $states[$email]['suppressed'] || peracrm_campaigns_has_suppression($row);
+            }
+            if (!$statuses) { continue; }
+            $status_in = implode(',', array_fill(0, count($statuses), '%s'));
+            $matches = $wpdb->get_results($wpdb->prepare("SELECT LOWER(TRIM(m.meta_value)) AS normalized_email, COUNT(DISTINCT p.ID) AS matches
+                FROM {$wpdb->postmeta} m INNER JOIN {$wpdb->posts} p ON p.ID=m.post_id
+                WHERE p.post_type='crm_client' AND p.post_status IN ({$status_in})
+                AND m.meta_key IN ('crm_primary_email','primary_email','crm_primary_email_normalized','primary_email_normalized','_peracrm_email')
+                AND LOWER(TRIM(m.meta_value)) IN ({$in}) GROUP BY LOWER(TRIM(m.meta_value))", ...array_merge($statuses, $chunk)), ARRAY_A);
+            peracrm_campaigns_db_require(true);
+            foreach ($matches as $row) {
+                $states[$row['normalized_email']]['client_match'] = (int) $row['matches'] > 1 ? 'ambiguous_unresolved' : 'available_unlinked';
+            }
+        }
+        return $states;
+    });
 }
 
 /** Preview only: writes temporary bookkeeping, never mailbox, consent, client or user data. */
@@ -87,14 +120,8 @@ function peracrm_subscribers_preview($stream, $mapping, $synthetic = false, $sup
                 $duplicate = isset($seen[$row['email']]);
                 $conflict = $duplicate && $seen[$row['email']] !== $row['state'];
                 $seen[$row['email']] = $row['state'];
-                $identity = peracrm_campaigns_repository_identity($row['email']);
-                $x = peracrm_table('peracrm_email_suppressions');
-                $suppression = $wpdb->get_row($wpdb->prepare("SELECT * FROM {$x} WHERE normalized_email=%s", $row['email']), ARRAY_A);
-                peracrm_campaigns_db_require(true);
                 $row['preview'] = [
-                    'duplicate' => $duplicate, 'conflict' => $conflict, 'existing' => (bool) $identity,
-                    'suppressed' => peracrm_campaigns_has_suppression($suppression),
-                    'client_match' => peracrm_subscribers_client_match($row['email']),
+                    'duplicate' => $duplicate, 'conflict' => $conflict,
                     'missing_evidence' => $row['missing_evidence'],
                 ];
                 if (in_array($row['state'], ['unsubscribe', 'complaint', 'hard_bounce'], true)) { $suppressed[$row['email']] = true; }
@@ -109,6 +136,13 @@ function peracrm_subscribers_preview($stream, $mapping, $synthetic = false, $sup
                 if (!preg_match('/@(?:[a-z0-9-]+\.)*example\.test$/Di', trim($raw['email'] ?? ''))) { throw new InvalidArgumentException('Synthetic batch contains a non-synthetic address.'); }
             }
         }
+        $emails = [];
+        foreach ($rows as $entry) { if ($entry['row']) { $emails[] = $entry['row']['email']; } }
+        $states = peracrm_subscribers_preview_states($emails);
+        foreach ($rows as &$entry) {
+            if ($entry['row']) { $entry['row']['preview'] += $states[$entry['row']['email']]; }
+        }
+        unset($entry);
         peracrm_campaigns_db_require($wpdb->query('START TRANSACTION'));
         try {
             peracrm_campaigns_db_require($wpdb->insert($batches, ['id' => $id, 'owner_id' => peracrm_get_actor_user_id(), 'status' => 'preview',

@@ -1,6 +1,6 @@
 # Integrated email campaigns: repository review and living implementation plan
 
-Review status: **complete** (2026-10-17). Implementation: **Phase 1 complete (technical acceptance)**; **Phase 2 in progress**; Phases 3–7 not started.
+Review status: **complete** (2026-10-17). Implementation: **Phase 1 complete (technical acceptance)**; **Phase 2 in progress**; **Phase 3 in progress (prerequisite review fixes only)**; Phases 4–7 not started.
 
 ## Purpose, scope and maintenance
 
@@ -8,7 +8,7 @@ Let Pera staff prepare newsletters and targeted campaigns inside the existing CR
 
 Future implementation PRs must update phase status, validation evidence, decisions and the progress log here. A phase must not be marked complete solely because code exists when required verification remains outstanding. Use only `not started`, `in progress`, `blocked` or `complete` for phase status. Keep repository checks distinct from external verification; record outstanding evidence explicitly.
 
-**Current implementation task:** finish Phase 2 acceptance with sending and new public collection disabled. Phase 1 technical foundations are accepted; Phases 3–7 remain unstarted.
+**Current implementation task:** Phase 3, split into reviewable dependent PRs, starting with the outstanding #1448 review fixes. Sending and new public collection stay disabled. Phase 1 technical foundations are accepted; Phase 2 external acceptance remains open; Phases 4–7 remain unstarted.
 
 ## Review baseline and method
 
@@ -131,7 +131,7 @@ Unresolved decisions: expected monthly volume/peak batch and budget; approved le
 
 ## Numbered implementation phases
 
-Each phase should be a focused PR, split further if review size grows. Phase 1 technical acceptance is **complete** based on merged #1447 and its passed integration evidence. Phase 2 is **in progress**; Phases 3–7 remain **not started**. Repository checks use synthetic addresses/fixtures; external checks require controlled environments.
+Each phase should be a focused PR, split further if review size grows. Phase 1 technical acceptance is **complete** based on merged #1447 and its passed integration evidence. Phase 2 is **in progress** for external acceptance; Phase 3 is **in progress** for prerequisite review fixes; Phases 4–7 remain **not started**. Repository checks use synthetic addresses/fixtures; external checks require controlled environments.
 
 ### 1. Subscriber, consent, suppression and permission foundations
 
@@ -218,7 +218,7 @@ Verified hosted evidence: [run `39050763912`](https://github.com/7mus7y-dotcom/p
 
 ### 3. Draft campaigns, audience preview and frozen content
 
-- **Status:** not started.
+- **Status:** in progress (prerequisite fixes only; editor/audience/freeze not implemented).
 - **Goal/outcome:** managers build and review a newsletter with public articles/properties and an accurate exclusion preview; no external delivery yet.
 - **Prerequisites:** Phases 1–2; template/footer approval and explicit language/topic rules.
 - **Work/components:** campaign repositories/editor, paginated selectors/content adapter, email HTML/text renderer, plugin routing/views/nav/assets and capability checks. Reuse plugin profile/party/assignment accessors; retrieve content/price metadata through WordPress/plugin APIs and plugin-owned adapters. Do not call or include theme card/pricing helpers or templates.
@@ -378,3 +378,92 @@ New standalone and real WordPress/browser regressions cover masked profile edits
 | Date | Status | Evidence / decision |
 | --- | --- | --- |
 | 2026-10-18 | Hidden-client-link review fix verified | Run 39101954999 passed both database/browser suites; explicit stored-link authorization replaces masked-field unlink semantics. Real intake/public collection remain disabled; Phase 2 external acceptance pending. |
+
+
+## Phase 3 recovery and dependent delivery plan (2026-10-18)
+
+Recovery found a clean `work` branch at `afc16f1a`, no Phase 3 implementation,
+no new commits and no existing email Phase 3 PR. The first shell fetch failed
+because the proxy was unreachable; the permission-enabled retry was aborted.
+No test/fetch remained running. GitHub confirmed #1448 merged at 05:59:40 UTC as
+`413fcbfd17ef49a062820d3380e0d1ce1cf988bd`; comparison to main was identical.
+Its latest review (06:01:03 UTC, reviewed `dd9692f986`) left two unresolved
+findings: deleted client reference repair and unbounded per-row CSV lookups.
+No applicable AGENTS.md was found in repository/workspace ancestors or tree.
+The GitHub connector supplied all 34 merged files at that exact commit for local
+validation; publication uses a branch based on the actual remote main, avoiding
+a synthetic local synchronization commit in the PR.
+
+### First PR: prerequisite review fixes
+
+- Explicit unlink still requires subscriber capability, a real non-impersonated
+  actor and the mailbox transaction. Missing post references may be cleared only
+  by `manage_options` / `peracrm_manage_all_clients` actors. Live links retain the
+  existing client-scope check. Missing references stay masked; a separate derived
+  `can_unlink_client` flag exposes the existing explicit unlink form. Consent,
+  suppression and identity do not change; repair is audited and idempotent.
+- CSV preview validates first, then looks up distinct normalized mailboxes in
+  chunks of 100. Each chunk uses one identity/suppression union and one grouped
+  distinct-client count, covering all five canonical/legacy email aliases. A
+  1,000-distinct-mailbox preview performs 20 lookup queries (not 20 total writes
+  or total request queries). No client IDs are loaded or selected, duplicate
+  aliases on one client count once, ambiguity stays unresolved, trash and other
+  statuses excluded by WordPress `post_status=any` semantics do not match.
+  Alias values explicitly use lower-case/trim normalization. Suppressions without
+  subscribers are preserved. Query errors abort before preview bookkeeping.
+  Postmeta aggregation may still scan a large table; this removes per-row scans,
+  not a claim of a canonical indexed CRM email directory or a production timing SLA.
+- No schema, campaign UI, content adapter, renderer, snapshot, recipient ledger,
+  token issuance, delivery, queue, worker or scheduling change is included. All
+  code/views remain PeraCRM-owned; no theme files/assets are changed. Production
+  intake/public collection remain disabled by existing gates.
+
+Validation: all 12 standalone PHP scripts and 381 plugin PHP syntax checks pass
+using the bundled PHP 8.4 runtime. Browser JavaScript syntax, both runner shell
+syntax checks, Compose configuration and `git diff --check` pass.
+New checks cover deleted-link full/scoped authority, restored newsletter-only
+eligibility without granting consent, audit/idempotence, 1,000-mailbox lookup
+bounds, suppression union, missing data, ambiguity, normalization/deduplication,
+error/context restoration. Real single-site/multisite assertions were added for
+SQL counts/aliases/trash/absence and actual deleted-post repair. Browser fixtures
+now exercise scoped denial, actual administrator repair/save/reload and desktop /
+mobile repair screenshots with overflow assertions; those flows have not yet run. Local Docker
+socket health check fails `connect: operation not permitted` (UID 1000); no local
+SQL/browser suite ran and no new screenshots exist. Hosted CI must establish
+those results before technical acceptance; prior #1448 evidence does not validate
+these changes. Browser previews remain distinct from future inbox rendering.
+
+### Remaining dependent Phase 3 PRs (not implemented)
+
+1. Draft/revision storage and structured editor: additive target-blog owned
+   migrations/readiness/assertions; dedicated capabilities on routes/services;
+   immutable revision history and stale-save conflicts; list/create/edit/duplicate
+   using the CRM shell, `assets/frontend/crm.css` and `crm.js`; approved sender,
+   reply-to, identity/address/footer configuration and bounded text/block inputs.
+2. Content selectors, renderer and audience preview, depending on draft storage:
+   paginated public article/property adapters; canonical v2 pricing; explicit
+   language/translation availability; unavailable states for theme-owned data;
+   inline email styles; sandboxed desktop/mobile and text previews; bounded
+   exactly reconciled audience evaluation. Initial campaign filters are **language
+   and topic only**, using explicit subscriber data. **No new campaign audience
+   filter is implemented by this prerequisite PR.** Existing subscriber-list
+   search/state/suppression/language/topic filters are unchanged. CRM segmentation
+   remains unsupported until its data/semantics are verified; missing positive
+   data cannot match and ambiguous relationships cannot be resolved implicitly.
+3. Explicit review and atomic publication of frozen revisions, depending on both:
+   fresh source/eligibility validation; immutable HTML/text/structured metadata
+   and personalization; bounded resumable/cancellable membership materialization
+   with database campaign/mailbox uniqueness; no concurrent edits; publish only
+   after success. Preserve frozen history, never substitute a changed client
+   mailbox, never mint public tokens in shared HTML; controlled preference-link
+   placeholders only. Frozen URLs do not make image files immutable. Historical
+   membership never authorizes later delivery without live eligibility checks.
+
+Each dependent PR must add the relevant single-site/multisite regressions and
+exercise actual desktop/mobile controls on a bundled default theme, inspect
+screenshots and record evidence. Full Phase 3 remains incomplete. Historical
+consent/evidence, suppression-source completeness, retention, approved sender /
+footer / translations, domain readiness and production topology/readiness gates
+remain outstanding. Phases 4–7 stay **not started**. No email delivery/test sends,
+provider integration, attempts/leases/retries, queue, worker, scheduling,
+production subscribers, merge or deployment is authorized by this record.
