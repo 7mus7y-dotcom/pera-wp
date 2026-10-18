@@ -50,6 +50,8 @@ function peracrm_campaign_freeze_start($campaign_id, $revision, $snapshot_id, $c
         $table = peracrm_table('peracrm_campaign_freeze_attempts');
         $existing = $wpdb->get_row($wpdb->prepare("SELECT * FROM {$table} WHERE campaign_id=%d AND draft_revision=%d FOR UPDATE", $campaign_id, $revision), ARRAY_A);
         peracrm_campaigns_db_require(true);
+        // Terminal revisions stay fenced independently of retained or newly captured content.
+        if ($existing && $existing['state'] !== 'materializing') { throw new UnexpectedValueException(); }
         $snapshot = peracrm_campaign_snapshot_get($campaign_id, $snapshot_id);
         $now = gmdate('Y-m-d H:i:s');
         $attempt = ['campaign_id'=>$campaign_id, 'draft_revision'=>$revision, 'snapshot_id'=>$snapshot_id, 'content_hash'=>$content_hash,
@@ -61,7 +63,6 @@ function peracrm_campaign_freeze_start($campaign_id, $revision, $snapshot_id, $c
         peracrm_campaign_freeze_binding($draft, $attempt);
         if ($existing) {
             foreach (['snapshot_id','content_hash','actor_user_id'] as $key) { if ((string)$existing[$key] !== (string)$attempt[$key]) { throw new UnexpectedValueException(); } }
-            if ($existing['state'] !== 'materializing') { throw new UnexpectedValueException(); }
             return $existing; // Lost start response, same immutable binding and original boundary.
         }
         $attempt['boundary_id'] = (int)$wpdb->get_var('SELECT COALESCE(MAX(id),0) FROM ' . peracrm_table('peracrm_subscribers'));
@@ -221,7 +222,8 @@ function peracrm_campaign_freeze_recipients($campaign_id, $attempt_id, $after=0,
 }
 
 /** Administrator-only manual retention: fence abandoned attempts before bounded deletion.
- * One request deletes at most 100 child rows, or one empty attempt. Captures and
+ * One request deletes at most 100 child rows. The cancelled attempt is retained
+ * as the durable campaign/revision tombstone, including after complete cleanup. Captures and
  * all published/consent/suppression history are retained. No scheduled cleanup.
  */
 function peracrm_campaign_freeze_cleanup($campaign_id, $attempt_id, $nonce)
@@ -245,7 +247,8 @@ function peracrm_campaign_freeze_cleanup($campaign_id, $attempt_id, $nonce)
             $deleted=$wpdb->query($wpdb->prepare('DELETE FROM '.peracrm_table($name).' WHERE attempt_id=%d LIMIT %d',$attempt_id,$remaining));
             peracrm_campaigns_db_require($deleted); $remaining-=$deleted;
         }
-        if ($remaining===100) { peracrm_campaigns_db_require($wpdb->delete($table,['id'=>$attempt_id])); }
-        return ['deleted_rows'=>100-$remaining,'deleted_attempt'=>$remaining===100];
+        // Never remove the unique campaign/revision fence. Empty retries are no-ops;
+        // cancellation remains terminal even while the original capture is retained.
+        return ['deleted_rows'=>100-$remaining,'deleted_attempt'=>false,'complete'=>$remaining===100];
     },true);
 }

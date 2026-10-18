@@ -1202,8 +1202,9 @@ recipient/evaluation pages. No current-source rendering occurs.
 The administrator-only cleanup service accepts one campaign/attempt and nonce.
 Only unpublished attempts untouched for more than 30 days qualify. Under the
 same draft/attempt locks it rechecks publication, cancels/fences any abandoned
-owner, and deletes at most 100 child ledger rows per call; a later empty call
-removes the attempt. Repeated manual calls finish cleanup. Published history,
+owner, and deletes at most 100 child ledger rows per call. The cancelled attempt
+row remains as a durable unique campaign/revision tombstone after all child rows
+are gone; repeated empty calls are idempotent. Published history,
 content captures and all subscriber/consent/suppression evidence are retained.
 There is no scheduled deletion. This is an explicit service policy for synthetic
 validation; production retention/legal-basis approval remains outstanding.
@@ -1283,3 +1284,32 @@ Phase 3 remains **in progress and incomplete**. Review/history UI and Phase 3C
 browser acceptance remain outstanding, together with prior external readiness
 and production retention approval. Sending, real intake and public collection
 remain disabled. No Phase 4, merge or deployment.
+
+
+### PR #1454 review follow-up: retain cleaned revision tombstones
+
+The review finding “Preserve a tombstone for cleaned-up cancelled revisions”
+identified that deleting an empty attempt also removed its unique campaign/draft
+revision fence. Cleanup now retains the cancelled attempt metadata permanently,
+including its original capture binding and actor/version audit. Only unpublished
+recipient/evaluation payloads are deleted, at most 100 rows per transaction.
+Empty cleanup calls return complete with zero deletions and never remove or
+rewrite the tombstone. Existing cancelled attempts need no migration; no schema,
+UI, gate or published-history change is introduced.
+
+Start now rejects a terminal revision before consulting any capture, so neither
+the retained capture nor another capture of that saved revision can bypass the
+fence. Resume/publication continue to reject cancelled attempts. A newly saved
+draft revision and its own valid capture can start a distinct attempt normally.
+Cleanup shares the draft/attempt locks with start/resume and fences abandoned
+failed/materializing owners before deleting payloads.
+
+Regressions cover cancel → age → complete multi-batch cleanup → rejected restart,
+retained/recaptured old content, repeated empty cleanup, resume/publication denial,
+new-revision success and unchanged published content/membership. Two additional
+separate-connection races pause cleanup under its locks while start/resume wait,
+then verify the retained cancelled row and rejection of both stale and current
+versions. Focused checks and both real hosted topology suites are pending for
+this follow-up; results will be recorded after execution. Phase 3 remains
+incomplete; review/history UI and Phase 3C browser acceptance stay outstanding.
+Sending, real intake and public collection remain disabled. No merge/deployment.

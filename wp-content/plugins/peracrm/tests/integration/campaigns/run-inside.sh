@@ -103,7 +103,7 @@ fi
 wp eval-file /tests/previews.php
 wp eval-file /tests/snapshots.php
 wp eval-file /tests/freeze.php
-for freeze_race in start-start start-save continue-cancel cancel-continue continue-continue publish-cancel cancel-publish; do
+for freeze_race in start-start start-save continue-cancel cancel-continue continue-continue publish-cancel cancel-publish cleanup-start cleanup-resume; do
     rm -f /tmp/peracrm-freeze-held /tmp/peracrm-freeze-winner /tmp/peracrm-freeze-loser
     wp eval-file /tests/freeze-worker.php prepare "$freeze_race"
     wp eval-file /tests/freeze-worker.php winner "$freeze_race" &

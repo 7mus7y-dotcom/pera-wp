@@ -125,6 +125,40 @@ freeze_target(static function () use ($z) { global $wpdb; $wpdb->update(peracrm_
 $cleanup=peracrm_campaign_freeze_cleanup($zd['id'],(int)$z['id'],wp_create_nonce('peracrm_campaign_freeze_'.$zd['id']));
 freeze_expect(!is_wp_error($cleanup) && $cleanup['deleted_rows']<=100 && peracrm_campaign_frozen_get($id,1)===$history,'bounded abandoned cleanup preserves published history');
 freeze_expect(is_wp_error(peracrm_campaign_freeze_cleanup($id,(int)$a['id'],wp_create_nonce('peracrm_campaign_freeze_'.$id))),'published cleanup denied');
+// Complete cleanup must retain the terminal revision fence, even with valid retained captures.
+wp_set_current_user($manager); $tombstone_set=freeze_capture($doc); [$td,$ts,$tn]=$tombstone_set;
+$t=freeze_finish(freeze_start($tombstone_set),$tn);
+$t=peracrm_campaign_freeze_cancel($td['id'],(int)$t['id'],(int)$t['version'],$tn);
+freeze_expect(!is_wp_error($t),'cancel tombstone revision');
+freeze_target(static function () use ($t) { global $wpdb; $wpdb->update(peracrm_table('peracrm_campaign_freeze_attempts'),['updated_at'=>'2000-01-01 00:00:00'],['id'=>$t['id']]); });
+wp_set_current_user($admin); $cleanup_nonce=wp_create_nonce('peracrm_campaign_freeze_'.$td['id']);
+$deleted=0;
+for ($i=0;$i<100;$i++) {
+    $cleaned=peracrm_campaign_freeze_cleanup($td['id'],(int)$t['id'],$cleanup_nonce);
+    freeze_expect(!is_wp_error($cleaned) && $cleaned['deleted_rows']<=100 && !$cleaned['deleted_attempt'],'bounded cleanup retains tombstone');
+    $deleted+=$cleaned['deleted_rows']; if ($cleaned['complete']) { break; }
+}
+freeze_expect($cleaned['complete'] && $deleted>100 && peracrm_campaign_freeze_recipients($td['id'],(int)$t['id'])===[] && peracrm_campaign_freeze_recipients($td['id'],(int)$t['id'],0,true)===[],'complete cleanup removes all unpublished payloads');
+$retained=peracrm_campaign_freeze_get($td['id'],(int)$t['id']);
+freeze_expect($retained && $retained['state']==='cancelled' && (int)$retained['draft_revision']===1,'durable campaign/revision tombstone retained');
+for ($i=0;$i<2;$i++) {
+    $repeat=peracrm_campaign_freeze_cleanup($td['id'],(int)$t['id'],$cleanup_nonce);
+    freeze_expect(!is_wp_error($repeat) && $repeat['complete'] && $repeat['deleted_rows']===0 && !$repeat['deleted_attempt'] && peracrm_campaign_freeze_get($td['id'],(int)$t['id'])===$retained,'repeated complete cleanup is idempotent');
+}
+wp_set_current_user($manager);
+freeze_expect(is_wp_error(freeze_start($tombstone_set)) && peracrm_campaign_snapshot_get($td['id'],(int)$ts['id'])===$ts,'old retained capture cannot restart cleaned cancelled revision');
+// A new capture of the same saved revision must not bypass the unique fence either.
+$review=peracrm_campaign_snapshot_review($td['id'],1,$td['document']);
+$recapture=peracrm_campaign_snapshot_capture($td['id'],1,$td['document'],$review['review_proof'],wp_create_nonce('peracrm_campaign_snapshot_'.$td['id'].'_1'));
+freeze_expect(!is_wp_error($recapture) && is_wp_error(peracrm_campaign_freeze_start($td['id'],1,(int)$recapture['id'],$recapture['content_hash'],$td['document'],$tn)),'recapture cannot bypass cleaned revision fence');
+freeze_expect(is_wp_error(peracrm_campaign_freeze_resume($td['id'],(int)$t['id'],(int)$retained['version'],$tn)) && is_wp_error(peracrm_campaign_freeze_publish($td['id'],(int)$t['id'],(int)$retained['version'],$tn)),'cleaned tombstone cannot resume or publish');
+$new=peracrm_campaign_draft_save($td['id'],1,$td['document']);
+freeze_expect(!is_wp_error($new) && $new['revision']===2 && is_wp_error(peracrm_campaign_freeze_start($td['id'],2,(int)$ts['id'],$ts['content_hash'],$new['document'],$tn)),'old capture cannot bind a newly saved revision');
+$review=peracrm_campaign_snapshot_review($td['id'],2,$new['document']);
+$new_capture=peracrm_campaign_snapshot_capture($td['id'],2,$new['document'],$review['review_proof'],wp_create_nonce('peracrm_campaign_snapshot_'.$td['id'].'_2'));
+$new_attempt=peracrm_campaign_freeze_start($td['id'],2,(int)$new_capture['id'],$new_capture['content_hash'],$new['document'],$tn);
+freeze_expect(!is_wp_error($new_attempt) && (int)$new_attempt['id']!==(int)$t['id'] && (int)$new_attempt['draft_revision']===2 && peracrm_campaign_freeze_get($td['id'],(int)$t['id'])===$retained,'new saved revision freezes normally without rewriting tombstone');
+freeze_expect(peracrm_campaign_frozen_get($id,1)===$history && peracrm_campaign_freeze_recipients($id,(int)$a['id'])===$members,'cleanup preserves immutable published content and membership');
 // Shared audience semantics must produce identical outcomes when inputs do not change.
 wp_set_current_user($manager); $parity_set=freeze_capture($doc); [$pd,$ps,$pn]=$parity_set;
 $cursor=''; do { $preview=peracrm_campaign_audience_preview($pd['id'],1,$pd['document']['audience'],$cursor); $cursor=$preview['cursor']; } while (!$preview['complete']);
