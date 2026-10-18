@@ -101,6 +101,7 @@ freeze_target(static function () use ($members) { global $wpdb; $row=$members[0]
 freeze_expect(is_wp_error(peracrm_campaign_freeze_cancel($id,(int)$a['id'],(int)$published['version'],$nonce)) && is_wp_error(peracrm_campaign_freeze_continue($id,(int)$a['id'],(int)$published['version'],$nonce)),'published membership cannot mutate');
 $later=peracrm_campaign_draft_save($id,1,array_replace($draft['document'],['subject'=>'Later revision']));
 freeze_expect(!is_wp_error($later) && $later['revision']===2 && peracrm_campaign_frozen_get($id,1)===$history && peracrm_campaign_freeze_recipients($id,(int)$a['id'])===$members,'later draft preserves immutable published content/membership');
+freeze_expect(!is_wp_error(peracrm_campaigns_record_consent('freeze-second@example.test','unsubscribed',freeze_evidence())) && peracrm_campaign_frozen_get($id,1)===$history && peracrm_campaign_freeze_recipients($id,(int)$a['id'])===$members,'later unsubscribe changes live permission but preserves immutable history and membership');
 freeze_expect(is_wp_error(freeze_start($set)),'old capture cannot freeze later revision');
 // Zero-included materialization cannot publish. Cancelled/failed attempts release editing, but cannot resume across edits.
 $zero_set=freeze_capture(array_replace($doc,['audience'=>['version'=>1,'topic'=>'no_fixture_has_this']]));

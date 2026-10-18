@@ -1,6 +1,9 @@
 // Actual plugin UI + HTTP contracts on the bundled default theme; synthetic fixtures only.
 module.exports = async function ({page,target,context,employeeContext,browser}) {
  const endpoint=target+'/wp-admin/admin-ajax.php';
+ page.removeAllListeners('dialog');
+ let confirmation='accept';
+ page.on('dialog',dialog=>confirmation==='dismiss' && dialog.type()==='confirm' ? dialog.dismiss() : dialog.accept());
  const fixture=async(operation,extra={})=>(await (await context.request.post(endpoint,{form:{action:'peracrm_freeze_fixture',operation,...extra}})).json()).data;
  const before=await fixture('evidence');
  const anon=await browser.newContext();
@@ -13,11 +16,14 @@ module.exports = async function ({page,target,context,employeeContext,browser}) 
  const feedback=()=>page.locator('[data-freeze-feedback]');
  const responseFor=p=>p.url().includes('admin-ajax.php') && p.request().postData()?.includes('peracrm_campaign_freeze');
  async function click(name,ok=true) {
-  const pending=page.waitForResponse(responseFor); await action(name).click(); const response=await pending;
+  const pending=page.waitForResponse(responseFor);
+  if(name==='Review saved revision') { await action(name).focus(); await page.keyboard.press('Enter'); } else { await action(name).click(); }
+  const response=await pending;
   const json=await response.json();
   if(json.success!==ok) throw Error(name+' response '+JSON.stringify(json));
   if(!/no-store/.test(response.headers()['cache-control']||'')) throw Error('Freeze response cacheable');
   await page.waitForFunction(()=>document.querySelector('[data-freeze-feedback]').textContent!=='Processing one bounded request…');
+  if(!json.data?.reload && !(await feedback().evaluate(el=>el===document.activeElement))) throw Error('Action feedback lost keyboard focus');
   return json.data;
  }
  async function screenshot(label,size) {
@@ -98,7 +104,13 @@ module.exports = async function ({page,target,context,employeeContext,browser}) 
   await rival.close();
   await finish();
   await action('Publish frozen revision').waitFor();
-  page.once('dialog',dialog=>dialog.accept()); await click('Publish frozen revision');
+  let publicationRequests=0;
+  const recordPublish=request=>{if(request.url().includes('admin-ajax.php') && request.postData()?.includes('publish')) publicationRequests++;};
+  page.on('request',recordPublish); confirmation='dismiss';
+  await action('Publish frozen revision').click();
+  page.off('request',recordPublish); confirmation='accept';
+  if(publicationRequests || await page.getByRole('heading',{name:/Stored immutable frozen revision/}).count()) throw Error('Dismissed publication proceeded');
+  await click('Publish frozen revision');
   await page.getByRole('heading',{name:/Stored immutable frozen revision/}).waitFor();
   await screenshot('frozen',size);
   await context.addCookies([{name:'freeze_fixture_no_subscribers',value:'1',url:target}]);
@@ -113,6 +125,10 @@ module.exports = async function ({page,target,context,employeeContext,browser}) 
   if(await page.locator('[data-freeze-panel] iframe').getAttribute('sandbox')!=='') throw Error('Stored HTML missing sandbox');
   await page.locator('[data-freeze-panel]').getByText('Resolved plain-text preview',{exact:true}).click();
   if(!(await page.locator('[data-freeze-panel] pre').innerText()).includes('{{recipient_unsubscribe_url}}')) throw Error('Stored plain text missing controlled placeholder');
+  if(await frame.locator('script,a,form,iframe').count()) throw Error('Stored preview has active elements');
+  if(!(await frame.locator('meta[http-equiv="Content-Security-Policy"]').getAttribute('content')).includes("script-src 'none'")) throw Error('Stored preview CSP missing');
+  await page.locator('[data-freeze-panel] iframe').scrollIntoViewIfNeeded();
+  await page.locator('[data-freeze-panel] iframe').screenshot({path:'/evidence/freeze-content-'+size+'.png'});
   const frozenText=await page.locator('[data-freeze-panel] pre').innerText();
   const frozenMembers=await page.locator('[data-freeze-attempt] ul').innerText();
   await click('Start new editable revision');
@@ -125,7 +141,7 @@ module.exports = async function ({page,target,context,employeeContext,browser}) 
   await screenshot('history',size);
   // Cancellation is terminal and never appears frozen.
   await click('Review saved revision'); await click('Freeze revision');
-  page.once('dialog',dialog=>dialog.accept()); await click('Cancel materialization');
+  await click('Cancel materialization');
   await page.getByText('Cancelled permanently.',{exact:false}).waitFor(); await screenshot('cancelled',size);
   if(await action('Publish frozen revision').count()) throw Error('Cancelled attempt publish control');
   const historyName=await page.locator('[data-freeze-action=history]').filter({hasText:'· frozen ·'}).first().innerText();
@@ -137,12 +153,14 @@ module.exports = async function ({page,target,context,employeeContext,browser}) 
   if(await action('Publish frozen revision').count()) throw Error('Zero audience publication control');
   const zero=await page.evaluate(()=>{const b=document.querySelector('[data-campaign-freeze]'),a=b.querySelector('[data-freeze-attempt]');return {action:'peracrm_campaign_freeze',operation:'publish',nonce:b.dataset.nonce,service_nonce:b.dataset.serviceNonce,id:b.dataset.id,attempt:a.dataset.freezeAttempt,version:a.dataset.freezeVersion};});
   if((await context.request.post(endpoint,{form:zero})).ok()) throw Error('Zero included publication accepted');
-  page.once('dialog',dialog=>dialog.accept()); await click('Cancel materialization');
+  await click('Cancel materialization');
   console.log('PASS Phase 3C '+size+': saved/unsaved/stale review, bounded repeated/multitab continuation, reload/resume/SQL failure/cancel, zero denial, explicit publication, stored HTML/text and new draft history');
  }
  // Real actor impersonation denies the HTTP adapter; recipient capability is independent.
  await fixture('impersonate');
  if((await context.request.post(endpoint,{form:{action:'peracrm_campaign_freeze',operation:'state'}})).status()!==403) throw Error('Impersonated freeze accepted');
+ await page.reload();
+ if(await page.locator('[data-campaign-freeze]').count()) throw Error('Impersonated page exposes freeze controls');
  await fixture('restore');
  // Administrators on multisite are super administrators; capability checks are asserted
  // with a target-only campaign role in service fixtures, and scoped UI via user_has_cap below.
