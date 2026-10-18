@@ -57,6 +57,9 @@ function peracrm_subscribers_detail($id)
         peracrm_campaigns_db_require(true);
         if (!$email) { return null; }
         $row = peracrm_campaigns_repository_identity($email);
+        $row['can_unlink_client'] = !empty($row['client_id'])
+            && peracrm_campaigns_staff_can('peracrm_manage_subscribers', true)
+            && peracrm_campaigns_can_unlink_client(peracrm_get_actor_user_id(), (int) $row['client_id']);
         // A client identifier is only useful when the viewer can access that client.
         if (!empty($row['client_id']) && !peracrm_user_can_access_client(peracrm_get_actor_user_id(), (int) $row['client_id'])) { $row['client_id'] = null; }
         return $row;

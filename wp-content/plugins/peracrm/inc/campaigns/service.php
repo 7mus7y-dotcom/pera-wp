@@ -186,11 +186,21 @@ function peracrm_campaigns_save_subscriber($address, $profile = [])
 }
 
 /** Explicit staff unlink; authorize the actual stored link inside its mailbox lock. */
+function peracrm_campaigns_can_unlink_client($actor, $client_id)
+{
+    // Missing posts have no assignment to authorize. Only full-scope staff may
+    // repair those references; a live but inaccessible post still fails closed.
+    if (get_post_type($client_id) === false) {
+        return user_can($actor, 'manage_options') || user_can($actor, 'peracrm_manage_all_clients');
+    }
+    return peracrm_user_can_access_client($actor, $client_id);
+}
+
 function peracrm_campaigns_unlink_subscriber_client($address)
 {
     return peracrm_campaigns_staff_mutate($address, static function ($email, $subscriber, $suppression, $actor) {
         global $wpdb;
-        if (!$subscriber || (!empty($subscriber['client_id']) && !peracrm_user_can_access_client($actor, (int) $subscriber['client_id']))) {
+        if (!$subscriber || (!empty($subscriber['client_id']) && !peracrm_campaigns_can_unlink_client($actor, (int) $subscriber['client_id']))) {
             throw new InvalidArgumentException('Existing client link is not authorized.');
         }
         if (empty($subscriber['client_id'])) { return true; }

@@ -198,6 +198,59 @@ $browser_fixture['replacement'] = $link_fixture['replacement'];
 file_put_contents('/var/www/html/phase2-fixture.json', wp_json_encode($browser_fixture));
 
 // Apache fixture owns no host port; these rules only serve synthetic browser checks.
+$stale = management_target(static function () {
+    $client = wp_insert_post(['post_type' => 'crm_client', 'post_status' => 'draft', 'post_title' => 'Synthetic deleted link']);
+    update_post_meta($client, '_peracrm_email', 'phase3-stale@example.test');
+    return (int) $client;
+});
+$stale_id = peracrm_campaigns_save_subscriber('phase3-stale@example.test', ['client_id' => $stale]);
+management_expect(!is_wp_error($stale_id), 'create explicit stale-link fixture');
+management_target(static function () use ($stale) { wp_delete_post($stale, true); });
+wp_set_current_user($link_fixture['user']);
+management_expect(empty(peracrm_subscribers_detail($stale_id)['can_unlink_client']) && is_wp_error(peracrm_campaigns_unlink_subscriber_client('phase3-stale@example.test')), 'scoped staff cannot repair absent assignment');
+wp_set_current_user($manager);
+management_expect(peracrm_subscribers_detail($stale_id)['can_unlink_client'] && peracrm_subscribers_detail($stale_id)['client_id'] === null, 'full-scope staff see repair action without dead link');
+management_expect(peracrm_campaigns_unlink_subscriber_client('phase3-stale@example.test') === true && empty(management_identity('phase3-stale@example.test')['client_id']), 'explicit deleted reference repair persists');
+management_expect(management_identity('phase3-stale@example.test')['subscription_state'] === 'unknown', 'repair never grants consent');
+$browser_stale = management_target(static function () {
+    $client = wp_insert_post(['post_type' => 'crm_client', 'post_status' => 'draft', 'post_title' => 'Synthetic browser deleted link']);
+    update_post_meta($client, '_peracrm_email', 'phase3-stale@example.test');
+    return (int) $client;
+});
+peracrm_campaigns_save_subscriber('phase3-stale@example.test', ['client_id' => $browser_stale]);
+management_target(static function () use ($browser_stale) { wp_delete_post($browser_stale, true); });
+$browser_fixture = json_decode(file_get_contents('/var/www/html/phase2-fixture.json'), true);
+$browser_fixture['stale_id'] = $stale_id;
+file_put_contents('/var/www/html/phase2-fixture.json', wp_json_encode($browser_fixture));
+$lookup_queries = [];
+$count_lookups = static function ($sql) use (&$lookup_queries) {
+    if (str_contains($sql, 'COUNT(DISTINCT p.ID)') || str_contains($sql, '1 AS existing')) { $lookup_queries[] = $sql; }
+    return $sql;
+};
+add_filter('query', $count_lookups);
+$lookup_emails = array_map(static function ($n) { return 'phase3-bounded-' . $n . '@example.test'; }, range(0, 999));
+$lookup_states = peracrm_subscribers_preview_states($lookup_emails);
+remove_filter('query', $count_lookups);
+management_expect(count($lookup_states) === 1000 && count($lookup_queries) === 20, 'real maximum-size lookup performs 20 queries');
+$lookup_states = peracrm_subscribers_preview_states(['phase2-ambiguous@example.test', 'phase2-yes@example.test', 'phase3-bounded-0@example.test']);
+management_expect($lookup_states['phase2-ambiguous@example.test']['client_match'] === 'ambiguous_unresolved', 'real aggregated alias lookup preserves ambiguous relationships');
+management_expect($lookup_states['phase2-yes@example.test']['existing'] && $lookup_states['phase2-yes@example.test']['suppressed'], 'real batched lookup preserves subscriber and suppression');
+management_expect($lookup_states['phase3-bounded-0@example.test'] === ['existing' => false, 'suppressed' => false, 'client_match' => 'none'], 'real absent lookup has no fabricated CRM data');
+$alias_client = management_target(static function () {
+    $client = wp_insert_post(['post_type' => 'crm_client', 'post_status' => 'draft', 'post_title' => 'Synthetic alias counts']);
+    foreach (['crm_primary_email','primary_email','crm_primary_email_normalized','primary_email_normalized','_peracrm_email'] as $key) {
+        add_post_meta($client, $key, ' Phase3-Aliases@Example.test ');
+    }
+    $trashed = wp_insert_post(['post_type' => 'crm_client', 'post_status' => 'trash', 'post_title' => 'Synthetic excluded match']);
+    update_post_meta($trashed, '_peracrm_email', 'phase3-aliases@example.test');
+    return $client;
+});
+$lookup_states = peracrm_subscribers_preview_states(['phase3-aliases@example.test']);
+management_expect($lookup_states['phase3-aliases@example.test']['client_match'] === 'available_unlinked', 'five normalized aliases count one distinct client and exclude trash');
+peracrm_campaigns_add_suppression('phase3-no-profile@example.test', 'complaint', ['source' => 'fixture']);
+$lookup_states = peracrm_subscribers_preview_states(['phase3-no-profile@example.test']);
+management_expect($lookup_states['phase3-no-profile@example.test']['suppressed'] && !$lookup_states['phase3-no-profile@example.test']['existing'], 'real suppression without subscriber is preserved');
+management_expect(get_current_blog_id() === 1 && (!is_multisite() || !ms_is_switched()), 'new repair and lookup restore original blog');
 file_put_contents('/var/www/html/.htaccess', "<IfModule mod_rewrite.c>\nRewriteEngine On\nRewriteBase /\nRewriteRule ^index\\.php$ - [L]\nRewriteRule ^([_0-9a-zA-Z-]+/)?(wp-(content|admin|includes).*) $2 [L]\nRewriteRule ^([_0-9a-zA-Z-]+/)?(.*\\.php)$ $2 [L]\nRewriteCond %{REQUEST_FILENAME} !-f\nRewriteCond %{REQUEST_FILENAME} !-d\nRewriteRule . /index.php [L]\n</IfModule>\n");
 
 management_target(static function () use ($employee) { wp_set_password('fixture-employee-only', $employee); });

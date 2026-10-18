@@ -241,6 +241,23 @@ campaign_expect(is_wp_error(peracrm_campaigns_save_subscriber('first.last+news@e
 campaign_expect(campaign_identity('first.last+news@example.test')['client_id'] === 5, 'crafted replacement preserves original link');
 $GLOBALS['campaign_denied_clients'] = [];
 $GLOBALS['campaign_matches'] = [5];
+$GLOBALS['campaign_client_status'] = 'deleted';
+campaign_expect(!peracrm_campaigns_is_eligible('first.last+news@example.test'), 'deleted linked client is ineligible before explicit repair');
+$GLOBALS['campaign_actor'] = 2;
+$manager_role = $GLOBALS['campaign_roles'][2]['manager'];
+$manager_had_full = !empty($manager_role->caps['peracrm_manage_all_clients']);
+$manager_role->remove_cap('peracrm_manage_all_clients');
+campaign_expect(is_wp_error(peracrm_campaigns_unlink_subscriber_client('first.last+news@example.test')), 'scoped subscriber manager cannot clear a deleted link');
+$GLOBALS['campaign_actor'] = 1;
+$GLOBALS['campaign_roles'][2]['administrator']->add_cap('manage_options');
+$repair_history = campaign_count('peracrm_subscription_events');
+campaign_expect(peracrm_campaigns_unlink_subscriber_client('first.last+news@example.test') === true, 'full-scope administrator can clear deleted client link');
+campaign_expect(campaign_identity('first.last+news@example.test')['client_id'] === null && peracrm_campaigns_is_eligible('first.last+news@example.test'), 'explicit repair restores newsletter-only eligibility');
+campaign_expect(campaign_count('peracrm_subscription_events') === $repair_history + 1, 'repair writes one profile audit');
+campaign_expect(peracrm_campaigns_unlink_subscriber_client('first.last+news@example.test') === true && campaign_count('peracrm_subscription_events') === $repair_history + 1, 'repeated repair is idempotent');
+if ($manager_had_full) { $manager_role->add_cap('peracrm_manage_all_clients'); }
+$GLOBALS['campaign_client_status'] = 'publish';
+peracrm_campaigns_save_subscriber('first.last+news@example.test', ['client_id' => 5]);
 $GLOBALS['campaign_disposition'] = 'duplicate';
 campaign_expect(!peracrm_campaigns_is_eligible('first.last+news@example.test'), 'duplicate linked sales record excluded');
 $GLOBALS['campaign_disposition'] = 'none';
