@@ -1103,9 +1103,17 @@ checks the same coherence and stale-capture contract, and restores configuration
 through the authorized save service. It runs in both existing hosted topology
 jobs. Focused snapshot regressions (including inherited draft/preview/foundation
 contracts), ownership/authorization guards, syntax checks for all four changed
-PHP files and whitespace checks pass locally. Hosted results will be recorded
-after the fix PR's existing integration workflow runs; fixture availability alone
-is not acceptance evidence. No local Docker integration run is claimed.
+PHP files and whitespace checks pass locally. Hosted [run 39144134902](https://github.com/7mus7y-dotcom/pera-wp/actions/runs/39144134902)
+passed on implementation head `ee3a9229dcd6d81a3f0d85346de93c20357def85`:
+[single-site job 117724410553](https://github.com/7mus7y-dotcom/pera-wp/actions/runs/39144134902/job/117724410553)
+and [multisite job 117724410813](https://github.com/7mus7y-dotcom/pera-wp/actions/runs/39144134902/job/117724410813).
+Both complete WordPress/MySQL/browser jobs succeeded. Their fetched logs explicitly
+confirm the configuration change after the first read, exactly one review read,
+coherent output/proof, stale-capture rejection without an artifact and authorized
+configuration restoration. This is actual executed evidence, not fixture
+availability. This evidence update changes documentation only; implementation and
+tests remain identical to that validated head. No local Docker integration run or
+new Phase 3C UI/browser acceptance is claimed.
 
 Changed files are `inc/campaigns/renderer.php`, `inc/campaigns/snapshots.php`,
 `tests/campaign-snapshots-test.php`, `tests/integration/campaigns/snapshots.php`
