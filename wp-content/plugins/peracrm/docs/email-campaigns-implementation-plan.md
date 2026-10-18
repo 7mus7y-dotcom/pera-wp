@@ -1,6 +1,6 @@
 # Integrated email campaigns: repository review and living implementation plan
 
-Review status: **complete** (2026-10-17). Implementation: **Phase 1 complete (technical acceptance)**; **Phase 2 in progress**; **Phase 3 in progress (3A/3B technical acceptance; limited 3C content-capture foundation)**; Phases 4–7 not started.
+Review status: **complete** (2026-10-17). Implementation: **Phase 1 complete (technical acceptance)**; **Phase 2 in progress**; **Phase 3 in progress (3A/3B technical acceptance; 3C content capture and recipient-freeze services; review/history UI outstanding)**; Phases 4–7 not started.
 
 ## Purpose, scope and maintenance
 
@@ -1208,7 +1208,7 @@ content captures and all subscriber/consent/suppression evidence are retained.
 There is no scheduled deletion. This is an explicit service policy for synthetic
 validation; production retention/legal-basis approval remains outstanding.
 
-Validation is in progress. Focused standalone freeze regressions pass, including
+Repository and hosted technical validation pass. Focused standalone freeze regressions pass, including
 inherited content/draft/foundation checks, authority, impersonation, bounded
 input and the draft-save guard. New real WordPress/MySQL fixtures cover v24
 upgrade/repeat, bindings, fixed boundaries, shared eligibility/counts, withdrawal,
@@ -1220,9 +1220,66 @@ cancel/publish with actual blocking and stale-version rejection.
 
 Local Docker socket access failed `connect: operation not permitted`; UID 1000,
 dockerd running. No restart or repeated socket access was attempted. Hosted
-single-site/multisite execution is required; fixture availability is not passing
-evidence. Results will be recorded here before delivery. No new browser acceptance
+single-site/multisite execution passed; the evidence below records actual results. No new browser acceptance
 is claimed. Review/history UI, desktop/mobile review controls and Phase 3C browser
 acceptance remain outstanding, as do prior external readiness requirements.
 Sending, real intake and public collection remain disabled. No Phase 4, test
 emails, providers, scheduling, background workers, merge or deployment.
+
+
+### Executed recipient-freeze evidence
+
+Implementation/test head `b17b63c011619381f3c2440a985a0758f07310d6` passed
+[hosted run 39148641964](https://github.com/7mus7y-dotcom/pera-wp/actions/runs/39148641964):
+
+| Topology | Complete job result | Retained synthetic evidence |
+| --- | --- | --- |
+| Single-site | [117737679897: success](https://github.com/7mus7y-dotcom/pera-wp/actions/runs/39148641964/job/117737679897) | [Artifact 12144347390](https://github.com/7mus7y-dotcom/pera-wp/actions/runs/39148641964/artifacts/12144347390) |
+| Multisite | [117737679692: success](https://github.com/7mus7y-dotcom/pera-wp/actions/runs/39148641964/job/117737679692) | [Artifact 12144312434](https://github.com/7mus7y-dotcom/pera-wp/actions/runs/39148641964/artifacts/12144312434) |
+
+Fetched logs from both jobs explicitly confirm rollback of recipient rows and
+cursor/counters together, failed-state fencing, exact resume, duplicate/stale
+request rejection, complete count reconciliation, fixed boundaries, subscriber/
+client email changes and withdrawal, database mailbox uniqueness, atomic
+publication, partial/failed/cancelled/zero-included denial, immutable later
+history, no subscriber/evidence/token mutations, authorized reads, manual cleanup,
+eligibility parity and stale configuration rejection. Multisite additionally
+confirms no origin-blog freeze tables and restored target context. All seven
+separate-process scenarios log distinct connections, actual blocking, winner
+commit and stale-loser rejection. Existing migration-contention and authority
+suites also pass in both complete jobs.
+
+The first run exposed a fixture-isolation problem: service setup left approved
+configuration for existing browser tests that expect an unapproved footer.
+The fixture now saves and restores the pre-suite configuration through authorized
+services after all service races. Production behavior and browser assertions were
+not relaxed. Earlier runs were superseded/cancelled by follow-up commits; they
+are not claimed as complete passing runs. The complete run linked above passes
+all existing browser regressions after restoration. These are regression checks
+for existing screens, **not new Phase 3C UI or browser acceptance**.
+
+All 16 standalone regression scripts and all 403 plugin PHP syntax checks pass
+locally, along with integration shell syntax, Compose configuration and whitespace
+checks. Docker could not run locally; no local SQL acceptance is claimed. This
+final evidence change only updates documentation; runtime/tests are identical to
+the passing implementation head. No production data, provider/inbox checks or
+production deployment was used.
+
+Changed files (relative to `wp-content/plugins/peracrm/`):
+
+- Storage/runtime: `peracrm.php`, `inc/bootstrap.php`, `inc/campaigns/schema.php`,
+  new `inc/campaigns/freeze-schema.php`, new `inc/campaigns/freeze.php`.
+- Shared batching/edit guard: `inc/campaigns/audience.php`, `inc/campaigns/drafts.php`.
+- Focused guards/schema expectations: `tests/authorization-surfaces-test.php`,
+  `tests/campaign-foundations-test.php`, new `tests/campaign-freeze-test.php`,
+  `tests/campaign-theme-independence-test.php`.
+- Real fixtures: `tests/integration/campaigns/assertions.php`, new
+  `tests/integration/campaigns/freeze.php`, new
+  `tests/integration/campaigns/freeze-worker.php`,
+  `tests/integration/campaigns/run-inside.sh`.
+- Living plan: `docs/email-campaigns-implementation-plan.md`.
+
+Phase 3 remains **in progress and incomplete**. Review/history UI and Phase 3C
+browser acceptance remain outstanding, together with prior external readiness
+and production retention approval. Sending, real intake and public collection
+remain disabled. No Phase 4, merge or deployment.
