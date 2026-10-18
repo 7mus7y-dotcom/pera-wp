@@ -2,11 +2,13 @@
 if (!defined('ABSPATH')) { exit; }
 
 /** Current editable draft model, not a snapshot. No subscriber data or public tokens. */
-function peracrm_campaign_render_model($input)
+function peracrm_campaign_render_model($input, $configuration = null)
 {
     peracrm_campaign_drafts_require(true);
     $doc=peracrm_campaign_draft_document($input);
-    $configuration=peracrm_campaign_configuration()['document'];
+    // Snapshot callers supply the exact approved document bound to their review.
+    // Ordinary editable previews still resolve the current configuration here.
+    if ($configuration === null) { $configuration=peracrm_campaign_configuration()['document']; }
     $model=['template_version'=>1,'subject'=>$doc['subject'],'preheader'=>$doc['preheader'],'language'=>$doc['language'],'introduction'=>$doc['introduction'],'main_text'=>$doc['main_text'],'sender'=>'','footer'=>$configuration['footer_approved'] ? $configuration['footer'] : '', 'blocks'=>[], 'notices'=>peracrm_campaign_draft_missing($doc,$configuration)];
     foreach ($configuration['senders'] as $sender) {
         if ($sender['id']===$doc['sender_id'] && $sender['approved']) { $model['sender']=$sender['name'].' <'.$sender['email'].'> · Reply-to: '.$sender['reply_to']; }

@@ -16,7 +16,7 @@ function peracrm_campaign_snapshot_candidate($draft)
     // Do not reuse a request's already-primed post/meta cache when reviewing again.
     foreach ($doc['blocks'] as $block) { if (isset($block['id'])) { clean_post_cache($block['id']); } }
     $configuration = peracrm_campaign_configuration();
-    $model = peracrm_campaign_render_model($doc);
+    $model = peracrm_campaign_render_model($doc, $configuration['document']);
     if ($model['notices']) { throw new InvalidArgumentException('Complete the required draft and approved sender/footer configuration before capturing content.'); }
     $warnings = [];
     foreach ($model['blocks'] as $index => $block) {

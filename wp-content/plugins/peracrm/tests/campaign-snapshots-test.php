@@ -7,11 +7,21 @@ function clean_post_cache($id) {}
 class Snapshot_Test_DB extends Campaign_Memory_DB
 {
     public $reads = 0;
+    public $configuration_reads = 0;
+    public $configuration_after_read = null;
     public function get_row($sql, $format) {
         $this->reads++;
         $this->last_error = '';
         if (str_contains($sql, 'peracrm_campaign_drafts')) { return $GLOBALS['snapshot_draft']; }
-        if (str_contains($sql, 'peracrm_campaign_configuration')) { return $GLOBALS['snapshot_configuration']; }
+        if (str_contains($sql, 'peracrm_campaign_configuration')) {
+            $this->configuration_reads++;
+            $row = $GLOBALS['snapshot_configuration'];
+            if ($this->configuration_after_read !== null) {
+                $GLOBALS['snapshot_configuration'] = $this->configuration_after_read;
+                $this->configuration_after_read = null;
+            }
+            return $row;
+        }
         if (str_contains($sql, 'peracrm_campaign_content_snapshots')) {
             foreach ($this->tables[$this->prefix . 'peracrm_campaign_content_snapshots'] ?? [] as $row) { return $row; }
             return null;
@@ -35,6 +45,26 @@ foreach ([0, 3] as $actor) {
 $GLOBALS['campaign_actor'] = 1; $GLOBALS['campaign_impersonating'] = true;
 campaign_expect(snapshot_rejects(static function () use ($document) { peracrm_campaign_snapshot_review(10, 2, $document); }) && is_wp_error(peracrm_campaign_snapshot_capture(10, 2, $document, '', '')), 'snapshot impersonated review and capture denied');
 $GLOBALS['campaign_impersonating'] = false;
+$original_configuration = $GLOBALS['snapshot_configuration'];
+$changed_configuration = $configuration;
+$changed_configuration['senders'][0]['name'] = 'Changed sender';
+$changed_configuration['senders'][0]['email'] = 'changed@example.org';
+$changed_configuration['senders'][0]['reply_to'] = 'changed-reply@example.org';
+$changed_configuration['footer'] = 'Changed concurrent footer';
+$GLOBALS['wpdb']->configuration_after_read = array_replace($original_configuration, ['revision' => 4, 'document_json' => wp_json_encode($changed_configuration), 'approved_by' => 2]);
+$reads = $GLOBALS['wpdb']->configuration_reads;
+$racing_review = peracrm_campaign_snapshot_review(10, 2, $document);
+$racing_content = $racing_review['content'];
+$racing_binding = peracrm_campaign_audience_unpack($racing_review['review_proof']);
+campaign_expect($GLOBALS['wpdb']->configuration_reads === $reads + 1 && $GLOBALS['snapshot_configuration']['revision'] === 4, 'review reads configuration once despite concurrent revision change');
+campaign_expect($racing_content['configuration_revision'] === 3 && $racing_content['configuration'] === $configuration && $racing_content['configuration_approved_by'] === 1
+    && $racing_content['sender'] === $configuration['senders'][0] && $racing_content['model']['sender'] === 'Pera <news@example.org> · Reply-to: reply@example.org'
+    && $racing_content['model']['footer'] === $configuration['footer'] && str_contains($racing_content['output']['html'], $configuration['footer'])
+    && str_contains($racing_content['output']['text'], 'Pera <news@example.org>') && !str_contains($racing_content['output']['text'], 'Changed')
+    && $racing_binding['content_hash'] === hash('sha256', peracrm_campaign_snapshot_json($racing_content)), 'review metadata, sender/footer output and signed proof bind one configuration revision');
+campaign_expect(is_wp_error(peracrm_campaign_snapshot_capture(10, 2, $document, $racing_review['review_proof'], 'fixture:peracrm_campaign_snapshot_10_2'))
+    && campaign_count('peracrm_campaign_content_snapshots') === 0, 'concurrent configuration change still rejects stale capture without writing');
+$GLOBALS['snapshot_configuration'] = $original_configuration;
 campaign_expect(snapshot_rejects(static function () use ($document) { peracrm_campaign_snapshot_review(10, 1, $document); }) && snapshot_rejects(static function () use ($document) { peracrm_campaign_snapshot_review(10, 2, array_replace($document, ['subject' => 'Unsaved'])); }), 'stale revision and unsaved document review rejected');
 $review = peracrm_campaign_snapshot_review(10, 2, $document);
 $nonce = 'fixture:peracrm_campaign_snapshot_10_2';
