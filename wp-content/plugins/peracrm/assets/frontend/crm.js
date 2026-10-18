@@ -2623,6 +2623,61 @@ document.addEventListener('DOMContentLoaded', function () {
       audienceNext.addEventListener('click', function () { audience(false); });
       form.addEventListener('click', function (event) { if (event.target.closest('[data-block-add],[data-block-up],[data-block-down],[data-block-remove]')) invalidateAudience(); });
     }
+    var freeze = document.querySelector('[data-campaign-freeze]');
+    if (freeze && blocks) {
+      var busy = false, proof = '', captureNonce = '', generation = 0, controller;
+      var feedback = freeze.querySelector('[data-freeze-feedback]');
+      var panel = freeze.querySelector('[data-freeze-panel]');
+      var review = freeze.querySelector('[data-freeze-review]');
+      var channel = typeof BroadcastChannel === 'function' ? new BroadcastChannel('peracrm-freeze-' + location.origin + '-' + freeze.dataset.id) : null;
+      function invalidateReview() { proof = ''; captureNonce = ''; review.replaceChildren(); }
+      form.addEventListener('input', function (event) { if (String(event.target.name || '').startsWith('document[')) invalidateReview(); });
+      form.addEventListener('change', function (event) { if (String(event.target.name || '').startsWith('document[')) invalidateReview(); });
+      form.addEventListener('click', function (event) { if (event.target.closest('[data-block-add],[data-block-remove],[data-block-up],[data-block-down]')) invalidateReview(); });
+      function controls(disabled) { freeze.querySelectorAll('button').forEach(function (button) { button.disabled = disabled; }); }
+      if (channel) channel.onmessage = function () {
+        generation++; if (controller) controller.abort(); busy = false; invalidateReview();
+        controls(true); var reload = panel.querySelector('[data-freeze-action="state"]'); if (reload) reload.disabled = false;
+        feedback.textContent = 'Another tab changed this campaign. Reload current state before acting.'; feedback.focus();
+      };
+      window.addEventListener('pagehide', function () { generation++; if (controller) controller.abort(); if (channel) channel.close(); });
+      freeze.addEventListener('click', function (event) {
+        var button = event.target.closest('[data-freeze-action]');
+        if (!button || busy) return;
+        var operation = button.dataset.freezeAction;
+        if (['review','start','new_revision'].includes(operation) && dirty) { invalidateReview(); feedback.textContent = 'Save your changes before review, freeze or starting a new revision.'; feedback.focus(); return; }
+        if (operation === 'start' && !proof) { feedback.textContent = 'Review the saved revision again before freezing.'; return; }
+        if (operation === 'publish' && !window.confirm('Publish this complete immutable revision? This does not send anything.')) return;
+        if (operation === 'cancel' && !window.confirm('Cancel this materialization permanently? A new saved revision will be required.')) return;
+        var data = new FormData(form);
+        data.set('action','peracrm_campaign_freeze'); data.set('nonce',freeze.dataset.nonce);
+        data.set('service_nonce',freeze.dataset.serviceNonce); data.set('id',freeze.dataset.id); data.set('operation',operation);
+        data.set('proof',proof); data.set('capture_nonce',captureNonce);
+        var attempt = panel.querySelector('[data-freeze-attempt]');
+        data.set('attempt',button.dataset.attempt || (attempt ? attempt.dataset.freezeAttempt : '0'));
+        data.set('version',attempt ? attempt.dataset.freezeVersion : '0');
+        data.set('before',button.dataset.before || '0'); data.set('after',button.dataset.after || '0');
+        busy = true; controls(true); feedback.textContent = 'Processing one bounded request…';
+        var failed = false; var current = ++generation; controller = new AbortController();
+        fetch(freeze.dataset.endpoint,{method:'POST',body:data,credentials:'same-origin',cache:'no-store',signal:controller.signal})
+          .then(function (response) { return response.json(); })
+          .then(function (json) {
+            if (current !== generation) return;
+            if (!json.success) throw Error(json.data && json.data.message || 'Request failed. Reload current state.');
+            if (json.data.reload) { submitted = true; location.reload(); return; }
+            if (json.data.review_html) { review.innerHTML = json.data.review_html; proof = json.data.proof; captureNonce = json.data.capture_nonce; }
+            else { panel.innerHTML = json.data.html; invalidateReview(); }
+            feedback.textContent = operation === 'review' ? 'Saved revision reviewed. Review proof expires after 15 minutes; source or configuration changes require a fresh review.' : 'Server state loaded. Choose the next action explicitly.';
+            if (channel && ['start','continue','resume','cancel','publish','new_revision'].includes(operation)) channel.postMessage('changed');
+            feedback.focus();
+          }).catch(function (error) {
+            if (current !== generation) return;
+            failed = true; invalidateReview(); feedback.textContent = error.message; feedback.focus();
+            // Do not act on the old version following any error or lost response.
+            controls(true); var reload = panel.querySelector('[data-freeze-action="state"]'); if (reload) reload.disabled = false;
+          }).finally(function () { if (current === generation) { busy = false; if (!failed) controls(false); } });
+      });
+    }
     form.addEventListener('submit', function () { submitted = true; if (status) status.textContent = 'Saving…'; });
     window.addEventListener('beforeunload', function (event) { if (dirty && !submitted) { event.preventDefault(); event.returnValue = ''; } });
     reindex(blocks, '[data-campaign-block]', 'blocks');

@@ -1345,3 +1345,51 @@ head above. Local Docker and shell Git networking remain unavailable as recorded
 earlier; connected GitHub tools supplied publication and hosted execution.
 Phase 3 remains incomplete, all disabled gates unchanged, and no UI, merge or
 deployment is included.
+
+
+## Phase 3C UI and browser acceptance (2026-10-18)
+
+Status: **in progress; Phase 3 remains incomplete pending execution and screenshot review**.
+#1454 is merged; latest main at task start is `7258e143504953d96a2630e360ebe0d3f62b9554`.
+Branch `feat/campaign-phase3c-ui` targets main. No AGENTS.md found. The clean
+checkout was advanced through connected GitHub file reads after one failed shell
+fetch (proxy unreachable). Its complete tree SHA `9ce959891e3dec1ddb24b856409c89a1420ff00b`
+exactly matches GitHub main. Existing work was preserved. Implementation and
+browser acceptance were separately checkpointed before hosted checks.
+
+Plugin-owned review/freeze/history controls live in the CRM shell and existing
+crm.css/crm.js. The adapter uses saved-document review proofs, immutable capture,
+version-fenced start/continue/resume/cancel/publish and normal safe draft saves.
+One click handles at most 200 candidates; there is no automatic loop or worker.
+Publication requires a separate confirmation and service validation of complete,
+nonempty reconciled membership. Errors stop actions until explicit state refresh;
+reload reads server progress. BroadcastChannel invalidates competing tab controls,
+and SQL versions fence stale callers even without browser channel support.
+Unsaved editor fields are preserved; review/start/new-revision require saving.
+Stored history renders captured bytes in empty-sandbox/CSP frames and plain text,
+with controlled preference placeholders, recorded counts, real actor and UTC
+metadata displayed in Europe/Istanbul. Image file immutability is not promised.
+Recipient pages require subscriber plus campaign capability and expose only
+mailbox/evaluation time, at most 200 per page. Attempt metadata history is at most
+20 per page. Cancelled revision tombstones remain intact; no cleanup UI exists.
+
+Narrow service gap: a bounded authorized target-blog attempt metadata read was
+needed for reload/history discovery; no freeze engine or schema rewrite.
+
+Validation pending: both complete hosted real single-site/multisite suites,
+existing standalone regressions/PHP lint and actual desktop/mobile screenshot
+inspection. Browser flows cover saved/unsaved/stale review, repeated and competing
+requests, bounded continuation/reload, injected real SQL rollback/failure/resume,
+cancellation, zero-included denial, deliberate publication, stored HTML/text,
+new editable revisions preserving history, authority, independent recipient
+permission and unchanged protected subscriber/evidence/token bytes.
+Local JavaScript/shell syntax, Compose configuration and whitespace checks pass.
+Local PHP is absent. Local Docker socket denies access (`operation not permitted`,
+UID 1000, daemon running); it was not retried. Hosted evidence will be recorded
+when available; configured tests alone are not acceptance.
+
+Historical consent/retention/legal-basis approval, editorial/brand/accessibility
+approval and production readiness requirements remain open. No Chromium result
+establishes Gmail/Outlook inbox rendering or manual assistive-technology review.
+Sending, real intake and public collection remain disabled. No Phase 4, provider,
+scheduling, background worker, merge or deployment.

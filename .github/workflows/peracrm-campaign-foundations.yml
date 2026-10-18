@@ -33,6 +33,11 @@ jobs:
           sh -n wp-content/plugins/peracrm/tests/integration/campaigns/run.sh
           sh -n wp-content/plugins/peracrm/tests/integration/campaigns/run-inside.sh
           docker compose -f wp-content/plugins/peracrm/tests/integration/campaigns/compose.yaml config --quiet
+      - name: Run plugin regressions and syntax checks
+        run: |
+          for test in wp-content/plugins/peracrm/tests/*-test.php; do php "$test"; done
+          find wp-content/plugins/peracrm -name "*.php" -not -path "*/vendor-webpush/*" -print0 | xargs -0 -n1 php -l > /tmp/peracrm-php-lint.log
+          node --check wp-content/plugins/peracrm/assets/frontend/crm.js
       - name: Prepare disposable browser tooling
         run: npm install --prefix /tmp/peracrm-browser playwright@1.55.0
       - name: Run synthetic WordPress/MySQL fixtures
