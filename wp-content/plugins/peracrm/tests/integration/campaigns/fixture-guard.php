@@ -52,3 +52,10 @@ add_filter('query', static function ($query) {
     }
     return $query;
 });
+
+// Synthetic public CPT only in this disposable fixture. Production ownership stays outside PeraCRM.
+add_action('init',static function () {
+    if (get_option('campaign_fixture_property_enabled')) { register_post_type('property',['public'=>true,'label'=>'Fixture properties','supports'=>['title','editor','excerpt','thumbnail']]); }
+},20);
+add_filter('post_link',static function ($url,$post) { return str_starts_with($post->post_title,'Phase3B') ? 'https://example.org/stories/'.$post->ID : $url; },20,2);
+add_filter('post_type_link',static function ($url,$post) { return str_starts_with($post->post_title,'Phase3B') ? 'https://example.org/properties/'.$post->ID : $url; },20,2);

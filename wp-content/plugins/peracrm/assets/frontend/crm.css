@@ -8286,3 +8286,12 @@ body.crm-route #site-header.peracrm-shell-header .peracrm-header-search__status 
 .peracrm-campaign-history { white-space: pre-wrap; overflow-wrap: anywhere; max-height: 24rem; overflow: auto; }
 .peracrm-campaign-form [data-campaign-status] { font-weight: 700; }
 @media (max-width: 700px) { .peracrm-campaign-grid { grid-template-columns: minmax(0,1fr); } .peracrm-campaign-form fieldset { padding: .7rem; } }
+
+/* Plugin-owned draft email controls; email output has independent inline styles. */
+.peracrm-campaigns [data-campaign-preview-tools] { min-width: 0; border-block: 1px solid #d9dedb; padding-block: 1rem; }
+.peracrm-campaigns [data-campaign-preview-tools] p,
+.peracrm-campaigns [data-preview-links] a { overflow-wrap: anywhere; }
+.peracrm-email-preview { width: 100%; max-width: 100%; overflow: auto; background: #e8e9e5; padding: 8px; box-sizing: border-box; }
+.peracrm-email-preview iframe { display: block; width: 100%; max-width: 720px; height: 760px; margin: auto; border: 0; background: white; }
+.peracrm-email-preview[data-size="mobile"] iframe { max-width: 375px; }
+.peracrm-campaigns [hidden] { display: none !important; }

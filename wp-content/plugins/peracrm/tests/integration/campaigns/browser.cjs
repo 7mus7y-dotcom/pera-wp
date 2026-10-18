@@ -156,9 +156,11 @@ const fs = require('fs');
  const campaignNonce=await context.request.post(target+'/crm/campaigns/new/',{form:{operation:'save',revision:'0','document[subject]':'No nonce'}});
  if(campaignNonce.status()!==403) throw Error('Campaign save without nonce accepted');
  await require('./draft-browser.cjs')({browser,page,target});
+ await require('./preview-browser.cjs')({page,target,employeeContext,context});
+ await require('./change-tracking-browser.cjs')({page,target});
  if(failures.length) throw Error(failures.join('\n'));
  // Emit small synthetic-only review images so an API-only reviewer can inspect them.
- for(const name of ['subscribers-desktop','subscribers-mobile','detail-mobile','import-mobile','suppression-mobile','preferences-mobile','campaign-list-desktop','campaign-list-mobile','campaign-editor-desktop','campaign-editor-mobile','campaign-configuration-desktop','campaign-configuration-mobile','campaign-conflict-mobile','campaign-approved-mobile']) {
+ for(const name of ['campaign-audience-desktop','campaign-audience-mobile','campaign-content-desktop','campaign-content-mobile','campaign-preview-desktop','campaign-preview-mobile','campaign-missing-desktop','campaign-missing-mobile','subscribers-desktop','subscribers-mobile','detail-mobile','import-mobile','suppression-mobile','preferences-mobile','campaign-list-desktop','campaign-list-mobile','campaign-editor-desktop','campaign-editor-mobile','campaign-configuration-desktop','campaign-configuration-mobile','campaign-conflict-mobile','campaign-approved-mobile']) {
   const review = await browser.newPage({viewport:{width:name.includes('desktop')?720:390,height:844}});
   await review.setContent('<html><body style="margin:0"><img style="width:100%;display:block" src="data:image/png;base64,'+fs.readFileSync('/evidence/'+name+'.png').toString('base64')+'"></body></html>');
   await review.locator('img').evaluate(img=>img.decode());

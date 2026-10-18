@@ -1,0 +1,89 @@
+module.exports = async function ({page,target,employeeContext,context}) {
+  const anonymous=await context.browser().newContext();
+  const anonResult=await anonymous.request.post(target+'/wp-admin/admin-ajax.php',{form:{action:'peracrm_campaign_preview',operation:'audience'}});
+  if(anonResult.status()!==403) throw Error('Anonymous audience route accepted');
+  await anonymous.close();
+  const captureStyle='#site-header, #wpadminbar { visibility: hidden !important; }';
+  const endpoint=target+'/wp-admin/admin-ajax.php';
+  const denied=await employeeContext.request.post(endpoint,{form:{action:'peracrm_campaign_preview',operation:'audience'}});
+  if(denied.status()!==403) throw Error('Employee preview counts exposed');
+  const noNonce=await context.request.post(endpoint,{form:{action:'peracrm_campaign_preview',operation:'render'}});
+  if(noNonce.status()!==403) throw Error('Preview accepted missing nonce');
+  for(const [size,width,height] of [['desktop',1440,1000],['mobile',390,844]]) {
+    await page.setViewportSize({width,height});
+    await page.goto(target+'/crm/campaigns/new/');
+    await page.getByLabel('Internal name',{exact:true}).fill('Phase3B browser '+size);
+    await page.getByLabel('Subject',{exact:true}).fill('Pera stories & properties '+size);
+    await page.getByLabel('Explicit language (for example en)',{exact:true}).fill('en');
+    await page.getByLabel('Introduction',{exact:true}).fill('A long introduction '+ 'long words and context '.repeat(95));
+    await page.getByLabel('Search title',{exact:true}).fill('Phase3B');
+    await page.getByRole('button',{name:'Search content',exact:true}).click();
+    await page.locator('[data-content-results] button').first().waitFor();
+    if(await page.locator('[data-content-results] button').count()!==20) throw Error('Selector first page not bounded');
+    await page.getByRole('button',{name:'Next content page',exact:true}).click();
+    await page.waitForFunction(()=>document.querySelectorAll('[data-content-results] button').length===4);
+    await page.getByRole('button',{name:'Search content',exact:true}).click();
+    await page.waitForFunction(()=>document.querySelectorAll('[data-content-results] button').length===20);
+    await page.locator('[data-content-results] button').first().click();
+    await page.getByLabel('Content kind',{exact:true}).selectOption('property');
+    await page.getByRole('button',{name:'Search content',exact:true}).click();
+    await page.locator('[data-content-results] button').first().filter({hasText:'property'}).waitFor();
+    await page.locator('[data-content-results] button').first().click();
+    if(await page.getByLabel('Subject',{exact:true}).inputValue()!=='Pera stories & properties '+size) throw Error('Selector discarded unsaved input');
+    await page.locator('[data-campaign-block]').last().getByRole('button',{name:'Move block up',exact:true}).click();
+    await page.getByRole('button',{name:'Save draft',exact:true}).click();
+    await page.locator('[data-campaign-status]').filter({hasText:'Saved'}).waitFor();
+    await page.reload();
+    if(await page.locator('[data-campaign-block]').first().locator('input[type=hidden]').first().inputValue()!=='property') throw Error('Selected order lost on reload');
+    await page.getByRole('button',{name:'Preview audience counts',exact:true}).click();
+    await page.locator('[data-audience-result]').filter({hasText:'Partial'}).waitFor();
+    while(await page.locator('[data-audience-next]').isVisible()) {
+      await page.getByRole('button',{name:'Continue audience count',exact:true}).click();
+      await page.waitForFunction(()=>!document.querySelector('[data-audience-result]').textContent.includes('Counting a bounded'));
+    }
+    await page.locator('[data-audience-result]').filter({hasText:'Complete'}).waitFor();
+    await page.getByLabel('Audience topic (exact key)',{exact:true}).fill('zero-eligible-topic');
+    await page.getByRole('button',{name:'Preview audience counts',exact:true}).click();
+    if(!(await page.locator('[data-audience-result]').innerText()).includes('Save the current')) throw Error('Unsaved audience rules accepted');
+    await page.getByRole('button',{name:'Save draft',exact:true}).click();
+    await page.locator('[data-campaign-status]').filter({hasText:'Saved'}).waitFor();
+    await page.getByRole('button',{name:'Preview audience counts',exact:true}).click();
+    await page.locator('[data-audience-result]').filter({hasText:'Partial'}).waitFor();
+    while(await page.locator('[data-audience-next]').isVisible()) {
+      await page.getByRole('button',{name:'Continue audience count',exact:true}).click();
+      await page.waitForFunction(()=>!document.querySelector('[data-audience-result]').textContent.includes('Counting a bounded'));
+    }
+    if(!(await page.locator('[data-audience-result]').innerText()).includes('eligible: 0')) throw Error('Zero audience did not reconcile');
+    await page.locator('[data-audience-result]').screenshot({path:'/evidence/campaign-audience-'+size+'.png',style:captureStyle});
+    // Unsaved form preview, same renderer, no storage mutation, no active links.
+    await page.getByLabel('Main text',{exact:true}).fill('UNSAVED PREVIEW '+ 'x'.repeat(250));
+    const responsePromise=page.waitForResponse(r=>r.url()===endpoint && r.request().postData()?.includes('render'));
+    await page.getByRole('button',{name:size==='mobile'?'Mobile preview':'Desktop preview',exact:true}).click();
+    const response=await responsePromise;
+    if(!/no-store/i.test(response.headers()['cache-control']||'')) throw Error('Preview response cacheable');
+    await page.locator('[data-preview-feedback]').filter({hasText:'Draft preview of form'}).waitFor();
+    const frame=page.frameLocator('[data-email-frame]');
+    await frame.getByText('UNSAVED PREVIEW',{exact:false}).waitFor();
+    if(await page.locator('[data-email-frame]').getAttribute('sandbox')!=='') throw Error('Preview sandbox relaxed');
+    if(await frame.locator('script,a,form,iframe').count()) throw Error('Active preview element');
+    if(!((await frame.locator('meta[http-equiv="Content-Security-Policy"]').getAttribute('content'))||'').includes("script-src 'none'")) throw Error('Preview CSP absent');
+    if(await page.locator('[data-preview-links] a').count()<1) throw Error('Validated destinations missing');
+    if(await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth+1)) throw Error('Phase3B page overflow');
+    const iframe=await page.locator('[data-email-frame]').elementHandle();
+    const inside=await iframe.contentFrame();
+    if(await inside.evaluate(()=>document.documentElement.scrollWidth>innerWidth+1)) throw Error('Email preview overflow');
+    await page.locator('[data-campaign-preview-tools]').screenshot({path:'/evidence/campaign-preview-'+size+'.png',style:captureStyle});
+    await frame.getByText('USD 350,000',{exact:false}).scrollIntoViewIfNeeded();
+    await page.locator('[data-preview-container]').screenshot({path:'/evidence/campaign-content-'+size+'.png',style:captureStyle});
+    await page.getByRole('button',{name:'Plain-text view',exact:true}).click();
+    await page.locator('[data-email-text]').filter({hasText:'UNSAVED PREVIEW'}).waitFor();
+    await page.getByLabel('Explicit language (for example en)',{exact:true}).fill('de');
+    await page.getByRole('button',{name:'Mobile preview',exact:true}).click();
+    await frame.getByText('Current translation unavailable',{exact:false}).first().waitFor();
+    await frame.getByText('Current translation unavailable',{exact:false}).first().scrollIntoViewIfNeeded();
+    await page.locator('[data-preview-container]').screenshot({path:'/evidence/campaign-missing-'+size+'.png',style:captureStyle});
+    await page.locator('[data-campaign-block]').first().getByRole('button',{name:'Remove block',exact:true}).click();
+    if(await page.locator('[data-campaign-block]').count()!==1) throw Error('Remove selected block failed');
+  }
+  console.log('PASS Phase 3B browser: actual public selectors/pagination, content order/save/reload/remove, unsaved HTML/text previews, sandbox/CSP/no-store, zero audience, missing content metadata/translations and desktop/mobile overflow');
+};

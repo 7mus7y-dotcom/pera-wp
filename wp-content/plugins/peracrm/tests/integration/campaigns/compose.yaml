@@ -31,6 +31,7 @@ services:
     volumes: &wp_volumes
       - core:/var/www/html
       - ../../..:/var/www/html/wp-content/plugins/peracrm:ro
+      - ../../../../pera-multilingual:/var/www/html/wp-content/plugins/pera-multilingual:ro
       - ./fixture-guard.php:/var/www/html/wp-content/mu-plugins/campaign-fixture-guard.php:ro
       - .:/tests:ro
     networks:

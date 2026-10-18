@@ -1,14 +1,14 @@
 # Integrated email campaigns: repository review and living implementation plan
 
-Review status: **complete** (2026-10-17). Implementation: **Phase 1 complete (technical acceptance)**; **Phase 2 in progress**; **Phase 3 in progress (Phase 3A draft/editor implementation)**; Phases 4–7 not started.
+Review status: **complete** (2026-10-17). Implementation: **Phase 1 complete (technical acceptance)**; **Phase 2 in progress**; **Phase 3 in progress (3A/3B technical acceptance; 3C remaining)**; Phases 4–7 not started.
 
 ## Purpose, scope and maintenance
 
-Let Pera staff prepare newsletters and targeted campaigns inside the existing CRM, with an external provider delivering mail. This document is the authoritative review and implementation plan. Phase 2 adds plugin-owned subscriber management, isolated preview/import services, suppression intake and public preferences with real intake gated off. Phase 3A adds draft/revision storage, approved configuration and the structured editor. No provider, queue, scheduling, delivery, production contacts, merge or deployment is included.
+Let Pera staff prepare newsletters and targeted campaigns inside the existing CRM, with an external provider delivering mail. This document is the authoritative review and implementation plan. Phase 2 adds plugin-owned subscriber management, isolated preview/import services, suppression intake and public preferences with real intake gated off. Phase 3A adds draft/revision storage, approved configuration and the structured editor. Phase 3B adds public content references, current-draft rendering and advisory language/topic audience previews. No provider, queue, scheduling, delivery, production contacts, merge or deployment is included.
 
 Future implementation PRs must update phase status, validation evidence, decisions and the progress log here. A phase must not be marked complete solely because code exists when required verification remains outstanding. Use only `not started`, `in progress`, `blocked` or `complete` for phase status. Keep repository checks distinct from external verification; record outstanding evidence explicitly.
 
-**Current implementation task:** Phase 3, split into reviewable dependent PRs, continuing with Phase 3A draft storage and the structured editor after merged #1449. Sending and new public collection stay disabled. Phase 1 technical foundations are accepted; Phase 2 external acceptance remains open; Phases 4–7 remain unstarted.
+**Current implementation task:** Phase 3, split into reviewable dependent PRs, Phase 3B technical implementation and checks are complete on merged #1450; Phase 3C review/freeze remains outstanding. Sending and new public collection stay disabled. Phase 1 technical foundations are accepted; Phase 2 external acceptance remains open; Phases 4–7 remain unstarted.
 
 ## Review baseline and method
 
@@ -644,8 +644,267 @@ multisite mobile editor/configuration review copies. No new screenshot inspectio
 is claimed by this documentation-only closure; the existing recorded inspection
 and actual browser assertions are the evidence.
 
-**Phase 3 remains in progress and incomplete.** Phase 3B is not begun. The next
+**Phase 3 remains in progress and incomplete.** At Phase 3A closure, Phase 3B was not begun. The next
 portions remain (1) content selectors, email renderer and bounded language/topic
 audience preview; (2) review and immutable content/recipient freeze. All ownership
 remains in PeraCRM. Sending, real intake and public collection remain disabled;
 no provider, scheduling, queue/worker, merge or deployment is introduced or performed.
+
+## Phase 3B — content, draft rendering and audience preview (2026-10-18)
+
+Status: **complete** (Phase 3B technical acceptance). Phase 3 remains **in progress**; Phase 3C remains **not started**.
+PR #1450 merged at 11:35:13 UTC as `5b009f562b5a76811ff7e007dd99472097b2f953`;
+Phase 3B starts at that latest main, branch `feat/campaign-phase3b`. No dependent
+unmerged PR is required. No applicable AGENTS.md exists in the searched repository
+or workspace ancestors. The clean initial branch was `work` at `04a7d93a`.
+Shell fetch could not connect to its proxy. Connected GitHub reads supplied the
+26 changed blobs and exact signed merge commit; local blob/tree/commit SHAs were
+verified before switching. No existing work was replaced.
+
+### Phase 3A acceptance
+
+Merged #1450 records passing real single-site/multisite and bundled Twenty
+Twenty-Five Chromium checks at 1440×1000 and 390×844, including actual create,
+save/reload, duplication, block ordering, input retention and 409 conflicts.
+[Run 39112678562](https://github.com/7mus7y-dotcom/pera-wp/actions/runs/39112678562)
+validated runtime `87d89ca8`; documentation-only head `c972cd7a` retained identical
+runtime files. [Single-site evidence](https://github.com/7mus7y-dotcom/pera-wp/actions/runs/39112678562/artifacts/12131600157)
+and [multisite evidence](https://github.com/7mus7y-dotcom/pera-wp/actions/runs/39112678562/artifacts/12130966927)
+are retained until November 1. This is Phase 3A evidence, not validation of 3B.
+
+### Decisions and actual supported data
+
+- Existing schema version 1 draft documents gain optional version 1 `audience`
+  rules; old revisions remain byte-for-byte unchanged. Current save/duplicate
+  paths normalize defaults. Only exact explicit `language` and one `topic` key
+  are supported, combined with AND. Empty means no filter; positive missing data
+  cannot match. No budget, advisor, pipeline or inferred interests.
+- Article/property blocks store only kind and positive ID. Published, publicly
+  viewable, password-free title search uses stable ascending ID pagination,
+  21 candidates / 20 results and bounded metadata priming. Preview rechecks IDs;
+  inaccessible titles, private portfolio URLs and credentials are never returned.
+  Selector labels explicitly use canonical source titles, with requested-language
+  availability alongside them. Content IDs remain references, not snapshots.
+- Actual Pera Multilingual APIs define English as canonical source. With that
+  plugin active, current non-stale stored title and excerpt (or content, when no
+  excerpt) translations must exist in a publicly available requested language.
+  A new storage reader is constructed inside target context (the singleton caches
+  its construction prefix), preserving multisite translation isolation. No fallback,
+  language inference, provider request or translation generation.
+  Without the plugin, explicit content language is unavailable. Russian/Turkish
+  public discovery gates are honored. Image alt translations use current stored
+  attachment metadata translations; missing alt text stays empty. Authored draft
+  text/footer is not automatically translated.
+- Property registration and helper functions currently belong to the theme.
+  PeraCRM neither registers the production CPT nor loads those helpers. The
+  bundled default-theme fixture first asserts an explicit unavailable state,
+  then uses a synthetic registered property. The adapter reads raw canonical
+  ACF repeater metadata `v2_units` (maximum 100 rows), `v2_units_N_v2_beds`,
+  `v2_gross_size_min/max` and `v2_price_usd_min/max` subkeys. It displays individual
+  unit rows and USD values, with explicit missing size/price data. It never reads
+  deprecated `price`/`price_usd`, uses no derived theme index, and does not infer
+  inventory availability. Unknown units or metadata remain unavailable.
+- One normalized Pera-branded model generates inline-styled HTML and plain text
+  in the same order, with approved current sender/footer, introduction, content,
+  CTA and mandatory preference placeholders. It escapes text/attributes and
+  rejects non-HTTP(S), credentials, local/reserved hosts and token/portfolio URLs.
+  Email images come only from selected public content thumbnails; no arbitrary
+  HTML, scripts, forms, embeds, authored tracking pixels or subscriber data.
+  Shared HTML contains inert CTA labels; separately validated destinations open
+  outside the sandbox for staff verification. Later freeze consumes the model;
+  a later delivery implementation must deliberately resolve recipient links.
+- Preview AJAX routes require campaign authority, real actor (no impersonation),
+  POST and nonce; replies use private/no-store/no-referrer and restrictive CSP.
+  Visual HTML is injected into an empty-sandbox iframe with its own CSP,
+  no-referrer policy and no active navigation. Desktop/mobile and plain-text
+  controls render current form input without saving. Preview refresh is explicit.
+  Draft status, preference placeholders, live image URLs and unverified
+  domain/provider readiness remain visible. Images/URLs are not frozen files.
+- Audience uses the same pure eligibility-reason policy as existing live
+  single-address eligibility. A suppression registry mailbox must exist; active
+  suppression takes precedence, then consent/evidence, invalid linked-client
+  state, language, topic. Newsletter-only identities need no CRM link. Existing
+  unresolved/deleted/disposition policy is unchanged; no automatic link inference.
+  Unique subscriber mailbox keys count shared mailboxes once.
+- Per request: at most 200 evaluated rows plus one lookahead, joined suppression,
+  linked post and party disposition in one query. No subscriber query loops or
+  whole-audience reads in implementation. Signed aggregate-only cursor progress
+  binds actor, target blog, draft ID/revision, normalized rules hash, fixed maximum
+  candidate ID and 30-minute expiry. No server progress/recipient ledger or public
+  token is created. Draft changes invalidate; errors fail closed. Counts reconcile
+  considered = eligible + mutually exclusive exclusions. Partial counts are
+  explicitly partial. As-of/check timing is advisory; concurrent edits/deletions
+  affect traversal and no transactional snapshot is claimed.
+
+### Validation and outstanding evidence
+
+All 13 pre-existing standalone regressions passed after the shared policy change;
+new pure Phase 3B contracts also pass. PHP/JavaScript/shell syntax, Compose
+configuration and whitespace checks are being run on final changes. Real suites
+extend existing single-site/multisite regressions with actual ML stored
+translations, synthetic property v2 metadata, selector exclusions/pagination,
+HTML/text parity, draft compatibility/duplication/stale writes, eligibility
+parity/count reconciliation, constant query bounds, signed progress invalidation
+and no subscriber mutations. Browser fixtures exercise actual selection,
+reordering, save/reload, current unsaved preview, CSP/sandbox, zero eligible
+recipients and missing translations/images/prices at both desktop/mobile sizes.
+
+Local Docker socket health check is blocked (`operation not permitted`, UID 1000,
+daemon running). No local database/browser success or screenshot review is
+claimed. Hosted CI must establish the new runtime results; the final evidence
+entry below will record actual results and inspected screenshot artifacts.
+Gmail/Outlook inbox rendering, Safari/Firefox, manual assistive technology,
+approved translations/copy and production domain/provider readiness remain later
+verification. Real intake/public collection and all sending stay disabled.
+
+**Phase 3C remaining:** explicit review, immutable content and recipient snapshots,
+bounded resumable/cancellable freeze and atomic publication. No review/freeze,
+recipient materialization, test emails, delivery, scheduling, providers, queues,
+workers, merge or deployment is implemented or authorized here. Phase 3 stays
+incomplete; Phase 4–7 remain not started.
+
+
+### Phase 3B final acceptance evidence
+
+Non-draft [PR #1451](https://github.com/7mus7y-dotcom/pera-wp/pull/1451) targets main.
+Final runtime and test commit `d4b1cafc02e6e59125b762492830707674a223a6` passed
+[run 39128396228](https://github.com/7mus7y-dotcom/pera-wp/actions/runs/39128396228):
+
+| Topology | Result | Screenshots and logs (retained until November 1) |
+| --- | --- | --- |
+| Single-site | Job 117678291498: success | [Artifact 12137490605](https://github.com/7mus7y-dotcom/pera-wp/actions/runs/39128396228/artifacts/12137490605) |
+| Multisite | Job 117678291323: success | [Artifact 12137276655](https://github.com/7mus7y-dotcom/pera-wp/actions/runs/39128396228/artifacts/12137276655) |
+
+Both jobs include the existing regressions and real WordPress/MySQL suites, then
+Chromium controls at 1440×1000 and 390×844 on a bundled default theme. Actual
+selectors paginate and exclude private/draft/pending/future/trash/password posts;
+selected blocks reorder, save/reload and remove; searching preserves unsaved text.
+HTML and plain-text controls render unsaved current text. Tests assert no-store,
+empty iframe sandbox, restrictive CSP, no active links/scripts/forms, separate
+validated destinations and no horizontal overflow in page or frame. Audience
+controls require saved rules, handle multiple bounded requests and show zero
+eligible recipients. No subscriber or consent/suppression change, public token
+issuance, recipient ledger or sending is introduced. New candidates after the
+initial maximum-ID boundary are excluded; signed foreign actor/blog, changed
+rules/revision, tampering and expiry invalidate progress.
+
+Visually inspected emitted synthetic JPEG review copies of
+`campaign-preview-desktop/mobile.png`, `campaign-content-desktop/mobile.png`,
+`campaign-missing-mobile.png` and `campaign-audience-mobile.png`, including
+multisite desktop/mobile controls. Full PNGs are retained in both artifacts.
+Long unbroken text wraps; v2 USD ranges, missing images/prices and unavailable
+German translations remain readable inside the mobile frame. The zero-audience
+example reconciles 441 considered = 0 eligible + 62 suppression + 60 consent +
+58 linked-client + 261 topic exclusions (language/rules exclusions both zero).
+Only component screenshot capture temporarily hides the existing sticky shell
+header/admin bar to avoid overlaying the captured region; controls and overflow
+assertions run with the ordinary shell. Missing-data captures explicitly scroll
+inside the frame; this changes no product styles or behavior.
+
+Initial hosted checks caught a fixture `future` post without a future timestamp,
+which WordPress published immediately. The fixture now assigns tomorrow's date;
+pagination assertions remain intact. A subsequent actual browser check caught
+ambiguous content-kind labeling; the selector now has an explicit accessible
+name. Both complete suites pass after those corrections; no failed assertion
+was waived. Earlier passing run 39128140889 validated the same production code;
+final run adds fixed-boundary/token assertions and clearer screenshot coverage.
+All 14 standalone scripts, 394 plugin PHP syntax checks, CRM/browser JavaScript,
+both shell runners, Compose configuration and whitespace checks pass locally.
+The final follow-up updates documentation only; runtime/test trees stay identical
+to the validated commit above.
+
+Remaining verification: Gmail/Outlook inbox rendering; Safari/Firefox; manual
+assistive-technology and copy/translation approval; actual production topology,
+HTTPS/cache/log behavior, approved identities/address, domain/provider readiness,
+suppression-source completeness and retention/legal-basis decisions. These are
+not established by browser previews. Real intake/public collection stay gated
+and sending stays absent. Phase 3C explicit review, content/recipient snapshots,
+bounded resumable freeze and atomic publication remain unimplemented. Phase 3
+is incomplete; Phases 4–7 remain not started. No merge or deployment occurred.
+
+Changed files, all relative to `wp-content/plugins/peracrm/`:
+
+```text
+assets/frontend/crm.css
+assets/frontend/crm.js
+docs/email-campaigns-implementation-plan.md
+inc/bootstrap.php
+inc/campaigns/audience.php
+inc/campaigns/content.php
+inc/campaigns/drafts.php
+inc/campaigns/preview-routes.php
+inc/campaigns/renderer.php
+inc/campaigns/service.php
+inc/views/pages/crm-campaigns.php
+tests/campaign-drafts-test.php
+tests/campaign-previews-test.php
+tests/integration/campaigns/browser.cjs
+tests/integration/campaigns/change-tracking-browser.cjs
+tests/integration/campaigns/compose.yaml
+tests/integration/campaigns/fixture-guard.php
+tests/integration/campaigns/preview-browser.cjs
+tests/integration/campaigns/previews.php
+tests/integration/campaigns/run-inside.sh
+```
+
+### PR #1451 acceptance follow-up: selector change tracking
+
+Acceptance starts from head `29ea3b722fc76acf03bedf59aeffc3cfd2d6f9b2`.
+The existing finding is [selector-only controls must not dirty the draft](https://github.com/7mus7y-dotcom/pera-wp/pull/1451#discussion_r4306975597).
+That head already limits input/change tracking to named `document[...]` fields,
+so search text and content-kind controls do not dirty the draft or clear its
+signed aggregate cursor. Explicit article/property selection remains a document
+mutation. Follow-up inspection found that Add text/Add CTA marked dirty but did
+not invalidate audience progress; the structural invalidation selector now also
+includes `data-block-add`.
+
+New actual browser regressions run at 1440×1000 and 390×844. Starting with a
+saved draft and a 200-row partial audience result, typing search text, changing
+kind, searching both kinds and paginating must preserve the exact saved-status
+text, partial counts and visible continuation. Continuing must post the original
+signed cursor and reach 400 considered, proving that progress was neither
+cleared nor silently restarted. Independent reload/prime/mutate cases cover
+article/property selection, text/CTA additions, removal, both reorder directions,
+subject/block-text edits and audience-rule edits. Every mutation must mark dirty,
+clear continuation, replace stale counts, and refuse an audience HTTP request
+until the document is saved.
+
+Local JavaScript syntax and whitespace checks pass. Both complete hosted suites
+and every new browser regression passed; evidence is recorded below.
+Phase 3 remains **in progress and incomplete**; Phase 3C is **not started**.
+Existing disabled real intake/public collection gates and absent sending remain
+unchanged. No merge or deployment is included.
+
+
+Acceptance verified on runtime/test head
+`d9026aa99e77f6d81c82349a8051fc3a750a3d3f` in
+[run 39129444264](https://github.com/7mus7y-dotcom/pera-wp/actions/runs/39129444264):
+
+| Topology | Result | Retained logs and screenshots |
+| --- | --- | --- |
+| Single-site | Job 117681407797: success | [Artifact 12137103987](https://github.com/7mus7y-dotcom/pera-wp/actions/runs/39129444264/artifacts/12137103987) |
+| Multisite | Job 117681407880: success | [Artifact 12137985104](https://github.com/7mus7y-dotcom/pera-wp/actions/runs/39129444264/artifacts/12137985104) |
+
+Each topology logs two selector-preservation/continuation passes and twenty
+independent mutation passes, covering both desktop and mobile. The posted signed
+cursor is checked against the one issued before selector interactions; considered
+counts advance from 200 to 400. Mutation checks assert dirty status, replaced
+counts, hidden continuation and zero audience HTTP requests for unsaved input.
+The first attempt passed selector/cursor and structural cases, then stopped at a
+prefilled-textarea exact-label lookup in the new test. The test now locates the
+actual textarea through its persisted `document[blocks][...][text]` name; its
+state assertions were preserved. Both full suites pass after this correction;
+no failed assertion was waived.
+
+The selector-only guards were already in requested head `29ea3b7`. Follow-up
+`08edfc04` also invalidates progress for Add text/Add CTA; `d9026aa` corrects only
+the regression locator. The final acceptance record is documentation-only, so
+runtime/test files remain identical to the passing head above. Finding closure
+is supported by this evidence; review of the acceptance follow-up is requested
+separately and does not imply reviewer approval.
+
+Follow-up files: `assets/frontend/crm.js`, the browser harness, new
+`tests/integration/campaigns/change-tracking-browser.cjs`, and this plan. Phase 3
+remains **in progress and incomplete**, Phase 3C remains **not started**, and
+all existing disabled collection/intake gates and absent sending stay unchanged.
+No merge, deployment, provider, queue, scheduling, delivery or freeze work occurred.

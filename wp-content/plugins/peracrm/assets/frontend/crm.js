@@ -2464,7 +2464,7 @@ document.addEventListener('click', function (event) {
   }
 });
 
-// Campaign structured drafts. No HTML authoring, remote selectors or delivery actions.
+// Plugin-owned campaign drafts, bounded selectors and isolated previews.
 document.addEventListener('DOMContentLoaded', function () {
   document.querySelectorAll('[data-campaign-editor]').forEach(function (form) {
     var status = form.querySelector('[data-campaign-status]');
@@ -2473,7 +2473,7 @@ document.addEventListener('DOMContentLoaded', function () {
     var blocks = form.querySelector('[data-campaign-blocks]');
     var senders = form.querySelector('[data-campaign-senders]');
     var senderTemplate = senders && senders.firstElementChild ? senders.firstElementChild.cloneNode(true) : null;
-    function changed() { dirty = true; if (status) status.textContent = 'Unsaved changes'; }
+    function changed(event) { if (event && event.target && !String(event.target.name || '').startsWith('document[')) return; dirty = true; if (status) status.textContent = 'Unsaved changes'; }
     function reindex(container, selector, key) {
       if (!container) return;
       var items = Array.from(container.querySelectorAll(selector));
@@ -2515,6 +2515,114 @@ document.addEventListener('DOMContentLoaded', function () {
       reindex(senders, '[data-campaign-sender]', 'senders');
       changed();
     });
+    var tools = form.querySelector('[data-campaign-preview-tools]');
+    if (tools) {
+      var nextContent = null;
+      var searchBinding = '';
+      var cursor = '';
+      var audienceGeneration = 0;
+      var previewGeneration = 0;
+      var searchGeneration = 0;
+      var audienceNext = tools.querySelector('[data-audience-next]');
+      var audienceResult = tools.querySelector('[data-audience-result]');
+      function invalidateAudience(event) {
+        if (event && event.target && !String(event.target.name || '').startsWith('document[')) return;
+        audienceGeneration++; cursor = ''; audienceNext.hidden = true;
+        audienceResult.textContent = 'Form changed. Save the current draft and restart audience preview.';
+      }
+      form.addEventListener('input', invalidateAudience);
+      form.addEventListener('change', invalidateAudience);
+      function request(operation, fields) {
+        var data = new FormData();
+        data.set('action', 'peracrm_campaign_preview'); data.set('nonce', tools.dataset.nonce); data.set('operation', operation);
+        Object.keys(fields).forEach(function (key) { data.set(key, fields[key]); });
+        return fetch(tools.dataset.endpoint, {method: 'POST', body: data, credentials: 'same-origin', cache: 'no-store'})
+          .then(function (response) { return response.json(); })
+          .then(function (json) { if (!json.success) throw Error(json.data && json.data.message || 'Preview unavailable.'); return json.data; });
+      }
+      function documentModel() {
+        var data = new FormData(form);
+        var doc = {schema_version: 1, blocks: [], audience: {version: 1}};
+        ['internal_name','subject','preheader','language','sender_id','introduction','main_text'].forEach(function (key) { doc[key] = String(data.get('document[' + key + ']') || ''); });
+        ['language','topic'].forEach(function (key) { doc.audience[key] = String(data.get('document[audience][' + key + ']') || ''); });
+        blocks.querySelectorAll('[data-campaign-block]').forEach(function (block) {
+          var item = {};
+          block.querySelectorAll('[name]').forEach(function (field) { var key = field.name.match(/\[([^\]]+)\]$/)[1]; item[key] = key === 'id' ? Number(field.value) : field.value; });
+          doc.blocks.push(item);
+        });
+        return doc;
+      }
+      function search(after) {
+        var generation = ++searchGeneration;
+        var fields = {kind: tools.querySelector('[data-content-kind]').value, term: tools.querySelector('[data-content-term]').value, after: after || 0, language: form.elements['document[language]'].value};
+        searchBinding = JSON.stringify([fields.kind,fields.term,fields.language]);
+        var feedback = tools.querySelector('[data-content-feedback]');
+        var results = tools.querySelector('[data-content-results]');
+        tools.querySelector('[data-content-next]').hidden = true;
+        feedback.textContent = 'Searching published content…'; results.replaceChildren();
+        request('search', fields).then(function (data) {
+          if (generation !== searchGeneration) return;
+          feedback.textContent = data.notice + (data.items.length ? '' : ' No matching public content.');
+          data.items.forEach(function (item) {
+            var row = document.createElement('p');
+            var label = document.createElement('span'); label.textContent = item.title + ' · ' + item.availability + ' ';
+            var select = document.createElement('button'); select.type = 'button'; select.className = 'btn btn--ghost'; select.textContent = 'Select ' + item.type + ' #' + item.id;
+            select.addEventListener('click', function () {
+              if (blocks.children.length >= 20) { feedback.textContent = 'Use at most 20 blocks; remove one first.'; return; }
+              var template = document.querySelector('[data-block-template="' + item.type + '"]');
+              blocks.appendChild(template.content.cloneNode(true));
+              var block = blocks.lastElementChild;
+              block.querySelector('input[name$="[id]"]').value = String(item.id);
+              block.querySelector('[data-content-id]').textContent = String(item.id);
+              reindex(blocks,'[data-campaign-block]','blocks'); changed(); invalidateAudience();
+            });
+            row.append(label,select); results.appendChild(row);
+          });
+          nextContent = data.next; tools.querySelector('[data-content-next]').hidden = nextContent === null;
+        }).catch(function (error) { if (generation === searchGeneration) feedback.textContent = error.message; });
+      }
+      tools.querySelector('[data-content-search]').addEventListener('click', function () { search(0); });
+      tools.querySelector('[data-content-next]').addEventListener('click', function () {
+        var current = JSON.stringify([tools.querySelector('[data-content-kind]').value,tools.querySelector('[data-content-term]').value,form.elements['document[language]'].value]);
+        search(current === searchBinding ? nextContent : 0);
+      });
+      tools.querySelectorAll('[data-email-preview]').forEach(function (button) {
+        button.addEventListener('click', function () {
+          var generation = ++previewGeneration;
+          var feedback = tools.querySelector('[data-preview-feedback]');
+          feedback.textContent = 'Rendering current draft…';
+          request('render', {document_json: JSON.stringify(documentModel())}).then(function (data) {
+            if (generation !== previewGeneration) return;
+            var mode = button.dataset.emailPreview;
+            var container = tools.querySelector('[data-preview-container]');
+            container.hidden = mode === 'text'; container.dataset.size = mode;
+            tools.querySelector('[data-email-frame]').srcdoc = data.html;
+            var text = tools.querySelector('[data-email-text]'); text.hidden = mode !== 'text'; text.textContent = data.text;
+            var links = tools.querySelector('[data-preview-links]'); links.replaceChildren();
+            var label = document.createElement('p'); label.textContent = 'Validated destinations — opens externally for staff verification:'; links.appendChild(label);
+            data.destinations.forEach(function (destination) { var row = document.createElement('p'); var a = document.createElement('a'); a.href = destination.url; a.target = '_blank'; a.rel = 'noopener noreferrer'; a.textContent = destination.label + ' · ' + destination.url; row.appendChild(a); links.appendChild(row); });
+            feedback.textContent = 'Draft preview of form at ' + new Date().toISOString() + '. Preference placeholders only; domain/provider unverified. Refresh after edits.';
+          }).catch(function (error) { if (generation === previewGeneration) feedback.textContent = error.message; });
+        });
+      });
+      function audience(start) {
+        if (dirty || !tools.dataset.id || tools.dataset.id === '0') { audienceResult.textContent = 'Save the current draft and rules before counting.'; return; }
+        if (start) { cursor = ''; audienceGeneration++; }
+        var generation = audienceGeneration;
+        var revision = Number(form.elements.revision.value);
+        audienceNext.hidden = true; audienceResult.textContent = 'Counting a bounded batch…';
+        request('audience', {id: tools.dataset.id, revision: revision, rules_json: JSON.stringify(documentModel().audience), cursor: cursor}).then(function (data) {
+          if (generation !== audienceGeneration) return;
+          cursor = data.cursor;
+          var exclusions = Object.keys(data.exclusions).map(function (key) { return key + ': ' + data.exclusions[key]; }).join('; ');
+          audienceResult.textContent = (data.complete ? 'Complete' : 'Partial — continue counting') + ' · As of ' + data.as_of + ' UTC; checked through ' + data.checked_at + ' UTC. Total considered: ' + data.considered + '; eligible: ' + data.eligible + '; excluded — ' + exclusions + '. ' + data.notice;
+          audienceNext.hidden = data.complete;
+        }).catch(function (error) { if (generation === audienceGeneration) { cursor = ''; audienceResult.textContent = error.message; } });
+      }
+      tools.querySelector('[data-audience-start]').addEventListener('click', function () { audience(true); });
+      audienceNext.addEventListener('click', function () { audience(false); });
+      form.addEventListener('click', function (event) { if (event.target.closest('[data-block-add],[data-block-up],[data-block-down],[data-block-remove]')) invalidateAudience(); });
+    }
     form.addEventListener('submit', function () { submitted = true; if (status) status.textContent = 'Saving…'; });
     window.addEventListener('beforeunload', function (event) { if (dirty && !submitted) { event.preventDefault(); event.returnValue = ''; } });
     reindex(blocks, '[data-campaign-block]', 'blocks');

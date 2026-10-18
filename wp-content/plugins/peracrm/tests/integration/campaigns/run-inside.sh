@@ -95,4 +95,10 @@ draft_second_pid=$!
 wait "$draft_first_pid"
 wait "$draft_second_pid"
 wp eval-file /tests/draft-worker.php verify
+if [ "$fixture_mode" = multi ]; then
+    wp plugin activate pera-multilingual --network
+else
+    wp plugin activate pera-multilingual
+fi
+wp eval-file /tests/previews.php
 printf 'PASS disposable %s WordPress/MySQL fixtures\n' "$fixture_mode"

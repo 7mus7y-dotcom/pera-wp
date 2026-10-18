@@ -298,6 +298,24 @@ function peracrm_campaigns_has_suppression($row)
     return false;
 }
 
+/** Shared pure policy for live eligibility and bounded audience batches. First reason wins. */
+function peracrm_campaigns_eligibility_reason($row,$linked,$filters=[])
+{
+    if (!$row || empty($row['suppression_mailbox']) || peracrm_campaigns_has_suppression($row)) { return 'suppression'; }
+    if (($row['subscription_state'] ?? '')!=='subscribed' || empty($row['confirmed_at']) || empty($row['recorded_at']) || !peracrm_campaigns_has_required_evidence($row) || !empty($row['withdrawn_at'])) { return 'consent'; }
+    if (!empty($row['client_id']) && (($linked['post_type'] ?? '')!=='crm_client' || ($linked['post_status'] ?? '')==='trash' || ($linked['disposition'] ?? null)!=='none')) { return 'linked_client'; }
+    if (!is_array($filters) || array_diff(array_keys($filters),['language','topic'])) { return 'rules'; }
+    foreach ($filters as $key=>$value) {
+        if (!is_string($value) || $value==='') { return 'rules'; }
+        if ($key==='language' && (empty($row['preferred_language']) || $row['preferred_language']!==strtolower($value))) { return 'language'; }
+        if ($key==='topic') {
+            $topics=json_decode($row['preferences_json'] ?? '',true);
+            if (!is_array($topics) || !in_array($value,$topics,true)) { return 'topic'; }
+        }
+    }
+    return 'eligible';
+}
+
 /**
  * Internal read, no current-user prerequisite. This is permission eligibility,
  * never authorization to send: Phase 1 registers no delivery or queue paths.
@@ -312,44 +330,14 @@ function peracrm_campaigns_is_eligible($address, $filters = [])
         $email = peracrm_campaigns_normalize_email($address);
         return peracrm_with_target_blog(static function () use ($email, $filters) {
             $row = peracrm_campaigns_repository_identity($email);
-            if (!$row || empty($row['suppression_mailbox']) || peracrm_campaigns_has_suppression($row)
-                || $row['subscription_state'] !== 'subscribed' || empty($row['confirmed_at'])
-                || empty($row['recorded_at']) || !peracrm_campaigns_has_required_evidence($row)
-                || !empty($row['withdrawn_at'])) {
-                return false;
-            }
+            $linked=[];
             if (!empty($row['client_id'])) {
-                if (get_post_type((int) $row['client_id']) !== 'crm_client' || get_post_status((int) $row['client_id']) === 'trash') {
-                    return false; // Explicit unlink permits independent evaluation.
-                }
                 global $wpdb;
-                $party_table = peracrm_table('peracrm_party');
-                $disposition = $wpdb->get_var($wpdb->prepare(
-                    "SELECT disposition FROM {$party_table} WHERE party_id = %d", (int) $row['client_id']
-                ));
+                $linked=['post_type'=>get_post_type((int)$row['client_id']),'post_status'=>get_post_status((int)$row['client_id'])];
+                $linked['disposition']=$wpdb->get_var($wpdb->prepare('SELECT disposition FROM '.peracrm_table('peracrm_party').' WHERE party_id=%d',(int)$row['client_id']));
                 peracrm_campaigns_db_require(true);
-                if ($disposition !== 'none') {
-                    return false;
-                }
             }
-            if (!is_array($filters) || array_diff(array_keys($filters), ['language', 'topic'])) {
-                return false;
-            }
-            foreach ($filters as $key => $value) {
-                if (!is_string($value) || $value === '') {
-                    return false;
-                }
-                if ($key === 'language' && ($row['preferred_language'] === '' || $row['preferred_language'] !== strtolower($value))) {
-                    return false;
-                }
-                if ($key === 'topic') {
-                    $topics = json_decode($row['preferences_json'], true);
-                    if (!is_array($topics) || !in_array($value, $topics, true)) {
-                        return false;
-                    }
-                }
-            }
-            return true;
+            return peracrm_campaigns_eligibility_reason($row,$linked,$filters)==='eligible';
         });
     } catch (Throwable $error) {
         return false;
