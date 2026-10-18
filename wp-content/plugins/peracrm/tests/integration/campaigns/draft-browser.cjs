@@ -88,7 +88,7 @@ module.exports = async function ({browser,page,target}) {
     await page.getByLabel('Approve this identity and reply-to',{exact:true}).first().check();
     await page.getByRole('button',{name:'Add identity',exact:true}).click();
     await page.locator('[data-campaign-sender]').last().getByRole('button',{name:'Remove identity',exact:true}).click();
-    await page.getByLabel('Mandatory footer: legal identity, postal address and required wording',{exact:true}).fill('Pera legal identity\n123 Example Street\nApproved editorial footer');
+    await page.locator('textarea[name="document[footer]"]').fill('Pera legal identity\n123 Example Street\nApproved editorial footer');
     await page.getByLabel('Approve mandatory footer',{exact:true}).check();
     await page.getByRole('button',{name:'Save configuration',exact:true}).click();
     await page.locator('[data-campaign-status]').filter({hasText:'Saved'}).waitFor();
