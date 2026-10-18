@@ -70,7 +70,7 @@ module.exports = async function ({page,target}) {
       ['move up',async()=>page.locator('[data-campaign-block]').last().getByRole('button',{name:'Move block up',exact:true}).click()],
       ['move down',async()=>page.locator('[data-campaign-block]').first().getByRole('button',{name:'Move block down',exact:true}).click()],
       ['edit subject',async()=>page.getByLabel('Subject',{exact:true}).fill('Changed document field')],
-      ['edit block text',async()=>page.locator('[data-campaign-block]').first().getByLabel('Text',{exact:true}).fill('Changed block field')],
+      ['edit block text',async()=>page.locator('[data-campaign-block]').first().locator('textarea[name$="[text]"]').fill('Changed block field')],
       ['edit audience rule',async()=>page.getByLabel('Audience topic (exact key)',{exact:true}).fill('news')]
     ];
     for(const [label,mutate] of mutations) {
