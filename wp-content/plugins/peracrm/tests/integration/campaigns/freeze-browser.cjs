@@ -37,7 +37,11 @@ module.exports = async function ({page,target,context,employeeContext,browser}) 
  }
  async function screenshot(label,size) {
   if(await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth+1)) throw Error('Freeze overflow '+label+' '+size);
+  const html=page.locator('[data-campaign-freeze] details').filter({has:page.getByText('Resolved HTML preview',{exact:true})}).first();
+  const overview=['frozen','history'].includes(label);
+  if(overview) await html.evaluate(el=>{el.open=false;});
   await page.locator('[data-campaign-freeze]').screenshot({path:'/evidence/freeze-'+label+'-'+size+'.png',style:'#site-header, #wpadminbar { visibility:hidden !important; }'});
+  if(overview) await html.evaluate(el=>{el.open=true;});
  }
  async function draft(size,zero=false) {
   await page.goto(target+'/crm/campaigns/new/');
@@ -137,7 +141,7 @@ module.exports = async function ({page,target,context,employeeContext,browser}) 
   if(await frame.locator('script,a,form,iframe').count()) throw Error('Stored preview has active elements');
   if(!(await frame.locator('meta[http-equiv="Content-Security-Policy"]').getAttribute('content')).includes("script-src 'none'")) throw Error('Stored preview CSP missing');
   await page.locator('[data-freeze-panel] iframe').scrollIntoViewIfNeeded();
-  await page.locator('[data-freeze-panel] iframe').screenshot({path:'/evidence/freeze-content-'+size+'.png'});
+  await page.locator('[data-freeze-panel] iframe').screenshot({path:'/evidence/freeze-content-'+size+'.png',style:'#site-header, #wpadminbar { visibility:hidden !important; }'});
   const frozenText=await page.locator('[data-freeze-panel] pre').innerText();
   await page.getByText('Historical recipient membership (up to 200)',{exact:true}).click();
   const firstPage=await page.locator('[data-freeze-attempt] ul li').allTextContents();
@@ -152,6 +156,7 @@ module.exports = async function ({page,target,context,employeeContext,browser}) 
   const frozenMembers=await page.locator('[data-freeze-attempt] ul').innerText();
   await click('Start new editable revision');
   await page.waitForLoadState('load'); await action('Review saved revision').waitFor();
+  await page.screenshot({path:'/evidence/freeze-newdraft-'+size+'.png',fullPage:true});
   await page.getByLabel('Main text',{exact:true}).fill('New editable content');
   await page.getByRole('button',{name:'Save draft',exact:true}).click();
   await page.locator('[data-freeze-panel] pre').waitFor({state:'attached'});

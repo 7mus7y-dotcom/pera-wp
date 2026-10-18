@@ -19,7 +19,7 @@ try {
 $title = $is_config ? 'Campaign configuration' : ($id || $screen === 'new' ? 'Campaign editor' : 'Campaigns');
 function peracrm_campaign_view_value($value) { return is_scalar($value) ? (string)$value : ''; }
 function peracrm_campaign_view_field($name,$label,$value,$limit,$textarea=false) {
-    echo '<label>'.esc_html($label).($textarea ? '<textarea rows="4"' : '<input type="text"').' name="'.esc_attr($name).'" maxlength="'.(int)$limit.'"'.($textarea ? '>'.esc_textarea(peracrm_campaign_view_value($value)).'</textarea>' : ' value="'.esc_attr(peracrm_campaign_view_value($value)).'">').'</label>';
+    echo '<label>'.esc_html($label).($textarea ? '<textarea rows="4"' : '<input type="text"').' aria-label="'.esc_attr($label).'"'.' name="'.esc_attr($name).'" maxlength="'.(int)$limit.'"'.($textarea ? '>'.esc_textarea(peracrm_campaign_view_value($value)).'</textarea>' : ' value="'.esc_attr(peracrm_campaign_view_value($value)).'">').'</label>';
 }
 function peracrm_campaign_view_form($operation,$revision,$editor=false) {
     echo '<form method="post" class="peracrm-campaign-form"'.($editor ? ' data-campaign-editor' : '').'>';
