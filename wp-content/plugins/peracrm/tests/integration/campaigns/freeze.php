@@ -61,6 +61,7 @@ freeze_expect(!is_wp_error($a),'start materialization');
 $again=freeze_start($set);
 freeze_expect((int)$again['id']===(int)$a['id'] && (int)$again['boundary_id']===(int)$a['boundary_id'],'duplicate start preserves boundary');
 freeze_expect(is_wp_error(peracrm_campaign_draft_save($id,1,$draft['document'])),'draft service blocks active edit');
+freeze_expect($before===freeze_protected_bytes(),'start/replay/edit denial do not mutate subscribers, consent, suppression or tokens');
 freeze_expect(is_wp_error(peracrm_campaign_freeze_publish($id,(int)$a['id'],1,$nonce)),'partial publication denied');
 $after_boundary=freeze_subscriber('freeze-after-boundary@example.test');
 freeze_expect($after_boundary>(int)$a['boundary_id'],'new subscriber beyond fixed boundary');
@@ -123,6 +124,18 @@ freeze_target(static function () use ($z) { global $wpdb; $wpdb->update(peracrm_
 $cleanup=peracrm_campaign_freeze_cleanup($zd['id'],(int)$z['id'],wp_create_nonce('peracrm_campaign_freeze_'.$zd['id']));
 freeze_expect(!is_wp_error($cleanup) && $cleanup['deleted_rows']<=100 && peracrm_campaign_frozen_get($id,1)===$history,'bounded abandoned cleanup preserves published history');
 freeze_expect(is_wp_error(peracrm_campaign_freeze_cleanup($id,(int)$a['id'],wp_create_nonce('peracrm_campaign_freeze_'.$id))),'published cleanup denied');
+// Shared audience semantics must produce identical outcomes when inputs do not change.
+wp_set_current_user($manager); $parity_set=freeze_capture($doc); [$pd,$ps,$pn]=$parity_set;
+$cursor=''; do { $preview=peracrm_campaign_audience_preview($pd['id'],1,$pd['document']['audience'],$cursor); $cursor=$preview['cursor']; } while (!$preview['complete']);
+$parity=freeze_finish(freeze_start($parity_set),$pn); $pc=json_decode($parity['counts_json'],true);
+freeze_expect($pc['duplicate']===0 && (int)$parity['considered']===$preview['considered'] && $pc['eligible']===$preview['eligible'] && array_diff_key($pc,['eligible'=>true,'duplicate'=>true])===$preview['exclusions'],'shared eligibility parity against unchanged live inputs');
+// Configuration changes invalidate both uncaptured starts and publication bindings.
+$stale_set=freeze_capture($doc); wp_set_current_user($admin);
+$configuration=peracrm_campaign_configuration(true); $changed=peracrm_campaign_configuration_save($configuration['revision'],$configuration['document']);
+freeze_expect(!is_wp_error($changed),'advance configuration revision'); wp_set_current_user($manager);
+freeze_expect(is_wp_error(freeze_start($stale_set)) && is_wp_error(peracrm_campaign_freeze_publish($pd['id'],(int)$parity['id'],(int)$parity['version'],$pn)),'stale configuration rejects start and complete publication');
+$parity=peracrm_campaign_freeze_cancel($pd['id'],(int)$parity['id'],(int)$parity['version'],$pn);
+freeze_expect(!is_wp_error($parity),'stale binding can still be safely cancelled');
 // Save a fresh binding for the separate-process race harness.
 wp_set_current_user($manager); $race_set=freeze_capture($doc);
 freeze_target(static function () use ($race_set) { update_option('campaign_freeze_race_set',$race_set,false); });

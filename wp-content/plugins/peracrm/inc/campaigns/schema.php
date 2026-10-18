@@ -128,6 +128,13 @@ function peracrm_campaigns_assert_schema()
                 if (array_column($key, 'Column_name') === $expected_keys[$name] && !array_filter(array_column($key, 'Sub_part'))) { $unique_mailbox = true; }
             }
         }
+        if ($name === 'peracrm_campaign_frozen_revisions') {
+            $unique_attempt = false;
+            foreach ($keys as $key) {
+                if (array_column($key, 'Column_name') === ['attempt_id'] && !array_filter(array_column($key, 'Sub_part'))) { $unique_attempt = true; }
+            }
+            if (!$unique_attempt) { throw new RuntimeException('PeraCRM campaign publication uniqueness assertion failed.'); }
+        }
         if (array_diff($matches[1], (array) $columns) || ($needs_unique && !$unique_mailbox)
             || strtolower($engine['Engine'] ?? '') !== 'innodb') {
             throw new RuntimeException('PeraCRM campaign schema assertions failed.');
