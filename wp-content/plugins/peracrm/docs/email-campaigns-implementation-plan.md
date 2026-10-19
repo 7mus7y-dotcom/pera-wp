@@ -1,6 +1,6 @@
 # Integrated email campaigns: repository review and living implementation plan
 
-Review status: **complete** (2026-10-17). Implementation: **Phase 1 complete (technical acceptance)**; **Phase 2 in progress**; **Phase 3 in progress (3A/3B/3C technical/live core checks passed; clean PR review recorded; property review and external readiness remain open)**; **Phase 4 in progress (4A durable queue services; technical checks passed)**; Phases 5–7 not started.
+Review status: **complete** (2026-10-17). Implementation: **Phase 1 complete (technical acceptance)**; **Phase 2 in progress**; **Phase 3 in progress (3A/3B/3C technical/live core checks passed; clean PR review recorded; property review and external readiness remain open)**; **Phase 4 in progress (4A queue, 4B worker and 4C scheduler/CLI health technical acceptance passed; operational UI/provider work remains)**; Phases 5–7 not started.
 
 ## Purpose, scope and maintenance
 
@@ -229,7 +229,7 @@ Verified hosted evidence: [run `39050763912`](https://github.com/7mus7y-dotcom/p
 
 ### 4. Durable scheduler and provider-neutral worker
 
-- **Status:** in progress — Phase 4A storage/lifecycle and Phase 4B bounded worker; scheduler/CLI health integration, operational UI and real-provider work remain outstanding.
+- **Status:** in progress — Phase 4A storage/lifecycle, Phase 4B bounded worker and Phase 4C scheduler/CLI health technical acceptance passed; operational UI and real-provider work remain outstanding.
 - **Goal/outcome:** schedule, pause, resume and cancel work reliably against a fake provider; production send feature flag remains off.
 - **Prerequisites:** Phase 3; decision on worker dependency, batch/concurrency limits and hosting scheduler.
 - **Work/components:** campaign worker, state machine, lease/reconciliation service, dedicated cron hook/CLI and health view; lifecycle scheduling/cleanup consistent with `inc/lifecycle.php`, `inc/cron/push_cron.php` and `inc/cli/push_cli.php`.
@@ -1876,3 +1876,76 @@ block review failure, confusing Add identity label, obscured configuration error
 and failed imports returning to subscriber list remain explicitly unresolved.
 Sending, real intake and public collection remain disabled. No Phase 5, cron
 activation on the actual host, merge or deployment.
+
+
+### Executed Phase 4C acceptance (2026-10-19)
+
+Final runtime/test head `ad368ff8f6f6bc048a54c155785c83dceaf84734` (local
+checkpoint `9a80e867`, identical full tree
+`26f79f61ea35c520bae26d2b6e8784bba2412704`) passed
+[complete hosted run 39237202283](https://github.com/7mus7y-dotcom/pera-wp/actions/runs/39237202283):
+
+| Topology | Complete WordPress/MySQL job | Evidence retained through 2026-11-02 |
+| --- | --- | --- |
+| Single-site | [118009258227: success](https://github.com/7mus7y-dotcom/pera-wp/actions/runs/39237202283/job/118009258227) | [Artifact 12180290017](https://github.com/7mus7y-dotcom/pera-wp/actions/runs/39237202283/artifacts/12180290017) |
+| Multisite | [118009258015: success](https://github.com/7mus7y-dotcom/pera-wp/actions/runs/39237202283/job/118009258015) | [Artifact 12179143039](https://github.com/7mus7y-dotcom/pera-wp/actions/runs/39237202283/artifacts/12179143039) |
+
+Fetched both complete logs and checked the explicit scheduler/CLI/race assertions
+and absence of failure markers. Actual checks passed in both topologies:
+repeated activation/init without production dispatch registration; existing
+CRM/subscriber cron preservation; direct/action production denial without claims
+or submissions; anonymous/impersonated health denial; disabled/invoked/processed/
+blocked distinctions; additive v27→v28 index installation and missing-index
+rejection; future/UTC-due discovery; elapsed work-start/transport reservation,
+recipient/recovery/job/output limits; saturated-capacity exclusion; duplicate and
+same-process recursive entry protection; separate-process immediate overlap
+rejection; process death releasing the scheduler lock; expired unsubmitted
+reservation recovery; actual scheduler process death after durable fake acceptance
+recovering to unknown without resubmission; retry-time/backlog and active/expired
+lease distinctions; actual disposable scheduled event against the isolated fake
+ledger; bounded allowlisted metadata with no private payload; restored target
+context and no origin-blog fixture ledger. Production queue/history/subscriber/
+consent/suppression/token bytes remain unchanged; scheduler checks record zero
+mail/HTTP calls. No fake outcome reaches ordinary campaign queues.
+
+The real WP-CLI checks execute JSON commands and assert exact exits, privacy-safe
+stdout and empty stderr. Invalid flags/limits/anonymous access and fixture guards
+return 3; disabled production health/status returns 2; bounded read and explicit
+fixture commands return 0. Authorized due/health checks under a forced persistent
+schema failure or scoped storage fault return 4. The storage fault includes a
+synthetic private SQL comment, which never reaches command output. A disabled
+module is separately reported from a physically ready schema and combined queue
+readiness. Module configuration cannot enable production dispatch.
+
+PR [#1458](https://github.com/7mus7y-dotcom/pera-wp/pull/1458) is non-draft against
+main. Its [exit-code finding](https://github.com/7mus7y-dotcom/pera-wp/pull/1458#discussion_r4312669086)
+was fixed with typed operational failures and the explicit readiness/storage CLI
+regressions above, verified in both complete suites, and resolved. No clean
+latest-head automated review is claimed from resolving that thread alone.
+#1457's final review was clean and both prerequisite threads were verified resolved.
+
+All eight existing worker race/crash scenarios, six queue races and nine freeze
+races pass unchanged. The only worker-fixture adjustment removes newer health
+indexes when reconstructing the older pre-worker schema; worker/freeze/browser
+assertions were not weakened. Complete default-theme desktop/mobile subscriber,
+import, suppression and Phase 3A/3B/3C browser regressions pass. This is regression
+execution, not new visual/accessibility acceptance. All 19 standalone suites and
+158 first-party PHP syntax checks pass; shell/JavaScript syntax, hosted Compose
+configuration and whitespace checks pass. Local PHP uses the existing PHP 8.4.24
+wrapper. Final evidence publication changes this living plan only; runtime and
+fixtures exactly match the passing head above. Earlier superseded runs are not
+final acceptance evidence. Main was rechecked at `2657fcad92e5f7ba305260ee151e89d957ffd41b`.
+
+Limitations: local Docker socket access is denied and shell Git proxy is
+unreachable; connected GitHub supplied hosted execution/publication. No actual
+production host execution, production data, provider/inbox guarantee, credentials,
+mail/network delivery or new operational UI was introduced or validated.
+The 25-second deadline bounds work starts; synchronous dependency/SQL waits cannot
+be forcibly interrupted, and future transport/watchdog/lock-timeout validation
+remains required before any production activation. Server cron was not installed
+or activated; `DISABLE_WP_CRON=1` remains documented, not changed.
+
+Phase 4 remains **in progress** with operational UI and real-provider/external
+readiness outstanding. Property-block review failure and all recorded usability
+issues remain unresolved. Sending, real intake and public collection remain
+disabled. No Phase 5, merge or deployment.
