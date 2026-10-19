@@ -2,17 +2,25 @@
 if (!defined('ABSPATH')) { exit; }
 function peracrm_campaign_drafts_register_routes()
 {
+    add_rewrite_rule('^crm/campaigns/queue/?$', 'index.php?pera_crm=1&pera_crm_view=campaigns&peracrm_campaign_screen=queue', 'top');
+    add_rewrite_rule('^crm/campaigns/([0-9]+)/queue/([0-9]+)/?$', 'index.php?pera_crm=1&pera_crm_view=campaigns&peracrm_campaign_screen=queue&peracrm_campaign_id=$matches[1]&peracrm_campaign_job_id=$matches[2]', 'top');
+    add_rewrite_rule('^crm/campaigns/([0-9]+)/queue/?$', 'index.php?pera_crm=1&pera_crm_view=campaigns&peracrm_campaign_screen=queue&peracrm_campaign_id=$matches[1]', 'top');
     add_rewrite_rule('^crm/campaigns/(new|configuration)/?$', 'index.php?pera_crm=1&pera_crm_view=campaigns&peracrm_campaign_screen=$matches[1]', 'top');
     add_rewrite_rule('^crm/campaigns/([0-9]+)/?$', 'index.php?pera_crm=1&pera_crm_view=campaigns&peracrm_campaign_id=$matches[1]', 'top');
     add_rewrite_rule('^crm/campaigns/?$', 'index.php?pera_crm=1&pera_crm_view=campaigns', 'top');
 }
-add_filter('query_vars', static function ($vars) { return array_merge($vars,['peracrm_campaign_id','peracrm_campaign_screen']); });
+add_filter('query_vars', static function ($vars) { return array_merge($vars,['peracrm_campaign_id','peracrm_campaign_screen','peracrm_campaign_job_id']); });
 
 /** Same-page errors retain submitted fields and original revision; never put draft content in URLs/session. */
 add_action('template_redirect', static function () {
     if ((string)get_query_var('pera_crm_view') !== 'campaigns') { return; }
     if (!peracrm_campaigns_staff_can('peracrm_manage_campaigns')) { wp_die('Campaign access is not permitted.','',['response'=>403]); }
     peracrm_subscribers_private_headers();
+    if ((string)get_query_var('peracrm_campaign_screen') === 'queue') {
+        if (!peracrm_campaigns_staff_can('peracrm_manage_campaigns',true)) { wp_die('Queue access denied.','',['response'=>403]); }
+        if (!in_array($_SERVER['REQUEST_METHOD'] ?? 'GET',['GET','HEAD'],true)) { wp_die('Use the protected queue controls.','',['response'=>405]); }
+        return;
+    }
     $configuration = (string)get_query_var('peracrm_campaign_screen') === 'configuration';
     if ($configuration) {
         try { peracrm_campaign_drafts_require(false,true); } catch (Throwable $error) { wp_die('Administrator access required.','',['response'=>403]); }

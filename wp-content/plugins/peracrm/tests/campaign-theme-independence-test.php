@@ -1,7 +1,7 @@
 <?php
 /** Source ownership guard; real default-theme boot is covered by integration fixtures. */
 $plugin = dirname(__DIR__);
-foreach (array_merge(glob($plugin . '/inc/campaigns/*.php'), [$plugin . '/inc/views/pages/crm-campaigns.php']) as $file) {
+foreach (array_merge(glob($plugin . '/inc/campaigns/*.php'), [$plugin . '/inc/views/pages/crm-campaigns.php', $plugin . '/inc/views/pages/crm-campaign-queue.php']) as $file) {
     $source = file_get_contents($file);
     if (preg_match('/\b(?:get_template_directory(?:_uri)?|get_stylesheet_directory(?:_uri)?|get_template_part|locate_template|pera_render_property_card|pera_theme_\w+)\s*\(/', $source)
         || str_contains($source, 'wp-content/themes/')) {
@@ -21,7 +21,7 @@ echo "PASS: campaign sources have no theme helper/template dependencies; CRM ass
 if (!defined('ABSPATH')) { define('ABSPATH', __DIR__ . '/'); }
 require $plugin . '/inc/campaigns/draft-schema.php';
 if (array_keys(peracrm_campaigns_draft_definitions()) !== ['peracrm_campaign_drafts','peracrm_campaign_draft_revisions','peracrm_campaign_configuration']) { throw new RuntimeException('Phase 3A must create draft/configuration tables only.'); }
-foreach (['drafts.php','draft-routes.php','draft-schema.php','snapshots.php','snapshot-schema.php','freeze.php','freeze-schema.php','freeze-ui.php','queue.php','queue-schema.php'] as $name) {
+foreach (['drafts.php','draft-routes.php','draft-schema.php','snapshots.php','snapshot-schema.php','freeze.php','freeze-schema.php','freeze-ui.php','queue.php','queue-schema.php','queue-ui.php'] as $name) {
     $source = file_get_contents($plugin . '/inc/campaigns/' . $name);
     if (preg_match('/\\b(?:wp_mail|wp_remote_\\w+|wp_schedule_\\w+|wp_next_scheduled|curl_exec)\\s*\\(/', $source)) { throw new RuntimeException('Unexpected delivery/network/scheduler path in draft module.'); }
 }

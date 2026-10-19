@@ -2685,3 +2685,60 @@ document.addEventListener('DOMContentLoaded', function () {
     reindex(senders, '[data-campaign-sender]', 'senders');
   });
 });
+
+// Operational queue: one explicit bounded request, server version fences and stable schedule input.
+document.addEventListener('DOMContentLoaded', function () {
+  document.querySelectorAll('[data-campaign-queue]').forEach(function (box) {
+    var busy = false, stale = false, dirty = false, generation = 0;
+    var panel = box.querySelector('[data-queue-panel]'), feedback = box.querySelector('[data-queue-feedback]');
+    var schedule = box.querySelector('[data-queue-schedule]');
+    var channel = typeof BroadcastChannel === 'function' ? new BroadcastChannel('peracrm-queue-' + location.origin + '-' + box.dataset.id) : null;
+    function announce(message) { feedback.textContent = message; feedback.focus({preventScroll:true}); feedback.scrollIntoView({block:'center',behavior:'instant'}); }
+    function controls() {
+      box.querySelectorAll('[data-queue-action]').forEach(function (button) { button.disabled = busy || (stale && button.dataset.queueAction !== 'state'); });
+    }
+    if (schedule) schedule.addEventListener('input', function () { dirty = true; });
+    if (channel) channel.onmessage = function () {
+      // Do not abort an in-flight mutation: its durable result may already exist. Its version stays fenced.
+      stale = true; generation++; controls();
+      announce('Another tab changed this campaign queue. Reload current state before acting. Schedule input is retained.');
+    };
+    box.addEventListener('click', function (event) {
+      var button = event.target.closest('[data-queue-action]');
+      if (!button || busy || button.disabled) return;
+      var operation = button.dataset.queueAction;
+      if (operation === 'cancel' && !window.confirm('Cancel this job permanently? Its ledger and revision fence will remain. Accepted and unknown outcomes will never be reset.')) return;
+      if (operation === 'schedule' && (!schedule || !schedule.value || !schedule.checkValidity())) {
+        announce('Enter a valid future Istanbul date and time beside the schedule control.'); if (schedule) schedule.focus(); return;
+      }
+      var job = panel.querySelector('[data-queue-job]'), data = new FormData();
+      data.set('action','peracrm_campaign_queue'); data.set('nonce',box.dataset.nonce); data.set('service_nonce',box.dataset.serviceNonce);
+      data.set('id',box.dataset.id); data.set('operation',operation); data.set('job',job ? job.dataset.queueJob : '0');
+      data.set('version',job ? job.dataset.queueVersion : '0'); data.set('revision',button.dataset.revision || '0');
+      data.set('after',button.dataset.after || '0'); data.set('schedule',schedule ? schedule.value : '');
+      if (operation === 'cancel') data.set('confirmed','cancel');
+      var inputValue = schedule ? schedule.value : '', current = generation;
+      busy = true; controls(); announce('Processing one bounded queue request…');
+      fetch(box.dataset.endpoint,{method:'POST',body:data,credentials:'same-origin',cache:'no-store'})
+        .then(function (response) { return response.json(); })
+        .then(function (json) {
+          if (current !== generation) return;
+          if (!json.success) throw Error(json.data && json.data.message || 'Queue request failed. Reload current state.');
+          if (json.data.url) { busy = false; location.assign(json.data.url); return; }
+          panel.innerHTML = json.data.html; stale = false;
+          var health = document.querySelector('[data-queue-health]');
+          if (health && json.data.health_html) health.outerHTML = json.data.health_html;
+          if (operation === 'schedule' && schedule.value === inputValue) dirty = false;
+          var currentJob = panel.querySelector('[data-queue-job]');
+          if (schedule && !dirty && currentJob) schedule.value = currentJob.dataset.queueScheduledValue;
+          announce('Server state loaded.' + (dirty ? ' Unsaved schedule input retained; review it against the displayed server schedule before recording.' : ' Choose the next action explicitly.'));
+          if (channel && ['continue','schedule','pause','resume','cancel'].includes(operation)) channel.postMessage('changed');
+        }).catch(function (error) {
+          if (current !== generation) return;
+          stale = true; announce(error.message + ' Schedule input is retained. Reload current state before retrying.');
+        }).finally(function () { busy = false; controls(); });
+    });
+    window.addEventListener('beforeunload', function (event) { if (dirty || busy) { event.preventDefault(); event.returnValue = ''; } });
+    window.addEventListener('pagehide', function () { if (channel) channel.close(); });
+  });
+});

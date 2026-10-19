@@ -77,6 +77,7 @@ function peracrm_campaign_freeze_panel($id, $selected = 0, $before = 0, $after =
             $capture = $frozen['content'];
             echo '<p>Content evaluation: '.esc_html(peracrm_campaign_freeze_time($capture['payload']['evaluation_started_at'])).' to '.esc_html(peracrm_campaign_freeze_time($capture['payload']['evaluation_completed_at'])).'. Membership evaluated during '.esc_html(peracrm_campaign_freeze_time($attempt['created_at'])).' to '.esc_html(peracrm_campaign_freeze_time($attempt['updated_at'])).'.</p>';
             peracrm_campaign_freeze_output($capture['payload']['content']);
+            echo '<p><a href="'.esc_url(add_query_arg('revision_id',(int)$frozen['id'],peracrm_campaign_drafts_url($id.'/queue/'))).'">Prepare or inspect queue for this published revision</a></p>';
         }
         if (peracrm_campaigns_staff_can('peracrm_manage_subscribers',true)) {
             echo '<details><summary>Historical recipient membership (up to 200)</summary><p>Mailbox and evaluation time only. Inclusion is historical, not live sending permission.</p>';
