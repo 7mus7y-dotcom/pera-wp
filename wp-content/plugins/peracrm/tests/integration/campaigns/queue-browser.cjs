@@ -106,6 +106,9 @@ module.exports = async function ({page,target,context,employeeContext,browser}) 
   if(await schedule.inputValue()!=='2099-06-02T13:45') throw Error('Refresh discarded input');
   await click('Resume job');
   await click('Record schedule intent'); // Explicitly save the retained input.
+  await rival.locator('[data-queue-action=state]').click();
+  await rival.locator('[data-queue-feedback]').filter({hasText:'Server state loaded'}).waitFor();
+  if(await rival.locator('[data-queue-schedule]').inputValue()!=='2099-06-02T13:45') throw Error('Untouched stale tab did not load the newer server schedule');
   await rival.close();
   await click('View recipient details');
   const first=await page.locator('[data-queue-recipients] li').allTextContents();

@@ -2729,6 +2729,8 @@ document.addEventListener('DOMContentLoaded', function () {
           var health = document.querySelector('[data-queue-health]');
           if (health && json.data.health_html) health.outerHTML = json.data.health_html;
           if (operation === 'schedule' && schedule.value === inputValue) dirty = false;
+          var currentJob = panel.querySelector('[data-queue-job]');
+          if (schedule && !dirty && currentJob) schedule.value = currentJob.dataset.queueScheduledValue;
           announce('Server state loaded.' + (dirty ? ' Unsaved schedule input retained; review it against the displayed server schedule before recording.' : ' Choose the next action explicitly.'));
           if (channel && ['continue','schedule','pause','resume','cancel'].includes(operation)) channel.postMessage('changed');
         }).catch(function (error) {

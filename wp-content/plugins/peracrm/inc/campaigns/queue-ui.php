@@ -75,7 +75,7 @@ function peracrm_campaign_queue_ui_panel($campaign,$id,$after=0,$recipients=fals
     if ($recipients && !peracrm_campaigns_staff_can('peracrm_manage_subscribers',true)) { throw new RuntimeException('Subscriber access required.'); }
     ob_start();
     try {
-        echo '<section data-queue-job="'.(int)$id.'" data-queue-version="'.(int)$job['version'].'"><h2>Job #'.(int)$id.' · Frozen revision '.(int)($summary['revision']['draft_revision'] ?? 0).'</h2>';
+        echo '<section data-queue-job="'.(int)$id.'" data-queue-version="'.(int)$job['version'].'" data-queue-scheduled-value="'.esc_attr($job['scheduled_at'] ? (new DateTimeImmutable($job['scheduled_at'],new DateTimeZone('UTC')))->setTimezone(new DateTimeZone('Europe/Istanbul'))->format('Y-m-d\TH:i') : '').'"><h2>Job #'.(int)$id.' · Frozen revision '.(int)($summary['revision']['draft_revision'] ?? 0).'</h2>';
         echo '<p data-queue-state>Lifecycle: '.esc_html($job['state']).' · Preparation: '.((int)$job['complete'] ? 'complete' : 'incomplete').' · Version '.(int)$job['version'].'</p>';
         echo '<p data-queue-totals>Considered: '.(int)($summary['revision']['considered'] ?? 0).' · Prepared: '.(int)$job['prepared_count'].' / '.(int)$job['expected_count'].'</p>';
         echo '<p>Schedule intent: '.esc_html(peracrm_campaign_queue_ui_time($job['scheduled_at'])).'</p><p>Preparation completion does not mean delivery completion. Provider acceptance does not verify inbox delivery.</p>';
