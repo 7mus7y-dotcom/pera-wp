@@ -29,6 +29,7 @@ module.exports = async function ({page,target,context,employeeContext,browser}) 
  async function capture(label,size) {
   if(await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth+1)) throw Error('Queue horizontal overflow '+label+' '+size);
   await page.locator('.peracrm-queue').screenshot({path:'/evidence/queue-'+label+'-'+size+'.png',style:'#site-header, #wpadminbar { visibility:hidden !important; }'});
+  console.log('QUEUE_REVIEW '+label+' '+size+' '+(await page.locator('.peracrm-queue').screenshot({type:'jpeg',quality:50,style:'#site-header, #wpadminbar { visibility:hidden !important; }'})).toString('base64')); 
  }
  async function fields() {
   return page.evaluate(()=>{const b=document.querySelector('[data-campaign-queue]'),j=b.querySelector('[data-queue-job]');return {action:'peracrm_campaign_queue',id:b.dataset.id,nonce:b.dataset.nonce,service_nonce:b.dataset.serviceNonce,job:j?.dataset.queueJob || '0',version:j?.dataset.queueVersion || '0'};});
