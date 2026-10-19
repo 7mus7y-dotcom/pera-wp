@@ -3,6 +3,43 @@
 if (!defined('PERACRM_DISPOSABLE_CAMPAIGN_FIXTURE')) { throw new RuntimeException('Disposable fixture required.'); }
 function queue_expect($ok,$label) { if (!$ok) { throw new RuntimeException('FAIL queue: '.$label); } echo 'PASS queue: '.$label."\n"; }
 function queue_target(callable $fn) { return peracrm_with_target_blog($fn); }
+/** Real CLI inspection at each materialization lifecycle checkpoint; no fixture worker writes. */
+function queue_health(string $checkpoint): array
+{
+    $snapshot=static function () {
+        return queue_target(static function () {
+            global $wpdb; $out=[];
+            foreach (['peracrm_campaign_queue_jobs','peracrm_campaign_deliveries','peracrm_campaign_queue_events','peracrm_campaign_worker_events','options'] as $name) {
+                $table=$name==='options' ? $wpdb->options : peracrm_table($name);
+                $out[$name]=$wpdb->get_results('SELECT * FROM '.$table.' ORDER BY 1',ARRAY_A);
+            }
+            return hash('sha256',wp_json_encode($out));
+        });
+    };
+    $before=$snapshot(); $origin=get_current_blog_id();
+    $health=(new PeraCRM_Campaign_Operations())->health();
+    $expected=queue_target(static function () {
+        global $wpdb; $counts=[];
+        foreach (['queued','scheduled','paused','cancelled','preparing','failed'] as $state) {
+            $counts[$state.'_jobs']=(int)$wpdb->get_var($wpdb->prepare('SELECT COUNT(*) FROM '.peracrm_table('peracrm_campaign_queue_jobs').' WHERE state=%s',$state));
+        }
+        return $counts;
+    });
+    queue_expect(array_intersect_key($health['counts'],$expected)===$expected,'health exact lifecycle counts: '.$checkpoint);
+    foreach (['json','text'] as $format) {
+        $result=WP_CLI::runcommand('peracrm campaigns health --user=campaign-fixture-manager --format='.$format,['return'=>'all','exit_error'=>false,'launch'=>true]);
+        $stdout=trim($result->stdout);
+        queue_expect($result->return_code===2 && $result->stderr==='' && !preg_match('/@|mailbox|content_hash|owner_token|attempt_key|credentials|payload_json/',$stdout),'health CLI disabled exit and private fields absent: '.$checkpoint.' '.$format);
+        if ($format==='text') {
+            queue_expect(str_starts_with($stdout,'PeraCRM campaigns: '),'health text prefix: '.$checkpoint);
+            $stdout=substr($stdout,strlen('PeraCRM campaigns: '));
+        }
+        $decoded=json_decode($stdout,true,512,JSON_THROW_ON_ERROR);
+        queue_expect($decoded['counts']===$health['counts'] && !$decoded['dispatch_enabled'],'health CLI exact counts: '.$checkpoint.' '.$format);
+    }
+    queue_expect($before===$snapshot() && get_current_blog_id()===$origin,'health inspection preserves ledgers/options/context: '.$checkpoint);
+    return array_intersect_key($health['counts'],$expected);
+}
 function queue_get($j) { return peracrm_campaign_queue_get((int)$j['campaign_id'],(int)$j['id']); }
 function queue_op($j,$nonce,$op,$time=null) { return peracrm_campaign_queue_transition((int)$j['campaign_id'],(int)$j['id'],(int)$j['version'],$nonce,$op,$time); }
 function queue_batch($j,$nonce,$limit=200) { return peracrm_campaign_queue_materialize((int)$j['campaign_id'],(int)$j['id'],(int)$j['version'],$nonce,$limit); }
@@ -76,24 +113,38 @@ queue_target(static function () use ($member) { global $wpdb; $wpdb->update(pera
 $j=queue_op(queue_get($j),$nonce,'resume'); queue_expect(!is_wp_error($j),'resume after restored immutable binding');
 $j=queue_batch($j,$nonce,100); queue_expect(!is_wp_error($j) && (int)$j['prepared_count']===100 && !$j['complete'],'bounded exact first batch');
 $rows=peracrm_campaign_queue_page($c,(int)$j['id']);
+$before_failure=queue_health('before materialization fault');
 $fail=static function ($sql) { return str_starts_with($sql,'UPDATE') && str_contains($sql,'peracrm_campaign_queue_jobs') && str_contains($sql,'`last_id`') && str_contains($sql,"'preparing'") ? 'UPDATE peracrm_fixture_missing SET id=1' : $sql; };
 add_filter('query',$fail); $failed=queue_batch($j,$nonce,100); remove_filter('query',$fail);
 $current=queue_get($j); queue_expect(is_wp_error($failed) && $current['state']==='failed' && (int)$current['last_id']===(int)$j['last_id'] && $rows===peracrm_campaign_queue_page($c,(int)$j['id']),'SQL batch rollback preserves rows/cursor and persists failure');
+$failed_counts=queue_health('failed materialization');
+$expected_failure=$before_failure; $expected_failure['preparing_jobs']--; $expected_failure['failed_jobs']++;
+queue_expect($failed_counts===$expected_failure,'failed job increments only failed_jobs and decrements preparing_jobs');
+// A failed recipient is a separate unit; it must not inflate failed job counts.
+queue_target(static function () use ($rows) { global $wpdb; $wpdb->update(peracrm_table('peracrm_campaign_deliveries'),['state'=>'failed'],['id'=>$rows[0]['id']]); });
+try { queue_expect(queue_health('failed recipient alongside failed job')===$failed_counts,'failed recipient delivery does not change job lifecycle counts'); }
+finally { queue_target(static function () use ($rows) { global $wpdb; $wpdb->update(peracrm_table('peracrm_campaign_deliveries'),['state'=>$rows[0]['state']],['id'=>$rows[0]['id']]); }); }
 $j=queue_op($current,$nonce,'resume'); queue_expect(!is_wp_error($j) && $j['state']==='preparing','resume failed preparation');
+queue_expect(queue_health('resumed materialization')===$before_failure,'resume clears failed job and restores preparing count');
 $j=queue_op($j,$nonce,'pause'); queue_expect($j['state']==='paused' && is_wp_error(queue_batch($j,$nonce)),'pause fences materialization');
+queue_health('paused materialization');
 $j=queue_op($j,$nonce,'resume');
 while (!(int)$j['complete']) { $j=queue_batch($j,$nonce,100); if (is_wp_error($j)) { throw new RuntimeException('Queue continuation failed.'); } }
 queue_expect($j['state']==='queued' && (int)$j['prepared_count']===205,'complete exact frozen membership only');
+$expected_recovery=$before_failure; $expected_recovery['preparing_jobs']--; $expected_recovery['queued_jobs']++;
+queue_expect(queue_health('recovered materialization')===$expected_recovery,'successful recovery moves preparing job to queued without stale failed count');
 $all=peracrm_campaign_queue_page($c,(int)$j['id']); $page=peracrm_campaign_queue_page($c,(int)$j['id'],(int)end($all)['id']);
 queue_expect(count($all)===200 && count($page)===5,'bounded keyset delivery reads'); $all=array_merge($all,$page);
 queue_target(static function () use ($all) { global $wpdb; $errors=$wpdb->suppress_errors(true); $row=$all[0]; unset($row['id']); queue_expect($wpdb->insert(peracrm_table('peracrm_campaign_deliveries'),$row)===false,'database revision/mailbox uniqueness'); $row['mailbox']='other@example.test'; $row['frozen_recipient_id']=999999; queue_expect($wpdb->insert(peracrm_table('peracrm_campaign_deliveries'),$row)===false,'database deterministic delivery-key uniqueness'); $wpdb->suppress_errors($errors); });
 foreach (['2035-01-01 12:00:00','2035-02-30T12:00:00Z','2020-01-01T00:00:00Z'] as $bad) { queue_expect(is_wp_error(queue_op($j,$nonce,'schedule',$bad)),'invalid schedule leaves state/version unchanged'); }
 $stale=$j; $j=queue_op($j,$nonce,'schedule','2035-01-01T12:00:00+03:00');
 queue_expect($j['scheduled_at']==='2035-01-01 09:00:00' && $j['state']==='scheduled' && is_wp_error(queue_op($stale,$nonce,'cancel')),'UTC intent and stale-state fencing');
+queue_health('scheduled job');
 $j=queue_op($j,$nonce,'pause'); $j=queue_op($j,$nonce,'resume');
 queue_expect($j['state']==='scheduled' && $all===array_merge(peracrm_campaign_queue_page($c,(int)$j['id']),peracrm_campaign_queue_page($c,(int)$j['id'],(int)$all[199]['id'])),'pause/resume reuse exact delivery rows');
 $j=queue_op($j,$nonce,'cancel'); $again=queue_op($j,$nonce,'cancel');
 queue_expect((int)$again['version']===(int)$j['version'] && $again['state']==='cancelled' && is_wp_error(queue_op($j,$nonce,'resume')) && (int)peracrm_campaign_queue_prepare($c,$rid,$nonce)['id']===(int)$j['id'],'terminal cancellation/repeated requests preserve scope fence');
+queue_health('cancelled job');
 // Existing freeze cleanup cannot remove the published queue scope or its history.
 wp_set_current_user($admin); $cleanup=peracrm_campaign_freeze_cleanup($c,(int)$a['id'],$fn); wp_set_current_user($manager);
 queue_expect(is_wp_error($cleanup) && queue_get($j)['state']==='cancelled','cleanup cannot bypass cancellation fence');

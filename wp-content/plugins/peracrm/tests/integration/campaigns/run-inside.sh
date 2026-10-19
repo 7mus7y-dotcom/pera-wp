@@ -119,6 +119,9 @@ done
 # Dedicated prepared synthetic source; fake outcomes are confined to separate fixture ledgers.
 wp eval-file /tests/queue-race.php prepare pause-schedule
 wp eval-file /tests/queue-worker.php
+wp eval-file /tests/scheduler.php
+sh /tests/scheduler-cli.sh
+sh /tests/scheduler-race.sh
 for worker_race in claim-claim lease-stale crash-before crash-after claim-pause claim-cancel authorize-pause authorize-unsubscribe; do
     rm -f /tmp/peracrm-worker-held /tmp/peracrm-worker-winner /tmp/peracrm-worker-loser
     wp eval-file /tests/worker-race.php prepare "$worker_race"

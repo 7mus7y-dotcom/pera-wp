@@ -45,13 +45,13 @@ wp_set_current_user($administrator);
 $before_migration=worker_fixture_target(static function () { global $wpdb; return (int)$wpdb->get_var('SELECT COUNT(*) FROM '.peracrm_table('peracrm_campaign_deliveries')); });
 worker_fixture_target(static function () {
     global $wpdb; $table=peracrm_table('peracrm_campaign_deliveries');
-    $wpdb->query('ALTER TABLE '.$table.' DROP INDEX worker_due, DROP INDEX worker_lease');
+    $wpdb->query('ALTER TABLE '.$table.' DROP INDEX worker_due, DROP INDEX worker_lease, DROP INDEX health_lease, DROP INDEX health_retry, DROP INDEX health_result');
     foreach (['owner_token','lease_until','attempt_count','attempt_key','next_attempt_at','message_id','reason'] as $column) { $wpdb->query('ALTER TABLE '.$table.' DROP COLUMN '.$column); }
     $wpdb->query('ALTER TABLE '.peracrm_table('peracrm_campaign_queue_jobs').' DROP COLUMN submission_complete');
     $wpdb->query('DROP TABLE '.peracrm_table('peracrm_campaign_worker_events'));
     update_option('peracrm_schema_version',26); update_option('peracrm_campaigns_schema_status',['state'=>'ready','version'=>26]);
 });
-worker_expect(!peracrm_campaigns_schema_ready() && peracrm_maybe_upgrade_schema() && peracrm_campaigns_schema_ready(),'additive v26 to v27 readiness migration');
+worker_expect(!peracrm_campaigns_schema_ready() && peracrm_maybe_upgrade_schema() && peracrm_campaigns_schema_ready(),'additive v26 to current readiness migration');
 worker_expect($before_migration===worker_fixture_target(static function () { global $wpdb; return (int)$wpdb->get_var('SELECT COUNT(*) FROM '.peracrm_table('peracrm_campaign_deliveries')); }),'migration preserves prepared delivery rows');
 worker_fixture_target(static function () { global $wpdb; $wpdb->query('ALTER TABLE '.peracrm_table('peracrm_campaign_worker_events').' DROP INDEX delivery_version'); });
 worker_expect(worker_reject(static function () { worker_fixture_target(static function () { peracrm_campaigns_assert_schema(); }); }),'worker audit uniqueness required by readiness verification');

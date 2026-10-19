@@ -1,6 +1,6 @@
 # Integrated email campaigns: repository review and living implementation plan
 
-Review status: **complete** (2026-10-17). Implementation: **Phase 1 complete (technical acceptance)**; **Phase 2 in progress**; **Phase 3 in progress (3A/3B/3C technical/live core checks passed; clean PR review recorded; property review and external readiness remain open)**; **Phase 4 in progress (4A durable queue services; technical checks passed)**; Phases 5–7 not started.
+Review status: **complete** (2026-10-17). Implementation: **Phase 1 complete (technical acceptance)**; **Phase 2 in progress**; **Phase 3 in progress (3A/3B/3C technical/live core checks passed; clean PR review recorded; property review and external readiness remain open)**; **Phase 4 in progress (4A queue, 4B worker and 4C scheduler/CLI health technical acceptance passed; operational UI/provider work remains)**; Phases 5–7 not started.
 
 ## Purpose, scope and maintenance
 
@@ -8,7 +8,7 @@ Let Pera staff prepare newsletters and targeted campaigns inside the existing CR
 
 Future implementation PRs must update phase status, validation evidence, decisions and the progress log here. A phase must not be marked complete solely because code exists when required verification remains outstanding. Use only `not started`, `in progress`, `blocked` or `complete` for phase status. Keep repository checks distinct from external verification; record outstanding evidence explicitly.
 
-**Current implementation task:** Phase 4B only: explicit bounded provider-neutral worker, atomic claims/leases and owner/version fencing, live authorization, outcome/retry handling, recovery and verified reconciliation. Branch `feat/campaign-phase4b-worker` builds on latest main `199cb7f07414a542a0499f5aad90280d69707317`, merged #1456. Production invocation remains unconditionally disabled. A fake provider exists only in disposable CLI fixtures using a separate ledger. Phase 4 remains in progress; scheduler/CLI health integration, operational UI and later real-provider work remain outstanding. Sending, real intake and public collection remain disabled. No Phase 5, cron activation, merge or deployment.
+**Current implementation task:** Phase 4C only: bounded target-blog scheduler boundary/due discovery, read-only CLI health/status/due inspection, explicitly guarded disposable-fixture execution/recovery, operational metadata and server-cron runbook. Branch `feat/campaign-phase4c-scheduler` starts from accepted main `2657fcad92e5f7ba305260ee151e89d957ffd41b` (merged #1457). Production dispatch remains unconditionally disabled; no production dispatch cron is registered. Phase 4 stays in progress; operational UI and real-provider work remain outstanding. Sending, real intake and public collection remain disabled. No Phase 5, server-cron activation, merge or deployment.
 
 ## Review baseline and method
 
@@ -229,7 +229,7 @@ Verified hosted evidence: [run `39050763912`](https://github.com/7mus7y-dotcom/p
 
 ### 4. Durable scheduler and provider-neutral worker
 
-- **Status:** in progress — Phase 4A storage/lifecycle and Phase 4B bounded worker; scheduler/CLI health integration, operational UI and real-provider work remain outstanding.
+- **Status:** in progress — Phase 4A storage/lifecycle, Phase 4B bounded worker and Phase 4C scheduler/CLI health technical acceptance passed; operational UI and real-provider work remain outstanding.
 - **Goal/outcome:** schedule, pause, resume and cancel work reliably against a fake provider; production send feature flag remains off.
 - **Prerequisites:** Phase 3; decision on worker dependency, batch/concurrency limits and hosting scheduler.
 - **Work/components:** campaign worker, state machine, lease/reconciliation service, dedicated cron hook/CLI and health view; lifecycle scheduling/cleanup consistent with `inc/lifecycle.php`, `inc/cron/push_cron.php` and `inc/cli/push_cli.php`.
@@ -1821,3 +1821,179 @@ this plan. No schema, scheduler, UI or real-provider integration. Production
 dispatch stays unconditionally disabled, fake outcomes stay isolated, Phase 4
 remains in progress and the recorded property-block/usability issues remain open.
 No sending, real intake, public collection, merge or deployment.
+
+
+## Phase 4C — scheduler, CLI and operational health (in progress)
+
+2026-10-19: #1457 merged at `2657fcad92e5f7ba305260ee151e89d957ffd41b`.
+Final automated review of `a712e31f121b44b68d4ff8b3c4d136320eb32888` completed
+without findings. Earlier attempt-budget and sequential-lease findings have
+fix-specific SQL/topology evidence and were resolved. This phase preserves those
+worker rules and existing races/browser assertions. No AGENTS.md was found in
+workspace/repository ancestors or repository. Shell fetch failed once (proxy
+unreachable); connected GitHub supplied latest main's files. Restored local base
+tree `9db595c2604d5a95b29508a8d31641c85c5e6b8c` exactly matches main's Git tree.
+Original checkout is retained at `checkpoint/pre-phase4c`; local reconstructed
+base commit is `584c3f3d`. Published commits will parent actual latest main.
+
+Decisions: one target-blog production action with an unconditional gate before
+any delivery state work; no scheduled production dispatch event or enable switch.
+Fixture scheduler alone supplies concrete fake worker/provider dependencies and
+isolated ledger/metadata. Three-job, ten-recipient, ten-recovery-row invocation
+bounds and a 25-second work-start deadline reserve the worker's full 20-second
+transport budget before each submission. Target-table-specific connection-owned
+MySQL lock excludes overlapping schedulers; worker leases/fences remain decisive.
+No history cleanup is introduced. Schema v28 adds non-unique health aggregate/
+lease/result indexes without changing delivery uniqueness or cancellation fences.
+
+Health requires a real target-blog report user and denies impersonation; readiness
+failure remains reportable. Disabled/invoked/processed/blocked, claimable due jobs,
+active/expired leases, unknown and retry backlog, last known successful terminal
+processing and ledger acceptance are distinct. No event existence or disabled
+return is success; acceptance is not verified inbox delivery. Output uses bounded
+allowlisted metadata and fixed diagnostics. CLI offers JSON/text and exit codes
+0/2/3/4, read-only status/health/due, guarded fixture-run/fixture-recover only.
+No production send/force-reset/resend/enable command or reconciliation bypass.
+
+[Operational runbook](email-campaigns-operations.md) records `DISABLE_WP_CRON=1`,
+explicit future server-cron/WP-CLI operation, connection/host overlap protection,
+interruption recovery and backup-restore reconciliation. It installs nothing.
+Synchronous dependency/SQL lock waits cannot be forcibly interrupted by the
+neutral engine; the deadline bounds new work starts, future adapter/hosting
+watchdog/lock timeouts require separate activation validation. An over-lease
+inflight result remains unknown and cannot be blindly retried.
+
+Validation checkpoint: 19 standalone regression suites and 157 first-party PHP
+syntax checks passed locally, together with shell/JavaScript syntax and whitespace
+checks. Real single-site/multisite SQL/browser suites and new CLI/scheduler/race
+acceptance will run on hosted GitHub Actions; local Docker socket access is denied.
+Added tests alone are not executed acceptance. Hosted results will be recorded
+below. No production/real-provider or new visual acceptance is claimed.
+
+Phase 4 remains **in progress**. Operational UI, provider selection/credentials/
+real adapter/domain/inbox/webhook and external readiness remain later. Property-
+block review failure, confusing Add identity label, obscured configuration errors
+and failed imports returning to subscriber list remain explicitly unresolved.
+Sending, real intake and public collection remain disabled. No Phase 5, cron
+activation on the actual host, merge or deployment.
+
+
+### Executed Phase 4C acceptance (2026-10-19)
+
+Final runtime/test head `ad368ff8f6f6bc048a54c155785c83dceaf84734` (local
+checkpoint `9a80e867`, identical full tree
+`26f79f61ea35c520bae26d2b6e8784bba2412704`) passed
+[complete hosted run 39237202283](https://github.com/7mus7y-dotcom/pera-wp/actions/runs/39237202283):
+
+| Topology | Complete WordPress/MySQL job | Evidence retained through 2026-11-02 |
+| --- | --- | --- |
+| Single-site | [118009258227: success](https://github.com/7mus7y-dotcom/pera-wp/actions/runs/39237202283/job/118009258227) | [Artifact 12180290017](https://github.com/7mus7y-dotcom/pera-wp/actions/runs/39237202283/artifacts/12180290017) |
+| Multisite | [118009258015: success](https://github.com/7mus7y-dotcom/pera-wp/actions/runs/39237202283/job/118009258015) | [Artifact 12179143039](https://github.com/7mus7y-dotcom/pera-wp/actions/runs/39237202283/artifacts/12179143039) |
+
+Fetched both complete logs and checked the explicit scheduler/CLI/race assertions
+and absence of failure markers. Actual checks passed in both topologies:
+repeated activation/init without production dispatch registration; existing
+CRM/subscriber cron preservation; direct/action production denial without claims
+or submissions; anonymous/impersonated health denial; disabled/invoked/processed/
+blocked distinctions; additive v27→v28 index installation and missing-index
+rejection; future/UTC-due discovery; elapsed work-start/transport reservation,
+recipient/recovery/job/output limits; saturated-capacity exclusion; duplicate and
+same-process recursive entry protection; separate-process immediate overlap
+rejection; process death releasing the scheduler lock; expired unsubmitted
+reservation recovery; actual scheduler process death after durable fake acceptance
+recovering to unknown without resubmission; retry-time/backlog and active/expired
+lease distinctions; actual disposable scheduled event against the isolated fake
+ledger; bounded allowlisted metadata with no private payload; restored target
+context and no origin-blog fixture ledger. Production queue/history/subscriber/
+consent/suppression/token bytes remain unchanged; scheduler checks record zero
+mail/HTTP calls. No fake outcome reaches ordinary campaign queues.
+
+The real WP-CLI checks execute JSON commands and assert exact exits, privacy-safe
+stdout and empty stderr. Invalid flags/limits/anonymous access and fixture guards
+return 3; disabled production health/status returns 2; bounded read and explicit
+fixture commands return 0. Authorized due/health checks under a forced persistent
+schema failure or scoped storage fault return 4. The storage fault includes a
+synthetic private SQL comment, which never reaches command output. A disabled
+module is separately reported from a physically ready schema and combined queue
+readiness. Module configuration cannot enable production dispatch.
+
+PR [#1458](https://github.com/7mus7y-dotcom/pera-wp/pull/1458) is non-draft against
+main. Its [exit-code finding](https://github.com/7mus7y-dotcom/pera-wp/pull/1458#discussion_r4312669086)
+was fixed with typed operational failures and the explicit readiness/storage CLI
+regressions above, verified in both complete suites, and resolved. No clean
+latest-head automated review is claimed from resolving that thread alone.
+#1457's final review was clean and both prerequisite threads were verified resolved.
+
+All eight existing worker race/crash scenarios, six queue races and nine freeze
+races pass unchanged. The only worker-fixture adjustment removes newer health
+indexes when reconstructing the older pre-worker schema; worker/freeze/browser
+assertions were not weakened. Complete default-theme desktop/mobile subscriber,
+import, suppression and Phase 3A/3B/3C browser regressions pass. This is regression
+execution, not new visual/accessibility acceptance. All 19 standalone suites and
+158 first-party PHP syntax checks pass; shell/JavaScript syntax, hosted Compose
+configuration and whitespace checks pass. Local PHP uses the existing PHP 8.4.24
+wrapper. Final evidence publication changes this living plan only; runtime and
+fixtures exactly match the passing head above. Earlier superseded runs are not
+final acceptance evidence. Main was rechecked at `2657fcad92e5f7ba305260ee151e89d957ffd41b`.
+
+Limitations: local Docker socket access is denied and shell Git proxy is
+unreachable; connected GitHub supplied hosted execution/publication. No actual
+production host execution, production data, provider/inbox guarantee, credentials,
+mail/network delivery or new operational UI was introduced or validated.
+The 25-second deadline bounds work starts; synchronous dependency/SQL waits cannot
+be forcibly interrupted, and future transport/watchdog/lock-timeout validation
+remains required before any production activation. Server cron was not installed
+or activated; `DISABLE_WP_CRON=1` remains documented, not changed.
+
+Phase 4 remains **in progress** with operational UI and real-provider/external
+readiness outstanding. Property-block review failure and all recorded usability
+issues remain unresolved. Sending, real intake and public collection remain
+disabled. No Phase 5, merge or deployment.
+
+### PR #1458 follow-up — failed materialization health counts
+
+The latest finding omitted the recoverable `failed` queue-job lifecycle state.
+Health now includes `failed_jobs` alongside the existing five lifecycle counts;
+JSON and text use the same allowlisted health payload. This counts job rows,
+independently of recipient delivery rows in the `failed` outcome state.
+
+The existing real SQL queue regression now inspects health before its forced
+materialization update fault, after rollback/persisted failure, after explicit
+resume, and after successful materialization. It asserts exact lifecycle deltas,
+all existing state aggregates (including paused/scheduled/cancelled checkpoints),
+and no change to job counts when a recipient delivery is temporarily failed.
+Every checkpoint executes the real JSON and text CLI in separate processes,
+checks exact counts/disabled exit 2/empty stderr/privacy, and compares complete
+queue, delivery, lifecycle/worker event and option snapshots before/after reads.
+Existing history/subscriber/token/cron/no-mail/no-HTTP assertions remain intact.
+
+Executed acceptance: implementation/test head `999e5839dd67279e01cd44c427347afa2d81b336`
+(full tree `2d44178dfe4e061bc42c611cb25cb2b4c76b03df`; local checkpoint
+`d97226b8` has the identical tree) passed
+[complete hosted run 39242677006](https://github.com/7mus7y-dotcom/pera-wp/actions/runs/39242677006).
+Both full WordPress/MySQL/CLI/race/browser suites passed:
+[single-site job 118027019101](https://github.com/7mus7y-dotcom/pera-wp/actions/runs/39242677006/job/118027019101)
+and [multisite job 118027019528](https://github.com/7mus7y-dotcom/pera-wp/actions/runs/39242677006/job/118027019528).
+Retained [single-site artifact 12182291256](https://github.com/7mus7y-dotcom/pera-wp/actions/runs/39242677006/artifacts/12182291256)
+and [multisite artifact 12182326228](https://github.com/7mus7y-dotcom/pera-wp/actions/runs/39242677006/artifacts/12182326228)
+expire 2026-11-02.
+
+Fetched both complete logs and verified every new assertion above, including all
+eight lifecycle checkpoints in JSON and text, exact failed/preparing/queued
+deltas, independent failed recipient state, disabled exit 2, empty stderr,
+private-field exclusion and unchanged ledger/event/option/context snapshots.
+Both logs contain no failure markers. Existing queue/worker/freeze races,
+scheduler/CLI/crash and desktop/mobile browser regressions pass unchanged.
+The hosted standalone regression and PHP syntax steps passed in both jobs;
+local whitespace and focused harness shell syntax checks also pass.
+
+Local PHP is absent and the Docker socket is denied; blocked commands were not
+retried. Hosted execution uses only disposable synthetic fixtures. This final
+acceptance checkpoint changes documentation only; runtime/tests match the passing
+head above. Fix-specific evidence is posted on the finding before resolution;
+latest-head review is requested after publishing this checkpoint. Passing tests
+and thread resolution do not establish a clean latest-head review.
+
+Only the health aggregate, focused queue regression and this plan change.
+Dispatch, intake and public collection gates remain unchanged and disabled.
+Phase 4 stays in progress; no new UI, merge or deployment.

@@ -133,6 +133,13 @@ function peracrm_campaigns_assert_schema()
             }
         }
         if ($name === 'peracrm_campaign_deliveries') {
+            foreach (['health_lease'=>['state','lease_until','job_id'], 'health_retry'=>['state','next_attempt_at'], 'health_result'=>['state','updated_at']] as $index_name=>$required) {
+                $parts=array_values(array_filter((array)$indexes,static function ($index) use ($index_name) { return $index['Key_name']===$index_name; }));
+                usort($parts,static function ($a,$b) { return ($a['Seq_in_index'] ?? 0)<=>($b['Seq_in_index'] ?? 0); });
+                if (array_column($parts,'Column_name')!==$required || array_filter(array_column($parts,'Sub_part'))) { throw new RuntimeException('PeraCRM health index assertion failed.'); }
+            }
+        }
+        if ($name === 'peracrm_campaign_deliveries') {
             foreach ([['delivery_key'], ['frozen_revision_id', 'frozen_recipient_id']] as $required) {
                 $found = false;
                 foreach ($keys as $key) { if (array_column($key, 'Column_name') === $required && !array_filter(array_column($key, 'Sub_part'))) { $found = true; } }
