@@ -103,6 +103,19 @@ fi
 wp eval-file /tests/previews.php
 wp eval-file /tests/snapshots.php
 wp eval-file /tests/freeze.php
+wp eval-file /tests/queue.php
+for queue_race in prepare-prepare batch-batch batch-cancel cancel-batch pause-schedule cancel-resume; do
+    rm -f /tmp/peracrm-queue-held /tmp/peracrm-queue-winner /tmp/peracrm-queue-loser
+    wp eval-file /tests/queue-race.php prepare "$queue_race"
+    wp eval-file /tests/queue-race.php winner "$queue_race" &
+    queue_winner_pid=$!
+    wait_for_migration_marker /tmp/peracrm-queue-held
+    wp eval-file /tests/queue-race.php loser "$queue_race" &
+    queue_loser_pid=$!
+    wait "$queue_winner_pid"
+    wait "$queue_loser_pid"
+    wp eval-file /tests/queue-race.php verify "$queue_race"
+done
 for freeze_race in start-start start-save continue-cancel cancel-continue continue-continue publish-cancel cancel-publish cleanup-start cleanup-resume; do
     rm -f /tmp/peracrm-freeze-held /tmp/peracrm-freeze-winner /tmp/peracrm-freeze-loser
     wp eval-file /tests/freeze-worker.php prepare "$freeze_race"
