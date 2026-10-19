@@ -1967,10 +1967,33 @@ checks exact counts/disabled exit 2/empty stderr/privacy, and compares complete
 queue, delivery, lifecycle/worker event and option snapshots before/after reads.
 Existing history/subscriber/token/cron/no-mail/no-HTTP assertions remain intact.
 
-Validation pending on the existing hosted single-site/multisite workflow. Local
-PHP is absent and the Docker socket is denied; these blocked commands will not
-be retried. Local whitespace checks pass. Added assertions are not yet executed
-acceptance; finding resolution waits for both complete hosted suites. Only the
-health aggregate, focused queue regression and this plan change. Dispatch,
-intake and public collection gates remain unchanged and disabled. Phase 4 stays
-in progress; no new UI, merge or deployment.
+Executed acceptance: implementation/test head `999e5839dd67279e01cd44c427347afa2d81b336`
+(full tree `2d44178dfe4e061bc42c611cb25cb2b4c76b03df`; local checkpoint
+`d97226b8` has the identical tree) passed
+[complete hosted run 39242677006](https://github.com/7mus7y-dotcom/pera-wp/actions/runs/39242677006).
+Both full WordPress/MySQL/CLI/race/browser suites passed:
+[single-site job 118027019101](https://github.com/7mus7y-dotcom/pera-wp/actions/runs/39242677006/job/118027019101)
+and [multisite job 118027019528](https://github.com/7mus7y-dotcom/pera-wp/actions/runs/39242677006/job/118027019528).
+Retained [single-site artifact 12182291256](https://github.com/7mus7y-dotcom/pera-wp/actions/runs/39242677006/artifacts/12182291256)
+and [multisite artifact 12182326228](https://github.com/7mus7y-dotcom/pera-wp/actions/runs/39242677006/artifacts/12182326228)
+expire 2026-11-02.
+
+Fetched both complete logs and verified every new assertion above, including all
+eight lifecycle checkpoints in JSON and text, exact failed/preparing/queued
+deltas, independent failed recipient state, disabled exit 2, empty stderr,
+private-field exclusion and unchanged ledger/event/option/context snapshots.
+Both logs contain no failure markers. Existing queue/worker/freeze races,
+scheduler/CLI/crash and desktop/mobile browser regressions pass unchanged.
+The hosted standalone regression and PHP syntax steps passed in both jobs;
+local whitespace and focused harness shell syntax checks also pass.
+
+Local PHP is absent and the Docker socket is denied; blocked commands were not
+retried. Hosted execution uses only disposable synthetic fixtures. This final
+acceptance checkpoint changes documentation only; runtime/tests match the passing
+head above. Fix-specific evidence is posted on the finding before resolution;
+latest-head review is requested after publishing this checkpoint. Passing tests
+and thread resolution do not establish a clean latest-head review.
+
+Only the health aggregate, focused queue regression and this plan change.
+Dispatch, intake and public collection gates remain unchanged and disabled.
+Phase 4 stays in progress; no new UI, merge or deployment.
