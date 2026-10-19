@@ -29,7 +29,7 @@ module.exports = async function ({page,target,context,employeeContext,browser}) 
  async function capture(label,size) {
   if(await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth+1)) throw Error('Queue horizontal overflow '+label+' '+size);
   await page.locator('.peracrm-queue').screenshot({path:'/evidence/queue-'+label+'-'+size+'.png',style:'#site-header, #wpadminbar { visibility:hidden !important; }'});
-  console.log('QUEUE_REVIEW '+label+' '+size+' '+(await page.locator('.peracrm-queue').screenshot({type:'jpeg',quality:50,style:'#site-header, #wpadminbar { visibility:hidden !important; }'})).toString('base64')); 
+  console.log('QUEUE_REVIEW '+label+' '+size+' '+(await page.locator('.peracrm-queue').screenshot({type:'jpeg',quality:50,style:'#site-header, #wpadminbar { visibility:hidden !important; }'})).toString('base64'));
  }
  async function fields() {
   return page.evaluate(()=>{const b=document.querySelector('[data-campaign-queue]'),j=b.querySelector('[data-queue-job]');return {action:'peracrm_campaign_queue',id:b.dataset.id,nonce:b.dataset.nonce,service_nonce:b.dataset.serviceNonce,job:j?.dataset.queueJob || '0',version:j?.dataset.queueVersion || '0'};});
@@ -66,13 +66,18 @@ module.exports = async function ({page,target,context,employeeContext,browser}) 
   if((await duplicate.json()).data.url!==page.url()) throw Error('Idempotent prepare created another job');
   const saved=page.url();
   // Actual SQL failure, rollback, reload, explicit resume and multi-batch continuation.
+  const failedJobs=()=>page.locator('[data-queue-health] dt').filter({hasText:/^Failed jobs$/}).evaluate(el=>Number(el.nextElementSibling.textContent));
+  const failedBefore=await failedJobs();
   await context.addCookies([{name:'queue_fixture_failure',value:'1',url:target}]);
   await click('Continue next 200 recipients',false); await capture('error',size);
   await context.clearCookies({name:'queue_fixture_failure'});
   await click('Reload current state');
-  await button('Resume preparation').waitFor(); await capture('failed-job',size);
+  await button('Resume preparation').waitFor();
+  if(await failedJobs()!==failedBefore+1) throw Error('Job refresh left global failed-job health stale');
+  await capture('failed-job',size);
   if(!/Prepared: 0 \/ /.test(await page.locator('[data-queue-totals]').innerText())) throw Error('Failed batch did not roll back');
   await click('Resume preparation');
+  if(await failedJobs()!==failedBefore) throw Error('Resumed job health did not refresh');
   const stale=await fields();
   await click('Continue next 200 recipients');
   if(!/Prepared: 200 \/ /.test(await page.locator('[data-queue-totals]').innerText())) throw Error('First bounded batch not exactly 200');

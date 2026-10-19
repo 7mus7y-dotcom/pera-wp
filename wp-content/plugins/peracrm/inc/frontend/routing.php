@@ -557,7 +557,7 @@ add_filter('body_class', 'pera_crm_add_body_class');
 if (!function_exists('peracrm_rewrite_version')) {
     function peracrm_rewrite_version(): string
     {
-        return 'peracrm-' . PERACRM_VERSION . '-crm-routes-v4';
+        return 'peracrm-' . PERACRM_VERSION . '-crm-routes-v5';
     }
 }
 

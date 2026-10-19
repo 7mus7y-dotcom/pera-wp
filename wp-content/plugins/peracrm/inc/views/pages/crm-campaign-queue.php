@@ -49,15 +49,7 @@ elseif ($campaign) {
 <?php if (!$jobs) : ?><tr><td colspan="5">No queue jobs on this page. Prepare a published frozen revision from its campaign.</td></tr><?php endif; ?></tbody></table></div>
 <nav aria-label="Queue pages"><?php if ($before) : ?><a href="<?php echo esc_url(peracrm_campaign_queue_url($campaign)); ?>">Newest jobs</a><?php endif; ?><?php if (count($jobs)>25) : ?><a href="<?php echo esc_url(add_query_arg('before',(int)$jobs[24]['id'],peracrm_campaign_queue_url($campaign))); ?>">Older jobs</a><?php endif; ?></nav>
 <?php endif; ?>
-<?php if (peracrm_campaigns_staff_can('peracrm_view_campaign_reports',true)) : $health=(new PeraCRM_Campaign_Operations())->health(); ?>
-<section data-queue-health><h2>Queue health (target blog)</h2><p>Read only. Last invocation is distinct from successful known processing and provider acceptance.</p><dl class="peracrm-queue-counts">
-<?php foreach (['scheduler_state'=>'Scheduler','schema_ready'=>'Schema ready','module_enabled'=>'Module enabled','queue_ready'=>'Queue ready'] as $key=>$label) { echo '<dt>'.esc_html($label).'</dt><dd>'.esc_html(is_bool($health[$key]) ? ($health[$key] ? 'yes' : 'no') : $health[$key]).'</dd>'; }
-foreach (($health['counts'] ?? []) as $key=>$value) { echo '<dt>'.esc_html(ucfirst(str_replace('_',' ',$key))).'</dt><dd>'.(int)$value.'</dd>'; }
-echo '<dt>Last invocation</dt><dd>'.esc_html(peracrm_campaign_queue_ui_time($health['last_invocation']['invoked_at'] ?? null).' · '.($health['last_invocation']['result'] ?? 'never invoked')).'</dd>';
-foreach (['last_successful_processing'=>'Last successful processing','last_provider_acceptance'=>'Last provider acceptance (not delivery)'] as $key=>$label) { echo '<dt>'.esc_html($label).'</dt><dd>'.esc_html(peracrm_campaign_queue_ui_time($health[$key])).'</dd>'; } ?></dl>
-<?php foreach ($health['diagnostics'] as $diagnostic) { echo '<p>'.esc_html(str_replace('_',' ',$diagnostic)).'</p>'; } ?>
-<p>Unknown outcomes require reconciliation. Invocation alone does not prove successful processing or delivery. No provider lookup or manual outcome overrides are available.</p></section>
-<?php else : ?><p>Campaign report permission is required for global queue health.</p><?php endif; ?>
+<?php echo peracrm_campaign_queue_ui_health(); ?>
 <?php } catch (Throwable $error) { echo '<p role="alert">Queue state unavailable. Check campaign access and storage readiness, then reload. No changes were made by this read.</p>'; } ?>
 </div><?php peracrm_frontend_render_partial('crm-side-nav',['active_view'=>'campaigns']); ?></div></section></main>
 <?php peracrm_frontend_render_shell_footer(); ?>

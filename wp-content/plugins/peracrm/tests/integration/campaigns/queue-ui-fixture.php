@@ -4,6 +4,18 @@ if (!defined('PERACRM_DISPOSABLE_CAMPAIGN_FIXTURE') || !defined('WP_CLI') || !WP
 peracrm_with_target_blog(static function () {
     global $wpdb;
     wp_set_current_user((int)get_option('campaign_fixture_administrator'));
+    // An already-active installation must replace persisted v4 rules exactly once.
+    update_option('peracrm_rewrite_version','peracrm-'.PERACRM_VERSION.'-crm-routes-v4',false);
+    update_option('rewrite_rules',['^crm/legacy-only/?$'=>'index.php?legacy=1'],false);
+    $flushes=0; $probe=static function ($rules) use (&$flushes) { $flushes++; return $rules; };
+    add_filter('rewrite_rules_array',$probe);
+    pera_crm_maybe_flush_rewrite_rules();
+    $rules=get_option('rewrite_rules');
+    if (get_option('peracrm_rewrite_version')!==peracrm_rewrite_version() || !isset($rules['^crm/campaigns/queue/?$']) || !isset($rules['^crm/campaigns/([0-9]+)/queue/([0-9]+)/?$'])) { throw new RuntimeException('Existing-install queue rewrite upgrade failed.'); }
+    $first=$flushes; pera_crm_maybe_flush_rewrite_rules();
+    remove_filter('rewrite_rules_array',$probe);
+    if ($first!==1 || $flushes!==1) { throw new RuntimeException('Rewrite upgrade did not flush exactly once.'); }
+    echo "PASS queue UI: persisted v4 to v5 queue routes and one-time soft flush\n";
     $zone=date_default_timezone_get(); date_default_timezone_set('Pacific/Honolulu');
     $explicit=peracrm_campaign_queue_ui_schedule('2099-06-01T12:34');
     if (peracrm_campaign_queue_schedule_utc($explicit)!=='2099-06-01 09:34:00') { throw new RuntimeException('Istanbul UTC conversion depends on defaults.'); }

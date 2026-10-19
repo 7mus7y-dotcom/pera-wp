@@ -135,9 +135,30 @@ function peracrm_campaign_queue_ui_route()
             wp_send_json_error(['message'=>$message],$code==='campaign_conflict' ? 409 : 422);
         }
         if ($op==='prepare') { wp_send_json_success(['url'=>peracrm_campaign_queue_url($id,(int)$result['id'])]); }
-        wp_send_json_success(['html'=>peracrm_campaign_queue_ui_panel($id,$job,max(0,(int)($_POST['after'] ?? 0)),$op==='recipients')]);
+        wp_send_json_success(['html'=>peracrm_campaign_queue_ui_panel($id,$job,max(0,(int)($_POST['after'] ?? 0)),$op==='recipients'),'health_html'=>peracrm_campaign_queue_ui_health()]);
     } catch (InvalidArgumentException $error) { wp_send_json_error(['message'=>$error->getMessage()],422); }
     catch (Throwable $error) { wp_send_json_error(['message'=>'Queue state unavailable. Check campaign access and storage readiness, then reload. No automatic retry.'],503); }
 }
 add_action('wp_ajax_peracrm_campaign_queue','peracrm_campaign_queue_ui_route');
 add_action('wp_ajax_nopriv_peracrm_campaign_queue',static function () { peracrm_subscribers_private_headers(); wp_send_json_error(['message'=>'Queue access denied.'],403); });
+
+/** Refresh global health alongside job state; never present an old health snapshot as current. */
+function peracrm_campaign_queue_ui_health()
+{
+    peracrm_campaign_drafts_require(true);
+    ob_start();
+    try {
+?>
+<?php if (peracrm_campaigns_staff_can('peracrm_view_campaign_reports',true)) : $health=(new PeraCRM_Campaign_Operations())->health(); ?>
+<section data-queue-health><h2>Queue health (target blog)</h2><p>Read only. Last invocation is distinct from successful known processing and provider acceptance.</p><dl class="peracrm-queue-counts">
+<?php foreach (['scheduler_state'=>'Scheduler','schema_ready'=>'Schema ready','module_enabled'=>'Module enabled','queue_ready'=>'Queue ready'] as $key=>$label) { echo '<dt>'.esc_html($label).'</dt><dd>'.esc_html(is_bool($health[$key]) ? ($health[$key] ? 'yes' : 'no') : $health[$key]).'</dd>'; }
+foreach (($health['counts'] ?? []) as $key=>$value) { echo '<dt>'.esc_html(ucfirst(str_replace('_',' ',$key))).'</dt><dd>'.(int)$value.'</dd>'; }
+echo '<dt>Last invocation</dt><dd>'.esc_html(peracrm_campaign_queue_ui_time($health['last_invocation']['invoked_at'] ?? null).' · '.($health['last_invocation']['result'] ?? 'never invoked')).'</dd>';
+foreach (['last_successful_processing'=>'Last successful processing','last_provider_acceptance'=>'Last provider acceptance (not delivery)'] as $key=>$label) { echo '<dt>'.esc_html($label).'</dt><dd>'.esc_html(peracrm_campaign_queue_ui_time($health[$key])).'</dd>'; } ?></dl>
+<?php foreach ($health['diagnostics'] as $diagnostic) { echo '<p>'.esc_html(str_replace('_',' ',$diagnostic)).'</p>'; } ?>
+<p>Unknown outcomes require reconciliation. Invocation alone does not prove successful processing or delivery. No provider lookup or manual outcome overrides are available.</p></section>
+<?php else : ?><section data-queue-health><p>Campaign report permission is required for global queue health.</p></section><?php endif; ?>
+<?php
+        return ob_get_clean();
+    } catch (Throwable $error) { ob_end_clean(); throw $error; }
+}
