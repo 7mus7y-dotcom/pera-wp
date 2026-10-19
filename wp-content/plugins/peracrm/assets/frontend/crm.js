@@ -2724,7 +2724,7 @@ document.addEventListener('DOMContentLoaded', function () {
         .then(function (json) {
           if (current !== generation) return;
           if (!json.success) throw Error(json.data && json.data.message || 'Queue request failed. Reload current state.');
-          if (json.data.url) { location.assign(json.data.url); return; }
+          if (json.data.url) { busy = false; location.assign(json.data.url); return; }
           panel.innerHTML = json.data.html; stale = false;
           if (operation === 'schedule' && schedule.value === inputValue) dirty = false;
           announce('Server state loaded.' + (dirty ? ' Unsaved schedule input retained; review it against the displayed server schedule before recording.' : ' Choose the next action explicitly.'));

@@ -111,6 +111,7 @@ add_action('wp_ajax_peracrm_queue_ui_evidence',static function () {
         foreach (['peracrm_subscribers','peracrm_subscription_events','peracrm_email_suppressions','peracrm_email_suppression_events','peracrm_subscriber_tokens','peracrm_campaign_worker_events','peracrm_campaign_frozen_revisions','peracrm_campaign_frozen_recipients'] as $name) { $out[$name]=hash('sha256',wp_json_encode($wpdb->get_results('SELECT * FROM '.peracrm_table($name).' ORDER BY 1',ARRAY_A))); }
         foreach (['cron','peracrm_campaign_scheduler_last','peracrm_campaign_scheduler_last_success'] as $key) { $out[$key]=hash('sha256',wp_json_encode(get_option($key))); }
         $seed=get_option('peracrm_queue_ui_seeds');
+        $out['ui_worker_rows']=(int)$wpdb->get_var($wpdb->prepare("SELECT COUNT(*) FROM ".peracrm_table('peracrm_campaign_deliveries')." d INNER JOIN ".peracrm_table('peracrm_campaign_queue_jobs')." j ON j.id=d.job_id WHERE j.campaign_id IN (%d,%d) AND (d.state<>'held' OR d.attempt_count<>0 OR d.owner_token<>'' OR d.attempt_key<>'' OR d.message_id<>'')",$seed['desktop']['campaign'],$seed['mobile']['campaign']));
         $out['outcomes']=hash('sha256',wp_json_encode($wpdb->get_results($wpdb->prepare('SELECT * FROM '.peracrm_table('peracrm_campaign_deliveries').' WHERE job_id=%d ORDER BY id',$seed['outcomes']['job']),ARRAY_A)));
         $out['mail']=(int)get_option('peracrm_queue_ui_mail_attempts',0); $out['http']=(int)get_option('peracrm_queue_ui_http_attempts',0);
         return $out;

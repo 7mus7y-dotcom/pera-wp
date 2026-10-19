@@ -8,7 +8,7 @@ Let Pera staff prepare newsletters and targeted campaigns inside the existing CR
 
 Future implementation PRs must update phase status, validation evidence, decisions and the progress log here. A phase must not be marked complete solely because code exists when required verification remains outstanding. Use only `not started`, `in progress`, `blocked` or `complete` for phase status. Keep repository checks distinct from external verification; record outstanding evidence explicitly.
 
-**Current implementation task:** Phase 4D only: plugin-owned operational queue overview/detail, published-revision preparation, bounded continuation/recovery, lifecycle and Istanbul schedule intent controls, privacy-safe counts and existing health semantics. Branch `feat/campaign-phase4d-queue-ui` starts from latest main `e15084a2e978f5c735defb1ebc4f0cd2bc4b18f1` (merged #1458). No provider, dispatch, scheduler activation, fixture execution from browser, Phase 5, merge or deployment. Sending, real intake and public collection stay disabled.
+**Current implementation task:** Phase 4D only: plugin-owned operational queue overview/detail, published-revision preparation, bounded continuation/recovery, lifecycle and Istanbul schedule intent controls, privacy-safe counts and existing health semantics. Branch `feat/campaign-phase4d-queue-ui` starts from accepted main `e15084a2e978f5c735defb1ebc4f0cd2bc4b18f1` (merged #1458), updated to latest main `7b1289456e47c525d8a2f1f4dccc32bc2f744306` before final validation. No provider, dispatch, scheduler activation, fixture execution from browser, Phase 5, merge or deployment. Sending, real intake and public collection stay disabled.
 
 ## Review baseline and method
 
@@ -2014,7 +2014,10 @@ No applicable AGENTS.md found in repository/workspace/ancestors. Shell Git fetch
 failed once due to unreachable configured proxy. Connected GitHub supplied exact
 latest-main changed file contents, preserved in local checkpoint `6d38bd42` on
 `work`, before branching. Remote publication will use the actual main SHA as
-parent; local preservation is distinct from remote history.
+parent; local preservation is distinct from remote history. Latest main advanced
+to `7b1289456e47c525d8a2f1f4dccc32bc2f744306` during implementation (one
+unrelated theme-only sell-page change). This upstream change is incorporated,
+with exact remote/local full-tree equality; the PR diff remains PeraCRM-only.
 
 ### Bounded implementation
 
