@@ -1,6 +1,6 @@
 # Integrated email campaigns: repository review and living implementation plan
 
-Review status: **complete** (2026-10-17). Implementation: **Phase 1 complete (technical acceptance)**; **Phase 2 in progress**; **Phase 3 complete (technical acceptance: 3A/3B/3C; external approvals/readiness remain open)**; Phases 4–7 not started.
+Review status: **complete** (2026-10-17). Implementation: **Phase 1 complete (technical acceptance)**; **Phase 2 in progress**; **Phase 3 in progress (3A/3B/3C technical checks passed; completion pending clean review; external approvals/readiness remain open)**; Phases 4–7 not started.
 
 ## Purpose, scope and maintenance
 
@@ -8,7 +8,7 @@ Let Pera staff prepare newsletters and targeted campaigns inside the existing CR
 
 Future implementation PRs must update phase status, validation evidence, decisions and the progress log here. A phase must not be marked complete solely because code exists when required verification remains outstanding. Use only `not started`, `in progress`, `blocked` or `complete` for phase status. Keep repository checks distinct from external verification; record outstanding evidence explicitly.
 
-**Current implementation task:** Phase 3C plugin-owned review/freeze/history UI and browser acceptance are complete on merged #1454, with the executed evidence below. Phase 3 technical acceptance is complete. Historical consent/retention, editorial/accessibility and production-readiness prerequisites remain open. Sending, real intake and public collection stay disabled. Phase 2 external acceptance remains open; Phases 4–7 remain unstarted.
+**Current implementation task:** Phase 3C plugin-owned review/freeze/history UI and browser acceptance are complete on merged #1454, with the executed evidence below. Phase 3 technical checks have passed; completion remains subject to a clean review of PR #1455. Historical consent/retention, editorial/accessibility and production-readiness prerequisites remain open. Sending, real intake and public collection stay disabled. Phase 2 external acceptance remains open; Phases 4–7 remain unstarted.
 
 ## Review baseline and method
 
@@ -131,7 +131,7 @@ Unresolved decisions: expected monthly volume/peak batch and budget; approved le
 
 ## Numbered implementation phases
 
-Each phase should be a focused PR, split further if review size grows. Phase 1 technical acceptance is **complete** based on merged #1447 and its passed integration evidence. Phase 2 is **in progress** for external acceptance; Phase 3 is **complete** for technical acceptance (3A/3B/3C; external prerequisites remain open); Phases 4–7 remain **not started**. Repository checks use synthetic addresses/fixtures; external checks require controlled environments.
+Each phase should be a focused PR, split further if review size grows. Phase 1 technical acceptance is **complete** based on merged #1447 and its passed integration evidence. Phase 2 is **in progress** for external acceptance; Phase 3 is **in progress** pending clean review (3A/3B/3C technical checks passed; external prerequisites remain open); Phases 4–7 remain **not started**. Repository checks use synthetic addresses/fixtures; external checks require controlled environments.
 
 ### 1. Subscriber, consent, suppression and permission foundations
 
@@ -218,7 +218,7 @@ Verified hosted evidence: [run `39050763912`](https://github.com/7mus7y-dotcom/p
 
 ### 3. Draft campaigns, audience preview and frozen content
 
-- **Status:** complete (technical acceptance: draft/editor, selectors, rendering, audience preview, immutable capture, recipient freeze/publication and review/history UI; external checks below remain open).
+- **Status:** in progress (technical checks passed for draft/editor, selectors, rendering, audience preview, immutable capture, recipient freeze/publication and review/history UI; completion pending clean review of #1455; external checks below remain open).
 - **Goal/outcome:** managers build and review a newsletter with public articles/properties and an accurate exclusion preview; no external delivery yet.
 - **Prerequisites:** Phases 1–2; template/footer approval and explicit language/topic rules.
 - **Work/components:** campaign repositories/editor, paginated selectors/content adapter, email HTML/text renderer, plugin routing/views/nav/assets and capability checks. Reuse plugin profile/party/assignment accessors; retrieve content/price metadata through WordPress/plugin APIs and plugin-owned adapters. Do not call or include theme card/pricing helpers or templates.
@@ -1349,7 +1349,7 @@ deployment is included.
 
 ## Phase 3C UI and browser acceptance (2026-10-18)
 
-Status: **complete (Phase 3C technical acceptance; Phase 3 technical acceptance complete)**.
+Status: **in progress (Phase 3C technical checks passed; Phase 3 completion pending clean review)**.
 #1454 is merged; latest main at task start is `7258e143504953d96a2630e360ebe0d3f62b9554`.
 Branch `feat/campaign-phase3c-ui` targets main. No AGENTS.md found. The clean
 checkout was advanced through connected GitHub file reads after one failed shell
@@ -1475,10 +1475,61 @@ Non-draft [PR #1455](https://github.com/7mus7y-dotcom/pera-wp/pull/1455) targets
 The final evidence commit changes documentation only; runtime/tests match the
 passing head above. Local original and incremental work remain preserved on
 checkpoint branches, and the connected GitHub commit objects/base were restored
-with matching SHAs. Phase 3 is **complete for technical acceptance**. Historical
+with matching SHAs. Phase 3 technical checks have passed; **completion remains
+subject to a clean review**. Historical
 consent/legal-basis and production retention approval, final editorial/brand/copy
 and accessibility approval, staging content semantics, production topology/HTTPS/
 cache behavior and provider/domain readiness remain outstanding as previously
 recorded. Phase 2 external acceptance remains open. Sending, real intake and public
 collection remain disabled. No Phase 4, provider integration, scheduling,
 background worker, cleanup UI, merge or deployment.
+
+
+### PR #1455 acceptance and review follow-up (2026-10-19)
+
+Status: **in progress (technical checks passed; clean review pending)**.
+No runtime, fixture or gate changes are needed for this follow-up.
+
+The finding “Let the failed-state recovery update bypass the injected fault” is
+fixed by [7094731aa093329fd1bdcb7431ea8b9c6776f887](https://github.com/7mus7y-dotcom/pera-wp/commit/7094731aa093329fd1bdcb7431ea8b9c6776f887).
+Verified the actual patch and current predicate: the disposable cookie-enabled
+query filter requires UPDATE, the freeze-attempt table, `last_id`, and the SQL
+value `'materializing'`. The materializing progress UPDATE fails and rolls back;
+the separate recovery UPDATE sets state to `'failed'` and therefore does not
+match the injector, even though it also contains `last_id` and runs while the
+cookie is still present. Recovery can persist the failed state and new version.
+The browser clears the fault cookie only after the failed continuation response,
+then explicitly reloads current server state, waits for the failed-only Resume
+materialization control, resumes and finishes the bounded batches before separate
+publication. This is verification of the existing fix, not a new engine change.
+
+Latest requested implementation/evidence head
+`812e83b6c4a6832d3635e94432dd293d18b8b416` passed the complete
+[run 39155235145](https://github.com/7mus7y-dotcom/pera-wp/actions/runs/39155235145):
+
+| Topology | Complete job | Retained evidence (until 2026-11-01) |
+| --- | --- | --- |
+| Single-site | [117756984553: success](https://github.com/7mus7y-dotcom/pera-wp/actions/runs/39155235145/job/117756984553) | [Artifact 12146782684](https://github.com/7mus7y-dotcom/pera-wp/actions/runs/39155235145/artifacts/12146782684) |
+| Multisite | [117756984609: success](https://github.com/7mus7y-dotcom/pera-wp/actions/runs/39155235145/job/117756984609) | [Artifact 12147101403](https://github.com/7mus7y-dotcom/pera-wp/actions/runs/39155235145/artifacts/12147101403) |
+
+Fetched logs from both jobs confirm batch rollback with a persisted failed fence,
+exact-binding resume, and actual desktop/mobile browser failure → reload → resume
+→ finish → deliberate publication flows. Downloaded and inspected the failed
+screenshots at both sizes in both topologies, plus subsequent frozen-state
+captures. Failed state retains considered/included/excluded 200/122/78 with
+resume/cancel controls; the completed frozen revision records 446/263/183.
+All existing regressions and nine separate-connection freeze races also pass.
+Protected subscriber/evidence/preference-token bytes remain unchanged by UI flows.
+No inbox rendering or manual assistive-technology verification is inferred.
+
+Posted the [fix and passing-evidence reply](https://github.com/7mus7y-dotcom/pera-wp/pull/1455#discussion_r4308451192)
+to the existing finding and verified thread `PRRT_kwDORM3KJ86ts_cC` is resolved.
+[Requested review of head 812e83b](https://github.com/7mus7y-dotcom/pera-wp/pull/1455#issuecomment-6259987739).
+Resolution of this finding and passing acceptance checks do not establish a clean
+latest-head review. Phase 3 completion remains conditional on that review; current
+phase status is in progress. This follow-up commit changes the living plan only.
+
+Sending, real intake and public collection remain disabled. Historical consent,
+legal-basis/retention, editorial/accessibility and production-readiness prerequisites
+remain open. No Phase 4, provider work, scheduling, background worker, merge or
+deployment is authorized or performed.
