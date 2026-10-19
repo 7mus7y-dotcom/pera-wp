@@ -5,6 +5,15 @@ if (!defined('ABSPATH')) { exit; }
 class PeraCRM_Campaign_Operations
 {
     private static array $active = [];
+    protected function context(callable $callback)
+    {
+        return peracrm_with_target_blog(static function () use ($callback) {
+            global $wpdb;
+            $previous=$wpdb->suppress_errors(true);
+            try { return $callback(); }
+            finally { $wpdb->suppress_errors($previous); }
+        });
+    }
     protected function table(string $entity): string
     {
         return peracrm_table(['jobs'=>'peracrm_campaign_queue_jobs','deliveries'=>'peracrm_campaign_deliveries'][$entity]);
@@ -45,7 +54,7 @@ class PeraCRM_Campaign_Operations
     {
         $this->authorize_read();
         if ($limit < 1 || $limit > 25) { throw new InvalidArgumentException('Limit must be 1–25.'); }
-        return peracrm_with_target_blog(function () use ($limit) {
+        return $this->context(function () use ($limit) {
             if (!$this->ready()) { throw new RuntimeException('Campaign schema unavailable.'); }
             return $this->discover($limit);
         });
@@ -71,7 +80,7 @@ class PeraCRM_Campaign_Operations
     public function health(): array
     {
         $this->authorize_read();
-        return peracrm_with_target_blog(function () {
+        return $this->context(function () {
             $ready = $this->ready(); $dispatch = $this->dispatch();
             $out = ['dispatch_enabled'=>$dispatch,'schema_ready'=>$ready,'scheduler_state'=>$dispatch ? 'never_invoked' : 'disabled',
                 'last_invocation'=>$this->last_invocation(),'last_successful_processing'=>null,
@@ -111,7 +120,7 @@ class PeraCRM_Campaign_Operations
     /** Production has no concrete worker/provider. Gate precedes every delivery read/write. */
     public function invoke(bool $recover_only = false, array $bounds = []): array
     {
-        return peracrm_with_target_blog(function () use ($recover_only,$bounds) {
+        return $this->context(function () use ($recover_only,$bounds) {
             $result=['result'=>'disabled','processed'=>0,'accepted'=>0,'recovered'=>0,'jobs'=>0,'successful'=>0];
             if (!$this->dispatch()) { return $this->record($result); }
             return $this->execute($recover_only,$bounds,$result);
