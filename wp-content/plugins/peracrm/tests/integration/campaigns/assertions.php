@@ -37,7 +37,7 @@ fixture_expect(peracrm_campaigns_schema_ready(), 'fresh activation verifies sche
 fixture_expect(isset(get_option('rewrite_rules', [])['^crm/campaigns/?$']), 'fresh activation persists campaign routes through the shared registrar');
 peracrm_with_target_blog(static function () use ($wpdb) {
     peracrm_campaigns_assert_schema();
-    fixture_expect((int) get_option('peracrm_schema_version') === 25, 'fresh migration marker is 25');
+    fixture_expect((int) get_option('peracrm_schema_version') === 26, 'fresh migration marker is 26');
     fixture_expect((int) $wpdb->get_var('SELECT COUNT(*) FROM ' . peracrm_table('peracrm_subscribers')) === 0, 'fresh migration performs no imports');
     // Reconstruct the previous schema in disposable volumes only. No plugin
     // down migration or production data path is introduced by this test.
@@ -91,7 +91,7 @@ peracrm_with_target_blog(static function () use ($wpdb) {
     fixture_expect($wpdb->insert($suppression_table, $suppression) === false, 'real DB suppression primary key rejects raw duplicate');
     $wpdb->suppress_errors($previous);
     $count = (int) $wpdb->get_var("SELECT COUNT(*) FROM {$table}");
-    peracrm_upgrade_schema_to(25, 25);
+    peracrm_upgrade_schema_to(26, 26);
     fixture_expect((int) $wpdb->get_var("SELECT COUNT(*) FROM {$table}") === $count, 'repeated real dbDelta preserves subscriber records');
 });
 do_action('init');

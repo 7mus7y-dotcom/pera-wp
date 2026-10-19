@@ -1,6 +1,6 @@
 # Integrated email campaigns: repository review and living implementation plan
 
-Review status: **complete** (2026-10-17). Implementation: **Phase 1 complete (technical acceptance)**; **Phase 2 in progress**; **Phase 3 in progress (3A/3B/3C technical checks passed; completion pending clean review; external approvals/readiness remain open)**; Phases 4–7 not started.
+Review status: **complete** (2026-10-17). Implementation: **Phase 1 complete (technical acceptance)**; **Phase 2 in progress**; **Phase 3 in progress (3A/3B/3C technical checks passed; completion pending clean review; external approvals/readiness remain open)**; **Phase 4 in progress (4A durable queue services; validation pending)**; Phases 5–7 not started.
 
 ## Purpose, scope and maintenance
 
@@ -8,7 +8,7 @@ Let Pera staff prepare newsletters and targeted campaigns inside the existing CR
 
 Future implementation PRs must update phase status, validation evidence, decisions and the progress log here. A phase must not be marked complete solely because code exists when required verification remains outstanding. Use only `not started`, `in progress`, `blocked` or `complete` for phase status. Keep repository checks distinct from external verification; record outstanding evidence explicitly.
 
-**Current implementation task:** Phase 3C plugin-owned review/freeze/history UI and browser acceptance are complete on merged #1454, with the executed evidence below. Phase 3 technical checks have passed; completion remains subject to a clean review of PR #1455. Historical consent/retention, editorial/accessibility and production-readiness prerequisites remain open. Sending, real intake and public collection stay disabled. Phase 2 external acceptance remains open; Phases 4–7 remain unstarted.
+**Current implementation task:** Phase 4A only: durable delivery jobs/recipient state, idempotent preparation from published immutable revisions, bounded materialization, authorized lifecycle intent/read services, audit and unconditional dispatch denial. Based on latest main `18f81534446587ee4386885390a5a7a309c184e3` (merged #1455), branch `feat/campaign-phase4a-queue`. Phase 4 remains in progress; worker, scheduler, sending UI and all provider work remain outstanding. No sending, real intake, public collection, merge or deployment is authorized here.
 
 ## Review baseline and method
 
@@ -1533,3 +1533,31 @@ Sending, real intake and public collection remain disabled. Historical consent,
 legal-basis/retention, editorial/accessibility and production-readiness prerequisites
 remain open. No Phase 4, provider work, scheduling, background worker, merge or
 deployment is authorized or performed.
+
+
+## Phase 4A — durable queue storage and lifecycle services (in progress)
+
+2026-10-19: verified latest main through connected GitHub after one failed shell fetch; clean local checkout matches `18f81534446587ee4386885390a5a7a309c184e3`. Prerequisites #1454/#1455 are merged. #1455 final head `bf3718b00d` received a clean automated review; its failed-state browser-fixture finding is resolved. No AGENTS.md found in repository/workspace ancestors. Existing work preserved.
+
+User-reported live Phase 3 checks passed: synthetic import, consent/suppression exclusions, drafts, previews, freeze/publication, and frozen history preservation. These are user-reported live checks, separate from automated evidence previously recorded. **The property-block review failure remains unresolved.** Retain open usability issues: confusing **Add identity** label, obscured configuration errors, and failed imports returning to the subscriber list. Phase 4A does not fix or expand into these issues. Historical consent/legal basis/retention, editorial/accessibility and production-readiness prerequisites remain open.
+
+### Interfaces and invariants
+
+- Schema v26 adds target-blog InnoDB jobs, deliveries and append-only service audit through existing atomic migration ownership/readiness/failure containment. No theme files, new UI, assets, routes or hook registrations.
+- Scope is configured target blog + published frozen revision + normalized frozen mailbox. One job per frozen revision; unique revision/mailbox, revision/recipient and deterministic delivery-key constraints prevent another delivery on retries/concurrency. No resend feature. Cancelled jobs/rows/audits are retained permanently as fences; no queue cleanup service is exposed. Existing freeze cleanup rejects published revisions.
+- `peracrm_campaign_queue_prepare(campaign_id, frozen_revision_id, nonce)` returns the existing job including terminal cancellation; only a complete, published, nonempty frozen attempt with valid stored content binding can prepare. Current editable draft/configuration/source changes do not invalidate historical publication. No mutation of frozen content or membership.
+- `peracrm_campaign_queue_materialize(campaign_id, job_id, version, nonce, limit=200)` uses keyset batches of 1–200, verifies each frozen recipient against its eligible evaluation, and commits inserts/cursor/counts/audit together. SQL/integrity failure rolls back and version-fences a recoverable failed job; resume uses existing rows. Partial preparation cannot schedule or dispatch. Completion reconciles exact persisted delivery counts.
+- `peracrm_campaign_queue_transition(..., operation, schedule=null)` supports schedule/pause/resume/cancel. Preparing → queued only after complete materialization; queued/scheduled → scheduled stores intent; preparing/queued/scheduled → paused → prior state; failed → preparing; all active states → cancelled, terminal. Cancellation retries with the current version are no-ops. Expected versions fence stale changes. Staff requires target campaign capability, readiness and no impersonation; audit uses real actor. Every mutation requires nonce `peracrm_campaign_queue_{campaign_id}`.
+- Scheduling accepts only RFC3339 seconds with explicit Z or numeric offset (maximum ±14:00); rejects naive times, unknown -00:00 offsets, invalid calendar/time values and past instants. Explicit offsets disambiguate repeated local hours. Stored times are UTC. No server timezone interpretation or process to execute the intent.
+- Delivery rows remain `held`; job state is the job-wide pause/cancel/partial fence. Read APIs `peracrm_campaign_queue_get` and `peracrm_campaign_queue_page` authorize and target-wrap; pages are at most 200, recipient detail additionally requires subscriber capability. Dispatch status is always false. `peracrm_campaign_queue_dispatch_allowed()` unconditionally returns false and `peracrm_campaign_queue_require_dispatch()` returns an error. No option, constant, copied database or environment can enable dispatch in this phase.
+- No preference-token issuance, subscriber writes or personalized shared HTML. No cron, automatic dispatch, worker, provider/network/mail/test email or production-enablement controls.
+
+### Later worker contract — documentation only
+
+The future worker must atomically claim eligible complete jobs and recipient rows with bounded leases, monotonic owner/version fencing and compare-and-swap lease renewal/result writes. Expired owners must never submit or overwrite a successor. Claim transactions must observe job pause/cancel state and use a consistent lock order. A job marked scheduled/queued alone is never authorization to send: future dispatch requires a separate explicit deployment/target/environment authorization, disabled on clones by default.
+
+Immediately before each external submission recheck live subscriber consent, mailbox suppression and campaign/job state, immutable content/recipient bindings, and ownership/lease validity. Do not substitute a changed subscriber/client address for the frozen mailbox. Accepted and ambiguous provider outcomes require durable reconciliation and must never be blindly retried. Completion requires every recipient resolved; expired leases, uncertain acceptance, failed reconciliation or other unresolved work prevent false completion. Worker claims/leases, provider submissions/reconciliation, retries, scheduler/cron/CLI registration and all sending UI remain unimplemented. Phase 4 is not complete; Phase 5 is untouched.
+
+### Phase 4A validation record
+
+Added standalone authority/time/dispatch contracts and real single-site/multisite fixtures for additive migration/readiness/failure containment, immutable publication binding, recipient integrity, keyset exact counts, rollback/resume, lifecycle/version fences, unique database keys, audit, no subscriber/token/cron effects, retained cancellation fences and separate-connection preparation/materialization/lifecycle races. Fixtures are synthetic and mounted with the bundled theme. Actual execution evidence is pending; added fixtures alone are not acceptance. Local Docker socket access is denied; hosted integration CI will run the complete existing subscriber/campaign/browser suites. Initial PATH has no PHP; an existing workspace PHP wrapper was subsequently located and will be checked. No real sending or live Phase 4 tests.
