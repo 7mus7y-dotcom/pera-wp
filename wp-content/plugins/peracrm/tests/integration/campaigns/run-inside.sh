@@ -116,6 +116,31 @@ for queue_race in prepare-prepare batch-batch batch-cancel cancel-batch pause-sc
     wait "$queue_loser_pid"
     wp eval-file /tests/queue-race.php verify "$queue_race"
 done
+# Dedicated prepared synthetic source; fake outcomes are confined to separate fixture ledgers.
+wp eval-file /tests/queue-race.php prepare pause-schedule
+wp eval-file /tests/queue-worker.php
+for worker_race in claim-claim lease-stale crash-before crash-after claim-pause claim-cancel authorize-pause authorize-unsubscribe; do
+    rm -f /tmp/peracrm-worker-held /tmp/peracrm-worker-winner /tmp/peracrm-worker-loser
+    wp eval-file /tests/worker-race.php prepare "$worker_race"
+    if [ "$worker_race" = crash-before ] || [ "$worker_race" = crash-after ]; then
+        expected_crash=72
+        [ "$worker_race" != crash-after ] || expected_crash=73
+        actual_crash=0
+        wp eval-file /tests/worker-race.php winner "$worker_race" || actual_crash=$?
+        [ "$actual_crash" -eq "$expected_crash" ]
+        printf '{}' > /tmp/peracrm-worker-winner
+        printf '{}' > /tmp/peracrm-worker-loser
+    else
+        wp eval-file /tests/worker-race.php winner "$worker_race" &
+        worker_winner_pid=$!
+        wait_for_migration_marker /tmp/peracrm-worker-held
+        wp eval-file /tests/worker-race.php loser "$worker_race" &
+        worker_loser_pid=$!
+        wait "$worker_winner_pid"
+        wait "$worker_loser_pid"
+    fi
+    wp eval-file /tests/worker-race.php verify "$worker_race"
+done
 for freeze_race in start-start start-save continue-cancel cancel-continue continue-continue publish-cancel cancel-publish cleanup-start cleanup-resume; do
     rm -f /tmp/peracrm-freeze-held /tmp/peracrm-freeze-winner /tmp/peracrm-freeze-loser
     wp eval-file /tests/freeze-worker.php prepare "$freeze_race"

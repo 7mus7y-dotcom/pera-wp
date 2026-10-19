@@ -8,7 +8,7 @@ Let Pera staff prepare newsletters and targeted campaigns inside the existing CR
 
 Future implementation PRs must update phase status, validation evidence, decisions and the progress log here. A phase must not be marked complete solely because code exists when required verification remains outstanding. Use only `not started`, `in progress`, `blocked` or `complete` for phase status. Keep repository checks distinct from external verification; record outstanding evidence explicitly.
 
-**Current implementation task:** Phase 4A only: durable delivery jobs/recipient state, idempotent preparation from published immutable revisions, bounded materialization, authorized lifecycle intent/read services, audit and unconditional dispatch denial. Based on latest main `18f81534446587ee4386885390a5a7a309c184e3` (merged #1455), branch `feat/campaign-phase4a-queue`. Phase 4 remains in progress; worker, scheduler, sending UI and all provider work remain outstanding. No sending, real intake, public collection, merge or deployment is authorized here.
+**Current implementation task:** Phase 4B only: explicit bounded provider-neutral worker, atomic claims/leases and owner/version fencing, live authorization, outcome/retry handling, recovery and verified reconciliation. Branch `feat/campaign-phase4b-worker` builds on latest main `199cb7f07414a542a0499f5aad90280d69707317`, merged #1456. Production invocation remains unconditionally disabled. A fake provider exists only in disposable CLI fixtures using a separate ledger. Phase 4 remains in progress; scheduler/CLI health integration, operational UI and later real-provider work remain outstanding. Sending, real intake and public collection remain disabled. No Phase 5, cron activation, merge or deployment.
 
 ## Review baseline and method
 
@@ -229,7 +229,7 @@ Verified hosted evidence: [run `39050763912`](https://github.com/7mus7y-dotcom/p
 
 ### 4. Durable scheduler and provider-neutral worker
 
-- **Status:** in progress — Phase 4A queue storage/lifecycle only; worker, scheduler and UI remain outstanding.
+- **Status:** in progress — Phase 4A storage/lifecycle and Phase 4B bounded worker; scheduler/CLI health integration, operational UI and real-provider work remain outstanding.
 - **Goal/outcome:** schedule, pause, resume and cancel work reliably against a fake provider; production send feature flag remains off.
 - **Prerequisites:** Phase 3; decision on worker dependency, batch/concurrency limits and hosting scheduler.
 - **Work/components:** campaign worker, state machine, lease/reconciliation service, dedicated cron hook/CLI and health view; lifecycle scheduling/cleanup consistent with `inc/lifecycle.php`, `inc/cron/push_cron.php` and `inc/cli/push_cli.php`.
@@ -1567,3 +1567,257 @@ Hosted [run 39211751255](https://github.com/7mus7y-dotcom/pera-wp/actions/runs/3
 All six queue races passed on separate real SQL connections in each topology: prepare/prepare, batch/batch, batch/cancel, cancel/batch, pause/schedule and cancel/resume. Logs confirm actual blocking and no duplicate scope or stale overwrite. All nine existing freeze races and complete existing campaign/subscriber/default-theme desktop/mobile browser regressions also pass. Retained evidence: [single-site artifact 12167174383](https://github.com/7mus7y-dotcom/pera-wp/actions/runs/39211751255/artifacts/12167174383), [multisite artifact 12167589660](https://github.com/7mus7y-dotcom/pera-wp/actions/runs/39211751255/artifacts/12167589660). No new UI or new visual acceptance is claimed for this service-only change.
 
 PR [#1456](https://github.com/7mus7y-dotcom/pera-wp/pull/1456) targets main and is non-draft. Final evidence update changes this document only; runtime and tests are identical to the passing head. Earlier CI runs were superseded by fixture/evidence checkpoints, not accepted as final validation. Prerequisite #1454's tombstone review is resolved; #1455's final review was clean. Phase 4 remains in progress, with worker/scheduler/UI work and external readiness outstanding. User-reported property-block failure and usability issues above remain unresolved. No provider, worker, scheduler, delivery, merge, deployment, production records or live Phase 4 tests; sending/intake/public collection remain disabled.
+
+## Phase 4B — bounded worker and disposable fake-provider fixtures (in progress)
+
+2026-10-19: #1456 is merged as `199cb7f07414a542a0499f5aad90280d69707317`.
+Its final automated review of `e766a7b8b6` completed with no findings and no open
+inline threads. No AGENTS.md was found in workspace/repository ancestors or the
+repository. Shell Git fetch failed once (proxy unreachable); connected GitHub
+reads verified latest main and restored all 14 Phase 4A files. The local restored
+baseline tree is exactly `a3bd77c244e85b213226ed12e753b338e7d97a12`, matching
+published main. Original checkout remains on `checkpoint/pre-phase4b`.
+
+The worker is an abstract PeraCRM-owned SQL engine with explicit authority, gate
+and persistence dependencies. There is no production concrete store or adapter.
+`peracrm_campaign_worker_run()` always returns dispatch-disabled; the existing
+global dispatch function remains unconditional false. No configuration constant,
+request parameter, HTTP route, cron or automatic scheduler activates processing.
+The only concrete implementation is test-owned and requires disposable fixture,
+local environment, WP-CLI, exact synthetic database and a 256-bit process authority
+capability. It maps writes solely to target-blog `peracrm_fixture_worker_*` tables,
+cloned from prepared synthetic jobs. Fake accepted/completion outcomes cannot
+update ordinary queue jobs or deliveries. Fake provider source is never loaded by
+production bootstrap. Schema v27 adds lease/attempt/result fields and a unique
+per-delivery/version audit through existing additive readiness/migration checks.
+
+Each invocation handles one explicit job and at most 10 recipients. Claims lock
+job then recipient rows, enforce 10 active claims/inflight rows per job and four
+attempts, and persist random owner, 60-second lease, deterministic delivery key,
+attempt key and version before submission. Even expired leases consume capacity
+until bounded recovery fences them. Result updates require matching state, owner,
+version and unexpired database-clock lease. There is no database transaction over
+the provider boundary. Database uniqueness is not an exactly-once external send
+guarantee. A future adapter must define its own idempotency and lookup semantics.
+
+Final authorization rechecks gate, readiness, job state, preparation and due time,
+frozen member/address/content binding, supported rules and current subscription,
+evidence, cumulative suppression and linked-client eligibility. It uses fresh
+locking reads in suppression→subscriber order, coordinating with existing mailbox
+mutation services, and holds the job lock against pause/cancel. It never replaces
+the frozen mailbox with a newer client address. Exclusions are terminal with a
+reason. Once the inflight authorization commits, a concurrently starting provider
+request cannot be recalled by a subsequent withdrawal/pause/cancel; such changes
+prevent later authorizations. A crash in that boundary is deliberately ambiguous.
+Historical membership is not sending permission. No consent, subscriber, CRM
+pipeline or preference-token writes occur in the engine.
+
+The provider contract distinguishes acceptance with bounded stable correlation,
+known transient non-acceptance, permanent non-acceptance and unknown. Only proven
+transient non-acceptance gets deterministic exponential jitter (30 seconds base,
+3600-second base ceiling, up to 25% jitter), bounded retry-after (24 hours), and a
+four-attempt ceiling. Exceptions/malformed acceptance/timeouts are unknown.
+Expired claimed rows can recover without submission; expired inflight rows become
+unknown, never ready. Accepted and unknown rows are excluded from claims and
+ordinary lifecycle resume never resets them. Staff reconciliation requires campaign and subscriber-management
+capabilities, impersonation denial, nonce, expected version and provider-verified
+key/attempt-bound evidence. It records real actor and evidence digest atomically,
+is idempotent for the identical request and rejects stale/different evidence.
+Fake lookup/HMAC evidence and same-key/attempt idempotency are explicit fixture
+behavior, not promises about any future provider.
+
+`submission_complete` is separate from preparation `complete`. Exact persisted
+counts must match expected/prepared membership, with every row accepted/excluded/
+failed and no lease remaining. Preparation, held/claimed/inflight/retry and unknown
+rows prevent completion. Submission acceptance/completion does not mean inbox
+delivery. Cancellation remains a job-wide fence; it does not rewrite historical
+membership or resolve ambiguous acceptance.
+
+### Phase 4B verification checkpoint
+
+Added standalone provider/production-denial/bounds contracts and real SQL synthetic
+fixtures for separate-connection claims, concurrency ceiling, stale owners,
+pre-submit crash and process exit after durable fake acceptance, timeout/lookup/
+verified reconciliation, retry-after/exhaustion/permanent failure, pause/cancel
+before claim and authorization, withdrawal/suppression after freeze and claim,
+exact completion guards, authority, target isolation, protected history/state and
+zero mail/network. Existing race/browser assertions remain unchanged.
+
+Local Docker daemon is running but socket access is denied (`operation not
+permitted`, UID 1000); no local SQL/browser execution is claimed. Hosted topology
+execution and final local check counts will be recorded after the checkpoint.
+Fixtures added are not evidence of executed acceptance.
+
+Phase 4 remains **in progress**. Scheduler/CLI health integration, operational UI,
+provider selection/credentials/real adapter/domain/inbox/webhook work remain later.
+The property-block review failure and usability issues (Add identity label,
+obscured configuration errors, failed import returning to subscriber list) remain
+explicitly open. Historical legal/retention/editorial/accessibility and production
+readiness remain open. Sending, real intake and public collection remain disabled.
+No Phase 5, cron activation, merge or deployment.
+
+### Executed Phase 4B acceptance (2026-10-19)
+
+Implementation/test head `774db63ae69ed88be229a04af8142b4cf263fd5e` (local
+checkpoint `fbfa5fdb`, identical full tree
+`8f4df174807cefeefe492e88122c824ca0a46026`) passed
+[complete hosted run 39231113119](https://github.com/7mus7y-dotcom/pera-wp/actions/runs/39231113119):
+
+| Topology | Complete WordPress/MySQL job | Retained evidence through 2026-11-02 |
+| --- | --- | --- |
+| Single-site | [117989020163: success](https://github.com/7mus7y-dotcom/pera-wp/actions/runs/39231113119/job/117989020163) | [Artifact 12177435775](https://github.com/7mus7y-dotcom/pera-wp/actions/runs/39231113119/artifacts/12177435775) |
+| Multisite | [117989020596: success](https://github.com/7mus7y-dotcom/pera-wp/actions/runs/39231113119/job/117989020596) | [Artifact 12178190098](https://github.com/7mus7y-dotcom/pera-wp/actions/runs/39231113119/artifacts/12178190098) |
+
+Fetched both complete logs. Actual checks passed: exact 1/3/15-recipient synthetic
+published sources prepared through normal services; additive v26→v27 migration
+preserving prepared rows; missing worker audit uniqueness rejection; anonymous
+worker with independent authority and production invocation denial; persisted
+lease/owner/attempt/delivery keys; exact counts and unresolved/missing-membership
+completion guards; stable fake correlation; acceptance never reclaimed; expired
+pre-submit ownership recovery; ambiguous timeout held until verified lookup;
+ordinary pause/resume preserving unknown; anonymous/employee/impersonated and
+campaign-only reconciliation denial; rejected unverified/stale evidence;
+idempotent real-actor audited reconciliation; retry-after and future retry hold;
+four-attempt exhaustion; permanent failure; pause/cancel before claim and final
+authorization; unsubscribe, cumulative suppression, missing evidence and changed
+subscriber mailbox exclusion without address substitution; unchanged frozen
+history, subscribers, evidence, tokens, ordinary queue and cron; zero scoped
+mail/network calls; restored target context and no origin-blog fixture ledger.
+
+All eight new scenarios passed per topology. Six concurrent scenarios require
+distinct SQL connections and actual blocking: claim/claim with a ten-lease ceiling,
+expired-lease recovery/stale owner, pause/claim, cancel/claim, authorization/pause
+and authorization/unsubscribe. Two separate-process crash scenarios exit before
+submission and after durable fake acceptance respectively; the latter recovers to
+unknown, rejects late owner writes, resolves using verified fake evidence and
+never resubmits. The authorization races demonstrate the documented committed
+request boundary. All six existing queue and nine freeze races pass unchanged.
+Complete default-theme desktop/mobile subscriber/import/suppression and Phase
+3A/3B/3C browser regressions also pass. These are executed regression checks;
+no new UI, inbox rendering, manual visual/accessibility acceptance or real-provider
+validation is claimed.
+
+All 18 standalone regressions and 149 first-party PHP syntax checks pass locally
+and in hosted checks; shell/JavaScript syntax, Compose configuration and whitespace
+checks pass. Local PHP uses the existing PHP 8.4.24 wrapper. Local Docker socket
+and shell Git proxy limitations remain as recorded; real SQL/browser execution
+comes from hosted disposable synthetic fixtures. Main was rechecked and remains
+`199cb7f07414a542a0499f5aad90280d69707317`.
+
+Earlier failed/superseded runs are not acceptance evidence. Fixture fixes preserve
+single-site target ID 0 semantics, create exact-sized published memberships rather
+than truncating the history binding, retain the existing mailbox race entrypoint,
+and place the lease-race barrier after the job lock inside fenced recovery.
+Minimum blocking assertions and existing race/browser assertions were not weakened.
+The engine also rechecks ownership after mailbox contention before renewing the
+inflight lease; pause before submission does not consume an attempt.
+
+Changed files, all relative to `wp-content/plugins/peracrm/` (14 total):
+`inc/campaigns/worker.php`, `inc/campaigns/queue-schema.php`,
+`inc/campaigns/schema.php`, `inc/bootstrap.php`, `peracrm.php`,
+`tests/campaign-worker-test.php`, `tests/campaign-foundations-test.php`,
+`tests/authorization-surfaces-test.php`,
+`tests/integration/campaigns/assertions.php`,
+`tests/integration/campaigns/queue-worker.php`,
+`tests/integration/campaigns/worker-fixture.php`,
+`tests/integration/campaigns/worker-race.php`,
+`tests/integration/campaigns/run-inside.sh`, and this living plan.
+No theme files or existing browser assertions changed.
+
+Non-draft [PR #1457](https://github.com/7mus7y-dotcom/pera-wp/pull/1457) targets
+main. This final evidence change is documentation-only; engine and fixtures match
+the passing head above. Phase 4 remains **in progress** with scheduler/CLI health
+integration, operational UI and later real-provider work outstanding. Property-block
+review failure and all recorded usability issues remain open. Sending, real intake
+and public collection remain disabled. No Phase 5, cron activation, merge or
+deployment.
+
+## PR #1457 acceptance follow-up — attempts and sequential leases (technical acceptance passed)
+
+Follow-up starts from PR head `fcdd07cbf30761e071283c8e3c9dc411b40da529`
+on `feat/campaign-phase4b-worker`, based on main `199cb7f`. Both review findings
+were inspected against current code. The existing no-submission pause/future-schedule
+path already returns the reserved attempt; new fourth-claim regressions exercise
+three proven transient outcomes, claim four, pause/resume or future scheduling,
+zero calls while blocked, restored count three and successful fourth submission.
+
+`run()` now claims one recipient immediately before processing it, up to the same
+explicit 1–10 invocation bound. It does not acquire leases or reserve attempts for
+recipients waiting behind earlier provider calls. Atomic claims retain the shared
+per-job concurrency ceiling and existing owner/version fences and live rechecks.
+If processing aborts, later recipients remain held with untouched attempt budgets.
+Bounded recovery also refunds expired `claimed` reservations (including claim four)
+because submission was never authorized. Expired `inflight` rows still become
+unknown and retain their consumed attempt; acceptance/unknown cannot be reclaimed.
+
+The provider boundary explicitly receives `timeout_seconds=20`; a future adapter
+must enforce this total transport timeout against the 60-second in-flight lease,
+leaving 40 seconds for persistence/lock contention. This synchronous neutral
+engine cannot forcibly interrupt a misbehaving dependency. A return after lease
+expiry is rejected by ownership fencing; bounded recovery holds the in-flight
+outcome as unknown for verified reconciliation. It is never treated as proven
+non-acceptance and never blindly retried. No real adapter is introduced here.
+
+Added real SQL fixture regressions for ten seven-second simulated submissions
+(cumulative 70 seconds), no waiting leases/attempts, a provider ignoring its timeout
+and taking 61 seconds, preserved untouched rows after abort, unknown recovery,
+stale-result rejection, no accepted/unknown retry, and refund/reprocessing of
+three untouched fourth claims. Elapsed-time tests advance only the disposable
+SQL connection's database clock with MySQL `SET timestamp`, restoring it in
+`finally`; they exercise the actual SQL lease timestamps/fences without wall-clock
+sleeps or real delivery. Existing separate-connection race/browser assertions are
+preserved. Focused/full execution and review-thread evidence will be recorded
+below after validation; added fixtures alone are not acceptance evidence.
+
+Phase 4 remains in progress. Production invocation/global dispatch remain
+unconditionally disabled and fake outcomes stay in isolated fixture ledgers.
+Scheduler/CLI health, operational UI and later real-provider work remain later;
+property-block and recorded usability issues remain explicitly open. No scheduler,
+UI, provider integration, real delivery, merge or deployment.
+
+### Follow-up executed evidence and review disposition
+
+Implementation/test head `2966c2be7cc5bd9eba55eb3f1ad4aec428b1f814` (local
+checkpoint `b34bdd25`, identical full tree
+`64e622ba6ebfd29905d0a83a70a06a72f38bd4f3`) passed
+[complete run 39233082965](https://github.com/7mus7y-dotcom/pera-wp/actions/runs/39233082965).
+Both complete real WordPress/MySQL suites succeeded:
+[single-site job 117995515845](https://github.com/7mus7y-dotcom/pera-wp/actions/runs/39233082965/job/117995515845)
+and [multisite job 117995516221](https://github.com/7mus7y-dotcom/pera-wp/actions/runs/39233082965/job/117995516221).
+Retained [single-site artifact 12177953438](https://github.com/7mus7y-dotcom/pera-wp/actions/runs/39233082965/artifacts/12177953438)
+and [multisite artifact 12178545514](https://github.com/7mus7y-dotcom/pera-wp/actions/runs/39233082965/artifacts/12178545514)
+expire 2026-11-02.
+
+Fetched both complete logs and verified every new fourth-claim, cumulative slow
+submission, over-lease, untouched recovery and stale-owner assertion described
+above. The logs explicitly confirm future scheduling remains a gate, ten calls
+with 70 simulated cumulative seconds succeed with no waiting claims, five later
+rows remain untouched, and a 61-second violating call cannot persist a late result.
+Its recovery is unknown, two later rows remain at attempt zero and can proceed
+without resending accepted/unknown rows. Three untouched fourth claims recover at
+count three and subsequently succeed at count four. Invalid invocation bounds
+are rejected before claiming/submitting. These are executed SQL regressions using
+simulated elapsed database time, not real slow network/provider acceptance.
+
+All eight existing worker race/crash scenarios, six queue races, nine freeze
+races, full desktop/mobile browser regressions, live eligibility and protected
+history/subscriber/consent/token/ordinary-queue/cron assertions pass unchanged in
+both topologies. Scoped mail/network calls remain zero. All 18 standalone
+regressions, 150 first-party PHP syntax checks, focused worker contracts, shell
+syntax and whitespace checks pass. Local Docker/shell-network limitations remain
+as recorded; actual SQL/browser execution is hosted, using synthetic fixtures.
+
+Posted separate fix-specific evidence replies for the
+[fourth-claim finding](https://github.com/7mus7y-dotcom/pera-wp/pull/1457#discussion_r4312465673)
+and [sequential-lease finding](https://github.com/7mus7y-dotcom/pera-wp/pull/1457#discussion_r4312465936),
+then resolved both verified threads. Latest-head review is requested after this
+final documentation checkpoint; thread resolution and passing tests alone do not
+establish a clean latest-head review. This evidence checkpoint changes only the
+living plan; runtime and fixtures are identical to the passing head above.
+
+Follow-up changes only `inc/campaigns/worker.php`, the fixture provider and queue
+worker harness, new `tests/integration/campaigns/worker-lease-acceptance.php`, and
+this plan. No schema, scheduler, UI or real-provider integration. Production
+dispatch stays unconditionally disabled, fake outcomes stay isolated, Phase 4
+remains in progress and the recorded property-block/usability issues remain open.
+No sending, real intake, public collection, merge or deployment.
