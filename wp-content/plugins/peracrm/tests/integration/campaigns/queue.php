@@ -38,9 +38,11 @@ for ($i=0;$i<205;$i++) {
 $doc=['internal_name'=>'Queue fixture','subject'=>'Synthetic queue','sender_id'=>'queue','language'=>'en','main_text'=>'Immutable queue content','audience'=>['version'=>1,'topic'=>'queue']];
 $d=peracrm_campaign_draft_save(0,0,$doc); queue_expect(!is_wp_error($d),'queue draft saved');
 $c=$d['id']; $nonce=wp_create_nonce('peracrm_campaign_queue_'.$c);
+queue_expect(is_wp_error(peracrm_campaign_queue_prepare($c,1,$nonce)),'actual draft campaign without publication rejected');
 queue_expect(is_wp_error(peracrm_campaign_queue_prepare($c,999999,$nonce)),'draft/unpublished ID cannot prepare');
 $review=peracrm_campaign_snapshot_review($c,1,$d['document']);
 $s=peracrm_campaign_snapshot_capture($c,1,$d['document'],$review['review_proof'],wp_create_nonce('peracrm_campaign_snapshot_'.$c.'_1'));
+queue_expect(is_wp_error(peracrm_campaign_queue_prepare($c,(int)$s['id'],$nonce)),'actual unpublished content capture rejected');
 $fn=wp_create_nonce('peracrm_campaign_freeze_'.$c);
 $a=peracrm_campaign_freeze_start($c,1,(int)$s['id'],$s['content_hash'],$d['document'],$fn);
 queue_expect(!is_wp_error($a),'queue freeze started');
@@ -49,8 +51,13 @@ for ($i=0;$i<100 && !(int)$a['complete'];$i++) { $a=peracrm_campaign_freeze_cont
 $a=peracrm_campaign_freeze_publish($c,(int)$a['id'],(int)$a['version'],$fn); queue_expect(!is_wp_error($a),'queue source published');
 $r=peracrm_campaign_frozen_get($c,1); $rid=(int)$r['id'];
 $history=queue_history($rid);
+queue_expect(!is_wp_error(peracrm_campaigns_record_consent('queue-0@example.test','unsubscribed',['source'=>'synthetic_fixture','source_ref'=>'queue-withdrawal','evidence_ref'=>'synthetic','policy_version'=>'v1','occurred_at'=>gmdate('Y-m-d H:i:s')])),'synthetic withdrawal after publication; future worker must recheck live consent');
 $protected=queue_target(static function () { global $wpdb; $out=[]; foreach (['peracrm_subscribers','peracrm_subscription_events','peracrm_email_suppressions','peracrm_email_suppression_events','peracrm_subscriber_tokens'] as $name) { $out[$name]=$wpdb->get_results('SELECT * FROM '.peracrm_table($name).' ORDER BY 1',ARRAY_A); } return wp_json_encode($out); });
 $cron=queue_target(static function () { return get_option('cron'); });
+$mail_attempts=0; $network_attempts=0;
+$mail_probe=static function ($return) use (&$mail_attempts) { $mail_attempts++; return $return; };
+$network_probe=static function ($return) use (&$network_attempts) { $network_attempts++; return $return; };
+add_filter('pre_wp_mail',$mail_probe,100); add_filter('pre_http_request',$network_probe,100);
 foreach ([0,$employee] as $actor) { wp_set_current_user($actor); queue_expect(is_wp_error(peracrm_campaign_queue_prepare($c,$rid,$nonce)),'staff authority denial'); }
 wp_set_current_user($manager); update_user_meta($manager,PERACRM_VIEW_AS_USER_META_KEY,$employee);
 queue_expect(is_wp_error(peracrm_campaign_queue_prepare($c,$rid,$nonce)),'impersonation denied'); delete_user_meta($manager,PERACRM_VIEW_AS_USER_META_KEY);
@@ -90,11 +97,16 @@ queue_expect((int)$again['version']===(int)$j['version'] && $again['state']==='c
 // Existing freeze cleanup cannot remove the published queue scope or its history.
 wp_set_current_user($admin); $cleanup=peracrm_campaign_freeze_cleanup($c,(int)$a['id'],$fn); wp_set_current_user($manager);
 queue_expect(is_wp_error($cleanup) && queue_get($j)['state']==='cancelled','cleanup cannot bypass cancellation fence');
+// Fixture-only simulation of future child retention. The scope tombstone must survive missing payloads.
+queue_target(static function () use ($j) { global $wpdb; $wpdb->delete(peracrm_table('peracrm_campaign_deliveries'),['job_id'=>$j['id']]); });
+$terminal=peracrm_campaign_queue_prepare($c,$rid,$nonce);
+queue_expect((int)$terminal['id']===(int)$j['id'] && $terminal['state']==='cancelled' && is_wp_error(queue_batch($terminal,$nonce)) && is_wp_error(queue_op($terminal,$nonce,'resume')) && !peracrm_campaign_queue_page($c,(int)$j['id']),'cancelled scope fences survive child cleanup and repeated prepare/resume/materialize');
 $events=peracrm_campaign_queue_page($c,(int)$j['id'],0,true);
 queue_expect(count($events)>5 && count(array_unique(array_column($events,'version')))===count($events) && array_values(array_unique(array_map('intval',array_column($events,'actor_user_id'))))===[$manager],'state transitions audit real actor and unique version');
-queue_expect($history===queue_history($rid),'frozen content/membership history unchanged');
+queue_expect($history===queue_history($rid) && peracrm_campaign_frozen_get($c,1)===$r,'frozen content bytes/membership unchanged after queue lifecycle and later withdrawal');
 $after=queue_target(static function () { global $wpdb; $out=[]; foreach (['peracrm_subscribers','peracrm_subscription_events','peracrm_email_suppressions','peracrm_email_suppression_events','peracrm_subscriber_tokens'] as $name) { $out[$name]=$wpdb->get_results('SELECT * FROM '.peracrm_table($name).' ORDER BY 1',ARRAY_A); } return wp_json_encode($out); });
-queue_expect($protected===$after && $cron===queue_target(static function () { return get_option('cron'); }) && !peracrm_campaign_queue_dispatch_allowed() && is_wp_error(peracrm_campaign_queue_require_dispatch()),'no subscriber/token mutation, cron registration or dispatch');
+remove_filter('pre_wp_mail',$mail_probe,100); remove_filter('pre_http_request',$network_probe,100);
+queue_expect($mail_attempts===0 && $network_attempts===0 && $protected===$after && $cron===queue_target(static function () { return get_option('cron'); }) && !peracrm_campaign_queue_dispatch_allowed() && is_wp_error(peracrm_campaign_queue_require_dispatch()),'no subscriber/token mutation, cron registration or dispatch');
 if (is_multisite() && $origin!==peracrm_get_target_blog_id()) {
     global $wpdb;
     queue_expect($wpdb->get_var($wpdb->prepare('SHOW TABLES LIKE %s',$wpdb->prefix.'peracrm_campaign_queue_jobs'))===null,'no queue tables created on source blog');

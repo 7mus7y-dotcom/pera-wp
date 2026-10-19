@@ -1,6 +1,6 @@
 # Integrated email campaigns: repository review and living implementation plan
 
-Review status: **complete** (2026-10-17). Implementation: **Phase 1 complete (technical acceptance)**; **Phase 2 in progress**; **Phase 3 in progress (3A/3B/3C technical checks passed; completion pending clean review; external approvals/readiness remain open)**; **Phase 4 in progress (4A durable queue services; validation pending)**; Phases 5–7 not started.
+Review status: **complete** (2026-10-17). Implementation: **Phase 1 complete (technical acceptance)**; **Phase 2 in progress**; **Phase 3 in progress (3A/3B/3C technical/live core checks passed; clean PR review recorded; property review and external readiness remain open)**; **Phase 4 in progress (4A durable queue services; hosted validation pending)**; Phases 5–7 not started.
 
 ## Purpose, scope and maintenance
 
@@ -229,7 +229,7 @@ Verified hosted evidence: [run `39050763912`](https://github.com/7mus7y-dotcom/p
 
 ### 4. Durable scheduler and provider-neutral worker
 
-- **Status:** not started.
+- **Status:** in progress — Phase 4A queue storage/lifecycle only; worker, scheduler and UI remain outstanding.
 - **Goal/outcome:** schedule, pause, resume and cancel work reliably against a fake provider; production send feature flag remains off.
 - **Prerequisites:** Phase 3; decision on worker dependency, batch/concurrency limits and hosting scheduler.
 - **Work/components:** campaign worker, state machine, lease/reconciliation service, dedicated cron hook/CLI and health view; lifecycle scheduling/cleanup consistent with `inc/lifecycle.php`, `inc/cron/push_cron.php` and `inc/cli/push_cli.php`.
@@ -1549,7 +1549,7 @@ User-reported live Phase 3 checks passed: synthetic import, consent/suppression 
 - `peracrm_campaign_queue_materialize(campaign_id, job_id, version, nonce, limit=200)` uses keyset batches of 1–200, verifies each frozen recipient against its eligible evaluation, and commits inserts/cursor/counts/audit together. SQL/integrity failure rolls back and version-fences a recoverable failed job; resume uses existing rows. Partial preparation cannot schedule or dispatch. Completion reconciles exact persisted delivery counts.
 - `peracrm_campaign_queue_transition(..., operation, schedule=null)` supports schedule/pause/resume/cancel. Preparing → queued only after complete materialization; queued/scheduled → scheduled stores intent; preparing/queued/scheduled → paused → prior state; failed → preparing; all active states → cancelled, terminal. Cancellation retries with the current version are no-ops. Expected versions fence stale changes. Staff requires target campaign capability, readiness and no impersonation; audit uses real actor. Every mutation requires nonce `peracrm_campaign_queue_{campaign_id}`.
 - Scheduling accepts only RFC3339 seconds with explicit Z or numeric offset (maximum ±14:00); rejects naive times, unknown -00:00 offsets, invalid calendar/time values and past instants. Explicit offsets disambiguate repeated local hours. Stored times are UTC. No server timezone interpretation or process to execute the intent.
-- Delivery rows remain `held`; job state is the job-wide pause/cancel/partial fence. Read APIs `peracrm_campaign_queue_get` and `peracrm_campaign_queue_page` authorize and target-wrap; pages are at most 200, recipient detail additionally requires subscriber capability. Dispatch status is always false. `peracrm_campaign_queue_dispatch_allowed()` unconditionally returns false and `peracrm_campaign_queue_require_dispatch()` returns an error. No option, constant, copied database or environment can enable dispatch in this phase.
+- Delivery rows remain `held`; job state is the job-wide pause/cancel/partial fence. Read APIs `peracrm_campaign_queue_get` and `peracrm_campaign_queue_page` authorize and target-wrap; pages are at most 200, recipient detail additionally requires subscriber capability. Dispatch status is always false. `peracrm_campaign_queue_dispatch_allowed()` unconditionally returns false and `peracrm_campaign_queue_require_dispatch()` returns an error. No option, constant, copied database or environment can enable dispatch in this phase. The job `complete` field means preparation is complete, never campaign delivery completion.
 - No preference-token issuance, subscriber writes or personalized shared HTML. No cron, automatic dispatch, worker, provider/network/mail/test email or production-enablement controls.
 
 ### Later worker contract — documentation only
