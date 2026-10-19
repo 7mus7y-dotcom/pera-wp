@@ -14,36 +14,36 @@ $hero_intro   = $args['hero_intro']   ?? pera_ml_ui( 'Whether you’re buying, s
 
 $sell_with_pera_faq_items = array(
     array(
-        'question' => 'How do I sell my property in Istanbul?',
-        'answer'   => 'Start with a valuation and sales strategy. We then prepare marketing, coordinate viewings, negotiate offers and support the title deed transfer process until completion.',
+        'question' => pera_ml_ui( 'How do I sell my property in Istanbul?', 'theme.template.page_sell_with_pera.faq_1_q' ),
+        'answer'   => pera_ml_ui( 'Start with a valuation and sales strategy. We then prepare marketing, coordinate viewings, negotiate offers and support the title deed transfer process until completion.', 'theme.template.page_sell_with_pera.faq_1_a' ),
     ),
     array(
-        'question' => 'How long does it take to sell a property in Istanbul?',
-        'answer'   => 'Timelines vary by district, price point and property condition. Well-priced homes in active areas can attract offers quickly, while premium listings may require a longer marketing window.',
+        'question' => pera_ml_ui( 'How long does it take to sell a property in Istanbul?', 'theme.template.page_sell_with_pera.faq_2_q' ),
+        'answer'   => pera_ml_ui( 'Timelines vary by district, price point and property condition. Well-priced homes in active areas can attract offers quickly, while premium listings may require a longer marketing window.', 'theme.template.page_sell_with_pera.faq_2_a' ),
     ),
     array(
-        'question' => 'What documents do I need to sell property in Turkey?',
-        'answer'   => 'Most sellers need the tapu, ID or passport, tax number and supporting compliance documents such as DASK or iskan where relevant, plus debt and encumbrance checks.',
+        'question' => pera_ml_ui( 'What documents do I need to sell property in Turkey?', 'theme.template.page_sell_with_pera.faq_3_q' ),
+        'answer'   => pera_ml_ui( 'Most sellers need the tapu, ID or passport, tax number and supporting compliance documents such as DASK or iskan where relevant, plus debt and encumbrance checks.', 'theme.template.page_sell_with_pera.faq_3_a' ),
     ),
     array(
-        'question' => 'Can I sell my Istanbul property if I live abroad?',
-        'answer'   => 'Yes. We can manage valuation, marketing and viewings remotely, and coordinate power of attorney and lawyer-led documentation so the sale can progress while you are overseas.',
+        'question' => pera_ml_ui( 'Can I sell my Istanbul property if I live abroad?', 'theme.template.page_sell_with_pera.faq_4_q' ),
+        'answer'   => pera_ml_ui( 'Yes. We can manage valuation, marketing and viewings remotely, and coordinate power of attorney and lawyer-led documentation so the sale can progress while you are overseas.', 'theme.template.page_sell_with_pera.faq_4_a' ),
     ),
     array(
-        'question' => 'How much does Pera Property charge to sell my property?',
-        'answer'   => 'Pera Property\'s standard sales agency fee is 4% unless otherwise agreed in writing.',
+        'question' => pera_ml_ui( 'How much does Pera Property charge to sell my property?', 'theme.template.page_sell_with_pera.faq_5_q' ),
+        'answer'   => pera_ml_ui( 'Pera Property\'s standard sales agency fee is 4% unless otherwise agreed in writing.', 'theme.template.page_sell_with_pera.faq_5_a' ),
     ),
     array(
-        'question' => 'How is my Istanbul property valuation calculated?',
-        'answer'   => 'We assess recent comparables where available, micro-location, building condition, floor and view quality, layout, demand trends and rental/investment potential.',
+        'question' => pera_ml_ui( 'How is my Istanbul property valuation calculated?', 'theme.template.page_sell_with_pera.faq_6_q' ),
+        'answer'   => pera_ml_ui( 'We assess recent comparables where available, micro-location, building condition, floor and view quality, layout, demand trends and rental/investment potential.', 'theme.template.page_sell_with_pera.faq_6_a' ),
     ),
     array(
-        'question' => 'Do I need a lawyer to sell property in Turkey?',
-        'answer'   => 'A lawyer is not always legally mandatory, but many sellers choose one for contract review, tax coordination and risk management during the transfer process.',
+        'question' => pera_ml_ui( 'Do I need a lawyer to sell property in Turkey?', 'theme.template.page_sell_with_pera.faq_7_q' ),
+        'answer'   => pera_ml_ui( 'A lawyer is not always legally mandatory, but many sellers choose one for contract review, tax coordination and risk management during the transfer process.', 'theme.template.page_sell_with_pera.faq_7_a' ),
     ),
     array(
-        'question' => 'Can you manage viewings if the property is tenanted?',
-        'answer'   => 'Yes. We coordinate with tenants or caretakers, schedule qualified buyer visits and keep disruption to occupants as limited as possible.',
+        'question' => pera_ml_ui( 'Can you manage viewings if the property is tenanted?', 'theme.template.page_sell_with_pera.faq_8_q' ),
+        'answer'   => pera_ml_ui( 'Yes. We coordinate with tenants or caretakers, schedule qualified buyer visits and keep disruption to occupants as limited as possible.', 'theme.template.page_sell_with_pera.faq_8_a' ),
     ),
 );
 
