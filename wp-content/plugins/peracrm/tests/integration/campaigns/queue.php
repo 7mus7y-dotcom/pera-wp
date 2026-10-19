@@ -86,7 +86,7 @@ queue_expect($j['scheduled_at']==='2035-01-01 09:00:00' && $j['state']==='schedu
 $j=queue_op($j,$nonce,'pause'); $j=queue_op($j,$nonce,'resume');
 queue_expect($j['state']==='scheduled' && $all===array_merge(peracrm_campaign_queue_page($c,(int)$j['id']),peracrm_campaign_queue_page($c,(int)$j['id'],(int)$all[199]['id'])),'pause/resume reuse exact delivery rows');
 $j=queue_op($j,$nonce,'cancel'); $again=queue_op($j,$nonce,'cancel');
-queue_expect($again===$j && is_wp_error(queue_op($j,$nonce,'resume')) && (int)peracrm_campaign_queue_prepare($c,$rid,$nonce)['id']===(int)$j['id'],'terminal cancellation/repeated requests preserve scope fence');
+queue_expect((int)$again['version']===(int)$j['version'] && $again['state']==='cancelled' && is_wp_error(queue_op($j,$nonce,'resume')) && (int)peracrm_campaign_queue_prepare($c,$rid,$nonce)['id']===(int)$j['id'],'terminal cancellation/repeated requests preserve scope fence');
 // Existing freeze cleanup cannot remove the published queue scope or its history.
 wp_set_current_user($admin); $cleanup=peracrm_campaign_freeze_cleanup($c,(int)$a['id'],$fn); wp_set_current_user($manager);
 queue_expect(is_wp_error($cleanup) && queue_get($j)['state']==='cancelled','cleanup cannot bypass cancellation fence');
