@@ -103,7 +103,7 @@ class PeraCRM_Campaign_Operations
             try {
                 $j=$this->table('jobs'); $d=$this->table('deliveries'); $now=$this->timestamp();
                 $counts=[];
-                foreach (['queued','scheduled','paused','cancelled','preparing'] as $state) { $counts[$state.'_jobs']=$this->count($j,"state='{$state}'"); }
+                foreach (['queued','scheduled','paused','cancelled','preparing','failed'] as $state) { $counts[$state.'_jobs']=$this->count($j,"state='{$state}'"); }
                 $counts['due_jobs']=$this->count($j.' j',$this->due_where($now));
                 global $wpdb;
                 foreach (['active'=>'>','expired'=>'<='] as $label=>$op) {

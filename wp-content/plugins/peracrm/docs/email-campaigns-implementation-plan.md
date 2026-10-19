@@ -1949,3 +1949,28 @@ Phase 4 remains **in progress** with operational UI and real-provider/external
 readiness outstanding. Property-block review failure and all recorded usability
 issues remain unresolved. Sending, real intake and public collection remain
 disabled. No Phase 5, merge or deployment.
+
+### PR #1458 follow-up — failed materialization health counts
+
+The latest finding omitted the recoverable `failed` queue-job lifecycle state.
+Health now includes `failed_jobs` alongside the existing five lifecycle counts;
+JSON and text use the same allowlisted health payload. This counts job rows,
+independently of recipient delivery rows in the `failed` outcome state.
+
+The existing real SQL queue regression now inspects health before its forced
+materialization update fault, after rollback/persisted failure, after explicit
+resume, and after successful materialization. It asserts exact lifecycle deltas,
+all existing state aggregates (including paused/scheduled/cancelled checkpoints),
+and no change to job counts when a recipient delivery is temporarily failed.
+Every checkpoint executes the real JSON and text CLI in separate processes,
+checks exact counts/disabled exit 2/empty stderr/privacy, and compares complete
+queue, delivery, lifecycle/worker event and option snapshots before/after reads.
+Existing history/subscriber/token/cron/no-mail/no-HTTP assertions remain intact.
+
+Validation pending on the existing hosted single-site/multisite workflow. Local
+PHP is absent and the Docker socket is denied; these blocked commands will not
+be retried. Local whitespace checks pass. Added assertions are not yet executed
+acceptance; finding resolution waits for both complete hosted suites. Only the
+health aggregate, focused queue regression and this plan change. Dispatch,
+intake and public collection gates remain unchanged and disabled. Phase 4 stays
+in progress; no new UI, merge or deployment.
