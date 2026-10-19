@@ -57,7 +57,8 @@ function peracrm_campaign_queue_ui_schedule($input)
     $errors=DateTimeImmutable::getLastErrors();
     if (!$local || ($errors && ($errors['warning_count'] || $errors['error_count'])) || $local->format('Y-m-d\TH:i')!==$input) { throw new InvalidArgumentException('Enter a valid Istanbul calendar date and time.'); }
     $explicit=$local->format('Y-m-d\TH:i:sP');
-    peracrm_campaign_queue_schedule_utc($explicit);
+    try { peracrm_campaign_queue_schedule_utc($explicit); }
+    catch (InvalidArgumentException $error) { throw new InvalidArgumentException('Enter a valid future date and time in Istanbul (Europe/Istanbul).'); }
     return $explicit;
 }
 function peracrm_campaign_queue_ui_time($utc)

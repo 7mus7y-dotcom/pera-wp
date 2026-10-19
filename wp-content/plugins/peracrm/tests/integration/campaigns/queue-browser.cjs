@@ -93,6 +93,7 @@ module.exports = async function ({page,target,context,employeeContext,browser}) 
   // HTML validation and server validation do not lose unsaved local input.
   const schedule=page.locator('[data-queue-schedule]');
   await schedule.fill('2020-01-01T12:00'); await click('Record schedule intent',false);
+  if(!(await feedback().innerText()).includes('Enter a valid future date and time in Istanbul')) throw Error('Schedule validation does not explain the actual Istanbul input');
   if(await schedule.inputValue()!=='2020-01-01T12:00') throw Error('Validation lost schedule input');
   await capture('schedule-error',size); await click('Reload current state');
   await schedule.fill('2099-06-01T12:34');
