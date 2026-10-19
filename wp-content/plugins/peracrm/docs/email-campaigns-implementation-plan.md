@@ -229,7 +229,7 @@ Verified hosted evidence: [run `39050763912`](https://github.com/7mus7y-dotcom/p
 
 ### 4. Durable scheduler and provider-neutral worker
 
-- **Status:** in progress — Phase 4A queue storage/lifecycle only; worker, scheduler and UI remain outstanding.
+- **Status:** in progress — Phase 4A storage/lifecycle and Phase 4B bounded worker; scheduler/CLI health integration, operational UI and real-provider work remain outstanding.
 - **Goal/outcome:** schedule, pause, resume and cancel work reliably against a fake provider; production send feature flag remains off.
 - **Prerequisites:** Phase 3; decision on worker dependency, batch/concurrency limits and hosting scheduler.
 - **Work/components:** campaign worker, state machine, lease/reconciliation service, dedicated cron hook/CLI and health view; lifecycle scheduling/cleanup consistent with `inc/lifecycle.php`, `inc/cron/push_cron.php` and `inc/cli/push_cli.php`.
@@ -1623,7 +1623,7 @@ ordinary lifecycle resume never resets them. Staff reconciliation requires campa
 capability, impersonation denial, nonce, expected version and provider-verified
 key/attempt-bound evidence. It records real actor and evidence digest atomically,
 is idempotent for the identical request and rejects stale/different evidence.
-Fake lookup/HMAC evidence and delivery-key idempotency are explicit fixture
+Fake lookup/HMAC evidence and same-key/attempt idempotency are explicit fixture
 behavior, not promises about any future provider.
 
 `submission_complete` is separate from preparation `complete`. Exact persisted

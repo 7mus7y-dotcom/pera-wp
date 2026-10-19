@@ -57,7 +57,7 @@ abstract class PeraCRM_Campaign_Worker
         $this->authorize();
         return peracrm_with_target_blog(function () use ($fn) {
             $this->authorize();
-            if (!peracrm_campaigns_schema_ready()) { throw new RuntimeException('Campaign schema is not ready.'); }
+            if (!peracrm_campaigns_module_enabled()) { throw new RuntimeException('Campaign schema is not ready.'); }
             global $wpdb;
             peracrm_campaigns_db_require($wpdb->query('START TRANSACTION'));
             try {
@@ -192,18 +192,25 @@ abstract class PeraCRM_Campaign_Worker
             $row = $this->delivery((int)$claim['job_id'], (int)$claim['id']);
             $now = $this->now(); $this->owned($row, $claim, $now, 'claimed');
             if (!$this->due($job, $now)) {
+                // No submission occurred. A pause is not an attempt and cannot exhaust the queue.
                 return $this->write($row, ['state'=>$job['state'] === 'cancelled' ? 'excluded' : 'held',
+                    'attempt_count'=>max(0, (int)$row['attempt_count'] - 1),
                     'reason'=>$job['state'] === 'cancelled' ? 'cancelled' : 'job_gate', 'owner_token'=>'', 'lease_until'=>null]);
             }
             $reason = $this->eligibility($job, $row);
             if ($reason !== 'eligible') { return $this->write($row, ['state'=>'excluded', 'reason'=>$reason, 'owner_token'=>'', 'lease_until'=>null]); }
-            return $this->write($row, ['state'=>'inflight', 'reason'=>'authorized']);
+            // Mailbox lock contention may have consumed the original lease. Never authorize an expired owner.
+            $now = $this->now(); $this->owned($row, $claim, $now, 'claimed');
+            return $this->write($row, ['state'=>'inflight', 'reason'=>'authorized',
+                'lease_until'=>gmdate('Y-m-d H:i:s', strtotime($now.' UTC') + self::LEASE)]);
         });
         if ($authorized['state'] !== 'inflight') { return $authorized; }
         // A pause/withdrawal after authorization cannot recall an already starting external request.
         // Recheck the independent gate at the boundary; no switch can open production dispatch.
         $this->authorize();
         if (!$this->gate()) { return $this->result($authorized, ['kind'=>'unknown']); }
+        $now = peracrm_with_target_blog(function () { return $this->now(); });
+        $this->owned($authorized, $authorized, $now, 'inflight');
         try { $result = $provider->submit(['mailbox'=>$authorized['mailbox'], 'delivery_key'=>$authorized['delivery_key'], 'attempt_key'=>$authorized['attempt_key']]); }
         catch (Throwable $e) { $result = ['kind'=>'unknown']; }
         return $this->result($authorized, $result);

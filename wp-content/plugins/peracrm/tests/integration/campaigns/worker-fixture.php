@@ -24,7 +24,7 @@ final class PeraCRM_Fixture_Worker extends PeraCRM_Campaign_Worker
     protected function table(string $entity): string
     {
         $this->authorize();
-        if (get_current_blog_id() !== peracrm_get_target_blog_id() || !in_array($entity, ['jobs','deliveries','events'], true)) { throw new RuntimeException('Target fixture ledger required.'); }
+        if ((is_multisite() && (peracrm_get_target_blog_id() < 1 || get_current_blog_id() !== peracrm_get_target_blog_id())) || !in_array($entity, ['jobs','deliveries','events'], true)) { throw new RuntimeException('Target fixture ledger required.'); }
         return peracrm_table('peracrm_fixture_worker_'.$entity);
     }
 }
@@ -43,7 +43,7 @@ final class PeraCRM_Fake_Campaign_Provider implements PeraCRM_Campaign_Provider
         if ($GLOBALS['worker_fixture_in_transaction']) { throw new LogicException('Provider invoked inside transaction.'); }
         $key = $submission['delivery_key']; $attempt = $submission['attempt_key'];
         $prior = $this->lookup($key, $attempt);
-        if ($prior && $prior['kind'] === 'accepted') { return $prior; } // fixture-specific delivery-key idempotency
+        if ($prior && $prior['kind'] === 'accepted') { return $prior; } // fixture-specific same-key/attempt idempotency
         $kind = in_array($this->mode, ['accepted','crash_after_accept','timeout_after_accept'], true) ? 'accepted' : $this->mode;
         $evidence = ['kind'=>$kind, 'message_id'=>$kind === 'accepted' ? 'fake-'.substr($key,0,32) : '', 'retry_after'=>120,
             'delivery_key'=>$key, 'attempt_key'=>$attempt];
@@ -88,10 +88,9 @@ function worker_fixture_reset(int $limit = 3): int
             $wpdb->query('DROP TABLE IF EXISTS '.$table);
             peracrm_campaigns_db_require($wpdb->query('CREATE TABLE '.$table.' LIKE '.peracrm_table($source)));
         }
-        $job = $wpdb->get_row('SELECT * FROM '.peracrm_table('peracrm_campaign_queue_jobs')." WHERE state='queued' AND complete=1 ORDER BY id DESC LIMIT 1", ARRAY_A);
+        $job = $wpdb->get_row('SELECT * FROM '.peracrm_table('peracrm_campaign_queue_jobs')." WHERE state='queued' AND complete=1 AND expected_count=".(int)$limit." ORDER BY id DESC LIMIT 1", ARRAY_A);
         if (!$job) { throw new RuntimeException('Prepared synthetic queue required.'); }
         $source = (int)$job['id'];
-        $job['expected_count']=$limit; $job['prepared_count']=$limit;
         peracrm_campaigns_db_require($wpdb->insert(peracrm_table('peracrm_fixture_worker_jobs'),$job));
         peracrm_campaigns_db_require($wpdb->query($wpdb->prepare('INSERT INTO '.peracrm_table('peracrm_fixture_worker_deliveries').' SELECT * FROM '.peracrm_table('peracrm_campaign_deliveries')." WHERE job_id=%d ORDER BY id LIMIT %d", $source,$limit)));
         $rows = worker_fixture_rows($source);

@@ -13,6 +13,49 @@ function worker_protected(): string
     });
 }
 worker_fixture_target(static function () { update_option('campaign_worker_fixture_authority',bin2hex(random_bytes(32)),false); });
+// Prepare exact-sized sources through the real services, never truncate published membership.
+$setup_manager=worker_fixture_target(static function () { return (int)get_option('campaign_fixture_manager'); });
+wp_set_current_user($setup_manager);
+$original=worker_fixture_target(static function () { global $wpdb; return $wpdb->get_row('SELECT * FROM '.peracrm_table('peracrm_campaign_queue_jobs')." WHERE state='queued' AND complete=1 ORDER BY id DESC LIMIT 1",ARRAY_A); });
+$template=peracrm_campaign_draft_get((int)$original['campaign_id'])['document'];
+foreach ([1,3,15] as $size) {
+    $topic='workerfixture'.$size;
+    for ($i=0;$i<$size;$i++) {
+        $address=$topic.'-'.$i.'@example.test';
+        $saved=peracrm_campaigns_save_subscriber($address,['preferred_language'=>'en','preferences'=>[$topic]]);
+        $consent=peracrm_campaigns_record_consent($address,'subscribed',['source'=>'synthetic_fixture','source_ref'=>'worker','evidence_ref'=>'synthetic','policy_version'=>'v1','occurred_at'=>'2020-01-01 00:00:00']);
+        if (is_wp_error($saved) || is_wp_error($consent)) { throw new RuntimeException('Worker source subscriber failed.'); }
+    }
+    $doc=$template; $doc['audience']=['version'=>1,'topic'=>$topic];
+    $d=peracrm_campaign_draft_save(0,0,$doc);
+    $review=peracrm_campaign_snapshot_review($d['id'],1,$d['document']);
+    $s=peracrm_campaign_snapshot_capture($d['id'],1,$d['document'],$review['review_proof'],wp_create_nonce('peracrm_campaign_snapshot_'.$d['id'].'_1'));
+    $fn=wp_create_nonce('peracrm_campaign_freeze_'.$d['id']);
+    $a=peracrm_campaign_freeze_start($d['id'],1,(int)$s['id'],$s['content_hash'],$d['document'],$fn);
+    while (!(int)$a['complete']) { $a=peracrm_campaign_freeze_continue($d['id'],(int)$a['id'],(int)$a['version'],$fn); if (is_wp_error($a)) { throw new RuntimeException('Worker source freeze failed.'); } }
+    $a=peracrm_campaign_freeze_publish($d['id'],(int)$a['id'],(int)$a['version'],$fn);
+    $r=peracrm_campaign_frozen_get($d['id'],1); $nonce=wp_create_nonce('peracrm_campaign_queue_'.$d['id']);
+    $j=peracrm_campaign_queue_prepare($d['id'],(int)$r['id'],$nonce);
+    while (!(int)$j['complete']) { $j=peracrm_campaign_queue_materialize($d['id'],(int)$j['id'],(int)$j['version'],$nonce); if (is_wp_error($j)) { throw new RuntimeException('Worker source preparation failed.'); } }
+    worker_expect((int)$j['expected_count']===$size,'exact published synthetic source '.$size);
+}
+// Reconstruct the exact previous column layout in disposable volumes; existing prepared rows survive.
+$administrator=worker_fixture_target(static function () { return (int)get_option('campaign_fixture_administrator'); });
+wp_set_current_user($administrator);
+$before_migration=worker_fixture_target(static function () { global $wpdb; return (int)$wpdb->get_var('SELECT COUNT(*) FROM '.peracrm_table('peracrm_campaign_deliveries')); });
+worker_fixture_target(static function () {
+    global $wpdb; $table=peracrm_table('peracrm_campaign_deliveries');
+    $wpdb->query('ALTER TABLE '.$table.' DROP INDEX worker_due, DROP INDEX worker_lease');
+    foreach (['owner_token','lease_until','attempt_count','attempt_key','next_attempt_at','message_id','reason'] as $column) { $wpdb->query('ALTER TABLE '.$table.' DROP COLUMN '.$column); }
+    $wpdb->query('ALTER TABLE '.peracrm_table('peracrm_campaign_queue_jobs').' DROP COLUMN submission_complete');
+    $wpdb->query('DROP TABLE '.peracrm_table('peracrm_campaign_worker_events'));
+    update_option('peracrm_schema_version',26); update_option('peracrm_campaigns_schema_status',['state'=>'ready','version'=>26]);
+});
+worker_expect(!peracrm_campaigns_schema_ready() && peracrm_maybe_upgrade_schema() && peracrm_campaigns_schema_ready(),'additive v26 to v27 readiness migration');
+worker_expect($before_migration===worker_fixture_target(static function () { global $wpdb; return (int)$wpdb->get_var('SELECT COUNT(*) FROM '.peracrm_table('peracrm_campaign_deliveries')); }),'migration preserves prepared delivery rows');
+worker_fixture_target(static function () { global $wpdb; $wpdb->query('ALTER TABLE '.peracrm_table('peracrm_campaign_worker_events').' DROP INDEX delivery_version'); });
+worker_expect(worker_reject(static function () { worker_fixture_target(static function () { peracrm_campaigns_assert_schema(); }); }),'worker audit uniqueness required by readiness verification');
+worker_fixture_target(static function () { peracrm_campaigns_install_schema(); });
 $origin=get_current_blog_id();
 $protected=worker_protected();
 $cron=worker_fixture_target(static function () { return get_option('cron'); });
@@ -29,6 +72,8 @@ worker_expect(count($claims)===2 && strlen($claims[0]['owner_token'])===64 && $c
 worker_expect(!$w->completion($job),'active leases and unclaimed work prevent completion');
 $r=$w->submit($claims[0],$p);
 worker_expect($r['state']==='accepted' && $r['message_id']!=='' && worker_reject(static function () use ($w,$claims,$p) { $w->submit($claims[0],$p); }),'accepted result fenced and never resent');
+$same=$p->submit(['mailbox'=>$r['mailbox'],'delivery_key'=>$r['delivery_key'],'attempt_key'=>$r['attempt_key']]);
+worker_expect($same['message_id']===$r['message_id'],'fake same-key/attempt idempotency retains stable correlation');
 worker_fixture_expire($job); $recovered=$w->recover($job);
 worker_expect(count($recovered)===1 && $recovered[0]['state']==='held' && worker_reject(static function () use ($w,$claims,$p) { $w->submit($claims[1],$p); }),'crash before submission recovers with stale-owner denial');
 $w->run($job,$p,10);
@@ -81,17 +126,19 @@ foreach (['pause','cancel'] as $op) {
 }
 
 // Model consent and suppression changes after freeze/claim without persisting synthetic mutations.
-foreach (['unsubscribe','suppression'] as $change) {
+foreach (['unsubscribe','suppression','evidence','address'] as $change) {
     $job=worker_fixture_reset(1); $claim=$w->claim($job,1)[0];
     $old=worker_fixture_target(static function () use ($claim,$change) {
-        global $wpdb; $table=peracrm_table($change==='unsubscribe' ? 'peracrm_subscribers' : 'peracrm_email_suppressions');
+        global $wpdb; $table=peracrm_table($change!=='suppression' ? 'peracrm_subscribers' : 'peracrm_email_suppressions');
         $old=$wpdb->get_row($wpdb->prepare('SELECT * FROM '.$table.' WHERE normalized_email=%s',$claim['mailbox']),ARRAY_A);
-        $wpdb->update($table,$change==='unsubscribe' ? ['subscription_state'=>'unsubscribed'] : ['complaint'=>1],['normalized_email'=>$claim['mailbox']]);
+        $updates=['unsubscribe'=>['subscription_state'=>'unsubscribed'],'suppression'=>['complaint'=>1],'evidence'=>['evidence_ref'=>''],'address'=>['normalized_email'=>'changed-worker@example.test','email'=>'changed-worker@example.test']];
+        $wpdb->update($table,$updates[$change],['normalized_email'=>$claim['mailbox']]);
         return [$table,$old];
     });
     $before=$p->calls; $r=$w->submit($claim,$p);
-    worker_expect($r['state']==='excluded' && $p->calls===$before && $r['reason']===($change==='unsubscribe' ? 'consent' : 'suppression'),$change.' between freeze claim and submission terminally excluded');
-    worker_fixture_target(static function () use ($old,$claim) { global $wpdb; $wpdb->update($old[0],$old[1],['normalized_email'=>$claim['mailbox']]); });
+    $reason=['unsubscribe'=>'consent','suppression'=>'suppression','evidence'=>'consent','address'=>'mailbox_binding'][$change];
+    worker_expect($r['state']==='excluded' && $p->calls===$before && $r['reason']===$reason,$change.' between freeze claim and submission terminally excluded; no address substitution');
+    worker_fixture_target(static function () use ($old,$claim,$change) { global $wpdb; $wpdb->update($old[0],$old[1],['normalized_email'=>$change==='address' ? 'changed-worker@example.test' : $claim['mailbox']]); });
 }
 $job=worker_fixture_reset(1);
 worker_fixture_target(static function () use ($job) { global $wpdb; $wpdb->update(peracrm_table('peracrm_fixture_worker_jobs'),['complete'=>0],['id'=>$job]); });
