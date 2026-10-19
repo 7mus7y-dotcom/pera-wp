@@ -4,6 +4,7 @@ if (!defined('ABSPATH')) { exit; }
 /** Read-only, target-blog queue facts. Fixture subclasses live exclusively in tests. */
 class PeraCRM_Campaign_Operations
 {
+    private static array $active = [];
     protected function table(string $entity): string
     {
         return peracrm_table(['jobs'=>'peracrm_campaign_queue_jobs','deliveries'=>'peracrm_campaign_deliveries'][$entity]);
@@ -60,7 +61,7 @@ class PeraCRM_Campaign_Operations
     protected function last_invocation(): ?array
     {
         $raw=get_option($this->metadata_key(),null);
-        $allowed=['disabled','blocked_readiness','blocked_gate','blocked_execution','time_bound','completed'];
+        $allowed=['disabled','blocked_readiness','blocked_gate','blocked_execution','blocked_lock','time_bound','completed'];
         if (!is_array($raw) || !in_array($raw['result'] ?? '',$allowed,true)) { return null; }
         $out=['result'=>$raw['result'],'invoked_at'=>null];
         if (is_string($raw['invoked_at'] ?? null) && preg_match('/^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}$/D',$raw['invoked_at'])) { $out['invoked_at']=$raw['invoked_at']; }
@@ -136,8 +137,10 @@ class PeraCRM_Campaign_Operations
         }
         if (!$this->ready()) { $result['result']='blocked_readiness'; return $this->record($result); }
         $name=$this->lock_name();
+        if (isset(self::$active[$name])) { $result['result']='overlap'; return $result; }
         $locked=$wpdb->get_var($wpdb->prepare('SELECT GET_LOCK(%s,0)',$name));
-        if ((string)$locked!=='1') { $result['result']='overlap'; return $result; } // Do not overwrite the active invocation.
+        if ((string)$locked!=='1') { $result['result']=$locked===null ? 'blocked_lock' : 'overlap'; return $result; } // Do not overwrite the active invocation.
+        self::$active[$name]=true;
         $started=$this->clock();
         try {
             $worker=$this->worker();
@@ -170,7 +173,7 @@ class PeraCRM_Campaign_Operations
             $result['jobs']=count($visited);
             if ($result['result']==='disabled') { $result['result']=$this->clock()-$started+20 > $max['seconds'] && !$recover_only ? 'time_bound' : 'completed'; }
         } catch (Throwable $e) { $result['result']='blocked_execution'; }
-        finally { $wpdb->get_var($wpdb->prepare('SELECT RELEASE_LOCK(%s)',$name)); }
+        finally { unset(self::$active[$name]); $wpdb->get_var($wpdb->prepare('SELECT RELEASE_LOCK(%s)',$name)); }
         return $this->record($result);
     }
 }

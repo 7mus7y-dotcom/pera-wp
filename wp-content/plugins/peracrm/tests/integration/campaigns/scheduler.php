@@ -35,6 +35,14 @@ delete_user_meta($manager,PERACRM_VIEW_AS_USER_META_KEY);
 scheduler_expect($denied,'impersonated health denied');
 wp_set_current_user(0);
 worker_fixture_target(static function () { delete_option('peracrm_fixture_scheduler_last'); delete_option('peracrm_fixture_scheduler_last_success'); });
+worker_fixture_target(static function () {
+    global $wpdb;
+    $wpdb->query('ALTER TABLE '.peracrm_table('peracrm_campaign_deliveries').' DROP INDEX health_lease, DROP INDEX health_retry, DROP INDEX health_result');
+    update_option('peracrm_schema_version',27); update_option('peracrm_campaigns_schema_status',['state'=>'ready','version'=>27]);
+});
+$index_rejected=false;
+try { worker_fixture_target(static function () { peracrm_campaigns_assert_schema(); }); } catch (RuntimeException $e) { $index_rejected=true; }
+scheduler_expect($index_rejected && !peracrm_campaigns_schema_ready() && peracrm_maybe_upgrade_schema() && peracrm_campaigns_schema_ready(),'additive v27 to v28 health-index migration and missing-index rejection');
 $s=new PeraCRM_Fixture_Scheduler(); $job=worker_fixture_reset(15);
 scheduler_expect($s->health()['scheduler_state']==='never_invoked','fixture starts without successful scheduler claim');
 $s->readiness=false; $r=$s->invoke();
@@ -55,6 +63,24 @@ try {
     scheduler_expect($r['processed']===3 && $s->fake->calls===4,'recipient bound applies across invocation');
     $r=$s->invoke(); scheduler_expect($r['processed']===10 && $s->fake->calls===14 && $s->invoke()['processed']===1 && $s->invoke()['processed']===0,'default ten-recipient bound and duplicate invocation never resend accepted work');
 } finally { global $wpdb; $wpdb->query('SET timestamp = 0'); }
+// Same-connection re-entry must not exploit MySQL's recursive advisory-lock behavior.
+$job=worker_fixture_reset(1); $s->fake=new PeraCRM_Fake_Campaign_Provider();
+$s->fake->on_submit=static function () use ($s) { scheduler_expect($s->invoke()['result']==='overlap','same-process nested scheduler invocation rejected'); };
+$scheduler_nested=$s->invoke(); scheduler_expect($scheduler_nested['processed']===1 && $s->fake->calls===1,'nested callback cannot start another processing invocation');
+// Visit bound across independent, fully prepared synthetic jobs.
+$job=worker_fixture_reset(15);
+worker_fixture_target(static function () {
+    global $wpdb;
+    foreach ([1,3] as $size) {
+        $source=(int)$wpdb->get_var('SELECT id FROM '.peracrm_table('peracrm_campaign_queue_jobs').' WHERE complete=1 AND expected_count='.$size.' ORDER BY id DESC LIMIT 1');
+        peracrm_campaigns_db_require($wpdb->query('INSERT INTO '.peracrm_table('peracrm_fixture_worker_jobs').' SELECT * FROM '.peracrm_table('peracrm_campaign_queue_jobs').' WHERE id='.$source));
+        peracrm_campaigns_db_require($wpdb->query('INSERT INTO '.peracrm_table('peracrm_fixture_worker_deliveries').' SELECT * FROM '.peracrm_table('peracrm_campaign_deliveries').' WHERE job_id='.$source));
+    }
+});
+$s->fake=new PeraCRM_Fake_Campaign_Provider();
+scheduler_expect(count($s->due(25))===3 && count($s->due(1))===1,'bounded due output across three jobs');
+$r=$s->invoke(false,['jobs'=>1]);
+scheduler_expect($r['jobs']===1 && $r['processed']<=10 && count($s->due())>=2,'maximum job visit bound leaves other due jobs untouched');
 // Crash equivalents retain the worker's lease/version/unknown rules.
 $job=worker_fixture_reset(3); $w=worker_fixture(); $p=new PeraCRM_Fake_Campaign_Provider();
 $claims=$w->claim($job,2); $p->mode='timeout_after_accept'; $w->submit($claims[0],$p); worker_fixture_expire($job);
