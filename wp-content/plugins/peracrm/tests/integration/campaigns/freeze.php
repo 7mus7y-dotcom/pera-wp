@@ -101,6 +101,7 @@ freeze_target(static function () use ($members) { global $wpdb; $row=$members[0]
 freeze_expect(is_wp_error(peracrm_campaign_freeze_cancel($id,(int)$a['id'],(int)$published['version'],$nonce)) && is_wp_error(peracrm_campaign_freeze_continue($id,(int)$a['id'],(int)$published['version'],$nonce)),'published membership cannot mutate');
 $later=peracrm_campaign_draft_save($id,1,array_replace($draft['document'],['subject'=>'Later revision']));
 freeze_expect(!is_wp_error($later) && $later['revision']===2 && peracrm_campaign_frozen_get($id,1)===$history && peracrm_campaign_freeze_recipients($id,(int)$a['id'])===$members,'later draft preserves immutable published content/membership');
+freeze_expect(!is_wp_error(peracrm_campaigns_record_consent('freeze-second@example.test','unsubscribed',freeze_evidence())) && peracrm_campaign_frozen_get($id,1)===$history && peracrm_campaign_freeze_recipients($id,(int)$a['id'])===$members,'later unsubscribe changes live permission but preserves immutable history and membership');
 freeze_expect(is_wp_error(freeze_start($set)),'old capture cannot freeze later revision');
 // Zero-included materialization cannot publish. Cancelled/failed attempts release editing, but cannot resume across edits.
 $zero_set=freeze_capture(array_replace($doc,['audience'=>['version'=>1,'topic'=>'no_fixture_has_this']]));
@@ -116,6 +117,11 @@ freeze_expect(!is_wp_error(peracrm_campaign_draft_save($fd['id'],1,$fd['document
 freeze_expect(peracrm_campaign_freeze_get($id+99999,(int)$a['id'])===null && peracrm_campaign_freeze_recipients($id+99999,(int)$a['id'])===[],'foreign campaign reads denied');
 wp_set_current_user($employee); $denied=false; try { peracrm_campaign_frozen_get($id,1); } catch (Throwable $e) { $denied=true; } freeze_expect($denied,'unauthorized frozen read denied');
 wp_set_current_user($manager);
+$deny_subscribers=static function ($caps) { $caps['peracrm_manage_subscribers']=false; return $caps; };
+add_filter('user_has_cap',$deny_subscribers);
+$recipient_denied=false; try { peracrm_campaign_freeze_recipients($id,(int)$a['id']); } catch (Throwable $e) { $recipient_denied=true; }
+freeze_expect($recipient_denied && peracrm_campaign_frozen_get($id,1)===$history,'campaign-only authority reads frozen content but cannot read recipient details');
+remove_filter('user_has_cap',$deny_subscribers);
 if (is_multisite() && $origin!==peracrm_get_target_blog_id()) { global $wpdb; freeze_expect(!$wpdb->get_var($wpdb->prepare('SHOW TABLES LIKE %s',$wpdb->prefix.'peracrm_campaign_freeze_attempts')),'no origin-blog freeze tables'); }
 freeze_expect(get_current_blog_id()===$origin,'target context restored');
 // Retention is manual, administrator-only and bounded; publication always survives.

@@ -59,3 +59,31 @@ add_action('init',static function () {
 },20);
 add_filter('post_link',static function ($url,$post) { return str_starts_with($post->post_title,'Phase3B') ? 'https://example.org/stories/'.$post->ID : $url; },20,2);
 add_filter('post_type_link',static function ($url,$post) { return str_starts_with($post->post_title,'Phase3B') ? 'https://example.org/properties/'.$post->ID : $url; },20,2);
+
+// Phase 3C browser-only fault and evidence controls, confined to disposable fixtures.
+add_filter('query', static function ($sql) {
+    if (($_COOKIE['freeze_fixture_failure'] ?? '')==='1' && str_starts_with($sql,'UPDATE') && str_contains($sql,'peracrm_campaign_freeze_attempts') && str_contains($sql,'`last_id`') && str_contains($sql,"'materializing'")) {
+        return 'UPDATE peracrm_fixture_missing SET id=1';
+    }
+    return $sql;
+});
+add_action('wp_ajax_peracrm_freeze_fixture',static function () {
+    if (!current_user_can('manage_options')) { wp_send_json_error([],403); }
+    $op=$_POST['operation'] ?? '';
+    if ($op==='impersonate') { update_user_meta(get_current_user_id(),PERACRM_VIEW_AS_USER_META_KEY,(int)peracrm_with_target_blog(static function () { return get_option('campaign_fixture_employee'); })); wp_send_json_success(); }
+    if ($op==='restore') { delete_user_meta(get_current_user_id(),PERACRM_VIEW_AS_USER_META_KEY); wp_send_json_success(); }
+    if ($op==='subscriber_access') {
+        peracrm_with_target_blog(static function () { $u=new WP_User(get_current_user_id()); $u->add_cap('peracrm_manage_subscribers',($_POST['enabled'] ?? '')==='1'); });
+        wp_send_json_success();
+    }
+    if ($op==='evidence') {
+        $hash=peracrm_with_target_blog(static function () { global $wpdb; $out=[]; foreach (['peracrm_subscribers','peracrm_subscription_events','peracrm_email_suppressions','peracrm_email_suppression_events','peracrm_subscriber_tokens'] as $name) { $out[$name]=$wpdb->get_results('SELECT * FROM '.peracrm_table($name).' ORDER BY 1',ARRAY_A); } return hash('sha256',wp_json_encode($out)); });
+        wp_send_json_success(['protected'=>$hash]);
+    }
+    wp_send_json_error([],422);
+});
+
+add_filter('map_meta_cap',static function ($caps,$cap) {
+    if ($cap==='peracrm_manage_subscribers' && ($_COOKIE['freeze_fixture_no_subscribers'] ?? '')==='1') { return ['do_not_allow']; }
+    return $caps;
+},99,2);

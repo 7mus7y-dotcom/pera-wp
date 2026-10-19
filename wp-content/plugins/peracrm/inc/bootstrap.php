@@ -27,6 +27,7 @@ require_once PERACRM_INC . '/campaigns/content.php';
 require_once PERACRM_INC . '/campaigns/renderer.php';
 require_once PERACRM_INC . '/campaigns/snapshots.php';
 require_once PERACRM_INC . '/campaigns/freeze.php';
+require_once PERACRM_INC . '/campaigns/freeze-ui.php';
 require_once PERACRM_INC . '/campaigns/preview-routes.php';
 require_once PERACRM_INC . '/campaigns/draft-routes.php';
 require_once PERACRM_INC . '/schema.php';
