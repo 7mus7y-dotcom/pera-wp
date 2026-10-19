@@ -8,7 +8,7 @@ Let Pera staff prepare newsletters and targeted campaigns inside the existing CR
 
 Future implementation PRs must update phase status, validation evidence, decisions and the progress log here. A phase must not be marked complete solely because code exists when required verification remains outstanding. Use only `not started`, `in progress`, `blocked` or `complete` for phase status. Keep repository checks distinct from external verification; record outstanding evidence explicitly.
 
-**Current implementation task:** Phase 4A only: durable delivery jobs/recipient state, idempotent preparation from published immutable revisions, bounded materialization, authorized lifecycle intent/read services, audit and unconditional dispatch denial. Based on latest main `18f81534446587ee4386885390a5a7a309c184e3` (merged #1455), branch `feat/campaign-phase4a-queue`. Phase 4 remains in progress; worker, scheduler, sending UI and all provider work remain outstanding. No sending, real intake, public collection, merge or deployment is authorized here.
+**Current implementation task:** Phase 4B only: explicit bounded provider-neutral worker, atomic claims/leases and owner/version fencing, live authorization, outcome/retry handling, recovery and verified reconciliation. Branch `feat/campaign-phase4b-worker` builds on latest main `199cb7f07414a542a0499f5aad90280d69707317`, merged #1456. Production invocation remains unconditionally disabled. A fake provider exists only in disposable CLI fixtures using a separate ledger. Phase 4 remains in progress; scheduler/CLI health integration, operational UI and later real-provider work remain outstanding. Sending, real intake and public collection remain disabled. No Phase 5, cron activation, merge or deployment.
 
 ## Review baseline and method
 
@@ -1567,3 +1567,91 @@ Hosted [run 39211751255](https://github.com/7mus7y-dotcom/pera-wp/actions/runs/3
 All six queue races passed on separate real SQL connections in each topology: prepare/prepare, batch/batch, batch/cancel, cancel/batch, pause/schedule and cancel/resume. Logs confirm actual blocking and no duplicate scope or stale overwrite. All nine existing freeze races and complete existing campaign/subscriber/default-theme desktop/mobile browser regressions also pass. Retained evidence: [single-site artifact 12167174383](https://github.com/7mus7y-dotcom/pera-wp/actions/runs/39211751255/artifacts/12167174383), [multisite artifact 12167589660](https://github.com/7mus7y-dotcom/pera-wp/actions/runs/39211751255/artifacts/12167589660). No new UI or new visual acceptance is claimed for this service-only change.
 
 PR [#1456](https://github.com/7mus7y-dotcom/pera-wp/pull/1456) targets main and is non-draft. Final evidence update changes this document only; runtime and tests are identical to the passing head. Earlier CI runs were superseded by fixture/evidence checkpoints, not accepted as final validation. Prerequisite #1454's tombstone review is resolved; #1455's final review was clean. Phase 4 remains in progress, with worker/scheduler/UI work and external readiness outstanding. User-reported property-block failure and usability issues above remain unresolved. No provider, worker, scheduler, delivery, merge, deployment, production records or live Phase 4 tests; sending/intake/public collection remain disabled.
+
+## Phase 4B — bounded worker and disposable fake-provider fixtures (in progress)
+
+2026-10-19: #1456 is merged as `199cb7f07414a542a0499f5aad90280d69707317`.
+Its final automated review of `e766a7b8b6` completed with no findings and no open
+inline threads. No AGENTS.md was found in workspace/repository ancestors or the
+repository. Shell Git fetch failed once (proxy unreachable); connected GitHub
+reads verified latest main and restored all 14 Phase 4A files. The local restored
+baseline tree is exactly `a3bd77c244e85b213226ed12e753b338e7d97a12`, matching
+published main. Original checkout remains on `checkpoint/pre-phase4b`.
+
+The worker is an abstract PeraCRM-owned SQL engine with explicit authority, gate
+and persistence dependencies. There is no production concrete store or adapter.
+`peracrm_campaign_worker_run()` always returns dispatch-disabled; the existing
+global dispatch function remains unconditional false. No configuration constant,
+request parameter, HTTP route, cron or automatic scheduler activates processing.
+The only concrete implementation is test-owned and requires disposable fixture,
+local environment, WP-CLI, exact synthetic database and a 256-bit process authority
+capability. It maps writes solely to target-blog `peracrm_fixture_worker_*` tables,
+cloned from prepared synthetic jobs. Fake accepted/completion outcomes cannot
+update ordinary queue jobs or deliveries. Fake provider source is never loaded by
+production bootstrap. Schema v27 adds lease/attempt/result fields and a unique
+per-delivery/version audit through existing additive readiness/migration checks.
+
+Each invocation handles one explicit job and at most 10 recipients. Claims lock
+job then recipient rows, enforce 10 active claims/inflight rows per job and four
+attempts, and persist random owner, 60-second lease, deterministic delivery key,
+attempt key and version before submission. Even expired leases consume capacity
+until bounded recovery fences them. Result updates require matching state, owner,
+version and unexpired database-clock lease. There is no database transaction over
+the provider boundary. Database uniqueness is not an exactly-once external send
+guarantee. A future adapter must define its own idempotency and lookup semantics.
+
+Final authorization rechecks gate, readiness, job state, preparation and due time,
+frozen member/address/content binding, supported rules and current subscription,
+evidence, cumulative suppression and linked-client eligibility. It uses fresh
+locking reads in suppression→subscriber order, coordinating with existing mailbox
+mutation services, and holds the job lock against pause/cancel. It never replaces
+the frozen mailbox with a newer client address. Exclusions are terminal with a
+reason. Once the inflight authorization commits, a concurrently starting provider
+request cannot be recalled by a subsequent withdrawal/pause/cancel; such changes
+prevent later authorizations. A crash in that boundary is deliberately ambiguous.
+Historical membership is not sending permission. No consent, subscriber, CRM
+pipeline or preference-token writes occur in the engine.
+
+The provider contract distinguishes acceptance with bounded stable correlation,
+known transient non-acceptance, permanent non-acceptance and unknown. Only proven
+transient non-acceptance gets deterministic exponential jitter (30 seconds base,
+3600-second base ceiling, up to 25% jitter), bounded retry-after (24 hours), and a
+four-attempt ceiling. Exceptions/malformed acceptance/timeouts are unknown.
+Expired claimed rows can recover without submission; expired inflight rows become
+unknown, never ready. Accepted and unknown rows are excluded from claims and
+ordinary lifecycle resume never resets them. Staff reconciliation requires campaign
+capability, impersonation denial, nonce, expected version and provider-verified
+key/attempt-bound evidence. It records real actor and evidence digest atomically,
+is idempotent for the identical request and rejects stale/different evidence.
+Fake lookup/HMAC evidence and delivery-key idempotency are explicit fixture
+behavior, not promises about any future provider.
+
+`submission_complete` is separate from preparation `complete`. Exact persisted
+counts must match expected/prepared membership, with every row accepted/excluded/
+failed and no lease remaining. Preparation, held/claimed/inflight/retry and unknown
+rows prevent completion. Submission acceptance/completion does not mean inbox
+delivery. Cancellation remains a job-wide fence; it does not rewrite historical
+membership or resolve ambiguous acceptance.
+
+### Phase 4B verification checkpoint
+
+Added standalone provider/production-denial/bounds contracts and real SQL synthetic
+fixtures for separate-connection claims, concurrency ceiling, stale owners,
+pre-submit crash and process exit after durable fake acceptance, timeout/lookup/
+verified reconciliation, retry-after/exhaustion/permanent failure, pause/cancel
+before claim and authorization, withdrawal/suppression after freeze and claim,
+exact completion guards, authority, target isolation, protected history/state and
+zero mail/network. Existing race/browser assertions remain unchanged.
+
+Local Docker daemon is running but socket access is denied (`operation not
+permitted`, UID 1000); no local SQL/browser execution is claimed. Hosted topology
+execution and final local check counts will be recorded after the checkpoint.
+Fixtures added are not evidence of executed acceptance.
+
+Phase 4 remains **in progress**. Scheduler/CLI health integration, operational UI,
+provider selection/credentials/real adapter/domain/inbox/webhook work remain later.
+The property-block review failure and usability issues (Add identity label,
+obscured configuration errors, failed import returning to subscriber list) remain
+explicitly open. Historical legal/retention/editorial/accessibility and production
+readiness remain open. Sending, real intake and public collection remain disabled.
+No Phase 5, cron activation, merge or deployment.

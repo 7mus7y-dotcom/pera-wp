@@ -110,6 +110,7 @@ function peracrm_campaigns_assert_schema()
         }
         $engine = $wpdb->get_row($wpdb->prepare('SHOW TABLE STATUS WHERE Name = %s', $table), ARRAY_A);
         $expected_keys = [
+            'peracrm_campaign_worker_events' => ['delivery_id', 'version'],
             'peracrm_campaign_queue_jobs' => ['frozen_revision_id'],
             'peracrm_campaign_deliveries' => ['frozen_revision_id', 'mailbox'],
             'peracrm_campaign_queue_events' => ['job_id', 'version'],
