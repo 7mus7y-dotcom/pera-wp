@@ -32,7 +32,7 @@ if ($mode==='verify') {
         worker_fixture_expire($job); $held=$w->recover($job)[0];
         if ($held['state']!=='held' || count($w->claim($job))!==1) { throw new RuntimeException('Pre-submit crash did not recover.'); }
     } else {
-        if ($winner['connection']===$loser['connection'] || $loser['duration']<0.5) { throw new RuntimeException('Independent blocking connections required.'); }
+        if ($winner['connection']===$loser['connection'] || $loser['duration']<0.5) { throw new RuntimeException('Independent blocking connections required: '.wp_json_encode([$scenario,$winner,$loser])); }
         if ($scenario==='claim-claim' && (count($winner['ids'])!==10 || count($loser['ids'])!==0 || count(array_filter($rows,static function ($r) { return $r['state']==='claimed'; }))!==10)) { throw new RuntimeException('Claim/concurrency limit failed.'); }
         if ($scenario==='lease-stale' && ($rows[0]['state']!=='claimed' || $rows[0]['owner_token']===$claims[0]['owner_token'] || $loser['result']!=='stale')) { throw new RuntimeException('Stale-owner fence failed.'); }
         if (in_array($scenario,['claim-pause','claim-cancel'],true) && $loser['ids']!==[]) { throw new RuntimeException('Lifecycle before claim did not fence.'); }
@@ -46,7 +46,7 @@ if ($mode==='winner') {
     if ($scenario==='crash-after') { $p=new PeraCRM_Fake_Campaign_Provider(); $p->mode='crash_after_accept'; $w->submit($claims[0],$p); }
     $held=false;
     add_filter('query',static function ($sql) use (&$held,$scenario) {
-        $is_job=str_starts_with($sql,'UPDATE') && str_contains($sql,'peracrm_fixture_worker_deliveries');
+        $is_job=str_starts_with($sql,'UPDATE') && str_contains($sql,'peracrm_fixture_worker_deliveries') && str_contains($sql,'`state`');
         $is_authorize=str_starts_with($sql,'UPDATE') && str_contains($sql,'peracrm_fixture_worker_deliveries') && str_contains($sql,"'inflight'");
         $is_pause=str_starts_with($sql,'UPDATE') && (str_contains($sql,'peracrm_fixture_worker_jobs') || str_contains($sql,'peracrm_campaign_queue_jobs'));
         $match=in_array($scenario,['authorize-pause','authorize-unsubscribe'],true) ? $is_authorize : (in_array($scenario,['claim-pause','claim-cancel'],true) ? $is_pause : $is_job);

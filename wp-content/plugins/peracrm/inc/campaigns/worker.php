@@ -258,6 +258,7 @@ abstract class PeraCRM_Campaign_Worker
     {
         $this->authorize();
         peracrm_campaign_drafts_require(true);
+        if (!peracrm_campaigns_staff_can('peracrm_manage_subscribers', true)) { throw new RuntimeException('Subscriber reconciliation authority required.'); }
         // Verification/lookup may contact a later real provider: always outside the transaction.
         $key = $evidence['delivery_key'] ?? ''; $attempt = $evidence['attempt_key'] ?? '';
         if (!$provider->verify($evidence, $key, $attempt)) { throw new InvalidArgumentException('Verified evidence required.'); }

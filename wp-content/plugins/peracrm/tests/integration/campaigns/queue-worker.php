@@ -99,6 +99,9 @@ wp_set_current_user($manager); update_user_meta($manager,PERACRM_VIEW_AS_USER_ME
 worker_expect(worker_reject(static function () use ($w,$job,$r,$e,$p,$campaign) { $w->reconcile($job,(int)$r['id'],(int)$r['version'],wp_create_nonce('peracrm_campaign_queue_'.$campaign),$e,$p); }),'impersonated reconciliation denied');
 delete_user_meta($manager,PERACRM_VIEW_AS_USER_META_KEY);
 $nonce=wp_create_nonce('peracrm_campaign_queue_'.$campaign);
+worker_fixture_target(static function () use ($manager) { (new WP_User($manager))->add_cap('peracrm_manage_subscribers',false); });
+worker_expect(worker_reject(static function () use ($w,$job,$r,$e,$p,$nonce) { $w->reconcile($job,(int)$r['id'],(int)$r['version'],$nonce,$e,$p); }),'campaign-only actor cannot reconcile or read recipient details');
+worker_fixture_target(static function () use ($manager) { (new WP_User($manager))->remove_cap('peracrm_manage_subscribers'); });
 $bad=$e; $bad['kind']='permanent';
 worker_expect(worker_reject(static function () use ($w,$job,$r,$bad,$p,$nonce) { $w->reconcile($job,(int)$r['id'],(int)$r['version'],$nonce,$bad,$p); }),'unverified evidence denied');
 $resolved=$w->reconcile($job,(int)$r['id'],(int)$r['version'],$nonce,$e,$p);
