@@ -17,3 +17,8 @@ actual=0
 wp eval-file /tests/scheduler-race.php crash || actual=$?
 [ "$actual" = 74 ]
 wp eval-file /tests/scheduler-race.php recover
+wp eval-file /tests/scheduler-race.php prepare
+actual=0
+wp eval-file /tests/scheduler-race.php crash-accepted || actual=$?
+[ "$actual" = 73 ]
+wp eval-file /tests/scheduler-race.php recover-accepted

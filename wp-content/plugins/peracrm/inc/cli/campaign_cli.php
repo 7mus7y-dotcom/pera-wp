@@ -7,7 +7,8 @@ function peracrm_campaign_cli($operation, $args, $assoc)
 {
     $exit=0;
     try {
-        if ($args || array_diff(array_keys($assoc), ['format','limit','confirm-disposable'])) { throw new InvalidArgumentException(); }
+        $allowed=$operation==='due' ? ['format','limit'] : (str_starts_with($operation,'fixture-') ? ['format','confirm-disposable'] : ['format']);
+        if ($args || array_diff(array_keys($assoc), $allowed)) { throw new InvalidArgumentException(); }
         $format=$assoc['format'] ?? 'json';
         if (!in_array($format,['json','text'],true)) { throw new InvalidArgumentException(); }
         $service=new PeraCRM_Campaign_Operations();
@@ -28,7 +29,8 @@ function peracrm_campaign_cli($operation, $args, $assoc)
             $data=(new PeraCRM_Fixture_Scheduler())->invoke($operation==='fixture-recover');
             if (!in_array($data['result'],['completed','time_bound'],true)) { $exit=4; }
         }
-    } catch (Throwable $e) { $data=['error'=>'campaign_command_rejected']; $exit=3; }
+    } catch (PeraCRM_Campaign_Operations_Blocked $e) { $data=['error'=>'campaign_operation_blocked']; $exit=4; }
+    catch (Throwable $e) { $data=['error'=>'campaign_command_rejected']; $exit=3; }
     // Never print exception/SQL/provider payloads. Only allowlisted service summaries reach stdout.
     WP_CLI::line(($format ?? 'json')==='text' ? 'PeraCRM campaigns: '.wp_json_encode($data) : wp_json_encode($data,JSON_PRETTY_PRINT));
     if ($exit) { WP_CLI::halt($exit); }

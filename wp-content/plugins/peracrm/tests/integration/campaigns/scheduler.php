@@ -81,6 +81,8 @@ $s->fake=new PeraCRM_Fake_Campaign_Provider();
 scheduler_expect(count($s->due(25))===3 && count($s->due(1))===1,'bounded due output across three jobs');
 $r=$s->invoke(false,['jobs'=>1]);
 scheduler_expect($r['jobs']===1 && $r['processed']<=10 && count($s->due())>=2,'maximum job visit bound leaves other due jobs untouched');
+$capacity_job=worker_fixture_reset(15); worker_fixture()->claim($capacity_job,10);
+scheduler_expect($s->due()===[],'saturated worker capacity is not reported as claimable due work');
 // Crash equivalents retain the worker's lease/version/unknown rules.
 $job=worker_fixture_reset(3); $w=worker_fixture(); $p=new PeraCRM_Fake_Campaign_Provider();
 $claims=$w->claim($job,2); $p->mode='timeout_after_accept'; $w->submit($claims[0],$p); worker_fixture_expire($job);

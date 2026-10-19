@@ -35,3 +35,20 @@ foreach (['fixture-run','fixture-recover','health','due'] as $op) {
 }
 campaign_expect(count(WP_CLI::$commands)===5 && !isset(WP_CLI::$commands['peracrm campaigns send']),'no production send/reset/enable commands');
 echo "PASS scheduler/CLI standalone contracts\n";
+
+$GLOBALS['campaign_actor']=1;
+$GLOBALS['campaign_roles'][2]['administrator']->add_cap('peracrm_view_campaign_reports');
+peracrm_with_target_blog(static function () { update_option('peracrm_campaigns_schema_status',['state'=>'failed','version'=>PERACRM_SCHEMA_VERSION]); });
+$exit=0;
+try { (WP_CLI::$commands['peracrm campaigns due'])([],['format'=>'json']); }
+catch (Campaign_CLI_Exit $e) { $exit=$e->getCode(); }
+campaign_expect($exit===4 && json_decode(WP_CLI::$output,true)===['error'=>'campaign_operation_blocked'],'authorized unavailable due inspection is operational exit 4');
+class Campaign_Storage_Failure_Probe extends Campaign_Disabled_Probe {
+    protected function ready(): bool { return true; }
+    protected function discover(int $limit): array { throw new RuntimeException('private@example.test SQL credentials'); }
+}
+$storage=new Campaign_Storage_Failure_Probe();
+$prior=$wpdb->suppress_errors;
+try { $storage->due(); campaign_expect(false,'storage failure must block'); }
+catch (PeraCRM_Campaign_Operations_Blocked $e) { campaign_expect($e->getMessage()==='Campaign operation blocked.' && $wpdb->suppress_errors===$prior,'storage error is sanitized and error settings/context restored'); }
+echo "PASS scheduler/CLI operational-failure exit contracts\n";

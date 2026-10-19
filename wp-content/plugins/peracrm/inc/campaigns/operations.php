@@ -1,16 +1,21 @@
 <?php
 if (!defined('ABSPATH')) { exit; }
 
+class PeraCRM_Campaign_Operations_Blocked extends RuntimeException {}
+
 /** Read-only, target-blog queue facts. Fixture subclasses live exclusively in tests. */
 class PeraCRM_Campaign_Operations
 {
     private static array $active = [];
     protected function context(callable $callback)
     {
+        if (is_multisite() && peracrm_get_target_blog_id()<1) { throw new PeraCRM_Campaign_Operations_Blocked('Campaign target unavailable.'); }
         return peracrm_with_target_blog(static function () use ($callback) {
             global $wpdb;
             $previous=$wpdb->suppress_errors(true);
             try { return $callback(); }
+            catch (InvalidArgumentException $e) { throw $e; }
+            catch (Throwable $e) { throw new PeraCRM_Campaign_Operations_Blocked('Campaign operation blocked.'); }
             finally { $wpdb->suppress_errors($previous); }
         });
     }
@@ -48,7 +53,8 @@ class PeraCRM_Campaign_Operations
     {
         global $wpdb;
         return $wpdb->prepare("j.state IN ('queued','scheduled') AND j.complete=1 AND j.submission_complete=0 AND (j.scheduled_at IS NULL OR j.scheduled_at<=%s)
-            AND EXISTS (SELECT 1 FROM ".$this->table('deliveries')." d WHERE d.job_id=j.id AND d.state IN ('held','retry') AND d.attempt_count<4 AND (d.next_attempt_at IS NULL OR d.next_attempt_at<=%s))", $now, $now);
+            AND EXISTS (SELECT 1 FROM ".$this->table('deliveries')." d WHERE d.job_id=j.id AND d.state IN ('held','retry') AND d.attempt_count<4 AND (d.next_attempt_at IS NULL OR d.next_attempt_at<=%s))
+            AND (SELECT COUNT(*) FROM ".$this->table('deliveries')." capacity WHERE capacity.job_id=j.id AND capacity.state IN ('claimed','inflight'))<10", $now, $now);
     }
     public function due(int $limit = 10): array
     {
