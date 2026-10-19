@@ -8320,9 +8320,9 @@ body.crm-route #site-header.peracrm-shell-header .peracrm-header-search__status 
 .peracrm-queue nav { display: flex; flex-wrap: wrap; gap: 1rem; }
 .peracrm-queue li { margin-block: .7rem; }
 
-.peracrm-queue .peracrm-subscriber-table table { width: 100%; min-width: 40rem; table-layout: fixed; }
-.peracrm-queue .peracrm-subscriber-table th, .peracrm-queue .peracrm-subscriber-table td { white-space: normal; overflow-wrap: anywhere; }
-.peracrm-queue .peracrm-subscriber-table th:first-child { width: 30%; }
+.crm-page--campaigns .peracrm-queue .peracrm-subscriber-table table { width: 100% !important; min-width: 40rem !important; table-layout: fixed !important; }
+.crm-page--campaigns .peracrm-queue .peracrm-subscriber-table th, .crm-page--campaigns .peracrm-queue .peracrm-subscriber-table td { white-space: normal !important; overflow-wrap: anywhere !important; word-break: break-word !important; }
+.crm-page--campaigns .peracrm-queue .peracrm-subscriber-table th:first-child { width: 30% !important; }
 @media (max-width: 600px) {
   .peracrm-queue-counts { grid-template-columns: minmax(0, 1fr); gap: .2rem; }
   .peracrm-queue-counts dd { margin-bottom: .7rem; }

@@ -44,9 +44,10 @@ elseif ($campaign) {
 </div></section>
 <?php if (!$job) : $jobs=peracrm_campaign_queue_ui_jobs($campaign,$before); ?>
 <h2><?php echo $campaign ? 'Campaign jobs' : 'Queue jobs'; ?></h2><p>Up to 25 jobs per page. Failed jobs need preparation recovery; failed deliveries are counted separately on job detail.</p>
+<?php if (!$jobs) : ?><p>No queue jobs on this page. Prepare a published frozen revision from its campaign.</p><?php else : ?><p>On narrow screens, scroll the table horizontally to see all job columns.</p>
 <div class="peracrm-subscriber-table" role="region" tabindex="0" aria-label="Queue jobs"><table><thead><tr><th>Campaign / frozen revision</th><th>Job lifecycle</th><th>Preparation</th><th>Schedule intent (Europe/Istanbul)</th><th>Detail</th></tr></thead><tbody>
 <?php foreach (array_slice($jobs,0,25) as $item) : ?><tr><td><?php echo esc_html(($item['internal_name'] ?: 'Untitled campaign').' · #'.$item['campaign_id'].' · Frozen revision '.$item['draft_revision']); ?></td><td><?php echo esc_html($item['state']); ?></td><td><?php echo (int)$item['prepared_count'].' / '.(int)$item['expected_count'].' · '.((int)$item['complete'] ? 'complete' : 'incomplete'); ?></td><td><?php echo esc_html(peracrm_campaign_queue_ui_time($item['scheduled_at'])); ?></td><td><a href="<?php echo esc_url(peracrm_campaign_queue_url((int)$item['campaign_id'],(int)$item['id'])); ?>">Job #<?php echo (int)$item['id']; ?></a></td></tr><?php endforeach; ?>
-<?php if (!$jobs) : ?><tr><td colspan="5">No queue jobs on this page. Prepare a published frozen revision from its campaign.</td></tr><?php endif; ?></tbody></table></div>
+</tbody></table></div><?php endif; ?>
 <nav aria-label="Queue pages"><?php if ($before) : ?><a href="<?php echo esc_url(peracrm_campaign_queue_url($campaign)); ?>">Newest jobs</a><?php endif; ?><?php if (count($jobs)>25) : ?><a href="<?php echo esc_url(add_query_arg('before',(int)$jobs[24]['id'],peracrm_campaign_queue_url($campaign))); ?>">Older jobs</a><?php endif; ?></nav>
 <?php endif; ?>
 <?php echo peracrm_campaign_queue_ui_health(); ?>

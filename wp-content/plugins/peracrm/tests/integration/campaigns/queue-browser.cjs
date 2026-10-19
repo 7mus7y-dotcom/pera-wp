@@ -39,6 +39,10 @@ module.exports = async function ({page,target,context,employeeContext,browser}) 
   await page.goto(target+'/crm/campaigns/queue/');
   await page.getByText('Dispatch disabled — scheduled work will not send.',{exact:true}).waitFor();
   if(await page.getByRole('button',{name:/^(Send|Enable dispatch|Process fixture)$/i}).count()) throw Error('Forbidden dispatch control');
+  const table=page.locator('.peracrm-subscriber-table table');
+  if(await table.evaluate(el=>getComputedStyle(el).tableLayout)!=='fixed') throw Error('Inherited shell table layout prevents bounded long-label wrapping');
+  if(await table.locator('tbody td').first().evaluate(el=>getComputedStyle(el).whiteSpace)!=='normal') throw Error('Inherited shell nowrap clips campaign labels');
+  if(await table.evaluate(el=>el.scrollWidth>Math.max(650,el.parentElement.clientWidth)+2)) throw Error('Long label creates excessive table scrolling');
   await capture('overview',size);
   await page.goto(target+'/crm/campaigns/'+seeds[size].campaign+'/');
   await page.getByRole('link',{name:'Prepare or inspect queue for this published revision',exact:true}).click();
