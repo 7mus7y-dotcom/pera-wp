@@ -78,6 +78,8 @@ worker_fixture_expire($job); $recovered=$w->recover($job);
 worker_expect(count($recovered)===1 && $recovered[0]['state']==='held' && worker_reject(static function () use ($w,$claims,$p) { $w->submit($claims[1],$p); }),'crash before submission recovers with stale-owner denial');
 $w->run($job,$p,10);
 worker_expect($w->completion($job) && count($w->claim($job))===0 && count(array_filter(worker_fixture_rows($job),static function ($r) { return $r['state']==='accepted'; }))===3,'exact accepted counts and submission completion only');
+worker_fixture_target(static function () use ($job) { global $wpdb; $wpdb->query($wpdb->prepare('DELETE FROM '.peracrm_table('peracrm_fixture_worker_deliveries').' WHERE job_id=%d ORDER BY id LIMIT 1',$job)); });
+worker_expect(!$w->completion($job),'missing persisted membership prevents false submission completion');
 
 $job=worker_fixture_reset(1); $p->mode='timeout_after_accept';
 $r=$w->run($job,$p,1)[0];

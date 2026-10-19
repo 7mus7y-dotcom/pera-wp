@@ -16,8 +16,12 @@ if ($mode==='verify') {
     $winner=json_decode(file_get_contents('/tmp/peracrm-worker-winner'),true);
     $loser=json_decode(file_get_contents('/tmp/peracrm-worker-loser'),true);
     if ($scenario==='crash-after') {
+        $stale_inflight=$rows[0];
         worker_fixture_expire($job); $unknown=$w->recover($job)[0];
         if ($unknown['state']!=='unknown' || $w->claim($job)!==[] || $w->completion($job)) { throw new RuntimeException('Accepted crash was blindly retried.'); }
+        $rejected=false;
+        try { $w->result($stale_inflight,['kind'=>'accepted','message_id'=>'late-stale-result']); } catch (UnexpectedValueException $e) { $rejected=true; }
+        if (!$rejected || worker_fixture_rows($job)[0]['state']!=='unknown') { throw new RuntimeException('Expired owner overwrote recovered unknown.'); }
         $p=new PeraCRM_Fake_Campaign_Provider(); $e=$p->lookup($unknown['delivery_key'],$unknown['attempt_key']);
         if (!$e || $e['kind']!=='accepted') { throw new RuntimeException('Fake acceptance not durable.'); }
         $manager=worker_fixture_target(static function () { return (int)get_option('campaign_fixture_manager'); }); wp_set_current_user($manager);
