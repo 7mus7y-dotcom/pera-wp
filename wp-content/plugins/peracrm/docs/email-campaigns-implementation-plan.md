@@ -1732,7 +1732,7 @@ review failure and all recorded usability issues remain open. Sending, real inta
 and public collection remain disabled. No Phase 5, cron activation, merge or
 deployment.
 
-## PR #1457 acceptance follow-up — attempts and sequential leases (in progress)
+## PR #1457 acceptance follow-up — attempts and sequential leases (technical acceptance passed)
 
 Follow-up starts from PR head `fcdd07cbf30761e071283c8e3c9dc411b40da529`
 on `feat/campaign-phase4b-worker`, based on main `199cb7f`. Both review findings
@@ -1774,3 +1774,50 @@ unconditionally disabled and fake outcomes stay in isolated fixture ledgers.
 Scheduler/CLI health, operational UI and later real-provider work remain later;
 property-block and recorded usability issues remain explicitly open. No scheduler,
 UI, provider integration, real delivery, merge or deployment.
+
+### Follow-up executed evidence and review disposition
+
+Implementation/test head `2966c2be7cc5bd9eba55eb3f1ad4aec428b1f814` (local
+checkpoint `b34bdd25`, identical full tree
+`64e622ba6ebfd29905d0a83a70a06a72f38bd4f3`) passed
+[complete run 39233082965](https://github.com/7mus7y-dotcom/pera-wp/actions/runs/39233082965).
+Both complete real WordPress/MySQL suites succeeded:
+[single-site job 117995515845](https://github.com/7mus7y-dotcom/pera-wp/actions/runs/39233082965/job/117995515845)
+and [multisite job 117995516221](https://github.com/7mus7y-dotcom/pera-wp/actions/runs/39233082965/job/117995516221).
+Retained [single-site artifact 12177953438](https://github.com/7mus7y-dotcom/pera-wp/actions/runs/39233082965/artifacts/12177953438)
+and [multisite artifact 12178545514](https://github.com/7mus7y-dotcom/pera-wp/actions/runs/39233082965/artifacts/12178545514)
+expire 2026-11-02.
+
+Fetched both complete logs and verified every new fourth-claim, cumulative slow
+submission, over-lease, untouched recovery and stale-owner assertion described
+above. The logs explicitly confirm future scheduling remains a gate, ten calls
+with 70 simulated cumulative seconds succeed with no waiting claims, five later
+rows remain untouched, and a 61-second violating call cannot persist a late result.
+Its recovery is unknown, two later rows remain at attempt zero and can proceed
+without resending accepted/unknown rows. Three untouched fourth claims recover at
+count three and subsequently succeed at count four. Invalid invocation bounds
+are rejected before claiming/submitting. These are executed SQL regressions using
+simulated elapsed database time, not real slow network/provider acceptance.
+
+All eight existing worker race/crash scenarios, six queue races, nine freeze
+races, full desktop/mobile browser regressions, live eligibility and protected
+history/subscriber/consent/token/ordinary-queue/cron assertions pass unchanged in
+both topologies. Scoped mail/network calls remain zero. All 18 standalone
+regressions, 150 first-party PHP syntax checks, focused worker contracts, shell
+syntax and whitespace checks pass. Local Docker/shell-network limitations remain
+as recorded; actual SQL/browser execution is hosted, using synthetic fixtures.
+
+Posted separate fix-specific evidence replies for the
+[fourth-claim finding](https://github.com/7mus7y-dotcom/pera-wp/pull/1457#discussion_r4312465673)
+and [sequential-lease finding](https://github.com/7mus7y-dotcom/pera-wp/pull/1457#discussion_r4312465936),
+then resolved both verified threads. Latest-head review is requested after this
+final documentation checkpoint; thread resolution and passing tests alone do not
+establish a clean latest-head review. This evidence checkpoint changes only the
+living plan; runtime and fixtures are identical to the passing head above.
+
+Follow-up changes only `inc/campaigns/worker.php`, the fixture provider and queue
+worker harness, new `tests/integration/campaigns/worker-lease-acceptance.php`, and
+this plan. No schema, scheduler, UI or real-provider integration. Production
+dispatch stays unconditionally disabled, fake outcomes stay isolated, Phase 4
+remains in progress and the recorded property-block/usability issues remain open.
+No sending, real intake, public collection, merge or deployment.
