@@ -157,4 +157,5 @@ for freeze_race in start-start start-save continue-cancel cancel-continue contin
     wp eval-file /tests/freeze-worker.php verify "$freeze_race"
 done
 wp eval-file /tests/freeze-worker.php restore
+wp eval-file /tests/queue-ui-fixture.php
 printf 'PASS disposable %s WordPress/MySQL fixtures\n' "$fixture_mode"

@@ -4,6 +4,7 @@ peracrm_campaign_drafts_require();
 peracrm_subscribers_private_headers();
 $id = (int)get_query_var('peracrm_campaign_id');
 $screen = (string)get_query_var('peracrm_campaign_screen');
+if ($screen === 'queue') { require __DIR__.'/crm-campaign-queue.php'; return; }
 $is_config = $screen === 'configuration';
 if ($is_config) { peracrm_campaign_drafts_require(false,true); }
 $can_write = peracrm_campaigns_staff_can('peracrm_manage_campaigns',true);
@@ -42,7 +43,7 @@ peracrm_frontend_render_shell_header();
 <?php peracrm_frontend_render_partial('crm-header',['title'=>$title,'active_view'=>'campaigns']); ?>
 <section class="content-panel content-panel--overlap-hero"><div class="content-panel-box border-dm crm-layout"><div class="crm-layout__main peracrm-campaigns">
 <nav class="peracrm-campaign-actions" aria-label="Campaign tools"><a href="<?php echo esc_url(peracrm_campaign_drafts_url()); ?>">Campaigns</a><?php if ($can_write) : ?><a href="<?php echo esc_url(peracrm_campaign_drafts_url('new/')); ?>">Create campaign</a><?php endif; ?><?php if ($can_config) : ?><a href="<?php echo esc_url(peracrm_campaign_drafts_url('configuration/')); ?>">Sender and footer configuration</a><?php endif; ?></nav>
-<p>Prepare and save campaign drafts.</p>
+<p>Prepare and save campaign drafts. <?php if ($can_write) : ?><a href="<?php echo esc_url(peracrm_campaign_drafts_url('queue/')); ?>">Operational queue</a><?php endif; ?></p>
 <?php if (!$can_write) : ?><p class="crm-notice">Read only while impersonating. Return to your own identity to edit.</p><?php endif; ?>
 <?php if ($form) : ?><p role="alert" class="crm-notice" data-campaign-error><?php echo esc_html($form['error']); ?></p><a target="_blank" rel="noopener" href="<?php echo esc_url(peracrm_campaign_drafts_url($is_config ? 'configuration/' : ($id ? $id.'/' : 'new/'))); ?>">Open saved version in another tab</a><?php endif; ?>
 <?php if ($storage_error || !$config) : ?><p role="alert">Campaign storage is unavailable. No changes were accepted.</p>

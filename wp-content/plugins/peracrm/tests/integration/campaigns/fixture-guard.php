@@ -98,3 +98,30 @@ add_filter('query',static function ($sql) {
     }
     return $sql;
 });
+
+// Phase 4D browser faults only affect preparation progress, never failed-state recovery.
+add_filter('query',static function ($sql) {
+    if (($_COOKIE['queue_fixture_failure'] ?? '')==='1' && str_starts_with($sql,'UPDATE') && str_contains($sql,'peracrm_campaign_queue_jobs') && str_contains($sql,'`last_id`') && str_contains($sql,"'preparing'")) { return 'UPDATE peracrm_fixture_missing_queue SET id=1'; }
+    return $sql;
+});
+add_action('wp_ajax_peracrm_queue_ui_evidence',static function () {
+    if (!current_user_can('manage_options')) { wp_send_json_error([],403); }
+    $out=peracrm_with_target_blog(static function () {
+        global $wpdb; $out=[];
+        foreach (['peracrm_subscribers','peracrm_subscription_events','peracrm_email_suppressions','peracrm_email_suppression_events','peracrm_subscriber_tokens','peracrm_campaign_worker_events','peracrm_campaign_frozen_revisions','peracrm_campaign_frozen_recipients'] as $name) { $out[$name]=hash('sha256',wp_json_encode($wpdb->get_results('SELECT * FROM '.peracrm_table($name).' ORDER BY 1',ARRAY_A))); }
+        foreach (['cron','peracrm_campaign_scheduler_last','peracrm_campaign_scheduler_last_success'] as $key) { $out[$key]=hash('sha256',wp_json_encode(get_option($key))); }
+        $seed=get_option('peracrm_queue_ui_seeds');
+        $out['outcomes']=hash('sha256',wp_json_encode($wpdb->get_results($wpdb->prepare('SELECT * FROM '.peracrm_table('peracrm_campaign_deliveries').' WHERE job_id=%d ORDER BY id',$seed['outcomes']['job']),ARRAY_A)));
+        $out['mail']=(int)get_option('peracrm_queue_ui_mail_attempts',0); $out['http']=(int)get_option('peracrm_queue_ui_http_attempts',0);
+        return $out;
+    });
+    wp_send_json_success($out);
+});
+foreach (['pre_wp_mail'=>'mail','pre_http_request'=>'http'] as $hook=>$kind) {
+    add_filter($hook,static function ($value) use ($kind) {
+        if (($_POST['action'] ?? '')==='peracrm_campaign_queue' || (string)get_query_var('peracrm_campaign_screen')==='queue') {
+            peracrm_with_target_blog(static function () use ($kind) { $key='peracrm_queue_ui_'.$kind.'_attempts'; update_option($key,(int)get_option($key,0)+1,false); });
+        }
+        return $value;
+    },1);
+}
