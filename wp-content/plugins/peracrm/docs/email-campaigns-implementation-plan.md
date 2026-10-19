@@ -1619,8 +1619,8 @@ transient non-acceptance gets deterministic exponential jitter (30 seconds base,
 four-attempt ceiling. Exceptions/malformed acceptance/timeouts are unknown.
 Expired claimed rows can recover without submission; expired inflight rows become
 unknown, never ready. Accepted and unknown rows are excluded from claims and
-ordinary lifecycle resume never resets them. Staff reconciliation requires campaign
-capability, impersonation denial, nonce, expected version and provider-verified
+ordinary lifecycle resume never resets them. Staff reconciliation requires campaign and subscriber-management
+capabilities, impersonation denial, nonce, expected version and provider-verified
 key/attempt-bound evidence. It records real actor and evidence digest atomically,
 is idempotent for the identical request and rejects stale/different evidence.
 Fake lookup/HMAC evidence and same-key/attempt idempotency are explicit fixture
@@ -1655,3 +1655,79 @@ obscured configuration errors, failed import returning to subscriber list) remai
 explicitly open. Historical legal/retention/editorial/accessibility and production
 readiness remain open. Sending, real intake and public collection remain disabled.
 No Phase 5, cron activation, merge or deployment.
+
+### Executed Phase 4B acceptance (2026-10-19)
+
+Implementation/test head `774db63ae69ed88be229a04af8142b4cf263fd5e` (local
+checkpoint `fbfa5fdb`, identical full tree
+`8f4df174807cefeefe492e88122c824ca0a46026`) passed
+[complete hosted run 39231113119](https://github.com/7mus7y-dotcom/pera-wp/actions/runs/39231113119):
+
+| Topology | Complete WordPress/MySQL job | Retained evidence through 2026-11-02 |
+| --- | --- | --- |
+| Single-site | [117989020163: success](https://github.com/7mus7y-dotcom/pera-wp/actions/runs/39231113119/job/117989020163) | [Artifact 12177435775](https://github.com/7mus7y-dotcom/pera-wp/actions/runs/39231113119/artifacts/12177435775) |
+| Multisite | [117989020596: success](https://github.com/7mus7y-dotcom/pera-wp/actions/runs/39231113119/job/117989020596) | [Artifact 12178190098](https://github.com/7mus7y-dotcom/pera-wp/actions/runs/39231113119/artifacts/12178190098) |
+
+Fetched both complete logs. Actual checks passed: exact 1/3/15-recipient synthetic
+published sources prepared through normal services; additive v26→v27 migration
+preserving prepared rows; missing worker audit uniqueness rejection; anonymous
+worker with independent authority and production invocation denial; persisted
+lease/owner/attempt/delivery keys; exact counts and unresolved/missing-membership
+completion guards; stable fake correlation; acceptance never reclaimed; expired
+pre-submit ownership recovery; ambiguous timeout held until verified lookup;
+ordinary pause/resume preserving unknown; anonymous/employee/impersonated and
+campaign-only reconciliation denial; rejected unverified/stale evidence;
+idempotent real-actor audited reconciliation; retry-after and future retry hold;
+four-attempt exhaustion; permanent failure; pause/cancel before claim and final
+authorization; unsubscribe, cumulative suppression, missing evidence and changed
+subscriber mailbox exclusion without address substitution; unchanged frozen
+history, subscribers, evidence, tokens, ordinary queue and cron; zero scoped
+mail/network calls; restored target context and no origin-blog fixture ledger.
+
+All eight new scenarios passed per topology. Six concurrent scenarios require
+distinct SQL connections and actual blocking: claim/claim with a ten-lease ceiling,
+expired-lease recovery/stale owner, pause/claim, cancel/claim, authorization/pause
+and authorization/unsubscribe. Two separate-process crash scenarios exit before
+submission and after durable fake acceptance respectively; the latter recovers to
+unknown, rejects late owner writes, resolves using verified fake evidence and
+never resubmits. The authorization races demonstrate the documented committed
+request boundary. All six existing queue and nine freeze races pass unchanged.
+Complete default-theme desktop/mobile subscriber/import/suppression and Phase
+3A/3B/3C browser regressions also pass. These are executed regression checks;
+no new UI, inbox rendering, manual visual/accessibility acceptance or real-provider
+validation is claimed.
+
+All 18 standalone regressions and 149 first-party PHP syntax checks pass locally
+and in hosted checks; shell/JavaScript syntax, Compose configuration and whitespace
+checks pass. Local PHP uses the existing PHP 8.4.24 wrapper. Local Docker socket
+and shell Git proxy limitations remain as recorded; real SQL/browser execution
+comes from hosted disposable synthetic fixtures. Main was rechecked and remains
+`199cb7f07414a542a0499f5aad90280d69707317`.
+
+Earlier failed/superseded runs are not acceptance evidence. Fixture fixes preserve
+single-site target ID 0 semantics, create exact-sized published memberships rather
+than truncating the history binding, retain the existing mailbox race entrypoint,
+and place the lease-race barrier after the job lock inside fenced recovery.
+Minimum blocking assertions and existing race/browser assertions were not weakened.
+The engine also rechecks ownership after mailbox contention before renewing the
+inflight lease; pause before submission does not consume an attempt.
+
+Changed files, all relative to `wp-content/plugins/peracrm/` (14 total):
+`inc/campaigns/worker.php`, `inc/campaigns/queue-schema.php`,
+`inc/campaigns/schema.php`, `inc/bootstrap.php`, `peracrm.php`,
+`tests/campaign-worker-test.php`, `tests/campaign-foundations-test.php`,
+`tests/authorization-surfaces-test.php`,
+`tests/integration/campaigns/assertions.php`,
+`tests/integration/campaigns/queue-worker.php`,
+`tests/integration/campaigns/worker-fixture.php`,
+`tests/integration/campaigns/worker-race.php`,
+`tests/integration/campaigns/run-inside.sh`, and this living plan.
+No theme files or existing browser assertions changed.
+
+Non-draft [PR #1457](https://github.com/7mus7y-dotcom/pera-wp/pull/1457) targets
+main. This final evidence change is documentation-only; engine and fixtures match
+the passing head above. Phase 4 remains **in progress** with scheduler/CLI health
+integration, operational UI and later real-provider work outstanding. Property-block
+review failure and all recorded usability issues remain open. Sending, real intake
+and public collection remain disabled. No Phase 5, cron activation, merge or
+deployment.
