@@ -67,6 +67,7 @@ worker_expect(worker_reject(static function () { new PeraCRM_Fixture_Worker('');
 $w=worker_fixture(); $p=new PeraCRM_Fake_Campaign_Provider();
 $job=worker_fixture_reset(3);
 worker_expect(worker_reject(static function () use ($w,$job) { $w->claim($job,11); }) && worker_reject(static function () use ($w,$job) { $w->recover($job,0); }),'bounded batch and recovery');
+worker_expect(worker_reject(static function () use ($w,$job,$p) { $w->run($job,$p,0); }) && worker_reject(static function () use ($w,$job,$p) { $w->run($job,$p,11); }) && $p->calls===0,'sequential invocation rejects invalid bounds before claiming or submitting');
 $claims=$w->claim($job,2);
 worker_expect(count($claims)===2 && strlen($claims[0]['owner_token'])===64 && $claims[0]['attempt_key']!=='' && $claims[0]['delivery_key']!=='' && $claims[0]['lease_until']!==null,'durable owner lease attempt and deterministic keys before submission');
 worker_expect(!$w->completion($job),'active leases and unclaimed work prevent completion');
@@ -148,6 +149,7 @@ foreach (['unsubscribe','suppression','evidence','address'] as $change) {
 $job=worker_fixture_reset(1);
 worker_fixture_target(static function () use ($job) { global $wpdb; $wpdb->update(peracrm_table('peracrm_fixture_worker_jobs'),['complete'=>0],['id'=>$job]); });
 worker_expect($w->claim($job)===[] && !$w->completion($job),'incomplete preparation prevents submission completion');
+require __DIR__.'/worker-lease-acceptance.php';
 worker_expect(worker_protected()===$protected && $mail===0 && $http===0 && $cron===worker_fixture_target(static function () { return get_option('cron'); }),'unchanged frozen history subscribers evidence tokens ordinary queue cron and zero mail/network');
 worker_expect(get_current_blog_id()===$origin,'target context restored independently of anonymous worker actor');
 if (is_multisite() && $origin!==peracrm_get_target_blog_id()) {

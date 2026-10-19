@@ -1731,3 +1731,46 @@ integration, operational UI and later real-provider work outstanding. Property-b
 review failure and all recorded usability issues remain open. Sending, real intake
 and public collection remain disabled. No Phase 5, cron activation, merge or
 deployment.
+
+## PR #1457 acceptance follow-up — attempts and sequential leases (in progress)
+
+Follow-up starts from PR head `fcdd07cbf30761e071283c8e3c9dc411b40da529`
+on `feat/campaign-phase4b-worker`, based on main `199cb7f`. Both review findings
+were inspected against current code. The existing no-submission pause/future-schedule
+path already returns the reserved attempt; new fourth-claim regressions exercise
+three proven transient outcomes, claim four, pause/resume or future scheduling,
+zero calls while blocked, restored count three and successful fourth submission.
+
+`run()` now claims one recipient immediately before processing it, up to the same
+explicit 1–10 invocation bound. It does not acquire leases or reserve attempts for
+recipients waiting behind earlier provider calls. Atomic claims retain the shared
+per-job concurrency ceiling and existing owner/version fences and live rechecks.
+If processing aborts, later recipients remain held with untouched attempt budgets.
+Bounded recovery also refunds expired `claimed` reservations (including claim four)
+because submission was never authorized. Expired `inflight` rows still become
+unknown and retain their consumed attempt; acceptance/unknown cannot be reclaimed.
+
+The provider boundary explicitly receives `timeout_seconds=20`; a future adapter
+must enforce this total transport timeout against the 60-second in-flight lease,
+leaving 40 seconds for persistence/lock contention. This synchronous neutral
+engine cannot forcibly interrupt a misbehaving dependency. A return after lease
+expiry is rejected by ownership fencing; bounded recovery holds the in-flight
+outcome as unknown for verified reconciliation. It is never treated as proven
+non-acceptance and never blindly retried. No real adapter is introduced here.
+
+Added real SQL fixture regressions for ten seven-second simulated submissions
+(cumulative 70 seconds), no waiting leases/attempts, a provider ignoring its timeout
+and taking 61 seconds, preserved untouched rows after abort, unknown recovery,
+stale-result rejection, no accepted/unknown retry, and refund/reprocessing of
+three untouched fourth claims. Elapsed-time tests advance only the disposable
+SQL connection's database clock with MySQL `SET timestamp`, restoring it in
+`finally`; they exercise the actual SQL lease timestamps/fences without wall-clock
+sleeps or real delivery. Existing separate-connection race/browser assertions are
+preserved. Focused/full execution and review-thread evidence will be recorded
+below after validation; added fixtures alone are not acceptance evidence.
+
+Phase 4 remains in progress. Production invocation/global dispatch remain
+unconditionally disabled and fake outcomes stay in isolated fixture ledgers.
+Scheduler/CLI health, operational UI and later real-provider work remain later;
+property-block and recorded usability issues remain explicitly open. No scheduler,
+UI, provider integration, real delivery, merge or deployment.

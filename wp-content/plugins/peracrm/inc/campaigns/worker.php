@@ -10,6 +10,7 @@ function peracrm_campaign_worker_run($limit = 10)
 /** Non-acceptance must be proven. An exception, malformed response or timeout is unknown. */
 interface PeraCRM_Campaign_Provider
 {
+    /** Must bound the transport call by submission.timeout_seconds; timeout/lost connection is unknown. */
     public function submit(array $submission): array;
     /** Verified evidence bound to delivery/attempt keys, or null. No assumed provider guarantees. */
     public function lookup(string $delivery_key, string $attempt_key): ?array;
@@ -47,6 +48,9 @@ abstract class PeraCRM_Campaign_Worker
     protected const CONCURRENCY = 10; // per job; no more than one bounded job per invocation
     protected const ATTEMPTS = 4;
     protected const LEASE = 60;
+    // Leave 40 seconds for persistence/lock contention. Adapters must enforce the transport timeout.
+    // A synchronous dependency cannot be forcibly interrupted here; lease fencing still rejects a late return.
+    protected const PROVIDER_TIMEOUT = 20;
 
     abstract protected function authorize(): void;
     abstract protected function gate(): bool;
@@ -211,7 +215,7 @@ abstract class PeraCRM_Campaign_Worker
         if (!$this->gate()) { return $this->result($authorized, ['kind'=>'unknown']); }
         $now = peracrm_with_target_blog(function () { return $this->now(); });
         $this->owned($authorized, $authorized, $now, 'inflight');
-        try { $result = $provider->submit(['mailbox'=>$authorized['mailbox'], 'delivery_key'=>$authorized['delivery_key'], 'attempt_key'=>$authorized['attempt_key']]); }
+        try { $result = $provider->submit(['mailbox'=>$authorized['mailbox'], 'delivery_key'=>$authorized['delivery_key'], 'attempt_key'=>$authorized['attempt_key'], 'timeout_seconds'=>self::PROVIDER_TIMEOUT]); }
         catch (Throwable $e) { $result = ['kind'=>'unknown']; }
         return $this->result($authorized, $result);
     }
@@ -246,7 +250,9 @@ abstract class PeraCRM_Campaign_Worker
             $rows = $wpdb->get_results($wpdb->prepare('SELECT * FROM '.$this->table('deliveries')." WHERE job_id=%d AND state IN ('claimed','inflight') AND lease_until<=%s ORDER BY id LIMIT %d FOR UPDATE", $job_id, $this->now(), $limit), ARRAY_A);
             peracrm_campaigns_db_require(true); $out = [];
             foreach ($rows as $row) {
-                $out[] = $this->write($row, ['state'=>$row['state'] === 'inflight' ? 'unknown' : ((int)$row['attempt_count'] >= self::ATTEMPTS ? 'failed' : 'held'),
+                $out[] = $this->write($row, ['state'=>$row['state'] === 'inflight' ? 'unknown' : 'held',
+                    // A claimed row has never crossed submission authorization. Refund its reserved attempt.
+                    'attempt_count'=>$row['state'] === 'claimed' ? max(0, (int)$row['attempt_count'] - 1) : (int)$row['attempt_count'],
                     'reason'=>$row['state'] === 'inflight' ? 'expired_inflight' : 'expired_before_submit', 'owner_token'=>'', 'lease_until'=>null]);
             }
             return $out;
@@ -298,8 +304,15 @@ abstract class PeraCRM_Campaign_Worker
 
     final public function run(int $job_id, PeraCRM_Campaign_Provider $provider, int $limit = 10): array
     {
+        if ($limit < 1 || $limit > self::BATCH) { throw new InvalidArgumentException('Worker invocation must be 1–10.'); }
         $out = [];
-        foreach ($this->claim($job_id, $limit) as $claim) { $out[] = $this->submit($claim, $provider); }
+        // Do not lease future work while a sequential provider call is blocking. Claims still share
+        // the same atomic per-job concurrency ceiling across independent invocations/connections.
+        for ($processed = 0; $processed < $limit; $processed++) {
+            $claims = $this->claim($job_id, 1);
+            if (!$claims) { break; }
+            $out[] = $this->submit($claims[0], $provider);
+        }
         $this->completion($job_id);
         return $out;
     }

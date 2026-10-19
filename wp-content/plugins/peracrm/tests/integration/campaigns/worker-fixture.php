@@ -35,12 +35,19 @@ final class PeraCRM_Fake_Campaign_Provider implements PeraCRM_Campaign_Provider
     private string $secret;
     public string $mode = 'accepted';
     public int $calls = 0;
+    /** Synthetic elapsed database time, confined to this disposable connection; no wall-clock sleeps. */
+    public int $elapsed_seconds = 0;
+    public ?Closure $on_submit = null;
+    public array $timeouts = [];
     public function __construct() { worker_fixture_environment(); $this->secret = wp_salt('auth'); }
     public function submit(array $submission): array
     {
         worker_fixture_environment(); $this->calls++;
         global $wpdb;
         if ($GLOBALS['worker_fixture_in_transaction']) { throw new LogicException('Provider invoked inside transaction.'); }
+        $this->timeouts[] = $submission['timeout_seconds'] ?? null;
+        if ($this->on_submit) { ($this->on_submit)($submission); }
+        if ($this->elapsed_seconds) { worker_fixture_advance($this->elapsed_seconds); }
         $key = $submission['delivery_key']; $attempt = $submission['attempt_key'];
         $prior = $this->lookup($key, $attempt);
         if ($prior && $prior['kind'] === 'accepted') { return $prior; } // fixture-specific same-key/attempt idempotency
@@ -68,6 +75,12 @@ final class PeraCRM_Fake_Campaign_Provider implements PeraCRM_Campaign_Provider
 }
 
 function worker_fixture_target(callable $fn) { return peracrm_with_target_blog($fn); }
+function worker_fixture_advance(int $seconds): void
+{
+    worker_fixture_environment(); global $wpdb;
+    $timestamp=(int)$wpdb->get_var('SELECT UNIX_TIMESTAMP()');
+    peracrm_campaigns_db_require($wpdb->query('SET timestamp = '.($timestamp+$seconds)));
+}
 function worker_fixture_authority(): string { return worker_fixture_target(static function () { return get_option('campaign_worker_fixture_authority'); }); }
 function worker_fixture(): PeraCRM_Fixture_Worker { return new PeraCRM_Fixture_Worker(worker_fixture_authority()); }
 function worker_fixture_rows(int $job): array
@@ -99,7 +112,7 @@ function worker_fixture_reset(int $limit = 3): int
     });
 }
 
-function worker_fixture_state(int $job, string $state): void
+function worker_fixture_state(int $job, string $state, ?string $schedule = null): void
 {
     // Exercise the actual staff lifecycle service, remapping only its job/event SQL to fixture ledgers.
     $manager=worker_fixture_target(static function () { return (int)get_option('campaign_fixture_manager'); });
@@ -111,7 +124,7 @@ function worker_fixture_state(int $job, string $state): void
     worker_fixture_target(static function () { global $wpdb; $wpdb->query('CREATE TABLE IF NOT EXISTS '.peracrm_table('peracrm_fixture_lifecycle_events').' LIKE '.peracrm_table('peracrm_campaign_queue_events')); $wpdb->query('TRUNCATE TABLE '.peracrm_table('peracrm_fixture_lifecycle_events')); });
     $j=worker_fixture_target(static function () use ($job) { global $wpdb; return $wpdb->get_row($wpdb->prepare('SELECT * FROM '.peracrm_table('peracrm_fixture_worker_jobs').' WHERE id=%d',$job),ARRAY_A); });
     add_filter('query',$map);
-    try { $result=peracrm_campaign_queue_transition((int)$j['campaign_id'],$job,(int)$j['version'],wp_create_nonce('peracrm_campaign_queue_'.$j['campaign_id']),$state); }
+    try { $result=peracrm_campaign_queue_transition((int)$j['campaign_id'],$job,(int)$j['version'],wp_create_nonce('peracrm_campaign_queue_'.$j['campaign_id']),$state,$schedule); }
     finally { remove_filter('query',$map); }
     if (is_wp_error($result)) { throw new RuntimeException('Fixture lifecycle failed: '.$result->get_error_code()); }
     wp_set_current_user(0);
