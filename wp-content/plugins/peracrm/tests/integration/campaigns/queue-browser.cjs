@@ -42,6 +42,9 @@ module.exports = async function ({page,target,context,employeeContext,browser}) 
   await page.goto(target+'/crm/campaigns/'+seeds[size].campaign+'/');
   await page.getByRole('link',{name:'Prepare or inspect queue for this published revision',exact:true}).click();
   const preparation=await fields();
+  for(const operation of ['send','enable','fixture','accept','reconcile']) {
+   if((await context.request.post(endpoint,{form:{...preparation,operation}})).ok()) throw Error('Unsupported operational authority exposed '+operation);
+  }
   for(const revision of ['0','99999999']) {
    const denied=await context.request.post(endpoint,{form:{...preparation,operation:'prepare',revision}});
    if(denied.ok()) throw Error('Unpublished/draft queue prepared');
@@ -52,8 +55,9 @@ module.exports = async function ({page,target,context,employeeContext,browser}) 
   page.on('request',start);page.on('requestfinished',end);page.on('requestfailed',end);
   const pending=page.waitForResponse(matches);
   await box().locator('[data-queue-action=prepare]').evaluate(b=>{b.click();b.click();b.click();});
-  const prepared=await (await pending).json();
-  await page.waitForURL(prepared.data.url);
+  const preparedResponse=await pending;
+  if(!preparedResponse.ok() || !/no-store/.test(preparedResponse.headers()['cache-control']||'')) throw Error('Preparation response failed or cacheable');
+  await page.waitForURL(url=>/\/queue\/[0-9]+\/$/.test(url.pathname));
   await button('Continue next 200 recipients').waitFor();
   if(max!==1) throw Error('Duplicate preparation requests');
   page.off('request',start);page.off('requestfinished',end);page.off('requestfailed',end);
@@ -121,6 +125,7 @@ module.exports = async function ({page,target,context,employeeContext,browser}) 
   if(await page.locator('[data-queue-count=unknown]').innerText()!=='1' || await page.locator('[data-queue-count=failed]').innerText()!=='1') throw Error('Failed/unknown counts absent');
   await page.getByText('Failed job: no. Failed deliveries: 1. These are separate conditions.',{exact:true}).waitFor();
   await capture('unknown',size);
+  await click('Pause job'); await click('Resume job'); // Evidence hash below proves unknown rows are never reset.
   // Empty page uses bounded keyset cursor; no unbounded offset scan.
   await page.goto(target+'/crm/campaigns/'+seeds[size].campaign+'/queue/?before=1&revisions_before=1');
   await page.getByText('No queue jobs on this page.',{exact:false}).waitFor(); await capture('empty',size);
