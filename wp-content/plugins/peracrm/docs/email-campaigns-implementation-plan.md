@@ -1,6 +1,6 @@
 # Integrated email campaigns: repository review and living implementation plan
 
-Review status: **complete** (2026-10-17). Implementation: **Phase 1 complete (technical acceptance)**; **Phase 2 in progress**; **Phase 3 in progress (3A/3B/3C technical/live core checks passed; clean PR review recorded; property review and external readiness remain open)**; **Phase 4 in progress (4A queue, 4B worker and 4C scheduler/CLI health technical acceptance passed; operational UI/provider work remains)**; Phases 5–7 not started.
+Review status: **complete** (2026-10-17). Implementation: **Phase 1 complete (technical acceptance)**; **Phase 2 in progress**; **Phase 3 in progress (3A/3B/3C technical/live core checks passed; clean PR review recorded; property review and external readiness remain open)**; **Phase 4 in progress (4A/4B/4C and 4D repository checks passed; final review and external acceptance remain)**; Phases 5–7 not started.
 
 ## Purpose, scope and maintenance
 
@@ -229,7 +229,7 @@ Verified hosted evidence: [run `39050763912`](https://github.com/7mus7y-dotcom/p
 
 ### 4. Durable scheduler and provider-neutral worker
 
-- **Status:** in progress — Phase 4A storage/lifecycle, Phase 4B bounded worker and Phase 4C scheduler/CLI health technical acceptance passed; operational UI and real-provider work remain outstanding.
+- **Status:** in progress — Phase 4A storage/lifecycle, Phase 4B bounded worker, Phase 4C scheduler/CLI health and Phase 4D operational UI repository checks passed; latest-head review and original external staging acceptance remain outstanding.
 - **Goal/outcome:** schedule, pause, resume and cancel work reliably against a fake provider; production send feature flag remains off.
 - **Prerequisites:** Phase 3; decision on worker dependency, batch/concurrency limits and hosting scheduler.
 - **Work/components:** campaign worker, state machine, lease/reconciliation service, dedicated cron hook/CLI and health view; lifecycle scheduling/cleanup consistent with `inc/lifecycle.php`, `inc/cron/push_cron.php` and `inc/cli/push_cli.php`.
@@ -1999,7 +1999,7 @@ Dispatch, intake and public collection gates remain unchanged and disabled.
 Phase 4 stays in progress; no new UI, merge or deployment.
 
 
-## Phase 4D — operational queue UI (in progress)
+## Phase 4D — operational queue UI (in progress; repository checks passed)
 
 2026-10-19: #1458 merged at `e15084a2e978f5c735defb1ebc4f0cd2bc4b18f1`.
 Its final head `bda31dbd28ca10e6439703d719c4aff3fa5a4853` received a clean
@@ -2051,7 +2051,7 @@ with exact remote/local full-tree equality; the PR diff remains PeraCRM-only.
   are at most 200 and use the existing authorized service. Sanitized readiness and
   validation feedback has accessible status announcements and keyboard focus.
 
-### Validation checkpoint (pending hosted execution)
+### Initial validation checkpoint (superseded by executed acceptance below)
 
 All existing standalone regressions pass locally with the preserved PHP 8.4.24
 wrapper. New PHP and JavaScript syntax checks pass. Complete single-site/multisite
@@ -2076,8 +2076,8 @@ probes must remain zero. Screenshot review and hosted evidence remain pending.
 Phase 4 remains **in progress**. Existing 4A/4B/4C technical evidence covers durable
 queue/lifecycle, worker leases/fences, independent-connection races, crash/unknown
 handling, suppression rechecks, bounded retries, UTC storage, unresolved completion
-and isolated fake-provider ledgers. 4D technical UI acceptance still requires both
-complete hosted suites and actual desktop/mobile screenshot inspection. Original
+and isolated fake-provider ledgers. 4D repository checks now pass both complete hosted suites and inspected
+desktop/mobile screenshots, as recorded below. Latest-head review remains open. Original
 external staging cron/CLI ownership, frequency/lock behavior and restore-from-
 backup procedure remain unverified; no production activation is authorized.
 Future real-adapter watchdog/timeout/lock validation, provider readiness and
@@ -2089,3 +2089,87 @@ identity”), obscured configuration errors and import-error navigation remain o
 Historical consent/legal-basis/retention, editorial/accessibility approval and
 production-readiness requirements remain open. Sending, real intake and public
 collection remain disabled. No Phase 5, merge, deployment or active production cron.
+
+
+### Executed Phase 4D repository acceptance (2026-10-19)
+
+Runtime/test head `69af328ba01038700c6b1dfd0de8e64a28612c45` (local checkpoint
+`341b59ee`, identical full tree `7d9f2ff2358733833c0126c9a886acad6ccbbdd1`)
+passed [complete hosted run 39308295804](https://github.com/7mus7y-dotcom/pera-wp/actions/runs/39308295804).
+Both complete logs were fetched and checked; no PHP warning/fatal error appeared.
+
+| Topology | Complete WordPress/MySQL/CLI/race/browser job | Retained logs and PNG screenshots (until 2026-11-02) |
+| --- | --- | --- |
+| Single-site | [118250970031: success](https://github.com/7mus7y-dotcom/pera-wp/actions/runs/39308295804/job/118250970031) | [Artifact 12214468295](https://github.com/7mus7y-dotcom/pera-wp/actions/runs/39308295804/artifacts/12214468295) |
+| Multisite | [118250970574: success](https://github.com/7mus7y-dotcom/pera-wp/actions/runs/39308295804/job/118250970574) | [Artifact 12214528178](https://github.com/7mus7y-dotcom/pera-wp/actions/runs/39308295804/artifacts/12214528178) |
+
+Both jobs pass all 19 existing standalone regressions, 161 first-party PHP syntax
+checks, JS/shell syntax and disposable Compose configuration. Existing six queue,
+eight worker, nine freeze and three scheduler race/crash checks pass unchanged,
+including actual independent SQL connections, lease/version fences, ambiguous
+acceptance, suppression rechecks and isolated fake ledgers. Earlier browser
+assertions remain intact and pass. Local whitespace checks pass; local Docker
+remains unavailable, so no local SQL/browser execution is claimed.
+
+New actual default-theme browser flows pass at 1440×1000 and 390×844 in both
+topologies: frozen-campaign navigation; draft/unpublished rejection; idempotent
+preparation and duplicate-click exclusion; exactly 200 then remaining 4 prepared
+recipients; injected SQL rollback, persisted failed state, reload, explicit resume
+and completion; future Istanbul validation and explicit UTC service conversion;
+pause/resume; competing stale versions; unsaved schedule retention and untouched
+stale-tab synchronization; dismissed then confirmed terminal cancellation;
+bounded nonoverlapping recipient pages; campaign-only recipient control/handler
+denial; employee/anonymous/impersonation and missing-nonce denial. Unsupported
+send, enable, fixture, manual acceptance and reconciliation operations are rejected.
+
+The fixture verifies a persisted v4 rewrite marker and stale rules upgrade to v5
+queue overview/detail routes with exactly one soft flush; a second check does not
+flush. This fixes the [PR #1460 rewrite finding](https://github.com/7mus7y-dotcom/pera-wp/pull/1460#discussion_r4317457197)
+in `ed6eba71`; both complete suites verify it and the thread is resolved. No clean
+latest-head review is inferred from fixing or resolving that finding.
+
+Global health is refreshed with job state: a failed preparation increments only
+failed-job health and explicit resume restores its previous count. Failed-delivery
+and unknown-outcome visibility is tested separately. Pause/resume on a seeded
+unknown job leaves its delivery ledger byte-identical. Subscriber/consent/
+suppression/preference-token data, frozen content/membership, worker events,
+unknown ledger, cron and scheduler invocation/success metadata hashes remain
+unchanged by queue UI flows. New UI-prepared rows stay held with zero worker
+attempts/owner/attempt/provider markers; scoped mail and HTTP probes remain zero.
+No worker invocation, browser-generated outcomes, token issuance or cron activation.
+
+Each artifact retains 18 queue PNGs: `queue-{overview,error,failed-job,schedule-error,
+scheduled,campaign-only,cancelled,unknown,empty}-{desktop,mobile}.png`.
+Actual JPEG review captures of those rendered components were inspected through
+hosted logs, including desktop/mobile long labels, empty states, validation and
+preparation errors, failure recovery, cancellation, permissions and unknown
+outcomes, with additional multisite captures. The full PNGs remain in the artifacts.
+Fixed shell headers are hidden during component capture only. Tests assert no
+page overflow, bounded table scrolling and effective wrapping despite inherited
+shell rules. Mobile counts and explicit timezone labels remain readable. This
+is Chromium verification, not manual assistive-technology or inbox acceptance.
+
+Acceptance corrected the browser response-body/navigation race without weakening
+idempotency assertions; refreshed stale health counts; preserved edited schedule
+input while updating untouched stale tabs; overrode inherited table nowrap only
+inside queue screens; moved empty messages outside scrolling tables; and made
+schedule errors describe the actual Istanbul field. Superseded/failed/cancelled
+runs are not the final acceptance evidence above.
+
+**Phase 4 assessment against the original plan:** repository acceptance is met
+for durable queue/lifecycle, bounded worker/scheduler, real DB races/crashes,
+unknown/retry/lease fences, live eligibility checks, UTC storage, unresolved
+completion, isolated fake ledgers and the operational UI. Phase 4 remains
+**in progress**: clean latest-head review and original external staging cron/CLI
+ownership, frequency/lock behavior and restore-from-backup verification remain
+open. Production topology/HTTPS/cache/clone readiness and carried-over historical
+consent/legal-basis/retention, editorial/brand/accessibility approval remain open.
+Real provider integration and provider lookup/reconciliation UI stay deferred;
+no Phase 5 implementation or provider-readiness claim is made.
+
+The property-block failure, sender-label confusion, obscured configuration errors
+and import-error navigation remain open. Sending, real intake and public
+collection remain disabled. No production cron activation, merge or deployment.
+[PR #1460](https://github.com/7mus7y-dotcom/pera-wp/pull/1460) is non-draft against
+main. The final acceptance commit changes this plan only; runtime/tests exactly
+match the passing head above, and all local checkpoints remain preserved.
