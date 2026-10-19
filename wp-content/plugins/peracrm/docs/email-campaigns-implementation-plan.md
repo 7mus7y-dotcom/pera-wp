@@ -8,7 +8,7 @@ Let Pera staff prepare newsletters and targeted campaigns inside the existing CR
 
 Future implementation PRs must update phase status, validation evidence, decisions and the progress log here. A phase must not be marked complete solely because code exists when required verification remains outstanding. Use only `not started`, `in progress`, `blocked` or `complete` for phase status. Keep repository checks distinct from external verification; record outstanding evidence explicitly.
 
-**Current implementation task:** Phase 4B only: explicit bounded provider-neutral worker, atomic claims/leases and owner/version fencing, live authorization, outcome/retry handling, recovery and verified reconciliation. Branch `feat/campaign-phase4b-worker` builds on latest main `199cb7f07414a542a0499f5aad90280d69707317`, merged #1456. Production invocation remains unconditionally disabled. A fake provider exists only in disposable CLI fixtures using a separate ledger. Phase 4 remains in progress; scheduler/CLI health integration, operational UI and later real-provider work remain outstanding. Sending, real intake and public collection remain disabled. No Phase 5, cron activation, merge or deployment.
+**Current implementation task:** Phase 4C only: bounded target-blog scheduler boundary/due discovery, read-only CLI health/status/due inspection, explicitly guarded disposable-fixture execution/recovery, operational metadata and server-cron runbook. Branch `feat/campaign-phase4c-scheduler` starts from accepted main `2657fcad92e5f7ba305260ee151e89d957ffd41b` (merged #1457). Production dispatch remains unconditionally disabled; no production dispatch cron is registered. Phase 4 stays in progress; operational UI and real-provider work remain outstanding. Sending, real intake and public collection remain disabled. No Phase 5, server-cron activation, merge or deployment.
 
 ## Review baseline and method
 
@@ -1821,3 +1821,58 @@ this plan. No schema, scheduler, UI or real-provider integration. Production
 dispatch stays unconditionally disabled, fake outcomes stay isolated, Phase 4
 remains in progress and the recorded property-block/usability issues remain open.
 No sending, real intake, public collection, merge or deployment.
+
+
+## Phase 4C — scheduler, CLI and operational health (in progress)
+
+2026-10-19: #1457 merged at `2657fcad92e5f7ba305260ee151e89d957ffd41b`.
+Final automated review of `a712e31f121b44b68d4ff8b3c4d136320eb32888` completed
+without findings. Earlier attempt-budget and sequential-lease findings have
+fix-specific SQL/topology evidence and were resolved. This phase preserves those
+worker rules and existing races/browser assertions. No AGENTS.md was found in
+workspace/repository ancestors or repository. Shell fetch failed once (proxy
+unreachable); connected GitHub supplied latest main's files. Restored local base
+tree `9db595c2604d5a95b29508a8d31641c85c5e6b8c` exactly matches main's Git tree.
+Original checkout is retained at `checkpoint/pre-phase4c`; local reconstructed
+base commit is `584c3f3d`. Published commits will parent actual latest main.
+
+Decisions: one target-blog production action with an unconditional gate before
+any delivery state work; no scheduled production dispatch event or enable switch.
+Fixture scheduler alone supplies concrete fake worker/provider dependencies and
+isolated ledger/metadata. Three-job, ten-recipient, ten-recovery-row invocation
+bounds and a 25-second work-start deadline reserve the worker's full 20-second
+transport budget before each submission. Target-table-specific connection-owned
+MySQL lock excludes overlapping schedulers; worker leases/fences remain decisive.
+No history cleanup is introduced. Schema v28 adds non-unique health aggregate/
+lease/result indexes without changing delivery uniqueness or cancellation fences.
+
+Health requires a real target-blog report user and denies impersonation; readiness
+failure remains reportable. Disabled/invoked/processed/blocked, claimable due jobs,
+active/expired leases, unknown and retry backlog, last known successful terminal
+processing and ledger acceptance are distinct. No event existence or disabled
+return is success; acceptance is not verified inbox delivery. Output uses bounded
+allowlisted metadata and fixed diagnostics. CLI offers JSON/text and exit codes
+0/2/3/4, read-only status/health/due, guarded fixture-run/fixture-recover only.
+No production send/force-reset/resend/enable command or reconciliation bypass.
+
+[Operational runbook](email-campaigns-operations.md) records `DISABLE_WP_CRON=1`,
+explicit future server-cron/WP-CLI operation, connection/host overlap protection,
+interruption recovery and backup-restore reconciliation. It installs nothing.
+Synchronous dependency/SQL lock waits cannot be forcibly interrupted by the
+neutral engine; the deadline bounds new work starts, future adapter/hosting
+watchdog/lock timeouts require separate activation validation. An over-lease
+inflight result remains unknown and cannot be blindly retried.
+
+Validation checkpoint: 19 standalone regression suites and 157 first-party PHP
+syntax checks passed locally, together with shell/JavaScript syntax and whitespace
+checks. Real single-site/multisite SQL/browser suites and new CLI/scheduler/race
+acceptance will run on hosted GitHub Actions; local Docker socket access is denied.
+Added tests alone are not executed acceptance. Hosted results will be recorded
+below. No production/real-provider or new visual acceptance is claimed.
+
+Phase 4 remains **in progress**. Operational UI, provider selection/credentials/
+real adapter/domain/inbox/webhook and external readiness remain later. Property-
+block review failure, confusing Add identity label, obscured configuration errors
+and failed imports returning to subscriber list remain explicitly unresolved.
+Sending, real intake and public collection remain disabled. No Phase 5, cron
+activation on the actual host, merge or deployment.
