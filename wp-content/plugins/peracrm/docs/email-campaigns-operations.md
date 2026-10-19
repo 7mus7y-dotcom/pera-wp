@@ -41,7 +41,8 @@ failure or overlap. A disabled status is expected, not healthy processing.
 `due` is an inspection and returns 0 even when dispatch is disabled. A JSON error
 is still printed on handled failures. Unknown CLI subcommands fail in WP-CLI.
 
-Facts are separately labelled: dispatch state, schema readiness, queued/scheduled/
+Facts are separately labelled: dispatch state, physical schema readiness, module
+enabled state, combined queue readiness, queued/scheduled/
 preparing/paused/cancelled jobs, jobs with currently claimable due work, active and
 expired leases, unknown outcomes, all retries and currently due retries. Counts
 include cancelled jobs' unresolved delivery history; lifecycle intent never

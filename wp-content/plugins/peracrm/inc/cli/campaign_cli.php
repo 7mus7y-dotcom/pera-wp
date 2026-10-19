@@ -14,7 +14,7 @@ function peracrm_campaign_cli($operation, $args, $assoc)
         $service=new PeraCRM_Campaign_Operations();
         if ($operation==='status' || $operation==='health') {
             $data=$service->health();
-            if (!$data['schema_ready'] || $data['scheduler_state']==='blocked' || array_diff($data['diagnostics'],['dispatch_disabled'])) { $exit=4; }
+            if (!$data['queue_ready'] || $data['scheduler_state']==='blocked' || array_diff($data['diagnostics'],['dispatch_disabled'])) { $exit=4; }
             elseif (!$data['dispatch_enabled']) { $exit=2; }
         } elseif ($operation==='due') {
             $limit=$assoc['limit'] ?? '10';

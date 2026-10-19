@@ -14,7 +14,7 @@ for ($i=0;$i<3;$i++) {
 campaign_expect(get_current_blog_id()===1 && empty($GLOBALS['campaign_options'][1]['peracrm_campaign_scheduler_last']),'production invocation restores context and metadata belongs to target');
 $GLOBALS['campaign_actor']=1; $GLOBALS['campaign_impersonating']=false;
 $h=$probe->health();
-campaign_expect(!$h['schema_ready'] && !$h['dispatch_enabled'] && $h['scheduler_state']==='disabled' && $h['last_successful_processing']===null,'unready/disabled health does not claim success');
+campaign_expect(!$h['queue_ready'] && !$h['dispatch_enabled'] && $h['scheduler_state']==='disabled' && $h['last_successful_processing']===null,'unready/disabled health does not claim success');
 $GLOBALS['campaign_actor']=0;
 try { $probe->health(); campaign_expect(false,'anonymous health forbidden'); } catch (RuntimeException $e) {}
 if (!defined('WP_CLI')) { define('WP_CLI',true); }

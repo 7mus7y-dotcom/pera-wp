@@ -88,10 +88,12 @@ class PeraCRM_Campaign_Operations
         $this->authorize_read();
         return $this->context(function () {
             $ready = $this->ready(); $dispatch = $this->dispatch();
-            $out = ['dispatch_enabled'=>$dispatch,'schema_ready'=>$ready,'scheduler_state'=>$dispatch ? 'never_invoked' : 'disabled',
+            $schema=peracrm_campaigns_schema_ready();
+            $module=!defined('PERACRM_CAMPAIGNS_ENABLED') || PERACRM_CAMPAIGNS_ENABLED;
+            $out = ['dispatch_enabled'=>$dispatch,'schema_ready'=>$schema,'module_enabled'=>(bool)$module,'queue_ready'=>$ready,'scheduler_state'=>$dispatch ? 'never_invoked' : 'disabled',
                 'last_invocation'=>$this->last_invocation(),'last_successful_processing'=>null,
                 'last_provider_acceptance'=>null,'delivery_verified'=>false,'counts'=>null,
-                'diagnostics'=>array_values(array_filter([$dispatch ? null : 'dispatch_disabled',$ready ? null : 'schema_unavailable']))];
+                'diagnostics'=>array_values(array_filter([$dispatch ? null : 'dispatch_disabled',$schema ? null : 'schema_unavailable',$module ? null : 'module_disabled',(!$ready && $schema && $module) ? 'readiness_blocked' : null]))];
             if ($dispatch && $out['last_invocation']) {
                 $r=$out['last_invocation'];
                 $out['scheduler_state']=str_starts_with($r['result'],'blocked') ? 'blocked' : (($r['successful'] ?? 0)>0 ? 'processed' : 'invoked');

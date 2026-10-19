@@ -28,4 +28,6 @@ wp eval-file /tests/scheduler-cli-fault.php restore
 expect_exit 4 env PERACRM_SCHEDULER_STORAGE_FAILURE=1 wp --user=campaign-fixture-manager peracrm campaigns due --format=json
 expect_exit 4 env PERACRM_SCHEDULER_STORAGE_FAILURE=1 wp --user=campaign-fixture-manager peracrm campaigns health --format=json
 expect_exit 3 wp peracrm campaigns fixture-run --confirm-disposable=campaign_fixture --limit=1 --format=json
+expect_exit 4 env PERACRM_SCHEDULER_MODULE_DISABLED=1 wp --user=campaign-fixture-manager peracrm campaigns health --format=json
+php -r '$r=json_decode(file_get_contents("/tmp/peracrm-scheduler-cli.json"),true,512,JSON_THROW_ON_ERROR); if (!$r["schema_ready"] || $r["module_enabled"] || $r["queue_ready"] || !in_array("module_disabled",$r["diagnostics"],true)) { exit(1); }'
 printf '%s\n' 'PASS scheduler CLI: real JSON, exit codes, explicit fixture authority, bounded read, no private payloads'
