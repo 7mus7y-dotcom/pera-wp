@@ -1,6 +1,6 @@
 # Integrated email campaigns: repository review and living implementation plan
 
-Review status: **complete** (2026-10-17). Implementation: **Phase 1 complete (technical acceptance)**; **Phase 2 in progress**; **Phase 3 in progress (3A/3B/3C technical/live core checks passed; clean PR review recorded; property review and external readiness remain open)**; **Phase 4 in progress (4A/4B/4C and 4D repository checks passed; final review and external acceptance remain)**; **Phase 5 in progress (5A documentation complete; 5B submission, deliverable capture/approval and recipient token/expansion contracts complete; production integration not started)**; Phases 6–7 not started.
+Review status: **complete** (2026-10-17). Implementation: **Phase 1 complete (technical acceptance)**; **Phase 2 in progress**; **Phase 3 in progress (3A/3B/3C technical/live core checks passed; clean PR review recorded; property review and external readiness remain open)**; **Phase 4 in progress (4A/4B/4C and 4D repository checks passed; final review and external acceptance remain)**; **Phase 5 in progress (5A documentation complete; 5B submission, deliverable capture/approval, recipient token/expansion contracts and bounded durable recipient persistence complete; production integration not started)**; Phases 6–7 not started.
 
 ## Purpose, scope and maintenance
 
@@ -239,7 +239,7 @@ Verified hosted evidence: [run `39050763912`](https://github.com/7mus7y-dotcom/p
 
 ### 5. One provider adapter, authenticated events and internal tests
 
-- **Status:** in progress — Phase 5A evaluation/specification and bounded Phase 5B submission, deliverable capture/approval and recipient token/expansion contracts complete (2026-10-20); concrete production adapter/transport, events, readiness and real delivery implementation not started. See [provider specification](email-campaigns-provider-specification.md).
+- **Status:** in progress — Phase 5A evaluation/specification and bounded Phase 5B submission, deliverable capture/approval, recipient token/expansion contracts and bounded durable recipient persistence complete (2026-10-20); concrete production adapter/transport, events, readiness and real delivery implementation not started. See [provider specification](email-campaigns-provider-specification.md).
 - **Goal/outcome:** allowlisted internal test mail and delivery feedback work through one approved provider; public campaigns remain disabled.
 - **Prerequisites:** Phase 4; provider documentation gate completed, account access granted separately, domain/DNS readiness and retention agreements recorded. Split adapter and webhook review if needed, but enable neither public sends nor imports from provider until both pass.
 - **Work/components:** one adapter, masked admin settings/readiness, authenticated event endpoint, durable dedupe/reconciliation, suppression sync, one-click unsubscribe headers/handler and safe diagnostic reporting. Provider-specific fixtures under `tests/`.
@@ -2760,3 +2760,53 @@ for that mismatch, registry key-version mismatch, direct identity/token SQL
 uniqueness and an actual additive v28-to-v29 migration with repeat readiness.
 All prior captures, identity bindings and delivery gates remain unchanged.
 Replacement hosted matrix evidence follows after execution.
+
+
+### Final durable-persistence validation evidence (2026-10-20)
+
+Final runtime/test commit `a8853653956133a52f6451326a781d015745e28a`, exact tested
+and published tree `822a0263ac37c01a797388c858f106b198838d21`, passed
+[run 39486372802](https://github.com/7mus7y-dotcom/pera-wp/actions/runs/39486372802):
+**single-site job 118847804585** and **multisite job 118847804879**. Both complete
+logs were read and checked. All new persistence assertions, six independent-
+process race scenarios, actual v28-to-v29 installation and prior campaign/
+worker/scheduler/browser fixtures passed in both topologies. The matrix also
+passed all 23 standalone plugin suites (13 campaign suites), PHP syntax, shell/
+Compose configuration and existing desktop/mobile browser flows. No PHP warning,
+fatal, notice or deprecated diagnostic, failed assertion or new persistence SQL
+error was found.
+
+Logs retain five pre-existing management-fixture database diagnostics in each
+job: four deliberately injected nonexistent-table operations for cleanup/audit
+rollback checks, plus the legacy `crm_client` linked-user-column probe on
+fixture client deletion. These occur before the new persistence fixtures and do
+not contain bearers/bodies/keys. They are not claimed as a clean production-host
+log or changed in this bounded PR. Node/action runtime deprecation notices are
+also pre-existing toolchain output. The original first-run multisite job
+118845231918 passed; the initial single-site target-sentinel failure is superseded
+by the fully passing replacement matrix, not hidden or counted as success.
+
+Evidence retained through **2026-11-03**:
+[single-site artifact 12293379200](https://github.com/7mus7y-dotcom/pera-wp/actions/runs/39486372802/artifacts/12293379200),
+[multisite artifact 12294276430](https://github.com/7mus7y-dotcom/pera-wp/actions/runs/39486372802/artifacts/12294276430).
+Browser preference POST evidence covers the existing Phase 2 protocol; it does
+not establish acceptance of the new token registry or future RFC 8058 handler.
+No real provider, mailbox, deployment or manual accessibility acceptance is claimed.
+
+Codex's automatic clean review on PR #1468 covers initial commit `3f3024e7`, not
+the subsequent single-site/deployment hardening in `a8853653`; final runtime
+rereview remains open. The final evidence commit is documentation-only and
+changes no tested runtime or fixture bytes. Publication uses connected GitHub,
+with the exact runtime tree checked against the isolated worktree. The original
+`/workspace/pera-wp` checkout remains clean and preserved. No merge or deployment.
+
+Remaining retention readiness includes the existing eight-key ring capacity:
+never silently discard a still-required withdrawal key to rotate again. Stop new
+issuance if the configured ring cannot retain all required verification keys;
+approve a key/archive strategy and withdrawal lifetime before activation. No
+finite key/digest/body/identity retention horizon is approved. Public preferences/
+visible withdrawal and RFC 8058 handling, current-subscriber lifecycle integration,
+secure exact-byte output recovery and concrete worker/provider/transport
+integration remain dependent work. Historical snapshots/hashes, cancellation
+fences, cumulative suppressions and unknown-outcome holds remain unchanged.
+Sending, real intake and public collection remain disabled.
