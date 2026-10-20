@@ -1,6 +1,6 @@
 # Integrated email campaigns: repository review and living implementation plan
 
-Review status: **complete** (2026-10-17). Implementation: **Phase 1 complete (technical acceptance)**; **Phase 2 in progress**; **Phase 3 in progress (3A/3B/3C technical/live core checks passed; clean PR review recorded; property review and external readiness remain open)**; **Phase 4 in progress (4A/4B/4C and 4D repository checks passed; final review and external acceptance remain)**; Phases 5–7 not started.
+Review status: **complete** (2026-10-17). Implementation: **Phase 1 complete (technical acceptance)**; **Phase 2 in progress**; **Phase 3 in progress (3A/3B/3C technical/live core checks passed; clean PR review recorded; property review and external readiness remain open)**; **Phase 4 in progress (4A/4B/4C and 4D repository checks passed; final review and external acceptance remain)**; **Phase 5 in progress (5A documentation complete; runtime implementation not started)**; Phases 6–7 not started.
 
 ## Purpose, scope and maintenance
 
@@ -8,7 +8,9 @@ Let Pera staff prepare newsletters and targeted campaigns inside the existing CR
 
 Future implementation PRs must update phase status, validation evidence, decisions and the progress log here. A phase must not be marked complete solely because code exists when required verification remains outstanding. Use only `not started`, `in progress`, `blocked` or `complete` for phase status. Keep repository checks distinct from external verification; record outstanding evidence explicitly.
 
-**Current implementation task:** Phase 4D only: plugin-owned operational queue overview/detail, published-revision preparation, bounded continuation/recovery, lifecycle and Istanbul schedule intent controls, privacy-safe counts and existing health semantics. Branch `feat/campaign-phase4d-queue-ui` starts from accepted main `e15084a2e978f5c735defb1ebc4f0cd2bc4b18f1` (merged #1458), updated to latest main `7b1289456e47c525d8a2f1f4dccc32bc2f744306` before final validation. No provider, dispatch, scheduler activation, fixture execution from browser, Phase 5, merge or deployment. Sending, real intake and public collection stay disabled.
+**Current task:** Phase 5A only — current official delivery-provider evaluation and integration specification, documentation-only. Branch `docs/peracrm-phase-5a-provider-spec` starts from latest GitHub `main` `d58b018191cc34af24d0d222ce63ba9d5b4c7975` (merged #1460), verified through the GitHub connector on 2026-10-20; the same commit is present locally. No applicable `AGENTS.md` was found. See the [focused provider specification](email-campaigns-provider-specification.md) for dated sources, requirements comparison, code gaps, staged implementation, validation and rollback. No runtime implementation, account purchase, credential request, DNS edit, real message, production cron activation, merge or deployment. Production dispatch, real intake and public collection stay disabled.
+
+**Next implementation task (proposed, not performed):** a versioned immutable submission-envelope/content-resolver contract and SES v2 request/result mapper with injected transport and mocked contract tests; reject existing review-only v1 snapshots. Keep the unconditional production gate and no production provider factory/network wiring. A separately reviewed deliverable renderer/capture version must precede real delivery; never rewrite old approved snapshots.
 
 ## Review baseline and method
 
@@ -115,23 +117,17 @@ Agree retention with Pera before collection: proposed starting policy is short-l
 
 ## Delivery-provider recommendation and decisions
 
-Prefer a single API adapter to **Brevo**, provisionally, for a small staff-managed newsletter MVP: evaluate its marketing-delivery fit and operational burden before choosing a lower-level mail transport. Keep Pera's campaign state, consent and audience ledger authoritative. No account, connection, price tier, volume entitlement or sending-domain readiness is assumed. This is not authorization to buy or configure anything.
+**Phase 5A decision (2026-10-20): recommend Amazon SES API v2 `SendEmail`, one recipient per request**, subject to account/region/privacy/operational acceptance. SES explicitly supports marketing through its API and fits CRM-owned frozen content, final per-recipient eligibility checks and pause/cancel semantics. Use CRM preferences/global marketing suppression and authenticated SNS configuration-set events. There is no documented SES send-idempotency window: ambiguous sends must remain held until independently verified evidence resolves them; no exactly-once promise.
 
-The following are **evaluation hypotheses requiring current official documentation and account verification**, not verified provider facts:
+**Brevo remains suitable as a marketing platform, but the earlier provisional preference is superseded.** Its documented marketing path is the email campaign API, not assumed promotional use of `/smtp/email`. Campaign handoff moves recipient dispatch into Brevo, cannot retain our final per-recipient submission check, and lacks a documented approved plain-text upload/campaign-send dedupe contract. Current transactional batch idempotency (30 minutes) cannot be transferred to marketing campaigns. No third provider is needed while SES meets the stated requirements with explicit unknown-outcome holds.
 
-| Candidate | Why evaluate | Tradeoff / verification gate |
-| --- | --- | --- |
-| Brevo (preferred candidate) | Marketing-oriented service may reduce unsubscribe/suppression operations; API delivery can keep editing in CRM. | Verify that the chosen API/product explicitly permits newsletters, supports the required unsubscribe headers/events, authenticated webhooks, regional processing, suppression synchronization, idempotency or lookup, rate limits and required plan. Reject a transactional-only route that bypasses marketing obligations. |
-| Amazon SES | Potential cost/control benefits at sufficient volume. | More engineering/operations for identity, production access, quotas, event infrastructure, suppression and unsubscribe. Verify current SNS/event authentication and replay behavior, regions and message reconciliation; cheap transport does not remove CRM queue work. |
-| Mailgun or SendGrid | Alternative API/event ecosystems if preferred candidate fails requirements. | Verify current marketing-use policies, signed webhook support, suppression/export coverage, regional options, costs and retry/idempotency semantics. Avoid a second provider until operational need exists. |
+The [provider specification](email-campaigns-provider-specification.md) contains dated official sources, documented facts versus inferences/account unknowns, current pricing/plan restrictions, code references and the smallest proposed changes. It identifies the worker's missing content envelope, review-only frozen HTML/text, recipient-link/token authority, secrets, timeout enforcement, attempt/account correlation, authenticated durable event dedupe, suppression synchronization and restricted reconciliation. No fake-provider guarantee is assumed for a real provider.
 
-Before adapter implementation, record dated official links and evidence for: marketing-use terms; sender/domain verification; SPF/DKIM/DMARC and alignment; tracking-domain requirements if used; From/Reply-To rules; standard one-click unsubscribe support; webhook authentication/retries/event identifiers; hard/soft bounce and complaint taxonomy; provider suppression scope; API rate/quota limits; idempotency lifetime and ambiguous-send lookup; sandbox restrictions; retention/data region/DPA; pricing/volume needs. Useful starting documentation entry points (not verified during this review): <https://developers.brevo.com/>, <https://docs.aws.amazon.com/ses/>, <https://documentation.mailgun.com/>, <https://www.twilio.com/docs/sendgrid>.
-
-Unresolved decisions: expected monthly volume/peak batch and budget; approved legal basis and evidence for historical lists; brand footer/legal address; preference topics/languages and translation owner; default audience exclusions; subscriber import owner; provider/product/region; retention approval; actual multisite target and scheduler owner. These constrain production enablement, not writing isolated foundation code with sending disabled.
+Subsequent review sequence: (1) adapter/contracts with mocks and dependent deliverable-content/attempt binding work; (2) authenticated events, suppression and unsubscribe; (3) masked readiness/settings and exact internal allowlist; (4) actual DNS/inbox/webhook/host acceptance before any public pilot. All delivery stays disabled until required controls are verified. Account access, volume/contact count/peak throughput, budget, selected plan/region, approved identity/footer, historical consent and suppression inventory, DPA/transfers/retention, target topology and scheduler/restore ownership remain open. No paid commitment or account configuration is authorized here.
 
 ## Numbered implementation phases
 
-Each phase should be a focused PR, split further if review size grows. Phase 1 technical acceptance is **complete** based on merged #1447 and its passed integration evidence. Phase 2 is **in progress** for external acceptance; Phase 3 is **in progress** pending clean review (3A/3B/3C technical checks passed; external prerequisites remain open); Phases 4–7 remain **not started**. Repository checks use synthetic addresses/fixtures; external checks require controlled environments.
+Each phase should be a focused PR, split further if review size grows. Phase 1 technical acceptance is **complete** based on merged #1447 and its passed integration evidence. Phase 2 is **in progress** for external acceptance; Phase 3 is **in progress** (3A/3B/3C technical checks and recorded clean review passed; property/external prerequisites remain open); Phase 4 is **in progress** (4A–4D repository checks passed; external acceptance and latest-head review remain open); Phase 5 is **in progress** for completed 5A documentation only, with runtime implementation **not started**; Phases 6–7 are **not started**. Repository checks use synthetic addresses/fixtures; external checks require controlled environments.
 
 ### 1. Subscriber, consent, suppression and permission foundations
 
@@ -240,12 +236,12 @@ Verified hosted evidence: [run `39050763912`](https://github.com/7mus7y-dotcom/p
 
 ### 5. One provider adapter, authenticated events and internal tests
 
-- **Status:** not started.
+- **Status:** in progress — Phase 5A evaluation/specification complete (2026-10-20); adapter, events, readiness and real delivery implementation not started. See [provider specification](email-campaigns-provider-specification.md).
 - **Goal/outcome:** allowlisted internal test mail and delivery feedback work through one approved provider; public campaigns remain disabled.
 - **Prerequisites:** Phase 4; provider documentation gate completed, account access granted separately, domain/DNS readiness and retention agreements recorded. Split adapter and webhook review if needed, but enable neither public sends nor imports from provider until both pass.
-- **Work/components:** one adapter, masked admin settings/readiness, signed event endpoint, durable dedupe/reconciliation, suppression sync, one-click unsubscribe headers/handler and safe diagnostic reporting. Provider-specific fixtures under `tests/`.
+- **Work/components:** one adapter, masked admin settings/readiness, authenticated event endpoint, durable dedupe/reconciliation, suppression sync, one-click unsubscribe headers/handler and safe diagnostic reporting. Provider-specific fixtures under `tests/`.
 - **Database:** event ledger unique provider/account/event key, provider message correlation and diagnostic retention indexes.
-- **Repository acceptance:** invalid/missing signature rejected before processing, wrong account rejected, duplicate/out-of-order events safe, persistence failure not acknowledged as success, hard bounce/complaint/unsubscribe blocks pending recipients, no event clears suppression, retry/lookup semantics match verified contract; secret/redaction and test allowlist checks; no real network calls in automated tests.
+- **Repository acceptance:** invalid/missing provider authentication rejected before processing, wrong account rejected, duplicate/out-of-order events safe, persistence failure not acknowledged as success, hard bounce/complaint/unsubscribe blocks pending recipients, no event clears suppression, retry/lookup semantics match verified contract; secret/redaction and test allowlist checks; no real network calls in automated tests.
 - **External checks:** dated provider docs and plan limits; verify account/region, SPF/DKIM/DMARC, authenticated webhooks, provider retry behavior, suppression import/sync, genuine internal Gmail/Outlook/mobile inbox rendering, text version, reply-to, unsubscribe and bounce simulations where provider supports them. Do not generate real complaints to test.
 - **Risks/rollback:** provider outage or compromised key; pause all new claims, rotate key and keep preference/webhook processing available. Do not roll back suppression knowledge or assume accepted mail can be recalled.
 
@@ -283,6 +279,7 @@ Rollout order: migrations/permissions with sending off → subscriber preview an
 
 | Date | Status | Evidence / decision |
 | --- | --- | --- |
+| 2026-10-20 | Phase 5 in progress — 5A documentation complete | [Provider specification](email-campaigns-provider-specification.md): recommend SES v2 with unknown-outcome holds; Brevo marketing campaign API has worker-fit gaps. Runtime implementation not started. User-reported live queue UI evidence recorded separately below; no emails sent. CLI/host/restore/property/usability readiness remains open; dispatch/intake/public collection disabled. |
 | 2026-10-17 | Review complete | Inspected PeraCRM plus relevant theme integrations; verified main comparison at `41036e8218b1da320608b866210eaaf2bee60d62`. No runtime or production data access. |
 | 2026-10-17 | Plan documented | Prefer plugin-owned campaigns, separate subscriber/consent/suppression ledger, frozen recipient/content snapshots and one provider adapter. Brevo is provisional pending documented evaluation. |
 | 2026-10-17 | Implementation not started | Phases 1–7 unstarted. First implementation task is Phase 1; all live/provider/DNS/inbox checks remain outstanding. This review authorizes no rollout. |
@@ -2173,3 +2170,45 @@ collection remain disabled. No production cron activation, merge or deployment.
 [PR #1460](https://github.com/7mus7y-dotcom/pera-wp/pull/1460) is non-draft against
 main. The final acceptance commit changes this plan only; runtime/tests exactly
 match the passing head above, and all local checkpoints remain preserved.
+
+
+## Phase 5A — provider evaluation and integration specification (2026-10-20)
+
+Documentation scope only, on `docs/peracrm-phase-5a-provider-spec`, based on latest
+main `d58b018191cc34af24d0d222ce63ba9d5b4c7975`. Official Brevo and SES/SNS docs
+were checked on 2026-10-20. The [specification](email-campaigns-provider-specification.md)
+recommends SES v2, records why Brevo's marketing campaign path is a poor fit for
+this worker, and separates documented behavior from proposed policies and
+account unknowns. It defines code gaps, the exact first implementation task,
+four subsequent PR stages, validation, unknown-outcome holds and rollback.
+Phase 5 remains **in progress** for this documentation; runtime implementation is
+**not started**. Phases 2–4 retain their outstanding acceptance requirements;
+Phases 6–7 remain **not started**.
+
+### User-reported live evidence — separate from automated checks
+
+The user reports live queue UI tests passed: preparation from a frozen campaign,
+one synthetic recipient, schedule intent, pause/resume and terminal cancellation.
+**No emails were sent.** This report was received on 2026-10-20; it was not
+independently reproduced in this documentation task. It is separate from the
+previous automated hosted suites and does not establish CLI health, provider
+acceptance, inbox delivery or real-host scheduler/restore behavior.
+
+CLI health and real-host scheduler ownership/frequency/locks and restore
+verification remain outstanding. The property-block issue, sender-label confusion
+(“Add identity”), obscured configuration errors and import-error navigation remain
+open, together with previously recorded editorial/accessibility, consent/legal-
+basis/retention and production-readiness requirements. Production dispatch, real
+intake and public collection remain disabled. No production cron, account/DNS,
+credential request, real message, runtime change, merge or deployment occurred.
+
+### Documentation validation
+
+Checked the specification against actual worker/provider interfaces, captured
+renderer output, queue schema/ledger, scheduler gates and public preference/
+suppression services. Local relative links, official source references, Markdown
+table structure, documentation-only file scope and `git diff --check` are checked
+for this PR. Existing hosted results are historical evidence, not rerun or claimed
+as new validation. No runtime, database, browser, CLI-health, DNS, provider or
+inbox checks were executed for Phase 5A. Shell fetch was blocked by the configured
+proxy; connected GitHub confirmed the latest-main baseline already present locally.
