@@ -2250,3 +2250,19 @@ passed afterward. All 10 standalone campaign suites, both changed PHP syntax
 checks and `git diff --check` passed using the existing PHP 8.4.24 wrapper.
 No production wiring or activation changed. Deliverable renderer/capture and all
 other dependent work and acceptance limits listed above remain outstanding.
+
+### PR #1464 SES throttling follow-up (2026-10-20)
+
+Inspected latest PR head `5171a044fc84795058bb27141719ca162916330e` and
+preserved the clean local checkpoint before the focused review fix. A complete,
+authenticated HTTP 400 `ThrottlingException` now joins the existing documented
+transient rate-limit pairs. The fixed 60-second backoff, readiness blocking and
+zero automatic submission retries remain unchanged. Regressions cover the new
+pair, incomplete/unauthenticated and nonboolean trust flags, wrong or noninteger
+status, conflicting message ID and mismatched error code; negative cases remain
+unknown with redacted diagnostics and exactly one injected transport call.
+The positive regression failed before the fix and passed afterward. All 10
+standalone campaign suites, syntax checks for the two changed PHP files and
+`git diff --check` passed with existing PHP 8.4.24. This is mocked contract
+evidence only; production dispatch/intake/public collection gates and all
+remaining delivery prerequisites above remain unchanged and disabled.

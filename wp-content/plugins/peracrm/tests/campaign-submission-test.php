@@ -128,7 +128,8 @@ foreach ($words as $word) {
     $decoded.=base64_decode($match[1]);
 }
 submission_expect($decoded===$unicodeName,'UTF8 sender preserved');
-foreach ([['status'=>429,'error_code'=>'TooManyRequestsException'],['status'=>400,'error_code'=>'LimitExceededException']] as $response) {
+foreach ([['status'=>429,'error_code'=>'TooManyRequestsException'],['status'=>400,'error_code'=>'LimitExceededException'],
+    ['status'=>400,'error_code'=>'ThrottlingException']] as $response) {
     $transport->response=$complete+$response+['body'=>'secret bearer@example.test','retry_after'=>999999]; $calls=$transport->calls;
     submission_expect($mapper->submit($envelope)===['kind'=>'transient','code'=>'provider_rate_limit','retry_after'=>60,'readiness_blocked'=>true]
         && $transport->calls===$calls+1, 'known nonacceptance no submission retry and redacted backoff');
@@ -147,6 +148,22 @@ foreach ([[],['status'=>200],['status'=>200,'message_id'=>''],['status'=>200,'me
 foreach (['complete','authenticated'] as $flag) {
     $transport->response=array_replace($complete,[$flag=>false])+['status'=>429,'error_code'=>'TooManyRequestsException'];
     submission_expect($mapper->submit($envelope)['kind']==='unknown','proxy/truncated rejection held');
+}
+// The common SES throttling error proves non-acceptance only with its exact trusted pair.
+foreach ([
+    ['status'=>400,'error_code'=>'ThrottlingException','complete'=>false],
+    ['status'=>400,'error_code'=>'ThrottlingException','authenticated'=>false],
+    ['status'=>400,'error_code'=>'ThrottlingException','complete'=>1],
+    ['status'=>400,'error_code'=>'ThrottlingException','authenticated'=>1],
+    ['status'=>429,'error_code'=>'ThrottlingException'],
+    ['status'=>500,'error_code'=>'ThrottlingException'],
+    ['status'=>'400','error_code'=>'ThrottlingException'],
+    ['status'=>400,'error_code'=>'ThrottlingException','message_id'=>'conflicting-id'],
+    ['status'=>400,'error_code'=>'ThrottlingExceptionOther'],
+] as $response) {
+    $transport->response=$response+$complete+['body'=>'secret bearer@example.test']; $calls=$transport->calls;
+    submission_expect($mapper->submit($envelope)===['kind'=>'unknown','code'=>'ambiguous_submission']
+        && $transport->calls===$calls+1, 'untrusted or mismatched throttling remains unknown without submission retry');
 }
 $transport->throws=true; $calls=$transport->calls;
 submission_expect($mapper->submit($envelope)===['kind'=>'unknown','code'=>'ambiguous_submission'] && $transport->calls===$calls+1,'exception redaction without retry');

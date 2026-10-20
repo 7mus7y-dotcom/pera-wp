@@ -83,7 +83,8 @@ final class PeraCRM_Campaign_SES_Mapper
         }
         if (isset($result['message_id'])) { return $unknown; }
         $code = $result['error_code'] ?? null;
-        if (($status === 429 && $code === 'TooManyRequestsException') || ($status === 400 && $code === 'LimitExceededException')) {
+        if (($status === 429 && $code === 'TooManyRequestsException')
+            || ($status === 400 && in_array($code, ['LimitExceededException','ThrottlingException'], true))) {
             return ['kind'=>'transient','code'=>'provider_rate_limit','retry_after'=>60,'readiness_blocked'=>true];
         }
         $rejections = ['BadRequestException'=>400,'MessageRejected'=>400,'MailFromDomainNotVerifiedException'=>400,
