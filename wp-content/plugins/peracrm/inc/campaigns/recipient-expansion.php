@@ -13,6 +13,7 @@ final class PeraCRM_CampaignRecipientOutput
 
     public function __construct(#[\SensitiveParameter] string $html, #[\SensitiveParameter] string $text, string $snapshotHash, string $bindingHash)
     {
+        peracrm_campaign_recipient_require(!isset($this->html));
         $this->html = $html; $this->text = $text;
         $this->snapshotHash = $snapshotHash; $this->bindingHash = $bindingHash;
     }
@@ -41,6 +42,7 @@ final class PeraCRM_CampaignRecipientExpansion
 
     public function __construct(string $authoritativeOrigin, PeraCRM_CampaignRecipientTokens $tokens)
     {
+        peracrm_campaign_recipient_require(!isset($this->origin));
         // Canonical HTTPS DNS origin only: no ports, credentials, paths, queries,
         // fragments, IDN ambiguity, numeric host aliases or request-host fallback.
         peracrm_campaign_recipient_require(strlen($authoritativeOrigin) <= 261

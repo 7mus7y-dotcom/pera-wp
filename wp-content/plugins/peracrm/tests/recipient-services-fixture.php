@@ -87,6 +87,10 @@ function peracrm_test_recipient_services(array $content, callable $expect, int $
     }
     $stableHash = $result->hash(); $fields['html'] = 'mutated';
     $expect($result->hash() === $stableHash && $result->fields()['html'] !== 'mutated', 'result immutable copy');
+    $reject(fn()=>$result->__construct('changed','changed',$hash,$hash));
+    $reject(fn()=>$service->__construct(['k1'=>$new],'k1','fixture-clone',$check));
+    $reject(fn()=>$expander->__construct('https://other.example.org',$service));
+    $expect($result->hash() === $stableHash && $service->verify($withdraw,'unsubscribe',$binding,$now), 'constructor reentry cannot mutate result or service scope');
     $expect($before === wp_json_encode($content) && hash('sha256',$before) === $hash, 'shared capture and hash unchanged');
     $second = $expander->expand($content,$hash,array_replace($binding,['subscriber_id'=>19,'mailbox'=>'second@example.org']),$now);
     $expect($second->hash() !== $stableHash && $result->hash() === $stableHash, 'distinct recipient output leaves first unchanged');

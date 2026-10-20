@@ -43,6 +43,7 @@ final class PeraCRM_CampaignRecipientTokens
 
     public function __construct(#[\SensitiveParameter] array $keys, string $active, string $deployment, callable $activeBinding)
     {
+        peracrm_campaign_recipient_require(!isset($this->keys));
         peracrm_campaign_recipient_require(count($keys) > 0 && count($keys) <= 8
             && preg_match('/\A[a-zA-Z0-9_-]{1,64}\z/', $deployment) === 1 && isset($keys[$active]));
         $this->keys = [];
