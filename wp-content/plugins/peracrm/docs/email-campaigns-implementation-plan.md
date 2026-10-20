@@ -1,6 +1,6 @@
 # Integrated email campaigns: repository review and living implementation plan
 
-Review status: **complete** (2026-10-17). Implementation: **Phase 1 complete (technical acceptance)**; **Phase 2 in progress**; **Phase 3 in progress (3A/3B/3C technical/live core checks passed; clean PR review recorded; property review and external readiness remain open)**; **Phase 4 in progress (4A/4B/4C and 4D repository checks passed; final review and external acceptance remain)**; **Phase 5 in progress (5A documentation complete; 5B submission and deliverable capture/approval contracts complete; production integration not started)**; Phases 6–7 not started.
+Review status: **complete** (2026-10-17). Implementation: **Phase 1 complete (technical acceptance)**; **Phase 2 in progress**; **Phase 3 in progress (3A/3B/3C technical/live core checks passed; clean PR review recorded; property review and external readiness remain open)**; **Phase 4 in progress (4A/4B/4C and 4D repository checks passed; final review and external acceptance remain)**; **Phase 5 in progress (5A documentation complete; 5B submission, deliverable capture/approval and recipient token/expansion contracts complete; production integration not started)**; Phases 6–7 not started.
 
 ## Purpose, scope and maintenance
 
@@ -238,7 +238,7 @@ Verified hosted evidence: [run `39050763912`](https://github.com/7mus7y-dotcom/p
 
 ### 5. One provider adapter, authenticated events and internal tests
 
-- **Status:** in progress — Phase 5A evaluation/specification and bounded Phase 5B submission plus deliverable capture/approval contracts complete (2026-10-20); concrete production adapter/transport, events, readiness and real delivery implementation not started. See [provider specification](email-campaigns-provider-specification.md).
+- **Status:** in progress — Phase 5A evaluation/specification and bounded Phase 5B submission, deliverable capture/approval and recipient token/expansion contracts complete (2026-10-20); concrete production adapter/transport, events, readiness and real delivery implementation not started. See [provider specification](email-campaigns-provider-specification.md).
 - **Goal/outcome:** allowlisted internal test mail and delivery feedback work through one approved provider; public campaigns remain disabled.
 - **Prerequisites:** Phase 4; provider documentation gate completed, account access granted separately, domain/DNS readiness and retention agreements recorded. Split adapter and webhook review if needed, but enable neither public sends nor imports from provider until both pass.
 - **Work/components:** one adapter, masked admin settings/readiness, authenticated event endpoint, durable dedupe/reconciliation, suppression sync, one-click unsubscribe headers/handler and safe diagnostic reporting. Provider-specific fixtures under `tests/`.
@@ -281,6 +281,7 @@ Rollout order: migrations/permissions with sending off → subscriber preview an
 
 | Date | Status | Evidence / decision |
 | --- | --- | --- |
+| 2026-10-20 | Phase 5 in progress — bounded recipient services | Purpose/deployment-separated tokens and exact typed URL expansion into immutable recipient copies. All 22 local plugin suites passed; hosted single/multisite execution tracked below. Public handlers, registry, durable attempt binding, key/retention readiness and worker/transport integration remain dependent work; gates unchanged. |
 | 2026-10-20 | Phase 5 in progress — bounded deliverable rendering/capture complete | Versioned HTML/text links and typed URL slots; exact approval binding; immutable historical compatibility; inert staff display. All 11 local campaign suites and final hosted single-site/multisite plus desktop/mobile checks passed on `3302460e`. Token issuance/expansion, attempt binding and concrete worker/transport integration remain dependent work; production gates unchanged. |
 | 2026-10-20 | Phase 5 in progress — first bounded 5B contracts complete | Immutable envelope, default-deny abstract resolver and injected SES mapper; ten standalone campaign suites and PHP syntax/whitespace checks passed. Review-only snapshots rejected; no real transport, factory or production wiring. Deliverable renderer/capture, recipient links/tokens and durable attempt binding remain dependent work. Dispatch/intake/public collection disabled. |
 | 2026-10-20 | Phase 5 in progress — 5A documentation complete | [Provider specification](email-campaigns-provider-specification.md): recommend SES v2 with unknown-outcome holds; Brevo marketing campaign API has worker-fit gaps. Runtime implementation not started. User-reported live queue UI evidence recorded separately below; no emails sent. CLI/host/restore/property/usability readiness remains open; dispatch/intake/public collection disabled. |
@@ -2537,3 +2538,15 @@ durable attempt binding/registry, worker/provider wiring, suppression sync,
 events, readiness and all carried-over Phase 2–4 external acceptance stay open.
 Unconditional dispatch blocking and disabled real intake/public collection are
 unchanged. No real transport, messages, cron activation, merge or deployment.
+
+### Initial hosted fixture-path correction
+
+[Run 39472195978](https://github.com/7mus7y-dotcom/pera-wp/actions/runs/39472195978)
+on `6d15045196962d93e251fa6bfdae8bed1af2c00f` passed all standalone regressions
+and syntax on both jobs, then failed at the new shared-fixture include before
+its SQL-backed service assertions. `wp eval-file` evaluates source and does not
+preserve normal `__DIR__` semantics. The integration include now uses the mounted
+`WP_PLUGIN_DIR` explicitly. This changes only the disposable fixture path; no
+runtime service or prior assertion was weakened. Replacement matrix evidence
+remains pending. Published initial tree `34b7d96758bac3568d74f60fb48ee1bf121d7f62`
+matched the tested local tree; the original checkout remains clean and preserved.

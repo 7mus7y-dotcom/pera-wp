@@ -88,7 +88,7 @@ snapshot_expect(!is_wp_error($saved) && $count() === 1, 'capture succeeds after 
 $content=$saved['payload']['content'];
 // Unwired token/expansion services run against an actual immutable SQL capture in
 // both topologies. Only injected test secrets and synthetic mailbox fixtures.
-require_once dirname(__DIR__, 2).'/recipient-services-fixture.php';
+require_once WP_PLUGIN_DIR.'/peracrm/tests/recipient-services-fixture.php';
 peracrm_test_recipient_services($content, 'snapshot_expect', (int)$saved['target_blog_id']);
 snapshot_expect(peracrm_campaign_snapshot_get($id, (int)$saved['id']) === $saved,
     'recipient expansion leaves SQL capture, approval hash and historical bytes unchanged');
