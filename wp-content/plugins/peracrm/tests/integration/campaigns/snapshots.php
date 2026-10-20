@@ -86,6 +86,12 @@ foreach (['renderer_version'=>'old-renderer','slots'=>[]] as $key=>$value) {
 $saved = peracrm_campaign_snapshot_capture($id, 1, $document, $review['review_proof'], $nonce);
 snapshot_expect(!is_wp_error($saved) && $count() === 1, 'capture succeeds after failure');
 $content=$saved['payload']['content'];
+// Unwired token/expansion services run against an actual immutable SQL capture in
+// both topologies. Only injected test secrets and synthetic mailbox fixtures.
+require_once WP_PLUGIN_DIR.'/peracrm/tests/recipient-services-fixture.php';
+peracrm_test_recipient_services($content, 'snapshot_expect', (int)$saved['target_blog_id']);
+snapshot_expect(peracrm_campaign_snapshot_get($id, (int)$saved['id']) === $saved,
+    'recipient expansion leaves SQL capture, approval hash and historical bytes unchanged');
 snapshot_expect($saved['payload']['schema_version']===2 && $content['renderer_version']==='peracrm_email_v2'
     && $content['slots']===peracrm_campaign_deliverable_slots(), 'v2 renderer and typed slots captured');
 peracrm_campaign_deliverable_validate($content['output'], $content['slots']);
