@@ -46,7 +46,7 @@ final class PeraCRM_CampaignRecipientPersistence
         $started = false; $owned = false; $previous = $wpdb->suppress_errors(true);
         try {
             peracrm_campaign_recipient_require(!$this->busy && get_current_blog_id() === $this->blog
-                && (int)peracrm_get_target_blog_id() === $this->blog && peracrm_campaigns_schema_ready());
+                && (!is_multisite() || (int)peracrm_get_target_blog_id() === $this->blog) && peracrm_campaigns_schema_ready());
             // SAVEPOINT outside a transaction is a no-op; RELEASE then fails.
             // Inside a transaction RELEASE succeeds: reject without committing or
             // rolling back the caller's work. Also reject autocommit=0 sessions.
@@ -182,7 +182,7 @@ final class PeraCRM_CampaignRecipientPersistence
         try {
             $data = $this->locate($digest);
             return $data !== null && $data['purpose'] === $purpose
-                && $protocol === ['protocol'=>$data['protocol'],'key_id'=>$data['key_id'],'issued'=>$data['issued'],'expires'=>$data['expires']]
+                && $protocol === ['protocol'=>$data['protocol'],'deployment'=>$this->deployment,'key_id'=>$data['key_id'],'issued'=>$data['issued'],'expires'=>$data['expires']]
                 && peracrm_campaign_recipient_binding($data['binding']) === peracrm_campaign_recipient_binding($binding);
         } catch (Throwable $error) { return false; }
     }

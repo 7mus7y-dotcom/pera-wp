@@ -38,6 +38,12 @@ function peracrm_test_persistence_projection(array $content, callable $expect, i
         $expect($rejected,'expanded '.$part.' must match envelope');
     }
     $store = new PeraCRM_CampaignRecipientPersistence('fixture-persistence',$blog);
+    $seen = null;
+    $tokens = new PeraCRM_CampaignRecipientTokens(['k1'=>str_repeat('synthetic-key-',4)],'k1','fixture-persistence',
+        static function ($digest,$purpose,$binding,$protocol) use (&$seen) { $seen = $protocol; return true; });
+    $bearer = $tokens->issue('unsubscribe',$binding,1800000000);
+    $expect($tokens->verify($bearer,'unsubscribe',$binding,1800000000)
+        && $seen === ['protocol'=>'pc1','deployment'=>'fixture-persistence','key_id'=>'k1','issued'=>1800000000,'expires'=>0], 'authenticated callback receives nonsecret deployment/key/time metadata');
     ob_start(); var_dump($store); $debug = ob_get_clean();
     $expect(!str_contains($debug,'example.org') && !str_contains($debug,'fixture-persistence'), 'store debug is redacted');
     foreach ([fn()=>serialize($store),fn()=>$store->__construct('other-deployment',$blog)] as $fn) {

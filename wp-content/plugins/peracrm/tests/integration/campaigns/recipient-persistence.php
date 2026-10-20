@@ -20,6 +20,12 @@ function peracrm_test_persistence_sql(array $content): void
     peracrm_with_target_blog(static function () use ($content) {
         global $wpdb;
         $blog = get_current_blog_id();
+        // Reconstruct only the newly added tables as absent on a v28 site.
+        // Existing subscriber/snapshot/queue tables and their bytes stay intact.
+        foreach (array_keys(peracrm_campaign_recipient_definitions()) as $suffix) { $wpdb->query('DROP TABLE '.peracrm_table($suffix)); }
+        update_option('peracrm_schema_version',28);
+        update_option('peracrm_campaigns_schema_status',['state'=>'ready','version'=>28]);
+        persistence_expect(peracrm_maybe_upgrade_schema() && peracrm_maybe_upgrade_schema(),'additive v28 migration and repeated readiness');
         peracrm_test_persistence_projection($content,'persistence_expect',$blog);
         [$binding,$output,$submission] = peracrm_test_persistence_values($content,$blog);
         $store = new PeraCRM_CampaignRecipientPersistence('fixture-persistence',$blog);
@@ -32,6 +38,9 @@ function peracrm_test_persistence_sql(array $content): void
         $store->registerToken($digest,'unsubscribe','k1',$issued,0,$binding);
         $store->registerToken($digest,'unsubscribe','k1',$issued,0,array_reverse($binding,true));
         persistence_expect($tokens->verify($withdraw,'unsubscribe',$binding,$issued),'durable digest callback verifies');
+        $wrongMetadata = $tokens->issue('unsubscribe',$binding,$issued);
+        $store->registerToken(hash('sha256',$wrongMetadata),'unsubscribe','k2',$issued,0,$binding);
+        persistence_expect(!$tokens->verify($wrongMetadata,'unsubscribe',$binding,$issued),'registry key version must match authenticated token metadata');
         $rotated = new PeraCRM_CampaignRecipientTokens(['k1'=>str_repeat('synthetic-key-',4),'k2'=>str_repeat('new-synthetic-key-',4)],'k2','fixture-persistence',[$store,'activeBinding']);
         persistence_expect($rotated->verify($withdraw,'unsubscribe',$binding,$issued+86400*365*20),'routine rotation preserves withdrawal without registry change');
         $pref = $tokens->issue('preferences',$binding,$issued); $prefDigest = hash('sha256',$pref);
@@ -87,19 +96,33 @@ function peracrm_test_persistence_sql(array $content): void
         $clone = new PeraCRM_CampaignRecipientPersistence('fixture-restored',$blog);
         persistence_expect($clone->locate($prefDigest) === null && $clone->attempt($binding['attempt_key']) === null,'new restore deployment isolates copied bindings');
         $clone->ensureIdentity(17001,$binding['mailbox']);
+        $clone->registerToken($prefDigest,'preferences','k1',$issued,$issued+86400,$binding);
+        $misconfigured = new PeraCRM_CampaignRecipientTokens(['k1'=>str_repeat('synthetic-key-',4)],'k1','fixture-persistence',[$clone,'activeBinding']);
+        persistence_expect(!$misconfigured->verify($pref,'preferences',$binding,$issued),'mismatched issuer/store deployment fails even with copied digest and key');
         persistence_expect($clone->bindAttempt($submission,$binding,$output) === $submission->hash(),'same opaque keys isolated across deployment');
         $wrongBlog = new PeraCRM_CampaignRecipientPersistence('fixture-persistence',$blog+1);
         persistence_reject(fn()=>$wrongBlog->attempt($binding['attempt_key']));
         $wpdb->query('START TRANSACTION');
+        $wpdb->insert(peracrm_table('peracrm_campaign_recipient_identities'),['deployment'=>'fixture-nested','blog_id'=>$blog,
+            'subscriber_id'=>17998,'mailbox'=>'outer@example.org','token_epoch'=>1,'active'=>1]);
         persistence_reject(fn()=>$store->ensureIdentity(17999,'nested@example.org'));
+        persistence_expect((int)$wpdb->get_var('SELECT COUNT(*) FROM '.peracrm_table('peracrm_campaign_recipient_identities').' WHERE subscriber_id=17998') === 1,'nested rejection preserves uncommitted outer work');
         $wpdb->query('ROLLBACK');
-        persistence_expect((int)$wpdb->get_var('SELECT COUNT(*) FROM '.peracrm_table('peracrm_campaign_recipient_identities').' WHERE subscriber_id=17999') === 0,'nested call neither commits nor inserts');
+        persistence_expect((int)$wpdb->get_var('SELECT COUNT(*) FROM '.peracrm_table('peracrm_campaign_recipient_identities').' WHERE subscriber_id IN (17998,17999)') === 0,'nested call neither commits nor inserts');
+        $wpdb->query('SET autocommit=0');
+        persistence_reject(fn()=>$store->ensureIdentity(17999,'nested@example.org'));
+        $wpdb->query('ROLLBACK'); $wpdb->query('SET autocommit=1');
         $rows = $wpdb->get_col('SELECT binding_json FROM '.peracrm_table('peracrm_campaign_submission_attempts'));
         persistence_expect(!str_contains(implode('',$rows),'token=') && !str_contains(implode('',$rows),'Synthetic subject'),'SQL metadata contains no raw bearer/body');
         // Real full-length binary unique constraints are independently exercised.
         $table = peracrm_table('peracrm_campaign_submission_attempts'); $quiet = $wpdb->suppress_errors(true);
         persistence_expect($wpdb->query("INSERT INTO {$table} SELECT * FROM {$table} LIMIT 1") === false,'SQL uniqueness rejects duplicate attempt directly');
         $wpdb->suppress_errors($quiet);
+        foreach (['recipient_identities','recipient_tokens'] as $suffix) {
+            $table = peracrm_table('peracrm_campaign_'.$suffix); $quiet = $wpdb->suppress_errors(true);
+            persistence_expect($wpdb->query("INSERT INTO {$table} SELECT * FROM {$table} LIMIT 1") === false,'SQL uniqueness rejects duplicate '.$suffix.' directly');
+            $wpdb->suppress_errors($quiet);
+        }
     });
     persistence_expect(get_current_blog_id() === $origin,'origin context preserved');
     if (is_multisite()) {

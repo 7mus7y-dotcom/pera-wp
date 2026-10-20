@@ -2634,9 +2634,9 @@ binding. It accepts SHA-256 digests, never raw bearer bytes. Same digest and exa
 metadata is idempotent; any conflict rejects without replacing the original.
 Individual revocation is monotonic and cannot be undone by replaying registration;
 revoking an unknown digest fails closed. The cryptographic verifier now passes a
-fourth, nonsecret protocol-metadata projection to the injected callback. Existing
+fourth, nonsecret protocol/deployment-metadata projection to the injected callback. Existing
 three-argument callbacks remain compatible; this durable callback requires exact
-protocol/key/time metadata as well as purpose/identity. Authentication still occurs
+protocol/deployment/key/time metadata as well as purpose/identity. Authentication still occurs
 before callback access. `locate` is a trusted locator only, never proof of bearer
 possession; no public action may follow it without cryptographic verification.
 Callback database errors/identity mismatch/unknown digest/revocation deny access.
@@ -2738,3 +2738,25 @@ unreachable); connected GitHub provides publication and hosted CI. Hosted result
 must be recorded below after execution. No provider/inbox, actual host, retention,
 restore reconciliation or public-handler acceptance is claimed. Sending, real
 intake and public collection remain disabled. No merge or deployment.
+
+
+### Initial hosted correction and isolation hardening
+
+Initial runtime commit `3f3024e7dfc0cc9c416f18657d42b64df434ea5a`, tree
+`5aad4697472091db0187141ed61324b689c60431`, opened non-draft
+[PR #1468](https://github.com/7mus7y-dotcom/pera-wp/pull/1468). Initial
+[run 39485646789](https://github.com/7mus7y-dotcom/pera-wp/actions/runs/39485646789)
+passed standalone regressions and syntax on both jobs. Single-site SQL caught
+an incorrect literal comparison with `peracrm_get_target_blog_id()`, whose
+single-site sentinel is 0. The service now permits the exact current single-site
+blog while retaining explicit configured-target equality on multisite. This is
+an executed failure, not SQL acceptance. No check was weakened for multisite.
+A live multisite log request was not available (404); completed logs will be
+read only after job completion.
+
+The authenticated callback metadata also includes the issuer deployment, which
+must match the store even when key/digest configuration was copied. Added tests
+for that mismatch, registry key-version mismatch, direct identity/token SQL
+uniqueness and an actual additive v28-to-v29 migration with repeat readiness.
+All prior captures, identity bindings and delivery gates remain unchanged.
+Replacement hosted matrix evidence follows after execution.
