@@ -98,4 +98,4 @@ campaign_expect(str_contains($saved['payload']['content']['output']['text'], '{{
 echo "PASS snapshot foundations (synthetic; not SQL/concurrency acceptance)\n";
 
 $captured_output=$saved['payload']['content']['output'];
-campaign_expect(str_contains($captured_output['text'],'REVIEWED CONTENT') && !str_contains($captured_output['text'],'Current editable content'),'new captures identify prepared immutable content without editable-preview claims');
+campaign_expect(!str_contains($captured_output['text'],'REVIEWED CONTENT') && $saved['payload']['content']['renderer_version']==='peracrm_email_v2' && !str_contains($captured_output['text'],'Current editable content'),'new captures identify prepared immutable content without editable-preview claims');

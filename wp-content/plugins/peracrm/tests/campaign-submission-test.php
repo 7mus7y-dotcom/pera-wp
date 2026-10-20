@@ -84,6 +84,13 @@ $resolver->rows['snapshot']['content']=$review;
 $reviewBinding=$binding; $reviewBinding['snapshot_hash']=hash('sha256',json_encode($review));
 foreach (['job','revision','snapshot','delivery','preparation'] as $key) { $resolver->rows[$key]['snapshot_hash']=$reviewBinding['snapshot_hash']; }
 submission_reject(fn()=>$resolver->resolve($reviewBinding,$scope)); $resolver->rows=$rows;
+// A template with typed unfilled slots is also not a personalized submission.
+$template=['schema_version'=>2,'purpose'=>'deliverable_template','renderer_version'=>'peracrm_email_v2',
+    'output'=>['html'=>'<a href="{{recipient_unsubscribe_url}}">Unsubscribe</a>','text'=>'{{recipient_unsubscribe_url}}']];
+$resolver->rows['snapshot']['content']=$template;
+$templateBinding=$binding; $templateBinding['snapshot_hash']=hash('sha256',json_encode($template));
+foreach (['job','revision','snapshot','delivery','preparation'] as $key) { $resolver->rows[$key]['snapshot_hash']=$templateBinding['snapshot_hash']; }
+submission_reject(fn()=>$resolver->resolve($templateBinding,$scope)); $resolver->rows=$rows;
 $valid=$envelope->fields();
 $referenced=$valid; $external='fixture'; $referenced['scope']['configuration_set']=&$external;
 $immutableReference=new PeraCRM_CampaignSubmissionV1($referenced); $referenceHash=$immutableReference->hash(); $external='changed';

@@ -42,12 +42,18 @@ function peracrm_campaign_snapshot_candidate($draft)
     $sender = null;
     foreach ($configuration['document']['senders'] as $identity) { if ($identity['id'] === $doc['sender_id']) { $sender = $identity; } }
     $model['content_context'] = 'immutable_capture';
+    $model['template_version'] = 2;
+    $output = peracrm_campaign_render($model, 'deliverable_v2');
+    $slots = peracrm_campaign_deliverable_slots();
+    peracrm_campaign_deliverable_validate($output, $slots);
     $content = [
-        'schema_version' => 1, 'template_version' => $model['template_version'],
+        'schema_version' => 2, 'template_version' => 2,
+        'purpose' => 'deliverable_template', 'renderer_version' => 'peracrm_email_v2',
+        'slot_version' => 1, 'slots' => $slots,
         'document_hash' => hash('sha256', peracrm_campaign_snapshot_json($doc)),
         'configuration_revision' => $configuration['revision'], 'configuration' => $configuration['document'],
         'configuration_approved_by' => $configuration['approved_by'], 'sender' => $sender,
-        'model' => $model, 'output' => peracrm_campaign_render($model),
+        'model' => $model, 'output' => $output,
         'rules' => peracrm_campaign_audience_rules($doc['audience'] ?? []),
         'validation_version' => 1, 'warnings' => $warnings,
     ];
@@ -67,7 +73,7 @@ function peracrm_campaign_snapshot_review($id, $revision, $document)
             throw new UnexpectedValueException('Save the current document before reviewing it.');
         }
         $content = peracrm_campaign_snapshot_candidate($draft);
-        $proof = ['purpose' => 'content_review_v1', 'version' => 1, 'blog' => get_current_blog_id(), 'actor' => peracrm_get_actor_user_id(),
+        $proof = ['purpose' => 'content_review_v2', 'version' => 2, 'blog' => get_current_blog_id(), 'actor' => peracrm_get_actor_user_id(),
             'campaign' => $id, 'revision' => $revision, 'content_hash' => hash('sha256', peracrm_campaign_snapshot_json($content)), 'expires' => time() + 900];
         return ['content' => $content, 'review_proof' => peracrm_campaign_audience_pack($proof),
             'notice' => 'Unpublished content review only. Editorial configuration approval does not verify DNS or provider readiness. Image URLs do not make the underlying image files immutable. No recipient membership or sending authorization.'];
@@ -89,7 +95,7 @@ function peracrm_campaign_snapshot_capture($id, $revision, $document, $proof, $n
             throw new InvalidArgumentException('Content capture request is invalid.');
         }
         $binding = peracrm_campaign_audience_unpack($proof);
-        foreach (['purpose' => 'content_review_v1', 'version' => 1, 'blog' => get_current_blog_id(), 'actor' => peracrm_get_actor_user_id(), 'campaign' => $id, 'revision' => $revision] as $key => $value) {
+        foreach (['purpose' => 'content_review_v2', 'version' => 2, 'blog' => get_current_blog_id(), 'actor' => peracrm_get_actor_user_id(), 'campaign' => $id, 'revision' => $revision] as $key => $value) {
             if (($binding[$key] ?? null) !== $value) { throw new UnexpectedValueException(); }
         }
         if (!is_int($binding['expires'] ?? null) || $binding['expires'] < time() || $binding['expires'] > time() + 900) { throw new UnexpectedValueException(); }
@@ -114,7 +120,7 @@ function peracrm_campaign_snapshot_capture($id, $revision, $document, $proof, $n
         if (!is_string($binding['content_hash'] ?? null) || !hash_equals($binding['content_hash'], $content_hash)
             || $content['configuration_revision'] !== (int)$configuration['revision']) { throw new UnexpectedValueException(); }
         $now = gmdate('Y-m-d H:i:s');
-        $payload = ['schema_version' => 1, 'state' => 'unpublished_content', 'content' => $content,
+        $payload = ['schema_version' => 2, 'state' => 'unpublished_content', 'content' => $content,
             'evaluation_started_at' => $started, 'evaluation_completed_at' => $now,
             'image_limitation' => 'Storing an image URL does not make the underlying image file immutable.'];
         peracrm_campaigns_db_require($wpdb->insert($table, ['campaign_id' => $id, 'draft_revision' => $revision,
@@ -137,6 +143,13 @@ function peracrm_campaign_snapshot_decode($row)
         || !hash_equals($row['content_hash'], hash('sha256', peracrm_campaign_snapshot_json($payload['content'])))) {
         throw new RuntimeException('Stored content is unavailable.');
     }
+    // Historical v1 bytes/hashes remain valid and are never re-rendered or upgraded.
+    if (($payload['schema_version'] ?? null) === 2) {
+        $content=$payload['content'];
+        if (($content['schema_version'] ?? null)!==2 || ($content['purpose'] ?? '')!=='deliverable_template'
+            || ($content['renderer_version'] ?? '')!=='peracrm_email_v2' || ($content['slot_version'] ?? null)!==1) { throw new RuntimeException('Stored content is unavailable.'); }
+        peracrm_campaign_deliverable_validate($content['output'] ?? [], $content['slots'] ?? []);
+    } elseif (($payload['schema_version'] ?? null)!==1) { throw new RuntimeException('Stored content is unavailable.'); }
     $row['payload'] = $payload;
     return $row;
 }

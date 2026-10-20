@@ -55,6 +55,9 @@ module.exports = async function ({page,target,context,employeeContext,browser}) 
   await page.getByLabel('Explicit language (for example en)',{exact:true}).fill('en');
   await page.locator('select[name="document[sender_id]"]').selectOption('browser');
   await page.getByLabel('Main text',{exact:true}).fill('Stored long content '+('word '.repeat(240))+'x'.repeat(300));
+  await page.getByRole('button',{name:'Add CTA block',exact:true}).click();
+  await page.getByLabel('Button label',{exact:true}).fill('Read captured story');
+  await page.getByLabel('Link URL',{exact:true}).fill('https://example.org/story?a=1&b=2');
   if(zero) await page.getByLabel('Audience topic (exact key)',{exact:true}).fill('nobody-has-this');
   await page.getByRole('button',{name:'Save draft',exact:true}).click();
   await action('Review saved revision').waitFor();
@@ -76,6 +79,16 @@ module.exports = async function ({page,target,context,employeeContext,browser}) 
   await page.reload();
   const reviewed=await click('Review saved revision');
   await page.locator('[data-freeze-review]').getByText('Immutable saved subject '+size,{exact:true}).waitFor();
+  const reviewFrame=page.locator('[data-freeze-review] iframe').first();
+  if(await reviewFrame.getAttribute('sandbox')!=='' || await reviewFrame.getAttribute('referrerpolicy')!=='no-referrer') throw Error('Saved preview isolation lost');
+  const frameContent=page.frameLocator('[data-freeze-review] iframe').first();
+  await frameContent.getByText('Read captured story',{exact:true}).last().waitFor();
+  if(await frameContent.locator('a, [href], script, form').count()) throw Error('Saved preview contains active navigation');
+  const originalURL=page.url();
+  await frameContent.getByText('Read captured story',{exact:true}).last().click();
+  if(page.url()!==originalURL) throw Error('Saved preview navigated');
+  const previewWidth=await frameContent.locator('body').evaluate(el=>({scroll:el.scrollWidth,width:el.clientWidth}));
+  if(previewWidth.scroll>previewWidth.width+1) throw Error('Saved email preview overflows '+size);
   await screenshot('review',size);
   // Server rejects an exact old review after a competing tab saves a new revision.
   const staleData=await page.evaluate(()=>{

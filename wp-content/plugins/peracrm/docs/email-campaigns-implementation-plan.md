@@ -8,11 +8,11 @@ Let Pera staff prepare newsletters and targeted campaigns inside the existing CR
 
 Future implementation PRs must update phase status, validation evidence, decisions and the progress log here. A phase must not be marked complete solely because code exists when required verification remains outstanding. Use only `not started`, `in progress`, `blocked` or `complete` for phase status. Keep repository checks distinct from external verification; record outstanding evidence explicitly.
 
-**Current task:** first bounded Phase 5B submission-contract PR, based on GitHub `main` `e00def16a436a07d11807562b00fb2c938a25c46`. Connected GitHub verified #1461 merged at `5869e23b4df49006e1c17803628600fda60f07dc` before implementation. The original clean `work` checkout was preserved. Shell fetch failed once because the configured proxy was unreachable; connected GitHub supplied current main and publication. An isolated local baseline has the exact main tree `4f7a0e6f9028d1605f5c1a20adb7e8314bddf20b`. No applicable `AGENTS.md` exists in the GitHub tree or checked workspace ancestors. Read this plan, the [provider specification](email-campaigns-provider-specification.md) and [operations runbook](email-campaigns-operations.md).
+**Current task:** second bounded Phase 5B PR — versioned deliverable rendering and immutable capture/approval. Verified #1464 merged at `07d8997efa1dbb5a010590100b2d9daabb3f9aba`, also latest GitHub main on 2026-10-20. Preserved the clean original `/workspace/pera-wp` checkout and worked in an isolated worktree. Shell fetch failed once (configured proxy unreachable); connected GitHub supplied main and publication. All ten baseline file differences were verified against GitHub blob hashes; isolated baseline tree `18713d2f88b00b29092254ac27989dbd1960af85`. No applicable `AGENTS.md` was found. Read this plan, the [provider specification](email-campaigns-provider-specification.md), existing renderer/snapshot/freeze and submission contracts.
 
-**Completed bounded scope:** immutable `PeraCRM_CampaignSubmissionV1`, an abstract narrowly authorized frozen-content resolver, and an injected-transport SES v2 request/result mapper with standalone mocked tests. No production resolver, supported deliverable renderer, transport, provider factory or worker wiring exists. Existing review-only snapshots are rejected. Production dispatch, real intake and public collection stay disabled.
+**Completed bounded scope:** deliverable format/template v2, immutable v2 captures and versioned staff review proofs; context-specific preference/unsubscribe slot definitions; inert staff display projection; historical v1 byte/hash compatibility. The earlier immutable submission envelope, abstract resolver and injected SES mapper remain unconnected to production. No token issuance, personalization/substitution, attempt binding, concrete resolver/transport, worker wiring or sending is added. Templates are content prerequisites, never delivery authorization.
 
-**Next dependent work:** separately reviewed deliverable renderer/capture/approval version and typed recipient URL slots, purpose-separated token issuance, immutable per-attempt provider/envelope binding and deployment-scoped key derivation; then concrete worker-authorized storage resolution and transport integration. Never rewrite historical snapshots. Events, readiness, suppression sync, restore reconciliation and real-host/inbox acceptance remain outstanding; see the Phase 5B entry below.
+**Next dependent work:** purpose-separated token issuance and authoritative HTTPS origin/path/purpose validation, context-specific HTML attribute and plain-text URL expansion bound to recipient/attempt, immutable per-attempt provider/envelope binding and deployment-scoped key derivation; then concrete worker-authorized storage resolution and transport integration. Never rewrite historical snapshots or reinterpret review-only v1 as deliverable. Events, readiness, suppression sync, restore reconciliation and real-host/inbox acceptance remain outstanding. Production dispatch, real intake and public collection remain disabled.
 
 ## Review baseline and method
 
@@ -2266,3 +2266,67 @@ standalone campaign suites, syntax checks for the two changed PHP files and
 `git diff --check` passed with existing PHP 8.4.24. This is mocked contract
 evidence only; production dispatch/intake/public collection gates and all
 remaining delivery prerequisites above remain unchanged and disabled.
+
+
+## Phase 5B — bounded deliverable renderer and capture/approval (2026-10-20)
+
+Phase 5 remains **in progress**. `peracrm_campaign_render(..., 'deliverable_v2')`
+produces template v2 HTML/plain text from the same ordered sections. Article,
+property and CTA destinations are validated public URLs and working anchors in
+captured HTML, with identical raw URLs in text. Subject/body/labels/attributes
+are escaped for their contexts; unsafe or missing required destinations and
+incomplete blocks fail closed. Staff-only preview/readiness notices are absent
+from deliverable bodies. Editable review-v1 rendering remains inert.
+
+New captures have payload/content schema 2, purpose `deliverable_template`,
+renderer `peracrm_email_v2`, template 2 and slot version 1. The exact typed slot
+map distinguishes `preferences` from `unsubscribe`, requires HTTPS values and
+recipient/attempt binding, and permits only a complete quoted HTML `href` and a
+standalone text URL. Captures contain markers, never issued recipient URLs or
+subscriber inputs. Validation rejects missing, duplicate, unknown, misplaced or
+changed slot definitions and author-controlled marker injection. This PR does
+not accept recipient URL values or perform substitution. Dependent code must
+validate trusted origin/path/purpose and bind issuance to recipient/attempt,
+escape URL attributes independently from text, and reject unresolved markers.
+The existing Phase 2 preference bearer is not silently reused for unsubscribe.
+
+`content_review_v2` proofs bind actor/blog/campaign/saved revision/expiry and the
+hash of the entire captured candidate: exact HTML/text, renderer/template/slot
+versions and definitions, document, resolved content, audience rules, approved
+sender/Reply-To/footer configuration, approver and configuration revision.
+Capture re-resolves under the existing draft/configuration locks and rejects
+stale proofs before inserting. Lost-response replay returns the exact original
+artifact. Configuration/source changes cannot rewrite stored bytes. The old
+proof purpose cannot approve new captures.
+
+Historical schema-1 snapshots remain readable with their original bytes and
+hashes, without re-rendering, migration or silent promotion. The abstract frozen
+resolver still defaults to deny; both old review-only captures and new unfilled
+v2 templates are ineligible for submission. A concrete authorized decoder and
+context-safe expansion are dependent integration work, not inferred from the
+new format name. No public dispatch gates or submission contracts were relaxed.
+
+Staff saved/review previews use an inert display copy: anchors become spans,
+retaining labels/styles while stored HTML, text, links and hashes remain intact.
+The empty iframe sandbox, restrictive CSP and no-referrer isolation remain.
+No staff CSS/JS was introduced; existing PeraCRM `crm.css`/`crm.js` own the UI.
+
+### Validation and acceptance limits
+
+Executed locally with existing PHP 8.4.24: all **11** standalone campaign suites
+passed, including focused deliverable escaping/URL rejection, HTML/text ordering,
+article/property/CTA links, slot contexts/definitions, stale renderer/output/
+configuration approval, v1 proof rejection, exact replay, historical bytes/hash
+and unresolved-template submission rejection. PHP syntax, browser-script syntax
+and whitespace checks passed. Disposable SQL assertions and desktop/mobile
+browser regressions were extended for v2 capture, stale slot/renderer approval,
+historical rows and isolated inert previews. Local Docker execution is blocked
+by socket permissions (`connect: operation not permitted`), observed once;
+no local database/browser integration execution is claimed. PR CI single-site/
+multisite and desktop/mobile execution is pending publication.
+
+No credentials, real messages, production data, SDK installation, webhook,
+cron activation, merge or deployment. The unconditional dispatch block and
+disabled real intake/public collection are unchanged. Token issuance, attempt
+binding, concrete worker/transport integration and the prior external acceptance
+gaps remain dependent work. Rollback preserves immutable snapshots and hashes.
