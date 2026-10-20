@@ -8327,3 +8327,9 @@ body.crm-route #site-header.peracrm-shell-header .peracrm-header-search__status 
   .peracrm-queue-counts { grid-template-columns: minmax(0, 1fr); gap: .2rem; }
   .peracrm-queue-counts dd { margin-bottom: .7rem; }
 }
+
+/* Inline WhatsApp shortcut in the CRM record list. */
+.crm-page .crm-record-name-actions { display: inline-flex; align-items: center; flex-wrap: wrap; gap: 8px; }
+.crm-page .crm-record-whatsapp-link { display: inline-flex; align-items: center; justify-content: center; width: 24px; height: 24px; flex: 0 0 24px; color: #168a58; border-radius: 50%; text-decoration: none; }
+.crm-page .crm-record-whatsapp-link svg { width: 17px; height: 17px; }
+.crm-page .crm-record-whatsapp-link:hover, .crm-page .crm-record-whatsapp-link:focus-visible { color: #0d7143; background: rgba(22, 138, 88, 0.09); }
