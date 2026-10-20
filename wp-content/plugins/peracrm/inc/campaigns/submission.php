@@ -116,7 +116,8 @@ abstract class PeraCRM_Campaign_Frozen_Content_Resolver
                 peracrm_campaign_submission_require(isset($binding[$key]) && ($delivery[$key] ?? null) === $binding[$key]);
             }
             peracrm_campaign_submission_require(($job['id'] ?? null) === $binding['job_id']
-                && ($job['complete'] ?? null) === true && ($job['state'] ?? null) === 'queued'
+                // Match worker-supported states; authorize() owns the scheduled due-time gate.
+                && ($job['complete'] ?? null) === true && in_array($job['state'] ?? null, ['queued','scheduled'], true)
                 && ($rev['id'] ?? null) === $binding['revision_id'] && ($rev['published'] ?? null) === true
                 && ($prep['complete'] ?? null) === true && is_int($prep['id'] ?? null) && $prep['id'] > 0
                 && $prep['id'] === ($rev['preparation_id'] ?? null)

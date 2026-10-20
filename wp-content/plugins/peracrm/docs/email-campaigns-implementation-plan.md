@@ -2237,3 +2237,16 @@ A **separate deliverable renderer/capture/approval version is required**. This P
 Concrete storage/worker integration must independently recheck current authority/eligibility and persist attempt binding before any network request; scheduled-job due policy remains with the existing worker. Concrete transport must prove actual full-budget timeout/no-retry behavior including credential refresh/DNS/TLS, signing account/region, authentic complete response decoding and provider error taxonomy. Mock flags are trusted transport assertions, not cryptographic verification. No provider lookup/reconciliation evidence is implemented. Account-wide circuit breakers/rate budget, authenticated events and durable receipts/dedupe, suppression sync, unsubscribe handling, readiness, restore/host/watchdog and allowlisted real inbox acceptance remain subsequent work. Existing Phase 2–4 acceptance gaps remain open.
 
 The unconditional queue/scheduler production dispatch block is unchanged. No real intake/public collection, SDK installation, credentials, real messages, cron activation, UI, webhooks, merge or deployment. Rollback leaves existing ledgers, immutable snapshots, cancelled fences and suppression knowledge intact; unknown outcomes never authorize retries.
+
+### PR #1464 scheduled-job resolver follow-up (2026-10-20)
+
+Inspected latest PR head `f1d9c244f042eb7e28dc6efa77ce1af262fdefb4` and
+preserved the existing work before this focused fix. The resolver now accepts
+both worker-supported job states, `queued` and `scheduled`; due-time policy stays
+with worker authorization/gating. Regressions prove scheduled content resolves to
+the identical envelope, authorization still denies before reads, and unsupported
+job states remain rejected. The scheduled regression failed before the fix and
+passed afterward. All 10 standalone campaign suites, both changed PHP syntax
+checks and `git diff --check` passed using the existing PHP 8.4.24 wrapper.
+No production wiring or activation changed. Deliverable renderer/capture and all
+other dependent work and acceptance limits listed above remain outstanding.

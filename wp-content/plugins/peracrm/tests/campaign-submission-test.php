@@ -34,6 +34,18 @@ class SubmissionFixtureResolver extends PeraCRM_Campaign_Frozen_Content_Resolver
 }
 $resolver=new SubmissionFixtureResolver(); $resolver->rows=$rows;
 $envelope=$resolver->resolve($binding,$scope);
+// Scheduled jobs retain their state when due; authorization owns the due-time gate.
+$resolver->rows['job']['state']='scheduled';
+submission_expect($resolver->resolve($binding,$scope)->hash()===$envelope->hash(), 'authorized scheduled job resolves identical frozen content');
+$resolver->allowed=false; $reads=$resolver->reads;
+submission_reject(fn()=>$resolver->resolve($binding,$scope));
+submission_expect($resolver->reads===$reads, 'scheduled job cannot bypass worker authorization or due-time gate');
+$resolver->allowed=true;
+foreach (['paused','cancelled','preparing','failed','completed','unknown','',null,1] as $state) {
+    $resolver->rows['job']['state']=$state;
+    submission_reject(fn()=>$resolver->resolve($binding,$scope));
+}
+$resolver->rows=$rows;
 $data=$envelope->fields(); $before=$envelope->hash();
 $data['mailbox']='changed@example.test'; $data['scope']['account_id']='000000000000';
 submission_expect($envelope->hash()===$before && $envelope->fields()['mailbox']===$binding['mailbox'], 'immutable copy and stable hash');
