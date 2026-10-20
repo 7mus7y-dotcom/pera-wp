@@ -707,6 +707,9 @@ peracrm_frontend_render_shell_header();
 			);
 			$scope_label = $is_inactive ? __( 'Inactive records', 'peracrm' ) : ( $is_agent ? __( 'Agents', 'peracrm' ) : ( 'clients' === $clients_type_view ? __( 'Clients', 'peracrm' ) : __( 'Leads', 'peracrm' ) ) );
 			$active_filter_bits = array();
+			$client_type_options = function_exists( 'peracrm_client_type_options' ) ? (array) peracrm_client_type_options() : array();
+			$filter_client_type = isset( $_GET['client_type'] ) ? sanitize_key( wp_unslash( (string) $_GET['client_type'] ) ) : '';
+			$filter_client_type = isset( $client_type_options[ $filter_client_type ] ) ? $filter_client_type : '';
 			$clients_active_filter = sanitize_key( (string) ( $leads_data['active_filter'] ?? '' ) );
 			$clients_filter_labels = array(
 				'unassigned' => __( 'Unassigned leads', 'peracrm' ),
@@ -720,6 +723,9 @@ peracrm_frontend_render_shell_header();
 			}
 			if ( '' !== $filter_stage ) {
 				$active_filter_bits[] = sprintf( __( 'Stage: %s', 'peracrm' ), (string) ( $stages[ $filter_stage ] ?? $filter_stage ) );
+			}
+			if ( '' !== $filter_client_type ) {
+				$active_filter_bits[] = sprintf( __( 'Client type: %s', 'peracrm' ), (string) $client_type_options[ $filter_client_type ] );
 			}
 			if ( $filter_advisor > 0 ) {
 				foreach ( $advisors as $advisor ) {
@@ -935,7 +941,7 @@ peracrm_frontend_render_shell_header();
 					'type'      => 'list',
 					'prev_text' => __( 'Previous', 'peracrm' ),
 					'next_text' => __( 'Next', 'peracrm' ),
-					'add_args'  => $is_header_search ? array( 'crm_client_search' => $header_search_term ) : array( 'type' => $clients_type_view ),
+					'add_args'  => $is_header_search ? array( 'crm_client_search' => $header_search_term ) : array_filter( array( 'type' => $clients_type_view, 'q' => $filter_q, 'stage' => $filter_stage, 'advisor' => $filter_advisor, 'client_type' => $filter_client_type, 'filter' => $clients_active_filter ), static function ( $value ) { return '' !== $value && 0 !== $value; } ),
 				)
 			);
 			if ( is_string( $pagination ) ) {
