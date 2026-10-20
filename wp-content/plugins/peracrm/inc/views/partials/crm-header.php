@@ -25,6 +25,10 @@ $filter_q            = function_exists( 'pera_crm_get_client_search_term' )
 		: ( isset( $_GET['q'] ) ? sanitize_text_field( wp_unslash( (string) $_GET['q'] ) ) : '' ) );
 $filter_stage        = isset( $_GET['stage'] ) ? sanitize_key( wp_unslash( (string) $_GET['stage'] ) ) : '';
 $filter_advisor      = isset( $_GET['advisor'] ) ? absint( wp_unslash( (string) $_GET['advisor'] ) ) : 0;
+$client_type_options = function_exists( 'peracrm_client_type_options' ) ? (array) peracrm_client_type_options() : array();
+$filter_client_type  = isset( $_GET['client_type'] ) ? sanitize_key( wp_unslash( (string) $_GET['client_type'] ) ) : '';
+$filter_client_type  = isset( $client_type_options[ $filter_client_type ] ) ? $filter_client_type : '';
+$filter_quick       = function_exists( 'pera_crm_get_request_filter' ) ? pera_crm_get_request_filter( array( 'unassigned', 'stale', 'new72', 'open_scope' ) ) : '';
 
 $impersonation_ui    = function_exists( 'peracrm_get_impersonation_ui_state' ) ? peracrm_get_impersonation_ui_state() : array();
 $can_impersonate     = ! empty( $impersonation_ui['can_impersonate'] );
@@ -185,6 +189,9 @@ $has_toolbar = $show_client_filters || '' !== $toolbar_content;
       <?php if ( $show_client_filters ) : ?>
       <form method="get" action="<?php echo esc_url( home_url( '/crm/clients/' ) ); ?>" class="crm-client-filters" aria-label="<?php echo esc_attr__( 'Client filters', 'peracrm' ); ?>" autocomplete="off">
         <input type="hidden" name="type" value="<?php echo esc_attr( $clients_type_view ); ?>">
+        <?php if ( '' !== $filter_quick && 'leads' === $clients_type_view ) : ?>
+        <input type="hidden" name="filter" value="<?php echo esc_attr( $filter_quick ); ?>">
+        <?php endif; ?>
         <div class="crm-toolbar__row crm-client-filters__grid<?php echo $is_impersonating ? ' crm-client-filters__grid--impersonating' : ''; ?>">
           <label>
             <span class="screen-reader-text"><?php esc_html_e( 'Search clients', 'peracrm' ); ?></span>
@@ -199,6 +206,16 @@ $has_toolbar = $show_client_filters || '' !== $toolbar_content;
                 <option value="<?php echo esc_attr( (string) $stage_key ); ?>" <?php selected( $filter_stage, $stage_key ); ?>>
                   <?php echo esc_html( (string) $stage_label ); ?>
                 </option>
+              <?php endforeach; ?>
+            </select>
+          </label>
+
+          <label>
+            <span class="screen-reader-text"><?php esc_html_e( 'Client type', 'peracrm' ); ?></span>
+            <select class="crm-search-control" name="client_type">
+              <option value=""><?php esc_html_e( 'All client types', 'peracrm' ); ?></option>
+              <?php foreach ( $client_type_options as $client_type_key => $client_type_label ) : ?>
+                <option value="<?php echo esc_attr( (string) $client_type_key ); ?>" <?php selected( $filter_client_type, $client_type_key ); ?>><?php echo esc_html( (string) $client_type_label ); ?></option>
               <?php endforeach; ?>
             </select>
           </label>
