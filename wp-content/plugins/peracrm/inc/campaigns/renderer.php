@@ -116,7 +116,14 @@ function peracrm_campaign_deliverable_model_validate($model)
         if (!in_array($block['type'] ?? '', ['text','cta','article','property'], true)) { throw new InvalidArgumentException('Unsupported deliverable block.'); }
         if (isset($block['notice'])) { throw new InvalidArgumentException('Incomplete deliverable block.'); }
         foreach (['url','image'] as $key) {
-            if (!empty($block[$key]) && peracrm_campaign_public_url($block[$key]) === '') { throw new InvalidArgumentException('Unsafe deliverable URL.'); }
+            if (empty($block[$key])) { continue; }
+            $parts=wp_parse_url($block[$key]);
+            $host=strtolower(trim($parts['host'] ?? '', '[]'));
+            // Browsers normalize shortened/octal/hex IPv4 and trailing-dot hosts.
+            // Do not let those spellings bypass the public-destination policy.
+            $numeric=preg_match('/\A(?:0x[0-9a-f]+|[0-9]+)(?:\.(?:0x[0-9a-f]+|[0-9]+))*\z/i', $host);
+            if (peracrm_campaign_public_url($block[$key]) === '' || str_ends_with($host, '.')
+                || ($numeric && !filter_var($host,FILTER_VALIDATE_IP))) { throw new InvalidArgumentException('Unsafe deliverable URL.'); }
         }
         if (in_array($block['type'], ['article','property','cta'], true) && empty($block['url'])) { throw new InvalidArgumentException('Missing deliverable destination.'); }
     }

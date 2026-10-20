@@ -1,6 +1,6 @@
 # Integrated email campaigns: repository review and living implementation plan
 
-Review status: **complete** (2026-10-17). Implementation: **Phase 1 complete (technical acceptance)**; **Phase 2 in progress**; **Phase 3 in progress (3A/3B/3C technical/live core checks passed; clean PR review recorded; property review and external readiness remain open)**; **Phase 4 in progress (4A/4B/4C and 4D repository checks passed; final review and external acceptance remain)**; **Phase 5 in progress (5A documentation complete; first bounded 5B submission contracts complete; production integration not started)**; Phases 6–7 not started.
+Review status: **complete** (2026-10-17). Implementation: **Phase 1 complete (technical acceptance)**; **Phase 2 in progress**; **Phase 3 in progress (3A/3B/3C technical/live core checks passed; clean PR review recorded; property review and external readiness remain open)**; **Phase 4 in progress (4A/4B/4C and 4D repository checks passed; final review and external acceptance remain)**; **Phase 5 in progress (5A documentation complete; 5B submission and deliverable capture/approval contracts complete; production integration not started)**; Phases 6–7 not started.
 
 ## Purpose, scope and maintenance
 
@@ -238,7 +238,7 @@ Verified hosted evidence: [run `39050763912`](https://github.com/7mus7y-dotcom/p
 
 ### 5. One provider adapter, authenticated events and internal tests
 
-- **Status:** in progress — Phase 5A evaluation/specification and first bounded Phase 5B submission contracts complete (2026-10-20); concrete production adapter/transport, events, readiness and real delivery implementation not started. See [provider specification](email-campaigns-provider-specification.md).
+- **Status:** in progress — Phase 5A evaluation/specification and bounded Phase 5B submission plus deliverable capture/approval contracts complete (2026-10-20); concrete production adapter/transport, events, readiness and real delivery implementation not started. See [provider specification](email-campaigns-provider-specification.md).
 - **Goal/outcome:** allowlisted internal test mail and delivery feedback work through one approved provider; public campaigns remain disabled.
 - **Prerequisites:** Phase 4; provider documentation gate completed, account access granted separately, domain/DNS readiness and retention agreements recorded. Split adapter and webhook review if needed, but enable neither public sends nor imports from provider until both pass.
 - **Work/components:** one adapter, masked admin settings/readiness, authenticated event endpoint, durable dedupe/reconciliation, suppression sync, one-click unsubscribe headers/handler and safe diagnostic reporting. Provider-specific fixtures under `tests/`.
@@ -2322,8 +2322,17 @@ and whitespace checks passed. Disposable SQL assertions and desktop/mobile
 browser regressions were extended for v2 capture, stale slot/renderer approval,
 historical rows and isolated inert previews. Local Docker execution is blocked
 by socket permissions (`connect: operation not permitted`), observed once;
-no local database/browser integration execution is claimed. PR CI single-site/
-multisite and desktop/mobile execution is pending publication.
+no local database/browser integration execution is claimed. Hosted [run 39464896834](https://github.com/7mus7y-dotcom/pera-wp/actions/runs/39464896834)
+on `6c7740a95b46c7a0ba458f258f7c48de3ec47872` passed **single-site and multisite**,
+including real snapshot/configuration locks and races, new v2/stale-slot/renderer/
+historical assertions and **desktop/mobile Chromium** freeze/preview flows.
+Protected subscriber/evidence/token bytes were unchanged; no sending enabled.
+Artifacts are retained through 2026-11-03: [single](https://github.com/7mus7y-dotcom/pera-wp/actions/runs/39464896834/artifacts/12285246356),
+[multi](https://github.com/7mus7y-dotcom/pera-wp/actions/runs/39464896834/artifacts/12283579697).
+The subsequent numeric-host guard passes all 11 local campaign suites and syntax/
+whitespace checks; its hosted rerun is pending. Saved desktop/mobile review
+images are now also emitted as synthetic-only review thumbnails in CI logs.
+Actual inbox/provider, real-host and assistive-technology acceptance remain open.
 
 No credentials, real messages, production data, SDK installation, webhook,
 cron activation, merge or deployment. The unconditional dispatch block and
@@ -2342,4 +2351,12 @@ socket readiness without proving the fixture database/user over TCP. The
 fixture now requires an authenticated TCP `SELECT 1` against `campaign_fixture`
 before WordPress starts. Compose configuration and runner shell syntax validate
 locally. This is disposable test readiness only; no production runtime changed.
-Hosted rerun and browser acceptance remain pending.
+The replacement run `39464896834` passed both topologies and desktop/mobile browser acceptance as recorded above.
+
+
+### Deliverable URL normalization follow-up
+
+Focused synthetic regressions also reject browser-normalized shortened/octal/hex
+IPv4 spellings and trailing-dot hosts for both destinations and images. These
+must not bypass public-address/host validation. The additional check is limited
+to deliverable rendering; historical output remains byte-stable.

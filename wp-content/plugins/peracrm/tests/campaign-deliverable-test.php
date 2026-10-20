@@ -19,10 +19,12 @@ foreach ($output['destinations'] as $link) {
 }
 campaign_expect(strpos($output['text'],'Story summary')<strpos($output['text'],'Property summary') && strpos($output['text'],'Property summary')<strpos($output['text'],'Read "more"') && str_contains($output['text'],'Size 80 m²') && str_contains($output['text'],$deliverable_model['main_text']), 'coherent ordered text and property details');
 foreach (['DRAFT PREVIEW','REVIEWED CONTENT','navigation disabled','No email is sent','Placeholder links only'] as $copy) { campaign_expect(!str_contains($output['text'],$copy) && !str_contains($output['html'],$copy), 'staff-only copy absent from deliverable'); }
-foreach (['javascript:alert(1)','data:text/html,x','https://user:pass@example.org','https://127.0.0.1/x','https://example.org/?token=secret','https://example.org/" onmouseover="evil','https://example.org/\\evil',"https://example.org/x\r\ny"] as $url) {
+foreach (['javascript:alert(1)','data:text/html,x','https://user:pass@example.org','https://127.0.0.1/x','http://127.1/','http://0177.0.0.1/','http://0x7f.0.0.1/','https://localhost./','https://example.org/?token=secret','https://example.org/" onmouseover="evil','https://example.org/\\evil',"https://example.org/x\r\ny"] as $url) {
     $bad=$deliverable_model; $bad['blocks'][0]['url']=$url;
     campaign_expect(snapshot_rejects(fn()=>peracrm_campaign_render($bad,'deliverable_v2')), 'unsafe deliverable destination fails closed');
 }
+$bad_image=$deliverable_model; $bad_image['blocks'][0]['image']='http://127.1/private.jpg';
+campaign_expect(snapshot_rejects(fn()=>peracrm_campaign_render($bad_image,'deliverable_v2')), 'noncanonical private image URL denied');
 foreach (['subject','footer','main_text','sender'] as $key) {
     $bad=$deliverable_model; $bad[$key]='Injected {{recipient_unsubscribe_url}}';
     campaign_expect(snapshot_rejects(fn()=>peracrm_campaign_render($bad,'deliverable_v2')), 'author slot injection denied in '.$key);
