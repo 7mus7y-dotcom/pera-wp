@@ -90,6 +90,8 @@ $content=$saved['payload']['content'];
 // both topologies. Only injected test secrets and synthetic mailbox fixtures.
 require_once WP_PLUGIN_DIR.'/peracrm/tests/recipient-services-fixture.php';
 peracrm_test_recipient_services($content, 'snapshot_expect', (int)$saved['target_blog_id']);
+require_once WP_PLUGIN_DIR.'/peracrm/tests/integration/campaigns/recipient-persistence.php';
+peracrm_test_persistence_sql($content);
 snapshot_expect(peracrm_campaign_snapshot_get($id, (int)$saved['id']) === $saved,
     'recipient expansion leaves SQL capture, approval hash and historical bytes unchanged');
 snapshot_expect($saved['payload']['schema_version']===2 && $content['renderer_version']==='peracrm_email_v2'

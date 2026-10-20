@@ -87,7 +87,8 @@ final class PeraCRM_CampaignRecipientTokens
                 : $expires === 0));
             $body = substr($token, 0, strrpos($token, '.'));
             peracrm_campaign_recipient_require(hash_equals(hash_hmac('sha256', $body.'|'.$context, $this->key($m[1], $purpose)), $m[6]));
-            return ($this->activeBinding)(hash('sha256', $token), $purpose, $binding) === true;
+            return ($this->activeBinding)(hash('sha256', $token), $purpose, $binding,
+                ['protocol'=>'pc1','key_id'=>$m[1],'issued'=>$issued,'expires'=>$expires]) === true;
         } catch (Throwable $error) { return false; }
     }
 

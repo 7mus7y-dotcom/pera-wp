@@ -26,7 +26,7 @@ final class PeraCRM_CampaignSubmissionV1
 {
     private $data;
 
-    public function __construct(array $data)
+    public function __construct(#[\SensitiveParameter] array $data)
     {
         $keys = ['version','scope','blog_id','campaign_id','job_id','revision_id','snapshot_id',
             'recipient_id','snapshot_hash','delivery_key','attempt_key','personalization_version',
