@@ -77,10 +77,37 @@ add_filter('query', $fail);
 $failed = peracrm_campaign_snapshot_capture($id, 1, $document, $review['review_proof'], $nonce);
 remove_filter('query', $fail);
 snapshot_expect(is_wp_error($failed) && $count() === 0, 'insert failure rolls back and remains unpublished');
+$approval=peracrm_campaign_audience_unpack($review['review_proof']);
+foreach (['renderer_version'=>'old-renderer','slots'=>[]] as $key=>$value) {
+    $stale_content=$review['content']; $stale_content[$key]=$value;
+    $stale_approval=array_replace($approval,['content_hash'=>hash('sha256',peracrm_campaign_snapshot_json($stale_content))]);
+    snapshot_expect(is_wp_error(peracrm_campaign_snapshot_capture($id,1,$document,peracrm_campaign_audience_pack($stale_approval),$nonce)) && $count()===0,'stale '.$key.' approval rejected without writes');
+}
 $saved = peracrm_campaign_snapshot_capture($id, 1, $document, $review['review_proof'], $nonce);
 snapshot_expect(!is_wp_error($saved) && $count() === 1, 'capture succeeds after failure');
+$content=$saved['payload']['content'];
+snapshot_expect($saved['payload']['schema_version']===2 && $content['renderer_version']==='peracrm_email_v2'
+    && $content['slots']===peracrm_campaign_deliverable_slots(), 'v2 renderer and typed slots captured');
+peracrm_campaign_deliverable_validate($content['output'], $content['slots']);
+snapshot_expect(str_contains($content['output']['html'],'<a href="') && str_contains($content['output']['text'],$content['model']['blocks'][0]['url']), 'captured article HTML and text preserve the same working URL');
+snapshot_expect(!preg_match('/<a\\b|href=/i',peracrm_campaign_staff_preview_html($content['output']['html'])), 'staff display projection disables navigation');
+// Add a historical review-only row directly, without changing its bytes/hash.
+$legacy_content=['schema_version'=>1, 'output'=>['html'=>'<p>REVIEWED CONTENT</p>', 'text'=>'Historical review-only bytes']];
+$legacy_payload=['schema_version'=>1, 'state'=>'unpublished_content', 'content'=>$legacy_content];
+$legacy=peracrm_with_target_blog(static function () use ($saved,$legacy_payload,$legacy_content) {
+    global $wpdb;
+    $row=$saved; unset($row['id'],$row['payload']);
+    $row['binding_hash']=hash('sha256','historical-fixture');
+    $row['content_hash']=hash('sha256',peracrm_campaign_snapshot_json($legacy_content));
+    $row['payload_json']=peracrm_campaign_snapshot_json($legacy_payload);
+    snapshot_expect($wpdb->insert(peracrm_table('peracrm_campaign_content_snapshots'),$row)===1,'historical fixture inserted unchanged');
+    return ['id'=>(int)$wpdb->insert_id]+$row;
+});
+$legacy_read=peracrm_campaign_snapshot_get($id,$legacy['id']);
+snapshot_expect($legacy_read['payload_json']===$legacy['payload_json'] && $legacy_read['content_hash']===$legacy['content_hash'] && !isset($legacy_read['payload']['content']['renderer_version']), 'historical read keeps bytes/hash and review-only format');
+
 $again = peracrm_campaign_snapshot_capture($id, 1, $document, $review['review_proof'], $nonce);
-snapshot_expect($again === $saved && $count() === 1, 'duplicate request returns exact stored artifact');
+snapshot_expect($again === $saved && $count() === 2, 'duplicate request returns exact stored artifact');
 peracrm_with_target_blog(static function () use ($saved) {
     global $wpdb; $row = $saved; unset($row['id'], $row['payload']);
     $errors = $wpdb->suppress_errors(true);
