@@ -320,6 +320,7 @@ if ( $is_home || $is_citizenship_page ) {
         'ajax_url' => admin_url( 'admin-ajax.php' ),
         'nonce'    => wp_create_nonce( 'pera_blog_search' ),
         'action'   => 'pera_blog_search',
+        'language' => function_exists( 'pera_ml_current_language' ) ? pera_ml_current_language() : 'en',
       )
     );
   }
