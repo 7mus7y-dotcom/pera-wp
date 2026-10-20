@@ -281,7 +281,7 @@ Rollout order: migrations/permissions with sending off → subscriber preview an
 
 | Date | Status | Evidence / decision |
 | --- | --- | --- |
-| 2026-10-20 | Phase 5 in progress — bounded recipient services | Purpose/deployment-separated tokens and exact typed URL expansion into immutable recipient copies. All 22 local plugin suites passed; hosted single/multisite execution tracked below. Public handlers, registry, durable attempt binding, key/retention readiness and worker/transport integration remain dependent work; gates unchanged. |
+| 2026-10-20 | Phase 5 in progress — bounded recipient services | Purpose/deployment-separated tokens and exact typed URL expansion into immutable recipient copies. All 22 local plugin suites and final hosted single/multisite SQL/race/browser checks passed; exact evidence below. Public handlers, registry, durable attempt binding, key/retention readiness and worker/transport integration remain dependent work; gates unchanged. |
 | 2026-10-20 | Phase 5 in progress — bounded deliverable rendering/capture complete | Versioned HTML/text links and typed URL slots; exact approval binding; immutable historical compatibility; inert staff display. All 11 local campaign suites and final hosted single-site/multisite plus desktop/mobile checks passed on `3302460e`. Token issuance/expansion, attempt binding and concrete worker/transport integration remain dependent work; production gates unchanged. |
 | 2026-10-20 | Phase 5 in progress — first bounded 5B contracts complete | Immutable envelope, default-deny abstract resolver and injected SES mapper; ten standalone campaign suites and PHP syntax/whitespace checks passed. Review-only snapshots rejected; no real transport, factory or production wiring. Deliverable renderer/capture, recipient links/tokens and durable attempt binding remain dependent work. Dispatch/intake/public collection disabled. |
 | 2026-10-20 | Phase 5 in progress — 5A documentation complete | [Provider specification](email-campaigns-provider-specification.md): recommend SES v2 with unknown-outcome holds; Brevo marketing campaign API has worker-fit gaps. Runtime implementation not started. User-reported live queue UI evidence recorded separately below; no emails sent. CLI/host/restore/property/usability readiness remains open; dispatch/intake/public collection disabled. |
@@ -2550,3 +2550,51 @@ preserve normal `__DIR__` semantics. The integration include now uses the mounte
 runtime service or prior assertion was weakened. Replacement matrix evidence
 remains pending. Published initial tree `34b7d96758bac3568d74f60fb48ee1bf121d7f62`
 matched the tested local tree; the original checkout remains clean and preserved.
+
+
+### Final recipient-service validation and scope (2026-10-20)
+
+[PR #1467](https://github.com/7mus7y-dotcom/pera-wp/pull/1467) is non-draft
+against main. Final runtime/test commit
+`d94559d7640dc6d3e3879d56056b96cd9b84148f`, full tested tree
+`d7a54b6a56b8afcdbb5036bbd058d2e5b233e0e9`, passed
+[run 39475440959](https://github.com/7mus7y-dotcom/pera-wp/actions/runs/39475440959):
+**single-site job 118810059531** and **multisite job 118810058931**. Both complete
+logs were checked: no PHP warning/fatal or failed assertion. The published tree
+exactly matches the locally tested tree.
+
+Both jobs pass all 22 standalone plugin suites (12 campaign suites), first-party
+PHP syntax, JS/shell syntax and disposable Compose checks, actual WordPress/MySQL
+services and independent-connection races, and existing desktop/mobile Chromium
+flows. The new shared fixture runs against actual SQL captures in both
+topologies, including target-blog bindings, expired preferences with still-valid
+withdrawal, rotation/revocation, unsafe origins, escaping, malformed slots,
+unchanged original/historical captures and protected subscriber/evidence/token
+bytes. This is new service-contract evidence; existing browser preference POST
+tests exercise the prior Phase 2 handler, not the new token protocol.
+
+Final review added rejection of anchor-shaped slots in raw-text, unclosed-title,
+foreign and quoted-attribute HTML contexts. It also guards constructor reentry:
+PHP permits explicitly calling a public constructor again, so existing immutable
+outputs and service key/deployment/origin scope now reject reinitialization.
+Focused regressions pass locally and in both actual WordPress fixtures.
+
+Artifacts retained through **2026-11-03**:
+[single-site logs/screenshots](https://github.com/7mus7y-dotcom/pera-wp/actions/runs/39475440959/artifacts/12289925661)
+and [multisite logs/screenshots](https://github.com/7mus7y-dotcom/pera-wp/actions/runs/39475440959/artifacts/12289347272).
+No UI changed in this PR and no new manual visual/accessibility acceptance is
+claimed. Earlier run 39473939002 was superseded/cancelled after the context
+hardening push. The context-hardened code on `36e308c86b275bd2d2e5ce3280b8ba6800196c49`
+also passed both complete jobs in run 39474541479 before the constructor guards;
+the final evidence is run 39475440959 above. The initial include-path failure
+remains recorded rather than presented as acceptance.
+
+This final evidence update changes only the living plan. Runtime and fixture
+bytes remain identical to the passing final-code commit; no additional test rerun
+is claimed for documentation alone. Original clean checkout and local checkpoints
+remain preserved. No production token issuance, public handler or worker/provider
+wiring, real transport/messages, cron activation, merge or deployment. Dispatch
+remains blocked and real intake/public collection disabled. No end-to-end
+unsubscribe, provider or inbox acceptance is claimed. All dependent public
+handler, registry, durable attempt-binding and retention decisions above remain
+open; Phase 5 is **in progress**.
