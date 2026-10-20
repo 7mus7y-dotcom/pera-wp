@@ -25,7 +25,7 @@ final class Pera_ML_Content {
 		return $row['translated_text'];
 	}
 	private function should_translate( $id ) {
-		if ( ! $this->router->is_translated() || $id <= 0 || is_admin() || is_feed() || ( defined( 'REST_REQUEST' ) && REST_REQUEST ) ) return false;
+		if ( ! $this->router->is_translated() || $id <= 0 || ( is_admin() && ! Pera_ML_Ajax::has_archive_context() ) || is_feed() || ( defined( 'REST_REQUEST' ) && REST_REQUEST ) ) return false;
 		$post = get_post( $id ); if ( ! $post || 'nav_menu_item' === $post->post_type ) return false;
 		$type = get_post_type_object( $post->post_type ); return $type && ! empty( $type->public );
 	}

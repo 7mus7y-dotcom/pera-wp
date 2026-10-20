@@ -137,6 +137,7 @@
 
     body.set('action', settings.action);
     body.set('nonce', settings.nonce);
+    body.set('pera_ml_lang', settings.language || 'en');
     body.set('s', searchTerm);
     body.set('sort', sort);
     body.set('paged', String(paged || 1));
