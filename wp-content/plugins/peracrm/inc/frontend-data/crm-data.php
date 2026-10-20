@@ -1470,6 +1470,9 @@ if ( ! function_exists( 'pera_crm_get_leads_view_data' ) ) {
 		$stage           = isset( $_GET['stage'] ) ? sanitize_key( wp_unslash( (string) $_GET['stage'] ) ) : '';
 		$advisor         = isset( $_GET['advisor'] ) ? absint( wp_unslash( (string) $_GET['advisor'] ) ) : 0;
 		$active_filter   = pera_crm_get_request_filter( array( 'unassigned', 'stale', 'new72', 'open_scope' ) );
+		$client_type_options = function_exists( 'peracrm_client_type_options' ) ? (array) peracrm_client_type_options() : array();
+		$client_type_filter  = isset( $_GET['client_type'] ) ? sanitize_key( wp_unslash( (string) $_GET['client_type'] ) ) : '';
+		$client_type_filter  = isset( $client_type_options[ $client_type_filter ] ) ? $client_type_filter : '';
 
 		$query_args = array(
 			'post_type'      => 'crm_client',
@@ -1636,6 +1639,16 @@ if ( ! function_exists( 'pera_crm_get_leads_view_data' ) ) {
 					}
 				)
 			);
+		}
+
+		if ( ! $is_header_search && '' !== $client_type_filter ) {
+			$filtered_ids = array_values( array_filter( $filtered_ids, static function ( int $lead_id ) use ( $client_type_filter ): bool {
+				$stored_type = sanitize_key( (string) get_post_meta( $lead_id, '_peracrm_client_type', true ) );
+				if ( '' === $stored_type ) {
+					$stored_type = sanitize_key( (string) get_post_meta( $lead_id, 'peracrm_client_type', true ) );
+				}
+				return $stored_type === $client_type_filter;
+			} ) );
 		}
 
 		$total = count( $filtered_ids );
