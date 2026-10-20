@@ -43,8 +43,8 @@ function peracrm_campaign_render($model, $format = 'review_v1')
         if ($type==='cta') { $section=['heading'=>$block['label'],'text'=>'','url'=>$block['url']]; }
         else {
             $section=['heading'=>$block['title'],'text'=>$block['excerpt']."\nLanguage: ".$block['language'],'url'=>$block['url'],'image'=>$block['image'],'alt'=>$block['alt']];
-            if (!empty($block['image_notice'])) { $section['text'].="\n".$block['image_notice']; }
-            if ($block['image']==='') { $section['text'].="\nImage unavailable."; }
+            if (!$deliverable && !empty($block['image_notice'])) { $section['text'].="\n".$block['image_notice']; }
+            if (!$deliverable && $block['image']==='') { $section['text'].="\nImage unavailable."; }
             if ($type==='property') { $section['text'].="\n".($block['property']['summary'] ?? $block['property']['notice']); }
         }
         $sections[]=$section;

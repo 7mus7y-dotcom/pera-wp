@@ -2392,3 +2392,33 @@ real inbox HTML/text/links, deployment/host/DNS and assistive-technology checks.
 No public rollout, real token issuance or transport integration is authorized
 by these disposable fixtures. Remaining implementation and safety boundaries
 above are unchanged. PR #1466 remains non-draft and unmerged.
+
+### PR #1466 image-diagnostics review fix (2026-10-20)
+
+Verified latest PR head `c2290cd8261a279ebecd08e49e987df02900a884` and preserved
+the clean worktree before addressing review comment `4327983241`.
+`deliverable_v2` now omits internal `image_notice` and `Image unavailable.` text
+from both HTML and plain text. Review-v1 retains those diagnostics; the saved
+staff review displays the exact block diagnostics separately from the frozen
+model, without modifying captured email output. Actual translated alt text
+remains escaped in image attributes and present in the text image description.
+Article/property links, property summaries, slot contracts and all disabled
+production/intake/public-collection gates are unchanged.
+
+The focused regression failed before the fix (`article missing_image excludes
+diagnostics from deliverable html`) and passes afterward. Added article and
+property cases for absent image, image with unavailable translated alt and
+successful translated alt; both output parts, staff diagnostics, escaping,
+links/summary preservation and non-mutating staff projection are checked.
+A pre-fix v2 capture containing diagnostic bytes still decodes with identical
+payload/hash; existing v1 compatibility and stale review tests also pass.
+No historical capture is re-rendered or cleaned on read. Changed future bytes
+naturally invalidate previously issued uncaptured review proofs.
+
+Executed with PHP 8.4.24: all 11 standalone campaign suites, syntax checks for
+all three changed PHP files and `git diff --check` passed. The existing CI
+single-site/multisite and desktop/mobile fixture matrix will run on this push;
+its result is not yet claimed. Local Docker/proxy restrictions observed earlier
+were not retried. No merge, deployment, real message, token issuance or gate
+activation. Review resolution will cite the pushed fix and executed evidence;
+a fresh latest-head Codex review will be requested.

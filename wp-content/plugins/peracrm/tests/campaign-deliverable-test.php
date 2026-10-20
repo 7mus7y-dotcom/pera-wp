@@ -66,3 +66,45 @@ campaign_expect(is_wp_error(peracrm_campaign_snapshot_capture(10,2,$document,per
 $captured=peracrm_campaign_snapshot_capture(10,2,$document,$fresh['review_proof'],$nonce);
 campaign_expect(!is_wp_error($captured) && $captured['payload']['schema_version']===2 && $captured['payload']['content']['slots']===$slots && str_contains($captured['payload']['content']['output']['html'],'href="https://example.org/story"'), 'fresh v2 approval captures exact linked template and slot contract');
 echo "PASS deliverable rendering, slot contexts, immutable approval and historical compatibility\n";
+
+// Optional image diagnostics belong to staff, never recipient HTML or text.
+require_once $root.'/inc/campaigns/freeze-ui.php';
+foreach (['article','property'] as $kind) {
+    foreach (['missing_image','missing_translated_alt','translated_alt'] as $case) {
+        $image_model=$deliverable_model;
+        $image_model['language']='de';
+        $block=$deliverable_model['blocks'][$kind==='article' ? 0 : 1];
+        $block['language']='de';
+        $block['image']=$case==='missing_image' ? '' : 'https://example.org/image.jpg';
+        $block['alt']=$case==='translated_alt' ? 'Übersetztes "Bild" & Ansicht' : '';
+        $block['image_notice']=$case==='missing_translated_alt' ? 'Image description unavailable for requested language.' : '';
+        $image_model['blocks']=[$block];
+        $delivery=peracrm_campaign_render($image_model,'deliverable_v2');
+        peracrm_campaign_deliverable_validate($delivery,$slots);
+        foreach (['html','text'] as $part) {
+            campaign_expect(!str_contains($delivery[$part],'Image unavailable.') && !str_contains($delivery[$part],'Image description unavailable'), $kind.' '.$case.' excludes diagnostics from deliverable '.$part);
+            campaign_expect(str_contains($delivery[$part],$part==='html' ? esc_attr($block['url']) : $block['url']), $kind.' '.$case.' keeps destination in '.$part);
+        }
+        $staff_content=array_replace($fresh['content'],['model'=>$image_model,'output'=>$delivery]);
+        $before_staff=wp_json_encode($staff_content);
+        ob_start(); peracrm_campaign_freeze_output($staff_content); $staff=ob_get_clean();
+        $review_output=peracrm_campaign_render($image_model,'review_v1');
+        $diagnostic=$case==='missing_image' ? 'Image unavailable.' : $block['image_notice'];
+        if ($diagnostic!=='') {
+            campaign_expect(str_contains($staff,$diagnostic) && str_contains($review_output['html'],$diagnostic) && str_contains($review_output['text'],$diagnostic), $kind.' '.$case.' retains diagnostic in staff and review-v1 output');
+        } else {
+            campaign_expect(str_contains($delivery['html'],'alt="'.esc_attr($block['alt']).'"') && str_contains($delivery['text'],$block['alt']), $kind.' translated alt remains escaped in HTML and coherent in text');
+        }
+        campaign_expect(wp_json_encode($staff_content)===$before_staff, 'staff diagnostics do not mutate captured '.$kind.' '.$case);
+        if ($kind==='property') { campaign_expect(str_contains($delivery['text'],'Size 80 m²'), 'image diagnostics filtering keeps property summary'); }
+    }
+}
+// A pre-fix v2 capture containing diagnostics is read verbatim, not cleaned on read.
+$old_content=$fresh['content'];
+$old_content['output']['html'].='<p>Image unavailable.</p>';
+$old_content['output']['text'].="\nImage unavailable.";
+$old_payload=['schema_version'=>2,'state'=>'unpublished_content','content'=>$old_content];
+$old_row=array_replace($saved,['payload_json'=>wp_json_encode($old_payload),'content_hash'=>hash('sha256',wp_json_encode($old_content))]);
+$old_decoded=peracrm_with_target_blog(fn()=>peracrm_campaign_snapshot_decode($old_row));
+campaign_expect($old_decoded['payload_json']===$old_row['payload_json'] && $old_decoded['content_hash']===$old_row['content_hash'] && $old_decoded['payload']===$old_payload, 'pre-fix v2 diagnostic bytes and hash preserved exactly');
+echo "PASS image diagnostics isolated from deliverable HTML/text with historical v2 compatibility\n";

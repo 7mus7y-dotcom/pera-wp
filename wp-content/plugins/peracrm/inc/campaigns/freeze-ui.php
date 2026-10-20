@@ -29,6 +29,14 @@ function peracrm_campaign_freeze_output($content)
     echo '<dt>Audience rules</dt><dd>'.esc_html('Language: '.($content['rules']['language'] ?? 'Any').' · Topic: '.($content['rules']['topic'] ?? 'Any')).'</dd></dl>';
     echo '<p>Editorial configuration approval does not verify provider, DNS or domain readiness. Preference links remain controlled placeholders. Image URLs do not guarantee immutable image files.</p>';
     foreach ($content['warnings'] as $warning) { echo '<p>'.esc_html($warning).'</p>'; }
+    // Staff-only diagnostics from the frozen model, never inserted into email bytes.
+    foreach ($content['model']['blocks'] as $index=>$block) {
+        if (!in_array($block['type'], ['article','property'], true)) { continue; }
+        $diagnostics=[];
+        if (!empty($block['image_notice'])) { $diagnostics[]=$block['image_notice']; }
+        if (($block['image'] ?? '')==='') { $diagnostics[]='Image unavailable.'; }
+        foreach ($diagnostics as $diagnostic) { echo '<p>'.esc_html('Block '.($index+1).' ('.$block['type'].'): '.$diagnostic).'</p>'; }
+    }
     echo '<details open><summary>Resolved HTML preview</summary><div class="peracrm-email-preview"><iframe title="Isolated saved campaign HTML" sandbox="" referrerpolicy="no-referrer" srcdoc="'.esc_attr(str_replace('<head>','<head>'.$meta,peracrm_campaign_staff_preview_html($output['html']))).'"></iframe></div></details>';
     echo '<details><summary>Resolved plain-text preview</summary><pre class="peracrm-campaign-history">'.esc_html($output['text']).'</pre></details>';
 }
