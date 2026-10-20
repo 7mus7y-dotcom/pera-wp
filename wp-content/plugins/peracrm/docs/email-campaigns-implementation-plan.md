@@ -2330,3 +2330,16 @@ cron activation, merge or deployment. The unconditional dispatch block and
 disabled real intake/public collection are unchanged. Token issuance, attempt
 binding, concrete worker/transport integration and the prior external acceptance
 gaps remain dependent work. Rollback preserves immutable snapshots and hashes.
+
+
+### Disposable fixture readiness follow-up
+
+Initial PR CI [39464500155](https://github.com/7mus7y-dotcom/pera-wp/actions/runs/39464500155)
+passed repository regressions/syntax on both jobs. Multisite failed during core
+installation with a database connection error, before plugin integration
+assertions. The existing `mysqladmin ping` health probe could report bootstrap
+socket readiness without proving the fixture database/user over TCP. The
+fixture now requires an authenticated TCP `SELECT 1` against `campaign_fixture`
+before WordPress starts. Compose configuration and runner shell syntax validate
+locally. This is disposable test readiness only; no production runtime changed.
+Hosted rerun and browser acceptance remain pending.
