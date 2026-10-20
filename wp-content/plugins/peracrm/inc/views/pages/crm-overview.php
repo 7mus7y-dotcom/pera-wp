@@ -847,7 +847,14 @@ peracrm_frontend_render_shell_header();
                 <tr data-sort-row data-row-url="<?php echo esc_url( (string) $lead['crm_url'] ); ?>" data-name="<?php echo esc_attr( strtolower( (string) $lead['title'] ) ); ?>" data-status="<?php echo esc_attr( strtolower( (string) $status_label ) ); ?>" data-source="<?php echo esc_attr( strtolower( (string) ( $lead['source'] ?? '' ) ) ); ?>" data-assigned="<?php echo esc_attr( strtolower( (string) ( $lead['assigned_to'] ?? '' ) ) ); ?>" data-health="<?php echo esc_attr( strtolower( (string) ( $lead['record_health'] ?? '' ) ) ); ?>" data-budget="<?php echo esc_attr( (string) ( $lead['budget_value'] ?? 0 ) ); ?>" data-next-task="<?php echo esc_attr( (string) ( $lead['next_task_due_ts'] ?? 0 ) ); ?>" data-updated="<?php echo esc_attr( (string) ( $lead['updated_ts'] ?? 0 ) ); ?>" data-created="<?php echo esc_attr( (string) ( $lead['created_ts'] ?? 0 ) ); ?>">
                   <td class="crm-table__cell--primary">
                     <div class="crm-table__primary">
-                      <a href="<?php echo esc_url( (string) $lead['crm_url'] ); ?>"><?php echo esc_html( (string) $lead['title'] ); ?></a>
+                      <span class="crm-record-name-actions">
+                        <a href="<?php echo esc_url( (string) $lead['crm_url'] ); ?>"><?php echo esc_html( (string) $lead['title'] ); ?></a>
+                        <?php if ( '' !== (string) ( $lead['whatsapp_url'] ?? '' ) ) : ?>
+                        <a class="crm-record-whatsapp-link" href="<?php echo esc_url( (string) $lead['whatsapp_url'] ); ?>" target="_blank" rel="noopener noreferrer" aria-label="<?php echo esc_attr( sprintf( __( 'Message %s on WhatsApp', 'peracrm' ), (string) $lead['title'] ) ); ?>" title="<?php esc_attr_e( 'Open WhatsApp', 'peracrm' ); ?>" data-crm-record-action>
+                          <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path fill="currentColor" d="M20.5 3.5A11.8 11.8 0 0 0 12.1 0 11.9 11.9 0 0 0 1.9 18L0 24l6.2-1.6A12 12 0 1 0 20.5 3.5ZM12 21.8a9.8 9.8 0 0 1-5-1.4l-.4-.2-3.7 1 1-3.6-.3-.4A9.9 9.9 0 1 1 12 21.8Zm5.5-7.4c-.3-.1-1.7-.9-2-.9-.3-.1-.5-.1-.7.2s-.8.9-1 1.1c-.2.2-.4.2-.7.1-.3-.2-1.3-.5-2.4-1.5-.9-.8-1.5-1.8-1.7-2.1-.2-.3 0-.5.1-.6l.5-.6.3-.5c.1-.2 0-.4 0-.6l-.9-2c-.2-.5-.5-.5-.7-.5H7.7c-.3 0-.6.1-.8.4-.3.3-1 1-1 2.5 0 1.5 1.1 3 1.3 3.2.2.2 2.2 3.4 5.3 4.7.7.3 1.3.5 1.7.6.7.2 1.4.2 1.9.1.6-.1 1.7-.7 1.9-1.4.2-.7.2-1.3.1-1.4-.1-.2-.3-.2-.6-.4Z"/></svg>
+                        </a>
+                        <?php endif; ?>
+                      </span>
                       <span class="crm-table__subtext"><?php echo esc_html( (string) $lead['engagement_state'] ); ?></span>
                     </div>
                   </td>
