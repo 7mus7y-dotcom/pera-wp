@@ -1696,6 +1696,10 @@ if ( ! function_exists( 'pera_crm_get_leads_view_data' ) ) {
 			$budget_max = isset( $profile['budget_max_usd'] ) ? (int) $profile['budget_max_usd'] : 0;
 			$budget_min = isset( $profile['budget_min_usd'] ) ? (int) $profile['budget_min_usd'] : 0;
 			$budget_val = $budget_max > 0 ? $budget_max : ( $budget_min > 0 ? $budget_min : 0 );
+			$client_phone = trim( (string) ( $profile['phone'] ?? '' ) );
+			$whatsapp_url = '' !== $client_phone && function_exists( 'peracrm_whatsapp_url_from_phone' )
+				? peracrm_whatsapp_url_from_phone( $client_phone )
+				: '';
 
 			$next_task         = isset( $next_task_map[ $lead_id ] ) && is_array( $next_task_map[ $lead_id ] ) ? $next_task_map[ $lead_id ] : array();
 			$next_task_due_ts  = isset( $next_task['due_ts'] ) ? (int) $next_task['due_ts'] : 0;
@@ -1734,6 +1738,7 @@ if ( ! function_exists( 'pera_crm_get_leads_view_data' ) ) {
 				'updated_ts'       => $updated_ts,
 				'derived_type'     => isset( $client_lookup[ $lead_id ] ) ? 'client' : 'lead',
 				'client_type_label' => $client_type_label,
+				'whatsapp_url'    => $whatsapp_url,
 				'crm_url'          => function_exists( 'pera_crm_get_client_view_url' ) ? pera_crm_get_client_view_url( $lead_id ) : home_url( '/crm/client/' . $lead_id . '/' ),
 				'record_health'    => isset( $health['label'] ) ? (string) $health['label'] : '',
 				'record_health_badge_html' => function_exists( 'peracrm_client_health_badge_html' ) ? (string) peracrm_client_health_badge_html( $health ) : '',
