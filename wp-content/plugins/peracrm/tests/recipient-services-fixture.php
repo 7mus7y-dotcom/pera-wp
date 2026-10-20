@@ -106,7 +106,9 @@ function peracrm_test_recipient_services(array $content, callable $expect, int $
             $bad = $content; $bad['output'][$part] = str_replace('{{recipient_preferences_url}}',$replacement,$bad['output'][$part]); $variants[] = $bad;
         }
     }
-    foreach (['<script>%s</script>','<!--%s-->','<title>%s</title>',"<div data-slot='%s'>wrapped</div>"] as $wrapper) {
+    foreach (['<script>%s</script>','<!--%s-->','<title>%s</title>','<title>%s','<plaintext>%s',
+        '<noembed>%s</noembed>','<noframes>%s</noframes>','<noscript>%s</noscript>',
+        '<select>%s</select>','<svg>%s</svg>',"<div data-slot='%s'>wrapped</div>"] as $wrapper) {
         $bad = $content; $anchor = '<a href="{{recipient_preferences_url}}">Preferences</a>';
         $bad['output']['html'] = str_replace($anchor,sprintf($wrapper,$anchor),$bad['output']['html']); $variants[] = $bad;
     }

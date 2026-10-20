@@ -66,8 +66,9 @@ final class PeraCRM_CampaignRecipientExpansion
             peracrm_campaign_deliverable_validate($content['output'] ?? [], $content['slots'] ?? []);
             $html = $content['output']['html']; $text = $content['output']['text'];
             // Slot-looking anchors inside inert/raw HTML contexts are never URL slots.
-            peracrm_campaign_recipient_require(!preg_match('~<!--|<\s*(?:script|style|textarea|xmp|iframe|template)\b~i', $html));
+            peracrm_campaign_recipient_require(!preg_match('~<!--|<\s*(?:script|style|textarea|xmp|iframe|template|plaintext|noembed|noframes|noscript|select|option|svg|math|object)\b~i', $html));
             $slotHtml = preg_replace('~<title\b[^>]*>.*?</title\s*>~is', '', $html);
+            peracrm_campaign_recipient_require(!preg_match('~<\s*title\b~i', $slotHtml));
             peracrm_campaign_deliverable_validate(array_replace($content['output'], ['html'=>$slotHtml]), $content['slots']);
             foreach ($content['slots'] as $name => $slot) {
                 $token = $this->tokens->issue($slot['purpose'], $binding, $now);
