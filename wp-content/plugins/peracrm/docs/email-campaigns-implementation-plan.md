@@ -281,6 +281,7 @@ Rollout order: migrations/permissions with sending off → subscriber preview an
 
 | Date | Status | Evidence / decision |
 | --- | --- | --- |
+| 2026-10-20 | Phase 5 in progress — bounded deliverable rendering/capture complete | Versioned HTML/text links and typed URL slots; exact approval binding; immutable historical compatibility; inert staff display. All 11 local campaign suites and final hosted single-site/multisite plus desktop/mobile checks passed on `3302460e`. Token issuance/expansion, attempt binding and concrete worker/transport integration remain dependent work; production gates unchanged. |
 | 2026-10-20 | Phase 5 in progress — first bounded 5B contracts complete | Immutable envelope, default-deny abstract resolver and injected SES mapper; ten standalone campaign suites and PHP syntax/whitespace checks passed. Review-only snapshots rejected; no real transport, factory or production wiring. Deliverable renderer/capture, recipient links/tokens and durable attempt binding remain dependent work. Dispatch/intake/public collection disabled. |
 | 2026-10-20 | Phase 5 in progress — 5A documentation complete | [Provider specification](email-campaigns-provider-specification.md): recommend SES v2 with unknown-outcome holds; Brevo marketing campaign API has worker-fit gaps. Runtime implementation not started. User-reported live queue UI evidence recorded separately below; no emails sent. CLI/host/restore/property/usability readiness remains open; dispatch/intake/public collection disabled. |
 | 2026-10-17 | Review complete | Inspected PeraCRM plus relevant theme integrations; verified main comparison at `41036e8218b1da320608b866210eaaf2bee60d62`. No runtime or production data access. |
@@ -2330,7 +2331,7 @@ Protected subscriber/evidence/token bytes were unchanged; no sending enabled.
 Artifacts are retained through 2026-11-03: [single](https://github.com/7mus7y-dotcom/pera-wp/actions/runs/39464896834/artifacts/12285246356),
 [multi](https://github.com/7mus7y-dotcom/pera-wp/actions/runs/39464896834/artifacts/12283579697).
 The subsequent numeric-host guard passes all 11 local campaign suites and syntax/
-whitespace checks; its hosted rerun is pending. Saved desktop/mobile review
+whitespace checks; its hosted rerun passed as recorded below. Saved desktop/mobile review
 images are now also emitted as synthetic-only review thumbnails in CI logs.
 Actual inbox/provider, real-host and assistive-technology acceptance remain open.
 
@@ -2360,3 +2361,34 @@ Focused synthetic regressions also reject browser-normalized shortened/octal/hex
 IPv4 spellings and trailing-dot hosts for both destinations and images. These
 must not bypass public-address/host validation. The additional check is limited
 to deliverable rendering; historical output remains byte-stable.
+
+
+### Final code validation (2026-10-20)
+
+[Run 39466069930](https://github.com/7mus7y-dotcom/pera-wp/actions/runs/39466069930)
+on final code commit `3302460e94422c41110be540fff8cafd55ede3cb` passed both
+**single-site** (job `118777691459`) and **multisite** (job `118777691791`). This
+includes the additional numeric-host destination/image regressions, all plugin
+standalone regressions and PHP/JS syntax, real WordPress/MySQL schema/service/
+concurrency checks, and desktop/mobile Chromium UI checks. New assertions prove
+working links remain in the capture, old/stale slot/renderer approvals fail
+without writes, historical bytes/hash remain unchanged, and the empty-sandbox/
+no-referrer preview has no anchors/hrefs/forms/scripts or horizontal overflow.
+Clicking its CTA label does not navigate. Protected recipient/evidence/token
+bytes remain unchanged; no sending enabled.
+
+Visually inspected the synthetic `freeze-review-desktop` and
+`freeze-review-mobile` thumbnails emitted in the multisite logs: retained CTA
+styling, legal footer and preference/unsubscribe labels are readable at both
+widths. Review screenshots show the frame scrolled to the CTA/footer after the
+inert-click check. Full artifacts retained through **2026-11-03**:
+[single](https://github.com/7mus7y-dotcom/pera-wp/actions/runs/39466069930/artifacts/12285102036),
+[multisite](https://github.com/7mus7y-dotcom/pera-wp/actions/runs/39466069930/artifacts/12286005901).
+A subsequent documentation-only evidence commit changes no tested runtime or
+fixture files; no further test rerun is claimed for that documentation commit.
+
+Unverified acceptance remains actual provider/SDK timeout/signing behavior,
+real inbox HTML/text/links, deployment/host/DNS and assistive-technology checks.
+No public rollout, real token issuance or transport integration is authorized
+by these disposable fixtures. Remaining implementation and safety boundaries
+above are unchanged. PR #1466 remains non-draft and unmerged.
