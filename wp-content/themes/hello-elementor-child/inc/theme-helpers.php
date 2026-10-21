@@ -905,8 +905,8 @@ function pera_render_currency_selector( $context = 'header' ) {
   if ( ! function_exists( 'pera_currency_get_supported' ) || ! class_exists( 'Pera_Currency_Assets' ) ) return;
 
   $codes = array_keys( pera_currency_get_supported() );
-  $codes = array_values( array_intersect( array( 'USD', 'EUR', 'GBP' ), $codes ) );
-  if ( count( $codes ) !== 3 ) return;
+  $codes = array_values( array_intersect( array( 'USD', 'EUR', 'GBP', 'CNY' ), $codes ) );
+  if ( count( $codes ) !== 4 ) return;
 
   $is_offcanvas = 'offcanvas' === $context;
   $list_id      = 'pera-currency-options-' . $context;
