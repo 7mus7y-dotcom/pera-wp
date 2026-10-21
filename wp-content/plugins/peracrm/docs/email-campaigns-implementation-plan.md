@@ -1,6 +1,6 @@
 # Integrated email campaigns: repository review and living implementation plan
 
-Review status: **complete** (2026-10-17). Implementation: **Phase 1 complete (technical acceptance)**; **Phase 2 in progress**; **Phase 3 in progress (3A/3B/3C technical/live core checks passed; clean PR review recorded; property review and external readiness remain open)**; **Phase 4 in progress (4A/4B/4C and 4D repository checks passed; final review and external acceptance remain)**; **Phase 5 in progress (5A documentation complete; 5B submission, deliverable capture/approval, recipient token/expansion contracts and bounded durable recipient persistence complete; production integration not started)**; Phases 6–7 not started.
+Review status: **complete** (2026-10-17). Implementation: **Phase 1 complete (technical acceptance)**; **Phase 2 in progress**; **Phase 3 in progress (3A/3B/3C technical/live core checks passed; clean PR review recorded; property review and external readiness remain open)**; **Phase 4 in progress (4A/4B/4C and 4D repository checks passed; final review and external acceptance remain)**; **Phase 5 in progress (5A documentation complete; 5B submission, deliverable capture/approval, recipient token/expansion contracts, bounded durable recipient persistence and subscriber lifecycle integration complete; production integration not started)**; Phases 6–7 not started.
 
 ## Purpose, scope and maintenance
 
@@ -10,7 +10,7 @@ Future implementation PRs must update phase status, validation evidence, decisio
 
 **Current task:** fifth bounded Phase 5B PR — internal subscriber lifecycle integration for durable recipient identity and revocation. Verified #1468 merged at `9113bdb3b857c3464d0b790adc53cd2228f77a34`, also latest main at start. Its final head `9659d3c87ffe51aa77c5f661440e5f4522f05e96` has a completed clean Codex review and passing single/multisite [run 39487438922](https://github.com/7mus7y-dotcom/pera-wp/actions/runs/39487438922); no review threads remain. The original clean `/workspace/pera-wp` checkout remains at `1995ab58`; work is isolated at `/workspace/pera-lifecycle`. Shell fetch failed once (proxy unreachable). Connected GitHub supplied the sixteen merged files; local baseline scaffolding is not included in publication, whose parent is verified GitHub main. No applicable AGENTS.md exists in the workspace or searched ancestors.
 
-**Completed bounded scope:** additive schema 29 identity epochs, digest revocation registry and immutable attempt metadata; unbootstrapped internal service, pure projection regressions and disposable SQL/concurrency fixtures. Provider scope, frozen IDs/hashes, recipient and exact expanded-output/full-envelope hashes are bound. No bodies, raw bearers or keys enter these new tables. Existing approval/capture bytes and cancellation/suppression/unknown fences are unchanged. This is persistence evidence, not worker authority or end-to-end unsubscribe acceptance.
+**Completed bounded scope:** internal subscriber lifecycle integration now revokes durable identities atomically on deletion/recreation while preserving ordinary profile/consent edits; local and real single/multisite validation passed (evidence below). Previous bounded work: additive schema 29 identity epochs, digest revocation registry and immutable attempt metadata; unbootstrapped internal service, pure projection regressions and disposable SQL/concurrency fixtures. Provider scope, frozen IDs/hashes, recipient and exact expanded-output/full-envelope hashes are bound. No bodies, raw bearers or keys enter these new tables. Existing approval/capture bytes and cancellation/suppression/unknown fences are unchanged. This is persistence evidence, not worker authority or end-to-end unsubscribe acceptance.
 
 **Next dependent work:** public preference/visible withdrawal and RFC 8058 POST handlers; deployment key/retention/restore readiness and exact-byte secure output recovery; concrete worker-authorized resolution and transport integration. The worker must persist and confirm the exact immutable binding before transport, validate all authority/fences/eligibility, register the actual issued token digests/metadata and never regenerate random tokens for an existing attempt. No provider factory, public route, worker activation, scheduler or UI change. Dispatch remains blocked unconditionally; real intake and public collection remain disabled.
 
@@ -2932,3 +2932,47 @@ The existing primary key begins with deployment; this bounded change adds no
 schema/index, so this discovery can lock a wider identity index range.
 All identity updates and caller rollback remain atomic. Hosted final evidence
 follows after the replacement matrix completes.
+
+
+### Final subscriber-lifecycle validation evidence (2026-10-21)
+
+Final runtime/test commit `55d030b6eb047e1bb5af60f5f2cee7267151f6b7`,
+exact local/published tree `68090bee5ebe635560dcdd3d28eeaf04b4d82999`,
+passed [run 39553076167](https://github.com/7mus7y-dotcom/pera-wp/actions/runs/39553076167):
+**single-site job 119066640009** and **multisite job 119066640253**.
+Both completed logs were inspected for all new assertions, all six lifecycle
+races, prior persistence/queue/worker/scheduler fixtures and desktop/mobile
+browser completion. All passed. Each lifecycle race checks independent connection
+IDs and actual blocking. The new caller-snapshot race passes in both topologies.
+The matrix also passes all 24 standalone suites, PHP syntax, shell/Compose and
+browser checks. No PHP warning/fatal/notice/deprecation or failed assertion was
+found in these successful runs.
+
+Each log retains the same five pre-existing management-fixture database
+diagnostics documented for #1468: four deliberate nonexistent-table
+fault-injection operations and one legacy CRM linked-user-column probe.
+New lifecycle SQL fault-injection checks suppress their expected SQL display and
+assert rollback. Existing Node/action toolchain notices remain unchanged.
+The two earlier failed fixture runs are recorded above; intermediate
+run 39552854550 was superseded/cancelled by the caller-snapshot hardening and is
+not counted as acceptance.
+
+Evidence retained through **2026-11-04**:
+[single-site artifact 12324676856](https://github.com/7mus7y-dotcom/pera-wp/actions/runs/39553076167/artifacts/12324676856),
+[multisite artifact 12324328665](https://github.com/7mus7y-dotcom/pera-wp/actions/runs/39553076167/artifacts/12324328665).
+
+[PR #1469](https://github.com/7mus7y-dotcom/pera-wp/pull/1469) is non-draft against
+main. Initial runtime commit `2b92113` received a completed clean automated
+review; subsequent fixture corrections and caller-snapshot hardening are not
+claimed as covered by that review. Final rereview remains open. This final
+evidence update changes documentation only; tested runtime/fixture bytes remain
+exactly those of `55d030b6`. The original checkout and isolated worktree remain
+clean after commits. Publication uses connected GitHub because local shell
+proxy/Docker access is blocked; no blocked-tool retries were made.
+
+Bounded lifecycle implementation and single/multisite technical validation are
+complete; Phase 5 remains **in progress**. No production issuance, public handler,
+output recovery, provider/worker/transport activation, new UI, merge or deployment.
+Old-mailbox withdrawal policy, retention and restore reconciliation remain
+unresolved activation prerequisites. Wider identity-range locking is documented
+above; this change is not a production-volume performance acceptance.
