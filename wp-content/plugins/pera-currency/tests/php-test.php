@@ -23,10 +23,10 @@ require dirname( __DIR__ ) . '/includes/class-ecb-provider.php';
 require dirname( __DIR__ ) . '/includes/functions.php';
 function ok( $condition, $message ) { if ( ! $condition ) { fwrite( STDERR, "FAIL: $message\n" ); exit( 1 ); } }
 $now = time();
-$snapshot = Pera_Currency_Rates::make_snapshot( array( 'USD' => 1, 'EUR' => .86, 'GBP' => .75 ), 'test', '2026-09-02', $now );
+$snapshot = Pera_Currency_Rates::make_snapshot( array( 'USD' => 1, 'EUR' => .86, 'GBP' => .75, 'CNY' => 7.0 ), 'test', '2026-09-02', $now );
 update_option( Pera_Currency_Rates::OPTION, $snapshot );
 foreach ( json_decode( file_get_contents( __DIR__ . '/fixtures/golden.json' ), true ) as $fixture ) {
-	$s = Pera_Currency_Rates::make_snapshot( array( 'USD' => 1, 'EUR' => $fixture['currency'] === 'EUR' ? $fixture['rate'] : .86, 'GBP' => $fixture['currency'] === 'GBP' ? $fixture['rate'] : .75 ), 'test', '2026-09-02', $now );
+	$s = Pera_Currency_Rates::make_snapshot( array( 'USD' => 1, 'EUR' => $fixture['currency'] === 'EUR' ? $fixture['rate'] : .86, 'GBP' => $fixture['currency'] === 'GBP' ? $fixture['rate'] : .75, 'CNY' => $fixture['currency'] === 'CNY' ? $fixture['rate'] : 7.0 ), 'test', '2026-09-02', $now );
 	$GLOBALS['transients'][ Pera_Currency_Rates::CACHE ] = $s;
 	$ref = new ReflectionProperty( Pera_Currency_Rates::class, 'runtime' ); $ref->setAccessible( true ); $ref->setValue( null, null );
 	ok( pera_currency_format( $fixture['usd'], $fixture['currency'] ) === $fixture['expected'], 'golden ' . $fixture['currency'] );
@@ -39,7 +39,7 @@ foreach ( json_decode( file_get_contents( __DIR__ . '/fixtures/ranges.json' ), t
 		ok( $result['min'] === $fixture['minText'] && $result['max'] === $fixture['maxText'], 'range text: ' . $fixture['name'] );
 	}
 }
-ok( array_keys( pera_currency_get_supported() ) === array( 'USD', 'EUR', 'GBP' ), 'exact allowlist' );
+ok( array_keys( pera_currency_get_supported() ) === array( 'USD', 'EUR', 'GBP', 'CNY' ), 'exact allowlist' );
 ok( null === pera_currency_convert( -1 ) && null === pera_currency_convert( '1,000' ) && null === pera_currency_convert( INF ), 'invalid amounts' );
 ok( null === pera_currency_get_rate( 'CAD' ), 'unsupported currency' );
 ok( Pera_Currency_Rates::state( $snapshot, $now + 10 ) === 'fresh', 'fresh state' );
@@ -48,9 +48,9 @@ ok( Pera_Currency_Rates::state( $snapshot, $now + 700000 ) === 'expired', 'expir
 $id = Pera_Currency_Rates::make_snapshot( $snapshot['rates'], 'test', '2026-09-02', $now );
 ok( $id['snapshot_id'] === $snapshot['snapshot_id'], 'deterministic identifier' );
 $provider_date = gmdate( 'Y-m-d', $now );
-$xml = '<?xml version="1.0"?><Envelope><Cube><Cube time="' . $provider_date . '"><Cube currency="USD" rate="1.2"/><Cube currency="GBP" rate="0.9"/></Cube></Cube></Envelope>';
+$xml = '<?xml version="1.0"?><Envelope><Cube><Cube time="' . $provider_date . '"><Cube currency="USD" rate="1.2"/><Cube currency="GBP" rate="0.9"/><Cube currency="CNY" rate="8.4"/></Cube></Cube></Envelope>';
 $ecb = Pera_Currency_ECB_Provider::parse( $xml, $now );
-ok( ! is_wp_error( $ecb ) && abs( $ecb['rates']['EUR'] - ( 1 / 1.2 ) ) < 0.000001 && abs( $ecb['rates']['GBP'] - .75 ) < 0.000001, 'ECB normalization' );
+ok( ! is_wp_error( $ecb ) && abs( $ecb['rates']['EUR'] - ( 1 / 1.2 ) ) < 0.000001 && abs( $ecb['rates']['GBP'] - .75 ) < 0.000001 && abs( $ecb['rates']['CNY'] - 7.0 ) < 0.000001, 'ECB normalization' );
 $xml_with_date = static function ( $date ) use ( $xml, $provider_date ) {
 	return str_replace( 'time="' . $provider_date . '"', 'time="' . $date . '"', $xml );
 };
@@ -62,6 +62,7 @@ ok( is_wp_error( Pera_Currency_ECB_Provider::parse( $xml_with_date( gmdate( 'Y-m
 ok( is_wp_error( Pera_Currency_ECB_Provider::parse( $xml_with_date( gmdate( 'Y-m-d', $now + ( 2 * DAY_IN_SECONDS ) ) ), $now ) ), 'future provider date' );
 ok( is_wp_error( Pera_Currency_ECB_Provider::parse( $xml_with_date( '2026-02-30' ), $now ) ), 'malformed provider date' );
 ok( is_wp_error( Pera_Currency_ECB_Provider::parse( str_replace( 'currency="GBP"', 'currency="JPY"', $xml ), $now ) ), 'partial rejection' );
+ok( is_wp_error( Pera_Currency_ECB_Provider::parse( str_replace( 'currency="CNY"', 'currency="JPY"', $xml ), $now ) ), 'missing CNY rejection' );
 $GLOBALS['http_response'] = array( 'response' => array( 'code' => 503 ), 'body' => '' );
 ok( is_wp_error( ( new Pera_Currency_ECB_Provider() )->fetch_rates() ), 'HTTP failure' );
 $GLOBALS['http_response'] = new WP_Error( 'timeout' );
