@@ -5,6 +5,9 @@ final class Pera_Currency_Rates {
 	const CACHE = 'pera_currency_rates_cache';
 	const LOCK = 'pera_currency_refresh_lock';
 	const CRON = 'pera_currency_refresh_rates';
+	const UPGRADE_CRON = 'pera_currency_refresh_rates_cny_upgrade';
+	const DATA_VERSION_OPTION = 'pera_currency_data_version';
+	const DATA_VERSION = 2;
 	const SCHEDULE = 'pera_currency_twelve_hours';
 	const FRESH_FOR = 43200;
 	const USABLE_FOR = 604800;
@@ -22,6 +25,19 @@ final class Pera_Currency_Rates {
 	public static function bootstrap() {
 		add_filter( 'cron_schedules', array( __CLASS__, 'cron_schedules' ) );
 		add_action( self::CRON, array( __CLASS__, 'refresh' ) );
+		add_action( self::UPGRADE_CRON, array( __CLASS__, 'refresh' ) );
+		add_action( 'init', array( __CLASS__, 'maybe_schedule_upgrade_refresh' ) );
+	}
+
+	public static function maybe_schedule_upgrade_refresh() {
+		if ( (int) get_option( self::DATA_VERSION_OPTION, 0 ) >= self::DATA_VERSION ) return;
+		delete_transient( self::CACHE );
+		self::$runtime = null;
+		$scheduled = wp_next_scheduled( self::UPGRADE_CRON );
+		if ( ! $scheduled ) {
+			$scheduled = wp_schedule_single_event( time() + 60, self::UPGRADE_CRON );
+		}
+		if ( $scheduled ) update_option( self::DATA_VERSION_OPTION, self::DATA_VERSION, false );
 	}
 
 	public static function cron_schedules( $schedules ) {
@@ -37,6 +53,7 @@ final class Pera_Currency_Rates {
 
 	public static function deactivate() {
 		wp_clear_scheduled_hook( self::CRON );
+		wp_clear_scheduled_hook( self::UPGRADE_CRON );
 		delete_transient( self::LOCK );
 		delete_transient( self::CACHE );
 		self::$runtime = null;
