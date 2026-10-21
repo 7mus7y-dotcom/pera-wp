@@ -114,6 +114,21 @@ for persistence_race in identity identical conflict token-identical token-confli
     wait "$persistence_loser_pid"
     wp eval-file /tests/recipient-persistence-race.php verify "$persistence_race"
 done
+# Distinct PHP invocations prove recovery after process memory is gone.
+wp eval-file /tests/output-recovery.php prepare restart
+wp eval-file /tests/output-recovery.php recover restart
+for output_race in identical conflict; do
+    rm -f /tmp/peracrm-output-held /tmp/peracrm-output-winner /tmp/peracrm-output-loser
+    wp eval-file /tests/output-recovery.php prepare "$output_race"
+    wp eval-file /tests/output-recovery.php winner "$output_race" &
+    output_winner_pid=$!
+    wait_for_migration_marker /tmp/peracrm-output-held
+    wp eval-file /tests/output-recovery.php loser "$output_race" &
+    output_loser_pid=$!
+    wait "$output_winner_pid"
+    wait "$output_loser_pid"
+    wp eval-file /tests/output-recovery.php verify "$output_race"
+done
 wp eval-file /tests/subscriber-lifecycle.php
 for lifecycle_race in delete-register register-delete edit-register register-edit delete-create scope-delete; do
     rm -f /tmp/peracrm-lifecycle-held /tmp/peracrm-lifecycle-winner /tmp/peracrm-lifecycle-loser
