@@ -15,6 +15,7 @@ final class Pera_Currency_Rates {
 			'USD' => array( 'symbol' => '$', 'rounding' => 1 ),
 			'EUR' => array( 'symbol' => '€', 'rounding' => 1000 ),
 			'GBP' => array( 'symbol' => '£', 'rounding' => 1000 ),
+			'CNY' => array( 'symbol' => '¥', 'rounding' => 1000 ),
 		);
 	}
 
