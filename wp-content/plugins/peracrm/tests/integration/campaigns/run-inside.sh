@@ -102,6 +102,18 @@ else
 fi
 wp eval-file /tests/previews.php
 wp eval-file /tests/snapshots.php
+for persistence_race in identity identical conflict token-identical token-conflict revoke; do
+    rm -f /tmp/peracrm-persistence-held /tmp/peracrm-persistence-winner /tmp/peracrm-persistence-loser
+    wp eval-file /tests/recipient-persistence-race.php prepare "$persistence_race"
+    wp eval-file /tests/recipient-persistence-race.php winner "$persistence_race" &
+    persistence_winner_pid=$!
+    wait_for_migration_marker /tmp/peracrm-persistence-held
+    wp eval-file /tests/recipient-persistence-race.php loser "$persistence_race" &
+    persistence_loser_pid=$!
+    wait "$persistence_winner_pid"
+    wait "$persistence_loser_pid"
+    wp eval-file /tests/recipient-persistence-race.php verify "$persistence_race"
+done
 wp eval-file /tests/freeze.php
 wp eval-file /tests/queue.php
 for queue_race in prepare-prepare batch-batch batch-cancel cancel-batch pause-schedule cancel-resume; do

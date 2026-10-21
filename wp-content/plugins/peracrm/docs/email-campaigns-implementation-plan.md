@@ -1,6 +1,6 @@
 # Integrated email campaigns: repository review and living implementation plan
 
-Review status: **complete** (2026-10-17). Implementation: **Phase 1 complete (technical acceptance)**; **Phase 2 in progress**; **Phase 3 in progress (3A/3B/3C technical/live core checks passed; clean PR review recorded; property review and external readiness remain open)**; **Phase 4 in progress (4A/4B/4C and 4D repository checks passed; final review and external acceptance remain)**; **Phase 5 in progress (5A documentation complete; 5B submission, deliverable capture/approval and recipient token/expansion contracts complete; production integration not started)**; Phases 6–7 not started.
+Review status: **complete** (2026-10-17). Implementation: **Phase 1 complete (technical acceptance)**; **Phase 2 in progress**; **Phase 3 in progress (3A/3B/3C technical/live core checks passed; clean PR review recorded; property review and external readiness remain open)**; **Phase 4 in progress (4A/4B/4C and 4D repository checks passed; final review and external acceptance remain)**; **Phase 5 in progress (5A documentation complete; 5B submission, deliverable capture/approval, recipient token/expansion contracts and bounded durable recipient persistence complete; production integration not started)**; Phases 6–7 not started.
 
 ## Purpose, scope and maintenance
 
@@ -8,11 +8,11 @@ Let Pera staff prepare newsletters and targeted campaigns inside the existing CR
 
 Future implementation PRs must update phase status, validation evidence, decisions and the progress log here. A phase must not be marked complete solely because code exists when required verification remains outstanding. Use only `not started`, `in progress`, `blocked` or `complete` for phase status. Keep repository checks distinct from external verification; record outstanding evidence explicitly.
 
-**Current task:** third bounded Phase 5B PR — recipient token services and safe expansion of approved URL slots. Connected GitHub verified #1466 merged at `28e27488191aad1505a665f76389f5a63ce0f3c3`, also latest main on 2026-10-20, before choosing the base. Preserved the clean original `/workspace/pera-wp` `work` checkout. Shell fetch failed once (configured proxy unreachable); connected GitHub supplied all eleven merged file changes, verified against their exact blob hashes. Isolated baseline tree `85511a3d63e66acead1e4726ff710fd88bae9ed5` matches the merged implementation. Local reconstruction commits are baseline scaffolding only; publication is parented directly to GitHub main. No applicable `AGENTS.md` exists under the workspace or at searched ancestors. Read this plan, provider specification, existing preferences, renderer/capture/approval, submission/resolver and SES contracts.
+**Current task:** fourth bounded Phase 5B PR — durable recipient revocation and immutable attempt metadata. Verified #1467 merged at `1995ab582fee49373f4f36e4343fc6cb00e748f9`, its final runtime CI [39475440959](https://github.com/7mus7y-dotcom/pera-wp/actions/runs/39475440959) passed and [clean Codex review](https://github.com/7mus7y-dotcom/pera-wp/pull/1467#issuecomment-6299172981) covers that merged commit. GitHub main was the same SHA when work began. Preserved the clean original `/workspace/pera-wp` checkout at `07d8997e`; isolated worktree `/workspace/pera-persistence`. Shell fetch failed once (configured proxy unreachable); connected GitHub supplied the fifteen changed baseline files, all verified against exact Git blob hashes. Local baseline reconstruction is scaffolding only; published commits are parented directly to verified main. No applicable AGENTS.md found in the workspace, tracked files or searched ancestors. Read this plan, provider specification, recipient token/expansion, submission, snapshot, schema, queue and worker contracts.
 
-**Completed bounded scope:** unwired, injected-secret purpose-separated recipient tokens and context-specific URL expansion into immutable recipient copies. Exact approved snapshot hashes and shared/historical bytes remain unchanged. Existing submission/resolver/provider contracts remain unconnected; the default renderer resolver denial is unchanged. This is service-contract evidence, not end-to-end unsubscribe acceptance.
+**Completed bounded scope:** additive schema 29 identity epochs, digest revocation registry and immutable attempt metadata; unbootstrapped internal service, pure projection regressions and disposable SQL/concurrency fixtures. Provider scope, frozen IDs/hashes, recipient and exact expanded-output/full-envelope hashes are bound. No bodies, raw bearers or keys enter these new tables. Existing approval/capture bytes and cancellation/suppression/unknown fences are unchanged. This is persistence evidence, not worker authority or end-to-end unsubscribe acceptance.
 
-**Next dependent work:** public preference/visible withdrawal and RFC 8058 POST handlers, durable digest-to-identity/revocation registry and exact immutable recipient/attempt/provider/envelope binding, then worker-authorized resolution and concrete transport integration. Deployment key provisioning/rotation/retention, restore/clone readiness, authenticated events, suppression sync and real host/provider/inbox acceptance remain open. Dispatch is blocked unconditionally; real intake and public collection remain disabled.
+**Next dependent work:** public preference/visible withdrawal and RFC 8058 POST handlers; deployment key/retention/restore readiness and exact-byte secure output recovery; concrete worker-authorized resolution and transport integration. The worker must persist and confirm the exact immutable binding before transport, validate all authority/fences/eligibility, register the actual issued token digests/metadata and never regenerate random tokens for an existing attempt. No provider factory, public route, worker activation, scheduler or UI change. Dispatch remains blocked unconditionally; real intake and public collection remain disabled.
 
 ## Review baseline and method
 
@@ -26,6 +26,7 @@ Paths below are repository-relative. In the review table, `P/` means `wp-content
 
 | Area | Verified code and implications | Gap or constraint |
 | --- | --- | --- |
+| 2026-10-20 | Phase 5 in progress — bounded durable recipient persistence | Additive schema 29, mailbox identity epochs, digest registry and immutable attempt metadata. Local regression/syntax results and hosted single/multisite evidence recorded below; all delivery/intake/collection gates unchanged. |
 | Ownership | `P/peracrm.php` loads `inc/bootstrap.php`, declaring schema version 20. Bootstrap owns CRM services, repositories, frontend routing, REST and admin modules. `wp-content/plugins/pera-portal/pera-portal.php` identifies a separate internal portal scaffold; CRM feature ownership is PeraCRM. | Keep campaigns in PeraCRM; no second CRM plugin or new app required. |
 | Contacts | `P/inc/cpt.php::peracrm_register_cpt_crm_client()` registers clients as posts. `inc/helpers.php::peracrm_client_get_profile()` reads `_peracrm_email`, phone, client type, preferred contact, bedroom and USD budget metadata. `inc/services/client_service.php::peracrm_sync_client_contact_meta()` maintains legacy email aliases and normalized email fields. | There is no database unique constraint on client email postmeta. An email field is not permission to market. |
 | Identity and duplicates | `peracrm_find_all_client_ids_by_email()`, `peracrm_find_existing_client_id_by_email()` and `peracrm_find_or_create_client_by_email()` in `inc/services/client_service.php` search aliases. The latter selects a canonical match, republishes it, marks other matches with `peracrm_dedupe_canonical_id` and trashes them; it can also ensure existing WP-user membership. `peracrm_find_or_create_client_by_identity()` supports phone fallback. | Do not call lead ingestion for subscriber imports or automatic linking: it has sales-record and membership side effects. Do not silently merge ambiguous CRM matches. |
@@ -238,7 +239,7 @@ Verified hosted evidence: [run `39050763912`](https://github.com/7mus7y-dotcom/p
 
 ### 5. One provider adapter, authenticated events and internal tests
 
-- **Status:** in progress — Phase 5A evaluation/specification and bounded Phase 5B submission, deliverable capture/approval and recipient token/expansion contracts complete (2026-10-20); concrete production adapter/transport, events, readiness and real delivery implementation not started. See [provider specification](email-campaigns-provider-specification.md).
+- **Status:** in progress — Phase 5A evaluation/specification and bounded Phase 5B submission, deliverable capture/approval, recipient token/expansion contracts and bounded durable recipient persistence complete (2026-10-20); concrete production adapter/transport, events, readiness and real delivery implementation not started. See [provider specification](email-campaigns-provider-specification.md).
 - **Goal/outcome:** allowlisted internal test mail and delivery feedback work through one approved provider; public campaigns remain disabled.
 - **Prerequisites:** Phase 4; provider documentation gate completed, account access granted separately, domain/DNS readiness and retention agreements recorded. Split adapter and webhook review if needed, but enable neither public sends nor imports from provider until both pass.
 - **Work/components:** one adapter, masked admin settings/readiness, authenticated event endpoint, durable dedupe/reconciliation, suppression sync, one-click unsubscribe headers/handler and safe diagnostic reporting. Provider-specific fixtures under `tests/`.
@@ -2598,3 +2599,214 @@ remains blocked and real intake/public collection disabled. No end-to-end
 unsubscribe, provider or inbox acceptance is claimed. All dependent public
 handler, registry, durable attempt-binding and retention decisions above remain
 open; Phase 5 is **in progress**.
+
+
+## Phase 5B — durable recipient revocation and immutable attempt metadata (2026-10-20)
+
+Phase 5 remains **in progress**. All implementation is PeraCRM-owned. Schema 29
+adds three InnoDB tables to the existing target-blog installer and read-only
+column/engine/full-length unique-index assertions. No destructive migration,
+backfill, production issuance, provider factory, transport, event intake, public
+handler, dispatch activation, scheduling change or UI is introduced. The service
+file is deliberately not loaded by bootstrap. Only schema definitions are loaded
+through the existing installer.
+
+### Durable identity and revocation contract
+
+`PeraCRM_CampaignRecipientPersistence` requires an explicit deployment ID and
+blog ID. Every operation requires the current context to be that configured
+PeraCRM target and schema readiness. It never silently switches sites or discovers
+secrets. Scope is binary-exact deployment/blog; target-site tables give an
+additional multisite boundary. `ensureIdentity` serializes concurrent initial
+creation and rejects a different mailbox or inactive identity. Identity rows
+retain exact frozen mailbox bytes and a monotonic epoch for each subscriber.
+`changeIdentity` requires the expected epoch, advances it for mailbox changes,
+explicit identity revocation or deletion, and can deactivate the identity.
+Returning to the former mailbox or re-enabling it never restores an old epoch.
+A stale caller cannot overwrite a newer identity. These are trusted internal
+operations, not automatic subscriber lifecycle hooks; connecting current subscriber
+mutations is required before any issuance/public use. A replacement subscriber ID
+must never inherit the prior subscriber's identity state.
+
+The digest registry records immutable protocol `pc1`, purpose, key ID, issued and
+expiry times and the canonical subscriber/mailbox/blog/epoch/attempt/snapshot
+binding. It accepts SHA-256 digests, never raw bearer bytes. Same digest and exact
+metadata is idempotent; any conflict rejects without replacing the original.
+Individual revocation is monotonic and cannot be undone by replaying registration;
+revoking an unknown digest fails closed. The cryptographic verifier now passes a
+fourth, nonsecret protocol/deployment-metadata projection to the injected callback. Existing
+three-argument callbacks remain compatible; this durable callback requires exact
+protocol/deployment/key/time metadata as well as purpose/identity. Authentication still occurs
+before callback access. `locate` is a trusted locator only, never proof of bearer
+possession; no public action may follow it without cryptographic verification.
+Callback database errors/identity mismatch/unknown digest/revocation deny access.
+Public handlers must recheck under the authoritative mailbox lock before mutation;
+a completed verification call cannot prevent a subsequent concurrent revocation.
+
+**Routine key rotation:** issue with a new unique key ID, retain every old
+withdrawal verification key and registry binding. Rotation never changes identity
+epochs or removes digest rows. Do not reuse a key ID for new material, delete old
+keys on preference expiry/campaign completion, or call key removal routine
+rotation. Emergency key removal revokes affected withdrawal access; compromise
+response and an accessible independent withdrawal path remain activation blockers.
+No finite withdrawal-key/digest retention horizon has been approved. Keys remain
+in injected service configuration, outside SQL and diagnostics.
+
+**Mailbox/deletion policy:** old mailbox tokens immediately fail the current
+identity/epoch check after a committed change. This deliberately denies access to
+a later subscriber profile through an old mailbox link. Historical attempt rows
+and their mailbox/hash bindings are retained unchanged; suppression reasons are
+never cleared. Public support for withdrawing the old mailbox after an identity
+change/deletion needs a separately approved policy and handler, without granting
+profile/topic access to a replacement identity. Retention/deletion of historical
+identity metadata remains an unresolved privacy/readiness decision.
+
+**Restore/clone policy:** keep all gates off and provision a fresh external
+deployment identity for a clone or rollback restore. Old copied digests/attempts
+are inaccessible through the fresh scope. This intentionally invalidates old
+bearers until independently retained revocations/epochs are reconciled. A same-
+deployment restore can resurrect stale registry state; the library cannot detect
+copied configuration or roll back external reality. Same-scope resume is prohibited
+until post-backup revocations, cumulative suppressions, cancellation fences and
+attempt/provider evidence have been unioned/reconciled under the operations
+runbook. A backup alone is insufficient evidence. Unknown outcomes remain held;
+new deployment scope does not authorize a resend or infer non-acceptance.
+
+### Immutable attempt contract and dependent worker integration
+
+The attempt table has a unique binary-exact `(deployment, blog_id, attempt_key)`.
+Its immutable metadata binds the delivery key; frozen campaign/job/revision/
+snapshot/recipient IDs and snapshot hash; subscriber/mailbox/epoch; personalization
+version; provider/account/region/configuration set/version; independent expanded
+output hash and complete submission envelope hash. The pure projection revalidates
+a defensive submission copy and requires exact output HTML/text plus original
+snapshot/recipient-binding hashes. The complete envelope hash also binds captured
+sender/subject/reply-to/timeout without storing those values. A hash proves
+integrity, not staff approval, frozen-row existence, worker lease or eligibility;
+a concrete authorized resolver must obtain those facts from trusted storage.
+
+Insert-or-compare uses database uniqueness and row locking, never overwrites
+binding JSON on a duplicate. Identical replay returns the same envelope hash;
+conflicting output, recipient, IDs, delivery key or provider scope fails closed.
+Historical lookup remains available after identity revocation and does not inspect
+campaign lifecycle or issue a retry permit. There is no attempt update/delete or
+outcome-reset service. All mutations own a top-level transaction and return only
+after commit; SQL/commit failure rolls back and returns a fixed unchained error.
+An existing transaction or autocommit-disabled connection is rejected without
+committing or rolling back the caller's work. No transport callback exists.
+
+**Bounded split / remaining work:** this PR stores binding hashes and identity
+metadata only. It deliberately does not store token-bearing bodies, encrypted
+bearers or keys. The earlier random-nonce expansion is not retry reconstruction;
+re-expansion for an existing attempt produces a conflicting output. Before any
+transport integration, separately approve and implement secure exact-byte output
+recovery (or separately reviewed stable derivation) plus key/body/token retention.
+The concrete worker must persist/confirm all bindings before the first possible
+transport invocation, recheck lease/owner/version/target/gates/final eligibility,
+and retain unknown-outcome holds. This store is not integrated into the abstract
+worker and cannot itself enforce a future caller's invocation order. Public
+preferences/visible withdrawal, scanner-safe GET/HEAD and durable RFC 8058 POST
+handling remain separate dependent work. No end-to-end unsubscribe is claimed.
+
+### Diagnostics, validation and limitations
+
+New tables contain no raw bearer, secret or message body. Services emit no audit
+log or body diagnostic; rejected values are never interpolated into errors,
+exception chains are discarded, sensitive arguments are marked, debug output is
+redacted and serialization is denied. The existing submission constructor now
+also marks its body-bearing argument sensitive. Explicit metadata/locator access
+contains mailbox identity and must stay internal. Host/proxy access-log redaction,
+no-store/no-referrer and approved retention/access controls remain public-activation
+blockers; these internal services do not establish host logging readiness.
+
+Local PHP 8.4.24: all 23 standalone plugin suites (13 campaign suites), first-party
+PHP syntax, shell syntax and whitespace checks passed before publication. Focused
+pure regressions verify exact identity/output projection, distinct hashes,
+canonical order, body exclusion, serialization and redacted debug behavior.
+The real WordPress/MySQL single-site/multisite fixtures exercise the actual
+installer/unique constraints, identical/conflicting attempts and provider scope,
+digest/version conflicts, individual/epoch revocation, stale CAS, return-to-mailbox
+behavior, expiry/rotation, failed commit rollback for identity/token/attempt/
+revocation, nested-transaction rejection, cross-blog/deployment isolation and
+historical row preservation. Independent-process races exercise new identity,
+identical/conflicting token/attempt creation and registration versus revocation,
+with connection IDs and real lock-contention assertions.
+
+Local Docker socket check failed once (`operation not permitted`); no local SQL
+success is claimed and no retry was made. Shell fetch failed once (proxy
+unreachable); connected GitHub provides publication and hosted CI. Hosted results
+must be recorded below after execution. No provider/inbox, actual host, retention,
+restore reconciliation or public-handler acceptance is claimed. Sending, real
+intake and public collection remain disabled. No merge or deployment.
+
+
+### Initial hosted correction and isolation hardening
+
+Initial runtime commit `3f3024e7dfc0cc9c416f18657d42b64df434ea5a`, tree
+`5aad4697472091db0187141ed61324b689c60431`, opened non-draft
+[PR #1468](https://github.com/7mus7y-dotcom/pera-wp/pull/1468). Initial
+[run 39485646789](https://github.com/7mus7y-dotcom/pera-wp/actions/runs/39485646789)
+passed standalone regressions and syntax on both jobs. Single-site SQL caught
+an incorrect literal comparison with `peracrm_get_target_blog_id()`, whose
+single-site sentinel is 0. The service now permits the exact current single-site
+blog while retaining explicit configured-target equality on multisite. This is
+an executed failure, not SQL acceptance. No check was weakened for multisite.
+A live multisite log request was not available (404); completed logs will be
+read only after job completion.
+
+The authenticated callback metadata also includes the issuer deployment, which
+must match the store even when key/digest configuration was copied. Added tests
+for that mismatch, registry key-version mismatch, direct identity/token SQL
+uniqueness and an actual additive v28-to-v29 migration with repeat readiness.
+All prior captures, identity bindings and delivery gates remain unchanged.
+Replacement hosted matrix evidence follows after execution.
+
+
+### Final durable-persistence validation evidence (2026-10-20)
+
+Final runtime/test commit `a8853653956133a52f6451326a781d015745e28a`, exact tested
+and published tree `822a0263ac37c01a797388c858f106b198838d21`, passed
+[run 39486372802](https://github.com/7mus7y-dotcom/pera-wp/actions/runs/39486372802):
+**single-site job 118847804585** and **multisite job 118847804879**. Both complete
+logs were read and checked. All new persistence assertions, six independent-
+process race scenarios, actual v28-to-v29 installation and prior campaign/
+worker/scheduler/browser fixtures passed in both topologies. The matrix also
+passed all 23 standalone plugin suites (13 campaign suites), PHP syntax, shell/
+Compose configuration and existing desktop/mobile browser flows. No PHP warning,
+fatal, notice or deprecated diagnostic, failed assertion or new persistence SQL
+error was found.
+
+Logs retain five pre-existing management-fixture database diagnostics in each
+job: four deliberately injected nonexistent-table operations for cleanup/audit
+rollback checks, plus the legacy `crm_client` linked-user-column probe on
+fixture client deletion. These occur before the new persistence fixtures and do
+not contain bearers/bodies/keys. They are not claimed as a clean production-host
+log or changed in this bounded PR. Node/action runtime deprecation notices are
+also pre-existing toolchain output. The original first-run multisite job
+118845231918 passed; the initial single-site target-sentinel failure is superseded
+by the fully passing replacement matrix, not hidden or counted as success.
+
+Evidence retained through **2026-11-03**:
+[single-site artifact 12293379200](https://github.com/7mus7y-dotcom/pera-wp/actions/runs/39486372802/artifacts/12293379200),
+[multisite artifact 12294276430](https://github.com/7mus7y-dotcom/pera-wp/actions/runs/39486372802/artifacts/12294276430).
+Browser preference POST evidence covers the existing Phase 2 protocol; it does
+not establish acceptance of the new token registry or future RFC 8058 handler.
+No real provider, mailbox, deployment or manual accessibility acceptance is claimed.
+
+Codex's automatic clean review on PR #1468 covers initial commit `3f3024e7`, not
+the subsequent single-site/deployment hardening in `a8853653`; final runtime
+rereview remains open. The final evidence commit is documentation-only and
+changes no tested runtime or fixture bytes. Publication uses connected GitHub,
+with the exact runtime tree checked against the isolated worktree. The original
+`/workspace/pera-wp` checkout remains clean and preserved. No merge or deployment.
+
+Remaining retention readiness includes the existing eight-key ring capacity:
+never silently discard a still-required withdrawal key to rotate again. Stop new
+issuance if the configured ring cannot retain all required verification keys;
+approve a key/archive strategy and withdrawal lifetime before activation. No
+finite key/digest/body/identity retention horizon is approved. Public preferences/
+visible withdrawal and RFC 8058 handling, current-subscriber lifecycle integration,
+secure exact-byte output recovery and concrete worker/provider/transport
+integration remain dependent work. Historical snapshots/hashes, cancellation
+fences, cumulative suppressions and unknown-outcome holds remain unchanged.
+Sending, real intake and public collection remain disabled.
