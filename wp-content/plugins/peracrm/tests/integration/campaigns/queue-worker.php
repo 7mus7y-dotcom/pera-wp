@@ -2,6 +2,19 @@
 require __DIR__.'/worker-fixture.php';
 function worker_expect($ok, string $label): void { if (!$ok) { throw new RuntimeException('FAIL worker: '.$label); } echo 'PASS worker: '.$label."\n"; }
 function worker_reject(callable $fn): bool { try { $fn(); return false; } catch (Throwable $e) { return true; } }
+/** Content recovery must not renew leases or reset accepted/unknown worker rows. */
+function worker_output_recovery_preserves_fences(int $job): void
+{
+    require_once WP_PLUGIN_DIR.'/peracrm/tests/output-recovery-fixture.php';
+    $before = worker_fixture_rows($job);
+    worker_fixture_target(static function () {
+        $blog=get_current_blog_id(); [$binding,$output,$submission,$metadata]=output_fixture($blog);
+        $store=new PeraCRM_CampaignRecipientPersistence('fixture-output-restart',$blog);
+        [$restored]=$store->recoverOutput($binding,$metadata,output_cipher(true));
+        worker_expect($restored->hash()===$submission->hash(),'historical output recovery under independent worker fixture');
+    });
+    worker_expect(worker_fixture_rows($job)===$before,'content recovery preserves worker state, owner, version, attempt and lease bytes');
+}
 function worker_protected(): string
 {
     return worker_fixture_target(static function () {
@@ -72,6 +85,7 @@ $claims=$w->claim($job,2);
 worker_expect(count($claims)===2 && strlen($claims[0]['owner_token'])===64 && $claims[0]['attempt_key']!=='' && $claims[0]['delivery_key']!=='' && $claims[0]['lease_until']!==null,'durable owner lease attempt and deterministic keys before submission');
 worker_expect(!$w->completion($job),'active leases and unclaimed work prevent completion');
 $r=$w->submit($claims[0],$p);
+worker_output_recovery_preserves_fences($job);
 worker_expect($r['state']==='accepted' && $r['message_id']!=='' && worker_reject(static function () use ($w,$claims,$p) { $w->submit($claims[0],$p); }),'accepted result fenced and never resent');
 $same=$p->submit(['mailbox'=>$r['mailbox'],'delivery_key'=>$r['delivery_key'],'attempt_key'=>$r['attempt_key']]);
 worker_expect($same['message_id']===$r['message_id'],'fake same-key/attempt idempotency retains stable correlation');
@@ -84,6 +98,7 @@ worker_expect(!$w->completion($job),'missing persisted membership prevents false
 
 $job=worker_fixture_reset(1); $p->mode='timeout_after_accept';
 $r=$w->run($job,$p,1)[0];
+worker_output_recovery_preserves_fences($job);
 worker_expect($r['state']==='unknown' && !$w->completion($job) && $w->claim($job)===[],'ambiguous timeout held for reconciliation');
 worker_fixture_state($job,'pause'); worker_fixture_state($job,'resume');
 worker_expect(worker_fixture_rows($job)[0]['state']==='unknown' && $w->claim($job)===[],'ordinary pause/resume cannot reset unknown');

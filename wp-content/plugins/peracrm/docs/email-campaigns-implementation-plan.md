@@ -10,9 +10,9 @@ Future implementation PRs must update phase status, validation evidence, decisio
 
 **Current task:** sixth bounded Phase 5B PR — secure exact-byte recipient envelope persistence/recovery. Connected GitHub verified #1469 merged at `42878759ccdc507db8db1214dc1174d73c3109e1`, latest main at start; final head `77fce582b8eb1bb48db141522370393bf9eb4a6c` has completed clean [review](https://github.com/7mus7y-dotcom/pera-wp/pull/1469#issuecomment-6309558810), no review threads, and final runtime `55d030b6` passed [CI 39553076167](https://github.com/7mus7y-dotcom/pera-wp/actions/runs/39553076167). Original `/workspace/pera-wp` checkout remains clean at `1995ab58`; isolated worktree `/workspace/pera-output`. Shell GitHub failed once with sandbox proxy socket denial; a targeted additional-network attempt was aborted while pending, with no result. No blocked attempts repeated. Connector supplied all 23 changed main files, each verified against its Git blob SHA. Reconstruction commit is local scaffolding only; publication parents directly to verified main. No applicable AGENTS.md found under workspace, tracked paths or searched ancestors. Read plan, provider specification and recipient expansion/attempt-binding services.
 
-**Completed bounded scope:** internal subscriber lifecycle integration now revokes durable identities atomically on deletion/recreation while preserving ordinary profile/consent edits; local and real single/multisite validation passed (evidence below). Previous bounded work: additive schema 29 identity epochs, digest revocation registry and immutable attempt metadata; unbootstrapped internal service, pure projection regressions and disposable SQL/concurrency fixtures. Provider scope, frozen IDs/hashes, recipient and exact expanded-output/full-envelope hashes are bound. No bodies, raw bearers or keys enter these new tables. Existing approval/capture bytes and cancellation/suppression/unknown fences are unchanged. This is persistence evidence, not worker authority or end-to-end unsubscribe acceptance.
+**Completed bounded scope:** internal exact-byte envelope/output persistence and recovery with authenticated encryption, versioned deployment keys and additive schema 30; local checks passed, hosted validation pending below. Prior identity epochs, digest registry, immutable attempts and subscriber lifecycle integration are preserved. Ciphertext is separate from metadata; no plaintext bodies, raw bearers or encryption keys are stored in metadata/audit. Historical captures and all disabled gates remain unchanged.
 
-**Next dependent work:** public preference/visible withdrawal and RFC 8058 POST handlers; deployment key/retention/restore readiness and exact-byte secure output recovery; concrete worker-authorized resolution and transport integration. The worker must persist and confirm the exact immutable binding before transport, validate all authority/fences/eligibility, register the actual issued token digests/metadata and never regenerate random tokens for an existing attempt. No provider factory, public route, worker activation, scheduler or UI change. Dispatch remains blocked unconditionally; real intake and public collection remain disabled.
+**Next dependent work:** public preference/visible withdrawal and RFC 8058 POST handlers; deployment key/retention/restore readiness; concrete worker-authorized resolution and transport integration. The worker must persist and confirm the exact immutable binding before transport, validate all authority/fences/eligibility, register the actual issued token digests/metadata and never regenerate random tokens for an existing attempt. No provider factory, public route, worker activation, scheduler or UI change. Dispatch remains blocked unconditionally; real intake and public collection remain disabled.
 
 ## Review baseline and method
 
@@ -3063,3 +3063,17 @@ running but task UID is 1000, so no restart or retry. Existing workspace PHP 8.4
 has sodium and supports local suites/lint. Initial standalone run caught only a
 schema-version assertion requiring 30; corrected without weakening authorization.
 No merge or deployment.
+
+
+### PR publication and expanded fence checks
+
+Non-draft [PR #1470](https://github.com/7mus7y-dotcom/pera-wp/pull/1470)
+was opened against main. Initial runtime `741efc42` exactly matches local tree
+`d1c65719c6f9a92c8ed73fd0b8f84e1225da5e8a`; all 25 standalone suites,
+first-party PHP lint, shell syntax and whitespace checks passed locally. Initial
+hosted run 39575334079 passed configuration/regression/syntax steps in both
+topologies; full matrix pending. A follow-up fixture also recovers historical
+content while real SQL fake-worker ledgers hold accepted/unknown outcomes,
+verifying unchanged worker owner/version/attempt/lease bytes before the existing
+no-resend/no-claim assertions. New records under rotation are recovered using
+only the new encryption key. No production worker file is changed.

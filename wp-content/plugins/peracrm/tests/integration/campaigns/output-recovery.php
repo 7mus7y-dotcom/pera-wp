@@ -102,6 +102,9 @@ peracrm_with_target_blog(static function () use ($mode,$scenario) {
         add_filter('query',$fault); output_reject(fn()=>$store->persistOutput($s,$b,$o,$cipher)); remove_filter('query',$fault);
         output_reject(fn()=>$store->recoverOutput($b,$m,$cipher));
     }
+    $store->persistOutput($s,$b,$o,output_cipher(true));
+    [$rotated]=$store->recoverOutput($b,$m,new PeraCRM_CampaignOutputCipher(['e2'=>str_repeat('b',32)],'e2'));
+    output_expect($rotated->hash()===$s->hash(),'new records use active rotated key without requiring old key');
     $wpdb->query('START TRANSACTION');
     output_reject(fn()=>$store->recoverOutput($binding,$metadata,$cipher));
     output_expect($wpdb->query('SAVEPOINT output_outer_survives')!==false,'caller transaction preserved'); $wpdb->query('ROLLBACK');
