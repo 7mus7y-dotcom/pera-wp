@@ -51,14 +51,16 @@ function loadRuntime(options = {}) {
       supported: {
         USD: { symbol: '$', rounding: 1 },
         EUR: { symbol: '€', rounding: 1000 },
-        GBP: { symbol: '£', rounding: 1000 }
+        GBP: { symbol: '£', rounding: 1000 },
+        CNY: { symbol: '¥', rounding: 1000 }
       },
-      rates: options.rates || { USD: 1, EUR: .86, GBP: .75 },
-      rounding: { USD: 1, EUR: 1000, GBP: 1000 },
+      rates: options.rates || { USD: 1, EUR: .86, GBP: .75, CNY: 7.0 },
+      rounding: { USD: 1, EUR: 1000, GBP: 1000, CNY: 1000 },
       toast: {
         USD: { title: 'Currency changed to USD', body: 'Prices are now displayed in US dollars.' },
         EUR: { title: 'Currency changed to EUR', body: 'Prices are now displayed in euros.' },
-        GBP: { title: 'Currency changed to GBP', body: 'Prices are now displayed in British pounds.' }
+        GBP: { title: 'Currency changed to GBP', body: 'Prices are now displayed in British pounds.' },
+        CNY: { title: 'Currency changed to CNY', body: 'Prices are now displayed in Chinese yuan.' }
       }
     }
   };
@@ -72,7 +74,8 @@ for (const fixture of fixtures) {
   const rates = {
     USD: 1,
     EUR: fixture.currency === 'EUR' ? fixture.rate : .86,
-    GBP: fixture.currency === 'GBP' ? fixture.rate : .75
+    GBP: fixture.currency === 'GBP' ? fixture.rate : .75,
+    CNY: fixture.currency === 'CNY' ? fixture.rate : 7.0
   };
   const { api } = loadRuntime({ rates });
   if (api.format(fixture.usd, fixture.currency) !== fixture.expected) {
@@ -98,7 +101,7 @@ if (unavailableFx.api.selected() !== 'EUR' || unavailableFx.api.effectiveSelecte
   throw new Error('effective selection did not preserve the requested preference while falling back to USD');
 }
 
-const inputApi = loadRuntime({ rates: { USD: 1, EUR: .86, GBP: .75 } }).api;
+const inputApi = loadRuntime({ rates: { USD: 1, EUR: .86, GBP: .75, CNY: 7.0 } }).api;
 if (inputApi.convertInputFromUsd(300000, 'EUR').amount !== 258000 || inputApi.formatInput(300000, 'EUR') !== '€258,000') {
   throw new Error('filter input USD-to-EUR conversion failed');
 }
@@ -106,7 +109,7 @@ if (inputApi.convertInputToUsd(258000, 'EUR', 'min').amount !== 300000 || inputA
   throw new Error('filter input inverse boundary conversion failed');
 }
 let canonicalUsd = 300000;
-for (const code of ['USD', 'EUR', 'GBP', 'USD']) {
+for (const code of ['USD', 'EUR', 'GBP', 'CNY', 'USD']) {
   inputApi.convertInputFromUsd(canonicalUsd, code);
 }
 if (canonicalUsd !== 300000) throw new Error('display currency switching mutated canonical USD');
@@ -139,8 +142,10 @@ const toast = toastRuntime.body.children[0];
 if (!toast || toast.attributes.role !== 'status' || toast.attributes['aria-live'] !== 'polite' || toast.attributes['aria-atomic'] !== 'true') throw new Error('toast status semantics are missing');
 if (toast.querySelector('.pera-currency-toast__title').textContent !== 'Currency changed to EUR') throw new Error('USD to EUR confirmation copy is incorrect');
 const firstHideTimer = Array.from(toastRuntime.timers.entries()).find((entry) => entry[1].delay === 5000)[0];
-toastRuntime.api.setSelected('GBP');
+toastRuntime.api.setSelected('CNY');
 if (toastRuntime.body.children.length !== 1 || toastRuntime.body.children[0] !== toast) throw new Error('rapid changes stacked currency toasts');
+if (toast.querySelector('.pera-currency-toast__title').textContent !== 'Currency changed to CNY') throw new Error('CNY confirmation copy is incorrect');
+toastRuntime.api.setSelected('GBP');
 if (toast.querySelector('.pera-currency-toast__title').textContent !== 'Currency changed to GBP' || toastRuntime.timers.has(firstHideTimer)) throw new Error('rapid change did not update the toast and reset its timer');
 toastRuntime.api.setSelected('GBP');
 if (toastRuntime.body.children.length !== 1 || toastRuntime.timers.size !== 1) throw new Error('selecting the active currency restarted the toast');

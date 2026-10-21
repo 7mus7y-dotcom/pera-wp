@@ -17,7 +17,7 @@ final class Pera_Currency_Assets {
 		$config = array(
 			'base' => 'USD', 'selected' => 'USD', 'supported' => $supported,
 			'rates' => $usable ? $snapshot['rates'] : array( 'USD' => 1.0 ),
-			'rounding' => array( 'USD' => 1, 'EUR' => 1000, 'GBP' => 1000 ),
+			'rounding' => array( 'USD' => 1, 'EUR' => 1000, 'GBP' => 1000, 'CNY' => 1000 ),
 			'asOf' => $usable ? $snapshot['provider_date'] : null,
 			'snapshotId' => $usable ? $snapshot['snapshot_id'] : null,
 			'state' => Pera_Currency_Rates::state( $snapshot ),
@@ -35,6 +35,10 @@ final class Pera_Currency_Assets {
 			'GBP' => array(
 				'title' => self::ui_text( 'Currency changed to GBP', 'plugin.pera_currency.toast.title_gbp' ),
 				'body'  => self::ui_text( 'Prices are now displayed in British pounds.', 'plugin.pera_currency.toast.body_gbp' ),
+			),
+			'CNY' => array(
+				'title' => self::ui_text( 'Currency changed to CNY', 'plugin.pera_currency.toast.title_cny' ),
+				'body'  => self::ui_text( 'Prices are now displayed in Chinese yuan.', 'plugin.pera_currency.toast.body_cny' ),
 			),
 		);
 		return $config;
