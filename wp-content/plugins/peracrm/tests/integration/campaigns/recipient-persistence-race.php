@@ -1,6 +1,7 @@
 <?php
 if (!defined('PERACRM_DISPOSABLE_CAMPAIGN_FIXTURE')) { throw new RuntimeException('Disposable fixture required.'); }
 require_once WP_PLUGIN_DIR.'/peracrm/inc/campaigns/recipient-persistence.php';
+require_once WP_PLUGIN_DIR.'/peracrm/tests/recipient-persistence-fixture.php';
 $mode = $args[0] ?? ''; $scenario = $args[1] ?? '';
 if (!in_array($scenario,['identity','identical','conflict','token-identical','token-conflict','revoke'],true)) { throw new RuntimeException('Unknown persistence race.'); }
 peracrm_with_target_blog(static function () use ($mode,$scenario) {
@@ -17,6 +18,7 @@ peracrm_with_target_blog(static function () use ($mode,$scenario) {
         'personalization_version'=>1,'mailbox'=>$binding['mailbox'],'subject'=>'Synthetic','sender_name'=>'Fixture',
         'sender_email'=>'sender@example.org','reply_to'=>'reply@example.org','html'=>$output->fields()['html'],'text'=>$output->fields()['text'],'timeout_seconds'=>20];
     if ($mode === 'prepare') {
+        peracrm_test_persistence_subscriber(18001,$binding['mailbox']);
         if ($scenario !== 'identity') { $store->ensureIdentity(18001,$binding['mailbox']); }
         if ($scenario === 'revoke') {
             $store->ensureIdentity(18001,$binding['mailbox']);

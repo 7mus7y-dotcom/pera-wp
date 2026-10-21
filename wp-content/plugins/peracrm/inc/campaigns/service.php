@@ -170,6 +170,7 @@ function peracrm_campaigns_save_subscriber($address, $profile = [])
                 'subscription_state' => 'unknown', 'preferences_json' => '[]', 'created_at' => $now, 'version' => 1];
             peracrm_campaigns_db_require($wpdb->insert($table, $data));
             $id = (int) $wpdb->insert_id;
+            peracrm_campaigns_repository_replace_identity($id, $email, true);
             $event_subscriber = ['id' => $id];
         } else {
             $data['version'] = (int) $subscriber['version'] + 1;
@@ -282,6 +283,7 @@ function peracrm_campaigns_delete_subscriber($address)
         global $wpdb;
         if ($subscriber) {
             peracrm_campaigns_repository_event($email, $subscriber, 'deleted', $subscriber['subscription_state'], [], $actor);
+            peracrm_campaigns_repository_replace_identity((int) $subscriber['id'], $email, false);
             peracrm_campaigns_db_require($wpdb->delete(peracrm_table('peracrm_subscribers'), ['id' => $subscriber['id']]));
         }
         return true;

@@ -91,7 +91,6 @@ $content=$saved['payload']['content'];
 require_once WP_PLUGIN_DIR.'/peracrm/tests/recipient-services-fixture.php';
 peracrm_test_recipient_services($content, 'snapshot_expect', (int)$saved['target_blog_id']);
 require_once WP_PLUGIN_DIR.'/peracrm/tests/integration/campaigns/recipient-persistence.php';
-peracrm_test_persistence_sql($content);
 snapshot_expect(peracrm_campaign_snapshot_get($id, (int)$saved['id']) === $saved,
     'recipient expansion leaves SQL capture, approval hash and historical bytes unchanged');
 snapshot_expect($saved['payload']['schema_version']===2 && $content['renderer_version']==='peracrm_email_v2'
@@ -143,3 +142,8 @@ snapshot_expect(!is_wp_error($changed) && peracrm_campaign_snapshot_get($id, (in
 snapshot_expect(!is_wp_error(peracrm_campaign_configuration_save($changed['revision'], $previous_configuration['document'])), 'restore synthetic configuration');
 $after = peracrm_with_target_blog(static function () { global $wpdb; $out = []; foreach (['peracrm_subscribers', 'peracrm_subscription_events', 'peracrm_email_suppressions', 'peracrm_email_suppression_events', 'peracrm_subscriber_tokens'] as $name) { $out[$name] = $wpdb->get_results('SELECT * FROM ' . peracrm_table($name), ARRAY_A); } return wp_json_encode($out); });
 snapshot_expect($before === $after && peracrm_campaign_draft_get($id)['status'] === 'draft' && get_current_blog_id() === $origin, 'no subscriber/token mutations, publication or target-context leak');
+// Durable registration now requires a real subscriber. Run that independent
+// SQL fixture after the snapshot-only no-mutation boundary, without weakening it.
+peracrm_test_persistence_sql($content);
+snapshot_expect(peracrm_campaign_snapshot_get($id, (int)$saved['id']) === $saved,
+    'durable persistence leaves historical capture bytes unchanged');

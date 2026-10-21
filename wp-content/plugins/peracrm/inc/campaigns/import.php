@@ -229,7 +229,9 @@ function peracrm_subscribers_apply_row($entry)
                 'confirmed_at' => $consented ? $evidence['occurred_at'] : null, 'preferred_language' => $row['language'],
                 'preferences_json' => wp_json_encode($row['topics']), 'created_at' => $now, 'updated_at' => $now, 'version' => 1];
             peracrm_campaigns_db_require($wpdb->insert(peracrm_table('peracrm_subscribers'), $data));
-            peracrm_campaigns_repository_event($email, ['id' => (int) $wpdb->insert_id], 'imported', $data['subscription_state'], $evidence, $actor, ['batch' => $entry['batch_id'], 'row' => (int) $entry['line_number']]);
+            $subscriber_id = (int) $wpdb->insert_id;
+            peracrm_campaigns_repository_replace_identity($subscriber_id, $email, true);
+            peracrm_campaigns_repository_event($email, ['id' => $subscriber_id], 'imported', $data['subscription_state'], $evidence, $actor, ['batch' => $entry['batch_id'], 'row' => (int) $entry['line_number']]);
             $result = $consented ? 'imported_subscribed' : 'imported_unknown';
         }
         peracrm_campaigns_db_require($wpdb->update($rows, ['status' => 'done', 'result' => $result, 'attempts' => (int) $entry['attempts'] + 1], ['id' => $entry['id']]));

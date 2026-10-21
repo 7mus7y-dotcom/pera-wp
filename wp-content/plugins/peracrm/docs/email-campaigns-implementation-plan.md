@@ -1,6 +1,6 @@
 # Integrated email campaigns: repository review and living implementation plan
 
-Review status: **complete** (2026-10-17). Implementation: **Phase 1 complete (technical acceptance)**; **Phase 2 in progress**; **Phase 3 in progress (3A/3B/3C technical/live core checks passed; clean PR review recorded; property review and external readiness remain open)**; **Phase 4 in progress (4A/4B/4C and 4D repository checks passed; final review and external acceptance remain)**; **Phase 5 in progress (5A documentation complete; 5B submission, deliverable capture/approval, recipient token/expansion contracts and bounded durable recipient persistence complete; production integration not started)**; Phases 6–7 not started.
+Review status: **complete** (2026-10-17). Implementation: **Phase 1 complete (technical acceptance)**; **Phase 2 in progress**; **Phase 3 in progress (3A/3B/3C technical/live core checks passed; clean PR review recorded; property review and external readiness remain open)**; **Phase 4 in progress (4A/4B/4C and 4D repository checks passed; final review and external acceptance remain)**; **Phase 5 in progress (5A documentation complete; 5B submission, deliverable capture/approval, recipient token/expansion contracts, bounded durable recipient persistence and subscriber lifecycle integration complete; production integration not started)**; Phases 6–7 not started.
 
 ## Purpose, scope and maintenance
 
@@ -8,9 +8,9 @@ Let Pera staff prepare newsletters and targeted campaigns inside the existing CR
 
 Future implementation PRs must update phase status, validation evidence, decisions and the progress log here. A phase must not be marked complete solely because code exists when required verification remains outstanding. Use only `not started`, `in progress`, `blocked` or `complete` for phase status. Keep repository checks distinct from external verification; record outstanding evidence explicitly.
 
-**Current task:** fourth bounded Phase 5B PR — durable recipient revocation and immutable attempt metadata. Verified #1467 merged at `1995ab582fee49373f4f36e4343fc6cb00e748f9`, its final runtime CI [39475440959](https://github.com/7mus7y-dotcom/pera-wp/actions/runs/39475440959) passed and [clean Codex review](https://github.com/7mus7y-dotcom/pera-wp/pull/1467#issuecomment-6299172981) covers that merged commit. GitHub main was the same SHA when work began. Preserved the clean original `/workspace/pera-wp` checkout at `07d8997e`; isolated worktree `/workspace/pera-persistence`. Shell fetch failed once (configured proxy unreachable); connected GitHub supplied the fifteen changed baseline files, all verified against exact Git blob hashes. Local baseline reconstruction is scaffolding only; published commits are parented directly to verified main. No applicable AGENTS.md found in the workspace, tracked files or searched ancestors. Read this plan, provider specification, recipient token/expansion, submission, snapshot, schema, queue and worker contracts.
+**Current task:** fifth bounded Phase 5B PR — internal subscriber lifecycle integration for durable recipient identity and revocation. Verified #1468 merged at `9113bdb3b857c3464d0b790adc53cd2228f77a34`, also latest main at start. Its final head `9659d3c87ffe51aa77c5f661440e5f4522f05e96` has a completed clean Codex review and passing single/multisite [run 39487438922](https://github.com/7mus7y-dotcom/pera-wp/actions/runs/39487438922); no review threads remain. The original clean `/workspace/pera-wp` checkout remains at `1995ab58`; work is isolated at `/workspace/pera-lifecycle`. Shell fetch failed once (proxy unreachable). Connected GitHub supplied the sixteen merged files; local baseline scaffolding is not included in publication, whose parent is verified GitHub main. No applicable AGENTS.md exists in the workspace or searched ancestors.
 
-**Completed bounded scope:** additive schema 29 identity epochs, digest revocation registry and immutable attempt metadata; unbootstrapped internal service, pure projection regressions and disposable SQL/concurrency fixtures. Provider scope, frozen IDs/hashes, recipient and exact expanded-output/full-envelope hashes are bound. No bodies, raw bearers or keys enter these new tables. Existing approval/capture bytes and cancellation/suppression/unknown fences are unchanged. This is persistence evidence, not worker authority or end-to-end unsubscribe acceptance.
+**Completed bounded scope:** internal subscriber lifecycle integration now revokes durable identities atomically on deletion/recreation while preserving ordinary profile/consent edits; local and real single/multisite validation passed (evidence below). Previous bounded work: additive schema 29 identity epochs, digest revocation registry and immutable attempt metadata; unbootstrapped internal service, pure projection regressions and disposable SQL/concurrency fixtures. Provider scope, frozen IDs/hashes, recipient and exact expanded-output/full-envelope hashes are bound. No bodies, raw bearers or keys enter these new tables. Existing approval/capture bytes and cancellation/suppression/unknown fences are unchanged. This is persistence evidence, not worker authority or end-to-end unsubscribe acceptance.
 
 **Next dependent work:** public preference/visible withdrawal and RFC 8058 POST handlers; deployment key/retention/restore readiness and exact-byte secure output recovery; concrete worker-authorized resolution and transport integration. The worker must persist and confirm the exact immutable binding before transport, validate all authority/fences/eligibility, register the actual issued token digests/metadata and never regenerate random tokens for an existing attempt. No provider factory, public route, worker activation, scheduler or UI change. Dispatch remains blocked unconditionally; real intake and public collection remain disabled.
 
@@ -2810,3 +2810,169 @@ secure exact-byte output recovery and concrete worker/provider/transport
 integration remain dependent work. Historical snapshots/hashes, cancellation
 fences, cumulative suppressions and unknown-outcome holds remain unchanged.
 Sending, real intake and public collection remain disabled.
+
+
+## Phase 5B — subscriber lifecycle integration (2026-10-21)
+
+Phase 5 remains **in progress**. This bounded change is confined to PeraCRM
+internal lifecycle/persistence services and synthetic tests. No public handlers,
+production token issuance, output recovery, worker/transport, UI, schema or
+activation change is included. Dispatch remains unconditionally blocked; real
+intake and public collection remain disabled.
+
+### Supported mutation-path inventory and contract
+
+- Staff creation/profile management: `peracrm_campaigns_save_subscriber`.
+  Mailbox is immutable; only explicit client link, language and topic fields are
+  accepted. A different address is a separate subscriber, with separate consent
+  and cumulative mailbox suppression evaluation. There is no supported in-place
+  mailbox editor, merge, ID replacement or restore endpoint. No new one is added.
+- Deletion: `peracrm_campaigns_delete_subscriber` removes only the current
+  profile, retaining events, suppressions, frozen recipients/captures and attempts.
+  It now advances and deactivates every retained deployment identity for that
+  subscriber in the same transaction. A missing subscriber is an idempotent no-op.
+- Creation/recreation through staff management and
+  `peracrm_subscribers_apply_row`: new IDs do not inherit old identity rows.
+  The shared create participant also advances any retained rows for a reused ID,
+  setting the current mailbox and active state without resetting an epoch.
+  This is defensive allocator/restore handling, not permission to restore a backup.
+- Import updates of existing subscribers retain their profile/evidence/identity;
+  suppression import may withdraw permission but never replaces a subscriber.
+  Profile/topic/language/client link/unlink, consent, staff withdrawal and
+  cumulative suppression edits do not rotate durable withdrawal epochs.
+- Existing Phase 2 preferences only change topics/withdrawal, never identity.
+  Client deletion/link repair and CRM lead/import/identity-deduplication services
+  operate on CRM posts or subscriber client links, not subscriber mailbox/ID.
+  They remain separate; no sales ingestion or automatic CRM merge is introduced.
+
+The lifecycle participant requires caller-held mailbox/subscriber locks and
+executes only SQL within that transaction; it never starts, commits or rolls back
+an independent operation. Staff/import retain their existing mailbox transaction
+owner and audit/import-row completion semantics. The owner now rejects an
+existing transaction or autocommit-disabled session before START TRANSACTION,
+without ending the caller's transaction or rolling back its work. A caller may
+use the internal lock/lifecycle participants within its own transaction.
+
+Durable identity creation and token registration take the same mailbox mutex,
+then verify the live subscriber ID and normalized mailbox before identity/token
+locks. Deleted IDs cannot acquire a new deployment identity or register stale
+tokens. Registration before deletion is invalid after deletion commits;
+registration after deletion blocks then rejects. A concurrent ordinary profile
+edit leaves a valid token active. Active explicit identity changes require the
+live subscriber/mailbox and retain expected-epoch CAS. They are identity
+revocations, not an alternate subscriber mailbox-change service.
+
+Epoch exhaustion or any identity/subscriber/audit/commit error aborts the whole
+operation. The lifecycle update covers all retained deployment scopes because a
+later configuration change must not reactivate a deleted identity. It does not
+alter digest metadata, historical attempts, approved hashes or frozen captures.
+There is no token issuance or deployment/key provisioning in lifecycle code.
+
+### Unresolved activation prerequisites
+
+Old-mailbox withdrawal remains unresolved: current durable tokens deny access
+after committed deletion/replacement. A separately approved mechanism must permit
+any required old-mailbox withdrawal without exposing a replacement subscriber's
+profile/topics. No public policy/handler acceptance is inferred from revocation.
+
+Identity/epoch/digest/key/body retention and privacy deletion horizons remain
+unapproved. Retain tombstones until an approved policy can preserve revocation;
+do not purge them or reset allocators to recover access. The eight-key retention
+capacity limitation from #1468 remains open. Clone/rollback restore must keep
+gates off, use a fresh external deployment identity and reconcile independently
+retained post-backup revocations, cumulative suppressions, cancellation fences
+and attempt/provider evidence before any same-scope resume. The ID-reuse guard
+does not detect a whole-database rollback or copied deployment configuration.
+Restore reconciliation/runbook acceptance remains unresolved.
+
+### Validation checkpoint and limitations
+
+All 24 local standalone suites, first-party PHP syntax (PHP 8.4.24), shell syntax
+and git diff whitespace checks passed. Focused regressions cover unchanged
+profile/topic/consent epochs, deletion across deployments, audit rollback,
+ID reuse and nested transaction rejection.
+
+Real WordPress/MySQL fixtures added to both existing CI topologies cover identity,
+subscriber-delete and commit failure rollback; caller-owned transactions and
+participant rollback; stale epochs; absent/deleted subscriber rejection;
+deletion/recreation and reused IDs; unrelated profile/import/consent/suppression
+behavior; exact frozen capture and historical attempt retention. Six independent
+process races assert different SQL connections and actual blocking for deletion
+versus registration in both orders, profile edits versus registration in both
+orders, deletion versus recreation, and new-scope creation versus a caller with an older
+snapshot. Prior persistence fixtures now seed
+actual subscribers rather than registering identities for nonexistent IDs.
+
+Local Docker socket access failed once with operation not permitted; UID 1000
+cannot recover the running daemon's sandbox access. No retry or local SQL success
+is claimed. Hosted single/multisite execution and final evidence remain pending.
+Shell proxy was blocked once; connected GitHub supplies publication and CI.
+No production host, provider/inbox, public-token, old-mailbox policy, retention
+or restore acceptance is claimed. No merge or deployment.
+
+
+### Fixture corrections and caller-snapshot hardening
+
+Initial [run 39552308961](https://github.com/7mus7y-dotcom/pera-wp/actions/runs/39552308961)
+passed persistence assertions but failed the snapshot-only no-mutation guard:
+the new real subscriber seed ran inside that boundary. The fixture now executes
+after the unchanged guard. Replacement
+[run 39552561017](https://github.com/7mus7y-dotcom/pera-wp/actions/runs/39552561017)
+passed that boundary and all six prior persistence races in both topologies,
+then caught the new lifecycle script's missing explicit import of the
+deliberately unbootstrapped persistence class. Added that fixture-only import.
+These failed runs are not counted as acceptance.
+
+A further service review identified caller-owned repeatable-read snapshots:
+scope discovery must use a current locking read after the mailbox lock, so it
+cannot omit a deployment identity committed while the caller was waiting.
+The sixth lifecycle race establishes that old snapshot on an independent
+connection and verifies the newly committed scope is also deactivated.
+The existing primary key begins with deployment; this bounded change adds no
+schema/index, so this discovery can lock a wider identity index range.
+All identity updates and caller rollback remain atomic. Hosted final evidence
+follows after the replacement matrix completes.
+
+
+### Final subscriber-lifecycle validation evidence (2026-10-21)
+
+Final runtime/test commit `55d030b6eb047e1bb5af60f5f2cee7267151f6b7`,
+exact local/published tree `68090bee5ebe635560dcdd3d28eeaf04b4d82999`,
+passed [run 39553076167](https://github.com/7mus7y-dotcom/pera-wp/actions/runs/39553076167):
+**single-site job 119066640009** and **multisite job 119066640253**.
+Both completed logs were inspected for all new assertions, all six lifecycle
+races, prior persistence/queue/worker/scheduler fixtures and desktop/mobile
+browser completion. All passed. Each lifecycle race checks independent connection
+IDs and actual blocking. The new caller-snapshot race passes in both topologies.
+The matrix also passes all 24 standalone suites, PHP syntax, shell/Compose and
+browser checks. No PHP warning/fatal/notice/deprecation or failed assertion was
+found in these successful runs.
+
+Each log retains the same five pre-existing management-fixture database
+diagnostics documented for #1468: four deliberate nonexistent-table
+fault-injection operations and one legacy CRM linked-user-column probe.
+New lifecycle SQL fault-injection checks suppress their expected SQL display and
+assert rollback. Existing Node/action toolchain notices remain unchanged.
+The two earlier failed fixture runs are recorded above; intermediate
+run 39552854550 was superseded/cancelled by the caller-snapshot hardening and is
+not counted as acceptance.
+
+Evidence retained through **2026-11-04**:
+[single-site artifact 12324676856](https://github.com/7mus7y-dotcom/pera-wp/actions/runs/39553076167/artifacts/12324676856),
+[multisite artifact 12324328665](https://github.com/7mus7y-dotcom/pera-wp/actions/runs/39553076167/artifacts/12324328665).
+
+[PR #1469](https://github.com/7mus7y-dotcom/pera-wp/pull/1469) is non-draft against
+main. Initial runtime commit `2b92113` received a completed clean automated
+review; subsequent fixture corrections and caller-snapshot hardening are not
+claimed as covered by that review. Final rereview remains open. This final
+evidence update changes documentation only; tested runtime/fixture bytes remain
+exactly those of `55d030b6`. The original checkout and isolated worktree remain
+clean after commits. Publication uses connected GitHub because local shell
+proxy/Docker access is blocked; no blocked-tool retries were made.
+
+Bounded lifecycle implementation and single/multisite technical validation are
+complete; Phase 5 remains **in progress**. No production issuance, public handler,
+output recovery, provider/worker/transport activation, new UI, merge or deployment.
+Old-mailbox withdrawal policy, retention and restore reconciliation remain
+unresolved activation prerequisites. Wider identity-range locking is documented
+above; this change is not a production-volume performance acceptance.

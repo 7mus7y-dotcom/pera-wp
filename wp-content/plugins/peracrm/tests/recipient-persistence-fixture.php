@@ -1,5 +1,14 @@
 <?php
 /** Synthetic projections shared by standalone regressions and actual SQL tests. */
+function peracrm_test_persistence_subscriber(int $id, string $mailbox): void
+{
+    global $wpdb;
+    $table = peracrm_table('peracrm_subscribers');
+    if ($wpdb->get_var($wpdb->prepare("SELECT id FROM {$table} WHERE id=%d", $id))) { return; }
+    peracrm_campaigns_db_require($wpdb->insert($table, ['id'=>$id,'email'=>$mailbox,'normalized_email'=>$mailbox,
+        'preferences_json'=>'[]','created_at'=>gmdate('Y-m-d H:i:s'),'updated_at'=>gmdate('Y-m-d H:i:s')]));
+}
+
 function peracrm_test_persistence_values(array $content, int $blog): array
 {
     require_once dirname(__DIR__).'/inc/campaigns/recipient-persistence.php';

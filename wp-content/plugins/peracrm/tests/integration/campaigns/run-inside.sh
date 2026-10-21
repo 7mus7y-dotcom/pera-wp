@@ -114,6 +114,19 @@ for persistence_race in identity identical conflict token-identical token-confli
     wait "$persistence_loser_pid"
     wp eval-file /tests/recipient-persistence-race.php verify "$persistence_race"
 done
+wp eval-file /tests/subscriber-lifecycle.php
+for lifecycle_race in delete-register register-delete edit-register register-edit delete-create scope-delete; do
+    rm -f /tmp/peracrm-lifecycle-held /tmp/peracrm-lifecycle-winner /tmp/peracrm-lifecycle-loser
+    wp eval-file /tests/subscriber-lifecycle-race.php prepare "$lifecycle_race"
+    wp eval-file /tests/subscriber-lifecycle-race.php winner "$lifecycle_race" &
+    lifecycle_winner_pid=$!
+    wait_for_migration_marker /tmp/peracrm-lifecycle-held
+    wp eval-file /tests/subscriber-lifecycle-race.php loser "$lifecycle_race" &
+    lifecycle_loser_pid=$!
+    wait "$lifecycle_winner_pid"
+    wait "$lifecycle_loser_pid"
+    wp eval-file /tests/subscriber-lifecycle-race.php verify "$lifecycle_race"
+done
 wp eval-file /tests/freeze.php
 wp eval-file /tests/queue.php
 for queue_race in prepare-prepare batch-batch batch-cancel cancel-batch pause-schedule cancel-resume; do

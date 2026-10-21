@@ -81,6 +81,14 @@ final class PeraCRM_CampaignRecipientPersistence
             && $row['mailbox'] === $binding['mailbox'] && (int)$row['token_epoch'] === $binding['token_epoch']);
     }
 
+    /** Same mailbox mutex as staff/import lifecycle writes, before identity locks. */
+    private function requireSubscriber(int $subscriber, string $mailbox): void
+    {
+        [$row] = peracrm_campaigns_repository_lock_mailbox($mailbox);
+        peracrm_campaign_recipient_require($row && (int)$row['id'] === $subscriber
+            && $row['normalized_email'] === $mailbox);
+    }
+
     /** First trusted identity registration. Existing different identities fail closed. */
     public function ensureIdentity(int $subscriber, #[\SensitiveParameter] string $mailbox): int
     {
@@ -88,6 +96,7 @@ final class PeraCRM_CampaignRecipientPersistence
             global $wpdb;
             $this->checkBinding(['blog_id'=>$this->blog, 'subscriber_id'=>$subscriber, 'mailbox'=>$mailbox,
                 'token_epoch'=>1, 'attempt_key'=>str_repeat('0',64), 'snapshot_hash'=>str_repeat('0',64)]);
+            $this->requireSubscriber($subscriber, $mailbox);
             self::db($wpdb->query($wpdb->prepare('INSERT INTO '.$this->table('recipient_identities')
                 .' (deployment,blog_id,subscriber_id,mailbox,token_epoch,active) VALUES (%s,%d,%d,%s,1,1)'
                 .' ON DUPLICATE KEY UPDATE subscriber_id=subscriber_id', $this->deployment,$this->blog,$subscriber,$mailbox)));
@@ -106,6 +115,9 @@ final class PeraCRM_CampaignRecipientPersistence
             $this->checkBinding(['blog_id'=>$this->blog,'subscriber_id'=>$subscriber,'mailbox'=>$mailbox,
                 'token_epoch'=>$expectedEpoch,'attempt_key'=>str_repeat('0',64),'snapshot_hash'=>str_repeat('0',64)]);
             peracrm_campaign_recipient_require($expectedEpoch < PHP_INT_MAX);
+            // This API revokes identity only; it is not a subscriber mailbox editor.
+            // Active identities must match the committed current subscriber.
+            if ($active) { $this->requireSubscriber($subscriber, $mailbox); }
             $row = $this->identity($subscriber);
             peracrm_campaign_recipient_require($row && (int)$row['token_epoch'] === $expectedEpoch);
             self::db($wpdb->update($this->table('recipient_identities'),
@@ -148,6 +160,7 @@ final class PeraCRM_CampaignRecipientPersistence
             peracrm_campaign_recipient_require(preg_match('/\Ak[0-9]{1,8}\z/',$keyId) === 1
                 && $issued > 0 && $issued <= PHP_INT_MAX-86400
                 && (($purpose === 'preferences' && $expires === $issued+86400) || ($purpose === 'unsubscribe' && $expires === 0)));
+            $this->requireSubscriber($binding['subscriber_id'], $binding['mailbox']);
             $this->requireIdentity($binding);
             $canonical = json_decode(peracrm_campaign_recipient_binding($binding),true,512,JSON_THROW_ON_ERROR);
             $this->bind('recipient_tokens',['digest'=>$digest],

@@ -28,6 +28,7 @@ function peracrm_test_persistence_sql(array $content): void
         persistence_expect(peracrm_maybe_upgrade_schema() && peracrm_maybe_upgrade_schema(),'additive v28 migration and repeated readiness');
         peracrm_test_persistence_projection($content,'persistence_expect',$blog);
         [$binding,$output,$submission] = peracrm_test_persistence_values($content,$blog);
+        peracrm_test_persistence_subscriber(17001,$binding['mailbox']);
         $store = new PeraCRM_CampaignRecipientPersistence('fixture-persistence',$blog);
         persistence_expect($store->ensureIdentity(17001,$binding['mailbox']) === 1 && $store->ensureIdentity(17001,$binding['mailbox']) === 1,'identity creation idempotent');
         persistence_reject(fn()=>$store->ensureIdentity(17001,'conflict@example.org'));
@@ -75,7 +76,7 @@ function peracrm_test_persistence_sql(array $content): void
         remove_filter('query',$failCommit);
         persistence_expect($store->attempt($otherBinding['attempt_key']) === null,'attempt creation rolls back on commit failure');
         add_filter('query',$failCommit);
-        persistence_reject(fn()=>$store->changeIdentity(17001,1,'changed@example.org',true));
+        persistence_reject(fn()=>$store->changeIdentity(17001,1,$binding['mailbox'],true));
         remove_filter('query',$failCommit);
         persistence_expect($tokens->verify($withdraw,'unsubscribe',$binding,$issued),'failed epoch update rolls back revocation');
         add_filter('query',$failCommit);
@@ -85,7 +86,7 @@ function peracrm_test_persistence_sql(array $content): void
         $store->revokeToken($digest); $store->revokeToken($digest);
         $store->registerToken($digest,'unsubscribe','k1',$issued,0,$binding);
         persistence_expect(!$tokens->verify($withdraw,'unsubscribe',$binding,$issued),'revocation monotonic across identical registration');
-        $store->changeIdentity(17001,1,'changed@example.org',true);
+        $store->changeIdentity(17001,1,'changed@example.org',false);
         persistence_expect(!$tokens->verify($pref,'preferences',$binding,$issued),'mailbox change revokes prior identity');
         persistence_reject(fn()=>$store->changeIdentity(17001,1,$binding['mailbox'],true));
         $store->changeIdentity(17001,2,$binding['mailbox'],false);
