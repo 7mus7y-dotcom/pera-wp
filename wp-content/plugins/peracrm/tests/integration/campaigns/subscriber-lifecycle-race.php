@@ -2,7 +2,7 @@
 if (!defined('PERACRM_DISPOSABLE_CAMPAIGN_FIXTURE')) { throw new RuntimeException('Disposable fixture required.'); }
 require_once WP_PLUGIN_DIR.'/peracrm/inc/campaigns/recipient-persistence.php';
 $mode = $args[0] ?? ''; $scenario = $args[1] ?? '';
-if (!in_array($scenario,['delete-register','register-delete','edit-register','register-edit','delete-create'],true)) {
+if (!in_array($scenario,['delete-register','register-delete','edit-register','register-edit','delete-create','scope-delete'],true)) {
     throw new RuntimeException('Unknown lifecycle race.');
 }
 $manager = peracrm_with_target_blog(static fn() => (int)get_option('campaign_fixture_manager'));
@@ -42,6 +42,11 @@ peracrm_with_target_blog(static function () use ($mode,$scenario) {
             || $store->ensureIdentity((int)$current['id'],$mailbox) !== 1)) {
             throw new RuntimeException('Recreation inherited deleted identity.');
         }
+        if ($scenario === 'scope-delete') {
+            $activeScope = $wpdb->get_var($wpdb->prepare('SELECT active FROM '.peracrm_table('peracrm_campaign_recipient_identities')
+                .' WHERE deployment=%s AND blog_id=%d AND subscriber_id=%d','fixture-lifecycle-new-scope',$blog,$id));
+            if ($activeScope === null || (int)$activeScope !== 0) { throw new RuntimeException('Outer snapshot omitted newly committed deployment identity.'); }
+        }
         echo "PASS subscriber lifecycle race: ".$scenario."; independent blocking SQL connections\n";
         return;
     }
@@ -61,6 +66,18 @@ peracrm_with_target_blog(static function () use ($mode,$scenario) {
     $result = 'ok';
     try {
         if ($operation === 'register') { $store->registerToken($digest,'unsubscribe','k1',1800000000,0,$binding); }
+        elseif ($operation === 'scope') {
+            (new PeraCRM_CampaignRecipientPersistence('fixture-lifecycle-new-scope',$blog))->ensureIdentity($id,$mailbox);
+        }
+        elseif ($scenario === 'scope-delete') {
+            $wpdb->query('START TRANSACTION');
+            // Establish an old snapshot while the new scope is still uncommitted.
+            $wpdb->get_var('SELECT COUNT(*) FROM '.peracrm_table('peracrm_campaign_recipient_identities'));
+            peracrm_campaigns_repository_lock_mailbox($mailbox);
+            peracrm_campaigns_repository_replace_identity($id,$mailbox,false);
+            peracrm_campaigns_db_require($wpdb->delete(peracrm_table('peracrm_subscribers'),['id'=>$id]));
+            peracrm_campaigns_db_require($wpdb->query('COMMIT'));
+        }
         else {
             $value = match ($operation) {
                 'delete' => peracrm_campaigns_delete_subscriber($mailbox),

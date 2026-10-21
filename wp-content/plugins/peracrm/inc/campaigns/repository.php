@@ -78,11 +78,11 @@ function peracrm_campaigns_repository_replace_identity($subscriber, $mailbox, $a
     global $wpdb;
     $table = peracrm_table('peracrm_campaign_recipient_identities');
     $blog = get_current_blog_id();
-    // Discover scopes without locking a table scan (the primary key starts with
-    // deployment). Mailbox ownership excludes concurrent identity creation for
-    // this subscriber; each CAS below locks one full primary key.
+    // Use a current locking read, including when an outer owner established a
+    // repeatable-read snapshot before acquiring the mailbox mutex. A plain read
+    // could omit a deployment identity committed while that owner was waiting.
     $rows = $wpdb->get_results($wpdb->prepare(
-        "SELECT * FROM {$table} WHERE blog_id=%d AND subscriber_id=%d ORDER BY deployment",
+        "SELECT * FROM {$table} WHERE blog_id=%d AND subscriber_id=%d ORDER BY deployment FOR UPDATE",
         $blog, $subscriber
     ), ARRAY_A);
     peracrm_campaigns_db_require($rows);

@@ -2896,10 +2896,11 @@ Real WordPress/MySQL fixtures added to both existing CI topologies cover identit
 subscriber-delete and commit failure rollback; caller-owned transactions and
 participant rollback; stale epochs; absent/deleted subscriber rejection;
 deletion/recreation and reused IDs; unrelated profile/import/consent/suppression
-behavior; exact frozen capture and historical attempt retention. Five independent
+behavior; exact frozen capture and historical attempt retention. Six independent
 process races assert different SQL connections and actual blocking for deletion
 versus registration in both orders, profile edits versus registration in both
-orders, and deletion versus recreation. Prior persistence fixtures now seed
+orders, deletion versus recreation, and new-scope creation versus a caller with an older
+snapshot. Prior persistence fixtures now seed
 actual subscribers rather than registering identities for nonexistent IDs.
 
 Local Docker socket access failed once with operation not permitted; UID 1000
@@ -2908,3 +2909,26 @@ is claimed. Hosted single/multisite execution and final evidence remain pending.
 Shell proxy was blocked once; connected GitHub supplies publication and CI.
 No production host, provider/inbox, public-token, old-mailbox policy, retention
 or restore acceptance is claimed. No merge or deployment.
+
+
+### Fixture corrections and caller-snapshot hardening
+
+Initial [run 39552308961](https://github.com/7mus7y-dotcom/pera-wp/actions/runs/39552308961)
+passed persistence assertions but failed the snapshot-only no-mutation guard:
+the new real subscriber seed ran inside that boundary. The fixture now executes
+after the unchanged guard. Replacement
+[run 39552561017](https://github.com/7mus7y-dotcom/pera-wp/actions/runs/39552561017)
+passed that boundary and all six prior persistence races in both topologies,
+then caught the new lifecycle script's missing explicit import of the
+deliberately unbootstrapped persistence class. Added that fixture-only import.
+These failed runs are not counted as acceptance.
+
+A further service review identified caller-owned repeatable-read snapshots:
+scope discovery must use a current locking read after the mailbox lock, so it
+cannot omit a deployment identity committed while the caller was waiting.
+The sixth lifecycle race establishes that old snapshot on an independent
+connection and verifies the newly committed scope is also deactivated.
+The existing primary key begins with deployment; this bounded change adds no
+schema/index, so this discovery can lock a wider identity index range.
+All identity updates and caller rollback remain atomic. Hosted final evidence
+follows after the replacement matrix completes.
