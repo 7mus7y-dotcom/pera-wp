@@ -10,7 +10,7 @@ Future implementation PRs must update phase status, validation evidence, decisio
 
 **Current task:** sixth bounded Phase 5B PR — secure exact-byte recipient envelope persistence/recovery. Connected GitHub verified #1469 merged at `42878759ccdc507db8db1214dc1174d73c3109e1`, latest main at start; final head `77fce582b8eb1bb48db141522370393bf9eb4a6c` has completed clean [review](https://github.com/7mus7y-dotcom/pera-wp/pull/1469#issuecomment-6309558810), no review threads, and final runtime `55d030b6` passed [CI 39553076167](https://github.com/7mus7y-dotcom/pera-wp/actions/runs/39553076167). Original `/workspace/pera-wp` checkout remains clean at `1995ab58`; isolated worktree `/workspace/pera-output`. Shell GitHub failed once with sandbox proxy socket denial; a targeted additional-network attempt was aborted while pending, with no result. No blocked attempts repeated. Connector supplied all 23 changed main files, each verified against its Git blob SHA. Reconstruction commit is local scaffolding only; publication parents directly to verified main. No applicable AGENTS.md found under workspace, tracked paths or searched ancestors. Read plan, provider specification and recipient expansion/attempt-binding services.
 
-**Completed bounded scope:** internal exact-byte envelope/output persistence and recovery with authenticated encryption, versioned deployment keys and additive schema 30; local checks passed, hosted validation pending below. Prior identity epochs, digest registry, immutable attempts and subscriber lifecycle integration are preserved. Ciphertext is separate from metadata; no plaintext bodies, raw bearers or encryption keys are stored in metadata/audit. Historical captures and all disabled gates remain unchanged.
+**Completed bounded scope:** internal exact-byte envelope/output persistence and recovery with authenticated encryption, versioned deployment keys and additive schema 30; local checks and hosted single/multisite validation passed (evidence below). Prior identity epochs, digest registry, immutable attempts and subscriber lifecycle integration are preserved. Ciphertext is separate from metadata; no plaintext bodies, raw bearers or encryption keys are stored in metadata/audit. Historical captures and all disabled gates remain unchanged.
 
 **Next dependent work:** public preference/visible withdrawal and RFC 8058 POST handlers; deployment key/retention/restore readiness; concrete worker-authorized resolution and transport integration. The worker must persist and confirm the exact immutable binding before transport, validate all authority/fences/eligibility, register the actual issued token digests/metadata and never regenerate random tokens for an existing attempt. No provider factory, public route, worker activation, scheduler or UI change. Dispatch remains blocked unconditionally; real intake and public collection remain disabled.
 
@@ -3077,3 +3077,51 @@ content while real SQL fake-worker ledgers hold accepted/unknown outcomes,
 verifying unchanged worker owner/version/attempt/lease bytes before the existing
 no-resend/no-claim assertions. New records under rotation are recovered using
 only the new encryption key. No production worker file is changed.
+
+
+### Final exact-byte persistence/recovery evidence (2026-10-21)
+
+Final runtime/test commit `296bf756f009765a27f6c7cc3323bea31bb9cfcd`, exact
+local/published tree `07a0253ac0f696ba530fe52240ae5aaf8b74fddd`, passed
+[run 39575599903](https://github.com/7mus7y-dotcom/pera-wp/actions/runs/39575599903):
+**single-site job 119140551997** and **multisite job 119140552361**.
+Both completed logs were inspected. Each has 42 passing output assertions,
+including independent blocking identical/conflicting creators, new-process
+exact-byte/hash recovery, rotation/read-key retirement behavior, wrong key/scope,
+tampering, authenticated mismatched output, insertion/commit rollback, caller
+transaction preservation and historical recovery after revocation. Actual
+approved SQL capture expansion with random bearer URLs also round-trips exactly.
+Both worker fixtures recover content while checking unchanged accepted/unknown
+owner/version/attempt/lease bytes, followed by the existing no-resend/no-claim
+assertions. Prior lifecycle/persistence/freeze/queue/worker/scheduler checks and
+all desktop/mobile browser suites pass. All 25 standalone suites, first-party
+PHP syntax and shell/Compose configuration checks pass. No failed assertion or
+PHP warning/fatal/notice/deprecation was found in either completed log.
+
+Each log retains the same five pre-existing management-fixture database
+diagnostics documented for #1468/#1469: four intentional nonexistent-table
+fault injections and one legacy CRM linked-user-column probe. New output SQL
+fault injection suppresses expected SQL display and asserts rollback with fixed
+unchained diagnostics. Existing Node/action notices remain unchanged.
+Initial run 39575334079 was superseded by the additional worker-fence and active
+rotation fixtures and is not counted as final acceptance.
+
+Evidence retained through **2026-11-04**:
+[single-site artifact 12333024504](https://github.com/7mus7y-dotcom/pera-wp/actions/runs/39575599903/artifacts/12333024504),
+[multisite artifact 12334675891](https://github.com/7mus7y-dotcom/pera-wp/actions/runs/39575599903/artifacts/12334675891).
+
+Prerequisite #1469's passing runtime `55d030b6` to reviewed final head `77fce582`
+comparison was independently checked: only the living plan differs. PR #1470's
+initial runtime `741efc42` has a completed clean automated review with no
+findings; the later fixture-only follow-up is not claimed as covered by that
+review. This final evidence commit changes documentation only; runtime/tests
+remain exactly the tested bytes of `296bf756`. Original checkout and isolated
+worktree are clean after commits. Publication through connected GitHub verifies
+every blob and tree and parents directly to main; baseline scaffolding is not
+published. No blocked shell/Docker retry, production issuance, sending, public
+handler, worker/transport wiring, UI, scheduler activation, merge or deployment.
+
+Bounded persistence/recovery implementation and technical validation are
+complete; Phase 5 remains **in progress**. Production key provisioning/readiness,
+retention/deletion, compromise policy and restore reconciliation remain unresolved.
+There is no automatic cleanup and no recovery-derived send/retry authority.
