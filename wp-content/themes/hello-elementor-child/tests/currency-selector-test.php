@@ -34,14 +34,14 @@ pera_render_currency_selector( 'header' );
 selector_expect( '' === ob_get_clean(), 'plugin-off selector is absent without a fatal' );
 
 eval( 'final class Pera_Currency_Assets {}' );
-eval( 'function pera_currency_get_supported() { return array("USD" => array(), "EUR" => array(), "GBP" => array()); }' );
+eval( 'function pera_currency_get_supported() { return array("USD" => array(), "EUR" => array(), "GBP" => array(), "CNY" => array()); }' );
 
 foreach ( array( 'header', 'offcanvas' ) as $context ) {
 	ob_start();
 	pera_render_currency_selector( $context );
 	$html = ob_get_clean();
-	selector_expect( 3 === substr_count( $html, 'data-pera-currency-option=' ), "{$context}: exactly three options render" );
-	selector_expect( false !== strpos( $html, '>USD<' ) && false !== strpos( $html, '>EUR<' ) && false !== strpos( $html, '>GBP<' ), "{$context}: USD, EUR, and GBP render" );
+	selector_expect( 4 === substr_count( $html, 'data-pera-currency-option=' ), "{$context}: exactly four options render" );
+	selector_expect( false !== strpos( $html, '>USD<' ) && false !== strpos( $html, '>EUR<' ) && false !== strpos( $html, '>GBP<' ) && false !== strpos( $html, '>CNY<' ), "{$context}: USD, EUR, GBP, and CNY render" );
 	selector_expect( false === strpos( $html, '>TRY<' ), "{$context}: unsupported option is absent" );
 	selector_expect( false !== strpos( $html, 'data-pera-currency-option="USD" aria-current="true" class="is-active"' ), "{$context}: neutral SSR state is USD" );
 	selector_expect( false === strpos( $html, 'role="listbox"' ) && false === strpos( $html, 'role="option"' ) && false === strpos( $html, 'aria-selected' ), "{$context}: selector uses disclosure button semantics" );
@@ -75,6 +75,6 @@ selector_expect( false === strpos( $css_source, 'min-width: 30px; width: 30px;' 
 selector_expect( 1 === substr_count( $sprite_source, 'id="icon-currency"' ), 'sprite retains one icon-currency symbol' );
 selector_expect( false !== strpos( $sprite_source, 'd="M5 8h12m0 0-3-3m3 3-3 3M19 16H7m0 0 3 3m-3-3 3-3"' ), 'icon-currency uses the exchange-arrow path' );
 selector_expect( false !== strpos( $sprite_source, 'id="icon-language"' ), 'sprite includes icon-language' );
-selector_expect( false !== strpos( $plugin_source, 'Version: 1.0.2' ) && false !== strpos( $plugin_source, "PERA_CURRENCY_VERSION', '1.0.2'" ), 'plugin header and asset version are 1.0.2' );
+selector_expect( false !== strpos( $plugin_source, 'Version: 1.1.0' ) && false !== strpos( $plugin_source, "PERA_CURRENCY_VERSION', '1.1.0'" ), 'plugin header and asset version are 1.1.0' );
 
 echo "Currency selector tests passed\n";
