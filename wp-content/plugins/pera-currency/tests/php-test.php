@@ -4,12 +4,14 @@ define( 'DAY_IN_SECONDS', 86400 );
 class WP_Error { public $code; public function __construct( $code ) { $this->code = $code; } }
 function is_wp_error( $v ) { return $v instanceof WP_Error; }
 function wp_json_encode( $v ) { return json_encode( $v, JSON_UNESCAPED_SLASHES ); }
-$GLOBALS['options'] = $GLOBALS['transients'] = array();
+$GLOBALS['options'] = $GLOBALS['transients'] = $GLOBALS['scheduled'] = array();
 function get_option( $k, $d = null ) { return $GLOBALS['options'][ $k ] ?? $d; }
 function update_option( $k, $v ) { $GLOBALS['options'][ $k ] = $v; return true; }
 function get_transient( $k ) { return $GLOBALS['transients'][ $k ] ?? false; }
 function set_transient( $k, $v ) { $GLOBALS['transients'][ $k ] = $v; return true; }
 function delete_transient( $k ) { unset( $GLOBALS['transients'][ $k ] ); }
+function wp_next_scheduled( $hook ) { return $GLOBALS['scheduled'][ $hook ] ?? false; }
+function wp_schedule_single_event( $timestamp, $hook ) { $GLOBALS['scheduled'][ $hook ] = $timestamp; return true; }
 function sanitize_text_field( $v ) { return preg_replace( '/[^A-Za-z]/', '', $v ); }
 function wp_unslash( $v ) { return $v; }
 function wp_safe_remote_get() { return $GLOBALS['http_response']; }
@@ -69,4 +71,10 @@ $GLOBALS['http_response'] = new WP_Error( 'timeout' );
 ok( is_wp_error( ( new Pera_Currency_ECB_Provider() )->fetch_rates() ), 'transport failure' );
 $GLOBALS['transients'][ Pera_Currency_Rates::CACHE ] = false; $GLOBALS['options'][ Pera_Currency_Rates::OPTION ] = $snapshot; $ref->setValue( null, null );
 ok( Pera_Currency_Rates::snapshot()['snapshot_id'] === $snapshot['snapshot_id'], 'LKG restore' );
+$GLOBALS['options'][ Pera_Currency_Rates::DATA_VERSION_OPTION ] = 1;
+$GLOBALS['transients'][ Pera_Currency_Rates::CACHE ] = $snapshot;
+Pera_Currency_Rates::maybe_schedule_upgrade_refresh();
+ok( ! isset( $GLOBALS['transients'][ Pera_Currency_Rates::CACHE ] ), 'upgrade clears the incompatible cached snapshot' );
+ok( ! empty( $GLOBALS['scheduled'][ Pera_Currency_Rates::UPGRADE_CRON ] ), 'upgrade schedules a background CNY refresh' );
+ok( 2 === $GLOBALS['options'][ Pera_Currency_Rates::DATA_VERSION_OPTION ], 'upgrade data version recorded after scheduling' );
 echo "PHP currency tests passed\n";
