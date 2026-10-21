@@ -1174,6 +1174,18 @@ button.pill:focus-visible {
 .pill--green { background: var(--pill-green); color: var(--inverse); }
 .pill--red   { background: var(--pill-red);   color: var(--inverse); }
 
+/* Keep neutral pills legible when dark mode follows the operating system. */
+@media (prefers-color-scheme: dark) {
+  :root {
+    --pill-bg: var(--pill-bg-dark);
+    --pill-text: var(--pill-text-dark);
+    --pill-outline-border: rgba(255, 255, 255, 0.18);
+    --pill-outline-bg-hover: rgba(255, 255, 255, 0.06);
+    --pill-outline-text: rgba(255, 255, 255, 0.80);
+    --pill-focus-ring: rgba(255, 255, 255, 0.18);
+  }
+}
+
 @media (prefers-color-scheme: dark) {
   .pill--subtle {
     border-color: #334155;

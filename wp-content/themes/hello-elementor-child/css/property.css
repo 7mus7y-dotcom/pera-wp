@@ -1529,8 +1529,8 @@ body.is-lightbox-open{ overflow: hidden; }
 .property-price-range thead th {
   padding-top: 14px;
   padding-bottom: 14px;
-  background: var(--text, #111827);
-  color: var(--inverse, #ffffff);
+  background: var(--brand, #002d72);
+  color: #ffffff;
 }
 
 #property-price-range{
