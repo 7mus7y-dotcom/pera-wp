@@ -48,20 +48,27 @@ final class Pera_Currency_ECB_Provider implements Pera_Currency_Provider_Interfa
 		$eur_rates = array();
 		foreach ( $dated[0]->xpath( './*[local-name()="Cube"][@currency]' ) as $cube ) {
 			$code = strtoupper( (string) $cube['currency'] );
-			if ( in_array( $code, array( 'USD', 'GBP' ), true ) ) {
+			if ( in_array( $code, array( 'USD', 'GBP', 'CNY' ), true ) ) {
 				$eur_rates[ $code ] = (string) $cube['rate'];
 			}
 		}
-		foreach ( array( 'USD', 'GBP' ) as $code ) {
+		foreach ( array( 'USD', 'GBP', 'CNY' ) as $code ) {
 			if ( ! isset( $eur_rates[ $code ] ) || ! is_numeric( $eur_rates[ $code ] ) ) {
 				return new WP_Error( 'pera_currency_incomplete', 'ECB response is incomplete.' );
 			}
 			$value = (float) $eur_rates[ $code ];
-			if ( ! is_finite( $value ) || $value <= 0 || $value < 0.1 || $value > 10 ) {
+			$bounds = 'CNY' === $code ? array( 1.0, 20.0 ) : array( 0.1, 10.0 );
+			if ( ! is_finite( $value ) || $value <= 0 || $value < $bounds[0] || $value > $bounds[1] ) {
 				return new WP_Error( 'pera_currency_rate', 'ECB response contains an implausible rate.' );
 			}
 		}
-		$rates = array( 'USD' => 1.0, 'EUR' => 1 / (float) $eur_rates['USD'], 'GBP' => (float) $eur_rates['GBP'] / (float) $eur_rates['USD'] );
+		$usd_rate = (float) $eur_rates['USD'];
+		$rates = array(
+			'USD' => 1.0,
+			'EUR' => 1 / $usd_rate,
+			'GBP' => (float) $eur_rates['GBP'] / $usd_rate,
+			'CNY' => (float) $eur_rates['CNY'] / $usd_rate,
+		);
 		return Pera_Currency_Rates::make_snapshot( $rates, 'ecb', $date, $fetched_at );
 	}
 }
