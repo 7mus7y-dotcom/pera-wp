@@ -4,7 +4,13 @@ Pera Currency is an isolated, deactivatable currency engine. Phase 1 does **not*
 
 ## Contract
 
-The single supported-currency registry contains exactly USD (`$`), EUR (`€`), and GBP (`£`). ECB daily XML is fetched through the WordPress HTTP API by cron, then its EUR-based reference values are normalized to units per USD: `EUR = 1 / ECB_USD` and `GBP = ECB_GBP / ECB_USD`. The complete response, date, finite positive values, and plausible bounds are validated before an atomic write.
+The single supported-currency registry contains exactly USD (`# Pera Currency — Phase 1
+
+Pera Currency is an isolated, deactivatable currency engine. Phase 1 does **not** alter property templates, queries, metadata, ACF, SEO, or Pera Multilingual. USD remains the canonical source and safe no-JavaScript fallback.
+
+## Contract
+
+The single supported-currency registry ), EUR (`€`), GBP (`£`), and CNY (`¥`). ECB daily XML is fetched through the WordPress HTTP API by cron, then its EUR-based reference values are normalized to units per USD: `EUR = 1 / ECB_USD`, `GBP = ECB_GBP / ECB_USD`, and `CNY = ECB_CNY / ECB_USD`. The complete response, date, finite positive values, and plausible bounds are validated before an atomic write.
 
 A deterministic SHA-256 snapshot ID covers base, rates, provider, and provider date. A non-autoloaded `pera_currency_rates` option is the durable last-known-good record; a 12-hour transient is only a read cache. A 60-second lock prevents overlapping refreshes. WP-Cron refreshes every 12 hours. Rendering never performs HTTP. Call `Pera_Currency_Rates::refresh()` explicitly for tests or a future authorized admin/WP-CLI command, and `Pera_Currency_Rates::debug_status()` for internal state inspection.
 
@@ -21,7 +27,7 @@ Snapshots are fresh for 12 hours and stale-but-usable for seven days. Missing, i
 
 `convert()` returns the display-rounded number, or structured raw/display/fallback data with `array('details' => true)`. Invalid, negative, NaN, and infinite amounts fail rather than being reinterpreted. Range output is structured monetary data and contains no semantic prose.
 
-Formatting is locale-independent: prefix symbol, Western digits, comma grouping, and no cents. USD rounds half-up to the nearest 1; EUR and GBP round half-up to the nearest 1,000. Raw FX and display-rounded values remain separate.
+Formatting is locale-independent: prefix symbol, Western digits, comma grouping, and no cents. USD rounds half-up to the nearest 1; EUR, GBP, and CNY round half-up to the nearest 1,000. Raw FX and display-rounded values remain separate.
 
 ## Browser runtime
 
