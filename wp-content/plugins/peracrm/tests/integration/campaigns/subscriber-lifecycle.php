@@ -1,5 +1,6 @@
 <?php
 if (!defined('PERACRM_DISPOSABLE_CAMPAIGN_FIXTURE')) { throw new RuntimeException('Disposable fixture required.'); }
+require_once WP_PLUGIN_DIR.'/peracrm/inc/campaigns/recipient-persistence.php';
 require_once WP_PLUGIN_DIR.'/peracrm/tests/integration/campaigns/recipient-persistence.php';
 $manager = peracrm_with_target_blog(static fn() => (int)get_option('campaign_fixture_manager'));
 wp_set_current_user($manager);
