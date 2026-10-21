@@ -18,25 +18,82 @@ function peracrm_campaigns_db_require($result)
 function peracrm_campaigns_repository_mutate($email, callable $callback)
 {
     global $wpdb;
-    $table = peracrm_table('peracrm_email_suppressions');
+    // START TRANSACTION would implicitly commit an outer caller's operation.
+    peracrm_campaigns_repository_require_top_level();
     peracrm_campaigns_db_require($wpdb->query('START TRANSACTION'));
     try {
-        $now = gmdate('Y-m-d H:i:s');
-        peracrm_campaigns_db_require($wpdb->query($wpdb->prepare(
-            "INSERT INTO {$table} (normalized_email, created_at, updated_at) VALUES (%s, %s, %s)
-             ON DUPLICATE KEY UPDATE normalized_email = VALUES(normalized_email)", $email, $now, $now
-        )));
-        $suppression = $wpdb->get_row($wpdb->prepare("SELECT * FROM {$table} WHERE normalized_email = %s FOR UPDATE", $email), ARRAY_A);
-        peracrm_campaigns_db_require($suppression ?: false);
-        $subscriber_table = peracrm_table('peracrm_subscribers');
-        $subscriber = $wpdb->get_row($wpdb->prepare("SELECT * FROM {$subscriber_table} WHERE normalized_email = %s FOR UPDATE", $email), ARRAY_A);
-        peracrm_campaigns_db_require(true);
+        [$subscriber, $suppression] = peracrm_campaigns_repository_lock_mailbox($email);
         $result = $callback($subscriber, $suppression);
         peracrm_campaigns_db_require($wpdb->query('COMMIT'));
         return $result;
     } catch (Throwable $error) {
         $wpdb->query('ROLLBACK');
         throw $error;
+    }
+}
+
+/** Reject nesting without ending or rolling back any caller-owned transaction. */
+function peracrm_campaigns_repository_require_top_level()
+{
+    global $wpdb;
+    $previous = $wpdb->suppress_errors(true);
+    try {
+        if ((int) peracrm_campaigns_db_require($wpdb->get_var('SELECT @@autocommit')) !== 1) {
+            throw new RuntimeException('Caller owns transaction.');
+        }
+        peracrm_campaigns_db_require($wpdb->query('SAVEPOINT peracrm_subscriber_top_level_probe'));
+        if ($wpdb->query('RELEASE SAVEPOINT peracrm_subscriber_top_level_probe') !== false) {
+            throw new RuntimeException('Caller owns transaction.');
+        }
+    } finally {
+        $wpdb->suppress_errors($previous);
+    }
+}
+
+/** @internal Transaction participant. Lock order: mailbox -> subscriber -> identity. */
+function peracrm_campaigns_repository_lock_mailbox($email)
+{
+    global $wpdb;
+    $table = peracrm_table('peracrm_email_suppressions');
+    $now = gmdate('Y-m-d H:i:s');
+    peracrm_campaigns_db_require($wpdb->query($wpdb->prepare(
+        "INSERT INTO {$table} (normalized_email, created_at, updated_at) VALUES (%s, %s, %s)
+         ON DUPLICATE KEY UPDATE normalized_email = VALUES(normalized_email)", $email, $now, $now
+    )));
+    $suppression = $wpdb->get_row($wpdb->prepare("SELECT * FROM {$table} WHERE normalized_email = %s FOR UPDATE", $email), ARRAY_A);
+    peracrm_campaigns_db_require($suppression ?: false);
+    $table = peracrm_table('peracrm_subscribers');
+    $subscriber = $wpdb->get_row($wpdb->prepare("SELECT * FROM {$table} WHERE normalized_email = %s FOR UPDATE", $email), ARRAY_A);
+    peracrm_campaigns_db_require(true);
+    return [$subscriber, $suppression];
+}
+
+/**
+ * @internal Caller holds mailbox/subscriber locks in its transaction.
+ * Advance every deployment's retained identity on deletion or ID replacement.
+ * No deployment provisioning, token issuance, history deletion or independent commit.
+ */
+function peracrm_campaigns_repository_replace_identity($subscriber, $mailbox, $active)
+{
+    global $wpdb;
+    $table = peracrm_table('peracrm_campaign_recipient_identities');
+    $blog = get_current_blog_id();
+    // Discover scopes without locking a table scan (the primary key starts with
+    // deployment). Mailbox ownership excludes concurrent identity creation for
+    // this subscriber; each CAS below locks one full primary key.
+    $rows = $wpdb->get_results($wpdb->prepare(
+        "SELECT * FROM {$table} WHERE blog_id=%d AND subscriber_id=%d ORDER BY deployment",
+        $blog, $subscriber
+    ), ARRAY_A);
+    peracrm_campaigns_db_require($rows);
+    foreach ($rows as $row) {
+        $epoch = (int) $row['token_epoch'];
+        if ($epoch < 1 || $epoch >= PHP_INT_MAX) { throw new RuntimeException('Identity epoch exhausted.'); }
+        $changed = peracrm_campaigns_db_require($wpdb->update($table,
+            ['mailbox' => $mailbox, 'active' => (int) $active, 'token_epoch' => $epoch + 1],
+            ['deployment' => $row['deployment'], 'blog_id' => $blog, 'subscriber_id' => $subscriber, 'token_epoch' => $epoch]
+        ));
+        if ($changed !== 1) { throw new RuntimeException('Identity changed concurrently.'); }
     }
 }
 

@@ -8,7 +8,7 @@ Let Pera staff prepare newsletters and targeted campaigns inside the existing CR
 
 Future implementation PRs must update phase status, validation evidence, decisions and the progress log here. A phase must not be marked complete solely because code exists when required verification remains outstanding. Use only `not started`, `in progress`, `blocked` or `complete` for phase status. Keep repository checks distinct from external verification; record outstanding evidence explicitly.
 
-**Current task:** fourth bounded Phase 5B PR — durable recipient revocation and immutable attempt metadata. Verified #1467 merged at `1995ab582fee49373f4f36e4343fc6cb00e748f9`, its final runtime CI [39475440959](https://github.com/7mus7y-dotcom/pera-wp/actions/runs/39475440959) passed and [clean Codex review](https://github.com/7mus7y-dotcom/pera-wp/pull/1467#issuecomment-6299172981) covers that merged commit. GitHub main was the same SHA when work began. Preserved the clean original `/workspace/pera-wp` checkout at `07d8997e`; isolated worktree `/workspace/pera-persistence`. Shell fetch failed once (configured proxy unreachable); connected GitHub supplied the fifteen changed baseline files, all verified against exact Git blob hashes. Local baseline reconstruction is scaffolding only; published commits are parented directly to verified main. No applicable AGENTS.md found in the workspace, tracked files or searched ancestors. Read this plan, provider specification, recipient token/expansion, submission, snapshot, schema, queue and worker contracts.
+**Current task:** fifth bounded Phase 5B PR — internal subscriber lifecycle integration for durable recipient identity and revocation. Verified #1468 merged at `9113bdb3b857c3464d0b790adc53cd2228f77a34`, also latest main at start. Its final head `9659d3c87ffe51aa77c5f661440e5f4522f05e96` has a completed clean Codex review and passing single/multisite [run 39487438922](https://github.com/7mus7y-dotcom/pera-wp/actions/runs/39487438922); no review threads remain. The original clean `/workspace/pera-wp` checkout remains at `1995ab58`; work is isolated at `/workspace/pera-lifecycle`. Shell fetch failed once (proxy unreachable). Connected GitHub supplied the sixteen merged files; local baseline scaffolding is not included in publication, whose parent is verified GitHub main. No applicable AGENTS.md exists in the workspace or searched ancestors.
 
 **Completed bounded scope:** additive schema 29 identity epochs, digest revocation registry and immutable attempt metadata; unbootstrapped internal service, pure projection regressions and disposable SQL/concurrency fixtures. Provider scope, frozen IDs/hashes, recipient and exact expanded-output/full-envelope hashes are bound. No bodies, raw bearers or keys enter these new tables. Existing approval/capture bytes and cancellation/suppression/unknown fences are unchanged. This is persistence evidence, not worker authority or end-to-end unsubscribe acceptance.
 
@@ -2810,3 +2810,101 @@ secure exact-byte output recovery and concrete worker/provider/transport
 integration remain dependent work. Historical snapshots/hashes, cancellation
 fences, cumulative suppressions and unknown-outcome holds remain unchanged.
 Sending, real intake and public collection remain disabled.
+
+
+## Phase 5B — subscriber lifecycle integration (2026-10-21)
+
+Phase 5 remains **in progress**. This bounded change is confined to PeraCRM
+internal lifecycle/persistence services and synthetic tests. No public handlers,
+production token issuance, output recovery, worker/transport, UI, schema or
+activation change is included. Dispatch remains unconditionally blocked; real
+intake and public collection remain disabled.
+
+### Supported mutation-path inventory and contract
+
+- Staff creation/profile management: `peracrm_campaigns_save_subscriber`.
+  Mailbox is immutable; only explicit client link, language and topic fields are
+  accepted. A different address is a separate subscriber, with separate consent
+  and cumulative mailbox suppression evaluation. There is no supported in-place
+  mailbox editor, merge, ID replacement or restore endpoint. No new one is added.
+- Deletion: `peracrm_campaigns_delete_subscriber` removes only the current
+  profile, retaining events, suppressions, frozen recipients/captures and attempts.
+  It now advances and deactivates every retained deployment identity for that
+  subscriber in the same transaction. A missing subscriber is an idempotent no-op.
+- Creation/recreation through staff management and
+  `peracrm_subscribers_apply_row`: new IDs do not inherit old identity rows.
+  The shared create participant also advances any retained rows for a reused ID,
+  setting the current mailbox and active state without resetting an epoch.
+  This is defensive allocator/restore handling, not permission to restore a backup.
+- Import updates of existing subscribers retain their profile/evidence/identity;
+  suppression import may withdraw permission but never replaces a subscriber.
+  Profile/topic/language/client link/unlink, consent, staff withdrawal and
+  cumulative suppression edits do not rotate durable withdrawal epochs.
+- Existing Phase 2 preferences only change topics/withdrawal, never identity.
+  Client deletion/link repair and CRM lead/import/identity-deduplication services
+  operate on CRM posts or subscriber client links, not subscriber mailbox/ID.
+  They remain separate; no sales ingestion or automatic CRM merge is introduced.
+
+The lifecycle participant requires caller-held mailbox/subscriber locks and
+executes only SQL within that transaction; it never starts, commits or rolls back
+an independent operation. Staff/import retain their existing mailbox transaction
+owner and audit/import-row completion semantics. The owner now rejects an
+existing transaction or autocommit-disabled session before START TRANSACTION,
+without ending the caller's transaction or rolling back its work. A caller may
+use the internal lock/lifecycle participants within its own transaction.
+
+Durable identity creation and token registration take the same mailbox mutex,
+then verify the live subscriber ID and normalized mailbox before identity/token
+locks. Deleted IDs cannot acquire a new deployment identity or register stale
+tokens. Registration before deletion is invalid after deletion commits;
+registration after deletion blocks then rejects. A concurrent ordinary profile
+edit leaves a valid token active. Active explicit identity changes require the
+live subscriber/mailbox and retain expected-epoch CAS. They are identity
+revocations, not an alternate subscriber mailbox-change service.
+
+Epoch exhaustion or any identity/subscriber/audit/commit error aborts the whole
+operation. The lifecycle update covers all retained deployment scopes because a
+later configuration change must not reactivate a deleted identity. It does not
+alter digest metadata, historical attempts, approved hashes or frozen captures.
+There is no token issuance or deployment/key provisioning in lifecycle code.
+
+### Unresolved activation prerequisites
+
+Old-mailbox withdrawal remains unresolved: current durable tokens deny access
+after committed deletion/replacement. A separately approved mechanism must permit
+any required old-mailbox withdrawal without exposing a replacement subscriber's
+profile/topics. No public policy/handler acceptance is inferred from revocation.
+
+Identity/epoch/digest/key/body retention and privacy deletion horizons remain
+unapproved. Retain tombstones until an approved policy can preserve revocation;
+do not purge them or reset allocators to recover access. The eight-key retention
+capacity limitation from #1468 remains open. Clone/rollback restore must keep
+gates off, use a fresh external deployment identity and reconcile independently
+retained post-backup revocations, cumulative suppressions, cancellation fences
+and attempt/provider evidence before any same-scope resume. The ID-reuse guard
+does not detect a whole-database rollback or copied deployment configuration.
+Restore reconciliation/runbook acceptance remains unresolved.
+
+### Validation checkpoint and limitations
+
+All 24 local standalone suites, first-party PHP syntax (PHP 8.4.24), shell syntax
+and git diff whitespace checks passed. Focused regressions cover unchanged
+profile/topic/consent epochs, deletion across deployments, audit rollback,
+ID reuse and nested transaction rejection.
+
+Real WordPress/MySQL fixtures added to both existing CI topologies cover identity,
+subscriber-delete and commit failure rollback; caller-owned transactions and
+participant rollback; stale epochs; absent/deleted subscriber rejection;
+deletion/recreation and reused IDs; unrelated profile/import/consent/suppression
+behavior; exact frozen capture and historical attempt retention. Five independent
+process races assert different SQL connections and actual blocking for deletion
+versus registration in both orders, profile edits versus registration in both
+orders, and deletion versus recreation. Prior persistence fixtures now seed
+actual subscribers rather than registering identities for nonexistent IDs.
+
+Local Docker socket access failed once with operation not permitted; UID 1000
+cannot recover the running daemon's sandbox access. No retry or local SQL success
+is claimed. Hosted single/multisite execution and final evidence remain pending.
+Shell proxy was blocked once; connected GitHub supplies publication and CI.
+No production host, provider/inbox, public-token, old-mailbox policy, retention
+or restore acceptance is claimed. No merge or deployment.

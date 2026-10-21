@@ -41,9 +41,11 @@ class Campaign_Memory_DB
             update_option($v[0], maybe_unserialize($v[1]));
             return 1;
         }
+        if (str_starts_with($sql, 'SAVEPOINT ')) { return 0; }
+        if (str_starts_with($sql, 'RELEASE SAVEPOINT ')) { return $this->snapshot === null ? false : 0; }
         if ($sql === 'START TRANSACTION') { $this->snapshot = $this->tables; return 0; }
-        if ($sql === 'ROLLBACK') { $this->tables = $this->snapshot; return 0; }
-        if ($sql === 'COMMIT') { return 0; }
+        if ($sql === 'ROLLBACK') { $this->tables = $this->snapshot; $this->snapshot = null; return 0; }
+        if ($sql === 'COMMIT') { $this->snapshot = null; return 0; }
         if (preg_match('/INSERT INTO (\w+) .*VALUES \(\'([^\']+)\', \'([^\']+)\', \'([^\']+)\'\)/s', $sql, $m)) {
             if (!isset($this->tables[$m[1]][$m[2]])) {
                 $this->tables[$m[1]][$m[2]] = ['normalized_email' => $m[2], 'created_at' => $m[3], 'updated_at' => $m[4],
@@ -75,7 +77,7 @@ class Campaign_Memory_DB
     }
     public function update($table, $data, $where) {
         foreach ($this->tables[$table] ?? [] as $id => $row) {
-            if ($row['id'] === $where['id']) { $this->tables[$table][$id] = array_merge($row, $data); return 1; }
+            if (!array_diff_assoc($where, $row)) { $this->tables[$table][$id] = array_merge($row, $data); return 1; }
         }
         return 0;
     }
@@ -104,6 +106,10 @@ class Campaign_Memory_DB
         return $columns[1];
     }
     public function get_results($sql, $format) {
+        if (preg_match('/SELECT \* FROM (\w+) WHERE blog_id=(\d+) AND subscriber_id=(\d+) ORDER BY deployment/', $sql, $m)) {
+            return array_values(array_filter($this->tables[$m[1]] ?? [], static fn($row) =>
+                (int)$row['blog_id'] === (int)$m[2] && (int)$row['subscriber_id'] === (int)$m[3]));
+        }
         if (str_starts_with($sql, 'SHOW INDEX')) {
             if ($this->missing_unique) { return []; }
             preg_match('/FROM (\w+)/', $sql, $table);
@@ -117,6 +123,7 @@ class Campaign_Memory_DB
         return [];
     }
     public function get_var($sql) {
+        if ($sql === 'SELECT @@autocommit') { return 1; }
         $v = $this->quoted($sql);
         if (str_starts_with($sql, 'SELECT option_value')) {
             $value = get_option($v[0], null);
