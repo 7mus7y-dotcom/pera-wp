@@ -82,6 +82,9 @@ if (!function_exists('pera_crm_register_route')) {
         if (function_exists('peracrm_campaign_drafts_register_routes')) {
             peracrm_campaign_drafts_register_routes();
         }
+        if (function_exists('peracrm_campaign_recipient_withdrawal_register_routes')) {
+            peracrm_campaign_recipient_withdrawal_register_routes();
+        }
     }
 }
 add_action('init', 'pera_crm_register_route');
@@ -557,7 +560,7 @@ add_filter('body_class', 'pera_crm_add_body_class');
 if (!function_exists('peracrm_rewrite_version')) {
     function peracrm_rewrite_version(): string
     {
-        return 'peracrm-' . PERACRM_VERSION . '-crm-routes-v5';
+        return 'peracrm-' . PERACRM_VERSION . '-crm-routes-v6';
     }
 }
 

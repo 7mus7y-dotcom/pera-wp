@@ -8,7 +8,7 @@ Let Pera staff prepare newsletters and targeted campaigns inside the existing CR
 
 Future implementation PRs must update phase status, validation evidence, decisions and the progress log here. A phase must not be marked complete solely because code exists when required verification remains outstanding. Use only `not started`, `in progress`, `blocked` or `complete` for phase status. Keep repository checks distinct from external verification; record outstanding evidence explicitly.
 
-**Current task:** sixth bounded Phase 5B PR — secure exact-byte recipient envelope persistence/recovery. Connected GitHub verified #1469 merged at `42878759ccdc507db8db1214dc1174d73c3109e1`, latest main at start; final head `77fce582b8eb1bb48db141522370393bf9eb4a6c` has completed clean [review](https://github.com/7mus7y-dotcom/pera-wp/pull/1469#issuecomment-6309558810), no review threads, and final runtime `55d030b6` passed [CI 39553076167](https://github.com/7mus7y-dotcom/pera-wp/actions/runs/39553076167). Original `/workspace/pera-wp` checkout remains clean at `1995ab58`; isolated worktree `/workspace/pera-output`. Shell GitHub failed once with sandbox proxy socket denial; a targeted additional-network attempt was aborted while pending, with no result. No blocked attempts repeated. Connector supplied all 23 changed main files, each verified against its Git blob SHA. Reconstruction commit is local scaffolding only; publication parents directly to verified main. No applicable AGENTS.md found under workspace, tracked paths or searched ancestors. Read plan, provider specification and recipient expansion/attempt-binding services.
+**Current task:** seventh bounded Phase 5B PR — public withdrawal handlers, the first dependent portion of public recipient-token handling. Baseline #1470 merged with clean final review and passing CI; details and remaining preference work are recorded in the 2026-10-22 section below.
 
 **Completed bounded scope:** internal exact-byte envelope/output persistence and recovery with authenticated encryption, versioned deployment keys and additive schema 30; local checks and hosted single/multisite validation passed (evidence below). Prior identity epochs, digest registry, immutable attempts and subscriber lifecycle integration are preserved. Ciphertext is separate from metadata; no plaintext bodies, raw bearers or encryption keys are stored in metadata/audit. Historical captures and all disabled gates remain unchanged.
 
@@ -3191,3 +3191,141 @@ latest-head review requested after publication. No existing oversized stored row
 is rewritten/deleted; such a row remains fail-closed under the existing read cap.
 Existing immutable attempt metadata remains retained when new output creation
 is rejected. No automatic cleanup, gate change, merge or deployment.
+
+
+## Phase 5B — bounded public withdrawal handlers (2026-10-22)
+
+Phase 5 remains **in progress**. This PR is the first dependent portion of the
+requested public recipient-token protocol work: visible withdrawal confirmation
+and a separate RFC 8058 POST handler. New-protocol preference editing and usable
+expired-preference-page navigation to an independent withdrawal bearer remain
+**not started**. Existing Phase 2 preferences are unchanged and do not accept pc1.
+Do not claim complete public-handler or end-to-end unsubscribe acceptance.
+
+### Baseline and initial checkpoint
+
+Verified #1470 merged at `76403917e2f0ffd91b35b70edca8225a7c61b8a2`, latest
+main at task start. Final head `56c8187f1f8d8944a0a7beed4bd7d0d1cef29d38`
+has passing [CI 39777404745](https://github.com/7mus7y-dotcom/pera-wp/actions/runs/39777404745)
+and a completed clean [final review](https://github.com/7mus7y-dotcom/pera-wp/pull/1470#issuecomment-6340620131);
+the sole earlier finding is resolved. No applicable AGENTS.md was found in
+workspace, repository or searched ancestors. Read this plan, provider specification,
+preferences, token, persistence, revocation and subscriber lifecycle services.
+
+Original clean checkout at `1a67b777` is preserved. Work is isolated in
+`/workspace/pera-public`. Shell fetch failed once (proxy unreachable); Docker
+socket failed once (operation not permitted). Neither blocked operation was retried.
+Connected GitHub supplied all fifteen changed baseline files; publication parents
+directly to verified main, excluding local reconstruction scaffolding.
+An initial checkpoint was reported before lengthy validation.
+
+### Bounded contract
+
+Plugin-owned `/email-unsubscribe/` GET/HEAD authenticates the unsubscribe-purpose
+bearer and durable registry, displaying only explicit confirmation, never identity
+or topics. It performs no mailbox-mutex INSERT or subscription/suppression writes.
+HEAD emits no body. Human POST requires `confirm=withdraw`. Machine route
+`/email-unsubscribe/one-click/` accepts only POST with
+`application/x-www-form-urlencoded` body `List-Unsubscribe=One-Click`.
+No login, cookie, WP nonce, CAPTCHA or confirmation is required by that handler.
+Malformed/duplicate/normalized field names, other methods/content types and wrong
+purposes fail generically. The machine URL must be generated separately by future
+authorized integration; no headers, issuance or expansion bytes change here.
+
+The locator is advisory. Under the existing mailbox -> subscriber -> identity ->
+token lock order, the transaction rechecks current subscriber ID/mailbox,
+deployment/blog, active epoch, digest revocation, registry metadata/hash and token
+MAC/purpose/key/times. No nested top-level token callback is used. The same
+transaction persists global unsubscribed state, cumulative unsubscribe suppression
+and their audit events before success. Duplicate valid withdrawal writes no
+additional events or state versions. Other suppression reasons, topic choices,
+consent evidence, frozen captures and attempt bytes are preserved. There is no
+consent-grant, suppression-clear, identity-replacement or preference-edit authority.
+
+All responses use no-store/no-referrer, noindex and a restrictive CSP. Rendering
+bypasses themes and has no scripts, analytics or external/local assets. Human
+form actions contain no bearer; the hidden form field is the only displayed
+bearer value. Failures use fixed public errors; SQL display is suppressed and
+exceptions/bearers are not logged. Server/proxy/CDN/WAF/APM access/body logging
+protection cannot be established by application headers.
+
+### Activation blockers and dependent PR
+
+The production service factory returns null unconditionally. No configuration,
+filter, secret fallback or UI enables it. Routes therefore return unavailable
+until a separately reviewed production factory exists. Disposable-only MU fixture
+code explicitly injects synthetic keys into the exact same responder. Sending,
+production issuance, real intake, public collection, worker/transport wiring,
+credentials and cron activation remain disabled. No merge or deployment.
+
+Deletion, replacement, changed epochs and individually revoked tokens deny
+withdrawal under current registry semantics. This is a blocked old-mailbox case,
+not a new approved policy. Decide how any required old-mailbox withdrawal remains
+possible without accessing replacement identities before activation. Retention,
+key-ring capacity, privacy deletion, deployment/restore reconciliation and host
+log redaction/access controls remain unresolved.
+
+The next dependent PR must add pc1 preference authorization and topic-only edits
+under the same locks, with no consent grant or suppression clearing, and an
+explicitly reviewed independent withdrawal path usable from an expired preference
+page. Current preference URLs contain only the expiring preference bearer:
+neither reconstruct an unsubscribe bearer from its digest nor repurpose an
+expired/wrong-purpose token. It must add new-protocol desktop/mobile preference
+acceptance; existing Phase 2 browser passes are not that evidence.
+
+### Validation
+
+Local PHP 8.4.24: all 26 standalone suites, first-party PHP lint, new browser
+JavaScript syntax, shell syntax and whitespace checks passed. New pure regressions
+cover strict request mapping, explicit confirmation, wrong methods/content types,
+oversized tokens, debug redaction, denied serialization and disabled activation.
+
+Added disposable single-site/multisite SQL/HTTP fixtures for scanner GET/HEAD,
+anonymous machine POST, invalid/wrong-purpose/expired/revoked/tampered tokens,
+wrong signing key/deployment, explicit confirmation, duplicate idempotence,
+unchanged topics, SQL/COMMIT rollback and caller transaction rejection.
+Seven independent-process races cover withdrawal/withdrawal and withdrawal versus
+individual revocation, epoch change and subscriber deletion in both orders.
+They assert independent connections, actual lock blocking and final suppression.
+Desktop/mobile browser fixtures exercise visible confirmation, state-invariant
+GET, clean POST action, no assets/cookies and repeated machine/human requests.
+These are withdrawal flows, not new-protocol preference acceptance.
+Hosted execution evidence remains pending; local Docker acceptance is not claimed.
+
+
+### Publication checkpoint and review correction (2026-10-22)
+
+Non-draft [PR #1473](https://github.com/7mus7y-dotcom/pera-wp/pull/1473)
+is open against main. Final runtime/test commit
+`5ed80329f7be35881872dab8784286f6c4a66481`, tree
+`7f1d1d9430f1ef2ce19c807383ee31695725d795`, matches the isolated local tree.
+Connected GitHub published commits directly on verified main, with every uploaded
+runtime blob checked by the identical final tree. The original checkout and
+isolated worktree are clean after commits. No shell push retry was attempted.
+
+Automatic review of initial `675f40ab` found missing persisted rewrite upgrades.
+Fixed in `5ed80329`: named withdrawal registrar is called by the shared
+activation/upgrade registrar and the rewrite marker advances v5 -> v6.
+Added actual per-blog existing-install fixtures that remove the in-memory rules,
+seed old persisted rules, invoke automatic upgrade without init/manual flush,
+assert both endpoints persist and assert a second check does not flush.
+The finding's code fix is pushed; final rereview and hosted verification remain
+pending, so no clean final review of this PR is claimed.
+
+The follow-up also checks wrong deployment on POST, cross-blog denial,
+preservation of hard-bounce/complaint/administrative flags, and an independent
+unsubscribe bearer issued alongside an expired preference bearer for the same
+identity. No expired-preference-page navigation is inferred from this test.
+All 26 local standalone suites and first-party lint pass again after the routing
+fix. Shell/JavaScript syntax and whitespace checks pass.
+
+[Runtime CI 39795574938](https://github.com/7mus7y-dotcom/pera-wp/actions/runs/39795574938)
+has single-site job 119882132761 and multisite job 119882133323, both still
+**queued with no executed steps** at this checkpoint. Prior publication runs
+39794966042 and 39795308209 were queued/superseded, not passing acceptance.
+No completed logs, browser screenshots, SQL/concurrency success or artifacts
+exist for the new handlers yet. Do not mark technical acceptance complete until
+both topologies execute, completed logs are inspected and desktop/mobile
+withdrawal captures are reviewed. The final plan-evidence commit changes no
+runtime or fixture bytes. All production/issuance/intake/collection/transport/cron
+gates stay disabled; no merge or deployment.
