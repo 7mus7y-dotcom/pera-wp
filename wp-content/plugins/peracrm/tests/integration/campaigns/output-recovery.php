@@ -16,7 +16,55 @@ function output_reject(callable $fn): void {
 }
 peracrm_with_target_blog(static function () use ($mode,$scenario) {
     global $wpdb;
-    $blog = get_current_blog_id(); $deployment = 'fixture-output-'.$scenario;
+    $blog = get_current_blog_id();
+    if (in_array($mode,['size-create','size-recover'],true)) {
+        $store=new PeraCRM_CampaignRecipientPersistence('fixture-output-size',$blog);
+        $cipher=output_cipher(); $table=peracrm_table('peracrm_campaign_submission_outputs');
+        if ($mode==='size-create') {
+            peracrm_test_persistence_subscriber(19001,'output@example.org');
+            $store->ensureIdentity(19001,'output@example.org');
+        }
+        foreach (['unicode','control'] as $kind) {
+            foreach ([false,true] as $oversized) {
+                [$binding,$output,$submission,$metadata]=output_size_fixture($blog,$kind,$oversized);
+                $read=static fn()=>$wpdb->get_row($wpdb->prepare("SELECT * FROM {$table} WHERE deployment=%s AND blog_id=%d AND attempt_key=%s",
+                    'fixture-output-size',$blog,$binding['attempt_key']),ARRAY_A);
+                if ($mode==='size-create') {
+                    $store->bindAttempt($submission,$binding,$output);
+                    if ($oversized) {
+                        $inserts=0;
+                        $watch=static function ($sql) use (&$inserts) {
+                            if (str_starts_with($sql,'INSERT INTO') && str_contains($sql,'submission_outputs')) { ++$inserts; }
+                            return $sql;
+                        };
+                        add_filter('query',$watch);
+                        try {
+                            output_reject(fn()=>$store->persistOutput($submission,$binding,$output,$cipher));
+                            output_reject(fn()=>$store->persistOutput($submission,$binding,$output,$cipher));
+                        } finally { remove_filter('query',$watch); }
+                        output_expect($inserts===0 && $read()===null,'oversized '.$kind.' rejected before INSERT; repeated creation leaves no row');
+                    } else {
+                        output_expect($store->persistOutput($submission,$binding,$output,$cipher)===$submission->hash(),'near-limit '.$kind.' committed');
+                        $before=$read();
+                        $store->persistOutput($submission,$binding,$output,output_cipher(true));
+                        output_expect($read()===$before,'near-limit '.$kind.' identical persistence retains ciphertext across rotation');
+                        unset($before);
+                    }
+                } elseif ($oversized) {
+                    output_reject(fn()=>$store->recoverOutput($binding,$metadata,$cipher));
+                    output_expect($read()===null,'oversized '.$kind.' has no row after process restart');
+                } else {
+                    [$restored,$expanded]=$store->recoverOutput($binding,$metadata,output_cipher(true));
+                    output_expect($restored->fields()===$submission->fields() && $expanded->fields()===$output->fields(),
+                        'near-limit '.$kind.' recovers exact envelope/output bytes after process restart');
+                    unset($restored,$expanded);
+                }
+                unset($binding,$output,$submission,$metadata);
+            }
+        }
+        return;
+    }
+    $deployment = 'fixture-output-'.$scenario;
     [$binding,$output,$submission,$metadata] = output_fixture($blog,$scenario);
     $store = new PeraCRM_CampaignRecipientPersistence($deployment,$blog); $cipher = output_cipher();
     $table = peracrm_table('peracrm_campaign_submission_outputs');

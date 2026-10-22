@@ -268,6 +268,7 @@ final class PeraCRM_CampaignRecipientPersistence
             $context = $this->outputContext($metadata);
             $row = $this->find('submission_outputs',['attempt_key'=>$binding['attempt_key']]);
             $payload = json_encode(['envelope'=>$submission->fields(),'output'=>$output->fields()],JSON_THROW_ON_ERROR);
+            PeraCRM_CampaignOutputCipher::requirePayload($payload);
             if ($row) {
                 peracrm_campaign_recipient_require(hash_equals($payload,$cipher->open($row,$context)));
             } else {

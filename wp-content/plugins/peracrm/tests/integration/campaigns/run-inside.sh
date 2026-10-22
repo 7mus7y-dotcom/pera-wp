@@ -117,6 +117,8 @@ done
 # Distinct PHP invocations prove recovery after process memory is gone.
 wp eval-file /tests/output-recovery.php prepare restart
 wp eval-file /tests/output-recovery.php recover restart
+wp eval-file /tests/output-recovery.php size-create
+wp eval-file /tests/output-recovery.php size-recover
 for output_race in identical conflict; do
     rm -f /tmp/peracrm-output-held /tmp/peracrm-output-winner /tmp/peracrm-output-loser
     wp eval-file /tests/output-recovery.php prepare "$output_race"

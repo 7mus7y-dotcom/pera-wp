@@ -19,3 +19,18 @@ function output_cipher(bool $rotated = false): PeraCRM_CampaignOutputCipher
 {
     return new PeraCRM_CampaignOutputCipher(['e1'=>str_repeat('a',32),'e2'=>str_repeat('b',32)],$rotated?'e2':'e1');
 }
+
+/** Raw bodies remain valid submissions; JSON escaping and duplication set storage size. */
+function output_size_fixture(int $blog, string $kind, bool $oversized): array
+{
+    [$binding,$ignored,$base] = output_fixture($blog,'size-'.$kind.'-'.($oversized?'reject':'accept'));
+    $unit = $kind === 'unicode' ? "😀" : "\x01";
+    $bytes = $oversized ? 1572864 : ($kind === 'unicode' ? 1570000 : 785000);
+    $body = str_repeat($unit,intdiv($bytes,strlen($unit)));
+    $html = substr($body,0,min(1048576,strlen($body)-4));
+    $text = substr($body,strlen($html));
+    $output = new PeraCRM_CampaignRecipientOutput($html,$text,$binding['snapshot_hash'],hash('sha256',peracrm_campaign_recipient_binding($binding)));
+    $data = $base->fields(); $data['html']=$html; $data['text']=$text;
+    $submission = new PeraCRM_CampaignSubmissionV1($data);
+    return [$binding,$output,$submission,PeraCRM_CampaignRecipientPersistence::attemptMetadata($submission,$binding,$output)];
+}

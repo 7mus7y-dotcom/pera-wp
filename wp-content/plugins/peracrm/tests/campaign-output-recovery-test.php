@@ -26,3 +26,28 @@ $reject(fn()=>serialize($cipher)); $reject(fn()=>$cipher->__construct(['e1'=>str
 ob_start(); var_dump($cipher); $debug = ob_get_clean();
 campaign_expect(!str_contains($debug,str_repeat('a',32)) && !str_contains($debug,'bearer'),'cipher diagnostics redact keys and content');
 echo "PASS output cipher integrity, scope, rotation and exact bytes\n";
+
+// Exact cipher boundary, including tag/base64 overhead; one extra payload byte denies.
+$bytes = str_repeat('x',PeraCRM_CampaignOutputCipher::MAX_PAYLOAD_BYTES);
+$record = $cipher->seal($bytes,$context);
+campaign_expect(strlen($record['ciphertext']) === PeraCRM_CampaignOutputCipher::MAX_CIPHERTEXT_BYTES
+    && $cipher->open($record,$context) === $bytes,'exact encoded ciphertext boundary recovers');
+unset($record);
+$reject(fn()=>$cipher->seal($bytes.'x',$context));
+unset($bytes);
+foreach (['unicode','control'] as $kind) {
+    foreach ([false,true] as $oversized) {
+        [$b,$o,$s,$m] = output_size_fixture(2,$kind,$oversized);
+        $encoded = json_encode(['envelope'=>$s->fields(),'output'=>$o->fields()],JSON_THROW_ON_ERROR);
+        campaign_expect((strlen($encoded)>PeraCRM_CampaignOutputCipher::MAX_PAYLOAD_BYTES)===$oversized,
+            'fixture crosses encoded payload cap: '.$kind.($oversized?' rejected':' accepted'));
+        if ($oversized) { $reject(fn()=>$cipher->seal($encoded,$context)); }
+        else {
+            $record=$cipher->seal($encoded,$context);
+            campaign_expect($cipher->open($record,$context)===$encoded,'near-limit encoded byte recovery: '.$kind);
+            unset($record);
+        }
+        unset($b,$o,$s,$m,$encoded);
+    }
+}
+echo "PASS output encoded size boundary and JSON-expanding Unicode/control bodies\n";

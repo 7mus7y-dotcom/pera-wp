@@ -7,6 +7,18 @@ if (!defined('ABSPATH')) { exit; }
  */
 final class PeraCRM_CampaignOutputCipher
 {
+    // Base64 includes the 16-byte AEAD tag: 4 * ceil((payload + 16) / 3).
+    // This is an encoded-storage contract, independent of raw body limits.
+    public const MAX_CIPHERTEXT_BYTES = 12582912; // 12 MiB
+    public const MAX_PAYLOAD_BYTES = 9437168; // (12 MiB / 4 * 3) - 16
+
+    public static function requirePayload(#[\SensitiveParameter] string $bytes): void
+    {
+        if (strlen($bytes) > self::MAX_PAYLOAD_BYTES) {
+            throw new RuntimeException('recipient_output_unavailable');
+        }
+    }
+
     private $keys;
     private $active;
 
@@ -33,6 +45,7 @@ final class PeraCRM_CampaignOutputCipher
     public function seal(#[\SensitiveParameter] string $bytes, string $context): array
     {
         try {
+            self::requirePayload($bytes);
             $nonce = random_bytes(24);
             return ['key_id'=>$this->active,'nonce'=>base64_encode($nonce),
                 'ciphertext'=>base64_encode(sodium_crypto_aead_xchacha20poly1305_ietf_encrypt(
@@ -45,13 +58,14 @@ final class PeraCRM_CampaignOutputCipher
             $id = $record['key_id'] ?? null;
             peracrm_campaign_recipient_require(is_string($id) && isset($this->keys[$id])
                 && is_string($record['nonce'] ?? null) && is_string($record['ciphertext'] ?? null)
-                && strlen($record['ciphertext']) <= 12582912);
+                && strlen($record['ciphertext']) <= self::MAX_CIPHERTEXT_BYTES);
             $nonce = base64_decode($record['nonce'],true); $cipher = base64_decode($record['ciphertext'],true);
             peracrm_campaign_recipient_require(is_string($nonce) && strlen($nonce) === 24
                 && base64_encode($nonce) === $record['nonce'] && is_string($cipher) && strlen($cipher) >= 16
                 && base64_encode($cipher) === $record['ciphertext']);
             $bytes = sodium_crypto_aead_xchacha20poly1305_ietf_decrypt($cipher,$this->aad($context,$id),$nonce,$this->keys[$id]);
             peracrm_campaign_recipient_require(is_string($bytes));
+            self::requirePayload($bytes);
             return $bytes;
         } catch (Throwable $e) { throw new RuntimeException('recipient_output_unavailable'); }
     }

@@ -3125,3 +3125,39 @@ Bounded persistence/recovery implementation and technical validation are
 complete; Phase 5 remains **in progress**. Production key provisioning/readiness,
 retention/deletion, compromise policy and restore reconciliation remain unresolved.
 There is no automatic cleanup and no recovery-derived send/retry authority.
+
+
+## PR #1470 — ciphertext-size finding follow-up (2026-10-22)
+
+The review correctly identified that JSON duplication/escaping can make a valid
+submission exceed the old recovery-only 12 MiB base64 cap. Previously sealing
+could commit ciphertext that recovery and identical replay then rejected. The
+original near-limit assumption was wrong; raw body limits do not bound encoded
+storage to 12 MiB. This fix preserves the existing read cap and explicitly
+rejects oversized encoded payloads before encryption/insertion.
+
+One cipher-owned contract defines a maximum base64 ciphertext of 12,582,912
+bytes and maximum encoded JSON plaintext of 9,437,168 bytes. XChaCha20-Poly1305
+adds a 16-byte tag; base64 length is `4 * ceil((payload_bytes + 16) / 3)`.
+Thus `(12,582,912 / 4 * 3) - 16 = 9,437,168` is the exact accepted plaintext
+boundary. Sealing checks it before encryption; persistence checks the JSON bytes
+before either INSERT or idempotent comparison; reopening uses the same encoded
+cap and checks the decrypted payload limit. This deliberately adds a storage
+size restriction to otherwise valid submissions, without changing submission
+validation or normalizing/rewriting content. Oversize denies with fixed unchained
+errors; pre-existing metadata is retained and no output row is inserted.
+
+Regressions cover the exact cipher boundary and one byte beyond, near-limit
+four-byte Unicode (surrogate escaping) and permitted `0x01` body controls
+(`\u0001` escaping). Both accepted and rejected cases remain valid submission
+objects. SQL fixtures in both existing topologies assert rejected creation and
+repeated creation attempt no INSERT and leave no row; accepted creation and
+rotated-key idempotent replay retain exact ciphertext. A separate PHP process
+recovers accepted full envelope/output bytes exactly and confirms rejected rows
+remain absent. No body/key/bearer is printed. Hosted results pending.
+
+All disabled gates, historical captures, revocation/suppression knowledge,
+worker authority/leases and accepted/unknown holds are preserved. No schema,
+public route, worker wiring, production issuance, cleanup, merge or deployment.
+The prior clean original checkout remains untouched; follow-up work stays in the
+existing isolated worktree and will be pushed to the same PR.
