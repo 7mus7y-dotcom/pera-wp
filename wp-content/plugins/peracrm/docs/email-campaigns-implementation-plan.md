@@ -8,11 +8,11 @@ Let Pera staff prepare newsletters and targeted campaigns inside the existing CR
 
 Future implementation PRs must update phase status, validation evidence, decisions and the progress log here. A phase must not be marked complete solely because code exists when required verification remains outstanding. Use only `not started`, `in progress`, `blocked` or `complete` for phase status. Keep repository checks distinct from external verification; record outstanding evidence explicitly.
 
-**Current task:** fifth bounded Phase 5B PR — internal subscriber lifecycle integration for durable recipient identity and revocation. Verified #1468 merged at `9113bdb3b857c3464d0b790adc53cd2228f77a34`, also latest main at start. Its final head `9659d3c87ffe51aa77c5f661440e5f4522f05e96` has a completed clean Codex review and passing single/multisite [run 39487438922](https://github.com/7mus7y-dotcom/pera-wp/actions/runs/39487438922); no review threads remain. The original clean `/workspace/pera-wp` checkout remains at `1995ab58`; work is isolated at `/workspace/pera-lifecycle`. Shell fetch failed once (proxy unreachable). Connected GitHub supplied the sixteen merged files; local baseline scaffolding is not included in publication, whose parent is verified GitHub main. No applicable AGENTS.md exists in the workspace or searched ancestors.
+**Current task:** sixth bounded Phase 5B PR — secure exact-byte recipient envelope persistence/recovery. Connected GitHub verified #1469 merged at `42878759ccdc507db8db1214dc1174d73c3109e1`, latest main at start; final head `77fce582b8eb1bb48db141522370393bf9eb4a6c` has completed clean [review](https://github.com/7mus7y-dotcom/pera-wp/pull/1469#issuecomment-6309558810), no review threads, and final runtime `55d030b6` passed [CI 39553076167](https://github.com/7mus7y-dotcom/pera-wp/actions/runs/39553076167). Original `/workspace/pera-wp` checkout remains clean at `1995ab58`; isolated worktree `/workspace/pera-output`. Shell GitHub failed once with sandbox proxy socket denial; a targeted additional-network attempt was aborted while pending, with no result. No blocked attempts repeated. Connector supplied all 23 changed main files, each verified against its Git blob SHA. Reconstruction commit is local scaffolding only; publication parents directly to verified main. No applicable AGENTS.md found under workspace, tracked paths or searched ancestors. Read plan, provider specification and recipient expansion/attempt-binding services.
 
-**Completed bounded scope:** internal subscriber lifecycle integration now revokes durable identities atomically on deletion/recreation while preserving ordinary profile/consent edits; local and real single/multisite validation passed (evidence below). Previous bounded work: additive schema 29 identity epochs, digest revocation registry and immutable attempt metadata; unbootstrapped internal service, pure projection regressions and disposable SQL/concurrency fixtures. Provider scope, frozen IDs/hashes, recipient and exact expanded-output/full-envelope hashes are bound. No bodies, raw bearers or keys enter these new tables. Existing approval/capture bytes and cancellation/suppression/unknown fences are unchanged. This is persistence evidence, not worker authority or end-to-end unsubscribe acceptance.
+**Completed bounded scope:** internal exact-byte envelope/output persistence and recovery with authenticated encryption, versioned deployment keys and additive schema 30; local checks and hosted single/multisite validation passed (evidence below). Prior identity epochs, digest registry, immutable attempts and subscriber lifecycle integration are preserved. Ciphertext is separate from metadata; no plaintext bodies, raw bearers or encryption keys are stored in metadata/audit. Historical captures and all disabled gates remain unchanged.
 
-**Next dependent work:** public preference/visible withdrawal and RFC 8058 POST handlers; deployment key/retention/restore readiness and exact-byte secure output recovery; concrete worker-authorized resolution and transport integration. The worker must persist and confirm the exact immutable binding before transport, validate all authority/fences/eligibility, register the actual issued token digests/metadata and never regenerate random tokens for an existing attempt. No provider factory, public route, worker activation, scheduler or UI change. Dispatch remains blocked unconditionally; real intake and public collection remain disabled.
+**Next dependent work:** public preference/visible withdrawal and RFC 8058 POST handlers; deployment key/retention/restore readiness; concrete worker-authorized resolution and transport integration. The worker must persist and confirm the exact immutable binding before transport, validate all authority/fences/eligibility, register the actual issued token digests/metadata and never regenerate random tokens for an existing attempt. No provider factory, public route, worker activation, scheduler or UI change. Dispatch remains blocked unconditionally; real intake and public collection remain disabled.
 
 ## Review baseline and method
 
@@ -2976,3 +2976,218 @@ output recovery, provider/worker/transport activation, new UI, merge or deployme
 Old-mailbox withdrawal policy, retention and restore reconciliation remain
 unresolved activation prerequisites. Wider identity-range locking is documented
 above; this change is not a production-volume performance acceptance.
+
+
+## Phase 5B — secure exact-byte output persistence/recovery (2026-10-21)
+
+Phase 5 remains **in progress**. Internal, deliberately unbootstrapped PeraCRM
+services only. Schema 30 adds one InnoDB ciphertext table with full-length binary
+unique deployment/blog/attempt key. Existing captures, digest/epoch revocation,
+subscriber lifecycle, cumulative suppression, cancellation fences and worker
+accepted/unknown holds remain intact. No public handlers, transport, worker
+wiring, UI, production token issuance, scheduler or gate activation.
+
+### Storage and key-management contract
+
+The deployment must explicitly inject a separate encryption key ring: 1–32
+versioned `eN` IDs, each exactly 32 cryptographically random bytes, plus one active
+ID. Length validation cannot prove entropy. No production provisioning/factory,
+WP-salt fallback, generated deployment secret or token-signing-key reuse exists.
+Missing keys, missing sodium, unavailable retained versions and wrong material
+fail closed with fixed unchained diagnostics. Objects redact debug output and
+deny PHP serialization; sensitive inputs carry SensitiveParameter attributes.
+Explicit returned envelope/output fields still contain bearers and require
+trusted callers. The services emit no logs or audit bodies; SQL only receives
+ciphertext, nonce, key ID and existing nonsecret scope identifiers.
+
+`persistOutput` requires an already committed immutable attempt binding; it
+locks that row before ciphertext creation. It encrypts canonical JSON containing
+the full submission fields and expanded output fields without re-rendering,
+normalizing line endings, substituting URLs or reissuing tokens. XChaCha20-
+Poly1305 uses a fresh random 192-bit nonce and authenticates protocol/key version,
+deployment, blog and the entire immutable metadata projection (provider/account/
+region/config, frozen IDs, recipient/epoch, delivery/attempt, envelope/output
+hashes). Existing metadata remains unchanged. Historical hash-only attempts
+cannot recover missing bytes and must never silently regenerate them.
+
+Identical creation decrypts and compares the complete bytes, retaining the first
+ciphertext and key version; conflicts reject. The attempt lock serializes
+concurrent creators; insertion and COMMIT errors roll back. Recovery requires
+trusted expected metadata and recipient binding, checks existing metadata
+integrity and scope before decrypting, rebuilds validated value objects and
+recomputes both independent hashes and all bindings. Ciphertext copied to another
+deployment/blog/attempt cannot authenticate. No recovery path mutates identity,
+lease, delivery state or attempt state. Historical content can be recovered after
+revocation/cancellation/acceptance/unknown; this is content access only and never
+permission to send, retry, extend a lease or bypass current authorization.
+
+Routine rotation provisions a new permanent ID/material pair, retains old read
+keys and selects the new active ID for new records. Identical creation never
+re-encrypts an old record. IDs must never be reused for different material.
+Removal/loss of an old key makes its records unavailable; recovery fails closed,
+without a fallback or token regeneration. This PR adds no bulk re-encryption,
+key retirement, cleanup, delete endpoint or retention scheduler. Recovery from
+compromise requires a separately approved operational policy.
+
+### Unresolved retention and restore readiness
+
+Body/bearer/key/identity/digest retention and privacy deletion horizons are still
+unapproved. There is no automatic cleanup. Rotation capacity is bounded at 32
+retained encryption versions; exhaustion requires an approved migration/retention
+decision, not silent eviction. Encryption does not resolve backup retention or
+access-log redaction obligations. Restore/clone readiness remains unresolved:
+keep all gates off, use a fresh external deployment identity and reconcile
+independently retained suppressions, revocations, cancellation fences and
+accepted/unknown provider evidence before any same-scope resume. A copied full
+configuration/database cannot be detected by encryption. Do not copy ciphertext
+into a new scope and expect it to authorize replay. External key availability,
+backup/restore runbook, retention/deletion and production-volume acceptance are
+not claimed.
+
+### Validation checkpoint
+
+Standalone cipher tests cover exact UTF-8/CRLF/token URL bytes, nonce randomness,
+tampered ciphertext/nonce/key ID, wrong key/context, missing keys, rotation,
+constructor reentry, debug redaction and denied serialization. Disposable SQL
+fixtures run in both single-site and multisite: separate PHP invocations for
+creation/recovery, exact full fields and saved hashes, immutable replay across
+rotation, missing/wrong keys, recipient/attempt/provider scope and hash conflicts,
+copied ciphertext, authenticated mismatched payload, SQL/COMMIT rollback, outer
+transaction preservation and historical recovery after revocation. Two races
+verify independent connection IDs, actual blocking, identical creation with
+rotated active keys and conflicting creation. Existing worker/scheduler and
+capture/suppression tests remain required. Hosted results pending.
+
+Local Docker socket check failed once with `operation not permitted`; dockerd is
+running but task UID is 1000, so no restart or retry. Existing workspace PHP 8.4.24
+has sodium and supports local suites/lint. Initial standalone run caught only a
+schema-version assertion requiring 30; corrected without weakening authorization.
+No merge or deployment.
+
+
+### PR publication and expanded fence checks
+
+Non-draft [PR #1470](https://github.com/7mus7y-dotcom/pera-wp/pull/1470)
+was opened against main. Initial runtime `741efc42` exactly matches local tree
+`d1c65719c6f9a92c8ed73fd0b8f84e1225da5e8a`; all 25 standalone suites,
+first-party PHP lint, shell syntax and whitespace checks passed locally. Initial
+hosted run 39575334079 passed configuration/regression/syntax steps in both
+topologies; full matrix pending. A follow-up fixture also recovers historical
+content while real SQL fake-worker ledgers hold accepted/unknown outcomes,
+verifying unchanged worker owner/version/attempt/lease bytes before the existing
+no-resend/no-claim assertions. New records under rotation are recovered using
+only the new encryption key. No production worker file is changed.
+
+
+### Final exact-byte persistence/recovery evidence (2026-10-21)
+
+Final runtime/test commit `296bf756f009765a27f6c7cc3323bea31bb9cfcd`, exact
+local/published tree `07a0253ac0f696ba530fe52240ae5aaf8b74fddd`, passed
+[run 39575599903](https://github.com/7mus7y-dotcom/pera-wp/actions/runs/39575599903):
+**single-site job 119140551997** and **multisite job 119140552361**.
+Both completed logs were inspected. Each has 42 passing output assertions,
+including independent blocking identical/conflicting creators, new-process
+exact-byte/hash recovery, rotation/read-key retirement behavior, wrong key/scope,
+tampering, authenticated mismatched output, insertion/commit rollback, caller
+transaction preservation and historical recovery after revocation. Actual
+approved SQL capture expansion with random bearer URLs also round-trips exactly.
+Both worker fixtures recover content while checking unchanged accepted/unknown
+owner/version/attempt/lease bytes, followed by the existing no-resend/no-claim
+assertions. Prior lifecycle/persistence/freeze/queue/worker/scheduler checks and
+all desktop/mobile browser suites pass. All 25 standalone suites, first-party
+PHP syntax and shell/Compose configuration checks pass. No failed assertion or
+PHP warning/fatal/notice/deprecation was found in either completed log.
+
+Each log retains the same five pre-existing management-fixture database
+diagnostics documented for #1468/#1469: four intentional nonexistent-table
+fault injections and one legacy CRM linked-user-column probe. New output SQL
+fault injection suppresses expected SQL display and asserts rollback with fixed
+unchained diagnostics. Existing Node/action notices remain unchanged.
+Initial run 39575334079 was superseded by the additional worker-fence and active
+rotation fixtures and is not counted as final acceptance.
+
+Evidence retained through **2026-11-04**:
+[single-site artifact 12333024504](https://github.com/7mus7y-dotcom/pera-wp/actions/runs/39575599903/artifacts/12333024504),
+[multisite artifact 12334675891](https://github.com/7mus7y-dotcom/pera-wp/actions/runs/39575599903/artifacts/12334675891).
+
+Prerequisite #1469's passing runtime `55d030b6` to reviewed final head `77fce582`
+comparison was independently checked: only the living plan differs. PR #1470's
+initial runtime `741efc42` has a completed clean automated review with no
+findings; the later fixture-only follow-up is not claimed as covered by that
+review. This final evidence commit changes documentation only; runtime/tests
+remain exactly the tested bytes of `296bf756`. Original checkout and isolated
+worktree are clean after commits. Publication through connected GitHub verifies
+every blob and tree and parents directly to main; baseline scaffolding is not
+published. No blocked shell/Docker retry, production issuance, sending, public
+handler, worker/transport wiring, UI, scheduler activation, merge or deployment.
+
+Bounded persistence/recovery implementation and technical validation are
+complete; Phase 5 remains **in progress**. Production key provisioning/readiness,
+retention/deletion, compromise policy and restore reconciliation remain unresolved.
+There is no automatic cleanup and no recovery-derived send/retry authority.
+
+
+## PR #1470 — ciphertext-size finding follow-up (2026-10-22)
+
+The review correctly identified that JSON duplication/escaping can make a valid
+submission exceed the old recovery-only 12 MiB base64 cap. Previously sealing
+could commit ciphertext that recovery and identical replay then rejected. The
+original near-limit assumption was wrong; raw body limits do not bound encoded
+storage to 12 MiB. This fix preserves the existing read cap and explicitly
+rejects oversized encoded payloads before encryption/insertion.
+
+One cipher-owned contract defines a maximum base64 ciphertext of 12,582,912
+bytes and maximum encoded JSON plaintext of 9,437,168 bytes. XChaCha20-Poly1305
+adds a 16-byte tag; base64 length is `4 * ceil((payload_bytes + 16) / 3)`.
+Thus `(12,582,912 / 4 * 3) - 16 = 9,437,168` is the exact accepted plaintext
+boundary. Sealing checks it before encryption; persistence checks the JSON bytes
+before either INSERT or idempotent comparison; reopening uses the same encoded
+cap and checks the decrypted payload limit. This deliberately adds a storage
+size restriction to otherwise valid submissions, without changing submission
+validation or normalizing/rewriting content. Oversize denies with fixed unchained
+errors; pre-existing metadata is retained and no output row is inserted.
+
+Regressions cover the exact cipher boundary and one byte beyond, near-limit
+four-byte Unicode (surrogate escaping) and permitted `0x01` body controls
+(`\u0001` escaping). Both accepted and rejected cases remain valid submission
+objects. SQL fixtures in both existing topologies assert rejected creation and
+repeated creation attempt no INSERT and leave no row; accepted creation and
+rotated-key idempotent replay retain exact ciphertext. A separate PHP process
+recovers accepted full envelope/output bytes exactly and confirms rejected rows
+remain absent. No body/key/bearer is printed. Hosted results pending.
+
+All disabled gates, historical captures, revocation/suppression knowledge,
+worker authority/leases and accepted/unknown holds are preserved. No schema,
+public route, worker wiring, production issuance, cleanup, merge or deployment.
+The prior clean original checkout remains untouched; follow-up work stays in the
+existing isolated worktree and will be pushed to the same PR.
+
+
+### Ciphertext-size fix validation evidence (2026-10-22)
+
+Runtime/test commit `6e1fe3f267bc43b4ed88a219f3168bedd1864f36` passed
+[run 39776481595](https://github.com/7mus7y-dotcom/pera-wp/actions/runs/39776481595):
+**single-site job 119816608224**, **multisite job 119816607949**. Both completed
+logs were inspected. Each has 58 passing output assertions: near-limit Unicode
+and permitted control bodies commit, replay idempotently across rotation without
+rewriting ciphertext, and recover exact full envelope/output bytes in a separate
+PHP process. Oversized valid submissions fail on both initial/repeated creation
+before any output INSERT, leave no output row, and remain absent after process
+restart. Exact cipher boundary and one-byte-over regressions pass. All 25
+standalone suites, first-party PHP lint, shell/Compose checks, prior SQL/race/
+worker/scheduler assertions and all five desktop/mobile browser suites pass.
+No failed assertion or PHP warning/fatal/notice/deprecation was found. Each log
+retains the same five pre-existing intentional/legacy management SQL diagnostics
+previously documented; this fix emits no new diagnostics or plaintext bodies.
+
+Evidence retained through **2026-11-05**:
+[single-site artifact 12424663021](https://github.com/7mus7y-dotcom/pera-wp/actions/runs/39776481595/artifacts/12424663021),
+[multisite artifact 12424223715](https://github.com/7mus7y-dotcom/pera-wp/actions/runs/39776481595/artifacts/12424223715).
+
+This final evidence update changes only the living plan; tested runtime and test
+bytes remain unchanged. Publication verified exact blob/tree hashes and uses the
+same PR branch. The finding will be answered with this evidence, resolved and
+latest-head review requested after publication. No existing oversized stored row
+is rewritten/deleted; such a row remains fail-closed under the existing read cap.
+Existing immutable attempt metadata remains retained when new output creation
+is rejected. No automatic cleanup, gate change, merge or deployment.

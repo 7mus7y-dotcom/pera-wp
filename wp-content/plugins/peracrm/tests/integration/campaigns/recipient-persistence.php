@@ -52,6 +52,12 @@ function peracrm_test_persistence_sql(array $content): void
         persistence_expect($store->bindAttempt($submission,$binding,$output) === $submission->hash()
             && $store->bindAttempt($submission,array_reverse($binding,true),$output) === $submission->hash(),'exact attempt creation idempotent');
         $before = $store->attempt($binding['attempt_key']);
+        $cipher = new PeraCRM_CampaignOutputCipher(['e1'=>str_repeat('s',32)],'e1');
+        $store->persistOutput($submission,$binding,$output,$cipher);
+        [$recoveredSubmission,$recoveredOutput] = $store->recoverOutput($binding,$before,$cipher);
+        persistence_expect($recoveredSubmission->fields() === $submission->fields()
+            && $recoveredOutput->fields() === $output->fields(),'actual approved SQL capture expansion and random bearer bytes recover exactly');
+
         foreach (['delivery_key'=>str_repeat('e',64),'snapshot_id'=>62,'revision_id'=>52,'recipient_id'=>72,'subject'=>'Changed synthetic subject'] as $key=>$value) {
             $data = $submission->fields(); $data[$key] = $value;
             persistence_reject(fn()=>$store->bindAttempt(new PeraCRM_CampaignSubmissionV1($data),$binding,$output));

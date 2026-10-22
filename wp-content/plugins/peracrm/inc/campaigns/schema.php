@@ -113,6 +113,7 @@ function peracrm_campaigns_assert_schema()
         $expected_keys = [
             'peracrm_campaign_recipient_identities' => ['deployment','blog_id','subscriber_id'],
             'peracrm_campaign_recipient_tokens' => ['deployment','blog_id','digest'],
+            'peracrm_campaign_submission_outputs' => ['deployment','blog_id','attempt_key'],
             'peracrm_campaign_submission_attempts' => ['deployment','blog_id','attempt_key'],
             'peracrm_campaign_worker_events' => ['delivery_id', 'version'],
             'peracrm_campaign_queue_jobs' => ['frozen_revision_id'],
