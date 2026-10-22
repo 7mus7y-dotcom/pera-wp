@@ -212,6 +212,58 @@ final class PeraCRM_CampaignRecipientPersistence
         });
     }
 
+    /** Authenticated global withdrawal only. No preference, consent or identity authority.
+     * The initial locator is advisory; all authority is rechecked under mailbox,
+     * subscriber, identity and token locks, in that order, before any mutation.
+     */
+    public function withdrawToken(#[\SensitiveParameter] string $token, #[\SensitiveParameter] array $keys, string $deployment): bool
+    {
+        try {
+            peracrm_campaign_recipient_require($deployment === $this->deployment && strlen($token) <= 256);
+            $digest = hash('sha256', $token);
+            $located = $this->locate($digest);
+            peracrm_campaign_recipient_require($located !== null && $located['purpose'] === 'unsubscribe');
+            return $this->transaction(function () use ($token, $keys, $digest, $located) {
+                global $wpdb;
+                $binding = $located['binding'];
+                $this->checkBinding($binding);
+                [$subscriber, $suppression] = peracrm_campaigns_repository_lock_mailbox($binding['mailbox']);
+                peracrm_campaign_recipient_require($subscriber && (int)$subscriber['id'] === $binding['subscriber_id']
+                    && $subscriber['normalized_email'] === $binding['mailbox']);
+                $this->requireIdentity($binding);
+                $row = $this->find('recipient_tokens', ['digest'=>$digest]);
+                peracrm_campaign_recipient_require($row && (int)$row['revoked'] === 0
+                    && (int)$row['subscriber_id'] === $binding['subscriber_id']
+                    && hash_equals($row['binding_hash'], hash('sha256', $row['binding_json'])));
+                $current = json_decode($row['binding_json'], true, 512, JSON_THROW_ON_ERROR);
+                peracrm_campaign_recipient_require($current === $located);
+                // Locked registry participant: never call activeBinding/locate here,
+                // since those APIs own a separate top-level transaction.
+                $verifier = new PeraCRM_CampaignRecipientTokens($keys, (string)array_key_first($keys), $this->deployment,
+                    function ($actualDigest, $purpose, $actualBinding, $protocol) use ($digest, $current, $binding) {
+                        return $actualDigest === $digest && $purpose === 'unsubscribe' && $actualBinding === $binding
+                            && $protocol === ['protocol'=>$current['protocol'], 'deployment'=>$this->deployment,
+                                'key_id'=>$current['key_id'], 'issued'=>$current['issued'], 'expires'=>$current['expires']];
+                    });
+                peracrm_campaign_recipient_require($verifier->verify($token, 'unsubscribe', $binding, time()));
+                $email = $binding['mailbox'];
+                $evidence = ['source'=>'public_withdrawal', 'source_ref'=>'recipient-pc1',
+                    'evidence_ref'=>'', 'policy_version'=>'', 'occurred_at'=>gmdate('Y-m-d H:i:s')];
+                if (empty($suppression['unsubscribe'])) {
+                    peracrm_campaigns_repository_suppress($email, 'unsubscribe', $evidence, 0);
+                }
+                if ($subscriber['subscription_state'] !== 'unsubscribed') {
+                    self::db($wpdb->update(peracrm_table('peracrm_subscribers'), [
+                        'subscription_state'=>'unsubscribed', 'withdrawn_at'=>$evidence['occurred_at'],
+                        'updated_at'=>$evidence['occurred_at'], 'version'=>(int)$subscriber['version']+1,
+                    ], ['id'=>$subscriber['id']]));
+                    peracrm_campaigns_repository_event($email, $subscriber, 'withdrawn', 'unsubscribed', $evidence, 0);
+                }
+                return true;
+            });
+        } catch (Throwable $error) { return false; }
+    }
+
     /** Persist before any future transport. A hash receipt grants no send authority.
      * Does not retain bodies or support retry reconstruction from random tokens. */
     public function bindAttempt(#[\SensitiveParameter] PeraCRM_CampaignSubmissionV1 $submission, #[\SensitiveParameter] array $binding, #[\SensitiveParameter] PeraCRM_CampaignRecipientOutput $output): string

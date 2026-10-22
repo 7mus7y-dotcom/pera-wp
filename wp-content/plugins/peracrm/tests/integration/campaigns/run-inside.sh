@@ -200,4 +200,17 @@ for freeze_race in start-start start-save continue-cancel cancel-continue contin
 done
 wp eval-file /tests/freeze-worker.php restore
 wp eval-file /tests/queue-ui-fixture.php
+wp eval-file /tests/withdrawal.php
+for withdrawal_race in withdraw-withdraw revoke-withdraw withdraw-revoke identity-withdraw withdraw-identity delete-withdraw withdraw-delete; do
+    rm -f /tmp/peracrm-withdrawal-held /tmp/peracrm-withdrawal-winner /tmp/peracrm-withdrawal-loser
+    wp eval-file /tests/withdrawal-race.php prepare "$withdrawal_race"
+    wp eval-file /tests/withdrawal-race.php winner "$withdrawal_race" &
+    withdrawal_winner_pid=$!
+    wait_for_migration_marker /tmp/peracrm-withdrawal-held
+    wp eval-file /tests/withdrawal-race.php loser "$withdrawal_race" &
+    withdrawal_loser_pid=$!
+    wait "$withdrawal_winner_pid"
+    wait "$withdrawal_loser_pid"
+    wp eval-file /tests/withdrawal-race.php verify "$withdrawal_race"
+done
 printf 'PASS disposable %s WordPress/MySQL fixtures\n' "$fixture_mode"
