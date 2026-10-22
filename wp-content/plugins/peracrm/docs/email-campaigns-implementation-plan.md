@@ -3161,3 +3161,33 @@ worker authority/leases and accepted/unknown holds are preserved. No schema,
 public route, worker wiring, production issuance, cleanup, merge or deployment.
 The prior clean original checkout remains untouched; follow-up work stays in the
 existing isolated worktree and will be pushed to the same PR.
+
+
+### Ciphertext-size fix validation evidence (2026-10-22)
+
+Runtime/test commit `6e1fe3f267bc43b4ed88a219f3168bedd1864f36` passed
+[run 39776481595](https://github.com/7mus7y-dotcom/pera-wp/actions/runs/39776481595):
+**single-site job 119816608224**, **multisite job 119816607949**. Both completed
+logs were inspected. Each has 58 passing output assertions: near-limit Unicode
+and permitted control bodies commit, replay idempotently across rotation without
+rewriting ciphertext, and recover exact full envelope/output bytes in a separate
+PHP process. Oversized valid submissions fail on both initial/repeated creation
+before any output INSERT, leave no output row, and remain absent after process
+restart. Exact cipher boundary and one-byte-over regressions pass. All 25
+standalone suites, first-party PHP lint, shell/Compose checks, prior SQL/race/
+worker/scheduler assertions and all five desktop/mobile browser suites pass.
+No failed assertion or PHP warning/fatal/notice/deprecation was found. Each log
+retains the same five pre-existing intentional/legacy management SQL diagnostics
+previously documented; this fix emits no new diagnostics or plaintext bodies.
+
+Evidence retained through **2026-11-05**:
+[single-site artifact 12424663021](https://github.com/7mus7y-dotcom/pera-wp/actions/runs/39776481595/artifacts/12424663021),
+[multisite artifact 12424223715](https://github.com/7mus7y-dotcom/pera-wp/actions/runs/39776481595/artifacts/12424223715).
+
+This final evidence update changes only the living plan; tested runtime and test
+bytes remain unchanged. Publication verified exact blob/tree hashes and uses the
+same PR branch. The finding will be answered with this evidence, resolved and
+latest-head review requested after publication. No existing oversized stored row
+is rewritten/deleted; such a row remains fail-closed under the existing read cap.
+Existing immutable attempt metadata remains retained when new output creation
+is rejected. No automatic cleanup, gate change, merge or deployment.
