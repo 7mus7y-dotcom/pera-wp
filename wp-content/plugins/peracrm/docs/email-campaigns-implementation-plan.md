@@ -3291,3 +3291,41 @@ Desktop/mobile browser fixtures exercise visible confirmation, state-invariant
 GET, clean POST action, no assets/cookies and repeated machine/human requests.
 These are withdrawal flows, not new-protocol preference acceptance.
 Hosted execution evidence remains pending; local Docker acceptance is not claimed.
+
+
+### Publication checkpoint and review correction (2026-10-22)
+
+Non-draft [PR #1473](https://github.com/7mus7y-dotcom/pera-wp/pull/1473)
+is open against main. Final runtime/test commit
+`5ed80329f7be35881872dab8784286f6c4a66481`, tree
+`7f1d1d9430f1ef2ce19c807383ee31695725d795`, matches the isolated local tree.
+Connected GitHub published commits directly on verified main, with every uploaded
+runtime blob checked by the identical final tree. The original checkout and
+isolated worktree are clean after commits. No shell push retry was attempted.
+
+Automatic review of initial `675f40ab` found missing persisted rewrite upgrades.
+Fixed in `5ed80329`: named withdrawal registrar is called by the shared
+activation/upgrade registrar and the rewrite marker advances v5 -> v6.
+Added actual per-blog existing-install fixtures that remove the in-memory rules,
+seed old persisted rules, invoke automatic upgrade without init/manual flush,
+assert both endpoints persist and assert a second check does not flush.
+The finding's code fix is pushed; final rereview and hosted verification remain
+pending, so no clean final review of this PR is claimed.
+
+The follow-up also checks wrong deployment on POST, cross-blog denial,
+preservation of hard-bounce/complaint/administrative flags, and an independent
+unsubscribe bearer issued alongside an expired preference bearer for the same
+identity. No expired-preference-page navigation is inferred from this test.
+All 26 local standalone suites and first-party lint pass again after the routing
+fix. Shell/JavaScript syntax and whitespace checks pass.
+
+[Runtime CI 39795574938](https://github.com/7mus7y-dotcom/pera-wp/actions/runs/39795574938)
+has single-site job 119882132761 and multisite job 119882133323, both still
+**queued with no executed steps** at this checkpoint. Prior publication runs
+39794966042 and 39795308209 were queued/superseded, not passing acceptance.
+No completed logs, browser screenshots, SQL/concurrency success or artifacts
+exist for the new handlers yet. Do not mark technical acceptance complete until
+both topologies execute, completed logs are inspected and desktop/mobile
+withdrawal captures are reviewed. The final plan-evidence commit changes no
+runtime or fixture bytes. All production/issuance/intake/collection/transport/cron
+gates stay disabled; no merge or deployment.
