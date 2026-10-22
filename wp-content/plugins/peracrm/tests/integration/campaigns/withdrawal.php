@@ -1,5 +1,26 @@
 <?php
 require_once __DIR__.'/withdrawal-fixture.php';
+// Exercise an existing v5 installation without an init or manual permalink flush.
+// The shared registrar is also the fresh-activation path.
+foreach (array_unique([get_current_blog_id(),peracrm_with_target_blog(static fn() => get_current_blog_id())]) as $blog) {
+    if (is_multisite()) { switch_to_blog($blog); }
+    global $wp_rewrite;
+    $wp_rewrite->init();
+    unset($wp_rewrite->extra_rules_top['^email-unsubscribe/?$'],$wp_rewrite->extra_rules_top['^email-unsubscribe/one-click/?$']);
+    update_option('peracrm_rewrite_version','peracrm-'.PERACRM_VERSION.'-crm-routes-v5',false);
+    update_option('rewrite_rules',['^legacy-only/?$'=>'index.php?legacy=1'],false);
+    $flushes = 0; $probe = static function ($rules) use (&$flushes) { ++$flushes; return $rules; };
+    add_filter('rewrite_rules_array',$probe);
+    pera_crm_maybe_flush_rewrite_rules();
+    $rules = get_option('rewrite_rules');
+    withdrawal_expect(isset($rules['^email-unsubscribe/?$'],$rules['^email-unsubscribe/one-click/?$'])
+        && get_option('peracrm_rewrite_version') === peracrm_rewrite_version(),'v5 upgrade persists withdrawal routes on blog '.$blog);
+    pera_crm_maybe_flush_rewrite_rules();
+    remove_filter('rewrite_rules_array',$probe);
+    withdrawal_expect($flushes === 1,'rewrite upgrade flushes exactly once on blog '.$blog);
+    if (is_multisite()) { restore_current_blog(); }
+}
+$wp_rewrite->init();
 peracrm_with_target_blog(static function () {
     global $wpdb;
     $service = withdrawal_service(); $store = withdrawal_store();
