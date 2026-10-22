@@ -10,6 +10,10 @@ peracrm_with_target_blog(static function () {
     $store->revokeToken(hash('sha256',$revoked['token']));
     $old = withdrawal_seed(21005,'withdrawal-deleted');
     $store->changeIdentity(21005,1,$old['binding']['mailbox'],false);
+    peracrm_campaigns_repository_mutate($seed['binding']['mailbox'],static function () use ($wpdb,$seed) {
+        peracrm_campaigns_db_require($wpdb->update(peracrm_table('peracrm_email_suppressions'),
+            ['hard_bounce'=>1,'complaint'=>1,'administrative'=>1],['normalized_email'=>$seed['binding']['mailbox']]));
+    });
     $before = withdrawal_snapshot();
     foreach (['GET','HEAD'] as $method) {
         withdrawal_expect($service->request($method,false,$token,'',[]) === [200,'confirm'],'scanner '.$method.' offers confirmation');
@@ -25,7 +29,10 @@ peracrm_with_target_blog(static function () {
     withdrawal_expect($service->request('POST',true,$token,'application/json','List-Unsubscribe=One-Click')[0] === 400,'unsupported content type denied');
     withdrawal_expect(withdrawal_snapshot() === $before,'scanner and invalid requests change no SQL rows');
     $wrong = new PeraCRM_CampaignRecipientWithdrawal($store,withdrawal_keys(),'fixture-other');
-    withdrawal_expect($wrong->request('GET',false,$token,'',[])[0] === 400,'wrong deployment denied');
+    withdrawal_expect($wrong->request('GET',false,$token,'',[])[0] === 400
+        && $wrong->request('POST',true,$token,'application/x-www-form-urlencoded','List-Unsubscribe=One-Click')[0] === 400,'wrong deployment denied');
+    $wrong = new PeraCRM_CampaignRecipientWithdrawal(new PeraCRM_CampaignRecipientPersistence('fixture-withdrawal',get_current_blog_id()+1),withdrawal_keys(),'fixture-withdrawal');
+    withdrawal_expect($wrong->request('POST',true,$token,'application/x-www-form-urlencoded','List-Unsubscribe=One-Click')[0] === 400,'wrong blog denied');
     $wrong = new PeraCRM_CampaignRecipientWithdrawal($store,['k1'=>str_repeat('wrong',10)],'fixture-withdrawal');
     withdrawal_expect($wrong->request('POST',true,$token,'application/x-www-form-urlencoded','List-Unsubscribe=One-Click')[0] === 400,'wrong signing key denied');
     foreach (['suppression','subscriber','event','commit'] as $fault) {
@@ -51,7 +58,13 @@ peracrm_with_target_blog(static function () {
     withdrawal_expect($service->request('POST',false,$token,'application/x-www-form-urlencoded',['confirm'=>'withdraw','topics'=>['news'],'subscription_state'=>'subscribed'])[0] === 200
         && withdrawal_snapshot() === $after,'repeated valid human withdrawal idempotent and no consent or topics authority');
     $row = peracrm_campaigns_repository_identity($seed['binding']['mailbox']);
-    withdrawal_expect($row['subscription_state'] === 'unsubscribed' && (int)$row['unsubscribe'] === 1 && $row['preferences_json'] === '[]','global state and suppression persisted together');
+    withdrawal_expect($row['subscription_state'] === 'unsubscribed' && (int)$row['unsubscribe'] === 1 && $row['preferences_json'] === '[]'
+        && (int)$row['hard_bounce'] === 1 && (int)$row['complaint'] === 1 && (int)$row['administrative'] === 1,'global state and cumulative suppressions persisted together');
+    // Same identity and issue time as the expired preference link. This proves
+    // independent withdrawal remains valid, not that preference-page navigation exists.
+    $independent = withdrawal_seed(21003,'withdrawal-expired','unsubscribe',90000);
+    withdrawal_expect($service->request('POST',true,$independent['token'],'application/x-www-form-urlencoded','List-Unsubscribe=One-Click')[0] === 200,
+        'independent withdrawal remains usable after preference expiry');
     $http = ['target'=>home_url('/')];
     foreach (['desktop','mobile','machine','revoked'] as $i=>$name) {
         $entry = withdrawal_seed(21100+$i,'withdrawal-http-'.$name);
