@@ -201,6 +201,7 @@ done
 wp eval-file /tests/freeze-worker.php restore
 wp eval-file /tests/queue-ui-fixture.php
 wp eval-file /tests/withdrawal.php
+wp eval-file /tests/recipient-preferences.php
 for withdrawal_race in withdraw-withdraw revoke-withdraw withdraw-revoke identity-withdraw withdraw-identity delete-withdraw withdraw-delete; do
     rm -f /tmp/peracrm-withdrawal-held /tmp/peracrm-withdrawal-winner /tmp/peracrm-withdrawal-loser
     wp eval-file /tests/withdrawal-race.php prepare "$withdrawal_race"
@@ -212,5 +213,17 @@ for withdrawal_race in withdraw-withdraw revoke-withdraw withdraw-revoke identit
     wait "$withdrawal_winner_pid"
     wait "$withdrawal_loser_pid"
     wp eval-file /tests/withdrawal-race.php verify "$withdrawal_race"
+done
+for preference_race in edit-edit revoke-edit edit-revoke identity-edit edit-identity delete-edit edit-delete withdraw-edit edit-withdraw; do
+    rm -f /tmp/peracrm-preferences-held /tmp/peracrm-preferences-winner /tmp/peracrm-preferences-loser
+    wp eval-file /tests/recipient-preferences-race.php prepare "$preference_race"
+    wp eval-file /tests/recipient-preferences-race.php winner "$preference_race" &
+    preference_winner_pid=$!
+    wait_for_migration_marker /tmp/peracrm-preferences-held
+    wp eval-file /tests/recipient-preferences-race.php loser "$preference_race" &
+    preference_loser_pid=$!
+    wait "$preference_winner_pid"
+    wait "$preference_loser_pid"
+    wp eval-file /tests/recipient-preferences-race.php verify "$preference_race"
 done
 printf 'PASS disposable %s WordPress/MySQL fixtures\n' "$fixture_mode"
