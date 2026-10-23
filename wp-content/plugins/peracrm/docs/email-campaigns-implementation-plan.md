@@ -320,3 +320,114 @@ completed on `b76ff23d` with no findings. This evidence-only follow-up changes n
 runtime or fixture bytes. Full worker integration and its final authority/race
 matrix remain dependent work exactly as listed above. Production gates remain
 blocked; no real transport, sending, intake, collection, merge or deployment.
+
+## Phase 5B — worker preparation and mocked SES integration (2026-10-23)
+
+**Current task:** tenth bounded Phase 5B PR. Phase 5 remains **in progress**.
+#1474 is merged with passing final-runtime CI 39913876819 and clean review
+on final head `4d9dd8f70ba6115674b82b83b601cf21ee91c8f4` (comment
+6359499969). Latest main also includes #1475 at
+`a0fdebae3b24b5fce6e340fdd283f0d37ad5990e`; its atomic preparation service is
+reused, not replaced. No applicable AGENTS.md found in workspace/repository or
+ancestors. Read this plan/history, provider specification, capture/publication,
+worker, submission, recipient expansion/token/persistence and SES contracts.
+Original clean `/workspace/pera-wp` at `321ffa08` is preserved. Isolated worktree
+`/workspace/pera-worker` reconstructs the eight newer main files through the
+connector, checking every blob SHA and baseline tree
+`0c07f436c955cb3b6fcf853f275318f63a0bba60`. Shell fetch failed once on unreachable
+proxy port 8080 and was not retried. Reconstruction is local scaffolding only;
+publication parents directly to verified latest main.
+
+The concrete worker content projection reads only bound published frozen revision,
+complete frozen preparation, exact membership and integrity-checked captured
+content. Capture state `unpublished_content` is historical storage terminology;
+the separate published frozen revision supplies publication authority. Schema-1
+review captures are rejected, never upgraded. Captured structured sender and
+subject fields construct the envelope; no live draft/configuration or rendering.
+All reads occur inside the worker transaction after owner/version/lease, job,
+due-time and eligibility checks, with a second authority/lease check after decode.
+
+`submitPrepared` performs preflight, releases its locks, calls atomic recipient
+preparation, then performs fresh final job/due-time, mailbox/consent/suppression,
+identity epoch and owner/version/lease checks. Only then does the inflight state
+commit and the injected SES mapper execute. No transaction spans transport.
+The shared mailbox mutex serializes final checks with withdrawal/import/lifecycle
+writes. Preparation can leave durable unused output if cancellation, withdrawal,
+lease loss or interruption wins; this is never submission authority. Claimed
+recovery refunds the reserved attempt and permits exact-byte recovery under a
+new owner. Accepted/unknown rows cannot be submitted or claimed again. Proven
+non-acceptance alone follows existing bounded retry rules with a new attempt.
+Existing attempt replay uses stored encrypted bytes, even without issuance keys
+or a valid issuance origin, and never overwrites immutable conflicting bindings.
+Historical recovery remains available through the existing separate store API.
+
+### Validation checkpoint and limits
+
+Local PHP 8.4: 27 standalone suites and 200 plugin PHP syntax checks excluding
+vendor-webpush passed before the final focused test extension; that focused suite
+also passed. Shell syntax and whitespace checks passed. Added integrated SQL
+fixtures cover accepted/unknown no-resubmit, proven transient retry, interrupted
+preparation/exact-byte replay, stale owner and refunded recovery, actual withdrawal
+in the preparation interval, pause, cancellation, future scheduling, invalid
+membership/authority, historical review capture rejection and output insert
+rollback. Mock SES checks durable digest/binding/ciphertext presence and COMMIT
+before transport. Four independent-process races cover concurrent submission,
+withdrawal, cancellation and process exit after preparation COMMIT. Both SQL
+topologies run through the existing hosted workflow; hosted results are pending
+at initial publication and must be recorded after execution.
+
+Local Docker health failed once: socket `connect: operation not permitted`;
+daemon is running, task UID 1000. No local SQL/browser pass is claimed. Hosted
+CI remains the required acceptance evidence for SQL/races. No new UI/CSS/JS.
+
+Production dispatch remains unconditionally blocked, with no concrete production
+worker or transport factory, HTTP client, credentials, sending, cron activation,
+real intake or public collection. All additions are plugin-owned and internal;
+fixtures use disposable synthetic data and injected mocks only. Existing external
+privacy/log/HTTPS/key/retention/restore and old-mailbox/deletion policy blockers
+remain. Provider activation, real transport, authenticated feedback and readiness
+work remain future bounded PRs. No merge or deployment.
+
+### Initial hosted correction and review
+
+Non-draft PR #1476 published runtime `25b7861c` with local-matching tree
+`528e81c6f7da238c6059c208c6dbf6035c79a5df`. Initial review completed clean on
+that runtime (summary comment 6362286799). Run 39935447644 passed the integrated
+SQL service scenarios but failed the new process-race setup: an arrow closure
+using compact() did not capture variables mentioned only as strings. Replaced
+that fixture setup with explicit array values. This failure is not acceptance.
+Local review also canonicalized defensive scope copies so replay does not depend
+on configuration key order, and strengthened the integrated accepted/unknown/
+cancelled cases with historical exact-byte recovery plus unchanged worker-state
+assertions. All 27 local suites/200 syntax checks passed again; new final-head
+hosted validation and review are required for this runtime correction.
+
+### Final runtime acceptance (2026-10-23)
+
+[CI 39936033892](https://github.com/7mus7y-dotcom/pera-wp/actions/runs/39936033892)
+completed **successfully** on final runtime/fixtures
+`04cad099dbb48cb31e1713abc9904cfb433f0b4e`, tree
+`230ef3e168e6a625e49653cd2febabedac899f62`, matching the isolated local tree.
+Single-site job `120355671172` and multisite job `120355670877` both passed.
+Completed logs from both jobs were inspected. All integrated worker SQL cases,
+all four new independent-process races, the inherited atomic rollback/conflict/
+concurrency suites, existing worker/scheduler tests and withdrawal/preferences/
+browser fixtures passed. In particular both topologies prove exact historical
+recovery leaves accepted/unknown/cancelled authority unchanged, only fresh valid
+claims can submit, concurrent workers make one mock call, withdrawal/cancellation
+make zero calls, and a killed process after preparation COMMIT recovers identical
+bytes under fresh authorization. Captured headers and both bodies traverse the
+SES mapper with synthetic mock transport only, after durable state and inflight
+COMMIT. Earlier failing run 39935447644 is superseded, not relabeled as passing.
+
+[Final clean review](https://github.com/7mus7y-dotcom/pera-wp/pull/1476#issuecomment-6362434356)
+covers runtime `04cad099db`; summary 6362286799 reports completed, no findings and
+no unresolved findings. All 27 local standalone suites and 200 PHP syntax checks,
+plus shell syntax/whitespace passed. Hosted artifacts are retained through
+2026-11-06: single-site `12494346363`, multisite `12493628696`. No UI changed;
+no new screenshot inspection or real-host/provider acceptance is claimed.
+
+This follow-up changes only acceptance documentation; runtime and fixture bytes
+remain exactly those tested and reviewed above. Production dispatch, recipient
+factories, intake/collection and cron remain blocked. No real HTTP, credentials,
+mail, merge or deployment. Original checkout remains clean and preserved.
