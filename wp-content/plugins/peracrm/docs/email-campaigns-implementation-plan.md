@@ -68,17 +68,19 @@ COMMIT failures roll back. Withdrawn profiles can be edited without changing
 withdrawal, subscription state, suppression flags or consent evidence. Deleted
 or replaced identities deny old access; no replacement mailbox is addressed.
 
-An optional `withdrawal_token` supplied independently alongside a preference
+A `withdrawal_token` issued independently alongside a preference
 link is authenticated strictly as unsubscribe authority by #1473's service.
 When valid it provides a direct link to the existing visible confirmation route,
 including when preference access expires. That GET remains read-only and the
 existing withdrawal POST handles persistence. An expired preference token alone
 cannot produce, reconstruct, mint or substitute for withdrawal authority. Without
 an independent valid bearer the page directs recipients to the separate original
-email unsubscribe link. This PR does not change expansion/issuance bytes, add a
-provider/worker, or claim future messages already carry the optional bearer.
-Future authorized issuance must supply the separate link/bearer; existing emails
-retain their independently issued unsubscribe link.
+email unsubscribe link. The internal expansion service places the already independently issued
+unsubscribe bearer in new preference URLs and preserves the separate unsubscribe
+link. No extra token is issued and no public request can invoke expansion.
+Existing persisted output/recovery bytes remain immutable; old links without the
+parameter retain their separate original-email unsubscribe link. Production
+issuance and delivery remain disabled, with no provider/worker integration.
 
 Rendering uses CRM-owned CSS and bypasses theme hooks, scripts, analytics,
 fonts and third-party assets. Responses retain no-store/no-referrer, noindex,
@@ -161,3 +163,15 @@ is anonymous/HttpOnly/Strict; foreign Origin and explicit cross-site metadata
 remain rejected. #1473 withdrawal remains cookie-free and unchanged. Earlier
 metadata-only/no-cookie descriptions above are historical checkpoints, superseded
 by the current contract. New full hosted validation remains pending.
+
+
+### Prepared-link connection
+
+New internal recipient expansions now carry their already independently issued
+unsubscribe bearer as `withdrawal_token` in the preference URL, while preserving
+the separate unsubscribe URL. This completes clickable expired-page navigation
+for newly prepared links without public issuance or changed stored output bytes.
+Focused expansion regressions verify matching independent bearers, expiry
+separation and marker-only HTML/text escaping. No worker/provider is integrated;
+production issuance remains disabled. Previously prepared links without that
+parameter use the original email's separate unsubscribe link.

@@ -70,18 +70,24 @@ function peracrm_test_recipient_services(array $content, callable $expect, int $
     $result = $expander->expand($content,$hash,$binding,$now);
     $fields = $result->fields();
     $expect($fields['snapshot_hash'] === $hash && $fields['personalization_version'] === 1 && !str_contains($fields['html'],'{{') && !str_contains($fields['text'],'{{'), 'resolved output retains approval hash');
+    $expandedTokens = [];
     foreach (['preferences','unsubscribe'] as $purpose) {
         $path = $purpose === 'preferences' ? '/email-preferences/' : '/email-unsubscribe/';
         preg_match('~https://example.org'.$path.'\?v=1&token=([^\s]+)~',$fields['text'],$m);
-        $expect(isset($m[1]) && $service->verify(rawurldecode($m[1]),$purpose,$binding,$now), 'raw text URL has correct purpose and binding');
+        $expect(isset($m[1]) && $service->verify(explode('&',rawurldecode($m[1]))[0],$purpose,$binding,$now), 'raw text URL has correct purpose and binding');
+        parse_str(parse_url($m[0],PHP_URL_QUERY),$query);
+        $expandedTokens[$purpose]=$query;
         $expect(str_contains($fields['html'],htmlspecialchars($m[0],ENT_QUOTES,'UTF-8')), 'HTML URL is attribute escaped');
     }
+    $expect($expandedTokens['preferences']['withdrawal_token'] === $expandedTokens['unsubscribe']['token'], 'preference URL carries the independently issued withdrawal bearer');
+    $expect(!$service->verify($expandedTokens['preferences']['token'],'preferences',$binding,$now+86400)
+        && $service->verify($expandedTokens['preferences']['withdrawal_token'],'unsubscribe',$binding,$now+86400), 'prepared withdrawal navigation survives preference expiry without issuance');
     $expect(!str_contains($fields['text'],'&amp;') && !str_contains($fields['html'],'?v=1&token='), 'separate HTML/text escaping');
     foreach (['html','text'] as $part) {
         $original = $content['output'][$part]; $expanded = $fields[$part];
         foreach ($content['slots'] as $name=>$slot) {
             $original = str_replace('{{'.$name.'}}','SLOT',$original);
-            $expanded = preg_replace('~https://example.org/email-(?:preferences|unsubscribe)/\?v=1(?:&amp;|&)token=[a-zA-Z0-9._-]+~','SLOT',$expanded);
+            $expanded = preg_replace('~https://example.org/email-(?:preferences|unsubscribe)/\?v=1(?:&amp;|&)token=[a-zA-Z0-9._-]+(?:(?:&amp;|&)withdrawal_token=[a-zA-Z0-9._-]+)?~','SLOT',$expanded);
         }
         $expect($original === $expanded, 'only typed markers change in '.$part);
     }

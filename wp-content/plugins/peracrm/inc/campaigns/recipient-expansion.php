@@ -72,11 +72,18 @@ final class PeraCRM_CampaignRecipientExpansion
             $slotHtml = preg_replace('~<title\b[^>]*>.*?</title\s*>~is', '', $html);
             peracrm_campaign_recipient_require(!preg_match('~<\s*title\b~i', $slotHtml));
             peracrm_campaign_deliverable_validate(array_replace($content['output'], ['html'=>$slotHtml]), $content['slots']);
+            // Issue the two independent purposes only during this authorized internal
+            // expansion. Public/expired preference requests never reach issuance.
+            $bearers = [];
+            foreach ($content['slots'] as $slot) { $bearers[$slot['purpose']] = $this->tokens->issue($slot['purpose'], $binding, $now); }
             foreach ($content['slots'] as $name => $slot) {
-                $token = $this->tokens->issue($slot['purpose'], $binding, $now);
+                $token = $bearers[$slot['purpose']];
                 // Fixed future paths; no route is registered by this service.
                 $path = $slot['purpose'] === 'preferences' ? '/email-preferences/' : '/email-unsubscribe/';
                 $url = $this->origin.$path.'?v=1&token='.rawurlencode($token);
+                if ($slot['purpose'] === 'preferences') {
+                    $url .= '&withdrawal_token='.rawurlencode($bearers['unsubscribe']);
+                }
                 $marker = '{{'.$name.'}}';
                 $anchor = '<a href="'.$marker.'">'.esc_html($slot['label']).'</a>';
                 peracrm_campaign_recipient_require(self::atTagBoundary($html, strpos($html, $anchor)));
