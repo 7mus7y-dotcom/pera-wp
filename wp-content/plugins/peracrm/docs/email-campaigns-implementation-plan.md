@@ -299,3 +299,24 @@ factories, cron activation, real intake and public collection remain disabled.
 No real HTTP transport, credentials, provider activation, sending, merge or
 deployment. All runtime and fixtures remain PeraCRM-owned. Earlier external
 privacy/key/retention/restore and old-mailbox/deletion policy blockers remain.
+
+### Hosted acceptance and publication
+
+Non-draft [PR #1475](https://github.com/7mus7y-dotcom/pera-wp/pull/1475)
+contains runtime/fixtures `b76ff23d40884d2e889d32f88eefe50a831595a0`, tree
+`dd5e08e398dcf68beb956f0794753e1355549504` matching the isolated local tree,
+parented directly to main. [CI 39929679591](https://github.com/7mus7y-dotcom/pera-wp/actions/runs/39929679591)
+completed successfully in both single-site job `120334565586` and multisite job
+`120334565711`. Completed logs for both were inspected: all five injected failure
+boundaries roll back with zero mock calls; actual issued digest/metadata,
+historical-capture rejection, exact replay without issuance inputs, ciphertext
+invariance, conflict/missing-output denial, four independent-process blocking
+races and the SES mapper mock COMMIT boundary all passed. Existing SQL, worker,
+withdrawal/preferences and browser suites also passed in both topologies.
+No new UI was added or changed; no new visual acceptance is claimed.
+
+[Final runtime review](https://github.com/7mus7y-dotcom/pera-wp/pull/1475#issuecomment-6361467306)
+completed on `b76ff23d` with no findings. This evidence-only follow-up changes no
+runtime or fixture bytes. Full worker integration and its final authority/race
+matrix remain dependent work exactly as listed above. Production gates remain
+blocked; no real transport, sending, intake, collection, merge or deployment.
