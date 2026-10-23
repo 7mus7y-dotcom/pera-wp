@@ -40,8 +40,7 @@ final class PeraCRM_CampaignRecipientPreferences
             $fields=array_keys($body); sort($fields);
             if ($fields!==['language','proof','token','topics'] || ($body['token']??null)!==$token
                 || strtolower(trim(explode(';',$contentType)[0]))!=='application/x-www-form-urlencoded'
-                || $origin==='' || $expectedOrigin==='' || !hash_equals($expectedOrigin,$origin)
-                || !in_array($fetchSite,['','same-origin'],true)
+                || !peracrm_campaign_recipient_preferences_same_origin($origin,$expectedOrigin,$fetchSite)
                 || !$this->validProof($token,$body['proof']??null,time())) { return $failed; }
             try { $profile=peracrm_campaign_recipient_preferences_profile(['language'=>$body['language'],'topics'=>$body['topics']]); }
             catch (Throwable $error) { return $failed; }
@@ -90,4 +89,15 @@ function peracrm_campaign_recipient_preferences_respond(?PeraCRM_CampaignRecipie
         ? add_query_arg('token',$withdrawal,home_url('/email-unsubscribe/')) : '';
     $proof=$data!==null ? $service->proof($token,time()) : '';
     include __DIR__.'/../views/pages/recipient-preferences.php';
+}
+
+/** Fetch serializes Origin as null for a no-referrer form navigation in Chromium.
+ * Accept that privacy-preserving case only with browser-enforced same-origin
+ * Fetch Metadata. Every submission separately requires the bearer-bound proof.
+ * Missing Origin, foreign origins, same-site and cross-site remain denied.
+ */
+function peracrm_campaign_recipient_preferences_same_origin(string $origin, string $expected, string $site): bool
+{
+    return $expected !== '' && in_array($site,['','same-origin'],true)
+        && (($origin !== '' && hash_equals($expected,$origin)) || ($origin === 'null' && $site === 'same-origin'));
 }

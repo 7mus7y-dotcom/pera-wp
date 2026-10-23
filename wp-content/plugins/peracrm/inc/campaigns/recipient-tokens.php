@@ -111,3 +111,19 @@ function peracrm_campaign_recipient_preferences_profile(array $profile): array
     sort($topics);
     return ['language'=>strtolower($language),'topics'=>$topics];
 }
+
+/** Preserve staff/import topic keys that this bounded editor does not render.
+ * Call with the authoritative stored list under the mailbox lock, never hidden fields.
+ */
+function peracrm_campaign_recipient_preferences_merge($stored, array $selected): array
+{
+    peracrm_campaign_recipient_require(is_array($stored) && array_is_list($stored) && count($stored) <= 32);
+    foreach ($stored as $topic) {
+        peracrm_campaign_recipient_require(is_string($topic) && preg_match('/\A[a-z][a-z0-9_-]{0,63}\z/',$topic) === 1);
+    }
+    $selected = peracrm_campaign_recipient_preferences_profile(['language'=>'','topics'=>$selected])['topics'];
+    $topics = array_values(array_unique(array_merge(array_diff($stored,['news','properties']),$selected)));
+    peracrm_campaign_recipient_require(count($topics) <= 32);
+    sort($topics);
+    return $topics;
+}

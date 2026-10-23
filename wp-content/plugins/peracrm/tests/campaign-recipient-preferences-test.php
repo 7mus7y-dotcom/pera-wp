@@ -9,6 +9,12 @@ foreach ([['language'=>'x','topics'=>[]],['language'=>'en','topics'=>['consent']
     try { peracrm_campaign_recipient_preferences_profile($profile); throw new RuntimeException('invalid profile allowed'); }
     catch (InvalidArgumentException $e) {}
 }
+pref_expect(peracrm_campaign_recipient_preferences_merge(['custom','news'],[])===['custom'],'clearing rendered topics preserves custom');
+pref_expect(peracrm_campaign_recipient_preferences_merge(['custom','news'],['news'])===['custom','news'],'language-only edit preserves custom');
+pref_expect(peracrm_campaign_recipient_preferences_merge(['properties','custom'],['news'])===['custom','news'],'replace only rendered topics');
+try { peracrm_campaign_recipient_preferences_merge(array_map(fn($i)=>'custom'.$i,range(1,32)),['news']); throw new RuntimeException('overflow accepted'); } catch (InvalidArgumentException $e) {}
+pref_expect(peracrm_campaign_recipient_preferences_same_origin('null','https://example.test','same-origin'),'no-referrer same-origin navigation supported');
+foreach (['','same-site','cross-site','none'] as $site) { pref_expect(!peracrm_campaign_recipient_preferences_same_origin('null','https://example.test',$site),'null origin requires same-origin metadata'); }
 $token='secret'; $body=['token'=>$token,'language'=>'en','topics'=>['news'],'proof'=>$service->proof($token,time())];
 foreach ([['https://evil.test','same-origin'],['null','cross-site'],['',''],['https://example.test','same-site'],['https://example.test','cross-site']] as [$origin,$site]) {
  pref_expect($service->request('POST',$token,'application/x-www-form-urlencoded',$body,$origin,'https://example.test',$site)[0]===400,'cross-site rejected');

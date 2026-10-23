@@ -4,7 +4,7 @@ peracrm_with_target_blog(static function () {
     global $wpdb;
     $service=recipient_preferences_service(); $store=withdrawal_store();
     $seed=withdrawal_seed(22001,'preferences-sql','preferences');
-    $wpdb->update(peracrm_table('peracrm_subscribers'),['subscription_state'=>'subscribed','source'=>'synthetic_consent','source_ref'=>'fixture','evidence_ref'=>'fixture-evidence','policy_version'=>'fixture-v1','recorded_at'=>'2020-01-01 00:00:00','confirmed_at'=>'2020-01-02 00:00:00'],['id'=>22001]);
+    $wpdb->update(peracrm_table('peracrm_subscribers'),['preferences_json'=>'["custom","news"]','subscription_state'=>'subscribed','source'=>'synthetic_consent','source_ref'=>'fixture','evidence_ref'=>'fixture-evidence','policy_version'=>'fixture-v1','recorded_at'=>'2020-01-01 00:00:00','confirmed_at'=>'2020-01-02 00:00:00'],['id'=>22001]);
     $wpdb->update(peracrm_table('peracrm_email_suppressions'),['hard_bounce'=>1,'complaint'=>1,'administrative'=>1],['normalized_email'=>$seed['binding']['mailbox']]);
     $original=peracrm_campaigns_repository_identity($seed['binding']['mailbox']);
     $expired=withdrawal_seed(22002,'preferences-expired','preferences',90000);
@@ -52,6 +52,7 @@ peracrm_with_target_blog(static function () {
     foreach (['subscription_state','withdrawn_at','unsubscribe','hard_bounce','complaint','administrative','source','source_ref','evidence_ref','policy_version','recorded_at','confirmed_at','client_id'] as $field) {
         withdrawal_expect($current[$field]===$original[$field],'valid edit preserves permission/evidence '.$field);
     }
+    withdrawal_expect($current['preferences_json']==='["custom","news"]','language-only edit preserves unrendered topics');
     $after=withdrawal_snapshot(); withdrawal_expect(recipient_preferences_post($seed)[0]===200 && withdrawal_snapshot()===$after,'duplicate edits no events or version bump');
     $withdraw=withdrawal_seed(22001,'preferences-sql','unsubscribe');
     withdrawal_expect(withdrawal_service()->request('POST',true,$withdraw['token'],'application/x-www-form-urlencoded','List-Unsubscribe=One-Click')[0]===200,'existing withdrawal after edit');
@@ -61,6 +62,7 @@ peracrm_with_target_blog(static function () {
     foreach (['subscription_state','withdrawn_at','unsubscribe','hard_bounce','complaint','administrative','source','source_ref','evidence_ref','policy_version','recorded_at','confirmed_at','client_id'] as $field) {
         withdrawal_expect(($row[$field]??null)===($edited[$field]??null),'edit preserves '.$field);
     }
+    withdrawal_expect($edited['preferences_json']==='["custom"]','clearing rendered topics preserves custom keys');
     withdrawal_expect($edited['subscription_state']==='unsubscribed' && (int)$edited['unsubscribe']===1,'edits never reactivate');
     $independent=withdrawal_seed(22002,'preferences-expired','unsubscribe',90000);
     withdrawal_expect(!$service->withdrawalAvailable($expired['token']) && $service->withdrawalAvailable($independent['token']),'expired preference cannot mint withdrawal; independent authority works');

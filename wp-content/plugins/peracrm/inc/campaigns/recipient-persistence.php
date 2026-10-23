@@ -301,18 +301,21 @@ final class PeraCRM_CampaignRecipientPersistence
                 }
                 peracrm_campaign_recipient_require($subscriber && (int)$subscriber['id'] === $binding['subscriber_id']
                     && $subscriber['normalized_email'] === $binding['mailbox']);
+                $storedTopics = json_decode($subscriber['preferences_json'],true,512,JSON_THROW_ON_ERROR);
+                $topics = $profile === null ? $storedTopics
+                    : peracrm_campaign_recipient_preferences_merge($storedTopics,$profile['topics']);
                 if ($profile !== null && ($subscriber['preferred_language'] !== $profile['language']
-                    || $subscriber['preferences_json'] !== wp_json_encode($profile['topics']))) {
+                    || $subscriber['preferences_json'] !== wp_json_encode($topics))) {
                     $now = gmdate('Y-m-d H:i:s');
                     self::db($wpdb->update(peracrm_table('peracrm_subscribers'),[
-                        'preferred_language'=>$profile['language'],'preferences_json'=>wp_json_encode($profile['topics']),
+                        'preferred_language'=>$profile['language'],'preferences_json'=>wp_json_encode($topics),
                         'updated_at'=>$now,'version'=>(int)$subscriber['version']+1],['id'=>$subscriber['id']]));
                     peracrm_campaigns_repository_event($binding['mailbox'],$subscriber,'profile_updated',$subscriber['subscription_state'],
                         ['source'=>'public_preferences','source_ref'=>'recipient-pc1','evidence_ref'=>'','policy_version'=>'','occurred_at'=>$now],0,
-                        ['language'=>$profile['language'],'topics'=>$profile['topics']]);
+                        ['language'=>$profile['language'],'topics'=>$topics]);
                 }
                 return $profile ?? ['language'=>$subscriber['preferred_language'],
-                    'topics'=>json_decode($subscriber['preferences_json'],true,512,JSON_THROW_ON_ERROR)];
+                    'topics'=>array_values(array_intersect($topics,['news','properties']))];
             });
         } catch (Throwable $error) { return null; }
     }

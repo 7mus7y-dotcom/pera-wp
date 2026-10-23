@@ -15,7 +15,7 @@ $stylesheet=peracrm_frontend_get_asset_file('assets/frontend/crm.css');
 <fieldset class="peracrm-topic-choices"><legend>Email topics</legend>
 <?php foreach (['news'=>'News','properties'=>'Property updates'] as $key=>$label) : ?>
 <label><input type="checkbox" name="topics[]" value="<?php echo esc_attr($key); ?>" <?php checked(in_array($key,$data['topics'],true)); ?>><span><?php echo esc_html($label); ?></span></label>
-<?php endforeach; ?></fieldset><p>Clear both choices to remove topic preferences.</p>
+<?php endforeach; ?></fieldset><p>Clear both choices to remove these topic preferences. Other topic preferences are preserved.</p>
 <button class="btn" type="submit">Save preferences</button></form>
 <?php endif; ?>
 <?php if ($withdrawalURL!=='') : ?><p><a href="<?php echo esc_url($withdrawalURL); ?>" rel="noreferrer">Unsubscribe from all marketing email</a></p>

@@ -37,8 +37,10 @@ module.exports=async ({browser})=>{
   await page.getByLabel('Preferred language tag').fill('tr');
   await page.getByLabel('News',{exact:true}).check();
   await page.screenshot({path:'/evidence/recipient-preferences-'+name+'.png',fullPage:true});
+  const submission=page.waitForRequest(r=>r.method()==='POST');
   await page.getByRole('button',{name:'Save preferences',exact:true}).click();
-  expect((await page.getByRole('status').innerText()).includes('have been saved'),'anonymous edit succeeds');
+  const submittedHeaders=await (await submission).allHeaders();
+  expect((await page.getByRole('status').innerText()).includes('have been saved'),'anonymous edit succeeds; origin='+submittedHeaders.origin+'; fetch-site='+submittedHeaders['sec-fetch-site']);
   expect(!page.url().includes('token='),'clean form action');
   expect(await page.getByLabel('Preferred language tag').inputValue()==='tr' && await page.getByLabel('News',{exact:true}).isChecked(),'saved choices visible');
   const committed=await evidence();await page.getByRole('button',{name:'Save preferences',exact:true}).click();
