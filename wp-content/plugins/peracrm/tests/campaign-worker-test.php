@@ -27,6 +27,9 @@ campaign_expect(!str_contains(print_r($preparation,true),str_repeat('s',32)),'wo
 $denied=false;
 try { serialize($preparation); } catch (LogicException $e) { $denied=true; }
 campaign_expect($denied,'worker dependency serialization disabled');
+$reordered=new PeraCRM_Campaign_Worker_Preparation('fixture',array_reverse($scope,true),'https://example.org',[],
+    'missing',new PeraCRM_CampaignOutputCipher(['e1'=>str_repeat('e',32)],'e1'));
+campaign_expect($reordered->scope()===$preparation->scope(),'scope order is canonical across recovery dependencies');
 $authorized=0; $denied=false;
 try { PeraCRM_Campaign_Worker_Content::resolve([],[],$scope,static function () use (&$authorized) {
     ++$authorized; throw new RuntimeException('sensitive authority detail');

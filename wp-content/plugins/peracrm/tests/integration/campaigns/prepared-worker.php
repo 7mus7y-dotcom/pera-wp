@@ -70,6 +70,7 @@ foreach (['accepted','unknown','interrupted','withdraw','cancel','pause','schedu
         $records=prepared_records($deployment);
         if (in_array($scenario,['accepted','unknown'],true)) {
             prepared_expect($transport->calls===1 && $result['state']===$scenario,'integrated SES outcome '.$scenario);
+            prepared_historical_recovery($deployment,$claim);
             prepared_reject(fn()=>$w->submitPrepared($claim,$p,$mapper));
             prepared_expect($w->claim($job)===[] && $transport->calls===1,'accepted/unknown never resubmitted');
         } elseif ($scenario==='transient') {
@@ -83,6 +84,11 @@ foreach (['accepted','unknown','interrupted','withdraw','cancel','pause','schedu
             prepared_expect($result['state']==='accepted' && $transport->calls===1 && prepared_records($deployment)===$records,'exact recovery without issuance inputs or ciphertext replacement');
         } else {
             prepared_expect($transport->calls===0,'zero transport when '.$scenario.' denies authorization');
+            if ($scenario==='cancel') {
+                prepared_historical_recovery($deployment,$claim);
+                prepared_reject(fn()=>$w->submitPrepared($claim,$p,$mapper));
+                prepared_expect($transport->calls===0,'cancelled historical recovery cannot submit');
+            }
             if (in_array($scenario,['insert-failure','historical','membership','authority'],true)) {
                 prepared_expect(count($records['recipient_tokens'])===0 && count($records['submission_attempts'])===0
                     && count($records['submission_outputs'])===0,'no partial preparation after '.$scenario);

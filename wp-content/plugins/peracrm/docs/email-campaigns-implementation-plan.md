@@ -387,3 +387,17 @@ fixtures use disposable synthetic data and injected mocks only. Existing externa
 privacy/log/HTTPS/key/retention/restore and old-mailbox/deletion policy blockers
 remain. Provider activation, real transport, authenticated feedback and readiness
 work remain future bounded PRs. No merge or deployment.
+
+### Initial hosted correction and review
+
+Non-draft PR #1476 published runtime `25b7861c` with local-matching tree
+`528e81c6f7da238c6059c208c6dbf6035c79a5df`. Initial review completed clean on
+that runtime (summary comment 6362286799). Run 39935447644 passed the integrated
+SQL service scenarios but failed the new process-race setup: an arrow closure
+using compact() did not capture variables mentioned only as strings. Replaced
+that fixture setup with explicit array values. This failure is not acceptance.
+Local review also canonicalized defensive scope copies so replay does not depend
+on configuration key order, and strengthened the integrated accepted/unknown/
+cancelled cases with historical exact-byte recovery plus unchanged worker-state
+assertions. All 27 local suites/200 syntax checks passed again; new final-head
+hosted validation and review are required for this runtime correction.

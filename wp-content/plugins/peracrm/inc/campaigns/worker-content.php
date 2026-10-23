@@ -80,8 +80,12 @@ final class PeraCRM_Campaign_Worker_Preparation
     {
         PeraCRM_CampaignSubmissionV1::validateScope($scope);
         peracrm_campaign_recipient_require(preg_match('/\A[a-zA-Z0-9_-]{1,64}\z/',$deployment)===1);
-        $this->deployment=$deployment; $this->scope=$scope; $this->origin=$origin;
-        $this->keys=$keys; $this->active=$active; $this->cipher=$cipher;
+        $this->deployment=$deployment; $this->scope=[]; $this->origin=$origin;
+        // Canonical defensive copies also make replay independent of scope key order.
+        foreach (['provider','account_id','region','configuration_set','configuration_version'] as $key) { $this->scope[$key]=$scope[$key]; }
+        $this->keys=[];
+        foreach ($keys as $key=>$value) { $this->keys[$key]=$value; }
+        $this->active=$active; $this->cipher=$cipher;
     }
     public function scope(): array { return $this->scope; }
     public function prepare(array $content, array $envelope, array $row): array

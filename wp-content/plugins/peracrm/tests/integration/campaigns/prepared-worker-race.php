@@ -5,7 +5,8 @@ if (!in_array($scenario,['concurrent','withdraw','cancel','interrupted'],true)) 
 if ($mode==='prepare') {
     $job=worker_fixture_reset(1); $claim=worker_fixture()->claim($job,1)[0];
     $deployment='prepared-race-'.bin2hex(random_bytes(8));
-    worker_fixture_target(static fn()=>update_option('prepared_worker_race',compact('job','claim','deployment'),false)); return;
+    worker_fixture_target(static fn()=>update_option('prepared_worker_race',
+        ['job'=>$job,'claim'=>$claim,'deployment'=>$deployment],false)); return;
 }
 extract(worker_fixture_target(static fn()=>get_option('prepared_worker_race')));
 if ($mode==='verify') {
