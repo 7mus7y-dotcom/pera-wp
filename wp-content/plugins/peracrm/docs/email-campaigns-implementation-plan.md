@@ -130,3 +130,19 @@ same-origin Fetch Metadata and the existing signed proof. Foreign/missing Origin
 and null without same-origin metadata remain rejected. Added pure metadata
 regressions and sanitized browser origin/metadata failure diagnostics. Both
 corrections require a new hosted run; earlier SQL passes are not final acceptance.
+
+
+### Trustworthy-origin browser fixture correction (2026-10-23)
+
+Correction runtime `9e5d377c`, tree `4701fb4405d3f6de071a820a6faaa623eb56b09b`,
+is pushed to #1474 and matches local. Local 27 suites/459 PHP lint passed again.
+[CI 39911741853](https://github.com/7mus7y-dotcom/pera-wp/actions/runs/39911741853)
+passed SQL, custom-topic preservation and all nine preference races in both
+single/multisite jobs, but browser edits failed with the sanitized diagnostic
+`origin=null; fetch-site=undefined`. Chromium omits Fetch Metadata on the plain
+HTTP fixture origin. The disposable browser launch now marks only
+`http://fixture.test` trustworthy, with an explicit secure-context assertion, to
+exercise the HTTPS metadata behavior without weakening production authority.
+Real authoritative-domain HTTPS and host protections remain external activation
+requirements; the fixture does not prove deployment TLS. New hosted verification
+and final review remain pending. No production gate changes.

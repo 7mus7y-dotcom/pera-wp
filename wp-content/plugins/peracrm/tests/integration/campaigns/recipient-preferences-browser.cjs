@@ -20,6 +20,7 @@ module.exports=async ({browser})=>{
   await page.setViewportSize({width,height});const unchanged=await evidence();
   await page.goto(route(f[name]));
   await page.getByRole('button',{name:'Save preferences',exact:true}).waitFor();
+  expect(await page.evaluate(()=>isSecureContext),'disposable origin models HTTPS Fetch Metadata');
   expect(await evidence()===unchanged,'editor GET read only');
   expect(!await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth+1),'responsive editor');
   expect(requests.every(r=>r.resourceType()==='document'||(r.resourceType()==='stylesheet'&&r.url().includes('/wp-content/plugins/peracrm/assets/frontend/crm.css'))),'only CRM-owned assets');
