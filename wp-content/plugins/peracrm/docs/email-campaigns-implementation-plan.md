@@ -175,3 +175,44 @@ Focused expansion regressions verify matching independent bearers, expiry
 separation and marker-only HTML/text escaping. No worker/provider is integrated;
 production issuance remains disabled. Previously prepared links without that
 parameter use the original email's separate unsubscribe link.
+
+
+### Final runtime acceptance evidence (2026-10-23)
+
+[CI 39913876819](https://github.com/7mus7y-dotcom/pera-wp/actions/runs/39913876819)
+completed **successfully** on runtime/fixtures
+`1137f1fd2c117c87587954db9708cb1508f3d8c9`, tree
+`9471ce17fcc945719c3f646ce758a8f585424184`, matching local:
+
+- Single-site job `120283177517`: **passed**.
+- Multisite job `120283177334`: **passed**.
+- Both completed logs inspected: 27 standalone suites, PHP syntax, real SQL
+  read invariance, supported edits, topic preservation, expiry/wrong purpose/
+  revocation/replacement denial, rollback and duplicate submissions; all nine
+  independent-process edit/identity/withdrawal races; legacy public preferences;
+  #1473 human and machine withdrawal; new anonymous strict-cookie proof,
+  foreign-origin/cross-site/no-cookie rejection, HTTP audit rollback, desktop/
+  mobile edits and independent expired-link withdrawal. Prepared-link expiry
+  separation and escaping regressions passed in both topologies.
+- Downloaded both final artifacts and inspected desktop/mobile preference and
+  expired-page captures, plus existing withdrawal captures. Forms/actions are
+  readable and usable; browser assertions confirm no horizontal overflow,
+  CRM-only preference assets, no third-party analytics and privacy headers.
+- [Single-site artifact 12484336957](https://github.com/7mus7y-dotcom/pera-wp/actions/runs/39913876819/artifacts/12484336957),
+  [multisite artifact 12483689804](https://github.com/7mus7y-dotcom/pera-wp/actions/runs/39913876819/artifacts/12483689804),
+  retained through 2026-11-06. Disposable synthetic data only; no production
+  environment/secrets, mail or provider integration.
+
+Earlier runs 39844434992, 39911741853 and 39912488630 failed browser acceptance
+and are superseded, not relabeled as passing. Run 39913556688 was superseded/
+cancelled. Final cookie-bound runtime uses the ordinary HTTP fixture without a
+trust override. Local 27 suites/459 PHP lint and shell/JavaScript/whitespace checks
+passed. The evidence-only follow-up changes no runtime or fixture bytes.
+
+The custom-topic review finding was fixed with preservation/overflow regressions
+and its outdated thread resolved. **Final rereview remains pending**; no clean
+final runtime review of #1474 is claimed. Activation is still **blocked** on the
+old-mailbox/deletion policy, host-log/HTTPS controls, keys, retention/privacy and
+restore readiness. Phase 5 remains **in progress**. Both factories stay null;
+production issuance, sending, intake, collection and cron stay disabled. No
+worker/provider integration, merge or deployment. Original checkout preserved.
