@@ -17,6 +17,18 @@ add_action('template_redirect', static function () {
     }
     peracrm_campaign_recipient_withdrawal_respond(withdrawal_service(), $route === 'machine'); exit;
 }, -1);
+add_action('template_redirect', static function () {
+    if ((string)get_query_var('peracrm_email_preferences') !== '1') { return; }
+    $token = ($_SERVER['REQUEST_METHOD'] ?? '') === 'POST' ? ($_POST['token'] ?? '') : ($_GET['token'] ?? '');
+    if (!(is_string($token) && str_starts_with($token,'pc1.')) && !isset($_GET['withdrawal_token'])) { return; }
+    require_once '/tests/recipient-preferences-fixture.php';
+    peracrm_campaign_recipient_preferences_respond(recipient_preferences_service()); exit;
+}, -1);
+add_filter('query', static function ($sql) {
+    if (($_COOKIE['recipient_preferences_fail'] ?? '') === '1' && str_starts_with($sql,'INSERT')
+        && str_contains($sql,'peracrm_subscription_events')) { return 'INVALID_PREFERENCE_HTTP_FIXTURE_SQL'; }
+    return $sql;
+});
 add_filter('pre_http_request', static function () {
     return new WP_Error('fixture_network_disabled', 'External requests are disabled in this fixture.');
 });

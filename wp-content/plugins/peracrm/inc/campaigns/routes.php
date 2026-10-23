@@ -39,6 +39,12 @@ function peracrm_subscribers_on_authoritative_domain()
 /** Public rendering bypasses staff routing and all theme templates/hooks/assets. */
 add_action('template_redirect', static function () {
     if ((string) get_query_var('peracrm_email_preferences') !== '1') { return; }
+    $candidate = ($_SERVER['REQUEST_METHOD'] ?? '') === 'POST' ? ($_POST['token'] ?? '') : ($_GET['token'] ?? '');
+    if ((is_string($candidate) && str_starts_with($candidate, 'pc1.')) || isset($_GET['withdrawal_token'])) {
+        require_once __DIR__.'/recipient-preferences.php';
+        peracrm_campaign_recipient_preferences_respond(peracrm_campaign_recipient_preferences_service());
+        exit;
+    }
     peracrm_subscribers_private_headers();
     header("Content-Security-Policy: default-src 'none'; style-src 'self'; form-action 'self'; base-uri 'none'; frame-ancestors 'none'");
     if (!peracrm_subscribers_on_authoritative_domain()) {

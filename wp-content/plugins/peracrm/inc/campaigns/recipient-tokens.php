@@ -96,3 +96,34 @@ final class PeraCRM_CampaignRecipientTokens
     public function __serialize(): array { throw new LogicException('recipient_service_unavailable'); }
     public function __unserialize(array $data): void { throw new LogicException('recipient_service_unavailable'); }
 }
+
+/** Public editor supports explicit language tags and the two existing topic choices. */
+function peracrm_campaign_recipient_preferences_profile(array $profile): array
+{
+    $fields = array_keys($profile); sort($fields);
+    peracrm_campaign_recipient_require($fields === ['language','topics']);
+    $language = $profile['language']; $topics = $profile['topics'];
+    peracrm_campaign_recipient_require(is_string($language) && strlen($language) <= 35
+        && ($language === '' || preg_match('/\A[a-zA-Z]{2,8}(?:-[a-zA-Z0-9]{1,8})*\z/',$language) === 1)
+        && is_array($topics) && array_is_list($topics) && count($topics) <= 2);
+    foreach ($topics as $topic) { peracrm_campaign_recipient_require(is_string($topic) && in_array($topic,['news','properties'],true)); }
+    peracrm_campaign_recipient_require(count(array_unique($topics)) === count($topics));
+    sort($topics);
+    return ['language'=>strtolower($language),'topics'=>$topics];
+}
+
+/** Preserve staff/import topic keys that this bounded editor does not render.
+ * Call with the authoritative stored list under the mailbox lock, never hidden fields.
+ */
+function peracrm_campaign_recipient_preferences_merge($stored, array $selected): array
+{
+    peracrm_campaign_recipient_require(is_array($stored) && array_is_list($stored) && count($stored) <= 32);
+    foreach ($stored as $topic) {
+        peracrm_campaign_recipient_require(is_string($topic) && preg_match('/\A[a-z][a-z0-9_-]{0,63}\z/',$topic) === 1);
+    }
+    $selected = peracrm_campaign_recipient_preferences_profile(['language'=>'','topics'=>$selected])['topics'];
+    $topics = array_values(array_unique(array_merge(array_diff($stored,['news','properties']),$selected)));
+    peracrm_campaign_recipient_require(count($topics) <= 32);
+    sort($topics);
+    return $topics;
+}

@@ -264,6 +264,62 @@ final class PeraCRM_CampaignRecipientPersistence
         } catch (Throwable $error) { return false; }
     }
 
+    /** Only language/topic projection. Reads never acquire the inserting mailbox mutex.
+     * Writes use mailbox -> subscriber -> identity -> token and reauthenticate there.
+     * No subscriber creation, consent, state, suppression or identity write authority.
+     */
+    public function preferencesToken(#[\SensitiveParameter] string $token, #[\SensitiveParameter] array $keys,
+        string $deployment, ?array $profile = null): ?array
+    {
+        try {
+            peracrm_campaign_recipient_require($deployment === $this->deployment && strlen($token) <= 256);
+            if ($profile !== null) { $profile = peracrm_campaign_recipient_preferences_profile($profile); }
+            $digest = hash('sha256', $token); $located = $this->locate($digest);
+            peracrm_campaign_recipient_require($located !== null && $located['purpose'] === 'preferences');
+            return $this->transaction(function () use ($token,$keys,$digest,$located,$profile) {
+                global $wpdb;
+                $binding = $located['binding']; $this->checkBinding($binding);
+                if ($profile !== null) { [$subscriber] = peracrm_campaigns_repository_lock_mailbox($binding['mailbox']); }
+                $this->requireIdentity($binding);
+                $row = $this->find('recipient_tokens',['digest'=>$digest]);
+                peracrm_campaign_recipient_require($row && (int)$row['revoked'] === 0
+                    && (int)$row['subscriber_id'] === $binding['subscriber_id']
+                    && hash_equals($row['binding_hash'],hash('sha256',$row['binding_json'])));
+                $current = json_decode($row['binding_json'],true,512,JSON_THROW_ON_ERROR);
+                peracrm_campaign_recipient_require($current === $located);
+                $verifier = new PeraCRM_CampaignRecipientTokens($keys,(string)array_key_first($keys),$this->deployment,
+                    function ($actualDigest,$purpose,$actualBinding,$protocol) use ($digest,$current,$binding) {
+                        return $actualDigest === $digest && $purpose === 'preferences' && $actualBinding === $binding
+                            && $protocol === ['protocol'=>$current['protocol'],'deployment'=>$this->deployment,
+                                'key_id'=>$current['key_id'],'issued'=>$current['issued'],'expires'=>$current['expires']];
+                    });
+                peracrm_campaign_recipient_require($verifier->verify($token,'preferences',$binding,time()));
+                if ($profile === null) {
+                    $subscriber = $wpdb->get_row($wpdb->prepare('SELECT * FROM '.peracrm_table('peracrm_subscribers')
+                        .' WHERE id=%d AND normalized_email=%s',$binding['subscriber_id'],$binding['mailbox']),ARRAY_A);
+                    self::db(true);
+                }
+                peracrm_campaign_recipient_require($subscriber && (int)$subscriber['id'] === $binding['subscriber_id']
+                    && $subscriber['normalized_email'] === $binding['mailbox']);
+                $storedTopics = json_decode($subscriber['preferences_json'],true,512,JSON_THROW_ON_ERROR);
+                $topics = $profile === null ? $storedTopics
+                    : peracrm_campaign_recipient_preferences_merge($storedTopics,$profile['topics']);
+                if ($profile !== null && ($subscriber['preferred_language'] !== $profile['language']
+                    || $subscriber['preferences_json'] !== wp_json_encode($topics))) {
+                    $now = gmdate('Y-m-d H:i:s');
+                    self::db($wpdb->update(peracrm_table('peracrm_subscribers'),[
+                        'preferred_language'=>$profile['language'],'preferences_json'=>wp_json_encode($topics),
+                        'updated_at'=>$now,'version'=>(int)$subscriber['version']+1],['id'=>$subscriber['id']]));
+                    peracrm_campaigns_repository_event($binding['mailbox'],$subscriber,'profile_updated',$subscriber['subscription_state'],
+                        ['source'=>'public_preferences','source_ref'=>'recipient-pc1','evidence_ref'=>'','policy_version'=>'','occurred_at'=>$now],0,
+                        ['language'=>$profile['language'],'topics'=>$topics]);
+                }
+                return $profile ?? ['language'=>$subscriber['preferred_language'],
+                    'topics'=>array_values(array_intersect($topics,['news','properties']))];
+            });
+        } catch (Throwable $error) { return null; }
+    }
+
     /** Persist before any future transport. A hash receipt grants no send authority.
      * Does not retain bodies or support retry reconstruction from random tokens. */
     public function bindAttempt(#[\SensitiveParameter] PeraCRM_CampaignSubmissionV1 $submission, #[\SensitiveParameter] array $binding, #[\SensitiveParameter] PeraCRM_CampaignRecipientOutput $output): string
