@@ -174,6 +174,20 @@ done
 wp eval-file /tests/queue-race.php prepare pause-schedule
 wp eval-file /tests/queue-worker.php
 wp eval-file /tests/prepared-worker.php
+wp eval-file /tests/sns-receipts.php
+for sns_scenario in duplicate conflict; do
+    rm -f /tmp/peracrm-sns-held /tmp/peracrm-sns-winner /tmp/peracrm-sns-loser
+    wp eval-file /tests/sns-race.php prepare "$sns_scenario"
+    wp eval-file /tests/sns-race.php winner "$sns_scenario" &
+    sns_winner_pid=$!
+    wait_for_migration_marker /tmp/peracrm-sns-held
+    wp eval-file /tests/sns-race.php loser "$sns_scenario" &
+    sns_loser_pid=$!
+    wait "$sns_winner_pid"
+    wait "$sns_loser_pid"
+    wp eval-file /tests/sns-race.php verify "$sns_scenario"
+done
+
 for prepared_race in concurrent withdraw cancel interrupted; do
     rm -f /tmp/peracrm-prepared-held /tmp/peracrm-prepared-winner /tmp/peracrm-prepared-loser
     wp eval-file /tests/prepared-worker-race.php prepare "$prepared_race"
