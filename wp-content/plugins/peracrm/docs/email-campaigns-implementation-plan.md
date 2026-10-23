@@ -216,3 +216,107 @@ old-mailbox/deletion policy, host-log/HTTPS controls, keys, retention/privacy an
 restore readiness. Phase 5 remains **in progress**. Both factories stay null;
 production issuance, sending, intake, collection and cron stay disabled. No
 worker/provider integration, merge or deployment. Original checkout preserved.
+
+
+## Phase 5B — atomic preparation prerequisite (2026-10-23)
+
+**Current task:** ninth bounded Phase 5B PR, reduced to the smallest coherent
+prerequisite for worker integration: atomic durable recipient preparation and
+exact-byte replay. Phase 5 remains **in progress**. This section supersedes the
+historical current-task and pending-review statements above.
+
+### Baseline and bounded scope
+
+#1474 is merged at latest main `321ffa08b37977bf89a458678769e7a87029133f`.
+Final head `4d9dd8f70ba6115674b82b83b601cf21ee91c8f4` passed
+[CI 39914817422](https://github.com/7mus7y-dotcom/pera-wp/actions/runs/39914817422)
+and completed [clean final review](https://github.com/7mus7y-dotcom/pera-wp/pull/1474#issuecomment-6359499969);
+the sole earlier finding is resolved. No applicable AGENTS.md found. Read this
+plan/history, provider specification and worker, submission, token, expansion,
+identity, attempt and encrypted-output contracts. Initial checkpoint preceded
+lengthy checks. Original clean `/workspace/pera-wp` at `c9f1d5ae` is preserved;
+work is isolated in `/workspace/pera-worker`.
+
+Shell fetch failed once because the configured proxy is unreachable and was not
+retried. Connector reads verified latest main and supplied all 17 changed files.
+Reconstructed baseline tree `4b2910e0eac82ea9cd40c219fff1fc13b4f1e522`
+matches #1474's final tree. The reconstruction commit is local scaffolding only;
+publication must parent directly to verified main, excluding that scaffolding.
+
+`prepareOutput` accepts trusted frozen inputs, outside another transaction.
+Mailbox/subscriber, identity and attempt locks serialize preparation. An optional
+internal issuance registrar receives the actual digest and authenticated protocol
+metadata, never the bearer or key. Both issued digests, immutable attempt metadata
+and authenticated encrypted output commit in one transaction before returning.
+Any expansion, registration, envelope validation, encryption, insert or COMMIT
+failure rolls all these writes back. Existing metadata-only methods remain for
+compatibility and historical access; new preparation does not compose their
+separate transactions.
+
+An existing attempt always enters recovery before issuance. Recovery does not
+require current rendering, signing keys, origin or issuance time; it authenticates
+stored ciphertext and exact immutable metadata, and compares all supplied envelope
+fields. Conflicts and missing/corrupt output fail closed, without replacement
+tokens, ciphertext overwrite or partial repair. Historical review-only content
+cannot start a new preparation. This API remains internal, unbootstrapped and
+explicitly grants no worker, consent or transport authority. Its return is never
+a submission/retry permit, including after acceptance, unknown outcome or cancel.
+
+### Validation checkpoint
+
+Local PHP 8.4: all 27 standalone suites and 194 plugin PHP syntax checks excluding
+vendor-webpush passed; shell syntax and whitespace passed. Focused issuance
+regressions verify actual digest/metadata and failure before returning a bearer.
+New disposable SQL fixtures inject failures at first/second token, attempt,
+ciphertext and COMMIT, asserting complete rollback and zero mock transport calls.
+They cover exact-byte replay without issuance inputs, ciphertext invariance,
+conflict rejection, historical capture rejection and missing-output refusal.
+A fixture-only SES mapper call checks all four durable records exist and the
+transaction has committed before mock transport invocation. Four independent-
+process races cover identical/conflicting concurrent preparation and identity
+revocation in both lock orders. Both topologies execute these through the existing
+workflow. Hosted validation remains pending at initial publication.
+
+Local Docker socket health failed once with `connect: operation not permitted`;
+daemon is running and user is UID 1000. No retry, daemon restart or local SQL
+success is claimed. Hosted CI is required for actual SQL/race acceptance.
+
+### Dependent work and unchanged gates
+
+The full requested worker integration is deliberately **not complete** in this
+prerequisite. Next PR must implement concrete worker-authorized published-capture
+and frozen-membership resolution, trusted envelope construction, preparation
+orchestration and SES handoff under fresh final job/due-time, lease/owner/version,
+pause/cancel and live consent/suppression fences. Exercise withdrawal during
+preparation, cancellation, stale leases, denied-authority zero calls and
+accepted/unknown no-resubmit behavior through that integrated path in both
+SQL topologies. Only independently proven non-acceptance may follow existing
+retry rules. Preserve historical recovery access without turning it into send
+authority. No worker state machine or retry policy changes in this PR.
+
+Production dispatch stays unconditionally blocked; provider/withdrawal/preference
+factories, cron activation, real intake and public collection remain disabled.
+No real HTTP transport, credentials, provider activation, sending, merge or
+deployment. All runtime and fixtures remain PeraCRM-owned. Earlier external
+privacy/key/retention/restore and old-mailbox/deletion policy blockers remain.
+
+### Hosted acceptance and publication
+
+Non-draft [PR #1475](https://github.com/7mus7y-dotcom/pera-wp/pull/1475)
+contains runtime/fixtures `b76ff23d40884d2e889d32f88eefe50a831595a0`, tree
+`dd5e08e398dcf68beb956f0794753e1355549504` matching the isolated local tree,
+parented directly to main. [CI 39929679591](https://github.com/7mus7y-dotcom/pera-wp/actions/runs/39929679591)
+completed successfully in both single-site job `120334565586` and multisite job
+`120334565711`. Completed logs for both were inspected: all five injected failure
+boundaries roll back with zero mock calls; actual issued digest/metadata,
+historical-capture rejection, exact replay without issuance inputs, ciphertext
+invariance, conflict/missing-output denial, four independent-process blocking
+races and the SES mapper mock COMMIT boundary all passed. Existing SQL, worker,
+withdrawal/preferences and browser suites also passed in both topologies.
+No new UI was added or changed; no new visual acceptance is claimed.
+
+[Final runtime review](https://github.com/7mus7y-dotcom/pera-wp/pull/1475#issuecomment-6361467306)
+completed on `b76ff23d` with no findings. This evidence-only follow-up changes no
+runtime or fixture bytes. Full worker integration and its final authority/race
+matrix remain dependent work exactly as listed above. Production gates remain
+blocked; no real transport, sending, intake, collection, merge or deployment.

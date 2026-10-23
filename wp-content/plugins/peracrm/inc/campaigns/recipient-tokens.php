@@ -40,8 +40,9 @@ final class PeraCRM_CampaignRecipientTokens
     private $active;
     private $deployment;
     private $activeBinding;
+    private $registerIssued;
 
-    public function __construct(#[\SensitiveParameter] array $keys, string $active, string $deployment, callable $activeBinding)
+    public function __construct(#[\SensitiveParameter] array $keys, string $active, string $deployment, callable $activeBinding, ?callable $registerIssued = null)
     {
         peracrm_campaign_recipient_require(!isset($this->keys));
         peracrm_campaign_recipient_require(count($keys) > 0 && count($keys) <= 8
@@ -55,6 +56,7 @@ final class PeraCRM_CampaignRecipientTokens
         $this->active = $active;
         $this->deployment = $deployment;
         $this->activeBinding = $activeBinding;
+        $this->registerIssued = $registerIssued;
     }
 
     private function key(string $id, string $purpose): string
@@ -71,7 +73,14 @@ final class PeraCRM_CampaignRecipientTokens
         // Preferences: 24 hours. Withdrawal: no time expiry, independent of job state.
         $expires = $purpose === 'preferences' ? $now + 86400 : 0;
         $body = implode('.', ['pc1', $this->active, $purpose, $now, $expires, bin2hex(random_bytes(24))]);
-        return $body.'.'.hash_hmac('sha256', $body.'|'.$context, $key);
+        $token = $body.'.'.hash_hmac('sha256', $body.'|'.$context, $key);
+        // Internal preparation may register the actual issued digest before the
+        // bearer escapes. The callback receives no bearer or signing secret.
+        if ($this->registerIssued !== null) {
+            ($this->registerIssued)(hash('sha256',$token),$purpose,$binding,
+                ['protocol'=>'pc1','deployment'=>$this->deployment,'key_id'=>$this->active,'issued'=>$now,'expires'=>$expires]);
+        }
+        return $token;
     }
 
     public function verify(#[\SensitiveParameter] string $token, string $purpose, #[\SensitiveParameter] array $binding, int $now): bool

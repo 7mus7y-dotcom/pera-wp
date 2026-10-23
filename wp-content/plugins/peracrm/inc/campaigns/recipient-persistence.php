@@ -408,22 +408,80 @@ final class PeraCRM_CampaignRecipientPersistence
         PeraCRM_CampaignOutputCipher $cipher): array
     {
         return $this->transaction(function () use ($binding,$expected,$cipher) {
+            return $this->recoverOutputLocked($binding,$expected,$cipher);
+        });
+    }
+    /** Internal trusted-input preparation only; no worker or submission authority.
+     * One mailbox-serialized transaction owns both actual token digests, immutable
+     * attempt and encrypted bytes. Existing attempts MUST recover, even if their
+     * output is missing: never mint replacement random bearers or repair bindings.
+     * Call outside worker transactions; final lease/consent/job checks are separate.
+     */
+    public function prepareOutput(array $content, #[\SensitiveParameter] array $envelope,
+        #[\SensitiveParameter] array $binding, string $origin, #[\SensitiveParameter] array $keys,
+        string $activeKey, int $issued, PeraCRM_CampaignOutputCipher $cipher): array
+    {
+        return $this->transaction(function () use ($content,$envelope,$binding,$origin,$keys,$activeKey,$issued,$cipher) {
+            global $wpdb;
             $this->checkBinding($binding);
-            $context = $this->outputContext($expected);
-            peracrm_campaign_recipient_require(($expected['attempt_key'] ?? null) === $binding['attempt_key']);
-            $row = $this->find('submission_outputs',['attempt_key'=>$binding['attempt_key']]);
-            peracrm_campaign_recipient_require($row !== null);
-            $data = json_decode($cipher->open($row,$context),true,32,JSON_THROW_ON_ERROR);
-            peracrm_campaign_recipient_require(is_array($data) && array_keys($data) === ['envelope','output']
-                && is_array($data['output']) && array_keys($data['output']) ===
-                    ['personalization_version','snapshot_hash','recipient_binding_hash','html','text']
-                && $data['output']['personalization_version'] === 1);
-            $submission = new PeraCRM_CampaignSubmissionV1($data['envelope']);
-            $output = new PeraCRM_CampaignRecipientOutput($data['output']['html'],$data['output']['text'],
-                $data['output']['snapshot_hash'],$data['output']['recipient_binding_hash']);
-            peracrm_campaign_recipient_require(self::attemptMetadata($submission,$binding,$output) === $expected);
+            $this->requireSubscriber($binding['subscriber_id'],$binding['mailbox']);
+            $this->requireIdentity($binding);
+            $prior = $this->find('submission_attempts',['attempt_key'=>$binding['attempt_key']]);
+            if ($prior) {
+                peracrm_campaign_recipient_require(hash_equals($prior['binding_hash'],hash('sha256',$prior['binding_json'])));
+                $expected = json_decode($prior['binding_json'],true,512,JSON_THROW_ON_ERROR);
+                [$submission,$output] = $this->recoverOutputLocked($binding,$expected,$cipher);
+                $fields = $submission->fields(); unset($fields['html'],$fields['text']);
+                $actualKeys = array_keys($envelope); $expectedKeys = array_keys($fields);
+                sort($actualKeys); sort($expectedKeys);
+                peracrm_campaign_recipient_require($actualKeys === $expectedKeys);
+                foreach ($fields as $name=>$value) { peracrm_campaign_recipient_require($envelope[$name] === $value); }
+                return [$submission,$output];
+            }
+            $tokens = new PeraCRM_CampaignRecipientTokens($keys,$activeKey,$this->deployment,static fn()=>false,
+                function ($digest,$purpose,$actualBinding,$protocol) use ($binding) {
+                    peracrm_campaign_recipient_require($actualBinding === $binding);
+                    $canonical = json_decode(peracrm_campaign_recipient_binding($binding),true,512,JSON_THROW_ON_ERROR);
+                    $this->bind('recipient_tokens',['digest'=>$digest],
+                        ['protocol'=>'pc1','purpose'=>$purpose,'key_id'=>$protocol['key_id'],
+                            'issued'=>$protocol['issued'],'expires'=>$protocol['expires'],'binding'=>$canonical],
+                        ['subscriber_id'=>$binding['subscriber_id']]);
+                });
+            $output = (new PeraCRM_CampaignRecipientExpansion($origin,$tokens))
+                ->expand($content,$binding['snapshot_hash'],$binding,$issued);
+            $expanded = $output->fields();
+            peracrm_campaign_recipient_require(!array_key_exists('html',$envelope) && !array_key_exists('text',$envelope));
+            $submission = new PeraCRM_CampaignSubmissionV1($envelope+['html'=>$expanded['html'],'text'=>$expanded['text']]);
+            $metadata = self::attemptMetadata($submission,$binding,$output);
+            $this->bind('submission_attempts',['attempt_key'=>$binding['attempt_key']],$metadata,
+                ['delivery_key'=>$metadata['delivery_key']]);
+            $context = $this->outputContext($metadata);
+            $payload = json_encode(['envelope'=>$submission->fields(),'output'=>$output->fields()],JSON_THROW_ON_ERROR);
+            $sealed = $cipher->seal($payload,$context);
+            // An orphan/conflicting output is never overwritten.
+            self::db($wpdb->insert($this->table('submission_outputs'),$this->scope()
+                + ['attempt_key'=>$binding['attempt_key']] + $sealed));
             return [$submission,$output];
         });
+    }
+
+    private function recoverOutputLocked(array $binding, array $expected, PeraCRM_CampaignOutputCipher $cipher): array
+    {
+        $this->checkBinding($binding);
+        $context = $this->outputContext($expected);
+        peracrm_campaign_recipient_require(($expected['attempt_key'] ?? null) === $binding['attempt_key']);
+        $row = $this->find('submission_outputs',['attempt_key'=>$binding['attempt_key']]);
+        peracrm_campaign_recipient_require($row !== null);
+        $data = json_decode($cipher->open($row,$context),true,32,JSON_THROW_ON_ERROR);
+        peracrm_campaign_recipient_require(is_array($data) && array_keys($data) === ['envelope','output']
+            && is_array($data['output']) && array_keys($data['output']) ===
+                ['personalization_version','snapshot_hash','recipient_binding_hash','html','text']
+            && $data['output']['personalization_version'] === 1);
+        $submission = new PeraCRM_CampaignSubmissionV1($data['envelope']);
+        $output = new PeraCRM_CampaignRecipientOutput($data['output']['html'],$data['output']['text'],
+            $data['output']['snapshot_hash'],$data['output']['recipient_binding_hash']);
+        peracrm_campaign_recipient_require(self::attemptMetadata($submission,$binding,$output) === $expected);
+        return [$submission,$output];
     }
     public function __debugInfo(): array { return ['service'=>'peracrm_recipient_persistence','redacted'=>true]; }
     public function __serialize(): array { throw new LogicException('recipient_persistence_unavailable'); }

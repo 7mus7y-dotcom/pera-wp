@@ -29,6 +29,9 @@ function peracrm_test_persistence_sql(array $content): void
         peracrm_test_persistence_projection($content,'persistence_expect',$blog);
         [$binding,$output,$submission] = peracrm_test_persistence_values($content,$blog);
         peracrm_test_persistence_subscriber(17001,$binding['mailbox']);
+        require_once __DIR__.'/atomic-preparation.php';
+        atomic_preparation_sql($content);
+        update_option('atomic_preparation_content',$content,false);
         $store = new PeraCRM_CampaignRecipientPersistence('fixture-persistence',$blog);
         persistence_expect($store->ensureIdentity(17001,$binding['mailbox']) === 1 && $store->ensureIdentity(17001,$binding['mailbox']) === 1,'identity creation idempotent');
         persistence_reject(fn()=>$store->ensureIdentity(17001,'conflict@example.org'));

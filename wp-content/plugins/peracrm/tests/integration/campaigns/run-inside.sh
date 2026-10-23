@@ -115,6 +115,18 @@ for persistence_race in identity identical conflict token-identical token-confli
     wp eval-file /tests/recipient-persistence-race.php verify "$persistence_race"
 done
 # Distinct PHP invocations prove recovery after process memory is gone.
+for atomic_race in identical conflict identity-first preparation-first; do
+    rm -f /tmp/peracrm-atomic-held /tmp/peracrm-atomic-winner /tmp/peracrm-atomic-loser
+    wp eval-file /tests/atomic-preparation-race.php prepare "$atomic_race"
+    wp eval-file /tests/atomic-preparation-race.php winner "$atomic_race" &
+    atomic_winner_pid=$!
+    wait_for_migration_marker /tmp/peracrm-atomic-held
+    wp eval-file /tests/atomic-preparation-race.php loser "$atomic_race" &
+    atomic_loser_pid=$!
+    wait "$atomic_winner_pid"
+    wait "$atomic_loser_pid"
+    wp eval-file /tests/atomic-preparation-race.php verify "$atomic_race"
+done
 wp eval-file /tests/output-recovery.php prepare restart
 wp eval-file /tests/output-recovery.php recover restart
 wp eval-file /tests/output-recovery.php size-create
