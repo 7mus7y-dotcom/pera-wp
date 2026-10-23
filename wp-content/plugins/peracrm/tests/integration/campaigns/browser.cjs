@@ -3,9 +3,7 @@ const { chromium } = require('playwright');
 const fs = require('fs');
 (async () => {
  const fixture = JSON.parse(await (await fetch('http://fixture.test/phase2-fixture.json')).text());
- // Disposable HTTP host only: emulate HTTPS trustworthy-origin Fetch Metadata.
- // Never weaken the production Origin/proof checks for this fixture.
- const browser = await chromium.launch({args:['--no-sandbox','--unsafely-treat-insecure-origin-as-secure=http://fixture.test']});
+ const browser = await chromium.launch({args:['--no-sandbox']});
  const context = await browser.newContext();
  const page = await context.newPage();
  const failures = [];

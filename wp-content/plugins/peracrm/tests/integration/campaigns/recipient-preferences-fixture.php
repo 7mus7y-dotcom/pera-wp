@@ -9,6 +9,6 @@ function recipient_preferences_post(array $seed, array $profile=['language'=>'tr
 {
     $service=recipient_preferences_service();
     return $service->request('POST',$seed['token'],'application/x-www-form-urlencoded',
-        ['token'=>$seed['token'],'proof'=>$service->proof($seed['token'],time())]+$profile,
-        'http://fixture.test','http://fixture.test','same-origin');
+        ['token'=>$seed['token'],'proof'=>$service->proof($seed['token'],time(),str_repeat('a',48))]+$profile,
+        'http://fixture.test','http://fixture.test','same-origin',str_repeat('a',48));
 }

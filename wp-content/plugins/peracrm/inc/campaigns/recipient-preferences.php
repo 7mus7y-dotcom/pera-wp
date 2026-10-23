@@ -15,23 +15,24 @@ final class PeraCRM_CampaignRecipientPreferences
         $this->store=$store; $this->keys=$keys; $this->deployment=$deployment;
     }
     /** Stateless form proof: dedicated domain, bearer digest, expiry and nonce.
-     * No cookie, login, WP guest nonce, registry write or extension of token expiry.
+     * Bound to an anonymous strict cookie; no login, WP guest nonce, registry write
+     * or extension of token expiry.
      */
-    public function proof(#[\SensitiveParameter] string $token, int $now): string
+    public function proof(#[\SensitiveParameter] string $token, int $now, #[\SensitiveParameter] string $browserBinding): string
     {
         $id=(string)array_key_first($this->keys);
         $body=$id.'.'.($now+900).'.'.bin2hex(random_bytes(16));
-        return $body.'.'.hash_hmac('sha256','peracrm-preference-form-v1|'.$this->deployment.'|'.hash('sha256',$token).'|'.$body,$this->keys[$id]);
+        return $body.'.'.hash_hmac('sha256','peracrm-preference-form-v1|'.$this->deployment.'|'.hash('sha256',$token).'|'.hash('sha256',$browserBinding).'|'.$body,$this->keys[$id]);
     }
-    private function validProof(#[\SensitiveParameter] string $token, $proof, int $now): bool
+    private function validProof(#[\SensitiveParameter] string $token, $proof, int $now, #[\SensitiveParameter] string $browserBinding): bool
     {
         if (!is_string($proof) || preg_match('/\A(k[0-9]{1,8})\.([1-9][0-9]{0,18})\.([a-f0-9]{32})\.([a-f0-9]{64})\z/',$proof,$m)!==1
             || !isset($this->keys[$m[1]]) || (string)(int)$m[2]!==$m[2] || (int)$m[2]<=$now || (int)$m[2]>$now+900) { return false; }
         $body=substr($proof,0,strrpos($proof,'.'));
-        return hash_equals(hash_hmac('sha256','peracrm-preference-form-v1|'.$this->deployment.'|'.hash('sha256',$token).'|'.$body,$this->keys[$m[1]]),$m[4]);
+        return hash_equals(hash_hmac('sha256','peracrm-preference-form-v1|'.$this->deployment.'|'.hash('sha256',$token).'|'.hash('sha256',$browserBinding).'|'.$body,$this->keys[$m[1]]),$m[4]);
     }
     public function request(string $method, #[\SensitiveParameter] string $token, string $contentType,
-        #[\SensitiveParameter] array $body, string $origin, string $expectedOrigin, string $fetchSite): array
+        #[\SensitiveParameter] array $body, string $origin, string $expectedOrigin, string $fetchSite, #[\SensitiveParameter] string $browserBinding = ''): array
     {
         $failed=[400,'This request could not be completed. Please use the original preferences link.',null];
         if (!in_array($method,['GET','HEAD','POST'],true)) { return [405,'Method unavailable.',null]; }
@@ -41,7 +42,8 @@ final class PeraCRM_CampaignRecipientPreferences
             if ($fields!==['language','proof','token','topics'] || ($body['token']??null)!==$token
                 || strtolower(trim(explode(';',$contentType)[0]))!=='application/x-www-form-urlencoded'
                 || !peracrm_campaign_recipient_preferences_same_origin($origin,$expectedOrigin,$fetchSite)
-                || !$this->validProof($token,$body['proof']??null,time())) { return $failed; }
+                || preg_match('/\A[a-f0-9]{48}\z/',$browserBinding)!==1
+                || !$this->validProof($token,$body['proof']??null,time(),$browserBinding)) { return $failed; }
             try { $profile=peracrm_campaign_recipient_preferences_profile(['language'=>$body['language'],'topics'=>$body['topics']]); }
             catch (Throwable $error) { return $failed; }
             $data=$this->store->preferencesToken($token,$this->keys,$this->deployment,$profile);
@@ -76,28 +78,35 @@ function peracrm_campaign_recipient_preferences_respond(?PeraCRM_CampaignRecipie
     $withdrawal=is_string($input['withdrawal_token']??null) ? $input['withdrawal_token'] : '';
     $url=peracrm_subscribers_preferences_url(); $parts=wp_parse_url($url);
     $origin=$parts['scheme'].'://'.$parts['host'].(isset($parts['port']) ? ':'.$parts['port'] : '');
+    $cookieName=(is_ssl()?'__Host-':'').'peracrm_pref_'.substr(hash('sha256',$token),0,24);
+    $browserBinding=$_COOKIE[$cookieName]??'';
+    if (!is_string($browserBinding) || preg_match('/\A[a-f0-9]{48}\z/',$browserBinding)!==1) { $browserBinding=''; }
     // Withdrawal authority is carried only for navigation, never submitted as an edit field.
     unset($input['withdrawal_token']);
     if ($method==='POST' && !isset($input['topics'])) { $input['topics']=[]; }
     [$status,$message,$data]=$service===null ? [503,'This service is unavailable.',null]
         : $service->request($method,$token,(string)($_SERVER['CONTENT_TYPE']??''),$input,
-            (string)($_SERVER['HTTP_ORIGIN']??''),$origin,(string)($_SERVER['HTTP_SEC_FETCH_SITE']??''));
+            (string)($_SERVER['HTTP_ORIGIN']??''),$origin,(string)($_SERVER['HTTP_SEC_FETCH_SITE']??''),$browserBinding);
     status_header($status);
     if ($status===405) { header('Allow: GET, HEAD, POST'); }
     if ($method==='HEAD') { return; }
     $withdrawalURL=$service && $service->withdrawalAvailable($withdrawal)
         ? add_query_arg('token',$withdrawal,home_url('/email-unsubscribe/')) : '';
-    $proof=$data!==null ? $service->proof($token,time()) : '';
+    if ($data!==null) {
+        if ($browserBinding==='') { $browserBinding=bin2hex(random_bytes(24)); }
+        setcookie($cookieName,$browserBinding,['expires'=>time()+900,'path'=>is_ssl()?'/':($parts['path']??'/'),
+            'secure'=>is_ssl(),'httponly'=>true,'samesite'=>'Strict']);
+    }
+    $proof=$data!==null ? $service->proof($token,time(),$browserBinding) : '';
     include __DIR__.'/../views/pages/recipient-preferences.php';
 }
 
-/** Fetch serializes Origin as null for a no-referrer form navigation in Chromium.
- * Accept that privacy-preserving case only with browser-enforced same-origin
- * Fetch Metadata. Every submission separately requires the bearer-bound proof.
- * Missing Origin, foreign origins, same-site and cross-site remain denied.
+/** no-referrer navigation can serialize Origin as null without Fetch Metadata.
+ * The separately required Strict/HttpOnly cookie-bound MAC rejects cross-site
+ * navigation even in those browsers. Explicit cross-site metadata always denies.
  */
 function peracrm_campaign_recipient_preferences_same_origin(string $origin, string $expected, string $site): bool
 {
     return $expected !== '' && in_array($site,['','same-origin'],true)
-        && (($origin !== '' && hash_equals($expected,$origin)) || ($origin === 'null' && $site === 'same-origin'));
+        && (($origin !== '' && hash_equals($expected,$origin)) || $origin === 'null');
 }

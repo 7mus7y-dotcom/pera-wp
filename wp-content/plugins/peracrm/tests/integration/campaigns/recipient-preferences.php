@@ -29,9 +29,9 @@ peracrm_with_target_blog(static function () {
         new PeraCRM_CampaignRecipientPreferences(new PeraCRM_CampaignRecipientPersistence('fixture-withdrawal',get_current_blog_id()+1),withdrawal_keys(),'fixture-withdrawal')] as $wrongService) {
         withdrawal_expect($wrongService->request('GET',$seed['token'],'',[],'','','')[0]===400,'wrong deployment signing key or blog denied');
     }
-    $body=['token'=>$seed['token'],'proof'=>$service->proof($seed['token'],time()),'language'=>'en','topics'=>[]];
+    $body=['token'=>$seed['token'],'proof'=>$service->proof($seed['token'],time(),str_repeat('a',48)),'language'=>'en','topics'=>[]];
     foreach (['','null','http://evil.test'] as $origin) {
-        withdrawal_expect($service->request('POST',$seed['token'],'application/x-www-form-urlencoded',$body,$origin,'http://fixture.test','cross-site')[0]===400,'cross-site rejected');
+        withdrawal_expect($service->request('POST',$seed['token'],'application/x-www-form-urlencoded',$body,$origin,'http://fixture.test','cross-site',str_repeat('a',48))[0]===400,'cross-site rejected');
     }
     withdrawal_expect(withdrawal_snapshot()===$before,'GET HEAD and rejected edits SQL unchanged including mutex rows');
     foreach (['subscriber','event','commit'] as $fault) {

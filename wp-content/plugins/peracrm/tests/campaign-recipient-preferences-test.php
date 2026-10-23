@@ -14,14 +14,15 @@ pref_expect(peracrm_campaign_recipient_preferences_merge(['custom','news'],['new
 pref_expect(peracrm_campaign_recipient_preferences_merge(['properties','custom'],['news'])===['custom','news'],'replace only rendered topics');
 try { peracrm_campaign_recipient_preferences_merge(array_map(fn($i)=>'custom'.$i,range(1,32)),['news']); throw new RuntimeException('overflow accepted'); } catch (InvalidArgumentException $e) {}
 pref_expect(peracrm_campaign_recipient_preferences_same_origin('null','https://example.test','same-origin'),'no-referrer same-origin navigation supported');
-foreach (['','same-site','cross-site','none'] as $site) { pref_expect(!peracrm_campaign_recipient_preferences_same_origin('null','https://example.test',$site),'null origin requires same-origin metadata'); }
-$token='secret'; $body=['token'=>$token,'language'=>'en','topics'=>['news'],'proof'=>$service->proof($token,time())];
+foreach (['same-site','cross-site','none'] as $site) { pref_expect(!peracrm_campaign_recipient_preferences_same_origin('null','https://example.test',$site),'explicit foreign metadata denied'); }
+pref_expect(peracrm_campaign_recipient_preferences_same_origin('null','https://example.test',''),'no-referrer requires cookie proof when metadata absent');
+$token='secret'; $body=['token'=>$token,'language'=>'en','topics'=>['news'],'proof'=>$service->proof($token,time(),str_repeat('a',48))];
 foreach ([['https://evil.test','same-origin'],['null','cross-site'],['',''],['https://example.test','same-site'],['https://example.test','cross-site']] as [$origin,$site]) {
- pref_expect($service->request('POST',$token,'application/x-www-form-urlencoded',$body,$origin,'https://example.test',$site)[0]===400,'cross-site rejected');
+ pref_expect($service->request('POST',$token,'application/x-www-form-urlencoded',$body,$origin,'https://example.test',$site,str_repeat('a',48))[0]===400,'cross-site rejected');
 }
-foreach (['', $service->proof('different',time()),$service->proof($token,time()-901),$service->proof($token,time()+901)] as $proof) {
+foreach (['', $service->proof($token,time(),str_repeat('b',48)), $service->proof('different',time(),str_repeat('a',48)),$service->proof($token,time()-901,str_repeat('a',48)),$service->proof($token,time()+901,str_repeat('a',48))] as $proof) {
  $body['proof']=$proof;
- pref_expect($service->request('POST',$token,'application/x-www-form-urlencoded',$body,'https://example.test','https://example.test','same-origin')[0]===400,'invalid proof denied before storage');
+ pref_expect($service->request('POST',$token,'application/x-www-form-urlencoded',$body,'https://example.test','https://example.test','same-origin',str_repeat('a',48))[0]===400,'invalid proof denied before storage');
 }
 pref_expect($service->request('DELETE',$token,'',[],'','','')[0]===405,'method denied');
 pref_expect($service->request('GET',str_repeat('a',257),'',[],'','','')[0]===400,'bounded input');

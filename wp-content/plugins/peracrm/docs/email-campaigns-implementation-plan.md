@@ -43,15 +43,16 @@ was reported before lengthy checks.
 GET/HEAD authenticate the purpose-specific MAC and durable digest binding,
 active identity/epoch, deployment/blog and revocation. Read transactions do not
 acquire the inserting mailbox mutex and expose only language/topics, never
-mailbox/client identity or consent. HEAD emits no body. Human POST requires an
-exact same-origin Origin (or `Origin: null` with browser-enforced
-`Sec-Fetch-Site: same-origin` for no-referrer form navigation), URL-encoded
-content and a short-lived signed form proof tied to the bearer digest and
-deployment with a separate MAC domain. No WordPress login, cookie or guest
-nonce is required. Missing/foreign Origin, null Origin without same-origin Fetch Metadata, and
-missing/expired/tampered or
-other-token proof fail generically. Proofs authorize no recipient access and
-never extend preference expiry; the recipient token is separately rechecked.
+mailbox/client identity or consent. HEAD emits no body or cookies. An authenticated
+GET sets a random anonymous cookie (15 minutes, SameSite=Strict, HttpOnly, host-only;
+HTTPS uses Secure and the browser-enforced __Host- prefix). No database state is
+written by GET. Human POST requires URL-encoded content and a signed, short-lived
+form proof bound to both bearer digest and that cookie, with a separate MAC domain.
+Exact same-origin Origin or null Origin (no-referrer navigation) is required;
+explicit foreign/same-site/cross-site Fetch Metadata, foreign/missing Origin,
+missing/wrong cookie and missing/expired/tampered or other-token proof fail closed.
+No WordPress login or guest nonce is required. Proof/cookie renewal never extends
+preference expiry; the recipient token is separately rechecked under the lock.
 
 Edits accept only an explicit language tag (existing field syntax, lowercased,
 blank removes it) and the existing `news` / `properties` topic choices (empty
@@ -146,3 +147,17 @@ exercise the HTTPS metadata behavior without weakening production authority.
 Real authoritative-domain HTTPS and host protections remain external activation
 requirements; the fixture does not prove deployment TLS. New hosted verification
 and final review remain pending. No production gate changes.
+
+
+### Anonymous strict-cookie proof binding (2026-10-23)
+
+Run 39912488630 passed SQL/races but the disposable browser did not become a
+secure context with the test flag, so that test-only approach was removed.
+The final design binds the signed proof to an anonymous Strict/HttpOnly cookie
+(and Secure/__Host- on HTTPS). This supports no-referrer browsers without Fetch
+Metadata while retaining cross-site protection without a WordPress login.
+The HTTP fixture checks valid proof without its cookie is denied and the cookie
+is anonymous/HttpOnly/Strict; foreign Origin and explicit cross-site metadata
+remain rejected. #1473 withdrawal remains cookie-free and unchanged. Earlier
+metadata-only/no-cookie descriptions above are historical checkpoints, superseded
+by the current contract. New full hosted validation remains pending.
