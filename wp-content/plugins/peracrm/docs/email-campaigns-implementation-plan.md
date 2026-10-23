@@ -401,3 +401,33 @@ on configuration key order, and strengthened the integrated accepted/unknown/
 cancelled cases with historical exact-byte recovery plus unchanged worker-state
 assertions. All 27 local suites/200 syntax checks passed again; new final-head
 hosted validation and review are required for this runtime correction.
+
+### Final runtime acceptance (2026-10-23)
+
+[CI 39936033892](https://github.com/7mus7y-dotcom/pera-wp/actions/runs/39936033892)
+completed **successfully** on final runtime/fixtures
+`04cad099dbb48cb31e1713abc9904cfb433f0b4e`, tree
+`230ef3e168e6a625e49653cd2febabedac899f62`, matching the isolated local tree.
+Single-site job `120355671172` and multisite job `120355670877` both passed.
+Completed logs from both jobs were inspected. All integrated worker SQL cases,
+all four new independent-process races, the inherited atomic rollback/conflict/
+concurrency suites, existing worker/scheduler tests and withdrawal/preferences/
+browser fixtures passed. In particular both topologies prove exact historical
+recovery leaves accepted/unknown/cancelled authority unchanged, only fresh valid
+claims can submit, concurrent workers make one mock call, withdrawal/cancellation
+make zero calls, and a killed process after preparation COMMIT recovers identical
+bytes under fresh authorization. Captured headers and both bodies traverse the
+SES mapper with synthetic mock transport only, after durable state and inflight
+COMMIT. Earlier failing run 39935447644 is superseded, not relabeled as passing.
+
+[Final clean review](https://github.com/7mus7y-dotcom/pera-wp/pull/1476#issuecomment-6362434356)
+covers runtime `04cad099db`; summary 6362286799 reports completed, no findings and
+no unresolved findings. All 27 local standalone suites and 200 PHP syntax checks,
+plus shell syntax/whitespace passed. Hosted artifacts are retained through
+2026-11-06: single-site `12494346363`, multisite `12493628696`. No UI changed;
+no new screenshot inspection or real-host/provider acceptance is claimed.
+
+This follow-up changes only acceptance documentation; runtime and fixture bytes
+remain exactly those tested and reviewed above. Production dispatch, recipient
+factories, intake/collection and cron remain blocked. No real HTTP, credentials,
+mail, merge or deployment. Original checkout remains clean and preserved.
