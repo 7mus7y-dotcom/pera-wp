@@ -173,6 +173,26 @@ done
 # Dedicated prepared synthetic source; fake outcomes are confined to separate fixture ledgers.
 wp eval-file /tests/queue-race.php prepare pause-schedule
 wp eval-file /tests/queue-worker.php
+wp eval-file /tests/prepared-worker.php
+for prepared_race in concurrent withdraw cancel interrupted; do
+    rm -f /tmp/peracrm-prepared-held /tmp/peracrm-prepared-winner /tmp/peracrm-prepared-loser
+    wp eval-file /tests/prepared-worker-race.php prepare "$prepared_race"
+    wp eval-file /tests/prepared-worker-race.php winner "$prepared_race" &
+    prepared_winner_pid=$!
+    wait_for_migration_marker /tmp/peracrm-prepared-held
+    if [ "$prepared_race" = interrupted ]; then
+        prepared_exit=0
+        wait "$prepared_winner_pid" || prepared_exit=$?
+        [ "$prepared_exit" -eq 77 ]
+        wp eval-file /tests/prepared-worker-race.php loser "$prepared_race"
+    else
+        wp eval-file /tests/prepared-worker-race.php loser "$prepared_race" &
+        prepared_loser_pid=$!
+        wait "$prepared_winner_pid"
+        wait "$prepared_loser_pid"
+    fi
+    wp eval-file /tests/prepared-worker-race.php verify "$prepared_race"
+done
 wp eval-file /tests/scheduler.php
 sh /tests/scheduler-cli.sh
 sh /tests/scheduler-race.sh

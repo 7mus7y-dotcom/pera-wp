@@ -220,6 +220,75 @@ abstract class PeraCRM_Campaign_Worker
         return $this->result($authorized, $result);
     }
 
+    /** Internal integrated path. Preparation commits outside worker transactions;
+     * only a fresh final authorization transitions claimed -> inflight.
+     * Dependencies are explicit: no production factory, scheduler or transport.
+     */
+    final public function submitPrepared(array $claim, PeraCRM_Campaign_Worker_Preparation $preparation,
+        PeraCRM_Campaign_SES_Mapper $mapper): array
+    {
+        $inputs=$this->transaction(function () use ($claim,$preparation) {
+            $job=$this->job((int)$claim['job_id']);
+            $row=$this->delivery((int)$claim['job_id'],(int)$claim['id']);
+            $denied=$this->preparedBoundary($job,$row,$claim);
+            if ($denied !== null) { return ['denied'=>$denied]; }
+            [$content,$envelope]=PeraCRM_Campaign_Worker_Content::resolve($job,$row,$preparation->scope(),
+                function () use ($job,$row,$claim) {
+                    $this->authorize();
+                    if (!$this->due($job,$this->now())) { throw new RuntimeException('worker_authority_unavailable'); }
+                    $this->owned($row,$claim,$this->now(),'claimed');
+                });
+            return ['content'=>$content,'envelope'=>$envelope,'row'=>$row];
+        });
+        if (isset($inputs['denied'])) { return $inputs['denied']; }
+        // No worker transaction may surround recipient persistence (it owns COMMIT).
+        [$submission,$binding]=peracrm_with_target_blog(function () use ($preparation,$inputs) {
+            $this->authorize();
+            return $preparation->prepare($inputs['content'],$inputs['envelope'],$inputs['row']);
+        });
+        $authorized=$this->transaction(function () use ($claim,$preparation,$binding,$submission) {
+            $job=$this->job((int)$claim['job_id']);
+            $row=$this->delivery((int)$claim['job_id'],(int)$claim['id']);
+            $denied=$this->preparedBoundary($job,$row,$claim);
+            if ($denied !== null) { return $denied; }
+            $preparation->requireIdentity($binding);
+            $fields=$submission->fields();
+            foreach (['mailbox','delivery_key','attempt_key'] as $key) {
+                peracrm_campaign_submission_require($fields[$key]===$row[$key]);
+            }
+            $now=$this->now(); $this->owned($row,$claim,$now,'claimed');
+            return $this->write($row,['state'=>'inflight','reason'=>'authorized',
+                'lease_until'=>gmdate('Y-m-d H:i:s',strtotime($now.' UTC')+self::LEASE)]);
+        });
+        if ($authorized['state']!=='inflight') { return $authorized; }
+        $this->authorize();
+        if (!$this->gate()) { return $this->result($authorized,['kind'=>'unknown']); }
+        $now=peracrm_with_target_blog(function () { return $this->now(); });
+        $this->owned($authorized,$authorized,$now,'inflight');
+        // Commit above is the submission boundary, exactly as in submit().
+        try { $result=$mapper->submit($submission); }
+        catch (Throwable $error) { $result=['kind'=>'unknown']; }
+        return $this->result($authorized,$result);
+    }
+
+    private function preparedBoundary(array $job,array $row,array $claim): ?array
+    {
+        $this->owned($row,$claim,$this->now(),'claimed');
+        if (!$this->due($job,$this->now())) {
+            return $this->write($row,['state'=>$job['state']==='cancelled'?'excluded':'held',
+                'attempt_count'=>max(0,(int)$row['attempt_count']-1),
+                'reason'=>$job['state']==='cancelled'?'cancelled':'job_gate','owner_token'=>'','lease_until'=>null]);
+        }
+        // Shared mailbox mutex serializes with withdrawal, imports and lifecycle writes.
+        peracrm_campaigns_repository_lock_mailbox($row['mailbox']);
+        $reason=$this->eligibility($job,$row);
+        if ($reason!=='eligible') {
+            return $this->write($row,['state'=>'excluded','reason'=>$reason,'owner_token'=>'','lease_until'=>null]);
+        }
+        $this->owned($row,$claim,$this->now(),'claimed');
+        return null;
+    }
+
     final public function result(array $claim, array $result): array
     {
         return $this->transaction(function () use ($claim, $result) {
