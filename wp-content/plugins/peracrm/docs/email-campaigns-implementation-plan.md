@@ -770,3 +770,79 @@ plan; every runtime and fixture byte remains exactly the tested/reviewed version
 Documentation-head CI is tracked in PR #1478's checks. The dependent matching,
 message association, worker fences and transactional suppression work above is
 still outstanding. All disabled gates remain intact; no merge or deployment.
+
+## Phase 5 — bounded SES attempt/message correlation (2026-10-24)
+
+**Current task:** correlate authenticated normalized events only. Phase 5 remains
+**in progress**. Verified #1478 merged at `a9cd8d3b46e53fb99bbbaf5317cb279d87da34e7`;
+final-head CI [40114612366](https://github.com/7mus7y-dotcom/pera-wp/actions/runs/40114612366)
+passed and completed clean [review](https://github.com/7mus7y-dotcom/pera-wp/pull/1478#issuecomment-6387006371)
+covers final runtime `67e7ed44`, unchanged by the evidence-only final commit.
+Read current/history plan, provider specification, immutable attempts/output,
+normalized-event/receipt and worker services. No applicable AGENTS.md found.
+Original `/workspace/pera-wp` is clean and preserved. Isolated worktree
+`/workspace/pera-correlation` reconstructs #1478's twelve changed files through
+the connector after one failed fetch (configured proxy unreachable); baseline
+tree `0972375210668932ff800976b610d9e9bbee0e60` exactly matches verified main.
+Reconstruction scaffolding will not be included in published ancestry.
+
+Schema 33 adds immutable provider-message associations with exact binary unique
+provider namespace/message ID and deployment/blog/attempt indexes, plus append-only
+matching decisions keyed by authenticated event scope, logical event and pass.
+Both uniqueness constraints are checked at schema readiness. Provider namespace
+includes deployment/blog, account/region and configuration set, across topic and
+configuration-version changes; immutable attempts independently pin the full
+provider scope including configuration version. Decisions retain receipt, fact
+hash, immutable binding hash and fixed quarantine reason. Association retains
+first authenticated event/receipt provenance. Existing receipt/normalization/fact
+bytes remain untouched. A matched decision is correlation, never event application.
+
+The unbootstrapped matcher accepts only IDs of already authenticated, durably
+normalized matching-pending receipts. It verifies receipt/normalization policy,
+provenance and stored hashes, locks the logical facts and exact immutable attempt,
+and compares deployment/blog, account/region/configuration set/version, all four
+tags, snapshot/envelope hashes, recipient and the entire single-recipient destination
+set. It never searches by mailbox, delivery alone or mutable current subscriber
+identity. Revocation or withdrawal does not erase historical correlation. Exact
+attempt uniqueness removes ambiguity rather than choosing a best candidate.
+Missing attempts remain quarantined; mismatches and conflicting associations
+are retained as decisions without replacing any binding. Identical replay and
+logical duplicates retain first decision and association provenance.
+
+Events can create the association before any submission response message ID
+exists; no response or current worker status is required. Submission-response
+integration and worker conflict/reconciliation fences remain dependent work;
+this matcher is not wired into the submission path and grants it no authority.
+Explicit internal `reprocess(receipt_id)` revisits only missing bindings, with
+at most five passes total per logical event and at most fifty facts per receipt.
+Ordinary replay cannot consume that budget. Exhaustion remains quarantined;
+there is no scan, cron, endpoint, automatic resend or hold release.
+
+Association creation and decisions share one transaction. Logical-event and
+attempt locks plus database uniqueness serialize concurrent identical/conflicting
+creators. Owned-savepoint checks preserve caller transactions, including failed
+probe cases. SQL-session guards make replayed writes on reconnected sessions
+no-ops; connection checks fence capture, each write and COMMIT. Fixed unchained
+errors expose no addresses, tokens or SQL. No subscriber, suppression, delivery,
+retry, job, output or attempt updates occur. All production gates stay disabled.
+
+Local standalone suites, PHP lint, shell syntax and whitespace checks pass.
+New disposable SQL fixtures cover v32 additive/idempotent migration, unique-index
+readiness, early events, SNS/logical duplicates, both association conflicts,
+missing bindings/later arrival/bounded redrive, wrong tags/recipient/full destination
+set, deployment/blog/policy denial, insert/SELECT/COMMIT rollback, real SQL-session
+replacement before both writes/capture/COMMIT and caller transaction preservation.
+Four independent-process races cover duplicate receipts, logical duplicate events,
+different messages for one attempt and one message for different attempts.
+Snapshots assert consent/evidence/suppression/worker/attempt/output invariance.
+Local Docker socket access is denied; daemon exists and UID 1000 cannot recover it.
+Real single/multisite hosted execution and final runtime review remain pending.
+No local SQL/race pass or provider acceptance is claimed.
+
+No additional AWS fact is needed; use the findings already recorded above and in
+the provider specification. No browsing retries, real transport, AWS operations,
+credentials, messages, activation, merge or deployment. Remaining bounded work:
+submission-response association integration, event outcome application, worker
+reconciliation/retry fences, transactional suppression application and only then
+reviewed HTTP endpoint adaptation/activation prerequisites. Correlation does not
+clear suppression, change consent, release unknowns or prove non-acceptance.
