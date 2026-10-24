@@ -593,3 +593,128 @@ recipient factory and cron gates are preserved. No event application, real AWS
 traffic, provisioning, credentials, sending, new PR, merge or deployment. The
 original checkout and isolated worktree remain preserved. The dependent event
 application work listed above is still outstanding and outside #1477.
+
+## Phase 5 — durable SES normalization prerequisite (2026-10-24)
+
+**Current task:** twelfth bounded Phase 5 PR, deliberately split to finish the
+normalization/quarantine prerequisite. Phase 5 remains **in progress**. This
+section supersedes earlier current-task and #1477 pending-review statements.
+The full event-application request is **not complete** in this prerequisite.
+
+### Verified baseline and externally supplied AWS verification
+
+GitHub connector verified #1477 merged into latest main
+`0e894ea87b3a1f88529dbb17dafb0aa93530beae`. Final head `d44bd8e0aab0c893c48fdd07da43c58835ab7c19`
+passed [CI 40090978273](https://github.com/7mus7y-dotcom/pera-wp/actions/runs/40090978273)
+and received completed clean [Codex review](https://github.com/7mus7y-dotcom/pera-wp/pull/1477#issuecomment-6386190114)
+on that exact head. Its description's usage-limit statement is stale. No
+applicable AGENTS.md found in repository/workspace or searched ancestors.
+Read living/history plan, provider specification, receipt, immutable attempt,
+prepared worker, retry/reconciliation and cumulative mailbox suppression services.
+Original clean `/workspace/pera-wp` at `4a4204a7` is preserved. Isolated
+`/workspace/pera-events` reconstructs #1477 via connector; baseline tree
+`072b04a8e5649c30df5e49844785c38301122dd9` matches its published tree exactly.
+The local reconstruction commit is scaffolding, excluded from publication;
+the published change must parent directly to verified main.
+
+Shell fetch failed once on unreachable configured proxy port 8080; no repeat
+attempt. Direct documentation fetch also failed. **Externally supplied source
+verification:** the parent session retrieved the following official AWS pages
+on 2026-10-24 and the user supplied the findings. This workspace did not retrieve
+these pages directly:
+
+- [SES event-publishing SNS contents](https://docs.aws.amazon.com/ses/latest/dg/event-publishing-retrieving-sns-contents.html)
+- [SES notification contents](https://docs.aws.amazon.com/ses/latest/dg/notification-contents.html)
+- [SES suppression list](https://docs.aws.amazon.com/ses/latest/dg/sending-email-suppression-list.html)
+
+Those findings distinguish eventType from legacy notificationType; mail
+messageId/sendingAccountId/destination and event-publishing tags; bounceType,
+bounceSubType, bouncedRecipients and feedbackId; terminal transient bounce
+delivery failures; redacted complaint recipients as candidates and not-spam
+feedback; Delivery as receiving-server acceptance; Send's empty object. AWS
+provides no notification ordering/batching guarantee, supports multiple
+recipients and introduces additional fields. Strict authority-field checks and
+tolerance for harmless additive fields follow these supplied findings. No live
+AWS verification, sending or provider acceptance is claimed.
+
+### Coherent boundary and storage contract
+
+Normalization and durable quarantine are split from matching/application because
+the latter must coordinate immutable message associations with synchronous
+worker results/reconciliation/retry fences and mailbox-first suppression writes.
+Publishing partial matching without those fences could let an early Send conflict
+with a later non-acceptance result. This PR therefore provides no matching,
+acceptance, delivery-state, suppression, consent, subscriber or retry authority.
+Normalized facts are observations pending matching, never verified-provider
+application evidence merely because tags exist.
+
+Internal/unbootstrapped normalizer supports Send, Delivery, Bounce, Complaint
+and DeliveryDelay, with legacy type alias only when required correlation data
+exists. It bounds bytes/depth/recipients/string fields, validates fixed account,
+configuration set and singleton hash tags, canonicalizes local mailboxes and
+timestamps, verifies recipient membership, and ignores harmless unknown fields.
+Reject, Rendering Failure, tracking/subscription events and malformed/missing
+correlation data remain quarantined. Complaint candidate identity and feedback
+subtype including not-spam are preserved; no subtype changes suppression.
+Transient/Undetermined/Permanent remain distinct observations without retry or
+permanent-denial decisions. No transient threshold policy is activated.
+
+Schema 32 adds immutable normalized event facts and per-receipt normalization
+links. Logical identity uses scope/message/type/recipient/feedbackId when present,
+otherwise the complete stable canonical projection. Conflicting content under
+the same feedback identity quarantines the entire batch without replacing facts.
+Duplicate SNS receipts and logical events retain original bytes/times and durable
+receipt references. Only existing authenticated #1477 receipts can enter the
+durable service: callers pass receipt ID, never JSON or a verified boolean.
+Canonical payload hash/version/topic suffix are checked; no certificate network
+call is needed to consume the authenticated durable record. Old/future receipts
+keep their original quarantine; no automatic redrive. Provider policy hash pins
+repeat processing to the same configuration/version. The original receipt remains
+immutable and quarantined, even after normalization. No application state exists.
+
+Fact inserts and normalization link commit atomically. Nested callers are
+rejected without ending their transaction. SQL connection checks before/after
+COMMIT retain #1477's fail-closed acknowledgment protection; an owned savepoint
+also detects loss before connection capture. Each write is SQL-session-fenced,
+so wpdb reconnect-and-replay on an autocommit replacement session writes nothing.
+Storage failures return fixed sns_storage and preserve the receipt for retry.
+
+### Validation checkpoint and dependent work
+
+Local PHP 8.4: all 29 standalone suites and 213 plugin PHP syntax checks excluding
+vendor-webpush passed; shell syntax and whitespace checks passed. Focused tests
+cover supported types, legacy aliases, recipient/order/additive-field stability,
+wrong scope/recipient/tags, candidate complaints/not-spam, bounce distinctions,
+timestamp and size/depth/list bounds, unsupported types and logical conflicts.
+New real SQL fixtures cover v31 additive migration, authenticated-only access,
+receipt/logical duplicates, immutable conflicts, early/out-of-order facts,
+scope/policy/target isolation, stale/future quarantine, caller transactions,
+insert/SELECT/COMMIT failures and real SQL reconnection before either write,
+COMMIT and initial connection capture. Four independent-process races exercise
+same receipt, duplicate logical event, conflicting feedback and concurrent
+withdrawal, retaining evidence and cumulative withdrawal. State snapshots cover
+subscriber/consent/suppression, all worker/job states, attempts and output bytes.
+Hosted single/multisite SQL/race acceptance is pending initial publication.
+Local Docker socket failed with operation not permitted; daemon is running and
+UID is 1000. No restart or repeated socket attempts; no local SQL success claimed.
+
+**Dependent PR:** match deployment/blog and all persisted immutable attempt,
+account/region/configuration-set, delivery/attempt/snapshot/envelope, recipient and
+message-ID bindings. Persist immutable response/event message associations,
+handle early Send and conflicting provider IDs, and coordinate worker outcome,
+claim and reconciliation fences so no late/unknown/accepted/cancelled observation
+can produce resend authority. Add separate acceptance and receiving-server
+delivery facts. Transactionally apply Permanent bounce and complaint suppression
+with mailbox-first locking, preserved evidence and cumulative flags, including
+post-cancellation/completion events. Define conservative complaint subtype and
+candidate policy under exact single-recipient attempt binding; not-spam must
+never clear denial. Commit application facts, suppression and receipt application
+state together. Exercise actual matching/application, both withdrawal lock orders,
+message conflicts and all rollback/reconnect/protected-attempt races in both SQL
+topologies. This PR's normalization tests do not claim that dependent acceptance.
+
+All artifacts remain PeraCRM-owned. No public HTTP endpoint, bootstrap/factory,
+AWS provisioning, real transport/credentials/messages, cron activation or UI.
+Dispatch, intake, public collection and recipient factories stay disabled. No
+merge or deploy. Retention/privacy/restore/redrive/readiness activation requirements
+remain open; preserve receipts and normalized tombstones on rollback.

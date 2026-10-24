@@ -112,6 +112,8 @@ function peracrm_campaigns_assert_schema()
         }
         $engine = $wpdb->get_row($wpdb->prepare('SHOW TABLE STATUS WHERE Name = %s', $table), ARRAY_A);
         $expected_keys = [
+            'peracrm_campaign_ses_events' => ['scope_hash','event_key'],
+            'peracrm_campaign_ses_normalizations' => ['scope_hash','receipt_id'],
             'peracrm_campaign_sns_receipts' => ['scope_hash','message_id'],
             'peracrm_campaign_recipient_identities' => ['deployment','blog_id','subscriber_id'],
             'peracrm_campaign_recipient_tokens' => ['deployment','blog_id','digest'],
