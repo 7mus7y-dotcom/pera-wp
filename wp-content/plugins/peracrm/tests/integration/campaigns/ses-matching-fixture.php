@@ -10,7 +10,7 @@ function ses_match_seed(string $deployment,int $number,bool $persist=true,array 
     $binding['subscriber_id']=26000+$number; $binding['mailbox']='matching-'.$number.'@example.test';
     $binding['attempt_key']=hash('sha256','matching-'.$deployment.'-'.$number);
     $tokens=new PeraCRM_CampaignRecipientTokens(['k1'=>str_repeat('synthetic-match-',3)],'k1',$deployment,static fn()=>true);
-    $output=(new PeraCRM_CampaignRecipientExpansion('https://example.test',$tokens))->expand($content,$binding['snapshot_hash'],$binding,1800000000);
+    $output=(new PeraCRM_CampaignRecipientExpansion('https://example.org',$tokens))->expand($content,$binding['snapshot_hash'],$binding,1800000000);
     $fields=$original->fields();
     foreach (['blog_id','mailbox','attempt_key','snapshot_hash'] as $key) { $fields[$key]=$binding[$key]; }
     $fields['scope']=$provider?:ses_event_scope();

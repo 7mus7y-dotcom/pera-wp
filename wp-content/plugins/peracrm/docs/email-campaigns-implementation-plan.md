@@ -854,3 +854,10 @@ still independently pins its exact configuration set/version. Provider configura
 is defensively copied without caller-held PHP references, and persisted pass numbers
 outside the bounded range fail closed. New hosted CI and review must cover this
 follow-up runtime. No activation or worker integration is added.
+
+Initial [CI 40116281087](https://github.com/7mus7y-dotcom/pera-wp/actions/runs/40116281087)
+passed migration and existing suites but both topologies stopped at fixture setup:
+the synthetic expansion origin used a reserved `.test` TLD, correctly denied by
+the existing origin validator. Fixture now uses the established `example.org`
+synthetic origin; no networking occurs. Runtime is unchanged by this fixture fix.
+The failed run is not correlation SQL acceptance.
