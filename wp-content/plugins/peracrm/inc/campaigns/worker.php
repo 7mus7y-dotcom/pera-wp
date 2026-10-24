@@ -16,6 +16,7 @@ interface PeraCRM_Campaign_Provider
     public function submit(array $submission): array;
     /** Verified evidence bound to delivery/attempt keys, or null. No assumed provider guarantees. */
     public function lookup(string $delivery_key, string $attempt_key): ?array;
+    /** Must authenticate exact durable evidence, not merely trust caller fields or a missing lookup. */
     public function verify(array $evidence, string $delivery_key, string $attempt_key): bool;
 }
 
@@ -69,9 +70,13 @@ abstract class PeraCRM_Campaign_Worker
             $this->authorize();
             if (!peracrm_campaigns_module_enabled()) { throw new RuntimeException('Campaign schema is not ready.'); }
             global $wpdb;
-            peracrm_campaigns_db_require($wpdb->query('SAVEPOINT peracrm_worker_top_level_probe'));
-            if ($wpdb->query('RELEASE SAVEPOINT peracrm_worker_top_level_probe')!==false
-                || $wpdb->last_error!=='SAVEPOINT peracrm_worker_top_level_probe does not exist') { throw new RuntimeException('worker_storage'); }
+            peracrm_campaigns_db_require((int)$wpdb->get_var('SELECT @@autocommit')===1);
+            $quiet=$wpdb->suppress_errors(true);
+            try {
+                peracrm_campaigns_db_require($wpdb->query('SAVEPOINT peracrm_worker_top_level_probe'));
+                if ($wpdb->query('RELEASE SAVEPOINT peracrm_worker_top_level_probe')!==false
+                    || $wpdb->last_error!=='SAVEPOINT peracrm_worker_top_level_probe does not exist') { throw new RuntimeException('worker_storage'); }
+            } finally { $wpdb->suppress_errors($quiet); }
             peracrm_campaigns_db_require($wpdb->query('START TRANSACTION'));
             try {
                 peracrm_campaigns_db_require($wpdb->query('SAVEPOINT peracrm_worker_owned'));
@@ -101,12 +106,12 @@ abstract class PeraCRM_Campaign_Worker
         global $wpdb;
         $set=[]; $values=[]; $conditions=[];
         foreach ($changes as $key=>$value) {
-            $set[]=$key.($value===null?'=NULL':'=%s');
+            $set[]='`'.$key.'`'.($value===null?'=NULL':'=%s');
             if ($value!==null) { $values[]=$value; }
         }
-        foreach ($where as $key=>$value) { $conditions[]=$key.'=%s'; $values[]=$value; }
+        foreach ($where as $key=>$value) { $conditions[]='`'.$key.'`=%s'; $values[]=$value; }
         $values[]=$this->sqlConnection; $values[]=$this->sqlGuard;
-        $changed=$wpdb->query($wpdb->prepare('UPDATE '.$table.' SET '.implode(',',$set).' WHERE '.implode(' AND ',$conditions)
+        $changed=$wpdb->query($wpdb->prepare('UPDATE `'.$table.'` SET '.implode(',',$set).' WHERE '.implode(' AND ',$conditions)
             .' AND CONNECTION_ID()=%d AND @peracrm_worker_guard=%s',$values));
         peracrm_campaigns_db_require($changed!==false);
         $this->requireConnection();
@@ -182,7 +187,10 @@ abstract class PeraCRM_Campaign_Worker
             peracrm_campaigns_db_require(true);
             $out = [];
             foreach ($rows as $row) {
-                if (PeraCRM_Campaign_Acceptance::fenced($this->acceptanceDeployment(),$row['delivery_key'])) { continue; }
+                if (PeraCRM_Campaign_Acceptance::fenced($this->acceptanceDeployment(),$row['delivery_key'])) {
+                    $this->write($row,['state'=>'unknown','reason'=>'acceptance_evidence','owner_token'=>'','lease_until'=>null,'next_attempt_at'=>null]);
+                    continue;
+                }
                 $attempt = (int)$row['attempt_count'] + 1;
                 $out[] = $this->write($row, ['state'=>'claimed', 'owner_token'=>bin2hex(random_bytes(32)),
                     'lease_until'=>gmdate('Y-m-d H:i:s', strtotime($now.' UTC') + self::LEASE),

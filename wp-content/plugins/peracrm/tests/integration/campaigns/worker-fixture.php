@@ -69,7 +69,9 @@ final class PeraCRM_Fake_Campaign_Provider implements PeraCRM_Campaign_Provider
     }
     public function verify(array $evidence, string $delivery_key, string $attempt_key): bool
     {
-        worker_fixture_environment(); $proof = $evidence['proof'] ?? ''; unset($evidence['proof']);
+        worker_fixture_environment();
+        if ($this->lookup($delivery_key,$attempt_key)!==$evidence) { return false; }
+        $proof = $evidence['proof'] ?? ''; unset($evidence['proof']);
         return is_string($proof) && $evidence['delivery_key'] === $delivery_key && $evidence['attempt_key'] === $attempt_key
             && hash_equals(hash_hmac('sha256', wp_json_encode($evidence), $this->secret), $proof);
     }

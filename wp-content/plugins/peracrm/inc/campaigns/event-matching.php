@@ -30,8 +30,7 @@ final class PeraCRM_SES_Matcher
         $this->scope=hash('sha256',json_encode(['provider'=>'ses_sns','deployment'=>$deployment,'blog'=>$blog]+$verifier->scope(),JSON_THROW_ON_ERROR));
         // Message IDs are unique in the trusted provider namespace, across topics,
         // configuration sets and revisions. The attempt uniqueness also spans them.
-        $this->providerScope=hash('sha256',json_encode(['deployment'=>$deployment,'blog'=>$blog,
-            'provider'=>$provider['provider'],'account'=>$provider['account_id'],'region'=>$provider['region']],JSON_THROW_ON_ERROR));
+        $this->providerScope=PeraCRM_Campaign_Acceptance::namespace($deployment,$blog,$ordered);
     }
     public function __debugInfo(): array { return ['redacted'=>true]; }
     public function __serialize(): array { throw new LogicException('matching_serialization_disabled'); }
@@ -85,7 +84,6 @@ final class PeraCRM_SES_Matcher
         $decision=self::bindingDecision($fact,$attempt,$this->provider,$this->blog);
         if ($row['attempt_key']!==($attempt['attempt_key']??null) || $row['delivery_key']!==($attempt['delivery_key']??null)) { $decision='binding_conflict'; }
         if ($decision!=='matched') { return [$decision,$row['binding_hash']]; }
-        $messages=peracrm_table('peracrm_campaign_provider_messages');
         $data=['provider_scope'=>$this->providerScope,'message_id'=>$fact['message_id'],'deployment'=>$this->deployment,
             'blog_id'=>$this->blog,'attempt_key'=>$row['attempt_key'],'binding_hash'=>$row['binding_hash'],
             'event_scope'=>$this->scope,'event_key'=>$event,'receipt_id'=>$receipt,'recorded_at'=>gmdate('Y-m-d H:i:s')];

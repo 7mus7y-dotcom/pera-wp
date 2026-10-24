@@ -184,3 +184,16 @@ $queue=file_get_contents($root.'/inc/campaigns/queue.php');
 submission_expect(preg_match('/function peracrm_campaign_queue_dispatch_allowed\(\)\s*\{\s*return false;/',$queue), 'unconditional production block');
 submission_expect(!str_contains(file_get_contents($root.'/inc/bootstrap.php'),'/providers/ses.php'), 'no production factory or transport wiring');
 echo "PASS submission envelope, frozen bindings, SES mapping, outcomes, redaction and disabled production contracts\n";
+
+// Deterministic injected time: no network or twenty-second sleep.
+$transport->throws=false;
+foreach ([['status'=>200,'message_id'=>'late-positive'],['status'=>429,'error_code'=>'TooManyRequestsException'],['status'=>200,'message_id'=>'bad id']] as $response) {
+    $ticks=0;
+    $lateMapper=new PeraCRM_Campaign_SES_Mapper($scope,$transport,static function () use (&$ticks): int { return $ticks++===0?0:21000000000; });
+    $transport->response=$complete+$response; $calls=$transport->calls;
+    $result=$lateMapper->submit($envelope);
+    $expected=($response['message_id']??'')==='late-positive'
+        ? ['kind'=>'accepted','message_id'=>'late-positive','code'=>'provider_accepted','late'=>true]
+        : ['kind'=>'unknown','code'=>'ambiguous_submission'];
+    submission_expect($transport->calls===$calls+1 && $result===$expected, 'late positive evidence retained; late negative/malformed remains unknown');
+}

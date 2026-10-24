@@ -959,3 +959,20 @@ Suppression application, public HTTP adaptation, real transport, operational UI,
 retention/redrive/restore and external readiness remain dependent work. All production
 factories, dispatch, real intake/collection and cron gates remain disabled. No AWS
 provisioning, credentials, messages, cron activation, merge or deployment.
+
+Initial automated review identified fenced retry rows remaining first in bounded
+claim scans. Local review found the same issue: fenced claimable rows now become
+an audited unknown hold, removing them from subsequent scans without granting
+resend or resolving acceptance. Added a later-recipient starvation regression
+and an independent response-vs-retry SQL race. Added deterministic injected-clock
+regressions for positive responses after the mapper timeout, v33 additive migration,
+response binding/message-alias conflicts and worker reconnect-before-write/COMMIT
+checks. Final hosted execution and rereview must cover these follow-ups.
+
+Initial hosted CI 40128631024 passed standalone/syntax and existing scheduler
+cases but stopped in both topologies at an inherited worker race barrier. Its
+interposer recognizes backtick-quoted state columns; the new guarded UPDATE had
+changed that formatting. Restored conventional quoted identifiers in guarded
+updates while preserving session/CAS predicates. This run did not reach the new
+SQL acceptance fixtures and is not acceptance evidence. Expected worker transaction
+probe errors are also suppressed, matching other owned-transaction services.

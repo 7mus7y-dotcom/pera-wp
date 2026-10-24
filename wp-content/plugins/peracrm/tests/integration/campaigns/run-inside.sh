@@ -191,7 +191,7 @@ done
 wp eval-file /tests/ses-matching.php
 wp eval-file /tests/acceptance.php
 wp eval-file /tests/worker-acceptance.php
-for accept_scenario in event-response response-event duplicate conflict; do
+for accept_scenario in event-response response-event duplicate conflict retry-fence; do
     rm -f /tmp/peracrm-accept-held /tmp/peracrm-accept-winner /tmp/peracrm-accept-loser
     wp eval-file /tests/acceptance-race.php prepare "$accept_scenario"
     wp eval-file /tests/acceptance-race.php winner "$accept_scenario" &

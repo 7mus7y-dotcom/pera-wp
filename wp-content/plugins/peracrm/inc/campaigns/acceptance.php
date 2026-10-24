@@ -36,7 +36,7 @@ final class PeraCRM_Campaign_Acceptance
     }
     public static function evidence(array $association, string $source, string $sourceKey, string $decision, callable $insert): void
     {
-        $data=array_intersect_key($association,array_flip(['deployment','blog_id','attempt_key','binding_hash','provider_scope','message_id']));
+        $data=array_intersect_key($association,array_flip(['deployment','blog_id','attempt_key','binding_hash','provider_scope','message_id','event_scope','event_key','receipt_id']));
         $data+=['source'=>$source,'source_key'=>$sourceKey,'decision'=>$decision,'recorded_at'=>gmdate('Y-m-d H:i:s')];
         $insert('peracrm_campaign_acceptance_evidence',$data);
         global $wpdb;
@@ -45,7 +45,7 @@ final class PeraCRM_Campaign_Acceptance
             $data['deployment'],$data['blog_id'],$data['attempt_key'],$source,$sourceKey),ARRAY_A);
         self::db($row?:false);
         foreach ($data as $key=>$value) {
-            if ($key!=='recorded_at' && (string)$row[$key] !== (string)$value) { throw new RuntimeException('acceptance_storage'); }
+            if (!in_array($key,['recorded_at','receipt_id'],true) && (string)$row[$key] !== (string)$value) { throw new RuntimeException('acceptance_storage'); }
         }
     }
     /** Existing staff reconciliation additionally requires exact durable positive
@@ -72,9 +72,22 @@ final class PeraCRM_Campaign_Acceptance
             $deployment,get_current_blog_id(),$delivery['attempt_key']),ARRAY_A);
         self::db($evidence);
         if (!$evidence) { throw new RuntimeException('acceptance_evidence_required'); }
+        $binding=json_decode($row['binding_json'],true,16,JSON_THROW_ON_ERROR);
         foreach ($evidence as $item) {
             if ($item['decision']!=='accepted' || $item['binding_hash']!==$row['binding_hash']
                 || $item['message_id']!==$result['message_id']) { throw new RuntimeException('acceptance_conflict'); }
+            if ($item['source']==='event') {
+                if ($item['source_key']!==hash('sha256',$item['event_scope'].$item['event_key'])) { throw new RuntimeException('acceptance_storage'); }
+                $matched=$wpdb->get_row($wpdb->prepare('SELECT * FROM '.peracrm_table('peracrm_campaign_ses_matches')
+                    ." WHERE scope_hash=%s AND event_key=%s AND decision='matched' ORDER BY sequence DESC LIMIT 1",
+                    $item['event_scope'],$item['event_key']),ARRAY_A);
+                self::db($matched?:false);
+                if ($matched['binding_hash']!==$row['binding_hash']) { throw new RuntimeException('acceptance_storage'); }
+            } elseif ($item['source']==='response') {
+                $key=hash('sha256',json_encode(['binding'=>$row['binding_hash'],'envelope'=>$binding['envelope_hash']??'',
+                    'message'=>$item['message_id']],JSON_THROW_ON_ERROR));
+                if ($key!==$item['source_key']) { throw new RuntimeException('acceptance_storage'); }
+            } else { throw new RuntimeException('acceptance_storage'); }
         }
     }
     /** Positive durable evidence or conflict fences every attempt of this delivery.
@@ -90,6 +103,9 @@ final class PeraCRM_Campaign_Acceptance
         self::db($rows);
         foreach ($rows as $row) {
             if (!hash_equals($row['binding_hash'],hash('sha256',$row['binding_json']))) { throw new RuntimeException('acceptance_storage'); }
+            $binding=json_decode($row['binding_json'],true,16,JSON_THROW_ON_ERROR);
+            if (($binding['delivery_key']??null)!==$delivery || ($binding['attempt_key']??null)!==$row['attempt_key']
+                || ($binding['blog_id']??null)!==get_current_blog_id()) { throw new RuntimeException('acceptance_storage'); }
             $evidence=$wpdb->get_var($wpdb->prepare('SELECT source_key FROM '.peracrm_table('peracrm_campaign_acceptance_evidence')
                 .' WHERE deployment=%s AND blog_id=%d AND attempt_key=%s LIMIT 1 FOR UPDATE',
                 $row['deployment'],$row['blog_id'],$row['attempt_key']));

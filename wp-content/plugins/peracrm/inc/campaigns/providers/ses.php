@@ -20,13 +20,15 @@ final class PeraCRM_Campaign_SES_Mapper
 {
     private $scope;
     private $transport;
+    private Closure $clock;
 
-    public function __construct(array $scope, PeraCRM_Campaign_SES_Transport $transport)
+    public function __construct(array $scope, PeraCRM_Campaign_SES_Transport $transport, ?Closure $clock=null)
     {
         PeraCRM_CampaignSubmissionV1::validateScope($scope);
         $this->scope = [];
         foreach ($scope as $key=>$value) { $this->scope[$key] = $value; }
         $this->transport = $transport;
+        $this->clock=$clock??static fn(): int=>hrtime(true);
     }
 
     public function submit(PeraCRM_CampaignSubmissionV1 $submission): array
@@ -51,13 +53,13 @@ final class PeraCRM_Campaign_SES_Mapper
             'endpoint'=>'https://email.'.$this->scope['region'].'.amazonaws.com',
             'configuration_version'=>$this->scope['configuration_version'],
             'http'=>['connect_timeout'=>3,'timeout'=>20,'verify'=>true,'allow_redirects'=>false], 'retries'=>0];
-        $start = hrtime(true);
+        $start = ($this->clock)();
         try { $result = $this->transport->send($request, $options); }
         catch (Throwable $e) { return ['kind'=>'unknown','code'=>'ambiguous_submission']; }
         $mapped=self::result($result);
         // A complete authenticated positive response remains acceptance evidence
         // after the timeout. It does not restore lease ownership or resolve unknowns.
-        if ((hrtime(true) - $start) / 1e9 >= 20) {
+        if ((($this->clock)() - $start) / 1e9 >= 20) {
             return $mapped['kind']==='accepted' ? $mapped+['late'=>true] : ['kind'=>'unknown','code'=>'ambiguous_submission'];
         }
         return $mapped;

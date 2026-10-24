@@ -8,6 +8,11 @@ peracrm_with_target_blog(static function () {
     $table=peracrm_table('peracrm_campaign_acceptance_evidence');
     $messages=peracrm_table('peracrm_campaign_provider_messages');
     $rows=static fn()=> $wpdb->get_results($wpdb->prepare("SELECT * FROM {$table} WHERE deployment=%s ORDER BY 1,2,3,4,5",$deployment),ARRAY_A);
+    $old=$wpdb->get_results("SELECT * FROM {$messages} ORDER BY 1,2",ARRAY_A);
+    $wpdb->query('DROP TABLE '.$table);
+    update_option('peracrm_schema_version',33); update_option('peracrm_campaigns_schema_status',['state'=>'ready','version'=>33]);
+    sns_expect(peracrm_maybe_upgrade_schema() && peracrm_maybe_upgrade_schema(),'v33 acceptance migration idempotent');
+    sns_expect($old===$wpdb->get_results("SELECT * FROM {$messages} ORDER BY 1,2",ARRAY_A),'migration preserves historical message provenance');
     foreach (['event-first','response-first'] as $n=>$order) {
         $seed=ses_match_seed($deployment,500+$n); $message=$seed['event']['mail']['messageId'];
         $id=ses_match_receive($v,$deployment,$seed['event'],700+$n);
@@ -28,6 +33,13 @@ peracrm_with_target_blog(static function () {
         sns_expect(!PeraCRM_Campaign_Acceptance::fenced($deployment.'other',$seed['metadata']['delivery_key']),'deployment isolation');
         $wpdb->query('ROLLBACK');
     }
+    $seed=ses_match_seed($deployment,510);
+    $wrong=$seed['submission']->fields(); $wrong['subject']='different immutable envelope';
+    sns_expect(PeraCRM_Campaign_Submission_Response::record($deployment,new PeraCRM_CampaignSubmissionV1($wrong),'wrong-binding')==='binding_conflict','response binding conflict durably quarantined');
+    $second=ses_match_seed($deployment,511);
+    sns_expect(PeraCRM_Campaign_Submission_Response::record($deployment,$second['submission'],'shared-message')==='accepted','first response message binding');
+    $third=ses_match_seed($deployment,512);
+    sns_expect(PeraCRM_Campaign_Submission_Response::record($deployment,$third['submission'],'shared-message')==='message_conflict','response cannot alias another attempt');
     foreach (['message','evidence','select','commit','reconnect-message','reconnect-evidence','reconnect-commit','reconnect-capture'] as $n=>$failure) {
         $seed=ses_match_seed($deployment,520+$n); $before=$rows(); $fired=false;
         $filter=static function ($sql) use ($failure,&$fired,$wpdb) {
