@@ -6,6 +6,15 @@ $verifier=new PeraCRM_SNS_Verifier($v['scope'],static function ($url) use ($v,&$
 $body=sns_body($v,['Subject'=>"A\nB"]);
 $r=$verifier->verify($body,$v['now']); sns_expect($calls===1 && $r['hash']===hash('sha256',$r['canonical']),'signed escaped fields and SHA256');
 sns_expect(str_ends_with($r['canonical'],"Type\nNotification\n"),'canonical trailing newline');
+// Independent canonical oracle: signing must not reuse the implementation under test.
+$independent=json_decode($body,true);
+$expected="Message\n{\"eventType\":\"Send\",\"mail\":{\"messageId\":\"synthetic\"}}\n"
+    ."MessageId\n12345678-1234-1234-1234-123456789abc\nSubject\nA\nB\nTimestamp\n"
+    .gmdate('Y-m-d\TH:i:s\Z',$v['now'])."\nTopicArn\narn:aws:sns:eu-west-1:123456789012:fixture\nType\nNotification\n";
+openssl_sign($expected,$independentSignature,$v['key'],OPENSSL_ALGO_SHA256);
+$independent['Signature']=base64_encode($independentSignature);
+sns_expect($verifier->verify(json_encode($independent),$v['now'])['canonical']===$expected,'independent AWS canonical field order oracle');
+
 $e=json_decode($body,true); $e['Message']='forged';
 sns_reject(fn()=>$verifier->verify(json_encode($e),$v['now']),'sns_authentication');
 foreach (['http://sns.eu-west-1.amazonaws.com/SimpleNotificationService-'.str_repeat('a',32).'.pem',
