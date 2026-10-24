@@ -97,6 +97,13 @@ peracrm_with_target_blog(static function () {
     sns_reject(fn()=>$store->normalize(ses_event_id(1)),'sns_storage');
     sns_expect($wpdb->query('SAVEPOINT ses_caller_owned')!==false && $wpdb->query('RELEASE SAVEPOINT ses_caller_owned')!==false,'caller transaction preserved');
     $wpdb->query('ROLLBACK');
+    $wpdb->query('START TRANSACTION');
+    $filter=static fn($sql)=>$sql==='RELEASE SAVEPOINT peracrm_ses_top_level_probe'?'INVALID_SES_PROBE_SQL':$sql;
+    add_filter('query',$filter);
+    try { sns_reject(fn()=>$store->normalize(ses_event_id(1)),'sns_storage'); }
+    finally { remove_filter('query',$filter); }
+    sns_expect($wpdb->query('SAVEPOINT ses_failed_probe_caller')!==false && $wpdb->query('RELEASE SAVEPOINT ses_failed_probe_caller')!==false,'failed probe cannot implicitly commit caller transaction');
+    $wpdb->query('ROLLBACK');
     $other=new PeraCRM_SES_Quarantine($verifier,$deployment.'-other',$blog,ses_event_scope());
     sns_reject(fn()=>$other->normalize(ses_event_id(1)),'sns_storage');
     $changed=ses_event_scope(); $changed['configuration_version']=2;

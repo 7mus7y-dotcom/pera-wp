@@ -731,3 +731,9 @@ Also reject explicit null eventType/complaintFeedbackType rather than treating
 them as absent optional data. Focused regressions pass for all three checks.
 Hosted CI and review must cover the final runtime follow-up, not just initial
 publication. No matching/application or activation is added by this correction.
+
+Further transaction review tightened the top-level probe: only MySQL's expected
+missing-savepoint error can establish autocommit; arbitrary RELEASE failure
+cannot authorize START and implicitly commit a caller transaction. Added a real
+SQL injected RELEASE-failure fixture that verifies the caller still owns its
+transaction. A server returning a different/localized diagnostic fails closed.

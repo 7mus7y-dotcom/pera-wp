@@ -88,7 +88,11 @@ final class PeraCRM_SES_Quarantine
                 throw new PeraCRM_SNS_Error('sns_storage');
             }
             self::db($wpdb->query('SAVEPOINT peracrm_ses_top_level_probe'));
-            if ($wpdb->query('RELEASE SAVEPOINT peracrm_ses_top_level_probe')!==false) { throw new PeraCRM_SNS_Error('sns_storage'); }
+            // Only the expected missing-savepoint error proves autocommit. An
+            // arbitrary RELEASE failure must never authorize START (which would
+            // implicitly commit an outer caller's transaction).
+            if ($wpdb->query('RELEASE SAVEPOINT peracrm_ses_top_level_probe')!==false
+                || $wpdb->last_error!=='SAVEPOINT peracrm_ses_top_level_probe does not exist') { throw new PeraCRM_SNS_Error('sns_storage'); }
             self::db($wpdb->query('START TRANSACTION')); $started=true; $this->busy=true; $owned=true;
             self::db($wpdb->query('SAVEPOINT peracrm_ses_owned_transaction'));
             $connection=(int)self::db($wpdb->get_var('SELECT CONNECTION_ID()'));
