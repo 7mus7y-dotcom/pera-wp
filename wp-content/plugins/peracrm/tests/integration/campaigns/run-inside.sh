@@ -175,6 +175,19 @@ wp eval-file /tests/queue-race.php prepare pause-schedule
 wp eval-file /tests/queue-worker.php
 wp eval-file /tests/prepared-worker.php
 wp eval-file /tests/sns-receipts.php
+wp eval-file /tests/ses-normalization.php
+for ses_scenario in duplicate logical conflict withdraw; do
+    rm -f /tmp/peracrm-ses-held /tmp/peracrm-ses-winner /tmp/peracrm-ses-loser
+    wp eval-file /tests/ses-normalization-race.php prepare "$ses_scenario"
+    wp eval-file /tests/ses-normalization-race.php winner "$ses_scenario" &
+    ses_winner_pid=$!
+    wait_for_migration_marker /tmp/peracrm-ses-held
+    wp eval-file /tests/ses-normalization-race.php loser "$ses_scenario" &
+    ses_loser_pid=$!
+    wait "$ses_winner_pid"
+    wait "$ses_loser_pid"
+    wp eval-file /tests/ses-normalization-race.php verify "$ses_scenario"
+done
 for sns_scenario in duplicate conflict; do
     rm -f /tmp/peracrm-sns-held /tmp/peracrm-sns-winner /tmp/peracrm-sns-loser
     wp eval-file /tests/sns-race.php prepare "$sns_scenario"
