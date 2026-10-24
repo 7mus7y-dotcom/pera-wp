@@ -861,3 +861,45 @@ the synthetic expansion origin used a reserved `.test` TLD, correctly denied by
 the existing origin validator. Fixture now uses the established `example.org`
 synthetic origin; no networking occurs. Runtime is unchanged by this fixture fix.
 The failed run is not correlation SQL acceptance.
+
+### Final runtime/fixture acceptance and clean review
+
+Non-draft [PR #1479](https://github.com/7mus7y-dotcom/pera-wp/pull/1479)
+published directly on verified main. Final runtime is
+`5dced147fe185a0be2612ab8eb70ae58e2757dbb`; the subsequent synthetic-origin
+fixture correction produces code/test head
+`5bb1f70f11bf9d90ec9ab629407cb1f5f0503fda`, tree
+`2b7c7a0271b22110260449a8a05abf3a87ff9ada`, exactly matching local.
+[CI 40116728761](https://github.com/7mus7y-dotcom/pera-wp/actions/runs/40116728761)
+**passed** single-site job `120939494606` and multisite job `120939494914`.
+Completed logs from both jobs were inspected, including migration and missing
+unique-index readiness rejection, authenticated-normalized-only input, early
+association without response, immutable/logical replay, both message conflicts,
+cross-configuration alias protection, defensive configuration references,
+missing/later bindings, five-pass exhaustion, tag and complete-recipient denial,
+scope/blog/policy isolation, both write failures/SELECT/COMMIT rollback, real
+replacement sessions before both writes/capture/COMMIT, caller/failed-probe
+transaction preservation and all four independent-process association races.
+Subscriber permissions, consent evidence, cumulative suppression, immutable
+attempts/output and worker/job state snapshots remain unchanged in those tests.
+Existing worker/lease/reconciliation/scheduler/withdrawal/preferences/browser
+acceptance also passed. No new UI or visual acceptance is claimed.
+
+Completed clean [Codex review](https://github.com/7mus7y-dotcom/pera-wp/pull/1479#issuecomment-6387378312)
+covers exact final runtime `5dced147fe`, with no findings or unresolved threads.
+Later changes touch only synthetic fixture origin and this plan, with runtime
+unchanged. Local review covered actual runtime/schema/test changes; all 30
+standalone suites, 218 PHP syntax checks, shell/JavaScript syntax and whitespace
+checks passed on the published code/test tree. The actual SQL seed/normalization
+projection also passed locally after the fixture correction. Local Docker is
+unavailable; real SQL/race evidence comes from hosted execution above.
+
+Artifacts retained through 2026-11-07: single-site `12569445999`, multisite
+`12569611356`. Failed initial run `40116281087` and superseded `40116687565`
+are not acceptance. This final evidence commit changes only the living plan;
+all runtime and fixture bytes remain those tested above. Documentation-head CI
+is tracked in #1479 checks. Original checkout stays clean; no reconstruction
+scaffolding is in published ancestry. All eleven changed files are plugin-owned.
+Submission-response integration, outcome application, worker reconciliation/retry
+fences, suppression application and endpoint adaptation remain dependent work.
+All disabled gates remain intact. No merge, deployment or real provider traffic.
