@@ -20,6 +20,11 @@ foreach (['Transient','Undetermined','Permanent'] as $bounce) {
 $e=ses_event('Complaint'); $e['complaint']['complaintFeedbackType']='not-spam';
 $fact=json_decode($normalizer->normalize(ses_event_json($e))[0]['json'],true);
 sns_expect($fact['subtype']==='not-spam' && $fact['recipient_is_candidate']===true,'not-spam and candidate identity retained');
+sns_expect($fact['destinations']===['one@example.test','two@example.test'],'full send destination set retained for future matching');
+$e['complaint']['complaintFeedbackType']=null;
+ses_event_reject(fn()=>$normalizer->normalize(ses_event_json($e)),'invalid_event');
+$e=ses_event(); $e['notificationType']='Send'; $e['eventType']=null;
+ses_event_reject(fn()=>$normalizer->normalize(ses_event_json($e)),'invalid_event');
 $e=ses_event('Delivery'); $fact=json_decode($normalizer->normalize(ses_event_json($e))[0]['json'],true);
 sns_expect($fact['type']==='Delivery' && !isset($fact['inbox_placement'],$fact['retry']),'delivery fact grants no placement/retry assertion');
 $e=ses_event(); $e['notificationType']='Bounce';

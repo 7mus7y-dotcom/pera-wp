@@ -72,9 +72,9 @@ final class PeraCRM_SES_Event_Normalizer
         try {
             self::need(strlen($message)>0 && strlen($message)<=262144);
             $event=self::object(json_decode($message,false,16,JSON_THROW_ON_ERROR));
-            $type=$event->eventType ?? $event->notificationType ?? null;
+            $type=property_exists($event,'eventType')?$event->eventType:($event->notificationType ?? null);
             self::need(is_string($type));
-            if (isset($event->eventType,$event->notificationType)) { self::need($event->eventType===$event->notificationType); }
+            if (property_exists($event,'eventType') && property_exists($event,'notificationType')) { self::need($event->eventType===$event->notificationType); }
             self::need(in_array($type,['Send','Delivery','Bounce','Complaint','DeliveryDelay'],true),'unsupported_event');
             $mail=self::object($event->mail ?? null);
             self::need(($mail->sendingAccountId ?? null)===$this->scope['account_id'],'wrong_scope');
@@ -109,7 +109,7 @@ final class PeraCRM_SES_Event_Normalizer
                 $recipients=self::recipients($detail->complainedRecipients ?? null,true);
                 $occurred=self::timestamp($detail->timestamp ?? null);
                 $feedback=self::text($detail->feedbackId ?? null,191);
-                $subtype=isset($detail->complaintFeedbackType)?self::text($detail->complaintFeedbackType,64):'unspecified';
+                $subtype=property_exists($detail,'complaintFeedbackType')?self::text($detail->complaintFeedbackType,64):'unspecified';
                 $candidate=true;
             } else {
                 $recipients=self::recipients($detail->delayedRecipients ?? null,true);
@@ -121,7 +121,7 @@ final class PeraCRM_SES_Event_Normalizer
             foreach ($recipients as $recipient) {
                 $fact=['version'=>1,'account'=>$this->scope['account_id'],'region'=>$this->scope['region'],
                     'configuration_set'=>$this->scope['configuration_set'],'message_id'=>$messageId,
-                    'type'=>$type,'recipient'=>$recipient,'recipient_is_candidate'=>$candidate,
+                    'type'=>$type,'recipient'=>$recipient,'recipient_is_candidate'=>$candidate,'destinations'=>$destinations,
                     'tags'=>$binding,'mail_timestamp'=>$mailTime,'occurred_at'=>$occurred,
                     'feedback_id'=>$feedback,'bounce_type'=>$bounce,'subtype'=>$subtype];
                 // feedbackId identifies one logical feedback fact; changed facts under that

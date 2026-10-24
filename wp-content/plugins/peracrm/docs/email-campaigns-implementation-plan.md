@@ -718,3 +718,16 @@ AWS provisioning, real transport/credentials/messages, cron activation or UI.
 Dispatch, intake, public collection and recipient factories stay disabled. No
 merge or deploy. Retention/privacy/restore/redrive/readiness activation requirements
 remain open; preserve receipts and normalized tombstones on rollback.
+
+### Initial publication and local review follow-up
+
+Non-draft [PR #1478](https://github.com/7mus7y-dotcom/pera-wp/pull/1478)
+published initial head `f6ac868ca5e2cdab67f09c2a0d078827eaad9f47`, tree
+`323ebabbed904b2116496b088afef94e68c42542`, directly parented to verified main.
+Local review of the actual runtime/schema/fixture diff found that normalized
+recipient facts should retain the complete sorted mail destination set for
+future single-recipient attempt matching; that projection is now retained.
+Also reject explicit null eventType/complaintFeedbackType rather than treating
+them as absent optional data. Focused regressions pass for all three checks.
+Hosted CI and review must cover the final runtime follow-up, not just initial
+publication. No matching/application or activation is added by this correction.
