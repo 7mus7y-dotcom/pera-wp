@@ -431,3 +431,165 @@ This follow-up changes only acceptance documentation; runtime and fixture bytes
 remain exactly those tested and reviewed above. Production dispatch, recipient
 factories, intake/collection and cron remain blocked. No real HTTP, credentials,
 mail, merge or deployment. Original checkout remains clean and preserved.
+
+## Phase 5 — SNS signature and durable receipt prerequisite (2026-10-23)
+
+**Current task:** eleventh bounded Phase 5 PR. Phase 5 remains **in progress**.
+This PR deliberately completes only signature/receipt foundations. Event
+application is dependent work, not implemented or enabled by this prerequisite.
+
+Verified #1476 merged at latest main `4a4204a7b371b30cf2c77d14ef331986e63610b5`.
+Final-head CI 39936962447 succeeded on `6b69e466`; clean review comment
+6362434356 covers final runtime `04cad099db`, unchanged by its evidence-only
+follow-up. No applicable AGENTS.md found in workspace/repository or ancestors.
+Read current/history plan, provider specification, immutable attempt/output,
+worker result/reconciliation and cumulative suppression repository contracts.
+Original clean `/workspace/pera-wp` at `a0fdebae` is preserved. Isolated
+`/workspace/pera-sns` reconstructs #1476's eight files through GitHub connector;
+baseline tree `592b66e113c00d2f45d0b259d523a64775a87825` exactly matches latest main.
+Shell fetch failed once on unreachable proxy port 8080 and was not retried.
+Local reconstruction is scaffolding only; publication parents directly to main.
+
+Notification-only verifier bounds raw bytes to 256 KiB and JSON depth to 8,
+requires flat string fields, exact topic/account/region and signature version 2,
+constructs AWS canonical fields including optional Subject and trailing newline,
+and verifies RSA/SHA256 with bounded, valid-time, minimum-2048-bit certificate.
+Exact regional HTTPS certificate host/path excludes userinfo, explicit ports,
+query/fragment, traversal, escaped paths and alternate hosts. Certificate retrieval
+is mandatory injection; the separate unbootstrapped WordPress helper uses safe
+HTTP, TLS peer/hostname verification, five-second timeout, zero redirects, no
+cookies and a 16 KiB certificate limit. Trust in the signing certificate comes
+from its authenticated AWS HTTPS origin; local fixtures inject self-signed
+synthetic certificates only. There is no cache, subscription confirmation,
+SubscribeURL fetch, factory, REST registration or production wiring.
+
+Schema 31 adds one InnoDB receipt table with exact unique scope/message ID,
+where scope hashes provider, deployment, blog, account, region and topic.
+Receipts retain signed canonical bytes/hash, certificate fingerprint and verifier
+version. Insert-or-compare under SQL uniqueness serializes duplicates/conflicts;
+conflicts roll back without overwriting the original. Every authenticated receipt
+is durably quarantined as application_pending, stale_timestamp (>24h) or
+future_timestamp (>5m). Inner SES JSON is deliberately opaque. Identical replays
+retain original bytes/reason/time. receive() returns only after COMMIT, rejects
+nested transactions without committing caller work, and emits fixed unchained
+storage/dependency errors. A future HTTP adapter must map temporary errors to
+503 and must never acknowledge before this return. Conflicts need security
+monitoring in that adapter. Auth errors must remain fixed 4xx. No HTTP ack is
+implemented or claimed here.
+
+Official AWS documentation checked again 2026-10-23:
+[SNS signature verification](https://docs.aws.amazon.com/sns/latest/dg/sns-verify-signature-of-message-verify-message-signature.html)
+confirms canonical fields/order, final newline and signature-version algorithms;
+[SES SNS contents](https://docs.aws.amazon.com/ses/latest/dg/event-publishing-retrieving-sns-contents.html)
+confirms sendingAccountId, SES message ID, tags and event taxonomy. These checks
+are documentation evidence, not live AWS acceptance.
+
+Validation: 28 local standalone suites, 207 PHP syntax checks and shell syntax/
+whitespace pass. Automated signature tests use injected local certificates and
+stub HTTP only, including forged payload, wrong topic/account/version, malformed/
+oversized envelope, certificate URL attacks, failed dependencies/expiry and
+redirect/size policy. New disposable single/multisite SQL fixtures cover v30
+additive migration, exact/old duplicate, conflicting receipt, forged/wrong scope,
+insert/COMMIT rollback before return, nested transaction preservation, timestamp
+quarantine, deployment/blog isolation and invariance of subscribers/suppressions/
+attempts/deliveries. Two independent-process races cover duplicates and conflicts.
+Compose networking is internal and fixture HTTP/mail remain globally blocked.
+Local Docker socket access failed once (operation not permitted); hosted SQL/
+race acceptance and final runtime review remain pending at initial publication.
+
+**Dependent bounded PR:** parse normalized SES events only after authentication;
+validate sendingAccountId/configuration set, deployment/blog and both opaque keys
+against durable attempt bindings, including early Send before message response
+and conflicting message mappings. Never correlate solely by mailbox. Add logical
+event deduplication across receipt IDs, durable authenticated unmatched quarantine
+and reconciliation without subscriber creation. Record separate acceptance and
+delivery facts without resend authority or regression of accepted/unknown/cancelled
+protections. Apply permanent bounce and complaint through a trusted internal
+transaction participant with mailbox-first locks and cumulative suppression;
+never grant consent/clear denial or retry submission for post-acceptance transient
+failure. Exercise early/out-of-order message facts, cumulative suppression races
+and atomic receipt/event/suppression rollback in both SQL topologies. Add guarded
+HTTP adaptation only after those application invariants are complete. The current
+opaque quarantine is not proof of SES account/configuration/attempt authority.
+
+Endpoint remains absent; dispatch, real intake, public collection, recipient
+factories and cron activation remain blocked. No AWS provisioning, credentials,
+real HTTP/mail, sending, merge or deployment. Privacy/retention, replay/redrive/
+restore horizon, host logging and certificate rotation/readiness remain activation
+requirements. Preserve additive receipts/tombstones on rollback; never truncate
+or interpret quarantine as resend permission.
+
+### Hosted checkpoint and fixture correction (2026-10-24)
+
+Non-draft PR #1477 published runtime `09e6e191`, tree
+`c2c99c7cb4f8baad88e3469f65f22cec86b9cf4a`, matching local. Initial hosted
+run 39940513635 passed standalone regressions/syntax but both SQL topologies
+stopped at an inherited fresh-migration assertion hardcoded to version 30.
+Updated that assertion and repeated-dbDelta target to PERACRM_SCHEMA_VERSION;
+this fixture-only correction does not change runtime. New hosted acceptance
+is required; the failed initial run is not SQL acceptance.
+
+GitHub automated review failed to complete and reported account code-review
+usage exhausted (comment 6363052553). It supplied no actionable inline finding;
+the failed summary's findings flags are not a completed review. No clean external
+review is claimed. Local review inspected actual runtime and fixture changes.
+
+### Recovery and local review correction (2026-10-24)
+
+Recovered commit `c9d2319b103eadd5def4a57dcc161416dccfe710`: its only parent
+exactly matched remote branch head `09e6e191`, its two-file diff contained only
+the schema fixture correction/evidence, and tree `cbc85fa541daaca1a3f46f074410977f38a1cc20`
+matched preserved local work. Published to the existing branch with force=false
+and an expected-head check; no reimplementation or new PR.
+
+Thorough local review found a lost-transaction acknowledgment risk if wpdb
+transparently reconnects and replays COMMIT on a replacement SQL session.
+Receipt storage now checks its connection ID before and after COMMIT and returns
+sns_storage on replacement, permitting provider retry even if the outcome is
+uncertain. Added real SQL session replacement immediately before COMMIT plus
+SELECT-failure rollback regressions. No event application or activation added.
+This local review does not satisfy the blocked external Codex review gate;
+no further external review requests are made while usage remains exhausted.
+
+### Final code/test validation and remaining review gate (2026-10-24)
+
+Final code/test commit `59a1cc219cd84840a85976f61e3ef8eecf8a0457`, tree
+`224c65ee75e70443f4d59f02440a7c8401488aae`, exactly matches the local worktree.
+[Hosted CI 40089961360](https://github.com/7mus7y-dotcom/pera-wp/actions/runs/40089961360)
+completed **successfully**. Single-site job `120860497716` and multisite job
+`120860497392` both passed; completed logs from both jobs were inspected.
+
+Both topologies passed the independent canonical-field signature oracle,
+forged/wrong-scope and certificate URL regressions, v30-to-v31 migration,
+immutable old duplicates/conflicts, insert/SELECT/COMMIT failure rollback,
+real SQL session replacement immediately before COMMIT (sns_storage, no receipt
+acknowledged or retained), caller transaction preservation, early/stale quarantine,
+deployment/blog isolation, unchanged subscriber/suppression/attempt/delivery
+state, and both independent-process duplicate/conflict races. Existing worker,
+atomic preparation, scheduler, withdrawal/preference SQL/races and browser suites
+also passed, including disabled-send/protected-state assertions. No new UI changes
+or screenshot inspection is claimed. Artifacts: single-site `12558976498`,
+multisite `12558926753`; both retained through 2026-11-07.
+
+Local validation: 28 standalone suites, 207 PHP syntax checks, shell syntax and
+whitespace checks passed. Added an independent canonical oracle because the
+original fixture signer shared the verifier's canonicalization helper. Local
+review covered every runtime/schema change, HTTP certificate policy, canonical
+signature fields, scope hashing, receipt uniqueness and conflict immutability,
+SQL error/reconnect/transaction ownership, test wiring and absent activation.
+The reconnect finding was fixed and exercised in both real SQL topologies;
+no further local findings remain. This is local review evidence only.
+
+**External review remains BLOCKED** by Codex usage limits recorded in comment
+6363052553. There is no completed clean external review, and local review does
+not substitute for it. No repeated external review request was sent. The initial
+failed run 39940513635 and superseded/cancelled runs 40089833863/40089911073
+are not acceptance. This evidence follow-up changes only this plan; all runtime
+and fixture bytes remain those validated above. Final-head documentation CI is
+tracked in PR #1477 checks and conversation evidence.
+
+Intake remains unregistered/unbootstrapped; all disabled dispatch, collection,
+recipient factory and cron gates are preserved. No event application, real AWS
+traffic, provisioning, credentials, sending, new PR, merge or deployment. The
+original checkout and isolated worktree remain preserved. The dependent event
+application work listed above is still outstanding and outside #1477.

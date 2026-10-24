@@ -4,13 +4,14 @@ if (!defined('ABSPATH')) {
     exit;
 }
 require_once __DIR__.'/recipient-schema.php';
+require_once __DIR__.'/event-schema.php';
 
 /** Additive only. InnoDB is required for atomic evidence/current-state writes. */
 function peracrm_campaigns_schema_definitions()
 {
     global $wpdb;
     $mailbox = 'VARCHAR(254) CHARACTER SET ascii COLLATE ascii_bin';
-    return peracrm_campaign_recipient_definitions() + peracrm_campaign_queue_definitions() + peracrm_campaigns_freeze_definitions() + peracrm_campaigns_snapshot_definitions() + peracrm_campaigns_draft_definitions() + peracrm_campaigns_phase2_definitions() + [
+    return peracrm_campaign_event_definitions() + peracrm_campaign_recipient_definitions() + peracrm_campaign_queue_definitions() + peracrm_campaigns_freeze_definitions() + peracrm_campaigns_snapshot_definitions() + peracrm_campaigns_draft_definitions() + peracrm_campaigns_phase2_definitions() + [
         'peracrm_subscribers' => "id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
             email VARCHAR(254) NOT NULL,
             normalized_email {$mailbox} NOT NULL,
@@ -111,6 +112,7 @@ function peracrm_campaigns_assert_schema()
         }
         $engine = $wpdb->get_row($wpdb->prepare('SHOW TABLE STATUS WHERE Name = %s', $table), ARRAY_A);
         $expected_keys = [
+            'peracrm_campaign_sns_receipts' => ['scope_hash','message_id'],
             'peracrm_campaign_recipient_identities' => ['deployment','blog_id','subscriber_id'],
             'peracrm_campaign_recipient_tokens' => ['deployment','blog_id','digest'],
             'peracrm_campaign_submission_outputs' => ['deployment','blog_id','attempt_key'],
