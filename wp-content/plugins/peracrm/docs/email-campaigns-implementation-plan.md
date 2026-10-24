@@ -770,3 +770,136 @@ plan; every runtime and fixture byte remains exactly the tested/reviewed version
 Documentation-head CI is tracked in PR #1478's checks. The dependent matching,
 message association, worker fences and transactional suppression work above is
 still outstanding. All disabled gates remain intact; no merge or deployment.
+
+## Phase 5 — bounded SES attempt/message correlation (2026-10-24)
+
+**Current task:** correlate authenticated normalized events only. Phase 5 remains
+**in progress**. Verified #1478 merged at `a9cd8d3b46e53fb99bbbaf5317cb279d87da34e7`;
+final-head CI [40114612366](https://github.com/7mus7y-dotcom/pera-wp/actions/runs/40114612366)
+passed and completed clean [review](https://github.com/7mus7y-dotcom/pera-wp/pull/1478#issuecomment-6387006371)
+covers final runtime `67e7ed44`, unchanged by the evidence-only final commit.
+Read current/history plan, provider specification, immutable attempts/output,
+normalized-event/receipt and worker services. No applicable AGENTS.md found.
+Original `/workspace/pera-wp` is clean and preserved. Isolated worktree
+`/workspace/pera-correlation` reconstructs #1478's twelve changed files through
+the connector after one failed fetch (configured proxy unreachable); baseline
+tree `0972375210668932ff800976b610d9e9bbee0e60` exactly matches verified main.
+Reconstruction scaffolding will not be included in published ancestry.
+
+Schema 33 adds immutable provider-message associations with exact binary unique
+provider namespace/message ID and deployment/blog/attempt indexes, plus append-only
+matching decisions keyed by authenticated event scope, logical event and pass.
+Both uniqueness constraints are checked at schema readiness. Provider namespace
+includes deployment/blog and account/region, across topic, configuration-set and
+configuration-version changes; immutable attempts independently pin the full
+provider scope including configuration version. Decisions retain receipt, fact
+hash, immutable binding hash and fixed quarantine reason. Association retains
+first authenticated event/receipt provenance. Existing receipt/normalization/fact
+bytes remain untouched. A matched decision is correlation, never event application.
+
+The unbootstrapped matcher accepts only IDs of already authenticated, durably
+normalized matching-pending receipts. It verifies receipt/normalization policy,
+provenance and stored hashes, locks the logical facts and exact immutable attempt,
+and compares deployment/blog, account/region/configuration set/version, all four
+tags, snapshot/envelope hashes, recipient and the entire single-recipient destination
+set. It never searches by mailbox, delivery alone or mutable current subscriber
+identity. Revocation or withdrawal does not erase historical correlation. Exact
+attempt uniqueness removes ambiguity rather than choosing a best candidate.
+Missing attempts remain quarantined; mismatches and conflicting associations
+are retained as decisions without replacing any binding. Identical replay and
+logical duplicates retain first decision and association provenance.
+
+Events can create the association before any submission response message ID
+exists; no response or current worker status is required. Submission-response
+integration and worker conflict/reconciliation fences remain dependent work;
+this matcher is not wired into the submission path and grants it no authority.
+Explicit internal `reprocess(receipt_id)` revisits only missing bindings, with
+at most five passes total per logical event and at most fifty facts per receipt.
+Ordinary replay cannot consume that budget. Exhaustion remains quarantined;
+there is no scan, cron, endpoint, automatic resend or hold release.
+
+Association creation and decisions share one transaction. Logical-event and
+attempt locks plus database uniqueness serialize concurrent identical/conflicting
+creators. Owned-savepoint checks preserve caller transactions, including failed
+probe cases. SQL-session guards make replayed writes on reconnected sessions
+no-ops; connection checks fence capture, each write and COMMIT. Fixed unchained
+errors expose no addresses, tokens or SQL. No subscriber, suppression, delivery,
+retry, job, output or attempt updates occur. All production gates stay disabled.
+
+Local standalone suites, PHP lint, shell syntax and whitespace checks pass.
+New disposable SQL fixtures cover v32 additive/idempotent migration, unique-index
+readiness, early events, SNS/logical duplicates, both association conflicts,
+missing bindings/later arrival/bounded redrive, wrong tags/recipient/full destination
+set, deployment/blog/policy denial, insert/SELECT/COMMIT rollback, real SQL-session
+replacement before both writes/capture/COMMIT and caller transaction preservation.
+Four independent-process races cover duplicate receipts, logical duplicate events,
+different messages for one attempt and one message for different attempts.
+Snapshots assert consent/evidence/suppression/worker/attempt/output invariance.
+Local Docker socket access is denied; daemon exists and UID 1000 cannot recover it.
+Real single/multisite hosted execution and final runtime review remain pending.
+No local SQL/race pass or provider acceptance is claimed.
+
+No additional AWS fact is needed; use the findings already recorded above and in
+the provider specification. No browsing retries, real transport, AWS operations,
+credentials, messages, activation, merge or deployment. Remaining bounded work:
+submission-response association integration, event outcome application, worker
+reconciliation/retry fences, transactional suppression application and only then
+reviewed HTTP endpoint adaptation/activation prerequisites. Correlation does not
+clear suppression, change consent, release unknowns or prove non-acceptance.
+
+Local follow-up review tightened message uniqueness across configuration sets
+within the same deployment/blog/account/region, preventing a second configuration
+set from aliasing an already associated provider message. Each immutable attempt
+still independently pins its exact configuration set/version. Provider configuration
+is defensively copied without caller-held PHP references, and persisted pass numbers
+outside the bounded range fail closed. New hosted CI and review must cover this
+follow-up runtime. No activation or worker integration is added.
+
+Initial [CI 40116281087](https://github.com/7mus7y-dotcom/pera-wp/actions/runs/40116281087)
+passed migration and existing suites but both topologies stopped at fixture setup:
+the synthetic expansion origin used a reserved `.test` TLD, correctly denied by
+the existing origin validator. Fixture now uses the established `example.org`
+synthetic origin; no networking occurs. Runtime is unchanged by this fixture fix.
+The failed run is not correlation SQL acceptance.
+
+### Final runtime/fixture acceptance and clean review
+
+Non-draft [PR #1479](https://github.com/7mus7y-dotcom/pera-wp/pull/1479)
+published directly on verified main. Final runtime is
+`5dced147fe185a0be2612ab8eb70ae58e2757dbb`; the subsequent synthetic-origin
+fixture correction produces code/test head
+`5bb1f70f11bf9d90ec9ab629407cb1f5f0503fda`, tree
+`2b7c7a0271b22110260449a8a05abf3a87ff9ada`, exactly matching local.
+[CI 40116728761](https://github.com/7mus7y-dotcom/pera-wp/actions/runs/40116728761)
+**passed** single-site job `120939494606` and multisite job `120939494914`.
+Completed logs from both jobs were inspected, including migration and missing
+unique-index readiness rejection, authenticated-normalized-only input, early
+association without response, immutable/logical replay, both message conflicts,
+cross-configuration alias protection, defensive configuration references,
+missing/later bindings, five-pass exhaustion, tag and complete-recipient denial,
+scope/blog/policy isolation, both write failures/SELECT/COMMIT rollback, real
+replacement sessions before both writes/capture/COMMIT, caller/failed-probe
+transaction preservation and all four independent-process association races.
+Subscriber permissions, consent evidence, cumulative suppression, immutable
+attempts/output and worker/job state snapshots remain unchanged in those tests.
+Existing worker/lease/reconciliation/scheduler/withdrawal/preferences/browser
+acceptance also passed. No new UI or visual acceptance is claimed.
+
+Completed clean [Codex review](https://github.com/7mus7y-dotcom/pera-wp/pull/1479#issuecomment-6387378312)
+covers exact final runtime `5dced147fe`, with no findings or unresolved threads.
+Later changes touch only synthetic fixture origin and this plan, with runtime
+unchanged. Local review covered actual runtime/schema/test changes; all 30
+standalone suites, 218 PHP syntax checks, shell/JavaScript syntax and whitespace
+checks passed on the published code/test tree. The actual SQL seed/normalization
+projection also passed locally after the fixture correction. Local Docker is
+unavailable; real SQL/race evidence comes from hosted execution above.
+
+Artifacts retained through 2026-11-07: single-site `12569445999`, multisite
+`12569611356`. Failed initial run `40116281087` and superseded `40116687565`
+are not acceptance. This final evidence commit changes only the living plan;
+all runtime and fixture bytes remain those tested above. Documentation-head CI
+is tracked in #1479 checks. Original checkout stays clean; no reconstruction
+scaffolding is in published ancestry. All eleven changed files are plugin-owned.
+Submission-response integration, outcome application, worker reconciliation/retry
+fences, suppression application and endpoint adaptation remain dependent work.
+All disabled gates remain intact. No merge, deployment or real provider traffic.

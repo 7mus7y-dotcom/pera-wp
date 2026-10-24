@@ -112,6 +112,8 @@ function peracrm_campaigns_assert_schema()
         }
         $engine = $wpdb->get_row($wpdb->prepare('SHOW TABLE STATUS WHERE Name = %s', $table), ARRAY_A);
         $expected_keys = [
+            'peracrm_campaign_provider_messages' => ['provider_scope','message_id'],
+            'peracrm_campaign_ses_matches' => ['scope_hash','event_key','sequence'],
             'peracrm_campaign_ses_events' => ['scope_hash','event_key'],
             'peracrm_campaign_ses_normalizations' => ['scope_hash','receipt_id'],
             'peracrm_campaign_sns_receipts' => ['scope_hash','message_id'],
@@ -154,6 +156,13 @@ function peracrm_campaigns_assert_schema()
                 foreach ($keys as $key) { if (array_column($key, 'Column_name') === $required && !array_filter(array_column($key, 'Sub_part'))) { $found = true; } }
                 if (!$found) { throw new RuntimeException('PeraCRM delivery uniqueness assertion failed.'); }
             }
+        }
+        if ($name === 'peracrm_campaign_provider_messages') {
+            $found=false;
+            foreach ($keys as $key) {
+                if (array_column($key,'Column_name')===['deployment','blog_id','attempt_key'] && !array_filter(array_column($key,'Sub_part'))) { $found=true; }
+            }
+            if (!$found) { throw new RuntimeException('PeraCRM message uniqueness assertion failed.'); }
         }
         if ($name === 'peracrm_campaign_frozen_revisions') {
             $unique_attempt = false;

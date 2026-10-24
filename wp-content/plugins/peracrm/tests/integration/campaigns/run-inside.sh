@@ -188,6 +188,19 @@ for ses_scenario in duplicate logical conflict withdraw; do
     wait "$ses_loser_pid"
     wp eval-file /tests/ses-normalization-race.php verify "$ses_scenario"
 done
+wp eval-file /tests/ses-matching.php
+for match_scenario in duplicate logical message attempt; do
+    rm -f /tmp/peracrm-match-held /tmp/peracrm-match-winner /tmp/peracrm-match-loser
+    wp eval-file /tests/ses-matching-race.php prepare "$match_scenario"
+    wp eval-file /tests/ses-matching-race.php winner "$match_scenario" &
+    match_winner_pid=$!
+    wait_for_migration_marker /tmp/peracrm-match-held
+    wp eval-file /tests/ses-matching-race.php loser "$match_scenario" &
+    match_loser_pid=$!
+    wait "$match_winner_pid"
+    wait "$match_loser_pid"
+    wp eval-file /tests/ses-matching-race.php verify "$match_scenario"
+done
 for sns_scenario in duplicate conflict; do
     rm -f /tmp/peracrm-sns-held /tmp/peracrm-sns-winner /tmp/peracrm-sns-loser
     wp eval-file /tests/sns-race.php prepare "$sns_scenario"
