@@ -518,3 +518,18 @@ real HTTP/mail, sending, merge or deployment. Privacy/retention, replay/redrive/
 restore horizon, host logging and certificate rotation/readiness remain activation
 requirements. Preserve additive receipts/tombstones on rollback; never truncate
 or interpret quarantine as resend permission.
+
+### Hosted checkpoint and fixture correction (2026-10-24)
+
+Non-draft PR #1477 published runtime `09e6e191`, tree
+`c2c99c7cb4f8baad88e3469f65f22cec86b9cf4a`, matching local. Initial hosted
+run 39940513635 passed standalone regressions/syntax but both SQL topologies
+stopped at an inherited fresh-migration assertion hardcoded to version 30.
+Updated that assertion and repeated-dbDelta target to PERACRM_SCHEMA_VERSION;
+this fixture-only correction does not change runtime. New hosted acceptance
+is required; the failed initial run is not SQL acceptance.
+
+GitHub automated review failed to complete and reported account code-review
+usage exhausted (comment 6363052553). It supplied no actionable inline finding;
+the failed summary's findings flags are not a completed review. No clean external
+review is claimed. Local review inspected actual runtime and fixture changes.
