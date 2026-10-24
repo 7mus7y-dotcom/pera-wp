@@ -21,16 +21,16 @@ final class PeraCRM_SES_Matcher
         if (isset($this->deployment)) { throw new PeraCRM_SNS_Error('sns_configuration'); }
         // Reuse the normalization configuration checks, without reading or writing.
         new PeraCRM_SES_Quarantine($verifier,$deployment,$blog,$provider);
-        $this->deployment=$deployment; $this->blog=$blog; $this->provider=$provider;
+        $this->deployment=$deployment; $this->blog=$blog;
         $ordered=[];
         foreach (['provider','account_id','region','configuration_set','configuration_version'] as $key) { $ordered[$key]=$provider[$key]; }
+        $this->provider=$ordered; // strip caller-held PHP references
         $this->policy=hash('sha256',json_encode($ordered,JSON_THROW_ON_ERROR));
         $this->scope=hash('sha256',json_encode(['provider'=>'ses_sns','deployment'=>$deployment,'blog'=>$blog]+$verifier->scope(),JSON_THROW_ON_ERROR));
-        // Message IDs are unique in the trusted provider namespace, across topics
-        // and configuration revisions. The attempt uniqueness also spans them.
+        // Message IDs are unique in the trusted provider namespace, across topics,
+        // configuration sets and revisions. The attempt uniqueness also spans them.
         $this->providerScope=hash('sha256',json_encode(['deployment'=>$deployment,'blog'=>$blog,
-            'provider'=>$provider['provider'],'account'=>$provider['account_id'],'region'=>$provider['region'],
-            'configuration_set'=>$provider['configuration_set']],JSON_THROW_ON_ERROR));
+            'provider'=>$provider['provider'],'account'=>$provider['account_id'],'region'=>$provider['region']],JSON_THROW_ON_ERROR));
     }
     public function __debugInfo(): array { return ['redacted'=>true]; }
     public function __serialize(): array { throw new LogicException('matching_serialization_disabled'); }
@@ -146,7 +146,7 @@ final class PeraCRM_SES_Matcher
                 if (!hash_equals($event['fact_hash'],hash('sha256',$event['fact_json']))) { throw new PeraCRM_SNS_Error('sns_storage'); }
                 $prior=$wpdb->get_row($wpdb->prepare("SELECT * FROM {$matches} WHERE scope_hash=%s AND event_key=%s ORDER BY sequence DESC LIMIT 1 FOR UPDATE",$this->scope,$key),ARRAY_A);
                 self::db(true);
-                if ($prior && ($prior['fact_hash']!==$event['fact_hash'] || (int)$prior['sequence']<1)) { throw new PeraCRM_SNS_Error('sns_storage'); }
+                if ($prior && ($prior['fact_hash']!==$event['fact_hash'] || ((int)$prior['sequence']<1 || (int)$prior['sequence']>self::MAX_PASSES))) { throw new PeraCRM_SNS_Error('sns_storage'); }
                 if ($prior && (!$reprocess || $prior['decision']!=='missing_binding' || (int)$prior['sequence']>=self::MAX_PASSES)) {
                     $result[$key]=$prior['decision']; continue;
                 }

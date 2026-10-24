@@ -3,7 +3,7 @@ if (!defined('PERACRM_DISPOSABLE_CAMPAIGN_FIXTURE')) { throw new RuntimeExceptio
 require_once WP_PLUGIN_DIR.'/peracrm/tests/ses-events-fixture.php';
 require_once WP_PLUGIN_DIR.'/peracrm/tests/recipient-persistence-fixture.php';
 require_once WP_PLUGIN_DIR.'/peracrm/inc/campaigns/event-matching.php';
-function ses_match_seed(string $deployment,int $number,bool $persist=true): array
+function ses_match_seed(string $deployment,int $number,bool $persist=true,array $provider=[]): array
 {
     $content=get_option('atomic_preparation_content'); $blog=get_current_blog_id();
     [$binding,,$original]=peracrm_test_persistence_values($content,$blog);
@@ -13,6 +13,7 @@ function ses_match_seed(string $deployment,int $number,bool $persist=true): arra
     $output=(new PeraCRM_CampaignRecipientExpansion('https://example.test',$tokens))->expand($content,$binding['snapshot_hash'],$binding,1800000000);
     $fields=$original->fields();
     foreach (['blog_id','mailbox','attempt_key','snapshot_hash'] as $key) { $fields[$key]=$binding[$key]; }
+    $fields['scope']=$provider?:ses_event_scope();
     $fields['delivery_key']=hash('sha256','delivery-'.$deployment.'-'.$number);
     foreach (['html','text'] as $key) { $fields[$key]=$output->fields()[$key]; }
     $submission=new PeraCRM_CampaignSubmissionV1($fields);
@@ -20,6 +21,7 @@ function ses_match_seed(string $deployment,int $number,bool $persist=true): arra
     if ($persist) { ses_match_persist($deployment,$binding,$submission,$output); }
     $event=ses_event(); $event['mail']['destination']=[$binding['mailbox']];
     $event['mail']['messageId']='matching-message-'.$number;
+    $event['mail']['tags']['ses:configuration-set']=[$fields['scope']['configuration_set']];
     foreach (['delivery'=>'delivery_key','attempt'=>'attempt_key','snapshot'=>'snapshot_hash','envelope'=>'envelope_hash'] as $tag=>$field) {
         $event['mail']['tags']['peracrm_'.$tag]=[$metadata[$field]];
     }
@@ -32,11 +34,11 @@ function ses_match_persist(string $deployment,array $binding,PeraCRM_CampaignSub
     $store->ensureIdentity($binding['subscriber_id'],$binding['mailbox']);
     $store->bindAttempt($submission,$binding,$output);
 }
-function ses_match_receive(array $v,string $deployment,array $event,int $number): string
+function ses_match_receive(array $v,string $deployment,array $event,int $number,array $provider=[]): string
 {
     $id=ses_event_id($number); $verifier=sns_verifier($v); $blog=get_current_blog_id();
     (new PeraCRM_SNS_Receipts($verifier,$deployment,$blog))->receive(ses_event_body($v,$event,$id),$v['now']);
-    sns_expect((new PeraCRM_SES_Quarantine($verifier,$deployment,$blog,ses_event_scope()))->normalize($id)==='matching_pending','authenticated normalization committed');
+    sns_expect((new PeraCRM_SES_Quarantine($verifier,$deployment,$blog,$provider?:ses_event_scope()))->normalize($id)==='matching_pending','authenticated normalization committed');
     return $id;
 }
 function ses_match_snapshot(): string

@@ -26,6 +26,18 @@ peracrm_with_target_blog(static function () {
     $secondId=ses_match_receive($v,$deployment,$second['event'],304);
     ses_match_check(fn()=>$store->match($secondId),'message_conflict');
     sns_expect($rows($messages)===$original[0],'same provider message cannot bind different attempt');
+    $config='fixture-other'; $alternate=ses_event_scope(); $alternate['configuration_set']=&$config;
+    $alternateSeed=ses_match_seed($deployment,40,true,$alternate);
+    $alternateSeed['event']['mail']['messageId']=$seed['event']['mail']['messageId'];
+    $alternateId=ses_match_receive($v,$deployment,$alternateSeed['event'],307,$alternate);
+    $alternateStore=new PeraCRM_SES_Matcher(sns_verifier($v),$deployment,$blog,$alternate);
+    $config='caller-mutated';
+    ses_match_check(fn()=>$alternateStore->match($alternateId),'message_conflict');
+    sns_expect($rows($messages)===$original[0],'message uniqueness spans config sets and configuration copy is immutable');
+    $unnormalized=ses_event_id(308);
+    (new PeraCRM_SNS_Receipts(sns_verifier($v),$deployment,$blog))->receive(ses_event_body($v,$seed['event'],$unnormalized),$v['now']);
+    sns_reject(fn()=>$store->match($unnormalized),'sns_storage');
+    sns_reject(fn()=>$store->match(ses_event_json($seed['event'])),'sns_invalid');
     $late=ses_match_seed($deployment,3,false); $lateId=ses_match_receive($v,$deployment,$late['event'],305);
     ses_match_check(fn()=>$store->match($lateId),'missing_binding'); $original=$rows($matches);
     ses_match_check(fn()=>$store->match($lateId),'missing_binding');

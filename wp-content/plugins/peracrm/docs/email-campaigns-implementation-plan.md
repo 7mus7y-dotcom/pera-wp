@@ -790,7 +790,7 @@ Schema 33 adds immutable provider-message associations with exact binary unique
 provider namespace/message ID and deployment/blog/attempt indexes, plus append-only
 matching decisions keyed by authenticated event scope, logical event and pass.
 Both uniqueness constraints are checked at schema readiness. Provider namespace
-includes deployment/blog, account/region and configuration set, across topic and
+includes deployment/blog and account/region, across topic, configuration-set and
 configuration-version changes; immutable attempts independently pin the full
 provider scope including configuration version. Decisions retain receipt, fact
 hash, immutable binding hash and fixed quarantine reason. Association retains
@@ -846,3 +846,11 @@ submission-response association integration, event outcome application, worker
 reconciliation/retry fences, transactional suppression application and only then
 reviewed HTTP endpoint adaptation/activation prerequisites. Correlation does not
 clear suppression, change consent, release unknowns or prove non-acceptance.
+
+Local follow-up review tightened message uniqueness across configuration sets
+within the same deployment/blog/account/region, preventing a second configuration
+set from aliasing an already associated provider message. Each immutable attempt
+still independently pins its exact configuration set/version. Provider configuration
+is defensively copied without caller-held PHP references, and persisted pass numbers
+outside the bounded range fail closed. New hosted CI and review must cover this
+follow-up runtime. No activation or worker integration is added.
