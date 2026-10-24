@@ -533,3 +533,20 @@ GitHub automated review failed to complete and reported account code-review
 usage exhausted (comment 6363052553). It supplied no actionable inline finding;
 the failed summary's findings flags are not a completed review. No clean external
 review is claimed. Local review inspected actual runtime and fixture changes.
+
+### Recovery and local review correction (2026-10-24)
+
+Recovered commit `c9d2319b103eadd5def4a57dcc161416dccfe710`: its only parent
+exactly matched remote branch head `09e6e191`, its two-file diff contained only
+the schema fixture correction/evidence, and tree `cbc85fa541daaca1a3f46f074410977f38a1cc20`
+matched preserved local work. Published to the existing branch with force=false
+and an expected-head check; no reimplementation or new PR.
+
+Thorough local review found a lost-transaction acknowledgment risk if wpdb
+transparently reconnects and replays COMMIT on a replacement SQL session.
+Receipt storage now checks its connection ID before and after COMMIT and returns
+sns_storage on replacement, permitting provider retry even if the outcome is
+uncertain. Added real SQL session replacement immediately before COMMIT plus
+SELECT-failure rollback regressions. No event application or activation added.
+This local review does not satisfy the blocked external Codex review gate;
+no further external review requests are made while usage remains exhausted.

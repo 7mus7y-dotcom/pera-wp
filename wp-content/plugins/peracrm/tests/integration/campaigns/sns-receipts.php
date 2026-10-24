@@ -27,9 +27,16 @@ peracrm_with_target_blog(static function () {
     $bad=json_decode($body,true); $bad['Message']='forged';
     sns_reject(fn()=>$store->receive(json_encode($bad),$v['now']),'sns_authentication');
     sns_reject(fn()=>$store->receive(sns_body($v,['TopicArn'=>'arn:aws:sns:eu-west-1:999999999999:fixture']),$v['now']),'sns_invalid');
-    foreach (['insert','commit'] as $failure) {
-        $filter=static function ($sql) use ($failure) {
-            return (($failure==='insert' && str_starts_with($sql,'INSERT INTO') && str_contains($sql,'sns_receipts')) || ($failure==='commit' && $sql==='COMMIT'))?'INVALID_SNS_FIXTURE_SQL':$sql;
+    foreach (['insert','select','commit','reconnect'] as $failure) {
+        $reconnected=false;
+        $filter=static function ($sql) use ($failure,&$reconnected,$wpdb) {
+            if ($failure==='reconnect' && $sql==='COMMIT' && !$reconnected) {
+                $reconnected=true;
+                // Real replacement SQL session discards the uncommitted insert,
+                // then COMMIT itself succeeds on the empty new connection.
+                $wpdb->close(); $wpdb->db_connect();
+            }
+            return (($failure==='insert' && str_starts_with($sql,'INSERT INTO') && str_contains($sql,'sns_receipts')) || ($failure==='select' && str_starts_with($sql,'SELECT * FROM') && str_contains($sql,'sns_receipts')) || ($failure==='commit' && $sql==='COMMIT'))?'INVALID_SNS_FIXTURE_SQL':$sql;
         };
         add_filter('query',$filter);
         try { sns_reject(fn()=>$store->receive(sns_body($v,['MessageId'=>'22222222-1234-1234-1234-123456789abc']),$v['now']),'sns_storage'); }

@@ -38,6 +38,8 @@ final class PeraCRM_SNS_Receipts
             self::db($wpdb->query('SAVEPOINT peracrm_sns_top_level_probe'));
             if ($wpdb->query('RELEASE SAVEPOINT peracrm_sns_top_level_probe')!==false) { throw new PeraCRM_SNS_Error('sns_storage'); }
             self::db($wpdb->query('START TRANSACTION')); $started=true; $this->busy=true; $owned=true;
+            $connection=(int)self::db($wpdb->get_var('SELECT CONNECTION_ID()'));
+            if ($connection<=0) { throw new PeraCRM_SNS_Error('sns_storage'); }
             $table=peracrm_table('peracrm_campaign_sns_receipts');
             $reason=$receipt['timestamp']>$now+300?'future_timestamp':($receipt['timestamp']<$now-86400?'stale_timestamp':'application_pending');
             self::db($wpdb->query($wpdb->prepare("INSERT INTO {$table}
@@ -49,7 +51,11 @@ final class PeraCRM_SNS_Receipts
             if (!hash_equals($row['payload_hash'],$receipt['hash']) || $row['canonical_payload']!==$receipt['canonical']) {
                 throw new PeraCRM_SNS_Error('sns_conflict');
             }
+            // wpdb can transparently reconnect and replay COMMIT on a new session.
+            // A successful empty COMMIT must never acknowledge a lost receipt.
+            if ((int)self::db($wpdb->get_var('SELECT CONNECTION_ID()'))!==$connection) { throw new PeraCRM_SNS_Error('sns_storage'); }
             self::db($wpdb->query('COMMIT')); $started=false;
+            if ((int)self::db($wpdb->get_var('SELECT CONNECTION_ID()'))!==$connection) { throw new PeraCRM_SNS_Error('sns_storage'); }
             return 'quarantined';
         } catch (Throwable $error) {
             if ($started) { $wpdb->query('ROLLBACK'); }
