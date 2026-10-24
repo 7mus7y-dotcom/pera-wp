@@ -550,3 +550,46 @@ uncertain. Added real SQL session replacement immediately before COMMIT plus
 SELECT-failure rollback regressions. No event application or activation added.
 This local review does not satisfy the blocked external Codex review gate;
 no further external review requests are made while usage remains exhausted.
+
+### Final code/test validation and remaining review gate (2026-10-24)
+
+Final code/test commit `59a1cc219cd84840a85976f61e3ef8eecf8a0457`, tree
+`224c65ee75e70443f4d59f02440a7c8401488aae`, exactly matches the local worktree.
+[Hosted CI 40089961360](https://github.com/7mus7y-dotcom/pera-wp/actions/runs/40089961360)
+completed **successfully**. Single-site job `120860497716` and multisite job
+`120860497392` both passed; completed logs from both jobs were inspected.
+
+Both topologies passed the independent canonical-field signature oracle,
+forged/wrong-scope and certificate URL regressions, v30-to-v31 migration,
+immutable old duplicates/conflicts, insert/SELECT/COMMIT failure rollback,
+real SQL session replacement immediately before COMMIT (sns_storage, no receipt
+acknowledged or retained), caller transaction preservation, early/stale quarantine,
+deployment/blog isolation, unchanged subscriber/suppression/attempt/delivery
+state, and both independent-process duplicate/conflict races. Existing worker,
+atomic preparation, scheduler, withdrawal/preference SQL/races and browser suites
+also passed, including disabled-send/protected-state assertions. No new UI changes
+or screenshot inspection is claimed. Artifacts: single-site `12558976498`,
+multisite `12558926753`; both retained through 2026-11-07.
+
+Local validation: 28 standalone suites, 207 PHP syntax checks, shell syntax and
+whitespace checks passed. Added an independent canonical oracle because the
+original fixture signer shared the verifier's canonicalization helper. Local
+review covered every runtime/schema change, HTTP certificate policy, canonical
+signature fields, scope hashing, receipt uniqueness and conflict immutability,
+SQL error/reconnect/transaction ownership, test wiring and absent activation.
+The reconnect finding was fixed and exercised in both real SQL topologies;
+no further local findings remain. This is local review evidence only.
+
+**External review remains BLOCKED** by Codex usage limits recorded in comment
+6363052553. There is no completed clean external review, and local review does
+not substitute for it. No repeated external review request was sent. The initial
+failed run 39940513635 and superseded/cancelled runs 40089833863/40089911073
+are not acceptance. This evidence follow-up changes only this plan; all runtime
+and fixture bytes remain those validated above. Final-head documentation CI is
+tracked in PR #1477 checks and conversation evidence.
+
+Intake remains unregistered/unbootstrapped; all disabled dispatch, collection,
+recipient factory and cron gates are preserved. No event application, real AWS
+traffic, provisioning, credentials, sending, new PR, merge or deployment. The
+original checkout and isolated worktree remain preserved. The dependent event
+application work listed above is still outstanding and outside #1477.
