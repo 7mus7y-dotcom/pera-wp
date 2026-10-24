@@ -903,3 +903,59 @@ scaffolding is in published ancestry. All eleven changed files are plugin-owned.
 Submission-response integration, outcome application, worker reconciliation/retry
 fences, suppression application and endpoint adaptation remain dependent work.
 All disabled gates remain intact. No merge, deployment or real provider traffic.
+
+## Phase 5 — submission responses, acceptance evidence and retry fencing (2026-10-24)
+
+**Current task:** bounded response integration and acceptance protections. Verified
+#1479 merged at `0bd75f353a1e16b5e34eaf63ba7ed6bc74c71e7f`; final-head
+CI 40117397794 passed both topologies and completed clean final review
+[6387660168](https://github.com/7mus7y-dotcom/pera-wp/pull/1479#issuecomment-6387660168)
+followed the explicit final-head request, covering the fixture follow-up as well.
+No applicable AGENTS.md was found. Read current/history plan, provider specification,
+immutable attempt/output, SES mapper, worker/reconciliation and matching contracts.
+Original clean `/workspace/pera-wp` at `0e894ea8` remains preserved. Work is in
+`/workspace/pera-acceptance`; connector reconstruction tree
+`46d4b3ed4ff981bf3809c1e3c672f632f347d26e` exactly matches latest main.
+Reconstruction commit is local scaffolding only; publication parents to main.
+The original network command was aborted while awaiting permissions, with no
+result. No repeated shell networking or duplicate test runs were launched.
+
+Schema 34 adds immutable acceptance evidence keyed by deployment/blog/attempt,
+source and source fingerprint. Successful injected SES mapper responses and
+matched authenticated events share one immutable insert-or-compare association
+contract. Positive response capture checks the exact persisted envelope/scope/
+recipient/hash projection independently of lease ownership. Conflicting message
+IDs/bindings retain evidence without replacing the association. Event facts retain
+their separate type and provenance: Send, receiving-server Delivery and subsequent
+Bounce/Complaint/DeliveryDelay are not submission outcomes or resend permission.
+No suppression is applied. Identical and logical replay preserve first provenance.
+Pre-v34 event associations already fence retries; explicit replay adds evidence
+without rewriting original matching decisions.
+
+Workers pin deployment through an explicit abstract dependency. Claims, final
+submission authorization and non-acceptance outcomes check all historical attempts
+of the exact scoped delivery under attempt locks. Positive evidence and conflicts
+both fence retry. Late positive responses persist before owner/version checks;
+no expired owner gains authority. Unknown state is not automatically resolved;
+the existing staff capability, nonce, version and independent verification boundary
+also requires durable exact positive evidence for prepared attempts. No durable
+proof-of-non-acceptance adapter exists here, so prepared unknowns cannot be released
+by negative or missing lookup/event results. Cancellation, accepted state and
+post-acceptance failures never permit resubmission. Worker mutations now guard
+SQL connection/session identity to prevent replayed updates on reconnection.
+
+Added disposable single/multisite response/event arrival-order, duplicate/conflict,
+rollback/reconnection/caller-transaction and independent-process race fixtures.
+Worker fixtures use injected mocked SES transport for early event vs rejection,
+late response/lease expiry, unknown/late event, retry/late evidence, cancellation,
+and separate delivery/transient-bounce/delay facts. No provider traffic occurs.
+Local standalone suites, PHP lint and shell/JavaScript/whitespace checks passed
+at the initial implementation checkpoint; final checks and hosted SQL/races/review
+remain pending. Docker's explicit local socket check failed once with operation
+not permitted; dockerd runs but UID 1000 cannot recover it. Hosted CI supplies
+real SQL acceptance; no local SQL success is claimed.
+
+Suppression application, public HTTP adaptation, real transport, operational UI,
+retention/redrive/restore and external readiness remain dependent work. All production
+factories, dispatch, real intake/collection and cron gates remain disabled. No AWS
+provisioning, credentials, messages, cron activation, merge or deployment.

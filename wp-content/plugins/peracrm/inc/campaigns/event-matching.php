@@ -1,6 +1,7 @@
 <?php
 if (!defined('ABSPATH')) { exit; }
 require_once __DIR__.'/event-normalization.php';
+require_once __DIR__.'/acceptance.php';
 
 /** Internal correlation only. No factory, endpoint, worker callback or send authority.
  * Input is a durable receipt ID, never raw facts or a caller's claimed binding.
@@ -88,18 +89,10 @@ final class PeraCRM_SES_Matcher
         $data=['provider_scope'=>$this->providerScope,'message_id'=>$fact['message_id'],'deployment'=>$this->deployment,
             'blog_id'=>$this->blog,'attempt_key'=>$row['attempt_key'],'binding_hash'=>$row['binding_hash'],
             'event_scope'=>$this->scope,'event_key'=>$event,'receipt_id'=>$receipt,'recorded_at'=>gmdate('Y-m-d H:i:s')];
-        // Both unique constraints serialize independent processes. Identical replay
-        // keeps original provenance; an alternative message/attempt cannot replace it.
-        $this->insert('peracrm_campaign_provider_messages',$data,$guard,$connection);
-        $existing=$wpdb->get_results($wpdb->prepare("SELECT * FROM {$messages} WHERE (provider_scope=%s AND message_id=%s)
-            OR (deployment=%s AND blog_id=%d AND attempt_key=%s) FOR UPDATE",
-            $this->providerScope,$fact['message_id'],$this->deployment,$this->blog,$row['attempt_key']),ARRAY_A);
-        self::db($existing?:false);
-        if (count($existing)!==1) { return ['message_conflict',$row['binding_hash']]; }
-        foreach (['provider_scope','message_id','deployment','blog_id','attempt_key','binding_hash'] as $key) {
-            if ((string)$existing[0][$key] !== (string)$data[$key]) { return ['message_conflict',$row['binding_hash']]; }
-        }
-        return ['matched',$row['binding_hash']];
+        $insert=fn($name,$values)=>$this->insert($name,$values,$guard,$connection);
+        $decision=PeraCRM_Campaign_Acceptance::associate($data,$insert);
+        PeraCRM_Campaign_Acceptance::evidence($data,'event',hash('sha256',$this->scope.$event),$decision,$insert);
+        return [$decision==='accepted'?'matched':$decision,$row['binding_hash']];
     }
     /** Explicit bounded redrive. Only missing bindings may be revisited, at most
      * five passes total per logical event, including duplicates across receipts.
@@ -148,6 +141,13 @@ final class PeraCRM_SES_Matcher
                 self::db(true);
                 if ($prior && ($prior['fact_hash']!==$event['fact_hash'] || ((int)$prior['sequence']<1 || (int)$prior['sequence']>self::MAX_PASSES))) { throw new PeraCRM_SNS_Error('sns_storage'); }
                 if ($prior && (!$reprocess || $prior['decision']!=='missing_binding' || (int)$prior['sequence']>=self::MAX_PASSES)) {
+                    if ($prior['decision']==='matched') {
+                        // Additive evidence backfill for pre-v34 matched associations;
+                        // do not replace historical matching decisions or provenance.
+                        $fact=json_decode($event['fact_json'],true,16,JSON_THROW_ON_ERROR);
+                        [$verified]=$this->correlate($fact,$key,$id,$guard,$connection);
+                        if ($verified!=='matched') { throw new PeraCRM_SNS_Error('sns_storage'); }
+                    }
                     $result[$key]=$prior['decision']; continue;
                 }
                 $fact=json_decode($event['fact_json'],true,16,JSON_THROW_ON_ERROR);

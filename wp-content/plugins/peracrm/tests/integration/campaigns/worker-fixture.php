@@ -12,6 +12,7 @@ add_filter('query', static function ($sql) { if ($sql === 'START TRANSACTION') {
 
 final class PeraCRM_Fixture_Worker extends PeraCRM_Campaign_Worker
 {
+    protected function acceptanceDeployment(): string { return worker_fixture_target(static fn()=>(string)get_option('worker_evidence_deployment','worker-fixture')); }
     private string $authority;
     public function __construct(string $authority) { $this->authority = $authority; $this->authorize(); }
     protected function authorize(): void
@@ -96,6 +97,7 @@ function worker_fixture_reset(int $limit = 3): int
     worker_fixture_environment();
     return worker_fixture_target(static function () use ($limit) {
         global $wpdb;
+        update_option('worker_evidence_deployment','worker-fixture',false);
         foreach (['jobs'=>'peracrm_campaign_queue_jobs','deliveries'=>'peracrm_campaign_deliveries','events'=>'peracrm_campaign_worker_events'] as $name=>$source) {
             $table = peracrm_table('peracrm_fixture_worker_'.$name);
             $wpdb->query('DROP TABLE IF EXISTS '.$table);

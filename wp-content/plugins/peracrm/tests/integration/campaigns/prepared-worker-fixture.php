@@ -18,6 +18,7 @@ function prepared_scope(): array
 }
 function prepared_service(string $deployment,bool $recovery=false): PeraCRM_Campaign_Worker_Preparation
 {
+    worker_fixture_target(static fn()=>update_option('worker_evidence_deployment',$deployment,false));
     return new PeraCRM_Campaign_Worker_Preparation($deployment,prepared_scope(),
         $recovery?'invalid-origin':'https://example.org',$recovery?[]:['k1'=>str_repeat('s',32)],
         $recovery?'missing':'k1',new PeraCRM_CampaignOutputCipher(['e1'=>str_repeat('e',32)],'e1'));

@@ -54,9 +54,13 @@ final class PeraCRM_Campaign_SES_Mapper
         $start = hrtime(true);
         try { $result = $this->transport->send($request, $options); }
         catch (Throwable $e) { return ['kind'=>'unknown','code'=>'ambiguous_submission']; }
-        // A late synchronous result cannot prove timely completion/lease ownership.
-        if ((hrtime(true) - $start) / 1e9 >= 20) { return ['kind'=>'unknown','code'=>'ambiguous_submission']; }
-        return self::result($result);
+        $mapped=self::result($result);
+        // A complete authenticated positive response remains acceptance evidence
+        // after the timeout. It does not restore lease ownership or resolve unknowns.
+        if ((hrtime(true) - $start) / 1e9 >= 20) {
+            return $mapped['kind']==='accepted' ? $mapped+['late'=>true] : ['kind'=>'unknown','code'=>'ambiguous_submission'];
+        }
+        return $mapped;
     }
 
     /** RFC 2047 words stay below 75 bytes and never split a UTF-8 character. */

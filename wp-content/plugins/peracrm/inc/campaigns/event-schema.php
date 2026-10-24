@@ -6,6 +6,17 @@ function peracrm_campaign_event_definitions(): array
 {
     $hash='VARCHAR(64) CHARACTER SET ascii COLLATE ascii_bin';
     return [
+        'peracrm_campaign_acceptance_evidence'=>"deployment VARCHAR(64) CHARACTER SET ascii COLLATE ascii_bin NOT NULL,
+        blog_id BIGINT UNSIGNED NOT NULL,
+        attempt_key {$hash} NOT NULL,
+        source VARCHAR(16) CHARACTER SET ascii COLLATE ascii_bin NOT NULL,
+        source_key {$hash} NOT NULL,
+        binding_hash {$hash} NOT NULL,
+        provider_scope {$hash} NOT NULL,
+        message_id VARCHAR(191) CHARACTER SET ascii COLLATE ascii_bin NOT NULL,
+        decision VARCHAR(32) NOT NULL,
+        recorded_at DATETIME NOT NULL,
+        PRIMARY KEY  (deployment, blog_id, attempt_key, source, source_key)",
         'peracrm_campaign_provider_messages'=>"provider_scope {$hash} NOT NULL,
         message_id VARCHAR(191) CHARACTER SET ascii COLLATE ascii_bin NOT NULL,
         deployment VARCHAR(64) CHARACTER SET ascii COLLATE ascii_bin NOT NULL,
