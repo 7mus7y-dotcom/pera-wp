@@ -737,3 +737,36 @@ missing-savepoint error can establish autocommit; arbitrary RELEASE failure
 cannot authorize START and implicitly commit a caller transaction. Added a real
 SQL injected RELEASE-failure fixture that verifies the caller still owns its
 transaction. A server returning a different/localized diagnostic fails closed.
+
+### Hosted acceptance and final runtime review
+
+Final runtime/test commit `67e7ed44c06107121c4decf6fba177faecf74993`, tree
+`87998398f563c475d34ec3a7abef6abefd9a5242`, matches the isolated local worktree.
+[CI 40113981001](https://github.com/7mus7y-dotcom/pera-wp/actions/runs/40113981001)
+passed both single-site job `120931474071` and multisite job `120931473797`.
+Completed logs from both jobs were inspected. Both passed the new schema-31
+migration, authenticated-receipt-only path, immutable SNS/logical duplicates and
+receipt references, feedback conflicts, scope/recipient/tag/unsupported quarantine,
+out-of-order and freshness cases, insert/SELECT/COMMIT rollback, real replacement
+SQL sessions before event/link writes/COMMIT/connection capture, caller transaction
+and failed-probe preservation, four independent-process races including withdrawal,
+and complete subscriber/suppression/attempt/output/worker/job state invariance.
+Existing worker/lease/recovery/reconciliation, scheduler, withdrawal/preferences
+and browser suites also passed. No new UI or screenshot acceptance is claimed.
+
+The exact final runtime received completed clean
+[Codex review](https://github.com/7mus7y-dotcom/pera-wp/pull/1478#issuecomment-6387006371),
+with no findings or unresolved review threads. Local review covered all actual
+runtime/schema/fixture changes and addressed destination-set preservation,
+explicit-null authority validation and the unexpected transaction-probe failure.
+All 29 standalone suites, 213 PHP syntax checks, shell syntax and whitespace
+checks passed locally on that final runtime. Local Docker remained unavailable;
+real SQL/race acceptance comes from the two hosted jobs above.
+
+Evidence artifacts: single `12567578858`, multi `12566849884`, retained through
+2026-11-07. Superseded runs `40113116041` and `40113594024` were cancelled after
+runtime fixes and are not acceptance. This evidence follow-up changes only this
+plan; every runtime and fixture byte remains exactly the tested/reviewed version.
+Documentation-head CI is tracked in PR #1478's checks. The dependent matching,
+message association, worker fences and transactional suppression work above is
+still outstanding. All disabled gates remain intact; no merge or deployment.
