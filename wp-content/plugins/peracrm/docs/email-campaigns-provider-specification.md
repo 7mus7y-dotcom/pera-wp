@@ -296,6 +296,16 @@ policy: one transient records diagnostics only; three terminal transient bounces
 for the mailbox in 30 days trigger an audited administrative hold pending review.
 Finalize threshold with operator before activation; no automatic clearing. Reject/
 Rendering Failure records post-acceptance failure, not permission to resend.
+Implemented internal policy (2026-10-25, recorded AWS findings): complaint
+recipients are candidates; suppression requires the exact immutable single-recipient
+attempt and unambiguous provider-message association. Recognized abuse, auth-failure,
+fraud, other, virus and absent/unspecified feedback retain Complaint meaning.
+`not-spam` is neither new complaint authority nor permission to clear any denial;
+unknown subtypes remain quarantined. Permanent bounce alone adds `hard_bounce`;
+no transient threshold is activated. Application preserves distinct evidence and
+all cumulative deny reasons for the historical mailbox, even if its subscriber
+was deleted or moved. This internal service enables no public endpoint or sending.
+
 Local unsubscribe updates subscription state and cumulative suppression together.
 No delivered/open/subscribed/contact-update event can clear a suppression or
 authorize resubscription. Keep submission state separate from delivery facts;

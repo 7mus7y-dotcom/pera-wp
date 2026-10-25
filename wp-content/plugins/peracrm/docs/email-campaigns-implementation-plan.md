@@ -14,7 +14,9 @@ as detailed in the linked history. No phase is complete merely because code exis
 Future PRs must update this active plan and distinguish repository checks from
 external verification. Preserve historical evidence and decisions in the history.
 
-**Current task:** eighth bounded Phase 5B PR — new-protocol language/topic preference viewing/editing and expired-link navigation using independently authenticated withdrawal authority. #1473 is merged at `c9f1d5ae6d931efc5f3443ce797f24475096480f`; final head `8e841a2b1c9e5785711e791181ccb2f34ccc8011` passed [CI 39796114469](https://github.com/7mus7y-dotcom/pera-wp/actions/runs/39796114469) and completed clean [review](https://github.com/7mus7y-dotcom/pera-wp/pull/1473#issuecomment-6343761645). Its earlier outdated rewrite thread does not negate that final review. See the new dated section below for current scope and validation.
+**Current task:** bounded Phase 5 transactional suppression application from
+already authenticated, durably normalized and unambiguously matched SES events.
+#1480 is merged; see the 2026-10-25 suppression section below for scope and evidence.
 
 ## Phase 5B — bounded recipient preference editor (2026-10-22)
 
@@ -1064,3 +1066,71 @@ remain dependent work. Missing events/lookups never establish non-acceptance;
 post-acceptance failures never permit resend. Production factories, dispatch,
 intake/collection and cron gates remain disabled. No AWS provisioning, credentials,
 real messages, cron activation, merge or deployment was performed.
+
+
+## Phase 5 — transactional SES suppression application (2026-10-25)
+
+Verified #1480 merged at latest main `69094d4a34383f168dbaaf8c1f1e49100fc5cc7e`.
+Exact final head `a5d43ecaaf01c810a83035e7bbc9c12cd048a2d1` passed
+[CI 40166340092](https://github.com/7mus7y-dotcom/pera-wp/actions/runs/40166340092)
+and completed clean [review 6394018232](https://github.com/7mus7y-dotcom/pera-wp/pull/1480#issuecomment-6394018232).
+The sole earlier review finding is resolved. No applicable AGENTS.md found in
+workspace/repository/ancestors. Read current/history plan, provider specification,
+receipt/normalization/matching/association/acceptance, suppression repository,
+recipient identity/withdrawal and worker services. Use recorded AWS findings;
+no additional provider fact or browsing is needed.
+
+Original clean `/workspace/pera-wp` remains preserved. Shell fetch failed once
+because configured proxy port 8080 was unreachable; connector verified main and
+supplied all eighteen changed files to isolated `/workspace/pera-suppression`.
+Local reconstruction is scaffolding only; publication must parent to verified
+main and exclude that commit. Local Docker socket access is denied, dockerd is
+running and UID is 1000; no local SQL pass is claimed. Hosted single/multisite CI
+must supply actual SQL/race acceptance before this PR is complete.
+
+Schema 35 adds immutable logical application evidence and per-receipt application
+references. The new internal/unbootstrapped service accepts durable receipt IDs
+only. Authentication/normalization policy and fact hashes are rechecked, latest
+matched decisions and exact single-recipient immutable bindings are required,
+and the unique message association plus acceptance/conflict ledger are reread
+under attempt locks. Contradictions remain quarantined; existing acceptance and
+retry fences are unchanged. No staff identity is fabricated.
+
+All applicable mailboxes are locked in sorted order through the authoritative
+repository mutex before event/attempt locks. Its optional internal insert writer
+preserves SQL-session fencing on the mutex's inserting path. Flags, actor-0
+suppression audit, server-controlled scope/event provenance, immutable application
+and receipt reference commit atomically. Logical event locks and unique indexes
+serialize replay; duplicates retain first evidence and do not repeat audit or
+version changes. Distinct valid events retain their own evidence and cumulative
+reasons, even when a reason was already present. No flag can be cleared.
+
+Permanent bounce adds hard_bounce. Complaint candidates may add complaint only
+under an exact single-recipient historical binding. Recognized feedback meanings
+(abuse, auth-failure, fraud, other, virus or absent/unspecified) retain Complaint
+meaning; not-spam and unknown subtypes remain quarantined without adding or
+clearing denial. Transient/Undetermined bounce, Send, Delivery and DeliveryDelay
+remain observations, with no permanent denial or resend authority. The proposed
+transient threshold remains inactive.
+
+Denial binds to the historical mailbox, independently of current subscriber ID,
+identity epoch or existence. Deleted identities cannot cause subscriber creation;
+replacement addresses cannot inherit an old address's event. Late valid feedback
+remains applicable after job submission completion/cancellation without changing
+consent, job/delivery state, unknown history or submission retry authority.
+
+Focused standalone policy and real SQL fixtures cover identical/logical replay,
+cumulative bounce/complaint, feedback semantics, changed/deleted/reused IDs,
+wrong scope, unnormalized/unmatched/missing/conflicting associations, rollback at
+every write/read/COMMIT, actual SQL-session replacement and caller transactions.
+Prepared-worker fixtures cover late completed/cancelled jobs. Nine independent-
+process race scenarios include duplicate receipts, logical duplicates, both orders
+of complaint/bounce/withdrawal and three concurrent owners. Protected snapshots
+prove no consent grant, clearing, subscriber creation or retry-state regression.
+Validation and final-head review are pending initial hosted publication.
+
+All changes remain plugin-owned. No public HTTP adaptation/activation, real
+transport, AWS provisioning, credentials, messages, cron activation or operational
+UI. Production factories, dispatch, intake/collection and cron gates stay disabled.
+Retention/redrive/restore/readiness and later endpoint adaptation remain dependent
+work. No merge or deployment.
