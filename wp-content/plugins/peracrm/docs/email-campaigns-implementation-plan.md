@@ -1161,3 +1161,15 @@ IDs and checks completion then cancellation on the retained historical attempt.
 Permanent deny knowledge remains intact. The failed run did not reach races and
 is not final acceptance. The additional late fixture raises PHP syntax coverage
 to 229 files; final hosted execution and clean review remain required.
+
+
+CI 40175092302 again passed both topologies through application rollback/session
+replacement and duplicate/logical/bounce-complaint/complaint-bounce/bounce-withdraw
+races, then exposed a premature fixture barrier in withdraw-bounce. Token withdrawal
+first commits a read-only locator transaction; the race barrier was waking its
+competitor at that earlier COMMIT, before the mailbox mutex was held. The interposer
+now arms only on the actual mailbox insertion and pauses its first subsequent
+COMMIT. This keeps the independent blocking assertion meaningful in both lock
+orders; no runtime relaxation or timing-threshold reduction is made. The same
+head completed clean review 6395191719 before this fixture-only correction.
+A new full run and exact-head review are required.

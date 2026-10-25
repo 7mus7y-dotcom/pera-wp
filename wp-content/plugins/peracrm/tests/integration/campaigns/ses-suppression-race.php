@@ -55,8 +55,14 @@ peracrm_with_target_blog(static function () use ($mode,$scenario) {
     }
     $connection=(int)$wpdb->get_var('SELECT CONNECTION_ID()'); $start=microtime(true);
     if ($mode==='winner') {
-        add_filter('query',static function ($sql) {
-            if ($sql==='COMMIT') { file_put_contents('/tmp/peracrm-suppress-held','held'); usleep(1500000); }
+        $armed=false; $held=false;
+        add_filter('query',static function ($sql) use (&$armed,&$held) {
+            if (str_starts_with($sql,'INSERT INTO') && str_contains($sql,'peracrm_email_suppressions')) { $armed=true; }
+            // Token withdrawal first commits a read-only locator transaction.
+            // Only the actual authoritative mailbox owner may release the barrier.
+            if ($armed && !$held && $sql==='COMMIT') {
+                $held=true; file_put_contents('/tmp/peracrm-suppress-held','held'); usleep(1500000);
+            }
             return $sql;
         });
     }
