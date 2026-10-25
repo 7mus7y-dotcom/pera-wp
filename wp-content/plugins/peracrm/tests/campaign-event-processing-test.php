@@ -18,3 +18,15 @@ $exit=0; try { (WP_CLI::$commands['peracrm campaigns event-redrive'])([],['limit
 campaign_expect($exit===3,'report capability alone cannot redrive');
 $exit=0; try { (WP_CLI::$commands['peracrm campaigns event-health'])([],[]); } catch (Campaign_CLI_Exit $e) { $exit=$e->getCode(); }
 campaign_expect($exit===2 && json_decode(WP_CLI::$output,true)['configured']===false,'inspection does not activate missing deployment configuration');
+$GLOBALS['campaign_impersonating']=true;
+$exit=0; try { (WP_CLI::$commands['peracrm campaigns event-health'])([],[]); } catch (Campaign_CLI_Exit $e) { $exit=$e->getCode(); }
+campaign_expect($exit===3,'impersonated event inspection rejected');
+$GLOBALS['campaign_impersonating']=false;
+require_once __DIR__.'/sns-fixture.php';
+$v=sns_values();
+define('PERACRM_SES_EVENT_OPERATIONS',['deployment'=>'fixture','blog'=>2,'account'=>$v['scope']['account'],'region'=>$v['scope']['region'],'topic'=>$v['scope']['topic'],'configuration_set'=>'fixture','configuration_version'=>1]);
+$service=peracrm_with_target_blog(static fn()=>peracrm_ses_processing_service());
+campaign_expect($service instanceof PeraCRM_SES_Processing && !str_contains(print_r($service,true),'scope'),'internal factory is configured and redacts diagnostics');
+$denied=false; try { peracrm_ses_processing_service(); } catch (PeraCRM_SNS_Error $e) { $denied=true; }
+campaign_expect($denied,'factory rejects wrong current blog');
+campaign_expect(!defined('PERACRM_SES_SNS_HTTP') && !peracrm_campaign_queue_dispatch_allowed(),'operations configuration does not activate intake or sending');

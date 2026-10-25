@@ -101,7 +101,15 @@ class PeraCRM_Campaign_Operations
                 $out['scheduler_state']=str_starts_with($r['result'],'blocked') ? 'blocked' : (($r['successful'] ?? 0)>0 ? 'processed' : 'invoked');
             }
             if ($out['last_invocation'] && str_starts_with($out['last_invocation']['result'],'blocked')) { $out['diagnostics'][]=$out['last_invocation']['result']; }
-            try { $eventService=peracrm_ses_processing_service(); if ($eventService) { $out['events']=$eventService->health(); } }
+            try {
+                $eventService=peracrm_ses_processing_service();
+                if ($eventService) {
+                    $out['events']=$eventService->health();
+                    if ($out['events']['failed_processing']) { $out['diagnostics'][]='event_processing_failed'; }
+                    if ($out['events']['manual_review_receipts'] || $out['events']['conflicting_events']) { $out['diagnostics'][]='event_manual_review'; }
+                    if ($out['events']['policy_conflicts']) { $out['diagnostics'][]='event_policy_conflict'; }
+                }
+            }
             catch (Throwable $e) { $out['events']=['configured'=>true,'error'=>'event_read_blocked','provider_health'=>'not_observed','delivery_verified'=>false]; $out['diagnostics'][]='event_read_blocked'; }
             if (!$ready) { return $out; }
             try {

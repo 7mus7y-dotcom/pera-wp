@@ -181,6 +181,7 @@ final class PeraCRM_SES_Processing
             $count=static fn($where)=>(int)self::db($wpdb->get_var("SELECT COUNT(*) FROM {$from} WHERE {$scope} AND ({$where})"));
             $out=['configured'=>true,'provider_health'=>'not_observed','delivery_verified'=>false,
                 'pending_processing'=>$count("{$eligible} AND (p.receipt_id IS NULL OR p.state='pending')"),
+                'policy_conflicts'=>$count($wpdb->prepare("(p.receipt_id IS NOT NULL AND p.policy_hash<>%s) OR (n.receipt_id IS NOT NULL AND n.policy_hash<>%s)",$this->policy,$this->policy)),
                 'failed_processing'=>$count("{$eligible} AND p.state='failed'"),
                 'waiting_receipts'=>$count("{$eligible} AND p.state='waiting'"),
                 'manual_review_receipts'=>$count("p.state IN ('conflict','exhausted') OR n.quarantine_reason='event_conflict'"),

@@ -68,6 +68,9 @@ peracrm_with_target_blog(static function () {
     $wpdb->query('START TRANSACTION'); sns_reject(fn()=>$service->redrive(1),'sns_storage');
     sns_expect($wpdb->query('SAVEPOINT processing_caller')!==false && $wpdb->query('RELEASE SAVEPOINT processing_caller')!==false,'outer transaction retained'); $wpdb->query('ROLLBACK');
     if (is_multisite()) { switch_to_blog(1); try { sns_reject(fn()=>$service->health(),'sns_storage'); sns_reject(fn()=>$service->redrive(1),'sns_storage'); } finally { restore_current_blog(); } }
+    $wrong=ses_event_scope(); $wrong['configuration_version']=2;
+    $wrongService=new PeraCRM_SES_Processing(sns_verifier($v),$v['deployment'],get_current_blog_id(),$wrong);
+    sns_expect($wrongService->health()['policy_conflicts']>0,'read-only health exposes mismatched policy pins');
     $text=json_encode($service->health()); sns_expect(!str_contains($text,'@') && !str_contains($text,'https:') && !str_contains($text,'canonical_payload'),'payload-free inspection');
     sns_expect(!peracrm_campaign_queue_dispatch_allowed(),'production sending remains disabled');
 });

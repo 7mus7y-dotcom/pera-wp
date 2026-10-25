@@ -25,7 +25,7 @@ function peracrm_campaign_cli($operation, $args, $assoc)
             }
             $data=$service->events($limit);
             if (isset($data['configured']) && !$data['configured']) { $exit=2; }
-            elseif (($data['result']??'')==='blocked' || !empty($data['failed_processing']) || !empty($data['manual_review_receipts'])) { $exit=4; }
+            elseif (($data['result']??'')==='blocked' || !empty($data['failed_processing']) || !empty($data['manual_review_receipts']) || !empty($data['conflicting_events']) || !empty($data['policy_conflicts'])) { $exit=4; }
         } elseif ($operation==='due') {
             $limit=$assoc['limit'] ?? '10';
             if (!is_scalar($limit) || !preg_match('/^(?:[1-9]|1[0-9]|2[0-5])$/D',(string)$limit)) { throw new InvalidArgumentException(); }

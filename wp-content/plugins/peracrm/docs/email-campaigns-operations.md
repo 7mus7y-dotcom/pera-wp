@@ -230,7 +230,10 @@ SNS/SES delivered outside the restored database.
 
 `health`/`status` include the same `events` summary when configured. Counts report
 pending/failed processing, waiting receipts, latest unmatched/conflicting logical
-events, manual-review receipts and ordinary quarantines separately. Oldest actionable
+events, manual-review receipts, policy-pin conflicts and ordinary quarantines separately.
+Policy conflicts require restoring the original approved pins; no command migrates
+or overrides stored normalization policy. General health emits fixed actionable
+diagnostics for event failures, manual-review work and policy mismatches. Oldest actionable
 age is measured from original receipt arrival for eligible no-progress/pending/
 failed/waiting work; null means no locally actionable receipts observed.
 `last_successful_processing` and `last_successful_redrive` inside `events` are the

@@ -1352,3 +1352,8 @@ All changes remain plugin-owned. No endpoint activation, AWS provisioning,
 credentials, transport/messages, cron activation, merge or deployment. External
 SNS/DLQ provisioning, host monitoring/log protection and retention/restore decisions
 remain explicit dependencies. Phase 5 remains in progress; all disabled gates hold.
+
+Local review follow-up separates synthetic race mailboxes and makes general health
+emit actionable fixed diagnostics for local processing failures, manual-review
+conflicts and mismatched provider policy pins. Read-only policy conflict reporting
+has a real SQL regression. Updated hosted CI and exact-head review are required.

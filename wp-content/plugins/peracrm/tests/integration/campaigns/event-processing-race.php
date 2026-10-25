@@ -6,8 +6,8 @@ peracrm_with_target_blog(static function () use ($mode,$scenario) {
     global $wpdb;
     if ($mode==='prepare') {
         $v=sns_values(); $v['deployment']='processing-race-'.bin2hex(random_bytes(8));
-        $seed=ses_match_seed($v['deployment'],1980); $v['mailbox']=$seed['binding']['mailbox'];
-        $id=ses_event_id(1980); (new PeraCRM_SNS_Receipts(sns_verifier($v),$v['deployment'],get_current_blog_id()))->receive(ses_event_body($v,suppress_event($seed,'Bounce'),$id),$v['now']);
+        $number=$scenario==='duplicate'?1980:1981; $seed=ses_match_seed($v['deployment'],$number); $v['mailbox']=$seed['binding']['mailbox'];
+        $id=ses_event_id($number); (new PeraCRM_SNS_Receipts(sns_verifier($v),$v['deployment'],get_current_blog_id()))->receive(ses_event_body($v,suppress_event($seed,'Bounce'),$id),$v['now']);
         update_option('event_processing_race',$v,false); return;
     }
     $v=get_option('event_processing_race');
