@@ -1022,3 +1022,45 @@ Workspace became unavailable after local commit/tree preservation; subsequent
 bounded edits use connector-fetched exact source and hosted validation. Local
 work and all remote ancestry remain preserved. Final code/test CI and review
 must cover this refinement before acceptance.
+
+### Final runtime acceptance (2026-10-25)
+
+[CI 40165732479](https://github.com/7mus7y-dotcom/pera-wp/actions/runs/40165732479)
+completed **successfully** on final runtime/tests
+`532016a072ed16bcc439d1f3ae8f96fdbdd557ab`, tree
+`6ab834cd6823d19598997f3ce2662a7d64a84618`.
+Single-site job `121086323558` and multisite job `121086323556` both passed.
+Completed logs from both jobs were inspected. Both passed 30 standalone suites,
+223 PHP syntax checks, shell/JavaScript checks, additive migration, both response/
+event arrival orders, exact/logical duplicates, response binding/message/alias
+conflicts, scoped authenticated contradiction holds, identical-binding bytes in
+different deployments, response insert/SELECT/COMMIT rollback and SQL replacement
+before each write/capture/COMMIT, caller transaction preservation, worker reconnect
+guards, zero-call final authorization fencing, late acceptance after lease expiry
+and unknown hold, authorized durable-positive reconciliation, cancellation/stale
+owner protections, separate receiving-server delivery and transient bounce/delay
+facts, starvation correction, and all five independent-process acceptance races.
+Existing atomic preparation, worker, scheduler, withdrawal/preferences and browser
+fixtures passed as well. No new UI or visual acceptance is claimed.
+
+Completed clean [review 6393938444](https://github.com/7mus7y-dotcom/pera-wp/pull/1480#issuecomment-6393938444)
+covers this exact final runtime/test commit with no findings or unresolved threads.
+The original starvation finding was fixed, regressed and resolved. Local review
+covered the actual changes and corrected starvation and conflict-scope issues;
+hosted validation covers the final connector refinement after workspace loss.
+The original checkout and local commits remain preserved; remote ancestry parents
+directly to verified main and includes no reconstruction scaffolding.
+
+Runtime artifacts, retained through 2026-11-08: single-site `12587833295`,
+multisite `12588521749`. Initial failed `40128631024` and superseded/cancelled
+`40165558989` are not final acceptance. Prior successful `40149930466` is
+superseded by the final run above. This evidence follow-up changes only this plan;
+all runtime and fixture bytes remain exactly those tested and reviewed. Final
+documentation-head CI and review are tracked in PR #1480.
+
+All 18 changed files are plugin-owned. Suppression application, public HTTP
+adaptation, real transport, operational UI and external activation readiness
+remain dependent work. Missing events/lookups never establish non-acceptance;
+post-acceptance failures never permit resend. Production factories, dispatch,
+intake/collection and cron gates remain disabled. No AWS provisioning, credentials,
+real messages, cron activation, merge or deployment was performed.
