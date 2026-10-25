@@ -520,3 +520,38 @@ privacy/restore procedures; aggregate status/latency/quarantine/duplicate/backlo
 monitoring without payloads; production TLS, host/proxy/CDN/WAF rate/body/time
 limits and request/response/APM/trace log exclusion. No resources are provisioned,
 no cron is activated and no live endpoint is enabled here.
+
+### Versioned recipient unsubscribe envelope prerequisite (2026-10-25)
+
+New worker preparation requests envelope/personalization version 2. The existing
+`PeraCRM_CampaignSubmissionV1` PHP class name is retained for API compatibility;
+its exact accepted wire shapes are version 1 (historical) and version 2 (required
+`unsubscribe_url`). All other versions and mismatched personalization versions
+fail closed. V2 carries the exact canonical HTTPS pc1 unsubscribe URL issued in
+that expansion, alongside the exact HTML/text. It never derives a header from
+body parsing or issues a third token. The mapper emits `List-Unsubscribe: <URL>`
+and `List-Unsubscribe-Post: List-Unsubscribe=One-Click` and omits SES managed list
+options. URL changes affect the envelope correlation hash and expanded-output
+hash; attempt metadata contains those hashes, never the header bearer. The URL
+is persisted only inside the existing authenticated encrypted output payload.
+
+Recovery retains both old V1 bytes/hashes and new V2 bytes/hashes. Recovery is
+historical access, not send authority; there is no automatic V1 migration,
+header backfill, replacement issuance or snapshot rewrite. A new V2 worker
+request cannot replay a conflicting V1 attempt. The legacy injected mapper still
+supports V1 for existing historical/mock contracts. A future concrete transport
+must reject headerless input before HTTP; this prerequisite does not authorize
+submission of historical V1 material.
+
+Dependency inspection found plugin-local `vendor-webpush` with Guzzle/PSR HTTP
+components but no AWS SDK or established AWS signing implementation. This PR
+adds no dependency and no handwritten signing. The dependent transport PR must
+package a pinned/locked established AWS SDK/signing dependency under PeraCRM
+ownership, document its supported PHP/platform/autoload and distribution path,
+and test the actual signer with injected HTTP. Do not silently depend on another
+plugin, a global SDK, an ambient credential chain or webpush's private autoloader.
+It must enforce fixed deployment-injected identity/account/region/endpoint,
+verified TLS, no redirects, one recipient/request, zero automatic retries and
+the total 20-second budget including credential acquisition, DNS and TLS.
+Complete response decoding, ambiguous outcomes, redaction, actual signature
+scope and response/event-race acceptance remain dependent work.

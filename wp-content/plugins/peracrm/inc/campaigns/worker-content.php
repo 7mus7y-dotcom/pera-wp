@@ -55,16 +55,17 @@ final class PeraCRM_Campaign_Worker_Content
             PeraCRM_CampaignSubmissionV1::validateScope($scope);
             $sender=$content['sender']??[];
             peracrm_campaign_submission_require(($sender['approved']??null)===true);
-            $envelope=['version'=>1,'scope'=>$scope,'blog_id'=>get_current_blog_id(),
+            $envelope=['version'=>2,'scope'=>$scope,'blog_id'=>get_current_blog_id(),
                 'campaign_id'=>(int)$job['campaign_id'],'job_id'=>(int)$job['id'],
                 'revision_id'=>(int)$revision['id'],'snapshot_id'=>(int)$snapshot['id'],
                 'recipient_id'=>(int)$member['id'],'snapshot_hash'=>$snapshot['content_hash'],
                 'delivery_key'=>$row['delivery_key'],'attempt_key'=>$row['attempt_key'],
-                'personalization_version'=>1,'mailbox'=>$member['mailbox'],
+                'personalization_version'=>2,'mailbox'=>$member['mailbox'],
                 'subject'=>$content['model']['subject']??null,'sender_name'=>$sender['name']??null,
                 'sender_email'=>$sender['email']??null,'reply_to'=>$sender['reply_to']??null,'timeout_seconds'=>20];
             // Validate captured headers before any durable recipient state is created.
-            new PeraCRM_CampaignSubmissionV1($envelope+['html'=>'validation','text'=>'validation']);
+            new PeraCRM_CampaignSubmissionV1(array_replace($envelope,['version'=>1,'personalization_version'=>1])
+                + ['html'=>'validation','text'=>'validation']);
             $authorize();
             return [$content,$envelope];
         } catch (Throwable $error) { throw new RuntimeException('frozen_content_unavailable'); }

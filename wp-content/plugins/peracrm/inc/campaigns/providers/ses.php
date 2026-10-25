@@ -49,6 +49,12 @@ final class PeraCRM_Campaign_SES_Mapper
             'Content'=>['Simple'=>['Subject'=>['Data'=>$data['subject'],'Charset'=>'UTF-8'],
                 'Body'=>['Html'=>['Data'=>$data['html'],'Charset'=>'UTF-8'],'Text'=>['Data'=>$data['text'],'Charset'=>'UTF-8']]]],
         ];
+        if ($data['version'] === 2) {
+            $request['Content']['Simple']['Headers'] = [
+                ['Name'=>'List-Unsubscribe','Value'=>'<'.$data['unsubscribe_url'].'>'],
+                ['Name'=>'List-Unsubscribe-Post','Value'=>'List-Unsubscribe=One-Click'],
+            ];
+        }
         $options = ['provider'=>'ses_v2','account_id'=>$this->scope['account_id'],'region'=>$this->scope['region'],
             'endpoint'=>'https://email.'.$this->scope['region'].'.amazonaws.com',
             'configuration_version'=>$this->scope['configuration_version'],

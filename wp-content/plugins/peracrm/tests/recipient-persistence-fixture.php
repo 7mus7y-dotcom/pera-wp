@@ -9,19 +9,20 @@ function peracrm_test_persistence_subscriber(int $id, string $mailbox): void
         'preferences_json'=>'[]','created_at'=>gmdate('Y-m-d H:i:s'),'updated_at'=>gmdate('Y-m-d H:i:s')]));
 }
 
-function peracrm_test_persistence_values(array $content, int $blog): array
+function peracrm_test_persistence_values(array $content, int $blog, int $version = 1): array
 {
     require_once dirname(__DIR__).'/inc/campaigns/recipient-persistence.php';
     $binding = ['blog_id'=>$blog,'subscriber_id'=>17001,'mailbox'=>'persistence@example.org','token_epoch'=>1,
         'attempt_key'=>hash('sha256','fixture-persistence-attempt'),'snapshot_hash'=>hash('sha256',wp_json_encode($content))];
     $tokens = new PeraCRM_CampaignRecipientTokens(['k1'=>str_repeat('synthetic-key-',4)],'k1','fixture-persistence',static fn()=>true);
-    $output = (new PeraCRM_CampaignRecipientExpansion('https://example.org',$tokens))->expand($content,$binding['snapshot_hash'],$binding,1800000000);
+    $output = (new PeraCRM_CampaignRecipientExpansion('https://example.org',$tokens))->expand($content,$binding['snapshot_hash'],$binding,1800000000,$version);
     $fields = $output->fields();
-    $data = ['version'=>1,'scope'=>['provider'=>'ses_v2','account_id'=>'123456789012','region'=>'eu-west-1','configuration_set'=>'fixture','configuration_version'=>1],
+    $data = ['version'=>$version,'scope'=>['provider'=>'ses_v2','account_id'=>'123456789012','region'=>'eu-west-1','configuration_set'=>'fixture','configuration_version'=>1],
         'blog_id'=>$blog,'campaign_id'=>31,'job_id'=>41,'revision_id'=>51,'snapshot_id'=>61,'recipient_id'=>71,
         'snapshot_hash'=>$binding['snapshot_hash'],'delivery_key'=>hash('sha256','fixture-persistence-delivery'),'attempt_key'=>$binding['attempt_key'],
-        'personalization_version'=>1,'mailbox'=>$binding['mailbox'],'subject'=>'Synthetic subject','sender_name'=>'Fixture',
+        'personalization_version'=>$version,'mailbox'=>$binding['mailbox'],'subject'=>'Synthetic subject','sender_name'=>'Fixture',
         'sender_email'=>'sender@example.org','reply_to'=>'reply@example.org','html'=>$fields['html'],'text'=>$fields['text'],'timeout_seconds'=>20];
+    if ($version === 2) { $data['unsubscribe_url']=$fields['unsubscribe_url']; }
     return [$binding,$output,new PeraCRM_CampaignSubmissionV1($data)];
 }
 

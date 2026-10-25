@@ -75,3 +75,47 @@ function atomic_preparation_sql(array $content): void
     persistence_reject(fn()=>$prepare($content,$envelope,$binding));
     persistence_expect($counts()===[2,1,0] && $transport->calls===1,'missing existing output fails closed without replacement issuance or transport');
 }
+
+/** V2 uses the same owned transaction and encrypted exact-byte recovery as V1. */
+function atomic_unsubscribe_headers_sql(array $content): void
+{
+    global $wpdb;
+    [$binding,,$seed]=peracrm_test_persistence_values($content,get_current_blog_id(),2);
+    $binding['attempt_key']=hash('sha256','fixture-header-attempt');
+    $envelope=$seed->fields(); $envelope['attempt_key']=$binding['attempt_key'];
+    unset($envelope['html'],$envelope['text'],$envelope['unsubscribe_url']);
+    $store=new PeraCRM_CampaignRecipientPersistence('fixture-headers',get_current_blog_id());
+    $store->ensureIdentity($binding['subscriber_id'],$binding['mailbox']);
+    $cipher=new PeraCRM_CampaignOutputCipher(['e1'=>str_repeat('h',32)],'e1');
+    $prepare=static fn($headers)=>$store->prepareOutput($content,$headers,$binding,'https://example.org',
+        ['k1'=>str_repeat('synthetic-key-',4)],'k1',1800000000,$cipher);
+    [$submission,$output]=$prepare($envelope);
+    $fields=$submission->fields(); $url=$fields['unsubscribe_url'];
+    persistence_expect($output->fields()['unsubscribe_url']===$url && str_contains($fields['text'],$url)
+        && str_contains($fields['html'],htmlspecialchars($url,ENT_QUOTES,'UTF-8')),'v2 exact URL shared by prepared body and header');
+    $rows=static fn()=>$wpdb->get_results("SELECT * FROM ".peracrm_table('peracrm_campaign_submission_outputs')." WHERE deployment='fixture-headers'",ARRAY_A);
+    $before=$rows();
+    [$replay,$replayed]=$store->prepareOutput([],$envelope,$binding,'invalid',[],'missing',0,$cipher);
+    persistence_expect($replay->fields()===$fields && $replayed->fields()===$output->fields() && $before===$rows(),
+        'v2 recovery uses unchanged ciphertext and exact header without issuance inputs');
+    $metadata=$store->attempt($binding['attempt_key']);
+    persistence_expect(!str_contains(json_encode($metadata),'pc1.'),'v2 SQL attempt metadata excludes bearer');
+    persistence_reject(fn()=>$prepare($envelope+['unsubscribe_url'=>$url]));
+    $changed=$envelope; $changed['version']=3;
+    persistence_reject(fn()=>$prepare($changed));
+    persistence_expect($before===$rows(),'conflicting version/header replay cannot overwrite encrypted output');
+    $transport=new class($url) implements PeraCRM_Campaign_SES_Transport {
+        private $url; public $calls=0;
+        public function __construct(string $url) { $this->url=$url; }
+        public function send(array $request,array $options): array {
+            ++$this->calls;
+            persistence_expect($request['Content']['Simple']['Headers']===[
+                ['Name'=>'List-Unsubscribe','Value'=>'<'.$this->url.'>'],
+                ['Name'=>'List-Unsubscribe-Post','Value'=>'List-Unsubscribe=One-Click'],
+            ],'recovered v2 exact headers reach mocked SES boundary');
+            return ['complete'=>true,'authenticated'=>true,'status'=>200,'message_id'=>'fixture-headers'];
+        }
+    };
+    persistence_expect((new PeraCRM_Campaign_SES_Mapper($fields['scope'],$transport))->submit($replay)['kind']==='accepted'
+        && $transport->calls===1,'v2 recovered envelope submits once through mock only');
+}

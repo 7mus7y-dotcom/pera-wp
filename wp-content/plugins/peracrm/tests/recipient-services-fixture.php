@@ -70,6 +70,14 @@ function peracrm_test_recipient_services(array $content, callable $expect, int $
     $result = $expander->expand($content,$hash,$binding,$now);
     $fields = $result->fields();
     $expect($fields['snapshot_hash'] === $hash && $fields['personalization_version'] === 1 && !str_contains($fields['html'],'{{') && !str_contains($fields['text'],'{{'), 'resolved output retains approval hash');
+    $v2 = $expander->expand($content,$hash,$binding,$now,2);
+    $v2fields = $v2->fields(); $url = $v2fields['unsubscribe_url'];
+    $expect($v2fields['personalization_version'] === 2 && str_contains($v2fields['text'],$url)
+        && str_contains($v2fields['html'],htmlspecialchars($url,ENT_QUOTES,'UTF-8')), 'v2 header URL is exact rendered recipient URL');
+    parse_str(parse_url($url,PHP_URL_QUERY),$query);
+    $expect($service->verify($query['token'],'unsubscribe',$binding,$now), 'v2 URL retains exact withdrawal authority');
+    $reject(fn()=>$expander->expand($content,$hash,$binding,$now,3));
+    $expect(!isset($fields['unsubscribe_url']), 'legacy v1 output unchanged');
     $expandedTokens = [];
     foreach (['preferences','unsubscribe'] as $purpose) {
         $path = $purpose === 'preferences' ? '/email-preferences/' : '/email-unsubscribe/';

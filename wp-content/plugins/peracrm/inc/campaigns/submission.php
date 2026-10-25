@@ -21,7 +21,7 @@ function peracrm_campaign_submission_mailbox($value): bool
         && !preg_match('/[^\x21-\x7e]/', $value);
 }
 
-/** Immutable value, not a send authorization. No renderer or live configuration lookup. */
+/** Immutable V1/V2 value (legacy class name), not a send authorization. No renderer or live configuration lookup. */
 final class PeraCRM_CampaignSubmissionV1
 {
     private $data;
@@ -31,9 +31,11 @@ final class PeraCRM_CampaignSubmissionV1
         $keys = ['version','scope','blog_id','campaign_id','job_id','revision_id','snapshot_id',
             'recipient_id','snapshot_hash','delivery_key','attempt_key','personalization_version',
             'mailbox','subject','sender_name','sender_email','reply_to','html','text','timeout_seconds'];
+        if (($data['version'] ?? null) === 2) { $keys[] = 'unsubscribe_url'; }
         $actual = array_keys($data); sort($actual); sort($keys);
-        peracrm_campaign_submission_require($keys === $actual && $data['version'] === 1
-            && $data['personalization_version'] === 1 && $data['timeout_seconds'] === 20);
+        peracrm_campaign_submission_require($keys === $actual && in_array($data['version'], [1,2], true)
+            && $data['personalization_version'] === $data['version'] && $data['timeout_seconds'] === 20);
+        if ($data['version'] === 2) { self::validateUnsubscribe($data['unsubscribe_url']); }
         foreach (['blog_id','campaign_id','job_id','revision_id','snapshot_id','recipient_id'] as $key) {
             peracrm_campaign_submission_require(is_int($data[$key]) && $data[$key] > 0);
         }
@@ -60,6 +62,13 @@ final class PeraCRM_CampaignSubmissionV1
         $this->data = $ordered;
     }
 
+    /** Exact recipient URL issued during expansion, never parsed from rendered bodies. */
+    public static function validateUnsubscribe($url): void
+    {
+        peracrm_campaign_submission_require(is_string($url) && strlen($url) <= 4096
+            && preg_match('~\Ahttps://(?:[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?\.)+[a-z]{2,63}/email-unsubscribe/\?v=1&token=pc1\.(?:k[0-9]{1,8})\.unsubscribe\.[1-9][0-9]{0,18}\.0\.[a-f0-9]{48}\.[a-f0-9]{64}\z~', $url) === 1);
+    }
+
     public static function validateScope($scope): void
     {
         peracrm_campaign_submission_require(is_array($scope));
@@ -75,7 +84,7 @@ final class PeraCRM_CampaignSubmissionV1
     /** Copy-on-write; never return references. Contains sensitive transport input. */
     public function fields(): array { return $this->data; }
     public function hash(): string { return hash('sha256', json_encode($this->data, JSON_THROW_ON_ERROR)); }
-    public function __debugInfo(): array { return ['version'=>1, 'redacted'=>true]; }
+    public function __debugInfo(): array { return ['version'=>$this->data['version'], 'redacted'=>true]; }
     public function __serialize(): array { throw new LogicException('submission_serialization_disabled'); }
     public function __unserialize(array $data): void { throw new LogicException('submission_serialization_disabled'); }
 }
