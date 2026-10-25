@@ -330,5 +330,16 @@ for preference_race in edit-edit revoke-edit edit-revoke identity-edit edit-iden
     wait "$preference_loser_pid"
     wp eval-file /tests/recipient-preferences-race.php verify "$preference_race"
 done
+wp eval-file /tests/sns-http.php
+rm -f /tmp/peracrm-http-held /tmp/peracrm-http-winner /tmp/peracrm-http-loser
+wp eval-file /tests/sns-http-race.php prepare
+wp eval-file /tests/sns-http-race.php winner &
+http_winner_pid=$!
+wait_for_migration_marker /tmp/peracrm-http-held
+wp eval-file /tests/sns-http-race.php loser &
+http_loser_pid=$!
+wait "$http_winner_pid"
+wait "$http_loser_pid"
+wp eval-file /tests/sns-http-race.php verify
 wp eval-file /tests/ses-suppression-late.php
 printf 'PASS disposable %s WordPress/MySQL fixtures\n' "$fixture_mode"

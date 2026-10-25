@@ -150,3 +150,27 @@ foreach (['pre_wp_mail'=>'mail','pre_http_request'=>'http'] as $hook=>$kind) {
         return $value;
     },1);
 }
+
+// Disposable SNS HTTP deployment and certificate retrieval injection only. No
+// fixture may reach AWS: the default blocker above still rejects every other URL.
+$snsHttpFixture=get_option('sns_http_fixture');
+if (is_array($snsHttpFixture)) {
+    define('PERACRM_SES_SNS_HTTP',$snsHttpFixture['config']);
+    add_filter('pre_http_request',static function ($pre,$args,$url) use ($snsHttpFixture) {
+        $expected='https://sns.eu-west-1.amazonaws.com/SimpleNotificationService-'.str_repeat('a',32).'.pem';
+        if ($url===$expected && ($_SERVER['HTTP_X_FIXTURE_FAILURE']??'')!=='certificate') {
+            return ['headers'=>[],'body'=>$snsHttpFixture['pem'],'response'=>['code'=>200,'message'=>'OK'],'cookies'=>[]];
+        }
+        return new WP_Error('fixture_network_disabled','Fixture dependency unavailable');
+    },20,3);
+    add_filter('query',static function ($sql) {
+        $point=$_SERVER['HTTP_X_FIXTURE_FAILURE']??'';
+        static $applicationCommit=false;
+        if ($point==='application-commit' && str_starts_with($sql,'INSERT INTO') && str_contains($sql,'campaign_ses_applications')) { $applicationCommit=true; }
+        if ($applicationCommit && $sql==='COMMIT') { return 'INVALID_SNS_HTTP_COMMIT_SQL'; }
+        $targets=['receipt'=>'campaign_sns_receipts','normalization'=>'campaign_ses_normalizations',
+            'matching'=>'campaign_ses_matches','application'=>'campaign_ses_applications'];
+        if (isset($targets[$point]) && str_starts_with($sql,'INSERT INTO') && str_contains($sql,$targets[$point])) { return 'INVALID_SNS_HTTP_FIXTURE_SQL'; }
+        return $sql;
+    });
+}

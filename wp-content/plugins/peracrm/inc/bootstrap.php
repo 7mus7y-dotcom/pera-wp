@@ -23,6 +23,7 @@ require_once PERACRM_INC . '/campaigns/import.php';
 require_once PERACRM_INC . '/campaigns/preferences.php';
 require_once PERACRM_INC . '/campaigns/routes.php';
 require_once PERACRM_INC . '/campaigns/recipient-withdrawal-routes.php';
+require_once PERACRM_INC . '/campaigns/sns-http.php';
 require_once PERACRM_INC . '/campaigns/audience.php';
 require_once PERACRM_INC . '/campaigns/drafts.php';
 require_once PERACRM_INC . '/campaigns/content.php';
