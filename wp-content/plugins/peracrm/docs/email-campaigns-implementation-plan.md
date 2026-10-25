@@ -1463,3 +1463,25 @@ versions and V1-hash/V2-envelope conflict. Shared real-SQL matching fixtures now
 prepare V2, so matching, suppression, response/event conflict and concurrency
 paths exercise the new protocol; an explicit SQL V1 case preserves compatibility.
 The finding requires new final-head CI and rereview; prior heads do not cover it.
+
+### Runtime acceptance and final evidence follow-up
+
+Runtime/test head `69e499222d8a055df6945a96858499ebd7e2f3d5`, tree
+`3080b4d06108235fea96268e3f28f4b2aebcb4f4`, passed
+[CI 40221253927](https://github.com/7mus7y-dotcom/pera-wp/actions/runs/40221253927):
+single-site job `121253177386` and multisite job `121253177648` both succeeded.
+Both completed logs inspected: V2 exact body/header URL, encrypted replay without
+issuance, bearer-free metadata, mock handoff, V2 durable event matching, explicit
+historical V1 matching, matching/suppression/response-event races and existing
+worker/late-return/unknown/cancellation fences passed. No PHP warning, fatal error
+or failed assertion appeared. All 34 standalone suites and 238 PHP lint checks
+also passed locally. Local Docker remains unavailable; hosted SQL results supply
+the actual single/multisite acceptance evidence.
+
+[Clean runtime review 6401487661](https://github.com/7mus7y-dotcom/pera-wp/pull/1484#issuecomment-6401487661)
+explicitly covers `69e499222d`; completed summary reports no findings/unresolved
+findings. The earlier matcher finding is fixed with regressions and its thread
+resolved. This evidence-only follow-up changes no runtime/test bytes. Final-head
+CI and review of this documentation follow-up remain required at publication;
+PR acceptance records the actual final result. The SDK/HTTP transport remains
+unimplemented dependent work; no production readiness, merge or deployment claim.
