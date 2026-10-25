@@ -1447,3 +1447,11 @@ including signed unsubscribe headers, TLS, DKIM/SPF/DMARC and real one-click POS
 The unconditional sending block, disabled intake/public collection/cron and
 plugin ownership remain unchanged. No AWS requests, account provisioning, DNS,
 real credentials, messages, merge or deployment are authorized or performed.
+
+Initial non-draft publication: [#1484](https://github.com/7mus7y-dotcom/pera-wp/pull/1484),
+initial head `1899431d2d257da0ceeaa5a680269d00e193d462`, tree
+`e0236e6a5b5e522e16213faa578b89687ce9c934` matching local. Final diff review found
+and closed constructor reentry in the existing submission value class: neither
+V1 nor V2 fields/correlation hashes may be replaced after construction. A focused
+regression verifies rejection and unchanged hash. New final-head CI and clean
+review remain required for this correction; initial-head results cannot cover it.

@@ -35,6 +35,9 @@ campaign_expect($immutable->hash()===$submission->hash(),'caller-held URL refere
 ob_start(); var_dump($submission,$output); $debug=ob_get_clean();
 campaign_expect(!str_contains($debug,'pc1.') && !str_contains($debug,'example.org'),'header bearer debug redaction');
 $reject(fn()=>serialize($submission));
+$before=$submission->hash();
+$reject(fn()=>$submission->__construct($changed->fields()));
+campaign_expect($submission->hash()===$before,'constructor reentry cannot replace immutable header correlation');
 $transport=new class implements PeraCRM_Campaign_SES_Transport {
     public $calls=[];
     public function send(array $request,array $options): array {
