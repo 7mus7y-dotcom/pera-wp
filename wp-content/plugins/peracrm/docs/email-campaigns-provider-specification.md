@@ -477,3 +477,46 @@ account-specific gaps are identified above; no provider account was inspected.
 - **S16:** [Data protection](https://docs.aws.amazon.com/ses/latest/dg/data-protection.html), [deleting personal data](https://docs.aws.amazon.com/ses/latest/dg/deleting-personal-data.html), [GDPR/DPA framework](https://aws.amazon.com/compliance/gdpr-center/).
 - **S17:** [Current pricing](https://aws.amazon.com/ses/pricing/) — plans plus à la carte, including new-account defaults from July 2026.
 - **S18:** [IAM for SES](https://docs.aws.amazon.com/ses/latest/dg/control-user-access.html).
+
+### Guarded SNS HTTP adapter (2026-10-25)
+
+Plugin route: site-relative `/peracrm-ses-sns/`, POST only, no rewrite flush.
+It is disabled unless deployment code defines `PERACRM_SES_SNS_HTTP` as an array
+with exactly `enabled` (boolean true), `blog` (positive integer target blog),
+`deployment` (immutable deployment identifier), `account` (12-digit string),
+`region`, `topic` (matching SNS ARN), `configuration_set` and
+`configuration_version` (positive integer). These pins must match immutable SES
+attempt scope; missing/inconsistent configuration is unavailable (404). On
+multisite only the configured CRM target blog may accept. No option or public
+request enables production intake. Do not define this constant on a live site
+as part of this PR.
+
+SNS JSON envelopes are accepted under documented `text/plain`, `application/json`
+and `text/xml` media types, optionally with UTF-8 charset; XML parsing is never
+performed. Body reads cap at 262145 bytes and reject above 262144; outer and inner
+JSON retain existing depth 8/16 bounds. Signature-v2 verification and strict pinned
+certificate origin precede all storage and SES parsing. Certificate retrieval
+uses the existing 5-second/16-KiB/no-redirect HTTPS helper; tests inject retrieval
+and prohibit real AWS requests. Subscription/control messages are rejected;
+no SubscribeURL is fetched or confirmed.
+
+202 means durable receipt acceptance, including durable unmatched/unsupported/
+stale/future quarantine. It never asserts suppression application, delivery,
+consent or send permission. When normalization is eligible, matching and eligible
+suppression run synchronously, each in its established owned transaction. Every
+replay resumes all downstream stages; a duplicate receipt cannot short-circuit
+application. 503 with Retry-After covers temporary certificate/storage/downstream
+failures, including failed COMMIT. Invalid envelope 400, bad signature 403,
+conflicting signed message identity 409, size 413, content type 415 and method 405
+are permanent rejections. Generic bodies and no-store/privacy headers expose no
+payload, certificate, URL, address or application decision. No diagnostic logging
+or analytics is added.
+
+Operational dependencies remain separate: operator-controlled authenticated SNS
+subscription provisioning/confirmation, regional topic policy and SignatureVersion
+2 delivery configuration; DLQ/retry policy and bounded audited redrive (matcher
+MAX_PASSES and freshness quarantines are not bypassed by HTTP replay); retention,
+privacy/restore procedures; aggregate status/latency/quarantine/duplicate/backlog
+monitoring without payloads; production TLS, host/proxy/CDN/WAF rate/body/time
+limits and request/response/APM/trace log exclusion. No resources are provisioned,
+no cron is activated and no live endpoint is enabled here.

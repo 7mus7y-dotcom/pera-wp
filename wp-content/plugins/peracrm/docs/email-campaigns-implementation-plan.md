@@ -14,9 +14,9 @@ as detailed in the linked history. No phase is complete merely because code exis
 Future PRs must update this active plan and distinguish repository checks from
 external verification. Preserve historical evidence and decisions in the history.
 
-**Current task:** bounded Phase 5 transactional suppression application from
-already authenticated, durably normalized and unambiguously matched SES events.
-#1480 is merged; see the 2026-10-25 suppression section below for scope and evidence.
+**Current task:** bounded Phase 5 guarded SNS HTTP adapter connecting existing
+authentication, receipts, normalization, matching and suppression. #1481 is merged;
+see the final guarded SNS HTTP section for current scope and validation.
 
 ## Phase 5B — bounded recipient preference editor (2026-10-22)
 
@@ -1227,3 +1227,50 @@ Missing provider facts/events never prove non-acceptance. No suppression clearin
 consent grant, resend authorization or subscriber creation was added. Production
 factories, dispatch, intake/collection and cron gates remain disabled. No AWS
 provisioning, credentials, real messages, operational UI, merge or deployment.
+
+## Phase 5 — guarded SNS HTTP connection (2026-10-25)
+
+Current bounded task: plugin-owned, default-disabled SNS POST adapter connecting
+existing authentication, durable receipts, normalization, matching and suppression.
+#1481 merged at latest main `e65b22e626081ebc47149cffb9ff50740cdd1f02`.
+Verified exact final `071a7a70d5547f1e77dda2ecc8eecfb796df9942` passed
+[CI 40176310060](https://github.com/7mus7y-dotcom/pera-wp/actions/runs/40176310060)
+and completed [clean review](https://github.com/7mus7y-dotcom/pera-wp/pull/1481#issuecomment-6395357423),
+with no unresolved findings. No applicable AGENTS.md found. Read the living plan,
+provider specification and all existing event services and transaction contracts.
+
+Preserved clean `/workspace/pera-wp` at `69094d4a`. Shell networking was blocked;
+no further shell network attempts were made after recovery. Connector supplied
+all fourteen changed main files to isolated `/workspace/pera-sns-http`; resulting
+tree `d18807c2be549a765e1850af3344721e0efcfe8d` exactly matches main. Local
+reconstruction commit is scaffolding only; publication parents directly to main.
+
+Explicit deployment-only configuration pins blog/deployment/account/region/topic
+and SES configuration set/version. Disabled/misconfigured endpoint returns 404.
+No request or database option enables production. Bounded stream reads and existing
+JSON depth limits, documented SNS content types, early method rejection, strict
+certificate/signature verification and no subscription confirmation are preserved.
+Existing receipt/normalization/matching/application commits remain separate. A
+replayed receipt always resumes downstream work; storage/certificate/downstream
+failure returns retryable 503, never receipt-only completion. 202 denotes durable
+acceptance/quarantine only; eligible suppression must commit before it returns.
+No event clears denial, grants consent or authorizes sending. Generic responses
+carry no-store and privacy headers and bypass themes/analytics; no sensitive
+request data or exception details are logged.
+
+Added standalone configuration/preflight/authentication tests, actual HTTP and
+SQL fixtures in both topologies, staged receipt/normalization/matching/application/
+application-COMMIT faults and retry recovery, replay/no-op and signed ID collision,
+wrong scope/forgery, bounded malformed/oversize input, documented media types,
+durable unsupported/unmatched/stale quarantine and independent-process concurrent
+pipeline acceptance with one committed suppression audit. Test-only certificate
+retrieval injection retains the external-network blocker. Required standalone,
+PHP/shell/JavaScript syntax and whitespace checks pass locally. Hosted SQL/HTTP/
+races and final-change review are pending publication; no local SQL pass claimed.
+
+Dependent operational work is recorded in the provider specification: subscription
+provisioning/confirmation and delivery policy, bounded audited redrive, DLQ,
+monitoring, retention/restore/privacy, production TLS/host/CDN/WAF limits and
+log/APM/trace protections. No AWS resources, live configuration, cron, transport,
+messages, credentials, merge or deployment. Sending blocks and all other disabled
+factories/intake/collection remain intact. Phase 5 remains in progress.
