@@ -158,6 +158,13 @@ function peracrm_campaigns_assert_schema()
                 if (!$found) { throw new RuntimeException('PeraCRM delivery uniqueness assertion failed.'); }
             }
         }
+        if ($name === 'peracrm_campaign_ses_matches') {
+            $parts=array_values(array_filter((array)$indexes,static fn($index)=>$index['Key_name']==='binding_decision'));
+            usort($parts,static fn($a,$b)=>$a['Seq_in_index']<=>$b['Seq_in_index']);
+            if (array_column($parts,'Column_name')!==['binding_hash','decision'] || array_filter(array_column($parts,'Sub_part'))) {
+                throw new RuntimeException('PeraCRM matching hold index assertion failed.');
+            }
+        }
         if ($name === 'peracrm_campaign_provider_messages') {
             $found=false;
             foreach ($keys as $key) {

@@ -1,19 +1,20 @@
 <?php
 require_once __DIR__.'/prepared-worker-fixture.php';
 require_once __DIR__.'/ses-matching-fixture.php';
-function acceptance_worker_event(array $v,string $deployment,array $request,string $type,int $id): void
+function acceptance_worker_event(array $v,string $deployment,array $request,string $type,int $id,bool $conflict=false): void
 {
-    worker_fixture_target(static function () use ($v,$deployment,$request,$type,$id) {
+    worker_fixture_target(static function () use ($v,$deployment,$request,$type,$id,$conflict) {
         $event=ses_event($type); $mailbox=$request['Destination']['ToAddresses'][0];
         $event['mail']['destination']=[$mailbox]; $event['mail']['messageId']='worker-accepted';
         foreach ($request['EmailTags'] as $tag) { $event['mail']['tags'][$tag['Name']]=[$tag['Value']]; }
+        if ($conflict) { $event['mail']['tags']['peracrm_snapshot']=[str_repeat('f',64)]; }
         $detail=lcfirst($type);
         if ($type==='Delivery') { $event[$detail]['recipients']=[$mailbox]; }
         if ($type==='Bounce') { $event[$detail]['bouncedRecipients']=[['emailAddress'=>$mailbox]]; $event[$detail]['bounceType']='Transient'; }
         if ($type==='DeliveryDelay') { $event[$detail]['delayedRecipients']=[['emailAddress'=>$mailbox]]; }
         $receipt=ses_match_receive($v,$deployment,$event,$id);
         $result=(new PeraCRM_SES_Matcher(sns_verifier($v),$deployment,get_current_blog_id(),ses_event_scope()))->match($receipt);
-        sns_expect(array_values($result)===['matched'],'worker authenticated '.$type.' acceptance');
+        sns_expect(array_values($result)===[$conflict?'binding_conflict':'matched'],'worker authenticated '.$type.' acceptance');
     });
 }
 $v=sns_values();
@@ -48,7 +49,7 @@ foreach (['update','audit','commit','capture'] as $failure) {
     try { prepared_reject(fn()=>$worker->claim($job,1)); } finally { remove_filter('query',$filter); }
     prepared_expect($fired && worker_fixture_rows($job)===$before,'worker reconnect rollback '.$failure);
 }
-foreach (['early-event','late-response','late-event','retry-event','cancelled','Delivery','Bounce','DeliveryDelay','retry-siblings'] as $n=>$scenario) {
+foreach (['early-event','late-response','late-event','retry-event','cancelled','Delivery','Bounce','DeliveryDelay','retry-siblings','retry-conflict'] as $n=>$scenario) {
     $job=worker_fixture_reset($scenario==='retry-siblings'?3:1); $deployment='worker-accept-'.bin2hex(random_bytes(8));
     $preparation=prepared_service($deployment); $worker=worker_fixture(); $claim=$worker->claim($job,1)[0];
     $transport=new class($scenario,$job,$v,$deployment,$n) implements PeraCRM_Campaign_SES_Transport {
@@ -59,7 +60,7 @@ foreach (['early-event','late-response','late-event','retry-event','cancelled','
             if ($this->scenario==='early-event') { acceptance_worker_event($this->v,$this->deployment,$request,'Send',900+$this->n); }
             if (in_array($this->scenario,['late-response','cancelled'],true)) { worker_fixture_expire($this->job); }
             if ($this->scenario==='cancelled') { worker_fixture_state($this->job,'cancel'); }
-            if (in_array($this->scenario,['early-event','retry-event','retry-siblings'],true)) {
+            if (in_array($this->scenario,['early-event','retry-event','retry-siblings','retry-conflict'],true)) {
                 return ['complete'=>true,'authenticated'=>true,'status'=>429,'error_code'=>'TooManyRequestsException'];
             }
             if ($this->scenario==='late-event') { throw new RuntimeException('synthetic timeout'); }
@@ -71,12 +72,12 @@ foreach (['early-event','late-response','late-event','retry-event','cancelled','
         prepared_reject(fn()=>$worker->submitPrepared($claim,$preparation,$mapper));
         $worker->recover($job);
     } else { $worker->submitPrepared($claim,$preparation,$mapper); }
-    if (in_array($scenario,['late-event','retry-event','retry-siblings','cancelled','Delivery','Bounce','DeliveryDelay'],true)) {
+    if (in_array($scenario,['late-event','retry-event','retry-siblings','retry-conflict','cancelled','Delivery','Bounce','DeliveryDelay'],true)) {
         $before=worker_fixture_rows($job);
-        acceptance_worker_event($v,$deployment,$transport->request,in_array($scenario,['Delivery','Bounce','DeliveryDelay'],true)?$scenario:'Send',920+$n);
+        acceptance_worker_event($v,$deployment,$transport->request,in_array($scenario,['Delivery','Bounce','DeliveryDelay'],true)?$scenario:'Send',920+$n,$scenario==='retry-conflict');
         prepared_expect(worker_fixture_rows($job)===$before,'event preserves submission state '.$scenario);
     }
-    if (in_array($scenario,['retry-event','retry-siblings'],true)) {
+    if (in_array($scenario,['retry-event','retry-siblings','retry-conflict'],true)) {
         worker_fixture_target(static function () use ($claim) { global $wpdb; $wpdb->update(peracrm_table('peracrm_fixture_worker_deliveries'),['next_attempt_at'=>'2000-01-01'],['id'=>$claim['id']]); });
     }
     prepared_expect($worker->claim($job,1)===[] && $transport->calls===1,'accepted/unknown/cancelled retry fenced '.$scenario);

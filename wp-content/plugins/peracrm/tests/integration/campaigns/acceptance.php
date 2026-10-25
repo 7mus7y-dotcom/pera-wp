@@ -13,6 +13,9 @@ peracrm_with_target_blog(static function () {
     update_option('peracrm_schema_version',33); update_option('peracrm_campaigns_schema_status',['state'=>'ready','version'=>33]);
     sns_expect(peracrm_maybe_upgrade_schema() && peracrm_maybe_upgrade_schema(),'v33 acceptance migration idempotent');
     sns_expect($old===$wpdb->get_results("SELECT * FROM {$messages} ORDER BY 1,2",ARRAY_A),'migration preserves historical message provenance');
+    $wpdb->query('ALTER TABLE '.peracrm_table('peracrm_campaign_ses_matches').' DROP INDEX binding_decision');
+    $failed=false; try { peracrm_campaigns_assert_schema(); } catch (RuntimeException $e) { $failed=true; }
+    sns_expect($failed,'schema rejects missing conflict lookup index'); peracrm_campaigns_install_schema();
     foreach (['event-first','response-first'] as $n=>$order) {
         $seed=ses_match_seed($deployment,500+$n); $message=$seed['event']['mail']['messageId'];
         $id=ses_match_receive($v,$deployment,$seed['event'],700+$n);

@@ -976,3 +976,36 @@ changed that formatting. Restored conventional quoted identifiers in guarded
 updates while preserving session/CAS predicates. This run did not reach the new
 SQL acceptance fixtures and is not acceptance evidence. Expected worker transaction
 probe errors are also suppressed, matching other owned-transaction services.
+
+### Continued review (2026-10-25)
+
+Recovered the interrupted publication by checking remote head before repeating
+the expected-head update; no duplicate PR or check was created. Follow-up
+`f52c35fe260d15e3b3ddde797e5eb207b2da4056` matches local tree
+`b1c3f6c414e107a2c248d401921b0b93f84a5e32`; clean completed
+[review 6391852269](https://github.com/7mus7y-dotcom/pera-wp/pull/1480#issuecomment-6391852269)
+covers that commit. The original starvation thread is fixed and resolved.
+Hosted CI 40149930466 is pending at this checkpoint.
+
+Further local review tightened fail-closed handling of contradictory authenticated
+binding/recipient/scope decisions for known immutable attempts: these also fence
+retry, separately from positive acceptance evidence. An indexed locking read
+avoids treating an earlier SQL snapshot as absence of a newly committed conflict.
+Storage contention/deadlock errors roll back before transport authorization.
+Added a signed binding-conflict vs retry regression and schema readiness check
+for its lookup index. This follow-up needs new hosted validation and rereview;
+the earlier clean review is not claimed to cover later changes.
+
+[CI 40149930466](https://github.com/7mus7y-dotcom/pera-wp/actions/runs/40149930466)
+completed successfully on `f52c35fe26`: single-site job 121039121753 and
+multisite job 121039121904 passed. Completed logs from both were inspected:
+response/event arrival orders, immutable duplicates/conflicts/aliases, binding
+conflicts, additive migration, every response rollback/reconnect/caller case,
+worker reconnect guards, final authorization zero-call fence, late acceptance,
+unknown-only staff reconciliation, cancellation, post-acceptance delivery/bounce/
+delay invariance, starvation correction and all five new independent-process
+acceptance races passed. Existing worker/scheduler/recipient/browser suites also
+passed. No new UI/visual acceptance or real provider acceptance is claimed.
+Artifacts: single 12582198879, multi 12581909209, retained through 2026-11-08.
+The subsequent contradictory-binding hold/index/regression changes above still
+require their own hosted run and clean review before final acceptance.
