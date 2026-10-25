@@ -2,6 +2,7 @@
 if (!defined('ABSPATH')) { exit; }
 require_once __DIR__.'/recipient-tokens.php';
 require_once __DIR__.'/renderer.php';
+require_once __DIR__.'/submission.php';
 
 /** Immutable recipient copy. Contains bearers: explicit access only, no debug/serialization. */
 final class PeraCRM_CampaignRecipientOutput
@@ -10,18 +11,22 @@ final class PeraCRM_CampaignRecipientOutput
     private $text;
     private $snapshotHash;
     private $bindingHash;
+    private $unsubscribeUrl;
 
-    public function __construct(#[\SensitiveParameter] string $html, #[\SensitiveParameter] string $text, string $snapshotHash, string $bindingHash)
+    public function __construct(#[\SensitiveParameter] string $html, #[\SensitiveParameter] string $text, string $snapshotHash, string $bindingHash, #[\SensitiveParameter] ?string $unsubscribeUrl = null)
     {
         peracrm_campaign_recipient_require(!isset($this->html));
+        if ($unsubscribeUrl !== null) { PeraCRM_CampaignSubmissionV1::validateUnsubscribe($unsubscribeUrl); }
+        $this->unsubscribeUrl = $unsubscribeUrl;
         $this->html = $html; $this->text = $text;
         $this->snapshotHash = $snapshotHash; $this->bindingHash = $bindingHash;
     }
 
     public function fields(): array
     {
-        return ['personalization_version'=>1, 'snapshot_hash'=>$this->snapshotHash,
-            'recipient_binding_hash'=>$this->bindingHash, 'html'=>$this->html, 'text'=>$this->text];
+        return ['personalization_version'=>$this->unsubscribeUrl === null ? 1 : 2, 'snapshot_hash'=>$this->snapshotHash,
+            'recipient_binding_hash'=>$this->bindingHash, 'html'=>$this->html, 'text'=>$this->text]
+            + ($this->unsubscribeUrl === null ? [] : ['unsubscribe_url'=>$this->unsubscribeUrl]);
     }
 
     public function hash(): string { return hash('sha256', json_encode($this->fields(), JSON_THROW_ON_ERROR)); }
@@ -53,9 +58,11 @@ final class PeraCRM_CampaignRecipientExpansion
         $this->tokens = $tokens;
     }
 
-    public function expand(array $content, string $approvedHash, #[\SensitiveParameter] array $binding, int $now): PeraCRM_CampaignRecipientOutput
+    public function expand(array $content, string $approvedHash, #[\SensitiveParameter] array $binding, int $now, int $outputVersion = 1): PeraCRM_CampaignRecipientOutput
     {
         try {
+            peracrm_campaign_recipient_require(in_array($outputVersion, [1,2], true));
+            $unsubscribeUrl = null;
             $bindingBytes = peracrm_campaign_recipient_binding($binding);
             // Use the exact snapshot encoding, never re-render/normalize captured content.
             $json = wp_json_encode($content);
@@ -84,6 +91,7 @@ final class PeraCRM_CampaignRecipientExpansion
                 if ($slot['purpose'] === 'preferences') {
                     $url .= '&withdrawal_token='.rawurlencode($bearers['unsubscribe']);
                 }
+                if ($slot['purpose'] === 'unsubscribe') { $unsubscribeUrl = $url; }
                 $marker = '{{'.$name.'}}';
                 $anchor = '<a href="'.$marker.'">'.esc_html($slot['label']).'</a>';
                 peracrm_campaign_recipient_require(self::atTagBoundary($html, strpos($html, $anchor)));
@@ -92,7 +100,9 @@ final class PeraCRM_CampaignRecipientExpansion
                 $text = str_replace($line, $slot['label']."\n".$url."\n", $text);
             }
             peracrm_campaign_recipient_require(!peracrm_campaign_deliverable_has_slot([$html, $text]));
-            return new PeraCRM_CampaignRecipientOutput($html, $text, $approvedHash, hash('sha256', $bindingBytes));
+            peracrm_campaign_recipient_require($outputVersion === 1 || $unsubscribeUrl !== null);
+            return new PeraCRM_CampaignRecipientOutput($html, $text, $approvedHash, hash('sha256', $bindingBytes),
+                $outputVersion === 2 ? $unsubscribeUrl : null);
         } catch (Throwable $error) { throw new InvalidArgumentException('recipient_service_unavailable'); }
     }
 

@@ -354,7 +354,9 @@ final class PeraCRM_CampaignRecipientPersistence
         }
         peracrm_campaign_recipient_require($expanded['snapshot_hash'] === $binding['snapshot_hash']
             && $expanded['recipient_binding_hash'] === hash('sha256',peracrm_campaign_recipient_binding($binding))
-            && $expanded['html'] === $fields['html'] && $expanded['text'] === $fields['text']);
+            && $expanded['html'] === $fields['html'] && $expanded['text'] === $fields['text']
+            && $expanded['personalization_version'] === $fields['personalization_version']
+            && ($expanded['unsubscribe_url'] ?? null) === ($fields['unsubscribe_url'] ?? null));
         $metadata = [];
         foreach (['version','scope','blog_id','campaign_id','job_id','revision_id','snapshot_id','recipient_id','snapshot_hash','delivery_key','attempt_key','personalization_version','mailbox'] as $key) { $metadata[$key] = $fields[$key]; }
         $metadata['subscriber_id'] = $binding['subscriber_id']; $metadata['token_epoch'] = $binding['token_epoch'];
@@ -431,7 +433,7 @@ final class PeraCRM_CampaignRecipientPersistence
                 peracrm_campaign_recipient_require(hash_equals($prior['binding_hash'],hash('sha256',$prior['binding_json'])));
                 $expected = json_decode($prior['binding_json'],true,512,JSON_THROW_ON_ERROR);
                 [$submission,$output] = $this->recoverOutputLocked($binding,$expected,$cipher);
-                $fields = $submission->fields(); unset($fields['html'],$fields['text']);
+                $fields = $submission->fields(); unset($fields['html'],$fields['text'],$fields['unsubscribe_url']);
                 $actualKeys = array_keys($envelope); $expectedKeys = array_keys($fields);
                 sort($actualKeys); sort($expectedKeys);
                 peracrm_campaign_recipient_require($actualKeys === $expectedKeys);
@@ -448,10 +450,12 @@ final class PeraCRM_CampaignRecipientPersistence
                         ['subscriber_id'=>$binding['subscriber_id']]);
                 });
             $output = (new PeraCRM_CampaignRecipientExpansion($origin,$tokens))
-                ->expand($content,$binding['snapshot_hash'],$binding,$issued);
+                ->expand($content,$binding['snapshot_hash'],$binding,$issued,$envelope['version'] ?? 0);
             $expanded = $output->fields();
-            peracrm_campaign_recipient_require(!array_key_exists('html',$envelope) && !array_key_exists('text',$envelope));
-            $submission = new PeraCRM_CampaignSubmissionV1($envelope+['html'=>$expanded['html'],'text'=>$expanded['text']]);
+            peracrm_campaign_recipient_require(!array_key_exists('html',$envelope) && !array_key_exists('text',$envelope)
+                && !array_key_exists('unsubscribe_url',$envelope));
+            $submission = new PeraCRM_CampaignSubmissionV1($envelope+['html'=>$expanded['html'],'text'=>$expanded['text']]
+                + (isset($expanded['unsubscribe_url']) ? ['unsubscribe_url'=>$expanded['unsubscribe_url']] : []));
             $metadata = self::attemptMetadata($submission,$binding,$output);
             $this->bind('submission_attempts',['attempt_key'=>$binding['attempt_key']],$metadata,
                 ['delivery_key'=>$metadata['delivery_key']]);
@@ -474,12 +478,13 @@ final class PeraCRM_CampaignRecipientPersistence
         peracrm_campaign_recipient_require($row !== null);
         $data = json_decode($cipher->open($row,$context),true,32,JSON_THROW_ON_ERROR);
         peracrm_campaign_recipient_require(is_array($data) && array_keys($data) === ['envelope','output']
-            && is_array($data['output']) && array_keys($data['output']) ===
-                ['personalization_version','snapshot_hash','recipient_binding_hash','html','text']
-            && $data['output']['personalization_version'] === 1);
+            && is_array($data['output']) && in_array($data['output']['personalization_version'] ?? null, [1,2], true));
+        $outputKeys=['personalization_version','snapshot_hash','recipient_binding_hash','html','text'];
+        if ($data['output']['personalization_version'] === 2) { $outputKeys[]='unsubscribe_url'; }
+        peracrm_campaign_recipient_require(array_keys($data['output']) === $outputKeys);
         $submission = new PeraCRM_CampaignSubmissionV1($data['envelope']);
         $output = new PeraCRM_CampaignRecipientOutput($data['output']['html'],$data['output']['text'],
-            $data['output']['snapshot_hash'],$data['output']['recipient_binding_hash']);
+            $data['output']['snapshot_hash'],$data['output']['recipient_binding_hash'],$data['output']['unsubscribe_url'] ?? null);
         peracrm_campaign_recipient_require(self::attemptMetadata($submission,$binding,$output) === $expected);
         return [$submission,$output];
     }

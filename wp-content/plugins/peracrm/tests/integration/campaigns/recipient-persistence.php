@@ -31,6 +31,7 @@ function peracrm_test_persistence_sql(array $content): void
         peracrm_test_persistence_subscriber(17001,$binding['mailbox']);
         require_once __DIR__.'/atomic-preparation.php';
         atomic_preparation_sql($content);
+        atomic_unsubscribe_headers_sql($content);
         update_option('atomic_preparation_content',$content,false);
         $store = new PeraCRM_CampaignRecipientPersistence('fixture-persistence',$blog);
         persistence_expect($store->ensureIdentity(17001,$binding['mailbox']) === 1 && $store->ensureIdentity(17001,$binding['mailbox']) === 1,'identity creation idempotent');

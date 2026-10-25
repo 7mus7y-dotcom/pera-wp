@@ -14,8 +14,8 @@ as detailed in the linked history. No phase is complete merely because code exis
 Future PRs must update this active plan and distinguish repository checks from
 external verification. Preserve historical evidence and decisions in the history.
 
-**Current task:** bounded Phase 5 SES event redrive and privacy-safe local event
-health. See the final section for scope and acceptance evidence.
+**Current task:** bounded Phase 5 immutable unsubscribe envelope prerequisite
+for concrete SES v2 transport. See the final section for scope and acceptance.
 
 ## Phase 5B — bounded recipient preference editor (2026-10-22)
 
@@ -1383,3 +1383,105 @@ exact-head review request/response are linked in the PR; no earlier passing chec
 or review substitutes for acceptance of later changes. No merge or deployment is
 authorized by these checks. External provisioning/monitoring/retention/restore
 and all activation decisions remain open dependencies.
+
+## Phase 5 — immutable unsubscribe envelope prerequisite (2026-10-25)
+
+The requested concrete SES v2 transport is split at a necessary protocol boundary.
+This PR completes the coherent prerequisite: explicit V2 recipient output and
+submission envelopes carrying the exact expansion-issued unsubscribe URL through
+atomic encrypted preparation, exact-byte replay and SES mapper headers. Existing
+body-only V1 artifacts cannot acquire headers without changing their immutable
+hashes. No such migration or token regeneration is performed. The concrete SDK
+transport and its mocked HTTP/signature acceptance remain **not implemented**.
+Phase 5 remains **in progress**; mocks do not establish production readiness.
+
+Baseline verified through GitHub connector: #1483 merged to latest main
+`8d1f53540d8562f24ff37e1c528fc115a2b29061`. Final head
+`989402dbdffe02901c1ec98282ee2f96ae96a472` passed CI 40214563795 and clean
+final-head review receipt 6400582589. No applicable AGENTS.md found. Read the
+living plan/history, provider specification, recipient token/expansion/persistence,
+worker preparation, SES mapper and response-correlation contracts. Original clean
+checkout `/workspace/pera-wp` at `101445e9` is preserved. Isolated worktree
+`/workspace/pera-ses` baseline tree `f95786f3bce0712d4581ee52a85664a2acb966f3`
+matches GitHub main. All 15 baseline blobs were verified against GitHub SHA-1s.
+Shell fetch failed once (unreachable proxy); connector publication parents directly
+to main and excludes local reconstruction scaffolding.
+
+V2 URL bytes are part of the envelope/output hashes and encrypted payload, excluded
+from attempt SQL metadata and redacted debug/exception output. Atomic preparation
+compares both body and header authority against the same expansion result. Replay
+requires the exact supported envelope version and immutable metadata and uses
+stored ciphertext without live rendering, origin, signing keys or new issuance.
+Historical V1 shape/hash/recovery remains supported; unsupported versions reject.
+The mapper emits both RFC 8058 headers, with no managed list option or body edits.
+New worker preparations request V2; historical V1 conflict fails closed.
+
+Dependency inspection: existing Guzzle/PSR HTTP dependencies live inside webpush;
+no AWS SDK/signer exists. No dependency is added here. The next PR must select,
+pin/lock and package an established SDK/signer under plugin ownership, validate
+actual signing through HTTP mocks and document platform/autoload/distribution.
+It must implement complete provider decoding and total-budget/no-retry/TLS/fixed
+scope/redaction behavior and test rejection/throttling pairs, ambiguity and
+response/event races. Preserve immutable response correlation, late-return fences
+and durable acceptance/conflicts; absent events never establish non-acceptance.
+Concrete transport construction must remain inaccessible to production dispatch.
+
+Validation before publication: all 34 standalone suites and 238 plugin PHP syntax
+checks passed with PHP 8.4; shell/JavaScript syntax and whitespace passed. New
+pure regressions cover exact prepared URL/header bytes, token purpose/version,
+URL injection rejection, hash and recipient binding, redaction, defensive copies,
+legacy shape, unknown versions and one mock mapper call. New real-SQL fixtures
+in both topology paths cover V2 atomic preparation, encrypted exact-byte replay
+without issuance inputs, bearer-free metadata and conflicting version/header
+rejection. Existing worker races now prepare V2; existing late-response/event and
+acceptance/conflict/unknown protections remain required. Local Docker socket check
+failed with operation not permitted; UID 1000 cannot recover the running daemon.
+No local SQL success claimed. Hosted both-topology CI and final review are pending
+at initial publication and must be verified on the final head.
+
+Readiness remains blocked on concrete transport acceptance; suppression
+synchronization; account-wide rate limits/circuit breakers; deployment identity
+and IAM/account/region pins; endpoint/DLQ monitoring; key management, retention
+and restore decisions; and separately authorized controlled inbox acceptance
+including signed unsubscribe headers, TLS, DKIM/SPF/DMARC and real one-click POST.
+The unconditional sending block, disabled intake/public collection/cron and
+plugin ownership remain unchanged. No AWS requests, account provisioning, DNS,
+real credentials, messages, merge or deployment are authorized or performed.
+
+Initial non-draft publication: [#1484](https://github.com/7mus7y-dotcom/pera-wp/pull/1484),
+initial head `1899431d2d257da0ceeaa5a680269d00e193d462`, tree
+`e0236e6a5b5e522e16213faa578b89687ce9c934` matching local. Final diff review found
+and closed constructor reentry in the existing submission value class: neither
+V1 nor V2 fields/correlation hashes may be replaced after construction. A focused
+regression verifies rejection and unchanged hash. New final-head CI and clean
+review remain required for this correction; initial-head results cannot cover it.
+
+Automated review of the initial head found the event matcher still required V1
+attempt metadata. Corrected it to accept strictly consistent integer V1/V2 pairs
+and reject unknown/mixed versions. Pure regressions cover V2 matching, mismatched
+versions and V1-hash/V2-envelope conflict. Shared real-SQL matching fixtures now
+prepare V2, so matching, suppression, response/event conflict and concurrency
+paths exercise the new protocol; an explicit SQL V1 case preserves compatibility.
+The finding requires new final-head CI and rereview; prior heads do not cover it.
+
+### Runtime acceptance and final evidence follow-up
+
+Runtime/test head `69e499222d8a055df6945a96858499ebd7e2f3d5`, tree
+`3080b4d06108235fea96268e3f28f4b2aebcb4f4`, passed
+[CI 40221253927](https://github.com/7mus7y-dotcom/pera-wp/actions/runs/40221253927):
+single-site job `121253177386` and multisite job `121253177648` both succeeded.
+Both completed logs inspected: V2 exact body/header URL, encrypted replay without
+issuance, bearer-free metadata, mock handoff, V2 durable event matching, explicit
+historical V1 matching, matching/suppression/response-event races and existing
+worker/late-return/unknown/cancellation fences passed. No PHP warning, fatal error
+or failed assertion appeared. All 34 standalone suites and 238 PHP lint checks
+also passed locally. Local Docker remains unavailable; hosted SQL results supply
+the actual single/multisite acceptance evidence.
+
+[Clean runtime review 6401487661](https://github.com/7mus7y-dotcom/pera-wp/pull/1484#issuecomment-6401487661)
+explicitly covers `69e499222d`; completed summary reports no findings/unresolved
+findings. The earlier matcher finding is fixed with regressions and its thread
+resolved. This evidence-only follow-up changes no runtime/test bytes. Final-head
+CI and review of this documentation follow-up remain required at publication;
+PR acceptance records the actual final result. The SDK/HTTP transport remains
+unimplemented dependent work; no production readiness, merge or deployment claim.
