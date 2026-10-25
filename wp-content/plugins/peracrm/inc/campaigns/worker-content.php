@@ -87,6 +87,7 @@ final class PeraCRM_Campaign_Worker_Preparation
         foreach ($keys as $key=>$value) { $this->keys[$key]=$value; }
         $this->active=$active; $this->cipher=$cipher;
     }
+    public function deployment(): string { return $this->deployment; }
     public function scope(): array { return $this->scope; }
     public function prepare(array $content, array $envelope, array $row): array
     {

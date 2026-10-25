@@ -903,3 +903,164 @@ scaffolding is in published ancestry. All eleven changed files are plugin-owned.
 Submission-response integration, outcome application, worker reconciliation/retry
 fences, suppression application and endpoint adaptation remain dependent work.
 All disabled gates remain intact. No merge, deployment or real provider traffic.
+
+## Phase 5 — submission responses, acceptance evidence and retry fencing (2026-10-24)
+
+**Current task:** bounded response integration and acceptance protections. Verified
+#1479 merged at `0bd75f353a1e16b5e34eaf63ba7ed6bc74c71e7f`; final-head
+CI 40117397794 passed both topologies and completed clean final review
+[6387660168](https://github.com/7mus7y-dotcom/pera-wp/pull/1479#issuecomment-6387660168)
+followed the explicit final-head request, covering the fixture follow-up as well.
+No applicable AGENTS.md was found. Read current/history plan, provider specification,
+immutable attempt/output, SES mapper, worker/reconciliation and matching contracts.
+Original clean `/workspace/pera-wp` at `0e894ea8` remains preserved. Work is in
+`/workspace/pera-acceptance`; connector reconstruction tree
+`46d4b3ed4ff981bf3809c1e3c672f632f347d26e` exactly matches latest main.
+Reconstruction commit is local scaffolding only; publication parents to main.
+The original network command was aborted while awaiting permissions, with no
+result. No repeated shell networking or duplicate test runs were launched.
+
+Schema 34 adds immutable acceptance evidence keyed by deployment/blog/attempt,
+source and source fingerprint. Successful injected SES mapper responses and
+matched authenticated events share one immutable insert-or-compare association
+contract. Positive response capture checks the exact persisted envelope/scope/
+recipient/hash projection independently of lease ownership. Conflicting message
+IDs/bindings retain evidence without replacing the association. Event facts retain
+their separate type and provenance: Send, receiving-server Delivery and subsequent
+Bounce/Complaint/DeliveryDelay are not submission outcomes or resend permission.
+No suppression is applied. Identical and logical replay preserve first provenance.
+Pre-v34 event associations already fence retries; explicit replay adds evidence
+without rewriting original matching decisions.
+
+Workers pin deployment through an explicit abstract dependency. Claims, final
+submission authorization and non-acceptance outcomes check all historical attempts
+of the exact scoped delivery under attempt locks. Positive evidence and conflicts
+both fence retry. Late positive responses persist before owner/version checks;
+no expired owner gains authority. Unknown state is not automatically resolved;
+the existing staff capability, nonce, version and independent verification boundary
+also requires durable exact positive evidence for prepared attempts. No durable
+proof-of-non-acceptance adapter exists here, so prepared unknowns cannot be released
+by negative or missing lookup/event results. Cancellation, accepted state and
+post-acceptance failures never permit resubmission. Worker mutations now guard
+SQL connection/session identity to prevent replayed updates on reconnection.
+
+Added disposable single/multisite response/event arrival-order, duplicate/conflict,
+rollback/reconnection/caller-transaction and independent-process race fixtures.
+Worker fixtures use injected mocked SES transport for early event vs rejection,
+late response/lease expiry, unknown/late event, retry/late evidence, cancellation,
+and separate delivery/transient-bounce/delay facts. No provider traffic occurs.
+Local standalone suites, PHP lint and shell/JavaScript/whitespace checks passed
+at the initial implementation checkpoint; final checks and hosted SQL/races/review
+remain pending. Docker's explicit local socket check failed once with operation
+not permitted; dockerd runs but UID 1000 cannot recover it. Hosted CI supplies
+real SQL acceptance; no local SQL success is claimed.
+
+Suppression application, public HTTP adaptation, real transport, operational UI,
+retention/redrive/restore and external readiness remain dependent work. All production
+factories, dispatch, real intake/collection and cron gates remain disabled. No AWS
+provisioning, credentials, messages, cron activation, merge or deployment.
+
+Initial automated review identified fenced retry rows remaining first in bounded
+claim scans. Local review found the same issue: fenced claimable rows now become
+an audited unknown hold, removing them from subsequent scans without granting
+resend or resolving acceptance. Added a later-recipient starvation regression
+and an independent response-vs-retry SQL race. Added deterministic injected-clock
+regressions for positive responses after the mapper timeout, v33 additive migration,
+response binding/message-alias conflicts and worker reconnect-before-write/COMMIT
+checks. Final hosted execution and rereview must cover these follow-ups.
+
+Initial hosted CI 40128631024 passed standalone/syntax and existing scheduler
+cases but stopped in both topologies at an inherited worker race barrier. Its
+interposer recognizes backtick-quoted state columns; the new guarded UPDATE had
+changed that formatting. Restored conventional quoted identifiers in guarded
+updates while preserving session/CAS predicates. This run did not reach the new
+SQL acceptance fixtures and is not acceptance evidence. Expected worker transaction
+probe errors are also suppressed, matching other owned-transaction services.
+
+### Continued review (2026-10-25)
+
+Recovered the interrupted publication by checking remote head before repeating
+the expected-head update; no duplicate PR or check was created. Follow-up
+`f52c35fe260d15e3b3ddde797e5eb207b2da4056` matches local tree
+`b1c3f6c414e107a2c248d401921b0b93f84a5e32`; clean completed
+[review 6391852269](https://github.com/7mus7y-dotcom/pera-wp/pull/1480#issuecomment-6391852269)
+covers that commit. The original starvation thread is fixed and resolved.
+Hosted CI 40149930466 is pending at this checkpoint.
+
+Further local review tightened fail-closed handling of contradictory authenticated
+binding/recipient/scope decisions for known immutable attempts: these also fence
+retry, separately from positive acceptance evidence. An indexed locking read
+avoids treating an earlier SQL snapshot as absence of a newly committed conflict.
+Storage contention/deadlock errors roll back before transport authorization.
+Added a signed binding-conflict vs retry regression and schema readiness check
+for its lookup index. This follow-up needs new hosted validation and rereview;
+the earlier clean review is not claimed to cover later changes.
+
+[CI 40149930466](https://github.com/7mus7y-dotcom/pera-wp/actions/runs/40149930466)
+completed successfully on `f52c35fe26`: single-site job 121039121753 and
+multisite job 121039121904 passed. Completed logs from both were inspected:
+response/event arrival orders, immutable duplicates/conflicts/aliases, binding
+conflicts, additive migration, every response rollback/reconnect/caller case,
+worker reconnect guards, final authorization zero-call fence, late acceptance,
+unknown-only staff reconciliation, cancellation, post-acceptance delivery/bounce/
+delay invariance, starvation correction and all five new independent-process
+acceptance races passed. Existing worker/scheduler/recipient/browser suites also
+passed. No new UI/visual acceptance or real provider acceptance is claimed.
+Artifacts: single 12582198879, multi 12581909209, retained through 2026-11-08.
+The subsequent contradictory-binding hold/index/regression changes above still
+require their own hosted run and clean review before final acceptance.
+
+The final conflict-hold implementation uses the existing fully scoped evidence
+ledger rather than searching matching decisions by binding hash alone: identical
+binding bytes must not hold another deployment. Authenticated known-attempt
+mismatches append a conflict decision to evidence in the matching transaction,
+without creating a provider-message association or asserting acceptance. Replay
+backfills prior known-attempt conflicts under the existing authenticated matcher
+boundary. This supersedes the preceding indexed-hash lookup checkpoint; no new
+matching index is retained. Added an identical-binding cross-deployment regression.
+Workspace became unavailable after local commit/tree preservation; subsequent
+bounded edits use connector-fetched exact source and hosted validation. Local
+work and all remote ancestry remain preserved. Final code/test CI and review
+must cover this refinement before acceptance.
+
+### Final runtime acceptance (2026-10-25)
+
+[CI 40165732479](https://github.com/7mus7y-dotcom/pera-wp/actions/runs/40165732479)
+completed **successfully** on final runtime/tests
+`532016a072ed16bcc439d1f3ae8f96fdbdd557ab`, tree
+`6ab834cd6823d19598997f3ce2662a7d64a84618`.
+Single-site job `121086323558` and multisite job `121086323556` both passed.
+Completed logs from both jobs were inspected. Both passed 30 standalone suites,
+223 PHP syntax checks, shell/JavaScript checks, additive migration, both response/
+event arrival orders, exact/logical duplicates, response binding/message/alias
+conflicts, scoped authenticated contradiction holds, identical-binding bytes in
+different deployments, response insert/SELECT/COMMIT rollback and SQL replacement
+before each write/capture/COMMIT, caller transaction preservation, worker reconnect
+guards, zero-call final authorization fencing, late acceptance after lease expiry
+and unknown hold, authorized durable-positive reconciliation, cancellation/stale
+owner protections, separate receiving-server delivery and transient bounce/delay
+facts, starvation correction, and all five independent-process acceptance races.
+Existing atomic preparation, worker, scheduler, withdrawal/preferences and browser
+fixtures passed as well. No new UI or visual acceptance is claimed.
+
+Completed clean [review 6393938444](https://github.com/7mus7y-dotcom/pera-wp/pull/1480#issuecomment-6393938444)
+covers this exact final runtime/test commit with no findings or unresolved threads.
+The original starvation finding was fixed, regressed and resolved. Local review
+covered the actual changes and corrected starvation and conflict-scope issues;
+hosted validation covers the final connector refinement after workspace loss.
+The original checkout and local commits remain preserved; remote ancestry parents
+directly to verified main and includes no reconstruction scaffolding.
+
+Runtime artifacts, retained through 2026-11-08: single-site `12587833295`,
+multisite `12588521749`. Initial failed `40128631024` and superseded/cancelled
+`40165558989` are not final acceptance. Prior successful `40149930466` is
+superseded by the final run above. This evidence follow-up changes only this plan;
+all runtime and fixture bytes remain exactly those tested and reviewed. Final
+documentation-head CI and review are tracked in PR #1480.
+
+All 18 changed files are plugin-owned. Suppression application, public HTTP
+adaptation, real transport, operational UI and external activation readiness
+remain dependent work. Missing events/lookups never establish non-acceptance;
+post-acceptance failures never permit resend. Production factories, dispatch,
+intake/collection and cron gates remain disabled. No AWS provisioning, credentials,
+real messages, cron activation, merge or deployment was performed.

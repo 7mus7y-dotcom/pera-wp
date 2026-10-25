@@ -1,5 +1,7 @@
 <?php
 if (!defined('ABSPATH')) { exit; }
+require_once __DIR__.'/acceptance.php';
+require_once __DIR__.'/submission-response.php';
 
 /** No production adapter, factory, switch, request route or scheduler exists in 4B. */
 function peracrm_campaign_worker_run($limit = 10)
@@ -14,6 +16,7 @@ interface PeraCRM_Campaign_Provider
     public function submit(array $submission): array;
     /** Verified evidence bound to delivery/attempt keys, or null. No assumed provider guarantees. */
     public function lookup(string $delivery_key, string $attempt_key): ?array;
+    /** Must authenticate exact durable evidence, not merely trust caller fields or a missing lookup. */
     public function verify(array $evidence, string $delivery_key, string $attempt_key): bool;
 }
 
@@ -52,7 +55,11 @@ abstract class PeraCRM_Campaign_Worker
     // A synchronous dependency cannot be forcibly interrupted here; lease fencing still rejects a late return.
     protected const PROVIDER_TIMEOUT = 20;
 
+    private int $sqlConnection=0;
+    private string $sqlGuard="";
+
     abstract protected function authorize(): void;
+    abstract protected function acceptanceDeployment(): string;
     abstract protected function gate(): bool;
     abstract protected function table(string $entity): string;
 
@@ -63,13 +70,52 @@ abstract class PeraCRM_Campaign_Worker
             $this->authorize();
             if (!peracrm_campaigns_module_enabled()) { throw new RuntimeException('Campaign schema is not ready.'); }
             global $wpdb;
+            peracrm_campaigns_db_require((int)$wpdb->get_var('SELECT @@autocommit')===1);
+            $quiet=$wpdb->suppress_errors(true);
+            try {
+                peracrm_campaigns_db_require($wpdb->query('SAVEPOINT peracrm_worker_top_level_probe'));
+                if ($wpdb->query('RELEASE SAVEPOINT peracrm_worker_top_level_probe')!==false
+                    || $wpdb->last_error!=='SAVEPOINT peracrm_worker_top_level_probe does not exist') { throw new RuntimeException('worker_storage'); }
+            } finally { $wpdb->suppress_errors($quiet); }
             peracrm_campaigns_db_require($wpdb->query('START TRANSACTION'));
             try {
+                peracrm_campaigns_db_require($wpdb->query('SAVEPOINT peracrm_worker_owned'));
+                $this->sqlConnection=(int)$wpdb->get_var('SELECT CONNECTION_ID()');
+                peracrm_campaigns_db_require($this->sqlConnection>0);
+                peracrm_campaigns_db_require($wpdb->query('RELEASE SAVEPOINT peracrm_worker_owned'));
+                $this->sqlGuard=bin2hex(random_bytes(32));
+                peracrm_campaigns_db_require($wpdb->query($wpdb->prepare('SET @peracrm_worker_guard=IF(CONNECTION_ID()=%d,%s,NULL)',
+                    $this->sqlConnection,$this->sqlGuard)));
                 $result = $fn();
+                $this->requireConnection();
                 peracrm_campaigns_db_require($wpdb->query('COMMIT'));
+                $this->requireConnection();
                 return $result;
             } catch (Throwable $e) { $wpdb->query('ROLLBACK'); throw $e; }
+            finally { $this->sqlConnection=0; $this->sqlGuard=''; }
         });
+    }
+
+    private function requireConnection(): void
+    {
+        global $wpdb;
+        peracrm_campaigns_db_require((int)$wpdb->get_var('SELECT CONNECTION_ID()')===$this->sqlConnection && $this->sqlConnection>0);
+    }
+    private function guardedUpdate(string $table,array $changes,array $where): int
+    {
+        global $wpdb;
+        $set=[]; $values=[]; $conditions=[];
+        foreach ($changes as $key=>$value) {
+            $set[]='`'.$key.'`'.($value===null?'=NULL':'=%s');
+            if ($value!==null) { $values[]=$value; }
+        }
+        foreach ($where as $key=>$value) { $conditions[]='`'.$key.'`=%s'; $values[]=$value; }
+        $values[]=$this->sqlConnection; $values[]=$this->sqlGuard;
+        $changed=$wpdb->query($wpdb->prepare('UPDATE `'.$table.'` SET '.implode(',',$set).' WHERE '.implode(' AND ',$conditions)
+            .' AND CONNECTION_ID()=%d AND @peracrm_worker_guard=%s',$values));
+        peracrm_campaigns_db_require($changed!==false);
+        $this->requireConnection();
+        return (int)$changed;
     }
 
     protected function now(): string
@@ -109,15 +155,17 @@ abstract class PeraCRM_Campaign_Worker
         global $wpdb;
         $changes['version'] = (int)$row['version'] + 1;
         $changes['updated_at'] = $this->now();
-        $changed = $wpdb->update($this->table('deliveries'), $changes,
-            ['id'=>$row['id'], 'job_id'=>$row['job_id'], 'version'=>$row['version'], 'owner_token'=>$row['owner_token'], 'state'=>$row['state']]);
-        peracrm_campaigns_db_require($changed === 1 ? true : false);
-        $next = array_replace($row, $changes);
-        peracrm_campaigns_db_require($wpdb->insert($this->table('events'), [
-            'job_id'=>$next['job_id'], 'delivery_id'=>$next['id'], 'version'=>$next['version'],
-            'state'=>$next['state'], 'reason'=>$next['reason'], 'owner_token'=>$next['owner_token'],
-            'actor_user_id'=>$actor, 'evidence_hash'=>$evidence, 'occurred_at'=>$next['updated_at'],
-        ]));
+        $where=['id'=>$row['id'],'job_id'=>$row['job_id'],'version'=>$row['version'],'owner_token'=>$row['owner_token'],'state'=>$row['state']];
+        $changed=$this->guardedUpdate($this->table('deliveries'),$changes,$where);
+        peracrm_campaigns_db_require($changed===1);
+        $next=array_replace($row,$changes);
+        $data=['job_id'=>$next['job_id'],'delivery_id'=>$next['id'],'version'=>$next['version'],
+            'state'=>$next['state'],'reason'=>$next['reason'],'owner_token'=>$next['owner_token'],
+            'actor_user_id'=>$actor,'evidence_hash'=>$evidence,'occurred_at'=>$next['updated_at']];
+        $columns=implode(',',array_keys($data)); $values=implode(',',array_fill(0,count($data),'%s'));
+        peracrm_campaigns_db_require($wpdb->query($wpdb->prepare('INSERT INTO '.$this->table('events')." ({$columns}) SELECT {$values}
+            WHERE CONNECTION_ID()=%d AND @peracrm_worker_guard=%s",array_merge(array_values($data),[$this->sqlConnection,$this->sqlGuard])))===1);
+        $this->requireConnection();
         return $next;
     }
 
@@ -139,6 +187,10 @@ abstract class PeraCRM_Campaign_Worker
             peracrm_campaigns_db_require(true);
             $out = [];
             foreach ($rows as $row) {
+                if (PeraCRM_Campaign_Acceptance::fenced($this->acceptanceDeployment(),$row['delivery_key'])) {
+                    $this->write($row,['state'=>'unknown','reason'=>'acceptance_evidence','owner_token'=>'','lease_until'=>null,'next_attempt_at'=>null]);
+                    continue;
+                }
                 $attempt = (int)$row['attempt_count'] + 1;
                 $out[] = $this->write($row, ['state'=>'claimed', 'owner_token'=>bin2hex(random_bytes(32)),
                     'lease_until'=>gmdate('Y-m-d H:i:s', strtotime($now.' UTC') + self::LEASE),
@@ -201,6 +253,9 @@ abstract class PeraCRM_Campaign_Worker
                     'attempt_count'=>max(0, (int)$row['attempt_count'] - 1),
                     'reason'=>$job['state'] === 'cancelled' ? 'cancelled' : 'job_gate', 'owner_token'=>'', 'lease_until'=>null]);
             }
+            if (PeraCRM_Campaign_Acceptance::fenced($this->acceptanceDeployment(),$row['delivery_key'])) {
+                return $this->write($row,['state'=>'unknown','reason'=>'acceptance_evidence','owner_token'=>'','lease_until'=>null]);
+            }
             $reason = $this->eligibility($job, $row);
             if ($reason !== 'eligible') { return $this->write($row, ['state'=>'excluded', 'reason'=>$reason, 'owner_token'=>'', 'lease_until'=>null]); }
             // Mailbox lock contention may have consumed the original lease. Never authorize an expired owner.
@@ -227,6 +282,7 @@ abstract class PeraCRM_Campaign_Worker
     final public function submitPrepared(array $claim, PeraCRM_Campaign_Worker_Preparation $preparation,
         PeraCRM_Campaign_SES_Mapper $mapper): array
     {
+        if ($this->acceptanceDeployment()!==$preparation->deployment()) { throw new RuntimeException('worker_deployment_mismatch'); }
         $inputs=$this->transaction(function () use ($claim,$preparation) {
             $job=$this->job((int)$claim['job_id']);
             $row=$this->delivery((int)$claim['job_id'],(int)$claim['id']);
@@ -268,6 +324,13 @@ abstract class PeraCRM_Campaign_Worker
         // Commit above is the submission boundary, exactly as in submit().
         try { $result=$mapper->submit($submission); }
         catch (Throwable $error) { $result=['kind'=>'unknown']; }
+        if (($result['kind']??null)==='accepted') {
+            // This independent transaction preserves positive evidence even if the
+            // lease expired, cancellation won or a newer worker version exists.
+            $decision=peracrm_with_target_blog(fn()=>PeraCRM_Campaign_Submission_Response::record(
+                $preparation->deployment(),$submission,$result['message_id']));
+            if ($decision!=='accepted' || !empty($result['late'])) { $result=['kind'=>'unknown']; }
+        }
         return $this->result($authorized,$result);
     }
 
@@ -278,6 +341,9 @@ abstract class PeraCRM_Campaign_Worker
             return $this->write($row,['state'=>$job['state']==='cancelled'?'excluded':'held',
                 'attempt_count'=>max(0,(int)$row['attempt_count']-1),
                 'reason'=>$job['state']==='cancelled'?'cancelled':'job_gate','owner_token'=>'','lease_until'=>null]);
+        }
+        if (PeraCRM_Campaign_Acceptance::fenced($this->acceptanceDeployment(),$row['delivery_key'])) {
+            return $this->write($row,['state'=>'unknown','reason'=>'acceptance_evidence','owner_token'=>'','lease_until'=>null]);
         }
         // Shared mailbox mutex serializes with withdrawal, imports and lifecycle writes.
         peracrm_campaigns_repository_lock_mailbox($row['mailbox']);
@@ -301,6 +367,11 @@ abstract class PeraCRM_Campaign_Worker
 
     protected function outcome(array $row, array $result, int $actor = 0, string $evidence = ''): array
     {
+        // Provider acceptance (including post-acceptance failures) is never a
+        // non-acceptance result. Unknowns still require explicit reconciliation.
+        if ($result['kind']!=='accepted' && PeraCRM_Campaign_Acceptance::fenced($this->acceptanceDeployment(),$row['delivery_key'])) {
+            $result=['kind'=>'unknown'];
+        }
         $kind = $result['kind'];
         $state = ['accepted'=>'accepted', 'transient'=>'retry', 'permanent'=>'failed', 'unknown'=>'unknown'][$kind];
         if ($state === 'retry' && (int)$row['attempt_count'] >= self::ATTEMPTS) { $state = 'failed'; }
@@ -352,6 +423,10 @@ abstract class PeraCRM_Campaign_Worker
                 if (is_string($prior) && hash_equals($prior, $hash)) { return $row; }
             }
             if ($row['state'] !== 'unknown' || (int)$row['version'] !== $version) { throw new UnexpectedValueException('Stale reconciliation.'); }
+            if (PeraCRM_Campaign_Acceptance::fenced($this->acceptanceDeployment(),$row['delivery_key']) && $result['kind']!=='accepted') {
+                throw new UnexpectedValueException('Acceptance evidence forbids retry.');
+            }
+            PeraCRM_Campaign_Acceptance::requireResolution($this->acceptanceDeployment(),$row,$result);
             return $this->outcome($row, $result, peracrm_get_actor_user_id(), $hash);
         });
     }
@@ -366,7 +441,7 @@ abstract class PeraCRM_Campaign_Worker
             peracrm_campaigns_db_require(true);
             $complete = (int)$job['complete'] && (int)$job['prepared_count'] === (int)$job['expected_count']
                 && !(int)$counts['leases'] && (int)$counts['total'] === (int)$job['expected_count'] && (int)$counts['terminal'] === (int)$counts['total'];
-            peracrm_campaigns_db_require($wpdb->update($this->table('jobs'), ['submission_complete'=>(int)$complete], ['id'=>$job_id, 'version'=>$job['version']]));
+            peracrm_campaigns_db_require($this->guardedUpdate($this->table('jobs'), ['submission_complete'=>(int)$complete], ['id'=>$job_id, 'version'=>$job['version']]));
             return (bool)$complete;
         });
     }
