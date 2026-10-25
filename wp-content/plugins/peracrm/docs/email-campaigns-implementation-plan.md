@@ -1173,3 +1173,57 @@ COMMIT. This keeps the independent blocking assertion meaningful in both lock
 orders; no runtime relaxation or timing-threshold reduction is made. The same
 head completed clean review 6395191719 before this fixture-only correction.
 A new full run and exact-head review are required.
+
+### Final runtime/fixture acceptance (2026-10-25)
+
+Final runtime/test head `8fce3751e29c490260dbcd62ec7f4c7c1901918b`, tree
+`b883a04d498f482c1339bc31a5c7a068a2f454e6`, exactly matches the local tree.
+[CI 40175457519](https://github.com/7mus7y-dotcom/pera-wp/actions/runs/40175457519)
+**passed** single-site job `121115027716` and multisite job `121115027534`.
+Both completed logs were inspected. Both passed 31 standalone suites, all 229 PHP
+syntax checks, shell/JavaScript checks, additive v34-to-v35/idempotent migration
+and required application uniqueness, server-controlled system actor/provenance,
+identical/logical replay with first-evidence retention, cumulative existing
+admin/withdrawal/bounce/complaint flags, not-spam/unknown/transient/undetermined/
+delivery/delay/Send non-application, changed/deleted/reused subscriber IDs and
+absent-mutex retention without subscriber recreation or replacement suppression.
+Wrong deployment/configuration/blog, unnormalized/unmatched/missing bindings,
+contradictory tags/full destination sets/provider messages and later acceptance
+conflicts stayed quarantined. Each mailbox insert, flag update, audit insert,
+application insert, receipt-reference insert, locked attempt read and COMMIT
+failure rolled back; real SQL-session replacement at every boundary and initial
+connection capture failed closed. Caller and failed-probe transactions survived.
+
+All thirteen independent-process application races passed with distinct SQL
+connections and actual blocking: duplicate receipt, duplicate logical event,
+bounce/complaint in both orders, bounce/withdrawal in both orders, complaint/
+withdrawal in both orders, three concurrent bounce/complaint/withdrawal owners,
+and deletion/mailbox replacement in both orders. No valid deny reason was lost.
+Exact subscriber/consent, identity/token, immutable attempt/output and worker/job
+snapshots proved no consent grant, clearing, subscriber creation or retry-state
+regression. Actual prepared-job completion followed by cancellation accepted late
+bounce and complaint feedback, retained both reasons and made zero new transport
+calls. Existing acceptance/worker/scheduler/recipient and desktop/mobile browser
+fixtures also passed. No new UI/visual or real provider acceptance is claimed.
+
+Completed clean [review 6395336697](https://github.com/7mus7y-dotcom/pera-wp/pull/1481#issuecomment-6395336697)
+covers this exact runtime/test head, with no findings or unresolved threads.
+Local review covered all actual schema/service/repository/fixture changes and
+addressed test isolation and authoritative-lock synchronization; hosted acceptance
+covers those corrections. Earlier failed runs 40174499763 and 40175092302 are
+not final acceptance. Evidence artifacts are retained through 2026-11-08:
+single-site `12591589672`, multisite `12591519951`.
+
+This final evidence follow-up changes only the living plan. Every runtime and
+fixture byte remains exactly the tested/reviewed version above. Exact final-head
+documentation CI and review are tracked in PR #1481. All fourteen changed files
+are plugin-owned, publication parents to verified main, and no reconstruction
+scaffolding is published. Original checkout and local commits remain preserved.
+
+This completes the bounded internal suppression-application implementation;
+Phase 5 remains in progress. Public HTTP adaptation, real transport, retention/
+redrive/restore, operational readiness and any activation remain dependent work.
+Missing provider facts/events never prove non-acceptance. No suppression clearing,
+consent grant, resend authorization or subscriber creation was added. Production
+factories, dispatch, intake/collection and cron gates remain disabled. No AWS
+provisioning, credentials, real messages, operational UI, merge or deployment.
