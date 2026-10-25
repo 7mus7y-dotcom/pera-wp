@@ -51,15 +51,20 @@ function peracrm_campaigns_repository_require_top_level()
 }
 
 /** @internal Transaction participant. Lock order: mailbox -> subscriber -> identity. */
-function peracrm_campaigns_repository_lock_mailbox($email)
+function peracrm_campaigns_repository_lock_mailbox($email, ?callable $insert = null)
 {
     global $wpdb;
     $table = peracrm_table('peracrm_email_suppressions');
     $now = gmdate('Y-m-d H:i:s');
-    peracrm_campaigns_db_require($wpdb->query($wpdb->prepare(
-        "INSERT INTO {$table} (normalized_email, created_at, updated_at) VALUES (%s, %s, %s)
-         ON DUPLICATE KEY UPDATE normalized_email = VALUES(normalized_email)", $email, $now, $now
-    )));
+    if ($insert !== null) {
+        // Internal transaction owners may supply their SQL-session-fenced writer.
+        $insert('peracrm_email_suppressions', ['normalized_email'=>$email, 'created_at'=>$now, 'updated_at'=>$now]);
+    } else {
+        peracrm_campaigns_db_require($wpdb->query($wpdb->prepare(
+            "INSERT INTO {$table} (normalized_email, created_at, updated_at) VALUES (%s, %s, %s)
+             ON DUPLICATE KEY UPDATE normalized_email = VALUES(normalized_email)", $email, $now, $now
+        )));
+    }
     $suppression = $wpdb->get_row($wpdb->prepare("SELECT * FROM {$table} WHERE normalized_email = %s FOR UPDATE", $email), ARRAY_A);
     peracrm_campaigns_db_require($suppression ?: false);
     $table = peracrm_table('peracrm_subscribers');
