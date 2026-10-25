@@ -343,3 +343,23 @@ wait "$http_loser_pid"
 wp eval-file /tests/sns-http-race.php verify
 wp eval-file /tests/ses-suppression-late.php
 printf 'PASS disposable %s WordPress/MySQL fixtures\n' "$fixture_mode"
+wp eval-file /tests/event-processing.php
+for processing_scenario in duplicate interrupted; do
+    rm -f /tmp/peracrm-processing-held /tmp/peracrm-processing-winner /tmp/peracrm-processing-loser
+    wp eval-file /tests/event-processing-race.php prepare "$processing_scenario"
+    wp eval-file /tests/event-processing-race.php winner "$processing_scenario" &
+    processing_winner_pid=$!
+    wait_for_migration_marker /tmp/peracrm-processing-held
+    if [ "$processing_scenario" = interrupted ]; then
+        processing_exit=0
+        wait "$processing_winner_pid" || processing_exit=$?
+        [ "$processing_exit" -eq 77 ]
+        wp eval-file /tests/event-processing-race.php loser "$processing_scenario"
+    else
+        wp eval-file /tests/event-processing-race.php loser "$processing_scenario" &
+        processing_loser_pid=$!
+        wait "$processing_winner_pid"
+        wait "$processing_loser_pid"
+    fi
+    wp eval-file /tests/event-processing-race.php verify "$processing_scenario"
+done

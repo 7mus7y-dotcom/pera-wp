@@ -112,6 +112,7 @@ function peracrm_campaigns_assert_schema()
         }
         $engine = $wpdb->get_row($wpdb->prepare('SHOW TABLE STATUS WHERE Name = %s', $table), ARRAY_A);
         $expected_keys = [
+            'peracrm_campaign_ses_progress' => ['scope_hash','receipt_id'],
             'peracrm_campaign_ses_applications' => ['scope_hash','event_key'],
             'peracrm_campaign_ses_application_receipts' => ['scope_hash','receipt_id','event_key'],
             'peracrm_campaign_acceptance_evidence' => ['deployment','blog_id','attempt_key','source','source_key'],

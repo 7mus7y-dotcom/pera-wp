@@ -6,6 +6,16 @@ function peracrm_campaign_event_definitions(): array
 {
     $hash='VARCHAR(64) CHARACTER SET ascii COLLATE ascii_bin';
     return [
+        'peracrm_campaign_ses_progress'=>"scope_hash {$hash} NOT NULL,
+        receipt_id VARCHAR(36) CHARACTER SET ascii COLLATE ascii_bin NOT NULL,
+        policy_hash {$hash} NOT NULL,
+        state VARCHAR(16) NOT NULL,
+        attempts BIGINT UNSIGNED NOT NULL,
+        last_attempt_at DATETIME NOT NULL,
+        last_success_at DATETIME NULL,
+        last_redrive_at DATETIME NULL,
+        PRIMARY KEY  (scope_hash, receipt_id),
+        KEY processing_state (scope_hash, state, last_attempt_at)",
         'peracrm_campaign_ses_applications'=>"scope_hash {$hash} NOT NULL,
         event_key {$hash} NOT NULL,
         receipt_id VARCHAR(36) CHARACTER SET ascii COLLATE ascii_bin NOT NULL,
