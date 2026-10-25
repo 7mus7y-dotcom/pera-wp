@@ -1009,3 +1009,16 @@ passed. No new UI/visual acceptance or real provider acceptance is claimed.
 Artifacts: single 12582198879, multi 12581909209, retained through 2026-11-08.
 The subsequent contradictory-binding hold/index/regression changes above still
 require their own hosted run and clean review before final acceptance.
+
+The final conflict-hold implementation uses the existing fully scoped evidence
+ledger rather than searching matching decisions by binding hash alone: identical
+binding bytes must not hold another deployment. Authenticated known-attempt
+mismatches append a conflict decision to evidence in the matching transaction,
+without creating a provider-message association or asserting acceptance. Replay
+backfills prior known-attempt conflicts under the existing authenticated matcher
+boundary. This supersedes the preceding indexed-hash lookup checkpoint; no new
+matching index is retained. Added an identical-binding cross-deployment regression.
+Workspace became unavailable after local commit/tree preservation; subsequent
+bounded edits use connector-fetched exact source and hosted validation. Local
+work and all remote ancestry remain preserved. Final code/test CI and review
+must cover this refinement before acceptance.

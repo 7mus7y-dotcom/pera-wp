@@ -83,11 +83,16 @@ final class PeraCRM_SES_Matcher
         $attempt=json_decode($row['binding_json'],true,16,JSON_THROW_ON_ERROR);
         $decision=self::bindingDecision($fact,$attempt,$this->provider,$this->blog);
         if ($row['attempt_key']!==($attempt['attempt_key']??null) || $row['delivery_key']!==($attempt['delivery_key']??null)) { $decision='binding_conflict'; }
-        if ($decision!=='matched') { return [$decision,$row['binding_hash']]; }
         $data=['provider_scope'=>$this->providerScope,'message_id'=>$fact['message_id'],'deployment'=>$this->deployment,
             'blog_id'=>$this->blog,'attempt_key'=>$row['attempt_key'],'binding_hash'=>$row['binding_hash'],
             'event_scope'=>$this->scope,'event_key'=>$event,'receipt_id'=>$receipt,'recorded_at'=>gmdate('Y-m-d H:i:s')];
         $insert=fn($name,$values)=>$this->insert($name,$values,$guard,$connection);
+        if ($decision!=='matched') {
+            // Contradictory authenticated bindings are scoped reconciliation holds,
+            // not positive acceptance and never new provider-message associations.
+            PeraCRM_Campaign_Acceptance::evidence($data,'event',hash('sha256',$this->scope.$event),$decision,$insert);
+            return [$decision,$row['binding_hash']];
+        }
         $decision=PeraCRM_Campaign_Acceptance::associate($data,$insert);
         PeraCRM_Campaign_Acceptance::evidence($data,'event',hash('sha256',$this->scope.$event),$decision,$insert);
         return [$decision==='accepted'?'matched':$decision,$row['binding_hash']];
@@ -139,12 +144,12 @@ final class PeraCRM_SES_Matcher
                 self::db(true);
                 if ($prior && ($prior['fact_hash']!==$event['fact_hash'] || ((int)$prior['sequence']<1 || (int)$prior['sequence']>self::MAX_PASSES))) { throw new PeraCRM_SNS_Error('sns_storage'); }
                 if ($prior && (!$reprocess || $prior['decision']!=='missing_binding' || (int)$prior['sequence']>=self::MAX_PASSES)) {
-                    if ($prior['decision']==='matched') {
-                        // Additive evidence backfill for pre-v34 matched associations;
+                    if ($prior['binding_hash']!=='') {
+                        // Additive evidence backfill for pre-v34 matched/conflicting facts;
                         // do not replace historical matching decisions or provenance.
                         $fact=json_decode($event['fact_json'],true,16,JSON_THROW_ON_ERROR);
                         [$verified]=$this->correlate($fact,$key,$id,$guard,$connection);
-                        if ($verified!=='matched') { throw new PeraCRM_SNS_Error('sns_storage'); }
+                        if ($verified!==$prior['decision']) { throw new PeraCRM_SNS_Error('sns_storage'); }
                     }
                     $result[$key]=$prior['decision']; continue;
                 }

@@ -111,16 +111,6 @@ final class PeraCRM_Campaign_Acceptance
                 $row['deployment'],$row['blog_id'],$row['attempt_key']));
             self::db(true);
             if ($evidence!==null) { return true; }
-            // A known immutable attempt with contradictory authenticated matching
-            // facts is a reconciliation hold, not proof of non-acceptance. Use a
-            // locking read so earlier consistent snapshots cannot hide a newly
-            // committed conflict. Lock contention/deadlocks fail closed in the
-            // caller's transaction before any transport authorization.
-            $conflict=$wpdb->get_var($wpdb->prepare('SELECT decision FROM '.peracrm_table('peracrm_campaign_ses_matches')
-                ." WHERE binding_hash=%s AND decision IN ('binding_conflict','message_conflict','wrong_scope','wrong_recipient') LIMIT 1 FOR UPDATE",
-                $row['binding_hash']));
-            self::db(true);
-            if ($conflict!==null) { return true; }
             // Associations created before schema 34 retain authenticated event
             // provenance and must fence retries before any explicit evidence redrive.
             $message=$wpdb->get_var($wpdb->prepare('SELECT message_id FROM '.peracrm_table('peracrm_campaign_provider_messages')

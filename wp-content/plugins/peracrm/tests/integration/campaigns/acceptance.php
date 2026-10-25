@@ -13,9 +13,6 @@ peracrm_with_target_blog(static function () {
     update_option('peracrm_schema_version',33); update_option('peracrm_campaigns_schema_status',['state'=>'ready','version'=>33]);
     sns_expect(peracrm_maybe_upgrade_schema() && peracrm_maybe_upgrade_schema(),'v33 acceptance migration idempotent');
     sns_expect($old===$wpdb->get_results("SELECT * FROM {$messages} ORDER BY 1,2",ARRAY_A),'migration preserves historical message provenance');
-    $wpdb->query('ALTER TABLE '.peracrm_table('peracrm_campaign_ses_matches').' DROP INDEX binding_decision');
-    $failed=false; try { peracrm_campaigns_assert_schema(); } catch (RuntimeException $e) { $failed=true; }
-    sns_expect($failed,'schema rejects missing conflict lookup index'); peracrm_campaigns_install_schema();
     foreach (['event-first','response-first'] as $n=>$order) {
         $seed=ses_match_seed($deployment,500+$n); $message=$seed['event']['mail']['messageId'];
         $id=ses_match_receive($v,$deployment,$seed['event'],700+$n);
@@ -36,6 +33,18 @@ peracrm_with_target_blog(static function () {
         sns_expect(!PeraCRM_Campaign_Acceptance::fenced($deployment.'other',$seed['metadata']['delivery_key']),'deployment isolation');
         $wpdb->query('ROLLBACK');
     }
+    $conflictSeed=ses_match_seed($deployment,509); $conflictEvent=$conflictSeed['event'];
+    $conflictEvent['mail']['tags']['peracrm_snapshot']=[str_repeat('f',64)];
+    $conflictId=ses_match_receive($v,$deployment,$conflictEvent,709);
+    ses_match_check(fn()=>$matcher->match($conflictId),'binding_conflict');
+    $attemptTable=peracrm_table('peracrm_campaign_submission_attempts');
+    $copy=$wpdb->get_row($wpdb->prepare("SELECT * FROM {$attemptTable} WHERE deployment=%s AND attempt_key=%s",$deployment,$conflictSeed['metadata']['attempt_key']),ARRAY_A);
+    $copy['deployment']=$deployment.'copy';
+    sns_expect($wpdb->insert($attemptTable,$copy)!==false,'fixture identical binding bytes in distinct deployment');
+    $wpdb->query('START TRANSACTION');
+    sns_expect(PeraCRM_Campaign_Acceptance::fenced($deployment,$copy['delivery_key']),'known authenticated contradiction fences retry');
+    sns_expect(!PeraCRM_Campaign_Acceptance::fenced($copy['deployment'],$copy['delivery_key']),'identical binding hash cannot hold another deployment');
+    $wpdb->query('ROLLBACK');
     $seed=ses_match_seed($deployment,510);
     $wrong=$seed['submission']->fields(); $wrong['subject']='different immutable envelope';
     sns_expect(PeraCRM_Campaign_Submission_Response::record($deployment,new PeraCRM_CampaignSubmissionV1($wrong),'wrong-binding')==='binding_conflict','response binding conflict durably quarantined');
