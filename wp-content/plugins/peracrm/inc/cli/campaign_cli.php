@@ -7,7 +7,7 @@ function peracrm_campaign_cli($operation, $args, $assoc)
 {
     $exit=0;
     try {
-        $allowed=$operation==='due' ? ['format','limit'] : (str_starts_with($operation,'fixture-') ? ['format','confirm-disposable'] : ['format']);
+        $allowed=in_array($operation,['due','event-redrive'],true) ? ($operation==='event-redrive'?['format','limit','confirm']:['format','limit']) : (str_starts_with($operation,'fixture-') ? ['format','confirm-disposable'] : ['format']);
         if ($args || array_diff(array_keys($assoc), $allowed)) { throw new InvalidArgumentException(); }
         $format=$assoc['format'] ?? 'json';
         if (!in_array($format,['json','text'],true)) { throw new InvalidArgumentException(); }
@@ -16,6 +16,16 @@ function peracrm_campaign_cli($operation, $args, $assoc)
             $data=$service->health();
             if (!$data['queue_ready'] || $data['scheduler_state']==='blocked' || array_diff($data['diagnostics'],['dispatch_disabled'])) { $exit=4; }
             elseif (!$data['dispatch_enabled']) { $exit=2; }
+        } elseif ($operation==='event-health' || $operation==='event-redrive') {
+            $limit=null;
+            if ($operation==='event-redrive') {
+                $raw=$assoc['limit']??null;
+                if (($assoc['confirm']??null)!=='authenticated-events' || !is_string($raw) || preg_match('/\A(?:[1-9]|1[0-9]|2[0-5])\z/',$raw)!==1) { throw new InvalidArgumentException(); }
+                $limit=(int)$raw;
+            }
+            $data=$service->events($limit);
+            if (isset($data['configured']) && !$data['configured']) { $exit=2; }
+            elseif (($data['result']??'')==='blocked' || !empty($data['failed_processing']) || !empty($data['manual_review_receipts'])) { $exit=4; }
         } elseif ($operation==='due') {
             $limit=$assoc['limit'] ?? '10';
             if (!is_scalar($limit) || !preg_match('/^(?:[1-9]|1[0-9]|2[0-5])$/D',(string)$limit)) { throw new InvalidArgumentException(); }
@@ -35,6 +45,6 @@ function peracrm_campaign_cli($operation, $args, $assoc)
     WP_CLI::line(($format ?? 'json')==='text' ? 'PeraCRM campaigns: '.wp_json_encode($data) : wp_json_encode($data,JSON_PRETTY_PRINT));
     if ($exit) { WP_CLI::halt($exit); }
 }
-foreach (['status','health','due','fixture-run','fixture-recover'] as $operation) {
+foreach (['status','health','due','event-health','event-redrive','fixture-run','fixture-recover'] as $operation) {
     WP_CLI::add_command('peracrm campaigns '.$operation, static function ($args,$assoc) use ($operation) { peracrm_campaign_cli($operation,$args,$assoc); });
 }

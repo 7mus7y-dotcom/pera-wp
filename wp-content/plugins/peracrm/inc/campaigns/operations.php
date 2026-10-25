@@ -1,5 +1,6 @@
 <?php
 if (!defined('ABSPATH')) { exit; }
+require_once __DIR__.'/event-processing.php';
 
 class PeraCRM_Campaign_Operations_Blocked extends RuntimeException {}
 
@@ -93,12 +94,15 @@ class PeraCRM_Campaign_Operations
             $out = ['dispatch_enabled'=>$dispatch,'schema_ready'=>$schema,'module_enabled'=>(bool)$module,'queue_ready'=>$ready,'scheduler_state'=>$dispatch ? 'never_invoked' : 'disabled',
                 'last_invocation'=>$this->last_invocation(),'last_successful_processing'=>null,
                 'last_provider_acceptance'=>null,'delivery_verified'=>false,'counts'=>null,
+                'events'=>['configured'=>false,'provider_health'=>'not_observed','delivery_verified'=>false],
                 'diagnostics'=>array_values(array_filter([$dispatch ? null : 'dispatch_disabled',$schema ? null : 'schema_unavailable',$module ? null : 'module_disabled',(!$ready && $schema && $module) ? 'readiness_blocked' : null]))];
             if ($dispatch && $out['last_invocation']) {
                 $r=$out['last_invocation'];
                 $out['scheduler_state']=str_starts_with($r['result'],'blocked') ? 'blocked' : (($r['successful'] ?? 0)>0 ? 'processed' : 'invoked');
             }
             if ($out['last_invocation'] && str_starts_with($out['last_invocation']['result'],'blocked')) { $out['diagnostics'][]=$out['last_invocation']['result']; }
+            try { $eventService=peracrm_ses_processing_service(); if ($eventService) { $out['events']=$eventService->health(); } }
+            catch (Throwable $e) { $out['events']=['configured'=>true,'error'=>'event_read_blocked','provider_health'=>'not_observed','delivery_verified'=>false]; $out['diagnostics'][]='event_read_blocked'; }
             if (!$ready) { return $out; }
             try {
                 $j=$this->table('jobs'); $d=$this->table('deliveries'); $now=$this->timestamp();
@@ -123,6 +127,19 @@ class PeraCRM_Campaign_Operations
                 if ($counts['expired_leases']) { $out['diagnostics'][]='expired_leases'; }
             } catch (Throwable $e) { $out['scheduler_state']='blocked'; $out['diagnostics'][]='queue_read_failed'; }
             return $out;
+        });
+    }
+    public function events(?int $limit=null): array
+    {
+        $this->authorize_read();
+        return $this->context(function () use ($limit) {
+            if ($limit!==null) {
+                $actor=peracrm_get_actor_user_id();
+                if ($actor<1 || !user_can($actor,'peracrm_manage_campaigns') || peracrm_is_impersonating_crm_user()) { throw new InvalidArgumentException(); }
+            }
+            $service=peracrm_ses_processing_service();
+            if (!$service) { return ['configured'=>false,'provider_health'=>'not_observed','delivery_verified'=>false]; }
+            return $limit===null?$service->health():$service->redrive($limit);
         });
     }
     /** Production has no concrete worker/provider. Gate precedes every delivery read/write. */

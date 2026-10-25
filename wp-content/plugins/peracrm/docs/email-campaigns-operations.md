@@ -140,3 +140,111 @@ across hosts. Alert on missed invocations, blocked readiness, expired leases and
 unknown outcomes separately from successful processing and provider delivery.
 No production cron, provider, credentials, UI or public collection is activated by
 this runbook.
+
+## Phase 5: local SES event inspection and bounded redrive
+
+These commands process **already durably authenticated local receipts**. They do
+not fetch SNS messages, verify a new signature, confirm subscriptions, submit mail,
+create resend permission, grant consent, clear suppression, install cron or enable
+HTTP. All production sending gates remain disabled. Existing receipt authentication,
+certificate/payload hashes, received time, freshness quarantine and normalization
+policy remain immutable. Redrive uses the existing five-pass missing-binding matcher
+and cumulative hard-bounce/complaint application. Acceptance, cancellation and
+unknown-outcome fences remain in their owning services.
+
+A deployment owner must separately supply `PERACRM_SES_EVENT_OPERATIONS` as a PHP
+array containing exactly `deployment` (1–64 ASCII letters/digits/underscore/hyphen),
+`blog` (positive integer target blog), `account` (12-digit AWS account), `region`,
+`topic` (exact SNS ARN matching account/region), `configuration_set` and
+`configuration_version` (positive integer). Copy the **original** receipt deployment,
+SNS and SES policy pins from the approved deployment inventory. Never change pins
+to work around a conflict. There is no option, request parameter or filter to supply
+production configuration. This constant is absent by default and independent of
+`PERACRM_SES_SNS_HTTP`; configuring operations never enables the HTTP endpoint.
+Configuration is a later deployment decision, not an action taken by this PR.
+
+Use an authorized target-blog real user; root/shell access is insufficient.
+`event-health` requires `peracrm_view_campaign_reports`. `event-redrive` additionally
+requires `peracrm_manage_campaigns`, explicit confirmation and an explicit limit.
+Both reject impersonation. On multisite the operation switches to the configured
+PeraCRM target and restores the caller; configured blog must match that target.
+
+```sh
+wp --path=/path/to/wordpress --url=https://target.example --user=REPORT_USER peracrm campaigns event-health --format=json
+wp --path=/path/to/wordpress --url=https://target.example --user=OPERATOR_USER peracrm campaigns event-redrive --limit=10 --confirm=authenticated-events --format=json
+wp --path=/path/to/wordpress --url=https://target.example --user=REPORT_USER peracrm campaigns health --format=json
+```
+
+Only JSON (default) and text are supported. Output contains bounded result counts,
+UTC times, ages and fixed diagnostic codes; it contains no receipt/event/attempt
+identifiers, raw payloads, mailboxes, bearer URLs, bodies, SQL, secrets or exception
+text. Do not add verbose payload logging around these commands. Host/WP-CLI/PHP,
+proxy, database general-query, error and APM logging protections still require
+separate host verification; sanitized command output does not sanitize host logs.
+
+A redrive invocation selects at most **1–25 receipts** (at most 50 facts each),
+with a **25-second work-start deadline**. Bounds never forcefully interrupt SQL;
+operations must validate database lock timeouts and process watchdogs. A per-scope
+MySQL advisory lock excludes overlapping redrives immediately. HTTP processing
+waits at most five seconds for that lock before returning retryable 503; existing
+receipt authentication and downstream transaction/session fences still apply.
+No worker claims a waiting batch in advance. Oldest/unattempted work is selected
+first, with receipt IDs used only internally as tie breakers.
+
+Progress states are durable, scoped to the original deployment/blog/topic and
+pinned normalization policy:
+
+| State | Meaning and operator action |
+| --- | --- |
+| No progress / `pending` | Full pipeline completion has not been observed, possibly because a process died. Eligible for bounded resume. Absence of progress on older receipts is not proof of a failure. |
+| `failed` | A local dependency/storage/processing failure was observed. Stop and investigate fixed diagnostics and infrastructure before another bounded invocation. |
+| `waiting` | Authenticated normalized facts lack an immutable attempt binding. Investigate original binding persistence; an explicit invocation may retry. |
+| `completed` | Eligible cumulative suppression processing committed locally. Terminal; no resend or inbox-delivery meaning. |
+| `quarantined` | Preserved freshness/normalization quarantine or unsupported feedback. Terminal and excluded from automatic redrive. Not an infrastructure failure. |
+| `conflict` | Permanent event/binding/recipient/scope/message conflict. Terminal manual-review hold; never automatically released. |
+| `exhausted` | A missing binding reached the existing five-total-pass limit per logical event, across duplicate receipts. Terminal manual-review hold. |
+
+Freshness and normalization quarantines are also excluded directly from batch
+selection, including receipts with no progress row. Mixed receipts with a permanent
+conflict remain held even if another fact has a missing binding. No command resets
+progress, deletes evidence, overrides policy, releases quarantine or increases the
+matcher pass budget. Each stage owns its existing transaction. Progress is marked
+pending before downstream work; successful completion follows the stage COMMITs.
+If interrupted, already committed stages are idempotently replayed and one logical
+suppression audit is retained. SQL-session replacement cannot publish progress
+under the old lock. A crashed process releases its native lock when its connection
+closes; it may leave pending progress. Never manually clear a lock held by a live
+process or erase progress to force another attempt.
+
+Stop on exit **3** (invalid arguments/authority), **4** (overlap, blocked storage,
+failed processing or manual-review health counts), unexpected failures, rising
+conflicts or unexpected scope/readiness. Exit **2** means operations configuration
+is absent; it does not mean provider health is good. Exit **0** means a read or a
+bounded run completed; inspect waiting/quarantine/conflict/exhausted counts even
+on 0. A run stops at its first processing failure. Repeat only after the cause is
+understood, with an explicit small limit. After a crash, inspect `event-health`,
+confirm the prior process/connection has ended, rerun the bounded command and
+inspect again. After a restore, keep sending disabled and follow the restore
+reconciliation steps above before processing: local history cannot establish what
+SNS/SES delivered outside the restored database.
+
+`health`/`status` include the same `events` summary when configured. Counts report
+pending/failed processing, waiting receipts, latest unmatched/conflicting logical
+events, manual-review receipts and ordinary quarantines separately. Oldest actionable
+age is measured from original receipt arrival for eligible no-progress/pending/
+failed/waiting work; null means no locally actionable receipts observed.
+`last_successful_processing` and `last_successful_redrive` inside `events` are the
+latest durable non-failing pipeline results, including waiting/quarantine; they
+are not timestamps of message delivery or necessarily suppression application.
+Legacy completed work without a progress record remains unobserved until bounded
+processing. The top-level scheduler timestamps retain their existing meanings.
+The aggregate snapshot uses separate SELECTs and may change during concurrent
+intake; it is not a frozen audit export. Read-only inspection writes no progress,
+metadata or locks and performs no authentication or network calls.
+
+Local counts **cannot establish provider health, complete event delivery, upstream
+loss, SNS subscription correctness or DLQ emptiness**. External SNS subscription/
+DLQ provisioning and retry policy, real-host heartbeat/alerting, privacy-safe log
+configuration, retention/deletion, backup/restore and reconciliation decisions
+remain explicit operational dependencies. No automatic schedule is installed;
+operator invocation and future monitoring/activation require their own decisions.

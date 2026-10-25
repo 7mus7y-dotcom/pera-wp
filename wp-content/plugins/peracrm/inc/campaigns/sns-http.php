@@ -1,6 +1,6 @@
 <?php
 if (!defined('ABSPATH')) { exit; }
-require_once __DIR__.'/event-suppression.php';
+require_once __DIR__.'/event-processing.php';
 
 /** Plugin-owned, explicitly configured intake. No sending or subscription authority. */
 final class PeraCRM_SNS_HTTP
@@ -8,9 +8,7 @@ final class PeraCRM_SNS_HTTP
     public const LIMIT=262144;
     private PeraCRM_SNS_Verifier $verifier;
     private PeraCRM_SNS_Receipts $receipts;
-    private PeraCRM_SES_Quarantine $normalization;
-    private PeraCRM_SES_Matcher $matching;
-    private PeraCRM_SES_Suppression $suppression;
+    private PeraCRM_SES_Processing $processing;
     public function __construct(array $config, callable $certificate)
     {
         if (isset($this->verifier)) { throw new PeraCRM_SNS_Error('sns_configuration'); }
@@ -27,9 +25,7 @@ final class PeraCRM_SNS_HTTP
             'configuration_set'=>$config['configuration_set'],'configuration_version'=>$config['configuration_version']];
         $args=[$this->verifier,$config['deployment'],$config['blog']];
         $this->receipts=new PeraCRM_SNS_Receipts(...$args);
-        $this->normalization=new PeraCRM_SES_Quarantine(...[...$args,$scope]);
-        $this->matching=new PeraCRM_SES_Matcher(...[...$args,$scope]);
-        $this->suppression=new PeraCRM_SES_Suppression(...[...$args,$scope]);
+        $this->processing=new PeraCRM_SES_Processing(...[...$args,$scope]);
     }
     public function __debugInfo(): array { return ['redacted'=>true]; }
     public function __serialize(): array { throw new LogicException('http_serialization_disabled'); }
@@ -55,10 +51,7 @@ final class PeraCRM_SNS_HTTP
             // Bounded parsing has already authenticated this exact envelope. Do not
             // expose or use inner caller data; downstream reads durable provenance.
             $id=json_decode($body,true,8,JSON_THROW_ON_ERROR)['MessageId'];
-            if ($this->normalization->normalize($id)==='matching_pending') {
-                $this->matching->match($id);
-                $this->suppression->apply($id);
-            }
+            $this->processing->receipt($id);
             return 202;
         } catch (PeraCRM_SNS_Error $error) {
             return match ($error->getMessage()) {

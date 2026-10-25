@@ -14,9 +14,8 @@ as detailed in the linked history. No phase is complete merely because code exis
 Future PRs must update this active plan and distinguish repository checks from
 external verification. Preserve historical evidence and decisions in the history.
 
-**Current task:** bounded Phase 5 guarded SNS HTTP adapter connecting existing
-authentication, receipts, normalization, matching and suppression. #1481 is merged;
-see the final guarded SNS HTTP section for current scope and validation.
+**Current task:** bounded Phase 5 SES event redrive and privacy-safe local event
+health. See the final section for scope and acceptance evidence.
 
 ## Phase 5B — bounded recipient preference editor (2026-10-22)
 
@@ -1311,3 +1310,45 @@ preserved; no reconstruction scaffolding is published. Production endpoint stays
 disabled and all sending/intake/collection/cron gates remain intact. Operational
 dependencies remain open. No provisioning, live activation, real messages,
 credentials, merge or deployment was performed.
+
+
+## Phase 5 — bounded SES redrive and local event health (2026-10-25)
+
+#1482 merged as `101445e9f90a9944e6bb50f91f05aaefe9326b58`. Its final head
+`56dc2a64fc03666b915d933e4d747336afed6671` passed CI 40204897994 and completed
+clean review 6399279483. Latest main was obtained through the GitHub connector;
+the complete non-truncated manifest and every blob were verified, and isolated
+baseline tree `2a0653e3b5668240284340a7fa400e3b1babc824` matches GitHub exactly.
+Original checkout/history remain untouched. No applicable AGENTS.md exists.
+
+Adds additive schema v36 durable receipt progress and scope-specific processing
+lock. HTTP records progress through the same pipeline; explicit operator redrive
+resumes interrupted stages and only reprocesses missing bindings under the existing
+five-pass logical-event fence. Original authentication, payload/certificate hashes,
+freshness quarantine, normalization policy, permanent conflicts and manual-review
+holds remain immutable. Session-fenced progress cannot claim success after reconnect.
+Batches are 1–25 receipts, at most 50 facts each, with a 25-second work-start deadline.
+No automatic scheduling or quarantine release exists.
+
+Guarded `event-health` and `event-redrive` use existing real-actor report authority;
+redrive also requires campaign management, explicit confirmation and bounds.
+Separate absent-by-default deployment pins allow local operations with HTTP disabled.
+Read-only health reports local pending/failed/unmatched/conflicting/quarantined
+work, actionable age and last successful processing/redrive. It explicitly declines
+provider health or delivery completeness. Output is payload/mailbox/token/secret free.
+Operations runbook documents exact commands, state meanings, stop/recovery steps,
+limits and external dependencies.
+
+Focused standalone CLI/config regressions and real SQL fixtures cover batch limits,
+interrupted resume, independent duplicate workers, missing-binding recovery,
+permanent conflicts, retry exhaustion, rollback/session replacement and read-only
+inspection. Existing sending, consent, acceptance, unknown-outcome, cancellation,
+recipient withdrawal and suppression fixtures remain required and unchanged.
+Local Docker socket access is unavailable (`connect: operation not permitted`);
+real single/multisite SQL/concurrency execution is delegated to repository CI.
+Hosted validation and final-head clean review are pending publication.
+
+All changes remain plugin-owned. No endpoint activation, AWS provisioning,
+credentials, transport/messages, cron activation, merge or deployment. External
+SNS/DLQ provisioning, host monitoring/log protection and retention/restore decisions
+remain explicit dependencies. Phase 5 remains in progress; all disabled gates hold.
