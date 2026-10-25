@@ -4,7 +4,7 @@ require_once __DIR__.'/withdrawal-fixture.php';
 $mode=$args[0]??''; $scenario=$args[1]??'';
 peracrm_with_target_blog(static function () use ($mode,$scenario) {
     global $wpdb;
-    $scenarios=['duplicate','logical','bounce-complaint','complaint-bounce','bounce-withdraw','withdraw-bounce','complaint-withdraw','withdraw-complaint','triple'];
+    $scenarios=['duplicate','logical','bounce-complaint','complaint-bounce','bounce-withdraw','withdraw-bounce','complaint-withdraw','withdraw-complaint','triple','bounce-delete','delete-bounce','bounce-identity','identity-bounce'];
     if (!in_array($scenario,$scenarios,true)) { throw new RuntimeException('Unknown suppression race'); }
     if ($mode==='prepare') {
         $v=sns_values(); $v['deployment']='suppress-race-'.bin2hex(random_bytes(8));
@@ -28,7 +28,19 @@ peracrm_with_target_blog(static function () use ($mode,$scenario) {
             $c=json_decode(file_get_contents('/tmp/peracrm-suppress-third'),true);
             sns_expect($c['ok'] && $c['duration']>0.5 && !in_array($c['connection'],[$a['connection'],$b['connection']],true),'three independent competing mailbox owners');
         }
-        $row=peracrm_campaigns_repository_identity($v['seed']['binding']['mailbox']);
+        $historical=$v['seed']['binding']['mailbox'];
+        $identityRace=str_contains($scenario,'delete') || str_contains($scenario,'identity');
+        $row=peracrm_campaigns_repository_identity($historical);
+        if ($identityRace) {
+            $suppression=$wpdb->get_row($wpdb->prepare('SELECT * FROM '.peracrm_table('peracrm_email_suppressions').' WHERE normalized_email=%s',$historical),ARRAY_A);
+            sns_expect(!$row && (int)$suppression['hard_bounce']===1,'concurrent deletion/mailbox change retains historical denial without subscriber recreation');
+            $replacement=peracrm_campaigns_repository_identity('replacement-'.$v['seed']['binding']['subscriber_id'].'@example.test');
+            sns_expect(!$replacement || empty($replacement['hard_bounce']),'concurrent identity replacement does not receive historical denial');
+            foreach ($v['protected'] as $table=>$rows) {
+                if ($table!=='peracrm_campaign_recipient_identities') { sns_expect(suppress_rows($table)===$rows,'identity race preserves tokens attempts outputs and retry state '.$table); }
+            }
+            return;
+        }
         $withdraw=str_contains($scenario,'withdraw') || $scenario==='triple';
         $complaint=str_contains($scenario,'complaint') || $scenario==='triple';
         $bounce=!in_array($scenario,['complaint-withdraw','withdraw-complaint'],true);
@@ -51,7 +63,19 @@ peracrm_with_target_blog(static function () use ($mode,$scenario) {
     if (in_array($scenario,['duplicate','logical'],true)) { $operation='bounce'; }
     elseif ($scenario==='triple') { $operation=['winner'=>'bounce','loser'=>'complaint','third'=>'withdraw'][$mode]; }
     else { $parts=explode('-',$scenario); $operation=$parts[$mode==='winner'?0:1]; }
-    if ($operation==='withdraw') { $ok=withdrawal_store()->withdrawToken($v['seed']['token'],withdrawal_keys(),'fixture-withdrawal'); }
+    if ($operation==='delete') {
+        wp_set_current_user((int)get_option('campaign_fixture_manager'));
+        $ok=!is_wp_error(peracrm_campaigns_delete_subscriber($v['seed']['binding']['mailbox']));
+    } elseif ($operation==='identity') {
+        // Synthetic mailbox editor participates in the authoritative old-mailbox
+        // mutex and advances all retained identities before committing.
+        $ok=peracrm_campaigns_repository_mutate($v['seed']['binding']['mailbox'],static function ($subscriber) {
+            global $wpdb;
+            $replacement='replacement-'.$subscriber['id'].'@example.test';
+            peracrm_campaigns_repository_replace_identity((int)$subscriber['id'],$replacement,true);
+            return $wpdb->update(peracrm_table('peracrm_subscribers'),['email'=>$replacement,'normalized_email'=>$replacement],['id'=>$subscriber['id']])===1;
+        });
+    } elseif ($operation==='withdraw') { $ok=withdrawal_store()->withdrawToken($v['seed']['token'],withdrawal_keys(),'fixture-withdrawal'); }
     else {
         $id=$v[$scenario==='logical' && $mode==='loser'?'logical':$operation];
         $ok=array_values(suppress_service($v)->apply($id))===['applied'];

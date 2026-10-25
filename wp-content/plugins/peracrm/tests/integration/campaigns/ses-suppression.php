@@ -15,14 +15,19 @@ peracrm_with_target_blog(static function () {
     try { peracrm_campaigns_assert_schema(); } catch (Throwable $e) { $denied=true; }
     sns_expect($denied,'application uniqueness required'); peracrm_campaigns_install_schema();
     $seed=ses_match_seed($v['deployment'],1000); $event=suppress_event($seed,'Bounce');
-    $id=suppress_receive($v,$event,1000); suppress_apply($v,$id);
+    $id=suppress_receive($v,$event,1000);
+    $wpdb->update(peracrm_table('peracrm_email_suppressions'),['administrative'=>1,'unsubscribe'=>1],['normalized_email'=>$seed['binding']['mailbox']]);
+    suppress_apply($v,$id);
+    $audit=suppress_rows('peracrm_email_suppression_events'); $last=end($audit);
+    sns_expect($last['source']==='ses_authenticated' && (int)$last['actor_user_id']===0
+        && preg_match('/\A[a-f0-9]{64}:[a-f0-9]{64}\z/',$last['source_ref'])===1,'server-controlled system actor and exact scope/event evidence');
     $first=suppress_atomic(); suppress_apply($v,$id); sns_expect(suppress_atomic()===$first,'same receipt replay is a complete no-op');
     $duplicate=suppress_receive($v,$event,1001); $ledger=suppress_rows('peracrm_campaign_ses_applications');
     $audit=suppress_rows('peracrm_email_suppression_events'); suppress_apply($v,$duplicate);
     sns_expect(suppress_rows('peracrm_campaign_ses_applications')===$ledger && suppress_rows('peracrm_email_suppression_events')===$audit,'logical duplicate keeps first provenance and one suppression audit');
     $complaint=suppress_receive($v,suppress_event($seed,'Complaint'),1002); suppress_apply($v,$complaint);
     $identity=peracrm_campaigns_repository_identity($seed['binding']['mailbox']);
-    sns_expect((int)$identity['hard_bounce']===1 && (int)$identity['complaint']===1,'distinct valid reasons retained cumulatively');
+    sns_expect((int)$identity['hard_bounce']===1 && (int)$identity['complaint']===1 && (int)$identity['administrative']===1 && (int)$identity['unsubscribe']===1,'distinct valid reasons retained cumulatively');
     foreach ([['Bounce','Transient'],['Bounce','Undetermined'],['Complaint','not-spam'],['Complaint','future-type'],['Delivery',''],['DeliveryDelay',''],['Send','']] as $n=>[$type,$subtype]) {
         $event=suppress_event($seed,$type,$subtype);
         if (in_array($type,['Bounce','Complaint'],true)) { $event[lcfirst($type)]['feedbackId']='unsupported-'.$n; }
@@ -37,7 +42,10 @@ peracrm_with_target_blog(static function () {
         $seed=ses_match_seed($v['deployment'],1030+$n); $id=suppress_receive($v,suppress_event($seed,'Bounce'),1030+$n);
         $mailbox=$seed['binding']['mailbox']; $subscriber=$seed['binding']['subscriber_id']; $replacement=$mode.'-replacement@example.test';
         if ($mode==='changed') { $wpdb->update(peracrm_table('peracrm_subscribers'),['email'=>$replacement,'normalized_email'=>$replacement],['id'=>$subscriber]); }
-        else { $wpdb->delete(peracrm_table('peracrm_subscribers'),['id'=>$subscriber]); }
+        else {
+            $wpdb->delete(peracrm_table('peracrm_subscribers'),['id'=>$subscriber]);
+            if ($mode==='deleted') { $wpdb->delete(peracrm_table('peracrm_email_suppressions'),['normalized_email'=>$mailbox]); }
+        }
         peracrm_campaigns_repository_replace_identity($subscriber,$replacement,0);
         if ($mode==='reused') { peracrm_test_persistence_subscriber($subscriber,$replacement); }
         suppress_apply($v,$id);
@@ -95,19 +103,5 @@ peracrm_with_target_blog(static function () {
         if ($failedProbe) { add_filter('query',$filter); }
         try { sns_reject(fn()=>suppress_service($v)->apply($id),'sns_storage'); } finally { if ($failedProbe) { remove_filter('query',$filter); } }
         sns_expect($wpdb->query('SAVEPOINT suppression_caller')!==false && $wpdb->query('RELEASE SAVEPOINT suppression_caller')!==false,'caller transaction preserved'); $wpdb->query('ROLLBACK');
-    }
-    // Actual prepared worker attempts remain historically applicable after terminal jobs.
-    foreach (['complete','cancel'] as $n=>$terminal) {
-        $job=worker_fixture_reset(1); $deployment='late-suppress-'.bin2hex(random_bytes(8)); $preparation=prepared_service($deployment);
-        $worker=worker_fixture(); $claim=$worker->claim($job,1)[0]; $transport=new PeraCRM_Prepared_Mock($deployment);
-        $worker->submitPrepared($claim,$preparation,new PeraCRM_Campaign_SES_Mapper(prepared_scope(),$transport));
-        if ($terminal==='cancel') { worker_fixture_state($job,'cancel'); }
-        else { sns_expect($worker->completion($job),'job submissions complete before late feedback'); } $records=prepared_records($deployment);
-        $metadata=json_decode($records['submission_attempts'][0]['binding_json'],true);
-        $event=ses_event('Bounce'); $event['mail']['destination']=[$metadata['mailbox']]; $event['mail']['messageId']='synthetic-prepared';
-        foreach (['delivery'=>'delivery_key','attempt'=>'attempt_key','snapshot'=>'snapshot_hash','envelope'=>'envelope_hash'] as $tag=>$field) { $event['mail']['tags']['peracrm_'.$tag]=[$metadata[$field]]; }
-        $event['bounce']['bouncedRecipients']=[['emailAddress'=>$metadata['mailbox']]];
-        $late=$v; $late['deployment']=$deployment; $id=suppress_receive($late,$event,1200+$n); $before=worker_fixture_rows($job);
-        suppress_apply($late,$id); sns_expect(worker_fixture_rows($job)===$before && $worker->claim($job,1)===[] && $transport->calls===1,'late '.$terminal.' feedback cannot grant retry');
     }
 });

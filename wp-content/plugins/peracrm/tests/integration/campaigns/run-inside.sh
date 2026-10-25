@@ -192,7 +192,7 @@ wp eval-file /tests/ses-matching.php
 wp eval-file /tests/acceptance.php
 wp eval-file /tests/worker-acceptance.php
 wp eval-file /tests/ses-suppression.php
-for suppress_scenario in duplicate logical bounce-complaint complaint-bounce bounce-withdraw withdraw-bounce complaint-withdraw withdraw-complaint triple; do
+for suppress_scenario in duplicate logical bounce-complaint complaint-bounce bounce-withdraw withdraw-bounce complaint-withdraw withdraw-complaint triple bounce-delete delete-bounce bounce-identity identity-bounce; do
     rm -f /tmp/peracrm-suppress-held /tmp/peracrm-suppress-winner /tmp/peracrm-suppress-loser /tmp/peracrm-suppress-third
     wp eval-file /tests/ses-suppression-race.php prepare "$suppress_scenario"
     wp eval-file /tests/ses-suppression-race.php winner "$suppress_scenario" &
@@ -330,4 +330,5 @@ for preference_race in edit-edit revoke-edit edit-revoke identity-edit edit-iden
     wait "$preference_loser_pid"
     wp eval-file /tests/recipient-preferences-race.php verify "$preference_race"
 done
+wp eval-file /tests/ses-suppression-late.php
 printf 'PASS disposable %s WordPress/MySQL fixtures\n' "$fixture_mode"

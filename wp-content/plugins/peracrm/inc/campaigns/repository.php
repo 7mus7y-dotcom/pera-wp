@@ -60,10 +60,10 @@ function peracrm_campaigns_repository_lock_mailbox($email, ?callable $insert = n
         // Internal transaction owners may supply their SQL-session-fenced writer.
         $insert('peracrm_email_suppressions', ['normalized_email'=>$email, 'created_at'=>$now, 'updated_at'=>$now]);
     } else {
-    peracrm_campaigns_db_require($wpdb->query($wpdb->prepare(
-        "INSERT INTO {$table} (normalized_email, created_at, updated_at) VALUES (%s, %s, %s)
-         ON DUPLICATE KEY UPDATE normalized_email = VALUES(normalized_email)", $email, $now, $now
-    )));
+        peracrm_campaigns_db_require($wpdb->query($wpdb->prepare(
+            "INSERT INTO {$table} (normalized_email, created_at, updated_at) VALUES (%s, %s, %s)
+             ON DUPLICATE KEY UPDATE normalized_email = VALUES(normalized_email)", $email, $now, $now
+        )));
     }
     $suppression = $wpdb->get_row($wpdb->prepare("SELECT * FROM {$table} WHERE normalized_email = %s FOR UPDATE", $email), ARRAY_A);
     peracrm_campaigns_db_require($suppression ?: false);

@@ -1123,9 +1123,9 @@ Focused standalone policy and real SQL fixtures cover identical/logical replay,
 cumulative bounce/complaint, feedback semantics, changed/deleted/reused IDs,
 wrong scope, unnormalized/unmatched/missing/conflicting associations, rollback at
 every write/read/COMMIT, actual SQL-session replacement and caller transactions.
-Prepared-worker fixtures cover late completed/cancelled jobs. Nine independent-
+Prepared-worker fixtures cover late completed/cancelled jobs. Thirteen independent-
 process race scenarios include duplicate receipts, logical duplicates, both orders
-of complaint/bounce/withdrawal and three concurrent owners. Protected snapshots
+of complaint/bounce/withdrawal, deletion/mailbox replacement and three concurrent owners. Protected snapshots
 prove no consent grant, clearing, subscriber creation or retry-state regression.
 Validation and final-head review are pending initial hosted publication.
 
@@ -1134,3 +1134,30 @@ transport, AWS provisioning, credentials, messages, cron activation or operation
 UI. Production factories, dispatch, intake/collection and cron gates stay disabled.
 Retention/redrive/restore/readiness and later endpoint adaptation remain dependent
 work. No merge or deployment.
+
+
+### Initial publication and review follow-up
+
+Non-draft [PR #1481](https://github.com/7mus7y-dotcom/pera-wp/pull/1481)
+opened at `410dcd7e93ad99607f38f3da8f583d2a6408e9c3`, tree
+`14bc923ca4eef526d9a44e55d3cee96c22c7d5eb`, directly parented to verified main.
+Reconstructed baseline tree `08086b815ed5e4d1b916901a4f9f8c8ce7727421`
+exactly matches main. All 31 standalone suites and 228 PHP syntax checks,
+shell/JavaScript/whitespace checks pass locally. Initial automated review completed
+cleanly on this head; hosted CI 40174499763 remains in progress.
+Local diff review added both orders of deletion/mailbox replacement races,
+server-controlled audit provenance checks, preservation of existing admin/withdrawal
+flags and absent-mutex/deleted-subscriber coverage. These follow-ups require their
+own hosted CI and final-head review; the initial clean review does not cover them.
+
+
+Initial hosted CI 40174499763 failed in both topologies after the new application,
+identity, quarantine and all rollback/reconnection cases passed. The late-event
+fixture then tried to prepare the shared worker mailbox again after correctly
+suppressing it; no second immutable attempt existed. This is a fixture isolation
+failure, not a reason to clear suppression. Late-event acceptance now runs last,
+prepares all exact attempts before feedback, uses unique mocked provider message
+IDs and checks completion then cancellation on the retained historical attempt.
+Permanent deny knowledge remains intact. The failed run did not reach races and
+is not final acceptance. The additional late fixture raises PHP syntax coverage
+to 229 files; final hosted execution and clean review remain required.
