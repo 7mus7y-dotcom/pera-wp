@@ -1346,7 +1346,9 @@ inspection. Existing sending, consent, acceptance, unknown-outcome, cancellation
 recipient withdrawal and suppression fixtures remain required and unchanged.
 Local Docker socket access is unavailable (`connect: operation not permitted`);
 real single/multisite SQL/concurrency execution is delegated to repository CI.
-Hosted validation and final-head clean review are pending publication.
+Hosted acceptance and exact-head review are tracked in [PR #1483](https://github.com/7mus7y-dotcom/pera-wp/pull/1483).
+Completion requires passing final-head CI and a clean review covering all final
+changes; the PR description records the final commit and acceptance links.
 
 All changes remain plugin-owned. No endpoint activation, AWS provisioning,
 credentials, transport/messages, cron activation, merge or deployment. External
@@ -1361,3 +1363,23 @@ has a real SQL regression. Updated hosted CI and exact-head review are required.
 Further local review rejects unrecognized stored progress states on HTTP-style
 replay rather than overwriting them as pending. Read-only health counts them as
 manual-review holds; a real SQL regression proves replay/redrive preserve the hold.
+
+
+### Publication and acceptance tracking
+
+Non-draft [PR #1483](https://github.com/7mus7y-dotcom/pera-wp/pull/1483) contains
+15 plugin-owned changed files. Local acceptance is 33 standalone suites, 237 PHP
+syntax checks and shell/JavaScript/whitespace checks. Published trees match the
+isolated local trees; published history parents directly to verified main without
+publishing reconstruction scaffolding. Original work remains preserved.
+
+Initial CI 40213392945 passed the new pipeline, rollback/reconnection, bounds,
+missing-binding recovery and all prior protection fixtures on both topologies,
+then exposed shared synthetic mailboxes between race scenarios. The fixtures now
+use distinct mailboxes. Subsequent local review added actionable health/policy
+conflict reporting and fail-closed handling of unknown/manual progress states.
+Earlier clean reviews apply only to their reviewed heads. Final-head CI and the
+exact-head review request/response are linked in the PR; no earlier passing check
+or review substitutes for acceptance of later changes. No merge or deployment is
+authorized by these checks. External provisioning/monitoring/retention/restore
+and all activation decisions remain open dependencies.
