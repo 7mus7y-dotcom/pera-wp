@@ -13,6 +13,7 @@ peracrm_with_target_blog(static function () {
     $seed=ses_match_seed($deployment,1); $id=ses_match_receive($v,$deployment,$seed['event'],301);
     ses_match_check(fn()=>$store->match($id),'matched');
     sns_expect(count($rows($messages))===1 && $rows($messages)[0]['binding_hash']===hash('sha256',json_encode($seed['metadata'],JSON_THROW_ON_ERROR)), 'early event associates immutable attempt without response or worker mutation');
+    sns_expect($seed['metadata']['version']===2 && $seed['metadata']['personalization_version']===2,'V2 events retain durable immutable matching');
     $original=[$rows($messages),$rows($matches)];
     ses_match_check(fn()=>$store->match($id),'matched');
     $duplicate=ses_match_receive($v,$deployment,$seed['event'],302);
@@ -57,6 +58,10 @@ peracrm_with_target_blog(static function () {
         $wrongId=ses_match_receive($v,$deployment,$event,310+$number);
         ses_match_check(fn()=>$store->match($wrongId),in_array($wrong,['recipient','destinations'],true)?'wrong_recipient':'binding_conflict');
     }
+    $legacy=ses_match_seed($deployment,91,true,[],1);
+    $legacyId=ses_match_receive($v,$deployment,$legacy['event'],391);
+    ses_match_check(fn()=>$store->match($legacyId),'matched');
+    sns_expect($legacy['metadata']['version']===1,'historical V1 event matching remains supported');
     $other=new PeraCRM_SES_Matcher(sns_verifier($v),$deployment.'other',$blog,ses_event_scope());
     sns_reject(fn()=>$other->match($id),'sns_storage');
     $changed=ses_event_scope(); $changed['configuration_version']=2;

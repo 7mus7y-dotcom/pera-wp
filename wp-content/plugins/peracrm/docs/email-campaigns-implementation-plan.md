@@ -1455,3 +1455,11 @@ and closed constructor reentry in the existing submission value class: neither
 V1 nor V2 fields/correlation hashes may be replaced after construction. A focused
 regression verifies rejection and unchanged hash. New final-head CI and clean
 review remain required for this correction; initial-head results cannot cover it.
+
+Automated review of the initial head found the event matcher still required V1
+attempt metadata. Corrected it to accept strictly consistent integer V1/V2 pairs
+and reject unknown/mixed versions. Pure regressions cover V2 matching, mismatched
+versions and V1-hash/V2-envelope conflict. Shared real-SQL matching fixtures now
+prepare V2, so matching, suppression, response/event conflict and concurrency
+paths exercise the new protocol; an explicit SQL V1 case preserves compatibility.
+The finding requires new final-head CI and rereview; prior heads do not cover it.

@@ -54,8 +54,8 @@ final class PeraCRM_SES_Matcher
     /** Pure comparison against a hash-verified immutable storage projection. */
     public static function bindingDecision(array $fact, array $attempt, array $provider, int $blog): string
     {
-        if (($attempt['version']??null)!==1 || ($attempt['blog_id']??null)!==$blog
-            || ($attempt['personalization_version']??null)!==1) { return 'binding_conflict'; }
+        if (!in_array($attempt['version']??null,[1,2],true) || ($attempt['blog_id']??null)!==$blog
+            || ($attempt['personalization_version']??null)!==$attempt['version']) { return 'binding_conflict'; }
         foreach ($provider as $key=>$value) {
             if (($attempt['scope'][$key]??null)!==$value) { return 'wrong_scope'; }
         }

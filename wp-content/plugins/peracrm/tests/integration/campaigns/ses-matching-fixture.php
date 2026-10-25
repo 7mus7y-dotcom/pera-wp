@@ -3,19 +3,20 @@ if (!defined('PERACRM_DISPOSABLE_CAMPAIGN_FIXTURE')) { throw new RuntimeExceptio
 require_once WP_PLUGIN_DIR.'/peracrm/tests/ses-events-fixture.php';
 require_once WP_PLUGIN_DIR.'/peracrm/tests/recipient-persistence-fixture.php';
 require_once WP_PLUGIN_DIR.'/peracrm/inc/campaigns/event-matching.php';
-function ses_match_seed(string $deployment,int $number,bool $persist=true,array $provider=[]): array
+function ses_match_seed(string $deployment,int $number,bool $persist=true,array $provider=[],int $version=2): array
 {
     $content=get_option('atomic_preparation_content'); $blog=get_current_blog_id();
-    [$binding,,$original]=peracrm_test_persistence_values($content,$blog);
+    [$binding,,$original]=peracrm_test_persistence_values($content,$blog,$version);
     $binding['subscriber_id']=26000+$number; $binding['mailbox']='matching-'.$number.'@example.test';
     $binding['attempt_key']=hash('sha256','matching-'.$deployment.'-'.$number);
     $tokens=new PeraCRM_CampaignRecipientTokens(['k1'=>str_repeat('synthetic-match-',3)],'k1',$deployment,static fn()=>true);
-    $output=(new PeraCRM_CampaignRecipientExpansion('https://example.org',$tokens))->expand($content,$binding['snapshot_hash'],$binding,1800000000);
+    $output=(new PeraCRM_CampaignRecipientExpansion('https://example.org',$tokens))->expand($content,$binding['snapshot_hash'],$binding,1800000000,$version);
     $fields=$original->fields();
     foreach (['blog_id','mailbox','attempt_key','snapshot_hash'] as $key) { $fields[$key]=$binding[$key]; }
     $fields['scope']=$provider?:ses_event_scope();
     $fields['delivery_key']=hash('sha256','delivery-'.$deployment.'-'.$number);
     foreach (['html','text'] as $key) { $fields[$key]=$output->fields()[$key]; }
+    if ($version===2) { $fields['unsubscribe_url']=$output->fields()['unsubscribe_url']; }
     $submission=new PeraCRM_CampaignSubmissionV1($fields);
     $metadata=PeraCRM_CampaignRecipientPersistence::attemptMetadata($submission,$binding,$output);
     if ($persist) { ses_match_persist($deployment,$binding,$submission,$output); }

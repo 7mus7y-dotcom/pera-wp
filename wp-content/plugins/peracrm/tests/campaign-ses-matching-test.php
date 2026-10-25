@@ -26,3 +26,17 @@ campaign_expect(PeraCRM_SES_Matcher::bindingDecision($fact,$metadata,ses_event_s
 $source=file_get_contents(__DIR__.'/../inc/campaigns/event-matching.php');
 campaign_expect(!str_contains($source,'->submit(') && !str_contains($source,'->update(') && !str_contains($source,'wp_schedule'), 'correlation has no send/state/cron mutation surface');
 echo "PASS SES immutable matching projections\n";
+
+[$v2binding,$v2output,$v2submission]=peracrm_test_persistence_values($saved['payload']['content'],2,2);
+$v2metadata=PeraCRM_CampaignRecipientPersistence::attemptMetadata($v2submission,$v2binding,$v2output);
+$v2fact=$fact;
+foreach (['delivery'=>'delivery_key','attempt'=>'attempt_key','snapshot'=>'snapshot_hash','envelope'=>'envelope_hash'] as $tag=>$field) {
+    $v2fact['tags'][$tag]=$v2metadata[$field];
+}
+campaign_expect(PeraCRM_SES_Matcher::bindingDecision($v2fact,$v2metadata,ses_event_scope(),2)==='matched','V2 immutable header-bound attempt matches event');
+foreach ([[1,2],[2,1],[3,3],['2',2],[2,'2']] as [$version,$personalization]) {
+    $wrong=array_replace($v2metadata,['version'=>$version,'personalization_version'=>$personalization]);
+    campaign_expect(PeraCRM_SES_Matcher::bindingDecision($v2fact,$wrong,ses_event_scope(),2)==='binding_conflict','unsupported/mixed attempt versions fail closed');
+}
+$wrong=$v2fact; $wrong['tags']['envelope']=$metadata['envelope_hash'];
+campaign_expect(PeraCRM_SES_Matcher::bindingDecision($wrong,$v2metadata,ses_event_scope(),2)==='binding_conflict','V1 envelope hash cannot match V2 headers');
