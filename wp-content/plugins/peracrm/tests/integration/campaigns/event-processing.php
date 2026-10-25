@@ -64,6 +64,12 @@ peracrm_with_target_blog(static function () {
             sns_expect((int)$wpdb->get_var($wpdb->prepare('SELECT COUNT(*) FROM '.peracrm_table('peracrm_email_suppression_events').' WHERE normalized_email=%s',$seed['binding']['mailbox']))===1,'resume retains one logical suppression audit');
         }
     }
+    // Unrecognized/manual progress states fail closed on HTTP-style replay too.
+    $manual=ses_event_id(1900);
+    $wpdb->query($wpdb->prepare("UPDATE {$p} SET state='manual_review' WHERE scope_hash=%s AND receipt_id=%s",processing_scope($v),$manual));
+    $before=suppress_atomic(); sns_reject(fn()=>$service->receipt($manual),'sns_storage');
+    sns_expect(suppress_atomic()===$before && $service->redrive(1)['processed']===0,'manual/unknown progress cannot be automatically released');
+    sns_expect($wpdb->get_var($wpdb->prepare("SELECT state FROM {$p} WHERE scope_hash=%s AND receipt_id=%s",processing_scope($v),$manual))==='manual_review','manual hold preserved');
     // A caller transaction must never be implicitly committed by progress writes.
     $wpdb->query('START TRANSACTION'); sns_reject(fn()=>$service->redrive(1),'sns_storage');
     sns_expect($wpdb->query('SAVEPOINT processing_caller')!==false && $wpdb->query('RELEASE SAVEPOINT processing_caller')!==false,'outer transaction retained'); $wpdb->query('ROLLBACK');

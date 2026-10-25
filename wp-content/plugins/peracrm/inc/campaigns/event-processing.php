@@ -82,7 +82,7 @@ final class PeraCRM_SES_Processing
             ON DUPLICATE KEY UPDATE receipt_id=receipt_id",$this->scope,$id,$this->policy,$connection,$this->lock,$connection)));
         $prior=$wpdb->get_row($wpdb->prepare("SELECT policy_hash,state FROM {$table} WHERE scope_hash=%s AND receipt_id=%s",$this->scope,$id),ARRAY_A);
         self::db($prior?:false);
-        if ($prior['policy_hash']!==$this->policy) { throw new PeraCRM_SNS_Error('sns_storage'); }
+        if ($prior['policy_hash']!==$this->policy || !in_array($prior['state'],['pending','failed','waiting','conflict','quarantined','exhausted','completed'],true)) { throw new PeraCRM_SNS_Error('sns_storage'); }
         // Terminal security/manual decisions cannot be released through this service.
         if (in_array($prior['state'],['conflict','quarantined','exhausted','completed'],true)) { return $prior['state']; }
         self::db($wpdb->query($wpdb->prepare("UPDATE {$table} SET state='pending',attempts=attempts+1,last_attempt_at=UTC_TIMESTAMP()
@@ -184,7 +184,7 @@ final class PeraCRM_SES_Processing
                 'policy_conflicts'=>$count($wpdb->prepare("(p.receipt_id IS NOT NULL AND p.policy_hash<>%s) OR (n.receipt_id IS NOT NULL AND n.policy_hash<>%s)",$this->policy,$this->policy)),
                 'failed_processing'=>$count("{$eligible} AND p.state='failed'"),
                 'waiting_receipts'=>$count("{$eligible} AND p.state='waiting'"),
-                'manual_review_receipts'=>$count("p.state IN ('conflict','exhausted') OR n.quarantine_reason='event_conflict'"),
+                'manual_review_receipts'=>$count("p.state NOT IN ('pending','failed','waiting','quarantined','completed') OR n.quarantine_reason='event_conflict'"),
                 'quarantined_receipts'=>$count("r.quarantine_reason<>'application_pending' OR (n.receipt_id IS NOT NULL AND n.quarantine_reason NOT IN ('matching_pending','event_conflict')) OR p.state='quarantined'"),
                 'oldest_actionable_age_seconds'=>null,'last_successful_processing'=>null,'last_successful_redrive'=>null];
             $age=self::db($wpdb->get_var("SELECT MAX(GREATEST(0,TIMESTAMPDIFF(SECOND,r.received_at,UTC_TIMESTAMP()))) FROM {$from} WHERE {$scope} AND {$actionable}"));

@@ -1357,3 +1357,7 @@ Local review follow-up separates synthetic race mailboxes and makes general heal
 emit actionable fixed diagnostics for local processing failures, manual-review
 conflicts and mismatched provider policy pins. Read-only policy conflict reporting
 has a real SQL regression. Updated hosted CI and exact-head review are required.
+
+Further local review rejects unrecognized stored progress states on HTTP-style
+replay rather than overwriting them as pending. Read-only health counts them as
+manual-review holds; a real SQL regression proves replay/redrive preserve the hold.

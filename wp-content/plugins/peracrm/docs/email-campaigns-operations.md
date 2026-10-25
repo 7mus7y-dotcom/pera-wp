@@ -206,7 +206,8 @@ pinned normalization policy:
 
 Freshness and normalization quarantines are also excluded directly from batch
 selection, including receipts with no progress row. Mixed receipts with a permanent
-conflict remain held even if another fact has a missing binding. No command resets
+conflict remain held even if another fact has a missing binding. Unrecognized stored progress states also fail closed on replay and are counted as
+manual-review holds. No command resets
 progress, deletes evidence, overrides policy, releases quarantine or increases the
 matcher pass budget. Each stage owns its existing transaction. Progress is marked
 pending before downstream work; successful completion follows the stage COMMITs.
