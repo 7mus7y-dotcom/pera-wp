@@ -1646,6 +1646,25 @@ function peracrm_handle_save_client_profile()
         wp_die('You do not have permission to set this client dormant.');
     }
 
+    $source_requested = isset($_POST['peracrm_source']);
+    $old_source = sanitize_key((string) get_post_meta($client_id, 'crm_source', true));
+    $new_source = $source_requested ? sanitize_key(wp_unslash($_POST['peracrm_source'])) : $old_source;
+    $source_options = function_exists('peracrm_source_options') ? (array) peracrm_source_options() : [
+        'meta_ads' => 'Meta Ads',
+        'instagram_dm' => 'Instagram',
+        'whatsapp_dm' => 'WhatsApp',
+        'website' => 'Website',
+        'referral' => 'Referral',
+        'other' => 'Other',
+    ];
+    $allowed_sources = array_keys($source_options);
+
+    // Permit the current legacy ingestion key to round-trip unchanged, but do
+    // not allow arbitrary new source values to be introduced from the form.
+    if ($source_requested && $new_source !== '' && $new_source !== $old_source && !in_array($new_source, $allowed_sources, true)) {
+        wp_die('Invalid client source.');
+    }
+
     // Profile saves should only update profile fields and never touch party status fields.
     $data = [];
 
@@ -1701,7 +1720,28 @@ function peracrm_handle_save_client_profile()
         ? peracrm_client_update_profile($client_id, $data)
         : false;
 
-    if (!$success || !$name_success) {
+    $source_success = true;
+    if ($success && $source_requested && $new_source !== $old_source) {
+        if ($new_source === '') {
+            $source_success = delete_post_meta($client_id, 'crm_source') || !metadata_exists('post', $client_id, 'crm_source');
+        } else {
+            $source_success = false !== update_post_meta($client_id, 'crm_source', $new_source);
+        }
+
+        if ($source_success && function_exists('peracrm_log_event')) {
+            $old_label = function_exists('peracrm_source_label') ? peracrm_source_label($old_source) : ucwords(str_replace('_', ' ', $old_source));
+            $new_label = function_exists('peracrm_source_label') ? peracrm_source_label($new_source) : ucwords(str_replace('_', ' ', $new_source));
+            peracrm_log_event($client_id, 'source_changed', [
+                'from' => $old_source,
+                'to' => $new_source,
+                'from_label' => $old_label,
+                'to_label' => $new_label,
+                'actor_user_id' => function_exists('peracrm_get_actor_user_id') ? peracrm_get_actor_user_id() : get_current_user_id(),
+            ]);
+        }
+    }
+
+    if (!$success || !$name_success || !$source_success) {
         if ($should_log) {
             error_log('[peracrm] peracrm_handle_save_client_profile end post_id=' . $client_id . ' success=0');
         }
@@ -2572,6 +2612,7 @@ function peracrm_admin_activity_label($event_type)
         'account_visit' => 'Visited account',
         'enquiry' => 'Submitted enquiry',
         'registration' => 'Website registration',
+        'source_changed' => 'Source changed',
     ];
 
     if (isset($labels[$event_type])) {
