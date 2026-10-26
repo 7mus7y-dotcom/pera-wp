@@ -213,7 +213,7 @@ final class PeraCRM_Sending_Budget
             $operator=$code==='provider_rejected' || $row['breaker']==='operator';
             self::db($wpdb->query($wpdb->prepare('UPDATE '.$this->table('accounts')
                 .' SET breaker=%s,cooldown_until=%d,breaker_version=breaker_version+1,last_clock=%d WHERE scope_hash=%s AND '.$guard,
-                $operator?'operator':'throttle',max((int)$row['cooldown_until'],$now+60),$now,$this->scope)));
+                $operator?'operator':'throttle',$code==='provider_rate_limit'?max((int)$row['cooldown_until'],$now+60):(int)$row['cooldown_until'],$now,$this->scope)));
             $this->audit($code,0,$now,$guard);
         });
     }
@@ -247,7 +247,8 @@ final class PeraCRM_Sending_Budget
             $this->quota($row,$now);
             if ($version<1 || (int)$row['breaker_version']!==$version || $row['breaker']!=='operator') { throw new PeraCRM_Sending_Budget_Error('budget_breaker'); }
             self::db($wpdb->query($wpdb->prepare('UPDATE '.$this->table('accounts')
-                ." SET breaker='closed',cooldown_until=0,breaker_version=breaker_version+1,last_clock=%d WHERE scope_hash=%s AND ".$guard,$now,$this->scope)));
+                ." SET breaker=%s,breaker_version=breaker_version+1,last_clock=%d WHERE scope_hash=%s AND ".$guard,
+                $now<=(int)$row['cooldown_until']?'throttle':'closed',$now,$this->scope)));
             $this->audit('operator_recovery',$actor,$now,$guard);
         });
     }

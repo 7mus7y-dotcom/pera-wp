@@ -315,6 +315,7 @@ is no manual release API. Investigate stranded capacity without deleting rows,
 changing owners or inventing non-acceptance. Recovery of an operator breaker cannot
 resolve uncertain attempts, grant send authority or bypass any failed readiness.
 A throttle cooldown may expire automatically, but it never resets usage or resends.
+Operator recovery preserves an active cooldown from a newer throttle signal.
 
 Persist breaker signals before recipient writes. If signal persistence fails, stop
 that worker and investigate storage; the prerequisite does not supply an outbox

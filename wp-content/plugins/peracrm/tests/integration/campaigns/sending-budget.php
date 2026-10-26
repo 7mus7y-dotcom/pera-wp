@@ -62,6 +62,12 @@ peracrm_with_target_blog(static function () {
     $wpdb->query('START TRANSACTION'); $wpdb->query('ROLLBACK');
     budget_denied(fn()=>$service->finish($a,budget_key()),'budget_attempt');
     sns_expect(budget_service($pins,$now,$ready)->health()['breaker']==='operator','breaker survives failed recipient result and stale owner');
+    // Authorized recovery clears only the operator latch, preserving a newer
+    // timed throttle signal until its own cooldown expires.
+    $service->signal('provider_rate_limit'); $service->recover($service->health()['breaker_version']);
+    sns_expect($service->health()['breaker']==='throttle' && $service->health()['cooldown_active'],'operator recovery preserves active throttle');
+    budget_denied(fn()=>$service->reserve(budget_key(),budget_key()),'budget_breaker');
+    $now+=61; $service->signal('provider_rejected');
     // Every mutation is rollback/reconnect fenced, including the independent signal audit.
     foreach (['reserve','finish','signal','recover','configure'] as $operation) {
         foreach (['write','commit'] as $point) {

@@ -713,7 +713,7 @@ caller; retry policy and a durable signal outbox for database outages remain fut
 integration work. Timed cooldown authorizes no resend, and pending usage remains.
 Recovery requires the current breaker version, a real authorized actor, fresh quota
 and an injected readiness decision; it audits the actor and changes only breaker
-state. No recovery can release usage or change a recipient outcome.
+state, preserving any active throttling cooldown. No recovery can release usage or change a recipient outcome.
 
 Clocks are explicit trusted injected integer UTC seconds in this prerequisite.
 Inclusive boundaries intentionally reduce capacity. Backward movement below the

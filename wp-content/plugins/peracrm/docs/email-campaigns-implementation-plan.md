@@ -1683,3 +1683,22 @@ Unconditional production dispatch blocking and all disabled factories/gates stay
 Account quotas, shared host ownership, external senders, production clock/restore
 recovery and production acceptance remain explicitly unverified. Local accounting
 alone cannot provide account-wide protection across independent installations.
+
+### Budget acceptance corrections
+
+Initial CI 40294787657 passed both-topology regressions/PHP syntax and prior SQL
+protections, then failed the new budget's final savepoint check. Release the
+guard-initialization savepoint before creating the final validation savepoint.
+Quota input now rejects PHP coercion; health exposes only allowlisted usage and
+active cooldown. New SQL tests add daily-cap concurrency, real-actor audit and
+silent rollback injection at actual mutations. Operator recovery also preserves
+a newer throttle cooldown. Budget tests run after management setup for early
+feedback without skipping existing protection/browser suites. These changes need
+new final-head CI and clean review; no earlier result substitutes for acceptance.
+
+The split follows transaction ownership: durable budget reservations/signals own
+their commits, while worker final authorization owns separate recipient/job locks.
+A later orchestration PR must compose those boundaries with final suppression
+freshness and acceptance/conflict fences, never nest the transactions or treat
+a reservation as send/retry authority. Durable failed-signal recovery/outage
+coordination remains required before this service can protect real dispatch.
