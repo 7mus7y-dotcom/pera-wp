@@ -22,14 +22,16 @@ $prefill_source     = isset( $_GET['source'] ) ? sanitize_key( wp_unslash( (stri
 $prefill_notes      = isset( $_GET['notes'] ) ? sanitize_textarea_field( wp_unslash( (string) $_GET['notes'] ) ) : ''; // phpcs:ignore WordPress.Security.NonceVerification.Recommended
 $cancel_url         = home_url( '/crm/clients/' );
 
-$source_options = array(
-	'meta_ads'     => __( 'Meta Ads', 'peracrm' ),
-	'instagram_dm' => __( 'Instagram DM', 'peracrm' ),
-	'whatsapp_dm'  => __( 'WhatsApp DM', 'peracrm' ),
-	'website'      => __( 'Website', 'peracrm' ),
-	'referral'     => __( 'Referral', 'peracrm' ),
-	'other'        => __( 'Other', 'peracrm' ),
-);
+$source_options = function_exists( 'peracrm_source_options' )
+	? (array) peracrm_source_options()
+	: array(
+		'meta_ads'     => __( 'Meta Ads', 'peracrm' ),
+		'instagram_dm' => __( 'Instagram', 'peracrm' ),
+		'whatsapp_dm'  => __( 'WhatsApp', 'peracrm' ),
+		'website'      => __( 'Website', 'peracrm' ),
+		'referral'     => __( 'Referral', 'peracrm' ),
+		'other'        => __( 'Other', 'peracrm' ),
+	);
 
 if ( ! isset( $source_options[ $prefill_source ] ) ) {
 	$prefill_source = 'website';
