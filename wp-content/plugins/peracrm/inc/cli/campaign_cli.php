@@ -14,7 +14,10 @@ function peracrm_campaign_cli($operation, $args, $assoc)
         $format=$assoc['format'] ?? 'json';
         if (!in_array($format,['json','text'],true)) { throw new InvalidArgumentException(); }
         $service=new PeraCRM_Campaign_Operations();
-        if ($operation==='status' || $operation==='health') {
+        if ($operation==='readiness') {
+            $data=peracrm_campaign_readiness_service()->assess();
+            $exit=4; // Dispatch is unconditionally blocked; never advertise production readiness.
+        } elseif ($operation==='status' || $operation==='health') {
             $data=$service->health();
             if (!$data['queue_ready'] || $data['scheduler_state']==='blocked' || array_diff($data['diagnostics'],['dispatch_disabled'])) { $exit=4; }
             elseif (!$data['dispatch_enabled']) { $exit=2; }
@@ -68,6 +71,6 @@ function peracrm_campaign_cli($operation, $args, $assoc)
     WP_CLI::line(($format ?? 'json')==='text' ? 'PeraCRM campaigns: '.wp_json_encode($data) : wp_json_encode($data,JSON_PRETTY_PRINT));
     if ($exit) { WP_CLI::halt($exit); }
 }
-foreach (['status','health','due','event-health','event-redrive','suppression-health','suppression-sync','budget-health','budget-recover','fixture-run','fixture-recover'] as $operation) {
+foreach (['readiness','status','health','due','event-health','event-redrive','suppression-health','suppression-sync','budget-health','budget-recover','fixture-run','fixture-recover'] as $operation) {
     WP_CLI::add_command('peracrm campaigns '.$operation, static function ($args,$assoc) use ($operation) { peracrm_campaign_cli($operation,$args,$assoc); });
 }

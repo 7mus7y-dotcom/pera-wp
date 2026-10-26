@@ -14,8 +14,8 @@ as detailed in the linked history. No phase is complete merely because code exis
 Future PRs must update this active plan and distinguish repository checks from
 external verification. Preserve historical evidence and decisions in the history.
 
-**Current task:** integrate Phase 5 worker budgets, circuit breakers, durable
-submission latches and exact-scope fresh suppression preflight. See the final section.
+**Current task:** bounded consolidated readiness service and read-only operator
+CLI diagnostics. Administrator view and controlled internal test remain dependent work.
 
 ## Phase 5B — bounded recipient preference editor (2026-10-22)
 
@@ -1881,3 +1881,60 @@ and completion must remain fresh. A real mocked terminal scan with injected
 elapsed time now precedes a successful worker submission in SQL coverage. The
 historical failed-page fixture tracks the latest empty-scan completion, avoiding
 an assumption that two independent scans finish in the same second.
+
+## Phase 5 — consolidated diagnostic readiness (2026-10-26)
+
+Phase 5 remains **in progress**. Baseline #1492 is merged at main
+`95ff6f07a8525ac08d396ba110f953e283a4ded5`. Connector verification confirms
+final head `91cb9d59f35be385c3dccd76905b745361178c4f`, successful workflow
+40345468415 and clean final-head review receipt 6419430271. No applicable
+AGENTS.md exists in searched workspace/repository/ancestor locations. Read the
+provider specification, active plan, runbook and readiness/health/preflight services.
+The original checkout is preserved. Shell fetch failed once at the unavailable
+proxy; connector fetched all 23 baseline files and each blob hash was verified.
+The reconstructed baseline tree is `83e5229325be0f5e8ebdde5bf3edd507c6cde6fe`.
+Publication parents directly to main and excludes reconstruction scaffolding.
+
+`PeraCRM_Campaign_Readiness` supplies one target-blog, fail-closed diagnostic
+snapshot. The guarded read-only `peracrm campaigns readiness` command reports
+schema, supported envelope/renderer contract, unavailable production identity and
+keys, approved CRM configuration, exact-scope suppression freshness, budget/
+breaker/latch capacity and event-processing attention counts. It reuses worker
+suppression validation (without row locks), budget reserve enforcement and existing
+event health; no alternative freshness/quota/breaker policy is introduced. Reads
+never reserve, acquire row/advisory locks, process events, sync or request AWS.
+
+External DNS/DKIM/DMARC, IAM/account quotas, SNS/DLQ monitoring, host-log protections,
+retention, old-mailbox withdrawal policy and restore verification start unverified.
+Evidence uses exact deployment/blog/provider/account/region/configuration-set and
+version pins plus the approved CRM configuration revision/document and event pins.
+Changed pins/configuration produce a different binding, preserving historical
+audit while invalidating current evidence. Deployment configuration version must
+advance for host/key/policy changes that WordPress cannot observe. Evidence expires
+after 30 days and future dates fail closed.
+
+The internal recording API requires current fingerprint, nonce, real administrator
+and campaign/report capabilities; impersonation is denied. It retains only a
+redacted artifact SHA-256, actor, server verification date, binding, prerequisite and
+provenance. Append-only audit and evidence persist together in a non-autoloaded
+target-blog option with compare-and-swap on updates (64 records per binding; no
+automatic deletion). Repository mocks and operator attestations cannot satisfy
+prerequisites requiring actual provider/host observations. This records the
+operator's classification of separately retained evidence; it does not independently
+authenticate a provider/host or turn a recorded claim into production readiness.
+
+Scope is deliberately service/CLI first. **Dependent PR:** plugin-owned administrator
+readiness view and nonce-protected evidence form, CRM-owned assets only, desktop/
+mobile verification; evidence redaction/retention/export workflow; production
+identity/key adapters and separately controlled internal-test path. No UI is added
+or claimed verified here. No production factory, send command, activation switch,
+real credentials/AWS/messages/DNS, cron activation, merge or deployment. Dispatch
+remains unconditionally blocked; endpoint/sync/intake/public collection stay disabled.
+
+Regressions cover missing/stale/future evidence, provenance separation,
+configuration/pin changes, stale nonce, wrong blog, role/impersonation denial,
+privacy-safe output, read-only SQL, shared worker sync/budget denials and CLI
+exit/privacy contracts in both single-site and multisite hosted suites. Local PHP
+is absent and Docker socket access is denied; local packaging, shell/JavaScript
+syntax and whitespace checks pass. Final hosted CI and review must cover the final
+published head; record those results in the PR report, not inferred from mocks.

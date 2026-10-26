@@ -215,6 +215,7 @@ wp eval-file /tests/queue-race.php prepare pause-schedule
 wp eval-file /tests/queue-worker.php
 wp eval-file /tests/prepared-worker.php
 wp eval-file /tests/worker-preflight.php
+wp eval-file /tests/readiness.php
 for integrated_scenario in concurrent crash-before crash-after signal-outage; do
     rm -f /tmp/peracrm-integrated-held /tmp/peracrm-integrated-winner /tmp/peracrm-integrated-loser
     wp eval-file /tests/worker-preflight-race.php prepare "$integrated_scenario"

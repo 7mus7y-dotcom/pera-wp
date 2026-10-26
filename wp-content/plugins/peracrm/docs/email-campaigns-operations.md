@@ -442,3 +442,65 @@ charged attempt number, so resume uses a new attempt; a final charged attempt
 becomes terminal `attempt_limit`. Accounting recovery rejects missing/mismatched
 latches or incoherent evidence before changing recipient state. Never use it to
 consume a never-begun claim: ordinary lease recovery remains the appropriate path.
+
+### Consolidated readiness diagnostics (service/CLI; production disabled)
+
+Run with a real target-blog user holding `peracrm_view_campaign_reports`:
+
+```sh
+wp --path=/path/to/wordpress --url=https://target.example --user=REPORT_USER peracrm campaigns readiness --format=json
+```
+
+The command accepts only `--format=json|text`, denies anonymous/impersonated
+actors and switches to the CRM target blog with caller context restoration.
+Exit 4 means blocked (always, while unconditional dispatch blocking remains);
+exit 3 means rejected arguments/authority/configuration. Shell access is not
+authority. The command cannot send, activate, sync, redrive, reserve or record
+evidence. No production dependency or secret is discovered by diagnostics.
+
+Inspect fixed `checks` and `blockers`: schema unavailable, scope unconfigured,
+configuration unavailable/approval missing, sync scope/storage/stale cursor,
+budget quota/clock/pending/breaker/exhausted/storage/readiness, event processing
+counts and unverified/stale/insufficient external evidence. Configuration details
+require existing administrative campaign authority; report-only users may see
+configuration unavailable. Missing production identity/signing/encryption factories
+remain unavailable, even if some unrelated credential is configured. Supported
+envelope versions/renderer describe repository contracts, not live deliverability.
+
+No configuration presence proves DNS/DKIM/DMARC alignment, IAM permissions/quota
+headroom, SNS/DLQ monitoring, host-log protections, retention, old-mailbox withdrawal
+policy or restore correctness. Those checks start explicitly unverified. A future
+administrator form will call the internal evidence API with a nonce bound to the
+displayed current configuration fingerprint. The API requires `manage_options`,
+campaign management and report capabilities and denies impersonation. Evidence
+and its audit are one append-only, non-autoloaded target-blog option; concurrent
+updates use compare-and-swap and conflicts require a fresh read. At 64 entries per
+binding recording fails closed; there is no automatic audit pruning/reset.
+
+Record only a SHA-256 of an independently retained redacted artifact, the
+prerequisite and provenance. Never pass credentials, bearer URLs, mailboxes or raw
+message bodies. Actor and verification date come from the authenticated session
+and trusted server clock. Repository/mock validation remains distinguishable from
+operator attestation and actual provider/host observation. The API records an
+operator's claim about evidence, not independent remote verification. DNS/IAM/
+monitoring require provider observations; host logging/restore require host
+observations; retention/old-mailbox policy require operator attestations.
+
+Evidence binds deployment/blog/provider/account/region/configuration-set/version,
+the CRM configuration revision/document and event pins. Any changed binding
+invalidates its applicability, while preserving history; dates at least 30 days old
+are stale and future dates are unverified. **Advance configuration_version after
+any relevant deployment, host, secret/key, DNS/IAM, monitoring, retention, mailbox
+policy or restore change**; such external changes cannot be discovered from local
+configuration. Do not reuse a previous version after rollback or restore. Recheck
+the affected evidence; this conservative binding invalidates all prerequisites.
+
+Local sync/capacity/event observations are snapshots under separate SELECTs and
+can change immediately. They are never a worker permit. The worker still repeats
+its own transaction/lease/consent/identity/scope/quota/sync/breaker/latch fences.
+Output exposes only fixed codes/counts, scope/configuration fingerprints and actor/
+UTC dates for recorded evidence. Protect host/PHP/SQL/APM logs independently.
+Passing tests, recorded attestations and local observations never set
+`production_ready` or enable dispatch. The administrator UI, artifact-retention
+workflow and controlled internal test remain dependent work. No desktop/mobile
+view has been added or verified in this service/CLI PR.
