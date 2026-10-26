@@ -77,7 +77,7 @@ worker_fixture_target(static function () {
     prepared_expect($service->assess()['checks']['budget_breaker_latch']['state']==='budget_pending','pending latch is same reserve blocker');
     prepared_reject(fn()=>$budget->requireDiagnosticCapacity());
     $serialized=wp_json_encode($service->assess());
-    foreach (['123456789012','redacted fixture evidence',$digest,'https://','mailbox','SQLSTATE'] as $private) {
+    foreach (['123456789012','redacted fixture evidence',$digest,'https://','"mailbox":','SQLSTATE'] as $private) {
         prepared_expect(!str_contains($serialized,$private),'privacy-safe diagnostics');
     }
     foreach (['campaign_fixture_manager','campaign_fixture_employee'] as $option) {

@@ -156,7 +156,7 @@ final class PeraCRM_Campaign_Readiness
             }
             try {
                 if (!$this->budget) { throw new RuntimeException(); }
-                foreach ($pins as $key=>$value) { if (($this->budget->scope()[$key]??null)!==$value) { throw new RuntimeException(); } }
+                foreach ($pins as $key=>$value) { if (($this->budget->scope()[$key]??null)!==$value) { throw new PeraCRM_Sending_Budget_Error('budget_scope'); } }
                 $health=$this->budget->health();
                 $out['budget']=['submission_pending'=>(bool)$health['submission_pending'],
                     'quota_fresh'=>(bool)$health['quota_fresh'],'cooldown_active'=>(bool)$health['cooldown_active'],
@@ -188,7 +188,7 @@ final class PeraCRM_Campaign_Readiness
                 ((!empty($events['error']) || array_filter(array_intersect_key($events,array_flip([
                     'pending_processing','failed_processing','waiting_receipts','manual_review_receipts','policy_conflicts',
                     'unmatched_events','conflicting_events']))))?'attention_required':'validated'),'local_observation');
-        } catch (Throwable $e) { $check('event_processing','unavailable','local_observation'); }
+        } catch (Throwable $e) { $check('event_processing',$e->getMessage()==='readiness_scope'?'scope_mismatch':'unavailable','local_observation'); }
         $records=$fingerprint?get_option($this->evidenceKey($fingerprint),[]):[];
         foreach (self::EXTERNAL as $name=>$required) {
             $record=null;
