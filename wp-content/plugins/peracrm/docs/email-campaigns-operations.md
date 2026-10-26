@@ -434,3 +434,11 @@ Independent databases/external senders and backups omitting recent rows remain
 outside local coordination. Keep dispatch disabled during restore and establish
 external readiness separately. No real credentials/messages/AWS requests, cron
 changes, merge or deployment are part of this integration.
+
+
+Final authorization repeats quota/sync clock checks after lock contention; locking
+a fresh row alone cannot prevent expiry. A pause after latch commit keeps its
+charged attempt number, so resume uses a new attempt; a final charged attempt
+becomes terminal `attempt_limit`. Accounting recovery rejects missing/mismatched
+latches or incoherent evidence before changing recipient state. Never use it to
+consume a never-begun claim: ordinary lease recovery remains the appropriate path.

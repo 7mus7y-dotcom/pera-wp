@@ -13,8 +13,8 @@ final class PeraCRM_Sending_Budget_Error extends RuntimeException
 
 /** Internal prerequisite only. No worker, provider, cron or production factory.
  * All users of an account/region must share this target-blog database and owner.
- * Adopting callers reserve, begin before transport, then settle outcome/signals
- * BEFORE recipient persistence. A reservation or latch is never send authority.
+ * Adopting callers reserve/begin before transport, record outcome/signals before
+ * recipient persistence, then settle. A reservation/latch is never send authority.
  */
 final class PeraCRM_Sending_Budget
 {
@@ -60,12 +60,20 @@ final class PeraCRM_Sending_Budget
         $this->transaction(function () use ($attempt,$owner) {
             $this->authorize(); $this->readiness(); $row=$this->row();
             if (!$row) { throw new PeraCRM_Sending_Budget_Error('budget_quota'); }
-            $this->quota($row,$this->now());
             if (!hash_equals($row['pending_attempt'],$attempt) || !hash_equals($row['pending_owner'],$owner)) {
                 throw new PeraCRM_Sending_Budget_Error('budget_attempt');
             }
-            $this->reservation($attempt,$owner);
+            $this->requireRecoverable($this->reservation($attempt,$owner));
+            $this->quota($row,$this->now());
         });
+    }
+    private function requireRecoverable(array $r): void
+    {
+        $staged=(int)$r['outcome_staged'];
+        $valid=$staged===0 && $r['outcome_code']==='' && $r['evidence_hash']==='';
+        $valid=$valid || ($staged===1 && in_array($r['outcome_code'],['provider_accepted','provider_rejected',
+            'provider_rate_limit','submission_unknown','preflight_denied'],true) && preg_match('/\A[a-f0-9]{64}\z/',$r['evidence_hash'])===1);
+        if (!$valid || (int)$r['completed_at']!==0) { throw new PeraCRM_Sending_Budget_Error('budget_attempt'); }
     }
 
     /** Commit immutable classification and account signals before recipient writes.
@@ -104,26 +112,29 @@ final class PeraCRM_Sending_Budget
     public function recoverSubmission(string $attempt,string $owner): void
     {
         self::hashKey($attempt); self::hashKey($owner);
-        $evidence=$this->transaction(function () use ($attempt,$owner) {
-            $this->authorize(); $this->readiness(); $row=$this->row(); $now=$this->now();
+        $this->transaction(function ($guard) use ($attempt,$owner) {
+            global $wpdb;
+            $actor=$this->authorize(); $this->readiness(); $row=$this->row();
             if (!$row) { throw new PeraCRM_Sending_Budget_Error('budget_quota'); }
-            $this->quota($row,$now); $r=$this->reservation($attempt,$owner);
+            $r=$this->reservation($attempt,$owner); $this->requireRecoverable($r);
+            $now=$this->now(); $this->quota($row,$now);
             if (!hash_equals($row['pending_attempt'],$attempt) || !hash_equals($row['pending_owner'],$owner)) {
                 throw new PeraCRM_Sending_Budget_Error('budget_attempt');
             }
-            if ((int)$r['outcome_staged']===1 && (int)$r['completed_at']===0) {
-                return [$r['outcome_code'],$r['evidence_hash']];
-            }
-            if ($r['outcome_code']!=='' || $r['evidence_hash']!=='' || (int)$r['completed_at']!==0) {
-                throw new PeraCRM_Sending_Budget_Error('budget_attempt');
-            }
-            return ['submission_unknown',hash('sha256','worker-lost-outcome-v1|'.$attempt.'|'.$owner)];
+            $code=(int)$r['outcome_staged']===1?$r['outcome_code']:'submission_unknown';
+            $evidence=(int)$r['outcome_staged']===1?$r['evidence_hash']:hash('sha256','worker-lost-outcome-v1|'.$attempt.'|'.$owner);
+            // Recovery always leaves an operator hold, even for known acceptance
+            // whose recipient result failed. No gap permits breaker-only recovery.
+            $this->persistSignal($row,'provider_rejected',$now,$guard);
+            self::db($wpdb->query($wpdb->prepare('UPDATE '.$this->table('reservations')
+                .' SET outcome_code=%s,evidence_hash=%s,completed_at=%d WHERE scope_hash=%s AND attempt_hash=%s AND '.$guard,
+                $code,$evidence,$now,$this->scope,$attempt)));
+            self::db($wpdb->query($wpdb->prepare('UPDATE '.$this->table('accounts')
+                ." SET pending_attempt='',pending_owner='',last_clock=%d WHERE scope_hash=%s AND ".$guard,$now,$this->scope)));
+            $this->audit('submission_recovered',$actor,$now,$guard);
         });
-        // An explicit recovery always retains an operator hold, including known
-        // acceptance whose recipient result could not be committed.
-        $this->signal('provider_rejected');
-        $this->settleSubmission($attempt,$owner,$evidence[0],$evidence[1]);
     }
+
     private static function db($value)
     {
         global $wpdb;

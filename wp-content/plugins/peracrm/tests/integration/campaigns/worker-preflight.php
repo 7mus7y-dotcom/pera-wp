@@ -13,7 +13,8 @@ worker_fixture_target(static function () {
     foreach (['accepted','unknown','transient','rejected','missing','stale','future','running','failed','cursor','pages',
         'wrong-account','wrong-region','wrong-deployment','wrong-blog','budget','breaker','sync-after-prep',
         'sync-after-begin','breaker-after-begin','stale-after-begin','pause-after-begin','pause-final-attempt-after-begin','cancel-after-begin','quota-lock-wait','sync-lock-wait',
-        'signal-failure','result-failure','settle-failure'] as $scenario) {
+        'signal-failure','result-failure','rejected-result-failure','settle-failure',
+        'stage-error-failure','stage-rollback-failure','stage-reconnect-failure','stage-commit-failure'] as $scenario) {
         $job=worker_fixture_reset(1); $w=worker_fixture();
         if ($scenario==='pause-final-attempt-after-begin') {
             $wpdb->query('UPDATE '.peracrm_table('peracrm_fixture_worker_deliveries').' SET attempt_count=3 WHERE job_id='.(int)$job);
@@ -82,15 +83,28 @@ worker_fixture_target(static function () {
             };
             add_filter('query',$filter);
         }
-        if (in_array($scenario,['signal-failure','result-failure','settle-failure'],true)) {
-            if ($scenario==='signal-failure') { $transport->mode='rejected'; }
+        if (str_ends_with($scenario,'failure')) {
+            if (in_array($scenario,['signal-failure','rejected-result-failure'],true) || str_starts_with($scenario,'stage-')) { $transport->mode='rejected'; }
             $transport->during=static function () use ($scenario,&$filter) {
-                $filter=static function ($sql) use ($scenario) {
+                $filter=static function ($sql) use ($scenario,&$filter) {
                     $fail=match($scenario) {
                         'signal-failure'=>str_starts_with($sql,'UPDATE ') && str_contains($sql,'budget_accounts') && str_contains($sql,'breaker='),
-                        'result-failure'=>str_starts_with($sql,'UPDATE ') && str_contains($sql,'fixture_worker_deliveries'),
+                        'result-failure','rejected-result-failure'=>str_starts_with($sql,'UPDATE ') && str_contains($sql,'fixture_worker_deliveries'),
+                        'stage-error-failure','stage-rollback-failure','stage-reconnect-failure'=>str_starts_with($sql,'UPDATE ')
+                            && str_contains($sql,'budget_reservations') && str_contains($sql,'outcome_staged=1'),
+                        'stage-commit-failure'=>$sql==='COMMIT',
                         default=>str_starts_with($sql,'UPDATE ') && str_contains($sql,'budget_reservations') && str_contains($sql,'completed_at='),
                     };
+                    if ($fail && str_starts_with($scenario,'stage-')) {
+                        global $wpdb; remove_filter('query',$filter);
+                        if ($scenario==='stage-rollback-failure') { $wpdb->query('ROLLBACK'); return $sql; }
+                        if ($scenario==='stage-reconnect-failure') {
+                            // Preserve this test's injected clock across the new
+                            // connection; session reset must not invent rollback.
+                            $now=prepared_clock(); $wpdb->close(); $wpdb->db_connect();
+                            $wpdb->query('SET timestamp = '.$now); return $sql;
+                        }
+                    }
                     return $fail?'INVALID_INTEGRATED_SQL':$sql;
                 };
                 add_filter('query',$filter);
@@ -100,7 +114,7 @@ worker_fixture_target(static function () {
         try { $result=$w->submitPrepared($claim,$p,new PeraCRM_Campaign_SES_Mapper(prepared_scope(),$transport,static fn()=>0),$controls); }
         catch (Throwable $e) { $denied=true; }
         finally { if ($filter) { remove_filter('query',$filter); } $wpdb->suppress_errors($quiet); }
-        $sent=in_array($scenario,['accepted','unknown','transient','rejected','signal-failure','result-failure','settle-failure'],true);
+        $sent=in_array($scenario,['accepted','unknown','transient','rejected'],true) || str_ends_with($scenario,'failure');
         prepared_expect($transport->calls===($sent?1:0),'preflight exact transport count '.$scenario);
         if (!$sent) {
             $lifecycle=in_array($scenario,['pause-after-begin','pause-final-attempt-after-begin','cancel-after-begin'],true);
@@ -140,6 +154,7 @@ worker_fixture_target(static function () {
             if (in_array($scenario,['unknown','rejected'],true)) { prepared_expect($budget->health()['breaker']==='operator','operator hold persisted'); }
         } else {
             prepared_expect($denied,'failure propagates '.$scenario);
+            if ($scenario==='rejected-result-failure') { prepared_expect($budget->health()['breaker']==='operator','independent account signal survives actual recipient rollback'); }
             $records=prepared_records($deployment); $before=worker_fixture_rows($job);
             prepared_reject(fn()=>$w->submitPrepared($claim,$p,new PeraCRM_Campaign_SES_Mapper(prepared_scope(),$transport,static fn()=>0),$controls));
             prepared_expect($transport->calls===1,'no resend after failed persistence');
@@ -155,6 +170,20 @@ worker_fixture_target(static function () {
             prepared_expect(prepared_records($deployment)===$records && $transport->calls===1,'recovery preserves immutable bytes and zero resends');
         }
     }
+    // Failed accounting binding checks must not consume a never-submitted claim.
+    $job=worker_fixture_reset(1); $w=worker_fixture(); $claim=$w->claim($job,1)[0];
+    $deployment='unbegun-'.bin2hex(random_bytes(8)); $p=prepared_service($deployment); $controls=prepared_controls();
+    worker_fixture_expire($job); $before=worker_fixture_rows($job);
+    $actor=get_current_user_id(); wp_set_current_user((int)get_option('campaign_fixture_administrator'));
+    prepared_reject(fn()=>$w->recoverPrepared($claim,$p,$controls));
+    prepared_expect(worker_fixture_rows($job)===$before,'no-latch recovery preserves unsubmitted recipient');
+    $w->recover($job); $next=$w->claim($job,1)[0];
+    prepared_expect($next['attempt_key']===$claim['attempt_key'] && $next['owner_token']!==$claim['owner_token'],'ordinary unsubmitted recovery retains fencing');
+    $transport=new PeraCRM_Prepared_Mock($deployment); $mapper=new PeraCRM_Campaign_SES_Mapper(prepared_scope(),$transport,static fn()=>0);
+    prepared_reject(fn()=>$w->submitPrepared($claim,$p,$mapper,$controls));
+    prepared_expect($transport->calls===0 && $w->submitPrepared($next,$p,$mapper,$controls)['state']==='accepted'
+        && $transport->calls===1,'stale owner denied and new unsubmitted owner safely submits');
+    wp_set_current_user($actor);
     prepared_expect(!peracrm_campaign_queue_dispatch_allowed() && peracrm_sending_budget_service()===null
         && peracrm_ses_suppression_sync_service()===null,'production gates stay disabled');
 });

@@ -1857,3 +1857,19 @@ Remaining: external account quota/headroom and independent sender coordination;
 clock/host ownership/restore protocol; production identities/IAM, monitoring,
 keys/retention and controlled inbox acceptance. Production activation remains
 separate, unverified and unconditionally blocked. No merge or deployment.
+
+
+Review corrections: final quota and sync freshness are revalidated with fresh
+clock readings after all job/mailbox/identity lock waits, while the same rows
+remain locked. SQL regressions advance injected time past each boundary with a
+still-valid worker lease and assert zero transport calls. Recovery validates the
+original pending attempt/owner, reservation and coherent staged evidence before
+recipient mutation. A never-begun claim remains unchanged on rejected accounting
+recovery and can use ordinary fenced lease recovery. Post-latch pause retains the
+charged attempt number; a charged final attempt terminalizes as `attempt_limit`
+instead of stranding held work. Cross-process tests use distinct frozen campaigns
+sharing one account. Actual rejected-result rollback and staging mutation/COMMIT,
+rollback and reconnect faults supplement the latch service fault matrix. Historical
+migration fixtures explicitly cover additive/idempotent v38 and v39 upgrades to
+v40. Earlier CI/reviews are superseded whenever the head changes; the final PR
+report must identify the accepted final commit, both topology jobs and clean review.

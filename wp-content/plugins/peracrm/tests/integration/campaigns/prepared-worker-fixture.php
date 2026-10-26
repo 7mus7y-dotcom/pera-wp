@@ -86,7 +86,7 @@ function prepared_historical_recovery(string $deployment,array $claim): void
         $binding=['blog_id'=>get_current_blog_id(),'subscriber_id'=>(int)$claim['subscriber_id'],
             'mailbox'=>$claim['mailbox'],'token_epoch'=>$expected['token_epoch'],
             'attempt_key'=>$claim['attempt_key'],'snapshot_hash'=>$claim['content_hash']];
-        [$submission]=$store->recoverOutput($binding,$expected,new PeraCRM_CampaignOutputCipher(['e1'=>str_repeat('e',32)],'e1'),static fn()=>prepared_clock());
+        [$submission]=$store->recoverOutput($binding,$expected,new PeraCRM_CampaignOutputCipher(['e1'=>str_repeat('e',32)],'e1'));
         prepared_expect($submission->hash()===$expected['envelope_hash'],'historical exact-byte recovery');
     });
     prepared_expect(worker_fixture_rows((int)$claim['job_id'])===$before && prepared_records($deployment)===$records,
