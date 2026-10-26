@@ -528,7 +528,7 @@ if ( ! function_exists( 'pera_crm_client_view_source_pills' ) ) {
 
 		$is_website = in_array( $source_key, array( 'website', 'website_form' ), true ) || '' === $source_key || false !== strpos( $source_key, 'form' );
 		if ( ! $is_website ) {
-			$pills[] = '' !== $source_key ? ucwords( str_replace( '_', ' ', $source_key ) ) : __( 'Website', 'peracrm' );
+			$pills[] = function_exists( 'peracrm_source_label' ) ? peracrm_source_label( $source_key ) : ( '' !== $source_key ? ucwords( str_replace( '_', ' ', $source_key ) ) : __( 'Website', 'peracrm' ) );
 			return $pills;
 		}
 
