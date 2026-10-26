@@ -1548,3 +1548,31 @@ follow-up is committed through the connector; new hosted CI supplies execution
 validation of the changed packager/exception regressions. Earlier local test and
 offline-regeneration evidence applies to the initial runtime head only. Final-head
 both-topology CI and clean review are required before reporting acceptance.
+
+### Verified runtime evidence and final documentation follow-up (2026-10-26)
+
+Initial transport head `5a3f6f304423a3d385f49a3257cb6a9c6a2d3e44` passed
+[CI 40271545277](https://github.com/7mus7y-dotcom/pera-wp/actions/runs/40271545277):
+single-site job `121405237789` and multisite job `121405238000` succeeded.
+Both completed logs were inspected: SDK signing/HTTP mocks, V2 immutable replay/
+matching, suppression and response/event races, worker late/unknown/cancellation
+fences and desktop/mobile browser acceptance passed. No PHP warning/fatal/parse
+error, failed assertion or Actions error was found. This initial CI did not by
+itself close the subsequently identified namespace-isolation finding.
+
+Fix head `3f064e1ad81e321d10ec03d9d8c62fb850782a95` adds the corrected
+root-namespace transformation, regenerated private monitoring dependencies/hash
+locks, all-package namespace checks and actual checksum-exception dependency
+loading. Both jobs in CI `40273089126` passed the regression/syntax step,
+including the newly required Python packaging hash/isolation self-checks; full
+SQL/browser completion was still pending when this documentation was written.
+[Clean rereview 6408804949](https://github.com/7mus7y-dotcom/pera-wp/pull/1485#issuecomment-6408804949)
+explicitly covers `3f064e1ad8`; the completed review summary has no findings or
+unresolved findings, and the earlier thread is resolved.
+
+This evidence-only follow-up changes no runtime/test/packaging/workflow bytes.
+Final-head single/multisite CI and clean review of this documentation are still
+required at publication; the PR acceptance record must identify the final SHA
+and completed results. All production construction/dispatch/intake/collection/
+cron gates remain disabled. Mocks and disposable SQL tests do not establish
+real-host, deployment identity/IAM, AWS account, DKIM or inbox readiness.
