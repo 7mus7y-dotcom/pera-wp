@@ -10,7 +10,7 @@ function budget_service(array $pins,int &$now,bool &$ready): PeraCRM_Sending_Bud
 function budget_actor(): void { wp_set_current_user((int)get_option('campaign_fixture_administrator')); }
 function budget_key(): string { return bin2hex(random_bytes(32)); }
 function budget_denied(callable $fn,string $code): void {
-    try { $fn(); } catch (PeraCRM_Sending_Budget_Error $e) { sns_expect($e->getMessage()===$code && $e->getPrevious()===null,'fixed '.$code); return; }
+    try { $fn(); } catch (PeraCRM_Sending_Budget_Error $e) { sns_expect($e->getMessage()===$code && $e->getPrevious()===null,'fixed '.$code.' observed '.$e->getMessage()); return; }
     throw new RuntimeException('Expected budget denial '.$code);
 }
 function budget_snapshot(): string {

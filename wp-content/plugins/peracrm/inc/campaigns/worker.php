@@ -329,6 +329,9 @@ abstract class PeraCRM_Campaign_Worker
             foreach (['mailbox','delivery_key','attempt_key'] as $key) {
                 peracrm_campaign_submission_require($fields[$key]===$row[$key]);
             }
+            // Account/checkpoint locks prevent mutation, not time passing while
+            // waiting for job/mailbox/identity locks. Recheck both trusted clocks.
+            $preflight->requireSubmission($claim); $preflight->requireSync();
             $now=$this->now(); $this->owned($row,$claim,$now,'claimed');
             return $this->write($row,['state'=>'inflight','reason'=>'authorized',
                 'lease_until'=>gmdate('Y-m-d H:i:s',strtotime($now.' UTC')+self::LEASE)]);
@@ -400,9 +403,10 @@ abstract class PeraCRM_Campaign_Worker
     {
         $this->owned($row,$claim,$this->now(),'claimed');
         if (!$this->due($job,$this->now())) {
-            return $this->write($row,['state'=>$job['state']==='cancelled'?'excluded':'held',
+            $exhausted=$budgeted && (int)$row['attempt_count']>=self::ATTEMPTS;
+            return $this->write($row,['state'=>$job['state']==='cancelled'?'excluded':($exhausted?'failed':'held'),
                 'attempt_count'=>$budgeted?(int)$row['attempt_count']:max(0,(int)$row['attempt_count']-1),
-                'reason'=>$job['state']==='cancelled'?'cancelled':'job_gate','owner_token'=>'','lease_until'=>null]);
+                'reason'=>$job['state']==='cancelled'?'cancelled':($exhausted?'attempt_limit':'job_gate'),'owner_token'=>'','lease_until'=>null]);
         }
         if (PeraCRM_Campaign_Acceptance::fenced($this->acceptanceDeployment(),$row['delivery_key'])) {
             return $this->write($row,['state'=>'unknown','reason'=>'acceptance_evidence','owner_token'=>'','lease_until'=>null]);

@@ -5,7 +5,16 @@ worker_fixture_target(static function () use ($mode,$scenario) {
     global $wpdb;
     if ($mode==='prepare') {
         $job=worker_fixture_reset(3); $deployment='integrated-race-'.bin2hex(random_bytes(8));
-        prepared_service($deployment); $claims=worker_fixture()->claim($job,2);
+        prepared_service($deployment);
+        // A distinct real frozen campaign/job shares the SAME account ledger.
+        $other=$wpdb->get_row('SELECT * FROM '.peracrm_table('peracrm_campaign_queue_jobs')
+            ." WHERE state='queued' AND complete=1 AND expected_count=1 ORDER BY id DESC LIMIT 1",ARRAY_A);
+        prepared_expect($other && (int)$other['campaign_id']!==(int)$wpdb->get_var($wpdb->prepare(
+            'SELECT campaign_id FROM '.peracrm_table('peracrm_fixture_worker_jobs').' WHERE id=%d',$job)),'separate campaigns share account');
+        peracrm_campaigns_db_require($wpdb->insert(peracrm_table('peracrm_fixture_worker_jobs'),$other));
+        peracrm_campaigns_db_require($wpdb->query($wpdb->prepare('INSERT INTO '.peracrm_table('peracrm_fixture_worker_deliveries')
+            .' SELECT * FROM '.peracrm_table('peracrm_campaign_deliveries').' WHERE job_id=%d',$other['id'])));
+        $claims=[worker_fixture()->claim($job,1)[0],worker_fixture()->claim((int)$other['id'],1)[0]];
         update_option('integrated_worker_race',compact('job','deployment','claims'),false); return;
     }
     extract(get_option('integrated_worker_race'));
