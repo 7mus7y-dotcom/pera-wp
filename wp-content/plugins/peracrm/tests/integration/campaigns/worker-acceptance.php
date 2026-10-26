@@ -31,7 +31,7 @@ $filter=prepared_interrupt(static function () use ($v,$deployment) {
     }
     acceptance_worker_event($v,$deployment,$request,'Send',899);
 });
-try { $result=$worker->submitPrepared($claim,$preparation,new PeraCRM_Campaign_SES_Mapper(prepared_scope(),$transport)); }
+try { $result=$worker->submitPrepared($claim,$preparation,new PeraCRM_Campaign_SES_Mapper(prepared_scope(),$transport,static fn()=>0),prepared_controls()); }
 finally { remove_filter('query',$filter); }
 prepared_expect($result['state']==='unknown' && $transport->calls===0 && $worker->claim($job,1)===[],'evidence before final authorization makes zero transport calls');
 // Reconnection before either write must not replay an autocommitted worker mutation.
@@ -67,11 +67,11 @@ foreach (['early-event','late-response','late-event','retry-event','cancelled','
             return ['complete'=>true,'authenticated'=>true,'status'=>200,'message_id'=>'worker-accepted'];
         }
     };
-    $mapper=new PeraCRM_Campaign_SES_Mapper(prepared_scope(),$transport);
+    $mapper=new PeraCRM_Campaign_SES_Mapper(prepared_scope(),$transport,static fn()=>0);
     if (in_array($scenario,['late-response','cancelled'],true)) {
-        prepared_reject(fn()=>$worker->submitPrepared($claim,$preparation,$mapper));
+        prepared_reject(fn()=>$worker->submitPrepared($claim,$preparation,$mapper,prepared_controls()));
         $worker->recover($job);
-    } else { $worker->submitPrepared($claim,$preparation,$mapper); }
+    } else { $worker->submitPrepared($claim,$preparation,$mapper,prepared_controls()); }
     if (in_array($scenario,['late-event','retry-event','retry-siblings','retry-conflict','cancelled','Delivery','Bounce','DeliveryDelay'],true)) {
         $before=worker_fixture_rows($job);
         acceptance_worker_event($v,$deployment,$transport->request,in_array($scenario,['Delivery','Bounce','DeliveryDelay'],true)?$scenario:'Send',920+$n,$scenario==='retry-conflict');
@@ -81,7 +81,7 @@ foreach (['early-event','late-response','late-event','retry-event','cancelled','
         worker_fixture_target(static function () use ($claim) { global $wpdb; $wpdb->update(peracrm_table('peracrm_fixture_worker_deliveries'),['next_attempt_at'=>'2000-01-01'],['id'=>$claim['id']]); });
     }
     prepared_expect($worker->claim($job,1)===[] && $transport->calls===1,'accepted/unknown/cancelled retry fenced '.$scenario);
-    prepared_reject(fn()=>$worker->submitPrepared($claim,$preparation,$mapper));
+    prepared_reject(fn()=>$worker->submitPrepared($claim,$preparation,$mapper,prepared_controls()));
     prepared_expect($transport->calls===1,'stale claim never resubmits '.$scenario);
     if ($scenario==='retry-siblings') {
         $next=$worker->claim($job,1);

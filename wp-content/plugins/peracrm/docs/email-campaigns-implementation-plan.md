@@ -14,8 +14,8 @@ as detailed in the linked history. No phase is complete merely because code exis
 Future PRs must update this active plan and distinguish repository checks from
 external verification. Preserve historical evidence and decisions in the history.
 
-**Current task:** bounded Phase 5 durable submission-latch prerequisite. Worker
-integration and sync preflight remain dependent work; see the final section.
+**Current task:** integrate Phase 5 worker budgets, circuit breakers, durable
+submission latches and exact-scope fresh suppression preflight. See the final section.
 
 ## Phase 5B — bounded recipient preference editor (2026-10-22)
 
@@ -1787,3 +1787,97 @@ completion timestamp no earlier than reservation and no later than the trusted
 clock. SQL regressions reject zero/future/pre-reservation completion unchanged.
 New final-head CI and clean review are required for this correction. Earlier
 review/CI results do not establish final acceptance.
+
+
+## Phase 5 — prepared worker accounting and suppression preflight (2026-10-26)
+
+Phase 5 remains **in progress**. The internal `submitPrepared` path now requires
+explicit accounting/preflight dependencies. No production factory, cron, intake,
+public collection, endpoint, sync activation or dispatch gate is enabled.
+
+Baseline #1491 is merged as main `3654b4464778d6e95ead943d0f57563b7dab4630`.
+Connector verified final head `0b96c9c8678c9617bd71fbcdac2cb11c4d2929fc`, passing
+CI 40324857757 and completed final-head review with no findings or unresolved
+findings; the earlier completion-evidence thread is resolved. No applicable
+AGENTS.md was found in the repository/workspace or searched ancestors. Read this
+plan, operations runbook and worker, transport, output, budget, latch and sync
+services. Original checkout is preserved. `/workspace/pera-worker` reconstructs
+18 changed baseline blobs, each verified against GitHub blob hashes; its baseline
+tree exactly matches main `912aa99f989e58b8d1575a009521405a3753a0a2`. Shell fetch
+failed once at the unavailable proxy, then connector access was used. Publication
+must parent directly to main and exclude local reconstruction scaffolding.
+
+The worker requires exact account/region/deployment/blog suppression scope,
+completed checkpoint, null cursor, clear error, valid nonfuture timestamps,
+completion younger than 24 hours and matching durable run page count. Running,
+failed, missing, stale, wrong-scope and inconsistent state deny. The final worker
+transaction locks the checkpoint before mailbox locks, serializing authorization
+with restart/page/failure writes. No suppression-reader request is made.
+
+Preparation persists immutable output outside worker transactions. A fresh boundary
+rechecks identity, consent/suppression, lease/owner/version, due time, pause/cancel
+and acceptance fences. The worker then reserves conservatively and begins the
+account latch through independent commits. Final authorization rechecks budget,
+readiness, quota, breaker and exact pending owner under account locks, followed by
+fresh sync and worker fences. It commits inflight before injected SES transport;
+no database transaction spans transport. Exceptions never trigger transport retry.
+
+Schema v40 adds `outcome_staged` to distinguish committed immutable outcome evidence
+from inconsistent partial legacy rows. `recordSubmission` atomically stores the
+classified outcome/digest and signal/audit while retaining the latch. Acceptance
+correlation and recipient results follow independently. Only successful recipient
+persistence allows final completion and latch release. Failed signal, acceptance,
+result or settlement storage retains durable exclusion; committed signals survive
+recipient rollback. No outcome refunds budget usage, regenerates existing attempt
+output or resends accepted/unknown attempts.
+
+`recoverPrepared` requires worker authority, staff recovery authority, current
+quota/readiness and fresh exact-scope sync. It fences an expired claimed/inflight
+attempt as unknown, or preserves an existing recipient outcome, before accounting
+recovery. Original pending attempt/owner remain required. Stored classification
+is immutable; lost evidence is conservatively unknown. An operator hold is
+committed before latch release. Breaker recovery remains a separate versioned,
+readiness-checked action and cannot erase outcomes or authorize resend. Reserved
+but never begun capacity remains conservative pending usage with no refund API.
+
+Validation added: combined SQL successful/unknown/throttled/rejected submissions;
+missing/stale/future/running/failed/cursor/page and all four wrong-scope denials;
+exhausted budgets/open breaker; failed signal/result/final settlement writes;
+readiness-denied and safe recovery preserving exact output; independent worker
+concurrency and process deaths before/after transport plus signal outage. Existing
+preparation cancellation/withdrawal/stale-owner and acceptance races now use the
+required preflight dependency. Every denied path asserts zero mock transport calls.
+Hosted single-site/multisite CI and clean final-head review are required before
+acceptance. Local PHP is absent and the Docker socket rejects access while the
+daemon is running as UID 1000. Local packaging, shell/JavaScript syntax and diff
+checks pass; no local PHP or SQL pass is claimed. Record final hosted evidence in
+the PR report after execution and review.
+
+Remaining: external account quota/headroom and independent sender coordination;
+clock/host ownership/restore protocol; production identities/IAM, monitoring,
+keys/retention and controlled inbox acceptance. Production activation remains
+separate, unverified and unconditionally blocked. No merge or deployment.
+
+
+Review corrections: final quota and sync freshness are revalidated with fresh
+clock readings after all job/mailbox/identity lock waits, while the same rows
+remain locked. SQL regressions advance injected time past each boundary with a
+still-valid worker lease and assert zero transport calls. Recovery validates the
+original pending attempt/owner, reservation and coherent staged evidence before
+recipient mutation. A never-begun claim remains unchanged on rejected accounting
+recovery and can use ordinary fenced lease recovery. Post-latch pause retains the
+charged attempt number; a charged final attempt terminalizes as `attempt_limit`
+instead of stranding held work. Cross-process tests use distinct frozen campaigns
+sharing one account. Actual rejected-result rollback and staging mutation/COMMIT,
+rollback and reconnect faults supplement the latch service fault matrix. Historical
+migration fixtures explicitly cover additive/idempotent v38 and v39 upgrades to
+v40. Earlier CI/reviews are superseded whenever the head changes; the final PR
+report must identify the accepted final commit, both topology jobs and clean review.
+
+
+Terminal sync timestamps are validated in order, not for equality: `updated_at`
+can precede database completion while mailbox locks delay a page. Both run start
+and completion must remain fresh. A real mocked terminal scan with injected
+elapsed time now precedes a successful worker submission in SQL coverage. The
+historical failed-page fixture tracks the latest empty-scan completion, avoiding
+an assumption that two independent scans finish in the same second.

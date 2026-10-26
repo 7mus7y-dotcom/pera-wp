@@ -2,6 +2,7 @@
 if (!defined('ABSPATH')) { exit; }
 require_once __DIR__.'/acceptance.php';
 require_once __DIR__.'/submission-response.php';
+require_once __DIR__.'/worker-preflight.php';
 
 /** No production adapter, factory, switch, request route or scheduler exists in 4B. */
 function peracrm_campaign_worker_run($limit = 10)
@@ -280,10 +281,11 @@ abstract class PeraCRM_Campaign_Worker
      * Dependencies are explicit: no production factory, scheduler or transport.
      */
     final public function submitPrepared(array $claim, PeraCRM_Campaign_Worker_Preparation $preparation,
-        PeraCRM_Campaign_SES_Mapper $mapper): array
+        PeraCRM_Campaign_SES_Mapper $mapper,PeraCRM_Campaign_Worker_Preflight $preflight): array
     {
         if ($this->acceptanceDeployment()!==$preparation->deployment()) { throw new RuntimeException('worker_deployment_mismatch'); }
-        $inputs=$this->transaction(function () use ($claim,$preparation) {
+        $inputs=$this->transaction(function () use ($claim,$preparation,$preflight) {
+            $preflight->requireScope($preparation); $preflight->requireSync();
             $job=$this->job((int)$claim['job_id']);
             $row=$this->delivery((int)$claim['job_id'],(int)$claim['id']);
             $denied=$this->preparedBoundary($job,$row,$claim);
@@ -302,28 +304,56 @@ abstract class PeraCRM_Campaign_Worker
             $this->authorize();
             return $preparation->prepare($inputs['content'],$inputs['envelope'],$inputs['row']);
         });
-        $authorized=$this->transaction(function () use ($claim,$preparation,$binding,$submission) {
+        $denied=$this->transaction(function () use ($claim,$preparation,$preflight,$binding) {
+            $preflight->requireScope($preparation); $preflight->requireSync();
+            $job=$this->job((int)$claim['job_id']); $row=$this->delivery((int)$claim['job_id'],(int)$claim['id']);
+            $denied=$this->preparedBoundary($job,$row,$claim);
+            if ($denied===null) { $preparation->requireIdentity($binding); }
+            return $denied;
+        });
+        if ($denied!==null) { return $denied; }
+        // Accounting owns independent commits. A crash here strands capacity;
+        // it never permits reuse of the reservation or transport retry.
+        peracrm_with_target_blog(function () use ($preflight,$claim) {
+            $this->authorize(); $preflight->reserve($claim); $preflight->begin($claim);
+        });
+        $authorized=$this->transaction(function () use ($claim,$preparation,$binding,$submission,$preflight) {
+            $preflight->requireSubmission($claim);
+            $preflight->requireScope($preparation); $preflight->requireSync();
             $job=$this->job((int)$claim['job_id']);
             $row=$this->delivery((int)$claim['job_id'],(int)$claim['id']);
-            $denied=$this->preparedBoundary($job,$row,$claim);
+            $denied=$this->preparedBoundary($job,$row,$claim,true);
             if ($denied !== null) { return $denied; }
             $preparation->requireIdentity($binding);
             $fields=$submission->fields();
             foreach (['mailbox','delivery_key','attempt_key'] as $key) {
                 peracrm_campaign_submission_require($fields[$key]===$row[$key]);
             }
+            // Account/checkpoint locks prevent mutation, not time passing while
+            // waiting for job/mailbox/identity locks. Recheck both trusted clocks.
+            $preflight->requireSubmission($claim); $preflight->requireSync();
             $now=$this->now(); $this->owned($row,$claim,$now,'claimed');
             return $this->write($row,['state'=>'inflight','reason'=>'authorized',
                 'lease_until'=>gmdate('Y-m-d H:i:s',strtotime($now.' UTC')+self::LEASE)]);
         });
-        if ($authorized['state']!=='inflight') { return $authorized; }
+        if ($authorized['state']!=='inflight') {
+            $evidence=PeraCRM_Campaign_Worker_Preflight::evidence($submission,['kind'=>'unknown','code'=>'preflight_denied']);
+            peracrm_with_target_blog(function () use ($preflight,$claim,$evidence) {
+                $preflight->record($claim,$evidence); $preflight->settle($claim,$evidence);
+            });
+            return $authorized;
+        }
         $this->authorize();
-        if (!$this->gate()) { return $this->result($authorized,['kind'=>'unknown']); }
+        if (!$this->gate()) { throw new RuntimeException('worker_gate_closed'); }
         $now=peracrm_with_target_blog(function () { return $this->now(); });
         $this->owned($authorized,$authorized,$now,'inflight');
         // Commit above is the submission boundary, exactly as in submit().
         try { $result=$mapper->submit($submission); }
         catch (Throwable $error) { $result=['kind'=>'unknown']; }
+        $evidence=PeraCRM_Campaign_Worker_Preflight::evidence($submission,$result);
+        // Independent immutable classification/signals commit before ANY recipient
+        // result or acceptance write. Failures preserve the durable account latch.
+        peracrm_with_target_blog(fn()=>$preflight->record($authorized,$evidence));
         if (($result['kind']??null)==='accepted') {
             // This independent transaction preserves positive evidence even if the
             // lease expired, cancellation won or a newer worker version exists.
@@ -331,16 +361,52 @@ abstract class PeraCRM_Campaign_Worker
                 $preparation->deployment(),$submission,$result['message_id']));
             if ($decision!=='accepted' || !empty($result['late'])) { $result=['kind'=>'unknown']; }
         }
-        return $this->result($authorized,$result);
+        $settled=$this->result($authorized,$result);
+        peracrm_with_target_blog(fn()=>$preflight->settle($authorized,$evidence));
+        return $settled;
     }
 
-    private function preparedBoundary(array $job,array $row,array $claim): ?array
+    /** Authorized recovery fences an expired inflight attempt as unknown before
+     * accounting recovery. No outcome erasure, output regeneration or resend.
+     */
+    final public function recoverPrepared(array $claim,PeraCRM_Campaign_Worker_Preparation $preparation,
+        PeraCRM_Campaign_Worker_Preflight $preflight): array
+    {
+        peracrm_with_target_blog(function () use ($claim,$preparation,$preflight) {
+            $this->authorize(); $preflight->requireScope($preparation); $preflight->requireRecoveryReadiness($claim);
+        });
+        $row=$this->transaction(function () use ($claim,$preparation,$preflight) {
+            $preflight->requireScope($preparation); $preflight->requireSync();
+            $this->job((int)$claim['job_id']); $row=$this->delivery((int)$claim['job_id'],(int)$claim['id']);
+            if ($row['attempt_key']!==$claim['attempt_key'] || (int)$row['version']<(int)$claim['version']) {
+                throw new RuntimeException('worker_recovery_binding');
+            }
+            if (in_array($row['state'],['claimed','inflight'],true)) {
+                if ($row['owner_token']!==$claim['owner_token'] || $row['lease_until']>$this->now()) {
+                    throw new RuntimeException('worker_recovery_owner');
+                }
+                return $this->write($row,['state'=>'unknown','reason'=>'expired_inflight','owner_token'=>'','lease_until'=>null]);
+            }
+            if ($row['state']==='held' && $row['owner_token']==='') {
+                return $this->write($row,['state'=>'unknown','reason'=>'pending_submission','lease_until'=>null]);
+            }
+            if (!in_array($row['state'],['unknown','accepted','failed','retry','excluded'],true)) {
+                throw new RuntimeException('worker_recovery_state');
+            }
+            return $row;
+        });
+        peracrm_with_target_blog(fn()=>$preflight->recover($claim));
+        return $row;
+    }
+
+    private function preparedBoundary(array $job,array $row,array $claim,bool $budgeted=false): ?array
     {
         $this->owned($row,$claim,$this->now(),'claimed');
         if (!$this->due($job,$this->now())) {
-            return $this->write($row,['state'=>$job['state']==='cancelled'?'excluded':'held',
-                'attempt_count'=>max(0,(int)$row['attempt_count']-1),
-                'reason'=>$job['state']==='cancelled'?'cancelled':'job_gate','owner_token'=>'','lease_until'=>null]);
+            $exhausted=$budgeted && (int)$row['attempt_count']>=self::ATTEMPTS;
+            return $this->write($row,['state'=>$job['state']==='cancelled'?'excluded':($exhausted?'failed':'held'),
+                'attempt_count'=>$budgeted?(int)$row['attempt_count']:max(0,(int)$row['attempt_count']-1),
+                'reason'=>$job['state']==='cancelled'?'cancelled':($exhausted?'attempt_limit':'job_gate'),'owner_token'=>'','lease_until'=>null]);
         }
         if (PeraCRM_Campaign_Acceptance::fenced($this->acceptanceDeployment(),$row['delivery_key'])) {
             return $this->write($row,['state'=>'unknown','reason'=>'acceptance_evidence','owner_token'=>'','lease_until'=>null]);

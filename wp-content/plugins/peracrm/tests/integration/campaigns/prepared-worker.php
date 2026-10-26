@@ -6,7 +6,7 @@ foreach (['accepted','unknown','interrupted','withdraw','cancel','pause','schedu
     $job=worker_fixture_reset(1); $claim=$w->claim($job,1)[0];
     $deployment='prepared-'.$seed.'-'.$scenario;
     $p=prepared_service($deployment); $transport=new PeraCRM_Prepared_Mock($deployment);
-    $mapper=new PeraCRM_Campaign_SES_Mapper(prepared_scope(),$transport);
+    $mapper=new PeraCRM_Campaign_SES_Mapper(prepared_scope(),$transport,static fn()=>0);
     $filter=null; $restore=null;
     try {
         if (in_array($scenario,['withdraw','cancel','pause','schedule','stale','interrupted'],true)) {
@@ -64,29 +64,29 @@ foreach (['accepted','unknown','interrupted','withdraw','cancel','pause','schedu
         if ($scenario==='authority') { $w=new PeraCRM_Fixture_Worker(worker_fixture_authority()); worker_fixture_target(static fn()=>update_option('campaign_worker_fixture_authority',bin2hex(random_bytes(32)),false)); }
         $transport->mode=in_array($scenario,['unknown','transient'],true)?$scenario:'accepted';
         if (in_array($scenario,['interrupted','stale','insert-failure','historical','authority'],true)) {
-            prepared_reject(fn()=>$w->submitPrepared($claim,$p,$mapper));
-        } else { $result=$w->submitPrepared($claim,$p,$mapper); }
+            prepared_reject(fn()=>$w->submitPrepared($claim,$p,$mapper,prepared_controls()));
+        } else { $result=$w->submitPrepared($claim,$p,$mapper,prepared_controls()); }
         if ($filter) { remove_filter('query',$filter); $filter=null; }
         $records=prepared_records($deployment);
         if (in_array($scenario,['accepted','unknown'],true)) {
             prepared_expect($transport->calls===1 && $result['state']===$scenario,'integrated SES outcome '.$scenario);
             prepared_historical_recovery($deployment,$claim);
-            prepared_reject(fn()=>$w->submitPrepared($claim,$p,$mapper));
+            prepared_reject(fn()=>$w->submitPrepared($claim,$p,$mapper,prepared_controls()));
             prepared_expect($w->claim($job)===[] && $transport->calls===1,'accepted/unknown never resubmitted');
         } elseif ($scenario==='transient') {
             prepared_expect($result['state']==='retry' && $transport->calls===1,'proven non-acceptance preserves retry');
             worker_fixture_target(static function () use ($job) { global $wpdb; $wpdb->query('UPDATE '.peracrm_table('peracrm_fixture_worker_deliveries')." SET next_attempt_at='2000-01-01' WHERE job_id=".$job); });
-            $next=$w->claim($job,1)[0]; $transport->mode='accepted';
-            prepared_expect($next['attempt_key']!==$claim['attempt_key'] && $w->submitPrepared($next,$p,$mapper)['state']==='accepted' && $transport->calls===2,'new attempt only after proven rejection');
+            worker_fixture_advance(61); $next=$w->claim($job,1)[0]; $transport->mode='accepted';
+            prepared_expect($next['attempt_key']!==$claim['attempt_key'] && $w->submitPrepared($next,$p,$mapper,prepared_controls())['state']==='accepted' && $transport->calls===2,'new attempt only after proven rejection');
         } elseif ($scenario==='interrupted') {
             prepared_expect($transport->calls===0 && count($records['submission_outputs'])===1,'interruption leaves committed output and zero calls');
-            $result=$w->submitPrepared($claim,prepared_service($deployment,true),$mapper);
+            $result=$w->submitPrepared($claim,prepared_service($deployment,true),$mapper,prepared_controls());
             prepared_expect($result['state']==='accepted' && $transport->calls===1 && prepared_records($deployment)===$records,'exact recovery without issuance inputs or ciphertext replacement');
         } else {
             prepared_expect($transport->calls===0,'zero transport when '.$scenario.' denies authorization');
             if ($scenario==='cancel') {
                 prepared_historical_recovery($deployment,$claim);
-                prepared_reject(fn()=>$w->submitPrepared($claim,$p,$mapper));
+                prepared_reject(fn()=>$w->submitPrepared($claim,$p,$mapper,prepared_controls()));
                 prepared_expect($transport->calls===0,'cancelled historical recovery cannot submit');
             }
             if (in_array($scenario,['insert-failure','historical','membership','authority'],true)) {
@@ -96,7 +96,7 @@ foreach (['accepted','unknown','interrupted','withdraw','cancel','pause','schedu
             if ($scenario==='stale') {
                 $w->recover($job); $next=$w->claim($job,1)[0];
                 prepared_expect($next['attempt_key']===$claim['attempt_key'] && $next['owner_token']!==$claim['owner_token'],'recovery refunds unsubmitted reservation and fences old owner');
-                prepared_expect($w->submitPrepared($next,prepared_service($deployment,true),$mapper)['state']==='accepted'
+                prepared_expect($w->submitPrepared($next,prepared_service($deployment,true),$mapper,prepared_controls())['state']==='accepted'
                     && prepared_records($deployment)===$records,'new lease recovers exact same attempt bytes');
             }
         }

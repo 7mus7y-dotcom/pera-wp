@@ -10,7 +10,7 @@ peracrm_with_target_blog(static function () use ($mode,$scenario) {
         if ($scenario==='retry-fence') {
             $job=worker_fixture_reset(1); $preparation=prepared_service($v['deployment']); $worker=worker_fixture();
             $claim=$worker->claim($job,1)[0]; $transport=new PeraCRM_Prepared_Mock($v['deployment']); $transport->mode='transient';
-            $worker->submitPrepared($claim,$preparation,new PeraCRM_Campaign_SES_Mapper(prepared_scope(),$transport));
+            $worker->submitPrepared($claim,$preparation,new PeraCRM_Campaign_SES_Mapper(prepared_scope(),$transport,static fn()=>0),prepared_controls());
             $store=new PeraCRM_CampaignRecipientPersistence($v['deployment'],get_current_blog_id()); $expected=$store->attempt($claim['attempt_key']);
             $binding=['blog_id'=>get_current_blog_id(),'subscriber_id'=>(int)$claim['subscriber_id'],'mailbox'=>$claim['mailbox'],
                 'token_epoch'=>$expected['token_epoch'],'attempt_key'=>$claim['attempt_key'],'snapshot_hash'=>$claim['content_hash']];

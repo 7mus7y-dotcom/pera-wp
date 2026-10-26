@@ -29,6 +29,7 @@ function peracrm_campaign_event_definitions(): array
         completed_at BIGINT UNSIGNED NOT NULL DEFAULT 0,
         outcome_code VARCHAR(32) NOT NULL DEFAULT '',
         evidence_hash {$hash} NOT NULL DEFAULT '',
+        outcome_staged TINYINT UNSIGNED NOT NULL DEFAULT 0,
         PRIMARY KEY  (scope_hash, attempt_hash),
         KEY rolling_budget (scope_hash, completed_at)",
         'peracrm_campaign_budget_events'=>"id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,

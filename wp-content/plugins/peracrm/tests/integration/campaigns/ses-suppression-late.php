@@ -17,7 +17,7 @@ peracrm_with_target_blog(static function () {
     };
     for ($batch=0;$batch<3;$batch++) {
         $claims=$worker->claim($job,10);
-        foreach ($claims as $claim) { $worker->submitPrepared($claim,$preparation,new PeraCRM_Campaign_SES_Mapper(prepared_scope(),$transport)); }
+        foreach ($claims as $claim) { $worker->submitPrepared($claim,$preparation,new PeraCRM_Campaign_SES_Mapper(prepared_scope(),$transport,static fn()=>0),prepared_controls()); }
         if (!$claims) { break; }
     }
     sns_expect($transport->calls>0 && $worker->completion($job),'actual prepared job submissions complete before late feedback');
