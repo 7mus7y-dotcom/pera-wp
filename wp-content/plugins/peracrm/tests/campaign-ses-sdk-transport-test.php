@@ -9,8 +9,19 @@ $lock = json_decode(file_get_contents($vendor.'dependencies.lock.json'),true,32,
 foreach ($lock['packages'] as $package) {
     foreach ($package['files'] as $file) {
         campaign_expect(hash_file('sha256',$vendor.$file['target']) === $file['packaged_sha256'], 'locked dependency bytes '.$file['target']);
+        if (str_ends_with($file['target'], '.php')) {
+            $source=file_get_contents($vendor.$file['target']);
+            campaign_expect(preg_match('/^namespace ([^;]+);$/m', $source, $namespace) === 1
+                && str_starts_with($namespace[1], 'PeraCRM\\SESDeps\\'), 'all packaged declarations are privately namespaced '.$file['target']);
+        }
     }
 }
+
+$checksumException = new PeraCRM\SESDeps\Aws\Exception\CouldNotCreateChecksumException('sha256');
+campaign_expect($checksumException instanceof PeraCRM\SESDeps\Aws\MonitoringEventsInterface
+    && $checksumException->getMonitoringEvents() === [], 'checksum exception resolves its private monitoring interface and trait');
+campaign_expect(!trait_exists('Aws\\HasMonitoringEventsTrait', false) && !interface_exists('Aws\\MonitoringEventsInterface', false),
+    'loading root monitoring dependencies never publishes public AWS symbols');
 
 [$binding,$output,$submission] = peracrm_test_persistence_values($saved['payload']['content'], 2, 2);
 $fields = $submission->fields(); $scope = $fields['scope'];

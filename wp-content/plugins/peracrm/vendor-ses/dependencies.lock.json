@@ -40,13 +40,13 @@
           "source": "src/HasMonitoringEventsTrait.php",
           "target": "src/Aws/HasMonitoringEventsTrait.php",
           "sha256": "fa52481a049cb048ec87fdb83bbf517527524698e76d8e2073793b0d099ab53a",
-          "packaged_sha256": "fa52481a049cb048ec87fdb83bbf517527524698e76d8e2073793b0d099ab53a"
+          "packaged_sha256": "70a72339cb844407acd3ac88a7e77e7d5b3b9c9ebc1b0a4f744e125b5c319bbe"
         },
         {
           "source": "src/MonitoringEventsInterface.php",
           "target": "src/Aws/MonitoringEventsInterface.php",
           "sha256": "db6884228b1f4c5ca8c780e4b972a693f68cfa88b9bde48e42617166c5190881",
-          "packaged_sha256": "db6884228b1f4c5ca8c780e4b972a693f68cfa88b9bde48e42617166c5190881"
+          "packaged_sha256": "ff6d0930e282fba48441af1091816b12f62f4e0bb20461f2da4528aa1ad912b1"
         },
         {
           "source": "src/Signature/SignatureInterface.php",

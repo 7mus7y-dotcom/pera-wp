@@ -1530,3 +1530,21 @@ remain disabled. No AWS requests, real credentials, emails, account/DNS changes,
 merge or deployment. Deployment identity attestation/refresh, host timing, IAM,
 received DKIM/MIME/inbox acceptance, suppression sync, rate/circuit breakers,
 event/DLQ monitoring, keys/retention/restore and controlled activation remain open.
+
+### Packaging review follow-up (2026-10-26)
+
+Review of runtime head `5a3f6f304423a3d385f49a3257cb6a9c6a2d3e44`
+found that two upstream root `namespace Aws;` declarations escaped prefixing.
+Corrected the shared packaging transformation to handle root declarations as
+well as qualified namespace references; regenerated the monitoring trait/interface
+and their packaged hash locks. New PHP regressions check every packaged namespace
+and load the checksum exception's private monitoring dependencies, asserting that
+no public AWS trait/interface is published. The packager now self-checks root and
+qualified transformations, and the existing CI regression step runs its hash/
+isolation verifier. This extends verification without changing production wiring.
+
+The execution environment became unavailable after initial publication. This
+follow-up is committed through the connector; new hosted CI supplies execution
+validation of the changed packager/exception regressions. Earlier local test and
+offline-regeneration evidence applies to the initial runtime head only. Final-head
+both-topology CI and clean review are required before reporting acceptance.

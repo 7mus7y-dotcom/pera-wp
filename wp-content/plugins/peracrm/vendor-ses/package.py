@@ -18,6 +18,18 @@ mode.add_argument('--verify', action='store_true')
 mode.add_argument('--sources', type=pathlib.Path)
 args = parser.parse_args()
 lock = json.loads((ROOT / 'dependencies.lock.json').read_text())
+def isolate(text):
+    return re.sub(r'(?<![A-Za-z0-9_\\])(?:Aws|AWS|GuzzleHttp|Psr)(?=\\|;)',
+                  lambda match: lock['prefix'] + match.group(), text)
+
+
+for source in ['namespace Aws;', 'use Aws\\Signature\\SignatureV4;',
+               'namespace GuzzleHttp\\Psr7;', 'namespace Psr\\Http\\Message;']:
+    name = source.split(' ', 1)[1]
+    expected_declaration = source.split(' ', 1)[0] + ' ' + lock['prefix'] + name
+    if isolate(source) != expected_declaration:
+        raise SystemExit('Namespace isolation self-test failed')
+
 expected = set()
 for package in lock['packages']:
     for entry in package['files']:
@@ -29,8 +41,7 @@ for package in lock['packages']:
                 raise SystemExit('Upstream digest mismatch: ' + package['name'] + '/' + entry['source'])
             text = source.decode('utf-8')
             if target.suffix == '.php':
-                text = re.sub(r'(?<![A-Za-z0-9_\\])(?:Aws|AWS|GuzzleHttp|Psr)\\',
-                              lambda match: lock['prefix'] + match.group(), text)
+                text = isolate(text)
             text = ''.join(line.rstrip(' \t\r\n') + '\n' for line in text.splitlines())
             packaged = text.encode('utf-8')
             if hashlib.sha256(packaged).hexdigest() != entry['packaged_sha256']:

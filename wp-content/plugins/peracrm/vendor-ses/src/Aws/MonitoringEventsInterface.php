@@ -1,5 +1,5 @@
 <?php
-namespace Aws;
+namespace PeraCRM\SESDeps\Aws;
 
 /**
  * Interface for adding and retrieving client-side monitoring events
