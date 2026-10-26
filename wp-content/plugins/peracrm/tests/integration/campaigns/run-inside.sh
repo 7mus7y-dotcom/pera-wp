@@ -216,6 +216,7 @@ wp eval-file /tests/queue-worker.php
 wp eval-file /tests/prepared-worker.php
 wp eval-file /tests/worker-preflight.php
 wp eval-file /tests/readiness.php
+wp eval-file /tests/readiness-ui.php
 for integrated_scenario in concurrent crash-before crash-after signal-outage; do
     rm -f /tmp/peracrm-integrated-held /tmp/peracrm-integrated-winner /tmp/peracrm-integrated-loser
     wp eval-file /tests/worker-preflight-race.php prepare "$integrated_scenario"
@@ -437,3 +438,8 @@ for sync_scenario in duplicate interrupted; do
     fi
     wp eval-file /tests/suppression-sync-race.php verify "$sync_scenario"
 done
+wp eval-file /tests/readiness-ui-fixture.php
+readiness_exit=0
+wp --user=fixture-admin peracrm campaigns readiness --format=json > /var/www/html/readiness-cli.json || readiness_exit=$?
+[ "$readiness_exit" -eq 4 ]
+echo 'PASS actual administrator readiness CLI snapshot for browser agreement'

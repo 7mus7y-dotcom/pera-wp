@@ -8333,3 +8333,32 @@ body.crm-route #site-header.peracrm-shell-header .peracrm-header-search__status 
 .crm-page .crm-record-whatsapp-link { display: inline-flex; align-items: center; justify-content: center; width: 24px; height: 24px; flex: 0 0 24px; color: #168a58; border-radius: 50%; text-decoration: none; }
 .crm-page .crm-record-whatsapp-link svg { width: 17px; height: 17px; }
 .crm-page .crm-record-whatsapp-link:hover, .crm-page .crm-record-whatsapp-link:focus-visible { color: #0d7143; background: rgba(22, 138, 88, 0.09); }
+
+/* Plugin-owned administrator diagnostics; independent of theme and CRM shell. */
+.peracrm-readiness { max-width: 1100px; color: #172033; font: 16px/1.55 system-ui, sans-serif; }
+.peracrm-readiness *, .peracrm-readiness *::before, .peracrm-readiness *::after { box-sizing: border-box; }
+.peracrm-readiness section { margin: 24px 0; padding: 20px; background: #fff; border: 1px solid #c3cad5; border-radius: 6px; }
+.peracrm-readiness h1, .peracrm-readiness h2, .peracrm-readiness h3 { line-height: 1.3; }
+.peracrm-readiness-banner, .peracrm-readiness [data-readiness-feedback] { padding: 16px; border: 2px solid #805600; background: #fff7df; }
+.peracrm-readiness [role="alert"] { border-left: 4px solid #a31515; padding: 12px; }
+.peracrm-readiness dl { display: grid; grid-template-columns: minmax(130px, 1fr) minmax(0, 2fr); gap: 8px 16px; }
+.peracrm-readiness dt { font-weight: 600; }
+.peracrm-readiness dd { margin: 0; }
+.peracrm-readiness code, .peracrm-readiness dd, .peracrm-readiness li { overflow-wrap: anywhere; }
+.peracrm-readiness-table { overflow-x: auto; }
+.peracrm-readiness table { width: 100%; table-layout: fixed; border-collapse: collapse; }
+.peracrm-readiness th, .peracrm-readiness td { text-align: left; vertical-align: top; padding: 12px; border-bottom: 1px solid #c3cad5; overflow-wrap: anywhere; }
+.peracrm-readiness form { display: grid; gap: 12px; }
+.peracrm-readiness form > label { font-weight: 600; }
+.peracrm-readiness input[type="text"], .peracrm-readiness select { width: 100%; max-width: 100%; min-height: 44px; font: inherit; }
+.peracrm-readiness select { white-space: normal; }
+.peracrm-readiness button { min-height: 44px; justify-self: start; }
+.peracrm-readiness .peracrm-readiness-confirm { display: flex; align-items: flex-start; gap: 10px; }
+.peracrm-readiness .peracrm-readiness-confirm input { flex: 0 0 auto; margin-top: 5px; }
+.peracrm-readiness :focus-visible { outline: 3px solid #0056b3; outline-offset: 3px; }
+.peracrm-readiness li { margin-bottom: 12px; }
+@media (max-width: 600px) {
+  .peracrm-readiness section { padding: 12px; }
+  .peracrm-readiness dl { grid-template-columns: minmax(0, 1fr); }
+  .peracrm-readiness th, .peracrm-readiness td { padding: 8px 4px; font-size: 14px; }
+}

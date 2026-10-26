@@ -14,8 +14,8 @@ as detailed in the linked history. No phase is complete merely because code exis
 Future PRs must update this active plan and distinguish repository checks from
 external verification. Preserve historical evidence and decisions in the history.
 
-**Current task:** bounded consolidated readiness service and read-only operator
-CLI diagnostics. Administrator view and controlled internal test remain dependent work.
+**Current task:** bounded administrator readiness view and audited external-evidence
+form. Controlled internal testing and production activation remain dependent work.
 
 ## Phase 5B — bounded recipient preference editor (2026-10-22)
 
@@ -1938,3 +1938,58 @@ exit/privacy contracts in both single-site and multisite hosted suites. Local PH
 is absent and Docker socket access is denied; local packaging, shell/JavaScript
 syntax and whitespace checks pass. Final hosted CI and review must cover the final
 published head; record those results in the PR report, not inferred from mocks.
+
+
+## Phase 5 — administrator readiness and audited evidence (2026-10-26)
+
+Phase 5 remains **in progress**. #1493 is merged as main
+`a32381b1d48497526576ad8152bcc9e79922873a`. The connector verified its final head
+`48e6f108866071db2616284d27c5ee48e5f7db94`, passing workflow 40371346687 and
+clean final-head review receipt 6423252394 (summary has no findings or unresolved
+findings). No AGENTS.md exists in the searched repository/workspace/ancestors.
+Read this plan, operations runbook and readiness/evidence/permission services.
+The original checkout remains untouched. One shell fetch failed at the proxy;
+connector retrieval reconstructed the 13 changed main blobs with verified Git
+hashes. The baseline tree is `999d68afbe7c142ce98ec905d241394f0eaa7cf9`.
+Publication parents directly to latest main and excludes reconstruction scaffolding.
+
+The plugin-owned WordPress administrator menu “Campaign readiness” displays the
+existing service's scope, checks and blockers without a second readiness policy.
+CRM-owned crm.css/crm.js supply responsive tables, wrapping fingerprints, visible
+focus and server-feedback focus; the native form also works without JavaScript.
+Automated checks, operator attestations, repository mocks and operator-reported
+provider/host observations are explicitly distinguished. No live verification is
+claimed. Current deployment/configuration pins and fingerprints are visible to
+real administrators with campaign management and report authority only. Manager
+and employee access is unchanged; impersonation is denied on reads and writes.
+
+The form calls the existing evidence API: exact prerequisite and provenance,
+redacted artifact SHA-256, nonce bound to displayed configuration fingerprint,
+real actor and server UTC verification date. A required confirmation attests that
+the artifact was verified today for that exact scope. There is no free-text notes,
+URL, upload, actor/date override, fetch or executable content input. Invalid fields
+and unknown parameters reject before storage, and rejected content is not echoed.
+Storage failures cannot show success. Every successful save appends immutable
+audit evidence; conflicts and the 64-record bound fail closed. No audit deletion or
+reset is offered. Administrator-only audit browsing is bounded to ten configuration
+histories per page with a keyset cursor. Configuration changes leave prior evidence
+historical and all current external checks unverified until fresh evidence exists.
+
+Single-site/multisite SQL acceptance covers form validation, missing/invalid nonce,
+role/impersonation denial, stale configuration, wrong scope, real actor/date,
+append-only history and actual failed SQL storage. Browser acceptance covers the
+real administrator page with default theme, CRM asset ownership, desktop/mobile
+layout, labels, keyboard submit, error focus, successful/failed saves, invalidation,
+historical evidence, no-JavaScript saves and agreement with actual CLI checks and
+blockers. Existing service regressions cover expiry, future dates and provenance.
+Local standalone regressions, PHP syntax, dependency packaging, JS/shell syntax
+and whitespace checks are required; hosted CI supplies both complete SQL/browser
+topologies because local Docker socket access is denied. Final-head CI and clean
+review must be recorded in the PR report; a changed head supersedes prior results.
+
+Dispatch remains unconditionally blocked. Endpoint/sync activation/intake/public
+collection remain disabled. No send controls, credentials, real AWS, DNS changes,
+messages, cron activation, merge or deployment. Remaining work: independently
+retained/redacted external artifacts and retention/export workflow, production
+identity/key adapters and genuine provider/host verification. Controlled internal
+testing remains a separate dependent PR; this page cannot authorize it.

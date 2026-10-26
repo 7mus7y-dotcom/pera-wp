@@ -504,3 +504,66 @@ Passing tests, recorded attestations and local observations never set
 `production_ready` or enable dispatch. The administrator UI, artifact-retention
 workflow and controlled internal test remain dependent work. No desktop/mobile
 view has been added or verified in this service/CLI PR.
+
+
+### Administrator campaign readiness and evidence recording
+
+Open **WordPress administration → Campaign readiness** on the CRM target site.
+Only a real administrator with campaign management and report permissions can
+view the page or record evidence. Impersonated sessions, managers and employees
+are denied. The plugin loads its own crm.css/crm.js; no theme assets are required.
+The page uses the same readiness service as `peracrm campaigns readiness`; checks
+and blockers must agree for the same actor, configuration and observation time.
+Separate reads are snapshots and may change immediately.
+
+Review the site/deployment/provider/account/region/configuration-set/version pins
+and configuration fingerprint first. Internal results are automated local checks;
+they are not observations of AWS, DNS or the host. External results remain
+unverified without applicable evidence. “Required evidence recorded” means an
+operator supplied the required type, not independent live authentication. The
+source column distinguishes repository mocks, policy attestations and
+operator-reported provider/host observations. Mocks and attestations cannot meet
+checks requiring observations. No recorded result changes dispatch authority.
+
+To record evidence, independently inspect and redact the artifact, retain it in
+your controlled evidence store, and compute its lowercase SHA-256. Verify it again
+on the recording date. Select the prerequisite and accurate evidence type, enter
+only that 64-character digest, and confirm today's exact-scope verification.
+The server supplies your real actor ID and current UTC date. There is no free-text
+notes/upload/URL field: keep explanatory notes with the separately retained,
+redacted artifact. Never submit credentials, bearer URLs, mailboxes or message
+bodies. The page neither fetches nor executes evidence. DNS/IAM/monitoring require
+provider observations; logging/restore require host observations; retention and
+old-mailbox policy require operator attestations.
+
+A successful response says “Evidence saved to the audit history” and the service
+results refresh. Failed validation, nonce, stale configuration, scope, permission,
+storage conflict or audit-capacity checks show an error with no saved evidence.
+Rejected input is cleared, so secret-like content cannot be echoed. Reload, inspect
+the new pins/fingerprint, reverify the artifact and submit again. Never blindly
+rebind an old artifact to a changed configuration. The form works without
+JavaScript; keyboard users receive visible focus and focused success/error status
+when JavaScript is available. Reloading a POST can append another audit record;
+use the menu URL for a fresh read rather than confirming browser resubmission.
+
+Audit history preserves every accepted record with prerequisite, provenance,
+artifact digest, real actor, UTC date and configuration binding. Up to ten binding
+histories appear per page; “Older configuration histories” uses bounded keyset
+pagination. Each binding permits 64 records. At capacity or on conflict, recording
+fails closed; do not delete/reset options to work around the bound. There is no
+pruning or overwrite control. Historical bindings are explicitly not applicable;
+current-binding records can still be stale or insufficient, as the checks show.
+
+Changing CRM configuration revision or any deployment/provider pins invalidates
+all previous evidence while retaining history. Advance `configuration_version`
+for external host/key/DNS/IAM/monitoring/retention/mailbox/restore changes that local
+code cannot detect, and never reuse an earlier version after rollback or restore.
+Evidence expires after 30 days; future dates are unverified. Missing evidence
+never becomes verified by configuration presence or a successful form save.
+
+Production identities and keys, genuine external verification, artifact retention/
+export operations and controlled internal testing remain dependent work. Dispatch
+is always disabled, endpoint/sync/intake/public collection stay disabled, and no
+send or activation controls exist. Runtime checks remain mandatory. This page
+does not authorize AWS requests, credentials, DNS changes, messages, cron,
+merge or deployment.

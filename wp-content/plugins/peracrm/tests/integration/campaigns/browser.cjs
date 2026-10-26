@@ -119,6 +119,7 @@ const fs = require('fs');
  if((await employeePage.goto(staff)).status()!==403) throw Error('Employee subscriber route accepted');
  const employeePost=await employeeContext.request.post(target+'/wp-admin/admin-post.php',{form:{action:'peracrm_subscribers',operation:'preview'}});
  if(employeePost.status()!==403) throw Error('Employee import handler accepted');
+ await require('./readiness-browser.cjs')({page,target,context,employeeContext,browser});
  const anon=await browser.newContext(); const publicPage=await anon.newPage();
  const url=target+'/?peracrm_email_preferences=1&token='+fixture.token;
  let response=await publicPage.goto(url);
