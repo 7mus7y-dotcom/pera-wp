@@ -214,6 +214,19 @@ done
 wp eval-file /tests/queue-race.php prepare pause-schedule
 wp eval-file /tests/queue-worker.php
 wp eval-file /tests/prepared-worker.php
+wp eval-file /tests/worker-preflight.php
+for integrated_scenario in concurrent crash-before crash-after signal-outage; do
+    rm -f /tmp/peracrm-integrated-held /tmp/peracrm-integrated-winner /tmp/peracrm-integrated-loser
+    wp eval-file /tests/worker-preflight-race.php prepare "$integrated_scenario"
+    wp eval-file /tests/worker-preflight-race.php winner "$integrated_scenario" &
+    integrated_winner_pid=$!
+    wait_for_migration_marker /tmp/peracrm-integrated-held
+    wp eval-file /tests/worker-preflight-race.php loser "$integrated_scenario"
+    integrated_exit=0
+    wait "$integrated_winner_pid" || integrated_exit=$?
+    if [ "$integrated_scenario" = concurrent ]; then [ "$integrated_exit" -eq 0 ]; else [ "$integrated_exit" -eq 79 ]; fi
+    wp eval-file /tests/worker-preflight-race.php verify "$integrated_scenario"
+done
 wp eval-file /tests/sns-receipts.php
 wp eval-file /tests/ses-normalization.php
 for ses_scenario in duplicate logical conflict withdraw; do

@@ -22,13 +22,13 @@ require_once $root.'/inc/campaigns/worker-content.php';
 campaign_expect($reflection->getMethod('submitPrepared')->isFinal(),'integrated submission retains final worker entrypoint');
 $scope=['provider'=>'ses_v2','account_id'=>'123456789012','region'=>'eu-west-1','configuration_set'=>'fixture','configuration_version'=>1];
 $preparation=new PeraCRM_Campaign_Worker_Preparation('fixture',$scope,'https://example.org',
-    ['k1'=>str_repeat('s',32)],'k1',new PeraCRM_CampaignOutputCipher(['e1'=>str_repeat('e',32)],'e1'));
+    ['k1'=>str_repeat('s',32)],'k1',new PeraCRM_CampaignOutputCipher(['e1'=>str_repeat('e',32)],'e1'),static fn()=>1800000000);
 campaign_expect(!str_contains(print_r($preparation,true),str_repeat('s',32)),'worker dependency debug output redacts injected secrets');
 $denied=false;
 try { serialize($preparation); } catch (LogicException $e) { $denied=true; }
 campaign_expect($denied,'worker dependency serialization disabled');
 $reordered=new PeraCRM_Campaign_Worker_Preparation('fixture',array_reverse($scope,true),'https://example.org',[],
-    'missing',new PeraCRM_CampaignOutputCipher(['e1'=>str_repeat('e',32)],'e1'));
+    'missing',new PeraCRM_CampaignOutputCipher(['e1'=>str_repeat('e',32)],'e1'),static fn()=>1800000000);
 campaign_expect($reordered->scope()===$preparation->scope(),'scope order is canonical across recovery dependencies');
 $authorized=0; $denied=false;
 try { PeraCRM_Campaign_Worker_Content::resolve([],[],$scope,static function () use (&$authorized) {

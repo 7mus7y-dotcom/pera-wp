@@ -30,7 +30,7 @@ if ($mode==='verify') {
 }
 if (!in_array($mode,['winner','loser'],true)) { throw new RuntimeException('Invalid prepared race mode.'); }
 global $wpdb; $connection=(int)$wpdb->get_var('SELECT CONNECTION_ID()'); $started=microtime(true);
-$transport=new PeraCRM_Prepared_Mock($deployment); $mapper=new PeraCRM_Campaign_SES_Mapper(prepared_scope(),$transport);
+$transport=new PeraCRM_Prepared_Mock($deployment); $mapper=new PeraCRM_Campaign_SES_Mapper(prepared_scope(),$transport,static fn()=>0);
 if ($mode==='winner') {
     $output=false; $committed=false;
     add_filter('query',static function ($sql) use (&$output,&$committed,$scenario,$connection) {
@@ -63,7 +63,7 @@ try {
             ['source'=>'synthetic_fixture','source_ref'=>'prepared-race','occurred_at'=>'2026-01-01 00:00:00']);
         prepared_expect(!is_wp_error($result),'concurrent withdrawal committed');
     } elseif ($mode==='loser' && $scenario==='cancel') { worker_fixture_state($job,'cancel'); }
-    else { worker_fixture()->submitPrepared($claim,prepared_service($deployment,$mode==='loser' && $scenario==='interrupted'),$mapper); }
+    else { worker_fixture()->submitPrepared($claim,prepared_service($deployment,$mode==='loser' && $scenario==='interrupted'),$mapper,prepared_controls()); }
 } catch (Throwable $error) {
     if ($scenario!=='concurrent') { throw $error; }
 }

@@ -15,6 +15,39 @@ final class PeraCRM_SES_Suppression_Sync
     private string $lock;
     private PeraCRM_SES_Suppression_Reader $reader;
     private static array $active=[];
+    /** Submission preflight, with caller-owned transaction/lock lifetime. A prior
+     * completed run cannot authorize a running or failed successor. No reader call.
+     */
+    public static function requireComplete(array $pins,$now): void
+    {
+        global $wpdb;
+        PeraCRM_SES_Suppression_HTTP::validateScope($pins);
+        if (!is_int($now) || $now<1 || get_current_blog_id()!==$pins['blog_id']
+            || (is_multisite() && (int)peracrm_get_target_blog_id()!==$pins['blog_id'])
+            || !peracrm_campaigns_schema_ready()) { throw new PeraCRM_SES_Sync_Error('sync_scope'); }
+        $ordered=[];
+        foreach (['account_id','region','deployment','blog_id'] as $key) { $ordered[$key]=$pins[$key]; }
+        $scope=hash('sha256',json_encode(['policy'=>'ses-account-deny-v1']+$ordered,JSON_THROW_ON_ERROR));
+        $row=$wpdb->get_row($wpdb->prepare('SELECT * FROM '.peracrm_table('peracrm_campaign_ses_sync')
+            .' WHERE scope_hash=%s FOR UPDATE',$scope),ARRAY_A); self::db(true);
+        if (!$row || $row['state']!=='completed' || $row['cursor_value']!==null || $row['error_code']!==''
+            || preg_match('/\A[a-f0-9]{64}\z/',$row['run_id'])!==1 || (int)$row['pages']<1) {
+            throw new PeraCRM_SES_Sync_Error('sync_storage');
+        }
+        $times=[];
+        foreach (['started_at','updated_at','last_complete_at'] as $key) {
+            $value=$row[$key]; $time=is_string($value)?strtotime($value.' UTC'):false;
+            if ($time===false || gmdate('Y-m-d H:i:s',$time)!==$value || $time>$now) {
+                throw new PeraCRM_SES_Sync_Error('sync_storage');
+            }
+            $times[$key]=$time;
+        }
+        if ($times['started_at']>$times['updated_at'] || $times['updated_at']>$times['last_complete_at']
+            || $now-$times['last_complete_at']>=86400) { throw new PeraCRM_SES_Sync_Error('sync_stale_cursor'); }
+        $pages=(int)self::db($wpdb->get_var($wpdb->prepare('SELECT COUNT(*) FROM '.peracrm_table('peracrm_campaign_ses_sync_pages')
+            .' WHERE scope_hash=%s AND run_id=%s',$scope,$row['run_id'])));
+        if ($pages!==(int)$row['pages']) { throw new PeraCRM_SES_Sync_Error('sync_storage'); }
+    }
     public function __construct(array $pins, PeraCRM_SES_Suppression_Reader $reader)
     {
         if (isset($this->pins)) { throw new PeraCRM_SES_Sync_Error('sync_scope'); }
@@ -95,7 +128,8 @@ final class PeraCRM_SES_Suppression_Sync
             $complete=$row['last_complete_at']??null;
             if ($complete!==null && preg_match('/\A[0-9]{4}-[0-9]{2}-[0-9]{2} [0-9]{2}:[0-9]{2}:[0-9]{2}\z/',$complete)!==1) { throw new PeraCRM_SES_Sync_Error(); }
             return ['state'=>$row['state']??'never','pages'=>(int)($row['pages']??0),'entries'=>(int)($row['entries']??0),
-                'last_complete_at'=>$complete,'stale'=>$complete===null || strtotime($complete.' UTC')<time()-86400,
+                'last_complete_at'=>$complete,'stale'=>($row['state']??null)!=='completed' || ($row['cursor_value']??null)!==null
+                    || !empty($row['error_code']) || $complete===null || strtotime($complete.' UTC')<=time()-86400,
                 'error_code'=>empty($row['error_code'])?null:(new PeraCRM_SES_Sync_Error($row['error_code']))->getMessage()];
         } finally { $wpdb->suppress_errors($quiet); }
     }

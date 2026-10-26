@@ -387,3 +387,50 @@ adopting workers. Databases restored without these rows and independent/external
 senders are outside this protection. Restore/ownership/clock and externally
 verified account allocation remain activation blockers. No production readiness
 or transport/suppression-sync integration is established by this prerequisite.
+
+
+### Integrated prepared-worker boundary (v40; production disabled)
+
+The internal prepared worker now requires an injected preflight/budget service.
+All production factories remain null, dispatch remains unconditionally false and
+existing CLI activation/recovery shortcuts remain unavailable. `budget-health`
+reports pending submissions; `budget-recover` still refuses a pending latch and
+requires the existing actor, version, quota and readiness checks. Neither CLI
+command changes recipient results or grants send authority.
+
+Final authorization requires the configured account/region/deployment/blog sync
+checkpoint to be complete, younger than 24 hours, internally consistent and free
+of running/failed progress, cursor or error. Health is diagnostic, never a permit;
+a previous successful sync cannot authorize a running or failed successor. Worker
+preflight performs SQL reads only, never sync activation or an AWS request.
+
+Reservation and latch commits precede final worker authorization. The final
+transaction rechecks budget/readiness/breaker/pending owner, fresh sync and all
+worker/consent/identity/pause/cancel fences, then commits inflight. Transport runs
+outside every database transaction. A failure after reservation may strand usage;
+never delete/refund it or retry transport following an exception.
+
+Immutable `recordSubmission` evidence and account signals commit before recipient
+acceptance/result persistence. `outcome_staged=1` with zero completion means known
+evidence remains pending, not a finished reservation. Failed recipient results or
+final settlement leave the latch blocking every adopting worker. Do not edit that
+flag or overwrite outcome/digest; partial legacy evidence without the staging
+marker remains inconsistent and fails closed.
+
+After storage recovery, an authorized internal `recoverPrepared` operation requires
+current quota/readiness, fresh exact-scope sync, the original pending attempt/owner
+and a durable recipient fence. Expired claimed/inflight work becomes unknown;
+existing accepted/unknown/failed/excluded/retry results are preserved. Stored
+classification/digest is retained; absent evidence settles as uncertainty. An
+operator hold commits before latch release. Separate breaker-only recovery is
+still mandatory. Recovery never regenerates output, erases outcomes, resets a
+recipient to held or authorizes retry of accepted/unknown work. If a newer owner
+or attempt has replaced the supplied binding, stop and investigate; do not force
+an old owner through the fence. Reserved-but-not-begun capacity has no refund or
+automatic aging recovery.
+
+These guarantees cover adopting workers sharing one target-blog account ledger.
+Independent databases/external senders and backups omitting recent rows remain
+outside local coordination. Keep dispatch disabled during restore and establish
+external readiness separately. No real credentials/messages/AWS requests, cron
+changes, merge or deployment are part of this integration.

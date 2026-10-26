@@ -76,8 +76,9 @@ final class PeraCRM_Campaign_Worker_Content
 final class PeraCRM_Campaign_Worker_Preparation
 {
     private $deployment; private $scope; private $origin; private $keys; private $active; private $cipher;
+    private Closure $clock;
     public function __construct(string $deployment, array $scope, string $origin,
-        #[\SensitiveParameter] array $keys, string $active, PeraCRM_CampaignOutputCipher $cipher)
+        #[\SensitiveParameter] array $keys, string $active, PeraCRM_CampaignOutputCipher $cipher,Closure $clock)
     {
         PeraCRM_CampaignSubmissionV1::validateScope($scope);
         peracrm_campaign_recipient_require(preg_match('/\A[a-zA-Z0-9_-]{1,64}\z/',$deployment)===1);
@@ -87,6 +88,7 @@ final class PeraCRM_Campaign_Worker_Preparation
         $this->keys=[];
         foreach ($keys as $key=>$value) { $this->keys[$key]=$value; }
         $this->active=$active; $this->cipher=$cipher;
+        $this->clock=$clock;
     }
     public function deployment(): string { return $this->deployment; }
     public function scope(): array { return $this->scope; }
@@ -97,7 +99,7 @@ final class PeraCRM_Campaign_Worker_Preparation
         $epoch=$prior ? $prior['token_epoch'] : $store->ensureIdentity((int)$row['subscriber_id'],$row['mailbox']);
         $binding=['blog_id'=>get_current_blog_id(),'subscriber_id'=>(int)$row['subscriber_id'],
             'mailbox'=>$row['mailbox'],'token_epoch'=>$epoch,'attempt_key'=>$row['attempt_key'],'snapshot_hash'=>$row['content_hash']];
-        [$submission]=$store->prepareOutput($content,$envelope,$binding,$this->origin,$this->keys,$this->active,time(),$this->cipher);
+        [$submission]=$store->prepareOutput($content,$envelope,$binding,$this->origin,$this->keys,$this->active,($this->clock)(),$this->cipher);
         return [$submission,$binding];
     }
     /** Caller holds final mailbox locks. A recovered envelope is never authority. */

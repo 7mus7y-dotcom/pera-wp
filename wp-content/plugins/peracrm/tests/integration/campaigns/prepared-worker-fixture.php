@@ -19,9 +19,52 @@ function prepared_scope(): array
 function prepared_service(string $deployment,bool $recovery=false): PeraCRM_Campaign_Worker_Preparation
 {
     worker_fixture_target(static fn()=>update_option('worker_evidence_deployment',$deployment,false));
+    prepared_setup($deployment);
     return new PeraCRM_Campaign_Worker_Preparation($deployment,prepared_scope(),
         $recovery?'invalid-origin':'https://example.org',$recovery?[]:['k1'=>str_repeat('s',32)],
-        $recovery?'missing':'k1',new PeraCRM_CampaignOutputCipher(['e1'=>str_repeat('e',32)],'e1'));
+        $recovery?'missing':'k1',new PeraCRM_CampaignOutputCipher(['e1'=>str_repeat('e',32)],'e1'),static fn()=>prepared_clock());
+}
+function prepared_clock(): int
+{
+    global $wpdb; return (int)$wpdb->get_var('SELECT UNIX_TIMESTAMP()');
+}
+function prepared_pins(string $deployment): array
+{
+    return ['account_id'=>prepared_scope()['account_id'],'region'=>prepared_scope()['region'],
+        'deployment'=>$deployment,'blog_id'=>get_current_blog_id()];
+}
+function prepared_controls(): PeraCRM_Campaign_Worker_Preflight
+{
+    return worker_fixture_target(static function () {
+        $pins=prepared_pins((string)get_option('worker_evidence_deployment'));
+        return new PeraCRM_Campaign_Worker_Preflight(new PeraCRM_Sending_Budget($pins,
+            static fn()=>prepared_clock(),static fn()=>true),static fn()=>prepared_clock());
+    });
+}
+/** Disposable fixture attestation, no HTTP reader or production activation. */
+function prepared_setup(string $deployment): void
+{
+    worker_fixture_target(static function () use ($deployment) {
+        global $wpdb;
+        if (get_option('prepared_preflight_deployment')===$deployment) { return; }
+        $pins=prepared_pins($deployment);
+        $budgetScope=hash('sha256',json_encode(['ses-budget-v1',$pins['account_id'],$pins['region']]));
+        foreach (['accounts','reservations','events','guards'] as $suffix) {
+            $wpdb->delete(peracrm_table('peracrm_campaign_budget_'.$suffix),['scope_hash'=>$budgetScope]);
+        }
+        $now=prepared_clock();
+        $budget=new PeraCRM_Sending_Budget($pins,static fn()=>prepared_clock(),static fn()=>true);
+        $actor=get_current_user_id(); wp_set_current_user((int)get_option('campaign_fixture_administrator'));
+        try { $budget->configure(100,10000,$now,$now+3600); } finally { wp_set_current_user($actor); }
+        $scope=hash('sha256',json_encode(['policy'=>'ses-account-deny-v1']+$pins));
+        $run=bin2hex(random_bytes(32)); $stamp=gmdate('Y-m-d H:i:s',$now);
+        $wpdb->replace(peracrm_table('peracrm_campaign_ses_sync'),['scope_hash'=>$scope,'run_id'=>$run,
+            'state'=>'completed','pages'=>1,'entries'=>0,'error_code'=>'','cursor_value'=>null,
+            'started_at'=>$stamp,'updated_at'=>$stamp,'last_complete_at'=>$stamp]);
+        $wpdb->insert(peracrm_table('peracrm_campaign_ses_sync_pages'),['scope_hash'=>$scope,'run_id'=>$run,
+            'cursor_hash'=>hash('sha256','initial'),'recorded_at'=>$stamp]);
+        update_option('prepared_preflight_deployment',$deployment,false);
+    });
 }
 function prepared_records(string $deployment): array
 {
@@ -43,7 +86,7 @@ function prepared_historical_recovery(string $deployment,array $claim): void
         $binding=['blog_id'=>get_current_blog_id(),'subscriber_id'=>(int)$claim['subscriber_id'],
             'mailbox'=>$claim['mailbox'],'token_epoch'=>$expected['token_epoch'],
             'attempt_key'=>$claim['attempt_key'],'snapshot_hash'=>$claim['content_hash']];
-        [$submission]=$store->recoverOutput($binding,$expected,new PeraCRM_CampaignOutputCipher(['e1'=>str_repeat('e',32)],'e1'));
+        [$submission]=$store->recoverOutput($binding,$expected,new PeraCRM_CampaignOutputCipher(['e1'=>str_repeat('e',32)],'e1'),static fn()=>prepared_clock());
         prepared_expect($submission->hash()===$expected['envelope_hash'],'historical exact-byte recovery');
     });
     prepared_expect(worker_fixture_rows((int)$claim['job_id'])===$before && prepared_records($deployment)===$records,
@@ -52,6 +95,7 @@ function prepared_historical_recovery(string $deployment,array $claim): void
 final class PeraCRM_Prepared_Mock implements PeraCRM_Campaign_SES_Transport
 {
     public int $calls=0; public array $requests=[]; public string $mode='accepted';
+    public ?Closure $during=null;
     private string $deployment;
     public function __construct(string $deployment) { $this->deployment=$deployment; }
     public function send(array $request,array $options): array
@@ -68,8 +112,10 @@ final class PeraCRM_Prepared_Mock implements PeraCRM_Campaign_SES_Transport
             $wpdb->suppress_errors($quiet);
             prepared_expect($outside,'transport outside SQL transaction');
         });
+        if ($this->during) { ($this->during)(); }
         if ($this->mode==='unknown') { throw new RuntimeException('synthetic connection loss'); }
         if ($this->mode==='transient') { return ['complete'=>true,'authenticated'=>true,'status'=>429,'error_code'=>'TooManyRequestsException']; }
+        if ($this->mode==='rejected') { return ['complete'=>true,'authenticated'=>true,'status'=>403,'error_code'=>'AccessDeniedException']; }
         return ['complete'=>true,'authenticated'=>true,'status'=>200,'message_id'=>'synthetic-prepared'];
     }
 }
