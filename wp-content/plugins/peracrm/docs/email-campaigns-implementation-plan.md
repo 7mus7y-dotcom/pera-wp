@@ -14,8 +14,8 @@ as detailed in the linked history. No phase is complete merely because code exis
 Future PRs must update this active plan and distinguish repository checks from
 external verification. Preserve historical evidence and decisions in the history.
 
-**Current task:** bounded Phase 5 immutable unsubscribe envelope prerequisite
-for concrete SES v2 transport. See the final section for scope and acceptance.
+**Current task:** bounded Phase 5 concrete SES v2 signed HTTP transport and mocked
+signature/response acceptance. See the final section for scope and evidence.
 
 ## Phase 5B — bounded recipient preference editor (2026-10-22)
 
@@ -1485,3 +1485,94 @@ resolved. This evidence-only follow-up changes no runtime/test bytes. Final-head
 CI and review of this documentation follow-up remain required at publication;
 PR acceptance records the actual final result. The SDK/HTTP transport remains
 unimplemented dependent work; no production readiness, merge or deployment claim.
+
+## Phase 5 — concrete SES v2 signed transport (2026-10-25)
+
+Phase 5 remains **in progress**. Envelope prerequisite #1484 is merged as
+`cc11b821463720c81f4940a841475a7603c5b6c9`. Connector verified its final head
+`8912b36514684714c2b332e1c25ffcb1cb675abd` passed workflow `40222735280` and
+[clean final-head review](https://github.com/7mus7y-dotcom/pera-wp/pull/1484#issuecomment-6401690713)
+with no findings/unresolved findings. Latest main was that merge. No applicable
+AGENTS.md exists in the repository or searched workspace/ancestors. The original
+clean `/workspace/pera-wp` remains preserved; isolated worktree is
+`/workspace/pera-ses-transport`. Shell Git failed once at the unavailable proxy;
+connector-fetched main files produced exact tree
+`e6d5d1678222657573654b75b317ae142872ec90`. Reconstruction scaffolding must not
+appear in published history, which parents directly to verified main.
+
+Implemented the existing transport boundary with a pinned AWS SDK SigV4 signer
+subset and one native cURL execution. Plugin-local namespace-isolated dependencies,
+licenses, source/packaged digest lock and offline reproduction script are shipped.
+The dependency choice and PHP >=8.2/ext-curl/async-DNS platform are documented in
+[the package README](../vendor-ses/README.md) and provider specification. No full
+SDK credential/discovery/retry stack is loaded. Explicit account-attested identity,
+fixed account/region/endpoint, TLS verification, no redirects/proxy credentials,
+zero retries, 3-second connect cap and preparation-inclusive 20-second budget
+are enforced. Exact V2 stored body/subject/sender/tags/unsubscribe authority are
+mapped without token issuance. Complete decoding preserves unknowns for malformed,
+truncated, timeout, connection-loss and ambiguous/error outcomes. Documented SES
+status/code pairs flow through the unchanged mapper outcome contract.
+
+Local acceptance: **35 standalone suites**, **273 PHP syntax checks**, shell and
+JavaScript syntax and whitespace checks pass. New HTTP mocks verify actual SDK
+signature scope/payload bytes, session/static identities, exact headers/content,
+security/timeouts/no-retry policy, documented error variants, ambiguity, late
+outcomes, redaction and historical V1 denial. Existing worker and event correlation
+suites are reused unchanged. The lock verifier and offline source regeneration
+both pass (37 selected upstream files including licenses). No real HTTP executed.
+Docker is installed/running but local socket access is sandbox-blocked; hosted
+single/multisite CI is required for real SQL/race acceptance. Final-head CI and
+review remain required; the PR acceptance record will identify the reviewed SHA.
+
+No scope split is needed. Production construction remains absent from bootstrap,
+provider factory and dispatch. All production/intake/public collection/cron gates
+remain disabled. No AWS requests, real credentials, emails, account/DNS changes,
+merge or deployment. Deployment identity attestation/refresh, host timing, IAM,
+received DKIM/MIME/inbox acceptance, suppression sync, rate/circuit breakers,
+event/DLQ monitoring, keys/retention/restore and controlled activation remain open.
+
+### Packaging review follow-up (2026-10-26)
+
+Review of runtime head `5a3f6f304423a3d385f49a3257cb6a9c6a2d3e44`
+found that two upstream root `namespace Aws;` declarations escaped prefixing.
+Corrected the shared packaging transformation to handle root declarations as
+well as qualified namespace references; regenerated the monitoring trait/interface
+and their packaged hash locks. New PHP regressions check every packaged namespace
+and load the checksum exception's private monitoring dependencies, asserting that
+no public AWS trait/interface is published. The packager now self-checks root and
+qualified transformations, and the existing CI regression step runs its hash/
+isolation verifier. This extends verification without changing production wiring.
+
+The execution environment became unavailable after initial publication. This
+follow-up is committed through the connector; new hosted CI supplies execution
+validation of the changed packager/exception regressions. Earlier local test and
+offline-regeneration evidence applies to the initial runtime head only. Final-head
+both-topology CI and clean review are required before reporting acceptance.
+
+### Verified runtime evidence and final documentation follow-up (2026-10-26)
+
+Initial transport head `5a3f6f304423a3d385f49a3257cb6a9c6a2d3e44` passed
+[CI 40271545277](https://github.com/7mus7y-dotcom/pera-wp/actions/runs/40271545277):
+single-site job `121405237789` and multisite job `121405238000` succeeded.
+Both completed logs were inspected: SDK signing/HTTP mocks, V2 immutable replay/
+matching, suppression and response/event races, worker late/unknown/cancellation
+fences and desktop/mobile browser acceptance passed. No PHP warning/fatal/parse
+error, failed assertion or Actions error was found. This initial CI did not by
+itself close the subsequently identified namespace-isolation finding.
+
+Fix head `3f064e1ad81e321d10ec03d9d8c62fb850782a95` adds the corrected
+root-namespace transformation, regenerated private monitoring dependencies/hash
+locks, all-package namespace checks and actual checksum-exception dependency
+loading. Both jobs in CI `40273089126` passed the regression/syntax step,
+including the newly required Python packaging hash/isolation self-checks; full
+SQL/browser completion was still pending when this documentation was written.
+[Clean rereview 6408804949](https://github.com/7mus7y-dotcom/pera-wp/pull/1485#issuecomment-6408804949)
+explicitly covers `3f064e1ad8`; the completed review summary has no findings or
+unresolved findings, and the earlier thread is resolved.
+
+This evidence-only follow-up changes no runtime/test/packaging/workflow bytes.
+Final-head single/multisite CI and clean review of this documentation are still
+required at publication; the PR acceptance record must identify the final SHA
+and completed results. All production construction/dispatch/intake/collection/
+cron gates remain disabled. Mocks and disposable SQL tests do not establish
+real-host, deployment identity/IAM, AWS account, DKIM or inbox readiness.

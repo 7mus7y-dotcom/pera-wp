@@ -3,7 +3,8 @@ if (!defined('ABSPATH')) { exit; }
 require_once dirname(__DIR__).'/submission.php';
 
 /**
- * Injected transport contract only. No SDK, HTTP client, credentials or factory.
+ * Injected boundary. The isolated SDK signer/cURL implementation is opt-in only;
+ * no production factory or bootstrap loads/constructs it.
  * Implementer must enforce options across credentials/DNS/TLS/request, perform
  * exactly one SendEmail call using the configured account's signing identity,
  * and assert complete/authenticated only for a full
