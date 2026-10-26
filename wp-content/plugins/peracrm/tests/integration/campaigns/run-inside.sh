@@ -67,6 +67,28 @@ wait "$migration_stale_pid"
 wait "$migration_successor_pid"
 wp eval-file /tests/migration-worker.php verify
 wp eval-file /tests/management.php
+
+wp eval-file /tests/sending-budget.php
+for budget_scenario in overlap daily crash; do
+    rm -f /tmp/peracrm-budget-held /tmp/peracrm-budget-winner /tmp/peracrm-budget-loser
+    wp eval-file /tests/sending-budget-race.php prepare "$budget_scenario"
+    wp eval-file /tests/sending-budget-race.php winner "$budget_scenario" &
+    budget_winner_pid=$!
+    wait_for_migration_marker /tmp/peracrm-budget-held
+    if [ "$budget_scenario" = crash ]; then
+        budget_exit=0
+        wait "$budget_winner_pid" || budget_exit=$?
+        [ "$budget_exit" -eq 78 ]
+        wp eval-file /tests/sending-budget-race.php loser "$budget_scenario"
+    else
+        wp eval-file /tests/sending-budget-race.php loser "$budget_scenario" &
+        budget_loser_pid=$!
+        wait "$budget_winner_pid"
+        wait "$budget_loser_pid"
+    fi
+    wp eval-file /tests/sending-budget-race.php verify "$budget_scenario"
+done
+
 rm -f /tmp/peracrm-phase2-held
 wp eval-file /tests/import-worker.php withdraw &
 phase2_withdraw_pid=$!

@@ -112,6 +112,10 @@ function peracrm_campaigns_assert_schema()
         }
         $engine = $wpdb->get_row($wpdb->prepare('SHOW TABLE STATUS WHERE Name = %s', $table), ARRAY_A);
         $expected_keys = [
+            'peracrm_campaign_budget_guards' => ['scope_hash'],
+            'peracrm_campaign_budget_accounts' => ['scope_hash'],
+            'peracrm_campaign_budget_reservations' => ['scope_hash','attempt_hash'],
+            'peracrm_campaign_budget_events' => ['id'],
             'peracrm_campaign_ses_sync' => ['scope_hash'],
             'peracrm_campaign_ses_sync_pages' => ['scope_hash','run_id','cursor_hash'],
             'peracrm_campaign_ses_sync_facts' => ['scope_hash','fact_hash'],

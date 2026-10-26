@@ -668,3 +668,57 @@ changes only in a successful terminal page transaction. Named locks, connection
 checks and SQL session guards prevent overlap and reconnect replay. Old complete
 times survive failed scans; absence/removal never clears any local denial.
 Production factory is unconditionally null; no cron or automatic invocation exists.
+
+## Durable budget prerequisite (Phase 5, 2026-10-26)
+
+Schema v38 and `PeraCRM_Sending_Budget` provide internal accounting only; worker
+integration and complete/fresh suppression-sync final preflight remain dependent
+work. The production factory is unconditionally null. No transport is constructed
+or invoked by this service. A reservation is not dispatch authority.
+
+The durable key is SES account + region, deliberately excluding campaign,
+configuration set and deployment. All participating workers must use one designated
+CRM target blog/database and one immutable deployment owner. Multisite uses that
+target's tables, not independent budgets per sending blog. Wrong target or a
+conflicting owner fails closed. Independent installations/databases and external
+senders are outside local protection; they need a shared coordinator or an
+exclusive account/region allocation with independently verified headroom.
+
+Explicit authorized configuration attests integer limits (1–1000 per second,
+1–10,000,000 per rolling day) and an observed/expiry interval of at most one hour.
+Missing, zero, invalid, future-observed or expired quota denies reservations.
+Configuration refresh preserves usage, owner and breakers. Limits are conservative
+local allocations, not an AWS quota lookup or verification of available capacity.
+
+Reservations are atomic across independent processes/campaigns on that ledger.
+Attempt and owner are opaque 64-character hashes. Attempt uniqueness persists
+beyond window expiry; duplicate reservations never return reusable authority.
+Pending reservations count forever in both windows. Finish requires the original
+owner and retains the charge for an inclusive 1-second / 86,400-second window
+starting at completion, conservatively covering delays before/during submission.
+There is no refund, reservation deletion, lease-expiry release or resend API.
+Cancellation/preflight denial before reservation costs nothing; after reservation,
+all cancellation, proven non-acceptance, accepted and ambiguous outcomes retain
+the charge. A crash leaves pending usage permanently charged; safety is preferred
+over availability. Repeated finish is idempotent. Accepted/unknown recipient
+outcomes and existing acceptance/conflict fences are never altered by this service.
+
+Trusted callers must persist mapped `provider_rejected` / `provider_rate_limit`
+signals before any recipient write. All authenticated mapped rejections (including
+account/authentication/sending-disabled) conservatively require operator recovery;
+rate-limit signals impose at least 60 seconds of cooldown. Throttle signals extend
+cooldown and cannot downgrade an operator hold. Signal persistence is its own
+transaction, independent of recipient writes. Storage/signal errors must stop the
+caller; retry policy and a durable signal outbox for database outages remain future
+integration work. Timed cooldown authorizes no resend, and pending usage remains.
+Recovery requires the current breaker version, a real authorized actor, fresh quota
+and an injected readiness decision; it audits the actor and changes only breaker
+state, preserving any active throttling cooldown. No recovery can release usage or change a recipient outcome.
+
+Clocks are explicit trusted injected integer UTC seconds in this prerequisite.
+Inclusive boundaries intentionally reduce capacity. Backward movement below the
+last durable clock fails closed; forward jumps can expire windows early and are
+not solved by local accounting. A production clock/host ownership and restore
+protocol must be verified before integration/activation. Database guards, named
+locks and connection checks reject ambient transactions and reconnect replay.
+No claim is made that mock/SQL acceptance verifies AWS quotas or host timing.
