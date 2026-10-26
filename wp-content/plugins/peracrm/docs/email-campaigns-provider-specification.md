@@ -555,3 +555,69 @@ verified TLS, no redirects, one recipient/request, zero automatic retries and
 the total 20-second budget including credential acquisition, DNS and TLS.
 Complete response decoding, ambiguous outcomes, redaction, actual signature
 scope and response/event-race acceptance remain dependent work.
+
+### Concrete SES v2 signed transport (2026-10-25)
+
+`providers/ses-sdk-transport.php` implements the existing injected transport
+contract using the established AWS SDK for PHP 3.402.0 SigV4 signer and native
+cURL. This is a selected signer distribution, not the full SDK SES client.
+[Packaging/platform details](../vendor-ses/README.md), the hash lock, licenses,
+namespace isolation and offline reproduction script ship under plugin ownership.
+No handwritten runtime signing or dependency on webpush's autoloader is added.
+Supported transport PHP is >=8.2 with JSON/hash/PCRE and ext-curl; libcurl must
+have SSL and asynchronous DNS to enforce the connection/total timeout policy.
+
+Construction requires a validated fixed provider/account/region/configuration-set
+scope and explicit `PeraCRM_Campaign_SES_Credentials` (account attestation, access
+key, secret, optional session token and expiry). No default credentials, profiles,
+environment lookup, role/metadata/STS requests or refresh are supported. Account
+ownership is deployment-attested: a key does not cryptographically encode its
+account. A later deployment must verify the actual principal/account and least
+privilege before supplying the identity; this transport makes no identity lookup.
+Expired credentials or credentials with less than a full 20-second lifetime
+fail closed. Long-running processes must receive a fresh explicit object outside
+submission. Objects redact debug output and prohibit serialization/reconstruction;
+SDK array projection is disabled. No diagnostic/log/SQL persistence is added.
+Deployment must also exclude secret/content arguments from APM and exception
+tracing; PHP engine-level argument capture is outside this class's control.
+
+The mapper's existing V2 subject, sender/Reply-To, destination, exact HTML/text,
+four correlation tags and both prepared unsubscribe headers become one JSON
+payload. No recipient-token service, body parse, content rewrite, template or
+managed-list option is used. Historical headerless V1 requests are rejected
+before HTTP. Endpoint is exactly `https://email.REGION.amazonaws.com`, path
+`/v2/email/outbound-emails`, method POST, signing service `ses`, fixed region,
+ordinary SigV4 (no global endpoint, V4a, region or account failover). Per-call
+scope/HTTP/retry options must exactly match the existing mapper contract.
+
+One fresh cURL handle executes once: no retry stack, redirects, HTTP auth, netrc,
+ambient proxy or connection pool. HTTPS-only, peer and hostname TLS verification,
+HTTP/1.1, no verbose logging, connect cap 3 seconds within total 20 seconds.
+Preparation/signing time is subtracted using monotonic elapsed time before HTTP;
+no request starts after budget exhaustion. No credential network acquisition
+can consume hidden time. Native response reads cap headers at 16 KiB and body at
+64 KiB, aborting overflow. A complete authenticated positive response remains
+acceptance evidence after the deadline; a late negative stays unknown. Existing
+worker lease fences and event/response reconciliation are unchanged. Actual host
+process scheduling/watchdog/TLS timing remains a later operational verification.
+
+The decoder requires a completed cURL transfer, one complete final HTTP response
+(optional interim 100), matching status, SES request ID and JSON media type,
+matching Content-Length when present, bounded valid flat JSON, no duplicate keys
+or headers and a valid bounded MessageId for 200. SES errors are read from
+`x-amzn-errortype` (optional colon suffix) and/or `__type` (optional namespace);
+conflicts remain unknown. Only the existing mapper's documented status/code
+pairs prove non-acceptance; unknown authentication errors, 5xx, redirects,
+timeouts/resets, missing/truncated/malformed responses, unsupported shapes,
+overflow and thrown exceptions remain unknown without resend. TLS to the fixed
+endpoint authenticates origin; SES does not separately sign HTTP responses.
+A trusted injected executor provides synthetic raw responses in tests and must
+obey the supplied cURL policy. Provider messages, raw responses and exceptions
+never leave the transport boundary.
+
+The production bootstrap, provider factory, dispatch readiness, public collection,
+SNS activation and cron gates are unchanged and disabled. No live credentials,
+AWS submission, email, provisioning, DNS or deployment is part of acceptance.
+Suppression synchronization, rate/circuit breakers, deployment identity, event/
+DLQ monitoring, key/retention/restore policy and controlled host/inbox/DKIM
+acceptance remain prerequisites to separately authorized activation.

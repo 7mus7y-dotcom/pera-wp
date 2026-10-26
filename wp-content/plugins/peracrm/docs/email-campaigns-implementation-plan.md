@@ -14,8 +14,8 @@ as detailed in the linked history. No phase is complete merely because code exis
 Future PRs must update this active plan and distinguish repository checks from
 external verification. Preserve historical evidence and decisions in the history.
 
-**Current task:** bounded Phase 5 immutable unsubscribe envelope prerequisite
-for concrete SES v2 transport. See the final section for scope and acceptance.
+**Current task:** bounded Phase 5 concrete SES v2 signed HTTP transport and mocked
+signature/response acceptance. See the final section for scope and evidence.
 
 ## Phase 5B — bounded recipient preference editor (2026-10-22)
 
@@ -1485,3 +1485,48 @@ resolved. This evidence-only follow-up changes no runtime/test bytes. Final-head
 CI and review of this documentation follow-up remain required at publication;
 PR acceptance records the actual final result. The SDK/HTTP transport remains
 unimplemented dependent work; no production readiness, merge or deployment claim.
+
+## Phase 5 — concrete SES v2 signed transport (2026-10-25)
+
+Phase 5 remains **in progress**. Envelope prerequisite #1484 is merged as
+`cc11b821463720c81f4940a841475a7603c5b6c9`. Connector verified its final head
+`8912b36514684714c2b332e1c25ffcb1cb675abd` passed workflow `40222735280` and
+[clean final-head review](https://github.com/7mus7y-dotcom/pera-wp/pull/1484#issuecomment-6401690713)
+with no findings/unresolved findings. Latest main was that merge. No applicable
+AGENTS.md exists in the repository or searched workspace/ancestors. The original
+clean `/workspace/pera-wp` remains preserved; isolated worktree is
+`/workspace/pera-ses-transport`. Shell Git failed once at the unavailable proxy;
+connector-fetched main files produced exact tree
+`e6d5d1678222657573654b75b317ae142872ec90`. Reconstruction scaffolding must not
+appear in published history, which parents directly to verified main.
+
+Implemented the existing transport boundary with a pinned AWS SDK SigV4 signer
+subset and one native cURL execution. Plugin-local namespace-isolated dependencies,
+licenses, source/packaged digest lock and offline reproduction script are shipped.
+The dependency choice and PHP >=8.2/ext-curl/async-DNS platform are documented in
+[the package README](../vendor-ses/README.md) and provider specification. No full
+SDK credential/discovery/retry stack is loaded. Explicit account-attested identity,
+fixed account/region/endpoint, TLS verification, no redirects/proxy credentials,
+zero retries, 3-second connect cap and preparation-inclusive 20-second budget
+are enforced. Exact V2 stored body/subject/sender/tags/unsubscribe authority are
+mapped without token issuance. Complete decoding preserves unknowns for malformed,
+truncated, timeout, connection-loss and ambiguous/error outcomes. Documented SES
+status/code pairs flow through the unchanged mapper outcome contract.
+
+Local acceptance: **35 standalone suites**, **273 PHP syntax checks**, shell and
+JavaScript syntax and whitespace checks pass. New HTTP mocks verify actual SDK
+signature scope/payload bytes, session/static identities, exact headers/content,
+security/timeouts/no-retry policy, documented error variants, ambiguity, late
+outcomes, redaction and historical V1 denial. Existing worker and event correlation
+suites are reused unchanged. The lock verifier and offline source regeneration
+both pass (37 selected upstream files including licenses). No real HTTP executed.
+Docker is installed/running but local socket access is sandbox-blocked; hosted
+single/multisite CI is required for real SQL/race acceptance. Final-head CI and
+review remain required; the PR acceptance record will identify the reviewed SHA.
+
+No scope split is needed. Production construction remains absent from bootstrap,
+provider factory and dispatch. All production/intake/public collection/cron gates
+remain disabled. No AWS requests, real credentials, emails, account/DNS changes,
+merge or deployment. Deployment identity attestation/refresh, host timing, IAM,
+received DKIM/MIME/inbox acceptance, suppression sync, rate/circuit breakers,
+event/DLQ monitoring, keys/retention/restore and controlled activation remain open.

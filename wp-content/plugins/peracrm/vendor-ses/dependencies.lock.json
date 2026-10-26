@@ -1,0 +1,252 @@
+{
+  "format": 1,
+  "prefix": "PeraCRM\\SESDeps\\",
+  "packages": [
+    {
+      "name": "aws/aws-sdk-php",
+      "version": "3.402.0",
+      "files": [
+        {
+          "source": "LICENSE",
+          "target": "licenses/aws/aws-sdk-php/LICENSE",
+          "sha256": "d86082393c045c6ee8fcef26a1680e31c72b2afb07f687ac337325747f341585",
+          "packaged_sha256": "d86082393c045c6ee8fcef26a1680e31c72b2afb07f687ac337325747f341585"
+        },
+        {
+          "source": "NOTICE",
+          "target": "licenses/aws/aws-sdk-php/NOTICE",
+          "sha256": "d0a3df5a5e115541aacefa0ae21e533a4614834f18ebf7b6c010c526c3089b59",
+          "packaged_sha256": "d0a3df5a5e115541aacefa0ae21e533a4614834f18ebf7b6c010c526c3089b59"
+        },
+        {
+          "source": "src/Credentials/CredentialsInterface.php",
+          "target": "src/Aws/Credentials/CredentialsInterface.php",
+          "sha256": "6c33bf3d82cdf1ec4569d63a7980fe397e714495a0e986472d6cc80618710416",
+          "packaged_sha256": "fecf79db093da7dfe5542e235cba9d0cf845d0a1f305d24fa4ac2d7149374ccd"
+        },
+        {
+          "source": "src/Exception/CommonRuntimeException.php",
+          "target": "src/Aws/Exception/CommonRuntimeException.php",
+          "sha256": "9ab2f8f848e4e436ecc66020501f5a80e3f6968dafea8826efef593835f34655",
+          "packaged_sha256": "2c278871e20e1a0c347394c6104ec5d956c8010748ece1d441f3cf0c4a23de4c"
+        },
+        {
+          "source": "src/Exception/CouldNotCreateChecksumException.php",
+          "target": "src/Aws/Exception/CouldNotCreateChecksumException.php",
+          "sha256": "02a5721b0e4170616f5a4a10f640b1f332ef394d614d86ff59d960b3456346df",
+          "packaged_sha256": "2c01576b4710fe2d24cce8c4ce7a2ea7c11b597ca756b289afd9148ee20bc0d7"
+        },
+        {
+          "source": "src/HasMonitoringEventsTrait.php",
+          "target": "src/Aws/HasMonitoringEventsTrait.php",
+          "sha256": "fa52481a049cb048ec87fdb83bbf517527524698e76d8e2073793b0d099ab53a",
+          "packaged_sha256": "fa52481a049cb048ec87fdb83bbf517527524698e76d8e2073793b0d099ab53a"
+        },
+        {
+          "source": "src/MonitoringEventsInterface.php",
+          "target": "src/Aws/MonitoringEventsInterface.php",
+          "sha256": "db6884228b1f4c5ca8c780e4b972a693f68cfa88b9bde48e42617166c5190881",
+          "packaged_sha256": "db6884228b1f4c5ca8c780e4b972a693f68cfa88b9bde48e42617166c5190881"
+        },
+        {
+          "source": "src/Signature/SignatureInterface.php",
+          "target": "src/Aws/Signature/SignatureInterface.php",
+          "sha256": "756f3bedfb526faec233f342ecd4f0f53e40abc4b157612c2c16f83ee4fd7b62",
+          "packaged_sha256": "9f389a6b99e2f9dd310d07b66b1262facb3b9e692deacbb5b070f94083dc6f72"
+        },
+        {
+          "source": "src/Signature/SignatureTrait.php",
+          "target": "src/Aws/Signature/SignatureTrait.php",
+          "sha256": "6842d9ba28c1f7fce5ef06f6a0b8cd4ec7148724a943b32d75f2bae36894f3a0",
+          "packaged_sha256": "a8b0b0c00751ca27825d6be8c2631b24f21f2ba53930c5a0d7bb3923bea2d717"
+        },
+        {
+          "source": "src/Signature/SignatureV4.php",
+          "target": "src/Aws/Signature/SignatureV4.php",
+          "sha256": "b01482ea4b12d45859c7300d595c3b40b7869996c972617af8b81b00e1434a8b",
+          "packaged_sha256": "53211c73ba04c8ee61b6a1aaa613411f8f2f01a9741ff42d246617f24e457cec"
+        }
+      ],
+      "repository": "aws/aws-sdk-php",
+      "ref": "3.402.0"
+    },
+    {
+      "name": "guzzlehttp/psr7",
+      "version": "2.8.0",
+      "files": [
+        {
+          "source": "LICENSE",
+          "target": "licenses/guzzlehttp/psr7/LICENSE",
+          "sha256": "709437fdecfeb9f22f71d0c144eb4d11938b99a7665f650e6f49fb9dcbfcce84",
+          "packaged_sha256": "709437fdecfeb9f22f71d0c144eb4d11938b99a7665f650e6f49fb9dcbfcce84"
+        },
+        {
+          "source": "src/AppendStream.php",
+          "target": "src/GuzzleHttp/Psr7/AppendStream.php",
+          "sha256": "c2cb3d95dad9ca604579487cc6f16a1013ce8fb893cec505de43b4dd5e358e77",
+          "packaged_sha256": "32f694fc191573cda47cae25af8b545c6b48c1b1ef7b48e9df95b895123ce50f"
+        },
+        {
+          "source": "src/BufferStream.php",
+          "target": "src/GuzzleHttp/Psr7/BufferStream.php",
+          "sha256": "713fbd182f66b86a71f29ae331f4b9b014b8798e2df1e5d7acefb6d45c97988d",
+          "packaged_sha256": "e7c10ea82fed4af83946f030e0b5c65cca8be473e0b6de7e4d31923ad885a578"
+        },
+        {
+          "source": "src/CachingStream.php",
+          "target": "src/GuzzleHttp/Psr7/CachingStream.php",
+          "sha256": "a93fbab1ed8a435e6e0026a289f15a12a1a9b3e435507988380c87673a2f8d13",
+          "packaged_sha256": "227eb9a70f74553061f26e20f1675934a0dd000a4a4688ad1778f17022008591"
+        },
+        {
+          "source": "src/Exception/MalformedUriException.php",
+          "target": "src/GuzzleHttp/Psr7/Exception/MalformedUriException.php",
+          "sha256": "68bbfb1b1044c21b8ab0fda0bda047c342287d592e8f3f5252fab30ff92a852a",
+          "packaged_sha256": "9bef644ea87dc6a87f1394ca3e8096d879ec04d7f6ec5be18ae866565c188280"
+        },
+        {
+          "source": "src/FnStream.php",
+          "target": "src/GuzzleHttp/Psr7/FnStream.php",
+          "sha256": "33f3cec2f3532ff20f7a526e145c7d84f04bb0ca80b6eeec51569ecb6a6af690",
+          "packaged_sha256": "cd2dafa44a34f4114b79b760478b16bbfe7108bcb7c88ee26cb352d6a7c0f6b0"
+        },
+        {
+          "source": "src/LimitStream.php",
+          "target": "src/GuzzleHttp/Psr7/LimitStream.php",
+          "sha256": "b0499720a2b46353c454c7e66e24f53915572f5bcec7cd8b6483c018c9a98f82",
+          "packaged_sha256": "541fe691a80bc80fadf715568a4dca5bbd93a9874429e59defddf0bfcc9b833b"
+        },
+        {
+          "source": "src/MessageTrait.php",
+          "target": "src/GuzzleHttp/Psr7/MessageTrait.php",
+          "sha256": "0827e2abd619854d1ed3e00c59db956dc78e9b92704adec839addea64518aa37",
+          "packaged_sha256": "c40699341eff77e2feced6d037992fd004d8d9dd06f1f9a223b6c585aec9d786"
+        },
+        {
+          "source": "src/NoSeekStream.php",
+          "target": "src/GuzzleHttp/Psr7/NoSeekStream.php",
+          "sha256": "d8f3fcfbba6378d0c94b8e00295eb2b873523c255216c4f6bf738bb77eb43483",
+          "packaged_sha256": "bf723771f1c71d7ee3d0a0b36467568881ed2e5f34f07ca9747380eb47c02e11"
+        },
+        {
+          "source": "src/PumpStream.php",
+          "target": "src/GuzzleHttp/Psr7/PumpStream.php",
+          "sha256": "856bd2e160a893442c161a29f8540e698c717cf6538529480649043ab1e2177d",
+          "packaged_sha256": "2f747e5958ff25215453525577ba5ea0b3041f7b3472b14a4ab6c8ee5d0e9692"
+        },
+        {
+          "source": "src/Query.php",
+          "target": "src/GuzzleHttp/Psr7/Query.php",
+          "sha256": "83e4e6598f73983f9d951a9659135008b0ad1f765d4b60ae922f69a9cefc9162",
+          "packaged_sha256": "e95d5b39c69c825ad166964fc3a453a6c01a58e133f2ff938fe2ab290326ed43"
+        },
+        {
+          "source": "src/Request.php",
+          "target": "src/GuzzleHttp/Psr7/Request.php",
+          "sha256": "b6348269914160057adcfe9c7c7d44067308573423005b7e8194dbd439bb7bb3",
+          "packaged_sha256": "d4b31a172866a69db10799008e984966493ecaaef5dc73720cece52ba8407558"
+        },
+        {
+          "source": "src/Response.php",
+          "target": "src/GuzzleHttp/Psr7/Response.php",
+          "sha256": "85f711119e3248a8e7cc6c7a8ea74d02fb2193d0f3c7098015aed29a3376af8f",
+          "packaged_sha256": "e7d0bd3225cbc04f926f8e1410e0ba960b89f96fb4124fccd02481c2d093b4cb"
+        },
+        {
+          "source": "src/Stream.php",
+          "target": "src/GuzzleHttp/Psr7/Stream.php",
+          "sha256": "a15d98e8b94d27c77eed1cd66e2169dd833f87b34ba12d8a8051fa24d1afe0a3",
+          "packaged_sha256": "0b04ad282e97d027ba69f3e04b5f74c7033eefe980064952a0e5abd31a69cf68"
+        },
+        {
+          "source": "src/StreamDecoratorTrait.php",
+          "target": "src/GuzzleHttp/Psr7/StreamDecoratorTrait.php",
+          "sha256": "cd79f502dcc01b7e7e59da38a1255538c1111d30bacb74f9bed0810c62e0b26f",
+          "packaged_sha256": "f7b74cdd259fa47f198a046e2155ab7d7434784d7355b5c6d24af91c1442a422"
+        },
+        {
+          "source": "src/Uri.php",
+          "target": "src/GuzzleHttp/Psr7/Uri.php",
+          "sha256": "739c34b07cf5ecdac7b90a572d1c2360169a4207d15526dd43d69cc7708e4a04",
+          "packaged_sha256": "fcd2da0776bc1ee1ec8c9d4b219da5f60487e60f353c2357e1e5941999256031"
+        },
+        {
+          "source": "src/UriNormalizer.php",
+          "target": "src/GuzzleHttp/Psr7/UriNormalizer.php",
+          "sha256": "f34f87632152243ca2caa76eda861c622ac013f50539e7bb295d612b279f0705",
+          "packaged_sha256": "e6999186bb861cd5251e99c546cafaec53a0ffd252ba8926478445bbaa529e73"
+        },
+        {
+          "source": "src/UriResolver.php",
+          "target": "src/GuzzleHttp/Psr7/UriResolver.php",
+          "sha256": "dda49f8761722b172727edd01a7ef6b21fafeb2456d9ecee6a886dc036254dcc",
+          "packaged_sha256": "3ddfe687aa005979202cde49a76b9c525fea8d437a806b596f0e3570ee10ebb6"
+        },
+        {
+          "source": "src/Utils.php",
+          "target": "src/GuzzleHttp/Psr7/Utils.php",
+          "sha256": "0066e2692f04998b98d90a44e5e58383b1b18c5c3d31f117af4075c4a44faf2d",
+          "packaged_sha256": "3c10ba58062d065bd166d57887dbad45b53e1493b92d3928fa84de0b762597e8"
+        }
+      ],
+      "repository": "guzzle/psr7",
+      "ref": "21dc724a0583619cd1652f673303492272778051"
+    },
+    {
+      "name": "psr/http-message",
+      "version": "2.0",
+      "files": [
+        {
+          "source": "LICENSE",
+          "target": "licenses/psr/http-message/LICENSE",
+          "sha256": "8d36e938943b04ef01994bb148793c971685b746d0ced31da03a97594a47ee62",
+          "packaged_sha256": "578ce9b16705a1566f5bc8270e1243f690202541a5ede8a462fae7314d3ca784"
+        },
+        {
+          "source": "src/MessageInterface.php",
+          "target": "src/Psr/Http/Message/MessageInterface.php",
+          "sha256": "1ef5798924509ccea3ff3e596af4c5b6b63e121f7d0441503310b29cf837b9df",
+          "packaged_sha256": "3dd99654b5db35fa01c670e9d63c1fa9bbb8f215df391dfa77a4a48043c1e13a"
+        },
+        {
+          "source": "src/RequestInterface.php",
+          "target": "src/Psr/Http/Message/RequestInterface.php",
+          "sha256": "3d7531e17a3e704d7bed9f0f2bb37ffc7f1842a2cd39f789ce7e7a4023d434f9",
+          "packaged_sha256": "cf63511154ab50431d708a753864bbb41d9b184dbf74833014d2ad2dff218320"
+        },
+        {
+          "source": "src/ResponseInterface.php",
+          "target": "src/Psr/Http/Message/ResponseInterface.php",
+          "sha256": "1cc32dded30a668714b17688a2be8a0053effb7fabe7655bd4459ecfbc6eeb44",
+          "packaged_sha256": "825e984b8dda474253a980be19853ff1a7c18b106357dd4ad749b7237d336796"
+        },
+        {
+          "source": "src/ServerRequestInterface.php",
+          "target": "src/Psr/Http/Message/ServerRequestInterface.php",
+          "sha256": "43c218d6c4426c7f1d354b20736ec77be924b94e7c1b11786057de6c3f3f66e8",
+          "packaged_sha256": "e190f82d424ee46ce5585743adb273091efbdc07d09ded79ebda3464de137b6d"
+        },
+        {
+          "source": "src/StreamInterface.php",
+          "target": "src/Psr/Http/Message/StreamInterface.php",
+          "sha256": "0a3267552ebbcac5f0cd522dd10d96ad985595fd4f90d8566b449db2e060b385",
+          "packaged_sha256": "6dc0c181d5c29e359e8df39319e2f67d65ac88d41eb03f9f9d9fd20d87623972"
+        },
+        {
+          "source": "src/UploadedFileInterface.php",
+          "target": "src/Psr/Http/Message/UploadedFileInterface.php",
+          "sha256": "2823ae936f8f0030879fe12a507080d4eb91c6a534f57ff38e8f37561d78916c",
+          "packaged_sha256": "25e6180a870af1dd315a6129779bda7f60c71fc375fce490b6f9513d327ba682"
+        },
+        {
+          "source": "src/UriInterface.php",
+          "target": "src/Psr/Http/Message/UriInterface.php",
+          "sha256": "8d96e63fb984db31eaedd858ae60549dcf6332c939d4cc940ca97f1fe6d91d1e",
+          "packaged_sha256": "d8303e68f213a7fbb43e7c285969377ab5c90afc56db11a75df76708acef4c14"
+        }
+      ],
+      "repository": "php-fig/http-message",
+      "ref": "402d35bcb92c70c026d1a6a9883f06b2ead23d71"
+    }
+  ]
+}
