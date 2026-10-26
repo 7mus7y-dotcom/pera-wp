@@ -1800,6 +1800,20 @@ if ( ! function_exists( 'pera_crm_client_action_ajax' ) ) {
 				$data['client_type'] = sanitize_key( wp_unslash( (string) $_POST['peracrm_client_type'] ) );
 			}
 			$ok = function_exists( 'peracrm_client_update_profile' ) ? (bool) peracrm_client_update_profile( $client_id, $data ) : false;
+			$source_result = true;
+			if ( $ok && isset( $_POST['peracrm_source'] ) ) {
+				$source_result = function_exists( 'peracrm_update_client_source' )
+					? peracrm_update_client_source(
+						$client_id,
+						sanitize_key( wp_unslash( (string) $_POST['peracrm_source'] ) ),
+						function_exists( 'peracrm_get_actor_user_id' ) ? peracrm_get_actor_user_id() : get_current_user_id()
+					)
+					: new WP_Error( 'missing_source_handler', __( 'Unable to update client source.', 'peracrm' ) );
+				$ok = ! is_wp_error( $source_result );
+			}
+			if ( is_wp_error( $source_result ) ) {
+				pera_crm_client_action_ajax_json( false, $source_result->get_error_message(), $client_id, 'profile', 400 );
+			}
 			pera_crm_client_action_ajax_json( $ok, $ok ? __( 'Profile saved.', 'peracrm' ) : __( 'Unable to save profile.', 'peracrm' ), $client_id, 'profile', $ok ? 200 : 400 );
 		} elseif ( 'status' === $type ) {
 			check_admin_referer( 'peracrm_save_party_status' );
