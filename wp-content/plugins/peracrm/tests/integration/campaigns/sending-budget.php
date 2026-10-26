@@ -9,6 +9,9 @@ peracrm_with_target_blog(static function () {
     sns_expect(peracrm_maybe_upgrade_schema() && peracrm_maybe_upgrade_schema() && suppress_atomic()===$unchanged,'v38 additive idempotent migration');
     $pins=budget_pins(); $now=1800000000; $ready=true; $service=budget_service($pins,$now,$ready);
     budget_denied(fn()=>$service->reserve(budget_key(),budget_key()),'budget_quota');
+    foreach ([['1',2,$now,$now+3600],[1,0,$now,$now+3600],[1,2,$now+1,$now+3600]] as $quota) {
+        budget_denied(fn()=>$service->configure(...$quota),'budget_quota');
+    }
     $service->configure(1,2,$now,$now+3600); $owner=budget_key(); $attempt=budget_key();
     $service->reserve($attempt,$owner);
     $now+=100; budget_denied(fn()=>$service->reserve(budget_key(),budget_key()),'budget_exhausted');
@@ -34,9 +37,10 @@ peracrm_with_target_blog(static function () {
     budget_denied(fn()=>$service->reserve(budget_key(),budget_key()),'budget_readiness');
     sns_expect(budget_snapshot()===$before,'preflight denial has no charge'); $ready=true;
     $service->signal('provider_rate_limit');
+    sns_expect($service->health()['cooldown_active'],'active throttle health');
     budget_denied(fn()=>$service->reserve(budget_key(),budget_key()),'budget_breaker');
     $now+=60; budget_denied(fn()=>$service->reserve(budget_key(),budget_key()),'budget_breaker');
-    $now++; $a=budget_key(); $service->reserve($a,$owner); $service->finish($a,$owner);
+    $now++; sns_expect(!$service->health()['cooldown_active'],'elapsed cooldown is inspectable'); $a=budget_key(); $service->reserve($a,$owner); $service->finish($a,$owner);
     $service->signal('provider_rejected'); $version=$service->health()['breaker_version'];
     $now+=100; budget_denied(fn()=>$service->reserve(budget_key(),budget_key()),'budget_breaker');
     $service->signal('provider_rate_limit');
@@ -49,6 +53,8 @@ peracrm_with_target_blog(static function () {
     $service->configure(5,10,$now,$now+3600);
     $reservations=suppress_rows('peracrm_campaign_budget_reservations');
     $service->recover($version);
+    $audit=$wpdb->get_row('SELECT * FROM '.peracrm_table('peracrm_campaign_budget_events')." WHERE event_code='operator_recovery' ORDER BY id DESC LIMIT 1",ARRAY_A);
+    sns_expect((int)$audit['actor_user_id']===peracrm_get_actor_user_id(),'recovery audit records real actor');
     sns_expect($service->health()['breaker']==='closed' && suppress_rows('peracrm_campaign_budget_reservations')===$reservations,'authorized recovery never releases usage');
     // A breaker commits before a later recipient write fails; neither recipient
     // rollback nor stale owner can erase it. No real transport is constructed.
@@ -66,7 +72,7 @@ peracrm_with_target_blog(static function () {
                 if ($operation==='recover') { $svc->signal('provider_rejected'); }
                 $old=budget_snapshot(); $fired=false;
                 $filter=static function ($sql) use ($wpdb,$point,$fault,&$fired) {
-                    $target=$point==='commit'?$sql==='COMMIT':((str_starts_with($sql,'INSERT INTO') || str_starts_with($sql,'UPDATE ')) && str_contains($sql,'campaign_budget_') && !str_contains($sql,'budget_guards'));
+                    $target=$point==='commit'?$sql==='COMMIT':((str_starts_with($sql,'INSERT INTO') || str_starts_with($sql,'UPDATE ')) && str_contains($sql,'campaign_budget_') && !str_contains($sql,' (scope_hash,guard_token)'));
                     if (!$fired && $target) { $fired=true; if ($fault==='reconnect') { $wpdb->close(); $wpdb->db_connect(); } elseif ($fault==='rollback') { $wpdb->query('ROLLBACK'); } else { return 'INVALID_BUDGET_FIXTURE_SQL'; } }
                     return $sql;
                 };

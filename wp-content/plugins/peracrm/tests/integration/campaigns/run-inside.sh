@@ -385,7 +385,7 @@ for sync_scenario in duplicate interrupted; do
 done
 
 wp eval-file /tests/sending-budget.php
-for budget_scenario in overlap crash; do
+for budget_scenario in overlap daily crash; do
     rm -f /tmp/peracrm-budget-held /tmp/peracrm-budget-winner /tmp/peracrm-budget-loser
     wp eval-file /tests/sending-budget-race.php prepare "$budget_scenario"
     wp eval-file /tests/sending-budget-race.php winner "$budget_scenario" &

@@ -48,7 +48,7 @@ function peracrm_campaign_cli($operation, $args, $assoc)
             }
             $data=$service->sending_budget($version);
             if (($data['state']??'')==='disabled') { $exit=2; }
-            elseif (empty($data['quota_fresh']) || ($data['breaker']??'closed')!=='closed') { $exit=4; }
+            elseif (empty($data['quota_fresh']) || !empty($data['cooldown_active']) || ($data['breaker']??'closed')==='operator') { $exit=4; }
         } elseif ($operation==='due') {
             $limit=$assoc['limit'] ?? '10';
             if (!is_scalar($limit) || !preg_match('/^(?:[1-9]|1[0-9]|2[0-5])$/D',(string)$limit)) { throw new InvalidArgumentException(); }

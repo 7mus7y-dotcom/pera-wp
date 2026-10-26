@@ -27,7 +27,8 @@ final class PeraCRM_Sending_Budget
     public function __construct(array $pins,Closure $clock,Closure $ready)
     {
         if (isset($this->pins)) { throw new PeraCRM_Sending_Budget_Error('budget_scope'); }
-        PeraCRM_SES_Suppression_HTTP::validateScope($pins);
+        try { PeraCRM_SES_Suppression_HTTP::validateScope($pins); }
+        catch (Throwable $error) { throw new PeraCRM_Sending_Budget_Error('budget_scope'); }
         $this->pins=$pins; $this->clock=$clock; $this->ready=$ready;
         // Deployment/campaign/configuration are deliberately NOT partitions.
         $this->scope=hash('sha256',json_encode(['ses-budget-v1',$pins['account_id'],$pins['region']],JSON_THROW_ON_ERROR));
@@ -102,8 +103,8 @@ final class PeraCRM_Sending_Budget
             self::db($wpdb->query($wpdb->prepare('INSERT INTO '.$this->table('guards')
                 .' (scope_hash,guard_token) SELECT %s,%s WHERE '.$guard
                 .' ON DUPLICATE KEY UPDATE guard_token=VALUES(guard_token)',$this->scope,$token)));
-            self::db($wpdb->query('SAVEPOINT peracrm_budget_guard_check'));
             self::db($wpdb->query('RELEASE SAVEPOINT peracrm_budget_owned_check'));
+            self::db($wpdb->query('SAVEPOINT peracrm_budget_guard_check'));
             $guard.=$wpdb->prepare(' AND EXISTS (SELECT 1 FROM '.$this->table('guards').' budget_guard WHERE budget_guard.scope_hash=%s AND budget_guard.guard_token=%s)',$this->scope,$token);
             $result=$callback($guard);
             self::db($wpdb->query('RELEASE SAVEPOINT peracrm_budget_guard_check'));
@@ -137,9 +138,10 @@ final class PeraCRM_Sending_Budget
         $this->clockCheck($row,$now);
         self::validateQuota((int)$row['per_second'],(int)$row['daily'],(int)$row['observed_at'],(int)$row['expires_at'],$now);
     }
-    public static function validateQuota(int $second,int $daily,int $observed,int $expires,int $now): void
+    public static function validateQuota($second,$daily,$observed,$expires,int $now): void
     {
-        if ($second<1 || $second>1000 || $daily<1 || $daily>10000000 || $observed<1 || $observed>$now
+        if (!is_int($second) || !is_int($daily) || !is_int($observed) || !is_int($expires)
+            || $second<1 || $second>1000 || $daily<1 || $daily>10000000 || $observed<1 || $observed>$now
             || $expires<=$now || $expires<=$observed || $expires-$observed>3600) { throw new PeraCRM_Sending_Budget_Error('budget_quota'); }
     }
     private function audit(string $event,int $actor,int $now,string $guard): void
@@ -149,7 +151,7 @@ final class PeraCRM_Sending_Budget
             .' (scope_hash,event_code,actor_user_id,recorded_at) SELECT %s,%s,%d,%d WHERE '.$guard,$this->scope,$event,$actor,$now)));
     }
     /** Trusted explicit quota attestation. Never clears breakers/history or changes owner. */
-    public function configure(int $second,int $daily,int $observed,int $expires): void
+    public function configure($second,$daily,$observed,$expires): void
     {
         $this->transaction(function ($guard) use ($second,$daily,$observed,$expires) {
             global $wpdb;
@@ -167,6 +169,13 @@ final class PeraCRM_Sending_Budget
     {
         if (preg_match('/\A[a-f0-9]{64}\z/',$value)!==1) { throw new PeraCRM_Sending_Budget_Error('budget_attempt'); }
     }
+    private function usage(int $now): array
+    {
+        global $wpdb;
+        $counts=$wpdb->get_row($wpdb->prepare('SELECT SUM(completed_at=0 OR completed_at>=%d) AS seconds_used,COUNT(*) AS daily_used,SUM(completed_at=0) AS pending FROM '
+            .$this->table('reservations').' WHERE scope_hash=%s AND (completed_at=0 OR completed_at>=%d)',$now-1,$this->scope,$now-86400),ARRAY_A); self::db(true);
+        return ['seconds_used'=>(int)$counts['seconds_used'],'daily_used'=>(int)$counts['daily_used'],'pending'=>(int)$counts['pending']];
+    }
     /** One reservation per globally unique attempt; duplicates never return a permit.
      * Pending reservations count forever in BOTH windows. Completed reservations
      * count from completion, conservatively covering stalls before/during transport.
@@ -182,8 +191,7 @@ final class PeraCRM_Sending_Budget
             $this->quota($row,$now);
             if ($row['breaker']==='operator' || ($row['breaker']==='throttle' && $now<=(int)$row['cooldown_until'])
                 || !in_array($row['breaker'],['closed','throttle'],true)) { throw new PeraCRM_Sending_Budget_Error('budget_breaker'); }
-            $counts=$wpdb->get_row($wpdb->prepare('SELECT SUM(completed_at=0 OR completed_at>=%d) AS seconds_used,COUNT(*) AS daily_used FROM '
-                .$this->table('reservations').' WHERE scope_hash=%s AND (completed_at=0 OR completed_at>=%d)',$now-1,$this->scope,$now-86400),ARRAY_A); self::db(true);
+            $counts=$this->usage($now);
             if ((int)$counts['seconds_used']>=(int)$row['per_second'] || (int)$counts['daily_used']>=(int)$row['daily']) { throw new PeraCRM_Sending_Budget_Error('budget_exhausted'); }
             self::db($wpdb->query($wpdb->prepare('INSERT INTO '.$this->table('reservations')
                 .' (scope_hash,attempt_hash,owner_hash,reserved_at,completed_at) SELECT %s,%s,%s,%d,0 WHERE '.$guard,$this->scope,$attempt,$owner,$now)));
@@ -251,7 +259,9 @@ final class PeraCRM_Sending_Budget
         try {
             $this->context(); $row=$this->row(false); $now=$this->now(); $quota=false;
             if ($row) { try { $this->quota($row,$now); $quota=true; } catch (PeraCRM_Sending_Budget_Error $e) {} }
-            return ['configured'=>$row!==null,'quota_fresh'=>$quota,'breaker'=>$row['breaker']??'unconfigured',
+            if ($row && !in_array($row['breaker'],['closed','operator','throttle'],true)) { throw new PeraCRM_Sending_Budget_Error(); }
+            return ['usage'=>$row?$this->usage($now):null,'cooldown_active'=>$row && $row['breaker']==='throttle' && $now<=(int)$row['cooldown_until'],
+                'configured'=>$row!==null,'quota_fresh'=>$quota,'breaker'=>$row['breaker']??'unconfigured',
                 'breaker_version'=>(int)($row['breaker_version']??0),'cooldown_until'=>(int)($row['cooldown_until']??0),
                 'production_enabled'=>false,'account_quota_verified'=>false];
         } finally { $wpdb->suppress_errors($quiet); }

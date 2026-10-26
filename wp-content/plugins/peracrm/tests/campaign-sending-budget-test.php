@@ -7,7 +7,7 @@ function budget_reject(callable $callback,string $code): void {
     }
     throw new RuntimeException('Expected budget rejection');
 }
-foreach ([[0,1,100,200,100],[1,0,100,200,100],[1,1,101,200,100],[1,1,100,100,100],[1,1,100,3701,100]] as $quota) {
+foreach ([['1',1,100,200,100],[1.5,1,100,200,100],[true,1,100,200,100],[0,1,100,200,100],[1,0,100,200,100],[1,1,101,200,100],[1,1,100,100,100],[1,1,100,3701,100]] as $quota) {
     budget_reject(fn()=>PeraCRM_Sending_Budget::validateQuota(...$quota),'budget_quota');
 }
 PeraCRM_Sending_Budget::validateQuota(1,1,100,3700,100);
