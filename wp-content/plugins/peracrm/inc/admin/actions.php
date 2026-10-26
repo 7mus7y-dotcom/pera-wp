@@ -1646,6 +1646,9 @@ function peracrm_handle_save_client_profile()
         wp_die('You do not have permission to set this client dormant.');
     }
 
+    $source_requested = isset($_POST['peracrm_source']);
+    $new_source = $source_requested ? sanitize_key(wp_unslash($_POST['peracrm_source'])) : '';
+
     // Profile saves should only update profile fields and never touch party status fields.
     $data = [];
 
@@ -1701,7 +1704,15 @@ function peracrm_handle_save_client_profile()
         ? peracrm_client_update_profile($client_id, $data)
         : false;
 
-    if (!$success || !$name_success) {
+    $source_result = true;
+    if ($success && $source_requested) {
+        $source_result = function_exists('peracrm_update_client_source')
+            ? peracrm_update_client_source($client_id, $new_source)
+            : new WP_Error('missing_source_handler', 'Unable to update client source.');
+    }
+    $source_success = !is_wp_error($source_result);
+
+    if (!$success || !$name_success || !$source_success) {
         if ($should_log) {
             error_log('[peracrm] peracrm_handle_save_client_profile end post_id=' . $client_id . ' success=0');
         }
@@ -2572,6 +2583,7 @@ function peracrm_admin_activity_label($event_type)
         'account_visit' => 'Visited account',
         'enquiry' => 'Submitted enquiry',
         'registration' => 'Website registration',
+        'source_changed' => 'Source changed',
     ];
 
     if (isset($labels[$event_type])) {

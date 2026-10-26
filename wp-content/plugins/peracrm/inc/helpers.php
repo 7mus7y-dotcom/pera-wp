@@ -4,6 +4,99 @@ if (!defined('ABSPATH')) {
     exit;
 }
 
+/**
+ * Controlled lead-source values used by manual CRM editing.
+ *
+ * Legacy ingestion values are deliberately not included here. Client View adds
+ * the current stored value to its dropdown so an unrelated profile save does
+ * not silently rewrite historical attribution.
+ */
+function peracrm_source_options()
+{
+    return apply_filters('peracrm_source_options', [
+        'meta_ads' => __('Meta Ads', 'peracrm'),
+        'instagram_dm' => __('Instagram', 'peracrm'),
+        'whatsapp_dm' => __('WhatsApp', 'peracrm'),
+        'website' => __('Website', 'peracrm'),
+        'referral' => __('Referral', 'peracrm'),
+        'other' => __('Other', 'peracrm'),
+    ]);
+}
+
+/**
+ * Return a friendly source label while preserving the stored source key.
+ */
+function peracrm_source_label($source)
+{
+    $source = sanitize_key((string) $source);
+    $aliases = [
+        'theme_sr_form' => 'website',
+        'website_form' => 'website',
+        'whatsapp_inbound' => 'whatsapp_dm',
+    ];
+    $display_key = isset($aliases[$source]) ? $aliases[$source] : $source;
+    $options = peracrm_source_options();
+
+    if (isset($options[$display_key])) {
+        return (string) $options[$display_key];
+    }
+
+    return $source !== '' ? ucwords(str_replace('_', ' ', $source)) : __('Not captured', 'peracrm');
+}
+
+/**
+ * Validate, persist and audit an explicit client-source change.
+ *
+ * The existing stored value may be a legacy ingestion key. It is allowed to
+ * round-trip unchanged, while deliberate changes must use a controlled value.
+ *
+ * @return true|WP_Error
+ */
+function peracrm_update_client_source($client_id, $source, $actor_user_id = 0)
+{
+    $client_id = absint($client_id);
+    if ($client_id <= 0 || get_post_type($client_id) !== 'crm_client') {
+        return new WP_Error('invalid_client', __('Invalid client.', 'peracrm'));
+    }
+
+    $old_source = sanitize_key((string) get_post_meta($client_id, 'crm_source', true));
+    $new_source = sanitize_key((string) $source);
+    if ($new_source === $old_source) {
+        return true;
+    }
+
+    $allowed_sources = array_keys((array) peracrm_source_options());
+    if ($new_source !== '' && !in_array($new_source, $allowed_sources, true)) {
+        return new WP_Error('invalid_source', __('Invalid client source.', 'peracrm'));
+    }
+
+    if ($new_source === '') {
+        $saved = delete_post_meta($client_id, 'crm_source') || !metadata_exists('post', $client_id, 'crm_source');
+    } else {
+        $saved = false !== update_post_meta($client_id, 'crm_source', $new_source);
+    }
+
+    if (!$saved) {
+        return new WP_Error('source_update_failed', __('Unable to update client source.', 'peracrm'));
+    }
+
+    if (function_exists('peracrm_log_event')) {
+        $actor_user_id = absint($actor_user_id);
+        if ($actor_user_id <= 0) {
+            $actor_user_id = function_exists('peracrm_get_actor_user_id') ? peracrm_get_actor_user_id() : get_current_user_id();
+        }
+        peracrm_log_event($client_id, 'source_changed', [
+            'from' => $old_source,
+            'to' => $new_source,
+            'from_label' => peracrm_source_label($old_source),
+            'to_label' => peracrm_source_label($new_source),
+            'actor_user_id' => $actor_user_id,
+        ]);
+    }
+
+    return true;
+}
+
 function peracrm_now_mysql()
 {
     return current_time('mysql');
