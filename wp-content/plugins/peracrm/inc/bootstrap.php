@@ -33,6 +33,7 @@ require_once PERACRM_INC . '/campaigns/freeze.php';
 require_once PERACRM_INC . '/campaigns/queue.php';
 require_once PERACRM_INC . '/campaigns/worker.php';
 require_once PERACRM_INC . '/campaigns/operations.php';
+require_once PERACRM_INC . '/campaigns/assessment.php';
 require_once PERACRM_INC . '/campaigns/scheduler.php';
 require_once PERACRM_INC . '/campaigns/freeze-ui.php';
 require_once PERACRM_INC . '/campaigns/queue-ui.php';

@@ -1,5 +1,21 @@
 <?php
 require_once __DIR__.'/sending-budget-fixture.php';
+/** A disconnected MySQL session may release its native lock asynchronously.
+ * Wait only in this disposable fault fixture, never release another owner's lock.
+ */
+function latch_wait_disconnected_lock(array $pins): void
+{
+    global $wpdb;
+    $scope=hash('sha256',json_encode(['ses-budget-v1',$pins['account_id'],$pins['region']]));
+    $lock='peracrm-budget-'.substr($scope,0,46);
+    $deadline=hrtime(true)+2_000_000_000;
+    do {
+        $free=$wpdb->get_var($wpdb->prepare('SELECT IS_FREE_LOCK(%s)',$lock));
+        if ((string)$free==='1') { return; }
+        usleep(10000);
+    } while (hrtime(true)<$deadline);
+    throw new RuntimeException('Disconnected fixture session retained its lock.');
+}
 peracrm_with_target_blog(static function () {
     global $wpdb;
     budget_actor(); $unchanged=suppress_atomic();
@@ -129,6 +145,7 @@ peracrm_with_target_blog(static function () {
                 try { budget_denied(fn()=>$svc->settleSubmission($key,$own,$code,budget_key()),'budget_storage'); }
                 finally { remove_filter('query',$filter); }
                 sns_expect($fired && budget_snapshot()===$old,'atomic latch settlement '.$code.' '.$fault.' '.$index);
+                if ($fault==='reconnect') { latch_wait_disconnected_lock($p); }
                 $fresh=budget_service($p,$now,$ready);
                 budget_denied(fn()=>$fresh->reserve(budget_key(),$own),'budget_pending');
                 $fresh->signal('provider_rejected');

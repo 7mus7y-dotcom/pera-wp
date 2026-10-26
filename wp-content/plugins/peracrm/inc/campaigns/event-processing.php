@@ -9,6 +9,7 @@ final class PeraCRM_SES_Processing
     private string $scope;
     private string $policy;
     private string $lock;
+    private array $binding;
     private PeraCRM_SES_Quarantine $normalization;
     private PeraCRM_SES_Matcher $matching;
     private PeraCRM_SES_Suppression $suppression;
@@ -24,8 +25,10 @@ final class PeraCRM_SES_Processing
         $ordered=[];
         foreach (['provider','account_id','region','configuration_set','configuration_version'] as $key) { $ordered[$key]=$provider[$key]; }
         $this->policy=hash('sha256',json_encode($ordered,JSON_THROW_ON_ERROR));
+        $this->binding=$ordered+['deployment'=>$deployment,'blog_id'=>$blog];
         $this->lock='peracrm-events-'.substr(hash('sha256',$this->scope),0,48);
     }
+    public function diagnosticScope(): array { return $this->binding; }
     public function __debugInfo(): array { return ['redacted'=>true]; }
     public function __serialize(): array { throw new LogicException('processing_serialization_disabled'); }
     public function __unserialize(array $data): void { throw new LogicException('processing_serialization_disabled'); }

@@ -18,7 +18,7 @@ final class PeraCRM_SES_Suppression_Sync
     /** Submission preflight, with caller-owned transaction/lock lifetime. A prior
      * completed run cannot authorize a running or failed successor. No reader call.
      */
-    public static function requireComplete(array $pins,$now): void
+    public static function requireComplete(array $pins,$now,bool $locked=true): void
     {
         global $wpdb;
         PeraCRM_SES_Suppression_HTTP::validateScope($pins);
@@ -29,7 +29,7 @@ final class PeraCRM_SES_Suppression_Sync
         foreach (['account_id','region','deployment','blog_id'] as $key) { $ordered[$key]=$pins[$key]; }
         $scope=hash('sha256',json_encode(['policy'=>'ses-account-deny-v1']+$ordered,JSON_THROW_ON_ERROR));
         $row=$wpdb->get_row($wpdb->prepare('SELECT * FROM '.peracrm_table('peracrm_campaign_ses_sync')
-            .' WHERE scope_hash=%s FOR UPDATE',$scope),ARRAY_A); self::db(true);
+            .' WHERE scope_hash=%s'.($locked?' FOR UPDATE':''),$scope),ARRAY_A); self::db(true);
         if (!$row || $row['state']!=='completed' || $row['cursor_value']!==null || $row['error_code']!==''
             || preg_match('/\A[a-f0-9]{64}\z/',$row['run_id'])!==1 || (int)$row['pages']<1
             || (int)$row['entries']<0 || (int)$row['entries']>(int)$row['pages']*25) {

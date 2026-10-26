@@ -289,10 +289,7 @@ final class PeraCRM_Sending_Budget
             global $wpdb;
             $this->readiness(); $row=$this->row(); $now=$this->now();
             if (!$row) { throw new PeraCRM_Sending_Budget_Error('budget_quota'); }
-            $this->quota($row,$now);
-            $this->submissionAvailable($row,$now);
-            $counts=$this->usage($now);
-            if ((int)$counts['seconds_used']>=(int)$row['per_second'] || (int)$counts['daily_used']>=(int)$row['daily']) { throw new PeraCRM_Sending_Budget_Error('budget_exhausted'); }
+            $this->requireCapacity($row,$now);
             self::db($wpdb->query($wpdb->prepare('INSERT INTO '.$this->table('reservations')
                 .' (scope_hash,attempt_hash,owner_hash,reserved_at,completed_at) SELECT %s,%s,%s,%d,0 WHERE '.$guard,$this->scope,$attempt,$owner,$now)));
             self::db($wpdb->query($wpdb->prepare('UPDATE '.$this->table('accounts').' SET last_clock=%d WHERE scope_hash=%s AND '.$guard,$now,$this->scope)));
@@ -306,6 +303,22 @@ final class PeraCRM_Sending_Budget
         if ($row['pending_attempt']!=='' || $row['pending_owner']!=='') { throw new PeraCRM_Sending_Budget_Error('budget_pending'); }
         if ($row['breaker']==='operator' || ($row['breaker']==='throttle' && $now<=(int)$row['cooldown_until'])
             || !in_array($row['breaker'],['closed','throttle'],true)) { throw new PeraCRM_Sending_Budget_Error('budget_breaker'); }
+    }
+    private function requireCapacity(array $row,int $now): void
+    {
+        $this->quota($row,$now);
+        $this->submissionAvailable($row,$now);
+        $counts=$this->usage($now);
+        if ($counts['seconds_used']>=(int)$row['per_second'] || $counts['daily_used']>=(int)$row['daily']) {
+            throw new PeraCRM_Sending_Budget_Error('budget_exhausted');
+        }
+    }
+    /** Read-only snapshot of the reserve enforcement, never a reservation/permit. */
+    public function requireDiagnosticCapacity(): void
+    {
+        $this->context(); $this->readiness(); $row=$this->row(false);
+        if (!$row) { throw new PeraCRM_Sending_Budget_Error('budget_quota'); }
+        $this->requireCapacity($row,$this->now());
     }
     private function reservation(string $attempt,string $owner): array
     {

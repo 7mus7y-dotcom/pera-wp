@@ -7,9 +7,13 @@ expect_exit() {
     "$@" > /tmp/peracrm-scheduler-cli.json 2> /tmp/peracrm-scheduler-cli.stderr || actual=$?
     [ "$actual" = "$expected" ] || { cat /tmp/peracrm-scheduler-cli.json; echo "Unexpected CLI exit: $actual expected $expected" >&2; exit 1; }
     [ ! -s /tmp/peracrm-scheduler-cli.stderr ] || { cat /tmp/peracrm-scheduler-cli.stderr; exit 1; }
-    php -r '$r=json_decode(file_get_contents("/tmp/peracrm-scheduler-cli.json"),true,512,JSON_THROW_ON_ERROR); if (!is_array($r) || preg_match("/@|mailbox|owner_token|content_hash|attempt_key|credentials/",json_encode($r))) { exit(1); }'
+    php -r '$r=json_decode(file_get_contents("/tmp/peracrm-scheduler-cli.json"),true,512,JSON_THROW_ON_ERROR); if (!is_array($r) || preg_match("/@|owner_token|content_hash|attempt_key|credentials/",json_encode($r)) || array_key_exists("mailbox",$r)) { exit(1); }'
 }
 expect_exit 3 wp peracrm campaigns health --format=json
+expect_exit 3 wp peracrm campaigns readiness --format=json
+expect_exit 3 wp --user=campaign-fixture-manager peracrm campaigns readiness --force --format=json
+expect_exit 4 wp --user=campaign-fixture-manager peracrm campaigns readiness --format=json
+php -r '$r=json_decode(file_get_contents("/tmp/peracrm-scheduler-cli.json"),true,512,JSON_THROW_ON_ERROR); if ($r["production_ready"] || $r["dispatch_enabled"] || $r["checks"]["dns_dkim_dmarc"]["state"]!=="unverified") { exit(1); }'
 expect_exit 3 wp peracrm campaigns fixture-run --format=json
 expect_exit 3 wp peracrm campaigns fixture-recover --confirm-disposable=wrong --format=json
 expect_exit 2 wp --user=campaign-fixture-manager peracrm campaigns health --format=json
