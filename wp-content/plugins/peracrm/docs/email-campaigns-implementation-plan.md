@@ -1576,3 +1576,45 @@ required at publication; the PR acceptance record must identify the final SHA
 and completed results. All production construction/dispatch/intake/collection/
 cron gates remain disabled. Mocks and disposable SQL tests do not establish
 real-host, deployment identity/IAM, AWS account, DKIM or inbox readiness.
+
+## Phase 5 — bounded SES suppression sync (2026-10-26)
+
+Baseline #1485 is merged (`7c1d13c9fad2442126183bbbb2a5b7efa2db1a30`). Its final
+head `664e7614f2c8ef9bc9e26fde5c32d101d94dee45` passed CI 40273525201 and clean
+review receipt 6408836268; the completed review summary reports no findings or
+unresolved findings at that SHA. Latest main is `a65e071ef26e14de805df87b60c210d983d45311`.
+No applicable AGENTS.md found. Read the plan, provider specification, transport,
+suppression, persistence, schema and operations services. Original checkout is
+preserved; isolated worktree `/workspace/pera-ses-sync` reconstructs all 49 changed
+baseline files through the connector, with every Git blob hash verified. Shell
+Git remains blocked by the proxy. Publication parents directly to verified main;
+local reconstruction scaffolding must not be published.
+
+Adds a trusted injected SDK-signed account-level read adapter, additive schema
+v37, bounded explicit sync/health commands and durable page transactions. Scope
+pins bind account, region, deployment and target blog. Provider spelling is
+retained separately from local normalization. Import only adds BOUNCE/COMPLAINT
+knowledge with immutable provenance, without subscriber/CRM/profile/consent
+creation. Duplicate pages/facts are idempotent. Interrupted runs resume committed
+cursors; expired/stale/cyclic tokens need explicit restart. Unsupported reasons
+and scope mismatch fail closed. Terminal complete time only advances with the
+whole terminal page transaction. SQL guards and session-scoped overlap locks
+preserve reconnection, rollback and concurrent-run protections.
+
+Official current AWS list/get/account-suppression documentation was accessible
+through the web connector and verified; exact links/limitations and separate
+bounded read retry policy are in the provider specification/runbook. SendEmail's
+zero-retry policy and isolated dependency packaging are unchanged. Production sync
+factory unconditionally returns null. The reader requires an injected executor;
+there are no native requests, cron hooks, credentials, provider writes, sending,
+endpoint/intake/public collection activation, provisioning, merge or deployment.
+
+Added focused policy/signature/retry/CLI tests and real single-site/multisite SQL
+fixtures for pagination, duplicate pages, interruption/resume, failure/false-complete
+prevention, wrong scope, historical denial retention, rollback/reconnection at each
+write boundary and independent-process overlap/death races. Local PHP and Docker
+executables are absent, so no local PHP/SQL execution is claimed. Local dependency
+hash verification, shell syntax and whitespace pass. Hosted CI and clean review
+covering the final changes remain required before acceptance; evidence is recorded
+in the PR. Phase 5 remains in progress and external identity/IAM, production HTTP,
+rate/circuit, monitoring, key/retention/restore and inbox acceptance remain open.

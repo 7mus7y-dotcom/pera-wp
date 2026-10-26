@@ -621,3 +621,50 @@ AWS submission, email, provisioning, DNS or deployment is part of acceptance.
 Suppression synchronization, rate/circuit breakers, deployment identity, event/
 DLQ monitoring, key/retention/restore policy and controlled host/inbox/DKIM
 acceptance remain prerequisites to separately authorized activation.
+
+## Bounded account suppression synchronization (Phase 5, 2026-10-26)
+
+The internal reader and sync service import only account-level BOUNCE and COMPLAINT
+knowledge. A deployment must explicitly bind account ID, region, deployment and
+numeric target blog. Account-level SES responses do not attribute entries to a
+WordPress deployment or configuration set: the configured scope authorizes the
+whole account/region deny set for that target blog. Other blogs are never visited.
+No tenant parameter, date filter, provider write, subscriber creation or consent
+mutation is supported. Scope mismatch or unsupported reason fails closed.
+
+Official AWS documentation verified on 2026-10-26:
+- [ListSuppressedDestinations](https://docs.aws.amazon.com/ses/latest/APIReference-V2/API_ListSuppressedDestinations.html):
+  GET summaries, optional NextToken, PageSize and InvalidNextTokenException;
+  omitting TenantName selects the account list.
+- [Account suppression guide](https://docs.aws.amazon.com/ses/latest/dg/sending-email-suppression-list.html):
+  account/region scope, case-sensitive suppression API mailbox spelling and only
+  hard bounces automatically added. Provider mailbox bytes are retained separately
+  from the existing lowercase/trim local normalization.
+- [GetSuppressedDestination](https://docs.aws.amazon.com/ses/latest/APIReference-V2/API_GetSuppressedDestination.html):
+  exact mailbox path and optional tenant parameter; no per-address call is needed
+  to import the authenticated list summaries.
+
+The read adapter reuses #1485's locked namespace-isolated AWS SigV4 signer and
+explicit account-attested credential value. It requires a trusted injected HTTP
+executor; there is deliberately no native executor or production construction.
+The executor contract requires verified TLS, no redirects/proxy discovery, complete
+responses, 32 KiB body/16 KiB headers and a three-second attempt timeout. At most
+one read retry is allowed for incomplete transport, 429 or 5xx, without sleeping.
+These read retries are entirely separate from SendEmail's unchanged zero retries.
+The adapter rejects duplicate JSON keys, malformed entries, unsupported reasons,
+oversized pages and invalid tokens, with fixed errors and no retained raw response.
+
+Page size is 25; explicit runs accept 1–10 pages, starting no new read after 19
+seconds (25-second work-start budget including the two read attempts). Cursor age
+is limited to 24 hours. Invalid/expired/stale/cyclic cursors fail closed until an
+operator explicitly abandons pagination and restarts from the first page. No AWS
+snapshot or cursor lifetime guarantee is assumed. A completed scan means every
+observed page committed, not a consistent snapshot or complete deliverability.
+
+Schema v37 adds scope-bound progress, visited cursor hashes and immutable deny
+provenance. Each page commits mailbox flags, actor-0 provenance and next cursor
+atomically. Duplicate facts are idempotent across pages/runs. Last complete time
+changes only in a successful terminal page transaction. Named locks, connection
+checks and SQL session guards prevent overlap and reconnect replay. Old complete
+times survive failed scans; absence/removal never clears any local denial.
+Production factory is unconditionally null; no cron or automatic invocation exists.
