@@ -14,8 +14,8 @@ as detailed in the linked history. No phase is complete merely because code exis
 Future PRs must update this active plan and distinguish repository checks from
 external verification. Preserve historical evidence and decisions in the history.
 
-**Current task:** bounded Phase 5 concrete SES v2 signed HTTP transport and mocked
-signature/response acceptance. See the final section for scope and evidence.
+**Current task:** bounded Phase 5 SES suppression synchronization with durable
+page checkpoints. See the final section for scope, disabled gates and evidence.
 
 ## Phase 5B — bounded recipient preference editor (2026-10-22)
 
@@ -1618,3 +1618,23 @@ hash verification, shell syntax and whitespace pass. Hosted CI and clean review
 covering the final changes remain required before acceptance; evidence is recorded
 in the PR. Phase 5 remains in progress and external identity/IAM, production HTTP,
 rate/circuit, monitoring, key/retention/restore and inbox acceptance remain open.
+
+### Runtime validation and checkpoint review correction
+
+Non-draft [PR #1487](https://github.com/7mus7y-dotcom/pera-wp/pull/1487) is published.
+Runtime/test head `f661a9cdec85c6c3c3c82d1b583c9468bcc6e180` passed both-topology
+CI 40288157569 (multi job 121456746561, single job 121456746727), including all
+36 standalone suites, PHP syntax, real SQL/races and browser fixtures. The initial
+schema-version and CLI-count assertions were updated. Initial review's capture
+reconnect fixture finding was corrected to inject after lock ownership.
+
+Review of that passing runtime found that post-terminal diagnostic errors or a
+rolled-back successor initialization could downgrade the prior completed run.
+Failure persistence now requires the invocation's durably initialized run ID and
+a nonterminal stored state. Cursor-age/manual holds are checked after durable
+initialization. New real SQL regressions inject post-terminal session/health errors
+and successor UPDATE/COMMIT failures, preserve completion and verify the next scan
+starts cleanly. Historical suppression flags and provenance are retained verbatim;
+duplicates reassert deny flags without replacing evidence. This correction needs
+new hosted CI and clean review covering the final changes. Earlier passing CI is
+not acceptance of the later correction. Final evidence is tracked in the PR.

@@ -74,6 +74,27 @@ peracrm_with_target_blog(static function () {
             sns_expect($fired && sync_denials()===$old && $svc->health()['last_complete_at']===null,'atomic rollback/reconnection '.$point.' '.(int)$reconnect);
         }
     }
+    // Post-terminal diagnostics cannot downgrade durable completion; failure to
+    // initialize a successor cannot invalidate the previous completed scan.
+    foreach (['post-commit','health','initialize-update','initialize-commit'] as $point) {
+        $v=sync_pins(); $svc=sync_service($v,static fn()=>sync_page($box));
+        $svc->run(1); $old=$svc->health(); $fired=false; $commits=0;
+        $filter=static function ($sql) use ($point,&$fired,&$commits) {
+            if ($sql==='COMMIT') { $commits++; }
+            $target=match($point) {
+                'post-commit'=>$commits===2 && $sql==='SELECT CONNECTION_ID()',
+                'health'=>$commits===2 && str_starts_with($sql,'SELECT * FROM') && str_contains($sql,'ses_sync ') && !str_ends_with($sql,'FOR UPDATE'),
+                'initialize-update'=>str_starts_with($sql,'UPDATE ') && str_contains($sql,' SET run_id='),
+                'initialize-commit'=>$sql==='COMMIT' && $commits===1,
+            };
+            if (!$fired && $target) { $fired=true; return 'INVALID_SYNC_DIAGNOSTIC_SQL'; }
+            return $sql;
+        };
+        add_filter('query',$filter); try { sync_reject_sql(fn()=>$svc->run(1),'sync_storage'); } finally { remove_filter('query',$filter); }
+        sns_expect($fired && $svc->health()['state']==='completed' && $svc->health()['error_code']===null,'completed checkpoint survives '.$point);
+        if (str_starts_with($point,'initialize')) { sns_expect($svc->health()===$old,'failed successor initialization preserves prior completion'); }
+        sns_expect($svc->run(1)['state']==='completed','next scan starts cleanly after '.$point);
+    }
     $v=sync_pins(); $read=static fn()=>sync_page($box); $wrong=$v; $wrong['account_id']='999999999999';
     sync_reject_sql(fn()=>new PeraCRM_SES_Suppression_Sync($v,new PeraCRM_Sync_Fixture_Reader($wrong,$read)),'sync_scope');
     $svc=sync_service($v,$read);

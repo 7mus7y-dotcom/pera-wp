@@ -107,7 +107,7 @@ final class PeraCRM_SES_Suppression_Sync
     {
         if ($pages<1 || $pages>10) { throw new InvalidArgumentException('sync_bounds'); }
         global $wpdb;
-        $quiet=$wpdb->suppress_errors(true); $owned=false; $connection=0; $guard=''; $start=hrtime(true);
+        $quiet=$wpdb->suppress_errors(true); $owned=false; $connection=0; $guard=''; $runId=null; $start=hrtime(true);
         try {
             $this->context();
             if (isset(self::$active[$this->lock])) { throw new PeraCRM_SES_Sync_Error('sync_overlap'); }
@@ -132,10 +132,12 @@ final class PeraCRM_SES_Suppression_Sync
                     self::db($wpdb->query($wpdb->prepare('UPDATE '.peracrm_table('peracrm_campaign_ses_sync')
                         ." SET run_id=%s,cursor_value=NULL,pages=0,entries=0,state='running',error_code='',started_at=%s,updated_at=%s WHERE scope_hash=%s AND "
                         .$this->guard($connection,$guard),bin2hex(random_bytes(32)),$now,$now,$this->scope)));
-                } elseif (in_array($row['error_code'],['sync_invalid_cursor','sync_stale_cursor','sync_cursor_cycle'],true)) { throw new PeraCRM_SES_Sync_Error($row['error_code']);
-                } elseif (strtotime($row['started_at'].' UTC')<time()-86400) { throw new PeraCRM_SES_Sync_Error('sync_stale_cursor'); }
+                }
                 $this->session($connection); return $this->checkpoint(true);
             });
+            $runId=$row['run_id'];
+            if (in_array($row['error_code'],['sync_invalid_cursor','sync_stale_cursor','sync_cursor_cycle'],true)) { throw new PeraCRM_SES_Sync_Error($row['error_code']); }
+            if (strtotime($row['started_at'].' UTC')<time()-86400) { throw new PeraCRM_SES_Sync_Error('sync_stale_cursor'); }
             for ($n=0;$n<$pages && hrtime(true)-$start<19000000000;$n++) {
                 PeraCRM_SES_Suppression_HTTP::cursor($row['cursor_value']);
                 $page=PeraCRM_SES_Suppression_HTTP::validatePage($this->reader->page($row['cursor_value']));
@@ -146,11 +148,11 @@ final class PeraCRM_SES_Suppression_Sync
             return $this->health();
         } catch (Throwable $error) {
             $code=$error instanceof PeraCRM_SES_Sync_Error?$error->getMessage():'sync_storage';
-            if ($owned) {
+            if ($owned && $runId!==null) {
                 // Lost-session/replayed writes cannot overwrite a successor or
                 // publish success. Error persistence itself is session fenced.
                 $wpdb->query($wpdb->prepare('UPDATE '.peracrm_table('peracrm_campaign_ses_sync')
-                    ." SET state='failed',error_code=%s,updated_at=UTC_TIMESTAMP() WHERE scope_hash=%s AND ".$this->guard($connection,$guard),$code,$this->scope));
+                    ." SET state='failed',error_code=%s,updated_at=UTC_TIMESTAMP() WHERE scope_hash=%s AND run_id=%s AND state IN ('running','failed') AND ".$this->guard($connection,$guard),$code,$this->scope,$runId));
             }
             throw new PeraCRM_SES_Sync_Error($code);
         } finally {
