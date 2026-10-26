@@ -7,7 +7,7 @@ final class PeraCRM_Sending_Budget_Error extends RuntimeException
     public function __construct(string $code='budget_storage')
     {
         parent::__construct(in_array($code,['budget_storage','budget_scope','budget_quota','budget_clock','budget_overlap',
-            'budget_exhausted','budget_breaker','budget_attempt','budget_readiness','budget_authority'],true)?$code:'budget_storage');
+            'budget_pending','budget_exhausted','budget_breaker','budget_attempt','budget_readiness','budget_authority'],true)?$code:'budget_storage');
     }
 }
 
@@ -189,14 +189,100 @@ final class PeraCRM_Sending_Budget
             $this->readiness(); $row=$this->row(); $now=$this->now();
             if (!$row) { throw new PeraCRM_Sending_Budget_Error('budget_quota'); }
             $this->quota($row,$now);
-            if ($row['breaker']==='operator' || ($row['breaker']==='throttle' && $now<=(int)$row['cooldown_until'])
-                || !in_array($row['breaker'],['closed','throttle'],true)) { throw new PeraCRM_Sending_Budget_Error('budget_breaker'); }
+            $this->submissionAvailable($row,$now);
             $counts=$this->usage($now);
             if ((int)$counts['seconds_used']>=(int)$row['per_second'] || (int)$counts['daily_used']>=(int)$row['daily']) { throw new PeraCRM_Sending_Budget_Error('budget_exhausted'); }
             self::db($wpdb->query($wpdb->prepare('INSERT INTO '.$this->table('reservations')
                 .' (scope_hash,attempt_hash,owner_hash,reserved_at,completed_at) SELECT %s,%s,%s,%d,0 WHERE '.$guard,$this->scope,$attempt,$owner,$now)));
             self::db($wpdb->query($wpdb->prepare('UPDATE '.$this->table('accounts').' SET last_clock=%d WHERE scope_hash=%s AND '.$guard,$now,$this->scope)));
         });
+    }
+    /** Account-wide latch, not a process-local failure flag. Reservations may
+     * precede it, but only one submission may have an unsettled outcome.
+     */
+    private function submissionAvailable(array $row,int $now): void
+    {
+        if ($row['pending_attempt']!=='' || $row['pending_owner']!=='') { throw new PeraCRM_Sending_Budget_Error('budget_pending'); }
+        if ($row['breaker']==='operator' || ($row['breaker']==='throttle' && $now<=(int)$row['cooldown_until'])
+            || !in_array($row['breaker'],['closed','throttle'],true)) { throw new PeraCRM_Sending_Budget_Error('budget_breaker'); }
+    }
+    private function reservation(string $attempt,string $owner): array
+    {
+        global $wpdb;
+        $reservation=$wpdb->get_row($wpdb->prepare('SELECT * FROM '.$this->table('reservations')
+            .' WHERE scope_hash=%s AND attempt_hash=%s FOR UPDATE',$this->scope,$attempt),ARRAY_A); self::db(true);
+        if (!$reservation || !hash_equals($reservation['owner_hash'],$owner)) { throw new PeraCRM_Sending_Budget_Error('budget_attempt'); }
+        return $reservation;
+    }
+    /** Commit immediately BEFORE the external boundary, outside worker SQL.
+     * Rechecks readiness, quota, clock and breaker after reservation. A successful
+     * return is single-use; never retry begin or transport following an exception.
+     * Caller still owes fresh lease/eligibility/sync authorization; this is NOT it.
+     */
+    public function beginSubmission(string $attempt,string $owner): void
+    {
+        self::hashKey($attempt); self::hashKey($owner);
+        $this->transaction(function ($guard) use ($attempt,$owner) {
+            global $wpdb;
+            $this->readiness(); $row=$this->row(); $now=$this->now();
+            if (!$row) { throw new PeraCRM_Sending_Budget_Error('budget_quota'); }
+            $this->quota($row,$now); $this->submissionAvailable($row,$now);
+            $reservation=$this->reservation($attempt,$owner);
+            if ((int)$reservation['completed_at']!==0 || $reservation['outcome_code']!=='' || $reservation['evidence_hash']!=='') {
+                throw new PeraCRM_Sending_Budget_Error('budget_attempt');
+            }
+            self::db($wpdb->query($wpdb->prepare('UPDATE '.$this->table('accounts')
+                .' SET pending_attempt=%s,pending_owner=%s,last_clock=%d WHERE scope_hash=%s AND '.$guard,$attempt,$owner,$now,$this->scope)));
+            $this->audit('submission_started',0,$now,$guard);
+        });
+    }
+    /** Durable outcome evidence clears the latch only in the SAME transaction as
+     * the signal and completion. No recipient writes participate. SQL failure or
+     * death leaves the earlier latch visible to every worker. Evidence is an
+     * opaque immutable digest supplied by a trusted outcome classifier, not raw
+     * response bytes. This API authenticates no provider evidence by itself.
+     * If outcome evidence was lost, settle as unknown: operator recovery remains
+     * mandatory and this attempt can never begin again. Never infer nonacceptance.
+     */
+    public function settleSubmission(string $attempt,string $owner,string $code,string $evidence): void
+    {
+        self::hashKey($attempt); self::hashKey($owner); self::hashKey($evidence);
+        if (!in_array($code,['provider_accepted','provider_rejected','provider_rate_limit','submission_unknown','preflight_denied'],true)) {
+            throw new PeraCRM_Sending_Budget_Error('budget_attempt');
+        }
+        $this->transaction(function ($guard) use ($attempt,$owner,$code,$evidence) {
+            global $wpdb;
+            $row=$this->row(); $now=$this->now();
+            if (!$row) { throw new PeraCRM_Sending_Budget_Error('budget_quota'); }
+            $this->clockCheck($row,$now); $reservation=$this->reservation($attempt,$owner);
+            if ($reservation['outcome_code']!=='') {
+                if ($reservation['outcome_code']!==$code || !hash_equals($reservation['evidence_hash'],$evidence)) {
+                    throw new PeraCRM_Sending_Budget_Error('budget_attempt');
+                }
+                return; // Exact evidence replay cannot clear a newer submission.
+            }
+            if (!hash_equals($row['pending_attempt'],$attempt) || !hash_equals($row['pending_owner'],$owner)) {
+                throw new PeraCRM_Sending_Budget_Error('budget_attempt');
+            }
+            if (in_array($code,['provider_rejected','provider_rate_limit','submission_unknown'],true)) {
+                $this->persistSignal($row,$code,$now,$guard);
+            }
+            self::db($wpdb->query($wpdb->prepare('UPDATE '.$this->table('reservations')
+                .' SET outcome_code=%s,evidence_hash=%s,completed_at=%d WHERE scope_hash=%s AND attempt_hash=%s AND '.$guard,
+                $code,$evidence,$now,$this->scope,$attempt)));
+            self::db($wpdb->query($wpdb->prepare('UPDATE '.$this->table('accounts')
+                ." SET pending_attempt='',pending_owner='',last_clock=%d WHERE scope_hash=%s AND ".$guard,$now,$this->scope)));
+            $this->audit('submission_settled',0,$now,$guard);
+        });
+    }
+    private function persistSignal(array $row,string $code,int $now,string $guard): void
+    {
+        global $wpdb;
+        $operator=$code!=='provider_rate_limit' || $row['breaker']==='operator';
+        self::db($wpdb->query($wpdb->prepare('UPDATE '.$this->table('accounts')
+            .' SET breaker=%s,cooldown_until=%d,breaker_version=breaker_version+1,last_clock=%d WHERE scope_hash=%s AND '.$guard,
+            $operator?'operator':'throttle',$code==='provider_rate_limit'?max((int)$row['cooldown_until'],$now+60):(int)$row['cooldown_until'],$now,$this->scope)));
+        $this->audit($code,0,$now,$guard);
     }
     /** Persist signals BEFORE any recipient result/lease write. Conservative mapped
      * provider rejection covers authentication, disabled/suspended and account
@@ -210,11 +296,7 @@ final class PeraCRM_Sending_Budget
             $row=$this->row(); $now=$this->now();
             if (!$row) { throw new PeraCRM_Sending_Budget_Error('budget_quota'); }
             $this->clockCheck($row,$now);
-            $operator=$code==='provider_rejected' || $row['breaker']==='operator';
-            self::db($wpdb->query($wpdb->prepare('UPDATE '.$this->table('accounts')
-                .' SET breaker=%s,cooldown_until=%d,breaker_version=breaker_version+1,last_clock=%d WHERE scope_hash=%s AND '.$guard,
-                $operator?'operator':'throttle',$code==='provider_rate_limit'?max((int)$row['cooldown_until'],$now+60):(int)$row['cooldown_until'],$now,$this->scope)));
-            $this->audit($code,0,$now,$guard);
+            $this->persistSignal($row,$code,$now,$guard);
         });
     }
     /** No outcome distinction can refund a reservation, even proven non-acceptance. */
@@ -226,9 +308,8 @@ final class PeraCRM_Sending_Budget
             $row=$this->row(); $now=$this->now();
             if (!$row) { throw new PeraCRM_Sending_Budget_Error('budget_quota'); }
             $this->clockCheck($row,$now);
-            $reservation=$wpdb->get_row($wpdb->prepare('SELECT * FROM '.$this->table('reservations')
-                .' WHERE scope_hash=%s AND attempt_hash=%s FOR UPDATE',$this->scope,$attempt),ARRAY_A); self::db(true);
-            if (!$reservation || !hash_equals($reservation['owner_hash'],$owner)) { throw new PeraCRM_Sending_Budget_Error('budget_attempt'); }
+            if ($row['pending_attempt']!=='' || $row['pending_owner']!=='') { throw new PeraCRM_Sending_Budget_Error('budget_pending'); }
+            $reservation=$this->reservation($attempt,$owner);
             if ((int)$reservation['completed_at']!==0) { return; }
             self::db($wpdb->query($wpdb->prepare('UPDATE '.$this->table('reservations')
                 .' SET completed_at=%d WHERE scope_hash=%s AND attempt_hash=%s AND '.$guard,$now,$this->scope,$attempt)));
@@ -245,6 +326,7 @@ final class PeraCRM_Sending_Budget
             $actor=$this->authorize(); $this->readiness(); $row=$this->row(); $now=$this->now();
             if (!$row) { throw new PeraCRM_Sending_Budget_Error('budget_quota'); }
             $this->quota($row,$now);
+            if ($row['pending_attempt']!=='' || $row['pending_owner']!=='') { throw new PeraCRM_Sending_Budget_Error('budget_pending'); }
             if ($version<1 || (int)$row['breaker_version']!==$version || $row['breaker']!=='operator') { throw new PeraCRM_Sending_Budget_Error('budget_breaker'); }
             self::db($wpdb->query($wpdb->prepare('UPDATE '.$this->table('accounts')
                 ." SET breaker=%s,breaker_version=breaker_version+1,last_clock=%d WHERE scope_hash=%s AND ".$guard,
@@ -261,7 +343,7 @@ final class PeraCRM_Sending_Budget
             $this->context(); $row=$this->row(false); $now=$this->now(); $quota=false;
             if ($row) { try { $this->quota($row,$now); $quota=true; } catch (PeraCRM_Sending_Budget_Error $e) {} }
             if ($row && !in_array($row['breaker'],['closed','operator','throttle'],true)) { throw new PeraCRM_Sending_Budget_Error(); }
-            return ['usage'=>$row?$this->usage($now):null,'cooldown_active'=>$row && $row['breaker']==='throttle' && $now<=(int)$row['cooldown_until'],
+            return ['submission_pending'=>$row && ($row['pending_attempt']!=='' || $row['pending_owner']!==''),'usage'=>$row?$this->usage($now):null,'cooldown_active'=>$row && $row['breaker']==='throttle' && $now<=(int)$row['cooldown_until'],
                 'configured'=>$row!==null,'quota_fresh'=>$quota,'breaker'=>$row['breaker']??'unconfigured',
                 'breaker_version'=>(int)($row['breaker_version']??0),'cooldown_until'=>(int)($row['cooldown_until']??0),
                 'production_enabled'=>false,'account_quota_verified'=>false];

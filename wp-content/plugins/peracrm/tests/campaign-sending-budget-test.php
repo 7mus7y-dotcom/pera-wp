@@ -26,3 +26,12 @@ $GLOBALS['campaign_impersonating']=true;
 $exit=0; try { (WP_CLI::$commands['peracrm campaigns budget-recover'])([],['version'=>'1','confirm'=>'breaker-only']); } catch (Campaign_CLI_Exit $e) { $exit=$e->getCode(); }
 campaign_expect($exit===3,'impersonation cannot recover breaker');
 echo "PASS sending budget policy and guarded disabled CLI\n";
+
+$pins=['account_id'=>'123456789012','region'=>'eu-west-1','deployment'=>'latch-policy','blog_id'=>2];
+$latch=new PeraCRM_Sending_Budget($pins,static fn()=>100,static fn()=>true);
+$key=str_repeat('a',64);
+foreach (['accepted','force','provider_rate_limit_private',''] as $code) {
+    budget_reject(fn()=>$latch->settleSubmission($key,$key,$code,$key),'budget_attempt');
+}
+budget_reject(fn()=>$latch->settleSubmission($key,$key,'provider_accepted','raw response'),'budget_attempt');
+echo "PASS submission latch evidence policy\n";
