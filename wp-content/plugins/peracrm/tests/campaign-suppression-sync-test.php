@@ -42,4 +42,9 @@ foreach ([[],['pages'=>'11','confirm'=>'account-deny-only'],['pages'=>'1','confi
     $exit=0; try { (WP_CLI::$commands['peracrm campaigns suppression-sync'])([],$options); } catch (Campaign_CLI_Exit $e) { $exit=$e->getCode(); }
     campaign_expect($exit===3 && !str_contains(WP_CLI::$output,'@'),'CLI rejects invalid bounds/confirmation/restart');
 }
+$GLOBALS['campaign_actor']=1; $GLOBALS['campaign_impersonating']=false;
+$GLOBALS['campaign_roles'][2]['administrator']->add_cap('peracrm_manage_campaigns');
+$GLOBALS['campaign_roles'][2]['administrator']->add_cap('peracrm_manage_subscribers');
+$exit=0; try { (WP_CLI::$commands['peracrm campaigns suppression-sync'])([],['pages'=>'1','confirm'=>'account-deny-only']); } catch (Campaign_CLI_Exit $e) { $exit=$e->getCode(); }
+campaign_expect($exit===2 && json_decode(WP_CLI::$output,true)['state']==='disabled','authorized explicit sync remains production disabled');
 echo "PASS suppression sync policy, signature, retries, duplicate-key and disabled CLI regressions\n";

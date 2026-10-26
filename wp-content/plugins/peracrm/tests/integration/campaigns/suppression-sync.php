@@ -7,6 +7,9 @@ peracrm_with_target_blog(static function () {
     update_option('peracrm_schema_version',36); update_option('peracrm_campaigns_schema_status',['state'=>'ready','version'=>36]);
     sns_expect(peracrm_maybe_upgrade_schema() && peracrm_maybe_upgrade_schema() && suppress_state()===$before,'v37 additive idempotent migration preserves history');
     $pins=sync_pins(); $box='Sync-Mixed-'.bin2hex(random_bytes(5)).'@Example.test'; $local=strtolower($box);
+    $wpdb->insert(peracrm_table('peracrm_email_suppressions'),['normalized_email'=>$local,'administrative'=>1,'unsubscribe'=>1,'created_at'=>gmdate('Y-m-d H:i:s'),'updated_at'=>gmdate('Y-m-d H:i:s')]);
+    $wpdb->insert(peracrm_table('peracrm_email_suppression_events'),['normalized_email'=>$local,'reason'=>'administrative','source'=>'historical_fixture','source_ref'=>'keep-original','actor_user_id'=>0,'occurred_at'=>gmdate('Y-m-d H:i:s'),'recorded_at'=>gmdate('Y-m-d H:i:s')]);
+    $historical=suppress_rows('peracrm_email_suppression_events');
     $calls=[];
     $read=static function ($cursor) use (&$calls,$box) { $calls[]=$cursor; return sync_page($box,$cursor===null?'case+cursor/=':null); };
     $service=sync_service($pins,$read); $first=$service->run(1);
@@ -45,13 +48,15 @@ peracrm_with_target_blog(static function () {
     }
     // Preserve all historical reasons and the original provenance rows.
     $flags=$wpdb->get_row($wpdb->prepare('SELECT * FROM '.peracrm_table('peracrm_email_suppressions').' WHERE normalized_email=%s',$local),ARRAY_A);
-    sns_expect((int)$flags['hard_bounce']===1 && (int)$flags['complaint']===1,'cumulative distinct reasons');
+    sns_expect((int)$flags['hard_bounce']===1 && (int)$flags['complaint']===1 && (int)$flags['administrative']===1 && (int)$flags['unsubscribe']===1,'cumulative distinct reasons preserve all historical flags');
+    sns_expect(array_slice(suppress_rows('peracrm_email_suppression_events'),0,count($historical))===$historical,'historical provenance bytes retained');
     foreach (['mailbox','update','audit','fact','page','checkpoint','commit','capture'] as $point) {
         foreach ([false,true] as $reconnect) {
             $v=sync_pins(); $svc=sync_service($v,static fn()=>sync_page('fault-'.bin2hex(random_bytes(5)).'@example.test'));
-            $old=sync_denials(); $fired=false; $commits=0;
-            $filter=static function ($sql) use ($wpdb,$point,$reconnect,&$fired,&$commits) {
+            $old=sync_denials(); $fired=false; $commits=0; $captures=0;
+            $filter=static function ($sql) use ($wpdb,$point,$reconnect,&$fired,&$commits,&$captures) {
                 if ($sql==='COMMIT') { $commits++; }
+                if ($sql==='SELECT CONNECTION_ID()') { $captures++; }
                 $target=match($point) {
                     'mailbox'=>str_starts_with($sql,'INSERT INTO') && str_contains($sql,'email_suppressions '),
                     'update'=>str_starts_with($sql,'UPDATE ') && str_contains($sql,'email_suppressions '),
@@ -60,7 +65,7 @@ peracrm_with_target_blog(static function () {
                     'page'=>str_starts_with($sql,'INSERT INTO') && str_contains($sql,'ses_sync_pages '),
                     'checkpoint'=>str_starts_with($sql,'UPDATE ') && str_contains($sql,'cursor_value='),
                     'commit'=>$sql==='COMMIT' && $commits===2,
-                    'capture'=>$sql==='SELECT CONNECTION_ID()',
+                    'capture'=>$sql==='SELECT CONNECTION_ID()' && $captures===2,
                 };
                 if (!$fired && $target) { $fired=true; if ($reconnect) { $wpdb->close(); $wpdb->db_connect(); } else { return 'INVALID_SYNC_FIXTURE_SQL'; } }
                 return $sql;
