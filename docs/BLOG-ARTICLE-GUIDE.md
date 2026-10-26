@@ -652,3 +652,30 @@ If CSS and this guide diverge, the current CSS implementation is the technical s
 ---
 
 **Maintenance rule:** whenever a new reusable blog/article component is added to the theme, update this guide in the same change or immediately afterwards so future LLMs do not invent competing markup patterns.
+
+## 24. WordPress blog upload metadata (WP-CLI)
+
+Pera Property uses its own custom SEO metadata, **not Yoast SEO**. For standard blog posts (`post_type=post`), use these confirmed keys:
+
+| Purpose | Post meta key | Format |
+| --- | --- | --- |
+| SEO title | `seo_title` | Plain text |
+| SEO meta description | `seo_meta_description` | Plain text |
+| Blog FAQ | `seo_faq_v2` | Newline-delimited `Question|Answer` rows, maximum five |
+
+These keys are also documented by `wp-content/plugins/pera-multilingual/README.md` and handled by its SEO translation layer. Do not use `_yoast_wpseo_title`, `_yoast_wpseo_metadesc`, or generic `faq` for blog posts.
+
+After creating a draft with `wp post create --post_type=post --post_status=draft ... --porcelain`, save the returned post ID and set metadata:
+
+```bash
+POST_ID=REPLACE_WITH_CREATED_ID
+wp post meta update "$POST_ID" seo_title "SEO title here"
+wp post meta update "$POST_ID" seo_meta_description "SEO description here"
+wp post meta update "$POST_ID" seo_faq_v2 "$(cat <<'FAQ'
+Question one?|Answer one.
+Question two?|Answer two.
+FAQ
+)"
+```
+
+Verify with `wp post meta get "$POST_ID" seo_title`, `wp post meta get "$POST_ID" seo_meta_description`, and `wp post meta get "$POST_ID" seo_faq_v2`. Confirm the appropriate category separately with `wp term list category` before assigning it. ACF field registration and frontend rendering should be checked if the implementation changes.
