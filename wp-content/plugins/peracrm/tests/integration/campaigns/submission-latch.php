@@ -5,12 +5,16 @@ peracrm_with_target_blog(static function () {
     budget_actor(); $unchanged=suppress_atomic();
     // Additive migration from v38 retains all existing budget/recipient evidence.
     $old=budget_snapshot();
-    foreach (['accounts'=>['pending_attempt','pending_owner'],'reservations'=>['outcome_code','evidence_hash']] as $table=>$columns) {
+    foreach (['accounts'=>['pending_attempt','pending_owner'],'reservations'=>['outcome_code','evidence_hash','outcome_staged']] as $table=>$columns) {
         foreach ($columns as $column) { sns_expect($wpdb->query('ALTER TABLE '.peracrm_table('peracrm_campaign_budget_'.$table).' DROP COLUMN '.$column)!==false,'v38 schema fixture'); }
     }
     update_option('peracrm_schema_version',38);
     update_option('peracrm_campaigns_schema_status',['state'=>'ready','version'=>38]);
-    sns_expect(peracrm_maybe_upgrade_schema() && peracrm_maybe_upgrade_schema() && budget_snapshot()===$old,'v39 additive idempotent migration');
+    sns_expect(peracrm_maybe_upgrade_schema() && peracrm_maybe_upgrade_schema() && budget_snapshot()===$old,'v38 to v40 additive idempotent migration');
+    sns_expect($wpdb->query('ALTER TABLE '.peracrm_table('peracrm_campaign_budget_reservations').' DROP COLUMN outcome_staged')!==false,'v39 schema fixture');
+    update_option('peracrm_schema_version',39);
+    update_option('peracrm_campaigns_schema_status',['state'=>'ready','version'=>39]);
+    sns_expect(peracrm_maybe_upgrade_schema() && peracrm_maybe_upgrade_schema() && budget_snapshot()===$old,'v39 to v40 additive idempotent migration');
     $pins=budget_pins(); $now=1800000000; $ready=true; $s=budget_service($pins,$now,$ready);
     $s->configure(10,100,$now,$now+3600); $a=budget_key(); $b=budget_key(); $o=budget_key();
     $s->reserve($a,$o); $s->reserve($b,$o); $calls=0;

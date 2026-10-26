@@ -322,7 +322,7 @@ abstract class PeraCRM_Campaign_Worker
             $preflight->requireScope($preparation); $preflight->requireSync();
             $job=$this->job((int)$claim['job_id']);
             $row=$this->delivery((int)$claim['job_id'],(int)$claim['id']);
-            $denied=$this->preparedBoundary($job,$row,$claim);
+            $denied=$this->preparedBoundary($job,$row,$claim,true);
             if ($denied !== null) { return $denied; }
             $preparation->requireIdentity($binding);
             $fields=$submission->fields();
@@ -369,8 +369,8 @@ abstract class PeraCRM_Campaign_Worker
     final public function recoverPrepared(array $claim,PeraCRM_Campaign_Worker_Preparation $preparation,
         PeraCRM_Campaign_Worker_Preflight $preflight): array
     {
-        peracrm_with_target_blog(function () use ($preparation,$preflight) {
-            $this->authorize(); $preflight->requireScope($preparation); $preflight->requireRecoveryReadiness();
+        peracrm_with_target_blog(function () use ($claim,$preparation,$preflight) {
+            $this->authorize(); $preflight->requireScope($preparation); $preflight->requireRecoveryReadiness($claim);
         });
         $row=$this->transaction(function () use ($claim,$preparation,$preflight) {
             $preflight->requireScope($preparation); $preflight->requireSync();
@@ -396,12 +396,12 @@ abstract class PeraCRM_Campaign_Worker
         return $row;
     }
 
-    private function preparedBoundary(array $job,array $row,array $claim): ?array
+    private function preparedBoundary(array $job,array $row,array $claim,bool $budgeted=false): ?array
     {
         $this->owned($row,$claim,$this->now(),'claimed');
         if (!$this->due($job,$this->now())) {
             return $this->write($row,['state'=>$job['state']==='cancelled'?'excluded':'held',
-                'attempt_count'=>max(0,(int)$row['attempt_count']-1),
+                'attempt_count'=>$budgeted?(int)$row['attempt_count']:max(0,(int)$row['attempt_count']-1),
                 'reason'=>$job['state']==='cancelled'?'cancelled':'job_gate','owner_token'=>'','lease_until'=>null]);
         }
         if (PeraCRM_Campaign_Acceptance::fenced($this->acceptanceDeployment(),$row['delivery_key'])) {

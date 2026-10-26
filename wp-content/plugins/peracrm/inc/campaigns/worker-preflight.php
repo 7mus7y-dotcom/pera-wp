@@ -44,7 +44,10 @@ final class PeraCRM_Campaign_Worker_Preflight
         $this->requireSync();
         $this->budget->recoverSubmission($claim['attempt_key'],$claim['owner_token']);
     }
-    public function requireRecoveryReadiness(): void { $this->budget->requireRecoveryReadiness(); }
+    public function requireRecoveryReadiness(array $claim): void
+    {
+        $this->budget->requireRecoveryReadiness($claim['attempt_key'],$claim['owner_token']);
+    }
     public static function evidence(PeraCRM_CampaignSubmissionV1 $submission,array $result): array
     {
         $code=$result['code']??'submission_unknown';

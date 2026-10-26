@@ -54,12 +54,17 @@ final class PeraCRM_Sending_Budget
             throw new PeraCRM_Sending_Budget_Error('budget_attempt');
         }
     }
-    public function requireRecoveryReadiness(): void
+    public function requireRecoveryReadiness(string $attempt,string $owner): void
     {
-        $this->transaction(function () {
+        self::hashKey($attempt); self::hashKey($owner);
+        $this->transaction(function () use ($attempt,$owner) {
             $this->authorize(); $this->readiness(); $row=$this->row();
             if (!$row) { throw new PeraCRM_Sending_Budget_Error('budget_quota'); }
             $this->quota($row,$this->now());
+            if (!hash_equals($row['pending_attempt'],$attempt) || !hash_equals($row['pending_owner'],$owner)) {
+                throw new PeraCRM_Sending_Budget_Error('budget_attempt');
+            }
+            $this->reservation($attempt,$owner);
         });
     }
 
@@ -90,6 +95,7 @@ final class PeraCRM_Sending_Budget
             self::db($wpdb->query($wpdb->prepare('UPDATE '.$this->table('reservations')
                 .' SET outcome_staged=1,outcome_code=%s,evidence_hash=%s WHERE scope_hash=%s AND attempt_hash=%s AND '.$guard,
                 $code,$evidence,$this->scope,$attempt)));
+            self::db($wpdb->query($wpdb->prepare('UPDATE '.$this->table('accounts').' SET last_clock=%d WHERE scope_hash=%s AND '.$guard,$now,$this->scope)));
             $this->audit('outcome_recorded',0,$now,$guard);
         });
     }

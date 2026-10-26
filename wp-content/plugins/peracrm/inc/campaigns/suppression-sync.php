@@ -31,7 +31,8 @@ final class PeraCRM_SES_Suppression_Sync
         $row=$wpdb->get_row($wpdb->prepare('SELECT * FROM '.peracrm_table('peracrm_campaign_ses_sync')
             .' WHERE scope_hash=%s FOR UPDATE',$scope),ARRAY_A); self::db(true);
         if (!$row || $row['state']!=='completed' || $row['cursor_value']!==null || $row['error_code']!==''
-            || preg_match('/\A[a-f0-9]{64}\z/',$row['run_id'])!==1 || (int)$row['pages']<1) {
+            || preg_match('/\A[a-f0-9]{64}\z/',$row['run_id'])!==1 || (int)$row['pages']<1
+            || (int)$row['entries']<0 || (int)$row['entries']>(int)$row['pages']*25) {
             throw new PeraCRM_SES_Sync_Error('sync_storage');
         }
         $times=[];
@@ -42,7 +43,7 @@ final class PeraCRM_SES_Suppression_Sync
             }
             $times[$key]=$time;
         }
-        if ($times['started_at']>$times['updated_at'] || $times['updated_at']>$times['last_complete_at']
+        if ($times['started_at']>$times['updated_at'] || $times['updated_at']!==$times['last_complete_at']
             || $now-$times['last_complete_at']>=86400) { throw new PeraCRM_SES_Sync_Error('sync_stale_cursor'); }
         $pages=(int)self::db($wpdb->get_var($wpdb->prepare('SELECT COUNT(*) FROM '.peracrm_table('peracrm_campaign_ses_sync_pages')
             .' WHERE scope_hash=%s AND run_id=%s',$scope,$row['run_id'])));

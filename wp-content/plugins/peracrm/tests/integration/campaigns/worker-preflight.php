@@ -11,7 +11,9 @@ function integrated_sync_scope(string $deployment): string
 worker_fixture_target(static function () {
     global $wpdb;
     foreach (['accepted','unknown','transient','rejected','missing','stale','future','running','failed','cursor','pages',
-        'wrong-account','wrong-region','wrong-deployment','wrong-blog','budget','breaker','signal-failure','result-failure','settle-failure'] as $scenario) {
+        'wrong-account','wrong-region','wrong-deployment','wrong-blog','budget','breaker','sync-after-prep',
+        'sync-after-begin','breaker-after-begin','stale-after-begin','pause-after-begin','cancel-after-begin',
+        'signal-failure','result-failure','settle-failure'] as $scenario) {
         $job=worker_fixture_reset(1); $w=worker_fixture(); $claim=$w->claim($job,1)[0];
         $deployment='integrated-'.bin2hex(random_bytes(8)); $p=prepared_service($deployment);
         $scope=integrated_sync_scope($deployment); $table=peracrm_table('peracrm_campaign_ses_sync');
@@ -29,8 +31,8 @@ worker_fixture_target(static function () {
             $key=['account'=>'account_id','blog'=>'blog_id'][$key]??$key;
             $pins[$key]=match($key) { 'account_id'=>'999999999999','blog_id'=>get_current_blog_id()+1,
                 'region'=>'us-east-1',default=>'other-deployment' };
-            $controls=new PeraCRM_Campaign_Worker_Preflight(new PeraCRM_Sending_Budget($pins,
-                static fn()=>prepared_clock(),static fn()=>true),static fn()=>prepared_clock());
+            $wrongScope=hash('sha256',json_encode(['policy'=>'ses-account-deny-v1']+$pins));
+            $wpdb->update($table,['scope_hash'=>$wrongScope],['scope_hash'=>$scope]);
         }
         if ($scenario==='budget') {
             $actor=get_current_user_id(); wp_set_current_user((int)get_option('campaign_fixture_administrator'));
@@ -38,6 +40,26 @@ worker_fixture_target(static function () {
             $budget->reserve(bin2hex(random_bytes(32)),bin2hex(random_bytes(32)));
         }
         if ($scenario==='breaker') { $budget->signal('provider_rejected'); }
+        if ($scenario==='sync-after-prep') {
+            $filter=prepared_interrupt(static function () use ($wpdb,$table,$scope) {
+                $wpdb->update($table,['state'=>'failed','error_code'=>'sync_storage'],['scope_hash'=>$scope]);
+            });
+        }
+        if (str_ends_with($scenario,'after-begin')) {
+            $begun=false;
+            $filter=static function ($sql) use (&$filter,&$begun,$scenario,$wpdb,$table,$scope,$budget,$job) {
+                if (str_contains($sql,'submission_started')) { $begun=true; }
+                if ($begun && $sql==='START TRANSACTION') {
+                    remove_filter('query',$filter);
+                    if ($scenario==='sync-after-begin') { $wpdb->update($table,['state'=>'running'],['scope_hash'=>$scope]); }
+                    elseif ($scenario==='breaker-after-begin') { $budget->signal('provider_rejected'); }
+                    elseif ($scenario==='stale-after-begin') { worker_fixture_expire($job); }
+                    else { worker_fixture_state($job,$scenario==='pause-after-begin'?'pause':'cancel'); }
+                }
+                return $sql;
+            };
+            add_filter('query',$filter);
+        }
         if (in_array($scenario,['signal-failure','result-failure','settle-failure'],true)) {
             if ($scenario==='signal-failure') { $transport->mode='rejected'; }
             $transport->during=static function () use ($scenario,&$filter) {
@@ -58,7 +80,29 @@ worker_fixture_target(static function () {
         finally { if ($filter) { remove_filter('query',$filter); } $wpdb->suppress_errors($quiet); }
         $sent=in_array($scenario,['accepted','unknown','transient','rejected','signal-failure','result-failure','settle-failure'],true);
         prepared_expect($transport->calls===($sent?1:0),'preflight exact transport count '.$scenario);
-        if (!$sent) { prepared_expect($denied,'submission denied '.$scenario); continue; }
+        if (!$sent) {
+            $lifecycle=in_array($scenario,['pause-after-begin','cancel-after-begin'],true);
+            prepared_expect($lifecycle?!$denied:$denied,'submission denied '.$scenario);
+            if ($lifecycle) {
+                prepared_expect(!$budget->health()['submission_pending'] && $result['attempt_count']===$claim['attempt_count'],
+                    'post-reservation lifecycle denial keeps charged attempt and releases only with evidence');
+                if ($scenario==='pause-after-begin') {
+                    worker_fixture_state($job,'resume'); $next=$w->claim($job,1)[0];
+                    prepared_expect($next['attempt_key']!==$claim['attempt_key'],'resume uses a fresh charged attempt');
+                    $w->submitPrepared($next,$p,new PeraCRM_Campaign_SES_Mapper(prepared_scope(),$transport,static fn()=>0),$controls);
+                    prepared_expect($transport->calls===1,'resume submits once after prior zero-call denial');
+                }
+            } elseif (str_ends_with($scenario,'after-begin')) {
+                prepared_expect($budget->health()['submission_pending'],'post-begin failure keeps durable latch');
+                $stamp=gmdate('Y-m-d H:i:s',prepared_clock());
+                $wpdb->update($table,['state'=>'completed','error_code'=>'','updated_at'=>$stamp,'last_complete_at'=>$stamp],['scope_hash'=>$scope]);
+                $actor=get_current_user_id(); wp_set_current_user((int)get_option('campaign_fixture_administrator'));
+                worker_fixture_expire($job); $w->recoverPrepared($claim,$p,$controls); wp_set_current_user($actor);
+                prepared_expect(!$budget->health()['submission_pending'] && $budget->health()['breaker']==='operator'
+                    && worker_fixture_rows($job)[0]['state']==='unknown' && $transport->calls===0,'zero-call conservative preflight recovery');
+            }
+            continue;
+        }
         $fault=str_ends_with($scenario,'failure');
         prepared_expect($budget->health()['submission_pending']===$fault,'durable latch after '.$scenario);
         if (!$fault) {
