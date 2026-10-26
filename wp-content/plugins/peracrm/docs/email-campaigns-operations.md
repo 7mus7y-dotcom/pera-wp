@@ -344,3 +344,46 @@ signal persistence durably; exercise mocked transport across those boundaries.
 Production clock/quotas/host ownership, external coordination, monitoring and
 controlled acceptance remain separate work. Broader production readiness stays
 blocked; all existing disabled gates remain unchanged.
+
+### Pending submission latch (v39 prerequisite; integration disabled)
+
+`beginSubmission` is a trusted internal accounting API, not worker authorization.
+After an original durable reservation it rechecks readiness/quota/clock/breaker and
+commits one pending attempt/owner for the shared account/region. Network calls
+must follow outside all SQL transactions. Every participating worker must use
+this protocol; existing fixture-only worker paths are not yet wired. Do not
+interpret a successful reserve, a health read or elapsed cooldown as a send permit.
+
+`health().submission_pending` blocks reserves, new begins, generic finishes and
+breaker recovery across processes. It never expires. Quota refresh, reconnect,
+lease expiry, process restart and recipient rollback cannot clear it. Stop on any
+begin/settlement error; never retry transport merely because COMMIT returned an
+error. A failed begin may have committed its latch. A failed settlement may have
+committed its outcome: replay only exact evidence, never the external request.
+
+Settlement must precede recipient-result persistence. `settleSubmission` stores a
+trusted classified outcome and opaque evidence digest immutably in the reservation,
+a durable signal/audit where required, completion charge and latch clear in one
+transaction. Failed signal/audit/result settlement leaves durable exclusion.
+Independent recipient writes cannot roll back an already committed account signal.
+Throttle settlement extends the cooldown; rejection and unknown settlement require
+operator recovery. There are no refunds, even for preflight denial after reservation
+or proven non-acceptance. A reserved-but-not-begun crash remains pending usage.
+
+If outcome evidence is unavailable after a crash/outage, retain the latch until
+storage is healthy, then durably settle the original attempt/owner with
+`submission_unknown` and a recovery-evidence digest. This asserts uncertainty,
+not non-acceptance. It creates an operator hold before clearing the latch. Existing
+version/actor/quota/readiness recovery is a separate audited step and cannot clear
+an unsettled latch. It never modifies recipient/acceptance evidence or grants retry
+authority. Worker integration must fence that recipient as unknown independently;
+this prerequisite does not implement that orchestration. Do not fabricate accepted
+or rejection evidence to clear a latch. Conflicting stored outcome/digest rejects;
+exact replay leaves any newer pending submission untouched. There is no CLI/UI
+activation or recovery shortcut, and production factories remain null.
+
+Durable rows, rather than an in-memory stop flag, provide exclusion for other
+adopting workers. Databases restored without these rows and independent/external
+senders are outside this protection. Restore/ownership/clock and externally
+verified account allocation remain activation blockers. No production readiness
+or transport/suppression-sync integration is established by this prerequisite.

@@ -14,8 +14,8 @@ as detailed in the linked history. No phase is complete merely because code exis
 Future PRs must update this active plan and distinguish repository checks from
 external verification. Preserve historical evidence and decisions in the history.
 
-**Current task:** bounded Phase 5 durable sending budget and circuit service
-prerequisite. Worker integration remains dependent work; see the final section.
+**Current task:** bounded Phase 5 durable submission-latch prerequisite. Worker
+integration and sync preflight remain dependent work; see the final section.
 
 ## Phase 5B — bounded recipient preference editor (2026-10-22)
 
@@ -1702,3 +1702,88 @@ A later orchestration PR must compose those boundaries with final suppression
 freshness and acceptance/conflict fences, never nest the transactions or treat
 a reservation as send/retry authority. Durable failed-signal recovery/outage
 coordination remains required before this service can protect real dispatch.
+
+## Phase 5 — durable submission-latch prerequisite (2026-10-26)
+
+Phase 5 remains **in progress**. This bounded PR completes a prerequisite for
+worker/transport integration: durable account-wide exclusion while the outcome
+of a submission has not been durably settled. It does **not** wire the worker,
+transport or suppression-sync preflight. The split is necessary because a signal
+write can fail after an external request: a process-local stop cannot prevent
+other workers/campaigns from sending. The pre-existing budget and worker own
+separate transactions; nesting them would break their commit/lease guarantees.
+
+Connector verified #1490 merged to latest main
+`6ea1dd4e70f9f6dfb4096657b263626b85ed19fb`, tree
+`081f40aa847f4cacb70ab04c925988c780a3b432`. Its final head
+`924302925ceac792725013f52e7d30df081c80b1` passed both-topology
+CI 40319230596 and clean final-head review receipt 6415518868; completed review
+summary has no findings/unresolved findings and no review threads remain.
+No applicable AGENTS.md exists in the workspace/repository or searched ancestors.
+Read this plan, provider specification and budget/worker/transport/sync services.
+Original clean checkout is preserved. Isolated `/workspace/pera-preflight` has
+16 connector-fetched baseline blobs verified against Git hashes; reconstructed
+tree exactly matches main. Shell fetch failed once at the unavailable proxy and
+was not retried. Published history must parent directly to main, excluding local
+reconstruction scaffolding.
+
+Schema v39 adds account pending attempt/owner and reservation outcome/evidence
+fields. `beginSubmission` rechecks quota, clock, readiness, original reservation
+owner and breaker under the account lock, then commits a single-use account latch.
+All subsequent reserves/begins and operator recovery deny while it is present.
+`settleSubmission` atomically persists an immutable outcome/digest, signal/audit,
+completion charge and latch release. Failed mutation/audit/COMMIT, rollback,
+reconnection or death retains the pre-existing latch. No transaction spans a
+network call. Accepted, denied, rejected and ambiguous attempts retain charges;
+there is no refund API. Generic finish cannot age usage while a latch is pending.
+Exact evidence replay cannot clear a newer latch; conflicting evidence denies.
+
+Lost outcome evidence may only be conservatively recorded as `submission_unknown`,
+which commits an operator hold before releasing the latch. This is durable
+recovery evidence of uncertainty, **not** proof of non-acceptance or permission
+to resend. The caller must already have independently classified/authenticated
+any positive/provider outcome; this accounting API authenticates no provider
+response. It never changes recipient state, exact output bytes, response/event
+correlation, acceptance/conflict, unknown or cancellation fences. All participating
+workers must adopt the protocol before it can protect the transport path; current
+internal fixture-only legacy paths remain unwired. No claim covers independent
+databases or external account senders.
+
+Validation added: synthetic transport/no-transaction/zero-call denials, reservation
+breaker race, quota exhaustion/staleness, owner/evidence mismatch and replay,
+no-refund outcomes, 75 mutation/commit fault cases, independent-process concurrent
+campaigns, process death before/after synthetic transport, signal outage and durable
+unknown recovery. Existing real single/multisite SQL/race/browser suites remain
+required. Local PHP is absent; local Docker socket check returned operation not
+permitted (daemon running, UID 1000). No local PHP/SQL success is claimed. Local
+packaging hash verifier, shell syntax and whitespace checks pass. Hosted CI and
+clean review of the final changes must be recorded in the PR acceptance report.
+
+Remaining next bounded work: integrate reservation/begin/settlement immediately
+around final authorized prepared worker/mapper submission; exact configured
+account/region/deployment/blog complete/fresh suppression checkpoint validation
+(including running/failed/inconsistent states); recheck lease/owner/version,
+due-time/pause/cancel/eligibility after independent preflight transactions; persist
+signals before recipient results; preserve late/unknown/conflict and exact-byte
+recovery; classify and durably recover lost outcomes without resending; test
+breaker/sync/worker races and failed result writes end-to-end. The latch protocol
+is deliberately conservative (one unsettled submission per account and stranded
+capacity on crashes); it is not production throughput acceptance.
+
+Production budget/sync factories remain unconditionally null, dispatch false,
+intake/public collection/cron disabled. No AWS requests, credentials, messages,
+endpoint/sync activation, new UI, merge or deployment. External quota/headroom,
+host clock/ownership/restore, identity/IAM, monitoring, keys/retention and controlled
+inbox acceptance remain unverified activation dependencies.
+
+Local final-change review also rejects partially populated reservation evidence
+rather than overwriting it during settlement. Real SQL regressions retain those
+inconsistent rows unchanged for investigation. Final-head CI/review must cover
+this correction; initial-head checks do not substitute for it.
+
+Final-head review of `8c402d8341` found one more partial-row case: matching
+outcome/digest could replay with zero completion. Replay now requires a positive
+completion timestamp no earlier than reservation and no later than the trusted
+clock. SQL regressions reject zero/future/pre-reservation completion unchanged.
+New final-head CI and clean review are required for this correction. Earlier
+review/CI results do not establish final acceptance.

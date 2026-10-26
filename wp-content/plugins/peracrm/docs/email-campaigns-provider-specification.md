@@ -722,3 +722,22 @@ not solved by local accounting. A production clock/host ownership and restore
 protocol must be verified before integration/activation. Database guards, named
 locks and connection checks reject ambient transactions and reconnect replay.
 No claim is made that mock/SQL acceptance verifies AWS quotas or host timing.
+
+### Durable outcome-pending latch (v39 prerequisite)
+
+The internal budget now offers `beginSubmission` / `settleSubmission`. A committed
+account/region pending attempt/owner blocks all adopting workers until immutable
+outcome/digest evidence, signal/audit and completion commit together. Reservation
+alone cannot cross this latch. Settlement failures leave it durable; no local
+flag is claimed to protect peers. `submission_unknown` recovery creates an
+operator hold and never establishes non-acceptance. Exact evidence replay is
+idempotent; changed outcome/digest fails, and replay cannot clear a newer latch.
+All outcomes retain usage. Generic finish and operator recovery reject pending
+latches. Neither API authenticates provider evidence or changes recipient records.
+
+This supersedes only the prior signal-outage prerequisite gap. Worker/transport
+orchestration, complete/fresh exact-scope sync final preflight and end-to-end
+recipient unknown/recovery fences remain dependent work. Production remains
+unconditionally blocked. All workers on the shared ledger must adopt the protocol
+before its cross-process protection can be claimed for transport. Independent
+installations and external senders remain outside local coordination.

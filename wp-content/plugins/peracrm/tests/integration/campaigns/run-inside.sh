@@ -69,6 +69,24 @@ wp eval-file /tests/migration-worker.php verify
 wp eval-file /tests/management.php
 
 wp eval-file /tests/sending-budget.php
+wp eval-file /tests/submission-latch.php
+for latch_scenario in concurrent crash-before crash-after signal-outage; do
+    rm -f /tmp/peracrm-latch-held /tmp/peracrm-latch-winner /tmp/peracrm-latch-loser
+    wp eval-file /tests/submission-latch-race.php prepare "$latch_scenario"
+    wp eval-file /tests/submission-latch-race.php winner "$latch_scenario" &
+    latch_winner_pid=$!
+    wait_for_migration_marker /tmp/peracrm-latch-held
+    if [ "$latch_scenario" = concurrent ]; then
+        wp eval-file /tests/submission-latch-race.php loser "$latch_scenario"
+        wait "$latch_winner_pid"
+    else
+        latch_exit=0
+        wait "$latch_winner_pid" || latch_exit=$?
+        [ "$latch_exit" -eq 79 ]
+        wp eval-file /tests/submission-latch-race.php loser "$latch_scenario"
+    fi
+    wp eval-file /tests/submission-latch-race.php verify "$latch_scenario"
+done
 for budget_scenario in overlap daily crash; do
     rm -f /tmp/peracrm-budget-held /tmp/peracrm-budget-winner /tmp/peracrm-budget-loser
     wp eval-file /tests/sending-budget-race.php prepare "$budget_scenario"
