@@ -252,3 +252,40 @@ DLQ provisioning and retry policy, real-host heartbeat/alerting, privacy-safe lo
 configuration, retention/deletion, backup/restore and reconciliation decisions
 remain explicit operational dependencies. No automatic schedule is installed;
 operator invocation and future monitoring/activation require their own decisions.
+
+## Explicit SES suppression synchronization (disabled in production)
+
+`wp peracrm campaigns suppression-health --format=json` reports the disabled
+production factory. `suppression-sync` requires a real non-impersonated actor with
+report, campaign-management and subscriber-management capabilities, explicit
+`--pages=1` (1–10) and `--confirm=account-deny-only`. It returns exit 2 while the
+production factory is disabled; no option, credential or filter activates it.
+There is no schedule. Do not provision credentials or invoke AWS for this PR.
+Disposable injected fixtures exercise the internal service in both topologies.
+
+A future separately approved production adapter must attest the configured AWS
+account, pin region/deployment/target blog, and authorize importing account-wide
+denials. SES cannot filter those entries by WordPress blog/configuration set.
+It must obey the documented complete-response/TLS/size/timeout executor contract.
+No production adapter or credential acquisition is supplied here.
+
+When enabled by future work, inspect only fixed health fields: state, pages,
+entries observed (duplicates included), last_complete_at, stale and error_code.
+Stale means never completed or last completion over 24 hours old. Progress is
+not completeness. `sync_read_failed` preserves the next cursor and committed
+pages; repeat the bounded explicit invocation. `sync_overlap` requires waiting
+for the active operator. `sync_storage` requires database/session investigation.
+`sync_scope` requires correcting pins/target context; never switch targets to
+force an import. `sync_invalid_page` / `sync_unsupported_reason` require manual
+provider/protocol review. `sync_invalid_cursor`, `sync_stale_cursor` and
+`sync_cursor_cycle` require investigation and an explicit
+`--restart=abandon-cursor` with the normal confirmation/bounds to restart safely.
+Restart never deletes deny facts/audits or prior complete time. Remote absence,
+removal, changed case or an empty list cannot grant consent or clear suppression.
+
+Never print or paste cursors, mailboxes, credentials or raw provider responses
+into CLI output, logs or incident tickets. Health does not expose those values.
+Existing suppression provenance and historical flags must survive restore and
+reconnection; schema v37 is additive. Run the repository's complete disposable
+single-site/multisite SQL/race suite before accepting sync changes. Mocks cannot
+establish IAM access, real AWS behavior, snapshot consistency or inbox delivery.

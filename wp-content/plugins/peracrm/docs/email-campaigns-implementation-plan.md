@@ -14,8 +14,8 @@ as detailed in the linked history. No phase is complete merely because code exis
 Future PRs must update this active plan and distinguish repository checks from
 external verification. Preserve historical evidence and decisions in the history.
 
-**Current task:** bounded Phase 5 concrete SES v2 signed HTTP transport and mocked
-signature/response acceptance. See the final section for scope and evidence.
+**Current task:** bounded Phase 5 SES suppression synchronization with durable
+page checkpoints. See the final section for scope, disabled gates and evidence.
 
 ## Phase 5B — bounded recipient preference editor (2026-10-22)
 
@@ -1576,3 +1576,65 @@ required at publication; the PR acceptance record must identify the final SHA
 and completed results. All production construction/dispatch/intake/collection/
 cron gates remain disabled. Mocks and disposable SQL tests do not establish
 real-host, deployment identity/IAM, AWS account, DKIM or inbox readiness.
+
+## Phase 5 — bounded SES suppression sync (2026-10-26)
+
+Baseline #1485 is merged (`7c1d13c9fad2442126183bbbb2a5b7efa2db1a30`). Its final
+head `664e7614f2c8ef9bc9e26fde5c32d101d94dee45` passed CI 40273525201 and clean
+review receipt 6408836268; the completed review summary reports no findings or
+unresolved findings at that SHA. Latest main is `a65e071ef26e14de805df87b60c210d983d45311`.
+No applicable AGENTS.md found. Read the plan, provider specification, transport,
+suppression, persistence, schema and operations services. Original checkout is
+preserved; isolated worktree `/workspace/pera-ses-sync` reconstructs all 49 changed
+baseline files through the connector, with every Git blob hash verified. Shell
+Git remains blocked by the proxy. Publication parents directly to verified main;
+local reconstruction scaffolding must not be published.
+
+Adds a trusted injected SDK-signed account-level read adapter, additive schema
+v37, bounded explicit sync/health commands and durable page transactions. Scope
+pins bind account, region, deployment and target blog. Provider spelling is
+retained separately from local normalization. Import only adds BOUNCE/COMPLAINT
+knowledge with immutable provenance, without subscriber/CRM/profile/consent
+creation. Duplicate pages/facts are idempotent. Interrupted runs resume committed
+cursors; expired/stale/cyclic tokens need explicit restart. Unsupported reasons
+and scope mismatch fail closed. Terminal complete time only advances with the
+whole terminal page transaction. SQL guards and session-scoped overlap locks
+preserve reconnection, rollback and concurrent-run protections.
+
+Official current AWS list/get/account-suppression documentation was accessible
+through the web connector and verified; exact links/limitations and separate
+bounded read retry policy are in the provider specification/runbook. SendEmail's
+zero-retry policy and isolated dependency packaging are unchanged. Production sync
+factory unconditionally returns null. The reader requires an injected executor;
+there are no native requests, cron hooks, credentials, provider writes, sending,
+endpoint/intake/public collection activation, provisioning, merge or deployment.
+
+Added focused policy/signature/retry/CLI tests and real single-site/multisite SQL
+fixtures for pagination, duplicate pages, interruption/resume, failure/false-complete
+prevention, wrong scope, historical denial retention, rollback/reconnection at each
+write boundary and independent-process overlap/death races. Local PHP and Docker
+executables are absent, so no local PHP/SQL execution is claimed. Local dependency
+hash verification, shell syntax and whitespace pass. Hosted CI and clean review
+covering the final changes remain required before acceptance; evidence is recorded
+in the PR. Phase 5 remains in progress and external identity/IAM, production HTTP,
+rate/circuit, monitoring, key/retention/restore and inbox acceptance remain open.
+
+### Runtime validation and checkpoint review correction
+
+Non-draft [PR #1487](https://github.com/7mus7y-dotcom/pera-wp/pull/1487) is published.
+Runtime/test head `f661a9cdec85c6c3c3c82d1b583c9468bcc6e180` passed both-topology
+CI 40288157569 (multi job 121456746561, single job 121456746727), including all
+36 standalone suites, PHP syntax, real SQL/races and browser fixtures. The initial
+schema-version and CLI-count assertions were updated. Initial review's capture
+reconnect fixture finding was corrected to inject after lock ownership.
+
+Review of that passing runtime found that post-terminal diagnostic errors or a
+rolled-back successor initialization could downgrade the prior completed run.
+Failure persistence now requires the invocation's durably initialized run ID and
+a nonterminal stored state. Cursor-age/manual holds are checked after durable
+initialization. New real SQL regressions inject post-terminal session/health errors
+and successor UPDATE/COMMIT failures, preserve completion and verify the next scan
+starts cleanly. Historical suppression flags and provenance are retained verbatim;
+duplicates reassert deny flags without replacing evidence. This correction needs
+new hosted CI and clean review covering the final changes. Earlier passing CI is
+not acceptance of the later correction. Final evidence is tracked in the PR.

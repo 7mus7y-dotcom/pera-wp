@@ -363,3 +363,23 @@ for processing_scenario in duplicate interrupted; do
     fi
     wp eval-file /tests/event-processing-race.php verify "$processing_scenario"
 done
+wp eval-file /tests/suppression-sync.php
+for sync_scenario in duplicate interrupted; do
+    rm -f /tmp/peracrm-sync-held /tmp/peracrm-sync-winner /tmp/peracrm-sync-loser
+    wp eval-file /tests/suppression-sync-race.php prepare "$sync_scenario"
+    wp eval-file /tests/suppression-sync-race.php winner "$sync_scenario" &
+    sync_winner_pid=$!
+    wait_for_migration_marker /tmp/peracrm-sync-held
+    if [ "$sync_scenario" = interrupted ]; then
+        sync_exit=0
+        wait "$sync_winner_pid" || sync_exit=$?
+        [ "$sync_exit" -eq 77 ]
+        wp eval-file /tests/suppression-sync-race.php loser "$sync_scenario"
+    else
+        wp eval-file /tests/suppression-sync-race.php loser "$sync_scenario" &
+        sync_loser_pid=$!
+        wait "$sync_winner_pid"
+        wait "$sync_loser_pid"
+    fi
+    wp eval-file /tests/suppression-sync-race.php verify "$sync_scenario"
+done
