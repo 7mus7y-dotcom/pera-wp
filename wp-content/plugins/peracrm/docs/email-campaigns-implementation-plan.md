@@ -1873,3 +1873,11 @@ rollback and reconnect faults supplement the latch service fault matrix. Histori
 migration fixtures explicitly cover additive/idempotent v38 and v39 upgrades to
 v40. Earlier CI/reviews are superseded whenever the head changes; the final PR
 report must identify the accepted final commit, both topology jobs and clean review.
+
+
+Terminal sync timestamps are validated in order, not for equality: `updated_at`
+can precede database completion while mailbox locks delay a page. Both run start
+and completion must remain fresh. A real mocked terminal scan with injected
+elapsed time now precedes a successful worker submission in SQL coverage. The
+historical failed-page fixture tracks the latest empty-scan completion, avoiding
+an assumption that two independent scans finish in the same second.

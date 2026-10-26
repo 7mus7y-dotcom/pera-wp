@@ -20,8 +20,10 @@ peracrm_with_target_blog(static function () {
     sns_expect(suppress_rows('peracrm_email_suppression_events')===$audit && suppress_state()===$before,'duplicate page idempotent and no subscriber/profile/consent mutation');
     $fact=$wpdb->get_row($wpdb->prepare('SELECT * FROM '.peracrm_table('peracrm_campaign_ses_sync_facts').' WHERE normalized_email=%s',$local),ARRAY_A);
     sns_expect($fact['provider_mailbox']===$box && $fact['normalized_email']===$local,'provider spelling separate from existing normalization');
-    $denied=sync_denials(); $complete=$done['last_complete_at'];
-    sync_service($pins,static fn()=>['SuppressedDestinationSummaries'=>[]])->run(1);
+    $denied=sync_denials();
+    $empty=sync_service($pins,static fn()=>['SuppressedDestinationSummaries'=>[]])->run(1);
+    // The empty scan is a new completed run and can cross a second boundary.
+    $complete=$empty['last_complete_at'];
     sns_expect((int)$wpdb->get_var($wpdb->prepare('SELECT hard_bounce FROM '.peracrm_table('peracrm_email_suppressions').' WHERE normalized_email=%s',$local))===1,'remote removal never clears historical denial');
     sns_expect(suppress_rows('peracrm_email_suppression_events')===$audit,'empty scan adds no audit');
     // Failure on the second page retains first-page denies, exact resume and old complete.

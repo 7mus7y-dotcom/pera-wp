@@ -11,7 +11,7 @@ final class PeraCRM_Sending_Budget_Error extends RuntimeException
     }
 }
 
-/** Internal prerequisite only. No worker, provider, cron or production factory.
+/** Internal accounting service. No provider, cron or production factory.
  * All users of an account/region must share this target-blog database and owner.
  * Adopting callers reserve/begin before transport, record outcome/signals before
  * recipient persistence, then settle. A reservation/latch is never send authority.

@@ -136,7 +136,7 @@ worker_fixture_target(static function () {
             } elseif (str_ends_with($scenario,'after-begin') || str_ends_with($scenario,'lock-wait')) {
                 prepared_expect($budget->health()['submission_pending'],'post-begin failure keeps durable latch');
                 $stamp=gmdate('Y-m-d H:i:s',prepared_clock());
-                $wpdb->update($table,['state'=>'completed','error_code'=>'','updated_at'=>$stamp,'last_complete_at'=>$stamp],['scope_hash'=>$scope]);
+                $wpdb->update($table,['state'=>'completed','error_code'=>'','started_at'=>$stamp,'updated_at'=>$stamp,'last_complete_at'=>$stamp],['scope_hash'=>$scope]);
                 $actor=get_current_user_id(); wp_set_current_user((int)get_option('campaign_fixture_administrator'));
                 if ($scenario==='quota-lock-wait') { $now=prepared_clock(); $budget->configure(100,10000,$now,$now+3600); }
                 worker_fixture_expire($job); $w->recoverPrepared($claim,$p,$controls); wp_set_current_user($actor);
@@ -184,6 +184,31 @@ worker_fixture_target(static function () {
     prepared_expect($transport->calls===0 && $w->submitPrepared($next,$p,$mapper,$controls)['state']==='accepted'
         && $transport->calls===1,'stale owner denied and new unsubmitted owner safely submits');
     wp_set_current_user($actor);
+    // Complete a real mocked sync page with injected elapsed database time at
+    // its terminal mailbox boundary. Completion can follow updated_at legally.
+    $job=worker_fixture_reset(1); $w=worker_fixture();
+    $deployment='delayed-sync-'.bin2hex(random_bytes(8)); $p=prepared_service($deployment);
+    $pins=prepared_pins($deployment);
+    $reader=new class($pins) implements PeraCRM_SES_Suppression_Reader {
+        public function __construct(private array $pins) {}
+        public function scope(): array { return $this->pins; }
+        public function page(?string $cursor): array { return ['SuppressedDestinationSummaries'=>[],'NextToken'=>null]; }
+    };
+    $delay=static function ($sql) use (&$delay,$wpdb) {
+        if (str_starts_with($sql,'UPDATE ') && str_contains($sql,'campaign_ses_sync') && str_contains($sql,'last_complete_at=UTC_TIMESTAMP()')) {
+            remove_filter('query',$delay); worker_fixture_advance(5);
+        }
+        return $sql;
+    };
+    add_filter('query',$delay);
+    try { (new PeraCRM_SES_Suppression_Sync($pins,$reader))->run(1); }
+    finally { remove_filter('query',$delay); }
+    $row=$wpdb->get_row($wpdb->prepare('SELECT * FROM '.peracrm_table('peracrm_campaign_ses_sync')
+        .' WHERE scope_hash=%s',integrated_sync_scope($deployment)),ARRAY_A);
+    prepared_expect($row['updated_at']<$row['last_complete_at'],'terminal sync completion may follow checkpoint preparation');
+    $claim=$w->claim($job,1)[0]; $transport=new PeraCRM_Prepared_Mock($deployment);
+    prepared_expect($w->submitPrepared($claim,$p,new PeraCRM_Campaign_SES_Mapper(prepared_scope(),$transport,static fn()=>0),prepared_controls())['state']==='accepted'
+        && $transport->calls===1,'fresh complete delayed sync authorizes exactly one submission');
     prepared_expect(!peracrm_campaign_queue_dispatch_allowed() && peracrm_sending_budget_service()===null
         && peracrm_ses_suppression_sync_service()===null,'production gates stay disabled');
 });

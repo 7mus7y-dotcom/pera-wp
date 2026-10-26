@@ -43,8 +43,12 @@ final class PeraCRM_SES_Suppression_Sync
             }
             $times[$key]=$time;
         }
-        if ($times['started_at']>$times['updated_at'] || $times['updated_at']!==$times['last_complete_at']
-            || $now-$times['last_complete_at']>=86400) { throw new PeraCRM_SES_Sync_Error('sync_stale_cursor'); }
+        // commitPage captures updated_at before mailbox lock waits, while the
+        // terminal completion uses the database clock after those waits.
+        if ($times['started_at']>$times['updated_at'] || $times['updated_at']>$times['last_complete_at']
+            || $now-$times['started_at']>=86400 || $now-$times['last_complete_at']>=86400) {
+            throw new PeraCRM_SES_Sync_Error('sync_stale_cursor');
+        }
         $pages=(int)self::db($wpdb->get_var($wpdb->prepare('SELECT COUNT(*) FROM '.peracrm_table('peracrm_campaign_ses_sync_pages')
             .' WHERE scope_hash=%s AND run_id=%s',$scope,$row['run_id'])));
         if ($pages!==(int)$row['pages']) { throw new PeraCRM_SES_Sync_Error('sync_storage'); }
