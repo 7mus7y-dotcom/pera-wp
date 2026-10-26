@@ -14,8 +14,8 @@ as detailed in the linked history. No phase is complete merely because code exis
 Future PRs must update this active plan and distinguish repository checks from
 external verification. Preserve historical evidence and decisions in the history.
 
-**Current task:** bounded Phase 5 durable sending budget and circuit service
-prerequisite. Worker integration remains dependent work; see the final section.
+**Current task:** bounded Phase 5 durable submission-latch prerequisite. Worker
+integration and sync preflight remain dependent work; see the final section.
 
 ## Phase 5B — bounded recipient preference editor (2026-10-22)
 
@@ -1780,3 +1780,10 @@ Local final-change review also rejects partially populated reservation evidence
 rather than overwriting it during settlement. Real SQL regressions retain those
 inconsistent rows unchanged for investigation. Final-head CI/review must cover
 this correction; initial-head checks do not substitute for it.
+
+Final-head review of `8c402d8341` found one more partial-row case: matching
+outcome/digest could replay with zero completion. Replay now requires a positive
+completion timestamp no earlier than reservation and no later than the trusted
+clock. SQL regressions reject zero/future/pre-reservation completion unchanged.
+New final-head CI and clean review are required for this correction. Earlier
+review/CI results do not establish final acceptance.

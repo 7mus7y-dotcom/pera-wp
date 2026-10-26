@@ -13,8 +13,8 @@ final class PeraCRM_Sending_Budget_Error extends RuntimeException
 
 /** Internal prerequisite only. No worker, provider, cron or production factory.
  * All users of an account/region must share this target-blog database and owner.
- * Callers must reserve once before transport, signal BEFORE recipient persistence,
- * and finish only after transport returns. A reservation is never send authority.
+ * Adopting callers reserve, begin before transport, then settle outcome/signals
+ * BEFORE recipient persistence. A reservation or latch is never send authority.
  */
 final class PeraCRM_Sending_Budget
 {
@@ -256,7 +256,9 @@ final class PeraCRM_Sending_Budget
             if (!$row) { throw new PeraCRM_Sending_Budget_Error('budget_quota'); }
             $this->clockCheck($row,$now); $reservation=$this->reservation($attempt,$owner);
             if ($reservation['outcome_code']!=='') {
-                if ($reservation['outcome_code']!==$code || !hash_equals($reservation['evidence_hash'],$evidence)) {
+                if ((int)$reservation['completed_at']<1 || (int)$reservation['completed_at']<$reservation['reserved_at']
+                    || (int)$reservation['completed_at']>$now || $reservation['outcome_code']!==$code
+                    || !hash_equals($reservation['evidence_hash'],$evidence)) {
                     throw new PeraCRM_Sending_Budget_Error('budget_attempt');
                 }
                 return; // Exact evidence replay cannot clear a newer submission.

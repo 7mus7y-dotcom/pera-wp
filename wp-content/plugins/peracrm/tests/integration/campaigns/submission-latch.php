@@ -43,6 +43,14 @@ peracrm_with_target_blog(static function () {
         sns_expect(budget_snapshot()===$inconsistent,'partial evidence retained for investigation');
         $wpdb->query($wpdb->prepare('UPDATE '.$reservations.' SET '.$column.'=%s WHERE attempt_hash=%s',$column==='completed_at'?0:'',$a));
     }
+    foreach ([0,$now+1,1] as $partialCompletion) {
+        $wpdb->query($wpdb->prepare('UPDATE '.$reservations.' SET outcome_code=%s,evidence_hash=%s,completed_at=%d WHERE attempt_hash=%s',
+            'provider_accepted',$e,$partialCompletion,$a));
+        $inconsistent=budget_snapshot();
+        budget_denied(fn()=>$s->settleSubmission($a,$o,'provider_accepted',$e),'budget_attempt');
+        sns_expect(budget_snapshot()===$inconsistent,'matching evidence without valid completion is not settlement');
+    }
+    $wpdb->query($wpdb->prepare("UPDATE ".$reservations." SET outcome_code='',evidence_hash='',completed_at=0 WHERE attempt_hash=%s",$a));
     $s->settleSubmission($a,$o,'provider_accepted',$e); $settled=budget_snapshot();
     $s->settleSubmission($a,$o,'provider_accepted',$e);
     sns_expect(budget_snapshot()===$settled,'exact durable evidence replay idempotent');
