@@ -17,6 +17,7 @@ function peracrm_source_options()
         'meta_ads' => __('Meta Ads', 'peracrm'),
         'instagram_dm' => __('Instagram', 'peracrm'),
         'whatsapp_dm' => __('WhatsApp', 'peracrm'),
+        'email' => __('Email', 'peracrm'),
         'website' => __('Website', 'peracrm'),
         'referral' => __('Referral', 'peracrm'),
         'other' => __('Other', 'peracrm'),
