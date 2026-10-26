@@ -33,7 +33,7 @@ foreach (['fixture-run','fixture-recover','health','due'] as $op) {
     catch (Campaign_CLI_Exit $e) { $exit=$e->getCode(); }
     campaign_expect($exit===3 && json_decode(WP_CLI::$output,true)===['error'=>'campaign_command_rejected'],'CLI production guard/authority JSON exit 3: '.$op);
 }
-campaign_expect(count(WP_CLI::$commands)===9 && !isset(WP_CLI::$commands['peracrm campaigns send']),'no production send/reset/enable commands');
+campaign_expect(count(WP_CLI::$commands)===11 && !isset(WP_CLI::$commands['peracrm campaigns send']),'no production send/reset/enable commands');
 echo "PASS scheduler/CLI standalone contracts\n";
 
 $GLOBALS['campaign_actor']=1;

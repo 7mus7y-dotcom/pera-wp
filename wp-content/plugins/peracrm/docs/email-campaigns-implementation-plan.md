@@ -14,8 +14,8 @@ as detailed in the linked history. No phase is complete merely because code exis
 Future PRs must update this active plan and distinguish repository checks from
 external verification. Preserve historical evidence and decisions in the history.
 
-**Current task:** bounded Phase 5 SES suppression synchronization with durable
-page checkpoints. See the final section for scope, disabled gates and evidence.
+**Current task:** bounded Phase 5 durable sending budget and circuit service
+prerequisite. Worker integration remains dependent work; see the final section.
 
 ## Phase 5B — bounded recipient preference editor (2026-10-22)
 
@@ -1638,3 +1638,48 @@ starts cleanly. Historical suppression flags and provenance are retained verbati
 duplicates reassert deny flags without replacing evidence. This correction needs
 new hosted CI and clean review covering the final changes. Earlier passing CI is
 not acceptance of the later correction. Final evidence is tracked in the PR.
+
+## Phase 5 — durable sending budget prerequisite (2026-10-26)
+
+This bounded PR completes the durable ledger/circuit service prerequisite only.
+The complete requested worker/transport integration is explicitly NOT complete.
+Phase 5 remains in progress. Final worker suppression-sync preflight, reservation
+and signal ordering, durable outage handling and integrated transport races are
+recorded dependent work, not production readiness. See provider specification and
+operations runbook for exact ownership, accounting, clock and restore contracts.
+
+Verified #1487 merged at latest main `15221709f9368b832db2415d8e947ab92b785133`.
+Its final head `745990b05cf3f9162360ba5e83e5259465855019` passed CI 40289263054;
+clean final review receipt 6411120613 and completed summary cover that head with
+no findings/unresolved findings. Earlier two finding threads are resolved. No
+applicable AGENTS.md found under workspace/ancestors. Read living plan/history,
+provider specification, worker/preparation, transport, suppression-sync and health/
+CLI services. Original clean checkout is preserved. Isolated `/workspace/pera-budget`
+reconstructs latest main through 24 connector-fetched/hash-verified blobs. Shell
+fetch failed once at unreachable proxy and was not retried. Publication parents
+directly to verified main; local reconstruction scaffolding is excluded.
+
+Schema v38 adds account/region ownership, quota/clock/breaker state, immutable
+reservation identity and actor-coded events. Atomic reservations share both rolling
+limits across campaigns/processes on one designated target-blog ledger. Missing/
+invalid/stale quotas, wrong owners/targets, clock rollback and breakers deny.
+Pending reservations never age free; completed usage is conservatively retained
+from completion. No refund, reset, recipient change or automatic resend exists.
+Operator holds and timed throttling are distinct; recovery is version-fenced,
+authorized, audited and requires quota/readiness. Signal transactions are independent
+of recipient persistence. Production service factory is unconditionally null.
+
+Focused policy/CLI regressions and real single-site/multisite SQL fixtures cover
+rolling boundaries, indefinitely pending/crashed usage, duplicates/stale owners,
+readiness and quota denials, ownership, durable breaker persistence, safe recovery,
+rollback/reconnect mutations and independent-process overlap/death. Local PHP is
+absent; Docker daemon is running but socket access is sandbox-blocked under UID
+1000. No local PHP/SQL success is claimed. Hosted final-head CI and clean review
+are required; final evidence is recorded in the PR acceptance record.
+
+No real AWS requests, credentials, messages, endpoint/sync/intake/collection
+activation, cron installation, UI, merge or deployment. All code is plugin-owned.
+Unconditional production dispatch blocking and all disabled factories/gates stay.
+Account quotas, shared host ownership, external senders, production clock/restore
+recovery and production acceptance remain explicitly unverified. Local accounting
+alone cannot provide account-wide protection across independent installations.

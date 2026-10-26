@@ -2,6 +2,7 @@
 if (!defined('ABSPATH')) { exit; }
 require_once __DIR__.'/event-processing.php';
 require_once __DIR__.'/suppression-sync.php';
+require_once __DIR__.'/sending-budget.php';
 
 class PeraCRM_Campaign_Operations_Blocked extends RuntimeException {}
 
@@ -163,6 +164,21 @@ class PeraCRM_Campaign_Operations
             $sync=peracrm_ses_suppression_sync_service();
             if (!$sync) { return ['state'=>'disabled','error_code'=>null,'production_enabled'=>false]; }
             return $pages===null?$sync->health():$sync->run($pages,$restart);
+        });
+    }
+    public function sending_budget(?int $version=null): array
+    {
+        $this->authorize_read();
+        return $this->context(function () use ($version) {
+            if ($version!==null) {
+                $actor=peracrm_get_actor_user_id();
+                if ($actor<1 || !user_can($actor,'peracrm_manage_campaigns') || !user_can($actor,'peracrm_manage_subscribers')
+                    || peracrm_is_impersonating_crm_user()) { throw new InvalidArgumentException(); }
+            }
+            $budget=peracrm_sending_budget_service();
+            if (!$budget) { return ['configured'=>false,'production_enabled'=>false,'state'=>'disabled']; }
+            if ($version!==null) { $budget->recover($version); }
+            return $budget->health();
         });
     }
     /** Production has no concrete worker/provider. Gate precedes every delivery read/write. */

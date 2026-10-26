@@ -8,6 +8,7 @@ function peracrm_campaign_cli($operation, $args, $assoc)
     $exit=0;
     try {
         $allowed=in_array($operation,['due','event-redrive'],true) ? ($operation==='event-redrive'?['format','limit','confirm']:['format','limit']) : (str_starts_with($operation,'fixture-') ? ['format','confirm-disposable'] : ['format']);
+        if ($operation==='budget-recover') { $allowed=['format','version','confirm']; }
         if ($operation==='suppression-sync') { $allowed=['format','pages','confirm','restart']; }
         if ($args || array_diff(array_keys($assoc), $allowed)) { throw new InvalidArgumentException(); }
         $format=$assoc['format'] ?? 'json';
@@ -38,6 +39,16 @@ function peracrm_campaign_cli($operation, $args, $assoc)
             $data=$service->suppression_sync($pages,$restart);
             if ($data['state']==='disabled') { $exit=2; }
             elseif ($data['state']==='failed' || !empty($data['stale'])) { $exit=4; }
+        } elseif ($operation==='budget-health' || $operation==='budget-recover') {
+            $version=null;
+            if ($operation==='budget-recover') {
+                if (($assoc['confirm']??null)!=='breaker-only' || !is_string($assoc['version']??null)
+                    || preg_match('/\A[1-9][0-9]{0,8}\z/',$assoc['version'])!==1) { throw new InvalidArgumentException(); }
+                $version=(int)$assoc['version'];
+            }
+            $data=$service->sending_budget($version);
+            if (($data['state']??'')==='disabled') { $exit=2; }
+            elseif (empty($data['quota_fresh']) || ($data['breaker']??'closed')!=='closed') { $exit=4; }
         } elseif ($operation==='due') {
             $limit=$assoc['limit'] ?? '10';
             if (!is_scalar($limit) || !preg_match('/^(?:[1-9]|1[0-9]|2[0-5])$/D',(string)$limit)) { throw new InvalidArgumentException(); }
@@ -57,6 +68,6 @@ function peracrm_campaign_cli($operation, $args, $assoc)
     WP_CLI::line(($format ?? 'json')==='text' ? 'PeraCRM campaigns: '.wp_json_encode($data) : wp_json_encode($data,JSON_PRETTY_PRINT));
     if ($exit) { WP_CLI::halt($exit); }
 }
-foreach (['status','health','due','event-health','event-redrive','suppression-health','suppression-sync','fixture-run','fixture-recover'] as $operation) {
+foreach (['status','health','due','event-health','event-redrive','suppression-health','suppression-sync','budget-health','budget-recover','fixture-run','fixture-recover'] as $operation) {
     WP_CLI::add_command('peracrm campaigns '.$operation, static function ($args,$assoc) use ($operation) { peracrm_campaign_cli($operation,$args,$assoc); });
 }

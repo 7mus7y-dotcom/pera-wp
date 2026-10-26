@@ -383,3 +383,24 @@ for sync_scenario in duplicate interrupted; do
     fi
     wp eval-file /tests/suppression-sync-race.php verify "$sync_scenario"
 done
+
+wp eval-file /tests/sending-budget.php
+for budget_scenario in overlap crash; do
+    rm -f /tmp/peracrm-budget-held /tmp/peracrm-budget-winner /tmp/peracrm-budget-loser
+    wp eval-file /tests/sending-budget-race.php prepare "$budget_scenario"
+    wp eval-file /tests/sending-budget-race.php winner "$budget_scenario" &
+    budget_winner_pid=$!
+    wait_for_migration_marker /tmp/peracrm-budget-held
+    if [ "$budget_scenario" = crash ]; then
+        budget_exit=0
+        wait "$budget_winner_pid" || budget_exit=$?
+        [ "$budget_exit" -eq 78 ]
+        wp eval-file /tests/sending-budget-race.php loser "$budget_scenario"
+    else
+        wp eval-file /tests/sending-budget-race.php loser "$budget_scenario" &
+        budget_loser_pid=$!
+        wait "$budget_winner_pid"
+        wait "$budget_loser_pid"
+    fi
+    wp eval-file /tests/sending-budget-race.php verify "$budget_scenario"
+done

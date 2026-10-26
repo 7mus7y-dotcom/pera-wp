@@ -289,3 +289,57 @@ Existing suppression provenance and historical flags must survive restore and
 reconnection; schema v37 is additive. Run the repository's complete disposable
 single-site/multisite SQL/race suite before accepting sync changes. Mocks cannot
 establish IAM access, real AWS behavior, snapshot consistency or inbox delivery.
+
+## Durable sending budget prerequisite (production disabled)
+
+`wp peracrm campaigns budget-health --format=json` exposes only fixed readiness
+and breaker fields. `budget-recover --version=1 --confirm=breaker-only` requires
+a real, non-impersonated actor with report, campaign and subscriber management
+capabilities. Both return disabled (exit 2) with the unconditional null production
+factory. No CLI quota setter, budget reset, recipient release, sending switch or
+scheduler is installed. Internal configuration/recovery are actor-audited; recovery
+also requires fresh quota and passing readiness and rejects stale breaker versions.
+
+The designated CRM target blog owns one account/region ledger for every campaign
+and worker using it. Do not configure independent blogs/installations as separate
+budgets for the same provider account and call that account-wide protection.
+External senders, other databases and uncoordinated installations require a shared
+coordinator/exclusive allocation. Account quotas, actual available headroom, host
+ownership and production acceptance are explicitly UNVERIFIED.
+
+Before reservation, cancellation or denied preflight costs nothing. After durable
+reservation, cancellation, proven rejection and accepted/unknown outcomes are all
+charged conservatively. Pending/crashed reservations never expire or refund;
+completed charges age out only after a full rolling window from completion. There
+is no manual release API. Investigate stranded capacity without deleting rows,
+changing owners or inventing non-acceptance. Recovery of an operator breaker cannot
+resolve uncertain attempts, grant send authority or bypass any failed readiness.
+A throttle cooldown may expire automatically, but it never resets usage or resends.
+
+Persist breaker signals before recipient writes. If signal persistence fails, stop
+that worker and investigate storage; the prerequisite does not supply an outbox
+or claim outage-wide blocking across other processes. Account/auth/disabled mapped
+rejections latch an operator hold. Inspect fixed health fields and version, correct
+the underlying issue, refresh independently verified quota through a future
+approved adapter, then request authorized recovery with all readiness checks.
+No credentials or AWS calls are supplied here. Do not paste account IDs, owner/
+attempt hashes, mailboxes, raw provider errors or credentials into incident logs.
+
+Clock rollback fails closed against durable high-water time. Integer-second and
+inclusive boundaries are conservative. Forward clock jumps can incorrectly age
+usage; host clock discipline and a production clock adapter remain prerequisites.
+After restore, keep all dispatch gates disabled: a backup may omit recent usage,
+breakers and accepted/unknown evidence. Reconcile the authoritative provider and
+all coordinated senders, preserve uncertainty/acceptance fences and re-establish
+ownership/clock/readiness. Do not reset the ledger to regain capacity. Wait at
+least a full real rolling day after all potentially lost/in-flight submissions
+are fenced and stopped, and separately resolve permanent pending holds through a
+future reviewed restore protocol. This PR provides no restore/reset automation.
+
+Remaining integration: reserve under final worker job/lease/cancel/identity and
+acceptance/conflict fences; recheck complete/fresh suppression synchronization
+immediately before transport; persist signals before result writes; handle failed
+signal persistence durably; exercise mocked transport across those boundaries.
+Production clock/quotas/host ownership, external coordination, monitoring and
+controlled acceptance remain separate work. Broader production readiness stays
+blocked; all existing disabled gates remain unchanged.
