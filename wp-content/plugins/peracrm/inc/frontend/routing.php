@@ -263,7 +263,9 @@ if (!function_exists('pera_crm_handle_new_lead')) {
         $_POST['phone'] = $phone;
         $source = isset($_POST['source']) ? sanitize_key(wp_unslash((string) $_POST['source'])) : '';
         $notes = isset($_POST['notes']) ? sanitize_textarea_field(wp_unslash((string) $_POST['notes'])) : '';
-        $allowed_sources = ['meta_ads', 'instagram_dm', 'whatsapp_dm', 'website', 'referral', 'other'];
+        $allowed_sources = function_exists('peracrm_source_options')
+            ? array_keys((array) peracrm_source_options())
+            : ['meta_ads', 'instagram_dm', 'whatsapp_dm', 'website', 'referral', 'other'];
 
         if ($first_name === '' || $last_name === '' || $source === '') {
             wp_safe_redirect(pera_crm_build_create_lead_redirect_url('missing_required'));
