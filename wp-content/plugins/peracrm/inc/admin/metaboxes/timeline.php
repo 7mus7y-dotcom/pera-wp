@@ -441,6 +441,18 @@ function peracrm_timeline_normalize_activity(array $event, array $user_map)
                 }
             }
 
+            if ($event_type === 'source_changed') {
+                $from_label = isset($payload['from_label']) ? trim((string) $payload['from_label']) : '';
+                $to_label = isset($payload['to_label']) ? trim((string) $payload['to_label']) : '';
+                if ($from_label === '') {
+                    $from_label = 'Not captured';
+                }
+                if ($to_label === '') {
+                    $to_label = 'Not captured';
+                }
+                $detail = sprintf('Source changed from %1$s to %2$s', $from_label, $to_label);
+            }
+
             $actor_id = 0;
             if (!empty($payload['actor_user_id'])) {
                 $actor_id = (int) $payload['actor_user_id'];
