@@ -261,6 +261,9 @@ final class PeraCRM_Sending_Budget
                 }
                 return; // Exact evidence replay cannot clear a newer submission.
             }
+            if ($reservation['evidence_hash']!=='' || (int)$reservation['completed_at']!==0) {
+                throw new PeraCRM_Sending_Budget_Error('budget_attempt');
+            }
             if (!hash_equals($row['pending_attempt'],$attempt) || !hash_equals($row['pending_owner'],$owner)) {
                 throw new PeraCRM_Sending_Budget_Error('budget_attempt');
             }

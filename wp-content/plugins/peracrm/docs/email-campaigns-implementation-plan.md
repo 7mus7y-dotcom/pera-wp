@@ -1775,3 +1775,8 @@ intake/public collection/cron disabled. No AWS requests, credentials, messages,
 endpoint/sync activation, new UI, merge or deployment. External quota/headroom,
 host clock/ownership/restore, identity/IAM, monitoring, keys/retention and controlled
 inbox acceptance remain unverified activation dependencies.
+
+Local final-change review also rejects partially populated reservation evidence
+rather than overwriting it during settlement. Real SQL regressions retain those
+inconsistent rows unchanged for investigation. Final-head CI/review must cover
+this correction; initial-head checks do not substitute for it.

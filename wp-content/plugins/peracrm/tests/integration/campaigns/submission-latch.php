@@ -34,6 +34,15 @@ peracrm_with_target_blog(static function () {
     budget_denied(fn()=>$s->reserve(budget_key(),$o),'budget_pending');
     budget_denied(fn()=>$s->finish($a,$o),'budget_pending');
     budget_denied(fn()=>$s->settleSubmission($a,budget_key(),'provider_accepted',$e),'budget_attempt');
+    // Inconsistent pre-existing evidence cannot be overwritten by settlement.
+    $reservations=peracrm_table('peracrm_campaign_budget_reservations');
+    foreach (['evidence_hash'=>$e,'completed_at'=>$now] as $column=>$value) {
+        $wpdb->query($wpdb->prepare('UPDATE '.$reservations.' SET '.$column.'=%s WHERE attempt_hash=%s',$value,$a));
+        $inconsistent=budget_snapshot();
+        budget_denied(fn()=>$s->settleSubmission($a,$o,'provider_accepted',$e),'budget_attempt');
+        sns_expect(budget_snapshot()===$inconsistent,'partial evidence retained for investigation');
+        $wpdb->query($wpdb->prepare('UPDATE '.$reservations.' SET '.$column.'=%s WHERE attempt_hash=%s',$column==='completed_at'?0:'',$a));
+    }
     $s->settleSubmission($a,$o,'provider_accepted',$e); $settled=budget_snapshot();
     $s->settleSubmission($a,$o,'provider_accepted',$e);
     sns_expect(budget_snapshot()===$settled,'exact durable evidence replay idempotent');
