@@ -132,6 +132,7 @@ final class PeraCRM_SES_Suppression_Sync
                     self::db($wpdb->query($wpdb->prepare('UPDATE '.peracrm_table('peracrm_campaign_ses_sync')
                         ." SET run_id=%s,cursor_value=NULL,pages=0,entries=0,state='running',error_code='',started_at=%s,updated_at=%s WHERE scope_hash=%s AND "
                         .$this->guard($connection,$guard),bin2hex(random_bytes(32)),$now,$now,$this->scope)));
+                } elseif (in_array($row['error_code'],['sync_invalid_cursor','sync_stale_cursor','sync_cursor_cycle'],true)) { throw new PeraCRM_SES_Sync_Error($row['error_code']);
                 } elseif (strtotime($row['started_at'].' UTC')<time()-86400) { throw new PeraCRM_SES_Sync_Error('sync_stale_cursor'); }
                 $this->session($connection); return $this->checkpoint(true);
             });
@@ -188,12 +189,12 @@ final class PeraCRM_SES_Suppression_Sync
                     'normalized_email'=>$entry['normalized_email'],'reason'=>$entry['reason'],'provider_updated'=>$entry['updated'],'recorded_at'=>$now];
                 if ($prior) {
                     foreach ($data as $key=>$value) { if ($key!=='recorded_at' && $prior[$key]!==$value) { throw new PeraCRM_SES_Sync_Error(); } }
-                    continue;
                 }
                 $reason=$entry['reason']; $mailbox=$entry['normalized_email'];
                 self::db($wpdb->query($wpdb->prepare('UPDATE '.peracrm_table('peracrm_email_suppressions')
                     ." SET {$reason}=1,version=version+1,updated_at=%s WHERE normalized_email=%s AND {$reason}=0 AND ".$this->guard($connection,$guard),$now,$mailbox)));
                 $this->session($connection);
+                if ($prior) { continue; }
                 $this->insert('peracrm_email_suppression_events',['normalized_email'=>$mailbox,'reason'=>$reason,'source'=>'ses_account_sync',
                     'source_ref'=>$this->scope.':'.$entry['hash'],'actor_user_id'=>0,
                     'occurred_at'=>gmdate('Y-m-d H:i:s',(int)$entry['LastUpdateTime']),'recorded_at'=>$now],$connection,$guard,false);
