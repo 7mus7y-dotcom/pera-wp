@@ -160,6 +160,18 @@ $delete_redirect_url = 'lead' === $derived_type ? $leads_url : $clients_url;
 $client_type_options = is_array( $data['client_type_options'] ?? null ) ? $data['client_type_options'] : array( 'citizenship' => 'Citizenship', 'investor' => 'Investor', 'lifestyle' => 'Lifestyle', 'seller' => 'Seller', 'landlord' => 'Landlord', 'agent' => 'Agent' );
 $status_options      = function_exists( 'peracrm_status_options' ) ? (array) peracrm_status_options() : array( 'enquiry' => 'Enquiry', 'active' => 'Active', 'dormant' => 'Dormant', 'closed' => 'Closed' );
 $client_type_value = sanitize_key( (string) ( $profile['client_type'] ?? '' ) );
+$source_value = sanitize_key( (string) get_post_meta( $client_id, 'crm_source', true ) );
+$source_options = function_exists( 'peracrm_source_options' ) ? (array) peracrm_source_options() : array(
+	'meta_ads'     => __( 'Meta Ads', 'peracrm' ),
+	'instagram_dm' => __( 'Instagram', 'peracrm' ),
+	'whatsapp_dm'  => __( 'WhatsApp', 'peracrm' ),
+	'website'      => __( 'Website', 'peracrm' ),
+	'referral'     => __( 'Referral', 'peracrm' ),
+	'other'        => __( 'Other', 'peracrm' ),
+);
+if ( '' !== $source_value && ! isset( $source_options[ $source_value ] ) ) {
+	$source_options = array( $source_value => function_exists( 'peracrm_source_label' ) ? peracrm_source_label( $source_value ) : ucwords( str_replace( '_', ' ', $source_value ) ) ) + $source_options;
+}
 $preferred_contact_options = function_exists( 'peracrm_preferred_contact_options' ) ? (array) peracrm_preferred_contact_options() : array( 'call' => 'Call', 'whatsapp' => 'WhatsApp', 'email' => 'Email' );
 $preferred_contact_values  = function_exists( 'peracrm_normalize_preferred_contact' ) ? (array) peracrm_normalize_preferred_contact( $profile['preferred_contact'] ?? '', 'array' ) : array();
 
@@ -509,6 +521,15 @@ peracrm_frontend_render_shell_header();
                         <select name="peracrm_status" id="peracrm-status" class="widefat">
                           <?php foreach ( $status_options as $status_key => $status_text ) : ?>
                             <option value="<?php echo esc_attr( (string) $status_key ); ?>" <?php selected( (string) ( $profile['status'] ?? '' ), (string) $status_key ); ?>><?php echo esc_html( (string) $status_text ); ?></option>
+                          <?php endforeach; ?>
+                        </select>
+                      </div>
+                      <div class="crm-field crm-field--half">
+                        <label><?php esc_html_e( 'Source', 'peracrm' ); ?></label>
+                        <select name="peracrm_source" id="peracrm-source" class="widefat">
+                          <option value=""><?php esc_html_e( 'Not captured', 'peracrm' ); ?></option>
+                          <?php foreach ( $source_options as $source_key => $source_text ) : ?>
+                            <option value="<?php echo esc_attr( (string) $source_key ); ?>" <?php selected( $source_value, (string) $source_key ); ?>><?php echo esc_html( (string) $source_text ); ?></option>
                           <?php endforeach; ?>
                         </select>
                       </div>
