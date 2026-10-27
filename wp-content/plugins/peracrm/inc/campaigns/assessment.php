@@ -112,6 +112,48 @@ final class PeraCRM_Campaign_Readiness
             }
         });
     }
+    /** Administrator-only nonsecret pins; checks still come exclusively from assess(). */
+    public function administratorScope(): ?array
+    {
+        return peracrm_with_target_blog(function () {
+            $this->authorize(true); $this->context();
+            return $this->binding;
+        });
+    }
+    /** Ten configuration histories per page, newest-created binding first. Never prune. */
+    public function auditPage(int $before=0): array
+    {
+        return peracrm_with_target_blog(function () use ($before) {
+            $this->authorize(true); $this->context();
+            if ($before<0) { throw new InvalidArgumentException('readiness_audit_cursor'); }
+            global $wpdb;
+            $prefix='peracrm_readiness_v1_';
+            $rows=$wpdb->get_results($wpdb->prepare(
+                "SELECT option_id,option_name FROM {$wpdb->options} WHERE option_name LIKE %s AND (%d=0 OR option_id<%d) ORDER BY option_id DESC LIMIT 11",
+                $wpdb->esc_like($prefix).'%', $before, $before),ARRAY_A);
+            if ($wpdb->last_error || !is_array($rows)) { throw new RuntimeException('readiness_audit_unavailable'); }
+            $groups=[];
+            foreach (array_slice($rows,0,10) as $row) {
+                $fingerprint=substr($row['option_name'],strlen($prefix));
+                if (preg_match('/\A[a-f0-9]{64}\z/',$fingerprint)!==1) { throw new RuntimeException('readiness_audit_unavailable'); }
+                $records=get_option($row['option_name'],[]);
+                if (!is_array($records) || count($records)>64) { throw new RuntimeException('readiness_audit_unavailable'); }
+                $safe=[];
+                foreach ($records as $record) {
+                    $required=self::EXTERNAL[$record['prerequisite']??'']??null;
+                    if (!$required || ($record['binding']??null)!==$fingerprint
+                        || !in_array($record['provenance']??null,['repository_mock','operator_attestation',$required],true)
+                        || !is_string($record['digest']??null) || preg_match('/\A[a-f0-9]{64}\z/',$record['digest'])!==1
+                        || !is_int($record['actor']??null) || $record['actor']<1
+                        || !is_int($record['verified_at']??null) || $record['verified_at']<1
+                        || ($record['event']??null)!=='evidence_recorded') { throw new RuntimeException('readiness_audit_unavailable'); }
+                    $safe[]=array_intersect_key($record,array_flip(['prerequisite','provenance','digest','actor','verified_at','binding','event']));
+                }
+                $groups[]=['fingerprint'=>$fingerprint,'records'=>$safe];
+            }
+            return ['groups'=>$groups,'next'=>count($rows)>10?(int)$rows[9]['option_id']:0];
+        });
+    }
     public function assess(): array
     {
         return peracrm_with_target_blog(function () {

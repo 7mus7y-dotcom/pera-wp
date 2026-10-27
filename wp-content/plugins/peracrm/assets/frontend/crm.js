@@ -2742,3 +2742,18 @@ document.addEventListener('DOMContentLoaded', function () {
     window.addEventListener('pagehide', function () { if (channel) channel.close(); });
   });
 });
+
+// Native form submission remains usable without JavaScript; focus server feedback.
+(function () {
+  var page = document.querySelector('[data-readiness-page]');
+  if (!page) { return; }
+  var feedback = page.querySelector('[data-readiness-feedback]');
+  if (feedback) { feedback.focus(); }
+  var form = page.querySelector('[data-readiness-form]');
+  if (form) {
+    form.addEventListener('submit', function () {
+      var button = form.querySelector('button[type="submit"]');
+      if (button) { button.disabled = true; button.textContent = 'Recording evidence…'; }
+    });
+  }
+})();

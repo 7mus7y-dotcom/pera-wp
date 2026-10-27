@@ -174,3 +174,26 @@ if (is_array($snsHttpFixture)) {
         return $sql;
     });
 }
+
+// Readiness UI fixtures: synthetic scope only on diagnostic requests; no production hook.
+$readiness_cli=defined('WP_CLI') && WP_CLI && in_array('readiness',$_SERVER['argv']??[],true);
+if (is_file('/var/www/html/readiness-pins.json') && ($readiness_cli
+    || ($_GET['page']??'')==='peracrm-campaign-readiness'
+    || ($_POST['action']??'')==='peracrm_readiness_fixture')) {
+    define('PERACRM_SES_EVENT_OPERATIONS',json_decode(file_get_contents('/var/www/html/readiness-pins.json'),true,512,JSON_THROW_ON_ERROR));
+}
+add_filter('query',static function ($sql) {
+    if (($_COOKIE['readiness_fixture_failure']??'')==='1' && (str_starts_with($sql,'INSERT INTO') || str_starts_with($sql,'UPDATE'))
+        && str_contains($sql,'peracrm_readiness_v1_')) { return 'INVALID_READINESS_BROWSER_FIXTURE_SQL'; }
+    return $sql;
+});
+add_action('wp_ajax_peracrm_readiness_fixture',static function () {
+    if (!current_user_can('manage_options') || peracrm_is_impersonating_crm_user()) { wp_send_json_error([],403); }
+    peracrm_with_target_blog(static function () {
+        if (($_POST['operation']??'')==='change_configuration') {
+            global $wpdb;
+            $wpdb->query('UPDATE '.peracrm_table('peracrm_campaign_configuration').' SET revision=revision+1 WHERE id=1');
+        }
+        wp_send_json_success(peracrm_campaign_readiness_service()->assess());
+    });
+});
