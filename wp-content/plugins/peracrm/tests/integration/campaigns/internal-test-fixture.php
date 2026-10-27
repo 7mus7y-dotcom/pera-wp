@@ -7,7 +7,7 @@ function internal_test_source(int $size=1,bool $unknown=false): int
 {
     return worker_fixture_target(static function () use ($size,$unknown) {
         global $wpdb;
-        wp_set_current_user((int)get_option('campaign_fixture_manager'));
+        wp_set_current_user((int)get_option('campaign_fixture_administrator'));
         $topic='internal'.bin2hex(random_bytes(8));
         for ($i=1;$i<=$size;$i++) {
             $mailbox=$unknown?'unauthorized@example.test':'internal-test-'.$i.'@example.test';
@@ -16,9 +16,12 @@ function internal_test_source(int $size=1,bool $unknown=false): int
                 'source_ref'=>'internal','evidence_ref'=>'synthetic','policy_version'=>'v1','occurred_at'=>'2020-01-01 00:00:00']);
             prepared_expect(!is_wp_error($saved) && !is_wp_error($consent),'internal source consent');
         }
-        $source=$wpdb->get_row('SELECT * FROM '.peracrm_table('peracrm_campaign_queue_jobs')." WHERE complete=1 ORDER BY id DESC LIMIT 1",ARRAY_A);
-        $doc=peracrm_campaign_draft_get((int)$source['campaign_id'])['document'];
-        $doc['audience']=['version'=>1,'topic'=>$topic];
+        $configuration=peracrm_campaign_configuration(true);
+        $senders=array_values(array_filter($configuration['document']['senders'],static fn($sender)=>$sender['approved']===true));
+        prepared_expect((bool)$senders,'current approved synthetic sender exists');
+        $doc=['internal_name'=>'Controlled synthetic internal test','subject'=>'Synthetic internal test',
+            'sender_id'=>$senders[0]['id'],'language'=>'en','main_text'=>'Immutable synthetic internal test content',
+            'audience'=>['version'=>1,'topic'=>$topic]];
         $d=peracrm_campaign_draft_save(0,0,$doc);
         $review=peracrm_campaign_snapshot_review($d['id'],1,$d['document']);
         $s=peracrm_campaign_snapshot_capture($d['id'],1,$d['document'],$review['review_proof'],wp_create_nonce('peracrm_campaign_snapshot_'.$d['id'].'_1'));

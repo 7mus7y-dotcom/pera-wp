@@ -2103,3 +2103,10 @@ cancelled, so retiring new sources alone was insufficient isolation. The new
 suite now runs after all existing SQL/race cases and before final readiness/browser
 setup. Existing scheduler assertions and production logic are unchanged. Final
 complete reruns and review must cover this fixture-order correction.
+
+Final fixture review removes the last source-template dependency: UI fixtures may
+restore configuration after capturing a sender that is no longer current. The
+internal suite now creates its own minimal synthetic document with a currently
+approved sender, through the ordinary draft/capture/freeze/queue services, instead
+of copying the latest UI draft. This affects fixture setup only. Superseded runs
+are not final acceptance; final complete execution/review remain required.
