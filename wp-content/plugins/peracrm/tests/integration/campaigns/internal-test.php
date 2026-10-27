@@ -4,6 +4,15 @@ worker_fixture_target(static function () {
     global $wpdb;
     $admin=(int)get_option('campaign_fixture_administrator');
     $startBlog=get_current_blog_id();
+    wp_set_current_user($admin);
+    $previous=peracrm_campaign_configuration(true);
+    update_option('internal_test_configuration_restore',$previous['document'],false);
+    $configuration=$previous['document'];
+    $configuration['senders']=[['id'=>'internal-test','name'=>'Synthetic internal test',
+        'email'=>'internal-sender@example.test','reply_to'=>'reply@example.test','approved'=>true]];
+    $configuration['footer']='Synthetic internal test approved footer'; $configuration['footer_approved']=true;
+    prepared_expect(!is_wp_error(peracrm_campaign_configuration_save($previous['revision'],$configuration)),
+        'explicit disposable sender/footer approval through administrator service');
     foreach (['accepted','unknown','rejected','throttled','stale','stale-sync','breaker','configuration','unauthorized','cap','crash-before','crash-after','journal-failure','withdraw'] as $scenario) {
         $job=internal_test_source($scenario==='cap'?3:($scenario==='accepted'?2:1),$scenario==='unauthorized');
         $deployment='internal-'.bin2hex(random_bytes(8));

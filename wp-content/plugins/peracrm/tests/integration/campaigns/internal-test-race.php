@@ -4,6 +4,13 @@ $mode=$args[0]??''; $scenario=$args[1]??'';
 worker_fixture_target(static function () use ($mode,$scenario) {
     global $wpdb;
     wp_set_current_user((int)get_option('campaign_fixture_administrator'));
+    if ($mode==='restore') {
+        $current=peracrm_campaign_configuration(true);
+        $previous=get_option('internal_test_configuration_restore');
+        prepared_expect(is_array($previous) && !is_wp_error(peracrm_campaign_configuration_save($current['revision'],$previous)),
+            'restore pre-suite configuration through administrator service');
+        delete_option('internal_test_configuration_restore'); return;
+    }
     if ($mode==='prepare') {
         $job=internal_test_source(); $deployment='internal-race-'.bin2hex(random_bytes(8));
         $s=internal_test_service($deployment,new PeraCRM_Campaign_Internal_Test_Transport());

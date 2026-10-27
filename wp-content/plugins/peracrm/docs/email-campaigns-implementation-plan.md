@@ -2110,3 +2110,12 @@ internal suite now creates its own minimal synthetic document with a currently
 approved sender, through the ordinary draft/capture/freeze/queue services, instead
 of copying the latest UI draft. This affects fixture setup only. Superseded runs
 are not final acceptance; final complete execution/review remain required.
+
+The late-suite configuration intentionally contains no approved sender after
+existing fixtures restore their starting settings. Run 40456716344 reached the
+new phase after existing SQL/races and rejected this prerequisite as designed.
+The disposable internal-test phase now explicitly approves its own synthetic
+sender/footer through the normal administrator configuration service, retains the
+prior document, and restores it through the same service after process cases.
+No production readiness/capture rule is bypassed; final complete reruns remain
+required. This setup is confined to the existing local disposable fixture guards.
