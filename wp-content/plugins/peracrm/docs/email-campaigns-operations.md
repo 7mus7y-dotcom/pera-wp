@@ -567,3 +567,74 @@ is always disabled, endpoint/sync/intake/public collection stay disabled, and no
 send or activation controls exist. Runtime checks remain mandatory. This page
 does not authorize AWS requests, credentials, DNS changes, messages, cron,
 merge or deployment.
+
+## Controlled internal-test orchestration — synthetic only
+
+The internal `PeraCRM_Campaign_Internal_Test` service is unbootstrapped and has no
+UI, CLI, factory, route, scheduler or delivery switch. Do not load it to operate on
+production ledgers. Disposable fixtures inject the existing authority-bound worker,
+preparation, readiness and preflight services plus a final mock transport that
+cannot perform HTTP/SDK calls. No real credentials, provider requests or messages
+are part of this procedure. Production dispatch remains unconditionally disabled.
+
+A real non-impersonated administrator also needs campaign management, subscriber
+management and report capabilities on the target blog. A read-only proposal binds
+the exact job/recipient manifest and current configuration. Authorization requires
+a nonce for that binding and literal `synthetic-only` confirmation, with the real
+actor and trusted time recorded server-side. It expires at five minutes, rejects
+clock rollback and does not survive configuration/manifest changes. Same actor
+executes it. Unknown, alternate-case or plus-tag addresses are rejected: the only
+fixed mailboxes are `internal-test-1@example.test` and `internal-test-2@example.test`.
+These reserved test addresses are not real internal-mailbox approvals.
+
+Hard bounds: one exact prepared job, at most two distinct recipients, three
+lifetime authorizations per deployment/target blog, one outstanding run at a time.
+Configuration changes and recovery do not replenish the journal. Never delete or
+edit journal options to regain capacity. Execution consumes authority before any
+claim and journals each original claim before preparation. A second execution,
+including after a known rejection, is denied; there is no resume/send retry API.
+A connection-owned lock rejects concurrent execution/recovery without waiting.
+
+Synthetic readiness requires schema/renderer, approved CRM configuration, exact
+scope, fresh complete suppression sync and available budget/breaker/latch capacity.
+The worker still enforces immutable output, consent, suppression, identity, due-time,
+pause/cancel, lease/version, quota/clock and acceptance fences. Production identity
+and keys, DNS/IAM, host logs, retention/restore policy, real event intake/monitoring
+and inbox acceptance remain unavailable/unverified production requirements; they
+are not asserted by a synthetic test. No synthetic result changes readiness
+records or clears external blockers. Mock acceptance is not provider acceptance
+or inbox verification. The result always reports inbox_verified=false and
+production_ready=false.
+
+On an exception or process death, stop execution. Inspect the administrator-only
+sanitized audit: authorized/running/interrupted does not imply a completed run.
+Recovery requires its own run-bound nonce and current authority/scope/sync/quota.
+It never reuses execution authority or calls transport. Wait for live leases to
+expire; never force-clear a native lock or owner. Original pending claims use the
+existing prepared recovery protocol: preserve staged evidence, fence expired work
+unknown and commit an operator hold before releasing the account latch. Unknown
+remains unknown without independently verified outcome evidence. Never-begun
+claims use ordinary lease recovery; stranded reservations remain charged. Missing
+or conflicting bindings, stale readiness, live leases and unidentified pending
+latches fail closed. After recovery a separate breaker-only procedure still
+cannot authorize resend or renew the consumed run.
+
+The journal stores original claim bindings privately for recovery. Its audit
+projection exposes only job/result IDs, states, actor IDs, fixed events and times;
+protect the database and logs independently. Anonymous/unauthorized requests are
+rejected before journal access, without retaining attacker-supplied data. No
+retention deletion/reset/export or production restore protocol is introduced.
+
+Required acceptance uses injected mocks in both disposable SQL topologies,
+including unauthorized recipients, stale readiness/configuration, duplicates,
+ambiguous outcomes, storage faults, live withdrawal, overlap and actual process
+death/recovery. Existing browser tests retain readiness screenshots. #1494 manual
+screenshot inspection remains incomplete: artifact retrieval and local disposable
+Docker were attempted here but blocked by proxy/socket access. Do not substitute
+passing automated layout assertions for manual visual inspection.
+
+Real internal delivery remains separate work: reviewed real allowlist and authority,
+production adapters, genuine provider/host/monitoring/restore readiness and explicit
+acceptance authorization. Only an actual separately authorized test can establish
+inbox/header/HTML/text/link/Reply-To/opt-out observations. No intake, public
+collection, endpoint/sync activation or cron gate changes are authorized here.

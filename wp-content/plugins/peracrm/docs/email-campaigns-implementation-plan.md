@@ -1993,3 +1993,81 @@ messages, cron activation, merge or deployment. Remaining work: independently
 retained/redacted external artifacts and retention/export workflow, production
 identity/key adapters and genuine provider/host verification. Controlled internal
 testing remains a separate dependent PR; this page cannot authorize it.
+
+## Phase 5 — controlled synthetic internal-test orchestration (2026-10-27)
+
+This section supersedes earlier current-task statements. Phase 5 remains in progress.
+Baseline #1494 is merged at main `22f3fc84cb78e67c0a98ddd4d9b19d1a88a5c30e`.
+Its final runtime `aeddb8f9c05e41da6f8c7246947fcd8e6c0d4544` passed workflow
+40377152965 and has clean final-commit review receipt 6424161815, summary
+6424008914 with no findings/unresolved findings, and no inline threads. This
+covers the final runtime. #1494's manual screenshot inspection and full-log audit
+were incomplete; browser assertions do not establish manual visual acceptance.
+This session requested artifact 12678785041 through GitHub, but retrieval of its
+returned file reference failed at the unreachable shell proxy. A fresh disposable
+Docker attempt failed with socket operation-not-permitted; daemon running, UID
+1000. No manual screenshot acceptance is claimed; failures were not retried.
+
+No AGENTS.md was found in repository/workspace or searched ancestors. Read the
+active plan, provider specification, runbook and preparation, worker, readiness,
+transport, suppression and budget/outcome contracts. Original clean checkout
+`/workspace/pera-wp` at `a32381b1` is preserved. Work is isolated in
+`/workspace/pera-internal-test`; connector supplied 13 latest-main blobs, each
+Git blob hash verified, tree `303fdc857c1ffd1c359b8964340956b9e1a68e01`.
+One shell fetch failed at the unavailable proxy. Publication parents directly to
+main and excludes reconstruction scaffolding. Initial checkpoint preceded checks.
+
+This implements orchestration over the existing prepared-worker path, rather
+than another prerequisite. Authorization requires a real administrator with
+campaign/subscriber/report capabilities, a job/manifest/configuration-bound nonce
+and explicit synthetic-only confirmation. Authority expires after five minutes.
+The fixed reserved addresses are `internal-test-1@example.test` and
+`internal-test-2@example.test`: maximum two recipients per run, three lifetime
+runs per deployment/target blog, including consumed/recovered authorizations.
+The non-autoloaded target-blog journal CASes actor/time/actions with state. A
+connection-owned nonblocking lock excludes concurrent execution/recovery. Claims
+are journaled before preparation; execution consumes authority before claiming,
+and never resumes/retries. The final injected mock transport has no HTTP, SDK or
+credential facility and independently rejects recipients at handoff. No UI,
+route, CLI, bootstrap, production factory or activation switch is added. All code
+is plugin-owned; no CSS/JS changes are required.
+
+The complete path reuses immutable preparation, mapper, frozen membership, live
+consent/suppression/identity fences, fresh exact-scope sync, budget reservations,
+pending latch, breaker and immutable outcome/acceptance/result services. Synthetic
+readiness requires current schema/renderer, approved configuration, matching scope,
+fresh sync and available budget at authorization/start. Worker checks repeat at
+their existing boundaries; synthetic handoff also rechecks administrator/session,
+clock/authorization age and configuration. Production identity/key factories,
+DNS/IAM, host/restore/retention observations, event intake/monitoring and actual
+inbox acceptance remain production blockers. They are explicitly outside
+synthetic-only readiness, never relabeled passing. This mode has no real provider
+or event pipeline to activate. It does not manufacture external observations.
+
+Recovery requires a separate nonce and current administrator, scope, sync and
+quota/readiness. It cannot renew execution authority. Original pending claims use
+existing prepared recovery: expired inflight becomes unknown, stored evidence
+survives, and an operator hold precedes latch release. Never-begun claims use
+ordinary expired-lease recovery. Unidentified pending latches and live leases
+fail closed. No refund/reset API is introduced; encrypted bytes remain unchanged.
+The audit projection excludes mailboxes, owner/attempt keys and message content.
+
+Added single/multisite SQL fixtures exercise successful two-recipient orchestration,
+unknown/rejection/throttle outcomes, nonce/role/anonymous/impersonation denials,
+unauthorized recipients and oversized jobs, stale authority/configuration, duplicate
+execution, live withdrawal, failed journal SQL, lifetime caps, interruptions before/
+after mock handoff and recovery. Separate processes exercise overlap and actual
+process death before/after transport. Existing SQL/race/browser suites remain
+required. Local 37 standalone suites, PHP syntax, dependency packaging, JS/shell
+syntax and whitespace passed before publication. Final hosted CI and final-commit
+review must cover the final changes and be reported in the PR; local Docker is
+unavailable and does not establish SQL/browser acceptance.
+
+Remaining external acceptance: independently retained redacted artifacts, manual
+screenshot inspection, production identity/key adapters and real provider/host/
+monitoring/restore/retention verification. Future real internal testing needs a
+separately reviewed fixed real-mailbox list, explicit authorization and actual
+inbox/header/link/opt-out observations. This PR cannot send real messages or claim
+inbox verification. Dispatch is unconditionally false; intake/public collection/
+cron/endpoint/sync activation gates remain disabled. No credentials, AWS
+provisioning, real messages, activation, merge or deployment are performed.

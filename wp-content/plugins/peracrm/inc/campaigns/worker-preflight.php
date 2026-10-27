@@ -48,6 +48,7 @@ final class PeraCRM_Campaign_Worker_Preflight
     {
         $this->budget->requireRecoveryReadiness($claim['attempt_key'],$claim['owner_token']);
     }
+    public function hasPendingSubmission(): bool { return (bool)$this->budget->health()['submission_pending']; }
     public static function evidence(PeraCRM_CampaignSubmissionV1 $submission,array $result): array
     {
         $code=$result['code']??'submission_unknown';

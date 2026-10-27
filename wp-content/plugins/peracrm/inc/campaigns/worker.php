@@ -171,6 +171,18 @@ abstract class PeraCRM_Campaign_Worker
     }
 
     /** Job then delivery lock order is shared by claims, final authorization and lifecycle operations. */
+    final public function internalTestSnapshot(int $job_id): array
+    {
+        return $this->transaction(function () use ($job_id) {
+            global $wpdb;
+            $job=$this->job($job_id);
+            $rows=$wpdb->get_results($wpdb->prepare('SELECT * FROM '.$this->table('deliveries')
+                .' WHERE job_id=%d ORDER BY id LIMIT 3 FOR UPDATE',$job_id),ARRAY_A);
+            peracrm_campaigns_db_require(is_array($rows));
+            return ['job'=>$job,'rows'=>$rows];
+        });
+    }
+
     final public function claim(int $job_id, int $limit = 10): array
     {
         if ($limit < 1 || $limit > self::BATCH) { throw new InvalidArgumentException('Worker batch must be 1–10.'); }

@@ -217,6 +217,19 @@ wp eval-file /tests/prepared-worker.php
 wp eval-file /tests/worker-preflight.php
 wp eval-file /tests/readiness.php
 wp eval-file /tests/readiness-ui.php
+wp eval-file /tests/internal-test.php
+for internal_scenario in concurrent crash-before crash-after; do
+    rm -f /tmp/peracrm-internal-held /tmp/peracrm-internal-loser /tmp/peracrm-internal-calls
+    wp eval-file /tests/internal-test-race.php prepare "$internal_scenario"
+    wp eval-file /tests/internal-test-race.php winner "$internal_scenario" &
+    internal_winner_pid=$!
+    wait_for_migration_marker /tmp/peracrm-internal-held
+    wp eval-file /tests/internal-test-race.php loser "$internal_scenario"
+    internal_exit=0
+    wait "$internal_winner_pid" || internal_exit=$?
+    if [ "$internal_scenario" = concurrent ]; then [ "$internal_exit" -eq 0 ]; else [ "$internal_exit" -eq 79 ]; fi
+    wp eval-file /tests/internal-test-race.php verify "$internal_scenario"
+done
 for integrated_scenario in concurrent crash-before crash-after signal-outage; do
     rm -f /tmp/peracrm-integrated-held /tmp/peracrm-integrated-winner /tmp/peracrm-integrated-loser
     wp eval-file /tests/worker-preflight-race.php prepare "$integrated_scenario"
