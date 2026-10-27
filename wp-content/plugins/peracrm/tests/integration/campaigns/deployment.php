@@ -41,7 +41,8 @@ worker_fixture_target(static function () {
             $changed=new PeraCRM_Campaign_Deployment(array_replace($manifest,['identity_version'=>2]),$material,static fn()=>prepared_clock(),campaign_deployment_runtime($manifest));
             $changedReadiness=new PeraCRM_Campaign_Readiness($changed->binding(),null,static fn()=>prepared_clock(),$changed);
             prepared_expect($changedReadiness->assess()['checks']['retention']['state']==='unverified'
-                && count($changedReadiness->auditPage()['groups'])>0,'deployment revisions invalidate applicability while preserving audit');
+                && (bool)array_filter($changedReadiness->auditPage()['groups'],static fn($group)=>$group['fingerprint']===$fingerprint),
+                'deployment revisions invalidate applicability while preserving the exact old audit');
             $transport=new PeraCRM_Prepared_Mock($deployment); $w=worker_fixture(); $claim=$w->claim($job,1)[0];
             $p=$adapter->preparation(); $preflight=new PeraCRM_Campaign_Worker_Preflight($adapter->diagnosticBudget(),static fn()=>prepared_clock());
             $filter=null;
@@ -68,10 +69,13 @@ worker_fixture_target(static function () {
                 $binding=['blog_id'=>get_current_blog_id(),'subscriber_id'=>(int)$claim['subscriber_id'],'mailbox'=>$claim['mailbox'],
                     'token_epoch'=>$metadata['token_epoch'],'attempt_key'=>$claim['attempt_key'],'snapshot_hash'=>$claim['content_hash']];
                 $rotated=$material; $rotated['encryption']['active']='e2'; $rotated['encryption']['keys']['e2']=str_repeat('f',32);
-                $rotatedManifest=array_replace($manifest,['encryption_key_id'=>'e2']);
+                $rotatedManifest=array_replace($manifest,['encryption_key_id'=>'e2','configuration_version'=>2,'configuration_set'=>'rotated-fixture']);
                 $rotation=new PeraCRM_Campaign_Deployment($rotatedManifest,$rotated,static fn()=>prepared_clock(),campaign_deployment_runtime($manifest));
                 [$restored]=$rotation->recoverOutput($binding,$metadata);
-                prepared_expect($restored->hash()===$metadata['envelope_hash'],'rotated encryption adapter opens retained historical bytes');
+                prepared_expect($restored->hash()===$metadata['envelope_hash'],'rotated key and advanced configuration recover exact prior-version bytes');
+                $tampered=$metadata;
+                $tampered['scope']['configuration_set']='invented-historical-set';
+                prepared_reject(fn()=>$rotation->recoverOutput($binding,$tampered));
                 unset($rotated['encryption']['keys']['e1']);
                 $missing=new PeraCRM_Campaign_Deployment($rotatedManifest,$rotated,static fn()=>prepared_clock(),campaign_deployment_runtime($manifest));
                 prepared_reject(fn()=>$missing->recoverOutput($binding,$metadata));
@@ -83,6 +87,9 @@ worker_fixture_target(static function () {
             }
         }
         // Invalid explicit deployment config cannot silently fall back to legacy pins.
+        define('PERACRM_SES_EVENT_OPERATIONS',['account'=>'123456789012','region'=>'eu-west-1',
+            'topic'=>'arn:aws:sns:eu-west-1:123456789012:fixture','configuration_set'=>'fixture',
+            'configuration_version'=>1,'deployment'=>'legacy-fixture','blog'=>get_current_blog_id()]);
         define('PERACRM_CAMPAIGN_DEPLOYMENT',['enabled'=>true]);
         $blocked=peracrm_campaign_readiness_service()->assess();
         prepared_expect($blocked['checks']['deployment_scope']['state']==='unavailable' && $blocked['configuration_fingerprint']===null,

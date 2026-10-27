@@ -173,9 +173,20 @@ final class PeraCRM_Campaign_Deployment
     public function recoverOutput(array $binding,array $expected): array
     {
         $this->requireScope();
-        if (($binding['blog_id']??null)!==$this->manifest['blog_id'] || ($expected['scope']??null)!==$this->scope()) {
-            throw new RuntimeException('deployment_scope');
-        }
+        try {
+            $scope=$expected['scope']??null;
+            PeraCRM_CampaignSubmissionV1::validateScope($scope);
+            if (($binding['blog_id']??null)!==$this->manifest['blog_id']) { throw new LogicException(); }
+            foreach (['provider','account_id','region'] as $key) {
+                if ($scope[$key]!==$this->manifest[$key]) { throw new LogicException(); }
+            }
+            // Old configuration sets/versions are historical context, never a
+            // permit. The store must still authenticate EXACT stored metadata
+            // and ciphertext in this deployment/blog namespace below.
+            if ($scope['configuration_version']>$this->manifest['configuration_version']
+                || ($scope['configuration_version']===$this->manifest['configuration_version']
+                    && $scope['configuration_set']!==$this->manifest['configuration_set'])) { throw new LogicException(); }
+        } catch (Throwable $e) { throw new RuntimeException('deployment_scope'); }
         try { $ring=$this->ring('encryption',false); } catch (Throwable $e) { throw new RuntimeException('deployment_encryption'); }
         return (new PeraCRM_CampaignRecipientPersistence($this->manifest['deployment'],$this->manifest['blog_id']))
             ->recoverOutput($binding,$expected,new PeraCRM_CampaignOutputCipher($ring['keys'],$ring['active']));

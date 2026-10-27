@@ -2207,3 +2207,14 @@ event intake, privacy/retention/restore/old-mailbox decisions, manual layout rev
 and explicitly authorized real internal inbox/header/link/opt-out testing. Do not
 supply credentials or change live configuration as part of this implementation.
 No AWS provisioning, real messages, service activation, merge or deployment.
+
+Initial review of db5bfa1771 found historical recovery rejected retained output
+when the documented rotation procedure advanced configuration_version. Recovery
+now permits valid prior configuration versions/sets within the same deployment,
+blog, provider/account/region; future versions and inconsistent current-version
+sets reject. Existing persistence still authenticates exact stored metadata and
+ciphertext, so invented historical context cannot select/repair output. SQL tests
+advance both key ID and configuration version/set, verify exact prior bytes and
+reject tampered historical metadata without mutation or transport. New preparation
+still requires the current manifest and fresh availability. Final CI/review must
+cover this correction; earlier results do not establish final acceptance.

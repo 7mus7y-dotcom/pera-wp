@@ -89,6 +89,13 @@ $rotatedManifest=array_replace($m,['signing_key_id'=>'k2']);
 deployment_expect($make($rotatedManifest,$rotated)->verifyToken($token,'unsubscribe',$binding,static fn()=>true),'key rotation retains old verification bytes');
 unset($rotated['signing']['keys']['k1']);
 deployment_expect(!$make($rotatedManifest,$rotated)->verifyToken($token,'unsubscribe',$binding,static fn()=>true),'missing historical key fails closed');
+foreach (['account_id'=>'999999999999','region'=>'eu-west-2','configuration_version'=>2,'configuration_set'=>'other-current-set'] as $key=>$value) {
+    $scope=array_intersect_key($m,array_flip(['provider','account_id','region','configuration_set','configuration_version']));
+    $denied=false;
+    try { $d->recoverOutput($binding,['scope'=>array_replace($scope,[$key=>$value])]); }
+    catch (Throwable $e) { $denied=$e->getMessage()==='deployment_scope'; }
+    deployment_expect($denied,'wrong account/region/future/current-set rejected before historical SQL '.$key);
+}
 deployment_expect(!str_contains(print_r($d,true),str_repeat('s',32)) && !str_contains(print_r($d,true),'synthetic-session'),'redacted diagnostics');
 deployment_reject(fn()=>serialize($d),'serialization prohibited');
 // Actual constant-only factory; home_url may include a target-blog subdirectory.

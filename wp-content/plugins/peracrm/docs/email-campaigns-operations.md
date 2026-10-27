@@ -737,3 +737,13 @@ are redacted/denied. Host/PHP/APM argument capture and database/access logs requ
 independent protection; local sanitization does not prove host logging safety.
 All code remains PeraCRM-owned. No theme sync, CSS/JS changes, messages, AWS
 resources, live configuration changes, activation, merge or deployment are included.
+
+Historical output recovery accepts prior configuration versions (including their
+original configuration sets) after a version advance, with the current independent
+host binding and the same deployment, target blog, provider/account and region.
+It rejects future versions and a changed set under an unchanged version. The
+immutable persistence/envelope authentication still requires the exact original
+metadata and ciphertext; an operator cannot invent historical pins or overwrite
+output. This grants historical access only and never makes an old configuration
+eligible for a new submission. Moving provider accounts/regions requires a separate
+reviewed historical-access/restore decision rather than relaxing scope isolation.
