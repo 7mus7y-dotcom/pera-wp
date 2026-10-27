@@ -2080,3 +2080,9 @@ is unchanged. Local review also bounded repeated recovery-start audit growth,
 reports actual recovered recipient states and adds whole-coordinator stale-sync/
 breaker denials plus actual death between claim commit and claim journaling.
 Final CI/review must cover these corrections; initial results are superseded.
+
+Final local review connects the existing job completion service after execution
+and recovery. SQL assertions distinguish complete accepted/failed jobs from
+incomplete ambiguous/retry jobs and verify all four tokens plus two immutable
+attempt/output records for a successful two-recipient run. Clean review of
+d5b0235dc7 predates this addition; final-head CI and rereview are required again.

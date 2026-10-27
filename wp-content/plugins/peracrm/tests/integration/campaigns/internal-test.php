@@ -98,6 +98,14 @@ worker_fixture_target(static function () {
             $state=['accepted'=>'accepted','unknown'=>'unknown','rejected'=>'failed','throttled'=>'retry'][$scenario];
             prepared_expect(count($out['results'])===($scenario==='accepted'?2:1) && $out['results'][0]['state']===$state
                 && !$out['inbox_verified'] && !$out['production_ready'],'complete mocked orchestration '.$scenario);
+            $snapshot=worker_fixture()->internalTestSnapshot($job);
+            prepared_expect((int)$snapshot['job']['submission_complete']===(in_array($scenario,['accepted','rejected'],true)?1:0),
+                'shared completion preserves ambiguous/retry holds');
+            if ($scenario==='accepted') {
+                $records=prepared_records($deployment);
+                prepared_expect(count($records['recipient_tokens'])===4 && count($records['submission_attempts'])===2
+                    && count($records['submission_outputs'])===2 && $transport->calls===2,'both recipients retain complete immutable prepared records');
+            }
             $calls=$transport->calls; prepared_reject(fn()=>$s->execute($id));
             prepared_expect($transport->calls===$calls,'duplicate execution never resubmits');
         }

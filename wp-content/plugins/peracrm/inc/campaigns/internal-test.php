@@ -209,6 +209,7 @@ final class PeraCRM_Campaign_Internal_Test
                 $old=$new; $new[$id]=$run; $this->save($old,$new);
                 if ($result['state']!=='accepted') { break; }
             }
+            $this->worker->completion($run['job']);
             $run['state']='completed'; $this->event($run,'execution_completed');
             $old=$new; $new[$id]=$run; $this->save($old,$new);
             return ['mode'=>'synthetic_only','results'=>$run['results'],'inbox_verified'=>false,'production_ready'=>false];
@@ -243,6 +244,7 @@ final class PeraCRM_Campaign_Internal_Test
             }
             if ($this->preflight->hasPendingSubmission()) { throw new RuntimeException('internal_test_pending'); }
             $this->worker->recover($run['job'],self::RECIPIENT_CAP);
+            $this->worker->completion($run['job']);
             $rows=$this->worker->internalTestSnapshot($run['job'])['rows'];
             foreach ($rows as $row) {
                 if (in_array($row['state'],['claimed','inflight'],true)) { throw new RuntimeException('internal_test_lease'); }
