@@ -2086,3 +2086,12 @@ and recovery. SQL assertions distinguish complete accepted/failed jobs from
 incomplete ambiguous/retry jobs and verify all four tokens plus two immutable
 attempt/output records for a successful two-recipient run. Clean review of
 d5b0235dc7 predates this addition; final-head CI and rereview are required again.
+
+Hosted d5b0235dc7 single-site logs established new orchestration and all four
+process cases passed, then an existing integrated-worker race missed its barrier:
+its latest-queued-source-by-size lookup selected a new internal-test source whose
+reused mailbox profiles had since changed topics. New fixture sources now cancel
+their original queue job through the staff lifecycle service after copying the
+queued row into the private worker ledger. This isolates them from existing
+selectors without changing consent/eligibility/worker logic. The earlier hosted
+run failed and is not acceptance evidence; final complete reruns remain required.

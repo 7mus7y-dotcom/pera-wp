@@ -38,6 +38,11 @@ function internal_test_source(int $size=1,bool $unknown=false): int
         peracrm_campaigns_db_require($wpdb->insert(peracrm_table('peracrm_fixture_worker_jobs'),$j));
         peracrm_campaigns_db_require($wpdb->query('INSERT INTO '.peracrm_table('peracrm_fixture_worker_deliveries')
             .' SELECT * FROM '.peracrm_table('peracrm_campaign_deliveries').' WHERE job_id='.(int)$j['id']));
+        // Later suites select their latest queued source by size. Keep this
+        // private copy queued, but retire the original through the staff API so
+        // reused allowlist profiles cannot contaminate those independent suites.
+        $cancelled=peracrm_campaign_queue_transition($d['id'],(int)$j['id'],(int)$j['version'],$nonce,'cancel');
+        prepared_expect(!is_wp_error($cancelled) && $cancelled['state']==='cancelled','internal source isolated from ordinary queued selectors');
         wp_set_current_user((int)get_option('campaign_fixture_administrator'));
         return (int)$j['id'];
     });
