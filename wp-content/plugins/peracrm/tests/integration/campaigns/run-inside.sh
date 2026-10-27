@@ -218,7 +218,7 @@ wp eval-file /tests/worker-preflight.php
 wp eval-file /tests/readiness.php
 wp eval-file /tests/readiness-ui.php
 wp eval-file /tests/internal-test.php
-for internal_scenario in concurrent crash-before crash-after; do
+for internal_scenario in concurrent crash-claim crash-before crash-after; do
     rm -f /tmp/peracrm-internal-held /tmp/peracrm-internal-loser /tmp/peracrm-internal-calls
     wp eval-file /tests/internal-test-race.php prepare "$internal_scenario"
     wp eval-file /tests/internal-test-race.php winner "$internal_scenario" &

@@ -226,8 +226,11 @@ final class PeraCRM_Campaign_Internal_Test
             $this->fingerprint(false);
             $old=$this->ledger(); $run=$old[$id]??null;
             if (!$run || !in_array($run['state'],['authorized','running','interrupted'],true)) { throw new RuntimeException('internal_test_recovery'); }
-            $run['state']='interrupted'; $this->event($run,'recovery_started');
-            $new=$old; $new[$id]=$run; $this->save($old,$new);
+            $new=$old;
+            if ($run['state']!=='interrupted') {
+                $run['state']='interrupted'; $this->event($run,'recovery_started');
+                $new[$id]=$run; $this->save($old,$new);
+            }
             foreach ($run['claims'] as $claim) {
                 // A pending latch identifies the original claim; never guess or
                 // consume a never-begun reservation using accounting recovery.
@@ -244,6 +247,7 @@ final class PeraCRM_Campaign_Internal_Test
             foreach ($rows as $row) {
                 if (in_array($row['state'],['claimed','inflight'],true)) { throw new RuntimeException('internal_test_lease'); }
             }
+            $run['results']=array_map(static fn($row)=>['id'=>(int)$row['id'],'state'=>$row['state']],$rows);
             $run['state']='recovered'; $this->event($run,'recovery_completed');
             $old=$new; $new[$id]=$run; $this->save($old,$new);
         });

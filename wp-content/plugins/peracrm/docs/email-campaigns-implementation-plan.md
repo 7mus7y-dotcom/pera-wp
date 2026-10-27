@@ -14,8 +14,8 @@ as detailed in the linked history. No phase is complete merely because code exis
 Future PRs must update this active plan and distinguish repository checks from
 external verification. Preserve historical evidence and decisions in the history.
 
-**Current task:** bounded administrator readiness view and audited external-evidence
-form. Controlled internal testing and production activation remain dependent work.
+**Current task:** controlled synthetic internal-test orchestration. Real internal
+delivery and production activation remain separately blocked acceptance work.
 
 ## Phase 5B — bounded recipient preference editor (2026-10-22)
 
@@ -2071,3 +2071,12 @@ inbox/header/link/opt-out observations. This PR cannot send real messages or cla
 inbox verification. Dispatch is unconditionally false; intake/public collection/
 cron/endpoint/sync activation gates remain disabled. No credentials, AWS
 provisioning, real messages, activation, merge or deployment are performed.
+
+Initial review of runtime bb9db45590 found reusable withdrawal-fixture state would
+prevent later cap/process cases: ordinary consent correctly refuses a suppressed
+mailbox. The fixture now proves that refusal, then restores the exact prior
+subscriber/suppression rows in its disposable database only. Production consent
+is unchanged. Local review also bounded repeated recovery-start audit growth,
+reports actual recovered recipient states and adds whole-coordinator stale-sync/
+breaker denials plus actual death between claim commit and claim journaling.
+Final CI/review must cover these corrections; initial results are superseded.

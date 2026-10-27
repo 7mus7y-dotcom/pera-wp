@@ -4,7 +4,7 @@ worker_fixture_target(static function () {
     global $wpdb;
     $admin=(int)get_option('campaign_fixture_administrator');
     $startBlog=get_current_blog_id();
-    foreach (['accepted','unknown','rejected','throttled','stale','configuration','unauthorized','cap','crash-before','crash-after','journal-failure','withdraw'] as $scenario) {
+    foreach (['accepted','unknown','rejected','throttled','stale','stale-sync','breaker','configuration','unauthorized','cap','crash-before','crash-after','journal-failure','withdraw'] as $scenario) {
         $job=internal_test_source($scenario==='cap'?3:($scenario==='accepted'?2:1),$scenario==='unauthorized');
         $deployment='internal-'.bin2hex(random_bytes(8));
         $transport=new PeraCRM_Campaign_Internal_Test_Transport(in_array($scenario,['unknown','rejected','throttled'],true)?$scenario:'accepted');
@@ -29,16 +29,41 @@ worker_fixture_target(static function () {
         $id=internal_test_authorize($s,$job);
         prepared_reject(fn()=>internal_test_authorize($s,$job));
         if ($scenario==='stale') { $offset=300; prepared_reject(fn()=>$s->execute($id)); $offset=0; }
+        elseif ($scenario==='stale-sync') {
+            $scope=hash('sha256',json_encode(['policy'=>'ses-account-deny-v1']+prepared_pins($deployment)));
+            $wpdb->update(peracrm_table('peracrm_campaign_ses_sync'),['last_complete_at'=>gmdate('Y-m-d H:i:s',prepared_clock()-86400)],['scope_hash'=>$scope]);
+            prepared_reject(fn()=>$s->execute($id));
+            prepared_expect($transport->calls===0 && worker_fixture_rows($job)[0]['state']==='held','stale sync stops coordinator before claiming');
+        } elseif ($scenario==='breaker') {
+            $budget=new PeraCRM_Sending_Budget(prepared_pins($deployment),static fn()=>prepared_clock(),static fn()=>true);
+            $budget->signal('provider_rejected'); prepared_reject(fn()=>$s->execute($id));
+            prepared_expect($transport->calls===0 && worker_fixture_rows($job)[0]['state']==='held','breaker stops coordinator before claiming');
+        }
         elseif ($scenario==='configuration') {
             $table=peracrm_table('peracrm_campaign_configuration');
             $wpdb->query("UPDATE {$table} SET revision=revision+1 WHERE id=1");
             prepared_reject(fn()=>$s->execute($id));
             $wpdb->query("UPDATE {$table} SET revision=revision-1 WHERE id=1");
         } elseif ($scenario==='withdraw') {
-            peracrm_campaigns_record_consent('internal-test-1@example.test','unsubscribed',[
-                'source'=>'synthetic_fixture','source_ref'=>'internal-withdraw','occurred_at'=>'2026-01-01 00:00:00']);
-            $out=$s->execute($id);
-            prepared_expect($out['results'][0]['state']==='excluded' && $transport->calls===0,'live consent never bypassed');
+            // Restore exact disposable rows after proving withdrawal; normal
+            // production consent intentionally cannot clear this durable denial.
+            $mailbox='internal-test-1@example.test';
+            $subscriber=$wpdb->get_row($wpdb->prepare('SELECT * FROM '.peracrm_table('peracrm_subscribers').' WHERE normalized_email=%s',$mailbox),ARRAY_A);
+            $suppression=$wpdb->get_row($wpdb->prepare('SELECT * FROM '.peracrm_table('peracrm_email_suppressions').' WHERE normalized_email=%s',$mailbox),ARRAY_A);
+            try {
+                $withdrawn=peracrm_campaigns_record_consent($mailbox,'unsubscribed',[
+                    'source'=>'synthetic_fixture','source_ref'=>'internal-withdraw','occurred_at'=>'2026-01-01 00:00:00']);
+                prepared_expect(!is_wp_error($withdrawn),'withdrawal committed');
+                prepared_expect(is_wp_error(peracrm_campaigns_record_consent($mailbox,'subscribed',[
+                    'source'=>'synthetic_fixture','source_ref'=>'internal','evidence_ref'=>'synthetic','policy_version'=>'v1','occurred_at'=>'2020-01-01 00:00:00'])),
+                    'ordinary consent cannot clear withdrawn fixture denial');
+                $out=$s->execute($id);
+                prepared_expect($out['results'][0]['state']==='excluded' && $transport->calls===0,'live consent never bypassed');
+            } finally {
+                peracrm_campaigns_db_require($wpdb->update(peracrm_table('peracrm_subscribers'),$subscriber,['id'=>$subscriber['id']]));
+                if ($suppression) { peracrm_campaigns_db_require($wpdb->update(peracrm_table('peracrm_email_suppressions'),$suppression,['normalized_email'=>$mailbox])); }
+                else { peracrm_campaigns_db_require($wpdb->delete(peracrm_table('peracrm_email_suppressions'),['normalized_email'=>$mailbox])); }
+            }
         } elseif (in_array($scenario,['crash-before','crash-after'],true)) {
             $inflight=false; $record=false; $committed=false;
             $filter=static function ($sql) use (&$inflight,&$record,&$committed,$scenario) {

@@ -16,6 +16,11 @@ worker_fixture_target(static function () use ($mode,$scenario) {
     if ($mode==='winner') {
         $begun=false; $staged=false;
         add_filter('query',static function ($sql) use (&$begun,&$staged,$scenario,$transport) {
+            if ($scenario==='crash-claim' && str_starts_with($sql,'UPDATE') && str_contains($sql,'peracrm_internal_test_v1_')
+                && str_contains($sql,'claimed')) {
+                file_put_contents('/tmp/peracrm-internal-held','held');
+                file_put_contents('/tmp/peracrm-internal-calls','0'); exit(79);
+            }
             if (str_contains($sql,'submission_started')) { $begun=true; }
             if (str_contains($sql,'outcome_staged=1')) { $staged=true; }
             if ($sql==='START TRANSACTION' && ($scenario==='crash-after'?$staged:$begun)) {
@@ -39,11 +44,11 @@ worker_fixture_target(static function () use ($mode,$scenario) {
     }
     if ($mode==='verify') {
         $calls=(int)file_get_contents('/tmp/peracrm-internal-calls');
-        prepared_expect($calls===($scenario==='crash-before'?0:1),'actual process boundary count '.$scenario);
+        prepared_expect($calls===(in_array($scenario,['crash-before','crash-claim'],true)?0:1),'actual process boundary count '.$scenario);
         if ($scenario!=='concurrent') {
             $before=prepared_records($deployment); worker_fixture_advance(61);
             $s->recover($id,wp_create_nonce('peracrm_internal_test_recover_'.$id));
-            prepared_expect($s->audit()[$id]['state']==='recovered' && worker_fixture_rows($job)[0]['state']==='unknown'
+            prepared_expect($s->audit()[$id]['state']==='recovered' && worker_fixture_rows($job)[0]['state']===($scenario==='crash-claim'?'held':'unknown')
                 && prepared_records($deployment)===$before && $transport->calls===0,'process death releases native lock; recovery preserves output and fences unknown');
         }
         prepared_reject(fn()=>$s->execute($id));
