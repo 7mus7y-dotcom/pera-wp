@@ -2095,3 +2095,11 @@ their original queue job through the staff lifecycle service after copying the
 queued row into the private worker ledger. This isolates them from existing
 selectors without changing consent/eligibility/worker logic. The earlier hosted
 run failed and is not acceptance evidence; final complete reruns remain required.
+
+Run 40455177484 failed in both topologies at the existing scheduler's three-job
+due assertion, after new orchestration/process tests and existing prepared-worker
+races passed. That scheduler fixture selects latest complete jobs even when
+cancelled, so retiring new sources alone was insufficient isolation. The new
+suite now runs after all existing SQL/race cases and before final readiness/browser
+setup. Existing scheduler assertions and production logic are unchanged. Final
+complete reruns and review must cover this fixture-order correction.
