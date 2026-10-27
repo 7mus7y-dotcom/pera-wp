@@ -2119,3 +2119,91 @@ sender/footer through the normal administrator configuration service, retains th
 prior document, and restores it through the same service after process cases.
 No production readiness/capture rule is bypassed; final complete reruns remain
 required. This setup is confined to the existing local disposable fixture guards.
+
+## Phase 5 — deployment identity/key adapters with dispatch blocked (2026-10-27)
+
+This is the current bounded task. Phase 5 remains in progress. #1495 is merged at
+latest main `bd4f6963b9dad8330234113859882d09e211239a`, with final runtime
+`8f01e2b7eeee111b1b905f47645c607234301873`, passing full CI 40457519057 and clean
+final-commit review summary 6434381685; the original fixture finding is resolved.
+The merged tree is `5994eb0f15ac4d65e05059d16259288226f9bf5b`, identical to the
+preserved clean local baseline. No applicable AGENTS.md was found. Read the living
+plan, provider specification and runbook and existing identity, token/cipher,
+preparation, readiness, suppression and budget contracts. Work is isolated in
+`/workspace/pera-deployment`; original and prior-task checkouts are preserved.
+Publication parents directly to verified main and excludes earlier reconstruction
+scaffolding. Connected GitHub is used because shell networking was unavailable
+in this session. The cloud-runtime skill and current environment policy were read.
+
+User-reported live smoke results after syncing the entire plugin: campaigns open,
+administrator readiness renders, administrator CLI authentication works and the
+CLI/UI both report validated schema/renderer with dispatch false and unconfigured
+scope/dependencies. The user accepted the role-access checkpoint; no independent
+live role-denial trace was supplied. Layout was explicitly deferred. These reports
+are distinct from repository CI, host/provider verification and inbox acceptance.
+#1494 manual screenshot inspection and the prior final-log audit remain incomplete;
+no new visual/provider acceptance is inferred from these smoke results.
+
+`PeraCRM_Campaign_Deployment` implements explicit deployment manifest, identity
+and separate signing/encryption adapters. The only production input source is
+three deployment-managed PHP constants; no credential acquisition, metadata chain,
+files, environment discovery, UI input, database secret storage or HTTP is added.
+Strict shapes/types/bounds, defensive scalar copies, target-blog, approved HTTPS
+origin, independently supplied host-instance ID and legacy event-pin agreement
+fail closed. A copied database without the independently correct host binding
+cannot pass. A host which deliberately copies that independent binding is outside
+this local clone check; actual ownership/TLS/log protections remain unverified.
+
+Identity material reuses the existing SES credential object and its expiry check;
+account and identity revision must match. Both keyrings have explicit activation/
+expiry windows, permanent active IDs, bounded key counts/lengths and no reused key
+bytes across roles/IDs or with the provider secret. Missing, malformed, future or
+expired inputs report unavailable without exposing material. Preparation reuses
+the existing immutable service and repeats fresh availability before/after its
+COMMIT and before/after final identity locks. A guard failure after durable output
+commit never deletes/regenerates that output or grants retry authority.
+
+Readiness now consumes these adapters and reuses existing SQL-only suppression
+freshness and account quota/budget/breaker/latch checks. `configured` explicitly
+means local validation with deployment-configuration provenance, not verification
+of an AWS principal, IAM, DNS, host or inbox. Scope/identity/key changes expressed
+in the public manifest invalidate configuration-bound evidence while preserving
+history. An invalid explicit manifest cannot fall back to legacy pins. The old
+no-manifest behavior and fingerprints remain unchanged. No default configuration
+is installed. The existing administrator UI/CLI consume the same read-only service;
+only fixed labels change. No CSS, JavaScript or theme work is required.
+
+Historical `recoverOutput` and `verifyToken` reuse retained key bytes even after
+new-preparation availability expires. They recheck deployment/site/host and the
+existing immutable envelope or token purpose/registry/epoch/expiry contracts.
+Rotation with retained keys preserves exact historical bytes; missing keys reject
+without replacement issuance, output mutation or transport. Public preference/
+withdrawal factories remain disabled, so this adds no public token endpoint.
+
+All production dispatch, worker/provider construction, suppression-sync activation,
+budget mutation CLI, intake, public collection and cron gates remain unchanged.
+This connects real configuration to diagnostics and existing internal preparation;
+it supplies no native transport construction, send button, activation switch,
+credential refresh, provider requests or real mail. Production readiness stays
+unconditionally false. The #1495 orchestrator stays synthetic-only with its fixed
+reserved recipients and hard caps.
+
+Local checkpoint before hosted checks: 38 standalone suites, 304 PHP syntax
+checks, dependency packaging, JavaScript/shell syntax and whitespace passed.
+New unit cases cover missing/invalid/expired inputs, clone/target/origin mismatches,
+key separation/rotation/retention, defensive references, bounded recursive input,
+redacted projections and constant-only source behavior. Disposable SQL cases run
+after existing source-dependent suites and explicitly approve/restore synthetic
+configuration. They exercise read-only readiness and audit invalidation, shared
+budget/sync reads, complete mocked prepared submission, expiry between preparation
+and final authorization, retained-key recovery and missing-key refusal. Final
+single/multisite CI and clean final-commit review must be recorded in the PR report.
+Local Docker remains unavailable from the prior socket diagnostic and was not
+repeatedly retried. No local SQL/browser or manual visual success is claimed.
+
+Remaining external acceptance: independently approved scope/host identity and
+secret/key management, actual IAM/account/region/quota/DNS alignment, monitoring/
+event intake, privacy/retention/restore/old-mailbox decisions, manual layout review
+and explicitly authorized real internal inbox/header/link/opt-out testing. Do not
+supply credentials or change live configuration as part of this implementation.
+No AWS provisioning, real messages, service activation, merge or deployment.

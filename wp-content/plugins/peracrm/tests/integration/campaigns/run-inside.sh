@@ -454,6 +454,7 @@ for internal_scenario in concurrent crash-claim crash-before crash-after; do
     wp eval-file /tests/internal-test-race.php verify "$internal_scenario"
 done
 wp eval-file /tests/internal-test-race.php restore
+wp eval-file /tests/deployment.php
 wp eval-file /tests/readiness-ui-fixture.php
 readiness_exit=0
 wp --user=fixture-admin peracrm campaigns readiness --format=json > /var/www/html/readiness-cli.json || readiness_exit=$?
