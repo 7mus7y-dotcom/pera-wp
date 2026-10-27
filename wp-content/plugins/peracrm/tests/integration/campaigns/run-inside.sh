@@ -438,6 +438,22 @@ for sync_scenario in duplicate interrupted; do
     fi
     wp eval-file /tests/suppression-sync-race.php verify "$sync_scenario"
 done
+# Run fixed-mailbox orchestration after existing suites: their source selectors
+# intentionally include latest complete jobs regardless of cancellation state.
+wp eval-file /tests/internal-test.php
+for internal_scenario in concurrent crash-claim crash-before crash-after; do
+    rm -f /tmp/peracrm-internal-held /tmp/peracrm-internal-loser /tmp/peracrm-internal-calls
+    wp eval-file /tests/internal-test-race.php prepare "$internal_scenario"
+    wp eval-file /tests/internal-test-race.php winner "$internal_scenario" &
+    internal_winner_pid=$!
+    wait_for_migration_marker /tmp/peracrm-internal-held
+    wp eval-file /tests/internal-test-race.php loser "$internal_scenario"
+    internal_exit=0
+    wait "$internal_winner_pid" || internal_exit=$?
+    if [ "$internal_scenario" = concurrent ]; then [ "$internal_exit" -eq 0 ]; else [ "$internal_exit" -eq 79 ]; fi
+    wp eval-file /tests/internal-test-race.php verify "$internal_scenario"
+done
+wp eval-file /tests/internal-test-race.php restore
 wp eval-file /tests/readiness-ui-fixture.php
 readiness_exit=0
 wp --user=fixture-admin peracrm campaigns readiness --format=json > /var/www/html/readiness-cli.json || readiness_exit=$?

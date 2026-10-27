@@ -14,8 +14,8 @@ as detailed in the linked history. No phase is complete merely because code exis
 Future PRs must update this active plan and distinguish repository checks from
 external verification. Preserve historical evidence and decisions in the history.
 
-**Current task:** bounded administrator readiness view and audited external-evidence
-form. Controlled internal testing and production activation remain dependent work.
+**Current task:** controlled synthetic internal-test orchestration. Real internal
+delivery and production activation remain separately blocked acceptance work.
 
 ## Phase 5B — bounded recipient preference editor (2026-10-22)
 
@@ -1993,3 +1993,129 @@ messages, cron activation, merge or deployment. Remaining work: independently
 retained/redacted external artifacts and retention/export workflow, production
 identity/key adapters and genuine provider/host verification. Controlled internal
 testing remains a separate dependent PR; this page cannot authorize it.
+
+## Phase 5 — controlled synthetic internal-test orchestration (2026-10-27)
+
+This section supersedes earlier current-task statements. Phase 5 remains in progress.
+Baseline #1494 is merged at main `22f3fc84cb78e67c0a98ddd4d9b19d1a88a5c30e`.
+Its final runtime `aeddb8f9c05e41da6f8c7246947fcd8e6c0d4544` passed workflow
+40377152965 and has clean final-commit review receipt 6424161815, summary
+6424008914 with no findings/unresolved findings, and no inline threads. This
+covers the final runtime. #1494's manual screenshot inspection and full-log audit
+were incomplete; browser assertions do not establish manual visual acceptance.
+This session requested artifact 12678785041 through GitHub, but retrieval of its
+returned file reference failed at the unreachable shell proxy. A fresh disposable
+Docker attempt failed with socket operation-not-permitted; daemon running, UID
+1000. No manual screenshot acceptance is claimed; failures were not retried.
+
+No AGENTS.md was found in repository/workspace or searched ancestors. Read the
+active plan, provider specification, runbook and preparation, worker, readiness,
+transport, suppression and budget/outcome contracts. Original clean checkout
+`/workspace/pera-wp` at `a32381b1` is preserved. Work is isolated in
+`/workspace/pera-internal-test`; connector supplied 13 latest-main blobs, each
+Git blob hash verified, tree `303fdc857c1ffd1c359b8964340956b9e1a68e01`.
+One shell fetch failed at the unavailable proxy. Publication parents directly to
+main and excludes reconstruction scaffolding. Initial checkpoint preceded checks.
+
+This implements orchestration over the existing prepared-worker path, rather
+than another prerequisite. Authorization requires a real administrator with
+campaign/subscriber/report capabilities, a job/manifest/configuration-bound nonce
+and explicit synthetic-only confirmation. Authority expires after five minutes.
+The fixed reserved addresses are `internal-test-1@example.test` and
+`internal-test-2@example.test`: maximum two recipients per run, three lifetime
+runs per deployment/target blog, including consumed/recovered authorizations.
+The non-autoloaded target-blog journal CASes actor/time/actions with state. A
+connection-owned nonblocking lock excludes concurrent execution/recovery. Claims
+are journaled before preparation; execution consumes authority before claiming,
+and never resumes/retries. The final injected mock transport has no HTTP, SDK or
+credential facility and independently rejects recipients at handoff. No UI,
+route, CLI, bootstrap, production factory or activation switch is added. All code
+is plugin-owned; no CSS/JS changes are required.
+
+The complete path reuses immutable preparation, mapper, frozen membership, live
+consent/suppression/identity fences, fresh exact-scope sync, budget reservations,
+pending latch, breaker and immutable outcome/acceptance/result services. Synthetic
+readiness requires current schema/renderer, approved configuration, matching scope,
+fresh sync and available budget at authorization/start. Worker checks repeat at
+their existing boundaries; synthetic handoff also rechecks administrator/session,
+clock/authorization age and configuration. Production identity/key factories,
+DNS/IAM, host/restore/retention observations, event intake/monitoring and actual
+inbox acceptance remain production blockers. They are explicitly outside
+synthetic-only readiness, never relabeled passing. This mode has no real provider
+or event pipeline to activate. It does not manufacture external observations.
+
+Recovery requires a separate nonce and current administrator, scope, sync and
+quota/readiness. It cannot renew execution authority. Original pending claims use
+existing prepared recovery: expired inflight becomes unknown, stored evidence
+survives, and an operator hold precedes latch release. Never-begun claims use
+ordinary expired-lease recovery. Unidentified pending latches and live leases
+fail closed. No refund/reset API is introduced; encrypted bytes remain unchanged.
+The audit projection excludes mailboxes, owner/attempt keys and message content.
+
+Added single/multisite SQL fixtures exercise successful two-recipient orchestration,
+unknown/rejection/throttle outcomes, nonce/role/anonymous/impersonation denials,
+unauthorized recipients and oversized jobs, stale authority/configuration, duplicate
+execution, live withdrawal, failed journal SQL, lifetime caps, interruptions before/
+after mock handoff and recovery. Separate processes exercise overlap and actual
+process death before/after transport. Existing SQL/race/browser suites remain
+required. Local 37 standalone suites, PHP syntax, dependency packaging, JS/shell
+syntax and whitespace passed before publication. Final hosted CI and final-commit
+review must cover the final changes and be reported in the PR; local Docker is
+unavailable and does not establish SQL/browser acceptance.
+
+Remaining external acceptance: independently retained redacted artifacts, manual
+screenshot inspection, production identity/key adapters and real provider/host/
+monitoring/restore/retention verification. Future real internal testing needs a
+separately reviewed fixed real-mailbox list, explicit authorization and actual
+inbox/header/link/opt-out observations. This PR cannot send real messages or claim
+inbox verification. Dispatch is unconditionally false; intake/public collection/
+cron/endpoint/sync activation gates remain disabled. No credentials, AWS
+provisioning, real messages, activation, merge or deployment are performed.
+
+Initial review of runtime bb9db45590 found reusable withdrawal-fixture state would
+prevent later cap/process cases: ordinary consent correctly refuses a suppressed
+mailbox. The fixture now proves that refusal, then restores the exact prior
+subscriber/suppression rows in its disposable database only. Production consent
+is unchanged. Local review also bounded repeated recovery-start audit growth,
+reports actual recovered recipient states and adds whole-coordinator stale-sync/
+breaker denials plus actual death between claim commit and claim journaling.
+Final CI/review must cover these corrections; initial results are superseded.
+
+Final local review connects the existing job completion service after execution
+and recovery. SQL assertions distinguish complete accepted/failed jobs from
+incomplete ambiguous/retry jobs and verify all four tokens plus two immutable
+attempt/output records for a successful two-recipient run. Clean review of
+d5b0235dc7 predates this addition; final-head CI and rereview are required again.
+
+Hosted d5b0235dc7 single-site logs established new orchestration and all four
+process cases passed, then an existing integrated-worker race missed its barrier:
+its latest-queued-source-by-size lookup selected a new internal-test source whose
+reused mailbox profiles had since changed topics. New fixture sources now cancel
+their original queue job through the staff lifecycle service after copying the
+queued row into the private worker ledger. This isolates them from existing
+selectors without changing consent/eligibility/worker logic. The earlier hosted
+run failed and is not acceptance evidence; final complete reruns remain required.
+
+Run 40455177484 failed in both topologies at the existing scheduler's three-job
+due assertion, after new orchestration/process tests and existing prepared-worker
+races passed. That scheduler fixture selects latest complete jobs even when
+cancelled, so retiring new sources alone was insufficient isolation. The new
+suite now runs after all existing SQL/race cases and before final readiness/browser
+setup. Existing scheduler assertions and production logic are unchanged. Final
+complete reruns and review must cover this fixture-order correction.
+
+Final fixture review removes the last source-template dependency: UI fixtures may
+restore configuration after capturing a sender that is no longer current. The
+internal suite now creates its own minimal synthetic document with a currently
+approved sender, through the ordinary draft/capture/freeze/queue services, instead
+of copying the latest UI draft. This affects fixture setup only. Superseded runs
+are not final acceptance; final complete execution/review remain required.
+
+The late-suite configuration intentionally contains no approved sender after
+existing fixtures restore their starting settings. Run 40456716344 reached the
+new phase after existing SQL/races and rejected this prerequisite as designed.
+The disposable internal-test phase now explicitly approves its own synthetic
+sender/footer through the normal administrator configuration service, retains the
+prior document, and restores it through the same service after process cases.
+No production readiness/capture rule is bypassed; final complete reruns remain
+required. This setup is confined to the existing local disposable fixture guards.
