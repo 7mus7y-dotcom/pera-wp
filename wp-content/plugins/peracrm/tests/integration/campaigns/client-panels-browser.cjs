@@ -5,12 +5,13 @@ module.exports = async function ({browser}) {
  const context = await browser.newContext();
  const page = await context.newPage();
  const errors=[];
- page.on('pageerror',error=>errors.push(error.message));
- await page.goto(target+'/wp-login.php');
+ const clientURL=target+'/crm/client/'+fixture.client+'/';
+ page.on('pageerror',error=>errors.push(page.url()+'\n'+(error.stack||error.message)));
+ // Login directly to the workspace being tested, avoiding unrelated dashboard scripts.
+ await page.goto(target+'/wp-login.php?redirect_to='+encodeURIComponent(clientURL));
  await page.locator('#user_login').fill('panel-employee');
  await page.locator('#user_pass').fill('synthetic-panel-only');
  await Promise.all([page.waitForURL(url=>!url.pathname.endsWith('wp-login.php')),page.locator('#wp-submit').click()]);
- const clientURL=target+'/crm/client/'+fixture.client+'/';
  const panel=key=>page.locator('[data-crm-optional-panel="'+key+'"]');
  const toggle=key=>page.locator('[data-crm-panel-toggle="'+key+'"]');
  const settle=async()=>{await page.waitForFunction(()=>document.querySelector('[data-crm-manage-panels]').getAttribute('aria-busy')==='false');};
@@ -77,7 +78,7 @@ module.exports = async function ({browser}) {
  await page.goto(target+'/crm/client/'+fixture.other+'/'); await settle();
  if(!await panel('deals').isVisible()) throw Error('Visibility leaked across clients');
  const adminContext=await browser.newContext(); const admin=await adminContext.newPage();
- await admin.goto(target+'/wp-login.php'); await admin.locator('#user_login').fill('fixture-admin'); await admin.locator('#user_pass').fill('fixture-admin-only');
+ await admin.goto(target+'/wp-login.php?redirect_to='+encodeURIComponent(clientURL)); await admin.locator('#user_login').fill('fixture-admin'); await admin.locator('#user_pass').fill('fixture-admin-only');
  await Promise.all([admin.waitForURL(url=>!url.pathname.endsWith('wp-login.php')),admin.locator('#wp-submit').click()]);
  await admin.goto(clientURL); await admin.locator('[data-crm-optional-panel="deals"]').waitFor();
  await adminContext.close();
