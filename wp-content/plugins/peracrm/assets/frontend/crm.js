@@ -2812,7 +2812,7 @@ document.addEventListener('DOMContentLoaded', function () {
     enableControls();
     feedback.textContent = '';
     if (operation === 'hide' && target && target.matches('[data-crm-panel-hide]')) {
-      manager.querySelector('summary').focus({ preventScroll: true });
+      manager.querySelector('.crm-section__title').focus({ preventScroll: true });
     }
     var payload = new window.FormData();
     payload.append('action', 'peracrm_client_panels');
@@ -2867,7 +2867,6 @@ document.addEventListener('DOMContentLoaded', function () {
       var parsed = new window.DOMParser().parseFromString(fragments.manage, 'text/html');
       var incoming = parsed.querySelector('[data-crm-manage-panels]');
       if (incoming) {
-        incoming.open = manager.open;
         manager.replaceWith(incoming);
         manager = incoming;
         // Include hidden preferences for newly eligible panels from the server.
