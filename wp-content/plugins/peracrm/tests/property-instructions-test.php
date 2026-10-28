@@ -128,6 +128,10 @@ $edit=edit_row(1); $edit['public_property_id']=999; expect(is_wp_error(save_inst
 $edit=edit_row(1); $edit['advisor_user_id']=8; expect(is_wp_error(save_instruction($edit)),'out of scope advisor rejected');
 $edit=edit_row(1); $edit['details']['asking_price']='-2'; expect(is_wp_error(save_instruction($edit)),'negative price rejected');
 $edit=edit_row(2); $edit['details']['contract_start']='2026-02-30'; expect(is_wp_error(save_instruction($edit)),'invalid tenancy date rejected');
+$edit=edit_row(1); $edit['property']['address']=str_repeat('İ', 5001); $edit['notes']=str_repeat('ğ', 5001);
+expect(save_instruction($edit)===1,'long Unicode fields saved');
+expect(peracrm_json_decode(raw_row(1)['property_details'])['address']===str_repeat('İ',5000),'Unicode boundaries preserved in structured JSON');
+expect(raw_row(1)['notes']===str_repeat('ğ',5000),'Unicode notes bounded without split bytes');
 $before=count($wpdb->tables['wp_2_crm_instruction_properties']); $wpdb->fail=true;
 expect(is_wp_error(save_instruction($sale)),'write failure reported');
 expect(count($wpdb->tables['wp_2_crm_instruction_properties'])===$before,'write failure rolls back asset'); $wpdb->fail=false;

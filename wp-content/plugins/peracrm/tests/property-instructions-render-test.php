@@ -7,13 +7,15 @@ function esc_textarea($v) { return esc_html($v); }
 function esc_url($v) { return esc_html($v); }
 function esc_html_e($v) { echo esc_html($v); }
 function selected($a,$b) { if ((string) $a === (string) $b) { echo 'selected'; } }
-function home_url($v) { return 'https://crm.example.com' . $v; }
+function home_url($v) { return 'https://crm.example.com' . ($GLOBALS['blog_depth'] ? '/target-blog' : '') . $v; }
 function wp_nonce_field($action, $name='_wpnonce') { echo '<input type="hidden" name="' . esc_attr($name) . '" value="valid-' . esc_attr($action) . '" />'; }
 function get_userdata($id) { return (object) ['ID'=>$id,'display_name'=>'Advisor ' . $id]; }
 function peracrm_get_staff_users() { return [get_userdata(7)]; }
 function get_permalink($id) { return 'https://example.com/property/' . $id; }
 function render_instructions($type) {
-    return peracrm_with_target_blog(static function () use ($type) {
+    $instruction_post_url=home_url('/wp-admin/admin-post.php');
+    $instruction_client_url=home_url('/crm/client/101/');
+    return peracrm_with_target_blog(static function () use ($type, $instruction_post_url, $instruction_client_url) {
         $client_id=101; $client_type_value=$type;
         ob_start(); require dirname(__DIR__) . '/inc/views/partials/property-instructions.php'; return ob_get_clean();
     });
@@ -30,6 +32,7 @@ expect(str_contains($seller,'View Sahibinden') && str_contains($seller,'View Per
 expect(str_contains($seller,'View linked website property'),'existing public listing link rendered');
 expect(str_contains($seller,'peracrm_add_reminder') && str_contains($seller,'instruction #1'),'client reminder prepopulated with property reference');
 expect(str_contains($seller,'name="peracrm_client_id" value="101"'),'reminder uses current client');
+expect(!str_contains($seller, '/target-blog/'), 'forms and reminder redirects retain originating blog URLs');
 $landlord=render_instructions('landlord');
 expect(str_contains($landlord,'Properties for rent') && str_contains($landlord,'Tenant name / contact reference'),'landlord panel and operational fields');
 $history=render_instructions('investor');

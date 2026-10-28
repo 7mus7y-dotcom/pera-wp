@@ -32,7 +32,7 @@ $render_fields = static function ($group, $fields, $values, $prefix) {
 $advisors = array_filter(peracrm_get_staff_users(), static function ($user) use ($client_id) {
     return peracrm_user_can_access_client((int) $user->ID, $client_id);
 });
-$render_form = static function ($row, $form_type) use ($client_id, $catalog, $assets, $render_fields, $advisors) {
+$render_form = static function ($row, $form_type) use ($client_id, $catalog, $assets, $render_fields, $advisors, $instruction_post_url) {
     $id = (int) ($row['id'] ?? 0);
     $prefix = 'instruction-' . $form_type . '-' . $id;
     $property = peracrm_json_decode($row['property_details'] ?? '');
@@ -41,7 +41,7 @@ $render_form = static function ($row, $form_type) use ($client_id, $catalog, $as
     $basic_common = array_intersect_key($catalog['common'], array_flip(['asking_price', 'currency']));
     $basic_common['asking_price'][0] = $form_type === 'rental' ? __('Monthly asking rent', 'peracrm') : __('Asking price', 'peracrm');
     ?>
-    <form method="post" action="<?php echo esc_url(home_url('/wp-admin/admin-post.php')); ?>" class="crm-form-stack">
+    <form method="post" action="<?php echo esc_url($instruction_post_url); ?>" class="crm-form-stack">
       <?php wp_nonce_field('peracrm_property_instruction_' . $client_id); ?>
       <input type="hidden" name="action" value="peracrm_property_instruction" />
       <input type="hidden" name="client_id" value="<?php echo esc_attr($client_id); ?>" />
@@ -128,11 +128,11 @@ $render_form = static function ($row, $form_type) use ($client_id, $catalog, $as
           </div>
           <details class="crm-instruction-editor"><summary class="btn btn--ghost"><?php esc_html_e('Edit', 'peracrm'); ?></summary><?php $render_form($row, $row['instruction_type']); ?></details>
           <details class="crm-instruction-editor"><summary class="btn btn--ghost"><?php esc_html_e('Create reminder', 'peracrm'); ?></summary>
-            <form method="post" action="<?php echo esc_url(home_url('/wp-admin/admin-post.php')); ?>" class="crm-form-stack">
+            <form method="post" action="<?php echo esc_url($instruction_post_url); ?>" class="crm-form-stack">
               <?php wp_nonce_field('peracrm_add_reminder', 'peracrm_add_reminder_nonce'); ?>
               <input type="hidden" name="action" value="peracrm_add_reminder" />
               <input type="hidden" name="peracrm_client_id" value="<?php echo esc_attr($client_id); ?>" />
-              <input type="hidden" name="peracrm_redirect" value="<?php echo esc_url(home_url('/crm/client/' . $client_id . '/')); ?>" />
+              <input type="hidden" name="peracrm_redirect" value="<?php echo esc_url($instruction_client_url); ?>" />
               <label><?php esc_html_e('Due date & time', 'peracrm'); ?><input type="datetime-local" name="peracrm_due_at" required /></label>
               <label><?php esc_html_e('Reminder note', 'peracrm'); ?><textarea name="peracrm_reminder_note" maxlength="5000" rows="3"><?php echo esc_textarea('[Property ' . $reference . ' / instruction #' . $row['id'] . '] ' . ($details['next_action'] ?? '')); ?></textarea></label>
               <button class="btn btn--solid" type="submit"><?php esc_html_e('Add reminder', 'peracrm'); ?></button>

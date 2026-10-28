@@ -126,6 +126,13 @@ function peracrm_instructions_list($client_id)
     });
 }
 
+/** Bound text by Unicode characters so JSON cannot be broken by a split byte. */
+function peracrm_instruction_text($value, $limit = 5000, $multiline = false)
+{
+    $clean = $multiline ? sanitize_textarea_field($value) : sanitize_text_field($value);
+    return preg_match('/\A.{0,' . (int) $limit . '}/us', $clean, $match) ? $match[0] : '';
+}
+
 function peracrm_instruction_validate_fields($raw, $catalog)
 {
     $result = [];
@@ -144,7 +151,7 @@ function peracrm_instruction_validate_fields($raw, $catalog)
             $date = DateTimeImmutable::createFromFormat('!Y-m-d', $value);
             if (!$date || $date->format('Y-m-d') !== $value) { return new WP_Error('invalid_date', 'Invalid date: ' . $field[0]); }
         }
-        $result[$key] = substr($kind === 'textarea' ? sanitize_textarea_field($value) : sanitize_text_field($value), 0, 5000);
+        $result[$key] = peracrm_instruction_text($value, 5000, $kind === 'textarea');
     }
     return $result;
 }
@@ -181,7 +188,7 @@ function peracrm_instruction_mutate($client_id, array $raw, $nonce, $method)
         if (!in_array($type, ['sale', 'rental'], true)) { return new WP_Error('invalid_type', 'Choose sale or rental.'); }
         $status = $raw['status'] ?? 'draft';
         if (!is_string($status) || !isset(peracrm_instruction_statuses($type)[$status])) { return new WP_Error('invalid_status', 'Invalid instruction status.'); }
-        $reason = isset($raw['transition_reason']) && is_scalar($raw['transition_reason']) ? sanitize_textarea_field($raw['transition_reason']) : '';
+        $reason = isset($raw['transition_reason']) && is_scalar($raw['transition_reason']) ? peracrm_instruction_text($raw['transition_reason'], 5000, true) : '';
         $states = array_keys(peracrm_instruction_statuses($type));
         if ($old && $old['status'] !== $status && (array_search($status, $states, true) < array_search($old['status'], $states, true) || in_array($status, ['cancelled', 'withdrawn', 'archived'], true)) && trim($reason) === '') {
             return new WP_Error('reason_required', 'Explain backward transitions, cancellation, withdrawal, archival or reopening.');
@@ -202,7 +209,7 @@ function peracrm_instruction_mutate($client_id, array $raw, $nonce, $method)
         }
         $identifier = is_scalar($raw['identifier'] ?? '') ? sanitize_text_field($raw['identifier'] ?? '') : '';
         if (trim($identifier) === '' && trim($property['name'] ?? '') === '') { return new WP_Error('name_required', 'Enter a property name or identifier.'); }
-        $identifier = substr($identifier, 0, 191);
+        $identifier = peracrm_instruction_text($identifier, 191);
         $sahibinden = peracrm_instruction_url($raw['sahibinden_url'] ?? '');
         $pera = peracrm_instruction_url($raw['pera_url'] ?? '');
         if (is_wp_error($sahibinden)) { return $sahibinden; }
@@ -240,7 +247,7 @@ function peracrm_instruction_mutate($client_id, array $raw, $nonce, $method)
             }
             $data = ['client_id' => $client_id, 'property_id' => $property_id, 'instruction_type' => $type, 'status' => $status,
                 'advisor_user_id' => $advisor, 'details' => peracrm_json_encode($details),
-                'notes' => is_scalar($raw['notes'] ?? '') ? substr(sanitize_textarea_field($raw['notes'] ?? ''), 0, 5000) : '',
+                'notes' => is_scalar($raw['notes'] ?? '') ? peracrm_instruction_text($raw['notes'] ?? '', 5000, true) : '',
                 'public_property_id' => $public_id ?: null, 'sahibinden_url' => $sahibinden, 'pera_url' => $pera, 'updated_at' => $now];
             if ($old) {
                 $data['revision'] = (int) $old['revision'] + 1;
