@@ -14,8 +14,8 @@ as detailed in the linked history. No phase is complete merely because code exis
 Future PRs must update this active plan and distinguish repository checks from
 external verification. Preserve historical evidence and decisions in the history.
 
-**Current task:** controlled synthetic internal-test orchestration. Real internal
-delivery and production activation remain separately blocked acceptance work.
+**Current task:** secure SNS subscription provisioning and confirmation before
+live event activation. Real internal delivery and production activation remain blocked.
 
 ## Phase 5B — bounded recipient preference editor (2026-10-22)
 
@@ -2119,3 +2119,64 @@ sender/footer through the normal administrator configuration service, retains th
 prior document, and restores it through the same service after process cases.
 No production readiness/capture rule is bypassed; final complete reruns remain
 required. This setup is confined to the existing local disposable fixture guards.
+
+
+## Phase 5 — secure SNS subscription control plane (2026-10-28)
+
+This section supersedes earlier current-task statements. Phase 5 remains in
+progress. Connected GitHub verified latest main `bd4f6963b9dad8330234113859882d09e211239a`
+(#1495), matching the clean local checkout. No AGENTS.md was found in the
+workspace/repository search. Read the living plan, provider specification,
+operator runbook, verifier, guarded HTTP adapter, receipt protections, explicit
+credential/SigV4 transport and administrator journal patterns before implementation.
+Shell fetch failed once at the unavailable proxy; connected GitHub supplied
+latest-main verification. No network bypass or real AWS call was attempted.
+
+Adds separate deployment-only, default-disabled confirmation-only mode on the
+existing endpoint. A real non-impersonated administrator with campaign management
+must explicitly arm a one-hour pending request, then separately authorize SNS
+Subscribe and ConfirmSubscription through CLI. Pins include exact account, region,
+topic, deployment, target blog and canonical HTTPS endpoint. Event intake continues
+to reject controls; provisioning mode rejects notifications and unsubscribe
+controls. Public control intake has no credentials or remote mutation authority.
+
+The separate v2 confirmation verifier uses AWS's signed SubscribeURL/Token field
+ordering without ever fetching SubscribeURL. Signed bytes/tokens never enter the
+receipt/event tables. Ciphertext alone persists using random-nonce, scope-derived
+sodium secretbox in a non-autoloaded operator journal. Only fixed state/actor/time
+and verified subscription ARN are projected to operator status. Exact signed
+message duplicates preserve bytes/state; conflicting identities/content, stale/
+future controls and absent/expired/wrong-scope pending authority fail closed.
+A 32-request cap bounds the journal; expired ciphertext is removed on new arm
+while replay tombstones remain. Configuration/salt mismatches do not auto-repair.
+
+A named connection-owned nonblocking lock, autocommit/ambient-transaction guards,
+CAS and reconnect checks protect state. Before confirmation network mutation,
+`confirming` plus the real actor is durable. Regional fixed-host SigV4 POST uses
+explicit short-lived session credentials, no discovery/redirects/automatic retry,
+AuthenticateOnUnsubscribe=true, returned-ARN and actual AWS subscription attribute
+checks. Failure before/after remote acceptance cannot report confirmed until
+verified attributes and final storage succeed. Ambiguity retains encrypted state
+for independent operator investigation and explicit recovery. Confirmed repeats
+make no network calls. The runbook documents the endpoint-binding limit of SNS
+signatures and required independent operator observation, least-privilege IAM,
+protected logs/backups, configuration, CLI actions, retries, expiry and teardown.
+
+Local PHP 8.4: 38 standalone suites passed, plugin PHP syntax excluding
+vendor-webpush passed, isolated SES package verification and shell/whitespace
+checks passed. New regressions cover v2 field integrity, wrong account/region/topic,
+v1/unsubscribe/notification denial, fixed signed API policy, bounded XML and
+redacted diagnostics. New single/multisite SQL integration covers anonymous/
+missing explicit authority, pending admission, invalid signature/scope invariance,
+network failure/recovery, encrypted non-autoload storage, immutable duplicates/
+conflicts, key/config mismatch, writes failing before and after remote mutation,
+verified confirmation/purge, expiry/tombstones and unchanged production gates.
+Actual hosted execution remains pending; local Docker socket access failed
+(operation not permitted), with daemon running and UID 1000. No SQL/browser
+acceptance or final hosted success is claimed before execution.
+
+No constant, endpoint, dispatch, intake, public collection, suppression sync or
+cron activation is performed. No AWS resources, credentials, real messages,
+merge or deployment. Existing external readiness, privacy/restore/retention and
+real internal inbox acceptance remain blocked. Hosted final-head checks and
+final change review must be recorded in the PR before claiming readiness.

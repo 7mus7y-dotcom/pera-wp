@@ -385,6 +385,7 @@ for preference_race in edit-edit revoke-edit edit-revoke identity-edit edit-iden
     wait "$preference_loser_pid"
     wp eval-file /tests/recipient-preferences-race.php verify "$preference_race"
 done
+wp eval-file /tests/sns-provisioning.php
 wp eval-file /tests/sns-http.php
 rm -f /tmp/peracrm-http-held /tmp/peracrm-http-winner /tmp/peracrm-http-loser
 wp eval-file /tests/sns-http-race.php prepare
