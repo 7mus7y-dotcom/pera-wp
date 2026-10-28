@@ -639,6 +639,115 @@ acceptance authorization. Only an actual separately authorized test can establis
 inbox/header/HTML/text/link/Reply-To/opt-out observations. No intake, public
 collection, endpoint/sync activation or cron gate changes are authorized here.
 
+## Deployment adapters — local validation, dispatch still blocked
+
+Without new deployment constants, the existing unconfigured page/CLI behavior
+is unchanged. This PR installs no values on a host and requests no credentials.
+The following contract is for a separately approved deployment configuration;
+never enter secret material in CRM settings, command arguments, source control,
+chat, evidence forms or logs. Provisioning/rotation/refresh belongs to the host's
+approved secret mechanism outside campaign requests. The adapter itself reads
+only explicit PHP constants and performs no discovery, file reads or network.
+
+`PERACRM_CAMPAIGN_DEPLOYMENT` is an exact nonsecret array:
+
+| Field | Contract |
+| --- | --- |
+| provider, account_id, region, configuration_set, configuration_version | Existing SES v2 scope contract; fixed account/region, positive integer version |
+| deployment, blog_id | Existing deployment ID and designated target-blog integer |
+| origin | Canonical HTTPS DNS origin accepted by recipient expansion, no port/path/userinfo/query/fragment or reserved test host |
+| instance_id | Independently supplied host-instance identifier, 16–64 ASCII letters/digits/underscore/hyphen |
+| identity_version | Positive integer principal/identity revision |
+| signing_key_id, encryption_key_id | Permanent active IDs using existing kN and eN syntax |
+
+`PERACRM_CAMPAIGN_INSTANCE_ID` must independently match instance_id on the running
+host. Supply it outside cloned databases and copied application configuration.
+The adapter also compares the configured WordPress home origin (target subsite
+paths are allowed) and current/target blog. HTTP, ports, userinfo and alternate
+origins fail. Request Host/forwarded headers are never authoritative. These local
+comparisons do not independently authenticate the host or establish real TLS;
+copying all host bindings together defeats a local clone distinction and remains
+outside this guarantee. Independently verify host ownership before activation.
+
+If `PERACRM_SES_EVENT_OPERATIONS` is present, its account/blog/deployment/region/
+configuration-set/version pins must agree. The new constants neither configure
+nor activate that event service or the SNS HTTP/suppression-sync endpoints.
+Malformed explicit deployment configuration fails unavailable without legacy-pin
+fallback. Missing secrets can coexist with valid diagnostic scope pins, but
+provider/key checks remain unavailable.
+
+`PERACRM_CAMPAIGN_MATERIAL` has only these optional components:
+
+| Component | Exact fields |
+| --- | --- |
+| identity | account_id, version, access_key, secret_key, session_token (string or null), not_before, expires_at |
+| signing | active, keys (kN => raw signing bytes), not_before, expires_at |
+| encryption | active, keys (eN => raw 32-byte encryption bytes), not_before, expires_at |
+
+All dates are trusted integer UTC epoch seconds. not_before must be positive and
+not future; expires_at must follow activation and retain more than a full
+20-second request budget for new preparation. Identity account/revision and active
+key IDs must match the manifest. Existing SES credential validation additionally
+checks actual server-clock expiry. Signing keys retain the existing 32–128-byte,
+maximum-eight contract; encryption retains 32-byte, maximum-32 and sodium checks.
+No WP salts, defaults or fallback cipher are supplied. Duplicate bytes under
+multiple IDs, shared signing/encryption bytes or reuse of the provider secret as
+a key fail closed. Bundles are copied defensively with size/depth/count bounds;
+objects, executable locators and arbitrary secret-file paths are unsupported.
+
+A `configured` readiness result means syntactic/local availability only. It does
+not prove the principal's real AWS account, IAM privileges, quota, DNS alignment,
+provider response, host protection or inbox delivery. Those external evidence
+checks remain separate and unverified until genuine evidence exists. The adapter
+reuses current complete/fresh suppression and budget/quota/breaker/latch validators
+for read-only diagnostics; it does not run a scan, set quotas, recover a breaker,
+clear a pending latch or acquire send permission. Production sync/budget mutation
+factories and scheduler/worker/provider dispatch remain disabled.
+
+Advance configuration_version after relevant host, secret/key, DNS/IAM,
+monitoring, policy or restore changes; advance identity_version for principal
+changes and use a new permanent key ID for every changed key. Never replace bytes
+under an existing ID or reuse a previous version after rollback. The local evidence
+fingerprint includes the public deployment manifest, not credential/key values.
+Credential refresh under the same verified principal can preserve identity_version;
+the host must supply correct current expiry. Local code cannot detect an operator
+silently replacing secret bytes under old IDs/versions. It does not claim a key
+registry, rotation service or independent AWS account attestation.
+
+New preparation checks availability before/after durable output preparation and
+before/after final identity-lock waits. Expiry or a failed guard after COMMIT leaves
+prepared bytes durable but unusable as a send/retry permit. Follow existing lease/
+accounting recovery; never erase output, reset accepted/unknown work or retry an
+external request because a guard/COMMIT returned an error.
+
+Retain retired signing and encryption keys for the independently approved token/
+output retention horizon. Historical token verification and exact encrypted-output
+recovery can use retained bytes after the active ring's preparation window expires;
+normal purpose, registry, identity/epoch, bearer expiry, scope and envelope checks
+remain mandatory. These methods do not issue a token, modify worker outcomes,
+renew a lease or call transport. Missing/corrupt keys or ciphertext fail closed
+without regeneration. Public token-service factories remain disabled. Key loss,
+compromise, host clock discipline and restore reconciliation still require their
+own approved procedures; no automatic key deletion or retention policy is added.
+
+Administrator page/CLI output exposes fixed states/provenance and opaque public
+manifest/configuration fingerprints, never secret bytes, credential identifiers,
+session tokens, recipient bodies or keyring projections. Debug and serialization
+are redacted/denied. Host/PHP/APM argument capture and database/access logs require
+independent protection; local sanitization does not prove host logging safety.
+All code remains PeraCRM-owned. No theme sync, CSS/JS changes, messages, AWS
+resources, live configuration changes, activation, merge or deployment are included.
+
+Historical output recovery accepts prior configuration versions (including their
+original configuration sets) after a version advance, with the current independent
+host binding and the same deployment, target blog, provider/account and region.
+It rejects future versions and a changed set under an unchanged version. The
+immutable persistence/envelope authentication still requires the exact original
+metadata and ciphertext; an operator cannot invent historical pins or overwrite
+output. This grants historical access only and never makes an old configuration
+eligible for a new submission. Moving provider accounts/regions requires a separate
+reviewed historical-access/restore decision rather than relaxing scope isolation.
+
 ## SNS subscription provisioning and confirmation (control plane only)
 
 This is a deployment/operator procedure for a separately approved future window.
@@ -798,3 +907,17 @@ issues, screenshots or logs. A later, separately approved activation can define
 PERACRM_SES_SNS_HTTP using the exact existing pins and the verified subscription;
 that remains outside this task. Do not enable dispatch/intake/public collection/
 cron, send real messages, provision resources, merge or deploy as part of this PR.
+
+
+### Combined deployment adapters and SNS provisioning
+
+The deployment adapters above do not supply SNS provisioning credentials or
+enable the confirmation receiver. Provisioning continues to use its separately
+authorized short-lived process credentials and salt-bound journal encryption;
+token-signing/output-encryption material is not a substitute. Before a separately
+approved provisioning window, independently verify that deployment ID, target
+blog, account and region agree across the reviewed configuration, and that the
+exact SNS topic is the approved event topic. No automatic cross-configuration
+activation or shared credential discovery is provided. Preserve all disabled
+production gates during deployment and follow the existing host-log protections
+and explicit arm/subscribe/confirm/teardown procedure.

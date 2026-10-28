@@ -48,14 +48,19 @@ final class PeraCRM_CampaignRecipientExpansion
     public function __construct(string $authoritativeOrigin, PeraCRM_CampaignRecipientTokens $tokens)
     {
         peracrm_campaign_recipient_require(!isset($this->origin));
+        self::validateOrigin($authoritativeOrigin);
+        $this->origin = $authoritativeOrigin;
+        $this->tokens = $tokens;
+    }
+
+    public static function validateOrigin(string $authoritativeOrigin): void
+    {
         // Canonical HTTPS DNS origin only: no ports, credentials, paths, queries,
         // fragments, IDN ambiguity, numeric host aliases or request-host fallback.
         peracrm_campaign_recipient_require(strlen($authoritativeOrigin) <= 261
             && preg_match('~\Ahttps://(?=.{1,253}\z)(?:[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?\.)+[a-z]{2,63}\z~', $authoritativeOrigin) === 1);
         $host = substr($authoritativeOrigin, 8);
         peracrm_campaign_recipient_require(!preg_match('/(?:\A|\.)(?:localhost|local|internal|invalid|test|onion)\z/', $host));
-        $this->origin = $authoritativeOrigin;
-        $this->tokens = $tokens;
     }
 
     public function expand(array $content, string $approvedHash, #[\SensitiveParameter] array $binding, int $now, int $outputVersion = 1): PeraCRM_CampaignRecipientOutput

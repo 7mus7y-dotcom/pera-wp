@@ -77,8 +77,9 @@ final class PeraCRM_Campaign_Worker_Preparation
 {
     private $deployment; private $scope; private $origin; private $keys; private $active; private $cipher;
     private Closure $clock;
+    private ?Closure $availability;
     public function __construct(string $deployment, array $scope, string $origin,
-        #[\SensitiveParameter] array $keys, string $active, PeraCRM_CampaignOutputCipher $cipher,Closure $clock)
+        #[\SensitiveParameter] array $keys, string $active, PeraCRM_CampaignOutputCipher $cipher,Closure $clock,?Closure $availability=null)
     {
         PeraCRM_CampaignSubmissionV1::validateScope($scope);
         peracrm_campaign_recipient_require(preg_match('/\A[a-zA-Z0-9_-]{1,64}\z/',$deployment)===1);
@@ -89,22 +90,26 @@ final class PeraCRM_Campaign_Worker_Preparation
         foreach ($keys as $key=>$value) { $this->keys[$key]=$value; }
         $this->active=$active; $this->cipher=$cipher;
         $this->clock=$clock;
+        $this->availability=$availability;
     }
     public function deployment(): string { return $this->deployment; }
     public function scope(): array { return $this->scope; }
     public function prepare(array $content, array $envelope, array $row): array
     {
+        if ($this->availability) { ($this->availability)(); }
         $store=new PeraCRM_CampaignRecipientPersistence($this->deployment,get_current_blog_id());
         $prior=$store->attempt($row['attempt_key']);
         $epoch=$prior ? $prior['token_epoch'] : $store->ensureIdentity((int)$row['subscriber_id'],$row['mailbox']);
         $binding=['blog_id'=>get_current_blog_id(),'subscriber_id'=>(int)$row['subscriber_id'],
             'mailbox'=>$row['mailbox'],'token_epoch'=>$epoch,'attempt_key'=>$row['attempt_key'],'snapshot_hash'=>$row['content_hash']];
         [$submission]=$store->prepareOutput($content,$envelope,$binding,$this->origin,$this->keys,$this->active,($this->clock)(),$this->cipher);
+        if ($this->availability) { ($this->availability)(); }
         return [$submission,$binding];
     }
     /** Caller holds final mailbox locks. A recovered envelope is never authority. */
     public function requireIdentity(array $binding): void
     {
+        if ($this->availability) { ($this->availability)(); }
         global $wpdb;
         $identity=$wpdb->get_row($wpdb->prepare('SELECT * FROM '.peracrm_table('peracrm_campaign_recipient_identities')
             .' WHERE deployment=%s AND blog_id=%d AND subscriber_id=%d FOR UPDATE',
@@ -112,6 +117,7 @@ final class PeraCRM_Campaign_Worker_Preparation
         peracrm_campaigns_db_require(true);
         peracrm_campaign_recipient_require($identity && (int)$identity['active']===1
             && $identity['mailbox']===$binding['mailbox'] && (int)$identity['token_epoch']===$binding['token_epoch']);
+        if ($this->availability) { ($this->availability)(); }
     }
     public function __debugInfo(): array { return ['service'=>'worker_preparation','redacted'=>true]; }
     public function __serialize(): array { throw new LogicException('worker_preparation_unavailable'); }

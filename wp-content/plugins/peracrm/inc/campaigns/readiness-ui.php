@@ -58,6 +58,9 @@ function peracrm_campaign_readiness_ui_label(string $code): string
         'budget_pending'=>'Unresolved submission blocks capacity','budget_breaker'=>'Circuit breaker blocks capacity',
         'budget_exhausted'=>'Capacity limit reached','budget_storage'=>'Capacity storage unavailable','budget_unavailable'=>'Production capacity service unavailable',
         'dispatch_disabled'=>'Dispatch is disabled unconditionally',
+        'deployment_scope'=>'Deployment, target site and host instance binding',
+        'deployment_configuration'=>'Explicit deployment configuration; no remote verification',
+        'configured'=>'Configured locally — external verification still required',
     ];
     return $labels[$code]??ucfirst(str_replace('_',' ',$code));
 }

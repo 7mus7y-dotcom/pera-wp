@@ -2,16 +2,19 @@
 if (!defined('ABSPATH')) { exit; }
 require_once __DIR__.'/operations.php';
 require_once __DIR__.'/submission.php';
+require_once __DIR__.'/deployment.php';
 
 /**
- * Local diagnostic snapshot only. Production dependencies remain unavailable.
- * No credentials, transport, activation, network calls or cached send permits.
+ * Local diagnostic snapshot only. Explicit deployment material may be validated.
+ * No credential acquisition, transport, activation, network calls or send permits.
  */
 final class PeraCRM_Campaign_Readiness
 {
     private ?array $binding;
     private ?PeraCRM_Sending_Budget $budget;
     private Closure $clock;
+    private ?PeraCRM_Campaign_Deployment $deployment;
+    private bool $deploymentRejected;
     public const EXTERNAL = [
         'dns_dkim_dmarc'=>'provider_observation',
         'iam_account_quotas'=>'provider_observation',
@@ -21,7 +24,8 @@ final class PeraCRM_Campaign_Readiness
         'old_mailbox_withdrawal'=>'operator_attestation',
         'restore_verification'=>'host_observation',
     ];
-    public function __construct(?array $binding,?PeraCRM_Sending_Budget $budget=null,?Closure $clock=null)
+    public function __construct(?array $binding,?PeraCRM_Sending_Budget $budget=null,?Closure $clock=null,
+        ?PeraCRM_Campaign_Deployment $deployment=null,bool $deploymentRejected=false)
     {
         if ($binding!==null) {
             $keys=array_keys($binding); sort($keys);
@@ -39,6 +43,8 @@ final class PeraCRM_Campaign_Readiness
             $binding=$ordered;
         }
         $this->binding=$binding; $this->budget=$budget; $this->clock=$clock??static fn()=>time();
+        $this->deployment=$deployment; $this->deploymentRejected=$deploymentRejected;
+        if ($deployment && $deployment->binding()!==$binding) { throw new RuntimeException('readiness_scope'); }
     }
     private function authorize(bool $write=false): int
     {
@@ -73,8 +79,9 @@ final class PeraCRM_Campaign_Readiness
         $document=$configuration['document'];
         $approved=!empty($document['footer_approved']) && !empty($document['footer'])
             && (bool)array_filter($document['senders']??[],static fn($s)=>($s['approved']??false)===true);
-        return [hash('sha256',json_encode([$this->binding,$configuration,
-            defined('PERACRM_SES_EVENT_OPERATIONS')?PERACRM_SES_EVENT_OPERATIONS:null],JSON_THROW_ON_ERROR)),$approved];
+        $parts=[$this->binding,$configuration,defined('PERACRM_SES_EVENT_OPERATIONS')?PERACRM_SES_EVENT_OPERATIONS:null];
+        if ($this->deployment) { $parts[]=$this->deployment->fingerprint(); }
+        return [hash('sha256',json_encode($parts,JSON_THROW_ON_ERROR)),$approved];
     }
     private function evidenceKey(string $fingerprint): string { return 'peracrm_readiness_v1_'.$fingerprint; }
     /**
@@ -171,14 +178,16 @@ final class PeraCRM_Campaign_Readiness
             'configuration_fingerprint'=>null,'checks'=>[],'blockers'=>['dispatch_disabled']];
         $check=static function (string $name,string $state,string $source) use (&$out) {
             $out['checks'][$name]=['state'=>$state,'source'=>$source];
-            if ($state!=='validated' && $state!=='recorded') { $out['blockers'][]=$name.':'.$state; }
+            if (!in_array($state,['validated','recorded','configured'],true)) { $out['blockers'][]=$name.':'.$state; }
         };
         $check('schema',peracrm_campaigns_schema_ready()?'validated':'unavailable','repository_runtime');
         $out['supported']=['envelopes'=>[1,2],'prepared_envelope'=>2,'renderer'=>'peracrm_email_v2','slot_version'=>1];
         $check('envelope_renderer','validated','repository_contract');
-        // No production credential/key/preparation factory exists. Do not discover secrets.
-        foreach (['provider_identity','token_signing_keys','output_encryption_keys'] as $name) {
-            $check($name,'unavailable','repository_runtime');
+        if ($this->deployment) {
+            foreach ($this->deployment->checks() as $name=>$state) { $check($name,$state,'deployment_configuration'); }
+        } else {
+            if ($this->deploymentRejected) { $check('deployment_scope','unavailable','deployment_configuration'); }
+            foreach (['provider_identity','token_signing_keys','output_encryption_keys'] as $name) { $check($name,'unavailable','repository_runtime'); }
         }
         $fingerprint=null;
         if ($this->binding) {
@@ -197,13 +206,14 @@ final class PeraCRM_Campaign_Readiness
                 $check('suppression_sync',in_array($code,['sync_scope','sync_storage','sync_stale_cursor'],true)?$code:'sync_storage','local_observation');
             }
             try {
-                if (!$this->budget) { throw new RuntimeException(); }
-                foreach ($pins as $key=>$value) { if (($this->budget->scope()[$key]??null)!==$value) { throw new PeraCRM_Sending_Budget_Error('budget_scope'); } }
-                $health=$this->budget->health();
+                $budget=$this->budget??($this->deployment?$this->deployment->diagnosticBudget():null);
+                if (!$budget) { throw new RuntimeException(); }
+                foreach ($pins as $key=>$value) { if (($budget->scope()[$key]??null)!==$value) { throw new PeraCRM_Sending_Budget_Error('budget_scope'); } }
+                $health=$budget->health();
                 $out['budget']=['submission_pending'=>(bool)$health['submission_pending'],
                     'quota_fresh'=>(bool)$health['quota_fresh'],'cooldown_active'=>(bool)$health['cooldown_active'],
                     'breaker'=>$health['breaker']];
-                $this->budget->requireDiagnosticCapacity();
+                $budget->requireDiagnosticCapacity();
                 $check('budget_breaker_latch','validated','local_observation');
             } catch (Throwable $e) {
                 $code=$e instanceof PeraCRM_Sending_Budget_Error?$e->getMessage():'budget_unavailable';
@@ -258,9 +268,17 @@ final class PeraCRM_Campaign_Readiness
     public function __serialize(): array { throw new LogicException('readiness_projection_disabled'); }
 }
 
-/** Existing deployment pins are diagnostic inputs only; no new activation config. */
+/** Explicit deployment adapters, with unchanged legacy diagnostic-pin fallback.
+ * A malformed explicit manifest never falls back; neither path enables dispatch.
+ */
 function peracrm_campaign_readiness_service(): PeraCRM_Campaign_Readiness
 {
+    if (defined('PERACRM_CAMPAIGN_DEPLOYMENT')) {
+        try {
+            $deployment=peracrm_campaign_deployment_service();
+            return new PeraCRM_Campaign_Readiness($deployment->binding(),null,null,$deployment);
+        } catch (Throwable $e) { return new PeraCRM_Campaign_Readiness(null,null,null,null,true); }
+    }
     $binding=null;
     if (defined('PERACRM_SES_EVENT_OPERATIONS') && is_array(PERACRM_SES_EVENT_OPERATIONS)) {
         $c=PERACRM_SES_EVENT_OPERATIONS;
