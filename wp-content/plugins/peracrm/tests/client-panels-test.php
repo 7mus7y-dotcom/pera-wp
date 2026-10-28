@@ -120,7 +120,13 @@ panel_expect($GLOBALS['blog']===1,'target blog context restored');
 $client_id=125; $profile=['client_type'=>'seller']; $party=['lead_pipeline_stage'=>'offer_made']; $hidden_panels=['enquiries'];
 ob_start(); require dirname(__DIR__) . '/inc/views/partials/manage-panels.php'; $html=ob_get_clean();
 $dom=new DOMDocument(); @$dom->loadHTML($html); $xpath=new DOMXPath($dom);
-panel_expect($xpath->query('//details[@data-crm-manage-panels and not(@open)]')->length===1,'native disclosure collapsed by default');
+panel_expect($xpath->query('//section[@data-crm-manage-panels and @aria-labelledby="crm-manage-panels-title"]')->length===1,'permanently expanded named section');
+panel_expect($xpath->query('//details | //summary')->length===0,'no disclosure control');
+panel_expect($xpath->query('//h2[@id="crm-manage-panels-title" and @tabindex="-1"]')->length===1,'heading accepts dismissal focus');
+foreach ($xpath->query('//input[@data-crm-panel-toggle]') as $input) {
+    panel_expect($xpath->query('//label[@for="' . $input->getAttribute('id') . '"]')->length===1,'checkbox has a visible label');
+    panel_expect($xpath->query('//span[@id="' . $input->getAttribute('aria-describedby') . '" and @data-crm-panel-state]')->length===1,'checkbox describes visibility state');
+}
 panel_expect($xpath->query('//input[@type="checkbox" and @data-crm-panel-toggle]')->length===4,'only eligible optional panels have toggles');
 panel_expect($xpath->query('//input[@data-crm-panel-toggle="enquiries" and not(@checked)]')->length===1,'hidden checkbox reflects server state');
 panel_expect($xpath->query('//input[@data-crm-panel-toggle="profile" or @data-crm-panel-toggle="landlord_properties"]')->length===0,'no protected or ineligible toggles');

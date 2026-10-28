@@ -17,7 +17,9 @@ module.exports = async function ({browser}) {
  const settle=async()=>{await page.waitForFunction(()=>document.querySelector('[data-crm-manage-panels]').getAttribute('aria-busy')==='false');};
  await page.goto(clientURL);
  await page.locator('[data-crm-manage-panels]').waitFor();
- if(await page.locator('[data-crm-manage-panels]').evaluate(el=>el.open)) throw Error('Manage panels starts expanded');
+ const manager=page.locator('[data-crm-manage-panels]');
+ if(await manager.locator('summary').count() || await manager.evaluate(el=>el.tagName!=='SECTION')) throw Error('Manage panels must be a permanent section');
+ if(!await toggle('deals').isVisible()) throw Error('Visibility controls require expansion');
  for(const key of ['crm-client-summary','profile','status','reminders','notes','timeline']) {
   if(await page.locator('[data-crm-panel="'+key+'"]').getAttribute('hidden')!==null) throw Error('Protected panel hidden '+key);
   if(await page.locator('[data-crm-panel="'+key+'"] > header [data-crm-panel-hide]').count()) throw Error('Protected close button '+key);
@@ -25,10 +27,9 @@ module.exports = async function ({browser}) {
  const close=page.getByRole('button',{name:'Hide Deals panel',exact:true});
  await close.focus(); await page.keyboard.press('Enter'); await settle();
  if(await panel('deals').isVisible()) throw Error('Keyboard dismissal failed');
+ if(!await manager.locator('.crm-section__title').evaluate(el=>el===document.activeElement)) throw Error('Dismissal focus must reach Manage panels heading');
  await page.reload(); await settle();
  if(await panel('deals').isVisible()) throw Error('Hidden preference did not survive reload');
- const summary=page.locator('[data-crm-manage-panels] > summary');
- await summary.focus(); await page.keyboard.press('Enter');
  await toggle('deals').focus(); await page.keyboard.press('Space'); await settle();
  if(!await panel('deals').isVisible()) throw Error('Keyboard restore failed');
  await page.route('**/admin-ajax.php',async route=>{
@@ -70,6 +71,14 @@ module.exports = async function ({browser}) {
    const heading=await header.locator(':scope > :first-child').boundingBox();
    const button=await header.locator('[data-crm-panel-hide]').boundingBox();
    if(!heading||!button||heading.x+heading.width>button.x+1) throw Error('Dismiss overlaps heading '+key+' '+name);
+  }
+  if(!await toggle('deals').isVisible() || !await page.getByRole('button',{name:'Restore all panels',exact:true}).isVisible()) throw Error('Manage controls hidden '+name);
+  for(const key of ['deals','seller_properties','enquiries','theme_portfolio']) {
+   const row=toggle(key).locator('..');
+   const label=await row.locator('label').boundingBox();
+   const checkbox=await toggle(key).boundingBox();
+   if(!label||!checkbox||label.x+label.width>checkbox.x+1) throw Error('Manage row overlaps '+key+' '+name);
+   if(!await toggle(key).getAttribute('aria-describedby')) throw Error('Missing state description '+key);
   }
   await page.screenshot({path:'/evidence/client-panels-'+name+'.png',fullPage:true});
  }

@@ -20,7 +20,7 @@ function fixture(options = {}) {
     }
     matches(selector) { return selector.split(',').some(s => { const match = s.trim().match(/^\[([^=\]]+)(?:="([^"]*)")?\]$/); return match && Object.hasOwn(this.attrs, match[1]) && (match[2] === undefined || match[2] === this.attrs[match[1]]); }); }
     querySelectorAll(selector) { return this.children.flatMap(child => [...(child.matches(selector) ? [child] : []), ...child.querySelectorAll(selector)]); }
-    querySelector(selector) { if (selector === 'summary') { return this.summary; } return this.querySelectorAll(selector)[0] || null; }
+    querySelector(selector) { if (selector === '.crm-section__title') { return this.heading; } return this.querySelectorAll(selector)[0] || null; }
     closest(selector) { return this.matches(selector) ? this : this.parentElement ? this.parentElement.closest(selector) : null; }
     append(child) { this.children.push(child); child.parentElement = this; return child; }
     setAttribute(key, value) { this.attrs[key] = value; }
@@ -41,7 +41,7 @@ function fixture(options = {}) {
   const seller = instructionsSlot.append(panel('seller_properties'));
   const enquiries = root.append(panel('enquiries'));
   const manager = root.append(new Element({ 'data-crm-manage-panels': '', 'data-client-id': '125', 'data-nonce': 'client-bound-nonce' }));
-  manager.summary = new Element(); manager.summary.tagName = 'SUMMARY';
+  manager.heading = new Element(); manager.heading.tagName = 'H2';
   function toggle(key, checked = true) { const t = manager.append(new Element({ 'data-crm-panel-toggle': key })); t.checked = checked; return t; }
   const toggles = { deals: toggle('deals', !options.hidden), seller_properties: toggle('seller_properties'), enquiries: toggle('enquiries') };
   for (const key of Object.keys(toggles)) { manager.append(new Element({ 'data-crm-panel-state': key })); }
@@ -71,7 +71,6 @@ function fixture(options = {}) {
 
 (async () => {
   const f = fixture();
-  assert.equal(f.manager.open, false, 'disclosure remains collapsed');
   assert.equal(f.deals.children[0].hidden, false, 'working enhancement enables dismiss buttons');
   assert.equal(f.toggles.deals.disabled, false);
   let resolve;
@@ -80,7 +79,7 @@ function fixture(options = {}) {
   assert(click.prevented && click.stopped, 'dismiss does not trigger panel actions');
   assert(f.deals.hidden, 'dismiss immediately hides entire panel');
   assert.equal(f.deals.formValue, 'unsaved form data', 'form values retained');
-  assert.equal(f.focused(), f.manager.summary, 'keyboard focus leaves hidden panel');
+  assert.equal(f.focused(), f.manager.heading, 'keyboard focus leaves hidden panel');
   assert.equal(f.toggles.deals.checked, false);
   assert(f.restore.disabled && f.toggles.enquiries.disabled, 'pending controls disabled');
   f.emit('click', f.deals.children[0]);
@@ -92,7 +91,7 @@ function fixture(options = {}) {
   f.toggles.deals.checked = true; f.emit('change', f.toggles.deals); await f.flush();
   assert(f.deals.hidden && !f.toggles.deals.checked, 'failed restore rolls back prior hidden state');
   assert.equal(f.feedback.textContent, 'Network failed');
-  assert.equal(f.focused(), f.feedback, 'error accessible outside collapsed disclosure');
+  assert.equal(f.focused(), f.feedback, 'error feedback receives focus');
   f.setHandler(() => Promise.resolve(f.success([])));
   f.toggles.deals.checked = true; f.emit('change', f.toggles.deals); await f.flush();
   assert(!f.deals.hidden && !f.empty.hidden, 'individual restore updates state and empty message');

@@ -8412,26 +8412,17 @@ body.crm-route #site-header.peracrm-shell-header .peracrm-header-search__status 
 .crm-page--client-view .crm-manage-panels {
   margin-top: var(--space-md);
 }
-.crm-page--client-view .crm-manage-panels > summary {
-  cursor: pointer;
-  justify-content: flex-start;
-}
-.crm-page--client-view .crm-manage-panels > summary::before {
-  content: '+';
-  color: var(--text-soft);
-}
-.crm-page--client-view .crm-manage-panels[open] > summary::before {
-  content: '−';
-}
-.crm-page--client-view .crm-manage-panels label {
-  display: flex;
+.crm-page--client-view .crm-manage-panels .crm-row-list__item {
+  grid-template-columns: minmax(0, 1fr) auto;
   align-items: center;
-  flex-wrap: wrap;
-  gap: var(--space-xs);
+}
+.crm-page--client-view .crm-manage-panels .crm-row-list__content {
+  overflow-wrap: anywhere;
 }
 .crm-page--client-view .crm-manage-panels input[type='checkbox'] {
   width: auto;
   flex-shrink: 0;
+  margin: 0;
 }
 .crm-page--client-view [data-crm-panel-state] {
   color: var(--text-soft);
