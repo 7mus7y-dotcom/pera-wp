@@ -12,10 +12,11 @@ function wp_nonce_field($action, $name='_wpnonce') { echo '<input type="hidden" 
 function get_userdata($id) { return (object) ['ID'=>$id,'display_name'=>'Advisor ' . $id]; }
 function peracrm_get_staff_users() { return [get_userdata(7)]; }
 function get_permalink($id) { return 'https://example.com/property/' . $id; }
-function render_instructions($type) {
+require dirname(__DIR__) . '/inc/client-panels.php';
+function render_instructions($type, $hidden_panels = []) {
     $instruction_post_url=home_url('/wp-admin/admin-post.php');
     $instruction_client_url=home_url('/crm/client/101/');
-    return peracrm_with_target_blog(static function () use ($type, $instruction_post_url, $instruction_client_url) {
+    return peracrm_with_target_blog(static function () use ($type, $instruction_post_url, $instruction_client_url, $hidden_panels) {
         $client_id=101; $client_type_value=$type;
         ob_start(); require dirname(__DIR__) . '/inc/views/partials/property-instructions.php'; return ob_get_clean();
     });
@@ -33,9 +34,14 @@ expect(str_contains($seller,'View linked website property'),'existing public lis
 expect(str_contains($seller,'peracrm_add_reminder') && str_contains($seller,'instruction #1'),'client reminder prepopulated with property reference');
 expect(str_contains($seller,'name="peracrm_client_id" value="101"'),'reminder uses current client');
 expect(!str_contains($seller, '/target-blog/'), 'forms and reminder redirects retain originating blog URLs');
-$landlord=render_instructions('landlord');
+$hidden_sale = render_instructions('seller', ['seller_properties']);
+expect(str_contains($hidden_sale, 'data-crm-optional-panel="seller_properties" hidden'), 'sale hidden at server render');
+expect(str_contains($hidden_sale, '+ Add property') && str_contains($hidden_sale, 'name="instruction_id"'), 'dismissal retains instruction forms inside hidden panel');
+$landlord=render_instructions('landlord', ['seller_properties']);
+expect(str_contains($landlord, 'data-crm-optional-panel="landlord_properties"') && !str_contains($landlord, 'data-crm-optional-panel="landlord_properties" hidden'), 'sale preference does not hide rent panel');
 expect(str_contains($landlord,'Properties for rent') && str_contains($landlord,'Tenant name / contact reference'),'landlord panel and operational fields');
-$history=render_instructions('investor');
+$history=render_instructions('investor', ['seller_properties', 'landlord_properties']);
+expect(!str_contains($history, 'data-crm-optional-panel') && !str_contains($history, 'data-crm-panel-hide'), 'historical recovery is never dismissible');
 expect(str_contains($history,'Property instruction history') && str_contains($history,'Historical / other instruction type'),'history accessible for changed client type');
 expect(!str_contains($history,'+ Add property'),'history does not change unrelated client-type behavior');
 $edit=edit_row(1); $edit['sahibinden_url']=''; $edit['pera_url']=''; expect(save_instruction($edit)===1,'clear render URLs');

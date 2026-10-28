@@ -11,6 +11,8 @@ $client_id = function_exists( 'pera_crm_client_view_get_client_id' ) ? pera_crm_
 $access    = function_exists( 'pera_crm_client_view_access_state' ) ? pera_crm_client_view_access_state( $client_id ) : array( 'allowed' => false, 'message' => __( 'Access denied.', 'peracrm' ) );
 $data      = ! empty( $access['allowed'] ) && function_exists( 'pera_crm_client_view_load_data' ) ? pera_crm_client_view_load_data( $client_id ) : array();
 
+$hidden_panels = !empty($access['allowed']) ? peracrm_client_panels_hidden($client_id) : [];
+
 $client = $data['client'] ?? null;
 if ( ! ( $client instanceof WP_Post ) ) {
 	$access = array(
@@ -430,7 +432,7 @@ peracrm_frontend_render_shell_header();
           </div>
         </div>
 
-        <section class="crm-summary-header crm-client-summary">
+        <section id="crm-client-summary" class="crm-summary-header crm-client-summary" data-crm-panel="crm-client-summary">
           <div class="crm-summary-header__main">
             <div class="crm-summary-header__identity">
               <p class="crm-summary-header__eyebrow"><?php esc_html_e( 'Client summary', 'peracrm' ); ?></p>
@@ -594,7 +596,7 @@ peracrm_frontend_render_shell_header();
             </article>
 
             <div class="crm-client-profile-sidecards">
-              <section class="crm-section crm-section--flush crm-client-status-panel">
+              <section class="crm-section crm-section--flush crm-client-status-panel" data-crm-panel="status">
                 <header class="crm-section__header">
                   <div class="crm-section__heading-group">
                     <h3 class="crm-section__title"><?php esc_html_e( 'CRM status', 'peracrm' ); ?></h3>
@@ -637,13 +639,15 @@ peracrm_frontend_render_shell_header();
 
 
           <div class="crm-client-detail-layout__column crm-client-detail-layout__column--secondary">
+            <div data-crm-panel-slot="instructions">
             <?php
             $instruction_post_url = home_url('/wp-admin/admin-post.php');
             $instruction_client_url = $frontend_url;
-            peracrm_with_target_blog(static function () use ($client_id, $client_type_value, $instruction_post_url, $instruction_client_url) {
+            peracrm_with_target_blog(static function () use ($client_id, $client_type_value, $instruction_post_url, $instruction_client_url, $hidden_panels) {
                 require PERACRM_INC . '/views/partials/property-instructions.php';
             });
             ?>
+            </div>
             <article id="crm-client-next-actions" class="crm-section crm-section--flush crm-client-reminders" data-crm-panel="reminders">
               <header class="crm-section__header">
                 <div class="crm-section__heading-group">
@@ -763,12 +767,13 @@ peracrm_frontend_render_shell_header();
               </div>
             </article>
 
-            <article class="crm-section crm-section--flush crm-client-related crm-client-related--enquiries" data-client-id="<?php echo esc_attr( (string) $client_id ); ?>">
+            <article class="crm-section crm-section--flush crm-client-related crm-client-related--enquiries" data-client-id="<?php echo esc_attr( (string) $client_id ); ?>"<?php peracrm_client_panel_attributes('enquiries', $hidden_panels); ?>>
               <header class="crm-section__header">
                 <div class="crm-section__heading-group">
                   <h3 class="crm-section__title"><?php esc_html_e( 'Client enquiries', 'peracrm' ); ?></h3>
                   <p class="crm-section__description"><?php esc_html_e( 'Review enquiry-linked properties from favourites and enquiry activity.', 'peracrm' ); ?></p>
                 </div>
+              <?php peracrm_client_panel_dismiss('enquiries'); ?>
               </header>
               <section class="crm-client-subsection crm-client-subsection--enquiries">
                   <?php foreach ( $property_groups as $relation => $items ) : if ( ! in_array( (string) $relation, $enquiry_relations, true ) ) { continue; } ?>
@@ -929,12 +934,13 @@ peracrm_frontend_render_shell_header();
             </article>
 */ ?>
 
-            <article class="crm-section crm-section--flush crm-client-related crm-client-related--theme-portfolio" data-client-id="<?php echo esc_attr( (string) $client_id ); ?>" data-crm-theme-portfolio>
+            <article class="crm-section crm-section--flush crm-client-related crm-client-related--theme-portfolio" data-client-id="<?php echo esc_attr( (string) $client_id ); ?>" data-crm-theme-portfolio<?php peracrm_client_panel_attributes('theme_portfolio', $hidden_panels); ?>>
               <header class="crm-section__header">
                 <div class="crm-section__heading-group">
                   <h3 class="crm-section__title"><?php esc_html_e( 'Theme portfolio', 'peracrm' ); ?></h3>
                   <p class="crm-section__description"><?php esc_html_e( 'Manage a second standalone portfolio fed from theme property offers.', 'peracrm' ); ?></p>
                 </div>
+              <?php peracrm_client_panel_dismiss('theme_portfolio'); ?>
               </header>
               <section class="crm-client-subsection crm-linked-workspace" data-client-id="<?php echo esc_attr( (string) $client_id ); ?>">
                 <div class="crm-linked-workspace__add">
@@ -1070,7 +1076,7 @@ peracrm_frontend_render_shell_header();
               </section>
             </article>
 
-            <section class="crm-section crm-section--flush crm-client-timeline">
+            <section class="crm-section crm-section--flush crm-client-timeline" data-crm-panel="timeline">
               <header class="crm-section__header">
                 <div class="crm-section__heading-group">
                   <h3 class="crm-section__title"><?php esc_html_e( 'Activity and timeline', 'peracrm' ); ?></h3>
@@ -1106,12 +1112,15 @@ peracrm_frontend_render_shell_header();
               </div>
             </section>
 
-            <article class="crm-section crm-section--flush crm-client-deals" data-crm-panel="deals">
+        <div data-crm-panel-slot="deals">
+        <?php if (isset(peracrm_client_panels_eligible($profile, $party)['deals'])) : ?>
+            <article class="crm-section crm-section--flush crm-client-deals" data-crm-panel="deals"<?php peracrm_client_panel_attributes('deals', $hidden_panels); ?>>
               <header class="crm-section__header">
                 <div class="crm-section__heading-group">
                   <h3 class="crm-section__title"><?php esc_html_e( 'Deals', 'peracrm' ); ?></h3>
                   <p class="crm-section__description"><?php echo esc_html( 'update' === $deal_form_mode ? __( 'Update the selected deal without losing the surrounding client context.', 'peracrm' ) : __( 'Create and stage a deal from the existing client workflow.', 'peracrm' ) ); ?></p>
                 </div>
+              <?php peracrm_client_panel_dismiss('deals'); ?>
               </header>
               <div class="crm-section__body">
                 <section class="crm-client-subsection crm-client-subsection--deal-workspace">
@@ -1128,6 +1137,8 @@ peracrm_frontend_render_shell_header();
                 </section>
               </div>
             </article>
+        <?php endif; ?>
+        </div>
 
         <?php if ( $can_delete_client || $can_set_dormant ) : ?>
         <article class="crm-section crm-section--flush crm-danger-zone">
@@ -1150,6 +1161,7 @@ peracrm_frontend_render_shell_header();
         </div><!-- /.crm-client-detail-layout -->
 
         <?php if ( function_exists( 'peracrm_whatsapp_render_client_conversation' ) ) { peracrm_whatsapp_render_client_conversation( $client_id ); } ?>
+        <?php require PERACRM_INC . '/views/partials/manage-panels.php'; ?>
 	  <?php endif; ?>
       </div>
       <?php if ( function_exists( 'peracrm_frontend_render_partial' ) ) { peracrm_frontend_render_partial( 'crm-side-nav', array( 'active_view' => 'clients' ) ); } ?>

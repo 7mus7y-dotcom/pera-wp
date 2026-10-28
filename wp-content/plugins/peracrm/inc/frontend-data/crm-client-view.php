@@ -1744,6 +1744,7 @@ if ( ! function_exists( 'pera_crm_client_action_ajax_json' ) ) {
 				array(
 					'ok' => true,
 					'message' => $message,
+					'workspace_panels' => in_array($panel, ['status', 'profile'], true) ? peracrm_client_panels_fragments($markup) : [],
 					'panel' => $panel,
 					'panel_html' => $panel_html,
 					'render_failed' => $render_failed,
