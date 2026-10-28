@@ -628,7 +628,6 @@
   align-items: stretch;
   gap: 10px;
   flex-wrap: nowrap;
-  flex-direction: row;
 }
 
 .crm-phone-row .crm-phone-country {
@@ -8391,6 +8390,8 @@ body.crm-route #site-header.peracrm-shell-header .peracrm-header-search__status 
 }
 .crm-page--client-view [data-crm-optional-panel] > .crm-section__header {
   flex-wrap: nowrap;
+  flex-direction: row;
+  align-items: flex-start;
 }
 .crm-page--client-view [data-crm-optional-panel] > .crm-section__header > :first-child {
   min-width: 0;
