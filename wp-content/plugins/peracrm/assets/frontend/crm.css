@@ -8431,3 +8431,62 @@ body.crm-route #site-header.peracrm-shell-header .peracrm-header-search__status 
 .crm-page--client-view .crm-panel-feedback:empty {
   display: none;
 }
+
+
+/* Client workspace: align header search and quick actions with the CRM dark surface. */
+@media (prefers-color-scheme: dark) {
+  body.crm-route:has(.crm-page--client-view) #site-header.peracrm-shell-header .peracrm-header-search__input {
+    background: var(--crm-surface, #151e30);
+    border-color: var(--crm-border, rgba(255, 255, 255, 0.24));
+    color: var(--crm-text, #f8fafc);
+    caret-color: currentColor;
+  }
+  body.crm-route:has(.crm-page--client-view) #site-header.peracrm-shell-header .peracrm-header-search__input::placeholder {
+    color: var(--crm-text-muted, #aab7cc);
+    opacity: 1;
+  }
+  body.crm-route:has(.crm-page--client-view) #site-header.peracrm-shell-header .peracrm-header-search__results {
+    background: var(--crm-surface, #151e30);
+    border-color: var(--crm-border, rgba(255, 255, 255, 0.24));
+  }
+  body.crm-route:has(.crm-page--client-view) #site-header.peracrm-shell-header .peracrm-header-search__result,
+  body.crm-route:has(.crm-page--client-view) #site-header.peracrm-shell-header .peracrm-header-search__status {
+    color: var(--crm-text, #f8fafc);
+  }
+  body.crm-route:has(.crm-page--client-view) #site-header.peracrm-shell-header .peracrm-header-search__result-meta {
+    color: var(--crm-text-muted, #aab7cc);
+  }
+  body.crm-route:has(.crm-page--client-view) #site-header.peracrm-shell-header .peracrm-header-search__result:hover,
+  body.crm-route:has(.crm-page--client-view) #site-header.peracrm-shell-header .peracrm-header-search__result:focus-visible,
+  body.crm-route:has(.crm-page--client-view) #site-header.peracrm-shell-header .peracrm-header-search__result.is-active {
+    background: var(--crm-surface-subtle, #233149);
+  }
+  .crm-page--client-view .crm-summary-header__actions-panel {
+    background: var(--crm-surface-subtle, #1b2639);
+    border-color: var(--crm-border, rgba(255, 255, 255, 0.18));
+  }
+}
+
+/* Keep the existing mobile search form and autocomplete; dock only after its origin. */
+@media (max-width: 767px) {
+  body.crm-route:has(.crm-page--client-view) #site-header.peracrm-shell-header .peracrm-header-search.is-crm-search-docked {
+    position: fixed;
+    left: max(12px, env(safe-area-inset-left));
+    right: max(12px, env(safe-area-inset-right));
+    bottom: calc(12px + env(safe-area-inset-bottom));
+    width: auto;
+    min-width: 0;
+    max-width: none;
+    margin: 0;
+    z-index: 1100;
+    filter: drop-shadow(0 4px 14px rgba(0, 0, 0, 0.25));
+  }
+  body.crm-route:has(.crm-page--client-view) #site-header.peracrm-shell-header .peracrm-header-search.is-crm-search-docked .peracrm-header-search__results {
+    top: auto;
+    bottom: calc(100% + 8px);
+    max-height: min(50dvh, 360px);
+  }
+  body.crm-route:has(.crm-page--client-view) #site-header.peracrm-shell-header .peracrm-header-search.is-crm-search-docked .peracrm-header-search__list {
+    max-height: min(45dvh, 320px);
+  }
+}
