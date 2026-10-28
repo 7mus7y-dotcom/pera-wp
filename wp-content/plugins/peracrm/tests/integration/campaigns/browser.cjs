@@ -163,6 +163,7 @@ const fs = require('fs');
  await require('./queue-browser.cjs')({page,target,context,employeeContext,browser});
  await require('./withdrawal-browser.cjs')({browser});
  await require('./recipient-preferences-browser.cjs')({browser});
+ await require('./client-panels-browser.cjs')({browser});
  if(failures.length) throw Error(failures.join('\n'));
  // Emit small synthetic-only review images so an API-only reviewer can inspect them.
  for(const name of ['freeze-review-desktop','freeze-review-mobile','campaign-audience-desktop','campaign-audience-mobile','campaign-content-desktop','campaign-content-mobile','campaign-preview-desktop','campaign-preview-mobile','campaign-missing-desktop','campaign-missing-mobile','subscribers-desktop','subscribers-mobile','detail-mobile','import-mobile','suppression-mobile','preferences-mobile','campaign-list-desktop','campaign-list-mobile','campaign-editor-desktop','campaign-editor-mobile','campaign-configuration-desktop','campaign-configuration-mobile','campaign-conflict-mobile','campaign-approved-mobile']) {
