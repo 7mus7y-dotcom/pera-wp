@@ -41,7 +41,10 @@ get_header();
                 $archive_subtitle = $posts_excerpt;
             }
 
-            $posts_content = (string) get_post_field( 'post_content', $posts_page_id );
+            $posts_content = (string) get_post_field( 'post_content', $posts_page_id, 'raw' );
+            if ( function_exists( 'pera_ml_field' ) ) {
+                $posts_content = pera_ml_field( $posts_page_id, 'post_content', $posts_content );
+            }
             if ( trim( wp_strip_all_tags( $posts_content ) ) !== '' ) {
                 $archive_description = $posts_content;
             }
