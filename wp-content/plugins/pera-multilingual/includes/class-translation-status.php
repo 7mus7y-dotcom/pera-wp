@@ -56,7 +56,7 @@ final class Pera_ML_Translation_Status {
 		foreach ( array( 'page', 'post', 'property', 'team' ) as $type ) {
 			foreach ( ( new Pera_ML_Fields( null, null, null ) )->approved( $type ) as $field ) $definitions[ $type ][ 'meta:' . $field ] = true;
 		}
-		if ( 'page' === $post_type && ( Pera_ML_Fields::is_archive_settings_object( $object_id ) || (int) $object_id === (int) get_option( 'page_for_posts' ) ) ) {
+		if ( 'page' === $post_type && ( Pera_ML_Fields::is_archive_settings_object( $object_id ) || (int) $object_id === ( function_exists( 'get_option' ) ? (int) get_option( 'page_for_posts' ) : 0 ) ) ) {
 			foreach ( array_merge( Pera_ML_Fields::archive_settings_fields(), array( 'featured_links_heading', 'featured_links_intro' ) ) as $field ) $definitions['page'][ 'meta:' . $field ] = true;
 		}
 		$definitions = apply_filters( 'pera_ml_status_field_definitions', $definitions, $post_type );
