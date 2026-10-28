@@ -111,6 +111,15 @@ function fixture(options = {}) {
   f.emit('click', f.restore); await f.flush();
   assert(!f.deals.hidden && !f.seller.hidden && !f.enquiries.hidden, 'restore all shows optional panels');
   assert.equal(f.requests.at(-1).body.values.operation, 'restore_all');
+  // New controls returned by an existing failed form save must remain usable.
+  f.deals.children[0].hidden = true;
+  f.emit('peracrm:workspace-panels', null, { detail: {} });
+  assert.equal(f.deals.children[0].hidden, false, 'dismiss control re-enabled after existing AJAX form replacement');
+  // A status response rendered before Restore all must not resurrect an old preference.
+  const stale = fixture({ hidden: true });
+  f.parsed.set('stale-manager', { querySelector: () => stale.manager });
+  f.emit('peracrm:workspace-panels', null, { detail: { manage: 'stale-manager' } });
+  assert(!f.deals.hidden, 'stale conditional fragments do not undo a successful visibility change');
   // Saved hidden state is retained on initial page enhancement.
   const reload = fixture({ hidden: true });
   assert(reload.deals.hidden && !reload.toggles.deals.checked, 'page-load preferences do not flash or reset');

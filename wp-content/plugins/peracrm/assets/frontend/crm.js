@@ -2442,8 +2442,8 @@
             }
           }
 
-          if (success && data.workspace_panels) {
-            document.dispatchEvent(new CustomEvent('peracrm:workspace-panels', { detail: data.workspace_panels }));
+          if (data.workspace_panels || data.panel_html) {
+            document.dispatchEvent(new CustomEvent('peracrm:workspace-panels', { detail: data.workspace_panels || {} }));
           }
           activeForm = resolveLiveForm(activePanel, type, form);
           setFeedback(activeForm, message, success);
@@ -2770,6 +2770,7 @@ document.addEventListener('DOMContentLoaded', function () {
   var busy = false;
   var pendingFragments = null;
   var hidden = [];
+  var completePreferences = false;
   document.querySelectorAll('[data-crm-optional-panel]').forEach(function (panel) {
     if (panel.hidden) { hidden.push(panel.dataset.crmOptionalPanel); }
   });
@@ -2828,6 +2829,7 @@ document.addEventListener('DOMContentLoaded', function () {
         if (!json.success || !json.data || !Array.isArray(json.data.hidden)) {
           throw new Error(json.data && json.data.message ? json.data.message : feedback.dataset.error);
         }
+        completePreferences = true;
         applyState(json.data.hidden);
         feedback.textContent = feedback.dataset.saved;
         return true;
@@ -2870,7 +2872,7 @@ document.addEventListener('DOMContentLoaded', function () {
         manager = incoming;
         // Include hidden preferences for newly eligible panels from the server.
         manager.querySelectorAll('[data-crm-panel-toggle]').forEach(function (toggle) {
-          if (!toggle.checked && hidden.indexOf(toggle.dataset.crmPanelToggle) === -1) { hidden.push(toggle.dataset.crmPanelToggle); }
+          if (!completePreferences && !toggle.checked && hidden.indexOf(toggle.dataset.crmPanelToggle) === -1) { hidden.push(toggle.dataset.crmPanelToggle); }
         });
       }
     }
