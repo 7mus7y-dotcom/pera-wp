@@ -67,9 +67,8 @@ peracrm_with_target_blog(static function () {
     sns_expect($service->status($confirmation)[0]['state']==='confirming','SQL remote ambiguity durable');
     $failure='scope'; sns_reject(fn()=>$service->confirm($confirmation,$v['now']),'sns_conflict');
     $failure='';
-    $writes=0;
-    $finalFault=static function ($sql) use (&$writes) {
-        if (str_starts_with($sql,'UPDATE') && str_contains($sql,'peracrm_sns_provision_v1_') && ++$writes===2) { return 'INVALID_SNS_FINAL_SQL'; }
+    $finalFault=static function ($sql) {
+        if (str_starts_with($sql,'UPDATE') && str_contains($sql,'peracrm_sns_provision_v1_') && str_contains($sql,'confirmed_at')) { return 'INVALID_SNS_FINAL_SQL'; }
         return $sql;
     };
     add_filter('query',$finalFault);

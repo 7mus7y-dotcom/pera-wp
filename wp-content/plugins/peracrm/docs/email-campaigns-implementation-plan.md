@@ -2189,3 +2189,12 @@ for intake and confirmation. The journal token key now also binds request time,
 expiry, signed MessageId and digest; swapping ciphertext/metadata fails closed,
 with an actual SQL corruption regression. These corrections supersede the initial
 runtime and require a new complete hosted run.
+
+
+Initial automated review of `f644463` found MySQL zero-affected-row handling
+blocked same-actor recovery when confirming authority was already durable.
+Corrected by accepting an unchanged authoritative journal only under its existing
+connection-owned lock and session guard. The SQL network/scope/final-write failure
+sequence exercises repeated same-administrator recovery; final-write injection
+now targets the actual confirmed-state write, including on such replay. Earlier
+CI/review is superseded; final-head execution and rereview remain required.

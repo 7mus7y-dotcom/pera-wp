@@ -88,6 +88,10 @@ final class PeraCRM_SNS_Provisioning
     private function save(array $old,array $new): void
     {
         global $wpdb; $this->guard();
+        // A retry by the same actor may already have durably entered confirming.
+        // The locked authoritative read plus session guard verifies that state;
+        // do not mistake MySQL's zero changed rows for a failed persistence.
+        if ($old===$new) { return; }
         if (!$old) { $ok=add_option($this->option(),$new,'',false); }
         else { $ok=self::db($wpdb->query($wpdb->prepare("UPDATE {$wpdb->options} SET option_value=%s WHERE option_name=%s AND BINARY option_value=BINARY %s",
             maybe_serialize($new),$this->option(),maybe_serialize($old))))===1; }
