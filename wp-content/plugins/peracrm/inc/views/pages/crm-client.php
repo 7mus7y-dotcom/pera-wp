@@ -637,6 +637,11 @@ peracrm_frontend_render_shell_header();
 
 
           <div class="crm-client-detail-layout__column crm-client-detail-layout__column--secondary">
+            <?php
+            peracrm_with_target_blog(static function () use ($client_id, $client_type_value) {
+                require PERACRM_INC . '/views/partials/property-instructions.php';
+            });
+            ?>
             <article id="crm-client-next-actions" class="crm-section crm-section--flush crm-client-reminders" data-crm-panel="reminders">
               <header class="crm-section__header">
                 <div class="crm-section__heading-group">

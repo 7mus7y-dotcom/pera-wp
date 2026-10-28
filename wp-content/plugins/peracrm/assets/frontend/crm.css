@@ -8362,3 +8362,23 @@ body.crm-route #site-header.peracrm-shell-header .peracrm-header-search__status 
   .peracrm-readiness dl { grid-template-columns: minmax(0, 1fr); }
   .peracrm-readiness th, .peracrm-readiness td { padding: 8px 4px; font-size: 14px; }
 }
+
+/* Private instruction layout; controls and colors inherit the CRM design system. */
+.crm-page--client-view .crm-instruction-editor {
+  margin-block: 1rem;
+}
+.crm-page--client-view .crm-instruction-editor > summary {
+  cursor: pointer;
+}
+.crm-page--client-view .crm-instruction-editor[open] > summary {
+  margin-block-end: 1rem;
+}
+.crm-page--client-view .crm-instruction-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+.crm-page--client-view .crm-instruction-card {
+  margin-block-start: 1rem;
+  overflow-wrap: anywhere;
+}
