@@ -73,8 +73,12 @@ peracrm_with_target_blog(static function () {
         $wpdb->delete(peracrm_table($suffix), ['client_id' => $client]);
     }
     wp_set_current_user($admin->ID);
-    wp_delete_post($client, true);
-    wp_delete_post($other, true);
+    // Direct cleanup of our two disposable posts avoids unrelated deletion integrations.
+    foreach ([$client, $other] as $fixture_client) {
+        $wpdb->delete($wpdb->postmeta, ['post_id' => $fixture_client]);
+        $wpdb->delete($wpdb->posts, ['ID' => $fixture_client]);
+        clean_post_cache($fixture_client);
+    }
     if (is_multisite()) {
         remove_user_from_blog($employee, get_current_blog_id());
     } else {
