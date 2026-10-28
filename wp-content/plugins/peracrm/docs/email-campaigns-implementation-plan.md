@@ -2198,3 +2198,14 @@ connection-owned lock and session guard. The SQL network/scope/final-write failu
 sequence exercises repeated same-administrator recovery; final-write injection
 now targets the actual confirmed-state write, including on such replay. Earlier
 CI/review is superseded; final-head execution and rereview remain required.
+
+
+Final local review additionally checks target-blog configuration before exposing
+the runtime factory and rechecks the native lock/session on every successful
+return, including duplicate/status paths. Expanded regressions cover namespaced
+AWS attribute XML and invalid configuration; SQL includes manager/employee/
+impersonation/ambient-transaction denials. A real disposable CLI arm/status test
+also rejects anonymous callers and absent credentials without any AWS call. The
+isolated option-only control-plane suites run after management setup for faster
+failure feedback, before existing account/worker/event suites; they create no
+campaign sources/jobs/recipients and remove temporary HTTP configuration.

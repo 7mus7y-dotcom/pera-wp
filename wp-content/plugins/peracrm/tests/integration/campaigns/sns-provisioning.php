@@ -26,16 +26,27 @@ peracrm_with_target_blog(static function () {
         'SubscribeURL'=>'https://untrusted.example.test/do-not-fetch']);
     sns_reject(fn()=>$service->receive($body,$v['now']),'sns_conflict');
     wp_set_current_user(0); sns_reject(fn()=>$service->request($confirmation,$v['now']),'sns_authority');
-    wp_set_current_user($admin->ID); sns_reject(fn()=>$service->request('yes',$v['now']),'sns_authority');
+    foreach (['campaign_fixture_manager','campaign_fixture_employee'] as $role) {
+        wp_set_current_user((int)get_option($role)); sns_reject(fn()=>$service->request($confirmation,$v['now']),'sns_authority');
+    }
+    wp_set_current_user($admin->ID);
+    update_user_meta($admin->ID,PERACRM_VIEW_AS_USER_META_KEY,(int)get_option('campaign_fixture_employee'));
+    try { sns_reject(fn()=>$service->request($confirmation,$v['now']),'sns_authority'); }
+    finally { delete_user_meta($admin->ID,PERACRM_VIEW_AS_USER_META_KEY); }
+    sns_reject(fn()=>$service->request('yes',$v['now']),'sns_authority');
     sns_expect(!$calls && $service->request($confirmation,$v['now'])==='armed','SQL durable arm before AWS');
     sns_expect($service->request($confirmation,$v['now'])==='armed','SQL arm idempotent');
     $option='peracrm_sns_provision_v1_'.hash('sha256',$config['deployment']);
     $read=static fn()=>$wpdb->get_row($wpdb->prepare("SELECT * FROM {$wpdb->options} WHERE option_name=%s",$option),ARRAY_A);
     $before=$read();
+    $wpdb->query('START TRANSACTION');
+    try { sns_reject(fn()=>$service->status($confirmation),'sns_storage'); } finally { $wpdb->query('ROLLBACK'); }
+    sns_expect($read()===$before,'SQL ambient transaction rejected without mutation');
     $forged=json_decode($body,true); $forged['Token'].='x';
     sns_reject(fn()=>$service->receive(json_encode($forged),$v['now']),'sns_authentication');
-    foreach (['account','region','topic'] as $scope) {
-        $wrong=json_decode($body,true); $wrong['TopicArn']='arn:aws:sns:us-east-1:999999999999:other';
+    foreach (['arn:aws:sns:eu-west-1:999999999999:fixture','arn:aws:sns:us-east-1:123456789012:fixture',
+        $v['scope']['topic'].'-other'] as $topic) {
+        $wrong=json_decode($body,true); $wrong['TopicArn']=$topic;
         sns_reject(fn()=>$service->receive(json_encode($wrong),$v['now']),'sns_invalid');
     }
     sns_expect($read()===$before && !$calls,'SQL invalid input leaves no writes/network');

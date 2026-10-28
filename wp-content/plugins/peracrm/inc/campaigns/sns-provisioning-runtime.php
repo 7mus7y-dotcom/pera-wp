@@ -8,7 +8,9 @@ function peracrm_sns_provisioning_service(?Closure $api=null,?callable $certific
     if (!defined('PERACRM_SES_SNS_PROVISIONING') || !is_array(PERACRM_SES_SNS_PROVISIONING)) { return null; }
     try {
         $config=PERACRM_SES_SNS_PROVISIONING;
-        if (($config['endpoint']??null)!==home_url('/peracrm-ses-sns/')) { return null; }
+        if (($config['endpoint']??null)!==home_url('/peracrm-ses-sns/')
+            || ($config['blog']??null)!==get_current_blog_id()
+            || (is_multisite() && ($config['blog']??null)!==(int)peracrm_get_target_blog_id())) { return null; }
         $v=new PeraCRM_SNS_Verifier(['account'=>$config['account']??null,'region'=>$config['region']??null,'topic'=>$config['topic']??null],static fn()=>null);
         $certificate??=static fn($url)=>peracrm_sns_certificate_fetch($v,$url);
         // Public ingress never loads credentials. API is available only to an explicit CLI action.

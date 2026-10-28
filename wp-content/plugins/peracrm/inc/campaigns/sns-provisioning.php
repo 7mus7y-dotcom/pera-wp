@@ -79,7 +79,7 @@ final class PeraCRM_SNS_Provisioning
                 if (!is_array($old) || ($old && (($old['binding']??null)!==$this->binding() || !is_array($old['requests']??null)))) {
                     throw new PeraCRM_SNS_Error('sns_conflict');
                 }
-                return $operation($old);
+                $result=$operation($old); $this->guard(); return $result;
             } finally { $wpdb->get_var($wpdb->prepare('SELECT RELEASE_LOCK(%s)',$name)); $this->lock=null; }
         } catch (PeraCRM_SNS_Error $e) { throw $e; }
         catch (Throwable $e) { throw new PeraCRM_SNS_Error('sns_storage'); }
