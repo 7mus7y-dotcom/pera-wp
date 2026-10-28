@@ -8491,3 +8491,42 @@ body.crm-route #site-header.peracrm-shell-header .peracrm-header-search__status 
     max-height: min(45dvh, 320px);
   }
 }
+
+
+/* Client view only: place the date inside the title bar at every breakpoint. */
+.crm-page--client-view .crm-page-header__inner {
+  grid-template-columns: minmax(0, 1fr);
+}
+.crm-page--client-view .crm-page-header__main,
+.crm-page--client-view .crm-page-date-pill {
+  grid-area: 1 / 1;
+}
+.crm-page--client-view .crm-page-header__main {
+  padding-right: clamp(125px, 25%, 185px);
+  min-width: 0;
+}
+.crm-page--client-view .crm-page-date-pill {
+  position: relative;
+  top: auto;
+  z-index: auto;
+  align-self: center;
+  justify-self: end;
+  margin: 0 12px 0 0;
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+  color: inherit;
+  opacity: 0.75;
+  pointer-events: none;
+}
+.crm-page--client-view .crm-page-date-pill__label {
+  display: none;
+}
+.crm-page--client-view .crm-page-date-pill__value {
+  font-size: 0.78rem;
+  line-height: 1.25;
+  font-weight: 600;
+  white-space: nowrap;
+}
