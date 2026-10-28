@@ -42,8 +42,15 @@ get_header();
             }
 
             $posts_content = (string) get_post_field( 'post_content', $posts_page_id, 'raw' );
-            if ( function_exists( 'pera_ml_field' ) ) {
-                $posts_content = pera_ml_field( $posts_page_id, 'post_content', $posts_content );
+            if ( class_exists( 'Pera_ML_Plugin' ) ) {
+                $ml = Pera_ML_Plugin::instance();
+                $language = $ml->router()->current_language();
+                if ( $ml->router()->is_translated() ) {
+                    $translation = $ml->storage()->get( 'post', $posts_page_id, 'post_content', $language, $posts_content );
+                    if ( is_array( $translation ) && in_array( $translation['status'] ?? '', array( 'current', 'stale' ), true ) && ! empty( $translation['translated_text'] ) ) {
+                        $posts_content = $translation['translated_text'];
+                    }
+                }
             }
             if ( trim( wp_strip_all_tags( $posts_content ) ) !== '' ) {
                 $archive_description = $posts_content;
