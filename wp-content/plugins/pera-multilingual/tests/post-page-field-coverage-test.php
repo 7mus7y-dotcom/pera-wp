@@ -49,6 +49,10 @@ coverage_expect( 'Blank-translation canonical', $fields->get( 10, 'post_subtitle
 coverage_expect( 'Missing canonical', $fields->get( 10, 'post_subtitle', 'Missing canonical' ), 'missing post subtitle translation falls back to canonical source' );
 
 $homepage_fields = array( 'homepage_hero_subtext', 'homepage_listing_intro', 'homepage_bottom_seo_text' );
+function get_option( $key ) { return 'page_for_posts' === $key ? 20 : false; }
+$blog_archive_fields = array( 'archive_intro_content', 'featured_links_heading', 'featured_links_intro' );
+foreach ( $blog_archive_fields as $field ) coverage_expect( true, in_array( $field, $fields->approved_for_object( 20, 'page' ), true ), "Posts page supports {$field}" );
+foreach ( $blog_archive_fields as $field ) coverage_expect( false, in_array( $field, $fields->approved( 'page' ), true ), "Ordinary pages do not inherit {$field}" );
 foreach ( $homepage_fields as $field ) coverage_expect( true, in_array( $field, $fields->approved( 'page' ), true ), "{$field} is in the page contract" );
 foreach ( array( 'faq', 'name', 'position', 'description' ) as $field ) coverage_expect( false, in_array( $field, $fields->approved( 'page' ), true ), "structured or team field {$field} is not in the page contract" );
 coverage_expect( '翻译首页文案', $fields->get_for_object( 'post', 20, 'homepage_hero_subtext', 'Canonical hero copy', 'zh', 'page' ), 'current homepage translation is returned' );
@@ -60,11 +64,15 @@ $GLOBALS['coverage_meta'] = array( 20 => array(
 	'homepage_hero_subtext'      => 'Canonical hero copy',
 	'homepage_listing_intro'     => '<p>Canonical listing copy</p>',
 	'homepage_bottom_seo_text'   => '<p>Canonical SEO copy</p>',
+    'archive_intro_content' => '<p>Blog introduction</p>',
+    'featured_links_heading' => 'Start With These Guides',
+    'featured_links_intro' => '<p>Blog guide introduction</p>',
 	'faq'                        => array( array( 'question' => 'Structured question' ) ),
 ) );
 $page_status = new Pera_ML_Translation_Status( null );
 $status_sources = $page_status->applicable_sources( 20, 'page' );
 foreach ( $homepage_fields as $field ) coverage_expect( true, isset( $status_sources[ 'meta:' . $field ] ), "Translation Health discovers {$field} from the page contract" );
+foreach ( $blog_archive_fields as $field ) coverage_expect( true, isset( $status_sources[ 'meta:' . $field ] ), "Translation Health discovers blog {$field}" );
 coverage_expect( false, isset( $status_sources['meta:faq'] ), 'Translation Health does not treat the FAQ repeater as scalar meta' );
 coverage_expect( 'Structured question', $status_sources['meta:homepage_faq_0_question'], 'Translation Health discovers the FAQ question as a structured leaf' );
 coverage_expect( 'Structured question', $page_status->source_for_field( 20, 'page', 'meta:homepage_faq_0_question' ), 'canonical source resolver reads a synthetic FAQ leaf from its repeater' );
