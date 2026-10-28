@@ -61,6 +61,75 @@
     return;
   }
 
+  // Keep the single live search form; dock it after the original header position
+  // has scrolled away. A placeholder prevents header reflow on mobile.
+  (function setupClientMobileSearchDock() {
+    if (!document.querySelector('.crm-page--client-view') || !window.matchMedia) {
+      return;
+    }
+    var mobile = window.matchMedia('(max-width: 767px)');
+    var marker = document.createElement('span');
+    marker.className = 'peracrm-header-search__dock-placeholder';
+    marker.setAttribute('aria-hidden', 'true');
+    marker.style.display = 'none';
+    form.parentNode.insertBefore(marker, form);
+    var originBottom = 0;
+    var frame = 0;
+
+    function measureOrigin() {
+      if (!form.classList.contains('is-crm-search-docked')) {
+        originBottom = form.getBoundingClientRect().bottom + window.scrollY;
+      }
+    }
+
+    function updateDock() {
+      frame = 0;
+      if (!mobile.matches) {
+        form.classList.remove('is-crm-search-docked');
+        marker.style.display = 'none';
+        measureOrigin();
+        return;
+      }
+      // When mobile keyboard consumes most of the visual viewport, leave the
+      // input in the header rather than obscuring the visible search results.
+      var viewport = window.visualViewport;
+      var keyboardOpen = viewport && document.activeElement === input &&
+        viewport.height < window.innerHeight * 0.72;
+      var dock = !keyboardOpen && window.scrollY > originBottom + 12;
+      if (dock && !form.classList.contains('is-crm-search-docked')) {
+        marker.style.display = 'block';
+        marker.style.height = form.offsetHeight + 'px';
+        marker.style.width = '100%';
+        form.classList.add('is-crm-search-docked');
+      } else if (!dock && form.classList.contains('is-crm-search-docked')) {
+        form.classList.remove('is-crm-search-docked');
+        marker.style.display = 'none';
+        measureOrigin();
+      }
+    }
+
+    function scheduleDock() {
+      if (!frame) {
+        frame = window.requestAnimationFrame(updateDock);
+      }
+    }
+
+    measureOrigin();
+    window.addEventListener('scroll', scheduleDock, { passive: true });
+    window.addEventListener('resize', function () {
+      if (!form.classList.contains('is-crm-search-docked')) {
+        measureOrigin();
+      }
+      scheduleDock();
+    }, { passive: true });
+    if (window.visualViewport) {
+      window.visualViewport.addEventListener('resize', scheduleDock, { passive: true });
+    }
+    input.addEventListener('focus', scheduleDock);
+    input.addEventListener('blur', scheduleDock);
+    scheduleDock();
+  })();
+
   function setExpanded(isExpanded) {
     input.setAttribute('aria-expanded', isExpanded ? 'true' : 'false');
   }
