@@ -747,3 +747,177 @@ metadata and ciphertext; an operator cannot invent historical pins or overwrite
 output. This grants historical access only and never makes an old configuration
 eligible for a new submission. Moving provider accounts/regions requires a separate
 reviewed historical-access/restore decision rather than relaxing scope isolation.
+
+## SNS subscription provisioning and confirmation (control plane only)
+
+This is a deployment/operator procedure for a separately approved future window.
+Do not execute it as part of this change. No AWS resource, live credential,
+subscription, endpoint activation, message, merge or deployment is authorized by
+this PR. Dispatch, event intake, public collection and cron remain disabled.
+Provisioning does not satisfy provider/host readiness or grant delivery authority.
+
+The existing `/peracrm-ses-sns/` endpoint normally rejects control messages.
+A separate deployment constant, `PERACRM_SES_SNS_PROVISIONING`, temporarily makes
+that same URL a **confirmation-only** receiver. This permits provisioning before
+SES event intake is activated. Notifications and UnsubscribeConfirmation remain
+rejected; no SubscribeURL is ever fetched. The receiver authenticates SNS v2 and
+exact topic/account/region, then requires an administrator-armed pending request.
+It cannot call Subscribe or ConfirmSubscription, and never loads AWS credentials.
+Only the operator CLI can perform these explicit, authenticated API mutations.
+
+Prerequisites for the separately approved window:
+
+1. Independently approve the deployment ID, CRM target blog, AWS account/region,
+   exact topic ARN and canonical public HTTPS URL. Keep the topic dedicated to
+   this deployment. Verify TLS and outbound certificate/SNS regional API access.
+   Configure topic SignatureVersion **2** before requesting a subscription. The
+   system deliberately rejects v1, including AWS defaults; do not weaken it.
+2. Protect request bodies and POST data at host/proxy/CDN/WAF/PHP/APM/HTTP-debug/
+   trace layers. Exclude this endpoint's bodies and all SNS API bodies/headers
+   from logs. Do not enable WP HTTP debug logging, CLI `--debug`, shell tracing or
+   provider wire logs. Never capture/log SubscribeURL, Token, canonical signed
+   bytes, session credentials or Authorization. Block access before configuring
+   the receiver until these protections and body/time/rate limits are verified.
+3. Restrict database, backups and WordPress authentication salts. Pending tokens
+   use sodium secretbox with random nonces and a domain/scope-derived key from
+   `wp_salt('auth')`. Require sodium and SimpleXML. No raw envelope or URL is
+   stored; only ciphertext, signed-payload digest/message ID, scope binding and
+   operator/state timestamps persist in a non-autoloaded target-blog option.
+   Salt/configuration rotation deliberately prevents decryption. Never restore
+   a provisioning journal to a different deployment or silently reset it.
+4. Use a real, non-impersonated WordPress administrator with `manage_options`
+   and `peracrm_manage_campaigns` on the CRM target blog. OS/CLI access alone and
+   report-only roles do not grant authority. IAM session permissions must be
+   constrained to the exact topic/account/region and HTTPS endpoint:
+   `sns:Subscribe`, `sns:ConfirmSubscription`, `sns:GetSubscriptionAttributes`.
+   Use resource/region/endpoint/protocol conditions where supported; independently
+   verify the actual session identity/account. The credentials wrapper's account
+   label is a deployment pin, not STS identity verification. No wildcard admin
+   credentials, discovery chain or automatic refresh is used.
+5. Plan HTTPS retry policy, regional subscription DLQ/redrive/monitoring and
+   retention separately. RawMessageDelivery must remain false for event intake.
+   Prefer a maintenance window with no topic publishers: confirmation-only mode
+   rejects notifications and does not spool SES events. Do not publish test mail.
+
+In deployment-owned configuration, temporarily define only this explicit array
+(with reviewed real values substituted); **leave PERACRM_SES_SNS_HTTP undefined**:
+
+```php
+define('PERACRM_SES_SNS_PROVISIONING', [
+    'enabled' => true,
+    'blog' => 2, // exact CRM target blog, positive integer
+    'deployment' => 'reviewed-immutable-deployment',
+    'account' => '123456789012', // string, exactly 12 digits
+    'region' => 'eu-west-1',
+    'topic' => 'arn:aws:sns:eu-west-1:123456789012:reviewed-topic',
+    'endpoint' => 'https://crm.example.test/peracrm-ses-sns/',
+]);
+```
+
+The endpoint must exactly equal that target blog's `home_url('/peracrm-ses-sns/')`,
+including multisite subdirectory and trailing slash. Switch to that blog with
+`--url`; no automatic target switching or cross-blog authority is supplied.
+Do not use the example values in production. There is no option/UI/public enabling
+switch, rewrite flush or cron integration.
+
+After deployment approval and log protection, run the following explicit steps
+using the approved `--url` and real administrator `--user`. The literal confirmation
+phrase is required for every action, including status; it contains no secret.
+
+```sh
+wp --url=https://crm.example.test --user=approved-admin peracrm campaigns sns-subscription arm --confirm=provision-exact-sns-subscription
+wp --url=https://crm.example.test --user=approved-admin peracrm campaigns sns-subscription status --confirm=provision-exact-sns-subscription
+```
+
+Arming durably records the real actor and a one-hour window before any AWS call.
+Rearming an active request is idempotent. To perform Subscribe/ConfirmSubscription,
+a trusted secret injector must provide **process environment**, never CLI values
+or shell history: `PERACRM_SNS_ACCESS_KEY_ID`, `PERACRM_SNS_SECRET_ACCESS_KEY`,
+`PERACRM_SNS_SESSION_TOKEN`, `PERACRM_SNS_CREDENTIAL_EXPIRY` (integer Unix seconds).
+Use a short-lived session with more than 20 seconds remaining. Do not print or
+source an unreviewed credential dump. Then invoke:
+
+```sh
+wp --url=https://crm.example.test --user=approved-admin peracrm campaigns sns-subscription subscribe --confirm=provision-exact-sns-subscription
+wp --url=https://crm.example.test --user=approved-admin peracrm campaigns sns-subscription status --confirm=provision-exact-sns-subscription
+```
+
+Subscribe uses a fixed regional HTTPS SNS API, SigV4, POST, bounded TLS verification,
+no redirects and no automatic retries. The subscription endpoint is taken only
+from deployment configuration. A durable subscribe-attempt actor/time precedes
+this call. SNS may deliver concurrently; the pending window is already durable.
+Wait for `received`; status contains no token, raw body or signed digest. Before
+confirming, independently review the expected subscription/topic/endpoint in AWS
+and its exact approved scope. Signed SNS envelopes do not themselves attest the
+destination URL: do not import another endpoint's envelope or forward controls.
+This receiver accepts envelopes only at the configured endpoint, and final AWS
+attributes must independently match that endpoint/owner/topic/protocol.
+
+```sh
+wp --url=https://crm.example.test --user=approved-admin peracrm campaigns sns-subscription confirm --confirm=provision-exact-sns-subscription
+wp --url=https://crm.example.test --user=approved-admin peracrm campaigns sns-subscription status --confirm=provision-exact-sns-subscription
+```
+
+Confirmation is a second explicit administrator authorization. A durable
+`confirming` state precedes the API mutation. The service decrypts internally,
+uses `ConfirmSubscription` with `AuthenticateOnUnsubscribe=true`, checks the
+returned ARN's exact topic scope, and verifies GetSubscriptionAttributes' owner,
+endpoint, HTTPS protocol and ConfirmationWasAuthenticated. Only then does it
+persist `confirmed` and erase ciphertext. IAM authentication is required for
+unsubscribe; never use console/browser token links as a shortcut. The API token
+is sent only in the signed POST body to the fixed SNS endpoint. No command,
+response, audit/status, exception or evidence includes it.
+
+Failure/replay procedure:
+
+- Invalid signature: 403; malformed/v1/wrong topic/account/region/control type:
+  400. No storage mutation or confirmation. Wrong pending scope/state/time and
+  changed signed content for an existing MessageId: 409. Investigate the topic,
+  configuration and publisher; do not relax signature or scope rules.
+- Valid first receipt: 202 only after ciphertext/digest persistence. Exact signed
+  duplicates return 202 without writes or new authority; different signatures
+  over identical signed bytes are duplicates. A different identity cannot
+  overwrite a received token. Confirmed duplicate CLI actions make no API call.
+- Certificate outage, database/lock/reconnect/write failure: 503 with Retry-After
+  at ingress; no successful acknowledgment. Existing SNS retry/DLQ procedures
+  apply. CLI errors are generic and nonzero. Recover infrastructure, inspect
+  sanitized state and repeat only the same explicit action after investigation.
+  Never edit options, clear locks, overwrite ciphertext or delete replay records.
+- Subscribe network ambiguity may already have created a pending subscription.
+  Inspect AWS first; only while still `armed` may the operator explicitly repeat
+  Subscribe for the exact endpoint/topic. No automatic retry occurs.
+- Confirm/network/attribute/final-storage failure retains `confirming` and the
+  encrypted token. AWS may already have confirmed. Inspect the actual approved
+  subscription independently before repeating Confirm. Attribute scope mismatch
+  is an investigation/stop condition, not permission to confirm again blindly.
+  A repeat revalidates remote attributes and cannot mark an unverified ARN ready.
+- Expiry rejects confirmation; a new explicit arm after one hour preserves all
+  prior replay tombstones and erases old ciphertext. Obtain a new SNS confirmation
+  in that new window. An old duplicate cannot populate the new request. Repeated
+  Subscribe can return an existing confirmed ARN: stop and reconcile it; it is
+  never silently imported. At most 32 requests per deployment/blog journal are
+  allowed. Exhaustion or salt/scope mismatch requires reviewed recovery; there is
+  no reset/export/token-reveal bypass. Check backup/retention policy separately.
+
+After verified confirmation, remove the provisioning constant and secret process
+variables. The endpoint returns 404 while normal intake remains disabled. Record
+only redacted state, actor/time, approved scope/subscription ARN and independently
+verified retry/DLQ/host evidence. Never put confirmation bodies/tokens/URLs in PRs,
+issues, screenshots or logs. A later, separately approved activation can define
+PERACRM_SES_SNS_HTTP using the exact existing pins and the verified subscription;
+that remains outside this task. Do not enable dispatch/intake/public collection/
+cron, send real messages, provision resources, merge or deploy as part of this PR.
+
+
+### Combined deployment adapters and SNS provisioning
+
+The deployment adapters above do not supply SNS provisioning credentials or
+enable the confirmation receiver. Provisioning continues to use its separately
+authorized short-lived process credentials and salt-bound journal encryption;
+token-signing/output-encryption material is not a substitute. Before a separately
+approved provisioning window, independently verify that deployment ID, target
+blog, account and region agree across the reviewed configuration, and that the
+exact SNS topic is the approved event topic. No automatic cross-configuration
+activation or shared credential discovery is provided. Preserve all disabled
+production gates during deployment and follow the existing host-log protections
+and explicit arm/subscribe/confirm/teardown procedure.

@@ -7,7 +7,7 @@ final class PeraCRM_SNS_Error extends RuntimeException
     public function __construct(string $code) { parent::__construct($code); }
 }
 
-/** Notification-only SNS v2 verifier. Internal and unbootstrapped; no subscription or HTTP route.
+/** SNS v2 verifier. Notifications and explicitly selected subscription confirmations only.
  * Certificate retrieval is mandatory injection. Production wiring must use the bounded
  * HTTPS helper below; automated fixtures supply local certificates and never use AWS.
  */
@@ -35,6 +35,12 @@ final class PeraCRM_SNS_Verifier
     public static function canonical(array $envelope): string
     {
         $fields=['Message','MessageId'];
+        if (($envelope['Type']??'')==='SubscriptionConfirmation' && isset($envelope['Token'],$envelope['SubscribeURL'])) {
+            $fields=array_merge($fields,['SubscribeURL','Timestamp','Token','TopicArn','Type']);
+            $bytes='';
+            foreach ($fields as $field) { $bytes.=$field."\n".$envelope[$field]."\n"; }
+            return $bytes;
+        }
         if (array_key_exists('Subject',$envelope)) { $fields[]='Subject'; }
         $fields=array_merge($fields,['Timestamp','TopicArn','Type']);
         $bytes='';
@@ -43,23 +49,35 @@ final class PeraCRM_SNS_Verifier
     }
     public function verify(#[\SensitiveParameter] string $body, int $now): array
     {
+        return $this->verifyEnvelope($body,$now,false);
+    }
+    public function verifyConfirmation(#[\SensitiveParameter] string $body, int $now): array
+    {
+        return $this->verifyEnvelope($body,$now,true);
+    }
+    private function verifyEnvelope(#[\SensitiveParameter] string $body,int $now,bool $confirmation): array
+    {
         try {
             if (strlen($body)>262144 || $now<=0) { throw new PeraCRM_SNS_Error('sns_invalid'); }
             $e=json_decode($body,false,8,JSON_THROW_ON_ERROR);
             if (!$e instanceof stdClass) { throw new PeraCRM_SNS_Error('sns_invalid'); }
             $e=(array)$e;
             $required=['Type','MessageId','TopicArn','Message','Timestamp','SignatureVersion','Signature','SigningCertURL'];
-            if (array_diff($required,array_keys($e)) || array_diff(array_keys($e),array_merge($required,['Subject','UnsubscribeURL']))) {
+            if ($confirmation) { $required=array_merge($required,['Token','SubscribeURL']); }
+            $optional=$confirmation?[]:['Subject','UnsubscribeURL'];
+            if (array_diff($required,array_keys($e)) || array_diff(array_keys($e),array_merge($required,$optional))) {
                 throw new PeraCRM_SNS_Error('sns_invalid');
             }
             foreach ($e as $value) { if (!is_string($value)) { throw new PeraCRM_SNS_Error('sns_invalid'); } }
-            if ($e['Type']!=='Notification' || $e['SignatureVersion']!=='2'
+            if ($e['Type']!==($confirmation?'SubscriptionConfirmation':'Notification') || $e['SignatureVersion']!=='2'
                 || $e['TopicArn']!==$this->scope['topic'] || !$this->certificateURL($e['SigningCertURL'])
                 || !preg_match('/\A[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}\z/', $e['MessageId'])
                 || strlen($e['Signature'])>2048 || (isset($e['Subject']) && strlen($e['Subject'])>100)
                 || !preg_match('/\A\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d{3})?Z\z/', $e['Timestamp'])) {
                 throw new PeraCRM_SNS_Error('sns_invalid');
             }
+            if ($confirmation && (preg_match('/\A[A-Za-z0-9_+\/=:-]{1,4096}\z/',$e['Token'])!==1
+                || strlen($e['SubscribeURL'])>8192)) { throw new PeraCRM_SNS_Error('sns_invalid'); }
             $format=str_contains($e['Timestamp'],'.')?'!Y-m-d\TH:i:s.v\Z':'!Y-m-d\TH:i:s\Z';
             $date=DateTimeImmutable::createFromFormat($format,$e['Timestamp'],new DateTimeZone('UTC'));
             if (!$date || $date->format(substr($format,1))!==$e['Timestamp']) { throw new PeraCRM_SNS_Error('sns_invalid'); }
@@ -77,7 +95,7 @@ final class PeraCRM_SNS_Verifier
             // Do not decode the SES Message here. Receipt foundations quarantine all
             // authenticated messages; later binding/application must use durable attempts.
             return ['id'=>$e['MessageId'],'canonical'=>$canonical,'hash'=>hash('sha256',$canonical),
-                'timestamp'=>$date->getTimestamp(),'certificate_hash'=>hash('sha256',$pem)];
+                'timestamp'=>$date->getTimestamp(),'certificate_hash'=>hash('sha256',$pem)]+($confirmation?['token'=>$e['Token']]:[]);
         } catch (PeraCRM_SNS_Error $error) { throw $error; }
         catch (Throwable $error) { throw new PeraCRM_SNS_Error('sns_invalid'); }
     }

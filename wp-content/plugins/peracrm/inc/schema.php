@@ -238,6 +238,10 @@ function peracrm_upgrade_schema_to($target_version, $installed_version = 0)
         ) {$charset_collate};";
 
 
+        if ($target_version >= 41) {
+            peracrm_instructions_install_schema();
+        }
+
         dbDelta($sql_notes);
         dbDelta($sql_reminders);
         dbDelta($sql_activity);

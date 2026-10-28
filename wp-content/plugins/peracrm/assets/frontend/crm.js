@@ -61,6 +61,75 @@
     return;
   }
 
+  // Keep the single live search form; dock it after the original header position
+  // has scrolled away. A placeholder prevents header reflow on mobile.
+  (function setupClientMobileSearchDock() {
+    if (!document.querySelector('.crm-page--client-view') || !window.matchMedia) {
+      return;
+    }
+    var mobile = window.matchMedia('(max-width: 767px)');
+    var marker = document.createElement('span');
+    marker.className = 'peracrm-header-search__dock-placeholder';
+    marker.setAttribute('aria-hidden', 'true');
+    marker.style.display = 'none';
+    form.parentNode.insertBefore(marker, form);
+    var originBottom = 0;
+    var frame = 0;
+
+    function measureOrigin() {
+      if (!form.classList.contains('is-crm-search-docked')) {
+        originBottom = form.getBoundingClientRect().bottom + window.scrollY;
+      }
+    }
+
+    function updateDock() {
+      frame = 0;
+      if (!mobile.matches) {
+        form.classList.remove('is-crm-search-docked');
+        marker.style.display = 'none';
+        measureOrigin();
+        return;
+      }
+      // When mobile keyboard consumes most of the visual viewport, leave the
+      // input in the header rather than obscuring the visible search results.
+      var viewport = window.visualViewport;
+      var keyboardOpen = viewport && document.activeElement === input &&
+        viewport.height < window.innerHeight * 0.72;
+      var dock = !keyboardOpen && window.scrollY > originBottom + 12;
+      if (dock && !form.classList.contains('is-crm-search-docked')) {
+        marker.style.display = 'block';
+        marker.style.height = form.offsetHeight + 'px';
+        marker.style.width = '100%';
+        form.classList.add('is-crm-search-docked');
+      } else if (!dock && form.classList.contains('is-crm-search-docked')) {
+        form.classList.remove('is-crm-search-docked');
+        marker.style.display = 'none';
+        measureOrigin();
+      }
+    }
+
+    function scheduleDock() {
+      if (!frame) {
+        frame = window.requestAnimationFrame(updateDock);
+      }
+    }
+
+    measureOrigin();
+    window.addEventListener('scroll', scheduleDock, { passive: true });
+    window.addEventListener('resize', function () {
+      if (!form.classList.contains('is-crm-search-docked')) {
+        measureOrigin();
+      }
+      scheduleDock();
+    }, { passive: true });
+    if (window.visualViewport) {
+      window.visualViewport.addEventListener('resize', scheduleDock, { passive: true });
+    }
+    input.addEventListener('focus', scheduleDock);
+    input.addEventListener('blur', scheduleDock);
+    scheduleDock();
+  })();
+
   function setExpanded(isExpanded) {
     input.setAttribute('aria-expanded', isExpanded ? 'true' : 'false');
   }
@@ -2442,6 +2511,9 @@
             }
           }
 
+          if (data.workspace_panels || data.panel_html) {
+            document.dispatchEvent(new CustomEvent('peracrm:workspace-panels', { detail: data.workspace_panels || {} }));
+          }
           activeForm = resolveLiveForm(activePanel, type, form);
           setFeedback(activeForm, message, success);
         })
@@ -2755,5 +2827,175 @@ document.addEventListener('DOMContentLoaded', function () {
       var button = form.querySelector('button[type="submit"]');
       if (button) { button.disabled = true; button.textContent = 'Recording evidence…'; }
     });
+  }
+})();
+
+// Client workspace preferences: server owns eligibility; DOM hiding keeps form values intact.
+(function () {
+  var manager = document.querySelector('[data-crm-manage-panels]');
+  var feedback = document.querySelector('[data-crm-panels-feedback]');
+  var ajaxUrl = window.peraCrmData && window.peraCrmData.ajaxUrl;
+  if (!manager || !feedback || !ajaxUrl || !window.fetch) { return; }
+  var busy = false;
+  var pendingFragments = null;
+  var hidden = [];
+  var completePreferences = false;
+  document.querySelectorAll('[data-crm-optional-panel]').forEach(function (panel) {
+    if (panel.hidden) { hidden.push(panel.dataset.crmOptionalPanel); }
+  });
+
+  function applyState(next) {
+    hidden = next.slice();
+    var hiddenCount = 0;
+    document.querySelectorAll('[data-crm-optional-panel]').forEach(function (panel) {
+      panel.hidden = hidden.indexOf(panel.dataset.crmOptionalPanel) !== -1;
+      if (panel.hidden) { hiddenCount++; }
+    });
+    manager.querySelectorAll('[data-crm-panel-toggle]').forEach(function (toggle) {
+      toggle.checked = hidden.indexOf(toggle.dataset.crmPanelToggle) === -1;
+    });
+    manager.querySelectorAll('[data-crm-panel-state]').forEach(function (state) {
+      state.textContent = hidden.indexOf(state.dataset.crmPanelState) === -1 ? feedback.dataset.visibleLabel : feedback.dataset.hiddenLabel;
+    });
+    manager.querySelector('[data-crm-panels-empty]').hidden = hiddenCount > 0;
+  }
+
+  function enableControls() {
+    document.querySelectorAll('[data-crm-panel-hide]').forEach(function (button) {
+      button.hidden = false;
+      button.disabled = busy;
+    });
+    manager.querySelectorAll('[data-crm-panel-toggle], [data-crm-panels-restore]').forEach(function (control) {
+      control.disabled = busy;
+    });
+    manager.setAttribute('aria-busy', busy ? 'true' : 'false');
+  }
+
+  function change(operation, key, target) {
+    if (busy) { return Promise.resolve(false); }
+    busy = true;
+    var previous = hidden.slice();
+    var next = operation === 'restore_all' ? [] : hidden.filter(function (value) { return value !== key; });
+    if (operation === 'hide') { next.push(key); }
+    applyState(next);
+    enableControls();
+    feedback.textContent = '';
+    if (operation === 'hide' && target && target.matches('[data-crm-panel-hide]')) {
+      manager.querySelector('.crm-section__title').focus({ preventScroll: true });
+    }
+    var payload = new window.FormData();
+    payload.append('action', 'peracrm_client_panels');
+    payload.append('client_id', manager.dataset.clientId);
+    payload.append('nonce', manager.dataset.nonce);
+    payload.append('operation', operation);
+    payload.append('panel', key || '');
+    // A timeout must also roll back optimistic state.
+    var controller = window.AbortController ? new window.AbortController() : null;
+    var timer = controller ? window.setTimeout(function () { controller.abort(); }, 15000) : null;
+    return window.fetch(ajaxUrl, { method: 'POST', credentials: 'same-origin', body: payload, signal: controller ? controller.signal : undefined })
+      .then(function (response) { return response.json(); })
+      .then(function (json) {
+        if (!json.success || !json.data || !Array.isArray(json.data.hidden)) {
+          throw new Error(json.data && json.data.message ? json.data.message : feedback.dataset.error);
+        }
+        completePreferences = true;
+        applyState(json.data.hidden);
+        feedback.textContent = feedback.dataset.saved;
+        return true;
+      })
+      .catch(function (error) {
+        applyState(previous);
+        feedback.textContent = error.name === 'AbortError' ? feedback.dataset.error : (error.message || feedback.dataset.error);
+        feedback.focus({ preventScroll: true });
+        return false;
+      })
+      .finally(function () {
+        if (timer) { window.clearTimeout(timer); }
+        busy = false;
+        enableControls();
+        if (pendingFragments) { reconcile(pendingFragments); pendingFragments = null; }
+      });
+  }
+
+  function reconcile(fragments) {
+    if (busy) { pendingFragments = fragments; return; }
+    ['instructions', 'deals'].forEach(function (slot) {
+      if (!fragments[slot]) { return; }
+      var current = document.querySelector('[data-crm-panel-slot="' + slot + '"]');
+      var parsed = new window.DOMParser().parseFromString(fragments[slot], 'text/html');
+      var incoming = parsed.querySelector('[data-crm-panel-slot]');
+      if (!current || !incoming) { return; }
+      var oldPanel = current.querySelector('[data-crm-optional-panel]');
+      var newPanel = incoming.querySelector('[data-crm-optional-panel]');
+      var oldKey = oldPanel ? oldPanel.dataset.crmOptionalPanel : '';
+      var newKey = newPanel ? newPanel.dataset.crmOptionalPanel : '';
+      // Retain unsaved form contents when eligibility has not changed.
+      if (oldKey !== newKey) { current.replaceWith(incoming); }
+    });
+    if (fragments.manage) {
+      var parsed = new window.DOMParser().parseFromString(fragments.manage, 'text/html');
+      var incoming = parsed.querySelector('[data-crm-manage-panels]');
+      if (incoming) {
+        manager.replaceWith(incoming);
+        manager = incoming;
+        // Include hidden preferences for newly eligible panels from the server.
+        manager.querySelectorAll('[data-crm-panel-toggle]').forEach(function (toggle) {
+          if (!completePreferences && !toggle.checked && hidden.indexOf(toggle.dataset.crmPanelToggle) === -1) { hidden.push(toggle.dataset.crmPanelToggle); }
+        });
+      }
+    }
+    applyState(hidden);
+    enableControls();
+  }
+
+  document.addEventListener('peracrm:workspace-panels', function (event) { reconcile(event.detail); });
+  document.addEventListener('click', function (event) {
+    var hide = event.target.closest('[data-crm-panel-hide]');
+    var restore = event.target.closest('[data-crm-panels-restore]');
+    if (!hide && !restore) { return; }
+    event.preventDefault();
+    event.stopPropagation();
+    change(restore ? 'restore_all' : 'hide', hide ? hide.dataset.crmPanelHide : '', hide || restore);
+  });
+  document.addEventListener('change', function (event) {
+    var toggle = event.target.closest('[data-crm-panel-toggle]');
+    if (toggle) { change(toggle.checked ? 'show' : 'hide', toggle.dataset.crmPanelToggle, toggle); }
+  });
+
+  function restoreTarget(hash) {
+    if (!hash || hash === '#') { return; }
+    var target;
+    try { target = document.getElementById(decodeURIComponent(hash.slice(1))); } catch (error) { return; }
+    var panel = target && target.closest('[data-crm-optional-panel]');
+    if (!panel || !panel.hidden) { return; }
+    return change('show', panel.dataset.crmOptionalPanel).then(function (ok) {
+      if (ok) {
+        var parent = target.parentElement;
+        while (parent && parent !== panel.parentElement) {
+          if (parent.tagName === 'DETAILS') { parent.open = true; }
+          parent = parent.parentElement;
+        }
+        target.scrollIntoView({ block: 'start' });
+        if (!target.matches('a, button, input, select, textarea, [tabindex]')) { target.setAttribute('tabindex', '-1'); }
+        target.focus({ preventScroll: true });
+      }
+    });
+  }
+  document.addEventListener('click', function (event) {
+    var link = event.target.closest('a[href]');
+    if (!link || link.target === '_blank') { return; }
+    var url = new URL(link.href, window.location.href);
+    if (url.origin === window.location.origin && url.pathname === window.location.pathname && url.search === window.location.search) {
+      if (restoreTarget(url.hash)) { event.preventDefault(); }
+    }
+  });
+  window.addEventListener('hashchange', function () { restoreTarget(window.location.hash); });
+  applyState(hidden);
+  enableControls();
+  restoreTarget(window.location.hash);
+  // Edit deal links are an explicit navigation to that workspace.
+  if (new URL(window.location.href).searchParams.has('deal_id')) {
+    var deal = document.querySelector('[data-crm-optional-panel="deals"]');
+    if (deal && deal.hidden) { change('show', 'deals'); }
   }
 })();

@@ -497,8 +497,9 @@ performed. Body reads cap at 262145 bytes and reject above 262144; outer and inn
 JSON retain existing depth 8/16 bounds. Signature-v2 verification and strict pinned
 certificate origin precede all storage and SES parsing. Certificate retrieval
 uses the existing 5-second/16-KiB/no-redirect HTTPS helper; tests inject retrieval
-and prohibit real AWS requests. Subscription/control messages are rejected;
-no SubscribeURL is fetched or confirmed.
+and prohibit real AWS requests. Subscription/control messages are rejected by event intake;
+no SubscribeURL is fetched. A separate default-disabled control-plane mode below
+provides administrator-authorized provisioning before event activation.
 
 202 means durable receipt acceptance, including durable unmatched/unsupported/
 stale/future quarantine. It never asserts suppression application, delivery,
@@ -512,8 +513,8 @@ are permanent rejections. Generic bodies and no-store/privacy headers expose no
 payload, certificate, URL, address or application decision. No diagnostic logging
 or analytics is added.
 
-Operational dependencies remain separate: operator-controlled authenticated SNS
-subscription provisioning/confirmation, regional topic policy and SignatureVersion
+Operational dependencies remain separate: execution/verification of the bounded
+operator-controlled SNS provisioning workflow below, regional topic policy and SignatureVersion
 2 delivery configuration; DLQ/retry policy and bounded audited redrive (matcher
 MAX_PASSES and freshness quarantines are not bypassed by HTTP replay); retention,
 privacy/restore procedures; aggregate status/latency/quarantine/duplicate/backlog
@@ -741,3 +742,42 @@ recipient unknown/recovery fences remain dependent work. Production remains
 unconditionally blocked. All workers on the shared ledger must adopt the protocol
 before its cross-process protection can be claimed for transport. Independent
 installations and external senders remain outside local coordination.
+
+
+### Authenticated SNS subscription control plane (2026-10-28)
+
+`PERACRM_SES_SNS_PROVISIONING` is a separate, default-absent deployment configuration
+for confirmation-only mode on the same `/peracrm-ses-sns/` URL. Normal event
+intake remains disabled. It pins the deployment, CRM target blog, account, region,
+exact topic and canonical HTTPS endpoint; it accepts only separately verified
+SignatureVersion 2 SubscriptionConfirmation envelopes for a durable one-hour
+administrator-armed pending request. UnsubscribeConfirmation and notifications
+are rejected. Public intake cannot subscribe or confirm. No SubscribeURL is
+ever fetched; signed control tokens are encrypted with scope-bound sodium
+secretbox and never exposed in status/responses/logs or stored as raw canonical
+bytes. Exact signed-message duplicates preserve state; changed MessageId content
+and already-filled pending slots conflict. Expired generations retain replay
+tombstones and cannot renew confirmation authority.
+
+The `peracrm campaigns sns-subscription` CLI requires a real non-impersonated
+administrator with campaign management and the literal explicit confirmation
+phrase. Separate arm/subscribe/confirm actions persist authority before remote
+mutation. Short-lived explicitly injected session credentials use the packaged
+SigV4 signer against only the pinned regional SNS Query API with bounded TLS,
+POST, no redirect/retry or credential discovery. Confirmation requires
+AuthenticateOnUnsubscribe=true, validates the returned topic-scoped ARN and
+GetSubscriptionAttributes owner/topic/endpoint/protocol/authenticated-confirmation
+attributes before persisting success and deleting ciphertext. Failures retain
+ambiguous state for explicit operator investigation/recovery. A connection-owned
+lock, top-level transaction exclusion, byte-exact CAS and connection checks
+protect journal updates; storage failure never acknowledges success.
+
+Follow the exact configuration, IAM, log protection, secret injection, CLI,
+replay/failure/expiry and teardown procedure in the
+[operator runbook](email-campaigns-operations.md#sns-subscription-provisioning-and-confirmation-control-plane-only).
+An SNS signature authenticates topic/token, not the destination URL; administrators
+must independently verify the approved pending subscription and never forward
+another endpoint's control envelope. Final remote attributes verify the actual
+subscription. Provider/topic policy, retry/DLQ, TLS, logs, retention and independent
+readiness observations remain external prerequisites. No configuration constant
+is enabled, resource provisioned, endpoint activated or message sent by this work.

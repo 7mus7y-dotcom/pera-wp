@@ -40,6 +40,8 @@ require_once PERACRM_INC . '/campaigns/freeze-ui.php';
 require_once PERACRM_INC . '/campaigns/queue-ui.php';
 require_once PERACRM_INC . '/campaigns/preview-routes.php';
 require_once PERACRM_INC . '/campaigns/draft-routes.php';
+require_once PERACRM_INC . '/property-instructions.php';
+require_once PERACRM_INC . '/client-panels.php';
 require_once PERACRM_INC . '/schema.php';
 require_once PERACRM_INC . '/roles.php';
 require_once PERACRM_INC . '/lifecycle.php';

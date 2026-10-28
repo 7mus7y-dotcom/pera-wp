@@ -1,6 +1,7 @@
 <?php
 if (!defined('ABSPATH')) { exit; }
 require_once __DIR__.'/event-processing.php';
+require_once __DIR__.'/sns-provisioning-runtime.php';
 
 /** Plugin-owned, explicitly configured intake. No sending or subscription authority. */
 final class PeraCRM_SNS_HTTP
@@ -88,12 +89,21 @@ function peracrm_sns_http_route(): void
     if (!is_string($path) || $path!==$expected) { return; }
     $service=peracrm_sns_http_service(); $method=$_SERVER['REQUEST_METHOD']??'';
     $type=$_SERVER['CONTENT_TYPE']??''; $length=$_SERVER['CONTENT_LENGTH']??null;
-    $status=$service?PeraCRM_SNS_HTTP::preflight($method,$type,$length):404;
+    $provisioning=peracrm_sns_provisioning_service();
+    // Provisioning takes precedence while explicitly enabled; notifications stay unavailable.
+    $status=($service || $provisioning)?PeraCRM_SNS_HTTP::preflight($method,$type,$length):404;
     if ($status===0) {
         $input=fopen('php://input','rb');
         $body=$input?stream_get_contents($input,PeraCRM_SNS_HTTP::LIMIT+1):false;
         if ($input) { fclose($input); }
-        $status=is_string($body)?$service->handle($method,$type,$length,$body,time()):503;
+        if (!is_string($body)) { $status=503; }
+        elseif (strlen($body)>PeraCRM_SNS_HTTP::LIMIT) { $status=413; }
+        elseif ($provisioning) {
+            try { $provisioning->receive($body,time()); $status=202; }
+            catch (PeraCRM_SNS_Error $e) {
+                $status=match($e->getMessage()) { 'sns_invalid'=>400,'sns_authentication'=>403,'sns_conflict'=>409,default=>503 };
+            } catch (Throwable $e) { $status=503; }
+        } else { $status=$service->handle($method,$type,$length,$body,time()); }
     }
     status_header($status);
     header('Cache-Control: no-store, private, max-age=0'); header('Pragma: no-cache');

@@ -21,6 +21,7 @@ else
     wp plugin activate peracrm
 fi
 wp eval-file /tests/assertions.php migrations
+wp eval-file /tests/property-instructions.php
 rm -f /tmp/peracrm-campaign-holder-ready /tmp/peracrm-campaign-duration-*
 wp eval-file /tests/worker.php hold &
 holder_pid=$!
@@ -67,6 +68,28 @@ wait "$migration_stale_pid"
 wait "$migration_successor_pid"
 wp eval-file /tests/migration-worker.php verify
 wp eval-file /tests/management.php
+
+# Isolated control-plane journals do not create campaign/source/recipient rows.
+wp eval-file /tests/sns-provisioning.php
+wp eval-file /tests/sns-provisioning-http.php
+wp eval-file /tests/sns-provisioning-cli.php prepare
+provision_url=http://fixture.test
+if [ "$fixture_mode" = multi ]; then provision_url=http://fixture.test/crm; fi
+wp --url="$provision_url" --user=fixture-admin peracrm campaigns sns-subscription arm --confirm=provision-exact-sns-subscription
+wp --url="$provision_url" --user=fixture-admin peracrm campaigns sns-subscription status --confirm=provision-exact-sns-subscription > /tmp/peracrm-sns-provision-cli-status
+if wp --url="$provision_url" peracrm campaigns sns-subscription arm --confirm=provision-exact-sns-subscription; then exit 1; fi
+if wp --url="$provision_url" --user=fixture-admin peracrm campaigns sns-subscription subscribe --confirm=provision-exact-sns-subscription; then exit 1; fi
+wp eval-file /tests/sns-provisioning-cli.php verify
+for provision_scenario in receive confirm; do
+    rm -f /tmp/peracrm-sns-provision-held /tmp/peracrm-sns-provision-winner /tmp/peracrm-sns-provision-loser /tmp/peracrm-sns-provision-calls
+    wp eval-file /tests/sns-provisioning-race.php prepare "$provision_scenario"
+    wp eval-file /tests/sns-provisioning-race.php winner "$provision_scenario" &
+    provision_winner_pid=$!
+    wait_for_migration_marker /tmp/peracrm-sns-provision-held
+    wp eval-file /tests/sns-provisioning-race.php loser "$provision_scenario"
+    wait "$provision_winner_pid"
+    wp eval-file /tests/sns-provisioning-race.php verify "$provision_scenario"
+done
 
 wp eval-file /tests/sending-budget.php
 wp eval-file /tests/submission-latch.php
@@ -460,3 +483,4 @@ readiness_exit=0
 wp --user=fixture-admin peracrm campaigns readiness --format=json > /var/www/html/readiness-cli.json || readiness_exit=$?
 [ "$readiness_exit" -eq 4 ]
 echo 'PASS actual administrator readiness CLI snapshot for browser agreement'
+wp eval-file /tests/client-panels.php
