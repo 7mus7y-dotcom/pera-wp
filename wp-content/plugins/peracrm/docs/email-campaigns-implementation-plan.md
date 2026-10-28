@@ -2209,3 +2209,12 @@ also rejects anonymous callers and absent credentials without any AWS call. The
 isolated option-only control-plane suites run after management setup for faster
 failure feedback, before existing account/worker/event suites; they create no
 campaign sources/jobs/recipients and remove temporary HTTP configuration.
+
+
+Hosted run 40675699593 on `e019ac8184` failed both topologies in race
+fixture setup: its new storage-key field overwrote the synthetic RSA signing
+key, so the race never reached its barrier. All new service SQL (including
+same-actor recovery), actual HTTP and actual CLI checks passed in both jobs
+before that failure. The fixture now uses a distinct storage_key field; no
+production runtime changes. The failed run is not full acceptance evidence.
+The final correction requires a new complete run and rereview.

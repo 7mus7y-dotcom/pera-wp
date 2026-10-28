@@ -10,7 +10,7 @@ peracrm_with_target_blog(static function () use ($mode,$scenario) {
         $v=sns_values();
         $v['config']=['enabled'=>true,'blog'=>get_current_blog_id(),'deployment'=>'sns-provision-race-'.bin2hex(random_bytes(8))]
             +$v['scope']+['endpoint'=>'https://fixture.example.test/peracrm-ses-sns/'];
-        $v['key']=base64_encode(random_bytes(32));
+        $v['storage_key']=base64_encode(random_bytes(32));
         update_option('sns_provision_race_fixture',$v,false);
     } else { $v=get_option('sns_provision_race_fixture'); }
     $api=static function ($action,$parameters) use ($v,$scenario) {
@@ -24,7 +24,7 @@ peracrm_with_target_blog(static function () use ($mode,$scenario) {
         return ['TopicArn'=>$v['scope']['topic'],'Owner'=>$v['scope']['account'],'Endpoint'=>$v['config']['endpoint'],
             'Protocol'=>'https','ConfirmationWasAuthenticated'=>'true'];
     };
-    $service=new PeraCRM_SNS_Provisioning($v['config'],static fn()=>$v['pem'],$api,base64_decode($v['key']));
+    $service=new PeraCRM_SNS_Provisioning($v['config'],static fn()=>$v['pem'],$api,base64_decode($v['storage_key']));
     $body=sns_body($v,['Type'=>'SubscriptionConfirmation','Message'=>'Synthetic confirmation','Token'=>'synthetic-private-token',
         'SubscribeURL'=>'https://untrusted.example.test/never-fetch']);
     if ($mode==='prepare') {
