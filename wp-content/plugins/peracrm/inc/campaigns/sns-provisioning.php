@@ -104,6 +104,11 @@ final class PeraCRM_SNS_Provisioning
         if (!is_array($out)) { throw new PeraCRM_SNS_Error('sns_dependency'); }
         return $out;
     }
+    private function tokenKey(array $r): string
+    {
+        return hash_hkdf('sha256',$this->key,32,'peracrm-sns-token-v1',json_encode([
+            $this->binding(),$r['created'],$r['expires'],$r['id'],$r['digest']],JSON_THROW_ON_ERROR));
+    }
     private static function time(int $now): void { if ($now<1) { throw new PeraCRM_SNS_Error('sns_invalid'); } }
     /** Persist pending authority BEFORE Subscribe. Same request may retry after network ambiguity. */
     public function request(string $confirmation,int $now): string
@@ -159,8 +164,9 @@ final class PeraCRM_SNS_Provisioning
                 || $receipt['timestamp']<$r['created']-300 || $receipt['timestamp']>$now+300
                 || $receipt['timestamp']<$now-3600) { throw new PeraCRM_SNS_Error('sns_conflict'); }
             $nonce=random_bytes(SODIUM_CRYPTO_SECRETBOX_NONCEBYTES);
-            $new=$old; $new['requests'][$i]+= ['id'=>$receipt['id'],'digest'=>$receipt['hash'],
-                'sealed'=>base64_encode($nonce.sodium_crypto_secretbox($receipt['token'],$nonce,$this->key))];
+            $new=$old; $new['requests'][$i]+= ['id'=>$receipt['id'],'digest'=>$receipt['hash']];
+            $new['requests'][$i]['sealed']=base64_encode($nonce.sodium_crypto_secretbox(
+                $receipt['token'],$nonce,$this->tokenKey($new['requests'][$i])));
             $new['requests'][$i]['state']='received';
             $this->save($old,$new); return 'received';
         });
@@ -175,14 +181,14 @@ final class PeraCRM_SNS_Provisioning
             if (!in_array($r['state'],['received','confirming'],true) || $now>$r['expires']) { throw new PeraCRM_SNS_Error('sns_conflict'); }
             $sealed=base64_decode($r['sealed'],true);
             if ($sealed===false || strlen($sealed)<=SODIUM_CRYPTO_SECRETBOX_NONCEBYTES) { throw new PeraCRM_SNS_Error('sns_storage'); }
-            $token=sodium_crypto_secretbox_open(substr($sealed,SODIUM_CRYPTO_SECRETBOX_NONCEBYTES),substr($sealed,0,SODIUM_CRYPTO_SECRETBOX_NONCEBYTES),$this->key);
+            $token=sodium_crypto_secretbox_open(substr($sealed,SODIUM_CRYPTO_SECRETBOX_NONCEBYTES),substr($sealed,0,SODIUM_CRYPTO_SECRETBOX_NONCEBYTES),$this->tokenKey($r));
             if ($token===false) { throw new PeraCRM_SNS_Error('sns_storage'); }
             $new=$old; $new['requests'][$i]['state']='confirming'; $new['requests'][$i]['confirm_actor']=$actor;
             $this->save($old,$new); // durable ambiguous state precedes any remote mutation
             try { $out=$this->call('ConfirmSubscription',['TopicArn'=>$this->config['topic'],'Token'=>$token,'AuthenticateOnUnsubscribe'=>'true']); }
             finally { sodium_memzero($token); }
             $arn=$out['SubscriptionArn']??null;
-            if (!is_string($arn) || preg_match('/\A'.preg_quote($this->config['topic'],'/').':[a-f0-9-]{36}\z/',$arn)!==1) { throw new PeraCRM_SNS_Error('sns_dependency'); }
+            if (!is_string($arn) || preg_match('/\A'.preg_quote($this->config['topic'],'/').':[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}\z/',$arn)!==1) { throw new PeraCRM_SNS_Error('sns_dependency'); }
             $attributes=$this->call('GetSubscriptionAttributes',['SubscriptionArn'=>$arn]);
             if (($attributes['TopicArn']??null)!==$this->config['topic'] || ($attributes['Owner']??null)!==$this->config['account']
                 || ($attributes['Endpoint']??null)!==$this->config['endpoint'] || ($attributes['Protocol']??null)!=='https'

@@ -53,6 +53,11 @@ peracrm_with_target_blog(static function () {
     $bad=$config; $bad['endpoint']='https://other.example.test/peracrm-ses-sns/';
     sns_reject(fn()=>$make($bad)->status($confirmation),'sns_conflict');
     $count=count($calls);
+    $tampered=maybe_unserialize($stored['option_value']); $tampered['requests'][0]['digest']=str_repeat('0',64);
+    $wpdb->update($wpdb->options,['option_value'=>maybe_serialize($tampered)],['option_name'=>$option]);
+    sns_reject(fn()=>$service->confirm($confirmation,$v['now']),'sns_storage');
+    $wpdb->update($wpdb->options,['option_value'=>$stored['option_value']],['option_name'=>$option]);
+    sns_expect(count($calls)===$count,'SQL ciphertext bound to immutable receipt metadata');
     $filter=static fn($sql)=>str_starts_with($sql,'UPDATE') && str_contains($sql,'peracrm_sns_provision_v1_')?'INVALID_SNS_PROVISION_SQL':$sql;
     add_filter('query',$filter);
     try { sns_reject(fn()=>$service->confirm($confirmation,$v['now']),'sns_storage'); }

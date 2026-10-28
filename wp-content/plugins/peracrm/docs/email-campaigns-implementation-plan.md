@@ -2180,3 +2180,12 @@ cron activation is performed. No AWS resources, credentials, real messages,
 merge or deployment. Existing external readiness, privacy/restore/retention and
 real internal inbox acceptance remain blocked. Hosted final-head checks and
 final change review must be recorded in the PR before claiming readiness.
+
+
+Actual-change review added real HTTP confirmation-only checks (generic privacy
+responses, disabled notifications, preflight, valid/forged/conflicting controls,
+certificate/storage failures and teardown) plus two independent-process races
+for intake and confirmation. The journal token key now also binds request time,
+expiry, signed MessageId and digest; swapping ciphertext/metadata fails closed,
+with an actual SQL corruption regression. These corrections supersede the initial
+runtime and require a new complete hosted run.

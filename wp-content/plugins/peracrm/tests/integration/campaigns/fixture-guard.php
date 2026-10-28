@@ -197,3 +197,23 @@ add_action('wp_ajax_peracrm_readiness_fixture',static function () {
         wp_send_json_success(peracrm_campaign_readiness_service()->assess());
     });
 });
+
+// Disposable control-plane HTTP mode. Only this fixture substitutes HTTPS site
+// identity for the private plain-HTTP Compose origin; no production TLS claim.
+$snsProvisionFixture=get_option('sns_provision_http_fixture');
+if (is_array($snsProvisionFixture)) {
+    define('PERACRM_SES_SNS_PROVISIONING',$snsProvisionFixture['config']);
+    add_filter('home_url',static fn($url)=>set_url_scheme($url,'https'));
+    add_filter('pre_http_request',static function ($pre,$args,$url) use ($snsProvisionFixture) {
+        if ($url==='https://sns.eu-west-1.amazonaws.com/SimpleNotificationService-'.str_repeat('a',32).'.pem'
+            && ($_SERVER['HTTP_X_FIXTURE_FAILURE']??'')!=='certificate') {
+            return ['headers'=>[],'body'=>$snsProvisionFixture['pem'],'response'=>['code'=>200,'message'=>'OK'],'cookies'=>[]];
+        }
+        return new WP_Error('fixture_network_disabled','Fixture dependency unavailable');
+    },20,3);
+    add_filter('query',static function ($sql) {
+        if (($_SERVER['HTTP_X_FIXTURE_FAILURE']??'')==='storage' && str_starts_with($sql,'UPDATE')
+            && str_contains($sql,'peracrm_sns_provision_v1_')) { return 'INVALID_SNS_PROVISION_HTTP_SQL'; }
+        return $sql;
+    });
+}
