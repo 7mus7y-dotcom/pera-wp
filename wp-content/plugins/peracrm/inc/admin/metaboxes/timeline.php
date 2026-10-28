@@ -408,7 +408,7 @@ function peracrm_timeline_normalize_activity(array $event, array $user_map)
 
         if (is_array($payload)) {
             $payload_for_context = $payload;
-            if (peracrm_timeline_is_enquiry_activity($event_type, $payload)) {
+            if ($event_type !== 'property_instruction_saved' && peracrm_timeline_is_enquiry_activity($event_type, $payload)) {
                 $detail_parts = [];
 
                 if (!empty($payload['message'])) {
@@ -428,6 +428,18 @@ function peracrm_timeline_normalize_activity(array $event, array $user_map)
                 }
 
                 $enquiry_details_html = peracrm_timeline_render_enquiry_details($payload);
+            }
+
+            if ($event_type === 'property_instruction_saved') {
+                $title = __('Property instruction saved', 'peracrm');
+                $reference = (string) ($payload['property_reference'] ?? '');
+                $previous = ucwords(str_replace('_', ' ', (string) ($payload['previous_status'] ?? '')));
+                $status = ucwords(str_replace('_', ' ', (string) ($payload['status'] ?? '')));
+                $detail = sprintf('#%d · %s · %s%s', (int) ($payload['instruction_id'] ?? 0), $reference, $previous !== '' ? $previous . ' → ' : '', $status);
+                if (!empty($payload['reason'])) {
+                    $detail .= ' · ' . (string) $payload['reason'];
+                }
+                $detail = peracrm_timeline_excerpt($detail, 60);
             }
 
             if ($detail === '' && !empty($payload['property_id'])) {

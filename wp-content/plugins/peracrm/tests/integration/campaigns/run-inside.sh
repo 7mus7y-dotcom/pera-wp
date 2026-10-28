@@ -21,6 +21,7 @@ else
     wp plugin activate peracrm
 fi
 wp eval-file /tests/assertions.php migrations
+wp eval-file /tests/property-instructions.php
 rm -f /tmp/peracrm-campaign-holder-ready /tmp/peracrm-campaign-duration-*
 wp eval-file /tests/worker.php hold &
 holder_pid=$!
