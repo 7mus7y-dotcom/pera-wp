@@ -107,7 +107,7 @@ final class Pera_ML_Fields {
 	public function approved_for_object( $object_id, $post_type = null ) {
 		$post_type = $post_type ? $post_type : ( function_exists( 'get_post_type' ) ? get_post_type( $object_id ) : 'post' );
 		$fields = $this->approved( $post_type );
-		if ( self::is_archive_settings_object( $object_id ) || ( (int) $object_id > 0 && (int) $object_id === (int) get_option( 'page_for_posts' ) ) ) $fields = array_merge( $fields, self::archive_settings_fields(), array( 'featured_links_heading', 'featured_links_intro' ) );
+		if ( self::is_archive_settings_object( $object_id ) || ( (int) $object_id > 0 && (int) $object_id === ( function_exists( 'get_option' ) ? (int) get_option( 'page_for_posts' ) : 0 ) ) ) $fields = array_merge( $fields, self::archive_settings_fields(), array( 'featured_links_heading', 'featured_links_intro' ) );
 		return array_values( array_unique( $fields ) );
 	}
 	public function get( $post_id, $field, $source, $language = null ) {
