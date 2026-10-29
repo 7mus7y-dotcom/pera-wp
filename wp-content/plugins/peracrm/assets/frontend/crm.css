@@ -8693,3 +8693,78 @@ body.crm-route #site-header.peracrm-shell-header .peracrm-header-search__status 
     display: block !important;
   }
 }
+
+
+/* Clients directory (including 72-hour leads): date shares the heading panel. */
+.crm-page--leads .crm-page-header__inner {
+  grid-template-columns: minmax(0, 1fr);
+}
+.crm-page--leads .crm-page-header__main,
+.crm-page--leads .crm-page-date-pill {
+  grid-area: 1 / 1;
+}
+.crm-page--leads .crm-page-header__main {
+  padding-right: clamp(126px, 24%, 185px);
+  min-width: 0;
+}
+.crm-page--leads .crm-page-date-pill {
+  position: relative;
+  top: auto;
+  z-index: 120;
+  align-self: center;
+  justify-self: end;
+  margin: 0 12px 0 0;
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+  color: var(--text-soft);
+  pointer-events: none;
+}
+.crm-page--leads .crm-page-date-pill__label {
+  display: none;
+}
+.crm-page--leads .crm-page-date-pill__value {
+  font-size: 0.78rem;
+  line-height: 1.25;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+@media (max-width: 767px) {
+  /* Retain the existing mobile sticky positioning rather than disabling it. */
+  .crm-page--leads .crm-page-date-pill {
+    position: sticky;
+    top: var(--crm-shell-sticky-offset, 82px);
+  }
+
+  /* Focused 72-hour view only: halve the horizontal viewport gutters. */
+  .crm-page--leads:has(.crm-new72-workspace) {
+    --crm-shell-max-width: calc(100% - 20px);
+  }
+  .crm-page--leads:has(.crm-new72-workspace) > .crm-page-header {
+    padding-inline: 10px;
+  }
+  .crm-page--leads:has(.crm-new72-workspace) .content-panel {
+    padding-inline: 5px;
+  }
+  .crm-page--leads:has(.crm-new72-workspace) .content-panel-box {
+    padding-inline: 8px;
+  }
+
+  /* Match the More filters disclosure to the existing CRM action buttons. */
+  .crm-page--leads .crm-new72-toolbar__filters > summary.btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    box-sizing: border-box;
+    width: auto;
+    min-height: 36px;
+    padding: 8px 15px;
+    font-size: var(--crm-button-core-font-size, 0.95rem);
+    font-weight: var(--crm-button-core-weight, 600);
+    line-height: var(--crm-button-core-line-height, 1.2);
+    white-space: nowrap;
+  }
+}
