@@ -8433,32 +8433,32 @@ body.crm-route #site-header.peracrm-shell-header .peracrm-header-search__status 
 }
 
 
-/* Client workspace: align header search and quick actions with the CRM dark surface. */
+/* CRM-wide dark-mode search, plus client-only quick actions. */
 @media (prefers-color-scheme: dark) {
-  body.crm-route:has(.crm-page--client-view) #site-header.peracrm-shell-header .peracrm-header-search__input {
+  body.crm-route #site-header.peracrm-shell-header .peracrm-header-search__input {
     background: var(--crm-surface, #151e30);
     border-color: var(--crm-border, rgba(255, 255, 255, 0.24));
     color: var(--crm-text, #f8fafc);
     caret-color: currentColor;
   }
-  body.crm-route:has(.crm-page--client-view) #site-header.peracrm-shell-header .peracrm-header-search__input::placeholder {
+  body.crm-route #site-header.peracrm-shell-header .peracrm-header-search__input::placeholder {
     color: var(--crm-text-muted, #aab7cc);
     opacity: 1;
   }
-  body.crm-route:has(.crm-page--client-view) #site-header.peracrm-shell-header .peracrm-header-search__results {
+  body.crm-route #site-header.peracrm-shell-header .peracrm-header-search__results {
     background: var(--crm-surface, #151e30);
     border-color: var(--crm-border, rgba(255, 255, 255, 0.24));
   }
-  body.crm-route:has(.crm-page--client-view) #site-header.peracrm-shell-header .peracrm-header-search__result,
-  body.crm-route:has(.crm-page--client-view) #site-header.peracrm-shell-header .peracrm-header-search__status {
+  body.crm-route #site-header.peracrm-shell-header .peracrm-header-search__result,
+  body.crm-route #site-header.peracrm-shell-header .peracrm-header-search__status {
     color: var(--crm-text, #f8fafc);
   }
-  body.crm-route:has(.crm-page--client-view) #site-header.peracrm-shell-header .peracrm-header-search__result-meta {
+  body.crm-route #site-header.peracrm-shell-header .peracrm-header-search__result-meta {
     color: var(--crm-text-muted, #aab7cc);
   }
-  body.crm-route:has(.crm-page--client-view) #site-header.peracrm-shell-header .peracrm-header-search__result:hover,
-  body.crm-route:has(.crm-page--client-view) #site-header.peracrm-shell-header .peracrm-header-search__result:focus-visible,
-  body.crm-route:has(.crm-page--client-view) #site-header.peracrm-shell-header .peracrm-header-search__result.is-active {
+  body.crm-route #site-header.peracrm-shell-header .peracrm-header-search__result:hover,
+  body.crm-route #site-header.peracrm-shell-header .peracrm-header-search__result:focus-visible,
+  body.crm-route #site-header.peracrm-shell-header .peracrm-header-search__result.is-active {
     background: var(--crm-surface-subtle, #233149);
   }
   .crm-page--client-view .crm-summary-header__actions-panel {
