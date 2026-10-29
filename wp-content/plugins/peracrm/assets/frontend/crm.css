@@ -8695,7 +8695,7 @@ body.crm-route #site-header.peracrm-shell-header .peracrm-header-search__status 
 }
 
 
-/* Clients directory (including 72-hour leads): date shares the heading panel. */
+/* All Clients directory views: date pill sits inside the heading card. */
 .crm-page--leads .crm-page-header__inner {
   grid-template-columns: minmax(0, 1fr);
 }
@@ -8704,7 +8704,7 @@ body.crm-route #site-header.peracrm-shell-header .peracrm-header-search__status 
   grid-area: 1 / 1;
 }
 .crm-page--leads .crm-page-header__main {
-  padding-right: clamp(126px, 24%, 185px);
+  padding-right: clamp(170px, 27%, 230px);
   min-width: 0;
 }
 .crm-page--leads .crm-page-date-pill {
@@ -8714,16 +8714,17 @@ body.crm-route #site-header.peracrm-shell-header .peracrm-header-search__status 
   align-self: center;
   justify-self: end;
   margin: 0 12px 0 0;
-  padding: 0;
-  border: 0;
-  border-radius: 0;
-  background: transparent;
-  box-shadow: none;
-  color: var(--text-soft);
+  padding: 6px 12px;
+  border: 1px solid rgba(0, 45, 114, 0.12);
+  border-radius: 999px;
+  background: var(--surface, #fff);
+  color: var(--text, #0f172a);
+  box-shadow: 0 2px 6px rgba(15, 23, 42, 0.06);
+  white-space: nowrap;
   pointer-events: none;
 }
 .crm-page--leads .crm-page-date-pill__label {
-  display: none;
+  display: inline;
 }
 .crm-page--leads .crm-page-date-pill__value {
   font-size: 0.78rem;
@@ -8731,12 +8732,36 @@ body.crm-route #site-header.peracrm-shell-header .peracrm-header-search__status 
   font-weight: 600;
   white-space: nowrap;
 }
+@media (prefers-color-scheme: dark) {
+  .crm-page--leads .crm-page-date-pill {
+    background: var(--crm-surface, #151e30);
+    border-color: var(--crm-border, rgba(255,255,255,0.2));
+    color: var(--crm-text, #f8fafc);
+  }
+  .crm-page--leads .crm-page-date-pill__label {
+    color: var(--crm-text-muted, #aab7cc);
+  }
+}
 
 @media (max-width: 767px) {
-  /* Retain the existing mobile sticky positioning rather than disabling it. */
-  .crm-page--leads .crm-page-date-pill {
-    position: sticky;
-    top: var(--crm-shell-sticky-offset, 82px);
+  /* Fixed state is applied only after the heading scrolls out of view.
+     The date node moves to body to escape the short header's containing block. */
+  .crm-page--leads .crm-page-date-pill.is-crm-date-floating {
+    position: fixed;
+    top: var(--crm-date-floating-top, 12px);
+    right: max(12px, env(safe-area-inset-right));
+    left: auto;
+    margin: 0;
+    z-index: 1097;
+  }
+  .crm-page--leads .crm-page-header__main {
+    padding-right: 10px;
+    padding-top: 45px;
+  }
+  .crm-page--leads .crm-page-date-pill:not(.is-crm-date-floating) {
+    position: relative;
+    align-self: start;
+    margin-top: 8px;
   }
 
   /* Focused 72-hour view only: halve the horizontal viewport gutters. */
@@ -8744,7 +8769,11 @@ body.crm-route #site-header.peracrm-shell-header .peracrm-header-search__status 
     --crm-shell-max-width: calc(100% - 20px);
   }
   .crm-page--leads:has(.crm-new72-workspace) > .crm-page-header {
-    padding-inline: 10px;
+    padding-inline: 5px;
+  }
+  .crm-page--leads:has(.crm-new72-workspace) > .crm-page-header .crm-page-header__inner {
+    width: 100%;
+    max-width: none;
   }
   .crm-page--leads:has(.crm-new72-workspace) .content-panel {
     padding-inline: 5px;
@@ -8766,5 +8795,43 @@ body.crm-route #site-header.peracrm-shell-header .peracrm-header-search__status 
     font-weight: var(--crm-button-core-weight, 600);
     line-height: var(--crm-button-core-line-height, 1.2);
     white-space: nowrap;
+  }
+}
+
+
+/* Portaled mobile date stays in the same pill styling, outside the header
+   containing block; do not let the heading's short height clip its travel. */
+@media (max-width: 767px) {
+  body.crm-route > .crm-page-date-pill.is-crm-date-floating {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    position: fixed;
+    top: var(--crm-date-floating-top, 12px);
+    right: max(12px, env(safe-area-inset-right));
+    left: auto;
+    z-index: 1097;
+    margin: 0;
+    padding: 6px 12px;
+    border: 1px solid rgba(0,45,114,0.12);
+    border-radius: 999px;
+    background: var(--surface, #fff);
+    color: var(--text, #0f172a);
+    box-shadow: 0 8px 22px rgba(15,23,42,0.12);
+    white-space: nowrap;
+    pointer-events: none;
+  }
+  body.crm-route > .crm-page-date-pill.is-crm-date-floating .crm-page-date-pill__value {
+    font-size: 0.78rem;
+  }
+}
+@media (max-width: 767px) and (prefers-color-scheme: dark) {
+  body.crm-route > .crm-page-date-pill.is-crm-date-floating {
+    background: var(--crm-surface, #151e30);
+    border-color: var(--crm-border, rgba(255,255,255,0.2));
+    color: var(--crm-text, #f8fafc);
+  }
+  body.crm-route > .crm-page-date-pill.is-crm-date-floating .crm-page-date-pill__label {
+    color: var(--crm-text-muted, #aab7cc);
   }
 }
