@@ -197,7 +197,7 @@ peracrm_frontend_render_shell_header();
   <?php
   $header_title = $is_new72 ? __( 'New leads', 'peracrm' ) : ( $is_header_search ? sprintf( __( 'Search results for ‘%s’', 'peracrm' ), $header_search_term ) : ( $is_leads ? ( $clients_type_view === 'clients' ? __( 'Clients', 'peracrm' ) : ( $clients_type_view === 'inactive' ? __( 'Inactive records', 'peracrm' ) : ( $clients_type_view === 'agent' ? __( 'Agents', 'peracrm' ) : __( 'Leads', 'peracrm' ) ) ) ) : ( $is_tasks ? __( 'Tasks', 'peracrm' ) : __( 'CRM overview', 'peracrm' ) ) ) );
   $header_description = $is_new72 ? __( 'Leads created within the last 72 hours.', 'peracrm' ) : ( $is_header_search ? ( ! empty( $leads_data['is_short_search'] ) ? __( 'Enter at least two characters to search CRM records.', 'peracrm' ) : __( 'Matching permitted CRM records by name, email or phone.', 'peracrm' ) ) : ( $is_leads ? __( 'Manage lead and client records without hero-framed filters.', 'peracrm' ) : ( $is_tasks ? __( 'Track open reminders and due work in a compact workspace shell.', 'peracrm' ) : __( 'Staff workspace for daily pipeline, workload, and account visibility.', 'peracrm' ) ) ) );
-  $header_meta = $is_header_search ? sprintf( __( '%d matching records', 'peracrm' ), (int) ( $leads_data['total'] ?? 0 ) ) : ( $is_leads ? sprintf( __( '%d total records', 'peracrm' ), (int) ( $leads_data['total'] ?? 0 ) ) : ( $is_tasks ? sprintf( __( '%d open tasks', 'peracrm' ), count( is_array( $tasks_data['all'] ?? null ) ? $tasks_data['all'] : array() ) ) : __( 'Operational workspace', 'peracrm' ) ) );
+  $header_meta = $is_new72 ? sprintf( __( '%d recent leads', 'peracrm' ), (int) ( $leads_data['total'] ?? 0 ) ) : ( $is_header_search ? sprintf( __( '%d matching records', 'peracrm' ), (int) ( $leads_data['total'] ?? 0 ) ) : ( $is_leads ? sprintf( __( '%d total records', 'peracrm' ), (int) ( $leads_data['total'] ?? 0 ) ) : ( $is_tasks ? sprintf( __( '%d open tasks', 'peracrm' ), count( is_array( $tasks_data['all'] ?? null ) ? $tasks_data['all'] : array() ) ) : __( 'Operational workspace', 'peracrm' ) ) ) );
   $header_actions = array();
   if ( $is_header_search ) {
 	  $header_actions[] = array(
@@ -813,7 +813,7 @@ peracrm_frontend_render_shell_header();
                   <?php endforeach; ?>
                 </select>
               </label>
-              <?php if ( function_exists( 'peracrm_get_impersonation_ui_state' ) && empty( $impersonation_ui['is_impersonating'] ) ) : ?>
+              <?php if ( ! function_exists( 'peracrm_get_impersonation_ui_state' ) || empty( peracrm_get_impersonation_ui_state()['is_impersonating'] ) ) : ?>
               <label>
                 <span><?php esc_html_e( 'Advisor', 'peracrm' ); ?></span>
                 <select class="crm-search-control" name="advisor">
@@ -872,8 +872,8 @@ peracrm_frontend_render_shell_header();
         <?php if ( ! $is_header_search ) : ?>
         <header class="crm-section__header">
           <div class="crm-section__heading-group">
-            <h2 id="crm-leads-table-heading" class="crm-section__title"><?php echo esc_htmlecho esc_html( $is_new72 ? __( 'Recent leads', 'peracrm' ) : __( 'Record list', 'peracrm' ) ); ?></h2>
-            <p class="crm-section__description"><?php echo esc_html__( 'Desktop defaults to a table-first list so names, status, source, owner, and recency remain visible in a single scan path.', 'peracrm' ); ?></p>
+            <h2 id="crm-leads-table-heading" class="crm-section__title"><?php echo esc_html( $is_new72 ? __( 'Recent leads', 'peracrm' ) : __( 'Record list', 'peracrm' ) ); ?></h2>
+            <p class="crm-section__description"><?php echo esc_html( $is_new72 ? __( 'Scan recent records and open the lead you want to follow up.', 'peracrm' ) : __( 'Desktop defaults to a table-first list so names, status, source, owner, and recency remain visible in a single scan path.', 'peracrm' ) ); ?></p>
           </div>
         </header>
         <?php endif; ?>
@@ -955,8 +955,8 @@ peracrm_frontend_render_shell_header();
 	      <section class="crm-section crm-section--flush crm-list-workspace crm-list-workspace--rows is-hidden" data-crm-view="cards" aria-labelledby="crm-leads-row-list-heading">
           <header class="crm-section__header">
             <div class="crm-section__heading-group">
-              <h2 id="crm-leads-row-list-heading" class="crm-section__title"><?php echo esc_htmlecho esc_html( $is_new72 ? __( 'Recent leads', 'peracrm' ) : __( 'Structured list view', 'peracrm' ) ); ?></h2>
-              <p class="crm-section__description"><?php echo esc_html__( 'This compact row-list fallback is kept for narrower screens and secondary browsing, not as the main desktop workspace.', 'peracrm' ); ?></p>
+              <h2 id="crm-leads-row-list-heading" class="crm-section__title"><?php echo esc_html( $is_new72 ? __( 'Recent leads', 'peracrm' ) : __( 'Structured list view', 'peracrm' ) ); ?></h2>
+              <p class="crm-section__description"><?php echo esc_html( $is_new72 ? __( 'Recent leads in your CRM scope.', 'peracrm' ) : __( 'This compact row-list fallback is kept for narrower screens and secondary browsing, not as the main desktop workspace.', 'peracrm' ) ); ?></p>
             </div>
           </header>
           <div class="crm-section__body">
@@ -987,7 +987,7 @@ peracrm_frontend_render_shell_header();
                       <div class="crm-meta-line">
                         <span><strong><?php esc_html_e( 'Source:', 'peracrm' ); ?></strong> <?php echo esc_html( '' !== (string) ( $lead['source'] ?? '' ) ? (string) $lead['source'] : '—' ); ?></span>
                         <span><strong><?php esc_html_e( 'Advisor:', 'peracrm' ); ?></strong> <?php echo esc_html( '' !== (string) ( $lead['assigned_to'] ?? '' ) ? (string) $lead['assigned_to'] : '—' ); ?></span>
-                        <span><strong><?php esc_html_e( 'Last activity:', 'peracrm' ); ?></strong> <?php echo esc_html( '' !== $lead['last_activity'] ? (string) $lead['last_activity'] : '—' ); ?></span>
+                        <span><strong><?php echo esc_html( $is_new72 ? __( 'Received:', 'peracrm' ) : __( 'Last activity:', 'peracrm' ) ); ?></strong> <?php echo esc_html( $is_new72 ? (string) ( $lead['created'] ?? '—' ) : ( '' !== $lead['last_activity'] ? (string) $lead['last_activity'] : '—' ) ); ?></span>
                       </div>
                       <p class="crm-row-list__summary"><strong><?php esc_html_e( 'Engagement:', 'peracrm' ); ?></strong> <?php echo esc_html( (string) $lead['engagement_state'] ); ?><?php echo '' !== (string) ( $lead['disposition'] ?? '' ) ? esc_html( ' • ' . (string) $lead['disposition'] ) : ''; ?></p>
                     </div>
