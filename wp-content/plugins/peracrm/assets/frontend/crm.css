@@ -8769,7 +8769,8 @@ body.crm-route #site-header.peracrm-shell-header .peracrm-header-search__status 
     --crm-shell-max-width: calc(100% - 20px);
   }
   .crm-page--leads:has(.crm-new72-workspace) > .crm-page-header {
-    padding-inline: 5px;
+    /* Match the inset of the nested Recent leads panels rather than the viewport. */
+    padding-inline: 22px;
   }
   .crm-page--leads:has(.crm-new72-workspace) > .crm-page-header .crm-page-header__inner {
     width: 100%;
