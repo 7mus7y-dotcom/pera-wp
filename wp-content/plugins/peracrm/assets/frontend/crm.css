@@ -8433,32 +8433,32 @@ body.crm-route #site-header.peracrm-shell-header .peracrm-header-search__status 
 }
 
 
-/* Client workspace: align header search and quick actions with the CRM dark surface. */
+/* CRM-wide dark-mode search, plus client-only quick actions. */
 @media (prefers-color-scheme: dark) {
-  body.crm-route:has(.crm-page--client-view) #site-header.peracrm-shell-header .peracrm-header-search__input {
+  body.crm-route #site-header.peracrm-shell-header .peracrm-header-search__input {
     background: var(--crm-surface, #151e30);
     border-color: var(--crm-border, rgba(255, 255, 255, 0.24));
     color: var(--crm-text, #f8fafc);
     caret-color: currentColor;
   }
-  body.crm-route:has(.crm-page--client-view) #site-header.peracrm-shell-header .peracrm-header-search__input::placeholder {
+  body.crm-route #site-header.peracrm-shell-header .peracrm-header-search__input::placeholder {
     color: var(--crm-text-muted, #aab7cc);
     opacity: 1;
   }
-  body.crm-route:has(.crm-page--client-view) #site-header.peracrm-shell-header .peracrm-header-search__results {
+  body.crm-route #site-header.peracrm-shell-header .peracrm-header-search__results {
     background: var(--crm-surface, #151e30);
     border-color: var(--crm-border, rgba(255, 255, 255, 0.24));
   }
-  body.crm-route:has(.crm-page--client-view) #site-header.peracrm-shell-header .peracrm-header-search__result,
-  body.crm-route:has(.crm-page--client-view) #site-header.peracrm-shell-header .peracrm-header-search__status {
+  body.crm-route #site-header.peracrm-shell-header .peracrm-header-search__result,
+  body.crm-route #site-header.peracrm-shell-header .peracrm-header-search__status {
     color: var(--crm-text, #f8fafc);
   }
-  body.crm-route:has(.crm-page--client-view) #site-header.peracrm-shell-header .peracrm-header-search__result-meta {
+  body.crm-route #site-header.peracrm-shell-header .peracrm-header-search__result-meta {
     color: var(--crm-text-muted, #aab7cc);
   }
-  body.crm-route:has(.crm-page--client-view) #site-header.peracrm-shell-header .peracrm-header-search__result:hover,
-  body.crm-route:has(.crm-page--client-view) #site-header.peracrm-shell-header .peracrm-header-search__result:focus-visible,
-  body.crm-route:has(.crm-page--client-view) #site-header.peracrm-shell-header .peracrm-header-search__result.is-active {
+  body.crm-route #site-header.peracrm-shell-header .peracrm-header-search__result:hover,
+  body.crm-route #site-header.peracrm-shell-header .peracrm-header-search__result:focus-visible,
+  body.crm-route #site-header.peracrm-shell-header .peracrm-header-search__result.is-active {
     background: var(--crm-surface-subtle, #233149);
   }
   .crm-page--client-view .crm-summary-header__actions-panel {
@@ -8467,31 +8467,95 @@ body.crm-route #site-header.peracrm-shell-header .peracrm-header-search__status 
   }
 }
 
-/* Keep the existing mobile search form and autocomplete; dock only after its origin. */
+/* Shared mobile CRM search: always docked beside the existing floating toggle. */
 @media (max-width: 767px) {
-  body.crm-route:has(.crm-page--client-view) #site-header.peracrm-shell-header .peracrm-header-search.is-crm-search-docked {
+  body.crm-route #site-header.peracrm-shell-header .peracrm-header-search.is-crm-search-docked {
     position: fixed;
     left: max(12px, env(safe-area-inset-left));
-    /* Reserve the 54px CRM floating toggle plus 12px clearance and its 16px right inset. */
+    /* 54px floating button, 16px right inset, 12px gap. */
     right: calc(max(16px, env(safe-area-inset-right)) + 66px);
-    bottom: calc(16px + env(safe-area-inset-bottom));
+    bottom: calc(16px + env(safe-area-inset-bottom) + var(--crm-search-keyboard-offset, 0px));
     width: auto;
-    min-width: 0;
     max-width: none;
+    min-width: 0;
     margin: 0;
     z-index: 1100;
-    filter: drop-shadow(0 4px 14px rgba(0, 0, 0, 0.25));
+    filter: drop-shadow(0 4px 14px rgba(0, 0, 0, 0.22));
   }
-  body.crm-route:has(.crm-page--client-view) #site-header.peracrm-shell-header .peracrm-header-search.is-crm-search-docked .peracrm-header-search__results {
+  body.crm-route #site-header.peracrm-shell-header .peracrm-header-search.is-crm-search-docked .peracrm-header-search__results {
     top: auto;
     bottom: calc(100% + 8px);
     max-height: min(50dvh, 360px);
   }
-  body.crm-route:has(.crm-page--client-view) #site-header.peracrm-shell-header .peracrm-header-search.is-crm-search-docked .peracrm-header-search__list {
-    max-height: min(45dvh, 320px);
+  body.crm-route #site-header.peracrm-shell-header .peracrm-header-search.is-crm-search-docked .peracrm-header-search__list {
+    max-height: min(42dvh, 320px);
+  }
+  /* Content and controls must remain reachable beneath the persistent search. */
+  body.crm-route .crm-page {
+    padding-bottom: calc(84px + env(safe-area-inset-bottom));
   }
 }
 
+/* Recent-leads mobile hierarchy: one dense toolbar and a proper results panel. */
+@media (max-width: 767px) {
+  .crm-page--leads .crm-new72-workspace {
+    display: grid;
+    gap: 12px;
+  }
+  .crm-page--leads .crm-new72-toolbar {
+    gap: 8px;
+    padding: 12px;
+    margin-bottom: 0;
+  }
+  .crm-page--leads .crm-new72-toolbar__heading {
+    align-items: center;
+    gap: 8px;
+  }
+  .crm-page--leads .crm-new72-toolbar__heading p {
+    font-size: 0.82rem;
+    line-height: 1.4;
+  }
+  .crm-page--leads .crm-new72-toolbar__form {
+    gap: 7px;
+  }
+  .crm-page--leads .crm-new72-toolbar__form .btn {
+    min-height: 36px;
+  }
+  .crm-page--leads .crm-new72-workspace > .crm-list-workspace--rows[data-crm-view="cards"] {
+    display: block !important;
+    padding: 12px;
+    margin: 0;
+    border: 1px solid var(--border);
+    border-radius: var(--crm-shell-radius, 12px);
+    background: var(--surface);
+    min-width: 0;
+  }
+  .crm-page--leads .crm-new72-workspace > .crm-list-workspace--rows[data-crm-view="cards"] > .crm-section__header,
+  .crm-page--leads .crm-new72-workspace > .crm-list-workspace--rows[data-crm-view="cards"] > .crm-section__body {
+    padding: 0;
+  }
+  .crm-page--leads .crm-new72-workspace > .crm-list-workspace--rows[data-crm-view="cards"] > .crm-section__header {
+    padding-bottom: 10px;
+  }
+  .crm-page--leads .crm-new72-workspace .crm-list-workspace__rows {
+    display: grid;
+    gap: 10px;
+  }
+  .crm-page--leads .crm-new72-workspace .crm-list-workspace__rows > .crm-row-list__item {
+    padding: 12px;
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    background: var(--surface-soft);
+    min-width: 0;
+    box-sizing: border-box;
+  }
+  .crm-page--leads .crm-new72-workspace .crm-row-list__header {
+    gap: 8px;
+  }
+  .crm-page--leads .crm-new72-workspace .crm-row-list__aside {
+    margin-top: 8px;
+  }
+}
 
 /* Client view only: place the date inside the title bar at every breakpoint. */
 .crm-page--client-view .crm-page-header__inner {
