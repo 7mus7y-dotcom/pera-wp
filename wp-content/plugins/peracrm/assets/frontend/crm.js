@@ -1,3 +1,66 @@
+
+// Keep the Clients date pill in the heading until it scrolls away, then
+// move the same node into the document so it stays fixed to the viewport.
+(function () {
+  var page = document.querySelector('.crm-page--leads');
+  var date = page && page.querySelector('.crm-page-date-pill');
+  var heading = page && page.querySelector('.crm-page-header__main');
+  if (!page || !date || !heading || !window.matchMedia) {
+    return;
+  }
+
+  var mobile = window.matchMedia('(max-width: 767px)');
+  var home = date.parentNode;
+  var next = date.nextSibling;
+  var frame = 0;
+  var menu = document.querySelector('#site-header.peracrm-shell-header .crm-side-nav__toggle--header');
+
+  function update() {
+    frame = 0;
+    var menuBottom = 0;
+    if (menu) {
+      var rect = menu.getBoundingClientRect();
+      // Only follow a visible menu button; otherwise dock near viewport top.
+      if (rect.bottom > 0 && rect.top < window.innerHeight) {
+        menuBottom = rect.bottom;
+      }
+    }
+    var top = Math.max(12, Math.ceil(menuBottom + 8));
+    var shouldFloat = mobile.matches && heading.getBoundingClientRect().bottom < top;
+
+    if (shouldFloat) {
+      if (date.parentNode !== document.body) {
+        document.body.appendChild(date);
+        date.classList.add('is-crm-date-floating');
+      }
+      date.style.setProperty('--crm-date-floating-top', top + 'px');
+    } else if (date.parentNode !== home) {
+      if (next && next.parentNode === home) {
+        home.insertBefore(date, next);
+      } else {
+        home.appendChild(date);
+      }
+      date.classList.remove('is-crm-date-floating');
+      date.style.removeProperty('--crm-date-floating-top');
+    }
+  }
+
+  function schedule() {
+    if (!frame) {
+      frame = window.requestAnimationFrame(update);
+    }
+  }
+
+  update();
+  window.addEventListener('scroll', schedule, { passive: true });
+  window.addEventListener('resize', schedule, { passive: true });
+  if (mobile.addEventListener) {
+    mobile.addEventListener('change', schedule);
+  } else if (mobile.addListener) {
+    mobile.addListener(schedule);
+  }
+})();
+
 (function () {
   var header = document.querySelector('#site-header.peracrm-shell-header');
   var crmPage = document.querySelector('.crm-page');
