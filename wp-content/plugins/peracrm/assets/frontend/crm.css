@@ -8797,3 +8797,41 @@ body.crm-route #site-header.peracrm-shell-header .peracrm-header-search__status 
     white-space: nowrap;
   }
 }
+
+
+/* Portaled mobile date stays in the same pill styling, outside the header
+   containing block; do not let the heading's short height clip its travel. */
+@media (max-width: 767px) {
+  body.crm-route > .crm-page-date-pill.is-crm-date-floating {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    position: fixed;
+    top: var(--crm-date-floating-top, 12px);
+    right: max(12px, env(safe-area-inset-right));
+    left: auto;
+    z-index: 1097;
+    margin: 0;
+    padding: 6px 12px;
+    border: 1px solid rgba(0,45,114,0.12);
+    border-radius: 999px;
+    background: var(--surface, #fff);
+    color: var(--text, #0f172a);
+    box-shadow: 0 8px 22px rgba(15,23,42,0.12);
+    white-space: nowrap;
+    pointer-events: none;
+  }
+  body.crm-route > .crm-page-date-pill.is-crm-date-floating .crm-page-date-pill__value {
+    font-size: 0.78rem;
+  }
+}
+@media (max-width: 767px) and (prefers-color-scheme: dark) {
+  body.crm-route > .crm-page-date-pill.is-crm-date-floating {
+    background: var(--crm-surface, #151e30);
+    border-color: var(--crm-border, rgba(255,255,255,0.2));
+    color: var(--crm-text, #f8fafc);
+  }
+  body.crm-route > .crm-page-date-pill.is-crm-date-floating .crm-page-date-pill__label {
+    color: var(--crm-text-muted, #aab7cc);
+  }
+}
