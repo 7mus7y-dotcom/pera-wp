@@ -15,6 +15,7 @@ $header_search_term = isset( $_GET['crm_client_search'] ) ? trim( sanitize_text_
 $is_header_search   = $is_leads && '' !== $header_search_term;
 $clients_type_view = isset( $_GET['type'] ) ? sanitize_key( wp_unslash( (string) $_GET['type'] ) ) : 'leads'; // phpcs:ignore WordPress.Security.NonceVerification.Recommended
 $clients_type_view = in_array( $clients_type_view, array( 'leads', 'clients', 'inactive', 'agent' ), true ) ? $clients_type_view : 'leads';
+$is_new72 = $is_leads && ! $is_header_search && 'leads' === $clients_type_view && isset( $_GET['filter'] ) && 'new72' === sanitize_key( wp_unslash( (string) $_GET['filter'] ) );
 $derived_type_filter = 'clients' === $clients_type_view
 	? 'client'
 	: ( 'agent' === $clients_type_view ? 'agent' : 'lead' );
@@ -90,7 +91,7 @@ if ( ! $is_leads && ! $is_tasks && function_exists( 'pera_crm_get_new_lead_ids_f
 		: array();
 }
 
-if ( $is_leads && ! $is_header_search && 'leads' === $clients_type_view && function_exists( 'pera_crm_get_new_lead_ids_for_user' ) ) {
+if ( $is_leads && ! $is_header_search && ! $is_new72 && 'leads' === $clients_type_view && function_exists( 'pera_crm_get_new_lead_ids_for_user' ) ) {
 	$new_lead_ids = array_map( 'intval', pera_crm_get_new_lead_ids_for_user( 0, 72 ) );
 	$new_lead_ids = array_values( array_filter( $new_lead_ids ) );
 	$new_lead_ids = array_slice( $new_lead_ids, 0, 8 );
@@ -194,8 +195,8 @@ peracrm_frontend_render_shell_header();
 
 <main id="primary" class="site-main crm-page crm-page--<?php echo esc_attr( $is_leads ? 'leads' : ( $is_tasks ? 'tasks' : 'overview' ) ); ?>">
   <?php
-  $header_title = $is_header_search ? sprintf( __( 'Search results for ‘%s’', 'peracrm' ), $header_search_term ) : ( $is_leads ? ( $clients_type_view === 'clients' ? __( 'Clients', 'peracrm' ) : ( $clients_type_view === 'inactive' ? __( 'Inactive records', 'peracrm' ) : ( $clients_type_view === 'agent' ? __( 'Agents', 'peracrm' ) : __( 'Leads', 'peracrm' ) ) ) ) : ( $is_tasks ? __( 'Tasks', 'peracrm' ) : __( 'CRM overview', 'peracrm' ) ) );
-  $header_description = $is_header_search ? ( ! empty( $leads_data['is_short_search'] ) ? __( 'Enter at least two characters to search CRM records.', 'peracrm' ) : __( 'Matching permitted CRM records by name, email or phone.', 'peracrm' ) ) : ( $is_leads ? __( 'Manage lead and client records without hero-framed filters.', 'peracrm' ) : ( $is_tasks ? __( 'Track open reminders and due work in a compact workspace shell.', 'peracrm' ) : __( 'Staff workspace for daily pipeline, workload, and account visibility.', 'peracrm' ) ) );
+  $header_title = $is_new72 ? __( 'New leads', 'peracrm' ) : ( $is_header_search ? sprintf( __( 'Search results for ‘%s’', 'peracrm' ), $header_search_term ) : ( $is_leads ? ( $clients_type_view === 'clients' ? __( 'Clients', 'peracrm' ) : ( $clients_type_view === 'inactive' ? __( 'Inactive records', 'peracrm' ) : ( $clients_type_view === 'agent' ? __( 'Agents', 'peracrm' ) : __( 'Leads', 'peracrm' ) ) ) ) : ( $is_tasks ? __( 'Tasks', 'peracrm' ) : __( 'CRM overview', 'peracrm' ) ) ) );
+  $header_description = $is_new72 ? __( 'Leads created within the last 72 hours.', 'peracrm' ) : ( $is_header_search ? ( ! empty( $leads_data['is_short_search'] ) ? __( 'Enter at least two characters to search CRM records.', 'peracrm' ) : __( 'Matching permitted CRM records by name, email or phone.', 'peracrm' ) ) : ( $is_leads ? __( 'Manage lead and client records without hero-framed filters.', 'peracrm' ) : ( $is_tasks ? __( 'Track open reminders and due work in a compact workspace shell.', 'peracrm' ) : __( 'Staff workspace for daily pipeline, workload, and account visibility.', 'peracrm' ) ) ) );
   $header_meta = $is_header_search ? sprintf( __( '%d matching records', 'peracrm' ), (int) ( $leads_data['total'] ?? 0 ) ) : ( $is_leads ? sprintf( __( '%d total records', 'peracrm' ), (int) ( $leads_data['total'] ?? 0 ) ) : ( $is_tasks ? sprintf( __( '%d open tasks', 'peracrm' ), count( is_array( $tasks_data['all'] ?? null ) ? $tasks_data['all'] : array() ) ) : __( 'Operational workspace', 'peracrm' ) ) );
   $header_actions = array();
   if ( $is_header_search ) {
@@ -221,7 +222,7 @@ peracrm_frontend_render_shell_header();
 	  'date_pill_label' => __( 'Today', 'peracrm' ),
 	  'actions'     => $header_actions,
 	  'active_view' => $crm_active_view,
-	  'show_client_filters' => $is_leads && ! $is_header_search,
+	  'show_client_filters' => $is_leads && ! $is_header_search && ! $is_new72,
 	  'stages'      => $stages,
 	  'advisors'    => $advisors,
 	  'clients_type_view' => $clients_type_view,
@@ -739,7 +740,7 @@ peracrm_frontend_render_shell_header();
 				$active_filter_bits[] = sprintf( __( 'Filter: %s', 'peracrm' ), $clients_active_filter_label );
 			}
 			?>
-      <div data-crm-clients-workspace>
+      <div data-crm-clients-workspace<?php echo $is_new72 ? ' class="crm-new72-workspace"' : ''; ?>>
       <?php if ( ! empty( $clients_new_leads_items ) ) : ?>
       <section class="crm-section crm-section--flush crm-list-workspace crm-list-workspace--rows" aria-labelledby="crm-clients-new-leads-heading">
         <header class="crm-section__header">
@@ -772,7 +773,66 @@ peracrm_frontend_render_shell_header();
       </section>
       <?php endif; ?>
 
-      <?php if ( ! $is_header_search ) : ?>
+      <?php if ( $is_new72 ) : ?>
+      <section class="crm-toolbar crm-toolbar--content crm-list-workspace-toolbar crm-new72-toolbar" aria-labelledby="crm-new72-workspace-heading">
+        <div class="crm-new72-toolbar__heading">
+          <div>
+            <h2 id="crm-new72-workspace-heading"><?php esc_html_e( 'Recent leads', 'peracrm' ); ?></h2>
+            <p><?php esc_html_e( 'Review leads created in the last 72 hours and open a record to follow up.', 'peracrm' ); ?></p>
+          </div>
+          <a class="btn btn--ghost btn--blue" href="<?php echo esc_url( home_url( '/crm/clients/?type=leads' ) ); ?>"><?php esc_html_e( 'All leads', 'peracrm' ); ?></a>
+        </div>
+        <p class="crm-new72-toolbar__count">
+          <?php echo esc_html( sprintf( __( 'Showing %1$d–%2$d of %3$d recent leads', 'peracrm' ), $from, $to, $total ) ); ?>
+        </p>
+        <form method="get" action="<?php echo esc_url( home_url( '/crm/clients/' ) ); ?>" class="crm-new72-toolbar__form" aria-label="<?php esc_attr_e( 'Filter recent leads', 'peracrm' ); ?>">
+          <input type="hidden" name="type" value="leads">
+          <input type="hidden" name="filter" value="new72">
+          <label class="crm-new72-toolbar__search">
+            <span class="screen-reader-text"><?php esc_html_e( 'Search recent leads', 'peracrm' ); ?></span>
+            <input class="crm-search-control" type="search" name="q" value="<?php echo esc_attr( $filter_q ); ?>" placeholder="<?php esc_attr_e( 'Search recent leads', 'peracrm' ); ?>">
+          </label>
+          <details class="crm-new72-toolbar__filters">
+            <summary class="btn btn--ghost btn--blue"><?php esc_html_e( 'More filters', 'peracrm' ); ?></summary>
+            <div class="crm-new72-toolbar__filter-fields">
+              <label>
+                <span><?php esc_html_e( 'Stage', 'peracrm' ); ?></span>
+                <select class="crm-search-control" name="stage">
+                  <option value=""><?php esc_html_e( 'All stages', 'peracrm' ); ?></option>
+                  <?php foreach ( $stages as $stage_key => $stage_label ) : ?>
+                  <option value="<?php echo esc_attr( (string) $stage_key ); ?>" <?php selected( $filter_stage, $stage_key ); ?>><?php echo esc_html( (string) $stage_label ); ?></option>
+                  <?php endforeach; ?>
+                </select>
+              </label>
+              <label>
+                <span><?php esc_html_e( 'Client type', 'peracrm' ); ?></span>
+                <select class="crm-search-control" name="client_type">
+                  <option value=""><?php esc_html_e( 'All client types', 'peracrm' ); ?></option>
+                  <?php foreach ( $client_type_options as $type_key => $type_label ) : ?>
+                  <option value="<?php echo esc_attr( (string) $type_key ); ?>" <?php selected( $filter_client_type, $type_key ); ?>><?php echo esc_html( (string) $type_label ); ?></option>
+                  <?php endforeach; ?>
+                </select>
+              </label>
+              <?php if ( function_exists( 'peracrm_get_impersonation_ui_state' ) && empty( $impersonation_ui['is_impersonating'] ) ) : ?>
+              <label>
+                <span><?php esc_html_e( 'Advisor', 'peracrm' ); ?></span>
+                <select class="crm-search-control" name="advisor">
+                  <option value="0"><?php esc_html_e( 'All advisors', 'peracrm' ); ?></option>
+                  <?php foreach ( $advisors as $advisor ) : ?>
+                  <option value="<?php echo esc_attr( (string) ( $advisor['id'] ?? 0 ) ); ?>" <?php selected( $filter_advisor, (int) ( $advisor['id'] ?? 0 ) ); ?>><?php echo esc_html( (string) ( $advisor['label'] ?? '' ) ); ?></option>
+                  <?php endforeach; ?>
+                </select>
+              </label>
+              <?php endif; ?>
+            </div>
+          </details>
+          <button type="submit" class="btn btn--solid btn--blue"><?php esc_html_e( 'Apply', 'peracrm' ); ?></button>
+          <?php if ( '' !== $filter_q || '' !== $filter_stage || '' !== $filter_client_type || $filter_advisor > 0 ) : ?>
+            <a class="btn btn--ghost btn--blue" href="<?php echo esc_url( $new_leads_url ); ?>"><?php esc_html_e( 'Reset', 'peracrm' ); ?></a>
+          <?php endif; ?>
+        </form>
+      </section>
+      <?php elseif ( ! $is_header_search ) : ?>
       <section class="crm-toolbar crm-toolbar--content crm-list-workspace-toolbar crm-list-workspace-toolbar--leads" aria-label="<?php echo esc_attr__( 'Lead and client workspace controls', 'peracrm' ); ?>">
         <div class="crm-toolbar__row crm-list-workspace-toolbar__row">
           <div class="crm-list-workspace-toolbar__summary">
@@ -812,7 +872,7 @@ peracrm_frontend_render_shell_header();
         <?php if ( ! $is_header_search ) : ?>
         <header class="crm-section__header">
           <div class="crm-section__heading-group">
-            <h2 id="crm-leads-table-heading" class="crm-section__title"><?php echo esc_html__( 'Record list', 'peracrm' ); ?></h2>
+            <h2 id="crm-leads-table-heading" class="crm-section__title"><?php echo esc_htmlecho esc_html( $is_new72 ? __( 'Recent leads', 'peracrm' ) : __( 'Record list', 'peracrm' ) ); ?></h2>
             <p class="crm-section__description"><?php echo esc_html__( 'Desktop defaults to a table-first list so names, status, source, owner, and recency remain visible in a single scan path.', 'peracrm' ); ?></p>
           </div>
         </header>
@@ -895,7 +955,7 @@ peracrm_frontend_render_shell_header();
 	      <section class="crm-section crm-section--flush crm-list-workspace crm-list-workspace--rows is-hidden" data-crm-view="cards" aria-labelledby="crm-leads-row-list-heading">
           <header class="crm-section__header">
             <div class="crm-section__heading-group">
-              <h2 id="crm-leads-row-list-heading" class="crm-section__title"><?php echo esc_html__( 'Structured list view', 'peracrm' ); ?></h2>
+              <h2 id="crm-leads-row-list-heading" class="crm-section__title"><?php echo esc_htmlecho esc_html( $is_new72 ? __( 'Recent leads', 'peracrm' ) : __( 'Structured list view', 'peracrm' ) ); ?></h2>
               <p class="crm-section__description"><?php echo esc_html__( 'This compact row-list fallback is kept for narrower screens and secondary browsing, not as the main desktop workspace.', 'peracrm' ); ?></p>
             </div>
           </header>
