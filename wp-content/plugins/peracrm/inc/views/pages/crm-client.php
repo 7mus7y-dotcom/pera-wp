@@ -649,15 +649,6 @@ peracrm_frontend_render_shell_header();
 
 
           <div class="crm-client-detail-layout__column crm-client-detail-layout__column--secondary">
-            <div data-crm-panel-slot="instructions">
-            <?php
-            $instruction_post_url = home_url('/wp-admin/admin-post.php');
-            $instruction_client_url = $frontend_url;
-            peracrm_with_target_blog(static function () use ($client_id, $client_type_value, $instruction_post_url, $instruction_client_url, $hidden_panels) {
-                require PERACRM_INC . '/views/partials/property-instructions.php';
-            });
-            ?>
-            </div>
             <article id="crm-client-next-actions" class="crm-section crm-section--flush crm-client-reminders" data-crm-panel="reminders">
               <header class="crm-section__header">
                 <div class="crm-section__heading-group">
@@ -805,6 +796,15 @@ peracrm_frontend_render_shell_header();
         </div>
 
         <div class="crm-client-full-width-panels">
+            <div data-crm-panel-slot="instructions">
+            <?php
+            $instruction_post_url = home_url('/wp-admin/admin-post.php');
+            $instruction_client_url = $frontend_url;
+            peracrm_with_target_blog(static function () use ($client_id, $client_type_value, $instruction_post_url, $instruction_client_url, $hidden_panels) {
+                require PERACRM_INC . '/views/partials/property-instructions.php';
+            });
+            ?>
+            </div>
             <article class="crm-section crm-section--flush" data-crm-panel="notes">
               <header class="crm-section__header">
                 <div class="crm-section__heading-group">
