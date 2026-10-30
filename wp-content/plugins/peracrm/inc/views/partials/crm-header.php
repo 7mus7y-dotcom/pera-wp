@@ -48,8 +48,6 @@ $show_new_leads_summary   = '' !== $new_leads_url;
 $new_leads_copy           = $new_leads_count > 0
 	? sprintf( __( 'You have %d new leads requiring attention.', 'peracrm' ), $new_leads_count )
 	: __( 'You have no new leads requiring attention.', 'peracrm' );
-$date_pill_label          = isset( $args['date_pill_label'] ) ? (string) $args['date_pill_label'] : __( 'Today', 'peracrm' );
-$date_pill_value          = wp_date( get_option( 'date_format' ) );
 $normalize_action_classes = static function ( string $class_stack ): string {
 	$classes = preg_split( '/\s+/', trim( $class_stack ) ) ?: array();
 	$classes = array_values( array_filter( $classes, static function ( $class_name ) {
@@ -149,11 +147,6 @@ $has_toolbar = $show_client_filters || '' !== $toolbar_content;
         <a class="crm-new-lead-carousel__all" href="<?php echo esc_url( $new_leads_url ); ?>"><?php esc_html_e( 'View all new leads', 'peracrm' ); ?></a>
       </aside>
       <?php endif; ?>
-    </div>
-
-    <div class="crm-page-date-pill" data-crm-date-pill>
-      <span class="crm-page-date-pill__label"><?php echo esc_html( $date_pill_label ); ?></span>
-      <strong class="crm-page-date-pill__value"><?php echo esc_html( $date_pill_value ); ?></strong>
     </div>
 
     <?php if ( $show_impersonation_ui && ( $can_impersonate || $is_impersonating ) ) : ?>
