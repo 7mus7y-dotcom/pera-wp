@@ -82,8 +82,7 @@ $header_search_term = isset($_GET['crm_client_search'])
     </form>
     <?php endif; ?>
 
-    <div class="crm-page-date-pill peracrm-shell-date-pill" data-crm-date-pill aria-label="<?php echo esc_attr__( 'Today', 'peracrm' ); ?>">
-      <span class="crm-page-date-pill__label"><?php esc_html_e( 'Today', 'peracrm' ); ?></span>
+    <div class="crm-page-date-pill peracrm-shell-date-pill" data-crm-date-pill aria-label="<?php echo esc_attr__( 'Current date', 'peracrm' ); ?>">
       <strong class="crm-page-date-pill__value"><?php echo esc_html( wp_date( 'd/M/Y' ) ); ?></strong>
     </div>
 
