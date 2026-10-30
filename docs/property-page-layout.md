@@ -34,7 +34,8 @@ Desktop maps retain 32/25 geometry and the 16px action gap; mobile maps retain
 
 `js/property-sticky-summary.js` retains the approved observers and interactions.
 The 300px desktop card aligns to the container's right edge, 10px below the
-measured header. An observer sentinel shows the summary after the visitor scrolls
+measured top-right header action cluster (including the optional New Leads pill),
+not below the taller logo-driven header shell. An observer sentinel shows the summary after the visitor scrolls
 past one measured header height, while the hero is still available. Mobile reserves bottom space from initial render and uses a
 fixed bar with safe-area padding. The original global WhatsApp node moves into
 its action slot only while the mobile bar is active and returns to its original
