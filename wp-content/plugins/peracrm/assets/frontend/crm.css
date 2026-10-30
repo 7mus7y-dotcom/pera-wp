@@ -8467,8 +8467,8 @@ body.crm-route #site-header.peracrm-shell-header .peracrm-header-search__status 
   }
 }
 
-/* Shared mobile CRM search: always docked beside the existing floating toggle. */
-@media (max-width: 767px) {
+/* Shared tablet/mobile CRM search: dock beside the floating CRM shortcut. */
+@media (max-width: 1024px) {
   body.crm-route #site-header.peracrm-shell-header .peracrm-header-search.is-crm-search-docked {
     position: fixed;
     left: max(12px, env(safe-area-inset-left));
@@ -8489,6 +8489,13 @@ body.crm-route #site-header.peracrm-shell-header .peracrm-header-search__status 
   }
   body.crm-route #site-header.peracrm-shell-header .peracrm-header-search.is-crm-search-docked .peracrm-header-search__list {
     max-height: min(42dvh, 320px);
+  }
+  /* Match the bottom-right CRM shortcut footprint at tablet widths too. */
+  body.crm-route .crm-floating-toggle {
+    right: max(16px, env(safe-area-inset-right));
+    bottom: calc(16px + env(safe-area-inset-bottom));
+    width: 54px;
+    height: 54px;
   }
   /* Content and controls must remain reachable beneath the persistent search. */
   body.crm-route .crm-page {
