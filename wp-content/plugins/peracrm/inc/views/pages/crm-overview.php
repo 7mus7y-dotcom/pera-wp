@@ -279,7 +279,7 @@ peracrm_frontend_render_shell_header();
       </section>
 
       <section class="crm-overview-band crm-overview-band--queue" aria-labelledby="crm-strict-new-leads-heading">
-        <article class="crm-section crm-section--flush crm-overview-queue">
+        <article class="crm-section crm-section--flush crm-overview-queue crm-panel">
           <header class="crm-section__header">
             <div class="crm-section__heading-group">
               <h2 id="crm-strict-new-leads-heading" class="crm-section__title"><?php echo esc_html__( 'New leads', 'peracrm' ); ?></h2>
@@ -320,7 +320,7 @@ peracrm_frontend_render_shell_header();
       </section>
 
       <section class="crm-overview-band crm-overview-band--queue" aria-labelledby="crm-new-leads-heading">
-        <article class="crm-section crm-section--flush crm-overview-queue">
+        <article class="crm-section crm-section--flush crm-overview-queue crm-panel">
           <header class="crm-section__header">
             <div class="crm-section__heading-group">
               <h2 id="crm-new-leads-heading" class="crm-section__title"><?php echo esc_html__( 'Recent leads', 'peracrm' ); ?></h2>
@@ -385,7 +385,7 @@ peracrm_frontend_render_shell_header();
       </section>
 
       <section class="crm-overview-band crm-overview-band--secondary" aria-labelledby="crm-activity-heading">
-        <article class="crm-section crm-section--flush crm-overview-activity">
+        <article class="crm-section crm-section--flush crm-overview-activity crm-panel">
           <header class="crm-section__header">
             <div class="crm-section__heading-group">
               <h2 id="crm-activity-heading" class="crm-section__title"><?php echo esc_html__( 'Latest Activity', 'peracrm' ); ?></h2>
@@ -450,7 +450,7 @@ peracrm_frontend_render_shell_header();
 
       <?php if ( ! empty( $notices ) ) : ?>
       <section class="crm-overview-band crm-overview-band--secondary" aria-label="<?php echo esc_attr__( 'CRM notices', 'peracrm' ); ?>">
-        <article class="crm-section crm-section--flush">
+        <article class="crm-section crm-section--flush crm-panel">
           <header class="crm-section__header">
             <div class="crm-section__heading-group">
               <h2 class="crm-section__title"><?php echo esc_html__( 'Workspace notices', 'peracrm' ); ?></h2>
