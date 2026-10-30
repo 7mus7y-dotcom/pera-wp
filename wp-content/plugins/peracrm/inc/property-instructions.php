@@ -279,3 +279,90 @@ function peracrm_instruction_handle_post()
     exit;
 }
 add_action('admin_post_peracrm_property_instruction', 'peracrm_instruction_handle_post');
+
+
+/**
+ * Delete a private instruction after confirmation. An underlying physical
+ * property is removed only when no other instruction references it.
+ */
+function peracrm_instruction_delete($client_id, $instruction_id, $revision, $nonce, $method)
+{
+    $client_id = absint($client_id);
+    $instruction_id = absint($instruction_id);
+    if ('POST' !== $method || !$client_id || !$instruction_id ||
+        !wp_verify_nonce($nonce, 'peracrm_delete_property_instruction_' . $client_id . '_' . $instruction_id)) {
+        return new WP_Error('invalid_request', 'Invalid delete request or security check.');
+    }
+    return peracrm_with_target_blog(static function () use ($client_id, $instruction_id, $revision) {
+        global $wpdb;
+        if (!peracrm_instruction_can_access($client_id, true)) {
+            return new WP_Error('forbidden', 'Access denied.');
+        }
+        $i = peracrm_table('crm_property_instructions');
+        $p = peracrm_table('crm_instruction_properties');
+        if (false === $wpdb->query('START TRANSACTION')) {
+            return new WP_Error('storage_failed', 'Storage unavailable.');
+        }
+        try {
+            $row = $wpdb->get_row($wpdb->prepare(
+                "SELECT * FROM {$i} WHERE id = %d AND client_id = %d FOR UPDATE",
+                $instruction_id, $client_id
+            ), ARRAY_A);
+            if (!$row) {
+                throw new RuntimeException('Instruction not found for this client.');
+            }
+            if ((int) $row['revision'] !== absint($revision)) {
+                throw new RuntimeException('This instruction changed. Reload before deleting.');
+            }
+            $property_id = (int) $row['property_id'];
+            $asset = $wpdb->get_row($wpdb->prepare(
+                "SELECT * FROM {$p} WHERE id = %d AND client_id = %d FOR UPDATE",
+                $property_id, $client_id
+            ), ARRAY_A);
+            if (!$asset) {
+                throw new RuntimeException('Linked property record was not found.');
+            }
+            if (1 !== $wpdb->delete($i, ['id' => $instruction_id, 'client_id' => $client_id])) {
+                throw new RuntimeException('Unable to delete property instruction.');
+            }
+            $remaining = (int) $wpdb->get_var($wpdb->prepare(
+                "SELECT COUNT(*) FROM {$i} WHERE property_id = %d",
+                $property_id
+            ));
+            if ($remaining === 0 && 1 !== $wpdb->delete($p, ['id' => $property_id, 'client_id' => $client_id])) {
+                throw new RuntimeException('Unable to delete unreferenced property.');
+            }
+            if (false === $wpdb->query('COMMIT')) {
+                throw new RuntimeException('Unable to commit deletion.');
+            }
+        } catch (Throwable $error) {
+            $wpdb->query('ROLLBACK');
+            return new WP_Error('delete_failed', $error->getMessage());
+        }
+        peracrm_log_event($client_id, 'property_instruction_deleted', [
+            'instruction_id' => $instruction_id,
+            'instruction_property_id' => $property_id,
+            'property_reference' => (string) $asset['identifier'],
+            'instruction_type' => (string) $row['instruction_type'],
+            'previous_status' => (string) $row['status'],
+            'physical_property_deleted' => $remaining === 0,
+            'actor_user_id' => peracrm_get_actor_user_id(),
+        ]);
+        return true;
+    });
+}
+
+function peracrm_instruction_handle_delete()
+{
+    $raw = wp_unslash($_POST);
+    $client_id = absint($raw['client_id'] ?? 0);
+    $id = absint($raw['instruction_id'] ?? 0);
+    $nonce = is_scalar($raw['_wpnonce'] ?? null) ? (string) $raw['_wpnonce'] : '';
+    $result = peracrm_instruction_delete($client_id, $id, $raw['revision'] ?? 0, $nonce, $_SERVER['REQUEST_METHOD'] ?? '');
+    if (is_wp_error($result)) {
+        wp_die(esc_html($result->get_error_message()), '', ['response' => 400, 'back_link' => true]);
+    }
+    wp_safe_redirect(home_url('/crm/client/' . $client_id . '/#crm-property-instructions'));
+    exit;
+}
+add_action('admin_post_peracrm_delete_property_instruction', 'peracrm_instruction_handle_delete');
