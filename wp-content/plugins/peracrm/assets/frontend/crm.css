@@ -9239,3 +9239,40 @@ body.crm-route #site-header.peracrm-shell-header .peracrm-header-search__status 
 .crm-page .crm-panel > .crm-section__footer {
   padding-inline: var(--crm-section-padding, 16px);
 }
+
+/* CRM-wide date: a single pill owned by the sticky shell header. */
+body.crm-route #site-header.peracrm-shell-header .peracrm-shell-date-pill {
+  position: static;
+  top: auto;
+  z-index: auto;
+  flex: 0 0 auto;
+  justify-self: auto;
+  margin: 0 0 0 8px;
+  white-space: nowrap;
+  background: var(--surface, #ffffff);
+  color: var(--text, #0f172a);
+  border-color: var(--border, #e8ecf2);
+}
+body.crm-route #site-header.peracrm-shell-header .peracrm-shell-date-pill .crm-page-date-pill__value {
+  font-variant-numeric: tabular-nums;
+}
+@media (prefers-color-scheme: dark) {
+  body.crm-route #site-header.peracrm-shell-header .peracrm-shell-date-pill {
+    background: var(--crm-surface, #151e30);
+    border-color: var(--crm-border, rgba(255,255,255,0.2));
+    color: var(--crm-text, #f8fafc);
+  }
+  body.crm-route #site-header.peracrm-shell-header .peracrm-shell-date-pill .crm-page-date-pill__label {
+    color: var(--crm-text-muted, #aab7cc);
+  }
+}
+@media (max-width: 767px) {
+  body.crm-route #site-header.peracrm-shell-header .peracrm-shell-date-pill {
+    order: 3;
+    margin: 0 0 0 auto;
+    flex: 0 0 auto;
+  }
+  body.crm-route #site-header.peracrm-shell-header .peracrm-header-search {
+    order: 4;
+  }
+}
