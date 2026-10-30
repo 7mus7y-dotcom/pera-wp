@@ -9022,3 +9022,83 @@ body.crm-route #site-header.peracrm-shell-header .peracrm-header-search__status 
     grid-template-columns: minmax(0, 1fr);
   }
 }
+
+
+/* Compact saved property instruction cards (seller and landlord). */
+.crm-page--client-view #crm-property-instructions .crm-instruction-card {
+  min-width: 0;
+}
+.crm-page--client-view #crm-property-instructions .crm-instruction-card > .crm-section__header > div {
+  min-width: 0;
+}
+.crm-page--client-view #crm-property-instructions .crm-instruction-card > .crm-section__header h4 {
+  margin: 0 0 6px;
+  overflow-wrap: anywhere;
+}
+.crm-page--client-view #crm-property-instructions .crm-instruction-card > .crm-section__body {
+  display: grid;
+  gap: 12px;
+  min-width: 0;
+}
+.crm-page--client-view #crm-property-instructions .crm-instruction-card > .crm-section__body > dl.crm-form-row-2 {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px 14px;
+  margin: 0;
+}
+.crm-page--client-view #crm-property-instructions .crm-instruction-card > .crm-section__body > dl > div {
+  min-width: 0;
+  text-align: left;
+}
+.crm-page--client-view #crm-property-instructions .crm-instruction-card dt {
+  font-size: 0.76rem;
+  line-height: 1.35;
+  color: var(--text-soft, #64748b);
+  margin: 0 0 2px;
+}
+.crm-page--client-view #crm-property-instructions .crm-instruction-card dd {
+  margin: 0;
+  font-weight: 600;
+  line-height: 1.4;
+  overflow-wrap: anywhere;
+}
+.crm-page--client-view #crm-property-instructions .crm-instruction-card__listing-links {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+.crm-page--client-view #crm-property-instructions .crm-instruction-card__listing-links .btn {
+  width: auto;
+  min-width: 0;
+  min-height: 32px;
+  padding: 6px 10px;
+  font-size: 0.75rem;
+  line-height: 1.25;
+  white-space: normal;
+  border-radius: 8px;
+}
+.crm-page--client-view #crm-property-instructions .crm-instruction-card__controls {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  gap: 8px;
+  min-width: 0;
+}
+.crm-page--client-view #crm-property-instructions .crm-instruction-card__controls > .crm-instruction-editor {
+  margin: 0;
+  min-width: 0;
+}
+.crm-page--client-view #crm-property-instructions .crm-instruction-card__controls > .crm-instruction-editor[open] {
+  flex: 1 0 100%;
+  order: 3;
+}
+.crm-page--client-view #crm-property-instructions .crm-instruction-card__controls > .crm-instruction-delete-form {
+  margin: 0;
+}
+.crm-page--client-view #crm-property-instructions .crm-instruction-card__controls .btn {
+  min-height: 34px;
+  padding: 7px 12px;
+  font-size: 0.8rem;
+  line-height: 1.2;
+}

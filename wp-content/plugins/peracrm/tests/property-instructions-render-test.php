@@ -31,9 +31,10 @@ expect(!str_contains($seller,'<img src=x'),'untrusted property names not executa
 expect(str_contains($seller,'target="_blank" rel="noopener noreferrer"'),'external link security');
 expect(str_contains($seller,'View Sahibinden') && str_contains($seller,'View Pera website'),'listing actions rendered');
 expect(str_contains($seller,'View linked website property'),'existing public listing link rendered');
-expect(str_contains($seller,'peracrm_add_reminder') && str_contains($seller,'instruction #1'),'client reminder prepopulated with property reference');
-expect(str_contains($seller,'name="peracrm_client_id" value="101"'),'reminder uses current client');
-expect(!str_contains($seller, '/target-blog/'), 'forms and reminder redirects retain originating blog URLs');
+expect(!str_contains($seller,'peracrm_add_reminder') && !str_contains($seller,'Create reminder'),'redundant property-card reminder action removed');
+expect(str_contains($seller,'crm-instruction-card__controls') && str_contains($seller,'crm-instruction-delete-form'),'edit and delete controls retained in compact card');
+expect(str_contains($seller,'name="client_id" value="101"'),'property forms use current client');
+expect(!str_contains($seller, '/target-blog/'), 'property forms retain originating blog URLs');
 $hidden_sale = render_instructions('seller', ['seller_properties']);
 expect(str_contains($hidden_sale, 'data-crm-optional-panel="seller_properties" hidden'), 'sale hidden at server render');
 expect(str_contains($hidden_sale, '+ Add property') && str_contains($hidden_sale, 'name="instruction_id"'), 'dismissal retains instruction forms inside hidden panel');
@@ -49,7 +50,7 @@ $empty=render_instructions('seller');
 expect(!str_contains($empty,'View Sahibinden') && !str_contains($empty,'View Pera website'),'empty external actions hidden');
 $GLOBALS['actor']=8;
 expect(render_instructions('seller')==='','unauthorized render contains no forms or records');
-echo "OK: property instruction rendering and reminder integration\n";
+echo "OK: property instruction rendering and compact card actions\n";
 
 function wp_strip_all_tags($v) { return strip_tags($v); }
 function wp_trim_words($v, $count, $suffix) { return $v; }
