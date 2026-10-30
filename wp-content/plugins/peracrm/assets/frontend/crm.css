@@ -8984,3 +8984,41 @@ body.crm-route #site-header.peracrm-shell-header .peracrm-header-search__status 
     color: var(--crm-link, #a8c9ff);
   }
 }
+
+
+/* Property instruction forms can sit inside a half-width desktop client
+   column. Prevent the shared two-column form's intrinsic input widths from
+   expanding beyond that panel (sale and rental use the same partial). */
+.crm-page--client-view #crm-property-instructions,
+.crm-page--client-view #crm-property-instructions > .crm-section__body,
+.crm-page--client-view #crm-property-instructions .crm-instruction-editor,
+.crm-page--client-view #crm-property-instructions .crm-instruction-editor > form,
+.crm-page--client-view #crm-property-instructions .crm-instruction-editor > form > details {
+  min-width: 0;
+  max-width: 100%;
+  box-sizing: border-box;
+}
+.crm-page--client-view #crm-property-instructions .crm-form-row-2 {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  min-width: 0;
+  max-width: 100%;
+}
+.crm-page--client-view #crm-property-instructions .crm-form-row-2 > *,
+.crm-page--client-view #crm-property-instructions .crm-form-field,
+.crm-page--client-view #crm-property-instructions .crm-instruction-editor label {
+  min-width: 0;
+  max-width: 100%;
+  box-sizing: border-box;
+}
+.crm-page--client-view #crm-property-instructions .crm-instruction-editor :is(input:not([type="hidden"]), select, textarea) {
+  display: block;
+  width: 100%;
+  min-width: 0;
+  max-width: 100%;
+  box-sizing: border-box;
+}
+@media (max-width: 767px) {
+  .crm-page--client-view #crm-property-instructions .crm-form-row-2 {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
