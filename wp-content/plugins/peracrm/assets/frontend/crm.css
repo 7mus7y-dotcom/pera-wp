@@ -8954,3 +8954,33 @@ body.crm-route #site-header.peracrm-shell-header .peracrm-header-search__status 
 @media (prefers-reduced-motion: reduce) {
   .crm-page--overview .crm-new-lead-carousel__track { scroll-behavior: auto; }
 }
+
+
+/* Client email: unobtrusive Gmail shortcut beside the saved email field label. */
+.crm-page--client-view .crm-client-email-field-heading {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 4px 10px;
+}
+.crm-page--client-view .crm-client-email-field-heading label {
+  margin: 0;
+}
+.crm-page--client-view .crm-client-email-gmail-link {
+  font-size: 0.78rem;
+  line-height: 1.4;
+  font-weight: 600;
+  color: var(--brand, #043673);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+.crm-page--client-view .crm-client-email-gmail-link:focus-visible {
+  outline: 2px solid currentColor;
+  outline-offset: 3px;
+}
+@media (prefers-color-scheme: dark) {
+  .crm-page--client-view .crm-client-email-gmail-link {
+    color: var(--crm-link, #a8c9ff);
+  }
+}
