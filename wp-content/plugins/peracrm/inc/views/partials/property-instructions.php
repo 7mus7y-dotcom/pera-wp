@@ -121,32 +121,23 @@ $render_form = static function ($row, $form_type) use ($client_id, $catalog, $as
         </div></header>
         <div class="crm-section__body">
           <dl class="crm-form-row-2"><?php foreach ($summary as $label => $value) : if ($value === '') { continue; } ?><div><dt><?php echo esc_html($label); ?></dt><dd><?php echo esc_html($value); ?></dd></div><?php endforeach; ?></dl>
-          <div class="crm-instruction-actions">
+          <div class="crm-instruction-actions crm-instruction-card__listing-links">
             <?php foreach (['sahibinden_url' => 'View Sahibinden', 'pera_url' => 'View Pera website'] as $key => $label) : if (empty($row[$key])) { continue; } ?>
               <a class="btn btn--ghost" href="<?php echo esc_url($row[$key], ['http', 'https']); ?>" target="_blank" rel="noopener noreferrer"><?php echo esc_html($label); ?></a>
             <?php endforeach; ?>
             <?php if ($row['public_property_id'] && get_post_status((int) $row['public_property_id']) === 'publish') : ?><a class="btn btn--ghost" href="<?php echo esc_url(get_permalink((int) $row['public_property_id'])); ?>" target="_blank" rel="noopener noreferrer"><?php esc_html_e('View linked website property', 'peracrm'); ?></a><?php endif; ?>
           </div>
-          <details class="crm-instruction-editor"><summary class="btn btn--ghost"><?php esc_html_e('Edit', 'peracrm'); ?></summary><?php $render_form($row, $row['instruction_type']); ?></details>
-          <form method="post" action="<?php echo esc_url($instruction_post_url); ?>" class="crm-instruction-delete-form" data-crm-instruction-delete-form data-confirm-message="<?php echo esc_attr(sprintf(__('Permanently delete this %s instruction? This cannot be undone. Related activity history and reminders will remain.', 'peracrm'), $row['instruction_type'] === 'rental' ? __('rental', 'peracrm') : __('sale', 'peracrm'))); ?>">
-            <?php wp_nonce_field('peracrm_delete_property_instruction_' . $client_id . '_' . (int) $row['id']); ?>
-            <input type="hidden" name="action" value="peracrm_delete_property_instruction" />
-            <input type="hidden" name="client_id" value="<?php echo esc_attr($client_id); ?>" />
-            <input type="hidden" name="instruction_id" value="<?php echo esc_attr((int) $row['id']); ?>" />
-            <input type="hidden" name="revision" value="<?php echo esc_attr((int) $row['revision']); ?>" />
-            <button class="btn btn--ghost btn--red" type="submit"><?php esc_html_e('Delete property', 'peracrm'); ?></button>
-          </form>
-          <details class="crm-instruction-editor"><summary class="btn btn--ghost"><?php esc_html_e('Create reminder', 'peracrm'); ?></summary>
-            <form method="post" action="<?php echo esc_url($instruction_post_url); ?>" class="crm-form-stack">
-              <?php wp_nonce_field('peracrm_add_reminder', 'peracrm_add_reminder_nonce'); ?>
-              <input type="hidden" name="action" value="peracrm_add_reminder" />
-              <input type="hidden" name="peracrm_client_id" value="<?php echo esc_attr($client_id); ?>" />
-              <input type="hidden" name="peracrm_redirect" value="<?php echo esc_url($instruction_client_url); ?>" />
-              <label><?php esc_html_e('Due date & time', 'peracrm'); ?><input type="datetime-local" name="peracrm_due_at" required /></label>
-              <label><?php esc_html_e('Reminder note', 'peracrm'); ?><textarea name="peracrm_reminder_note" maxlength="5000" rows="3"><?php echo esc_textarea('[Property ' . $reference . ' / instruction #' . $row['id'] . '] ' . ($details['next_action'] ?? '')); ?></textarea></label>
-              <button class="btn btn--solid" type="submit"><?php esc_html_e('Add reminder', 'peracrm'); ?></button>
+          <div class="crm-instruction-card__controls">
+            <details class="crm-instruction-editor"><summary class="btn btn--ghost"><?php esc_html_e('Edit', 'peracrm'); ?></summary><?php $render_form($row, $row['instruction_type']); ?></details>
+            <form method="post" action="<?php echo esc_url($instruction_post_url); ?>" class="crm-instruction-delete-form" data-crm-instruction-delete-form data-confirm-message="<?php echo esc_attr(sprintf(__('Permanently delete this %s instruction? This cannot be undone. Related activity history and reminders will remain.', 'peracrm'), $row['instruction_type'] === 'rental' ? __('rental', 'peracrm') : __('sale', 'peracrm'))); ?>">
+              <?php wp_nonce_field('peracrm_delete_property_instruction_' . $client_id . '_' . (int) $row['id']); ?>
+              <input type="hidden" name="action" value="peracrm_delete_property_instruction" />
+              <input type="hidden" name="client_id" value="<?php echo esc_attr($client_id); ?>" />
+              <input type="hidden" name="instruction_id" value="<?php echo esc_attr((int) $row['id']); ?>" />
+              <input type="hidden" name="revision" value="<?php echo esc_attr((int) $row['revision']); ?>" />
+              <button class="btn btn--ghost btn--red" type="submit"><?php esc_html_e('Delete property', 'peracrm'); ?></button>
             </form>
-          </details>
+          </div>
         </div>
       </section>
     <?php endforeach; ?>
