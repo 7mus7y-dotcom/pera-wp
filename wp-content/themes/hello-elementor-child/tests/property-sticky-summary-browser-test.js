@@ -121,7 +121,10 @@ const fixture = `<style>${css}</style><style>
       const headerHeight = await page.locator('#site-header').evaluate(e => e.getBoundingClientRect().height);
       assert(Math.abs((await page.locator('#contact-form').boundingBox()).y - headerHeight - 16) < 2, 'header offset and reduced motion');
       await scroll(await page.locator('.enquiry-cta-form').evaluate(e => e.getBoundingClientRect().top + scrollY - 150)); await visible(false);
-      await scroll(await page.locator('.enquiry-cta-form').evaluate(e => e.getBoundingClientRect().bottom + scrollY + 20)); await visible(true);
+      const formBottom = await page.locator('.enquiry-cta-form').evaluate(e => e.getBoundingClientRect().bottom + scrollY);
+      await scroll(formBottom + 20); await visible(true);
+      await scroll(formBottom - headerHeight - 10); await visible(false);
+      await scroll(formBottom + 20); await visible(true);
       await scroll(0); await visible(false);
       assert.equal(await page.locator('#floating-home #floating-whatsapp').count(), 1);
       await page.emulateMedia({colorScheme:'light'});
