@@ -557,8 +557,18 @@ peracrm_frontend_render_shell_header();
                         <input type="hidden" name="peracrm_phone" value="<?php echo esc_attr( $profile_phone_value ); ?>" />
                       </div>
                       <div class="crm-field crm-field--half">
-                        <label><?php esc_html_e( 'Email', 'peracrm' ); ?></label>
-                        <input type="email" name="peracrm_email" value="<?php echo esc_attr( (string) ( $profile['email'] ?? '' ) ); ?>" />
+                        <div class="crm-client-email-field-heading">
+                          <label for="peracrm-profile-email"><?php esc_html_e( 'Email', 'peracrm' ); ?></label>
+                          <?php
+                          $saved_client_email = sanitize_email( (string) ( $profile['email'] ?? '' ) );
+                          if ( is_email( $saved_client_email ) ) :
+                            $gmail_query = '{from:' . $saved_client_email . ' to:' . $saved_client_email . '}';
+                            $gmail_url   = 'https://mail.google.com/mail/u/0/#search/' . rawurlencode( $gmail_query );
+                          ?>
+                          <a class="crm-client-email-gmail-link" href="<?php echo esc_url( $gmail_url ); ?>" target="_blank" rel="noopener noreferrer" aria-label="<?php echo esc_attr( sprintf( __( 'Find emails to or from %s in Gmail', 'peracrm' ), $saved_client_email ) ); ?>"><?php esc_html_e( 'View in Gmail', 'peracrm' ); ?></a>
+                          <?php endif; ?>
+                        </div>
+                        <input id="peracrm-profile-email" type="email" name="peracrm_email" value="<?php echo esc_attr( (string) ( $profile['email'] ?? '' ) ); ?>" />
                       </div>
                       <fieldset class="crm-checkbox-group crm-checkbox-group--preferred-contact crm-field crm-field--inline">
                         <legend><?php esc_html_e( 'Preferred contact', 'peracrm' ); ?></legend>
