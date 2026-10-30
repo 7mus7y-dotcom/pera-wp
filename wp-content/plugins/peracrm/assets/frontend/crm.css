@@ -9165,3 +9165,30 @@ body.crm-route #site-header.peracrm-shell-header .peracrm-header-search__status 
   flex-basis: 100%;
   margin: 0 0 2px;
 }
+
+
+/* Client status: Save at left and Convert at right on the same action row.
+   They remain independent forms with their original submit handlers. */
+.crm-page--client-view .crm-client-status-panel .crm-status-actions--inline {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: nowrap;
+  gap: 8px;
+  min-width: 0;
+}
+.crm-page--client-view .crm-client-status-panel .crm-status-actions--inline > button,
+.crm-page--client-view .crm-client-status-panel .crm-status-actions--inline > form {
+  flex: 0 1 auto;
+  min-width: 0;
+  width: auto;
+  margin: 0;
+}
+.crm-page--client-view .crm-client-status-panel .crm-status-actions--inline > form {
+  margin-left: auto;
+}
+.crm-page--client-view .crm-client-status-panel .crm-status-actions--inline .btn {
+  width: auto;
+  max-width: 100%;
+  white-space: normal;
+}

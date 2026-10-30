@@ -624,12 +624,10 @@ peracrm_frontend_render_shell_header();
                     <div class="crm-field crm-field--half"><label><?php esc_html_e( 'Engagement', 'peracrm' ); ?></label><select name="engagement_state"><?php foreach ( $engagement_options as $value => $label ) : ?><option value="<?php echo esc_attr( (string) $value ); ?>" <?php selected( (string) ( $party['engagement_state'] ?? '' ), (string) $value ); ?>><?php echo esc_html( (string) $label ); ?></option><?php endforeach; ?></select></div>
                     <div class="crm-field crm-field--half"><label><?php esc_html_e( 'Client type', 'peracrm' ); ?></label><select name="peracrm_client_type"><option value=""><?php esc_html_e( 'Select type', 'peracrm' ); ?></option><?php foreach ( $client_type_options as $type_key => $type_label ) : ?><option value="<?php echo esc_attr( (string) $type_key ); ?>" <?php selected( $client_type_value, (string) $type_key ); ?>><?php echo esc_html( (string) $type_label ); ?></option><?php endforeach; ?></select></div>
                     <div class="crm-field crm-field--half"><label><?php esc_html_e( 'Disposition', 'peracrm' ); ?></label><select name="disposition"><?php foreach ( $disposition_opts as $value => $label ) : ?><option value="<?php echo esc_attr( (string) $value ); ?>" <?php selected( (string) ( $party['disposition'] ?? '' ), (string) $value ); ?>><?php echo esc_html( (string) $label ); ?></option><?php endforeach; ?></select></div>
-                    <div class="crm-field crm-field--inline">
-                      <button type="submit" form="crm-status-form" class="btn btn--solid btn--blue"><?php esc_html_e( 'Save status', 'peracrm' ); ?></button>
-                    </div>
                   </div>
                 </form>
-                <div class="crm-status-actions">
+                <div class="crm-status-actions crm-status-actions--inline">
+                  <button type="submit" form="crm-status-form" class="btn btn--solid btn--blue"><?php esc_html_e( 'Save status', 'peracrm' ); ?></button>
                   <?php if ( 'lead' === $derived_type ) : ?>
                   <form method="post" action="<?php echo esc_url( home_url( '/wp-admin/admin-post.php' ) ); ?>" class="crm-inline-form">
                     <?php wp_nonce_field( 'peracrm_convert_to_client', 'peracrm_convert_to_client_nonce' ); ?>
