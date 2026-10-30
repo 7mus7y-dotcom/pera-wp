@@ -9102,3 +9102,52 @@ body.crm-route #site-header.peracrm-shell-header .peracrm-header-search__status 
   font-size: 0.8rem;
   line-height: 1.2;
 }
+
+
+/* Saved property cards: consistent compact controls and padded status chips.
+   Override the generic CRM button/summary dimensions only in this card. */
+.crm-page--client-view #crm-property-instructions .crm-instruction-card > .crm-section__header .crm-chip {
+  display: inline-flex;
+  align-items: center;
+  width: fit-content;
+  max-width: 100%;
+  padding: var(--crm-chip-padding-y-xs, 4px) var(--crm-chip-padding-x-xs, 8px);
+  line-height: var(--crm-chip-line-height-xs, 1.1);
+  box-sizing: border-box;
+  white-space: normal;
+}
+.crm-page--client-view #crm-property-instructions .crm-instruction-card__listing-links > a.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  height: auto;
+  min-height: 0;
+  padding: 5px 9px;
+  font-size: 0.75rem;
+  line-height: 1.15;
+  border-radius: 8px;
+  box-sizing: border-box;
+}
+.crm-page--client-view #crm-property-instructions .crm-instruction-card__controls > details.crm-instruction-editor > summary.btn,
+.crm-page--client-view #crm-property-instructions .crm-instruction-card__controls > form.crm-instruction-delete-form > button.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: auto;
+  height: auto;
+  min-height: 34px;
+  margin: 0;
+  padding: 7px 12px;
+  border-radius: 8px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  line-height: 1.2;
+  box-sizing: border-box;
+  cursor: pointer;
+}
+.crm-page--client-view #crm-property-instructions .crm-instruction-card__controls > details.crm-instruction-editor > summary.btn {
+  list-style: none;
+}
+.crm-page--client-view #crm-property-instructions .crm-instruction-card__controls > details.crm-instruction-editor > summary.btn::-webkit-details-marker {
+  display: none;
+}
