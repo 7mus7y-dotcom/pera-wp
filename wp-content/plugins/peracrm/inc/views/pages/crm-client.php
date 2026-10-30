@@ -786,11 +786,8 @@ peracrm_frontend_render_shell_header();
               <?php peracrm_client_panel_dismiss('enquiries'); ?>
               </header>
               <section class="crm-client-subsection crm-client-subsection--enquiries">
-                  <?php foreach ( $property_groups as $relation => $items ) : if ( ! in_array( (string) $relation, $enquiry_relations, true ) ) { continue; } ?>
+                  <?php foreach ( $property_groups as $relation => $items ) : if ( ! in_array( (string) $relation, $enquiry_relations, true ) || empty( $items ) ) { continue; } ?>
                     <div class="crm-inline-form"><h5><?php echo esc_html( ucfirst( (string) $relation ) ); ?></h5></div>
-                    <?php if ( empty( $items ) ) : ?>
-                      <p><?php esc_html_e( 'No properties.', 'peracrm' ); ?></p>
-                    <?php else : ?>
                       <ul class="crm-list peracrm-linked-properties-grid">
                         <?php foreach ( $items as $item ) : $property_id = (int) ( $item['property_id'] ?? 0 ); $property_label = ''; $property_url = ''; if ( $property_id > 0 ) { $property_label = pera_crm_client_view_with_target_blog( static function () use ( $property_id ): string { return function_exists( 'pera_crm_client_view_property_project_name' ) ? (string) pera_crm_client_view_property_project_name( $property_id ) : (string) get_the_title( $property_id ); } ); $property_url = pera_crm_client_view_with_target_blog( static function () use ( $property_id ): string { return (string) get_permalink( $property_id ); } ); } ?>
                         <li class="peracrm-linked-properties-grid__item">
@@ -799,7 +796,6 @@ peracrm_frontend_render_shell_header();
                         </li>
                         <?php endforeach; ?>
                       </ul>
-                    <?php endif; ?>
                   <?php endforeach; ?>
               </section>
             </article>
