@@ -17,7 +17,8 @@
     var home = document.createComment('Floating WhatsApp home');
     if (floating) floating.before(home);
     var headerBottom = 0;
-    var observer;
+    var triggerObserver;
+    var formObserver;
     function update() {
       var pastHeader = trigger.getBoundingClientRect().bottom <= 0;
       var rect = form.getBoundingClientRect();
@@ -45,9 +46,15 @@
       bar.style.setProperty('--property-sticky-header', headerBottom + 'px');
       trigger.style.top = headerBottom + 'px';
       contact.style.scrollMarginTop = (headerBottom + 16) + 'px';
-      if (observer) observer.disconnect();
-      observer = new IntersectionObserver(update, { threshold: 0 });
-      [trigger, form].forEach(function (element) { observer.observe(element); });
+      if (triggerObserver) triggerObserver.disconnect();
+      if (formObserver) formObserver.disconnect();
+      triggerObserver = new IntersectionObserver(update, { threshold: 0 });
+      formObserver = new IntersectionObserver(update, {
+        rootMargin: '-' + headerBottom + 'px 0px 0px 0px',
+        threshold: 0
+      });
+      triggerObserver.observe(trigger);
+      formObserver.observe(form);
       update();
     }
     new ResizeObserver(measure).observe(header);
