@@ -5644,7 +5644,7 @@ ol.pretty-list li::before {
 /* Property summary: card-shell supplies surface, border, radius and shadow. */
 .property-sticky-summary {
   position: fixed;
-  top: calc(var(--property-sticky-header, 0px) + var(--space-md));
+  top: calc(var(--property-sticky-header, 0px) + 10px);
   right: max(16px, calc((100vw - var(--container)) / 2));
   width: min(300px, calc(100vw - 32px));
   z-index: 990; /* Below header navigation and dropdowns. */
