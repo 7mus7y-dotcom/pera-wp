@@ -6,8 +6,9 @@
     var contact = document.getElementById('contact-form');
     var form = contact && contact.querySelector('.enquiry-cta-form');
     var header = document.getElementById('site-header');
+    var controls = header && (header.querySelector('.site-header__actions') || header.querySelector('.header-icons'));
     var floating = document.getElementById('floating-whatsapp');
-    if (!bar || !form || !header || !window.IntersectionObserver || !window.ResizeObserver) return;
+    if (!bar || !form || !header || !controls || !window.IntersectionObserver || !window.ResizeObserver) return;
     var trigger = document.createElement('span');
     trigger.setAttribute('aria-hidden', 'true');
     trigger.style.cssText = 'position:absolute;inset-inline-start:0;top:0;width:1px;height:1px;opacity:0;pointer-events:none;';
@@ -43,7 +44,8 @@
     function measure() {
       var rect = header.getBoundingClientRect();
       headerBottom = Math.max(0, rect.height + (parseFloat(getComputedStyle(header).top) || 0));
-      bar.style.setProperty('--property-sticky-header', headerBottom + 'px');
+      var controlsBottom = Math.max(0, controls.getBoundingClientRect().bottom);
+      bar.style.setProperty('--property-sticky-controls-bottom', controlsBottom + 'px');
       trigger.style.top = headerBottom + 'px';
       contact.style.scrollMarginTop = (headerBottom + 16) + 'px';
       if (triggerObserver) triggerObserver.disconnect();
@@ -57,7 +59,9 @@
       formObserver.observe(form);
       update();
     }
-    new ResizeObserver(measure).observe(header);
+    var sizeObserver = new ResizeObserver(measure);
+    sizeObserver.observe(header);
+    sizeObserver.observe(controls);
     var stateObserver = new MutationObserver(update);
     stateObserver.observe(document.body, { attributes: true, attributeFilter: ['class'] });
     [header, document.getElementById('cookie-banner')].filter(Boolean).forEach(function (element) {
