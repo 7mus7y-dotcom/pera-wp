@@ -33,13 +33,14 @@ Desktop maps retain 32/25 geometry and the 16px action gap; mobile maps retain
 16/10 geometry and POI distances remain on the first line beside wrapping names.
 
 `js/property-sticky-summary.js` retains the approved observers and interactions.
-The 300px desktop card aligns to the container's right edge, 20px below the
-measured header. Mobile reserves bottom space from initial render and uses a
+The 300px desktop card aligns to the container's right edge, 10px below the
+measured header. An observer sentinel shows the summary after the visitor scrolls
+past one measured header height, while the hero is still available. Mobile reserves bottom space from initial render and uses a
 fixed bar with safe-area padding. The original global WhatsApp node moves into
 its action slot only while the mobile bar is active and returns to its original
 position when hidden or on desktop. No clone, URL or tracking attributes change.
-Introductory content, visible enquiry forms, navigation, cookie overlays and
-dialogs suppress the summary. Hidden/inert state and enquiry focus are preserved.
+Visible enquiry forms, navigation, cookie overlays and dialogs suppress the
+summary. Hidden/inert state and enquiry focus are preserved.
 Prices reuse the hero's authoritative v2 display-price data and currency runtime.
 
 ## Validation

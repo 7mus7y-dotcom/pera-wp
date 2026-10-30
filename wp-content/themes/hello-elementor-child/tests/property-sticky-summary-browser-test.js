@@ -53,6 +53,13 @@ const fixture = `<style>${css}</style><style>
       await page.addScriptTag({content: script});
       await visible(false);
       assert(await bar.evaluate(e => e.inert));
+      const initialHeaderHeight = await page.locator('#site-header').evaluate(e => e.getBoundingClientRect().height);
+      await scroll(Math.ceil(initialHeaderHeight) + 20); await visible(true);
+      assert(await page.evaluate(() => {
+        const hero = document.querySelector('.property-hero').getBoundingClientRect();
+        const header = document.getElementById('site-header').getBoundingClientRect();
+        return hero.bottom > header.bottom;
+      }), 'summary appears while hero remains visible');
       await scroll(1300); await visible(true);
       const rect = await bar.boundingBox();
       if (width <= 768) {
@@ -73,7 +80,7 @@ const fixture = `<style>${css}</style><style>
         assert(await bar.evaluate(e => [...e.querySelectorAll('a')].every(a => { const r = a.getBoundingClientRect(); return r.left >= 0 && r.right <= innerWidth; })), 'actions fit');
       } else {
         const header = await page.locator('#site-header').boundingBox();
-        assert(Math.abs(rect.y - header.y - header.height - 20) < 1, '20px below real header shell');
+        assert(Math.abs(rect.y - header.y - header.height - 10) < 1, '10px below real header shell');
         assert(rect.width >= 290 && rect.width <= 310 && rect.width < width / 2, 'compact card, no full-width band');
         const reference = await page.locator('#alignment-reference').boundingBox();
         assert(Math.abs(rect.x + rect.width - Math.min(width - 16, reference.x + reference.width)) < 1, 'right edge follows content container');
@@ -114,7 +121,10 @@ const fixture = `<style>${css}</style><style>
       const headerHeight = await page.locator('#site-header').evaluate(e => e.getBoundingClientRect().height);
       assert(Math.abs((await page.locator('#contact-form').boundingBox()).y - headerHeight - 16) < 2, 'header offset and reduced motion');
       await scroll(await page.locator('.enquiry-cta-form').evaluate(e => e.getBoundingClientRect().top + scrollY - 150)); await visible(false);
-      await scroll(await page.locator('.enquiry-cta-form').evaluate(e => e.getBoundingClientRect().bottom + scrollY + 20)); await visible(true);
+      const formBottom = await page.locator('.enquiry-cta-form').evaluate(e => e.getBoundingClientRect().bottom + scrollY);
+      await scroll(formBottom + 20); await visible(true);
+      await scroll(formBottom - headerHeight - 10); await visible(false);
+      await scroll(formBottom + 20); await visible(true);
       await scroll(0); await visible(false);
       assert.equal(await page.locator('#floating-home #floating-whatsapp').count(), 1);
       await page.emulateMedia({colorScheme:'light'});
@@ -133,7 +143,7 @@ const fixture = `<style>${css}</style><style>
   await page.setViewportSize({width:1280,height:800}); await page.waitForTimeout(150);
   assert.equal(await page.locator('#floating-home #floating-whatsapp').count(), 1, 'desktop restores floating link');
   await page.evaluate(() => document.getElementById('site-header').style.height = '55px'); await page.waitForTimeout(150);
-  assert.equal(Math.round((await bar.boundingBox()).y), 75, 'header resize plus card offset tracked');
+  assert.equal(Math.round((await bar.boundingBox()).y), 65, 'header resize plus 10px card offset tracked');
   await page.setContent(fixture.replace(markup, render('--type-fixture')));
   assert((await bar.locator('.property-sticky-summary__facts').textContent()).includes('69 m² · Apartment'), 'gross size and property-type fallback');
   await page.setViewportSize({width:375,height:800});
