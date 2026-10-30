@@ -229,6 +229,7 @@ peracrm_frontend_render_shell_header();
 	  'new_leads_summary'  => ! $is_leads && ! $is_tasks ? array(
 		  'count' => $new_leads_count,
 		  'url'   => $new_leads_url,
+		  'items' => $strict_new_leads,
 	  ) : array(),
   );
 

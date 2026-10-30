@@ -41,6 +41,7 @@ $selected_impersonation_user = isset( $impersonation_ui['effective_user_id'] ) ?
 $show_advisor_filter       = $show_client_filters && ! $is_impersonating;
 $show_impersonation_ui    = function_exists( 'peracrm_is_crm_overview_route' ) && peracrm_is_crm_overview_route();
 $new_leads_summary        = is_array( $args['new_leads_summary'] ?? null ) ? $args['new_leads_summary'] : array();
+$new_leads_items          = is_array( $new_leads_summary['items'] ?? null ) ? array_values( $new_leads_summary['items'] ) : array();
 $new_leads_count          = isset( $new_leads_summary['count'] ) ? max( 0, (int) $new_leads_summary['count'] ) : 0;
 $new_leads_url            = isset( $new_leads_summary['url'] ) ? (string) $new_leads_summary['url'] : '';
 $show_new_leads_summary   = '' !== $new_leads_url;
@@ -117,10 +118,35 @@ $has_toolbar = $show_client_filters || '' !== $toolbar_content;
       </div>
 
       <?php if ( $show_new_leads_summary ) : ?>
-      <aside class="crm-page-header__new-leads" aria-label="<?php echo esc_attr__( 'New leads summary', 'peracrm' ); ?>">
-        <h2 class="crm-page-header__new-leads-title"><?php esc_html_e( 'New leads', 'peracrm' ); ?></h2>
-        <p class="crm-page-header__new-leads-copy"><?php echo esc_html( $new_leads_copy ); ?></p>
-        <a class="btn btn--solid btn--blue crm-page-header__new-leads-action" href="<?php echo esc_url( $new_leads_url ); ?>"><?php esc_html_e( 'New leads', 'peracrm' ); ?></a>
+      <aside class="crm-page-header__new-leads crm-new-lead-carousel" data-crm-new-lead-carousel aria-label="<?php esc_attr_e( 'New leads', 'peracrm' ); ?>">
+        <div class="crm-new-lead-carousel__heading">
+          <h2 class="crm-page-header__new-leads-title"><?php esc_html_e( 'New leads', 'peracrm' ); ?></h2>
+          <span class="crm-chip crm-chip--status"><?php echo esc_html( sprintf( __( '%d awaiting review', 'peracrm' ), $new_leads_count ) ); ?></span>
+        </div>
+        <?php if ( empty( $new_leads_items ) ) : ?>
+          <p class="crm-page-header__new-leads-copy"><?php echo esc_html( $new_leads_copy ); ?></p>
+        <?php else : ?>
+          <div class="crm-new-lead-carousel__viewport" data-crm-carousel-viewport tabindex="0" aria-label="<?php esc_attr_e( 'Browse new lead cards', 'peracrm' ); ?>">
+            <ul class="crm-new-lead-carousel__track" data-crm-carousel-track>
+              <?php foreach ( $new_leads_items as $lead ) : ?>
+              <li class="crm-new-lead-carousel__card" data-crm-carousel-card>
+                <h3><a href="<?php echo esc_url( (string) ( $lead['url'] ?? '' ) ); ?>"><?php echo esc_html( (string) ( $lead['name'] ?? __( 'Untitled lead', 'peracrm' ) ) ); ?></a></h3>
+                <p><strong><?php esc_html_e( 'Source:', 'peracrm' ); ?></strong> <?php echo esc_html( (string) ( $lead['source'] ?? '—' ) ); ?></p>
+                <p><strong><?php esc_html_e( 'Received:', 'peracrm' ); ?></strong> <?php echo esc_html( (string) ( $lead['enquiry_at'] ?? '—' ) ); ?></p>
+                <a class="btn btn--solid btn--blue" href="<?php echo esc_url( (string) ( $lead['url'] ?? '' ) ); ?>"><?php esc_html_e( 'View lead', 'peracrm' ); ?></a>
+              </li>
+              <?php endforeach; ?>
+            </ul>
+          </div>
+          <?php if ( count( $new_leads_items ) > 1 ) : ?>
+          <div class="crm-new-lead-carousel__controls" aria-label="<?php esc_attr_e( 'Lead carousel controls', 'peracrm' ); ?>">
+            <button type="button" class="btn btn--ghost btn--blue" data-crm-carousel-prev aria-label="<?php esc_attr_e( 'Previous leads', 'peracrm' ); ?>">&#x2039;</button>
+            <span data-crm-carousel-status aria-live="polite"></span>
+            <button type="button" class="btn btn--ghost btn--blue" data-crm-carousel-next aria-label="<?php esc_attr_e( 'Next leads', 'peracrm' ); ?>">&#x203A;</button>
+          </div>
+          <?php endif; ?>
+        <?php endif; ?>
+        <a class="crm-new-lead-carousel__all" href="<?php echo esc_url( $new_leads_url ); ?>"><?php esc_html_e( 'View all new leads', 'peracrm' ); ?></a>
       </aside>
       <?php endif; ?>
     </div>

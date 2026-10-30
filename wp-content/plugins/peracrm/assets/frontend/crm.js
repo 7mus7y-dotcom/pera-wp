@@ -3039,3 +3039,62 @@ document.addEventListener('DOMContentLoaded', function () {
     if (deal && deal.hidden) { change('show', 'deals'); }
   }
 })();
+
+
+/* Overview new-lead carousel: native swipe/scroll with keyboard and chevrons. */
+(function () {
+  var root = document.querySelector('[data-crm-new-lead-carousel]');
+  if (!root) return;
+  var viewport = root.querySelector('[data-crm-carousel-viewport]');
+  var track = root.querySelector('[data-crm-carousel-track]');
+  var cards = track ? Array.prototype.slice.call(track.querySelectorAll('[data-crm-carousel-card]')) : [];
+  var prev = root.querySelector('[data-crm-carousel-prev]');
+  var next = root.querySelector('[data-crm-carousel-next]');
+  var status = root.querySelector('[data-crm-carousel-status]');
+  if (!viewport || !track || !cards.length) return;
+
+  function visibleCount() {
+    var first = cards[0].getBoundingClientRect();
+    var itemWidth = first.width;
+    var gap = parseFloat(window.getComputedStyle(track).gap) || 0;
+    return Math.max(1, Math.min(cards.length, Math.floor((viewport.clientWidth + gap + 1) / (itemWidth + gap))));
+  }
+  function currentIndex() {
+    var position = track.scrollLeft;
+    var best = 0;
+    var distance = Infinity;
+    cards.forEach(function (card, i) {
+      var d = Math.abs(card.offsetLeft - cards[0].offsetLeft - position);
+      if (d < distance) { distance = d; best = i; }
+    });
+    return best;
+  }
+  function sync() {
+    var first = currentIndex();
+    var shown = visibleCount();
+    var finalStart = Math.max(0, cards.length - shown);
+    first = Math.min(first, finalStart);
+    if (prev) prev.disabled = first <= 0;
+    if (next) next.disabled = first >= finalStart;
+    if (status) status.textContent = (first + 1) + '–' + Math.min(cards.length, first + shown) + ' of ' + cards.length;
+  }
+  function move(direction) {
+    var shown = visibleCount();
+    var target = Math.max(0, Math.min(cards.length - shown, currentIndex() + direction * shown));
+    var left = cards[target].offsetLeft - cards[0].offsetLeft;
+    track.scrollTo({ left: left, behavior: window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth' });
+  }
+  if (prev) prev.addEventListener('click', function () { move(-1); });
+  if (next) next.addEventListener('click', function () { move(1); });
+  viewport.addEventListener('keydown', function (e) {
+    if (e.target.closest('a, button, input, select, textarea')) return;
+    if (e.key === 'ArrowLeft') { e.preventDefault(); move(-1); }
+    if (e.key === 'ArrowRight') { e.preventDefault(); move(1); }
+  });
+  var raf = 0;
+  track.addEventListener('scroll', function () {
+    if (!raf) raf = window.requestAnimationFrame(function () { raf = 0; sync(); });
+  }, { passive: true });
+  window.addEventListener('resize', sync, { passive: true });
+  sync();
+})();
