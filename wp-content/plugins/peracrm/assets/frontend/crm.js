@@ -68,7 +68,7 @@
     if (!document.querySelector('.crm-page') || !window.matchMedia) {
       return;
     }
-    var mobile = window.matchMedia('(max-width: 767px)');
+    var mobile = window.matchMedia('(max-width: 1024px)');
     var viewport = window.visualViewport;
     var scheduled = false;
 
