@@ -82,7 +82,7 @@ $new_leads_count            = $show_new_leads_pill && function_exists( 'pera_crm
     </div>
 
     <!-- RIGHT: ICONS -->
-    <div class="flex flex-col items-end">
+    <div class="site-header__actions flex flex-col items-end">
       <div class="header-icons">
 
       <?php pera_render_header_language_switcher( 'desktop' ); ?>
