@@ -1,15 +1,17 @@
-/* Permanent property summary; no scroll listeners or pricing calculations. */
+/* Permanent property summary; observer-driven visibility with no scroll polling. */
 (function () {
   'use strict';
   function init() {
     var bar = document.querySelector('[data-property-sticky-summary]');
-    var hero = document.querySelector('.property-hero');
-    var overview = document.getElementById('property-overview');
     var contact = document.getElementById('contact-form');
     var form = contact && contact.querySelector('.enquiry-cta-form');
     var header = document.getElementById('site-header');
     var floating = document.getElementById('floating-whatsapp');
-    if (!bar || !hero || !overview || !form || !header || !window.IntersectionObserver || !window.ResizeObserver) return;
+    if (!bar || !form || !header || !window.IntersectionObserver || !window.ResizeObserver) return;
+    var trigger = document.createElement('span');
+    trigger.setAttribute('aria-hidden', 'true');
+    trigger.style.cssText = 'position:absolute;inset-inline-start:0;top:0;width:1px;height:1px;opacity:0;pointer-events:none;';
+    document.body.appendChild(trigger);
     var mobile = window.matchMedia('(max-width: 768px)');
     var slot = bar.querySelector('.property-sticky-summary__whatsapp');
     var home = document.createComment('Floating WhatsApp home');
@@ -17,12 +19,12 @@
     var headerBottom = 0;
     var observer;
     function update() {
-      var pastIntro = Math.max(hero.getBoundingClientRect().bottom, overview.getBoundingClientRect().bottom) <= headerBottom;
+      var pastHeader = trigger.getBoundingClientRect().bottom <= 0;
       var rect = form.getBoundingClientRect();
       var formVisible = rect.bottom > headerBottom && rect.top < window.innerHeight;
       var blocked = document.body.matches('.is-nav-open, .is-lightbox-open, .pera-offer-video-modal-open') ||
         document.querySelector('.cookie-banner--visible, dialog[open], #site-header [aria-expanded="true"], #site-header .is-open');
-      var visible = pastIntro && !formVisible && !blocked;
+      var visible = pastHeader && !formVisible && !blocked;
       // Move the original node: preserve its URL, translated label, tracking and listeners.
       if (floating) {
         if (visible && mobile.matches) {
@@ -41,10 +43,11 @@
       var rect = header.getBoundingClientRect();
       headerBottom = Math.max(0, rect.height + (parseFloat(getComputedStyle(header).top) || 0));
       bar.style.setProperty('--property-sticky-header', headerBottom + 'px');
+      trigger.style.top = headerBottom + 'px';
       contact.style.scrollMarginTop = (headerBottom + 16) + 'px';
       if (observer) observer.disconnect();
-      observer = new IntersectionObserver(update, { rootMargin: '-' + headerBottom + 'px 0px 0px 0px', threshold: 0 });
-      [hero, overview, form].forEach(function (element) { observer.observe(element); });
+      observer = new IntersectionObserver(update, { threshold: 0 });
+      [trigger, form].forEach(function (element) { observer.observe(element); });
       update();
     }
     new ResizeObserver(measure).observe(header);
