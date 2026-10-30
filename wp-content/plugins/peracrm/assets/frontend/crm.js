@@ -3098,3 +3098,16 @@ document.addEventListener('DOMContentLoaded', function () {
   window.addEventListener('resize', sync, { passive: true });
   sync();
 })();
+
+
+/* Confirm destructive property instruction actions before submitting. */
+(function () {
+  document.querySelectorAll('[data-crm-instruction-delete-form]').forEach(function (form) {
+    form.addEventListener('submit', function (event) {
+      var message = form.getAttribute('data-confirm-message') || 'Delete this property instruction permanently?';
+      if (!window.confirm(message)) {
+        event.preventDefault();
+      }
+    });
+  });
+})();
