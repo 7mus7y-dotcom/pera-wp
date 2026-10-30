@@ -9226,3 +9226,10 @@ body.crm-route #site-header.peracrm-shell-header .peracrm-header-search__status 
     margin-inline: auto;
   }
 }
+
+/* Reusable opt-in bordered panel; layout and padding remain owned by the component. */
+.crm-page .crm-panel {
+  border: 1px solid var(--border, #e8ecf2);
+  border-radius: 14px;
+  background: var(--surface-raised, #ffffff);
+}
