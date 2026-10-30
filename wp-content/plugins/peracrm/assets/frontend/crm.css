@@ -9192,3 +9192,37 @@ body.crm-route #site-header.peracrm-shell-header .peracrm-header-search__status 
   max-width: 100%;
   white-space: normal;
 }
+
+
+/* Mobile CRM outer gutters: 8px from viewport to main page panels.
+   This is deliberately limited to page-shell layout, not card contents. */
+@media (max-width: 767px) {
+  body.crm-route {
+    --crm-shell-max-width: calc(100% - 16px);
+  }
+  body.crm-route .crm-page > .crm-page-header,
+  body.crm-route .crm-page .content-panel {
+    padding-inline: 0;
+  }
+  body.crm-route .crm-page > .crm-page-header .crm-page-header__inner,
+  body.crm-route .crm-page .content-panel > .content-panel-box {
+    width: calc(100vw - 16px);
+    max-width: calc(100vw - 16px);
+    box-sizing: border-box;
+    margin-inline: auto;
+  }
+  body.crm-route .crm-page .content-panel > .content-panel-box {
+    padding-inline: 0;
+  }
+  /* Clients directory: override prior 22px route-specific widths. */
+  body.crm-route .crm-page--leads .crm-layout__main > [data-crm-clients-workspace] > .crm-toolbar,
+  body.crm-route .crm-page--leads .crm-layout__main > [data-crm-clients-workspace] > .crm-list-workspace,
+  body.crm-route .crm-page--leads .crm-layout__main > [data-crm-clients-workspace] > .crm-clients-pagination,
+  body.crm-route .crm-page--leads .crm-new72-workspace > .crm-new72-toolbar,
+  body.crm-route .crm-page--leads .crm-new72-workspace > .crm-list-workspace--rows[data-crm-view="cards"] {
+    width: calc(100vw - 16px);
+    max-width: calc(100vw - 16px);
+    box-sizing: border-box;
+    margin-inline: auto;
+  }
+}
