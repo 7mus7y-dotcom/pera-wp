@@ -9292,7 +9292,8 @@ body.crm-route #site-header.peracrm-shell-header .peracrm-shell-date-pill .crm-p
     grid-column: 2;
     grid-row: 2;
     justify-self: end;
-    margin: 0;
+    align-self: start;
+    margin: -8px 0 0;
     order: initial;
   }
   body.crm-route #site-header.peracrm-shell-header .peracrm-header-search {
