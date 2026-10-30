@@ -9306,3 +9306,35 @@ body.crm-route #site-header.peracrm-shell-header .peracrm-shell-date-pill .crm-p
     min-width: 0;
   }
 }
+
+/* Desktop shell: logo at left, search over date at the right edge. */
+@media (min-width: 1025px) {
+  body.crm-route #site-header.peracrm-shell-header .header-inner {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(180px, 380px);
+    grid-template-rows: auto auto;
+    align-items: center;
+    column-gap: 16px;
+    row-gap: 6px;
+  }
+  body.crm-route #site-header.peracrm-shell-header .peracrm-shell-branding {
+    grid-column: 1;
+    grid-row: 1 / 3;
+    justify-self: start;
+  }
+  body.crm-route #site-header.peracrm-shell-header .peracrm-header-search {
+    grid-column: 2;
+    grid-row: 1;
+    width: 100%;
+    max-width: 380px;
+    min-width: 0;
+    margin: 0;
+    justify-self: end;
+  }
+  body.crm-route #site-header.peracrm-shell-header .peracrm-shell-date-pill {
+    grid-column: 2;
+    grid-row: 2;
+    margin: 0;
+    justify-self: end;
+  }
+}
