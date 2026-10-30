@@ -9151,3 +9151,17 @@ body.crm-route #site-header.peracrm-shell-header .peracrm-header-search__status 
 .crm-page--client-view #crm-property-instructions .crm-instruction-card__controls > details.crm-instruction-editor > summary.btn::-webkit-details-marker {
   display: none;
 }
+
+
+/* Saved property status pills: a real row gap when the labels wrap. */
+.crm-page--client-view #crm-property-instructions .crm-instruction-card > .crm-section__header > div {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  justify-content: flex-start;
+  gap: 5px 6px;
+}
+.crm-page--client-view #crm-property-instructions .crm-instruction-card > .crm-section__header h4 {
+  flex-basis: 100%;
+  margin: 0 0 2px;
+}
