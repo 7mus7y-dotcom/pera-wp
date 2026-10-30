@@ -413,7 +413,7 @@ peracrm_frontend_render_shell_header();
       </section>
 
       <section class="crm-overview-band crm-overview-band--tertiary" aria-labelledby="crm-pipeline-health-heading">
-        <article class="crm-section crm-section--flush crm-overview-metrics crm-overview-health">
+        <article class="crm-section crm-section--flush crm-overview-metrics crm-overview-health crm-panel">
           <header class="crm-section__header">
             <div class="crm-section__heading-group">
               <h2 id="crm-pipeline-health-heading" class="crm-section__title"><?php echo esc_html__( 'Pipeline Health', 'peracrm' ); ?></h2>
