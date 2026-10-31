@@ -2,6 +2,12 @@
 
 **Disabled by default.** No live configuration, installation, hosting change or deployment is performed by this PR. Enable only after the checklist below. Requirements: PHP 7.4+ (tested also on production-target PHP 8.2), a 64-bit runtime, and the optional locked Composer reader for MMDB mode.
 
+## Confirmed hosting and current browser policy
+
+The completed hosting checks confirm PHP 8.2, Composer at `/usr/local/bin/composer`, working WP-CLI cron every minute, DNS resolution with `gethostbyaddr()` and `dns_get_record()`, a writable private home directory, and direct Apache hosting without an identified CDN. These are user-confirmed capabilities, not live checks performed by this PR. No hosting settings are edited here.
+
+Ordinary browser document navigation is eligible for an **immediate first-request** country redirect once the feature flags and reliable country database/source are configured. Neither a missing PTR record, an empty DNS cache, failed DNS nor an expired non-bot result blocks the browser. Crawler-like requests bypass geographic negotiation immediately; forward-confirmed cached crawler identity is an additional exemption. Unknown traffic without browser-navigation evidence stays on its requested URL. All existing preference, mapping, route, flag and header safeguards remain in place.
+
 ## Architecture audit and follow-up design
 
 English remains the sole WordPress object. The language registry controls enabled languages and Russian/Turkish public launch gates. `class-router.php` strips enabled prefixes at `plugins_loaded` priority 1, lets WordPress/theme routing resolve the canonical object and restores the browser URI at `parse_request` priority 0. `url_for_language()` preserves deep paths, query strings, archive pagination and search while replacing existing prefixes. No second translation system or translated slug table is added.
@@ -12,7 +18,7 @@ Content, ACF fields, menu, UI and vocabulary readers use current/stale stored tr
 
 - Coordinate explicitly with the actual theme cache module using a final `send_headers` hook, repeat before template output and enforce at PHP's final header boundary.
 - Retain trusted server/Cloudflare GeoIP and add a maintained, locked pure-PHP local MMDB reader. No visitor-IP API or per-page external request.
-- Retain a trusted audience service when available. Offer an explicitly opted-in background DNS policy for this host, with conservative unknown handling and no synchronous frontend DNS. Document its limits instead of labelling unknown visitors verified humans.
+- Retain a trusted audience service when available. Offer an explicitly opted-in browser policy with background DNS verification for this host, without making DNS confirmation a prerequisite for ordinary visitors. Document its limits instead of labelling unknown visitors verified humans.
 - Keep both feature/cache-readiness flags off, preserve manual preference priority, and use the enabled registry for route eligibility (no assumption that Chinese is enabled).
 
 ## Execution and cache-header integration
@@ -60,8 +66,8 @@ The plugin pins `maxmind-db/reader` **1.14.0** (MaxMind's maintained Apache-2.0 
 
 ```sh
 cd wp-content/plugins/pera-multilingual
-composer validate --strict
-composer install --no-dev --prefer-dist --no-interaction --no-scripts
+/usr/local/bin/composer validate --strict
+/usr/local/bin/composer install --no-dev --prefer-dist --no-interaction --no-scripts
 ```
 
 Do not run Composer in a visitor request. Missing dependencies produce no country result, not a fatal error. Update the pinned dependency and lock through reviewed maintenance, run this suite and Composer audit in the build process. The optional MaxMind C extension is unnecessary; an incompatible pre-existing extension must be removed/upgraded to the locked reader's compatible range.
@@ -114,17 +120,21 @@ Missing/invalid countries (including Cloudflare XX/T1) cause no automatic naviga
 
 The existing non-HTTP `PERA_ML_VERIFIED_AUDIENCE` server parameter remains authoritative when exactly `human` or `bot`. Its configurable name is `PERA_ML_GEO_AUDIENCE_SERVER_VAR`. The host must set/overwrite it through a reliable service; an incoming HTTP header or a false verified-bot flag alone does not establish a human. If no local mode or reliable service is configured, country/stored-preference redirects remain inactive; explicit selections still work.
 
-For direct cPanel without that infrastructure, opt into `PERA_ML_GEO_CRAWLER_MODE='dns'`:
+For direct cPanel without a trusted audience service, opt into `PERA_ML_GEO_CRAWLER_MODE='dns'`. This existing mode name is retained for compatibility; DNS is now an additional crawler safeguard, **not an admission test for visitors**.
 
-- A frontend request reads cached classification only. A new/expired IP is queued and remains on its requested URL. No frontend reverse DNS, forward DNS or external API call is performed.
-- A single shared WordPress cron event processes **at most five addresses**. It reverse-resolves the address and forward-resolves the resulting hostname with A and AAAA records. A byte-equivalent address must be present. Missing PTR, forward failures, mismatches and exceptions are unknown, never assumed human.
-- Forward-confirmed names with boundary-matched suffixes for Google, Bing, Yahoo, Yandex, Baidu, DuckDuckGo, Apple, Petal, Sogou and Naver are `bot` and bypass negotiation even when the User-Agent looks like a browser. The suffix inventory is explicit in `class-crawler-detection.php`; provider changes require maintenance.
-- Other successfully forward-confirmed names are `visitor`, **not verified human**. They may negotiate only with a browser-like UA and explicit document-navigation hints (`Sec-Fetch-User: ?1`, `Mode: navigate`, `Dest: document`). These hints narrow the policy; spoofable headers do not prove identity. A crawler-like UA independently bypasses negotiation as a conservative precaution, never as proof of verified bot status.
-- Unrecognized bots that deliberately mimic both browser navigation and non-provider DNS are not provably detectable. This bounded policy covers verified listed providers and conservative unknown handling, not universal crawler verification. Keep trusted-service mode/leave DNS mode off if that remaining limitation is unacceptable. Do not advertise the mode as human attestation.
+1. Read any fresh cached bot result for the actual public client IP. A verified bot bypasses negotiation regardless of its User-Agent. The client-IP trust rules above still apply.
+2. Conservatively bypass crawler-like User-Agents (including Googlebot) immediately, whether or not DNS has run. This is an exclusion hint, **not verified identity**.
+3. Allow an ordinary browser document navigation immediately, including first-time visitors and addresses without PTR records. Browser evidence means a `Mozilla/` User-Agent plus `Sec-Fetch-Mode: navigate` and `Sec-Fetch-Dest: document`. `Sec-Fetch-User` is not required. For older browsers with neither Fetch Metadata field, a `text/html` Accept header is sufficient. Explicit non-navigation metadata (such as CORS/resource fetches) cannot fall back to Accept.
+4. Leave other/unknown non-browser traffic on the requested language URL. A valid explicit manual language selection still works without browser/DNS evidence. Manual preferences continue to override country whenever automatic negotiation applies.
+5. Queue uncached/expired addresses for bounded background verification, including crawler-hinted traffic. No frontend reverse DNS, forward DNS or external IP API call occurs. A full queue, failed/absent PTR, DNS errors or an expired non-bot result never delays an otherwise eligible browser redirect.
 
-The queue is capped at 64 addresses, workers at five per event and cache at 256 hashed IP keys. Bot results expire after 24h, visitor results after 6h, errors after 5m; queued work older than 10m is discarded. Stale results never authorize redirects. Bounded capacity can delay/drop classifications, which leaves those visitors unredirected. Concurrent queue updates may also drop work safely. A worker lock prevents duplicate processing; a lock older than five minutes can be reclaimed. Queue/cache options do not autoload. Raw IPs exist only in the bounded pending queue for DNS work; cached keys are SHA-256 hashes (still personal/pseudonymous data), not raw IPs. Reflect this processing in the site's privacy/retention policy. Expired records are removed on subsequent queue/cache activity; delete the options to remove inactive residual state.
+The shared cron worker processes **at most five addresses**. It reverse-resolves an IP and forward-resolves the returned hostname with A/AAAA records. A byte-equivalent address must match before provider identity is accepted. Boundary-matched suffixes for Google, Bing, Yahoo, Yandex, Baidu, DuckDuckGo, Apple, Petal, Sogou and Naver are verified bot exemptions. The provider inventory is explicit in `class-crawler-detection.php` and requires maintenance. Forward-confirmed other names and lookup failures are retained briefly only to avoid repeated DNS work; neither is required to permit a browser.
 
-**Host prerequisites:** provide a working local resolver and reliable cPanel cron. Prefer a real system cron/CLI worker so DNS latency does not consume PHP web workers or depend on visitor traffic. For example, using the site's normal WP-CLI installation, invoke `wp eval '(new Pera_ML_Crawler_Detection())->work();'` under the site identity every minute. The work is local and bounded by count; PHP resolver calls do not expose per-call timeout controls. Configure resolver timeouts and wrap the CLI cron in a host process timeout (for example 90 seconds) with non-overlap locking. WordPress cron is also supported but needs working loopback/spawning; first/new visitors may not negotiate until a later navigation. Without cron, resolver, PTR/forward confirmation or browser hints, that traffic remains accessible in its requested language. This is intentional fail-closed behavior.
+**Identification limits:** User-Agent, Accept and all browser-navigation headers are spoofable. They are policy hints, not proof of human identity. An unrecognized crawler that mimics ordinary browser navigation may receive a country redirect on its first request, or later if DNS cannot identify it. A spoofed crawler User-Agent can avoid negotiation. Expired/evicted verified-bot entries no longer provide an IP exemption until refreshed, although crawler hints still bypass immediately. Shared/NAT addresses can also conservatively exempt ordinary users when a bot result is cached. Perfect crawler identification is impossible without trusted infrastructure. Use the trusted audience-service alternative or leave the feature disabled if these SEO tradeoffs are unacceptable; this policy does not claim universal bot detection.
+
+Queue/cache limits remain 64 pending addresses, five checks per event and 256 hashed IP entries. Bot results expire after 24h, non-provider results after 6h, errors after 5m; queued work older than 10m is discarded. Capacity/concurrent-update losses can delay verification, but not ordinary browser redirects. The worker lock expires after five minutes. Options do not autoload. Raw IPs occur only in the bounded pending queue; cached SHA-256 keys are still personal/pseudonymous data. Reflect this processing in privacy/retention notices. Expired data is removed on subsequent activity; delete the options to remove inactive residual state.
+
+**Confirmed infrastructure and remaining setup:** the existing one-minute WP-CLI cron and DNS functions can support the worker. Confirm that the scheduled `pera_ml_verify_crawler_queue` event is actually being processed after activation; do not add a duplicate cron unnecessarily. Alternatively the site's normal WP-CLI can invoke `wp eval '(new Pera_ML_Crawler_Detection())->work();'` under the site identity. PHP resolver calls have no per-call timeout controls: retain a process timeout/non-overlap lock and appropriate local resolver timeouts for background work. A cron/DNS outage reduces verified IP exemptions but does not block browser negotiation or the immediate crawler-UA bypass. Country detection still fails closed when the trusted GeoIP source/database is missing, stale or invalid.
 
 ## Mapping and manual preference
 
@@ -147,7 +157,7 @@ Priority: valid explicit switcher selection, valid stored preference, reliable c
 
 Language redirects are temporary 302 only. Resolve the same requested content with the unchanged router; preserve raw query strings, filters, pagination and searches. Matching destinations cause no redirect/loop. Missing translations retain English per-field fallback. Canonical, hreflang, x-default and sitemap content stay unchanged and clean. No rewrite flush is needed. Same-path existing normalization is composed; existing old-slug, domain, HTTPS and other upstream/different-content redirects cannot always be collapsed by this plugin.
 
-No country redirects apply to admin, AJAX, cron, XML-RPC, REST including rest_route, robots.txt, sitemaps/XML/text, feeds, previews, embeds, trackbacks, 404s, non-GET methods or unsupported/unresolved main-query contexts. All language versions remain directly accessible to verified crawlers and unknown/unclassified requests.
+No country redirects apply to admin, AJAX, cron, XML-RPC, REST including rest_route, robots.txt, sitemaps/XML/text, feeds, previews, embeds, trackbacks, 404s, non-GET methods or unsupported/unresolved main-query contexts. All language versions remain directly accessible to recognized/verified crawlers and unknown traffic without browser-navigation evidence. Browser-looking unrecognized crawlers are subject to the documented identification limits.
 
 ## Tests and limits
 
@@ -175,7 +185,7 @@ The regression runner compares any existing failure with unchanged PR base, requ
 - [ ] With flags off, compare actual theme TTL/Expires/Pragma on home, property archive, property single, district, blog, filters and logged-in routes. Confirm switchers/canonical/hreflang/sitemaps match baseline.
 - [ ] Build/install the locked reader with production PHP 8.2; validate the private current Country DB, permissions, IPv4/IPv6 reads, license/update cron and failure alerting. Confirm no database/config/key is web-accessible.
 - [ ] Verify PHP's real peer/TLS state. Attempt forged country, audience and forwarded headers through the actual connection; they must not override identity or local lookups.
-- [ ] Exercise the chosen crawler mode. Verify real provider reverse+forward matching, spoofed UA behavior, failed DNS, first/new IP, cache expiry, bounded queue and worker timeout/cron. Confirm every language remains accessible for verified/unknown crawler requests.
+- [ ] Exercise first-time German, Chinese and Arabic browser arrivals with an empty DNS cache and missing/failed PTR. Confirm immediate country redirects, immediate Googlebot bypass, cached verified-bot bypass despite a browser UA, unknown non-browser bypass, and manual preference overrides. Verify the existing cron handles the bounded queue and confirm provider DNS/timeout/cache expiry behavior.
 - [ ] On staging, enable both flags and inspect final Apache response headers (including mod_expires, Header directives and cPanel caches), not PHP helper output. All eligible 200/302 responses must have the exact private/no-store policy and past Expires/Pragma. Purge old caches and alternate countries/preferences at one URL to rule out contamination.
 - [ ] Verify real property/article/page, paginated/filtered archive and search destinations are the same content, one temporary hop, no loops. Verify missing translations use English fallback and missing content stays 404.
 - [ ] Manually select English from China, verify secure cookie/expiry/scope, return, and switch again using desktop/mobile/plugin switchers. Confirm country never overwrites preference.
@@ -183,7 +193,7 @@ The regression runner compares any existing failure with unchanged PR base, requ
 
 ## Troubleshooting and rollback
 
-No negotiation: check both flags, eligibility, public languages, manual cookie, GeoIP source/DB age and audience policy. For local DNS mode check real IP, pending queue, cron/lock, resolver results and navigation hints; new or unconfirmed visitors deliberately do not redirect. Wrong country: inspect configured local DB/source and trusted peer model, never add a trust-all proxy rule. Missing translated copy is the existing field fallback.
+No negotiation: check both flags, eligibility, public languages, manual cookie, GeoIP source/DB age and audience policy. For browser/DNS mode check actual IP and navigation hints; first-time browsers must not wait for DNS. Missing browser evidence deliberately bypasses. Inspect queue/cron/resolver only for background crawler verification, not browser admission. Wrong country: inspect configured local DB/source and trusted peer model, never add a trust-all proxy rule. Missing translated copy is the existing field fallback.
 
 Wrong headers: disable immediately, purge caches, inspect actual final Apache/CDN headers and any late header-callback replacement. A response served before WordPress cannot be fixed by PHP headers. Manual preference failure: check HTTPS detection, home-path cookie scope and browser acceptance.
 

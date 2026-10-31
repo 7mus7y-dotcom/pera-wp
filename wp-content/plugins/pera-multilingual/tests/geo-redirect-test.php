@@ -19,6 +19,9 @@ function add_action( $name, $callback, $priority = 10, $args = 1 ) { $GLOBALS['h
 function add_filter( $name, $callback, $priority = 10, $args = 1 ) { $GLOBALS['filters'][$name][] = $callback; }
 function apply_filters( $name, $value, ...$args ) { foreach ( $GLOBALS['filters'][$name] ?? array() as $callback ) $value = $callback( $value, ...$args ); return $value; }
 function get_option( $key, $default = false ) { return $GLOBALS['options'][$key] ?? $default; }
+function update_option( $key, $value, $autoload = false ) { $GLOBALS['options'][$key] = $value; }
+function wp_next_scheduled( $name ) { return $GLOBALS['events'][$name] ?? false; }
+function wp_schedule_single_event( $time, $name ) { $GLOBALS['events'][$name] = $time; }
 function sanitize_key( $value ) { return preg_replace( '/[^a-z0-9_\-]/', '', strtolower( $value ) ); }
 function wp_unslash( $value ) { return $value; }
 function wp_parse_url( $url, $component = -1 ) { return parse_url( $url, $component ); }
@@ -169,6 +172,20 @@ if ( ! $active ) {
 	list( $geo ) = request( '/de/about/?pera_ml_select=de', 'DE' ); expect( 'https://example.test/de/about/', $geo->destination(), 'manual preference works when Chinese disabled' );
 	unset( $GLOBALS['filters']['pera_ml_languages'] );
 	if ( 'dns' === $mode ) {
+		foreach ( array( 'DE' => 'de', 'CN' => 'zh', 'SA' => 'ar' ) as $country => $language ) {
+			$GLOBALS['options'] = array();
+			list( $geo ) = request( '/property/example/?beds=2', $country, '', '' );
+			$_SERVER['REMOTE_ADDR'] = '81.2.69.160'; $_SERVER['HTTP_USER_AGENT'] = 'Mozilla/5.0';
+			$_SERVER['HTTP_SEC_FETCH_MODE'] = 'navigate'; $_SERVER['HTTP_SEC_FETCH_DEST'] = 'document';
+			$geo->prepare(); expect( "https://example.test/$language/property/example/?beds=2", $geo->destination(), "first-time $country browser redirects before DNS" );
+			expect( array(), get_option( Pera_ML_Crawler_Detection::CACHE, array() ), 'first-time redirect does not require a DNS cache result' );
+		}
+		$GLOBALS['options'] = array();
+		$_SERVER['HTTP_USER_AGENT'] = 'Googlebot'; $geo->prepare(); expect( '', $geo->destination(), 'Googlebot bypasses immediately without DNS' );
+		$_SERVER['HTTP_USER_AGENT'] = ''; unset( $_SERVER['HTTP_SEC_FETCH_MODE'], $_SERVER['HTTP_SEC_FETCH_DEST'] );
+		$geo->prepare(); expect( '', $geo->destination(), 'unknown non-browser traffic bypasses geographic redirection' );
+		list( $geo ) = request( '/about/?pera_ml_select=en', 'CN', '', '' );
+		expect( 'https://example.test/about/', $geo->destination(), 'first-time manual English overrides Chinese geolocation' );
 		list( $geo ) = request( '/about/?pera_ml_select=en', 'CN', 'zh', '' );
 		expect( 'https://example.test/about/', $geo->destination(), 'explicit manual English works without audience infrastructure' );
 		list( $geo ) = request( '/ar/property/example/?beds=2', 'CN', 'en', '' );

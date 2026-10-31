@@ -1,7 +1,7 @@
 <?php
 defined( 'ABSPATH' ) || exit;
 
-/** Optional bounded, asynchronous FCrDNS policy. Unknown traffic is never redirected. */
+/** Browser navigation policy with conservative crawler bypass and background FCrDNS. */
 final class Pera_ML_Crawler_Detection {
 	const EVENT = 'pera_ml_verify_crawler_queue';
 	const QUEUE = 'pera_ml_crawler_queue';
@@ -25,18 +25,29 @@ final class Pera_ML_Crawler_Detection {
 		$key = hash( 'sha256', $ip ); $now = time();
 		$cache = get_option( self::CACHE, array() );
 		$entry = is_array( $cache ) && isset( $cache[ $key ] ) ? $cache[ $key ] : null;
-		if ( is_array( $entry ) && isset( $entry['expires'], $entry['result'] ) && $entry['expires'] > $now ) {
+		$fresh = is_array( $entry ) && isset( $entry['expires'], $entry['result'] ) && $entry['expires'] > $now;
+		if ( $fresh ) {
 			if ( 'bot' === $entry['result'] ) return 'bot';
-			if ( $crawler_hint ) return '';
-			// A completed non-provider DNS result is not proof of a human. Limit
-			// negotiation to explicit browser document navigations; headers alone
-			// never establish crawler identity or bypass IP/DNS verification.
-			if ( 'visitor' === $entry['result'] && 0 === strpos( $agent, 'Mozilla/' )
-				&& isset( $_SERVER['HTTP_SEC_FETCH_USER'], $_SERVER['HTTP_SEC_FETCH_MODE'], $_SERVER['HTTP_SEC_FETCH_DEST'] )
-				&& '?1' === $_SERVER['HTTP_SEC_FETCH_USER'] && 'navigate' === $_SERVER['HTTP_SEC_FETCH_MODE'] && 'document' === $_SERVER['HTTP_SEC_FETCH_DEST'] ) return 'visitor';
-			return '';
 		}
-		if ( $crawler_hint ) return '';
+		if ( ! $fresh ) $this->queue( $ip, $key, $now );
+		// Neither missing PTR nor a pending/failed DNS lookup blocks a browser's
+		// first navigation. These request hints are policy inputs, NOT identity proof.
+		return ! $crawler_hint && $this->browser_navigation( $agent ) ? 'visitor' : '';
+	}
+
+	private function browser_navigation( $agent ) {
+		if ( 0 !== strpos( $agent, 'Mozilla/' ) ) return false;
+		// Explicit non-document fetch metadata must never fall back to Accept.
+		if ( isset( $_SERVER['HTTP_SEC_FETCH_MODE'] ) || isset( $_SERVER['HTTP_SEC_FETCH_DEST'] ) ) {
+			return isset( $_SERVER['HTTP_SEC_FETCH_MODE'], $_SERVER['HTTP_SEC_FETCH_DEST'] )
+				&& 'navigate' === $_SERVER['HTTP_SEC_FETCH_MODE'] && 'document' === $_SERVER['HTTP_SEC_FETCH_DEST'];
+		}
+		// Older browsers may omit Fetch Metadata. A normal HTML navigation is enough.
+		$accept = isset( $_SERVER['HTTP_ACCEPT'] ) && is_string( $_SERVER['HTTP_ACCEPT'] ) ? $_SERVER['HTTP_ACCEPT'] : '';
+		return (bool) preg_match( '#(?:^|,)\s*text/html(?:\s*[;,]|\s*$)#i', $accept );
+	}
+
+	private function queue( $ip, $key, $now ) {
 		$queue = get_option( self::QUEUE, array() ); $queue = is_array( $queue ) ? $queue : array();
 		$queue = array_filter( $queue, static function ( $item ) use ( $now ) { return is_array( $item ) && isset( $item['queued'] ) && $item['queued'] > $now - 600; } );
 		if ( ! isset( $queue[ $key ] ) && count( $queue ) < self::QUEUE_LIMIT ) {
@@ -44,7 +55,6 @@ final class Pera_ML_Crawler_Detection {
 			update_option( self::QUEUE, $queue, false );
 		}
 		if ( $queue && ! wp_next_scheduled( self::EVENT ) ) wp_schedule_single_event( $now + 5, self::EVENT );
-		return '';
 	}
 
 	/** Runs only in cron/CLI, never from audience(). At most five DNS jobs per event. */
