@@ -1,6 +1,10 @@
 <?php
 /** Standalone request-level regression harness. Uses the real registry, router, content and SEO classes. */
 define( 'ABSPATH', __DIR__ );
+set_error_handler( function ( $severity, $message, $file, $line ) {
+	if ( error_reporting() & $severity ) throw new ErrorException( $message, 0, $severity, $file, $line );
+	return false;
+} );
 define( 'PERA_ML_PUBLIC_RUSSIAN_ENABLED', true );
 define( 'PERA_ML_PUBLIC_TURKISH_ENABLED', false );
 $mode = isset( $argv[1] ) ? $argv[1] : 'server';
@@ -36,6 +40,7 @@ function is_home() { return false; }
 function is_front_page() { return false; }
 function is_ssl() { return true; }
 function get_query_var( $key ) { return $GLOBALS['context'][$key] ?? ''; }
+function wp_safe_redirect( $url, $status = 302, $by = '' ) { $GLOBALS['emitted_redirect'] = array( $url, $status ); return false; }
 function nocache_headers() { $GLOBALS['no_cache'] = true; }
 function add_query_arg( $key, $value, $url ) { return $url . ( false === strpos( $url, '?' ) ? '?' : '&' ) . rawurlencode( $key ) . '=' . rawurlencode( $value ); }
 function remove_query_arg( $key, $url ) {
@@ -101,6 +106,7 @@ if ( ! $active ) {
 		array( '/?s=sea%20view&post_type=property', 'CN', '/zh/?s=sea%20view&post_type=property', 'search query' ),
 		array( '/de/about/', 'US', '/about/', 'other country English' ),
 		array( '/de/about/', 'XX', '', 'unknown country no redirect' ),
+		array( '/de/about/', 'QQ', '', 'non-ISO country no redirect' ),
 		array( '/ar/about/', '', '', 'missing GeoIP no redirect' ),
 	);
 	foreach ( $cases as $case ) {
@@ -129,8 +135,8 @@ if ( ! $active ) {
 	foreach ( array( '/sitemap_index.xml', '/wp-sitemap.xml', '/de/wp-sitemap-posts-property-1.xml', '/sitemap/', '/robots.txt', '/feed/', '/about/feed/', '/wp-json/wp/v2/posts', '/ar/wp-json/wp/v2/posts', '/wp-admin/', '/wp-login.php', '/?rest_route=/wp/v2/posts', '/?sitemap=posts', '/?feed=rss2' ) as $uri ) {
 		list( $geo ) = request( $uri ); expect( '', $geo->destination(), "excluded $uri" );
 	}
-	foreach ( array( 'admin', 'ajax', 'cron', 'feed', 'robots', 'trackback', 'embed', 'preview', '404' ) as $context ) {
-		list( $geo ) = request( '/about/', 'CN', '', 'human', array( $context => true ) ); expect( '', $geo->destination(), "excluded context $context" );
+	foreach ( array( 'admin', 'ajax', 'cron', 'feed', 'robots', 'trackback', 'embed', 'preview', '404' ) as $excluded_context ) {
+		list( $geo ) = request( '/about/', 'CN', '', 'human', array( $excluded_context => true ) ); expect( '', $geo->destination(), "excluded context $excluded_context" );
 	}
 	list( $geo ) = request( '/about/' ); $_SERVER['REQUEST_METHOD'] = 'POST'; $geo->prepare(); expect( '', $geo->destination(), 'POST excluded' );
 	list( $geo, $router ) = request( '/property/missing-translation/' );
@@ -152,6 +158,8 @@ if ( ! $active ) {
 	list( $geo, $router ) = request( '/ar/about/' ); $seo = new Pera_ML_SEO( $registry, $router, $storage );
 	expect( 'https://example.test/ar/about/', $seo->canonical(), 'canonical unchanged by negotiation' );
 	ob_start(); $seo->alternates(); $alternates = ob_get_clean(); expect( true, false !== strpos( $alternates, 'hreflang="zh" href="https://example.test/zh/about/"' ), 'hreflang still independently addressable' );
+	list( $geo ) = request( '/property/example/' ); $geo->redirect();
+	expect( array( 'https://example.test/zh/property/example/', 302 ), $GLOBALS['emitted_redirect'], 'actual redirect callback emits safe 302' );
 	expect( '/about/?pera_ml_select=en', $geo->switcher_url( '/about/', 'en' ), 'manual switcher marker' );
 }
 foreach ( array( array( '192.0.2.7', '192.0.2.0/24', true ), array( '192.0.3.7', '192.0.2.0/24', false ), array( '2001:db8::1', '2001:db8::/32', true ), array( '2001:db9::1', '2001:db8::/32', false ), array( '127.0.0.1', '0.0.0.0/99', false ), array( '127.0.0.1', '0.0.0.0/no', false ), array( '127.0.0.1', '::/0', false ) ) as $cidr ) expect( $cidr[2], Pera_ML_Geo_Redirect::in_cidr( $cidr[0], $cidr[1] ), 'CIDR validation' );

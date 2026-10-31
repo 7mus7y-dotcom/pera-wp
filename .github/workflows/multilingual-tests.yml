@@ -12,10 +12,13 @@ jobs:
   regression:
     runs-on: ubuntu-latest
     strategy:
+      fail-fast: false
       matrix:
         php: ['7.4', '8.3']
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 2
       - uses: shivammathur/setup-php@v2
         with:
           php-version: ${{ matrix.php }}
@@ -25,12 +28,11 @@ jobs:
         run: find wp-content/plugins/pera-multilingual -name '*.php' -print0 | xargs -0 -n1 php -l
       - name: Country negotiation and disabled-mode regression
         run: |
+          set -e
           for mode in server cloudflare disabled undefined cache-not-ready; do
             php wp-content/plugins/pera-multilingual/tests/geo-redirect-test.php "$mode"
           done
-      - name: Existing multilingual regression suite
-        run: |
-          set -e
-          for test in wp-content/plugins/pera-multilingual/tests/*-test.php; do
-            if [ "$(basename "$test")" != geo-redirect-test.php ]; then php "$test"; fi
-          done
+      - name: Existing multilingual regression suite (compare any failures with base)
+        env:
+          BASE_SHA: ${{ github.event.pull_request.base.sha }}
+        run: python3 wp-content/plugins/pera-multilingual/tests/run-regressions.py
