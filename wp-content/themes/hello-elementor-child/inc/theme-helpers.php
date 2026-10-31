@@ -888,7 +888,7 @@ function pera_render_header_language_switcher( $context = 'desktop' ) {
       <?php foreach ( $languages as $code => $language ) : ?>
         <li>
           <a
-            href="<?php echo esc_url( $router->url_for_language( $current_url, $code ) ); ?>"
+            href="<?php echo esc_url( apply_filters( 'pera_ml_switcher_url', $router->url_for_language( $current_url, $code ), $code ) ); ?>"
             hreflang="<?php echo esc_attr( ! empty( $language['hreflang'] ) ? $language['hreflang'] : $code ); ?>"
             lang="<?php echo esc_attr( $code ); ?>"
             <?php echo $code === $current_code ? 'aria-current="page"' : ''; ?>

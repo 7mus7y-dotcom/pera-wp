@@ -36,6 +36,7 @@ require_once PERA_ML_DIR . 'includes/class-theme-ui-discovery.php';
 require_once PERA_ML_DIR . 'includes/class-translation-health.php';
 require_once PERA_ML_DIR . 'includes/class-translation-health-orchestrator.php';
 require_once PERA_ML_DIR . 'includes/class-router.php';
+require_once PERA_ML_DIR . 'includes/class-geo-redirect.php';
 require_once PERA_ML_DIR . 'includes/class-content.php';
 require_once PERA_ML_DIR . 'includes/class-seo.php';
 require_once PERA_ML_DIR . 'includes/class-plugin.php';
