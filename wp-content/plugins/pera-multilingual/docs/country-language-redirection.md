@@ -1,5 +1,13 @@
 # Country-based automatic language redirection
 
+## Follow-up design decision (PR comment 6543444810)
+
+The direct Apache/cPanel host has no trusted GeoIP module/environment or audience service. The theme's `send_headers` priority-20 handler sets public TTLs (home/archive 300s, property 600s, district 900s, posts 1800s). WordPress fires `send_headers` after resolving the main query, before `template_redirect`; the existing preparation alone does not explicitly coordinate with that theme policy. The follow-up will add a final `send_headers` guard and repeat it before template output, including Expires/Pragma. Tests will inspect real HTTP response headers with the actual theme module loaded. With flags off, no new hooks will change existing TTLs. Apache mod_expires does not add Expires when the application already supplies it; any later Apache `Header set` or upstream cache still requires host verification.
+
+GeoIP will use the maintained `maxmind-db/reader` Composer package and a private, operator-updated GeoLite2 Country MMDB, retaining explicitly configured trusted server/Cloudflare sources. Missing reader/database, corruption, stale data and unrecognized records fail closed to no country redirect. Only the connection peer (or an explicitly trusted non-HTTP server client-IP parameter) is used; forwarded headers never establish client identity.
+
+For this host, synchronous PHP DNS cannot promise a per-call timeout. An optional local crawler mode will therefore queue bounded reverse/forward DNS checks in a background WordPress cron worker, with bounded cached results and no DNS calls on frontend requests. Known search-provider suffixes require forward-confirmed IP ownership. A crawler-like User-Agent is only an additional conservative bypass, never verification. New IPs, absent/failed DNS, unconfirmed names and stale cache get no automatic country redirect. Successfully forward-confirmed non-search-provider addresses may negotiate only on browser navigation requests; this is a bounded browser-traffic policy, not proof of human identity or coverage of every possible crawler. The existing trusted audience integration remains available. Explicit manual selections work without DNS classification. The operator must accept delayed negotiation for first/new addresses and no negotiation for addresses without reliable DNS, or supply a trusted audience service instead. No feature flag or live hosting configuration is changed by this work.
+
 Status: **disabled by default**. No deployment or production verification is performed by this change. PHP 7.4+ is required (cookie options API). No database migration, new translation system, paid API, DNS lookup, or per-request external HTTP call is added.
 
 ## Architecture audit

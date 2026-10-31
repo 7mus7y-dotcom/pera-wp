@@ -161,6 +161,10 @@ if ( ! $active ) {
 	list( $geo ) = request( '/property/example/' ); $geo->redirect();
 	expect( array( 'https://example.test/zh/property/example/', 302 ), $GLOBALS['emitted_redirect'], 'actual redirect callback emits safe 302' );
 	expect( '/about/?pera_ml_select=en', $geo->switcher_url( '/about/', 'en' ), 'manual switcher marker' );
+	$GLOBALS['filters']['pera_ml_languages'][] = static function ( $languages ) { $languages['zh']['enabled'] = false; return $languages; };
+	list( $geo ) = request( '/about/', 'DE' ); expect( 'https://example.test/de/about/', $geo->destination(), 'German negotiation works when Chinese disabled' );
+	list( $geo ) = request( '/de/about/?pera_ml_select=de', 'DE' ); expect( 'https://example.test/de/about/', $geo->destination(), 'manual preference works when Chinese disabled' );
+	unset( $GLOBALS['filters']['pera_ml_languages'] );
 }
 foreach ( array( array( '192.0.2.7', '192.0.2.0/24', true ), array( '192.0.3.7', '192.0.2.0/24', false ), array( '2001:db8::1', '2001:db8::/32', true ), array( '2001:db9::1', '2001:db8::/32', false ), array( '127.0.0.1', '0.0.0.0/99', false ), array( '127.0.0.1', '0.0.0.0/no', false ), array( '127.0.0.1', '::/0', false ) ) as $cidr ) expect( $cidr[2], Pera_ML_Geo_Redirect::in_cidr( $cidr[0], $cidr[1] ), 'CIDR validation' );
 echo "Pera ML geo redirect $mode: {$GLOBALS['assertions']} assertions passed\n";

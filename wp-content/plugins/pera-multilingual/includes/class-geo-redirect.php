@@ -20,6 +20,9 @@ final class Pera_ML_Geo_Redirect {
 
 	public function hooks() {
 		if ( ! self::enabled() ) return;
+		add_action( 'send_headers', array( $this, 'register_cache_headers' ), PHP_INT_MAX );
+		add_action( 'template_redirect', array( $this, 'cache_headers' ), PHP_INT_MAX );
+		if ( class_exists( 'Pera_ML_Crawler_Detection' ) ) ( new Pera_ML_Crawler_Detection() )->hooks();
 		add_filter( 'pera_ml_switcher_url', array( $this, 'switcher_url' ), 10, 2 );
 		add_action( 'template_redirect', array( $this, 'prepare' ), -100 );
 		// Let existing canonical/filter normalization redirects run first and combine their destination.
@@ -36,10 +39,7 @@ final class Pera_ML_Geo_Redirect {
 	public function prepare() {
 		$this->target = ''; $this->manual = false; $this->rewritten = false;
 		if ( ! self::enabled() || ! $this->eligible() || headers_sent() ) return;
-		// Also protect matching-language and unknown-country 200s from poisoning a shared cache.
-		if ( ! defined( 'DONOTCACHEPAGE' ) ) define( 'DONOTCACHEPAGE', true );
-		nocache_headers();
-		header( 'Cache-Control: private, no-store, no-cache, must-revalidate, max-age=0', true );
+		$this->cache_headers();
 
 		if ( 'bot' === $this->audience() ) return;
 		$selection = isset( $_GET[ self::SELECTION ] ) ? wp_unslash( $_GET[ self::SELECTION ] ) : '';
@@ -52,7 +52,7 @@ final class Pera_ML_Geo_Redirect {
 		}
 		// Verification is a hosting contract, NOT a User-Agent or arbitrary HTTP header check.
 		// Unknown classification fails open to the requested URL, preserving crawler access.
-		if ( 'human' !== $this->audience() ) return;
+		if ( ! in_array( $this->audience(), array( 'human', 'visitor' ), true ) ) return;
 		$preference = isset( $_COOKIE[ self::COOKIE ] ) ? wp_unslash( $_COOKIE[ self::COOKIE ] ) : '';
 		if ( $this->language( $preference ) ) { $this->target = $preference; return; }
 		$country = $this->country();
@@ -69,7 +69,27 @@ final class Pera_ML_Geo_Redirect {
 
 	public function audience() {
 		$key = defined( 'PERA_ML_GEO_AUDIENCE_SERVER_VAR' ) ? PERA_ML_GEO_AUDIENCE_SERVER_VAR : 'PERA_ML_VERIFIED_AUDIENCE';
-		return $this->server_value( $key );
+		$trusted = $this->server_value( $key );
+		if ( in_array( $trusted, array( 'human', 'bot' ), true ) ) return $trusted;
+		return class_exists( 'Pera_ML_Crawler_Detection' ) ? ( new Pera_ML_Crawler_Detection() )->audience() : '';
+	}
+
+	public function register_cache_headers() {
+		if ( ! self::enabled() || ! $this->eligible() || headers_sent() ) return;
+		$this->cache_headers();
+		// The final PHP header boundary also catches later template/plugin header writes.
+		header_register_callback( array( $this, 'cache_headers' ) );
+	}
+
+	public function cache_headers() {
+		if ( ! self::enabled() || ! $this->eligible() || headers_sent() ) return;
+		if ( ! defined( 'DONOTCACHEPAGE' ) ) define( 'DONOTCACHEPAGE', true );
+		nocache_headers();
+		header_remove( 'ETag' );
+		header_remove( 'Last-Modified' );
+		header( 'Cache-Control: private, no-store, no-cache, must-revalidate, max-age=0', true );
+		header( 'Expires: Wed, 11 Jan 1984 05:00:00 GMT', true );
+		header( 'Pragma: no-cache', true );
 	}
 
 	private function server_value( $key ) {
@@ -80,6 +100,14 @@ final class Pera_ML_Geo_Redirect {
 
 	public function country() {
 		$source = defined( 'PERA_ML_GEO_COUNTRY_SOURCE' ) ? PERA_ML_GEO_COUNTRY_SOURCE : '';
+		if ( in_array( $source, array( 'mmdb', 'auto' ), true ) && class_exists( 'Pera_ML_Local_GeoIP' ) ) {
+			if ( 'auto' === $source ) {
+				$key = defined( 'PERA_ML_GEO_COUNTRY_SERVER_VAR' ) ? PERA_ML_GEO_COUNTRY_SERVER_VAR : 'GEOIP_COUNTRY_CODE';
+				$server = $this->valid_country( $this->server_value( $key ) );
+				if ( '' !== $server ) return $server;
+			}
+			return $this->valid_country( ( new Pera_ML_Local_GeoIP() )->country() );
+		}
 		$country = '';
 		if ( 'server' === $source ) {
 			$key = defined( 'PERA_ML_GEO_COUNTRY_SERVER_VAR' ) ? PERA_ML_GEO_COUNTRY_SERVER_VAR : 'GEOIP_COUNTRY_CODE';
@@ -94,6 +122,10 @@ final class Pera_ML_Geo_Redirect {
 				}
 			}
 		}
+		return $this->valid_country( $country );
+	}
+
+	private function valid_country( $country ) {
 		if ( ! is_string( $country ) ) return '';
 		$country = strtoupper( $country );
 		// Cloudflare's XX (unknown) and T1 (Tor) are not country results.
@@ -129,8 +161,11 @@ final class Pera_ML_Geo_Redirect {
 		if ( ! is_string( $uri ) || '/' !== substr( $uri, 0, 1 ) || '//' === substr( $uri, 0, 2 ) || preg_match( '/[\x00-\x20\x7f\\\\]/', $uri ) ) return false;
 		// Ask the existing resolver whether this is a local frontend route. A known
 		// alternate language must actually change the path (system URLs stay unchanged).
-		$alternate = 'zh' === $this->router->current_language() ? 'en' : 'zh';
-		if ( $this->router->url_for_language( $uri, $alternate ) === $uri ) return false;
+		$frontend = false;
+		foreach ( $this->registry->enabled() as $code => $language ) {
+			if ( $code !== $this->router->current_language() && $this->router->url_for_language( $uri, $code ) !== $uri ) { $frontend = true; break; }
+		}
+		if ( ! $frontend ) return false;
 		$path = wp_parse_url( $uri, PHP_URL_PATH );
 		if ( preg_match( '#(?:^|/)(?:feed|sitemap[^/]*|wp-sitemap[^/]*)(?:/|$)|\.(?:xml|xsl|txt)(?:/|$)#i', $path ) ) return false;
 		return is_singular( array( 'post', 'page', 'property' ) ) || is_archive() || is_search() || is_home() || is_front_page();
