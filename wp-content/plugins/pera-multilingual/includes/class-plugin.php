@@ -13,7 +13,7 @@ final class Pera_ML_Plugin {
 		$this->ui_registry = new Pera_ML_UI_Registry(); $this->ui = new Pera_ML_UI( $this->router, $this->storage, $this->translator, $this->ui_registry );
 		$this->menu = new Pera_ML_Menu( $this->router, $this->content, $this->fields, $this->ui );
 	}
-	public function boot() { $this->upgrade(); $this->router->hooks(); $this->content->hooks(); $this->fields->hooks(); $this->menu->hooks(); $this->seo->hooks(); $this->ajax->hooks(); if ( is_admin() ) ( new Pera_ML_Admin( $this->registry ) )->hooks(); }
+	public function boot() { $this->upgrade(); $this->router->hooks(); ( new Pera_ML_Geo_Redirect( $this->registry, $this->router ) )->hooks(); $this->content->hooks(); $this->fields->hooks(); $this->menu->hooks(); $this->seo->hooks(); $this->ajax->hooks(); if ( is_admin() ) ( new Pera_ML_Admin( $this->registry ) )->hooks(); }
 	/** Enable newly shipped languages once, without rewriting translation rows or source hashes. */
 	private function upgrade() {
 		if ( version_compare( (string) get_option( 'pera_ml_db_version', '0' ), PERA_ML_VERSION, '>=' ) ) return;

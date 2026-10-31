@@ -1,0 +1,14 @@
+{
+    "name": "pera-property/multilingual",
+    "description": "Local country database reader for optional Pera Multilingual negotiation",
+    "type": "wordpress-plugin",
+    "license": "proprietary",
+    "require": {
+        "php": ">=7.4",
+        "maxmind-db/reader": "^1.14.0"
+    },
+    "config": {
+        "allow-plugins": false,
+        "sort-packages": true
+    }
+}

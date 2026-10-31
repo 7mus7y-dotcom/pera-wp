@@ -160,3 +160,9 @@ HTML-rich sources are tokenized before provider submission and restored only whe
 Post translation generation stores `post_title`, `post_content`, and `post_excerpt` as core structured rows. SEO title and meta description use `meta:seo_title` and `meta:seo_meta_description`; the blog/post SEO FAQ ACF field is `seo_faq_v2` and uses `meta:seo_faq_v2`. FAQ rows are translated question-by-question and answer-by-answer, then rebuilt in their original order as `Question | Answer`. Malformed rows remain in canonical English. All six values return English when the request is English or a current target-language row is unavailable; no duplicate translated ACF fields are created.
 
 Before translated `post_content` is stored, indentation-only ASCII or Unicode whitespace nodes immediately inside ordered/unordered lists are removed. This prevents `wpautop()` from turning model-generated NBSP or Unicode indentation between `<ul>`/`<ol>` and `<li>` elements into empty paragraphs, without changing whitespace inside prose.
+
+## Optional country-based language redirection
+
+Disabled by default. See [country-language-redirection.md](docs/country-language-redirection.md)
+for the architecture audit, trusted GeoIP and audience-classification requirements,
+cache bypass prerequisites, activation flags, tests and rollback procedure.

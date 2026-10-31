@@ -1,0 +1,60 @@
+name: Pera Multilingual regression tests
+on:
+  pull_request:
+    paths:
+      - 'wp-content/plugins/pera-multilingual/**'
+      - 'wp-content/themes/hello-elementor-child/inc/theme-helpers.php'
+      - 'wp-content/themes/hello-elementor-child/inc/modules/performance.php'
+      - '.github/workflows/multilingual-tests.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  regression:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        php: ['7.4', '8.2', '8.3']
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 2
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: ${{ matrix.php }}
+          extensions: dom, mbstring
+          coverage: none
+      - name: Install locked local MMDB reader
+        working-directory: wp-content/plugins/pera-multilingual
+        run: |
+          composer validate --strict
+          composer install --no-dev --prefer-dist --no-interaction --no-scripts
+      - name: Synthetic MaxMind database fixture (not GeoLite data)
+        run: |
+          curl --fail --location --connect-timeout 10 --max-time 60 https://raw.githubusercontent.com/maxmind/MaxMind-DB/d1551916cff0712d12ff602c309234471b0402a2/test-data/GeoIP2-Country-Test.mmdb -o "$RUNNER_TEMP/GeoIP2-Country-Test.mmdb"
+          echo "PERA_ML_TEST_MMDB=$RUNNER_TEMP/GeoIP2-Country-Test.mmdb" >> "$GITHUB_ENV"
+      - name: PHP syntax
+        run: find wp-content/plugins/pera-multilingual -path '*/vendor' -prune -o -name '*.php' -print0 | xargs -0 -n1 php -l
+      - name: Country negotiation and disabled-mode regression
+        run: |
+          set -e
+          for mode in server cloudflare disabled undefined cache-not-ready dns; do
+            php wp-content/plugins/pera-multilingual/tests/geo-redirect-test.php "$mode"
+          done
+      - name: Final HTTP cache headers (actual theme callbacks)
+        run: python3 wp-content/plugins/pera-multilingual/tests/geo-http-test.py
+      - name: GeoLite2 maintenance failure and promotion tests
+        run: |
+          bash -n wp-content/plugins/pera-multilingual/tools/update-geolite2-country.sh
+          python3 wp-content/plugins/pera-multilingual/tests/geolite-maintenance-test.py
+      - name: Local database failure modes
+        run: |
+          set -e
+          for mode in normal missing corrupt stale webroot autoload-missing; do
+            php wp-content/plugins/pera-multilingual/tests/local-geoip-test.php "$mode"
+          done
+      - name: Existing multilingual regression suite (compare any failures with base)
+        env:
+          BASE_SHA: ${{ github.event.pull_request.base.sha }}
+        run: python3 wp-content/plugins/pera-multilingual/tests/run-regressions.py
