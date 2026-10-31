@@ -4,7 +4,7 @@
 
 ## Confirmed hosting and current browser policy
 
-The completed hosting checks confirm PHP 8.2, Composer at `/usr/local/bin/composer`, working WP-CLI cron every minute, DNS resolution with `gethostbyaddr()` and `dns_get_record()`, a writable private home directory, and direct Apache hosting without an identified CDN. These are user-confirmed capabilities, not live checks performed by this PR. No hosting settings are edited here.
+The completed hosting checks confirm PHP 8.2, Composer at `/usr/local/bin/composer`, working WP-CLI cron every minute, DNS resolution with `gethostbyaddr()` and `dns_get_record()`, a writable private home directory, and direct Apache hosting without an identified CDN. Further completed checks confirm geoipupdate v8.0.0 at `/home/d21882/bin/geoipupdate`, private configuration at `/home/d21882/private/pera-geo/GeoIP.conf`, MaxMind reader v1.14.0, and a staged Country database that passed the CLI validator metadata/IPv4/IPv6 checks. These are user-confirmed capabilities, not live checks performed by this PR. No hosting settings are edited here.
 
 Ordinary browser document navigation is eligible for an **immediate first-request** country redirect once the feature flags and reliable country database/source are configured. Neither a missing PTR record, an empty DNS cache, failed DNS nor an expired non-bot result blocks the browser. Crawler-like requests bypass geographic negotiation immediately; forward-confirmed cached crawler identity is an additional exemption. Unknown traffic without browser-navigation evidence stays on its requested URL. All existing preference, mapping, route, flag and header safeguards remain in place.
 
@@ -85,14 +85,57 @@ EditionIDs GeoLite2-Country
 DatabaseDirectory /home/CPANEL_USER/private/pera-geo/staging
 ```
 
-Run a daily cPanel maintenance cron with the installed geoipupdate binary. Fetch into the private staging directory, validate, then atomically rename onto the active file **on the same filesystem**:
+### Production maintenance script and exact cron
 
-```sh
-/usr/local/bin/geoipupdate -f /home/CPANEL_USER/private/pera-geo/GeoIP.conf
-php /path/to/wp-content/plugins/pera-multilingual/tools/validate-geoip-db.php /home/CPANEL_USER/private/pera-geo/staging/GeoLite2-Country.mmdb
+The reviewed script is [`../tools/update-geolite2-country.sh`](../tools/update-geolite2-country.sh). It runs independently of WordPress, does not change wp-config/options or redirect flags, and refuses HTTP/CGI invocation. It requires only the cPanel filesystem owner and standard Bash/GNU coreutils/util-linux tools (`flock`, `timeout`, `stat`, `mktemp`, `cp`, `chmod`, `mv`, `rm`, `date`), plus the confirmed updater, CLI PHP and reader. Root access is not required.
+
+Default server paths (no placeholders):
+
+| Purpose | Path |
+| --- | --- |
+| Updater | `/home/d21882/bin/geoipupdate` (v8.0.0) |
+| Private configuration | `/home/d21882/private/pera-geo/GeoIP.conf` |
+| Staged database | `/home/d21882/private/pera-geo/staging/GeoLite2-Country.mmdb` |
+| Active database | `/home/d21882/private/pera-geo/GeoLite2-Country.mmdb` |
+| Lock | `/home/d21882/private/pera-geo/maintenance.lock` |
+| Private log | `/home/d21882/private/pera-geo/maintenance.log` |
+| Installed maintenance script | `/home/d21882/public_html/wp-content/plugins/pera-multilingual/tools/update-geolite2-country.sh` |
+| Adjacent validator | `/home/d21882/public_html/wp-content/plugins/pera-multilingual/tools/validate-geoip-db.php` |
+
+The live WordPress root is recorded by the repository's `sync.sh`. The script locates the validator relative to itself, so the deployment must include both tools and the installed Composer reader. Its fixed PATH is `/usr/local/bin:/usr/bin:/bin`; `php` must resolve to the confirmed PHP 8.2 CLI. If that account selects PHP differently, set `PERA_GEO_PHP` to the verified absolute CLI executable when invoking it. No additional Composer installation is performed by maintenance.
+
+After separately reviewing/deploying the tools (not done by this task), add this **exact daily crontab entry as user d21882**:
+
+```cron
+17 3 * * * /bin/bash /home/d21882/public_html/wp-content/plugins/pera-multilingual/tools/update-geolite2-country.sh >/dev/null
 ```
 
-Promote with a same-filesystem atomic rename only after **both commands succeed**; the previous file remains active on any failure. Use a host-managed wrapper/cron with error notifications and overlapping-run prevention. Validate file permissions before promotion. The CLI validator checks Country metadata, build age and IPv4/IPv6 reads without loading WordPress or logging visitor addresses. The updater's network/download work is maintenance only.
+This runs at **03:17 in the server/crontab timezone**, independently of the existing one-minute WP-CLI crawler cron. Bash invocation avoids reliance on an executable bit from the sync/deployment process. Sanitized errors remain on stderr for cPanel cron email; configure cPanel's cron notification address if email alerts are wanted. The script also appends UTC-stamped, sanitized messages to the private log. It never prints the private configuration, account/license key or raw updater/PHP diagnostics. Do not enable shell tracing or replace this with a verbose geoipupdate command in cron.
+
+Maintenance flow:
+
+1. Check that private/staging directories are user-owned, writable, not symlinks and not group/world writable; reject the WordPress webroot. Check that configuration is a user-owned readable regular file with **0600/0400** permissions, and reject unsafe active/staging/lock/log symlinks. The operator must still ensure the private directory is outside every domain's webroot/aliases.
+2. Acquire nonblocking `flock` on `maintenance.lock` for the full run. An overlapping run exits 75 without touching the database. The lock file is deliberately retained; kernel locks release when descriptors/processes close. Do not delete the lock file to force concurrent execution.
+3. Run `/home/d21882/bin/geoipupdate -f /home/d21882/private/pera-geo/GeoIP.conf -d /home/d21882/private/pera-geo/staging`. The explicit `-d` overrides any wrong DatabaseDirectory in the configuration and protects the active location. Updater output is discarded because third-party diagnostics might contain secrets; failures log only a fixed phase and numeric subprocess status.
+4. Run the existing validator on the staged file. Only a successful download and validation permit further work.
+5. Use `mktemp` **inside the active database's directory**, copy the staged bytes into that private 0600 candidate, then validate the copied snapshot again. This catches staging changes between the first validation and copy; the exact file promoted has passed validation. Staging itself can be on another filesystem because it is copied, never directly renamed over active.
+6. Replace the active filename with `mv -fT` from that same-directory candidate. This is a same-filesystem atomic rename: requests see the old valid file or the new validated file, without a missing/partial active-file window. The active database is never truncated or deleted first. No root service restart is needed.
+7. Clean up unfinished candidates and log success. Every pre-promotion failure leaves the active database and its inode intact. Candidate cleanup failures (for example permissions changed during a run) are logged for operator cleanup; any leftover candidate is private and never becomes active. A hard kill/power loss can leave a candidate too. Atomic visibility is not a claim of crash-proof storage durability or a permanent historical backup.
+
+Download timeout defaults to 300 seconds and each validator invocation to 60 seconds; GNU timeout terminates subprocess groups and escalates after 15 seconds. INT/TERM trigger cleanup. The bounded worker lock remains held while a timed-out/terminating child is being stopped. Optional operator overrides: `PERA_GEO_DIRECTORY` (private root), `PERA_GEO_UPDATER`, `PERA_GEO_PHP`, `PERA_GEO_UPDATE_TIMEOUT` (1–3600 seconds), `PERA_GEO_VALIDATE_TIMEOUT` (1–300 seconds). The configuration, staging, active, log and lock paths derive from the private root. Overrides are for trusted operator/test use, never HTTP input.
+
+| Exit | Meaning |
+| --- | --- |
+| 0 | Validated database promoted successfully |
+| 10 | Invalid/missing prerequisite, unsafe path/permissions or HTTP invocation |
+| 20 | Updater failed or timed out |
+| 30 | Staged database missing/unsafe, or staged/copied snapshot validation failed/timed out |
+| 40 | Candidate creation/copy/permissions or atomic promotion failed |
+| 70 | Unexpected script failure |
+| 75 | Another run holds the maintenance lock; run skipped |
+| 130 / 143 | Interrupted / terminated; unfinished candidate not promoted |
+
+Failures before the atomic commit retain the last known-good active database. After a successful commit, the new validated file is active; this script does not retain an unlimited archive of old copies. Existing runtime stale-database protection still applies if updates continue to fail. Monitor the private log and cron stderr, alert on repeated failures/no recent success, and rotate/archive the small log privately under the same user. Keep current MaxMind license/update/deletion obligations; no database or credentials are committed to Git.
 
 Runtime also validates Country database type and build timestamp. Default maximum age is **30 days**; stale data fails closed to no country redirect. Optional `PERA_ML_GEO_MMDB_MAX_AGE` is in seconds and must be positive; do not extend it contrary to data-license/update obligations. Missing files, absent reader, unreadable/corrupt MMDB, future/old builds, unknown IP records or missing/invalid `country.iso_code` return no country. `registered_country` is deliberately not substituted. IPv4, IPv6 and mapped IPv4 are supported. No IP-based object-cache entries are created for country lookups.
 
@@ -168,6 +211,8 @@ for mode in server cloudflare disabled undefined cache-not-ready dns; do
     php wp-content/plugins/pera-multilingual/tests/geo-redirect-test.php "$mode"
 done
 python3 wp-content/plugins/pera-multilingual/tests/geo-http-test.py
+bash -n wp-content/plugins/pera-multilingual/tools/update-geolite2-country.sh
+python3 wp-content/plugins/pera-multilingual/tests/geolite-maintenance-test.py
 # PERA_ML_TEST_MMDB must point to the private synthetic fixture, as in the workflow.
 for mode in normal missing corrupt stale webroot autoload-missing; do
     php wp-content/plugins/pera-multilingual/tests/local-geoip-test.php "$mode"
@@ -178,12 +223,14 @@ python3 wp-content/plugins/pera-multilingual/tests/run-regressions.py
 
 The HTTP harness loads the actual theme `performance.php` and request service, runs hooks in order through PHP's HTTP SAPI, and inspects final response headers. It covers the five reported public TTL route types, pages/search, English, no-redirect bot/unknown cases, late public writes, filtered/logged-in requests, disabled/cache-not-ready behavior and 302/matching-language paths. It stubs WordPress query functions and is not a full WordPress/Apache deployment test. DNS tests use deterministic resolver callbacks; no successful live crawler/production test is claimed.
 
+Maintenance tests use temporary private directories and synthetic updater/PHP executables, never production files or a MaxMind download. They verify last-good bytes/inode preservation on failure, non-overlap locking, sanitized logs with a fake credential, timeout/signal handling, symlink/permission checks, copied-snapshot validation, cleanup and same-filesystem candidate promotion. CI also promotes MaxMind’s synthetic fixture through the **actual** PHP reader/validator. The negotiation suite verifies that each prepare call reads audience classification once and reuses it.
+
 The regression runner compares any existing failure with unchanged PR base, requiring identical exit status and normalized diagnostics before reporting a visible baseline warning. New/changed failures fail CI. Known baseline issues: PHP-7.4 private ReflectionMethod access in `post-content-chunking-test.php`; unrelated theme UI registration coverage in `theme-ui-registration-test.php`. These are not hidden or fixed by changing unrelated theme functionality.
 
 ## Production verification checklist
 
 - [ ] With flags off, compare actual theme TTL/Expires/Pragma on home, property archive, property single, district, blog, filters and logged-in routes. Confirm switchers/canonical/hreflang/sitemaps match baseline.
-- [ ] Build/install the locked reader with production PHP 8.2; validate the private current Country DB, permissions, IPv4/IPv6 reads, license/update cron and failure alerting. Confirm no database/config/key is web-accessible.
+- [ ] The supplied checks already confirm reader v1.14.0 and validator metadata/IPv4/IPv6 success. After reviewed deployment, verify the maintenance script’s PHP resolution and private permissions, run it as d21882, confirm the sanitized success log, then install the documented daily cron with monitoring. Confirm no database/config/key is web-accessible. This PR does not run the live maintenance script or install cron.
 - [ ] Verify PHP's real peer/TLS state. Attempt forged country, audience and forwarded headers through the actual connection; they must not override identity or local lookups.
 - [ ] Exercise first-time German, Chinese and Arabic browser arrivals with an empty DNS cache and missing/failed PTR. Confirm immediate country redirects, immediate Googlebot bypass, cached verified-bot bypass despite a browser UA, unknown non-browser bypass, and manual preference overrides. Verify the existing cron handles the bounded queue and confirm provider DNS/timeout/cache expiry behavior.
 - [ ] On staging, enable both flags and inspect final Apache response headers (including mod_expires, Header directives and cPanel caches), not PHP helper output. All eligible 200/302 responses must have the exact private/no-store policy and past Expires/Pragma. Purge old caches and alternate countries/preferences at one URL to rule out contamination.

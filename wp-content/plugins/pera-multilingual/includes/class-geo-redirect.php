@@ -41,7 +41,8 @@ final class Pera_ML_Geo_Redirect {
 		if ( ! self::enabled() || ! $this->eligible() || headers_sent() ) return;
 		$this->cache_headers();
 
-		if ( 'bot' === $this->audience() ) return;
+		$audience = $this->audience();
+		if ( 'bot' === $audience ) return;
 		$selection = isset( $_GET[ self::SELECTION ] ) ? wp_unslash( $_GET[ self::SELECTION ] ) : '';
 		if ( $this->language( $selection ) && $selection === $this->router->current_language() ) {
 			$this->manual = true;
@@ -52,7 +53,7 @@ final class Pera_ML_Geo_Redirect {
 		}
 		// A trusted audience verdict or the configured browser policy may negotiate.
 		// Browser hints are not identity proof; unknown non-browser traffic bypasses.
-		if ( ! in_array( $this->audience(), array( 'human', 'visitor' ), true ) ) return;
+		if ( ! in_array( $audience, array( 'human', 'visitor' ), true ) ) return;
 		$preference = isset( $_COOKIE[ self::COOKIE ] ) ? wp_unslash( $_COOKIE[ self::COOKIE ] ) : '';
 		if ( $this->language( $preference ) ) { $this->target = $preference; return; }
 		$country = $this->country();

@@ -18,7 +18,7 @@ $GLOBALS['home'] = 'https://example.test/'; $GLOBALS['assertions'] = 0;
 function add_action( $name, $callback, $priority = 10, $args = 1 ) { $GLOBALS['hooks'][$name][] = array( $callback, $priority ); }
 function add_filter( $name, $callback, $priority = 10, $args = 1 ) { $GLOBALS['filters'][$name][] = $callback; }
 function apply_filters( $name, $value, ...$args ) { foreach ( $GLOBALS['filters'][$name] ?? array() as $callback ) $value = $callback( $value, ...$args ); return $value; }
-function get_option( $key, $default = false ) { return $GLOBALS['options'][$key] ?? $default; }
+function get_option( $key, $default = false ) { $GLOBALS['option_reads'][$key] = ( $GLOBALS['option_reads'][$key] ?? 0 ) + 1; return $GLOBALS['options'][$key] ?? $default; }
 function update_option( $key, $value, $autoload = false ) { $GLOBALS['options'][$key] = $value; }
 function wp_next_scheduled( $name ) { return $GLOBALS['events'][$name] ?? false; }
 function wp_schedule_single_event( $time, $name ) { $GLOBALS['events'][$name] = $time; }
@@ -193,7 +193,9 @@ if ( ! $active ) {
 		$_SERVER['HTTP_SEC_FETCH_USER'] = '?1'; $_SERVER['HTTP_SEC_FETCH_MODE'] = 'navigate'; $_SERVER['HTTP_SEC_FETCH_DEST'] = 'document';
 		$key = hash( 'sha256', $_SERVER['REMOTE_ADDR'] );
 		$GLOBALS['options'][ Pera_ML_Crawler_Detection::CACHE ] = array( $key => array( 'result' => 'visitor', 'expires' => time() + 60 ) );
+		$GLOBALS['option_reads'][ Pera_ML_Crawler_Detection::CACHE ] = 0;
 		$geo->prepare(); expect( 'https://example.test/property/example/?beds=2', $geo->destination(), 'stored English beats China with local crawler mode' );
+		expect( 1, $GLOBALS['option_reads'][ Pera_ML_Crawler_Detection::CACHE ], 'prepare classifies audience once and reuses the result' );
 		$_COOKIE = array(); $geo->prepare(); expect( 'https://example.test/zh/property/example/?beds=2', $geo->destination(), 'confirmed local browser can negotiate country' );
 		$GLOBALS['options'][ Pera_ML_Crawler_Detection::CACHE ][ $key ]['result'] = 'bot';
 		$geo->prepare(); expect( '', $geo->destination(), 'forward-verified crawler stays on deep URL despite browser UA' );

@@ -44,6 +44,10 @@ jobs:
           done
       - name: Final HTTP cache headers (actual theme callbacks)
         run: python3 wp-content/plugins/pera-multilingual/tests/geo-http-test.py
+      - name: GeoLite2 maintenance failure and promotion tests
+        run: |
+          bash -n wp-content/plugins/pera-multilingual/tools/update-geolite2-country.sh
+          python3 wp-content/plugins/pera-multilingual/tests/geolite-maintenance-test.py
       - name: Local database failure modes
         run: |
           set -e
