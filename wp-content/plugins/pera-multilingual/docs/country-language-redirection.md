@@ -154,7 +154,7 @@ No country redirects apply to admin, AJAX, cron, XML-RPC, REST including rest_ro
 CI `Pera Multilingual regression tests` runs PHP 7.4, **8.2** and 8.3, validates/installs the pinned reader, syntax-checks plugin PHP, runs existing regressions, actual-reader synthetic MMDB tests and real HTTP final-header tests. The MaxMind test fixture is synthetic, licensed upstream test data pinned to a commit; it is not a distributed GeoLite database.
 
 ```sh
-for mode in server cloudflare disabled undefined cache-not-ready; do
+for mode in server cloudflare disabled undefined cache-not-ready dns; do
     php wp-content/plugins/pera-multilingual/tests/geo-redirect-test.php "$mode"
 done
 python3 wp-content/plugins/pera-multilingual/tests/geo-http-test.py

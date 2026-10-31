@@ -8,6 +8,7 @@ set_error_handler( function ( $severity, $message, $file, $line ) {
 define( 'PERA_ML_PUBLIC_RUSSIAN_ENABLED', true );
 define( 'PERA_ML_PUBLIC_TURKISH_ENABLED', false );
 $mode = isset( $argv[1] ) ? $argv[1] : 'server';
+if ( 'dns' === $mode ) define( 'PERA_ML_GEO_CRAWLER_MODE', 'dns' );
 if ( 'undefined' !== $mode ) define( 'PERA_ML_GEO_REDIRECT_ENABLED', 'disabled' !== $mode );
 define( 'PERA_ML_GEO_CACHE_READY', 'cache-not-ready' !== $mode );
 define( 'PERA_ML_GEO_COUNTRY_SOURCE', 'cloudflare' === $mode ? 'cloudflare' : 'server' );
@@ -17,7 +18,7 @@ $GLOBALS['home'] = 'https://example.test/'; $GLOBALS['assertions'] = 0;
 function add_action( $name, $callback, $priority = 10, $args = 1 ) { $GLOBALS['hooks'][$name][] = array( $callback, $priority ); }
 function add_filter( $name, $callback, $priority = 10, $args = 1 ) { $GLOBALS['filters'][$name][] = $callback; }
 function apply_filters( $name, $value, ...$args ) { foreach ( $GLOBALS['filters'][$name] ?? array() as $callback ) $value = $callback( $value, ...$args ); return $value; }
-function get_option( $key, $default = false ) { return $default; }
+function get_option( $key, $default = false ) { return $GLOBALS['options'][$key] ?? $default; }
 function sanitize_key( $value ) { return preg_replace( '/[^a-z0-9_\-]/', '', strtolower( $value ) ); }
 function wp_unslash( $value ) { return $value; }
 function wp_parse_url( $url, $component = -1 ) { return parse_url( $url, $component ); }
@@ -61,6 +62,8 @@ function expect( $expected, $actual, $label ) {
 }
 require dirname( __DIR__ ) . '/includes/class-language-registry.php';
 require dirname( __DIR__ ) . '/includes/class-router.php';
+require dirname( __DIR__ ) . '/includes/class-local-geoip.php';
+require dirname( __DIR__ ) . '/includes/class-crawler-detection.php';
 require dirname( __DIR__ ) . '/includes/class-geo-redirect.php';
 require dirname( __DIR__ ) . '/includes/class-content.php';
 require dirname( __DIR__ ) . '/includes/class-seo.php';
@@ -165,6 +168,19 @@ if ( ! $active ) {
 	list( $geo ) = request( '/about/', 'DE' ); expect( 'https://example.test/de/about/', $geo->destination(), 'German negotiation works when Chinese disabled' );
 	list( $geo ) = request( '/de/about/?pera_ml_select=de', 'DE' ); expect( 'https://example.test/de/about/', $geo->destination(), 'manual preference works when Chinese disabled' );
 	unset( $GLOBALS['filters']['pera_ml_languages'] );
+	if ( 'dns' === $mode ) {
+		list( $geo ) = request( '/about/?pera_ml_select=en', 'CN', 'zh', '' );
+		expect( 'https://example.test/about/', $geo->destination(), 'explicit manual English works without audience infrastructure' );
+		list( $geo ) = request( '/ar/property/example/?beds=2', 'CN', 'en', '' );
+		$_SERVER['REMOTE_ADDR'] = '81.2.69.160'; $_SERVER['HTTP_USER_AGENT'] = 'Mozilla/5.0';
+		$_SERVER['HTTP_SEC_FETCH_USER'] = '?1'; $_SERVER['HTTP_SEC_FETCH_MODE'] = 'navigate'; $_SERVER['HTTP_SEC_FETCH_DEST'] = 'document';
+		$key = hash( 'sha256', $_SERVER['REMOTE_ADDR'] );
+		$GLOBALS['options'][ Pera_ML_Crawler_Detection::CACHE ] = array( $key => array( 'result' => 'visitor', 'expires' => time() + 60 ) );
+		$geo->prepare(); expect( 'https://example.test/property/example/?beds=2', $geo->destination(), 'stored English beats China with local crawler mode' );
+		$_COOKIE = array(); $geo->prepare(); expect( 'https://example.test/zh/property/example/?beds=2', $geo->destination(), 'confirmed local browser can negotiate country' );
+		$GLOBALS['options'][ Pera_ML_Crawler_Detection::CACHE ][ $key ]['result'] = 'bot';
+		$geo->prepare(); expect( '', $geo->destination(), 'forward-verified crawler stays on deep URL despite browser UA' );
+	}
 }
 foreach ( array( array( '192.0.2.7', '192.0.2.0/24', true ), array( '192.0.3.7', '192.0.2.0/24', false ), array( '2001:db8::1', '2001:db8::/32', true ), array( '2001:db9::1', '2001:db8::/32', false ), array( '127.0.0.1', '0.0.0.0/99', false ), array( '127.0.0.1', '0.0.0.0/no', false ), array( '127.0.0.1', '::/0', false ) ) as $cidr ) expect( $cidr[2], Pera_ML_Geo_Redirect::in_cidr( $cidr[0], $cidr[1] ), 'CIDR validation' );
 echo "Pera ML geo redirect $mode: {$GLOBALS['assertions']} assertions passed\n";

@@ -34,6 +34,8 @@ $detector->audience(); assert_crawler( 1, count( get_option( Pera_ML_Crawler_Det
 $key = hash( 'sha256', $_SERVER['REMOTE_ADDR'] );
 update_option( Pera_ML_Crawler_Detection::CACHE, array( $key => array( 'result' => 'bot', 'expires' => time() + 60 ) ) );
 assert_crawler( 'bot', $detector->audience(), 'verified bot bypasses despite browser UA' );
+$_SERVER['HTTP_USER_AGENT'] = 'Googlebot'; assert_crawler( 'bot', $detector->audience(), 'cached verified bot retains identity with crawler UA' );
+$_SERVER['HTTP_USER_AGENT'] = 'Mozilla/5.0';
 update_option( Pera_ML_Crawler_Detection::CACHE, array( $key => array( 'result' => 'visitor', 'expires' => time() + 60 ) ) );
 assert_crawler( 'visitor', $detector->audience(), 'confirmed non-provider browser navigation' );
 $_SERVER['HTTP_USER_AGENT'] = 'Googlebot'; assert_crawler( '', $detector->audience(), 'spoofed bot UA only bypasses, never verified' );

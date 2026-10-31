@@ -17,7 +17,7 @@ final class Pera_ML_Crawler_Detection {
 		if ( ! $this->enabled() ) return '';
 		// This is only an additional bypass, never verified crawler identity.
 		$agent = isset( $_SERVER['HTTP_USER_AGENT'] ) && is_string( $_SERVER['HTTP_USER_AGENT'] ) ? $_SERVER['HTTP_USER_AGENT'] : '';
-		if ( preg_match( '/bot|crawl|spider|slurp|bingpreview|facebookexternalhit|mediapartners|inspectiontool/i', $agent ) ) return '';
+		$crawler_hint = (bool) preg_match( '/bot|crawl|spider|slurp|bingpreview|facebookexternalhit|mediapartners|inspectiontool/i', $agent );
 		$ip = Pera_ML_Local_GeoIP::client_ip();
 		// Without an explicitly restored client-IP parameter, a proxy peer is not the visitor.
 		if ( defined( 'PERA_ML_GEO_COUNTRY_SOURCE' ) && 'cloudflare' === PERA_ML_GEO_COUNTRY_SOURCE && ! defined( 'PERA_ML_GEO_CLIENT_IP_SERVER_VAR' ) ) return '';
@@ -27,6 +27,7 @@ final class Pera_ML_Crawler_Detection {
 		$entry = is_array( $cache ) && isset( $cache[ $key ] ) ? $cache[ $key ] : null;
 		if ( is_array( $entry ) && isset( $entry['expires'], $entry['result'] ) && $entry['expires'] > $now ) {
 			if ( 'bot' === $entry['result'] ) return 'bot';
+			if ( $crawler_hint ) return '';
 			// A completed non-provider DNS result is not proof of a human. Limit
 			// negotiation to explicit browser document navigations; headers alone
 			// never establish crawler identity or bypass IP/DNS verification.
@@ -35,6 +36,7 @@ final class Pera_ML_Crawler_Detection {
 				&& '?1' === $_SERVER['HTTP_SEC_FETCH_USER'] && 'navigate' === $_SERVER['HTTP_SEC_FETCH_MODE'] && 'document' === $_SERVER['HTTP_SEC_FETCH_DEST'] ) return 'visitor';
 			return '';
 		}
+		if ( $crawler_hint ) return '';
 		$queue = get_option( self::QUEUE, array() ); $queue = is_array( $queue ) ? $queue : array();
 		$queue = array_filter( $queue, static function ( $item ) use ( $now ) { return is_array( $item ) && isset( $item['queued'] ) && $item['queued'] > $now - 600; } );
 		if ( ! isset( $queue[ $key ] ) && count( $queue ) < self::QUEUE_LIMIT ) {

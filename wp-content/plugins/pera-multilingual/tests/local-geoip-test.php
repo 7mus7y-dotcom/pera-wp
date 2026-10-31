@@ -21,6 +21,14 @@ $_SERVER['REMOTE_ADDR'] = '81.2.69.160';
 $geo = new Pera_ML_Local_GeoIP();
 if ( 'normal' === $mode ) {
 	check_geo( 'GB', $geo->country(), 'real IPv4 Country lookup' );
+	define( 'PERA_ML_GEO_COUNTRY_SOURCE', 'auto' );
+	require dirname( __DIR__ ) . '/includes/class-geo-redirect.php';
+	$negotiation = new Pera_ML_Geo_Redirect( null, null );
+	$_SERVER['HTTP_CF_IPCOUNTRY'] = 'CN';
+	check_geo( 'GB', $negotiation->country(), 'auto mode falls back to actual MMDB and ignores country header' );
+	$_SERVER['GEOIP_COUNTRY_CODE'] = 'DE'; check_geo( 'DE', $negotiation->country(), 'trusted server result wins in auto mode' );
+	$_SERVER['GEOIP_COUNTRY_CODE'] = 'XX'; check_geo( 'GB', $negotiation->country(), 'unavailable server result falls back to MMDB' );
+	unset( $_SERVER['GEOIP_COUNTRY_CODE'] );
 	$_SERVER['REMOTE_ADDR'] = '2001:218::'; check_geo( 'JP', $geo->country(), 'real IPv6 Country lookup' );
 	$_SERVER['REMOTE_ADDR'] = '::ffff:81.2.69.160'; check_geo( 'GB', $geo->country(), 'mapped IPv4 canonicalization' );
 	foreach ( array( '', 'garbage', '10.0.0.1', '127.0.0.1', '::1', 'fc00::1', '192.0.2.1' ) as $ip ) {

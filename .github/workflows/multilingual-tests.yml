@@ -39,7 +39,7 @@ jobs:
       - name: Country negotiation and disabled-mode regression
         run: |
           set -e
-          for mode in server cloudflare disabled undefined cache-not-ready; do
+          for mode in server cloudflare disabled undefined cache-not-ready dns; do
             php wp-content/plugins/pera-multilingual/tests/geo-redirect-test.php "$mode"
           done
       - name: Final HTTP cache headers (actual theme callbacks)
