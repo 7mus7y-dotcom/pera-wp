@@ -2,7 +2,7 @@
     "_readme": [
         "Locked local MMDB reader; validate with composer validate --strict."
     ],
-    "content-hash": "78cfc07a2290ac5e95db590716a1d828",
+    "content-hash": "71dde82e7b2109e6007ab9bc08b4b4e2",
     "packages": [
         {
             "name": "maxmind-db/reader",

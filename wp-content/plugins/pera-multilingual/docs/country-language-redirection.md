@@ -1,145 +1,190 @@
-# Country-based automatic language redirection
+# Country-based language redirection
 
-## Follow-up design decision (PR comment 6543444810)
+**Disabled by default.** No live configuration, installation, hosting change or deployment is performed by this PR. Enable only after the checklist below. Requirements: PHP 7.4+ (tested also on production-target PHP 8.2), a 64-bit runtime, and the optional locked Composer reader for MMDB mode.
 
-The direct Apache/cPanel host has no trusted GeoIP module/environment or audience service. The theme's `send_headers` priority-20 handler sets public TTLs (home/archive 300s, property 600s, district 900s, posts 1800s). WordPress fires `send_headers` after resolving the main query, before `template_redirect`; the existing preparation alone does not explicitly coordinate with that theme policy. The follow-up will add a final `send_headers` guard and repeat it before template output, including Expires/Pragma. Tests will inspect real HTTP response headers with the actual theme module loaded. With flags off, no new hooks will change existing TTLs. Apache mod_expires does not add Expires when the application already supplies it; any later Apache `Header set` or upstream cache still requires host verification.
+## Architecture audit and follow-up design
 
-GeoIP will use the maintained `maxmind-db/reader` Composer package and a private, operator-updated GeoLite2 Country MMDB, retaining explicitly configured trusted server/Cloudflare sources. Missing reader/database, corruption, stale data and unrecognized records fail closed to no country redirect. Only the connection peer (or an explicitly trusted non-HTTP server client-IP parameter) is used; forwarded headers never establish client identity.
+English remains the sole WordPress object. The language registry controls enabled languages and Russian/Turkish public launch gates. `class-router.php` strips enabled prefixes at `plugins_loaded` priority 1, lets WordPress/theme routing resolve the canonical object and restores the browser URI at `parse_request` priority 0. `url_for_language()` preserves deep paths, query strings, archive pagination and search while replacing existing prefixes. No second translation system or translated slug table is added.
 
-For this host, synchronous PHP DNS cannot promise a per-call timeout. An optional local crawler mode will therefore queue bounded reverse/forward DNS checks in a background WordPress cron worker, with bounded cached results and no DNS calls on frontend requests. Known search-provider suffixes require forward-confirmed IP ownership. A crawler-like User-Agent is only an additional conservative bypass, never verification. New IPs, absent/failed DNS, unconfirmed names and stale cache get no automatic country redirect. Successfully forward-confirmed non-search-provider addresses may negotiate only on browser navigation requests; this is a bounded browser-traffic policy, not proof of human identity or coverage of every possible crawler. The existing trusted audience integration remains available. Explicit manual selections work without DNS classification. The operator must accept delayed negotiation for first/new addresses and no negotiation for addresses without reliable DNS, or supply a trusted audience service instead. No feature flag or live hosting configuration is changed by this work.
+Content, ACF fields, menu, UI and vocabulary readers use current/stale stored translations, falling back per field to English. Translation availability does not define a separate page's existence. Selecting a language with missing translations still renders the same object with existing English fallback. No provider is called while serving a visitor. Canonical/OG/schema output is principally theme-owned; plugin hreflang and Rank Math compatibility remain unchanged. Existing core sitemap filtering remains untouched. Desktop/mobile and plugin switchers pass resolved links through the single `pera_ml_switcher_url` filter.
 
-Status: **disabled by default**. No deployment or production verification is performed by this change. PHP 7.4+ is required (cookie options API). No database migration, new translation system, paid API, DNS lookup, or per-request external HTTP call is added.
+[Follow-up comment 6543444810](https://github.com/7mus7y-dotcom/pera-wp/pull/1533#issuecomment-6543444810) reports direct Apache/cPanel hosting with no GeoIP extension/module, configured country environment, CDN or active page-cache plugin. The architecture/design was recorded here before broad follow-up code changes. The decisions are:
 
-## Architecture audit
+- Coordinate explicitly with the actual theme cache module using a final `send_headers` hook, repeat before template output and enforce at PHP's final header boundary.
+- Retain trusted server/Cloudflare GeoIP and add a maintained, locked pure-PHP local MMDB reader. No visitor-IP API or per-page external request.
+- Retain a trusted audience service when available. Offer an explicitly opted-in background DNS policy for this host, with conservative unknown handling and no synchronous frontend DNS. Document its limits instead of labelling unknown visitors verified humans.
+- Keep both feature/cache-readiness flags off, preserve manual preference priority, and use the enabled registry for route eligibility (no assumption that Chinese is enabled).
 
-The plugin's entrypoint boots the language registry, storage, router, content, ACF fields, vocabulary, UI, menu, SEO, AJAX and administrative translation services. Providers, queue/health tools and CLI scripts generate stored translations only during explicit administrative/offline work. They are not part of request negotiation.
+## Execution and cache-header integration
 
-- `class-router.php` removes an enabled first language segment at `plugins_loaded` priority 1, before theme path-based loading, and restores the public URI at `parse_request` priority 0. WordPress resolves the same original post, page, property, archive or search. Static front-page roots have special main-query handling. No duplicate translated posts or translated slugs exist.
-- `url_for_language()` is the sole URL resolver. It replaces existing enabled prefixes, supports subdirectory installs, pagination, raw query strings and fragments, rejects external/out-of-home/system paths and respects enabled languages. The new service uses it unchanged.
-- `class-content.php`, `class-fields.php`, vocabulary and UI readers return usable current/stale translations; missing, blank or invalid translations fall back per field to English. Availability is not a separate page-existence condition. A missing translation therefore still resolves the **same content** under the selected language, with existing English field fallback. No redirect to a homepage or unrelated object is introduced.
-- The plugin switcher and the shared desktop/mobile header renderer use `publicly_available()`, including Russian/Turkish launch gates. Neither previously persisted a language preference. Both now pass their existing resolved link through `pera_ml_switcher_url`. This is the only theme change.
-- Plugin SEO emits reciprocal public-language hreflang plus English `x-default`, and has a Rank Math canonical compatibility filter. Theme SEO owns most canonical/OG/schema output. These remain unchanged. Core sitemap post/term filtering lives in `inc/modules/sitemaps.php`; this feature does not add, remove or rewrite sitemap entries.
-- Core `redirect_canonical` runs at `template_redirect` priority 10; the router keeps translated prefixes on canonical redirects. The theme's `property-archive-safety.php` normalizes array taxonomy filters at priority 1. The service prepares before both, combines same-path normalization destinations, and redirects at priority 11 if neither already redirected.
-- Storage/object caches are keyed by translation identity and language, not visitor IP. The repository does not contain a production CDN/reverse-proxy cache configuration, active `advanced-cache.php` drop-in, trusted country source or verified-crawler integration. Existing `DONOTCACHEPAGE`/no-store patterns protect selected theme routes, but cannot control caches before WordPress. Hosting behavior must be verified separately.
+When both flags are true:
 
-## Activation and hosting prerequisites
+1. After WordPress resolves the main query, the theme's `send_headers` priority-20 callback applies its existing policy. The plugin's `send_headers` hook at `PHP_INT_MAX` then protects every eligible response and registers a final PHP header callback. This includes English, translated, matching-language, unknown-country and crawler 200 responses.
+2. `template_redirect` priority -100 plans preference/country negotiation and repeats cache protection. Existing core canonical normalization (priority 10) and theme property-filter normalization (priority 1) can compose their same-path destination with the selected language in a single 302. Different-content, authentication and external redirects retain existing behavior.
+3. At priority 11, if there is a different destination, issue a safe temporary **302**. Otherwise continue rendering the original resolved object.
+4. A final template hook and the PHP header callback enforce the policy even if later PHP code writes public headers. The callback only registers for eligible requests while enabled. No body buffering is introduced.
 
-Set these in `wp-config.php` **before** WordPress loads, initially keeping the first two false:
+Final eligible response headers are:
+
+```text
+Cache-Control: private, no-store, no-cache, must-revalidate, max-age=0
+Expires: Wed, 11 Jan 1984 05:00:00 GMT
+Pragma: no-cache
+```
+
+`DONOTCACHEPAGE` is set and ETag/Last-Modified are removed. The actual theme's disabled-state public TTLs remain home/property archive 300s, property single 600s, district taxonomy 900s, blog post 1800s; filtered and logged-in no-store behavior also stays unchanged. No new hooks register when either flag is absent/false. PHP has one final header callback slot: another component replacing that callback after the plugin requires integration testing; the two hook-based safeguards still apply.
+
+Apache `mod_expires` does not add/replace Expires when the application already supplies it. The reported `ExpiresByType text/html "access plus 10 minutes"` therefore must not replace these application headers under standard mod_expires behavior. This PR does not edit live `.htaccess`. Apache `Header set/always set`, cPanel accelerators, reverse proxies or a future CDN can still override/serve before PHP. Inspect the **actual final production response**, and remove conflicting HTML cache rules before activation. HTTP integration tests exercise the actual theme PHP module; they do not claim to exercise the live Apache configuration.
+
+Full-page caches at every layer must bypass all eligible HTML, including English/no-redirect responses, explicit selection parameters and preference cookies. Purge existing HTML/redirect caches when toggling. Object caches and static assets can remain enabled; no IP cache fragmentation is added. Capacity-test the origin impact. `PERA_ML_GEO_CACHE_READY` is the operator's assertion that those checks passed, not automatic cache detection.
+
+## Flags and configuration
+
+Set constants in `wp-config.php` before WordPress loads. Examples below are instructions only; no live changes are included.
 
 ```php
 define( 'PERA_ML_GEO_REDIRECT_ENABLED', false );
 define( 'PERA_ML_GEO_CACHE_READY', false );
-define( 'PERA_ML_GEO_COUNTRY_SOURCE', 'server' );
-define( 'PERA_ML_GEO_COUNTRY_SERVER_VAR', 'GEOIP_COUNTRY_CODE' );
-define( 'PERA_ML_GEO_AUDIENCE_SERVER_VAR', 'PERA_ML_VERIFIED_AUDIENCE' );
+
+// Direct Apache/cPanel deployment:
+define( 'PERA_ML_GEO_COUNTRY_SOURCE', 'mmdb' );
+define( 'PERA_ML_GEO_MMDB_PATH', '/home/CPANEL_USER/private/pera-geo/GeoLite2-Country.mmdb' );
+define( 'PERA_ML_GEO_CRAWLER_MODE', 'dns' );
 ```
 
-The host must provide non-client-controlled server parameters:
+Only after host/staging checks pass, explicitly set both flags to true. Removing/setting either false disables all new hooks, cache changes, redirects and switcher selection markers. There is no admin UI or database migration.
 
-1. `GEOIP_COUNTRY_CODE`: ISO 3166-1 alpha-2 result from a local GeoIP module/database or a verified upstream integration. Alternate non-`HTTP_` parameter names can be configured above. Naming a parameter does **not** establish trust: the web server must set/overwrite it itself. Do not pass arbitrary incoming headers through to it.
-2. `PERA_ML_VERIFIED_AUDIENCE`: exactly `human`, `bot`, or absent/unknown. Set `human` only for traffic positively admitted by the host's trusted browser/bot classification. A verified bot must get `bot`; ambiguous/unclassified traffic must remain unknown. A rule such as “all non-Googlebot User-Agents are human” is unsafe. Cloudflare's verified-bot verdict can exempt known bots, but its **false** value alone does not prove a visitor is human. Use a trusted browser classification/challenge or an equivalent host facility for the human verdict.
+## Local GeoLite2 Country deployment
 
-**Safe crawler alternative:** this repository cannot reliably verify crawler identity itself. There is no hostname/IP list maintained here, no reverse-DNS guessing and no User-Agent-only exception. Country/stored-preference redirects require a positive trusted `human` verdict. Verified bots and all unclassified traffic keep the exact requested language URL. Explicit switcher selections still work for unclassified browsers; verified bots bypass them. If reliable classification is unavailable, leave it unset: automatic redirects safely remain inactive. This hosting dependency is intentional and must not be replaced with an “assume human” default.
+The plugin pins `maxmind-db/reader` **1.14.0** (MaxMind's maintained Apache-2.0 PHP reader) in `composer.json`/`composer.lock`. It supports PHP 8.2 and does not require a compiled GeoIP extension. Install dependencies in a build/staging workspace and include `vendor/` in the deployment artifact:
 
-Use HTTPS and ensure WordPress `is_ssl()` sees the trusted TLS termination state. Cookies are never issued without HTTPS.
+```sh
+cd wp-content/plugins/pera-multilingual
+composer validate --strict
+composer install --no-dev --prefer-dist --no-interaction --no-scripts
+```
 
-### Cloudflare alternative
+Do not run Composer in a visitor request. Missing dependencies produce no country result, not a fatal error. Update the pinned dependency and lock through reviewed maintenance, run this suite and Composer audit in the build process. The optional MaxMind C extension is unnecessary; an incompatible pre-existing extension must be removed/upgraded to the locked reader's compatible range.
+
+Create a MaxMind account, accept the [GeoLite2 terms/license](https://www.maxmind.com/en/geolite2/eula), obtain a license key and install/configure the official [geoipupdate](https://github.com/maxmind/geoipupdate) updater as a hosting maintenance tool. The reader license and GeoLite data license are separate. GeoLite downloads are authenticated; no account/key/data is included in Git. Preserve required MaxMind attribution and comply with current update, deletion and redistribution terms. Attribution: This product includes GeoLite2 data created by MaxMind, available from https://www.maxmind.com/.
+
+Use a private directory **outside every domain's webroot**, not uploads, the plugin, a public temp directory or `public_html`. Runtime checks resolve symlinks and reject databases within `ABSPATH` or the active `DOCUMENT_ROOT`; the operator must check other domain roots and aliases. Recommended directory permissions: 0700 (or tightly scoped 0750), database 0600/0640, readable by the site's PHP identity. Restrict GeoIP.conf/license-key access to the maintenance identity. Never expose a public diagnostics endpoint.
+
+Example private updater configuration (replace values privately):
+
+```text
+AccountID YOUR_ACCOUNT_ID
+LicenseKey YOUR_SECRET_LICENSE_KEY
+EditionIDs GeoLite2-Country
+DatabaseDirectory /home/CPANEL_USER/private/pera-geo/staging
+```
+
+Run a daily cPanel maintenance cron with the installed geoipupdate binary. Fetch into the private staging directory, validate, then atomically rename onto the active file **on the same filesystem**:
+
+```sh
+/usr/local/bin/geoipupdate -f /home/CPANEL_USER/private/pera-geo/GeoIP.conf
+php /path/to/wp-content/plugins/pera-multilingual/tools/validate-geoip-db.php /home/CPANEL_USER/private/pera-geo/staging/GeoLite2-Country.mmdb
+```
+
+Promote with a same-filesystem atomic rename only after **both commands succeed**; the previous file remains active on any failure. Use a host-managed wrapper/cron with error notifications and overlapping-run prevention. Validate file permissions before promotion. The CLI validator checks Country metadata, build age and IPv4/IPv6 reads without loading WordPress or logging visitor addresses. The updater's network/download work is maintenance only.
+
+Runtime also validates Country database type and build timestamp. Default maximum age is **30 days**; stale data fails closed to no country redirect. Optional `PERA_ML_GEO_MMDB_MAX_AGE` is in seconds and must be positive; do not extend it contrary to data-license/update obligations. Missing files, absent reader, unreadable/corrupt MMDB, future/old builds, unknown IP records or missing/invalid `country.iso_code` return no country. `registered_country` is deliberately not substituted. IPv4, IPv6 and mapped IPv4 are supported. No IP-based object-cache entries are created for country lookups.
+
+## Client-IP and trusted GeoIP options
+
+On direct Apache, use the actual connection peer `REMOTE_ADDR`. Invalid/private/reserved addresses fail closed. Arbitrary `X-Forwarded-For`, CF-Connecting-IP and other HTTP headers are ignored.
+
+If a future proxy is installed, establish client identity at the web server with a maintained trusted-peer list and validated overwrite of a **non-HTTP server parameter**, then explicitly set `PERA_ML_GEO_CLIENT_IP_SERVER_VAR` to that parameter. Never simply copy an incoming forwarded header. Apache mod_remoteip is acceptable only when properly restricted to trusted proxies; verify what PHP actually sees. DNS/MMDB cannot safely identify visitors from an un-restored shared proxy IP.
+
+Existing country modes remain:
 
 ```php
-define( 'PERA_ML_GEO_COUNTRY_SOURCE', 'cloudflare' );
-define( 'PERA_ML_GEO_TRUSTED_PROXY_CIDRS', array(
-    // Operator-maintained CURRENT Cloudflare origin-facing IPv4/IPv6 ranges.
-    // No permissive example ranges are shipped. Never use 0.0.0.0/0 or ::/0.
-) );
+// Host-owned module/environment result; not an unchecked client header.
+define( 'PERA_ML_GEO_COUNTRY_SOURCE', 'server' );
+define( 'PERA_ML_GEO_COUNTRY_SERVER_VAR', 'GEOIP_COUNTRY_CODE' );
 ```
 
-The service accepts `HTTP_CF_IPCOUNTRY` only if the **actual connection peer** in `REMOTE_ADDR` matches an explicitly configured trusted proxy CIDR. IPv4 and IPv6 are supported. Restrict direct origin access and maintain Cloudflare's current ranges as part of hosting configuration. Do not allow clients to route through a trusted relay that preserves forged country headers. `X-Forwarded-For`, `CF-Connecting-IP` and arbitrary country headers do not establish trust.
+`auto` uses a valid value from that explicitly trusted server parameter, then falls back to local MMDB. `mmdb` uses only the database. Neither silently trusts HTTP country headers.
 
-If `mod_remoteip`, another reverse proxy, or a load balancer has replaced `REMOTE_ADDR` with the visitor IP, this mode deliberately fails closed. Instead validate the upstream at the web server and map its verified country result to a non-HTTP server parameter, using `server` mode. Audience classification remains a separate requirement in both modes. Missing/invalid results (including Cloudflare `XX`/`T1`) cause no automatic navigation. English is the conceptual default; an incoming translated URL is left intact when detection is unavailable.
+`cloudflare` mode accepts `HTTP_CF_IPCOUNTRY` only when the actual peer in `REMOTE_ADDR` belongs to operator-maintained `PERA_ML_GEO_TRUSTED_PROXY_CIDRS` (IPv4/IPv6). No trust-all/default proxy ranges ship. Restrict origin access and verify the proxy overwrites the header. If mod_remoteip replaces the peer, map validated country data to a server variable instead of weakening this check. Local DNS mode refuses Cloudflare requests without an explicitly restored client-IP parameter; otherwise it would verify the proxy rather than the visitor.
 
-After verifying trust, crawler handling and cache bypass in staging, set **both** `PERA_ML_GEO_CACHE_READY` and `PERA_ML_GEO_REDIRECT_ENABLED` to `true` for controlled activation. If either is missing or false, the service registers no hooks: no redirects, cookies, link markers or cache headers are introduced.
+Missing/invalid countries (including Cloudflare XX/T1) cause no automatic navigation. English is the conceptual fallback; an already-prefixed URL remains accessible when detection is unavailable.
 
-## Country mapping
+## Crawler policy: trusted service or bounded local alternative
 
-Defaults are in [`../config/country-languages.php`](../config/country-languages.php).
+The existing non-HTTP `PERA_ML_VERIFIED_AUDIENCE` server parameter remains authoritative when exactly `human` or `bot`. Its configurable name is `PERA_ML_GEO_AUDIENCE_SERVER_VAR`. The host must set/overwrite it through a reliable service; an incoming HTTP header or a false verified-bot flag alone does not establish a human. If no local mode or reliable service is configured, country/stored-preference redirects remain inactive; explicit selections still work.
 
-| Countries | Language |
+For direct cPanel without that infrastructure, opt into `PERA_ML_GEO_CRAWLER_MODE='dns'`:
+
+- A frontend request reads cached classification only. A new/expired IP is queued and remains on its requested URL. No frontend reverse DNS, forward DNS or external API call is performed.
+- A single shared WordPress cron event processes **at most five addresses**. It reverse-resolves the address and forward-resolves the resulting hostname with A and AAAA records. A byte-equivalent address must be present. Missing PTR, forward failures, mismatches and exceptions are unknown, never assumed human.
+- Forward-confirmed names with boundary-matched suffixes for Google, Bing, Yahoo, Yandex, Baidu, DuckDuckGo, Apple, Petal, Sogou and Naver are `bot` and bypass negotiation even when the User-Agent looks like a browser. The suffix inventory is explicit in `class-crawler-detection.php`; provider changes require maintenance.
+- Other successfully forward-confirmed names are `visitor`, **not verified human**. They may negotiate only with a browser-like UA and explicit document-navigation hints (`Sec-Fetch-User: ?1`, `Mode: navigate`, `Dest: document`). These hints narrow the policy; spoofable headers do not prove identity. A crawler-like UA independently bypasses negotiation as a conservative precaution, never as proof of verified bot status.
+- Unrecognized bots that deliberately mimic both browser navigation and non-provider DNS are not provably detectable. This bounded policy covers verified listed providers and conservative unknown handling, not universal crawler verification. Keep trusted-service mode/leave DNS mode off if that remaining limitation is unacceptable. Do not advertise the mode as human attestation.
+
+The queue is capped at 64 addresses, workers at five per event and cache at 256 hashed IP keys. Bot results expire after 24h, visitor results after 6h, errors after 5m; queued work older than 10m is discarded. Stale results never authorize redirects. Bounded capacity can delay/drop classifications, which leaves those visitors unredirected. Concurrent queue updates may also drop work safely. A worker lock prevents duplicate processing; a lock older than five minutes can be reclaimed. Queue/cache options do not autoload. Raw IPs exist only in the bounded pending queue for DNS work; cached keys are SHA-256 hashes (still personal/pseudonymous data), not raw IPs. Reflect this processing in the site's privacy/retention policy. Expired records are removed on subsequent queue/cache activity; delete the options to remove inactive residual state.
+
+**Host prerequisites:** provide a working local resolver and reliable cPanel cron. Prefer a real system cron/CLI worker so DNS latency does not consume PHP web workers or depend on visitor traffic. For example, using the site's normal WP-CLI installation, invoke `wp eval '(new Pera_ML_Crawler_Detection())->work();'` under the site identity every minute. The work is local and bounded by count; PHP resolver calls do not expose per-call timeout controls. Configure resolver timeouts and wrap the CLI cron in a host process timeout (for example 90 seconds) with non-overlap locking. WordPress cron is also supported but needs working loopback/spawning; first/new visitors may not negotiate until a later navigation. Without cron, resolver, PTR/forward confirmation or browser hints, that traffic remains accessible in its requested language. This is intentional fail-closed behavior.
+
+## Mapping and manual preference
+
+PHP defaults: [`../config/country-languages.php`](../config/country-languages.php).
+
+| ISO countries | Language |
 | --- | --- |
 | CN, HK, TW, MO | zh |
 | DE, AT | de |
 | RU, BY | ru |
 | SA, AE, QA, KW, BH, OM | ar |
 | Other valid ISO countries | en |
-| Missing/invalid country | No automatic redirect |
+| Missing/invalid country | No country redirect |
 
-Extend in a site-owned MU plugin to survive plugin updates:
+Extend through the site-owned `pera_ml_country_languages` filter, e.g. `$mapping['CH']='de'`. Only enabled/public registry languages are selected; unavailable mapping targets fall back to English. Route eligibility probes an actually enabled alternate, so disabling Chinese does not disable German/Arabic negotiation.
 
-```php
-add_filter( 'pera_ml_country_languages', function ( $mapping ) {
-    $mapping['CH'] = 'de';
-    return $mapping;
-} );
-```
+Priority: valid explicit switcher selection, valid stored preference, reliable country, English conceptual fallback. Explicit `pera_ml_select` must match the URL's current enabled/public language. It overrides stored preference/country and sets a host-only Secure/HttpOnly/SameSite=Lax first-party cookie, `pera_ml_language`, for 365 days (12 months), scoped to the home path. The selection parameter is cleaned with a 302. Users can choose English in China and change again freely. Country detection never writes a cookie. Verified bots bypass negotiation; explicit selections work without a DNS/human result, while automatic preference/country redirects obey the crawler policy. Directly typing a prefix is not a persisted manual selection. Persistent preferences require HTTPS, trusted TLS detection and accepted first-party cookies.
 
-Only enabled, publicly available registry languages can be selected. A disabled/hidden mapping target safely falls back to English. No admin UI is added.
+## SEO safeguards and exclusions
 
-## Request flow and manual preference
+Language redirects are temporary 302 only. Resolve the same requested content with the unchanged router; preserve raw query strings, filters, pagination and searches. Matching destinations cause no redirect/loop. Missing translations retain English per-field fallback. Canonical, hreflang, x-default and sitemap content stay unchanged and clean. No rewrite flush is needed. Same-path existing normalization is composed; existing old-slug, domain, HTTPS and other upstream/different-content redirects cannot always be collapsed by this plugin.
 
-1. Existing router resolves the requested content and restores the public URL.
-2. On eligible GET requests, prepare at `template_redirect` -100 and mark the response private/no-store.
-3. Verified bots bypass negotiation. A valid `pera_ml_select=<code>` matching the URL's current language records an explicit selection. It overrides a previous cookie and country.
-4. For positively classified human traffic, a valid stored `pera_ml_language` preference wins; otherwise use a trusted country result. Country detection **never** writes or overwrites a cookie.
-5. Resolve the destination through `url_for_language()`. If language is already correct, emit no redirect. Preserve the exact requested path, pagination and raw query string. English fallback is still rendered per field if translation is absent.
-6. Existing same-path canonical/slash/filter normalization redirects are combined with the language destination and become temporary **302** responses. Authentication/external/different-content redirects are left alone. Otherwise the priority-11 callback issues one safe 302. A valid selection parameter is removed from the destination.
+No country redirects apply to admin, AJAX, cron, XML-RPC, REST including rest_route, robots.txt, sitemaps/XML/text, feeds, previews, embeds, trackbacks, 404s, non-GET methods or unsupported/unresolved main-query contexts. All language versions remain directly accessible to verified crawlers and unknown/unclassified requests.
 
-Switcher links alone receive the explicit selection parameter; canonical and hreflang URLs stay clean. This works without JavaScript and in new tabs. The server sets a host-only, Secure, HttpOnly, SameSite=Lax first-party cookie scoped to the WordPress home path, expiring in 365 days (12 months). Users can freely select English or another public language; every valid new selection replaces the previous one. Unsupported/array/mismatched selections are ignored. Directly typing a language-prefixed URL is not a persistent manual selection; use the switcher to establish preference. Browsers must accept first-party cookies for persistence. Unknown audience traffic is not automatically redirected even with a preference cookie, preserving crawler access.
+## Tests and limits
 
-## SEO and excluded requests
-
-Only temporary 302 language redirects are emitted. There are no canonical/hreflang/indexability changes. Bots and unknown audience traffic can independently fetch each language URL. No redirects apply to POST/HEAD, admin, AJAX, cron, XML-RPC, REST (including `rest_route`), robots, XML/text/sitemap routes, feeds, previews, embeds, trackbacks, 404s or unresolved/custom endpoints outside supported public main-query contexts. Search and archive pages remain eligible. Country is not inferred from Accept-Language or User-Agent.
-
-Same-path normalizations are composed, rather than creating an extra geo hop. Existing redirects to a different content path (for example an old slug), authentication or domain/HTTPS normalization outside WordPress remain host/core behavior; validate those separately. This feature cannot collapse upstream redirects it never sees.
-
-## Cache requirements
-
-Before setting `PERA_ML_GEO_CACHE_READY=true`, **bypass full-page caching for all eligible frontend HTML requests, in every language**, at CDN, reverse proxy, hosting cache, and any WordPress early page-cache drop-in. Also bypass requests containing `pera_ml_select` and the preference cookie. Purge existing HTML/redirect caches when enabling or disabling. This initial implementation chooses bypass over IP cache fragmentation. Object caches and static assets can remain cached; translation storage keys stay unchanged. Capacity-test the additional origin traffic before activation.
-
-The service sets `DONOTCACHEPAGE`, WordPress no-cache headers and explicit `Cache-Control: private, no-store, no-cache, must-revalidate, max-age=0` on eligible responses, including matching-language, bot and no-country 200 responses. This protects downstream caches that honor response headers; it **cannot** bypass a previously cached response or caches serving before plugins execute. `Vary: Cookie`/country headers alone are insufficient and no IP-based cache keys are added. Cache readiness is an operator assertion, not automatic detection.
-
-## Testing
-
-GitHub Actions workflow `Pera Multilingual regression tests` runs PHP syntax checks, all existing plugin test scripts and the new real-router negotiation harness on PHP 7.4 and 8.3:
+CI `Pera Multilingual regression tests` runs PHP 7.4, **8.2** and 8.3, validates/installs the pinned reader, syntax-checks plugin PHP, runs existing regressions, actual-reader synthetic MMDB tests and real HTTP final-header tests. The MaxMind test fixture is synthetic, licensed upstream test data pinned to a commit; it is not a distributed GeoLite database.
 
 ```sh
 for mode in server cloudflare disabled undefined cache-not-ready; do
     php wp-content/plugins/pera-multilingual/tests/geo-redirect-test.php "$mode"
 done
-for test in wp-content/plugins/pera-multilingual/tests/*-test.php; do php "$test"; done
+python3 wp-content/plugins/pera-multilingual/tests/geo-http-test.py
+# PERA_ML_TEST_MMDB must point to the private synthetic fixture, as in the workflow.
+for mode in normal missing corrupt stale webroot autoload-missing; do
+    php wp-content/plugins/pera-multilingual/tests/local-geoip-test.php "$mode"
+done
+php wp-content/plugins/pera-multilingual/tests/crawler-detection-test.php
+python3 wp-content/plugins/pera-multilingual/tests/run-regressions.py
 ```
 
-CI also uses `tests/run-regressions.py` to run every existing script and compare any failure with the PR's unchanged base commit. A baseline failure is reported as a warning only when both the exit code and normalized diagnostics are identical. New or changed failures fail CI. Without `BASE_SHA`, the runner treats every failure as an error. It does not modify unrelated theme or translation behavior to make old tests pass.
+The HTTP harness loads the actual theme `performance.php` and request service, runs hooks in order through PHP's HTTP SAPI, and inspects final response headers. It covers the five reported public TTL route types, pages/search, English, no-redirect bot/unknown cases, late public writes, filtered/logged-in requests, disabled/cache-not-ready behavior and 302/matching-language paths. It stubs WordPress query functions and is not a full WordPress/Apache deployment test. DNS tests use deterministic resolver callbacks; no successful live crawler/production test is claimed.
 
-Verified [CI run 41199337408](https://github.com/7mus7y-dotcom/pera-wp/actions/runs/41199337408) passed syntax checks and **162 new assertions per PHP version**, including disabled/unconfigured/cache-not-ready modes. The existing suite reported 45 passing scripts plus two identical baseline failures on PHP 7.4, and 46 passing scripts plus one identical baseline failure on PHP 8.3, with zero regressions. The baseline failures are `post-content-chunking-test.php` on PHP 7.4 (private reflection invocation without `setAccessible`) and `theme-ui-registration-test.php` on both versions (existing unrelated theme UI coverage). These remain visible in CI warnings; the entire legacy suite is not claimed to be clean.
-
-Coverage includes English/other-prefix property arrivals; German articles; Russian pages; correct-language and redirect-loop checks; manual English and changed preferences; returning visitors; actual English field fallback for missing translation; pagination; raw filter/search queries; mappings; invalid/missing GeoIP; crawler and unknown-audience bypass; untrusted headers; IPv4/IPv6 proxy trust; sitemap/REST/admin/feed exclusions; normalization composition; cookie attributes; subdirectory paths; canonical/hreflang preservation; and disabled/unconfigured/cache-not-ready behavior. These standalone scripts stub WordPress request functions and do not replace real WordPress/CDN acceptance testing. Production success must not be inferred from them.
+The regression runner compares any existing failure with unchanged PR base, requiring identical exit status and normalized diagnostics before reporting a visible baseline warning. New/changed failures fail CI. Known baseline issues: PHP-7.4 private ReflectionMethod access in `post-content-chunking-test.php`; unrelated theme UI registration coverage in `theme-ui-registration-test.php`. These are not hidden or fixed by changing unrelated theme functionality.
 
 ## Production verification checklist
 
-- [ ] With the feature off, compare ordinary routes, desktop/mobile/plugin switchers, canonical, hreflang and sitemap output with baseline. No selection markers or preference cookies should appear.
-- [ ] Verify actual server country and audience parameters using restricted host diagnostics, from multiple real geographic origins. Do not expose a public diagnostic endpoint or log full cookies/IPs.
-- [ ] Attempt forged `CF-IPCountry`, forwarded IP and audience headers through both the CDN and direct origin; confirm they cannot confer trust. Verify IPv6 and actual peer behavior.
-- [ ] Verify genuinely identified crawlers and unclassified traffic get each language version directly without geo redirects; a spoofed crawler UA alone must not establish identity.
-- [ ] Verify cache MISS/BYPASS and no stored redirects/HTML across successive CN/DE/RU/other-country visitors to the same URL, including already-correct-language 200s.
-- [ ] Enable both flags only after prerequisites pass; verify a real property, article, page, paginated archive, filtered archive and search return one 302 to the same content in the expected language. Follow once and confirm no loop.
-- [ ] In a China browser select English, check the Secure/HttpOnly/Lax/host-only scoped cookie and 365-day expiry, revisit a translated URL, then switch back to Chinese. Repeat with desktop, mobile and shortcode switchers.
-- [ ] Verify missing translations render existing English fallback on the same object and a nonexistent URL remains a 404.
-- [ ] Fetch robots.txt, XML sitemaps, feeds, REST and admin/AJAX endpoints: no language redirects. Compare canonical/hreflang and existing sitemap contents.
-- [ ] Record checks and capacity impact in the deployment record. No live verification is claimed by this PR.
+- [ ] With flags off, compare actual theme TTL/Expires/Pragma on home, property archive, property single, district, blog, filters and logged-in routes. Confirm switchers/canonical/hreflang/sitemaps match baseline.
+- [ ] Build/install the locked reader with production PHP 8.2; validate the private current Country DB, permissions, IPv4/IPv6 reads, license/update cron and failure alerting. Confirm no database/config/key is web-accessible.
+- [ ] Verify PHP's real peer/TLS state. Attempt forged country, audience and forwarded headers through the actual connection; they must not override identity or local lookups.
+- [ ] Exercise the chosen crawler mode. Verify real provider reverse+forward matching, spoofed UA behavior, failed DNS, first/new IP, cache expiry, bounded queue and worker timeout/cron. Confirm every language remains accessible for verified/unknown crawler requests.
+- [ ] On staging, enable both flags and inspect final Apache response headers (including mod_expires, Header directives and cPanel caches), not PHP helper output. All eligible 200/302 responses must have the exact private/no-store policy and past Expires/Pragma. Purge old caches and alternate countries/preferences at one URL to rule out contamination.
+- [ ] Verify real property/article/page, paginated/filtered archive and search destinations are the same content, one temporary hop, no loops. Verify missing translations use English fallback and missing content stays 404.
+- [ ] Manually select English from China, verify secure cookie/expiry/scope, return, and switch again using desktop/mobile/plugin switchers. Confirm country never overwrites preference.
+- [ ] Verify robots, sitemaps, REST, feed, AJAX and admin bypass, and compare canonical/hreflang output. Capacity-test cache bypass. Record results before controlled production activation.
 
 ## Troubleshooting and rollback
 
-No redirect: check both flags, eligible GET main-query context, current language, manual cookie, public-language gates, audience verdict and country source. Missing GeoIP or unknown audience deliberately leaves the requested URL alone. In Cloudflare mode inspect the connection peer and maintained CIDRs; a restored visitor IP will not match. Never “fix” this with a trust-all CIDR or forwarded-header guess.
+No negotiation: check both flags, eligibility, public languages, manual cookie, GeoIP source/DB age and audience policy. For local DNS mode check real IP, pending queue, cron/lock, resolver results and navigation hints; new or unconfirmed visitors deliberately do not redirect. Wrong country: inspect configured local DB/source and trusted peer model, never add a trust-all proxy rule. Missing translated copy is the existing field fallback.
 
-Wrong language: check the preference cookie before country mapping. Clear only `pera_ml_language` for a clean country test. Missing translated text is the existing field fallback, not a routing failure. If manual choice does not persist, check HTTPS detection, cookie scope and browser cookie acceptance. If users see another visitor's redirect, immediately disable the flag and inspect every cache layer.
+Wrong headers: disable immediately, purge caches, inspect actual final Apache/CDN headers and any late header-callback replacement. A response served before WordPress cannot be fixed by PHP headers. Manual preference failure: check HTTPS detection, home-path cookie scope and browser acceptance.
 
-Rollback: set `PERA_ML_GEO_REDIRECT_ENABLED=false` (or remove it), purge frontend HTML and redirect caches and verify baseline routes. Existing cookies are ignored while disabled and can expire naturally or be removed with the same home-path scope. Keep the multilingual plugin active so existing translations and routes remain available. No rewrite flush or translation-data rollback is required. Reverting this PR removes the feature entirely; no database cleanup is needed.
+Rollback: set `PERA_ML_GEO_REDIRECT_ENABLED=false`/remove it and purge HTML/redirect caches. Keep the multilingual plugin active for existing translations. Cookies are ignored while disabled. Stop optional crawler/update maintenance tasks if no longer needed; optionally remove `pera_ml_crawler_queue`, `pera_ml_crawler_cache` and `pera_ml_crawler_worker_lock` options and clear the `pera_ml_verify_crawler_queue` scheduled event using normal WordPress tools. Remove private DB/license data in accordance with MaxMind terms if discontinuing service. No translation-data rollback or rewrite flush is needed. No merge or deployment is part of this task.
