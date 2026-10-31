@@ -109,6 +109,10 @@ done
 for test in wp-content/plugins/pera-multilingual/tests/*-test.php; do php "$test"; done
 ```
 
+CI also uses `tests/run-regressions.py` to run every existing script and compare any failure with the PR's unchanged base commit. A baseline failure is reported as a warning only when both the exit code and normalized diagnostics are identical. New or changed failures fail CI. Without `BASE_SHA`, the runner treats every failure as an error. It does not modify unrelated theme or translation behavior to make old tests pass.
+
+Verified [CI run 41199337408](https://github.com/7mus7y-dotcom/pera-wp/actions/runs/41199337408) passed syntax checks and **162 new assertions per PHP version**, including disabled/unconfigured/cache-not-ready modes. The existing suite reported 45 passing scripts plus two identical baseline failures on PHP 7.4, and 46 passing scripts plus one identical baseline failure on PHP 8.3, with zero regressions. The baseline failures are `post-content-chunking-test.php` on PHP 7.4 (private reflection invocation without `setAccessible`) and `theme-ui-registration-test.php` on both versions (existing unrelated theme UI coverage). These remain visible in CI warnings; the entire legacy suite is not claimed to be clean.
+
 Coverage includes English/other-prefix property arrivals; German articles; Russian pages; correct-language and redirect-loop checks; manual English and changed preferences; returning visitors; actual English field fallback for missing translation; pagination; raw filter/search queries; mappings; invalid/missing GeoIP; crawler and unknown-audience bypass; untrusted headers; IPv4/IPv6 proxy trust; sitemap/REST/admin/feed exclusions; normalization composition; cookie attributes; subdirectory paths; canonical/hreflang preservation; and disabled/unconfigured/cache-not-ready behavior. These standalone scripts stub WordPress request functions and do not replace real WordPress/CDN acceptance testing. Production success must not be inferred from them.
 
 ## Production verification checklist
