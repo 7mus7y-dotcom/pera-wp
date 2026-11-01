@@ -45,3 +45,7 @@ jobs:
           node wp-content/themes/hello-elementor-child/tests/regional-guides-map-test.js
       - name: Real Leaflet browser regression (offline tiles)
         run: python3 wp-content/themes/hello-elementor-child/tests/regional-guides-map-browser-test.py
+      - name: Real mobile touch gestures and picker regression
+        run: |
+          python3 -m pip install playwright
+          python3 wp-content/themes/hello-elementor-child/tests/regional-guides-map-touch-test.py

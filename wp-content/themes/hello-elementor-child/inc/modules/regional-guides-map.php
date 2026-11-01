@@ -78,7 +78,6 @@ function pera_render_regional_guides_map() {
 		<div class="container">
 			<h2 id="regional-map-heading"><?php echo esc_html( pera_ml_ui( 'Explore Istanbul by neighbourhood', 'theme.regional_map.heading' ) ); ?></h2>
 			<p><?php echo esc_html( pera_ml_ui( 'Select a location on the map to explore our neighbourhood and district guides.', 'theme.regional_map.intro' ) ); ?></p>
-			<button type="button" class="btn btn--ghost btn--blue regional-map__toggle" hidden aria-pressed="false"><?php echo esc_html( pera_ml_ui( 'Enable map interaction', 'theme.regional_map.enable' ) ); ?></button>
 			<div class="regional-map__canvas" data-map-canvas role="region" aria-labelledby="regional-map-heading"></div>
 			<p data-map-status role="status"><?php echo esc_html( pera_ml_ui( 'If the map is unavailable, explore the guide links below.', 'theme.regional_map.fallback' ) ); ?></p>
 			<details class="regional-map__links">

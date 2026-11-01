@@ -5716,8 +5716,9 @@ ol.pretty-list li::before {
   z-index: 0;
   font-family: inherit;
 }
-.regional-map__toggle { margin-bottom: 1rem; }
-.regional-map__toggle[hidden] { display: none; }
+/* Override Leaflet's touch-drag rule before the first touch is dispatched.
+   TouchZoom cancels only two-finger gestures; single touches scroll the page. */
+.regional-map .regional-map__canvas.leaflet-container.leaflet-touch-zoom { touch-action: pan-x pan-y; }
 .regional-map__marker { border-radius: 50%; }
 .regional-map__marker--guide { background: var(--brand-blue); border: 3px solid var(--brand-white); box-shadow: 0 1px 5px #0008; }
 .regional-map__marker--landmark { background: #64748b; border: 2px solid #fff; }
