@@ -1246,9 +1246,6 @@ add_action( 'wp_head', function () {
         '@type' => 'Person',
         'name'  => $author_name,
       );
-      if ( $author_id > 0 ) {
-        $schema['author']['url'] = get_author_posts_url( $author_id );
-      }
     }
 
     if ( $publisher_logo !== '' ) {
