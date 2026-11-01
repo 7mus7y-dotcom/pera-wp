@@ -1,8 +1,24 @@
 # Regional Guides Istanbul map
 
+## Initial administrator-only testing
+
+The public archive remains unchanged for anonymous visitors, subscribers and employees without `manage_options`: no map section, heading, landmarks, coordinate JSON, fallback guide list or frontend mapping assets are emitted, and no map guide query runs. The single server-side visibility gate is `pera_regional_map_visible()` in `inc/modules/regional-guides-map.php`. It requires the Regional Guides category and `current_user_can( 'manage_options' )`; login status alone is insufficient. It applies identically to translated archives and paginated views. Users with this administrative capability can preview the map at the normal archive URL without any query flag.
+
+The standard post metabox, coordinate saves and editor picker are independent of this frontend gate. Authorised employees/editors can continue preparing coordinates without seeing the public archive map.
+
+For eventual public launch, change only `pera_regional_map_visible()` to return `is_category( 'regional-guides' )`, removing its capability condition. Both the renderer and frontend asset callback automatically follow that single gate. No CSS or JavaScript toggle controls access. The cache helper additionally requires authentication, so enabling public visibility does not disable caching of anonymous archives.
+
+### Full-page caching
+
+Existing `inc/modules/performance.php` already emits private/no-store headers for logged-in requests. The map module adds a `wp` hook at priority 0 after the main query is available: only authenticated, visible map responses receive `DONOTCACHEPAGE = true` plus private/no-store, CDN-Cache-Control and Surrogate-Control no-store headers. Public responses and unrelated routes receive no new cache flags or headers. No global bypass, URL preview flag or global cache setting is introduced.
+
+A cache serving before WordPress executes cannot be controlled by a theme capability check. Before enabling this feature on a live site, verify the existing page-cache/CDN bypass for `wordpress_logged_in_*` cookies and that private/no-store responses are never stored. Administrators must reach authenticated WordPress rather than receive an anonymous cached page. Never cache authenticated HTML under the anonymous cache key. Purge any previously cached map-enabled Regional Guides archive responses (all languages and pagination) when installing this restriction, then warm/verify an anonymous URL first, an administrator session second, and the anonymous URL again. Verify cache HIT/MISS/BYPASS headers and absence of map payload/assets in the final anonymous response. Subscribers and employees must also get no map; their existing authenticated cache behavior is unchanged. These hosting/CDN settings require live verification and are not changed by this PR.
+
+Regression coverage includes anonymous, subscriber, employee and administrator capability fixtures, translated and paginated routes, asset/render/query isolation, per-request cache guards, unrelated archives and independent employee/editor picker access. Each role's cache test runs in a fresh PHP process so constants cannot leak across request fixtures.
+
 ## Architecture and audit
 
-`archive.php` calls `pera_render_regional_guides_map()` immediately after the introduction and before featured cards. The renderer and enqueue callback both require `is_category( 'regional-guides' )`. Other archives return without querying or rendering. `inc/theme-modules.php` loads the dedicated `inc/modules/regional-guides-map.php` module.
+`archive.php` calls `pera_render_regional_guides_map()` immediately after the introduction and before featured cards. The renderer and frontend enqueue callback both use the administrator-only `pera_regional_map_visible()` gate. Other archives return without querying or rendering. `inc/theme-modules.php` loads the dedicated `inc/modules/regional-guides-map.php` module.
 
 The existing archive owns cards, search, date sorting, pagination, FAQ/schema, category content and CTA. AJAX replaces only `[data-blog-results]`; the map is outside that element. No main query filters, SEO hooks, canonicals, breadcrumbs, search handlers or existing cards were changed.
 
@@ -37,7 +53,7 @@ Add/remove entries there, with a unique Pera ML UI key for any new name. Landmar
 
 `vendor/leaflet/` contains the official pinned Leaflet 1.9.4 JS/CSS, marker/control images and BSD license. The prior files were CDN/document.write proxies; the same `pera-leaflet` handles now serve the complete distribution locally, including on the existing citizenship property map. Sources: Leaflet v1.9.4 `dist/leaflet.css`, `dist/images/`, `LICENSE`, and cdnjs's verbatim 1.9.4 `leaflet.js`. No package installation or build step is required. Leaflet's optional JS sourcemap is not shipped.
 
-`js/regional-guides-map.js` handles archive and lazy editor picker. Leaflet loads only on the Regional Guides archive, standard post editing screens, and the pre-existing citizenship properties map. The controller follows the same scopes; file versions use the existing `pera_get_asset_version()` helper. `assets/css/admin-regional-map.css` is limited to standard post editing. Frontend styles live in `css/main.css`, reuse existing typography, radius and colour tokens, and reserve 480px desktop / 350px mobile height. Popups follow light/dark surface tokens; tiles retain their original colours and attribution.
+`js/regional-guides-map.js` handles archive and lazy editor picker. Leaflet loads only for administrator previews of the Regional Guides archive, standard post editing screens, and the pre-existing citizenship properties map. The controller follows the same scopes; file versions use the existing `pera_get_asset_version()` helper. `assets/css/admin-regional-map.css` is limited to standard post editing. Frontend styles live in `css/main.css`, reuse existing typography, radius and colour tokens, and reserve 480px desktop / 350px mobile height. Popups follow light/dark surface tokens; tiles retain their original colours and attribution.
 
 Only OpenStreetMap standard raster tiles are requested from `https://tile.openstreetmap.org/{z}/{x}/{y}.png`, on demand in the browser. Visible attribution links to OSM copyright. Do not prefetch, bulk-download, proxy/cache with shortened lifetimes, suppress browser caching/referrer, or use offline tile downloads. Browser HTTP caching honors server headers. Review the [OSM tile usage policy](https://operations.osmfoundation.org/policies/tiles/) before launch and when traffic grows; standard tiles have no service guarantee. If externally configured CSP is present, allow that host in `img-src` and permit Leaflet's required style behavior. No sitewide frontend CSP was found in the repository. Hosting headers and tile availability require live verification.
 
@@ -54,6 +70,9 @@ Automated checks:
 ```sh
 php -l inc/modules/regional-guides-map.php
 php tests/regional-guides-map-test.php
+for role in anonymous subscriber employee administrator administrator-other; do
+  php tests/regional-guides-map-visibility-test.php "$role"
+done
 node --check js/regional-guides-map.js
 node tests/regional-guides-map-test.js
 python3 tests/regional-guides-map-browser-test.py

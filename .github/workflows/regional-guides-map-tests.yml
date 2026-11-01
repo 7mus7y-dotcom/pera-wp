@@ -26,6 +26,9 @@ jobs:
           php -l wp-content/themes/hello-elementor-child/inc/theme-modules.php
           php -l wp-content/themes/hello-elementor-child/inc/modules/regional-guides-map.php
           php wp-content/themes/hello-elementor-child/tests/regional-guides-map-test.php
+          for role in anonymous subscriber employee administrator administrator-other; do
+            php wp-content/themes/hello-elementor-child/tests/regional-guides-map-visibility-test.php "$role"
+          done
       - name: Existing archive and multilingual regressions
         run: |
           set -e

@@ -2,6 +2,24 @@
 /** Article-owned coordinates; no REST surface or changes to the archive query. */
 defined( 'ABSPATH' ) || exit;
 
+/** Initial testing gate. Change only the capability condition to launch publicly. */
+function pera_regional_map_visible() {
+	return is_category( 'regional-guides' ) && current_user_can( 'manage_options' );
+}
+
+/** Only preview responses bypass page/CDN storage; public archive caching is unchanged. */
+function pera_regional_map_nocache() {
+	if ( ! is_user_logged_in() || ! pera_regional_map_visible() ) return;
+	if ( ! defined( 'DONOTCACHEPAGE' ) ) define( 'DONOTCACHEPAGE', true );
+	if ( headers_sent() ) return;
+	nocache_headers();
+	header( 'Cache-Control: private, no-store, no-cache, must-revalidate, max-age=0', true );
+	header( 'CDN-Cache-Control: no-store', true );
+	header( 'Surrogate-Control: no-store', true );
+}
+// The main query is available here, before template rendering and map assets.
+add_action( 'wp', 'pera_regional_map_nocache', 0 );
+
 function pera_regional_map_coordinate( $value, $limit ) {
 	if ( ! is_scalar( $value ) || ! is_numeric( $value ) ) return null;
 	$value = (float) $value;
@@ -48,11 +66,11 @@ function pera_regional_map_assets() {
 	wp_enqueue_script( 'pera-regional-map', get_stylesheet_directory_uri() . '/js/regional-guides-map.js', array( 'pera-leaflet' ), pera_get_asset_version( 'js/regional-guides-map.js' ), true );
 }
 add_action( 'wp_enqueue_scripts', function () {
-	if ( is_category( 'regional-guides' ) ) pera_regional_map_assets();
+	if ( pera_regional_map_visible() ) pera_regional_map_assets();
 } );
 
 function pera_render_regional_guides_map() {
-	if ( ! is_category( 'regional-guides' ) ) return;
+	if ( ! pera_regional_map_visible() ) return;
 	$guides = pera_regional_map_guides();
 	$data = array( 'guides' => $guides, 'landmarks' => pera_regional_map_landmarks(), 'read' => pera_ml_ui( 'Read guide', 'theme.regional_map.read' ) );
 	?>
