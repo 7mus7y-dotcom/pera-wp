@@ -5703,3 +5703,29 @@ ol.pretty-list li::before {
   }
   .property-sticky-summary .floating-whatsapp__tooltip { display: none; }
 }
+
+/* Regional Guides discovery map. Leaflet remains below the site navigation. */
+.regional-map__canvas {
+  height: 480px;
+  width: 100%;
+  min-width: 0;
+  overflow: hidden;
+  border-radius: var(--radius-md);
+  background: var(--bg-soft);
+  isolation: isolate;
+  z-index: 0;
+  font-family: inherit;
+}
+.regional-map__toggle { margin-bottom: 1rem; }
+.regional-map__marker { border-radius: 50%; }
+.regional-map__marker--guide { background: var(--brand-blue); border: 3px solid var(--brand-white); box-shadow: 0 1px 5px #0008; }
+.regional-map__marker--landmark { background: #64748b; border: 2px solid #fff; }
+.regional-map__marker:focus-visible { outline: 3px solid var(--brand-yellow); outline-offset: 3px; }
+.regional-map__popup { overflow-wrap: anywhere; }
+.regional-map .leaflet-popup-content-wrapper, .regional-map .leaflet-popup-tip { background: var(--bg); color: var(--text); }
+.regional-map .leaflet-popup-content a { color: var(--accent); }
+.regional-map__links { margin-top: 1rem; }
+.regional-map__links summary { cursor: pointer; }
+@media (max-width: 767px) {
+  .regional-map__canvas { height: 350px; }
+}

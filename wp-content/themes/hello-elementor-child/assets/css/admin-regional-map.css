@@ -1,0 +1,2 @@
+.regional-map__editor { height: 240px; width: 100%; margin-top: 12px; isolation: isolate; }
+.regional-map__marker--guide { background: #043673; border: 3px solid #fff; border-radius: 50%; box-shadow: 0 1px 5px #0008; }

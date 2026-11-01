@@ -306,6 +306,8 @@ get_header();
     <?php endif; ?>
 
 
+    <?php if ( function_exists( 'pera_render_regional_guides_map' ) ) pera_render_regional_guides_map(); ?>
+
     <?php
     if ( ( is_category() || ( is_home() && ! is_front_page() ) ) && ! empty( $archive_featured_post_ids ) ) :
         $featured_heading = trim( $archive_featured_heading ) !== '' ? $archive_featured_heading : pera_ml_ui( 'Start with these guides', 'theme.template.archive.start_with_these_guides' );
