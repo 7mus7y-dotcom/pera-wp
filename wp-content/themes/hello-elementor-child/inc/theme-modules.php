@@ -24,3 +24,5 @@ require_once get_stylesheet_directory() . '/inc/modules/faqs.php';
 require_once get_stylesheet_directory() . '/inc/acf-fields.php';
 
 require_once get_stylesheet_directory() . '/inc/modules/nearby-amenities.php';
+
+require_once get_stylesheet_directory() . '/inc/modules/regional-guides-map.php';

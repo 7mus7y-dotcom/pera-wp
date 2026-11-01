@@ -1,0 +1,47 @@
+name: Regional Guides map regression tests
+on:
+  pull_request:
+    paths:
+      - 'wp-content/themes/hello-elementor-child/**'
+      - '.github/workflows/regional-guides-map-tests.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  regression:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.2'
+          coverage: none
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: PHP syntax and focused regression
+        run: |
+          set -e
+          php -l wp-content/themes/hello-elementor-child/archive.php
+          php -l wp-content/themes/hello-elementor-child/inc/theme-modules.php
+          php -l wp-content/themes/hello-elementor-child/inc/modules/regional-guides-map.php
+          php wp-content/themes/hello-elementor-child/tests/regional-guides-map-test.php
+          for role in anonymous subscriber employee administrator administrator-other; do
+            php wp-content/themes/hello-elementor-child/tests/regional-guides-map-visibility-test.php "$role"
+          done
+      - name: Existing archive and multilingual regressions
+        run: |
+          set -e
+          php wp-content/themes/hello-elementor-child/tests/multilingual-url-routing-audit-test.php
+          php wp-content/plugins/pera-multilingual/tests/archive-card-language-test.php
+          php wp-content/plugins/pera-multilingual/tests/archive-settings-contract-test.php
+          php wp-content/plugins/pera-multilingual/tests/taxonomy-archive-meta-display-test.php
+          php wp-content/plugins/pera-multilingual/tests/theme-ui-discovery-test.php
+          node wp-content/themes/hello-elementor-child/tests/archive-language-payload-test.js
+      - name: JavaScript checks
+        run: |
+          node --check wp-content/themes/hello-elementor-child/js/regional-guides-map.js
+          node --check wp-content/themes/hello-elementor-child/vendor/leaflet/leaflet.js
+          node wp-content/themes/hello-elementor-child/tests/regional-guides-map-test.js
+      - name: Real Leaflet browser regression (offline tiles)
+        run: python3 wp-content/themes/hello-elementor-child/tests/regional-guides-map-browser-test.py
