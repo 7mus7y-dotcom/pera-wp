@@ -246,9 +246,9 @@ get_header();
                   <span class="article-meta-separator"> / </span>
                   <span class="article-meta-item author vcard">
                     <?php echo esc_html( pera_ml_ui( 'Written by', 'theme.template.single_post.written_by' ) ); ?>
-                    <a class="url fn n" rel="author" href="<?php echo esc_url( get_author_posts_url( $author_id ) ); ?>">
+                    <span class="fn n">
                       <?php echo esc_html( get_the_author() ); ?>
-                    </a>
+                    </span>
                   </span>
                 </div>
               </div>
