@@ -59,9 +59,10 @@ with sync_playwright() as p:
     assert page.locator('#pera-guide-map-lat').input_value() == '41.100000'
     assert page.locator('#pera-guide-map-lng').input_value() == '29.200000'
     # Desktop mouse drag still pans after touch use on the same map.
-    page.evaluate('scrollTo(0,0)')
+    page.evaluate('scrollTo(0,0); maps[0].closePopup()')
+    page.wait_for_timeout(250)
     before = center()
-    page.mouse.move(160,400); page.mouse.down(); page.mouse.move(210,440,steps=8); page.mouse.up()
+    page.mouse.move(50,500); page.mouse.down(); page.mouse.move(100,530,steps=8); page.mouse.up()
     page.wait_for_timeout(400)
     assert center() != before, 'hybrid mouse dragging remains available'
     browser.close()
