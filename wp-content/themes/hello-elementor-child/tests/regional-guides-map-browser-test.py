@@ -5,7 +5,7 @@ import subprocess
 import tempfile
 import shutil
 
-chrome = shutil.which('chromium') or shutil.which('google-chrome')
+chrome = shutil.which('google-chrome') or shutil.which('chromium')
 if not chrome:
     raise SystemExit('Chromium or Google Chrome required')
 
@@ -39,11 +39,11 @@ document.body.dataset.result='PASS';
 fixture=fixture.replace('CSS',css).replace('LEAFLET',leaflet).replace('DATA',json.dumps(data)).replace('SCRIPT',script)
 with tempfile.TemporaryDirectory() as temp:
     page=Path(temp)/'map.html';page.write_text(fixture)
-    result=subprocess.run([chrome,'--headless','--disable-crash-reporter','--disable-breakpad','--no-zygote','--single-process','--user-data-dir='+str(Path(temp)/'profile'),'--no-sandbox','--disable-dev-shm-usage','--disable-gpu','--no-proxy-server','--dump-dom',page.as_uri()],capture_output=True,text=True,timeout=30)
+    result=subprocess.run([chrome,'--headless','--disable-crash-reporter','--disable-breakpad','--disable-background-networking','--disable-extensions','--no-first-run','--timeout=10000','--virtual-time-budget=2000','--user-data-dir='+str(Path(temp)/'profile'),'--no-sandbox','--disable-dev-shm-usage','--disable-gpu','--no-proxy-server','--dump-dom',page.as_uri()],capture_output=True,text=True,timeout=30)
     if 'data-result="PASS"' not in result.stdout:
         raise SystemExit('Browser regression failed: '+result.stdout[-2000:]+'\n'+result.stderr[-1000:])
     # Missing Leaflet must preserve the HTML fallback and link without throwing.
     page.write_text('<p data-map-status>Fallback</p><a href="/guide/">Guide</a><script>'+script+'</script><script>document.body.dataset.result="PASS"</script>')
-    result=subprocess.run([chrome,'--headless','--disable-crash-reporter','--disable-breakpad','--no-zygote','--single-process','--user-data-dir='+str(Path(temp)/'profile'),'--no-sandbox','--disable-dev-shm-usage','--disable-gpu','--dump-dom',page.as_uri()],capture_output=True,text=True,timeout=30)
+    result=subprocess.run([chrome,'--headless','--disable-crash-reporter','--disable-breakpad','--disable-background-networking','--disable-extensions','--no-first-run','--timeout=10000','--virtual-time-budget=2000','--user-data-dir='+str(Path(temp)/'profile'),'--no-sandbox','--disable-dev-shm-usage','--disable-gpu','--dump-dom',page.as_uri()],capture_output=True,text=True,timeout=30)
     assert 'data-result="PASS"' in result.stdout and 'Fallback' in result.stdout and 'href="/guide/"' in result.stdout
 print('Regional map browser regressions passed (real Leaflet, offline synthetic tiles; asset failure fallback)')

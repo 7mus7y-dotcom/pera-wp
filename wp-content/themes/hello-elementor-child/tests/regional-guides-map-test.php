@@ -1,12 +1,12 @@
 <?php
 /** Standalone behavior regression. Run: php tests/regional-guides-map-test.php */
 define( 'ABSPATH', __DIR__ );
-$GLOBALS['hooks'] = array(); $GLOBALS['meta'] = array(); $GLOBALS['category'] = true; $GLOBALS['allowed'] = true; $GLOBALS['revision'] = false;
+$GLOBALS['hooks'] = array(); $GLOBALS['meta'] = array(); $GLOBALS['category'] = true; $GLOBALS['allowed'] = true; $GLOBALS['revision'] = false; $GLOBALS['autosave'] = false;
 function add_action($key,$fn){$GLOBALS['hooks'][$key]=$fn;}
 function get_post_meta($id,$key){return $GLOBALS['meta'][$id][$key] ?? '';}
 function update_post_meta($id,$key,$value){$GLOBALS['meta'][$id][$key]=$value;}
 function delete_post_meta($id,$key){unset($GLOBALS['meta'][$id][$key]);}
-function wp_is_post_autosave(){return false;} function wp_is_post_revision(){return $GLOBALS['revision'];}
+function wp_is_post_autosave(){return $GLOBALS['autosave'];} function wp_is_post_revision(){return $GLOBALS['revision'];}
 function current_user_can(){return $GLOBALS['allowed'];} function wp_verify_nonce($nonce){return 'valid' === $nonce;}
 function wp_unslash($s){return $s;} function sanitize_text_field($s){return trim(strip_tags($s));}
 function is_category($slug){return 'regional-guides' === $slug && $GLOBALS['category'];}
@@ -35,9 +35,9 @@ expect('41.1' === get_post_meta(1,'_pera_guide_map_lat'),'latitude saved');
 expect('Place' === get_post_meta(1,'_pera_guide_map_label'),'label sanitized');
 expect('1' === get_post_meta(1,'_pera_guide_map_enabled'),'opt in saved');
 $before=$GLOBALS['meta'];
-foreach(array('nonce','capability','revision','missing') as $guard){
+foreach(array('nonce','capability','revision','autosave','missing') as $guard){
     $_POST['pera_guide_map_nonce']='nonce' === $guard?'invalid':'valid';
-    $GLOBALS['allowed']='capability' !== $guard;$GLOBALS['revision']='revision' === $guard;
+    $GLOBALS['allowed']='capability' !== $guard;$GLOBALS['revision']='revision' === $guard;$GLOBALS['autosave']='autosave' === $guard;
     if('missing' === $guard)unset($_POST['pera_guide_map']);
     pera_regional_map_save(1);expect($before === $GLOBALS['meta'],'save guard '.$guard);
 }
