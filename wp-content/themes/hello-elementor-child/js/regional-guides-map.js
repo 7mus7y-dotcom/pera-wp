@@ -46,10 +46,23 @@
   function archive(root) {
     const data = JSON.parse(root.dataset.mapConfig);
     const canvas = root.querySelector('[data-map-canvas]');
-    const toggle = root.querySelector('button');
     const status = root.querySelector('[data-map-status]');
-    const coarse = window.matchMedia('(pointer: coarse)').matches;
-    const map = baseMap(canvas, { dragging: !coarse, touchZoom: false, doubleClickZoom: !coarse, boxZoom: !coarse, tapHold: false });
+    const map = baseMap(canvas, { touchZoom: true, tapHold: false });
+    // Leaflet's TouchZoom handles both pinch and two-finger midpoint panning.
+    // Keep its touch-action pan-x pan-y, allowing the browser to scroll with one
+    // finger. Disable Drag before Leaflet sees touch input; do not cancel taps.
+    // Detect each input rather than the primary pointer (hybrid laptops/tablets).
+    const disableTouchDrag = () => map.dragging.disable();
+    canvas.addEventListener('touchstart', disableTouchDrag, { capture: true, passive: true });
+    canvas.addEventListener('pointerdown', event => {
+      if (event.pointerType === 'touch') disableTouchDrag();
+      else if (event.pointerType === 'mouse') map.dragging.enable();
+    }, true);
+    // Mouse fallback for browsers without Pointer Events. Touch-generated mouse
+    // events must not re-enable Drag during a touch sequence.
+    canvas.addEventListener('mousedown', event => {
+      if (!event.sourceCapabilities || !event.sourceCapabilities.firesTouchEvents) map.dragging.enable();
+    }, true);
     const layers = L.layerGroup().addTo(map);
     function render() {
       layers.clearLayers();
@@ -70,14 +83,6 @@
     // Tile events originate on the tile layer rather than the map.
     map.eachLayer(layer => { if (layer instanceof L.TileLayer) layer.on('tileerror', () => { status.hidden = false; }); });
     status.hidden = true;
-    if (coarse) {
-      toggle.hidden = false;
-      toggle.addEventListener('click', () => {
-        const enabled = toggle.getAttribute('aria-pressed') !== 'true';
-        toggle.setAttribute('aria-pressed', String(enabled));
-        ['dragging', 'touchZoom', 'doubleClickZoom'].forEach(key => map[key][enabled ? 'enable' : 'disable']());
-      });
-    }
     if (window.ResizeObserver) new ResizeObserver(() => map.invalidateSize()).observe(canvas);
   }
   function picker(root) {

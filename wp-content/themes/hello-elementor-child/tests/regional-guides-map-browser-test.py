@@ -15,7 +15,7 @@ leaflet = (root / 'vendor/leaflet/leaflet.js').read_text()
 css = (root / 'vendor/leaflet/leaflet.css').read_text()
 data = dict(guides=[dict(lat=41.05, lng=29.05, title='<img src=x onerror=alert(1)> Guide', label='', url='https://example.test/ar/guide/'), dict(lat=41.05, lng=29.05, title='Second guide', label='', url='https://example.test/ar/second/')], landmarks=[dict(lat=41.02566,lng=28.97416,title='Galata Tower'),dict(lat=41.01152,lng=28.98338,title='Topkapı Palace'),dict(lat=41.00546,lng=28.97682,title='Sultanahmet Mosque')],read='Read guide')
 fixture = '''<meta charset="utf-8"><style>CSS\n.regional-map__canvas{height:480px;width:100%}</style>
-<section data-regional-map><button hidden aria-pressed="false">Enable map interaction</button><div data-map-canvas class="regional-map__canvas"></div><p data-map-status>Fallback</p><a href="https://example.test/ar/guide/">Guide</a></section>
+<section data-regional-map><div data-map-canvas class="regional-map__canvas"></div><p data-map-status>Fallback</p><a href="https://example.test/ar/guide/">Guide</a></section>
 <script>LEAFLET</script><script>
 const root=document.querySelector('section');root.dataset.mapConfig=JSON.stringify(DATA);
 const maps=[]; const originalMap=L.map; L.map=(...args)=>{const map=originalMap(...args);maps.push(map);return map;};
@@ -24,12 +24,17 @@ window.matchMedia=()=>({matches:true});
 </script><script>SCRIPT</script><script>
 function check(ok,label){if(!ok)throw Error(label);}
 try {
-const map=maps[0];check(!!map,'map created');check(!map.scrollWheelZoom.enabled(),'wheel disabled');check(!map.dragging.enabled(),'touch drag disabled');
+const map=maps[0];check(!!map,'map created');check(!map.scrollWheelZoom.enabled(),'wheel disabled');check(map.touchZoom.enabled(),'two-finger gestures immediately enabled');
 const markers=Array.from(document.querySelectorAll('.regional-map__marker--guide'));check(markers.length===1,'nearby guides grouped');check(document.querySelectorAll('.regional-map__marker--landmark').length===3,'distinct landmarks');
 check(markers[0].getAttribute('tabindex')==='0','keyboard marker');markers[0].click();
 check(document.querySelectorAll('.regional-map__popup a').length===2,'both guide links in popup');check(!document.querySelector('.regional-map__popup img'),'title treated as text');
 check(document.querySelector('.regional-map__popup a').href==='https://example.test/ar/guide/','translated link retained');
-const button=root.querySelector('button');check(!button.hidden,'mobile activation shown');button.click();check(map.dragging.enabled(),'interaction enabled');button.click();check(!map.dragging.enabled(),'interaction disabled');
+check(!root.querySelector('button'),'no activation button');
+const canvas=root.querySelector('[data-map-canvas]');
+canvas.dispatchEvent(new PointerEvent('pointerdown',{pointerType:'touch',bubbles:true}));
+check(!map.dragging.enabled(),'touch drag disabled');
+canvas.dispatchEvent(new PointerEvent('pointerdown',{pointerType:'mouse',bubbles:true}));
+check(map.dragging.enabled(),'hybrid mouse drag restored');
 check(!root.querySelector('[data-map-status]').hidden===false,'fallback hidden on success');
 map.fire('tileerror');check(!root.querySelector('[data-map-status]').hidden,'tile failure fallback');
 map.setZoom(17);check(document.querySelectorAll('.regional-map__marker--guide').length===1,'identical locations remain grouped');
