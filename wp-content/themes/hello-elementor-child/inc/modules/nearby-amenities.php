@@ -243,7 +243,7 @@ function pera_render_nearby_amenities( $map, $shared_heading_id = '' ) {
         <p class="text-soft"><?php echo esc_html( pera_ml_ui( 'Approximate straight-line distances, not walking or driving distances. Local places: within 3.5 km; Marmaray and Metrobüs: within 500 m. Airports: within 150 km.', 'theme.nearby.distance_notice' ) ); ?></p>
         <div class="section-cta justify-start component-tabs" role="tablist" aria-label="<?php echo esc_attr( pera_ml_ui( 'Amenity categories', 'theme.nearby.categories' ) ); ?>">
         <?php foreach ( $categories as $key => $category ) : ?>
-            <button type="button" class="pill pill--lg <?php echo $active === $key ? 'pill--active' : ''; ?>" role="tab" id="<?php echo esc_attr( $id . '-' . $key ); ?>-tab" aria-controls="<?php echo esc_attr( $id . '-' . $key ); ?>-panel" aria-selected="<?php echo $active === $key ? 'true' : 'false'; ?>" tabindex="<?php echo $active === $key ? '0' : '-1'; ?>"><?php echo esc_html( $category[0] ); ?></button>
+            <button type="button" class="btn <?php echo $active === $key ? 'btn--solid' : 'btn--ghost'; ?> btn--green" role="tab" id="<?php echo esc_attr( $id . '-' . $key ); ?>-tab" aria-controls="<?php echo esc_attr( $id . '-' . $key ); ?>-panel" aria-selected="<?php echo $active === $key ? 'true' : 'false'; ?>" tabindex="<?php echo $active === $key ? '0' : '-1'; ?>"><?php echo esc_html( $category[0] ); ?></button>
         <?php endforeach; ?>
         </div>
         <?php foreach ( $categories as $key => $category ) : ?>
