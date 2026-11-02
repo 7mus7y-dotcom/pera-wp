@@ -5555,6 +5555,12 @@ ol.pretty-list li::before {
   overflow-wrap: anywhere;
 }
 
+/* Category symbols beside Nearby Amenities result headings. */
+.inline-row .nearby-amenities__group-icon {
+  width: 20px;
+  height: 20px;
+}
+
 /* Property location: one shared amenities panel. */
 .property-location .property-location__panel {
   margin-top: var(--space-md);
