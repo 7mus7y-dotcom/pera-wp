@@ -7,7 +7,8 @@
         const active = item === tab;
         item.setAttribute('aria-selected', String(active));
         item.tabIndex = active ? 0 : -1;
-        item.classList.toggle('pill--active', active);
+        item.classList.toggle('btn--solid', active);
+        item.classList.toggle('btn--ghost', !active);
         document.getElementById(item.getAttribute('aria-controls')).hidden = !active;
       });
       if (focus) tab.focus();
