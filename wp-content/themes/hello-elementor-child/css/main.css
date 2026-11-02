@@ -735,6 +735,7 @@ section,
   padding: 8px 15px;
   border-radius: 999px;
   border: 1px solid transparent;
+  font-family: inherit;
   font-weight: 600;
   font-size: var(--fs-ui-lg);
   line-height: 1; /* ← FIX */
