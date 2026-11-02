@@ -246,4 +246,9 @@ $storage->row = array( 'translated_text' => 'المرافق القريبة', 'st
 check( pera_ml_ui( 'Nearby amenities', 'theme.nearby.heading' ) === 'المرافق القريبة', 'Real Pera UI reads current translation' );
 $storage->row['is_stale'] = true;
 check( pera_ml_ui( 'Nearby amenities', 'theme.nearby.heading' ) === 'المرافق القريبة', 'Stale UI translation remains visible after source changes' );
+$icon_sprite = file_get_contents( dirname( __DIR__ ) . '/logos-icons/icons.svg' );
+check( pera_nearby_group_icon( 'metro' ) === 'icon-train' && pera_nearby_group_icon( 'airports' ) === 'icon-train', 'Transport headings use the train icon' );
+check( pera_nearby_group_icon( 'parks' ) === 'icon-ball' && pera_nearby_group_icon( 'sport' ) === 'icon-ball', 'Parks and sport headings use the ball icon' );
+check( pera_nearby_group_icon( 'malls' ) === 'icon-shopping-bag' && pera_nearby_group_icon( 'supermarkets' ) === 'icon-shopping-bag', 'Shopping headings use the shopping bag icon' );
+check( strpos( $icon_sprite, 'id="icon-train"' ) !== false && strpos( $icon_sprite, 'id="icon-ball"' ) !== false && strpos( $icon_sprite, 'id="icon-shopping-bag"' ) !== false, 'Nearby category symbols exist in the theme icon sprite' );
 echo "Nearby amenities contract tests passed (provider, airports, renderer, audit, resumable warming, real UI registration/fallback).\n";
