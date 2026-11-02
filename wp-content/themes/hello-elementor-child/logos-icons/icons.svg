@@ -539,4 +539,48 @@
   <path stroke="currentColor" stroke-linecap="round" stroke-width="2" d="M13.2131 9.78732c-.6359-.63557-1.4983-.99259-2.3974-.99259-.89911 0-1.76143.35702-2.39741.99259l-3.4253 3.42528C4.35719 13.8485 4 14.7108 4 15.61c0 .8992.35719 1.7616.99299 2.3974.63598.6356 1.4983.9926 2.39742.9926.89912 0 1.76144-.357 2.39742-.9926l.32157-.3043m-.32157-4.4905c.63587.6358 1.49827.993 2.39747.993.8991 0 1.7615-.3572 2.3974-.993l3.4243-3.42528c.6358-.63585.993-1.49822.993-2.39741 0-.89919-.3572-1.76156-.993-2.39741C17.3712 4.357 16.509 4 15.6101 4c-.899 0-1.7612.357-2.397.9925l-1.0278.96062m7.3873 14.04678-1.7862-1.7862m0 0L16 16.4274m1.7864 1.7863 1.7862-1.7863m-1.7862 1.7863L16 20"/>
 </symbol>
 
+  <!-- Nearby amenities: transport -->
+  <symbol id="icon-train" viewBox="0 0 24 24">
+    <path
+      fill="none"
+      stroke="currentColor"
+      stroke-width="2"
+      stroke-linecap="round"
+      stroke-linejoin="round"
+      d="M8 3.5h8a3 3 0 0 1 3 3V15a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6.5a3 3 0 0 1 3-3ZM5 8h14M9 13h.01M15 13h.01M8 17l-2 3m10-3 2 3M7 20h10"
+    />
+  </symbol>
+
+  <!-- Nearby amenities: parks and sport -->
+  <symbol id="icon-ball" viewBox="0 0 24 24">
+    <circle
+      cx="12"
+      cy="12"
+      r="8.5"
+      fill="none"
+      stroke="currentColor"
+      stroke-width="2"
+    />
+    <path
+      fill="none"
+      stroke="currentColor"
+      stroke-width="2"
+      stroke-linecap="round"
+      stroke-linejoin="round"
+      d="m12 8 3 2.2-1.1 3.5h-3.8L9 10.2 12 8ZM9 10.2 5.8 8.7m4.3 5-1.9 2.8m5.7-2.8 1.9 2.8m-.8-6.3 3.2-1.5"
+    />
+  </symbol>
+
+  <!-- Nearby amenities: shopping -->
+  <symbol id="icon-shopping-bag" viewBox="0 0 24 24">
+    <path
+      fill="none"
+      stroke="currentColor"
+      stroke-width="2"
+      stroke-linecap="round"
+      stroke-linejoin="round"
+      d="M5.5 8h13l1 12h-15l1-12ZM9 9V6a3 3 0 0 1 6 0v3"
+    />
+  </symbol>
+
 </svg>
