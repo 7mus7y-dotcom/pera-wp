@@ -199,8 +199,8 @@ function pera_nearby_group_labels() {
 
 function pera_nearby_group_icon( $group ) {
     if ( in_array( $group, array_merge( pera_nearby_transport_groups(), array( 'airports' ) ), true ) ) return 'icon-train';
-    if ( in_array( $group, array( 'schools', 'universities' ), true ) ) return 'icon-notes';
-    if ( in_array( $group, array( 'hospitals', 'clinics', 'pharmacies' ), true ) ) return 'icon-shield-check';
+    if ( in_array( $group, array( 'schools', 'universities' ), true ) ) return 'icon-education';
+    if ( in_array( $group, array( 'hospitals', 'clinics', 'pharmacies' ), true ) ) return 'icon-healthcare';
     if ( in_array( $group, array( 'parks', 'sport' ), true ) ) return 'icon-ball';
     if ( in_array( $group, array( 'malls', 'supermarkets' ), true ) ) return 'icon-shopping-bag';
     return '';
@@ -262,7 +262,7 @@ function pera_render_nearby_amenities( $map, $shared_heading_id = '' ) {
             <?php else : ?>
             <div class="grid-2">
             <?php foreach ( $category[1] as $group ) : if ( empty( $groups[$group] ) ) continue; ?>
-                <div class="card-shell p-sm"><h3 class="inline-row"><?php $group_icon = pera_nearby_group_icon( $group ); if ( $group_icon ) : ?><svg class="icon" aria-hidden="true" focusable="false"><use href="#<?php echo esc_attr( $group_icon ); ?>"></use></svg><?php endif; ?><?php echo esc_html( $labels[$group] ); ?></h3><ul class="poi-list" role="list">
+                <div class="card-shell p-sm"><h3 class="inline-row"><?php $group_icon = pera_nearby_group_icon( $group ); if ( $group_icon ) : ?><svg class="icon nearby-amenities__group-icon" aria-hidden="true" focusable="false"><use href="#<?php echo esc_attr( $group_icon ); ?>"></use></svg><?php endif; ?><?php echo esc_html( $labels[$group] ); ?></h3><ul class="poi-list" role="list">
                 <?php foreach ( $groups[$group] as $place ) :
                     $name = $place['names']['name:' . $language] ?? $place['names']['name'];
                     $lines = isset( $place['transport'] ) && pera_nearby_transport_error( $place ) === null ? $place['transport']['lines'] : array();
