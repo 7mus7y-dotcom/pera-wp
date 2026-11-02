@@ -137,6 +137,8 @@ foreach ( array( 'en', 'tr', 'ar' ) as $language ) {
     $normalize = function ( $value ) { return preg_replace( '/\s+/', ' ', preg_replace( '/nearby-\d+/', 'nearby-ID', trim( $value ) ) ); };
     check( $normalize( $normal_body ) === $normalize( $shared_body ), 'Shared renderer preserves links, distances, translations and all internal markup' );
     check( substr_count( $html, 'role="tab"' ) === 5 && substr_count( $html, 'role="tabpanel"' ) === 5, 'Five connected tabs' );
+    check( substr_count( $html, 'class="btn ' ) === 5 && substr_count( $html, 'btn--green' ) === 5, 'All amenity tabs use the shared green button system' );
+    check( substr_count( $html, 'btn--solid' ) === 1 && substr_count( $html, 'btn--ghost' ) === 4 && strpos( $html, 'pill--lg' ) === false, 'One solid active tab and four ghost inactive tabs render without custom pill sizing' );
     check( strpos( $html, 'School &lt;unsafe&gt;' ) !== false, 'OSM names escaped' );
     check( strpos( $html, $language === 'en' ? 'Original' : ( $language === 'tr' ? 'Yerel' : 'محطة' ) ) !== false, 'Reliable local name selected' );
     if ( getenv( 'NEARBY_FIXTURE_DIR' ) ) file_put_contents( getenv( 'NEARBY_FIXTURE_DIR' ) . '/' . $language . '.html', $html );
