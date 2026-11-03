@@ -7,6 +7,29 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
+if ( ! function_exists( 'pera_property_is_sold_out' ) ) {
+	/**
+	 * Determine whether the Property ACF checkbox marks a listing as sold.
+	 *
+	 * ACF stores the `sold_out` checkbox as an array whose selected value is
+	 * `Sold out`. The post-meta fallback keeps the status available if ACF is
+	 * temporarily inactive.
+	 *
+	 * @param int $post_id Property post ID.
+	 */
+	function pera_property_is_sold_out( int $post_id ): bool {
+		if ( $post_id <= 0 ) {
+			return false;
+		}
+
+		$value = function_exists( 'get_field' )
+			? get_field( 'sold_out', $post_id )
+			: get_post_meta( $post_id, 'sold_out', true );
+
+		return in_array( 'Sold out', (array) $value, true );
+	}
+}
+
 if ( ! function_exists( 'pera_render_property_card' ) ) {
 	/**
 	 * Render a property card with provided args.

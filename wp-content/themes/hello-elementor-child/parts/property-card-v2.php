@@ -29,6 +29,7 @@ $card_classes  = trim( $extra_classes . ' property-card property-card--' . $vari
 $post_id          = get_the_ID();
 $v2_beds_selected = isset( $card_args['v2_beds'] ) ? (int) $card_args['v2_beds'] : 0;
 $title            = get_the_title( $post_id );
+$is_sold_out      = function_exists( 'pera_property_is_sold_out' ) && pera_property_is_sold_out( $post_id );
 
 /* ============================================================
    URL (Option A)
@@ -160,8 +161,14 @@ $size_txt = function_exists( 'pera_v2_units_format_size_text' )
 
     <div class="property-card__media">
 
-      <?php if ( $show_badges && ( $beds_badge_txt || $specials_label ) ) : ?>
+      <?php if ( $show_badges && ( $is_sold_out || $beds_badge_txt || $specials_label ) ) : ?>
         <div class="property-card__badge">
+
+          <?php if ( $is_sold_out ) : ?>
+            <span class="pill pill--red pill--sm">
+              <?php echo esc_html( pera_ml_ui( 'Sold!', 'theme.property.sold' ) ); ?>
+            </span>
+          <?php endif; ?>
 
           <?php if ( $beds_badge_txt ) : ?>
             <span class="pill pill--green property-card__badge-inner">
