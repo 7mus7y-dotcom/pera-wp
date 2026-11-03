@@ -99,7 +99,7 @@ get_header();
                 <?php echo esc_html( pera_ml_ui( 'Shortlist Istanbul districts that fit', 'theme.template.page_book_a_consultancy.shortlist_istanbul_districts_that_fit' ) ); ?>
               </li>
               <li>
-                <?php echo esc_html( pera_ml_ui( 'Outline next steps for viewings', 'theme.template.page_book_a_consultancy.outline_next_steps_for_viewings' ) ); ?>
+                <?php echo esc_html( pera_ml_ui( 'Plan the next steps for property viewings', 'theme.template.page_book_a_consultancy.plan_the_next_steps_for_property_viewings' ) ); ?>
               </li>
             </ul>
           </div>
