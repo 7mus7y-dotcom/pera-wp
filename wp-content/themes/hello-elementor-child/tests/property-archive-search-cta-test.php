@@ -203,6 +203,8 @@ expect_archive_cta( false !== strpos( $archive, 'id="hide-sold-input"' ) && fals
 expect_archive_cta( false !== strpos( $archive, "params.set('hide_sold', '1')" ) && false !== strpos( $ajax, "\$add_args['hide_sold'] = '1'" ), 'sold filter persists in share and pagination URLs' );
 expect_archive_cta( false !== strpos( $archive, 'initialPathPageMatch' ) && false !== strpos( $archive, 'initialQueryPage' ), 'initial filtered refresh reads pretty and query-string pagination routes' );
 expect_archive_cta( false !== strpos( $archive, 'runAjaxFilter(initialRequestedPage, false)' ), 'initial sold-filter refresh preserves the server-requested page' );
+expect_archive_cta( false !== strpos( $archive, "pera_ml_ui( 'Hide sold', 'theme.template.archive_property.hide_sold' )" ), 'sold-status switch uses the concise Hide sold label' );
+expect_archive_cta( false !== strpos( $property_css, '.property-filters-toolbar .property-sort' ) && false !== strpos( $property_css, 'width: auto;' ), 'toolbar sort control remains compact instead of inheriting the full-width tablet rule' );
 expect_archive_cta( false !== strpos( $property_css, '.property-sold-toggle__input:checked + .property-sold-toggle__track' ), 'sold-status switch has an explicit checked state' );
 expect_archive_cta( false !== strpos( $query, "'pera_mixed_archive_pagination' => true" ), 'shared archive queries explicitly opt into mixed pagination' );
 expect_archive_cta( false !== strpos( $pagination, "\$query->get( 'pera_mixed_archive_pagination' )" ), 'shared pagination requires the explicit query marker' );
