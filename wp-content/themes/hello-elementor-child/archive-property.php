@@ -2093,8 +2093,14 @@ $property_archive_faq_items = ( function_exists( 'pera_property_archive_is_index
     ((priceMinHidden && String(priceMinHidden.value || '').trim() !== '') ||
      (priceMaxHidden && String(priceMaxHidden.value || '').trim() !== ''));
 
+  const initialPathPageMatch = window.location.pathname.match(/\/page\/(\d+)(?:\/|$)/);
+  const initialQueryPage = parseInt(new URLSearchParams(window.location.search).get('paged') || '', 10);
+  const initialRequestedPage = initialPathPageMatch
+    ? parseInt(initialPathPageMatch[1], 10)
+    : (initialQueryPage > 0 ? initialQueryPage : 1);
+
   if (hasActiveFilters) {
-    runAjaxFilter(1, false);
+    runAjaxFilter(initialRequestedPage, false);
   }
 
 })();
