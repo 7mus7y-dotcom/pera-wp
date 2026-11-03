@@ -55,7 +55,7 @@ function testProperty(lang) {
   let paginationClick;
   const context = { URL, document: { addEventListener: (event, callback) => { paginationClick = callback; }, getElementById: () => null }, FormData: Payload, form: {}, peraMlLanguage: lang, peraMlNonce: 'property-nonce',
     renderPriceUi() {}, syncTaxCsvInputs() {}, getSelectedV2Bed: () => '2', getSelectedPropertyType: () => 'apartment',
-    getSortValue: () => 'price_asc', debugParam: '', window: { location: { origin: 'https://example.org', pathname: `/${lang}/property/page/2/` } } };
+    getSortValue: () => 'price_asc', hideSoldInput: { checked: false }, debugParam: '', window: { location: { origin: 'https://example.org', pathname: `/${lang}/property/page/2/` } } };
   vm.createContext(context);
   vm.runInContext(property.slice(start, end), context);
   const handlerStart = property.indexOf("  document.addEventListener('click'", property.indexOf('// SEO pagination links: enhance with AJAX'));
@@ -77,7 +77,11 @@ function testProperty(lang) {
     assert.equal(body.get('sort'), 'price_asc');
     assert.equal(body.get('v2_beds'), '2');
     assert.equal(body.get('property_type'), 'apartment');
+    assert.equal(body.has('hide_sold'), false);
   }
+
+  context.hideSoldInput.checked = true;
+  assert.equal(context.buildPayload(2).get('hide_sold'), '1');
 }
 (async () => {
   for (const lang of ['zh', 'ru', 'de', 'ar']) { await testBlog(lang); testProperty(lang); }

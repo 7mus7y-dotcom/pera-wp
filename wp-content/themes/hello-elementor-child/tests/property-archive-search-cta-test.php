@@ -147,6 +147,13 @@ $filtered_context['paged'] = 1;
 $filtered_args = pera_property_archive_build_args_from_context( $filtered_context );
 expect_archive_cta( 11 === $filtered_args['posts_per_page'] && 0 === $filtered_args['offset'], 'reset search and filter requests use the page-one window' );
 
+$sold_filter_context = array( 'paged' => 1, 'hide_sold' => true );
+$sold_filter_args = pera_property_archive_build_args_from_context( $sold_filter_context );
+$sold_meta_json = json_encode( $sold_filter_args['meta_query'] ?? array() );
+expect_archive_cta( false !== strpos( $sold_meta_json, 'sold_out' ) && false !== strpos( $sold_meta_json, 'NOT EXISTS' ) && false !== strpos( $sold_meta_json, 'NOT LIKE' ), 'enabled sold switch excludes selected sold status while retaining missing status meta' );
+$include_sold_args = pera_property_archive_build_args_from_context( array( 'paged' => 1, 'hide_sold' => false ) );
+expect_archive_cta( empty( $include_sold_args['meta_query'] ), 'default archive query includes sold properties' );
+
 foreach ( array( 11 => 1, 12 => 2, 23 => 2, 24 => 3 ) as $found => $pages ) {
 	expect_archive_cta( $pages === pera_property_archive_total_pages( $found ), "{$found} properties produce {$pages} page(s)" );
 }
@@ -176,6 +183,7 @@ $pagination = file_get_contents( $theme . '/inc/property-pagination.php' );
 $citizenship = file_get_contents( $theme . '/page-citizenship-properties.php' );
 $latest_offers = file_get_contents( $theme . '/inc/latest-offers-card.php' );
 $card_css = file_get_contents( $theme . '/css/property-card.css' );
+$property_css = file_get_contents( $theme . '/css/property.css' );
 
 expect_archive_cta( false !== strpos( $archive, 'pera_render_property_archive_results(' ), 'SSR uses shared archive renderer' );
 expect_archive_cta( false !== strpos( $ajax, 'pera_render_property_archive_results(' ), 'AJAX uses shared archive renderer' );
@@ -191,6 +199,11 @@ expect_archive_cta( false !== strpos( $partial, 'data-whatsapp="1"' ) && false !
 expect_archive_cta( false !== strpos( $partial, 'esc_url( $consultancy_url )' ) && false !== strpos( $partial, 'esc_url( $whatsapp_url )' ), 'CTA URLs are escaped' );
 expect_archive_cta( false !== strpos( $archive, 'pera_property_archive_build_args_from_context( $ctx )' ), 'SSR uses the shared query builder' );
 expect_archive_cta( false !== strpos( $ajax, 'pera_property_archive_build_args_from_context( $ctx, $overrides )' ), 'AJAX uses the shared query builder' );
+expect_archive_cta( false !== strpos( $archive, 'id="hide-sold-input"' ) && false !== strpos( $archive, 'form="property-filter-form"' ), 'accessible sold-status switch is associated with the filter form' );
+expect_archive_cta( false !== strpos( $archive, "params.set('hide_sold', '1')" ) && false !== strpos( $ajax, "\$add_args['hide_sold'] = '1'" ), 'sold filter persists in share and pagination URLs' );
+expect_archive_cta( false !== strpos( $archive, 'initialPathPageMatch' ) && false !== strpos( $archive, 'initialQueryPage' ), 'initial filtered refresh reads pretty and query-string pagination routes' );
+expect_archive_cta( false !== strpos( $archive, 'runAjaxFilter(initialRequestedPage, false)' ), 'initial sold-filter refresh preserves the server-requested page' );
+expect_archive_cta( false !== strpos( $property_css, '.property-sold-toggle__input:checked + .property-sold-toggle__track' ), 'sold-status switch has an explicit checked state' );
 expect_archive_cta( false !== strpos( $query, "'pera_mixed_archive_pagination' => true" ), 'shared archive queries explicitly opt into mixed pagination' );
 expect_archive_cta( false !== strpos( $pagination, "\$query->get( 'pera_mixed_archive_pagination' )" ), 'shared pagination requires the explicit query marker' );
 expect_archive_cta( false === strpos( $citizenship, 'pera_mixed_archive_pagination' ), 'citizenship pagination does not opt in' );

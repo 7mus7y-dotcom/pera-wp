@@ -66,6 +66,7 @@ if ( ! function_exists( 'pera_property_archive_build_args_from_context' ) ) {
 		$has_price_qs                = $ctx['has_price_qs'] ?? null;
 		$qs_min                      = $ctx['qs_min'] ?? null;
 		$qs_max                      = $ctx['qs_max'] ?? null;
+		$hide_sold                   = ! empty( $ctx['hide_sold'] );
 		$sort                        = isset($ctx['sort']) ? (string) $ctx['sort'] : 'date_desc';
 
 		// Ensure these are defined (defensive)
@@ -191,6 +192,23 @@ if ( ! function_exists( 'pera_property_archive_build_args_from_context' ) ) {
 		// META QUERY (V2)
 		// ------------------------------------------------------------
 		$meta_query = array();
+
+		// Sold listings remain included by default. When requested, retain posts
+		// with no status meta and posts whose checkbox does not contain "Sold out".
+		if ( $hide_sold ) {
+			$meta_query[] = array(
+				'relation' => 'OR',
+				array(
+					'key'     => 'sold_out',
+					'compare' => 'NOT EXISTS',
+				),
+				array(
+					'key'     => 'sold_out',
+					'value'   => 'Sold out',
+					'compare' => 'NOT LIKE',
+				),
+			);
+		}
 
 		// V2 Beds filter (radio) -> v2_index_flat LIKE "|2|"
 		if ( $selected_beds !== '' && preg_match( '/^\d+$/', $selected_beds ) ) {

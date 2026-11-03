@@ -9,6 +9,7 @@
  * - property_tags[] (slugs)        -> taxonomy filter (property_tags)
  * - property_type (slug)           -> taxonomy filter (property_type)
  * - min_price / max_price (number) -> meta range filter on v2_price_usd_min
+ * - hide_sold (1)                  -> exclude properties with sold_out selected
  * - sort (string)                  -> newest|oldest|price_asc|price_desc
  * - paged (int)
  *
@@ -218,6 +219,10 @@ if ( ! function_exists( 'pera_ajax_filter_properties_v2' ) ) {
             $sort = $maybe_sort;
           }
         }
+
+		$hide_sold = isset( $_POST['hide_sold'] )
+		  && ! is_array( $_POST['hide_sold'] )
+		  && '1' === (string) wp_unslash( $_POST['hide_sold'] );
         
         // Price range: allow empty/blank hidden inputs to mean "no filter"
         $min_price = 0;
@@ -340,6 +345,7 @@ if ( ! function_exists( 'pera_ajax_filter_properties_v2' ) ) {
         'has_price_qs'             => ( $min_price > 0 || $max_price > 0 ),
         'qs_min'                   => $min_price > 0 ? (int) $min_price : 0,
         'qs_max'                   => $max_price > 0 ? (int) $max_price : 0,
+		'hide_sold'                => $hide_sold,
         'sort'                     => $sort,
       );
 
@@ -468,6 +474,9 @@ if ( ! function_exists( 'pera_ajax_filter_properties_v2' ) ) {
         if ( $keyword !== '' ) {
           $add_args['s'] = $keyword;
         }
+		if ( $hide_sold ) {
+		  $add_args['hide_sold'] = '1';
+		}
         if ( ! empty( $sort ) && $sort !== 'date_desc' ) {
           $add_args['sort'] = $sort;
         }
