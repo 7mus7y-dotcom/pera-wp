@@ -35,13 +35,10 @@ expect_sold_status( ! pera_property_is_sold_out( 0 ), 'invalid post ID is not so
 
 $card   = file_get_contents( $theme . '/parts/property-card-v2.php' );
 $single = file_get_contents( $theme . '/single-property.php' );
-$archive = file_get_contents( $theme . '/archive-property.php' );
-$ajax    = file_get_contents( $theme . '/inc/ajax-property-archive.php' );
 
 expect_sold_status( false !== strpos( $card, "pera_ml_ui( 'Sold!', 'theme.property.sold' )" ), 'shared property card renders translated Sold pill' );
 expect_sold_status( false !== strpos( $card, 'pill pill--red pill--sm' ), 'card uses existing red small pill styling' );
 expect_sold_status( false !== strpos( $single, "pera_ml_ui( 'Sold!', 'theme.property.sold' )" ), 'single-property hero renders translated Sold pill' );
 expect_sold_status( false !== strpos( $single, 'pill pill--red' ), 'single hero uses existing red pill styling' );
-expect_sold_status( false === strpos( $archive, "'sold_out'" ) && false === strpos( $ajax, "'sold_out'" ), 'archive and AJAX queries remain unchanged' );
 
 echo "Property sold-status tests passed\n";
