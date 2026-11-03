@@ -523,6 +523,7 @@ if ( ! function_exists( 'pera_property_archive_is_filtered_request' ) ) {
       'sort',
       'region',
       'special',
+	  'hide_sold',
     );
 
     foreach ( $filter_keys as $key ) {
