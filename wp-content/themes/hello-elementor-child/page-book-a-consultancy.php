@@ -54,7 +54,7 @@ get_header();
         <h1><?php echo esc_html( pera_ml_ui( 'Book a Consultancy', 'theme.template.page_book_a_consultancy.book_a_consultancy' ) ); ?></h1>
 
         <p class="lead">
-          <?php echo esc_html( pera_ml_ui( 'Speak to a senior consultant about buying or investing in Istanbul.', 'theme.template.page_book_a_consultancy.speak_to_a_senior_consultant_about_buying_or_investing_in_istanbul' ) ); ?>
+          <?php echo esc_html( pera_ml_ui( 'Speak to a senior consultant about buying, selling or renting in Istanbul.', 'theme.template.page_book_a_consultancy.speak_to_a_senior_consultant_about_buying_selling_or_renting_in_istanbul' ) ); ?>
         </p>
 
         <div class="hero-actions">
