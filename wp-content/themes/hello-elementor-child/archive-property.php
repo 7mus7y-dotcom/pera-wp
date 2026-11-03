@@ -148,6 +148,10 @@ if ( ! in_array( $sort, $allowed_sorts, true ) ) {
   $sort = 'date_desc';
 }
 
+$hide_sold = isset( $_GET['hide_sold'] )
+  && ! is_array( $_GET['hide_sold'] )
+  && '1' === (string) wp_unslash( $_GET['hide_sold'] );
+
 
 /* ------------------------------------------------------------
    3) GLOBAL PRICE BOUNDS (V2 meta range)
@@ -211,6 +215,7 @@ $ctx = array(
   'has_price_qs'               => $has_price_qs,
   'qs_min'                     => $qs_min,
   'qs_max'                     => $qs_max,
+	'hide_sold'                  => $hide_sold,
   'sort'                       => $sort,
 );
 
@@ -655,6 +660,20 @@ if ( ! $is_filtered_search && ( $qo instanceof WP_Term ) && ! is_wp_error( $qo )
                       </button>
                     </div>
                   </div>
+
+				  <label class="property-sold-toggle" for="hide-sold-input">
+					<span class="property-sold-toggle__label"><?php echo esc_html( pera_ml_ui( 'Hide sold properties', 'theme.template.archive_property.hide_sold_properties' ) ); ?></span>
+					<input
+					  class="property-sold-toggle__input"
+					  type="checkbox"
+					  id="hide-sold-input"
+					  name="hide_sold"
+					  value="1"
+					  form="property-filter-form"
+					  <?php checked( $hide_sold ); ?>
+					>
+					<span class="property-sold-toggle__track" aria-hidden="true"></span>
+				  </label>
                 </div>
                 
                 <div id="results-count" class="property-results-count pb-md">
@@ -1038,6 +1057,9 @@ if ( $has_price_qs ) {
 if ( $current_keyword !== '' ) {
   $add_args['s'] = $current_keyword;
 }
+if ( $hide_sold ) {
+  $add_args['hide_sold'] = '1';
+}
 
 // Sort (keep it in pagination so next/prev keep the same ordering)
 if ( ! empty( $sort ) && $sort !== 'date_desc' ) {
@@ -1319,6 +1341,7 @@ $property_archive_faq_items = ( function_exists( 'pera_property_archive_is_index
   const priceCurrencyCode = document.getElementById('price-currency-code');
   const districtCsvInput = document.getElementById('district-csv');
   const propertyTagsCsvInput = document.getElementById('property-tags-csv');
+	const hideSoldInput = document.getElementById('hide-sold-input');
 
   // Sort bits (Step 6)
   const sortInput  = document.getElementById('sort-input');         // hidden input name="sort"
@@ -1602,6 +1625,9 @@ $property_archive_faq_items = ( function_exists( 'pera_property_archive_is_index
 
     // Sort: always send (keeps paging stable)
     fd.set('sort', getSortValue());
+
+	if (hideSoldInput && hideSoldInput.checked) fd.set('hide_sold', '1');
+	else fd.delete('hide_sold');
     
     if (debugParam === '1') {
       fd.set('pera_debug', '1');
@@ -1650,6 +1676,8 @@ $property_archive_faq_items = ( function_exists( 'pera_property_archive_is_index
           const keywordEl = form.querySelector('input[name="s"]');
           const keywordVal = keywordEl ? String(keywordEl.value || '').trim() : '';
           if (keywordVal !== '') params.set('s', keywordVal);
+
+		  if (hideSoldInput && hideSoldInput.checked) params.set('hide_sold', '1');
         
           // Sort (only if not default)
           const sortVal = getSortValue();
@@ -1935,6 +1963,7 @@ $property_archive_faq_items = ( function_exists( 'pera_property_archive_is_index
 
       // Restore sort default
       if (sortInput) sortInput.value = DEFAULT_SORT;
+	  if (hideSoldInput) hideSoldInput.checked = false;
       sortOptions.forEach(btn => {
         const isActive = String(btn.dataset.sort || '') === DEFAULT_SORT;
         btn.classList.toggle('is-active', isActive);
@@ -2019,6 +2048,12 @@ $property_archive_faq_items = ( function_exists( 'pera_property_archive_is_index
   bindSortMenu();
   bindPillRows();
 
+	if (hideSoldInput) {
+	  hideSoldInput.addEventListener('change', function () {
+		runAjaxFilter(1, false);
+	  });
+	}
+
   // Initial UI sync: if URL had price params, hidden inputs should be populated
   renderPriceUi();
   syncTaxCsvInputs();
@@ -2034,6 +2069,7 @@ $property_archive_faq_items = ( function_exists( 'pera_property_archive_is_index
     const params = new URLSearchParams(window.location.search);
     const minRaw = params.get('min_price');
     const maxRaw = params.get('max_price');
+	if (hideSoldInput) hideSoldInput.checked = params.get('hide_sold') === '1';
     priceTouched = minRaw !== null || maxRaw !== null;
     canonicalMinUsd = minRaw && /^\d+$/.test(minRaw) ? Math.max(GLOBAL_MIN_PRICE, Math.min(GLOBAL_MAX_PRICE, parseInt(minRaw, 10))) : (priceTouched ? GLOBAL_MIN_PRICE : null);
     canonicalMaxUsd = maxRaw && /^\d+$/.test(maxRaw) ? Math.max(GLOBAL_MIN_PRICE, Math.min(GLOBAL_MAX_PRICE, parseInt(maxRaw, 10))) : (priceTouched ? GLOBAL_MAX_PRICE : null);
@@ -2052,6 +2088,7 @@ $property_archive_faq_items = ( function_exists( 'pera_property_archive_is_index
     (keywordVal !== '') ||
     !!form.querySelector('input[type="checkbox"][data-tax-filter="district"]:checked') ||
     !!form.querySelector('input[type="checkbox"][data-tax-filter="property_tags"]:checked') ||
+	(hideSoldInput && hideSoldInput.checked) ||
     (sortInput && String(sortInput.value || '') !== '' && String(sortInput.value) !== DEFAULT_SORT) ||
     ((priceMinHidden && String(priceMinHidden.value || '').trim() !== '') ||
      (priceMaxHidden && String(priceMaxHidden.value || '').trim() !== ''));
