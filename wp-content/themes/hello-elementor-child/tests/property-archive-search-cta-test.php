@@ -201,6 +201,8 @@ expect_archive_cta( false !== strpos( $archive, 'pera_property_archive_build_arg
 expect_archive_cta( false !== strpos( $ajax, 'pera_property_archive_build_args_from_context( $ctx, $overrides )' ), 'AJAX uses the shared query builder' );
 expect_archive_cta( false !== strpos( $archive, 'id="hide-sold-input"' ) && false !== strpos( $archive, 'form="property-filter-form"' ), 'accessible sold-status switch is associated with the filter form' );
 expect_archive_cta( false !== strpos( $archive, "params.set('hide_sold', '1')" ) && false !== strpos( $ajax, "\$add_args['hide_sold'] = '1'" ), 'sold filter persists in share and pagination URLs' );
+expect_archive_cta( false !== strpos( $archive, 'initialPathPageMatch' ) && false !== strpos( $archive, 'initialQueryPage' ), 'initial filtered refresh reads pretty and query-string pagination routes' );
+expect_archive_cta( false !== strpos( $archive, 'runAjaxFilter(initialRequestedPage, false)' ), 'initial sold-filter refresh preserves the server-requested page' );
 expect_archive_cta( false !== strpos( $property_css, '.property-sold-toggle__input:checked + .property-sold-toggle__track' ), 'sold-status switch has an explicit checked state' );
 expect_archive_cta( false !== strpos( $query, "'pera_mixed_archive_pagination' => true" ), 'shared archive queries explicitly opt into mixed pagination' );
 expect_archive_cta( false !== strpos( $pagination, "\$query->get( 'pera_mixed_archive_pagination' )" ), 'shared pagination requires the explicit query marker' );
