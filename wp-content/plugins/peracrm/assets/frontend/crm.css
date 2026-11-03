@@ -8136,6 +8136,20 @@ body.crm-route #site-header.peracrm-shell-header .peracrm-header-search__status 
   min-width: 0;
 }
 
+/* Client detail: keep WhatsApp actions compact and separate adjacent panels. */
+.crm-page--client-view .crm-client-detail-layout + .crm-whatsapp {
+  margin-top: var(--crm-client-stack-gap, 12px);
+}
+
+.crm-page--client-view .crm-whatsapp__composer > .btn {
+  width: fit-content;
+  min-height: 34px;
+  padding: 7px 14px;
+  line-height: 1.2;
+  align-self: center;
+  justify-self: start;
+}
+
 @media (max-width: 700px) {
   .crm-whatsapp__composer {
     grid-template-columns: 1fr;
