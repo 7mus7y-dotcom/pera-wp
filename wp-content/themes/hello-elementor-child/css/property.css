@@ -275,11 +275,18 @@
 
 .property-filters-toolbar{
   display: flex;
-	flex-wrap: wrap;
+  flex-wrap: wrap;
   justify-content: flex-start;
   align-items: center;
-  gap: var(--space-md);
+  gap: var(--space-sm);
   margin-bottom: var(--space-md);
+}
+
+/* Keep the toolbar sort control compact; the generic tablet rule makes other sort blocks full-width. */
+.property-filters-toolbar .property-sort{
+  width: auto;
+  flex-direction: row;
+  align-items: center;
 }
 
 .property-sold-toggle{
