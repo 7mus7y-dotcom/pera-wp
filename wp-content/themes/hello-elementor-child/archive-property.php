@@ -662,7 +662,7 @@ if ( ! $is_filtered_search && ( $qo instanceof WP_Term ) && ! is_wp_error( $qo )
                   </div>
 
 				  <label class="property-sold-toggle" for="hide-sold-input">
-					<span class="property-sold-toggle__label"><?php echo esc_html( pera_ml_ui( 'Hide sold properties', 'theme.template.archive_property.hide_sold_properties' ) ); ?></span>
+					<span class="property-sold-toggle__label"><?php echo esc_html( pera_ml_ui( 'Hide sold', 'theme.template.archive_property.hide_sold' ) ); ?></span>
 					<input
 					  class="property-sold-toggle__input"
 					  type="checkbox"
