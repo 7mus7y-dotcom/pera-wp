@@ -53,6 +53,7 @@ $title        = get_the_title( $property_id );
 $permalink    = get_permalink( $property_id );
 $project_name = function_exists( 'get_field' ) ? (string) get_field( 'project_name', $property_id ) : '';
 $excerpt      = get_the_excerpt( $property_id );
+$is_sold_out  = function_exists( 'pera_property_is_sold_out' ) && pera_property_is_sold_out( $property_id );
 
 /* 2) TAXONOMIES */
 $district      = wp_get_post_terms( $property_id, 'district' );
@@ -598,6 +599,10 @@ $has_further_reading = ! empty( $post_ids );
   <div class="hero-content property-hero__content">
 
     <div class="property-hero__pills">
+      <?php if ( $is_sold_out ) : ?>
+        <span class="pill pill--red"><?php echo esc_html( pera_ml_ui( 'Sold!', 'theme.property.sold' ) ); ?></span>
+      <?php endif; ?>
+
       <?php if ( $district_term ) : ?>
         <?php if ( $district_link ) : ?>
           <a class="pill pill--green" href="<?php echo esc_url( $district_link ); ?>">
