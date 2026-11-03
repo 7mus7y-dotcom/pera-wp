@@ -5019,7 +5019,7 @@ body.crm-route #site-header.peracrm-shell-header.is-scrolled .peracrm-header-act
   gap: 10px;
 }
 
-.crm-page--client-view .crm-client-name-edit__trigger {
+.crm-page--client-view button.btn.crm-client-name-edit__trigger {
   min-height: 0;
   padding: 4px 10px;
   border-radius: 999px;
@@ -8135,6 +8135,12 @@ body.crm-route #site-header.peracrm-shell-header .peracrm-header-search__status 
   grid-row: span 2;
   min-width: 0;
 }
+
+/* Client detail: separate adjacent panels. */
+.crm-page--client-view .crm-client-detail-layout + .crm-whatsapp {
+  margin-top: var(--crm-client-stack-gap, 12px);
+}
+
 
 @media (max-width: 700px) {
   .crm-whatsapp__composer {
