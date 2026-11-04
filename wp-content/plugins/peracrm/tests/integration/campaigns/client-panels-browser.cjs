@@ -65,7 +65,7 @@ module.exports = async function ({browser}) {
  if(!await panel('seller_properties').isVisible()) throw Error('Restore all failed');
  for (const [name,width,height,scheme] of [['desktop',1440,1000,'light'],['tablet',820,1100,'light'],['mobile',390,844,'light'],['mobile-dark',390,844,'dark']]) {
   await page.setViewportSize({width,height}); await page.emulateMedia({colorScheme:scheme});
-  if(await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth+1)) throw Error('Client panels horizontal overflow '+name);
+  if(await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth+1)) { console.log('OVERFLOW_DIAGNOSTIC', JSON.stringify(await page.evaluate(()=>[...document.querySelectorAll('body *')].filter(el=>el.getBoundingClientRect().right>innerWidth+1).map(el=>{const r=el.getBoundingClientRect(),c=getComputedStyle(el);return {tag:el.tagName,id:el.id,cls:el.className,x:r.x,right:r.right,width:r.width,cssWidth:c.width,minWidth:c.minWidth,maxWidth:c.maxWidth,display:c.display,grid:c.gridTemplateColumns,whiteSpace:c.whiteSpace,boxSizing:c.boxSizing,padding:c.padding};})),null,2)); throw Error('Client panels horizontal overflow '+name); }
   for(const key of ['deals','seller_properties','enquiries','theme_portfolio']) {
    const header=panel(key).locator(':scope > .crm-section__header');
    const heading=await header.locator(':scope > :first-child').boundingBox();
