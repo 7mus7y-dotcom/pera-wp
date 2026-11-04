@@ -11,3 +11,4 @@ require_once get_stylesheet_directory() . '/inc/admin/dashboard-rationalization.
 require_once get_stylesheet_directory() . '/inc/admin/regenerate-thumbnails-menu-compat.php';
 require_once get_stylesheet_directory() . '/inc/admin/property-latest-offers.php';
 require_once get_stylesheet_directory() . '/inc/admin/posts-list-mobile-table.php';
+require_once get_stylesheet_directory() . '/inc/admin/taxonomy-term-view-link.php';
