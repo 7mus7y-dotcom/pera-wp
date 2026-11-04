@@ -4945,6 +4945,7 @@ body.crm-route #site-header.peracrm-shell-header.is-scrolled .peracrm-header-act
   }
 
   .crm-page--client-view .crm-client-sticky-name {
+    box-sizing: border-box;
     max-width: 100%;
     margin-bottom: 6px;
     padding: 6px 10px;
