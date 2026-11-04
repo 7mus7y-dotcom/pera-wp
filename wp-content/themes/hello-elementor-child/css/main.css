@@ -814,6 +814,13 @@ section,
   transform: translateY(-1px);
 }
 
+/* White ghost buttons need a dark foreground on their white hover surface. */
+.btn--white.btn--ghost:hover {
+  background-color: var(--inverse);
+  color: var(--brand);
+  border-color: var(--inverse);
+}
+
 
 /* -----------------------
    Focus (accessible)

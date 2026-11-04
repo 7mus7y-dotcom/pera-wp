@@ -33,9 +33,10 @@ function property_video_test_button_label( $button_text, $fallback ) {
 }
 
 $theme_dir = dirname( __DIR__ );
-$template  = file_get_contents( $theme_dir . '/single-property.php' );
-$script    = file_get_contents( $theme_dir . '/js/main.js' );
-$styles    = file_get_contents( $theme_dir . '/css/property.css' );
+$template      = file_get_contents( $theme_dir . '/single-property.php' );
+$script        = file_get_contents( $theme_dir . '/js/main.js' );
+$styles        = file_get_contents( $theme_dir . '/css/property.css' );
+$button_styles = file_get_contents( $theme_dir . '/css/main.css' );
 
 expect_property_video( false === strpos( $template, 'wp_get_attachment_mime_type(' ), 'nonexistent MIME function is absent' );
 expect_property_video( false !== strpos( $template, 'get_post_mime_type( $custom_video_attachment_id )' ), 'WordPress post MIME API validates the attachment' );
@@ -103,6 +104,8 @@ expect_property_video( false === strpos( $cta_leading_controls, 'data-open-prope
 expect_property_video( false === strpos( $styles, '.property-hero__video-action' ), 'video action has no dedicated CSS declaration' );
 expect_property_video( false === strpos( $styles, 'property-hero__video-button' ), 'video button has no padding, margin, height, colour, hover, or focus overrides' );
 expect_property_video( false === strpos( $styles, 'property-hero__video-icon' ), 'video icon has no dedicated CSS declaration' );
+expect_property_video( false !== strpos( $button_styles, '.btn--white.btn--ghost:hover' ), 'shared white ghost button defines an explicit hover state' );
+expect_property_video( false !== strpos( $button_styles, 'color: var(--brand);', strpos( $button_styles, '.btn--white.btn--ghost:hover' ) ), 'white ghost hover keeps its text and icon visible in brand colour' );
 
 expect_property_video( false !== strpos( $script, 'lightboxVideo.pause();' ), 'closing or changing media pauses video' );
 expect_property_video( false !== strpos( $script, 'lightboxVideo.currentTime = 0;' ), 'closing or changing media resets video' );
