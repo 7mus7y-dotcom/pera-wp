@@ -70,11 +70,21 @@ function pera_front_end_edit_tools_render() {
 		return;
 	}
 
-	$post_id       = get_queried_object_id();
-	$edit_page_url = '';
+	$queried_object = get_queried_object();
+	$post_id         = $queried_object instanceof WP_Post ? (int) $queried_object->ID : 0;
+	$edit_page_url   = '';
+	$edit_term_url   = '';
 
 	if ( $post_id && current_user_can( 'edit_post', $post_id ) ) {
 		$edit_page_url = get_edit_post_link( $post_id );
+	}
+
+	if ( $queried_object instanceof WP_Term && current_user_can( 'edit_term', $queried_object->term_id ) ) {
+		$term_edit_link = get_edit_term_link( $queried_object->term_id, $queried_object->taxonomy );
+
+		if ( is_string( $term_edit_link ) && '' !== $term_edit_link ) {
+			$edit_term_url = $term_edit_link;
+		}
 	}
 
 	$github_url     = '';
@@ -95,7 +105,7 @@ function pera_front_end_edit_tools_render() {
 		}
 	}
 
-	if ( ! $edit_page_url && ! $github_url ) {
+	if ( ! $edit_page_url && ! $edit_term_url && ! $github_url ) {
 		return;
 	}
 
@@ -104,6 +114,12 @@ function pera_front_end_edit_tools_render() {
 	if ( $edit_page_url ) {
 		echo '<a class="pera-front-edit-tools__link" href="' . esc_url( $edit_page_url ) . '">';
 		echo esc_html__( 'Edit Page', 'hello-elementor-child' );
+		echo '</a>';
+	}
+
+	if ( $edit_term_url ) {
+		echo '<a class="pera-front-edit-tools__link" href="' . esc_url( $edit_term_url ) . '">';
+		echo esc_html__( 'Edit Taxonomy', 'hello-elementor-child' );
 		echo '</a>';
 	}
 
