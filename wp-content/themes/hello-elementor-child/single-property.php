@@ -655,7 +655,12 @@ $has_further_reading = ! empty( $post_ids );
 
             <?php if ( is_array( $v2_units_by_beds ) && count( $v2_units_by_beds ) > 1 ) : ?>
               <a class="property-hero__price-link text-light text-sm" href="#property-price-range">
-                <?php echo esc_html( pera_ml_ui( 'See all prices', 'theme.template.single_property.see_all_prices' ) ); ?>
+                <?php
+                $hero_price_link_label = $is_resale
+                  ? pera_ml_ui( 'See all options', 'theme.template.single_property.see_all_options' )
+                  : pera_ml_ui( 'See all prices', 'theme.template.single_property.see_all_prices' );
+                echo esc_html( $hero_price_link_label );
+                ?>
               </a>
             <?php endif; ?>
         
