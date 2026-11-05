@@ -674,6 +674,28 @@ if ( ! $is_filtered_search && ( $qo instanceof WP_Term ) && ! is_wp_error( $qo )
 					>
 					<span class="property-sold-toggle__track" aria-hidden="true"></span>
 				  </label>
+
+				  <?php if ( function_exists( 'pera_is_frontend_admin_equivalent' ) && pera_is_frontend_admin_equivalent() ) : ?>
+					<form class="property-admin-search" id="property-admin-search-form" role="search">
+					  <label class="screen-reader-text" for="property-admin-search-input">
+						<?php echo esc_html( pera_ml_ui( 'Search properties by post ID or project name', 'theme.template.archive_property.admin_search_label' ) ); ?>
+					  </label>
+					  <input
+						class="property-admin-search__input"
+						type="search"
+						id="property-admin-search-input"
+						value="<?php echo esc_attr( $current_keyword ); ?>"
+						placeholder="<?php echo esc_attr( pera_ml_ui( 'Post ID or project name', 'theme.template.archive_property.admin_search_placeholder' ) ); ?>"
+						autocomplete="off"
+					  >
+					  <button class="property-admin-search__submit" type="submit">
+						<svg class="icon" aria-hidden="true" width="18" height="18">
+						  <use href="#icon-search" xlink:href="#icon-search"></use>
+						</svg>
+						<span class="screen-reader-text"><?php echo esc_html( pera_ml_ui( 'Search properties', 'theme.template.archive_property.admin_search_submit' ) ); ?></span>
+					  </button>
+					</form>
+				  <?php endif; ?>
                 </div>
                 
                 <div id="results-count" class="property-results-count pb-md">
@@ -1342,6 +1364,9 @@ $property_archive_faq_items = ( function_exists( 'pera_property_archive_is_index
   const districtCsvInput = document.getElementById('district-csv');
   const propertyTagsCsvInput = document.getElementById('property-tags-csv');
 	const hideSoldInput = document.getElementById('hide-sold-input');
+  const keywordInput = form ? form.querySelector('input[name="s"]') : null;
+  const adminSearchForm = document.getElementById('property-admin-search-form');
+  const adminSearchInput = document.getElementById('property-admin-search-input');
 
   // Sort bits (Step 6)
   const sortInput  = document.getElementById('sort-input');         // hidden input name="sort"
@@ -1673,8 +1698,7 @@ $property_archive_faq_items = ( function_exists( 'pera_property_archive_is_index
           if (tagsCsv !== '') params.set('property_tags', tagsCsv);
         
           // Keyword
-          const keywordEl = form.querySelector('input[name="s"]');
-          const keywordVal = keywordEl ? String(keywordEl.value || '').trim() : '';
+          const keywordVal = keywordInput ? String(keywordInput.value || '').trim() : '';
           if (keywordVal !== '') params.set('s', keywordVal);
 
 		  if (hideSoldInput && hideSoldInput.checked) params.set('hide_sold', '1');
@@ -1939,9 +1963,24 @@ $property_archive_faq_items = ( function_exists( 'pera_property_archive_is_index
   // ---------------------------
   form.addEventListener('submit', function (e) {
     e.preventDefault();
+    if (adminSearchInput && keywordInput) adminSearchInput.value = keywordInput.value;
     runAjaxFilter(1, false);
     if (typeof closeDialog === 'function') closeDialog();
   });
+
+  if (adminSearchForm && adminSearchInput && keywordInput) {
+    adminSearchForm.addEventListener('submit', function (e) {
+      e.preventDefault();
+      keywordInput.value = adminSearchInput.value.trim();
+      runAjaxFilter(1, false);
+    });
+
+    adminSearchInput.addEventListener('search', function () {
+      if (adminSearchInput.value !== '') return;
+      keywordInput.value = '';
+      runAjaxFilter(1, false);
+    });
+  }
 
   // Load more
   if (loadMoreBtn) {
@@ -1964,6 +2003,8 @@ $property_archive_faq_items = ( function_exists( 'pera_property_archive_is_index
       // Restore sort default
       if (sortInput) sortInput.value = DEFAULT_SORT;
 	  if (hideSoldInput) hideSoldInput.checked = false;
+      if (keywordInput) keywordInput.value = '';
+      if (adminSearchInput) adminSearchInput.value = '';
       sortOptions.forEach(btn => {
         const isActive = String(btn.dataset.sort || '') === DEFAULT_SORT;
         btn.classList.toggle('is-active', isActive);
@@ -2070,6 +2111,8 @@ $property_archive_faq_items = ( function_exists( 'pera_property_archive_is_index
     const minRaw = params.get('min_price');
     const maxRaw = params.get('max_price');
 	if (hideSoldInput) hideSoldInput.checked = params.get('hide_sold') === '1';
+    if (keywordInput) keywordInput.value = params.get('s') || '';
+    if (adminSearchInput) adminSearchInput.value = params.get('s') || '';
     priceTouched = minRaw !== null || maxRaw !== null;
     canonicalMinUsd = minRaw && /^\d+$/.test(minRaw) ? Math.max(GLOBAL_MIN_PRICE, Math.min(GLOBAL_MAX_PRICE, parseInt(minRaw, 10))) : (priceTouched ? GLOBAL_MIN_PRICE : null);
     canonicalMaxUsd = maxRaw && /^\d+$/.test(maxRaw) ? Math.max(GLOBAL_MIN_PRICE, Math.min(GLOBAL_MAX_PRICE, parseInt(maxRaw, 10))) : (priceTouched ? GLOBAL_MAX_PRICE : null);
@@ -2079,8 +2122,7 @@ $property_archive_faq_items = ( function_exists( 'pera_property_archive_is_index
   });
 
   // Decide whether to run initial AJAX refresh (keep SSR for empty state)
-  const keywordEl  = form.querySelector('input[name="s"]');
-  const keywordVal = keywordEl ? String(keywordEl.value || '').trim() : '';
+  const keywordVal = keywordInput ? String(keywordInput.value || '').trim() : '';
 
   const hasActiveFilters =
     (getSelectedV2Bed() !== '') ||

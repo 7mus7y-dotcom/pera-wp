@@ -206,6 +206,10 @@ expect_archive_cta( false !== strpos( $archive, 'runAjaxFilter(initialRequestedP
 expect_archive_cta( false !== strpos( $archive, "pera_ml_ui( 'Hide sold', 'theme.template.archive_property.hide_sold' )" ), 'sold-status switch uses the concise Hide sold label' );
 expect_archive_cta( false !== strpos( $property_css, '.property-filters-toolbar .property-sort' ) && false !== strpos( $property_css, 'width: auto;' ), 'toolbar sort control remains compact instead of inheriting the full-width tablet rule' );
 expect_archive_cta( false !== strpos( $property_css, '.property-sold-toggle__input:checked + .property-sold-toggle__track' ), 'sold-status switch has an explicit checked state' );
+expect_archive_cta( false !== strpos( $archive, "pera_is_frontend_admin_equivalent() ) :" ) && false !== strpos( $archive, 'id="property-admin-search-form"' ), 'quick property search is rendered only for front-end administrators' );
+expect_archive_cta( false !== strpos( $archive, 'Post ID or project name' ) && false !== strpos( $archive, 'keywordInput.value = adminSearchInput.value.trim();' ), 'admin search copies post ID or project name into the shared keyword filter' );
+expect_archive_cta( false !== strpos( $archive, "if (keywordInput) keywordInput.value = params.get('s') || '';" ), 'browser history restores the shared admin search value' );
+expect_archive_cta( false !== strpos( $property_css, '.property-admin-search' ) && false !== strpos( $property_css, '.property-admin-search:focus-within' ), 'admin search has responsive theme-aware toolbar styling' );
 expect_archive_cta( false !== strpos( $query, "'pera_mixed_archive_pagination' => true" ), 'shared archive queries explicitly opt into mixed pagination' );
 expect_archive_cta( false !== strpos( $pagination, "\$query->get( 'pera_mixed_archive_pagination' )" ), 'shared pagination requires the explicit query marker' );
 expect_archive_cta( false === strpos( $citizenship, 'pera_mixed_archive_pagination' ), 'citizenship pagination does not opt in' );
