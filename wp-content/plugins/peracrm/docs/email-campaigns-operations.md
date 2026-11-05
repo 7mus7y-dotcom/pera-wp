@@ -253,19 +253,13 @@ configuration, retention/deletion, backup/restore and reconciliation decisions
 remain explicit operational dependencies. No automatic schedule is installed;
 operator invocation and future monitoring/activation require their own decisions.
 
-## Explicit SES suppression synchronization (disabled in production)
+## Explicit SES suppression synchronization
 
-`wp peracrm campaigns suppression-health --format=json` reports the disabled
-production factory. `suppression-sync` requires a real non-impersonated actor with
-report, campaign-management and subscriber-management capabilities, explicit
-`--pages=1` (1–10) and `--confirm=account-deny-only`. It returns exit 2 while the
-production factory is disabled; no option, credential or filter activates it.
-There is no schedule. Do not provision credentials or invoke AWS for this PR.
-Disposable injected fixtures exercise the internal service in both topologies.
-
-A future separately approved production adapter must attest the configured AWS
-account, pin region/deployment/target blog, and authorize importing account-wide
-denials. SES cannot filter those entries by WordPress blog/configuration set.
+Use the administrator-only SES operator procedure below to enable manual reads.
+`suppression-sync` requires `--pages=1` (1–10) and
+`--confirm=account-deny-only`. Without operator configuration the command is
+disabled. SES cannot filter account-wide denies by WordPress blog or configuration
+set. The operator pins the AWS account, region, deployment, and target blog.
 It must obey the documented complete-response/TLS/size/timeout executor contract.
 No production adapter or credential acquisition is supplied here.
 
@@ -295,9 +289,9 @@ establish IAM access, real AWS behavior, snapshot consistency or inbox delivery.
 `wp peracrm campaigns budget-health --format=json` exposes only fixed readiness
 and breaker fields. `budget-recover --version=1 --confirm=breaker-only` requires
 a real, non-impersonated actor with report, campaign and subscriber management
-capabilities. Both return disabled (exit 2) with the unconditional null production
-factory. No CLI quota setter, budget reset, recipient release, sending switch or
-scheduler is installed. Internal configuration/recovery are actor-audited; recovery
+capabilities but remains disabled in production. Use the operator procedure below
+to observe AWS quota. No arbitrary CLI quota setter, budget reset, recipient
+release, sending switch or scheduler is installed. Internal configuration/recovery are actor-audited; recovery
 also requires fresh quota and passing readiness and rejects stale breaker versions.
 
 The designated CRM target blog owns one account/region ledger for every campaign
@@ -701,8 +695,8 @@ provider response, host protection or inbox delivery. Those external evidence
 checks remain separate and unverified until genuine evidence exists. The adapter
 reuses current complete/fresh suppression and budget/quota/breaker/latch validators
 for read-only diagnostics; it does not run a scan, set quotas, recover a breaker,
-clear a pending latch or acquire send permission. Production sync/budget mutation
-factories and scheduler/worker/provider dispatch remain disabled.
+clear a pending latch or acquire send permission. The separate CLI operator procedure below can sync and refresh quota. The worker
+service factories and scheduler/worker/provider dispatch remain disabled.
 
 Advance configuration_version after relevant host, secret/key, DNS/IAM,
 monitoring, policy or restore changes; advance identity_version for principal
@@ -921,3 +915,39 @@ exact SNS topic is the approved event topic. No automatic cross-configuration
 activation or shared credential discovery is provided. Preserve all disabled
 production gates during deployment and follow the existing host-log protections
 and explicit arm/subscribe/confirm/teardown procedure.
+
+## Administrator-only SES reads
+
+This procedure imports account-wide bounce and complaint denies and records
+a short-lived quota observation. It does not enable dispatch, HTTP event intake,
+cron, or budget recovery. Use only after approving the account-wide deny import.
+
+1. Configure the deployment and independent instance ID as documented above.
+   Use a dedicated regional role with only `ses:ListSuppressedDestinations`
+   and `ses:GetAccount` on `*`, restricted by `aws:RequestedRegion`.
+   Do not grant send, suppression write, SNS, or wildcard action permissions.
+   Supply an assumed-role session (at most one hour) through the protected
+   deployment identity input. Never put credentials on the command line or in
+   a transcript. Remove the temporary identity from the host when done.
+2. Set `PERACRM_SES_OPERATOR` in private WordPress configuration, for example
+   `['enabled'=>true,'role_name'=>'PeraCRMSESReadOnly','per_second_cap'=>1,'daily_cap'=>20]`.
+   Choose caps appropriate for this site. The host must reach the pinned
+   regional STS and SES HTTPS endpoints directly and have cURL with async DNS,
+   trusted TLS roots, and SimpleXML. The operator checks the actual account and
+   assumed role through STS before reading SES.
+3. Use the intended site's WP-CLI `--url` and the authorized administrator's
+   `--user` for all commands. Run
+   `wp peracrm campaigns suppression-sync --pages=1 --confirm=account-deny-only`.
+   Inspect `wp peracrm campaigns suppression-health` and repeat until completed.
+   Use the documented cursor restart only when required. Do not export addresses
+   or cursor values.
+4. Run `wp peracrm campaigns quota-refresh --confirm=refresh-account-quota`
+   and inspect `wp peracrm campaigns budget-health`. The observed limits are
+   capped by local policy and rounded down; the daily limit uses AWS's remaining
+   quota. Local reservations may reduce headroom again. The observation expires
+   after five minutes. A failed refresh does not replace the prior observation
+   or reset its expiration. A successful refresh does not prove sandbox exit,
+   delivery, or authorization to send.
+5. Remove the temporary identity and remove `PERACRM_SES_OPERATOR` to disable
+   the operator, or retain operator settings without credentials to read local
+   health. Imported denies and the audited quota observation remain in storage.
