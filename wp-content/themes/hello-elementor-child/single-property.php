@@ -1780,9 +1780,20 @@ if ( ! empty( $yt_video ) ) {
         <div class="hero-overlay"></div>
 
         <div class="hero-content section--center">
-          <h3 class="text-light"><?php echo esc_html( pera_ml_ui( 'Own a similar property in Istanbul?', 'theme.template.single_property.own_a_similar_property_in_istanbul' ) ); ?></h3>
+          <?php
+            $owner_cta_project_name = trim( wp_strip_all_tags( $project_name ) );
+            if ( '' !== $owner_cta_project_name ) {
+              $owner_cta_heading = sprintf(
+                pera_ml_ui( 'Own a property in %s?', 'theme.template.single_property.owner_cta_project_heading' ),
+                $owner_cta_project_name
+              );
+            } else {
+              $owner_cta_heading = pera_ml_ui( 'Own a property in Istanbul?', 'theme.template.single_property.owner_cta_fallback_heading' );
+            }
+          ?>
+          <h3 class="text-light"><?php echo esc_html( $owner_cta_heading ); ?></h3>
           <p class="text-light">
-            <?php echo esc_html( pera_ml_ui( 'Get a free valuation and see how Pera can market your property to local and international buyers, or let us manage your Istanbul rental with hands-on owner support.', 'theme.template.single_property.get_a_free_valuation_and_see_how_pera_can_market_your_property_to_local_' ) ); ?>
+            <?php echo esc_html( pera_ml_ui( 'Sell or rent it with Pera Property.', 'theme.template.single_property.owner_cta_copy' ) ); ?>
           </p>
 
           <div class="hero-actions flex-center">
