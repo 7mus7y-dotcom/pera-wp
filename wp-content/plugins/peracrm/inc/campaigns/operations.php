@@ -184,6 +184,14 @@ class PeraCRM_Campaign_Operations
             return $operator?$operator->refreshQuota():['state'=>'disabled','production_enabled'=>false];
         });
     }
+    public function internal_probe(): array
+    {
+        $this->authorize_read();
+        return $this->context(static function () {
+            require_once __DIR__.'/ses-internal-probe.php';
+            return PeraCRM_SES_Internal_Probe::run();
+        });
+    }
     /** Production has no concrete worker/provider. Gate precedes every delivery read/write. */
     public function invoke(bool $recover_only = false, array $bounds = []): array
     {

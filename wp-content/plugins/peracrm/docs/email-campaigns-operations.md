@@ -951,3 +951,41 @@ cron, or budget recovery. Use only after approving the account-wide deny import.
 5. Remove the temporary identity and remove `PERACRM_SES_OPERATOR` to disable
    the operator, or retain operator settings without credentials to read local
    health. Imported denies and the audited quota observation remain in storage.
+
+## One internal SES delivery probe
+
+This is a fixed operational email sent from and to `info@peraproperty.com`.
+It checks the production host's path to SES and one inbox, including HTML,
+plain text and a link to the public home page. It does not use a subscriber,
+produce a campaign unsubscribe token, or exercise campaign event ingestion.
+SES acceptance is not delivery: match the returned SES message ID to the
+received message, and to a separately observed SES delivery event if available.
+Create the dedicated `peracrm-internal-probe` SES configuration set before
+the attempt. For delivery-event verification, attach a temporary event
+destination to that set. Do not connect it to the campaign topic, HTTPS
+endpoint or campaign dead-letter queue.
+
+Use a dedicated temporary `PeraCRMSESInternalProbe` role trusted only by the
+approved operator principal. Allow only `ses:SendEmail` for the
+`peraproperty.com` identity and `peracrm-internal-probe` set in `eu-north-1`, with
+`ses:FromAddress` and `ses:Recipients` restricted to `info@peraproperty.com`.
+Require the recipient key to be present when using a set condition. Keep this
+role separate from the SES read role and from any future campaign sender.
+Use the protected CLI deployment input for the temporary role credentials and
+add `PERACRM_SES_INTERNAL_PROBE = true` only in that CLI invocation. No console
+or global WordPress setting is needed.
+
+After reviewing the exact sender and recipient, the administrator runs
+`wp --url=https://www.peraproperty.com --user=<admin> --require=<private-loader> peracrm campaigns internal-probe --confirm=send-one-to-info`.
+The fixed production scope and actual assumed role are checked before a unique
+database row consumes the permit. It is consumed before calling SES and is
+never reusable, including on timeout or rejection. Do not delete the row or
+replay the send after restoring an older database. An unconfirmed result
+requires checking SES and the inbox. Remove the temporary credentials and CLI
+flag after the attempt.
+
+The existing 20/day and 1/sec settings were diagnostic caps. For the future
+rollout, plan for at least 5,000 eligible deliveries per day, with headroom
+for the subscriber list to grow. Establish a separate campaign cap and staged
+rollout after readiness and dispatch are implemented. This probe does not
+change SES quotas, campaign caps, dispatch, intake or scheduling.

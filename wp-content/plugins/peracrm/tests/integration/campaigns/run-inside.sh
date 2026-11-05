@@ -479,6 +479,7 @@ done
 wp eval-file /tests/internal-test-race.php restore
 wp eval-file /tests/deployment.php
 wp eval-file /tests/ses-operator.php
+wp eval-file /tests/ses-internal-probe.php
 wp eval-file /tests/readiness-ui-fixture.php
 readiness_exit=0
 wp --user=fixture-admin peracrm campaigns readiness --format=json > /var/www/html/readiness-cli.json || readiness_exit=$?
