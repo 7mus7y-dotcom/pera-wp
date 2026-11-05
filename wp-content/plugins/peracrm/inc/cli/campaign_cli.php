@@ -44,9 +44,12 @@ function peracrm_campaign_cli($operation, $args, $assoc)
             if ($data['state']==='disabled') { $exit=2; }
             elseif ($data['state']==='failed' || !empty($data['stale'])) { $exit=4; }
         } elseif ($operation==='internal-probe') {
-            if (($assoc['confirm']??null)!=='send-one-to-info') { throw new InvalidArgumentException(); }
-            $data=$service->internal_probe();
+            $confirmation=$assoc['confirm']??null;
+            if (!in_array($confirmation,['send-one-to-info','authorize-second-send-to-info'],true)) { throw new InvalidArgumentException(); }
+            $data=$service->internal_probe($confirmation==='authorize-second-send-to-info');
             $exit=match ($data['state']) { 'accepted'=>0,'disabled'=>2,default=>4 };
+        } elseif ($operation==='internal-probe-status') {
+            $data=$service->internal_probe(false,true);
         } elseif ($operation==='quota-refresh') {
             if (($assoc['confirm']??null)!=='refresh-account-quota') { throw new InvalidArgumentException(); }
             $data=$service->quota_refresh();
@@ -80,6 +83,6 @@ function peracrm_campaign_cli($operation, $args, $assoc)
     WP_CLI::line(($format ?? 'json')==='text' ? 'PeraCRM campaigns: '.wp_json_encode($data) : wp_json_encode($data,JSON_PRETTY_PRINT));
     if ($exit) { WP_CLI::halt($exit); }
 }
-foreach (['readiness','status','health','due','event-health','event-redrive','suppression-health','suppression-sync','budget-health','budget-recover','quota-refresh','internal-probe','fixture-run','fixture-recover'] as $operation) {
+foreach (['readiness','status','health','due','event-health','event-redrive','suppression-health','suppression-sync','budget-health','budget-recover','quota-refresh','internal-probe','internal-probe-status','fixture-run','fixture-recover'] as $operation) {
     WP_CLI::add_command('peracrm campaigns '.$operation, static function ($args,$assoc) use ($operation) { peracrm_campaign_cli($operation,$args,$assoc); });
 }

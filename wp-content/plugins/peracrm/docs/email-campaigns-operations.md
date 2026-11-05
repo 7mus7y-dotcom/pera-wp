@@ -989,3 +989,23 @@ rollout, plan for at least 5,000 eligible deliveries per day, with headroom
 for the subscriber list to grow. Establish a separate campaign cap and staged
 rollout after readiness and dispatch are implemented. This probe does not
 change SES quotas, campaign caps, dispatch, intake or scheduling.
+
+### Separately authorized second probe and status
+
+`wp peracrm campaigns internal-probe-status --format=json` is administrator-only,
+makes no AWS calls, and needs no credentials or probe flag. A previously
+consumed permit without an outcome is unconfirmed. A started record without an
+outcome may indicate interruption and must not be replayed. The result is saved
+before it is printed; SES acceptance does not prove delivery.
+
+After checking the first attempt's inbox and event evidence, an administrator
+can explicitly authorize one more attempt to the same fixed mailbox with
+`internal-probe --confirm=authorize-second-send-to-info`. The second permit
+requires the original record, blocks if the first was accepted or is still
+marked started, and never clears or reuses the original. There is no third
+permit and no automatic retry. A failed result write leaves the consumed
+permit in place. Do not restore, delete or edit a permit to resend.
+
+Before a second attempt, update the existing probe event destination to
+capture SEND, REJECT, BOUNCE and DELIVERY. This supplements the locally saved
+SES response and does not alter campaign event capture.
