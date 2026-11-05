@@ -129,6 +129,19 @@ if ( ! defined( 'ABSPATH' ) ) {
   </div>
 </footer>
 
+<?php
+$site_last_modified_gmt = get_lastpostmodified( 'GMT' );
+$site_last_updated      = '';
+
+if ( $site_last_modified_gmt ) {
+  $site_last_modified_timestamp = strtotime( $site_last_modified_gmt . ' UTC' );
+
+  if ( false !== $site_last_modified_timestamp ) {
+    $site_last_updated = wp_date( get_option( 'date_format' ), $site_last_modified_timestamp );
+  }
+}
+?>
+
 <div class="footer-disclaimer">
   <div class="footer-inner disclaimer-inner">
     <p>
@@ -137,10 +150,14 @@ if ( ! defined( 'ABSPATH' ) ) {
       <?php echo esc_html( pera_ml_ui( 'and', 'theme.template.footer.and' ) ); ?>
       <a href="<?php echo esc_url( pera_ml_url( home_url( '/rent-your-istanbul-real-estate/' ) ) ); ?>"><?php echo esc_html( pera_ml_ui( 'Rental', 'theme.template.footer.rental' ) ); ?></a>
       <?php echo esc_html( pera_ml_ui( 'pages for the most current advice and information. While we strive to provide accurate and up-to-date content, all information on our website is subject to change. For specific queries, we recommend contacting our team directly.', 'theme.template.footer.pages_for_the_most_current_advice_and_information_while_we_strive_to_pro' ) ); ?>
+      <?php if ( '' !== $site_last_updated ) : ?>
+        <br>
+        <?php echo esc_html( pera_ml_ui( 'This website was last updated on', 'theme.template.footer.this_website_was_last_updated_on' ) . ' ' . $site_last_updated . '.' ); ?>
+      <?php endif; ?>
     </p>
 
     <p class="footer-rights">
-      <?php echo esc_html( pera_ml_ui( 'All rights reserved.', 'theme.template.footer.all_rights_reserved' ) ); ?> <strong>©</strong> 2025 <strong>Pera Property Ltd Şti</strong>
+      <?php echo esc_html( pera_ml_ui( 'All rights reserved.', 'theme.template.footer.all_rights_reserved' ) ); ?> <strong>©</strong> <?php echo esc_html( wp_date( 'Y' ) ); ?> <strong>Pera Property Ltd Şti</strong>
       <span class="footer-separator">¦</span>
 
       <a class="cookie-settings-link"
