@@ -967,7 +967,7 @@ endpoint or campaign dead-letter queue.
 
 Use a dedicated temporary `PeraCRMSESInternalProbe` role trusted only by the
 approved operator principal. Allow only `ses:SendEmail` for the
-`peraproperty.com` identity and `peracrm-internal-probe` set in `eu-north-1`, with
+`info@peraproperty.com` identity and `peracrm-internal-probe` set in `eu-north-1`, with
 `ses:FromAddress` and `ses:Recipients` restricted to `info@peraproperty.com`.
 Require the recipient key to be present when using a set condition. Keep this
 role separate from the SES read role and from any future campaign sender.
@@ -1002,10 +1002,20 @@ After checking the first attempt's inbox and event evidence, an administrator
 can explicitly authorize one more attempt to the same fixed mailbox with
 `internal-probe --confirm=authorize-second-send-to-info`. The second permit
 requires the original record, blocks if the first was accepted or is still
-marked started, and never clears or reuses the original. There is no third
-permit and no automatic retry. A failed result write leaves the consumed
+marked started, and never clears or reuses the original. There is no automatic retry. A failed result write leaves the consumed
 permit in place. Do not restore, delete or edit a permit to resend.
 
 Before a second attempt, update the existing probe event destination to
 capture SEND, REJECT, BOUNCE and DELIVERY. This supplements the locally saved
 SES response and does not alter campaign event capture.
+
+### Final probe after a confirmed AWS access denial
+
+After correcting IAM and confirming both the exact mailbox identity and probe
+configuration set are allowed, an administrator may explicitly authorize one
+final probe using `internal-probe --confirm=authorize-probe-after-access-denied`.
+Check `internal-probe-status` first: the second permit must show a saved
+`rejected` outcome with HTTP 403 and `AccessDeniedException`, and the third
+must be unused. Accepted, ambiguous, unfinished and other rejection outcomes
+cannot unlock the third permit. The fixed inbox, role, capture, and durable
+claim and outcome rules are unchanged. There is no fourth permit.
