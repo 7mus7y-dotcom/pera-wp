@@ -8,7 +8,7 @@ function peracrm_campaign_cli($operation, $args, $assoc)
     $exit=0;
     try {
         $allowed=in_array($operation,['due','event-redrive'],true) ? ($operation==='event-redrive'?['format','limit','confirm']:['format','limit']) : (str_starts_with($operation,'fixture-') ? ['format','confirm-disposable'] : ['format']);
-        if ($operation==='quota-refresh') { $allowed=['format','confirm']; }
+        if (in_array($operation,['quota-refresh','internal-probe'],true)) { $allowed=['format','confirm']; }
         if ($operation==='budget-recover') { $allowed=['format','version','confirm']; }
         if ($operation==='suppression-sync') { $allowed=['format','pages','confirm','restart']; }
         if ($args || array_diff(array_keys($assoc), $allowed)) { throw new InvalidArgumentException(); }
@@ -43,6 +43,10 @@ function peracrm_campaign_cli($operation, $args, $assoc)
             $data=$service->suppression_sync($pages,$restart);
             if ($data['state']==='disabled') { $exit=2; }
             elseif ($data['state']==='failed' || !empty($data['stale'])) { $exit=4; }
+        } elseif ($operation==='internal-probe') {
+            if (($assoc['confirm']??null)!=='send-one-to-info') { throw new InvalidArgumentException(); }
+            $data=$service->internal_probe();
+            $exit=match ($data['state']) { 'accepted'=>0,'disabled'=>2,default=>4 };
         } elseif ($operation==='quota-refresh') {
             if (($assoc['confirm']??null)!=='refresh-account-quota') { throw new InvalidArgumentException(); }
             $data=$service->quota_refresh();
@@ -76,6 +80,6 @@ function peracrm_campaign_cli($operation, $args, $assoc)
     WP_CLI::line(($format ?? 'json')==='text' ? 'PeraCRM campaigns: '.wp_json_encode($data) : wp_json_encode($data,JSON_PRETTY_PRINT));
     if ($exit) { WP_CLI::halt($exit); }
 }
-foreach (['readiness','status','health','due','event-health','event-redrive','suppression-health','suppression-sync','budget-health','budget-recover','quota-refresh','fixture-run','fixture-recover'] as $operation) {
+foreach (['readiness','status','health','due','event-health','event-redrive','suppression-health','suppression-sync','budget-health','budget-recover','quota-refresh','internal-probe','fixture-run','fixture-recover'] as $operation) {
     WP_CLI::add_command('peracrm campaigns '.$operation, static function ($args,$assoc) use ($operation) { peracrm_campaign_cli($operation,$args,$assoc); });
 }

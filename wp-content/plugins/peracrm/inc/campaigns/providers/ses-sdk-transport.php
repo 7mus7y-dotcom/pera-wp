@@ -8,7 +8,7 @@ use PeraCRM\SESDeps\GuzzleHttp\Psr7\Request;
 
 /**
  * SES v2 REST/JSON with the packaged AWS SDK SigV4 signer and one cURL execution.
- * Intentionally absent from plugin bootstrap/provider construction/dispatch.
+ * Loaded only by fixtures and the explicit internal mailbox probe.
  * The injected executor is a trusted test seam: (URL, cURL options) => raw result
  * {errno,status,headers,body}. It must obey the supplied cURL security policy.
  */
@@ -41,13 +41,42 @@ final class PeraCRM_Campaign_SES_SDK_Transport implements PeraCRM_Campaign_SES_T
 
     public function send(#[SensitiveParameter] array $request, array $options): array
     {
+        return $this->submit($request, $options, false);
+    }
+
+    /** Fixed operational message, outside the subscriber campaign contract. */
+    public function sendInternalProbe(): array
+    {
+        if ($this->scope['account_id'] !== '398074591385' || $this->scope['region'] !== 'eu-north-1'
+            || $this->scope['configuration_set'] !== 'peracrm-campaigns') { return self::UNKNOWN; }
+        $part = static fn(string $data): array => ['Data'=>$data,'Charset'=>'UTF-8'];
+        $url = 'https://www.peraproperty.com/';
+        return $this->submit([
+            'FromEmailAddress'=>'info@peraproperty.com',
+            'Destination'=>['ToAddresses'=>['info@peraproperty.com']],
+            'Content'=>['Simple'=>['Subject'=>$part('PeraCRM SES internal delivery probe'),
+                'Body'=>['Html'=>$part('<p>Internal delivery probe. <a href="'.$url.'">Pera Property</a></p>'),
+                    'Text'=>$part('Internal delivery probe: '.$url)]]],
+            'ConfigurationSetName'=>'peracrm-internal-probe',
+            'EmailTags'=>[['Name'=>'peracrm_probe','Value'=>'internal']],
+        ], $this->options(), true);
+    }
+
+    private function options(): array
+    {
+        return ['provider'=>'ses_v2','account_id'=>$this->scope['account_id'],'region'=>$this->scope['region'],
+            'endpoint'=>'https://email.'.$this->scope['region'].'.amazonaws.com',
+            'configuration_version'=>$this->scope['configuration_version'],
+            'http'=>['connect_timeout'=>3,'timeout'=>20,'verify'=>true,'allow_redirects'=>false],'retries'=>0];
+    }
+
+    private function submit(#[SensitiveParameter] array $request, array $options, bool $probe): array
+    {
         $start = ($this->clock)();
         try {
             $endpoint = 'https://email.'.$this->scope['region'].'.amazonaws.com';
-            $expected = ['provider'=>'ses_v2', 'account_id'=>$this->scope['account_id'], 'region'=>$this->scope['region'],
-                'endpoint'=>$endpoint, 'configuration_version'=>$this->scope['configuration_version'],
-                'http'=>['connect_timeout'=>3, 'timeout'=>20, 'verify'=>true, 'allow_redirects'=>false], 'retries'=>0];
-            if ($options !== $expected || $this->credentials->isExpired() || !$this->validRequest($request)) { return self::UNKNOWN; }
+            if ($options !== $this->options() || $this->credentials->isExpired()
+                || (!$probe && !$this->validRequest($request))) { return self::UNKNOWN; }
             $body = json_encode($request, JSON_THROW_ON_ERROR | JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
             // No client middleware, retry handler, credential provider, endpoint discovery or V4a.
             $signed = (new SignatureV4('ses', $this->scope['region']))->signRequest(

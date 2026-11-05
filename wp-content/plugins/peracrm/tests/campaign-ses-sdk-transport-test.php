@@ -176,3 +176,24 @@ $withoutToken=new PeraCRM_Campaign_SES_SDK_Transport($scope,$permanentIdentity,$
 (new PeraCRM_Campaign_SES_Mapper($scope,$withoutToken))->submit($submission);
 campaign_expect(!str_contains(implode("\n",$calls[array_key_last($calls)][1][CURLOPT_HTTPHEADER]),'X-Amz-Security-Token'),'explicit static credentials do not acquire a session token');
 echo "PASS SES SDK signing, fixed HTTP policy, decoding, ambiguity and redaction\n";
+
+$calls = [];
+$response = $raw();
+$probeScope = array_replace($scope, ['account_id'=>'398074591385','region'=>'eu-north-1','configuration_set'=>'peracrm-campaigns']);
+$probeIdentity = new PeraCRM_Campaign_SES_Credentials($probeScope['account_id'], $key, $secret, $token);
+$probeTransport = new PeraCRM_Campaign_SES_SDK_Transport($probeScope, $probeIdentity, $execute);
+campaign_expect(($probeTransport->sendInternalProbe()['message_id']??null)==='fixture-sdk-id' && count($calls)===1,
+    'fixed probe uses exactly one signed request');
+[$probeUrl,$probeCurl]=$calls[0];
+$probeRequest=json_decode($probeCurl[CURLOPT_POSTFIELDS],true,16,JSON_THROW_ON_ERROR);
+campaign_expect($probeUrl==='https://email.eu-north-1.amazonaws.com/v2/email/outbound-emails'
+    && $probeRequest['FromEmailAddress']==='info@peraproperty.com'
+    && $probeRequest['Destination']===['ToAddresses'=>['info@peraproperty.com']]
+    && $probeRequest['ConfigurationSetName']==='peracrm-internal-probe'
+    && $probeRequest['EmailTags']===[['Name'=>'peracrm_probe','Value'=>'internal']]
+    && str_contains($probeRequest['Content']['Simple']['Body']['Html']['Data'],'https://www.peraproperty.com/'),
+    'probe has the exact internal mailbox and public link without campaign correlation tags');
+campaign_expect(!$probeTransport->send($probeRequest,[])['complete'] && count($calls)===1,
+    'campaign transport does not accept probe payloads');
+campaign_expect(!$transport->sendInternalProbe()['complete'] && count($calls)===1,
+    'another AWS scope cannot send the fixed probe');
