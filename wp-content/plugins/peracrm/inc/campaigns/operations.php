@@ -3,6 +3,7 @@ if (!defined('ABSPATH')) { exit; }
 require_once __DIR__.'/event-processing.php';
 require_once __DIR__.'/suppression-sync.php';
 require_once __DIR__.'/sending-budget.php';
+require_once __DIR__.'/ses-operator.php';
 
 class PeraCRM_Campaign_Operations_Blocked extends RuntimeException {}
 
@@ -156,14 +157,9 @@ class PeraCRM_Campaign_Operations
     {
         $this->authorize_read();
         return $this->context(function () use ($pages,$restart) {
-            if ($pages!==null) {
-                $actor=peracrm_get_actor_user_id();
-                if ($actor<1 || !user_can($actor,'peracrm_manage_campaigns') || !user_can($actor,'peracrm_manage_subscribers')
-                    || peracrm_is_impersonating_crm_user()) { throw new InvalidArgumentException(); }
-            }
-            $sync=peracrm_ses_suppression_sync_service();
-            if (!$sync) { return ['state'=>'disabled','error_code'=>null,'production_enabled'=>false]; }
-            return $pages===null?$sync->health():$sync->run($pages,$restart);
+            if ($pages!==null) { PeraCRM_SES_Operator::authorize(); }
+            $operator=peracrm_ses_operator_service();
+            return $operator?$operator->suppression($pages,$restart):['state'=>'disabled','error_code'=>null,'production_enabled'=>false];
         });
     }
     public function sending_budget(?int $version=null): array
@@ -175,10 +171,17 @@ class PeraCRM_Campaign_Operations
                 if ($actor<1 || !user_can($actor,'peracrm_manage_campaigns') || !user_can($actor,'peracrm_manage_subscribers')
                     || peracrm_is_impersonating_crm_user()) { throw new InvalidArgumentException(); }
             }
-            $budget=peracrm_sending_budget_service();
-            if (!$budget) { return ['configured'=>false,'production_enabled'=>false,'state'=>'disabled']; }
-            if ($version!==null) { $budget->recover($version); }
-            return $budget->health();
+            $operator=$version===null?peracrm_ses_operator_service():null;
+            return $operator?$operator->budgetHealth():['configured'=>false,'production_enabled'=>false,'state'=>'disabled'];
+        });
+    }
+    public function quota_refresh(): array
+    {
+        $this->authorize_read();
+        return $this->context(function () {
+            PeraCRM_SES_Operator::authorize();
+            $operator=peracrm_ses_operator_service();
+            return $operator?$operator->refreshQuota():['state'=>'disabled','production_enabled'=>false];
         });
     }
     /** Production has no concrete worker/provider. Gate precedes every delivery read/write. */

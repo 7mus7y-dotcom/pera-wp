@@ -70,15 +70,16 @@ final class PeraCRM_SES_Suppression_HTTP implements PeraCRM_SES_Suppression_Read
                 if ($raw['status']===400 && ($raw['code']??null)==='InvalidNextTokenException') { throw new PeraCRM_SES_Sync_Error('sync_invalid_cursor'); }
                 if ($raw['status']!==200 || !is_string($raw['body']??null) || strlen($raw['body'])>32768) { throw new PeraCRM_SES_Sync_Error('sync_read_failed'); }
                 // Require a strict JSON object without duplicate keys at any depth.
-                $data=self::json($raw['body']);
+                $data=self::decodeJsonObject($raw['body']);
                 return self::validatePage($data);
             }
         } catch (PeraCRM_SES_Sync_Error $error) { throw $error; }
         catch (Throwable $error) { throw new PeraCRM_SES_Sync_Error('sync_read_failed'); }
         throw new PeraCRM_SES_Sync_Error('sync_read_failed');
     }
-    private static function json(#[SensitiveParameter] string $body): array
+    public static function decodeJsonObject(#[SensitiveParameter] string $body): array
     {
+        if (strlen($body)>32768 || !str_starts_with(ltrim($body),'{')) { throw new PeraCRM_SES_Sync_Error('sync_invalid_page'); }
         $data=json_decode($body,true,8,JSON_THROW_ON_ERROR);
         // Each object has globally unique field names except repeated summary fields.
         // Decode each key token and track object-local sets, including escaped keys.
