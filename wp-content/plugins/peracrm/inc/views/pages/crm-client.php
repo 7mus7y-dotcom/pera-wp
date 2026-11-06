@@ -825,7 +825,7 @@ peracrm_frontend_render_shell_header();
                                 <span class="crm-chip crm-chip--neutral"><?php echo esc_html( (string) $note_created_at ); ?></span>
                               </div>
                               <?php
-                              $note_type_labels = array( 'phone_call' => __( 'Phone call made', 'peracrm' ), 'email_sent' => __( 'Email sent', 'peracrm' ), 'wa_sent' => __( 'WA sent', 'peracrm' ), 'options_sent' => __( 'Options sent', 'peracrm' ) );
+                              $note_type_labels = array( 'phone_call' => __( 'Phone call made', 'peracrm' ), 'email_sent' => __( 'Email sent', 'peracrm' ), 'wa_sent' => __( 'WA sent', 'peracrm' ), 'options_sent' => __( 'Options sent', 'peracrm' ), 'general' => __( 'General', 'peracrm' ) );
                               $note_type = (string) ( $note['activity_type'] ?? '' );
                               if ( isset( $note_type_labels[ $note_type ] ) ) : ?>
                                 <span class="crm-chip crm-chip--selected crm-note-activity-chip"><?php echo esc_html( $note_type_labels[ $note_type ] ); ?></span>
@@ -879,6 +879,7 @@ peracrm_frontend_render_shell_header();
                         <option value="email_sent"><?php esc_html_e( 'Email sent', 'peracrm' ); ?></option>
                         <option value="wa_sent"><?php esc_html_e( 'WA sent', 'peracrm' ); ?></option>
                         <option value="options_sent"><?php esc_html_e( 'Options sent', 'peracrm' ); ?></option>
+                        <option value="general"><?php esc_html_e( 'General', 'peracrm' ); ?></option>
                       </select>
                     </label>
                     <div class="crm-note-property-picker" data-crm-note-picker hidden>
