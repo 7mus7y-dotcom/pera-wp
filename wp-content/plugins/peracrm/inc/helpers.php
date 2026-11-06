@@ -575,6 +575,7 @@ function peracrm_render_assigned_advisor_box($client_id, array $args = [])
         && (current_user_can('manage_options') || current_user_can('peracrm_manage_assignments'));
 
     $redirect_url = isset($args['redirect']) ? (string) $args['redirect'] : '';
+    $inline_reassign = isset($args['context']) && 'frontend' === $args['context'];
 
     echo '<div class="peracrm-metabox">';
     if ($advisor_id > 0 && !$advisor_is_eligible) {
@@ -603,7 +604,8 @@ function peracrm_render_assigned_advisor_box($client_id, array $args = [])
         echo '<input type="hidden" name="peracrm_redirect" value="' . esc_url($redirect_url) . '" />';
     }
     echo '<p><label for="peracrm-assigned-advisor-' . esc_attr((string) $client_id) . '">Advisor</label></p>';
-    echo '<p><select name="peracrm_assigned_advisor" id="peracrm-assigned-advisor-' . esc_attr((string) $client_id) . '" class="widefat">';
+    echo $inline_reassign ? '<div class="peracrm-advisor-reassign-row">' : '<p>';
+    echo '<select name="peracrm_assigned_advisor" id="peracrm-assigned-advisor-' . esc_attr((string) $client_id) . '" class="widefat">';
     printf(
         '<option value="0"%s>%s</option>',
         selected($advisor_id, 0, false),
@@ -624,8 +626,10 @@ function peracrm_render_assigned_advisor_box($client_id, array $args = [])
             esc_html($advisor->display_name)
         );
     }
-    echo '</select></p>';
-    echo '<p><button type="submit" class="button">' . esc_html('Reassign') . '</button></p>';
+    echo '</select>';
+    echo $inline_reassign ? '' : '</p><p>';
+    echo '<button type="submit" class="button">' . esc_html('Reassign') . '</button>';
+    echo $inline_reassign ? '</div>' : '</p>';
     echo '</form>';
     echo '</div>';
 }
