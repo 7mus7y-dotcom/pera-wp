@@ -793,6 +793,40 @@ function peracrm_handle_add_note()
     peracrm_admin_redirect_with_notice($redirect, 'note_added');
 }
 
+function peracrm_handle_edit_note()
+{
+    if (!is_user_logged_in()) {
+        wp_die('Unauthorized', '', ['response' => 403]);
+    }
+    check_admin_referer('peracrm_edit_note', 'peracrm_edit_note_nonce');
+
+    $client_id = isset($_POST['peracrm_client_id']) ? absint(wp_unslash((string) $_POST['peracrm_client_id'])) : 0;
+    $note_id = isset($_POST['peracrm_note_id']) ? absint(wp_unslash((string) $_POST['peracrm_note_id'])) : 0;
+    if (!$client_id || !$note_id || !peracrm_admin_get_client($client_id)) {
+        wp_die('Invalid note or client', '', ['response' => 400]);
+    }
+    $assigned_advisor = peracrm_admin_get_assigned_advisor_id_for_client($client_id);
+    $can_override = current_user_can('manage_options') || current_user_can('peracrm_manage_all_reminders');
+    if (!$can_override && (int) $assigned_advisor !== get_current_user_id()) {
+        wp_die('Unauthorized', '', ['response' => 403]);
+    }
+
+    $body = isset($_POST['peracrm_note_body'])
+        ? trim(sanitize_textarea_field(wp_unslash((string) $_POST['peracrm_note_body'])))
+        : '';
+    $ok = $body !== '' && strlen($body) <= 5000 && function_exists('peracrm_notes_update_body')
+        && peracrm_notes_update_body($client_id, $note_id, $body);
+    if ($ok && function_exists('peracrm_log_event')) {
+        peracrm_log_event($client_id, 'note_edited', [
+            'note_id' => $note_id,
+            'actor_user_id' => function_exists('peracrm_get_actor_user_id') ? peracrm_get_actor_user_id() : get_current_user_id(),
+        ]);
+    }
+
+    $redirect = peracrm_admin_preferred_redirect_url(get_edit_post_link($client_id, 'raw'), true);
+    peracrm_admin_redirect_with_notice($redirect, $ok ? 'note_updated' : 'note_failed');
+}
+
 function peracrm_handle_pipeline_save_view()
 {
     if (!is_user_logged_in()) {

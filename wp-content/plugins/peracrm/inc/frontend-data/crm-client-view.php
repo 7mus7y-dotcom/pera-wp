@@ -1862,6 +1862,26 @@ if ( ! function_exists( 'pera_crm_client_action_ajax' ) ) {
 			}
 			$ok = $note_id > 0;
 			pera_crm_client_action_ajax_json( $ok, $ok ? __( 'Note added.', 'peracrm' ) : __( 'Unable to add note.', 'peracrm' ), $client_id, 'notes', $ok ? 200 : 400 );
+		} elseif ( 'note-edit' === $type ) {
+			check_admin_referer( 'peracrm_edit_note', 'peracrm_edit_note_nonce' );
+			$assigned_advisor_id = function_exists( 'peracrm_admin_get_assigned_advisor_id_for_client' ) ? (int) peracrm_admin_get_assigned_advisor_id_for_client( $client_id ) : 0;
+			$can_override = current_user_can( 'manage_options' ) || current_user_can( 'peracrm_manage_all_reminders' );
+			$is_assigned = $assigned_advisor_id > 0 && $assigned_advisor_id === get_current_user_id();
+			if ( ! $can_override && ! $is_assigned ) {
+				wp_send_json_error( array( 'ok' => false, 'message' => __( 'Unauthorized.', 'peracrm' ) ), 403 );
+			}
+			$note_id = isset( $_POST['peracrm_note_id'] ) ? absint( wp_unslash( (string) $_POST['peracrm_note_id'] ) ) : 0;
+			$body = isset( $_POST['peracrm_note_body'] ) ? trim( sanitize_textarea_field( wp_unslash( (string) $_POST['peracrm_note_body'] ) ) ) : '';
+			$ok = $note_id > 0 && '' !== $body && strlen( $body ) <= 5000
+				&& function_exists( 'peracrm_notes_update_body' )
+				&& peracrm_notes_update_body( $client_id, $note_id, $body );
+			if ( $ok && function_exists( 'peracrm_log_event' ) ) {
+				peracrm_log_event( $client_id, 'note_edited', array(
+					'note_id' => $note_id,
+					'actor_user_id' => function_exists( 'peracrm_get_actor_user_id' ) ? peracrm_get_actor_user_id() : get_current_user_id(),
+				) );
+			}
+			pera_crm_client_action_ajax_json( (bool) $ok, $ok ? __( 'Note updated.', 'peracrm' ) : __( 'Unable to update note.', 'peracrm' ), $client_id, 'notes', $ok ? 200 : 400 );
 		} elseif ( 'note-delete' === $type ) {
 			check_admin_referer( 'peracrm_delete_note', 'peracrm_delete_note_nonce' );
 			$assigned_advisor_id = function_exists( 'peracrm_admin_get_assigned_advisor_id_for_client' ) ? (int) peracrm_admin_get_assigned_advisor_id_for_client( $client_id ) : 0;

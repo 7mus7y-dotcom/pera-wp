@@ -3143,3 +3143,41 @@ document.addEventListener('DOMContentLoaded', function () {
   init(document);
   document.addEventListener('peracrm:panel-replaced', function (event) { init(event && event.detail ? event.detail.element : document); });
 })();
+
+/* Inline editing of advisor note text. Works after AJAX panel replacement. */
+(function () {
+  document.addEventListener('click', function (event) {
+    var open = event.target.closest('[data-crm-note-edit]');
+    var cancel = event.target.closest('[data-crm-note-cancel]');
+    if (!open && !cancel) return;
+    var row = event.target.closest('.crm-client-notes-list .crm-row-list__item');
+    if (!row) return;
+    var editor = row.querySelector('.crm-note-inline-editor');
+    var trigger = row.querySelector('[data-crm-note-edit]');
+    var summary = row.querySelector('[data-crm-note-text]');
+    if (!editor || !trigger || !summary) return;
+    if (cancel) {
+      editor.hidden = true;
+      summary.hidden = false;
+      trigger.setAttribute('aria-expanded', 'false');
+      editor.querySelector('textarea').value = summary.textContent.trim();
+      return;
+    }
+    var opening = editor.hidden;
+    document.querySelectorAll('.crm-note-inline-editor:not([hidden])').forEach(function (other) {
+      if (other === editor) return;
+      other.hidden = true;
+      var parent = other.closest('.crm-row-list__item');
+      if (parent) {
+        var text = parent.querySelector('[data-crm-note-text]');
+        var button = parent.querySelector('[data-crm-note-edit]');
+        if (text) text.hidden = false;
+        if (button) button.setAttribute('aria-expanded', 'false');
+      }
+    });
+    editor.hidden = !opening;
+    summary.hidden = opening;
+    trigger.setAttribute('aria-expanded', String(opening));
+    if (opening) editor.querySelector('textarea').focus();
+  });
+})();

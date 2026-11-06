@@ -845,10 +845,26 @@ peracrm_frontend_render_shell_header();
                                 <?php endforeach; ?>
                                 </div>
                               <?php endif; ?>
-                              <p class="crm-row-list__summary"><?php echo esc_html( (string) ( $note['note_body'] ?? '' ) ); ?></p>
+                              <p class="crm-row-list__summary" data-crm-note-text><?php echo esc_html( (string) ( $note['note_body'] ?? '' ) ); ?></p>
+                              <?php if ( ! empty( $note['id'] ) ) : ?>
+                                <form method="post" action="<?php echo esc_url( home_url( '/wp-admin/admin-post.php' ) ); ?>" class="crm-note-inline-editor" data-crm-ajax-form="note-edit" hidden>
+                                  <?php wp_nonce_field( 'peracrm_edit_note', 'peracrm_edit_note_nonce' ); ?>
+                                  <input type="hidden" name="action" value="peracrm_edit_note" />
+                                  <input type="hidden" name="peracrm_client_id" value="<?php echo esc_attr( (string) $client_id ); ?>" />
+                                  <input type="hidden" name="peracrm_note_id" value="<?php echo esc_attr( (string) absint( $note['id'] ) ); ?>" />
+                                  <input type="hidden" name="peracrm_redirect" value="<?php echo esc_url( $frontend_url ); ?>" />
+                                  <label class="crm-note-inline-editor__label" for="crm-note-edit-<?php echo esc_attr( (string) absint( $note['id'] ) ); ?>"><?php esc_html_e( 'Edit note', 'peracrm' ); ?></label>
+                                  <textarea id="crm-note-edit-<?php echo esc_attr( (string) absint( $note['id'] ) ); ?>" name="peracrm_note_body" rows="4" maxlength="5000" required><?php echo esc_textarea( (string) ( $note['note_body'] ?? '' ) ); ?></textarea>
+                                  <div class="crm-note-inline-editor__actions">
+                                    <button type="submit" class="btn btn--solid btn--blue mini-btn"><?php esc_html_e( 'Save', 'peracrm' ); ?></button>
+                                    <button type="button" class="btn btn--ghost btn--blue mini-btn" data-crm-note-cancel><?php esc_html_e( 'Cancel', 'peracrm' ); ?></button>
+                                  </div>
+                                </form>
+                              <?php endif; ?>
                             </div>
                             <?php if ( ! empty( $note['id'] ) ) : ?>
-                            <div class="crm-row-list__aside">
+                            <div class="crm-row-list__aside crm-note-row-actions">
+                              <button type="button" class="btn btn--ghost btn--blue mini-btn" data-crm-note-edit aria-expanded="false" aria-controls="crm-note-edit-<?php echo esc_attr( (string) absint( $note['id'] ) ); ?>"><?php esc_html_e( 'Edit', 'peracrm' ); ?></button>
                               <form method="post" action="<?php echo esc_url( home_url( '/wp-admin/admin-post.php' ) ); ?>" class="crm-note-delete-form" data-crm-ajax-form="note-delete">
                                 <?php wp_nonce_field( 'peracrm_delete_note', 'peracrm_delete_note_nonce' ); ?>
                                 <input type="hidden" name="peracrm_client_id" value="<?php echo esc_attr( (string) $client_id ); ?>" />

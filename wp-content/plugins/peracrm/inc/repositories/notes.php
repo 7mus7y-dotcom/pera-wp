@@ -114,6 +114,55 @@ function peracrm_notes_delete($client_id, $note_id)
     return peracrm_notes_delete_fallback($client_id, $note_id);
 }
 
+/**
+ * Update only the body of an existing internal advisor note. Keep its author,
+ * activity type, linked properties and original created_at unchanged.
+ */
+function peracrm_notes_update_body($client_id, $note_id, $note_body)
+{
+    $client_id = absint($client_id);
+    $note_id = absint($note_id);
+    $note_body = trim(sanitize_textarea_field($note_body));
+    if (!$client_id || !$note_id || $note_body === '' || strlen($note_body) > 5000) {
+        return false;
+    }
+
+    if (peracrm_notes_table_exists()) {
+        global $wpdb;
+        $table = peracrm_table('crm_notes');
+        $where = ['id' => $note_id, 'client_id' => $client_id];
+        $formats = ['%d', '%d'];
+        if (peracrm_notes_table_has_visibility_column()) {
+            $where['visibility'] = 'internal';
+            $formats[] = '%s';
+        }
+        $existing = $wpdb->get_var($wpdb->prepare(
+            "SELECT note_body FROM {$table} WHERE id = %d AND client_id = %d" .
+            (peracrm_notes_table_has_visibility_column() ? " AND visibility = %s" : ''),
+            ...array_merge([$note_id, $client_id], peracrm_notes_table_has_visibility_column() ? ['internal'] : [])
+        ));
+        if (null === $existing) {
+            return false;
+        }
+        if ($existing === $note_body) {
+            return true;
+        }
+        return false !== $wpdb->update($table, ['note_body' => $note_body], $where, ['%s'], $formats);
+    }
+
+    // Fallback IDs are position-based in the legacy storage scheme.
+    $notes = peracrm_notes_fallback_get($client_id);
+    $index = $note_id - 1;
+    if (!isset($notes[$index])) {
+        return false;
+    }
+    if ((string) ($notes[$index]['note_body'] ?? '') === $note_body) {
+        return true;
+    }
+    $notes[$index]['note_body'] = peracrm_notes_truncate_fallback($note_body);
+    return (bool) update_post_meta($client_id, '_peracrm_notes_fallback', $notes);
+}
+
 function peracrm_notes_insert($client_id, $advisor_user_id, $note_body, $visibility)
 {
     $client_id = (int) $client_id;
