@@ -323,20 +323,20 @@ peracrm_frontend_render_shell_header();
 	  <div class="crm-layout__main">
 	  <?php if ( empty( $access['allowed'] ) ) : ?>
         <article class="crm-panel-surface crm-section crm-section--flush crm-client-state-panel crm-client-state-panel--locked">
-          <header class="crm-panel-surface crm-section__header">
-            <div class="crm-panel-surface crm-section__heading-group">
+          <header class="crm-section__header">
+            <div class="crm-section__heading-group">
               <span class="crm-chip crm-chip--neutral"><?php echo esc_html__( 'Access denied', 'peracrm' ); ?></span>
-              <h2 class="crm-panel-surface crm-section__title"><?php echo esc_html__( 'Client access is restricted', 'peracrm' ); ?></h2>
+              <h2 class="crm-section__title"><?php echo esc_html__( 'Client access is restricted', 'peracrm' ); ?></h2>
             </div>
           </header>
-          <div class="crm-panel-surface crm-section__body">
+          <div class="crm-section__body">
             <p><?php echo esc_html( (string) ( $access['message'] ?? __( 'You do not have access to this client.', 'peracrm' ) ) ); ?></p>
           </div>
         </article>
 	  <?php else : ?>
 		<?php if ( ! empty( $notice_data[0] ) && ! empty( $notice_data[1] ) ) : ?>
           <article class="crm-panel-surface crm-section crm-section--flush crm-client-notice crm-client-notice--<?php echo esc_attr( (string) $notice_data[0] ); ?>">
-            <div class="crm-panel-surface crm-section__body">
+            <div class="crm-section__body">
               <p><?php echo esc_html( (string) $notice_data[1] ); ?></p>
             </div>
           </article>
@@ -504,13 +504,13 @@ peracrm_frontend_render_shell_header();
           <div class="crm-client-detail-layout__column crm-client-detail-layout__column--primary">
 
             <article class="crm-panel-surface crm-section crm-section--flush crm-client-profile-panel" data-crm-panel="profile">
-              <header class="crm-panel-surface crm-section__header">
-                <div class="crm-panel-surface crm-section__heading-group">
-                  <h3 class="crm-panel-surface crm-section__title"><?php esc_html_e( 'Profile and key facts', 'peracrm' ); ?></h3>
-                  <p class="crm-panel-surface crm-section__description"><?php esc_html_e( 'Keep contact details, budget, profile fields, and CRM status in one stable section.', 'peracrm' ); ?></p>
+              <header class="crm-section__header">
+                <div class="crm-section__heading-group">
+                  <h3 class="crm-section__title"><?php esc_html_e( 'Profile and key facts', 'peracrm' ); ?></h3>
+                  <p class="crm-section__description"><?php esc_html_e( 'Keep contact details, budget, profile fields, and CRM status in one stable section.', 'peracrm' ); ?></p>
                 </div>
               </header>
-              <div class="crm-panel-surface crm-section__body crm-client-profile-stack">
+              <div class="crm-section__body crm-client-profile-stack">
                 <div class="crm-client-profile-grid">
                   <form method="post" action="<?php echo esc_url( home_url( '/wp-admin/admin-post.php' ) ); ?>" class="crm-form-stack" data-crm-ajax-form="profile">
                     <?php wp_nonce_field( 'peracrm_save_client_profile', 'peracrm_save_client_profile_nonce' ); ?>
@@ -607,12 +607,12 @@ peracrm_frontend_render_shell_header();
 
             <div class="crm-client-profile-sidecards">
               <section class="crm-panel-surface crm-section crm-section--flush crm-client-status-panel" data-crm-panel="status">
-                <header class="crm-panel-surface crm-section__header">
-                  <div class="crm-panel-surface crm-section__heading-group">
-                    <h3 class="crm-panel-surface crm-section__title"><?php esc_html_e( 'CRM status', 'peracrm' ); ?></h3>
+                <header class="crm-section__header">
+                  <div class="crm-section__heading-group">
+                    <h3 class="crm-section__title"><?php esc_html_e( 'CRM status', 'peracrm' ); ?></h3>
                   </div>
                 </header>
-                <div class="crm-panel-surface crm-section__body">
+                <div class="crm-section__body">
                 <form method="post" action="<?php echo esc_url( home_url( '/wp-admin/admin-post.php' ) ); ?>" class="crm-form-stack crm-status-form" id="crm-status-form" data-crm-ajax-form="status">
                   <?php wp_nonce_field( 'peracrm_save_party_status' ); ?>
                   <input type="hidden" name="action" value="peracrm_save_party_status" />
@@ -648,13 +648,13 @@ peracrm_frontend_render_shell_header();
 
           <div class="crm-client-detail-layout__column crm-client-detail-layout__column--secondary">
             <article id="crm-client-next-actions" class="crm-panel-surface crm-section crm-section--flush crm-client-reminders" data-crm-panel="reminders">
-              <header class="crm-panel-surface crm-section__header">
-                <div class="crm-panel-surface crm-section__heading-group">
-                  <h3 class="crm-panel-surface crm-section__title"><?php esc_html_e( 'Next actions and reminders', 'peracrm' ); ?></h3>
-                  <p class="crm-panel-surface crm-section__description"><?php esc_html_e( 'Use this area first for due-now work, quick completions, and adding the next reminder.', 'peracrm' ); ?></p>
+              <header class="crm-section__header">
+                <div class="crm-section__heading-group">
+                  <h3 class="crm-section__title"><?php esc_html_e( 'Next actions and reminders', 'peracrm' ); ?></h3>
+                  <p class="crm-section__description"><?php esc_html_e( 'Use this area first for due-now work, quick completions, and adding the next reminder.', 'peracrm' ); ?></p>
                 </div>
               </header>
-              <div class="crm-panel-surface crm-section__body">
+              <div class="crm-section__body">
                 <div class="crm-client-next-step">
                   <div class="crm-client-next-step__item"><span class="crm-client-next-step__label"><?php esc_html_e( 'Overdue', 'peracrm' ); ?></span><strong><?php echo esc_html( (string) $overdue_reminders ); ?></strong></div>
                   <div class="crm-client-next-step__item"><span class="crm-client-next-step__label"><?php esc_html_e( 'Upcoming', 'peracrm' ); ?></span><strong><?php echo esc_html( (string) count( $upcoming_rows ) ); ?></strong></div>
@@ -751,7 +751,7 @@ peracrm_frontend_render_shell_header();
                 </div>
                 <?php endif; ?>
               </div>
-              <div class="crm-panel-surface crm-section__footer">
+              <div class="crm-section__footer">
                 <form id="crm-add-reminder" method="post" action="<?php echo esc_url( home_url( '/wp-admin/admin-post.php' ) ); ?>" class="crm-form-stack" data-crm-ajax-form="reminder">
                   <?php wp_nonce_field( 'peracrm_add_reminder', 'peracrm_add_reminder_nonce' ); ?>
                   <input type="hidden" name="action" value="peracrm_add_reminder" />
@@ -767,10 +767,10 @@ peracrm_frontend_render_shell_header();
             </article>
 
             <article class="crm-panel-surface crm-section crm-section--flush crm-client-related crm-client-related--enquiries" data-client-id="<?php echo esc_attr( (string) $client_id ); ?>"<?php peracrm_client_panel_attributes('enquiries', $hidden_panels); ?>>
-              <header class="crm-panel-surface crm-section__header">
-                <div class="crm-panel-surface crm-section__heading-group">
-                  <h3 class="crm-panel-surface crm-section__title"><?php esc_html_e( 'Client enquiries', 'peracrm' ); ?></h3>
-                  <p class="crm-panel-surface crm-section__description"><?php esc_html_e( 'Review enquiry-linked properties from favourites and enquiry activity.', 'peracrm' ); ?></p>
+              <header class="crm-section__header">
+                <div class="crm-section__heading-group">
+                  <h3 class="crm-section__title"><?php esc_html_e( 'Client enquiries', 'peracrm' ); ?></h3>
+                  <p class="crm-section__description"><?php esc_html_e( 'Review enquiry-linked properties from favourites and enquiry activity.', 'peracrm' ); ?></p>
                 </div>
               <?php peracrm_client_panel_dismiss('enquiries'); ?>
               </header>
@@ -804,12 +804,12 @@ peracrm_frontend_render_shell_header();
             ?>
             </div>
             <article class="crm-panel-surface crm-section crm-section--flush" data-crm-panel="notes">
-              <header class="crm-panel-surface crm-section__header">
-                <div class="crm-panel-surface crm-section__heading-group">
-                  <h3 class="crm-panel-surface crm-section__title"><?php esc_html_e( 'Advisor notes', 'peracrm' ); ?></h3>
+              <header class="crm-section__header">
+                <div class="crm-section__heading-group">
+                  <h3 class="crm-section__title"><?php esc_html_e( 'Advisor notes', 'peracrm' ); ?></h3>
                 </div>
               </header>
-              <div class="crm-panel-surface crm-section__body">
+              <div class="crm-section__body">
                 <?php if ( empty( $notes ) ) : ?>
                   <p><?php esc_html_e( 'No notes yet.', 'peracrm' ); ?></p>
                 <?php else : ?>
@@ -885,7 +885,7 @@ peracrm_frontend_render_shell_header();
                   </div>
                 <?php endif; ?>
               </div>
-              <div class="crm-panel-surface crm-section__footer">
+              <div class="crm-section__footer">
                 <form method="post" action="<?php echo esc_url( home_url( '/wp-admin/admin-post.php' ) ); ?>" class="crm-form-stack" data-crm-ajax-form="note">
                   <?php wp_nonce_field( 'peracrm_add_note', 'peracrm_add_note_nonce' ); ?>
                   <input type="hidden" name="action" value="peracrm_add_note" />
@@ -921,10 +921,10 @@ peracrm_frontend_render_shell_header();
         <div class="crm-client-profile-stack">
 <?php /*
         <article class="crm-panel-surface crm-section crm-section--flush crm-client-related crm-client-related--portfolio" data-client-id="<?php echo esc_attr( (string) $client_id ); ?>">
-              <header class="crm-panel-surface crm-section__header">
-                <div class="crm-panel-surface crm-section__heading-group">
-                  <h3 class="crm-panel-surface crm-section__title"><?php esc_html_e( 'Portfolio', 'peracrm' ); ?></h3>
-                  <p class="crm-panel-surface crm-section__description"><?php esc_html_e( 'Link properties, generate portfolio links, and maintain per-property portfolio details.', 'peracrm' ); ?></p>
+              <header class="crm-section__header">
+                <div class="crm-section__heading-group">
+                  <h3 class="crm-section__title"><?php esc_html_e( 'Portfolio', 'peracrm' ); ?></h3>
+                  <p class="crm-section__description"><?php esc_html_e( 'Link properties, generate portfolio links, and maintain per-property portfolio details.', 'peracrm' ); ?></p>
                 </div>
               </header>
               <section class="crm-client-subsection crm-linked-workspace" data-crm-linked-properties data-client-id="<?php echo esc_attr( (string) $client_id ); ?>" data-crm-panel="properties">
@@ -998,10 +998,10 @@ peracrm_frontend_render_shell_header();
 */ ?>
 
             <article class="crm-panel-surface crm-section crm-section--flush crm-client-related crm-client-related--theme-portfolio" data-client-id="<?php echo esc_attr( (string) $client_id ); ?>" data-crm-theme-portfolio<?php peracrm_client_panel_attributes('theme_portfolio', $hidden_panels); ?>>
-              <header class="crm-panel-surface crm-section__header">
-                <div class="crm-panel-surface crm-section__heading-group">
-                  <h3 class="crm-panel-surface crm-section__title"><?php esc_html_e( 'Theme portfolio', 'peracrm' ); ?></h3>
-                  <p class="crm-panel-surface crm-section__description"><?php esc_html_e( 'Manage a second standalone portfolio fed from theme property offers.', 'peracrm' ); ?></p>
+              <header class="crm-section__header">
+                <div class="crm-section__heading-group">
+                  <h3 class="crm-section__title"><?php esc_html_e( 'Theme portfolio', 'peracrm' ); ?></h3>
+                  <p class="crm-section__description"><?php esc_html_e( 'Manage a second standalone portfolio fed from theme property offers.', 'peracrm' ); ?></p>
                 </div>
               <?php peracrm_client_panel_dismiss('theme_portfolio'); ?>
               </header>
@@ -1140,17 +1140,17 @@ peracrm_frontend_render_shell_header();
             </article>
 
             <section class="crm-panel-surface crm-section crm-section--flush crm-client-timeline" data-crm-panel="timeline">
-              <header class="crm-panel-surface crm-section__header">
-                <div class="crm-panel-surface crm-section__heading-group">
-                  <h3 class="crm-panel-surface crm-section__title"><?php esc_html_e( 'Activity and timeline', 'peracrm' ); ?></h3>
+              <header class="crm-section__header">
+                <div class="crm-section__heading-group">
+                  <h3 class="crm-section__title"><?php esc_html_e( 'Activity and timeline', 'peracrm' ); ?></h3>
                 </div>
-                <div class="crm-panel-surface crm-section__actions crm-client-timeline__filters">
+                <div class="crm-section__actions crm-client-timeline__filters">
                   <?php foreach ( array( 'all' => 'All', 'activity' => 'Activity', 'notes' => 'Notes', 'reminders' => 'Reminders' ) as $key => $label ) : $url = add_query_arg( 'peracrm_timeline', $key, $frontend_url ); ?>
                     <a class="crm-chip <?php echo esc_attr( $timeline_filter === $key ? 'crm-chip--selected' : 'crm-chip--neutral' ); ?>" href="<?php echo esc_url( $url ); ?>"><?php echo esc_html( $label ); ?></a>
                   <?php endforeach; ?>
                 </div>
               </header>
-              <div class="crm-panel-surface crm-section__body">
+              <div class="crm-section__body">
                 <div class="archive-hero-desc" data-collapsed="true">
                   <div id="crm-client-timeline-content" class="archive-hero-desc__content">
                     <ul class="crm-activity-list crm-client-timeline__list">
@@ -1178,14 +1178,14 @@ peracrm_frontend_render_shell_header();
         <div data-crm-panel-slot="deals">
         <?php if (isset(peracrm_client_panels_eligible($profile, $party)['deals'])) : ?>
             <article class="crm-panel-surface crm-section crm-section--flush crm-client-deals" data-crm-panel="deals"<?php peracrm_client_panel_attributes('deals', $hidden_panels); ?>>
-              <header class="crm-panel-surface crm-section__header">
-                <div class="crm-panel-surface crm-section__heading-group">
-                  <h3 class="crm-panel-surface crm-section__title"><?php esc_html_e( 'Deals', 'peracrm' ); ?></h3>
-                  <p class="crm-panel-surface crm-section__description"><?php echo esc_html( 'update' === $deal_form_mode ? __( 'Update the selected deal without losing the surrounding client context.', 'peracrm' ) : __( 'Create and stage a deal from the existing client workflow.', 'peracrm' ) ); ?></p>
+              <header class="crm-section__header">
+                <div class="crm-section__heading-group">
+                  <h3 class="crm-section__title"><?php esc_html_e( 'Deals', 'peracrm' ); ?></h3>
+                  <p class="crm-section__description"><?php echo esc_html( 'update' === $deal_form_mode ? __( 'Update the selected deal without losing the surrounding client context.', 'peracrm' ) : __( 'Create and stage a deal from the existing client workflow.', 'peracrm' ) ); ?></p>
                 </div>
               <?php peracrm_client_panel_dismiss('deals'); ?>
               </header>
-              <div class="crm-panel-surface crm-section__body">
+              <div class="crm-section__body">
                 <section class="crm-client-subsection crm-client-subsection--deal-workspace">
                   <div class="crm-form-workspace__intro crm-form-workspace__intro--embedded">
                     <h4><?php esc_html_e( 'Deal workspace', 'peracrm' ); ?></h4>
@@ -1196,7 +1196,7 @@ peracrm_frontend_render_shell_header();
                     <li class="crm-row-list__item"><div class="crm-row-list__content"><div class="crm-row-list__header"><h5 class="crm-row-list__title"><?php echo esc_html( $deal_title ); ?></h5><span class="crm-chip crm-chip--status"><?php echo esc_html( $deal_stage ); ?></span></div><div class="crm-row-list__meta"><span class="crm-row-list__meta-line"><?php echo esc_html( sprintf( __( 'Property ID: %d', 'peracrm' ), $deal_property_id ) ); ?></span><span class="crm-row-list__meta-line"><?php echo esc_html( sprintf( __( 'Value: %1$s %2$s', 'peracrm' ), '' !== $deal_value ? $deal_value : '—', $deal_currency ) ); ?></span></div></div><div class="crm-row-list__aside"><a class="btn btn--ghost btn--blue" href="<?php echo esc_url( add_query_arg( 'deal_id', $deal_id, $frontend_url ) ); ?>"><?php esc_html_e( 'Edit', 'peracrm' ); ?></a><?php if ( $can_delete_deals ) : ?><form method="post" action="<?php echo esc_url( home_url( '/wp-admin/admin-post.php' ) ); ?>" onsubmit="return window.confirm('<?php echo esc_js( __( 'Delete this deal?', 'peracrm' ) ); ?>');"><input type="hidden" name="action" value="peracrm_delete_deal" /><input type="hidden" name="peracrm_deal_nonce" value="<?php echo esc_attr( wp_create_nonce( 'peracrm_delete_deal' ) ); ?>" /><input type="hidden" name="peracrm_deal_submit" value="1" /><input type="hidden" name="peracrm_client_id" value="<?php echo esc_attr( (string) $client_id ); ?>" /><input type="hidden" name="deal_id" value="<?php echo esc_attr( (string) $deal_id ); ?>" /><input type="hidden" name="peracrm_redirect" value="<?php echo esc_url( $frontend_url ); ?>" /><button type="submit" class="btn btn--ghost btn--red"><?php esc_html_e( 'Delete', 'peracrm' ); ?></button></form><?php endif; ?></div></li>
                     <?php endforeach; ?>
                   </ul>
-                  <form method="post" action="<?php echo esc_url( home_url( '/wp-admin/admin-post.php' ) ); ?>" class="crm-form-stack crm-deals-form crm-form-workspace__form" data-crm-ajax-form="deal"><input type="hidden" name="action" value="<?php echo esc_attr( 'update' === $deal_form_mode ? 'peracrm_update_deal' : 'peracrm_create_deal' ); ?>" /><input type="hidden" name="peracrm_deal_nonce" value="<?php echo esc_attr( wp_create_nonce( 'update' === $deal_form_mode ? 'peracrm_update_deal' : 'peracrm_create_deal' ) ); ?>" /><input type="hidden" name="peracrm_deal_submit" value="1" /><input type="hidden" name="peracrm_client_id" value="<?php echo esc_attr( (string) $client_id ); ?>" /><input type="hidden" name="peracrm_redirect" value="<?php echo esc_url( $frontend_url ); ?>" /><?php if ( 'update' === $deal_form_mode && is_array( $editing_deal ) ) : ?><input type="hidden" name="deal_id" value="<?php echo esc_attr( (string) ( (int) ( $editing_deal['id'] ?? 0 ) ) ); ?>" /><?php endif; ?><div class="crm-form-workspace__meta"><div class="crm-meta-line"><span><strong><?php esc_html_e( 'Mode:', 'peracrm' ); ?></strong> <?php echo esc_html( 'update' === $deal_form_mode ? __( 'Edit existing deal', 'peracrm' ) : __( 'Create new deal', 'peracrm' ) ); ?></span><span><strong><?php esc_html_e( 'Required:', 'peracrm' ); ?></strong> <?php esc_html_e( 'Title', 'peracrm' ); ?></span></div></div><section class="crm-panel-surface crm-section crm-section--flush crm-form-section" aria-labelledby="crm-deal-basics-heading"><header class="crm-panel-surface crm-section__header"><div class="crm-panel-surface crm-section__heading-group"><h5 id="crm-deal-basics-heading" class="crm-panel-surface crm-section__title"><?php esc_html_e( 'Deal basics', 'peracrm' ); ?></h5><p class="crm-panel-surface crm-section__description"><?php esc_html_e( 'Define the deal identity, current stage, and linked primary property.', 'peracrm' ); ?></p></div></header><div class="crm-panel-surface crm-section__body"><div class="crm-deals-grid"><label><?php esc_html_e( 'Title', 'peracrm' ); ?><input type="text" name="title" value="<?php echo esc_attr( (string) ( $editing_deal['title'] ?? '' ) ); ?>" required /></label><label><?php esc_html_e( 'Stage', 'peracrm' ); ?><select name="stage"><?php foreach ( $deal_stage_options as $value => $label ) : ?><option value="<?php echo esc_attr( (string) $value ); ?>" <?php selected( (string) ( $editing_deal['stage'] ?? 'reservation_taken' ), (string) $value ); ?>><?php echo esc_html( (string) $label ); ?></option><?php endforeach; ?></select></label><label><?php esc_html_e( 'Primary property ID', 'peracrm' ); ?><input type="number" min="0" name="primary_property_id" value="<?php echo esc_attr( (string) ( $editing_deal['primary_property_id'] ?? '' ) ); ?>" /></label></div></div></section><section class="crm-panel-surface crm-section crm-section--flush crm-form-section" aria-labelledby="crm-deal-commercial-heading"><header class="crm-panel-surface crm-section__header"><div class="crm-panel-surface crm-section__heading-group"><h5 id="crm-deal-commercial-heading" class="crm-panel-surface crm-section__title"><?php esc_html_e( 'Commercial details', 'peracrm' ); ?></h5><p class="crm-panel-surface crm-section__description"><?php esc_html_e( 'Capture the current deal value and currency without mixing this with list actions above.', 'peracrm' ); ?></p></div></header><div class="crm-panel-surface crm-section__body"><label><?php esc_html_e( 'Deal value', 'peracrm' ); ?><div class="crm-deal-value-row"><div class="crm-deal-value-input"><input type="number" step="0.01" min="0" name="deal_value" value="<?php echo esc_attr( (string) ( $editing_deal['deal_value'] ?? '' ) ); ?>" /></div><div class="crm-deal-currency"><select name="currency" aria-label="<?php esc_attr_e( 'Currency', 'peracrm' ); ?>"><?php foreach ( array( 'USD', 'EUR', 'GBP', 'TRY' ) as $currency_option ) : ?><option value="<?php echo esc_attr( $currency_option ); ?>" <?php selected( strtoupper( (string) ( $editing_deal['currency'] ?? 'USD' ) ), $currency_option ); ?>><?php echo esc_html( $currency_option ); ?></option><?php endforeach; ?></select></div></div></label></div></section><div class="crm-form-workspace__footer crm-form-workspace__footer--embedded"><div class="crm-meta-line"><span><?php esc_html_e( 'Existing list actions remain available above the form.', 'peracrm' ); ?></span></div><div class="crm-action-group crm-action-group--form"><button type="submit" class="btn btn--solid btn--blue crm-action-group__item crm-action-group__item--primary"><?php echo esc_html( 'update' === $deal_form_mode ? __( 'Update deal', 'peracrm' ) : __( 'Create deal', 'peracrm' ) ); ?></button></div></div></form>
+                  <form method="post" action="<?php echo esc_url( home_url( '/wp-admin/admin-post.php' ) ); ?>" class="crm-form-stack crm-deals-form crm-form-workspace__form" data-crm-ajax-form="deal"><input type="hidden" name="action" value="<?php echo esc_attr( 'update' === $deal_form_mode ? 'peracrm_update_deal' : 'peracrm_create_deal' ); ?>" /><input type="hidden" name="peracrm_deal_nonce" value="<?php echo esc_attr( wp_create_nonce( 'update' === $deal_form_mode ? 'peracrm_update_deal' : 'peracrm_create_deal' ) ); ?>" /><input type="hidden" name="peracrm_deal_submit" value="1" /><input type="hidden" name="peracrm_client_id" value="<?php echo esc_attr( (string) $client_id ); ?>" /><input type="hidden" name="peracrm_redirect" value="<?php echo esc_url( $frontend_url ); ?>" /><?php if ( 'update' === $deal_form_mode && is_array( $editing_deal ) ) : ?><input type="hidden" name="deal_id" value="<?php echo esc_attr( (string) ( (int) ( $editing_deal['id'] ?? 0 ) ) ); ?>" /><?php endif; ?><div class="crm-form-workspace__meta"><div class="crm-meta-line"><span><strong><?php esc_html_e( 'Mode:', 'peracrm' ); ?></strong> <?php echo esc_html( 'update' === $deal_form_mode ? __( 'Edit existing deal', 'peracrm' ) : __( 'Create new deal', 'peracrm' ) ); ?></span><span><strong><?php esc_html_e( 'Required:', 'peracrm' ); ?></strong> <?php esc_html_e( 'Title', 'peracrm' ); ?></span></div></div><section class="crm-panel-surface crm-section crm-section--flush crm-form-section" aria-labelledby="crm-deal-basics-heading"><header class="crm-section__header"><div class="crm-section__heading-group"><h5 id="crm-deal-basics-heading" class="crm-section__title"><?php esc_html_e( 'Deal basics', 'peracrm' ); ?></h5><p class="crm-section__description"><?php esc_html_e( 'Define the deal identity, current stage, and linked primary property.', 'peracrm' ); ?></p></div></header><div class="crm-section__body"><div class="crm-deals-grid"><label><?php esc_html_e( 'Title', 'peracrm' ); ?><input type="text" name="title" value="<?php echo esc_attr( (string) ( $editing_deal['title'] ?? '' ) ); ?>" required /></label><label><?php esc_html_e( 'Stage', 'peracrm' ); ?><select name="stage"><?php foreach ( $deal_stage_options as $value => $label ) : ?><option value="<?php echo esc_attr( (string) $value ); ?>" <?php selected( (string) ( $editing_deal['stage'] ?? 'reservation_taken' ), (string) $value ); ?>><?php echo esc_html( (string) $label ); ?></option><?php endforeach; ?></select></label><label><?php esc_html_e( 'Primary property ID', 'peracrm' ); ?><input type="number" min="0" name="primary_property_id" value="<?php echo esc_attr( (string) ( $editing_deal['primary_property_id'] ?? '' ) ); ?>" /></label></div></div></section><section class="crm-panel-surface crm-section crm-section--flush crm-form-section" aria-labelledby="crm-deal-commercial-heading"><header class="crm-section__header"><div class="crm-section__heading-group"><h5 id="crm-deal-commercial-heading" class="crm-section__title"><?php esc_html_e( 'Commercial details', 'peracrm' ); ?></h5><p class="crm-section__description"><?php esc_html_e( 'Capture the current deal value and currency without mixing this with list actions above.', 'peracrm' ); ?></p></div></header><div class="crm-section__body"><label><?php esc_html_e( 'Deal value', 'peracrm' ); ?><div class="crm-deal-value-row"><div class="crm-deal-value-input"><input type="number" step="0.01" min="0" name="deal_value" value="<?php echo esc_attr( (string) ( $editing_deal['deal_value'] ?? '' ) ); ?>" /></div><div class="crm-deal-currency"><select name="currency" aria-label="<?php esc_attr_e( 'Currency', 'peracrm' ); ?>"><?php foreach ( array( 'USD', 'EUR', 'GBP', 'TRY' ) as $currency_option ) : ?><option value="<?php echo esc_attr( $currency_option ); ?>" <?php selected( strtoupper( (string) ( $editing_deal['currency'] ?? 'USD' ) ), $currency_option ); ?>><?php echo esc_html( $currency_option ); ?></option><?php endforeach; ?></select></div></div></label></div></section><div class="crm-form-workspace__footer crm-form-workspace__footer--embedded"><div class="crm-meta-line"><span><?php esc_html_e( 'Existing list actions remain available above the form.', 'peracrm' ); ?></span></div><div class="crm-action-group crm-action-group--form"><button type="submit" class="btn btn--solid btn--blue crm-action-group__item crm-action-group__item--primary"><?php echo esc_html( 'update' === $deal_form_mode ? __( 'Update deal', 'peracrm' ) : __( 'Create deal', 'peracrm' ) ); ?></button></div></div></form>
                 </section>
               </div>
             </article>
@@ -1205,8 +1205,8 @@ peracrm_frontend_render_shell_header();
 
         <?php if ( $can_delete_client || $can_set_dormant ) : ?>
         <article class="crm-panel-surface crm-section crm-section--flush crm-danger-zone">
-          <header class="crm-panel-surface crm-section__header"><div class="crm-panel-surface crm-section__heading-group"><h3 class="crm-panel-surface crm-section__title"><?php esc_html_e( 'Danger zone', 'peracrm' ); ?></h3><p class="crm-panel-surface crm-section__description"><?php echo esc_html( $danger_zone_description ); ?></p></div></header>
-          <div class="crm-panel-surface crm-section__body crm-danger-zone__body">
+          <header class="crm-section__header"><div class="crm-section__heading-group"><h3 class="crm-section__title"><?php esc_html_e( 'Danger zone', 'peracrm' ); ?></h3><p class="crm-section__description"><?php echo esc_html( $danger_zone_description ); ?></p></div></header>
+          <div class="crm-section__body crm-danger-zone__body">
             <section class="crm-danger-zone__block crm-danger-zone__block--advisor" data-crm-panel="advisor">
               <h4><?php esc_html_e( 'Assigned advisor', 'peracrm' ); ?></h4>
               <?php if ( function_exists( 'peracrm_render_assigned_advisor_box' ) ) : ?>
