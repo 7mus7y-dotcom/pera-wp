@@ -828,7 +828,7 @@ peracrm_frontend_render_shell_header();
                               $note_type_labels = array( 'phone_call' => __( 'Phone call made', 'peracrm' ), 'email_sent' => __( 'Email sent', 'peracrm' ), 'wa_sent' => __( 'WA sent', 'peracrm' ), 'options_sent' => __( 'Options sent', 'peracrm' ) );
                               $note_type = (string) ( $note['activity_type'] ?? '' );
                               if ( isset( $note_type_labels[ $note_type ] ) ) : ?>
-                                <span class="crm-chip crm-chip--neutral"><?php echo esc_html( $note_type_labels[ $note_type ] ); ?></span>
+                                <span class="crm-chip crm-chip--selected crm-note-activity-chip"><?php echo esc_html( $note_type_labels[ $note_type ] ); ?></span>
                               <?php endif; ?>
                               <?php if ( 'options_sent' === $note_type && ! empty( $note['property_ids'] ) ) : ?>
                                 <div class="crm-note-properties crm-note-properties--saved">
