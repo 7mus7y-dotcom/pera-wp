@@ -17,6 +17,7 @@ add_action('save_post_crm_client', 'peracrm_handle_save_party_status_on_post_sav
 add_filter('redirect_post_location', 'peracrm_admin_fix_crm_client_post_update_redirect', 10, 2);
 
 add_action('admin_post_peracrm_add_note', 'peracrm_handle_add_note');
+add_action('admin_post_peracrm_edit_note', 'peracrm_handle_edit_note');
 add_action('admin_post_peracrm_add_reminder', 'peracrm_handle_add_reminder');
 add_action('admin_post_peracrm_mark_reminder_done', 'peracrm_handle_mark_reminder_done');
 add_action('admin_post_peracrm_update_reminder_status', 'peracrm_handle_update_reminder_status');
