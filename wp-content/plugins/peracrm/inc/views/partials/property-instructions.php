@@ -51,14 +51,14 @@ $render_form = static function ($row, $form_type) use ($client_id, $catalog, $as
       <input type="hidden" name="property_revision" value="<?php echo esc_attr($row['property_revision'] ?? ''); ?>" />
       <input type="hidden" name="revision" value="<?php echo esc_attr($row['revision'] ?? 0); ?>" />
       <h4><?php esc_html_e('1. Basic details', 'peracrm'); ?></h4>
-      <p class="crm-panel-surface crm-section__description"><?php echo esc_html(ucfirst($form_type)); ?> · <?php esc_html_e('Enter a name or identifier. Other details can be added later.', 'peracrm'); ?></p>
+      <p class="crm-section__description"><?php echo esc_html(ucfirst($form_type)); ?> · <?php esc_html_e('Enter a name or identifier. Other details can be added later.', 'peracrm'); ?></p>
       <?php if (!$id && $assets) : ?>
         <label><?php esc_html_e('Reuse a property belonging to this client', 'peracrm'); ?>
           <select name="property_id"><option value="0"><?php esc_html_e('Create new property', 'peracrm'); ?></option>
             <?php foreach ($assets as $asset_id => $asset) : ?><option value="<?php echo esc_attr($asset_id); ?>"><?php echo esc_html(($asset['identifier'] ?: (peracrm_json_decode($asset['property_details'])['name'] ?? '')) . ' (#' . $asset_id . ')'); ?></option><?php endforeach; ?>
           </select>
         </label>
-        <p class="crm-panel-surface crm-section__description"><?php esc_html_e('When reusing a property, its saved physical details are kept. Edit an existing instruction to update the shared property details.', 'peracrm'); ?></p>
+        <p class="crm-section__description"><?php esc_html_e('When reusing a property, its saved physical details are kept. Edit an existing instruction to update the shared property details.', 'peracrm'); ?></p>
       <?php endif; ?>
       <div class="crm-form-row-2">
         <label><?php esc_html_e('Property identifier / apartment number', 'peracrm'); ?><input name="identifier" maxlength="191" value="<?php echo esc_attr($row['identifier'] ?? ''); ?>" /></label>
@@ -70,7 +70,7 @@ $render_form = static function ($row, $form_type) use ($client_id, $catalog, $as
       </div>
       <details>
         <summary><?php esc_html_e('2. Additional details', 'peracrm'); ?></summary>
-        <p class="crm-panel-surface crm-section__description"><?php esc_html_e('Physical details are shared with other instructions for this property. Prices and workflow details belong to this instruction.', 'peracrm'); ?></p>
+        <p class="crm-section__description"><?php esc_html_e('Physical details are shared with other instructions for this property. Prices and workflow details belong to this instruction.', 'peracrm'); ?></p>
         <div class="crm-form-row-2">
           <?php $render_fields('property', array_diff_key($catalog['property'], $basic_property), $property, $prefix); ?>
           <?php $render_fields('details', array_diff_key($catalog['common'], $basic_common) + $catalog[$form_type], $details, $prefix); ?>
@@ -89,11 +89,11 @@ $render_form = static function ($row, $form_type) use ($client_id, $catalog, $as
 };
 ?>
 <article id="crm-property-instructions" class="crm-panel-surface crm-section crm-section--flush"<?php peracrm_client_panel_attributes($instruction_panel_key, $hidden_panels ?? []); ?>>
-  <header class="crm-panel-surface crm-section__header"><div>
-    <h3 class="crm-panel-surface crm-section__title"><?php echo esc_html($type === 'sale' ? __('Properties for sale', 'peracrm') : ($type === 'rental' ? __('Properties for rent', 'peracrm') : __('Property instruction history', 'peracrm'))); ?></h3>
-    <p class="crm-panel-surface crm-section__description"><?php esc_html_e('Private property instructions. Saving does not create or publish a website listing. Historical instructions remain available after client-type changes.', 'peracrm'); ?></p>
+  <header class="crm-section__header"><div>
+    <h3 class="crm-section__title"><?php echo esc_html($type === 'sale' ? __('Properties for sale', 'peracrm') : ($type === 'rental' ? __('Properties for rent', 'peracrm') : __('Property instruction history', 'peracrm'))); ?></h3>
+    <p class="crm-section__description"><?php esc_html_e('Private property instructions. Saving does not create or publish a website listing. Historical instructions remain available after client-type changes.', 'peracrm'); ?></p>
   </div><?php peracrm_client_panel_dismiss($instruction_panel_key); ?></header>
-  <div class="crm-panel-surface crm-section__body">
+  <div class="crm-section__body">
     <?php if ($type !== '') : ?>
       <details class="crm-instruction-editor"><summary class="btn btn--solid"><?php esc_html_e('+ Add property', 'peracrm'); ?></summary><?php $render_form([], $type); ?></details>
     <?php endif; ?>
@@ -115,11 +115,11 @@ $render_form = static function ($row, $form_type) use ($client_id, $catalog, $as
         }
     ?>
       <section class="crm-panel-surface crm-section crm-instruction-card" aria-labelledby="instruction-title-<?php echo esc_attr($row['id']); ?>">
-        <header class="crm-panel-surface crm-section__header"><div><h4 id="instruction-title-<?php echo esc_attr($row['id']); ?>"><?php echo esc_html($reference); ?></h4>
+        <header class="crm-section__header"><div><h4 id="instruction-title-<?php echo esc_attr($row['id']); ?>"><?php echo esc_html($reference); ?></h4>
           <span class="crm-chip crm-chip--status"><?php echo esc_html(ucfirst($row['instruction_type']) . ' · ' . peracrm_instruction_statuses($row['instruction_type'])[$row['status']]); ?></span>
           <?php if ($type !== $row['instruction_type']) : ?><span class="crm-chip crm-chip--neutral"><?php esc_html_e('Historical / other instruction type', 'peracrm'); ?></span><?php endif; ?>
         </div></header>
-        <div class="crm-panel-surface crm-section__body">
+        <div class="crm-section__body">
           <dl class="crm-form-row-2"><?php foreach ($summary as $label => $value) : if ($value === '') { continue; } ?><div><dt><?php echo esc_html($label); ?></dt><dd><?php echo esc_html($value); ?></dd></div><?php endforeach; ?></dl>
           <div class="crm-instruction-actions crm-instruction-card__listing-links">
             <?php foreach (['sahibinden_url' => 'View Sahibinden', 'pera_url' => 'View Pera website'] as $key => $label) : if (empty($row[$key])) { continue; } ?>
