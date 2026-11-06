@@ -156,7 +156,14 @@ $has_toolbar = $show_client_filters || '' !== $toolbar_content;
           <span class="pera-crm-viewing-as-banner__state"><?php echo esc_html( $is_impersonating ? __( 'Impersonation active', 'peracrm' ) : __( 'Default CRM view', 'peracrm' ) ); ?></span>
           <div class="pera-crm-viewing-as-banner__identity-block">
             <div class="pera-crm-viewing-as-banner__identity-row">
-              <span class="pera-crm-viewing-as-banner__label"><?php echo esc_html( $is_impersonating ? __( 'Viewing as', 'peracrm' ) : __( 'Current view', 'peracrm' ) ); ?></span>
+              <span class="pera-crm-viewing-as-banner__label">
+                <?php if ( $is_impersonating ) : ?>
+                  <?php esc_html_e( 'Viewing as', 'peracrm' ); ?>
+                <?php else : ?>
+                  <span class="pera-crm-viewing-as-banner__label-default"><?php esc_html_e( 'Current view', 'peracrm' ); ?></span>
+                  <span class="pera-crm-viewing-as-banner__label-mobile" aria-hidden="true"><?php esc_html_e( 'Current:', 'peracrm' ); ?></span>
+                <?php endif; ?>
+              </span>
               <strong class="pera-crm-viewing-as-banner__value"><?php echo esc_html( $impersonation_label ); ?></strong>
             </div>
             <?php if ( $is_impersonating && '' !== $real_user_label ) : ?>
