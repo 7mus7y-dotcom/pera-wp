@@ -426,14 +426,6 @@ if ( $is_home || $is_citizenship_page ) {
     }
 
     wp_enqueue_script(
-      'pera-google-maps',
-      $google_maps_url,
-      array(),
-      null,
-      true
-    );
-
-    wp_enqueue_script(
       'pera-property-map-price',
       get_stylesheet_directory_uri() . '/js/property-map-price.js',
       array(),
@@ -444,7 +436,7 @@ if ( $is_home || $is_citizenship_page ) {
     wp_enqueue_script(
       'pera-property-map',
       get_stylesheet_directory_uri() . '/js/property-map.js',
-      array( 'pera-google-maps', 'pera-property-map-price' ),
+      array( 'pera-property-map-price' ),
       pera_get_asset_version( '/js/property-map.js' ),
       true
     );
@@ -453,6 +445,7 @@ if ( $is_home || $is_citizenship_page ) {
       'pera-property-map',
       'peraPropertyMap',
       array(
+        'google_maps_api_url' => esc_url_raw( $google_maps_url ),
         'ajax_url'    => admin_url( 'admin-ajax.php' ),
         'action'      => 'pera_get_map_property_card',
         'nonce'       => wp_create_nonce( 'pera_map_property_card' ),
