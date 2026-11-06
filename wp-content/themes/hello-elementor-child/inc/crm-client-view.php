@@ -1268,6 +1268,8 @@ if ( ! function_exists( 'pera_crm_property_search_ajax' ) ) {
 					$results[]     = array(
 						'property_id'  => $property_id,
 						'project_name' => $project_name,
+                        'thumbnail'    => (string) get_the_post_thumbnail_url( $property_id, 'thumbnail' ),
+                        'url'          => (string) get_permalink( $property_id ),
 						'district'     => ! empty( $district_list ) ? (string) $district_list[0] : '',
 					);
 				}
