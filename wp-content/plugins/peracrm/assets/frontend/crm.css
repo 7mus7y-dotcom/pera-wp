@@ -7791,13 +7791,14 @@ body.crm-route .crm-page--client-view .peracrm-linked-property-unlink-btn:hover 
   }
 
   .crm-page--overview .pera-crm-viewing-as-banner:not(.pera-crm-viewing-as-banner--active) .peracrm-impersonation-switcher {
+    flex-wrap: nowrap;
     align-items: stretch;
     gap: 0.6rem;
   }
 
   .crm-page--overview .pera-crm-viewing-as-banner:not(.pera-crm-viewing-as-banner--active) .peracrm-impersonation-switcher__select {
-    flex: 1 1 auto;
-    width: auto;
+    flex: 1 1 0;
+    width: 0;
   }
 
   .crm-page--overview .pera-crm-viewing-as-banner:not(.pera-crm-viewing-as-banner--active) .peracrm-impersonation-switcher .btn {
