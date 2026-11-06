@@ -1,0 +1,33 @@
+name: CRM Advisor Notes General type regression
+on:
+  pull_request:
+    paths:
+      - 'wp-content/plugins/peracrm/inc/views/pages/crm-client.php'
+      - 'wp-content/plugins/peracrm/inc/frontend-data/crm-client-view.php'
+      - 'wp-content/plugins/peracrm/inc/admin/actions.php'
+      - 'wp-content/plugins/peracrm/inc/repositories/notes.php'
+      - 'wp-content/plugins/peracrm/tests/advisor-note-general-type-test.js'
+      - '.github/workflows/crm-advisor-note-general-tests.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  general-note-type:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.2'
+          coverage: none
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: PHP syntax checks
+        run: |
+          php -l wp-content/plugins/peracrm/inc/views/pages/crm-client.php
+          php -l wp-content/plugins/peracrm/inc/frontend-data/crm-client-view.php
+          php -l wp-content/plugins/peracrm/inc/admin/actions.php
+          php -l wp-content/plugins/peracrm/inc/repositories/notes.php
+      - name: General category regression
+        run: node wp-content/plugins/peracrm/tests/advisor-note-general-type-test.js
