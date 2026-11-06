@@ -26,9 +26,6 @@ if ( ! function_exists( 'pera_analytics_head_scripts' ) ) {
 			pera_analytics_render_ahrefs();
 		}
 
-		if ( function_exists( 'pera_analytics_meta_pixel_print_head' ) ) {
-			pera_analytics_meta_pixel_print_head();
-		}
 	}
 }
 
@@ -36,10 +33,6 @@ if ( ! function_exists( 'pera_analytics_head_scripts' ) ) {
 if ( ! is_admin() ) {
 	add_action( 'wp_head', 'pera_analytics_head_scripts', 20 );
 
-	if ( function_exists( 'pera_analytics_meta_pixel_print_noscript' ) ) {
-		add_action( 'wp_body_open', 'pera_analytics_meta_pixel_print_noscript', 1 );
-		add_action( 'wp_footer', 'pera_analytics_meta_pixel_print_noscript', 1 );
-	}
 }
 
 require_once get_stylesheet_directory() . '/inc/modules/analytics/install.php';

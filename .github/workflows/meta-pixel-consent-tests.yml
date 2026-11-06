@@ -1,0 +1,37 @@
+name: Meta Pixel consent regression
+
+on:
+  pull_request:
+    paths:
+      - 'wp-content/themes/hello-elementor-child/inc/modules/analytics.php'
+      - 'wp-content/themes/hello-elementor-child/inc/modules/analytics/ga4.php'
+      - 'wp-content/themes/hello-elementor-child/inc/modules/analytics/meta.php'
+      - 'wp-content/themes/hello-elementor-child/js/main.js'
+      - 'wp-content/themes/hello-elementor-child/tests/meta-pixel-consent-test.js'
+      - '.github/workflows/meta-pixel-consent-tests.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  meta-pixel-consent:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.2'
+          coverage: none
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: PHP syntax
+        run: |
+          php -l wp-content/themes/hello-elementor-child/inc/modules/analytics.php
+          php -l wp-content/themes/hello-elementor-child/inc/modules/analytics/ga4.php
+          php -l wp-content/themes/hello-elementor-child/inc/modules/analytics/meta.php
+      - name: JavaScript syntax
+        run: node --check wp-content/themes/hello-elementor-child/js/main.js
+      - name: Meta Pixel consent and PHP wiring regression
+        run: node wp-content/themes/hello-elementor-child/tests/meta-pixel-consent-test.js

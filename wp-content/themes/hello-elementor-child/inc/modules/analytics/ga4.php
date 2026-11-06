@@ -22,12 +22,18 @@ if ( ! function_exists( 'pera_analytics_inject_tracking_config' ) ) {
 		}
 
 		$ga4_id = trim( (string) PERA_GA4_MEASUREMENT_ID );
-		if ( '' === $ga4_id ) {
+		$meta_pixel_id = defined( 'PERA_META_PIXEL_ID' ) ? trim( (string) PERA_META_PIXEL_ID ) : '';
+		if ( '' === $ga4_id && '' === $meta_pixel_id ) {
 			return;
 		}
 
 		$inline = "window.peraTrackingConfig = window.peraTrackingConfig || {};\n";
-		$inline .= 'window.peraTrackingConfig.gaMeasurementId = ' . wp_json_encode( $ga4_id ) . ';';
+		if ( '' !== $ga4_id ) {
+			$inline .= 'window.peraTrackingConfig.gaMeasurementId = ' . wp_json_encode( $ga4_id ) . ';';
+		}
+		if ( '' !== $meta_pixel_id ) {
+			$inline .= 'window.peraTrackingConfig.metaPixelId = ' . wp_json_encode( $meta_pixel_id ) . ';';
+		}
 
 		wp_add_inline_script( 'pera-main-js', $inline, 'before' );
 	}
