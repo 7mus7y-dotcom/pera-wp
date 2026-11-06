@@ -27,7 +27,7 @@ function peracrm_notes_table_exists()
 
 function peracrm_note_add($client_id, $advisor_user_id, $note_body, $activity_type = '', $property_ids = [])
 {
-    $allowed = ['phone_call', 'email_sent', 'wa_sent', 'options_sent'];
+    $allowed = ['phone_call', 'email_sent', 'wa_sent', 'options_sent', 'general'];
     $activity_type = sanitize_key($activity_type);
     if ($activity_type !== '' && !in_array($activity_type, $allowed, true)) {
         return 0;
