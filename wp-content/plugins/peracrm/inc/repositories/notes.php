@@ -25,15 +25,68 @@ function peracrm_notes_table_exists()
     return $exists;
 }
 
-function peracrm_note_add($client_id, $advisor_user_id, $note_body)
+function peracrm_note_add($client_id, $advisor_user_id, $note_body, $activity_type = '', $property_ids = [])
 {
-    return peracrm_notes_insert($client_id, $advisor_user_id, $note_body, 'internal');
+    $allowed = ['phone_call', 'email_sent', 'wa_sent', 'options_sent'];
+    $activity_type = sanitize_key($activity_type);
+    if ($activity_type !== '' && !in_array($activity_type, $allowed, true)) {
+        return 0;
+    }
+    $property_ids = $activity_type === 'options_sent' ? peracrm_notes_validate_properties($property_ids) : [];
+    if ($activity_type === 'options_sent' && !$property_ids) {
+        return 0;
+    }
+    $id = peracrm_notes_insert($client_id, $advisor_user_id, $note_body, 'internal');
+    if ($id && peracrm_notes_table_exists() && $activity_type) {
+        update_post_meta((int)$client_id, '_peracrm_note_extra_' . (int)$id, [
+            'activity_type' => $activity_type,
+            'property_ids' => $property_ids,
+        ]);
+    } elseif ($id && !peracrm_notes_table_exists() && $activity_type) {
+        $notes = peracrm_notes_fallback_get($client_id);
+        if ($notes) {
+            $notes[0]['activity_type'] = $activity_type;
+            $notes[0]['property_ids'] = $property_ids;
+            update_post_meta((int)$client_id, '_peracrm_notes_fallback', $notes);
+        }
+    }
+    return $id;
+}
+
+function peracrm_notes_validate_properties($ids)
+{
+    if (!is_array($ids)) {
+        return [];
+    }
+    $valid = [];
+    foreach (array_slice(array_unique(array_map('absint', $ids)), 0, 40) as $id) {
+        if ($id && in_array(get_post_type($id), ['property', 'bodrum-property'], true)
+            && get_post_status($id) === 'publish') {
+            $valid[] = $id;
+        }
+    }
+    return $valid;
+}
+
+function peracrm_notes_enrich($client_id, $rows)
+{
+    if (peracrm_notes_table_exists()) {
+        foreach ($rows as &$row) {
+            $extra = get_post_meta((int)$client_id, '_peracrm_note_extra_' . (int)($row['id'] ?? 0), true);
+            if (is_array($extra)) {
+                $row['activity_type'] = $extra['activity_type'] ?? '';
+                $row['property_ids'] = $extra['property_ids'] ?? [];
+            }
+        }
+        unset($row);
+    }
+    return $rows;
 }
 
 function peracrm_notes_list($client_id, $limit = 50, $offset = 0)
 {
     if (peracrm_notes_table_exists()) {
-        return peracrm_notes_list_table($client_id, $limit, $offset);
+        return peracrm_notes_enrich($client_id, peracrm_notes_list_table($client_id, $limit, $offset));
     }
 
     return peracrm_notes_list_fallback($client_id, $limit, $offset);
@@ -51,7 +104,11 @@ function peracrm_notes_count($client_id)
 function peracrm_notes_delete($client_id, $note_id)
 {
     if (peracrm_notes_table_exists()) {
-        return peracrm_notes_delete_table($client_id, $note_id);
+        $deleted = peracrm_notes_delete_table($client_id, $note_id);
+        if ($deleted) {
+            delete_post_meta((int)$client_id, '_peracrm_note_extra_' . (int)$note_id);
+        }
+        return $deleted;
     }
 
     return peracrm_notes_delete_fallback($client_id, $note_id);
