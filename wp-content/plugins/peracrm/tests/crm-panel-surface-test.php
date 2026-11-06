@@ -44,10 +44,29 @@ foreach ($views as $view) {
     $has_sections = false !== strpos($source, 'crm-section');
     if ($has_sections) {
         $expect(
-            false !== strpos($source, 'crm-panel-surface crm-section'),
+            false !== strpos($source, 'crm-panel-surface crm-section')
+                || false !== strpos($source, 'crm-panel-surface--gradient'),
             basename($view) . ' adopts the shared panel surface'
         );
     }
+    $expect(
+        false === strpos($source, 'crm-panel-surface crm-section__'),
+        basename($view) . ' does not apply the panel surface to section child elements'
+    );
 }
+
+$overview = file_get_contents($root . '/inc/views/pages/crm-overview.php');
+$expect(
+    false !== strpos($overview, 'crm-panel-surface--gradient-warm crm-section crm-section--flush crm-overview-priority'),
+    'priority work uses the warm overview gradient'
+);
+$expect(
+    false !== strpos($overview, 'crm-panel-surface--gradient-cool crm-section crm-section--flush crm-overview-queue'),
+    'lead queues use the cool overview gradient'
+);
+$expect(
+    false !== strpos($overview, 'crm-panel-surface--gradient-brand crm-section crm-section--flush crm-overview-metrics'),
+    'pipeline health uses the brand overview gradient'
+);
 
 fwrite(STDOUT, "CRM panel surface regression checks passed.\n");
