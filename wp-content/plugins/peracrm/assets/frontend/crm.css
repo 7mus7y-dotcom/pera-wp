@@ -9441,3 +9441,5 @@ body.crm-route #site-header.peracrm-shell-header .peracrm-shell-date-pill .crm-p
 .crm-note-remove{margin-left:auto;flex:none;background:transparent;border:0;cursor:pointer}
 @media(max-width:1024px){.crm-note-properties{grid-template-columns:repeat(3,minmax(0,1fr))}}
 @media(max-width:767px){.crm-note-fields{grid-template-columns:minmax(0,1fr)}.crm-note-properties{grid-template-columns:minmax(0,1fr)}}
+
+.crm-note-property-picker[hidden],.crm-note-properties[hidden],.crm-note-search-results[hidden]{display:none!important}
