@@ -54,6 +54,7 @@ document.addEventListener('DOMContentLoaded', function () {
   // Tracking helpers (GA4 + Meta Pixel)
   // -----------------------------------------
   var analyticsLoaded = false;
+  var ahrefsLoaded = false;
   var marketingLoaded = false;
 
   function loadScript(src, id) {
@@ -85,6 +86,19 @@ document.addEventListener('DOMContentLoaded', function () {
 
     window.gtag('js', new Date());
     window.gtag('config', gaId);
+  }
+
+  function initAhrefs() {
+    if (ahrefsLoaded) return;
+    var key = window.peraTrackingConfig && window.peraTrackingConfig.ahrefsKey;
+    if (!key || document.getElementById('pera-ahrefs-analytics')) return;
+    var script = document.createElement('script');
+    script.id = 'pera-ahrefs-analytics';
+    script.async = true;
+    script.src = 'https://analytics.ahrefs.com/analytics.js';
+    script.setAttribute('data-key', key);
+    ahrefsLoaded = true;
+    document.head.appendChild(script);
   }
 
   function initMetaPixel() {
@@ -536,6 +550,7 @@ document.addEventListener('DOMContentLoaded', function () {
     // 2) the page has a tracking config (VOP only for now)
     if (prefs.analytics && window.peraTrackingConfig) {
       initGA();
+      initAhrefs();
     }
     if (prefs.marketing && window.peraTrackingConfig) {
       initMetaPixel();
