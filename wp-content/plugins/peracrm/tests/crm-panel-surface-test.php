@@ -68,5 +68,14 @@ $expect(
     false !== strpos($overview, 'crm-panel-surface--gradient-brand crm-section crm-section--flush crm-overview-metrics'),
     'pipeline health uses the brand overview gradient'
 );
+$expect(
+    false !== strpos($overview, 'crm-list-workspace--rows crm-list-workspace--new-leads'),
+    'New leads has a dedicated workspace modifier'
+);
+$expect(
+    false !== strpos($css, '.crm-page .crm-list-workspace--new-leads > .crm-section__header')
+        && false !== strpos($css, 'padding-inline: var(--crm-section-padding);'),
+    'New leads header and contents receive shared inline padding'
+);
 
 fwrite(STDOUT, "CRM panel surface regression checks passed.\n");
