@@ -9444,6 +9444,25 @@ body.crm-route #site-header.peracrm-shell-header .peracrm-shell-date-pill .crm-p
 
 .crm-note-property-picker[hidden],.crm-note-properties[hidden],.crm-note-search-results[hidden]{display:none!important}
 
+/* Inline advisor reassignment in the client Danger Zone only. */
+.crm-page--client-view .crm-danger-zone__block--advisor .peracrm-advisor-reassign-row {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 10px;
+  min-width: 0;
+}
+.crm-page--client-view .crm-danger-zone__block--advisor .peracrm-advisor-reassign-row select.widefat {
+  width: max-content;
+  max-width: 100%;
+  min-width: 0;
+  flex: 0 1 auto;
+}
+.crm-page--client-view .crm-danger-zone__block--advisor .peracrm-advisor-reassign-row .button {
+  flex: 0 0 auto;
+  white-space: nowrap;
+}
+
 /* Advisor note activity: compact, brand-blue label without grid stretching. */
 .crm-page--client-view .crm-note-activity-chip {
   width: fit-content;
