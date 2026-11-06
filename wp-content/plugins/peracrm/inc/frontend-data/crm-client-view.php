@@ -510,6 +510,65 @@ if ( ! function_exists( 'pera_crm_client_view_property_project_name' ) ) {
 	}
 }
 
+if ( ! function_exists( 'pera_crm_client_view_property_preview' ) ) {
+	/**
+	 * Build a safe front-end preview for a property, including its ACF main image.
+	 */
+	function pera_crm_client_view_property_preview( int $property_id ): array {
+		if ( $property_id <= 0 ) {
+			return array();
+		}
+
+		$resolve = static function () use ( $property_id ): array {
+			$property = get_post( $property_id );
+			if ( ! $property || ! in_array( $property->post_type, array( 'property', 'bodrum-property' ), true ) || 'publish' !== $property->post_status ) {
+				return array();
+			}
+
+			$main_image = function_exists( 'get_field' ) ? get_field( 'main_image', $property_id ) : get_post_meta( $property_id, 'main_image', true );
+			$image_id   = 0;
+			$image_url  = '';
+			$image_alt  = '';
+
+			if ( is_array( $main_image ) ) {
+				$image_id  = absint( $main_image['ID'] ?? $main_image['id'] ?? 0 );
+				$image_url = esc_url_raw( (string) ( $main_image['sizes']['thumbnail'] ?? $main_image['url'] ?? '' ) );
+				$image_alt = sanitize_text_field( (string) ( $main_image['alt'] ?? '' ) );
+			} elseif ( is_numeric( $main_image ) ) {
+				$image_id = absint( $main_image );
+			} elseif ( is_string( $main_image ) ) {
+				$image_url = esc_url_raw( $main_image );
+			}
+
+			if ( $image_id > 0 ) {
+				$resolved_url = wp_get_attachment_image_url( $image_id, 'thumbnail' );
+				if ( $resolved_url ) {
+					$image_url = (string) $resolved_url;
+				}
+				if ( '' === $image_alt ) {
+					$image_alt = sanitize_text_field( (string) get_post_meta( $image_id, '_wp_attachment_image_alt', true ) );
+				}
+			}
+
+			$name = function_exists( 'pera_crm_client_view_property_project_name' )
+				? pera_crm_client_view_property_project_name( $property_id )
+				: (string) get_the_title( $property_id );
+
+			return array(
+				'property_id' => $property_id,
+				'project_name' => $name,
+				'url'          => (string) get_permalink( $property_id ),
+				'thumbnail'    => $image_url,
+				'thumbnail_alt' => '' !== $image_alt ? $image_alt : $name,
+			);
+		};
+
+		return function_exists( 'pera_crm_client_view_with_target_blog' )
+			? (array) pera_crm_client_view_with_target_blog( $resolve )
+			: $resolve();
+	}
+}
+
 if ( ! function_exists( 'pera_crm_client_view_source_pills' ) ) {
 	function pera_crm_client_view_source_pills( int $client_id, array $activity = array() ): array {
 		$source_key = sanitize_key( (string) get_post_meta( $client_id, 'crm_source', true ) );
@@ -1626,9 +1685,12 @@ if ( ! function_exists( 'pera_crm_property_search_ajax' ) ) {
 				foreach ( $ids as $property_id ) {
 					$project_name  = pera_crm_client_view_property_project_name( $property_id );
 					$district_list = wp_get_post_terms( $property_id, 'district', array( 'fields' => 'names' ) );
+					$preview       = pera_crm_client_view_property_preview( $property_id );
 					$results[]     = array(
 						'property_id'  => $property_id,
 						'project_name' => $project_name,
+						'thumbnail'    => (string) ( $preview['thumbnail'] ?? '' ),
+						'url'          => (string) ( $preview['url'] ?? '' ),
 						'district'     => ! empty( $district_list ) ? (string) $district_list[0] : '',
 					);
 				}
