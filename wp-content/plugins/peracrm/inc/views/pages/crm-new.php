@@ -161,7 +161,7 @@ peracrm_frontend_render_shell_header( array( 'show_crm_nav_toggle' => false ) );
         <form method="post" action="<?php echo esc_url( home_url( '/crm/new/' ) ); ?>" class="crm-form-stack crm-form-workspace__form">
           <?php wp_nonce_field( 'pera_crm_create_lead', 'pera_crm_create_lead_nonce' ); ?>
 
-          <section class="crm-section crm-section--flush crm-form-section" aria-labelledby="crm-new-lead-identity-heading">
+          <section class="crm-panel-surface crm-section crm-section--flush crm-form-section" aria-labelledby="crm-new-lead-identity-heading">
             <header class="crm-section__header">
               <div class="crm-section__heading-group">
                 <h3 id="crm-new-lead-identity-heading" class="crm-section__title"><?php esc_html_e( 'Basic identity', 'peracrm' ); ?></h3>
@@ -188,7 +188,7 @@ peracrm_frontend_render_shell_header( array( 'show_crm_nav_toggle' => false ) );
             </div>
           </section>
 
-          <section class="crm-section crm-section--flush crm-form-section" aria-labelledby="crm-new-lead-contact-heading">
+          <section class="crm-panel-surface crm-section crm-section--flush crm-form-section" aria-labelledby="crm-new-lead-contact-heading">
             <header class="crm-section__header">
               <div class="crm-section__heading-group">
                 <h3 id="crm-new-lead-contact-heading" class="crm-section__title"><?php esc_html_e( 'Contact details', 'peracrm' ); ?></h3>
@@ -218,7 +218,7 @@ peracrm_frontend_render_shell_header( array( 'show_crm_nav_toggle' => false ) );
             </div>
           </section>
 
-          <section class="crm-section crm-section--flush crm-form-section" aria-labelledby="crm-new-lead-classification-heading">
+          <section class="crm-panel-surface crm-section crm-section--flush crm-form-section" aria-labelledby="crm-new-lead-classification-heading">
             <header class="crm-section__header">
               <div class="crm-section__heading-group">
                 <h3 id="crm-new-lead-classification-heading" class="crm-section__title"><?php esc_html_e( 'Lead source and context', 'peracrm' ); ?></h3>

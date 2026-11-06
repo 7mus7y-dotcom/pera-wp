@@ -9504,3 +9504,73 @@ body.crm-route #site-header.peracrm-shell-header .peracrm-shell-date-pill .crm-p
   align-items: center;
   gap: 8px;
 }
+
+
+/* Shared CRM panel surface.
+ *
+ * Add crm-panel-surface beside a panel's semantic/layout class. Opt into the
+ * variable-driven gradient with crm-panel-surface--gradient, then either use a
+ * preset or override --crm-panel-gradient-start/end on that panel.
+ */
+.crm-page .crm-panel-surface {
+  background-color: var(--surface, #ffffff);
+  border: 1px solid var(--border, #e8ecf2);
+  border-radius: var(--crm-section-radius, 16px);
+  color: var(--text, #111827);
+  box-shadow: var(--shadow-soft, 0 2px 6px rgba(15, 23, 42, 0.06));
+}
+
+.crm-page .crm-panel-surface--gradient {
+  --crm-panel-gradient-start: var(--brand, #002d72);
+  --crm-panel-gradient-end: var(--brand-green, #008f5a);
+  --crm-panel-gradient-start-strength: 14%;
+  --crm-panel-gradient-end-strength: 12%;
+  background:
+    radial-gradient(
+      ellipse at 0% 0%,
+      color-mix(in srgb, var(--crm-panel-gradient-start) var(--crm-panel-gradient-start-strength), transparent),
+      transparent 60%
+    ),
+    radial-gradient(
+      ellipse at 100% 100%,
+      color-mix(in srgb, var(--crm-panel-gradient-end) var(--crm-panel-gradient-end-strength), transparent),
+      transparent 58%
+    ),
+    var(--surface, #ffffff);
+}
+
+.crm-page .crm-panel-surface--gradient-cool {
+  --crm-panel-gradient-start: var(--brand, #002d72);
+  --crm-panel-gradient-end: var(--brand-green, #008f5a);
+}
+
+.crm-page .crm-panel-surface--gradient-warm {
+  --crm-panel-gradient-start: var(--brand-yellow, #f2c94c);
+  --crm-panel-gradient-end: var(--brand-red, #c8102e);
+  --crm-panel-gradient-start-strength: 18%;
+}
+
+.crm-page .crm-panel-surface--gradient-brand {
+  --crm-panel-gradient-start: var(--brand, #002d72);
+  --crm-panel-gradient-end: var(--brand-yellow, #f2c94c);
+}
+
+@media (prefers-color-scheme: dark) {
+  .crm-page .crm-panel-surface {
+    background-color: var(--surface, #0f172a);
+    border-color: var(--border, rgba(148, 163, 184, 0.35));
+  }
+
+  .crm-page .crm-panel-surface--gradient {
+    --crm-panel-gradient-start-strength: 20%;
+    --crm-panel-gradient-end-strength: 16%;
+  }
+}
+
+.crm-page.dark .crm-panel-surface,
+.crm-page[data-theme="dark"] .crm-panel-surface,
+.dark .crm-page .crm-panel-surface,
+[data-theme="dark"] .crm-page .crm-panel-surface {
+  background-color: var(--surface, #0f172a);
+  border-color: var(--border, rgba(148, 163, 184, 0.35));
+}

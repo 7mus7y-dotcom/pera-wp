@@ -1074,7 +1074,7 @@ function peracrm_whatsapp_render_client_conversation($client_id)
     $panel = peracrm_whatsapp_get_client_panel_context($client_id);
     if (empty($panel['allowed'])) return;
     $phone = (string) $panel['phone'];
-    echo '<section class="crm-section crm-whatsapp" data-peracrm-whatsapp-conversation data-client-id="' . esc_attr((string) $client_id) . '">';
+    echo '<section class="crm-panel-surface crm-section crm-whatsapp" data-peracrm-whatsapp-conversation data-client-id="' . esc_attr((string) $client_id) . '">';
     echo '<header class="crm-section__header"><div class="crm-section__heading-group"><h3 class="crm-section__title">' . esc_html__('WhatsApp conversation', 'peracrm') . '</h3>';
     echo '<p class="crm-section__description">';
     if (!empty($panel['test_mode'])) {

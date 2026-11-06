@@ -243,7 +243,7 @@ peracrm_frontend_render_shell_header();
       <div class="crm-layout__main">
 			<?php if ( ! $is_leads && ! $is_tasks ) : ?>
       <section class="crm-overview-band crm-overview-band--primary" aria-labelledby="crm-priority-work-heading">
-        <article class="crm-section crm-section--flush crm-overview-priority">
+        <article class="crm-panel-surface crm-panel-surface--gradient crm-panel-surface--gradient-warm crm-section crm-section--flush crm-overview-priority">
           <header class="crm-section__header">
             <div class="crm-section__heading-group">
               <h2 id="crm-priority-work-heading" class="crm-section__title"><?php echo esc_html__( 'Priority work', 'peracrm' ); ?></h2>
@@ -279,7 +279,7 @@ peracrm_frontend_render_shell_header();
       </section>
 
       <section class="crm-overview-band crm-overview-band--queue" aria-labelledby="crm-strict-new-leads-heading">
-        <article class="crm-section crm-section--flush crm-overview-queue crm-panel">
+        <article class="crm-panel-surface crm-panel-surface--gradient crm-panel-surface--gradient-cool crm-section crm-section--flush crm-overview-queue crm-panel">
           <header class="crm-section__header">
             <div class="crm-section__heading-group">
               <h2 id="crm-strict-new-leads-heading" class="crm-section__title"><?php echo esc_html__( 'New leads', 'peracrm' ); ?></h2>
@@ -320,7 +320,7 @@ peracrm_frontend_render_shell_header();
       </section>
 
       <section class="crm-overview-band crm-overview-band--queue" aria-labelledby="crm-new-leads-heading">
-        <article class="crm-section crm-section--flush crm-overview-queue crm-panel">
+        <article class="crm-panel-surface crm-panel-surface--gradient crm-panel-surface--gradient-cool crm-section crm-section--flush crm-overview-queue crm-panel">
           <header class="crm-section__header">
             <div class="crm-section__heading-group">
               <h2 id="crm-new-leads-heading" class="crm-section__title"><?php echo esc_html__( 'Recent leads', 'peracrm' ); ?></h2>
@@ -361,7 +361,7 @@ peracrm_frontend_render_shell_header();
       </section>
 
       <section class="crm-overview-band" aria-labelledby="crm-task-focus-heading">
-        <article class="crm-section crm-section--flush">
+        <article class="crm-panel-surface crm-section crm-section--flush">
           <header class="crm-section__header">
             <div class="crm-section__heading-group">
               <h2 id="crm-task-focus-heading" class="crm-section__title"><?php echo esc_html__( 'Task focus', 'peracrm' ); ?></h2>
@@ -385,7 +385,7 @@ peracrm_frontend_render_shell_header();
       </section>
 
       <section class="crm-overview-band crm-overview-band--secondary" aria-labelledby="crm-activity-heading">
-        <article class="crm-section crm-section--flush crm-overview-activity crm-panel">
+        <article class="crm-panel-surface crm-section crm-section--flush crm-overview-activity crm-panel">
           <header class="crm-section__header">
             <div class="crm-section__heading-group">
               <h2 id="crm-activity-heading" class="crm-section__title"><?php echo esc_html__( 'Latest Activity', 'peracrm' ); ?></h2>
@@ -413,7 +413,7 @@ peracrm_frontend_render_shell_header();
       </section>
 
       <section class="crm-overview-band crm-overview-band--tertiary" aria-labelledby="crm-pipeline-health-heading">
-        <article class="crm-section crm-section--flush crm-overview-metrics crm-overview-health crm-panel">
+        <article class="crm-panel-surface crm-panel-surface--gradient crm-panel-surface--gradient-brand crm-section crm-section--flush crm-overview-metrics crm-overview-health crm-panel">
           <header class="crm-section__header">
             <div class="crm-section__heading-group">
               <h2 id="crm-pipeline-health-heading" class="crm-section__title"><?php echo esc_html__( 'Pipeline Health', 'peracrm' ); ?></h2>
@@ -450,7 +450,7 @@ peracrm_frontend_render_shell_header();
 
       <?php if ( ! empty( $notices ) ) : ?>
       <section class="crm-overview-band crm-overview-band--secondary" aria-label="<?php echo esc_attr__( 'CRM notices', 'peracrm' ); ?>">
-        <article class="crm-section crm-section--flush crm-panel">
+        <article class="crm-panel-surface crm-section crm-section--flush crm-panel">
           <header class="crm-section__header">
             <div class="crm-section__heading-group">
               <h2 class="crm-section__title"><?php echo esc_html__( 'Workspace notices', 'peracrm' ); ?></h2>
@@ -470,7 +470,7 @@ peracrm_frontend_render_shell_header();
 
 			<?php if ( is_user_logged_in() ) : ?>
 	      <section class="crm-overview-band crm-overview-band--secondary crm-overview-band--push" aria-labelledby="crm-push-notifications-heading">
-	        <article class="crm-section crm-section--flush crm-push-panel crm-list-workspace__group crm-notifications-panel" data-crm-push-card>
+	        <article class="crm-panel-surface crm-section crm-section--flush crm-push-panel crm-list-workspace__group crm-notifications-panel" data-crm-push-card>
 	          <header class="crm-section__header">
             <div class="crm-section__heading-group">
               <span class="crm-chip crm-chip--neutral crm-notifications-panel__eyebrow"><?php echo esc_html__( 'Notifications', 'peracrm' ); ?></span>
@@ -528,7 +528,7 @@ peracrm_frontend_render_shell_header();
 			$render_task_rows = static function ( array $rows, string $empty_message, string $heading_id, string $heading, string $description, string $tasks_page_url, bool $show_assigned, string $tone = 'default' ) {
 				$section_class = 'urgent' === $tone ? ' crm-list-workspace__group--urgent' : '';
 				?>
-      <section class="crm-section crm-section--flush crm-list-workspace__group<?php echo esc_attr( $section_class ); ?>" aria-labelledby="<?php echo esc_attr( $heading_id ); ?>">
+      <section class="crm-panel-surface crm-section crm-section--flush crm-list-workspace__group<?php echo esc_attr( $section_class ); ?>" aria-labelledby="<?php echo esc_attr( $heading_id ); ?>">
         <header class="crm-section__header">
           <div class="crm-section__heading-group">
             <h3 id="<?php echo esc_attr( $heading_id ); ?>" class="crm-section__title"><?php echo esc_html( $heading ); ?></h3>
@@ -617,7 +617,7 @@ peracrm_frontend_render_shell_header();
         </div>
       </section>
 
-      <section class="crm-section crm-section--flush crm-list-workspace crm-list-workspace--table-first" data-crm-view="table" aria-labelledby="crm-tasks-table-heading">
+      <section class="crm-panel-surface crm-section crm-section--flush crm-list-workspace crm-list-workspace--table-first" data-crm-view="table" aria-labelledby="crm-tasks-table-heading">
         <header class="crm-section__header">
           <div class="crm-section__heading-group">
             <h2 id="crm-tasks-table-heading" class="crm-section__title"><?php echo esc_html__( 'Open task queue', 'peracrm' ); ?></h2>
@@ -743,7 +743,7 @@ peracrm_frontend_render_shell_header();
 			?>
       <div data-crm-clients-workspace<?php echo $is_new72 ? ' class="crm-new72-workspace"' : ''; ?>>
       <?php if ( ! empty( $clients_new_leads_items ) ) : ?>
-      <section class="crm-section crm-section--flush crm-list-workspace crm-list-workspace--rows" aria-labelledby="crm-clients-new-leads-heading">
+      <section class="crm-panel-surface crm-section crm-section--flush crm-list-workspace crm-list-workspace--rows" aria-labelledby="crm-clients-new-leads-heading">
         <header class="crm-section__header">
           <div class="crm-section__heading-group">
             <h2 id="crm-clients-new-leads-heading" class="crm-section__title"><?php echo esc_html__( 'New leads', 'peracrm' ); ?></h2>
@@ -869,7 +869,7 @@ peracrm_frontend_render_shell_header();
       </section>
       <?php endif; ?>
 
-      <section class="crm-section crm-section--flush crm-list-workspace crm-list-workspace--table-first" data-crm-view="table" <?php echo $is_header_search ? 'aria-label="' . esc_attr__( 'Search results', 'peracrm' ) . '"' : 'aria-labelledby="crm-leads-table-heading"'; ?>>
+      <section class="crm-panel-surface crm-section crm-section--flush crm-list-workspace crm-list-workspace--table-first" data-crm-view="table" <?php echo $is_header_search ? 'aria-label="' . esc_attr__( 'Search results', 'peracrm' ) . '"' : 'aria-labelledby="crm-leads-table-heading"'; ?>>
         <?php if ( ! $is_header_search ) : ?>
         <header class="crm-section__header">
           <div class="crm-section__heading-group">
@@ -953,7 +953,7 @@ peracrm_frontend_render_shell_header();
         </div>
       </section>
 
-	      <section class="crm-section crm-section--flush crm-list-workspace crm-list-workspace--rows is-hidden" data-crm-view="cards" aria-labelledby="crm-leads-row-list-heading">
+	      <section class="crm-panel-surface crm-section crm-section--flush crm-list-workspace crm-list-workspace--rows is-hidden" data-crm-view="cards" aria-labelledby="crm-leads-row-list-heading">
           <header class="crm-section__header">
             <div class="crm-section__heading-group">
               <h2 id="crm-leads-row-list-heading" class="crm-section__title"><?php echo esc_html( $is_new72 ? __( 'Recent leads', 'peracrm' ) : __( 'Structured list view', 'peracrm' ) ); ?></h2>

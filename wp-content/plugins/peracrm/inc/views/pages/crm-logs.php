@@ -78,7 +78,7 @@ if ( function_exists( 'peracrm_frontend_render_partial' ) ) {
 <section class="content-panel content-panel--overlap-hero">
   <div class="content-panel-box border-dm crm-layout">
     <div class="crm-layout__main">
-      <article class="crm-section crm-section--flush crm-client-section">
+      <article class="crm-panel-surface crm-section crm-section--flush crm-client-section">
       <?php if ( ! $allowed ) : ?>
         <p><?php esc_html_e( 'You are not allowed to view this page.', 'peracrm' ); ?></p>
       <?php elseif ( $is_whatsapp ) : ?>
