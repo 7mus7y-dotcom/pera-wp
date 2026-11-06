@@ -743,7 +743,7 @@ peracrm_frontend_render_shell_header();
 			?>
       <div data-crm-clients-workspace<?php echo $is_new72 ? ' class="crm-new72-workspace"' : ''; ?>>
       <?php if ( ! empty( $clients_new_leads_items ) ) : ?>
-      <section class="crm-panel-surface crm-section crm-section--flush crm-list-workspace crm-list-workspace--rows" aria-labelledby="crm-clients-new-leads-heading">
+      <section class="crm-panel-surface crm-section crm-section--flush crm-list-workspace crm-list-workspace--rows crm-list-workspace--new-leads" aria-labelledby="crm-clients-new-leads-heading">
         <header class="crm-section__header">
           <div class="crm-section__heading-group">
             <h2 id="crm-clients-new-leads-heading" class="crm-section__title"><?php echo esc_html__( 'New leads', 'peracrm' ); ?></h2>
