@@ -9473,3 +9473,34 @@ body.crm-route #site-header.peracrm-shell-header .peracrm-shell-date-pill .crm-p
   border-color: var(--brand);
   color: #fff;
 }
+
+/* Advisor Notes: compact inline edit action and editor. */
+.crm-page--client-view .crm-note-row-actions {
+  display: flex;
+  align-items: flex-start;
+  justify-content: flex-end;
+  flex-wrap: nowrap;
+  gap: 7px;
+}
+.crm-page--client-view .crm-note-row-actions .mini-btn {
+  white-space: nowrap;
+}
+.crm-page--client-view .crm-note-inline-editor {
+  margin-top: 8px;
+  display: grid;
+  gap: 8px;
+}
+.crm-page--client-view .crm-note-inline-editor[hidden],
+.crm-page--client-view [data-crm-note-text][hidden] { display: none !important; }
+.crm-page--client-view .crm-note-inline-editor textarea {
+  display: block;
+  width: 100%;
+  max-width: 100%;
+  min-height: 100px;
+  resize: vertical;
+}
+.crm-page--client-view .crm-note-inline-editor__actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
