@@ -45,6 +45,12 @@ crm_mobile_view_panel_expect(
 	'view selector and Apply view button receive compact mobile overrides'
 );
 crm_mobile_view_panel_expect(
+	false !== strpos( $mobile_css, 'flex-wrap: nowrap;' )
+		&& false !== strpos( $mobile_css, 'flex: 1 1 0;' )
+		&& false !== strpos( $mobile_css, 'width: 0;' ),
+	'long advisor names shrink inside the select without wrapping the Apply view button'
+);
+crm_mobile_view_panel_expect(
 	false !== strpos( $css, 'background: linear-gradient(135deg, rgba(7, 16, 33, 0.96), rgba(10, 33, 74, 0.92));' ),
 	'existing dark CRM view background remains unchanged'
 );
