@@ -834,12 +834,16 @@ peracrm_frontend_render_shell_header();
                                 <div class="crm-note-properties crm-note-properties--saved">
                                 <?php foreach ( (array) $note['property_ids'] as $linked_property_id ) :
                                   $linked_property_id = absint( $linked_property_id );
-                                  $linked_property = get_post( $linked_property_id );
-                                  if ( ! $linked_property || ! in_array( $linked_property->post_type, array( 'property', 'bodrum-property' ), true ) ) { continue; }
-                                  $linked_name = function_exists( 'pera_crm_client_view_property_project_name' ) ? pera_crm_client_view_property_project_name( $linked_property_id ) : get_the_title( $linked_property_id );
-                                  $linked_url = get_permalink( $linked_property_id ); ?>
+                                  $linked_preview = function_exists( 'pera_crm_client_view_property_preview' ) ? pera_crm_client_view_property_preview( $linked_property_id ) : array();
+                                  if ( empty( $linked_preview['url'] ) ) { continue; }
+                                  $linked_name = (string) ( $linked_preview['project_name'] ?? '' );
+                                  $linked_url = (string) $linked_preview['url'];
+                                  $linked_thumbnail = (string) ( $linked_preview['thumbnail'] ?? '' );
+                                  $linked_thumbnail_alt = (string) ( $linked_preview['thumbnail_alt'] ?? $linked_name ); ?>
                                   <a class="crm-note-property-card" href="<?php echo esc_url( $linked_url ); ?>" target="_blank" rel="noopener noreferrer">
-                                    <?php echo get_the_post_thumbnail( $linked_property_id, 'thumbnail', array( 'class' => 'crm-note-property-thumb', 'loading' => 'lazy' ) ); ?>
+                                    <?php if ( '' !== $linked_thumbnail ) : ?>
+                                      <img class="crm-note-property-thumb" src="<?php echo esc_url( $linked_thumbnail ); ?>" alt="<?php echo esc_attr( $linked_thumbnail_alt ); ?>" loading="lazy" decoding="async" />
+                                    <?php endif; ?>
                                     <span class="crm-note-property-name"><?php echo esc_html( $linked_name ); ?></span>
                                   </a>
                                 <?php endforeach; ?>
