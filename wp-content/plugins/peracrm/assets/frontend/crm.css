@@ -9443,3 +9443,14 @@ body.crm-route #site-header.peracrm-shell-header .peracrm-shell-date-pill .crm-p
 @media(max-width:767px){.crm-note-fields{grid-template-columns:minmax(0,1fr)}.crm-note-properties{grid-template-columns:minmax(0,1fr)}}
 
 .crm-note-property-picker[hidden],.crm-note-properties[hidden],.crm-note-search-results[hidden]{display:none!important}
+
+/* Advisor note activity: compact, brand-blue label without grid stretching. */
+.crm-page--client-view .crm-note-activity-chip {
+  width: fit-content;
+  justify-self: start;
+  align-self: start;
+  padding-inline: 8px;
+  background: var(--brand);
+  border-color: var(--brand);
+  color: #fff;
+}
