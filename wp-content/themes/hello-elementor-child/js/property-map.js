@@ -495,9 +495,86 @@
     }
   };
 
+  // Defer the third-party Maps API until the explorer approaches the viewport.
+  const bootstrapPropertyMap = () => {
+    const mapEl = document.getElementById('property-map');
+    if (!mapEl) return;
+
+    let started = false;
+    let observer = null;
+
+    const showLoadError = () => {
+      started = false;
+      const message = document.createElement('div');
+      message.className = 'property-map__load-error';
+      message.setAttribute('role', 'alert');
+      const text = document.createElement('p');
+      text.textContent = 'Map unavailable. Please try again.';
+      const retry = document.createElement('button');
+      retry.type = 'button';
+      retry.className = 'btn btn--ghost btn--blue';
+      retry.textContent = 'Retry map';
+      retry.addEventListener('click', () => {
+        message.remove();
+        start();
+      });
+      message.appendChild(text);
+      message.appendChild(retry);
+      mapEl.replaceChildren(message);
+    };
+
+    const start = () => {
+      if (started) return;
+      started = true;
+      if (observer) observer.disconnect();
+      if (window.google && window.google.maps) {
+        initPropertyMap();
+        return;
+      }
+      const url = window.peraPropertyMap && window.peraPropertyMap.google_maps_api_url;
+      if (!url) {
+        showLoadError();
+        return;
+      }
+      const script = document.createElement('script');
+      script.async = true;
+      script.src = url;
+      script.onload = () => {
+        if (window.google && window.google.maps) {
+          initPropertyMap();
+        } else {
+          script.remove();
+          showLoadError();
+        }
+      };
+      script.onerror = () => {
+        script.remove();
+        showLoadError();
+      };
+      document.head.appendChild(script);
+    };
+
+    if (window.location.hash === '#property-map-explorer' || window.location.hash === '#property-map') {
+      start();
+      return;
+    }
+    if ('IntersectionObserver' in window) {
+      observer = new window.IntersectionObserver((entries) => {
+        if (entries.some((entry) => entry.isIntersecting)) start();
+      }, { rootMargin: '450px 0px' });
+      observer.observe(mapEl);
+      window.addEventListener('hashchange', () => {
+        if (window.location.hash === '#property-map-explorer' || window.location.hash === '#property-map') start();
+      });
+    } else {
+      // Older browsers retain the previous eager-loading behaviour.
+      start();
+    }
+  };
+
   if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', initPropertyMap);
+    document.addEventListener('DOMContentLoaded', bootstrapPropertyMap);
   } else {
-    initPropertyMap();
+    bootstrapPropertyMap();
   }
 })();
