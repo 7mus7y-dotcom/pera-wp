@@ -7575,6 +7575,10 @@ body.crm-route .crm-page--client-view .peracrm-linked-property-unlink-btn:hover 
   overflow-wrap: anywhere;
 }
 
+.pera-crm-viewing-as-banner__label-mobile {
+  display: none;
+}
+
 .pera-crm-viewing-as-banner__actions {
   display: flex;
   flex: 1 1 auto;
@@ -7738,6 +7742,70 @@ body.crm-route .crm-page--client-view .peracrm-linked-property-unlink-btn:hover 
 
   .peracrm-impersonation-switcher__select {
     flex-basis: auto;
+  }
+
+  /*
+   * Overview/default state only: keep the existing dark surface while making
+   * the mobile view selector a compact two-row control. Active impersonation
+   * and every viewport above this breakpoint retain their existing layout.
+   */
+  .crm-page--overview .pera-crm-viewing-as-banner:not(.pera-crm-viewing-as-banner--active) .pera-crm-viewing-as-banner__inner {
+    gap: 0.75rem;
+    padding: 0.85rem 1rem;
+  }
+
+  .crm-page--overview .pera-crm-viewing-as-banner:not(.pera-crm-viewing-as-banner--active) .pera-crm-viewing-as-banner__meta {
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.75rem;
+  }
+
+  .crm-page--overview .pera-crm-viewing-as-banner:not(.pera-crm-viewing-as-banner--active) .pera-crm-viewing-as-banner__state {
+    padding: 0.35rem 0.65rem;
+    font-size: 0.68rem;
+  }
+
+  .crm-page--overview .pera-crm-viewing-as-banner:not(.pera-crm-viewing-as-banner--active) .pera-crm-viewing-as-banner__identity-block {
+    flex: 0 1 auto;
+  }
+
+  .crm-page--overview .pera-crm-viewing-as-banner:not(.pera-crm-viewing-as-banner--active) .pera-crm-viewing-as-banner__identity-row {
+    flex-wrap: nowrap;
+    justify-content: flex-end;
+    gap: 0.3rem;
+    white-space: nowrap;
+  }
+
+  .crm-page--overview .pera-crm-viewing-as-banner:not(.pera-crm-viewing-as-banner--active) .pera-crm-viewing-as-banner__label-default {
+    display: none;
+  }
+
+  .crm-page--overview .pera-crm-viewing-as-banner:not(.pera-crm-viewing-as-banner--active) .pera-crm-viewing-as-banner__label-mobile {
+    display: inline;
+  }
+
+  .crm-page--overview .pera-crm-viewing-as-banner:not(.pera-crm-viewing-as-banner--active) .pera-crm-viewing-as-banner__actions,
+  .crm-page--overview .pera-crm-viewing-as-banner:not(.pera-crm-viewing-as-banner--active) .peracrm-impersonation-switcher {
+    flex-direction: row;
+  }
+
+  .crm-page--overview .pera-crm-viewing-as-banner:not(.pera-crm-viewing-as-banner--active) .peracrm-impersonation-switcher {
+    flex-wrap: nowrap;
+    align-items: stretch;
+    gap: 0.6rem;
+  }
+
+  .crm-page--overview .pera-crm-viewing-as-banner:not(.pera-crm-viewing-as-banner--active) .peracrm-impersonation-switcher__select {
+    flex: 1 1 0;
+    width: 0;
+  }
+
+  .crm-page--overview .pera-crm-viewing-as-banner:not(.pera-crm-viewing-as-banner--active) .peracrm-impersonation-switcher .btn {
+    flex: 0 0 auto;
+    width: auto;
+    padding-inline: 1rem;
+    white-space: nowrap;
   }
 }
 
