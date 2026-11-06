@@ -203,14 +203,14 @@ peracrm_frontend_render_shell_header();
   <section class="content-panel content-panel--overlap-hero">
     <div class="content-panel-box border-dm crm-layout">
       <div class="crm-layout__main">
-        <section class="crm-section crm-section--flush crm-performance-summary" aria-labelledby="crm-performance-summary-title">
-          <header class="crm-section__header">
-            <div class="crm-section__heading-group">
-              <h2 id="crm-performance-summary-title" class="crm-section__title"><?php esc_html_e( 'Performance summary', 'peracrm' ); ?></h2>
-              <p class="crm-section__description"><?php esc_html_e( 'Simple first-version dashboard by date range.', 'peracrm' ); ?></p>
+        <section class="crm-panel-surface crm-section crm-section--flush crm-performance-summary" aria-labelledby="crm-performance-summary-title">
+          <header class="crm-panel-surface crm-section__header">
+            <div class="crm-panel-surface crm-section__heading-group">
+              <h2 id="crm-performance-summary-title" class="crm-panel-surface crm-section__title"><?php esc_html_e( 'Performance summary', 'peracrm' ); ?></h2>
+              <p class="crm-panel-surface crm-section__description"><?php esc_html_e( 'Simple first-version dashboard by date range.', 'peracrm' ); ?></p>
             </div>
           </header>
-          <div class="crm-section__body">
+          <div class="crm-panel-surface crm-section__body">
             <form method="get" action="<?php echo esc_url( home_url( '/crm/performance/' ) ); ?>" class="crm-performance-filters" aria-label="<?php esc_attr_e( 'Performance date range', 'peracrm' ); ?>">
               <label for="crm-performance-range">
                 <span><?php esc_html_e( 'Date range', 'peracrm' ); ?></span>
@@ -233,7 +233,7 @@ peracrm_frontend_render_shell_header();
               <?php endforeach; ?>
             </div>
             <section class="crm-subpanel crm-performance-subsection" aria-labelledby="crm-performance-attention-title">
-              <h2 id="crm-performance-attention-title" class="crm-section__title"><?php esc_html_e( 'Attention Needed', 'peracrm' ); ?></h2>
+              <h2 id="crm-performance-attention-title" class="crm-panel-surface crm-section__title"><?php esc_html_e( 'Attention Needed', 'peracrm' ); ?></h2>
               <div class="crm-performance-cards crm-performance-grid" role="list" aria-label="<?php esc_attr_e( 'Attention needed cards', 'peracrm' ); ?>">
                 <?php foreach ( $attention_defs as $key => $label ) : ?>
                   <?php $value = isset( $attention[ $key ] ) ? max( 0, (int) $attention[ $key ] ) : 0; ?>
@@ -245,7 +245,7 @@ peracrm_frontend_render_shell_header();
               </div>
             </section>
             <section class="crm-subpanel crm-performance-subsection" aria-labelledby="crm-performance-progress-title">
-              <h2 id="crm-performance-progress-title" class="crm-section__title"><?php esc_html_e( 'Cohort Progress', 'peracrm' ); ?></h2>
+              <h2 id="crm-performance-progress-title" class="crm-panel-surface crm-section__title"><?php esc_html_e( 'Cohort Progress', 'peracrm' ); ?></h2>
               <div class="crm-performance-cards crm-performance-grid" role="list" aria-label="<?php esc_attr_e( 'Cohort progress count cards', 'peracrm' ); ?>">
                 <?php foreach ( $progress_count_defs as $key => $label ) : ?>
                   <?php $value = isset( $progress[ $key ] ) ? max( 0, (int) $progress[ $key ] ) : 0; ?>
@@ -266,7 +266,7 @@ peracrm_frontend_render_shell_header();
               </div>
             </section>
             <section class="crm-subpanel crm-performance-subsection crm-performance-subsection--sources" aria-labelledby="crm-performance-sources-title">
-              <h2 id="crm-performance-sources-title" class="crm-section__title"><?php esc_html_e( 'Lead Sources', 'peracrm' ); ?></h2>
+              <h2 id="crm-performance-sources-title" class="crm-panel-surface crm-section__title"><?php esc_html_e( 'Lead Sources', 'peracrm' ); ?></h2>
               <div class="crm-table-wrap crm-table-wrap--primitive">
                 <table class="crm-table">
                   <thead>
@@ -299,7 +299,7 @@ peracrm_frontend_render_shell_header();
               </div>
             </section>
             <section class="crm-subpanel crm-performance-subsection crm-performance-subsection--comparison" aria-labelledby="crm-performance-comparison-title">
-              <h2 id="crm-performance-comparison-title" class="crm-section__title"><?php esc_html_e( 'Performance Comparison', 'peracrm' ); ?></h2>
+              <h2 id="crm-performance-comparison-title" class="crm-panel-surface crm-section__title"><?php esc_html_e( 'Performance Comparison', 'peracrm' ); ?></h2>
               <div class="crm-performance-cards crm-performance-grid" role="list" aria-label="<?php esc_attr_e( 'Performance comparison cards', 'peracrm' ); ?>">
                 <?php foreach ( $comparison_defs as $key => $metric_def ) : ?>
                   <?php
@@ -321,7 +321,7 @@ peracrm_frontend_render_shell_header();
               </div>
             </section>
             <section class="crm-subpanel crm-performance-subsection crm-performance-subsection--stage-distribution" aria-labelledby="crm-performance-stage-distribution-title">
-              <h2 id="crm-performance-stage-distribution-title" class="crm-section__title"><?php esc_html_e( 'Stage Distribution', 'peracrm' ); ?></h2>
+              <h2 id="crm-performance-stage-distribution-title" class="crm-panel-surface crm-section__title"><?php esc_html_e( 'Stage Distribution', 'peracrm' ); ?></h2>
               <div class="crm-table-wrap crm-table-wrap--primitive">
                 <table class="crm-table crm-table--stage-distribution">
                   <thead>
@@ -355,7 +355,7 @@ peracrm_frontend_render_shell_header();
               </div>
             </section>
             <section class="crm-subpanel crm-performance-subsection crm-performance-subsection--response-speed" aria-labelledby="crm-performance-response-speed-title">
-              <h2 id="crm-performance-response-speed-title" class="crm-section__title"><?php esc_html_e( 'Response Speed', 'peracrm' ); ?></h2>
+              <h2 id="crm-performance-response-speed-title" class="crm-panel-surface crm-section__title"><?php esc_html_e( 'Response Speed', 'peracrm' ); ?></h2>
               <div class="crm-performance-cards crm-performance-grid" role="list" aria-label="<?php esc_attr_e( 'Response speed cards', 'peracrm' ); ?>">
                 <article class="crm-performance-card" role="listitem">
                   <p class="crm-performance-card__value"><?php echo esc_html( number_format_i18n( max( 0, (int) ( $response_speed['no_action_24h'] ?? 0 ) ) ) ); ?></p>
@@ -375,7 +375,7 @@ peracrm_frontend_render_shell_header();
                 </article>
               </div>
               <?php if ( ! empty( $response_speed_basis['note'] ) ) : ?>
-                <p class="crm-section__description">
+                <p class="crm-panel-surface crm-section__description">
                   <?php
                   echo esc_html(
                   	sprintf(
