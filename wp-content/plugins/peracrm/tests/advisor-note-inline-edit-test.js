@@ -18,7 +18,7 @@ assert.match(view, /crm-note-row-actions/, 'edit and delete share an action row'
 assert.match(view, /data-crm-ajax-form="note-edit"/, 'inline editor uses the existing AJAX system');
 assert.match(view, /data-crm-note-cancel/, 'inline edit can be cancelled');
 assert.match(view, /esc_textarea\(\s*\(string\)\s*\(\s*\$note\['note_body'\]/, 'textarea is safely escaped');
-assert.match(view, /name="peracrm_edit_note_nonce"/, 'edit nonce rendered');
+assert.match(view, /wp_nonce_field\(\s*'peracrm_edit_note',\s*'peracrm_edit_note_nonce'\s*\)/, 'edit nonce rendered');
 assert.match(view, /name="peracrm_note_id"/, 'note ID submitted');
 assert.match(view, /name="peracrm_note_body"/, 'edited text submitted');
 assert.match(view, /data-crm-ajax-form="note-delete"/, 'delete action retained');
