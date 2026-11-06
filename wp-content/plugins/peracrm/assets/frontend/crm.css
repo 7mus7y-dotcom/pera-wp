@@ -9574,3 +9574,11 @@ body.crm-route #site-header.peracrm-shell-header .peracrm-shell-date-pill .crm-p
   background-color: var(--surface, #0f172a);
   border-color: var(--border, rgba(148, 163, 184, 0.35));
 }
+
+
+/* Keep the flush New leads workspace aligned inside its panel border. */
+.crm-page .crm-list-workspace--new-leads > .crm-section__header,
+.crm-page .crm-list-workspace--new-leads > .crm-section__body,
+.crm-page .crm-list-workspace--new-leads > .crm-section__footer {
+  padding-inline: var(--crm-section-padding);
+}
