@@ -3049,3 +3049,97 @@ document.addEventListener('DOMContentLoaded', function () {
     });
   });
 })();
+
+/* Advisor Notes: property multi-picker, using existing authorised CRM search. */
+(function () {
+  function init(root) {
+    var scope = root && root.querySelectorAll ? root : document;
+    var forms = Array.prototype.slice.call(scope.querySelectorAll('form[data-crm-ajax-form="note"]'));
+    if (scope.matches && scope.matches('form[data-crm-ajax-form="note"]')) forms.unshift(scope);
+    forms.forEach(function (form) {
+      if (form.dataset.crmNoteInit) return;
+      form.dataset.crmNoteInit = '1';
+      var type = form.querySelector('[data-crm-note-type]');
+      var picker = form.querySelector('[data-crm-note-picker]');
+      var query = form.querySelector('[data-crm-note-query]');
+      var results = form.querySelector('[data-crm-note-results]');
+      var selected = form.querySelector('[data-crm-note-selected]');
+      if (!type || !picker || !query || !results || !selected) return;
+      var ids = new Set(), timer = null, sequence = 0;
+      function toggle() {
+        var show = type.value === 'options_sent';
+        picker.hidden = !show;
+        selected.hidden = !show || !ids.size;
+        query.required = show && !ids.size;
+        selected.querySelectorAll('input').forEach(function (input) { input.disabled = !show; });
+        if (!show) results.hidden = true;
+      }
+      function add(item) {
+        var id = Number(item.property_id);
+        if (!id || ids.has(id)) return;
+        ids.add(id);
+        var card = document.createElement('div');
+        card.className = 'crm-note-property-card';
+        if (item.thumbnail) {
+          var img = document.createElement('img');
+          img.className = 'crm-note-property-thumb';
+          img.src = item.thumbnail;
+          img.alt = '';
+          card.appendChild(img);
+        }
+        var label = document.createElement('span');
+        label.className = 'crm-note-property-name';
+        label.textContent = item.project_name || ('Property #' + id);
+        card.appendChild(label);
+        var input = document.createElement('input');
+        input.type = 'hidden'; input.name = 'peracrm_note_properties[]'; input.value = String(id);
+        card.appendChild(input);
+        var remove = document.createElement('button');
+        remove.type = 'button'; remove.className = 'crm-note-remove'; remove.textContent = '×';
+        remove.setAttribute('aria-label', 'Remove ' + label.textContent);
+        remove.addEventListener('click', function () { ids.delete(id); card.remove(); toggle(); });
+        card.appendChild(remove);
+        selected.appendChild(card);
+        query.value = '';
+        results.hidden = true;
+        toggle();
+      }
+      function search() {
+        var term = query.value.trim();
+        var ajaxUrl = window.peraCrmData && window.peraCrmData.ajaxUrl;
+        var nonce = window.peraCrmData && window.peraCrmData.propertySearchNonce;
+        var current = ++sequence;
+        if (term.length < 2 || !ajaxUrl || !nonce) { results.hidden = true; return; }
+        fetch(ajaxUrl + '?action=pera_crm_property_search&nonce=' + encodeURIComponent(nonce) + '&q=' + encodeURIComponent(term), {credentials:'same-origin'})
+          .then(function (response) { return response.json(); })
+          .then(function (data) {
+            if (current !== sequence) return;
+            results.textContent = '';
+            var items = data && data.success && data.data && Array.isArray(data.data.items) ? data.data.items : [];
+            items.filter(function (item) { return !ids.has(Number(item.property_id)); }).forEach(function (item) {
+              var button = document.createElement('button');
+              button.type = 'button'; button.textContent = item.project_name || String(item.property_id);
+              button.addEventListener('click', function () { add(item); });
+              results.appendChild(button);
+            });
+            results.hidden = !results.children.length;
+          }).catch(function () { if (current === sequence) results.hidden = true; });
+      }
+      type.addEventListener('change', toggle);
+      query.addEventListener('input', function () { clearTimeout(timer); timer = setTimeout(search, 250); });
+      query.addEventListener('keydown', function (event) {
+        if (event.key === 'Escape') results.hidden = true;
+      });
+      form.addEventListener('submit', function (event) {
+        if (type.value === 'options_sent' && !ids.size) {
+          event.preventDefault(); event.stopImmediatePropagation();
+          query.setCustomValidity('Select at least one property.'); query.reportValidity();
+        }
+      }, true);
+      query.addEventListener('input', function () { query.setCustomValidity(''); });
+      toggle();
+    });
+  }
+  init(document);
+  document.addEventListener('peracrm:panel-replaced', function (event) { init(event && event.detail ? event.detail.element : document); });
+})();

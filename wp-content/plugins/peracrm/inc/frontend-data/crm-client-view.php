@@ -1850,7 +1850,10 @@ if ( ! function_exists( 'pera_crm_client_action_ajax' ) ) {
 
 			$note_body = isset( $_POST['peracrm_note_body'] ) ? trim( sanitize_textarea_field( wp_unslash( (string) $_POST['peracrm_note_body'] ) ) ) : '';
 			$actor_user_id = function_exists( 'peracrm_get_actor_user_id' ) ? peracrm_get_actor_user_id() : get_current_user_id();
-			$note_id = '' !== $note_body && function_exists( 'peracrm_note_add' ) ? (int) peracrm_note_add( $client_id, $actor_user_id, substr( $note_body, 0, 5000 ) ) : 0;
+			$activity_type = isset( $_POST['peracrm_note_type'] ) ? sanitize_key( wp_unslash( (string) $_POST['peracrm_note_type'] ) ) : '';
+			$property_ids = isset( $_POST['peracrm_note_properties'] ) && is_array( $_POST['peracrm_note_properties'] ) ? array_map( 'absint', wp_unslash( $_POST['peracrm_note_properties'] ) ) : array();
+			$valid_type = in_array( $activity_type, array( 'phone_call', 'email_sent', 'wa_sent', 'options_sent' ), true );
+			$note_id = $valid_type && '' !== $note_body && function_exists( 'peracrm_note_add' ) ? (int) peracrm_note_add( $client_id, $actor_user_id, substr( $note_body, 0, 5000 ), $activity_type, $property_ids ) : 0;
 			if ( $note_id > 0 && function_exists( 'peracrm_log_event' ) ) {
 				peracrm_log_event( $client_id, 'note_added', array(
 					'note_id'       => $note_id,

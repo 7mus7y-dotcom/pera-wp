@@ -824,6 +824,27 @@ peracrm_frontend_render_shell_header();
                                 <h4 class="crm-row-list__title"><?php echo esc_html( (string) $note_author_name ); ?></h4>
                                 <span class="crm-chip crm-chip--neutral"><?php echo esc_html( (string) $note_created_at ); ?></span>
                               </div>
+                              <?php
+                              $note_type_labels = array( 'phone_call' => __( 'Phone call made', 'peracrm' ), 'email_sent' => __( 'Email sent', 'peracrm' ), 'wa_sent' => __( 'WA sent', 'peracrm' ), 'options_sent' => __( 'Options sent', 'peracrm' ) );
+                              $note_type = (string) ( $note['activity_type'] ?? '' );
+                              if ( isset( $note_type_labels[ $note_type ] ) ) : ?>
+                                <span class="crm-chip crm-chip--neutral"><?php echo esc_html( $note_type_labels[ $note_type ] ); ?></span>
+                              <?php endif; ?>
+                              <?php if ( 'options_sent' === $note_type && ! empty( $note['property_ids'] ) ) : ?>
+                                <div class="crm-note-properties crm-note-properties--saved">
+                                <?php foreach ( (array) $note['property_ids'] as $linked_property_id ) :
+                                  $linked_property_id = absint( $linked_property_id );
+                                  $linked_property = get_post( $linked_property_id );
+                                  if ( ! $linked_property || ! in_array( $linked_property->post_type, array( 'property', 'bodrum-property' ), true ) ) { continue; }
+                                  $linked_name = function_exists( 'pera_crm_client_view_property_project_name' ) ? pera_crm_client_view_property_project_name( $linked_property_id ) : get_the_title( $linked_property_id );
+                                  $linked_url = get_permalink( $linked_property_id ); ?>
+                                  <a class="crm-note-property-card" href="<?php echo esc_url( $linked_url ); ?>" target="_blank" rel="noopener noreferrer">
+                                    <?php echo get_the_post_thumbnail( $linked_property_id, 'thumbnail', array( 'class' => 'crm-note-property-thumb', 'loading' => 'lazy' ) ); ?>
+                                    <span class="crm-note-property-name"><?php echo esc_html( $linked_name ); ?></span>
+                                  </a>
+                                <?php endforeach; ?>
+                                </div>
+                              <?php endif; ?>
                               <p class="crm-row-list__summary"><?php echo esc_html( (string) ( $note['note_body'] ?? '' ) ); ?></p>
                             </div>
                             <?php if ( ! empty( $note['id'] ) ) : ?>
@@ -850,6 +871,23 @@ peracrm_frontend_render_shell_header();
                   <input type="hidden" name="action" value="peracrm_add_note" />
                   <input type="hidden" name="peracrm_client_id" value="<?php echo esc_attr( (string) $client_id ); ?>" />
                   <input type="hidden" name="peracrm_redirect" value="<?php echo esc_url( $frontend_url ); ?>" />
+                  <div class="crm-note-fields" data-crm-note-fields>
+                    <label><?php esc_html_e( 'Note type', 'peracrm' ); ?>
+                      <select name="peracrm_note_type" data-crm-note-type required>
+                        <option value=""><?php esc_html_e( 'Select activity type', 'peracrm' ); ?></option>
+                        <option value="phone_call"><?php esc_html_e( 'Phone call made', 'peracrm' ); ?></option>
+                        <option value="email_sent"><?php esc_html_e( 'Email sent', 'peracrm' ); ?></option>
+                        <option value="wa_sent"><?php esc_html_e( 'WA sent', 'peracrm' ); ?></option>
+                        <option value="options_sent"><?php esc_html_e( 'Options sent', 'peracrm' ); ?></option>
+                      </select>
+                    </label>
+                    <div class="crm-note-property-picker" data-crm-note-picker hidden>
+                      <label for="crm-note-property-query"><?php esc_html_e( 'Search properties / projects', 'peracrm' ); ?></label>
+                      <input id="crm-note-property-query" type="search" data-crm-note-query autocomplete="off" placeholder="<?php echo esc_attr__( 'Start typing a property name', 'peracrm' ); ?>" />
+                      <div class="crm-note-search-results" data-crm-note-results hidden></div>
+                    </div>
+                  </div>
+                  <div class="crm-note-properties" data-crm-note-selected hidden></div>
                   <label for="peracrm_note_body_frontend"><?php esc_html_e( 'Add note', 'peracrm' ); ?></label>
                   <textarea name="peracrm_note_body" id="peracrm_note_body_frontend" rows="4"></textarea>
                   <button type="submit" class="btn btn--solid btn--blue"><?php esc_html_e( 'Add note', 'peracrm' ); ?></button>
