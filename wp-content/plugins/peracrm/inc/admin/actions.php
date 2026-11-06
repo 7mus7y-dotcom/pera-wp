@@ -776,7 +776,7 @@ function peracrm_handle_add_note()
     $actor_user_id = function_exists('peracrm_get_actor_user_id') ? peracrm_get_actor_user_id() : get_current_user_id();
     $activity_type = isset($_POST['peracrm_note_type']) ? sanitize_key(wp_unslash((string)$_POST['peracrm_note_type'])) : '';
     $property_ids = isset($_POST['peracrm_note_properties']) && is_array($_POST['peracrm_note_properties']) ? array_map('absint', wp_unslash($_POST['peracrm_note_properties'])) : [];
-    if ($activity_type !== '' && !in_array($activity_type, ['phone_call', 'email_sent', 'wa_sent', 'options_sent'], true)) {
+    if ($activity_type !== '' && !in_array($activity_type, ['phone_call', 'email_sent', 'wa_sent', 'options_sent', 'general'], true)) {
         peracrm_admin_redirect_with_notice($redirect, 'note_failed');
     }
     $note_id = peracrm_note_add($client_id, $actor_user_id, $note_body, $activity_type, $property_ids);
