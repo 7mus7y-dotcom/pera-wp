@@ -27,7 +27,7 @@ function fixture(key = 'test-key') {
     getElementById(id) { return scripts.find(s => s.id === id) || null; },
     createElement(tag) {
       assert.equal(tag, 'script');
-      return { setAttribute(k, v) { this.attrs[k] = v; } };
+      return { attrs: {}, setAttribute(k, v) { this.attrs[k] = v; } };
     },
     head: { appendChild(script) { scripts.push(script); } }
   };
