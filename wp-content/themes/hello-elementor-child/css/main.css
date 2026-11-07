@@ -5652,7 +5652,7 @@ ol.pretty-list li::before {
   top: calc(var(--property-sticky-controls-bottom, 0px) + 10px);
   right: max(16px, calc((100vw - var(--container)) / 2));
   width: min(300px, calc(100vw - 32px));
-  z-index: 990; /* Below header navigation and dropdowns. */
+  z-index: 1001; /* Above the header shell; JS hides this while navigation or dropdowns are open. */
   padding: 16px;
 }
 .property-sticky-summary[hidden] { display: none; }
