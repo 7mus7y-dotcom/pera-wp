@@ -85,8 +85,13 @@ const fixture = `<style>${css}</style><style>
         const reference = await page.locator('#alignment-reference').boundingBox();
         assert(Math.abs(rect.x + rect.width - Math.min(width - 16, reference.x + reference.width)) < 1, 'right edge follows content container');
         assert(rect.x >= 0 && rect.x + rect.width <= width, 'card remains inside viewport');
-        const button = await bar.locator('a[href="#contact-form"]').boundingBox();
+        const buttonLocator = bar.locator('a[href="#contact-form"]');
+        const button = await buttonLocator.boundingBox();
         assert(Math.abs(button.width - (rect.width - 34)) < 1, 'full-width desktop Enquire');
+        assert(await buttonLocator.evaluate(button => {
+          const rect = button.getBoundingClientRect();
+          return document.elementFromPoint(rect.left + rect.width / 2, rect.top + rect.height / 2)?.closest('a[href="#contact-form"]') === button;
+        }), 'desktop Enquire remains the topmost clickable element beneath the header controls');
         const details = await bar.locator('.property-sticky-summary__details').boundingBox();
         assert(button.y >= details.y + details.height, 'button below price and facts');
         assert.equal(await page.evaluate(() => document.elementFromPoint(innerWidth - 1, document.getElementById('site-header').getBoundingClientRect().bottom + 2)?.closest('[data-property-sticky-summary]') !== null), false, 'no full-width separator');
