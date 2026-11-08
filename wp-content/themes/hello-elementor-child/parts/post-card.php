@@ -102,7 +102,7 @@ if ( function_exists( 'pera_get_public_updated_date' ) ) {
 
     <div class="article-meta-secondary post-card-meta-secondary">
       <span class="article-meta-item">
-        <?php echo esc_html( pera_ml_ui( 'Published:', 'theme.parts.post-card.published' ) ); ?>
+        <?php echo esc_html( pera_ml_ui( 'Pub:', 'theme.parts.post-card.published_short' ) ); ?>
         <time datetime="<?php echo esc_attr( get_the_date( DATE_W3C ) ); ?>">
           <?php echo esc_html( get_the_date( 'M j, Y' ) ); ?>
         </time>
@@ -111,7 +111,7 @@ if ( function_exists( 'pera_get_public_updated_date' ) ) {
       <span class="article-meta-separator"> / </span>
 
       <span class="article-meta-item">
-        <?php echo esc_html( pera_ml_ui( 'Updated:', 'theme.parts.post-card.updated' ) ); ?>
+        <?php echo esc_html( pera_ml_ui( 'Upd:', 'theme.parts.post-card.updated_short' ) ); ?>
         <time datetime="<?php echo esc_attr( $updated_datetime ); ?>">
           <?php echo esc_html( $updated_date_display ); ?>
         </time>
