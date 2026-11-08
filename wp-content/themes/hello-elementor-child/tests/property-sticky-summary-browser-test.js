@@ -122,7 +122,7 @@ const fixture = `<style>${css}</style><style>
       await page.evaluate(() => window.PeraCurrency.setSelected('USD'));
       await bar.locator('a[href="#contact-form"]').click();
       await page.waitForTimeout(150);
-      assert.equal(await page.evaluate(() => document.activeElement.id), 'name');
+      assert.equal(await page.evaluate(() => document.activeElement.id), 'contact-form', 'Enquire focuses the section without activating an input');
       const headerHeight = await page.locator('#site-header').evaluate(e => e.getBoundingClientRect().height);
       assert(Math.abs((await page.locator('#contact-form').boundingBox()).y - headerHeight - 16) < 2, 'header offset and reduced motion');
       await scroll(await page.locator('.enquiry-cta-form').evaluate(e => e.getBoundingClientRect().top + scrollY - 150)); await visible(false);
