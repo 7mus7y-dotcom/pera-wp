@@ -41,7 +41,8 @@ function fixture() {
   const context = vm.createContext({
     window, document, marketingLoaded: false, analyticsLoaded: false,
     chkAnalytics: null, chkMarketing: null,
-    initGA() { injected.push('ga'); }
+    initGA() { injected.push('ga'); },
+    initAhrefs() { injected.push('ahrefs'); }
   });
   vm.runInContext(extractFunction(main, 'initMetaPixel') + '\n' +
     extractFunction(main, 'applyPrefs'), context);
@@ -68,7 +69,7 @@ function fixture() {
   const f = fixture();
   f.context.applyPrefs({ marketing: false, analytics: true });
   assert.equal(f.scripts.length, 0, 'analytics-only consent does not load marketing scripts');
-  assert.deepEqual(f.injected, ['ga'], 'analytics consent remains independent');
+  assert.deepEqual(f.injected, ['ga', 'ahrefs'], 'analytics consent remains independent');
 }
 {
   const f = fixture();
