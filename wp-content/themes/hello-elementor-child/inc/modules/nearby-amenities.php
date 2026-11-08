@@ -270,7 +270,7 @@ function pera_render_nearby_amenities( $map, $shared_heading_id = '' ) {
                     $distance = $place['distance'] < 1000
                         ? sprintf( pera_ml_ui( '%s m', 'theme.nearby.metres' ), number_format_i18n( round( $place['distance'] ) ) )
                         : sprintf( pera_ml_ui( '%s km', 'theme.nearby.kilometres' ), number_format_i18n( $place['distance'] / 1000, 1 ) ); ?>
-                    <li><a href="<?php echo esc_url( $place['url'] ?? 'https://www.openstreetmap.org/' . $place['id'] ); ?>"><bdi><?php echo esc_html( $name ); ?></bdi></a> <span class="text-soft text-nowrap"><bdi><?php echo esc_html( $distance ); ?></bdi></span></li>
+                    <li><a href="<?php echo esc_url( $place['url'] ?? 'https://www.openstreetmap.org/' . $place['id'] ); ?>" target="_blank" rel="noopener noreferrer"><bdi><?php echo esc_html( $name ); ?></bdi></a> <span class="text-soft text-nowrap"><bdi><?php echo esc_html( $distance ); ?></bdi></span></li>
                 <?php endforeach; ?>
                 </ul></div>
             <?php endforeach; ?>
