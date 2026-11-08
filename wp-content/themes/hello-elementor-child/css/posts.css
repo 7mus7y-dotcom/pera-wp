@@ -134,6 +134,43 @@
   color: inherit;
 }
 
+/* Dates and action share one footer row, including narrow slider cards. */
+.post-card-footer{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:12px;
+  margin-top:auto;
+}
+
+.post-card-footer .post-card-meta-secondary{
+  display:flex;
+  flex-direction:column;
+  flex:1 1 auto;
+  min-width:0;
+  margin:0;
+  gap:2px;
+}
+
+.post-card-footer .article-meta-separator{
+  display:none;
+}
+
+.post-card-footer .article-meta-item{
+  white-space:normal;
+  overflow-wrap:anywhere;
+}
+
+.post-card-footer .post-card-readmore{
+  flex:0 0 auto;
+  margin:0;
+  padding:0;
+}
+
+.post-card-footer .post-card-readmore .btn{
+  white-space:nowrap;
+}
+
 /* Read more (optional) */
 .post-card-readmore{
   display:flex;
