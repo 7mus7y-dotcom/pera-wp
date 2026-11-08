@@ -1733,7 +1733,7 @@ if ( ! empty( $yt_video ) ) {
 <!-- =====================================
    ENQUIRY
    ===================================== -->
-<section class="section section-soft" id="contact-form">
+<section class="section section-soft">
   <div class="content-panel-box">
 
     <!-- Top panel (2-col) -->
@@ -1829,7 +1829,8 @@ if ( ! empty( $yt_video ) ) {
 
     <hr class="content-panel-divider">
 
-    <!-- Form -->
+    <!-- Form: anchor starts at the Request full details heading. -->
+    <div id="contact-form" tabindex="-1">
         <?php
           get_template_part(
             'parts/enquiry-form',
@@ -1852,6 +1853,7 @@ if ( ! empty( $yt_video ) ) {
             <?php echo esc_html( pera_ml_ui( 'Thank you – we have received your details. A Pera consultant will contact you shortly.', 'theme.template.single_property.thank_you_we_have_received_your_details_a_pera_consultant_will_contact_y' ) ); ?>
           </div>
         <?php endif; ?>
+    </div><!-- /#contact-form -->
   </div><!-- /.content-panel-box -->
 </section>
 
