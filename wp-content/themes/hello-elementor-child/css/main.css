@@ -843,13 +843,13 @@ section,
 .btn--white { --btn-color: var(--inverse); }
 
 @media (prefers-color-scheme: dark) {
-  .btn.btn--solid.btn--black.btn-card {
+  .btn.btn--solid.btn--black:is(.btn-card, .property-filters-trigger, .property-sort__trigger) {
     border-color: var(--inverse, #ffffff);
   }
 }
 
-[data-theme="dark"] .btn.btn--solid.btn--black.btn-card,
-.dark .btn.btn--solid.btn--black.btn-card {
+[data-theme="dark"] .btn.btn--solid.btn--black:is(.btn-card, .property-filters-trigger, .property-sort__trigger),
+.dark .btn.btn--solid.btn--black:is(.btn-card, .property-filters-trigger, .property-sort__trigger) {
   border-color: var(--inverse, #ffffff);
 }
 
