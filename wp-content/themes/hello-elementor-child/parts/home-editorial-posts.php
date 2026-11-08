@@ -11,7 +11,7 @@ $editorial_query = new WP_Query( array(
   'no_found_rows'       => true,
   'orderby'             => 'date',
   'order'               => 'DESC',
-  'category_name'       => 'regional-guides,buyer-guides,investment-advice',
+  'category_name'       => 'regional-guides,buyer-guides,investment-advice,seller-guides,citizenship',
 ) );
 
 if ( ! $editorial_query->have_posts() ) {
