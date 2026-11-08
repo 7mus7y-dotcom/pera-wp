@@ -75,9 +75,9 @@
     window.addEventListener('pageshow', measure);
     bar.querySelector('a[href="#contact-form"]').addEventListener('click', function (event) {
       event.preventDefault();
-      // Keep the existing anchor target; focus the actual form for keyboard users.
-      var target = form.querySelector('input:not([type="hidden"]):not([tabindex="-1"]), select, textarea');
-      if (target) target.focus({ preventScroll: true });
+      // Focus the section for keyboard navigation without opening the mobile keyboard.
+      if (!contact.hasAttribute('tabindex')) contact.setAttribute('tabindex', '-1');
+      contact.focus({ preventScroll: true });
       contact.scrollIntoView({ behavior: window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'instant' : 'smooth', block: 'start' });
     });
     measure();
