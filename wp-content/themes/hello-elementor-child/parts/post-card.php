@@ -100,30 +100,32 @@ if ( function_exists( 'pera_get_public_updated_date' ) ) {
       <?php echo esc_html( wp_trim_words( get_the_excerpt(), 22, '…' ) ); ?>
     </div>
 
-    <div class="article-meta-secondary post-card-meta-secondary">
-      <span class="article-meta-item">
-        <?php echo esc_html( pera_ml_ui( 'Pub:', 'theme.parts.post-card.published_short' ) ); ?>
-        <time datetime="<?php echo esc_attr( get_the_date( DATE_W3C ) ); ?>">
-          <?php echo esc_html( get_the_date( 'M j, Y' ) ); ?>
-        </time>
-      </span>
+    <div class="post-card-footer">
+      <div class="article-meta-secondary post-card-meta-secondary">
+        <span class="article-meta-item">
+          <?php echo esc_html( pera_ml_ui( 'Pub:', 'theme.parts.post-card.published_short' ) ); ?>
+          <time datetime="<?php echo esc_attr( get_the_date( DATE_W3C ) ); ?>">
+            <?php echo esc_html( get_the_date( 'M j, Y' ) ); ?>
+          </time>
+        </span>
 
-      <span class="article-meta-separator"> / </span>
+        <span class="article-meta-separator"> / </span>
 
-      <span class="article-meta-item">
-        <?php echo esc_html( pera_ml_ui( 'Upd:', 'theme.parts.post-card.updated_short' ) ); ?>
-        <time datetime="<?php echo esc_attr( $updated_datetime ); ?>">
-          <?php echo esc_html( $updated_date_display ); ?>
-        </time>
-      </span>
-    </div>
-
-    <?php if ( $show_readmore ) : ?>
-      <div class="post-card-readmore">
-        <a href="<?php echo esc_url( $post_permalink ); ?>" class="btn btn--solid btn--blue">
-          <?php echo esc_html( pera_ml_ui( 'Read more', 'theme.parts.post-card.read_more' ) ); ?><span class="screen-reader-text">: <?php echo esc_html( $post_title ); ?></span>
-        </a>
+        <span class="article-meta-item">
+          <?php echo esc_html( pera_ml_ui( 'Upd:', 'theme.parts.post-card.updated_short' ) ); ?>
+          <time datetime="<?php echo esc_attr( $updated_datetime ); ?>">
+            <?php echo esc_html( $updated_date_display ); ?>
+          </time>
+        </span>
       </div>
-    <?php endif; ?>
+
+      <?php if ( $show_readmore ) : ?>
+        <div class="post-card-readmore">
+          <a href="<?php echo esc_url( $post_permalink ); ?>" class="btn btn--solid btn--blue">
+            <?php echo esc_html( pera_ml_ui( 'Read more', 'theme.parts.post-card.read_more' ) ); ?><span class="screen-reader-text">: <?php echo esc_html( $post_title ); ?></span>
+          </a>
+        </div>
+      <?php endif; ?>
+    </div>
   </div>
 </article>
