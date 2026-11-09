@@ -19,6 +19,20 @@ $plugin_logo_path = trailingslashit( PERACRM_PATH ) . 'logos-icons/pera-logo.svg
 $plugin_logo_url = trailingslashit( PERACRM_URL ) . 'logos-icons/pera-logo.svg';
 $has_plugin_logo = file_exists( $plugin_logo_path );
 
+// Static outline artwork shared by the desktop and off-canvas navigation.
+$nav_icons = array(
+	'overview' => '<path d="m3 10 9-7 9 7v11h-6v-7H9v7H3z"/>',
+	'clients' => '<circle cx="9" cy="7" r="4"/><path d="M2 21v-2a7 7 0 0 1 14 0v2M16 3a4 4 0 0 1 0 8m3 3a6 6 0 0 1 3 5v2"/>',
+	'tasks' => '<circle cx="12" cy="12" r="9"/><path d="m8 12 3 3 5-6"/>',
+	'appointments' => '<rect x="3" y="5" width="18" height="16" rx="2"/><path d="M7 3v4m10-4v4M3 11h18"/>',
+	'pipeline' => '<rect x="3" y="3" width="18" height="18" rx="2"/><path d="M9 3v18m6-18v18M5 7h2m4 4h2m4 4h2"/>',
+	'performance' => '<path d="M3 3v18h18M7 17v-5m5 5V8m5 9V4"/>',
+	'campaigns' => '<path d="m3 9 17-6v18L3 15V9zm5 8 2 5H6l-2-6M20 9h2m-2 6h2"/>',
+	'subscribers' => '<circle cx="9" cy="7" r="4"/><path d="M2 21v-2a7 7 0 0 1 14 0v2m3-14v8m-4-4h8"/>',
+	'whatsapp_logs' => '<path d="M21 12a9 9 0 0 1-9 9 10 10 0 0 1-4-1l-5 1 1-5a10 10 0 0 1-1-4 9 9 0 0 1 18 0Z M7 10h10M7 14h7"/>',
+	'email_logs' => '<rect x="3" y="5" width="18" height="14" rx="2"/><path d="m3 7 9 6 9-6"/>',
+);
+
 $items = array(
 	'overview' => array( 'label' => __( 'Overview', 'peracrm' ), 'url' => home_url( '/crm/' ) ),
 	'clients' => array( 'label' => __( 'Clients', 'peracrm' ), 'url' => home_url( '/crm/clients/' ) ),
@@ -45,7 +59,12 @@ if ( $can_view_logs ) {
     <p class="crm-side-nav__title"><?php esc_html_e( 'Menu', 'peracrm' ); ?></p>
     <ul class="crm-side-nav__list">
       <?php foreach ( $items as $key => $item ) : ?>
-        <li><a class="<?php echo esc_attr( $active_view === $key ? 'is-active' : '' ); ?>" href="<?php echo esc_url( (string) $item['url'] ); ?>"><?php if ($key === 'appointments') : ?><svg class="crm-appointment-nav-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" aria-hidden="true"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M7 3v4m10-4v4M3 11h18"/></svg> <?php endif; ?><?php echo esc_html( (string) $item['label'] ); ?></a></li>
+        <li>
+          <a class="<?php echo esc_attr( $active_view === $key ? 'is-active' : '' ); ?>" href="<?php echo esc_url( (string) $item['url'] ); ?>">
+            <svg class="crm-side-nav__icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><?php echo $nav_icons[$key]; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- Static SVG artwork defined above. ?></svg>
+            <span class="crm-side-nav__label"><?php echo esc_html( (string) $item['label'] ); ?></span>
+          </a>
+        </li>
       <?php endforeach; ?>
     </ul>
   </aside>
@@ -76,7 +95,12 @@ if ( $can_view_logs ) {
           <p class="crm-side-nav__eyebrow"><?php esc_html_e( 'CRM workspace', 'peracrm' ); ?></p>
           <ul class="crm-side-nav__list crm-side-nav__list--drawer">
             <?php foreach ( $items as $key => $item ) : ?>
-              <li><a class="<?php echo esc_attr( $active_view === $key ? 'is-active' : '' ); ?>" href="<?php echo esc_url( (string) $item['url'] ); ?>"><?php if ($key === 'appointments') : ?><svg class="crm-appointment-nav-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" aria-hidden="true"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M7 3v4m10-4v4M3 11h18"/></svg> <?php endif; ?><?php echo esc_html( (string) $item['label'] ); ?></a></li>
+              <li>
+                <a class="<?php echo esc_attr( $active_view === $key ? 'is-active' : '' ); ?>" href="<?php echo esc_url( (string) $item['url'] ); ?>">
+                  <svg class="crm-side-nav__icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><?php echo $nav_icons[$key]; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- Static SVG artwork defined above. ?></svg>
+                  <span class="crm-side-nav__label"><?php echo esc_html( (string) $item['label'] ); ?></span>
+                </a>
+              </li>
             <?php endforeach; ?>
           </ul>
         </div>

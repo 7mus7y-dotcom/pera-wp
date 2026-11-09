@@ -3353,7 +3353,9 @@ body.crm-route #site-header.peracrm-shell-header .crm-side-nav__toggle--header:f
   border-bottom: 0;
 }
 .crm-side-nav__list a {
-  display: block;
+  display: flex;
+  align-items: center;
+  gap: 10px;
   padding: 12px 10px;
   border-radius: 12px;
   text-decoration: none;
@@ -3364,6 +3366,15 @@ body.crm-route #site-header.peracrm-shell-header .crm-side-nav__toggle--header:f
   font-weight: 500;
   line-height: 1.45;
   transition: background-color 160ms ease, color 160ms ease, transform 160ms ease;
+}
+.crm-side-nav__icon {
+  display: block;
+  flex: 0 0 20px;
+  width: 20px;
+  height: 20px;
+}
+.crm-side-nav__label {
+  min-width: 0;
 }
 .crm-side-nav__list a:hover,
 .crm-side-nav__list a:focus-visible {
