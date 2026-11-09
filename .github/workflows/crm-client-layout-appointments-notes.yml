@@ -1,0 +1,27 @@
+name: CRM client layout appointments and notes
+on:
+  pull_request:
+    paths:
+      - 'wp-content/plugins/peracrm/inc/views/pages/crm-client.php'
+      - 'wp-content/plugins/peracrm/assets/frontend/crm.css'
+      - 'wp-content/plugins/peracrm/tests/client-layout-appointments-notes-test.js'
+      - '.github/workflows/crm-client-layout-appointments-notes.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  client-layout:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.2'
+          coverage: none
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: PHP syntax
+        run: php -l wp-content/plugins/peracrm/inc/views/pages/crm-client.php
+      - name: Client layout structural regression
+        run: node wp-content/plugins/peracrm/tests/client-layout-appointments-notes-test.js
