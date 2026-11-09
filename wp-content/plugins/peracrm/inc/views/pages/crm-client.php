@@ -884,10 +884,18 @@ peracrm_frontend_render_shell_header();
                                 'options_sent' => 'icon-property',
                                 'general'      => 'icon-notes',
                               );
-                              if ( isset( $note_type_labels[ $note_type ] ) ) : ?>
+                              if ( isset( $note_type_labels[ $note_type ] ) ) :
+                                // Version the external SVG sprite: browsers can otherwise keep a
+                                // cached copy that predates newly added icon-phone-call.
+                                $sprite_path = get_stylesheet_directory() . '/logos-icons/icons.svg';
+                                $sprite_url = get_stylesheet_directory_uri() . '/logos-icons/icons.svg';
+                                if ( is_file( $sprite_path ) ) {
+                                  $sprite_url = add_query_arg( 'ver', (string) filemtime( $sprite_path ), $sprite_url );
+                                }
+                              ?>
                                 <span class="crm-chip crm-chip--selected crm-note-activity-chip">
                                   <svg class="crm-note-activity-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
-                                    <use href="<?php echo esc_url( get_stylesheet_directory_uri() . '/logos-icons/icons.svg#' . $note_type_icons[ $note_type ] ); ?>"></use>
+                                    <use href="<?php echo esc_url( $sprite_url . '#' . $note_type_icons[ $note_type ] ); ?>"></use>
                                   </svg>
                                   <span><?php echo esc_html( $note_type_labels[ $note_type ] ); ?></span>
                                 </span>
