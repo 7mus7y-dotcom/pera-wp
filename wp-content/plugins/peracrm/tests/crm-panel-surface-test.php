@@ -57,15 +57,15 @@ foreach ($views as $view) {
 
 $overview = file_get_contents($root . '/inc/views/pages/crm-overview.php');
 $expect(
-    false !== strpos($overview, 'crm-panel-surface--gradient-warm crm-section crm-section--flush crm-overview-priority'),
+    false !== strpos($overview, 'crm-panel-surface--gradient-warm crm-section crm-overview-priority'),
     'priority work uses the warm overview gradient'
 );
 $expect(
-    false !== strpos($overview, 'crm-panel-surface--gradient-cool crm-section crm-section--flush crm-overview-queue'),
+    false !== strpos($overview, 'crm-panel-surface--gradient-cool crm-section crm-overview-queue'),
     'lead queues use the cool overview gradient'
 );
 $expect(
-    false !== strpos($overview, 'crm-panel-surface--gradient-brand crm-section crm-section--flush crm-overview-metrics'),
+    false !== strpos($overview, 'crm-panel-surface--gradient-brand crm-section crm-overview-metrics'),
     'pipeline health uses the brand overview gradient'
 );
 $expect(

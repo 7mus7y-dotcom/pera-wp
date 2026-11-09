@@ -3886,24 +3886,6 @@ body.crm-route #site-header.peracrm-shell-header .crm-side-nav__toggle--header:f
   box-shadow: none;
 }
 
-.crm-page .crm-section--flush {
-  padding: 0;
-}
-
-.crm-page .crm-section--flush > .crm-section__header,
-.crm-page .crm-section--flush > .crm-section__body,
-.crm-page .crm-section--flush > .crm-section__footer {
-}
-
-.crm-page .crm-section--flush > .crm-section__header {
-  padding-top: var(--crm-section-padding);
-}
-
-.crm-page .crm-section--flush > .crm-section__footer,
-.crm-page .crm-section--flush > .crm-section__body:last-child {
-  padding-bottom: var(--crm-section-padding);
-}
-
 .crm-page .crm-section__header {
   display: flex;
   align-items: flex-start;
@@ -5334,14 +5316,6 @@ body.crm-route #site-header.peracrm-shell-header.is-scrolled .peracrm-header-act
   background: #fbfbfc;
 }
 
-.crm-page--client-view .crm-section--flush.crm-client-related > .crm-client-subsection {
-  padding-inline: var(--crm-section-padding);
-}
-
-.crm-page--client-view .crm-section--flush.crm-client-related > .crm-client-subsection:last-child {
-  padding-bottom: var(--crm-section-padding);
-}
-
 .crm-page--client-view .crm-client-related > .crm-client-subsection + .crm-client-subsection {
   margin-top: 4px;
 }
@@ -6143,11 +6117,6 @@ body.crm-route #site-header.peracrm-shell-header.is-scrolled .peracrm-header-act
   padding: var(--crm-section-padding);
 }
 
-/* Keep flush sections authoritative even after the base .crm-section pass. */
-.crm-page .crm-section--flush {
-  padding: 0;
-}
-
 /* Internal/component spacing ownership lives in section internals (header/body/footer, grids, etc.). */
 .crm-page .crm-subpanel {
   padding: 12px 0;
@@ -6635,12 +6604,6 @@ body.crm-route .crm-page--client-view .peracrm-linked-property-unlink-btn:hover 
 .crm-page--client-view .crm-client-subsection,
 .crm-page--client-view .crm-section {
   border-radius: var(--crm-section-radius);
-}
-
-.crm-page--client-view .crm-section--flush:not(.crm-form-section) > .crm-section__header,
-.crm-page--client-view .crm-section--flush:not(.crm-form-section) > .crm-section__body,
-.crm-page--client-view .crm-section--flush:not(.crm-form-section) > .crm-section__footer {
-  padding-inline: var(--crm-section-padding);
 }
 
 .crm-page--client-view .crm-client-notes-truncate .archive-hero-desc__toggle--bottom,

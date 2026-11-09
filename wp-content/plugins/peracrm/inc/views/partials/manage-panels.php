@@ -3,7 +3,7 @@
 if (!defined('ABSPATH') || !peracrm_client_panels_allowed($client_id)) { return; }
 $eligible_panels = peracrm_client_panels_eligible($profile, $party);
 ?>
-<section aria-labelledby="crm-manage-panels-title" class="crm-panel-surface crm-section crm-section--flush crm-manage-panels" id="crm-manage-panels" data-crm-manage-panels data-client-id="<?php echo esc_attr($client_id); ?>" data-nonce="<?php echo esc_attr(wp_create_nonce('peracrm_client_panels_' . $client_id)); ?>">
+<section aria-labelledby="crm-manage-panels-title" class="crm-panel-surface crm-section crm-manage-panels" id="crm-manage-panels" data-crm-manage-panels data-client-id="<?php echo esc_attr($client_id); ?>" data-nonce="<?php echo esc_attr(wp_create_nonce('peracrm_client_panels_' . $client_id)); ?>">
   <header class="crm-section__header">
     <div class="crm-section__heading-group">
       <h2 class="crm-section__title" id="crm-manage-panels-title" tabindex="-1"><?php esc_html_e('Manage panels', 'peracrm'); ?></h2>

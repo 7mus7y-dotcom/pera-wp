@@ -203,7 +203,7 @@ peracrm_frontend_render_shell_header();
   <section class="content-panel content-panel--overlap-hero">
     <div class="content-panel-box border-dm crm-layout">
       <div class="crm-layout__main">
-        <section class="crm-panel-surface crm-section crm-section--flush crm-performance-summary" aria-labelledby="crm-performance-summary-title">
+        <section class="crm-panel-surface crm-section crm-performance-summary" aria-labelledby="crm-performance-summary-title">
           <header class="crm-section__header">
             <div class="crm-section__heading-group">
               <h2 id="crm-performance-summary-title" class="crm-section__title"><?php esc_html_e( 'Performance summary', 'peracrm' ); ?></h2>
