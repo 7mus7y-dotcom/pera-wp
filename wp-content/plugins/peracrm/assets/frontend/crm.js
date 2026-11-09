@@ -863,7 +863,7 @@
     });
   }
 
-  blocks.forEach(function (block) {
+  function initBlock(block) {
     var content = block.querySelector('.archive-hero-desc__content');
     var buttons = Array.prototype.slice.call(block.querySelectorAll('.archive-hero-desc__toggle'));
     if (!content || !buttons.length) {
@@ -876,6 +876,14 @@
     window.requestAnimationFrame(function () {
       updateToggleVisibility(block, content, buttons);
     });
+  }
+
+  blocks.forEach(initBlock);
+  document.addEventListener('peracrm:panel-replaced', function (event) {
+    var root = event.detail && event.detail.element;
+    if (root) {
+      root.querySelectorAll('.archive-hero-desc').forEach(initBlock);
+    }
   });
 
   document.addEventListener('click', function (event) {
@@ -901,6 +909,73 @@
     var isCollapsed = block.getAttribute('data-collapsed') !== 'false';
     updateButtonState(block, buttons, !isCollapsed);
     updateToggleVisibility(block, content, buttons);
+  });
+})();
+
+/* Timeline filters: keep the client workspace and focused filter in place. */
+(function () {
+  var panel = document.querySelector('[data-crm-panel="timeline"]');
+  if (!panel || !window.fetch || !window.DOMParser || !window.AbortController) return;
+  var sequence = 0;
+  var controller = null;
+
+  panel.addEventListener('click', function (event) {
+    var link = event.target.closest('[data-crm-timeline-filter]');
+    if (!link || event.defaultPrevented || event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey || link.target === '_blank') return;
+    var url = new URL(link.href, window.location.href);
+    if (url.origin !== window.location.origin || url.pathname !== window.location.pathname) return;
+    var body = panel.querySelector('.crm-section__body');
+    var status = panel.querySelector('[data-crm-timeline-status]');
+    if (!body || !status) return;
+    event.preventDefault();
+    var current = ++sequence;
+    if (controller) controller.abort();
+    controller = new window.AbortController();
+    var signal = controller.signal;
+    var timer = window.setTimeout(function () { if (current === sequence) controller.abort(); }, 15000);
+    body.setAttribute('aria-busy', 'true');
+    status.hidden = false;
+    status.textContent = status.dataset.loading;
+    var filter = link.dataset.crmTimelineFilter;
+
+    window.fetch(url.href, { credentials: 'same-origin', cache: 'no-store', signal: signal })
+      .then(function (response) {
+        // A sign-in redirect must never replace the timeline with a login page.
+        if (!response.ok || response.redirected) throw new Error('Invalid timeline response');
+        return response.text();
+      })
+      .then(function (html) {
+        if (current !== sequence || !panel.isConnected) return;
+        var parsed = new window.DOMParser().parseFromString(html, 'text/html');
+        var incoming = parsed.querySelector('[data-crm-panel="timeline"]');
+        var nextBody = incoming && incoming.querySelector('.crm-section__body');
+        var selected = incoming && incoming.querySelector('[data-crm-timeline-filter][aria-current="true"]');
+        if (!nextBody || !selected || selected.dataset.crmTimelineFilter !== filter) throw new Error('Missing timeline');
+        // Preserve expansion state; only the timeline body is replaced.
+        var expanded = body.querySelector('.archive-hero-desc[data-collapsed="false"]');
+        var nextExpander = nextBody.querySelector('.archive-hero-desc');
+        if (expanded && nextExpander) nextExpander.setAttribute('data-collapsed', 'false');
+        body.replaceWith(nextBody);
+        panel.querySelectorAll('[data-crm-timeline-filter]').forEach(function (item) {
+          var active = item.dataset.crmTimelineFilter === filter;
+          item.classList.toggle('crm-chip--selected', active);
+          item.classList.toggle('crm-chip--neutral', !active);
+          if (active) item.setAttribute('aria-current', 'true');
+          else item.removeAttribute('aria-current');
+        });
+        document.dispatchEvent(new window.CustomEvent('peracrm:panel-replaced', { detail: { panel: 'timeline', element: panel } }));
+        status.textContent = '';
+        status.hidden = true;
+      })
+      .catch(function () {
+        if (current !== sequence || !panel.isConnected) return;
+        status.hidden = false;
+        status.textContent = status.dataset.error;
+      })
+      .finally(function () {
+        window.clearTimeout(timer);
+        if (current === sequence) body.removeAttribute('aria-busy');
+      });
   });
 })();
 
