@@ -9489,7 +9489,10 @@ body.crm-route #site-header.peracrm-shell-header .peracrm-shell-date-pill .crm-p
   white-space: nowrap;
 }
 .crm-page--client-view .crm-note-row-actions .crm-note-delete-form {
-  margin-top: 0;
+  display: flex;
+  align-items: center;
+  margin: 0;
+  padding: 0;
 }
 .crm-page--client-view .crm-note-inline-editor {
   margin-top: 8px;
