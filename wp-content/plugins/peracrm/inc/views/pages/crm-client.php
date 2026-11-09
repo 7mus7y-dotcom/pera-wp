@@ -877,8 +877,20 @@ peracrm_frontend_render_shell_header();
                               <?php
                               $note_type_labels = array( 'phone_call' => __( 'Phone call made', 'peracrm' ), 'email_sent' => __( 'Email sent', 'peracrm' ), 'wa_sent' => __( 'WA sent', 'peracrm' ), 'options_sent' => __( 'Options sent', 'peracrm' ), 'general' => __( 'General', 'peracrm' ) );
                               $note_type = (string) ( $note['activity_type'] ?? '' );
+                              $note_type_icons = array(
+                                'phone_call'   => 'icon-phone-call',
+                                'email_sent'   => 'icon-envelope',
+                                'wa_sent'      => 'icon-whatsapp',
+                                'options_sent' => 'icon-property',
+                                'general'      => 'icon-notes',
+                              );
                               if ( isset( $note_type_labels[ $note_type ] ) ) : ?>
-                                <span class="crm-chip crm-chip--selected crm-note-activity-chip"><?php echo esc_html( $note_type_labels[ $note_type ] ); ?></span>
+                                <span class="crm-chip crm-chip--selected crm-note-activity-chip">
+                                  <svg class="crm-note-activity-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+                                    <use href="<?php echo esc_url( get_stylesheet_directory_uri() . '/logos-icons/icons.svg#' . $note_type_icons[ $note_type ] ); ?>"></use>
+                                  </svg>
+                                  <span><?php echo esc_html( $note_type_labels[ $note_type ] ); ?></span>
+                                </span>
                               <?php endif; ?>
                               <?php if ( 'options_sent' === $note_type && ! empty( $note['property_ids'] ) ) : ?>
                                 <div class="crm-note-properties crm-note-properties--saved">
