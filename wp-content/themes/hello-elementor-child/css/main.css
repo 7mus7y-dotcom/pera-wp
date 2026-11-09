@@ -3644,8 +3644,12 @@ text-decoration:underline;
   display: block;
 }
 
-.signoff-text h5 {
+.signoff-text .signoff-name {
   margin: 0;
+  color: var(--text);
+  font-size: 0.83em;
+  font-weight: 700;
+  line-height: 1.2;
 }
 .signoff-text p {
   margin: 2px 0 0;
@@ -3664,7 +3668,7 @@ text-decoration:underline;
     border: 1px solid rgba(148, 163, 184, 0.35);
   }
 
-  .signoff-text h5 {
+  .signoff-text .signoff-name {
     color: var(--text);
   }
 }
