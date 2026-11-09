@@ -9591,3 +9591,17 @@ body.crm-route #site-header.peracrm-shell-header .peracrm-shell-date-pill .crm-p
 .crm-page .crm-list-workspace--new-leads > .crm-section__footer {
   padding-inline: var(--crm-section-padding);
 }
+
+/* Client Enquiries: form submission history above the existing property cards. */
+.crm-page--client-view .crm-enquiries-submissions,
+.crm-page--client-view .crm-enquiries-linked-properties { min-width:0; }
+.crm-page--client-view .crm-enquiries-linked-properties { margin-top:18px; }
+.crm-page--client-view .crm-enquiries-submissions h4,
+.crm-page--client-view .crm-enquiries-linked-properties > h4 { margin:0 0 10px; }
+.crm-page--client-view .crm-enquiries-count { color:var(--text-muted,#6b7280);font-size:.8em;font-weight:400; }
+.crm-page--client-view .crm-enquiries-submissions__list { display:grid;gap:10px; }
+.crm-page--client-view .crm-enquiries-submissions__item { padding:12px;border:1px solid var(--crm-border,#e5e7eb);border-radius:var(--crm-section-radius,10px);min-width:0; }
+.crm-page--client-view .crm-enquiries-submissions__header { display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;margin-bottom:5px; }
+.crm-page--client-view .crm-enquiries-submissions__header time { font-size:.8rem;color:var(--text-muted,#6b7280); }
+.crm-page--client-view .crm-enquiries-submissions__item > a { display:inline-block;font-size:.85rem;margin-bottom:5px; }
+.crm-page--client-view .crm-enquiries-submissions__item .peracrm-enquiry-details { margin-top:6px; }
