@@ -567,7 +567,7 @@ get_template_part( 'parts/home-editorial-posts' );
             ?>
           </div>
           <div class="signoff-text">
-            <h5>D Koray Dillioglu</h5>
+            <p class="signoff-name">D Koray Dillioglu</p>
             <p><?php echo esc_html( pera_ml_ui( '– Director @ Pera Property', 'theme.template.home_page.director_pera_property' ) ); ?></p>
           </div>
         </div>
@@ -654,7 +654,7 @@ get_template_part( 'parts/home-editorial-posts' );
           </div>
 
           <div class="signoff-text">
-            <h5>D Koray Dillioglu</h5>
+            <p class="signoff-name">D Koray Dillioglu</p>
             <p><?php echo esc_html( pera_ml_ui( '– Director @ Pera Property', 'theme.template.home_page.director_pera_property' ) ); ?></p>
           </div>
         </div>
