@@ -9468,6 +9468,9 @@ body.crm-route #site-header.peracrm-shell-header .peracrm-shell-date-pill .crm-p
 
 /* Advisor note activity: compact, brand-blue label without grid stretching. */
 .crm-page--client-view .crm-note-activity-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
   width: fit-content;
   justify-self: start;
   align-self: start;
@@ -9475,6 +9478,13 @@ body.crm-route #site-header.peracrm-shell-header .peracrm-shell-date-pill .crm-p
   background: var(--brand);
   border-color: var(--brand);
   color: #fff;
+}
+.crm-page--client-view .crm-note-activity-chip .crm-note-activity-icon {
+  display: block;
+  width: 14px;
+  height: 14px;
+  flex: 0 0 14px;
+  color: inherit;
 }
 
 /* Advisor Notes: compact inline edit action and editor. */
