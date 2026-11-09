@@ -6302,6 +6302,19 @@ body.crm-route .crm-page--client-view .peracrm-linked-property-unlink-btn:hover 
   color: #ffffff;
 }
 
+/* Keep the task view selection visible across shared button interaction states. */
+.crm-page.crm-page--tasks .crm-view-toggle--secondary .btn[aria-pressed="true"] {
+  background: #002d72;
+  border-color: #002d72;
+  color: #ffffff;
+}
+
+.crm-page.crm-page--tasks .crm-view-toggle--secondary .btn[aria-pressed="false"] {
+  background: #ffffff;
+  border-color: #cfd8e3;
+  color: #002d72;
+}
+
 .crm-page--leads .crm-clients-pagination {
   margin: 16px 0 0;
 }
