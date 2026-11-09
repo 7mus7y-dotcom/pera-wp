@@ -1,0 +1,24 @@
+name: CRM appointment history and detail actions
+on:
+  pull_request:
+    paths:
+      - 'wp-content/plugins/peracrm/assets/frontend/appointments.js'
+      - 'wp-content/plugins/peracrm/assets/frontend/appointments.css'
+      - 'wp-content/plugins/peracrm/tests/appointments-history-actions-test.js'
+      - '.github/workflows/crm-appointment-history-actions.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  history-actions:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Syntax and appointment regressions
+        run: |
+          node --check wp-content/plugins/peracrm/assets/frontend/appointments.js
+          node wp-content/plugins/peracrm/tests/appointments-js-test.js
+          node wp-content/plugins/peracrm/tests/appointments-history-actions-test.js

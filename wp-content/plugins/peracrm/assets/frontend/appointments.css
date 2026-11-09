@@ -230,3 +230,16 @@
     color-scheme: dark;
   }
 }
+
+/* Appointment detail actions: a consistent row rather than individual block buttons. */
+.appointment-detail-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  margin-top: 14px;
+}
+.appointment-detail-actions > .btn {
+  margin: 0;
+  flex: 0 0 auto;
+}
