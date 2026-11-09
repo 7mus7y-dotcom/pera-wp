@@ -9488,6 +9488,9 @@ body.crm-route #site-header.peracrm-shell-header .peracrm-shell-date-pill .crm-p
 .crm-page--client-view .crm-note-row-actions .mini-btn {
   white-space: nowrap;
 }
+.crm-page--client-view .crm-note-row-actions .crm-note-delete-form {
+  margin-top: 0;
+}
 .crm-page--client-view .crm-note-inline-editor {
   margin-top: 8px;
   display: grid;
