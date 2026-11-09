@@ -9455,6 +9455,12 @@ body.crm-route #site-header.peracrm-shell-header .peracrm-shell-date-pill .crm-p
 }
 .crm-page--client-view .crm-note-inline-editor[hidden],
 .crm-page--client-view [data-crm-note-text][hidden] { display: none !important; }
+
+/* Advisor notes are escaped plain text: preserve pasted lines and paragraphs. */
+.crm-page--client-view [data-crm-note-text] {
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
 .crm-page--client-view .crm-note-inline-editor textarea {
   display: block;
   width: 100%;
