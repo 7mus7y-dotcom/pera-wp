@@ -1,0 +1,25 @@
+name: PeraCRM browser document titles
+on:
+  pull_request:
+    paths:
+      - 'wp-content/plugins/peracrm/inc/frontend/routing.php'
+      - 'wp-content/plugins/peracrm/tests/crm-document-title-test.php'
+      - '.github/workflows/crm-document-title-tests.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  title-routes:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.2'
+          coverage: none
+      - name: PHP syntax
+        run: |
+          php -l wp-content/plugins/peracrm/inc/frontend/routing.php
+          php -l wp-content/plugins/peracrm/tests/crm-document-title-test.php
+      - name: CRM route title regression
+        run: php wp-content/plugins/peracrm/tests/crm-document-title-test.php
