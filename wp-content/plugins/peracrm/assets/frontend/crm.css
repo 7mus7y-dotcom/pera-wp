@@ -9611,3 +9611,16 @@ body.crm-route #site-header.peracrm-shell-header .peracrm-shell-date-pill .crm-p
 .crm-page--client-view .crm-enquiries-submissions__header time { font-size:.8rem;color:var(--text-muted,#6b7280); }
 .crm-page--client-view .crm-enquiries-submissions__item > a { display:inline-block;font-size:.85rem;margin-bottom:5px; }
 .crm-page--client-view .crm-enquiries-submissions__item .peracrm-enquiry-details { margin-top:6px; }
+
+/* Client Advisor Notes only: show a useful preview before See more. */
+.crm-page--client-view .crm-client-notes-truncate[data-collapsed="true"] .archive-hero-desc__content {
+  max-height: 240px;
+}
+.crm-page--client-view .crm-client-notes-truncate[data-collapsed="true"] .archive-hero-desc__content::after {
+  height: 32px;
+}
+@media (max-width: 640px) {
+  .crm-page--client-view .crm-client-notes-truncate[data-collapsed="true"] .archive-hero-desc__content {
+    max-height: 200px;
+  }
+}

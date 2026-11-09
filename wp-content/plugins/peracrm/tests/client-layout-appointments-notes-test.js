@@ -1,0 +1,28 @@
+"use strict";
+const assert = require("node:assert/strict");
+const fs = require("node:fs");
+const path = require("node:path");
+const base = path.resolve(__dirname, "..");
+const view = fs.readFileSync(path.join(base, "inc/views/pages/crm-client.php"), "utf8");
+const css = fs.readFileSync(path.join(base, "assets/frontend/crm.css"), "utf8");
+const partial = fs.readFileSync(path.join(base, "inc/views/partials/appointments-panel.php"), "utf8");
+const render = "peracrm_frontend_render_partial('appointments-panel'";
+assert.equal(view.split(render).length - 1, 1, "appointments rendered once");
+const primaryStart = view.indexOf('crm-client-detail-layout__column--primary');
+const secondaryStart = view.indexOf('crm-client-detail-layout__column--secondary');
+const fullWidthStart = view.indexOf('crm-client-full-width-panels', secondaryStart);
+const enquiry = view.indexOf('crm-client-related--enquiries', secondaryStart);
+const appointment = view.indexOf(render);
+assert.ok(primaryStart >= 0 && secondaryStart > primaryStart && fullWidthStart > secondaryStart, "columns exist");
+assert.ok(enquiry > secondaryStart && appointment > enquiry && appointment < fullWidthStart,
+  "appointments below enquiries in secondary column, before full-width notes");
+assert.ok(!view.slice(primaryStart, secondaryStart).includes(render), "appointments removed from primary sidecards");
+assert.match(partial, /data-crm-panel="appointments"/, "appointment panel identifier retained");
+assert.match(partial, /data-appointment-history/, "appointment history retained");
+assert.match(partial, /data-appointment-new/, "appointment creation retained");
+assert.match(view, /crm-client-notes-truncate/, "notes preview wrapper intact");
+assert.match(css, /\.crm-page--client-view \.crm-client-notes-truncate\[data-collapsed="true"\] \.archive-hero-desc__content\s*\{\s*max-height:\s*240px;/, "desktop preview 240px");
+assert.match(css, /@media \(max-width: 640px\)\s*\{[\s\S]*?\.crm-client-notes-truncate\[data-collapsed="true"\] \.archive-hero-desc__content\s*\{\s*max-height:\s*200px;/, "mobile preview 200px");
+assert.match(css, /\.crm-client-notes-truncate\[data-collapsed="true"\] \.archive-hero-desc__content::after\s*\{\s*height:\s*32px;/, "fade height 32px");
+assert.match(view, /data-label-more=/, "See more functionality unchanged");
+console.log("PASS CRM appointments position and Advisor Notes preview layout.");

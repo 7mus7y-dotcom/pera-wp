@@ -608,7 +608,6 @@ peracrm_frontend_render_shell_header();
             </article>
 
             <div class="crm-client-profile-sidecards">
-              <?php peracrm_frontend_render_partial('appointments-panel', ['client_id'=>$client_id,'hidden_panels'=>$hidden_panels]); ?>
               <section class="crm-panel-surface crm-section crm-client-status-panel" data-crm-panel="status">
                 <header class="crm-section__header">
                   <div class="crm-section__heading-group">
@@ -839,6 +838,7 @@ peracrm_frontend_render_shell_header();
               </section>
             </article>
 
+            <?php peracrm_frontend_render_partial('appointments-panel', ['client_id'=>$client_id,'hidden_panels'=>$hidden_panels]); ?>
 
           </div>
         </div>
