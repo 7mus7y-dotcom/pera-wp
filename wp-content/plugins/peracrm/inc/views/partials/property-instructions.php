@@ -88,7 +88,7 @@ $render_form = static function ($row, $form_type) use ($client_id, $catalog, $as
     <?php
 };
 ?>
-<article id="crm-property-instructions" class="crm-panel-surface crm-section crm-section--flush"<?php peracrm_client_panel_attributes($instruction_panel_key, $hidden_panels ?? []); ?>>
+<article id="crm-property-instructions" class="crm-panel-surface crm-section"<?php peracrm_client_panel_attributes($instruction_panel_key, $hidden_panels ?? []); ?>>
   <header class="crm-section__header"><div>
     <h3 class="crm-section__title"><?php echo esc_html($type === 'sale' ? __('Properties for sale', 'peracrm') : ($type === 'rental' ? __('Properties for rent', 'peracrm') : __('Property instruction history', 'peracrm'))); ?></h3>
     <p class="crm-section__description"><?php esc_html_e('Private property instructions. Saving does not create or publish a website listing. Historical instructions remain available after client-type changes.', 'peracrm'); ?></p>
