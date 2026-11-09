@@ -1853,6 +1853,7 @@ if ( ! function_exists( 'pera_crm_get_pipeline_view_data' ) ) {
 		$q               = isset( $_GET['q'] ) ? sanitize_text_field( wp_unslash( (string) $_GET['q'] ) ) : '';
 		$stage           = isset( $_GET['stage'] ) ? sanitize_key( wp_unslash( (string) $_GET['stage'] ) ) : '';
 		$advisor         = isset( $_GET['advisor'] ) ? absint( wp_unslash( (string) $_GET['advisor'] ) ) : 0;
+		$include_inactive = isset( $_GET['include_inactive'] ) && '1' === (string) wp_unslash( $_GET['include_inactive'] );
 		$active_filter   = pera_crm_get_request_filter( array( 'unassigned', 'stale', 'new72', 'open_scope' ) );
 
 		$stages = pera_crm_get_pipeline_stages();
@@ -2015,6 +2016,10 @@ if ( ! function_exists( 'pera_crm_get_pipeline_view_data' ) ) {
 			$client_id  = (int) $client->ID;
 			$party      = isset( $party_map[ $client_id ] ) && is_array( $party_map[ $client_id ] ) ? $party_map[ $client_id ] : array();
 			$stage_key  = sanitize_key( (string) ( $party['lead_pipeline_stage'] ?? '' ) );
+			$engagement = sanitize_key( (string) ( $party['engagement_state'] ?? '' ) );
+			if ( ! $include_inactive && in_array( $engagement, array( 'closed', 'dormant' ), true ) ) {
+				continue;
+			}
 			$profile    = function_exists( 'peracrm_client_get_profile' ) ? (array) peracrm_client_get_profile( $client_id ) : array();
 			$assigned   = function_exists( 'peracrm_client_get_assigned_advisor_id' ) ? (int) peracrm_client_get_assigned_advisor_id( $client_id ) : 0;
 			$health     = function_exists( 'peracrm_client_health_get' ) ? (array) peracrm_client_health_get( $client_id ) : array();
@@ -2049,6 +2054,7 @@ if ( ! function_exists( 'pera_crm_get_pipeline_view_data' ) ) {
 				'title'         => get_the_title( $client_id ),
 				'client_url'    => function_exists( 'pera_crm_get_client_view_url' ) ? pera_crm_get_client_view_url( $client_id ) : home_url( '/crm/client/' . $client_id . '/' ),
 				'advisor_label' => $advisor_label,
+				'engagement_state' => $engagement,
 				'last_activity' => $last_label,
 				'lead_source'   => $lead_source,
 				'budget_min'    => $budget_min,
@@ -2079,6 +2085,7 @@ if ( ! function_exists( 'pera_crm_get_pipeline_view_data' ) ) {
 				'q'               => $q,
 				'stage'           => $stage,
 				'advisor'         => $advisor,
+				'include_inactive' => $include_inactive,
 				'advisor_options' => $advisor_options,
 				'stage_options'   => $stages,
 			),
