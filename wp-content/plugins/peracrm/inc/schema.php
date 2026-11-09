@@ -89,6 +89,9 @@ function peracrm_upgrade_schema_to($target_version, $installed_version = 0)
     }
 
     peracrm_with_target_blog(static function () use ($target_version, $installed_version) {
+        $previous_migration = $GLOBALS['peracrm_schema_migrating'] ?? false;
+        $GLOBALS['peracrm_schema_migrating'] = true;
+        try {
         global $wpdb;
 
         $charset_collate = $wpdb->get_charset_collate();
@@ -285,6 +288,7 @@ function peracrm_upgrade_schema_to($target_version, $installed_version = 0)
         if ($installed_version < 20 && $target_version >= 20 && function_exists('peracrm_upgrade_roles_and_caps_v20')) {
             peracrm_upgrade_roles_and_caps_v20();
         }
+        } finally { $GLOBALS['peracrm_schema_migrating'] = $previous_migration; }
     });
 }
 

@@ -12,6 +12,7 @@ function peracrm_client_panel_registry(): array
         'reminders' => ['label' => __('Next actions and reminders', 'peracrm'), 'optional' => false],
         'notes' => ['label' => __('Advisor notes', 'peracrm'), 'optional' => false],
         'timeline' => ['label' => __('Activity and timeline', 'peracrm'), 'optional' => false],
+        'appointments' => ['label' => __('Appointments', 'peracrm'), 'optional' => true],
         'deals' => ['label' => __('Deals', 'peracrm'), 'optional' => true, 'stages' => ['offer_made', 'deal_closed']],
         'seller_properties' => ['label' => __('Properties for sale', 'peracrm'), 'optional' => true, 'type' => 'seller'],
         'landlord_properties' => ['label' => __('Properties for rent', 'peracrm'), 'optional' => true, 'type' => 'landlord'],

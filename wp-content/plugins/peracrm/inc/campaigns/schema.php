@@ -3,6 +3,7 @@
 if (!defined('ABSPATH')) {
     exit;
 }
+require_once dirname(__DIR__).'/appointments-schema.php';
 require_once __DIR__.'/recipient-schema.php';
 require_once __DIR__.'/event-schema.php';
 
@@ -11,7 +12,7 @@ function peracrm_campaigns_schema_definitions()
 {
     global $wpdb;
     $mailbox = 'VARCHAR(254) CHARACTER SET ascii COLLATE ascii_bin';
-    return peracrm_campaign_event_definitions() + peracrm_campaign_recipient_definitions() + peracrm_campaign_queue_definitions() + peracrm_campaigns_freeze_definitions() + peracrm_campaigns_snapshot_definitions() + peracrm_campaigns_draft_definitions() + peracrm_campaigns_phase2_definitions() + [
+    return peracrm_appointments_schema_definitions() + peracrm_campaign_event_definitions() + peracrm_campaign_recipient_definitions() + peracrm_campaign_queue_definitions() + peracrm_campaigns_freeze_definitions() + peracrm_campaigns_snapshot_definitions() + peracrm_campaigns_draft_definitions() + peracrm_campaigns_phase2_definitions() + [
         'peracrm_subscribers' => "id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
             email VARCHAR(254) NOT NULL,
             normalized_email {$mailbox} NOT NULL,
@@ -92,6 +93,7 @@ function peracrm_campaigns_install_schema()
 /** Read-only verification, also used for sites already marked version 21. */
 function peracrm_campaigns_assert_schema()
 {
+    peracrm_appointments_assert_indexes();
     global $wpdb;
     foreach (peracrm_campaigns_schema_definitions() as $name => $definition) {
         $table = peracrm_table($name);
@@ -112,6 +114,10 @@ function peracrm_campaigns_assert_schema()
         }
         $engine = $wpdb->get_row($wpdb->prepare('SHOW TABLE STATUS WHERE Name = %s', $table), ARRAY_A);
         $expected_keys = [
+            'peracrm_appointments' => ['id'],
+            'peracrm_appointment_participants' => ['appointment_id', 'user_id'],
+            'peracrm_appointment_properties' => ['appointment_id', 'property_id'],
+            'peracrm_appointment_requests' => ['actor_id', 'request_key'],
             'peracrm_campaign_budget_guards' => ['scope_hash'],
             'peracrm_campaign_budget_accounts' => ['scope_hash'],
             'peracrm_campaign_budget_reservations' => ['scope_hash','attempt_hash'],

@@ -127,7 +127,7 @@ foreach ($xpath->query('//input[@data-crm-panel-toggle]') as $input) {
     panel_expect($xpath->query('//label[@for="' . $input->getAttribute('id') . '"]')->length===1,'checkbox has a visible label');
     panel_expect($xpath->query('//span[@id="' . $input->getAttribute('aria-describedby') . '" and @data-crm-panel-state]')->length===1,'checkbox describes visibility state');
 }
-panel_expect($xpath->query('//input[@type="checkbox" and @data-crm-panel-toggle]')->length===4,'only eligible optional panels have toggles');
+panel_expect($xpath->query('//input[@type="checkbox" and @data-crm-panel-toggle]')->length===5,'only eligible optional panels have toggles');
 panel_expect($xpath->query('//input[@data-crm-panel-toggle="enquiries" and not(@checked)]')->length===1,'hidden checkbox reflects server state');
 panel_expect($xpath->query('//input[@data-crm-panel-toggle="profile" or @data-crm-panel-toggle="landlord_properties"]')->length===0,'no protected or ineligible toggles');
 ob_start(); peracrm_client_panel_dismiss('deals'); peracrm_client_panel_attributes('deals',['deals']); $button=ob_get_clean();

@@ -430,6 +430,18 @@ function peracrm_timeline_normalize_activity(array $event, array $user_map)
                 $enquiry_details_html = peracrm_timeline_render_enquiry_details($payload);
             }
 
+            if (strpos($event_type, 'appointment_') === 0) {
+                $title = ucwords(str_replace('_', ' ', $event_type));
+                $detail = '#' . (int)($payload['appointment_id'] ?? 0);
+                if (!empty($payload['start_at']) && !empty($payload['timezone'])) {
+                    try {
+                        $local = new DateTimeImmutable($payload['start_at'], new DateTimeZone('UTC'));
+                        $detail .= ' · ' . $local->setTimezone(new DateTimeZone($payload['timezone']))->format('Y-m-d H:i') . ' ' . $payload['timezone'];
+                    } catch (Throwable $error) { /* Historical malformed payloads remain readable. */ }
+                }
+                if (!empty($payload['status'])) { $detail .= ' · ' . $payload['status']; }
+            }
+
             if ($event_type === 'property_instruction_saved') {
                 $title = __('Property instruction saved', 'peracrm');
                 $reference = (string) ($payload['property_reference'] ?? '');

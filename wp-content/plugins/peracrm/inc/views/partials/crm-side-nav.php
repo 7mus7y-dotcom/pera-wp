@@ -23,6 +23,7 @@ $items = array(
 	'overview' => array( 'label' => __( 'Overview', 'peracrm' ), 'url' => home_url( '/crm/' ) ),
 	'clients' => array( 'label' => __( 'Clients', 'peracrm' ), 'url' => home_url( '/crm/clients/' ) ),
 	'tasks' => array( 'label' => __( 'Tasks', 'peracrm' ), 'url' => home_url( '/crm/tasks/' ) ),
+	'appointments' => array( 'label' => __( 'Appointments', 'peracrm' ), 'url' => home_url( '/crm/appointments/' ) ),
 	'pipeline' => array( 'label' => __( 'Pipeline', 'peracrm' ), 'url' => home_url( '/crm/pipeline/' ) ),
 	'performance' => array( 'label' => __( 'Performance', 'peracrm' ), 'url' => home_url( '/crm/performance/' ) ),
 );
@@ -44,7 +45,7 @@ if ( $can_view_logs ) {
     <p class="crm-side-nav__title"><?php esc_html_e( 'Menu', 'peracrm' ); ?></p>
     <ul class="crm-side-nav__list">
       <?php foreach ( $items as $key => $item ) : ?>
-        <li><a class="<?php echo esc_attr( $active_view === $key ? 'is-active' : '' ); ?>" href="<?php echo esc_url( (string) $item['url'] ); ?>"><?php echo esc_html( (string) $item['label'] ); ?></a></li>
+        <li><a class="<?php echo esc_attr( $active_view === $key ? 'is-active' : '' ); ?>" href="<?php echo esc_url( (string) $item['url'] ); ?>"><?php if ($key === 'appointments') : ?><svg class="crm-appointment-nav-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" aria-hidden="true"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M7 3v4m10-4v4M3 11h18"/></svg> <?php endif; ?><?php echo esc_html( (string) $item['label'] ); ?></a></li>
       <?php endforeach; ?>
     </ul>
   </aside>
@@ -75,7 +76,7 @@ if ( $can_view_logs ) {
           <p class="crm-side-nav__eyebrow"><?php esc_html_e( 'CRM workspace', 'peracrm' ); ?></p>
           <ul class="crm-side-nav__list crm-side-nav__list--drawer">
             <?php foreach ( $items as $key => $item ) : ?>
-              <li><a class="<?php echo esc_attr( $active_view === $key ? 'is-active' : '' ); ?>" href="<?php echo esc_url( (string) $item['url'] ); ?>"><?php echo esc_html( (string) $item['label'] ); ?></a></li>
+              <li><a class="<?php echo esc_attr( $active_view === $key ? 'is-active' : '' ); ?>" href="<?php echo esc_url( (string) $item['url'] ); ?>"><?php if ($key === 'appointments') : ?><svg class="crm-appointment-nav-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" aria-hidden="true"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M7 3v4m10-4v4M3 11h18"/></svg> <?php endif; ?><?php echo esc_html( (string) $item['label'] ); ?></a></li>
             <?php endforeach; ?>
           </ul>
         </div>

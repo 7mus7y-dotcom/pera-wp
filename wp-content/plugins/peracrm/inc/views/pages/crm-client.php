@@ -480,6 +480,7 @@ peracrm_frontend_render_shell_header();
               <div class="crm-summary-header__actions-panel">
                 <div class="crm-summary-header__actions crm-summary-header__actions--workflow">
                   <a class="btn btn--solid btn--blue" href="#crm-add-reminder"><?php esc_html_e( 'Add reminder', 'peracrm' ); ?></a>
+                  <button type="button" class="btn btn--ghost btn--blue" data-appointment-new="<?php echo (int)$client_id; ?>"><?php esc_html_e('New appointment','peracrm'); ?></button>
                   <a class="btn btn--ghost btn--blue" href="#peracrm_note_body_frontend"><?php esc_html_e( 'Add note', 'peracrm' ); ?></a>
                 </div>
                 <div class="crm-summary-header__actions crm-summary-header__actions--contact">
@@ -606,6 +607,7 @@ peracrm_frontend_render_shell_header();
             </article>
 
             <div class="crm-client-profile-sidecards">
+              <?php peracrm_frontend_render_partial('appointments-panel', ['client_id'=>$client_id,'hidden_panels'=>$hidden_panels]); ?>
               <section class="crm-panel-surface crm-section crm-client-status-panel" data-crm-panel="status">
                 <header class="crm-section__header">
                   <div class="crm-section__heading-group">

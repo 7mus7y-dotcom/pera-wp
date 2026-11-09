@@ -42,6 +42,7 @@ require_once PERACRM_INC . '/campaigns/preview-routes.php';
 require_once PERACRM_INC . '/campaigns/draft-routes.php';
 require_once PERACRM_INC . '/property-instructions.php';
 require_once PERACRM_INC . '/client-panels.php';
+require_once PERACRM_INC . '/appointments-schema.php';
 require_once PERACRM_INC . '/schema.php';
 require_once PERACRM_INC . '/roles.php';
 require_once PERACRM_INC . '/lifecycle.php';
@@ -115,3 +116,7 @@ if (is_admin()) {
 }
 
 add_action('init', 'peracrm_register_cpt_crm_client', 5);
+
+require_once PERACRM_INC . '/repositories/appointments.php';
+require_once PERACRM_INC . '/services/appointment_service.php';
+require_once PERACRM_INC . '/appointments.php';
