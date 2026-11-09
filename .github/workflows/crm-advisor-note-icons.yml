@@ -1,0 +1,28 @@
+name: CRM Advisor Notes type icons
+on:
+  pull_request:
+    paths:
+      - 'wp-content/plugins/peracrm/inc/views/pages/crm-client.php'
+      - 'wp-content/plugins/peracrm/assets/frontend/crm.css'
+      - 'wp-content/themes/hello-elementor-child/logos-icons/icons.svg'
+      - 'wp-content/plugins/peracrm/tests/advisor-note-type-icons-test.js'
+      - '.github/workflows/crm-advisor-note-icons.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  advisor-note-icons:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.2'
+          coverage: none
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: PHP syntax
+        run: php -l wp-content/plugins/peracrm/inc/views/pages/crm-client.php
+      - name: Advisor note icon regression
+        run: node wp-content/plugins/peracrm/tests/advisor-note-type-icons-test.js
