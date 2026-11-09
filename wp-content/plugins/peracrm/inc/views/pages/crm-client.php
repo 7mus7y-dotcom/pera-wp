@@ -1146,10 +1146,11 @@ peracrm_frontend_render_shell_header();
                 </div>
                 <div class="crm-section__actions crm-client-timeline__filters">
                   <?php foreach ( array( 'all' => 'All', 'activity' => 'Activity', 'notes' => 'Notes', 'reminders' => 'Reminders' ) as $key => $label ) : $url = add_query_arg( 'peracrm_timeline', $key, $frontend_url ); ?>
-                    <a class="crm-chip <?php echo esc_attr( $timeline_filter === $key ? 'crm-chip--selected' : 'crm-chip--neutral' ); ?>" href="<?php echo esc_url( $url ); ?>"><?php echo esc_html( $label ); ?></a>
+                    <a class="crm-chip <?php echo esc_attr( $timeline_filter === $key ? 'crm-chip--selected' : 'crm-chip--neutral' ); ?>" href="<?php echo esc_url( $url ); ?>" data-crm-timeline-filter="<?php echo esc_attr( $key ); ?>"<?php if ( $timeline_filter === $key ) : ?> aria-current="true"<?php endif; ?>><?php echo esc_html( $label ); ?></a>
                   <?php endforeach; ?>
                 </div>
               </header>
+              <p class="crm-section__description" data-crm-timeline-status role="status" aria-live="polite" hidden data-loading="<?php echo esc_attr__( 'Loading timeline…', 'peracrm' ); ?>" data-error="<?php echo esc_attr__( 'Unable to load the timeline. Please try again.', 'peracrm' ); ?>"></p>
               <div class="crm-section__body">
                 <div class="archive-hero-desc" data-collapsed="true">
                   <div id="crm-client-timeline-content" class="archive-hero-desc__content">
