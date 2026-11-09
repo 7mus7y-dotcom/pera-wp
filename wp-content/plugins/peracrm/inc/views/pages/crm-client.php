@@ -800,7 +800,9 @@ peracrm_frontend_render_shell_header();
                             <?php if ( '' !== $submitted_at ) : ?><time><?php echo esc_html( $submitted_at ); ?></time><?php endif; ?>
                           </div>
                           <?php if ( '' !== $page_url ) : ?><a href="<?php echo $page_url; ?>" target="_blank" rel="noopener noreferrer"><?php esc_html_e( 'Source page', 'peracrm' ); ?></a><?php endif; ?>
-                          <?php if ( '' !== $detail_html ) : echo $detail_html; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- Existing role-filtered enquiry details renderer escapes fields. endif; ?>
+                          <?php if ( '' !== $detail_html ) : ?>
+                            <?php echo $detail_html; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- Existing role-filtered enquiry renderer escapes values. ?>
+                          <?php endif; ?>
                         </div>
                       <?php endforeach; ?>
                       </div>
