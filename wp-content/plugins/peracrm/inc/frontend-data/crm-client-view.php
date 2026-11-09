@@ -426,6 +426,7 @@ if ( ! function_exists( 'pera_crm_client_view_load_data' ) ) {
 				$notes = function_exists( 'peracrm_notes_list' ) ? (array) peracrm_notes_list( $client_id, 20, 0 ) : array();
 				$reminders = function_exists( 'peracrm_reminders_list_for_client' ) ? (array) peracrm_reminders_list_for_client( $client_id, 50, 0, null ) : array();
 				$activity  = function_exists( 'peracrm_activity_list' ) ? (array) peracrm_activity_list( $client_id, 20, 0, null ) : array();
+				$enquiry_submissions = function_exists( 'peracrm_activity_list' ) ? (array) peracrm_activity_list( $client_id, 50, 0, 'enquiry' ) : array();
 				$deals     = function_exists( 'peracrm_deals_get_by_party' ) ? (array) peracrm_deals_get_by_party( $client_id ) : array();
 
 				$relation_types  = array( 'favourite', 'enquiry', 'portfolio' );
@@ -458,6 +459,7 @@ if ( ! function_exists( 'pera_crm_client_view_load_data' ) ) {
 					'notes'            => $notes,
 					'reminders'        => $reminders,
 					'activity'         => $activity,
+					'enquiry_submissions' => $enquiry_submissions,
 					'deals'            => $deals,
 					'property_groups'  => $property_groups,
 					'property_total'   => $property_total,
@@ -567,6 +569,37 @@ if ( ! function_exists( 'pera_crm_client_view_property_preview' ) ) {
 			? (array) pera_crm_client_view_with_target_blog( $resolve )
 			: $resolve();
 	}
+}
+
+if ( ! function_exists( 'pera_crm_client_view_enquiry_category' ) ) {
+    /**
+     * Label captured website form submissions without changing the ingestion pipeline.
+     */
+    function pera_crm_client_view_enquiry_category( array $payload ): string {
+        $context = sanitize_key( (string) ( $payload['form_context'] ?? '' ) );
+        $form = sanitize_key( (string) ( $payload['form'] ?? '' ) );
+        $raw = is_array( $payload['raw_fields'] ?? null ) ? $payload['raw_fields'] : array();
+        $intent = sanitize_key( (string) ( $raw['sr_intent'] ?? '' ) );
+        if ( 'citizenship' === $context || 'citizenship_enquiry' === $form ) {
+            return __( 'Citizenship', 'peracrm' );
+        }
+        if ( 'sell' === $context || 'sell-page' === $context || 'sell' === $intent ) {
+            return __( 'Sell', 'peracrm' );
+        }
+        if ( 'rent' === $context || 'rent-page' === $context || in_array( $intent, array( 'rent', 'short-term' ), true ) ) {
+            return __( 'Rent', 'peracrm' );
+        }
+        if ( 'favourites' === $context || 'favourites_enquiry' === $form ) {
+            return __( 'Favourites', 'peracrm' );
+        }
+        if ( 'consultancy' === $context ) {
+            return __( 'Consultancy', 'peracrm' );
+        }
+        if ( 'property_enquiry' === $context || 'property' === $context || ! empty( $payload['property_id'] ) ) {
+            return __( 'Property enquiry', 'peracrm' );
+        }
+        return __( 'Website enquiry', 'peracrm' );
+    }
 }
 
 if ( ! function_exists( 'pera_crm_client_view_source_pills' ) ) {
