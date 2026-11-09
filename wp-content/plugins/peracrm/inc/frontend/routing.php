@@ -529,10 +529,63 @@ if (!function_exists('pera_crm_get_client_detail_document_title')) {
         });
     }
 }
+/**
+ * Browser tab titles for plugin-owned CRM routes only.
+ * Keep the existing permission-checked client name lookup.
+ */
+if (!function_exists('pera_crm_get_route_document_title')) {
+    function pera_crm_get_route_document_title(): string
+    {
+        if (is_admin() || !pera_is_crm_route()) {
+            return '';
+        }
+
+        $action = sanitize_key((string) get_query_var('pera_crm_action', ''));
+        $view = sanitize_key((string) get_query_var('pera_crm_view', 'overview'));
+
+        if ($action === 'new') {
+            $label = __('New Client', 'peracrm');
+        } elseif ($view === 'client') {
+            $name = pera_crm_get_client_detail_document_title();
+            $label = $name !== '' ? $name : __('Client', 'peracrm');
+        } else {
+            $labels = [
+                'overview'      => __('Overview', 'peracrm'),
+                'leads'         => __('Clients', 'peracrm'),
+                'tasks'         => __('Tasks', 'peracrm'),
+                'appointments'  => __('Appointments', 'peracrm'),
+                'pipeline'      => __('Pipeline', 'peracrm'),
+                'performance'   => __('Performance', 'peracrm'),
+                'whatsapp_logs' => __('WhatsApp Logs', 'peracrm'),
+                'email_logs'    => __('Email Logs', 'peracrm'),
+                'campaigns'     => __('Campaigns', 'peracrm'),
+                'subscribers'   => __('Subscribers', 'peracrm'),
+            ];
+            $label = $labels[$view] ?? __('Overview', 'peracrm');
+
+            if ($view === 'campaigns') {
+                $screen = sanitize_key((string) get_query_var('peracrm_campaign_screen', ''));
+                $campaign_screens = [
+                    'new'           => __('New Campaign', 'peracrm'),
+                    'configuration' => __('Campaign Settings', 'peracrm'),
+                    'queue'         => __('Campaign Queue', 'peracrm'),
+                ];
+                if (isset($campaign_screens[$screen])) {
+                    $label = $campaign_screens[$screen];
+                } elseif (absint(get_query_var('peracrm_campaign_id', 0)) > 0) {
+                    $label = __('Edit Campaign', 'peracrm');
+                }
+            }
+        }
+
+        return $label . ' | PeraCRM';
+    }
+}
+
 if (!function_exists('pera_crm_filter_client_document_title')) {
     function pera_crm_filter_client_document_title(string $title): string
     {
-        $crm_title = pera_crm_get_client_detail_document_title();
+        $crm_title = pera_crm_get_route_document_title();
         return $crm_title !== '' ? $crm_title : $title;
     }
 }
@@ -541,12 +594,12 @@ add_filter('pre_get_document_title', 'pera_crm_filter_client_document_title', 99
 if (!function_exists('pera_crm_filter_client_document_title_parts')) {
     function pera_crm_filter_client_document_title_parts(array $parts): array
     {
-        $crm_title = pera_crm_get_client_detail_document_title();
-        if ($crm_title === '') {
-            return $parts;
+        $crm_title = pera_crm_get_route_document_title();
+        if ($crm_title !== '') {
+            // Set only the title component; retain non-CRM SEO filters untouched.
+            $parts['title'] = $crm_title;
+            unset($parts['site'], $parts['tagline']);
         }
-
-        $parts['title'] = $crm_title;
         return $parts;
     }
 }
