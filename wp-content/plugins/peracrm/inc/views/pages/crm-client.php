@@ -781,8 +781,22 @@ peracrm_frontend_render_shell_header();
                     <div class="crm-inline-form"><h5><?php echo esc_html( ucfirst( (string) $relation ) ); ?></h5></div>
                       <ul class="crm-list peracrm-linked-properties-grid">
                         <?php foreach ( $items as $item ) : $property_id = (int) ( $item['property_id'] ?? 0 ); $property_label = ''; $property_url = ''; if ( $property_id > 0 ) { $property_label = pera_crm_client_view_with_target_blog( static function () use ( $property_id ): string { return function_exists( 'pera_crm_client_view_property_project_name' ) ? (string) pera_crm_client_view_property_project_name( $property_id ) : (string) get_the_title( $property_id ); } ); $property_url = pera_crm_client_view_with_target_blog( static function () use ( $property_id ): string { return (string) get_permalink( $property_id ); } ); } ?>
+                        <?php
+                        $property_preview = function_exists( 'pera_crm_client_view_property_preview' ) ? pera_crm_client_view_property_preview( $property_id ) : array();
+                        $property_thumbnail = (string) ( $property_preview['thumbnail'] ?? '' );
+                        $property_thumbnail_alt = (string) ( $property_preview['thumbnail_alt'] ?? $property_label );
+                        ?>
                         <li class="peracrm-linked-properties-grid__item">
-                          <?php if ( '' !== $property_url ) : ?><a class="crm-linked-property-link" href="<?php echo esc_url( $property_url ); ?>" target="_blank" rel="noopener noreferrer"><?php echo esc_html( $property_label ); ?></a><?php else : ?><span><?php echo esc_html( $property_label ); ?></span><?php endif; ?>
+                          <?php if ( '' !== $property_url ) : ?>
+                            <a class="crm-note-property-card" href="<?php echo esc_url( $property_url ); ?>" target="_blank" rel="noopener noreferrer">
+                          <?php else : ?>
+                            <span class="crm-note-property-card">
+                          <?php endif; ?>
+                            <?php if ( '' !== $property_thumbnail ) : ?>
+                              <img class="crm-note-property-thumb" src="<?php echo esc_url( $property_thumbnail ); ?>" alt="<?php echo esc_attr( $property_thumbnail_alt ); ?>" loading="lazy" decoding="async" />
+                            <?php endif; ?>
+                            <span class="crm-note-property-name"><?php echo esc_html( $property_label ); ?></span>
+                          <?php if ( '' !== $property_url ) : ?></a><?php else : ?></span><?php endif; ?>
                           <form method="post" class="peracrm-linked-property-unlink-form"><?php wp_nonce_field( 'pera_crm_property_action', 'pera_crm_property_nonce' ); ?><input type="hidden" name="pera_crm_property_action" value="unlink" /><input type="hidden" name="peracrm_client_id" value="<?php echo esc_attr( (string) $client_id ); ?>" /><input type="hidden" name="property_id" value="<?php echo esc_attr( (string) $property_id ); ?>" /><input type="hidden" name="relation_type" value="<?php echo esc_attr( (string) $relation ); ?>" /><button type="submit" class="btn btn--ghost btn--blue peracrm-linked-property-unlink-btn" aria-label="<?php esc_attr_e( 'Unlink property', 'peracrm' ); ?>"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><use href="#icon-broken-chain"></use></svg></button></form>
                         </li>
                         <?php endforeach; ?>
