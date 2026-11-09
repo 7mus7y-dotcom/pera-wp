@@ -750,23 +750,29 @@
       });
       if (e.can_manage) {
         const options = { ...opts.pipelineContext, row: e };
-        intro.append(
-          button("Edit", () => openBooking(e.client_id, options)),
-          button("Reschedule", () =>
-            openBooking(e.client_id, { ...options, focus: "date" }),
-          ),
-          button("Cancel appointment", async () => {
-            await openBooking(e.client_id, options);
-            form.elements.status.value = "cancelled";
-          }),
-          button("Complete", async () => {
-            await openBooking(e.client_id, {
-              ...options,
-              focus: "outcome_notes",
-            });
-            form.elements.status.value = "completed";
-          }),
-        );
+        const actions = el("div", undefined, "appointment-detail-actions");
+        actions.append(button("Edit", () => openBooking(e.client_id, options)));
+        // Only active appointments can be rescheduled or transitioned.
+        // Completed/cancelled appointments remain viewable and editable.
+        if (["confirmed", "tentative"].includes(e.status)) {
+          actions.append(
+            button("Reschedule", () =>
+              openBooking(e.client_id, { ...options, focus: "date" }),
+            ),
+            button("Cancel appointment", async () => {
+              await openBooking(e.client_id, options);
+              form.elements.status.value = "cancelled";
+            }),
+            button("Complete", async () => {
+              await openBooking(e.client_id, {
+                ...options,
+                focus: "outcome_notes",
+              });
+              form.elements.status.value = "completed";
+            }),
+          );
+        }
+        intro.append(actions);
       }
     } catch (e) {
       intro.textContent = e.message;
@@ -834,43 +840,56 @@
     const sf = s.closest('form[data-crm-ajax-form="status"]');
     if (sf) sf.requestSubmit();
   });
+  // Show all client appointments (upcoming and past) without a redundant
+  // "Older appointments" control. The repository already orders them.
+  // Tokens ignore responses from superseded refreshes.
+  const historyRequests = new WeakMap();
   async function histories() {
     for (const container of $$("[data-appointment-history]")) {
-      let offset = 0;
-      container.replaceChildren();
-      const list = el("div");
-      container.append(list);
-      const more = button("Older appointments", load);
-      container.append(more);
-      async function load() {
-        more.disabled = true;
-        try {
+      const request = (historyRequests.get(container) || 0) + 1;
+      historyRequests.set(container, request);
+      container.replaceChildren(el("p", "Loading appointments…"));
+      const rows = [];
+      try {
+        let offset = 0;
+        let more = true;
+        while (more) {
           const result = await api({
             operation: "history",
             client_id: Number(container.dataset.appointmentHistory),
             offset,
           });
-          if (!offset && !result.items.length)
-            list.append(el("p", "No appointments yet."));
-          result.items.forEach((e) => {
-            const row = el("div", undefined, "appointment-history-row");
-            row.append(eventButton(e, cfg.timezone));
-            if (e.location_name) row.append(el("span", e.location_name));
-            if (e.properties.length)
-              row.append(
-                el("span", e.properties.map((p) => p.title).join(" → ")),
-              );
-            list.append(row);
-          });
-          offset += result.items.length;
-          more.hidden = !result.more;
-        } catch (e) {
-          list.append(el("p", e.message));
-        } finally {
-          more.disabled = false;
+          if (historyRequests.get(container) !== request) break;
+          const items = Array.isArray(result.items) ? result.items : [];
+          rows.push(...items);
+          offset += items.length;
+          more = !!result.more && items.length > 0;
+        }
+        if (historyRequests.get(container) !== request) continue;
+        container.replaceChildren();
+        if (!rows.length) {
+          container.append(el("p", "No appointments yet."));
+          continue;
+        }
+        const list = el("div", undefined, "appointment-history-list");
+        rows.forEach((e) => {
+          const row = el("div", undefined, "appointment-history-row");
+          // Clicking the summary opens the shared detail dialog, whose Edit
+          // action is subject to the existing server-provided can_manage flag.
+          row.append(eventButton(e, cfg.timezone));
+          if (e.location_name) row.append(el("span", e.location_name));
+          if (Array.isArray(e.properties) && e.properties.length)
+            row.append(
+              el("span", e.properties.map((p) => p.title).join(" → ")),
+            );
+          list.append(row);
+        });
+        container.append(list);
+      } catch (e) {
+        if (historyRequests.get(container) === request) {
+          container.replaceChildren(el("p", e.message || "Unable to load appointments."));
         }
       }
-      load();
     }
   }
   histories();
