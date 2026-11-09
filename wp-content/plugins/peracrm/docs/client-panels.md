@@ -10,6 +10,7 @@
 | `reminders` | Protected next actions and reminders |
 | `notes` | Protected advisor notes |
 | `timeline` | Protected activity and timeline |
+| `appointments` | Optional appointment history; summary booking action remains available |
 | `deals` | Optional, only canonical lead stages `offer_made` or `deal_closed` |
 | `seller_properties` | Optional, only client type `seller` |
 | `landlord_properties` | Optional, only client type `landlord` |
@@ -22,7 +23,7 @@ Property instructions continue to use PR #1499's single partial and persistence 
 
 ## Preferences and security
 
-One WordPress user-meta record per customized employee/client pair is named `_peracrm_client_panels_v1_{CRM target blog ID}_{client ID}`. Its value is `['version' => 1, 'hidden' => ['deals', ...]]`. A record contains at most the five approved optional keys, even if obsolete or protected keys were injected into storage. There is no growing serialized map of all clients and no eviction that would reset an older client's preferences. Target-blog namespacing also prevents multisite client-ID collisions. There are no new tables or client post-meta preferences.
+One WordPress user-meta record per customized employee/client pair is named `_peracrm_client_panels_v1_{CRM target blog ID}_{client ID}`. Its value is `['version' => 1, 'hidden' => ['deals', ...]]`. A record contains at most the six approved optional keys, even if obsolete or protected keys were injected into storage. There is no growing serialized map of all clients and no eviction that would reset an older client's preferences. Target-blog namespacing also prevents multisite client-ID collisions. There are no new tables or client post-meta preferences.
 
 Reads create no records. The first actual visibility change creates a record; Restore all saves an empty list for this client only, including previously saved ineligible keys. Other clients and users are untouched. Ineligibility, pipeline changes and client-type changes do not mutate preferences. The current logged-in WordPress employee owns the preferences, including when using an advisor scope; the selected advisor is not used as the storage owner.
 

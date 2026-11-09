@@ -384,6 +384,10 @@ peracrm_frontend_render_shell_header();
         </article>
       </section>
 
+      <section class="crm-panel-surface crm-section" aria-labelledby="crm-upcoming-appointments-title">
+        <header class="crm-section__header"><h2 id="crm-upcoming-appointments-title" class="crm-section__title">Upcoming Appointments</h2><a href="<?php echo esc_url(home_url('/crm/appointments/')); ?>">View All Appointments</a></header>
+        <div data-appointment-upcoming="<?php echo (int)(function_exists('peracrm_get_effective_crm_user_id') ? peracrm_get_effective_crm_user_id() : get_current_user_id()); ?>" aria-live="polite">Loading appointments…</div>
+      </section>
       <section class="crm-overview-band crm-overview-band--secondary" aria-labelledby="crm-activity-heading">
         <article class="crm-panel-surface crm-section crm-overview-activity crm-panel">
           <header class="crm-section__header">

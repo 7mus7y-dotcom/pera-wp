@@ -1770,7 +1770,7 @@ if ( ! function_exists( 'pera_crm_client_view_extract_panel_html' ) ) {
 			return '';
 		}
 
-		$allowed_panels = array( 'profile', 'status', 'notes', 'reminders', 'properties', 'deals', 'advisor' );
+		$allowed_panels = array( 'profile', 'status', 'notes', 'reminders', 'properties', 'deals', 'advisor', 'timeline' );
 		if ( ! in_array( $panel, $allowed_panels, true ) ) {
 			return '';
 		}
@@ -1892,7 +1892,7 @@ if ( ! function_exists( 'pera_crm_client_action_ajax' ) ) {
 				$status_payload['disposition'] = sanitize_key( wp_unslash( (string) $_POST['disposition'] ) );
 			}
 			$ok = function_exists( 'peracrm_party_upsert_status' ) ? (bool) peracrm_party_upsert_status( $client_id, $status_payload ) : false;
-			if ( isset( $_POST['peracrm_client_type'] ) && function_exists( 'peracrm_client_update_profile' ) ) {
+			if ( $ok && isset( $_POST['peracrm_client_type'] ) && function_exists( 'peracrm_client_update_profile' ) ) {
 				$ok = (bool) peracrm_client_update_profile(
 					$client_id,
 					array(

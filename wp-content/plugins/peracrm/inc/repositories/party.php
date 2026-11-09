@@ -149,6 +149,13 @@ function peracrm_party_upsert_status($party_id, array $data)
     global $wpdb;
 
     $stage = peracrm_party_sanitize_stage($data['lead_pipeline_stage'] ?? 'new_enquiry');
+    // Every interactive mutation route shares this guard, including bulk/admin saves.
+    // Only the canonical booking transaction can authorize a new viewing transition.
+    if ($stage === 'viewing_arranged' && empty($GLOBALS['peracrm_schema_migrating']) && function_exists('peracrm_appointment_save')
+        && peracrm_party_get($party_id)['lead_pipeline_stage'] !== 'viewing_arranged'
+        && ($GLOBALS['peracrm_appointment_stage_client'] ?? 0) !== $party_id) {
+        return false;
+    }
     $engagement = peracrm_party_sanitize_engagement($data['engagement_state'] ?? 'engaged');
     $disposition = peracrm_party_sanitize_disposition($data['disposition'] ?? 'none');
 

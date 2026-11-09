@@ -40,6 +40,8 @@ jobs:
           find wp-content/plugins/peracrm -name "*.php" -not -path "*/vendor-webpush/*" -print0 | xargs -0 -n1 php -l > /tmp/peracrm-php-lint.log
           node --check wp-content/plugins/peracrm/assets/frontend/crm.js
           node wp-content/plugins/peracrm/tests/client-panels-js-test.js
+          node wp-content/plugins/peracrm/tests/appointments-js-test.js
+          node --check wp-content/plugins/peracrm/assets/frontend/appointments.js
       - name: Prepare disposable browser tooling
         run: npm install --prefix /tmp/peracrm-browser playwright@1.55.0
       - name: Run synthetic WordPress/MySQL fixtures
