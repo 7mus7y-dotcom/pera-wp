@@ -31,6 +31,7 @@ $notes           = is_array( $data['notes'] ?? null ) ? $data['notes'] : array()
 $reminders       = is_array( $data['reminders'] ?? null ) ? $data['reminders'] : array();
 $deals           = is_array( $data['deals'] ?? null ) ? $data['deals'] : array();
 $property_groups = is_array( $data['property_groups'] ?? null ) ? $data['property_groups'] : array();
+$enquiry_submissions = is_array( $data['enquiry_submissions'] ?? null ) ? $data['enquiry_submissions'] : array();
 $timeline_items  = is_array( $data['timeline'] ?? null ) ? $data['timeline'] : array();
 $timeline_filter = sanitize_key( (string) ( $data['timeline_filter'] ?? 'all' ) );
 
@@ -772,11 +773,41 @@ peracrm_frontend_render_shell_header();
               <header class="crm-section__header">
                 <div class="crm-section__heading-group">
                   <h3 class="crm-section__title"><?php esc_html_e( 'Client enquiries', 'peracrm' ); ?></h3>
-                  <p class="crm-section__description"><?php esc_html_e( 'Review enquiry-linked properties from favourites and enquiry activity.', 'peracrm' ); ?></p>
+                  <p class="crm-section__description"><?php esc_html_e( 'Website form submissions and properties the client has enquired about.', 'peracrm' ); ?></p>
                 </div>
               <?php peracrm_client_panel_dismiss('enquiries'); ?>
               </header>
               <section class="crm-client-subsection crm-client-subsection--enquiries">
+                  <div class="crm-enquiries-submissions">
+                    <h4><?php esc_html_e( 'Website enquiries', 'peracrm' ); ?> <span class="crm-enquiries-count"><?php echo esc_html( (string) count( $enquiry_submissions ) ); ?></span></h4>
+                    <?php if ( empty( $enquiry_submissions ) ) : ?>
+                      <p class="crm-section__description"><?php esc_html_e( 'No website form submissions recorded for this client.', 'peracrm' ); ?></p>
+                    <?php else : ?>
+                      <div class="crm-enquiries-submissions__list">
+                      <?php foreach ( $enquiry_submissions as $submission ) :
+                        $payload = function_exists( 'pera_crm_client_view_decode_payload' ) ? pera_crm_client_view_decode_payload( $submission['event_payload'] ?? array() ) : array();
+                        $category = function_exists( 'pera_crm_client_view_enquiry_category' ) ? pera_crm_client_view_enquiry_category( $payload ) : __( 'Website enquiry', 'peracrm' );
+                        $submitted_at = (string) ( $payload['submitted_at'] ?? $submission['created_at'] ?? '' );
+                        $submitted_at = '' !== $submitted_at ? mysql2date( 'd/m/Y H:i', $submitted_at ) : '';
+                        $page_url = esc_url( (string) ( $payload['page_url'] ?? '' ) );
+                        $detail_html = function_exists( 'pera_crm_client_view_render_enquiry_details' )
+                          ? pera_crm_client_view_render_enquiry_details( $payload, function_exists( 'pera_crm_client_view_has_full_timeline_details_access' ) && pera_crm_client_view_has_full_timeline_details_access() )
+                          : '';
+                      ?>
+                        <div class="crm-enquiries-submissions__item">
+                          <div class="crm-enquiries-submissions__header">
+                            <strong><?php echo esc_html( $category ); ?></strong>
+                            <?php if ( '' !== $submitted_at ) : ?><time><?php echo esc_html( $submitted_at ); ?></time><?php endif; ?>
+                          </div>
+                          <?php if ( '' !== $page_url ) : ?><a href="<?php echo $page_url; ?>" target="_blank" rel="noopener noreferrer"><?php esc_html_e( 'Source page', 'peracrm' ); ?></a><?php endif; ?>
+                          <?php if ( '' !== $detail_html ) : echo $detail_html; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- Existing role-filtered enquiry details renderer escapes fields. endif; ?>
+                        </div>
+                      <?php endforeach; ?>
+                      </div>
+                    <?php endif; ?>
+                  </div>
+                  <div class="crm-enquiries-linked-properties">
+                    <h4><?php esc_html_e( 'Enquired properties', 'peracrm' ); ?></h4>
                   <?php foreach ( $property_groups as $relation => $items ) : if ( ! in_array( (string) $relation, $enquiry_relations, true ) || empty( $items ) ) { continue; } ?>
                     <div class="crm-inline-form"><h5><?php echo esc_html( ucfirst( (string) $relation ) ); ?></h5></div>
                       <ul class="crm-list peracrm-linked-properties-grid">
@@ -802,6 +833,7 @@ peracrm_frontend_render_shell_header();
                         <?php endforeach; ?>
                       </ul>
                   <?php endforeach; ?>
+                  </div>
               </section>
             </article>
 
