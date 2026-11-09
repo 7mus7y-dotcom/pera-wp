@@ -1,0 +1,30 @@
+name: CRM pipeline inactive visibility
+on:
+  pull_request:
+    paths:
+      - 'wp-content/plugins/peracrm/inc/frontend-data/crm-data.php'
+      - 'wp-content/plugins/peracrm/inc/views/pages/crm-pipeline.php'
+      - 'wp-content/plugins/peracrm/assets/frontend/crm.css'
+      - 'wp-content/plugins/peracrm/tests/pipeline-inactive-visibility-test.js'
+      - '.github/workflows/crm-pipeline-inactive-visibility.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  pipeline-visibility:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.2'
+          coverage: none
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: PHP syntax
+        run: |
+          php -l wp-content/plugins/peracrm/inc/frontend-data/crm-data.php
+          php -l wp-content/plugins/peracrm/inc/views/pages/crm-pipeline.php
+      - name: Pipeline inactive visibility regression
+        run: node wp-content/plugins/peracrm/tests/pipeline-inactive-visibility-test.js
