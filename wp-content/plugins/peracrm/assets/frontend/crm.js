@@ -2568,14 +2568,24 @@
             document.dispatchEvent(new CustomEvent('peracrm:workspace-panels', { detail: data.workspace_panels || {} }));
           }
           activeForm = resolveLiveForm(activePanel, type, form);
-          setFeedback(activeForm, message, success);
+          // A deleted note's form no longer exists. Place the confirmation
+          // beneath Add note rather than inside the next note's Delete form.
+          var feedbackForm = type === 'note-delete'
+            ? document.querySelector('[data-crm-panel="notes"] form[data-crm-ajax-form="note"]') || activeForm
+            : activeForm;
+          setFeedback(feedbackForm, message, success);
         })
         .catch(function () {
           activeForm = resolveLiveForm(activePanel, type, form);
-          setFeedback(activeForm, 'Unable to save. Please refresh and try again.', false);
+          var feedbackForm = type === 'note-delete'
+            ? document.querySelector('[data-crm-panel="notes"] form[data-crm-ajax-form="note"]') || activeForm
+            : activeForm;
+          setFeedback(feedbackForm, 'Unable to save. Please refresh and try again.', false);
         })
         .finally(function () {
-          activeForm = resolveLiveForm(activePanel, type, form);
+          // Do not alter a surviving note's Delete button after removing
+          // another one: only the original submitted form was disabled.
+          activeForm = type === 'note-delete' ? form : resolveLiveForm(activePanel, type, form);
           setLoading(activeForm, false);
         });
     });
