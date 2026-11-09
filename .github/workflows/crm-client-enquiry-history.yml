@@ -1,0 +1,30 @@
+name: PeraCRM client enquiry history
+on:
+  pull_request:
+    paths:
+      - 'wp-content/plugins/peracrm/inc/frontend-data/crm-client-view.php'
+      - 'wp-content/plugins/peracrm/inc/views/pages/crm-client.php'
+      - 'wp-content/plugins/peracrm/assets/frontend/crm.css'
+      - 'wp-content/plugins/peracrm/tests/client-enquiry-history-test.js'
+      - '.github/workflows/crm-client-enquiry-history.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  enquiry-history:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.2'
+          coverage: none
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: PHP syntax
+        run: |
+          php -l wp-content/plugins/peracrm/inc/frontend-data/crm-client-view.php
+          php -l wp-content/plugins/peracrm/inc/views/pages/crm-client.php
+      - name: Enquiry history structural regression
+        run: node wp-content/plugins/peracrm/tests/client-enquiry-history-test.js
