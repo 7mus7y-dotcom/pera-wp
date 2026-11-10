@@ -25,6 +25,15 @@ peracrm_with_target_blog(static function () {
     global $wpdb;
     $service = withdrawal_service(); $store = withdrawal_store();
     $seed = withdrawal_seed(21001,'withdrawal-sql'); $token = $seed['token'];
+    // The opt-in internal adapter must reject valid customer tokens without
+    // changing consent, suppression, identities, or token state.
+    $restricted=new PeraCRM_CampaignRecipientWithdrawal(withdrawal_store(),withdrawal_keys(),'fixture-withdrawal',true);
+    $restrictedBefore=withdrawal_snapshot();
+    withdrawal_expect($restricted->request('GET',false,$token,'',[])[0]===400,'internal-only GET rejects another mailbox');
+    withdrawal_expect($restricted->request('POST',true,$token,'application/x-www-form-urlencoded','List-Unsubscribe=One-Click')[0]===400,
+        'internal-only machine POST rejects another mailbox');
+    withdrawal_expect($restricted->request('POST',false,$token,'application/x-www-form-urlencoded',['confirm'=>'withdraw'])[0]===400
+        && withdrawal_snapshot()===$restrictedBefore,'internal-only human POST cannot mutate another mailbox');
     $pref = withdrawal_seed(21002,'withdrawal-pref','preferences');
     $expired = withdrawal_seed(21003,'withdrawal-expired','preferences',90000);
     $revoked = withdrawal_seed(21004,'withdrawal-revoked');
@@ -86,6 +95,26 @@ peracrm_with_target_blog(static function () {
     $independent = withdrawal_seed(21003,'withdrawal-expired','unsubscribe',90000);
     withdrawal_expect($service->request('POST',true,$independent['token'],'application/x-www-form-urlencoded','List-Unsubscribe=One-Click')[0] === 200,
         'independent withdrawal remains usable after preference expiry');
+    // Issue fixture-only, registered links for the exact internal mailbox.
+    // No CLI or public issuance path is installed by the runtime adapter.
+    peracrm_test_persistence_subscriber(21020,'info@peraproperty.com');
+    $epoch=$store->ensureIdentity(21020,'info@peraproperty.com');
+    $binding=['blog_id'=>get_current_blog_id(),'subscriber_id'=>21020,'mailbox'=>'info@peraproperty.com',
+        'token_epoch'=>$epoch,'attempt_key'=>hash('sha256','internal-withdrawal'),'snapshot_hash'=>hash('sha256','internal-snapshot')];
+    $issuer=new PeraCRM_CampaignRecipientTokens(withdrawal_keys(),'k1','fixture-withdrawal',[$store,'activeBinding']);
+    $issued=time();
+    $internalToken=$issuer->issue('unsubscribe',$binding,$issued);
+    $store->registerToken(hash('sha256',$internalToken),'unsubscribe','k1',$issued,0,$binding);
+    $internalBefore=withdrawal_snapshot();
+    withdrawal_expect($restricted->request('GET',false,$internalToken,'',[])[0]===200
+        && $restricted->request('HEAD',false,$internalToken,'',[])[0]===200
+        && withdrawal_snapshot()===$internalBefore,'internal mailbox display remains read-only');
+    withdrawal_expect($restricted->request('POST',true,$internalToken,'application/x-www-form-urlencoded','List-Unsubscribe=One-Click')[0]===200,
+        'exact internal mailbox one-click withdrawal commits');
+    $internalAfter=withdrawal_snapshot();
+    withdrawal_expect($restricted->request('POST',false,$internalToken,'application/x-www-form-urlencoded',['confirm'=>'withdraw'])[0]===200
+        && withdrawal_snapshot()===$internalAfter,'internal withdrawal remains idempotent');
+
     $http = ['target'=>home_url('/')];
     foreach (['desktop','mobile','machine','revoked'] as $i=>$name) {
         $entry = withdrawal_seed(21100+$i,'withdrawal-http-'.$name);

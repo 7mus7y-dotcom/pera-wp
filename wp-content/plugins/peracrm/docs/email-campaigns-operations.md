@@ -1019,3 +1019,41 @@ Check `internal-probe-status` first: the second permit must show a saved
 must be unused. Accepted, ambiguous, unfinished and other rejection outcomes
 cannot unlock the third permit. The fixed inbox, role, capture, and durable
 claim and outcome rules are unchanged. There is no fourth permit.
+
+## Internal mailbox unsubscribe verification adapter
+
+The live SES probe proved host-to-SES delivery, not campaign unsubscribe or
+bounce/complaint processing. The next deployment adapter is verification-only:
+`PERACRM_CAMPAIGN_WITHDRAWAL_HTTP === true` opts the existing public withdrawal
+routes into the deployment-bound signing-key verifier. The adapter accepts
+only durable registered unsubscribe tokens bound to the exact mailbox
+`info@peraproperty.com`. All other mailbox tokens are rejected before mutation.
+It cannot issue tokens, prepare campaigns, send mail, or alter dispatch.
+
+This remains off by default. Do not turn it on merely because the PR is deployed.
+For an authorized internal rehearsal, load only the deployment pins,
+independent instance ID and retained signing-key material into HTTP requests
+from the host's private configuration, and opt in explicitly. No AWS
+credentials, token URLs, arbitrary key paths or ambient discovery are part of
+this factory. Confirm target blog, canonical origin and instance binding first.
+An unavailable scope, schema or key ring leaves the route unavailable.
+
+GET and HEAD display confirmation without changing consent. Only confirmed
+human POST or the exact one-click form POST can commit a withdrawal. The normal
+store still verifies purpose, signature, retained key, epoch and durable
+identity/token binding under its existing transaction and mailbox locks.
+Retain verification keys for the full lifetime of outstanding unsubscribe
+tokens even after their issuance window ends.
+
+The internal fixture now exercises valid external-mailbox rejection without
+writes, exact internal-mailbox confirmation, one-click withdrawal and duplicate
+idempotency in both WordPress topologies. Existing authenticated SES
+bounce/complaint fixtures continue to exercise cumulative suppression and
+unknown-outcome fences. These are local tests, not live provider observations.
+
+Before a live campaign rehearsal, prepare and approve a campaign restricted to
+the internal subscriber, install the separate reviewed worker/send authorization,
+and arrange authenticated event intake. Those paths remain disabled here.
+Verify the actual unsubscribe link and SES bounce/complaint events before any
+customer rollout. A future campaign budget must support at least 5,000 eligible
+deliveries per day; the existing 20/day cap remains diagnostic only.
